@@ -2,11 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import { borrowers, dueFor, sampleDate, type Locale, type Borrower } from './fixtures';
 import './style.css';
+const logoUrl = new URL('./assets/loan-manager-logo.png', import.meta.url).href;
 const routes = [
   ['dashboard', 'Dashboard', 'ภาพรวม', '◫'], ['collection', 'Collection', 'ติดตามชำระ', '◷'], ['payments', 'Payments', 'การชำระเงิน', '↗'], ['borrowers', 'Borrowers', 'ผู้กู้', '◎'], ['loans', 'Loans', 'สัญญาเงินกู้', '▤'], ['charges', 'Upcoming Charges', 'ยอดเรียกเก็บถัดไป', '▦'], ['expenses', 'Business Expenses', 'ค่าใช้จ่ายธุรกิจ', '↙'], ['statement', 'Cash Statement', 'รายการเงินสด', '≡'],
   ['partners', 'Partners', 'หุ้นส่วน', '◇'], ['position', 'Cash Position', 'สถานะเงินสด', '◉'], ['accounts', 'Cash Accounts', 'บัญชีเงินสด', '▣'], ['assessment', 'Loan Assessment', 'ประเมินสินเชื่อ', '✓'], ['analytics', 'Analytics / history', 'วิเคราะห์ / ประวัติ', '▥'],
 ];
 function App() {
+  // Presentation only: never infer service identity from Vite's build mode.
+  const [previewTheme, setPreviewTheme] = useState<'dev' | 'prod'>(() => new URLSearchParams(window.location.search).get('theme') === 'prod' ? 'prod' : 'dev');
   const [locale, setLocale] = useState<Locale>('en');
   const [route, setRoute] = useState('collection');
   const [query, setQuery] = useState('');
@@ -79,11 +82,10 @@ function App() {
       <span className="arrow">↗</span>
     </span>
   </button>;
-  return <div className="app-shell">
+  return <div className="app-shell" data-preview-theme={previewTheme}>
     <aside ref={sidebarRef} className={'sidebar ' + (menu ? 'open' : '')}>
       <a className="brand" href="#" onClick={e => { e.preventDefault(); go('collection'); }}>
-        <span className="brand-mark">M<span>W</span>
-        </span>
+        <img className="brand-logo" src={logoUrl} alt="Loan Manager" />
         <span>MW Credit<small>
           {t('WORKSPACE PREVIEW', 'ตัวอย่างพื้นที่ทำงาน')}
         </small>
@@ -130,6 +132,11 @@ function App() {
         </div>
       </header>
       <main>
+        <div className="theme-preview" role="group" aria-label={t('Theme preview', 'ตัวอย่างสี')}>
+          <span>{t('Colors only · no environment change', 'ตัวอย่างสีเท่านั้น · ไม่เปลี่ยนระบบ')}</span>
+          <button aria-pressed={previewTheme === 'dev'} onClick={() => setPreviewTheme('dev')}>DEV</button>
+          <button aria-pressed={previewTheme === 'prod'} onClick={() => setPreviewTheme('prod')}>PROD</button>
+        </div>
         <div className="preview-strip">
           <span className="preview-dot" />
           {t('Design preview · synthetic data', 'ตัวอย่างการออกแบบ · ข้อมูลสมมติ')}
@@ -160,7 +167,7 @@ function App() {
         </div>
         {functional ? <>
           <section className="metrics" aria-label={t('Sample summary', 'สรุปข้อมูลตัวอย่าง')}>
-            <div className="metric featured">
+            <div className="metric">
               <span>
                 {t('Total due · sample portfolio', 'ยอดถึงกำหนดรวม · ชุดข้อมูลตัวอย่าง')}
               </span>
@@ -185,18 +192,7 @@ function App() {
                 {t('Derived from the sample charges', 'คำนวณจากรายการเรียกเก็บตัวอย่าง')}
               </small>
             </div>
-            <div className="metric">
-              <span>
-                {t('Principal outstanding · sample portfolio', 'เงินต้นคงเหลือ · ชุดข้อมูลตัวอย่าง')}
-              </span>
-              <strong>
-                {money(borrowers.reduce((s, b) => s + b.principal, 0))}
-              </strong>
-              <small>
-                {t('Separate from the amount due', 'แยกจากยอดถึงกำหนดชำระ')}
-              </small>
-            </div>
-          </section>
+</section>
           <div className={'work-grid ' + (current ? 'has-detail' : '')}>
             <section className="list-panel">
               <div className="section-heading">

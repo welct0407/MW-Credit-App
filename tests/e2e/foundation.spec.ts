@@ -10,7 +10,8 @@ test('reconciles sample charges separately from principal and filters collection
  expect(due).toBe(4400); expect(borrowers.reduce((s,b)=>s+b.principal,0)).toBe(90000);
  expect(amount(await page.getByTestId('total-due').textContent())).toBe(due);
  await expect(page.getByRole('region',{name:'Sample summary'})).toContainText('03 borrowers');
- await expect(page.getByRole('region',{name:'Sample summary'})).toContainText('90,000');
+ await expect(page.getByRole('region',{name:'Sample summary'})).not.toContainText('90,000');
+ await expect(page.locator('.metric')).toHaveCount(2);
  await expect(cards(page)).toHaveCount(3);
  await page.getByLabel('Filter borrowers').selectOption('overdue');await expect(cards(page)).toHaveCount(1);await expect(page.getByTestId('borrower-SAMPLE-002')).toBeVisible();
  await page.getByLabel('Filter borrowers').selectOption('due');await expect(cards(page)).toHaveCount(2);
@@ -54,4 +55,29 @@ test('mobile drawer traps focus, closes with Escape and returns focus',async({pa
 });
 test('Thai mobile review screenshot',async({page},testInfo)=>{
  test.skip(!testInfo.project.name.startsWith('mobile'));await page.setViewportSize({width:390,height:844});await page.getByRole('button',{name:'ไทย',exact:true}).click();await page.screenshot({path:'outputs/r052-preview/mobile-thai-collection.png',fullPage:true});await page.setViewportSize({width:360,height:844});await noOverflow(page);await page.screenshot({path:'outputs/r052-preview/mobile-thai-360-viewport.png'});await page.getByTestId('borrower-SAMPLE-003').scrollIntoViewIfNeeded();await page.getByTestId('borrower-SAMPLE-003').click();await expect(page.getByRole('region',{name:'รายละเอียดผู้กู้'})).toContainText('นิดา');await page.getByRole('button',{name:'กลับไปรายการ'}).click();await page.getByTestId('borrower-SAMPLE-002').click();await page.screenshot({path:'outputs/r052-preview/mobile-thai-detail.png',fullPage:true});await page.getByRole('button',{name:'บันทึกการชำระ · อยู่ในแผน'}).scrollIntoViewIfNeeded();await expect(page.getByRole('button',{name:'บันทึกการชำระ · อยู่ในแผน'})).toBeVisible();
+});
+
+test('AppSheet colors are presentation only with white surfaces and original logo',async({page},testInfo)=>{
+ const mobile=testInfo.project.name.startsWith('mobile');
+ await page.setViewportSize(mobile?{width:390,height:844}:{width:1440,height:900});
+ const requests:string[]=[];page.on('request',request=>{requests.push(request.url())});
+ const logo=page.locator('.brand-logo');
+ expect(await logo.evaluate((img:HTMLImageElement)=>img.complete&&img.naturalWidth>0)).toBe(true);
+ await expect(logo).toHaveAttribute('alt','Loan Manager');
+ for(const [theme,color] of [['dev','rgb(232, 113, 10)'],['prod','rgb(216, 27, 96)']]){
+  await page.getByRole('group',{name:'Theme preview'}).getByRole('button',{name:theme.toUpperCase(),exact:true}).click();
+  await expect(page.locator('.app-shell')).toHaveAttribute('data-preview-theme',theme);
+  await expect(page.locator('.topbar')).toHaveCSS('border-top-color',color);
+  await expect(page.getByText('Colors only · no environment change',{exact:true})).toBeVisible();
+  for(const metric of await page.locator('.metric').all())await expect(metric).toHaveCSS('background-color','rgb(255, 255, 255)');
+  for(const label of await page.locator('.metric > span,.metric > strong,.metric small,.status').all())await expect(label).toHaveCSS('background-color','rgba(0, 0, 0, 0)');
+  await noOverflow(page);
+  await page.screenshot({path:`outputs/r052-preview/${theme}-${mobile?'mobile':'desktop'}-style-viewport.png`});
+  await page.getByTestId('borrower-SAMPLE-002').click();await page.mouse.move(0,0);await expect(page.locator('.borrower-card.selected')).toHaveCSS('background-color','rgb(255, 255, 255)');
+  if(mobile)await page.getByRole('button',{name:'Back to list'}).click();
+ }
+ expect(requests).toEqual([]);
+ await page.reload();await expect(page.locator('.app-shell')).toHaveAttribute('data-preview-theme','dev');
+ await page.goto('/?theme=prod');await expect(page.locator('.app-shell')).toHaveAttribute('data-preview-theme','prod');await expect(page.getByTestId('total-due')).toContainText('4,400');
+ await page.setViewportSize({width:360,height:844});await noOverflow(page);
 });

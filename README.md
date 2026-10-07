@@ -27,3 +27,5 @@ Run `npm run check` and `npm run test:e2e` before publication. Never put credent
 Start the local server with the commands above, then use its printed local URL. Collection and Borrowers support sample search/filter/detail review and English/Thai switching; other modules are planned scope. All records and dates are examples. Closing the preview discards its in-memory selections.
 
 Owner review focuses on desktop/mobile navigation, amount labels, search/detail flow and translations. Acceptance of this preview is not acceptance of authentication, live financial behavior, offline operation or full feature parity. See the checkpoint evidence under outputs/r052-preview after verification.
+
+Checkpoint 1A visual revision uses the [recorded OLTP branding](docs/Branding.md). Review DEV colors by default or use ?theme=prod / the colors-only selector for the PROD palette. This never connects to production. The portfolio outstanding summary has been removed.

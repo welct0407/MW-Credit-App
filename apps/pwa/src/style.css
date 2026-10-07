@@ -1,7 +1,7 @@
 :root {
   font-family: Inter,"Segoe UI",Tahoma,sans-serif;
-  color: #233d35;
-  background: #f6f7f3;
+  color: #565656;
+  background: #fff;
   font-synthesis: none;
   font-weight: 400;
   font-size: 14px
@@ -22,7 +22,7 @@ button {
   cursor: pointer
 }
 button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible {
-  outline: 3px solid #bd9144;
+  outline: 3px solid #dedede;
   outline-offset: 3px
 }
 button:disabled {
@@ -42,8 +42,8 @@ a {
 .sidebar {
   width: 244px;
   flex-shrink: 0;
-  background: #163e34;
-  color: #e0eae5;
+  background: #fff;
+  color: #565656;
   padding: 32px 18px 22px;
   display: flex;
   flex-direction: column;
@@ -66,15 +66,15 @@ a {
   font-size: 8px;
   letter-spacing: 1.7px;
   font-weight: 500;
-  color: #a5bfb2;
+  color: #565656;
   margin-top: 6px
 }
 .brand-mark {
   font-family: Georgia,serif;
   font-size: 32px;
   line-height: 28px;
-  color: #e3cc95;
-  border-bottom: 1px solid #c4b181;
+  color: #565656;
+  border-bottom: 1px solid #dedede;
   padding-bottom: 5px;
   letter-spacing: -6px;
   width: 43px
@@ -85,12 +85,12 @@ a {
 .nav-caption {
   font-size: 9px;
   letter-spacing: 1.8px;
-  color: #9eb9ac;
+  color: #565656;
   padding: 13px 13px 9px
 }
 .management {
   margin-top: 20px;
-  border-top: 1px solid #315449;
+  border-top: 1px solid #dedede;
   padding-top: 22px
 }
 .nav-item {
@@ -100,8 +100,8 @@ a {
   width: 100%;
   border: 0;
   text-align: left;
-  background: none;
-  color: #c5d8cf;
+  background: #fff;
+  color: #565656;
   padding: 10px 13px;
   margin: 2px 0;
   border-radius: 7px;
@@ -109,11 +109,11 @@ a {
   min-height: 38px
 }
 .nav-item:hover {
-  background: #245043
+  background: #fff
 }
 .nav-item.active {
-  background: #e5eedf;
-  color: #173e32;
+  background: #fff;
+  color: #565656;
   font-weight: 650
 }
 .nav-icon {
@@ -124,11 +124,11 @@ a {
 }
 .planned-dot {
   margin-left: auto;
-  color: #98b2a5
+  color: #565656
 }
 .sidebar-foot {
   font-size: 10px;
-  color: #becfc5;
+  color: #565656;
   margin-top: auto;
   padding: 35px 12px 0;
   line-height: 1.6
@@ -136,14 +136,14 @@ a {
 .sidebar-foot small {
   display: block;
   font-size: 9px;
-  color: #8eac9d;
+  color: #565656;
   margin-top: 6px
 }
 .outline-dot {
   display: inline-block;
   width: 6px;
   height: 6px;
-  border: 1px solid #bad5a8;
+  border: 1px solid #dedede;
   border-radius: 50%;
   margin-right: 6px
 }
@@ -153,8 +153,8 @@ a {
 }
 .topbar {
   height: 75px;
-  border-bottom: 1px solid #e2e6df;
-  background: #fffefa;
+  border-bottom: 1px solid #dedede;
+  background: #fff;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -162,33 +162,33 @@ a {
 }
 .breadcrumb {
   font-size: 12px;
-  color: #7e8c83;
+  color: #565656;
   display: flex;
   gap: 15px
 }
 .breadcrumb strong {
   font-weight: 500;
-  color: #344f42
+  color: #565656
 }
 .language {
   display: flex;
   gap: 3px;
-  border: 1px solid #e0e5dc;
+  border: 1px solid #dedede;
   border-radius: 6px;
   padding: 3px
 }
 .language button {
   border: 0;
-  background: transparent;
-  color: #66786d;
+  background: #fff;
+  color: #565656;
   border-radius: 4px;
   min-width: 35px;
   padding: 5px;
   font-size: 11px
 }
 .language button[aria-pressed=true] {
-  background: #e8eee3;
-  color: #2a4a39;
+  background: #fff;
+  color: #565656;
   font-weight: 700
 }
 main {
@@ -202,24 +202,24 @@ main {
   font-size: 10px;
   font-weight: 600;
   letter-spacing: .2px;
-  color: #796948;
+  color: #565656;
   padding: 10px 13px;
-  border: 1px solid #e8dfc9;
-  background: #faf6ea;
+  border: 1px solid #dedede;
+  background: #fff;
   border-radius: 5px;
   gap: 7px
 }
 .preview-dot {
   height: 5px;
   width: 5px;
-  background: #9a8353;
+  background: #fff;
   border-radius: 50%;
   flex-shrink: 0
 }
 .preview-detail {
   margin-left: auto;
   font-weight: 400;
-  color: #8b816c
+  color: #565656
 }
 .page-heading {
   display: flex;
@@ -231,7 +231,7 @@ main {
 .eyebrow {
   font-size: 9px;
   letter-spacing: 1.6px;
-  color: #7c8c7f;
+  color: #565656;
   font-weight: 600
 }
 h1 {
@@ -246,7 +246,7 @@ p {
 }
 .page-heading p {
   font-size: 12px;
-  color: #768477;
+  color: #565656;
   margin: 8px 0 0
 }
 .sample-date {
@@ -256,7 +256,7 @@ p {
 }
 .sample-date span {
   display: block;
-  color: #8b9486;
+  color: #565656;
   font-size: 10px;
   margin-bottom: 7px
 }
@@ -267,9 +267,9 @@ p {
 .metrics {
   display: grid;
   grid-template-columns: 1.12fr .85fr 1.1fr;
-  border: 1px solid #dfe5da;
+  border: 1px solid #dedede;
   border-radius: 9px;
-  background: #fffefa;
+  background: #fff;
   overflow: hidden;
   margin-bottom: 26px
 }
@@ -278,14 +278,14 @@ p {
   display: flex;
   flex-direction: column;
   gap: 11px;
-  border-right: 1px solid #e1e6db
+  border-right: 1px solid #dedede
 }
 .metric:last-child {
   border: 0
 }
 .metric>span {
   font-size: 11px;
-  color: #71816e
+  color: #565656
 }
 .metric>strong {
   font-weight: 450;
@@ -296,7 +296,7 @@ p {
 .metric small {
   font-size: 10px;
   font-weight: 400;
-  color: #8b9686;
+  color: #565656;
   letter-spacing: 0
 }
 .metric strong small {
@@ -304,10 +304,10 @@ p {
   margin-left: 4px
 }
 .featured {
-  background: #edf1e7
+  background: #fff
 }
 .featured>strong {
-  color: #24583e
+  color: #565656
 }
 .work-grid {
   display: grid;
@@ -316,8 +316,8 @@ p {
   align-items: start
 }
 .list-panel,.detail-panel {
-  background: #fffefa;
-  border: 1px solid #e0e6dc;
+  background: #fff;
+  border: 1px solid #dedede;
   border-radius: 9px;
   overflow: hidden
 }
@@ -335,11 +335,11 @@ p {
 }
 .section-heading span {
   font-size: 10px;
-  color: #94a08c
+  color: #565656
 }
 .section-heading .section-symbol {
   font-size: 24px;
-  color: #8ba079
+  color: #565656
 }
 .filters {
   display: flex;
@@ -350,7 +350,7 @@ p {
   display: flex;
   align-items: center;
   gap: 7px;
-  border: 1px solid #dfe4d8;
+  border: 1px solid #dedede;
   border-radius: 5px;
   padding: 8px 10px;
   min-width: 0;
@@ -360,7 +360,7 @@ p {
 .search>span {
   font-size: 22px;
   line-height: 14px;
-  color: #7f9076
+  color: #565656
 }
 .search input {
   min-width: 0;
@@ -368,14 +368,14 @@ p {
   border: 0;
   outline: 0;
   font-size: 11px;
-  background: transparent;
-  color: #354736
+  background: #fff;
+  color: #565656
 }
 .search:focus-within {
-  outline: 2px solid #bd9144
+  outline: 2px solid #dedede
 }
 .search input::placeholder {
-  color: #9ba591
+  color: #565656
 }
 .filter-label {
   display: flex;
@@ -383,12 +383,12 @@ p {
   max-width: 43%
 }
 .filters select {
-  border: 1px solid #dfe4d8;
+  border: 1px solid #dedede;
   border-radius: 5px;
   background: #fff;
   font-size: 10px;
   padding: 9px 7px;
-  color: #5e7057;
+  color: #565656;
   width: 100%
 }
 .borrower-card {
@@ -397,18 +397,18 @@ p {
   gap: 12px;
   width: 100%;
   border: 0;
-  border-top: 1px solid #edf0e7;
-  background: none;
+  border-top: 1px solid #dedede;
+  background: #fff;
   padding: 22px;
   text-align: left;
   position: relative;
   min-height: 112px
 }
 .borrower-card:hover {
-  background: #f4f6ed
+  background: #fff
 }
 .borrower-card.selected {
-  background: #edf2e7;
+  background: #fff;
   box-shadow: inset 3px 0 #567c48
 }
 .avatar {
@@ -418,8 +418,8 @@ p {
   width: 39px;
   height: 39px;
   border-radius: 50%;
-  background: #e8ecdf;
-  color: #698058;
+  background: #fff;
+  color: #565656;
   font-size: 12px;
   font-weight: 500;
   flex-shrink: 0
@@ -437,25 +437,25 @@ p {
 }
 .person>span:not(.status) {
   font-size: 9px;
-  color: #939d8b
+  color: #565656
 }
 .status {
   font-size: 9px!important;
   display: inline-block;
   width: fit-content;
-  background: #edf2e5;
-  color: #66804c;
+  background: #fff;
+  color: #565656;
   padding: 4px 7px;
   border-radius: 4px;
   line-height: 1.2
 }
 .status.overdue {
-  background: #f9e9dc;
-  color: #a46e3d
+  background: #fff;
+  color: #565656
 }
 .status.clear {
-  background: #eef0eb;
-  color: #7a8970
+  background: #fff;
+  color: #565656
 }
 .card-amount {
   display: flex;
@@ -471,17 +471,17 @@ p {
 }
 .card-amount>span {
   font-size: 9px;
-  color: #939d8b
+  color: #565656
 }
 .card-amount .arrow {
-  color: #6e875c;
+  color: #565656;
   font-size: 15px
 }
 .list-foot {
   padding: 15px 22px;
-  background: #fafbf7;
-  border-top: 1px solid #eaf0e2;
-  color: #a0aa94;
+  background: #fff;
+  border-top: 1px solid #dedede;
+  color: #565656;
   font-size: 9px
 }
 .detail-panel {
@@ -492,7 +492,7 @@ p {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(140deg,#fffefa,#f7f9f1)
+  background: #fff
 }
 .detail-empty {
   max-width: 270px;
@@ -507,9 +507,9 @@ p {
   justify-content: center;
   align-items: center;
   font-size: 50px;
-  color: #78906b;
-  background: #eef2e6;
-  border: 1px solid #e0e6d4;
+  color: #565656;
+  background: #fff;
+  border: 1px solid #dedede;
   border-radius: 12px;
   position: relative
 }
@@ -519,8 +519,8 @@ p {
   font-size: 20px;
   right: -10px;
   bottom: 8px;
-  background: #dce7d0;
-  border: 5px solid #f9faf5;
+  background: #fff;
+  border: 5px solid #dedede;
   width: 39px;
   height: 39px;
   line-height: 27px;
@@ -534,11 +534,11 @@ p {
 }
 .detail-empty p {
   font-size: 11px;
-  color: #8b967f
+  color: #565656
 }
 .detail-empty>div {
   font-size: 10px;
-  color: #6c855a;
+  color: #565656;
   margin-top: 29px
 }
 .detail-empty>div span {
@@ -561,7 +561,7 @@ p {
 }
 .detail-id {
   font-size: 10px;
-  color: #94a08b;
+  color: #565656;
   margin: 0
 }
 .detail-amounts {
@@ -569,14 +569,14 @@ p {
   grid-template-columns: 1fr 1fr;
   gap: 10px;
   margin: 22px 0;
-  background: #f4f6ee;
+  background: #fff;
   padding: 16px;
   border-radius: 6px
 }
 .detail-amounts span {
   display: block;
   font-size: 9px;
-  color: #859378
+  color: #565656
 }
 .detail-amounts strong {
   display: block;
@@ -586,18 +586,18 @@ p {
   letter-spacing: -.5px
 }
 .issue-note {
-  border-left: 2px solid #a1b594;
+  border-left: 2px solid #dedede;
   padding: 3px 12px;
   margin: 21px 0;
   font-size: 10px;
-  color: #79896b
+  color: #565656
 }
 .issue-note.attention {
-  border-color: #c79660
+  border-color: #dedede
 }
 .issue-note strong {
   font-weight: 500;
-  color: #627654
+  color: #565656
 }
 .issue-note p {
   margin: 5px 0
@@ -611,10 +611,10 @@ p {
 }
 .detail-section-title span {
   font-size: 10px;
-  color: #93a180
+  color: #565656
 }
 .loan {
-  border: 1px solid #e4e9dc;
+  border: 1px solid #dedede;
   border-radius: 5px;
   padding: 13px;
   margin-bottom: 10px
@@ -628,7 +628,7 @@ p {
   font-weight: 600
 }
 .loan-title span {
-  color: #99a48e;
+  color: #565656;
   font-size: 9px
 }
 .loan dl {
@@ -640,10 +640,10 @@ p {
   justify-content: space-between;
   font-size: 10px;
   padding: 7px 0;
-  border-top: 1px solid #edf0e7
+  border-top: 1px solid #dedede
 }
 .loan dt {
-  color: #8a987e
+  color: #565656
 }
 .loan dt small {
   display: block;
@@ -658,11 +658,11 @@ p {
   display: flex;
   align-items: center;
   gap: 12px;
-  border: 1px dashed #d6dfcd;
+  border: 1px dashed #dedede;
   border-radius: 5px;
   padding: 13px;
   margin-top: 18px;
-  color: #8c9b7e
+  color: #565656
 }
 .receipt>span {
   font-size: 23px
@@ -678,16 +678,16 @@ p {
 .post-button {
   width: 100%;
   padding: 12px;
-  background: #e4e9de;
-  color: #97a08e;
-  border: 1px solid #dce3d3;
+  background: #fff;
+  color: #565656;
+  border: 1px solid #dedede;
   border-radius: 5px;
   margin-top: 19px;
   font-size: 11px
 }
 .action-note {
   font-size: 9px;
-  color: #94a087;
+  color: #565656;
   text-align: center;
   margin-bottom: 0
 }
@@ -698,17 +698,17 @@ p {
   font-size: 10px;
   letter-spacing: .5px;
   font-weight: 500;
-  background: #f4f6ee;
+  background: #fff;
   padding: 10px 22px;
   margin: 0;
-  color: #7b8b6c;
+  color: #565656;
   display: flex;
   justify-content: space-between
 }
 .empty-state {
   text-align: center;
   padding: 45px 22px 55px;
-  color: #829274
+  color: #565656
 }
 .empty-state>span {
   font-size: 35px
@@ -721,21 +721,21 @@ p {
   font-size: 11px
 }
 .secondary-button {
-  border: 1px solid #b8c8a6;
+  border: 1px solid #dedede;
   border-radius: 5px;
   padding: 10px 15px;
-  background: #eef3e6;
-  color: #4b673c;
+  background: #fff;
+  color: #565656;
   font-size: 11px
 }
 .page-footer {
   display: flex;
   justify-content: space-between;
   gap: 20px;
-  border-top: 1px solid #e2e7dc;
+  border-top: 1px solid #dedede;
   padding: 20px 0;
   margin-top: 32px;
-  color: #9ca891;
+  color: #565656;
   font-size: 9px
 }
 .page-footer>span {
@@ -746,8 +746,8 @@ p {
   max-width: 740px;
   padding: 55px 35px;
   text-align: center;
-  border: 1px solid #dfe6d7;
-  background: #fffefa;
+  border: 1px solid #dedede;
+  background: #fff;
   border-radius: 9px;
   margin: 35px auto;
   min-height: 400px
@@ -755,7 +755,7 @@ p {
 .planned-icon {
   display: block;
   font-size: 48px;
-  color: #8b9e77;
+  color: #565656;
   margin-bottom: 25px
 }
 .planned-panel h2 {
@@ -767,14 +767,14 @@ p {
   max-width: 480px;
   margin: 15px auto;
   font-size: 12px;
-  color: #839374
+  color: #565656
 }
 .planned-panel button {
   margin-top: 15px
 }
 .muted {
   font-size: 11px;
-  color: #94a186
+  color: #565656
 }
 .mobile-nav,.menu-toggle,.menu-scrim {
   display: none
@@ -917,10 +917,10 @@ p {
   }
   .back-button {
     display: inline-block;
-    background: none;
+    background: #fff;
     border: 0;
     padding: 0 0 20px;
-    color: #6e845b;
+    color: #565656;
     font-size: 11px
   }
   .metric {
@@ -997,7 +997,7 @@ p {
     display: block;
     position: fixed;
     inset: 0;
-    background: #102f2777;
+    background: #00000055;
     border: 0;
     z-index: 35
   }
@@ -1008,11 +1008,11 @@ p {
   }
   .menu-toggle {
     display: block;
-    background: none;
+    background: #fff;
     border: 0;
     font-size: 20px;
     padding: 4px;
-    color: #5d7850
+    color: #565656
   }
   .breadcrumb {
     flex: 1;
@@ -1074,7 +1074,7 @@ p {
   }
   .metric:last-child {
     grid-column: 1/-1;
-    border-top: 1px solid #e1e6db;
+    border-top: 1px solid #dedede;
     display: grid;
     grid-template-columns: 1fr auto;
     align-items: center;
@@ -1180,8 +1180,8 @@ p {
     left: 0;
     right: 0;
     z-index: 30;
-    background: #fffefaf5;
-    border-top: 1px solid #dfe6d6;
+    background: #fff;
+    border-top: 1px solid #dedede;
     padding: 7px 20px max(8px,env(safe-area-inset-bottom));
     backdrop-filter: blur(12px);
     justify-content: space-around
@@ -1191,10 +1191,10 @@ p {
     flex-direction: column;
     align-items: center;
     gap: 3px;
-    background: none;
+    background: #fff;
     border: 0;
     font-size: 9px;
-    color: #8b9b7b;
+    color: #565656;
     min-width: 80px;
     padding: 4px
   }
@@ -1203,7 +1203,7 @@ p {
     line-height: 22px
   }
   .mobile-nav button[aria-current=page] {
-    color: #315b38;
+    color: #565656;
     font-weight: 650
   }
   .planned-panel {
@@ -1229,7 +1229,7 @@ p {
 .detail-id, .detail-amounts span, .loan dt, .loan-title span,
 .receipt, .action-note, .page-footer, .page-heading p, .detail-empty p,
 .planned-panel p, .muted {
-  color: #62715b;
+  color: #565656;
 }
 @media (max-width: 650px) {
   .preview-strip { font-size: 11px; line-height: 1.5; }
@@ -1255,7 +1255,7 @@ p {
   .back-button, .secondary-button, .post-button { font-size: 12px; min-height: 44px; }
   .back-button { padding: 0 0 14px; }
   .empty-state p, .planned-panel p { font-size: 12px; }
-  .mobile-nav button { font-size: 11px; min-height: 48px; color: #657958; }
+  .mobile-nav button { font-size: 11px; min-height: 48px; color: #565656; }
   .page-footer, .page-footer > span { font-size: 11px; }
   .page-footer > span { max-width: 80px; }
   .sidebar-foot, .sidebar-foot small { font-size: 11px; }
@@ -1263,4 +1263,58 @@ p {
   .sidebar .nav-item { min-height: 44px; }
   .language button { font-size: 12px; min-height: 36px; min-width: 39px; }
   main { padding-bottom: 85px; }
+}
+
+/* Exact recorded AppSheet primary colors; neutral supporting colors are PWA choices. */
+.app-shell {
+  --brand-primary: #e8710a;
+  color: #333;
+  background: #f7f7f7;
+  color-scheme: light;
+}
+.app-shell[data-preview-theme="prod"] { --brand-primary: #d81b60; }
+.sidebar { border-right: 1px solid #e1e1e1; background: #fff; color: #333; }
+.brand-logo { width: 48px; height: 48px; object-fit: contain; flex-shrink: 0; }
+.brand { gap: 10px; padding-left: 6px; }
+.brand small { letter-spacing: 1px; }
+.topbar { border-top: 4px solid var(--brand-primary); }
+.nav-item { color: #555; border-left: 3px solid transparent; }
+.nav-item.active { border-left-color: var(--brand-primary); background: #fff; color: #222; }
+.nav-item:hover { background: #f5f5f5; }
+.metrics { grid-template-columns: 1fr 1fr; background: #fff; }
+.metric { background: #fff; }
+.metric:last-child { border: 0; }
+.metric > strong { color: #333; }
+.borrower-card.selected { background: #fff; box-shadow: inset 3px 0 var(--brand-primary); }
+.borrower-card:hover { background: #fafafa; }
+.person, .person > strong, .person > span, .card-amount, .card-amount > strong,
+.card-amount > span, .metric > span, .metric > strong, .metric small,
+.detail-amounts > div, .detail-amounts span, .detail-amounts strong { background: transparent; }
+.status { background: transparent; color: #565656; padding-left: 0; }
+.status.overdue { background: transparent; color: #a14114; }
+.status.clear { background: transparent; color: #565656; }
+.detail-panel.unselected { background: #fff; }
+.detail-amounts { background: #fff; border-top: 1px solid #e6e6e6; border-bottom: 1px solid #e6e6e6; border-radius: 0; }
+.avatar { background: #f4f4f4; color: #555; }
+.issue-note { border-left-color: var(--brand-primary); }
+.issue-note.attention { border-left-color: #a14114; }
+.post-button { background: #f4f4f4; color: #767676; }
+.mobile-nav { background: #fff; }
+.mobile-nav button[aria-current="page"] { color: #333; box-shadow: inset 0 -3px var(--brand-primary); }
+.language button[aria-pressed="true"] { background: #f2f2f2; color: #333; }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible,
+.search:focus-within { outline-color: var(--brand-primary); }
+.theme-preview { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-bottom: 12px; font-size: 11px; color: #666; }
+.theme-preview button { border: 1px solid #ddd; border-radius: 4px; padding: 7px 10px; background: #fff; font-size: 11px; }
+.theme-preview button[aria-pressed="true"] { border-color: var(--brand-primary); box-shadow: inset 0 -2px var(--brand-primary); color: #333; font-weight: 600; }
+.preview-strip { background: #fff; border-color: #ddd; color: #555; }
+.preview-dot { background: var(--brand-primary); }
+@media (max-width: 650px) {
+  .metric:last-child { display: flex; grid-column: auto; padding: 18px 16px; gap: 8px; align-items: stretch; border: 0; }
+  .metric:last-child > strong { font-size: 26px; }
+  .metric:last-child > small { font-size: 11px; }
+  .theme-preview { flex-wrap: wrap; font-size: 11px; justify-content: flex-start; gap: 7px; }
+  .theme-preview > span { flex: 1; }
+  .theme-preview button { min-height: 36px; }
+  .brand-logo { width: 48px; height: 48px; }
 }
