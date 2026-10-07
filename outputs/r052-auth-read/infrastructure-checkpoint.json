@@ -34,9 +34,7 @@
   "ownerUidPopulated": true,
   "unitTestsPassed": 72,
   "hostingPriorVersion": "sites/mw-credit-app-dev-737787224638/versions/911d3a1e1883b92c",
-  "pending": [
-    "test-tooling fix CI and final publication"
-  ],
+  "pending": [],
   "privateArtifactsExcluded": [
     "Terraform state/plan including OAuth payload",
     "ACL rollback snapshot",
@@ -47,5 +45,8 @@
   "imageDigest": "sha256:89f10f0398df19071601caf39df28dc4c26559c69ea0dd9af2d358615e0d8593",
   "cloudBuild": "8acb768f-6fdc-448d-89c4-f214c135f030",
   "hostingVersion": "sites/mw-credit-app-dev-737787224638/versions/c0872b1adcb4006f",
-  "independentLiveSmoke": "Static health, signed-out desktop/mobile and unauthenticated boundaries passed"
+  "independentLiveSmoke": "Static health, signed-out desktop/mobile and unauthenticated boundaries passed",
+  "finalTestedSource": "20358d1df83af2a90e45d921ba60e547325c507c",
+  "finalCi": "https://github.com/welct0407/MW-Credit-App/actions/runs/37615986417",
+  "checkpointStatus": "Checkpoint 2A complete; stopped before next slice; full Phase 2 incomplete"
 }
