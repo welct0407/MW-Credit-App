@@ -8,7 +8,9 @@ Development foundation for the MW Credit rebuild. Mobile will cover OLTP; deskto
 - [Approved direction and coexistence design](https://github.com/welct0407/AppSheet-Loan-Project/blob/codex/pwa-rebuild-design/Documents/PWA_Rebuild_High_Level_Design.md)
 - [Development page](https://mw-credit-app-dev-737787224638.web.app)
 
-The page is a synthetic foundation screen. Financial workflows, user sign-in, offline drafts and production cutover are subsequent application work.
+The deployed development page remains the synthetic foundation. Branch codex/r052-review-shell adds checkpoint 1A: a local Collection/Borrowers design preview with synthetic data. It is not deployed and has no authentication, API connection, payment posting or offline storage.
+
+The [phased plan](https://github.com/welct0407/AppSheet-Loan-Project/blob/codex/pwa-implementation-plan/Documents/PWA_Implementation_Plan.md) and [orchestration workflow](https://github.com/welct0407/AppSheet-Loan-Project/blob/codex/pwa-implementation-plan/Documents/PWA_Orchestration.md) govern this work. Metabase enhancements follow production go-live. The agents stop for owner visual validation at each agreed checkpoint.
 
 ## Start on VM-01
 
@@ -19,3 +21,9 @@ npm run dev
 ```
 
 Run `npm run check` and `npm run test:e2e` before publication. Never put credentials, Terraform state or saved plans in this checkout.
+
+## Checkpoint 1A preview
+
+Start the local server with the commands above, then use its printed local URL. Collection and Borrowers support sample search/filter/detail review and English/Thai switching; other modules are planned scope. All records and dates are examples. Closing the preview discards its in-memory selections.
+
+Owner review focuses on desktop/mobile navigation, amount labels, search/detail flow and translations. Acceptance of this preview is not acceptance of authentication, live financial behavior, offline operation or full feature parity. See the checkpoint evidence under outputs/r052-preview after verification.

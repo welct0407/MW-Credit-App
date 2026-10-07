@@ -1,2 +1,57 @@
-import {test,expect} from "@playwright/test";
-test("shows development foundation without financial entry",async({page})=>{await page.goto("/");await expect(page.getByRole("heading",{name:"MW Credit",exact:true})).toBeVisible();await expect(page.getByText("AppSheet continues operating in parallel")).toBeVisible();await expect(page.getByRole("button")).toHaveCount(0);});
+import {test,expect,type Page} from '@playwright/test';
+import {borrowers,sampleDate} from '../../apps/pwa/src/fixtures';
+const cards=(page:Page)=>page.locator('.borrower-card');
+const nav=(page:Page)=>page.getByRole('navigation',{name: page.viewportSize()!.width<900?'Quick navigation':'Main navigation'});
+const amount=(text:string|null)=>Number(text?.replace(/[^0-9]/g,''));
+async function noOverflow(page:Page){expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true)}
+test.beforeEach(async({page})=>{await page.goto('/')});
+test('reconciles sample charges separately from principal and filters collection',async({page})=>{
+ const due=borrowers.reduce((sum,b)=>sum+b.loans.reduce((s,l)=>s+l.charges.filter(c=>c.date<=sampleDate).reduce((s,c)=>s+c.amount,0),0),0);
+ expect(due).toBe(4400); expect(borrowers.reduce((s,b)=>s+b.principal,0)).toBe(90000);
+ expect(amount(await page.getByTestId('total-due').textContent())).toBe(due);
+ await expect(page.getByRole('region',{name:'Sample summary'})).toContainText('03 borrowers');
+ await expect(page.getByRole('region',{name:'Sample summary'})).toContainText('90,000');
+ await expect(cards(page)).toHaveCount(3);
+ await page.getByLabel('Filter borrowers').selectOption('overdue');await expect(cards(page)).toHaveCount(1);await expect(page.getByTestId('borrower-SAMPLE-002')).toBeVisible();
+ await page.getByLabel('Filter borrowers').selectOption('due');await expect(cards(page)).toHaveCount(2);
+ await page.getByLabel('Search borrowers').fill('missing-person');await expect(page.getByRole('heading',{name:'No matching borrowers'})).toBeVisible();
+ await page.getByRole('button',{name:'Reset filters'}).click();await expect(cards(page)).toHaveCount(3);await expect(page.getByLabel('Filter borrowers')).toHaveValue('all');
+ await page.getByLabel('Search borrowers').fill('sample-002');await expect(cards(page)).toHaveCount(1);
+});
+test('borrower groups, two-loan detail and back preserve list context',async({page})=>{
+ await nav(page).getByRole('button',{name:/Borrowers/}).click();await expect(cards(page)).toHaveCount(5);
+ await page.getByLabel('Filter borrowers').selectOption('active');await expect(cards(page)).toHaveCount(4);
+ await page.getByLabel('Filter borrowers').selectOption('inactive');await expect(cards(page)).toHaveCount(1);await page.getByTestId('borrower-SAMPLE-005').click();await expect(page.getByRole('region',{name:'Borrower details'})).toContainText('No active sample loans.');
+ if(page.viewportSize()!.width<900)await page.getByRole('button',{name:'Back to list'}).click();await page.getByLabel('Filter borrowers').selectOption('all');await page.getByLabel('Search borrowers').fill('Somchai');await page.getByTestId('borrower-SAMPLE-002').click();
+ const detail=page.getByRole('region',{name:'Borrower details'});await expect(detail).toContainText('DEMO-L002');await expect(detail).toContainText('DEMO-L003');await expect(detail).toContainText('2,300');await expect(detail).toContainText('36,000');await expect(detail).toContainText('Placeholder only.');await expect(detail.getByRole('button',{name:'Record payment · planned'})).toBeDisabled();await noOverflow(page);
+ if(page.viewportSize()!.width<900)await page.getByRole('button',{name:'Back to list'}).click();await expect(page.getByLabel('Search borrowers')).toHaveValue('Somchai');await expect(cards(page)).toHaveCount(1);
+});
+test('Thai controls and narrow layout remain usable',async({page})=>{
+ await page.getByRole('button',{name:'ไทย',exact:true}).click();await expect(page.locator('html')).toHaveAttribute('lang','th');await expect(page.getByRole('heading',{name:'ติดตามชำระ',exact:true})).toBeVisible();await expect(page.getByLabel('ค้นหาผู้กู้')).toBeVisible();
+ await page.getByLabel('ค้นหาผู้กู้').fill('สมชาย');await expect(cards(page)).toHaveCount(1);await page.getByTestId('borrower-SAMPLE-002').click();await expect(page.getByRole('region',{name:'รายละเอียดผู้กู้'})).toContainText('สัญญาตัวอย่าง');await noOverflow(page);
+ await page.setViewportSize({width:360,height:844});await noOverflow(page);await expect(page.getByRole('button',{name:'กลับไปรายการ'})).toBeVisible();await page.getByRole('button',{name:'กลับไปรายการ'}).click();await expect(page.getByLabel('ค้นหาผู้กู้')).toBeVisible();
+ await page.getByRole('button',{name:'EN',exact:true}).click();await expect(page.getByRole('heading',{name:'Collection',exact:true})).toBeVisible();
+});
+test('preview has no external business requests or persistent client data',async({page})=>{
+ const unwanted:string[]=[];page.on('request',r=>{const url=new URL(r.url());if(url.hostname!=='127.0.0.1'||r.method()!=='GET'||url.pathname.startsWith('/api'))unwanted.push(r.method()+' '+r.url())});
+ await page.reload();await expect(page.locator('.preview-strip')).toBeVisible();await expect(page.getByText('Sample business date',{exact:true})).toBeVisible();await page.getByTestId('borrower-SAMPLE-002').click();if(page.viewportSize()!.width<900)await page.getByRole('button',{name:'Back to list'}).click();await nav(page).getByRole('button',{name:/Borrowers/}).click();
+ expect(unwanted).toEqual([]);expect(await page.evaluate(async()=>({local:localStorage.length,session:sessionStorage.length,caches:await caches.keys(),workers:(await navigator.serviceWorker.getRegistrations()).length}))).toEqual({local:0,session:0,caches:[],workers:0});
+});
+test('keyboard controls and planned workflows are reachable',async({page})=>{
+ await page.getByLabel('Search borrowers').focus();await expect(page.getByLabel('Search borrowers')).toBeFocused();await page.keyboard.press('Tab');await expect(page.getByLabel('Filter borrowers')).toBeFocused();await page.keyboard.press('Tab');await expect(page.getByTestId('borrower-SAMPLE-001')).toBeFocused();await page.keyboard.press('Enter');await expect(page.getByRole('region',{name:'Borrower details'})).toContainText('Mali · Sample');
+ if(page.viewportSize()!.width<900)await page.getByRole('button',{name:'Open navigation',exact:true}).click();
+ await page.getByRole('navigation',{name:'Main navigation'}).getByRole('button',{name:'Analytics / history'}).click();await expect(page.getByText('PLANNED WORKFLOW',{exact:true})).toBeVisible();await expect(page.getByText(/Metabase integration follows production go-live/)).toBeVisible();await noOverflow(page);
+ await page.getByRole('button',{name:'Explore Collection'}).click();await expect(cards(page)).toHaveCount(3);
+});
+test('captures synthetic desktop and mobile review screens',async({page},testInfo)=>{
+ const mobile=testInfo.project.name.startsWith('mobile');await page.setViewportSize(mobile?{width:390,height:844}:{width:1440,height:900});await noOverflow(page);
+ if(mobile)await page.screenshot({path:'outputs/r052-preview/mobile-viewport.png'});
+ await page.screenshot({path:`outputs/r052-preview/${mobile?'mobile':'desktop'}-collection.png`,fullPage:true});await page.getByTestId('borrower-SAMPLE-002').click();await noOverflow(page);await page.screenshot({path:`outputs/r052-preview/${mobile?'mobile':'desktop'}-detail.png`,fullPage:true});
+});
+
+test('mobile drawer traps focus, closes with Escape and returns focus',async({page})=>{
+ await page.setViewportSize({width:390,height:844});const open=page.getByRole('button',{name:'Open navigation',exact:true});await open.click();await expect(page.locator('.brand')).toBeFocused();await page.keyboard.press('Shift+Tab');await expect(page.getByRole('navigation',{name:'Main navigation'}).getByRole('button',{name:'Analytics / history'})).toBeFocused();await page.keyboard.press('Tab');await expect(page.locator('.brand')).toBeFocused();await page.keyboard.press('Escape');await expect(open).toBeFocused();await expect(open).toHaveAttribute('aria-expanded','false');
+});
+test('Thai mobile review screenshot',async({page},testInfo)=>{
+ test.skip(!testInfo.project.name.startsWith('mobile'));await page.setViewportSize({width:390,height:844});await page.getByRole('button',{name:'ไทย',exact:true}).click();await page.screenshot({path:'outputs/r052-preview/mobile-thai-collection.png',fullPage:true});await page.setViewportSize({width:360,height:844});await noOverflow(page);await page.screenshot({path:'outputs/r052-preview/mobile-thai-360-viewport.png'});await page.getByTestId('borrower-SAMPLE-003').scrollIntoViewIfNeeded();await page.getByTestId('borrower-SAMPLE-003').click();await expect(page.getByRole('region',{name:'รายละเอียดผู้กู้'})).toContainText('นิดา');await page.getByRole('button',{name:'กลับไปรายการ'}).click();await page.getByTestId('borrower-SAMPLE-002').click();await page.screenshot({path:'outputs/r052-preview/mobile-thai-detail.png',fullPage:true});await page.getByRole('button',{name:'บันทึกการชำระ · อยู่ในแผน'}).scrollIntoViewIfNeeded();await expect(page.getByRole('button',{name:'บันทึกการชำระ · อยู่ในแผน'})).toBeVisible();
+});
