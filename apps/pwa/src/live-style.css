@@ -1,3 +1,4 @@
+.live-shell { --section-heading-fill: #e6e6e6; --group-heading-fill: #f0f0f0; }
 .live-shell .topbar { gap: 20px; }
 .live-brand { display: flex; align-items: center; gap: 12px; font-size: 22px; }
 .live-shell main { max-width: 1250px; padding-bottom: 35px; }
@@ -11,7 +12,7 @@
   .live-shell .card-amount { grid-column: 1; }
 }
 .related-loans { margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--border-tint); }
-.related-loans-heading { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; align-items: baseline; }
+.related-loans-heading { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; align-items: baseline; padding: 14px 16px; background: var(--section-heading-fill); border: 1px solid var(--border-tint); color: #303030; }
 .related-loans-heading h3 { margin: 0; font-size: 20px; }
 .related-loans-heading > span, .loan-order-note, .loan-freshness { font-size: 14px; line-height: 1.5; color: #565656; }
 .loan-record-list { border-bottom: 1px solid var(--border-tint); }
@@ -36,13 +37,14 @@
   .loan-record-amount { flex: auto; text-align: left; }
 }
 @media (min-width: 1051px) {
-  .live-shell .work-grid { height: max(400px, calc(100dvh - 330px)); align-items: stretch; }
-  .live-shell .work-grid > .list-panel, .live-shell .work-grid > .detail-panel { min-height: 0; height: 100%; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
+  .live-shell .work-grid { grid-template-columns: minmax(320px, 2fr) minmax(0, 3fr); height: max(400px, calc(100dvh - 330px)); align-items: stretch; }
+  .live-shell .work-grid > .list-panel, .live-shell .work-grid > .detail-panel { min-width: 0; min-height: 0; height: 100%; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
 }
-.live-shell .record-group-heading { font-size: 18px; margin: 0; padding: 16px 22px; border-top: 1px solid var(--border-tint); }
+.live-shell .record-group-heading { font-size: 18px; margin: 0; padding: 14px 16px; border-block: 1px solid var(--border-tint); color: #303030; background: var(--group-heading-fill); }
 .live-shell .borrower-card.inactive, .loan-record.closed { background: #e9e9e9; color: #333; }
 .live-shell .borrower-card.inactive:hover, .live-shell .borrower-card.inactive.selected, .loan-record.closed:hover { background: #dedede; }
 .live-shell .list-foot { flex-wrap: wrap; gap: 12px; }
 .live-page-status { font-size: 14px; color: #565656; }
-.related-loans .record-group-heading { padding: 16px 0; }
+.live-shell .record-group-heading.group-inactive { background: #d4d4d4; }
+.live-shell .record-group-heading.group-unknown { background: #e2e2e2; }
 .borrower-page-note { margin: 0; padding: 0 22px 18px; font-size: 14px; color: #565656; }

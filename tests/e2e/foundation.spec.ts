@@ -46,38 +46,39 @@ test('keyboard controls and planned workflows are reachable',async({page})=>{
 });
 test('captures synthetic desktop and mobile review screens',async({page},testInfo)=>{
  const mobile=testInfo.project.name.startsWith('mobile');await page.setViewportSize(mobile?{width:390,height:844}:{width:1440,height:900});await noOverflow(page);
- if(mobile)await page.screenshot({path:'outputs/r052-preview/mobile-viewport.png'});
- await page.screenshot({path:`outputs/r052-preview/${mobile?'mobile':'desktop'}-collection.png`,fullPage:true});await page.getByTestId('borrower-SAMPLE-002').click();await noOverflow(page);await page.screenshot({path:`outputs/r052-preview/${mobile?'mobile':'desktop'}-detail.png`,fullPage:true});
+ if(mobile)await page.screenshot({path:'outputs/r052-loan-read/NEUTRAL-mobile-viewport.png'});
+ await page.screenshot({path:`outputs/r052-loan-read/NEUTRAL-${mobile?'mobile':'desktop'}-collection.png`,fullPage:true});await page.getByTestId('borrower-SAMPLE-002').click();await noOverflow(page);await page.screenshot({path:`outputs/r052-loan-read/NEUTRAL-${mobile?'mobile':'desktop'}-detail.png`,fullPage:true});
 });
 
 test('mobile drawer traps focus, closes with Escape and returns focus',async({page})=>{
  await page.setViewportSize({width:390,height:844});const open=page.getByRole('button',{name:'Open navigation',exact:true});await open.click();await expect(page.locator('.brand')).toBeFocused();await page.keyboard.press('Shift+Tab');await expect(page.getByRole('navigation',{name:'Main navigation'}).getByRole('button',{name:'Analytics / history'})).toBeFocused();await page.keyboard.press('Tab');await expect(page.locator('.brand')).toBeFocused();await page.keyboard.press('Escape');await expect(open).toBeFocused();await expect(open).toHaveAttribute('aria-expanded','false');
 });
 test('Thai mobile review screenshot',async({page},testInfo)=>{
- test.skip(!testInfo.project.name.startsWith('mobile'));await page.setViewportSize({width:390,height:844});await page.getByRole('button',{name:'ไทย',exact:true}).click();await page.screenshot({path:'outputs/r052-preview/mobile-thai-collection.png',fullPage:true});await page.setViewportSize({width:360,height:844});await noOverflow(page);await page.screenshot({path:'outputs/r052-preview/mobile-thai-360-viewport.png'});await page.getByTestId('borrower-SAMPLE-003').scrollIntoViewIfNeeded();await page.getByTestId('borrower-SAMPLE-003').click();await expect(page.getByRole('region',{name:'รายละเอียดผู้กู้'})).toContainText('นิดา');await page.getByRole('button',{name:'กลับไปรายการ'}).click();await page.getByTestId('borrower-SAMPLE-002').click();await page.screenshot({path:'outputs/r052-preview/mobile-thai-detail.png',fullPage:true});await page.getByRole('button',{name:'บันทึกการชำระ · อยู่ในแผน'}).scrollIntoViewIfNeeded();await expect(page.getByRole('button',{name:'บันทึกการชำระ · อยู่ในแผน'})).toBeVisible();
+ test.skip(!testInfo.project.name.startsWith('mobile'));await page.setViewportSize({width:390,height:844});await page.getByRole('button',{name:'ไทย',exact:true}).click();await page.screenshot({path:'outputs/r052-loan-read/NEUTRAL-mobile-thai-collection.png',fullPage:true});await page.setViewportSize({width:360,height:844});await noOverflow(page);await page.screenshot({path:'outputs/r052-loan-read/NEUTRAL-mobile-thai-360-viewport.png'});await page.getByTestId('borrower-SAMPLE-003').scrollIntoViewIfNeeded();await page.getByTestId('borrower-SAMPLE-003').click();await expect(page.getByRole('region',{name:'รายละเอียดผู้กู้'})).toContainText('นิดา');await page.getByRole('button',{name:'กลับไปรายการ'}).click();await page.getByTestId('borrower-SAMPLE-002').click();await page.screenshot({path:'outputs/r052-loan-read/NEUTRAL-mobile-thai-detail.png',fullPage:true});await page.getByRole('button',{name:'บันทึกการชำระ · อยู่ในแผน'}).scrollIntoViewIfNeeded();await expect(page.getByRole('button',{name:'บันทึกการชำระ · อยู่ในแผน'})).toBeVisible();
 });
 
-test('AppSheet colors are presentation only with coordinated tinted surfaces and theme logos',async({page},testInfo)=>{
+test('AppSheet colors are presentation only with neutral surfaces and themed headers and theme logos',async({page},testInfo)=>{
  const mobile=testInfo.project.name.startsWith('mobile');
  await page.setViewportSize(mobile?{width:390,height:844}:{width:1440,height:900});
  const requests:string[]=[];page.on('request',request=>{requests.push(request.url())});
  const logo=page.locator('.brand-logo');
  expect(await logo.evaluate((img:HTMLImageElement)=>img.complete&&img.naturalWidth>0)).toBe(true);
  await expect(logo).toHaveAttribute('alt','Loan Manager');
- for(const [theme,color,tint,selected] of [['dev','rgb(232, 113, 10)','rgb(253, 241, 231)','rgb(251, 232, 216)'],['prod','rgb(216, 27, 96)','rgb(251, 232, 239)','rgb(249, 219, 230)']]){
+ for(const [theme,color,tint,selected] of [['dev','rgb(232, 113, 10)','rgb(255, 255, 255)','rgb(241, 241, 241)'],['prod','rgb(216, 27, 96)','rgb(255, 255, 255)','rgb(241, 241, 241)']]){
   await page.getByRole('group',{name:'Theme preview'}).getByRole('button',{name:theme.toUpperCase(),exact:true}).click();
   await expect(page.locator('.app-shell')).toHaveAttribute('data-preview-theme',theme);
   await expect(logo).toHaveAttribute('src',theme==='dev'?/loan-manager-logo-dev-orange/:/loan-manager-logo\.png/);
   await expect.poll(()=>logo.evaluate((img:HTMLImageElement)=>img.complete&&img.naturalWidth>0)).toBe(true);
   await expect(page.locator('.topbar')).toHaveCSS('border-top-color',color);
   await expect(page.getByText('Colors only · no environment change',{exact:true})).toBeVisible();
+  await expect(page.locator('.topbar')).toHaveCSS('background-color',color);
   for(const metric of await page.locator('.metric,.list-panel,.detail-panel').all())await expect(metric).toHaveCSS('background-color',tint);
   for(const label of await page.locator('.metric > span,.metric > strong,.metric small,.status').all())await expect(label).toHaveCSS('background-color','rgba(0, 0, 0, 0)');
   await noOverflow(page);
-  await page.screenshot({path:`outputs/r052-preview/${theme}-${mobile?'mobile':'desktop'}-style-viewport.png`});
+  await page.screenshot({path:`outputs/r052-loan-read/NEUTRAL-${theme}-${mobile?'mobile':'desktop'}-style-viewport.png`});
   await page.getByTestId('borrower-SAMPLE-002').click();await page.mouse.move(0,0);await expect(page.locator('.borrower-card.selected')).toHaveCSS('background-color',selected);
   await checkTextContrast(page);
-  if(mobile){await page.getByRole('button',{name:'Back to list'}).click();await page.getByRole('button',{name:'Open navigation',exact:true}).click();await expect(logo).toBeVisible();await page.screenshot({path:"outputs/r052-preview/logo-"+theme+'-mobile-menu.png'});await page.keyboard.press('Escape');}
+  if(mobile){await page.getByRole('button',{name:'Back to list'}).click();await page.getByRole('button',{name:'Open navigation',exact:true}).click();await expect(logo).toBeVisible();await page.screenshot({path:"outputs/r052-loan-read/NEUTRAL-logo-"+theme+'-mobile-menu.png'});await page.keyboard.press('Escape');}
  }
  expect(requests.every(url=>{const parsed=new URL(url);return parsed.hostname==='127.0.0.1'&&parsed.pathname.endsWith('.png')})).toBe(true);
  await page.reload();await expect(page.locator('.app-shell')).toHaveAttribute('data-preview-theme','dev');
@@ -126,7 +127,7 @@ test('meaningful text stays readable across desktop tablet and narrow English Th
     });expect(issues).toEqual([]);
    };
    await scan();
-   await page.screenshot({path:`outputs/r052-preview/readable-${width}-${lang==='EN'?'en':'th'}.png`,fullPage:true});
+   await page.screenshot({path:`outputs/r052-loan-read/NEUTRAL-readable-${width}-${lang==='EN'?'en':'th'}.png`,fullPage:true});
    await page.getByTestId('borrower-SAMPLE-003').scrollIntoViewIfNeeded();await page.getByTestId('borrower-SAMPLE-003').click();await scan();
    const back=page.getByRole('button',{name:lang==='EN'?'Back to list':'กลับไปรายการ'});if(await back.isVisible())await back.click();
    const search=page.getByLabel(lang==='EN'?'Search borrowers':'ค้นหาผู้กู้');await search.fill('no-such-sample');await scan();await page.getByRole('button',{name:lang==='EN'?'Reset filters':'ล้างตัวกรอง'}).click();

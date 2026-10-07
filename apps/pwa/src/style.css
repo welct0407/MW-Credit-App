@@ -1013,34 +1013,37 @@ p {
   main { padding-bottom: 85px; }
 }
 
-/* Exact AppSheet primary colors. Supporting tints are derived PWA design choices. */
+/* Exact AppSheet primary colors in the main header; neutral working surfaces. */
 .app-shell {
   --brand-primary: #e8710a;
-  --surface-tint: #fdf1e7;
-  --surface-selected: #fbe8d8;
-  --border-tint: #b86d32;
+  --surface-tint: #fff;
+  --surface-selected: #f1f1f1;
+  --border-tint: #888;
+  --header-foreground: #222;
   color: #333;
   background: #f7f7f7;
   color-scheme: light;
 }
 .app-shell[data-preview-theme="prod"] {
   --brand-primary: #d81b60;
-  --surface-tint: #fbe8ef;
-  --surface-selected: #f9dbe6;
-  --border-tint: #b9577f;
+  --surface-tint: #fff;
+  --surface-selected: #f1f1f1;
+  --border-tint: #888;
+  --header-foreground: #fff;
 }
 .sidebar { border-right: 1px solid #e1e1e1; background: #fff; color: #333; }
 .brand-logo { width: 48px; height: 48px; object-fit: contain; flex-shrink: 0; }
 .brand { gap: 10px; padding-left: 6px; }
-.topbar { border-top: 4px solid var(--brand-primary); }
+.topbar { border-top: 4px solid var(--brand-primary); background: var(--brand-primary); }
+.topbar, .topbar .breadcrumb, .topbar .breadcrumb strong, .topbar .live-brand { color: var(--header-foreground); }
 .nav-item { color: #555; border-left: 3px solid transparent; }
-.nav-item.active { border-left-color: var(--brand-primary); background: #fff; color: #222; }
+.nav-item.active { border-left-color: #666; background: #fff; color: #222; }
 .nav-item:hover { background: #f5f5f5; }
 .metrics { grid-template-columns: 1fr 1fr; background: var(--surface-tint); }
 .metric { background: var(--surface-tint); }
 .metric:last-child { border: 0; }
 .metric > strong { color: #333; }
-.borrower-card.selected { background: var(--surface-selected); box-shadow: inset 3px 0 var(--brand-primary); }
+.borrower-card.selected { background: var(--surface-selected); box-shadow: inset 3px 0 #666; }
 .borrower-card:hover { background: var(--surface-selected); }
 .person, .person > strong, .person > span, .card-amount, .card-amount > strong,
 .card-amount > span, .metric > span, .metric > strong, .metric small,
@@ -1051,19 +1054,19 @@ p {
 .detail-panel.unselected { background: var(--surface-tint); }
 .detail-amounts { background: transparent; border-top: 1px solid var(--border-tint); border-bottom: 1px solid var(--border-tint); border-radius: 0; }
 .avatar { background: #f4f4f4; color: #555; }
-.issue-note { border-left-color: var(--brand-primary); }
+.issue-note { border-left-color: #666; }
 .issue-note.attention { border-left-color: #a14114; }
 .post-button { background: #f4f4f4; color: #767676; }
 .mobile-nav { background: #fff; }
-.mobile-nav button[aria-current="page"] { color: #333; box-shadow: inset 0 -3px var(--brand-primary); }
+.mobile-nav button[aria-current="page"] { color: #333; box-shadow: inset 0 -3px #666; }
 .language button[aria-pressed="true"] { background: #f2f2f2; color: #333; }
 button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible,
-.search:focus-within { outline-color: var(--brand-primary); }
+.search:focus-within { outline-color: #444; }
 .theme-preview { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-bottom: 12px; color: #666; }
 .theme-preview button { border: 1px solid #ddd; border-radius: 4px; padding: 7px 10px; background: #fff; }
-.theme-preview button[aria-pressed="true"] { border-color: var(--brand-primary); box-shadow: inset 0 -2px var(--brand-primary); color: #333; font-weight: 600; }
+.theme-preview button[aria-pressed="true"] { border-color: #666; box-shadow: inset 0 -2px #666; color: #333; font-weight: 600; }
 .preview-strip { background: #fff; border-color: #ddd; color: #555; }
-.preview-dot { background: var(--brand-primary); }
+.preview-dot { background: #666; }
 @media (max-width: 650px) {
   .metric:last-child { display: flex; grid-column: auto; padding: 18px 16px; gap: 8px; align-items: stretch; border: 0; }
   .theme-preview { flex-wrap: wrap; justify-content: flex-start; gap: 7px; }
@@ -1072,7 +1075,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .brand-logo { width: 48px; height: 48px; }
 }
 
-/* Tint each whole card, leaving its text and nested information surfaces continuous. */
+/* Neutral whole-card surfaces keep text and nested information visually continuous. */
 .metrics, .metric, .list-panel, .detail-panel, .planned-panel, .borrower-card {
   background-color: var(--surface-tint);
   border-color: var(--border-tint);
@@ -1224,3 +1227,6 @@ button, .filters select { min-height: 44px; }
   .access-simulator label { flex-basis: 100%; }
   .access-blocked { padding: 22px; }
 }
+
+.section-heading { background: #e6e6e6; }
+.group-label { background: #f0f0f0; }
