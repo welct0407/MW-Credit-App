@@ -95,3 +95,9 @@ At390×844, the last Upcoming page/refresh control can be scrolled entirely abov
 Synthetic review images use COMPACT filenames: mobile-chromium-COMPACT-bottom-en-viewport.png, mobile-chromium-COMPACT-menu.png, mobile-chromium-COMPACT-upcoming-th-viewport.png, desktop-chromium-COMPACT-summary-en.png and desktop-chromium-COMPACT-collapsed.png, plus related EN/Thai/full-width captures. No product defect was found in this batch.
 
 C-owned freeze: tests/e2e/live-controls.ts; affected collection-read, upcoming-read, grouped-read, loan-read, live-read and persistence spec files; this report and new COMPACT images. Loan/live regression runners incidentally regenerated their prior tracked r052-loan-read screenshots; D should restore those historical PNGs to the published baseline rather than include them. Parent preview preserved and test servers stopped. Publication/exact CI/Hosting-only unsigned smoke and owner review remain separate.
+
+### Compact UI Hosting-only deployment verification
+
+Exact source d959e6fca428b643e685e50e5a684bc1ee058108 [CI37656348383 passed](https://github.com/welct0407/MW-Credit-App/actions/runs/37656348383). D deployed Hosting dacf7a53b31f09b0; API00008-9fw was unchanged and not probed.
+
+Fresh unsigned1440×900 desktop and390×844 mobile contexts passed English/Thai sign-in prompt and language access checks. Both headers measured76px high, full viewport width atx0/y0; no visible DEV line/account controls in the header, no business navigation/sign-out while signed out, no records, no API requests and no horizontal overflow. Mobile language is reachable in the account drawer. Evidence: compact-live-hosting.json, compact-live-{desktop,mobile}-{en,th}.png and compact-live-mobile-account-menu.png. No owner session, credential inspection or business data was used. Signed-in bottom navigation is supported by the separate synthetic tests; actual owner authenticated visual review remains pending. C evidence frozen for publication.

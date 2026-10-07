@@ -1,0 +1,10 @@
+{
+  "release": "1791393045723000",
+  "ci": "https://github.com/welct0407/MW-Credit-App/actions/runs/37656348383",
+  "hosting": "dacf7a53b31f09b0",
+  "ownerReview": "pending",
+  "source": "d959e6fca428b643e685e50e5a684bc1ee058108",
+  "rollbackHosting": "49547c853832dd36",
+  "unchangedApi": "mw-credit-app-read-dev-00008-9fw",
+  "deliveryScope": "frontend only"
+}
