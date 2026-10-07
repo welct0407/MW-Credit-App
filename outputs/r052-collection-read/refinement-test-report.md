@@ -37,3 +37,11 @@ These are browser checks, not blanket accessibility certification or real-device
 - this report and the new REFINED PNG files in outputs/r052-collection-read
 
 The final architecture grant contract is **19 view columns** plus EXECUTE on the existing pure forecast function; the initial 20-column proposal was superseded. D owns grant audit, actual DEV SQL shape verification, publication, exact-source CI and deployment coordination.
+
+## Deployed unsigned verification
+
+Application source 5efa533144248b1b76bc434fa3f16461433fa212 initially failed CI only on infrastructure/dev/terraform.tfvars formatting. D published the formatting/image-pin correction as b94c234935e172c76eac678601025270d1fc17e5; [exact validation CI passed](https://github.com/welct0407/MW-Credit-App/actions/runs/37646540641). No application or test change was required for that CI correction.
+
+API revision mw-credit-app-read-dev-00007-st5 and Hosting version 7364ee7db2ffe012 passed seven bounded HTTP checks: static health200, unsigned Upcoming summary/detail401, deliberately invalid synthetic token401, POST405, wrong-origin403, and exact-origin GET preflight204. All returned no-store; preflight returned the exact allowed origin. This proves the unsigned boundary only, not authenticated owner reads or DB query execution.
+
+Fresh desktop1440×900/mobile390×844 contexts rendered signed-out EN/Thai, zero business/API requests, zero records and no horizontal overflow. Thai mobile screenshot was visually inspected and shows the translated sign-in prompt and Google button. Evidence: refinement-live-api.json, refinement-live-hosting.json and four refinement-live-{desktop,mobile}-{en,th}.png. No real login, token or business data was used. Owner authenticated visual validation remains pending.
