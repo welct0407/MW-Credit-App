@@ -1,0 +1,16 @@
+{
+  "provider": "cloudflare/cloudflare 5.27.0",
+  "tokenStorage": "Secret Manager version1; transient provider environment",
+  "zone": "77d9da76cfeaaf21ae589f95a958965c",
+  "changed": 0,
+  "domain": "dev-lm.mw-credit.com",
+  "publicCnameVerified": true,
+  "priorRecordsPreserved": 12,
+  "added": 2,
+  "deleted": 0,
+  "tls": "pending initial certificate validation",
+  "managedRecords": [
+    "dev-lm.mw-credit.com CNAME",
+    "_acme-challenge.dev-lm.mw-credit.com TXT"
+  ]
+}

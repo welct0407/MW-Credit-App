@@ -26,3 +26,5 @@ jobs:
       - run: terraform fmt -check -recursive infrastructure
       - run: terraform -chdir=infrastructure/dev init -backend=false
       - run: terraform -chdir=infrastructure/dev validate
+      - run: terraform -chdir=infrastructure/dev-dns init -backend=false
+      - run: terraform -chdir=infrastructure/dev-dns validate
