@@ -3,8 +3,7 @@
   color: #565656;
   background: #fff;
   font-synthesis: none;
-  font-weight: 400;
-  font-size: 14px
+  font-weight: 400
 }
 * {
   box-sizing: border-box
@@ -40,7 +39,7 @@ a {
   min-height: 100vh
 }
 .sidebar {
-  width: 244px;
+  width: 280px;
   flex-shrink: 0;
   background: #fff;
   color: #565656;
@@ -56,35 +55,24 @@ a {
   display: flex;
   align-items: center;
   gap: 12px;
-  font-size: 19px;
-  letter-spacing: -.4px;
   font-weight: 600;
   padding: 0 10px 30px
 }
 .brand small {
   display: block;
-  font-size: 8px;
-  letter-spacing: 1.7px;
   font-weight: 500;
   color: #565656;
   margin-top: 6px
 }
 .brand-mark {
   font-family: Georgia,serif;
-  font-size: 32px;
   line-height: 28px;
   color: #565656;
   border-bottom: 1px solid #dedede;
   padding-bottom: 5px;
-  letter-spacing: -6px;
   width: 43px
 }
-.brand-mark span {
-  font-size: 21px
-}
 .nav-caption {
-  font-size: 9px;
-  letter-spacing: 1.8px;
   color: #565656;
   padding: 13px 13px 9px
 }
@@ -105,7 +93,6 @@ a {
   padding: 10px 13px;
   margin: 2px 0;
   border-radius: 7px;
-  font-size: 12px;
   min-height: 38px
 }
 .nav-item:hover {
@@ -117,7 +104,6 @@ a {
   font-weight: 650
 }
 .nav-icon {
-  font-size: 18px;
   width: 20px;
   text-align: center;
   line-height: 18px
@@ -127,7 +113,6 @@ a {
   color: #565656
 }
 .sidebar-foot {
-  font-size: 10px;
   color: #565656;
   margin-top: auto;
   padding: 35px 12px 0;
@@ -135,7 +120,6 @@ a {
 }
 .sidebar-foot small {
   display: block;
-  font-size: 9px;
   color: #565656;
   margin-top: 6px
 }
@@ -152,7 +136,7 @@ a {
   flex: 1
 }
 .topbar {
-  height: 75px;
+  min-height: 75px;
   border-bottom: 1px solid #dedede;
   background: #fff;
   display: flex;
@@ -161,7 +145,6 @@ a {
   padding: 0 40px
 }
 .breadcrumb {
-  font-size: 12px;
   color: #565656;
   display: flex;
   gap: 15px
@@ -183,8 +166,7 @@ a {
   color: #565656;
   border-radius: 4px;
   min-width: 35px;
-  padding: 5px;
-  font-size: 11px
+  padding: 5px
 }
 .language button[aria-pressed=true] {
   background: #fff;
@@ -199,9 +181,7 @@ main {
 .preview-strip {
   display: flex;
   align-items: center;
-  font-size: 10px;
   font-weight: 600;
-  letter-spacing: .2px;
   color: #565656;
   padding: 10px 13px;
   border: 1px solid #dedede;
@@ -229,39 +209,32 @@ main {
   gap: 20px
 }
 .eyebrow {
-  font-size: 9px;
-  letter-spacing: 1.6px;
   color: #565656;
   font-weight: 600
 }
 h1 {
   font-family: Georgia,"Times New Roman",Tahoma,serif;
   font-weight: 400;
-  font-size: 40px;
-  letter-spacing: -1.3px;
   margin: 8px 0
 }
 p {
   line-height: 1.6
 }
 .page-heading p {
-  font-size: 12px;
   color: #565656;
   margin: 8px 0 0
 }
 .sample-date {
   text-align: right;
-  white-space: nowrap;
+  white-space: normal;
   padding-top: 15px
 }
 .sample-date span {
   display: block;
   color: #565656;
-  font-size: 10px;
   margin-bottom: 7px
 }
 .sample-date strong {
-  font-size: 12px;
   font-weight: 500
 }
 .metrics {
@@ -284,23 +257,17 @@ p {
   border: 0
 }
 .metric>span {
-  font-size: 11px;
   color: #565656
 }
 .metric>strong {
   font-weight: 450;
-  font-size: 29px;
-  letter-spacing: -1px;
   line-height: 1.2
 }
 .metric small {
-  font-size: 10px;
   font-weight: 400;
-  color: #565656;
-  letter-spacing: 0
+  color: #565656
 }
 .metric strong small {
-  font-size: 11px;
   margin-left: 4px
 }
 .featured {
@@ -328,17 +295,13 @@ p {
   align-items: center
 }
 .section-heading h2 {
-  font-size: 16px;
   font-weight: 600;
-  letter-spacing: -.2px;
   margin: 0 0 7px
 }
 .section-heading span {
-  font-size: 10px;
   color: #565656
 }
 .section-heading .section-symbol {
-  font-size: 24px;
   color: #565656
 }
 .filters {
@@ -358,7 +321,6 @@ p {
   background: #fff
 }
 .search>span {
-  font-size: 22px;
   line-height: 14px;
   color: #565656
 }
@@ -367,7 +329,6 @@ p {
   width: 100%;
   border: 0;
   outline: 0;
-  font-size: 11px;
   background: #fff;
   color: #565656
 }
@@ -386,7 +347,6 @@ p {
   border: 1px solid #dedede;
   border-radius: 5px;
   background: #fff;
-  font-size: 10px;
   padding: 9px 7px;
   color: #565656;
   width: 100%
@@ -420,7 +380,6 @@ p {
   border-radius: 50%;
   background: #fff;
   color: #565656;
-  font-size: 12px;
   font-weight: 500;
   flex-shrink: 0
 }
@@ -432,15 +391,12 @@ p {
   min-width: 0
 }
 .person>strong {
-  font-size: 12px;
   font-weight: 600
 }
 .person>span:not(.status) {
-  font-size: 9px;
   color: #565656
 }
 .status {
-  font-size: 9px!important;
   display: inline-block;
   width: fit-content;
   background: #fff;
@@ -465,24 +421,19 @@ p {
   flex-shrink: 0
 }
 .card-amount>strong {
-  font-size: 16px;
-  font-weight: 500;
-  letter-spacing: -.5px
+  font-weight: 500
 }
 .card-amount>span {
-  font-size: 9px;
   color: #565656
 }
 .card-amount .arrow {
-  color: #565656;
-  font-size: 15px
+  color: #565656
 }
 .list-foot {
   padding: 15px 22px;
   background: #fff;
   border-top: 1px solid #dedede;
-  color: #565656;
-  font-size: 9px
+  color: #565656
 }
 .detail-panel {
   padding: 24px
@@ -506,7 +457,6 @@ p {
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 50px;
   color: #565656;
   background: #fff;
   border: 1px solid #dedede;
@@ -516,7 +466,6 @@ p {
 .detail-illustration i {
   position: absolute;
   font-style: normal;
-  font-size: 20px;
   right: -10px;
   bottom: 8px;
   background: #fff;
@@ -528,16 +477,13 @@ p {
 }
 .detail-empty h2 {
   font-family: Georgia,Tahoma,serif;
-  font-size: 24px;
   font-weight: 400;
   margin: 0 0 13px
 }
 .detail-empty p {
-  font-size: 11px;
   color: #565656
 }
 .detail-empty>div {
-  font-size: 10px;
   color: #565656;
   margin-top: 29px
 }
@@ -551,16 +497,13 @@ p {
 }
 .avatar.large {
   width: 47px;
-  height: 47px;
-  font-size: 14px
+  height: 47px
 }
 .detail-panel>h2 {
-  font-size: 20px;
   font-weight: 500;
   margin: 17px 0 5px
 }
 .detail-id {
-  font-size: 10px;
   color: #565656;
   margin: 0
 }
@@ -575,21 +518,17 @@ p {
 }
 .detail-amounts span {
   display: block;
-  font-size: 9px;
   color: #565656
 }
 .detail-amounts strong {
   display: block;
-  font-size: 21px;
   font-weight: 500;
-  margin-top: 9px;
-  letter-spacing: -.5px
+  margin-top: 9px
 }
 .issue-note {
   border-left: 2px solid #dedede;
   padding: 3px 12px;
   margin: 21px 0;
-  font-size: 10px;
   color: #565656
 }
 .issue-note.attention {
@@ -605,12 +544,10 @@ p {
 .detail-section-title {
   display: flex;
   justify-content: space-between;
-  font-size: 11px;
   font-weight: 600;
   margin: 24px 0 12px
 }
 .detail-section-title span {
-  font-size: 10px;
   color: #565656
 }
 .loan {
@@ -621,15 +558,13 @@ p {
 }
 .loan-title {
   display: flex;
-  justify-content: space-between;
-  font-size: 10px
+  justify-content: space-between
 }
 .loan-title strong {
   font-weight: 600
 }
 .loan-title span {
-  color: #565656;
-  font-size: 9px
+  color: #565656
 }
 .loan dl {
   margin: 11px 0 0
@@ -638,7 +573,6 @@ p {
   display: flex;
   gap: 12px;
   justify-content: space-between;
-  font-size: 10px;
   padding: 7px 0;
   border-top: 1px solid #dedede
 }
@@ -647,7 +581,6 @@ p {
 }
 .loan dt small {
   display: block;
-  font-size: 9px;
   margin-top: 4px
 }
 .loan dd {
@@ -664,15 +597,10 @@ p {
   margin-top: 18px;
   color: #565656
 }
-.receipt>span {
-  font-size: 23px
-}
 .receipt strong {
-  font-size: 10px;
   font-weight: 500
 }
 .receipt p {
-  font-size: 9px;
   margin: 4px 0 0
 }
 .post-button {
@@ -682,11 +610,9 @@ p {
   color: #565656;
   border: 1px solid #dedede;
   border-radius: 5px;
-  margin-top: 19px;
-  font-size: 11px
+  margin-top: 19px
 }
 .action-note {
-  font-size: 9px;
   color: #565656;
   text-align: center;
   margin-bottom: 0
@@ -695,8 +621,6 @@ p {
   display: none
 }
 .group-label {
-  font-size: 10px;
-  letter-spacing: .5px;
   font-weight: 500;
   background: #fff;
   padding: 10px 22px;
@@ -710,23 +634,15 @@ p {
   padding: 45px 22px 55px;
   color: #565656
 }
-.empty-state>span {
-  font-size: 35px
-}
 .empty-state h3 {
-  font-weight: 500;
-  font-size: 15px
-}
-.empty-state p {
-  font-size: 11px
+  font-weight: 500
 }
 .secondary-button {
   border: 1px solid #dedede;
   border-radius: 5px;
   padding: 10px 15px;
   background: #fff;
-  color: #565656;
-  font-size: 11px
+  color: #565656
 }
 .page-footer {
   display: flex;
@@ -735,12 +651,7 @@ p {
   border-top: 1px solid #dedede;
   padding: 20px 0;
   margin-top: 32px;
-  color: #565656;
-  font-size: 9px
-}
-.page-footer>span {
-  letter-spacing: 1.4px;
-  font-size: 8px
+  color: #565656
 }
 .planned-panel {
   max-width: 740px;
@@ -754,26 +665,22 @@ p {
 }
 .planned-icon {
   display: block;
-  font-size: 48px;
   color: #565656;
   margin-bottom: 25px
 }
 .planned-panel h2 {
   font-family: Georgia,Tahoma,serif;
-  font-size: 29px;
   font-weight: 400
 }
 .planned-panel p {
   max-width: 480px;
   margin: 15px auto;
-  font-size: 12px;
   color: #565656
 }
 .planned-panel button {
   margin-top: 15px
 }
 .muted {
-  font-size: 11px;
   color: #565656
 }
 .mobile-nav,.menu-toggle,.menu-scrim {
@@ -811,19 +718,14 @@ p {
 }
 @media(max-width:1150px) {
   .sidebar {
-    width: 208px;
+    width: 280px;
     padding-left: 12px;
     padding-right: 12px
   }
   .brand {
-    font-size: 17px;
     gap: 9px
   }
-  .brand small {
-    font-size: 7px
-  }
   .nav-item {
-    font-size: 11px;
     padding: 9px
   }
   .topbar {
@@ -838,9 +740,6 @@ p {
   .metric {
     padding: 20px 18px
   }
-  .metric>strong {
-    font-size: 25px
-  }
   .work-grid {
     gap: 16px;
     grid-template-columns: minmax(285px,1.15fr) minmax(260px,1fr)
@@ -851,20 +750,7 @@ p {
   }
   .avatar {
     width: 33px;
-    height: 33px;
-    font-size: 10px
-  }
-  .person>strong {
-    font-size: 11px
-  }
-  .person>span:not(.status) {
-    font-size: 8px
-  }
-  .card-amount>strong {
-    font-size: 14px
-  }
-  .card-amount>span {
-    font-size: 8px
+    height: 33px
   }
   .detail-panel {
     padding: 20px
@@ -880,20 +766,15 @@ p {
 }
 @media(max-width:900px) {
   .sidebar {
-    width: 190px
+    width: 280px
   }
   .brand {
-    font-size: 15px;
     padding-left: 3px
-  }
-  .brand small {
-    font-size: 6px
   }
   .brand-mark {
     width: 38px
   }
   .nav-item {
-    font-size: 10px;
     gap: 7px
   }
   .work-grid {
@@ -920,50 +801,23 @@ p {
     background: #fff;
     border: 0;
     padding: 0 0 20px;
-    color: #565656;
-    font-size: 11px
+    color: #565656
   }
   .metric {
     padding: 18px 13px
   }
-  .metric>strong {
-    font-size: 22px
-  }
   .metric>span {
-    font-size: 9px;
     line-height: 1.5
-  }
-  .metric small {
-    font-size: 8px
   }
   .page-heading {
     align-items: start
   }
-  h1 {
-    font-size: 35px
-  }
   .sample-date {
     padding-top: 18px
   }
-  .sample-date strong {
-    font-size: 10px
-  }
-  .person>strong {
-    font-size: 13px
-  }
-  .person>span:not(.status) {
-    font-size: 10px
-  }
-  .card-amount>strong {
-    font-size: 17px
-  }
-  .card-amount>span {
-    font-size: 9px
-  }
   .avatar {
     width: 39px;
-    height: 39px;
-    font-size: 12px
+    height: 39px
   }
 }
 @media(max-width:650px) {
@@ -974,7 +828,7 @@ p {
     top: 0;
     bottom: 0;
     z-index: 40;
-    width: 260px;
+    width: 280px;
     height: 100dvh;
     padding: 28px 18px
   }
@@ -982,14 +836,9 @@ p {
     display: flex
   }
   .sidebar .brand {
-    font-size: 20px;
     padding-left: 10px
   }
-  .sidebar .brand small {
-    font-size: 8px
-  }
   .sidebar .nav-item {
-    font-size: 12px;
     padding: 9px 12px;
     min-height: 36px
   }
@@ -1002,7 +851,7 @@ p {
     z-index: 35
   }
   .topbar {
-    height: 62px;
+    min-height: 62px;
     padding: 0 20px;
     gap: 15px
   }
@@ -1010,13 +859,11 @@ p {
     display: block;
     background: #fff;
     border: 0;
-    font-size: 20px;
     padding: 4px;
     color: #565656
   }
   .breadcrumb {
     flex: 1;
-    font-size: 11px;
     gap: 8px
   }
   .breadcrumb>span,.breadcrumb>strong {
@@ -1026,33 +873,20 @@ p {
     padding: 17px 18px 70px
   }
   .preview-strip {
-    font-size: 9px;
     padding: 9px 10px
   }
   .page-heading {
     margin: 26px 0 22px;
     gap: 9px
   }
-  .eyebrow {
-    font-size: 7px;
-    letter-spacing: 1.2px
-  }
   h1 {
-    font-size: 36px;
     margin: 8px 0
   }
   .page-heading p {
-    font-size: 11px;
     max-width: 230px
   }
   .sample-date {
     padding-top: 5px
-  }
-  .sample-date span {
-    font-size: 8px
-  }
-  .sample-date strong {
-    font-size: 10px
   }
   .metrics {
     grid-template-columns: 1.15fr 1fr;
@@ -1062,14 +896,7 @@ p {
     padding: 18px 16px;
     gap: 8px
   }
-  .metric>strong {
-    font-size: 26px
-  }
-  .metric>span {
-    font-size: 9px
-  }
   .metric small {
-    font-size: 9px;
     line-height: 1.4
   }
   .metric:last-child {
@@ -1082,12 +909,8 @@ p {
     padding: 13px 16px
   }
   .metric:last-child>strong {
-    font-size: 19px;
     grid-row: 1/3;
     grid-column: 2
-  }
-  .metric:last-child>small {
-    font-size: 8px
   }
   .work-grid {
     display: block
@@ -1098,9 +921,6 @@ p {
   .section-heading {
     padding: 19px 16px 17px
   }
-  .section-heading h2 {
-    font-size: 15px
-  }
   .filters {
     padding-bottom: 17px;
     gap: 8px
@@ -1108,64 +928,17 @@ p {
   .search {
     padding: 10px
   }
-  .search input {
-    font-size: 10px
-  }
-  .filters select {
-    font-size: 9px
-  }
   .borrower-card {
     padding: 20px 16px;
     gap: 10px
   }
-  .person>strong {
-    font-size: 12px
-  }
-  .person>span:not(.status) {
-    font-size: 8px
-  }
-  .card-amount>strong {
-    font-size: 16px
-  }
-  .card-amount>span {
-    font-size: 8px
-  }
   .list-foot {
-    font-size: 8px;
     padding: 14px 16px
   }
   .detail-panel {
     padding: 20px
   }
-  .detail-amounts strong {
-    font-size: 24px
-  }
-  .detail-amounts span {
-    font-size: 10px
-  }
-  .detail-section-title {
-    font-size: 12px
-  }
-  .loan dl>div {
-    font-size: 11px
-  }
-  .loan-title {
-    font-size: 11px
-  }
-  .receipt strong {
-    font-size: 11px
-  }
-  .receipt p,.action-note {
-    font-size: 10px
-  }
-  .issue-note {
-    font-size: 11px
-  }
-  .post-button {
-    font-size: 12px
-  }
   .page-footer {
-    font-size: 8px;
     line-height: 1.5;
     margin-top: 25px;
     padding-bottom: 16px
@@ -1193,13 +966,11 @@ p {
     gap: 3px;
     background: #fff;
     border: 0;
-    font-size: 9px;
     color: #565656;
     min-width: 80px;
     padding: 4px
   }
   .mobile-nav button>span {
-    font-size: 20px;
     line-height: 22px
   }
   .mobile-nav button[aria-current=page] {
@@ -1209,12 +980,6 @@ p {
   .planned-panel {
     padding: 35px 20px;
     min-height: 350px
-  }
-  .planned-panel h2 {
-    font-size: 25px
-  }
-  .planned-panel p {
-    font-size: 11px
   }
 }
 @media(prefers-reduced-motion:no-preference) {
@@ -1232,36 +997,19 @@ p {
   color: #565656;
 }
 @media (max-width: 650px) {
-  .preview-strip { font-size: 11px; line-height: 1.5; }
-  .eyebrow { font-size: 10px; }
-  .page-heading p { font-size: 12px; }
-  .sample-date span, .sample-date strong { font-size: 11px; }
-  .metric > span, .metric small, .metric:last-child > small { font-size: 11px; }
-  .metric strong small { font-size: 11px; }
-  .section-heading span { font-size: 11px; }
-  .search input, .filters select { font-size: 12px; }
+  .preview-strip { line-height: 1.5; }
   .search, .filters select { min-height: 44px; }
-  .person > strong { font-size: 13px; }
-  .person > span:not(.status), .card-amount > span { font-size: 11px; line-height: 1.4; }
+  .person > span:not(.status), .card-amount > span { line-height: 1.4; }
   .card-amount { max-width: 112px; text-align: right; }
-  .card-amount > strong { font-size: 17px; }
-  .status { font-size: 11px !important; }
   .borrower-card { padding: 19px 14px; gap: 9px; }
-  .avatar { width: 33px; height: 33px; font-size: 11px; }
-  .list-foot, .group-label { font-size: 11px; line-height: 1.5; }
-  .detail-id, .detail-amounts span, .loan-title span, .loan dt small { font-size: 11px; }
-  .loan dl > div, .loan-title, .issue-note, .receipt strong { font-size: 12px; }
-  .receipt p, .action-note { font-size: 11px; }
-  .back-button, .secondary-button, .post-button { font-size: 12px; min-height: 44px; }
+  .avatar { width: 33px; height: 33px; }
+  .list-foot, .group-label { line-height: 1.5; }
+  .back-button, .secondary-button, .post-button { min-height: 44px; }
   .back-button { padding: 0 0 14px; }
-  .empty-state p, .planned-panel p { font-size: 12px; }
-  .mobile-nav button { font-size: 11px; min-height: 48px; color: #565656; }
-  .page-footer, .page-footer > span { font-size: 11px; }
+  .mobile-nav button { min-height: 48px; color: #565656; }
   .page-footer > span { max-width: 80px; }
-  .sidebar-foot, .sidebar-foot small { font-size: 11px; }
-  .nav-caption { font-size: 11px; }
   .sidebar .nav-item { min-height: 44px; }
-  .language button { font-size: 12px; min-height: 36px; min-width: 39px; }
+  .language button { min-height: 36px; min-width: 39px; }
   main { padding-bottom: 85px; }
 }
 
@@ -1284,7 +1032,6 @@ p {
 .sidebar { border-right: 1px solid #e1e1e1; background: #fff; color: #333; }
 .brand-logo { width: 48px; height: 48px; object-fit: contain; flex-shrink: 0; }
 .brand { gap: 10px; padding-left: 6px; }
-.brand small { letter-spacing: 1px; }
 .topbar { border-top: 4px solid var(--brand-primary); }
 .nav-item { color: #555; border-left: 3px solid transparent; }
 .nav-item.active { border-left-color: var(--brand-primary); background: #fff; color: #222; }
@@ -1312,16 +1059,14 @@ p {
 .language button[aria-pressed="true"] { background: #f2f2f2; color: #333; }
 button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible,
 .search:focus-within { outline-color: var(--brand-primary); }
-.theme-preview { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-bottom: 12px; font-size: 11px; color: #666; }
-.theme-preview button { border: 1px solid #ddd; border-radius: 4px; padding: 7px 10px; background: #fff; font-size: 11px; }
+.theme-preview { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-bottom: 12px; color: #666; }
+.theme-preview button { border: 1px solid #ddd; border-radius: 4px; padding: 7px 10px; background: #fff; }
 .theme-preview button[aria-pressed="true"] { border-color: var(--brand-primary); box-shadow: inset 0 -2px var(--brand-primary); color: #333; font-weight: 600; }
 .preview-strip { background: #fff; border-color: #ddd; color: #555; }
 .preview-dot { background: var(--brand-primary); }
 @media (max-width: 650px) {
   .metric:last-child { display: flex; grid-column: auto; padding: 18px 16px; gap: 8px; align-items: stretch; border: 0; }
-  .metric:last-child > strong { font-size: 26px; }
-  .metric:last-child > small { font-size: 11px; }
-  .theme-preview { flex-wrap: wrap; font-size: 11px; justify-content: flex-start; gap: 7px; }
+  .theme-preview { flex-wrap: wrap; justify-content: flex-start; gap: 7px; }
   .theme-preview > span { flex: 1; }
   .theme-preview button { min-height: 36px; }
   .brand-logo { width: 48px; height: 48px; }
@@ -1345,4 +1090,109 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .detail-panel .detail-amounts {
   background: transparent;
   border-color: var(--border-tint);
+}
+/* Readability scale: shared across desktop, tablet and mobile, including Thai. */
+:root {
+  --text-meta: 14px;
+  --text-body: 16px;
+  --text-section: 22px;
+  --text-subsection: 18px;
+  font-size: var(--text-body);
+  line-height: 1.5;
+}
+button, input, select { line-height: 1.5; }
+small { font-size: var(--text-meta); line-height: 1.5; }
+h1 { font-size: 40px; line-height: 1.2; }
+h2, .section-heading h2 { font-size: var(--text-section); line-height: 1.4; }
+h3, .detail-section-title { font-size: var(--text-subsection); line-height: 1.5; }
+.brand { font-size: 22px; line-height: 1.4; }
+.brand small, .nav-caption, .sidebar-foot, .sidebar-foot small,
+.breadcrumb, .preview-strip, .preview-detail, .eyebrow, .sample-date span,
+.sample-date strong, .metric > span, .metric small, .section-heading span,
+.person > span:not(.status), .status, .card-amount > span, .list-foot,
+.detail-id, .detail-amounts span, .issue-note, .detail-section-title span,
+.loan-title span, .loan dt, .loan dt small, .receipt p, .action-note,
+.group-label, .page-footer, .page-footer > span, .theme-preview {
+  font-size: var(--text-meta);
+  line-height: 1.5;
+}
+.nav-item, .language button, .theme-preview button, .search input, .filters select,
+.person > strong, .back-button, .secondary-button, .post-button, .loan-title,
+.loan dd, .receipt strong, .empty-state p, .planned-panel p, .page-heading p,
+.detail-empty p, .detail-empty > div, .muted {
+  font-size: var(--text-body);
+  line-height: 1.5;
+}
+.metric > strong { font-size: 32px; line-height: 1.3; }
+.metric strong small { font-size: var(--text-meta); }
+.card-amount > strong { font-size: 20px; line-height: 1.4; }
+.detail-amounts strong { font-size: 24px; line-height: 1.4; }
+.detail-panel > h2, .detail-empty h2 { font-size: 24px; line-height: 1.4; }
+.planned-panel h2 { font-size: 28px; line-height: 1.4; }
+.avatar, .avatar.large { font-size: var(--text-meta); }
+.nav-icon, .menu-toggle, .mobile-nav button > span, .section-heading .section-symbol,
+.search > span, .card-amount .arrow { font-size: 22px; }
+.receipt > span { font-size: 26px; }
+.detail-illustration { font-size: 50px; }
+.detail-illustration i { font-size: 20px; }
+.planned-icon { font-size: 48px; }
+.empty-state > span { font-size: 35px; }
+button, .filters select { min-height: 44px; }
+.nav-item, .sidebar .nav-item { min-height: 44px; }
+.language button, .theme-preview button { min-width: 44px; min-height: 44px; }
+.search { min-height: 44px; }
+.search input { padding: 0; }
+.topbar { height: auto; padding-top: 10px; padding-bottom: 10px; }
+.nav-item, .person, .card-amount, .detail-id, .loan dt, .loan dd,
+.preview-strip, .theme-preview, .page-footer { overflow-wrap: anywhere; }
+.nav-item { line-height: 1.5; }
+.nav-icon { flex-shrink: 0; }
+.preview-strip { flex-wrap: wrap; }
+.filters { flex-wrap: wrap; }
+.search { flex-basis: 200px; }
+.filter-label { max-width: 100%; flex: 1 1 170px; }
+.filters select { white-space: normal; }
+.page-heading { align-items: flex-start; }
+.sample-date { flex-shrink: 0; max-width: 180px; }
+.detail-empty { max-width: 360px; }
+.loan dl > div { flex-wrap: wrap; }
+.loan dt { flex: 1 1 140px; }
+.loan dd { flex: 1 1 90px; }
+.loan-title { flex-wrap: wrap; gap: 6px; }
+.page-footer { flex-wrap: wrap; }
+.page-footer > span { max-width: none; }
+.theme-preview { flex-wrap: wrap; }
+@media (max-width: 1150px) and (min-width: 651px) {
+  .sidebar { width: 250px; }
+}
+@media (max-width: 1050px) {
+  .work-grid { grid-template-columns: 1fr; }
+  .detail-panel.unselected { min-height: 260px; }
+  .has-detail .list-panel { display: none; }
+  .back-button { display: inline-block; background: transparent; border: 0; }
+}
+@media (max-width: 650px) {
+  h1 { font-size: 32px; }
+  .page-heading { flex-wrap: wrap; gap: 15px; }
+  .page-heading p { max-width: none; }
+  .sample-date { text-align: left; padding-top: 0; max-width: none; }
+  .sample-date span { margin-bottom: 3px; }
+  .metric > strong, .metric:last-child > strong { font-size: 28px; }
+  .metric:last-child > small { font-size: var(--text-meta); }
+  .mobile-nav button { font-size: var(--text-meta); line-height: 1.5; min-height: 48px; }
+  .filters { flex-direction: column; }
+  .search, .filter-label { flex: auto; width: 100%; }
+  .filters select { width: 100%; }
+  .card-amount { max-width: none; }
+  .page-footer > span { max-width: none; }
+  .back-button { padding-bottom: 10px; }
+  .brand-logo { flex-shrink: 0; }
+  main { padding-bottom: 100px; }
+}
+@media (max-width: 400px) {
+  .borrower-card { display: grid; grid-template-columns: 33px minmax(0, 1fr); align-items: start; }
+  .card-amount { grid-column: 2; align-items: flex-start; text-align: left; gap: 2px; }
+  .card-amount .arrow { display: none; }
+  .metrics { grid-template-columns: 1fr; }
+  .metric { border-right: 0; border-bottom: 1px solid var(--border-tint); }
 }

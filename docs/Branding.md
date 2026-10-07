@@ -34,3 +34,7 @@ Final refinement: the owner requested all remaining pink recolored to orange sha
 Final prompt:
 
 Edit target: this existing orange-background DEV logo. Change EVERY remaining pink/magenta/red surface and edge to an orange-family shade: the M&W letter bevels and shadows, entire ampersand, Thai plaque, arrow, chart bars, symbol outlines, highlights and all decorative accents. ZERO pink, magenta or red anywhere. Use a harmonious monochromatic orange palette close to #e8710a: pale peach/cream highlights, warm orange mids, deep burnt-orange/brown shadows. Preserve white letter faces/white symbol surfaces and unchanged legibility, composition, proportions, 3D embossing, all symbols, exact 'M&W' and exact Thai 'สินเชื่อ'. Do not redesign, move, crop or add anything. Background remains warm orange, with enough tonal contrast for the foreground. Opaque square PNG. Production logo is not being edited; this is only the DEV variant.
+
+## Readable typography
+
+Owner requested all text be comfortably readable. The visual checkpoint now targets a 16px base/body/control size with 1.5 line height and no meaningful visible text below 14px, including secondary labels, status, dates, navigation captions and footer. Headings and financial amounts remain larger. Inputs/actions use at least 44px targets; mobile navigation 48px. English/Thai labels wrap and cards grow rather than shrinking type to fit. This is a preview design target verified at representative viewport sizes, not a full accessibility certification.
