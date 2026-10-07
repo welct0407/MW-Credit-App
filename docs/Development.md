@@ -1,6 +1,6 @@
 # Development and infrastructure
 
-Established 7 October 2026. Infrastructure is managed in this repository; shared SQL migrations remain owned by AppSheet-Loan-Project.
+Established 7 October 2026. Infrastructure is managed in this repository; shared SQL migrations and promotion tooling are now owned here under database/. Overall release coordination remains in AppSheet-Loan-Project.
 
 ## Resources
 
@@ -39,7 +39,7 @@ Plans/state can contain sensitive metadata; do not publish them.
 
 Dot-source `scripts/Enter-Dev.ps1` in each shell. It selects Node 24.21.0 / npm 11.19.0, Terraform 1.16.5 and GitHub CLI 2.102.0 under the user's LocalAppData MWCredit/tools folder, and reuses gcloud, PostgreSQL 18.6 and Flyway 13.6.0. Official archive SHA256 checks were verified for the new installations. Playwright Chromium is installed in the user cache. Repository dependencies use the root package lock.
 
-Docker builds run in Cloud Build or GitHub Actions; local Docker is not required. Do not run the shared Flyway runner against a database merely to test tool installation. Shared schema changes follow the canonical database procedure.
+Docker builds run in Cloud Build or GitHub Actions; local Docker is not required. Do not run the shared Flyway runner against a database merely to test tool installation. Shared schema changes follow [the canonical database procedure](../database/README.md).
 
 For another workstation, install the versions pinned in .nvmrc and Terraform required_version, use its supported gcloud authentication, run npm ci and npx playwright install chromium, and adapt the local paths in Enter-Dev.ps1. The PowerShell helper is VM-01 specific.
 
