@@ -10,9 +10,9 @@ from psycopg import sql
 ROOT = Path(__file__).resolve().parents[1]
 ROLE = 'mw-credit-app-read-dev@clever-oasis-508610-n7.iam'
 COLUMNS = {
-    'Borrowers': ['Row ID', 'Borrower Name', 'Creation Date', 'Hidden Flag', 'Total Outstanding Principal', 'Has Active Loan', 'Borrower Note'],
+    'Borrowers': ['Row ID', 'Borrower Name', 'Creation Date', 'Hidden Flag', 'Total Outstanding Principal', 'Has Active Loan', 'Borrower Note', 'Description', 'Total Interest Earned'],
     'Partners': ['Row ID', 'Login Email'],
-    'Loans': ['Row ID', 'Ref Borrowers', 'Loan Date', 'Due Date', 'Close Date', 'Loan Type', 'Loan Status', 'Principal Amount', 'Outstanding Principal', 'Total Principal Received', 'Total Interest Received', 'Total Amount Received', 'Defaulted', 'Auto Charge Enabled'],
+    'Loans': ['Row ID', 'Ref Borrowers', 'Loan Date', 'Due Date', 'Close Date', 'Loan Type', 'Loan Status', 'Principal Amount', 'Outstanding Principal', 'Total Principal Received', 'Total Interest Received', 'Total Amount Received', 'Defaulted', 'Auto Charge Enabled', 'Original Daily Interest Rate'],
 }
 PRIVATE = Path(r'C:/Users/MWCredit/Documents/ChatGPT/MW-Credit-App')
 

@@ -1,7 +1,7 @@
 import React from 'react';
 
 export type LoanRecord = {
-  id: string; borrowerId: string; loanDate: string | null; dueDate: string | null; closeDate: string | null;
+  id: string; borrowerId: string; borrowerDisplayName: string; originalDailyInterestRate: string | null; loanDate: string | null; dueDate: string | null; closeDate: string | null;
   loanType: string | null; status: string | null; principalAmount: string | null; outstandingPrincipal: string | null;
   totalPrincipalReceived: string | null; totalInterestReceived: string | null; totalAmountReceived: string | null;
   defaulted: boolean | null; autoChargeEnabled: boolean | null;
@@ -9,14 +9,21 @@ export type LoanRecord = {
 export type LoanPageResult = { ok: true; source: 'dev'; borrowerId: string; items: LoanRecord[]; nextCursor: string | null; asOf: string };
 export type LoanDetailResult = { ok: true; source: 'dev'; item: LoanRecord; asOf: string };
 type Props = {
-  thai: boolean; items: LoanRecord[]; selected: LoanRecord | null; busy: boolean; loading: boolean;
+  thai: boolean; page: number; items: LoanRecord[]; selected: LoanRecord | null; busy: boolean; loading: boolean;
   error: 'not_found' | 'unavailable' | null; nextCursor: string | null; listAsOf: string; detailAsOf: string;
   onSelect: (id: string) => void; onBack: () => void; onRefresh: () => void; onNext: () => void;
 };
+export function loanDisplayKey(loan: LoanRecord) {
+  const principal = loan.principalAmount === null ? '' : new Intl.NumberFormat('en-US', { style: 'currency', currency: 'THB', currencyDisplay: 'narrowSymbol', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Number(loan.principalAmount));
+  const date = loan.loanDate === null ? '' : loan.loanDate.slice(8, 10) + '/' + loan.loanDate.slice(5, 7);
+  const rate = loan.originalDailyInterestRate == null ? 'Unavailable' : loan.originalDailyInterestRate + '%';
+  return `${loan.borrowerDisplayName ?? ''}-${principal}-${date}-${rate}`;
+}
+const loanGroup = (value: string | null) => value === 'ยังไม่ปิดยอด' ? 0 : value === 'ปิดยอดแล้ว' ? 1 : 2;
 export function LoanRecords(props: Props) {
   const t = (en: string, th: string) => props.thai ? th : en;
   const unavailable = t('Unavailable', 'ไม่มีข้อมูล');
-  const money = (value: string | null) => value === null ? unavailable : new Intl.NumberFormat(props.thai ? 'th-TH' : 'en-TH', { style: 'currency', currency: 'THB', minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(Number(value));
+  const money = (value: string | null) => value === null ? unavailable : new Intl.NumberFormat(props.thai ? 'th-TH' : 'en-TH', { style: 'currency', currency: 'THB', currencyDisplay: 'narrowSymbol', minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(Number(value));
   const date = (value: string | null) => value === null ? unavailable : new Intl.DateTimeFormat(props.thai ? 'th-TH' : 'en-GB', { dateStyle: 'medium', timeZone: 'Asia/Bangkok' }).format(new Date(value + 'T00:00:00Z'));
   const yesNo = (value: boolean | null) => value === null ? unavailable : value ? t('Yes', 'ใช่') : t('No', 'ไม่ใช่');
   const status = (value: string | null) => value === 'ยังไม่ปิดยอด' ? t('Open', 'ยังไม่ปิดยอด') : value === 'ปิดยอดแล้ว' ? t('Closed', 'ปิดยอดแล้ว') : value === null ? unavailable : `${t('Other status', 'สถานะอื่น')}: ${value}`;
@@ -28,7 +35,7 @@ export function LoanRecords(props: Props) {
     {props.error && <div className="loan-read-error" role="status"><p>{props.error === 'not_found' ? t('This borrower or loan is no longer available.', 'ไม่พบผู้กู้หรือสัญญานี้แล้ว') : t('Unable to load loan records.', 'ไม่สามารถโหลดข้อมูลสัญญาได้')}</p><button className="secondary-button" disabled={props.busy} onClick={props.onRefresh}>{t('Retry loan list', 'ลองโหลดรายการสัญญาอีกครั้ง')}</button></div>}
     {props.selected ? <article className="loan-detail" aria-label={t('Loan details', 'รายละเอียดสัญญา')}>
       <button className="secondary-button" onClick={props.onBack}>← {t('Back to loans', 'กลับไปรายการสัญญา')}</button>
-      <h4>{props.selected.id}</h4>
+      <h4>{loanDisplayKey(props.selected)}</h4>
       <dl>
         <div><dt>{t('Loan status', 'สถานะสัญญา')}</dt><dd>{status(props.selected.status)}</dd></div>
         <div><dt>{t('Loan type', 'ประเภทสัญญา')}</dt><dd>{type(props.selected.loanType)}</dd></div>
@@ -44,13 +51,13 @@ export function LoanRecords(props: Props) {
         <div><dt>{t('Automatic charges enabled', 'เปิดเรียกเก็บอัตโนมัติ')}</dt><dd>{yesNo(props.selected.autoChargeEnabled)}</dd></div>
       </dl>
     </article> : <>
-      <p className="loan-order-note">{t('Newest loan dates first; undated loans last. Up to 25 per page, including open and closed loans.', 'เรียงวันที่สัญญาใหม่ก่อน และสัญญาไม่ระบุวันที่อยู่ท้าย แสดงไม่เกิน 25 รายการต่อหน้า รวมสัญญาที่ยังเปิดและปิดแล้ว')}</p>
+      <p className="loan-order-note">{t('Open loans first, then closed and other statuses. Newest dates first within each group. Groups may continue on another page.', 'แสดงสัญญาที่ยังเปิดก่อน ตามด้วยสัญญาที่ปิดและสถานะอื่น ภายในกลุ่มเรียงวันที่ใหม่ก่อน แต่ละกลุ่มอาจต่อเนื่องในหน้าถัดไป')}</p>
       {!props.loading && !props.error && props.items.length === 0 && <p>{t('No loans for this borrower.', 'ผู้กู้รายนี้ไม่มีสัญญา')}</p>}
-      <div className="loan-record-list">{props.items.map(loan => <button className="loan-record" key={loan.id} onClick={() => props.onSelect(loan.id)} disabled={props.busy}>
-        <span className="loan-record-main"><strong>{loan.id}</strong><span>{date(loan.loanDate)} · {status(loan.status)}</span><span>{type(loan.loanType)}</span>{loan.defaulted === true && <span>{t('Defaulted', 'ผิดนัดชำระ')}</span>}</span>
+      <div className="loan-record-list">{props.items.map((loan, index) => <React.Fragment key={loan.id}>{(index === 0 || loanGroup(props.items[index - 1].status) !== loanGroup(loan.status)) && <h4 className="record-group-heading">{loanGroup(loan.status) === 0 ? t('Open loans', 'สัญญาที่ยังเปิด') : loanGroup(loan.status) === 1 ? t('Closed loans', 'สัญญาที่ปิดแล้ว') : t('Other / unavailable status', 'สถานะอื่น / ไม่มีข้อมูล')}</h4>}<button className={'loan-record ' + (loanGroup(loan.status) === 1 ? 'closed' : '')} onClick={() => props.onSelect(loan.id)} disabled={props.busy}>
+        <span className="loan-record-main"><strong>{loanDisplayKey(loan)}</strong><span>{date(loan.loanDate)} · {status(loan.status)}</span><span>{type(loan.loanType)}</span>{loan.defaulted === true && <span>{t('Defaulted', 'ผิดนัดชำระ')}</span>}</span>
         <span className="loan-record-amount"><strong>{money(loan.outstandingPrincipal)}</strong><span>{t('Principal outstanding', 'เงินต้นคงเหลือ')}</span></span>
-      </button>)}</div>
-      <div className="loan-page-actions"><button className="secondary-button" disabled={props.busy} onClick={props.onRefresh}>{t('Refresh loans / first page', 'รีเฟรชสัญญา / หน้าแรก')}</button><button className="secondary-button" disabled={props.busy || !props.nextCursor} onClick={props.onNext}>{t('Next loans', 'สัญญาถัดไป')}</button></div>
+      </button></React.Fragment>)}</div>
+      <p className="live-page-status" role="status">{t('Loans page', 'หน้าสัญญา')} {props.page}{!props.loading && !props.error && !props.nextCursor ? t(' · End of loan list', ' · สิ้นสุดรายการสัญญา') : ''}</p><div className="loan-page-actions"><button className="secondary-button" disabled={props.busy} onClick={props.onRefresh}>{t('First loans page / refresh', 'หน้าแรกของสัญญา / รีเฟรช')}</button>{props.nextCursor && <button className="secondary-button" disabled={props.busy} onClick={props.onNext}>{t('Next loans page', 'หน้าถัดไปของสัญญา')}</button>}</div>
     </>}
     {freshness && <p className="loan-freshness">{t('Loans read at', 'อ่านข้อมูลสัญญาเมื่อ')} {new Intl.DateTimeFormat(props.thai ? 'th-TH' : 'en-GB', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Bangkok' }).format(new Date(freshness))} · Asia/Bangkok</p>}
   </section>;

@@ -35,3 +35,14 @@
   .loan-record { flex-direction: column; }
   .loan-record-amount { flex: auto; text-align: left; }
 }
+@media (min-width: 1051px) {
+  .live-shell .work-grid { height: max(400px, calc(100dvh - 330px)); align-items: stretch; }
+  .live-shell .work-grid > .list-panel, .live-shell .work-grid > .detail-panel { min-height: 0; height: 100%; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
+}
+.live-shell .record-group-heading { font-size: 18px; margin: 0; padding: 16px 22px; border-top: 1px solid var(--border-tint); }
+.live-shell .borrower-card.inactive, .loan-record.closed { background: #e9e9e9; color: #333; }
+.live-shell .borrower-card.inactive:hover, .live-shell .borrower-card.inactive.selected, .loan-record.closed:hover { background: #dedede; }
+.live-shell .list-foot { flex-wrap: wrap; gap: 12px; }
+.live-page-status { font-size: 14px; color: #565656; }
+.related-loans .record-group-heading { padding: 16px 0; }
+.borrower-page-note { margin: 0; padding: 0 22px 18px; font-size: 14px; color: #565656; }
