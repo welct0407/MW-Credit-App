@@ -28,7 +28,6 @@ export function LoanRecords(props: Props) {
   const yesNo = (value: boolean | null) => value === null ? unavailable : value ? t('Yes', 'ใช่') : t('No', 'ไม่ใช่');
   const status = (value: string | null) => value === 'ยังไม่ปิดยอด' ? t('Open', 'ยังไม่ปิดยอด') : value === 'ปิดยอดแล้ว' ? t('Closed', 'ปิดยอดแล้ว') : value === null ? unavailable : `${t('Other status', 'สถานะอื่น')}: ${value}`;
   const type = (value: string | null) => value === 'กำหนดวันชำระ' ? t('Fixed due date', 'กำหนดวันชำระ') : value === 'ดอกเบี้ยรายวัน' ? t('Daily interest', 'ดอกเบี้ยรายวัน') : value === 'ผ่อนชำระรายวัน' ? t('Daily instalment', 'ผ่อนชำระรายวัน') : value === null ? unavailable : `${t('Other type', 'ประเภทอื่น')}: ${value}`;
-  const freshness = props.selected ? props.detailAsOf : props.listAsOf;
   return <section className="related-loans" aria-label={t('Related loans', 'สัญญาที่เกี่ยวข้อง')}>
     <div className="related-loans-heading"><h3>{t('Related loans', 'สัญญาที่เกี่ยวข้อง')}</h3><span>{t('Read only', 'อ่านอย่างเดียว')}</span></div>
     {props.loading && <p role="status">{t('Loading loan records…', 'กำลังโหลดข้อมูลสัญญา…')}</p>}
@@ -59,6 +58,6 @@ export function LoanRecords(props: Props) {
       </button></React.Fragment>)}</div>
       <p className="live-page-status" role="status">{t('Loans page', 'หน้าสัญญา')} {props.page}{!props.loading && !props.error && !props.nextCursor ? t(' · End of loan list', ' · สิ้นสุดรายการสัญญา') : ''}</p><div className="loan-page-actions"><button className="secondary-button" disabled={props.busy} onClick={props.onRefresh}>{t('First loans page / refresh', 'หน้าแรกของสัญญา / รีเฟรช')}</button>{props.nextCursor && <button className="secondary-button" disabled={props.busy} onClick={props.onNext}>{t('Next loans page', 'หน้าถัดไปของสัญญา')}</button>}</div>
     </>}
-    {freshness && <p className="loan-freshness">{t('Loans read at', 'อ่านข้อมูลสัญญาเมื่อ')} {new Intl.DateTimeFormat(props.thai ? 'th-TH' : 'en-GB', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Bangkok' }).format(new Date(freshness))} · Asia/Bangkok</p>}
+
   </section>;
 }

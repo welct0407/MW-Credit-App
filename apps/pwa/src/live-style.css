@@ -1,5 +1,5 @@
 .live-shell { --section-heading-fill: #e6e6e6; --group-heading-fill: #f0f0f0; }
-.live-shell .topbar { gap: 16px; padding: 10px 20px; flex: 0 0 auto; min-height: 76px; }
+.live-shell .topbar { border: 0; gap: 16px; padding: 6px 16px; flex: 0 0 auto; min-height: 60px; }
 .live-brand { display: flex; align-items: center; gap: 10px; min-width: 0; margin-right: auto; }
 .live-brand h1 { font-size: 22px; line-height: 1.3; margin: 0; }
 .live-environment { font-size: 14px; line-height: 1.5; }
@@ -115,11 +115,11 @@
 @media (max-width: 1050px) {
   .live-desktop-nav { display: none; }
   .live-menu-toggle { display: block; min-width: 44px; padding: 8px; }
-  .live-shell .topbar { position: sticky; top: 0; z-index: 40; display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: 8px; padding: 10px 12px; }
+  .live-shell .topbar { position: sticky; top: 0; z-index: 40; display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: 8px; min-height: 56px; padding: 6px 12px; }
   .live-brand { grid-column: 2; grid-row: 1; margin: 0; }
-  .live-brand .brand-logo { width: 40px; height: 40px; }
+  .live-brand .brand-logo { width: 32px; height: 32px; }
   .live-menu-toggle { grid-column: 1; grid-row: 1; }
-  .live-shell .topbar > .collection-update { grid-column: 3; grid-row: 1; min-width: 44px; width: 44px; }
+  .live-shell .topbar > .live-header-actions { grid-column: 3; grid-row: 1; }
   .live-shell main { padding: 12px; }
 }
 
@@ -157,3 +157,11 @@
   .live-shell:has(.live-bottom-nav) .list-panel, .live-shell:has(.live-bottom-nav) .detail-panel { scroll-margin-bottom: calc(76px + env(safe-area-inset-bottom)); }
   .live-menu-dialog .live-account-controls { margin-top: 16px; }
 }
+
+.live-brand .brand-logo { width: 36px; height: 36px; }
+.live-brand h1 { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.live-brand > div { min-width: 0; }
+.live-header-actions { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+.live-header-refresh { width: 44px; height: 44px; min-width: 44px; padding: 0; border: 0; border-radius: 5px; background: transparent; color: inherit; font-size: 26px; }
+.live-header-refresh:hover { background: rgb(255 255 255 / 20%); }
+@media (max-width: 1050px) { .live-brand .brand-logo { width: 32px; height: 32px; } }

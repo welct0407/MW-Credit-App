@@ -18,6 +18,6 @@ export function UpcomingCharges({ thai, summary, detail, page, busy, error, onDa
       {summary?.items.map(row => <button className="upcoming-date-row" disabled={busy} key={row.id} onClick={() => onDate(row.dueDate)}><span><span>{t('Date', 'วันที่')}</span><strong>{date(row.dueDate)}</strong></span><span><span>{t('Total Charge', 'ยอดเรียกเก็บรวม')}</span><strong>{money(row.totalCharge)}</strong></span></button>)}
       <button className="secondary-button upcoming-refresh" disabled={busy} onClick={onRefresh}>{t('Refresh Upcoming Charges', 'รีเฟรชยอดเรียกเก็บล่วงหน้า')}</button>
     </>}
-    {source && <p className="live-freshness">{t('Read at', 'อ่านข้อมูลเมื่อ')} {new Intl.DateTimeFormat(thai ? 'th-TH' : 'en-GB', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Bangkok' }).format(new Date(source.asOf))} · Asia/Bangkok</p>}
+
   </section>;
 }
