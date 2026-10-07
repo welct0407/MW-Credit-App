@@ -88,3 +88,9 @@ Review http://127.0.0.1:4173/?theme=dev using **Simulated access**: Allowed, Sig
 
 
 GitHub CI passed for app 3ec1ffc: [Development checks 37608585989](https://github.com/welct0407/MW-Credit-App/actions/runs/37608585989), including build/unit/browser checks, dependency audit and Terraform validation. No deployment was performed.
+
+## Owner refinement: prominent separators
+
+The owner found the record lines too faint. App a3d21d5ffe6219bb4ec1caa78cf7b52e6bfa2952 darkens the existing 1px borders: DEV #b86d32, PROD #b9577f, preserving card fills, typography and layout. A directed the palette, B changed the two CSS tokens and branding reference, C verified both themes at desktop/mobile list/detail. Actual color/contrast checks passed (minimum 3.345:1); no page overflow. Parent visually inspected the results. [Pinned screenshots and report](https://github.com/welct0407/MW-Credit-App/tree/a3d21d5ffe6219bb4ec1caa78cf7b52e6bfa2952/outputs/r052-phase1b). Branch publication verified; no phase advance or live deployment. All workers stopped for review.
+
+Separator revision a3d21d5 passed [GitHub CI 37609641961](https://github.com/welct0407/MW-Credit-App/actions/runs/37609641961). Preview remains available; no deployment or phase advance.
