@@ -2,7 +2,7 @@
 
 **[Overall progress: completed, current review and next steps](PWA_Progress.md)** — updated at every development-session closeout.
 
-**R052 checkpoint 2C, 7 October 2026:** Checkpoint2C workspace trim: removes visible update timestamp/About/footer and wide date-refresh row, shortens orange header/logo to60px desktop/56px mobile. Exact source dcf4b606 published;8affected browser cases and final managed-config build passed. CI37664554957 attempt2 passed after bounded installer recovery without source changes; Hostingccb0af261babf04b deployed, rollbackdacf7a53b31f09b0. Final signed-out desktop/mobile EN/Thai smoke passed; owner visual review pending. API00009-5x5 unchanged. Owner deferred custom-domain certificate work; no DNS/TLS checks in this slice. R052 Open, Phase2 incomplete. [Design](../outputs/r052-pwa/checkpoint-2c-design.md).
+**R052 checkpoint 2E, 8 October 2026:** Checkpoint 2E canonical DEV install/update controls, public-only offline fallback and themed mobile bottom navigation are deployed. Source848750a passed CI37702097252 and six focused worker/browser cases; Hosting6a5b8f75b50f4537 is live. Independent unsigned delivery checks passed: exact worker/assets and public-only cache on canonical desktop/mobile, no worker on fallback. Custom domain HTTPS and owner sign-in/read/refresh validation are complete. API00009-5x5, database and access permissions are unchanged. Native OS installation and owner PWA review remain pending. R052 is Open; Phase2 is incomplete. [Design](../outputs/r052-pwa/checkpoint-2e-design.md).
 
 **R052 checkpoint 2A, 7 October 2026:** Checkpoint 2A live DEV Google sign-in and Borrowers read is owner-validated: owner reported successful list/detail reads; actual verified Google UID is pinned in managed Secret Manager version 1, read revision00003-pzr. Independent signed-out desktop/mobile, static health and denial checks passed. App source20358d1 includes the tested cold-start test-tooling correction; final CI37615986417 passed. Checkpoint 2A is complete. Phase 2 remains incomplete and the team stops at this checkpoint; no next slice, production, financial, schema or AppSheet change. [Evidence](../outputs/r052-pwa/README.md).
 
@@ -94,6 +94,7 @@ This phase does not claim completed application sign-in, financial permissions, 
 ## Phase 2 Secure application foundation
 
 **Objective:** provide a usable mobile/desktop application with verified identity and an authorized read path.
+**Owner additions — current status, 8 October 2026:** DEV domain https://dev-lm.mw-credit.com is Terraform-managed, HTTPS verified and owner-validated for sign-in, Borrowers/Collection reads and refresh persistence. Existing web.app remains fallback; production DNS stays Phase3. Fixed header and independently scrolling desktop panes are implemented with responsive/mobile navigation and tested layouts; broader physical-device/browser acceptance remains scoped to recorded evidence. These completed slices do not establish full Phase2 completion.
 
 - Implement sign-in, session expiry, account disabling/revocation behavior and sign-in-to-Partner mapping. Preserve distinct login identities even when notification delivery addresses are shared.
 - Enforce record and action permissions in the API. Select and verify the browser-to-API authentication path; the current IAM-only readiness service is not already an end-user authorization solution.
@@ -310,7 +311,7 @@ The final review must establish all of the following:
 - The cutover runbook covers old-client sync drain, access controls, rollback triggers and stabilization.
 - No unresolved required-feature, financial-integrity, access-control or recovery blocker remains.
 
-**Current implementation task:** Phase 2, checkpoint 2B borrower-related loan reads deployed after the owner's “ok. continue” instruction. Implementation and independent checks are complete; stop for owner visual validation before any next slice; Agent D owns infrastructure, miscellaneous work, documentation and publication. Full Phase 1/2 completion is not claimed. No calendar completion date is committed until the current feature inventory, staffing/availability and acceptance targets are agreed.
+**Current implementation task:** Phase 2, checkpoint 2E install/update/offline foundation. Source, exact-source CI and DEV delivery checks passed; stop for owner installation/update/offline review. Agent D owns infrastructure, miscellaneous work, documentation and publication. Full Phase 1/2 completion is not claimed.
 
 ## Borrower-field parity inventory after checkpoint 2B feedback
 

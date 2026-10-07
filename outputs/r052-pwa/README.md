@@ -4,7 +4,7 @@
 
 Date: 7 October 2026, Asia/Bangkok.
 
-Status: Checkpoint2C workspace trim: removes visible update timestamp/About/footer and wide date-refresh row, shortens orange header/logo to60px desktop/56px mobile. Exact source dcf4b606 published;8affected browser cases and final managed-config build passed. CI37664554957 attempt2 passed after bounded installer recovery without source changes; Hostingccb0af261babf04b deployed, rollbackdacf7a53b31f09b0. Final signed-out desktop/mobile EN/Thai smoke passed; owner visual review pending. API00009-5x5 unchanged. Owner deferred custom-domain certificate work; no DNS/TLS checks in this slice. R052 Open, Phase2 incomplete.
+Status: Checkpoint 2E canonical DEV install/update controls, public-only offline fallback and themed mobile bottom navigation are deployed. Source848750a passed CI37702097252 and six focused worker/browser cases; Hosting6a5b8f75b50f4537 is live. Independent unsigned delivery checks passed: exact worker/assets and public-only cache on canonical desktop/mobile, no worker on fallback. Custom domain HTTPS and owner sign-in/read/refresh validation are complete. API00009-5x5, database and access permissions are unchanged. Native OS installation and owner PWA review remain pending. R052 is Open; Phase2 is incomplete.
 
 ## Scope
 
@@ -124,3 +124,7 @@ The prior Next page report was a confusing disabled end-of-list button, not a re
 ## Checkpoint 2C Collection read delivery
 
 Checkpoint2C Collection board and borrower-scoped charge reads are implemented/tested/deployed from source168e3a2:92units,9disposable actual PostgreSQL tests,13affected browsers (1intentional skip), CI37641674603 passed. Exact11-column SELECT delta verified DEV37/PROD0/no table-write/schemaCREATE. API00006-kl5 and Hosting1fc4f23a66f185b8 retain persistent owner sign-in/UID pin. Final unsigned API and EN/Thai desktop/mobile smoke passed. Actual owner Collection validation pending. R052 Open, full Phase2 incomplete; stop at2C review. See [design](checkpoint-2c-design.md) and [change record](../../Change%20Logs/CHANGE_NOTES_R052_CHECKPOINT_2C_2026-10-07.md).
+
+## Checkpoint 2E — canonical DEV PWA
+
+[Design](checkpoint-2e-design.md) · [Owning log](../../Change%20Logs/CHANGE_NOTES_R052_PWA_FOUNDATION_2026-10-08.md) · [App verification](https://github.com/welct0407/MW-Credit-App/tree/codex/r052-review-shell/outputs/r052-pwa-install) · [Worker-aware recovery](https://github.com/welct0407/MW-Credit-App/blob/codex/r052-review-shell/docs/Development_PWA_Delivery.md). Prior Hostingccb0af261babf04b is pre-worker and cannot alone retire an installed worker. Synthetic actual-worker rollback/retirement passed; native installation and owner review remain distinct.
