@@ -35,7 +35,7 @@ No production mutation, financial posting, scheduler switch or AppSheet cutover 
 
 ## Current checkpoint
 
-Current checkpoint2C mobile navigation: compact header/icon status, menu account controls and two provisional mobile bottom routes are deployed on Hosting dacf7a53b31f09b0 after exact d959e6f CI37656348383 passed. Desktop retains all sidebar routes. Final signed-out smoke passed; owner review pending; five future frequent views deferred. API00008-9fw/access unchanged. [Overall progress](PWA_Progress.md) owns current status; DNS excluded and Phase2 incomplete.
+Current checkpoint2D: owner accepted compact mobile navigation; selected dev-lm.mw-credit.com. Terraform mapping/Firebase hostname and paired exact-origin API00009-5x5 are deployed; source8385614 CI37660003633 and13unsigned origin checks passed. DNS/TLS awaits owner private token provisioning, then Terraform DNS and custom-host owner validation. Existing Hosting/fallback unchanged. [Overall progress](PWA_Progress.md) owns status; Phase2 incomplete.
 
 ## Revised reporting order
 

@@ -4,7 +4,7 @@
 
 Date: 7 October 2026, Asia/Bangkok.
 
-Status: Checkpoint2C compact mobile navigation refinement deployed: single-row mobile header, icon status, language/sign-out in menu and bottom navigation for Borrowers/Collection without duplicate mobile sidebar entries; desktop keeps all sidebar routes and no bottom navigation. Exact source d959e6f passed CI37656348383 and managed-config build; Hosting dacf7a53b31f09b0, rollback49547c853832dd36. Fifteen affected browser checks passed (one intentional skip). Final signed-out desktop/mobile EN/Thai smoke passed; owner visual review pending. API00008-9fw, permissions and Terraform unchanged. Future five-view selection deferred; R052 Open and Phase2 incomplete.
+Status: Checkpoint2D DEV custom domain dev-lm.mw-credit.com in progress: Terraform Hosting mapping and Firebase authorized hostname applied; exact-origin API source8385614 passed CI37660003633, deployed as00009-5x5 with paired JSON allowlist. Existing web.app and Hostingdacf7a53b31f09b0 remain fallback. DNS/TLS and real owner custom-host login await privately provisioned zone-only Cloudflare token; empty Secret Manager container ready. No database/access/scaling change; R052 Open, Phase2 incomplete.
 
 ## Scope
 
