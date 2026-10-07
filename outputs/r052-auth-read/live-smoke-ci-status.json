@@ -2,7 +2,18 @@
   "commit": "24c198152e1987a2dbfd0acca67b47330fd76aab",
   "run": "https://github.com/welct0407/MW-Credit-App/actions/runs/37613233717",
   "conclusion": "failure",
-  "browserChecks": { "passed": 23, "skipped": 2, "failed": 1 },
+  "browserChecks": {
+    "passed": 23,
+    "skipped": 2,
+    "failed": 1
+  },
   "failure": "Desktop mocked live-entry case timed out at first borrower click after visible/enabled/stable checks, during scroll-into-view. Mobile equivalent passed.",
-  "scope": "CI evidence only; does not establish live authentication or borrower-read success."
+  "scope": "CI evidence only; does not establish live authentication or borrower-read success.",
+  "rerun": {
+    "attempt": 2,
+    "conclusion": "success",
+    "sourceChangesForRerun": false,
+    "focusedDesktopReproductions": 3,
+    "focusedDesktopFailures": 0
+  }
 }

@@ -59,7 +59,7 @@ Both stacks use the versioned remote GCS backend. The bootstrap bucket has alrea
 
 CI runs TypeScript/build, six configuration guard tests, desktop/mobile browser checks, dependency audit and Terraform formatting/validation. Manual Deploy development builds an immutable image, updates the new service, calls its private readiness endpoint and publishes the synthetic Hosting site through the official Firebase REST API. It runs only from main and the development environment.
 
-The hosting deployer uploads gzip files by content hash, finalizes a version and creates a release. No Firebase CLI or persistent Firebase token is required. The public site contains no borrower/customer data; the API remains IAM protected. Checkpoint 2A now implements owner-only Firebase Google authentication and a separate DEV Borrowers read service; the original readiness API stays IAM-protected. Live owner validation remains pending.
+The hosting deployer uploads gzip files by content hash, finalizes a version and creates a release. No Firebase CLI or persistent Firebase token is required. The public site contains no borrower/customer data; the API remains IAM protected. Checkpoint 2A now implements owner-only Firebase Google authentication and a separate DEV Borrowers read service; the original readiness API stays IAM-protected. The owner reported successful live sign-in/list/detail and the actual UID is now pinned.
 
 Local commands:
 
@@ -94,4 +94,4 @@ The local preview implements a tested synthetic read/access contract before live
 
 ## Checkpoint 2A deployment
 
-Separate read service: https://mw-credit-app-read-dev-pvrgvyg3oq-as.a.run.app. The owner explicitly approved service-only Firebase application authentication after domain-restricted sharing rejected allUsers membership. Terraform applied only invoker_iam_disabled false to true; organization policies and the old API are unchanged. [Read-service details](Development_Read_Service.md). The persistent owner-identity secret container is empty until real owner login; tracked mode remains email-bootstrap. Live Hosting version c0872b1adcb4006f is deployed; owner validation remains pending.
+Separate read service: https://mw-credit-app-read-dev-pvrgvyg3oq-as.a.run.app. The owner explicitly approved service-only Firebase application authentication after domain-restricted sharing rejected allUsers membership. Terraform applied only invoker_iam_disabled false to true; organization policies and the old API are unchanged. [Read-service details](Development_Read_Service.md). The persistent owner-identity secret version 1 holds the verified actual owner UID; tracked mode is uid-pinned. Live Hosting version c0872b1adcb4006f is deployed; the owner reported successful sign-in/list/detail, and the verified actual UID is pinned.

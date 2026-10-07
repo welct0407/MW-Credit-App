@@ -29,15 +29,13 @@
     "statementTimeoutMs": 5000,
     "partnersSelectColumns": 2
   },
-  "identityMode": "email-bootstrap",
+  "identityMode": "uid-pinned",
   "ownerIdentitySecret": "mw-credit-app-dev-owner-identity",
-  "ownerUidPopulated": false,
+  "ownerUidPopulated": true,
   "unitTestsPassed": 72,
   "hostingPriorVersion": "sites/mw-credit-app-dev-737787224638/versions/911d3a1e1883b92c",
   "pending": [
-    "CI mocked desktop startup failure diagnosis",
-    "owner real Google sign-in/read",
-    "actual UID pin"
+    "test-tooling fix CI and final publication"
   ],
   "privateArtifactsExcluded": [
     "Terraform state/plan including OAuth payload",
@@ -45,7 +43,7 @@
     "Hosting rollback response",
     "SDK/provider recovery files"
   ],
-  "finalReadyRevision": "mw-credit-app-read-dev-00002-ln2",
+  "finalReadyRevision": "mw-credit-app-read-dev-00003-pzr",
   "imageDigest": "sha256:89f10f0398df19071601caf39df28dc4c26559c69ea0dd9af2d358615e0d8593",
   "cloudBuild": "8acb768f-6fdc-448d-89c4-f214c135f030",
   "hostingVersion": "sites/mw-credit-app-dev-737787224638/versions/c0872b1adcb4006f",
