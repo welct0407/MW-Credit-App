@@ -17,3 +17,5 @@ This is the repository's first implementation checkpoint; existing shared servic
 Passed local build, six unit tests, two desktop/mobile browser tests, full npm vulnerability audit (zero findings), Terraform apply and final no-change plan. Live readiness confirmed DEV SQL connection, scoped synthetic GCS access/cleanup and managed secret access. Initial Firebase Hosting release succeeded.
 
 GitHub CI/deployment verification and final publication evidence will be recorded at closure. Application functionality and production cutover remain separate work.
+
+GitHub CI run 37583863169 passed. The first deployment was correctly rejected because GitHub uses an immutable OIDC subject containing numeric IDs; the Terraform condition was corrected to the verified immutable subject without widening repository, branch or environment access. Runtime environment guards now also execute at startup.

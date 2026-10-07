@@ -6,6 +6,7 @@ import { Storage } from "@google-cloud/storage";
 import { SecretManagerServiceClient } from "@google-cloud/secret-manager";
 import { assertEnvironment } from "./guards.mjs";
 const config={environment:process.env.APP_ENV,database:process.env.DB_NAME,prefix:process.env.STORAGE_PREFIX,instance:process.env.INSTANCE_CONNECTION_NAME,bucket:process.env.RECEIPT_BUCKET};
+assertEnvironment(config);
 const connector=new Connector(); let pool; let cached; let checkedAt=0;
 async function ready(){
   assertEnvironment(config);
