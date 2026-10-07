@@ -1,6 +1,6 @@
 # DEV borrower read checkpoint
 
-This checkpoint is an owner-only read implementation. It does not implement Collection, loan/charge detail, receipts, writes, schedules, or production access. The existing IAM-protected readiness service remains separate and unchanged.
+This checkpoint is an owner-only read implementation. It implements Borrowers, related loans and checkpoint2C Collection/charge reads. It does not implement receipts, writes, schedules or production access. The existing IAM-protected readiness service remains separate and unchanged.
 
 ## Isolated application builds
 
@@ -88,3 +88,9 @@ Three reviewed SELECT additions bring the DEV reader to 26 columns: Borrowers.De
 Refinement deployment: application source9ffc957, validation6fbcb5 (test-only timing correction), CI37626536327 passed. Read revision00005-wn4/imageaab122...32c0d and Hosting3f33c848f8542024 are live with the actual owner UID pin retained. Owner visual refinement acceptance is pending. Evidence: outputs/r052-loan-read/refinement-deployment.json.
 
 Current frontend: neutral UI source d599041, CI37634043751 passed, Hosting e112e2801d7ff306. Mostly white/light-grey body and cards, neutral groups and environment-colored main header; desktop panes40/60. API revision00005-wn4 is unchanged. Owner visual review pending.
+
+## Checkpoint 2C Collection read contract
+
+Collection uses the reconciled OLTP eligibility/status rules with one server transaction instant and Bangkok business date. Charge-linked repayments are aggregated before joins; amount due is collected plus remaining. Hidden Collection members do not gain access to directory routes. Read-only repeatable-read transactions and date-bound cursors reject mixed-day paging. No receipt/payment command or browser balance computation is added.
+
+Exact source168e3a2 passed local92 units/build,9 disposable PostgreSQL semantic tests and13 affected browsers (1 intentional SDK/mobile skip). DEV reader now has37 exact column SELECT privileges after reviewed Charges7/Repayments4 additions; PROD business columns0, no write/schema expansion. Operator EXPLAIN14invocations is separate from C actual synthetic SQL tests and does not measure live execution performance. CI37641674603 passed; API00006-kl5/image88f91219...49cb0 and Hosting1fc4f23a66f185b8 deployed. Independent unsigned smoke passed; owner Collection validation pending. Evidence: outputs/r052-collection-read.
