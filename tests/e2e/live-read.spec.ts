@@ -9,7 +9,7 @@ test.beforeAll(async({},info)=>{
 });
 function return0(){return 0}
 test.afterAll(()=>server?.kill()); test.afterEach(async({},info)=>{if(info.status!==info.expectedStatus)console.log(serverLog)});
-const authMock=`let listener;export const inMemoryPersistence='memory';export function getAuth(){return {}};export async function setPersistence(a,p){if(p!=='memory')throw Error('persistence');}export function onAuthStateChanged(a,fn){listener=fn;fn(null);return()=>{listener=null}};export class GoogleAuthProvider{setCustomParameters(){}};export async function signInWithPopup(){listener({uid:'synthetic-owner',getIdToken:async()=>'synthetic-bearer'})};export async function signOut(){listener(null)};`;
+const authMock=`let listener;export const browserLocalPersistence='local';export const inMemoryPersistence='memory';export const browserPopupRedirectResolver={};export function initializeAuth(a,o){if(o.persistence!=='local')throw Error('persistence');return {}};export function getAuth(){return {}};export async function setPersistence(a,p){if(p!=='local')throw Error('persistence');}export function onAuthStateChanged(a,fn){listener=fn;fn(null);return()=>{listener=null}};export class GoogleAuthProvider{setCustomParameters(){}};export async function signInWithPopup(){listener({uid:'synthetic-owner',getIdToken:async()=>'synthetic-bearer'})};export async function signOut(){listener(null)};`;
 const borrower={id:'test-row',name:'SYNTHETIC BROWSER FIXTURE',borrowerDisplayName:'SYNTHETIC BROWSER FIXTURE - English',totalProfitEarned:'-12.34',createdDate:'2026-10-07',hasActiveLoan:true,outstandingPrincipal:'1234.56',note:'Synthetic note only'};
 test('live entry mocked sign-in read errors signout and stale response isolation',async({page},info)=>{
  let navigationCount=0;
