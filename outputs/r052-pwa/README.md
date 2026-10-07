@@ -1,8 +1,8 @@
-# R052 PWA checkpoint 1A
+# R052 PWA checkpoints
 
 Date: 7 October 2026, Asia/Bangkok.
 
-Status: revised checkpoint ready for owner visual validation; all agents stopped; no phase advance. The checkpoint stops for owner visual validation; it does not complete Phase 1 or the secure foundation in Phase 2.
+Status: checkpoint 1A visually accepted by the owner on 7 October 2026 with “ok, continue the development as per your plan”. Checkpoint 1B implemented and independently verified with the same A/B/C roles; workers stopped for the next owner review. Acceptance covers the synthetic preview, not live authentication, business data or financial correctness.
 
 ## Scope
 
@@ -68,3 +68,23 @@ Owner requested enlarging all small text. A/B/C are applying a coherent readable
 Readable revision ea22c16: clean build, 6 guards and 18 browser checks passed (2 intentional duplicate skips). Final focused scan passed at 1440/1024/768/390/360px in English and Thai, covering list/detail/empty/planned/drawer text and controls. Meaningful text >=14px, input/select >=16px and relevant controls >=44px; checked clipping, text bounds, overflow and control overlap passed. Parent inspected desktop/mobile screenshots; architecture accepted. All workers stopped for review.
 
 Readable typography GitHub CI passed for ea22c16: [Development checks 37606523746](https://github.com/welct0407/MW-Credit-App/actions/runs/37606523746). Preview server remains available; no deployment.
+
+## Owner acceptance and Phase 1B continuation
+
+The owner accepted the latest readable, themed preview and authorized continuation. Phase 1B now establishes the Collection/Borrowers read and access contracts. See [checkpoint 1B design](checkpoint-1b-design.md) for the bounded implementation and remaining policy decisions. Phase 1 remains open.
+
+## Checkpoint 1B delivered — read and access contracts
+
+Application commit **3ec1ffc3c824d2aae9c2486196c7d0979a1464eb**, verified on the existing remote branch and [draft PR3](https://github.com/welct0407/MW-Credit-App/pull/3). [Pinned independent report and screenshots](https://github.com/welct0407/MW-Credit-App/tree/3ec1ffc3c824d2aae9c2486196c7d0979a1464eb/outputs/r052-phase1b).
+
+- A reconciled recorded Collection/Borrower filters, status/amount semantics and login policy; no live AppSheet parity claim.
+- B implemented synthetic-only default-deny policy, gated read projections and five bilingual access-review states. Selected records and totals disappear when access is denied. Decimal cents and date validation are preserved.
+- C verified a clean build, 42 unit tests and 22 browser checks, with 2 intentional duplicate skips. Final frozen-source run passed; an earlier hot-reload interruption is explained in the report.
+- Parent inspected source and desktop/mobile screenshots, exercised expired-to-allowed in the existing in-app preview, preserved historical 1A evidence and verified branch publication.
+
+The owner selected **welct0407@mw-credit.com only** for the first real DEV sign-in/read test; add others later. [Read-only Firebase evidence](firebase-capability-20261007.json) found the Firebase project active, no registered web app and an auth-config HTTP404. Actual auth setup, token verification, grants and business database access remain to implement. No live resources changed.
+
+Review http://127.0.0.1:4173/?theme=dev using **Simulated access**: Allowed, Signed out, Expired, Access denied and Unmapped login. These are synthetic scenarios, not real sign-in. Retained colors, logos and typography remain available. All workers stopped at this checkpoint; await owner visual validation/go-ahead before actual DEV authentication/read integration. Phase 1 and Phase 2 are not complete; production and financial posting remain outside this checkpoint.
+
+
+GitHub CI passed for app 3ec1ffc: [Development checks 37608585989](https://github.com/welct0407/MW-Credit-App/actions/runs/37608585989), including build/unit/browser checks, dependency audit and Terraform validation. No deployment was performed.

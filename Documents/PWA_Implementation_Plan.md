@@ -42,7 +42,7 @@ Every financial command must enforce server-side identity and permissions, prese
 | Phase | Objective | Dependency | Initial status |
 | --- | --- | --- | --- |
 | 0 | Establish development infrastructure and database ownership | Completed setup | Complete for the recorded scope |
-| 1 | Establish full feature coverage, contracts and acceptance criteria | 0 | In progress; checkpoint 1A awaiting owner visual review |
+| 1 | Establish full feature coverage, contracts and acceptance criteria | 0 | In progress; checkpoint 1A accepted, tested checkpoint 1B read/access contracts awaiting review |
 | 2 | Build the secure application foundation and first read flow | 1 | Not started |
 | 3 | Make production infrastructure and delivery ready | 2 | Not started |
 | 4 | Prove one complete financial workflow in DEV | 2; production setup can proceed alongside it | Not started |

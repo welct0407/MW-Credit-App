@@ -32,9 +32,9 @@ No production mutation, financial posting, scheduler switch or AppSheet cutover 
 
 ## Current checkpoint
 
-Checkpoint 1A: recorded feature baseline and local synthetic Collection/Borrowers preview. Design and feature gaps are recorded under [R052 PWA evidence](../outputs/r052-pwa/README.md).
+Checkpoint 1A: recorded feature baseline and local synthetic Collection/Borrowers preview, visually accepted by the owner on 7 October 2026. Checkpoint 1B read/access contracts and denied-access simulator are implemented and verified; all workers stopped for owner review; its [design](../outputs/r052-pwa/checkpoint-1b-design.md) records the owner-only initial DEV pilot and the live-auth boundary. Design and feature gaps are recorded under [R052 PWA evidence](../outputs/r052-pwa/README.md).
 
-Required review: mobile/desktop navigation and layout, Collection versus Borrowers presentation, search/filter/detail flow, English/Thai labels, and the proposed next slice. Authentication, business API access, real offline storage and payment posting remain future implementation.
+Accepted review: mobile/desktop navigation and layout, Collection versus Borrowers presentation, search/filter/detail flow, English/Thai labels and readable themed styling. Authentication, business API access, real offline storage and payment posting remain future implementation.
 
 ## Revised reporting order
 
