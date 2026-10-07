@@ -81,3 +81,7 @@ For infrastructure recovery, review versioned GCS state and Git configuration to
 ## Next application work
 
 Implement Firebase sign-in/role enforcement and narrowly scoped database privileges, followed by the first end-to-end business slice. Add governed Metabase/Grafana integration when application endpoints and metrics exist. Mobile posting requires online confirmation; offline viewing/drafts remain in scope. No duplicate business job scheduler, production API or cutover has been activated.
+
+## Completed delivery evidence
+
+[CI 37584672421](https://github.com/welct0407/MW-Credit-App/actions/runs/37584672421) and [deployment 37584673770](https://github.com/welct0407/MW-Credit-App/actions/runs/37584673770) both passed for source fa9679f. GitHub used OIDC throughout; its development environment permits main only. The private readiness probe verifies database, storage and secrets before Hosting publication. Both Terraform stacks returned no-change plans. See [sanitized verification](../outputs/infrastructure-20261007/verification.json). Anonymous API requests returned HTTP 403; the public synthetic page returned HTTP 200. Development infrastructure is ready; the next scope is application authentication and business functionality.

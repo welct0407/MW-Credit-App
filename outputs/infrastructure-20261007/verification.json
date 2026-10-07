@@ -1,0 +1,28 @@
+{
+  "checked_at_utc": "2026-10-07T07:03:30.1945027Z",
+  "source_commit": "fa9679f",
+  "project": "clever-oasis-508610-n7",
+  "environment": "development",
+  "ci": "https://github.com/welct0407/MW-Credit-App/actions/runs/37584672421",
+  "ci_result": "success",
+  "deployment": "https://github.com/welct0407/MW-Credit-App/actions/runs/37584673770",
+  "deployment_result": "success",
+  "revision": "mw-credit-app-api-dev-00004-zn4",
+  "image": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app/api@sha256:48fc3a332a5c1f9a48a55bb222776534810c558e50cf86559141bc9d4983cd30",
+  "hosting_url": "https://mw-credit-app-dev-737787224638.web.app",
+  "authenticated_readiness": "passed: DEV database, synthetic scoped storage roundtrip and Secret Manager access",
+  "anonymous_api_http": 403,
+  "tests": [
+    "6 unit tests",
+    "2 desktop/mobile viewport browser tests",
+    "TypeScript and Vite build",
+    "npm runtime audit in CI; full audit zero findings locally",
+    "Terraform format and validate"
+  ],
+  "limitations": [
+    "Application sign-in and business workflows not implemented",
+    "No financial writes or cutover",
+    "Existing service credentials not rotated",
+    "Real-device feature testing belongs to application implementation"
+  ]
+}
