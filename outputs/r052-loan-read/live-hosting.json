@@ -1,0 +1,25 @@
+{
+  "checkedAt": "2026-10-07T12:20:18.771Z",
+  "version": "0e7710ff18851030",
+  "scope": "Unsigned fresh browser contexts; no Google sign-in",
+  "results": [
+    {
+      "name": "desktop",
+      "width": 1440,
+      "height": 900,
+      "signedOut": true,
+      "records": 0,
+      "apiRequests": 0,
+      "overflow": false
+    },
+    {
+      "name": "mobile",
+      "width": 390,
+      "height": 844,
+      "signedOut": true,
+      "records": 0,
+      "apiRequests": 0,
+      "overflow": false
+    }
+  ]
+}

@@ -20,3 +20,13 @@ The six `*-MOCKED-*.png` files here show desktop/mobile loan lists and EN/Thai l
 No live owner authentication or live loan correctness is established by mocks. Deployed unsigned/API denial smoke will be recorded separately after D's deployment. Owner visual validation of actual DEV related records remains pending.
 
 C evidence and test files are frozen for D publication. The four regenerated historical `outputs/r052-auth-read/*MOCKED*.png` files should be restored to their prior committed versions; current loan evidence is kept only here. Parent preview 4173 was preserved; test-owned Vite servers exited.
+
+## Deployed unsigned verification
+
+Exact source `084bb5376ddc6f156cbba7ba4acd931c1f22d8d0` CI completed successfully: https://github.com/welct0407/MW-Credit-App/actions/runs/37619664493 . All steps passed including full e2e, live build, audit and Terraform validation.
+
+D reported Ready revision `mw-credit-app-read-dev-00004-wmg` and Hosting version `0e7710ff18851030`. C independently verified `/health` 200 static DEV body, unsigned nested list/detail 401, deliberately invalid synthetic token 401, POST 405, and allowed-origin GET preflight 204. All responses were no-store; preflight returned the exact Hosting origin. See live-smoke.json.
+
+Fresh browser contexts at 1440×900 and 390×844 showed signed-out EN/Thai UI, zero borrower/loan records, zero API requests and no horizontal page overflow. Four live signed-out screenshots and live-hosting.json are sanitized evidence. No Google sign-in or business row was requested.
+
+D's separate database evidence comprises operator EXPLAIN of four query shapes and a privilege audit of DEV23/PROD0/no writes; it is not runtime-identity execution of financial reads. Owner validation of the actual authenticated loan flow remains pending. C files are frozen again for evidence publication.
