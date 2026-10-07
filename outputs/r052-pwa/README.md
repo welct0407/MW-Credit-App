@@ -2,7 +2,7 @@
 
 Date: 7 October 2026, Asia/Bangkok.
 
-Status: Neutral UI source d599041 is deployed to DEV Hosting e112e2801d7ff306 after CI37634043751 passed. White/light-grey surfaces, neutral group-header hierarchy, environment-colored main header, removed redundant badges and 40/60 desktop panes match latest owner steering. C passed20 affected checks (2 intentional skips) plus2/2 long-key checks; parent synthetic visual review passed. Final signed-out EN/Thai desktop/mobile Hosting smoke passed with zero records/API requests/overflow. API00005-wn4, actual owner UID pin and DEV26-column scope are unchanged. Owner visual acceptance remains pending; R052 Open, same checkpoint2B, full Phase2 incomplete.
+Status: Owner-requested persistent sign-in source11c91c2 passed CI37636993134 and is deployed to DEV Hosting922b3ab61894b240. Firebase initializes with LOCAL persistence; blocked browser storage uses explicitly labelled memory fallback. Synthetic actual-SDK tests passed reload/full reopen/cross-tab logout/API401 cleanup; business records remain memory-only and reload freshly. Neutral UI retained. API00005-wn4, UID pin and DEV26-column scope unchanged. Signed-out EN/Thai desktop/mobile smoke including reload passed with zero records/API requests/overflow; actual owner refresh confirmation remains pending. Same checkpoint2B; R052 Open, full Phase2 incomplete.
 
 ## Scope
 
