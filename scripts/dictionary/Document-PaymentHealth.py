@@ -1,4 +1,8 @@
 """R027 scoped SQL/report dictionary capture. No business rows or live writes."""
+from pathlib import Path as _DatabasePath
+import sys as _database_sys
+_database_sys.path.insert(0, str(_DatabasePath(__file__).resolve().parents[1]))
+from database_location import DATABASE_REPO_ROOT
 import hashlib,json,os,sys,subprocess
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).parent))
@@ -9,7 +13,7 @@ sys.path.insert(0,str(Path.home()/'Documents/ChatGPT/AppSheet-Loan-Project/tools
 import yaml
 r=Path(__file__).resolve().parents[2];out=r/'outputs/r027-payment-health';dd=r/'Documents/Data Dictionary'
 views=[x['name'] for x in json.loads((out/'production-sql-definitions.json').read_text(encoding='utf8'))]
-cfg=json.loads((r/'database/environments.json').read_text(encoding='utf8'));captures={}
+cfg=json.loads((DATABASE_REPO_ROOT / 'database/environments.json').read_text(encoding='utf8'));captures={}
 for env in ('production','development'):
  t=cfg[env];expected='loan_manager_prod' if env=='production' else 'loan_manager_dev'
  assert (t['instance'],t['host'],t['database'])==('appsheet-pg-prod-20260914','34.21.174.215',expected)

@@ -1,3 +1,4 @@
+import { databaseRoot } from './database-location.mjs';
 import fs from 'node:fs/promises';
 import {FileBlob,SpreadsheetFile} from '@oai/artifact-tool';
 const file='Documents/AppSheet_Data_Dictionary.xlsx',out='outputs/core-payment-20260915';
@@ -39,7 +40,7 @@ for(let i=1;i<before['DB Logic'].length;i++){
  const r=[...before['DB Logic'][i]];
  if(['lump_sum_receipt_guard','process_lump_sum','lump_sum_child_guard'].includes(r[2])){r[0]=r[0].replace('Production and development','Production');r[3]='Production V4 definition retained at V5; development superseded by V6';edit('DB Logic',i,r);}
 }
-const migration=await fs.readFile('database/migrations/V6__core_payment_transaction.sql','utf8');
+const migration=await fs.readFile(databaseRoot+'/' + 'database/migrations/V6__core_payment_transaction.sql','utf8');
 for(const m of migration.matchAll(/^CREATE (?:OR REPLACE )?FUNCTION public\.(\w+)\(([^\n]*)/gm))append('DB Logic',['Development function','public',m[1],'Flyway V6; production unchanged',m[2]+'; exact implementation: database/migrations/V6__core_payment_transaction.sql']);
 for(const m of migration.matchAll(/^CREATE TRIGGER (\w+) ([^\n]+)\n([^;]+);/gm))append('DB Logic',['Development trigger','public',m[1],'Flyway V6',m[2]+' '+m[3]]);
 append('DB Logic',['Development index','Loans','loans_closing_payment_idx','Flyway V6','ON Loans (Ref Closing Payment) WHERE Ref Closing Payment IS NOT NULL']);

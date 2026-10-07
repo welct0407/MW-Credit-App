@@ -1,4 +1,8 @@
 """Read only the DEV catalog objects affected by R051 performance migration V73."""
+from pathlib import Path as _DatabasePath
+import sys as _database_sys
+_database_sys.path.insert(0, str(_DatabasePath(__file__).resolve().parents[1]))
+from database_location import DATABASE_REPO_ROOT
 import hashlib
 import json
 import re
@@ -10,9 +14,9 @@ sys.path.insert(0, r'C:\Users\MWCredit\AppData\Local\AppSheetLoanTools\python-de
 import psycopg
 from common import REPO
 
-target = json.loads((REPO / 'database/environments.json').read_text())['development']
+target = json.loads((DATABASE_REPO_ROOT / 'database/environments.json').read_text())['development']
 assert (target['instance'], target['host'], target['database']) == ('appsheet-pg-prod-20260914', '34.21.174.215', 'loan_manager_dev')
-migrations = [p for p in (REPO / 'database/migrations').glob('V*__*.sql') if int(p.name.split('__')[0][1:]) == 73]
+migrations = [p for p in (DATABASE_REPO_ROOT / 'database/migrations').glob('V*__*.sql') if int(p.name.split('__')[0][1:]) == 73]
 names = set()
 for p in migrations:
     names.update(re.findall(r'CREATE\s+(?:OR\s+REPLACE\s+)?FUNCTION\s+([a-z_]+\.[a-z_0-9]+)\s*\(', p.read_text(encoding='utf-8'), re.I))

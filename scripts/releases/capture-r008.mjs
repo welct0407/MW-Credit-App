@@ -1,3 +1,4 @@
+import { databaseRoot } from '../database-location.mjs';
 // Convert independently captured, sanitized saved editor/AppDoc observations into a reviewable DEV candidate.
 // This tool never contacts or edits AppSheet or a database. Run only after reviewing the running edit record.
 import fs from 'node:fs/promises';
@@ -65,6 +66,6 @@ await write(`${dir}/release-delta.json`,delta);
 const observed={release:'R008',revision:1,candidateHash:candidateHash(delta),environment:'dev',items:observations};
 await write(`${dir}/dev-saved-observations.json`,observed);
 await write(`${dir}/dev-comparison-r1.json`,compare(delta,observed));
-const migrations=[];for(const name of (await fs.readdir('database/migrations')).filter(n=>/^V.*\.sql$/.test(n)).sort())migrations.push({name,sha256:crypto.createHash('sha256').update(await fs.readFile(`database/migrations/${name}`)).digest('hex')});
+const migrations=[];for(const name of (await fs.readdir(databaseRoot+'/' + 'database/migrations')).filter(n=>/^V.*\.sql$/.test(n)).sort())migrations.push({name,sha256:crypto.createHash('sha256').update(await fs.readFile(databaseRoot+'/' + `database/migrations/${name}`)).digest('hex')});
 await write(`${dir}/flyway-manifest-r1.json`,{environment:'development',baselineProductionVersion:'22',testedDevelopmentVersion:'24',pendingPromotionVersions:['23','24'],validationReference:'REPORT.md; applied immutable V23/V24 and prior successful 25-migration validation',migrations});
 console.log(`${items.length} exact target items captured, ${migrations.length} migration hashes`);

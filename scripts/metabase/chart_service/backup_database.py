@@ -1,4 +1,8 @@
 """Private consistent database backup before the R030 reporting role grant."""
+from pathlib import Path as _DatabasePath
+import sys as _database_sys
+_database_sys.path.insert(0, str(_DatabasePath(__file__).resolve().parents[2]))
+from database_location import DATABASE_REPO_ROOT
 import argparse, hashlib, json, os, socket, subprocess, sys
 from pathlib import Path
 from datetime import datetime, timezone
@@ -13,7 +17,7 @@ repo=Path(__file__).resolve().parents[3]
 private=Path('C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r030-custom-matrix')
 private.mkdir(parents=True,exist_ok=True)
 out=repo/'outputs/r030-custom-matrix';out.mkdir(parents=True,exist_ok=True)
-target=json.loads((repo/'database/environments.json').read_text())[args.environment]
+target=json.loads((DATABASE_REPO_ROOT / 'database/environments.json').read_text())[args.environment]
 expected='loan_manager_dev' if args.environment=='development' else 'loan_manager_prod'
 assert (target['instance'],target['host'],target['database'])==('appsheet-pg-prod-20260914','34.21.174.215',expected)
 bin=Path(os.environ['LOCALAPPDATA'])/'AppSheetLoanTools/postgresql-18.6-3/pgsql/bin'

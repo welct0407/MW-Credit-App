@@ -1,4 +1,8 @@
 """Read-only affected-provider drift check; never exports borrower rows."""
+from pathlib import Path as _DatabasePath
+import sys as _database_sys
+_database_sys.path.insert(0, str(_DatabasePath(__file__).resolve().parents[1]))
+from database_location import DATABASE_REPO_ROOT
 import hashlib,json,os,sys
 from pathlib import Path
 sys.path.insert(0,str(Path(os.environ['LOCALAPPDATA'])/'AppSheetLoanTools/python-deps'))
@@ -9,7 +13,7 @@ names=['olap_borrowers_analytics','olap_loans_analytics','olap_repayments_analyt
        'reporting_borrower_matrix_v3','reporting_borrower_schedule_health_v1',
        'reporting_loan_schedule_health_v1']
 results={}
-for env,t in json.loads((ROOT/'database/environments.json').read_text()).items():
+for env,t in json.loads((DATABASE_REPO_ROOT / 'database/environments.json').read_text()).items():
     if env not in ['development','production']:continue
     assert (t['instance'],t['host'],t['database'])==('appsheet-pg-prod-20260914','34.21.174.215','loan_manager_dev' if env=='development' else 'loan_manager_prod')
     with psycopg.connect(host=t['host'],port=t['port'],dbname=t['database'],user=t['user'],password=Path(t['passwordFile']).read_text().strip(),sslmode='require') as c:

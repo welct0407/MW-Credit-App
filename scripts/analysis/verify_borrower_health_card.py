@@ -1,11 +1,15 @@
 """Independent business-field parity for the final combined Detail health card."""
+from pathlib import Path as _DatabasePath
+import sys as _database_sys
+_database_sys.path.insert(0, str(_DatabasePath(__file__).resolve().parents[1]))
+from database_location import DATABASE_REPO_ROOT
 import json,os,re,sys,time
 from pathlib import Path
 from datetime import datetime,timezone
 sys.path.insert(0,str(Path(os.environ['LOCALAPPDATA'])/'AppSheetLoanTools/python-deps'))
 import psycopg
 ROOT=Path(__file__).resolve().parents[2]
-t=json.loads((ROOT/'database/environments.json').read_text())['development']
+t=json.loads((DATABASE_REPO_ROOT / 'database/environments.json').read_text())['development']
 assert (t['instance'],t['host'],t['database'])==('appsheet-pg-prod-20260914','34.21.174.215','loan_manager_dev')
 with psycopg.connect(host=t['host'],dbname=t['database'],user=t['user'],password=Path(t['passwordFile']).read_text().strip(),sslmode='require',application_name='r035-health-card-parity',options='-c statement_timeout=60000') as c:
  c.execute('BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY')

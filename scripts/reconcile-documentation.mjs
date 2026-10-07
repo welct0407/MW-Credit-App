@@ -1,3 +1,4 @@
+import { databaseRoot } from './database-location.mjs';
 import fs from 'node:fs/promises';
 import crypto from 'node:crypto';
 import {FileBlob,SpreadsheetFile,Workbook} from '@oai/artifact-tool';
@@ -5,7 +6,7 @@ const root='C:/GitHub/AppSheet-Loan-Project';
 const out=root+'/outputs/documentation-reconciliation-20260915';
 const priv='C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/documentation-reconciliation-20260915';
 const hash=b=>crypto.createHash('sha256').update(b).digest('hex');
-const schemaHash=hash(await fs.readFile(root+'/database/migrations/V1__existing_schema.sql'));
+const schemaHash=hash(await fs.readFile(databaseRoot+'/database/migrations/V1__existing_schema.sql'));
 if(process.argv.includes('--edit'))for(const environment of ['production','development']){
  const snapshot=await fs.readFile('C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/flyway/'+environment+'-doc-normalized.sql');
  if(hash(snapshot)!==schemaHash)throw Error('Captured schema does not match reviewed baseline: '+environment);

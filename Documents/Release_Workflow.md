@@ -86,7 +86,7 @@ Google documents [AppName context](https://support.google.com/appsheet/answer/10
 
 ### Gate C: compatible PROD database ready
 
-For SQL changes, follow [Database: Each change](../database/README.md#each-change) from the pinned clean commit/original runner manifest: verified restorable backup and scoped authorization, schema-drift/history review, validate/migrate/validate, target-object/read-only checks. Include every pending migration or approved prerequisite. Compatible SQL must precede final RC PROD-source verification. App-only releases record SQL unchanged; no empty migration or repeated migration suite. SQL success followed by app failure is partial deployment; see recovery.
+For SQL changes, follow [Database: Each change](https://github.com/welct0407/MW-Credit-App/blob/main/database/README.md#each-change) from the pinned clean commit/original runner manifest: verified restorable backup and scoped authorization, schema-drift/history review, validate/migrate/validate, target-object/read-only checks. Include every pending migration or approved prerequisite. Compatible SQL must precede final RC PROD-source verification. App-only releases record SQL unchanged; no empty migration or repeated migration suite. SQL success followed by app failure is partial deployment; see recovery.
 
 ### Gate D: PROD-mapped RC validated and immutable
 

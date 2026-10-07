@@ -1,4 +1,8 @@
 """Read-only verification of R027 DEV health providers; sanitized evidence only."""
+from pathlib import Path as _DatabasePath
+import sys as _database_sys
+_database_sys.path.insert(0, str(_DatabasePath(__file__).resolve().parents[1]))
+from database_location import DATABASE_REPO_ROOT
 import argparse,json,os,sys,time
 from pathlib import Path
 sys.path.insert(0,str(Path(os.environ['LOCALAPPDATA'])/'AppSheetLoanTools/python-deps'))
@@ -7,7 +11,7 @@ from psycopg.rows import dict_row
 repo=Path(__file__).resolve().parents[2]
 parser=argparse.ArgumentParser();parser.add_argument('--environment',choices=['development','production'],default='development');args=parser.parse_args()
 environment=args.environment
-target=json.loads((repo/'database/environments.json').read_text())[environment]
+target=json.loads((DATABASE_REPO_ROOT / 'database/environments.json').read_text())[environment]
 assert (target['instance'],target['host'],target['database'])==('appsheet-pg-prod-20260914','34.21.174.215','loan_manager_dev' if environment=='development' else 'loan_manager_prod')
 views=['reporting_charge_payment_health_v1','reporting_borrower_payment_health_v1','reporting_borrower_matrix_v2','oltp_borrower_payment_health_v1','oltp_charge_payment_health_v1']
 with psycopg.connect(host=target['host'],dbname=target['database'],user=target['user'],password=Path(target['passwordFile']).read_text().strip(),sslmode='require',row_factory=dict_row,options='-c default_transaction_read_only=on -c statement_timeout=30000') as c:

@@ -1,4 +1,8 @@
 """Capture only R044 reporting definitions, with guarded existing dictionary updates."""
+from pathlib import Path as _DatabasePath
+import sys as _database_sys
+_database_sys.path.insert(0, str(_DatabasePath(__file__).resolve().parents[1]))
+from database_location import DATABASE_REPO_ROOT
 import hashlib,json,os,sys,subprocess
 from pathlib import Path
 sys.path.insert(0,str(Path(os.environ['LOCALAPPDATA'])/'AppSheetLoanTools/python-deps'))
@@ -9,7 +13,7 @@ sys.path.insert(0,str(Path.home()/'Documents/ChatGPT/AppSheet-Loan-Project/tools
 import yaml
 r=Path(__file__).resolve().parents[2];dd=r/'Documents/Data Dictionary';out=r/'outputs/r044-partners'
 priv=Path.home()/'Documents/ChatGPT/AppSheet-Loan-Project/r044-partners'
-cfg=json.loads((r/'database/environments.json').read_text());catalog={}
+cfg=json.loads((DATABASE_REPO_ROOT / 'database/environments.json').read_text());catalog={}
 names=['reporting_partner_'+k+'_v1' for k in ('position','capital','earnings','settlements','daily','capital_ledger')]
 for env in ('development','production'):
  t=cfg[env];expected='loan_manager_dev' if env=='development' else 'loan_manager_prod'

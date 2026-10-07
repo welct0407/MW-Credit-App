@@ -1,4 +1,8 @@
 """Read-only partner source parity and schema preservation; no financial values published."""
+from pathlib import Path as _DatabasePath
+import sys as _database_sys
+_database_sys.path.insert(0, str(_DatabasePath(__file__).resolve().parents[1]))
+from database_location import DATABASE_REPO_ROOT
 import argparse,json,os,sys,time
 from pathlib import Path
 from datetime import datetime,timezone
@@ -37,7 +41,7 @@ def verify(c):
  return checks
 if __name__=='__main__':
  ap=argparse.ArgumentParser();ap.add_argument('environment',choices=['development','production']);ap.add_argument('--baseline',action='store_true');a=ap.parse_args()
- t=json.loads((ROOT/'database/environments.json').read_text())[a.environment]
+ t=json.loads((DATABASE_REPO_ROOT / 'database/environments.json').read_text())[a.environment]
  assert (t['instance'],t['host'],t['database'])==('appsheet-pg-prod-20260914','34.21.174.215','loan_manager_dev' if a.environment=='development' else 'loan_manager_prod')
  with psycopg.connect(host=t['host'],port=t['port'],dbname=t['database'],user=t['user'],password=Path(t['passwordFile']).read_text().strip(),sslmode='require') as c:
   c.execute('BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY');c.execute("SET LOCAL statement_timeout='60s'")

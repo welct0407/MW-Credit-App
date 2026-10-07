@@ -1,10 +1,14 @@
 """Read-only dependency drift check and DEV Metabase-query preflight for R027."""
+from pathlib import Path as _DatabasePath
+import sys as _database_sys
+_database_sys.path.insert(0, str(_DatabasePath(__file__).resolve().parents[1]))
+from database_location import DATABASE_REPO_ROOT
 import json, os, sys, hashlib
 from pathlib import Path
 sys.path.insert(0,str(Path(os.environ['LOCALAPPDATA'])/'AppSheetLoanTools/python-deps'))
 import psycopg
 repo=Path(__file__).resolve().parents[2]
-cfg=json.loads((repo/'database/environments.json').read_text())
+cfg=json.loads((DATABASE_REPO_ROOT / 'database/environments.json').read_text())
 out=repo/'outputs/r027-payment-health'
 meta={};checks=[]
 for env,db in [('development','loan_manager_dev'),('production','loan_manager_prod')]:

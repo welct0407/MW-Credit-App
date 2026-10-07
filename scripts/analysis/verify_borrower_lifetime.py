@@ -1,4 +1,8 @@
 """Independent daily expansion versus compact reporting event sweep. Read-only PROD."""
+from pathlib import Path as _DatabasePath
+import sys as _database_sys
+_database_sys.path.insert(0, str(_DatabasePath(__file__).resolve().parents[1]))
+from database_location import DATABASE_REPO_ROOT
 import os,sys,json
 from pathlib import Path
 from datetime import timedelta,datetime,timezone
@@ -20,7 +24,7 @@ assert days(Decimal(100),a,a+timedelta(days=10),[])==1000
 assert days(Decimal(100),a,a+timedelta(days=10),[(a+timedelta(days=5),Decimal(50))])==750
 assert days(Decimal(100),a,a+timedelta(days=10),[(a,Decimal(100))])==0
 assert days(Decimal(100),a,a+timedelta(days=10),[(a,Decimal(100)),(a+timedelta(days=5),Decimal(-50))])==250
-cfg=json.loads((root/'database/environments.json').read_text())['production']
+cfg=json.loads((DATABASE_REPO_ROOT / 'database/environments.json').read_text())['production']
 assert (cfg['instance'],cfg['host'],cfg['database'])==('appsheet-pg-prod-20260914','34.21.174.215','loan_manager_prod')
 password=Path.home()/'Documents/ChatGPT/AppSheet-Loan-Project/metabase-poc/reporting-db-password.txt'
 with psycopg.connect(host=cfg['host'],dbname=cfg['database'],user='metabase_borrower_reader',password=password.read_text().strip(),sslmode='require',row_factory=dict_row,options='-c default_transaction_read_only=on -c statement_timeout=30000') as c:

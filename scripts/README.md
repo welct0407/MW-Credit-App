@@ -1,3 +1,5 @@
+> Database tooling moved to MW-Credit-App. Run database commands there. Retained helpers use MW_CREDIT_APP_ROOT when checkouts are not adjacent. [Handover](../Documents/Database_Ownership_Transfer.md).
+
 # Project scripts and shared dependencies
 
 R048 summary: `database/Backup-UpcomingSummary.py` is the reviewed DEV V54 backup/V55 disposable restore rehearsal helper. `database/Test-UpcomingCharges.sql` now includes18 assertions, including borrower/date summary totals, capped dates, empty/prepaid cases and stable keys. [Evidence](../outputs/r048-upcoming-charges/IMPLEMENTATION.md).

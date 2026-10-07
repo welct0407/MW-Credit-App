@@ -1,3 +1,4 @@
+import { databaseRoot } from './database-location.mjs';
 import fs from 'node:fs/promises';
 import crypto from 'node:crypto';
 const root='C:/GitHub/AppSheet-Loan-Project',out=root+'/outputs/lumpsum-db-20260915';
@@ -20,7 +21,7 @@ for(const a of results.filter(r=>r.receipt_note)){if(!a.ledger_matches)throw Err
 const original=await jsonl(out+'/before-fingerprints.jsonl'),after=await jsonl(out+'/after-original-fingerprints.jsonl');
 const unchanged=original.filter(r=>r.table).map(r=>({table:r.table,rows:r.rows,unchanged:after.some(a=>a.table===r.table&&a.rows===r.rows&&a.fingerprint===r.fingerprint)}));
 if(unchanged.some(r=>!r.unchanged))throw Error('Original data changed');
-const migrations=[];for(const filename of ['V2__atomic_lump_sum.sql','V3__lump_sum_guard_compatibility.sql']){const bytes=await fs.readFile(root+'/database/migrations/'+filename);migrations.push({filename,sha256:crypto.createHash('sha256').update(bytes).digest('hex')});}
+const migrations=[];for(const filename of ['V2__atomic_lump_sum.sql','V3__lump_sum_guard_compatibility.sql']){const bytes=await fs.readFile(databaseRoot+'/database/migrations/'+filename);migrations.push({filename,sha256:crypto.createHash('sha256').update(bytes).digest('hex')});}
 const parse=async path=>{
  const raw=(await read(path)).map(t=>Object.fromEntries(t.rows.filter(r=>r.length===2)));
  const tables=raw.filter(t=>t['Table name']),schemas=new Map(tables.map(t=>[t.Schema,t['Table name']]));let schema;const columns=[];
@@ -39,7 +40,7 @@ await write('ui-timings.json',timings);
 const metrics={server:{control,final,controlSummary:b,finalSummary:f,reductionPercent:100*(1-f.median/b.median),speedup:b.median/f.median,historicalBaselineMedian:15.582,historicalReductionPercent:100*(1-f.median/15.582)},ui:{definition:'Successful Save click to borrower action ready and sync complete',control:bui,final:fui,reductionPercent:100*(1-fui.median/bui.median),excluded:['BASE-01 not timed','BASE-02 observation gap; 34.511s excluded','Four SQL exploratory runs use V2 and are reported separately','Two pre-dispatch Save timeouts excluded after form/database absence verification']},migrations,originalData:unchanged,postedReceipts:results.filter(r=>r.receipt).length};
 await write('verification.json',metrics);
 const changes=[['OLTP','Payments - Process Receipt','Only if this condition is true','[Status] = "Processing"',condition],['OLTP','Payments - Process Receipt / Payment queued or retried','Bot event condition','[Status] = "Processing"',condition],['OLTP + OLAP','Payments / Payment Allocations / Repayments','Lump-sum processor','Five AppSheet stages','V2 + V3 atomic PostgreSQL transaction. Dev OLTP 1.000014; Dev OLAP 1.000027 readback verified. Owner review pending.'],['OLTP + OLAP','Payment Allocations.Charge Row Number Snapshot','Stored meaning for new SQL receipts','Provider row number snapshot','Negative Allocation Order (-1, -2, ...); newest date then immutable charge key descending. Existing rows unchanged.'],['OLTP + OLAP','Payment Allocations.Row ID / Repayments.Row ID','SQL receipt child keys','AppSheet-generated keys','ls2:<Payment Row ID>:<Charge Row ID>. Positive allocations only; SQL child rows immutable.'],['OLTP + OLAP','Payments.Status / Processed At','Lump-sum posting state','AppSheet reconciler','DB assigns Posted atomically; rejects invalid receipts; stale metadata retry stays Posted. Other methods retain AppSheet bot.'],['OLTP + OLAP','Borrowers.Closed Loan Principle','Existing display limitation','Total Amount Loaned minus Total Outstanding Principal','Same pre-existing formula; includes repaid principal on open loans. Do not use this label to verify closure.'],['Database','Flyway','Schema version','V1 (production unchanged)','V3 in development. Exact migration SHA256 in outputs/lumpsum-db-20260915/verification.json.']];
-const v2=await fs.readFile(root+'/database/migrations/V2__atomic_lump_sum.sql','utf8');
+const v2=await fs.readFile(databaseRoot+'/database/migrations/V2__atomic_lump_sum.sql','utf8');
 for(const sql of v2.match(/CREATE INDEX[^;]+;/g)||[])changes.push(['Database',sql.match(/CREATE INDEX (\w+)/)[1],'Development index','Absent',sql]);
 const logic=[];
 for(const name of ['lump_sum_receipt_guard','process_lump_sum','lump_sum_child_guard'])logic.push(['Development function','public',name,'V3 development only; owner review pending',`database/migrations/${name==='process_lump_sum'?migrations[0].filename:migrations[1].filename}; returns trigger; exact migration hash recorded in verification.json`]);

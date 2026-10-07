@@ -30,7 +30,7 @@ Start with [AGENTS task routing](../AGENTS.md#working-method-and-task-routing), 
 | Failure/hotfix handling | [Release Recovery](Release_Recovery_Runbook.md) |
 | DEV setup or changed routing | [DEV Preparation](Development_Environment_Preparation.md) |
 | Requested apps/DB refresh | [DEV Refresh](Development_Refresh_Runbook.md) |
-| SQL migrations | [Database procedure](../database/README.md#each-change) |
+| SQL migrations | [Database procedure](https://github.com/welct0407/MW-Credit-App/blob/main/database/README.md#each-change) |
 | Release record tooling | [Release helpers](../scripts/releases/README.md) |
 | Correct app logos / restoration | [Logo resources](../resources/README.md) |
 | How to read every resource dashboard visual | [Resource Monitoring Dashboard Guide](Resource_Monitoring_Dashboard_Guide.md) |
@@ -42,3 +42,5 @@ Start with [AGENTS task routing](../AGENTS.md#working-method-and-task-routing), 
 | Historical evidence | [Archive index](archive/README.md) — excluded from routine work |
 
 Update this map when paths or purposes change. Version/status facts belong in the tracker/inventory, policy in AGENTS, and completed history in release evidence. Read/update only documents affected by the task.
+
+- [Database ownership transfer](Database_Ownership_Transfer.md): source ownership, retained-consumer routing and recovery.

@@ -3,6 +3,10 @@
 No generation functions are invoked. Expected amounts are a counterfactual using
 current setup, not a reconstruction of immutable original terms or amounts owed.
 """
+from pathlib import Path as _DatabasePath
+import sys as _database_sys
+_database_sys.path.insert(0, str(_DatabasePath(__file__).resolve().parents[1]))
+from database_location import DATABASE_REPO_ROOT
 import argparse
 from collections import Counter, defaultdict
 from datetime import date, timedelta
@@ -26,7 +30,7 @@ def capture():
     sys.path.insert(0, str(Path(os.environ['LOCALAPPDATA']) / 'AppSheetLoanTools/python-deps'))
     import psycopg
     from psycopg.rows import dict_row
-    target = json.loads((REPO / 'database/environments.json').read_text())['production']
+    target = json.loads((DATABASE_REPO_ROOT / 'database/environments.json').read_text())['production']
     assert (target['instance'], target['host'], target['database']) == (
         'appsheet-pg-prod-20260914', '34.21.174.215', 'loan_manager_prod')
     with psycopg.connect(host=target['host'], dbname=target['database'], user=target['user'],
@@ -109,7 +113,7 @@ def expected_schedule(loan, end, charge_rows=(), anchor_aware=True):
 def simulate(snapshot, anchor_aware=True):
     for name, filename in [('generate_loan_charge','V8__common_charge_generation.sql'),
                            ('create_first_day_charge','V6__core_payment_transaction.sql')]:
-        source=(REPO/'database/migrations'/filename).read_text(encoding='utf-8')
+        source=(DATABASE_REPO_ROOT / 'database/migrations'/filename).read_text(encoding='utf-8')
         body=source.split('CREATE FUNCTION public.'+name+'(',1)[1].split('AS $$',1)[1].split('$$;',1)[0]
         live=next(f['definition'] for f in snapshot['definitions'] if f['proname']==name)
         assert body.strip()==live.split('$function$',2)[1].strip(), 'Charging rules changed; review simulation before reuse'
