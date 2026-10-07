@@ -2,7 +2,7 @@
 
 Date: 7 October 2026, Asia/Bangkok.
 
-Status: Checkpoint2B owner feedback refinements are tested: governed bilingual borrower name, Loan Key, Total Profit Earned, ฿, grey inactive/closed groups, explicit end-of-list messaging and corrected independent scrolling. Exact source9ffc957 published; 89 units,6 affected browsers and2 final scroll checks passed. Three source-column SELECT additions applied (DEV26/PROD0/no writes),16 actual SQL variants passed operator EXPLAIN with separate reader audit. Corrected test-only validation6fbcb5 passed CI37626536327; application9ffc957 is deployed as API00005-wn4/Hosting3f33c848f8542024, UID pin retained. Owner visual acceptance remains pending. Same2B checkpoint; full Phase2 incomplete.
+Status: Neutral UI source d599041 is deployed to DEV Hosting e112e2801d7ff306 after CI37634043751 passed. White/light-grey surfaces, neutral group-header hierarchy, environment-colored main header, removed redundant badges and 40/60 desktop panes match latest owner steering. C passed20 affected checks (2 intentional skips) plus2/2 long-key checks; parent synthetic visual review passed. Final signed-out EN/Thai desktop/mobile Hosting smoke passed with zero records/API requests/overflow. API00005-wn4, actual owner UID pin and DEV26-column scope are unchanged. Owner visual acceptance remains pending; R052 Open, same checkpoint2B, full Phase2 incomplete.
 
 ## Scope
 
@@ -51,9 +51,9 @@ Visual comparison: http://127.0.0.1:4173/?theme=dev and http://127.0.0.1:4173/?t
 
 Revision GitHub CI passed for4dfe363: [Development checks37602964498](https://github.com/welct0407/MW-Credit-App/actions/runs/37602964498). No deployment was performed.
 
-## Current owner refinement: theme-colored cards
+## Historical owner refinement: theme-colored cards (superseded)
 
-The owner requests stronger orange DEV / pink PROD presence across card surfaces. A coordinated whole-card light-tint treatment supersedes the previous all-white surfaces. No new phase or functionality. Verification passed; owner visual review pending.
+Historical preference, superseded by the neutral-theme refinement below: the owner requested stronger orange DEV / pink PROD presence across card surfaces. A coordinated whole-card light-tint treatment supersedes the previous all-white surfaces. No new phase or functionality. Verification passed; owner visual review pending.
 
 Owner further requested the DEV logo background to match orange. A separate orange-background variant is bundled for DEV; PROD keeps its original pink logo. Final card/logo verification passed; no deployment or phase advance.
 

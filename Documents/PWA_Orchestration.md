@@ -44,3 +44,7 @@ Phase 7 Metabase changes are post-go-live work. Existing reports remain availabl
 ## Checkpoint 2B owner feedback
 
 The owner requested presentation/source-label refinements after the first related-loan preview; checkpoint2B is not accepted yet. A settled exact Loan Key, bilingual borrower label, profit and grouping semantics; B implemented, C verified, and D completed bounded permissions, deployment and publication. The refined page and final smoke passed; owner visual acceptance remains pending. Stay at the same visual checkpoint. Broader field parity remains planned work, not unrestricted database access.
+
+Neutral UI delivery: exact frontend source d59904124cb595b9a3a8b4156289cd549b3a6064 passed CI37634043751 and actual-config build, published Hosting e112e2801d7ff306/release1791382263648000. Rollback Hosting3f33c848f8542024. API source9ffc957/revision00005-wn4 and DB/auth/IAM remain unchanged. Signed-out smoke pending; owner visual acceptance pending. Subsequent persistent-sign-in request is queued separately and is not included here.
+
+Final independent Hosting smoke passed e112e2801d7ff306: signed-out EN/Thai desktop1440x900/mobile390x844, DEV orange header and white access panel, zero records/API requests/overflow. No API probes or owner login repeated. Sanitized neutral-live-hosting.json and NEUTRAL-live screenshots are published with the report. Owner visual acceptance remains pending; neutral UI delivery complete.
