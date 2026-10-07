@@ -84,3 +84,5 @@ Borrowers sort active, inactive, unknown; then Creation Date ascending/nulls las
 Three reviewed SELECT additions bring the DEV reader to 26 columns: Borrowers.Description, Borrowers.Total Interest Earned and Loans.Original Daily Interest Rate. PROD remains zero business columns; no writes/schema/IAM expansion. See refinement metadata, SQL and test evidence. Fuller borrower contact/location/referrer/related-record parity remains Phase 5. Owner refinement acceptance remains pending deployment/review.
 
 Refinement deployment: application source9ffc957, validation6fbcb5 (test-only timing correction), CI37626536327 passed. Read revision00005-wn4/imageaab122...32c0d and Hosting3f33c848f8542024 are live with the actual owner UID pin retained. Owner visual refinement acceptance is pending. Evidence: outputs/r052-loan-read/refinement-deployment.json.
+
+Current frontend: neutral UI source d599041, CI37634043751 passed, Hosting e112e2801d7ff306. Mostly white/light-grey body and cards, neutral groups and environment-colored main header; desktop panes40/60. API revision00005-wn4 is unchanged. Owner visual review pending.

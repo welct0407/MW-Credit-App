@@ -1,0 +1,11 @@
+{
+  "apiChanged": false,
+  "apiRevision": "mw-credit-app-read-dev-00005-wn4",
+  "hostingRelease": "1791382263648000",
+  "ciResult": "success",
+  "rollbackHostingVersion": "3f33c848f8542024",
+  "ci": "https://github.com/welct0407/MW-Credit-App/actions/runs/37634043751",
+  "hostingVersion": "e112e2801d7ff306",
+  "frontendSource": "d59904124cb595b9a3a8b4156289cd549b3a6064",
+  "ownerVisualAcceptance": "pending"
+}
