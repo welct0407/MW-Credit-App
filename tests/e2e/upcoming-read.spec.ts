@@ -17,7 +17,7 @@ const charges=Array.from({length:27},(_,i)=>({id:'private-charge-'+i,loanId:'pri
 
 test('Upcoming two-request status, compact local detail, five-date paging and partial failure',async({page},info)=>{
  if(info.project.name.startsWith('desktop'))await page.setViewportSize({width:1440,height:900});else await page.setViewportSize({width:390,height:844});
- async function navigate(name:string){if(await page.getByRole('button',{name:'Open navigation',exact:true}).isVisible())await page.getByRole('button',{name:'Open navigation',exact:true}).click();await page.getByRole('button',{name,exact:true}).click();} let hold=false,release:(()=>void)|undefined,upcomingError=false,review=false;const paths:string[]=[];
+ async function navigate(name:string){if(page.viewportSize()!.width<=1050)await page.getByRole('button',{name:'Open navigation',exact:true}).click();await page.getByRole('button',{name,exact:true}).click();} let hold=false,release:(()=>void)|undefined,upcomingError=false,review=false;const paths:string[]=[];
  const envelope={ok:true,source:'dev',businessDate:'2026-10-07',timezone:'Asia/Bangkok',asOf:'2026-10-07T05:00:00Z',horizonEnd:'2027-01-07'};
  const dates=Array.from({length:5},(_,i)=>({id:'private-date-'+i,dueDate:'2026-10-'+String(8+i).padStart(2,'0'),totalCharge:'270.125'}));
  const events=Array.from({length:27},(_,i)=>({id:'private-event-'+i,loanId:'private-loan-'+i,loanDisplayKey:'ผู้กู้ตัวอย่างชื่อยาว - Long synthetic borrower name-฿12,000-07/10-2%',principalRemaining:'0',interestRemaining:'10.125',amountRemaining:'10.125',basis:i%2?'Recorded':'Projected'}));
