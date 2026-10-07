@@ -35,9 +35,7 @@ No production mutation, financial posting, scheduler switch or AppSheet cutover 
 
 ## Current checkpoint
 
-Checkpoint 1A: recorded feature baseline and local synthetic Collection/Borrowers preview, visually accepted by the owner on 7 October 2026. Checkpoint 1B read/access contracts and denied-access simulator were accepted by the owner, including darker separators; continuation to checkpoint 2A was authorized; its [design](../outputs/r052-pwa/checkpoint-1b-design.md) records the owner-only initial DEV pilot and the live-auth boundary. Design and feature gaps are recorded under [R052 PWA evidence](../outputs/r052-pwa/README.md).
-
-Accepted review: mobile/desktop navigation and layout, Collection versus Borrowers presentation, search/filter/detail flow, English/Thai labels and readable themed styling. Checkpoint 2A authentication/read source passed 72 unit and 2 mocked UI tests. DEV reader grants and the separate read service exist; the owner-approved service-only Firebase authentication setting is applied after domain-restricted sharing rejected allUsers. Owner reported successful real Google login/list/detail; the actual verified UID is pinned. Final CI37615986417 passed after the tested tooling correction; checkpoint 2A is complete. The owner subsequently said “ok. continue”; checkpoint 2B related loan reads are now deployed and independently verified, with owner visual validation pending. All workers stop at this checkpoint. Real offline storage and payment posting remain future work.
+Checkpoint2A owner sign-in/Borrowers reads and refresh persistence are owner-validated. Owner authorized continuation to2C; Collection board/charge reads are now implemented, tested and deployed. Final unsigned smoke passed; owner Collection validation pending. See [overall progress](PWA_Progress.md) for current phase/review/next steps and [2C design](../outputs/r052-pwa/checkpoint-2c-design.md) for scope. Full Phase2 incomplete; stop at2C review.
 
 ## Revised reporting order
 

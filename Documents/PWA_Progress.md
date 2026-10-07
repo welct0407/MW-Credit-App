@@ -2,7 +2,7 @@
 
 **Last updated:** 7 October 2026 (Asia/Bangkok)
 
-**Current position:** R052 is Open. The owner authorized continuation to bounded checkpoint 2C within Phase 2; exact Collection read semantics are being designed. The DEV application can read borrowers and related loans; it cannot yet perform financial transactions. AppSheet continues operating in parallel.
+**Current position:** R052 is Open. Checkpoint2C Collection reads are implemented, tested and deployed within Phase2; owner validation is pending. The DEV application can read borrowers, related loans and the Collection board with charge details; it cannot yet perform financial transactions. AppSheet continues operating in parallel.
 
 [Open DEV app](https://mw-credit-app-dev-737787224638.web.app) · [Detailed roadmap](PWA_Implementation_Plan.md) · [Checkpoint evidence](../outputs/r052-pwa/README.md)
 
@@ -14,6 +14,7 @@
 | Initial navigation and read/access prototypes | Checkpoints 1A and 1B accepted by the owner |
 | Owner-only Google sign-in and borrower reads | Checkpoint 2A tested, deployed and owner-validated; actual owner identity pinned |
 | Related loan list/detail and presentation refinements | Implemented, tested and deployed; neutral surfaces, grouping, readable labels and wider desktop details await final owner visual acceptance |
+| Collection board and charge reads | Implemented, independently tested and deployed; unsigned live checks passed, actual owner validation pending |
 | Sign-in survives refresh | Implemented, tested and deployed; owner confirmed real sign-in persists after refresh. Browser reopening and cross-tab logout were tested with the actual SDK and synthetic identities, not the owner's live session |
 
 Business records are fetched afresh and kept in memory. Offline records/drafts, payments and full loan management are not delivered by this read-only checkpoint.
@@ -24,7 +25,7 @@ Business records are fetched afresh and kept in memory. Offline records/drafts, 
 | --- | --- | --- |
 | 0 | Development infrastructure and database ownership | Complete for recorded scope |
 | 1 | Full feature coverage, contracts and acceptance criteria | In progress; initial checkpoints accepted, full parity inventory still open |
-| 2 | Secure application foundation and first read flows | In progress; 2A complete, 2B deployed, 2C design authorized; separate neutral visual acceptance not recorded |
+| 2 | Secure application foundation and first read flows | In progress;2A complete,2B/2C deployed; owner2C review pending |
 | 3 | Production infrastructure and delivery readiness | Not started |
 | 4 | First complete financial workflow in DEV | Not started |
 | 5 | Complete mobile/desktop OLTP, including full loan management | Not started |
@@ -40,10 +41,10 @@ Launch order: **1 → 2 → 3/4 → 5 → 6 → 8 → 9 → 10 → 11 → 12**. 
 
 ## Review needed and what comes next
 
-- **Owner review now:** confirm the current neutral styling, group headers, desktop pane balance and related-loan navigation. Refresh persistence is already owner-confirmed; that does not accept the whole phase.
-- **Authorized next checkpoint:** the owner said “ok, continue.” Agent A is defining checkpoint 2C Collection read semantics. Reconcile exact eligibility/status formulas and source/permission boundaries before implementation; grants and deployment wait for reviewed contract and tests. Stop at the next bounded owner checkpoint.
+- **Owner review now:** open Collection, review status groups and borrower charge lists, then return on desktop/mobile. Confirm neutral styling/navigation where relevant. Refresh persistence is owner-confirmed; full Phase2 acceptance is not implied.
+- **Next checkpoint:** stop for owner Collection review. Address feedback, then Agent A proposes the next remaining foundation slice after go-ahead. No receiving/payment/receipt feature is activated here.
 - **Remaining planning work:** close Phase 1 feature/parity and acceptance gaps alongside agreed slices. Production readiness and financial workflows follow the roadmap dependencies, not completion of this UI review alone.
-- **Current blockers:** no unresolved implementation failure reported for the delivered persistence follow-up. The exact 2C contract is pending design review; no new grant or deployment has occurred. Continuation does not imply explicit acceptance of every prior visual detail.
+- **Current blockers:** actual owner Collection review is pending. No unresolved implementation test failure reported; no full-phase completion claim.
 
 ## Evidence and session updates
 

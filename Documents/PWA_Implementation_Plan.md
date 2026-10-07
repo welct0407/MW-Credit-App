@@ -2,7 +2,7 @@
 
 **[Overall progress: completed, current review and next steps](PWA_Progress.md)** — updated at every development-session closeout.
 
-**R052 checkpoint 2B, 7 October 2026:** Owner-requested persistent sign-in source11c91c2 passed CI37636993134 and is deployed to DEV Hosting922b3ab61894b240. Firebase initializes with LOCAL persistence; blocked browser storage uses explicitly labelled memory fallback. Synthetic actual-SDK tests passed reload/full reopen/cross-tab logout/API401 cleanup; business records remain memory-only and reload freshly. Neutral UI retained. API00005-wn4, UID pin and DEV26-column scope unchanged. Signed-out EN/Thai desktop/mobile smoke including reload passed with zero records/API requests/overflow; owner confirmed real Google sign-in survives refresh; actual browser restart is not claimed. Same checkpoint2B; R052 Open, full Phase2 incomplete. [Design](../outputs/r052-pwa/checkpoint-2b-design.md).
+**R052 checkpoint 2C, 7 October 2026:** Checkpoint2C Collection board and borrower-scoped charge reads are implemented/tested/deployed from source168e3a2:92units,9disposable actual PostgreSQL tests,13affected browsers (1intentional skip), CI37641674603 passed. Exact11-column SELECT delta verified DEV37/PROD0/no table-write/schemaCREATE. API00006-kl5 and Hosting1fc4f23a66f185b8 retain persistent owner sign-in/UID pin. Final unsigned API and EN/Thai desktop/mobile smoke passed. Actual owner Collection validation pending. R052 Open, full Phase2 incomplete; stop at2C review. [Design](../outputs/r052-pwa/checkpoint-2c-design.md).
 
 **R052 checkpoint 2A, 7 October 2026:** Checkpoint 2A live DEV Google sign-in and Borrowers read is owner-validated: owner reported successful list/detail reads; actual verified Google UID is pinned in managed Secret Manager version 1, read revision00003-pzr. Independent signed-out desktop/mobile, static health and denial checks passed. App source20358d1 includes the tested cold-start test-tooling correction; final CI37615986417 passed. Checkpoint 2A is complete. Phase 2 remains incomplete and the team stops at this checkpoint; no next slice, production, financial, schema or AppSheet change. [Evidence](../outputs/r052-pwa/README.md).
 
@@ -49,7 +49,7 @@ Every financial command must enforce server-side identity and permissions, prese
 | --- | --- | --- | --- |
 | 0 | Establish development infrastructure and database ownership | Completed setup | Complete for the recorded scope |
 | 1 | Establish full feature coverage, contracts and acceptance criteria | 0 | In progress; checkpoints 1A and 1B accepted; complete feature/parity and acceptance coverage remains open |
-| 2 | Build the secure application foundation and first read flow | 1 | In progress; checkpoint 2A owner-validated and complete; checkpoint 2B related loan reads deployed and verified; owner visual validation pending |
+| 2 | Build the secure application foundation and first read flow | 1 | In progress; checkpoint 2A owner-validated and complete; checkpoint2B related loan reads and2C Collection reads deployed/tested; owner2C validation pending |
 | 3 | Make production infrastructure and delivery ready | 2 | Not started |
 | 4 | Prove one complete financial workflow in DEV | 2; production setup can proceed alongside it | Not started |
 | 5 | Complete mobile and desktop OLTP | 4 | Not started |
