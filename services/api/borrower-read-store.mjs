@@ -1,3 +1,4 @@
+import { readCollection, decodeCollectionCursor } from './collection-read-contract.mjs';
 import { loanColumns, validLoanId, projectLoan, encodeLoanCursor, decodeLoanCursor, loanRankSql, borrowerDisplayName } from './loan-read-contract.mjs';
 const borrowerRankSql = 'CASE WHEN "Has Active Loan" IS TRUE THEN 0 WHEN "Has Active Loan" IS FALSE THEN 1 ELSE 2 END';
 const borrowerRank = value => value === true ? 0 : value === false ? 1 : 2;
@@ -25,11 +26,11 @@ export function decodeCursor(cursor) {
   return row;
 }
 export function createBorrowerReadStore({ pool, config, now = () => new Date() }) {
-  async function run(email, operation) {
+  async function run(email, operation, repeatableRead = false) {
     if (email !== config.ownerEmail) return { ok: false, status: 403, code: 'access_denied' };
     const client = await pool.connect();
     try {
-      await client.query('BEGIN READ ONLY');
+      await client.query(repeatableRead ? 'BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY' : 'BEGIN READ ONLY');
       await client.query("SET LOCAL statement_timeout = '5000ms'");
       const identity = await client.query('SELECT current_database() AS database, current_user AS principal');
       if (identity.rows.length !== 1 || identity.rows[0].database !== config.database || identity.rows[0].principal !== config.dbUser) throw new Error('Unexpected database identity');
@@ -56,7 +57,22 @@ export function createBorrowerReadStore({ pool, config, now = () => new Date() }
       } catch { return { ok: false }; }
       finally { client?.release(); }
     },
-    session: email => run(email, async () => ({ permission: 'oltp.read', scope: 'borrowers-and-related-loans' })),
+    session: email => run(email, async () => ({ permission: 'oltp.read', scope: 'borrowers-related-loans-and-collection' })),
+    listCollection: (email, { limit = 25, cursor = null } = {}) => {
+      let after;
+      try { after = decodeCollectionCursor(cursor, 'collection'); if (!Number.isInteger(limit) || limit < 1 || limit > 100) throw new Error(); }
+      catch { return Promise.resolve({ ok: false, status: 400, code: 'invalid_request' }); }
+      return run(email, client => readCollection(client, { limit, after }), true)
+        .then(result => result.collectionError ? { ok: false, status: result.collectionStatus, code: result.collectionError } : result);
+    },
+    getCollectionCharges: (email, borrowerId, { limit = 25, cursor = null } = {}) => {
+      if (!validId(borrowerId)) return Promise.resolve({ ok: false, status: 404, code: 'not_found' });
+      let after;
+      try { after = decodeCollectionCursor(cursor, 'collection-charges', borrowerId); if (!Number.isInteger(limit) || limit < 1 || limit > 100) throw new Error(); }
+      catch { return Promise.resolve({ ok: false, status: 400, code: 'invalid_request' }); }
+      return run(email, client => readCollection(client, { limit, after, borrowerId }), true)
+        .then(result => result.collectionError ? { ok: false, status: result.collectionStatus, code: result.collectionError } : result);
+    },
     listBorrowers: (email, { limit = 25, cursor = null } = {}) => {
       let after;
       try { after = decodeCursor(cursor); if (!Number.isInteger(limit) || limit < 1 || limit > 100) throw new Error(); }

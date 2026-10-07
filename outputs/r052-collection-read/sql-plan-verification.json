@@ -1,0 +1,166 @@
+{
+  "mode": "EXPLAIN only, not ANALYZE",
+  "operator": "existing operator, not reader impersonation",
+  "businessRowsReturned": 0,
+  "results": [
+    {
+      "invocation": 1,
+      "planned": true,
+      "nodes": [
+        "Result"
+      ]
+    },
+    {
+      "invocation": 2,
+      "planned": true,
+      "nodes": [
+        "Index Only Scan",
+        "Index Scan",
+        "Memoize",
+        "Nested Loop",
+        "Result",
+        "Seq Scan"
+      ]
+    },
+    {
+      "invocation": 3,
+      "planned": true,
+      "nodes": [
+        "Aggregate",
+        "Hash",
+        "Hash Join",
+        "Limit",
+        "Seq Scan",
+        "Sort",
+        "Subquery Scan"
+      ]
+    },
+    {
+      "invocation": 4,
+      "planned": true,
+      "nodes": [
+        "Result"
+      ]
+    },
+    {
+      "invocation": 5,
+      "planned": true,
+      "nodes": [
+        "Index Only Scan",
+        "Index Scan",
+        "Memoize",
+        "Nested Loop",
+        "Result",
+        "Seq Scan"
+      ]
+    },
+    {
+      "invocation": 6,
+      "planned": true,
+      "nodes": [
+        "Aggregate",
+        "Hash",
+        "Hash Join",
+        "Limit",
+        "Seq Scan",
+        "Sort",
+        "Subquery Scan"
+      ]
+    },
+    {
+      "invocation": 7,
+      "planned": true,
+      "nodes": [
+        "Result"
+      ]
+    },
+    {
+      "invocation": 8,
+      "planned": true,
+      "nodes": [
+        "Nested Loop",
+        "Result",
+        "Seq Scan"
+      ]
+    },
+    {
+      "invocation": 9,
+      "planned": true,
+      "nodes": [
+        "Aggregate",
+        "Bitmap Heap Scan",
+        "Bitmap Index Scan",
+        "Hash",
+        "Hash Join",
+        "Nested Loop",
+        "Seq Scan",
+        "Sort",
+        "Subquery Scan"
+      ]
+    },
+    {
+      "invocation": 10,
+      "planned": true,
+      "nodes": [
+        "Aggregate",
+        "Bitmap Heap Scan",
+        "Bitmap Index Scan",
+        "CTE Scan",
+        "Hash",
+        "Hash Join",
+        "Limit",
+        "Nested Loop",
+        "Seq Scan",
+        "Sort"
+      ]
+    },
+    {
+      "invocation": 11,
+      "planned": true,
+      "nodes": [
+        "Result"
+      ]
+    },
+    {
+      "invocation": 12,
+      "planned": true,
+      "nodes": [
+        "Nested Loop",
+        "Result",
+        "Seq Scan"
+      ]
+    },
+    {
+      "invocation": 13,
+      "planned": true,
+      "nodes": [
+        "Aggregate",
+        "Bitmap Heap Scan",
+        "Bitmap Index Scan",
+        "Hash",
+        "Hash Join",
+        "Nested Loop",
+        "Seq Scan",
+        "Sort",
+        "Subquery Scan"
+      ]
+    },
+    {
+      "invocation": 14,
+      "planned": true,
+      "nodes": [
+        "Aggregate",
+        "Bitmap Heap Scan",
+        "Bitmap Index Scan",
+        "CTE Scan",
+        "Hash",
+        "Hash Join",
+        "Limit",
+        "Nested Loop",
+        "Seq Scan",
+        "Sort"
+      ]
+    }
+  ],
+  "limitation": "Planning is not measured execution performance; synthetic actual-SQL semantics verified separately by C."
+}
