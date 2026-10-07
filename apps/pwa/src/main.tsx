@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import { borrowers, dueFor, sampleDate, type Locale, type Borrower } from './fixtures';
 import './style.css';
-const logoUrl = new URL('./assets/loan-manager-logo.png', import.meta.url).href;
+const prodLogoUrl = new URL('./assets/loan-manager-logo.png', import.meta.url).href;
+const devLogoUrl = new URL('./assets/loan-manager-logo-dev-orange.png', import.meta.url).href;
 const routes = [
   ['dashboard', 'Dashboard', 'ภาพรวม', '◫'], ['collection', 'Collection', 'ติดตามชำระ', '◷'], ['payments', 'Payments', 'การชำระเงิน', '↗'], ['borrowers', 'Borrowers', 'ผู้กู้', '◎'], ['loans', 'Loans', 'สัญญาเงินกู้', '▤'], ['charges', 'Upcoming Charges', 'ยอดเรียกเก็บถัดไป', '▦'], ['expenses', 'Business Expenses', 'ค่าใช้จ่ายธุรกิจ', '↙'], ['statement', 'Cash Statement', 'รายการเงินสด', '≡'],
   ['partners', 'Partners', 'หุ้นส่วน', '◇'], ['position', 'Cash Position', 'สถานะเงินสด', '◉'], ['accounts', 'Cash Accounts', 'บัญชีเงินสด', '▣'], ['assessment', 'Loan Assessment', 'ประเมินสินเชื่อ', '✓'], ['analytics', 'Analytics / history', 'วิเคราะห์ / ประวัติ', '▥'],
@@ -85,7 +86,7 @@ function App() {
   return <div className="app-shell" data-preview-theme={previewTheme}>
     <aside ref={sidebarRef} className={'sidebar ' + (menu ? 'open' : '')}>
       <a className="brand" href="#" onClick={e => { e.preventDefault(); go('collection'); }}>
-        <img className="brand-logo" src={logoUrl} alt="Loan Manager" />
+        <img className="brand-logo" src={previewTheme === 'dev' ? devLogoUrl : prodLogoUrl} alt="Loan Manager" />
         <span>MW Credit<small>
           {t('WORKSPACE PREVIEW', 'ตัวอย่างพื้นที่ทำงาน')}
         </small>

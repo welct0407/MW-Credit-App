@@ -40,3 +40,21 @@ Final revision result: clean `npm run check` (build and 6 guard tests), and `npm
 The parent-owned preview server was reused on port4173 and was not stopped by this test run. No live API/database/AppSheet operations, deployment, credential or financial writes were performed. Owner visual acceptance remains pending.
 
 Final palette follow-up: inactive mobile navigation foreground changed from residual green to neutral #565656. Clean build rerun passed; the five affected visual/layout/logo/theme checks passed, with one deliberate desktop duplicate skip (screenshots refreshed). Earlier 17-check interaction pass remains valid for this CSS-only change; six unchanged guard results reused.
+
+## Latest owner revision — coordinated card tints
+
+This supersedes the earlier white-card requirement. On the final CSS-only revision, `npm run check` passed (clean build plus 6 guards); the browser suite passed 17 checks with one intentional desktop duplicate screenshot skip in 9.9 seconds.
+
+DEV cards use #fdf1e7 and selected rows #fbe8d8; PROD-style cards use #fbe8ef and selected rows #f9dbe6. Exact primary colors remain #e8710a/#d81b60. Computed summary/list/detail backgrounds and selected rows match these tokens; summary/status text backgrounds remain transparent. Representative visible summary, borrower, due/principal, loan, receipt and note text has computed contrast >=4.5:1 against its actual nearest opaque background in both themes. This is focused readability evidence, not a complete accessibility audit.
+
+Existing interaction, EN/Thai, keyboard, 360/390/1440 responsive checks passed. Switching presentation themes produced no requests. Original logo load and removed portfolio principal card remain verified. All existing screenshot filenames were refreshed to this tinted revision; DEV mobile and PROD-style desktop images were visually inspected. White-card observations above are historical only.
+
+Parent-owned preview server4173 remains untouched. No backend, production or deployment actions were performed. Ready for owner visual validation.
+
+## Final logo follow-up
+
+DEV now uses an owner-requested generated orange-background variant; PROD preserves the byte-exact original pink logo. The original-byte claim above applies to PROD only. DEV SHA256: 3E0A3A6234376BA263B3CF59D5C4EBD374607357B831972605BDE730E54DD0D2. PROD SHA256 remains 5808EE79D5B6E843C8ED648E8507678EA349297D1CC687A97021C5D396DD2A8D.
+
+Targeted follow-up passed 5 visual/theme/logo checks with 1 intentional duplicate skip (6.4 seconds). Both themes render the expected asset source with complete images and nonzero natural width. Theme switching is allowed to load the other local PNG; no API or external requests appeared. Existing 17-check interaction/palette evidence remains valid for the asset-selection-only change. All captures were refreshed; logo-dev-mobile-menu.png and logo-prod-mobile-menu.png additionally show the logos in the open mobile drawer. DEV mobile drawer image visually inspected. Parent-owned server4173 remains running for owner review. No deployment performed.
+
+Final all-orange asset replacement supersedes the intermediate orange-background image that retained pink accents. Clean final build passed; five targeted theme/logo/visual checks passed with one intentional duplicate skip (5.5 seconds). All captures refreshed once more and DEV drawer visually inspected. Read-only Pillow pixel analysis found 0 obvious magenta pixels among 1,572,516 pixels (1254×1254); heuristic: R>1.2G, B>1.15G, R>100, B>65. This supports visual inspection and is not a perceptual color certification. No image was edited by the tester. Final DEV hash above is current; original PROD hash remains unchanged.

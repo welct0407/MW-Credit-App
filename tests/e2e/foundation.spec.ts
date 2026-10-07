@@ -57,27 +57,44 @@ test('Thai mobile review screenshot',async({page},testInfo)=>{
  test.skip(!testInfo.project.name.startsWith('mobile'));await page.setViewportSize({width:390,height:844});await page.getByRole('button',{name:'ไทย',exact:true}).click();await page.screenshot({path:'outputs/r052-preview/mobile-thai-collection.png',fullPage:true});await page.setViewportSize({width:360,height:844});await noOverflow(page);await page.screenshot({path:'outputs/r052-preview/mobile-thai-360-viewport.png'});await page.getByTestId('borrower-SAMPLE-003').scrollIntoViewIfNeeded();await page.getByTestId('borrower-SAMPLE-003').click();await expect(page.getByRole('region',{name:'รายละเอียดผู้กู้'})).toContainText('นิดา');await page.getByRole('button',{name:'กลับไปรายการ'}).click();await page.getByTestId('borrower-SAMPLE-002').click();await page.screenshot({path:'outputs/r052-preview/mobile-thai-detail.png',fullPage:true});await page.getByRole('button',{name:'บันทึกการชำระ · อยู่ในแผน'}).scrollIntoViewIfNeeded();await expect(page.getByRole('button',{name:'บันทึกการชำระ · อยู่ในแผน'})).toBeVisible();
 });
 
-test('AppSheet colors are presentation only with white surfaces and original logo',async({page},testInfo)=>{
+test('AppSheet colors are presentation only with coordinated tinted surfaces and theme logos',async({page},testInfo)=>{
  const mobile=testInfo.project.name.startsWith('mobile');
  await page.setViewportSize(mobile?{width:390,height:844}:{width:1440,height:900});
  const requests:string[]=[];page.on('request',request=>{requests.push(request.url())});
  const logo=page.locator('.brand-logo');
  expect(await logo.evaluate((img:HTMLImageElement)=>img.complete&&img.naturalWidth>0)).toBe(true);
  await expect(logo).toHaveAttribute('alt','Loan Manager');
- for(const [theme,color] of [['dev','rgb(232, 113, 10)'],['prod','rgb(216, 27, 96)']]){
+ for(const [theme,color,tint,selected] of [['dev','rgb(232, 113, 10)','rgb(253, 241, 231)','rgb(251, 232, 216)'],['prod','rgb(216, 27, 96)','rgb(251, 232, 239)','rgb(249, 219, 230)']]){
   await page.getByRole('group',{name:'Theme preview'}).getByRole('button',{name:theme.toUpperCase(),exact:true}).click();
   await expect(page.locator('.app-shell')).toHaveAttribute('data-preview-theme',theme);
+  await expect(logo).toHaveAttribute('src',theme==='dev'?/loan-manager-logo-dev-orange/:/loan-manager-logo\.png/);
+  await expect.poll(()=>logo.evaluate((img:HTMLImageElement)=>img.complete&&img.naturalWidth>0)).toBe(true);
   await expect(page.locator('.topbar')).toHaveCSS('border-top-color',color);
   await expect(page.getByText('Colors only · no environment change',{exact:true})).toBeVisible();
-  for(const metric of await page.locator('.metric').all())await expect(metric).toHaveCSS('background-color','rgb(255, 255, 255)');
+  for(const metric of await page.locator('.metric,.list-panel,.detail-panel').all())await expect(metric).toHaveCSS('background-color',tint);
   for(const label of await page.locator('.metric > span,.metric > strong,.metric small,.status').all())await expect(label).toHaveCSS('background-color','rgba(0, 0, 0, 0)');
   await noOverflow(page);
   await page.screenshot({path:`outputs/r052-preview/${theme}-${mobile?'mobile':'desktop'}-style-viewport.png`});
-  await page.getByTestId('borrower-SAMPLE-002').click();await page.mouse.move(0,0);await expect(page.locator('.borrower-card.selected')).toHaveCSS('background-color','rgb(255, 255, 255)');
-  if(mobile)await page.getByRole('button',{name:'Back to list'}).click();
+  await page.getByTestId('borrower-SAMPLE-002').click();await page.mouse.move(0,0);await expect(page.locator('.borrower-card.selected')).toHaveCSS('background-color',selected);
+  await checkTextContrast(page);
+  if(mobile){await page.getByRole('button',{name:'Back to list'}).click();await page.getByRole('button',{name:'Open navigation',exact:true}).click();await expect(logo).toBeVisible();await page.screenshot({path:"outputs/r052-preview/logo-"+theme+'-mobile-menu.png'});await page.keyboard.press('Escape');}
  }
- expect(requests).toEqual([]);
+ expect(requests.every(url=>{const parsed=new URL(url);return parsed.hostname==='127.0.0.1'&&parsed.pathname.endsWith('.png')})).toBe(true);
  await page.reload();await expect(page.locator('.app-shell')).toHaveAttribute('data-preview-theme','dev');
  await page.goto('/?theme=prod');await expect(page.locator('.app-shell')).toHaveAttribute('data-preview-theme','prod');await expect(page.getByTestId('total-due')).toContainText('4,400');
  await page.setViewportSize({width:360,height:844});await noOverflow(page);
 });
+async function checkTextContrast(page:Page){
+ const samples=await page.locator('.metric > span,.metric > strong,.metric small,.person > strong,.person > span,.card-amount > strong,.detail-amounts span,.detail-amounts strong,.loan dt,.loan dd,.receipt p,.issue-note p').evaluateAll(elements=>{
+  const luminance=(rgb:number[])=>rgb.map(v=>v/255).map(v=>v<=0.04045?v/12.92:Math.pow((v+0.055)/1.055,2.4)).reduce((s,v,i)=>s+v*[0.2126,0.7152,0.0722][i],0);
+  return elements.filter(el=>el.getClientRects().length>0).map(el=>{
+   const style=getComputedStyle(el);let ancestor:Element|null=el;let bg='';
+   while(ancestor){bg=getComputedStyle(ancestor).backgroundColor;if(bg!=='rgba(0, 0, 0, 0)'&&bg!=='transparent')break;ancestor=ancestor.parentElement}
+   const parse=(s:string)=>(s.match(/[\d.]+/g)||[]).slice(0,3).map(Number);
+   const a=luminance(parse(style.color)),b=luminance(parse(bg));
+   return {text:el.textContent?.trim(),ratio:(Math.max(a,b)+0.05)/(Math.min(a,b)+0.05)};
+  });
+ });
+ expect(samples.length).toBeGreaterThan(5);
+ for(const sample of samples)expect(sample.ratio,`${sample.text} contrast`).toBeGreaterThanOrEqual(4.5);
+}
