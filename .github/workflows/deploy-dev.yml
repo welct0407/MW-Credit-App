@@ -32,8 +32,9 @@ jobs:
           IMAGE=asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app/api:${GITHUB_SHA}
           docker build -t "$IMAGE" .
           docker push "$IMAGE"
-          DIGEST=$(gcloud artifacts docker images describe "$IMAGE" --format='value(image_summary.digest)')
-          echo "IMAGE=asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app/api@$DIGEST" >> "$GITHUB_ENV"
+          PINNED_IMAGE=$(docker image inspect "$IMAGE" --format '{{index .RepoDigests 0}}')
+          [[ "$PINNED_IMAGE" == asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app/api@sha256:* ]]
+          echo "IMAGE=$PINNED_IMAGE" >> "$GITHUB_ENV"
       - name: Deploy API artifact
         run: gcloud run services update mw-credit-app-api-dev --project=clever-oasis-508610-n7 --region=asia-southeast1 --image="$IMAGE" --quiet
       - name: Verify private API
