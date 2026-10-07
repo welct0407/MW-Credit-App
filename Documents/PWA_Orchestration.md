@@ -35,7 +35,7 @@ No production mutation, financial posting, scheduler switch or AppSheet cutover 
 
 ## Current checkpoint
 
-Checkpoint2C owner refinements (stable header status, compact charge detail and governed Upcoming Charges) are tested/deployed. Built5efa533 and corrected validationb94c234 are distinct; CI37646540641 passed. Final unsigned API and EN/Thai desktop/mobile smoke passed; owner three-point review pending. [Overall progress](PWA_Progress.md) owns the current status. Full Phase2 incomplete; stop at this review.
+Compact full-width shell, expandable navigation, sticky mobile header and bounded Upcoming previews are tested/deployed. Built5d203daf differs from validationc280c58c only by test helpers/report; CI37652555729 passed. Final unsigned API and EN/Thai desktop/mobile/full-width smoke passed; owner visual/perceived-speed review pending. [Overall progress](PWA_Progress.md) owns current status. Existing56permissions/auth/scaling unchanged; DNS remains excluded. Stop at same2C review, Phase2 incomplete.
 
 ## Revised reporting order
 

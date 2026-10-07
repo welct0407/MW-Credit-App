@@ -4,7 +4,7 @@
 
 Date: 7 October 2026, Asia/Bangkok.
 
-Status: Checkpoint2C refinements are deployed: stable header status, compact clickable charge rows/detail and provider-backed Upcoming summaries/details. Built app5efa533; corrected deployment-config validationb94c234 passed CI37646540641 after initial formatting failure.12providerSQL/7unit/4browser+2final checks passed. API00007-st5/Hosting7364ee7db2ffe012 retain owner UID and persistent sign-in. Exact access is37base+19view columns plus pure forecast EXECUTE in DEV, PROD0/no writes. Final unsigned API and EN/Thai desktop/mobile smoke passed; owner three-point review pending. R052 Open, full Phase2 incomplete.
+Status: Checkpoint2C compact-shell/performance refinement deployed: full-width1440/2560 layout, expandable desktop nav, sticky mobile header/status, null-payment-date omission and bounded Upcoming previews. Built5d203daf; test-only validationc280c58c passed CI37652555729 after mobile helper synchronization fix.12providerSQL/4units/11browsers (1intentional skip) passed. API00008-9fw/Hosting49547c853832dd36; permissions56/auth/scaling unchanged. Paired operator detail7-to5queries/842-to552ms is qualified source evidence; C verified valid preview0HTTP. Final unsigned API and EN/Thai desktop/mobile/full-width smoke passed; owner visual/perceived-speed review pending. R052 Open, Phase2 incomplete.
 
 ## Scope
 

@@ -2,7 +2,7 @@
 
 **Last updated:** 7 October 2026 (Asia/Bangkok)
 
-**Current position:** R052 is Open. Checkpoint2C Collection refinements are implemented, tested and deployed: stable header status, compact charge details and Upcoming Charges. Owner review is pending. The DEV application can read borrowers, related loans and the Collection board with charge details; it cannot yet perform financial transactions. AppSheet continues operating in parallel.
+**Current position:** R052 is Open. Checkpoint2C compact-shell and Upcoming-preview refinements are tested and deployed; owner visual/perceived-speed review pending. Borrowers, related loans, Collection and Upcoming are read-only; AppSheet continues in parallel.
 
 [Open DEV app](https://mw-credit-app-dev-737787224638.web.app) · [Detailed roadmap](PWA_Implementation_Plan.md) · [Checkpoint evidence](../outputs/r052-pwa/README.md)
 
@@ -14,7 +14,7 @@
 | Initial navigation and read/access prototypes | Checkpoints 1A and 1B accepted by the owner |
 | Owner-only Google sign-in and borrower reads | Checkpoint 2A tested, deployed and owner-validated; actual owner identity pinned |
 | Related loan list/detail and presentation refinements | Implemented, tested and deployed; neutral surfaces, grouping, readable labels and wider desktop details await final owner visual acceptance |
-| Collection board, charge detail and Upcoming Charges | Implemented, independently tested and deployed; stable header status and compact rows included. Unsigned live checks passed; owner refinement review pending |
+| Collection board, charge detail and Upcoming Charges | Tested/deployed with full-width compact header, expandable navigation and bounded first-page Upcoming previews. Owner visual/perceived-speed review pending |
 | Sign-in survives refresh | Implemented, tested and deployed; owner confirmed real sign-in persists after refresh. Browser reopening and cross-tab logout were tested with the actual SDK and synthetic identities, not the owner's live session |
 
 Business records are fetched afresh and kept in memory. Offline records/drafts, payments and full loan management are not delivered by this read-only checkpoint.
@@ -41,10 +41,10 @@ Launch order: **1 → 2 → 3/4 → 5 → 6 → 8 → 9 → 10 → 11 → 12**. 
 
 ## Review needed and what comes next
 
-- **Owner review now:** check that header loading/completion no longer shifts content; compact charge rows open readable detail; Upcoming summaries and due-date details match expectations. No full Phase2 acceptance is implied.
+- **Owner review now:** check full-width expanded/collapsed desktop navigation, mobile header/scrolling, header status, hidden null payment date and perceived Upcoming date-opening speed. No full Phase2 acceptance is implied.
 - **Next checkpoint:** stop for owner Collection review. Address feedback, then Agent A proposes the next remaining foundation slice after go-ahead. No receiving/payment/receipt feature is activated here.
 - **Remaining planning work:** close Phase 1 feature/parity and acceptance gaps alongside agreed slices. Production readiness and financial workflows follow the roadmap dependencies, not completion of this UI review alone.
-- **Current blockers:** owner three-point refinement review pending; unsigned deployment checks passed. Corrected CI passed; no unresolved application test failure reported.
+- **Current blockers:** owner visual/perceived-speed review pending; final unsigned checks passed. Corrected CI passed. Performance samples measure operator SQL only; no end-to-end latency guarantee.
 
 ## Evidence and session updates
 
