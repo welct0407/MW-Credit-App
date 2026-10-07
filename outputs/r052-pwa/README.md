@@ -24,14 +24,14 @@ No live AppSheet, SQL, Terraform, credential, scheduler or production change. Th
 
 ## Delivered package and checks
 
-Application commit: cc0435ac2462f884bbb48c8936ad7f10ba9b5d53 (theme-tinted cards and fully orange DEV logo), published on codex/r052-review-shell. [Draft app PR3](https://github.com/welct0407/MW-Credit-App/pull/3). The deployed Firebase foundation remains unchanged.
+Application commit: ea22c16f05b7d1c235370fe55dd5e6379a3e7fa3 (readable typography with retained themed cards and logos), published on codex/r052-review-shell. [Draft app PR3](https://github.com/welct0407/MW-Credit-App/pull/3). The deployed Firebase foundation remains unchanged.
 
 - Agent A (Astra High): 43-row recorded workflow backlog and checkpoint design; source architecture reviewed.
 - Agent B (Astra Medium): responsive synthetic Collection/Borrowers implementation, bilingual navigation, search/filter/detail, clear future-module states.
 - Agent C (Astra Low): revised clean build, 6 guard tests and 17 browser checks passed; 1 duplicate desktop run of the mobile-only Thai capture intentionally skipped. The final neutral mobile-nav color adjustment passed a clean build and 5 affected visual checks.
 - Parent inspected the desktop/mobile and final Thai screenshots, checked source boundaries, and opened the local review preview.
 - Initial preview GitHub app CI passed for d2d6c83: [Development checks](https://github.com/welct0407/MW-Credit-App/actions/runs/37598942585), including build/tests/browser checks, runtime dependency audit and Terraform validation.
-- [Pinned test report and screenshots](https://github.com/welct0407/MW-Credit-App/tree/cc0435ac2462f884bbb48c8936ad7f10ba9b5d53/outputs/r052-preview).
+- [Pinned test report and screenshots](https://github.com/welct0407/MW-Credit-App/tree/ea22c16f05b7d1c235370fe55dd5e6379a3e7fa3/outputs/r052-preview).
 
 Final fixes addressed small mobile text/contrast, mobile drawer keyboard focus/Escape, optional follow-up notes, analytics scope wording and two formatter-induced CSS selector errors. Tests were rerun against the final source. Project document links, phase dependencies and Git whitespace/scope checks passed.
 
@@ -60,3 +60,11 @@ Owner further requested the DEV logo background to match orange. A separate oran
 Final owner refinement removes every remaining pink decorative accent from the DEV logo, using orange shades throughout. PROD original remains unchanged. Appcc0435a is published in the existing draftPR3. Clean build,6guards,17browser checks passed for card/interaction scope; final logo replacement passed5targeted checks, both with1intentional screenshot duplicate skip. Readability checks found representative text contrast>=4.5:1. Parent visually inspected final DEV desktop/logo, C verified both asset loads and originalPRODhash. All agents stopped for review.
 
 Final themed-card/all-orange-logo GitHub CI passed forcc0435a: [Development checks37605487858](https://github.com/welct0407/MW-Credit-App/actions/runs/37605487858). Local preview remains running; no deployment.
+
+## Current readability refinement
+
+Owner requested enlarging all small text. A/B/C are applying a coherent readable scale and verifying English/Thai desktop/tablet/mobile layouts. Colors, logos and behavior retained; no phase advance. Verification passed; owner visual acceptance pending.
+
+Readable revision ea22c16: clean build, 6 guards and 18 browser checks passed (2 intentional duplicate skips). Final focused scan passed at 1440/1024/768/390/360px in English and Thai, covering list/detail/empty/planned/drawer text and controls. Meaningful text >=14px, input/select >=16px and relevant controls >=44px; checked clipping, text bounds, overflow and control overlap passed. Parent inspected desktop/mobile screenshots; architecture accepted. All workers stopped for review.
+
+Readable typography GitHub CI passed for ea22c16: [Development checks 37606523746](https://github.com/welct0407/MW-Credit-App/actions/runs/37606523746). Preview server remains available; no deployment.

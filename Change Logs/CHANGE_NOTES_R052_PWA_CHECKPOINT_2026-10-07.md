@@ -41,3 +41,11 @@ Additional owner steering: orange-background DEV logo variant, original pink PRO
 Final all-orange DEVlogo refinement and themedcards published as appcc0435ac2462f884bbb48c8936ad7f10ba9b5d53. Cleanbuild/6guards/17browserchecks passed for palette and interactions; finalassetchange passed5targetedchecks. Representativecontrast>=4.5:1, originalPRODhash preserved, screenshots refreshed. Allworkersstopped; awaitingvisualacceptance. No phaseadvance or deployment.
 
 Final CI37605487858 passed forcc0435a. Documentation and Git whitespace checks passed before publication.
+
+## Typography refinement
+
+Owner requested all text readable. Baselines project095f060a / appcc0435a. Adefines readable scale, Bimplements CSS, Cchecks rendered sizes and layout. Existing colors/logos/workflows preserved; no phaseadvance or livechanges. Verification pending; ownerreview follows testedpublication.
+
+Readable app revision ea22c16 published in existing draft PR3. Clean build/6 guards/18 browser checks passed (2 duplicate skips), plus final focused five-width EN/Thai text/control scan. Screenshots inspected by parent; no clipping/overflow/control overlap in checked states. All agents stopped for visual acceptance; no phase advance or live change.
+
+GitHub CI 37606523746 passed for ea22c16. Final project whitespace/scope checks passed before publication.

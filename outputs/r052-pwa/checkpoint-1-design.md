@@ -80,3 +80,7 @@ The owner requests cards in the theme color or a similar shade, to feel orange r
 The owner subsequently requested an orange-background DEV logo. DEV now uses a separate built-in image-edited variant of the existing OLTP design; PROD retains the byte-identical original pink logo. This supersedes the earlier same-logo-in-both instruction. Variant provenance, prompt and hash are maintained in MW-Credit-App docs/Branding.md. Theme selection changes presentation/assets only, never identity/backend routing.
 
 Final DEV refinement converts all remaining pink decorative surfaces to orange shades, not only the background. PROD remains the original pink. Parent visually reviewed the generated result; C verified rendered asset switching and preserved PROD hash.
+
+## Owner readability refinement
+
+The owner found some text too small and requested all text readable. Use a 16px body/control baseline and 14px minimum for meaningful visible labels, metadata, dates, statuses, footer and navigation captions. Keep headings/amounts larger and 1.5 body line height. Controls at least 44px, mobile navigation 48px. Let mobile English/Thai labels and cards wrap/grow; do not restore tiny type to maintain density. Verify actual rendered sizes plus text clipping/overlap, including tablet and 360/390px mobile. Keep current tinted palettes and logo assets.
