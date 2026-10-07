@@ -17,7 +17,7 @@ export function createDevReadHandler({ config, verifyPrincipal, store }) {
     if (req.method !== 'GET') return send(405, { ok: false, code: 'method_not_allowed' });
     try {
       const url = new URL(req.url, 'http://request.invalid');
-      if (url.pathname === '/healthz') return send(200, { status: 'ok', environment: 'dev', service: 'borrower-read' });
+      if (url.pathname === '/health') return send(200, { status: 'ok', environment: 'dev', service: 'borrower-read' });
       const principal = await verifyPrincipal(req.headers.authorization);
       if (!principal.ok) return send(principal.status, { ok: false, code: principal.code });
       let result;

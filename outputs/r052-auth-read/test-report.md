@@ -23,3 +23,11 @@ Baseline a3d21d5. Tester performed no live Firebase login, database query, deplo
 The four `*-MOCKED-*.png` files show only the named SYNTHETIC BROWSER FIXTURE. Verified initial signed-out state, no simulator inclusion, bearer GET without cookies, fractional principal display, detail read,403 clearing prior data, immediate signout and rejection of a delayed pre-signout response. English/Thai controls exercised; local/session storage remained empty and no external provider/API network calls escaped interception. Mobile allowed screenshot visually inspected; no apparent clipping.
 
 Isolated test Vite servers on4300/4301 were shut down; parent-owned4173 preview was preserved. Screenshots do not prove live login, actual permissions, DB financial parity or production readiness. Parent owns infrastructure/provider/live validation and deployment evidence. No broad historical screenshot regeneration was performed for this test batch.
+
+## Live transport smoke and CI investigation
+
+After owner-authorized service-only transport exposure, new read API application denials were observed directly: anonymous401 sign_in_required, invalid dummy bearer401 session_invalid, wrong origin403, exact allowed-origin preflight204, POST405 and removed /readyz401. Application responses carried no-store. No valid token, owner sign-in or business data was used. Original infrastructure API remains anonymous403/IAM-protected. Status-only/safe denial JSON evidence is in live-smoke-*.json.
+
+Exception: new /healthz returned404 HTML rather than expected static200; Agent D is investigating whether the platform intercepts this path. This is not recorded as a passing static-health check.
+
+CI run37613233717 for24c1981 failed one desktop mocked-browser click at scroll-into-view after visibility/enabled/stability checks;23 passed,2 skipped. Workflow did not upload a trace. Focused desktop one-worker local reproduction with tracing repeated3times and all passed (11.4seconds). No application defect found in B's source review; failure root remains unconfirmed. No force-click, timeout extension or speculative source fix was applied. A single CI rerun was recommended; result pending.

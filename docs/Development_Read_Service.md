@@ -40,7 +40,7 @@ A valid identity then requires exactly one `Partners.Login Email` match after tr
 
 All responses use `Cache-Control: no-store`. Exact-origin CORS permits GET and Authorization only, no cookies. Other origins and mutation methods are rejected. The public health endpoint contains no row data, identity values, secrets, storage probes, or database queries. Database identity is verified once before listening and again inside each authorized read transaction. No public readiness-query route is exposed.
 
-- `GET /healthz`: service liveness only.
+- `GET /health`: service liveness only.
 - `GET /api/session`: verified owner permission, borrower-only scope and the caller's verified subject for the controlled UID-pinning step.
 - `GET /api/borrowers?limit=25&cursor=...`: default 25, maximum 100; base64url cursor contains the last immutable case-sensitive row key.
 - `GET /api/borrowers/:id`: the same visible-record scope; hidden/missing records return the same not-found response.
@@ -56,3 +56,13 @@ Pages use stable `Row ID COLLATE "C"` keyset order. This is deliberately not fin
 Firebase 12.19.0 and Firebase Admin 14.5.0 are pinned. `@grpc/grpc-js` is overridden to patched 1.14.5 because Firebase's unrelated Firestore dependency otherwise pins a version with security advisories. Only Firebase app/auth modules enter the browser bundle; no Firestore application integration is implemented.
 
 Builds and synthetic tests do not prove Google provider setup, IAM grants, live sign-in or deployed read success. Those require separate deployment and owner-account validation, without recording real borrower data or tokens in test artifacts.
+
+## Live infrastructure checkpoint — 7 October 2026
+
+The dedicated service is Ready at https://mw-credit-app-read-dev-pvrgvyg3oq-as.a.run.app, image digest sha256:12c3f74793e2cfa38bfb6e5a2b442ecf47402f5cd3397a02f2abace41f098cf9 (source 24c1981). Startup checks actual DEV database identity before listening. DEV grants are applied: seven Borrowers and two Partners columns; PROD column grants zero, no writes/schema CREATE. Existing PUBLIC CONNECT is retained.
+
+The allUsers invoker binding was rejected by organization domain-restricted sharing. The owner explicitly approved the reviewed service-only alternative; Terraform disabled the Invoker IAM check for this new service only. Business routes enforce Firebase owner authentication before SQL. Old API IAM and organization policies remain unchanged. Re-enable the check to contain the service if necessary.
+
+Owner pinning is persistent: infrastructure/dev/owner-identity.tf owns mw-credit-app-dev-owner-identity, currently empty. After actual Google login, securely populate the observed UID, set tracked owner_identity_mode=uid-pinned and owner_uid_secret_version to the exact numeric version, then review/apply. Terraform reads the value into runtime configuration; no runtime Secret Manager grant is added. Missing version or empty value fails closed; never use latest or fabricate a UID. Private state/plans contain sensitive values and are excluded from Git.
+
+Real owner login/read is still pending. Cloud Run reserves some paths ending in z; the new read handler/startup probe uses /health after public /healthz returned platform HTML404. Deployment of this correction is pending. Auth/CORS/method rejection tests pass and old API remains anonymous403. See sanitized live-smoke evidence.

@@ -21,7 +21,7 @@ Established 7 October 2026. Infrastructure is managed in this repository; shared
 | Terraform state bucket | mw-credit-app-tfstate-737787224638; versioned; prefixes bootstrap and development |
 | Cloud Build source bucket | mw-credit-app-builds-737787224638; 14-day source cleanup |
 
-The existing SQL instance, GCS receipt bucket, AppSheet apps, Metabase, Grafana and business schedulers are retained. Terraform manages additive identities/bindings and an IAM database login, not the shared instance or receipt bucket. No business table privileges or schema migrations were added. The runtime checks its exact DEV database/instance/prefix before starting; PostgreSQL grants must be designed and verified with the first business API.
+The existing SQL instance, GCS receipt bucket, AppSheet apps, Metabase, Grafana and business schedulers are retained. Terraform manages additive identities/bindings and an IAM database login, not the shared instance or receipt bucket. Initial infrastructure setup added no business table privileges or schema migrations. Checkpoint 2A subsequently added nine exact DEV-only column SELECT grants for the dedicated reader; see the read-service guide. The runtime checks its exact DEV database/instance/prefix before starting; PostgreSQL grants must be designed and verified with the first business API.
 
 ## Credentials
 
@@ -33,7 +33,7 @@ Existing services retain their existing credential arrangements; infrastructure 
 
 Human tooling reuses the existing gcloud sign-in and Git Credential Manager. It does not copy their authentication stores. Private Terraform working data, plans and recovery files on VM-01 are under:
 `C:/Users/MWCredit/Documents/ChatGPT/MW-Credit-App/terraform`.
-Plans/state can contain sensitive metadata; do not publish them.
+Plans/state include sensitive OAuth provider payloads read from Secret Manager; never publish them. Secret Manager storage does not keep those payloads out of Terraform state/plan.
 
 ## Installed VM-01 tooling
 
@@ -59,7 +59,7 @@ Both stacks use the versioned remote GCS backend. The bootstrap bucket has alrea
 
 CI runs TypeScript/build, six configuration guard tests, desktop/mobile browser checks, dependency audit and Terraform formatting/validation. Manual Deploy development builds an immutable image, updates the new service, calls its private readiness endpoint and publishes the synthetic Hosting site through the official Firebase REST API. It runs only from main and the development environment.
 
-The hosting deployer uploads gzip files by content hash, finalizes a version and creates a release. No Firebase CLI or persistent Firebase token is required. The public site contains no borrower/customer data; the API remains IAM protected. End-user Firebase authentication and API authorization will be implemented with the first application slice.
+The hosting deployer uploads gzip files by content hash, finalizes a version and creates a release. No Firebase CLI or persistent Firebase token is required. The public site contains no borrower/customer data; the API remains IAM protected. Checkpoint 2A now implements owner-only Firebase Google authentication and a separate DEV Borrowers read service; the original readiness API stays IAM-protected. Live owner validation remains pending.
 
 Local commands:
 
@@ -80,7 +80,7 @@ For infrastructure recovery, review versioned GCS state and Git configuration to
 
 ## Next application work
 
-Implement Firebase sign-in/role enforcement and narrowly scoped database privileges, followed by the first end-to-end business slice. Add governed Metabase/Grafana integration when application endpoints and metrics exist. Mobile posting requires online confirmation; offline viewing/drafts remain in scope. No duplicate business job scheduler, production API or cutover has been activated.
+Complete checkpoint 2A real owner sign-in/read and UID pinning, then continue separately accepted business slices. Add governed Metabase/Grafana integration when application endpoints and metrics exist. Mobile posting requires online confirmation; offline viewing/drafts remain in scope. No duplicate business job scheduler, production API or cutover has been activated.
 
 ## Completed delivery evidence
 
@@ -91,3 +91,7 @@ Database tooling ownership moved here on 7 October 2026. Enter-Dev.ps1 selects c
 ## Read/access checkpoint 1B
 
 The local preview implements a tested synthetic read/access contract before live integration. Its scenario controls simulate access outcomes; they do not sign in or verify tokens. The current Cloud Run health/readiness server remains unchanged. See the [read/access change record](../Change%20Logs/CHANGE_NOTES_R052_READ_ACCESS_CONTRACTS_2026-10-07.md) and project checkpoint design for implementation status and limits.
+
+## Checkpoint 2A deployment
+
+Separate read service: https://mw-credit-app-read-dev-pvrgvyg3oq-as.a.run.app. The owner explicitly approved service-only Firebase application authentication after domain-restricted sharing rejected allUsers membership. Terraform applied only invoker_iam_disabled false to true; organization policies and the old API are unchanged. [Read-service details](Development_Read_Service.md). The persistent owner-identity secret container is empty until real owner login; tracked mode remains email-bootstrap. Hosting live publication and owner validation remain pending.

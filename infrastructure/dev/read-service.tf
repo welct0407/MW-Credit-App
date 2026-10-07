@@ -11,11 +11,12 @@ variable "read_image" {
 
 # No service is created until a tested immutable image is explicitly pinned.
 resource "google_cloud_run_v2_service" "read_api" {
-  count               = var.read_image == null ? 0 : 1
-  name                = "mw-credit-app-read-dev"
-  location            = local.region
-  deletion_protection = true
-  ingress             = "INGRESS_TRAFFIC_ALL"
+  count                = var.read_image == null ? 0 : 1
+  name                 = "mw-credit-app-read-dev"
+  location             = local.region
+  deletion_protection  = true
+  ingress              = "INGRESS_TRAFFIC_ALL"
+  invoker_iam_disabled = true
   template {
     service_account                  = google_service_account.read_runtime.email
     timeout                          = "30s"
@@ -41,16 +42,23 @@ resource "google_cloud_run_v2_service" "read_api" {
           INSTANCE_CONNECTION_NAME = "${local.project}:${local.region}:${local.instance}"
           DB_USER                  = google_sql_user.read_runtime.name
           ALLOWED_WEB_ORIGIN       = "https://${google_firebase_hosting_site.dev.site_id}.web.app"
-          OWNER_IDENTITY_MODE      = "email-bootstrap"
+          OWNER_IDENTITY_MODE      = var.owner_identity_mode
         }
         content {
           name  = env.key
           value = env.value
         }
       }
+      dynamic "env" {
+        for_each = var.owner_identity_mode == "uid-pinned" ? [1] : []
+        content {
+          name  = "OWNER_FIREBASE_UID"
+          value = trimspace(data.google_secret_manager_secret_version.owner_identity[0].secret_data)
+        }
+      }
       startup_probe {
         http_get {
-          path = "/healthz"
+          path = "/health"
           port = 8080
         }
         initial_delay_seconds = 1
@@ -62,15 +70,9 @@ resource "google_cloud_run_v2_service" "read_api" {
   depends_on = [google_project_iam_member.read_sql, google_project_iam_member.read_auth_user]
 }
 
-# The browser sends Firebase tokens; business routes verify owner identity before SQL.
-# This binding is exclusively for the new read service, never the existing private API.
-resource "google_cloud_run_v2_service_iam_member" "read_browser" {
-  count    = var.read_image == null ? 0 : 1
-  location = local.region
-  name     = google_cloud_run_v2_service.read_api[0].name
-  role     = "roles/run.invoker"
-  member   = "allUsers"
-}
+# Firebase application authentication protects business routes on this service only.
+# Domain-restricted sharing prevents allUsers IAM membership; owner approval is required
+# before applying the service-specific Invoker IAM check setting above.
 
 output "read_api_url" {
   value = try(google_cloud_run_v2_service.read_api[0].uri, null)
