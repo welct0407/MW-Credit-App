@@ -4,7 +4,7 @@
 
 Date: 7 October 2026, Asia/Bangkok.
 
-Status: Checkpoint2C compact-shell/performance refinement deployed: full-width1440/2560 layout, expandable desktop nav, sticky mobile header/status, null-payment-date omission and bounded Upcoming previews. Built5d203daf; test-only validationc280c58c passed CI37652555729 after mobile helper synchronization fix.12providerSQL/4units/11browsers (1intentional skip) passed. API00008-9fw/Hosting49547c853832dd36; permissions56/auth/scaling unchanged. Paired operator detail7-to5queries/842-to552ms is qualified source evidence; C verified valid preview0HTTP. Final unsigned API and EN/Thai desktop/mobile/full-width smoke passed; owner visual/perceived-speed review pending. R052 Open, Phase2 incomplete.
+Status: Checkpoint2C compact mobile navigation refinement deployed: single-row mobile header, icon status, language/sign-out in menu and bottom navigation for Borrowers/Collection without duplicate mobile sidebar entries; desktop keeps all sidebar routes and no bottom navigation. Exact source d959e6f passed CI37656348383 and managed-config build; Hosting dacf7a53b31f09b0, rollback49547c853832dd36. Fifteen affected browser checks passed (one intentional skip). Final signed-out desktop/mobile EN/Thai smoke passed; owner visual review pending. API00008-9fw, permissions and Terraform unchanged. Future five-view selection deferred; R052 Open and Phase2 incomplete.
 
 ## Scope
 

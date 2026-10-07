@@ -35,7 +35,7 @@ No production mutation, financial posting, scheduler switch or AppSheet cutover 
 
 ## Current checkpoint
 
-Compact full-width shell, expandable navigation, sticky mobile header and bounded Upcoming previews are tested/deployed. Built5d203daf differs from validationc280c58c only by test helpers/report; CI37652555729 passed. Final unsigned API and EN/Thai desktop/mobile/full-width smoke passed; owner visual/perceived-speed review pending. [Overall progress](PWA_Progress.md) owns current status. Existing56permissions/auth/scaling unchanged; DNS remains excluded. Stop at same2C review, Phase2 incomplete.
+Current checkpoint2C mobile navigation: compact header/icon status, menu account controls and two provisional mobile bottom routes are deployed on Hosting dacf7a53b31f09b0 after exact d959e6f CI37656348383 passed. Desktop retains all sidebar routes. Final signed-out smoke passed; owner review pending; five future frequent views deferred. API00008-9fw/access unchanged. [Overall progress](PWA_Progress.md) owns current status; DNS excluded and Phase2 incomplete.
 
 ## Revised reporting order
 

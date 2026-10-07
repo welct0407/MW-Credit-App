@@ -1,8 +1,8 @@
 # MW Credit implementation progress
 
-**Last updated:** 7 October 2026 (Asia/Bangkok)
+**Last updated:** 8 October 2026 (Asia/Bangkok)
 
-**Current position:** R052 is Open. The deployed checkpoint2C shell/Upcoming preview remains available. The owner requested a further UI-only refinement: compact mobile header, icon status, account controls in the menu and bottom navigation for the two current frequent views (Borrowers and Collection). Implementation and 15 relevant browser checks passed (1 intentional skip); source publication/CI and Hosting delivery are pending after GitHub server push errors. Selection of five future frequent views is deferred. Existing read-only flows and AppSheet continue in parallel.
+**Current position:** R052 is Open. Compact mobile header, icon status, menu account controls and bottom navigation for Borrowers/Collection are tested and deployed. Desktop retains sidebar navigation. Final signed-out desktop/mobile EN/Thai verification passed; owner visual review is pending. Future five-view selection is deferred; existing read-only flows and AppSheet continue in parallel.
 
 [Open DEV app](https://mw-credit-app-dev-737787224638.web.app) · [Detailed roadmap](PWA_Implementation_Plan.md) · [Checkpoint evidence](../outputs/r052-pwa/README.md)
 
@@ -41,10 +41,10 @@ Launch order: **1 → 2 → 3/4 → 5 → 6 → 8 → 9 → 10 → 11 → 12**. 
 
 ## Review needed and what comes next
 
-- **Owner review now:** check full-width expanded/collapsed desktop navigation, mobile header/scrolling, header status, hidden null payment date and perceived Upcoming date-opening speed. No full Phase2 acceptance is implied.
+- **Owner review now:** check the compact mobile header, icon status, language/sign-out menu, Borrowers/Collection bottom navigation with no sidebar duplicates, and desktop sidebar without a bottom bar. No full Phase2 acceptance is implied.
 - **Next checkpoint:** stop for owner Collection review. Address feedback, then Agent A proposes the next remaining foundation slice after go-ahead. No receiving/payment/receipt feature is activated here.
 - **Remaining planning work:** close Phase 1 feature/parity and acceptance gaps alongside agreed slices. Production readiness and financial workflows follow the roadmap dependencies, not completion of this UI review alone.
-- **Current blockers:** owner visual/perceived-speed review pending; final unsigned checks passed. Corrected CI passed. Performance samples measure operator SQL only; no end-to-end latency guarantee.
+- **Current blockers:** owner visual review pending for this mobile-navigation refinement; final signed-out desktop/mobile EN/Thai smoke passed. Exact source d959e6f passed CI37656348383 and is deployed on Hosting dacf7a53b31f09b0; API unchanged.
 
 ## Evidence and session updates
 
