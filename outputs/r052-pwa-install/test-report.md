@@ -25,3 +25,9 @@ No API/database/grants, owner credentials, financial writes or production system
 Files: tests/e2e/pwa-worker.spec.ts, pwa-canonical.spec.ts, fixtures/worker-server.ts, fixtures/canonical-server.ts, and added cases in persistence.spec.ts. Screenshots in this directory: canonical-menu-desktop.png, canonical-menu-mobile.png, canonical-menu-mobile-th.png, canonical-update-waiting.png, offline-mobile.png, theme-bottomnav-en.png, theme-bottomnav-th.png.
 
 Parent reviewed mobile Thai installation menu, offline reconnect and desktop waiting-update captures with no visual blocker. C test servers/browsers closed. Await exact-source CI, DEV publication, scoped unsigned asset delivery verification, and owner install/offline/update visual checkpoint. Phase2 remains incomplete; R052 remains Open.
+
+## Deployed delivery verification
+
+Exact source848750a216511af514b37f97fbddacae7a9d1707 passed CI37702097252; D published Hosting6a5b8f75b50f4537. Bounded unsigned checks passed for six canonical public assets and three fresh browser contexts (canonical1440 desktop, canonical320 mobile, fallback1440 desktop), each EN/Thai. Worker SHA256 matches d5939ba01524083acb956618322532a0e881effeb691d62839472d183b24b63d. MIME/no-store were correct; PNG dimensions are recorded in live-delivery.json.
+
+Canonical attached its manifest and registered the worker; CacheStorage contained only the four allowed public URLs. Fallback attached no manifest, registered no worker and had empty CacheStorage. No business records or API requests occurred. Screenshots live-*-{en,th}.png contain unsigned UI only. No login, owner-profile inspection or repeated rollback tests were performed. All browser contexts closed and evidence frozen. Owner native installation/offline/update visual validation remains pending.
