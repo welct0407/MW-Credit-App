@@ -2,7 +2,7 @@
 
 **Last updated:** 8 October 2026 (Asia/Bangkok)
 
-**Current position:** R052 is Open. Owner accepted the compact mobile header/navigation. Checkpoint2D is preparing dev-lm.mw-credit.com: managed Hosting mapping and exact-origin API are deployed; DNS/certificate and real custom-host sign-in remain pending private Cloudflare token provisioning. The existing DEV URL continues working; Phase2 remains incomplete.
+**Current position:** R052 is Open. Owner accepted the compact mobile header/navigation. Checkpoint2D is preparing dev-lm.mw-credit.com: managed Hosting mapping and exact-origin API are deployed; Terraform DNS is applied and public records resolve; Firebase certificate/ownership and real custom-host sign-in remain pending. The existing DEV URL continues working; Phase2 remains incomplete.
 
 [Open DEV app](https://mw-credit-app-dev-737787224638.web.app) · [Detailed roadmap](PWA_Implementation_Plan.md) · [Checkpoint evidence](../outputs/r052-pwa/README.md)
 
@@ -44,7 +44,7 @@ Launch order: **1 → 2 → 3/4 → 5 → 6 → 8 → 9 → 10 → 11 → 12**. 
 - **Owner acceptance:** compact mobile header and mobile/desktop navigation accepted on 8 October ("looks good. carry on"). This does not establish full Phase2 or broader financial/performance acceptance.
 - **Next checkpoint:** finish Terraform-managed DNS and HTTPS for dev-lm.mw-credit.com, verify both-origin boundaries and ask the owner to sign in/refresh/read on the custom host. The existing web.app address remains fallback.
 - **Remaining planning work:** close Phase 1 feature/parity and acceptance gaps alongside agreed slices. Production readiness and financial workflows follow the roadmap dependencies, not completion of this UI review alone.
-- **Current blockers:** owner privately provisions the narrowly scoped Cloudflare token into the prepared Secret Manager container; DNS/TLS completion follows. No token is requested in chat. Future five frequent views remain undecided.
+- **Current blockers:** token provisioning is complete and Terraform DNS applied; Firebase certificate/ownership verification is pending before custom-host browser/owner validation. Future five frequent views remain undecided.
 
 ## Evidence and session updates
 

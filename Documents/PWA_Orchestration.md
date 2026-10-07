@@ -35,7 +35,7 @@ No production mutation, financial posting, scheduler switch or AppSheet cutover 
 
 ## Current checkpoint
 
-Current checkpoint2D: owner accepted compact mobile navigation; selected dev-lm.mw-credit.com. Terraform mapping/Firebase hostname and paired exact-origin API00009-5x5 are deployed; source8385614 CI37660003633 and13unsigned origin checks passed. DNS/TLS awaits owner private token provisioning, then Terraform DNS and custom-host owner validation. Existing Hosting/fallback unchanged. [Overall progress](PWA_Progress.md) owns status; Phase2 incomplete.
+Current checkpoint2D: owner accepted compact mobile navigation; selected dev-lm.mw-credit.com. Terraform mapping/Firebase hostname and paired exact-origin API00009-5x5 are deployed; source8385614 CI37660003633 and13unsigned origin checks passed. Terraform DNS is applied; Firebase certificate/ownership verification and custom-host owner validation remain pending. Existing Hosting/fallback unchanged. [Overall progress](PWA_Progress.md) owns status; Phase2 incomplete.
 
 ## Revised reporting order
 
