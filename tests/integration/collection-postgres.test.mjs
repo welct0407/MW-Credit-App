@@ -51,10 +51,10 @@ const upcoming=(b,extra={})=>store.getCollectionUpcoming(owner,b,{businessDate:'
 test('actual forecast providers preserve first five distinct dates and all 27 fifth-date loans across pages',async()=>{
  await borrower('a',true);await charge('today','a');
  for(let i=0;i<27;i++)await forecast('future-'+String(i).padStart(2,'0'),'a');
- const r=await upcoming('a');assert.equal(r.ok,true);assert.equal(r.reviewRequired,false);assert.equal(r.horizonEnd,'2027-01-07');
+ queries.length=0;const started=performance.now();const r=await upcoming('a');const summaryQueryCount=queries.length;console.log(JSON.stringify({fixture:'27 loans synthetic',summaryMs:Math.round(performance.now()-started),summaryQueryCount}));assert.equal(r.ok,true);assert.equal(r.previews.length,5);assert.equal(r.previews.flatMap(x=>x.items).length,125);for(const preview of r.previews){assert.equal(preview.asOf,r.asOf);assert.equal(preview.items.length,25);assert.ok(preview.nextCursor);assert.equal(preview.totalCharge,r.items.find(x=>x.dueDate===preview.dueDate).totalCharge);}assert.equal(r.reviewRequired,false);assert.equal(r.horizonEnd,'2027-01-07');
  assert.deepEqual(r.items.map(x=>x.dueDate),['2026-10-08','2026-10-09','2026-10-10','2026-10-11','2026-10-12']);
  assert.ok(r.items.every(x=>Number(x.totalCharge)===270));
- const first=await upcoming('a',{dueDate:'2026-10-12'});assert.equal(first.items.length,25);assert.equal(Number(first.totalCharge),270);assert.ok(first.nextCursor);assert.ok(first.items.every(x=>x.basis==='Projected'));
+ queries.length=0;const first=await upcoming('a',{dueDate:'2026-10-12'});assert.equal(queries.length,summaryQueryCount);assert.deepEqual(first.items,r.previews[4].items);assert.equal(first.nextCursor,r.previews[4].nextCursor);assert.equal(first.items.length,25);assert.equal(Number(first.totalCharge),270);assert.ok(first.nextCursor);assert.ok(first.items.every(x=>x.basis==='Projected'));
  const second=await upcoming('a',{dueDate:'2026-10-12',cursor:first.nextCursor});assert.equal(second.items.length,2);assert.equal(second.nextCursor,null);assert.equal(Number(second.totalCharge),270);assert.equal(new Set([...first.items,...second.items].map(x=>x.id)).size,27);
  assert.equal((await upcoming('a',{dueDate:'2026-10-13'})).status,404);
  assert.equal((await upcoming('other',{dueDate:'2026-10-12',cursor:first.nextCursor})).status,400);

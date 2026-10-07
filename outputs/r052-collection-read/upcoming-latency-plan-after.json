@@ -1,0 +1,29 @@
+{
+  "mode": "operator EXPLAIN only, no business rows",
+  "existingGrantScopeSufficient": true,
+  "reports": [
+    {
+      "mode": "summary",
+      "forecastFunctionScanNodes": 2,
+      "cteNames": [
+        "allowed_dates",
+        "ctx",
+        "raw",
+        "scoped_events",
+        "selected_events"
+      ]
+    },
+    {
+      "mode": "detail",
+      "forecastFunctionScanNodes": 2,
+      "cteNames": [
+        "allowed_dates",
+        "ctx",
+        "raw",
+        "scoped_events",
+        "selected_events"
+      ]
+    }
+  ],
+  "observation": "Consolidated snapshot retains canonical summary provider plus one scoped event expansion; scoped materialization reused for basis, ownership and page projections."
+}

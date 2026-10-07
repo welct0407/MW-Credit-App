@@ -23,6 +23,41 @@ export const upcomingSummarySql = `SELECT s."Row ID" AS id, s."Due Date"::text A
       WHERE e."Ref Borrower" = $1 AND e."As Of Date" = $2::date AND e."Due Date" = s."Due Date"
       AND e."Borrower Due Date Rank" BETWEEN 1 AND 5 AND e."Due Date" > $2::date AND e."Due Date" <= $3::date)
   ORDER BY s."Due Date" ASC LIMIT 6`;
+export const upcomingSnapshotSql = `WITH scoped_events AS MATERIALIZED (
+  SELECT e."Row ID", e."Ref Loan", e."Due Date", e."Principal Remaining", e."Interest Remaining", e."Amount Remaining", e."Basis" FROM public.oltp_upcoming_charge_events_v1 e
+  WHERE e."Ref Borrower" = $1 AND e."As Of Date" = $2::date AND e."Borrower Due Date Rank" BETWEEN 1 AND 5
+    AND e."Due Date" > $2::date AND e."Due Date" <= $3::date
+), allowed_dates AS MATERIALIZED (
+  SELECT s."Row ID" AS id, s."Due Date"::text AS "dueDate", s."Total Charge"::text AS "totalCharge"
+  FROM public.oltp_upcoming_charge_summary_v2 s
+  WHERE s."Ref Borrower" = $1 AND s."As Of Date" = $2::date
+    AND EXISTS (SELECT 1 FROM scoped_events e WHERE e."Due Date" = s."Due Date")
+  ORDER BY s."Due Date" ASC LIMIT 6
+), selected_events AS MATERIALIZED (
+  SELECT e.* FROM scoped_events e JOIN allowed_dates d ON e."Due Date" = d."dueDate"::date
+  WHERE ($4::date IS NULL OR e."Due Date" = $4::date)
+), owned_events AS (
+  SELECT e."Row ID" AS id, e."Ref Loan" AS "loanId", e."Due Date"::text AS "dueDate",
+    e."Principal Remaining"::text AS "principalRemaining", e."Interest Remaining"::text AS "interestRemaining", e."Amount Remaining"::text AS "amountRemaining", e."Basis" AS basis,
+    b."Borrower Name" AS name, b."Description" AS description, l."Principal Amount"::numeric::text AS principal,
+    l."Loan Date"::text AS "loanDate", l."Original Daily Interest Rate"::text AS rate
+  FROM selected_events e JOIN public."Loans" l ON e."Ref Loan" = l."Row ID" AND l."Ref Borrowers" = $1
+    JOIN public."Borrowers" b ON b."Row ID" = l."Ref Borrowers"
+  WHERE ($6::text IS NULL OR e."Ref Loan" COLLATE "C" > $6::text COLLATE "C" OR (e."Ref Loan" COLLATE "C" = $6::text COLLATE "C" AND e."Row ID" COLLATE "C" > $7::text COLLATE "C"))
+), ranked_events AS (
+  SELECT *, row_number() OVER (PARTITION BY "dueDate" ORDER BY "loanId" COLLATE "C", id COLLATE "C") AS ordinal FROM owned_events
+)
+SELECT COALESCE((SELECT jsonb_agg(to_jsonb(d) ORDER BY d."dueDate") FROM allowed_dates d), '[]'::jsonb) AS dates,
+  COALESCE((SELECT jsonb_agg(to_jsonb(r) ORDER BY r."dueDate", r."loanId" COLLATE "C", r.id COLLATE "C") FROM ranked_events r WHERE r.ordinal <= $5::integer + 1), '[]'::jsonb) AS events,
+  EXISTS (SELECT 1 FROM selected_events e WHERE e."Basis" IS NULL OR e."Basis" NOT IN ('Recorded', 'Recorded settlement', 'Recorded - review status', 'Projected')
+    OR NOT EXISTS (SELECT 1 FROM public."Loans" l WHERE l."Row ID" = e."Ref Loan" AND l."Ref Borrowers" = $1)) AS invalid`;
+function projectUpcomingEvent(row) {
+  if (!validLoanId(row.id) || !validLoanId(row.loanId) || !bases.includes(row.basis)) throw new Error('Invalid upcoming detail');
+  const principal = row.principal === null ? '' : new Intl.NumberFormat('en-US', { style: 'currency', currency: 'THB', currencyDisplay: 'narrowSymbol', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Number(decimal(row.principal)));
+  const date = row.loanDate === null ? '' : validUpcomingDate(row.loanDate) ? row.loanDate.slice(8, 10) + '/' + row.loanDate.slice(5, 7) : (() => { throw new Error('Invalid loan date'); })();
+  const rate = row.rate === null ? 'Unavailable' : decimal(row.rate) + '%';
+  return { id: row.id, loanId: row.loanId, loanDisplayKey: `${borrowerDisplayName(row.name, row.description)}-${principal}-${date}-${rate}`, principalRemaining: decimal(row.principalRemaining), interestRemaining: decimal(row.interestRemaining), amountRemaining: decimal(row.amountRemaining), basis: row.basis };
+}
 export async function readUpcoming(client, { borrowerId, businessDate: requestedDate, dueDate = null, limit = 25, after = null }) {
   const clock = await client.query(`SELECT CURRENT_TIMESTAMP AS "asOf", (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date::text AS "businessDate"`);
   const { businessDate, asOf } = clock.rows[0];
@@ -38,30 +73,23 @@ export async function readUpcoming(client, { borrowerId, businessDate: requested
   if (!validUpcomingDate(source.businessDate)) return failure('source_unavailable');
   if (source.businessDate !== businessDate) return failure('business_date_changed', 409);
   if (!validUpcomingDate(source.horizonEnd) || source.horizonEnd !== source.expectedHorizonEnd || !Number.isInteger(source.reviewLoans) || source.reviewLoans < 0) return failure('source_unavailable');
-  const summary = await client.query(upcomingSummarySql, [borrowerId, businessDate, source.horizonEnd]);
-  const items = summary.rows.map(row => {
+  const snapshot = await client.query(upcomingSnapshotSql, [borrowerId, businessDate, source.horizonEnd, dueDate, dueDate ? limit : 25, after?.loanId ?? null, after?.id ?? null]);
+  if (snapshot.rows.length !== 1 || snapshot.rows[0].invalid !== false) return failure('source_unavailable');
+  const { dates, events } = snapshot.rows[0];
+  if (!Array.isArray(dates) || !Array.isArray(events)) return failure('source_unavailable');
+  const items = dates.map(row => {
     if (!validLoanId(row.id) || !validUpcomingDate(row.dueDate) || row.dueDate <= businessDate || row.dueDate > source.horizonEnd) throw new Error('Invalid upcoming summary');
     return { id: row.id, dueDate: row.dueDate, totalCharge: decimal(row.totalCharge) };
   });
   if (items.length > 5 || new Set(items.map(row => row.dueDate)).size !== items.length || new Set(items.map(row => row.id)).size !== items.length) return failure('source_unavailable');
   const context = { ...metadata, horizonEnd: source.horizonEnd, reviewRequired: source.reviewLoans > 0 };
-  if (!dueDate) return { ...context, items };
+  const page = (selected, pageLimit) => {
+    const rows = events.filter(row => row.dueDate === selected.dueDate);
+    const details = rows.slice(0, pageLimit).map(projectUpcomingEvent);
+    return { ok: true, source: 'dev', ...context, dueDate: selected.dueDate, totalCharge: selected.totalCharge, items: details, nextCursor: rows.length > pageLimit ? encodeUpcomingCursor({ parentId: borrowerId, businessDate, dueDate: selected.dueDate, loanId: details.at(-1).loanId, id: details.at(-1).id }) : null };
+  };
+  if (!dueDate) return { ...context, items, previews: items.map(item => page(item, 25)) };
   const selected = items.find(row => row.dueDate === dueDate);
   if (!selected) return failure('not_found', 404);
-  const invalidBasis = await client.query(`SELECT EXISTS (SELECT 1 FROM public.oltp_upcoming_charge_events_v1 e WHERE e."Ref Borrower" = $1 AND e."As Of Date" = $2::date AND e."Due Date" = $3::date AND e."Borrower Due Date Rank" BETWEEN 1 AND 5 AND (e."Basis" IS NULL OR e."Basis" NOT IN ('Recorded', 'Recorded settlement', 'Recorded - review status', 'Projected'))) AS invalid`, [borrowerId, businessDate, dueDate]);
-  if (invalidBasis.rows[0]?.invalid !== false) return failure('source_unavailable');
-  const result = await client.query(`SELECT e."Row ID" AS id, e."Ref Loan" AS "loanId", e."Principal Remaining"::text AS "principalRemaining", e."Interest Remaining"::text AS "interestRemaining", e."Amount Remaining"::text AS "amountRemaining", e."Basis" AS basis,
-    b."Borrower Name" AS name, b."Description" AS description, l."Principal Amount"::numeric::text AS principal, l."Loan Date"::text AS "loanDate", l."Original Daily Interest Rate"::text AS rate
-    FROM public.oltp_upcoming_charge_events_v1 e JOIN public."Loans" l ON e."Ref Loan" = l."Row ID" AND l."Ref Borrowers" = $1 JOIN public."Borrowers" b ON b."Row ID" = l."Ref Borrowers"
-    WHERE e."Ref Borrower" = $1 AND e."As Of Date" = $2::date AND e."Due Date" = $3::date AND e."Borrower Due Date Rank" BETWEEN 1 AND 5 AND e."Due Date" > $2::date AND e."Due Date" <= $4::date
-      AND ($5::text IS NULL OR e."Ref Loan" COLLATE "C" > $5::text COLLATE "C" OR (e."Ref Loan" COLLATE "C" = $5::text COLLATE "C" AND e."Row ID" COLLATE "C" > $6::text COLLATE "C"))
-    ORDER BY e."Ref Loan" COLLATE "C", e."Row ID" COLLATE "C" LIMIT $7`, [borrowerId, businessDate, dueDate, source.horizonEnd, after?.loanId ?? null, after?.id ?? null, limit + 1]);
-  const details = result.rows.slice(0, limit).map(row => {
-    if (!validLoanId(row.id) || !validLoanId(row.loanId) || !bases.includes(row.basis)) throw new Error('Invalid upcoming detail');
-    const principal = row.principal === null ? '' : new Intl.NumberFormat('en-US', { style: 'currency', currency: 'THB', currencyDisplay: 'narrowSymbol', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Number(decimal(row.principal)));
-    const date = row.loanDate === null ? '' : validUpcomingDate(row.loanDate) ? row.loanDate.slice(8, 10) + '/' + row.loanDate.slice(5, 7) : (() => { throw new Error('Invalid loan date'); })();
-    const rate = row.rate === null ? 'Unavailable' : decimal(row.rate) + '%';
-    return { id: row.id, loanId: row.loanId, loanDisplayKey: `${borrowerDisplayName(row.name, row.description)}-${principal}-${date}-${rate}`, principalRemaining: decimal(row.principalRemaining), interestRemaining: decimal(row.interestRemaining), amountRemaining: decimal(row.amountRemaining), basis: row.basis };
-  });
-  return { ...context, dueDate, totalCharge: selected.totalCharge, items: details, nextCursor: result.rows.length > limit ? encodeUpcomingCursor({ parentId: borrowerId, businessDate, dueDate, loanId: details.at(-1).loanId, id: details.at(-1).id }) : null };
+  return page(selected, limit);
 }

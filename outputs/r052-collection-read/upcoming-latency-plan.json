@@ -1,0 +1,145 @@
+{
+  "query": "upcomingSummarySql synthetic parameters",
+  "forecastFunctionScanNodes": 2,
+  "nodes": [
+    {
+      "node": "Subquery Scan",
+      "function": null,
+      "cte": null,
+      "hasFilter": false
+    },
+    {
+      "node": "Subquery Scan",
+      "function": null,
+      "cte": null,
+      "hasFilter": true
+    },
+    {
+      "node": "CTE Scan",
+      "function": null,
+      "cte": "ctx",
+      "hasFilter": false
+    },
+    {
+      "node": "Subquery Scan",
+      "function": null,
+      "cte": null,
+      "hasFilter": false
+    },
+    {
+      "node": "CTE Scan",
+      "function": null,
+      "cte": "ctx",
+      "hasFilter": false
+    },
+    {
+      "node": "Subquery Scan",
+      "function": null,
+      "cte": null,
+      "hasFilter": false
+    },
+    {
+      "node": "Subquery Scan",
+      "function": null,
+      "cte": null,
+      "hasFilter": false
+    },
+    {
+      "node": "CTE Scan",
+      "function": null,
+      "cte": "ctx",
+      "hasFilter": false
+    },
+    {
+      "node": "Function Scan",
+      "function": "forecast_schedule_v1",
+      "cte": null,
+      "hasFilter": false
+    },
+    {
+      "node": "WindowAgg",
+      "function": null,
+      "cte": null,
+      "hasFilter": false
+    },
+    {
+      "node": "Subquery Scan",
+      "function": null,
+      "cte": null,
+      "hasFilter": false
+    },
+    {
+      "node": "CTE Scan",
+      "function": null,
+      "cte": "raw",
+      "hasFilter": true
+    },
+    {
+      "node": "Subquery Scan",
+      "function": null,
+      "cte": null,
+      "hasFilter": true
+    },
+    {
+      "node": "CTE Scan",
+      "function": null,
+      "cte": "ctx",
+      "hasFilter": false
+    },
+    {
+      "node": "Subquery Scan",
+      "function": null,
+      "cte": null,
+      "hasFilter": false
+    },
+    {
+      "node": "CTE Scan",
+      "function": null,
+      "cte": "ctx",
+      "hasFilter": false
+    },
+    {
+      "node": "Subquery Scan",
+      "function": null,
+      "cte": null,
+      "hasFilter": false
+    },
+    {
+      "node": "Subquery Scan",
+      "function": null,
+      "cte": null,
+      "hasFilter": false
+    },
+    {
+      "node": "CTE Scan",
+      "function": null,
+      "cte": "ctx",
+      "hasFilter": false
+    },
+    {
+      "node": "Function Scan",
+      "function": "forecast_schedule_v1",
+      "cte": null,
+      "hasFilter": false
+    },
+    {
+      "node": "WindowAgg",
+      "function": null,
+      "cte": null,
+      "hasFilter": false
+    },
+    {
+      "node": "Subquery Scan",
+      "function": null,
+      "cte": null,
+      "hasFilter": false
+    },
+    {
+      "node": "CTE Scan",
+      "function": null,
+      "cte": "raw",
+      "hasFilter": true
+    }
+  ],
+  "observation": "Separate provider expansions each include raw CTE/function evaluation; borrower filters are applied downstream of raw materialization. No row estimates or business data retained."
+}

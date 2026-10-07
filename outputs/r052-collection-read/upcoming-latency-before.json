@@ -1,0 +1,83 @@
+{
+  "measurement": "Existing operator SQL/source timing, not runtime IAM/API/auth/network/coldstart proof",
+  "sample": "One privately selected eligible Collection parent/date; no identity or business values retained",
+  "temperature": "Sequential same connection after sample selection; cache warmth uncontrolled",
+  "reports": [
+    {
+      "mode": "summary",
+      "sourceQueryCount": 5,
+      "totalSourceAndCommitMs": 515.81,
+      "resultKind": "success",
+      "stages": [
+        {
+          "stage": "clock",
+          "ms": 4.96,
+          "rowCount": 1
+        },
+        {
+          "stage": "quality",
+          "ms": 6.31,
+          "rowCount": 1
+        },
+        {
+          "stage": "membership",
+          "ms": 9.35,
+          "rowCount": 1
+        },
+        {
+          "stage": "coverage",
+          "ms": 150.21,
+          "rowCount": 1
+        },
+        {
+          "stage": "summary",
+          "ms": 339.52,
+          "rowCount": 5
+        }
+      ]
+    },
+    {
+      "mode": "detail",
+      "sourceQueryCount": 7,
+      "totalSourceAndCommitMs": 805,
+      "resultKind": "success",
+      "stages": [
+        {
+          "stage": "clock",
+          "ms": 2.73,
+          "rowCount": 1
+        },
+        {
+          "stage": "quality",
+          "ms": 6.43,
+          "rowCount": 1
+        },
+        {
+          "stage": "membership",
+          "ms": 7.13,
+          "rowCount": 1
+        },
+        {
+          "stage": "coverage",
+          "ms": 145.51,
+          "rowCount": 1
+        },
+        {
+          "stage": "summary",
+          "ms": 306.32,
+          "rowCount": 5
+        },
+        {
+          "stage": "basis",
+          "ms": 152.42,
+          "rowCount": 1
+        },
+        {
+          "stage": "detail",
+          "ms": 155.33,
+          "rowCount": 1
+        }
+      ]
+    }
+  ]
+}

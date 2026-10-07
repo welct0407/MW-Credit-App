@@ -45,3 +45,29 @@ Application source 5efa533144248b1b76bc434fa3f16461433fa212 initially failed CI 
 API revision mw-credit-app-read-dev-00007-st5 and Hosting version 7364ee7db2ffe012 passed seven bounded HTTP checks: static health200, unsigned Upcoming summary/detail401, deliberately invalid synthetic token401, POST405, wrong-origin403, and exact-origin GET preflight204. All returned no-store; preflight returned the exact allowed origin. This proves the unsigned boundary only, not authenticated owner reads or DB query execution.
 
 Fresh desktop1440×900/mobile390×844 contexts rendered signed-out EN/Thai, zero business/API requests, zero records and no horizontal overflow. Thai mobile screenshot was visually inspected and shows the translated sign-in prompt and Google button. Evidence: refinement-live-api.json, refinement-live-hosting.json and four refinement-live-{desktop,mobile}-{en,th}.png. No real login, token or business data was used. Owner authenticated visual validation remains pending.
+
+## Compact shell and bounded preview follow-up
+
+Baseline e1bdb400206905a009653c4fe235ab718cba61a9; same owner-authorized checkpoint refinement. Final source accepted after the focused layout/focus corrections below.
+
+- Actual-provider PostgreSQL **12/12 passed**. Summary returns exactly five previews ×25 rows in the 27-loan fixture; preview rows, next cursor, full-date total and read timestamp match fresh detail. Both summary and detail use **10 total store statements**, including BEGIN, timeout, database identity, Partner mapping and COMMIT; readUpcoming itself issues five queries. One synthetic loopback summary measured181ms. This is not a Cloud Run, network, cold-start or owner-latency benchmark, and no initial-load speed improvement is claimed.
+- Updated defensive Upcoming units **4/4 passed**, preserving coverage/null/invalid-source, scope-bound cursor and auth rejection checks with the consolidated snapshot shape.
+- Relevant browser coverage across runs: **11 passed, one intentional mobile duplicate SDK skip**: Upcoming2, grouped Borrower/Loan2, Collection2, persistence5. Final Upcoming desktop/mobile rerun passed2/2 after deterministic refresh synchronization; final mobile viewport confirmation passed1/1. No unchanged SQL or broad infrastructure rerun followed CSS-only fixes.
+
+Preview checks establish zero extra HTTP for a valid current-parent first page, unchanged original read timestamp, and fresh requests after60seconds, Bangkok midnight, visibility resumption, explicit detail refresh and next-page navigation. Held responses after route changes cannot restore data. Existing Collection auth/date/logout races and actual Firebase SDK synthetic storage/reopen/cross-tab tests passed; none claims real Google owner-session verification. No business disk cache was introduced.
+
+Status is a descendant of the actual orange topbar. Header geometry remains stable across held loading, success and error. Desktop icon-only collapse widens content; accessible names/title/selected state remain and keyboard toggle restores full labels. Desktop body stays viewport-bounded and panes scroll independently. Long-list loan Back/heading remains visible after selection, pagination and refresh. Mobile dialog Tab stays within the menu, Escape/close returns opener focus, and the orange header remains at viewport y=0 after scrolling. Null actual Payment date is absent from local detail.
+
+Testing found genuine shell defects: inherited shared main margin:auto prevented content stretch and bounded pane height, leaving long-list detail Back offscreen; native dialog focus could leave the menu. B reset main sizing/desktop containment and added scoped Tab wrapping/focus return. The original repro assertions now pass. A separate mobile loan-heading test was updated from absolute top100px to the new sticky-header-relative boundary. A cache-test helper initially accepted old Updated before a refresh completed; it now holds the response and explicitly observes Loading then Updated, without relaxed timeouts or assertions.
+
+### Final visual evidence
+
+- desktop-chromium-SHELL-summary-en.png — expanded sidebar and compact panes.
+- desktop-chromium-SHELL-collapsed.png — icon-only sidebar and wider content.
+- mobile-chromium-SHELL-menu.png — modal navigation.
+- mobile-chromium-SHELL-upcoming-th-viewport.png — actual390×844 viewport, sticky header at y=0, no blank space above it.
+- Other SHELL loading/summary/upcoming/regression/group screenshots retain synthetic EN/Thai evidence. Full-page mobile captures at a scrolled position can place the sticky header partway down the full document image; the viewport capture and geometry assertion establish the actual visible result.
+
+Final diff whitespace check passed. Parent preview preserved; disposable test processes stopped. Owned changes for publication: tests/e2e/{collection-read,upcoming-read,grouped-read}.spec.ts, tests/unit/upcoming-read.test.mjs, tests/integration/collection-postgres.test.mjs, this report and new SHELL PNGs. Historical image paths were not overwritten. CI/deployed verification for this follow-up remains D/parent-coordinated; owner visual acceptance remains separate.
+
+Final owner width checks also passed in the focused desktop case: at2560×1440, header width is2560, expanded/collapsed rails are180/72, main begins immediately after the rail and ends exactly at2560, and grid padding is16px. Unselected Borrowers/Collection lists fill the available grid at1440/2560; hidden empty detail does not reserve space. Selected panes retain approximately40/60, and Back to Collection restores the full-width list. Evidence: desktop-{1440,2560}-SHELL-list-{expanded,collapsed}.png and desktop-2560-SHELL-{expanded,collapsed}.png. Final added desktop Back assertion rerun passed1/1; final diff check passed. This completes the scoped test freeze; counts above represent unique relevant cases, not repeated executions.
