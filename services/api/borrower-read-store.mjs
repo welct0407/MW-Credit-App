@@ -1,3 +1,4 @@
+import { loanColumns, validLoanId, projectLoan, encodeLoanCursor, decodeLoanCursor } from './loan-read-contract.mjs';
 const borrowerColumns = '"Row ID" AS id, "Borrower Name" AS name, "Creation Date"::text AS "createdDate", "Has Active Loan" AS "hasActiveLoan", "Total Outstanding Principal"::text AS "outstandingPrincipal", "Borrower Note" AS note';
 const validId = id => typeof id === 'string' && id.length > 0 && id.length <= 256 && !/[\u0000-\u001f]/.test(id);
 const validDate = value => {
@@ -49,7 +50,7 @@ export function createBorrowerReadStore({ pool, config, now = () => new Date() }
       } catch { return { ok: false }; }
       finally { client?.release(); }
     },
-    session: email => run(email, async () => ({ permission: 'oltp.read', scope: 'borrowers-only' })),
+    session: email => run(email, async () => ({ permission: 'oltp.read', scope: 'borrowers-and-related-loans' })),
     listBorrowers: (email, { limit = 25, cursor = null } = {}) => {
       let after;
       try { after = decodeCursor(cursor); if (!Number.isInteger(limit) || limit < 1 || limit > 100) throw new Error(); }
@@ -59,6 +60,32 @@ export function createBorrowerReadStore({ pool, config, now = () => new Date() }
         const items = result.rows.slice(0, limit).map(project);
         return { items, nextCursor: result.rows.length > limit ? encodeCursor(items.at(-1).id) : null, order: 'row-id' };
       });
+    },
+    listLoans: (email, borrowerId, { limit = 25, cursor = null } = {}) => {
+      if (!validLoanId(borrowerId)) return Promise.resolve({ ok: false, status: 404, code: 'not_found' });
+      let after;
+      try { after = decodeLoanCursor(cursor, borrowerId); if (!Number.isInteger(limit) || limit < 1 || limit > 100) throw new Error(); }
+      catch { return Promise.resolve({ ok: false, status: 400, code: 'invalid_request' }); }
+      return run(email, async client => {
+        const parent = await client.query('SELECT "Row ID" AS id FROM public."Borrowers" WHERE "Hidden Flag" IS FALSE AND "Row ID" = $1 LIMIT 2', [borrowerId]);
+        if (parent.rows.length !== 1) return { parentMissing: true };
+        const result = await client.query(`SELECT ${loanColumns} FROM public."Loans" l JOIN public."Borrowers" b ON l."Ref Borrowers" = b."Row ID"
+          WHERE b."Hidden Flag" IS FALSE AND b."Row ID" = $1
+          AND ($2::boolean IS FALSE
+            OR ($3::date IS NOT NULL AND (l."Loan Date" < $3::date OR l."Loan Date" IS NULL OR (l."Loan Date" = $3::date AND l."Row ID" COLLATE "C" > $4::text COLLATE "C")))
+            OR ($3::date IS NULL AND l."Loan Date" IS NULL AND l."Row ID" COLLATE "C" > $4::text COLLATE "C"))
+          ORDER BY l."Loan Date" DESC NULLS LAST, l."Row ID" COLLATE "C" ASC LIMIT $5`, [borrowerId, after !== null, after?.loanDate ?? null, after?.id ?? null, limit + 1]);
+        const items = result.rows.slice(0, limit).map(row => projectLoan(row, borrowerId));
+        return { borrowerId, items, nextCursor: result.rows.length > limit ? encodeLoanCursor(borrowerId, items.at(-1)) : null, order: 'loan-date-desc-null-last,row-id-asc' };
+      }).then(result => result.ok && result.parentMissing ? { ok: false, status: 404, code: 'not_found' } : result);
+    },
+    getLoan: (email, borrowerId, loanId) => {
+      if (!validLoanId(borrowerId) || !validLoanId(loanId)) return Promise.resolve({ ok: false, status: 404, code: 'not_found' });
+      return run(email, async client => {
+        const result = await client.query(`SELECT ${loanColumns} FROM public."Loans" l JOIN public."Borrowers" b ON l."Ref Borrowers" = b."Row ID"
+          WHERE b."Hidden Flag" IS FALSE AND b."Row ID" = $1 AND l."Row ID" = $2 LIMIT 2`, [borrowerId, loanId]);
+        return { item: result.rows.length === 1 ? projectLoan(result.rows[0], borrowerId) : null };
+      }).then(result => result.ok && !result.item ? { ok: false, status: 404, code: 'not_found' } : result);
     },
     getBorrower: (email, id) => {
       if (!validId(id)) return Promise.resolve({ ok: false, status: 404, code: 'not_found' });

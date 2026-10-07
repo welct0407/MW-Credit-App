@@ -27,8 +27,18 @@ export function createDevReadHandler({ config, verifyPrincipal, store }) {
         if ([...url.searchParams.keys()].some(key => !['limit', 'cursor'].includes(key)) || url.searchParams.getAll('limit').length > 1 || url.searchParams.getAll('cursor').length > 1 || (rawLimit !== null && !/^\d+$/.test(rawLimit))) return send(400, { ok: false, code: 'invalid_request' });
         result = await store.listBorrowers(principal.email, { limit: rawLimit === null ? 25 : Number(rawLimit), cursor: url.searchParams.get('cursor') });
       } else if (url.pathname.startsWith('/api/borrowers/')) {
-        let id; try { id = decodeURIComponent(url.pathname.slice('/api/borrowers/'.length)); } catch { return send(400, { ok: false, code: 'invalid_request' }); }
-        result = await store.getBorrower(principal.email, id);
+        const parts = url.pathname.split('/').slice(3);
+        let ids;
+        try { ids = parts.map(part => decodeURIComponent(part)); } catch { return send(400, { ok: false, code: 'invalid_request' }); }
+        if (ids.length === 1) result = await store.getBorrower(principal.email, ids[0]);
+        else if (ids.length === 2 && parts[1] === 'loans') {
+          const rawLimit = url.searchParams.get('limit');
+          if ([...url.searchParams.keys()].some(key => !['limit', 'cursor'].includes(key)) || url.searchParams.getAll('limit').length > 1 || url.searchParams.getAll('cursor').length > 1 || (rawLimit !== null && !/^\d+$/.test(rawLimit))) return send(400, { ok: false, code: 'invalid_request' });
+          result = await store.listLoans(principal.email, ids[0], { limit: rawLimit === null ? 25 : Number(rawLimit), cursor: url.searchParams.get('cursor') });
+        } else if (ids.length === 3 && parts[1] === 'loans') {
+          if (url.search) return send(400, { ok: false, code: 'invalid_request' });
+          result = await store.getLoan(principal.email, ids[0], ids[2]);
+        } else return send(404, { ok: false, code: 'not_found' });
       }
       else return send(404, { ok: false, code: 'not_found' });
       const { status, ...body } = result;

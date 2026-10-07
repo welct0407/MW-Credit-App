@@ -10,3 +10,28 @@
   .live-shell .borrower-card { grid-template-columns: 1fr; }
   .live-shell .card-amount { grid-column: 1; }
 }
+.related-loans { margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--border-tint); }
+.related-loans-heading { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; align-items: baseline; }
+.related-loans-heading h3 { margin: 0; font-size: 20px; }
+.related-loans-heading > span, .loan-order-note, .loan-freshness { font-size: 14px; line-height: 1.5; color: #565656; }
+.loan-record-list { border-bottom: 1px solid var(--border-tint); }
+.loan-record { width: 100%; display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 18px 0; border: 0; border-top: 1px solid var(--border-tint); background: transparent; text-align: left; }
+.loan-record:hover { background: var(--surface-selected); }
+.loan-record-main, .loan-record-amount { min-width: 0; display: flex; flex-direction: column; gap: 6px; overflow-wrap: anywhere; }
+.loan-record-main { flex: 1; }
+.loan-record-main strong { font-size: 16px; }
+.loan-record-main span, .loan-record-amount span { font-size: 14px; line-height: 1.5; }
+.loan-record-amount { flex: 0 1 150px; text-align: right; }
+.loan-record-amount strong { font-size: 20px; }
+.loan-page-actions { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; margin-top: 18px; }
+.loan-detail h4 { font-size: 18px; overflow-wrap: anywhere; margin: 18px 0; }
+.loan-detail dl { margin: 0; }
+.loan-detail dl > div { display: flex; flex-wrap: wrap; gap: 8px 16px; justify-content: space-between; border-top: 1px solid var(--border-tint); padding: 12px 0; }
+.loan-detail dt { flex: 1 1 160px; color: #565656; font-size: 14px; }
+.loan-detail dd { flex: 1 1 110px; margin: 0; text-align: right; font-size: 16px; overflow-wrap: anywhere; }
+.loan-detail > button { margin-top: 18px; }
+.loan-read-error { margin: 16px 0; }
+@media (max-width: 400px) {
+  .loan-record { flex-direction: column; }
+  .loan-record-amount { flex: auto; text-align: left; }
+}

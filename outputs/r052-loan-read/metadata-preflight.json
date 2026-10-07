@@ -1,0 +1,33 @@
+{
+  "database": "loan_manager_dev",
+  "instance": "appsheet-pg-prod-20260914",
+  "host": "34.21.174.215",
+  "flywayVersion": "77",
+  "scope": "Read-only metadata and effective-privilege inspection; no business rows",
+  "columns": {
+    "Row ID": "text NOT NULL",
+    "Ref Borrowers": "text nullable",
+    "Loan Date": "date nullable",
+    "Due Date": "date nullable",
+    "Close Date": "date nullable",
+    "Loan Type": "text nullable",
+    "Loan Status": "text nullable",
+    "Principal Amount": "money nullable",
+    "Outstanding Principal": "numeric nullable",
+    "Total Principal Received": "numeric nullable",
+    "Total Interest Received": "numeric nullable",
+    "Total Amount Received": "numeric nullable",
+    "Defaulted": "boolean nullable",
+    "Auto Charge Enabled": "boolean nullable"
+  },
+  "primaryKey": "Loans_pkey (Row ID)",
+  "borrowerForeignKey": "appsheet_ref_01: Ref Borrowers -> Borrowers.Row ID",
+  "borrowerIndex": "loans_borrower_idx btree (Ref Borrowers)",
+  "borrowerDateCompositeIndex": false,
+  "grantPlan": "One column SELECT grant for the 14 listed Loans fields to the existing DEV read role; no settings changes",
+  "grantApplied": true,
+  "priorReadableColumns": 9,
+  "businessWritePrivileges": 0,
+  "businessSchemaCreatePrivileges": 0,
+  "finalReadableColumns": 23
+}

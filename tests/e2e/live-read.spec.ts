@@ -21,7 +21,7 @@ test('live entry mocked sign-in read errors signout and stale response isolation
   const req=route.request();if(req.method()==='OPTIONS'){await route.fulfill({status:204,headers:{'access-control-allow-origin':'*','access-control-allow-headers':'Authorization','access-control-allow-methods':'GET'}});return}
   expect(req.method()).toBe('GET');expect(req.headers().authorization).toBe('Bearer synthetic-bearer');expect(req.headers().cookie).toBeUndefined();
   if(hold)await new Promise<void>(resolve=>{pendingRelease=resolve});
-  const body=responseStatus===200?{ok:true,source:'dev',items:[borrower],item:borrower,nextCursor:null,asOf:'2026-10-07T05:00:00Z',businessDate:'2026-10-07'}:{ok:false,code:'access_denied'};
+  const body=responseStatus===200?{ok:true,source:'dev',items:new URL(req.url()).pathname.endsWith('/loans')?[]:[borrower],item:borrower,nextCursor:null,asOf:'2026-10-07T05:00:00Z',businessDate:'2026-10-07'}:{ok:false,code:'access_denied'};
   await route.fulfill({status:responseStatus,contentType:'application/json',headers:{'access-control-allow-origin':'*'},body:JSON.stringify(body)}).catch(()=>{});
  });
  await page.route('**/*',async route=>{const u=new URL(route.request().url());if(u.hostname==='127.0.0.1'||u.hostname==='mw-credit-app-read-dev-test.run.app'){await route.fallback();return}external.push(u.hostname);await route.abort()});
