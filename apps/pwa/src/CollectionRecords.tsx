@@ -87,6 +87,8 @@ export function CollectionRecords({ thai, request, cancel, onStatus, refreshToke
     cancel(); const current = ++revision.current;
     previews.current = null; setSelected(row); setSelectedCharge(null); setUpcoming(null); setUpcomingDetail(null); setUpcomingError(null);
     setChildError(null); setCharges([]); setChargeCursor(null); setChargeAsOf(''); setError(null); setBusy(true); setUpdateState('loading');
+    // Align on the navigation action, never after delayed reads complete.
+    setScrollTarget(value => ({ kind: 'detail', sequence: value.sequence + 1 }));
     let parentUnavailable = false;
     const result = await request<DetailResult>('/api/collection/' + encodeURIComponent(row.id) + '/charges?limit=25' + (next ? '&cursor=' + encodeURIComponent(next) : ''), code => {
       if (current !== revision.current) return;
@@ -101,7 +103,6 @@ export function CollectionRecords({ thai, request, cancel, onStatus, refreshToke
     const upcomingOk = await fetchUpcoming(result?.borrower ?? row, result?.businessDate ?? businessDate, current);
     if (current !== revision.current) return;
     setBusy(false); setUpdateState(result && upcomingOk ? 'success' : 'error');
-    setScrollTarget(value => ({ kind: 'detail', sequence: value.sequence + 1 }));
   }
   async function refreshUpcoming() {
     if (!selected) return;
