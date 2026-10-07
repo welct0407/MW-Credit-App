@@ -1,0 +1,16 @@
+{
+  "expectedAsset": "index-BSr3tgeM.js",
+  "domain": "dev-lm.mw-credit.com",
+  "limitations": "No forced sign-out or owner browser-reopen claim",
+  "fallbackHtmlMatched": true,
+  "ownership": "OWNERSHIP_ACTIVE",
+  "httpsStatus": 200,
+  "certificate": "CERT_ACTIVE",
+  "observedBangkok": "2026-10-08 05:32:00",
+  "host": "HOST_ACTIVE",
+  "ownerReportedValidation": [
+    "new-host sign-in",
+    "Borrowers and Collection reads",
+    "refresh persistence"
+  ]
+}
