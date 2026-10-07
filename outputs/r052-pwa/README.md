@@ -2,7 +2,7 @@
 
 Date: 7 October 2026, Asia/Bangkok.
 
-Status: Checkpoint 1B and darker separators accepted; checkpoint 2A source verified at app 18c3736 (72 unit, 2 mocked UI tests). DEV-only reader grants and separate read service created; owner-approved service-only Firebase authentication is applied; live frontend version c0872b1adcb4006f and corrected read revision00002-ln2 are deployed; independent final smoke is in progress. Real owner Google login/read and UID pin remain pending. Phase 2 is incomplete; no production, financial, schema or AppSheet change.
+Status: Checkpoint 1B and darker separators accepted; checkpoint 2A source verified at app 18c3736 (72 unit, 2 mocked UI tests). DEV-only reader grants and separate read service created; owner-approved service-only Firebase authentication is applied; live frontend version c0872b1adcb4006f and corrected read revision00002-ln2 are deployed; independent live signed-out desktop/mobile and API boundary smoke passed; recurring mocked desktop CI startup failure remains under investigation. Real owner Google login/read and UID pin remain pending. Phase 2 is incomplete; no production, financial, schema or AppSheet change.
 
 ## Scope
 
@@ -97,6 +97,6 @@ Separator revision a3d21d5 passed [GitHub CI 37609641961](https://github.com/wel
 
 ## Checkpoint 2A — DEV authentication and Borrowers read
 
-Checkpoint 1B and darker separators accepted; checkpoint 2A source verified at app 18c3736 (72 unit, 2 mocked UI tests). DEV-only reader grants and separate read service created; owner-approved service-only Firebase authentication is applied; live frontend version c0872b1adcb4006f and corrected read revision00002-ln2 are deployed; independent final smoke is in progress. Real owner Google login/read and UID pin remain pending. Phase 2 is incomplete; no production, financial, schema or AppSheet change.
+Checkpoint 1B and darker separators accepted; checkpoint 2A source verified at app 18c3736 (72 unit, 2 mocked UI tests). DEV-only reader grants and separate read service created; owner-approved service-only Firebase authentication is applied; live frontend version c0872b1adcb4006f and corrected read revision00002-ln2 are deployed; independent live signed-out desktop/mobile and API boundary smoke passed; recurring mocked desktop CI startup failure remains under investigation. Real owner Google login/read and UID pin remain pending. Phase 2 is incomplete; no production, financial, schema or AppSheet change.
 
 [Design](checkpoint-2a-design.md). Application source/evidence belongs to MW-Credit-App branch codex/r052-review-shell, draft PR3. Reader has SELECT on seven Borrowers and two Partners columns in DEV only, read-only default and 5-second statement timeout; no PROD column grants. PUBLIC CONNECT remains unchanged. Service mw-credit-app-read-dev is Ready at revision mw-credit-app-read-dev-00001-kmk, with owner-approved service-only Firebase authentication; business routes reject unauthenticated requests. Existing private API is unchanged; live Hosting version c0872b1adcb4006f replaces the synthetic release, whose version 911d3a1e1883b92c is retained for rollback. D owns infrastructure/miscellaneous execution; the parent leads coordination and review.

@@ -1,6 +1,6 @@
 # Environment inventory
 
-**R052 checkpoint 2A, 7 October 2026:** Checkpoint 1B and darker separators accepted; checkpoint 2A source verified at app 18c3736 (72 unit, 2 mocked UI tests). DEV-only reader grants and separate read service created; owner-approved service-only Firebase authentication is applied; live frontend version c0872b1adcb4006f and corrected read revision00002-ln2 are deployed; independent final smoke is in progress. Real owner Google login/read and UID pin remain pending. Phase 2 is incomplete; no production, financial, schema or AppSheet change. [Evidence](../outputs/r052-pwa/README.md).
+**R052 checkpoint 2A, 7 October 2026:** Checkpoint 1B and darker separators accepted; checkpoint 2A source verified at app 18c3736 (72 unit, 2 mocked UI tests). DEV-only reader grants and separate read service created; owner-approved service-only Firebase authentication is applied; live frontend version c0872b1adcb4006f and corrected read revision00002-ln2 are deployed; independent live signed-out desktop/mobile and API boundary smoke passed; recurring mocked desktop CI startup failure remains under investigation. Real owner Google login/read and UID pin remain pending. Phase 2 is incomplete; no production, financial, schema or AppSheet change. [Evidence](../outputs/r052-pwa/README.md).
 
 **7 October database source ownership:** canonical tooling moved to MW-Credit-App; live database identities/history are unchanged by this source-only transfer. [Handover](Database_Ownership_Transfer.md).
 
