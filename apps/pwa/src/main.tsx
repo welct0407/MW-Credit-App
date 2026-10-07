@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
-import { borrowers, dueFor, sampleDate, type Locale, type Borrower } from './fixtures';
+import type { Locale } from './fixtures';
+import { previewReadAdapter, toPreviewBorrower, previewBusinessDate as sampleDate, type PreviewAccessState, type PreviewBorrower as Borrower } from './preview-session';
 import './style.css';
 const prodLogoUrl = new URL('./assets/loan-manager-logo.png', import.meta.url).href;
 const devLogoUrl = new URL('./assets/loan-manager-logo-dev-orange.png', import.meta.url).href;
@@ -11,6 +12,7 @@ const routes = [
 function App() {
   // Presentation only: never infer service identity from Vite's build mode.
   const [previewTheme, setPreviewTheme] = useState<'dev' | 'prod'>(() => new URLSearchParams(window.location.search).get('theme') === 'prod' ? 'prod' : 'dev');
+  const [accessState, setAccessState] = useState<PreviewAccessState>('allowed');
   const [locale, setLocale] = useState<Locale>('en');
   const [route, setRoute] = useState('collection');
   const [query, setQuery] = useState('');
@@ -47,17 +49,25 @@ function App() {
     return () => { document.removeEventListener('keydown', onKey); previous?.focus(); };
   }, [menu]);
   const t = (en: string, th: string) => locale === 'en' ? en : th;
-  const money = (value: number) => new Intl.NumberFormat(locale === 'en' ? 'en-TH' : 'th-TH', { style: 'currency', currency: 'THB', maximumFractionDigits: 0 }).format(value);
-  const date = (value: string) => new Intl.DateTimeFormat(locale === 'en' ? 'en-GB' : 'th-TH', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Bangkok' }).format(new Date(value + 'T00:00:00Z'));
+  const money = (value: number | null) => value === null ? t('Unavailable', 'ไม่มีข้อมูล') : new Intl.NumberFormat(locale === 'en' ? 'en-TH' : 'th-TH', { style: 'currency', currency: 'THB', minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(value);
+  const date = (value: string | null) => value === null ? t('Unavailable', 'ไม่มีข้อมูล') : new Intl.DateTimeFormat(locale === 'en' ? 'en-GB' : 'th-TH', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Bangkok' }).format(new Date(value + 'T00:00:00Z'));
   const go = (next: string) => { setRoute(next); setQuery(''); setFilter('all'); setSelected(null); setMenu(false); };
   const functional = route === 'collection' || route === 'borrowers';
-  const base = route === 'collection' ? borrowers.filter(b => dueFor(b) > 0) : borrowers;
-  const visible = base.filter(b => (b.name.en + ' ' + b.name.th + ' ' + b.id).toLowerCase().includes(query.toLowerCase().trim()) && (filter === 'all' || (filter === 'active' ? b.loans.length > 0 : filter === 'inactive' ? b.loans.length === 0 : b.status === filter)));
-  const current = visible.find(b => b.id === selected);
-  const dueTotal = borrowers.reduce((s, b) => s + dueFor(b), 0);
-  const dueCount = borrowers.filter(b => dueFor(b) > 0).length;
+  const adapter = previewReadAdapter(accessState);
+  const borrowerResult = adapter.listBorrowers();
+  const collectionResult = adapter.listCollection();
+  const accessAllowed = borrowerResult.ok && collectionResult.ok;
+  const borrowers = borrowerResult.ok ? borrowerResult.items.map(toPreviewBorrower) : [];
+  const collection = collectionResult.ok ? collectionResult.items.map(toPreviewBorrower) : [];
+  const base = route === 'collection' ? collection : borrowers;
+  const visible = base.filter(b => (b.name.en + ' ' + b.name.th + ' ' + b.id).toLowerCase().includes(query.toLowerCase().trim()) && (filter === 'all' || (filter === 'active' ? b.hasActiveLoan : filter === 'inactive' ? !b.hasActiveLoan : b.collectionStatus === filter)));
+  const detailResult = selected && visible.some(b => b.id === selected) ? adapter.getBorrowerDetail(selected, route === 'collection' ? 'collection' : 'borrowers') : null;
+  const current = detailResult?.ok ? toPreviewBorrower(detailResult.item) : undefined;
+  // Display-only summary of synthetic decimal strings; no live financial calculation.
+  const dueTotal = collection.some(b => b.remaining === null) ? null : collection.reduce((s, b) => s + (b.remaining ?? 0), 0);
+  const dueCount = collection.filter(b => b.remaining !== null && b.remaining > 0).length;
   const routeInfo = routes.find(r => r[0] === route)!;
-  const status = (b: Borrower) => b.status === 'overdue' ? t('Overdue', 'เลยกำหนด') : b.status === 'due' ? t('Due today', 'ถึงกำหนดวันนี้') : t('Nothing due', 'ไม่มียอดถึงกำหนด');
+  const status = (b: Borrower) => b.collectionStatus === 'overdue' ? t('Overdue', 'เลยกำหนด') : b.collectionStatus === 'not_paid' ? t('Not paid', 'ยังไม่ชำระ') : b.collectionStatus === 'partially_paid' ? t('Partially paid', 'ชำระบางส่วน') : b.collectionStatus === 'fully_paid' ? t('Fully paid', 'ชำระครบแล้ว') : t('No collection status', 'ไม่มีสถานะติดตาม');
   const renderCard = (b: Borrower) => <button key={b.id} className={'borrower-card ' + (current?.id === b.id ? 'selected' : '')} onClick={() => setSelected(b.id)} aria-pressed={current?.id === b.id} data-testid={'borrower-' + b.id}>
     <span className="avatar">
       {b.initials}
@@ -75,10 +85,10 @@ function App() {
     </span>
     <span className="card-amount">
       <strong>
-        {money(route === 'collection' ? dueFor(b) : b.principal)}
+        {money(route === 'collection' ? b.remaining : b.principal)}
       </strong>
       <span>
-        {route === 'collection' ? t('Amount due', 'ยอดถึงกำหนด') : t('Principal outstanding', 'เงินต้นคงเหลือ')}
+        {route === 'collection' ? t('Remaining to collect', 'ยอดคงเหลือต้องติดตาม') : t('Principal outstanding', 'เงินต้นคงเหลือ')}
       </span>
       <span className="arrow">↗</span>
     </span>
@@ -166,22 +176,35 @@ function App() {
             </strong>
           </div>
         </div>
-        {functional ? <>
+        <section className="access-simulator" aria-label={t('Access-state simulator', 'จำลองสถานะสิทธิ์')}>
+          <div><strong>{t('Access-state simulator', 'จำลองสถานะสิทธิ์')}</strong><p>{t('Synthetic session only. No real sign-in or live access is established.', 'เซสชันสมมติเท่านั้น ไม่ใช่การลงชื่อเข้าใช้หรือสิทธิ์เข้าถึงระบบจริง')}</p></div>
+          <label><span>{t('Simulated access', 'สิทธิ์จำลอง')}</span><select aria-label={t('Simulated access', 'สิทธิ์จำลอง')} value={accessState} onChange={event => { setAccessState(event.target.value as PreviewAccessState); setSelected(null); setQuery(''); setFilter('all'); }}>
+            <option value="allowed">{t('Allowed · synthetic', 'อนุญาต · สมมติ')}</option>
+            <option value="signed_out">{t('Signed out · simulated', 'ออกจากระบบ · จำลอง')}</option>
+            <option value="expired">{t('Expired · simulated', 'หมดอายุ · จำลอง')}</option>
+            <option value="access_denied">{t('Access denied · simulated', 'ไม่อนุญาต · จำลอง')}</option>
+            <option value="unmapped_login">{t('Unmapped login · simulated', 'ไม่พบการจับคู่บัญชี · จำลอง')}</option>
+          </select></label>
+        </section>
+        {!accessAllowed ? <section className="access-blocked" role="status">
+          <h2>{accessState === 'signed_out' ? t('Simulated session is signed out', 'เซสชันจำลองออกจากระบบแล้ว') : accessState === 'expired' ? t('Simulated session has expired', 'เซสชันจำลองหมดอายุแล้ว') : accessState === 'unmapped_login' ? t('Simulated login has no unique partner mapping', 'บัญชีจำลองไม่มีการจับคู่หุ้นส่วนที่ไม่ซ้ำ') : t('Simulated access is denied', 'ไม่อนุญาตให้เข้าถึงในสถานะจำลอง')}</h2>
+          <p>{t('Borrower records, totals, and details are withheld. Change the simulator to Allowed to review synthetic data.', 'ซ่อนข้อมูลผู้กู้ ยอดรวม และรายละเอียด เปลี่ยนสถานะจำลองเป็นอนุญาตเพื่อดูข้อมูลสมมติ')}</p>
+        </section> : functional ? <>
           <section className="metrics" aria-label={t('Sample summary', 'สรุปข้อมูลตัวอย่าง')}>
             <div className="metric">
               <span>
-                {t('Total due · sample portfolio', 'ยอดถึงกำหนดรวม · ชุดข้อมูลตัวอย่าง')}
+                {t('Remaining to collect · sample portfolio', 'ยอดคงเหลือต้องติดตาม · ชุดข้อมูลตัวอย่าง')}
               </span>
               <strong data-testid="total-due">
                 {money(dueTotal)}
               </strong>
               <small>
-                {t('Includes overdue and today’s charges', 'รวมยอดเลยกำหนดและยอดวันนี้')}
+                {t('Sample residual amounts, separate from principal', 'ยอดคงเหลือตัวอย่าง แยกจากเงินต้น')}
               </small>
             </div>
             <div className="metric">
               <span>
-                {t('Borrowers to follow up', 'ผู้กู้ที่ต้องติดตาม')}
+                {t('Borrowers with remaining collection', 'ผู้กู้ที่มียอดคงเหลือต้องติดตาม')}
               </span>
               <strong>
                 {dueCount.toString().padStart(2, '0')}
@@ -190,7 +213,7 @@ function App() {
                 </small>
               </strong>
               <small>
-                {t('Derived from the sample charges', 'คำนวณจากรายการเรียกเก็บตัวอย่าง')}
+                {t('From synthetic collection status outputs', 'จากผลสถานะติดตามข้อมูลสมมติ')}
               </small>
             </div>
 </section>
@@ -217,7 +240,7 @@ function App() {
                     {t('Filter borrowers', 'กรองผู้กู้')}
                   </span>
                   <select value={filter} onChange={e => { setFilter(e.target.value); setSelected(null); }}>
-                    {(route === 'collection' ? [['all', 'All statuses', 'ทุกสถานะ'], ['due', 'Due today', 'ถึงกำหนดวันนี้'], ['overdue', 'Overdue', 'เลยกำหนด']] : [['all', 'All borrowers', 'ผู้กู้ทั้งหมด'], ['active', 'Active loans', 'มีสัญญาที่ใช้งาน'], ['inactive', 'No active loan', 'ไม่มีสัญญาที่ใช้งาน']]).map(o => <option key={o[0]} value={o[0]}>
+                    {(route === 'collection' ? [['all', 'All statuses', 'ทุกสถานะ'], ['not_paid', 'Not paid', 'ยังไม่ชำระ'], ['partially_paid', 'Partially paid', 'ชำระบางส่วน'], ['overdue', 'Overdue', 'เลยกำหนด'], ['fully_paid', 'Fully paid', 'ชำระครบแล้ว']] : [['all', 'All borrowers', 'ผู้กู้ทั้งหมด'], ['active', 'Active loans', 'มีสัญญาที่ใช้งาน'], ['inactive', 'No active loan', 'ไม่มีสัญญาที่ใช้งาน']]).map(o => <option key={o[0]} value={o[0]}>
                       {o[locale === 'en' ? 1 : 2]}
                     </option>)}
                   </select>
@@ -237,7 +260,7 @@ function App() {
                   </button>
                 </div> : route === 'borrowers' ? <>
                   {[true, false].map(active => {
-                    const group = visible.filter(b => (b.loans.length > 0) === active); return group.length > 0 && <div key={String(active)}>
+                    const group = visible.filter(b => b.hasActiveLoan === active); return group.length > 0 && <div key={String(active)}>
                       <h3 className="group-label">
                         {active ? t('Active loans', 'มีสัญญาที่ใช้งาน') : t('No active loan', 'ไม่มีสัญญาที่ใช้งาน')}
                         <span>
@@ -274,10 +297,10 @@ function App() {
                 <div className="detail-amounts">
                   <div>
                     <span>
-                      {t('Amount due', 'ยอดถึงกำหนด')}
+                      {t('Remaining to collect', 'ยอดคงเหลือต้องติดตาม')}
                     </span>
                     <strong>
-                      {money(dueFor(current))}
+                      {money(current.remaining)}
                     </strong>
                   </div>
                   <div>
@@ -323,7 +346,7 @@ function App() {
                         {money(loan.principal)}
                       </dd>
                     </div>
-                    {loan.charges.map((charge, i) => <div key={i}>
+                    {loan.charges.map(charge => <div key={charge.id}>
                       <dt>
                         {charge.label[locale]}
                         <small>

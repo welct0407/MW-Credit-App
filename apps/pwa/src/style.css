@@ -1196,3 +1196,31 @@ button, .filters select { min-height: 44px; }
   .metrics { grid-template-columns: 1fr; }
   .metric { border-right: 0; border-bottom: 1px solid var(--border-tint); }
 }
+
+/* Session scenarios are explicitly a synthetic design-review control. */
+.access-simulator {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin: 0 0 24px;
+  padding: 20px;
+  border: 1px solid var(--border-tint);
+  border-radius: 9px;
+  background: #fff;
+}
+.access-simulator > div { flex: 1 1 260px; }
+.access-simulator strong { font-size: var(--text-body); }
+.access-simulator p { margin: 6px 0 0; font-size: var(--text-meta); color: #565656; }
+.access-simulator label { display: flex; flex-direction: column; gap: 7px; flex: 0 1 300px; min-width: 0; }
+.access-simulator label > span { font-size: var(--text-meta); }
+.access-simulator select { font-size: var(--text-body); min-height: 44px; max-width: 100%; padding: 8px; border: 1px solid #bbb; border-radius: 5px; background: #fff; color: #333; }
+.access-blocked { padding: 30px; border: 1px solid var(--border-tint); border-radius: 9px; background: var(--surface-tint); }
+.access-blocked h2 { margin-top: 0; }
+.access-blocked p { margin-bottom: 0; }
+@media (max-width: 650px) {
+  .access-simulator { padding: 16px; }
+  .access-simulator label { flex-basis: 100%; }
+  .access-blocked { padding: 22px; }
+}

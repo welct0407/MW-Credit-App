@@ -14,7 +14,7 @@ test('reconciles sample charges separately from principal and filters collection
  await expect(page.locator('.metric')).toHaveCount(2);
  await expect(cards(page)).toHaveCount(3);
  await page.getByLabel('Filter borrowers').selectOption('overdue');await expect(cards(page)).toHaveCount(1);await expect(page.getByTestId('borrower-SAMPLE-002')).toBeVisible();
- await page.getByLabel('Filter borrowers').selectOption('due');await expect(cards(page)).toHaveCount(2);
+ await page.getByLabel('Filter borrowers').selectOption('not_paid');await expect(cards(page)).toHaveCount(2);
  await page.getByLabel('Search borrowers').fill('missing-person');await expect(page.getByRole('heading',{name:'No matching borrowers'})).toBeVisible();
  await page.getByRole('button',{name:'Reset filters'}).click();await expect(cards(page)).toHaveCount(3);await expect(page.getByLabel('Filter borrowers')).toHaveValue('all');
  await page.getByLabel('Search borrowers').fill('sample-002');await expect(cards(page)).toHaveCount(1);
