@@ -1,0 +1,12 @@
+.live-shell .topbar { gap: 20px; }
+.live-brand { display: flex; align-items: center; gap: 12px; font-size: 22px; }
+.live-shell main { max-width: 1250px; padding-bottom: 35px; }
+.live-toolbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 20px; font-size: 14px; }
+.live-empty { padding: 0 24px 24px; }
+.live-scope, .live-freshness { font-size: 14px; color: #565656; line-height: 1.5; margin: 24px 0; }
+.live-shell .borrower-card { cursor: pointer; }
+.live-shell .detail-panel p { overflow-wrap: anywhere; }
+@media (max-width: 400px) {
+  .live-shell .borrower-card { grid-template-columns: 1fr; }
+  .live-shell .card-amount { grid-column: 1; }
+}

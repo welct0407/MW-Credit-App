@@ -1,0 +1,101 @@
+import React, { useEffect, useRef, useState } from 'react';
+import { createRoot } from 'react-dom/client';
+import { initializeApp } from 'firebase/app';
+import { getAuth, GoogleAuthProvider, inMemoryPersistence, onAuthStateChanged, setPersistence, signInWithPopup, signOut, type Auth, type User } from 'firebase/auth';
+import './style.css';
+import './live-style.css';
+
+const logo = new URL('./assets/loan-manager-logo-dev-orange.png', import.meta.url).href;
+type Borrower = { id: string; name: string | null; createdDate: string | null; hasActiveLoan: boolean | null; outstandingPrincipal: string | null; note: string | null };
+type PageResult = { ok: true; source: 'dev'; items: Borrower[]; nextCursor: string | null; asOf: string; businessDate: string };
+type DetailResult = { ok: true; source: 'dev'; item: Borrower };
+function configuration() {
+  const e = import.meta.env;
+  if (e.MODE !== 'live-dev' || e.VITE_FIREBASE_PROJECT_ID !== 'clever-oasis-508610-n7' || !e.VITE_FIREBASE_API_KEY || !e.VITE_FIREBASE_APP_ID || e.VITE_FIREBASE_AUTH_DOMAIN !== 'clever-oasis-508610-n7.firebaseapp.com') throw new Error('unavailable');
+  const apiOrigin = new URL(e.VITE_API_ORIGIN || '');
+  if (apiOrigin.protocol !== 'https:' || apiOrigin.origin !== e.VITE_API_ORIGIN || !/^mw-credit-app-read-dev-[a-z0-9-]+(?:\.[a-z0-9-]+)?\.run\.app$/.test(apiOrigin.hostname)) throw new Error('unavailable');
+  return { apiOrigin: apiOrigin.origin, firebase: { apiKey: e.VITE_FIREBASE_API_KEY, appId: e.VITE_FIREBASE_APP_ID, projectId: e.VITE_FIREBASE_PROJECT_ID, authDomain: e.VITE_FIREBASE_AUTH_DOMAIN } };
+}
+function App() {
+  const [thai, setThai] = useState(false);
+  const t = (en: string, th: string) => thai ? th : en;
+  const [auth, setAuth] = useState<Auth | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [status, setStatus] = useState('initializing');
+  const [busy, setBusy] = useState(false);
+  const [items, setItems] = useState<Borrower[]>([]);
+  const [selected, setSelected] = useState<Borrower | null>(null);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [asOf, setAsOf] = useState('');
+  const generation = useRef(0);
+  const pending = useRef<AbortController | null>(null);
+  const config = useRef<ReturnType<typeof configuration> | null>(null);
+  const currentUser = useRef<User | null>(null);
+  const clear = () => { generation.current++; pending.current?.abort(); pending.current = null; setItems([]); setSelected(null); setNextCursor(null); setAsOf(''); setBusy(false); };
+  async function request<T>(signedInUser: User, path: string): Promise<T | null> {
+    pending.current?.abort();
+    const controller = new AbortController(); pending.current = controller;
+    const revision = generation.current;
+    setBusy(true);
+    try {
+      const token = await signedInUser.getIdToken();
+      if (revision !== generation.current || currentUser.current !== signedInUser) return null;
+      const response = await fetch(config.current!.apiOrigin + path, { method: 'GET', headers: { Authorization: 'Bearer ' + token }, cache: 'no-store', credentials: 'omit', redirect: 'error', signal: controller.signal });
+      if (revision !== generation.current || currentUser.current !== signedInUser) return null;
+      if (!response.ok) {
+        clear();
+        setStatus(response.status === 401 ? 'expired' : response.status === 403 ? 'denied' : 'error');
+        return null;
+      }
+      const result = await response.json();
+      if (controller.signal.aborted || revision !== generation.current || currentUser.current !== signedInUser) return null;
+      if (result.ok !== true || result.source !== 'dev') throw new Error('invalid_response');
+      setStatus('ready');
+      return result as T;
+    } catch {
+      if (!controller.signal.aborted && revision === generation.current) { clear(); setStatus('error'); }
+      return null;
+    } finally { if (revision === generation.current && pending.current === controller) setBusy(false); }
+  }
+  async function load(signedInUser: User, cursor?: string) {
+    setSelected(null);
+    const result = await request<PageResult>(signedInUser, '/api/borrowers?limit=25' + (cursor ? '&cursor=' + encodeURIComponent(cursor) : ''));
+    if (result) { setItems(result.items); setNextCursor(result.nextCursor); setAsOf(result.asOf); }
+  }
+  useEffect(() => {
+    let unsubscribe: (() => void) | undefined;
+    let disposed = false;
+    try {
+      config.current = configuration();
+      const instance = getAuth(initializeApp(config.current.firebase));
+      void setPersistence(instance, inMemoryPersistence).then(() => {
+        if (disposed) return;
+        setAuth(instance);
+        unsubscribe = onAuthStateChanged(instance, next => {
+          clear(); currentUser.current = next; setUser(next);
+          if (next) { setStatus('loading'); void load(next); } else setStatus('signed_out');
+        });
+      }).catch(() => { if (!disposed) setStatus('unavailable'); });
+    } catch { setStatus('unavailable'); }
+    return () => { disposed = true; unsubscribe?.(); generation.current++; pending.current?.abort(); };
+  }, []);
+  async function login() {
+    if (!auth) return;
+    clear(); setStatus('signing_in');
+    try { const provider = new GoogleAuthProvider(); provider.setCustomParameters({ prompt: 'select_account' }); await signInWithPopup(auth, provider); }
+    catch { clear(); setStatus('signed_out'); }
+  }
+  async function logout() {
+    clear(); currentUser.current = null; setUser(null); setStatus('signed_out');
+    if (auth) await signOut(auth).catch(() => setStatus('error'));
+  }
+  const money = (value: string | null) => value === null ? t('Unavailable', 'ไม่มีข้อมูล') : new Intl.NumberFormat(thai ? 'th-TH' : 'en-TH', { style: 'currency', currency: 'THB', minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(Number(value));
+  const date = (value: string | null) => value === null ? t('Unavailable', 'ไม่มีข้อมูล') : new Intl.DateTimeFormat(thai ? 'th-TH' : 'en-GB', { dateStyle: 'medium', timeZone: 'Asia/Bangkok' }).format(new Date(value + 'T00:00:00Z'));
+  return <div className="app-shell live-shell" data-preview-theme="dev"><div className="workspace"><header className="topbar"><a className="live-brand" href="#" onClick={e => e.preventDefault()}><img className="brand-logo" src={logo} alt="Loan Manager" /><strong>MW Credit</strong></a><div className="language" aria-label="Language" role="group"><button onClick={() => { setThai(false); document.documentElement.lang = 'en'; }} aria-pressed={!thai}>EN</button><button onClick={() => { setThai(true); document.documentElement.lang = 'th'; }} aria-pressed={thai}>ไทย</button></div></header><main>
+    <div className="preview-strip">{t('DEV · Read-only borrower workspace', 'DEV · พื้นที่อ่านข้อมูลผู้กู้เท่านั้น')}</div>
+    <div className="page-heading"><div><h1>{t('Borrowers', 'ผู้กู้')}</h1><p>{t('Google sign-in is required. Access is limited to the approved development account.', 'ต้องลงชื่อเข้าใช้ด้วย Google และใช้บัญชีที่ได้รับอนุญาตสำหรับระบบพัฒนาเท่านั้น')}</p></div>{user && <button className="secondary-button" onClick={logout}>{t('Sign out', 'ออกจากระบบ')}</button>}</div>
+    {status === 'ready' ? <><div className="live-toolbar"><span>{t('Up to 25 records per page · ordered by record ID', 'แสดงไม่เกิน 25 รายการต่อหน้า · เรียงตามรหัสรายการ')}</span><button className="secondary-button" disabled={busy} onClick={() => user && load(user)}>{t('Refresh / first page', 'รีเฟรช / หน้าแรก')}</button></div><div className={'work-grid ' + (selected ? 'has-detail' : '')}><section className="list-panel" aria-label={t('Borrower list', 'รายชื่อผู้กู้')}><div className="section-heading"><h2>{t('Borrower directory', 'รายชื่อผู้กู้')}</h2></div>{items.length ? items.map(row => <button className={'borrower-card ' + (selected?.id === row.id ? 'selected' : '')} key={row.id} disabled={busy} onClick={async () => { if (user) { const detail = await request<DetailResult>(user, '/api/borrowers/' + encodeURIComponent(row.id)); if (detail) setSelected(detail.item); } }}><span className="person"><strong>{row.name ?? t('Unnamed borrower', 'ไม่ระบุชื่อผู้กู้')}</strong><span>{row.id}</span><span>{row.hasActiveLoan === null ? t('Loan status unavailable', 'ไม่มีข้อมูลสถานะสัญญา') : row.hasActiveLoan ? t('Active loan', 'มีสัญญาที่ใช้งาน') : t('No active loan', 'ไม่มีสัญญาที่ใช้งาน')}</span></span><span className="card-amount"><strong>{money(row.outstandingPrincipal)}</strong><span>{t('Principal outstanding', 'เงินต้นคงเหลือ')}</span></span></button>) : <p className="live-empty">{t('No visible borrower records.', 'ไม่พบรายการผู้กู้ที่แสดงได้')}</p>}<div className="list-foot"><button className="secondary-button" disabled={busy || !nextCursor} onClick={() => user && nextCursor && load(user, nextCursor)}>{t('Next page', 'หน้าถัดไป')}</button></div></section><section className={'detail-panel ' + (!selected ? 'unselected' : '')} aria-label={t('Borrower details', 'รายละเอียดผู้กู้')}>{selected ? <><button className="back-button" onClick={() => setSelected(null)}>← {t('Back to list', 'กลับไปรายการ')}</button><h2>{selected.name ?? t('Unnamed borrower', 'ไม่ระบุชื่อผู้กู้')}</h2><p className="detail-id">{selected.id}</p><div className="detail-amounts"><div><span>{t('Principal outstanding', 'เงินต้นคงเหลือ')}</span><strong>{money(selected.outstandingPrincipal)}</strong></div></div><p>{t('Created', 'วันที่สร้าง')} · {date(selected.createdDate)}</p>{selected.note && <div className="issue-note"><strong>{t('Borrower note', 'หมายเหตุผู้กู้')}</strong><p>{selected.note}</p></div>}</> : <p>{t('Select a borrower to view details.', 'เลือกผู้กู้เพื่อดูรายละเอียด')}</p>}</section></div>{asOf && <p className="live-freshness">{t('Read at', 'อ่านข้อมูลเมื่อ')} {new Intl.DateTimeFormat(thai ? 'th-TH' : 'en-GB', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Bangkok' }).format(new Date(asOf))} · Asia/Bangkok</p>}</> : <section className="access-blocked" role="status"><h2>{status === 'unavailable' ? t('DEV connection is not configured', 'ยังไม่ได้ตั้งค่าการเชื่อมต่อ DEV') : status === 'denied' ? t('This account does not have access', 'บัญชีนี้ไม่มีสิทธิ์เข้าถึง') : status === 'expired' ? t('Please sign in again', 'กรุณาลงชื่อเข้าใช้อีกครั้ง') : status === 'error' ? t('Unable to load borrower records', 'ไม่สามารถโหลดข้อมูลผู้กู้ได้') : ['loading', 'initializing', 'signing_in'].includes(status) ? t('Connecting…', 'กำลังเชื่อมต่อ…') : t('Sign in to continue', 'ลงชื่อเข้าใช้เพื่อดำเนินการต่อ')}</h2>{['signed_out', 'expired', 'denied'].includes(status) && <button className="secondary-button" onClick={login}>{t('Continue with Google', 'ดำเนินการต่อด้วย Google')}</button>}{status === 'error' && user && <button className="secondary-button" onClick={() => load(user)}>{t('Try again', 'ลองอีกครั้ง')}</button>}</section>}
+    <p className="live-scope">{t('Collection, loan details, receipts and financial actions are not available in this read-only checkpoint. AppSheet continues operating in parallel.', 'จุดตรวจสอบแบบอ่านอย่างเดียวยังไม่มีงานติดตาม รายละเอียดสัญญา ใบเสร็จ หรือการทำรายการทางการเงิน AppSheet ยังคงใช้งานควบคู่')}</p>
+  </main></div></div>;
+}
+createRoot(document.getElementById('root')!).render(<App />);
