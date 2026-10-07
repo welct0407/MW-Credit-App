@@ -1,13 +1,13 @@
 # AGENTS.md — AppSheet Development
 
-**Owner revision, 7 October 2026:** MW-Credit-App now owns shared database migrations, runners, tests and database CI. This repository owns overall project management; other implementation moves are explicitly deferred. Follow [Database Ownership Transfer](Documents/Database_Ownership_Transfer.md) and the new canonical database procedure. This supersedes local database-source paths below; release, backup, approval and compatibility controls remain in force.
-
 **Database ownership, owner revision 7 October 2026:** MW-Credit-App is now the canonical owner of shared SQL migrations, database scripts, promotion runners and database CI. AppSheet-Loan-Project is the overall project-management repository. The owner explicitly deferred remaining implementation-code moves to a separate task. Run database operations from the new repository and follow its database/README.md; existing release, backup, approval and cross-app compatibility controls still apply. References below to local database paths are superseded by [the ownership handover](Documents/Database_Ownership_Transfer.md). No live database change is authorized by moving source files.
 
 
 This file governs OLTP, OLAP and Looker Studio work in this repository. AI Collection is governed separately in `C:\GitHub\MW-AI-Collection`: read its `AGENTS.md` and `SERVICE_CATALOGUE.md` before collection work. Its catalogue is default-deny; the `collection-agent` and `mw-ai-collection` junctions here are compatibility paths, not independent runtimes.
 
 ## Working method and task routing
+
+For the PWA rebuild, follow [PWA Implementation Plan](Documents/PWA_Implementation_Plan.md) for phase objectives, dependencies and completion evidence. The plan records future work; it does not itself authorize production operations or AppSheet retirement.
 
 - Carry authorized work through implementation, relevant verification, documentation and publication. Reuse decisions and scoped authorization from the conversation; ask only for missing authorization or information that materially affects correctness, scope or recovery. Continue independent work when one path is blocked. Do not add approval gates for routine reversible choices.
 - Start with the task/continuation note and affected files or objects. Use `rg` and bounded reads; expand only for dependencies, conflicting evidence or observed failures. Read applicable instructions once per context and revisit when changed. Do not load every linked document or complete historical logs by default.

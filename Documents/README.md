@@ -4,6 +4,7 @@ Start with [AGENTS task routing](../AGENTS.md#working-method-and-task-routing), 
 
 | Need | Reference |
 | --- | --- |
+| Full mobile OLTP and desktop OLTP/OLAP rebuild phases | [PWA Implementation Plan](PWA_Implementation_Plan.md) — development, production readiness, parallel pilot and cutover readiness |
 | Dots Browser, Codex Cloud, VM-01 and Debian responsibilities / handoffs | [Development Workflow](Development_Workflow.md) — authoritative routing, access boundaries and confirmed/pending proof |
 | Which repository owns a task | [Repository and instruction ownership](Development_Workflow.md#repository-and-instruction-ownership) — task-to-repository mapping and cross-repository routing |
 | Dots completion, confirmations, delegation, progress updates, repository selection and Grafana response | [Dots Orchestration Rules](Dots_Orchestration_Rules.md) — six standing Custom rules and setup text |
