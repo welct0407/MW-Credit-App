@@ -75,3 +75,9 @@ Final owner width checks also passed in the focused desktop case: at2560×1440, 
 ### CI navigation synchronization correction
 
 Exact application source5d203daf641973a02e3d1268cbcd69983bd9435f CI37651900847 failed one mobile Collection case (36passed/3skipped). The test navigation helper sampled menu visibility immediately after asynchronous sign-in, before the ready-state menu existed, then attempted the still-hidden Collection action. Both owned navigation helpers now branch on the known viewport breakpoint and use Playwright's normal auto-waited Open navigation click. No application change, force click or timeout increase. Focused affected mobile Collection/Upcoming rerun passed2/2; final whitespace check passed. The original CI is recorded as failed; corrected-commit CI remains to be verified after D publication.
+
+### Final shell deployment smoke
+
+Corrected validation c280c58c539b7f1e1576d108ff0587a55f5a89e2 [CI37652555729 passed](https://github.com/welct0407/MW-Credit-App/actions/runs/37652555729); built application remains5d203daf641973a02e3d1268cbcd69983bd9435f. D deployed API mw-credit-app-read-dev-00008-9fw and Hosting49547c853832dd36.
+
+Seven bounded unsigned API checks passed (health200, summary/detail401, invalid synthetic token401, POST405, wrong-origin403, allowed GET preflight204), all no-store. Fresh signed-out EN/Thai contexts at1440×900,2560×1440 and390×844 passed: no API/business requests, no records or overflow, header x=0/y=0 and exact viewport width, status inside header. This is unsigned deployment evidence, not authenticated owner latency or business/provider execution proof. Evidence is shell-live-api.json, shell-live-hosting.json and six shell-live-{desktop,wide,mobile}-{en,th}.png. Owner authenticated visual review remains separate. C evidence frozen for publication.
