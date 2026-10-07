@@ -1,5 +1,7 @@
 # R052 PWA checkpoints
 
+**[Overall progress: completed, current review and next steps](../../Documents/PWA_Progress.md)** — updated at every development-session closeout.
+
 Date: 7 October 2026, Asia/Bangkok.
 
 Status: Owner-requested persistent sign-in source11c91c2 passed CI37636993134 and is deployed to DEV Hosting922b3ab61894b240. Firebase initializes with LOCAL persistence; blocked browser storage uses explicitly labelled memory fallback. Synthetic actual-SDK tests passed reload/full reopen/cross-tab logout/API401 cleanup; business records remain memory-only and reload freshly. Neutral UI retained. API00005-wn4, UID pin and DEV26-column scope unchanged. Signed-out EN/Thai desktop/mobile smoke including reload passed with zero records/API requests/overflow; owner confirmed real Google sign-in survives refresh; actual browser restart is not claimed. Same checkpoint2B; R052 Open, full Phase2 incomplete.

@@ -1,5 +1,7 @@
 # PWA orchestration and owner review
 
+**[Overall progress: completed, current review and next steps](PWA_Progress.md)** — updated at every development-session closeout.
+
 Owner instruction: 7 October 2026. Applies to the [implementation plan](PWA_Implementation_Plan.md); it overrides generic model defaults for this implementation only.
 
 ## Responsibilities
@@ -20,7 +22,7 @@ The owner's reference to Agent C testing its own work is interpreted as testing 
 2. A inspects relevant evidence and supplies design, limitations and acceptance scenarios.
 3. B implements that design. C may prepare coverage independently but tests the resulting implementation.
 4. B fixes failures; A resolves architectural ambiguity. C verifies affected behavior.
-5. D completes infrastructure, documentation and authorized publication; the orchestrator reviews the evidence and presents a concrete preview plus status.
+5. D completes infrastructure, documentation and authorized publication. **Owner rule, 7 October 2026:** after every development session, update the single [overall progress overview](PWA_Progress.md) with the Bangkok date, completed/tested/deployed/accepted distinctions, current checkpoint, pending review, concrete next step, blockers and evidence. Keep phase statuses aligned with the roadmap; no inferred acceptance or invented percentage. The orchestrator verifies this closeout and presents a concrete preview plus status.
 6. All workers stop at the checkpoint. Wait for the owner's visual validation and go-ahead before starting the next slice. Do not treat silence, a passed test or a phase boundary as permission to continue.
 
 A checkpoint may occur inside a phase. Distinguish prototype review, feature acceptance, live validation and production authorization. A user-visible mockup is not evidence of authenticated data access or financial correctness.
