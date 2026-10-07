@@ -1,6 +1,7 @@
 # MW Credit implementation progress
 
-**Last updated:** 7 October 2026 (Asia/Bangkok)  
+**Last updated:** 7 October 2026 (Asia/Bangkok)
+
 **Current position:** R052 is Open. We are at checkpoint 2B within Phase 2. The DEV application can read borrowers and related loans; it cannot yet perform financial transactions. AppSheet continues operating in parallel.
 
 [Open DEV app](https://mw-credit-app-dev-737787224638.web.app) · [Detailed roadmap](PWA_Implementation_Plan.md) · [Checkpoint evidence](../outputs/r052-pwa/README.md)
