@@ -1,5 +1,7 @@
 # MW Credit OLTP and OLAP implementation plan
 
+**R052 checkpoint 2B, 7 October 2026:** Checkpoint 2A accepted; owner authorized continuation. Checkpoint 2B borrower-scoped loan list/detail passed architecture review, 84 unit and four affected browser checks; DEV exact14-column Loans SELECT applied, total23 allowed DEV columns/zero PROD business columns/no write privileges. Four actual query shapes passed read-only EXPLAIN with synthetic parameters as operator, with separate effective reader audit. Source084bb537 passed CI37619664493 and is deployed as read revision00004-wmg / Hosting0e7710ff18851030; independent deployed denial/health and signed-out EN/Thai desktop/mobile checks passed; owner visual loan validation remains pending. Full Phase2 is incomplete; Collection remains deferred for exact provider reconciliation. [Design](../outputs/r052-pwa/checkpoint-2b-design.md).
+
 **R052 checkpoint 2A, 7 October 2026:** Checkpoint 2A live DEV Google sign-in and Borrowers read is owner-validated: owner reported successful list/detail reads; actual verified Google UID is pinned in managed Secret Manager version 1, read revision00003-pzr. Independent signed-out desktop/mobile, static health and denial checks passed. App source20358d1 includes the tested cold-start test-tooling correction; final CI37615986417 passed. Checkpoint 2A is complete. Phase 2 remains incomplete and the team stops at this checkpoint; no next slice, production, financial, schema or AppSheet change. [Evidence](../outputs/r052-pwa/README.md).
 
 Prepared 7 October 2026, Asia/Bangkok. This is the delivery plan for a complete replacement of the current AppSheet OLTP and OLAP applications. We will implement and verify one phase at a time. The final deliverable is the new system operating in production alongside AppSheet, with full required coverage, proven recovery and an executable cutover procedure.
@@ -41,11 +43,11 @@ Every financial command must enforce server-side identity and permissions, prese
 
 ## Phase roadmap
 
-| Phase | Objective | Dependency | Initial status |
+| Phase | Objective | Dependency | Current status |
 | --- | --- | --- | --- |
 | 0 | Establish development infrastructure and database ownership | Completed setup | Complete for the recorded scope |
-| 1 | Establish full feature coverage, contracts and acceptance criteria | 0 | In progress; checkpoint 1A accepted, tested checkpoint 1B read/access contracts awaiting review |
-| 2 | Build the secure application foundation and first read flow | 1 | Not started |
+| 1 | Establish full feature coverage, contracts and acceptance criteria | 0 | In progress; checkpoints 1A and 1B accepted; complete feature/parity and acceptance coverage remains open |
+| 2 | Build the secure application foundation and first read flow | 1 | In progress; checkpoint 2A owner-validated and complete; checkpoint 2B related loan reads deployed and verified; owner visual validation pending |
 | 3 | Make production infrastructure and delivery ready | 2 | Not started |
 | 4 | Prove one complete financial workflow in DEV | 2; production setup can proceed alongside it | Not started |
 | 5 | Complete mobile and desktop OLTP | 4 | Not started |
@@ -306,4 +308,4 @@ The final review must establish all of the following:
 - The cutover runbook covers old-client sync drain, access controls, rollback triggers and stabilization.
 - No unresolved required-feature, financial-integrity, access-control or recovery blocker remains.
 
-**Current implementation task:** Phase 1, feature baseline and implementation backlog, with a synthetic Collection/Borrowers visual checkpoint before further implementation. No calendar completion date is committed until the current feature inventory, staffing/availability and acceptance targets are agreed.
+**Current implementation task:** Phase 2, checkpoint 2B borrower-related loan reads deployed after the owner's “ok. continue” instruction. Implementation and independent checks are complete; stop for owner visual validation before any next slice; Agent D owns infrastructure, miscellaneous work, documentation and publication. Full Phase 1/2 completion is not claimed. No calendar completion date is committed until the current feature inventory, staffing/availability and acceptance targets are agreed.
