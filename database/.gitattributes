@@ -1,0 +1,3 @@
+*.sql text eol=lf
+# Applied migration bytes are immutable; override the general SQL normalization.
+migrations/*.sql -text

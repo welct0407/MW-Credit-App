@@ -1,0 +1,27 @@
+[CmdletBinding()]
+param()
+. "$PSScriptRoot/Common.ps1"
+$target=Get-DbEnvironment 'development'
+if($target.host -ne '34.158.38.171'){throw 'Reviewed DEV host required'}
+$prior=@{};foreach($name in @('PGPASSWORD','PGSSLMODE','PGOPTIONS','PGCONNECT_TIMEOUT')){$prior[$name]=[Environment]::GetEnvironmentVariable($name,'Process')}
+try{
+ $env:PGPASSWORD=(Get-Content -LiteralPath $target.passwordFile -Raw).Trim();$env:PGSSLMODE='require';$env:PGCONNECT_TIMEOUT='10';$env:PGOPTIONS='-c default_transaction_read_only=on -c timezone=Asia/Bangkok'
+ @'
+SELECT json_build_object('environment','development','as_of',statement_timestamp(),'version',(SELECT max(version::integer) FROM flyway_schema_history WHERE success),'ledger_rows',(SELECT count(*) FROM "Cash Ledger"),'holders',(SELECT count(*) FROM "Cash Holders"));
+SELECT json_build_object('cutover_type',source_type,'rows',count(*)) FROM r005_cash_cutover_sources GROUP BY source_type ORDER BY source_type;
+SELECT json_build_object('legacy_nonnull_receivers',(SELECT count(*) FROM "Payments" p JOIN r005_cash_cutover_sources c ON c.source_type='Payment' AND c.source_row_id=p."Row ID" WHERE p."Ref Received By Cash Holder" IS NOT NULL),'legacy_nonnull_payers',(SELECT count(*) FROM "Business Expenses" e JOIN r005_cash_cutover_sources c ON c.source_type='Business Expense' AND c.source_row_id=e."Row ID" WHERE e."Ref Paid By Cash Holder" IS NOT NULL),'historical_cash_rows',(SELECT count(*) FROM "Cash Ledger" l JOIN r005_cash_cutover_sources c ON c.source_type=l."Source Type" AND c.source_row_id=coalesce(l."Ref Payment",l."Ref Loan",l."Ref Business Expense",l."Ref Settlement")));
+SELECT row_to_json(j) FROM (SELECT jobname,schedule,active,database,md5(command) command_hash FROM cron.job ORDER BY jobid) j;
+SELECT json_build_object('bad_system_source_duplicates',count(*)) FROM (SELECT "Source Type","Source Key" FROM "Cash Ledger" WHERE "Entry Origin"='System' GROUP BY 1,2 HAVING count(*)>1) q;
+SELECT row_to_json(t) FROM (SELECT "Row ID","Movement Date","Movement Type","Amount","Ref From Cash Holder","Ref To Cash Holder","Entry Origin","Source Type","Notes" FROM "Cash Ledger" WHERE "Notes" LIKE 'R005 GUI synthetic%' ORDER BY "Created At") t;
+SELECT row_to_json(b) FROM "Cash Holder Balances" b ORDER BY "Ref Cash Holder";
+SELECT row_to_json(t) FROM (SELECT s."Row ID",s."Ref Partner",s."Status",s."Amount"::numeric,s."Transfer Date",s."Notes",l."Row ID" AS cash_id,l."Amount" AS cash_amount,l."Movement Date",l."Ref From Cash Holder",l."Ref To Cash Holder" FROM "Settlements" s LEFT JOIN "Cash Ledger" l ON l."Ref Settlement"=s."Row ID" WHERE s."Notes" LIKE 'R005 GUI synthetic%') t;
+SELECT row_to_json(t) FROM (SELECT "Row ID","Expense Date","Amount","Payee Name","Ref Paid By Cash Holder","Partner A Expense","Partner B Expense" FROM "Business Expenses" WHERE "Payee Name" LIKE 'R005 GUI SYNTHETIC%' ORDER BY "Created At") t;
+SELECT row_to_json(t) FROM (SELECT e."Row ID",e."Expense Category",e."Amount"::numeric,e."Ref Paid By Cash Holder",e."Partner A Expense"::numeric,e."Partner B Expense"::numeric,l."Row ID" AS cash_id,l."Amount" AS cash_amount,l."Ref From Cash Holder",l."Ref To Cash Holder" FROM "Business Expenses" e LEFT JOIN "Cash Ledger" l ON l."Ref Business Expense"=e."Row ID" AND l."Entry Origin"='System' WHERE e."Payee Name" LIKE 'R005 GUI SYNTHETIC%' OR e."Ref Related Loan" IN (SELECT "Row ID" FROM "Loans" WHERE "Loan Arrangement" LIKE 'R005 GUI synthetic%')) t;
+SELECT row_to_json(t) FROM (SELECT "Row ID","Loan Date","Principal Amount"::numeric,"Ref Borrowers","Loan Status","Loan Arrangement" FROM "Loans" WHERE "Loan Arrangement" LIKE 'R005 GUI synthetic%') t;
+SELECT row_to_json(t) FROM (SELECT p."Row ID",p."Payment Date",p."Amount Received"::numeric,p."Status",p."Allocation Method",p."Ref Received By Cash Holder",p."Ref Borrower" FROM "Payments" p WHERE p."Ref Borrower" IN (SELECT "Ref Borrowers" FROM "Loans" WHERE "Loan Arrangement" LIKE 'R005 GUI synthetic%')) t;
+SELECT json_build_object('payment',p."Row ID",'allocation_hash',(SELECT md5(coalesce(jsonb_agg(to_jsonb(a) ORDER BY a."Row ID")::text,'[]')) FROM "Payment Allocations" a WHERE a."Ref Payment"=p."Row ID"),'repayment_hash',(SELECT md5(coalesce(jsonb_agg(to_jsonb(r) ORDER BY r."Row ID")::text,'[]')) FROM "Repayments" r WHERE r."Ref Payment"=p."Row ID")) FROM "Payments" p WHERE p."Ref Borrower" IN (SELECT "Ref Borrowers" FROM "Loans" WHERE "Loan Arrangement" LIKE 'R005 GUI synthetic%');
+SELECT row_to_json(t) FROM (SELECT "Row ID","Movement Type","Amount","Ref From Cash Holder","Ref To Cash Holder","Entry Origin","Source Type","Source Key" FROM "Cash Ledger" WHERE "Ref Loan" IN (SELECT "Row ID" FROM "Loans" WHERE "Loan Arrangement" LIKE 'R005 GUI synthetic%') OR "Ref Payment" IN (SELECT "Row ID" FROM "Payments" WHERE "Ref Borrower" IN (SELECT "Ref Borrowers" FROM "Loans" WHERE "Loan Arrangement" LIKE 'R005 GUI synthetic%'))) t;
+SELECT json_build_object('holder_count',count(*),'balance_mismatch_count',count(*) FILTER(WHERE b."Current Balance" IS DISTINCT FROM coalesce((SELECT sum("Amount") FROM "Cash Ledger" WHERE "Ref To Cash Holder"=b."Ref Cash Holder"),0)-coalesce((SELECT sum("Amount") FROM "Cash Ledger" WHERE "Ref From Cash Holder"=b."Ref Cash Holder"),0))) FROM "Cash Holder Balances" b;
+'@ | & (Join-Path (Get-PgBin) 'psql.exe') -X -q -t -A -v ON_ERROR_STOP=1 -h $target.host -U $target.user -d $target.database
+ if($LASTEXITCODE){throw 'R005 DEV readback failed'}
+}finally{foreach($name in $prior.Keys){[Environment]::SetEnvironmentVariable($name,$prior[$name],'Process')}}

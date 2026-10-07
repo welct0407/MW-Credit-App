@@ -5,3 +5,5 @@ $env:CLOUDSDK_PYTHON='C:/Users/ideaadmin/.cache/codex-runtimes/codex-primary-run
 Write-Output 'MW Credit development toolchain selected. No secret values loaded.'
 
 $env:PATH='C:/Users/MWCredit/AppData/Local/AppSheetLoanTools/postgresql-18.6-3/pgsql/bin;C:/Users/MWCredit/AppData/Local/AppSheetLoanTools/flyway-13.6.0;'+$env:PATH
+
+$env:MW_DB_TOOL_ROOT='C:/Users/MWCredit/AppData/Local/AppSheetLoanTools'
