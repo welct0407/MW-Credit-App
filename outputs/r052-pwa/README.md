@@ -4,7 +4,7 @@
 
 Date: 7 October 2026, Asia/Bangkok.
 
-Status: Checkpoint 2E canonical DEV install/update controls, public-only offline fallback and themed mobile bottom navigation are deployed. Source848750a passed CI37702097252 and six focused worker/browser cases; Hosting6a5b8f75b50f4537 is live. Independent unsigned delivery checks passed: exact worker/assets and public-only cache on canonical desktop/mobile, no worker on fallback. Custom domain HTTPS and owner sign-in/read/refresh validation are complete. API00009-5x5, database and access permissions are unchanged. Native OS installation and owner PWA review remain pending. R052 is Open; Phase2 is incomplete.
+Status: Checkpoint 2E Collection load-completion refinement: C reproduced a delayed-read scroll reset; the one-file UI fix aligns on initial navigation instead. Six focused regression cases passed; sourcebb3ac5c passed CI37704697997 and Hostingb11661ef7a7a3d77 is deployed. Final unsigned canonical/fallback artifact and worker checks passed; rollback6a5b8f75b50f4537 retains a valid PWA worker. Owner confirmed iPhone Safari home-screen installation; the scroll fix needs owner recheck, and offline/update acceptance remains open. API00009-5x5, database, DNS and permissions are unchanged. R052 remains Open; Phase2 is incomplete.
 
 ## Scope
 
@@ -127,4 +127,4 @@ Checkpoint2C Collection board and borrower-scoped charge reads are implemented/t
 
 ## Checkpoint 2E — canonical DEV PWA
 
-[Design](checkpoint-2e-design.md) · [Owning log](../../Change%20Logs/CHANGE_NOTES_R052_PWA_FOUNDATION_2026-10-08.md) · [App verification](https://github.com/welct0407/MW-Credit-App/tree/codex/r052-review-shell/outputs/r052-pwa-install) · [Worker-aware recovery](https://github.com/welct0407/MW-Credit-App/blob/codex/r052-review-shell/docs/Development_PWA_Delivery.md). Prior Hostingccb0af261babf04b is pre-worker and cannot alone retire an installed worker. Synthetic actual-worker rollback/retirement passed; native installation and owner review remain distinct.
+[Design](checkpoint-2e-design.md) · [Owning log](../../Change%20Logs/CHANGE_NOTES_R052_PWA_FOUNDATION_2026-10-08.md) · [App verification](https://github.com/welct0407/MW-Credit-App/tree/codex/r052-review-shell/outputs/r052-pwa-install) · [Worker-aware recovery](https://github.com/welct0407/MW-Credit-App/blob/codex/r052-review-shell/docs/Development_PWA_Delivery.md). Prior Hostingccb0af261babf04b is pre-worker and cannot alone retire an installed worker. Synthetic actual-worker rollback/retirement passed; iPhone Safari installation is now owner-confirmed; offline/update and scroll-fix recheck remain distinct.
