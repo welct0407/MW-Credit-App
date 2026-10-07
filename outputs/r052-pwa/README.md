@@ -4,7 +4,7 @@
 
 Date: 7 October 2026, Asia/Bangkok.
 
-Status: Checkpoint2D DEV custom domain dev-lm.mw-credit.com in progress: Terraform Hosting mapping and Firebase authorized hostname applied; exact-origin API source8385614 passed CI37660003633, deployed as00009-5x5 with paired JSON allowlist. Existing web.app and Hostingdacf7a53b31f09b0 remain fallback. Token privately provisioned; Terraform created only the required CNAME/ACME TXT and preserved all12prior records. Public DNS resolves; Firebase certificate/ownership verification and real owner custom-host login remain pending. No database/access/scaling change; R052 Open, Phase2 incomplete.
+Status: Checkpoint2C workspace trim: removes visible update timestamp/About/footer and wide date-refresh row, shortens orange header/logo to60px desktop/56px mobile. Exact source dcf4b606 published;8affected browser cases and final managed-config build passed. CI37664554957 attempt2 passed after bounded installer recovery without source changes; Hostingccb0af261babf04b deployed, rollbackdacf7a53b31f09b0. Final signed-out desktop/mobile EN/Thai smoke passed; owner visual review pending. API00009-5x5 unchanged. Owner deferred custom-domain certificate work; no DNS/TLS checks in this slice. R052 Open, Phase2 incomplete.
 
 ## Scope
 

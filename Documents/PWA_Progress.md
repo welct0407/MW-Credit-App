@@ -2,7 +2,7 @@
 
 **Last updated:** 8 October 2026 (Asia/Bangkok)
 
-**Current position:** R052 is Open. Owner accepted the compact mobile header/navigation. Checkpoint2D is preparing dev-lm.mw-credit.com: managed Hosting mapping and exact-origin API are deployed; Terraform DNS is applied and public records resolve; Firebase certificate/ownership and real custom-host sign-in remain pending. The existing DEV URL continues working; Phase2 remains incomplete.
+**Current position:** R052 is Open. The owner accepted compact mobile navigation and requested a UI-only workspace trim: remove visible timestamp/About/footer and the wide date/refresh row, and shorten the header/logo. The trim is tested and deployed on existing DEV Hosting; final signed-out desktop/mobile EN/Thai smoke passed; owner visual review is pending. Domain certificate work is explicitly deferred; prior pending status remains unverified. Existing DEV URL and API remain available; Phase2 is incomplete.
 
 [Open DEV app](https://mw-credit-app-dev-737787224638.web.app) · [Detailed roadmap](PWA_Implementation_Plan.md) · [Checkpoint evidence](../outputs/r052-pwa/README.md)
 
@@ -42,9 +42,9 @@ Launch order: **1 → 2 → 3/4 → 5 → 6 → 8 → 9 → 10 → 11 → 12**. 
 ## Review needed and what comes next
 
 - **Owner acceptance:** compact mobile header and mobile/desktop navigation accepted on 8 October ("looks good. carry on"). This does not establish full Phase2 or broader financial/performance acceptance.
-- **Next checkpoint:** finish Terraform-managed DNS and HTTPS for dev-lm.mw-credit.com, verify both-origin boundaries and ask the owner to sign in/refresh/read on the custom host. The existing web.app address remains fallback.
+- **Next checkpoint:** review the deployed shorter header/logo and removed workspace chrome on the existing DEV URL. Domain certificate work remains deferred by the owner; revisit later without treating its prior pending state as a fresh observation.
 - **Remaining planning work:** close Phase 1 feature/parity and acceptance gaps alongside agreed slices. Production readiness and financial workflows follow the roadmap dependencies, not completion of this UI review alone.
-- **Current blockers:** token provisioning is complete and Terraform DNS applied; Firebase certificate/ownership verification is pending before custom-host browser/owner validation. Future five frequent views remain undecided.
+- **Current blockers:** owner visual review pending for the workspace trim; final unsigned desktop/mobile EN/Thai smoke passed. Exact-source CI passed after one unchanged-source installer retry. Domain certificate verification remains deliberately deferred.
 
 ## Evidence and session updates
 
