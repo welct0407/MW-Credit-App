@@ -38,9 +38,6 @@ jobs:
       - name: Deploy API artifact
         run: gcloud run services update mw-credit-app-api-dev --project=clever-oasis-508610-n7 --region=asia-southeast1 --image="$IMAGE" --quiet
       - name: Verify private API
-        run: |
-          URL=$(gcloud run services describe mw-credit-app-api-dev --project=clever-oasis-508610-n7 --region=asia-southeast1 --format='value(status.url)')
-          TOKEN=$(gcloud auth print-identity-token --impersonate-service-account=mw-credit-app-deploy@clever-oasis-508610-n7.iam.gserviceaccount.com --audiences="$URL")
-          curl --fail --silent --show-error -H "Authorization: Bearer $TOKEN" "$URL/readyz"
+        run: node scripts/verify-dev.mjs
       - name: Deploy synthetic development page
         run: node scripts/deploy-hosting.mjs

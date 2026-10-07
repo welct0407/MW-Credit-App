@@ -21,3 +21,5 @@ GitHub CI/deployment verification and final publication evidence will be recorde
 GitHub CI run 37583863169 passed. The first deployment was correctly rejected because GitHub uses an immutable OIDC subject containing numeric IDs; the Terraform condition was corrected to the verified immutable subject without widening repository, branch or environment access. Runtime environment guards now also execute at startup.
 
 The second delivery run successfully authenticated and pushed the image, then revealed that gcloud image describe requests unrelated Container Analysis access. Delivery now uses Docker's pushed repository digest directly; no broader cloud permissions were added.
+
+GitHub successfully deployed the API in run 37584371808. The probe's gcloud self-impersonation attempted an unnecessary second access-token grant; verification now calls generateIdToken directly with the existing scoped OpenID-token permission.
