@@ -167,6 +167,10 @@
     - "Net-off at Disbursement"
     "schemaVersion3and4": "Bank Transfer retained unchanged"
     "dataModelImpact": "No table/column/enum change; existing governed engine behavior retained"
+    "schemaVersion6":
+    - "Bank Transfer"
+    - "Cash"
+    - "Net-off at Disbursement"
   "command_contract_v6":
     "status": "DEV V82 active"
     "contract": "schemaVersion6 canonical exact principal/interest allocations and residual snapshots; whole-baht totals and\
@@ -177,17 +181,17 @@
       \ Revised amount/borrower/scope needs later native correction workflow."
 "evidence":
   "/content/status":
-    "reference": "outputs/r052-pwa/phase4-completion-batch.md"
-    "reason": "Verified compatible V80 v3/v4 unified receiving; existing guarded definer ownership/ACL retained; PROD reference\
-      \ untouched"
+    "reference": "Change Logs/CHANGE_NOTES_R052_UNIFIED_RECEIVING_2026-10-08.md"
+    "reason": "Actual bounded DEV82 catalog capture and exact maintenance restoration; compatible v3-v5 and authoritative\
+      \ separate v6 engine retained; PROD unchanged"
     "state": "value"
   "/content/observedAt":
-    "reference": "outputs/r052-pwa/phase4-completion-batch.md"
-    "reason": "Verified compatible V80 v3/v4 unified receiving; existing guarded definer ownership/ACL retained; PROD reference\
-      \ untouched"
+    "reference": "Change Logs/CHANGE_NOTES_R052_UNIFIED_RECEIVING_2026-10-08.md"
+    "reason": "Actual bounded DEV82 catalog capture and exact maintenance restoration; compatible v3-v5 and authoritative\
+      \ separate v6 engine retained; PROD unchanged"
     "state": "value"
   "/content/catalog_observation":
-    "reference": "outputs/r052-pwa/phase4-completion-batch.md"
-    "reason": "Verified compatible V80 v3/v4 unified receiving; existing guarded definer ownership/ACL retained; PROD reference\
-      \ untouched"
+    "reference": "Change Logs/CHANGE_NOTES_R052_UNIFIED_RECEIVING_2026-10-08.md"
+    "reason": "Actual bounded DEV82 catalog capture and exact maintenance restoration; compatible v3-v5 and authoritative\
+      \ separate v6 engine retained; PROD unchanged"
     "state": "value"
