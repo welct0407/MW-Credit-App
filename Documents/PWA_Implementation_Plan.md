@@ -133,12 +133,12 @@ This phase does not claim completed application sign-in, financial permissions, 
 - Preserve receiving-channel semantics, rounding, dates, original rates and source tracing. Use the current unified receiving engine where applicable.
 - Add durable request IDs, payload validation, conflict handling, status lookup after timeout, and a safe retry/reconciliation experience. A pending or unknown result must never appear as posted.
 - Complete payment Notes and authorized Uploaded Receipt upload/read support, including manual-versus-agent evidence rules. These capabilities are required before the first live financial workflow is complete; each individual input remains optional under the current dictionary. Protected Receipt Image is separate. Manual upload must not silently create another payment or start OCR.
-- Capture actor/audit information and committed-event handling for this slice. Prove necessary effects for API-originated writes rather than assuming AppSheet bots will fire.
+- Capture the verified actor and original command/outcome in the immutable journal; prove financial effects and recovery for API-originated writes. Owner correction, 8 October 2026: actual notification delivery remains Phase 8; this batch adds no notification schema, bot, API credential or dispatcher.
 - Implement offline viewing/drafts for this flow; reconnect, refresh and explicitly confirm online. Never automatically post an offline draft.
 
 **Deliverables:** one complete, recoverable DEV payment flow usable from mobile and desktop.
 
-**Exit criteria:** success, rejection, duplicate retry, uncertain response, permission denial, AppSheet/PWA contention, receipt access and notification/event ownership tests pass. Financial results reconcile to the established SQL behavior.
+**Exit criteria:** success, rejection, duplicate retry, uncertain response, permission denial, AppSheet/PWA contention, receipt access and committed actor/journal audit tests pass. Notification delivery is deferred to Phase 8 by the owner, not counted as a Phase 4 pass. Financial results reconcile to the established SQL behavior.
 
 ## Phase 5 Complete OLTP
 

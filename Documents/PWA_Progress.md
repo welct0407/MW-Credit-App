@@ -2,7 +2,7 @@
 
 **Last updated:** 8 October 2026 (Asia/Bangkok)
 
-**Current position:** R052 is Open. Checkpoint 4G DEV activation and bounded real-owner receiving proof passed: DEV V79, stable full application capability, guarded command IAM membership, separate immutable service and selected-charge PWA are active. The owner uploaded the approved synthetic PNG and confirmed once; one Posted journal/payment, two allocations/repayments, paid charges and a closed loan reconcile to synthetic cash out 2 / cash in 2 / net zero. Authenticated receipt GET/render, exact GCS generation/hash/bindings and all six existing affected table fingerprints passed. Full exact-source CI and private recovery/authority cleanup passed. PROD remains V77 and unchanged. Owner acceptance, all receiving paths, event delivery and full phase completion remain separate.
+**Current position:** R052 is Open. The complete Phase 4 receiving candidate is deployed in DEV on V80 with normal pinned-owner access, unified receiving, results/history, manual receipts/Notes and durable viewed-data/drafts. Through the owner-authenticated session, C executed one approved synthetic 2-baht payment: one Posted journal/payment, two allocations/repayments, closed loan/paid charges and dedicated account cash out 2 / cash in 2 / net zero. Receipt rendering/hash/bindings, Notes CAS and unrelated-row fingerprints passed. Actual offline restart/reconnect retained drafts without automatic posting; navigation/initialization refinement is independently tested and deployed. Full exact-source CI, private recovery and restored temporary privileges passed. Notifications remain Phase 8, owner acceptance remains separate, and PROD V77 is unchanged.
 
 [Open DEV app](https://dev-lm.mw-credit.com) · [Fallback](https://mw-credit-app-dev-737787224638.web.app) · [Detailed roadmap](PWA_Implementation_Plan.md) · [Checkpoint evidence](../outputs/r052-pwa/README.md)
 
@@ -19,10 +19,10 @@
 | Owner-only Google sign-in and borrower reads | Checkpoint 2A tested, deployed and owner-validated; actual owner identity pinned |
 | Related loan list/detail and presentation refinements | Implemented, tested and deployed; neutral surfaces, grouping, readable labels and wider desktop details await final owner visual acceptance |
 | Collection board, charge detail and Upcoming Charges | Tested/deployed with full-width compact header, expandable navigation and bounded first-page Upcoming previews. Owner visual/perceived-speed review pending |
-| DEV selected-charge receiving | Deployed with real-owner synthetic 2-baht Posted/receipt proof; server restricts posting to reviewed fixture, broader parity and owner acceptance remain open |
+| DEV receiving | Normal pinned-owner mode is deployed; Single Full / Receive all / Selected Charges are unified. Controlled actual receiving/results/receipt/Notes/offline proof passed; owner hands-on acceptance remains open |
 | Sign-in survives refresh | Implemented, tested and deployed; owner confirmed real sign-in persists after refresh. Browser reopening and cross-tab logout were tested with the actual SDK and synthetic identities, not the owner's live session |
 
-Business records are fetched afresh and kept in memory. Financial posting is deployed only for the reviewed synthetic fixture; offline records/drafts, full receiving parity and full loan management are not delivered.
+Online review fetches current business records. Owner-scoped viewed records and unsent drafts can be retained offline for up to 24 hours; they are stale/read-only for financial posting. Reconnect is explicit and does not automatically submit. Full loan management remains Phase 5.
 
 ## Overall roadmap
 
@@ -32,7 +32,7 @@ Business records are fetched afresh and kept in memory. Financial posting is dep
 | 1 | Full feature coverage, contracts and acceptance criteria | In progress; initial checkpoints accepted, full parity inventory still open |
 | 2 | Secure application foundation and first read flows | In progress; 2A complete, 2B/2C delivered, 2D domain owner-validated, 2E installed PWA, 2F search delivered and visibility fix owner-accepted; 2G error tracing tested, deployed and owner-accepted |
 | 3 | Production infrastructure and delivery readiness | Not started |
-| 4 | First complete financial workflow in DEV | 4A/4B accepted; 4C–4F candidates verified. 4G DEV V79/command/PWA deployed; real-owner synthetic receiving and receipt proof passed. Full parity, event delivery and owner acceptance remain open |
+| 4 | First complete financial workflow in DEV | DEV V80 and normal pinned-owner receiving deployed; unified parity, results/history, Notes/manual receipts, journal audit and offline drafts verified. Implemented, tested and deployed; owner acceptance separate. Actual notification delivery remains Phase 8 |
 | 5 | Complete mobile/desktop OLTP, including full loan management | Not started |
 | 6 | Complete desktop OLAP management | Not started |
 | 7 | Metabase integration/reporting enhancements | Deferred until after production go-live; not a launch prerequisite |
@@ -48,14 +48,14 @@ Launch order: **1 → 2 → 3/4 → 5 → 6 → 8 → 9 → 10 → 11 → 12**. 
 **Domain and scrolling status, 8 October 2026:** dev-lm.mw-credit.com is active and owner-validated for sign-in, Borrowers/Collection reads and refresh persistence. Fixed header and independent desktop scrolling are implemented/tested; retain the recorded limits of physical-device and browser acceptance. [Scope](PWA_Implementation_Plan.md#phase-2-secure-application-foundation).
 
 - **Owner acceptance:** compact mobile header and mobile/desktop navigation accepted on 8 October ("looks good. carry on"). This does not establish full Phase 2 or broader financial/performance acceptance.
-- **Next checkpoint:** owner review of the deployed selected-charge receiving flow, followed by agreed receiving-parity/event-delivery work. Normal borrowers remain read-only; posting stays restricted to the retained reviewed synthetic fixture. Stable application capability is active for planned OLTP/OLAP, so feature-by-feature permission revisits are superseded.
+- **Next checkpoint:** owner hands-on validation of normal DEV receiving at the linked app, including unified choices, financial result/history, receipt/Notes and offline saved drafts. Phase 4 implementation/testing/deployment is recorded separately from owner acceptance. Notifications remain Phase 8; stable full application capability remains active without per-feature grants.
 - **Remaining planning work:** close Phase 1 feature/parity and acceptance gaps alongside agreed slices. Production readiness and financial workflows follow the roadmap dependencies, not completion of this UI review alone.
-- **Current verification:** 23 unique local named cases and exact-source full Development/Database CI, maintained Test-CI and actual container smoke passed. Actual DEV V79/role cleanup, IAM bootstrap, health 200/anonymous 401 and final Terraform no-op passed. Real-owner PNG upload/authenticated GET/render and exactly one 2-baht Confirm passed; final journal/financial/hash/binding/preservation readbacks reconcile. Live after-Posted replay/status has no supported UI control and was not exercised. Prior AppSheet mapping proof is reused unchanged; no new editor audit, new AppSheet render or production readiness is claimed.
+- **Current verification:** independent financial, real SDK/worker offline/browser and true nonsuperuser V79→V80 maintenance success/failure/drift checks passed. Full backend Development/Database CI and final frontend Development CI passed; maintained Test-CI, container smoke, actual DEV80 exact privilege restoration and final Terraform no-op passed. One controlled owner-authenticated synthetic payment, receipt/Notes and final deployed read-only offline/navigation reconcile with no duplicate. Live after-Posted replay was not forced; focused status/retry proof is retained. Existing AppSheet mapping is reused; no new AppSheet render or production readiness claim.
 
 **Team update, 8 October 2026:** A remains Astra High and supplies an executable test plan with each design; B remains Astra Medium. Replacement C and D workers use GPT-6.1 Sol Medium. C executes A's plan, records failures/evidence, retests fixes and escalates ambiguities or missing coverage to A; D retains infrastructure, miscellaneous execution, documentation and authorized publication. The previous C/D workers are superseded. [Team assignments](PWA_Orchestration.md) · [Governance change record](../Change%20Logs/CHANGE_NOTES_PWA_TEAM_GOVERNANCE_2026-10-08.md). This governance update changes no product checkpoint, acceptance or deployment status.
 
 ## Evidence and session updates
 
-[Current delivery batch and exact evidence](../outputs/r052-pwa/checkpoint-4g-batch.md) · [4G change record](../Change%20Logs/CHANGE_NOTES_R052_DEV_COMMAND_ACTIVATION_2026-10-08.md) · [Design and tests](../outputs/r052-pwa/checkpoint-4g-design-and-test-plan.md) · [Release status](Release_Tracker.md) · [Team and closeout rule](PWA_Orchestration.md)
+[Current delivery batch and exact evidence](../outputs/r052-pwa/phase4-completion-batch.md) · [Phase 4 change record](../Change%20Logs/CHANGE_NOTES_R052_PHASE4_COMPLETION_2026-10-08.md) · [Design and tests](../outputs/r052-pwa/phase4-completion-design-and-test-plan.md) · [Release status](Release_Tracker.md) · [Team and closeout rule](PWA_Orchestration.md)
 
 This is the single current owner-facing progress overview. At every development-session closeout, update this page's date, completed/tested/deployed/accepted distinctions, current review, next checkpoint, blockers and evidence links. Keep detailed history in the linked change records and roadmap; do not create competing progress trackers.
