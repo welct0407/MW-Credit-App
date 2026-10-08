@@ -9,12 +9,12 @@
   },
   "verification": {
     "status": "documented",
-    "source": "outputs/r052-pwa/checkpoint-4g-batch.md",
-    "coverage": "bounded live DEV V79 catalog readback; no business rows"
+    "source": "https://github.com/welct0407/MW-Credit-App/blob/codex/r052-review-shell/outputs/r052-phase5-completion/live-catalog.json",
+    "coverage": "Bounded live DEV83 affected metadata/readiness; earlier catalog_observation retains its dated DEV79 evidence, no business rows"
   },
   "content": {
     "release": "R052",
-    "status": "DEV activated; bounded real-owner synthetic receipt/posting verified; PROD V77 unchanged",
+    "status": "DEV83 active; journal v2 generalization and exact privilege restoration verified; PROD77 unchanged",
     "observedAt": "2026-10-08T08:07:28.315Z",
     "catalog_observation": {
       "roles": [
@@ -1635,6 +1635,16 @@
       ],
       "futureObjectPolicy": "maintained DEV post-migrate reconciler; protected journal/governance carveouts; no automatic owner elevation",
       "productionIsolation": "no PROD object grant applied; no claim PUBLIC CONNECT is absent"
+    },
+    "v83_readiness": {
+      "observedAt": "2026-10-08T22:24:57.915Z",
+      "violations": 0,
+      "newProtectedSignatures": [
+        "public.pwa_submit_operation_v2(text)",
+        "public.pwa_operation_status_v2(uuid,text,text)"
+      ],
+      "roleScope": "Existing stable capability/owner; no new role or feature grant",
+      "operatorRestoration": "Exact original selected-grantor options and schema privilege restored; all other entries unchanged before COMMIT"
     }
   }
 }

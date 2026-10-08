@@ -5029,6 +5029,16 @@
       "lookup": []
     },
     {
+      "file": "development/postgresql/r052-command/public-create-first-day-charge.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "routine",
+      "name": "public.create_first_day_charge(text)",
+      "scope": "development:R052-command",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "development/postgresql/r052-command/public-guard-pwa-explicit-payment-v6.yaml",
       "system": "postgresql",
       "component": "loan_manager_dev",
@@ -5044,6 +5054,26 @@
       "component": "loan_manager_dev",
       "kind": "routine",
       "name": "public.guard_pwa_payment_commands_immutable()",
+      "scope": "development:R052-command",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/postgresql/r052-command/public-payment-crud-finish.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "routine",
+      "name": "public.payment_crud_finish()",
+      "scope": "development:R052-command",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/postgresql/r052-command/public-payment-crud-prepare.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "routine",
+      "name": "public.payment_crud_prepare()",
       "scope": "development:R052-command",
       "status": "documented",
       "lookup": []
@@ -5089,11 +5119,31 @@
       "lookup": []
     },
     {
+      "file": "development/postgresql/r052-command/public-pwa-operation-status-v2.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "routine",
+      "name": "public.pwa_operation_status_v2(uuid,text,text)",
+      "scope": "development:R052-command",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "development/postgresql/r052-command/public-pwa-payment-commands.yaml",
       "system": "postgresql",
       "component": "loan_manager_dev",
       "kind": "relation",
       "name": "public.pwa_payment_commands",
+      "scope": "development:R052-command",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/postgresql/r052-command/public-pwa-submit-operation-v2.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "routine",
+      "name": "public.pwa_submit_operation_v2(text)",
       "scope": "development:R052-command",
       "status": "documented",
       "lookup": []
