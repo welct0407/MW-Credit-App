@@ -4,7 +4,7 @@
 
 Date: 8 October 2026, Asia/Bangkok.
 
-Status: Checkpoint4A local first-receiving design/prototype and full-V77 synthetic rehearsal passed12 focused database cases, four browser scenarios and maintained Test-CI. Owner review is pending; no live payment endpoint, cloud deployment or new schema/privilege is activated. Checkpoint2G and installed-iPhone offline/reconnect are owner-accepted; native update remains unobserved. R052 and full Phase1/2/4 remain open.
+Status: Checkpoint4A local first-receiving design/prototype and full-V77 synthetic rehearsal passed12 focused database cases, four browser scenarios and maintained Test-CI. Owner visually accepted the synthetic Selected Charges flow; notes/manual receipt support and all seven receiving-channel parity remain required completion gaps. No live payment endpoint, cloud deployment or new schema/privilege is activated. Checkpoint2G and installed-iPhone offline/reconnect are owner-accepted; native update remains unobserved. R052 and full Phase1/2/4 remain open.
 
 ## Scope
 

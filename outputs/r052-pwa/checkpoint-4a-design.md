@@ -68,3 +68,13 @@ SQL posting does not prove AppSheet bots execute. For 4A, events are explicitly 
 ## Stop point
 
 Publish source and sanitized local transaction/browser evidence, show the owner the synthetic flow and unknown-outcome recovery, report the concrete durability/event gaps and update overall progress. Stop for review. Do not call this a completed financial workflow or Phase 2 closure. The next proposed checkpoint can implement/rehearse the approved durable command boundary; actual DEV financial activation is a separate scoped decision.
+
+## Owner visual acceptance and missing parity — 8 October 2026
+
+The owner says the demonstrated Selected Charges flow looks fine. Treat this as local4A interaction acceptance only. The owner correctly identified that Notes and receipt upload are absent. They are required PWA capabilities with optional per-payment inputs;4A must not be described as a complete receiving feature.
+
+The owning [seven-path and field coverage matrix](feature-baseline.md#seven-receiving-paths-and-field-coverage--owner-clarification-8-october-2026) now enumerates all seven operational entries, exact recorded labels, SQL allocation mapping, phase/status and Notes/manual-versus-agent receipt requirements. The other six remain planned Phase5 entry/lifecycle work on the Phase4 foundation; First-day Auto also needs Phase8 event ownership. The prototype implements only Selected Charges, not the separate Payment Method dimension.
+
+Next scoped Phase4 refinement should add optional Notes to input/review/result and canonical replay identity, plus a clearly labelled local receipt selection/attachment rehearsal and existing V52 metadata/no-reposting tests. This is a proposal, not an instruction to mutate code in this planning turn. Existing private GCS must be reused later with an explicit environment/path/auth/upload-recovery contract; no new resources/schema/access or live writes are authorized here. Actual uploads are not complete merely because a local file picker is shown.
+
+Do not make fields mandatory, revive dormant first-day automation, silently add all seven commands, or advance phase completion. Durable command journal/event ownership gaps remain; progress and the next concrete review must show them together with field parity.

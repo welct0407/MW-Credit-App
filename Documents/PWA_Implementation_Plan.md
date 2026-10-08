@@ -2,7 +2,7 @@
 
 **[Overall progress: completed, current review and next steps](PWA_Progress.md)** — updated at every development-session closeout.
 
-**R052 checkpoint4A, 8 October 2026:** Checkpoint4A is a local-only first-receiving design/prototype and full-V77 synthetic transaction rehearsal, verified with 12/12 full-V77 focused cases, four browser scenarios and the maintained Test-CI run. Checkpoint2G is owner-accepted, and installed-iPhone offline/reconnect is owner-confirmed; native update activation remains unobserved. Live API00012-99g/Hostingff1c9ce9a4bfedf2 and permissions are unchanged. No live financial workflow, new journal schema or event delivery is activated; R052 and full Phase1/2 remain open. [Design](../outputs/r052-pwa/checkpoint-4a-design.md).
+**R052 checkpoint4A, 8 October 2026:** Checkpoint4A has scoped owner visual acceptance for the synthetic Selected Charges flow, with notes/manual receipt support still missing. It is a local-only first-receiving design/prototype and full-V77 synthetic transaction rehearsal, verified with 12/12 full-V77 focused cases, four browser scenarios and the maintained Test-CI run. Checkpoint2G is owner-accepted, and installed-iPhone offline/reconnect is owner-confirmed; native update activation remains unobserved. Live API00012-99g/Hostingff1c9ce9a4bfedf2 and permissions are unchanged. No live financial workflow, new journal schema or event delivery is activated; R052 and full Phase1/2 remain open. [Design](../outputs/r052-pwa/checkpoint-4a-design.md).
 
 **R052 checkpoint 2A, 7 October 2026:** Checkpoint 2A live DEV Google sign-in and Borrowers read is owner-validated: owner reported successful list/detail reads; actual verified Google UID is pinned in managed Secret Manager version 1, read revision00003-pzr. Independent signed-out desktop/mobile, static health and denial checks passed. App source20358d1 includes the tested cold-start test-tooling correction; final CI37615986417 passed. Checkpoint 2A is complete. Phase 2 remains incomplete and the team stops at this checkpoint; no next slice, production, financial, schema or AppSheet change. [Evidence](../outputs/r052-pwa/README.md).
 
@@ -132,7 +132,7 @@ This phase does not claim completed application sign-in, financial permissions, 
 - Implement an agreed collection/payment flow through existing canonical SQL: select borrower/charges and account, validate eligibility, submit, confirm the committed result and show allocations, cash effects and history.
 - Preserve receiving-channel semantics, rounding, dates, original rates and source tracing. Use the current unified receiving engine where applicable.
 - Add durable request IDs, payload validation, conflict handling, status lookup after timeout, and a safe retry/reconciliation experience. A pending or unknown result must never appear as posted.
-- Integrate authorized receipt upload/read and manual-versus-agent evidence rules. Manual file upload must not silently create another payment or start OCR.
+- Complete payment Notes and authorized Uploaded Receipt upload/read support, including manual-versus-agent evidence rules. These capabilities are required before the first live financial workflow is complete; each individual input remains optional under the current dictionary. Protected Receipt Image is separate. Manual upload must not silently create another payment or start OCR.
 - Capture actor/audit information and committed-event handling for this slice. Prove necessary effects for API-originated writes rather than assuming AppSheet bots will fire.
 - Implement offline viewing/drafts for this flow; reconnect, refresh and explicitly confirm online. Never automatically post an offline draft.
 
@@ -144,12 +144,15 @@ This phase does not claim completed application sign-in, financial permissions, 
 
 **Objective:** implement every current operational capability on mobile and desktop.
 
-Deliver borrower search/create/edit/detail, notes/preferences and related records; all three loan types and their lifecycle commands; charges and collections; every current receiving mode; payments, allocations, repayments, permitted source corrections and deletion requests; receipt handling; upcoming charges; expenses/rebates; operational cash views/statements; preferences and current report/export entry points.
+Deliver borrower search/create/edit/detail, notes/preferences and related records; all three loan types and their lifecycle commands; charges and collections; all seven current receiving modes (P09–P15), each with its own parity evidence; payments, allocations, repayments, permitted source corrections and deletion requests; receipt handling; upcoming charges; expenses/rebates; operational cash views/statements; preferences and current report/export entry points.
 
 Preserve currently approved correction behavior, including R051 source/history reconciliation, reimbursement handling and opening attribution. Do not substitute blanket edit/delete rules for the actual business contracts. Never expose unrestricted accounting-table editing.
 
 Finish offline dataset boundaries, visible freshness, drafts, attachment handling, sign-out cleanup, installation and safe application updates across the supported real devices. Preserve drafts and request IDs through updates and connection loss.
 
+**Receiving parity — all seven are required:** P09 Single Full (รับชำระ), P10 Single Partial (รับชำระบางส่วน), P11 Receive All (รับชำระทั้งหมด), P12 Lump Sum (รับชำระรวม), P13 First-day Auto (eligible loan-creation path, not a newly verified menu action), P14 Loan Close (ปิดยอดเงินกู้), and P15 Selected Charges (รับชำระรายการที่เลือก). Checkpoint4A validates only a local synthetic P15 flow; it does not complete any live channel or replace the other six. See the [source-grounded baseline and checkpoint map](../outputs/r052-pwa/feature-baseline.md).
+
+Payment notes/manual receipt evidence are required completion capabilities, not optional roadmap enhancements. Preserve optional Notes/Uploaded Receipt inputs, Uploaded Receipt At semantics, protected Receipt Image/Receipt Received At ownership, and AppSheet-compatible receipt references. Existing SQL-relative file paths and normalized GCS keys require a proven reference adapter; do not blindly replace one with the other.
 **Deliverables:** feature-complete OLTP candidate and populated parity evidence.
 
 **Exit criteria:** every required mobile OLTP row and its desktop equivalent passes permission, financial and UI tests. The system correctly distinguishes online confirmation, pending operations and unsent drafts. Integration-dependent exits remain explicitly open until Phase 8 rather than being declared complete early.
@@ -311,7 +314,7 @@ The final review must establish all of the following:
 - The cutover runbook covers old-client sync drain, access controls, rollback triggers and stabilization.
 - No unresolved required-feature, financial-integrity, access-control or recovery blocker remains.
 
-**Current implementation task:** Checkpoint4A local first-receiving prototype and disposable V77 rehearsal. No live payment endpoint or financial execution; publish synthetic evidence and stop for owner review.
+**Current implementation task:** Checkpoint4A local first-receiving prototype and disposable V77 rehearsal. No live payment endpoint or financial execution; synthetic flow visually accepted; next design must cover durable commands/events and required notes/manual receipt support, followed by all seven channel parity.
 
 ## Borrower-field parity inventory after checkpoint 2B feedback
 

@@ -2,7 +2,7 @@
 
 **Last updated:** 8 October 2026 (Asia/Bangkok)
 
-**Current position:** R052 is Open. Checkpoint2G is owner-accepted; installed-iPhone offline/reconnect is owner-confirmed, while native update activation remains unobserved. Checkpoint4A local first-receiving design/prototype and disposable V77 rehearsal passed 12 focused database cases, four browser scenarios and the maintained database verification. A fresh synthetic local preview is ready for owner review; no live financial workflow or cloud deployment is activated. Full Phase1/2 and Phase4 completion are not claimed.
+**Current position:** R052 is Open. Checkpoint2G is owner-accepted; installed-iPhone offline/reconnect is owner-confirmed, while native update activation remains unobserved. Checkpoint4A local first-receiving design/prototype and disposable V77 rehearsal passed 12 focused database cases, four browser scenarios and the maintained database verification. The owner visually accepted the synthetic Selected Charges flow and identified required seven-channel, notes and receipt-upload parity gaps; no live financial workflow or cloud deployment is activated. Full Phase1/2 and Phase4 completion are not claimed.
 
 [Open DEV app](https://dev-lm.mw-credit.com) · [Fallback](https://mw-credit-app-dev-737787224638.web.app) · [Detailed roadmap](PWA_Implementation_Plan.md) · [Checkpoint evidence](../outputs/r052-pwa/README.md)
 
@@ -31,7 +31,7 @@ Business records are fetched afresh and kept in memory. Offline records/drafts, 
 | 1 | Full feature coverage, contracts and acceptance criteria | In progress; initial checkpoints accepted, full parity inventory still open |
 | 2 | Secure application foundation and first read flows | In progress; 2A complete, 2B/2C delivered, 2D domain owner-validated, 2E installed PWA, 2F search delivered and visibility fix owner-accepted; 2G error tracing tested, deployed and owner-accepted |
 | 3 | Production infrastructure and delivery readiness | Not started |
-| 4 | First complete financial workflow in DEV | Checkpoint4A local design/rehearsal tested; owner review pending, no live financial workflow activated |
+| 4 | First complete financial workflow in DEV | Checkpoint4A synthetic Selected Charges flow visually accepted; required notes/upload and durable command/event work remain; no live financial workflow activated |
 | 5 | Complete mobile/desktop OLTP, including full loan management | Not started |
 | 6 | Complete desktop OLAP management | Not started |
 | 7 | Metabase integration/reporting enhancements | Deferred until after production go-live; not a launch prerequisite |
@@ -47,9 +47,9 @@ Launch order: **1 → 2 → 3/4 → 5 → 6 → 8 → 9 → 10 → 11 → 12**. 
 **Domain and scrolling status, 8 October 2026:** dev-lm.mw-credit.com is active and owner-validated for sign-in, Borrowers/Collection reads and refresh persistence. Fixed header and independent desktop scrolling are implemented/tested; retain the recorded limits of physical-device and browser acceptance. [Scope](PWA_Implementation_Plan.md#phase-2-secure-application-foundation).
 
 - **Owner acceptance:** compact mobile header and mobile/desktop navigation accepted on 8 October ("looks good. carry on"). This does not establish full Phase2 or broader financial/performance acceptance.
-- **Next checkpoint:** review the synthetic selected-charge confirmation and unknown-outcome status flow. Decide the durable command identity/tombstone and committed-event ownership design before any live payment endpoint; any new journal schema or live financial test needs its scoped approval.
+- **Next checkpoint:** complete Selected Charges Notes and a labelled local receipt-selection/attachment rehearsal with V52 metadata/no-reposting tests, alongside durable command identity/event design. Precise GCS access and AppSheet-compatible reference integration must precede live upload. All seven receiving channels remain required parity: Single Full, Single Partial, Receive All, Lump Sum, First-day Auto, Loan Close and Selected Charges. Follow the [grounded checkpoint map](../outputs/r052-pwa/feature-baseline.md); new journal schema and live financial tests require scoped approval.
 - **Remaining planning work:** close Phase 1 feature/parity and acceptance gaps alongside agreed slices. Production readiness and financial workflows follow the roadmap dependencies, not completion of this UI review alone.
-- **Current blockers:** no blocker to the local rehearsal review. Mutable/deletable receipt rows do not provide durable original-payload replay protection; the memory journal is only a simulation. Event delivery ownership and native update acceptance remain open.
+- **Current blockers:** the local synthetic flow is visually accepted. Mutable/deletable receipt rows do not provide durable original-payload replay protection; the memory journal is only a simulation. Event delivery ownership and native update acceptance remain open.
 
 ## Evidence and session updates
 
