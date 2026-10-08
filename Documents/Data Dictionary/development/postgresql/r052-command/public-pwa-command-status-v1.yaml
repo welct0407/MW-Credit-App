@@ -1,0 +1,30 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "postgresql",
+    "component": "loan_manager_dev",
+    "kind": "routine",
+    "name": "public.pwa_command_status_v1(uuid,text,text)",
+    "scope": "development:R052-command"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r052-pwa/checkpoint-4g-batch.md",
+    "coverage": "bounded live DEV V79 catalog readback; no business rows"
+  },
+  "content": {
+    "release": "R052",
+    "status": "DEV activated; bounded real-owner synthetic receipt/posting verified; PROD V77 unchanged",
+    "observedAt": "2026-10-08T08:07:28.189Z",
+    "catalog_observation": {
+      "signature": "pwa_command_status_v1(uuid,text,text)",
+      "owner": "mw_app_dev_journal_owner",
+      "security_definer": true,
+      "settings": [
+        "search_path=pg_catalog, public"
+      ],
+      "acl": "{mw_app_dev_journal_owner=X/mw_app_dev_journal_owner,mw_app_dev=X/mw_app_dev_journal_owner}",
+      "definition": "CREATE OR REPLACE FUNCTION public.pwa_command_status_v1(request_id uuid, actor_issuer text, actor_subject text)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\r\nDECLARE r public.pwa_payment_commands%ROWTYPE; matches integer;\r\nBEGIN\r\n IF current_database() NOT IN ('loan_manager_dev','payment_rehearsal') OR NOT pg_has_role(session_user,'mw_app_dev','MEMBER') THEN RAISE EXCEPTION USING ERRCODE='42501',MESSAGE='Application session required';END IF;\r\n SELECT * INTO r FROM public.pwa_payment_commands p WHERE p.request_id=$1 AND p.actor_issuer=$2 AND p.actor_subject=$3;\r\n IF NOT FOUND THEN RETURN jsonb_build_object('kind','unresolved'); END IF;\r\n SELECT count(*) INTO matches FROM public.\"Partners\" WHERE lower(btrim(\"Login Email\"))=r.actor_login_email;\r\n IF matches<>1 OR NOT EXISTS(SELECT 1 FROM public.\"Partners\" WHERE \"Row ID\"=r.actor_partner_id AND lower(btrim(\"Login Email\"))=r.actor_login_email) THEN\r\n  RAISE EXCEPTION USING ERRCODE='42501',MESSAGE='Current actor mapping required';\r\n END IF;\r\n RETURN jsonb_build_object('kind','recorded','originalOutcome',jsonb_build_object('status',r.outcome,'paymentId',r.payment_id,'code',r.rejection_code,'recordedAt',to_char(r.recorded_at AT TIME ZONE 'UTC','YYYY-MM-DD\"T\"HH24:MI:SS.MS\"Z\"')));\r\nEND $function$\n"
+    }
+  }
+}

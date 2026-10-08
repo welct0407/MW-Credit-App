@@ -1,5 +1,7 @@
 # Ecosystem data dictionary
 
+**R052 DEV V79, 8 October 2026:** five bounded [DEV-only PostgreSQL objects](development/postgresql/r052-command/) document the command journal, immutable guard, two owner-held command routines and stable application capability/memberships from actual catalog readback. Production definitions remain V77. AppSheet definitions are unchanged. [Activation and verification state](../../outputs/r052-pwa/checkpoint-4g-batch.md).
+
 R051 production closure:42 affected AppSheet objects and65 PostgreSQL objects (51 routines,14 relations) are reconciled from saved production AppDoc and read-only V77 metadata. All91 R051 DEV overlays are closed and retained as dated evidence; the retired trial stays explicitly rejected. [Production evidence](../../outputs/r051-production/README.md) · [Dated DEV delta](DEV_R051_CRUD.md).
 
 **R026 partial-state notice, 24 September:** database pg_cron retirement and export lifecycle are updated. App records from the earlier audit have not been fully reconciled after the partial OLAP upgrade and DEV Daily Analytics regeneration. Use the [owner-directed closure](../../outputs/r026-dictionary-fixes/closure.md) for actual versions, remaining locale/schema differences and verification limits; do not treat older app records as current verified truth for those affected properties.

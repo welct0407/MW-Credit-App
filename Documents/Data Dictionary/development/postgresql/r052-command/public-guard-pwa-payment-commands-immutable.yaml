@@ -1,0 +1,30 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "postgresql",
+    "component": "loan_manager_dev",
+    "kind": "routine",
+    "name": "public.guard_pwa_payment_commands_immutable()",
+    "scope": "development:R052-command"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r052-pwa/checkpoint-4g-batch.md",
+    "coverage": "bounded live DEV V79 catalog readback; no business rows"
+  },
+  "content": {
+    "release": "R052",
+    "status": "DEV activated; bounded real-owner synthetic receipt/posting verified; PROD V77 unchanged",
+    "observedAt": "2026-10-08T08:07:28.182Z",
+    "catalog_observation": {
+      "signature": "guard_pwa_payment_commands_immutable()",
+      "owner": "postgres",
+      "security_definer": false,
+      "settings": [
+        "search_path=pg_catalog, public"
+      ],
+      "acl": "{postgres=X/postgres,mw_app_dev=X/postgres}",
+      "definition": "CREATE OR REPLACE FUNCTION public.guard_pwa_payment_commands_immutable()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\r\nBEGIN\r\n RAISE EXCEPTION USING ERRCODE='55000',MESSAGE='Payment command outcomes are immutable';\r\nEND $function$\n"
+    }
+  }
+}

@@ -5019,6 +5019,56 @@
       "lookup": []
     },
     {
+      "file": "development/postgresql/r052-command/dev-application-capability.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "settings",
+      "name": "R052 DEV application capability",
+      "scope": "development:R052-command",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/postgresql/r052-command/public-guard-pwa-payment-commands-immutable.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "routine",
+      "name": "public.guard_pwa_payment_commands_immutable()",
+      "scope": "development:R052-command",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/postgresql/r052-command/public-pwa-command-status-v1.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "routine",
+      "name": "public.pwa_command_status_v1(uuid,text,text)",
+      "scope": "development:R052-command",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/postgresql/r052-command/public-pwa-payment-commands.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "relation",
+      "name": "public.pwa_payment_commands",
+      "scope": "development:R052-command",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/postgresql/r052-command/public-pwa-submit-selected-charges-v1.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "routine",
+      "name": "public.pwa_submit_selected_charges_v1(text)",
+      "scope": "development:R052-command",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "development/r027/oltp-borrower-payment-health-v1.yaml",
       "system": "postgresql",
       "component": "loan_manager_dev",
