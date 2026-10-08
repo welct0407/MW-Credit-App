@@ -1,4 +1,12 @@
-# R052 checkpoint 4E evidence
+# R052 checkpoint 4F evidence
+
+Combined stable DEV application capability, guarded journal/API and receipt candidate verification passed: 23 focused integration and 3 recovery-validation cases, plus maintained database CI. [A design and executable plan](../r052-pwa/checkpoint-4f-design-and-test-plan.md) · [D infrastructure and receipt authority](infra-authority-4f.md) · [4F change record](../../Change%20Logs/CHANGE_NOTES_R052_DEV_APPLICATION_CAPABILITY_2026-10-08.md).
+
+Actual bounded synthetic manual receipt compatibility and recovery passed; separate command Terraform identity validates with default disabled. Final candidate evidence has 26 unique named cases; valid-input integration is explicitly reused after the narrow recovery-input fix. [Maintained database CI](database-ci-4f.json) passed separately. Live DEV/PROD remain V77; no live grants, migration, command deployment or event activation. The app repository owns receipt/test evidence. Synthetic upload timestamp exception and CLI/auth limitations remain explicit.
+
+[Published candidate source ff6caa8](https://github.com/welct0407/MW-Credit-App/commit/ff6caa8b9d9ff1e9b98abba17717893a01ee5661) · [Independent 4F verification](https://github.com/welct0407/MW-Credit-App/blob/ff6caa8b9d9ff1e9b98abba17717893a01ee5661/outputs/r052-payment-command-api/independent-verification-4f.json) · [Actual receipt compatibility](https://github.com/welct0407/MW-Credit-App/blob/ff6caa8b9d9ff1e9b98abba17717893a01ee5661/outputs/r052-payment-command-api/receipt-compatibility-4f.json). Exact-source GitHub Development and Database checks passed; [source CI record](source-ci-4f.json).
+
+## Historical checkpoint 4E evidence
 
 Local candidate verification is complete for owner review: 22/22 API cases, 5/5 pure contracts and separate maintained database CI passed. No live deployment, schema, grants, GCS or notification change. Recorded DEV/PROD remain V77; immutable V78 is disposable-only.
 

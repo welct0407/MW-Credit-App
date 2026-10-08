@@ -1,0 +1,28 @@
+{
+  "checkpoint": "4F",
+  "source_commit": "ff6caa8b9d9ff1e9b98abba17717893a01ee5661",
+  "repository": "welct0407/MW-Credit-App",
+  "status": "passed",
+  "workflows": [
+    {
+      "name": "Development checks",
+      "run_id": 37735870561,
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/welct0407/MW-Credit-App/actions/runs/37735870561"
+    },
+    {
+      "name": "Database migrations",
+      "run_id": 37735870595,
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/welct0407/MW-Credit-App/actions/runs/37735870595"
+    }
+  ],
+  "scope": "Exact published candidate source. Development checks include source/build/audit/browser/Terraform; database runner guards and Windows disposable rebuild passed. Final closure edits are evidence/docs only.",
+  "limitations": [
+    "Focused26case local evidence remains separate from remote workflow totals",
+    "No live command-role provisioning, migrations, cloud deployment or authenticated PWA receipt transport claim",
+    "Linux parity prerequisite source edit not runtime-executed in this checkpoint"
+  ]
+}

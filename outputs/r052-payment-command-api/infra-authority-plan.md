@@ -1,5 +1,7 @@
 # R052 checkpoint 4E — future DEV command runtime and authority plan
 
+**Superseded authority preference:** The owner’s combined 4F decision replaces this historical per-feature execute-only proposal with stable DEV application capability for planned OLTP/OLAP. Use [the current 4F plan](infra-authority-4f.md); the remainder retains dated 4E reasoning and is not an active narrow-role requirement.
+
 8 October 2026 (Asia/Bangkok). Agent D. Planning only; no Terraform, IAM, database, storage or runtime mutation. Candidate implementation and tests remain local/disposable. A owns the [4E design and executable test plan](../r052-pwa/checkpoint-4e-design-and-test-plan.md) and architectural decisions. A reviewed and agreed the future wrapper/nonlogin-owner direction, with the scope requirements below.
 
 ## Observed source baseline

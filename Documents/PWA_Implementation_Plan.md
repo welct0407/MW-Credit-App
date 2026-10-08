@@ -2,7 +2,7 @@
 
 **[Overall progress: completed, current review and next steps](PWA_Progress.md)** — updated at every development-session closeout.
 
-**R052 checkpoint 4E, 8 October 2026:** Checkpoint 4E implements an isolated local command API candidate against disposable V78 PostgreSQL. Final API tests passed 22/22 (19 independent C cases and 3 B cases); pure contracts passed 5/5. Maintained database CI passed separately. The separate future DEV runtime, SQL authority, receipt roundtrip and committed-event plan are documented. Live DEV/PROD remain V77; no migration, runtime grants, financial endpoint activation, GCS or cloud change. R052 remains Open. [Design and test plan](../outputs/r052-pwa/checkpoint-4e-design-and-test-plan.md) · [Authority plan](../outputs/r052-payment-command-api/infra-authority-plan.md).
+**R052 checkpoint 4F, 8 October 2026:** Combined stable DEV application capability, guarded journal/API and AppSheet-compatible receipts are implemented and verified: 23 focused integration and 3 recovery-validation cases, with maintained database CI passing separately. Actual synthetic receipt roundtrip and exact native readback passed, with original reference/protected state restored and authorized synthetic timestamp effect recorded. Separate command identity Terraform validates and defaults disabled. Live DEV/PROD remain V77; no grants, migrations or command deployment. [Design and executable plan](../outputs/r052-pwa/checkpoint-4f-design-and-test-plan.md) · [Infrastructure and receipt authority](../outputs/r052-payment-command-api/infra-authority-4f.md).
 
 **R052 checkpoint 2A, 7 October 2026:** Checkpoint 2A live DEV Google sign-in and Borrowers read is owner-validated: owner reported successful list/detail reads; actual verified Google UID is pinned in managed Secret Manager version 1, read revision00003-pzr. Independent signed-out desktop/mobile, static health and denial checks passed. App source20358d1 includes the tested cold-start test-tooling correction; final CI37615986417 passed. Checkpoint 2A is complete. Phase 2 remains incomplete and the team stops at this checkpoint; no next slice, production, financial, schema or AppSheet change. [Evidence](../outputs/r052-pwa/README.md).
 
@@ -314,7 +314,7 @@ The final review must establish all of the following:
 - The cutover runbook covers old-client sync drain, access controls, rollback triggers and stabilization.
 - No unresolved required-feature, financial-integrity, access-control or recovery blocker remains.
 
-**Current implementation task:** Checkpoint 4E local authenticated command candidate and concrete future authority plan verified; owner review pending. Live remains V77. Runtime deployment/least privilege, receipt integration and event delivery remain separate scope.
+**Current implementation task:** Combined 4F candidate and independent verification plus maintained database checks passed; complete evidence publication, then activate the reviewed DEV role/schema/separate identity and tested runtime package. Stable DEV application capability supersedes the earlier per-feature narrow-role preference; protected governance/journal boundaries remain. Real bounded receipt compatibility is verified, while deployed command identity/transport and event delivery remain open. Live remains V77.
 
 ## Borrower-field parity inventory after checkpoint 2B feedback
 
