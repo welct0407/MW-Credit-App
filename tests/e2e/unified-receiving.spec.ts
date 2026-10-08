@@ -1,0 +1,46 @@
+import {test,expect,type Page} from '@playwright/test';
+import {chooseLanguage} from './live-controls';
+import {spawn,type ChildProcess} from 'node:child_process';
+import {mkdirSync,writeFileSync} from 'node:fs';
+let server:ChildProcess,base:string;
+test.beforeAll(async({},info)=>{const port=6900+info.workerIndex;base=`http://127.0.0.1:${port}`;server=spawn(process.execPath,['--input-type=module','-e',`import {createServer} from 'vite';const s=await createServer({mode:'live-dev',cacheDir:'node_modules/.cache/receiving-ux-${port}',server:{host:'127.0.0.1',port:${port},strictPort:true}});await s.listen();`],{env:{...process.env,VITE_FIREBASE_PROJECT_ID:'clever-oasis-508610-n7',VITE_FIREBASE_AUTH_DOMAIN:'clever-oasis-508610-n7.firebaseapp.com',VITE_FIREBASE_API_KEY:'synthetic-public-key',VITE_FIREBASE_APP_ID:'synthetic-app',VITE_API_ORIGIN:'https://mw-credit-app-read-dev-test.run.app',VITE_COMMAND_API_ORIGIN:'https://mw-credit-app-command-dev-test.run.app',VITE_COMMAND_MODE:'dev-owner-testing'},stdio:'pipe'});await expect.poll(async()=>{try{return(await fetch(base)).status}catch{return 0}},{timeout:20000}).toBe(200)});
+test.afterAll(()=>server?.kill());test.setTimeout(60000);
+const auth=`let listener;const user={uid:'receiving-ux-owner',getIdToken:async()=>'synthetic-bearer'};export const browserLocalPersistence='local',inMemoryPersistence='memory',browserPopupRedirectResolver={};export function initializeAuth(){return {}};export function onAuthStateChanged(a,fn){listener=fn;fn(localStorage.getItem('ux-owner')?user:null);return()=>{}};export class GoogleAuthProvider{setCustomParameters(){}};export async function signInWithPopup(){localStorage.setItem('ux-owner','1');listener(user)};export async function signOut(){localStorage.removeItem('ux-owner');listener(null)};`;
+const borrower={id:'ux-B',displayName:'UX ผู้กู้จำลอง / Synthetic borrower',borrowerDisplayName:'UX ผู้กู้จำลอง / Synthetic borrower',status:'not_paid',amountDue:'520',amountCollected:'0',amountRemaining:'520',hasActiveLoan:true,outstandingPrincipal:'520',totalProfitEarned:'0'};
+const due=Array.from({length:52},(_,i)=>({id:'ux-C'+String(i).padStart(2,'0'),chargeDate:'2026-10-07',loanDisplayKey:'UX loan / เงินกู้จำลอง',amountRemaining:'10',principalRemaining:'8',interestRemaining:'2'}));
+const future=[{id:'ux-F1',chargeDate:'2026-10-09',loanDisplayKey:'Future synthetic loan',amountRemaining:'7'},{id:'ux-F2',chargeDate:'2026-10-09',loanDisplayKey:'Future synthetic loan',amountRemaining:'9'}];
+const draft={ok:true,mode:'dev-owner-testing',scope:'all',businessDate:'2026-10-08',asOf:'2026-10-08T05:00:00Z',borrower:{id:borrower.id,displayName:borrower.displayName},accounts:[{id:'ux-A',label:'Synthetic receiving account'},{id:'ux-A2',label:'Second synthetic account'}]};
+type Fixture={posts:any[];reviewRequests:any[];draftRequests:string[];releaseReview?:()=>void;holdReview:boolean;reviewStatus:number;lost:boolean;readRequests:string[];holdChildren:boolean;holdHistory:boolean;releaseCharges?:()=>void;releaseHistory?:()=>void};
+async function setup(page:Page,holdChildren=false){
+ const state:Fixture={posts:[],reviewRequests:[],draftRequests:[],holdReview:false,reviewStatus:200,lost:false,readRequests:[],holdChildren,holdHistory:false};
+ await page.route('**/deps/firebase_app.js*',r=>r.fulfill({contentType:'text/javascript',body:'export function initializeApp(){return {}}'}));await page.route('**/deps/firebase_auth.js*',r=>r.fulfill({contentType:'text/javascript',body:auth}));
+ await page.route('https://mw-credit-app-read-dev-test.run.app/**',async r=>{const u=new URL(r.request().url());state.readRequests.push(u.pathname+u.search);const charges=u.pathname.endsWith('/charges'),upcoming=u.pathname.endsWith('/upcoming');if(charges&&state.holdChildren)await new Promise<void>(resolve=>state.releaseCharges=resolve);return r.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,source:'dev',businessDate:draft.businessDate,timezone:'Asia/Bangkok',asOf:draft.asOf,items:upcoming?[]:charges?due.slice(0,25).map(x=>({...x,loanId:'ux-L',paymentStatus:'ยังไม่ชำระ',paymentDate:null,totalPaid:'0',receivedToday:'0'})):[borrower],borrower,nextCursor:null,horizonEnd:'2027-01-08',reviewRequired:false})})});
+ await page.route('https://mw-credit-app-command-dev-test.run.app/**',async r=>{
+  const u=new URL(r.request().url()),path=u.pathname;
+  if(path.includes('payment-drafts')){
+   if(path.endsWith('/review')){const b=r.request().postDataJSON();state.reviewRequests.push(b);if(state.holdReview)await new Promise<void>(resolve=>state.releaseReview=resolve);const charges=due.filter(x=>b.allocations.some((line:any)=>line.chargeId===x.id));return r.fulfill({status:state.reviewStatus,contentType:'application/json',body:JSON.stringify(state.reviewStatus===200?{...draft,charges,nextCursor:null,total:String(charges.reduce((n,x)=>n+Number(x.amountRemaining),0))}:{ok:false,code:'selection_unavailable'})}).catch(()=>{})}
+   if(path.endsWith('/select-all'))return r.fulfill({contentType:'application/json',body:JSON.stringify({...draft,charges:due,nextCursor:null,total:'520'})});
+   state.draftRequests.push(u.search);const cursor=Number(u.searchParams.get('cursor')||0),all=[...due,...future];return r.fulfill({contentType:'application/json',body:JSON.stringify({...draft,charges:all.slice(cursor,cursor+25),nextCursor:cursor+25<all.length?String(cursor+25):null})});
+  }
+  if(path.endsWith('/payments')){if(state.holdHistory)await new Promise<void>(resolve=>state.releaseHistory=resolve);return r.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,items:[],nextCursor:null})});}
+  if(r.request().method()==='POST'){state.posts.push(r.request().postDataJSON());if(state.lost)return r.abort('failed');return r.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,kind:'recorded',originalOutcome:{status:'posted',paymentId:'synthetic-ux-payment',code:null,recordedAt:draft.asOf}})})}
+  if(path.endsWith('/result'))return r.fulfill({status:503,contentType:'application/json',body:'{"ok":false}'});
+  return r.fulfill({contentType:'application/json',body:'{"ok":true,"kind":"unresolved","safeToUseNewRequestId":false}'});
+ });
+ await page.goto(base);await expect(page.getByRole('button',{name:/Google/})).toBeVisible();await page.getByRole('button',{name:/Google/}).click();await chooseLanguage(page,'EN');await page.getByRole('button',{name:'Collection',exact:true}).click();await page.locator('.collection-borrower').first().click();await expect(page.getByRole('button',{name:'Receive selected charges',exact:true})).toBeVisible();return state;
+}
+
+test('amount-first manual grid retains edits and returns to Collection after explicit confirmation',async({page},info)=>{
+ const fixture=await setup(page);await page.getByRole('button',{name:'Receive selected charges',exact:true}).click();
+ await page.getByRole('textbox',{name:'Amount received',exact:true}).fill('7');
+ const row=page.locator('.payment-allocation-row').first();await row.getByRole('checkbox').check();
+ await expect(row.getByRole('textbox',{name:/Principal for/})).toHaveValue('5');await expect(row.getByRole('textbox',{name:/Interest for/})).toHaveValue('2');
+ await row.getByRole('textbox',{name:/Principal for/}).fill('7');await row.getByRole('textbox',{name:/Interest for/}).fill('0');
+ await page.getByRole('textbox',{name:'Amount received',exact:true}).fill('9');await expect(row.getByRole('textbox',{name:/Principal for/})).toHaveValue('7');await expect(page.getByRole('button',{name:'Review payment',exact:true})).toBeDisabled();
+ await page.getByRole('textbox',{name:'Amount received',exact:true}).fill('7');await page.getByRole('textbox',{name:'Notes',exact:true}).fill('manual ไทย');
+ await page.locator('.payment-charge-scroll').evaluate(el=>el.scrollTop=0);await page.evaluate(()=>window.scrollTo(0,0));await page.locator('.selected-payment').evaluate(el=>el.scrollTop=0);
+ mkdirSync('outputs/r052-unified-receiving',{recursive:true});for(const width of info.project.name.startsWith('mobile')?[320,390]:[1440]){await page.setViewportSize({width,height:850});await page.evaluate(()=>window.scrollTo(0,0));await page.locator('.selected-payment').evaluate(el=>el.scrollTop=0);await page.locator('.payment-charge-scroll').evaluate(el=>el.scrollTop=0);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await page.screenshot({path:'outputs/r052-unified-receiving/amount-first-'+info.project.name+'-'+width+'.png'});}
+ await page.getByRole('button',{name:'Review payment',exact:true}).click();await expect(page.getByRole('button',{name:'Confirm payment online',exact:true})).toBeEnabled();
+ expect(fixture.posts).toHaveLength(0);await page.getByRole('button',{name:'Confirm payment online',exact:true}).click();await expect(page.getByRole('heading',{name:'Collection borrowers',exact:true})).toBeVisible();
+ expect(fixture.posts).toHaveLength(1);expect(fixture.posts[0]).toMatchObject({schemaVersion:6,amountReceived:'7',notes:'manual ไทย',allocations:[{principal:'7',interest:'0'}]});
+});

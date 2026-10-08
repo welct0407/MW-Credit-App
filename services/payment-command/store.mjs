@@ -2,7 +2,7 @@ import { createDevCommandConnectionGuard } from './dev-target.mjs';
 import {readCommandResult,readBorrowerPaymentHistory} from './result.mjs';
 import { readPaymentDraft, readOwnerPaymentDraft } from './draft.mjs';
 import { applicationConnectionGuard } from './application-target.mjs';
-import { canonicalCommand, canonicalActor, canonicalReceipt, commandIdentity } from '../contracts/payment-command.mjs';
+import { canonicalCommand, canonicalAllocationPlan, canonicalActor, canonicalReceipt, commandIdentity } from '../contracts/payment-command.mjs';
 import { DEV_PROJECT, OWNER_EMAIL } from '../api/dev-read-config.mjs';
 const issuer = `https://securetoken.google.com/${DEV_PROJECT}`;
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -56,7 +56,7 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
           if (candidate.canonicalJson !== existing.canonical_json) return failure(409, 'command_conflict');
         } else {
           if (fixture && (command.borrowerId!==fixture.borrowerId || !fixture.cashAccountIds.includes(command.cashAccountId)
-            || command.selectedChargeIds.some(id=>!fixture.chargeIds.includes(id)))) return failure(403,'access_denied');
+            || (command.schemaVersion===6?command.allocations.map(row=>row.chargeId):command.selectedChargeIds).some(id=>!fixture.chargeIds.includes(id)))) return failure(403,'access_denied');
         }
         if (!existing && command.receiptId !== null) {
           if (typeof resolveReceipt !== 'function') return failure(422, 'receipt_unsupported');
@@ -91,7 +91,27 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
       if(result.nextCursor||result.charges.length>10000)return failure(422,'selection_limit_exceeded');
       return {...result,total:result.charges.reduce((sum,row)=>sum+BigInt(row.amountRemaining),0n).toString()};
     },
+    async autoAssign(principal,borrowerId,input){
+      if(!input||Object.keys(input).join(',')!=='amountReceived'||typeof input.amountReceived!=='string'||!/^[1-9][0-9]{0,16}$/.test(input.amountReceived)||BigInt(input.amountReceived)>92233720368547758n)return failure(400,'invalid_request');
+      const result=await this.draft(principal,borrowerId,{limit:100,all:true});if(!result.ok)return result;
+      if(result.nextCursor||result.charges.length>10000)return failure(422,'selection_limit_exceeded');
+      let remaining=BigInt(input.amountReceived);const allocations=[];
+      for(const row of [...result.charges].sort((a,b)=>b.chargeDate.localeCompare(a.chargeDate)||Buffer.compare(Buffer.from(b.id),Buffer.from(a.id)))){
+        const p=BigInt(row.principalRemaining),i=BigInt(row.interestRemaining),interest=remaining<i?remaining:i;remaining-=interest;const principal=remaining<p?remaining:p;remaining-=principal;
+        if(principal+interest>0n)allocations.push({chargeId:row.id,principal:principal.toString(),interest:interest.toString(),expectedPrincipalRemaining:row.principalRemaining,expectedInterestRemaining:row.interestRemaining,chargeDate:row.chargeDate});
+      }
+      allocations.sort((a,b)=>Buffer.compare(Buffer.from(a.chargeId),Buffer.from(b.chargeId)));
+      return {...result,allocations,amountReceived:input.amountReceived,allocated:(BigInt(input.amountReceived)-remaining).toString(),unallocated:remaining.toString()};
+    },
     async review(principal,borrowerId,input){
+      if(input&&Object.keys(input).sort().join(',')==='allocations,amountReceived'){
+        let allocations;try{allocations=canonicalAllocationPlan(input.amountReceived,input.allocations)}catch{return failure(400,'invalid_request')}
+        const result=await this.draft(principal,borrowerId,{selectedChargeIds:allocations.map(row=>row.chargeId),limit:100,scope:'all'});if(!result.ok)return result;
+        const changed=result.charges.length!==allocations.length||allocations.some(line=>{const row=result.charges.find(row=>row.id===line.chargeId);return !row||row.chargeDate!==line.chargeDate||row.principalRemaining!==line.expectedPrincipalRemaining||row.interestRemaining!==line.expectedInterestRemaining});
+        if(changed)return {...failure(409,'plan_changed'),charges:result.charges,businessDate:result.businessDate};
+        return {...result,allocations,total:input.amountReceived,nextCursor:null};
+      }
+
       if(!input||!['selectedChargeIds','allocationMethod,selectedChargeIds'].includes(Object.keys(input).sort().join(','))||!Array.isArray(input.selectedChargeIds)||!input.selectedChargeIds.length||input.selectedChargeIds.length>10000||new Set(input.selectedChargeIds).size!==input.selectedChargeIds.length||input.selectedChargeIds.some(id=>typeof id!=='string'||!id||/[\s,]/u.test(id)||Buffer.byteLength(id)>256))return failure(400,'invalid_request');
       const method=input.allocationMethod??'Selected Charges';
       if(!['Selected Charges','Single Full','Receive All'].includes(method)||method==='Single Full'&&input.selectedChargeIds.length!==1)return failure(400,'invalid_request');

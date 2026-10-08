@@ -3,8 +3,9 @@ import {CompactPager,ReceiveIcon} from './CompactPager';
 import {PaymentResult} from './PaymentResult';
 import type {OwnerOfflineRepository} from './owner-offline';
 import React,{useEffect,useRef,useState} from 'react';
-type Draft={nextCursor?:string|null;asOf?:string;businessDate:string;borrower:{id:string;displayName:string};charges:{id:string;chargeDate:string;loanDisplayKey:string;amountRemaining:string}[];accounts:{id:string;label:string}[]};
-type Command={schemaVersion:3|4|5;requestId:string;borrowerId:string;selectedChargeIds:string[];cashAccountId:string;paymentDate:string;amountReceived:string;paymentMethod:'Bank Transfer'|'Cash'|'Net-off at Disbursement';allocationMethod:'Selected Charges'|'Single Full'|'Receive All';notes:string|null;receiptId:string|null};
+type Draft={nextCursor?:string|null;asOf?:string;businessDate:string;borrower:{id:string;displayName:string};charges:{id:string;chargeDate:string;loanDisplayKey:string;amountRemaining:string;principalRemaining:string;interestRemaining:string}[];accounts:{id:string;label:string}[]};
+type Allocation={chargeId:string;principal:string;interest:string;expectedPrincipalRemaining:string;expectedInterestRemaining:string;chargeDate:string};
+type Command={schemaVersion:3|4|5|6;requestId:string;borrowerId:string;selectedChargeIds?:string[];allocations?:Allocation[];cashAccountId:string;paymentDate:string;amountReceived:string;paymentMethod:'Bank Transfer'|'Cash'|'Net-off at Disbursement';allocationMethod?:'Selected Charges'|'Single Full'|'Receive All';notes:string|null;receiptId:string|null};
 type Outcome={status:'posted'|'rejected';paymentId:string|null;code:string|null;recordedAt:string};
 export type CommandAccess={origin:string;fixtureBorrowerId:string;ownerTesting?:boolean;offline?:OwnerOfflineRepository;offlineOnly?:boolean;onPosted?:(requestId:string)=>void;token:()=>Promise<string>;authFailure:(status:number)=>void};
 const pendingKey='mw-credit.pending-command';
@@ -15,20 +16,25 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
  const [state,setState]=useState<'loading'|'edit'|'review'|'sending'|'unknown'|'posted'|'rejected'|'conflict'|'error'>('loading');
  const [error,setError]=useState(''),[receipt,setReceipt]=useState<string|null>(null),[preview,setPreview]=useState<string|null>(null),[uploading,setUploading]=useState(false),[uploadFailed,setUploadFailed]=useState(false);
  const [checking,setChecking]=useState(false),[receiptReadError,setReceiptReadError]=useState(''),[verifiedPreview,setVerifiedPreview]=useState<string|null>(null);
- const confirming=useRef(false),autosaveSuspended=useRef(false);
+ const confirming=useRef(false),autosaveSuspended=useRef(false),legacyDraft=useRef(false);
  const checkOperation=useRef(0),checkingRef=useRef(false);
  const [outcome,setOutcome]=useState<Outcome|null>(null),[checked,setChecked]=useState(false),[storageBlocked,setStorageBlocked]=useState(false);
  const command=useRef<Command|null>(null),requestId=useRef<string>(crypto.randomUUID()),generation=useRef(0),uploadGeneration=useRef(0);
  const [selectionRows,setSelectionRows]=useState<Draft['charges']>([]),[savedAt,setSavedAt]=useState<number|null>(null),[localImage,setLocalImage]=useState<Blob|null>(null);
  const [allMode,setAllMode]=useState(false);
+ const [changedBalances,setChangedBalances]=useState<{operation:number;generation:number;charges:Draft['charges'];businessDate:string}|null>(null),[unavailableLines,setUnavailableLines]=useState<string[]>([]);
+ const [received,setReceived]=useState(''),[allocations,setAllocations]=useState<Allocation[]>([]);
  const [paymentMethod,setPaymentMethod]=useState<Command['paymentMethod']>('Bank Transfer'),[reviewing,setReviewing]=useState(false);
  const reviewOperation=useRef(0),autosaveChain=useRef(Promise.resolve()),autosaveTimer=useRef<ReturnType<typeof setTimeout>|undefined>(undefined);
  const pageCursors=useRef<(string|undefined)[]>([undefined]);const [pageIndex,setPageIndex]=useState(0),[paging,setPaging]=useState(false);
  const [scope,setScope]=useState<'due'|'future'|'all'>('all');
  const allocationMethod=allMode?'Receive All':selected.length===1?'Single Full':'Selected Charges';
  const selectedRows=selectionRows;
- const total=selectedRows.reduce((sum,row)=>sum+BigInt(row.amountRemaining),0n).toString();
- const money=(value:string)=>'฿'+BigInt(value).toLocaleString(thai?'th-TH':'en-US');
+ const integer=(value:string)=>/^(0|[1-9][0-9]{0,16})$/.test(value);
+ const allocated=allocations.reduce((sum,row)=>sum+(integer(row.principal)?BigInt(row.principal):0n)+(integer(row.interest)?BigInt(row.interest):0n),0n);
+ const total=integer(received)?received:'0';
+ const validPlan=integer(received)&&BigInt(total)>0n&&BigInt(total)<=92233720368547758n&&allocated===BigInt(total)&&allocations.length>0&&allocations.length<=10000&&allocations.every(row=>!unavailableLines.includes(row.chargeId)&&integer(row.principal)&&integer(row.interest)&&BigInt(row.principal)+BigInt(row.interest)>0n&&BigInt(row.principal)<=BigInt(row.expectedPrincipalRemaining)&&BigInt(row.interest)<=BigInt(row.expectedInterestRemaining));
+ const money=(value:string)=>typeof value==='string'&&/^-?[0-9]+$/.test(value)?'฿'+BigInt(value).toLocaleString(thai?'th-TH':'en-US'):t('Unavailable','ไม่มีข้อมูล');
  async function call(path:string,init:RequestInit={}) {
   if(access.offlineOnly||!navigator.onLine)throw Error('Offline');
   const done=beginRequest(),controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);
@@ -63,20 +69,32 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
      try{await access.offline?.saveSnapshot(borrowerId,data)}catch{setStorageBlocked(true)}
     }
     if(current!==generation.current)return;setDraft(data);setAccount(saved?.value.account??data.accounts[0]?.id??'');
-    if(saved){setNotes(saved.value.notes);setPaymentMethod(saved.value.paymentMethod??'Bank Transfer');setSelectionRows(saved.value.selectionRows);setSelected(saved.value.selectionRows.map((row:any)=>row.id));setLocalImage(saved.value.image??null);setAllMode(saved.value.allMode===true);setScope('all');if(saved.value.image)setPreview(URL.createObjectURL(saved.value.image));}
+    if(saved){legacyDraft.current=saved.value.formVersion===5||(saved.value.received===undefined&&saved.value.allocations===undefined);setReceived(saved.value.received??'');setAllocations(saved.value.allocations??[]);setNotes(saved.value.notes);setPaymentMethod(saved.value.paymentMethod??'Bank Transfer');setSelectionRows(saved.value.selectionRows);setSelected(saved.value.selectionRows.map((row:any)=>row.id));setLocalImage(saved.value.image??null);setAllMode(saved.value.allMode===true);setScope('all');if(saved.value.image)setPreview(URL.createObjectURL(saved.value.image));}
+    if(saved&&legacyDraft.current&&(saved.value.selectionRows?.length??0)>0){
+     setError(t('Saved selection needs conversion review with current component balances.','รายการที่บันทึกไว้ต้องตรวจสอบการแปลงด้วยยอดเงินต้นและดอกเบี้ยปัจจุบัน'));
+     if(!access.offlineOnly&&navigator.onLine){
+      const ids=saved.value.selectionRows.map((row:any)=>row.id),method=ids.length===1?'Single Full':'Selected Charges';
+      const refreshed=await call('/api/payment-drafts/'+encodeURIComponent(borrowerId)+'/review',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({selectedChargeIds:ids,allocationMethod:method})});
+      if(current!==generation.current)return;
+      if(refreshed.response.ok&&refreshed.data.charges.every((row:any)=>integer(row.principalRemaining)&&integer(row.interestRemaining))){
+       const lines=refreshed.data.charges.map((row:any)=>({chargeId:row.id,principal:row.principalRemaining,interest:row.interestRemaining,expectedPrincipalRemaining:row.principalRemaining,expectedInterestRemaining:row.interestRemaining,chargeDate:row.chargeDate}));
+       setAllocations(lines);setSelectionRows(refreshed.data.charges);setReceived(lines.reduce((sum:bigint,row:Allocation)=>sum+BigInt(row.principal)+BigInt(row.interest),0n).toString());legacyDraft.current=false;
+      }
+     }
+    }
     setState('edit');
    }catch{if(current===generation.current){setError(t('Unable to load payment draft.','ไม่สามารถโหลดร่างการรับชำระได้'));setState('error')}}
   })();
   return()=>{generation.current++;uploadGeneration.current++;};
  },[borrowerId]);
- const latestDraft=useRef({notes,account,selectionRows,selectedChargeIds:selected,allMode,scope,paymentMethod,image:localImage});
- latestDraft.current={notes,account,selectionRows,selectedChargeIds:selected,allMode,scope,paymentMethod,image:localImage};
+ const latestDraft=useRef({formVersion:legacyDraft.current?5:6,notes,account,selectionRows,selectedChargeIds:selected,allMode,scope,paymentMethod,received,allocations,image:localImage});
+ latestDraft.current={formVersion:legacyDraft.current?5:6,notes,account,selectionRows,selectedChargeIds:selected,allMode,scope,paymentMethod,received,allocations,image:localImage};
  useEffect(()=>{
   if(state!=='edit'||command.current||autosaveSuspended.current||!draft||!access.offline)return;
   const current=generation.current;
   autosaveTimer.current=setTimeout(()=>{autosaveChain.current=autosaveChain.current.catch(()=>{}).then(async()=>{if(current!==generation.current||command.current||autosaveSuspended.current)return;await access.offline!.saveDraft(borrowerId,latestDraft.current)}).catch(()=>{if(current===generation.current)setError(t('Draft could not be saved on this device.','บันทึกร่างบนอุปกรณ์นี้ไม่สำเร็จ'))});},400);
   return()=>clearTimeout(autosaveTimer.current);
- },[notes,account,selectionRows,allMode,localImage,paymentMethod,state,draft]);
+ },[notes,account,selectionRows,allMode,localImage,paymentMethod,received,allocations,state,draft]);
  const editable=useRef(false);editable.current=state==='edit'||state==='review';
  useEffect(()=>{
   const saveOnDisconnect=()=>{if(editable.current&&access.offline&&!command.current&&!autosaveSuspended.current)void (autosaveChain.current=autosaveChain.current.catch(()=>{}).then(async()=>{if(!command.current&&editable.current&&!autosaveSuspended.current)await access.offline!.saveDraft(borrowerId,latestDraft.current)})).then(()=>window.dispatchEvent(new Event('mw-offline-saved'))).catch(()=>window.dispatchEvent(new Event('mw-offline-save-failed')));};
@@ -86,20 +104,49 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
  },[access.offline,borrowerId,state]);
  async function discardDraft(){
   if(command.current)return;autosaveSuspended.current=true;clearTimeout(autosaveTimer.current);uploadGeneration.current++;setState('loading');
-  try{await autosaveChain.current;await access.offline?.remove('draft',borrowerId);setSelected([]);setSelectionRows([]);setNotes('');setReceipt(null);setLocalImage(null);setPreview(null);setAllMode(false);setUploading(false);setUploadFailed(false);setError('');}catch{setError(t('The draft could not be cleared.','ล้างร่างไม่สำเร็จ'));}finally{setState('edit')}
+  try{await autosaveChain.current;await access.offline?.remove('draft',borrowerId);setReceived('');setAllocations([]);setUnavailableLines([]);setChangedBalances(null);setSelected([]);setSelectionRows([]);setNotes('');setReceipt(null);setLocalImage(null);setPreview(null);setAllMode(false);setUploading(false);setUploadFailed(false);setError('');}catch{setError(t('The draft could not be cleared.','ล้างร่างไม่สำเร็จ'));}finally{setState('edit')}
  }
  async function refreshSelection(){
   const operation=++reviewOperation.current;
   if(access.offlineOnly||!navigator.onLine)return false;
   if(localImage&&!receipt){setError(t('Upload the saved receipt or explicitly remove it before review.','อัปโหลดหลักฐานที่บันทึกไว้หรือนำออกก่อนตรวจสอบ'));return false;}
   const current=generation.current;
-  try{const {response,data}=await call('/api/payment-drafts/'+encodeURIComponent(borrowerId)+(allMode?'/select-all':'/review'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(allMode?{}:{selectedChargeIds:selected,allocationMethod})});
+  try{const {response,data}=await call('/api/payment-drafts/'+encodeURIComponent(borrowerId)+'/review',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({amountReceived:received,allocations})});
    if(current!==generation.current||operation!==reviewOperation.current)return false;
-   const changed=!response.ok||data.businessDate!==draft?.businessDate||data.charges.length!==selectedRows.length||data.charges.some((row:any)=>selectedRows.find(old=>old.id===row.id)?.amountRemaining!==row.amountRemaining)||!data.accounts.some((row:any)=>row.id===account);
-   if(changed){if(response.ok){setDraft(data);setSelectionRows(data.charges);setSelected(data.charges.map((row:any)=>row.id));}setState('edit');setError(t('The selection changed. Review current amounts and dates again.','รายการเปลี่ยนแปลง กรุณาตรวจสอบยอดและวันที่ปัจจุบันอีกครั้ง'));return false;}return true;
+   if(!response.ok||data.businessDate!==draft?.businessDate||!data.accounts?.some((row:any)=>row.id===account)){
+    if(data.code==='plan_changed'&&Array.isArray(data.charges))setChangedBalances({operation,generation:current,charges:data.charges,businessDate:data.businessDate});
+    setState('edit');setError(t('The allocation plan changed. Refresh balances and review each amount again.','แผนรับชำระเปลี่ยน กรุณารีเฟรชยอดและตรวจสอบแต่ละรายการอีกครั้ง'));return false;
+   }return true;
   }catch{if(current!==generation.current||operation!==reviewOperation.current)return false;setState('edit');setError(t('Connect and refresh before reviewing.','เชื่อมต่อและรีเฟรชก่อนตรวจสอบ'));return false;}
  }
- async function selectAll(){if(selectionRows.some(row=>draft&&row.chargeDate>draft.businessDate)){setError(t('Clear the future charge before selecting all due charges.','ล้างรายการอนาคตก่อนเลือกยอดครบกำหนดทั้งหมด'));return;}const current=generation.current;try{const {response,data}=await call('/api/payment-drafts/'+encodeURIComponent(borrowerId)+'/select-all',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});if(current!==generation.current)return;if(!response.ok){setError(data.code==='selection_limit_exceeded'?t('The complete selection exceeds the 10,000-charge technical limit. Nothing has been selected automatically.','รายการทั้งหมดเกินขีดจำกัดทางเทคนิค 10,000 รายการ ระบบไม่ได้เลือกบางส่วนให้อัตโนมัติ'):t('Unable to select all charges.','เลือกรายการทั้งหมดไม่ได้'));return;}setSelectionRows(data.charges);setSelected(data.charges.map((row:any)=>row.id));setAllMode(true);setError('');}catch{setError(t('Connect to select all current charges.','เชื่อมต่อเพื่อเลือกรายการปัจจุบันทั้งหมด'));}}
+ function useCurrentBalances(){
+  if(!changedBalances||command.current||changedBalances.operation!==reviewOperation.current||changedBalances.generation!==generation.current)return;
+  const current=changedBalances;reviewOperation.current++;
+  const unavailable:string[]=[];
+  const next=allocations.map(line=>{const row=current.charges.find(row=>row.id===line.chargeId);if(!row||!integer(row.principalRemaining)||!integer(row.interestRemaining)){unavailable.push(line.chargeId);return line;}return {...line,expectedPrincipalRemaining:row.principalRemaining,expectedInterestRemaining:row.interestRemaining,chargeDate:row.chargeDate};});
+  setAllocations(next);setUnavailableLines(unavailable);setChangedBalances(null);setState('edit');
+  setDraft(old=>old?{...old,businessDate:current.businessDate,charges:old.charges.map(row=>current.charges.find(item=>item.id===row.id)??row)}:old);
+  setError(t('Current balances adopted. Paid amounts are unchanged; resolve unavailable or over-limit lines, then review again.','ใช้ยอดปัจจุบันแล้ว ยอดจัดสรรไม่เปลี่ยน กรุณาแก้ไขรายการที่ใช้ไม่ได้หรือเกินยอด แล้วตรวจสอบอีกครั้ง'));
+ }
+ async function autoAssign(){
+  if(allocations.some(row=>(integer(row.principal)&&BigInt(row.principal)>0n)||(integer(row.interest)&&BigInt(row.interest)>0n))&&!window.confirm(t('Replace the current allocation plan with Auto-assign?','แทนที่แผนจัดสรรปัจจุบันด้วยการจัดสรรอัตโนมัติหรือไม่')))return;
+  if(!integer(received)||BigInt(total)<=0n)return;const current=generation.current,operation=++reviewOperation.current;
+  try{const {response,data}=await call('/api/payment-drafts/'+encodeURIComponent(borrowerId)+'/auto-assign',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({amountReceived:received})});if(current!==generation.current||operation!==reviewOperation.current)return;if(!response.ok)throw Error();legacyDraft.current=false;setUnavailableLines([]);setChangedBalances(null);setAllocations(data.allocations);setSelectionRows(data.charges.filter((row:any)=>data.allocations.some((line:Allocation)=>line.chargeId===row.id)));setSelected(data.allocations.map((line:Allocation)=>line.chargeId));setError('');}catch{if(current===generation.current)setError(t('Unable to auto-assign. Refresh and try again.','จัดสรรอัตโนมัติไม่สำเร็จ กรุณารีเฟรชและลองอีกครั้ง'));}
+ }
+ function editLine(row:Draft['charges'][number],field:'principal'|'interest',value:string){
+  if(!integer(row.principalRemaining)||!integer(row.interestRemaining)){setError(t('Refresh current balances online before editing this saved charge.','รีเฟรชยอดปัจจุบันขณะออนไลน์ก่อนแก้ไขรายการที่บันทึกไว้'));return;}
+  legacyDraft.current=false;reviewOperation.current++;setError('');
+  setAllocations(old=>{const existing=old.find(line=>line.chargeId===row.id)??{chargeId:row.id,principal:'0',interest:'0',expectedPrincipalRemaining:row.principalRemaining,expectedInterestRemaining:row.interestRemaining,chargeDate:row.chargeDate};const next={...existing,[field]:value};return [...old.filter(line=>line.chargeId!==row.id),...(next.principal==='0'&&next.interest==='0'?[]:[next])];});
+  setSelectionRows(old=>old.some(item=>item.id===row.id)?old:[...old,row]);
+ }
+ function toggleLine(row:Draft['charges'][number],checked:boolean){
+  legacyDraft.current=false;reviewOperation.current++;
+  if(!checked){setAllocations(old=>old.filter(line=>line.chargeId!==row.id));return;}
+  if(!integer(row.principalRemaining)||!integer(row.interestRemaining))return;
+  const available=BigInt(total)-allocated;if(available<=0n)return;
+  const interest=available<BigInt(row.interestRemaining)?available:BigInt(row.interestRemaining),rest=available-interest,principal=rest<BigInt(row.principalRemaining)?rest:BigInt(row.principalRemaining);
+  setAllocations(old=>[...old.filter(line=>line.chargeId!==row.id),{chargeId:row.id,principal:principal.toString(),interest:interest.toString(),expectedPrincipalRemaining:row.principalRemaining,expectedInterestRemaining:row.interestRemaining,chargeDate:row.chargeDate}]);setSelectionRows(old=>old.some(item=>item.id===row.id)?old:[...old,row]);
+ }
  async function chargePage(index:number){
   if(paging)return;
   const cursor=index>pageIndex?draft?.nextCursor:pageCursors.current[index];if(index>pageIndex&&!cursor)return;
@@ -127,7 +174,7 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
  async function confirmOnce(){
   if(!navigator.onLine)return;
   if(!command.current && !(await refreshSelection()))return;
-  if(!command.current){if(!draft||BigInt(total)<=0n||uploading||uploadFailed)return;command.current={schemaVersion:5,requestId:requestId.current,borrowerId,selectedChargeIds:[...selected].sort(),cashAccountId:account,paymentDate:draft.businessDate,amountReceived:total,paymentMethod,allocationMethod,notes:notes===''?null:notes,receiptId:receipt};}
+  if(!command.current){if(!draft||!validPlan||uploading||uploadFailed)return;command.current={schemaVersion:6,requestId:requestId.current,borrowerId,allocations:allocations.map(row=>({...row})),cashAccountId:account,paymentDate:draft.businessDate,amountReceived:received,paymentMethod,notes:notes===''?null:notes,receiptId:receipt};}
   clearTimeout(autosaveTimer.current);await autosaveChain.current;
   try{if(access.offline){await access.offline.savePending(requestId.current,command.current);await access.offline.remove('draft',borrowerId)}}catch{setStorageBlocked(true);setState('unknown');setChecked(false);retainPending();setError(t('The original command is locked. Storage could not be completed and no payment was sent by this attempt. Keep the reference, check status, and retry only this same command.','คำขอเดิมถูกล็อก บันทึกในอุปกรณ์ไม่สำเร็จและครั้งนี้ยังไม่ได้ส่งรับชำระ เก็บหมายเลขอ้างอิง ตรวจสอบสถานะ แล้วลองเฉพาะคำขอเดิม'));return;}
   checkOperation.current++;setChecking(false);retainPending();setState('sending');setChecked(false);setError('');const current=generation.current;
@@ -167,9 +214,11 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
 
  {state==='edit'&&draft&&<>
 
- <div className="payment-selection-header"><label title={t('Select all due charges','เลือกยอดครบกำหนดทั้งหมด')}><input type="checkbox" aria-label={t('Select all due charges','เลือกยอดครบกำหนดทั้งหมด')} checked={allMode} ref={node=>{if(node)node.indeterminate=!allMode&&selected.length>0}} disabled={access.offlineOnly} onChange={event=>{if(event.target.checked)void selectAll();else{setAllMode(false);setSelected([]);setSelectionRows([])}}}/></label><output aria-live="polite" aria-label={t('Selected total','ยอดรวมที่เลือก')}>{money(total)}</output><button className="secondary-button icon-action" aria-label={t('Review payment','ตรวจสอบการรับชำระ')} title={t('Review payment','ตรวจสอบการรับชำระ')} disabled={access.offlineOnly||!navigator.onLine||!selected.length||!account||uploading||uploadFailed||new TextEncoder().encode(notes).length>65536||notes.includes('\0')} onClick={()=>void review()}><ReceiveIcon/></button></div>
- <div className="payment-charge-scroll" role="region" tabIndex={0} aria-label={t('Charge selection','เลือกรายการเรียกเก็บ')}>{draft.charges.map((row,index)=>{const future=row.chargeDate>draft.businessDate;return <React.Fragment key={row.id}>{(index===0||(draft.charges[index-1].chargeDate>draft.businessDate)!==future)&&<h4>{future?t('Future charges','รายการยังไม่ครบกำหนด'):t('Due charges','รายการครบกำหนด')}</h4>}<label className="payment-charge-choice"><input type="checkbox" checked={selected.includes(row.id)} onChange={event=>{reviewOperation.current++;if(event.target.checked){if((future&&selected.length>0)||(!future&&selectionRows.some(item=>item.chargeDate>draft.businessDate))){setError(t('Receive a future charge individually. Clear the existing selection first.','รับชำระรายการอนาคตครั้งละหนึ่งรายการ กรุณาล้างรายการที่เลือกก่อน'));return;}if(selected.length>=10000){setError(t('Select at most 10,000 charges.','เลือกได้ไม่เกิน 10,000 รายการ'));return;}setAllMode(false);setSelected(values=>[...values,row.id]);setSelectionRows(values=>[...values,row]);}else{setAllMode(false);setSelected(values=>values.filter(id=>id!==row.id));setSelectionRows(values=>values.filter(item=>item.id!==row.id));}}}/><span className="payment-charge-date">{row.chargeDate}</span><span className="payment-charge-key">{row.loanDisplayKey}</span><strong className="payment-charge-amount">{money(row.amountRemaining)}</strong></label></React.Fragment>})}</div>
- <CompactPager previous={pageIndex>0?()=>void chargePage(pageIndex-1):undefined} next={draft.nextCursor?()=>void chargePage(pageIndex+1):undefined} busy={access.offlineOnly||paging} previousLabel={t('Previous charge page','รายการเรียกเก็บหน้าก่อน')} nextLabel={t('Next charge page','รายการเรียกเก็บหน้าถัดไป')}/>
+ <label className="payment-received-input">{t('Amount received','ยอดรับชำระ')}<input inputMode="numeric" value={received} onChange={event=>{legacyDraft.current=false;reviewOperation.current++;setReceived(event.target.value)}}/></label>
+ <div className="payment-selection-header allocation-summary"><button className="secondary-button" disabled={access.offlineOnly||!navigator.onLine||!integer(received)||BigInt(total)<=0n} onClick={()=>void autoAssign()}>{t('Auto-assign','จัดสรรอัตโนมัติ')}</button><output aria-live="polite"><span>{t('Received','รับชำระ')}<strong>{money(total)}</strong></span><span>{t('Allocated','จัดสรรแล้ว')}<strong>{money(allocated.toString())}</strong></span><span>{t('Remaining','คงเหลือ')}<strong>{money((BigInt(total)-allocated).toString())}</strong></span></output><button className="secondary-button icon-action" aria-label={t('Review payment','ตรวจสอบการรับชำระ')} disabled={access.offlineOnly||!navigator.onLine||!validPlan||!account||uploading||uploadFailed||new TextEncoder().encode(notes).length>65536||notes.includes('\0')} onClick={()=>void review()}><ReceiveIcon/></button></div>
+ {changedBalances&&changedBalances.operation===reviewOperation.current&&changedBalances.generation===generation.current&&!command.current&&<button className="secondary-button" onClick={useCurrentBalances}>{t('Use current balances','ใช้ยอดคงเหลือปัจจุบัน')}</button>}
+ <div className="payment-charge-scroll" role="region" tabIndex={0} aria-label={t('Payment allocation','จัดสรรการรับชำระ')}>{draft.charges.map(row=>{const line=allocations.find(line=>line.chargeId===row.id);return <article className="payment-allocation-row" key={row.id}><div><label><input type="checkbox" aria-label={t('Allocate to ','จัดสรรให้ ')+row.loanDisplayKey+' '+row.chargeDate} checked={!!line} onChange={event=>toggleLine(row,event.target.checked)}/><span>{row.chargeDate}</span></label><strong>{row.loanDisplayKey}</strong>{unavailableLines.includes(row.id)&&<span role="status">{t('Unavailable — remove this allocation before review','รายการใช้ไม่ได้ กรุณานำยอดจัดสรรนี้ออกก่อนตรวจสอบ')}</span>}</div><label>{t('Principal','เงินต้น')} <small>{t('Remaining','คงเหลือ')} {money(row.principalRemaining)}</small><input aria-label={t('Principal for ','เงินต้นสำหรับ ')+row.loanDisplayKey+' '+row.chargeDate} inputMode="numeric" value={line?.principal??'0'} onChange={event=>editLine(row,'principal',event.target.value)}/></label><label>{t('Interest','ดอกเบี้ย')} <small>{t('Remaining','คงเหลือ')} {money(row.interestRemaining)}</small><input aria-label={t('Interest for ','ดอกเบี้ยสำหรับ ')+row.loanDisplayKey+' '+row.chargeDate} inputMode="numeric" value={line?.interest??'0'} onChange={event=>editLine(row,'interest',event.target.value)}/></label></article>})}</div>
+ <CompactPager busy={paging} previous={pageIndex>0?()=>void chargePage(pageIndex-1):undefined} next={draft.nextCursor?()=>void chargePage(pageIndex+1):undefined} previousLabel={t('Previous charge page','หน้ารายการก่อนหน้า')} nextLabel={t('Next charge page','หน้ารายการถัดไป')}/>
  <label>{t('Payment method','วิธีชำระเงิน')}<select value={paymentMethod} onChange={event=>{reviewOperation.current++;setPaymentMethod(event.target.value as Command['paymentMethod'])}}><option value="Bank Transfer">{t('Bank Transfer','โอนเงิน')}</option><option value="Cash">{t('Cash','เงินสด')}</option><option value="Net-off at Disbursement">{t('Net-off at Disbursement','หัก ณ วันที่จ่ายเงินกู้')}</option></select></label>
  <label>{t('Receiving account','บัญชีรับชำระ')}<select value={account} onChange={event=>setAccount(event.target.value)}>{draft.accounts.map(row=><option key={row.id} value={row.id}>{row.label}</option>)}</select></label>
  <label>{t('Notes','หมายเหตุ')}<textarea value={notes} onChange={event=>setNotes(event.target.value)}/></label>
@@ -178,7 +227,7 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
  {localImage&&!receipt&&!access.offlineOnly&&<button className="secondary-button" disabled={uploading} onClick={()=>void upload(new File([localImage],'receipt',{type:localImage.type}))}>{t('Upload saved receipt','อัปโหลดหลักฐานที่บันทึกไว้')}</button>}{preview&&<img className="payment-receipt-preview" src={preview} alt={t('Selected receipt','หลักฐานที่เลือก')}/>}
 
  </>}
- {state==='review'&&draft&&<><p>{draft.borrower.displayName}</p><ul>{selectedRows.map(row=><li key={row.id}>{row.chargeDate} · {money(row.amountRemaining)}</li>)}</ul><p>{t('Amount to receive','ยอดรับชำระ')}: <strong>{money(total)}</strong></p><p>{draft.accounts.find(row=>row.id===account)?.label}</p><p>{draft.businessDate} · {paymentMethod}</p><pre>{notes}</pre>{preview&&<img className="payment-receipt-preview" src={preview} alt={t('Selected receipt','หลักฐานที่เลือก')}/>}<button className="secondary-button" disabled={reviewing} onClick={()=>{reviewOperation.current++;setState('edit')}}>{t('Edit','แก้ไข')}</button><button className="secondary-button" disabled={reviewing||!navigator.onLine} onClick={()=>void confirm()}>{t('Confirm payment online','ยืนยันรับชำระขณะออนไลน์')}</button></>}
+ {state==='review'&&draft&&<><p>{draft.borrower.displayName}</p><ul>{allocations.map(row=><li key={row.chargeId}>{row.chargeDate} · {t('Principal','เงินต้น')} {money(row.principal)} · {t('Interest','ดอกเบี้ย')} {money(row.interest)}</li>)}</ul><p>{t('Amount to receive','ยอดรับชำระ')}: <strong>{money(total)}</strong></p><p>{draft.accounts.find(row=>row.id===account)?.label}</p><p>{draft.businessDate} · {paymentMethod}</p><pre>{notes}</pre>{preview&&<img className="payment-receipt-preview" src={preview} alt={t('Selected receipt','หลักฐานที่เลือก')}/>}<button className="secondary-button" disabled={reviewing} onClick={()=>{reviewOperation.current++;setState('edit')}}>{t('Edit','แก้ไข')}</button><button className="secondary-button" disabled={reviewing||!navigator.onLine} onClick={()=>void confirm()}>{t('Confirm payment online','ยืนยันรับชำระขณะออนไลน์')}</button></>}
 
  {state==='unknown'&&<><h3>{t('Outcome unknown','ยังไม่ทราบผลการรับชำระ')}</h3><p>{t('A missing response does not mean the payment failed. Check the original request.','ไม่ได้รับคำตอบไม่ได้หมายความว่าการรับชำระล้มเหลว ตรวจสอบคำขอเดิม')}</p><button className="secondary-button" disabled={checking||access.offlineOnly||!navigator.onLine} onClick={()=>void check()}>{t('Check status','ตรวจสอบสถานะ')}</button>{command.current&&<button className="secondary-button" disabled={checking||access.offlineOnly||!checked||!navigator.onLine} onClick={()=>void confirm()}>{t('Retry same command','ลองคำขอเดิมอีกครั้ง')}</button>}</>}
  {state==='posted'&&<><h3>{t('Original payment recorded as Posted','บันทึกผลคำขอเดิมว่ารับชำระแล้ว')}</h3>{command.current&&<><p>{draft?.borrower.displayName}</p><p>{t('Amount received','ยอดรับชำระ')}: <strong>{money(command.current.amountReceived)}</strong></p><p>{draft?.accounts.find(row=>row.id===command.current?.cashAccountId)?.label}</p><pre aria-label={t('Notes','หมายเหตุ')}>{command.current.notes}</pre></>}{verifiedPreview&&<img className="payment-receipt-preview" src={verifiedPreview} alt={t('Verified uploaded receipt','หลักฐานที่อัปโหลดและตรวจสอบแล้ว')}/>} {receiptReadError&&<p role="status">{receiptReadError}</p>}</>}{state==='rejected'&&<h3>{t('Original request recorded as rejected','บันทึกผลคำขอเดิมว่าปฏิเสธ')}</h3>}{state==='conflict'&&<h3>{t('Request identity conflict — do not resend changed details','คำขอขัดแย้ง — อย่าส่งรายละเอียดที่เปลี่ยนแล้วซ้ำ')}</h3>}

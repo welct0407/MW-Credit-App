@@ -25,7 +25,31 @@ function freeze(value) {
   if (value && typeof value === 'object') { Object.values(value).forEach(freeze); Object.freeze(value); }
   return value;
 }
+const whole = value => {
+  if (typeof value !== 'string' || !/^(0|[1-9][0-9]{0,16})$/.test(value) || BigInt(value)>92233720368547758n) fail();
+  return value;
+};
+export function canonicalAllocationPlan(amountReceived, input) {
+  whole(amountReceived); if (amountReceived==='0' || !Array.isArray(input) || input.length<1 || input.length>10000) fail();
+  const allocations=Array.from(input,row=>{
+    exact(row,['chargeId','principal','interest','expectedPrincipalRemaining','expectedInterestRemaining','chargeDate']);
+    const chargeId=id(row.chargeId); if (/[,\s]/u.test(chargeId)) fail();
+    const principal=whole(row.principal),interest=whole(row.interest),expectedPrincipalRemaining=whole(row.expectedPrincipalRemaining),expectedInterestRemaining=whole(row.expectedInterestRemaining);
+    if(BigInt(principal)+BigInt(interest)===0n || BigInt(principal)>BigInt(expectedPrincipalRemaining) || BigInt(interest)>BigInt(expectedInterestRemaining)) fail();
+    return {chargeId,principal,interest,expectedPrincipalRemaining,expectedInterestRemaining,chargeDate:date(row.chargeDate)};
+  });
+  if(new Set(allocations.map(row=>row.chargeId)).size!==allocations.length || allocations.reduce((sum,row)=>sum+BigInt(row.principal)+BigInt(row.interest),0n)!==BigInt(amountReceived))fail();
+  allocations.sort((a,b)=>Buffer.compare(Buffer.from(a.chargeId,'utf8'),Buffer.from(b.chargeId,'utf8')));
+  return freeze(allocations);
+}
 export function canonicalCommand(input) {
+  if(input?.schemaVersion===6){
+    exact(input,['schemaVersion','requestId','borrowerId','allocations','cashAccountId','paymentDate','amountReceived','paymentMethod','notes','receiptId']);
+    const allocations=canonicalAllocationPlan(input.amountReceived,input.allocations);
+    if(!['Bank Transfer','Cash','Net-off at Disbursement'].includes(input.paymentMethod) || !(input.notes===null || (typeof input.notes==='string'&&input.notes.isWellFormed()&&!input.notes.includes('\0')&&Buffer.byteLength(input.notes,'utf8')<=65536)))fail();
+    return freeze({schemaVersion:6,requestId:requestId(input.requestId),borrowerId:id(input.borrowerId),allocations,cashAccountId:id(input.cashAccountId),paymentDate:date(input.paymentDate),amountReceived:input.amountReceived,paymentMethod:input.paymentMethod,notes:input.notes===''?null:input.notes,receiptId:input.receiptId===null?null:requestId(input.receiptId)});
+  }
+
   exact(input, ['schemaVersion', 'requestId', 'borrowerId', 'selectedChargeIds', 'cashAccountId', 'paymentDate', 'amountReceived', 'paymentMethod', 'allocationMethod', 'notes', 'receiptId']);
   if (![3, 4, 5].includes(input.schemaVersion) || !Array.isArray(input.selectedChargeIds) || input.selectedChargeIds.length < 1 || input.selectedChargeIds.length > (input.schemaVersion >= 4 ? 10000 : 100)) fail();
   const selectedChargeIds = Array.from(input.selectedChargeIds, value => { const result = id(value); if (/[,\s]/u.test(result)) fail(); return result; });

@@ -33,3 +33,7 @@ if($LASTEXITCODE){throw 'Phase 4 receiving integration checks failed'}
 if($LASTEXITCODE){throw 'Existing-package V80 operator maintenance proof failed'}
 & "$PSScriptRoot/../rehearsal/Run-ApplicationRoleOperatorProof.ps1" -MaintenanceFailureProof
 if($LASTEXITCODE){throw 'Existing-package operator failure cleanup proof failed'}
+
+# Unified amount-first PWA and preserved legacy routes use an owned disposable cluster.
+& "$PSScriptRoot/../../tests/integration/Run-UnifiedReceiving.ps1"
+if($LASTEXITCODE){throw 'Unified receiving integration checks failed'}

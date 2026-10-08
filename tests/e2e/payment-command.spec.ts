@@ -14,7 +14,7 @@ const authMock=`let listener;export const browserLocalPersistence='local';export
 test.use({timezoneId:'America/Los_Angeles'});test.setTimeout(60000);
 
 const borrower={id:'4G-UI-B',displayName:'Synthetic borrower / ผู้กู้จำลอง',status:'not_paid',amountDue:'330',amountCollected:'0',amountRemaining:'330'};
-const draft={ok:true,mode:'synthetic-only',businessDate:'2026-10-08',asOf:'2026-10-08T05:00:00Z',borrower:{id:borrower.id,displayName:borrower.displayName},charges:Array.from({length:100},(_,i)=>({id:'synthetic-charge-'+i,chargeDate:'2026-10-07',loanDisplayKey:'Synthetic loan / เงินกู้จำลอง '+i,amountRemaining:i===0?'110':'220'})),accounts:[{id:'synthetic-account',label:'Synthetic receiving account'}]};
+const draft={ok:true,mode:'synthetic-only',businessDate:'2026-10-08',asOf:'2026-10-08T05:00:00Z',borrower:{id:borrower.id,displayName:borrower.displayName},charges:Array.from({length:100},(_,i)=>({id:'synthetic-charge-'+i,chargeDate:'2026-10-07',loanDisplayKey:'Synthetic loan / เงินกู้จำลอง '+i,amountRemaining:i===0?'110':'220',principalRemaining:i===0?'100':'200',interestRemaining:i===0?'10':'20'})),accounts:[{id:'synthetic-account',label:'Synthetic receiving account'}]};
 async function setup(page:any,empty=false){
  await page.route('**/deps/firebase_app.js*',(r:any)=>r.fulfill({contentType:'text/javascript',body:'export function initializeApp(){return {}}'}));
  await page.route('**/deps/firebase_auth.js*',(r:any)=>r.fulfill({contentType:'text/javascript',body:authMock}));
@@ -24,7 +24,7 @@ async function setup(page:any,empty=false){
 function replyDraft(route:any){
  const path=new URL(route.request().url()).pathname;
  const input=path.endsWith('/review')?route.request().postDataJSON():null;
- const charges=input?draft.charges.filter(row=>input.selectedChargeIds.includes(row.id)):draft.charges;
+ const charges=input?draft.charges.filter(row=>input.allocations.some((line:any)=>line.chargeId===row.id)):draft.charges;
  return route.fulfill({contentType:'application/json',body:JSON.stringify({...draft,charges,total:charges.reduce((sum,row)=>sum+BigInt(row.amountRemaining),0n).toString()})});
 }
 test('G06 bounded list preserves notes, total, scroll and bilingual review at 320/390/desktop',async({page},info)=>{
@@ -32,13 +32,13 @@ test('G06 bounded list preserves notes, total, scroll and bilingual review at 32
  await page.setViewportSize({width,height:850});
  await page.route('https://mw-credit-app-command-dev-test.run.app/**',r=>replyDraft(r));
  await setup(page);await page.locator('.collection-borrower').first().click();await expect(page.getByRole('button',{name:'Receive selected charges'}),await page.locator('body').innerText()).toBeVisible({timeout:8000});await page.getByRole('button',{name:'Receive selected charges'}).click();
- const region=page.getByRole('region',{name:'Charge selection',exact:true});await expect(region.getByRole('checkbox')).toHaveCount(100);
- await region.getByRole('checkbox').first().check();await page.getByRole('textbox',{name:'Notes',exact:true}).fill('Synthetic preserved notes');
+ const region=page.getByRole('region',{name:'Payment allocation',exact:true});await expect(region.getByRole('checkbox')).toHaveCount(100);
+ await page.getByRole('textbox',{name:'Amount received',exact:true}).fill('330');await region.getByRole('checkbox').first().check();await page.getByRole('textbox',{name:'Notes',exact:true}).fill('Synthetic preserved notes');
  await region.evaluate(el=>el.scrollTop=el.scrollHeight);const scroll=await region.evaluate(el=>el.scrollTop);
  await region.getByRole('checkbox').last().check();expect(await region.evaluate(el=>el.scrollTop)).toBe(scroll);
- await expect(page.locator('output')).toHaveText('฿330');await expect(page.getByRole('textbox',{name:'Notes',exact:true})).toHaveValue('Synthetic preserved notes');
+ await expect(page.locator('output')).toContainText('Allocated฿330');await expect(page.getByRole('textbox',{name:'Notes',exact:true})).toHaveValue('Synthetic preserved notes');
  await page.getByRole('button',{name:'Review payment',exact:true}).click();await expect(page.locator('.selected-payment')).toContainText('Synthetic preserved notes');await expect(page.locator('.selected-payment')).toContainText('฿330');
- await page.getByRole('button',{name:'Edit',exact:true}).click();await chooseLanguage(page,'ไทย');await expect(page.getByRole('region',{name:'เลือกรายการเรียกเก็บ'})).toBeVisible();
+ await page.getByRole('button',{name:'Edit',exact:true}).click();await chooseLanguage(page,'ไทย');await expect(page.getByRole('region',{name:'จัดสรรการรับชำระ'})).toBeVisible();
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
  await page.screenshot({path:'outputs/r052-payment-command-api/ui-'+info.project.name+'-'+width+'-th.png',fullPage:true});
  await page.unroute('https://mw-credit-app-command-dev-test.run.app/**');
@@ -54,7 +54,7 @@ test('G07 Unknown exact retry and immutable pending recovery remains accessible 
  statusGets++;await r.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,kind:'unresolved',safeToUseNewRequestId:false})});
  });
  await setup(page);await page.locator('.collection-borrower').first().click();await expect(page.getByRole('button',{name:'Receive selected charges'}),await page.locator('body').innerText()).toBeVisible({timeout:8000});await page.getByRole('button',{name:'Receive selected charges'}).click();
- await page.locator('.payment-charge-choice input').first().check();await page.getByRole('textbox',{name:'Notes',exact:true}).fill('Immutable synthetic note');
+ await page.getByRole('textbox',{name:'Amount received',exact:true}).fill('110');await page.locator('.payment-allocation-row input[type=checkbox]').first().check();await page.getByRole('textbox',{name:'Notes',exact:true}).fill('Immutable synthetic note');
  await page.getByRole('button',{name:'Review payment'}).click();await page.getByRole('button',{name:'Confirm payment online'}).click();
  await expect(page.getByRole('heading',{name:'Outcome unknown'})).toBeVisible();expect(posts).toHaveLength(1);await expect(page.getByRole('button',{name:'Retry same command'})).toBeDisabled();
  await page.evaluate(()=>{const b=Array.from(document.querySelectorAll('button')).find(b=>b.textContent==='Check status')!;b.click();b.click()});await expect.poll(()=>statusGets).toBe(1);await expect(page.getByRole('button',{name:'Retry same command'})).toBeEnabled();
@@ -88,7 +88,7 @@ test('G07 invalid replacement releases upload busy and Posted retains notes desp
  posts++;postedBody=r.request().postDataJSON();await r.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,kind:'recorded',originalOutcome:{status:'posted',paymentId:'synthetic-payment',code:null,recordedAt:'2026-10-08T05:00:00Z'}})});
  });
  await setup(page);await page.locator('.collection-borrower').first().click();await page.getByRole('button',{name:'Receive selected charges'}).click();
- await page.locator('.payment-charge-choice input').first().check();await page.getByRole('textbox',{name:'Notes',exact:true}).fill('Posted synthetic notes');
+ await page.getByRole('textbox',{name:'Amount received',exact:true}).fill('110');await page.locator('.payment-allocation-row input[type=checkbox]').first().check();await page.getByRole('textbox',{name:'Notes',exact:true}).fill('Posted synthetic notes');
  const input=page.locator('input[type=file]');const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jVhQAAAAASUVORK5CYII=','base64');
  await input.setInputFiles({name:'synthetic.png',mimeType:'image/png',buffer:png});await expect.poll(()=>!!releaseUpload).toBe(true);
  await input.setInputFiles({name:'invalid.heic',mimeType:'image/heic',buffer:Buffer.from('invalid')});
@@ -111,7 +111,7 @@ test('G07 pending-reference storage refusal warns and auth loss clears business 
  });
  await setup(page);
  await page.evaluate(()=>{const original=Storage.prototype.setItem;Storage.prototype.setItem=function(key,value){if(this===sessionStorage&&key==='mw-credit.pending-command')throw new DOMException('blocked','SecurityError');return original.call(this,key,value)}});
- await page.locator('.collection-borrower').first().click();await page.getByRole('button',{name:'Receive selected charges'}).click();await page.locator('.payment-charge-choice input').first().check();
+ await page.locator('.collection-borrower').first().click();await page.getByRole('button',{name:'Receive selected charges'}).click();await page.getByRole('textbox',{name:'Amount received',exact:true}).fill('110');await page.locator('.payment-allocation-row input[type=checkbox]').first().check();
  await page.getByRole('button',{name:'Review payment'}).click();await page.getByRole('button',{name:'Confirm payment online'}).click();
  await expect(page.getByText('This browser cannot retain the reference. Copy it before leaving.')).toBeVisible();expect(posts).toBe(1);
  await signOut(page);await expect(page.getByRole('heading',{name:'Sign in to continue',exact:true})).toBeVisible();await expect(page.locator('.selected-payment')).toHaveCount(0);
@@ -123,7 +123,7 @@ test('G07 offline before confirmation clears business draft and never dispatches
  if(r.request().method()==='POST'){posts++;return r.abort('failed')}
  await r.fulfill({contentType:'application/json',body:JSON.stringify(draft)});
  });
- await setup(page);await page.locator('.collection-borrower').first().click();await page.getByRole('button',{name:'Receive selected charges'}).click();await page.locator('.payment-charge-choice input').first().check();
+ await setup(page);await page.locator('.collection-borrower').first().click();await page.getByRole('button',{name:'Receive selected charges'}).click();await page.getByRole('textbox',{name:'Amount received',exact:true}).fill('110');await page.locator('.payment-allocation-row input[type=checkbox]').first().check();
  await page.getByRole('button',{name:'Review payment'}).click();await context.setOffline(true);
  await expect(page.locator('.selected-payment')).toHaveCount(0);await expect(page.getByRole('button',{name:'Confirm payment online'})).toHaveCount(0);
  expect(posts).toBe(0);await context.setOffline(false);expect(posts).toBe(0);
