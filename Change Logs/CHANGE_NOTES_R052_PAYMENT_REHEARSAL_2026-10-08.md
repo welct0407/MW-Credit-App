@@ -11,3 +11,5 @@ Preview: from the app repository run pwsh -NoProfile -File tests/integration/Run
 Recovery: stop the local runner; revert only intended source/docs changes if needed. No live data or service rollback is required. Unrelated PM DNS planning log remains excluded. Native iPhone offline/reconnect is owner-accepted; native update activation remains unobserved. Full Phase1/2 and live financial activation remain open.
 
 Unknown-state UI Retry is disabled pending a conclusive status because the in-memory prototype cannot establish durable safe-to-resend permission. Backend same-identity replay tests remain separate from this UI guard.
+
+Exact source a063234e7fbb32677b6120c6a4b90b4bbfd08b21 passed existing development CI37715911976, independently verified by C. This is separate from the local full-V77 and browser rehearsal evidence. Fresh local preview started for owner review; no live deployment.
