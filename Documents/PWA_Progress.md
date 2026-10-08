@@ -22,7 +22,7 @@
 | DEV receiving | Normal pinned-owner mode is deployed; Single Full / Receive all / Selected Charges are unified. Controlled actual receiving/results/receipt/Notes/offline proof passed; owner hands-on acceptance remains open |
 | Sign-in survives refresh | Implemented, tested and deployed; owner confirmed real sign-in persists after refresh. Browser reopening and cross-tab logout were tested with the actual SDK and synthetic identities, not the owner's live session |
 
-Online review fetches current business records. Owner-scoped viewed records and unsent drafts can be retained offline for up to 24 hours; they are stale/read-only for financial posting. Reconnect is explicit and does not automatically submit. Full loan management remains Phase 5.
+Online review fetches current business records. Authorized offline access and viewed snapshots are bounded to 24 hours. Unsent drafts remain until discard, posting or sign-out; retained drafts do not extend authorization. Offline data is stale/read-only for financial posting. Reconnect is explicit and does not automatically submit. Full loan management remains Phase 5.
 
 ## Overall roadmap
 
