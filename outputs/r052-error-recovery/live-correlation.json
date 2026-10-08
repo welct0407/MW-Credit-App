@@ -1,0 +1,28 @@
+{
+  "request": {
+    "status": 401,
+    "requestId": "abfda770-6698-44ea-89af-aaddac89bd55",
+    "observedAt": "2026-10-08T01:32:04.8760634Z"
+  },
+  "platformLogs": "Separate; no claim that platform request logs omit URLs",
+  "exactSevenFieldSchema": true,
+  "completion": {
+    "jsonPayload": {
+      "code": "sign_in_required",
+      "durationMs": 1,
+      "event": "read_request",
+      "method": "GET",
+      "operation": "borrowers_list",
+      "requestId": "abfda770-6698-44ea-89af-aaddac89bd55",
+      "status": 401
+    },
+    "resource": {
+      "labels": {
+        "revision_name": "mw-credit-app-read-dev-00012-99g"
+      }
+    },
+    "timestamp": "2026-10-08T01:32:04.851102Z"
+  },
+  "observation": "One benign unsigned DEV request; no business data or fault injection",
+  "matched": true
+}

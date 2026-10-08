@@ -17,3 +17,9 @@ Eight screenshots use desktop/mobile prefixes and Borrowers/Collection error-en/
 An initial browser run reached all English recovery assertions but failed the final Thai step because the test clicked the search icon sharing the refresh CSS class. The test now targets the exact Thai accessible refresh name; no product correction or timeout relaxation was required. A local Python launcher was unavailable before file creation; setup used the pinned Node runtime instead.
 
 C changed only tests/unit/request-reference-http.test.mjs, tests/e2e/error-recovery.spec.ts and this evidence directory. No managed build artifacts or historical screenshots were overwritten. Local test servers stopped after execution. Source remains frozen for D publication; no additional product defects found.
+
+## Deployed delivery verification
+
+Exact source a1fc80001963cec93df65bf5d48062e6c8d13f4f passed CI37712787076. After API revision00012-99g and Hosting ff1c9ce9a4bfedf2 delivery, five bounded checks passed: both allowed origins returned unsigned401 with distinct server UUIDv4 references exposed through CORS; the untrusted origin returned403 without reference exposure. Supplied synthetic request IDs were ignored and no-store/body contracts remained intact. Fresh canonical320px and fallback1440px contexts showed signed-out EN/Thai UI with zero business API requests, no records and no overflow. Both hosts delivered exact index-DbyM5rK8.js and worker5397340c64eba86386815ba0573943986dbab140666ddcac6a63249c17ad3071.
+
+Evidence: live-delivery.json and live-canonical-signedout-th.png / live-fallback-signedout-th.png. No login, induced server failure, business read or duplicate log-correlation probe occurred. D owns the separate benign request-to-stdout correlation. Owner authenticated recovery review remains separate from these unsigned checks.
