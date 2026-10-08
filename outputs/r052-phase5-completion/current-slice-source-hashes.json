@@ -201,5 +201,12 @@
       "tests/e2e/phase5-borrower-independent.spec.ts": "00D1C53C143BE41303C35D15A637B87045FA384653475FF35F22A0D23661B4C2"
     },
     "scope": "Remote seven fixture failures; seven unique affected executions verified in focused batches; DB77/77 unchanged"
+  },
+  "offlineLeaseRefreshRace": {
+    "scope": "Corrected Linux226pass/1fail/9skip identified real refresh/lease race; deterministic pre-fix mobile FAIL, fixed targeted desktop/mobile4/4PASS; DB77 unchanged; remote gate D-owned",
+    "hashes": {
+      "tests/e2e/phase5-final-ui-independent.spec.ts": "3BF7ECDEBA8220937E6875E52C579029ACAC3BECBB8FE2CD336D2D266A2C5FFB",
+      "apps/pwa/src/OfflinePayments.tsx": "260577D37571D6A437AEA5402AD63B0E04CA84650B7B328181D341EAE3363961"
+    }
   }
 }

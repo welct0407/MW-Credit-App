@@ -23,20 +23,31 @@
   },
   "remoteCI": {
     "Development": {
-      "runId": 37845674016,
-      "url": "https://github.com/welct0407/MW-Credit-App/actions/runs/37845674016",
+      "runId": 37848221621,
+      "sourceCommit": "7e5bd872692f13ffc1d2a4453d493c9b22fa56f0",
+      "url": "https://github.com/welct0407/MW-Credit-App/actions/runs/37848221621",
       "status": "failed",
-      "e2ePassed": 220,
-      "e2eFailed": 7,
+      "e2ePassed": 226,
+      "e2eFailed": 1,
       "e2eSkipped": 9,
-      "failureBoundary": "SW harness initial state; borrower pending recovery and Close review UI assertions; diagnosis pending"
+      "failureBoundary": "mobile final UI owner-lease expiry/focus assertion; C diagnosis pending",
+      "priorAttempt": {
+        "runId": 37845674016,
+        "url": "https://github.com/welct0407/MW-Credit-App/actions/runs/37845674016",
+        "status": "failed",
+        "e2ePassed": 220,
+        "e2eFailed": 7,
+        "e2eSkipped": 9,
+        "failureBoundary": "SW harness initial state; borrower pending recovery and Close review UI assertions; diagnosis pending"
+      }
     },
     "Database": {
-      "runId": 37845673933,
-      "url": "https://github.com/welct0407/MW-Credit-App/actions/runs/37845673933",
+      "runId": 37848221524,
+      "sourceCommit": "7e5bd872692f13ffc1d2a4453d493c9b22fa56f0",
+      "url": "https://github.com/welct0407/MW-Credit-App/actions/runs/37848221524",
       "status": "passed",
-      "finalJournalOnlyPassed": 77,
-      "finalJournalOnlyFailed": 0
+      "priorPassedRunId": 37845673933,
+      "unchangedDatabaseDependencies": true
     }
   },
   "deployment": {
@@ -47,8 +58,10 @@
   },
   "recovery": {
     "freshDEV82Restore": "passed",
-    "completedAt": "2026-10-09T03:53:33.6604071+07:00",
-    "semantics": "schema/data no-owner/no-ACL owned local restore; separate permission snapshots required at apply"
+    "completedAt": "2026-10-09T04:49:25.2927779+07:00",
+    "semantics": "schema/data no-owner/no-ACL owned local restore; separate permission snapshots required at apply",
+    "dumpSha256": "c8bba692939b3e539e7f74096753d605599f9e78fe104b30d3aa29844ad8309d",
+    "previousVerifiedRecoveryRetained": true
   },
   "limits": [
     "Known native receipts: two exact double-hash descriptors only; unknown/new native imports unsupported pending reconciliation",
@@ -69,6 +82,9 @@
     "commandImage": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app/api@sha256:4ee1642c473e0d7cd9dabf6b202ed9cab71d2d7808c0d7137252fa242cf71c10",
     "frontendBundle": "index-ClxARPRo.js",
     "hostingDryCheck": "passed",
-    "applied": false
+    "applied": false,
+    "frontendSuperseded": true,
+    "supersedingFrontendBuild": "B68Kcp7d; clean published rebuild pending",
+    "backendSourceUnchanged": true
   }
 }
