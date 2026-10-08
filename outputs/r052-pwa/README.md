@@ -4,7 +4,7 @@
 
 Date: 8 October 2026, Asia/Bangkok.
 
-Status: Checkpoint4A local first-receiving design/prototype and full-V77 synthetic rehearsal passed12 focused database cases, four browser scenarios and maintained Test-CI. Owner visually accepted the synthetic Selected Charges flow; notes/manual receipt support and all seven receiving-channel parity remain required completion gaps. No live payment endpoint, cloud deployment or new schema/privilege is activated. Checkpoint2G and installed-iPhone offline/reconnect are owner-accepted; native update remains unobserved. R052 and full Phase1/2/4 remain open.
+Status: Checkpoint4B extends the local synthetic Selected Charges rehearsal with optional Notes and manual receipt selection/attachment, replacement and removal. Fifteen unique full-V77 cases, six HTTP/browser scenarios, large-receipt layout and maintained Test-CI passed; architecture/parent visual review passed. Owner local4B review is pending. The owner accepted4A visually; all seven channels remain required parity. No live GCS/API/financial, schema or permission changes; native update acceptance remains unobserved.
 
 ## Scope
 
@@ -141,3 +141,8 @@ Checkpoint2C Collection board and borrower-scoped charge reads are implemented/t
 ## Checkpoint4A — local first-receiving rehearsal
 
 [Design](checkpoint-4a-design.md) · [Owning log](../../Change%20Logs/CHANGE_NOTES_R052_PAYMENT_REHEARSAL_2026-10-08.md). Synthetic local preview and full-V77 transaction evidence are separate from the in-memory request-journal simulation. Source correction/deletion durability and committed-event ownership remain future design gaps; no cloud deployment or live financial activation.
+
+
+## Checkpoint4B — local Notes/manual receipt rehearsal
+
+[Design](checkpoint-4b-design.md) · [Owning log](../../Change%20Logs/CHANGE_NOTES_R052_PAYMENT_NOTES_RECEIPT_REHEARSAL_2026-10-08.md). Optional field entry, required capability coverage; local file references and memory descriptors do not establish GCS/AppSheet compatibility or durable command recovery.
