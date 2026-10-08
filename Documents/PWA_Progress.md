@@ -49,7 +49,7 @@ Launch order: **1 → 2 → 3/4 → 5 → 6 → 8 → 9 → 10 → 11 → 12**. 
 - **Owner acceptance:** compact mobile header and mobile/desktop navigation accepted on 8 October ("looks good. carry on"). This does not establish full Phase2 or broader financial/performance acceptance.
 - **Next checkpoint:** review the completed local Notes/receipt attachment rehearsal, including replacement/removal without posting again. Next design work is durable command identity/event ownership. Precise GCS access and AppSheet-compatible reference integration must precede live upload. All seven receiving channels remain required parity: Single Full, Single Partial, Receive All, Lump Sum, First-day Auto, Loan Close and Selected Charges. Follow the [grounded checkpoint map](../outputs/r052-pwa/feature-baseline.md); new journal schema and live financial tests require scoped approval.
 - **Remaining planning work:** close Phase 1 feature/parity and acceptance gaps alongside agreed slices. Production readiness and financial workflows follow the roadmap dependencies, not completion of this UI review alone.
-- **Current blockers:** the local synthetic flow is visually accepted. Mutable/deletable receipt rows do not provide durable original-payload replay protection; the memory journal is only a simulation. Event delivery ownership and native update acceptance remain open.
+- **Current blockers:** 4A flow accepted; 4B Notes/receipt review pending. Mutable/deletable receipt rows do not provide durable original-payload replay protection; the memory journal is only a simulation. Event delivery ownership and native update acceptance remain open.
 
 ## Evidence and session updates
 
