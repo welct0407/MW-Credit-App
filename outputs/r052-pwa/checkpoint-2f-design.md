@@ -68,3 +68,7 @@ Stop after independent checks, DEV publication, updated overall progress and a u
 ## Owner override — typeahead refinement, 8 October
 
 The owner replaces Enter-required search with300ms trailing debounce. Guard IME composition; Enter may flush immediately, Clear applies empty query immediately, Back/Escape cancels an unsubmitted timer. Deduplicate canonical queries and cancel pending timers on result/page navigation, route/auth/offline changes and unmount. Existing abort/generation protection prevents stale responses. This supersedes the explicit-submission UI paragraph only; API, SQL, limits, cursor binding and access rules remain unchanged. Focused browser verification and Hosting-only delivery are required; no repeated SQL/provider audit.
+
+## Owner-directed blank visibility policy — 8 October
+
+A borrower is excluded only when Hidden Flag is TRUE; FALSE and SQL NULL are visible consistently in directory, borrower detail and related-loan parent checks. This corrects the earlier explicit-FALSE implementation without updating source records or changing authorization. The recorded AppSheet slice uses NOT([Hidden Flag]) and describes exclusion of TRUE; no fresh GUI verification of AppSheet blank semantics is claimed. Collection eligibility is unchanged. Refresh the first page after deployment because expanded membership may precede a retained cursor; cursor versions/order remain unchanged.

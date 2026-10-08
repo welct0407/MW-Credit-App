@@ -4,7 +4,7 @@
 
 Date: 7 October 2026, Asia/Bangkok.
 
-Status: Checkpoint2F typeahead refinement replaces Enter-required search with300ms trailing debounce, IME-safe composition, optional Enter flush, immediate Clear and pending-timer cancellation. Sourceeb83cab is published;8 focused browser cases and managed build passed. CI37708695277 passed and Hosting8fa268235d983461 is deployed; final unsigned canonical/fallback artifact and worker checks passed. API00010-fzk and its query/cursor/permission contract remain unchanged. Owner iPhone typing review remains pending; R052 and Phase1/2 remain Open/incomplete.
+Status: Checkpoint2F visibility correction applies the owner-directed hide-only-true rule: FALSE/NULL borrowers are eligible and TRUE stays hidden across directory/detail/loan-parent reads. Source2eaa56c published;47 focused units and17 disposable SQL checks passed. CI37709754501 passed; imageac0e0bed deployed Ready API00011-z44. Private read-only eligibility confirmation passed; final unsigned boundary checks passed8/8. Hosting8fa268235d983461 unchanged. No data/schema/grant/auth/AppSheet mutation or claimed AppSheet blank-value GUI test. First-page refresh and owner review follow deployment. R052 and Phase1/2 remain Open/incomplete.
 
 ## Scope
 
