@@ -2,7 +2,7 @@
 
 **Last updated:** 8 October 2026 (Asia/Bangkok)
 
-**Current position:** R052 is Open. Owner-approved4D implements a V78 command-journal candidate on disposable databases only. Maintained database verification passed; 13 transaction cases and one orderly PostgreSQL restart passed with independent evidence corroboration. Live DEV/PROD remain V77, with no new financial endpoint, runtime authority or GCS integration. All seven receiving paths remain required; full Phase1/2/4 completion is not claimed.
+**Current position:** R052 is Open. Owner-approved4D implements a V78 command-journal candidate on disposable databases only. Maintained database verification passed; 13 transaction cases and one orderly PostgreSQL restart passed with independent evidence corroboration; exact-source development and both database CI runs passed. The disposable checkpoint is ready for owner review. Live DEV/PROD remain V77, with no new financial endpoint, runtime authority or GCS integration. All seven receiving paths remain required; full Phase1/2/4 completion is not claimed.
 
 [Open DEV app](https://dev-lm.mw-credit.com) · [Fallback](https://mw-credit-app-dev-737787224638.web.app) · [Detailed roadmap](PWA_Implementation_Plan.md) · [Checkpoint evidence](../outputs/r052-pwa/README.md)
 
