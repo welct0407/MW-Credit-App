@@ -1,5 +1,5 @@
 {
-  "scope": "R052 Phase5 candidate; implementation/local verification complete, remote/deployed verification pending",
+  "scope": "R052 Phase5 candidate; local and remote Database verification passed; Linux UI corrections pending",
   "localVerification": {
     "candidateTree": "d49d6381f63fdb7a9cf86b3ff5afc99d75c481a4",
     "v83Sha256": "e7185ed56ec5036d80816f6af7c3e6fa86732c1631792aacda0c5f949a86dcc5",
@@ -22,18 +22,32 @@
     "operatorFailureLimit": "injected fault before V83 migration; actual success through83 separately verified"
   },
   "remoteCI": {
-    "Development": "pending",
-    "Database": "pending"
+    "Development": {
+      "runId": 37845674016,
+      "url": "https://github.com/welct0407/MW-Credit-App/actions/runs/37845674016",
+      "status": "failed",
+      "e2ePassed": 220,
+      "e2eFailed": 7,
+      "e2eSkipped": 9,
+      "failureBoundary": "SW harness initial state; borrower pending recovery and Close review UI assertions; diagnosis pending"
+    },
+    "Database": {
+      "runId": 37845673933,
+      "url": "https://github.com/welct0407/MW-Credit-App/actions/runs/37845673933",
+      "status": "passed",
+      "finalJournalOnlyPassed": 77,
+      "finalJournalOnlyFailed": 0
+    }
   },
   "deployment": {
     "DEV": "V82 retained baseline",
     "PROD": "V77 unchanged",
     "receiptGetOnly": "reviewed2-create savedplan; unapplied",
-    "sourceCommit": "pending publication"
+    "sourceCommit": "295565f12217a6f5c0eee86a2931f9f3bc94d356"
   },
   "recovery": {
     "freshDEV82Restore": "passed",
-    "completedAt": "2026-10-08T20:53:33.6604071+00:00",
+    "completedAt": "2026-10-09T03:53:33.6604071+07:00",
     "semantics": "schema/data no-owner/no-ACL owned local restore; separate permission snapshots required at apply"
   },
   "limits": [
@@ -47,5 +61,14 @@
     "borrower-independent-verification.md",
     "current-slice-source-hashes.json",
     "native-receipt-mapping.json"
-  ]
+  ],
+  "artifacts": {
+    "sourceCommit": "295565f12217a6f5c0eee86a2931f9f3bc94d356",
+    "cloudBuildId": "81c3dd82-38e2-4149-8e5b-d55d2ae01d3e",
+    "cloudBuildStatus": "passed",
+    "commandImage": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app/api@sha256:4ee1642c473e0d7cd9dabf6b202ed9cab71d2d7808c0d7137252fa242cf71c10",
+    "frontendBundle": "index-ClxARPRo.js",
+    "hostingDryCheck": "passed",
+    "applied": false
+  }
 }

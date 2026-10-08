@@ -194,5 +194,12 @@
       "services/payment-command/handler.mjs": "ADAD6A1D26FEEF802CEC789FADBD84D0080ACD353C19DFF259183F0D590AA4C3",
       "tests/unit/record-lists-independent.test.mjs": "2E7128F2BBA414835FB8D4B3E6DD55A14F26C7E6354084717A318C7DECC4BAF3"
     }
+  },
+  "linuxBrowserFixtureCorrection": {
+    "hashes": {
+      "tests/e2e/payment-sw-independent.spec.ts": "ED57152960733C4AAB4D933612969E7AFF39DC9A58C08322BD42FF6027B14878",
+      "tests/e2e/phase5-borrower-independent.spec.ts": "00D1C53C143BE41303C35D15A637B87045FA384653475FF35F22A0D23661B4C2"
+    },
+    "scope": "Remote seven fixture failures; seven unique affected executions verified in focused batches; DB77/77 unchanged"
   }
 }
