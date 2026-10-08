@@ -32,3 +32,9 @@ C owns payment-receipt-independent.test.mjs, the v2 adaptation of payment-rehear
 One additional targeted layout check passed at desktop1440/mobile320 using a deterministic600x900 TEST RECEIPT PNG. The actual local upload decoded600x900 and rendered186.66x280 inside the preview with no page overflow. See large-receipt-layout.json and desktop/mobile-large-receipt-review.png. This was review only, with synthetic fixture values and no confirmation. It supplements the six behavioral scenarios; it is not another financial test.
 
 Final freeze:15 unique database cases, six browser/HTTP behavioral scenarios, and one receipt-sized layout check at two viewport widths. Parent accepted the final visuals. C stopped its owned preview57947; runner finally confirmed disposable PostgreSQL shutdown. Intentional server-child termination causes wrapper exit1, not a failing test. D can now start an untouched owner fixture. No C edits remain pending.
+
+## Selected total and embedded-list refinement
+
+Two focused browser scenarios passed at1440px desktop and320px mobile, each in English and Thai. A browser-only30-charge fixture exercised totals0→1→3→2→32→2, including selection/unselection and keyboard Space on the last row. The charge list scrolls internally while the total remains visible; checkbox focus, list scroll, document scroll, Notes and receipt selection remain unchanged by toggling. Neither language overflowed the page. Evidence: total-scroll-results.json and four total-scroll-{1440,320}-{en,th}.png captures.
+
+The old owner preview62740 refused the initial connection, so verification used a separate ephemeral static server and intercepted fixture/upload responses. No database, real upload, confirmation or owner fixture mutation occurred. The temporary static server stopped normally. This UI-only check did not rerun database or broader regression suites. C added tests/integration/payment-total-scroll-browser.mjs; product scope is B's two UI files.
