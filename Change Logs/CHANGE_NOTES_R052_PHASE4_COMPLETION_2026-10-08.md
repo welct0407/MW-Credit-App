@@ -9,3 +9,9 @@ Local maintained database and independent financial/browser/true-nonsuperuser ma
 Recovery: starting app51ab34c/PM e4840e0 and prior runtime/Hosting preserved; private DEV79 logical dump was restored/verified before V80. Temporary maintenance privileges restored exactly after migrate/reconcile/validate; final Terraform no-op passed. Keep posted journal/payment/receipt evidence; application rollback does not undo money.
 
 Notifications explicitly remain Phase 8; rejected AppSheet bridge was never applied. Existing AppSheet/reader/PROD unchanged. Owner hands-on acceptance remains open. See the single Phase 4 batch and canonical app delivery manifest for source, CI, version, receipt and limits. Concurrent CI/process/DNS work is preserved.
+
+## Owner acceptance — 8 October 2026 (Asia/Bangkok)
+
+The owner explicitly instructed: “if phase4 is waiting for my acceptance, just make it completed.” Phase 4 is now accepted/completed in current progress, roadmap and the R052 tracker. Earlier acceptance-pending statements above are dated pre-acceptance evidence. The newer Phase 5 DEV82 amount-first receiving checkpoint remains pending owner review; broader Phase 5 OLTP work remains in progress. No Phase 2/production/notification acceptance is inferred; R052 remains Open.
+
+Documentation-only change; starting PM3b6cef0b retained as rollback. Saved diff/readback checked; no app code, tests, deployment, database or live operations. Unrelated unpublished process/governance work preserved; intended records published to the configured upstream.

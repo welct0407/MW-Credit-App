@@ -51,8 +51,8 @@ Every financial command must enforce server-side identity and permissions, prese
 | 1 | Establish full feature coverage, contracts and acceptance criteria | 0 | In progress; checkpoints 1A and 1B accepted; complete feature/parity and acceptance coverage remains open |
 | 2 | Build the secure application foundation and first read flow | 1 | In progress; 2A owner-validated, 2B/2C reads delivered, 2D domain validated, 2E installation accepted, 2F visibility correction accepted; 2G tracing deployed and owner-accepted |
 | 3 | Make production infrastructure and delivery ready | 2 | Not started |
-| 4 | Prove one complete financial workflow in DEV | 2; production setup can proceed alongside it | Local4A design/rehearsal tested; no live financial workflow activated |
-| 5 | Complete mobile and desktop OLTP | 4 | Not started |
+| 4 | Prove one complete financial workflow in DEV | 2; production setup can proceed alongside it | Completed and owner-accepted on 8 October 2026 (Asia/Bangkok); tested/deployed first financial workflow and recorded live synthetic proof |
+| 5 | Complete mobile and desktop OLTP | 4 | In progress; five receiving behaviors unified in DEV82, pending owner review; remaining OLTP scope open |
 | 6 | Complete desktop OLAP management | Shared contracts from 4; operational dependencies from 5 | Not started |
 | 7 | Enhance Metabase integration and reporting after go-live | Production go-live; 5 and 6 contracts | Deferred by owner |
 | 8 | Complete automation, notifications and coexistence behavior | Event inventory from 1; relevant commands from 4–6 | Not started |
@@ -129,6 +129,8 @@ This phase does not claim completed application sign-in, financial permissions, 
 
 **Objective:** prove the complete financial path in DEV before repeating its pattern across the application.
 
+**Status, 8 October 2026 (Asia/Bangkok):** Phase 4 is completed and owner-accepted. This acceptance does not complete Phase 2, the newer Phase 5 receiving checkpoint, production readiness or Phase 8 notification delivery.
+
 - Implement an agreed collection/payment flow through existing canonical SQL: select borrower/charges and account, validate eligibility, submit, confirm the committed result and show allocations, cash effects and history.
 - Preserve receiving-channel semantics, rounding, dates, original rates and source tracing. Use the current unified receiving engine where applicable.
 - Add durable request IDs, payload validation, conflict handling, status lookup after timeout, and a safe retry/reconciliation experience. A pending or unknown result must never appear as posted.
@@ -150,7 +152,7 @@ Preserve currently approved correction behavior, including R051 source/history r
 
 Finish offline dataset boundaries, visible freshness, drafts, attachment handling, sign-out cleanup, installation and safe application updates across the supported real devices. Preserve drafts and request IDs through updates and connection loss.
 
-**Receiving parity — all seven are required:** P09 Single Full (รับชำระ), P10 Single Partial (รับชำระบางส่วน), P11 Receive All (รับชำระทั้งหมด), P12 Lump Sum (รับชำระรวม), P13 First-day Auto (eligible loan-creation path, not a newly verified menu action), P14 Loan Close (ปิดยอดเงินกู้), and P15 Selected Charges (รับชำระรายการที่เลือก). Checkpoint4A validates only a local synthetic P15 flow; it does not complete any live channel or replace the other six. See the [source-grounded baseline and checkpoint map](../outputs/r052-pwa/feature-baseline.md).
+**Receiving parity — all seven are required:** P09 Single Full (รับชำระ), P10 Single Partial (รับชำระบางส่วน), P11 Receive All (รับชำระทั้งหมด), P12 Lump Sum (รับชำระรวม), P13 First-day Auto (eligible loan-creation path, not a newly verified menu action), P14 Loan Close (ปิดยอดเงินกู้), and P15 Selected Charges (รับชำระรายการที่เลือก). Current DEV82 unifies P09 Single Full, P10 Single Partial, P11 Receive All, P12 Lump Sum and P15 Selected Charges in the amount-first flow with Auto or exact manual principal/interest; independent financial/UI proof and deployed read-only verification are recorded, with owner review pending. P13 First-day Auto and P14 Loan Close remain separate lifecycle capabilities to implement/verify. These are seven business behaviors, not seven required UI channels. The local-only Checkpoint4A P15 result is dated historical evidence; see the [baseline](../outputs/r052-pwa/feature-baseline.md) and [current unified receiving proof](https://github.com/welct0407/MW-Credit-App/tree/codex/r052-review-shell/outputs/r052-unified-receiving).
 
 Payment notes/manual receipt evidence are required completion capabilities, not optional roadmap enhancements. Preserve optional Notes/Uploaded Receipt inputs, Uploaded Receipt At semantics, protected Receipt Image/Receipt Received At ownership, and AppSheet-compatible receipt references. Existing SQL-relative file paths and normalized GCS keys require a proven reference adapter; do not blindly replace one with the other.
 **Deliverables:** feature-complete OLTP candidate and populated parity evidence.
