@@ -4,7 +4,7 @@
 
 Date: 7 October 2026, Asia/Bangkok.
 
-Status: Checkpoint2F visibility correction applies the owner-directed hide-only-true rule: FALSE/NULL borrowers are eligible and TRUE stays hidden across directory/detail/loan-parent reads. Source2eaa56c published;47 focused units and17 disposable SQL checks passed. CI37709754501 passed; imageac0e0bed deployed Ready API00011-z44. Private read-only eligibility confirmation passed; final unsigned boundary checks passed8/8. Hosting8fa268235d983461 unchanged. No data/schema/grant/auth/AppSheet mutation or claimed AppSheet blank-value GUI test. First-page refresh and owner review follow deployment. R052 and Phase1/2 remain Open/incomplete.
+Status: Checkpoint2G traceable read errors/recovery is implemented and independently verified: server UUID references, allowlisted completion stdout records and scoped UI copy/retry. Existing logging resources/IAM are reused; no financial, schema, grant or production work. Prior visibility fix is owner-accepted. Source a1fc800 passed actual HTTP 2/2, browser 8/8 and CI37712787076. API 00012-99g and Hosting ff1c9ce9a4bfedf2 are deployed; one benign request reference matched its sanitized stdout event. Final unsigned smoke passed 5/5; owner error/recovery review remains pending. Full Phase1/2 remains incomplete.
 
 ## Scope
 
@@ -132,3 +132,7 @@ Checkpoint2C Collection board and borrower-scoped charge reads are implemented/t
 ## Checkpoint2F — bilingual name search
 
 [Design](checkpoint-2f-design.md) · [Owning log](../../Change%20Logs/CHANGE_NOTES_R052_BILINGUAL_SEARCH_2026-10-08.md) · [Synthetic query/UI evidence](https://github.com/welct0407/MW-Credit-App/tree/codex/r052-review-shell/outputs/r052-borrower-search). Only parity rows P01/P02/P08/P22/P37 are reconciled against delivered checkpoints; full enabled-object parity remains open. API-first rollout and UI-first rollback protect old unfiltered clients; already-open new clients need explicit reload during rollback.
+
+## Checkpoint2G — traceable read errors/recovery
+
+[Design, Phase2 gaps and source-only receiving investigation](checkpoint-2g-design.md) · [Owning log](../../Change%20Logs/CHANGE_NOTES_R052_READ_ERROR_TRACING_2026-10-08.md). References correlate read requests; they are not financial idempotency. Current first-receiving source is V59 plus dependencies through V77; actor/event/retry-conflict proof remains future design work, with no live financial execution in2G.

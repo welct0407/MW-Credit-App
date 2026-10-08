@@ -2,7 +2,7 @@
 
 **[Overall progress: completed, current review and next steps](PWA_Progress.md)** — updated at every development-session closeout.
 
-**R052 checkpoint2F, 8 October 2026:** Checkpoint2F visibility correction applies the owner-directed hide-only-true rule: FALSE/NULL borrowers are eligible and TRUE stays hidden across directory/detail/loan-parent reads. Source2eaa56c published;47 focused units and17 disposable SQL checks passed. CI37709754501 passed; imageac0e0bed deployed Ready API00011-z44. Private read-only eligibility confirmation passed; final unsigned boundary checks passed8/8. Hosting8fa268235d983461 unchanged. No data/schema/grant/auth/AppSheet mutation or claimed AppSheet blank-value GUI test. First-page refresh and owner review follow deployment. R052 and Phase1/2 remain Open/incomplete. [Design](../outputs/r052-pwa/checkpoint-2f-design.md).
+**R052 checkpoint2G, 8 October 2026:** Checkpoint2G traceable read errors/recovery is implemented and independently verified: server UUID references, allowlisted completion stdout records and scoped UI copy/retry. Existing logging resources/IAM are reused; no financial, schema, grant or production work. Prior visibility fix is owner-accepted. Source a1fc800 passed actual HTTP 2/2, browser 8/8 and CI37712787076. API 00012-99g and Hosting ff1c9ce9a4bfedf2 are deployed; one benign request reference matched its sanitized stdout event. Final unsigned smoke passed 5/5; owner error/recovery review remains pending. Full Phase1/2 remains incomplete. [Design and exit gaps](../outputs/r052-pwa/checkpoint-2g-design.md).
 
 **R052 checkpoint 2A, 7 October 2026:** Checkpoint 2A live DEV Google sign-in and Borrowers read is owner-validated: owner reported successful list/detail reads; actual verified Google UID is pinned in managed Secret Manager version 1, read revision00003-pzr. Independent signed-out desktop/mobile, static health and denial checks passed. App source20358d1 includes the tested cold-start test-tooling correction; final CI37615986417 passed. Checkpoint 2A is complete. Phase 2 remains incomplete and the team stops at this checkpoint; no next slice, production, financial, schema or AppSheet change. [Evidence](../outputs/r052-pwa/README.md).
 
@@ -49,7 +49,7 @@ Every financial command must enforce server-side identity and permissions, prese
 | --- | --- | --- | --- |
 | 0 | Establish development infrastructure and database ownership | Completed setup | Complete for the recorded scope |
 | 1 | Establish full feature coverage, contracts and acceptance criteria | 0 | In progress; checkpoints 1A and 1B accepted; complete feature/parity and acceptance coverage remains open |
-| 2 | Build the secure application foundation and first read flow | 1 | In progress; checkpoint 2A owner-validated and complete; checkpoint2B related loan reads and2C Collection reads deployed/tested; owner2C validation pending |
+| 2 | Build the secure application foundation and first read flow | 1 | In progress; 2A owner-validated, 2B/2C reads delivered, 2D domain validated, 2E installation accepted, 2F visibility correction accepted; 2G tracing deployed and owner review pending |
 | 3 | Make production infrastructure and delivery ready | 2 | Not started |
 | 4 | Prove one complete financial workflow in DEV | 2; production setup can proceed alongside it | Not started |
 | 5 | Complete mobile and desktop OLTP | 4 | Not started |
@@ -311,7 +311,7 @@ The final review must establish all of the following:
 - The cutover runbook covers old-client sync drain, access controls, rollback triggers and stabilization.
 - No unresolved required-feature, financial-integrity, access-control or recovery blocker remains.
 
-**Current implementation task:** Phase2 checkpoint2F bilingual server-side search. The compatible API and UI are deployed after exact-source checks; unsigned verification passed and the team stops for owner search review. No full Phase1/2 completion or financial workflow expansion.
+**Current implementation task:** Phase2 checkpoint2G traceable read errors/recovery. Compatible API and UI are tested and deployed; stop for owner review against the explicit exit gaps. Phase4 receiving investigation is source/design evidence only; no payment implementation or live financial testing.
 
 ## Borrower-field parity inventory after checkpoint 2B feedback
 
