@@ -11,3 +11,6 @@ Fresh DEV81 backup/owned restore passed (81 history/24 tables), cluster stopped,
 
 Frozen product373aec1 is published; fullCI running and exact clean image/frontend built. C fullV1-82 financial20/20 and UI59/60 plus corrected affected2/2 passed. Final correction only replaces a mobile hidden-list fixture expectation with the actual returned Collection detail/header; zeroadoption/Confirm/POST assertions retained. No executable product/SQL/buildinput difference, so artifacts built373aec1 are explicitly reused with final test/evidence source separately pinned. Full finalDevelopment remains required before apply; no live mutation yet.
 
+
+FullDevelopment dbae failed seven cases: five320px native-file-control overflow cases and two obsolete Upcoming refresh selectors; Database37799074532 and maintainedTestCI passed. B constrained the native file control to its parent width without clipping/tolerance changes and adapted scoped global-header/errorRetry recovery tests. Relevant10 affected cases/build passed; C strictgeometry/recovery independent rerun active. Only frontendCSS/test changes; backend image built373aec1 and passing unchanged financial/DB proof are reused explicitly. Corrected full Linux Development remains required before any apply/deploy.
+

@@ -204,3 +204,6 @@
 @media(max-width:600px){.selected-payment .allocation-summary{grid-template-columns:minmax(0,1fr) 44px;gap:0 8px}.allocation-summary output{grid-column:1/-1;grid-row:2;text-align:left;padding-bottom:4px}.allocation-summary>.icon-action{grid-column:2;grid-row:1}.allocation-summary>button:first-child{justify-self:start}}
 
 .selected-payment .payment-allocation-row{border-bottom:1px solid #888}.selected-payment .payment-allocation-row:last-child{border-bottom:0}
+
+/* Native file controls have platform-dependent intrinsic widths. */
+.selected-payment input[type=file]{display:block;width:100%;max-width:100%;min-width:0}
