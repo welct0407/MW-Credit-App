@@ -9,3 +9,7 @@ The regression creates30 directory candidates alternating NULL/FALSE Hidden Flag
 B reports47 focused unit cases passed separately. No UI/PWA rerun was needed: this correction changes five store visibility predicates only; query/cursor versions, ordering, authentication and Collection behavior remain unchanged. Existing cursor positions may require a first-page refresh to include newly visible preceding rows. No claim of owner-device validation is made.
 
 The disposable server stopped normally; parent preview and managed build were untouched. Intended C change: tests/integration/collection-postgres.test.mjs plus this report. Await exact-source CI/deployment and owner directory refresh/recheck. R052 remains Open.
+
+## Deployed unsigned boundary
+
+Exact source `2eaa56cba324f14b13e257841a22e3a764a54528` passed [CI 37709754501](https://github.com/welct0407/MW-Credit-App/actions/runs/37709754501). After D reported revision `mw-credit-app-read-dev-00011-z44` Ready, 8/8 bounded unsigned HTTP checks passed: directory/detail/related-loan requests and invalid token denied; untrusted origin denied; both configured origins accepted GET/Authorization preflight; POST preflight denied. Every response retained no-store and Vary: Origin. Evidence: `live-boundary.json`. No borrower records, credentials, login, frontend or Hosting checks were accessed. D's private target-eligibility verification is separate; these checks do not establish authenticated owner visibility. Hosting remains unchanged; owner refresh/recheck remains pending.
