@@ -1,4 +1,12 @@
-# R052 checkpoint 4F — combined DEV capability and receipt candidate
+# R052 checkpoint 4G — DEV command activation
+
+Deployment applied and the bounded real-owner synthetic receiving proof passed. Owner acceptance remains separate. DEV is V79 with stable full application capability and guarded runtime membership. Separate command revision `mw-credit-app-command-dev-00001-24p` uses immutable tested source 9a67365 / image 8ed32; actual IAM bootstrap, health 200 and anonymous 401 passed. DEV Hosting 100e5044b9227d7a is active. The reader is unchanged; PROD remains V77 and untouched.
+
+[Exact deployment/source/CI/recovery manifest](deployment-verification-4g.json) · [Independent local 23-case evidence](independent-verification-4g.json) · [Single delivery batch](https://github.com/welct0407/AppSheet-Loan-Project/blob/codex/pwa-implementation-plan/outputs/r052-pwa/checkpoint-4g-batch.md).
+
+Only the reviewed synthetic R052-4G borrower/loan/charges/dedicated account may post. The retained synthetic loan cash out 2 and Posted receipt cash in 2 reconcile to net zero, with one journal/payment, two allocations/repayments, paid charges and normal loan closure. All six existing affected table fingerprints are unchanged after posting. No real financial record edits, notifications or production operation. AppSheet receipt mapping proof is reused unchanged; actual deployed owner-authenticated PNG upload/GET/render passed in [C live UI evidence](live-ui-verification-4g.json). Live after-Posted replay/status has no supported UI control and was not exercised; no new AppSheet render is claimed.
+
+## Historical verified checkpoint 4F
 
 Stable DEV application capability, journal/API hardening and immutable receipt adapter are implemented and independently verified. Live DEV/PROD remain V77. No grants, migration, command service deployment or production operation has occurred.
 
