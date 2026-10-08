@@ -1,0 +1,17 @@
+{
+  "scope": "Five maintained fresh loopback-only disposable migration/regression runs; no live database",
+  "log": "Synthetic runtime log retained privately outside repositories",
+  "checks": [
+    "Full migration rebuild/validate/no-op/baseline/checksum and transaction/concurrency regressions",
+    "Historical opening CRUD",
+    "Account opening attribution",
+    "Legacy default charge upgrade",
+    "Legacy repayment preservation"
+  ],
+  "liveServicesChanged": false,
+  "command": "pwsh -NoProfile -File scripts/database/Test-CI.ps1",
+  "postgres": "18.6",
+  "exitCode": 0,
+  "dateBangkok": "2026-10-08",
+  "flyway": "13.6.0"
+}

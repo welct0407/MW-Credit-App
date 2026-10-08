@@ -33,7 +33,7 @@ try {
  }
  $env:PAYMENT_REHEARSAL_DISPOSABLE='1';$env:PAYMENT_REHEARSAL_PORT=[string]$fixturePort;$env:PAYMENT_REHEARSAL_DIRECTORY=$data
  if($Serve){ & node "$PSScriptRoot/../../scripts/rehearsal/serve.mjs" }
- else { & node --test --test-concurrency=1 "$PSScriptRoot/payment-rehearsal.test.mjs" "$PSScriptRoot/payment-rehearsal-independent.test.mjs" }
+ else { & node --test --test-concurrency=1 "$PSScriptRoot/payment-rehearsal.test.mjs" "$PSScriptRoot/payment-rehearsal-independent.test.mjs" "$PSScriptRoot/payment-receipt-independent.test.mjs" }
  if($LASTEXITCODE){throw 'Payment rehearsal failed'}
 } finally {
  Remove-Item Env:PAYMENT_REHEARSAL_DISPOSABLE,Env:PAYMENT_REHEARSAL_PORT,Env:PAYMENT_REHEARSAL_DIRECTORY -ErrorAction SilentlyContinue

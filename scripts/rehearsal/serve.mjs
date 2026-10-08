@@ -2,9 +2,11 @@ import http from 'node:http';
 import {readFile} from 'node:fs/promises';
 import {disposablePool} from './disposable-pool.mjs';
 import {seedPaymentFixture} from './payment-fixture.mjs';
+import {createLocalReceipts,MAX_RECEIPT_BYTES} from './local-receipts.mjs';
 import {createPaymentRehearsal} from './payment-command.mjs';
 const pool=await disposablePool();await seedPaymentFixture(pool,'4A-UI');
-const provider=createPaymentRehearsal({pool});let origin;
+const receipts=await createLocalReceipts({dataDirectory:process.env.PAYMENT_REHEARSAL_DIRECTORY});
+const provider=createPaymentRehearsal({pool,receipts});let origin;
 const server=http.createServer(async(req,res)=>{
  res.setHeader('Cache-Control','no-store');res.setHeader('X-Content-Type-Options','nosniff');
  const send=(code,value)=>{res.writeHead(code,{'Content-Type':'application/json'});res.end(JSON.stringify(value))};
@@ -19,10 +21,20 @@ const server=http.createServer(async(req,res)=>{
    const accounts=await pool.query('SELECT a."Row ID" AS id,a."Account Label" AS label FROM "Cash Accounts" a JOIN "Cash Holders" h ON a."Ref Cash Holder"=h."Row ID" WHERE a."Row ID"=\'4A-RECEIVE\' AND a."Active" AND h."Active"');
    return send(200,{businessDate:await provider.businessDate(),borrowerId:'4A-UI-B',charges:charges.rows,accounts:accounts.rows});
   }
+  if(req.method==='POST'&&url.pathname==='/receipts'&&req.headers.origin===origin){
+   const chunks=[];let size=0;for await(const chunk of req){size+=chunk.length;if(size>MAX_RECEIPT_BYTES)return send(413,{error:'invalid_receipt'});chunks.push(chunk)}
+   const receipt=await receipts.upload({bytes:Buffer.concat(chunks),mime:req.headers['content-type'],requestId:url.searchParams.get('requestId'),actor:'4A-owner@example.invalid'});return send(200,{receipt});
+  }
+  if(req.method==='GET'&&url.pathname.startsWith('/receipts/')){
+   const {descriptor,bytes}=await receipts.retrieve(url.pathname.slice(10),{requestId:url.searchParams.get('requestId'),actor:'4A-owner@example.invalid'});res.setHeader('Content-Type',descriptor.mime);res.end(bytes);return;
+  }
+  if(req.method==='POST'&&url.pathname==='/attachment'&&req.headers.origin===origin&&req.headers['content-type']==='application/json'){
+   const chunks=[];let size=0;for await(const chunk of req){size+=chunk.length;if(size>4096)return send(413,{ok:false,code:'invalid_request'});chunks.push(chunk)}return send(200,await provider.attachReceipt(JSON.parse(Buffer.concat(chunks).toString('utf8'))));
+  }
   if(req.method==='GET'&&url.pathname==='/status')return send(200,await provider.status(url.searchParams.get('id')));
   if(req.method==='POST'&&url.pathname==='/confirm'&&req.headers.origin===origin&&req.headers['content-type']==='application/json'){
-   let body='';for await(const chunk of req){body+=chunk;if(body.length>16384)return send(413,{status:'rejected',code:'invalid_request'})}
-   const result=await provider.submit(JSON.parse(body));
+   const chunks=[];let size=0;for await(const chunk of req){size+=chunk.length;if(size>524288)return send(413,{status:'rejected',code:'invalid_request'});chunks.push(chunk)}
+   const result=await provider.submit(JSON.parse(Buffer.concat(chunks).toString('utf8')));
    if(req.headers['x-rehearsal-scenario']==='lose-response'&&result.status==='posted'){res.destroy();return}
    return send(200,result);
   }

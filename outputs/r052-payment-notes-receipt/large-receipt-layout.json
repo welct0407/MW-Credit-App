@@ -1,0 +1,20 @@
+{
+  "synthetic": true,
+  "confirmedPayment": false,
+  "results": [
+    {
+      "viewportWidth": 1440,
+      "width": 186.65625,
+      "naturalWidth": 600,
+      "naturalHeight": 900,
+      "height": 280
+    },
+    {
+      "viewportWidth": 320,
+      "width": 186.65625,
+      "naturalWidth": 600,
+      "naturalHeight": 900,
+      "height": 280
+    }
+  ]
+}
