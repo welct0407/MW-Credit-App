@@ -5029,11 +5029,51 @@
       "lookup": []
     },
     {
+      "file": "development/postgresql/r052-command/public-guard-pwa-explicit-payment-v6.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "routine",
+      "name": "public.guard_pwa_explicit_payment_v6()",
+      "scope": "development:R052-command",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "development/postgresql/r052-command/public-guard-pwa-payment-commands-immutable.yaml",
       "system": "postgresql",
       "component": "loan_manager_dev",
       "kind": "routine",
       "name": "public.guard_pwa_payment_commands_immutable()",
+      "scope": "development:R052-command",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/postgresql/r052-command/public-post-payment-explicit-v6.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "routine",
+      "name": "public.post_payment_explicit_v6(text)",
+      "scope": "development:R052-command",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/postgresql/r052-command/public-post-payment-legacy-v59.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "routine",
+      "name": "public.post_payment_legacy_v59(text)",
+      "scope": "development:R052-command",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/postgresql/r052-command/public-post-payment.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "routine",
+      "name": "public.post_payment(text)",
       "scope": "development:R052-command",
       "status": "documented",
       "lookup": []

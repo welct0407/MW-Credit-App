@@ -1,0 +1,48 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_dev"
+  "kind": "routine"
+  "name": "public.guard_pwa_explicit_payment_v6()"
+  "scope": "development:R052-command"
+"verification":
+  "status": "documented"
+  "source": "Change Logs/CHANGE_NOTES_R052_UNIFIED_RECEIVING_2026-10-08.md"
+  "coverage": "bounded live DEV V82 catalog and exact restored maintenance privileges; independent disposable financial proof;\
+    \ no live financial rows"
+"content":
+  "release": "R052"
+  "status": "DEV V82 active; separate PWA v6 engine and preserved AppSheet/v3-v5 legacy route; PROD V77 unchanged"
+  "migration_source": "https://github.com/welct0407/MW-Credit-App/blob/8803b6d35371257e37efc21d02e5d2d3baebf38f/database/migrations/V82__explicit_payment_allocation_plan_v6.sql"
+  "behavior": "Invoker guard on Payments a000_pwa_explicit_plan BEFORE INSERT OR UPDATE: governed owner insertion and immutable\
+    \ actor/borrower/total/scope; reject ordinary recreation of retained v6 receipt IDs."
+  "data_model_impact": "No new table/column; retained immutable journal JSON is authoritative intent"
+  "rollback": "Retain dispatcher and both engines; preserve audit/journal/history. Retire legacy only after cutover and governed\
+    \ historical correction/replay compatibility."
+  "source_correction_boundary": "Metadata/receipt and compatible account/tender/date corrections preserve original paid component\
+    \ plan. Changes to borrower,total,selected IDs,target refs or allocation method fail atomically; later native financial-plan\
+    \ correction is not implemented."
+  "observedAt": "2026-10-08T15:35:53.161Z"
+  "catalog_observation":
+    "signature": "guard_pwa_explicit_payment_v6()"
+    "owner": "postgres"
+    "security_definer": false
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": "{postgres=X/postgres,mw_app_dev=X/postgres}"
+    "body_md5": "820c0ee121ea53317288cb9e1af90402"
+    "definition": "CREATE OR REPLACE FUNCTION public.guard_pwa_explicit_payment_v6()\n RETURNS trigger\n LANGUAGE plpgsql\n\
+      \ SET search_path TO 'pg_catalog', 'public'\nAS $function$\r\nDECLARE envelope jsonb;c jsonb;ids text[];\r\nBEGIN\r\n\
+      \ SELECT canonical_json::jsonb INTO envelope FROM public.pwa_payment_commands WHERE payment_id=NEW.\"Row ID\" AND outcome='posted'\
+      \ AND canonical_json::jsonb->'command'->'schemaVersion'='6'::jsonb;\r\n IF envelope IS NULL THEN RETURN NEW;END IF;\r\
+      \n c:=envelope->'command';SELECT array_agg(value->>'chargeId' ORDER BY (value->>'chargeId') COLLATE \"C\") INTO ids\
+      \ FROM jsonb_array_elements(c->'allocations');\r\n IF TG_OP='INSERT' AND current_user<>'mw_app_dev_journal_owner' THEN\
+      \ RAISE EXCEPTION USING ERRCODE='42501',MESSAGE='Explicit command receipt must originate in governed submit';END IF;\r\
+      \n IF NEW.\"Ref Borrower\" IS DISTINCT FROM c->>'borrowerId' OR NEW.\"Amount Received\"::numeric IS DISTINCT FROM (c->>'amountReceived')::numeric\
+      \ OR NEW.\"Allocation Method\" IS DISTINCT FROM 'Selected Charges' OR public.selected_charge_ids(NEW.\"Selected Charge\
+      \ IDs\") IS DISTINCT FROM ids OR NEW.\"Ref Target Charge\" IS NOT NULL OR NEW.\"Ref Target Loan\" IS NOT NULL OR NEW.\"\
+      Created By\" IS DISTINCT FROM envelope->'actor'->>'loginEmail' THEN RAISE EXCEPTION 'Immutable explicit allocation scope';END\
+      \ IF;\r\n IF TG_OP='INSERT' AND (NEW.\"Status\" IS DISTINCT FROM 'Processing' OR NEW.\"Payment Date\" IS DISTINCT FROM\
+      \ (c->>'paymentDate')::date OR NEW.\"Payment Method\" IS DISTINCT FROM c->>'paymentMethod' OR NEW.\"Ref Received By\
+      \ Cash Account\" IS DISTINCT FROM c->>'cashAccountId') THEN RAISE EXCEPTION 'Explicit command input mismatch';END IF;\r\
+      \n RETURN NEW;\r\nEND $function$\n"
