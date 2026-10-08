@@ -12,3 +12,7 @@ Managed preparation build/helpercheck passed: index-DbyM5rK8.js, index-BfXAMpQa.
 
 
 Delivery: immutable build b2fb7e36-e5c2-4d43-9180-2a76c77cfb33/image7695213edf1f4f4a04e51bf49025b2de30cdd00e88a755505109cf53a19b8c61 passed; the saved plan changed only the read service image. One benign unsigned401 reference matched the exact seven-field stdout completion record on00012-99g using existing operator access. See outputs/r052-error-recovery/deployment.json and live-correlation.json. C final deployed checks passed 5/5: unsigned references/CORS and exact canonical/fallback assets with no business reads. Owner review remains pending. Native offline/update acceptance remains open.
+
+Owner accepted checkpoint 2G and authorized continuation on 8 October 2026. This acceptance is scoped to read-error references/recovery; native offline/update acceptance is not inferred. Next work is a local disposable V77 first-receiving design/rehearsal, with no live payment endpoint, financial writes or privilege changes.
+
+Owner additionally confirmed installed-iPhone offline/reconnect: 'Offline screen and reconnect both work'. This establishes those two native behaviors only; native update activation remains unobserved.

@@ -1,0 +1,10 @@
+export async function seedPaymentFixture(pool, prefix='4A-UI') {
+ const c=await pool.connect();try {await c.query('BEGIN');
+ await c.query('INSERT INTO "Cash Accounts"("Row ID","Ref Cash Holder","Account Label","Bank Name") VALUES($1,\'ch:dad\',\'Synthetic receiving account\',\'Synthetic\'),($2,\'ch:lisa\',\'Synthetic lending account\',\'Synthetic\') ON CONFLICT DO NOTHING',['4A-RECEIVE','4A-LEND']);
+ await c.query('INSERT INTO "Partners"("Row ID","Partner Role","Login Email") VALUES(\'4A-ACTOR\',\'A\',\'4A-owner@example.invalid\') ON CONFLICT DO NOTHING');
+ await c.query('INSERT INTO "Cash Pool Contributions"("Row ID","Ref Partner","Contribution Date","Transaction Type","Amount") VALUES($1,\'4A-ACTOR\',current_date,\'Contribution\',10000::money)',[prefix+'-CAPITAL']);
+ await c.query('INSERT INTO "Borrowers"("Row ID","Borrower Name") VALUES($1,\'Synthetic borrower / ผู้กู้จำลอง\'),($2,\'Synthetic other borrower\')',[prefix+'-B',prefix+'-OTHER']);
+ for(const [suffix,borrower] of [['L1','B'],['L2','B'],['LX','OTHER']]) await c.query('INSERT INTO "Loans"("Row ID","Ref Borrowers","Ref Disbursed From Cash Account","Loan Date","Principal Amount","Loan Status","Loan Type","Auto Charge Enabled") VALUES($1,$2,\'4A-LEND\',current_date-10,1000::money,\'ยังไม่ปิดยอด\',\'กำหนดวันชำระ\',false)',[prefix+'-'+suffix,prefix+'-'+borrower]);
+ for(const [suffix,loan,days,principal,interest] of [['C1','L1',-2,100,10],['C2','L2',-1,200,20],['UNSELECTED','L1',-3,50,5],['FOREIGN','LX',-1,30,3],['FUTURE','L1',1,0,10]]) await c.query('INSERT INTO "Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Interest Due") VALUES($1,$2,(CURRENT_TIMESTAMP AT TIME ZONE \'Asia/Bangkok\')::date+$3::integer,$4::numeric::money,$5::numeric::money)',[prefix+'-'+suffix,prefix+'-'+loan,days,principal,interest]);
+ await c.query('COMMIT');}catch(e){await c.query('ROLLBACK');throw e}finally{c.release()}
+}

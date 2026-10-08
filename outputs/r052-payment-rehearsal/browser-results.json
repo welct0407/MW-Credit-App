@@ -1,0 +1,21 @@
+{
+  "checkedAt": "2026-10-08T01:55:49.399Z",
+  "results": [
+    {
+      "case": "actual disposable330 commit lost response, offline guard, fresh lookup",
+      "passed": true,
+      "posts": 1,
+      "externalRequests": 0
+    },
+    {
+      "case": "synthetic conflict cannot resolve unrelated original amount",
+      "passed": true
+    },
+    {
+      "case": "synthetic unresponsive transport bounded timeout",
+      "passed": true,
+      "elapsedMs": 8598
+    }
+  ],
+  "limitations": "Actual local DB commit tested once; conflict/timeout transport responses simulated. Native iPhone and durable journal not verified."
+}
