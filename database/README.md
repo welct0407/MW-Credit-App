@@ -75,6 +75,23 @@ The V1 migration is a schema-only export of the verified development/production 
 ./scripts/database/Invoke-Flyway.ps1 -Environment development -Command validate
 ```
 
+## R052 stable DEV application capability tooling
+
+The candidate V79 requires the operator-managed NOLOGIN roles from `Test-AppRolePrerequisites.sql`; that file is for disposable test provisioning, not an automatic live bootstrap. Register actual migration creators once in `application-role-creators.json`. The reviewed application policy covers ordinary current/future public application objects with protected journal/governance boundaries; it does not require a new permission decision for each feature.
+
+After a successful DEV `migrate` (including no-op), the maintained runner automatically reconciles the policy only if `mw_app_dev` exists. PROD, `info` and `validate` do not run this hook. If reconciliation fails, the migration may already be applied: preserve Flyway history and the private snapshot and resolve the reported readiness issue; never repair or blindly replay.
+
+Administration CLI defaults to a dry plan, pins the full DEV tuple and established private credential file, and accepts no DSN/host override:
+
+```powershell
+. ./scripts/Enter-Dev.ps1
+node scripts/database/application-role-cli.mjs --action plan
+node scripts/database/application-role-cli.mjs --action membership --runtime-user '<existing nonsuperuser command login>'
+node scripts/database/application-role-cli.mjs --action recover --recovery-file '<private completed before-after snapshot>'
+```
+
+Explicit `--apply` is for the reviewed scoped operation. Apply captures before/after ACL and membership evidence under the maintained private Flyway folder outside Git. Recovery restores only application deltas while preserving original rights and later unrelated grants; malformed snapshots, changed object ownership or conflicting membership drift fail closed. It does not change PUBLIC/default ACLs, drop objects or undo posted financial records. Runtime membership uses INHERIT true, SET false and ADMIN false and rejects journal-owner/migration-creator inheritance. [Candidate and evidence](../outputs/r052-payment-command-api/README.md).
+
 ## Each change
 
 For changes to migrations or database tests/runners, run `pwsh -NoProfile -File scripts/database/Test-CI.ps1` before publication, in addition to affected feature tests. This is the same entry point used by GitHub Actions and rebuilds an empty disposable database through the latest migration. Keep older fixtures compatible with new required fields: `Test-CashAccountFixtures.sql` supplies synthetic accounts, and each source insert explicitly selects its account. Do not weaken production guards or top up a live balance to repair CI. Branch/PR builds remain enabled; release tags reuse the tested commit without a duplicate workflow run.

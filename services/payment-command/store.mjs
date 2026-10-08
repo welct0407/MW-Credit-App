@@ -1,3 +1,4 @@
+import { applicationConnectionGuard } from './application-target.mjs';
 import { canonicalCommand, canonicalActor, canonicalReceipt, commandIdentity } from '../contracts/payment-command.mjs';
 import { DEV_PROJECT, OWNER_EMAIL } from '../api/dev-read-config.mjs';
 import { assertDisposable } from '../../scripts/rehearsal/payment-command.mjs';
@@ -6,8 +7,7 @@ const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{1
 const failure = (status, code) => ({ ok: false, status, code });
 
 /** DISPOSABLE candidate only. No ambient connection/config, service launcher or live permission. */
-export function createPaymentCommandStore({ pool, expectedDirectory, resolveReceipt }) {
-  if (!pool || typeof pool.connect !== 'function' || typeof expectedDirectory !== 'string' || !/[\\/]mw-payment-rehearsal-[a-f0-9]{32}[\\/]data$/i.test(expectedDirectory)) throw new Error('Owned disposable directory required');
+function buildStore({ pool, guardConnection, resolveReceipt }) {
   async function run(principal, operation, readonly = false) {
     if (!principal?.ok || principal.email !== OWNER_EMAIL || typeof principal.subject !== 'string' || !principal.subject) return failure(403, 'access_denied');
     let client, attempted = false, commitStarted = false, quarantine = false;
@@ -17,9 +17,7 @@ export function createPaymentCommandStore({ pool, expectedDirectory, resolveRece
       await client.query(readonly ? 'BEGIN READ ONLY' : 'BEGIN');
       await client.query("SET LOCAL statement_timeout='10000ms'");
       await client.query("SET LOCAL lock_timeout='3000ms'");
-      const dbActor=(await client.query('SELECT current_user AS current_user,session_user AS session_user')).rows[0];
-      if(dbActor?.current_user!=='postgres'||dbActor?.session_user!=='postgres')throw Error('Disposable owner required');
-      await assertDisposable({ query: (...args) => client.query(...args) }, expectedDirectory, 78);
+      await guardConnection(client);
       const rows = (await client.query('SELECT "Row ID" AS id FROM public."Partners" WHERE lower(btrim("Login Email"))=$1 LIMIT 2', [principal.email])).rows;
       if (rows.length !== 1) { await rollback(); return failure(403, 'access_denied'); }
       const actor = canonicalActor({ issuer, subject: principal.subject, partnerId: rows[0].id, loginEmail: principal.email });
@@ -76,4 +74,17 @@ export function createPaymentCommandStore({ pool, expectedDirectory, resolveRece
       return run(principal, async (client, actor) => ({ ok: true, value: (await client.query('SELECT public.pwa_command_status_v1($1,$2,$3) AS result', [requestId.toLowerCase(), actor.issuer, actor.subject])).rows[0].result }), true);
     },
   };
+}
+
+export function createPaymentCommandStore({pool,expectedDirectory,resolveReceipt}) {
+ if(!pool||typeof pool.connect!=='function'||typeof expectedDirectory!=='string'||!/[\\/]mw-payment-rehearsal-[a-f0-9]{32}[\\/]data$/i.test(expectedDirectory))throw Error('Owned disposable directory required');
+ return buildStore({pool,resolveReceipt,guardConnection:async client=>{
+  const row=(await client.query('SELECT current_user AS current_user,session_user AS session_user')).rows[0];
+  if(row?.current_user!=='postgres'||row?.session_user!=='postgres')throw Error('Disposable owner required');
+  await assertDisposable({query:(...args)=>client.query(...args)},expectedDirectory,78);
+ }});
+}
+export function createApplicationRoleCommandStore({pool,targetAttestation,resolveReceipt}) {
+ if(!pool||typeof pool.connect!=='function')throw Error('Application pool required');
+ return buildStore({pool,resolveReceipt,guardConnection:applicationConnectionGuard(targetAttestation)});
 }

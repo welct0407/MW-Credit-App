@@ -33,6 +33,7 @@ def main():
  run([PG/'pg_ctl','-D',data,'-l',root/'postgres.log','-o',f'-h 127.0.0.1 -p {port} -k {root}','-w','start'],stdout=subprocess.DEVNULL)
  try:
   run(psql+['-f',REPO/'scripts/database/Test-AgentAuditPrerequisites.sql'],stdout=subprocess.DEVNULL)
+  run(psql+['-f',REPO/'scripts/database/Test-AppRolePrerequisites.sql'],stdout=subprocess.DEVNULL)
   if args.pre_sql or args.pre_target:
    if not args.pre_sql or not args.pre_target:raise ValueError('Both pre-migration fixture and target are required')
    run(flyway+[f'-target={args.pre_target}','migrate'],cwd=REPO,stdout=subprocess.DEVNULL)
