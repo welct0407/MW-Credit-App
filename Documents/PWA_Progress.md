@@ -19,7 +19,7 @@
 | Owner-only Google sign-in and borrower reads | Checkpoint 2A tested, deployed and owner-validated; actual owner identity pinned |
 | Related loan list/detail and presentation refinements | Implemented, tested and deployed; neutral surfaces, grouping, readable labels and wider desktop details await final owner visual acceptance |
 | Collection board, charge detail and Upcoming Charges | Tested/deployed with full-width compact header, expandable navigation and bounded first-page Upcoming previews. Owner visual/perceived-speed review pending |
-| DEV receiving | Normal pinned-owner mode is deployed; Single Full / Receive all / Selected Charges are unified. Controlled actual receiving/results/receipt/Notes/offline proof passed; owner hands-on acceptance remains open |
+| DEV receiving | Normal pinned-owner amount-first receiving unifies Single Full / Partial / Receive all / Selected Charges / Lump Sum with Auto or exact manual principal/interest. Current isolated financial20/20 and deployed read-only checks passed; earlier actual Phase4 posting/receipt proof is historical. Owner hands-on acceptance remains open |
 | Sign-in survives refresh | Implemented, tested and deployed; owner confirmed real sign-in persists after refresh. Browser reopening and cross-tab logout were tested with the actual SDK and synthetic identities, not the owner's live session |
 
 Online review fetches current business records. Authorized offline access and viewed snapshots are bounded to 24 hours. Unsent drafts remain until discard, posting or sign-out; retained drafts do not extend authorization. Offline data is stale/read-only for financial posting. Reconnect is explicit and does not automatically submit. Full loan management remains Phase 5.
