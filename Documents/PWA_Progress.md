@@ -56,6 +56,8 @@ Launch order: **1 → 2 → 3/4 → 5 → 6 → 8 → 9 → 10 → 11 → 12**. 
 
 **Team update, 8 October 2026:** A remains Astra High and supplies an executable test plan with each design; B remains Astra Medium. Replacement C and D workers use GPT-6.1 Sol Medium. C executes A's plan, records failures/evidence, retests fixes and escalates ambiguities or missing coverage to A; D retains infrastructure, miscellaneous execution, documentation and authorized publication. The previous C/D workers are superseded. [Team assignments](PWA_Orchestration.md) · [Governance change record](../Change%20Logs/CHANGE_NOTES_PWA_TEAM_GOVERNANCE_2026-10-08.md). This governance update changes no product checkpoint, acceptance or deployment status.
 
+**Routine UI delivery update, 8 October 2026:** reuse the existing design and B/C/D workers; B batches the fix, C performs relevant checks and one representative visual pass, and D deploys the changed DEV frontend after passing checks. Low-risk remote CI is asynchronous; independent UI does not wait for unrelated backend/database gates. Sensitive behavior keeps full validation. [Authoritative policy](PWA_Orchestration.md#routine-ui-delivery--owner-revision-8-october-2026) · [Change record](../Change%20Logs/CHANGE_NOTES_PWA_UI_FAST_PATH_2026-10-08.md). This changes no product deployment, acceptance, release or model assignment.
+
 ## Evidence and session updates
 
 [Current delivery batch and exact evidence](../outputs/r052-pwa/phase4-completion-batch.md) · [Phase 4 change record](../Change%20Logs/CHANGE_NOTES_R052_PHASE4_COMPLETION_2026-10-08.md) · [Design and tests](../outputs/r052-pwa/phase4-completion-design-and-test-plan.md) · [Release status](Release_Tracker.md) · [Team and closeout rule](PWA_Orchestration.md)

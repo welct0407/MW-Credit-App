@@ -16,6 +16,16 @@ Owner instruction: 7 October 2026; team revision: 8 October 2026 (Asia/Bangkok).
 
 The owner's reference to Agent C testing its own work is interpreted as testing the Coding Agent B's work. On 8 October 2026, new C and D workers were dispatched successfully with `gpt-6.1-sol` / `medium`: `agent_c_testing_sol` and `agent_d_infrastructure_sol`. They supersede the former Astra Low C/D workers; the old threads were not modified. Existing A/B workers and assignments remain unchanged. The owner assigned all future infrastructure and miscellaneous tasks to D; the main conversation manages and reviews the team. Agents are on-demand workers, not a persistent unattended service.
 
+## Routine UI delivery — owner revision, 8 October 2026
+
+This path takes precedence over a generic milestone/full-suite requirement for routine UI work. Classify by changed behavior, not filename: financial contracts, authentication/session policy, access, backend, database and infrastructure changes still require their applicable full validation before sensitive delivery.
+
+For routine UI, reuse the existing design. B implements one coherent batch; C runs relevant checks and ONE representative visual pass; D publishes and deploys the changed DEV frontend after those checks pass. Consult A only for a real requirement ambiguity or architectural decision. Preserve accessibility, readability, errors and recovery. Cosmetic reversible edits use existing build/type checks as needed plus the visual check; do not add tests that merely mirror CSS or text. Add regression tests when changed interactions create a meaningful failure risk.
+
+Remote CI may run asynchronously for low-risk UI and its status must be reported honestly. Do not run backend, database, Terraform or global suites, or rebuild/deploy unchanged components. Rebuild a changed frontend when its source/build inputs require it; tests/docs-only changes do not rebuild unchanged app artifacts. Separate independent UI from substantive changes so its review/delivery is not held by unrelated sensitive gates; those changes retain their own mandatory checks and unresolved relevant failures still block dependent delivery.
+
+Reuse the existing B/C/D workers and compact direct B–C defect handoffs. Freeze the coherent source once, publish at a useful checked point rather than chaining trivial commits, and close once. Stop after passing relevant checks and the required deployed smoke; do not repeat unchanged tests, visuals or worker wake-ups. Escalate a concrete blocker promptly instead of adding ceremonial reviews or promising a fixed delivery time. Production authorization and product/owner-acceptance boundaries are unchanged.
+
 ## Delivery loop and stop rule
 
 1. Orchestrator identifies a bounded slice, its baseline and meaningful visual checkpoint.
