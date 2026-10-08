@@ -1,0 +1,24 @@
+// Exact synthetic 4G graph; caller supplies reviewed DEV/local connection and owner actor.
+export const DEV_COMMAND_FIXTURE=Object.freeze({borrowerId:'R052-4G-B',chargeIds:Object.freeze(['R052-4G-C1','R052-4G-C2']),cashAccountIds:Object.freeze(['R052-4G-ACCOUNT'])});
+export async function prepareDevCommandFixture(client,{database,ownerEmail},{apply=false}={}){
+ if(!['loan_manager_dev','payment_rehearsal'].includes(database)||ownerEmail!=='welct0407@mw-credit.com')throw Error('Reviewed DEV owner and database required');
+ if((await client.query('SELECT current_database() db')).rows[0].db!==database)throw Error('Wrong fixture database');
+ const absent=await client.query(`SELECT "Row ID" FROM public."Borrowers" WHERE "Row ID"=$1 UNION ALL SELECT "Row ID" FROM public."Loans" WHERE "Row ID"='R052-4G-L' UNION ALL SELECT "Row ID" FROM public."Charges" WHERE "Row ID"=ANY($2) UNION ALL SELECT "Row ID" FROM public."Cash Accounts" WHERE "Row ID"=$3`,[DEV_COMMAND_FIXTURE.borrowerId,DEV_COMMAND_FIXTURE.chargeIds,DEV_COMMAND_FIXTURE.cashAccountIds[0]]);
+ if(absent.rowCount)throw Error('Synthetic fixture IDs already exist; never overwrite retained evidence');
+ const prereq=(await client.query(`SELECT EXISTS(SELECT 1 FROM public."Cash Holders" WHERE "Row ID"='ch:lisa' AND "Active") holder_active,EXISTS(SELECT 1 FROM public."Cash Accounts" WHERE "Ref Cash Holder"='ch:lisa' AND "Active") existing_active_account,(SELECT count(*)=1 FROM public."Partners" WHERE lower(btrim("Login Email"))=$1) owner_unique`,[ownerEmail])).rows[0];
+ if(!prereq.holder_active||!prereq.existing_active_account||!prereq.owner_unique)throw Error('Synthetic fixture dependencies not ready');
+ const steps=[
+  {sql:`INSERT INTO public."Cash Accounts"("Row ID","Ref Cash Holder","Account Label","Bank Name","Default Account","Active","Sort Order") VALUES('R052-4G-ACCOUNT','ch:lisa','R052 4G synthetic only','TEST NO BANK',false,true,999)`,values:[]},
+  {sql:`INSERT INTO public."Borrowers"("Row ID","Borrower Name","Description","Creation Date","Hidden Flag","AI Collection Enabled") VALUES('R052-4G-B','R052 4G synthetic borrower / ผู้กู้จำลอง','Synthetic DEV activation evidence; no contact or referral',(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date,false,false)`,values:[]},
+  {sql:`INSERT INTO public."Loans"("Row ID","Ref Borrowers","Ref Disbursed From Cash Account","Loan Date","Principal Amount","Loan Status","Loan Type","Auto Charge Enabled","Current Daily Interest","Fixed Interest","Daily Payment Amount","Transfer Fee","Created By") VALUES('R052-4G-L','R052-4G-B','R052-4G-ACCOUNT',(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date-1,2::money,'ยังไม่ปิดยอด','กำหนดวันชำระ',false,0::money,0::money,0::money,0::money,$1)`,values:[ownerEmail]},
+  {sql:`INSERT INTO public."Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Interest Due","Notes") VALUES('R052-4G-C1','R052-4G-L',(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date,1::money,0::money,'Synthetic 4G only'),('R052-4G-C2','R052-4G-L',(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date,1::money,0::money,'Synthetic 4G only')`,values:[]}
+ ];
+ if(apply){await client.query('BEGIN');try{for(const s of steps)await client.query(s.sql,s.values);await client.query('COMMIT');}catch(e){await client.query('ROLLBACK');throw e;}}
+ return {database,mode:apply?'fixture-created':'fixture-plan',fixture:DEV_COMMAND_FIXTURE,loanId:'R052-4G-L',principal:'2',interest:'0',datePolicy:'loan yesterday; charges/payment Bangkok today',steps,expectedEffects:'one synthetic loan cash out 2; full selected-charge receipt cash in 2 to same synthetic account; account/holder net zero; retained Posted payment, two repayments/allocations and one journal; normal auto-close',sideEffectControls:'auto charges false; fixed scheduled loan; zero interest/fees; AI collection false; no contacts/referrer/payment request token; no AppSheet event/agent invocation; preserve integrity triggers'};
+}
+export async function readDevCommandFixtureEffects(client){
+ const loan=(await client.query(`SELECT "Loan Status" status,"Auto Charge Enabled" auto,"Principal Amount"::numeric::text principal,"Ref Closing Payment" closing_payment FROM public."Loans" WHERE "Row ID"='R052-4G-L'`)).rows[0];
+ const cash=(await client.query(`SELECT coalesce(sum(CASE WHEN "Ref To Cash Account"='R052-4G-ACCOUNT' THEN "Amount" ELSE 0 END),0)::text cash_in,coalesce(sum(CASE WHEN "Ref From Cash Account"='R052-4G-ACCOUNT' THEN "Amount" ELSE 0 END),0)::text cash_out,count(*)::int entries FROM public."Cash Ledger" WHERE "Ref To Cash Account"='R052-4G-ACCOUNT' OR "Ref From Cash Account"='R052-4G-ACCOUNT'`)).rows[0];
+ const charges=(await client.query(`SELECT "Row ID" id,"Amount Remaining"::numeric::text remaining,"Payment Status" status FROM public."Charges" WHERE "Row ID"=ANY($1) ORDER BY "Row ID"`,[DEV_COMMAND_FIXTURE.chargeIds])).rows;
+ return {loan,cash,charges};
+}

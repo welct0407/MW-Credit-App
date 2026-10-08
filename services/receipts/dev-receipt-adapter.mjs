@@ -18,9 +18,9 @@ export function createDevReceiptAdapter({storage,decodeImage,compatibility}={}) 
  async function verifyRead({requestId,receiptId,actor,mimeType,expectedGeneration}) {
   const bound=binding(requestId,receiptId,actor),paths=generatedReceiptPaths({requestId,receiptId,mimeType});
   const object=await storage.read({bucket:paths.bucket,key:paths.key,...(expectedGeneration?{generation:expectedGeneration}:{})});
-  if(!object||!generation(object.generation)||(expectedGeneration&&object.generation!==expectedGeneration)||object.mimeType!==mimeType||!Buffer.isBuffer(object.bytes)||!object.bytes.length||object.bytes.length>5242880)throw Error('receipt_unavailable');
+  if(!object||!generation(object.generation)||(expectedGeneration&&object.generation!==expectedGeneration)||object.mimeType!==mimeType||!Buffer.isBuffer(object.bytes)||!object.bytes.length||object.bytes.length>5242880)throw Object.assign(Error('receipt_unavailable'),{receiptInvalid:true});
   const sha256=hash(object.bytes),expected={pwaReceiptVersion:'1',environment:'dev',requestId,receiptId,actorSha256:bound.actorSha256,sha256,contentType:mimeType,sizeBytes:String(object.bytes.length)};
-  if(!object.metadata||Object.keys(expected).some(k=>object.metadata[k]!==expected[k]))throw Error('receipt_unavailable');
+  if(!object.metadata||Object.keys(expected).some(k=>object.metadata[k]!==expected[k]))throw Object.assign(Error('receipt_unavailable'),{receiptInvalid:true});
   await decodeImage(object.bytes,mimeType);
   return Object.freeze({descriptor:canonicalReceipt({receiptId,sha256,mimeType,sizeBytes:object.bytes.length,storageReference:paths.storageReference}),requestId,actor:bound.actor,generation:object.generation});
  }
@@ -32,7 +32,7 @@ export function createDevReceiptAdapter({storage,decodeImage,compatibility}={}) 
    await decodeImage(bytes,mimeType);
    const metadata={pwaReceiptVersion:'1',environment:'dev',requestId,receiptId,actorSha256:bound.actorSha256,sha256:hash(bytes),contentType:mimeType,sizeBytes:String(bytes.length)};
    const created=await storage.create({bucket:paths.bucket,key:paths.key,bytes,mimeType,metadata,ifGenerationMatch:0});
-   if(!generation(created?.generation))throw Error('receipt_unavailable');
+   if(!generation(created?.generation))throw Object.assign(Error('receipt_unavailable'),{receiptInvalid:true});
    return verifyRead({requestId,receiptId,actor:bound.actor,mimeType,expectedGeneration:created.generation});
   },
   async resolve({requestId,receiptId,actor,mimeType,generation:expectedGeneration}) {
@@ -45,7 +45,7 @@ export function createDevReceiptAdapter({storage,decodeImage,compatibility}={}) 
    for(const mimeType of ['image/png','image/jpeg']){
     try{const value=await verifyRead({requestId,receiptId,actor,mimeType});if(found)throw Error('ambiguous_receipt');found=value}catch(error){if(error?.code==='OBJECT_NOT_FOUND')continue;throw error;}
    }
-   if(!found)throw Error('receipt_unavailable');const {descriptor,actor:boundActor}=found;return {descriptor,requestId,actor:boundActor};
+   if(!found)throw Object.assign(Error('receipt_unavailable'),{receiptInvalid:true});const {descriptor,actor:boundActor}=found;return {descriptor,requestId,actor:boundActor};
   },
  });
 }

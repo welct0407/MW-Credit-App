@@ -1,4 +1,4 @@
-# 4F reviewed candidate only. Default false creates no command resources.
+# Separate DEV command identity. Default false creates no command resources.
 # Existing database, receipt bucket and read runtime are external/preserved.
 variable "command_infrastructure_enabled" {
   description = "Create the separate DEV command identity only after exact-source review and scoped activation."
@@ -62,7 +62,7 @@ resource "google_storage_bucket_iam_member" "command_receipts" {
 
 # SQL role membership is deliberately outside Terraform's instance-level IAM user
 # creation. Use the reviewed DEV role provisioner/reconciler and actual-login proof.
-# No Cloud Run service/ingress change is included without a tested command bootstrap.
+# command-service.tf requires the tested immutable bootstrap and reviewed fixture.
 output "command_runtime_identity" {
   value = try(google_service_account.command_runtime[0].email, null)
 }

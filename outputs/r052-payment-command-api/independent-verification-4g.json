@@ -1,0 +1,236 @@
+{
+  "checkpoint": "4G",
+  "date": "2026-10-08",
+  "status": "Independent candidate verification passed; live DEV activation and owner acceptance are separate.",
+  "plan": "PM outputs/r052-pwa/checkpoint-4g-design-and-test-plan.md",
+  "counts": {
+    "independentUniqueCases": 22,
+    "bBackendUniqueCases": 1,
+    "combinedUniqueCases": 23,
+    "finalPassingExecutions": 31,
+    "explanation": "C backend 8 + operator 6 + image/transport 3 + browser 5. Backend runs 9 including B1; operator phases run 9 with three repeated prerequisite cases; image tests run 3; browser runs 10 across two projects. Repeated phases, widths, language checks and retests are not additional unique cases."
+  },
+  "runs": [
+    {
+      "command": "./tests/integration/Run-DevCommandActivation.ps1",
+      "result": "9/9 passed",
+      "kind": "Actual HTTP and actual isolated PostgreSQL full V79 with fresh non-superuser runtime LOGIN; synthetic auth verifier dependency.",
+      "cluster": "mw-payment-rehearsal-e1c74e00d524450da65aa6f2b811b70d",
+      "stopped": true
+    },
+    {
+      "command": "./scripts/rehearsal/Run-ApplicationRoleOperatorProof.ps1",
+      "result": "2/2 preparation and 4/4 finalization passed",
+      "kind": "True nonsuperuser postgres LOGIN, CREATEROLE/CREATEDB; distinct bootstrap only creates operator and owned database. Actual operator migrates V1–78, prepares absent roles, migrates immutable V79, reconciles then finalizes; future hook succeeds without owner ACL statements.",
+      "cluster": "mw-payment-rehearsal-13d978835021484396c9a7873e0ab854",
+      "stopped": true
+    },
+    {
+      "command": "./scripts/rehearsal/Run-ApplicationRoleOperatorProof.ps1 -FailureProof",
+      "result": "3/3 passed",
+      "kind": "Separate fresh true operator cluster; missing V79 completion proof then actual cleanup removes effective temporary INHERIT/SET and schema CREATE while preserving roles.",
+      "cluster": "mw-payment-rehearsal-3e4fe80650874734a2f4a95ed81c7dcc",
+      "stopped": true
+    },
+    {
+      "command": "node --test tests/unit/dev-command-receipts-independent.test.mjs",
+      "result": "3/3 passed",
+      "kind": "Actual pinned Sharp decoder; injected in-memory storage transport, no GCS requests."
+    },
+    {
+      "command": "npx playwright test tests/e2e/payment-command.spec.ts --workers=1",
+      "result": "10/10 passed, five unique scenarios on desktop-chromium and mobile-chromium",
+      "kind": "Local live-dev UI with synthetic Firebase module and intercepted API transport. Viewports 320/390/1440 and EN/Thai; actual browser interaction. No real auth or live financial requests."
+    }
+  ],
+  "expectedActual": [
+    {
+      "case": "HTTP draft",
+      "expectedAndActual": "Exact Bangkok date/asOf, stable eligible charge order, integer sum330, future charge excluded, private account projection; observed."
+    },
+    {
+      "case": "Draft authorization",
+      "expectedAndActual": "Missing bearer401, foreign borrower403, foreign configured charge unavailable503, query route400; no journal change observed."
+    },
+    {
+      "case": "Fractional and inactive sources",
+      "expectedAndActual": "Fractional source amount through intact triggers yields503; distinct valid inactive synthetic account omitted; observed."
+    },
+    {
+      "case": "Receipt gate and bounds",
+      "expectedAndActual": "Foreign/missing borrower403, unsupported media415, >5MiB413 before adapter; zero adapter calls/journal change observed."
+    },
+    {
+      "case": "Posting and retained recovery",
+      "expectedAndActual": "HTTP posted/status match, one journal insertion, exact replay after fixture removal succeeds, changed payload409/new command403; observed."
+    },
+    {
+      "case": "Pre-dispatch outage",
+      "expectedAndActual": "Guard fault before financial submission returns503 command_unavailable, not financial Unknown; unchanged journal observed."
+    },
+    {
+      "case": "Draft contract corrections",
+      "expectedAndActual": "chargeDate present/date absent; Sort Order before ID with reverse-sorted IDs; observed."
+    },
+    {
+      "case": "Receipt failure classification",
+      "expectedAndActual": "Actual HTTP operational outage503, invalid image422, conflict409 with no journal change; observed."
+    },
+    {
+      "case": "True operator identity",
+      "expectedAndActual": "current_user=session_user=postgres, nonsuperuser/no bypass, CREATEROLE/CREATEDB and schema authority; observed."
+    },
+    {
+      "case": "Role preparation",
+      "expectedAndActual": "Absent guarded NOLOGIN roles created by operator; temporary effective INHERIT/SET available without ADMIN grant-back; duplicate prepare refuses; observed."
+    },
+    {
+      "case": "Initial migration and finalization",
+      "expectedAndActual": "Immutable V79 succeeds, first reconcile under temporary authority, finalize removes effective INHERIT/SET/schema CREATE; owner SET denied; observed."
+    },
+    {
+      "case": "Future hook and ACL drift",
+      "expectedAndActual": "Ordinary new object receives app CRUD with no journal-routine ACL statements; fixture-admin revoked exact APP execute causes readiness failure without authority elevation; observed."
+    },
+    {
+      "case": "Runtime boundary",
+      "expectedAndActual": "Fresh runtime LOGIN inherits app capability, no creator/owner membership/direct journal INSERT; SET ROLE creator/owner42501; observed."
+    },
+    {
+      "case": "Failure cleanup",
+      "expectedAndActual": "V79 proof absent prevents finalize; cleanup removes effective temporary authority, retains roles/history; observed."
+    },
+    {
+      "case": "Real image decoder",
+      "expectedAndActual": "PNG/JPEG accepted; truncated/MIME mismatch/oversize/>20MP rejected using actual Sharp; observed."
+    },
+    {
+      "case": "Receipt exact transport",
+      "expectedAndActual": "Create precondition0, exact generation read, original bytes/hash retained, identical collision/lost-ack replay reconciles, changed image conflicts without overwrite; observed via injected transport."
+    },
+    {
+      "case": "Receipt binding",
+      "expectedAndActual": "Changed actor or mutated bytes/metadata mismatch rejected; observed via injected transport."
+    },
+    {
+      "case": "Responsive review",
+      "expectedAndActual": "100 charges remain accessible in bounded list; selection preserves scroll/notes and exact total, full review, EN/Thai at320/390/1440, no horizontal overflow; observed."
+    },
+    {
+      "case": "Unknown recovery",
+      "expectedAndActual": "No automatic POST; duplicate status clicks yield one GET; same-ID retry retains byte-equivalent JSON; only opaque UUID stored; reload with absent Collection row remains status-only; observed."
+    },
+    {
+      "case": "Receipt races and Posted",
+      "expectedAndActual": "Invalid replacement clears upload busy, stale upload cannot restore selection; Posted retains notes/amount despite authenticated receipt GET503; observed."
+    },
+    {
+      "case": "Storage and auth loss",
+      "expectedAndActual": "Pending-reference setter refusal displays copy warning; auth loss clears business draft; observed."
+    },
+    {
+      "case": "Offline",
+      "expectedAndActual": "Existing offline shell clears business draft/confirmation entry and never dispatches POST; no automatic write on reconnection; observed."
+    }
+  ],
+  "defectsAndRetests": [
+    "True operator prepare initially failed0LP01 ADMIN grant-back; D preserved implicit creator ADMIN and changed only temporary membership options. Retest passed.",
+    "V79 post-owner-transfer REVOKE initially failed42501 with INHERIT false; root accepted temporary operator INHERIT+SET followed by exact finalization/cleanup. Immutable V78/V79 unchanged. Retest passed.",
+    "Post-finalize policy originally failed42501 on unconditional owner-function ACL mutations; B now audits exact signatures/owner/PUBLIC/direct app execute/grant option and emits no statements when satisfied. Initial reconcile occurs before finalize. Future-hook and drift tests passed.",
+    "Independent draft readback found date vs planned chargeDate and missing Sort Order priority. B corrected; targeted actual SQL assertions passed on frozen source.",
+    "A-reported receipt and UI corrections exercised: operational503; invalid-upload busy reset; status serialization; Posted authenticated receipt read with retained notes/amount.",
+    "Test-only initial SQL alias, derived-amount/default-account fixture mistakes and malformed Upcoming mock were corrected without weakening protection assertions. One UI run invalidated by logged source HMR; final frozen desktop/mobile run passed."
+  ],
+  "reuse": {
+    "prior4F": "Existing financial journal/idempotency/concurrency/uncertain-commit tests and protected domain capability/default ACL/recovery evidence remain separately labeled prior evidence; not counted in 4G cases. No historical financial engine suite rerun by C.",
+    "bRuntime": "B reports focused runtime unit3 and live build passed; not independently counted here."
+  },
+  "limitations": [
+    "No C live database, cloud, GCS, AppSheet or financial write.",
+    "Synthetic verifier/module/transport tests do not establish real Firebase owner sign-in, SDK credentials or command-service IAM authority.",
+    "Local PostgreSQL operator flags/ownership/membership mechanics are an equivalent prerequisite proof, not a substitute for D's actual Cloud SQL target/readiness evidence.",
+    "D owns maintained CI, live provisioning/recovery/deployment and real generated-path receipt evidence; owner-visible real sign-in may require owner action.",
+    "Candidate verified; no production deployment, owner acceptance or phase-complete claim."
+  ],
+  "artifacts": {
+    "tests": [
+      "tests/integration/dev-command-activation-independent.test.mjs",
+      "tests/integration/application-role-operator-independent.test.mjs",
+      "tests/unit/dev-command-receipts-independent.test.mjs",
+      "tests/e2e/payment-command.spec.ts"
+    ],
+    "runner": "scripts/rehearsal/Run-ApplicationRoleOperatorProof.ps1",
+    "screenshots": "outputs/r052-payment-command-api/ui-{desktop,mobile}-chromium-{320,390,1440}-th.png",
+    "visualReview": "320px Thai screenshot inspected: bounded charge list, legible notes/controls, no horizontal overflow."
+  },
+  "sourceHashes": [
+    {
+      "path": "scripts/database/application-role-provisioning.mjs",
+      "sha256": "02313a81a8b24a79aba2452846eedf1ebb904e79cb45f2e1ca60375ce56b2fc7"
+    },
+    {
+      "path": "scripts/database/app-role-policy.mjs",
+      "sha256": "4d8ab40c6622df10c17ab91ce9a6b0b053019e40fc68c9e6556b00abc5d8c9f0"
+    },
+    {
+      "path": "services/payment-command/draft.mjs",
+      "sha256": "4edbb941ccdef97c1a2ffb7648b3bcb29e73a4931457c1c983a7618c957dbe6e"
+    },
+    {
+      "path": "services/payment-command/store.mjs",
+      "sha256": "29b08b394c04e81e87d05c323587c19cc2239fc50d6cc5836ea5de8269894557"
+    },
+    {
+      "path": "services/payment-command/handler.mjs",
+      "sha256": "208c67bdc04934d37b37f1e468292b063a1af969cd7d2a18d65744a17fda1607"
+    },
+    {
+      "path": "services/payment-command/application-target.mjs",
+      "sha256": "e4779776bf0f7c48e577094a476b14c68f8df49e0d45f885fe4cce258011ce7e"
+    },
+    {
+      "path": "services/payment-command/dev-target.mjs",
+      "sha256": "4cb3be44d390372cb9af8cd30a520013976d677de3d057105d8f44b0c5cd99f5"
+    },
+    {
+      "path": "services/payment-command/dev-config.mjs",
+      "sha256": "82db63e5e7e42df81e591b54b2df15d9e4b83e0805f3affe946d8bf0258d123d"
+    },
+    {
+      "path": "services/receipts/decode-image.mjs",
+      "sha256": "9db8042a66c577de6f1e061bc17c087903e6b209f4e289c23b7117942f0c690a"
+    },
+    {
+      "path": "services/receipts/command-receipts.mjs",
+      "sha256": "ab524b084df54c54dafcc763ef3a412a0b9f7db7de7d8171b45d78eb78a5a29d"
+    },
+    {
+      "path": "services/receipts/gcs-transport.mjs",
+      "sha256": "0e0e4947b7751d0dc2fe27a856bfc144c6f5dd2182a6562e4bd03187c6d29822"
+    },
+    {
+      "path": "apps/pwa/src/SelectedCharges.tsx",
+      "sha256": "4253b893d1f495740ff3829c27d7e9b0321ec51e35e84ee86e1c60315e4dd833"
+    },
+    {
+      "path": "apps/pwa/src/CollectionRecords.tsx",
+      "sha256": "fea8bc8aa3d6cc488646efe7374c25888c58fc81d8fb0b2e96cb05d5febd9593"
+    },
+    {
+      "path": "tests/integration/dev-command-activation-independent.test.mjs",
+      "sha256": "a92fbaa4f4da94704a5e925cb8051f8dc3463f047afec5d43f6d6e4bc8f8bd37"
+    },
+    {
+      "path": "tests/integration/application-role-operator-independent.test.mjs",
+      "sha256": "d180c69d6ef84a2a271d39f3822e5d4f6327b32d89bc4d8eedd1ba77dc73c6c0"
+    },
+    {
+      "path": "tests/unit/dev-command-receipts-independent.test.mjs",
+      "sha256": "084605c04155e02ea24b56d93301a676474f6ce7e82515c2cf3b143584cba9cc"
+    },
+    {
+      "path": "tests/e2e/payment-command.spec.ts",
+      "sha256": "e2355f537794efcf72d855d48e9b35ce2f4822681491f29915f3bc9e398204df"
+    }
+  ]
+}
