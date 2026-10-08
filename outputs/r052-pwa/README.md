@@ -4,7 +4,7 @@
 
 Date: 8 October 2026, Asia/Bangkok.
 
-Status: Checkpoint4D implements the owner-approved V78 command journal candidate for disposable rehearsal only. Maintained database CI passed;13 focused transaction cases and one actual PostgreSQL restart passed, with independent assertion/retained-run corroboration passed. The migration exists in source but is NOT applied to live DEV/PROD, which remain V77. No runtime grants, financial endpoint, GCS or cloud change; R052 remains Open.
+Status: Checkpoint 4E implements an isolated local command API candidate against disposable V78 PostgreSQL. Final API tests passed 22/22 (19 independent C cases and 3 B cases); pure contracts passed 5/5. Maintained database CI passed separately. The separate future DEV runtime, SQL authority, receipt roundtrip and committed-event plan are documented. Live DEV/PROD remain V77; no migration, runtime grants, financial endpoint activation, GCS or cloud change. R052 remains Open. [4E design and executable plan](checkpoint-4e-design-and-test-plan.md) · [Authority proposal](../r052-payment-command-api/infra-authority-plan.md).
 
 ## Scope
 
