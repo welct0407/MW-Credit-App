@@ -1,15 +1,47 @@
+import { randomUUID } from 'node:crypto';
+const resultCodes = new Set(['origin_denied', 'method_not_allowed', 'invalid_request', 'sign_in_required', 'session_invalid', 'access_denied', 'not_found', 'read_unavailable', 'source_unavailable', 'business_date_changed']);
+function operationFor(rawUrl) {
+  try {
+    const path = new URL(rawUrl, 'http://request.invalid').pathname;
+    // Validate escaping without ever retaining or logging decoded identifiers.
+    decodeURIComponent(path);
+    if (path === '/health') return 'health';
+    if (path === '/api/session') return 'session';
+    if (path === '/api/borrowers') return 'borrowers_list';
+    if (/^\/api\/borrowers\/[^/]+$/.test(path)) return 'borrower_detail';
+    if (/^\/api\/borrowers\/[^/]+\/loans$/.test(path)) return 'loans_list';
+    if (/^\/api\/borrowers\/[^/]+\/loans\/[^/]+$/.test(path)) return 'loan_detail';
+    if (path === '/api/collection') return 'collection_list';
+    if (/^\/api\/collection\/[^/]+\/charges$/.test(path)) return 'collection_charges';
+    if (/^\/api\/collection\/[^/]+\/upcoming$/.test(path)) return 'upcoming_summary';
+    if (/^\/api\/collection\/[^/]+\/upcoming\/[^/]+$/.test(path)) return 'upcoming_date';
+  } catch { /* Malformed routes have no diagnostic path payload. */ }
+  return 'unknown';
+}
 /** HTTP boundary: all data requests require a freshly verified ID token. */
-export function createDevReadHandler({ config, verifyPrincipal, store }) {
+export function createDevReadHandler({ config, verifyPrincipal, store, completionLogger = () => {} }) {
   return async (req, res) => {
+    const requestId = randomUUID();
+    const started = performance.now();
+    let completionCode = 'unknown_error';
+    let logged = false;
+    const operation = req.method === 'OPTIONS' ? 'preflight' : operationFor(req.url);
+    res.once?.('finish', () => {
+      if (logged) return;
+      logged = true;
+      try { completionLogger({ event: 'read_request', requestId, operation, method: ['GET', 'OPTIONS'].includes(req.method) ? req.method : 'OTHER', status: res.statusCode, code: completionCode, durationMs: Math.max(0, Math.round(performance.now() - started)) }); }
+      catch { /* Telemetry must never alter the response or log raw errors. */ }
+    });
+    res.setHeader('X-Request-ID', requestId);
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
     res.setHeader('Cache-Control', 'no-store');
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('Vary', 'Origin');
-    const send = (status, value) => { res.statusCode = status; res.end(JSON.stringify(value)); };
+    const send = (status, value) => { completionCode = status < 400 ? 'ok' : resultCodes.has(value?.code) ? value.code : 'unknown_error'; res.statusCode = status; res.end(JSON.stringify(value)); };
     const origin = req.headers.origin;
     const allowedOrigin = typeof origin === 'string' && config.origins.includes(origin);
     if (origin !== undefined && !allowedOrigin) return send(403, { ok: false, code: 'origin_denied' });
-    if (allowedOrigin) res.setHeader('Access-Control-Allow-Origin', origin);
+    if (allowedOrigin) { res.setHeader('Access-Control-Allow-Origin', origin); res.setHeader('Access-Control-Expose-Headers', 'X-Request-ID'); }
     if (req.method === 'OPTIONS') {
       if (!allowedOrigin || req.headers['access-control-request-method'] !== 'GET' || (req.headers['access-control-request-headers'] || '').split(',').some(header => header.trim() && header.trim().toLowerCase() !== 'authorization')) return send(403, { ok: false, code: 'origin_denied' });
       res.setHeader('Access-Control-Allow-Methods', 'GET'); res.setHeader('Access-Control-Allow-Headers', 'Authorization');

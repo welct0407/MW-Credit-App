@@ -24,7 +24,7 @@ const lazyPool = { async connect() {
 const verifyPrincipal = createFirebasePrincipalVerifier((token, checkRevoked) => auth.verifyIdToken(token, checkRevoked), { ownerUid: config.ownerUid, identityMode: config.identityMode });
 const store = createBorrowerReadStore({ pool: lazyPool, config });
 if (!(await store.checkIdentity()).ok) throw new Error('DEV database identity unavailable');
-const server = http.createServer(createDevReadHandler({ config, verifyPrincipal, store }));
+const server = http.createServer(createDevReadHandler({ config, verifyPrincipal, store, completionLogger: record => console.log(JSON.stringify(record)) }));
 server.requestTimeout = 15000;
 server.headersTimeout = 10000;
 server.listen(Number(process.env.PORT || 8080), '0.0.0.0');

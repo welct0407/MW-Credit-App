@@ -1,3 +1,4 @@
+import { ErrorReference, type ReadFailure } from './ReadFailure';
 import { UpcomingCharges, type UpcomingSummary, type UpcomingDetail } from './UpcomingCharges';
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
@@ -8,7 +9,7 @@ type Envelope = { ok: true; source: 'dev'; businessDate: string; asOf: string; n
 type BoardResult = Envelope & { items: Summary[] };
 type DetailResult = Envelope & { borrower: Summary; items: Charge[] };
 export type CollectionReadError = 'not_found' | 'unavailable' | 'business_date_changed';
-export type CollectionRequest = <T>(path: string, onError: (code: CollectionReadError) => void) => Promise<T | null>;
+export type CollectionRequest = <T>(path: string, onError: (failure: ReadFailure<CollectionReadError>) => void) => Promise<T | null>;
 export function CollectionRecords({ thai, request, cancel, onStatus, refreshToken, query }: { thai: boolean; request: CollectionRequest; cancel: () => void; onStatus: (value: 'idle' | 'loading' | 'success' | 'error') => void; refreshToken: number; query: string }) {
   const t = (en: string, th: string) => thai ? th : en;
   const [items, setItems] = useState<Summary[]>([]);
@@ -17,7 +18,7 @@ export function CollectionRecords({ thai, request, cancel, onStatus, refreshToke
   const [selectedCharge, setSelectedCharge] = useState<Charge | null>(null);
   const [upcoming, setUpcoming] = useState<UpcomingSummary | null>(null);
   const [upcomingDetail, setUpcomingDetail] = useState<UpcomingDetail | null>(null);
-  const [upcomingError, setUpcomingError] = useState<CollectionReadError | null>(null);
+  const [upcomingError, setUpcomingError] = useState<ReadFailure<CollectionReadError> | null>(null);
   const [upcomingPage, setUpcomingPage] = useState(1);
   const savedDetailScroll = useRef(0);
   const restoreDetailScroll = useRef(false);
@@ -31,8 +32,8 @@ export function CollectionRecords({ thai, request, cancel, onStatus, refreshToke
   const [busy, setBusy] = useState(false);
   const [updateState, setUpdateState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   useEffect(() => { onStatus(updateState); }, [updateState, onStatus]);
-  const [error, setError] = useState<CollectionReadError | null>(null);
-  const [childError, setChildError] = useState<CollectionReadError | null>(null);
+  const [error, setError] = useState<ReadFailure<CollectionReadError> | null>(null);
+  const [childError, setChildError] = useState<ReadFailure<CollectionReadError> | null>(null);
   const previews = useRef<{ borrowerId: string; businessDate: string; asOf: string; receivedAt: number; items: UpcomingDetail[] } | null>(null);
   const bangkokToday = () => {
     const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Bangkok', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
@@ -62,7 +63,7 @@ export function CollectionRecords({ thai, request, cancel, onStatus, refreshToke
     }
   }, [selectedCharge, upcomingDetail]);
   function reset() { previews.current = null; setUpcoming(null); setUpcomingDetail(null); setUpcomingError(null); setUpcomingPage(1); setSelectedCharge(null); setChildError(null); setItems([]); setSelected(null); setCharges([]); setCursor(null); setChargeCursor(null); setBusinessDate(''); setAsOf(''); setChargeAsOf(''); setPage(1); setChargePage(1); }
-  function fail(code: CollectionReadError) { reset(); setError(code); setUpdateState('error'); }
+  function fail(code: ReadFailure<CollectionReadError>) { reset(); setError(code); setUpdateState('error'); }
   async function loadBoard(next?: string, pageNumber = 1) {
     cancel(); const current = ++revision.current; reset(); setError(null); setBusy(true); setUpdateState('loading');
     setScrollTarget(value => ({ kind: 'list', sequence: value.sequence + 1 }));
@@ -75,12 +76,12 @@ export function CollectionRecords({ thai, request, cancel, onStatus, refreshToke
     previews.current = null; setUpcoming(null); setUpcomingError(null);
     const result = await request<UpcomingSummary>('/api/collection/' + encodeURIComponent(row.id) + '/upcoming?businessDate=' + encodeURIComponent(day), code => {
       if (current !== revision.current) return;
-      if (code === 'business_date_changed') { fail(code); return; }
+      if (code.code === 'business_date_changed') { fail(code); return; }
       setUpcomingError(code);
-      if (code === 'not_found') { setSelected(null); setCharges([]); setChargeAsOf(''); setChildError(code); }
+      if (code.code === 'not_found') { setSelected(null); setCharges([]); setChargeAsOf(''); setChildError(code); }
     });
     if (current !== revision.current) return false;
-    if (result && result.businessDate !== day) { fail('business_date_changed'); return false; }
+    if (result && result.businessDate !== day) { fail({ code: 'business_date_changed' }); return false; }
     if (result) { setUpcoming(result); previews.current = { borrowerId: row.id, businessDate: result.businessDate, asOf: result.asOf, receivedAt: performance.now(), items: result.previews ?? [] }; }
     return result !== null;
   }
@@ -93,12 +94,12 @@ export function CollectionRecords({ thai, request, cancel, onStatus, refreshToke
     let parentUnavailable = false;
     const result = await request<DetailResult>('/api/collection/' + encodeURIComponent(row.id) + '/charges?limit=25' + (next ? '&cursor=' + encodeURIComponent(next) : ''), code => {
       if (current !== revision.current) return;
-      if (code === 'business_date_changed') { parentUnavailable = true; fail(code); return; }
+      if (code.code === 'business_date_changed') { parentUnavailable = true; fail(code); return; }
       setCharges([]); setChargeCursor(null); setChargeAsOf(''); setChildError(code);
-      if (code === 'not_found') { parentUnavailable = true; setSelected(null); }
+      if (code.code === 'not_found') { parentUnavailable = true; setSelected(null); }
     });
     if (current !== revision.current) return;
-    if (result && businessDate && result.businessDate !== businessDate) { fail('business_date_changed'); setBusy(false); return; }
+    if (result && businessDate && result.businessDate !== businessDate) { fail({ code: 'business_date_changed' }); setBusy(false); return; }
     if (parentUnavailable) { setBusy(false); setUpdateState('error'); return; }
     if (result) { setSelected(result.borrower); setCharges(result.items); setChargeCursor(result.nextCursor); setChargePage(pageNumber); setBusinessDate(result.businessDate); setChargeAsOf(result.asOf); }
     const upcomingOk = await fetchUpcoming(result?.borrower ?? row, result?.businessDate ?? businessDate, current);
@@ -126,11 +127,11 @@ export function CollectionRecords({ thai, request, cancel, onStatus, refreshToke
     cancel(); const current = ++revision.current; setSelectedCharge(null); setUpcomingDetail(null); setUpcomingError(null); setBusy(true); setUpdateState('loading');
     const result = await request<UpcomingDetail>('/api/collection/' + encodeURIComponent(selected.id) + '/upcoming/' + encodeURIComponent(dueDate) + '?businessDate=' + encodeURIComponent(businessDate) + '&limit=25' + (next ? '&cursor=' + encodeURIComponent(next) : ''), code => {
       if (current !== revision.current) return;
-      if (code === 'business_date_changed') fail(code); else setUpcomingError(code);
+      if (code.code === 'business_date_changed') fail(code); else setUpcomingError(code);
     });
     if (current !== revision.current) return;
     setBusy(false);
-    if (result && result.businessDate !== businessDate) { fail('business_date_changed'); return; }
+    if (result && result.businessDate !== businessDate) { fail({ code: 'business_date_changed' }); return; }
     if (result) { setUpcomingDetail(result); setUpcomingPage(pageNumber); setUpdateState('success'); setScrollTarget(value => ({ kind: 'detail', sequence: value.sequence + 1 })); }
     else setUpdateState('error');
   }
@@ -141,12 +142,12 @@ export function CollectionRecords({ thai, request, cancel, onStatus, refreshToke
   const paymentLabel = (value: string) => value === 'รอชำระ' ? t('Pending', 'รอชำระ') : value === 'ชำระบางส่วน' ? t('Partially paid', 'ชำระบางส่วน') : t('Paid', 'ชำระแล้ว');
   const amounts = (row: Summary) => <dl className="collection-amounts"><div><dt>{t('Amount due', 'ยอดที่ต้องชำระ')}</dt><dd>{money(row.amountDue)}</dd></div><div><dt>{t('Collected today', 'รับชำระวันนี้')}</dt><dd>{money(row.amountCollected)}</dd></div><div><dt>{t('Remaining to collect', 'ยอดคงเหลือที่ต้องรับชำระ')}</dt><dd>{money(row.amountRemaining)}</dd></div></dl>;
 
-  const upcomingView = (detail: UpcomingDetail | null) => <UpcomingCharges thai={thai} summary={upcoming} detail={detail} page={upcomingPage} busy={busy} error={upcomingError} onDate={value => void openUpcoming(value)} onBack={() => { restoreDetailScroll.current = true; setUpcomingDetail(null); }} onRefresh={() => void refreshUpcoming()} onDetailRefresh={() => upcomingDetail && void openUpcoming(upcomingDetail.dueDate, undefined, 1, true)} onNext={() => upcomingDetail?.nextCursor && void openUpcoming(upcomingDetail.dueDate, upcomingDetail.nextCursor, upcomingPage + 1)} />;
+  const upcomingView = (detail: UpcomingDetail | null) => <UpcomingCharges thai={thai} summary={upcoming} detail={detail} page={upcomingPage} busy={busy} error={upcomingError} onDate={value => void openUpcoming(value)} onBack={() => { restoreDetailScroll.current = true; setUpcomingError(null); setUpcomingDetail(null); }} onRefresh={() => void refreshUpcoming()} onDetailRefresh={() => upcomingDetail && void openUpcoming(upcomingDetail.dueDate, undefined, 1, true)} onNext={() => upcomingDetail?.nextCursor && void openUpcoming(upcomingDetail.dueDate, upcomingDetail.nextCursor, upcomingPage + 1)} />;
   return <section className="collection-workspace" aria-label={t('Collection workspace', 'พื้นที่งานติดตาม')}>
 
 
-    {error && <div className="access-blocked" role="status"><h2>{error === 'business_date_changed' ? t('The business date has changed', 'วันที่ทำรายการเปลี่ยนแล้ว') : error === 'not_found' ? t('This borrower is no longer in Collection', 'ผู้กู้รายนี้ไม่อยู่ในงานติดตามแล้ว') : t('Collection is unavailable', 'ไม่สามารถโหลดงานติดตามได้')}</h2><p>{t('Refresh the first page to reload Collection.', 'รีเฟรชหน้าแรกเพื่อโหลดงานติดตามอีกครั้ง')}</p><button className="secondary-button" onClick={() => void loadBoard()}>{t('Refresh Collection', 'รีเฟรชงานติดตาม')}</button></div>}
-    {childError === 'not_found' && <p role="status">{t('This borrower is no longer in Collection. Refresh the list.', 'ผู้กู้รายนี้ไม่อยู่ในงานติดตามแล้ว กรุณารีเฟรชรายการ')}</p>}
+    {error && <div className="access-blocked" role="status"><h2>{error.code === 'business_date_changed' ? t('The business date has changed', 'วันที่ทำรายการเปลี่ยนแล้ว') : error.code === 'not_found' ? t('This borrower is no longer in Collection', 'ผู้กู้รายนี้ไม่อยู่ในงานติดตามแล้ว') : t('Collection is unavailable', 'ไม่สามารถโหลดงานติดตามได้')}</h2><ErrorReference failure={error} thai={thai} /><p>{t('Refresh the first page to reload Collection.', 'รีเฟรชหน้าแรกเพื่อโหลดงานติดตามอีกครั้ง')}</p><button className="secondary-button" onClick={() => void loadBoard()}>{t('Refresh Collection', 'รีเฟรชงานติดตาม')}</button></div>}
+    {childError?.code === 'not_found' && <div role="status"><ErrorReference failure={childError} thai={thai} /><p>{t('This borrower is no longer in Collection. Refresh the list.', 'ผู้กู้รายนี้ไม่อยู่ในงานติดตามแล้ว กรุณารีเฟรชรายการ')}</p></div>}
     {!error && <div className={'work-grid collection-grid ' + (selected ? 'has-detail' : '')}>
       <section className="list-panel" aria-busy={busy && !selected} ref={listPanel} tabIndex={0} aria-label={t('Collection borrower list', 'รายชื่อผู้กู้งานติดตาม')}>
         <div className="section-heading"><h2>{t('Collection borrowers', 'ผู้กู้งานติดตาม')}</h2></div>
@@ -155,8 +156,8 @@ export function CollectionRecords({ thai, request, cancel, onStatus, refreshToke
         <div className="list-foot"><span className="live-page-status">{t('Collection page', 'หน้างานติดตาม')} {page}{!busy && !cursor ? t(' · End of list', ' · สิ้นสุดรายการ') : ''}</span>{cursor && <button className="secondary-button" disabled={busy} onClick={() => void loadBoard(cursor, page + 1)}>{t('Next Collection page', 'หน้าถัดไปของงานติดตาม')}</button>}</div>
       </section>
       <section className={'detail-panel ' + (!selected ? 'unselected' : '')} aria-busy={busy && !!selected} ref={detailPanel} tabIndex={0} aria-label={t('Collection charge details', 'รายละเอียดยอดเรียกเก็บงานติดตาม')}>
-        {selected ? selectedCharge ? <article className="collection-charge-detail" aria-label={t('Charge detail', 'รายละเอียดยอดเรียกเก็บ')}><button className="secondary-button" onClick={() => { restoreDetailScroll.current = true; setSelectedCharge(null); }}>{t('Back to charges', 'กลับรายการเรียกเก็บ')}</button><h2>{t('Charge detail', 'รายละเอียดยอดเรียกเก็บ')}</h2><h3>{selectedCharge.loanDisplayKey}</h3><dl><div><dt>{t('Charge date', 'วันที่เรียกเก็บ')}</dt><dd>{date(selectedCharge.chargeDate)}</dd></div><div><dt>{t('Payment status', 'สถานะชำระเงิน')}</dt><dd>{paymentLabel(selectedCharge.paymentStatus)}</dd></div>{selectedCharge.paymentDate !== null && <div><dt>{t('Payment date', 'วันที่ชำระเงิน')}</dt><dd>{date(selectedCharge.paymentDate)}</dd></div>}<div><dt>{t('Amount remaining', 'ยอดคงเหลือ')}</dt><dd>{money(selectedCharge.amountRemaining)}</dd></div><div><dt>{t('Total paid', 'ยอดชำระรวม')}</dt><dd>{money(selectedCharge.totalPaid)}</dd></div><div><dt>{t('Received today', 'รับชำระวันนี้')}</dt><dd>{money(selectedCharge.receivedToday)}</dd></div></dl></article> : upcomingDetail ? upcomingView(upcomingDetail) : <><button className="secondary-button" onClick={() => { cancel(); revision.current++; previews.current = null; setSelected(null); setSelectedCharge(null); setUpcoming(null); setUpcomingDetail(null); setUpcomingError(null); setCharges([]); setChargeCursor(null); setChargeAsOf(''); setBusy(false); setUpdateState('idle'); }}>{t('Back to Collection', 'กลับงานติดตาม')}</button><h2>{selected.displayName}</h2><p>{statusLabel(selected.status)}</p>{amounts(selected)}<div className="related-loans-heading"><h3>{t('Today’s collection charges', 'ยอดเรียกเก็บในงานติดตามวันนี้')}</h3></div><p className="loan-order-note">{t('Includes earlier due dates. Newest charge dates first.', 'รวมยอดที่ครบกำหนดก่อนวันนี้ เรียงวันที่เรียกเก็บใหม่ก่อน')}</p>
-          {childError === 'unavailable' && <p role="status">{t('Unable to load charges. Refresh the charges page to try again.', 'ไม่สามารถโหลดรายการเรียกเก็บได้ กรุณารีเฟรชหน้ายอดเรียกเก็บเพื่อลองอีกครั้ง')}</p>}
+        {selected ? selectedCharge ? <article className="collection-charge-detail" aria-label={t('Charge detail', 'รายละเอียดยอดเรียกเก็บ')}><button className="secondary-button" onClick={() => { restoreDetailScroll.current = true; setSelectedCharge(null); }}>{t('Back to charges', 'กลับรายการเรียกเก็บ')}</button><h2>{t('Charge detail', 'รายละเอียดยอดเรียกเก็บ')}</h2><h3>{selectedCharge.loanDisplayKey}</h3><dl><div><dt>{t('Charge date', 'วันที่เรียกเก็บ')}</dt><dd>{date(selectedCharge.chargeDate)}</dd></div><div><dt>{t('Payment status', 'สถานะชำระเงิน')}</dt><dd>{paymentLabel(selectedCharge.paymentStatus)}</dd></div>{selectedCharge.paymentDate !== null && <div><dt>{t('Payment date', 'วันที่ชำระเงิน')}</dt><dd>{date(selectedCharge.paymentDate)}</dd></div>}<div><dt>{t('Amount remaining', 'ยอดคงเหลือ')}</dt><dd>{money(selectedCharge.amountRemaining)}</dd></div><div><dt>{t('Total paid', 'ยอดชำระรวม')}</dt><dd>{money(selectedCharge.totalPaid)}</dd></div><div><dt>{t('Received today', 'รับชำระวันนี้')}</dt><dd>{money(selectedCharge.receivedToday)}</dd></div></dl></article> : upcomingDetail ? upcomingView(upcomingDetail) : <><button className="secondary-button" onClick={() => { cancel(); revision.current++; previews.current = null; setChildError(null); setSelected(null); setSelectedCharge(null); setUpcoming(null); setUpcomingDetail(null); setUpcomingError(null); setCharges([]); setChargeCursor(null); setChargeAsOf(''); setBusy(false); setUpdateState('idle'); }}>{t('Back to Collection', 'กลับงานติดตาม')}</button><h2>{selected.displayName}</h2><p>{statusLabel(selected.status)}</p>{amounts(selected)}<div className="related-loans-heading"><h3>{t('Today’s collection charges', 'ยอดเรียกเก็บในงานติดตามวันนี้')}</h3></div><p className="loan-order-note">{t('Includes earlier due dates. Newest charge dates first.', 'รวมยอดที่ครบกำหนดก่อนวันนี้ เรียงวันที่เรียกเก็บใหม่ก่อน')}</p>
+          {childError?.code === 'unavailable' && <div role="status"><ErrorReference failure={childError} thai={thai} /><p>{t('Unable to load charges. Refresh the charges page to try again.', 'ไม่สามารถโหลดรายการเรียกเก็บได้ กรุณารีเฟรชหน้ายอดเรียกเก็บเพื่อลองอีกครั้ง')}</p></div>}
           {charges.map(charge => <button className="collection-charge collection-charge-row" key={charge.id} disabled={busy} onClick={() => { savedDetailScroll.current = window.innerWidth > 1050 ? detailPanel.current?.scrollTop ?? 0 : window.scrollY; setSelectedCharge(charge); setScrollTarget(value => ({ kind: 'detail', sequence: value.sequence + 1 })); }}><span><span>{t('Charge date', 'วันที่เรียกเก็บ')}</span><strong>{date(charge.chargeDate)}</strong></span><span><span>{t('Amount received', 'ยอดรับชำระ')}</span><strong>{money(charge.totalPaid)}</strong></span><span><span>{t('Amount remaining', 'ยอดคงเหลือ')}</span><strong>{money(charge.amountRemaining)}</strong></span></button>)}
           <p className="live-page-status">{t('Charges page', 'หน้ายอดเรียกเก็บ')} {chargePage}{!busy && !childError && !chargeCursor ? t(' · End of charges', ' · สิ้นสุดยอดเรียกเก็บ') : ''}</p><div className="loan-page-actions"><button className="secondary-button" disabled={busy} onClick={() => void loadCharges(selected)}>{t('First charges page / refresh', 'หน้าแรกยอดเรียกเก็บ / รีเฟรช')}</button>{chargeCursor && <button className="secondary-button" disabled={busy} onClick={() => void loadCharges(selected, chargeCursor, chargePage + 1)}>{t('Next charges page', 'หน้าถัดไปของยอดเรียกเก็บ')}</button>}</div>{upcomingView(null)}
         </> : <p>{t('Select a borrower to view today’s collection charges.', 'เลือกผู้กู้เพื่อดูยอดเรียกเก็บในงานติดตามวันนี้')}</p>}

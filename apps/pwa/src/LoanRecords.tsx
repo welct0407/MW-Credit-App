@@ -1,3 +1,4 @@
+import { ErrorReference, type ReadFailure } from './ReadFailure';
 import React from 'react';
 
 export type LoanRecord = {
@@ -10,7 +11,7 @@ export type LoanPageResult = { ok: true; source: 'dev'; borrowerId: string; item
 export type LoanDetailResult = { ok: true; source: 'dev'; item: LoanRecord; asOf: string };
 type Props = {
   thai: boolean; page: number; items: LoanRecord[]; selected: LoanRecord | null; busy: boolean; loading: boolean;
-  error: 'not_found' | 'unavailable' | null; nextCursor: string | null; listAsOf: string; detailAsOf: string;
+  error: ReadFailure<'not_found' | 'unavailable'> | null; nextCursor: string | null; listAsOf: string; detailAsOf: string;
   onSelect: (id: string) => void; onBack: () => void; onRefresh: () => void; onNext: () => void;
 };
 export function loanDisplayKey(loan: LoanRecord) {
@@ -31,7 +32,7 @@ export function LoanRecords(props: Props) {
   return <section className="related-loans" aria-label={t('Related loans', 'สัญญาที่เกี่ยวข้อง')}>
     <div className="related-loans-heading"><h3>{t('Related loans', 'สัญญาที่เกี่ยวข้อง')}</h3><span>{t('Read only', 'อ่านอย่างเดียว')}</span></div>
     {props.loading && <p role="status">{t('Loading loan records…', 'กำลังโหลดข้อมูลสัญญา…')}</p>}
-    {props.error && <div className="loan-read-error" role="status"><p>{props.error === 'not_found' ? t('This borrower or loan is no longer available.', 'ไม่พบผู้กู้หรือสัญญานี้แล้ว') : t('Unable to load loan records.', 'ไม่สามารถโหลดข้อมูลสัญญาได้')}</p><button className="secondary-button" disabled={props.busy} onClick={props.onRefresh}>{t('Retry loan list', 'ลองโหลดรายการสัญญาอีกครั้ง')}</button></div>}
+    {props.error && <div className="loan-read-error" role="status"><p>{props.error.code === 'not_found' ? t('This borrower or loan is no longer available.', 'ไม่พบผู้กู้หรือสัญญานี้แล้ว') : t('Unable to load loan records.', 'ไม่สามารถโหลดข้อมูลสัญญาได้')}</p><ErrorReference failure={props.error} thai={props.thai} /><button className="secondary-button" disabled={props.busy} onClick={props.onRefresh}>{t('Retry loan list', 'ลองโหลดรายการสัญญาอีกครั้ง')}</button></div>}
     {props.selected ? <article className="loan-detail" aria-label={t('Loan details', 'รายละเอียดสัญญา')}>
       <button className="secondary-button" onClick={props.onBack}>← {t('Back to loans', 'กลับไปรายการสัญญา')}</button>
       <h4>{loanDisplayKey(props.selected)}</h4>
