@@ -4,7 +4,7 @@
 
 Date: 7 October 2026, Asia/Bangkok.
 
-Status: Checkpoint 2E Collection load-completion refinement: C reproduced a delayed-read scroll reset; the one-file UI fix aligns on initial navigation instead. Six focused regression cases passed; sourcebb3ac5c passed CI37704697997 and Hostingb11661ef7a7a3d77 is deployed. Final unsigned canonical/fallback artifact and worker checks passed; rollback6a5b8f75b50f4537 retains a valid PWA worker. Owner confirmed iPhone Safari home-screen installation; the scroll fix needs owner recheck, and offline/update acceptance remains open. API00009-5x5, database, DNS and permissions are unchanged. R052 remains Open; Phase2 is incomplete.
+Status: Checkpoint2F adds server-side Thai/English name search to Borrowers and Collection with query-bound pagination and compact header controls. Sourcef6be56f is published;16 disposable PostgreSQL checks and8 browser cases passed. CI37706939264 passed; immutable imagea971a4c9 was deployed as API00010-fzk before Hosting3f6fbb70ca3dc007. Final unsigned API/origin and canonical/fallback asset/worker checks passed. Existing56-column privileges, UID pin, financial formulas and DNS are unchanged. Owner iPhone search review remains pending; R052 and Phase1/2 remain Open/incomplete.
 
 ## Scope
 
@@ -128,3 +128,7 @@ Checkpoint2C Collection board and borrower-scoped charge reads are implemented/t
 ## Checkpoint 2E — canonical DEV PWA
 
 [Design](checkpoint-2e-design.md) · [Owning log](../../Change%20Logs/CHANGE_NOTES_R052_PWA_FOUNDATION_2026-10-08.md) · [App verification](https://github.com/welct0407/MW-Credit-App/tree/codex/r052-review-shell/outputs/r052-pwa-install) · [Worker-aware recovery](https://github.com/welct0407/MW-Credit-App/blob/codex/r052-review-shell/docs/Development_PWA_Delivery.md). Prior Hostingccb0af261babf04b is pre-worker and cannot alone retire an installed worker. Synthetic actual-worker rollback/retirement passed; iPhone Safari installation is now owner-confirmed; offline/update and scroll-fix recheck remain distinct.
+
+## Checkpoint2F — bilingual name search
+
+[Design](checkpoint-2f-design.md) · [Owning log](../../Change%20Logs/CHANGE_NOTES_R052_BILINGUAL_SEARCH_2026-10-08.md) · [Synthetic query/UI evidence](https://github.com/welct0407/MW-Credit-App/tree/codex/r052-review-shell/outputs/r052-borrower-search). Only parity rows P01/P02/P08/P22/P37 are reconciled against delivered checkpoints; full enabled-object parity remains open. API-first rollout and UI-first rollback protect old unfiltered clients; already-open new clients need explicit reload during rollback.

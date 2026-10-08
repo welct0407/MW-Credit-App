@@ -2,7 +2,7 @@
 
 **Last updated:** 8 October 2026 (Asia/Bangkok)
 
-**Current position:** R052 is Open. Checkpoint 2E installation/update controls, public-only offline fallback and themed mobile navigation are implemented, tested and deployed to DEV. Independent delivery checks passed and the owner confirmed iPhone Safari home-screen installation. The Collection load-completion scroll reset is corrected, regression-tested and deployed; final unsigned artifact checks passed. Owner iPhone recheck and offline/update acceptance remain open. Domain sign-in, Borrowers/Collection reads and refresh persistence are owner-validated. Full Phase2 is incomplete.
+**Current position:** R052 is Open. Checkpoint2F bilingual name search for Borrowers and Collection is implemented, independently tested and deployed with the compatible API first; final unsigned API/asset checks passed. The owner gave go-ahead after the Collection scroll correction and confirmed iPhone home-screen installation. These do not establish offline/update acceptance or full Phase1/2 completion.
 
 [Open DEV app](https://dev-lm.mw-credit.com) · [Fallback](https://mw-credit-app-dev-737787224638.web.app) · [Detailed roadmap](PWA_Implementation_Plan.md) · [Checkpoint evidence](../outputs/r052-pwa/README.md)
 
@@ -13,6 +13,7 @@
 | Development foundation | Infrastructure, delivery tooling and shared database ownership established for the recorded scope |
 | Initial navigation and read/access prototypes | Checkpoints 1A and 1B accepted by the owner |
 | Canonical DEV domain | HTTPS active; owner confirmed sign-in, Borrowers/Collection reads and refresh persistence |
+| Borrower name search | Server-side Thai/English search and query-bound paging implemented/tested/deployed; owner review pending |
 | PWA foundation | Install/update controls, public-only offline fallback and themed mobile navigation tested and deployed; owner confirmed iPhone Safari home-screen installation; offline/update review pending |
 | Owner-only Google sign-in and borrower reads | Checkpoint 2A tested, deployed and owner-validated; actual owner identity pinned |
 | Related loan list/detail and presentation refinements | Implemented, tested and deployed; neutral surfaces, grouping, readable labels and wider desktop details await final owner visual acceptance |
@@ -45,12 +46,12 @@ Launch order: **1 → 2 → 3/4 → 5 → 6 → 8 → 9 → 10 → 11 → 12**. 
 **Domain and scrolling status, 8 October 2026:** dev-lm.mw-credit.com is active and owner-validated for sign-in, Borrowers/Collection reads and refresh persistence. Fixed header and independent desktop scrolling are implemented/tested; retain the recorded limits of physical-device and browser acceptance. [Scope](PWA_Implementation_Plan.md#phase-2-secure-application-foundation).
 
 - **Owner acceptance:** compact mobile header and mobile/desktop navigation accepted on 8 October ("looks good. carry on"). This does not establish full Phase2 or broader financial/performance acceptance.
-- **Next checkpoint:** use Update/reload in the app menu, then reopen a Collection detail and confirm loading completes without moving the page. iPhone Safari home-screen installation is owner-confirmed; the scroll fix and offline/reconnect/update acceptance still need owner review.
+- **Next checkpoint:** use Update/reload, then try the header search icon in Borrowers and Collection with Thai or English names; review paging, Clear and return from detail on iPhone. Owner search/keyboard review is pending. Offline/reconnect/update acceptance remains separately open.
 - **Remaining planning work:** close Phase 1 feature/parity and acceptance gaps alongside agreed slices. Production readiness and financial workflows follow the roadmap dependencies, not completion of this UI review alone.
-- **Current blockers:** no technical delivery blocker remains; focused regression, exact-source CI and final unsigned artifact checks passed. Owner iPhone recheck, future five frequent views and full Phase2 acceptance remain open.
+- **Current blockers:** no delivery blocker from the last correction; focused regression, exact-source CI and unsigned checks passed. Checkpoint2F delivery checks, source tests and CI passed; owner search review remains pending. Future five frequent views and full Phase2 acceptance remain open.
 
 ## Evidence and session updates
 
-[Current checkpoint and detailed evidence](../outputs/r052-pwa/README.md) · [Change record](../Change%20Logs/CHANGE_NOTES_R052_PWA_FOUNDATION_2026-10-08.md) · [Release status](Release_Tracker.md) · [Team and closeout rule](PWA_Orchestration.md)
+[Current checkpoint and detailed evidence](../outputs/r052-pwa/README.md) · [Change record](../Change%20Logs/CHANGE_NOTES_R052_BILINGUAL_SEARCH_2026-10-08.md) · [Release status](Release_Tracker.md) · [Team and closeout rule](PWA_Orchestration.md)
 
 This is the single current owner-facing progress overview. At every development-session closeout, update this page's date, completed/tested/deployed/accepted distinctions, current review, next checkpoint, blockers and evidence links. Keep detailed history in the linked change records and roadmap; do not create competing progress trackers.

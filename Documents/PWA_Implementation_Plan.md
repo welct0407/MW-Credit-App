@@ -2,7 +2,7 @@
 
 **[Overall progress: completed, current review and next steps](PWA_Progress.md)** — updated at every development-session closeout.
 
-**R052 checkpoint 2E, 8 October 2026:** Checkpoint 2E Collection load-completion refinement: C reproduced a delayed-read scroll reset; the one-file UI fix aligns on initial navigation instead. Six focused regression cases passed; sourcebb3ac5c passed CI37704697997 and Hostingb11661ef7a7a3d77 is deployed. Final unsigned canonical/fallback artifact and worker checks passed; rollback6a5b8f75b50f4537 retains a valid PWA worker. Owner confirmed iPhone Safari home-screen installation; the scroll fix needs owner recheck, and offline/update acceptance remains open. API00009-5x5, database, DNS and permissions are unchanged. R052 remains Open; Phase2 is incomplete. [Design](../outputs/r052-pwa/checkpoint-2e-design.md).
+**R052 checkpoint2F, 8 October 2026:** Checkpoint2F adds server-side Thai/English name search to Borrowers and Collection with query-bound pagination and compact header controls. Sourcef6be56f is published;16 disposable PostgreSQL checks and8 browser cases passed. CI37706939264 passed; immutable imagea971a4c9 was deployed as API00010-fzk before Hosting3f6fbb70ca3dc007. Final unsigned API/origin and canonical/fallback asset/worker checks passed. Existing56-column privileges, UID pin, financial formulas and DNS are unchanged. Owner iPhone search review remains pending; R052 and Phase1/2 remain Open/incomplete. [Design](../outputs/r052-pwa/checkpoint-2f-design.md).
 
 **R052 checkpoint 2A, 7 October 2026:** Checkpoint 2A live DEV Google sign-in and Borrowers read is owner-validated: owner reported successful list/detail reads; actual verified Google UID is pinned in managed Secret Manager version 1, read revision00003-pzr. Independent signed-out desktop/mobile, static health and denial checks passed. App source20358d1 includes the tested cold-start test-tooling correction; final CI37615986417 passed. Checkpoint 2A is complete. Phase 2 remains incomplete and the team stops at this checkpoint; no next slice, production, financial, schema or AppSheet change. [Evidence](../outputs/r052-pwa/README.md).
 
@@ -311,7 +311,7 @@ The final review must establish all of the following:
 - The cutover runbook covers old-client sync drain, access controls, rollback triggers and stabilization.
 - No unresolved required-feature, financial-integrity, access-control or recovery blocker remains.
 
-**Current implementation task:** Phase 2, checkpoint 2E install/update/offline foundation. Source, exact-source CI and DEV delivery checks passed; stop for owner installation/update/offline review. Agent D owns infrastructure, miscellaneous work, documentation and publication. Full Phase 1/2 completion is not claimed.
+**Current implementation task:** Phase2 checkpoint2F bilingual server-side search. The compatible API and UI are deployed after exact-source checks; unsigned verification passed and the team stops for owner search review. No full Phase1/2 completion or financial workflow expansion.
 
 ## Borrower-field parity inventory after checkpoint 2B feedback
 
