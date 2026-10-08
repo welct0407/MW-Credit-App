@@ -64,3 +64,7 @@ D may update affected baseline rows using this table and linked prior checkpoint
 Next foundation work should close remaining error/request tracing and acceptance gaps deliberately. Before payment/prod readiness, reconcile the first receiving command's current V77 source/transaction/idempotency and actor/event/notification ownership, precise permissions, retained reporting and measurable acceptance targets. No payment implementation, production readiness declaration, full Phase 1 closure or Phase 5 expansion follows from this search checkpoint. Phase 7 stays post-go-live.
 
 Stop after independent checks, DEV publication, updated overall progress and a user-reviewable search checkpoint.
+
+## Owner override — typeahead refinement, 8 October
+
+The owner replaces Enter-required search with300ms trailing debounce. Guard IME composition; Enter may flush immediately, Clear applies empty query immediately, Back/Escape cancels an unsubmitted timer. Deduplicate canonical queries and cancel pending timers on result/page navigation, route/auth/offline changes and unmount. Existing abort/generation protection prevents stale responses. This supersedes the explicit-submission UI paragraph only; API, SQL, limits, cursor binding and access rules remain unchanged. Focused browser verification and Hosting-only delivery are required; no repeated SQL/provider audit.

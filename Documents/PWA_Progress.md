@@ -2,7 +2,7 @@
 
 **Last updated:** 8 October 2026 (Asia/Bangkok)
 
-**Current position:** R052 is Open. Checkpoint2F bilingual name search for Borrowers and Collection is implemented, independently tested and deployed with the compatible API first; final unsigned API/asset checks passed. The owner gave go-ahead after the Collection scroll correction and confirmed iPhone home-screen installation. These do not establish offline/update acceptance or full Phase1/2 completion.
+**Current position:** R052 is Open. Borrowers/Collection server-side bilingual search is deployed; the owner-requested300ms typeahead refinement is implemented and tested, deployed after passing CI; final unsigned artifact checks passed. The API and permissions are unchanged. iPhone installation is owner-confirmed; typeahead and offline/update acceptance remain separate. Full Phase1/2 completion is not claimed.
 
 [Open DEV app](https://dev-lm.mw-credit.com) · [Fallback](https://mw-credit-app-dev-737787224638.web.app) · [Detailed roadmap](PWA_Implementation_Plan.md) · [Checkpoint evidence](../outputs/r052-pwa/README.md)
 
@@ -46,9 +46,9 @@ Launch order: **1 → 2 → 3/4 → 5 → 6 → 8 → 9 → 10 → 11 → 12**. 
 **Domain and scrolling status, 8 October 2026:** dev-lm.mw-credit.com is active and owner-validated for sign-in, Borrowers/Collection reads and refresh persistence. Fixed header and independent desktop scrolling are implemented/tested; retain the recorded limits of physical-device and browser acceptance. [Scope](PWA_Implementation_Plan.md#phase-2-secure-application-foundation).
 
 - **Owner acceptance:** compact mobile header and mobile/desktop navigation accepted on 8 October ("looks good. carry on"). This does not establish full Phase2 or broader financial/performance acceptance.
-- **Next checkpoint:** use Update/reload, then try the header search icon in Borrowers and Collection with Thai or English names; review paging, Clear and return from detail on iPhone. Owner search/keyboard review is pending. Offline/reconnect/update acceptance remains separately open.
+- **Next checkpoint:** use Update/reload, then type Thai or English names in Borrowers or Collection and confirm results update after a short pause without pressing Enter. Review Clear and iPhone keyboard behavior.
 - **Remaining planning work:** close Phase 1 feature/parity and acceptance gaps alongside agreed slices. Production readiness and financial workflows follow the roadmap dependencies, not completion of this UI review alone.
-- **Current blockers:** no delivery blocker from the last correction; focused regression, exact-source CI and unsigned checks passed. Checkpoint2F delivery checks, source tests and CI passed; owner search review remains pending. Future five frequent views and full Phase2 acceptance remain open.
+- **Current blockers:** no technical delivery blocker remains; typeahead focused tests, exact-source CI and final unsigned checks passed. Owner iPhone typing review, future five frequent views and full Phase2 acceptance remain open.
 
 ## Evidence and session updates
 

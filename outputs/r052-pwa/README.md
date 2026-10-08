@@ -4,7 +4,7 @@
 
 Date: 7 October 2026, Asia/Bangkok.
 
-Status: Checkpoint2F adds server-side Thai/English name search to Borrowers and Collection with query-bound pagination and compact header controls. Sourcef6be56f is published;16 disposable PostgreSQL checks and8 browser cases passed. CI37706939264 passed; immutable imagea971a4c9 was deployed as API00010-fzk before Hosting3f6fbb70ca3dc007. Final unsigned API/origin and canonical/fallback asset/worker checks passed. Existing56-column privileges, UID pin, financial formulas and DNS are unchanged. Owner iPhone search review remains pending; R052 and Phase1/2 remain Open/incomplete.
+Status: Checkpoint2F typeahead refinement replaces Enter-required search with300ms trailing debounce, IME-safe composition, optional Enter flush, immediate Clear and pending-timer cancellation. Sourceeb83cab is published;8 focused browser cases and managed build passed. CI37708695277 passed and Hosting8fa268235d983461 is deployed; final unsigned canonical/fallback artifact and worker checks passed. API00010-fzk and its query/cursor/permission contract remain unchanged. Owner iPhone typing review remains pending; R052 and Phase1/2 remain Open/incomplete.
 
 ## Scope
 
