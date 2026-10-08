@@ -13,12 +13,13 @@ export function canonicalPayment(input, businessDate) {
   return { schemaVersion:2, notes:input.notes===''?null:input.notes, receiptId:input.receiptId, requestId:input.requestId.toLowerCase(), borrowerId:input.borrowerId, selectedChargeIds:[...input.selectedChargeIds].sort(), cashAccountId:input.cashAccountId, paymentDate:input.paymentDate, amountReceived:input.amountReceived, paymentMethod:input.paymentMethod, allocationMethod:input.allocationMethod };
 }
 export const paymentId = id => '4A-P-' + id;
-export async function assertDisposable(pool, expectedDirectory) {
+export async function assertDisposable(pool, expectedDirectory, expectedVersion=77) {
+  if(![77,78].includes(expectedVersion))throw Error('Unsupported rehearsal version');
   const result = await pool.query("SELECT current_database() AS db, current_setting('data_directory') AS directory, host(inet_server_addr()) AS host");
   const row=result.rows[0];
   if (row?.db !== 'payment_rehearsal' || !['127.0.0.1','::1'].includes(row.host) || realpathSync.native(row.directory).replaceAll('\\','/').toLowerCase() !== realpathSync.native(expectedDirectory).replaceAll('\\','/').toLowerCase()) throw Error('Not runner-owned disposable database');
   const history=await pool.query('SELECT max(version::integer) AS version, count(*) FILTER (WHERE success) AS applied FROM public.flyway_schema_history WHERE version IS NOT NULL');
-  if (history.rows[0].version !== 77 || Number(history.rows[0].applied) !== 77) throw Error('Full V77 required');
+  if (history.rows[0].version !== expectedVersion || Number(history.rows[0].applied) !== expectedVersion) throw Error('Exact full migration history required');
 }
 export function createPaymentRehearsal({pool, trustedActor=TRUSTED_ACTOR, getBusinessDate, receipts}) {
   // This journal is deliberately memory-only. It is NOT durable idempotency infrastructure.

@@ -1,5 +1,5 @@
-param([switch]$Serve)
-# Fresh loopback-only full V77 database; never reads live credentials or accepts a DSN.
+param()
+# Fresh loopback-only full V78 database; never reads live credentials or accepts a DSN.
 $ErrorActionPreference='Stop'
 . "$PSScriptRoot/../../scripts/Enter-Dev.ps1"
 . "$PSScriptRoot/../../scripts/database/Common.ps1"
@@ -25,16 +25,22 @@ try {
   $env:FLYWAY_URL="jdbc:postgresql://127.0.0.1:$fixturePort/payment_rehearsal"
   $env:FLYWAY_USER='postgres';$env:FLYWAY_CONFIG_FILES=Join-Path $DbRepoRoot 'database/flyway.conf'
   Push-Location $DbRepoRoot
-  try { & (Get-FlywayPath) '-outputType=json' '-target=77' migrate | Out-File (Join-Path $fixtureRoot 'migration.json');if($LASTEXITCODE){throw 'V77 migration failed'} }
+  try { & (Get-FlywayPath) '-outputType=json' '-target=78' migrate | Out-File (Join-Path $fixtureRoot 'migration.json');if($LASTEXITCODE){throw 'V78 migration failed'} }
   finally {Pop-Location}
  } finally {
   Get-ChildItem Env:FLYWAY_* -ErrorAction SilentlyContinue | ForEach-Object {Remove-Item "Env:$($_.Name)"}
   foreach($entry in $savedFlyway.GetEnumerator()){Set-Item "Env:$($entry.Key)" $entry.Value}
  }
  $env:PAYMENT_REHEARSAL_DISPOSABLE='1';$env:PAYMENT_REHEARSAL_PORT=[string]$fixturePort;$env:PAYMENT_REHEARSAL_DIRECTORY=$data
- if($Serve){ & node "$PSScriptRoot/../../scripts/rehearsal/serve.mjs" }
- else { & node --test --test-concurrency=1 "$PSScriptRoot/payment-rehearsal.test.mjs" "$PSScriptRoot/payment-rehearsal-independent.test.mjs" "$PSScriptRoot/payment-receipt-independent.test.mjs" }
+ & node --test --test-concurrency=1 "$PSScriptRoot/payment-journal.test.mjs" "$PSScriptRoot/payment-journal-independent.test.mjs"
  if($LASTEXITCODE){throw 'Payment rehearsal failed'}
+ # Exercise actual restart of the same owned cluster; no new fixture or schema is created.
+ & (Join-Path $pgBin 'pg_ctl.exe') -D $data -m fast -w stop | Out-Null
+ if($LASTEXITCODE){throw 'Journal restart stop failed'};$started=$false
+ $restart=Start-Process -FilePath (Join-Path $pgBin 'pg_ctl.exe') -ArgumentList @('-D',('"'+$data+'"'),'-l',('"'+(Join-Path $fixtureRoot 'postgres.log')+'"'),'-o',('"-h 127.0.0.1 -p '+$fixturePort+'"'),'-w','start') -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $fixtureRoot 'restart.out') -RedirectStandardError (Join-Path $fixtureRoot 'restart.err')
+ $restart.WaitForExit();if($restart.ExitCode){throw 'Journal restart start failed'};$started=$true
+ & node --test "$PSScriptRoot/payment-journal-restart.test.mjs"
+ if($LASTEXITCODE){throw 'Journal restart verification failed'}
 } finally {
  Remove-Item Env:PAYMENT_REHEARSAL_DISPOSABLE,Env:PAYMENT_REHEARSAL_PORT,Env:PAYMENT_REHEARSAL_DIRECTORY -ErrorAction SilentlyContinue
  if($started){& (Join-Path $pgBin 'pg_ctl.exe') -D $data -m fast -w stop | Out-Null}
