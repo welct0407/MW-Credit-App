@@ -1,5 +1,5 @@
 {
-  "recordedUtc": "2026-10-08T12:26:30.5652382Z",
+  "recordedUtc": "2026-10-08T12:54:06.3337038Z",
   "startingCommit": "1aae197994d93f16831857bba9b7a1c69904bf3f",
   "testScope": "V1-V81 true LOGIN15/15; focused UX/recovery30-case run28pass2fixturefail then exactaffected8/8; quota/cancel/clear/headeroverlap explicit; see independent-verification.md",
   "files": [
