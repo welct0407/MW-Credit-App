@@ -1,3 +1,4 @@
+import { normalizeSearchQuery, searchQueryHash } from './search-query.mjs';
 /** Collection reads mirror the OLTP slice; directory Hidden Flag is not its membership rule. */
 import { borrowerDisplayName, validLoanId } from './loan-read-contract.mjs';
 export const collectionStatuses = ['not_paid', 'partially_paid', 'overdue', 'fully_paid'];
@@ -56,23 +57,26 @@ export function projectCollectionCharge(row) {
   if (row.payment_date !== null && !validDate(row.payment_date)) throw new Error('Invalid payment date');
   return { id: row.id, loanId: row.loan_id, loanDisplayKey: `${borrowerDisplayName(row.borrower_name, row.borrower_description)}-${principal}-${date}-${rate}`, chargeDate: row.charge_date, paymentStatus: row.payment_status, paymentDate: row.payment_date, amountRemaining: decimal(row.amount_remaining), totalPaid: decimal(row.total_paid), receivedToday: decimal(row.received_today) };
 }
-export function encodeCollectionCursor(value) {
+export function encodeCollectionCursor(value, query = '') {
   const { kind, businessDate, id } = value;
   if (!validDate(businessDate) || !validLoanId(id)) throw new Error('Invalid cursor');
   let canonical;
-  if (kind === 'collection' && Number.isInteger(value.rank) && value.rank >= 0 && value.rank <= 3) canonical = { v: 1, kind, businessDate, rank: value.rank, id };
+  if (kind === 'collection' && Number.isInteger(value.rank) && value.rank >= 0 && value.rank <= 3) canonical = { v: 2, kind, businessDate, rank: value.rank, id, queryHash: searchQueryHash(query) };
   else if (kind === 'collection-charges' && validLoanId(value.parentId) && validDate(value.chargeDate)) canonical = { v: 1, kind, businessDate, parentId: value.parentId, chargeDate: value.chargeDate, id };
   else throw new Error('Invalid cursor');
   return Buffer.from(JSON.stringify(canonical)).toString('base64url');
 }
-export function decodeCollectionCursor(cursor, kind, parentId) {
+export function decodeCollectionCursor(cursor, kind, parentId, query = '') {
   if (cursor === null || cursor === undefined || cursor === '') return null;
   if (typeof cursor !== 'string' || cursor.length > 4096 || !/^[A-Za-z0-9_-]+$/.test(cursor)) throw new Error('Invalid cursor');
   const parsed = JSON.parse(Buffer.from(cursor, 'base64url').toString('utf8'));
-  if (!parsed || parsed.v !== 1 || parsed.kind !== kind || (kind === 'collection-charges' && parsed.parentId !== parentId) || encodeCollectionCursor(parsed) !== cursor) throw new Error('Invalid cursor');
+  if (!parsed || parsed.kind !== kind || (kind === 'collection-charges' && parsed.parentId !== parentId)) throw new Error('Invalid cursor');
+  const canonical = encodeCollectionCursor(parsed, query);
+  const legacy = Buffer.from(JSON.stringify({ v: 1, kind, businessDate: parsed.businessDate, rank: parsed.rank, id: parsed.id })).toString('base64url');
+  if (!(canonical === cursor || (kind === 'collection' && parsed.v === 1 && normalizeSearchQuery(query) === '' && legacy === cursor))) throw new Error('Invalid cursor');
   return parsed;
 }
-export async function readCollection(client, { limit, after, borrowerId = null }) {
+export async function readCollection(client, { limit, after, borrowerId = null, query = '' }) {
   const clock = await client.query(`SELECT CURRENT_TIMESTAMP AS "asOf", (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date::text AS "businessDate"`);
   const { businessDate, asOf } = clock.rows[0];
   const metadata = { businessDate, asOf: new Date(asOf).toISOString(), timezone: 'Asia/Bangkok' };
@@ -80,10 +84,10 @@ export async function readCollection(client, { limit, after, borrowerId = null }
   const quality = await client.query(collectionQualitySql, [borrowerId]);
   if (quality.rows[0]?.invalid !== false) return { collectionError: 'source_unavailable', collectionStatus: 503 };
   if (borrowerId === null) {
-    const result = await client.query(`${collectionCte} SELECT * FROM summaries WHERE ($3::integer IS NULL OR rank > $3 OR (rank = $3 AND id COLLATE "C" > $4::text COLLATE "C")) ORDER BY rank, id COLLATE "C" LIMIT $5`, [businessDate, null, after?.rank ?? null, after?.id ?? null, limit + 1]);
+    const result = await client.query(`${collectionCte} SELECT * FROM summaries WHERE ($6::text = '' OR strpos(lower(COALESCE(borrower_name, '')), lower($6)) > 0 OR strpos(lower(COALESCE(borrower_description, '')), lower($6)) > 0) AND ($3::integer IS NULL OR rank > $3 OR (rank = $3 AND id COLLATE "C" > $4::text COLLATE "C")) ORDER BY rank, id COLLATE "C" LIMIT $5`, [businessDate, null, after?.rank ?? null, after?.id ?? null, limit + 1, query]);
     const items = result.rows.slice(0, limit).map(projectCollection);
     const last = result.rows[Math.min(limit, result.rows.length) - 1];
-    return { ...metadata, items, nextCursor: result.rows.length > limit ? encodeCollectionCursor({ kind: 'collection', businessDate, rank: last.rank, id: last.id }) : null };
+    return { ...metadata, items, nextCursor: result.rows.length > limit ? encodeCollectionCursor({ kind: 'collection', businessDate, rank: last.rank, id: last.id }, query) : null };
   }
   const summary = await client.query(`${collectionCte} SELECT * FROM summaries`, [businessDate, borrowerId]);
   if (summary.rows.length !== 1) return { collectionError: 'not_found', collectionStatus: 404 };

@@ -18,6 +18,7 @@ export function createDevReadHandler({ config, verifyPrincipal, store }) {
     if (req.method !== 'GET') return send(405, { ok: false, code: 'method_not_allowed' });
     try {
       const url = new URL(req.url, 'http://request.invalid');
+      if (url.searchParams.has('q') && !['/api/borrowers', '/api/collection'].includes(url.pathname)) return send(400, { ok: false, code: 'invalid_request' });
       if (url.pathname === '/health') return send(200, { status: 'ok', environment: 'dev', service: 'borrower-read' });
       const principal = await verifyPrincipal(req.headers.authorization);
       if (!principal.ok) return send(principal.status, { ok: false, code: principal.code });
@@ -35,8 +36,8 @@ export function createDevReadHandler({ config, verifyPrincipal, store }) {
       }
       else if (url.pathname === '/api/collection' || /^\/api\/collection\/[^/]+\/charges$/.test(url.pathname)) {
         const rawLimit = url.searchParams.get('limit');
-        if ([...url.searchParams.keys()].some(key => !['limit', 'cursor'].includes(key)) || url.searchParams.getAll('limit').length > 1 || url.searchParams.getAll('cursor').length > 1 || (rawLimit !== null && !/^\d+$/.test(rawLimit))) return send(400, { ok: false, code: 'invalid_request' });
-        const options = { limit: rawLimit === null ? 25 : Number(rawLimit), cursor: url.searchParams.get('cursor') };
+        if ([...url.searchParams.keys()].some(key => !['limit', 'cursor', 'q'].includes(key)) || url.searchParams.getAll('limit').length > 1 || url.searchParams.getAll('cursor').length > 1 || url.searchParams.getAll('q').length > 1 || (rawLimit !== null && !/^\d+$/.test(rawLimit))) return send(400, { ok: false, code: 'invalid_request' });
+        const options = { q: url.searchParams.get('q') ?? '', limit: rawLimit === null ? 25 : Number(rawLimit), cursor: url.searchParams.get('cursor') };
         if (url.pathname === '/api/collection') result = await store.listCollection(principal.email, options);
         else {
           let borrowerId;
@@ -46,8 +47,8 @@ export function createDevReadHandler({ config, verifyPrincipal, store }) {
       }
       else if (url.pathname === '/api/borrowers') {
         const rawLimit = url.searchParams.get('limit');
-        if ([...url.searchParams.keys()].some(key => !['limit', 'cursor'].includes(key)) || url.searchParams.getAll('limit').length > 1 || url.searchParams.getAll('cursor').length > 1 || (rawLimit !== null && !/^\d+$/.test(rawLimit))) return send(400, { ok: false, code: 'invalid_request' });
-        result = await store.listBorrowers(principal.email, { limit: rawLimit === null ? 25 : Number(rawLimit), cursor: url.searchParams.get('cursor') });
+        if ([...url.searchParams.keys()].some(key => !['limit', 'cursor', 'q'].includes(key)) || url.searchParams.getAll('limit').length > 1 || url.searchParams.getAll('cursor').length > 1 || url.searchParams.getAll('q').length > 1 || (rawLimit !== null && !/^\d+$/.test(rawLimit))) return send(400, { ok: false, code: 'invalid_request' });
+        result = await store.listBorrowers(principal.email, { q: url.searchParams.get('q') ?? '', limit: rawLimit === null ? 25 : Number(rawLimit), cursor: url.searchParams.get('cursor') });
       } else if (url.pathname.startsWith('/api/borrowers/')) {
         const parts = url.pathname.split('/').slice(3);
         let ids;

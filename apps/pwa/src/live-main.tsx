@@ -25,6 +25,14 @@ function App() {
   const offlineBlocked = useRef(!navigator.onLine);
   const [thai, setThai] = useState(false);
   const [view, setView] = useState<'borrowers' | 'collection'>('borrowers');
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchDraft, setSearchDraft] = useState('');
+  const [appliedQuery, setAppliedQuery] = useState('');
+  const searchQuery = useRef('');
+  const searchInput = useRef<HTMLInputElement | null>(null);
+  const searchToggle = useRef<HTMLButtonElement | null>(null);
+  const resetSearch = () => { searchQuery.current = ''; setAppliedQuery(''); setSearchDraft(''); setSearchOpen(false); };
+  useLayoutEffect(() => { if (searchOpen) searchInput.current?.focus(); }, [searchOpen]);
   const [collectionRefresh, setCollectionRefresh] = useState(0);
   const [collectionStatus, setCollectionStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const menuDialog = useRef<HTMLDialogElement | null>(null);
@@ -95,7 +103,7 @@ function App() {
   const failLoans = (code: 'not_found' | 'unavailable') => { clearLoans(); setLoanError(code); };
   useEffect(() => {
     const disconnected = () => {
-      offlineBlocked.current = true;
+      offlineBlocked.current = true; resetSearch();
       clear(); setCollectionStatus('idle'); setStatus('offline');
       menuDialog.current?.close();
     };
@@ -104,7 +112,7 @@ function App() {
     return () => window.removeEventListener('offline', disconnected);
   }, []);
   async function expireSession() {
-    signingOut.current = true;
+    resetSearch(); signingOut.current = true;
     clear(); currentUser.current = null; setUser(null); setStatus('signing_out');
     try {
       if (!authInstance.current) throw new Error('auth_unavailable');
@@ -127,7 +135,7 @@ function App() {
         if (response.status === 401) { await expireSession(); return null; }
         if (response.status === 409 && onDateChanged) { onDateChanged(); return null; }
         if (localError && response.status !== 401 && response.status !== 403) { localError(response.status === 404 ? 'not_found' : 'unavailable'); return null; }
-        clear();
+        resetSearch(); clear();
         setStatus(response.status === 401 ? 'expired' : response.status === 403 ? 'denied' : 'error');
         return null;
       }
@@ -148,14 +156,15 @@ function App() {
   function changeView(next: 'borrowers' | 'collection') {
     menuDialog.current?.close();
     if (next === view) return;
-    setCollectionStatus('idle');
+    resetSearch(); setCollectionStatus('idle');
     clear(); setView(next);
     if (next === 'borrowers' && user) void load(user);
   }
-  async function load(signedInUser: User, cursor?: string, page = 1) {
+  async function load(signedInUser: User, cursor?: string, page = 1, query = searchQuery.current) {
     cancelPending(); clearLoans(); setSelected(null);
-    const result = await request<PageResult>(signedInUser, '/api/borrowers?limit=25' + (cursor ? '&cursor=' + encodeURIComponent(cursor) : ''));
-    if (result) { setItems(result.items); setNextCursor(result.nextCursor); setAsOf(result.asOf); setBorrowerPage(page); requestAnimationFrame(() => resetScroll(listPanel.current)); }
+    requestAnimationFrame(() => resetScroll(listPanel.current));
+    const result = await request<PageResult>(signedInUser, '/api/borrowers?limit=25' + (query ? '&q=' + encodeURIComponent(query) : '') + (cursor ? '&cursor=' + encodeURIComponent(cursor) : ''));
+    if (result) { setItems(result.items); setNextCursor(result.nextCursor); setAsOf(result.asOf); setBorrowerPage(page); }
   }
   async function loadLoans(signedInUser: User, borrowerId: string, cursor?: string, page = 1, scrollToLoans = false) {
     setLoans([]); setSelectedLoan(null); setLoanError(null); setLoanCursor(null); setLoanAsOf(''); setLoanDetailAsOf(''); setLoanLoading(true);
@@ -206,7 +215,7 @@ function App() {
       unsubscribe = onAuthStateChanged(instance, next => {
         if (disposed || (signingOut.current && next)) return;
         if (offlineBlocked.current) { clear(); setStatus('offline'); return; }
-        clear(); currentUser.current = next; setUser(next);
+        resetSearch(); clear(); currentUser.current = next; setUser(next);
         if (next) { setView('borrowers'); setStatus('loading'); void load(next); } else setStatus('signed_out');
       }, () => { if (!disposed && !offlineBlocked.current) { clear(); setStatus('auth_unavailable'); } });
     } catch { setStatus(offlineBlocked.current ? 'offline' : 'unavailable'); }
@@ -220,7 +229,7 @@ function App() {
   }
   async function logout() {
     menuDialog.current?.close();
-    signingOut.current = true;
+    resetSearch(); signingOut.current = true;
     clear(); currentUser.current = null; setUser(null); setStatus('signing_out');
     try {
       if (!auth) throw new Error('auth_unavailable');
@@ -241,6 +250,18 @@ function App() {
     setThai(value); document.documentElement.lang = value ? 'th' : 'en';
     if (compact) { setLanguageChoices(false); languageToggle.current?.focus({ preventScroll: true }); }
   };
+  function closeSearch() { setSearchDraft(searchQuery.current); setSearchOpen(false); requestAnimationFrame(() => searchToggle.current?.focus()); }
+  function submitSearch(raw: string) {
+    const query = raw.trim();
+    if (raw.length > 512 || /[\u0000-\u001f\u007f]/u.test(raw) || [...query].length > 100) {
+      searchInput.current?.setCustomValidity(t('Use up to 100 characters without control characters.', 'ใช้ไม่เกิน 100 ตัวอักษรและไม่ใช้อักขระควบคุม'));
+      searchInput.current?.reportValidity(); return;
+    }
+    searchInput.current?.setCustomValidity('');
+    clear(); searchQuery.current = query; setAppliedQuery(query); setSearchDraft(query);
+    if (view === 'collection') setCollectionRefresh(value => value + 1);
+    else if (user) void load(user, undefined, 1, query);
+  }
   const accountControls = (compact = false) => <div className="live-account-controls">
     {compact && <button ref={languageToggle} className="secondary-button live-account-icon" aria-label={t('Language', 'ภาษา')} title={t('Language', 'ภาษา')} aria-expanded={languageChoices} aria-controls="live-language-choices" onClick={() => setLanguageChoices(value => !value)}><span aria-hidden="true">文</span></button>}
     {(!compact || languageChoices) && <div ref={compact ? languagePanel : undefined} id={compact ? 'live-language-choices' : undefined} className="language" aria-label={t('Language', 'ภาษา')} role="group" onKeyDown={event => { if (compact && event.key === 'Escape') { event.preventDefault(); setLanguageChoices(false); languageToggle.current?.focus({ preventScroll: true }); } }}><button onClick={() => chooseLanguage(false, compact)} aria-pressed={!thai}>EN</button><button onClick={() => chooseLanguage(true, compact)} aria-pressed={thai}>ไทย</button></div>}
@@ -253,13 +274,20 @@ function App() {
     {user && <button className="secondary-button live-account-signout" aria-label={t('Sign out', 'ออกจากระบบ')} title={t('Sign out', 'ออกจากระบบ')} onClick={logout}>{compact ? <span aria-hidden="true">↪</span> : t('Sign out', 'ออกจากระบบ')}</button>}
   </div>;
   return <div className="app-shell live-shell" data-preview-theme="dev"><div className="workspace"><header ref={topbar} className="topbar">
+    {searchOpen && status === 'ready' ? <form className="live-search" role="search" aria-label={t('Borrower name search', 'ค้นหาชื่อผู้กู้')} onSubmit={event => { event.preventDefault(); submitSearch(searchDraft); }} onKeyDown={event => { if (event.key === 'Escape') { event.preventDefault(); closeSearch(); } if (event.key === 'Enter' && event.nativeEvent.isComposing) event.preventDefault(); }}>
+      <button type="button" aria-label={t('Back from search', 'กลับจากการค้นหา')} title={t('Back from search', 'กลับจากการค้นหา')} onClick={closeSearch}>←</button>
+      <input ref={searchInput} type="search" aria-label={t('Search Thai or English name', 'ค้นหาชื่อไทยหรืออังกฤษ')} placeholder={t('Thai or English name', 'ชื่อไทยหรืออังกฤษ')} value={searchDraft} maxLength={512} onChange={event => { event.target.setCustomValidity(''); setSearchDraft(event.target.value); }} />
+      <button type="button" aria-label={t('Clear search', 'ล้างการค้นหา')} title={t('Clear search', 'ล้างการค้นหา')} onClick={() => submitSearch('')}>×</button>
+      <button type="submit" aria-label={t('Submit search', 'ค้นหา')} title={t('Submit search', 'ค้นหา')}><span aria-hidden="true" className={headerState === 'loading' ? 'collection-spinner' : ''}>{headerState === 'loading' ? '' : '⌕'}</span></button>
+      <span className="live-status-text" role="status" aria-live="polite">{headerState === 'loading' ? t('Loading…', 'กำลังโหลด…') : headerState === 'error' ? t('Could not update', 'อัปเดตไม่สำเร็จ') : t('Updated', 'อัปเดตแล้ว')}</span>
+    </form> : <>
     <button ref={menuToggle} className="live-menu-toggle secondary-button" aria-label={t('Open navigation', 'เปิดเมนู')} onClick={() => menuDialog.current?.showModal()}>☰</button>
-    <div className="live-brand"><img className="brand-logo" src={logo} alt="Loan Manager" /><div><h1>{view === 'collection' ? t('Collection', 'งานติดตาม') : t('Borrowers', 'ผู้กู้')}</h1></div></div>
-    <div className="live-header-actions">{status === 'ready' && <button className="live-header-refresh" disabled={headerState === 'loading'} aria-label={view === 'collection' ? t('Refresh Collection — return to first page', 'รีเฟรชงานติดตาม — กลับหน้าแรก') : t('Refresh Borrowers — return to first page', 'รีเฟรชผู้กู้ — กลับหน้าแรก')} title={view === 'collection' ? t('Refresh Collection — return to first page', 'รีเฟรชงานติดตาม — กลับหน้าแรก') : t('Refresh Borrowers — return to first page', 'รีเฟรชผู้กู้ — กลับหน้าแรก')} onClick={() => { if (view === 'collection') setCollectionRefresh(value => value + 1); else if (user) void load(user); }}><span aria-hidden="true">↻</span></button>}<div className="collection-update" role="status" aria-live="polite"><span aria-hidden="true" className={headerState === 'loading' ? 'collection-spinner' : 'collection-update-icon'}>{headerState === 'loading' ? '' : headerState === 'success' ? '✓' : headerState === 'error' ? '!' : '·'}</span><span className="live-status-text">{headerState === 'loading' ? t('Loading…', 'กำลังโหลด…') : headerState === 'success' ? t('Updated', 'อัปเดตแล้ว') : headerState === 'error' ? t('Could not update', 'อัปเดตไม่สำเร็จ') : t('Ready', 'พร้อม')}</span></div></div>
-
+    <div className="live-brand"><img className="brand-logo" src={logo} alt="Loan Manager" /><div><h1 title={(view === 'collection' ? t('Collection', 'งานติดตาม') : t('Borrowers', 'ผู้กู้')) + (appliedQuery ? ' · ' + appliedQuery : '')}>{view === 'collection' ? t('Collection', 'งานติดตาม') : t('Borrowers', 'ผู้กู้')}{appliedQuery ? ' · ' + appliedQuery : ''}</h1></div></div>
+    <div className="live-header-actions">{status === 'ready' && <button ref={searchToggle} className="live-header-refresh" aria-label={t('Search borrowers', 'ค้นหาผู้กู้')} title={t('Search borrowers', 'ค้นหาผู้กู้')} onClick={() => { setSearchDraft(searchQuery.current); setSearchOpen(true); }}><span aria-hidden="true">⌕</span></button>}{status === 'ready' && <button className="live-header-refresh" disabled={headerState === 'loading'} aria-label={view === 'collection' ? t('Refresh Collection — return to first page', 'รีเฟรชงานติดตาม — กลับหน้าแรก') : t('Refresh Borrowers — return to first page', 'รีเฟรชผู้กู้ — กลับหน้าแรก')} title={view === 'collection' ? t('Refresh Collection — return to first page', 'รีเฟรชงานติดตาม — กลับหน้าแรก') : t('Refresh Borrowers — return to first page', 'รีเฟรชผู้กู้ — กลับหน้าแรก')} onClick={() => { if (view === 'collection') setCollectionRefresh(value => value + 1); else if (user) void load(user); }}><span aria-hidden="true">↻</span></button>}<div className="collection-update" role="status" aria-live="polite"><span aria-hidden="true" className={headerState === 'loading' ? 'collection-spinner' : 'collection-update-icon'}>{headerState === 'loading' ? '' : headerState === 'success' ? '✓' : headerState === 'error' ? '!' : '·'}</span><span className="live-status-text">{headerState === 'loading' ? t('Loading…', 'กำลังโหลด…') : headerState === 'success' ? t('Updated', 'อัปเดตแล้ว') : headerState === 'error' ? t('Could not update', 'อัปเดตไม่สำเร็จ') : t('Ready', 'พร้อม')}</span></div></div>
+    </>}
   </header><div className={'live-body ' + (navigationCollapsed ? 'nav-collapsed' : '')}><aside id="live-desktop-navigation" className="live-desktop-nav"><button className="live-nav-collapse" aria-expanded={!navigationCollapsed} aria-controls="live-desktop-navigation" aria-label={navigationCollapsed ? t('Expand navigation', 'ขยายเมนู') : t('Collapse navigation', 'ย่อเมนู')} title={navigationCollapsed ? t('Expand navigation', 'ขยายเมนู') : t('Collapse navigation', 'ย่อเมนู')} onClick={() => setNavigationCollapsed(value => !value)}><span aria-hidden="true">{navigationCollapsed ? '›' : '‹'}</span></button>{navigation('desktop')}{accountControls(navigationCollapsed)}</aside><main>
     {temporarySignIn && <p role="status" className="live-scope">{t('This browser cannot remember sign-in; you will need to sign in again after refreshing.', 'เบราว์เซอร์นี้ไม่สามารถจดจำการลงชื่อเข้าใช้ได้ คุณต้องลงชื่อเข้าใช้อีกครั้งหลังรีเฟรช')}</p>}
-    {status === 'ready' ? view === 'collection' ? <CollectionRecords thai={thai} request={collectionRequest} cancel={cancelPending} onStatus={setCollectionStatus} refreshToken={collectionRefresh} /> : <><div className={'work-grid ' + (selected ? 'has-detail' : '')}><section ref={listPanel} tabIndex={0} className="list-panel" aria-label={t('Borrower list', 'รายชื่อผู้กู้')}><div className="section-heading"><h2>{t('Borrower directory', 'รายชื่อผู้กู้')}</h2></div>{items.length ? items.map((row, index) => <React.Fragment key={row.id}>{(index === 0 || items[index - 1].hasActiveLoan !== row.hasActiveLoan) && <h3 className={'record-group-heading ' + (row.hasActiveLoan === true ? 'group-active' : row.hasActiveLoan === false ? 'group-inactive' : 'group-unknown')}>{row.hasActiveLoan === true ? t('Active borrowers', 'ผู้กู้ที่มีสัญญา') : row.hasActiveLoan === false ? t('Inactive borrowers', 'ผู้กู้ที่ไม่มีสัญญา') : t('Loan status unavailable', 'ไม่มีข้อมูลสถานะสัญญา')}</h3>}<button className={'borrower-card ' + (row.hasActiveLoan === false ? 'inactive ' : '') + (selected?.id === row.id ? 'selected' : '')} key={row.id} disabled={busy} onClick={() => void openBorrower(row)}><span className="person"><strong>{row.borrowerDisplayName ?? row.name ?? t('Unnamed borrower', 'ไม่ระบุชื่อผู้กู้')}</strong></span><span className="card-amount"><strong>{money(row.outstandingPrincipal)}</strong><span>{t('Principal outstanding', 'เงินต้นคงเหลือ')}</span><strong>{money(row.totalProfitEarned ?? null)}</strong><span>{t('Total Profit Earned', 'ดอกเบี้ยที่ได้รับทั้งหมด')}</span></span></button></React.Fragment>) : <p className="live-empty">{t('No visible borrower records.', 'ไม่พบรายการผู้กู้ที่แสดงได้')}</p>}<div className="list-foot"><span className="live-page-status" role="status">{busy ? t('Loading records…', 'กำลังโหลดรายการ…') : `${t('Borrowers page', 'หน้าผู้กู้')} ${borrowerPage}${!nextCursor ? t(' · End of borrower list', ' · สิ้นสุดรายชื่อผู้กู้') : ''}`}</span>{nextCursor && <button className="secondary-button" disabled={busy} onClick={() => user && nextCursor && load(user, nextCursor, borrowerPage + 1)}>{t('Next borrowers page', 'หน้าถัดไปของผู้กู้')}</button>}</div></section><section ref={detailPanel} tabIndex={0} className={'detail-panel ' + (!selected ? 'unselected' : '')} aria-label={t('Borrower details', 'รายละเอียดผู้กู้')}>{selected ? <><button className="back-button" onClick={closeBorrower}>← {t('Back to list', 'กลับไปรายการ')}</button><h2>{selected.borrowerDisplayName ?? selected.name ?? t('Unnamed borrower', 'ไม่ระบุชื่อผู้กู้')}</h2><div className="detail-amounts"><div><span>{t('Principal outstanding', 'เงินต้นคงเหลือ')}</span><strong>{money(selected.outstandingPrincipal)}</strong></div></div><p>{t('Created', 'วันที่สร้าง')} · {date(selected.createdDate)}</p>{selected.note && <div className="issue-note"><strong>{t('Borrower note', 'หมายเหตุผู้กู้')}</strong><p>{selected.note}</p></div>}<LoanRecords thai={thai} page={loanPage} items={loans} selected={selectedLoan} busy={busy} loading={loanLoading} error={loanError} nextCursor={loanCursor} listAsOf={loanAsOf} detailAsOf={loanDetailAsOf} onSelect={id => void openLoan(id)} onBack={() => { cancelPending(); setSelectedLoan(null); setLoanDetailAsOf(''); setLoanError(null); setLoanLoading(false); }} onRefresh={() => user && void loadLoans(user, selected.id, undefined, 1, true)} onNext={() => user && loanCursor && void loadLoans(user, selected.id, loanCursor, loanPage + 1, true)} /></> : <p>{t('Select a borrower to view details.', 'เลือกผู้กู้เพื่อดูรายละเอียด')}</p>}</section></div></> : <section className="access-blocked" role="status"><h2>{status === 'offline' ? t('Connection required', 'ต้องเชื่อมต่ออินเทอร์เน็ต') : status === 'sign_out_error' ? t('Sign-out could not be completed', 'ไม่สามารถออกจากระบบได้สำเร็จ') : status === 'signing_out' ? t('Signing out…', 'กำลังออกจากระบบ…') : status === 'auth_unavailable' ? t('Sign-in is unavailable in this browser', 'ไม่สามารถลงชื่อเข้าใช้ในเบราว์เซอร์นี้ได้') : status === 'unavailable' ? t('DEV connection is not configured', 'ยังไม่ได้ตั้งค่าการเชื่อมต่อ DEV') : status === 'denied' ? t('This account does not have access', 'บัญชีนี้ไม่มีสิทธิ์เข้าถึง') : status === 'expired' ? t('Please sign in again', 'กรุณาลงชื่อเข้าใช้อีกครั้ง') : status === 'error' ? t('Unable to load borrower records', 'ไม่สามารถโหลดข้อมูลผู้กู้ได้') : ['loading', 'initializing', 'signing_in'].includes(status) ? t('Connecting…', 'กำลังเชื่อมต่อ…') : t('Sign in to continue', 'ลงชื่อเข้าใช้เพื่อดำเนินการต่อ')}</h2>{status === 'offline' && <><p>{t('Reconnect to load current records.', 'เชื่อมต่ออีกครั้งเพื่อโหลดข้อมูลปัจจุบัน')}</p><button className="secondary-button" onClick={() => window.location.reload()}>{t('Reconnect', 'เชื่อมต่ออีกครั้ง')}</button></>}{status === 'sign_out_error' && <button className="secondary-button" onClick={logout}>{t('Retry sign out', 'ลองออกจากระบบอีกครั้ง')}</button>}{status === 'auth_unavailable' && <button className="secondary-button" onClick={() => window.location.reload()}>{t('Retry sign-in setup', 'ลองตั้งค่าการลงชื่อเข้าใช้อีกครั้ง')}</button>}{['signed_out', 'expired', 'denied'].includes(status) && <button className="secondary-button" onClick={login}>{t('Continue with Google', 'ดำเนินการต่อด้วย Google')}</button>}{status === 'error' && user && <button className="secondary-button" onClick={() => load(user)}>{t('Try again', 'ลองอีกครั้ง')}</button>}</section>}
+    {status === 'ready' ? view === 'collection' ? <CollectionRecords thai={thai} request={collectionRequest} cancel={cancelPending} onStatus={setCollectionStatus} refreshToken={collectionRefresh} query={appliedQuery} /> : <><div className={'work-grid ' + (selected ? 'has-detail' : '')}><section ref={listPanel} tabIndex={0} className="list-panel" aria-label={t('Borrower list', 'รายชื่อผู้กู้')}><div className="section-heading"><h2>{t('Borrower directory', 'รายชื่อผู้กู้')}</h2></div>{items.length ? items.map((row, index) => <React.Fragment key={row.id}>{(index === 0 || items[index - 1].hasActiveLoan !== row.hasActiveLoan) && <h3 className={'record-group-heading ' + (row.hasActiveLoan === true ? 'group-active' : row.hasActiveLoan === false ? 'group-inactive' : 'group-unknown')}>{row.hasActiveLoan === true ? t('Active borrowers', 'ผู้กู้ที่มีสัญญา') : row.hasActiveLoan === false ? t('Inactive borrowers', 'ผู้กู้ที่ไม่มีสัญญา') : t('Loan status unavailable', 'ไม่มีข้อมูลสถานะสัญญา')}</h3>}<button className={'borrower-card ' + (row.hasActiveLoan === false ? 'inactive ' : '') + (selected?.id === row.id ? 'selected' : '')} key={row.id} disabled={busy} onClick={() => void openBorrower(row)}><span className="person"><strong>{row.borrowerDisplayName ?? row.name ?? t('Unnamed borrower', 'ไม่ระบุชื่อผู้กู้')}</strong></span><span className="card-amount"><strong>{money(row.outstandingPrincipal)}</strong><span>{t('Principal outstanding', 'เงินต้นคงเหลือ')}</span><strong>{money(row.totalProfitEarned ?? null)}</strong><span>{t('Total Profit Earned', 'ดอกเบี้ยที่ได้รับทั้งหมด')}</span></span></button></React.Fragment>) : !busy && <p className="live-empty">{appliedQuery ? t('No matching borrowers.', 'ไม่พบผู้กู้ที่ตรงกับการค้นหา') : t('No visible borrower records.', 'ไม่พบรายการผู้กู้ที่แสดงได้')}</p>}<div className="list-foot"><span className="live-page-status" role="status">{busy ? t('Loading records…', 'กำลังโหลดรายการ…') : `${t('Borrowers page', 'หน้าผู้กู้')} ${borrowerPage}${!nextCursor ? t(' · End of borrower list', ' · สิ้นสุดรายชื่อผู้กู้') : ''}`}</span>{nextCursor && <button className="secondary-button" disabled={busy} onClick={() => user && nextCursor && load(user, nextCursor, borrowerPage + 1)}>{t('Next borrowers page', 'หน้าถัดไปของผู้กู้')}</button>}</div></section><section ref={detailPanel} tabIndex={0} className={'detail-panel ' + (!selected ? 'unselected' : '')} aria-label={t('Borrower details', 'รายละเอียดผู้กู้')}>{selected ? <><button className="back-button" onClick={closeBorrower}>← {t('Back to list', 'กลับไปรายการ')}</button><h2>{selected.borrowerDisplayName ?? selected.name ?? t('Unnamed borrower', 'ไม่ระบุชื่อผู้กู้')}</h2><div className="detail-amounts"><div><span>{t('Principal outstanding', 'เงินต้นคงเหลือ')}</span><strong>{money(selected.outstandingPrincipal)}</strong></div></div><p>{t('Created', 'วันที่สร้าง')} · {date(selected.createdDate)}</p>{selected.note && <div className="issue-note"><strong>{t('Borrower note', 'หมายเหตุผู้กู้')}</strong><p>{selected.note}</p></div>}<LoanRecords thai={thai} page={loanPage} items={loans} selected={selectedLoan} busy={busy} loading={loanLoading} error={loanError} nextCursor={loanCursor} listAsOf={loanAsOf} detailAsOf={loanDetailAsOf} onSelect={id => void openLoan(id)} onBack={() => { cancelPending(); setSelectedLoan(null); setLoanDetailAsOf(''); setLoanError(null); setLoanLoading(false); }} onRefresh={() => user && void loadLoans(user, selected.id, undefined, 1, true)} onNext={() => user && loanCursor && void loadLoans(user, selected.id, loanCursor, loanPage + 1, true)} /></> : <p>{t('Select a borrower to view details.', 'เลือกผู้กู้เพื่อดูรายละเอียด')}</p>}</section></div></> : <section className="access-blocked" role="status"><h2>{status === 'offline' ? t('Connection required', 'ต้องเชื่อมต่ออินเทอร์เน็ต') : status === 'sign_out_error' ? t('Sign-out could not be completed', 'ไม่สามารถออกจากระบบได้สำเร็จ') : status === 'signing_out' ? t('Signing out…', 'กำลังออกจากระบบ…') : status === 'auth_unavailable' ? t('Sign-in is unavailable in this browser', 'ไม่สามารถลงชื่อเข้าใช้ในเบราว์เซอร์นี้ได้') : status === 'unavailable' ? t('DEV connection is not configured', 'ยังไม่ได้ตั้งค่าการเชื่อมต่อ DEV') : status === 'denied' ? t('This account does not have access', 'บัญชีนี้ไม่มีสิทธิ์เข้าถึง') : status === 'expired' ? t('Please sign in again', 'กรุณาลงชื่อเข้าใช้อีกครั้ง') : status === 'error' ? t('Unable to load borrower records', 'ไม่สามารถโหลดข้อมูลผู้กู้ได้') : ['loading', 'initializing', 'signing_in'].includes(status) ? t('Connecting…', 'กำลังเชื่อมต่อ…') : t('Sign in to continue', 'ลงชื่อเข้าใช้เพื่อดำเนินการต่อ')}</h2>{status === 'offline' && <><p>{t('Reconnect to load current records.', 'เชื่อมต่ออีกครั้งเพื่อโหลดข้อมูลปัจจุบัน')}</p><button className="secondary-button" onClick={() => window.location.reload()}>{t('Reconnect', 'เชื่อมต่ออีกครั้ง')}</button></>}{status === 'sign_out_error' && <button className="secondary-button" onClick={logout}>{t('Retry sign out', 'ลองออกจากระบบอีกครั้ง')}</button>}{status === 'auth_unavailable' && <button className="secondary-button" onClick={() => window.location.reload()}>{t('Retry sign-in setup', 'ลองตั้งค่าการลงชื่อเข้าใช้อีกครั้ง')}</button>}{['signed_out', 'expired', 'denied'].includes(status) && <button className="secondary-button" onClick={login}>{t('Continue with Google', 'ดำเนินการต่อด้วย Google')}</button>}{status === 'error' && user && <button className="secondary-button" onClick={() => load(user)}>{t('Try again', 'ลองอีกครั้ง')}</button>}</section>}
 
   </main></div><dialog ref={menuDialog} className="live-menu-dialog" onClose={() => menuToggle.current?.focus({ preventScroll: true })} onKeyDown={event => {
     if (event.key !== 'Tab') return;

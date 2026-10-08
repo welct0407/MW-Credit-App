@@ -9,7 +9,7 @@ type BoardResult = Envelope & { items: Summary[] };
 type DetailResult = Envelope & { borrower: Summary; items: Charge[] };
 export type CollectionReadError = 'not_found' | 'unavailable' | 'business_date_changed';
 export type CollectionRequest = <T>(path: string, onError: (code: CollectionReadError) => void) => Promise<T | null>;
-export function CollectionRecords({ thai, request, cancel, onStatus, refreshToken }: { thai: boolean; request: CollectionRequest; cancel: () => void; onStatus: (value: 'idle' | 'loading' | 'success' | 'error') => void; refreshToken: number }) {
+export function CollectionRecords({ thai, request, cancel, onStatus, refreshToken, query }: { thai: boolean; request: CollectionRequest; cancel: () => void; onStatus: (value: 'idle' | 'loading' | 'success' | 'error') => void; refreshToken: number; query: string }) {
   const t = (en: string, th: string) => thai ? th : en;
   const [items, setItems] = useState<Summary[]>([]);
   const [selected, setSelected] = useState<Summary | null>(null);
@@ -65,10 +65,11 @@ export function CollectionRecords({ thai, request, cancel, onStatus, refreshToke
   function fail(code: CollectionReadError) { reset(); setError(code); setUpdateState('error'); }
   async function loadBoard(next?: string, pageNumber = 1) {
     cancel(); const current = ++revision.current; reset(); setError(null); setBusy(true); setUpdateState('loading');
-    const result = await request<BoardResult>('/api/collection?limit=25' + (next ? '&cursor=' + encodeURIComponent(next) : ''), code => { if (current === revision.current) fail(code); });
+    setScrollTarget(value => ({ kind: 'list', sequence: value.sequence + 1 }));
+    const result = await request<BoardResult>('/api/collection?limit=25' + (query ? '&q=' + encodeURIComponent(query) : '') + (next ? '&cursor=' + encodeURIComponent(next) : ''), code => { if (current === revision.current) fail(code); });
     if (current !== revision.current) return;
     setBusy(false);
-    if (result) { setUpdateState('success'); setItems(result.items); setCursor(result.nextCursor); setPage(pageNumber); setBusinessDate(result.businessDate); setAsOf(result.asOf); setScrollTarget(value => ({ kind: 'list', sequence: value.sequence + 1 })); }
+    if (result) { setUpdateState('success'); setItems(result.items); setCursor(result.nextCursor); setPage(pageNumber); setBusinessDate(result.businessDate); setAsOf(result.asOf); }
   }
   async function fetchUpcoming(row: Summary, day: string, current: number) {
     previews.current = null; setUpcoming(null); setUpcomingError(null);
@@ -133,7 +134,7 @@ export function CollectionRecords({ thai, request, cancel, onStatus, refreshToke
     if (result) { setUpcomingDetail(result); setUpcomingPage(pageNumber); setUpdateState('success'); setScrollTarget(value => ({ kind: 'detail', sequence: value.sequence + 1 })); }
     else setUpdateState('error');
   }
-  useEffect(() => { void loadBoard(); return () => { revision.current++; }; }, [refreshToken]);
+  useEffect(() => { void loadBoard(); return () => { revision.current++; }; }, [refreshToken, query]);
   const money = (value: string | null) => value === null ? t('Unavailable', 'ไม่มีข้อมูล') : new Intl.NumberFormat(thai ? 'th-TH' : 'en-TH', { style: 'currency', currency: 'THB', currencyDisplay: 'narrowSymbol', minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(Number(value));
   const date = (value: string | null) => value === null ? t('Unavailable', 'ไม่มีข้อมูล') : new Intl.DateTimeFormat(thai ? 'th-TH' : 'en-GB', { dateStyle: 'medium', timeZone: 'Asia/Bangkok' }).format(new Date(value + 'T00:00:00Z'));
   const statusLabel = (value: CollectionStatus) => ({ not_paid: t('Not paid', 'ยังไม่ชำระ'), partially_paid: t('Partially paid', 'ชำระบางส่วน'), overdue: t('Overdue', 'เกินกำหนด'), fully_paid: t('Fully paid', 'ชำระครบ') })[value];
@@ -149,7 +150,7 @@ export function CollectionRecords({ thai, request, cancel, onStatus, refreshToke
     {!error && <div className={'work-grid collection-grid ' + (selected ? 'has-detail' : '')}>
       <section className="list-panel" aria-busy={busy && !selected} ref={listPanel} tabIndex={0} aria-label={t('Collection borrower list', 'รายชื่อผู้กู้งานติดตาม')}>
         <div className="section-heading"><h2>{t('Collection borrowers', 'ผู้กู้งานติดตาม')}</h2></div>
-        {!busy && !items.length && <p className="live-empty">{t('No borrowers in Collection today.', 'ไม่มีผู้กู้ในงานติดตามวันนี้')}</p>}
+        {!busy && !items.length && <p className="live-empty">{query ? t('No matching borrowers.', 'ไม่พบผู้กู้ที่ตรงกับการค้นหา') : t('No borrowers in Collection today.', 'ไม่มีผู้กู้ในงานติดตามวันนี้')}</p>}
         {items.map((row, index) => <React.Fragment key={row.id}>{(index === 0 || items[index - 1].status !== row.status) && <h3 className={'record-group-heading ' + (row.status === 'fully_paid' ? 'group-inactive' : 'group-active')}>{statusLabel(row.status)}</h3>}<button className={'collection-borrower ' + (selected?.id === row.id ? 'selected ' : '') + (row.status === 'fully_paid' ? 'fully-paid' : '')} disabled={busy} onClick={() => void loadCharges(row)}><strong>{row.displayName}</strong>{amounts(row)}</button></React.Fragment>)}
         <div className="list-foot"><span className="live-page-status">{t('Collection page', 'หน้างานติดตาม')} {page}{!busy && !cursor ? t(' · End of list', ' · สิ้นสุดรายการ') : ''}</span>{cursor && <button className="secondary-button" disabled={busy} onClick={() => void loadBoard(cursor, page + 1)}>{t('Next Collection page', 'หน้าถัดไปของงานติดตาม')}</button>}</div>
       </section>

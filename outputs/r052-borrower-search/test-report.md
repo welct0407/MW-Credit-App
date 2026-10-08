@@ -1,0 +1,22 @@
+# R052 checkpoint 2F — independent borrower search verification
+
+8 October 2026. Baseline63ef702. Local synthetic fixtures and isolated browser profiles only; no live business records, fixture writes, schema or grants.
+
+## Passing evidence
+
+- Disposable PostgreSQL:16/16 cases passed using tests/integration/Run-Collection.ps1. Four new independent search cases plus12 existing financial/provider cases exercised the actual store SQL under a SELECT-only synthetic reader. The local server stopped normally.
+- Browser:8/8 final cases passed: four new Borrowers/Collection search flows across1440 desktop and320 mobile, plus four directly affected grouped-read and Upcoming regression cases. Existing refresh selectors now distinguish the refresh action from the new search action sharing its style class.
+
+SQL proves a match absent from the first25 can be found globally; Thai names and case-insensitive English descriptions match separately. Percent, underscore, backslash and quote remain literal, multiple internal spaces remain distinct, and a concatenated name/description boundary is not searchable. Hidden borrowers remain excluded from the directory but eligible in Collection; noneligible Collection borrowers stay excluded. Filtered Collection rows exactly equal their unfiltered financial DTOs. Malformed unmatched source data still fails the global Collection quality guard. Filtered29-row keyset pages cross status/active groups without omission or duplication and reject a differently cased query hash. Invalid controls/lengths and missing/null legacy ranks reject before SQL; valid old root cursors work only with empty search.
+
+Browser flows verify explicit submit (typing and composing Enter do not send reads), exactly one submitted root request, Clear resetting to first page, detail/Back and root refresh retaining applied query, draft cancellation, paging reset, newer-query response winning over a held older response, and no completion-time scroll command. Loaded no-match text is localized and absent during pending results. Header remains60px desktop/56px mobile in both languages; all three search buttons are at least44px, no page overflow, and final screenshots contain one explicit Clear icon after native cancel suppression. Desktop Borrowers uses its existing refresh path because its Back control is mobile-only. Native iPhone keyboard/standalone interaction remains owner validation, not Chromium proof.
+
+## Findings resolved
+
+C measured search header growth to72px caused by a16px form bottom margin; B reset the scoped margin. A's missing/null legacy rank, loading/no-match messaging and late root-scroll findings were corrected and independently covered. Parent spotted duplicate native and explicit clear icons; B suppressed only the native cancel decoration. Test-only corrections handled the existing arrow-prefixed/mobile-only Back control and waited two animation frames for the deliberate initial layout transition while the synthetic response remained held; standard timeouts and completion assertions were retained.
+
+## Scope and handoff
+
+No broader PWA/auth infrastructure suite was repeated. Existing access/owner checks are unchanged; B's focused API/unit evidence is separate. C did not rebuild or overwrite D's managed artifact. All test servers closed; parent preview retained.
+
+Intended C files: tests/e2e/borrower-search.spec.ts, grouped-read.spec.ts, upcoming-read.spec.ts; tests/integration/collection-postgres.test.mjs; this directory's eight synthetic EN/Thai PNGs and report. Regenerated tracked TRIM screenshots under outputs/r052-collection-read are incidental prior evidence and should be restored by D. Await exact-source CI, bounded unsigned deployed checks, and owner authenticated visual validation. R052 remains Open.

@@ -1,3 +1,4 @@
+import { normalizeSearchQuery, searchQueryHash } from './search-query.mjs';
 import { readUpcoming, validUpcomingDate, decodeUpcomingCursor } from './upcoming-read-contract.mjs';
 import { readCollection, decodeCollectionCursor } from './collection-read-contract.mjs';
 import { loanColumns, validLoanId, projectLoan, encodeLoanCursor, decodeLoanCursor, loanRankSql, borrowerDisplayName } from './loan-read-contract.mjs';
@@ -14,16 +15,19 @@ function project(row) {
   if (!validId(row.id)) throw new Error('Invalid read source');
   return { id: row.id, borrowerDisplayName: borrowerDisplayName(row.name, row.description), totalProfitEarned: typeof row.totalProfitEarned === 'string' && /^-?\d+(?:\.\d+)?$/.test(row.totalProfitEarned) ? row.totalProfitEarned : null, name: typeof row.name === 'string' ? row.name : null, createdDate: validDate(row.createdDate), hasActiveLoan: typeof row.hasActiveLoan === 'boolean' ? row.hasActiveLoan : null, outstandingPrincipal: typeof row.outstandingPrincipal === 'string' && /^-?\d+(?:\.\d+)?$/.test(row.outstandingPrincipal) ? row.outstandingPrincipal : null, note: typeof row.note === 'string' ? row.note : null };
 }
-export function encodeCursor(row) {
+export function encodeCursor(row, query = '') {
   const rank = row.rank ?? borrowerRank(row.hasActiveLoan);
   if (![0, 1, 2].includes(rank) || !validId(row.id) || (row.createdDate !== null && !validDate(row.createdDate))) throw new Error('Invalid cursor');
-  return Buffer.from(JSON.stringify({ v: 2, rank, createdDate: row.createdDate, id: row.id }), 'utf8').toString('base64url');
+  return Buffer.from(JSON.stringify({ v: 3, rank, createdDate: row.createdDate, id: row.id, queryHash: searchQueryHash(query) }), 'utf8').toString('base64url');
 }
-export function decodeCursor(cursor) {
+export function decodeCursor(cursor, query = '') {
   if (cursor === null || cursor === undefined || cursor === '') return null;
   if (typeof cursor !== 'string' || cursor.length > 4096 || !/^[A-Za-z0-9_-]+$/.test(cursor)) throw new Error('Invalid cursor');
   const row = JSON.parse(Buffer.from(cursor, 'base64url').toString('utf8'));
-  if (!row || row.v !== 2 || encodeCursor(row) !== cursor) throw new Error('Invalid cursor');
+  if (!row || !Number.isInteger(row.rank) || ![0, 1, 2].includes(row.rank)) throw new Error('Invalid cursor');
+  const canonical = encodeCursor(row, query);
+  const legacy = Buffer.from(JSON.stringify({ v: 2, rank: row.rank, createdDate: row.createdDate, id: row.id })).toString('base64url');
+  if (!((row.v === 3 && canonical === cursor) || (row.v === 2 && normalizeSearchQuery(query) === '' && legacy === cursor))) throw new Error('Invalid cursor');
   return row;
 }
 export function createBorrowerReadStore({ pool, config, now = () => new Date() }) {
@@ -69,11 +73,11 @@ export function createBorrowerReadStore({ pool, config, now = () => new Date() }
       return run(email, client => readUpcoming(client, { borrowerId, businessDate, dueDate, limit, after }), true)
         .then(result => result.collectionError ? { ok: false, status: result.collectionStatus, code: result.collectionError } : result);
     },
-    listCollection: (email, { limit = 25, cursor = null } = {}) => {
+    listCollection: (email, { limit = 25, cursor = null, q = '' } = {}) => {
       let after;
-      try { after = decodeCollectionCursor(cursor, 'collection'); if (!Number.isInteger(limit) || limit < 1 || limit > 100) throw new Error(); }
+      try { q = normalizeSearchQuery(q); after = decodeCollectionCursor(cursor, 'collection', undefined, q); if (!Number.isInteger(limit) || limit < 1 || limit > 100) throw new Error(); }
       catch { return Promise.resolve({ ok: false, status: 400, code: 'invalid_request' }); }
-      return run(email, client => readCollection(client, { limit, after }), true)
+      return run(email, client => readCollection(client, { limit, after, query: q }), true)
         .then(result => result.collectionError ? { ok: false, status: result.collectionStatus, code: result.collectionError } : result);
     },
     getCollectionCharges: (email, borrowerId, { limit = 25, cursor = null } = {}) => {
@@ -84,18 +88,19 @@ export function createBorrowerReadStore({ pool, config, now = () => new Date() }
       return run(email, client => readCollection(client, { limit, after, borrowerId }), true)
         .then(result => result.collectionError ? { ok: false, status: result.collectionStatus, code: result.collectionError } : result);
     },
-    listBorrowers: (email, { limit = 25, cursor = null } = {}) => {
+    listBorrowers: (email, { limit = 25, cursor = null, q = '' } = {}) => {
       let after;
-      try { after = decodeCursor(cursor); if (!Number.isInteger(limit) || limit < 1 || limit > 100) throw new Error(); }
+      try { q = normalizeSearchQuery(q); after = decodeCursor(cursor, q); if (!Number.isInteger(limit) || limit < 1 || limit > 100) throw new Error(); }
       catch { return Promise.resolve({ ok: false, status: 400, code: 'invalid_request' }); }
       return run(email, async client => {
         const result = await client.query(`SELECT ${borrowerColumns} FROM public."Borrowers" WHERE "Hidden Flag" IS FALSE
+          AND ($6::text = '' OR strpos(lower(COALESCE("Borrower Name", '')), lower($6)) > 0 OR strpos(lower(COALESCE("Description", '')), lower($6)) > 0)
           AND ($1::boolean IS FALSE OR (${borrowerRankSql}) > $2::integer OR ((${borrowerRankSql}) = $2::integer AND (
             ($3::date IS NOT NULL AND ("Creation Date" > $3::date OR "Creation Date" IS NULL OR ("Creation Date" = $3::date AND "Row ID" COLLATE "C" > $4::text COLLATE "C")))
             OR ($3::date IS NULL AND "Creation Date" IS NULL AND "Row ID" COLLATE "C" > $4::text COLLATE "C"))))
-          ORDER BY (${borrowerRankSql}), "Creation Date" ASC NULLS LAST, "Row ID" COLLATE "C" ASC LIMIT $5`, [after !== null, after?.rank ?? null, after?.createdDate ?? null, after?.id ?? null, limit + 1]);
+          ORDER BY (${borrowerRankSql}), "Creation Date" ASC NULLS LAST, "Row ID" COLLATE "C" ASC LIMIT $5`, [after !== null, after?.rank ?? null, after?.createdDate ?? null, after?.id ?? null, limit + 1, q]);
         const items = result.rows.slice(0, limit).map(project);
-        return { items, nextCursor: result.rows.length > limit ? encodeCursor(items.at(-1)) : null, order: 'active-inactive-unknown,created-date-asc-null-last,row-id-asc' };
+        return { items, nextCursor: result.rows.length > limit ? encodeCursor(items.at(-1), q) : null, order: 'active-inactive-unknown,created-date-asc-null-last,row-id-asc' };
       });
     },
     listLoans: (email, borrowerId, { limit = 25, cursor = null } = {}) => {

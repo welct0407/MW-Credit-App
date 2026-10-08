@@ -73,3 +73,36 @@ test('Upcoming midnight and owner checks remain separate from provider data',asy
  queries.length=0;assert.equal((await store.getCollectionUpcoming('wrong@example.test','a',{businessDate:'2026-10-07'})).status,403);assert.equal(queries.length,0);
  instant='2026-10-07T17:00:00Z';assert.equal((await upcoming('a')).status,409);
 });
+
+test('search reaches beyond the first directory page and preserves view-specific eligibility and amounts',async()=>{
+ for(let i=0;i<30;i++){const id='search-'+String(i).padStart(2,'0');await borrower(id);await charge('c-'+id,id)}
+ await borrower('search-hidden',true);await charge('c-hidden','search-hidden');await borrower('search-excluded');await charge('c-excluded','search-excluded',paid,'2026-10-01','0',null);
+ await q('UPDATE "Borrowers" SET "Borrower Name"=$1,"Description"=$2 WHERE "Row ID" IN ($3,$4,$5)',['ค้นหาเป้าหมาย','Unique English NEEDLE','search-29','search-hidden','search-excluded']);
+ assert.equal((await store.listBorrowers(owner,{limit:25})).items.some(x=>x.id==='search-29'),false);
+ const directory=await store.listBorrowers(owner,{q:'needle',limit:25});assert.deepEqual(directory.items.map(x=>x.id),['search-29','search-excluded']);
+ const unfiltered=await board();const filtered=await store.listCollection(owner,{q:' ค้นหาเป้าหมาย ',limit:25});assert.deepEqual(filtered.items.map(x=>x.id),['search-29','search-hidden']);for(const row of filtered.items)assert.deepEqual(row,unfiltered.items.find(x=>x.id===row.id));
+ assert.deepEqual((await store.listCollection(owner,{q:'nEeDlE',limit:25})).items,filtered.items);
+ await charge('bad-unmatched','search-00','unexpected');assert.equal((await store.listCollection(owner,{q:'needle'})).code,'source_unavailable');
+});
+
+test('search uses literal substrings in separate physical fields, with unchanged null and whitespace semantics',async()=>{
+ for(const id of ['literal','plain','split','nulls']){await borrower(id);await charge('c-'+id,id)}
+ await q('UPDATE "Borrowers" SET "Borrower Name"=$1,"Description"=$2 WHERE "Row ID"=$3',["ร้อย%_\\'quote",'MiXeD  Space','literal']);
+ await q('UPDATE "Borrowers" SET "Borrower Name"=$1,"Description"=$2 WHERE "Row ID"=$3',['ร้อยxxxx','mixed space','plain']);
+ await q('UPDATE "Borrowers" SET "Borrower Name"=$1,"Description"=$2 WHERE "Row ID"=$3',['alpha','beta','split']);await q('UPDATE "Borrowers" SET "Borrower Name"=NULL,"Description"=NULL WHERE "Row ID"=$1',['nulls']);
+ for(const query of ['%', '_', "\\'",'mixed  space'])for(const list of [store.listBorrowers,store.listCollection])assert.deepEqual((await list(owner,{q:query})).items.map(x=>x.id),['literal']);
+ for(const list of [store.listBorrowers,store.listCollection]){assert.equal((await list(owner,{q:'alpha - beta'})).items.length,0);assert.equal((await list(owner,{q:'   '})).items.length,4);assert.equal((await list(owner,{q:"' OR 1=1 --"})).items.length,0)}
+});
+
+test('filtered keyset pagination crosses groups without duplicates and rejects a different bound query',async()=>{
+ for(let i=0;i<29;i++){const id='match-'+String(i).padStart(2,'0');await borrower(id);await q('UPDATE "Borrowers" SET "Has Active Loan"=$1,"Creation Date"=$2 WHERE "Row ID"=$3',[i<12?true:i<24?false:null,i%3?'2026-01-01':null,id]);await charge('c-'+id,id,i<10?pending:i<20?partial:paid,'2026-10-07',i<20?'100':'0',i<20?null:'2026-10-07')}
+ for(const list of [store.listBorrowers,store.listCollection]){const first=await list(owner,{q:'match-',limit:25});assert.equal(first.items.length,25);assert.ok(first.nextCursor);const second=await list(owner,{q:'match-',limit:25,cursor:first.nextCursor});assert.equal(second.items.length,4);assert.equal(second.nextCursor,null);assert.equal(new Set([...first.items,...second.items].map(x=>x.id)).size,29);assert.deepEqual([...first.items,...second.items],(await list(owner,{q:'match-',limit:100})).items);assert.equal((await list(owner,{q:'MATCH-',cursor:first.nextCursor})).status,400)}
+});
+
+test('malformed legacy ranks and invalid search reject before SQL while old empty-query cursors remain usable',async()=>{
+ await borrower('a');await borrower('b');await charge('ca','a');await charge('cb','b');const encode=value=>Buffer.from(JSON.stringify(value)).toString('base64url');
+ for(const rank of [undefined,null,-1,3]){const before=queries.length;const result=await store.listBorrowers(owner,{cursor:encode({v:2,rank,createdDate:'2026-01-01',id:'a'})});assert.equal(result.status,400);assert.equal(queries.length,before)}
+ for(const list of [store.listBorrowers,store.listCollection])for(const query of ['a\n','\u0000','x'.repeat(101),' '.repeat(513)]){const before=queries.length;assert.equal((await list(owner,{q:query})).status,400);assert.equal(queries.length,before)}
+ const oldBorrower=encode({v:2,rank:0,createdDate:'2026-01-01',id:'a'});assert.deepEqual((await store.listBorrowers(owner,{cursor:oldBorrower})).items.map(x=>x.id),['b']);assert.equal((await store.listBorrowers(owner,{cursor:oldBorrower,q:'b'})).status,400);
+ const oldCollection=encode({v:1,kind:'collection',businessDate:'2026-10-07',rank:0,id:'a'});assert.deepEqual((await store.listCollection(owner,{cursor:oldCollection})).items.map(x=>x.id),['b']);assert.equal((await store.listCollection(owner,{cursor:oldCollection,q:'b'})).status,400);
+});
