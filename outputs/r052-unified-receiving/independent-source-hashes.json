@@ -40,7 +40,7 @@
       "path": "apps/pwa/src/owner-offline.ts"
     },
     {
-      "sha256": "2bc07df08f67da6cfbec632581ccd3f8de7eec5a8737b45bf73b0747d932e194",
+      "sha256": "2182d6b4a355ed559040d568ed4275b7952d2a06268d6772fb27ecc31afb9eb1",
       "path": "apps/pwa/src/live-style.css"
     },
     {
@@ -70,6 +70,10 @@
     {
       "sha256": "4687a96495b4da223994e00cc86fcced29dc780cb17c60a3d80c8a089d5b504f",
       "path": "tests/e2e/payment-phase4-independent.spec.ts"
+    },
+    {
+      "sha256": "95ba06dedf64e938b0ff7a454bed489971ed1aed6773b75b072f469f18ecaf7b",
+      "path": "tests/e2e/error-recovery.spec.ts"
     }
   ],
   "scope": "C independent full82 synthetic SQL and affected desktop/mobile browser verification; no live mutation",
@@ -82,5 +86,15 @@
     "affectedRunTotal": 60,
     "testFixtureDestinationFailure": 1
   },
-  "recordedHead": "373aec1c347e109939f964eecfe3fa610dab8a78"
+  "recordedHead": "373aec1c347e109939f964eecfe3fa610dab8a78",
+  "portabilityCorrection": {
+    "passed": 8,
+    "sqlReused": true,
+    "strictWidth": "body/document <=320 unchanged",
+    "total": 8,
+    "errorRecoverySha256": "95ba06dedf64e938b0ff7a454bed489971ed1aed6773b75b072f469f18ecaf7b",
+    "liveStyleSha256": "2182d6b4a355ed559040d568ed4275b7952d2a06268d6772fb27ecc31afb9eb1",
+    "linuxCI": "pending corrected full Development",
+    "platform": "Windows local Chromium desktop/mobile"
+  }
 }
