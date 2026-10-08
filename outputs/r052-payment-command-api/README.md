@@ -6,6 +6,8 @@ Stable DEV application capability, journal/API hardening and immutable receipt a
 
 The final 4F runner is `tests/integration/Run-DevAppCapability.ps1`, using fresh loopback PostgreSQL and V1–V79. Focused integration passed 23/23 and corrected-source pure recovery validation passed 3/3: 26 unique named cases. [C evidence](independent-verification-4f.json) explicitly reuses unchanged valid-input integration after the narrow recovery-input fix; repeated/interim runs are not added. [Maintained database CI](database-ci-4f.json) passed separately on unchanged migration/runner hashes. Hook proof is actual disposable client execution plus maintained source inspection, not a live CLI run. [Owning change record](../../Change%20Logs/CHANGE_NOTES_R052_DEV_APPLICATION_CAPABILITY_2026-10-08.md). A design and D authority plan are in the PM repository at `outputs/r052-pwa/checkpoint-4f-design-and-test-plan.md` and `outputs/r052-payment-command-api/infra-authority-4f.md`.
 
+Exact candidate [ff6caa8](https://github.com/welct0407/MW-Credit-App/commit/ff6caa8b9d9ff1e9b98abba17717893a01ee5661) passed [Development checks](https://github.com/welct0407/MW-Credit-App/actions/runs/37735870561) and [Database migrations](https://github.com/welct0407/MW-Credit-App/actions/runs/37735870595); [source CI record](source-ci-4f.json). Final evidence/documentation commits preserve tested source.
+
 ## Historical verified checkpoint 4E
 
 Isolated local HTTP candidate against fresh loopback-only PostgreSQL with full V1–V78 history. No live database, real Firebase login, deployed endpoint, GCS operation or notification.

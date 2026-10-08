@@ -21,7 +21,7 @@
   },
   "reuse_note": "These migration/runner bytes remained unchanged during the run. A subsequent narrow recovery-input validation fix changes application-role-tooling only; its focused retest is separate and does not invalidate this maintained migration/runner evidence.",
   "limitations": [
-    "Local Windows maintained database verification; Linux runner parity awaits GitHub CI",
+    "Local Windows maintained database verification. GitHub database rebuild also uses Windows; Linux parity prerequisite edit is source-reviewed, not runtime-executed in this checkpoint.",
     "Does not execute live CLI/hook, IAM grants, Terraform apply, auth transport or AppSheet financial operations"
   ]
 }
