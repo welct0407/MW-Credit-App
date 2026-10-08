@@ -33,7 +33,7 @@ export function decodeDraftCursor(value,borrowerId,scope='due'){
 }
 export async function readOwnerPaymentDraft(client,borrowerId,{limit=25,cursor=null,selectedChargeIds=null,scope='due',all=false}={}){
  const after=decodeDraftCursor(cursor,borrowerId,scope);
- if(!['due','future'].includes(scope)||all&&scope!=='due')throw Error('invalid_request');
+ if(!['due','future','all'].includes(scope)||all&&scope!=='due')throw Error('invalid_request');
  if(!Number.isInteger(limit)||limit<1||limit>100)throw Error('invalid_request');
  const clock=(await client.query("SELECT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date::text AS day,CURRENT_TIMESTAMP AS instant")).rows[0];
  if(after&&after.businessDate!==clock.day)return {draftError:'business_date_changed',status:409};
@@ -47,7 +47,7 @@ export async function readOwnerPaymentDraft(client,borrowerId,{limit=25,cursor=n
  const rows=(await client.query(`SELECT c."Row ID" AS id,c."Charge Date"::text AS "chargeDate",c."Amount Remaining"::text AS amount,
  l."Principal Amount"::numeric::text AS principal,l."Loan Date"::text AS "loanDate",l."Original Daily Interest Rate"::text AS rate
  FROM public."Charges" c JOIN public."Loans" l ON l."Row ID"=c."Ref Loans"
- WHERE l."Ref Borrowers"=$1 AND (CASE WHEN $7::text='future' THEN c."Charge Date">$2::date ELSE c."Charge Date"<=$2::date END) AND c."Amount Remaining">0
+ WHERE l."Ref Borrowers"=$1 AND (CASE WHEN $7::text='future' THEN c."Charge Date">$2::date WHEN $7::text='all' THEN TRUE ELSE c."Charge Date"<=$2::date END) AND c."Amount Remaining">0
  AND ($3::date IS NULL OR c."Charge Date">$3::date OR (c."Charge Date"=$3::date AND c."Row ID" COLLATE "C">$4::text COLLATE "C"))
  AND ($5::text[] IS NULL OR c."Row ID"=ANY($5::text[]))
  ORDER BY c."Charge Date",c."Row ID" COLLATE "C" LIMIT $6`,[borrowerId,clock.day,after?.chargeDate??null,after?.id??null,selectedChargeIds,selectedChargeIds||all?10001:limit+1,scope])).rows;

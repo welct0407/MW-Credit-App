@@ -1,5 +1,5 @@
 param()
-# Fresh loopback-only full V80 database; never reads live credentials or accepts a DSN.
+# Fresh loopback-only full V81 database; never reads live credentials or accepts a DSN.
 $ErrorActionPreference='Stop'
 if($env:CI -ne 'true'){. "$PSScriptRoot/../../scripts/Enter-Dev.ps1"}
 . "$PSScriptRoot/../../scripts/database/Common.ps1"
@@ -27,14 +27,14 @@ try {
   $env:FLYWAY_URL="jdbc:postgresql://127.0.0.1:$fixturePort/payment_rehearsal"
   $env:FLYWAY_USER='postgres';$env:FLYWAY_CONFIG_FILES=Join-Path $DbRepoRoot 'database/flyway.conf'
   Push-Location $DbRepoRoot
-  try { & (Get-FlywayPath) '-outputType=json' '-target=80' migrate | Out-File (Join-Path $fixtureRoot 'migration.json');if($LASTEXITCODE){throw 'V80 migration failed'} }
+  try { & (Get-FlywayPath) '-outputType=json' '-target=81' migrate | Out-File (Join-Path $fixtureRoot 'migration.json');if($LASTEXITCODE){throw 'V81 migration failed'} }
   finally {Pop-Location}
  } finally {
   Get-ChildItem Env:FLYWAY_* -ErrorAction SilentlyContinue | ForEach-Object {Remove-Item "Env:$($_.Name)"}
   foreach($entry in $savedFlyway.GetEnumerator()){Set-Item "Env:$($entry.Key)" $entry.Value}
  }
  $env:PAYMENT_REHEARSAL_DISPOSABLE='1';$env:PAYMENT_REHEARSAL_PORT=[string]$fixturePort;$env:PAYMENT_REHEARSAL_DIRECTORY=$data
- & node --test --test-concurrency=1 "$PSScriptRoot/payment-phase4.test.mjs" "$PSScriptRoot/payment-phase4-independent.test.mjs"
+ & node --test --test-concurrency=1 "$PSScriptRoot/payment-phase4.test.mjs" "$PSScriptRoot/payment-phase4-independent.test.mjs" "$PSScriptRoot/receiving-ux-independent.test.mjs"
  if($LASTEXITCODE){throw 'Payment command API rehearsal failed'}
 } finally {
  Remove-Item Env:PAYMENT_REHEARSAL_DISPOSABLE,Env:PAYMENT_REHEARSAL_PORT,Env:PAYMENT_REHEARSAL_DIRECTORY -ErrorAction SilentlyContinue

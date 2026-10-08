@@ -27,11 +27,11 @@ function freeze(value) {
 }
 export function canonicalCommand(input) {
   exact(input, ['schemaVersion', 'requestId', 'borrowerId', 'selectedChargeIds', 'cashAccountId', 'paymentDate', 'amountReceived', 'paymentMethod', 'allocationMethod', 'notes', 'receiptId']);
-  if (![3, 4].includes(input.schemaVersion) || !Array.isArray(input.selectedChargeIds) || input.selectedChargeIds.length < 1 || input.selectedChargeIds.length > (input.schemaVersion === 4 ? 10000 : 100)) fail();
+  if (![3, 4, 5].includes(input.schemaVersion) || !Array.isArray(input.selectedChargeIds) || input.selectedChargeIds.length < 1 || input.selectedChargeIds.length > (input.schemaVersion >= 4 ? 10000 : 100)) fail();
   const selectedChargeIds = Array.from(input.selectedChargeIds, value => { const result = id(value); if (/[,\s]/u.test(result)) fail(); return result; });
   if (new Set(selectedChargeIds).size !== selectedChargeIds.length) fail();
   selectedChargeIds.sort((a, b) => Buffer.compare(Buffer.from(a, 'utf8'), Buffer.from(b, 'utf8')));
-  if (typeof input.amountReceived !== 'string' || !/^[1-9][0-9]{0,16}$/.test(input.amountReceived) || BigInt(input.amountReceived) > 92233720368547758n || input.paymentMethod !== 'Bank Transfer' || !(input.schemaVersion === 4 ? ['Selected Charges', 'Single Full', 'Receive All'] : ['Selected Charges']).includes(input.allocationMethod)) fail();
+  if (typeof input.amountReceived !== 'string' || !/^[1-9][0-9]{0,16}$/.test(input.amountReceived) || BigInt(input.amountReceived) > 92233720368547758n || !(input.schemaVersion === 5 ? ['Bank Transfer', 'Cash', 'Net-off at Disbursement'] : ['Bank Transfer']).includes(input.paymentMethod) || !(input.schemaVersion >= 4 ? ['Selected Charges', 'Single Full', 'Receive All'] : ['Selected Charges']).includes(input.allocationMethod)) fail();
   if (input.allocationMethod === 'Single Full' && selectedChargeIds.length !== 1) fail();
   if (!(input.notes === null || (typeof input.notes === 'string' && input.notes.isWellFormed() && !input.notes.includes('\0') && Buffer.byteLength(input.notes, 'utf8') <= 65536))) fail();
   return freeze({ schemaVersion: input.schemaVersion, requestId: requestId(input.requestId), borrowerId: id(input.borrowerId), selectedChargeIds, cashAccountId: id(input.cashAccountId), paymentDate: date(input.paymentDate), amountReceived: input.amountReceived, paymentMethod: input.paymentMethod, allocationMethod: input.allocationMethod, notes: input.notes === '' ? null : input.notes, receiptId: input.receiptId === null ? null : requestId(input.receiptId) });

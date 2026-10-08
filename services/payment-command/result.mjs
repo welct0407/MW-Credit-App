@@ -24,13 +24,13 @@ export async function readCommandResult(client,actor,requestId,{lock=false}={}){
  return {originalCommand:original,originalOutcome,currentSource:financialMatch?'present':'changed',payment:{...payment,accountLabel:account?.label??null,version},allocations,repayments,cashMovements,history:{recordedAt:originalOutcome.recordedAt,createdAt:payment.createdAt,processedAt:payment.processedAt}};
 }
 
-export async function readBorrowerPaymentHistory(client,borrowerId,{limit=25,cursor=null}={}){
+export async function readBorrowerPaymentHistory(client,borrowerId,{limit=25,cursor=null}={},actor){
  if(!Number.isInteger(limit)||limit<1||limit>100)throw Error('invalid_request');
  let after=null;if(cursor){try{after=JSON.parse(Buffer.from(cursor,'base64url').toString('utf8'));if(Object.keys(after).join(',')!=='v,borrowerId,paymentDate,id'||after.v!==1||after.borrowerId!==borrowerId||typeof after.id!=='string'||!after.id||(after.paymentDate!==null&&!validDay(after.paymentDate))||Buffer.from(JSON.stringify(after)).toString('base64url')!==cursor)throw Error()}catch{throw Error('invalid_request')}}
- const rows=(await client.query(`SELECT p."Row ID" AS id,p."Status" AS status,p."Payment Date"::text AS "paymentDate",p."Amount Received"::numeric::text AS "amountReceived",p."Posted Amount"::text AS "postedAmount",p."Notes" AS notes,p."Uploaded Receipt" AS "receiptReference",p."Uploaded Receipt At"::text AS "receiptAt",a."Account Label" AS "accountLabel"
+ const rows=(await client.query(`SELECT (SELECT j.request_id::text FROM public.pwa_payment_commands j WHERE j.payment_id=p."Row ID" AND j.actor_issuer=$6 AND j.actor_subject=$7 AND j.actor_partner_id=$8 LIMIT 1) AS "requestId",p."Row ID" AS id,p."Status" AS status,p."Payment Date"::text AS "paymentDate",p."Amount Received"::numeric::text AS "amountReceived",p."Posted Amount"::text AS "postedAmount",p."Notes" AS notes,p."Uploaded Receipt" AS "receiptReference",p."Uploaded Receipt At"::text AS "receiptAt",a."Account Label" AS "accountLabel"
  FROM public."Payments" p LEFT JOIN public."Cash Accounts" a ON a."Row ID"=p."Ref Received By Cash Account"
  WHERE p."Ref Borrower"=$1 AND ($2::boolean IS FALSE OR ($3::date IS NULL AND p."Payment Date" IS NULL AND p."Row ID" COLLATE "C">$4 COLLATE "C") OR ($3::date IS NOT NULL AND (p."Payment Date"<$3::date OR p."Payment Date" IS NULL OR (p."Payment Date"=$3::date AND p."Row ID" COLLATE "C">$4 COLLATE "C"))))
- ORDER BY p."Payment Date" DESC NULLS LAST,p."Row ID" COLLATE "C" LIMIT $5`,[borrowerId,!!after,after?.paymentDate??null,after?.id??null,limit+1])).rows;
+ ORDER BY p."Payment Date" DESC NULLS LAST,p."Row ID" COLLATE "C" LIMIT $5`,[borrowerId,!!after,after?.paymentDate??null,after?.id??null,limit+1,actor?.issuer??null,actor?.subject??null,actor?.partnerId??null])).rows;
  const more=rows.length>limit,items=rows.slice(0,limit),last=items.at(-1);
  return {items,nextCursor:more?Buffer.from(JSON.stringify({v:1,borrowerId,paymentDate:last.paymentDate,id:last.id})).toString('base64url'):null};
 }

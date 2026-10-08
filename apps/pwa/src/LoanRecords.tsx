@@ -1,3 +1,4 @@
+import {CompactPager,RefreshIcon} from './CompactPager';
 import { ErrorReference, type ReadFailure } from './ReadFailure';
 import React from 'react';
 
@@ -12,7 +13,7 @@ export type LoanDetailResult = { ok: true; source: 'dev'; item: LoanRecord; asOf
 type Props = {
   thai: boolean; page: number; items: LoanRecord[]; selected: LoanRecord | null; busy: boolean; loading: boolean;
   error: ReadFailure<'not_found' | 'unavailable'> | null; nextCursor: string | null; listAsOf: string; detailAsOf: string;
-  onSelect: (id: string) => void; onBack: () => void; onRefresh: () => void; onNext: () => void;
+  onPrevious?:()=>void; onSelect: (id: string) => void; onBack: () => void; onRefresh: () => void; onNext: () => void;
 };
 export function loanDisplayKey(loan: LoanRecord) {
   const principal = loan.principalAmount === null ? '' : new Intl.NumberFormat('en-US', { style: 'currency', currency: 'THB', currencyDisplay: 'narrowSymbol', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Number(loan.principalAmount));
@@ -30,8 +31,8 @@ export function LoanRecords(props: Props) {
   const status = (value: string | null) => value === 'ยังไม่ปิดยอด' ? t('Open', 'ยังไม่ปิดยอด') : value === 'ปิดยอดแล้ว' ? t('Closed', 'ปิดยอดแล้ว') : value === null ? unavailable : `${t('Other status', 'สถานะอื่น')}: ${value}`;
   const type = (value: string | null) => value === 'กำหนดวันชำระ' ? t('Fixed due date', 'กำหนดวันชำระ') : value === 'ดอกเบี้ยรายวัน' ? t('Daily interest', 'ดอกเบี้ยรายวัน') : value === 'ผ่อนชำระรายวัน' ? t('Daily instalment', 'ผ่อนชำระรายวัน') : value === null ? unavailable : `${t('Other type', 'ประเภทอื่น')}: ${value}`;
   return <section className="related-loans" aria-label={t('Related loans', 'สัญญาที่เกี่ยวข้อง')}>
-    <div className="related-loans-heading"><h3>{t('Related loans', 'สัญญาที่เกี่ยวข้อง')}</h3><span>{t('Read only', 'อ่านอย่างเดียว')}</span></div>
-    {props.loading && <p role="status">{t('Loading loan records…', 'กำลังโหลดข้อมูลสัญญา…')}</p>}
+    <div className="related-loans-heading"><h3>{t('Related loans', 'สัญญาที่เกี่ยวข้อง')}</h3></div>
+
     {props.error && <div className="loan-read-error" role="status"><p>{props.error.code === 'not_found' ? t('This borrower or loan is no longer available.', 'ไม่พบผู้กู้หรือสัญญานี้แล้ว') : t('Unable to load loan records.', 'ไม่สามารถโหลดข้อมูลสัญญาได้')}</p><ErrorReference failure={props.error} thai={props.thai} /><button className="secondary-button" disabled={props.busy} onClick={props.onRefresh}>{t('Retry loan list', 'ลองโหลดรายการสัญญาอีกครั้ง')}</button></div>}
     {props.selected ? <article className="loan-detail" aria-label={t('Loan details', 'รายละเอียดสัญญา')}>
       <button className="secondary-button" onClick={props.onBack}>← {t('Back to loans', 'กลับไปรายการสัญญา')}</button>
@@ -51,13 +52,14 @@ export function LoanRecords(props: Props) {
         <div><dt>{t('Automatic charges enabled', 'เปิดเรียกเก็บอัตโนมัติ')}</dt><dd>{yesNo(props.selected.autoChargeEnabled)}</dd></div>
       </dl>
     </article> : <>
-      <p className="loan-order-note">{t('Open loans first, then closed and other statuses. Newest dates first within each group. Groups may continue on another page.', 'แสดงสัญญาที่ยังเปิดก่อน ตามด้วยสัญญาที่ปิดและสถานะอื่น ภายในกลุ่มเรียงวันที่ใหม่ก่อน แต่ละกลุ่มอาจต่อเนื่องในหน้าถัดไป')}</p>
+
       {!props.loading && !props.error && props.items.length === 0 && <p>{t('No loans for this borrower.', 'ผู้กู้รายนี้ไม่มีสัญญา')}</p>}
       <div className="loan-record-list">{props.items.map((loan, index) => <React.Fragment key={loan.id}>{(index === 0 || loanGroup(props.items[index - 1].status) !== loanGroup(loan.status)) && <h4 className={'record-group-heading ' + (loanGroup(loan.status) === 0 ? 'group-active' : loanGroup(loan.status) === 1 ? 'group-inactive' : 'group-unknown')}>{loanGroup(loan.status) === 0 ? t('Open loans', 'สัญญาที่ยังเปิด') : loanGroup(loan.status) === 1 ? t('Closed loans', 'สัญญาที่ปิดแล้ว') : t('Other / unavailable status', 'สถานะอื่น / ไม่มีข้อมูล')}</h4>}<button className={'loan-record ' + (loanGroup(loan.status) === 1 ? 'closed' : '')} onClick={() => props.onSelect(loan.id)} disabled={props.busy}>
         <span className="loan-record-main"><strong>{loanDisplayKey(loan)}</strong><span>{date(loan.loanDate)} · {status(loan.status)}</span><span>{type(loan.loanType)}</span>{loan.defaulted === true && <span>{t('Defaulted', 'ผิดนัดชำระ')}</span>}</span>
         <span className="loan-record-amount"><strong>{money(loan.outstandingPrincipal)}</strong><span>{t('Principal outstanding', 'เงินต้นคงเหลือ')}</span></span>
       </button></React.Fragment>)}</div>
-      <p className="live-page-status" role="status">{t('Loans page', 'หน้าสัญญา')} {props.page}{!props.loading && !props.error && !props.nextCursor ? t(' · End of loan list', ' · สิ้นสุดรายการสัญญา') : ''}</p><div className="loan-page-actions"><button className="secondary-button" disabled={props.busy} onClick={props.onRefresh}>{t('First loans page / refresh', 'หน้าแรกของสัญญา / รีเฟรช')}</button>{props.nextCursor && <button className="secondary-button" disabled={props.busy} onClick={props.onNext}>{t('Next loans page', 'หน้าถัดไปของสัญญา')}</button>}</div>
+      <CompactPager busy={props.busy} previous={props.onPrevious} next={props.nextCursor?props.onNext:undefined} previousLabel={t('Previous loans page','หน้าก่อนของสัญญา')} nextLabel={t('Next loans page','หน้าถัดไปของสัญญา')}/>
+
     </>}
 
   </section>;

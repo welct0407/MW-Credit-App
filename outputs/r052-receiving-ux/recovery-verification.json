@@ -1,0 +1,19 @@
+{
+  "environment": "development",
+  "instance": "appsheet-pg-prod-20260914",
+  "host": "34.21.174.215",
+  "database": "loan_manager_dev",
+  "dumpSha256": "0c440af77c359dd3068cd4fb4eb0657e6173185fbb591d67b7150ae6005f5260",
+  "archiveListing": "passed",
+  "restore": "passed",
+  "restoreSemantics": "schema/data restored with no ownership/ACL replay; policy role names local NOLOGIN only",
+  "restored": {
+    "database": "loan_manager_dev",
+    "latestVersion": "80",
+    "historyRows": 80,
+    "publicTables": 24
+  },
+  "completedAt": "2026-10-08T12:01:50.0554486+00:00",
+  "purpose": "Fresh recovery includes intervening owner DEV activity; not prior Phase4 backup",
+  "ownedRestoreCluster": "stopped"
+}

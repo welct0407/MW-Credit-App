@@ -106,7 +106,7 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
     async history(principal,borrowerId,options={}){
       if(typeof borrowerId!=='string'||!borrowerId||Buffer.byteLength(borrowerId)>256)return failure(400,'invalid_request');
       if(!ownerTesting&&fixture&&fixture.borrowerId!==borrowerId)return failure(403,'access_denied');
-      return run(principal,async client=>({ok:true,value:await readBorrowerPaymentHistory(client,borrowerId,options)}),true);
+      return run(principal,async (client,actor)=>({ok:true,value:await readBorrowerPaymentHistory(client,borrowerId,options,actor)}),true);
     },
     async result(principal,requestId){
       if(!uuid.test(requestId||''))return failure(400,'invalid_request');
