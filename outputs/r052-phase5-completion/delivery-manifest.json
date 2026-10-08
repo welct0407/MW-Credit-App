@@ -1,5 +1,5 @@
 {
-  "scope": "R052 Phase5 candidate; local and remote Database verification passed; Linux UI corrections pending",
+  "scope": "R052 Phase5 candidate; Development passed and focused correction recovery contract passed; final Database gate pending",
   "localVerification": {
     "candidateTree": "d49d6381f63fdb7a9cf86b3ff5afc99d75c481a4",
     "v83Sha256": "e7185ed56ec5036d80816f6af7c3e6fa86732c1631792aacda0c5f949a86dcc5",
@@ -23,31 +23,46 @@
   },
   "remoteCI": {
     "Development": {
-      "runId": 37848221621,
-      "sourceCommit": "7e5bd872692f13ffc1d2a4453d493c9b22fa56f0",
-      "url": "https://github.com/welct0407/MW-Credit-App/actions/runs/37848221621",
-      "status": "failed",
-      "e2ePassed": 226,
-      "e2eFailed": 1,
+      "runId": 37850065047,
+      "sourceCommit": "d95e9b83ad52d629a98a10d481d1328a9e7533eb",
+      "url": "https://github.com/welct0407/MW-Credit-App/actions/runs/37850065047",
+      "status": "passed",
+      "e2ePassed": 227,
+      "e2eFailed": 0,
       "e2eSkipped": 9,
-      "failureBoundary": "mobile final UI owner-lease expiry/focus assertion; C diagnosis pending",
-      "priorAttempt": {
-        "runId": 37845674016,
-        "url": "https://github.com/welct0407/MW-Credit-App/actions/runs/37845674016",
+      "priorAttempts": {
+        "runId": 37848221621,
+        "sourceCommit": "7e5bd872692f13ffc1d2a4453d493c9b22fa56f0",
+        "url": "https://github.com/welct0407/MW-Credit-App/actions/runs/37848221621",
         "status": "failed",
-        "e2ePassed": 220,
-        "e2eFailed": 7,
+        "e2ePassed": 226,
+        "e2eFailed": 1,
         "e2eSkipped": 9,
-        "failureBoundary": "SW harness initial state; borrower pending recovery and Close review UI assertions; diagnosis pending"
+        "failureBoundary": "mobile final UI owner-lease expiry/focus assertion; C diagnosis pending",
+        "priorAttempt": {
+          "runId": 37845674016,
+          "url": "https://github.com/welct0407/MW-Credit-App/actions/runs/37845674016",
+          "status": "failed",
+          "e2ePassed": 220,
+          "e2eFailed": 7,
+          "e2eSkipped": 9,
+          "failureBoundary": "SW harness initial state; borrower pending recovery and Close review UI assertions; diagnosis pending"
+        }
       }
     },
     "Database": {
-      "runId": 37848221524,
-      "sourceCommit": "7e5bd872692f13ffc1d2a4453d493c9b22fa56f0",
-      "url": "https://github.com/welct0407/MW-Credit-App/actions/runs/37848221524",
-      "status": "passed",
-      "priorPassedRunId": 37845673933,
-      "unchangedDatabaseDependencies": true
+      "runId": 37850064900,
+      "sourceCommit": "d95e9b83ad52d629a98a10d481d1328a9e7533eb",
+      "url": "https://github.com/welct0407/MW-Credit-App/actions/runs/37850064900",
+      "status": "failed",
+      "finalJournalOnlyPassed": 76,
+      "finalJournalOnlyFailed": 1,
+      "failureBoundary": "F8-C02 competing correction heads: one applied outcome and one operation_outcome_unknown instead of durable rejected loser; A/C diagnosis pending",
+      "priorPassedRunIds": [
+        37845673933,
+        37848221524
+      ],
+      "failureDiagnosis": "Existing P0001 Cash pool is busy guard aborts overlapping losing transaction without journal; explicit status absence and same-UUID retry produces durable source_conflict. Test corrected deterministically, product unchanged."
     }
   },
   "deployment": {
@@ -80,11 +95,12 @@
     "cloudBuildId": "81c3dd82-38e2-4149-8e5b-d55d2ae01d3e",
     "cloudBuildStatus": "passed",
     "commandImage": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app/api@sha256:4ee1642c473e0d7cd9dabf6b202ed9cab71d2d7808c0d7137252fa242cf71c10",
-    "frontendBundle": "index-ClxARPRo.js",
+    "frontendBundle": "index-B68Kcp7d.js",
     "hostingDryCheck": "passed",
     "applied": false,
-    "frontendSuperseded": true,
-    "supersedingFrontendBuild": "B68Kcp7d; clean published rebuild pending",
-    "backendSourceUnchanged": true
+    "frontendSuperseded": false,
+    "supersedingFrontendBuild": "clean published build passed",
+    "backendSourceUnchanged": true,
+    "frontendSourceCommit": "d95e9b83ad52d629a98a10d481d1328a9e7533eb"
   }
 }
