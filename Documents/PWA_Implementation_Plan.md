@@ -2,7 +2,7 @@
 
 **[Overall progress: completed, current review and next steps](PWA_Progress.md)** — updated at every development-session closeout.
 
-**R052 checkpoint2G, 8 October 2026:** Checkpoint2G traceable read errors/recovery is implemented and independently verified: server UUID references, allowlisted completion stdout records and scoped UI copy/retry. Existing logging resources/IAM are reused; no financial, schema, grant or production work. Prior visibility fix is owner-accepted. Source a1fc800 passed actual HTTP 2/2, browser 8/8 and CI37712787076. API 00012-99g and Hosting ff1c9ce9a4bfedf2 are deployed; one benign request reference matched its sanitized stdout event. Final unsigned smoke passed 5/5; owner error/recovery review remains pending. Full Phase1/2 remains incomplete. [Design and exit gaps](../outputs/r052-pwa/checkpoint-2g-design.md).
+**R052 checkpoint4A, 8 October 2026:** Checkpoint4A is a local-only first-receiving design/prototype and full-V77 synthetic transaction rehearsal, verified with 12/12 full-V77 focused cases, four browser scenarios and the maintained Test-CI run. Checkpoint2G is owner-accepted, and installed-iPhone offline/reconnect is owner-confirmed; native update activation remains unobserved. Live API00012-99g/Hostingff1c9ce9a4bfedf2 and permissions are unchanged. No live financial workflow, new journal schema or event delivery is activated; R052 and full Phase1/2 remain open. [Design](../outputs/r052-pwa/checkpoint-4a-design.md).
 
 **R052 checkpoint 2A, 7 October 2026:** Checkpoint 2A live DEV Google sign-in and Borrowers read is owner-validated: owner reported successful list/detail reads; actual verified Google UID is pinned in managed Secret Manager version 1, read revision00003-pzr. Independent signed-out desktop/mobile, static health and denial checks passed. App source20358d1 includes the tested cold-start test-tooling correction; final CI37615986417 passed. Checkpoint 2A is complete. Phase 2 remains incomplete and the team stops at this checkpoint; no next slice, production, financial, schema or AppSheet change. [Evidence](../outputs/r052-pwa/README.md).
 
@@ -311,7 +311,7 @@ The final review must establish all of the following:
 - The cutover runbook covers old-client sync drain, access controls, rollback triggers and stabilization.
 - No unresolved required-feature, financial-integrity, access-control or recovery blocker remains.
 
-**Current implementation task:** Phase2 checkpoint2G traceable read errors/recovery. Compatible API and UI are tested and deployed; stop for owner review against the explicit exit gaps. Phase4 receiving investigation is source/design evidence only; no payment implementation or live financial testing.
+**Current implementation task:** Checkpoint4A local first-receiving prototype and disposable V77 rehearsal. No live payment endpoint or financial execution; publish synthetic evidence and stop for owner review.
 
 ## Borrower-field parity inventory after checkpoint 2B feedback
 

@@ -136,3 +136,8 @@ Checkpoint2C Collection board and borrower-scoped charge reads are implemented/t
 ## Checkpoint2G — traceable read errors/recovery
 
 [Design, Phase2 gaps and source-only receiving investigation](checkpoint-2g-design.md) · [Owning log](../../Change%20Logs/CHANGE_NOTES_R052_READ_ERROR_TRACING_2026-10-08.md). References correlate read requests; they are not financial idempotency. Current first-receiving source is V59 plus dependencies through V77; actor/event/retry-conflict proof remains future design work, with no live financial execution in2G.
+
+
+## Checkpoint4A — local first-receiving rehearsal
+
+[Design](checkpoint-4a-design.md) · [Owning log](../../Change%20Logs/CHANGE_NOTES_R052_PAYMENT_REHEARSAL_2026-10-08.md). Synthetic local preview and full-V77 transaction evidence are separate from the in-memory request-journal simulation. Source correction/deletion durability and committed-event ownership remain future design gaps; no cloud deployment or live financial activation.
