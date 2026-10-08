@@ -1,7 +1,7 @@
 {
-  "recordedUtc": "2026-10-08T10:08:07.7548273Z",
+  "recordedUtc": "2026-10-08T10:39:25.5261148Z",
   "startingCommit": "51ab34c0f99d22a6af8421c1603dd439cc61efee",
-  "testScope": "DisposableV80 7/7; browser storage1/1 plus receiving/offline4cases desktop/mobile8/8; latest built canonicalHTTPS+worker install/update/rollback+offlineSW3/3; true nonsuper maintenance success8/8 and injectedfailure7/7 including driftrollback. D independently reran CI=true portable runners. See independent-verification.md; deployedowner/CloudSQLreadback still delivery.",
+  "testScope": "DisposableV80 7/7; browser storage1/1 plus receiving/offline4cases desktop/mobile8/8; latest built canonicalHTTPS+worker install/update/rollback+offlineSW3/3; true nonsuper maintenance success8/8 and injectedfailure7/7 including driftrollback. D independently reran CI=true portable runners. See independent-verification.md; deployedowner/CloudSQLreadback still delivery.; focused actualFirebaseSDK syntheticREST + realcanonicalHTTPSworker offlinebrowserrestart/nav regression1/1 C pass7.8s, no auth/lease policy changes; deployedlive proof recorded separately.",
   "files": [
     {
       "path": "services/contracts/payment-command.mjs",
@@ -41,11 +41,11 @@
     },
     {
       "path": "apps/pwa/src/live-main.tsx",
-      "sha256": "29757cb141242f1061b2fa676fd0b8cec023bd6f3109f3666642e0f116e09f6a"
+      "sha256": "d84167312ccf27985969427fad69c6ab34b4164464866c55c8e9e012f168c1bd"
     },
     {
       "path": "apps/pwa/src/OfflinePayments.tsx",
-      "sha256": "30198ec57dcd66437cb38809d9f1675a0fdf94b0be105f89a7b9312e0c140e72"
+      "sha256": "db4a59787d0c897f6d08f1e72087fb036e69c8e1848cdb622b4ae994b9637db1"
     },
     {
       "path": "apps/pwa/src/PaymentResult.tsx",
@@ -101,7 +101,7 @@
     },
     {
       "path": "tests/e2e/fixtures/canonical-server.ts",
-      "sha256": "0f86476bd18b6709698794e8d63bb2e9f124184b8a17beee6bcec11abfece3aa"
+      "sha256": "8ed38ee99132c2e558ce244a19daa540497e8b1e4c00dbeb1e3b094dcc47ad99"
     },
     {
       "path": "tests/e2e/pwa-canonical.spec.ts",
@@ -114,6 +114,10 @@
     {
       "path": "tests/integration/Run-PaymentPhase4.ps1",
       "sha256": "70a0efa59f09d0061f87ea078d1bdd1c17970dfb1b228b6d30a7155c23ad3060"
+    },
+    {
+      "path": "tests/e2e/payment-offline-sdk.spec.ts",
+      "sha256": "401d9ec0e4280c0faabef8f2b512538f4a4601806e7a441562d33b5899e10849"
     }
   ]
 }

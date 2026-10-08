@@ -119,7 +119,7 @@ function App() {
   const currentUser = useRef<User | null>(null);
   const clearLoans = () => { setLoans([]); setSelectedLoan(null); setLoanCursor(null); setLoanAsOf(''); setLoanDetailAsOf(''); setLoanLoading(false); setLoanError(null); setLoanPage(1); };
   const cancelPending = () => { generation.current++; pending.current?.abort(); pending.current = null; setBusy(false); };
-  const clear = () => { setRootError(null); cancelPending(); clearLoans(); setItems([]); setSelected(null); setNextCursor(null); setAsOf(''); setBorrowerPage(1); };
+  const clear = () => { setSavedPayments(false); setBorrowerPayment(null); setRootError(null); cancelPending(); clearLoans(); setItems([]); setSelected(null); setNextCursor(null); setAsOf(''); setBorrowerPage(1); };
   const closeBorrower = () => { cancelPending(); clearLoans(); setSelected(null); };
   const failLoans = (failure: ReadFailure<'not_found' | 'unavailable'>) => { clearLoans(); setLoanError(failure); };
   useEffect(() => {
@@ -179,7 +179,7 @@ function App() {
     ? request<T>(user, path, onError, failure => onError(failure)) : Promise.resolve(null);
   function changeView(next: 'borrowers' | 'collection') {
     menuDialog.current?.close();
-    if (next === view) return;
+    if (next === view && !savedPayments && !borrowerPayment) return;
     resetSearch(); setCollectionStatus('idle');
     clear(); setView(next);
     if (next === 'borrowers' && user) void load(user);
