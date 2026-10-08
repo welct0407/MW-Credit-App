@@ -21,3 +21,5 @@ Actual metrics remain pending source/design handoffs; tokens unavailable. Do not
 ## Recovery preparation result
 
 Fresh current DEV81 dump and owned local restore passed at2026-10-08T14:53:39.8685908Z:81 history rows/24 public tables, dump SHA256 bd7d6a89b16d3308cf8bd88ea4af4d461c04c17d42d21aedebc9d9eeae1b6630. Schema/data restore excludes live ownership/ACL replay; policy names are local NOLOGIN only. Owned cluster stopped; recovery remains private. Refresh if intervening owner work makes it stale. Maintained Test-CI now calls the existing Run-UnifiedReceiving runner alongside retained financial/operator checks; no broad run yet because candidate is not frozen.
+
+Future retirement criterion (not a current implementation gate): after AppSheet cutover, retire the legacy engine only when historical AppSheet/v3–5 payment correction/replay is handled by the new engine or a governed historical path. Preserve audit, journal and history; client retirement alone does not authorize deleting the function.

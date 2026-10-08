@@ -73,7 +73,7 @@ for(const scenario of ['over-cap','missing'])test('U5 adopted '+scenario+' line 
 });
 
 test('U11 late409 after scope cancellation cannot expose adoption or Confirm',async({page})=>{
- const s=await setup(page);await manual(page);s.holdReview=true;s.reviewStatus=409;await page.getByRole('button',{name:'Review payment',exact:true}).click();await expect.poll(()=>!!s.releaseReview).toBe(true);await page.getByRole('button',{name:'Back to Collection',exact:true}).click();s.holdReview=false;s.releaseReview!();await expect(page.getByRole('heading',{name:'Collection borrowers',exact:true})).toBeVisible();await expect(page.getByRole('button',{name:'Use current balances',exact:true})).toHaveCount(0);await expect(page.getByRole('button',{name:'Confirm payment online',exact:true})).toHaveCount(0);expect(s.posts).toHaveLength(0);
+ const s=await setup(page);await manual(page);s.holdReview=true;s.reviewStatus=409;await page.getByRole('button',{name:'Review payment',exact:true}).click();await expect.poll(()=>!!s.releaseReview).toBe(true);await page.getByRole('button',{name:'Back to Collection',exact:true}).click();s.holdReview=false;s.releaseReview!();await expect(page.getByRole('button',{name:'Receive selected charges',exact:true})).toBeVisible();await expect(page.locator('.topbar')).toContainText('Updated');await expect(page.getByRole('button',{name:'Use current balances',exact:true})).toHaveCount(0);await expect(page.getByRole('button',{name:'Confirm payment online',exact:true})).toHaveCount(0);expect(s.posts).toHaveLength(0);
 });
 
 test('U10 old unsent v5 draft converts only with fresh components and visible review notice',async({page})=>{
