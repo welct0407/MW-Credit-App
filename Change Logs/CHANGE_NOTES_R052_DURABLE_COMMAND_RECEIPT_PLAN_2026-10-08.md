@@ -1,0 +1,13 @@
+# R052 checkpoint 4C — Durable command and receipt integration planning
+
+8 October2026. Owner accepted4B total/scroll and continued. Baselines appb59329953b3f5587f0cdb819ec5ef599d328e583 / PM9560c36ed93c42746b0bd5308f295e7731c39c2a. This preparation uses recorded source/evidence only; no cloud mutation, receipt bytes, financial rows, new schema or grants.
+
+Recorded mapping: R047 HANDOVER/gcs-verification describes SQL manual-receipts/dev/R046-payment.Uploaded Receipt.095636.png mapping to appsheet/data/MW_OLTP_DEV_20260919_578763613/manual_receipts/dev/R046_payment.Uploaded_Receipt.095636.png. Three synthetic examples do not prove a universal reversible normalization algorithm or current app binding. Preserve original SQL/key pairs; collision, Unicode/escaping and traversal tests are required. V50 bucket-root // precedent applies to protected Receipt Image; manual Uploaded Receipt support must be proven separately before relying on that alternate representation.
+
+Terraform source shows original runtime storage.objectUser limited to mw-credit-app/dev/, not the AppSheet manual prefix; the dedicated read runtime has no storage binding. Keep it read-only. Future proposal: separate upload/command identity, exact reviewed DEV object prefix and only necessary create/get operations; no broad listing, public ACL, deletion/overwrite or PROD access. Exact path/IAM remains design pending binding/render evidence; nothing applied.
+
+Canonical V1–V77 table-name scan found agent_audit.commits as relevant existing audit table, not an owned PWA command journal. This is source inventory, not fresh live catalog evidence. A owns durable-table proposal and dependency analysis; no DDL approved by this preparation.
+
+4C implementation scope is a pure reusable services/contracts/payment-command.mjs module and synthetic unit tests: validation/canonical identity/status and receipt descriptor contracts. It authenticates nobody, persists nothing and is not connected to a live endpoint. Durable journal remains a schema proposal, not an implementation; manual GCS/AppSheet mapping remains unverified. No migrations or database runner changes trigger Test-CI in this batch. Final A/C evidence and schema-decision link will be recorded before publication.
+
+Final A/C review passed;11/11 focused pure tests (B5+C6). C found a sparse-array validation defect, corrected before final verification. See outputs/r052-payment-command-contract/test-report.md in the app repository and outputs/r052-pwa/checkpoint-4c-design.md for the concrete one-table/three-routine approval boundary. No database suite needed because this batch contains no DDL or database runner changes. Owner schema decision pending.

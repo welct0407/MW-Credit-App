@@ -16,3 +16,5 @@ Exact source2c21de5339933940bd53cedc6538f8aab9187f12 passed existing development
 
 Owner requested a narrow4B review-layout refinement: total above the selected-charge list and a bounded independently scrollable list for long selections. Only prototype DOM/CSS changes; no database/financial behavior changes. Prior SQL/Test-CI evidence remains valid. Owner4B acceptance is not inferred. The old preview62740 expired with no remaining owned rehearsal processes; a fresh synthetic fixture is necessary for the replacement preview.
 Targeted verification passed two browser scenarios at1440/320 in English/Thai: total order/value, long-list scrolling/focus, Notes/receipt preservation and no overflow. A diff review and parent screenshot review passed. No database regression rerun for this UI-only change.
+
+Owner accepted the4B total/scroll refinement and authorized continuation to4C planning on8October. This is scoped local UI acceptance, not live upload/financial readiness or native camera/update acceptance.
