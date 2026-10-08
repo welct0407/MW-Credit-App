@@ -1,9 +1,9 @@
 param()
 # Fresh loopback-only full V80 database; never reads live credentials or accepts a DSN.
 $ErrorActionPreference='Stop'
-. "$PSScriptRoot/../../scripts/Enter-Dev.ps1"
+if($env:CI -ne 'true'){. "$PSScriptRoot/../../scripts/Enter-Dev.ps1"}
 . "$PSScriptRoot/../../scripts/database/Common.ps1"
-$pgBin=Split-Path (Get-Command psql.exe).Source
+$pgBin=Get-PgBin
 $fixtureRoot=Join-Path ([IO.Path]::GetTempPath()) ('mw-payment-rehearsal-'+[guid]::NewGuid().ToString('N'))
 $data=Join-Path $fixtureRoot 'data'
 New-Item -ItemType Directory -Path $fixtureRoot | Out-Null

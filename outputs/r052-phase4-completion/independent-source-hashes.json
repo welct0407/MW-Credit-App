@@ -1,7 +1,7 @@
 {
-  "recordedUtc": "2026-10-08T09:43:15.2295151Z",
+  "recordedUtc": "2026-10-08T10:08:07.7548273Z",
   "startingCommit": "51ab34c0f99d22a6af8421c1603dd439cc61efee",
-  "testScope": "DisposableV80 7/7; browser4/4 plus delayedsignout1/1; realSW synthetic shell1/1; true nonsuper maintenance success8/8 and injectedfailure7/7 including prepare/restore driftrollback. See independent-verification.md. CloudSQL maintenance requires actuallive readback.",
+  "testScope": "DisposableV80 7/7; browser storage1/1 plus receiving/offline4cases desktop/mobile8/8; latest built canonicalHTTPS+worker install/update/rollback+offlineSW3/3; true nonsuper maintenance success8/8 and injectedfailure7/7 including driftrollback. D independently reran CI=true portable runners. See independent-verification.md; deployedowner/CloudSQLreadback still delivery.",
   "files": [
     {
       "path": "services/contracts/payment-command.mjs",
@@ -57,7 +57,7 @@
     },
     {
       "path": "apps/pwa/pwa/sw.js",
-      "sha256": "dbc1da4d6ea060171d1fd8399feb610d6c41c3c14e79f244bb3234748daabc25"
+      "sha256": "cfff35b7fc45c52c3277c56561ef75ed932396364f832252b0cb5070fc0bd9f0"
     },
     {
       "path": "vite.config.ts",
@@ -73,7 +73,7 @@
     },
     {
       "path": "tests/e2e/payment-phase4-independent.spec.ts",
-      "sha256": "6a3cbde06fed7a3b51b6d1b3e4787c6cadadadbdf0360f72503f423694743a01"
+      "sha256": "9a81c8ac34098c23546a18fe51be42ad260497137c065735d699deab7f5c2534"
     },
     {
       "path": "tests/e2e/payment-sw-independent.spec.ts",
@@ -93,11 +93,27 @@
     },
     {
       "path": "scripts/rehearsal/Run-ApplicationRoleOperatorProof.ps1",
-      "sha256": "3f7590f18354a65929971bbfd124d71166e034ef0887754b1c1014300e848eda"
+      "sha256": "2b77ef09442684383668ca27cbead0fe83f847a9b31da698b5a2314573cccb72"
     },
     {
       "path": "tests/integration/application-role-maintenance-independent.test.mjs",
       "sha256": "f7ba7c1f7cbd88727b92f8998cdec8067ce7000c1d9ac996c2efc5ae60b7f911"
+    },
+    {
+      "path": "tests/e2e/fixtures/canonical-server.ts",
+      "sha256": "0f86476bd18b6709698794e8d63bb2e9f124184b8a17beee6bcec11abfece3aa"
+    },
+    {
+      "path": "tests/e2e/pwa-canonical.spec.ts",
+      "sha256": "237c5cda2ceb25c0a42bb9d95d910ebcd9887532c2ae9815862947001a197a73"
+    },
+    {
+      "path": "tests/e2e/pwa-worker.spec.ts",
+      "sha256": "b8a0b9b40dc139da8b1ab28f21203266c5496261faac86336006a886c3802393"
+    },
+    {
+      "path": "tests/integration/Run-PaymentPhase4.ps1",
+      "sha256": "70a0efa59f09d0061f87ea078d1bdd1c17970dfb1b228b6d30a7155c23ad3060"
     }
   ]
 }

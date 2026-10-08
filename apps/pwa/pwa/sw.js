@@ -10,11 +10,14 @@ self.addEventListener('install', event => {
       const response = await fetch(path, {cache: 'no-store', credentials: 'omit', redirect: 'error'});
       const expected = path.endsWith('.png') ? 'image/png' : path.endsWith('.js') ? 'javascript' : path.endsWith('.css') ? 'text/css' : 'text/html';
       if (!response.ok || !response.headers.get('content-type')?.includes(expected)) throw new Error('Public asset unavailable');
+      // Drain each response before awaiting the whole batch. Holding unread app
+      // bodies can exhaust browser connection slots and stall the remaining assets.
+      const body=await response.arrayBuffer();
       if (path.endsWith('.png')) {
-        const bytes = new Uint8Array(await response.clone().arrayBuffer());
+        const bytes = new Uint8Array(body);
         if (bytes.slice(0, 8).join(',') !== '137,80,78,71,13,10,26,10') throw new Error('Invalid icon');
-      } else if (path==='/offline.html' && !(await response.clone().text()).includes('Connection required')) throw new Error('Invalid offline document');
-      return response;
+      } else if (path==='/offline.html' && !new TextDecoder().decode(body).includes('Connection required')) throw new Error('Invalid offline document');
+      return new Response(body,{status:response.status,statusText:response.statusText,headers:response.headers});
     }));
     const cache = await caches.open(CACHE);
     await Promise.all(PUBLIC_ASSETS.map((path, index) => cache.put(path, responses[index])));

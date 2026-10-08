@@ -1,9 +1,13 @@
-import {chooseLanguage} from './live-controls';
+import {chooseLanguage,signOut} from './live-controls';
 import {test,expect} from '@playwright/test';
 import {spawn,type ChildProcess} from 'node:child_process';
 let server:ChildProcess,base:string;
 test.beforeAll(async({},info)=>{const port=6100+info.workerIndex;base=`http://127.0.0.1:${port}`;server=spawn(process.execPath,['--input-type=module','-e',`import {createServer} from 'vite';const s=await createServer({mode:'live-dev',cacheDir:'node_modules/.cache/independent-${port}',server:{host:'127.0.0.1',port:${port},strictPort:true}});await s.listen();`],{env:{...process.env,VITE_FIREBASE_PROJECT_ID:'clever-oasis-508610-n7',VITE_FIREBASE_AUTH_DOMAIN:'clever-oasis-508610-n7.firebaseapp.com',VITE_FIREBASE_API_KEY:'synthetic-public-key',VITE_FIREBASE_APP_ID:'synthetic-app',VITE_API_ORIGIN:'https://mw-credit-app-read-dev-test.run.app',VITE_COMMAND_API_ORIGIN:'https://mw-credit-app-command-dev-test.run.app',VITE_COMMAND_MODE:'dev-owner-testing'},stdio:'pipe'});await expect.poll(async()=>{try{return(await fetch(base)).status}catch{return 0}},{timeout:20000}).toBe(200)});
 test.afterAll(()=>server?.kill());test.setTimeout(60000);
+async function openSavedPayments(page:any){
+ if(page.viewportSize()!.width<=1050)await page.getByRole('button',{name:/^(Open navigation|เปิดเมนู)$/}).click();
+ await page.getByRole('button',{name:'Saved payment drafts',exact:true}).click();
+}
 const auth=`let listener;const user={uid:'phase4-owner',getIdToken:async()=>'synthetic-bearer'};export const browserLocalPersistence='local',inMemoryPersistence='memory',browserPopupRedirectResolver={};export function initializeAuth(){return {}};export function onAuthStateChanged(a,fn){listener=fn;fn(localStorage.getItem('mock-owner')?user:null);return()=>{}};export class GoogleAuthProvider{setCustomParameters(){}};export async function signInWithPopup(){localStorage.setItem('mock-owner','1');listener(user)};export async function signOut(){localStorage.removeItem('mock-owner');listener(null)};`;
 const borrower={id:'ordinary-synthetic-B',displayName:'Synthetic borrower / ผู้กู้จำลอง',status:'not_paid',amountDue:'60',amountCollected:'0',amountRemaining:'60'};
 const rows=Array.from({length:3},(_,i)=>({id:'charge'+i,chargeDate:'2026-10-07',loanDisplayKey:'Synthetic loan',amountRemaining:String((i+1)*10)}));
@@ -35,7 +39,7 @@ test('P4-11/12 saved draft reconnect never auto posts; P4-13 reload Unknown exac
  await context.setOffline(true);await expect(page.getByText('Saved on this device — may be outdated')).toBeVisible();await page.getByRole('button',{name:/Synthetic borrower/}).click();await expect(page.getByRole('textbox',{name:'Notes',exact:true})).toHaveValue('draft kept ไทย');await expect(page.getByRole('button',{name:'Review payment',exact:true})).toBeDisabled();expect(posts).toHaveLength(0);
  await context.setOffline(false);await page.reload();await page.getByRole('button',{name:'Collection',exact:true}).click();await page.locator('.collection-borrower').first().click();await page.getByRole('button',{name:'Receive selected charges',exact:true}).click();await expect(page.getByRole('textbox',{name:'Notes',exact:true})).toHaveValue('draft kept ไทย');expect(posts).toHaveLength(0);
  await page.getByRole('button',{name:'Review payment',exact:true}).click();await page.getByRole('button',{name:'Confirm payment online',exact:true}).click();await expect(page.getByRole('heading',{name:'Outcome unknown'})).toBeVisible();expect(posts).toHaveLength(1);
- await page.reload();await page.getByRole('button',{name:'Saved payment drafts',exact:true}).click();await page.getByRole('button',{name:/Synthetic borrower/}).click();await expect(page.getByRole('heading',{name:'Outcome unknown'})).toBeVisible();await page.getByRole('button',{name:'Check status',exact:true}).click();await page.getByRole('button',{name:'Retry same command',exact:true}).click();await expect.poll(()=>posts.length).toBe(2);expect(posts[1]).toEqual(posts[0]);
+ await page.reload();await openSavedPayments(page);await page.getByRole('button',{name:/Synthetic borrower/}).click();await expect(page.getByRole('heading',{name:'Outcome unknown'})).toBeVisible();await page.getByRole('button',{name:'Check status',exact:true}).click();await page.getByRole('button',{name:'Retry same command',exact:true}).click();await expect.poll(()=>posts.length).toBe(2);expect(posts[1]).toEqual(posts[0]);
 });
 
 
@@ -49,6 +53,6 @@ test('P4-13 failed pending storage freezes original command before any dispatch'
 test('P4-10 delayed old-owner draft response cannot refill storage after sign-out',async({page})=>{
  const posts:any[]=[];await setup(page,posts);await page.getByRole('button',{name:'Back to Collection',exact:true}).click();let release:(()=>void)|undefined,done:(()=>void)|undefined;const completed=new Promise<void>(resolve=>done=resolve);
  await page.route('https://mw-credit-app-command-dev-test.run.app/api/payment-drafts/**',async r=>{await new Promise<void>(resolve=>release=resolve);await r.fulfill({contentType:'application/json',body:JSON.stringify(draft)}).catch(()=>{});done!()});
- await page.getByRole('button',{name:'Receive selected charges',exact:true}).click();await expect.poll(()=>!!release).toBe(true);await page.getByRole('button',{name:'Sign out',exact:true}).click();await expect(page.getByRole('button',{name:/Google/})).toBeVisible();release!();await completed;
+ await page.getByRole('button',{name:'Receive selected charges',exact:true}).click();await expect.poll(()=>!!release).toBe(true);await signOut(page);await expect(page.getByRole('button',{name:/Google/})).toBeVisible();release!();await completed;
  const saved=await page.evaluate(async()=>{const {ownerOfflineRepository}=await import('/apps/pwa/src/owner-offline.ts');const repo=ownerOfflineRepository({issuer:'https://securetoken.google.com/clever-oasis-508610-n7',uid:'phase4-owner'});return {snapshots:(await repo.list('snapshot')).length,drafts:(await repo.list('draft')).length,pending:(await repo.list('pending')).length,authorized:await repo.authorized()}});expect(saved).toEqual({snapshots:0,drafts:0,pending:0,authorized:false});expect(posts).toHaveLength(0);
 });
