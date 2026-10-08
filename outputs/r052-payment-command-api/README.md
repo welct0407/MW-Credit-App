@@ -1,0 +1,16 @@
+# R052 checkpoint 4E — local command API
+
+Isolated local HTTP candidate against fresh loopback-only PostgreSQL with full V1–V78 history. No live database, real Firebase login, deployed endpoint, GCS operation or notification.
+
+Run from the app repository using the maintained toolchain:
+
+```powershell
+. ./scripts/Enter-Dev.ps1
+./tests/integration/Run-PaymentCommandApi.ps1
+```
+
+The runner owns its ephemeral port/data directory, runs both B and C test files and stops its disposable cluster. Do not substitute a live DSN or arbitrary cluster. `services/payment-command` exports candidate factories only; it is not imported by the live reader/PWA and has no cloud launcher.
+
+Maintained database CI passed once (exit 0); see database-ci.json. Final API tests passed 22/22 (C 19 and B 3); pure contracts passed 5/5. [Test report](test-report.md) and [C's independent verification](independent-verification.json) record the final assertions and limits. Authentication uses injected synthetic verifier claims; transaction effects are actual disposable SQL. Receipt descriptors are synthetic and no AppSheet/GCS reference conversion is proved. Prior 4D restart evidence is retained separately and is not relabelled as a new 4E restart test.
+
+A design/test plan and D future authority proposal live in the PM repository at `outputs/r052-pwa/checkpoint-4e-design-and-test-plan.md` and `outputs/r052-payment-command-api/infra-authority-plan.md`. See the owning `Change Logs/CHANGE_NOTES_R052_LOCAL_COMMAND_API_2026-10-08.md` for scope, recovery and final closeout.

@@ -1,0 +1,222 @@
+{
+  "checkpoint": "R052 4E",
+  "date": "2026-10-08",
+  "reviewer": "Agent C — GPT-6.1 Sol Medium",
+  "scope": "Independent execution of Agent A's executable plan against Agent B's isolated local HTTP candidate and actual runner-owned PostgreSQL V78.",
+  "baseline": "30b9ddcec7b1b1ecde63951d02a0ab0afcd1697b",
+  "commands": [
+    ". ./scripts/Enter-Dev.ps1",
+    "node --test tests/unit/payment-command-contract.test.mjs",
+    "./tests/integration/Run-PaymentCommandApi.ps1"
+  ],
+  "result": {
+    "status": "passed tested local candidate",
+    "contractNamedTests": 5,
+    "independentHttpNamedTests": 19,
+    "codingHttpNamedTests": 3,
+    "combinedHttpNamedTests": 22,
+    "uniqueNamedTests": 27,
+    "finalHttpPass": 22,
+    "finalHttpFail": 0,
+    "finalHttpCancelled": 0,
+    "finalHttpSkipped": 0,
+    "finalHttpDurationMs": 8485.5669,
+    "clusterStopped": true
+  },
+  "countRule": "Counts are named Node test cases, not matrix assertions, request totals or accumulated repeated runs. The unchanged five pure contract tests are reused; prior successful journal/restart evidence is not rerun or included in these counts.",
+  "hashes": {
+    "database/migrations/V78__pwa_payment_command_journal.sql": "8ea5009d29bf8c78fadcdaa478680defd3f161ef2a7e22e7999c2a2aa7170c30",
+    "services/payment-command/principal.mjs": "22f8f9a05fc122aca83737f7f3aec66d84c6720181783967e1d4783250a09b39",
+    "services/payment-command/store.mjs": "fe634e4b5f3557490005296812fd9c29b81b59a1413996cae655b2f4bf191917",
+    "services/payment-command/handler.mjs": "215491d302b11f2e7c84cbfe65c7efaff47aaa137c2309aa29c18880e8b0b278",
+    "tests/integration/payment-command-api.test.mjs": "6477fc162a0c9567d7d620ccbec7f2d545a3a40a0e496035313e2b93db0d46bc",
+    "tests/integration/payment-command-api-independent.test.mjs": "b6e081a5ece7830dd266c472185cf3c73a4cee5f9ab61638fee82ccc3f2f7192",
+    "tests/integration/Run-PaymentCommandApi.ps1": "58c4693ea057d462e54149462cb9f1029f2e40f526fb57036cc22333992c9494"
+  },
+  "findings": [
+    {
+      "id": "F1",
+      "observed": "Source used HTTP400 for unsupported content type/encoding instead of A's HTTP415.",
+      "resolution": "B corrected to HTTP415 invalid_request; C06 final actual HTTP415 with zero store calls.",
+      "status": "resolved"
+    },
+    {
+      "id": "F2",
+      "observed": "A thrown receipt adapter exception was mapped to HTTP422 instead of the specified HTTP503 receipt_unavailable.",
+      "resolution": "B separated technical adapter failure from invalid descriptor/binding. C10 confirms technical HTTP503, invalid binding HTTP422 and zero financial calls.",
+      "status": "resolved"
+    },
+    {
+      "id": "F3",
+      "observed": "A review required uncertain COMMIT or failed ROLLBACK to discard the client; release errors must not mask the intended response.",
+      "resolution": "B added quarantine and guarded release. C12/C13/C18 verify uncertain commits and failed rollback discard; ordinary successful rollback can reuse; release error preserves Unknown.",
+      "status": "resolved"
+    },
+    {
+      "id": "F4",
+      "observed": "After valid unique Partner reassignment, retained status returned HTTP503 command_unavailable; original submit returned HTTP409.",
+      "resolution": "A settled HTTP403 access_denied for SQL42501 only before COMMIT after confirmed rollback. B corrected catch classification; C04 and C19 final pass, preserving unavailable on failed cleanup.",
+      "status": "resolved"
+    },
+    {
+      "id": "T1",
+      "observed": "Initial C04 fixture failed with SQLSTATE23505 because V25 enforces unique normalized Partner login email.",
+      "resolution": "A approved preserving insert/update uniqueness assertions and a labelled mapping-query returned-row seam for defensive ambiguity denial. Real constraints remained intact.",
+      "status": "test fixture corrected"
+    }
+  ],
+  "runs": [
+    {
+      "run": 1,
+      "combinedNamedCases": 21,
+      "passed": 20,
+      "failed": 1,
+      "meaning": "C04 fixture setup failed at protected duplicate normalized mapping; no candidate assertion failed. Cluster stopped."
+    },
+    {
+      "run": 2,
+      "combinedNamedCases": 21,
+      "passed": 21,
+      "failed": 0,
+      "meaning": "A-approved fixture correction passed. Separate remapped-status observation was HTTP503 command_unavailable; A subsequently settled the narrow authorization correction. Interim candidate only; cluster stopped."
+    },
+    {
+      "run": 3,
+      "combinedNamedCases": 22,
+      "passed": 22,
+      "failed": 0,
+      "meaning": "Final candidate after B's authorization-classification correction. Added focused C19 cleanup-dependent classification case. Cluster stopped."
+    }
+  ],
+  "independentCases": [
+    {
+      "id": "C01",
+      "expected": "HTTP200 only for committed Posted, exact Notes/server actor and 330 posted, one journal/payment, fresh authenticated status, diagnostic/security/CORS headers.",
+      "actual": "Actual HTTP200; exact source fields and status agreed; one journal and one payment; two revocation-requesting verifications.",
+      "result": "pass"
+    },
+    {
+      "id": "C02",
+      "expected": "Wrong claims, revoked/malformed authentication deny before store; pinned identity configuration mandatory.",
+      "actual": "Twelve cryptographic-verifier seam calls requested revocation=true; all negative requests denied; zero store calls and zero command effects; invalid pinned configuration rejected.",
+      "result": "pass"
+    },
+    {
+      "id": "C03",
+      "expected": "Actor, Partner, hash, reference, issuer and status injection keys rejected.",
+      "actual": "Six body-injection variants returned HTTP400 before store; no command effects.",
+      "result": "pass"
+    },
+    {
+      "id": "C04",
+      "expected": "Missing/ambiguous mapping denies; real normalized duplicates prohibited; legal Partner reassignment conflicts on known submit and denies retained status.",
+      "actual": "Missing mapping HTTP403 both verbs; duplicate insert/update SQLSTATE23505 with original mapping preserved; two-row query-result seam HTTP403 without journal/status/submit SQL; remapped POST409 and GET403 access_denied; one original effect.",
+      "result": "pass"
+    },
+    {
+      "id": "C05",
+      "expected": "Exact origins/preflight/routes/verbs/UUIDs; missing Origin permitted for authenticated nonbrowser request.",
+      "actual": "Invalid origins rejected before authentication, route/preflight boundaries passed; raw no-Origin authenticated GET returned HTTP200; rejected routes never submitted.",
+      "result": "pass"
+    },
+    {
+      "id": "C06",
+      "expected": "Unsupported media/encoding HTTP415, invalid UTF-8 HTTP400, streamed actual-byte oversize HTTP413.",
+      "actual": "All response classifications passed with zero store calls and zero command effects.",
+      "result": "pass"
+    },
+    {
+      "id": "C07",
+      "expected": "Stalled body times out within bounded 5-second budget; abort before complete body never submits.",
+      "actual": "Stalled body HTTP400 at approximately five seconds; premature abort produced zero submit calls.",
+      "result": "pass"
+    },
+    {
+      "id": "C08",
+      "expected": "Identical concurrent UUID retries one effect; changed identity conflicts; competing IDs never double post.",
+      "actual": "Four identical requests returned original committed result with one effect; changed Notes/amount/selection HTTP409 without original payload; competing IDs produced one Posted and one technical Unknown, one journal/payment total.",
+      "result": "pass"
+    },
+    {
+      "id": "C09",
+      "expected": "Durable typed date/account rejection preserved by status/retry; absent status unresolved; empty Notes canonicalizes to null.",
+      "actual": "Invalid date/missing account HTTP422 with journal only; GET200 and retry retained original rejection. Absent status unresolved. Empty/null Notes posted/replayed as canonical null.",
+      "result": "pass"
+    },
+    {
+      "id": "C10",
+      "expected": "Default unsupported receipt fail closed; invalid owner/request/receipt/shape binding no submit; adapter technical failure unavailable.",
+      "actual": "Absent resolver receipt_unsupported; four binding/shape variants HTTP422 with zero financial SQL; thrown adapter HTTP503 receipt_unavailable, zero effects.",
+      "result": "pass"
+    },
+    {
+      "id": "C11",
+      "expected": "Retained receipt replay avoids current resolver but requires current actor mapping.",
+      "actual": "Valid synthetic immutable descriptor posted once; exact retry with throwing resolver retained Posted; changed receipt ID409; missing current mapping403; no repost.",
+      "result": "pass"
+    },
+    {
+      "id": "C12",
+      "expected": "Injected acknowledgement loss after real COMMIT returns Unknown and same-ID fresh status recovers original.",
+      "actual": "HTTP503 command_outcome_unknown; fresh authenticated status and exact retry found same Posted; one journal/payment.",
+      "result": "pass"
+    },
+    {
+      "id": "C13",
+      "expected": "Failure before financial attempt unavailable; attempted submission with failed pre-commit acknowledgement Unknown and atomic rollback.",
+      "actual": "Acquisition failure HTTP503 command_unavailable; COMMIT seam failure after submit HTTP503 command_outcome_unknown; discard=true; rollback left zero journal/payment; status unresolved.",
+      "result": "pass"
+    },
+    {
+      "id": "C14",
+      "expected": "Abort after financial execution begins requires same-ID status recovery, without automatic retry.",
+      "actual": "Actual HTTP disconnect after submit query begins; bounded completion and authenticated status retained Posted; exactly one financial submit and one effect.",
+      "result": "pass"
+    },
+    {
+      "id": "C15",
+      "expected": "Journal original independent of corrected/deleted current source.",
+      "actual": "Synthetic governed source correction then deletion left replay/status original unchanged; journal remained one, source payment zero; no recreation.",
+      "result": "pass"
+    },
+    {
+      "id": "C16",
+      "expected": "Database/host/path/history/version/user/config guards reject before financial SQL.",
+      "actual": "Six metadata-result seams returned command_unavailable with zero financial SQL; invalid directory/origin configuration rejected; no fallback or command effects.",
+      "result": "pass"
+    },
+    {
+      "id": "C17",
+      "expected": "Sanitized completion keys and logger failure cannot change outcome.",
+      "actual": "Only approved keys/enum/diagnostic fields; no sensitive IDs, notes, credentials or identity values captured. Throwing logger preserved committed POST/status.",
+      "result": "pass"
+    },
+    {
+      "id": "C18",
+      "expected": "Discard COMMIT/rollback faults; release failure preserves intended Unknown; successful rollback may reuse.",
+      "actual": "Failed rollback discard=true; pre-commit fault plus throwing release remained command_outcome_unknown; ordinary rollback discard=false; no partial effects.",
+      "result": "pass"
+    },
+    {
+      "id": "C19",
+      "expected": "SQL42501 before COMMIT becomes access denial only after confirmed rollback.",
+      "actual": "Confirmed rollback HTTP403 access_denied with release(false); failed rollback HTTP503 command_unavailable with release(true); zero financial calls and existing original effect retained.",
+      "result": "pass"
+    }
+  ],
+  "boundaries": [
+    "Cryptographic Firebase verification is an injected synthetic test dependency; actual Firebase signature/revocation service behavior and actual owner token/session are not established.",
+    "Defensive ambiguous mapping and guard failures use labelled query-result seams over actual guarded local clients. Real V25 unique constraints remain in place.",
+    "COMMIT acknowledgement loss and cleanup failures are injected transport/pool seams. Tests do not claim a physical network-failure experiment.",
+    "Receipt descriptors are synthetic trusted-adapter fixtures; no GCS write, live bytes/ownership proof, AppSheet image roundtrip or iPhone HEIC compatibility is established.",
+    "V78 remains immutable and is applied only to fresh disposable databases. Live DEV/PROD remain outside this work.",
+    "No Cloud Run/Hosting/Firebase/IAM/role/grant/notification/financial activation or frontend/4B preview change was performed.",
+    "No live least-privilege, committed-event delivery, browser/OS readiness or production safety claim. D owns database CI, final source pin and publication."
+  ],
+  "publicationFormatting": {
+    "file": "tests/integration/payment-command-api-independent.test.mjs",
+    "change": "D removed one empty trailing line for git diff --check; test logic unchanged, no retest required",
+    "testedSha256": "8bbc758fd3b73f60a58a2eec2246e2b9a3f1fbc531a3f873f955df6e975792e9",
+    "publishedSha256": "b6e081a5ece7830dd266c472185cf3c73a4cee5f9ab61638fee82ccc3f2f7192"
+  }
+}
