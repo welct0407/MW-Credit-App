@@ -20,3 +20,9 @@ C measured search header growth to72px caused by a16px form bottom margin; B res
 No broader PWA/auth infrastructure suite was repeated. Existing access/owner checks are unchanged; B's focused API/unit evidence is separate. C did not rebuild or overwrite D's managed artifact. All test servers closed; parent preview retained.
 
 Intended C files: tests/e2e/borrower-search.spec.ts, grouped-read.spec.ts, upcoming-read.spec.ts; tests/integration/collection-postgres.test.mjs; this directory's eight synthetic EN/Thai PNGs and report. Regenerated tracked TRIM screenshots under outputs/r052-collection-read are incidental prior evidence and should be restored by D. Await exact-source CI, bounded unsigned deployed checks, and owner authenticated visual validation. R052 remains Open.
+
+## Deployed verification
+
+Source f6be56f0387a03cf35d48d206f9aea2712b667f6 passed CI37706939264. D delivered API00010-fzk and Hosting3f6fbb70ca3dc007. Seven bounded unsigned synthetic-query checks passed: both root q endpoints deny anonymous access401 with exact canonical/fallback CORS echo, Vary and no-store; invalid bearer401, untrusted origin403, authorized-origin GET/Authorization preflight204. No records returned.
+
+Fresh canonical320/mobile and fallback1440/desktop browser contexts serve exact index-D2nJ4crK.js and worker SHA2561df70d368dd253818712497df00e59bf0701ab18a317dd26bc639560556cef70. Signed-out UI hides search and business records; canonical registers and fallback does not. Browser contexts made zero API requests. Evidence live-delivery.json and two live-*-signedout.png captures. Browsers closed; evidence frozen. Owner authenticated Thai/English search and native iPhone validation remain pending.
