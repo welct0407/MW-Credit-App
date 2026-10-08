@@ -94,8 +94,18 @@
     {
       "path": "tests/e2e/persistence.spec.ts",
       "sha256": "a8a4b65ff6311ebb7487dfb352944a50f4e40157d6a602aea3441c014fc991f8"
+    },
+    {
+      "path": "tests/e2e/borrower-search.spec.ts",
+      "sha256": "e3cfeca10f9f157bd8b8a4e81173ca81f4fd32970ca0501fb43da1240c3f44a3"
+    },
+    {
+      "path": "tests/e2e/live-search-timer.spec.ts",
+      "sha256": "22182b54e9445ecfcd3894d194becb8101ce2c90e535517694d9bfab56461c4f"
     }
   ],
   "deliveryWhitespaceCleanup": "D removed trailing whitespace only in LoanRecords/SelectedCharges after C pass; no executable statement changed",
-  "finalHeaderOnlyCorrection": "B surgical suppression of duplicate transient auth body panel; no auth-state/policy change; build and targeted3/3 passed after C core proof"
+  "finalHeaderOnlyCorrection": "B surgical suppression of duplicate transient auth body panel; no auth-state/policy change; build and targeted3/3 passed after C core proof",
+  "remoteCorrection": "B8/8 test-only search navigation correction: return to root list before parent refresh/current accessible Back label; no assertions/timeouts/skips weakened",
+  "artifactCodeCommit": "f937bff4d9daf9ecdd1901cd5664e00bcfedf1a7"
 }

@@ -1,0 +1,17 @@
+{
+  "candidate": "f937bff4d9daf9ecdd1901cd5664e00bcfedf1a7",
+  "developmentRun": 37777429194,
+  "conclusion": "failure",
+  "passed": 104,
+  "skipped": 8,
+  "failed": 6,
+  "affectedFiles": [
+    "tests/e2e/borrower-search.spec.ts",
+    "tests/e2e/live-search-timer.spec.ts"
+  ],
+  "observedFailure": "Old parent Refresh and mobile Back labels do not match the new child/context refresh and back navigation; B investigating/adapting with existing assertions retained",
+  "databaseRun": 37777429195,
+  "databaseConclusion": "success",
+  "liveApply": "not started",
+  "artifactPolicy": "Retain built code f937bff artifacts only if correction is tests-only; corrected Development must pass"
+}
