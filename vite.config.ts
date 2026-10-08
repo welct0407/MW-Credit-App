@@ -27,7 +27,7 @@ export default defineConfig(({ mode }) => {
             hash.update(source);
             this.emitFile({ type: 'asset', fileName, source });
           }
-          this.emitFile({ type: 'asset', fileName: 'sw.js', source: worker.replace('__BUILD_VERSION__', hash.digest('hex').slice(0, 24)) });
+          this.emitFile({ type: 'asset', fileName: 'sw.js', source: worker.replace('__BUILD_VERSION__', hash.digest('hex').slice(0, 24)).replace('/*APP_ASSETS*/[]', JSON.stringify(['/', ...Object.keys(bundle).filter(name => /^assets\//.test(name) && /\.(js|css|png)$/.test(name)).map(name => '/' + name)])) });
           this.emitFile({ type: 'asset', fileName: 'manifest.webmanifest', source: JSON.stringify({
             id: '/', start_url: '/', scope: '/', name: 'MW Credit DEV', short_name: 'MW Credit DEV', display: 'standalone',
             theme_color: '#e8710a', background_color: '#ffffff',

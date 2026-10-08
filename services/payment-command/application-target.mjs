@@ -1,9 +1,9 @@
 const issued=new WeakSet();
-export async function attestDisposableApplicationTarget({adminPool,expectedDirectory,runtimeUser,registeredCreators=['postgres']}) {
+export async function attestDisposableApplicationTarget({adminPool,expectedDirectory,runtimeUser,registeredCreators=['postgres'],expectedVersion=79}) {
  if(typeof runtimeUser!=='string'||!/^mw_app_dev_[a-z0-9_]+$/.test(runtimeUser)||runtimeUser==='mw_app_dev_journal_owner')throw Error('Explicit disposable application login required');
  if(!Array.isArray(registeredCreators)||!registeredCreators.length||registeredCreators.some(x=>typeof x!=='string'||!x))throw Error('Registered creators required');
  const {assertDisposable}=await import('../../scripts/rehearsal/payment-command.mjs');
- await assertDisposable(adminPool,expectedDirectory,79);
+ await assertDisposable(adminPool,expectedDirectory,expectedVersion);
  const creatorMember=(await adminPool.query("SELECT EXISTS(SELECT 1 FROM pg_roles WHERE rolname=ANY($2::text[]) AND pg_has_role($1,oid,'MEMBER')) AS forbidden",[runtimeUser,registeredCreators])).rows[0];
  if(creatorMember.forbidden)throw Error('Runtime must not inherit migration creators');
  const target=(await adminPool.query('SELECT current_database() AS database,host(inet_server_addr()) AS host,inet_server_port() AS port')).rows[0];

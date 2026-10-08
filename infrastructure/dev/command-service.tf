@@ -1,11 +1,20 @@
 variable "command_image" {
-  description = "Tested immutable image digest for the separate DEV synthetic command service."
+  description = "Tested immutable image digest for the separate owner-authenticated DEV command service."
   type        = string
   default     = null
   nullable    = true
   validation {
     condition     = var.command_image == null ? true : can(regex("^asia-southeast1-docker[.]pkg[.]dev/clever-oasis-508610-n7/mw-credit-app/api@sha256:[a-f0-9]{64}$", var.command_image))
     error_message = "Pin an immutable digest in the existing DEV artifact repository."
+  }
+}
+variable "command_mode" {
+  description = "Explicit reviewed DEV receiving scope; normal data is available only to the pinned owner."
+  type        = string
+  default     = "synthetic-only"
+  validation {
+    condition     = contains(["synthetic-only", "dev-owner-testing"], var.command_mode)
+    error_message = "Choose a reviewed DEV command mode."
   }
 }
 variable "command_fixture" {
@@ -32,8 +41,8 @@ resource "google_cloud_run_v2_service" "command_api" {
   invoker_iam_disabled = true
   lifecycle {
     precondition {
-      condition     = var.command_infrastructure_enabled && var.command_fixture != null && var.owner_identity_mode == "uid-pinned" && var.owner_uid_secret_version != null
-      error_message = "Command runtime requires its separate identity, reviewed synthetic fixture and pinned owner secret."
+      condition     = var.command_infrastructure_enabled && ((var.command_mode == "synthetic-only" && var.command_fixture != null) || (var.command_mode == "dev-owner-testing" && var.command_fixture == null)) && var.owner_identity_mode == "uid-pinned" && var.owner_uid_secret_version != null
+      error_message = "Command runtime requires its separate identity, pinned owner secret, and a fixture only in synthetic-only mode."
     }
   }
   template {
@@ -53,7 +62,7 @@ resource "google_cloud_run_v2_service" "command_api" {
         cpu_idle = true
       }
       dynamic "env" {
-        for_each = {
+        for_each = merge({
           APP_ENV                        = "dev"
           AUTH_MODE                      = "firebase"
           FIREBASE_PROJECT_ID            = local.project
@@ -61,14 +70,13 @@ resource "google_cloud_run_v2_service" "command_api" {
           DB_USER                        = google_sql_user.command_runtime[0].name
           INSTANCE_CONNECTION_NAME       = "${local.project}:${local.region}:${local.instance}"
           OWNER_IDENTITY_MODE            = "uid-pinned"
-          COMMAND_MODE                   = "synthetic-only"
-          COMMAND_FIXTURE_JSON           = jsonencode(var.command_fixture)
+          COMMAND_MODE                   = var.command_mode
           ALLOWED_WEB_ORIGINS            = jsonencode(["https://${google_firebase_hosting_site.dev.site_id}.web.app", "https://dev-lm.mw-credit.com"])
           RECEIPT_BUCKET                 = local.bucket
           RECEIPT_SQL_PREFIX             = "manual-receipts/dev/pwa/"
           RECEIPT_OBJECT_PREFIX          = "appsheet/data/MW_OLTP_DEV_20260919_578763613/manual_receipts/dev/pwa/"
           RECEIPT_COMPATIBILITY_EVIDENCE = "r052-4f:receipt-compatibility-4f.json:generated-png-appsheet-render"
-        }
+        }, var.command_mode == "synthetic-only" ? { COMMAND_FIXTURE_JSON = jsonencode(var.command_fixture) } : {})
         content {
           name  = env.key
           value = env.value

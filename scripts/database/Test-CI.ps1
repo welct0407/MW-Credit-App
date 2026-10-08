@@ -25,3 +25,11 @@ if (-not $IsWindows) {
 & "$PSScriptRoot/Test-Migrations.ps1" -PreMigrationTarget 68 -PreMigrationSqlFile scripts/database/Test-DefaultChargeBeforeV69.sql -TestSqlFile scripts/database/Test-DefaultChargeUpgrade.sql
 
 & "$PSScriptRoot/Test-Migrations.ps1" -PreMigrationTarget 69 -PreMigrationSqlFile scripts/database/Test-DefaultRepaymentBeforeV70.sql -TestSqlFile scripts/database/Test-DefaultRepaymentUpgrade.sql
+
+# Phase 4 receiving and true nonsuperuser maintenance proof use separate owned clusters.
+& "$PSScriptRoot/../../tests/integration/Run-PaymentPhase4.ps1"
+if($LASTEXITCODE){throw 'Phase 4 receiving integration checks failed'}
+& "$PSScriptRoot/../rehearsal/Run-ApplicationRoleOperatorProof.ps1" -MaintenanceProof
+if($LASTEXITCODE){throw 'Existing-package V80 operator maintenance proof failed'}
+& "$PSScriptRoot/../rehearsal/Run-ApplicationRoleOperatorProof.ps1" -MaintenanceFailureProof
+if($LASTEXITCODE){throw 'Existing-package operator failure cleanup proof failed'}

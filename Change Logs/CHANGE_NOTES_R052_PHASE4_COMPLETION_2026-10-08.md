@@ -1,0 +1,11 @@
+# R052 Phase 4 completion — 8 October 2026 (Bangkok)
+
+In progress. Owner continued complete Phase 4: unified Single Full / Receive all / Selected Charges parity, result/history, receipt metadata, durable retry/status, offline viewed data/drafts and committed actor/journal audit. Ordinary DEV posting is for the pinned owner's hands-on use; agents use synthetic financial proof. No PROD change.
+
+D prepared explicit Terraform `command_mode` with `dev-owner-testing` and no fixture JSON in that mode; synthetic-only remains available. Terraform validation passed; no apply. Starting app commit 51ab34c0f99d22a6af8421c1603dd439cc61efee; PM e4840e0daa3af4f1a5a25c62443826cf77332ddc. Concurrent CI/process work is preserved. Recovery uses current command/Hosting rollback and a refreshed private DEV backup before approved writes.
+
+Owner rejected the proposed AppSheet notification bridge. It was never applied: no API/key/schema/bot/send changes. D removed its uncommitted native API transport/test and default-off secret candidate. Original implementation plan requires Web Push, notification history/preferences, authenticated deep links, per-device subscriptions, denial and expired-subscription cleanup, with private lock-screen messages. Owner further confirmed all actual notification delivery remains Phase 8. Phase 4 verifies committed actor/journal audit only; no new notification schema/resource/API/key/bot/dispatcher is included or counted as tested. Existing VAPID remains unchanged.
+
+See PM `outputs/r052-pwa/phase4-completion-batch.md` and executable design for the single closure checklist. Current progress now accurately attributes the prior synthetic proof to C through the owner-authenticated session, not owner hands-on acceptance. Checks/deployment/publication remain pending frozen implementation.
+
+Checked candidate checkpoint: independent Phase 4 financial/browser/storage and true nonsuperuser V79→V80 maintenance success/failure/drift proofs passed; detailed limits/hashes in `outputs/r052-phase4-completion/`. Maintained Test-CI now runs receiving plus maintenance proofs; database workflow installs Node application test dependencies. Exact-source full CI and live delivery remain pending. Fresh private DEV79 dump/restore passed; live authority/source preflight unchanged and no migration/grant/deploy yet.

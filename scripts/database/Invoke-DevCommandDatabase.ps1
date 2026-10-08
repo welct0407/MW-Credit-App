@@ -1,9 +1,10 @@
-# Reviewed initial DEV command schema/capability activation. Dry plans are default.
+# Reviewed DEV command schema activation/maintenance. Dry plans are default.
 [CmdletBinding()]
 param(
  [Parameter(Mandatory)][ValidatePattern('^[a-f0-9]{40}$')][string]$ExpectedCommit,
  [Parameter(Mandatory)][string]$CandidateEvidence,
  [Parameter(Mandatory)][string]$BackupReference,
+ [switch]$ExistingPackage,
  [switch]$Apply
 )
 $ErrorActionPreference='Stop'
@@ -26,7 +27,32 @@ $dump=Join-Path (Split-Path $backupPath) 'loan_manager_dev.dump'
 if((Get-FileHash -LiteralPath $dump -Algorithm SHA256).Hash.ToLowerInvariant() -ne $backup.dumpSha256){throw 'Private recovery dump hash changed'}
 $node=(Get-Command node -ErrorAction Stop).Source
 $cli=Join-Path $PSScriptRoot 'application-role-provision-cli.mjs'
-if(-not $Apply){& $node $cli --prepare;if($LASTEXITCODE){throw 'DEV prerequisite planning failed'};return}
+if(-not $Apply){
+ if($ExistingPackage){& $node $cli --maintenance}else{& $node $cli --prepare}
+ if($LASTEXITCODE){throw 'DEV prerequisite planning failed'};return
+}
+if($ExistingPackage){
+ $maintenanceFile=Join-Path $DbPrivateRoot ('application-maintenance-'+[guid]::NewGuid().ToString('N')+'.json')
+ $maintenanceStarted=$false;$phaseFailure=$null
+ try {
+  $preparedOutput=& $node $cli --maintenance --recovery-file $maintenanceFile --apply
+  if($LASTEXITCODE){throw 'Existing-package maintenance preparation failed; transaction rolled back or private state requires review'}
+  $maintenanceStarted=$true
+  & "$PSScriptRoot/Invoke-Flyway.ps1" -Environment development -Command migrate
+  & "$PSScriptRoot/Invoke-Flyway.ps1" -Environment development -Command validate
+ } catch {$phaseFailure=$_}
+ finally {
+  # The known private path is durable before elevation; never rely on parsing stdout.
+  if(Test-Path -LiteralPath $maintenanceFile){
+   & $node $cli --restore-maintenance --recovery-file $maintenanceFile --apply
+   if($LASTEXITCODE){
+    $originalMessage=if($phaseFailure){$phaseFailure.Exception.Message}else{'none'}
+    throw "Migration maintenance restoration failed; retain $maintenanceFile. Original phase failure: $originalMessage"
+   }
+  }
+ }
+ if($phaseFailure){throw $phaseFailure};return
+}
 $prepared=$false;$complete=$false
 try {
  & $node $cli --prepare --apply

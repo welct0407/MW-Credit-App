@@ -1,15 +1,24 @@
 import { randomUUID } from 'node:crypto';
 import { canonicalCommand } from '../contracts/payment-command.mjs';
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-const codes = new Set(['ok','origin_denied','method_not_allowed','invalid_request','body_too_large','sign_in_required','session_invalid','access_denied','not_found','command_conflict','command_rejected','receipt_unsupported','receipt_unavailable','receipt_conflict','command_outcome_unknown','command_unavailable']);
+const codes = new Set(['ok','origin_denied','method_not_allowed','invalid_request','body_too_large','sign_in_required','session_invalid','access_denied','not_found','command_conflict','command_rejected','receipt_unsupported','receipt_unavailable','receipt_conflict','selection_changed','selection_limit_exceeded','business_date_changed','payment_requires_reconciliation','source_changed','metadata_conflict','metadata_outcome_unknown','command_outcome_unknown','command_unavailable']);
 const MAX_BODY = 524288;
 function route(raw) {
   try {
     const url = new URL(raw, 'http://candidate.invalid');
-    if (url.search || url.hash) return { invalid: true, operation: 'unknown' };
+    if (url.hash) return { invalid: true, operation: 'unknown' };
+    const paged=/^\/api\/(payment-drafts\/[^/]+|borrowers\/[^/]+\/payments)$/.test(url.pathname);
+    if(url.search&&(!paged||[...url.searchParams.keys()].some(key=>!['limit','cursor','scope'].includes(key)||url.searchParams.getAll(key).length!==1)))return {invalid:true,operation:'unknown'};
+    const pageOptions={limit:url.searchParams.has('limit')?Number(url.searchParams.get('limit')):25,cursor:url.searchParams.get('cursor'),scope:url.searchParams.get('scope')??'due'};
+    const history=/^\/api\/borrowers\/([^/]+)\/payments$/.exec(url.pathname);
+    if(history){try{return {operation:'payment_history',borrowerId:decodeURIComponent(history[1]),options:pageOptions}}catch{return {invalid:true,operation:'unknown'}}}
+    const review=/^\/api\/payment-drafts\/([^/]+)\/(review|select-all)$/.exec(url.pathname);
+    if(review){try{return {operation:review[2]==='select-all'?'payment_select_all':'payment_review',borrowerId:decodeURIComponent(review[1])}}catch{return {invalid:true,operation:'unknown'}}}
+    const detail=/^\/api\/payment-commands\/([^/]+)\/(result|metadata)$/.exec(url.pathname);
+    if(detail){if(!uuid.test(detail[1]))return {invalid:true,operation:'unknown'};return {operation:detail[2]==='result'?'command_result':'command_metadata',requestId:detail[1].toLowerCase()};}
     if (url.pathname === '/health') return {operation:'health'};
     const draft=/^\/api\/payment-drafts\/([^/]+)$/.exec(url.pathname);
-    if(draft){try{return {operation:'payment_draft',borrowerId:decodeURIComponent(draft[1])}}catch{return {invalid:true,operation:'unknown'}}}
+    if(draft){try{return {operation:'payment_draft',borrowerId:decodeURIComponent(draft[1]),options:pageOptions}}catch{return {invalid:true,operation:'unknown'}}}
     const receipt=/^\/api\/payment-commands\/([^/]+)\/receipts\/([^/]+)$/.exec(url.pathname);
     if(receipt){if(!uuid.test(receipt[1])||!uuid.test(receipt[2]))return {invalid:true,operation:'unknown'};return {operation:'receipt',requestId:receipt[1].toLowerCase(),receiptId:receipt[2].toLowerCase()};}
     if (url.pathname === '/api/payment-commands') return { operation: 'command_submit' };
@@ -38,7 +47,7 @@ function buildHandler({ origins, verifyPrincipal, store, completionLogger = () =
     const reference = randomUUID(), started = performance.now(), target = route(req.url);
     const operation = req.method === 'OPTIONS' ? 'preflight' : target.operation;
     let code = 'command_unavailable';
-    res.once('finish', () => { try { completionLogger({ event: 'command_request', requestId: reference, operation, method: ['GET','POST','OPTIONS'].includes(req.method) ? req.method : 'OTHER', status: res.statusCode, code, durationMs: Math.max(0, Math.round(performance.now()-started)) }); } catch { /* Logging cannot alter financial responses. */ } });
+    res.once('finish', () => { try { completionLogger({ event: 'command_request', requestId: reference, operation, method: ['GET','POST','PATCH','OPTIONS'].includes(req.method) ? req.method : 'OTHER', status: res.statusCode, code, durationMs: Math.max(0, Math.round(performance.now()-started)) }); } catch { /* Logging cannot alter financial responses. */ } });
     res.setHeader('X-Request-ID', reference);
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
     res.setHeader('Cache-Control', 'no-store');
@@ -50,17 +59,18 @@ function buildHandler({ origins, verifyPrincipal, store, completionLogger = () =
     if (origin !== undefined && !allowed) return reject(403, 'origin_denied');
     if (allowed) { res.setHeader('Access-Control-Allow-Origin', origin); res.setHeader('Access-Control-Expose-Headers', 'X-Request-ID'); }
     if (req.method === 'OPTIONS') {
-      if (!allowed || !['GET','POST'].includes(req.headers['access-control-request-method']) || (req.headers['access-control-request-headers'] || '').split(',').some(value => value.trim() && !['authorization','content-type','x-borrower-id'].includes(value.trim().toLowerCase()))) return reject(403, 'origin_denied');
-      res.setHeader('Access-Control-Allow-Methods', 'GET, POST');res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type, X-Borrower-ID');return send(204);
+      if (!allowed || !['GET','POST','PATCH'].includes(req.headers['access-control-request-method']) || (req.headers['access-control-request-headers'] || '').split(',').some(value => value.trim() && !['authorization','content-type','x-borrower-id'].includes(value.trim().toLowerCase()))) return reject(403, 'origin_denied');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH');res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type, X-Borrower-ID');return send(204);
     }
-    if (!['GET','POST'].includes(req.method)) return reject(405, 'method_not_allowed');
+    if (!['GET','POST','PATCH'].includes(req.method)) return reject(405, 'method_not_allowed');
     if(target.operation==='health' && req.method==='GET')return send(200,{ok:true});
     let principal;
     try { principal = await verifyPrincipal(req.headers.authorization); } catch { return reject(401, 'session_invalid'); }
     if (!principal?.ok) return reject(principal?.status === 403 ? 403 : 401, ['sign_in_required','session_invalid','access_denied'].includes(principal?.code) ? principal.code : 'session_invalid');
     if (target.invalid) return reject(400, 'invalid_request');
     if (target.operation === 'unknown') return reject(404, 'not_found');
-    if ((target.operation === 'command_submit' && req.method !== 'POST') || (['command_status','payment_draft'].includes(target.operation) && req.method !== 'GET')) return reject(405, 'method_not_allowed');
+    if ((target.operation === 'command_submit' && req.method !== 'POST') || (['command_status','command_result','payment_draft','payment_history'].includes(target.operation) && req.method !== 'GET')) return reject(405, 'method_not_allowed');
+    if((['payment_review','payment_select_all'].includes(target.operation)&&req.method!=='POST')||(target.operation==='command_metadata'&&req.method!=='PATCH')||(target.operation==='receipt'&&!['GET','POST'].includes(req.method)))return reject(405,'method_not_allowed');
     let result;
     try {
       if (target.operation === 'command_submit') {
@@ -69,7 +79,15 @@ function buildHandler({ origins, verifyPrincipal, store, completionLogger = () =
         try { command = canonicalCommand(await body(req)); } catch (error) { return reject(error.bodyCode === 'body_too_large' ? 413 : 400, error.bodyCode || 'invalid_request'); }
         if (req.aborted || res.destroyed) return;
         result = await store.submit(principal, command);
-      } else if(target.operation==='payment_draft') result=await store.draft(principal,target.borrowerId);
+      } else if(target.operation==='payment_draft') result=await store.draft(principal,target.borrowerId,target.options);
+      else if(target.operation==='payment_history')result=await store.history(principal,target.borrowerId,target.options);
+      else if(target.operation==='command_result')result=await store.result(principal,target.requestId);
+      else if(['payment_review','payment_select_all','command_metadata'].includes(target.operation)){
+        if(!/^application\/json(?:\s*;\s*charset=utf-8)?$/i.test(req.headers['content-type']||'')||(req.headers['content-encoding']&&req.headers['content-encoding']!=='identity'))return reject(415,'invalid_request');
+        let input;try{input=await body(req)}catch(error){return reject(error.bodyCode==='body_too_large'?413:400,error.bodyCode||'invalid_request')}
+        if(req.aborted||res.destroyed)return;
+        result=target.operation==='payment_select_all'?await store.selectAll(principal,target.borrowerId,input):target.operation==='payment_review'?await store.review(principal,target.borrowerId,input):await store.metadata(principal,target.requestId,input);
+      }
       else if(target.operation==='receipt') {
         let bytes,mimeType;
         if(req.method==='POST'){
@@ -95,6 +113,6 @@ export function createPaymentCommandHandler(options) {
 }
 export function createDevCommandHandler({config,...options}) {
  const allowed=['https://mw-credit-app-dev-737787224638.web.app','https://dev-lm.mw-credit.com'];
- if(config?.mode!=='synthetic-only'||!Array.isArray(config.origins)||!config.origins.length||config.origins.some(origin=>!allowed.includes(origin)))throw Error('Invalid DEV command origins');
+ if(!['synthetic-only','dev-owner-testing'].includes(config?.mode)||!Array.isArray(config.origins)||!config.origins.length||config.origins.some(origin=>!allowed.includes(origin)))throw Error('Invalid DEV command origins');
  return buildHandler({...options,origins:config.origins});
 }

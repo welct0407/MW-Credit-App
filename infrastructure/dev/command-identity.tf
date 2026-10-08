@@ -62,7 +62,7 @@ resource "google_storage_bucket_iam_member" "command_receipts" {
 
 # SQL role membership is deliberately outside Terraform's instance-level IAM user
 # creation. Use the reviewed DEV role provisioner/reconciler and actual-login proof.
-# command-service.tf requires the tested immutable bootstrap and reviewed fixture.
+# command-service.tf requires the tested immutable bootstrap and explicit owner receiving mode.
 output "command_runtime_identity" {
   value = try(google_service_account.command_runtime[0].email, null)
 }

@@ -1,4 +1,4 @@
-param([switch]$FailureProof)
+param([switch]$FailureProof,[switch]$MaintenanceProof,[switch]$MaintenanceFailureProof)
 # Fresh loopback-only full V79 database; never reads live credentials or accepts a DSN.
 $ErrorActionPreference='Stop'
 . "$PSScriptRoot/../Enter-Dev.ps1"
@@ -40,16 +40,29 @@ try {
   $env:OPERATOR_PROOF_PHASE='finalize'
   & node --test "$PSScriptRoot/../../tests/integration/application-role-operator-independent.test.mjs"
   if($LASTEXITCODE){throw 'Operator finalization proof failed'}
+  if($MaintenanceProof -or $MaintenanceFailureProof){
+   $env:OPERATOR_MAINTENANCE_STATE=Join-Path $fixtureRoot 'maintenance-state.json'
+   $env:OPERATOR_MAINTENANCE_PHASE=if($MaintenanceFailureProof){'failure'}else{'prepare'}
+   & node --test "$PSScriptRoot/../../tests/integration/application-role-maintenance-independent.test.mjs"
+   if($LASTEXITCODE){throw 'Maintenance preparation/failure proof failed'}
+   if($MaintenanceProof){
+    try {
+     Push-Location $DbRepoRoot
+     try { & (Get-FlywayPath) '-outputType=json' '-target=80' migrate | Out-File (Join-Path $fixtureRoot 'migration80.json');if($LASTEXITCODE){throw 'True operator V80 maintenance migration failed'} }
+     finally {Pop-Location}
+    } finally {
+     $env:OPERATOR_MAINTENANCE_PHASE='restore'
+     & node --test "$PSScriptRoot/../../tests/integration/application-role-maintenance-independent.test.mjs"
+     if($LASTEXITCODE){throw 'Maintenance restoration proof failed'}
+    }
+   }
+  }
  } finally {
   Get-ChildItem Env:FLYWAY_* -ErrorAction SilentlyContinue | ForEach-Object {Remove-Item "Env:$($_.Name)"}
   foreach($entry in $savedFlyway.GetEnumerator()){Set-Item "Env:$($entry.Key)" $entry.Value}
  }
 } finally {
- Remove-Item Env:OPERATOR_PROOF_DISPOSABLE,Env:OPERATOR_PROOF_PORT,Env:OPERATOR_PROOF_PHASE -ErrorAction SilentlyContinue
+ Remove-Item Env:OPERATOR_PROOF_DISPOSABLE,Env:OPERATOR_PROOF_PORT,Env:OPERATOR_PROOF_PHASE,Env:OPERATOR_MAINTENANCE_STATE,Env:OPERATOR_MAINTENANCE_PHASE -ErrorAction SilentlyContinue
  if($started){& (Join-Path $pgBin 'pg_ctl.exe') -D $data -m fast -w stop | Out-Null}
  Write-Host "Stopped disposable PostgreSQL; synthetic diagnostics retained at $fixtureRoot"
 }
-
-
-
-

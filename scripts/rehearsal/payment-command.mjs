@@ -14,7 +14,7 @@ export function canonicalPayment(input, businessDate) {
 }
 export const paymentId = id => '4A-P-' + id;
 export async function assertDisposable(pool, expectedDirectory, expectedVersion=77) {
-  if(![77,78,79].includes(expectedVersion))throw Error('Unsupported rehearsal version');
+  if(![77,78,79,80].includes(expectedVersion))throw Error('Unsupported rehearsal version');
   const result = await pool.query("SELECT current_database() AS db, current_setting('data_directory') AS directory, host(inet_server_addr()) AS host");
   const row=result.rows[0];
   if (row?.db !== 'payment_rehearsal' || !['127.0.0.1','::1'].includes(row.host) || realpathSync.native(row.directory).replaceAll('\\','/').toLowerCase() !== realpathSync.native(expectedDirectory).replaceAll('\\','/').toLowerCase()) throw Error('Not runner-owned disposable database');

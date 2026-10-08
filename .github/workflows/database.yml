@@ -35,6 +35,12 @@ jobs:
       - name: Install pinned tools outside checkout
         shell: pwsh
         run: ./scripts/database/Install-Tools.ps1
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Install application test dependencies
+        run: npm ci
       - name: Rebuild and validate disposable database
         shell: pwsh
         run: ./scripts/database/Test-CI.ps1
