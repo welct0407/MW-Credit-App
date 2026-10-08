@@ -26,3 +26,8 @@ Rollback: revert the governance documentation commit. The starting Git commit an
 ## Status
 
 Governance documentation complete and independently reviewed; authorized publication is the final closeout step. Product checkpoint, phase completion, owner acceptance and production authority are unchanged.
+
+## Four-worker roster clarification — 8 October 2026 (Bangkok)
+
+Owner requested dropping redundant workers and retaining only A agent_a_architect/Astra High, B agent_b_coding/Astra Medium, C agent_c_phase4_completion/Sol6.1 Medium and D agent_d_infrastructure_sol/Sol6.1 Medium. Reuse these existing workers; parallel replacement/recovery workers need explicit owner authorization. Root confirmed agent_d_delivery_recovery retired; old agent_c_testing, agent_c_testing_sol and agent_d_infrastructure were not live. Current orchestration now names retained C, with earlier dispatches explicitly historical. Role/model responsibilities and product status are unchanged. Baseline3fe3ac08; scoped saved/staged diff and whitespace checks, normal PM publication. Preserve unrelated unpublished process work; no code tests/live audit or product changes.
+
