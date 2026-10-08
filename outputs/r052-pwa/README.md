@@ -2,9 +2,9 @@
 
 **[Overall progress: completed, current review and next steps](../../Documents/PWA_Progress.md)** — updated at every development-session closeout.
 
-Date: 7 October 2026, Asia/Bangkok.
+Date: 8 October 2026, Asia/Bangkok.
 
-Status: Checkpoint2G traceable read errors/recovery is implemented and independently verified: server UUID references, allowlisted completion stdout records and scoped UI copy/retry. Existing logging resources/IAM are reused; no financial, schema, grant or production work. Prior visibility fix is owner-accepted. Source a1fc800 passed actual HTTP 2/2, browser 8/8 and CI37712787076. API 00012-99g and Hosting ff1c9ce9a4bfedf2 are deployed; one benign request reference matched its sanitized stdout event. Final unsigned smoke passed 5/5; owner error/recovery review remains pending. Full Phase1/2 remains incomplete.
+Status: Checkpoint4A local first-receiving design/prototype and full-V77 synthetic rehearsal passed12 focused database cases, four browser scenarios and maintained Test-CI. Owner review is pending; no live payment endpoint, cloud deployment or new schema/privilege is activated. Checkpoint2G and installed-iPhone offline/reconnect are owner-accepted; native update remains unobserved. R052 and full Phase1/2/4 remain open.
 
 ## Scope
 

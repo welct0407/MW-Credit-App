@@ -49,9 +49,9 @@ Every financial command must enforce server-side identity and permissions, prese
 | --- | --- | --- | --- |
 | 0 | Establish development infrastructure and database ownership | Completed setup | Complete for the recorded scope |
 | 1 | Establish full feature coverage, contracts and acceptance criteria | 0 | In progress; checkpoints 1A and 1B accepted; complete feature/parity and acceptance coverage remains open |
-| 2 | Build the secure application foundation and first read flow | 1 | In progress; 2A owner-validated, 2B/2C reads delivered, 2D domain validated, 2E installation accepted, 2F visibility correction accepted; 2G tracing deployed and owner review pending |
+| 2 | Build the secure application foundation and first read flow | 1 | In progress; 2A owner-validated, 2B/2C reads delivered, 2D domain validated, 2E installation accepted, 2F visibility correction accepted; 2G tracing deployed and owner-accepted |
 | 3 | Make production infrastructure and delivery ready | 2 | Not started |
-| 4 | Prove one complete financial workflow in DEV | 2; production setup can proceed alongside it | Not started |
+| 4 | Prove one complete financial workflow in DEV | 2; production setup can proceed alongside it | Local4A design/rehearsal tested; no live financial workflow activated |
 | 5 | Complete mobile and desktop OLTP | 4 | Not started |
 | 6 | Complete desktop OLAP management | Shared contracts from 4; operational dependencies from 5 | Not started |
 | 7 | Enhance Metabase integration and reporting after go-live | Production go-live; 5 and 6 contracts | Deferred by owner |
