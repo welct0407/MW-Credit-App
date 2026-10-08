@@ -1,0 +1,14 @@
+{
+  "sourceCommit": "eb83cab317b37ab90b50c8c6a1d8efe3b61880d4",
+  "ci": "https://github.com/welct0407/MW-Credit-App/actions/runs/37708695277",
+  "ciConclusion": "success",
+  "hostingVersion": "8fa268235d983461",
+  "hostingRelease": "1791420086231000",
+  "javascript": "index-C8WB96wS.js",
+  "workerSha256": "275a80b9c57f2c2b87918265b97251bb8babfc1165aba13bfd53c7e69ed4452f",
+  "rollbackHosting": "3f6fbb70ca3dc007",
+  "apiRevisionUnchanged": "00010-fzk",
+  "scope": "UI-only300ms trailing debounce; API/query/SQL/auth unchanged",
+  "liveVerification": "Passed: unsigned canonical320/fallback1440 exact JavaScript/worker/no-store and correct registration boundary; zero API requests and no records/search controls exposed while signed out.",
+  "ownerReview": "Use Update/reload; Thai/English typing and native iPhone keyboard review pending"
+}
