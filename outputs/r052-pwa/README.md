@@ -4,7 +4,7 @@
 
 Date: 8 October 2026, Asia/Bangkok.
 
-Status: Checkpoint4C reusable pure payment-command contract is implemented and tested11/11 (B5+C6), with A review passed. The proposed public.pwa_payment_commands table plus three routines awaits owner approval for disposable rehearsal only. Durable persistence/concurrency, manual GCS/AppSheet mapping and event delivery are not implemented or verified. No live schema, grants, cloud or financial changes; R052 remains Open.
+Status: Checkpoint4D implements the owner-approved V78 command journal candidate for disposable rehearsal only. Maintained database CI passed;13 focused transaction cases and one actual PostgreSQL restart passed, with independent assertion/retained-run corroboration passed. The migration exists in source but is NOT applied to live DEV/PROD, which remain V77. No runtime grants, financial endpoint, GCS or cloud change; R052 remains Open.
 
 ## Scope
 
@@ -151,3 +151,8 @@ Checkpoint2C Collection board and borrower-scoped charge reads are implemented/t
 ## Checkpoint4C — reusable contract and approval proposal
 
 [Concrete schema/access/receipt proposal](checkpoint-4c-design.md) · [Owning log](../../Change%20Logs/CHANGE_NOTES_R052_DURABLE_COMMAND_RECEIPT_PLAN_2026-10-08.md). Pure contract11/11 passed; durable database implementation awaits approval and is not delivered.
+
+
+## Checkpoint4D — disposable durable command journal
+
+[Design](checkpoint-4d-design.md) · [Owning log](../../Change%20Logs/CHANGE_NOTES_R052_DISPOSABLE_COMMAND_JOURNAL_2026-10-08.md). V78 candidate is source/disposable scope only; live databases remain V77. No live financial activation follows automatically.

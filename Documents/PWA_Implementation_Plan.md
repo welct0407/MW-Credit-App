@@ -2,7 +2,7 @@
 
 **[Overall progress: completed, current review and next steps](PWA_Progress.md)** — updated at every development-session closeout.
 
-**R052 checkpoint4C, 8 October 2026:** Checkpoint4C reusable pure payment-command contract is implemented and tested11/11 (B5+C6), with A review passed. The proposed public.pwa_payment_commands table plus three routines awaits owner approval for disposable rehearsal only. Durable persistence/concurrency, manual GCS/AppSheet mapping and event delivery are not implemented or verified. No live schema, grants, cloud or financial changes; R052 remains Open. [Concrete approval proposal](../outputs/r052-pwa/checkpoint-4c-design.md).
+**R052 checkpoint4D, 8 October 2026:** Checkpoint4D implements the owner-approved V78 command journal candidate for disposable rehearsal only. Maintained database CI passed;13 focused transaction cases and one actual PostgreSQL restart passed, with independent assertion/retained-run corroboration passed. The migration exists in source but is NOT applied to live DEV/PROD, which remain V77. No runtime grants, financial endpoint, GCS or cloud change; R052 remains Open. [Design](../outputs/r052-pwa/checkpoint-4d-design.md).
 
 **R052 checkpoint 2A, 7 October 2026:** Checkpoint 2A live DEV Google sign-in and Borrowers read is owner-validated: owner reported successful list/detail reads; actual verified Google UID is pinned in managed Secret Manager version 1, read revision00003-pzr. Independent signed-out desktop/mobile, static health and denial checks passed. App source20358d1 includes the tested cold-start test-tooling correction; final CI37615986417 passed. Checkpoint 2A is complete. Phase 2 remains incomplete and the team stops at this checkpoint; no next slice, production, financial, schema or AppSheet change. [Evidence](../outputs/r052-pwa/README.md).
 
@@ -314,7 +314,7 @@ The final review must establish all of the following:
 - The cutover runbook covers old-client sync drain, access controls, rollback triggers and stabilization.
 - No unresolved required-feature, financial-integrity, access-control or recovery blocker remains.
 
-**Current implementation task:** Checkpoint4C pure contract complete/tested; proposed one-table/three-routine disposable implementation awaits owner approval. No durable runtime or GCS mapping completion is claimed.
+**Current implementation task:** Checkpoint4D disposable V78 journal implemented/verified; owner evidence review pending. Live remainsV77. Runtime authority, receipt integration and event delivery remain separate scope.
 
 ## Borrower-field parity inventory after checkpoint 2B feedback
 
