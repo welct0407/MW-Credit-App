@@ -1,5 +1,5 @@
 {
-  "scope": "R052 Phase5 candidate; Development passed and focused correction recovery contract passed; final Database gate pending",
+  "scope": "R052 Phase5 implementation tested/deployed DEV83; owner-session read-only smoke passed, owner/device acceptance separate",
   "localVerification": {
     "candidateTree": "d49d6381f63fdb7a9cf86b3ff5afc99d75c481a4",
     "v83Sha256": "e7185ed56ec5036d80816f6af7c3e6fa86732c1631792aacda0c5f949a86dcc5",
@@ -38,7 +38,7 @@
         "e2ePassed": 226,
         "e2eFailed": 1,
         "e2eSkipped": 9,
-        "failureBoundary": "mobile final UI owner-lease expiry/focus assertion; C diagnosis pending",
+        "failureBoundary": "Resolved real stale-refresh-versus-lease denial race; deterministic regression and corrected full Development passed",
         "priorAttempt": {
           "runId": 37845674016,
           "url": "https://github.com/welct0407/MW-Credit-App/actions/runs/37845674016",
@@ -46,30 +46,45 @@
           "e2ePassed": 220,
           "e2eFailed": 7,
           "e2eSkipped": 9,
-          "failureBoundary": "SW harness initial state; borrower pending recovery and Close review UI assertions; diagnosis pending"
+          "failureBoundary": "Resolved synthetic SW dependency/pending selector/held fresh-review fixture failures"
         }
-      }
+      },
+      "reuseBoundary": "Final93cc0da product/build/E2E inputs byte-identical to passed d95e9b8; SQL concurrency test/evidence-only correction"
     },
     "Database": {
-      "runId": 37850064900,
-      "sourceCommit": "d95e9b83ad52d629a98a10d481d1328a9e7533eb",
-      "url": "https://github.com/welct0407/MW-Credit-App/actions/runs/37850064900",
-      "status": "failed",
-      "finalJournalOnlyPassed": 76,
-      "finalJournalOnlyFailed": 1,
-      "failureBoundary": "F8-C02 competing correction heads: one applied outcome and one operation_outcome_unknown instead of durable rejected loser; A/C diagnosis pending",
-      "priorPassedRunIds": [
-        37845673933,
-        37848221524
-      ],
-      "failureDiagnosis": "Existing P0001 Cash pool is busy guard aborts overlapping losing transaction without journal; explicit status absence and same-UUID retry produces durable source_conflict. Test corrected deterministically, product unchanged."
+      "runId": 37851747614,
+      "sourceCommit": "93cc0da3011c3d7db07f827fd7a741a7f7b36f7c",
+      "url": "https://github.com/welct0407/MW-Credit-App/actions/runs/37851747614",
+      "status": "passed",
+      "priorAttempt": {
+        "runId": 37850064900,
+        "sourceCommit": "d95e9b83ad52d629a98a10d481d1328a9e7533eb",
+        "url": "https://github.com/welct0407/MW-Credit-App/actions/runs/37850064900",
+        "status": "failed",
+        "finalJournalOnlyPassed": 76,
+        "finalJournalOnlyFailed": 1,
+        "failureBoundary": "F8-C02 competing correction heads: one applied outcome and one operation_outcome_unknown instead of durable rejected loser; A/C diagnosis pending",
+        "priorPassedRunIds": [
+          37845673933,
+          37848221524
+        ],
+        "failureDiagnosis": "Existing P0001 Cash pool is busy guard aborts overlapping losing transaction without journal; explicit status absence and same-UUID retry produces durable source_conflict. Test corrected deterministically, product unchanged."
+      }
     }
   },
   "deployment": {
-    "DEV": "V82 retained baseline",
+    "DEV": "V83 applied and validated",
     "PROD": "V77 unchanged",
-    "receiptGetOnly": "reviewed2-create savedplan; unapplied",
-    "sourceCommit": "295565f12217a6f5c0eee86a2931f9f3bc94d356"
+    "sourceCommit": "93cc0da3011c3d7db07f827fd7a741a7f7b36f7c",
+    "commandRevision": "mw-credit-app-command-dev-00005-htm",
+    "hostingVersion": "3942c9523faf8dc8",
+    "hostingRelease": "1791498471535000",
+    "bundle": "index-BPaBdrU2.js",
+    "receiptGetOnly": "Applied and exact SA/prefix binding verified",
+    "maintenance": "Exact original selected-grantor rights restored; other membership/schema ACLs verified unchanged before COMMIT",
+    "readinessViolations": 0,
+    "readOnlySmoke": "passed; actual persisted owner, eight representative routes/known receipt/cash/preferences and320 geometry; no writes/draft changes",
+    "financialWrites": "none"
   },
   "recovery": {
     "freshDEV82Restore": "passed",
@@ -88,19 +103,40 @@
     "journal-foundation-independent-verification.md",
     "borrower-independent-verification.md",
     "current-slice-source-hashes.json",
-    "native-receipt-mapping.json"
+    "native-receipt-mapping.json",
+    "live-catalog.json"
   ],
   "artifacts": {
     "sourceCommit": "295565f12217a6f5c0eee86a2931f9f3bc94d356",
     "cloudBuildId": "81c3dd82-38e2-4149-8e5b-d55d2ae01d3e",
     "cloudBuildStatus": "passed",
     "commandImage": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app/api@sha256:4ee1642c473e0d7cd9dabf6b202ed9cab71d2d7808c0d7137252fa242cf71c10",
-    "frontendBundle": "index-B68Kcp7d.js",
+    "frontendBundle": "index-BPaBdrU2.js",
     "hostingDryCheck": "passed",
-    "applied": false,
+    "applied": true,
     "frontendSuperseded": false,
     "supersedingFrontendBuild": "clean published build passed",
     "backendSourceUnchanged": true,
-    "frontendSourceCommit": "d95e9b83ad52d629a98a10d481d1328a9e7533eb"
+    "frontendSourceCommit": "93cc0da3011c3d7db07f827fd7a741a7f7b36f7c"
+  },
+  "terraformApplication": {
+    "initialPlanSha256": "584adfb1d98e8aeb5ee9befc13e9db74483cc36d4d53b0975768349e15d1d58b",
+    "initialResult": "Role create/service update succeeded; binding400 hierarchy error during role propagation",
+    "bucketProjectNumber": "737787224638",
+    "roleProjectNumber": "737787224638",
+    "retryPlanSha256": "67a73ad97dd0a186e28be3875d29d33173b6a23c4bdba71f0fb781a1a914f02e",
+    "retryActions": "One identical conditional GET-only bucket binding create; passed",
+    "createDeleteList": "No receipt create/delete/list expansion; existing generated create/get unchanged"
+  },
+  "frontendConfigurationIncident": {
+    "initialBundle": "index-B68Kcp7d.js",
+    "initialHostingVersion": "954de96026116ac2",
+    "observed": "Owner-session configuration unavailable; route smoke blocked",
+    "cause": "Clean export build omitted established VITE public-client input configuration",
+    "resolution": "Rebuilt unchanged source using existing private public-client config and authoritative DEV service origins; compiled required values verified before deployment",
+    "correctedBundle": "index-BPaBdrU2.js",
+    "maintainedPrevention": "deploy-hosting.mjs checks compiled Firebase presence/exact DEV origins before credentials/version creation",
+    "guardChecks": "Syntax, configured artifact pass, unconfigured synthetic artifact rejection",
+    "noAuthPolicyChange": true
   }
 }

@@ -23,6 +23,14 @@ const api="https://firebasehosting.googleapis.com/v1beta1/";
 const files={};const contents=new Map();
 async function collect(dir){for(const entry of await readdir(dir,{withFileTypes:true})){if(entry.name.startsWith("."))throw new Error("Hidden file in deployment");const full=path.join(dir,entry.name);if(entry.isDirectory())await collect(full);else if(entry.isFile()){const compressed=gzipSync(await readFile(full));const hash=createHash("sha256").update(compressed).digest("hex");files["/"+path.relative(root,full).split(path.sep).join("/")]=hash;contents.set(hash,compressed);}else throw new Error("Unsupported asset type");}}
 await collect(root);if(!files["/index.html"])throw new Error("Build output missing");
+// A live-mode/file-count marker does not prove the public client was configured.
+// Inspect locally before obtaining credentials or creating a Hosting version.
+if(mode==='live-dev'){
+ const jsFiles=Object.keys(files).filter(name=>/^\/assets\/.*\.js$/.test(name));
+ const compiled=(await Promise.all(jsFiles.map(name=>readFile(path.join(root,name.slice(1)),'utf8')))).join('\n');
+ const required=['clever-oasis-508610-n7','clever-oasis-508610-n7.firebaseapp.com','https://mw-credit-app-read-dev-pvrgvyg3oq-as.a.run.app','https://mw-credit-app-command-dev-pvrgvyg3oq-as.a.run.app'];
+ if(required.some(value=>!compiled.includes(value))||!/AIza[0-9A-Za-z_-]{30,}/.test(compiled)||!/1:737787224638:web:[0-9a-f]+/.test(compiled))throw new Error('Live DEV public-client configuration missing or wrong service origins; load established build inputs before Hosting');
+}
 const headers=[{glob:"**",headers:{"X-Content-Type-Options":"nosniff","Referrer-Policy":"strict-origin-when-cross-origin","Cache-Control":mode==="live-dev"?"no-store":"public,max-age=300"}}];
 if(mode==="live-dev"){
  if(retire){

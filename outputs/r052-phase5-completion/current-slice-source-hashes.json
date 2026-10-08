@@ -214,5 +214,15 @@
     "hashes": {
       "tests/integration/phase5-journal-independent.test.mjs": "599522EA41A9B41C53BF8A71063778D497B18607B1EB82843D90C5F2A5CE515F"
     }
+  },
+  "liveOwnerReadOnlySmoke": {
+    "hostingVersion": "3942c9523faf8dc8",
+    "release": "1791498471535000",
+    "bundle": "index-BPaBdrU2.js",
+    "databaseVersion": 83,
+    "commandRevision": "00005-htm",
+    "backend": "4ee1642c",
+    "scope": "Persisted owner Chrome4/tab304619538; representative eight read routes/full details/known synthetic verified receipt;320 nav nooverflow; no live financial writes/formsaves/upload/signout",
+    "limits": "Safe offline/restart not repeated on live owner session; prior controlled realSDK/worker proof reused; physical-device and owner acceptance separate"
   }
 }
