@@ -1,7 +1,7 @@
 const validDay=value=>typeof value==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(value)&&value>='0001-01-01'&&Number.isFinite(Date.parse(value+'T00:00:00Z'))&&new Date(value+'T00:00:00Z').toISOString().slice(0,10)===value;
 import {createHash} from 'node:crypto';
 export async function readCommandResult(client,actor,requestId,{lock=false}={}){
- const journal=(await client.query('SELECT canonical_json,outcome,payment_id,rejection_code,recorded_at FROM public.pwa_payment_commands WHERE request_id=$1 AND actor_issuer=$2 AND actor_subject=$3 AND actor_partner_id=$4',[requestId,actor.issuer,actor.subject,actor.partnerId])).rows[0];
+ const journal=(await client.query('SELECT canonical_json,outcome,payment_id,rejection_code,recorded_at FROM public.pwa_payment_commands WHERE contract_version=1 AND request_id=$1 AND actor_issuer=$2 AND actor_subject=$3 AND actor_partner_id=$4',[requestId,actor.issuer,actor.subject,actor.partnerId])).rows[0];
  if(!journal)return {resultError:'not_found',status:404};
  const original=JSON.parse(journal.canonical_json).command;
  const originalOutcome={status:journal.outcome,paymentId:journal.payment_id,code:journal.rejection_code,recordedAt:new Date(journal.recorded_at).toISOString()};

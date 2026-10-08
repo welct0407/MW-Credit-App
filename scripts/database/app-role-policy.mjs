@@ -3,7 +3,7 @@ const APP='mw_app_dev';
 const JOURNAL_OWNER='mw_app_dev_journal_owner';
 const readonly=new Set(['pwa_payment_commands','r005_cash_cutover_sources','r008_cash_account_cutover']);
 const deniedRoutines=new Set(['attach_payment_receipt_evidence','reallocate_payment_interest','reallocate_payment_interest_audited','initialize_cash_accounts']);
-const approvedDefiner=row=>row.schema==='public'&&((row.owner===JOURNAL_OWNER&&((row.name==='pwa_submit_selected_charges_v1'&&row.args==='text')||(row.name==='pwa_command_status_v1'&&row.args==='uuid, text, text')))||(row.owner==='postgres'&&row.name==='payment_reallocation_permitted'&&row.args==='text, jsonb, jsonb'));
+const approvedDefiner=row=>row.schema==='public'&&((row.owner===JOURNAL_OWNER&&((['pwa_submit_selected_charges_v1','pwa_submit_operation_v2'].includes(row.name)&&row.args==='text')||(['pwa_command_status_v1','pwa_operation_status_v2'].includes(row.name)&&row.args==='uuid, text, text')))||(row.owner==='postgres'&&row.name==='payment_reallocation_permitted'&&row.args==='text, jsonb, jsonb'));
 const quote=value=>'"'+value.replaceAll('"','""')+'"';
 const protectedObject=row=>/^(flyway_|agent_|audit_|secret_|credential_|migration_)/.test(row.name)||/^mw-access:(governance|secret)/.test(row.comment||'');
 export async function planApplicationRole(client,{database,creators}) {

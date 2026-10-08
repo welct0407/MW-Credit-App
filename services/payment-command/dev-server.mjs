@@ -1,3 +1,4 @@
+import {createSourceReceiptReader,createSourceGcsReadTransport} from '../receipts/source-receipts.mjs';
 import http from 'node:http';
 import {initializeApp,applicationDefault} from 'firebase-admin/app';
 import {getAuth} from 'firebase-admin/auth';
@@ -10,7 +11,7 @@ import {createCommandPrincipalVerifier} from './principal.mjs';
 import {createDevCommandStore} from './store.mjs';
 import {createDevCommandHandler} from './handler.mjs';
 import {createGcsReceiptTransport} from '../receipts/gcs-transport.mjs';
-import {decodeCommandReceipt} from '../receipts/decode-image.mjs';
+import {decodeCommandReceipt,decodeSourceReceipt} from '../receipts/decode-image.mjs';
 import {createCommandReceipts} from '../receipts/command-receipts.mjs';
 const config=loadDevCommandConfig(process.env);
 const auth=getAuth(initializeApp({credential:applicationDefault(),projectId:config.projectId},'dev-command'));
@@ -19,8 +20,9 @@ const options=await connector.getOptions({instanceConnectionName:config.instance
 const pool=new pg.Pool({...options,user:config.dbUser,database:config.database,max:2,connectionTimeoutMillis:5000,idleTimeoutMillis:30000,statement_timeout:10000,query_timeout:12000});
 const client=await pool.connect();
 try{await createDevCommandConnectionGuard(config)(client)}finally{client.release()}
+const sourceReceiptReader=createSourceReceiptReader({storage:createSourceGcsReadTransport(new Storage({projectId:config.projectId})),decodeImage:decodeSourceReceipt});
 const receipts=createCommandReceipts({storage:createGcsReceiptTransport(new Storage({projectId:config.projectId})),decodeImage:decodeCommandReceipt,compatibility:config.receiptCompatibility});
-const store=createDevCommandStore({pool,config,receiptAdapter:receipts});
+const store=createDevCommandStore({pool,config,receiptAdapter:receipts,sourceReceiptReader});
 const verifyPrincipal=createCommandPrincipalVerifier({ownerUid:config.ownerUid,verifyIdToken:(token,revoked)=>auth.verifyIdToken(token,revoked)});
 const server=http.createServer(createDevCommandHandler({config,store,verifyPrincipal,completionLogger:record=>console.log(JSON.stringify(record))}));
 server.requestTimeout=20000;server.headersTimeout=10000;

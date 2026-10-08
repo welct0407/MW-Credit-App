@@ -28,7 +28,8 @@ try{await test('existing package exact temporary maintenance restoration on true
   }finally{await restoreExistingApplicationRoleMaintenance(client,config,retained.state,{apply:true})}
   assert.deepEqual(await fingerprint(),retained.before);assert.equal((await restoreExistingApplicationRoleMaintenance(client,config,retained.state,{apply:true})).mode,'maintenance-already-restored');
   await assert.rejects(client.query('SET ROLE mw_app_dev_journal_owner'),e=>e.code==='42501');
-  const head=Number((await client.query('SELECT max(version::integer) AS head FROM flyway_schema_history WHERE success')).rows[0].head);assert.equal(head,80);
+  const head=Number((await client.query('SELECT max(version::integer) AS head FROM flyway_schema_history WHERE success')).rows[0].head);const expectedHead=Number(process.env.OPERATOR_MAINTENANCE_TARGET||80);assert.ok([80,83].includes(expectedHead));assert.equal(head,expectedHead);
+  if(expectedHead===83){const routines=(await client.query("SELECT p.proname,p.prosecdef,r.rolname owner FROM pg_proc p JOIN pg_roles r ON r.oid=p.proowner WHERE p.oid IN (to_regprocedure('public.pwa_submit_operation_v2(text)'),to_regprocedure('public.pwa_operation_status_v2(uuid,text,text)')) ORDER BY p.proname")).rows;assert.equal(routines.length,2);for(const routine of routines){assert.equal(routine.prosecdef,true);assert.equal(routine.owner,'mw_app_dev_journal_owner')}assert.deepEqual((await reconcileApplicationRole(client,config)).violations,[]);}
  }
 })}finally{await client.end()}
 

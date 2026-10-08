@@ -1,0 +1,28 @@
+import {canonicalPreferenceFields} from './preference-command.mjs';
+import {canonicalExpenseFields} from './expense-command.mjs';
+import {canonicalPaymentCorrection} from './payment-correction.mjs';
+import {canonicalChargeFields} from '../business/charges.mjs';
+import {canonicalLoanFields} from '../business/loans.mjs';
+import {createHash} from 'node:crypto';
+import {canonicalActor,canonicalReceipt} from './payment-command.mjs';
+import {canonicalBorrowerFields,validBorrowerId} from '../business/borrowers.mjs';
+const uuid=/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/;
+const shape=(value,keys)=>value&&typeof value==='object'&&!Array.isArray(value)&&Object.keys(value).sort().join(',')===keys.slice().sort().join(',');
+export function canonicalOperation(input){
+ if(!shape(input,['requestId','operation','targetId','expectedVersion','predecessorRequestId','inputs','receiptId'])||!uuid.test(input.requestId)||!validBorrowerId(input.targetId))throw Error('invalid_request');
+ if(!['borrower.create','borrower.update','borrower.delete','loan.create','loan.update','loan.delete','loan.default','loan.undo-default','loan.generate-charge','loan.close','charge.create','charge.update','charge.delete','payment.correct','payment.delete','payment.move-interest','expense.create','expense.update','expense.delete','preference.update'].includes(input.operation))throw Error('invalid_request');
+ const payment=input.operation.startsWith('payment.');
+ if(payment?(input.predecessorRequestId!==null&&!uuid.test(input.predecessorRequestId)):input.predecessorRequestId!==null)throw Error('invalid_request');
+ if(input.receiptId!==null&&(!['loan.close','payment.correct'].includes(input.operation)||!uuid.test(input.receiptId)))throw Error('invalid_request');
+ const create=input.operation.endsWith('.create');if(create?input.expectedVersion!==null||!uuid.test(input.targetId):!/^[a-f0-9]{64}$/.test(input.expectedVersion??''))throw Error('invalid_request');
+ let inputs;if(input.operation==='preference.update')inputs=canonicalPreferenceFields(input.inputs);else if(['expense.create','expense.update'].includes(input.operation))inputs=canonicalExpenseFields(input.inputs,{create});else if(input.operation==='payment.correct'){inputs=canonicalPaymentCorrection(input.inputs);if((inputs.receiptMode==='replace')!==(input.receiptId!==null))throw Error('invalid_request');}else if(input.operation==='payment.move-interest'){if(!shape(input.inputs,['allocationId','targetChargeId'])||!validBorrowerId(input.inputs.allocationId)||!validBorrowerId(input.inputs.targetChargeId))throw Error('invalid_request');inputs={allocationId:input.inputs.allocationId,targetChargeId:input.inputs.targetChargeId};}else if(input.operation==='loan.close'){if(!shape(input.inputs,['paymentDate','cashAccountId','paymentMethod','notes','expectedAmount','expectedPlanHash']))throw Error('invalid_request');const v=input.inputs;if(typeof v.paymentDate!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(v.paymentDate)||new Date(v.paymentDate+'T00:00:00Z').toISOString().slice(0,10)!==v.paymentDate||!validBorrowerId(v.cashAccountId)||!['Bank Transfer','Cash','Net-off at Disbursement'].includes(v.paymentMethod)||typeof v.expectedAmount!=='string'||!/^[1-9][0-9]*$/.test(v.expectedAmount)||v.expectedAmount.length>17||!/^[a-f0-9]{64}$/.test(v.expectedPlanHash??'')||(v.notes!==null&&(typeof v.notes!=='string'||!v.notes.isWellFormed()||v.notes.includes('\0')||Buffer.byteLength(v.notes)>65536)))throw Error('invalid_request');inputs=Object.fromEntries(['paymentDate','cashAccountId','paymentMethod','notes','expectedAmount','expectedPlanHash'].map(key=>[key,v[key]]));}else if(['charge.create','charge.update'].includes(input.operation))inputs=canonicalChargeFields(input.inputs);else if(['loan.create','loan.update'].includes(input.operation))inputs=canonicalLoanFields(input.inputs,{create});else if(['loan.default','loan.generate-charge'].includes(input.operation)){if(!shape(input.inputs,['businessDate'])||typeof input.inputs.businessDate!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(input.inputs.businessDate)||new Date(input.inputs.businessDate+'T00:00:00Z').toISOString().slice(0,10)!==input.inputs.businessDate)throw Error('invalid_request');inputs={businessDate:input.inputs.businessDate};}else if(['borrower.delete','loan.delete','loan.undo-default','charge.delete','payment.delete','expense.delete'].includes(input.operation)){if(!shape(input.inputs,[]))throw Error('invalid_request');inputs={};}else inputs=canonicalBorrowerFields(input.inputs);
+ return Object.freeze({requestId:input.requestId,operation:input.operation,targetId:input.targetId,expectedVersion:input.expectedVersion,predecessorRequestId:input.predecessorRequestId,inputs:Object.freeze(inputs),receiptId:input.receiptId});
+}
+export function operationIdentity(input,identity,descriptor=null){
+ const request=canonicalOperation(input),actor=canonicalActor(identity),receipt=canonicalReceipt(descriptor);
+ if((receipt?.receiptId??null)!==request.receiptId)throw Error('invalid_request');
+ const command={schemaVersion:1,operation:request.operation,targetType:request.operation.split('.')[0],targetId:request.targetId,expectedVersion:request.expectedVersion,predecessorRequestId:request.predecessorRequestId,inputs:request.inputs};
+ const canonicalJson=JSON.stringify({contractVersion:2,requestId:request.requestId,actor,command,receipt});
+ if(Buffer.byteLength(canonicalJson)>524288)throw Error('invalid_request');
+ return Object.freeze({requestId:request.requestId,canonicalJson,payloadSha256:createHash('sha256').update(canonicalJson).digest('hex')});
+}

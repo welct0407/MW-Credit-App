@@ -1,0 +1,44 @@
+import {test,expect,chromium} from '@playwright/test';
+import {spawnSync} from 'node:child_process';
+import {mkdtempSync,rmSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {startCanonicalFixture} from './fixtures/canonical-server';
+
+test('F12 actual Firebase SDK mixed-domain drafts and pending survive offline boot reconnect worker update then signout purges',async({},info)=>{
+ test.skip(info.project.name.startsWith('mobile'),'Actual SDK and worker integration runs once');
+ test.setTimeout(90000);
+ const root=mkdtempSync(join(tmpdir(),'mw-offline-sdk-')),out=join(root,'public'),profile=join(root,'profile');
+ const build=spawnSync(process.execPath,['--input-type=module','-e',`import {build} from 'vite';await build({mode:'live-dev',build:{outDir:${JSON.stringify(out)},emptyOutDir:true},plugins:[{name:'synthetic-sdk-bridge',enforce:'pre',transform(code,id){if(id.endsWith('/apps/pwa/src/live-main.tsx'))return code+";import {getAuth as fixtureGetAuth,signInWithCustomToken as fixtureSignIn} from 'firebase/auth';globalThis.__syntheticSdk={fixtureGetAuth,fixtureSignIn};import {ownerOfflineRepository as fixtureRepository} from './owner-offline';globalThis.__syntheticRepo=fixtureRepository;";}}]});`],{cwd:process.cwd(),encoding:'utf8',env:{...process.env,VITE_FIREBASE_PROJECT_ID:'clever-oasis-508610-n7',VITE_FIREBASE_AUTH_DOMAIN:'clever-oasis-508610-n7.firebaseapp.com',VITE_FIREBASE_API_KEY:'synthetic-public-key',VITE_FIREBASE_APP_ID:'synthetic-app',VITE_API_ORIGIN:'https://mw-credit-app-read-dev-test.run.app',VITE_COMMAND_API_ORIGIN:'https://mw-credit-app-command-dev-test.run.app',VITE_COMMAND_MODE:'dev-owner-testing'}});
+ expect(build.status,build.stderr).toBe(0);
+ const fixture=await startCanonicalFixture(out);let context:any;
+ const now=Math.floor(Date.now()/1000),uid='synthetic-offline-sdk-owner';
+ const token=[{alg:'none',typ:'JWT'},{sub:uid,user_id:uid,aud:'clever-oasis-508610-n7',iss:'https://securetoken.google.com/clever-oasis-508610-n7',iat:now,exp:now+3600,auth_time:now,email:'synthetic@example.test',email_verified:true,firebase:{sign_in_provider:'custom'}}].map(x=>Buffer.from(JSON.stringify(x)).toString('base64url')).join('.')+'.synthetic';
+ const borrower={id:'synthetic-offline-borrower',borrowerDisplayName:'SYNTHETIC OFFLINE SDK',createdDate:null,hasActiveLoan:true,outstandingPrincipal:'110',totalProfitEarned:'0',note:null};
+ const draft={ok:true,mode:'dev-owner-testing',businessDate:'2026-10-08',asOf:'2026-10-08T05:00:00Z',borrower:{id:borrower.id,displayName:borrower.borrowerDisplayName},charges:[{id:'synthetic-charge',chargeDate:'2026-10-07',loanDisplayKey:'Synthetic loan',amountRemaining:'110',principalRemaining:'100',interestRemaining:'10'}],accounts:[{id:'synthetic-account',label:'Synthetic account'}],nextCursor:null};
+ let posts=0,networkOffline=false;
+ const launch=async(offline=false)=>{networkOffline=offline;
+  context=await chromium.launchPersistentContext(profile,{headless:true,offline,args:['--ignore-certificate-errors',`--host-resolver-rules=MAP dev-lm.mw-credit.com 127.0.0.1:${fixture.port}`,'--no-proxy-server']});
+  context.setDefaultTimeout(5000);
+  await context.route('**/*',async(route:any)=>{
+   const url=new URL(route.request().url());
+   if(url.hostname==='dev-lm.mw-credit.com')return route.continue();
+   if(networkOffline)return route.abort();
+   if(url.hostname==='identitytoolkit.googleapis.com')return route.fulfill({contentType:'application/json',headers:{'access-control-allow-origin':'*'},body:JSON.stringify(url.pathname.includes('signInWithCustomToken')?{idToken:token,refreshToken:'synthetic-refresh',expiresIn:'3600',isNewUser:false}:{users:[{localId:uid,email:'synthetic@example.test',emailVerified:true,providerUserInfo:[]}]})});
+   if(url.hostname==='mw-credit-app-read-dev-test.run.app')return route.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,source:'dev',items:url.pathname.includes('/loans')?[]:[borrower],item:borrower,borrower,nextCursor:null,asOf:draft.asOf})});
+   if(url.hostname==='mw-credit-app-command-dev-test.run.app'){
+    if(route.request().method()!=='GET')posts++;
+    return route.fulfill({contentType:'application/json',body:JSON.stringify(url.pathname.includes('borrower-options')?{ok:true,accounts:[],referrers:[]}:url.pathname.includes('payment-drafts')?draft:{ok:true,items:[],nextCursor:null})});
+   }
+   return route.abort();
+  });return context.newPage();
+ };
+ try{
+  let page=await launch();await page.goto('https://dev-lm.mw-credit.com');await expect.poll(()=>page.evaluate(()=>!!navigator.serviceWorker.controller)).toBe(true);await page.evaluate(async()=>{const sdk=(window as any).__syntheticSdk;await sdk.fixtureSignIn(sdk.fixtureGetAuth(),'synthetic-custom-token')});await expect(page.locator('.borrower-card')).toContainText('SYNTHETIC OFFLINE SDK');await page.getByRole('button',{name:'Add borrower',exact:true}).click();await page.getByRole('textbox',{name:'Borrower Name - Thai',exact:true}).fill('SDK unsent borrower ไทย');await page.getByRole('textbox',{name:'Borrower Note',exact:true}).fill('exact offline draft ไทย');
+  const stored=()=>page.evaluate(async()=>{const repo=(window as any).__syntheticRepo({issuer:'https://securetoken.google.com/clever-oasis-508610-n7',uid:'synthetic-offline-sdk-owner'});return{drafts:await repo.list('draft'),pending:await repo.list('pending')}});await expect.poll(async()=>(await stored()).drafts.length).toBe(1);
+  await page.evaluate(async()=>{const repo=(window as any).__syntheticRepo({issuer:'https://securetoken.google.com/clever-oasis-508610-n7',uid:'synthetic-offline-sdk-owner'});for(const domain of ['loan','charge','expense'])await repo.saveDraft(domain+':sdk-synthetic-'+domain,{domain,label:'SDK retained '+domain,draft:{id:'sdk-synthetic-'+domain}});await repo.saveDraft('legacy-payment',{borrowerId:'synthetic-offline-borrower',notes:'legacy missing-domain note',amountReceived:'110',allocationMethod:'Selected Charges',selectedChargeIds:['synthetic-charge']});await repo.savePending('sdk-retained-request',{domain:'borrower',command:{requestId:'ec7d0be2-2607-49c7-8bc7-5cda99485710',operation:'borrower.update',targetId:'sdk-retained-borrower',expectedVersion:'a'.repeat(64),predecessorRequestId:null,receiptId:null,inputs:{note:'immutable retained pending'}}})});const baseline=await stored();expect(baseline.drafts).toHaveLength(5);expect(baseline.pending).toHaveLength(1);expect(posts).toBe(0);
+  await context.close();page=await launch(true);await page.goto('https://dev-lm.mw-credit.com');await expect(page.getByText('Saved on this device — may be outdated',{exact:true})).toBeVisible();await page.getByRole('button',{name:/^SDK unsent borrower ไทย/}).click();await expect(page.getByRole('textbox',{name:'Borrower Note',exact:true})).toHaveValue('exact offline draft ไทย');await expect(page.getByRole('button',{name:'Save borrower',exact:true})).toBeDisabled();expect((await stored()).drafts.map((r:any)=>r.value)).toEqual(baseline.drafts.map((r:any)=>r.value));expect((await stored()).pending.map((r:any)=>r.value)).toEqual(baseline.pending.map((r:any)=>r.value));expect(posts).toBe(0);
+  networkOffline=false;await context.setOffline(false);await page.reload();await expect(page.getByRole('button',{name:'Add borrower',exact:true})).toBeVisible();expect(posts).toBe(0);fixture.setVersion('B');await page.evaluate(async()=>{const registration=await navigator.serviceWorker.getRegistration();await registration!.update()});await expect(page.getByRole('button',{name:'Update and reload',exact:true})).toBeVisible();await Promise.all([page.waitForEvent('load'),page.getByRole('button',{name:'Update and reload',exact:true}).click()]);await expect(page.getByRole('button',{name:'Add borrower',exact:true})).toBeVisible();expect((await stored()).drafts.map((r:any)=>r.value)).toEqual(baseline.drafts.map((r:any)=>r.value));expect((await stored()).pending.map((r:any)=>r.value)).toEqual(baseline.pending.map((r:any)=>r.value));expect(posts).toBe(0);
+  await page.getByRole('button',{name:'Sign out',exact:true}).click();await expect(page.getByRole('button',{name:/Google/})).toBeVisible();expect((await stored()).drafts).toHaveLength(0);expect((await stored()).pending).toHaveLength(0);expect(posts).toBe(0);
+ }finally{await context?.close();await fixture.close();rmSync(root,{recursive:true,force:true})}
+});

@@ -52,7 +52,7 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
   const current=++generation.current;
   void(async()=>{
    try{
-    const pending=await access.offline?.list('pending');
+    const pending=(await access.offline?.list('pending'))?.filter(row=>(row.value.domain===undefined||row.value.domain==='payment')&&row.value.recoveryKind!=='action');
     let prior:string|null=null;try{prior=sessionStorage.getItem(pendingKey)}catch{setStorageBlocked(true)}
     const retained=pending?.find(row=>row.value.borrowerId===borrowerId)||pending?.[0];
     if(current!==generation.current)return;

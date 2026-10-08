@@ -1,0 +1,15 @@
+import {createHash} from 'node:crypto';
+import {collectionCte,collectionQualitySql} from '../api/collection-read-contract.mjs';
+import {validBorrowerId} from './borrowers.mjs';
+const date=value=>typeof value==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(value)&&Number.isFinite(Date.parse(value+'T00:00:00Z'))&&new Date(value+'T00:00:00Z').toISOString().slice(0,10)===value;
+const encode=value=>Buffer.from(JSON.stringify(value)).toString('base64url');
+export async function readCollectionReceipts(client,borrowerId,{businessDate,chargeIds,limit=25,cursor=null}={}){
+ if(!validBorrowerId(borrowerId)||!date(businessDate)||!Array.isArray(chargeIds)||chargeIds.length<1||chargeIds.length>100||Array.from(chargeIds).some(id=>!validBorrowerId(id))||new Set(chargeIds).size!==chargeIds.length||!Number.isInteger(limit)||limit<1||limit>100)throw Error('invalid_request');
+ const clock=(await client.query("SELECT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date::text AS day,CURRENT_TIMESTAMP AS stamp")).rows[0];if(clock.day!==businessDate)throw Error('business_date_changed');
+ if((await client.query(collectionQualitySql,[borrowerId])).rows[0]?.invalid!==false)throw Error('Collection source unavailable');
+ const count=(await client.query(`${collectionCte} SELECT count(*)::integer n FROM eligible WHERE id=ANY($3::text[])`,[businessDate,borrowerId,chargeIds])).rows[0].n;if(count!==chargeIds.length)throw Error('selection_changed');
+ const scope=createHash('sha256').update(JSON.stringify([borrowerId,businessDate,[...chargeIds].sort()])).digest('hex');let after=null;
+ if(cursor!==null){try{if(typeof cursor!=='string'||cursor.length>4096)throw Error();after=JSON.parse(Buffer.from(cursor,'base64url').toString());if(Object.keys(after).sort().join(',')!=='date,id,scope,v'||after.v!==1||after.scope!==scope||!date(after.date)||!validBorrowerId(after.id)||encode(after)!==cursor)throw Error()}catch{throw Error('invalid_request')}}
+ const rows=(await client.query(`${collectionCte} SELECT p."Row ID" id,p."Payment Date"::text AS "paymentDate",p."Amount Received"::numeric::text AS amount,(nullif(btrim(p."Uploaded Receipt"),'') IS NOT NULL) AS "manualReceiptPresent",(nullif(btrim(p."Receipt Image"),'') IS NOT NULL) AS "agentReceiptPresent",CASE WHEN nullif(btrim(p."Uploaded Receipt"),'') IS NOT NULL THEN p."Uploaded Receipt At" ELSE p."Receipt Received At" END AS "receiptAt" FROM public."Payments" p WHERE p."Ref Borrower"=$2 AND p."Status"='Posted' AND EXISTS(SELECT 1 FROM public."Payment Allocations" a JOIN eligible e ON e.id=a."Ref Charge" WHERE a."Ref Payment"=p."Row ID" AND e.id=ANY($3::text[]) AND a."Allocated Amount"::numeric>0) AND ($4::date IS NULL OR (coalesce(p."Payment Date",DATE '0001-01-01'),p."Row ID" COLLATE "C")<($4::date,$5 COLLATE "C")) ORDER BY p."Payment Date" DESC NULLS LAST,p."Row ID" COLLATE "C" DESC LIMIT $6`,[businessDate,borrowerId,chargeIds,after?.date??null,after?.id??null,limit+1])).rows;
+ const items=rows.slice(0,limit),last=items.at(-1);return {businessDate,asOf:new Date(clock.stamp).toISOString(),items,nextCursor:rows.length>limit?encode({v:1,scope,date:last.paymentDate??'0001-01-01',id:last.id}):null};
+}

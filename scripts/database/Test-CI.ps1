@@ -29,11 +29,17 @@ if (-not $IsWindows) {
 # Phase 4 receiving and true nonsuperuser maintenance proof use separate owned clusters.
 & "$PSScriptRoot/../../tests/integration/Run-PaymentPhase4.ps1"
 if($LASTEXITCODE){throw 'Phase 4 receiving integration checks failed'}
-& "$PSScriptRoot/../rehearsal/Run-ApplicationRoleOperatorProof.ps1" -MaintenanceProof
-if($LASTEXITCODE){throw 'Existing-package V80 operator maintenance proof failed'}
-& "$PSScriptRoot/../rehearsal/Run-ApplicationRoleOperatorProof.ps1" -MaintenanceFailureProof
+& "$PSScriptRoot/../rehearsal/Run-ApplicationRoleOperatorProof.ps1" -MaintenanceProof -MaintenanceTarget 83
+if($LASTEXITCODE){throw 'Existing-package V83 operator maintenance proof failed'}
+& "$PSScriptRoot/../rehearsal/Run-ApplicationRoleOperatorProof.ps1" -MaintenanceFailureProof -MaintenanceTarget 83
 if($LASTEXITCODE){throw 'Existing-package operator failure cleanup proof failed'}
 
 # Unified amount-first PWA and preserved legacy routes use an owned disposable cluster.
 & "$PSScriptRoot/../../tests/integration/Run-UnifiedReceiving.ps1"
 if($LASTEXITCODE){throw 'Unified receiving integration checks failed'}
+
+# Phase 5 reuses the maintained borrower and populated-journal upgrade fixtures.
+& "$PSScriptRoot/../../tests/integration/Run-Phase5.ps1"
+if($LASTEXITCODE){throw 'Phase 5 borrower integration checks failed'}
+& "$PSScriptRoot/../../tests/integration/Run-Phase5.ps1" -JournalOnly
+if($LASTEXITCODE){throw 'Phase 5 populated journal and operation integration checks failed'}

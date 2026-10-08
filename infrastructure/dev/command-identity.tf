@@ -60,6 +60,26 @@ resource "google_storage_bucket_iam_member" "command_receipts" {
   }
 }
 
+# Authenticated source-derived older/manual and agent receipt reads only.
+# Keep the generated receipt create/get binding above unchanged.
+resource "google_project_iam_custom_role" "command_source_receipt_read" {
+  count       = var.command_infrastructure_enabled ? 1 : 0
+  role_id     = "mwCreditAppDevReceiptRead"
+  title       = "MW Credit DEV source receipt read"
+  permissions = ["storage.objects.get"]
+}
+
+resource "google_storage_bucket_iam_member" "command_source_receipt_read" {
+  count  = var.command_infrastructure_enabled ? 1 : 0
+  bucket = local.bucket
+  role   = google_project_iam_custom_role.command_source_receipt_read[0].name
+  member = "serviceAccount:${google_service_account.command_runtime[0].email}"
+  condition {
+    title       = "dev_source_receipt_reads_only"
+    description = "DEV source-derived receipt GET only; no listing, create, delete or PROD authority."
+    expression  = "resource.name.startsWith('projects/_/buckets/${local.bucket}/objects/receipts/dev/') || resource.name.startsWith('projects/_/buckets/${local.bucket}/objects/appsheet/data/MW_OLTP_DEV_20260919_578763613/manual_receipts/dev/')"
+  }
+}
 # SQL role membership is deliberately outside Terraform's instance-level IAM user
 # creation. Use the reviewed DEV role provisioner/reconciler and actual-login proof.
 # command-service.tf requires the tested immutable bootstrap and explicit owner receiving mode.

@@ -1,3 +1,4 @@
+import {validateViewedSnapshot,type ViewedSnapshot} from './viewed-snapshot';
 const issuer='https://securetoken.google.com/clever-oasis-508610-n7';
 const expiry=24*60*60*1000;
 const namespaceEpochs=new Map<string,number>();
@@ -38,7 +39,7 @@ export function ownerOfflineRepository(identity:{issuer:string;uid:string}) {
   return value??null;
  }
  async function remove(kind:Saved<unknown>['kind'],id:string){await transaction<void>('readwrite',(store,done)=>{store.delete(kind+':'+id);done()});}
- async function save<T>(kind:Saved<T>['kind'],id:string,value:T){
+ async function save<T>(kind:Saved<T>['kind'],id:string,value:T,savedAt=Date.now()){
   if(!id)throw Error('Offline record identity required');
   return transaction<void>('readwrite',(store,done)=>{
    const req=store.getAll();req.onsuccess=()=>{
@@ -47,7 +48,7 @@ export function ownerOfflineRepository(identity:{issuer:string;uid:string}) {
     const rows=(req.result as Saved<unknown>[]).filter(row=>row.kind===kind&&row.key!==kind+':'+id);
     if(kind==='draft'&&rows.length>=5){store.transaction.abort();return;}
     if(kind==='snapshot')for(const row of rows.sort((a,b)=>b.savedAt-a.savedAt).slice(19))store.delete(row.key);
-    store.put({key:kind+':'+id,kind,savedAt:Date.now(),value});done();
+    store.put({key:kind+':'+id,kind,savedAt,value});done();
    };
   });
  }
@@ -58,6 +59,7 @@ export function ownerOfflineRepository(identity:{issuer:string;uid:string}) {
    const rows=await transaction<Saved<any>[]>('readonly',(store,done)=>{const req=store.getAll();req.onsuccess=()=>done(req.result)});
    return rows.filter(row=>row.kind===kind&&(kind!=='snapshot'||Date.now()-row.savedAt<expiry));
   },
+  async saveViewedSnapshot(value:ViewedSnapshot){validateViewedSnapshot(value);const lease=await read<{verifiedAt:number}>('lease','owner');if(!lease||Date.now()-lease.value.verifiedAt>=expiry)throw Error('Offline owner lease expired');await save('snapshot',value.domain+':'+value.recordId,value,Date.parse(value.asOf))},
   async saveSnapshot(id:string,value:{charges:unknown[];[key:string]:unknown}){if(value.charges.length>100)throw Error('Offline snapshot exceeds 100 charges');await save('snapshot',id,value)},
   snapshot:<T,>(id:string)=>read<T>('snapshot',id),
   async saveDraft(id:string,value:{image?:Blob|null;[key:string]:unknown}){if(value.image&&value.image.size>5242880)throw Error('Offline receipt exceeds 5 MiB');await save('draft',id,value)},

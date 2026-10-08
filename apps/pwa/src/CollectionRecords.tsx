@@ -1,3 +1,5 @@
+import {CollectionReceipts} from './CollectionReceipts';
+import {PaymentRecord} from './PaymentRecord';
 import {useContextRefresh} from './context-refresh';
 import {CompactPager,ReceiveIcon,RefreshIcon} from './CompactPager';
 import {PaymentHistory} from './PaymentHistory';
@@ -16,7 +18,7 @@ export type CollectionReadError = 'not_found' | 'unavailable' | 'business_date_c
 export type CollectionRequest = <T>(path: string, onError: (failure: ReadFailure<CollectionReadError>) => void) => Promise<T | null>;
 export function CollectionRecords({ thai, request, cancel, onStatus, refreshToken, query, commandAccess }: { thai: boolean; request: CollectionRequest; cancel: () => void; onStatus: (value: 'idle' | 'loading' | 'success' | 'error') => void; refreshToken: number; query: string; commandAccess?: CommandAccess }) {
   const t = (en: string, th: string) => thai ? th : en;
-  const [paymentOpen,setPaymentOpen]=useState(false);
+  const [paymentOpen,setPaymentOpen]=useState(false),[receiptRecord,setReceiptRecord]=useState<string|null>(null);
   const pendingPayment=(()=>{try{return /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i.test(sessionStorage.getItem('mw-credit.pending-command')??'')}catch{return false}})();
   const [items, setItems] = useState<Summary[]>([]);
   const [selected, setSelected] = useState<Summary | null>(null);
@@ -153,8 +155,9 @@ export function CollectionRecords({ thai, request, cancel, onStatus, refreshToke
   const paymentLabel = (value: string) => value === 'รอชำระ' ? t('Pending', 'รอชำระ') : value === 'ชำระบางส่วน' ? t('Partially paid', 'ชำระบางส่วน') : t('Paid', 'ชำระแล้ว');
   const amounts = (row: Summary) => <dl className="collection-amounts"><div><dt>{t('Amount due', 'ยอดที่ต้องชำระ')}</dt><dd>{money(row.amountDue)}</dd></div><div><dt>{t('Collected today', 'รับชำระวันนี้')}</dt><dd>{money(row.amountCollected)}</dd></div><div><dt>{t('Remaining to collect', 'ยอดคงเหลือที่ต้องรับชำระ')}</dt><dd>{money(row.amountRemaining)}</dd></div></dl>;
 
-  useContextRefresh(!!selected&&!paymentOpen,upcomingDetail?t('First upcoming details page / refresh','หน้าแรกของรายละเอียดล่วงหน้า / รีเฟรช'):t('First charges page / refresh','หน้าแรกยอดเรียกเก็บ / รีเฟรช'),()=>{if(upcomingDetail)void openUpcoming(upcomingDetail.dueDate,undefined,1,true);else if(selected)void loadCharges(selected)});
+  useContextRefresh(!!selected&&!paymentOpen&&!receiptRecord,upcomingDetail?t('First upcoming details page / refresh','หน้าแรกของรายละเอียดล่วงหน้า / รีเฟรช'):t('First charges page / refresh','หน้าแรกยอดเรียกเก็บ / รีเฟรช'),()=>{if(upcomingDetail)void openUpcoming(upcomingDetail.dueDate,undefined,1,true);else if(selected)void loadCharges(selected)});
   const upcomingView = (detail: UpcomingDetail | null) => <UpcomingCharges thai={thai} summary={upcoming} detail={detail} page={upcomingPage} busy={busy} error={upcomingError} onDate={value => void openUpcoming(value)} onBack={() => { restoreDetailScroll.current = true; setUpcomingError(null); setUpcomingDetail(null); }} onRefresh={() => void refreshUpcoming()} onDetailRefresh={() => upcomingDetail && void openUpcoming(upcomingDetail.dueDate, undefined, 1, true)} onPrevious={upcomingPage>1&&upcomingDetail?()=>void openUpcoming(upcomingDetail.dueDate,upcomingCursors.current[upcomingPage-2],upcomingPage-1,true):undefined} onNext={() => upcomingDetail?.nextCursor && void openUpcoming(upcomingDetail.dueDate, upcomingDetail.nextCursor, upcomingPage + 1)} />;
+  if(receiptRecord&&commandAccess)return <PaymentRecord access={commandAccess} id={receiptRecord} thai={thai} onBack={()=>setReceiptRecord(null)}/>;
   if(paymentOpen&&commandAccess)return <SelectedCharges access={commandAccess} borrowerId={selected?.id??commandAccess.fixtureBorrowerId} thai={thai} onBack={()=>{setPaymentOpen(false);if(selected)void loadCharges(selected);else void loadBoard()}}/>;
   return <section className="collection-workspace" aria-label={t('Collection workspace', 'พื้นที่งานติดตาม')}>
 
@@ -174,6 +177,7 @@ export function CollectionRecords({ thai, request, cancel, onStatus, refreshToke
           {childError?.code === 'unavailable' && <div role="status"><ErrorReference failure={childError} thai={thai} />{selected&&<button className="secondary-button" disabled={busy} onClick={()=>void loadCharges(selected)}>{t('Retry charges','ลองโหลดยอดเรียกเก็บอีกครั้ง')}</button>}<p>{t('Unable to load charges. Refresh the charges page to try again.', 'ไม่สามารถโหลดรายการเรียกเก็บได้ กรุณารีเฟรชหน้ายอดเรียกเก็บเพื่อลองอีกครั้ง')}</p></div>}
           {charges.map(charge => <button className="collection-charge collection-charge-row" key={charge.id} disabled={busy} onClick={() => { savedDetailScroll.current = window.innerWidth > 1050 ? detailPanel.current?.scrollTop ?? 0 : window.scrollY; setSelectedCharge(charge); setScrollTarget(value => ({ kind: 'detail', sequence: value.sequence + 1 })); }}><span><span>{t('Charge date', 'วันที่เรียกเก็บ')}</span><strong>{date(charge.chargeDate)}</strong></span><span><span>{t('Amount received', 'ยอดรับชำระ')}</span><strong>{money(charge.totalPaid)}</strong></span><span><span>{t('Amount remaining', 'ยอดคงเหลือ')}</span><strong>{money(charge.amountRemaining)}</strong></span></button>)}
           <CompactPager busy={busy} previous={chargePage>1?()=>void loadCharges(selected,chargeCursors.current[chargePage-2],chargePage-1):undefined} next={chargeCursor?()=>void loadCharges(selected,chargeCursor,chargePage+1):undefined} previousLabel={t('Previous charges page','หน้ายอดเรียกเก็บก่อนหน้า')} nextLabel={t('Next charges page','หน้าถัดไปของยอดเรียกเก็บ')}/>
+{commandAccess?.ownerTesting&&charges.length>0&&<CollectionReceipts access={commandAccess} borrowerId={selected.id} businessDate={businessDate} chargeIds={charges.map(row=>row.id)} thai={thai} onOpen={setReceiptRecord}/>}
 {upcomingView(null)}
         </> : <p>{t('Select a borrower to view today’s collection charges.', 'เลือกผู้กู้เพื่อดูยอดเรียกเก็บในงานติดตามวันนี้')}</p>}
       </section>

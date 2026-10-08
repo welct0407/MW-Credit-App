@@ -13,7 +13,7 @@ export type LoanDetailResult = { ok: true; source: 'dev'; item: LoanRecord; asOf
 type Props = {
   thai: boolean; page: number; items: LoanRecord[]; selected: LoanRecord | null; busy: boolean; loading: boolean;
   error: ReadFailure<'not_found' | 'unavailable'> | null; nextCursor: string | null; listAsOf: string; detailAsOf: string;
-  onPrevious?:()=>void; onSelect: (id: string) => void; onBack: () => void; onRefresh: () => void; onNext: () => void;
+  onFullDetail?:(id:string)=>void; onPrevious?:()=>void; onSelect: (id: string) => void; onBack: () => void; onRefresh: () => void; onNext: () => void;
 };
 export function loanDisplayKey(loan: LoanRecord) {
   const principal = loan.principalAmount === null ? '' : new Intl.NumberFormat('en-US', { style: 'currency', currency: 'THB', currencyDisplay: 'narrowSymbol', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Number(loan.principalAmount));
@@ -36,7 +36,7 @@ export function LoanRecords(props: Props) {
     {props.error && <div className="loan-read-error" role="status"><p>{props.error.code === 'not_found' ? t('This borrower or loan is no longer available.', 'ไม่พบผู้กู้หรือสัญญานี้แล้ว') : t('Unable to load loan records.', 'ไม่สามารถโหลดข้อมูลสัญญาได้')}</p><ErrorReference failure={props.error} thai={props.thai} /><button className="secondary-button" disabled={props.busy} onClick={props.onRefresh}>{t('Retry loan list', 'ลองโหลดรายการสัญญาอีกครั้ง')}</button></div>}
     {props.selected ? <article className="loan-detail" aria-label={t('Loan details', 'รายละเอียดสัญญา')}>
       <button className="secondary-button" onClick={props.onBack}>← {t('Back to loans', 'กลับไปรายการสัญญา')}</button>
-      <h4>{loanDisplayKey(props.selected)}</h4>
+      <h4>{loanDisplayKey(props.selected)}</h4>{props.onFullDetail&&<button className="text-action" onClick={()=>props.onFullDetail!(props.selected!.id)}>{t('Full loan details','รายละเอียดสินเชื่อทั้งหมด')}</button>}
       <dl>
         <div><dt>{t('Loan status', 'สถานะสัญญา')}</dt><dd>{status(props.selected.status)}</dd></div>
         <div><dt>{t('Loan type', 'ประเภทสัญญา')}</dt><dd>{type(props.selected.loanType)}</dd></div>

@@ -1,0 +1,37 @@
+{
+  "files": [
+    {
+      "path": "services/business/borrowers.mjs",
+      "sha256": "8cc6fd9a42d4e8e2876b63f6363a00319a8774d2d00fbb71ae40a3ddffe0851f"
+    },
+    {
+      "path": "apps/pwa/src/BorrowerRecord.tsx",
+      "sha256": "f001147491a90ba251a8fe2e88f1ed33c2ac65b58267a5f290cf9918f629cfd9"
+    },
+    {
+      "path": "services/payment-command/store.mjs",
+      "sha256": "9de0528e934a01597a7de2a7cada756063503327b168facfbd6988e5b47d66a7"
+    },
+    {
+      "path": "services/payment-command/handler.mjs",
+      "sha256": "85958c544159b5f7e21ad9a84ce9aa97f364b9612c45b98cf15b27be006df761"
+    },
+    {
+      "path": "scripts/rehearsal/payment-fixture.mjs",
+      "sha256": "38c4ec1e5219530932926158f7d1dbbd56b19898a565cbabf9e6a6934dd71285"
+    },
+    {
+      "path": "tests/integration/Run-Phase5.ps1",
+      "sha256": "e2913e06b8395d7135716984c1d51ae56af5be5c7682347bde1faf5da5805f8f"
+    },
+    {
+      "path": "tests/integration/phase5-borrower-independent.test.mjs",
+      "sha256": "8f226fc0106d8896e6289a59cb812e8c02990c76af46aed20fccd69241552251"
+    },
+    {
+      "path": "tests/e2e/phase5-borrower-independent.spec.ts",
+      "sha256": "aa94a7efd0ff92a87ba0997fe341e9076ff3ded057655f4af5c8ee4151cf2771"
+    }
+  ],
+  "scope": "Borrower82 first-slice final SQL9 and UI12 across runs; snapshot at evidence closure, B may continue source"
+}

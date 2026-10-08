@@ -1,3 +1,16 @@
+import {readRecordList} from '../business/record-lists.mjs';
+import {readCollectionReceipts} from '../business/collection-receipts.mjs';
+import {readStandaloneUpcoming} from '../business/upcoming.mjs';
+import {readDashboard} from '../business/dashboard.mjs';
+import {readLoanRelated} from '../business/loan-related.mjs';
+import {readPreferences} from '../business/preferences.mjs';
+import {readCashOverview,readCashStatement} from '../business/cash.mjs';
+import {readExpenseRecord,readExpenseOptions,readExpensePage} from '../business/expenses.mjs';
+import {readPaymentRecord,readPaymentCorrectionPreview} from '../business/payments.mjs';
+import {readChargeRecord} from '../business/charges.mjs';
+import {canonicalOperation,operationIdentity} from '../contracts/operation-command.mjs';
+import {readLoanRecord} from '../business/loans.mjs';
+import {readBorrowerRecord,mutateBorrowerRecord,validBorrowerId} from '../business/borrowers.mjs';
 import { createDevCommandConnectionGuard } from './dev-target.mjs';
 import {readCommandResult,readBorrowerPaymentHistory} from './result.mjs';
 import { readPaymentDraft, readOwnerPaymentDraft } from './draft.mjs';
@@ -9,7 +22,7 @@ const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{1
 const failure = (status, code) => ({ ok: false, status, code });
 
 /** DISPOSABLE candidate only. No ambient connection/config, service launcher or live permission. */
-function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAdapter, ownerTesting=false }) {
+function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAdapter, sourceReceiptReader, ownerTesting=false }) {
   async function run(principal, operation, readonly = false) {
     if (!principal?.ok || principal.email !== OWNER_EMAIL || typeof principal.subject !== 'string' || !principal.subject) return failure(403, 'access_denied');
     let client, attempted = false, commitStarted = false, quarantine = false;
@@ -25,6 +38,13 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
       const actor = canonicalActor({ issuer, subject: principal.subject, partnerId: rows[0].id, loginEmail: principal.email });
       const result = await operation(client, actor, () => { attempted = true; });
       if (!result.ok) { await rollback(); return result; }
+      // Timestamp successful viewed-source reads in their repeatable-read transaction.
+      // Offline touches must never renew this source freshness.
+      if(readonly&&result.value?.item){
+        const stamp=(await client.query(`SELECT to_char(CURRENT_TIMESTAMP AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "asOf",(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date::text AS "businessDate"`)).rows[0];
+        if(result.value.item.id&&result.value.item.version)Object.assign(result.value.item,stamp);
+        if(result.value.item.source?.id&&result.value.item.source.version)Object.assign(result.value.item.source,stamp);
+      }
       commitStarted = true;
       await client.query('COMMIT');
       const { value } = result;
@@ -42,6 +62,79 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
     }
   }
   return {
+    async upcoming(principal,options={}){if(!ownerTesting)return failure(403,'access_denied');return run(principal,async client=>{try{return {ok:true,value:await readStandaloneUpcoming(client,options)}}catch(error){if(error.message==='business_date_changed')return failure(409,'business_date_changed');throw error}},true)},
+    async recordList(principal,kind,options){if(!ownerTesting)return failure(403,'access_denied');return run(principal,async client=>({ok:true,value:await readRecordList(client,kind,options)}),true)},
+    async dashboard(principal){if(!ownerTesting)return failure(403,'access_denied');return run(principal,async client=>({ok:true,value:await readDashboard(client)}),true)},
+    async operation(principal,input){
+      if(!ownerTesting)return failure(403,'access_denied');
+      let command;try{command=canonicalOperation(input)}catch{return failure(400,'invalid_request')}
+      return run(principal,async(client,actor,markAttempted)=>{
+        let receipt=null;const existing=(await client.query('SELECT canonical_json FROM public.pwa_payment_commands WHERE request_id=$1 AND actor_issuer=$2 AND actor_subject=$3',[command.requestId,actor.issuer,actor.subject])).rows[0];
+        if(existing){const stored=JSON.parse(existing.canonical_json);if(stored.contractVersion!==2||(stored.receipt?.receiptId??null)!==command.receiptId)return failure(409,'command_conflict');receipt=stored.receipt;}
+        else if(command.receiptId){if(typeof resolveReceipt!=='function')return failure(422,'receipt_unsupported');let bound;try{bound=await resolveReceipt({receiptId:command.receiptId,requestId:command.requestId,actor})}catch{return failure(503,'receipt_unavailable')}try{if(!bound||Object.keys(bound).sort().join(',')!=='actor,descriptor,requestId'||bound.requestId!==command.requestId||JSON.stringify(canonicalActor(bound.actor))!==JSON.stringify(actor))return failure(422,'receipt_unavailable');receipt=canonicalReceipt(bound.descriptor);if(receipt?.receiptId!==command.receiptId)return failure(422,'receipt_unavailable')}catch{return failure(422,'receipt_unavailable')}}
+        let identity;try{identity=operationIdentity(command,actor,receipt)}catch{return failure(400,'invalid_request')}
+        markAttempted();const value=(await client.query('SELECT public.pwa_submit_operation_v2($1) AS result',[identity.canonicalJson])).rows[0].result;return {ok:true,value}}).then(result=>result.code==='command_outcome_unknown'?{...result,code:'operation_outcome_unknown'}:result);
+    },
+    async operationStatus(principal,id){
+      if(!ownerTesting)return failure(403,'access_denied');
+      if(!uuid.test(id??''))return failure(400,'invalid_request');
+      return run(principal,async(client,actor)=>({ok:true,value:(await client.query('SELECT public.pwa_operation_status_v2($1,$2,$3) AS result',[id,actor.issuer,actor.subject])).rows[0].result}),true);
+    },
+    async loanOptions(principal){
+      if(!ownerTesting)return failure(403,'access_denied');
+      return run(principal,async client=>({ok:true,value:{businessDate:(await client.query("SELECT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date::text AS day")).rows[0].day,accounts:(await client.query(`SELECT a."Row ID" AS id,a."Account Label" AS label,a."Default Account" AS "isDefault",a."Ref Cash Holder" AS "holderId",a."Active" AS active,h."Active" AS "holderActive" FROM public."Cash Accounts" a JOIN public."Cash Holders" h ON h."Row ID"=a."Ref Cash Holder" WHERE a."Active" IS TRUE AND h."Active" IS TRUE AND h."Row ID"='ch:lisa' ORDER BY a."Sort Order",a."Row ID" COLLATE "C"`)).rows}}),true);
+    },
+    async loanClosePreview(principal,id){
+      if(!ownerTesting)return failure(403,'access_denied');
+      if(!validBorrowerId(id))return failure(400,'invalid_request');
+      return run(principal,async client=>{
+        if(!(await client.query('SELECT 1 FROM public."Loans" WHERE "Row ID"=$1',[id])).rowCount)return failure(404,'not_found');
+        let calculation;try{calculation=(await client.query("SELECT public.loan_close_calculation_v83($1,(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date) value",[id])).rows[0].value;}catch(error){
+          if(error.code==='P0001'&&['Loan Close requires an open auto-enabled daily-interest loan','Loan Close requires valid loan date, principal and daily interest','Loan charge components require reconciliation before closing','Loan has no outstanding principal to close','Principal already due exceeds outstanding loan principal','Multiple charges today require reconciliation before closing','Final receipt must be a positive whole-baht amount'].includes(error.message))return failure(422,'record_requires_reconciliation');throw error;
+        }
+        const accounts=(await client.query(`SELECT a."Row ID" id,a."Account Label" label FROM public."Cash Accounts" a JOIN public."Cash Holders" h ON h."Row ID"=a."Ref Cash Holder" WHERE a."Active" IS TRUE AND h."Active" IS TRUE ORDER BY a."Sort Order",a."Row ID" COLLATE "C"`)).rows;
+        const {sourceVersion,businessDate,amount,planHash}=calculation;
+        return {ok:true,value:{sourceVersion,businessDate,amount,planHash,accounts,plan:{borrowerId:calculation.borrowerId,amountReceived:amount,allocations:calculation.allocations,allocationMethod:'Loan Close',targetChargeId:calculation.targetChargeId,targetLoanId:id,cashAccountId:null,paymentDate:businessDate,paymentMethod:null}}};
+      },true);
+    },
+    async preferences(principal){if(!ownerTesting)return failure(403,'access_denied');return run(principal,async(client,actor)=>({ok:true,value:await readPreferences(client,actor)}),true)},
+    async cashOverview(principal){if(!ownerTesting)return failure(403,'access_denied');return run(principal,async client=>({ok:true,value:await readCashOverview(client)}),true)},
+    async cashStatement(principal,options){if(!ownerTesting)return failure(403,'access_denied');return run(principal,async client=>{try{return {ok:true,value:await readCashStatement(client,options)}}catch(error){if(error.message==='invalid_request')return failure(400,'invalid_request');throw error}},true)},
+    async expenseRecord(principal,id){if(!ownerTesting)return failure(403,'access_denied');if(!validBorrowerId(id))return failure(400,'invalid_request');return run(principal,async client=>{const item=await readExpenseRecord(client,id);return item?{ok:true,value:{item}}:failure(404,'not_found')},true)},
+    async expenseOptions(principal){if(!ownerTesting)return failure(403,'access_denied');return run(principal,async client=>({ok:true,value:await readExpenseOptions(client)}),true)},
+    async expenses(principal,options){if(!ownerTesting)return failure(403,'access_denied');return run(principal,async client=>({ok:true,value:await readExpensePage(client,options)}),true)},
+    async paymentImage(principal,id,source='preferred'){
+      if(!ownerTesting)return failure(403,'access_denied');if(!validBorrowerId(id)||!['preferred','manual','agent'].includes(source))return failure(400,'invalid_request');
+      return run(principal,async client=>{const row=(await client.query('SELECT "Uploaded Receipt" manual,"Receipt Image" agent FROM public."Payments" WHERE "Row ID"=$1',[id])).rows[0];if(!row)return failure(404,'not_found');const kind=source==='preferred'?(typeof row.manual==='string'&&row.manual.trim()?'manual':'agent'):source,reference=row[kind];if(typeof reference!=='string'||!reference.trim())return failure(404,'receipt_not_found');if(typeof sourceReceiptReader!=='function')return failure(503,'receipt_unavailable');try{return {ok:true,value:await sourceReceiptReader(reference,kind)}}catch(error){return failure(error.message==='receipt_reference_unsupported'?422:503,error.message==='receipt_reference_unsupported'?'receipt_reference_unsupported':'receipt_unavailable')}},true);
+    },
+    async collectionReceipts(principal,id,options){if(!ownerTesting)return failure(403,'access_denied');return run(principal,async client=>{try{return {ok:true,value:await readCollectionReceipts(client,id,options)}}catch(error){if(['invalid_request','selection_changed','business_date_changed'].includes(error.message))return failure(error.message==='invalid_request'?400:409,error.message);throw error}},true);},
+    async paymentRecord(principal,id,{preview=false,targetLoanId=null,paymentDate=null,proposedBorrowerId=null}={}){
+      if(!ownerTesting)return failure(403,'access_denied');if(!validBorrowerId(id))return failure(400,'invalid_request');
+      return run(principal,async client=>{try{const item=await (preview?readPaymentCorrectionPreview:readPaymentRecord)(client,id,{targetLoanId,paymentDate,proposedBorrowerId});return item?{ok:true,value:{item}}:failure(404,'not_found')}catch(error){if(error.message==='invalid_request')return failure(400,'invalid_request');throw error}},true);
+    },
+    async chargeRecord(principal,id){
+      if(!ownerTesting)return failure(403,'access_denied');if(!validBorrowerId(id))return failure(400,'invalid_request');
+      return run(principal,async client=>{const item=await readChargeRecord(client,id);return item?{ok:true,value:{item}}:failure(404,'not_found')},true);
+    },
+    async loanRelated(principal,id,kind,options={}){if(!ownerTesting)return failure(403,'access_denied');return run(principal,async client=>{const value=await readLoanRelated(client,id,kind,options);return value?{ok:true,value}:failure(404,'not_found')},true)},
+    async loanRecord(principal,id){
+      if(!ownerTesting)return failure(403,'access_denied');
+      if(!validBorrowerId(id))return failure(400,'invalid_request');
+      return run(principal,async client=>{const item=await readLoanRecord(client,id);return item?{ok:true,value:{item}}:failure(404,'not_found')},true);
+    },
+    async borrowerRecord(principal,id,operation='read',input){
+      if(!ownerTesting)return failure(403,'access_denied');
+      if(!validBorrowerId(id))return failure(400,'invalid_request');
+      return run(principal,async(client,_actor,markAttempted)=>{
+        if(operation==='read'){const item=await readBorrowerRecord(client,id);return item?{ok:true,value:{item}}:failure(404,'not_found');}
+        return mutateBorrowerRecord(client,operation,id,input,markAttempted);
+      },operation==='read').then(result=>result.code==='command_outcome_unknown'?{...result,code:'record_outcome_unknown'}:result);
+    },
+    async borrowerOptions(principal,query=""){
+      if(!ownerTesting)return failure(403,'access_denied');
+      if(typeof query!=='string'||query.length>100)return failure(400,'invalid_request');
+      return run(principal,async client=>({ok:true,value:{referrers:(await client.query('SELECT "Row ID" AS id,"Borrower Name" AS label,"Description" AS description FROM public."Borrowers" WHERE strpos(lower(coalesce("Borrower Name",$2)),lower($1))>0 OR strpos(lower(coalesce("Description",$2)),lower($1))>0 ORDER BY "Borrower Name","Row ID" COLLATE "C" LIMIT 25',[query,''])).rows,accounts:(await client.query('SELECT a."Row ID" AS id,a."Account Label" AS label FROM public."Cash Accounts" a JOIN public."Cash Holders" h ON h."Row ID"=a."Ref Cash Holder" WHERE a."Active" IS TRUE AND h."Active" IS TRUE ORDER BY a."Sort Order",a."Row ID" COLLATE "C"')).rows}}),true);
+    },
     async submit(principal, input) {
       let command;
       try { command = canonicalCommand(input); } catch { return failure(400, 'invalid_request'); }
@@ -180,11 +273,11 @@ export function createPaymentCommandStore({pool,expectedDirectory,resolveReceipt
   await assertDisposable({query:(...args)=>client.query(...args)},expectedDirectory,78);
  }});
 }
-export function createApplicationRoleCommandStore({pool,targetAttestation,resolveReceipt,fixture,receiptAdapter,ownerTesting=false}) {
+export function createApplicationRoleCommandStore({pool,targetAttestation,resolveReceipt,fixture,receiptAdapter,sourceReceiptReader,ownerTesting=false}) {
  if(!pool||typeof pool.connect!=='function')throw Error('Application pool required');
- return buildStore({pool,resolveReceipt,fixture,receiptAdapter,ownerTesting,guardConnection:applicationConnectionGuard(targetAttestation)});
+ return buildStore({pool,resolveReceipt,fixture,receiptAdapter,sourceReceiptReader,ownerTesting,guardConnection:applicationConnectionGuard(targetAttestation)});
 }
 
-export function createDevCommandStore({pool,config,receiptAdapter}) {
- return buildStore({pool,fixture:config.fixture,ownerTesting:config.mode==='dev-owner-testing',receiptAdapter,resolveReceipt:input=>receiptAdapter.resolveReceipt(input),guardConnection:createDevCommandConnectionGuard(config)});
+export function createDevCommandStore({pool,config,receiptAdapter,sourceReceiptReader}) {
+ return buildStore({pool,fixture:config.fixture,ownerTesting:config.mode==='dev-owner-testing',receiptAdapter,sourceReceiptReader,resolveReceipt:input=>receiptAdapter.resolveReceipt(input),guardConnection:createDevCommandConnectionGuard(config)});
 }
