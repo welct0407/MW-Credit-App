@@ -4,7 +4,7 @@
 
 Date: 8 October 2026, Asia/Bangkok.
 
-Status: Checkpoint4B extends the local synthetic Selected Charges rehearsal with optional Notes and manual receipt selection/attachment, replacement and removal. Fifteen unique full-V77 cases, six HTTP/browser scenarios, large-receipt layout and maintained Test-CI passed; architecture/parent visual review passed. Owner local4B review is pending. The owner accepted4A visually; all seven channels remain required parity. No live GCS/API/financial, schema or permission changes; native update acceptance remains unobserved.
+Status: Checkpoint4C reusable pure payment-command contract is implemented and tested11/11 (B5+C6), with A review passed. The proposed public.pwa_payment_commands table plus three routines awaits owner approval for disposable rehearsal only. Durable persistence/concurrency, manual GCS/AppSheet mapping and event delivery are not implemented or verified. No live schema, grants, cloud or financial changes; R052 remains Open.
 
 ## Scope
 
@@ -146,3 +146,8 @@ Checkpoint2C Collection board and borrower-scoped charge reads are implemented/t
 ## Checkpoint4B — local Notes/manual receipt rehearsal
 
 [Design](checkpoint-4b-design.md) · [Owning log](../../Change%20Logs/CHANGE_NOTES_R052_PAYMENT_NOTES_RECEIPT_REHEARSAL_2026-10-08.md). Optional field entry, required capability coverage; local file references and memory descriptors do not establish GCS/AppSheet compatibility or durable command recovery.
+
+
+## Checkpoint4C — reusable contract and approval proposal
+
+[Concrete schema/access/receipt proposal](checkpoint-4c-design.md) · [Owning log](../../Change%20Logs/CHANGE_NOTES_R052_DURABLE_COMMAND_RECEIPT_PLAN_2026-10-08.md). Pure contract11/11 passed; durable database implementation awaits approval and is not delivered.

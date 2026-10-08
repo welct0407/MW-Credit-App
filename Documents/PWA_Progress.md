@@ -2,7 +2,7 @@
 
 **Last updated:** 8 October 2026 (Asia/Bangkok)
 
-**Current position:** R052 is Open. Checkpoint2G is owner-accepted; installed-iPhone offline/reconnect is owner-confirmed, while native update activation remains unobserved. Checkpoint4A local first-receiving design/prototype and disposable V77 rehearsal passed 12 focused database cases, four browser scenarios and the maintained database verification. The owner visually accepted the synthetic Selected Charges flow and authorized checkpoint4B local Notes/manual receipt rehearsal, now tested with15 unique V77 cases, six HTTP/browser scenarios and required database verification; all seven receiving channels remain required parity. No live financial workflow or cloud deployment is activated. Full Phase1/2 and Phase4 completion are not claimed.
+**Current position:** R052 is Open. The owner accepted the4B total/scroll refinement and authorized4C. A reusable pure payment-command contract is implemented, with11/11 focused tests and architecture review passed; durable command storage is proposed, not implemented. Manual GCS/AppSheet mapping remains unverified. Existing live read services are unchanged. All seven receiving paths remain required; no full Phase1/2/4 or live financial completion is claimed.
 
 [Open DEV app](https://dev-lm.mw-credit.com) · [Fallback](https://mw-credit-app-dev-737787224638.web.app) · [Detailed roadmap](PWA_Implementation_Plan.md) · [Checkpoint evidence](../outputs/r052-pwa/README.md)
 
@@ -47,12 +47,12 @@ Launch order: **1 → 2 → 3/4 → 5 → 6 → 8 → 9 → 10 → 11 → 12**. 
 **Domain and scrolling status, 8 October 2026:** dev-lm.mw-credit.com is active and owner-validated for sign-in, Borrowers/Collection reads and refresh persistence. Fixed header and independent desktop scrolling are implemented/tested; retain the recorded limits of physical-device and browser acceptance. [Scope](PWA_Implementation_Plan.md#phase-2-secure-application-foundation).
 
 - **Owner acceptance:** compact mobile header and mobile/desktop navigation accepted on 8 October ("looks good. carry on"). This does not establish full Phase2 or broader financial/performance acceptance.
-- **Next checkpoint:** review the completed local Notes/receipt attachment rehearsal, including replacement/removal without posting again. Next design work is durable command identity/event ownership. Precise GCS access and AppSheet-compatible reference integration must precede live upload. All seven receiving channels remain required parity: Single Full, Single Partial, Receive All, Lump Sum, First-day Auto, Loan Close and Selected Charges. Follow the [grounded checkpoint map](../outputs/r052-pwa/feature-baseline.md); new journal schema and live financial tests require scoped approval.
+- **Next checkpoint:** review and approve the [one-table/three-routine disposable schema proposal](../outputs/r052-pwa/checkpoint-4c-design.md). Only then implement and rehearse durable replay/concurrency on an isolated full-history database. Live schema/financial endpoints, GCS access and event delivery are separate decisions.
 - **Remaining planning work:** close Phase 1 feature/parity and acceptance gaps alongside agreed slices. Production readiness and financial workflows follow the roadmap dependencies, not completion of this UI review alone.
-- **Current blockers:** 4A flow accepted; 4B Notes/receipt review pending. Mutable/deletable receipt rows do not provide durable original-payload replay protection; the memory journal is only a simulation. Event delivery ownership and native update acceptance remain open.
+- **Current blockers:** 4A and the4B total/scroll refinement accepted;4C durable-command/receipt integration planning is underway. Mutable/deletable receipt rows do not provide durable original-payload replay protection; the memory journal is only a simulation. Event delivery ownership and native update acceptance remain open.
 
 ## Evidence and session updates
 
-[Current checkpoint and detailed evidence](../outputs/r052-pwa/README.md) · [Change record](../Change%20Logs/CHANGE_NOTES_R052_PAYMENT_NOTES_RECEIPT_REHEARSAL_2026-10-08.md) · [Release status](Release_Tracker.md) · [Team and closeout rule](PWA_Orchestration.md)
+[Current checkpoint and detailed evidence](../outputs/r052-pwa/README.md) · [Change record](../Change%20Logs/CHANGE_NOTES_R052_DURABLE_COMMAND_RECEIPT_PLAN_2026-10-08.md) · [Release status](Release_Tracker.md) · [Team and closeout rule](PWA_Orchestration.md)
 
 This is the single current owner-facing progress overview. At every development-session closeout, update this page's date, completed/tested/deployed/accepted distinctions, current review, next checkpoint, blockers and evidence links. Keep detailed history in the linked change records and roadmap; do not create competing progress trackers.
