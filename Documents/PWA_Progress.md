@@ -31,7 +31,7 @@ Business records are fetched afresh and kept in memory. Offline records/drafts, 
 | 1 | Full feature coverage, contracts and acceptance criteria | In progress; initial checkpoints accepted, full parity inventory still open |
 | 2 | Secure application foundation and first read flows | In progress; 2A complete, 2B/2C delivered, 2D domain owner-validated, 2E installed PWA, 2F search delivered and visibility fix owner-accepted; 2G error tracing tested, deployed and owner-accepted |
 | 3 | Production infrastructure and delivery readiness | Not started |
-| 4 | First complete financial workflow in DEV | Checkpoint4A visually accepted; 4B local notes/receipt rehearsal tested, including total-first scrollable charge review; owner review pending; durable command/event work remains, no live financial workflow activated |
+| 4 | First complete financial workflow in DEV | Checkpoint4A visually accepted; 4B total/scroll accepted;4C pure contract tested, disposable journal proposal awaiting approval; durable command/event work remains, no live financial workflow activated |
 | 5 | Complete mobile/desktop OLTP, including full loan management | Not started |
 | 6 | Complete desktop OLAP management | Not started |
 | 7 | Metabase integration/reporting enhancements | Deferred until after production go-live; not a launch prerequisite |
