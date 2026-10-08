@@ -49,7 +49,7 @@ All responses use `Cache-Control: no-store`. Exact-origin CORS permits GET and A
 
 Borrower projection: `id`, `name|null`, `createdDate|null`, `hasActiveLoan:boolean|null`, `outstandingPrincipal:decimal-string|null`, and `note|null`. Null is unknown, never silently zero. No contact, delivery/login email, address, account, private file URL, loan or charge fields are returned. Metadata uses source `dev`, server Bangkok business date, and ISO read timestamp.
 
-SQL source fields are grounded in V1 (`Row ID`, `Borrower Name`, `Creation Date`, `Hidden Flag`), V13 (`Has Active Loan`, `Total Outstanding Principal`), V28 (`Borrower Note`) and V25 (`Partners.Login Email`). Only `Hidden Flag IS FALSE` records are eligible in this conservative first checkpoint; null is excluded until AppSheet null semantics are confirmed. Existing database values supply balances; this service does not recreate financial calculations.
+SQL source fields are grounded in V1 (`Row ID`, `Borrower Name`, `Creation Date`, `Hidden Flag`), V13 (`Has Active Loan`, `Total Outstanding Principal`), V28 (`Borrower Note`) and V25 (`Partners.Login Email`). The approved hide-only-true rule uses `Hidden Flag IS NOT TRUE`: false and blank/null flags are eligible, true flags remain excluded. This corrects the initial conservative false-only translation; it does not claim a live AppSheet GUI test of blank-value expression semantics. Existing database values supply balances; this service does not recreate financial calculations.
 
 Pages use stable `Row ID COLLATE "C"` keyset order. This is deliberately not final AppSheet active/Creation Date ordering. One page is not the full portfolio; no portfolio total or complete grouping is asserted. Search and production workflow parity remain later work.
 
@@ -71,7 +71,7 @@ The owner reported successful real Google sign-in, Borrowers list and detail rea
 
 ## Checkpoint 2B — related loan read contract
 
-Deployed in DEV from tested source084bb537 at revision00004-wmg, with owner loan validation pending. Extends the same pinned-owner DEV service with GET /api/borrowers/:borrowerId/loans and GET /api/borrowers/:borrowerId/loans/:loanId. Every read checks current identity/mapping, parent visibility and exact loan-parent linkage. Missing/hidden/null-visible parent and mismatched detail remain generic not-found; visible parents with no loans return an empty list.
+Deployed in DEV from tested source084bb537 at revision00004-wmg, with owner loan validation pending. Extends the same pinned-owner DEV service with GET /api/borrowers/:borrowerId/loans and GET /api/borrowers/:borrowerId/loans/:loanId. Every read checks current identity/mapping, parent visibility and exact loan-parent linkage. Missing/explicitly hidden parent and mismatched detail remain generic not-found; visible parents with no loans return an empty list.
 
 The exact 14-column Loans projection contains key/reference, three dates, status/type, five existing monetary values and two booleans. Money is cast through numeric to decimal text; null, zero and negative values stay distinct. No browser balance calculation, aggregate count or financial command. Rows sort Loan Date descending/nulls last, then case-sensitive Row ID; cursors bind the parent and exact date/key position. Known status/type translations are display-only; unknown source text remains explicit.
 

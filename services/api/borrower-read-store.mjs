@@ -93,7 +93,7 @@ export function createBorrowerReadStore({ pool, config, now = () => new Date() }
       try { q = normalizeSearchQuery(q); after = decodeCursor(cursor, q); if (!Number.isInteger(limit) || limit < 1 || limit > 100) throw new Error(); }
       catch { return Promise.resolve({ ok: false, status: 400, code: 'invalid_request' }); }
       return run(email, async client => {
-        const result = await client.query(`SELECT ${borrowerColumns} FROM public."Borrowers" WHERE "Hidden Flag" IS FALSE
+        const result = await client.query(`SELECT ${borrowerColumns} FROM public."Borrowers" WHERE "Hidden Flag" IS NOT TRUE
           AND ($6::text = '' OR strpos(lower(COALESCE("Borrower Name", '')), lower($6)) > 0 OR strpos(lower(COALESCE("Description", '')), lower($6)) > 0)
           AND ($1::boolean IS FALSE OR (${borrowerRankSql}) > $2::integer OR ((${borrowerRankSql}) = $2::integer AND (
             ($3::date IS NOT NULL AND ("Creation Date" > $3::date OR "Creation Date" IS NULL OR ("Creation Date" = $3::date AND "Row ID" COLLATE "C" > $4::text COLLATE "C")))
@@ -109,10 +109,10 @@ export function createBorrowerReadStore({ pool, config, now = () => new Date() }
       try { after = decodeLoanCursor(cursor, borrowerId); if (!Number.isInteger(limit) || limit < 1 || limit > 100) throw new Error(); }
       catch { return Promise.resolve({ ok: false, status: 400, code: 'invalid_request' }); }
       return run(email, async client => {
-        const parent = await client.query('SELECT "Row ID" AS id FROM public."Borrowers" WHERE "Hidden Flag" IS FALSE AND "Row ID" = $1 LIMIT 2', [borrowerId]);
+        const parent = await client.query('SELECT "Row ID" AS id FROM public."Borrowers" WHERE "Hidden Flag" IS NOT TRUE AND "Row ID" = $1 LIMIT 2', [borrowerId]);
         if (parent.rows.length !== 1) return { parentMissing: true };
         const result = await client.query(`SELECT ${loanColumns} FROM public."Loans" l JOIN public."Borrowers" b ON l."Ref Borrowers" = b."Row ID"
-          WHERE b."Hidden Flag" IS FALSE AND b."Row ID" = $1
+          WHERE b."Hidden Flag" IS NOT TRUE AND b."Row ID" = $1
           AND ($2::boolean IS FALSE OR (${loanRankSql}) > $3::integer OR ((${loanRankSql}) = $3::integer AND (
             ($4::date IS NOT NULL AND (l."Loan Date" < $4::date OR l."Loan Date" IS NULL OR (l."Loan Date" = $4::date AND l."Row ID" COLLATE "C" > $5::text COLLATE "C")))
             OR ($4::date IS NULL AND l."Loan Date" IS NULL AND l."Row ID" COLLATE "C" > $5::text COLLATE "C"))))
@@ -125,14 +125,14 @@ export function createBorrowerReadStore({ pool, config, now = () => new Date() }
       if (!validLoanId(borrowerId) || !validLoanId(loanId)) return Promise.resolve({ ok: false, status: 404, code: 'not_found' });
       return run(email, async client => {
         const result = await client.query(`SELECT ${loanColumns} FROM public."Loans" l JOIN public."Borrowers" b ON l."Ref Borrowers" = b."Row ID"
-          WHERE b."Hidden Flag" IS FALSE AND b."Row ID" = $1 AND l."Row ID" = $2 LIMIT 2`, [borrowerId, loanId]);
+          WHERE b."Hidden Flag" IS NOT TRUE AND b."Row ID" = $1 AND l."Row ID" = $2 LIMIT 2`, [borrowerId, loanId]);
         return { item: result.rows.length === 1 ? projectLoan(result.rows[0], borrowerId) : null };
       }).then(result => result.ok && !result.item ? { ok: false, status: 404, code: 'not_found' } : result);
     },
     getBorrower: (email, id) => {
       if (!validId(id)) return Promise.resolve({ ok: false, status: 404, code: 'not_found' });
       return run(email, async client => {
-        const result = await client.query(`SELECT ${borrowerColumns} FROM public."Borrowers" WHERE "Hidden Flag" IS FALSE AND "Row ID" = $1 LIMIT 2`, [id]);
+        const result = await client.query(`SELECT ${borrowerColumns} FROM public."Borrowers" WHERE "Hidden Flag" IS NOT TRUE AND "Row ID" = $1 LIMIT 2`, [id]);
         if (result.rows.length !== 1) return { item: null };
         return { item: project(result.rows[0]) };
       }).then(result => result.ok && !result.item ? { ok: false, status: 404, code: 'not_found' } : result);
