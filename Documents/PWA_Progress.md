@@ -51,6 +51,8 @@ Launch order: **1 → 2 → 3/4 → 5 → 6 → 8 → 9 → 10 → 11 → 12**. 
 - **Remaining planning work:** close Phase 1 feature/parity and acceptance gaps alongside agreed slices. Production readiness and financial workflows follow the roadmap dependencies, not completion of this UI review alone.
 - **Current blockers:** no blocker to the disposable4D review. Live command identity/ACLs, manual GCS/AppSheet compatibility, event delivery and native update acceptance remain open. RepositoryV78 is not applied to live databases.
 
+**Team update, 8 October 2026:** A remains Astra High and supplies an executable test plan with each design; B remains Astra Medium. Replacement C and D workers use GPT-6.1 Sol Medium. C executes A's plan, records failures/evidence, retests fixes and escalates ambiguities or missing coverage to A; D retains infrastructure, miscellaneous execution, documentation and authorized publication. The previous C/D workers are superseded. [Team assignments](PWA_Orchestration.md) · [Governance change record](../Change%20Logs/CHANGE_NOTES_PWA_TEAM_GOVERNANCE_2026-10-08.md). This governance update changes no product checkpoint, acceptance or deployment status.
+
 ## Evidence and session updates
 
 [Current checkpoint and detailed evidence](../outputs/r052-pwa/README.md) · [Change record](../Change%20Logs/CHANGE_NOTES_R052_DISPOSABLE_COMMAND_JOURNAL_2026-10-08.md) · [Release status](Release_Tracker.md) · [Team and closeout rule](PWA_Orchestration.md)

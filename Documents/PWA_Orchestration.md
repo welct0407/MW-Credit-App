@@ -2,26 +2,26 @@
 
 **[Overall progress: completed, current review and next steps](PWA_Progress.md)** — updated at every development-session closeout.
 
-Owner instruction: 7 October 2026. Applies to the [implementation plan](PWA_Implementation_Plan.md); it overrides generic model defaults for this implementation only.
+Owner instruction: 7 October 2026; team revision: 8 October 2026 (Asia/Bangkok). Applies to the [implementation plan](PWA_Implementation_Plan.md); it overrides generic model defaults for this implementation only.
 
 ## Responsibilities
 
 | Role | Model and effort | Responsibility |
 | --- | --- | --- |
 | Main conversation | Orchestrator | Manage all agents, keep direction and scope aligned, coordinate dependencies, review evidence, facilitate issues and lead team resolution and owner checkpoints |
-| Agent A | GPT-6 Astra High | Detailed phase/slice design, decisions and direction for development challenges |
+| Agent A | GPT-6 Astra High | Detailed phase/slice design, an executable test plan alongside each design, decisions and direction for development challenges |
 | Agent B | GPT-6 Astra Medium | Implement Agent A's agreed design and address defects |
-| Agent C | GPT-6 Astra Low | Independently test Agent B's implementation, report failures and retest corrections |
-| Agent D | GPT-6 Astra Low (Astra Light) | All infrastructure and miscellaneous execution, including tooling, deployment, documentation, evidence and authorized publication |
+| Agent C | GPT-6.1 Sol Medium | Execute Agent A's test plan against Agent B's implementation, record failures and evidence, and retest corrections; escalate ambiguities or missing coverage to A |
+| Agent D | GPT-6.1 Sol Medium | All infrastructure and miscellaneous execution, including tooling, deployment, documentation, evidence and authorized publication |
 
-The owner's reference to Agent C testing its own work is interpreted as testing the Coding Agent B's work. All four requested agent/model configurations were dispatched successfully in this conversation. The owner assigned all future infrastructure and miscellaneous tasks to D; the main conversation manages and reviews the team. Agents are on-demand workers, not a persistent unattended service.
+The owner's reference to Agent C testing its own work is interpreted as testing the Coding Agent B's work. On 8 October 2026, new C and D workers were dispatched successfully with `gpt-6.1-sol` / `medium`: `agent_c_testing_sol` and `agent_d_infrastructure_sol`. They supersede the former Astra Low C/D workers; the old threads were not modified. Existing A/B workers and assignments remain unchanged. The owner assigned all future infrastructure and miscellaneous tasks to D; the main conversation manages and reviews the team. Agents are on-demand workers, not a persistent unattended service.
 
 ## Delivery loop and stop rule
 
 1. Orchestrator identifies a bounded slice, its baseline and meaningful visual checkpoint.
-2. A inspects relevant evidence and supplies design, limitations and acceptance scenarios.
-3. B implements that design. C may prepare coverage independently but tests the resulting implementation.
-4. B fixes failures; A resolves architectural ambiguity. C verifies affected behavior.
+2. A inspects relevant evidence and supplies design, limitations, acceptance scenarios and an executable test plan alongside each design. The plan identifies prerequisites, steps or commands, expected results and evidence to retain.
+3. B implements that design. C executes A's test plan against the resulting implementation and records results, failures and evidence. C escalates ambiguities or missing coverage to A rather than silently inventing scope.
+4. B fixes failures; A resolves architectural or test-plan ambiguity and supplies missing coverage. C retests fixes and verifies affected behavior using the agreed plan.
 5. D completes infrastructure, documentation and authorized publication. **Owner rule, 7 October 2026:** after every development session, update the single [overall progress overview](PWA_Progress.md) with the Bangkok date, completed/tested/deployed/accepted distinctions, current checkpoint, pending review, concrete next step, blockers and evidence. Keep phase statuses aligned with the roadmap; no inferred acceptance or invented percentage. The orchestrator verifies this closeout and presents a concrete preview plus status.
 6. All workers stop at the checkpoint. Wait for the owner's visual validation and go-ahead before starting the next slice. Do not treat silence, a passed test or a phase boundary as permission to continue.
 
@@ -35,7 +35,7 @@ No production mutation, financial posting, scheduler switch or AppSheet cutover 
 
 ## Current checkpoint
 
-Current UI checkpoint: workspace chrome trim is deployed as Hostingccb0af261babf04b fromdcf4b606, CI37664554957 attempt2 passed after same-source installer recovery. Eight affected browser cases passed; final signed-out smoke passed; owner review pending. API00009-5x5 unchanged. Domain certificate work explicitly deferred, no DNS/TLS probing. [Overall progress](PWA_Progress.md) owns status; Phase2 incomplete.
+See the authoritative [overall progress overview](PWA_Progress.md) for the current checkpoint, owner review, next steps and blockers.
 
 ## Revised reporting order
 
