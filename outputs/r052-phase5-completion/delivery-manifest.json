@@ -159,5 +159,35 @@
       "sequence": 280,
       "visualOwnerAcceptance": "remains reviewable; checkbox completion does not infer broader Phase5 acceptance"
     }
+  },
+  "lazyReadUiDelivery": {
+    "artifactSource": "280ac662a6aaaf4fcdbb9763fdc85084b7f77315",
+    "evidenceSource": "f75f2069a43f90a63c92607ffc0a6d9d1d024e99",
+    "scope": "Borrower-count Payment paging with lazy month/receipt read-only endpoints; compact Payments/Loans,date+colored-amount rows,DD-Mmm display,reduced-motion transitions,three Dashboard cards",
+    "independentChecks": "One actual-role read case2235.8ms; UI6/6 plus final inline CSS mobile verification; unit contract correction1/1",
+    "sqlPackage": "V83 unchanged E7185; no manual DB/fullfinancial suite",
+    "backendBuild": "53cbdcc3-3075-47bf-ad46-8c1d8f007d82",
+    "buildStatus": "passed",
+    "image": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app/api@sha256:512e996537489ebafea1824ee7f723f777c889732d76213e1e5431274254d71c",
+    "configuredFrontend": "index-D3vlydDA.js",
+    "frontendGuard": "passed",
+    "artifactsReused": "Exact product/build bytes unchanged by unit/date-display test and evidence-only f5ac1bf/f75f206",
+    "developmentRun": 37876724464,
+    "developmentStatus": "passed: 231 browser cases, nine existing skips; code/build/audit/Terraform validations passed",
+    "priorDevelopment": {
+      "run": 37875311750,
+      "status": "unit failure150/151 before build/E2E",
+      "resolution": "C obsolete flat cursor fixture corrected for lazy borrower/month/leaf contract; preserves null/unposted/full binding/no Posted filter"
+    },
+    "terraformPlanSha256": "e06299d93cfef51abad25afe866e31c55c8b596d1bd43b41b882848e6207beef",
+    "terraformActions": "One command image-only update; zero create/destroy; env/identity/config unchanged",
+    "applied": true,
+    "rollback": "Prior command00005-htm/image4ee1642c and Hosting999c383203659e26 retained privately",
+    "liveReadOnlySmoke": "passed: existing owner session; 25+7 borrower pages, lazy month/receipt reads, compact 44px inline DD-Mmm rows, 8px headers, three cards and strict320 no overflow; reduced motion enabled so live animation not claimed; no financial/draft action",
+    "financialWrites": "none",
+    "commandRevision": "mw-credit-app-command-dev-00006-4z4",
+    "hostingVersion": "0d84488761e83d32",
+    "hostingRelease": "1791515140484000",
+    "runtimeReadback": "Ready; exact digest; existing runtime identity and all environment values unchanged"
   }
 }

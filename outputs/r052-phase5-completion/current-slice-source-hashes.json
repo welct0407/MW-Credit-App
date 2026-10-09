@@ -304,6 +304,20 @@
       },
       "result": "Upcoming desktop/mobile2/2PASS14.9s; Collection receipt desktop/mobile2/2PASS12.7s",
       "timestamp": "Exact browser assertion09-Oct12:00 passed; earlier raw text was amount10 concatenated with09-Oct, not a missingdayzero"
+    },
+    "live": {
+      "source": "f75f206",
+      "product": "280ac66",
+      "developmentRun": "37876724464 GREEN (D)",
+      "apiRevision": "00006-4z4 (D)",
+      "image": "512e9965 (D)",
+      "hostingVersion": "0d84488761e83d32",
+      "release": "1791515140484000",
+      "actualBundle": "index-D3vlydDA.js",
+      "tab": "304619538 retained owner, currentChromebinding3",
+      "scope": "Readonly normalUpdate/authpersisted/rootborrower25+7/lazy syntheticmonth+receipt/strict320/compactheaders/Dashboard3cards",
+      "result": "PASS; viewport override reset, owner tab left Dashboard",
+      "limits": "No live financial/input/save/upload/draft changes; current reducedmotion true observed, prior controlled skip proof reused; no private screenshot publication"
     }
   }
 }
