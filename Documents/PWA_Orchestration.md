@@ -20,7 +20,7 @@ Owner instruction: 7 October 2026; team revision: 8 October 2026 (Asia/Bangkok).
 
 ## Routine UI delivery — owner revision, 8 October 2026
 
-This path takes precedence over a generic milestone/full-suite requirement for routine UI work. Classify by changed behavior, not filename: financial contracts, authentication/session policy, access, backend, database and infrastructure changes still require their applicable full validation before sensitive delivery.
+This path takes precedence over generic full-suite requirements for routine UI work. Classify by changed behavior, not filename: financial/auth/access/database/infrastructure changes receive relevant immediate verification and applicable protections; broad suites require changed-risk/dependency or consolidated-checkpoint justification. Additive display-only API fields are not automatic full-suite triggers.
 
 For routine UI, reuse the existing design. B implements one coherent batch; C runs relevant checks and ONE representative visual pass; D publishes and deploys the changed DEV frontend after those checks pass. Consult A only for a real requirement ambiguity or architectural decision. Preserve accessibility, readability, errors and recovery. Cosmetic reversible edits use existing build/type checks as needed plus the visual check; do not add tests that merely mirror CSS or text. Add regression tests when changed interactions create a meaningful failure risk.
 
@@ -28,6 +28,15 @@ Remote CI may run asynchronously for low-risk UI and its status must be reported
 
 Reuse the existing B/C/D workers and compact direct B–C defect handoffs. Freeze the coherent source once, publish at a useful checked point rather than chaining trivial commits, and close once. Stop after passing relevant checks and the required deployed smoke; do not repeat unchanged tests, visuals or worker wake-ups. Escalate a concrete blocker promptly instead of adding ceremonial reviews or promising a fixed delivery time. Production authorization and product/owner-acceptance boundaries are unchanged.
 
+## Consolidated UI checkpoints — owner revision, 9 October 2026
+
+Strictly batch several related UI iterations into one agreed consolidated checkpoint. This revision governs validation frequency and supersedes older generic full-suite gates for every backend or small UI delivery. B implements coherent iterations; C uses existing type/build checks as needed, affected interaction checks and a representative DEV visual pass; D delivers changed components after relevant passes. Reuse A/design unless ambiguity or architecture changes. Preserve accessibility, readable details, errors and recovery; do not add tests that merely mirror CSS/text.
+
+Run full browser CI once on the final agreed consolidated checkpoint ref and before promotion, not once per small edit, selector fix or screenshot. An additive display-only API field is not an automatic full-suite trigger: verify its source binding/read/auth boundary and affected UI, then carry it with the batch. Financial, authentication, access and database changes require relevant immediate verification and applicable recovery; broad suites run only when changed behavior/dependencies justify them or at the checkpoint. Do not rebuild or test unchanged components; tests/docs-only changes retain exact-input artifact reuse. Independent UI must not wait for unrelated sensitive gates.
+
+A stale selector/label failure gets affected-test repair/verification during iteration. At a failed consolidated checkpoint, preserve unaffected passes and artifacts, then run full browser CI on the corrected consolidated ref once ready. A skipped-success ordinary CI job is not full proof; neither an older green nor product acceptance proves the final source. Before promotion require full exact final-candidate evidence and all applicable database/authorization/recovery protections.
+
+Current automation: ordinary app PR updates still start the existing unit/build/audit/Terraform workflow; they skip browser installation/full E2E. Apply or reapply `ci:checkpoint` to the PR at the agreed ref to run full browser checks; leaving that label on later edits does not trigger full E2E. Main pushes/manual runs stay full. Verify the actual checkpoint run SHA and executed E2E step. The unrelated unpublished path router remains unpublished, so do not claim path-selective automation or no automatic runs. Keep one short direct B–C handoff and one closeout; communicate meaningful previews/results/deployments or blockers, not repeated unchanged CI narration. Reuse the four existing workers.
 ## Delivery loop and stop rule
 
 1. Orchestrator identifies a bounded slice, its baseline and meaningful visual checkpoint.
