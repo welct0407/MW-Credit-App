@@ -1,3 +1,4 @@
+import {CollectionNote} from './CollectionNote';
 import {borrowerLabel} from './borrower-label';
 import {displayDate,displayTimestamp,displayValue} from './display-date';
 import {CashWorkspace} from './CashWorkspace';
@@ -23,6 +24,7 @@ export function OfflinePayments({access,thai}:{access:CommandAccess;thai:boolean
  if(locked)return <p>{t('Connect to verify this account before accessing saved records.','เชื่อมต่อเพื่อตรวจสอบบัญชีก่อนเปิดข้อมูลที่บันทึกไว้')}{error}</p>;
  if(selected&&(rows.find(row=>row.id===selected)??selectedEntry)?.viewedSnapshot)return <OfflineViewedRecord snapshot={(rows.find(row=>row.id===selected)??selectedEntry).viewedSnapshot} thai={thai} onBack={()=>setSelected(null)}/>;
  if(selected&&(rows.find(row=>row.id===selected)??selectedEntry)?.correctionDraft){const saved=(rows.find(row=>row.id===selected)??selectedEntry).correctionDraft;return <PaymentCorrectionForm access={access} id={saved.id} savedDraft={saved} thai={thai} onBack={()=>setSelected(null)} onSaved={()=>{setSelected(null);setRevision(value=>value+1)}}/>;}
+ if(selected&&(rows.find(row=>row.id===selected)??selectedEntry)?.borrowerDraft?.kind==='collection-note'){const saved=(rows.find(row=>row.id===selected)??selectedEntry).borrowerDraft;return <><button className="icon-action" aria-label={t('Back to saved records','กลับข้อมูลที่บันทึก')} onClick={()=>setSelected(null)}>←</button><CollectionNote access={access} id={saved.id} thai={thai}/></>;}
  if(selected&&(rows.find(row=>row.id===selected)??selectedEntry)?.borrowerDraft){const saved=(rows.find(row=>row.id===selected)??selectedEntry).borrowerDraft;return <BorrowerRecord access={access} savedDraft={saved} thai={thai} onBack={()=>setSelected(null)} onSaved={()=>{setSelected(null);setRevision(value=>value+1)}}/>;}
  if(selected&&(rows.find(row=>row.id===selected)??selectedEntry)?.chargeDraft){const saved=(rows.find(row=>row.id===selected)??selectedEntry).chargeDraft;return <ChargeForm access={access} loanId={saved.loanId} label={saved.label} source={saved.source??undefined} savedDraft={saved} thai={thai} onBack={()=>setSelected(null)} onApplied={()=>{setSelected(null);setRevision(value=>value+1)}}/>;}
  if(selected&&(rows.find(row=>row.id===selected)??selectedEntry)?.preferenceDraft)return <><button className="icon-action" aria-label={t('Back to saved records','กลับข้อมูลที่บันทึก')} onClick={()=>setSelected(null)}>←</button><CashWorkspace access={access} thai={thai} savedDraft={(rows.find(row=>row.id===selected)??selectedEntry).preferenceDraft} onLanguage={()=>{}}/></>;
