@@ -8,7 +8,7 @@ export async function captureApplicationRoleSnapshot(client,config){
  await target(client,config);
  const objects=(await client.query(`
  SELECT 'DATABASE' kind,d.oid::text oid,quote_ident(d.datname) target,pg_get_userbyid(d.datdba) owner,d.datacl::text acl,NULL::text AS "column" FROM pg_database d WHERE d.datname=current_database()
- UNION ALL SELECT 'SCHEMA',n.oid::text,quote_ident(n.nspname),pg_get_userbyid(n.nspowner),n.nspacl::text,NULL FROM pg_namespace n WHERE n.nspname='public'
+ UNION ALL SELECT 'SCHEMA',n.oid::text,quote_ident(n.nspname),pg_get_userbyid(n.nspowner),n.nspacl::text,NULL FROM pg_namespace n WHERE n.nspname IN ('public','assessment_lab')
  UNION ALL SELECT CASE WHEN c.relkind='S' THEN 'SEQUENCE' ELSE 'TABLE' END,c.oid::text,format('%I.%I',n.nspname,c.relname),pg_get_userbyid(c.relowner),c.relacl::text,NULL FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND c.relkind IN ('r','p','v','m','S')
  UNION ALL SELECT 'COLUMN',c.oid::text,format('%I.%I',n.nspname,c.relname),pg_get_userbyid(c.relowner),a.attacl::text,quote_ident(a.attname) FROM pg_attribute a JOIN pg_class c ON c.oid=a.attrelid JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND a.attnum>0 AND NOT a.attisdropped
  UNION ALL SELECT CASE WHEN p.prokind='p' THEN 'PROCEDURE' ELSE 'FUNCTION' END,p.oid::text,format('%I.%I(%s)',n.nspname,p.proname,oidvectortypes(p.proargtypes)),pg_get_userbyid(p.proowner),p.proacl::text,NULL FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='public' AND p.prokind IN ('f','p')
@@ -59,8 +59,34 @@ export async function provisionApplicationRuntimeMembership(client,config,{apply
  for(const creator of config.creators){if((await client.query("SELECT pg_has_role($1,$2,'MEMBER') AS creator_member",[config.runtimeUser,creator])).rows[0].creator_member)throw Error('Runtime inherits registered migration creator');}
  const statement=memberSql({member:config.runtimeUser,admin:false,inherit:true,set:false});if(apply)await client.query(statement);return{database:config.database,runtimeUser:config.runtimeUser,statements:[statement],mode:apply?'membership-applied':'membership-plan'};
 }
+// Readiness only: V85 grants are supplied by the immutable migration, never here.
+export async function verifyManagementOwnerPrivileges(client,config){
+ await target(client,config);
+ if(!(await client.query("SELECT to_regprocedure('public.pwa_apply_cash_opening_v2(text)') IS NOT NULL AS present")).rows[0].present)return {mode:'skipped',reason:'Management package absent'};
+ const owner=(await client.query(`SELECT rolcanlogin,rolsuper,rolcreatedb,rolcreaterole,rolreplication,rolbypassrls,
+  has_table_privilege(oid,'public.r008_cash_account_cutover','INSERT') AS cutover_insert,
+  has_table_privilege(oid,'public.r008_cash_account_cutover','INSERT WITH GRANT OPTION') AS insert_grant,
+  has_schema_privilege(oid,'assessment_lab','USAGE') AS assessment_usage,
+  has_schema_privilege(oid,'assessment_lab','USAGE WITH GRANT OPTION') AS usage_grant,
+  has_schema_privilege(oid,'assessment_lab','CREATE') AS assessment_create,
+  EXISTS(SELECT 1 FROM unnest(ARRAY['UPDATE','DELETE','TRUNCATE','REFERENCES','TRIGGER']) p WHERE has_table_privilege(oid,'public.r008_cash_account_cutover',p))
+   OR has_any_column_privilege(oid,'public.r008_cash_account_cutover','UPDATE')
+   OR has_any_column_privilege(oid,'public.r008_cash_account_cutover','REFERENCES') AS destructive
+  FROM pg_roles WHERE rolname=$1`,[OWNER])).rows[0];
+ if(!owner||owner.rolcanlogin||owner.rolsuper||owner.rolcreatedb||owner.rolcreaterole||owner.rolreplication||owner.rolbypassrls||!owner.cutover_insert||owner.insert_grant||!owner.assessment_usage||owner.usage_grant||owner.assessment_create||owner.destructive)throw Error('Management owner privilege readiness violations');
+ // Check the stable capability and its direct LOGIN members, not temporary migration operators.
+ const runtime=(await client.query(`SELECT r.rolname,r.rolsuper,r.rolcreatedb,r.rolcreaterole,r.rolreplication,r.rolbypassrls,
+  pg_has_role(r.oid,$2,'MEMBER') AS owner_member,
+  EXISTS(SELECT 1 FROM unnest(ARRAY['INSERT','UPDATE','DELETE','TRUNCATE']) p WHERE has_table_privilege(r.oid,'public.r008_cash_account_cutover',p))
+   OR has_any_column_privilege(r.oid,'public.r008_cash_account_cutover','INSERT')
+   OR has_any_column_privilege(r.oid,'public.r008_cash_account_cutover','UPDATE') AS cutover_write
+  FROM pg_roles r WHERE r.rolname=$1 OR (r.rolcanlogin AND EXISTS(SELECT 1 FROM pg_auth_members m WHERE m.member=r.oid AND m.roleid=$1::regrole))`,[APP,OWNER])).rows;
+ if(!runtime.length||runtime.some(r=>r.rolsuper||r.rolcreatedb||r.rolcreaterole||r.rolreplication||r.rolbypassrls||r.owner_member||r.cutover_write))throw Error('Management runtime privilege readiness violations');
+ return {mode:'verified',cutoverOwner:'INSERT without grant option',assessmentOwner:'USAGE without CREATE or grant option',runtimeCutoverWrites:false};
+}
 export async function runDevelopmentPostMigrationHook(client,config,{environment,command,apply=false}={}){
  if(environment!=='development'||command!=='migrate')return{mode:'skipped',reason:'DEV migrate only'};
  await target(client,config);if(!(await client.query('SELECT 1 FROM pg_roles WHERE rolname=$1',[APP])).rowCount)return{mode:'skipped',reason:'Capability package absent'};
+ await verifyManagementOwnerPrivileges(client,config);
  const plan=await planApplicationRole(client,config);if(plan.violations.length)throw Error('Postmigration capability readiness violations');return reconcileApplicationRole(client,config,{apply});
 }

@@ -43,3 +43,9 @@ if($LASTEXITCODE){throw 'Unified receiving integration checks failed'}
 if($LASTEXITCODE){throw 'Phase 5 borrower integration checks failed'}
 & "$PSScriptRoot/../../tests/integration/Run-Phase5.ps1" -JournalOnly
 if($LASTEXITCODE){throw 'Phase 5 populated journal and operation integration checks failed'}
+
+# Historical anchor compatibility stays populated83-to84; management runs its own isolated upgrade family.
+& "$PSScriptRoot/../../tests/integration/Run-Phase5.ps1" -AnchorOnly
+if($LASTEXITCODE){throw 'Phase 5 populated anchor compatibility checks failed'}
+& "$PSScriptRoot/../../tests/integration/Run-Phase5.ps1" -ManagementOnly
+if($LASTEXITCODE){throw 'Phase 6 management integration checks failed'}

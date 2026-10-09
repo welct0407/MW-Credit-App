@@ -1,4 +1,6 @@
-param([switch]$JournalOnly,[switch]$AnchorOnly,[string]$TestNamePattern)
+param([switch]$JournalOnly,[switch]$AnchorOnly,[switch]$ManagementOnly,[string]$TestNamePattern)
+if($AnchorOnly -and $ManagementOnly){throw "Choose one explicit upgrade family"}
+if($ManagementOnly){$JournalOnly=$true}
 if($AnchorOnly){$JournalOnly=$true}
 # Fresh loopback-only full V82 database with optional populated V83 upgrade; never reads live credentials or accepts a DSN.
 $ErrorActionPreference='Stop'
@@ -46,12 +48,19 @@ try {
     if($LASTEXITCODE){throw 'Populated V83 upgrade failed'}
     & node "$PSScriptRoot/phase5-populated-journal-fixture.mjs" verify
     if($LASTEXITCODE){throw 'Populated V83 compatibility failed'}
-    if($AnchorOnly){
+    if($AnchorOnly -or $ManagementOnly){
      $env:LOAN_ANCHOR_SNAPSHOT=Join-Path $fixtureRoot 'populated-anchor83.json'
      & node "$PSScriptRoot/loan-anchor-populated-fixture.mjs" seed
      if($LASTEXITCODE){throw 'Populated V83 anchor seed failed'}
      & (Get-FlywayPath) '-outputType=json' '-target=84' migrate | Out-File (Join-Path $fixtureRoot 'migration84.json')
      if($LASTEXITCODE){throw 'V84 anchor upgrade failed'}
+     if($ManagementOnly){
+      $env:PHASE6_POPULATED_SNAPSHOT=Join-Path $fixtureRoot 'populated-management84.json'
+      & node "$PSScriptRoot/phase6-populated-fixture.mjs" seed
+      if($LASTEXITCODE){throw 'Populated V84 management seed failed'}
+      & (Get-FlywayPath) '-outputType=json' '-target=85' migrate | Out-File (Join-Path $fixtureRoot 'migration85.json')
+      if($LASTEXITCODE){throw 'V85 management upgrade failed'}
+     }
     }
    }
   }
@@ -61,13 +70,13 @@ try {
   foreach($entry in $savedFlyway.GetEnumerator()){Set-Item "Env:$($entry.Key)" $entry.Value}
  }
  $env:PAYMENT_REHEARSAL_DISPOSABLE='1';$env:PAYMENT_REHEARSAL_PORT=[string]$fixturePort;$env:PAYMENT_REHEARSAL_DIRECTORY=$data
- [string[]]$testFiles=if($AnchorOnly){@("$PSScriptRoot/loan-anchor-independent.test.mjs")}elseif($JournalOnly){@("$PSScriptRoot/phase5-operation.test.mjs","$PSScriptRoot/phase5-journal-independent.test.mjs","$PSScriptRoot/phase5-record-lists-independent.test.mjs")}else{@("$PSScriptRoot/borrower-domain.test.mjs","$PSScriptRoot/phase5-borrower-independent.test.mjs")}
+ [string[]]$testFiles=if($ManagementOnly){@("$PSScriptRoot/phase6-management-independent.test.mjs","$PSScriptRoot/phase6-financial-smoke.test.mjs")}elseif($AnchorOnly){@("$PSScriptRoot/loan-anchor-independent.test.mjs")}elseif($JournalOnly){@("$PSScriptRoot/phase5-operation.test.mjs","$PSScriptRoot/phase5-journal-independent.test.mjs","$PSScriptRoot/phase5-record-lists-independent.test.mjs")}else{@("$PSScriptRoot/borrower-domain.test.mjs","$PSScriptRoot/phase5-borrower-independent.test.mjs")}
 
  $testArguments=@('--test','--test-concurrency=1');if($TestNamePattern){$testArguments+=('--test-name-pattern='+$TestNamePattern)}
  & node @testArguments @testFiles
  if($LASTEXITCODE){throw 'Payment command API rehearsal failed'}
 } finally {
- Remove-Item Env:PAYMENT_REHEARSAL_DISPOSABLE,Env:PAYMENT_REHEARSAL_PORT,Env:PAYMENT_REHEARSAL_DIRECTORY,Env:PHASE5_POPULATED_JOURNAL_SNAPSHOT,Env:LOAN_ANCHOR_SNAPSHOT -ErrorAction SilentlyContinue
+ Remove-Item Env:PAYMENT_REHEARSAL_DISPOSABLE,Env:PAYMENT_REHEARSAL_PORT,Env:PAYMENT_REHEARSAL_DIRECTORY,Env:PHASE5_POPULATED_JOURNAL_SNAPSHOT,Env:LOAN_ANCHOR_SNAPSHOT,Env:PHASE6_POPULATED_SNAPSHOT -ErrorAction SilentlyContinue
  if($started){& (Join-Path $pgBin 'pg_ctl.exe') -D $data -m fast -w stop | Out-Null}
  Write-Host "Stopped disposable PostgreSQL; synthetic diagnostics retained at $fixtureRoot"
 }

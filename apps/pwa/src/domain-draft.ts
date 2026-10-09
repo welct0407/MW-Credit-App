@@ -1,7 +1,7 @@
 import {draftFailure,type DraftFailure} from './draft-state';
 import {useEffect,useRef,useState} from 'react';
 import type {OwnerOfflineRepository} from './owner-offline';
-export type DraftDomain='borrower'|'loan'|'charge'|'expense'|'preference'|'payment';
+export type DraftDomain='borrower'|'loan'|'charge'|'expense'|'preference'|'payment'|'management';
 /** Five drafts are enforced once by the owner repository, across every domain. */
 export function useDomainDraft({repository,id,domain,label,value,enabled,restore}:{repository?:OwnerOfflineRepository;id:string;domain:DraftDomain;label:string;value:any;enabled:boolean;restore:(value:any)=>void}){
  const [ready,setReady]=useState(false),[error,setError]=useState<DraftFailure|null>(null),serial=useRef(Promise.resolve()),timer=useRef<ReturnType<typeof setTimeout>|null>(null),epoch=useRef(0),suspended=useRef(false),latest=useRef(value),initial=useRef(JSON.stringify(value)),enabledRef=useRef(enabled),restoreRef=useRef(restore);

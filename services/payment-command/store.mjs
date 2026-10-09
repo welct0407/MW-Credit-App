@@ -1,3 +1,9 @@
+import {readManagementPosition} from '../business/management-position.mjs';
+import {readManagementAnalytics,readAnalyticsOverview,readAnalyticsChart} from '../business/management-analytics.mjs';
+import {readManagementOpenings} from '../business/management-openings.mjs';
+import {readManagementAssessments} from '../business/management-assessments.mjs';
+import {readManagementFinancial} from '../business/management-financial.mjs';
+import {readManagement} from '../business/management.mjs';
 import {readRecordList} from '../business/record-lists.mjs';
 import {readCollectionReceipts} from '../business/collection-receipts.mjs';
 import {readStandaloneUpcoming} from '../business/upcoming.mjs';
@@ -62,6 +68,7 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
     }
   }
   return {
+    async management(principal,kind,options){if(!ownerTesting)return failure(403,'access_denied');return run(principal,async client=>{const value=kind==='cash-position'?await readManagementPosition(client):kind==='analytics-overview'?await readAnalyticsOverview(client):kind==='analytics-chart'?await readAnalyticsChart(client,options):kind==='analytics-validation'?await readManagementAnalytics(client,options):kind==='assessments'?await readManagementAssessments(client,options):kind==='openings'?await readManagementOpenings(client,options):await (['contributions','settlements','cash-movements'].includes(kind)?readManagementFinancial:readManagement)(client,kind,options);return options?.id&&!value.item?failure(404,'not_found'):{ok:true,value}},true)},
     async upcoming(principal,options={}){if(!ownerTesting)return failure(403,'access_denied');return run(principal,async client=>{try{return {ok:true,value:await readStandaloneUpcoming(client,options)}}catch(error){if(error.message==='business_date_changed')return failure(409,'business_date_changed');throw error}},true)},
     async recordList(principal,kind,options){if(!ownerTesting)return failure(403,'access_denied');return run(principal,async client=>({ok:true,value:await readRecordList(client,kind,options)}),true)},
     async dashboard(principal){if(!ownerTesting)return failure(403,'access_denied');return run(principal,async client=>({ok:true,value:await readDashboard(client)}),true)},
