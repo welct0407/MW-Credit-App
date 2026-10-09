@@ -359,6 +359,29 @@
         "Lazy full totals/cursors/bounded calls/zeroPOST/reduced motion",
         "Actual Firebase SDK+SW offline boot/reconnect/update shared5 drafts+pending equality/signout purge/zeroPOST"
       ]
+    },
+    "live": {
+      "outcome": "PASS bounded actual owner read-only changed entrypoints",
+      "bundle": "index-uXt_wTSt.js",
+      "commandRevision": "mw-credit-app-command-dev-00007-mzx",
+      "imagePrefix": "159a0b20",
+      "hostingVersion": "cd4db974d95858a3",
+      "hostingRelease": "1791520458431000",
+      "tab": "304619538",
+      "browserMapping": "Chrome3 retained owner tab",
+      "observed": [
+        "safe0forms0editable fields before normal Update/reload; persisted owner auth",
+        "Borrowers25+8 pages/Updated compact principal/profit right",
+        "Payments25 initial collapsed groups; known synthetic lazy month→receipt08-Oct/account after date/single-line amount right",
+        "Synthetic inline full summary/read-only Actions menu/New loan text/no redundant controls",
+        "Actual related original principal/interest/ratio right column",
+        "Exclusive borrower history1collapsed month/headerrefresh; Back same summary+loan/Updated"
+      ],
+      "limits": [
+        "No New loan form opened to avoid creating any draft; prefill proven locally",
+        "Mobile ratio extremes/scroll continuity retained local synthetic proof",
+        "No live financial/input/save/upload/CAS/draft/signout/PII export"
+      ]
     }
   }
 }

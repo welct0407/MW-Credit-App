@@ -189,5 +189,31 @@
     "hostingVersion": "0d84488761e83d32",
     "hostingRelease": "1791515140484000",
     "runtimeReadback": "Ready; exact digest; existing runtime identity and all environment values unchanged"
+  },
+  "page12UiDelivery": {
+    "artifactSource": "e6fa9d7931d07f971c343978726199fbfe38967d",
+    "scope": "Twelve owner Page compact borrower/detail/related loan/exclusive history items; additive existing receiving-account label LEFT JOIN only",
+    "independentChecks": "B unit151/151/typebuild/SDK and maintained checks; C Page12 desktop/mobile, corrected320 geometry/visual, account-label unit and ten affected old cases passed with recorded reuse",
+    "backendBuild": "57816c50-9e87-4050-85a6-4811067e522b",
+    "buildStatus": "passed",
+    "image": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app/api@sha256:159a0b2063ddd66a04267625927afb4b1457849c2d9d69ac4fa17fec78d51fc7",
+    "configuredFrontend": "index-uXt_wTSt.js",
+    "frontendGuard": "passed",
+    "developmentRun": 37883649946,
+    "developmentStatus": "passed:233 E2E cases,nine existing skips; code/build/audit/Terraform validations passed",
+    "terraformPlanSha256": "c0f0346a919752bbc5c673f668981869fae632f8f37dc7e3db1e8f5a167f6892",
+    "terraformActions": "One command image-only update; zero create/destroy; env/identity/config unchanged",
+    "rollback": "Prior command00006-4z4/image512e9965 and Hosting0d84488761e83d32 retained privately",
+    "applied": true,
+    "liveReadOnlySmoke": "passed: retained owner; compact directory25+8, connected Payments/account label, inline summary/Actions, related metrics, exclusive history/Back; no inputs/financial/draft action; Newloan form not opened, local prefill/ratio/mobile proofs retained",
+    "financialWrites": "none",
+    "unchanged": "DEV83/schema/engine/auth/IAM/PROD/notifications; no manual DB/fullfinancial suite",
+    "evidenceSource": "e0fd7be26fd526fda04c76f4a0a670cffd7cfc64",
+    "artifactsReused": "Exact product/build inputs identical to e6fa9d7; correction changes three fixture expectation lines and evidence only",
+    "commandRevision": "mw-credit-app-command-dev-00007-mzx",
+    "hostingVersion": "cd4db974d95858a3",
+    "hostingRelease": "1791520458431000",
+    "runtimeReadback": "Ready on exact digest; actual env and identity unchanged",
+    "ownerPageReceipt": "Root guarded all12 checkmarks applied; page_e2bfd04859f08191ad454b65296965e1 sequence981; prior items/images preserved; broader acceptance separate"
   }
 }
