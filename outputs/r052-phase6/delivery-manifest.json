@@ -1,0 +1,78 @@
+{
+  "release": "R052",
+  "status": "implemented, verified and deployed in DEV; owner/device acceptance pending",
+  "sourceCommit": "faee43aca7284321618f6683d62494efcf6ece53",
+  "productCommit": "19330bb8ce77864d25b95309a33d4de7ccf73f43",
+  "backendArtifactCommit": "061a99556e89ec06d8e9e5adc98e95684055bb26",
+  "backendImage": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app/api@sha256:bea30b8bcd86956fc4cfb37c92f32a0254968812de15d28d9ed7b11861620a73",
+  "frontendBundle": "index-C1CIvmJt.js",
+  "migration": {
+    "version": 85,
+    "sha256": "3c0833004bfbea3d74354365637cddf1ed02dac5bcf963b4f2a0f6e4810ccd92"
+  },
+  "validation": {
+    "fullBrowser": {
+      "source": "19330bb8ce77864d25b95309a33d4de7ccf73f43",
+      "run": 37982226264,
+      "status": "passed",
+      "passed": 243,
+      "existingSkipped": 9
+    },
+    "currentLightweight": {
+      "source": "faee43aca7284321618f6683d62494efcf6ece53",
+      "run": 37983749832,
+      "status": "passed",
+      "browser": "skipped; not full proof"
+    },
+    "database": {
+      "run": 37983749766,
+      "status": "passed",
+      "management": {
+        "historicalWholeGraph": 1,
+        "remainingUnfiltered": 24,
+        "passed": 25,
+        "skipped": 0
+      },
+      "anchorPassed": 4,
+      "phase5JournalPassed": 78
+    },
+    "reuse": "19330bb to faee43a changes only test proof staging and evidence; complete product/E2E/build/config/SQL/infra input comparison empty. Backend build inputs identical from 061a995."
+  },
+  "limitations": [
+    "Unknown/new native AppSheet receipt references require exact trusted reconciliation; only two closed native descriptors established.",
+    "Physical-device and owner acceptance remain separate; browser proof is not physical-device acceptance.",
+    "No PROD, notifications or live financial test writes."
+  ],
+  "deployment": {
+    "databaseVersion": 85,
+    "protectedReadiness": "verified",
+    "temporaryAuthorityRestoration": "exact original rights restored; other memberships/public ACL unchanged",
+    "permanentOwnerDelta": [
+      "INSERT-only without grant option on public.r008_cash_account_cutover",
+      "USAGE-only without CREATE on assessment_lab"
+    ],
+    "commandRevision": "mw-credit-app-command-dev-00013-f84",
+    "readerRevision": "mw-credit-app-read-dev-00014-bmw",
+    "onlyCommandImageChanged": true,
+    "hostingVersion": "fe54464c7cf5a0b5",
+    "hostingRelease": "1791576549461000",
+    "frontendBundle": "index-C1CIvmJt.js",
+    "configuredCompiledGuard": "passed",
+    "ownerSessionSmoke": "passed; persisted owner Dashboard, Cash Position, Cash Accounts, Loan Assessments, Collection Ready; no mutations"
+  },
+  "recovery": {
+    "completedAt": "2026-10-10T03:03:33.4479504+07:00",
+    "version": 84,
+    "archiveListing": "passed",
+    "ownedRestore": "passed",
+    "privateOutsideGit": true,
+    "rollback": {
+      "commandRevision": "mw-credit-app-command-dev-00012-5cj",
+      "hostingVersion": "932f1c91b20e7f67",
+      "frontendBundle": "index-CHuqnyVx.js",
+      "policy": "App rollback does not undo SQL/financial data. Preserve journal/audit and V85-compatible recovery; do not delete initialized cutover rows."
+    }
+  },
+  "checkpointLabel": "removed after full proof",
+  "publication": "Final evidence commit is documentation-only; application artifacts remain pinned above."
+}

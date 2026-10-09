@@ -1,5 +1,5 @@
 {
-  "scope": "Final test-only upgrade proof scheduling repair; corrected Database checkpoint pending; browser243/9 retained",
+  "scope": "Final corrected gates green; deployed DEV85 bounded owner authenticated read smoke PASS",
   "testedMovementV85": "F50EF02EBFA852B0850730F5BB35634EAD42899B491C6697BABC557620E55686",
   "substantiveSqlCases": 22,
   "independentMoneyUnitCases": 1,
@@ -38,5 +38,13 @@
   "independentAnalyticsProviderUnitCases": 1,
   "focusedDesktopManagementUiCases": 5,
   "repairedCDesktopCases": 50,
-  "repairedBScopedCases": 7
+  "repairedBScopedCases": 7,
+  "deployedReadOnlySmoke": {
+    "outcome": "PASS representative desktop authenticated reads; no mutations",
+    "release": "1791576549461000",
+    "commandRevision": "00013-f84",
+    "hostingVersion": "fe54464c7cf5a0b5",
+    "physicalDeviceAcceptance": "not claimed",
+    "bundle": "index-C1CIvmJt.js"
+  }
 }
