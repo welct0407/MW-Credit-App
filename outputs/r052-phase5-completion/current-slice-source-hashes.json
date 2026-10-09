@@ -294,6 +294,16 @@
       "sha256": "65BAD8DC363B1E3A7735AA0428CA85885FE0E88FB8BAF92E4FCF4031F8AACF65",
       "result": "1/1 PASS4.6ms /116.9ms total",
       "scope": "Lazy borrower/month/receipt query seam preserves nullable/unposted DTOs, null cursor branches, full group totals and no Posted filter; test-only update after obsolete flat cursor expectation in Development37875311750"
+    },
+    "displayAssertionCorrection": {
+      "run": "Development37875650490",
+      "scope": "Two obsolete ISO display assertions only; provider/request ISO untouched, product unchanged",
+      "hashes": {
+        "tests/e2e/phase5-borrower-independent.spec.ts": "7ABE4BFE245EE7C1A31A86DE8903E320CA066D83ED920B9D469BDE7A58472FBC",
+        "tests/e2e/phase5-final-ui-independent.spec.ts": "3E77A39A7CD7A8D52C217991583571ADEB7A2DE4F20172133A95134ACF013C1A"
+      },
+      "result": "Upcoming desktop/mobile2/2PASS14.9s; Collection receipt desktop/mobile2/2PASS12.7s",
+      "timestamp": "Exact browser assertion09-Oct12:00 passed; earlier raw text was amount10 concatenated with09-Oct, not a missingdayzero"
     }
   }
 }
