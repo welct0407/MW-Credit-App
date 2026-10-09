@@ -268,3 +268,12 @@
  .borrower-record>.related-loans-heading:has(.borrower-direct-actions)>h2{grid-column:2;overflow-wrap:break-word}
  .borrower-record>.related-loans-heading>.borrower-direct-actions{grid-column:1/-1;justify-self:end}
 }
+
+.borrower-directory>.root-record-heading{margin-bottom:0;border-radius:8px 8px 0 0}.borrower-directory>.record-group-heading{margin-top:0;margin-bottom:0}
+.live-shell .borrower-card.expense-tile,.live-shell .borrower-card.upcoming-row{display:grid;grid-template-columns:minmax(0,1fr) max-content;align-items:center;gap:12px;padding:10px 12px}
+.expense-tile>span,.upcoming-row>span{min-width:0;overflow-wrap:anywhere}.expense-tile small,.upcoming-row small{display:block;font-size:13px;color:#666;margin-top:4px}.expense-tile>strong,.upcoming-row>strong{white-space:nowrap;text-align:right}
+.expense-records dt,.cash-workspace dt{font-size:13px;color:#666}.expense-records dd,.cash-workspace dd{font-size:17px;color:#202124;margin:4px 0 14px;overflow-wrap:anywhere}.expense-records dd>.text-action{font-size:inherit;padding:0;text-align:left}
+.cash-statement-paper{margin-top:20px;padding:20px;border:1px solid #ccc;background:white;box-shadow:0 2px 8px #00000012}.cash-statement-paper>h3{margin:0 0 6px}.cash-statement-paper>dl{display:grid;grid-template-columns:minmax(0,1fr) max-content;gap:4px 16px;border-top:2px solid #555;border-bottom:1px solid #aaa;padding:12px 0}.cash-statement-paper>dl dd{text-align:right;margin:0}.cash-statement-paper>.collection-charge{border:0;border-bottom:1px solid #ddd;border-radius:0;padding:12px 0}.cash-statement-paper pre{white-space:pre-wrap;overflow-wrap:anywhere}
+@media(max-width:600px){.cash-statement-paper{padding:12px}}
+
+.upcoming-event dt{font-size:13px;color:#666}.upcoming-event dd{font-size:17px;margin:4px 0 14px;color:#202124}
