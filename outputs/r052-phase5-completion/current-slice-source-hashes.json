@@ -812,5 +812,42 @@
       "tests/unit/draft-state.test.mjs": "5E856E2E32AE1584F43DABBAF2BAF3AD5235A2E4A87E0D6323A5A34B1EADF7E4"
     },
     "proof": "B2/2/typebuild and root source review; configured build/guard passed; no CI/browser"
+  },
+  "paidChargeIncrease": {
+    "outcome": "PASS one substantive SQL case plus bounded desktop/mobile read-only navigation",
+    "sqlCommand": "Run-Phase5.ps1 -JournalOnly -TestNamePattern F7-C05",
+    "sqlSubstantiveCases": 1,
+    "filteredModuleWrappers": 2,
+    "cluster": "97e1a768cc824458a03df025b3b24e50",
+    "stopped": true,
+    "hashes": {
+      "apps/pwa/src/CollectionRecords.tsx": "443D7B3C6BE094260D63D2E14D87F7121FB8C7B1281E17F5E65A692D7600B47F",
+      "apps/pwa/src/ChargeRecord.tsx": "FAAA86C1DC9250EAD902F3EBCA17692BECBD7474136924863F035DFA0F963DB3",
+      "apps/pwa/src/ChargeForm.tsx": "3A40FA0C53BDEF5857EEB98B326D35A2DB04A455A533F034E572C8435A02C8C6",
+      "tests/integration/phase5-journal-independent.test.mjs": "7781891B1C1C717467139B583834CA834880EF6901A3DDEB32CCCF06B8FA3B6D"
+    },
+    "ui": [
+      {
+        "width": 1440,
+        "paidChargeFreshGet": 1,
+        "editAvailableAtZero": true,
+        "exactFields": true,
+        "backToCollectionCharges": true,
+        "posts": 0
+      },
+      {
+        "width": 320,
+        "paidChargeFreshGet": 1,
+        "editAvailableAtZero": true,
+        "exactFields": true,
+        "backToCollectionCharges": true,
+        "posts": 0
+      }
+    ],
+    "limits": [
+      "Keyboard Enter accessible details action tested; no forced pointer click or live mutation",
+      "No browser CI/full regression",
+      "Existing floor/reassignment/default protections reused"
+    ]
   }
 }

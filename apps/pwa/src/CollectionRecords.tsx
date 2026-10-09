@@ -1,3 +1,4 @@
+import {ChargeRecord} from './ChargeRecord';
 import {LoanRecord} from './LoanRecord';
 import {CollectionNote} from './CollectionNote';
 import {SharedBorrowerDetail} from './SharedBorrowerDetail';
@@ -101,13 +102,13 @@ export function CollectionRecords({ thai, request, cancel, onStatus, refreshToke
     if (result) { setUpcoming(result); previews.current = { borrowerId: row.id, businessDate: result.businessDate, asOf: result.asOf, receivedAt: performance.now(), items: result.previews ?? [] }; }
     return result !== null;
   }
-  async function loadCharges(row: Summary, next?: string, pageNumber = 1) {
+  async function loadCharges(row: Summary, next?: string, pageNumber = 1, keepCharge = false) {
     if(pageNumber===1)chargeCursors.current=[undefined];chargeCursors.current[pageNumber-1]=next;
     cancel(); const current = ++revision.current;
-    previews.current = null; setSelected(row); setSelectedCharge(null); setUpcoming(null); setUpcomingDetail(null); setUpcomingError(null);
+    previews.current = null; setSelected(row); if(!keepCharge)setSelectedCharge(null); setUpcoming(null); setUpcomingDetail(null); setUpcomingError(null);
     setChildError(null); setCharges([]); setChargeCursor(null); setChargeAsOf(''); setError(null); setBusy(true); setUpdateState('loading');
-    // Align on the navigation action, never after delayed reads complete.
-    setScrollTarget(value => ({ kind: 'detail', sequence: value.sequence + 1 }));
+    // Keep the shared charge detail mounted while refreshing its Collection context.
+    if(!keepCharge)setScrollTarget(value => ({ kind: 'detail', sequence: value.sequence + 1 }));
     let parentUnavailable = false;
     const result = await request<DetailResult>('/api/collection/' + encodeURIComponent(row.id) + '/charges?limit=10' + (next ? '&cursor=' + encodeURIComponent(next) : ''), code => {
       if (current !== revision.current) return;
@@ -117,11 +118,22 @@ export function CollectionRecords({ thai, request, cancel, onStatus, refreshToke
     });
     if (current !== revision.current) return;
     if (result && businessDate && result.businessDate !== businessDate) { fail({ code: 'business_date_changed' }); setBusy(false); return; }
-    if (parentUnavailable) { setBusy(false); setUpdateState('error'); return; }
+    if (parentUnavailable) { setSelectedCharge(null);setBusy(false); setUpdateState('error'); return; }
     if (result) { setSelected(result.borrower); setCharges(result.items); setChargeCursor(result.nextCursor); setChargePage(pageNumber); setBusinessDate(result.businessDate); setChargeAsOf(result.asOf); }
     const upcomingOk = await fetchUpcoming(result?.borrower ?? row, result?.businessDate ?? businessDate, current);
     if (current !== revision.current) return;
     setBusy(false); setUpdateState(result && upcomingOk ? 'success' : 'error');
+  }
+  async function chargeChanged() {
+    if(!selected)return;
+    const row=selected,boardPage=page,boardCursor=boardCursors.current[page-1];
+    const reload=loadCharges(row,chargeCursors.current[chargePage-1],chargePage,true),current=revision.current;
+    await reload;
+    if(current!==revision.current)return;
+    // A full page reread also refreshes server-calculated status groups and their whole-group totals.
+    const result=await request<BoardResult>('/api/collection?limit=25'+(query?'&q='+encodeURIComponent(query):'')+(boardCursor?'&cursor='+encodeURIComponent(boardCursor):''),failure=>{if(current===revision.current)setError(failure)});
+    if(current!==revision.current)return;
+    if(result){setItems(result.items);setCursor(result.nextCursor);setPage(boardPage);setBusinessDate(result.businessDate);setAsOf(result.asOf);}
   }
   async function refreshUpcoming() {
     if (!selected) return;
@@ -160,10 +172,11 @@ export function CollectionRecords({ thai, request, cancel, onStatus, refreshToke
   const paymentLabel = (value: string) => value === 'รอชำระ' ? t('Pending', 'รอชำระ') : value === 'ชำระบางส่วน' ? t('Partially paid', 'ชำระบางส่วน') : t('Paid', 'ชำระแล้ว');
   const amounts = (row: Summary) => <dl className="collection-amounts"><div><dt>{t('Amount due', 'ยอดที่ต้องชำระ')}</dt><dd className={row.amountDue!==null&&Number(row.amountDue)===0?'zero-currency':''}>{money(row.amountDue)}</dd></div><div><dt>{t('Collected today', 'รับชำระวันนี้')}</dt><dd className={row.amountCollected!==null&&Number(row.amountCollected)===0?'zero-currency':''}>{money(row.amountCollected)}</dd></div><div><dt>{t('Remaining to collect', 'ยอดคงเหลือที่ต้องรับชำระ')}</dt><dd className={row.amountRemaining!==null&&Number(row.amountRemaining)===0?'zero-currency':''}>{money(row.amountRemaining)}</dd></div></dl>;
 
-  useContextRefresh(!!selected&&!paymentOpen&&!receiptRecord,upcomingDetail?t('First upcoming details page / refresh','หน้าแรกของรายละเอียดล่วงหน้า / รีเฟรช'):t('First charges page / refresh','หน้าแรกยอดเรียกเก็บ / รีเฟรช'),()=>{if(upcomingDetail)void openUpcoming(upcomingDetail.dueDate,undefined,1,true);else if(selected)void loadCharges(selected)});
+  useContextRefresh(!!selected&&!paymentOpen&&!receiptRecord&&!selectedCharge&&!loanOpen&&!borrowerOpen,upcomingDetail?t('First upcoming details page / refresh','หน้าแรกของรายละเอียดล่วงหน้า / รีเฟรช'):t('First charges page / refresh','หน้าแรกยอดเรียกเก็บ / รีเฟรช'),()=>{if(upcomingDetail)void openUpcoming(upcomingDetail.dueDate,undefined,1,true);else if(selected)void loadCharges(selected)});
   const upcomingView = (detail: UpcomingDetail | null) => <UpcomingCharges thai={thai} summary={upcoming} detail={detail} page={upcomingPage} busy={busy} error={upcomingError} onDate={value => void openUpcoming(value)} onBack={() => { restoreDetailScroll.current = true; setUpcomingError(null); setUpcomingDetail(null); }} onRefresh={() => void refreshUpcoming()} onDetailRefresh={() => upcomingDetail && void openUpcoming(upcomingDetail.dueDate, undefined, 1, true)} onPrevious={upcomingPage>1&&upcomingDetail?()=>void openUpcoming(upcomingDetail.dueDate,upcomingCursors.current[upcomingPage-2],upcomingPage-1,true):undefined} onNext={() => upcomingDetail?.nextCursor && void openUpcoming(upcomingDetail.dueDate, upcomingDetail.nextCursor, upcomingPage + 1)} />;
   if(loanOpen&&commandAccess)return <LoanRecord access={commandAccess} id={loanOpen} thai={thai} onBack={()=>setLoanOpen(null)}/>;
   if(borrowerOpen&&selected&&commandAccess)return <SharedBorrowerDetail access={commandAccess} id={selected.id} label={selected.displayName} thai={thai} onBack={()=>setBorrowerOpen(false)}/>;
+  if(selectedCharge&&commandAccess)return <ChargeRecord key={selectedCharge.id} access={commandAccess} id={selectedCharge.id} thai={thai} backLabel={t('Back to charges','กลับรายการเรียกเก็บ')} onChanged={()=>void chargeChanged()} onBack={()=>{restoreDetailScroll.current=true;setSelectedCharge(null)}}/>;
   if(receiptRecord&&commandAccess)return <PaymentRecord access={commandAccess} id={receiptRecord} thai={thai} onBack={()=>setReceiptRecord(null)}/>;
   if(paymentOpen&&commandAccess)return <SelectedCharges access={commandAccess} borrowerId={selected?.id??commandAccess.fixtureBorrowerId} thai={thai} onBack={()=>{setPaymentOpen(false);if(selected)void loadCharges(selected);else void loadBoard()}}/>;
   return <section className="collection-workspace" aria-label={t('Collection workspace', 'พื้นที่งานติดตาม')}>
