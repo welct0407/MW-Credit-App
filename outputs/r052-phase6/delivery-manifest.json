@@ -74,5 +74,17 @@
     }
   },
   "checkpointLabel": "removed after full proof",
-  "publication": "Final evidence commit is documentation-only; application artifacts remain pinned above."
+  "publication": "Final evidence commit is documentation-only; application artifacts remain pinned above.",
+  "mobileOlap": {
+    "ownerRevision": "2026-10-10",
+    "sourceCommit": "2fb807903a5042927f582b42ee4d8b99601fb664",
+    "scope": "All existing Management workflows mobile and desktop; same APIs and authorization",
+    "target": "iPhone16/17/18 Pro Max only; no assumed iPhone18 dimensions",
+    "validation": "Type/build and compiled DEV guard passed; C 440x956 Chromium portrait representative visual/read PASS, zero POST; no CI requested",
+    "hostingVersion": "e58a2cb8f52967fe",
+    "hostingRelease": "1791587270355000",
+    "frontendBundle": "index-DzT32uER.js",
+    "rollbackHostingVersion": "fe54464c7cf5a0b5",
+    "limitations": "Landscape, expanded-table interaction and physical Safari/device acceptance not separately tested; native receipt limitations unchanged"
+  }
 }
