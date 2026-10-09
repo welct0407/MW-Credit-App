@@ -8,7 +8,7 @@
 
 Prepared 7 October 2026, Asia/Bangkok. This is the delivery plan for a complete replacement of the current AppSheet OLTP and OLAP applications. We will implement and verify one phase at a time. The final deliverable is the new system operating in production alongside AppSheet, with full required coverage, proven recovery and an executable cutover procedure.
 
-**Target:** mobile provides every current OLTP capability; desktop provides every current OLTP and OLAP capability. Mobile OLAP expansion is optional future scope. Payments require online confirmation; offline viewing and drafts are included. The existing databases, GCS, Metabase, Grafana and retained integrations remain in use.
+**Target — owner revision, 10 October 2026:** mobile and desktop provide every current OLTP and OLAP capability. Mobile optimization targets iPhone16/17/18 Pro Max only; preserve desktop behavior. Existing APIs/authority are reused. Focused large-iPhone viewport checks do not establish physical-device acceptance, and no iPhone18 dimensions are assumed. Payments require online confirmation; offline viewing and drafts are included. The existing databases, GCS, Metabase, Grafana and retained integrations remain in use.
 
 Completing the plan makes the system **ready for cutover**. Switching the default application and retiring AppSheet remain explicit owner decisions after the final readiness review. AppSheet remains available throughout development and the parallel production period.
 
@@ -52,8 +52,8 @@ Every financial command must enforce server-side identity and permissions, prese
 | 2 | Build the secure application foundation and first read flow | 1 | In progress; 2A owner-validated, 2B/2C reads delivered, 2D domain validated, 2E installation accepted, 2F visibility correction accepted; 2G tracing deployed and owner-accepted |
 | 3 | Make production infrastructure and delivery ready | 2 | Not started |
 | 4 | Prove one complete financial workflow in DEV | 2; production setup can proceed alongside it | Completed and owner-accepted on 8 October 2026 (Asia/Bangkok); tested/deployed first financial workflow and recorded live synthetic proof |
-| 5 | Complete mobile and desktop OLTP | 4 | In progress; five receiving behaviors unified in DEV82, pending owner review; remaining OLTP scope open |
-| 6 | Complete desktop OLAP management | Shared contracts from 4; operational dependencies from 5 | Not started |
+| 5 | Complete mobile and desktop OLTP | 4 | Implemented/tested/deployed DEV85; consolidated checkpoint passed, owner/device and unknown native receipt limits remain open |
+| 6 | Complete mobile and desktop OLAP management | Shared contracts from 4; operational dependencies from 5 | Mobile/desktop implementation deployed DEV85; focused Pro Max portrait proof passed, physical-device/owner acceptance pending |
 | 7 | Enhance Metabase integration and reporting after go-live | Production go-live; 5 and 6 contracts | Deferred by owner |
 | 8 | Complete automation, notifications and coexistence behavior | Event inventory from 1; relevant commands from 4–6 | Not started |
 | 9 | Verify the complete launch release and operational recovery | 3–6 and 8; retained reporting access | Not started |
@@ -159,11 +159,11 @@ Payment notes/manual receipt evidence are required completion capabilities, not 
 
 **Exit criteria:** every required mobile OLTP row and its desktop equivalent passes permission, financial and UI tests. The system correctly distinguishes online confirmation, pending operations and unsent drafts. Integration-dependent exits remain explicitly open until Phase 8 rather than being declared complete early.
 
-## Phase 6 Complete OLAP management
+## Phase 6 Complete mobile and desktop OLAP management
 
 **DEV checkpoint, 10 October 2026:** full desktop management implementation is verified and deployed DEV85; consolidated deferred Phase5/6 checks and representative owner read-only smoke passed. Owner acceptance and physical-device/native unknown-reference limits remain separate. [Current proof](https://github.com/welct0407/MW-Credit-App/blob/codex/r052-review-shell/outputs/r052-phase6/delivery-manifest.json).
 
-**Objective:** replace OLAP's editable management workflows in the desktop application.
+**Objective:** replace every existing OLAP management workflow on desktop and the targeted Pro Max mobile devices, reusing the same API and authority.
 
 - Implement partner identity, delivery/language/reviewer preferences and permission-aware administration.
 - Implement capital contributions, partner entitlements, reservations, allocations and settlements, including exact amount/settle-all, completion, cancellation and approved reversal/correction behavior.
@@ -172,7 +172,7 @@ Payment notes/manual receipt evidence are required completion capabilities, not 
 - Provide status/progress and safe retry handling for long management operations. Retain audit trails and avoid heavy browser or OLTP calculations.
 - Preserve allowed cross-links to operational details without creating conflicting duplicate editors.
 
-**Deliverables:** full desktop OLAP management candidate.
+**Deliverables:** full mobile and desktop OLAP management candidate. Mobile optimization is limited to iPhone16/17/18 Pro Max; physical-device acceptance remains separate.
 
 **Exit criteria:** every editable OLAP workflow has a tested replacement. Concurrency, over-reservation, historical corrections, permissions and source reconciliation pass. Metabase reporting does not substitute for missing management actions.
 
