@@ -714,5 +714,16 @@
     },
     "configuredFrontend": "index-CBq0BQca.js",
     "evidence": "delivery-manifest.json#collectionElevenUiDelivery"
+  },
+  "collectionSevenUi": {
+    "artifactSource": "280368f2b8dd1ca0575130c74d547dae554ff172",
+    "sourceHashes": {
+      "apps/pwa/src/CollectionRecords.tsx": "D38D14C5DF9E8B1CECF755515F9C50130F2834EAED88639A3C935F6C91F1F59B",
+      "apps/pwa/src/CollectionNote.tsx": "C8CD15F9DE1C4AA77A889E688FEF856C3B7A87E9A59DD5C9526B95EB07B71366",
+      "apps/pwa/src/CollectionReceipts.tsx": "BAB011C6E70F8D90FE047A58535E1838D1F1EE9238A12D9183FDAB957C66201E",
+      "apps/pwa/src/live-style.css": "2E81B67971798874E71447F51259F91F95A6FBF4CBF21ABF589B900F7ACB221E"
+    },
+    "configuredFrontend": "index-LBzOQLH8.js",
+    "evidence": "delivery-manifest.json#collectionSevenUiDelivery"
   }
 }
