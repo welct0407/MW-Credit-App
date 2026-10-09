@@ -312,8 +312,33 @@ label input,label select,label textarea,label output{font-weight:400}
 .loan-step-buttons{display:flex;gap:4px}.loan-step-buttons button{min-width:44px;min-height:44px;padding:4px;border:1px solid #aeb6bf;border-radius:6px;background:#fff;color:#25303d}
 .loan-type-options{border:0;padding:0;margin:0;display:flex;flex-wrap:wrap;gap:6px}.loan-type-options legend{font-weight:700;margin-bottom:6px}.loan-type-options label{position:relative;display:flex;flex:1;min-width:110px}.loan-type-options input{position:absolute;opacity:0;width:1px;height:1px}.loan-type-options span{border:1px solid #aeb6bf;border-radius:6px;padding:10px;text-align:center;width:100%;font-weight:400}.loan-type-options input:checked+span{background:#fff0df;border-color:#bd6200;color:#8b4700;font-weight:700}.loan-type-options input:focus-visible+span{outline:2px solid #bd6200;outline-offset:2px}
 
-.management-tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}.management-tabs button{min-height:44px;border:1px solid #ccd0d5;border-radius:6px;background:#fff;padding:8px 16px}.management-tabs button[aria-current=page]{border-color:#bd6200;background:#fff0df;font-weight:700}.management-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}.management-cards article{background:white;border:1px solid #ddd;border-radius:8px;padding:16px}
+.management-tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}.management-tabs button{min-height:44px;border:1px solid #ccd0d5;border-radius:6px;background:#fff;padding:8px 16px}.management-tabs button[aria-current=page]{border-color:#bd6200;background:#fff0df;font-weight:700}.management-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr));gap:16px}.management-cards article{background:white;border:1px solid #ddd;border-radius:8px;padding:16px}
 
 .management-chart-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.management-chart{background:white;border:1px solid #ddd;border-radius:8px;padding:12px;min-width:0}.management-pie{width:170px;height:170px;border-radius:50%;margin:12px auto}.management-line-chart{display:block;width:100%;height:auto}.management-chart table{width:100%;font-size:14px}.management-chart th{text-align:left;font-weight:400}.management-chart td{text-align:right;white-space:nowrap}
 
 .management-inactive{color:#707070;background:#f4f4f4}.management-position>article{margin-bottom:1rem}.management-position h2{font-size:1.15rem}.management-position .management-chart>article+article{border-top:1px solid #ddd;margin-top:.75rem;padding-top:.75rem}
+
+/* Management uses the same workflows on narrow screens; only presentation changes. */
+.management-workspace,.management-position,.management-cards>article{min-width:0;max-width:100%}
+.management-table-scroll{max-width:100%;overflow-x:auto;overscroll-behavior-x:contain}
+.management-table-scroll table{min-width:360px;border-collapse:collapse}
+.management-table-scroll th{overflow-wrap:anywhere}.management-table-scroll:focus-visible{outline:2px solid #bf6900;outline-offset:2px}
+main[data-workspace=management] dl,main[data-workspace=management] dd{min-width:0;overflow-wrap:anywhere}
+main[data-workspace=management] pre{white-space:pre-wrap;overflow-wrap:anywhere}
+@media(max-width:1050px){
+ .management-chart-grid{grid-template-columns:minmax(0,1fr)}
+ .management-cards{gap:10px}.management-cards article{padding:12px}
+ main[data-workspace=management] .related-loans-heading{flex-wrap:wrap;gap:6px}
+ main[data-workspace=management] .related-loans-heading h2{flex:1;min-width:0;overflow-wrap:anywhere}
+ main[data-workspace=management] .borrower-direct-actions{display:flex;flex-wrap:wrap;justify-content:flex-start;flex-basis:100%;max-width:100%}
+ main[data-workspace=management] .borrower-direct-actions button{max-width:100%;white-space:normal;text-align:left}
+ main[data-workspace=management] input,main[data-workspace=management] select,main[data-workspace=management] textarea{max-width:100%;box-sizing:border-box}
+ .management-nav-item{padding-left:28px!important}
+}
+
+@media(max-width:1050px){
+ .live-shell main[data-workspace=management]{padding-left:max(12px,env(safe-area-inset-left));padding-right:max(12px,env(safe-area-inset-right))}
+ .live-shell .topbar{padding-left:max(12px,env(safe-area-inset-left));padding-right:max(12px,env(safe-area-inset-right))}
+ .live-menu-dialog{box-sizing:border-box;overflow-y:auto;padding-top:max(16px,env(safe-area-inset-top));padding-left:max(16px,env(safe-area-inset-left));padding-bottom:max(16px,env(safe-area-inset-bottom))}
+ .live-bottom-nav{padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right);box-sizing:border-box}
+}
