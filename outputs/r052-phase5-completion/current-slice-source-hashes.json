@@ -794,5 +794,23 @@
       "Local Flyway postgres bootstrap; true nonsuper application execution separately verified",
       "Null generator fallback source reused unchanged V8; explicit clear/read actual tested"
     ]
+  },
+  "loanFormTwoUi": {
+    "source": "5c4be5f6190a453deb3109d2bc7ca7647cde81c7",
+    "hashes": {
+      "apps/pwa/src/ChargeForm.tsx": "62AA4A75E5116D872724D37971CC84A3DE10390FDF03B366CCCB30416E42B756",
+      "apps/pwa/src/ExpenseRecords.tsx": "9931C07A3124AAEAD1049F81FA12D16ED9EF51E3897EE17C51D37CB72A8D7B37",
+      "apps/pwa/src/LoanClose.tsx": "1B35C8C9026867CE4D33C396C63BA762CA7927C849A483B03402D689EBE5DEA8",
+      "apps/pwa/src/LoanForm.tsx": "48B26A2FD24425B8A2C9F7CEE7DCF9C003069F1F4F1D2497FF5AF9618EB48466",
+      "apps/pwa/src/PaymentCorrectionForm.tsx": "CBB12B56748B4613DBC438BA285757AF5E483D8A4BBA4404538E1A89135DF3C2",
+      "apps/pwa/src/PaymentRecord.tsx": "CF53E46CEB1230CCFCC3CFFAB80D6A1BB0BD1CCA1A65A89AE32F698AAF94F72A",
+      "apps/pwa/src/SelectedCharges.tsx": "010D12DB393F0685085D99DE234861A905F868916BD1012ECB26F22C49F5F564",
+      "apps/pwa/src/domain-draft.ts": "7177833CE87E59A646E9ACD161847AC271804CDC64152380C10AB21BD11B8E0F",
+      "apps/pwa/src/live-style.css": "6BA4E6DCFA461D86842F372FB644BC8FD1E6C78137ED6938D918D4F540241732",
+      "apps/pwa/src/owner-offline.ts": "FBDF61FBA1AEF549C91A97EE9C50227E794099D603D6516C63F8F9A812DA4210",
+      "apps/pwa/src/draft-state.ts": "94A6679D19B1ACE6987CF2BE2D0FBE38B2CE02A96C255D4D5DFE82DE0F7CB874",
+      "tests/unit/draft-state.test.mjs": "5E856E2E32AE1584F43DABBAF2BAF3AD5235A2E4A87E0D6323A5A34B1EADF7E4"
+    },
+    "proof": "B2/2/typebuild and root source review; configured build/guard passed; no CI/browser"
   }
 }

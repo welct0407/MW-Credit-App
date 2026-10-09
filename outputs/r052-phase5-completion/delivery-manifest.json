@@ -424,5 +424,22 @@
     "financialWrites": "No live anchor/financial test writes",
     "dictionaryLimitation": "Global dictionary index helper blocked by pre-existing missing legacy environment YAML; no unrelated repair. Exact existing-anchor contract retained in owning migration/API/database README and manifest; PROD physical column unchanged.",
     "ownerAcceptance": "Broader owner/device acceptance separate"
+  },
+  "loanFormTwoUiDelivery": {
+    "artifactSource": "5c4be5f6190a453deb3109d2bc7ca7647cde81c7",
+    "scope": "Required asterisks after left-aligned field titles; edited New Loan draft saves and typed quota/auth/storage errors preserve immutable pending safety",
+    "configuredFrontend": "index-C6nmSoMF.js",
+    "hostingVersion": "255503690702a136",
+    "hostingRelease": "1791563532275000",
+    "frontendGuard": "passed",
+    "api": "Unchanged command00012-5cj/reader00014-bmw",
+    "database": "DEV84/PROD77 unchanged",
+    "rollback": "ab4f887/index-DTKZpSJf.js/Hosting258a5f25d81e3065 retained",
+    "focusedProof": "B helper2/2/typebuild and root exact source review passed",
+    "verificationBoundary": "No new browser or live behavioral test claim",
+    "ci": "None: all commits [skip ci]",
+    "ownerPageReceipt": "Both exact Page items ticked successfully sequence3944; no conflicts",
+    "financialWrites": "none",
+    "ownerAcceptance": "Broader owner/device acceptance separate"
   }
 }
