@@ -1,13 +1,11 @@
 {
-  "scope": "Final coherent C/B browser repair freeze; corrected full remote checkpoint pending",
+  "scope": "Final test-only upgrade proof scheduling repair; corrected Database checkpoint pending; browser243/9 retained",
   "testedMovementV85": "F50EF02EBFA852B0850730F5BB35634EAD42899B491C6697BABC557620E55686",
   "substantiveSqlCases": 22,
   "independentMoneyUnitCases": 1,
   "files": {
-    "tests/integration/Run-Phase5.ps1": "8CFF0A655034B5B3B9262ECC078FD231D0B6B851B81C0EB56C7528E2A4F0B125",
     "scripts/rehearsal/payment-command.mjs": "FADB4716605D0CBA5145A956C615F7B61682F4DF4B40791314B26B669B31DC63",
     "tests/integration/phase6-populated-fixture.mjs": "5EB92BA5BE33928301D616E5412E394E9E6EA9884BD0228A42C37DE4D3989169",
-    "tests/integration/phase6-management-independent.test.mjs": "07D5E2C11FA1D77C0356889E07E7593FD16D028FFF17ECDFDDA571B0208EFDA6",
     "tests/unit/phase6-financial-independent.test.mjs": "FA60C06B9282DD5EB9834ED73F306CDF264B2B777992045266553DD5EBDE74C4",
     "tests/unit/phase6-analytics-independent.test.mjs": "598BEFB416591DA1DD8B858CC9210C6B763E2727F74F19DA1023B153FCD3E42F",
     "tests/e2e/phase5-offline-sdk-independent.spec.ts": "BF6A2E836481C996A34A5FB1EC59A94F24E063A6C60C0457DC86F8DFB61D2932",
@@ -30,7 +28,10 @@
     "apps/pwa/src/SelectedCharges.tsx": "8C819FD55A7EFB324D7F9C73EF650ABB53F37A0977186CBD2C7AD0206BE65A83",
     "playwright.config.ts": "E98820676CA9EE233A395B0081906DB4A7FD7BCD42D2624D86CD7B8DE1F5B2D8",
     "tests/integration/Run-PaymentPhase4.ps1": "1D9D8358EB73C9B745F274A2EE14777DC767B5B4B4B257027DF42B77530478FB",
-    "tests/integration/receiving-ux-independent.test.mjs": "DF68E44A0677AFFD0A4960048BC7ECD210F8C2D6D4F0248CB8D70B267C052090"
+    "tests/integration/receiving-ux-independent.test.mjs": "DF68E44A0677AFFD0A4960048BC7ECD210F8C2D6D4F0248CB8D70B267C052090",
+    "tests/integration/Run-Phase5.ps1": "776F1541EDF66D3284DC1F4512E69DBAB8896F85FFD0FA9915AEC7455E6A0BDB",
+    "tests/integration/phase6-management-independent.test.mjs": "B7C9A855339F10A111C0AA8F86A5E1C386E89D9336341EE69731F594841E0814",
+    "tests/integration/phase6-upgrade-independent.test.mjs": "8998F3F5CEEAF4FA8847595A473C538D5F10C6CDF1CB0C4FB2DA36D5338F944C"
   },
   "testedOpeningAssessmentV85": "7295F67C4E747B022D599EC15C89098E52A52CC63107E82D4850FB70DEBE8CDE",
   "testedAnalyticsV85": "3C0833004BFBEA3D74354365637CDDF1ED02DAC5BCF963B4F2A0F6E4810CCD92",
