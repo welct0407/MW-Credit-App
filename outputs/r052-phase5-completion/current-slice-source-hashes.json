@@ -238,6 +238,14 @@
     "capture": "mw-page7-static-c62fcd0a19394ca7bea7008d3466099f",
     "testBundle": "index-BmGSJ2Iz.js",
     "finalPaletteCapture": "mw-page7-palette-2315ddba638e46fd8e6ca3fde68c0108",
-    "finalPaletteTestBundle": "index-BORL5x-N.js"
+    "finalPaletteTestBundle": "index-BORL5x-N.js",
+    "live": {
+      "source": "e0e43e7",
+      "hostingVersion": "999c383203659e26",
+      "release": "1791510563581000",
+      "bundle": "index-DTB57LIb.js",
+      "scope": "Same owner Chrome4/tab304619538; safe reload, Dashboard+collapsedPayments+detailheaderActions read-only7itemsPASS; no inputs/commands/draftchanges",
+      "limits": "Current live detail amount below1000, large-detail comma proof reused controlledfixture; no private screenshots/metrics exported"
+    }
   }
 }

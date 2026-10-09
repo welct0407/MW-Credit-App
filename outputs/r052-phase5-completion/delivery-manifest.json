@@ -77,9 +77,9 @@
     "PROD": "V77 unchanged",
     "sourceCommit": "93cc0da3011c3d7db07f827fd7a741a7f7b36f7c",
     "commandRevision": "mw-credit-app-command-dev-00005-htm",
-    "hostingVersion": "3942c9523faf8dc8",
-    "hostingRelease": "1791498471535000",
-    "bundle": "index-BPaBdrU2.js",
+    "hostingVersion": "999c383203659e26",
+    "hostingRelease": "1791510563581000",
+    "bundle": "index-DTB57LIb.js",
     "receiptGetOnly": "Applied and exact SA/prefix binding verified",
     "maintenance": "Exact original selected-grantor rights restored; other membership/schema ACLs verified unchanged before COMMIT",
     "readinessViolations": 0,
@@ -111,13 +111,13 @@
     "cloudBuildId": "81c3dd82-38e2-4149-8e5b-d55d2ae01d3e",
     "cloudBuildStatus": "passed",
     "commandImage": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app/api@sha256:4ee1642c473e0d7cd9dabf6b202ed9cab71d2d7808c0d7137252fa242cf71c10",
-    "frontendBundle": "index-BPaBdrU2.js",
+    "frontendBundle": "index-DTB57LIb.js",
     "hostingDryCheck": "passed",
     "applied": true,
     "frontendSuperseded": false,
     "supersedingFrontendBuild": "clean published build passed",
     "backendSourceUnchanged": true,
-    "frontendSourceCommit": "93cc0da3011c3d7db07f827fd7a741a7f7b36f7c"
+    "frontendSourceCommit": "e0e43e7be253667b96f38f0aecb01ceef264de52"
   },
   "terraformApplication": {
     "initialPlanSha256": "584adfb1d98e8aeb5ee9befc13e9db74483cc36d4d53b0975768349e15d1d58b",
@@ -138,5 +138,26 @@
     "maintainedPrevention": "deploy-hosting.mjs checks compiled Firebase presence/exact DEV origins before credentials/version creation",
     "guardChecks": "Syntax, configured artifact pass, unconfigured synthetic artifact rejection",
     "noAuthPolicyChange": true
+  },
+  "page7UiDelivery": {
+    "sourceCommit": "e0e43e7be253667b96f38f0aecb01ceef264de52",
+    "scope": "Four frontend presentation files only; no backend/DB/auth/financial change",
+    "checks": "Build/typecheck/configured deploy guard; C4/4 focused interaction/paging and final mobile palette pass",
+    "bundle": "index-DTB57LIb.js",
+    "hostingVersion": "999c383203659e26",
+    "hostingRelease": "1791510563581000",
+    "rollbackHosting": "3942c9523faf8dc8",
+    "liveReadOnlySmoke": "passed: actual owner-session seven items, Dashboard/grouping/detail/header Actions; no inputs/financial/draft writes",
+    "developmentRun": 37871570870,
+    "developmentStatus": "asynchronous in progress",
+    "automaticDatabaseRun": 37871570867,
+    "databaseStatus": "automatic asynchronous, unchanged DB proof reused",
+    "noManualDatabaseSuite": true,
+    "ownerFeedbackPage": {
+      "pageId": "page_e2bfd04859f08191ad454b65296965e1",
+      "sevenCheckboxes": "completed by root after verified DEV",
+      "sequence": 280,
+      "visualOwnerAcceptance": "remains reviewable; checkbox completion does not infer broader Phase5 acceptance"
+    }
   }
 }
