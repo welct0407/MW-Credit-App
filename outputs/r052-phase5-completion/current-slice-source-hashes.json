@@ -701,5 +701,18 @@
     "configuredFrontend": "index-x8fdabks.js",
     "evidence": "delivery-manifest.json#collectionReceivingEightUiDelivery",
     "ci": "not run by owner instruction"
+  },
+  "collectionElevenUi": {
+    "artifactSource": "a0925eca145046054a8fcc7e9616a262c04eaebd",
+    "sourceHashes": {
+      "apps/pwa/src/CollectionRecords.tsx": "537459DA3F1213FBE789028B480AE56BA1BD24D30B33B5802ED5758183A294A3",
+      "apps/pwa/src/CollectionNote.tsx": "2F307551CCA82572CBB8C586C9579B01007B1101CCA333323D0339F9DDCC2CF1",
+      "apps/pwa/src/OfflinePayments.tsx": "3B3D0DEA7155D1483C05ADD3A752504DDDC0E38885E0399DB3B8640E58781701",
+      "apps/pwa/src/SelectedCharges.tsx": "9971AEAF4C9940C42516FD4F9F7D979ECD2A1E378FD74CA75043F30256DF033B",
+      "apps/pwa/src/UpcomingCharges.tsx": "0C10A7D6E266342D78355E2D7D70D203CD745383690CDA863B741E320299C18C",
+      "apps/pwa/src/live-style.css": "639C7E6DE13D7ED448DE5F4E7995E3ECA772B4117D0DC1621F13A227A3B1C3B7"
+    },
+    "configuredFrontend": "index-CBq0BQca.js",
+    "evidence": "delivery-manifest.json#collectionElevenUiDelivery"
   }
 }

@@ -7,3 +7,6 @@ B focused CAS/noop/double-blur/conflict/Unknown identical-retry/latest-text remo
 Rollback: starting app66da490 and configured x8fdabks/Hosting85fa13d4ef1bb3bb retained. Configured frontend deployment and actual owner-session read-only result will be recorded in the existing delivery manifest. No live Note write or financial/draft test mutation.
 
 Owner requested no CI of any kind; every publication uses [skip ci]. R052 remains Open and broader Phase5 owner/device acceptance stays separate.
+
+## Verified deployment
+Sourcea0925ec configured index-CBq0BQca.js/Hostingdbae9730a29c4462/release1791550459113000 deployed; both APIs unchanged. Root live owner-session read-only smoke passed compact Collection/summary/header link/enabled Note field/disclaimer removal without edits or financial writes. No upcoming rows existed in the live synthetic, so local table proof is reused. Root ticked all eleven Page checklist blocks sequence2881, no rejection. Exact pins and evidence are in the existing delivery manifest.
