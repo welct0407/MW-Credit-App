@@ -10,3 +10,6 @@ Owner requested no CI of any kind; every publication uses [skip ci]. R052 remain
 
 ## Verified deployment
 Sourcea0925ec configured index-CBq0BQca.js/Hostingdbae9730a29c4462/release1791550459113000 deployed; both APIs unchanged. Root live owner-session read-only smoke passed compact Collection/summary/header link/enabled Note field/disclaimer removal without edits or financial writes. No upcoming rows existed in the live synthetic, so local table proof is reused. Root ticked all eleven Page checklist blocks sequence2881, no rejection. Exact pins and evidence are in the existing delivery manifest.
+
+## Seven subsequent UI refinements
+Four frontend files refine Collection group styling, underlined field links and separate charge/loan navigation, Upcoming alignment, receipt-image relevance filtering across later pages and routine Note controls while preserving explicit recovery. Root reviewed all four exact source diffs and accepted the seven-item scope; B type/build passed. No additional browser suite or CI was requested. Existing APIs/DB/auth/financial engine remain unchanged. Rollback is source2d93d6b and configured CBq0BQca/Hostingdbae9730a29c4462. Actual deployment/Page receipt will be recorded in the existing manifest.
