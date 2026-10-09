@@ -23,3 +23,5 @@ Verified six-item delivery: source62328f1, reader00014-bmw/image59470247 Ready w
 
 ## Four corrective UI refinements
 Two frontend files align every sidebar navigation row, restore Fully Paid green and charge remaining red/received green/zero black through the actual cascade, and make the full charge tile accessible/clickable with an independent LoanKey link. B synthetic 320px computed styles/seven-row geometry/keyboard+tile+loan navigation passed with zeroPOST; type/build passed. Root exact source review accepted. No API/DB/CI change. Starting rollback b795bc6/DDRfhvDO/Hosting9901ee492760a10e retained; APIs reader00014-bmw/command00010-f7n unchanged. Final delivery/Page pins follow in the same manifest.
+
+Verified four-correction delivery: source8c5e9f2/configured DtpcUIhS/Hostingdf78950055306439/release1791558725218000. APIs unchanged. Root ticked all four Page corrections sequence3436; local synthetic/source proof accepted without new live behavioral claim. Exact pins and two source hashes are in the existing manifest.

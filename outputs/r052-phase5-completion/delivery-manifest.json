@@ -356,5 +356,21 @@
     "ownerPageReceipt": "All six exact Page items ticked sequence3312; no conflicts/rejections",
     "financialWrites": "none",
     "ownerAcceptance": "Broader owner/device acceptance separate"
+  },
+  "collectionFourUiDelivery": {
+    "artifactSource": "8c5e9f2acfbb21fb674d49a1286ff5984a86a0fa",
+    "scope": "Two frontend files/four sidebar alignment, paid/charge/zero cascade and accessible full-tile independent LoanKey corrections",
+    "configuredFrontend": "index-DtpcUIhS.js",
+    "hostingVersion": "df78950055306439",
+    "hostingRelease": "1791558725218000",
+    "frontendGuard": "passed",
+    "api": "Unchanged reader00014-bmw/command00010-f7n",
+    "rollback": "b795bc6/DDRfhvDO/Hosting9901ee492760a10e retained",
+    "focusedProof": "B actual synthetic320 computed styles/seven-row geometry/keyboard tile and loan navigation zeroPOST/typebuild PASS; root exact source review PASS",
+    "verificationBoundary": "Local synthetic/source proof; no new live behavioral claim",
+    "ci": "None: commits [skip ci]",
+    "ownerPageReceipt": "All four Page corrections ticked sequence3436 successfully",
+    "financialWrites": "none",
+    "ownerAcceptance": "Broader owner/device acceptance separate"
   }
 }

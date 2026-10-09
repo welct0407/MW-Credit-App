@@ -739,5 +739,14 @@
     },
     "configuredFrontend": "index-DDRfhvDO.js",
     "evidence": "delivery-manifest.json#collectionSixUiDelivery"
+  },
+  "collectionFourUi": {
+    "artifactSource": "8c5e9f2acfbb21fb674d49a1286ff5984a86a0fa",
+    "sourceHashes": {
+      "apps/pwa/src/CollectionRecords.tsx": "79BC9A9250CAC6877B3E7489B49A9A713FCCA8E3777D5EF62EE3A196B28DB77B",
+      "apps/pwa/src/live-style.css": "929CED7D461C86FE9325F1A29C842A920414272D30981897B58F4161B4918F3C"
+    },
+    "configuredFrontend": "index-DtpcUIhS.js",
+    "evidence": "delivery-manifest.json#collectionFourUiDelivery"
   }
 }
