@@ -748,5 +748,24 @@
     },
     "configuredFrontend": "index-DtpcUIhS.js",
     "evidence": "delivery-manifest.json#collectionFourUiDelivery"
+  },
+  "directSevenUi": {
+    "artifactSource": "d4d48133cd0c2af6d56c9b0126aa98c9db5dcaea",
+    "sourceHashes": {
+      "index.html": "BDF9C9B18FA528C7B0FF7E76588C97944837080951502D6571C2932164FF9ABE",
+      "apps/pwa/src/CollectionRecords.tsx": "911012B941DE47CAAEC8363E26982143F4F1F27F33F5DA5D56587A922C688D4A",
+      "apps/pwa/src/UpcomingCharges.tsx": "F30A714E7BB5DCB16317BF3E7586DB55104E26FB96E8AF36AD3CE78F241A3993",
+      "apps/pwa/src/live-main.tsx": "DC47FDEE05221068775330139C234094B34C14D6EEDCF58D6A31F8B56BE36E2E",
+      "apps/pwa/src/main.tsx": "5EFC03980AD5489A0CD6A7B7D8F33D54C7D68A17507E4576E0151F7967831558",
+      "apps/pwa/src/zoom-guard.ts": "39356576425A7B6E5BB23D5B9546574132FA72630CB3A7727CBD003AC3E928F7",
+      "apps/pwa/src/display-date.ts": "BFDC08823D1E2EA3BA82582BF4F0624E00532EFC1333821B81FA273B8702ED3D",
+      "apps/pwa/src/live-style.css": "47786D47A64BCBD1CE61DF6F923E339A1FB052CC037752C6E47B66DCF3107C09",
+      "tests/unit/display-date.test.mjs": "B946ECDFB78840EC4F83F91EADA6DD245851E03348D14BB07470D6875128BCA0",
+      "tests/unit/zoom-guard.test.mjs": "5E8F2DEA536134F89BE8E07DBA555A7B0243CA27D715949A93D25123043B8CBB",
+      "services/payment-command/draft.mjs": "E191D6BC6E5FC3677BF713DA9BD99F78C521A4A41FD76C5BE3D038F6CF8DA455",
+      "tests/unit/collection-receiving-display.test.mjs": "6A6A6D8FEB93895F5FF620DDA56D75550AC566EA8D3D3CA48BEADFB38B4FAC71"
+    },
+    "configuredFrontend": "index-BwAu3A2e.js",
+    "evidence": "delivery-manifest.json#directSevenUiDelivery"
   }
 }

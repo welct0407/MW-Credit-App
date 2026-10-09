@@ -372,5 +372,27 @@
     "ownerPageReceipt": "All four Page corrections ticked sequence3436 successfully",
     "financialWrites": "none",
     "ownerAcceptance": "Broader owner/device acceptance separate"
+  },
+  "directSevenUiDelivery": {
+    "artifactSource": "d4d48133cd0c2af6d56c9b0126aa98c9db5dcaea",
+    "scope": "Twelve files/seven direct display/paging/gesture/Bangkok requests; command draft DESC display/cursorv3 only, Auto unchanged",
+    "backendBuild": "2e6ea8b7-f296-434b-99bf-a01ef53ce7d9",
+    "commandImage": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app/api@sha256:cd4070bf6e7da76ef1794781cd3e2bd5678cfb4c3508593df26dd9d2ab0b7b2f",
+    "commandRevision": "mw-credit-app-command-dev-00011-khb",
+    "readback": "Ready; image/identity/all environment match exact saved plan",
+    "reader": "Unchanged00014-bmw/image59470247",
+    "configuredFrontend": "index-BwAu3A2e.js",
+    "hostingVersion": "ad7388cd57d2a21f",
+    "hostingRelease": "1791559802834000",
+    "frontendGuard": "passed",
+    "terraformActions": "Exactly one existing command image update; zero other settings/create/destroy/IAM",
+    "terraformPlanSha256": "DAE67265B99AFFD65BBB2921B6FC1C622800B460C0FF45C21291ADD3C0BF4B4A",
+    "rollback": "Command00010-f7n/image4fb9dbbe and DtpcUIhS/Hostingdf78950055306439 retained",
+    "focusedProof": "B5/5/typebuild and root exact source/Bangkok timestamp-source review PASS",
+    "verificationBoundary": "No browser run/new live behavioral claim; iOS may override zoom restriction",
+    "ci": "None: all commits [skip ci], no dispatch/labels/main push",
+    "ownerPageReceipt": "Not applicable: direct chat requests",
+    "financialWrites": "none",
+    "ownerAcceptance": "Broader owner/device acceptance separate"
   }
 }
