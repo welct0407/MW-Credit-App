@@ -441,5 +441,23 @@
     "ownerPageReceipt": "Both exact Page items ticked successfully sequence3944; no conflicts",
     "financialWrites": "none",
     "ownerAcceptance": "Broader owner/device acceptance separate"
+  },
+  "editablePaidChargeUiDelivery": {
+    "artifactSource": "f91dcdce230b6e42b40433e55622fae055376b9f",
+    "scope": "Three frontend files enable existing charge editing from Collection, including fully paid charges",
+    "configuredFrontend": "index-CHuqnyVx.js",
+    "hostingVersion": "932f1c91b20e7f67",
+    "hostingRelease": "1791564961898000",
+    "frontendGuard": "passed",
+    "artifactBoundary": "Staged clean product inputs match published three-file candidate; C tests/evidence do not affect product build",
+    "api": "Unchanged command00012-5cj/reader00014-bmw",
+    "database": "DEV84/PROD77 unchanged",
+    "rollback": "cff1dd9/index-C6nmSoMF.js/Hosting255503690702a136 retained",
+    "focusedProof": "B type/build/root source review; C actual SQL1 paid-increase preservation/floors/CAS/replay and bounded keyboard navigation desktop/mobile passed",
+    "verificationBoundary": "Synthetic local proof, zero UI POST; no actual pointer/live mutation validation claimed",
+    "ci": "None: all commits [skip ci]",
+    "ownerPageReceipt": "Not applicable: direct request",
+    "financialWrites": "No live financial writes",
+    "ownerAcceptance": "Broader owner/device acceptance separate"
   }
 }

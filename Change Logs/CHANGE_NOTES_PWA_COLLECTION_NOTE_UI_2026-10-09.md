@@ -48,3 +48,5 @@ Configured clean source5c4be5f deployed index-C6nmSoMF.js/Hosting255503690702a13
 
 ## Editable Collection charges, including fully paid
 Three frontend files expose existing charge detail/edit from Collection with the charge Amount editable even when fully paid, preserving independent loan navigation and return context. B type/build and root source review passed; C focused true-role paid increase proof preserves original payment/cash and checks paid floor/CAS/replay. Existing API/DEV84 unchanged; no CI. Rollback cff1dd9/C6nmSoMF/Hosting255503690702a136 retained. Configured frontend delivery and bounded local navigation evidence follow in this same batch.
+
+Published f91dcdc/configured CHuqnyVx/Hosting932f1c91b20e7f67/release1791564961898000. C actual focused SQL1 and bounded keyboard desktop/mobile Edit/Back proof passed; zero UI POST, no live mutation/pointer claim. APIs/DEV84 unchanged; no CI, no Page ticks for this direct request. Exact delivery pins in existing manifest.
