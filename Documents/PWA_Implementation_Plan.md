@@ -161,6 +161,8 @@ Payment notes/manual receipt evidence are required completion capabilities, not 
 
 ## Phase 6 Complete OLAP management
 
+**DEV checkpoint, 10 October 2026:** full desktop management implementation is verified and deployed DEV85; consolidated deferred Phase5/6 checks and representative owner read-only smoke passed. Owner acceptance and physical-device/native unknown-reference limits remain separate. [Current proof](https://github.com/welct0407/MW-Credit-App/blob/codex/r052-review-shell/outputs/r052-phase6/delivery-manifest.json).
+
 **Objective:** replace OLAP's editable management workflows in the desktop application.
 
 - Implement partner identity, delivery/language/reviewer preferences and permission-aware administration.
