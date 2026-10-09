@@ -305,9 +305,9 @@
 .collection-note textarea{font-family:inherit;font-size:18px;line-height:1.4}#root{touch-action:pan-x pan-y}
 
 /* Required markers follow actual native field requirements; optional borrower fields stay optional. */
-label:has(input:required,select:required,textarea:required){font-weight:700;position:relative;padding-inline-start:12px}
-label:has(input:required,select:required,textarea:required)::before{content:'*';color:inherit;position:absolute;inset-inline-start:0;top:0}
+label:has(input:required,select:required,textarea:required)>.field-title{font-weight:700}
+label:has(input:required,select:required,textarea:required)>.field-title::after{content:' *';font-weight:700}
 label input,label select,label textarea,label output{font-weight:400}
 .loan-number-control{display:flex;gap:6px;min-width:0}.loan-number-control>input{min-width:0;flex:1;width:0}
 .loan-step-buttons{display:flex;gap:4px}.loan-step-buttons button{min-width:44px;min-height:44px;padding:4px;border:1px solid #aeb6bf;border-radius:6px;background:#fff;color:#25303d}
-.loan-type-options{border:0;padding:0;margin:0;display:flex;flex-wrap:wrap;gap:6px}.loan-type-options legend{font-weight:700;margin-bottom:6px}.loan-type-options label{position:relative;display:flex;flex:1;min-width:110px}.loan-type-options label{padding-inline-start:0}.loan-type-options label::before{content:none}.loan-type-options input{position:absolute;opacity:0;width:1px;height:1px}.loan-type-options span{border:1px solid #aeb6bf;border-radius:6px;padding:10px;text-align:center;width:100%;font-weight:400}.loan-type-options input:checked+span{background:#fff0df;border-color:#bd6200;color:#8b4700;font-weight:700}.loan-type-options input:focus-visible+span{outline:2px solid #bd6200;outline-offset:2px}
+.loan-type-options{border:0;padding:0;margin:0;display:flex;flex-wrap:wrap;gap:6px}.loan-type-options legend{font-weight:700;margin-bottom:6px}.loan-type-options label{position:relative;display:flex;flex:1;min-width:110px}.loan-type-options input{position:absolute;opacity:0;width:1px;height:1px}.loan-type-options span{border:1px solid #aeb6bf;border-radius:6px;padding:10px;text-align:center;width:100%;font-weight:400}.loan-type-options input:checked+span{background:#fff0df;border-color:#bd6200;color:#8b4700;font-weight:700}.loan-type-options input:focus-visible+span{outline:2px solid #bd6200;outline-offset:2px}

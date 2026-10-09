@@ -21,14 +21,15 @@ export function ownerOfflineRepository(identity:{issuer:string;uid:string}) {
   req.onsuccess=()=>resolve(req.result?.value??'initial');req.onerror=()=>reject(Error('Offline storage unavailable'));
  }));
  void capturedEpoch.catch(()=>{});
- async function transaction<T>(mode:IDBTransactionMode,work:(store:IDBObjectStore,done:(value:T)=>void)=>void,bypassEpoch=false):Promise<T>{
+ async function transaction<T>(mode:IDBTransactionMode,work:(store:IDBObjectStore,done:(value:T)=>void,fail:(error:Error)=>void)=>void,bypassEpoch=false):Promise<T>{
   if(mode==='readwrite'&&!bypassEpoch&&!validInstance())throw Error('Offline owner scope revoked');
   const db=await open(),expected=await capturedEpoch;
   if(mode==='readwrite'&&!bypassEpoch&&!validInstance())throw Error('Offline owner scope revoked');
   return new Promise((resolve,reject)=>{const tx=db.transaction('records',mode);let value:T;
    tx.oncomplete=()=>resolve(value);tx.onerror=tx.onabort=()=>reject(Error('Offline storage unavailable, full or owner scope revoked'));
    const store=tx.objectStore('records');
-   const execute=()=>{try{work(store,result=>{value=result})}catch(error){tx.abort();reject(error)}};
+   const fail=(error:Error)=>{reject(error);tx.abort()};
+   const execute=()=>{try{work(store,result=>{value=result},fail)}catch(error){tx.abort();reject(error)}};
    if(mode==='readwrite'&&!bypassEpoch){const req=store.get('meta:epoch');req.onsuccess=()=>{if(!validInstance()||(req.result?.value??'initial')!==expected){tx.abort();return;}execute()};}
    else execute();
   });
@@ -41,12 +42,12 @@ export function ownerOfflineRepository(identity:{issuer:string;uid:string}) {
  async function remove(kind:Saved<unknown>['kind'],id:string){await transaction<void>('readwrite',(store,done)=>{store.delete(kind+':'+id);done()});}
  async function save<T>(kind:Saved<T>['kind'],id:string,value:T,savedAt=Date.now()){
   if(!id)throw Error('Offline record identity required');
-  return transaction<void>('readwrite',(store,done)=>{
+  return transaction<void>('readwrite',(store,done,fail)=>{
    const req=store.getAll();req.onsuccess=()=>{
     const existing=(req.result as Saved<unknown>[]).find(row=>row.key===kind+':'+id);
     if(kind==='pending'&&existing&&JSON.stringify(existing.value)!==JSON.stringify(value)){store.transaction.abort();return;}
     const rows=(req.result as Saved<unknown>[]).filter(row=>row.kind===kind&&row.key!==kind+':'+id);
-    if(kind==='draft'&&rows.length>=5){store.transaction.abort();return;}
+    if(kind==='draft'&&rows.length>=5){fail(Error('Offline draft limit reached'));return;}
     if(kind==='snapshot')for(const row of rows.sort((a,b)=>b.savedAt-a.savedAt).slice(19))store.delete(row.key);
     store.put({key:kind+':'+id,kind,savedAt,value});done();
    };
