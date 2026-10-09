@@ -109,7 +109,7 @@ export function CollectionRecords({ thai, request, cancel, onStatus, refreshToke
     // Align on the navigation action, never after delayed reads complete.
     setScrollTarget(value => ({ kind: 'detail', sequence: value.sequence + 1 }));
     let parentUnavailable = false;
-    const result = await request<DetailResult>('/api/collection/' + encodeURIComponent(row.id) + '/charges?limit=25' + (next ? '&cursor=' + encodeURIComponent(next) : ''), code => {
+    const result = await request<DetailResult>('/api/collection/' + encodeURIComponent(row.id) + '/charges?limit=10' + (next ? '&cursor=' + encodeURIComponent(next) : ''), code => {
       if (current !== revision.current) return;
       if (code.code === 'business_date_changed') { parentUnavailable = true; fail(code); return; }
       setCharges([]); setChargeCursor(null); setChargeAsOf(''); setChildError(code);

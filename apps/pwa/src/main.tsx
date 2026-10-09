@@ -1,3 +1,4 @@
+import {limitAppZoom} from './zoom-guard';
 import {displayDate} from './display-date';
 import React, { useState, useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
@@ -11,6 +12,7 @@ const routes = [
   ['partners', 'Partners', 'หุ้นส่วน', '◇'], ['position', 'Cash Position', 'สถานะเงินสด', '◉'], ['accounts', 'Cash Accounts', 'บัญชีเงินสด', '▣'], ['assessment', 'Loan Assessment', 'ประเมินสินเชื่อ', '✓'], ['analytics', 'Analytics / history', 'วิเคราะห์ / ประวัติ', '▥'],
 ];
 function App() {
+  useEffect(()=>limitAppZoom(),[]);
   // Presentation only: never infer service identity from Vite's build mode.
   const [previewTheme, setPreviewTheme] = useState<'dev' | 'prod'>(() => new URLSearchParams(window.location.search).get('theme') === 'prod' ? 'prod' : 'dev');
   const [accessState, setAccessState] = useState<PreviewAccessState>('allowed');
