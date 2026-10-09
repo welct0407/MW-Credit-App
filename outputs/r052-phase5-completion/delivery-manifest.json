@@ -233,5 +233,30 @@
     "financialWrites": "none",
     "ownerAcceptance": "broader Phase5 owner/device acceptance remains separate",
     "ownerPageReceipt": "Root guarded all five requested checkboxes applied sequence1335; blank checkbox/prior content retained"
+  },
+  "batchSixUiDelivery": {
+    "artifactSource": "c880668b07343622205f31a68d29427d18ff1eda",
+    "scope": "Workspace UI and one additive bilingual expense display read projection; no schema/auth/financial/permission change",
+    "backendBuild": "3935021f-ca7d-45b6-9731-ba2c132c7b31",
+    "image": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app/api@sha256:6a17e0e454dd480c4c708f4c9f799606d73dde2ba90cdbc010e81ae33a5123f0",
+    "commandRevision": "mw-credit-app-command-dev-00008-7ml",
+    "runtimeReadback": "Ready; exact image/identity/all environment match saved plan",
+    "configuredFrontend": "index-DcOAJDaC.js",
+    "hostingVersion": "24f0d4363cbdf727",
+    "hostingRelease": "1791532487710000",
+    "frontendGuard": "passed",
+    "terraformPlanSha256": "fbe7c01256300757b85232707857eee99b4b937716c89a1d09921979a667f9b6",
+    "terraformActions": "one existing command image-only update; zero create/destroy/settings/IAM",
+    "rollback": "command00007-mzx/image159a0b20 and Hostingfb9f8a3879f5f836/F5oqkKzu retained",
+    "focusedProof": "B formatting/source-display unit,typebuild; C desktop/mobile visuals and held Upcoming Back/stale-response checks passed",
+    "browserCi": "not run: owner-directed focused UI iteration, no checkpoint label/dispatch/main push",
+    "liveReadOnlySmoke": "C initial paired owner-session proof passed; root final exact DcOAJDaC Cash check passed seven retained metric labels/businessCashHeld absent/zero alerts, no inputs/saves/financial change",
+    "financialWrites": "none",
+    "ownerAcceptance": "broader Phase5 owner/device acceptance separate",
+    "developmentRun": 37901020242,
+    "developmentStatus": "lightweight checks passed; browser installation/E2E explicitly skipped",
+    "frontendCorrectionSource": "6a9e39115ad524f224cdd089f4d8b0e288175f07",
+    "frontendCorrection": "Removed only retained Business Cash Held CashWorkspace array entry, main Dashboard retained; type/build/config guard passed, API reused unchanged",
+    "finalCashSourceSha256": "5D1CD2370BDB52C65A35E61CC835EE5A5D8588D27E072FC282E605E383CC8A47"
   }
 }

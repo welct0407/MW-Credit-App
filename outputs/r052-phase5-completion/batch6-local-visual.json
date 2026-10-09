@@ -1,0 +1,40 @@
+[
+  {
+    "width": 1440,
+    "defaultDashboard": true,
+    "expenseLinks": true,
+    "expenseShares": "60%/40%",
+    "expenseFonts": {
+      "label": "13px",
+      "value": "17px"
+    },
+    "wholeExpense": true,
+    "roots": 2,
+    "children": 2,
+    "backMs": 36,
+    "heldReadNoOverwrite": true,
+    "eventLoanBack": true,
+    "cashPaper": true,
+    "heldAccountSectionAbsent": true,
+    "posts": 0
+  },
+  {
+    "width": 320,
+    "defaultDashboard": true,
+    "expenseLinks": true,
+    "expenseShares": "60%/40%",
+    "expenseFonts": {
+      "label": "13px",
+      "value": "17px"
+    },
+    "wholeExpense": true,
+    "roots": 2,
+    "children": 2,
+    "backMs": 35,
+    "heldReadNoOverwrite": true,
+    "eventLoanBack": true,
+    "cashPaper": true,
+    "heldAccountSectionAbsent": true,
+    "posts": 0
+  }
+]

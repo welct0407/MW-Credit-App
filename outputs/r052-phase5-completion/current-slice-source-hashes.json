@@ -573,5 +573,99 @@
       ],
       "safety": "No input/save/upload/CAS/financial action/draft/signout/token/auth-store/PII screenshot or export"
     }
+  },
+  "batchSixUi": {
+    "outcome": "PASS bounded desktop1440/mobile320 manual synthetic read-only visual/navigation; no browser CI",
+    "build": "CBeOpFWx; immutable SDK inspection B-s3l22r",
+    "css": "BepEq0Ph",
+    "hashes": {
+      "apps/pwa/src/CashWorkspace.tsx": "5A8C8C2D80C1C7856583F620081338B04D71FE65466553EDA69F10F992272353",
+      "apps/pwa/src/ExpenseRecords.tsx": "A03C6EA4290D714807B36E9339C2212EFC20A2015E46AC0B6B92E5A0EB58C0E8",
+      "apps/pwa/src/StandaloneUpcoming.tsx": "A7261F955534D4D9F81FFB257EEFA6AD2E3C5B1D3D8E4AF3101BCF4172146234",
+      "apps/pwa/src/live-main.tsx": "E0DA871010AB0606A0821427470D2003A37D2C068373744775426F096DC436F7",
+      "apps/pwa/src/live-style.css": "8C1ECF7B6A1643AAA4290E21E1488D94068F4E1DF07F66AAC7B86C46B1BF035E",
+      "apps/pwa/src/display-money.ts": "1D9688CDBE0C58E1C5FF7BF5EB27C0A7D4581D08549A8483D22815B36B8387FD",
+      "services/business/expenses.mjs": "11C21A170CF455ED2329BA2DB1D4F9EF04D8B1244F4FC0A09BBFF402765A3DAB",
+      "tests/unit/expense-display-read.test.mjs": "555D51EA3F390AB682F335CF2C0ED9F3FF53570BF15A934CEDCF3F71D8DDD492"
+    },
+    "observations": [
+      {
+        "width": 1440,
+        "defaultDashboard": true,
+        "expenseLinks": true,
+        "expenseShares": "60%/40%",
+        "expenseFonts": {
+          "label": "13px",
+          "value": "17px"
+        },
+        "wholeExpense": true,
+        "roots": 2,
+        "children": 2,
+        "backMs": 36,
+        "heldReadNoOverwrite": true,
+        "eventLoanBack": true,
+        "cashPaper": true,
+        "heldAccountSectionAbsent": true,
+        "posts": 0
+      },
+      {
+        "width": 320,
+        "defaultDashboard": true,
+        "expenseLinks": true,
+        "expenseShares": "60%/40%",
+        "expenseFonts": {
+          "label": "13px",
+          "value": "17px"
+        },
+        "wholeExpense": true,
+        "roots": 2,
+        "children": 2,
+        "backMs": 35,
+        "heldReadNoOverwrite": true,
+        "eventLoanBack": true,
+        "cashPaper": true,
+        "heldAccountSectionAbsent": true,
+        "posts": 0
+      }
+    ],
+    "limits": [
+      "No real financial writes, inputs, saves, uploads, CAS or live draft changes",
+      "Held response proof uses synthetic HTTP delay; token-timeout behavior source read only",
+      "No broad suite or unrelated old fixture repairs",
+      "Actual deployed owner smoke pending"
+    ],
+    "live": {
+      "outcome": "PASS bounded actual owner read-only smoke",
+      "source": "c880668b07343622205f31a68d29427d18ff1eda",
+      "bundle": "index-ySP8iOC-.js",
+      "css": "BepEq0Ph",
+      "hostingVersion": "b0f8ba0c5ab21913",
+      "hostingRelease": "1791532150601000",
+      "api": "mw-credit-app-command-dev-00008-7ml",
+      "tab": "304619538",
+      "checks": [
+        "Safe reload0forms0editable; normal Update; owner persisted/default Dashboard3cards",
+        "Borrowers25/Payments25 Updated/no errors",
+        "Expense5/detail20 labels13<values17 shares60/40; actual TE borrower/Loan drilldown+Back",
+        "Upcoming25→date→actualevent5fields/Loan link→Back date→same root25 no hang",
+        "Cash labels13<17; aggregate held retained/account section absent",
+        "Owner left Dashboard Updated/nooverflow/0editable"
+      ],
+      "limits": [
+        "Live statement paper unavailable under unchanged current preferences; local paper proof reused",
+        "No artificial live delay; held-response/navigation proof remains local",
+        "No writes/inputs/save/draft/upload/CAS/signout/token/auth-store/PII screenshot or export",
+        "No browser CI"
+      ]
+    }
+  },
+  "batchSixCashMetricRemoval": {
+    "source": "6a9e39115ad524f224cdd089f4d8b0e288175f07",
+    "path": "apps/pwa/src/CashWorkspace.tsx",
+    "sha256": "5D1CD2370BDB52C65A35E61CC835EE5A5D8588D27E072FC282E605E383CC8A47",
+    "scope": "One Cash Dashboard array entry removed; main Dashboard/API unchanged",
+    "configuredBuild": "index-DcOAJDaC.js",
+    "checks": "Type/build/config guard passed; root actual owner read-only seven labels/no businessCashHeld/zeroalerts passed",
+    "browserCi": "not run"
   }
 }
