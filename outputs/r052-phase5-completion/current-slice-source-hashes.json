@@ -667,5 +667,25 @@
     "configuredBuild": "index-DcOAJDaC.js",
     "checks": "Type/build/config guard passed; root actual owner read-only seven labels/no businessCashHeld/zeroalerts passed",
     "browserCi": "not run"
+  },
+  "pageFourteenUi": {
+    "source": "068343d2970357dca48046f3d57fa846072ddf7c",
+    "hashes": {
+      "apps/pwa/src/CashWorkspace.tsx": "87ED8CE906F3DF6B10143CFAC17A17829456FDB35B42F5877713678412574ACD",
+      "apps/pwa/src/ExpenseRecords.tsx": "322ADF6ECAC32962AEEA05A91ECA8DFE9BC38DB41AE72E4BA311DD918EAC5AA6",
+      "apps/pwa/src/LoanRecord.tsx": "BAA474C9BAE2C6E78360E921A2F939309F032CA05B30675E90263C03F52C69F2",
+      "apps/pwa/src/LoanRecords.tsx": "7F59A12C26E0B7A664FB41FF6931C0B3777C7B1FA3D0F867768D459709F5899F",
+      "apps/pwa/src/StandaloneUpcoming.tsx": "5DC22F0F49ACCD241F50082C854E04F93B289651075C36766A7826102ACF2D43",
+      "apps/pwa/src/live-main.tsx": "E82751F723781A086EC32EE307142ABAF55FC136D120214AE79ED3140151104F",
+      "apps/pwa/src/live-style.css": "A29476BF9E90D27362BE7EAA563F11BBDF892A17F5EF3D6E61779736493D9A01",
+      "apps/pwa/src/SharedBorrowerDetail.tsx": "6A6F13CB7DC2612E50CFB554714742E19FF8660E4C04962C74FA6F8E767648DD",
+      "apps/pwa/src/cash-view.ts": "7F9FA9C70FCC8078AC213F962A6227A42445E8A466C25FE93AB01D5C21AAA52F",
+      "services/business/expenses.mjs": "5DBD03B7E85F11C3FF650A66F8D5A7702A488942CF502FF109BDC5ADBFA99397"
+    },
+    "localProof": "B focused local type/build/format/read-display/synthetic GET-only navigation-race/mobile; root independent code/screenshots accepted",
+    "liveProof": "Root deployed read-only PASS exact DIS0bIGR: owner sign-in retained; Cash yesterday2026-10-08, three cards/immediate native calendar and account filters/five table columns/green incoming/red outgoing/zero alerts; current selected dates had no transactions, so nonempty row/time proof remains synthetic local. Expense correct linked LoanKey/shared Borrower and closed-loan full details/actions; Upcoming no disclaimer/zero alerts. Only read filters changed, no business forms/saves/financial/draft mutations. All fourteen Page checkboxes applied by root sequence1869, blank checkbox retained.",
+    "ci": "none; all publication [skip ci], no dispatch/label/main push",
+    "artifact": "configured DIS0bIGR plus API00009-qmn/imagef2fd3de4",
+    "limits": "Actual selected Cash windows empty; synthetic local nonempty/time proof reused; broader owner/device acceptance separate"
   }
 }

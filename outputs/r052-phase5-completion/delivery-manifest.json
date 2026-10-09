@@ -258,5 +258,27 @@
     "frontendCorrectionSource": "6a9e39115ad524f224cdd089f4d8b0e288175f07",
     "frontendCorrection": "Removed only retained Business Cash Held CashWorkspace array entry, main Dashboard retained; type/build/config guard passed, API reused unchanged",
     "finalCashSourceSha256": "5D1CD2370BDB52C65A35E61CC835EE5A5D8588D27E072FC282E605E383CC8A47"
+  },
+  "pageFourteenUiDelivery": {
+    "artifactSource": "068343d2970357dca48046f3d57fa846072ddf7c",
+    "scope": "Nine frontend files and existing expense LoanKey additive read projection; no schema/auth/financial/permissions change",
+    "backendBuild": "96659140-7d60-4d72-8c68-777e81982b0b",
+    "artifactBuild": "maintained build-only Docker configuration; no test pipeline",
+    "image": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app/api@sha256:f2fd3de4235358fdb6e45f3eff965bc3dfcf2460511005b8f7ca18c7d09a27b1",
+    "commandRevision": "mw-credit-app-command-dev-00009-qmn",
+    "runtimeReadback": "Ready; image/identity/all environment match exact saved plan",
+    "configuredFrontend": "index-DIS0bIGR.js",
+    "hostingVersion": "0398ed3d424bcb07",
+    "hostingRelease": "1791537820950000",
+    "frontendGuard": "passed",
+    "terraformPlanSha256": "81eb822565230622255b720a9c97c1e857c868de9f184de5ac25df17c3d7f8fd",
+    "terraformActions": "one existing service image update, zero create/destroy/settings/permissions",
+    "rollback": "API00008-7ml/image6a17 and Hosting24f0d4363cbdf727/DcOAJDaC retained privately",
+    "focusedProof": "B local type/build/read-display unit and synthetic navigation/race/GET-only/mobile; root independent relevant code/local assertions/screenshots PASS",
+    "ci": "none: owner requested all CI skipped, [skip ci] commits, no labels/dispatch/main push; source workflow-run readback empty",
+    "liveReadOnlySmoke": "Root deployed read-only PASS exact DIS0bIGR: owner sign-in retained; Cash yesterday2026-10-08, three cards/immediate native calendar and account filters/five table columns/green incoming/red outgoing/zero alerts; current selected dates had no transactions, so nonempty row/time proof remains synthetic local. Expense correct linked LoanKey/shared Borrower and closed-loan full details/actions; Upcoming no disclaimer/zero alerts. Only read filters changed, no business forms/saves/financial/draft mutations. All fourteen Page checkboxes applied by root sequence1869, blank checkbox retained.",
+    "financialWrites": "none",
+    "ownerAcceptance": "broader Phase5 owner/device acceptance separate",
+    "ownerPageReceipt": "Root guarded fourteen requested checkboxes applied sequence1869; no errors/ignored operations, blank retained; broader acceptance separate"
   }
 }
