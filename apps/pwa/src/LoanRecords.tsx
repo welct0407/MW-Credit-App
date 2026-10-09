@@ -24,6 +24,7 @@ export function loanDisplayKey(loan: LoanRecord) {
 }
 export function loanRecoveryRatio(loan:LoanRecord){return loan.principalAmount===null||loan.totalInterestReceived===null?null:Number(loan.principalAmount)>0?Number(loan.totalInterestReceived)/Number(loan.principalAmount):0}
 export function loanRecoveryClass(loan:LoanRecord){const ratio=loanRecoveryRatio(loan);return loan.status==='ปิดยอดแล้ว'?'recovery-closed':loan.status!=='ยังไม่ปิดยอด'||ratio===null?'':ratio<0.6?'recovery-low':ratio<1?'recovery-middle':'recovery-covered'}
+export const loanStatusLabel=(value:string|null|undefined)=>value==='ยังไม่ปิดยอด'?'Open / ยังไม่ปิดยอด':value==='ปิดยอดแล้ว'?'Closed / ปิดยอดแล้ว':value??'—';
 const loanGroup = (value: string | null) => value === 'ยังไม่ปิดยอด' ? 0 : value === 'ปิดยอดแล้ว' ? 1 : 2;
 export function LoanRecords(props: Props) {
   const t = (en: string, th: string) => props.thai ? th : en;

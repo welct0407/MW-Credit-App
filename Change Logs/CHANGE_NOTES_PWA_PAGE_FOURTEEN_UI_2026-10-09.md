@@ -1,0 +1,7 @@
+# Owner Page fourteen-item workspace refinement — 9 October 2026
+
+Scope: compact Expense/Upcoming views, shared Borrower/Loan details, source LoanKey/status and original-rate display, no Upcoming footer, and immediate Cash calendar filters with Bangkok yesterday default/no Save or new draft/language UI; cash summary/Transactions card uses governed incoming/outgoing colors. Nine frontend files and one minimal additive expense LoanKey read projection; no schema/auth/financial/permission/notification/PROD change. R052 remains Open.
+
+Rollback: app90f044e/PMfbc41076; API00008-7ml/image6a17e0e4 and Hosting24f0d4363cbdf727/DcOAJDaC. Ten B frozen hashes captured cleanly. B focused synthetic navigation/race/GET-only/320 checks, formatting/source-display unit and type/build passed. Root independently reviewed exact relevant code/checks and desktop/mobile screenshots, accepting the scoped local proof. Configured clean frontend index-DIS0bIGR/CSS3jLs0y3t and maintained Hosting guard passed.
+
+Owner explicitly requested no CI: every publication commit uses [skip ci], no checkpoint label/dispatch/main push or CI wait; no broad tests/manual DB suite. The immutable API artifact uses the maintained build-only container configuration, not a test pipeline. No extra agents, writes or draft changes. Source/API/frontend publication and root read-only live verification pending. Broader owner/device acceptance remains separate.

@@ -1,0 +1,3 @@
+export function yesterdayBangkok(now=new Date()){const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Bangkok',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(now);const get=(type:string)=>parts.find(row=>row.type===type)!.value;return new Date(Date.UTC(Number(get('year')),Number(get('month'))-1,Number(get('day')))-86400000).toISOString().slice(0,10)}
+export function previousDay(day:string){return new Date(Date.parse(day+'T00:00:00Z')-86400000).toISOString().slice(0,10)}
+export function statementTime(timestamp:unknown){return typeof timestamp==='string'&&/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}/.test(timestamp)?timestamp.slice(11,16):'—'}
