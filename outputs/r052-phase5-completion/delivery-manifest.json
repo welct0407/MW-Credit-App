@@ -334,5 +334,27 @@
     "financialWrites": "none",
     "ownerAcceptance": "Broader owner/device acceptance separate",
     "verificationBoundary": "Root exact source review plus local type/build accepted for this minor batch; no browser run or new live behavioral claim"
+  },
+  "collectionSixUiDelivery": {
+    "artifactSource": "62328f1de6a006345f06476a7ea05802ea7a5026",
+    "scope": "Seven files/six display refinements; additive null-preserving reader groupCollected window before paging",
+    "backendBuild": "7a6f82c6-d03e-46a6-b13e-bfb7c4c887b0",
+    "readImage": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app/api@sha256:594702475b5ae2d35f6c974045fdd6b0589bdeca109c85d8896821a38231da12",
+    "readRevision": "mw-credit-app-read-dev-00014-bmw",
+    "readback": "Ready; image/identity/all environment match plan",
+    "command": "Unchanged00010-f7n/image4fb9dbbe",
+    "configuredFrontend": "index-DDRfhvDO.js",
+    "hostingVersion": "9901ee492760a10e",
+    "hostingRelease": "1791556509977000",
+    "frontendGuard": "passed",
+    "terraformActions": "Exactly one existing reader image update; zero other settings/create/destroy/IAM",
+    "terraformPlanSha256": "3A94D108C3DBD42836F75951CB7DE664388D7C13AFA86547612518EDFB04AFFA",
+    "rollback": "Reader00013-cqw/image4fb9dbbe and LBzOQLH8/Hostingf5cab2dfa9844699 retained",
+    "focusedProof": "B formatter/aggregation3/3 and type/build PASS; root exact source review PASS",
+    "verificationBoundary": "No browser run/new live behavioral claim; root accepted local/source proof",
+    "ci": "None: all commits [skip ci], no dispatch/labels/main push",
+    "ownerPageReceipt": "All six exact Page items ticked sequence3312; no conflicts/rejections",
+    "financialWrites": "none",
+    "ownerAcceptance": "Broader owner/device acceptance separate"
   }
 }

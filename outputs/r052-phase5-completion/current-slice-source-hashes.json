@@ -725,5 +725,19 @@
     },
     "configuredFrontend": "index-LBzOQLH8.js",
     "evidence": "delivery-manifest.json#collectionSevenUiDelivery"
+  },
+  "collectionSixUi": {
+    "artifactSource": "62328f1de6a006345f06476a7ea05802ea7a5026",
+    "sourceHashes": {
+      "apps/pwa/src/display-date.ts": "3F0DAB2C5FD284B2D521F4D259BC79AA6688C93F58C3DE14934BC08344B11E88",
+      "apps/pwa/src/main.tsx": "F96A1604E9EA8D882229C80BAC109C6D78975462BDDAECACE90AC424815D9B99",
+      "apps/pwa/src/CollectionRecords.tsx": "6F6F5CEC5A7442D188E737D9253D8F798160785A79184D14579F00B983391AD8",
+      "apps/pwa/src/live-style.css": "95C319641B06C87C2A5A9ABA8A9C38A9ED9F9E437142CD2AA5ECE48EB1980332",
+      "services/api/collection-read-contract.mjs": "A5E8F5E549C46A29FA71CCD5EC6C5E828B61F02DEC4DC6BBAF8537657F260F5A",
+      "tests/unit/collection-receiving-display.test.mjs": "DDD942BB03D1307B2D11A66AEDC7E5AEDCEF8D3320B3090CC7997322E31E178C",
+      "tests/unit/display-date.test.mjs": "D36F0FBA794CAC7F156CAC0E5D02546B99385426B4BDF275604E767A2408ED52"
+    },
+    "configuredFrontend": "index-DDRfhvDO.js",
+    "evidence": "delivery-manifest.json#collectionSixUiDelivery"
   }
 }
