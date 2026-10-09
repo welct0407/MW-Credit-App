@@ -1,0 +1,7 @@
+# Owner Page five-item UI refinement — 9 October 2026
+
+Scope: TE borrower display labels across views, responsive direct four-action header, smaller borrower field titles, no duplicate scoped-history name, and no standalone Loans navigation/view (loan details retained). Ten frontend files only; existing API, DEV83/schema/auth/financial engine unchanged. R052 remains Open.
+
+Rollback: app4425cef; Hostingcd4db974d95858a3/index-uXt_wTSt.js; existing API00007-mzx retained. B focused helper/snapshot checks and live build/typecheck passed; C desktop/320 five-item visual confirmation passed, including corrected mobile name/action spacing; no POST. Actual owner-session deployed read-only smoke passed; no inputs/draft/financial/upload/CAS/signout. Configured clean artifact guard required before Hosting. No full browser CI/checkpoint label/dispatch/main push; ordinary lightweight PR checks may start with browser steps skipped. No financial/draft writes or PROD/notification change.
+
+Status: configured clean index-F5oqkKzu.js/typecheck/build/Hosting guard passed; deployed to Hostingfb9f8a3879f5f836/release1791522853648000 from source85abac0. API00007-mzx retained; ordinary Development37887584885 passed with both browser steps explicitly skipped. Root marked all five Page checkboxes after live PASS (sequence1335), preserving blank checkbox/prior content. Broader Phase5 owner/device acceptance remains separate.
