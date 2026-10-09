@@ -383,5 +383,195 @@
         "No live financial/input/save/upload/CAS/draft/signout/PII export"
       ]
     }
+  },
+  "batchFiveUi": {
+    "outcome": "PASS focused standalone local read-only visual capture, no browser CI/test runner",
+    "hashes": {
+      "apps/pwa/src/borrower-label.ts": "715D87A47876C9E48DA57D96272D92049F5D625C3F65183B2FBFB912FFD43326",
+      "apps/pwa/src/BorrowerRecord.tsx": "D84387B96075089EB7F32F51DA2EEF443E5969EC3CA51B3E8F0EE959A29B7A82",
+      "apps/pwa/src/BorrowerPayments.tsx": "E679BD28E0DA69945C26ABBBB581E8FC4D7B512F345C5474699B9D052B9B4C43",
+      "apps/pwa/src/PaymentGroups.tsx": "3078F0AB2B8F6264F0FE03B81638A541F6B3EC5ADCF9B0807370CC45D955934C",
+      "apps/pwa/src/PaymentRecord.tsx": "6764FC3A65B06F82712367ABB62024DF4534210FE6B0D339C7165CCFDCD816BF",
+      "apps/pwa/src/PaymentCorrectionForm.tsx": "204A11427634012BDBCA3FF899B83A5678B578D271906D962ED444FD7096E93A",
+      "apps/pwa/src/OfflinePayments.tsx": "03958FA88CB6BCFFC3A482798BC718F60304C1CFA2D256F0ACDB9FDA327E57A1",
+      "apps/pwa/src/OfflineViewedRecord.tsx": "9F190843CC5A31912960E99DB4090BB254D655FDDFF3F068101C3D6C091C3657",
+      "apps/pwa/src/live-main.tsx": "BF191AA65C858B0A166D6BD50A972FEC68586509B275D474B105EF69A5D09969",
+      "apps/pwa/src/live-style.css": "FCBF55E22124955018F0E088ADB30FD9130E8DBE81446664A1D8C440DD5FDB28"
+    },
+    "desktopMobileObserved": [
+      {
+        "width": 1440,
+        "TE": "ชื่อจำลอง - Synthetic English",
+        "metrics": {
+          "labels": 13,
+          "values": 16,
+          "actions": [
+            {
+              "label": "New loan",
+              "icon": true,
+              "caption": "block",
+              "rect": 103.734375
+            },
+            {
+              "label": "Payment history",
+              "icon": true,
+              "caption": "block",
+              "rect": 150.125
+            },
+            {
+              "label": "Edit borrower",
+              "icon": true,
+              "caption": "block",
+              "rect": 63.8125
+            },
+            {
+              "label": "Delete borrower",
+              "icon": true,
+              "caption": "block",
+              "rect": 82.625
+            }
+          ],
+          "ellipsis": false
+        },
+        "loansNav": 0,
+        "overflow": false,
+        "relatedLoanDetail": true,
+        "history": {
+          "outerName": "ชื่อจำลอง - Synthetic English",
+          "innerHeadingHidden": true,
+          "months": 1,
+          "back": true
+        },
+        "paymentTE": "ชื่อจำลอง - Synthetic English",
+        "paymentLabelValue": {
+          "label": 14.4,
+          "value": 16
+        },
+        "Back": "ชื่อจำลอง - Synthetic English",
+        "posts": 0
+      },
+      {
+        "width": 320,
+        "TE": "ชื่อจำลอง - Synthetic English",
+        "metrics": {
+          "labels": 13,
+          "values": 16,
+          "actions": [
+            {
+              "label": "New loan",
+              "icon": true,
+              "caption": "none",
+              "rect": 44
+            },
+            {
+              "label": "Payment history",
+              "icon": true,
+              "caption": "none",
+              "rect": 44
+            },
+            {
+              "label": "Edit borrower",
+              "icon": true,
+              "caption": "none",
+              "rect": 44
+            },
+            {
+              "label": "Delete borrower",
+              "icon": true,
+              "caption": "none",
+              "rect": 44
+            }
+          ],
+          "ellipsis": false
+        },
+        "loansNav": 0,
+        "overflow": false,
+        "relatedLoanDetail": true,
+        "history": {
+          "outerName": "ชื่อจำลอง - Synthetic English",
+          "innerHeadingHidden": true,
+          "months": 1,
+          "back": true
+        },
+        "paymentTE": "ชื่อจำลอง - Synthetic English",
+        "paymentLabelValue": {
+          "label": 14.4,
+          "value": 16
+        },
+        "Back": "ชื่อจำลอง - Synthetic English",
+        "posts": 0
+      }
+    ],
+    "finalMobileGeometry": [
+      {
+        "width": 320,
+        "TE": "ชื่อจำลอง - Synthetic English",
+        "metrics": {
+          "labels": 13,
+          "values": 16,
+          "actions": [
+            {
+              "label": "New loan",
+              "icon": true,
+              "caption": "none",
+              "rect": 44
+            },
+            {
+              "label": "Payment history",
+              "icon": true,
+              "caption": "none",
+              "rect": 44
+            },
+            {
+              "label": "Edit borrower",
+              "icon": true,
+              "caption": "none",
+              "rect": 44
+            },
+            {
+              "label": "Delete borrower",
+              "icon": true,
+              "caption": "none",
+              "rect": 44
+            }
+          ],
+          "ellipsis": false
+        },
+        "loansNav": 0,
+        "overflow": false,
+        "headerGeometry": {
+          "nameWidth": 214,
+          "actionsBelow": true,
+          "headerHeight": 88.1875
+        }
+      }
+    ],
+    "sourceBuild": "URnB31ch; synthetic inspection build ggeBqDIp",
+    "limits": [
+      "Five requirements only; no broad suite or unrelated old-selector repairs",
+      "Initial mobile name squeeze is superseded by final214px name/header-row fix",
+      "No inputs/save/upload/CAS/financial operations/draft changes; zero synthetic POST",
+      "Existing browser tests using prior Actions/menu/nav intentionally not repaired or claimed current; future checkpoint must reconcile owning assertions"
+    ],
+    "live": {
+      "outcome": "PASS bounded actual owner read-only five-item smoke; no browser CI",
+      "source": "85abac022b451e427c13b74e01d4752c4d1c1a9a",
+      "bundle": "index-F5oqkKzu.js",
+      "css": "PkZEXfvO",
+      "hostingVersion": "fb9f8a3879f5f836",
+      "hostingRelease": "1791522853648000",
+      "retainedApi": "mw-credit-app-command-dev-00007-mzx",
+      "tab": "304619538",
+      "checks": [
+        "Readonlysummary1form/0editable/noSave/focusBODY before normal Update",
+        "Auth persisted/Updated25tiles/noErrors/Loansnav0",
+        "Synthetic TEsummary+4directdesktopicon/captions/noellipsis,13pxlabels16pxvalues",
+        "RelatedLoanFull20fields/Updated/noerror",
+        "Scopedhistory1outerheading/hiddeninnerheading/1month/Back",
+        "ActualsyntheticPaymentTE+14.4pxlabels16pxvalues",
+        "Backrestoresreadonlysummary;320name199.2px+4accessible44pxiconsrowbelow/nowrapcaptionhidden/nooverflow;viewportreset"
+      ],
+      "safety": "No input/save/upload/CAS/financial action/draft/signout/token/auth-store/PII screenshot or export"
+    }
   }
 }

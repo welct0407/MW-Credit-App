@@ -1,0 +1,44 @@
+[
+  {
+    "width": 320,
+    "TE": "ชื่อจำลอง - Synthetic English",
+    "metrics": {
+      "labels": 13,
+      "values": 16,
+      "actions": [
+        {
+          "label": "New loan",
+          "icon": true,
+          "caption": "none",
+          "rect": 44
+        },
+        {
+          "label": "Payment history",
+          "icon": true,
+          "caption": "none",
+          "rect": 44
+        },
+        {
+          "label": "Edit borrower",
+          "icon": true,
+          "caption": "none",
+          "rect": 44
+        },
+        {
+          "label": "Delete borrower",
+          "icon": true,
+          "caption": "none",
+          "rect": 44
+        }
+      ],
+      "ellipsis": false
+    },
+    "loansNav": 0,
+    "overflow": false,
+    "headerGeometry": {
+      "nameWidth": 214,
+      "actionsBelow": true,
+      "headerHeight": 88.1875
+    }
+  }
+]

@@ -1,0 +1,104 @@
+[
+  {
+    "width": 1440,
+    "TE": "ชื่อจำลอง - Synthetic English",
+    "metrics": {
+      "labels": 13,
+      "values": 16,
+      "actions": [
+        {
+          "label": "New loan",
+          "icon": true,
+          "caption": "block",
+          "rect": 103.734375
+        },
+        {
+          "label": "Payment history",
+          "icon": true,
+          "caption": "block",
+          "rect": 150.125
+        },
+        {
+          "label": "Edit borrower",
+          "icon": true,
+          "caption": "block",
+          "rect": 63.8125
+        },
+        {
+          "label": "Delete borrower",
+          "icon": true,
+          "caption": "block",
+          "rect": 82.625
+        }
+      ],
+      "ellipsis": false
+    },
+    "loansNav": 0,
+    "overflow": false,
+    "relatedLoanDetail": true,
+    "history": {
+      "outerName": "ชื่อจำลอง - Synthetic English",
+      "innerHeadingHidden": true,
+      "months": 1,
+      "back": true
+    },
+    "paymentTE": "ชื่อจำลอง - Synthetic English",
+    "paymentLabelValue": {
+      "label": 14.4,
+      "value": 16
+    },
+    "Back": "ชื่อจำลอง - Synthetic English",
+    "posts": 0
+  },
+  {
+    "width": 320,
+    "TE": "ชื่อจำลอง - Synthetic English",
+    "metrics": {
+      "labels": 13,
+      "values": 16,
+      "actions": [
+        {
+          "label": "New loan",
+          "icon": true,
+          "caption": "none",
+          "rect": 44
+        },
+        {
+          "label": "Payment history",
+          "icon": true,
+          "caption": "none",
+          "rect": 44
+        },
+        {
+          "label": "Edit borrower",
+          "icon": true,
+          "caption": "none",
+          "rect": 44
+        },
+        {
+          "label": "Delete borrower",
+          "icon": true,
+          "caption": "none",
+          "rect": 44
+        }
+      ],
+      "ellipsis": false
+    },
+    "loansNav": 0,
+    "overflow": false,
+    "relatedLoanDetail": true,
+    "history": {
+      "outerName": "ชื่อจำลอง - Synthetic English",
+      "innerHeadingHidden": true,
+      "months": 1,
+      "back": true
+    },
+    "paymentTE": "ชื่อจำลอง - Synthetic English",
+    "paymentLabelValue": {
+      "label": 14.4,
+      "value": 16
+    },
+    "Back": "ชื่อจำลอง - Synthetic English",
+    "posts": 0
+  }
+]
