@@ -224,5 +224,20 @@
     "backend": "4ee1642c",
     "scope": "Persisted owner Chrome4/tab304619538; representative eight read routes/full details/known synthetic verified receipt;320 nav nooverflow; no live financial writes/formsaves/upload/signout",
     "limits": "Safe offline/restart not repeated on live owner session; prior controlled realSDK/worker proof reused; physical-device and owner acceptance separate"
+  },
+  "page7UiFastpath": {
+    "scope": "Frontend-only four changed files; existing static realSDK/HTTPS fixture, Page7 + affectedF13 desktop/mobile4/4PASS21.5s; no SQL/auth/offline/financial regression",
+    "hashes": {
+      "apps/pwa/src/Dashboard.tsx": "DA68C90704549600EA323556C2B92928B356941D65EB201318A62E2BC67A2FE2",
+      "apps/pwa/src/StandaloneRecords.tsx": "23150A189D9DEBAE00B1C6369D5D2EC58616110CBBAA3BE16F8818D60F51656D",
+      "apps/pwa/src/PaymentRecord.tsx": "1A26556D67661658E5CE93D5D0259BBA8DEBB41D9F39E648546A0250D07C7176",
+      "apps/pwa/src/live-style.css": "2DA0652F804783375566469FADF2D2A9BF38E15DBA22428F6BA9525B0521CA3E",
+      "tests/e2e/phase5-final-ui-independent.spec.ts": "D19440F91D20CED7EBFC9B0E5CF9C67395749349EB7ABF00E79D2F8358FBD2C7"
+    },
+    "visual": "Root accepted structure; pale yellow/cyan superseded by approved readable gold#9a7800/teal#00838f, one mobile Page7PASS4.0s8.3total; final mobileThai Dashboard inspected, prior4/4behavior retained; desktop screenshots precedingpalette only",
+    "capture": "mw-page7-static-c62fcd0a19394ca7bea7008d3466099f",
+    "testBundle": "index-BmGSJ2Iz.js",
+    "finalPaletteCapture": "mw-page7-palette-2315ddba638e46fd8e6ca3fde68c0108",
+    "finalPaletteTestBundle": "index-BORL5x-N.js"
   }
 }
