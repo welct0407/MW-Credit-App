@@ -344,6 +344,21 @@
       "No live Page12 smoke until D ready",
       "Owner-static capture predates restored non-owner summary only; owner path unaffected",
       "Historical financial/auth/offline proofs reused unchanged; no SQL run"
-    ]
+    ],
+    "remoteFixtureCorrection": {
+      "failedRun": "Development37882591050/job113665402230:228pass5fail9existing skips",
+      "scope": "Three obsolete UI fixture expectations only; product/API artifacts unchanged",
+      "hashes": {
+        "tests/e2e/live-search-timer.spec.ts": "9E3838E085EC2D1084867352011EF3CBB017629B8B41F009C8BDBD5239557E91",
+        "tests/e2e/phase5-final-ui-independent.spec.ts": "E4E95D44EAC33474A4EC8B26194F5C31C23A81334D782A6D90801A0F8ADFD59D",
+        "tests/e2e/phase5-offline-sdk-independent.spec.ts": "D179820D89C6ED50573641CDA5B5695A1AF6689C57FE1E3B183E97CDDF02DA08"
+      },
+      "focusedResult": "5 substantive PASS42.1s + existing duplicate mobile SDK skip",
+      "preserved": [
+        "Borrower live search debounce/IME/dedupe/navigation cancellation",
+        "Lazy full totals/cursors/bounded calls/zeroPOST/reduced motion",
+        "Actual Firebase SDK+SW offline boot/reconnect/update shared5 drafts+pending equality/signout purge/zeroPOST"
+      ]
+    }
   }
 }
