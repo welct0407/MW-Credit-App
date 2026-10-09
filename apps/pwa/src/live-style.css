@@ -224,3 +224,31 @@
 @media(prefers-reduced-motion:no-preference){::view-transition-old(workspace){animation:workspace-out 150ms ease both}::view-transition-new(workspace){animation:workspace-in 150ms ease both}@keyframes workspace-out{to{transform:translateX(-24px);opacity:0}}@keyframes workspace-in{from{transform:translateX(24px);opacity:0}}}.live-shell main{view-transition-name:workspace}@media(prefers-reduced-motion:reduce){::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important}}
 
 .live-shell .borrower-card.payment-compact-row{display:grid;grid-template-columns:max-content minmax(0,1fr);align-items:center;gap:12px;min-height:44px;padding:6px 12px}.payment-compact-row>span{white-space:nowrap}.payment-compact-row>strong{min-width:0;text-align:right;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+
+/* Compact borrower and payment directories. */
+.payment-directory>.root-record-heading{margin-bottom:0;border-radius:8px 8px 0 0}
+.payment-directory>.payment-borrower-group{border:1px solid #ccc;border-top:0;margin:0}
+.payment-directory>.payment-borrower-group:last-of-type{border-radius:0 0 8px 8px;overflow:hidden}
+.live-shell .borrower-card.payment-compact-row{grid-template-columns:minmax(0,1fr) max-content}
+.live-shell .payment-compact-row .payment-date-account{display:flex;gap:8px;min-width:0;white-space:normal;align-items:center}
+.payment-date-account time{white-space:nowrap}.payment-date-account>span{overflow-wrap:anywhere;font-size:13px;color:#555}
+.borrower-tile{display:flex;align-items:center;border-bottom:1px solid #ddd;background:white;min-width:0}
+.borrower-tile.inactive{background:#e9e9e9}.borrower-tile.selected{box-shadow:inset 3px 0 #f58220}
+.borrower-tile-main{display:grid;grid-template-columns:minmax(0,1fr) max-content;gap:10px;flex:1;min-width:0;background:transparent;border:0;border-radius:0;padding:8px 10px;text-align:left;color:inherit}
+.borrower-tile-main>span{display:grid;gap:4px;min-width:0;overflow-wrap:anywhere}.borrower-tile-main>strong{text-align:right;align-self:center}.borrower-tile>.icon-action{flex:0 0 44px}
+.profit-positive{color:#16803b!important}.profit-negative{color:#c62828!important}.recovery-low{color:#b85c00!important}.recovery-middle{color:#9a7800!important}.recovery-covered{color:#00838f!important}.recovery-closed{color:#777!important;font-style:italic}
+.borrower-record>.related-loans-heading h2{flex:1;min-width:0;text-align:left}.borrower-summary-actions{display:flex;gap:12px;flex-wrap:wrap}
+.borrower-record form>.related-loans{grid-column:1/-1}.loan-record-main{min-width:0}.loan-record-main>strong{overflow-wrap:anywhere}.loan-record-amount{flex:0 0 auto;text-align:right}
+
+/* Keep monetary columns readable at narrow viewport widths. */
+.live-shell .borrower-card.payment-compact-row>strong{white-space:nowrap;overflow-wrap:normal}
+.live-shell .payment-compact-row .payment-date-account{flex-wrap:wrap;gap:2px 8px}
+.payment-date-account>span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.borrower-payment-history>.root-record-heading{display:grid;grid-template-columns:44px minmax(0,1fr);align-items:center;gap:4px;padding:0 4px}
+.borrower-payment-history>.root-record-heading h2{min-width:0;overflow-wrap:anywhere;text-align:left}
+.live-shell .detail-panel:has(>.borrower-payment-history),.live-shell .detail-panel:has(>.borrower-record){padding:8px}
+.borrower-payment-history .payment-month-group{margin-left:0}
+.borrower-record .loan-record{display:grid;grid-template-columns:minmax(0,1fr) max-content;gap:10px;padding:10px 4px;align-items:center}
+.borrower-record .loan-record-amount{min-width:0;white-space:nowrap;overflow-wrap:normal;text-align:right;gap:4px}
+.borrower-record .loan-record-main{gap:4px}
+.borrower-tile-main>strong{white-space:nowrap;overflow-wrap:normal}

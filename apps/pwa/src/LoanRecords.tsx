@@ -22,6 +22,8 @@ export function loanDisplayKey(loan: LoanRecord) {
   const rate = loan.originalDailyInterestRate == null ? 'Unavailable' : loan.originalDailyInterestRate + '%';
   return `${loan.borrowerDisplayName ?? ''}-${principal}-${date}-${rate}`;
 }
+export function loanRecoveryRatio(loan:LoanRecord){return loan.principalAmount===null||loan.totalInterestReceived===null?null:Number(loan.principalAmount)>0?Number(loan.totalInterestReceived)/Number(loan.principalAmount):0}
+export function loanRecoveryClass(loan:LoanRecord){const ratio=loanRecoveryRatio(loan);return loan.status==='ปิดยอดแล้ว'?'recovery-closed':loan.status!=='ยังไม่ปิดยอด'||ratio===null?'':ratio<0.6?'recovery-low':ratio<1?'recovery-middle':'recovery-covered'}
 const loanGroup = (value: string | null) => value === 'ยังไม่ปิดยอด' ? 0 : value === 'ปิดยอดแล้ว' ? 1 : 2;
 export function LoanRecords(props: Props) {
   const t = (en: string, th: string) => props.thai ? th : en;
@@ -56,8 +58,8 @@ export function LoanRecords(props: Props) {
 
       {!props.loading && !props.error && props.items.length === 0 && <p>{t('No loans for this borrower.', 'ผู้กู้รายนี้ไม่มีสัญญา')}</p>}
       <div className="loan-record-list">{props.items.map((loan, index) => <React.Fragment key={loan.id}>{(index === 0 || loanGroup(props.items[index - 1].status) !== loanGroup(loan.status)) && <h4 className={'record-group-heading ' + (loanGroup(loan.status) === 0 ? 'group-active' : loanGroup(loan.status) === 1 ? 'group-inactive' : 'group-unknown')}>{loanGroup(loan.status) === 0 ? t('Open loans', 'สัญญาที่ยังเปิด') : loanGroup(loan.status) === 1 ? t('Closed loans', 'สัญญาที่ปิดแล้ว') : t('Other / unavailable status', 'สถานะอื่น / ไม่มีข้อมูล')}</h4>}<button className={'loan-record ' + (loanGroup(loan.status) === 1 ? 'closed' : '')} onClick={() => props.onSelect(loan.id)} disabled={props.busy}>
-        <span className="loan-record-main"><strong>{loanDisplayKey(loan)}</strong><span>{date(loan.loanDate)} · {status(loan.status)}</span><span>{type(loan.loanType)}</span>{loan.defaulted === true && <span>{t('Defaulted', 'ผิดนัดชำระ')}</span>}</span>
-        <span className="loan-record-amount"><strong>{money(loan.outstandingPrincipal)}</strong><span>{t('Principal outstanding', 'เงินต้นคงเหลือ')}</span></span>
+        <span className="loan-record-main"><strong>{loanDisplayKey(loan)}</strong><span title={t('Original principal','เงินต้นเริ่มต้น')}>{money(loan.principalAmount)}</span></span>
+        <span className="loan-record-amount"><strong className={loan.totalInterestReceived!==null&&Number(loan.totalInterestReceived)>0?'profit-positive':''} title={t('Total Interest Received','ดอกเบี้ยรับรวม')}>{money(loan.totalInterestReceived)}</strong><span className={loanRecoveryClass(loan)} title={t('Principal Recovered by Interest','เงินต้นที่ครอบคลุมด้วยดอกเบี้ย')}>{loanRecoveryRatio(loan)===null?'—':new Intl.NumberFormat('en-US',{style:'percent',maximumFractionDigits:2}).format(loanRecoveryRatio(loan)!)}</span></span>
       </button></React.Fragment>)}</div>
       <CompactPager busy={props.busy} previous={props.onPrevious} next={props.nextCursor?props.onNext:undefined} previousLabel={t('Previous loans page','หน้าก่อนของสัญญา')} nextLabel={t('Next loans page','หน้าถัดไปของสัญญา')}/>
 

@@ -319,5 +319,31 @@
       "result": "PASS; viewport override reset, owner tab left Dashboard",
       "limits": "No live financial/input/save/upload/draft changes; current reducedmotion true observed, prior controlled skip proof reused; no private screenshot publication"
     }
+  },
+  "page12CompactUi": {
+    "scope": "Focused owner compact borrower/related loans/exclusive payment history; synthetic read interfaces, no live writes",
+    "hashes": {
+      "tests/e2e/phase5-final-ui-independent.spec.ts": "3C66880CCC8D31688140098193ED5BDCEB4A4E60C35F2946E8389576FD1EB707",
+      "tests/e2e/phase5-borrower-independent.spec.ts": "451AB3512AF37A2A147FC5EBFE7A3BC5B06067FF8B84F5D725B55EF04CBF3F98",
+      "tests/unit/record-lists-independent.test.mjs": "1F1ACB68F977480BBA1DA02AB081396967958BC7188FECE815D717F880945554",
+      "apps/pwa/src/BorrowerRecord.tsx": "169A72746E9E1908B06AE436798B00D6E9D99AC047C7B97A7E14BCB7D3D1E44E",
+      "apps/pwa/src/BorrowerPayments.tsx": "00E63A3F88D90F96F554C201DA52988D9B546A5D46703FD39C954884928ED566",
+      "apps/pwa/src/LoanRecords.tsx": "FC955960F0470108132B7B932E7BC1AE683D5FFCF8FB3467993B9F6FE4A1BC31",
+      "apps/pwa/src/PaymentGroups.tsx": "D6174D77941AC2F5E22C925002EF8B33F1534B0E5AF45CEE62B0A0142B044771",
+      "apps/pwa/src/live-main.tsx": "3BA94D01BEDAD10FE6F970F9627ECE8C41FBB05137A6CF4CFDCCF7A49DF42BDA",
+      "apps/pwa/src/live-style.css": "234846954E224FD4F46BCC63BAF051FA8830C91B5F57CF7D42F84A5365D29AF0",
+      "services/business/record-lists.mjs": "32377DE3A48029405E16BE7B60918A0FD659624DE448AA36879238A9710DBEE3"
+    },
+    "checks": {
+      "initialStaticOwnerUi": "2/2 desktop+mobile PASS 13.6s; initial mobile geometry failed visual review despite overflow passing",
+      "correctedMobileStaticGeometry": "1/1 PASS 25.5s including build; amount nowrap right of date and loan ratio/profit right column, EN/Thai320",
+      "accountLabelUnit": "1/1 PASS 6.8432ms; null/unresolved left join preserves receipt/source filtering and lazy null cursors",
+      "obsoleteSelectorAffectedCases": "10 substantive checks: initial6/10 passed;4 failed only obsolete Actions reopen/Collection envelope fixtures, corrected4/4 PASS17.1s"
+    },
+    "limitations": [
+      "No live Page12 smoke until D ready",
+      "Owner-static capture predates restored non-owner summary only; owner path unaffected",
+      "Historical financial/auth/offline proofs reused unchanged; no SQL run"
+    ]
   }
 }
