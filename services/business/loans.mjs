@@ -14,9 +14,10 @@ export const loanTypes=Object.freeze(['กำหนดวันชำระ','�
 const validDate=value=>typeof value==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(value)&&Number(value.slice(0,4))>0&&new Date(value+'T00:00:00Z').toISOString().slice(0,10)===value;
 /** Preserve exact nullable source inputs; governed SQL owns calculations and conditional eligibility. */
 export function canonicalLoanFields(input,{create=false}={}){
- if(!input||Array.isArray(input)||Object.keys(input).sort().join(',')!==Object.keys(loanInputFields).sort().join(','))throw Error('invalid_request');
+ const keys=Object.keys(loanInputFields);if(input&&Object.hasOwn(input,'scheduleAnchor'))keys.push('scheduleAnchor');
+ if(!input||Array.isArray(input)||Object.keys(input).sort().join(',')!==[...keys].sort().join(','))throw Error('invalid_request');
  const result={};
- for(const key of Object.keys(loanInputFields)){
+ for(const key of keys){
   const value=input[key];
   if(money.has(key)){
    if(value!==null&&(typeof value!=='string'||! /^(0|[1-9][0-9]*)(\.[0-9]{1,2})?$/.test(value)||value.length>20))throw Error('invalid_request');
@@ -26,7 +27,7 @@ export function canonicalLoanFields(input,{create=false}={}){
    if(value!==null&&(!Number.isInteger(value)||value<1||value>2147483647))throw Error('invalid_request');
   }else if(key==='type'){
    if(value!==null&&!loanTypes.includes(value))throw Error('invalid_request');
-  }else if(key.endsWith('Date')){
+  }else if((key.endsWith('Date')||key==='scheduleAnchor')){
    if(value!==null&&!validDate(value))throw Error('invalid_request');
   }else if(key==='arrangement'){
    if(value!==null&&(typeof value!=='string'||!value.isWellFormed()||value.includes('\0')||Buffer.byteLength(value)>65536))throw Error('invalid_request');

@@ -767,5 +767,32 @@
     },
     "configuredFrontend": "index-BwAu3A2e.js",
     "evidence": "delivery-manifest.json#directSevenUiDelivery"
+  },
+  "loanAnchorV84": {
+    "outcome": "PASS4/4 focused actual SQL cases",
+    "command": "pwsh -NoProfile -File tests/integration/Run-Phase5.ps1 -AnchorOnly",
+    "cluster": "d8cf86152ec04e108c04602110e3d82a",
+    "stopped": true,
+    "applicationRole": "mw_app_dev_c_anchor nonsuper LOGIN no BYPASSRLS",
+    "stage": "populated83→84; exact historical create/update2 journals",
+    "hashes": {
+      "database/migrations/V84__compatible_loan_schedule_anchor.sql": "87C53005DBDF1483E000684BFB5AD0D42C95BF7279C9FD96E23D8B7B3CCC2CC9",
+      "services/business/loans.mjs": "F14AC69A877E052954B1811CC65F951666A8415DA3CDA2BD5C0FF07241AED9EA",
+      "tests/integration/loan-anchor-independent.test.mjs": "DF46D0F191DEF82C15F0B8D675E7D3ABC75FF640D8270EB4B4995B50A431943C",
+      "tests/integration/loan-anchor-populated-fixture.mjs": "A5B0F2384918B6376230F111147ACF8431520B2B93D3D1A058666C54287EAFBD",
+      "tests/integration/Run-Phase5.ps1": "8A8EF3B28177D62E8D9DE4C773610D9460186E502C53A317CC9BEDC47746CD9B",
+      "scripts/rehearsal/payment-command.mjs": "44366F05BF95E020F34B00ED25F445169FDB42C1519E544130DDAA25BA638AC6"
+    },
+    "checks": [
+      "Historical canonical/source/journal/outcome replay preserved",
+      "Create/set/clear/oldshape omission preserve/replay and no child/cash changes",
+      "Strict date rejection and external anchor CAS",
+      "Anchor scheduling retains LoanDate accrual30 and idempotency"
+    ],
+    "limits": [
+      "No CI/browser/full financial suite/live mutation",
+      "Local Flyway postgres bootstrap; true nonsuper application execution separately verified",
+      "Null generator fallback source reused unchanged V8; explicit clear/read actual tested"
+    ]
   }
 }

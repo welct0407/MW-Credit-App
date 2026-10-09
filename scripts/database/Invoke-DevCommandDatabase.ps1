@@ -5,6 +5,7 @@ param(
  [Parameter(Mandatory)][string]$CandidateEvidence,
  [Parameter(Mandatory)][string]$BackupReference,
  [switch]$ExistingPackage,
+ [switch]$OwnerNoCiAnchorV84,
  [switch]$Apply
 )
 $ErrorActionPreference='Stop'
@@ -18,7 +19,24 @@ if($LASTEXITCODE -or $state){throw 'Pinned clean candidate checkout required bef
 $evidencePath=[IO.Path]::GetFullPath($CandidateEvidence)
 if(-not $evidencePath.StartsWith([IO.Path]::GetFullPath($DbPrivateRoot)+[IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase)){throw 'Verified candidate evidence must remain in maintained private root (avoid self-referential source commit)'}
 $candidate=Get-Content -LiteralPath $evidencePath -Raw | ConvertFrom-Json
-if($candidate.sourceCommit -ne $ExpectedCommit -or $candidate.fullDevelopmentCI -ne 'passed' -or $candidate.databaseCI -ne 'passed'){throw 'Full exact-source Development and applicable Database CI evidence required'}
+if($candidate.sourceCommit -ne $ExpectedCommit){throw 'Exact reviewed candidate source required'}
+if($OwnerNoCiAnchorV84){
+ # Explicit owner exception for this DEV-only existing-column anchor batch.
+ # Never represent skipped CI as passed, and never admit a later package here.
+ if(-not $ExistingPackage -or $candidate.validationMode -ne 'owner-no-ci-dev-anchor-v84' -or $candidate.ownerAuthorization -ne 'explicit-no-ci-2026-10-09-anchor-v84' -or $candidate.fullDevelopmentCI -ne 'not-run-owner-instruction' -or $candidate.databaseCI -ne 'not-run-owner-instruction'){throw 'Explicit DEV V84 owner no-CI evidence required'}
+ $migrations=@(Get-ChildItem -LiteralPath (Join-Path $DbRepoRoot 'database/migrations') -Filter 'V*.sql')
+ $versions=@($migrations | ForEach-Object {if($_.Name -match '^V([0-9]+)__'){[int]$Matches[1]}})
+ $anchor=@($migrations | Where-Object {$_.Name -match '^V84__'})
+ if($anchor.Count -ne 1 -or ($versions | Measure-Object -Maximum).Maximum -ne 84 -or $candidate.fromVersion -ne 83 -or $candidate.targetVersion -ne 84){throw 'Owner no-CI mode is limited to the reviewed V83-to-V84 package'}
+ $actualHash=(Get-FileHash -LiteralPath $anchor[0].FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+ if($candidate.migrationSha256 -cne $actualHash){throw 'Frozen V84 migration hash required'}
+ foreach($proof in @('migration','oldReplay','anchorCas','setClear','noFinancialSideEffects')){
+  if($candidate.focusedProof.$proof -ne 'passed'){throw "Passing focused $proof evidence required"}
+ }
+ if([string]::IsNullOrWhiteSpace($candidate.focusedEvidenceReference)){throw 'Actual focused proof reference required'}
+}else{
+ if($candidate.fullDevelopmentCI -ne 'passed' -or $candidate.databaseCI -ne 'passed'){throw 'Full exact-source Development and applicable Database CI evidence required'}
+}
 $backupPath=[IO.Path]::GetFullPath($BackupReference)
 if(-not $backupPath.StartsWith([IO.Path]::GetFullPath($DbPrivateRoot)+[IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase)){throw 'Recovery reference must remain in maintained private root'}
 $backup=Get-Content -LiteralPath $backupPath -Raw | ConvertFrom-Json
