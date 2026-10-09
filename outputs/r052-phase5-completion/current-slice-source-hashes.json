@@ -288,6 +288,12 @@
       "bundle": "index-D6gbgOfh.js",
       "limits": "Final inline row visual is mobile; preceding desktop screenshots are behavioral/layout evidence before CSS-only inline refinement"
     },
-    "delivery": "D owns remote Development/read-API+frontend deployment; no C live mutations"
+    "delivery": "D owns remote Development/read-API+frontend deployment; no C live mutations",
+    "unitCorrection": {
+      "file": "tests/unit/record-lists-independent.test.mjs",
+      "sha256": "65BAD8DC363B1E3A7735AA0428CA85885FE0E88FB8BAF92E4FCF4031F8AACF65",
+      "result": "1/1 PASS4.6ms /116.9ms total",
+      "scope": "Lazy borrower/month/receipt query seam preserves nullable/unposted DTOs, null cursor branches, full group totals and no Posted filter; test-only update after obsolete flat cursor expectation in Development37875311750"
+    }
   }
 }
