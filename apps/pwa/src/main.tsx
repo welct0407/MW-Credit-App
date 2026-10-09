@@ -1,3 +1,4 @@
+import {displayDate} from './display-date';
 import React, { useState, useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import type { Locale } from './fixtures';
@@ -50,7 +51,7 @@ function App() {
   }, [menu]);
   const t = (en: string, th: string) => locale === 'en' ? en : th;
   const money = (value: number | null) => value === null ? t('Unavailable', 'ไม่มีข้อมูล') : new Intl.NumberFormat(locale === 'en' ? 'en-TH' : 'th-TH', { style: 'currency', currency: 'THB', minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(value);
-  const date = (value: string | null) => value === null ? t('Unavailable', 'ไม่มีข้อมูล') : new Intl.DateTimeFormat(locale === 'en' ? 'en-GB' : 'th-TH', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Bangkok' }).format(new Date(value + 'T00:00:00Z'));
+  const date = (value: string | null) => value === null ? t('Unavailable', 'ไม่มีข้อมูล') : displayDate(value,locale!=='en');
   const go = (next: string) => { setRoute(next); setQuery(''); setFilter('all'); setSelected(null); setMenu(false); };
   const functional = route === 'collection' || route === 'borrowers';
   const adapter = previewReadAdapter(accessState);
