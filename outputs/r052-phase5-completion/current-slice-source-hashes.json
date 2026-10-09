@@ -247,5 +247,47 @@
       "scope": "Same owner Chrome4/tab304619538; safe reload, Dashboard+collapsedPayments+detailheaderActions read-only7itemsPASS; no inputs/commands/draftchanges",
       "limits": "Current live detail amount below1000, large-detail comma proof reused controlledfixture; no private screenshots/metrics exported"
     }
+  },
+  "lazyPaymentsUiBatch": {
+    "scope": "Read API and presentation only; V83/financial/auth/offline proofs retained unchanged",
+    "hashes": {
+      "services/business/record-lists.mjs": "545561D6512CF98CA719F2212363DEFCC66C0DBE7D54D380184953F4F6C7E543",
+      "services/payment-command/handler.mjs": "B10875120803530171A938D812DAC3B5C80406C23B8934617A92EFEBB032821E",
+      "services/payment-command/store.mjs": "615689F4E5E0853E7920329D8EDFF923DECFACE199C53B3B89AB9F07170AFD19",
+      "apps/pwa/src/PaymentGroups.tsx": "42B331558875CCED41EC7DEB9FC52F7CA04B62B80EE63D816683C66645AFF025",
+      "apps/pwa/src/StandaloneRecords.tsx": "7E0DE638925CAF5BD3EA5E2D411A6FC7268A60B1EA563AB8E036F02632A0848B",
+      "apps/pwa/src/display-date.ts": "88A10B4996C4B6A9A824245E58E67D26257B39F9BF71F7CAEEE6978EFA2D4BFE",
+      "apps/pwa/src/Dashboard.tsx": "BAA8277372E9FA4978E5D26642050938D66D76F7683004CAD04758F790C019B7",
+      "apps/pwa/src/PaymentRecord.tsx": "FD84EF07B69636E72AB499FF17E5AAA3DB24DEAFEA7DF2E76201BED7C54B1BBC",
+      "apps/pwa/src/live-main.tsx": "857E0A42DF415347196604D787B68FA46E8ED269E957BB3B06AAC355DA8D2C56",
+      "apps/pwa/src/live-style.css": "56226BA39244C3A07F7E2E6C86C44357342FD61B9CB90B83B41BE4DF093EEEE9",
+      "tests/integration/phase5-record-lists-independent.test.mjs": "A0E7455A60C2D38FB388B5BFF9564420D81C8D81D1F13DF10A2C590DFC62D4A1",
+      "tests/e2e/phase5-final-ui-independent.spec.ts": "B571446D4203A253EA02C3B9F6619C9792F3ADEC6DAF4F160956D810308EC605"
+    },
+    "sql": {
+      "substantiveCases": 1,
+      "result": "F13-C01 PASS2235.8ms",
+      "runner": "Run-Phase5.ps1 -JournalOnly -TestNamePattern F13-C01",
+      "cluster": "d9931e12440e4d07b0fd24520232d958 stopped",
+      "rows": {
+        "borrowers": 26,
+        "months": 26,
+        "newestMonthReceipts": 101
+      },
+      "limits": "Legitimate trueLOGIN Posted source; Error/null-payment-date DTO behavior remains controlled UI/query source inspection, not impossible current-head SQL rows"
+    },
+    "ui": {
+      "cases": 6,
+      "result": "PASS43.4s desktop/mobile",
+      "capture": "mw-lazy-payments-static-3daba47549d6438ea5c3d77f4aa94b07",
+      "bundle": "index-CpenLeH3.js"
+    },
+    "finalCss": {
+      "result": "mobile PASS3.1s (7.4s total)",
+      "capture": "mw-lazy-inline-static-8d936fe3bd744115b904fb956c45c851",
+      "bundle": "index-D6gbgOfh.js",
+      "limits": "Final inline row visual is mobile; preceding desktop screenshots are behavioral/layout evidence before CSS-only inline refinement"
+    },
+    "delivery": "D owns remote Development/read-API+frontend deployment; no C live mutations"
   }
 }

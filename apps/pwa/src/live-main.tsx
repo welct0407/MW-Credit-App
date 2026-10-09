@@ -1,3 +1,5 @@
+import {flushSync} from 'react-dom';
+import {displayDate,displayTimestamp,displayValue} from './display-date';
 import {StandaloneRecords} from './StandaloneRecords';
 import {StandaloneUpcoming} from './StandaloneUpcoming';
 import {Dashboard} from './Dashboard';
@@ -203,8 +205,7 @@ function App() {
     menuDialog.current?.close();
     if (next === view && !savedPayments && !borrowerPayment) return;
     resetSearch(); setCollectionStatus('idle');
-    clear(); setView(next);
-    if (next === 'borrowers' && user) void load(user);
+    const change=()=>{clear();setView(next);if(next==='borrowers'&&user)void load(user)};const transition=(document as Document&{startViewTransition?:(callback:()=>void)=>unknown}).startViewTransition;if(transition&&!matchMedia('(prefers-reduced-motion: reduce)').matches)transition.call(document,()=>flushSync(change));else change();
   }
   async function load(signedInUser: User, cursor?: string, page = 1, query = searchQuery.current) {
     if(page===1)borrowerCursors.current=[undefined];borrowerCursors.current[page-1]=cursor;
@@ -288,7 +289,7 @@ function App() {
     } catch { setStatus('sign_out_error'); }
   }
   const money = (value: string | null) => value === null ? t('Unavailable', 'ไม่มีข้อมูล') : new Intl.NumberFormat(thai ? 'th-TH' : 'en-TH', { style: 'currency', currency: 'THB', currencyDisplay: 'narrowSymbol', minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(Number(value));
-  const date = (value: string | null) => value === null ? t('Unavailable', 'ไม่มีข้อมูล') : new Intl.DateTimeFormat(thai ? 'th-TH' : 'en-GB', { dateStyle: 'medium', timeZone: 'Asia/Bangkok' }).format(new Date(value + 'T00:00:00Z'));
+  const date = (value: string | null) => value === null ? t('Unavailable', 'ไม่มีข้อมูล') : displayDate(value);
   useContextRefresh(status==='ready'&&view==='borrowers'&&!!selected&&!borrowerPayment&&!savedPayments,t('First loans page / refresh','หน้าแรกของสัญญา / รีเฟรช'),()=>{if(user&&selected)void loadLoans(user,selected.id,undefined,1,true)});
   const headerState = pendingActivity>0 ? 'loading' : ['loading', 'initializing', 'signing_in', 'signing_out'].includes(status) ? 'loading' : status !== 'ready' ? ['error', 'denied', 'sign_out_error', 'auth_unavailable', 'unavailable'].includes(status) ? 'error' : 'idle' : view === 'collection' ? collectionStatus : busy ? 'loading' : 'success';
   const navigation = (location: 'desktop' | 'mobile-bottom' | 'drawer') => {

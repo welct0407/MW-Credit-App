@@ -1,3 +1,4 @@
+import {displayDate,displayTimestamp,displayValue} from './display-date';
 import {CompactPager,RefreshIcon} from './CompactPager';
 import { ErrorReference, type ReadFailure } from './ReadFailure';
 import React from 'react';
@@ -5,7 +6,7 @@ export type UpcomingSummary = { ok: true; source: 'dev'; businessDate: string; a
 export type UpcomingDetail = Omit<UpcomingSummary, 'items' | 'previews'> & { dueDate: string; totalCharge: string | null; nextCursor: string | null; items: { id: string; loanId: string; loanDisplayKey: string; principalRemaining: string | null; interestRemaining: string | null; amountRemaining: string | null; basis: string }[] };
 export function UpcomingCharges({ thai, summary, detail, page, busy, error, onDate, onBack, onRefresh, onNext, onPrevious, onDetailRefresh }: { thai: boolean; summary: UpcomingSummary | null; detail: UpcomingDetail | null; page: number; busy: boolean; error: ReadFailure | null; onDate: (date: string) => void; onBack: () => void; onRefresh: () => void; onNext: () => void; onPrevious?:()=>void; onDetailRefresh: () => void }) {
   const t = (en: string, th: string) => thai ? th : en;
-  const date = (value: string) => new Intl.DateTimeFormat(thai ? 'th-TH' : 'en-GB', { dateStyle: 'medium', timeZone: 'Asia/Bangkok' }).format(new Date(value + 'T00:00:00Z'));
+  const date = (value: string) => displayDate(value);
   const money = (value: string | null) => value === null ? t('Unavailable', 'ไม่มีข้อมูล') : new Intl.NumberFormat(thai ? 'th-TH' : 'en-TH', { style: 'currency', currency: 'THB', currencyDisplay: 'narrowSymbol', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Number(value));
   const basis = (value: string) => ({ Recorded: t('Recorded', 'บันทึกแล้ว'), 'Recorded settlement': t('Recorded settlement', 'รายการชำระที่บันทึกแล้ว'), 'Recorded - review status': t('Recorded - review status', 'บันทึกแล้ว - ตรวจสอบสถานะ'), Projected: t('Projected', 'คาดการณ์') })[value] ?? t('Unavailable', 'ไม่มีข้อมูล');
   const source = detail ?? summary;
