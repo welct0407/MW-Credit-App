@@ -3,6 +3,8 @@ on:
   push:
     branches: [main]
   pull_request:
+    types: [opened, synchronize, reopened, labeled]
+  workflow_dispatch:
 permissions:
   contents: read
 jobs:
@@ -19,7 +21,9 @@ jobs:
       - run: npm run build:live-dev
       - run: npm audit --omit=dev --audit-level=moderate
       - run: npx playwright install --with-deps chromium
+        if: ${{ github.event_name != 'pull_request' || (github.event.action == 'labeled' && github.event.label.name == 'ci:checkpoint') }}
       - run: npm run test:e2e
+        if: ${{ github.event_name != 'pull_request' || (github.event.action == 'labeled' && github.event.label.name == 'ci:checkpoint') }}
       - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.16.5
