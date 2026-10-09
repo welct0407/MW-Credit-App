@@ -9,3 +9,6 @@ B's affected unit checks passed 5/5; synthetic navigation/default race and 320px
 No CI was requested or dispatched; publication uses [skip ci]. Deployment uses two image-only service updates followed by configured Hosting. Previous service revisions/images and Hosting version are retained privately for matched rollback. Actual deployed pins and owner-session read-only evidence will be linked in the existing delivery manifest after verification.
 
 R052 remains Open. DEV83 remains unchanged. Broader owner/device acceptance, notifications in Phase8 and unknown future native receipt mapping retain their prior status.
+
+## Verified deployment
+Source36ab8d1 deployed to read00013-cqw and command00010-f7n, both Ready with all identity/environment settings unchanged. Configured x8fdabks/Hosting85fa13d4ef1bb3bb/release1791545374045000 passed root owner-session read-only smoke; details and exact plan/image pins are in the existing delivery manifest. Root applied all eight Page checkboxes sequence2243, blank retained. No inputs, uploads, financial POST or draft mutation. The live synthetic has no preferred account; local preferred/manual/restored account evidence is reused with that distinction.

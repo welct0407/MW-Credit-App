@@ -687,5 +687,19 @@
     "ci": "none; all publication [skip ci], no dispatch/label/main push",
     "artifact": "configured DIS0bIGR plus API00009-qmn/imagef2fd3de4",
     "limits": "Actual selected Cash windows empty; synthetic local nonempty/time proof reused; broader owner/device acceptance separate"
+  },
+  "collectionReceivingEightUi": {
+    "artifactSource": "36ab8d15c98ed4548ad6d74e37472812d3d0c11a",
+    "sourceHashes": {
+      "apps/pwa/src/CollectionRecords.tsx": "F4DEDABED322CC9717FD1FE3221089A9E4DE46578E918885850BA556262F82A7",
+      "apps/pwa/src/SelectedCharges.tsx": "B54717E0AF86DAD5CCDA64FB6D60C9A80E8ECE8B9E0B2F948C88F8C1191B3154",
+      "apps/pwa/src/live-style.css": "7AD1C1A930A3ECC1671D4544D205BDD8EA1900251BEB37B345E3E1024D10229B",
+      "services/api/collection-read-contract.mjs": "9F7658989E6F437E8508F1C3CECEEF4EA228656DD5FF139A6CD287108083B219",
+      "services/payment-command/draft.mjs": "3412DB6EEEB39A8BF880BE7CFF92643A450BA8221148B43B7937DE9D3E542C1A",
+      "tests/unit/collection-receiving-display.test.mjs": "43A2A0411E11974C21F58B2190A9379311D693640B571485570BA78CF5ACEF8C"
+    },
+    "configuredFrontend": "index-x8fdabks.js",
+    "evidence": "delivery-manifest.json#collectionReceivingEightUiDelivery",
+    "ci": "not run by owner instruction"
   }
 }

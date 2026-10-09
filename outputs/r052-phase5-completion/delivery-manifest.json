@@ -280,5 +280,27 @@
     "financialWrites": "none",
     "ownerAcceptance": "broader Phase5 owner/device acceptance separate",
     "ownerPageReceipt": "Root guarded fourteen requested checkboxes applied sequence1869; no errors/ignored operations, blank retained; broader acceptance separate"
+  },
+  "collectionReceivingEightUiDelivery": {
+    "artifactSource": "36ab8d15c98ed4548ad6d74e37472812d3d0c11a",
+    "scope": "Compact Collection full group sums/status/direct Receive; receiving display/preferred account/camera/Auto-assign; additive read projections only",
+    "backendBuild": "c79d6c7f-6836-4b7b-a143-6ff5edbfe481",
+    "image": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app/api@sha256:4fb9dbbee7d0b68576b5a4ca36e9c1a03b554c558f7125c4a16569eb3ad41b2e",
+    "readRevision": "mw-credit-app-read-dev-00013-cqw",
+    "commandRevision": "mw-credit-app-command-dev-00010-f7n",
+    "runtimeReadback": "Both Ready; images/identities/all environment match saved plan",
+    "configuredFrontend": "index-x8fdabks.js",
+    "hostingVersion": "85fa13d4ef1bb3bb",
+    "hostingRelease": "1791545374045000",
+    "frontendGuard": "passed",
+    "terraformPlanSha256": "22622314BE13FF8980A32ED9626841AD02BBB8F7C58E02A15199726CD0CE3751",
+    "terraformActions": "Exactly two existing-service image updates; zero other settings, create/destroy or IAM",
+    "rollback": "Matched prior read image7695213e, command00009-qmn/imagef2fd3de4 and Hosting0398ed3d424bcb07/DIS0bIGR retained",
+    "focusedProof": "B affected unit5/5/typebuild/synthetic navigation/default race/320; root final source/functional/visual PASS",
+    "ci": "None: owner requested no CI of any kind, all commits [skip ci], no dispatch/label/main push",
+    "liveReadOnlySmoke": "Root exact x8fdabks normal Update retained owner: 24 compact Collection tiles and Not Paid/Overdue totals, zero alerts; synthetic direct Receive opened form without input/POST/upload; 91.6px amount input, Bank Transfer/Cash only, camera input/label, no draft warning, distinct disabled empty Auto-assign; Back worked. This synthetic has no preferred account, so blank was expected; preferred/manual/restored account proofs remain local.",
+    "financialWrites": "none",
+    "ownerAcceptance": "Broader Phase5 owner/device acceptance separate",
+    "ownerPageReceipt": "Root guarded eight checkboxes applied sequence2243; no errors/ignored operations, blank retained"
   }
 }
