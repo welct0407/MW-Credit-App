@@ -2,7 +2,7 @@ import {projectCollectionCharge} from '../api/collection-read-contract.mjs';
 import {borrowerDisplayName} from '../api/loan-read-contract.mjs';
 export async function readPaymentDraft(client,fixture) {
  const clock=(await client.query("SELECT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date::text AS day, CURRENT_TIMESTAMP AS instant")).rows[0];
- const borrower=(await client.query('SELECT "Borrower Name" AS name,"Description" AS description FROM public."Borrowers" WHERE "Row ID"=$1',[fixture.borrowerId])).rows[0];
+ const borrower=(await client.query('SELECT "Borrower Name" AS name,"Description" AS description,"Ref Preferred Receiving Cash Account" AS preferred_account FROM public."Borrowers" WHERE "Row ID"=$1',[fixture.borrowerId])).rows[0];
  if(!borrower)throw Error('Draft unavailable');
  const rows=(await client.query(`SELECT c."Row ID" AS id,l."Row ID" AS loan_id,c."Charge Date"::text AS charge_date,
  c."Payment Status" AS payment_status,c."Payment Date"::text AS payment_date,c."Amount Remaining"::text AS amount_remaining,
@@ -24,7 +24,7 @@ export async function readPaymentDraft(client,fixture) {
  const accounts=(await client.query(`SELECT a."Row ID" AS id,a."Account Label" AS label FROM public."Cash Accounts" a
  JOIN public."Cash Holders" h ON h."Row ID"=a."Ref Cash Holder" WHERE a."Row ID"=ANY($1::text[]) AND a."Active" IS TRUE AND h."Active" IS TRUE ORDER BY a."Sort Order",a."Row ID" COLLATE "C"`,[fixture.cashAccountIds])).rows;
  if(accounts.some(row=>typeof row.label!=='string'||!row.label))throw Error('Draft unavailable');
- return {mode:'synthetic-only',businessDate:clock.day,asOf:new Date(clock.instant).toISOString(),borrower:{id:fixture.borrowerId,displayName:borrowerDisplayName(borrower.name,borrower.description)},charges,accounts};
+ return {mode:'synthetic-only',businessDate:clock.day,asOf:new Date(clock.instant).toISOString(),borrower:{id:fixture.borrowerId,displayName:borrowerDisplayName(borrower.name,borrower.description)},charges,accounts,preferredReceivingAccountId:accounts.some(row=>row.id===borrower.preferred_account)?borrower.preferred_account:null};
 }
 
 const validDay=value=>typeof value==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(value)&&value>='0001-01-01'&&Number.isFinite(Date.parse(value+'T00:00:00Z'))&&new Date(value+'T00:00:00Z').toISOString().slice(0,10)===value;
@@ -40,7 +40,7 @@ export async function readOwnerPaymentDraft(client,borrowerId,{limit=25,cursor=n
  if(!Number.isInteger(limit)||limit<1||limit>100)throw Error('invalid_request');
  const clock=(await client.query("SELECT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date::text AS day,CURRENT_TIMESTAMP AS instant")).rows[0];
  if(after&&after.businessDate!==clock.day)return {draftError:'business_date_changed',status:409};
- const borrower=(await client.query('SELECT "Borrower Name" AS name,"Description" AS description FROM public."Borrowers" WHERE "Row ID"=$1',[borrowerId])).rows[0];
+ const borrower=(await client.query('SELECT "Borrower Name" AS name,"Description" AS description,"Ref Preferred Receiving Cash Account" AS preferred_account FROM public."Borrowers" WHERE "Row ID"=$1',[borrowerId])).rows[0];
  if(!borrower)return {draftError:'not_found',status:404};
  const blocked=(await client.query(`SELECT EXISTS(SELECT 1 FROM public."Payments" WHERE "Ref Borrower"=$1 AND "Status" IN ('Processing','Error')) AS blocked`,[borrowerId])).rows[0].blocked;
  if(blocked)return {draftError:'payment_requires_reconciliation',status:409};
@@ -66,5 +66,5 @@ export async function readOwnerPaymentDraft(client,borrowerId,{limit=25,cursor=n
  const accounts=(await client.query(`SELECT a."Row ID" AS id,a."Account Label" AS label FROM public."Cash Accounts" a JOIN public."Cash Holders" h ON h."Row ID"=a."Ref Cash Holder" WHERE a."Active" IS TRUE AND h."Active" IS TRUE ORDER BY a."Sort Order",a."Row ID" COLLATE "C"`)).rows;
  if(accounts.some(row=>typeof row.label!=='string'||!row.label))throw Error('Draft unavailable');
  const last=page.at(-1),nextCursor=more?Buffer.from(JSON.stringify({v:2,borrowerId,scope,businessDate:clock.day,chargeDate:last.chargeDate,id:last.id})).toString('base64url'):null;
- return {mode:'dev-owner-testing',scope,businessDate:clock.day,asOf:new Date(clock.instant).toISOString(),borrower:{id:borrowerId,displayName:name},charges,accounts,nextCursor};
+ return {mode:'dev-owner-testing',scope,businessDate:clock.day,asOf:new Date(clock.instant).toISOString(),borrower:{id:borrowerId,displayName:name},charges,accounts,nextCursor,preferredReceivingAccountId:accounts.some(row=>row.id===borrower.preferred_account)?borrower.preferred_account:null};
 }

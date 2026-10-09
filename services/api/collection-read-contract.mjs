@@ -47,7 +47,7 @@ export const collectionCte = `WITH today_repayments AS (
 )`;
 export function projectCollection(row) {
   if (!validLoanId(row.id) || !collectionStatuses[row.rank]) throw new Error('Invalid collection source');
-  return { id: row.id, displayName: borrowerDisplayName(row.borrower_name, row.borrower_description), status: collectionStatuses[row.rank], amountDue: decimal(row.amount_due), amountCollected: decimal(row.amount_collected), amountRemaining: decimal(row.amount_remaining) };
+  return { id: row.id, displayName: borrowerDisplayName(row.borrower_name, row.borrower_description), status: collectionStatuses[row.rank], amountDue: decimal(row.amount_due), amountCollected: decimal(row.amount_collected), amountRemaining: decimal(row.amount_remaining), ...(row.group_remaining !== undefined ? {groupRemaining:decimal(row.group_remaining)} : {}) };
 }
 export function projectCollectionCharge(row) {
   if (!validLoanId(row.id) || !validLoanId(row.loan_id) || !validDate(row.charge_date) || !['รอชำระ', 'ชำระบางส่วน', 'ชำระแล้ว'].includes(row.payment_status)) throw new Error('Invalid collection charge');
@@ -84,7 +84,7 @@ export async function readCollection(client, { limit, after, borrowerId = null, 
   const quality = await client.query(collectionQualitySql, [borrowerId]);
   if (quality.rows[0]?.invalid !== false) return { collectionError: 'source_unavailable', collectionStatus: 503 };
   if (borrowerId === null) {
-    const result = await client.query(`${collectionCte} SELECT * FROM summaries WHERE ($6::text = '' OR strpos(lower(COALESCE(borrower_name, '')), lower($6)) > 0 OR strpos(lower(COALESCE(borrower_description, '')), lower($6)) > 0) AND ($3::integer IS NULL OR rank > $3 OR (rank = $3 AND id COLLATE "C" > $4::text COLLATE "C")) ORDER BY rank, id COLLATE "C" LIMIT $5`, [businessDate, null, after?.rank ?? null, after?.id ?? null, limit + 1, query]);
+    const result = await client.query(`${collectionCte}, filtered AS (SELECT * FROM summaries WHERE ($6::text = '' OR strpos(lower(COALESCE(borrower_name, '')), lower($6)) > 0 OR strpos(lower(COALESCE(borrower_description, '')), lower($6)) > 0)), totals AS (SELECT *, CASE WHEN count(*) FILTER (WHERE amount_remaining IS NULL) OVER (PARTITION BY rank)>0 THEN NULL ELSE sum(amount_remaining::numeric) OVER (PARTITION BY rank)::text END AS group_remaining FROM filtered) SELECT * FROM totals WHERE ($3::integer IS NULL OR rank > $3 OR (rank = $3 AND id COLLATE "C" > $4::text COLLATE "C")) ORDER BY rank, id COLLATE "C" LIMIT $5`, [businessDate, null, after?.rank ?? null, after?.id ?? null, limit + 1, query]);
     const items = result.rows.slice(0, limit).map(projectCollection);
     const last = result.rows[Math.min(limit, result.rows.length) - 1];
     return { ...metadata, items, nextCursor: result.rows.length > limit ? encodeCollectionCursor({ kind: 'collection', businessDate, rank: last.rank, id: last.id }, query) : null };
