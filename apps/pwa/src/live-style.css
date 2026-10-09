@@ -252,3 +252,19 @@
 .borrower-record .loan-record-amount{min-width:0;white-space:nowrap;overflow-wrap:normal;text-align:right;gap:4px}
 .borrower-record .loan-record-main{gap:4px}
 .borrower-tile-main>strong{white-space:nowrap;overflow-wrap:normal}
+
+/* Direct borrower actions share the name header; captions collapse on mobile. */
+.borrower-record>.related-loans-heading:has(.borrower-direct-actions){gap:4px}
+.borrower-direct-actions{display:flex;align-items:center;justify-content:flex-end;flex:0 0 auto;gap:2px}
+.borrower-direct-actions button{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:44px;min-width:44px;padding:6px;border:0;background:transparent;color:inherit;font:inherit}
+.borrower-direct-actions svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.borrower-record form>label{font-size:13px;color:#666}
+.borrower-record .borrower-field-value,.borrower-record form>label>input,.borrower-record form>label>select,.borrower-record form>label>textarea{font-size:16px;color:#202124}
+.borrower-record .borrower-summary p{font-size:13px;color:#666}.borrower-record .borrower-summary p>strong{font-size:16px;color:#202124}
+@media(max-width:1050px){.borrower-direct-actions button>span{display:none}.borrower-direct-actions{gap:0}.borrower-record>.related-loans-heading:has(.borrower-direct-actions) h2{font-size:17px;line-height:1.3}}
+
+@media(max-width:600px){
+ .borrower-record>.related-loans-heading:has(.borrower-direct-actions){display:grid;grid-template-columns:44px minmax(0,1fr);gap:0 4px}
+ .borrower-record>.related-loans-heading:has(.borrower-direct-actions)>h2{grid-column:2;overflow-wrap:break-word}
+ .borrower-record>.related-loans-heading>.borrower-direct-actions{grid-column:1/-1;justify-self:end}
+}
