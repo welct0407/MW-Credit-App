@@ -1,4 +1,4 @@
-param()
+param([string]$TestNamePattern)
 # Fresh loopback-only full V81 database; never reads live credentials or accepts a DSN.
 $ErrorActionPreference='Stop'
 if($env:CI -ne 'true'){. "$PSScriptRoot/../../scripts/Enter-Dev.ps1"}
@@ -34,7 +34,8 @@ try {
   foreach($entry in $savedFlyway.GetEnumerator()){Set-Item "Env:$($entry.Key)" $entry.Value}
  }
  $env:PAYMENT_REHEARSAL_DISPOSABLE='1';$env:PAYMENT_REHEARSAL_PORT=[string]$fixturePort;$env:PAYMENT_REHEARSAL_DIRECTORY=$data
- & node --test --test-concurrency=1 "$PSScriptRoot/payment-phase4.test.mjs" "$PSScriptRoot/payment-phase4-independent.test.mjs" "$PSScriptRoot/receiving-ux-independent.test.mjs"
+ $testFilter=@();if($TestNamePattern){$testFilter=@('--test-name-pattern='+$TestNamePattern)}
+ & node --test --test-concurrency=1 @testFilter "$PSScriptRoot/payment-phase4.test.mjs" "$PSScriptRoot/payment-phase4-independent.test.mjs" "$PSScriptRoot/receiving-ux-independent.test.mjs"
  if($LASTEXITCODE){throw 'Payment command API rehearsal failed'}
 } finally {
  Remove-Item Env:PAYMENT_REHEARSAL_DISPOSABLE,Env:PAYMENT_REHEARSAL_PORT,Env:PAYMENT_REHEARSAL_DIRECTORY -ErrorAction SilentlyContinue

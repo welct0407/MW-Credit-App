@@ -27,17 +27,17 @@ async function setup(page:Page,holdChildren=false){
   if(path.endsWith('/result'))return r.fulfill({status:503,contentType:'application/json',body:'{"ok":false}'});
   return r.fulfill({contentType:'application/json',body:'{"ok":true,"kind":"unresolved","safeToUseNewRequestId":false}'});
  });
- await page.goto(base);await expect(page.getByRole('button',{name:/Google/})).toBeVisible();await page.getByRole('button',{name:/Google/}).click();await chooseLanguage(page,'EN');await page.getByRole('button',{name:'Collection',exact:true}).click();await page.locator('.collection-borrower').first().click();await expect(page.getByRole('button',{name:'Receive selected charges',exact:true})).toBeVisible();return state;
+ await page.route('https://mw-credit-app-command-dev-test.run.app/api/dashboard',r=>r.fulfill({contentType:'application/json',body:JSON.stringify({collection:{notPaid:0,partiallyPaid:0,overdue:0,fullyPaid:0},forecast:{},portfolio:{},incomeMtd:{},businessCashHeld:[]})}));await page.goto(base);await expect(page.getByRole('button',{name:/Google/})).toBeVisible();await page.getByRole('button',{name:/Google/}).click();await chooseLanguage(page,'EN');await page.getByRole('button',{name:'Collection',exact:true}).click();await page.locator('.collection-tile-main').first().click();await expect(page.getByRole('button',{name:'Receive selected charges',exact:true})).toBeVisible();return state;
 }
 
 test('amount-first manual grid retains edits and returns to Collection after explicit confirmation',async({page},info)=>{
- const fixture=await setup(page);await page.getByRole('button',{name:'Receive selected charges',exact:true}).click();
- await page.getByRole('textbox',{name:'Amount received',exact:true}).fill('7');
+ const fixture=await setup(page);await page.getByRole('button',{name:'Receive selected charges',exact:true}).click();await page.getByRole('combobox',{name:/^Receiving account(?: \*)?$/}).selectOption('ux-A');
+ await page.getByRole('textbox',{name:/^Amount\ received(?: \*)?$/}).fill('7');
  const row=page.locator('.payment-allocation-row').first();await row.getByRole('checkbox').check();
  await expect(row.getByRole('textbox',{name:/Principal for/})).toHaveValue('5');await expect(row.getByRole('textbox',{name:/Interest for/})).toHaveValue('2');
  await row.getByRole('textbox',{name:/Principal for/}).fill('7');await row.getByRole('textbox',{name:/Interest for/}).fill('0');
- await page.getByRole('textbox',{name:'Amount received',exact:true}).fill('9');await expect(row.getByRole('textbox',{name:/Principal for/})).toHaveValue('7');await expect(page.getByRole('button',{name:'Review payment',exact:true})).toBeDisabled();
- await page.getByRole('textbox',{name:'Amount received',exact:true}).fill('7');await page.getByRole('textbox',{name:'Notes',exact:true}).fill('manual ไทย');
+ await page.getByRole('textbox',{name:/^Amount\ received(?: \*)?$/}).fill('9');await expect(row.getByRole('textbox',{name:/Principal for/})).toHaveValue('7');await expect(page.getByRole('button',{name:'Review payment',exact:true})).toBeDisabled();
+ await page.getByRole('textbox',{name:/^Amount\ received(?: \*)?$/}).fill('7');await page.getByRole('textbox',{name:/^Notes(?: \*)?$/}).fill('manual ไทย');
  await page.locator('.payment-charge-scroll').evaluate(el=>el.scrollTop=0);await page.evaluate(()=>window.scrollTo(0,0));await page.locator('.selected-payment').evaluate(el=>el.scrollTop=0);
  mkdirSync('outputs/r052-unified-receiving',{recursive:true});for(const width of info.project.name.startsWith('mobile')?[320,390]:[1440]){await page.setViewportSize({width,height:850});await page.evaluate(()=>window.scrollTo(0,0));await page.locator('.selected-payment').evaluate(el=>el.scrollTop=0);await page.locator('.payment-charge-scroll').evaluate(el=>el.scrollTop=0);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await page.screenshot({path:'outputs/r052-unified-receiving/amount-first-'+info.project.name+'-'+width+'.png'});}
  await page.getByRole('button',{name:'Review payment',exact:true}).click();await expect(page.getByRole('button',{name:'Confirm payment online',exact:true})).toBeEnabled();

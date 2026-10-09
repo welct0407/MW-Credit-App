@@ -15,6 +15,7 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
  const t=(en:string,th:string)=>thai?th:en;
  const [draft,setDraft]=useState<Draft|null>(null),[selected,setSelected]=useState<string[]>([]),[account,setAccount]=useState(''),[notes,setNotes]=useState('');
  const [state,setState]=useState<'loading'|'edit'|'review'|'sending'|'unknown'|'posted'|'rejected'|'conflict'|'error'>('loading');
+ const [draftSaveFailed,setDraftSaveFailed]=useState(false);
  const [error,setError]=useState(''),[receipt,setReceipt]=useState<string|null>(null),[preview,setPreview]=useState<string|null>(null),[uploading,setUploading]=useState(false),[uploadFailed,setUploadFailed]=useState(false);
  const [checking,setChecking]=useState(false),[receiptReadError,setReceiptReadError]=useState(''),[verifiedPreview,setVerifiedPreview]=useState<string|null>(null);
  const confirming=useRef(false),autosaveSuspended=useRef(false),legacyDraft=useRef(false);
@@ -93,19 +94,19 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
  useEffect(()=>{
   if(state!=='edit'||command.current||autosaveSuspended.current||!draft||!access.offline)return;
   const current=generation.current;
-  autosaveTimer.current=setTimeout(()=>{autosaveChain.current=autosaveChain.current.catch(()=>{}).then(async()=>{if(current!==generation.current||command.current||autosaveSuspended.current)return;await access.offline!.saveDraft(borrowerId,latestDraft.current)}).catch(()=>{if(current===generation.current)window.dispatchEvent(new Event('mw-offline-save-failed'))});},400);
+  autosaveTimer.current=setTimeout(()=>{autosaveChain.current=autosaveChain.current.catch(()=>{}).then(async()=>{if(current!==generation.current||command.current||autosaveSuspended.current)return;const value=latestDraft.current;await access.offline!.saveDraft(borrowerId,value);if(current===generation.current&&latestDraft.current===value)setDraftSaveFailed(false)}).catch(()=>{if(current===generation.current&&!command.current){setDraftSaveFailed(true);window.dispatchEvent(new Event('mw-offline-save-failed'))}});},400);
   return()=>clearTimeout(autosaveTimer.current);
  },[notes,account,selectionRows,allMode,localImage,paymentMethod,received,allocations,state,draft]);
  const editable=useRef(false);editable.current=state==='edit'||state==='review';
  useEffect(()=>{
-  const saveOnDisconnect=()=>{if(editable.current&&access.offline&&!command.current&&!autosaveSuspended.current)void (autosaveChain.current=autosaveChain.current.catch(()=>{}).then(async()=>{if(!command.current&&editable.current&&!autosaveSuspended.current)await access.offline!.saveDraft(borrowerId,latestDraft.current)})).then(()=>window.dispatchEvent(new Event('mw-offline-saved'))).catch(()=>window.dispatchEvent(new Event('mw-offline-save-failed')));};
+  const saveOnDisconnect=()=>{const current=generation.current;if(editable.current&&access.offline&&!command.current&&!autosaveSuspended.current)void (autosaveChain.current=autosaveChain.current.catch(()=>{}).then(async()=>{if(current!==generation.current||command.current||!editable.current||autosaveSuspended.current)return;const value=latestDraft.current;await access.offline!.saveDraft(borrowerId,value);if(current===generation.current&&latestDraft.current===value)setDraftSaveFailed(false)})).then(()=>window.dispatchEvent(new Event('mw-offline-saved'))).catch(()=>{if(current===generation.current&&!command.current){setDraftSaveFailed(true);window.dispatchEvent(new Event('mw-offline-save-failed'))}});};
   const leaving=(event:BeforeUnloadEvent)=>{if(editable.current||command.current&&state==='unknown'){event.preventDefault();event.returnValue='';}};
   window.addEventListener('offline',saveOnDisconnect);window.addEventListener('beforeunload',leaving);
   return()=>{window.removeEventListener('offline',saveOnDisconnect);window.removeEventListener('beforeunload',leaving);};
  },[access.offline,borrowerId,state]);
  async function discardDraft(){
   if(command.current)return;autosaveSuspended.current=true;clearTimeout(autosaveTimer.current);uploadGeneration.current++;setState('loading');
-  try{await autosaveChain.current;await access.offline?.remove('draft',borrowerId);setReceived('');setAllocations([]);setUnavailableLines([]);setChangedBalances(null);setSelected([]);setSelectionRows([]);setNotes('');setReceipt(null);setLocalImage(null);setPreview(null);setAllMode(false);setUploading(false);setUploadFailed(false);setError('');}catch{setError(t('The draft could not be cleared.','ล้างร่างไม่สำเร็จ'));}finally{setState('edit')}
+  try{await autosaveChain.current;await access.offline?.remove('draft',borrowerId);setReceived('');setAllocations([]);setUnavailableLines([]);setChangedBalances(null);setSelected([]);setSelectionRows([]);setNotes('');setReceipt(null);setLocalImage(null);setPreview(null);setAllMode(false);setUploading(false);setUploadFailed(false);setDraftSaveFailed(false);setError('');}catch{setError(t('The draft could not be cleared.','ล้างร่างไม่สำเร็จ'));}finally{setState('edit')}
  }
  async function refreshSelection(){
   const operation=++reviewOperation.current;
@@ -211,7 +212,7 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
 
  <div className="payment-context">{!['sending','unknown'].includes(state)&&<button className="secondary-button icon-action" aria-label={t('Back to Collection','กลับงานติดตาม')} title={t('Back to Collection','กลับงานติดตาม')} onClick={onBack}><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M19 12H5m6-6-6 6 6 6"/></svg></button>}<strong>{draft?.borrower.displayName??t('Receive payment','รับชำระเงิน')}</strong>{state==='edit'&&<details className="payment-options"><summary aria-label={t('Payment options','ตัวเลือกรับชำระ')} title={t('Payment options','ตัวเลือกรับชำระ')}>⋮</summary><button className="secondary-button" onClick={()=>void discardDraft()}>{t('Clear draft','ล้างร่าง')}</button></details>}</div>
  {savedAt&&<p>{t('Offline saved copy — not current','สำเนาออฟไลน์ — ไม่ใช่ข้อมูลปัจจุบัน')}: {displayTimestamp(savedAt)}</p>}
- {error&&<p role="alert">{error}</p>}
+ {error&&<p role="alert">{error}</p>}{draftSaveFailed&&['edit','review'].includes(state)&&<p role="alert">{t('Changes are not saved on this device. Keep this form open.','การเปลี่ยนแปลงยังไม่ถูกบันทึกในอุปกรณ์ โปรดเปิดหน้านี้ไว้')}</p>}
 
  {state==='edit'&&draft&&<>
 
