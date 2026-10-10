@@ -57,5 +57,22 @@
     "hostingVersion": "fe54464c7cf5a0b5",
     "physicalDeviceAcceptance": "not claimed",
     "bundle": "index-C1CIvmJt.js"
+  },
+  "cashFocusedBatch": {
+    "unitCases": 1,
+    "syntheticInteractionCases": 1,
+    "viewport": "440x956 CSS portrait",
+    "postCount": 0,
+    "pins": {
+      "apps/pwa/src/ManagementCash.tsx": "C558628774098E548EE836B5C45A5AD26DE564CCF461EFDB36717B99CE21A918",
+      "apps/pwa/src/ManagementWorkspace.tsx": "693B7AF2AC571D19C862EB24D1FFA79E35BF8C01D051DD69880750F1066BC895",
+      "apps/pwa/src/ManagementReference.tsx": "B6DCE56FE5D620BAD911977A7CF05BE14EEBD25F692B5DA892042F32E7B37A4D",
+      "apps/pwa/src/live-main.tsx": "C477F1E17BF6467A747FBE93AAA30470CDE8828A113113B9ABC8CF8063B56E68",
+      "apps/pwa/src/live-style.css": "ADAAEFF60490B0A4D80A9B31C92AD5A99B3F7AD28871EBC2EE1283A145EC2844",
+      "services/business/management.mjs": "5644B39255FFD2AA0F4BCF92346E1779257E29B2492CC66B23B5ADF30687859A",
+      "services/payment-command/handler.mjs": "314B53C1B5EC4EE9058728CA903B870CE55B59521619910903FC584E93421A32",
+      "tests/unit/cash-account-filter-independent.test.mjs": "0ED38FBEC920C1575BE6F565AFF8491AC83FBE660F101139104E320B3F9D4B56",
+      "outputs/r052-phase6/cash-movement-picker-440.png": "86BDB0F6E9A911E89BD3A38EE92EF4E8D646ADDD7CEFCF36CD34F627709E76B8"
+    }
   }
 }
