@@ -394,3 +394,62 @@ main[data-workspace=management] pre{white-space:pre-wrap;overflow-wrap:anywhere}
 .cash-holder-choice.is-selected{background:#fff0dd;box-shadow:inset 3px 0 #b75b00;border-radius:5px}.cash-holder-choice.is-selected>.borrower-card{background:transparent;font-weight:700}.cash-selected-holder-heading{scroll-margin-top:80px}.cash-mobile-position{display:none}
 @media(max-width:1050px){.cash-desktop-position{display:none}.cash-mobile-position{display:block}.cash-mobile-position-heading,.cash-mobile-holder,.cash-mobile-account{display:grid;grid-template-columns:minmax(0,1fr) minmax(100px,44%);gap:10px;align-items:center;width:100%;box-sizing:border-box;padding:8px;border-bottom:1px solid #ddd}.cash-mobile-position-heading{font-size:13px;background:#f4f4f4}.cash-mobile-holder{font:inherit;font-weight:700;border:0;border-bottom:1px solid #ddd;background:#eee;min-height:44px;text-align:left}.cash-mobile-position-heading>span:last-child,.cash-mobile-holder>strong,.cash-mobile-account>span{text-align:right;overflow-wrap:anywhere}.cash-mobile-holder>span,.cash-mobile-account>button{min-width:0;overflow-wrap:anywhere}.cash-mobile-account{padding-left:24px}.cash-mobile-account>button{text-align:left;font-weight:400;white-space:normal}.cash-position-more{margin-top:12px}.cash-position-more>summary{min-height:44px;cursor:pointer;padding:10px 8px}.cash-position-more>small{display:block;color:#666;margin-bottom:8px}}
 @media(max-width:1050px){.cash-position-more .cash-position-tree th:first-child,.cash-position-more .cash-position-tree td:first-child{position:sticky;left:0;background:#fff;z-index:1}.cash-position-more .cash-position-tree .cash-position-holder td:first-child{background:#f2f2f2}}
+
+/* Tablet presentation is width based; orientation never remounts a workspace. */
+@media(min-width:768px){
+ .live-shell input:not([type=checkbox]):not([type=radio]),.live-shell select,.live-shell textarea{font-size:16px;max-width:100%;box-sizing:border-box}
+ .live-shell .topbar{padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right));padding-top:max(6px,env(safe-area-inset-top))}
+ .live-shell main{padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+ .live-shell button,.live-shell summary{touch-action:manipulation}
+ .live-shell input,.live-shell select,.live-shell textarea{scroll-margin-block:calc(var(--live-header-height,60px) + 16px) 100px}
+}
+@media(min-width:768px) and (max-width:1199px){
+ .live-shell,.live-shell .workspace{height:auto;min-height:100dvh;overflow:visible}
+ .live-shell .topbar{position:sticky;top:0;z-index:40}
+ .live-shell main{height:auto;min-height:0;overflow:visible;padding-bottom:max(24px,env(safe-area-inset-bottom))}
+ .live-shell .work-grid,.live-shell .collection-workspace{height:auto;min-height:0}
+ .live-shell .work-grid>.list-panel,.live-shell .work-grid>.detail-panel,.live-shell .standalone-records,.live-shell .borrower-record,.live-shell .selected-payment{height:auto;max-height:none;overflow-y:visible}
+ .live-shell .record-action-label,.live-shell .borrower-direct-actions .record-action-label{display:inline!important;font-size:14px}
+ .live-shell .record-action,.live-shell .record-action.icon-action,.cash-accounts-layout .record-action.icon-action{width:auto;max-width:100%;flex:0 1 auto;min-height:44px;padding:7px 10px!important}
+ .live-shell .borrower-direct-actions{gap:6px;flex-wrap:wrap;justify-content:flex-end;max-width:100%}
+ .live-shell .related-loans-heading,.live-shell .payment-context{flex-wrap:wrap}
+ .live-shell .related-loans-heading>h2{font-size:19px!important;flex:1 1 220px}
+ .live-shell .borrower-record form{max-width:900px}
+ .live-shell .management-reference{min-width:0;max-width:100%}
+ .live-shell .management-reference-option{min-height:44px;white-space:normal;overflow-wrap:anywhere}
+ .live-shell .management-table-scroll,.live-shell .cash-table-scroll{max-width:100%;overflow-x:auto;overscroll-behavior-x:contain}
+ .live-shell .management-chart-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+ .live-shell .management-chart,.live-shell .dashboard-section,.live-shell .cash-statement-paper{min-width:0}
+ .live-shell .cash-accounts-layout{grid-template-columns:minmax(240px,1fr) minmax(0,2fr)}
+ .live-shell .cash-accounts-layout:has(form){grid-template-columns:minmax(0,1fr)}
+ .live-shell .cash-selected-holder-heading{scroll-margin-top:calc(var(--live-header-height,60px) + 12px)}
+ .live-menu-dialog{width:min(360px,85vw);max-height:100dvh;overflow-y:auto;overscroll-behavior:contain}
+ .live-shell .allocation-summary{top:var(--live-header-height,60px)}
+}
+@media(min-width:768px) and (max-width:1050px){
+ .live-shell .cash-report-layout{grid-template-columns:minmax(0,1fr)}
+ .live-shell .management-chart-grid{grid-template-columns:minmax(0,1fr)}
+ .live-shell:has(.live-bottom-nav) main{padding-bottom:calc(88px + env(safe-area-inset-bottom))}
+}
+@media(min-width:1051px) and (max-width:1199px){
+ .live-body:has(.live-desktop-nav),.live-body.nav-collapsed:has(.live-desktop-nav){position:relative;grid-template-columns:72px minmax(0,1fr);min-height:calc(100dvh - var(--live-header-height,60px))}
+ .live-body>main{grid-column:2;grid-row:1}
+ .live-desktop-nav{position:fixed;left:0;top:var(--live-header-height,60px);bottom:0;width:250px;z-index:35;overflow-y:auto;padding-bottom:env(safe-area-inset-bottom);box-shadow:4px 0 12px #0002}
+ .nav-collapsed .live-desktop-nav{width:72px;box-shadow:none}
+ .live-shell .work-grid.has-detail{grid-template-columns:minmax(280px,2fr) minmax(440px,3fr)}
+ .live-shell .work-grid:not(.has-detail){grid-template-columns:minmax(0,1fr)}
+ .live-shell .live-bottom-nav{display:none}
+}
+
+@media(min-width:768px) and (max-width:1199px){
+ .live-shell .related-loans-heading.collection-charges-heading{grid-template-columns:minmax(0,1fr) auto;gap:12px}
+ .live-shell .collection-charges-heading>.record-action{width:auto;max-width:100%;justify-self:end;white-space:normal}
+ .live-shell .dashboard-record{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:16px}
+ .live-shell .dashboard-record>.dashboard-section:first-of-type{grid-column:1/-1}
+ .live-shell .dashboard-section dl:has(>div){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 24px;margin-block:12px}
+ .live-shell .dashboard-section dl>div{min-width:0}
+ .live-shell .dashboard-section dt{font-size:15px;line-height:1.35;overflow-wrap:anywhere}
+ .live-shell .dashboard-section dd{margin:4px 0 0;font-size:22px;line-height:1.3;overflow-wrap:anywhere}
+ .live-shell .dashboard-section h3{margin:18px 0 8px}
+ .live-shell .dashboard-section:not(:first-of-type) dl:has(>div){grid-template-columns:minmax(0,1fr)}
+}

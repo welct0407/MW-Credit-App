@@ -1,0 +1,18 @@
+{
+  "baseline": "d3f2ff1",
+  "files": [
+    {
+      "path": "apps/pwa/src/live-main.tsx",
+      "sha256": "E3E79677DCD6232470C588FB49395AEC3D8EE6E34F5199B3AB8EBE216839B143"
+    },
+    {
+      "path": "apps/pwa/src/live-style.css",
+      "sha256": "7711F06441DFB7EC409139EAA18BBE22D7D6FB358466CD5049DE582DE55180D9"
+    }
+  ],
+  "build": "index-BCUdICKz.js",
+  "checks": [
+    "npm run build:live-dev PASS"
+  ],
+  "backendChanged": false
+}
