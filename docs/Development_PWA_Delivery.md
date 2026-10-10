@@ -9,3 +9,8 @@ Normal rollback builds the reviewed earlier PWA source and deploys its valid /sw
 Do not deploy retirement over a still-registering PWA source as a lasting rollback: use the paired pre-worker frontend artifact. Do not simply delete /sw.js. C must verify worker retirement/cache isolation on synthetic local builds before first delivery. No live rollback is required merely to test this mechanism.
 
 Current live asset HTTP cache policy stays no-store. Worker Cache Storage is a separate explicit public allowlist controlled by application source; no app HTML/JS/API/auth/business data is cached. No offline records or successful offline financial work is promised.
+
+## Existing command image build identity
+For a changed command-service read adapter, build from the clean pinned source with:
+`gcloud builds submit --project clever-oasis-508610-n7 --region asia-southeast1 --config cloudbuild-command.yaml --service-account projects/clever-oasis-508610-n7/serviceAccounts/mw-credit-app-build@clever-oasis-508610-n7.iam.gserviceaccount.com --gcs-source-staging-dir gs://mw-credit-app-builds-737787224638/source --async`.
+Use the existing dedicated builder and source bucket; omitting these selects a default compute identity/bucket that lacks the required source access. Pin the successful digest, review the existing image-only Terraform plan, then deliver the matched configured frontend. This does not grant new IAM or authorize PROD.

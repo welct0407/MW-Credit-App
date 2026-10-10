@@ -86,5 +86,26 @@
     "frontendBundle": "index-DzT32uER.js",
     "rollbackHostingVersion": "fe54464c7cf5a0b5",
     "limitations": "Landscape, expanded-table interaction and physical Safari/device acceptance not separately tested; native receipt limitations unchanged"
+  },
+  "partnersUi": {
+    "sourceCommit": "ab4eb7f86ede97205dd7e0347fb671ebba21239c",
+    "scope": "Responsive Partner cards/detail Back preservation and additive existing-source list metrics",
+    "validation": "B type/build plus focused adapter2/2 passed; C440x956 focused navigation/visual PASS, zero POST; no CI requested",
+    "commandBuild": "e1d4f592-c9ff-454f-ac69-4e62b048c8e6",
+    "commandImage": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app/api@sha256:2940fc339d6621e5769ac33c0095e0c5aac6926a44698c9a459eff84ef270d1e",
+    "commandRevision": "mw-credit-app-command-dev-00014-zxj",
+    "runtimeSpecUnchangedExceptImage": true,
+    "frontendBundle": "index--YK4pv5X.js",
+    "hostingVersion": "b3a48677dee858cc",
+    "hostingRelease": "1791635175415000",
+    "configuredGuard": "passed",
+    "plan": "0 add,1 command image update,0 destroy",
+    "rollback": {
+      "commandRevision": "mw-credit-app-command-dev-00013-f84",
+      "commandImage": "sha256:bea30b8bcd86956fc4cfb37c92f32a0254968812de15d28d9ed7b11861620a73",
+      "hostingVersion": "e58a2cb8f52967fe",
+      "frontendBundle": "index-DzT32uER.js"
+    },
+    "limitations": "Portrait Chromium controlled proof; no new live SQL calculation or physical-device claim. Unknown native receipt limitation unchanged."
   }
 }
