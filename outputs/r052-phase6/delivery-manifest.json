@@ -106,6 +106,7 @@
       "hostingVersion": "e58a2cb8f52967fe",
       "frontendBundle": "index-DzT32uER.js"
     },
-    "limitations": "Portrait Chromium controlled proof; no new live SQL calculation or physical-device claim. Unknown native receipt limitation unchanged."
+    "limitations": "Portrait Chromium controlled proof; no new live SQL calculation or physical-device claim. Unknown native receipt limitation unchanged.",
+    "liveReadVerification": "Unavailable: browser tool kernel asset initialization failed before tab access, including one reset/rebind. No UI action or auth/session-loss inference; synthetic proof and deployment readback remain valid."
   }
 }
