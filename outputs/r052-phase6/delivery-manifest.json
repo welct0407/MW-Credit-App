@@ -188,5 +188,23 @@
       "frontendBundle": "index-BDOl2LBp.js"
     },
     "limits": "Controlled Chromium1440/440 proof; no new live owner-session or physical iPhone claim. Prior financial/API/worker evidence reused unchanged; unknown native receipt and intermittent503cause remain unresolved."
+  },
+  "cashTree": {
+    "sourceCommit": "d56c7dd27adc0e53cb842d3f4d3ffe9f72be5baa",
+    "scope": "Compact Accounts; full provider holder-account tree with bold holder/plain account metrics and no client aggregate;20-row ledger date/Bangkok CreatedAt time and accessible whole-row detail",
+    "validation": "B type/build; C focused1 PASS provider totals/nulls/membership/20paging/click-Enter-Space-Back and1440/440 visuals zeroPOST; configured type/build/marker guard PASS; no CI",
+    "frontendBundle": "index-AEzGTaqe.js",
+    "publicVersion": "de8c8bca99d4fae5050fa90f",
+    "hostingVersion": "d376db73b3a2393b",
+    "hostingRelease": "1791673170610000",
+    "publicMarkerReadback": "HTTP200/no-store exact entry/version",
+    "readerRevisionUnchanged": "mw-credit-app-read-dev-00015-22g",
+    "commandRevisionUnchanged": "mw-credit-app-command-dev-00015-75d",
+    "databaseUnchanged": 85,
+    "rollback": {
+      "hostingVersion": "1fe6e8be97328293",
+      "frontendBundle": "index-B6ZjQLA6.js"
+    },
+    "limits": "Controlled Chromium1440/440 proof; no new live owner-session or physical iPhone claim. Existing financial/API/worker proof reused unchanged; unknown native receipts and intermittent503cause remain unresolved."
   }
 }
