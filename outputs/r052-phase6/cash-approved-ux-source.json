@@ -1,0 +1,29 @@
+{
+  "baseline": "e88decf",
+  "files": [
+    {
+      "path": "apps/pwa/src/ManagementCash.tsx",
+      "sha256": "849BD375BB7A7BF1649AF5A9DA691B0CE566D7DE0B54F2883E5742980494627E"
+    },
+    {
+      "path": "apps/pwa/src/ManagementPosition.tsx",
+      "sha256": "DB9CD3FFCFF72E4AB0438F064D104C04EC9DC98E7FCFFB759A82C052D4955ED1"
+    },
+    {
+      "path": "apps/pwa/src/ManagementWorkspace.tsx",
+      "sha256": "96EF6E808BDDBFB32BCEC40CF87F21E431E27EE6033194C570B55413F8A41FFF"
+    },
+    {
+      "path": "apps/pwa/src/RecordAction.tsx",
+      "sha256": "3D43CD4602479FCA387BBC7502290B5134D0D965D327631944C582E5A19372D1"
+    },
+    {
+      "path": "apps/pwa/src/live-style.css",
+      "sha256": "1BF34A08BCBBCAEC5E0B1B407D5754DD5B4E456AF47A1FD75BDD847AD95EF30C"
+    }
+  ],
+  "checks": [
+    "npm run build:live-dev PASS final source"
+  ],
+  "backendChanged": false
+}
