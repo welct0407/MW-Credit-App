@@ -8,7 +8,7 @@ Normal rollback builds the reviewed earlier PWA source and deploys its valid /sw
 
 Do not deploy retirement over a still-registering PWA source as a lasting rollback: use the paired pre-worker frontend artifact. Do not simply delete /sw.js. C must verify worker retirement/cache isolation on synthetic local builds before first delivery. No live rollback is required merely to test this mechanism.
 
-Current live asset HTTP cache policy stays no-store. Worker Cache Storage is a separate explicit public allowlist controlled by application source; no app HTML/JS/API/auth/business data is cached. No offline records or successful offline financial work is promised.
+Current live HTTP headers remain no-store. The worker separately caches only the public versioned shell/hashed JS/CSS/icons from its explicit allowlist. Installed root navigation reads the active public shell cache first; update checks run separately and a waiting build still requires explicit safe activation. Cross-origin API, authenticated requests and business/receipt responses are never cached by the worker. Authorized viewed records/drafts follow their existing owner/lease rules; cached shell delivery does not authorize offline financial posting.
 
 ## Existing command image build identity
 For a changed command-service read adapter, build from the clean pinned source with:

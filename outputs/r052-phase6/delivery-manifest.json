@@ -129,5 +129,28 @@
       "frontendBundle": "index--YK4pv5X.js"
     },
     "limitations": "Controlled portrait proof only; no new live browser/physical device claim, previous browser-tool failure remains. Native receipt limits unchanged."
+  },
+  "headerStartup": {
+    "sourceCommit": "accef247587f18959552c7299ca7b83118270f23",
+    "scope": "Shared global Back registry; direct Dashboard authorization without Borrowers bootstrap; public shell cache-first/explicit safe update; sanitized reader stage/category diagnostics",
+    "validation": "B43focused units/typebuild; C5substantive focused registry/warmcache/private exclusion/bootstrap-auth/form-pending/update-two-tab checks passed; no CI",
+    "readerBuild": "619a48d8-8316-4411-9cb6-a9a7821b4d27",
+    "readerImage": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app/api@sha256:fd2f63e3c770df44eceafc4fac128d3d2827c387c7758a00e906f2e77a4bd6ba",
+    "readerRevision": "mw-credit-app-read-dev-00015-22g",
+    "runtimeSpecUnchangedExceptImage": true,
+    "commandRevisionUnchanged": "mw-credit-app-command-dev-00015-75d",
+    "frontendBundle": "index-Dz5AVl9U.js",
+    "hostingVersion": "bb0fded9c99a8764",
+    "hostingRelease": "1791648933910000",
+    "configuredGuard": "passed",
+    "plan": "0add,1reader-image-update,0destroy",
+    "rollback": {
+      "readerRevision": "mw-credit-app-read-dev-00014-bmw",
+      "readerImage": "sha256:594702475b5ae2d35f6c974045fdd6b0589bdeca109c85d8896821a38231da12",
+      "hostingVersion": "11b7d37d64542175",
+      "frontendBundle": "index-BcIkQ1CZ.js"
+    },
+    "incident": "Reference78cb8a19-f43a-4667-b003-929b71ef6df0 borrowers_list503/5300ms; intermittent connection-vs-query root remains unproven. Operator query0.268ms is not runtimeIAM proof.",
+    "limits": "First safe update must install/warm public shell before cache-first benefit; API/auth/private data never worker-cached. No live owner/physical device repeat; failed-install/rollback not newly exercised. No SQL/IAM/timeout/index changes."
   }
 }
