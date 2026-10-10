@@ -373,3 +373,12 @@ main[data-workspace=management] pre{white-space:pre-wrap;overflow-wrap:anywhere}
  main[data-workspace=management] .borrower-direct-actions,.borrower-direct-actions{flex-basis:auto;justify-content:flex-end;margin-left:auto}
  .borrower-record>.related-loans-heading:has(.borrower-direct-actions)>h2{flex:1 1 150px}
 }
+
+/* HeaderBack is a registry marker, never a visual grid/flex item. */
+[data-header-back]{display:none!important;width:0!important;height:0!important;margin:0!important;padding:0!important}
+.related-loans-heading:has(>[data-header-back]),.root-record-heading:has(>[data-header-back]){display:flex!important;grid-template-columns:none!important;justify-content:flex-start}
+.related-loans-heading:has(>[data-header-back])>h2,.root-record-heading:has(>[data-header-back])>h2{grid-column:auto!important;margin-left:0!important;flex:1 1 160px}
+.cash-accounts-layout{display:grid;grid-template-columns:minmax(220px,1fr) minmax(0,2fr);gap:16px;align-items:start}.cash-accounts-layout>section{min-width:0}
+.cash-holder-choice{display:flex;align-items:center;gap:6px}.cash-holder-choice>.borrower-card{flex:1;min-width:0}.cash-holder-choice>.record-action{flex-shrink:0}
+.management-position table{width:100%;border-collapse:collapse;font-size:14px}.management-position th,.management-position td{padding:10px;border-bottom:1px solid #ddd;text-align:right;white-space:nowrap}.management-position th:first-child,.management-position td:first-child{text-align:left}.management-position th{font-weight:600;background:#f2f2f2}.management-position .cash-table-scroll{margin-bottom:18px}.management-position .record-field-link{min-height:44px}
+@media(max-width:1050px){.cash-accounts-layout{grid-template-columns:minmax(0,1fr)}}
