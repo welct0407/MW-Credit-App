@@ -31,6 +31,12 @@ if(mode==='live-dev'){
  const required=['clever-oasis-508610-n7','clever-oasis-508610-n7.firebaseapp.com','https://mw-credit-app-read-dev-pvrgvyg3oq-as.a.run.app','https://mw-credit-app-command-dev-pvrgvyg3oq-as.a.run.app'];
  if(required.some(value=>!compiled.includes(value))||!/AIza[0-9A-Za-z_-]{30,}/.test(compiled)||!/1:737787224638:web:[0-9a-f]+/.test(compiled))throw new Error('Live DEV public-client configuration missing or wrong service origins; load established build inputs before Hosting');
 }
+// Latest-build startup gate must refer to this exact public entry/worker pair.
+if(mode==='live-dev'&&!retire){
+ const version=JSON.parse(await readFile(path.join(root,'build-version.json'),'utf8'));
+ const html=await readFile(path.join(root,'index.html'),'utf8'),worker=await readFile(path.join(root,'sw.js'),'utf8');
+ if(version.schemaVersion!==1||!/^[a-f0-9]{24}$/.test(version.version)||typeof version.entry!=='string'||!/^\/assets\/[^/]+\.js$/.test(version.entry)||!files[version.entry]||!html.includes(version.entry)||!worker.includes(version.version))throw new Error('Public version marker does not match compiled entry/worker');
+}
 const headers=[{glob:"**",headers:{"X-Content-Type-Options":"nosniff","Referrer-Policy":"strict-origin-when-cross-origin","Cache-Control":mode==="live-dev"?"no-store":"public,max-age=300"}}];
 if(mode==="live-dev"){
  if(retire){
@@ -43,7 +49,7 @@ if(mode==="live-dev"){
   const worker=await readFile(path.join(root,"sw.js"),"utf8");
   if(!worker.trim()||/^\s*</.test(worker))throw new Error("Worker must be JavaScript, not HTML");
  }
- headers.push({glob:"/sw.js",headers:{"Content-Type":"application/javascript; charset=utf-8","Cache-Control":"no-store"}}, {glob:"/manifest.webmanifest",headers:{"Content-Type":"application/manifest+json; charset=utf-8","Cache-Control":"no-store"}}, {glob:"/offline.html",headers:{"Content-Type":"text/html; charset=utf-8","Cache-Control":"no-store"}});
+ headers.push({glob:"/build-version.json",headers:{"Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store"}}, {glob:"/sw.js",headers:{"Content-Type":"application/javascript; charset=utf-8","Cache-Control":"no-store"}}, {glob:"/manifest.webmanifest",headers:{"Content-Type":"application/manifest+json; charset=utf-8","Cache-Control":"no-store"}}, {glob:"/offline.html",headers:{"Content-Type":"text/html; charset=utf-8","Cache-Control":"no-store"}});
 }
 if(args.includes("--check")){console.log(JSON.stringify({site,mode,retirePwa:retire,fileCount:Object.keys(files).length,headers}));process.exit(0);}
 token=process.env.GOOGLE_OAUTH_ACCESS_TOKEN||await new GoogleAuth({scopes:["https://www.googleapis.com/auth/cloud-platform"]}).getAccessToken();

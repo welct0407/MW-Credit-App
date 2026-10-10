@@ -26,12 +26,15 @@ self.addEventListener('install', event => {
 self.addEventListener('activate', event => {
   event.waitUntil((async () => {
     const names = await caches.keys();
-    const previous=names.filter(name=>name.startsWith(PREFIX)&&name!==CACHE).at(-1);
-    await Promise.all(names.filter(name => name.startsWith(PREFIX) && name !== CACHE && name!==previous).map(name => caches.delete(name)));
+    // Existing tabs may still use any retained public build. Unknown clients are
+    // treated conservatively; activation never deletes their assets or private drafts.
+    const clients=await self.clients.matchAll({type:'window',includeUncontrolled:true});
+    if(clients.length===0){const previous=names.filter(name=>name.startsWith(PREFIX)&&name!==CACHE).at(-1);await Promise.all(names.filter(name=>name.startsWith(PREFIX)&&name!==CACHE&&name!==previous).map(name=>caches.delete(name)))}
     await self.clients.claim();
   })());
 });
 self.addEventListener('message', event => {
+  if(event.data?.type==='GET_BUILD_VERSION')event.ports?.[0]?.postMessage({version:VERSION});
   if (event.data?.type === 'ACTIVATE_UPDATE') event.waitUntil(self.skipWaiting());
 });
 self.addEventListener('fetch', event => {

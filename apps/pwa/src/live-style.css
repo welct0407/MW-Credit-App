@@ -360,3 +360,16 @@ main[data-workspace=management] pre{white-space:pre-wrap;overflow-wrap:anywhere}
 .cash-landing{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr));gap:12px}.cash-landing button{min-height:52px;border:1px solid #bbb;border-radius:8px;background:white;padding:12px;text-align:left}.management-reference .management-reference-option{min-height:44px;padding:6px 10px;margin:3px 0;gap:10px}.management-reference-option small{font-size:12px}
 
 .live-menu-toggle.has-back{display:block;min-width:44px;min-height:44px;padding:8px}
+
+/* Record subjects and actions share one predictable header across workspaces. */
+.related-loans-heading,.root-record-heading,.payment-context{display:flex;align-items:center;flex-wrap:wrap;gap:10px}
+.related-loans-heading>h2,.root-record-heading>h2,.payment-context>strong{flex:1 1 160px;min-width:0;text-align:left;overflow-wrap:anywhere}
+.borrower-direct-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:6px;margin-left:auto}
+.record-action{display:inline-flex!important;align-items:center;justify-content:center;gap:6px;min-width:44px;min-height:44px;border:1px solid #bcbcbc!important;border-radius:6px;background:#fff!important;padding:7px 10px!important;color:inherit}
+.record-action-icon{display:inline-flex;align-items:center;justify-content:center;font-size:20px}.record-action-icon svg{width:21px;height:21px}.record-action-label{font-size:14px;white-space:normal}.record-action:disabled{opacity:.5}
+@media(max-width:1050px){
+ .record-action-label{display:none!important}.record-action{padding:7px!important;width:44px;flex:0 0 44px}.record-action-icon{display:inline-flex!important}
+ .borrower-record>.related-loans-heading:has(.borrower-direct-actions){display:flex;grid-template-columns:none}
+ main[data-workspace=management] .borrower-direct-actions,.borrower-direct-actions{flex-basis:auto;justify-content:flex-end;margin-left:auto}
+ .borrower-record>.related-loans-heading:has(.borrower-direct-actions)>h2{flex:1 1 150px}
+}
