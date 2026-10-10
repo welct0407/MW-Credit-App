@@ -39,11 +39,22 @@ self.addEventListener('fetch', event => {
   const url = new URL(request.url);
   if(request.method!=='GET'||url.origin!==self.location.origin||url.search||request.headers.has('Authorization'))return;
   if(APP_ASSETS.includes(url.pathname)&&url.pathname!=='/'){event.respondWith((async()=>{const cached=await(await caches.open(CACHE)).match(url.pathname);return cached||fetch(request)})());return;}
+  // A still-open previous build may request an old hashed asset after activation.
+  // Only exact keys already verified during a retained worker install are eligible.
+  if(/^\/assets\/[^/]+\.(js|css|png)$/.test(url.pathname)){
+    event.respondWith((async()=>{for(const name of (await caches.keys()).filter(name=>name.startsWith(PREFIX))){const cached=await(await caches.open(name)).match(url.pathname);if(cached)return cached}return fetch(request)})());return;
+  }
   if(request.mode!=='navigate'||url.pathname!=='/')return;
-  event.respondWith(fetch(request).catch(async () => {
+  // The installed worker pins a complete public shell. Version checks run in
+  // usePwa without delaying navigation; a waiting build still requires explicit activation.
+  event.respondWith((async () => {
     const cache=await caches.open(CACHE);
-    const fallback = await cache.match('/') || await cache.match('/offline.html');
-    if (!fallback) throw new Error('Offline fallback unavailable');
-    return fallback;
-  }));
+    const shell=await cache.match('/');
+    if(shell)return shell;
+    try{return await fetch(request)}catch(error){
+      const fallback=await cache.match('/offline.html');
+      if(!fallback)throw error;
+      return fallback;
+    }
+  })());
 });

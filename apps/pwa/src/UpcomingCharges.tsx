@@ -1,3 +1,4 @@
+import {HeaderBack} from './HeaderBack';
 import {displayDate,displayTimestamp,displayValue} from './display-date';
 import {CompactPager,RefreshIcon} from './CompactPager';
 import { ErrorReference, type ReadFailure } from './ReadFailure';
@@ -11,7 +12,7 @@ export function UpcomingCharges({ thai, summary, detail, page, busy, error, onDa
   const basis = (value: string) => ({ Recorded: t('Recorded', 'บันทึกแล้ว'), 'Recorded settlement': t('Recorded settlement', 'รายการชำระที่บันทึกแล้ว'), 'Recorded - review status': t('Recorded - review status', 'บันทึกแล้ว - ตรวจสอบสถานะ'), Projected: t('Projected', 'คาดการณ์') })[value] ?? t('Unavailable', 'ไม่มีข้อมูล');
   const source = detail ?? summary;
   return <section className="upcoming-charges" aria-label={t('Upcoming Charges', 'ยอดเรียกเก็บล่วงหน้า')} aria-busy={busy}>
-    {detail && <button className="icon-action" aria-label={t('Back to borrower summary','กลับสรุปผู้กู้')} title={t('Back to borrower summary','กลับสรุปผู้กู้')} onClick={onBack}>←</button>}
+    {detail && <HeaderBack className="icon-action" aria-label={t('Back to borrower summary','กลับสรุปผู้กู้')} title={t('Back to borrower summary','กลับสรุปผู้กู้')} onClick={onBack}>←</HeaderBack>}
     <div className="related-loans-heading"><h3>{t('Upcoming Charges', 'ยอดเรียกเก็บล่วงหน้า')}</h3></div>
     {source?.reviewRequired && <p className="issue-note" role="status">{t('Schedule data is incomplete or loan status needs review.', 'ข้อมูลตารางชำระไม่ครบถ้วนหรือสถานะสินเชื่อต้องตรวจสอบ')}</p>}
     {error && <div role="status"><ErrorReference failure={error} thai={thai} /><button className="secondary-button" disabled={busy} onClick={detail?onDetailRefresh:onRefresh}>{t('Retry Upcoming Charges','ลองโหลดยอดเรียกเก็บล่วงหน้าอีกครั้ง')}</button><p>{error.code === 'not_found' ? t('This upcoming date is no longer available. Refresh upcoming charges.', 'ไม่พบวันที่เรียกเก็บล่วงหน้านี้แล้ว กรุณารีเฟรช') : t('Unable to load upcoming charges.', 'ไม่สามารถโหลดรายการเรียกเก็บล่วงหน้าได้')}</p></div>}

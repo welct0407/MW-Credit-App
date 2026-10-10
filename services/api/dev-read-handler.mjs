@@ -23,13 +23,13 @@ export function createDevReadHandler({ config, verifyPrincipal, store, completio
   return async (req, res) => {
     const requestId = randomUUID();
     const started = performance.now();
-    let completionCode = 'unknown_error';
+    let completionCode = 'unknown_error';let diagnostic={};
     let logged = false;
     const operation = req.method === 'OPTIONS' ? 'preflight' : operationFor(req.url);
     res.once?.('finish', () => {
       if (logged) return;
       logged = true;
-      try { completionLogger({ event: 'read_request', requestId, operation, method: ['GET', 'OPTIONS'].includes(req.method) ? req.method : 'OTHER', status: res.statusCode, code: completionCode, durationMs: Math.max(0, Math.round(performance.now() - started)) }); }
+      try { completionLogger({ event: 'read_request', requestId, operation, method: ['GET', 'OPTIONS'].includes(req.method) ? req.method : 'OTHER', status: res.statusCode, code: completionCode, ...diagnostic, durationMs: Math.max(0, Math.round(performance.now() - started)) }); }
       catch { /* Telemetry must never alter the response or log raw errors. */ }
     });
     res.setHeader('X-Request-ID', requestId);
@@ -96,7 +96,8 @@ export function createDevReadHandler({ config, verifyPrincipal, store, completio
         } else return send(404, { ok: false, code: 'not_found' });
       }
       else return send(404, { ok: false, code: 'not_found' });
-      const { status, ...body } = result;
+      const { status, diagnostic:detail, ...body } = result;
+      if(detail&&['connect','transaction','identity','mapping','read','commit'].includes(detail.stage)&&['57014','53300','57P01','08000','08001','08003','08006','28P01','42501','ETIMEDOUT','ECONNRESET','ECONNREFUSED','unclassified'].includes(detail.category))diagnostic={stage:detail.stage,category:detail.category};
       return send(result.ok ? 200 : status || 503, body);
     } catch { return send(503, { ok: false, code: 'read_unavailable' }); }
   };

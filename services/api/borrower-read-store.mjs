@@ -33,24 +33,27 @@ export function decodeCursor(cursor, query = '') {
 export function createBorrowerReadStore({ pool, config, now = () => new Date() }) {
   async function run(email, operation, repeatableRead = false) {
     if (email !== config.ownerEmail) return { ok: false, status: 403, code: 'access_denied' };
-    const client = await pool.connect();
+    let client;let stage='connect';
     try {
+      client=await pool.connect();stage='transaction';
       await client.query(repeatableRead ? 'BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY' : 'BEGIN READ ONLY');
       await client.query("SET LOCAL statement_timeout = '5000ms'");
-      const identity = await client.query('SELECT current_database() AS database, current_user AS principal');
+      stage='identity';const identity = await client.query('SELECT current_database() AS database, current_user AS principal');
       if (identity.rows.length !== 1 || identity.rows[0].database !== config.database || identity.rows[0].principal !== config.dbUser) throw new Error('Unexpected database identity');
-      const mapping = await client.query('SELECT "Row ID" AS id FROM public."Partners" WHERE lower(btrim("Login Email")) = $1 LIMIT 2', [email]);
+      stage='mapping';const mapping = await client.query('SELECT "Row ID" AS id FROM public."Partners" WHERE lower(btrim("Login Email")) = $1 LIMIT 2', [email]);
       if (mapping.rows.length !== 1 || !validId(mapping.rows[0].id)) { await client.query('ROLLBACK'); return { ok: false, status: 403, code: 'access_denied' }; }
-      const data = await operation(client);
+      stage='read';const data = await operation(client);
+      stage='commit';
       await client.query('COMMIT');
       const timestamp = now();
       const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Bangkok', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(timestamp);
       const value = type => parts.find(p => p.type === type).value;
       return { ok: true, schemaVersion: 1, source: 'dev', businessDate: `${value('year')}-${value('month')}-${value('day')}`, timezone: 'Asia/Bangkok', asOf: timestamp.toISOString(), ...data };
-    } catch {
-      try { await client.query('ROLLBACK'); } catch { /* No query values or underlying errors are logged. */ }
-      return { ok: false, status: 503, code: 'read_unavailable' };
-    } finally { client.release(); }
+    } catch (error) {
+      if(client)try { await client.query('ROLLBACK'); } catch { /* No raw error payload. */ }
+      const category=['57014','53300','57P01','08000','08001','08003','08006','28P01','42501','ETIMEDOUT','ECONNRESET','ECONNREFUSED'].includes(error?.code)?error.code:'unclassified';
+      return Object.defineProperty({ok:false,status:503,code:'read_unavailable'},'diagnostic',{value:{stage,category},enumerable:false});
+    } finally { client?.release(); }
   }
   return {
     async checkIdentity() {

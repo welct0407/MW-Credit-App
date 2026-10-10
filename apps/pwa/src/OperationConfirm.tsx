@@ -1,3 +1,4 @@
+import {HeaderBack} from './HeaderBack';
 import React,{useEffect,useRef,useState} from 'react';
 import type {CommandAccess} from './SelectedCharges';
 import {beginRequest} from './request-activity';
@@ -31,5 +32,5 @@ export function OperationConfirm({access,command,domain,label,thai,recovery=fals
   }catch{if(current===generation.current){setUnknown(true);setError(t('Outcome unknown. Check this request when connected.','ยังไม่ทราบผล ตรวจสอบคำขอนี้เมื่อเชื่อมต่อ'))}}
   finally{clearTimeout(timer);done();inflight.current=false;if(current===generation.current)setBusy(false)}
  }
- return <section className="borrower-record" aria-label={label} aria-busy={busy}><div className="related-loans-heading"><button className="icon-action" disabled={busy||unknown} aria-label={t('Back to details','กลับรายละเอียด')} onClick={onBack}>←</button><h2>{label}</h2></div>{children}{error&&<p role="alert">{error}</p>}{unknown?<><p>{t('Request reference','รหัสคำขอ')}: <code>{payload.current.requestId}</code></p><button disabled={busy||access.offlineOnly||!navigator.onLine} onClick={()=>void request('GET')}>{t('Check request','ตรวจสอบคำขอ')}</button>{retry&&<button disabled={busy||access.offlineOnly||!navigator.onLine} onClick={()=>void request('POST')}>{t('Retry same request','ลองส่งคำขอเดิมอีกครั้ง')}</button>}</>:!rejected&&<button disabled={busy||access.offlineOnly||!navigator.onLine} onClick={()=>void request('POST')}>{t('Confirm','ยืนยัน')}</button>}</section>;
+ return <section className="borrower-record" aria-label={label} aria-busy={busy}><div className="related-loans-heading"><HeaderBack className="icon-action" disabled={busy||unknown} aria-label={t('Back to details','กลับรายละเอียด')} onClick={onBack}>←</HeaderBack><h2>{label}</h2></div>{children}{error&&<p role="alert">{error}</p>}{unknown?<><p>{t('Request reference','รหัสคำขอ')}: <code>{payload.current.requestId}</code></p><button disabled={busy||access.offlineOnly||!navigator.onLine} onClick={()=>void request('GET')}>{t('Check request','ตรวจสอบคำขอ')}</button>{retry&&<button disabled={busy||access.offlineOnly||!navigator.onLine} onClick={()=>void request('POST')}>{t('Retry same request','ลองส่งคำขอเดิมอีกครั้ง')}</button>}</>:!rejected&&<button disabled={busy||access.offlineOnly||!navigator.onLine} onClick={()=>void request('POST')}>{t('Confirm','ยืนยัน')}</button>}</section>;
 }

@@ -358,3 +358,5 @@ main[data-workspace=management] pre{white-space:pre-wrap;overflow-wrap:anywhere}
 .management-related-actions{grid-column:1/-1;gap:10px;flex-wrap:wrap}
 
 .cash-landing{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr));gap:12px}.cash-landing button{min-height:52px;border:1px solid #bbb;border-radius:8px;background:white;padding:12px;text-align:left}.management-reference .management-reference-option{min-height:44px;padding:6px 10px;margin:3px 0;gap:10px}.management-reference-option small{font-size:12px}
+
+.live-menu-toggle.has-back{display:block;min-width:44px;min-height:44px;padding:8px}

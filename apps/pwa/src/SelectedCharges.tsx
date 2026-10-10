@@ -1,3 +1,4 @@
+import {HeaderBack} from './HeaderBack';
 import {displayDate,displayTimestamp,displayValue} from './display-date';
 import {beginRequest} from './request-activity';
 import {CompactPager,ReceiveIcon} from './CompactPager';
@@ -210,7 +211,7 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
 
  return <section onChangeCapture={()=>{autosaveSuspended.current=false}} className="selected-payment" aria-label={t('Selected charges payment','รับชำระรายการที่เลือก')}>
 
- <div className="payment-context">{!['sending','unknown'].includes(state)&&<button className="secondary-button icon-action" aria-label={t('Back to Collection','กลับงานติดตาม')} title={t('Back to Collection','กลับงานติดตาม')} onClick={onBack}><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M19 12H5m6-6-6 6 6 6"/></svg></button>}<strong>{draft?.borrower.displayName??t('Receive payment','รับชำระเงิน')}</strong>{state==='edit'&&<details className="payment-options"><summary aria-label={t('Payment options','ตัวเลือกรับชำระ')} title={t('Payment options','ตัวเลือกรับชำระ')}>⋮</summary><button className="secondary-button" onClick={()=>void discardDraft()}>{t('Clear draft','ล้างร่าง')}</button></details>}</div>
+ <div className="payment-context">{<HeaderBack disabled={['sending','unknown'].includes(state)} className="secondary-button icon-action" aria-label={t('Back to Collection','กลับงานติดตาม')} title={t('Back to Collection','กลับงานติดตาม')} onClick={onBack}><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M19 12H5m6-6-6 6 6 6"/></svg></HeaderBack>}<strong>{draft?.borrower.displayName??t('Receive payment','รับชำระเงิน')}</strong>{state==='edit'&&<details className="payment-options"><summary aria-label={t('Payment options','ตัวเลือกรับชำระ')} title={t('Payment options','ตัวเลือกรับชำระ')}>⋮</summary><button className="secondary-button" onClick={()=>void discardDraft()}>{t('Clear draft','ล้างร่าง')}</button></details>}</div>
  {savedAt&&<p>{t('Offline saved copy — not current','สำเนาออฟไลน์ — ไม่ใช่ข้อมูลปัจจุบัน')}: {displayTimestamp(savedAt)}</p>}
  {error&&<p role="alert">{error}</p>}{draftSaveFailed&&['edit','review'].includes(state)&&<p role="alert">{t('Changes are not saved on this device. Keep this form open.','การเปลี่ยนแปลงยังไม่ถูกบันทึกในอุปกรณ์ โปรดเปิดหน้านี้ไว้')}</p>}
 

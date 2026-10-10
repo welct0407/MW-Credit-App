@@ -1,3 +1,4 @@
+import {HeaderBack} from './HeaderBack';
 import {displayDate,displayTimestamp,displayValue} from './display-date';
 import {CompactPager,RefreshIcon} from './CompactPager';
 import { ErrorReference, type ReadFailure } from './ReadFailure';
@@ -39,7 +40,7 @@ export function LoanRecords(props: Props) {
 
     {props.error && <div className="loan-read-error" role="status"><p>{props.error.code === 'not_found' ? t('This borrower or loan is no longer available.', 'ไม่พบผู้กู้หรือสัญญานี้แล้ว') : t('Unable to load loan records.', 'ไม่สามารถโหลดข้อมูลสัญญาได้')}</p><ErrorReference failure={props.error} thai={props.thai} /><button className="secondary-button" disabled={props.busy} onClick={props.onRefresh}>{t('Retry loan list', 'ลองโหลดรายการสัญญาอีกครั้ง')}</button></div>}
     {props.selected ? <article className="loan-detail" aria-label={t('Loan details', 'รายละเอียดสัญญา')}>
-      <button className="secondary-button" onClick={props.onBack}>← {t('Back to loans', 'กลับไปรายการสัญญา')}</button>
+      <HeaderBack aria-label={t('Back to loans', 'กลับไปรายการสัญญา')} onClick={props.onBack}/>
       <h4>{loanDisplayKey(props.selected)}</h4>{props.onFullDetail&&<button className="text-action" onClick={()=>props.onFullDetail!(props.selected!.id)}>{t('Full loan details','รายละเอียดสินเชื่อทั้งหมด')}</button>}
       <dl>
         <div><dt>{t('Loan status', 'สถานะสัญญา')}</dt><dd>{status(props.selected.status)}</dd></div>
