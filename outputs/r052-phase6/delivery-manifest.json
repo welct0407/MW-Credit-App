@@ -170,5 +170,23 @@
       "frontendBundle": "index-Dz5AVl9U.js"
     },
     "limits": "Focused synthetic Chromium proof only; no new owner-session/physical device claim. Actual intermittent Borrowers503 connection-vs-query root remains unproven. No SQL/IAM/timeout/index/API changes."
+  },
+  "cashTwoWorkspaces": {
+    "sourceCommit": "a5b24739331f0646a14e883c934223649aebf8af",
+    "scope": "Direct Cash Accounts holder/account workspace and Cash Position holder/account tables with20-row ledger; shared hidden Back marker/header spacing and fitting desktop record-action captions",
+    "validation": "B type/build; C focused behavior1 and final desktop-caption readback1 PASS; representative1440/440 visual/back/CRUD-entry/paging checks zeroPOST; configured type/build/marker guard PASS; no CI",
+    "frontendBundle": "index-B6ZjQLA6.js",
+    "publicVersion": "6e63867e9913c7c9c2391a68",
+    "hostingVersion": "1fe6e8be97328293",
+    "hostingRelease": "1791672104494000",
+    "publicMarkerReadback": "HTTP200/no-store exact entry/version",
+    "readerRevisionUnchanged": "mw-credit-app-read-dev-00015-22g",
+    "commandRevisionUnchanged": "mw-credit-app-command-dev-00015-75d",
+    "databaseUnchanged": 85,
+    "rollback": {
+      "hostingVersion": "16e2f48883f89e70",
+      "frontendBundle": "index-BDOl2LBp.js"
+    },
+    "limits": "Controlled Chromium1440/440 proof; no new live owner-session or physical iPhone claim. Prior financial/API/worker evidence reused unchanged; unknown native receipt and intermittent503cause remain unresolved."
   }
 }
