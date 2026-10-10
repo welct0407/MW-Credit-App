@@ -152,5 +152,23 @@
     },
     "incident": "Reference78cb8a19-f43a-4667-b003-929b71ef6df0 borrowers_list503/5300ms; intermittent connection-vs-query root remains unproven. Operator query0.268ms is not runtimeIAM proof.",
     "limits": "First safe update must install/warm public shell before cache-first benefit; API/auth/private data never worker-cached. No live owner/physical device repeat; failed-install/rollback not newly exercised. No SQL/IAM/timeout/index changes."
+  },
+  "startupAutoHeader": {
+    "sourceCommit": "a2165c720a420a7b5ba1e992f2ccf47bc9564e8f",
+    "scope": "Latest-build startup gate and initiating-tab automatic upgrade; retained public assets for live old tabs; shared header actions and cancellable assessment/Expense Back",
+    "validation": "Actual three-build worker upgrade/failure/retry/private-cache proof; 21 direct Back consumer states and shared delegation; 1440/440 header visual PASS; configured type/build/marker guard PASS; no CI",
+    "frontendBundle": "index-BDOl2LBp.js",
+    "publicVersion": "ce27a19e3dd8e1b111552f74",
+    "hostingVersion": "16e2f48883f89e70",
+    "hostingRelease": "1791651112865000",
+    "publicMarkerReadback": "HTTP200 application/json; charset=utf-8 / Cache-Control:no-store / exact compiled entry and version",
+    "readerRevisionUnchanged": "mw-credit-app-read-dev-00015-22g",
+    "commandRevisionUnchanged": "mw-credit-app-command-dev-00015-75d",
+    "databaseUnchanged": 85,
+    "rollback": {
+      "hostingVersion": "bb0fded9c99a8764",
+      "frontendBundle": "index-Dz5AVl9U.js"
+    },
+    "limits": "Focused synthetic Chromium proof only; no new owner-session/physical device claim. Actual intermittent Borrowers503 connection-vs-query root remains unproven. No SQL/IAM/timeout/index/API changes."
   }
 }
