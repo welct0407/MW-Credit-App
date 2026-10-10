@@ -382,3 +382,5 @@ main[data-workspace=management] pre{white-space:pre-wrap;overflow-wrap:anywhere}
 .cash-holder-choice{display:flex;align-items:center;gap:6px}.cash-holder-choice>.borrower-card{flex:1;min-width:0}.cash-holder-choice>.record-action{flex-shrink:0}
 .management-position table{width:100%;border-collapse:collapse;font-size:14px}.management-position th,.management-position td{padding:10px;border-bottom:1px solid #ddd;text-align:right;white-space:nowrap}.management-position th:first-child,.management-position td:first-child{text-align:left}.management-position th{font-weight:600;background:#f2f2f2}.management-position .cash-table-scroll{margin-bottom:18px}.management-position .record-field-link{min-height:44px}
 @media(max-width:1050px){.cash-accounts-layout{grid-template-columns:minmax(0,1fr)}}
+
+@media(min-width:1051px){.cash-accounts-layout .record-action.icon-action{width:auto;max-width:none;flex:0 0 auto;padding:7px 10px!important}}

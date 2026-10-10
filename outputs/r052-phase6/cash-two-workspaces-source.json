@@ -23,10 +23,10 @@
     },
     {
       "path": "apps/pwa/src/live-style.css",
-      "sha256": "98254BE411D18377C0AE45B3F8A3E8CD6ED99705421F636930C161F9E08862CE"
+      "sha256": "63D6D48E656148B7CFFB83E2CDE8952C9A2A5407A4B5CAF5AA4EE6763C7422D3"
     }
   ],
-  "build": "index-DS-DviBV.js",
+  "build": "index-oYPEJTNj.js",
   "checks": [
     "npm run build:live-dev PASS"
   ],
