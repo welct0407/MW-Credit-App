@@ -2,6 +2,8 @@
 
 Date: 11 October 2026. Requested by the owner. Reviewer: Agent E, user experience officer (Astra, low reasoning). Agent E reviews only when requested. These recommendations are not implementation instructions or owner acceptance.
 
+**Latest status:** The owner-requested follow-up below resolves CASH-POS-001 and CASH-ACCT-001/002/003 in the reviewed desktop/mobile evidence. CASH-POS-002 remains intentionally unchanged at the owner's direction. The original findings are retained as review history.
+
 ## Scope and evidence
 
 Cash Accounts and Cash Position, desktop 1440×956 and iPhone Pro Max representative viewport 440×956. Review uses actual React components with synthetic data, the current source, and C's screenshots. This is not authenticated live-page or physical-device validation. The fixture's “SYNTHETIC route” heading and parent-rerender controls are test scaffolding, excluded from findings. No financial data was changed.
@@ -57,3 +59,19 @@ Each desktop holder row repeats the entire holder name inside “Cash holder det
 Suggested order: CASH-POS-001, CASH-POS-002, then the Cash Accounts improvements. The tree hierarchy and desktop two-pane structure are useful foundations. The review does not claim financial correctness, full accessibility conformance, full Thai-language layout coverage, live authentication coverage, or physical-iPhone testing. Codes remain stable so the owner can request any improvement individually.
 
 No app changes are made by this review. D owns publication and the related change-log entry; rollback for the review artifact is its Git revision.
+
+## Owner-requested follow-up — 11 October 2026
+
+E re-reviewed both pages after the four approved improvements. Source: `b83f65a`, frontend `BMt4jSMn`, with file identities in [cash-approved-ux-source.json](cash-approved-ux-source.json). D reports the deployment matches those pins; E's visual assessment uses C's fresh actual-component captures: [Accounts mobile](cash-approved-accounts-440.png), [Accounts desktop](cash-approved-accounts-1440.png), [Position mobile](cash-approved-position-440.png), [Position desktop](cash-approved-position-1440.png). Viewports remain 440×956 and 1440×956.
+
+| Code | Follow-up status | User-facing result |
+| --- | --- | --- |
+| CASH-POS-001 | Resolved in reviewed evidence | Mobile shows holder/account and Current Balance together without horizontal scrolling. “All balance details” provides a clear secondary entry point; desktop retains the complete table. |
+| CASH-ACCT-001 | Resolved in reviewed evidence | The selected holder has a persistent colored edge, background and bold text. Its accounts retain a matching heading. Source and C's focused checks confirm selected-state semantics and mobile heading focus; source brings that heading into view. |
+| CASH-ACCT-002 | Resolved in reviewed evidence | Add uses a plus; holder Details uses an information symbol; Edit retains a pencil. Desktop labels specify Add cash holder/account. |
+| CASH-ACCT-003 | Resolved in reviewed evidence | Desktop now shows a compact “Details” caption, giving holder names substantially more room. The full holder-specific accessible label remains. |
+| CASH-POS-002 | Intentionally excluded by owner; unchanged | Transaction date/recording-time presentation remains as requested. This is not an implementation failure or a blocker for the approved four changes. |
+
+No new material UI/UX issue was identified in these reviewed views. The desktop hierarchy remains easy to scan, and mobile now surfaces the balance users need first. No new recommendation codes are added.
+
+E reused C's focused validation and inspected all four fresh screenshots; no duplicate browser run, CI run, app edits or financial writes were performed. C's focused evidence covers both viewport sizes and zero POSTs. The original synthetic-data, live-shell, language and physical-device limitations still apply. This closes the requested follow-up review; E awaits another explicit owner request before further review.

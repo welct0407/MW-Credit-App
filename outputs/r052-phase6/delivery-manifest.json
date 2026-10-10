@@ -225,5 +225,25 @@
     },
     "uxReview": "ux-cash-review-2026-10-11.md: five uniquely coded page-grouped E recommendations, not approved implementation",
     "limits": "Controlled Chromium1440/440 proof; no new live owner-session or physical iPhone claim. Existing financial/API/worker proof unchanged; unknown native receipts and intermittent503cause remain unresolved."
+  },
+  "cashApprovedUx": {
+    "sourceCommit": "b83f65a2e3bcc51bf8829f779de79b253454be45",
+    "scope": "Owner-approved CASH-POS-001 and CASH-ACCT-001/002/003; mobile balance-first details, selected-holder state/focus, distinct Add-Details-Edit icons and shorter visible Details caption",
+    "excluded": "CASH-POS-002 date/time unchanged",
+    "validation": "B type/build; C focused1 actual-component1440/440 selection/reveal/icons/caption/balance/pagingBack zeroPOST PASS; configured type/build/marker guard PASS; no CI",
+    "frontendBundle": "index-BMt4jSMn.js",
+    "publicVersion": "c5f5dbb4eb7f9acacd02a0f9",
+    "hostingVersion": "81099c7a13e92eb6",
+    "hostingRelease": "1791674722658000",
+    "publicMarkerReadback": "HTTP200/no-store exact entry/version",
+    "readerRevisionUnchanged": "mw-credit-app-read-dev-00015-22g",
+    "commandRevisionUnchanged": "mw-credit-app-command-dev-00015-75d",
+    "databaseUnchanged": 85,
+    "rollback": {
+      "hostingVersion": "24aa6dc55a865541",
+      "frontendBundle": "index-kjSGivyF.js"
+    },
+    "limits": "Controlled Chromium1440/440 proof; no new live owner-session or physical iPhone claim. Existing financial/API/worker proof unchanged; unknown native receipts and intermittent503cause remain unresolved.",
+    "uxFollowup": "Owner-requested E final review: four approved codes resolved in controlled1440/440 evidence; POS002 intentionally excluded, not a blocker; no new material findings. Original report/history retained."
   }
 }

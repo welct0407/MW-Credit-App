@@ -60,12 +60,17 @@
     "outputs/r052-phase6/cash-compact-accounts-440.png": "2C04D98BD654D96A721F8BC448A0D58585C9803961D126788160974BEF15CC1A",
     "outputs/r052-phase6/cash-tree-ledger-440.png": "C6A22DDC150A6C0614EF6B90A7DC3BBC52EF5F9DDCA29EAE86C4D8A54516268D",
     "outputs/r052-phase6/cash-tree-ledger-1440.png": "55B5FF2AD9FC16A3668734EB8A264D104722AA5A80E97105B5DD8A7E8B803FFF",
-    "tests/e2e/cash-two-workspaces-independent.spec.ts": "36B205F5B52BC137BE08E78C5F3A85E8706E0403E3DBBF96DCDEAC54ED95AAA6",
     "outputs/r052-phase6/cash-ledger-fit-source.json": "08502BCA3883B500E45E10F0F005EDFC74174475084473D72F754A76823EED76",
     "outputs/r052-phase6/cash-review-accounts-440.png": "B536D4FE48C2F73A399AC3500A344CD22CFB45E00D22612BD6E7DB6AF8DE60DA",
     "outputs/r052-phase6/cash-review-accounts-1440.png": "DAFE98FF34986F4B8AAFC6F43D87A22A1FE04C1B819D3C9B6B197404F50F504E",
     "outputs/r052-phase6/cash-review-position-440.png": "DEC651901D607B83D4AEE79640CBCA26C7C6BE3B4CA716643C7BA79612DA4E20",
-    "outputs/r052-phase6/cash-review-position-1440.png": "D4DA411A7059B01C69B0ADEFEA3AD2BB30C0D32F7691B6938E12857A956231B6"
+    "outputs/r052-phase6/cash-review-position-1440.png": "D4DA411A7059B01C69B0ADEFEA3AD2BB30C0D32F7691B6938E12857A956231B6",
+    "tests/e2e/cash-two-workspaces-independent.spec.ts": "7BE21F603CF4170D413D434476A5BDD115073EACF67B61A7A5BC50F3EE06EA68",
+    "outputs/r052-phase6/cash-approved-ux-source.json": "A157414196537341DA9515EC0F31FD8F89881758B3D5CB1F4F898DF9CAE3E1EC",
+    "outputs/r052-phase6/cash-approved-accounts-440.png": "2E549E43C821873278C4AD6EFD684FCF3D66A86854D32A3B600775C9C33793FD",
+    "outputs/r052-phase6/cash-approved-accounts-1440.png": "754521DE1612048DFC327FEA97D1BE752432FA24FD46B423827D357DC46327EC",
+    "outputs/r052-phase6/cash-approved-position-440.png": "01585B80DFFBB3FE87CBD8782FD2EDFC3AA1F7B862B8B9FC4CDCC990A32F0ACC",
+    "outputs/r052-phase6/cash-approved-position-1440.png": "73E4E0D8C0FF4B1E2EC459509D560D19A94501A0AF6025719784ABFD9ACACE76"
   },
   "testedOpeningAssessmentV85": "7295F67C4E747B022D599EC15C89098E52A52CC63107E82D4850FB70DEBE8CDE",
   "testedAnalyticsV85": "3C0833004BFBEA3D74354365637CDDF1ED02DAC5BCF963B4F2A0F6E4810CCD92",
@@ -154,5 +159,24 @@
     "liveWrites": 0,
     "ci": "not run",
     "uxReview": "Four final synthetic captures shared with owner-authorized Agent E; recommendations separate"
+  },
+  "cashApprovedUx": {
+    "status": "PASS focused local; D delivery pending",
+    "substantiveCases": 1,
+    "viewports": [
+      "440x956",
+      "1440x956"
+    ],
+    "approvedCodes": [
+      "POS001",
+      "ACCT001",
+      "ACCT002",
+      "ACCT003"
+    ],
+    "excludedCode": "POS002 unchanged",
+    "financialPostCount": 0,
+    "ci": "not run",
+    "physicalDeviceAcceptance": "not performed",
+    "uxReview": "Final four captures retained for owner-requested Agent E re-review"
   }
 }
