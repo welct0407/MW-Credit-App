@@ -206,5 +206,24 @@
       "frontendBundle": "index-B6ZjQLA6.js"
     },
     "limits": "Controlled Chromium1440/440 proof; no new live owner-session or physical iPhone claim. Existing financial/API/worker proof reused unchanged; unknown native receipts and intermittent503cause remain unresolved."
+  },
+  "cashLedgerFit": {
+    "sourceCommit": "216657f6dc58b837e349af3580ac5ba6939e4e87",
+    "scope": "Responsive Cash ledger column fit for longTE account names and large amounts",
+    "validation": "B type/build; C focused1 PASS440/1440 ledger fit/keyboarddetailBack zeroPOST; configured type/build/marker guard PASS; no CI",
+    "frontendBundle": "index-kjSGivyF.js",
+    "publicVersion": "4953bd68ad5e9e5e8af5460a",
+    "hostingVersion": "24aa6dc55a865541",
+    "hostingRelease": "1791674172765000",
+    "publicMarkerReadback": "HTTP200/no-store exact entry/version",
+    "readerRevisionUnchanged": "mw-credit-app-read-dev-00015-22g",
+    "commandRevisionUnchanged": "mw-credit-app-command-dev-00015-75d",
+    "databaseUnchanged": 85,
+    "rollback": {
+      "hostingVersion": "d376db73b3a2393b",
+      "frontendBundle": "index-AEzGTaqe.js"
+    },
+    "uxReview": "ux-cash-review-2026-10-11.md: five uniquely coded page-grouped E recommendations, not approved implementation",
+    "limits": "Controlled Chromium1440/440 proof; no new live owner-session or physical iPhone claim. Existing financial/API/worker proof unchanged; unknown native receipts and intermittent503cause remain unresolved."
   }
 }
