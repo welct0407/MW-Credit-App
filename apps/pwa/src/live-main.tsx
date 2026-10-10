@@ -31,7 +31,7 @@ import './live-style.css';
 import { CollectionRecords, type CollectionReadError } from './CollectionRecords';
 import { LoanRecords, type LoanRecord, type LoanPageResult, type LoanDetailResult } from './LoanRecords';
 
-const managementViews=[{id:'partners',en:'Partners',th:'หุ้นส่วน',icon:'♧'},{id:'cash-position',en:'Cash Position',th:'สถานะเงินสด',icon:'฿'},{id:'cash-accounts',en:'Cash Accounts',th:'บัญชีเงินสด',icon:'▣'},{id:'cash-holders',en:'Cash Holders',th:'ผู้ถือเงิน',icon:'◎'},{id:'contributions',en:'Contributions',th:'เงินลงทุน',icon:'＋'},{id:'settlements',en:'Settlements',th:'การจัดสรรกำไร',icon:'⇄'},{id:'cash-movements',en:'Cash Movements',th:'รายการเงินสด',icon:'↔'},{id:'assessments',en:'Loan Assessments',th:'ประเมินสินเชื่อ',icon:'▤'},{id:'analytics',en:'Analytics',th:'การวิเคราะห์',icon:'▥'}] as const;
+const managementViews=[{id:'partners',en:'Partners',th:'หุ้นส่วน',icon:'♧'},{id:'cash',en:'Cash',th:'เงินสด',icon:'฿'},{id:'contributions',en:'Contributions',th:'เงินลงทุน',icon:'＋'},{id:'settlements',en:'Settlements',th:'การจัดสรรกำไร',icon:'⇄'},{id:'assessments',en:'Loan Assessments',th:'ประเมินสินเชื่อ',icon:'▤'},{id:'analytics',en:'Analytics',th:'การวิเคราะห์',icon:'▥'}] as const;
 const workspaceViews = [{id:'dashboard',en:'Dashboard',th:'ภาพรวม',icon:'▦',frequent:true},{id:'collection',en:'Collection',th:'งานติดตาม',icon:'◷',frequent:true},{id:'payments',en:'Payments',th:'รับชำระ',icon:'฿',frequent:true},{id:'borrowers',en:'Borrowers',th:'ผู้กู้',icon:'◎',frequent:true},{id:'expenses',en:'Expenses',th:'ค่าใช้จ่าย',icon:'▤',frequent:false},{id:'upcoming',en:'Upcoming Charges',th:'รายการเรียกเก็บล่วงหน้า',icon:'◷',frequent:false},{id:'cash',en:'Cash',th:'เงินสด',icon:'฿',frequent:false},{id:'management',en:'Management',th:'การจัดการ',icon:'▥',frequent:false}] as const;
 const logo = new URL('./assets/loan-manager-logo-dev-orange.png', import.meta.url).href;
 type Borrower = { id: string; name: string | null; borrowerDisplayName: string; totalProfitEarned: string | null; createdDate: string | null; hasActiveLoan: boolean | null; outstandingPrincipal: string | null; note: string | null };
@@ -50,7 +50,7 @@ function App() {
   const offlineBlocked = useRef(!navigator.onLine);
   const [thai, setThai] = useState(false);
   const languageRevision=useRef(0),preferenceOwner=useRef<string|null>(null);
-  const [managementSection,setManagementSection]=useState<ManagementSection>('cash-position'),[managementExpanded,setManagementExpanded]=useState(false);
+  const [managementSection,setManagementSection]=useState<ManagementSection>('cash'),[managementExpanded,setManagementExpanded]=useState(false);
   const [view, setView] = useState<'borrowers' | 'collection' | 'expenses' | 'cash' | 'dashboard' | 'upcoming' | 'loans' | 'payments' | 'management'>(import.meta.env.VITE_COMMAND_MODE==='dev-owner-testing'?'dashboard':'borrowers');
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchDraft, setSearchDraft] = useState('');
