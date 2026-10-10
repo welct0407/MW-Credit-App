@@ -342,3 +342,17 @@ main[data-workspace=management] pre{white-space:pre-wrap;overflow-wrap:anywhere}
  .live-menu-dialog{box-sizing:border-box;overflow-y:auto;padding-top:max(16px,env(safe-area-inset-top));padding-left:max(16px,env(safe-area-inset-left));padding-bottom:max(16px,env(safe-area-inset-bottom))}
  .live-bottom-nav{padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right);box-sizing:border-box}
 }
+
+/* Partner cards retain the AppSheet pool-share and settlement summaries. */
+.partner-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(280px,100%),1fr));gap:14px}
+.partner-card{display:flex;flex-direction:column;align-items:flex-start;gap:10px;padding:18px;border:1px solid #d2d2d2;border-radius:10px;background:#fff;text-align:left;color:inherit;min-width:0}
+.partner-card>span,.partner-card-name{max-width:100%;overflow-wrap:anywhere}.partner-card-name{font-size:22px}.partner-card-profit{font-size:15px}
+.partner-share{width:142px;height:142px;border-radius:50%;align-self:center;display:grid;place-items:center;margin-top:4px;flex-shrink:0}
+.partner-share>span{width:108px;height:108px;border-radius:50%;background:white;display:grid;place-items:center;font-size:24px;font-weight:700}.partner-share-label{align-self:center;font-size:13px;color:#5e5e5e}
+.management-workspace .borrower-record dl,.management-financial-workspace .borrower-record dl{gap:18px 28px}
+.management-workspace .borrower-record dt,.management-financial-workspace .borrower-record dt{font-size:13px;color:#626262;margin-bottom:5px}
+.management-workspace .borrower-record dd,.management-financial-workspace .borrower-record dd{font-size:18px;line-height:1.45;margin-left:0}
+.management-financial-workspace .borrower-card>span{display:flex;flex-direction:column;gap:7px;min-width:0}
+.management-workspace .borrower-direct-actions button,.management-financial-workspace .borrower-direct-actions button,.management-related-actions>button{border:1px solid #bdbdbd;border-radius:6px;background:#fff7ec;padding:8px 12px;min-height:44px;color:#713900}
+.management-workspace .borrower-direct-actions button:disabled,.management-financial-workspace .borrower-direct-actions button:disabled{background:#f1f1f1;color:#777;opacity:.65}
+.management-related-actions{grid-column:1/-1;gap:10px;flex-wrap:wrap}
