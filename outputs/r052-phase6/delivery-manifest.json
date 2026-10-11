@@ -299,5 +299,24 @@
       "frontendBundle": "index-zBnMbgVH.js"
     },
     "limits": "No new E review/physical-device acceptance/live financial writes; phone subject wraps without clipped controls; unknown native receipts and intermittent503cause unresolved"
+  },
+  "actionIcons": {
+    "sourceCommit": "cac1c37f1584f3b497338ce693c71a54f442881a",
+    "sourceManifest": "action-icons-source.json",
+    "evidence": "action-icons-evidence.md",
+    "validation": "B type/build; C2/2 focused four-width actual components/36 synthetic screenshots; configured guard PASS; no CI",
+    "frontendBundle": "index-O-LQ7fuD.js",
+    "publicVersion": "772e24f519286d09613c8f3b",
+    "hostingVersion": "42cc2ae3fcc9c201",
+    "hostingRelease": "1791679308667000",
+    "publicMarker": "HTTP200/no-store exact entry/version",
+    "readerUnchanged": "00015-22g",
+    "commandUnchanged": "00016-gc9",
+    "databaseUnchanged": 85,
+    "rollback": {
+      "frontendBundle": "index-CON-hIdp.js",
+      "hostingVersion": "41c242f719db0cee"
+    },
+    "limits": "No live financial writes/physical-device acceptance/new E recommendations implementation; prior native receipt and intermittent503cause limits retained"
   }
 }
