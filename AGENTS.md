@@ -1,5 +1,7 @@
 # MW Credit App
 
+- **VM-01 storage lifecycle — owner rule, 11 October 2026:** follow `C:\GitHub\AppSheet-Loan-Project\Documents\VM01_Local_Storage.md`. Task closeout includes stopping owned helpers and deleting that task's disposable database/browser/scratch/download files after preserving useful scripts and concise evidence in verified Git publication. Record exact retained diagnostic paths, purpose and a review date within seven days. Reuse installed tools; no per-output dependency copies. Never delete another task's work, secrets, recovery backups or application-managed state because source is on GitHub. Existing migration runners retain local clusters; explicitly clean the completed task's exact paths with the maintained AppSheet cleanup helper. Final whole-toolchain validation remains owner-led; this rule does not request a broad test rerun or enable scheduled cleanup.
+
 Own the PWA, API, app infrastructure and development tooling here. The owner authorized infrastructure preparation on 7 October 2026, reusing existing Cloud SQL and GCS and putting runtime secrets in Secret Manager.
 
 - Preserve parallel AppSheet operation. No financial writes, scheduler activation or production application cutover is authorized by infrastructure setup.
