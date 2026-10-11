@@ -1,0 +1,23 @@
+# R053 notifications and scheduled jobs continuation
+
+R053 is the sole Open development release; next R054 remains unused. Owner requested notifications and scheduled charges/analytics after R052 closure. Current authority covers DEV development/delivery only; existing PROD AppSheet jobs/notifications remain unchanged. First genuine R052 manual receipt/AppSheet rendering remains an explicit owner-accepted follow-up at a real receiving opportunity.
+
+A owns app outputs/r053-notifications-jobs/design-test-plan.md; B coding, C independent testing, D delivery/docs and F infrastructure. Preserve the established six-role mapping. Starting app2ee8bee / canonical PMb690ae59; preserve unrelated dirty work and use the existing canonical PM worktree, not the stale primary tracker.
+
+## Current checkpoint - 12 October (Asia/Bangkok)
+
+B implementation and F fourteen DEV prerequisites/policy publication exist. Numeric enrollment policy1/VAPID1 are private infrastructure pins; policy permits null device endpoint for API enrollment only and cannot activate dispatch. No worker/schedule deployed. D DEV-only operator module/CLI plus shared closed-role disposable prerequisites are prepared; unit guards2/2, syntax/diff and actual read-only DEV roles-plan pass. Maintained current DEV87 dump/isolated restore/cleanup passed once: app dev87-backup-evidence.json; private backup retained for recovery, review18October.
+
+The custom function-proconfig GUC failure was resolved before live changes. Root accepted function-owned application_name exact enabled/disabled markers, authority from its fixed pg_proc.proconfig, missing/unknown closed, with no parameter ACL change. C corrected true-nonsuper V87-to-V88 proof passes, including the maintained post-migrate hook, exact finally restoration, ordinary runtime capture afterward, spoof/reset/missing/unknown marker denial and unchanged parameter ACL. Source pins: V88 2100c28f..., operator76ce4b0d.... C independent-verification.md owns scoped counts and final source evidence. No live V88 or operator role preparation applied yet.
+
+Maintained Windows Test-CI includes the existing R053 RPC/listener and operator runners; Linux retains supported migration/SQL parity with shared role prerequisites. The command-image build adds narrow worker import/default-off/invalid-config assertions alongside existing decoder smoke. C runs the one mandatory database suite after coherent fixture/source freeze; D publishes the intended checkpoint and coordinates one consolidated CI. No broad CI per change.
+
+Immediate notify min1 always-running cost approval remains pending; only notification activation is held. DEV API/frontend owner enrollment and jobs can proceed independently after passing checks, pinned source/recovery and final checkpoint. Do not enable capture before valid enrolled endpoint/policy/dispatch readiness. R053 remains Open: this is a development source checkpoint, not release scope freeze.
+
+D owns allowlisted checkpoint publication, exact-source artifact builds, guarded DEV V88/authority restoration and API/frontend delivery. F owns exact API/workers/scheduler Terraform plans and Secret Manager. Root coordinates owner/device/AppSheet GUI and the DEV single-scheduler handoff from saved dev-appsheet-scheduler-before.json. Preserve production operation and existing bot definitions; no extra audit or production action is authorized.
+
+Checkpoint recovery: the first maintained suite failed two composed fixtures; full affected R05314/14 now passes after fixture-only corrections. Reuse earlier unchanged passing families explicitly and finish remaining operator family before publication; retain original failed receipt. No live migration or remote CI dispatched yet.
+
+Final local aggregate complete: unchanged earlier successful mandatory families plus corrected composed R05314/14 and remaining operator1/1 pass, zero skips; initial failed receipt retained. D publishes exact allowlist and runs one exact-head consolidated remote checkpoint before DEV migration/delivery. C cleans only its inventoried diagnostic roots after publication.
+
+Development checkpoint published in MW-Credit-App ea789870599a5444914a1c7730e736f01e917d7f with only the explicit 58-file scope (57 owning paths plus allowlist manifest). One exact-head consolidated workflow_dispatch38159736767 and database push38159730482 started; current status pending. No live DEV SQL/runtime/capture transition and no PROD change yet. R053 remains Open, next R054 unused. Numeric secret/private recovery evidence remains outside Git.
