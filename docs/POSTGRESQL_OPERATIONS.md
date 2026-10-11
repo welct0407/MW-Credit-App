@@ -27,7 +27,20 @@ After PostgreSQL accepts new work, never switch back to stale SQLite. Stop affec
 
 The five worker timers, receiver and relay use at most eight central connections with the current process topology; each process has a one-connection pool. Connections are not held across model/provider calls. Short SQL/lock timeouts and generation fencing fail closed. Cloud SQL latency adds overhead to journal actions; measure the actual VM path at rollout. No instance resize or connection-limit change is included.
 
+## Retrospective external-operator audit linkage
+
+An operator-created SQL marker whose original plan is `direct_targets[0]` may use SHA-256 of PostgreSQL `jsonb::text` encoded as UTF-8 without a newline. This differs from the central canonical JSON hash. Never replace either digest or invent prior intent to make the generic relay accept it. The dedicated `operator_sql_reconciliation` contract validates both encodings independently and binds the exact source marker, transaction, operator labels and all ordered captured effects.
+
+After explicit scoped owner approval, use `scripts/reconcile-operator-audit.py --manifest <private-file>` to plan. The private manifest must pin operation ID, original PostgreSQL and canonical hashes, marker/effect fingerprints, exact effect count and original evidence/repair authorization references. Verify a private backup and its restore/readback proof before adding `--apply --backup-reference <verified-reference>`. This appends truthful current-time retrospective linkage; it never performs business DML. Conflict, changed evidence or missing proof is a blocker. The source in-transaction timestamp is not an exact commit timestamp. Operator labels are not proof of reviewer membership.
+
+Verify subsequent natural relay completions, exactly-once export events/acknowledgements and zero eligible backlog before declaring recovery. Do not rely on a transient green collector value while a worker is still running. Deployment/rollback is separately scoped through `scripts/deploy-operator-audit.py`; ordinary alert restart authority does not authorize this source change or reconstruction.
+
 Schema sources: `database/migrations/` (central immutable history), business R015 V33 in AppSheet-Loan-Project, and `database/setup/` for separately managed roles/grants. The original design in `docs/design/agent-postgresql-20260922/` remains dated evidence.
 # Receipt evidence extension — 27 September 2026
 
 Independent central migration V4 is applied in `mw_agent`: immutable receipt source/asset/link metadata is separate from business Flyway V49/V50. Login `mw_receipt_projector` can execute only the guarded attachment function in the business databases; it has no direct Payments UPDATE. Original pictures stay in private GCS. [State, retries, deployment and recovery](RECEIPT_EVIDENCE.md). Existing journal generation, proxy, financial integrity triggers and audit relay are unchanged.
+
+
+## Deployed durable operator execution and relay inspection
+
+Installed MW source pin `0aaedf13` supplies canonical durable-intent execution and completed-job/backlog relay inspection; companion DEV/PROD V58 and collector pin `f63d2c8` were deployed on 4 October 2026. Independent central intent readback precedes business dispatch. Repeated/uncertain requests remain reconciliation-only. RUNNING cannot erase a completed failure. No new scheduled service or mw_agent migration was required. Natural relay completions and numeric health export verified Healthy with backlog/missing intents zero. Preserve the retrospective reconciliation. [Deployment, checks, pins and rollback](../Change%20Logs/CHANGE_NOTES_DURABLE_OPERATOR_AUDIT_HEALTH_2026-10-04.md).

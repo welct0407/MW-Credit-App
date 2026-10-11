@@ -66,7 +66,14 @@ class NoticeJournal:
     def due(self):
         return [dict(r) for r in self.db.execute("""SELECT * FROM partner_notices WHERE
           ig_status NOT IN ('ACCEPTED','REVIEW') AND email_status IN ('PENDING','REJECTED')
-          AND attempts<3 AND retry_after<=?""",(time.time(),))]
+          AND attempts<3 AND retry_after<=? ORDER BY retry_after,id""",(time.time(),))]
+
+    def defer(self,key):
+        # Keep payload, attempts and uncertain outcomes intact after an unexpected
+        # preparation failure; do not hot-loop one bad recipient ahead of the queue.
+        with self.db:
+            self.db.execute("UPDATE partner_notices SET retry_after=? WHERE id=? AND email_status IN ('PENDING','REJECTED') AND ig_status NOT IN ('ACCEPTED','REVIEW')",
+                            (time.time()+300,key))
 
     def dispatch(self,item,config,rows,api=None,mailer=None,resolver=resolve_recipient,window=check_window):
         # Re-read state; callers cannot replay an old in-memory PENDING item.

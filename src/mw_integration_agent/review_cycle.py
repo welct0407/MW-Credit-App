@@ -42,7 +42,7 @@ def cycle(config,journal,identity_reader):
     root=Path(config['state_directory']);db=journal.db;reviews=ReviewStore(db)
     notices=NoticeJournal(root/'partner-notices.db', config=config)
     cutoff=datetime.fromisoformat(config['partner_review_cutoff']).timestamp()
-    failures=[]
+    failures=[];notification_failures=[]
     try:
         import time
         with db:db.execute("UPDATE partner_reviews SET state='EXPIRED' WHERE state='PENDING' AND expires_at<?",(time.time(),))
@@ -190,60 +190,70 @@ def cycle(config,journal,identity_reader):
                 try:verified=readback(config,key,proposal)
                 except Exception as exc:failures.append({'stage':'readback','exception':type(exc).__name__})
                 with db:db.execute("UPDATE partner_reviews SET state=? WHERE id=?",('POSTED' if verified else 'UNKNOWN',review['id']))
-        result_master=masters(config)
-        for review in db.execute("SELECT * FROM partner_reviews WHERE state IN ('POSTED','REJECTED','MANUAL_REQUIRED','STALE','EXPIRED','UNKNOWN')").fetchall():
-            with isolated(failures,'result'):
-                proposal=json.loads(review['proposal']);live=result_master
-                for p in live['partners']:
-                    with isolated(failures,'result-recipient'):
-                        if review['state']=='POSTED' and p['enabled'] is not True:continue
-                        if review['state']=='POSTED':subject,body=receipt_notice(proposal['receipt'],proposal['borrower'],p['language'],review['payment_id'])
-                        else:
-                            thai=p['language']=='ไทย'
-                            words={'REJECTED':('Rejected; no payment recorded.','ปฏิเสธแล้ว ยังไม่ได้บันทึกรายการ'),
-                              'MANUAL_REQUIRED':('Partner must record this manually. Agent has not posted it.','หุ้นส่วนต้องบันทึกรายการเอง ระบบยังไม่ได้บันทึก'),
-                              'STALE':('Facts changed or payment already exists. Check manually; no agent posting.','ข้อมูลเปลี่ยนหรือมีรายการแล้ว กรุณาตรวจสอบ ระบบยังไม่ได้บันทึก'),
-                              'EXPIRED':('Review expired; no payment recorded.','คำขอหมดอายุ ยังไม่ได้บันทึกรายการ'),
-                              'UNKNOWN':('Posting outcome unconfirmed. Reconciliation only; do not submit again.','ยังยืนยันผลการบันทึกไม่ได้ กรุณาตรวจสอบ ห้ามบันทึกซ้ำ')}
-                            subject='ผลการตรวจสอบ' if thai else 'Receipt review result'
-                            body=subject+'\n'+(proposal['borrower'].get('name_th' if thai else 'name_en') or proposal['borrower']['id'])+'\n'+proposal['receipt']['amount']+' THB\n'+words[review['state']][int(thai)]
-                        notices.reserve('review-result:'+review['id']+':'+review['state'],p,subject,body)
-        from .receipt_hold import queue_holds,event_key
-        if config.get('receipt_hold_notice_cutoff'):
-            queue_holds(config,journal,notices,masters(config),identity_reader,failures)
-        for notice in notices.due():
-            with isolated(failures,'delivery'):
-                if not notice['event_key'].startswith(('review:','review-result:','receipt-held:','hold-reply-result:','review-command-result:')):continue
-                live=masters(config)
-                if notice['event_key'].startswith(('hold-reply-result:','review-command-result:')) and not any(
-                    p['id']==notice['partner_id'] and p['enabled'] is True and p['id'] in live.get('reviewer_ids',[]) for p in live['partners']):
+        with isolated(notification_failures,'notification-cycle'):
+            notify(config,journal,notices,identity_reader,notification_failures)
+        return {'failures':failures,'notification_failures':notification_failures,'reviews':[dict(r) for r in db.execute('SELECT state,count(*) count FROM partner_reviews GROUP BY state')]}
+    finally:notices.close()
+
+
+def notify(config,journal,notices,identity_reader,failures):
+    """Optional delivery phase; payment/reviewer state is committed first."""
+    db=journal.db
+    result_master=masters(config)
+    for review in db.execute("SELECT * FROM partner_reviews WHERE state IN ('POSTED','REJECTED','MANUAL_REQUIRED','STALE','EXPIRED','UNKNOWN')").fetchall():
+        with isolated(failures,'result'):
+            proposal=json.loads(review['proposal']);live=result_master
+            for p in live['partners']:
+                with isolated(failures,'result-recipient'):
+                    if review['state']=='POSTED' and p['enabled'] is not True:continue
+                    if review['state']=='POSTED':subject,body=receipt_notice(proposal['receipt'],proposal['borrower'],p['language'],review['payment_id'])
+                    else:
+                        thai=p['language']=='ไทย'
+                        words={'REJECTED':('Rejected; no payment recorded.','ปฏิเสธแล้ว ยังไม่ได้บันทึกรายการ'),
+                          'MANUAL_REQUIRED':('Partner must record this manually. Agent has not posted it.','หุ้นส่วนต้องบันทึกรายการเอง ระบบยังไม่ได้บันทึก'),
+                          'STALE':('Facts changed or payment already exists. Check manually; no agent posting.','ข้อมูลเปลี่ยนหรือมีรายการแล้ว กรุณาตรวจสอบ ระบบยังไม่ได้บันทึก'),
+                          'EXPIRED':('Review expired; no payment recorded.','คำขอหมดอายุ ยังไม่ได้บันทึกรายการ'),
+                          'UNKNOWN':('Posting outcome unconfirmed. Reconciliation only; do not submit again.','ยังยืนยันผลการบันทึกไม่ได้ กรุณาตรวจสอบ ห้ามบันทึกซ้ำ')}
+                        subject='ผลการตรวจสอบ' if thai else 'Receipt review result'
+                        body=subject+'\n'+(proposal['borrower'].get('name_th' if thai else 'name_en') or proposal['borrower']['id'])+'\n'+proposal['receipt']['amount']+' THB\n'+words[review['state']][int(thai)]
+                    notices.reserve('review-result:'+review['id']+':'+review['state'],p,subject,body)
+    from .receipt_hold import queue_holds,event_key
+    if config.get('receipt_hold_notice_cutoff'):
+        queue_holds(config,journal,notices,masters(config),identity_reader,failures)
+    eligible=[n for n in notices.due() if n['event_key'].startswith(
+        ('review:','review-result:','receipt-held:','hold-reply-result:','review-command-result:'))]
+    # Bound optional transport work so a backlog cannot monopolize the receipt lock.
+    # Retry timestamps also let untouched notices progress after a provider outage.
+    for notice in eligible[:2]:
+        with isolated(failures,'delivery',lambda: notices.defer(notice['id'])):
+            live=masters(config)
+            if notice['event_key'].startswith(('hold-reply-result:','review-command-result:')) and not any(
+                p['id']==notice['partner_id'] and p['enabled'] is True and p['id'] in live.get('reviewer_ids',[]) for p in live['partners']):
+                with notices.db:notices.db.execute("UPDATE partner_notices SET ig_status='REVIEW',detail='PARTNER_DISABLED' WHERE id=?",(notice['id'],))
+                continue
+            if notice['event_key'].startswith('receipt-held:'):
+                held=db.execute('SELECT * FROM receipt_jobs WHERE id=?',(notice['event_key'].split(':')[1],)).fetchone()
+                if (notice['partner_id'] not in live.get('reviewer_ids',[]) or not held or
+                    held['status']!='REVIEW' or event_key(held)!=notice['event_key']):
+                    with notices.db:notices.db.execute("UPDATE partner_notices SET ig_status='REVIEW',detail='HOLD_RESOLVED_OR_REVIEWER_REMOVED' WHERE id=?",(notice['id'],))
+                    continue
+            if notice['event_key'].startswith('review-result:') and notice['event_key'].endswith(':POSTED'):
+                if not any(p['id']==notice['partner_id'] and p['enabled'] is True for p in live['partners']):
                     with notices.db:notices.db.execute("UPDATE partner_notices SET ig_status='REVIEW',detail='PARTNER_DISABLED' WHERE id=?",(notice['id'],))
                     continue
-                if notice['event_key'].startswith('receipt-held:'):
-                    held=db.execute('SELECT * FROM receipt_jobs WHERE id=?',(notice['event_key'].split(':')[1],)).fetchone()
-                    if (notice['partner_id'] not in live.get('reviewer_ids',[]) or not held or
-                        held['status']!='REVIEW' or event_key(held)!=notice['event_key']):
-                        with notices.db:notices.db.execute("UPDATE partner_notices SET ig_status='REVIEW',detail='HOLD_RESOLVED_OR_REVIEWER_REMOVED' WHERE id=?",(notice['id'],))
-                        continue
-                if notice['event_key'].startswith('review-result:') and notice['event_key'].endswith(':POSTED'):
-                    if not any(p['id']==notice['partner_id'] and p['enabled'] is True for p in live['partners']):
-                        with notices.db:notices.db.execute("UPDATE partner_notices SET ig_status='REVIEW',detail='PARTNER_DISABLED' WHERE id=?",(notice['id'],))
-                        continue
-                if notice['event_key'].startswith('review:'):
-                    if notice['partner_id'] not in live.get('reviewer_ids',[]):
-                        with notices.db:notices.db.execute("UPDATE partner_notices SET ig_status='REVIEW',detail='NOT_AI_REVIEWER' WHERE id=?",(notice['id'],))
-                        continue
-                    row=db.execute('SELECT * FROM partner_reviews WHERE id=?',(review_id(notice['event_key']),)).fetchone()
-                    if not row or row['state']!='PENDING':
-                        with notices.db:notices.db.execute("UPDATE partner_notices SET ig_status='REVIEW' WHERE id=?",(notice['id'],))
-                        continue
-                    proposal=json.loads(row['proposal'])
-                    try:
-                        check(config,proposal['receipt'],proposal['borrower'])
-                        if facts(config,proposal['borrower']['id'])!=proposal['facts']:raise ReceiptInvalid('PROPOSAL_FACTS_CHANGED')
-                    except ReceiptInvalid as exc:
-                        with db:db.execute("UPDATE partner_reviews SET state='STALE',detail=? WHERE id=?",(str(exc),row['id']))
-                        continue
-                notices.dispatch(notice,config,live['partners'])
-        return {'failures':failures,'reviews':[dict(r) for r in db.execute('SELECT state,count(*) count FROM partner_reviews GROUP BY state')]}
-    finally:notices.close()
+            if notice['event_key'].startswith('review:'):
+                if notice['partner_id'] not in live.get('reviewer_ids',[]):
+                    with notices.db:notices.db.execute("UPDATE partner_notices SET ig_status='REVIEW',detail='NOT_AI_REVIEWER' WHERE id=?",(notice['id'],))
+                    continue
+                row=db.execute('SELECT * FROM partner_reviews WHERE id=?',(review_id(notice['event_key']),)).fetchone()
+                if not row or row['state']!='PENDING':
+                    with notices.db:notices.db.execute("UPDATE partner_notices SET ig_status='REVIEW' WHERE id=?",(notice['id'],))
+                    continue
+                proposal=json.loads(row['proposal'])
+                try:
+                    check(config,proposal['receipt'],proposal['borrower'])
+                    if facts(config,proposal['borrower']['id'])!=proposal['facts']:raise ReceiptInvalid('PROPOSAL_FACTS_CHANGED')
+                except ReceiptInvalid as exc:
+                    with db:db.execute("UPDATE partner_reviews SET state='STALE',detail=? WHERE id=?",(str(exc),row['id']))
+                    continue
+            notices.dispatch(notice,config,live['partners'])

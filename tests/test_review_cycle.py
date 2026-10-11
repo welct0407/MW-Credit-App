@@ -8,6 +8,7 @@ from mw_integration_agent.receipt_journal import ReceiptJournal
 from mw_integration_agent.partner_notice import NoticeJournal
 from mw_integration_agent.partner_review import ReviewStore
 from mw_integration_agent.review_cycle import cycle
+REAL_DISPATCH=NoticeJournal.dispatch
 
 
 class CycleTests(unittest.TestCase):
@@ -276,7 +277,8 @@ class CycleTests(unittest.TestCase):
         self.masters.return_value['partners'].append(dict(self.p,id='other',username='other'))
         self.dispatch.side_effect=[RuntimeError('unavailable'),None]
         result=self.run_cycle()
-        self.assertEqual(self.dispatch.call_count,2);self.assertTrue(result['failures'])
+        self.assertEqual(self.dispatch.call_count,2);self.assertEqual(result['failures'],[])
+        self.assertTrue(result['notification_failures'])
 
     def test_removed_reviewer_cannot_receive_queued_hold(self):
         self.held_job();self.run_cycle();self.dispatch.reset_mock()
@@ -354,3 +356,71 @@ class CycleTests(unittest.TestCase):
         self.run_cycle()
         with closing(sqlite3.connect(self.root/'instagram-ingress.db')) as current:
             self.assertIn('reply_to',{r[1] for r in current.execute('PRAGMA table_info(messages)')})
+
+    def test_closed_ig_and_locked_email_do_not_block_next_receipt_or_duplicate_post(self):
+        from mw_integration_agent.config import ConfigurationError
+        from mw_integration_agent.graph_email import EmailRejected
+        from unittest.mock import Mock
+        self.config.update(receipt_summary_enabled=True,email_fallback_enabled=True,instagram_account_id='123')
+        mailer=Mock();mailer.send.side_effect=EmailRejected('account locked')
+        def closed(*args):raise ConfigurationError('window closed')
+        self.dispatch.side_effect=lambda journal,item,config,rows: REAL_DISPATCH(
+            journal,item,config,rows,api=Mock(),mailer=mailer,
+            resolver=lambda *_:'456',window=closed)
+        # Bound methods require autospec when replacing the class method.
+        with patch.object(NoticeJournal,'dispatch',new=self.dispatch.side_effect):
+            self.run_cycle()
+            self.assertEqual(self.add_payment.call_count,1)
+            self.validated_job();self.enable_auto()
+            self.run_cycle();self.run_cycle()
+        self.assertEqual(self.add_payment.call_count,2)
+        self.assertEqual(self.j.db.execute("SELECT state FROM partner_reviews WHERE job_id='new-job'").fetchone()[0],'POSTED')
+        notices=NoticeJournal(self.root/'partner-notices.db')
+        self.addCleanup(notices.close)
+        rows=notices.db.execute("SELECT * FROM partner_notices WHERE event_key LIKE 'review-result:%'").fetchall()
+        self.assertEqual(len(rows),2)
+        self.assertTrue(all(n['ig_status']=='UNAVAILABLE' and n['email_status']=='REJECTED' and n['attempts']==1 for n in rows))
+        self.assertEqual(mailer.send.call_count,2) # backoff, no immediate retry
+
+    def test_optional_failure_does_not_fail_service_exit(self):
+        from mw_integration_agent.cli import build_parser,execute
+        args=build_parser().parse_args(['receipt-cycle','--config','unused','--catalogue','unused'])
+        with patch('mw_integration_agent.receipt_run.run',return_value={'failures':[],
+                  'notification_failures':[{'stage':'delivery'}]}),patch('builtins.print'):
+            self.assertEqual(execute(args),0)
+
+    def test_notification_preparation_failure_does_not_reopen_posting(self):
+        with patch('mw_integration_agent.review_cycle.notify',side_effect=RuntimeError('private')):
+            result=self.run_cycle();self.run_cycle()
+        self.assertEqual(result['failures'],[])
+        self.assertEqual(result['notification_failures'],[{'stage':'notification-cycle','exception':'RuntimeError'}])
+        self.assertEqual(self.add_payment.call_count,1)
+
+    def test_delivery_backlog_bounded_and_failed_item_deferred(self):
+        self.masters.return_value['partners'].extend(dict(self.p,id=str(i)) for i in range(5))
+        self.dispatch.side_effect=RuntimeError('unavailable')
+        self.run_cycle()
+        self.assertEqual(self.dispatch.call_count,2)
+        first={call.args[0]['id'] for call in self.dispatch.call_args_list}
+        self.dispatch.reset_mock();self.run_cycle()
+        self.assertEqual(self.dispatch.call_count,2)
+        second={call.args[0]['id'] for call in self.dispatch.call_args_list}
+        self.assertFalse(first & second)
+
+    def test_master_lookup_failure_backs_off_one_receipt_and_next_is_processed(self):
+        from mw_integration_agent.receipt_run import run
+        self.config.update(receipt_activation_cutoff='2026-01-01T00:00:00+00:00',partner_review_enabled=True)
+        for name,stamp in [('first',2),('second',3)]:
+            self.j.db.execute("INSERT INTO receipt_jobs(id,message_id,sender_id,url,status,created_at) VALUES (?,?,?,'','PENDING',?)",(name,name,'123',stamp))
+        self.j.db.commit()
+        def processed(job,journal,*args):journal.mark(job['id'],'IGNORED','SYNTHETIC_TEST')
+        with patch('mw_integration_agent.receipt_run.controls',return_value=self.config), \
+             patch('mw_integration_agent.receipt_run.masters',side_effect=[RuntimeError('unavailable'),{}]), \
+             patch('mw_integration_agent.receipt_run.process',side_effect=processed) as process, \
+             patch('mw_integration_agent.review_cycle.cycle',return_value={'failures':[]}):
+            run('unused','unused');run('unused','unused')
+        self.assertEqual(process.call_count,1)
+        self.assertEqual(process.call_args.args[0]['id'],'second')
+        first=self.j.db.execute("SELECT status,attempts,retry_after FROM receipt_jobs WHERE id='first'").fetchone()
+        self.assertEqual((first['status'],first['attempts']),('PENDING',0))
+        self.assertGreater(first['retry_after'],0)

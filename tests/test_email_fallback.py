@@ -10,6 +10,20 @@ from mw_integration_agent.statement_run import delivery_authorized
 
 
 class EmailFallbackTests(unittest.TestCase):
+    @unittest.skipUnless(__import__('os').name=='posix','POSIX credential lock')
+    def test_busy_oauth_lock_is_definitely_unsent_without_waiting(self):
+        import fcntl
+        from unittest.mock import patch
+        with tempfile.TemporaryDirectory() as directory:
+            path=Path(directory)/'oauth.json';path.write_text('{}')
+            client=GraphEmail({'email_oauth_file':str(path),'secrets_directory':directory})
+            with path.open('r+') as held,patch.object(client,'_token_locked') as refresh:
+                fcntl.flock(held,fcntl.LOCK_EX|fcntl.LOCK_NB)
+                with self.assertRaises(EmailRejected):client.token()
+                refresh.assert_not_called()
+            with patch.object(client,'_token_locked',return_value='synthetic'):
+                self.assertEqual(client.token(),'synthetic')
+
     def test_schedule_has_separate_authorization(self):
         controls={'sending_enabled':False,'cash_statement_schedule_enabled':True}
         self.assertTrue(delivery_authorized(controls,True))

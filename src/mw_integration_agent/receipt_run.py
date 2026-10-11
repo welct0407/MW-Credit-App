@@ -168,7 +168,17 @@ def run(config_path,catalogue_path):
             # A slow image must not delay approvals/notices behind ten model calls.
             for job in journal.pending()[:1]:
                 config=controls(config_path,catalogue_path)
-                process(job,journal,config,masters(config))
+                try:
+                    master=masters(config)
+                except Exception:
+                    # A dependency outage before extraction must not spend image
+                    # attempts or discard source evidence. Let later intake run.
+                    import time
+                    with journal.db:
+                        journal.db.execute('UPDATE receipt_jobs SET retry_after=?,detail=? WHERE id=?',
+                            (time.time()+300,'RECEIPT_MASTER_UNAVAILABLE',job['id']))
+                    continue
+                process(job,journal,config,master)
             from .partner_notice import NoticeJournal,receipt_notice
             if config.get('partner_review_enabled'):
                 from .review_cycle import cycle

@@ -36,6 +36,14 @@ def relay(config):
                             or intent[5] != ACTOR['kind']):
                         raise ConfigurationError('OUTBOX_INTENT_MISMATCH')
                     verify_marker(op,plan_hash,actor,login,rows,intent[4],config['database_name'])
+                elif intent and intent[3]=='operator_sql_reconciliation':
+                    from .operator_audit import snapshot, verify
+                    verify(snapshot(source, op), config['database_name'], intent)
+                elif intent and intent[3]=='operator_sql':
+                    from .operator_execution import verify_marker
+                    marker=source.execute('''SELECT operation_id::text,plan_sha256,reviewer_id,reviewer_login,
+                        direct_targets->0,database_txid::text FROM agent_audit.commits WHERE operation_id=%s''',(op,)).fetchone()
+                    verify_marker(marker,intent)
                 elif not intent or tuple(intent[:3])!=(plan_hash,actor,login):
                     raise ConfigurationError('OUTBOX_INTENT_MISMATCH')
                 for ident,schema,table,action,key,before,after in rows:
