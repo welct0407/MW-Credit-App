@@ -44,5 +44,5 @@
   "readerApplicationOrOwnerMembership": false,
   "privateBeforeSha256": "4dc1f90ef1714e59c264d4e4b31e77f58444451fbf692c99885fbdeca053ca3a",
   "privateAfterSha256": "69c4b53d1760e63c01b35de57d504c02b81162fe8db5688074d193b40da3b1a5",
-  "guiRefreshVerification": "Owner refresh of authenticated screens and historical receipt GUI pending; first real new PWA receipt AppSheet rendering remains pending"
+  "guiRefreshVerification": "Owner confirmed Collection/Borrowers and historical receipt reading passed; first genuine manual PWA receipt AppSheet rendering explicitly owner-accepted deferred, not tested"
 }

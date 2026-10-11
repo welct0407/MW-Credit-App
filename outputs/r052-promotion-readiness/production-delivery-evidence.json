@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "observedAt": "2026-10-11T21:05:18.2879408+07:00",
-  "outcome": "Deployment applied; verification incomplete",
+  "outcome": "Released",
   "release": "R052",
   "productSourceCommit": "b40c69526bc40b2ef3f6ab6b631df8c51695c921",
   "operatorSourceCommit": "4a27a1cfacdd1d59bbdb531a49d95962c230967a",
@@ -59,10 +59,7 @@
     "PWA replacement scheduled jobs",
     "Grafana monitoring"
   ],
-  "verificationPending": [
-    "Owner refresh of authenticated canonical PWA screens and historical receipt read GUI after repaired mapping permission",
-    "First real PWA receipt AppSheet rendering"
-  ],
+  "verificationPending": [],
   "financialTestWrites": 0,
   "dictionary": {
     "closedDevOverlays": 35,
@@ -72,7 +69,16 @@
     "aclOnlyObjects": 184,
     "objectsWritten": 279
   },
-  "authenticationObservation": "Owner signed in on iPhone; authenticated Collection and Borrowers requests reached reader00002-984 and failed with mapping SQLSTATE42501. The PROD membership override required Partners.Partner Role SELECT, omitted from the generic DEV reader scope. The owner-approved single-column grant is committed; metadata-only bulk comparison confirms all57 PROD reader columns, both required routine EXECUTE privileges and zero command-policy violations. Owner refresh/read GUI verification remains pending.",
+  "authenticationObservation": "Owner confirmed authenticated Collection/Borrowers and historical receipt reading work after approved mapping permission repair.",
   "documentation": "Selective model and owning records complete; evidence publication in this batch",
-  "permissionRepairEvidence": "production-reader-permission-repair.json"
+  "permissionRepairEvidence": "production-reader-permission-repair.json",
+  "closedAt": "2026-10-11T16:20:32.646304+00:00",
+  "ownerAcceptance": "Owner confirmed Collection and Borrowers work and historical receipt reading passed on 11 October 2026. Owner explicitly directed close R052 and accepted deferring the first genuine manual PWA receipt/AppSheet rendering until a real receiving opportunity. That check is not claimed tested.",
+  "acceptedFollowUp": {
+    "check": "First genuine manual PWA receipt AppSheet rendering",
+    "status": "Owner-accepted deferred; not tested",
+    "trigger": "Next genuine manual receiving opportunity",
+    "releaseClosureException": true
+  },
+  "nextDevelopment": "R053 sole Open; notification and replacement scheduled-job work planned only; existing production jobs unchanged"
 }
