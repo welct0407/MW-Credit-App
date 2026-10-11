@@ -318,5 +318,34 @@
       "hostingVersion": "41c242f719db0cee"
     },
     "limits": "No live financial writes/physical-device acceptance/new E recommendations implementation; prior native receipt and intermittent503cause limits retained"
+  },
+  "remainingApprovedUx": {
+    "sourceCommit": "b3678ac277a9d6900523d9bb875d27846ea67596",
+    "sourceManifest": "remaining-ux-source.json",
+    "review": "ux-remaining-and-colors-review-2026-10-11.md",
+    "evidence": "remaining-approved-evidence.md",
+    "codes": [
+      "REM-ASSESS-001",
+      "REM-ANALYTICS-001",
+      "REM-ANALYTICS-002",
+      "REM-SETTLEMENT-001",
+      "COLOR-ANALYTICS-001",
+      "COLOR-DASH-001",
+      "COLOR-AMOUNT-001"
+    ],
+    "validation": "B type/build; C4 focused cases/20 synthetic captures four widths; configured type/build/version guard PASS; no CI",
+    "frontendBundle": "index-Ds3BPdhd.js",
+    "publicVersion": "2f860d243c59a543b0bc522a",
+    "hostingVersion": "b10ec07fb3d67204",
+    "hostingRelease": "1791681425651000",
+    "publicMarker": "HTTP200/no-store exact entry/version",
+    "readerUnchanged": "00015-22g",
+    "commandUnchanged": "00016-gc9",
+    "databaseUnchanged": 85,
+    "rollback": {
+      "frontendBundle": "index-O-LQ7fuD.js",
+      "hostingVersion": "42cc2ae3fcc9c201"
+    },
+    "limits": "No new E review/livefinancialwrite/physicaldevice acceptance/full accessibility claim; prior native receipts/source-only and intermittent503cause limits retained"
   }
 }

@@ -1,0 +1,167 @@
+{
+  "date": "2026-10-11",
+  "source": {
+    "baseline": "bb95b94",
+    "build": "D5kCTBZO",
+    "css": "eph9df7s",
+    "checks": [
+      "npm run build:live-dev PASS (typecheck and Vite)",
+      "git diff --check PASS"
+    ],
+    "files": [
+      {
+        "path": "apps/pwa/src/CashWorkspace.tsx",
+        "sha256": "40292685EB3D4F2407A8525B2937AAB353B6EBBA153146CC19A35F1A59304DD4"
+      },
+      {
+        "path": "apps/pwa/src/Dashboard.tsx",
+        "sha256": "31F4980876CE5BE521E6BE306704F1BC52CACFA8DB816B2CC72E87D4A4CDB8DE"
+      },
+      {
+        "path": "apps/pwa/src/ManagementAnalytics.tsx",
+        "sha256": "301057AC2326301411A6F292BBBC39EE0D7EC04E1A3D7E275F8D7E30A20C6855"
+      },
+      {
+        "path": "apps/pwa/src/ManagementAssessments.tsx",
+        "sha256": "AF2EC77720E5C75B530D8E639D30A2FA39041B469A31552DEA84C106D124C56D"
+      },
+      {
+        "path": "apps/pwa/src/ManagementFinancialWorkspace.tsx",
+        "sha256": "44C33CDBAEB731F3F4D02994A053281E45F56F0EA06624469A2ED9CCD73DBF5C"
+      },
+      {
+        "path": "apps/pwa/src/live-style.css",
+        "sha256": "B67FEC78443F7502722098E0E992AA96A9AFF9C000A3F2776ED84CBCD35AD72F"
+      }
+    ]
+  },
+  "cases": [
+    "Analytics1.8sPASS exact25slice+Other colors/order independent of Values; signed/allzero finite SVG axes and dates; distinct actions",
+    "Assessment and three settlement states2.4sPASS decimal0.01 interpreted1% and confirmation; allPending/Completed/Cancelled rendered",
+    "Dashboard1.3sPASS signed/zero/positive and darkerorange",
+    "Cash1.2sPASS zero inheritedneutral, no inflow/outflow class onzero, minus retained"
+  ],
+  "sourceRatePayloadUnchanged": true,
+  "contrast": {
+    "foregroundOld": "#FF8C00",
+    "foregroundNew": "#A45100",
+    "background": "#FFFFFF",
+    "oldRatio": 2.332495344131214,
+    "newRatio": 5.591836723368365,
+    "limit": "Arithmetic only; no full conformance or actual background/device claim"
+  },
+  "captures": [
+    {
+      "path": "outputs/r052-phase6/remaining-approved-analytics-1180.png",
+      "sha256": "9CABD07398190AF96885B2298AA2B0B1269A0406ED53A198F58A3FDBFF4EA847",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/remaining-approved-analytics-1440.png",
+      "sha256": "423399947441E3C615827E90D6345D451140F7C9210F5FF377839FAA2B289AE9",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/remaining-approved-analytics-440.png",
+      "sha256": "C627960FB39B5B5FE2B14B4220C83C0AE93F6162A669E14FFC303B16C49830FB",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/remaining-approved-analytics-820.png",
+      "sha256": "52AC1E93957E27A2699EFBF661DE73141182F61072C6B64FF0BAEF40E0F63088",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/remaining-approved-cash-1180.png",
+      "sha256": "44DEAE22EF2F52883859E956230947FE9C40A3CA7477EF68C6EB0E439BCE1F2F",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/remaining-approved-cash-1440.png",
+      "sha256": "AD0F728604492E09AD1A3173F66B30A64D04A2AC2370DF89AD8431DBA1A6864B",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/remaining-approved-cash-440.png",
+      "sha256": "2D5196F4B09EDB06ACED5D47738E3810123EACFA3F1197836FA2BB04853F28C0",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/remaining-approved-cash-820.png",
+      "sha256": "CD1CEC69BE88E38E1E6BAA2017A4E5EAE3505049E9473C9FF93679348C455A7B",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/remaining-approved-dashboard-1180.png",
+      "sha256": "A7BADD7B0C66E325779E6045E679B7A514B21D16ED824370A9618C1B445624E5",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/remaining-approved-dashboard-1440.png",
+      "sha256": "318B2F04DA3A0E328B58D7478DEB862FAF8BC2E8E677805CBC27B46B63E007DB",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/remaining-approved-dashboard-440.png",
+      "sha256": "19D3B60232BF824FAE434C7BDD96329969BBEE3292E51F3AD52E012B188B5BF3",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/remaining-approved-dashboard-820.png",
+      "sha256": "F797C75421919F5D81CAFCF1EE96AA877210432A3DF5974A0AE815B9008E909E",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/remaining-approved-rate-1180.png",
+      "sha256": "15C23524AC1774A2973924553F9770AEB243D0E0C29190D9498111794C3F1BED",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/remaining-approved-rate-1440.png",
+      "sha256": "C3FF02B2036FDEFCD71E3C59B2E6DDE90A04A11789E553F5F8E27AA078021075",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/remaining-approved-rate-440.png",
+      "sha256": "01F495B44993C639589EA347C975F15635B748F272E5A9ACB50E6495F8B96C00",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/remaining-approved-rate-820.png",
+      "sha256": "2E1BA2EFACFBF1C368EBFB3CD71EC80749C39F284D80581CE3192E7E03C15B5D",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/remaining-approved-settlements-1180.png",
+      "sha256": "9D6F81C715E0F57F75F2648AD334480417F5AC091CE4B560B8982D35B3B3D900",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/remaining-approved-settlements-1440.png",
+      "sha256": "E1224B36D175F49568A74F336FDBB38BB8A5F4A97978B740E88B44EA9692F0A1",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/remaining-approved-settlements-440.png",
+      "sha256": "A8B01BAAF11547CB97D479789F2925FBE81BE20230148A1739E3B692643545A6",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/remaining-approved-settlements-820.png",
+      "sha256": "B032E21630C395EA53AFA5ECC7369FCD5C8DCD7FB3839853B3DE868A308A7069",
+      "synthetic": true
+    }
+  ],
+  "limits": [
+    "Synthetic actual-component evidence; linked fixture chrome not production header",
+    "No operational POST/Confirm/recalculation/live writes/CI",
+    "English with bilingual syntheticlabels; physicaldevice and full locale matrix unverified",
+    "Rate exact decimal inputs forwarded unchanged confirmed by source; no actual financial submission",
+    "Allzero chart rendered; empty/unknown fallback source review reuses unchanged handling",
+    "Prior unsuccessful supplement not reused as faithful record metadata proof"
+  ],
+  "fixtureCorrections": [
+    "Expected TE Slice labels include English description suffix",
+    "Cash inherited neutral#202124 vs Dashboard explicit#222; specific no money-in/out zero classes preserved"
+  ]
+}
