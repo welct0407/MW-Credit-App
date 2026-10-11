@@ -1,0 +1,24 @@
+# Exact-source contained production image. Runtime config/owner pin stay out of build.
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args: [build, -t, 'asia-southeast1-docker.pkg.dev/$PROJECT_ID/mw-credit-app-prod/api:$BUILD_ID', .]
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - run
+      - --rm
+      - 'asia-southeast1-docker.pkg.dev/$PROJECT_ID/mw-credit-app-prod/api:$BUILD_ID'
+      - node
+      - --input-type=module
+      - -e
+      - |
+        import assert from 'node:assert/strict';
+        import {loadProductionFoundationConfig} from './services/production/config.mjs';
+        import {createProductionFoundationHandler} from './services/production/handler.mjs';
+        assert.throws(()=>loadProductionFoundationConfig({}),/Invalid production foundation/);
+        assert.equal(typeof createProductionFoundationHandler,'function');
+        await assert.rejects(import('./services/production/server.mjs'),/Invalid production foundation/);
+        console.log(JSON.stringify({containedModules:'passed',missingConfigFailsClosed:'passed',liveAuthAndIAM:'not exercised'}));
+images:
+  - 'asia-southeast1-docker.pkg.dev/$PROJECT_ID/mw-credit-app-prod/api:$BUILD_ID'
+options:
+  logging: CLOUD_LOGGING_ONLY

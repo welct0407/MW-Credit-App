@@ -1,6 +1,6 @@
 # Phase 3 infrastructure inventory — 11 October 2026
 
-Current target: owner-selected existing project clever-oasis-508610-n7 /737787224638 with shared default Firebase Google authentication. New shared-project production resources remain unapplied. The separate unbilled project219146337993 and partial state are parked. Earlier sections below are dated evidence; the final shared-project revision and README govern the current proposal.
+Current target: owner-selected existing project clever-oasis-508610-n7 /737787224638 with shared default Firebase Google authentication. The owner-approved state bucket and F1 foundation are created; runtime and DNS plans await review/delivery checks. The separate unbilled project219146337993 and partial state remain parked. Earlier sections below are dated evidence; the latest execution checkpoint governs current status.
 
 Historical initial read-only observation (superseded by the partial attempt and target revision below). App starting commit `24532742bd65a9fbf2bd53810b35e68100b5c3db`; canonical management instructions read from `9e037c98ac902c82d161d32e03d4be416ad7f6b8`, because the local management checkout had moved to another commit. Current owner acceptance and Phase 3 authorization supersede that checkpoint's pending-acceptance wording.
 
@@ -62,3 +62,13 @@ Production target is now existing My First Project clever-oasis-508610-n7 /73778
 
 
 Final affected local checks:5 application+2 newstate mocktests pass. Actual read-only plans were saved externally: statebucket1createSHA690183679b2b269fe61745d4307ba4d72307dbad62c7da495815b4eb8b422da5; F1privatewrapper18createsSHAb1830c50d84017c67ed8269686ba64cd157280f84dd493a9ca206b8e2eb217f2. Noapply. F1wrapperaddresses require a fresh final-root plan after newstateexists. ProposedHosting site mw-credit-prod-737787224638 is withinlengthbounds butavailabilityunverified. WIFimmutableprefix readback confirmedbyD; actualissuedproductiontoken andenvironmentprotection remainunverified.
+
+## Authorized shared-project execution checkpoint
+
+The revised package was explicitly approved after the preparation checkpoint above. The one-bucket plan was applied and state migrated without force-copy to `mw-credit-app-prod-tfstate-737787224638/bootstrap`; lineage and remote version were verified and a no-change plan passed. Application state uses the separate `application` prefix. The old unbilled project and its partial state are unchanged.
+
+F1 final-root plan `257779406201b9f6639d8f393514c5bddbed9408f9b4872fc5a655f5fcd4a844` created18 resources before Firebase required an explicit quota project. Provider `billing_project` and `user_project_override` corrected request context; reviewed remaining-three plan `99a6ec783488f18ae68f98b8c1fff43d5c694f88fff78474abb1563edff49fd9` completed the WebApp, Hosting site and custom-domain resource. Actual WebApp is `1:737787224638:web:0ed0ba9555749c1cfbe76f`, site `mw-credit-prod-737787224638`; its release list was empty before first delivery. This does not establish DNS/certificate or runtime readiness.
+
+Trusted operator lookup verified the existing shared-default owner as enabled, email verified, Google-linked and without a tenant; the separate PROD owner-identity secret now has numeric version1. No raw identity or secret payload is recorded here. The owning DEV plan `e617236be729aae6cf7fa3f381a1f30d09bbe5471fe6a535c8d563bcb2ee1833` added only the canonical/fallback PROD domains, preserving all three existing domains and sign-in settings, and removed only the DEV automated Hosting-admin binding. The human operator helper verified both sites; the subsequent DEV no-change plan passed. Existing DEV services and Hosting release were not redeployed.
+
+Saved runtime plan `3d9e5c6eda6b74a7882872ff8119fcb04f4c761fda95cece47c0804ba3a8bfc6` proposes exactly eight creates, with image `sha256:6cf9db0bfcf6861c8438ef9c713392c76874e0bce94a08c89cb90d35d37d1a1f` and owner-secret version1. Saved DNS plan `71635f36e4389cf8f7722244348b58b93073b7b9b9c7c67c7ab8691aa7158a3f` proposes one previously absent CNAME to the actual Hosting site. These plans remain unapplied at this checkpoint. No SQL, receipt-storage or production business authority was granted.

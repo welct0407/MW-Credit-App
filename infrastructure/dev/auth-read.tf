@@ -7,14 +7,23 @@ resource "google_firebase_web_app" "dev" {
   lifecycle { prevent_destroy = true }
 }
 
+variable "additional_authorized_domains" {
+  description = "Reviewed production Hosting domains appended to the existing shared-default auth allowlist."
+  type        = list(string)
+  default     = []
+  validation {
+    condition     = alltrue([for domain in var.additional_authorized_domains : contains(["lm.mw-credit.com", "mw-credit-prod-737787224638.web.app"], domain)])
+    error_message = "Only the reviewed production Hosting domains may be appended."
+  }
+}
 resource "google_identity_platform_config" "dev" {
   provider = google-beta
   project  = local.project
-  authorized_domains = [
+  authorized_domains = concat([
     "clever-oasis-508610-n7.firebaseapp.com",
     "mw-credit-app-dev-737787224638.web.app",
     "dev-lm.mw-credit.com"
-  ]
+  ], var.additional_authorized_domains)
   sign_in {
     allow_duplicate_emails = false
     anonymous { enabled = false }

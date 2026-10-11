@@ -93,3 +93,32 @@ F source/mock review confirms production default inert; wrong superseded project
 | `infrastructure/production-state-bootstrap/main.tf` | `deeb2f837a17c2b0b99849979e7343ffb1f11a8d669d1b841edeb4b7c19f266b` |
 
 Principal, handler, runtime/server unchanged hashes remain as recorded above. C revised its same two independent test files and this additive evidence only; diff checks passed, no staging/commit. D owns coherent publication. Preparation verification is complete; live state/provisioning/IAM containment, authoritative owner-secret readback, actual WebApp/endpoints, Hosting/DNS activation, contained smoke, monitoring/capacity and recovery remain pending. Readiness is still disabled, with no authorized SQL/storage probe proof or business activation/cutover claim.
+
+## Approved deployment — independent before baseline
+
+The owner subsequently approved the revised shared-project/default-auth foundation deployment. F owns infrastructure, D owns artifacts/delivery and root owns orchestration/private browser authentication. C performs bounded read-only verification; no financial writes, forced notifications, new data capability or C cloud mutation/CI is included. Existing69 Node/seven mock results are reused only while their exact inputs remain unchanged; any invalidated inputs receive affected checks.
+
+At `2026-10-11T04:33:24.220Z`, independent live HTTP requests returned:
+
+| DEV request | Observed result |
+| --- | --- |
+| `https://dev-lm.mw-credit.com/` |200, HTML, Cache-Control no-store; SHA256 `dce3548578d632a0b128892b2644ab4961fa4c80a477cb00f1b4d8a598c5439a` |
+| `https://dev-lm.mw-credit.com/build-version.json` |200/no-store; version `33577e39b896de7ad5ca6a62`, entry `/assets/index-CN0TdzFd.js`; SHA256 `ea2e6bb862a643ce5b266ff9d75f3243980b904efd957501330ace677157f374` |
+| `https://mw-credit-app-read-dev-pvrgvyg3oq-as.a.run.app/health` |200/no-store; body SHA256 `6230cd14c2787e6e3a0b1d73da5d060c0ad72337a69d0a902de9255d283d394b` |
+| `https://mw-credit-app-command-dev-pvrgvyg3oq-as.a.run.app/health` |200/no-store; body SHA256 `4062edaf750fb8074e7e83e0c9028c94e32468a8b6f1614774328ef045150f93` |
+
+Requests used `fetch` with redirect error and20-second abort bound, without credentials, bearer tokens or business rows. Only safe public marker/status/headers/hashes were recorded in isolated scratch `outputs/.tmp/phase3-live-independent-20261011/dev-before.json`; no historical capture was overwritten. HTTP availability alone does not establish authenticated DEV workflows or immutable service revisions; D/F's accepted image/revision pins remain separate evidence.
+
+C is ready for deployed PROD health, anonymous session/business/readiness/receipt denial, final Hosting/config hashes/no-store/no-worker and matching DEV after-baseline checks once actual milestones are available. Actual valid shared-owner sessions require root's browser-owned token kept in memory/private; no token/UID/secret is copied into this repository or output. Foreign signed issuer/user/tenant/revoked-token checks, effective deployed IAM/state denial and absence of SQL/GCS grants/effects require actual bounded evidence; the earlier synthetic checks cannot be labeled as those live results. No PROD smoke pass is claimed yet.
+
+## Controlled operator delivery verification and DEV after containment
+
+C independently reviewed D's new `scripts/production/deploy-foundation-hosting.mjs` and the DEV workflow delta. The helper defaults to dry-run, validates the authorized exact package/site/bytes before delivery, requires successful same-source `ci.yml` plus an actually successful `npm run test:e2e` step before operator credential readback, verifies the approved human and both exact Hosting sites, and publishes only the PROD site with global no-store/no worker/no DEV rewrite. The automated DEV workflow keeps its existing API path and now emits a nonfailing operator Hosting instruction; it no longer attempts Hosting publication with the removed authority.
+
+C found a real stage-binding gap: finalization checked status but not the returned immutable version name, and release checked site but not its linked version. D now requires both to equal the exact created version. Independent negative tests demonstrate wrong/missing stage bindings stop; unknown upload hashes/hosts stop before finalize/release. Failures make no delete calls and preserve partial versions for inspected recovery; this is a stop/retain behavior, not an automatic rollback claim.
+
+Focused command: `node --test tests/unit/production-hosting-independent.test.mjs tests/unit/production-hosting-delivery.test.mjs`: **10/10 passed, zero skips**. Four C-authored cases cover stage-short-circuit CI proof, approved human/exact site readback, immutable finalize/release binding and malformed/wrong-site rejection. All requests were injected synthetic fixtures; no network/cloud call occurred in these tests. Helper SHA256 `82f60bc20817a81f16825e3de50bce9040b9e7a4720815a65abcdaff204b48f8`; diff checks passed. Prior69 Node/seven mock evidence remains conditional unchanged-input proof; C did not run CI or repeat a broad suite.
+
+At `2026-10-11T04:47:12.423Z`, after F reported existing-auth domain additions and automated DEV Hosting-admin removal, C repeated the same four public DEV requests. All returned200/no-store, with **all four body hashes identical** to the04:33 before baseline and the same33577e39b896de7ad5ca6a62/CN0TdzFd marker. Safe scratch record: `outputs/.tmp/phase3-live-independent-20261011/dev-after-containment.json`. No credentials/business reads were used. Separately, root reported actual-owner canonical DEV GUI refresh completed with Dashboard visible/Ready/zero alerts; that is root's observation, not a C browser execution.
+
+F's reported state/IAM readback is configuration evidence: new protected state bucket/matched migration and no direct DEV-SA bucket role; it is **not an impersonated denial test**. Root/F own those exact records. Actual PROD services/Hosting release are still pending at this checkpoint; C will verify their supplied real URLs/artifacts after delivery. Signed wrong-user/issuer/tenant/revocation and live state-IAM exclusion are not simulated passes. C intended scope adds only `tests/unit/production-hosting-independent.test.mjs` and this existing evidence; no helper/workflow, cloud or Git mutation was performed by C.

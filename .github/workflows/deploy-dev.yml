@@ -39,5 +39,5 @@ jobs:
         run: gcloud run services update mw-credit-app-api-dev --project=clever-oasis-508610-n7 --region=asia-southeast1 --image="$IMAGE" --quiet
       - name: Verify private API
         run: node scripts/verify-dev.mjs
-      - name: Deploy synthetic development page
-        run: node scripts/deploy-hosting.mjs
+      - name: Hosting delivery uses controlled operator route
+        run: echo 'DEV API delivery completed. Hosting is published separately by the controlled operator with the exact DEV artifact/site; this automated identity does not publish either Hosting site.'

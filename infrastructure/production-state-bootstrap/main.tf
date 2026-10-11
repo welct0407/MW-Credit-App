@@ -4,7 +4,7 @@ terraform {
   required_providers {
     google = { source = "hashicorp/google", version = "= 8.6.0" }
   }
-  backend "local" {}
+  backend "gcs" {}
 }
 provider "google" { project = "clever-oasis-508610-n7" }
 variable "state_bootstrap_authorized" {
