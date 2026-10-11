@@ -31,7 +31,7 @@ foreach($kind in @('same','different','cancel','disconnect')) {
    $r=$q | & $psql -Xq -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d $Database 2>&1
    if($LASTEXITCODE -eq 0 -or ($r -join "`n") -notmatch 'busy|lock timeout|could not obtain lock'){throw 'Concurrent source request should reject contention'}
   } else {
-   $pidText=Run-Sql "SELECT pid FROM pg_stat_activity WHERE application_name='$app' AND datname='postgres' AND backend_type='client backend';"
+   $pidText=Run-Sql "SELECT pid FROM pg_stat_activity WHERE application_name='$app' AND datname=current_database() AND backend_type='client backend';"
    if($pidText -notmatch '^\d+$'){throw 'Owned delete backend not uniquely resolved'}
    $fn=if($kind -eq 'cancel'){'pg_cancel_backend'}else{'pg_terminate_backend'}
    if((Run-Sql "SELECT $fn($pidText);").Trim() -ne 't'){throw 'Owned backend interruption failed'}
