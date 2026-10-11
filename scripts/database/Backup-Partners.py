@@ -15,7 +15,7 @@ parser.add_argument('--candidate',choices=['reporting_partner_position_v1'],defa
 args=parser.parse_args()
 repo=Path(__file__).resolve().parents[2]
 assert args.release == 'r044-partners'
-private=Path('C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project')/args.release
+private=Path('C:/Users/ideaadmin/Documents/ChatGPT/AppSheet-Loan-Project')/args.release
 private.mkdir(parents=True,exist_ok=True)
 out=repo/'outputs'/args.release;out.mkdir(parents=True,exist_ok=True)
 target=json.loads((repo/'database/environments.json').read_text())[args.environment]

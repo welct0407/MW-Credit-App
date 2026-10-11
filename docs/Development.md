@@ -32,7 +32,7 @@ Secret Manager holds the VAPID private key. Terraform creates only the container
 Existing services retain their existing credential arrangements; infrastructure setup did not rotate their credentials. Future integration credentials belong in separate Secret Manager secrets with access granted only to the relevant runtime.
 
 Human tooling reuses the existing gcloud sign-in and Git Credential Manager. It does not copy their authentication stores. Private Terraform working data, plans and recovery files on VM-01 are under:
-`C:/Users/MWCredit/Documents/ChatGPT/MW-Credit-App/terraform`.
+`C:/Users/ideaadmin/Documents/ChatGPT/MW-Credit-App/terraform`.
 Plans/state include sensitive OAuth provider payloads read from Secret Manager; never publish them. Secret Manager storage does not keep those payloads out of Terraform state/plan.
 
 ## Installed VM-01 tooling

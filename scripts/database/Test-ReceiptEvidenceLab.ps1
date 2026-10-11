@@ -28,7 +28,7 @@ try {
   if($LASTEXITCODE -or $centralTables -ne '30'){throw 'Unexpected central backup table count'}
  }
  $env:PYTHONPATH=(Join-Path $AgentRepository src)+';'+(Join-Path $DbToolRoot python-deps)
- $result=& 'C:/Users/MWCredit/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/python.exe' (Join-Path $AgentRepository scripts/test-receipt-postgres.py) --port $port --root $root
+ $result=& 'C:/Users/ideaadmin/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/python.exe' (Join-Path $AgentRepository scripts/test-receipt-postgres.py) --port $port --root $root
  if($LASTEXITCODE){throw 'Central receipt integration test failed'}
  @{privateBackupRestore='passed';restoredVersion=$restored;centralBackupRestored=[bool]$CentralBackupFile;centralTests=($result|ConvertFrom-Json);lab=$root;noLiveEffects=$true} | ConvertTo-Json -Depth 5 | Set-Content $EvidenceFile
  Get-Content $EvidenceFile

@@ -2,7 +2,7 @@ param([ValidateSet('init','validate','plan','apply')][string]$Command='plan')
 $ErrorActionPreference='Stop'
 . "$PSScriptRoot/Enter-Dev.ps1"
 $mwRoot=Split-Path $PSScriptRoot
-$mwPrivate='C:/Users/MWCredit/Documents/ChatGPT/MW-Credit-App/terraform'
+$mwPrivate='C:/Users/ideaadmin/Documents/ChatGPT/MW-Credit-App/terraform'
 $env:TF_DATA_DIR=Join-Path $mwPrivate 'dev-dns-data'
 try {
   $env:GOOGLE_OAUTH_ACCESS_TOKEN=(& gcloud auth print-access-token).Trim()

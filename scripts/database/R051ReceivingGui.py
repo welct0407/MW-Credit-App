@@ -1,7 +1,7 @@
 """Bounded V73 DEV fixtures for current GUI receipt tests. No real source mutation."""
 import argparse, hashlib, json, sys
 from pathlib import Path
-sys.path.insert(0,r'C:\Users\MWCredit\AppData\Local\AppSheetLoanTools\python-deps')
+sys.path.insert(0,r'C:\Users\ideaadmin\AppData\Local\AppSheetLoanTools\python-deps')
 import psycopg
 from psycopg import sql
 from R051ReceivingFixtures import setup

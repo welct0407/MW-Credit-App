@@ -33,7 +33,7 @@ with psycopg.connect(**options,user='postgres',password=Path(t['passwordFile']).
         c.execute('UPDATE public."Borrowers" SET "Borrower Name"=%s WHERE "Row ID"=%s',('Synthetic R046 Receipt Demo','R046-borrower'))
     row=c.execute('SELECT "Payment Date"::text,to_char("Created At",\'YYYY-MM-DD HH24:MI\') FROM public."Payments" WHERE "Row ID"=%s',('R046-payment',)).fetchone()
 facts=dict(borrower='R046-borrower',amount='25',date=row[0],clock=row[1],reference='SYNTHETIC-046',account='R046-dad')
-password=Path('C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/receipt-storage/receipt-projector-password.txt').read_text().strip()
+password=Path('C:/Users/ideaadmin/Documents/ChatGPT/AppSheet-Loan-Project/receipt-storage/receipt-projector-password.txt').read_text().strip()
 with psycopg.connect(**options,user='mw_receipt_projector',password=password) as c:
     result=c.execute('SELECT public.attach_payment_receipt_evidence(%s,%s,%s,%s,%s,%s,%s)',
       ('R046-payment',receipt,key,datetime(2026,9,27,4,0,tzinfo=timezone.utc),Jsonb(facts),uuid.UUID('04600000-0000-0000-0000-000000000046'),'R046-synthetic-demo')).fetchone()[0]

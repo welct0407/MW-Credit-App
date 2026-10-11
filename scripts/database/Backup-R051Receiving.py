@@ -12,7 +12,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-sys.path.insert(0, r'C:\Users\MWCredit\AppData\Local\AppSheetLoanTools\python-deps')
+sys.path.insert(0, r'C:\Users\ideaadmin\AppData\Local\AppSheetLoanTools\python-deps')
 import psycopg
 from psycopg import sql
 
@@ -29,7 +29,7 @@ target = json.loads((repo / 'database/environments.json').read_text())['developm
 assert (target['instance'], target['host'], target['database']) == (
     'appsheet-pg-prod-20260914', '34.21.174.215', 'loan_manager_dev')
 stamp = datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')
-folder = Path('C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r051-payment-performance') / stamp
+folder = Path('C:/Users/ideaadmin/Documents/ChatGPT/AppSheet-Loan-Project/r051-payment-performance') / stamp
 folder.mkdir(parents=True, exist_ok=False)
 pgbin = Path(os.environ['LOCALAPPDATA']) / 'AppSheetLoanTools/postgresql-18.6-3/pgsql/bin'
 password = Path(target['passwordFile']).read_text().strip()

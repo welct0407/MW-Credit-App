@@ -2,7 +2,7 @@
 param([ValidatePattern('^[a-z0-9-]+$')][string]$BackupLabel='cash-statement-before',
  [string]$CandidateSqlFile='database/migrations/V27__recent_cash_account_statement.sql')
 . "$PSScriptRoot/Common.ps1"
-$private='C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r010-20260919'
+$private='C:/Users/ideaadmin/Documents/ChatGPT/AppSheet-Loan-Project/r010-20260919'
 $bin=Get-PgBin
 $root=Join-Path $DbToolRoot ('r010-restore-'+[guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $root | Out-Null

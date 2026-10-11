@@ -2,8 +2,11 @@ param([ValidateSet('bootstrap','dev')][string]$Stack='dev',[ValidateSet('init','
 $ErrorActionPreference='Stop'
 . "$PSScriptRoot/Enter-Dev.ps1"
 $mwRoot=Split-Path $PSScriptRoot
-$mwPrivate='C:/Users/MWCredit/Documents/ChatGPT/MW-Credit-App/terraform'
+$mwPrivate='C:/Users/ideaadmin/Documents/ChatGPT/MW-Credit-App/terraform'
 $env:TF_DATA_DIR=Join-Path $mwPrivate "$Stack-data"
+if($Stack -eq 'dev' -and $Command -eq 'plan' -and -not (Test-Path -LiteralPath (Join-Path $mwPrivate 'dev.activation.tfvars'))){
+  throw 'DEV activation configuration is missing under ideaadmin. Re-establish the approved dev.activation.tfvars before planning; do not plan with implicit inactive defaults.'
+}
 try {
   $env:GOOGLE_OAUTH_ACCESS_TOKEN=(& gcloud auth print-access-token).Trim()
   if($LASTEXITCODE -ne 0){throw 'Google authentication unavailable'}

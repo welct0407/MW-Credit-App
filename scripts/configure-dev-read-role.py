@@ -4,7 +4,7 @@ import json
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
-sys.path.insert(0, r'C:/Users/MWCredit/AppData/Local/AppSheetLoanTools/python-deps')
+sys.path.insert(0, r'C:/Users/ideaadmin/AppData/Local/AppSheetLoanTools/python-deps')
 import psycopg
 from psycopg import sql
 ROOT = Path(__file__).resolve().parents[1]
@@ -23,7 +23,7 @@ VIEW_COLUMNS = {
 }
 COLUMNS.update(VIEW_COLUMNS)
 FUNCTION = 'public.forecast_schedule_v1(jsonb,jsonb,date,date)'
-PRIVATE = Path(r'C:/Users/MWCredit/Documents/ChatGPT/MW-Credit-App')
+PRIVATE = Path(r'C:/Users/ideaadmin/Documents/ChatGPT/MW-Credit-App')
 
 def inspect(conn):
     flags = conn.execute('SELECT rolsuper,rolcreaterole,rolcreatedb,rolreplication,rolbypassrls FROM pg_roles WHERE rolname=%s', (ROLE,)).fetchone()

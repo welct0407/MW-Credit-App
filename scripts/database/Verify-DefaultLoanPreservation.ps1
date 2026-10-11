@@ -3,7 +3,7 @@ param()
 . "$PSScriptRoot/Common.ps1"
 $target=Get-DbEnvironment development
 if($target.host -ne '34.158.38.171'){throw 'Reviewed development host required'}
-$private='C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/default-loan-20260915'
+$private='C:/Users/ideaadmin/Documents/ChatGPT/AppSheet-Loan-Project/default-loan-20260915'
 $before=@(Get-Content (Join-Path $private 'database-before.jsonl') | ForEach-Object {$_ | ConvertFrom-Json} | Where-Object {$_.PSObject.Properties.Name -contains 'table'})
 $prior=@{};foreach($name in @('PGPASSWORD','PGSSLMODE','PGOPTIONS','PGCONNECT_TIMEOUT')){$prior[$name]=[Environment]::GetEnvironmentVariable($name,'Process')}
 try{
