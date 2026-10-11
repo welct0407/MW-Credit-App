@@ -15,7 +15,7 @@ base=dict(host=lab['host'],port=lab['port'],user='postgres',autocommit=True)
 with psycopg.connect(**base,dbname='postgres') as c:
     if Path(c.execute('SHOW data_directory').fetchone()[0]).resolve()!=(Path(lab['root'])/'data').resolve():raise RuntimeError('Wrong lab')
     c.execute(sql.SQL('CREATE DATABASE {}').format(sql.Identifier(a.restore_database)))
-private=Path(a.private_directory).resolve();private.relative_to(Path('C:/Users/MWCredit/Documents/ChatGPT').resolve())
+private=Path(a.private_directory).resolve();private.relative_to(Path('C:/Users/ideaadmin/Documents/ChatGPT').resolve())
 dump=private/'mw_agent-before-activation.dump'
 if dump.exists():raise RuntimeError('Backup already exists; preserve')
 env=dict(os.environ,PGPASSWORD=Path(e['passwordFile']).read_text().strip(),PGSSLMODE='require')

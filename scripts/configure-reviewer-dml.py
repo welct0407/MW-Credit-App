@@ -49,7 +49,7 @@ def main():
         'appsheet-pg-prod-20260914','34.21.174.215','loan_manager_prod','postgres'):
         raise RuntimeError('Unexpected production identity')
     path=Path(args.secret_file).resolve()
-    private=Path('C:/Users/MWCredit/Documents/ChatGPT').resolve()
+    private=Path('C:/Users/ideaadmin/Documents/ChatGPT').resolve()
     path.relative_to(private)
     path.parent.mkdir(parents=True,exist_ok=True)
     if not path.exists():

@@ -15,7 +15,7 @@ root=Path(__file__).resolve().parents[1]
 t=json.loads(Path(a.environments).read_text())['production']
 if (t['host'],t['instance'],t['database'],t['user'])!=('34.21.174.215','appsheet-pg-prod-20260914','loan_manager_prod','postgres'):
     raise RuntimeError('Unexpected Cloud SQL identity')
-private=Path(a.private_directory).resolve();private.relative_to(Path('C:/Users/MWCredit/Documents/ChatGPT').resolve())
+private=Path(a.private_directory).resolve();private.relative_to(Path('C:/Users/ideaadmin/Documents/ChatGPT').resolve())
 private.mkdir(parents=True,exist_ok=True)
 options=dict(host=t['host'],port=t['port'],user=t['user'],password=Path(t['passwordFile']).read_text().strip(),sslmode='require',connect_timeout=15,autocommit=True)
 names=['mw_agent_owner','mw_agent_worker','mw_agent_relay','mw_agent_auditor','mw_business_audit_owner']

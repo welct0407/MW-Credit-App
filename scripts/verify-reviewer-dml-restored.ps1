@@ -3,7 +3,7 @@ param([string]$BackupDirectory='', [string]$Environments='C:/GitHub/AppSheet-Loa
 $ErrorActionPreference='Stop'
 $target=(Get-Content -LiteralPath $Environments -Raw | ConvertFrom-Json).production
 if($target.instance -ne 'appsheet-pg-prod-20260914' -or $target.host -ne '34.21.174.215' -or $target.database -ne 'loan_manager_prod'){throw 'Unexpected target'}
-$private=Join-Path 'C:/Users/MWCredit/Documents/ChatGPT/MW-Integration-Agent' ('reviewer-dml-'+(Get-Date -Format 'yyyyMMdd-HHmmss'))
+$private=Join-Path 'C:/Users/ideaadmin/Documents/ChatGPT/MW-Integration-Agent' ('reviewer-dml-'+(Get-Date -Format 'yyyyMMdd-HHmmss'))
 if($BackupDirectory){$private=(Resolve-Path -LiteralPath $BackupDirectory).Path}else{New-Item -ItemType Directory -Path $private | Out-Null}
 $savedPassword=$env:PGPASSWORD;$savedSsl=$env:PGSSLMODE
 $started=$false
