@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "environment": "prod",
+  "configuredSource": 2,
+  "method": "Actual Metabase source query after bounded idle-only recycling of two pre-existing pooled connections",
+  "database": "loan_manager_prod",
+  "principal": "metabase_borrower_reader",
+  "readOnly": "on",
+  "observedAt": "2026-10-11T20:35:12.662566+07:00",
+  "backendPid": 2299771,
+  "backendStart": "2026-10-11T20:34:57.158273+07:00",
+  "connectChangedBefore": "2026-10-11T13:20:41Z",
+  "freshReconnectVerified": true,
+  "businessRowsRead": 0
+}

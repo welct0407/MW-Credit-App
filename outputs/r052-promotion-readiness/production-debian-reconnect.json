@@ -1,0 +1,41 @@
+{
+  "queries": "current_database/current_user/clock_timestamp/pg_backend_pid/transaction_read_only only",
+  "database": "loan_manager_prod",
+  "connections": [
+    {
+      "backendPid": 2300020,
+      "user": "mw_integration_agent"
+    },
+    {
+      "backendPid": 2300021,
+      "user": "mw_reviewer_dml"
+    },
+    {
+      "backendPid": 2300022,
+      "user": "mw_receipt_projector"
+    },
+    {
+      "backendPid": 2300023,
+      "user": "mw_agent_relay"
+    }
+  ],
+  "allFresh": true,
+  "cleanup": {
+    "taskKeyMatchesAfter": 0,
+    "localTaskKeyFilesRemoved": 3,
+    "unrelatedMetadataPreserved": true,
+    "databaseConnectionsClosed": true,
+    "taskMetadataKeyEntriesRemoved": 1
+  },
+  "allReadOnly": true,
+  "hostTrust": {
+    "strictHostVerification": true,
+    "stablePublicKeyRetained": true,
+    "instanceId": "8223265527494214160",
+    "projectNumber": "737787224638",
+    "provenance": "Owner-authorized authenticated Google SSH-in-browser read of exact host public key, independently fingerprint-verified locally",
+    "fingerprint": "SHA256:XYqq9+D9ChuJ+649WocEueQBm2VkObn4zNSTOktdy7s"
+  },
+  "observedAt": "2026-10-11T13:38:34Z",
+  "schemaVersion": 1
+}

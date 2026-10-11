@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "environment": "prod",
+  "status": "cutover-reference-set-unchanged",
+  "observedAt": "2026-10-11T20:06:51.103533+07:00",
+  "referenceCount": 35,
+  "catalogSha256": "d4ff54e8006aea4ba3bf6101f6c048fd236297c9733ab0ce835e5685cbec5974",
+  "snapshotSha256": "066795d03af1f4db1fcf7527033025d31a1254d9b371a4e07bd51fba29f2f6fe",
+  "effects": "Read-only row/reference comparison; no SQL/storage writes",
+  "limits": "Owner-authorized cutover; mapping proof reused only for unchanged references. No AppSheet entry lock applied."
+}
