@@ -91,7 +91,8 @@
       "compression": ""
       "default_expression": null
       "collation": "\"default\""
-      "acl": "{metabase_borrower_reader=r/postgres}"
+      "acl": "{metabase_borrower_reader=r/postgres,\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"\
+        }"
       "comment": null
     "Email":
       "schema": "public"
@@ -447,3 +448,8 @@
     "reference": "outputs/r052/dictionary-production-closure.json"
     "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
     "observedAt": "2026-10-11T14:01:43.131793+00:00"
+  "/content/columns/Partner Role/acl":
+    "reference": "outputs/r052/promotion-checklist.md"
+    "reason": "Approved R052 PROD reader repair and complete DEV/PROD permission reconciliation, 2026-10-11. Live after-state\
+      \ confirms Partner Role SELECT."
+    "state": "value"
