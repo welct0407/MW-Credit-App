@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {createServer} from 'node:http';
 import {once} from 'node:events';
 import {createHash} from 'node:crypto';
-import {mkdtemp,writeFile,readFile,rm} from 'node:fs/promises';
+import {mkdtemp,writeFile,readFile,rm,mkdir,symlink,realpath} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join,resolve} from 'node:path';
 import {spawnSync} from 'node:child_process';
@@ -73,5 +73,29 @@ test('C actual reconciliation CLI is deterministic, rejects repository inputs an
   assert.equal(await readFile(join(dir,'catalog1'),'utf8'),await readFile(join(dir,'catalog2'),'utf8'));const report=await readFile(join(dir,'evidence1'),'utf8');assert.equal(report,await readFile(join(dir,'evidence2'),'utf8'));assert.equal(report.includes('PRIVATE'),false);assert.match(report,/does not authenticate capture provenance/);
   for(const [source,dest] of [[resolve('package.json'),join(dir,'invalid')],[input,resolve('outputs/PRIVATE-catalog.json')]]){const result=run(source,dest,join(dir,'invalid-evidence'));assert.equal(result.status,1);assert.equal(result.stderr.includes('PRIVATE'),false);}
   const malformed=join(dir,'PRIVATE-invalid.json');await writeFile(malformed,'PRIVATE malformed');assert.equal(run(malformed,join(dir,'bad'),join(dir,'bad-evidence')).status,1);
+ } finally {await rm(dir,{recursive:true,force:true});}
+});
+test('C private-path guards support absent sibling roots while existing and aliased protected trees stay excluded',async()=>{
+ const dir=await mkdtemp(join(tmpdir(),'mw-private-root-'));
+ try {
+  const repo=join(dir,'protected'),alias=join(dir,'alias'),outside=join(dir,'protected-extra');
+  await mkdir(repo);await mkdir(outside);await symlink(repo,alias,process.platform==='win32'?'junction':'dir');
+  const privateFile=join(outside,'capture.json'),protectedFile=join(repo,'capture.json');
+  await writeFile(privateFile,'synthetic');await writeFile(protectedFile,'synthetic');
+  const absent=join(dir,'optional','sibling');
+  assert.equal(await privatePath(privateFile,{roots:[repo,absent]}),await realpath(privateFile));
+  assert.equal(await privatePath(join(outside,'catalog.json'),{output:true,roots:[repo,absent]}),join(await realpath(outside),'catalog.json'));
+  for(const roots of [[repo,absent],[alias,absent]]){
+   for(const input of [protectedFile,join(alias,'capture.json')])await assert.rejects(privatePath(input,{roots}),/Native receipt reconciliation rejected/);
+   for(const output of [join(repo,'catalog.json'),join(alias,'catalog.json')])await assert.rejects(privatePath(output,{output:true,roots}),/Native receipt reconciliation rejected/);
+   await assert.rejects(privatePath(join(repo,'..private.json'),{output:true,roots}),/Native receipt reconciliation rejected/);
+  }
+  const dotPrefixed=join(repo,'..private.json');await writeFile(dotPrefixed,'synthetic');await assert.rejects(privatePath(dotPrefixed,{roots:[repo,absent]}),/Native receipt reconciliation rejected/);
+  // Resolve the nearest existing alias even when several trailing root components do not exist.
+  assert.equal(await privatePath(privateFile,{roots:[join(alias,'missing','nested')]}),await realpath(privateFile));
+  await mkdir(join(repo,'missing','nested'),{recursive:true});const reserved=join(repo,'missing','nested','capture.json');await writeFile(reserved,'synthetic');
+  await assert.rejects(privatePath(reserved,{roots:[join(alias,'missing','nested')]}),/Native receipt reconciliation rejected/);
+  // Relative input remains forbidden even when a protected checkout is absent.
+  await assert.rejects(privatePath('relative-capture.json',{roots:[absent]}),/Native receipt reconciliation rejected/);
  } finally {await rm(dir,{recursive:true,force:true});}
 });

@@ -27,3 +27,13 @@ No full CI, full browser suite, live storage upload, financial write, schema cha
 ## Recovery and publication
 
 C added only the independent test file and this evidence document. Rollback is removal/reversion of those two additions; B/F own product/runtime rollback. Root owns the coherent batch change log, commit/push and final evidence pin. This working-tree proof must be linked to the eventual published source before claiming checkpoint closure.
+
+## Corrected CLI portability checkpoint
+
+Consolidated CI38104425262 failed before browser execution because its checkout lacked the sibling AppSheet-Loan-Project repository. The CLI's original unconditional `realpath` for that protected root raised ENOENT. The earlier Windows-local pass did not cover this Linux checkout shape.
+
+B corrected blocked-root resolution to preserve a missing root's reserved subtree through its nearest existing canonical ancestor. Existing paths still use realpath; errors other than ENOENT still propagate fail closed. C added a sixth independent regression covering absent nested sibling roots, private sibling-prefix paths, existing protected paths, input/output paths through a junction (a symlink on Linux), and missing protected components beneath an aliased parent which later materialize. Relative inputs remain forbidden. Code review confirmed only ENOENT permits ancestor fallback; actual Windows sandbox EPERM remained a separate fail-closed observation.
+
+Focused corrected retest: `node --test tests/unit/phase6-independent.test.mjs tests/unit/native-catalog.test.mjs` —12 passed,0 failed/skipped. Actual CLI subprocess deterministic catalog/report and repository refusals passed again. No full local suite or CI rerun was dispatched by C. Root/D own publication and the corrected consolidated checkpoint; CI38104425262 remains failed and is not green evidence.
+
+B also corrected the containment predicate to treat only the actual `..` parent component as outside; an internal filename beginning `..` must remain protected. C added input/output rejection assertions for `..private.json` within protected roots and repeated the same12 focused checks successfully after that correction.

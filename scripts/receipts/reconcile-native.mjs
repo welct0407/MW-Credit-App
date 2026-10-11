@@ -1,6 +1,6 @@
 import {createHash} from 'node:crypto';
 import {readFile,writeFile,realpath,stat} from 'node:fs/promises';
-import {resolve,dirname,relative,isAbsolute} from 'node:path';
+import {resolve,dirname,relative,isAbsolute,sep} from 'node:path';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 import {parseNativeDevCatalog,NATIVE_DEV_ROOT} from '../../services/receipts/native-catalog.mjs';
 import {DEV_RECEIPT_MAPPING} from '../../services/receipts/dev-receipt-adapter.mjs';
@@ -45,11 +45,23 @@ export async function reconcileCapturedNative(input,{readMedia,decodeImage=decod
 
 const appRoot=fileURLToPath(new URL('../../',import.meta.url));
 const projectRoot=resolve(appRoot,'../AppSheet-Loan-Project');
-const inside=(root,path)=>{const rel=relative(root,path);return rel===''||(!rel.startsWith('..')&&!isAbsolute(rel));};
+const inside=(root,path)=>{const rel=relative(root,path);return rel===''||(rel!=='..'&&!rel.startsWith('..'+sep)&&!isAbsolute(rel));};
+async function canonicalBlockedRoot(root){
+  const absolute=resolve(root);let ancestor=absolute;
+  for(;;){
+    try{return resolve(await realpath(ancestor),relative(ancestor,absolute));}
+    catch(error){
+      // A sibling checkout is optional in CI. Preserve its reserved subtree,
+      // resolving existing ancestors so aliases cannot evade the exclusion.
+      if(error?.code!=='ENOENT'||dirname(ancestor)===ancestor)throw error;
+      ancestor=dirname(ancestor);
+    }
+  }
+}
 export async function privatePath(path,{output=false,roots=[appRoot,projectRoot]}={}){
   if(typeof path!=='string'||!isAbsolute(path))invalid();
   const canonical=output?resolve(await realpath(dirname(path)),path.split(/[\\/]/).at(-1)):await realpath(path);
-  const blocked=await Promise.all(roots.map(root=>realpath(root)));
+  const blocked=await Promise.all(roots.map(canonicalBlockedRoot));
   if(blocked.some(root=>inside(root,canonical)))invalid();
   // Existing output symlinks are not followed or overwritten: CLI writes with wx.
   return canonical;
