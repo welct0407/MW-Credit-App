@@ -8,7 +8,7 @@
 
 Prepared 7 October 2026, Asia/Bangkok. This is the delivery plan for a complete replacement of the current AppSheet OLTP and OLAP applications. We will implement and verify one phase at a time. The final deliverable is the new system operating in production alongside AppSheet, with full required coverage, proven recovery and an executable cutover procedure.
 
-**Target — owner revision, 10 October 2026:** mobile and desktop provide every current OLTP and OLAP capability. Mobile optimization targets iPhone16/17/18 Pro Max only; preserve desktop behavior. Existing APIs/authority are reused. Focused large-iPhone viewport checks do not establish physical-device acceptance, and no iPhone18 dimensions are assumed. Payments require online confirmation; offline viewing and drafts are included. The existing databases, GCS, Metabase, Grafana and retained integrations remain in use.
+**Target — owner revision, 11 October 2026:** mobile and desktop provide every current OLTP and OLAP capability. Phone optimization targets iPhone16/17/18 Pro Max; all pages also support iPad portrait/landscape, preserving desktop behavior. Existing APIs/authority are reused. Focused large-iPhone viewport checks do not establish physical-device acceptance, and no iPhone18 dimensions are assumed. Payments require online confirmation; offline viewing and drafts are included. The existing databases, GCS, Metabase, Grafana and retained integrations remain in use.
 
 Completing the plan makes the system **ready for cutover**. Switching the default application and retiring AppSheet remain explicit owner decisions after the final readiness review. AppSheet remains available throughout development and the parallel production period.
 
@@ -53,7 +53,7 @@ Every financial command must enforce server-side identity and permissions, prese
 | 3 | Make production infrastructure and delivery ready | 2 | Not started |
 | 4 | Prove one complete financial workflow in DEV | 2; production setup can proceed alongside it | Completed and owner-accepted on 8 October 2026 (Asia/Bangkok); tested/deployed first financial workflow and recorded live synthetic proof |
 | 5 | Complete mobile and desktop OLTP | 4 | Implemented/tested/deployed DEV85; consolidated checkpoint passed, owner/device and unknown native receipt limits remain open |
-| 6 | Complete mobile and desktop OLAP management | Shared contracts from 4; operational dependencies from 5 | Mobile/desktop implementation deployed DEV85; focused Pro Max portrait proof passed, physical-device/owner acceptance pending |
+| 6 | Complete mobile and desktop OLAP management | Shared contracts from 4; operational dependencies from 5 | Phone/iPad/desktop implementation deployed DEV85; focused tablet portrait/landscape and Pro Max proof passed, physical-device/owner acceptance pending |
 | 7 | Enhance Metabase integration and reporting after go-live | Production go-live; 5 and 6 contracts | Deferred by owner |
 | 8 | Complete automation, notifications and coexistence behavior | Event inventory from 1; relevant commands from 4–6 | Not started |
 | 9 | Verify the complete launch release and operational recovery | 3–6 and 8; retained reporting access | Not started |
@@ -163,7 +163,7 @@ Payment notes/manual receipt evidence are required completion capabilities, not 
 
 **DEV checkpoint, 10 October 2026:** full desktop management implementation is verified and deployed DEV85; consolidated deferred Phase5/6 checks and representative owner read-only smoke passed. Owner acceptance and physical-device/native unknown-reference limits remain separate. [Current proof](https://github.com/welct0407/MW-Credit-App/blob/codex/r052-review-shell/outputs/r052-phase6/delivery-manifest.json).
 
-**Objective:** replace every existing OLAP management workflow on desktop and the targeted Pro Max mobile devices, reusing the same API and authority.
+**Objective:** replace every existing OLAP management workflow on desktop, iPad and the targeted Pro Max mobile devices, reusing the same API and authority.
 
 - Implement partner identity, delivery/language/reviewer preferences and permission-aware administration.
 - Implement capital contributions, partner entitlements, reservations, allocations and settlements, including exact amount/settle-all, completion, cancellation and approved reversal/correction behavior.
@@ -172,7 +172,7 @@ Payment notes/manual receipt evidence are required completion capabilities, not 
 - Provide status/progress and safe retry handling for long management operations. Retain audit trails and avoid heavy browser or OLTP calculations.
 - Preserve allowed cross-links to operational details without creating conflicting duplicate editors.
 
-**Deliverables:** full mobile and desktop OLAP management candidate. Mobile optimization is limited to iPhone16/17/18 Pro Max; physical-device acceptance remains separate.
+**Deliverables:** full mobile and desktop OLAP management candidate. Phone optimization remains limited to iPhone16/17/18 Pro Max; iPad portrait/landscape is included across all pages. Physical-device acceptance remains separate.
 
 **Exit criteria:** every editable OLAP workflow has a tested replacement. Concurrency, over-reservation, historical corrections, permissions and source reconciliation pass. Metabase reporting does not substitute for missing management actions.
 
@@ -325,3 +325,5 @@ The final review must establish all of the following:
 Current 2B refinement adds only Description for the governed bilingual borrower label and Total Interest Earned for the governed profit display, plus the Loans original daily rate for Loan Key. This inventory is not a blanket read grant.
 
 Phase 5 retains fuller borrower information from the recorded Visible Borrowers_Detail reference: Communication Name, Instagram Username, City, Working Location, Address and Ref Referrer; preferences and related records; additional governed metrics and Upcoming Charges. Each later slice must reconcile current source semantics, access and acceptance before implementation. Contact/document exposure is not added here, and none of these categories is promised wholesale for the next iteration.
+
+
