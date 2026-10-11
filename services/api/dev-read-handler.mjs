@@ -97,7 +97,7 @@ export function createDevReadHandler({ config, verifyPrincipal, store, completio
       }
       else return send(404, { ok: false, code: 'not_found' });
       const { status, diagnostic:detail, ...body } = result;
-      if(detail&&['connect','transaction','identity','mapping','read','commit'].includes(detail.stage)&&['57014','53300','57P01','08000','08001','08003','08006','28P01','42501','ETIMEDOUT','ECONNRESET','ECONNREFUSED','unclassified'].includes(detail.category))diagnostic={stage:detail.stage,category:detail.category};
+      if(detail&&['connect','transaction','identity','mapping','read','commit'].includes(detail.stage)&&['57014','53300','57P01','08000','08001','08003','08006','28P01','42501','ETIMEDOUT','ECONNRESET','ECONNREFUSED','pool_checkout_timeout','connection_timeout','unclassified'].includes(detail.category))diagnostic={stage:detail.stage,category:detail.category};
       return send(result.ok ? 200 : status || 503, body);
     } catch { return send(503, { ok: false, code: 'read_unavailable' }); }
   };

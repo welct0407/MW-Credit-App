@@ -4,6 +4,14 @@ import { readCollection, decodeCollectionCursor } from './collection-read-contra
 import { loanColumns, validLoanId, projectLoan, encodeLoanCursor, decodeLoanCursor, loanRankSql, borrowerDisplayName } from './loan-read-contract.mjs';
 const borrowerRankSql = 'CASE WHEN "Has Active Loan" IS TRUE THEN 0 WHEN "Has Active Loan" IS FALSE THEN 1 ELSE 2 END';
 const borrowerRank = value => value === true ? 0 : value === false ? 1 : 2;
+const diagnosticCodes = new Set(['57014','53300','57P01','08000','08001','08003','08006','28P01','42501','ETIMEDOUT','ECONNRESET','ECONNREFUSED']);
+const fatalCodes = new Set(['57P01','08000','08001','08003','08006','ETIMEDOUT','ECONNRESET','ECONNREFUSED']);
+function failureCategory(error) {
+  if (diagnosticCodes.has(error?.code)) return error.code;
+  if (error?.message === 'timeout exceeded when trying to connect') return 'pool_checkout_timeout';
+  if (error?.message === 'Connection terminated due to connection timeout') return 'connection_timeout';
+  return 'unclassified';
+}
 const borrowerColumns = '"Row ID" AS id, "Borrower Name" AS name, "Description" AS description, "Total Interest Earned"::text AS "totalProfitEarned", "Creation Date"::text AS "createdDate", "Has Active Loan" AS "hasActiveLoan", "Total Outstanding Principal"::text AS "outstandingPrincipal", "Borrower Note" AS note';
 const validId = id => typeof id === 'string' && id.length > 0 && id.length <= 256 && !/[\u0000-\u001f]/.test(id);
 const validDate = value => {
@@ -33,37 +41,41 @@ export function decodeCursor(cursor, query = '') {
 export function createBorrowerReadStore({ pool, config, now = () => new Date() }) {
   async function run(email, operation, repeatableRead = false) {
     if (email !== config.ownerEmail) return { ok: false, status: 403, code: 'access_denied' };
-    let client;let stage='connect';
+    let client;let stage='connect';let transactionUncertain=false;let quarantine=false;
+    const rollback=async()=>{try { await client.query('ROLLBACK');transactionUncertain=false; } catch(error) { quarantine=true;throw error; }};
     try {
       client=await pool.connect();stage='transaction';
+      transactionUncertain=true;
       await client.query(repeatableRead ? 'BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY' : 'BEGIN READ ONLY');
       await client.query("SET LOCAL statement_timeout = '5000ms'");
       stage='identity';const identity = await client.query('SELECT current_database() AS database, current_user AS principal');
       if (identity.rows.length !== 1 || identity.rows[0].database !== config.database || identity.rows[0].principal !== config.dbUser) throw new Error('Unexpected database identity');
       stage='mapping';const mapping = await client.query('SELECT "Row ID" AS id FROM public."Partners" WHERE lower(btrim("Login Email")) = $1 LIMIT 2', [email]);
-      if (mapping.rows.length !== 1 || !validId(mapping.rows[0].id)) { await client.query('ROLLBACK'); return { ok: false, status: 403, code: 'access_denied' }; }
+      if (mapping.rows.length !== 1 || !validId(mapping.rows[0].id)) { await rollback(); return { ok: false, status: 403, code: 'access_denied' }; }
       stage='read';const data = await operation(client);
       stage='commit';
       await client.query('COMMIT');
+      transactionUncertain=false;
       const timestamp = now();
       const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Bangkok', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(timestamp);
       const value = type => parts.find(p => p.type === type).value;
       return { ok: true, schemaVersion: 1, source: 'dev', businessDate: `${value('year')}-${value('month')}-${value('day')}`, timezone: 'Asia/Bangkok', asOf: timestamp.toISOString(), ...data };
     } catch (error) {
-      if(client)try { await client.query('ROLLBACK'); } catch { /* No raw error payload. */ }
-      const category=['57014','53300','57P01','08000','08001','08003','08006','28P01','42501','ETIMEDOUT','ECONNRESET','ECONNREFUSED'].includes(error?.code)?error.code:'unclassified';
+      const category=failureCategory(error);
+      quarantine=quarantine||fatalCodes.has(error?.code)||category==='connection_timeout';
+      if(client&&transactionUncertain)try { await rollback(); } catch { /* Failed cleanup is quarantined above. */ }
       return Object.defineProperty({ok:false,status:503,code:'read_unavailable'},'diagnostic',{value:{stage,category},enumerable:false});
-    } finally { client?.release(); }
+    } finally { try { client?.release(quarantine||transactionUncertain); } catch { /* Cleanup cannot expose a raw error or mask the response. */ } }
   }
   return {
     async checkIdentity() {
-      let client;
+      let client;let quarantine=false;
       try {
         client = await pool.connect();
         const result = await client.query('SELECT current_database() AS database, current_user AS principal');
         return { ok: result.rows.length === 1 && result.rows[0].database === config.database && result.rows[0].principal === config.dbUser };
-      } catch { return { ok: false }; }
-      finally { client?.release(); }
+      } catch { quarantine=true;return { ok: false }; }
+      finally { try { client?.release(quarantine); } catch { /* Preserve the sanitized health result. */ } }
     },
     session: email => run(email, async () => ({ permission: 'oltp.read', scope: 'borrowers-related-loans-and-collection' })),
     getCollectionUpcoming: (email, borrowerId, { businessDate, dueDate = null, limit = 25, cursor = null } = {}) => {

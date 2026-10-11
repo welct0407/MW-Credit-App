@@ -10,7 +10,9 @@ export function sourceReceiptPath(reference,kind,nativeDescriptors=verifiedNativ
    const referenceSha256=createHash('sha256').update(reference,'utf8').digest('hex'),verified=nativeDescriptors.find(row=>row.referenceSha256===referenceSha256);
    if(!verified||!reference.startsWith('manual-receipts/dev/'))throw Error('receipt_reference_unsupported');const basename=reference.slice('manual-receipts/dev/'.length);
    if(!basename||/[\\/\u0000-\u001f]/u.test(basename)||basename==='.'||basename==='..')throw Error('receipt_reference_unsupported');
-   const key=DEV_RECEIPT_MAPPING.objectPrefix.slice(0,-4)+basename.replace(/[ -]/g,'_');
+   // New catalog entries contain an independently reconciled exact private key.
+   // The legacy conversion remains constrained to the original two closed hash pairs.
+   const key=verified.key??DEV_RECEIPT_MAPPING.objectPrefix.slice(0,-4)+basename.replace(/[ -]/g,'_');
    if(createHash('sha256').update(key,'utf8').digest('hex')!==verified.keySha256)throw Error('receipt_reference_unsupported');
    return {bucket:DEV_RECEIPT_MAPPING.bucket,key,mimeType:verified.mimeType,expectedHash:verified.sha256,generation:verified.generation,sizeBytes:verified.sizeBytes,native:true};
   }

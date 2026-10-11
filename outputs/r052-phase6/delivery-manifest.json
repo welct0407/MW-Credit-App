@@ -347,5 +347,59 @@
       "hostingVersion": "42cc2ae3fcc9c201"
     },
     "limits": "No new E review/livefinancialwrite/physicaldevice acceptance/full accessibility claim; prior native receipts/source-only and intermittent503cause limits retained"
-  }
+  },
+  "readerReceiptContinuation": {
+  "status": "focused independently verified; final consolidated CI and DEV delivery pending",
+  "baselineCommit": "a9e7da96da8d945d362fc32a77118bcea622095f",
+  "design": "reader-receipt-continuation-design-2026-10-11.md",
+  "independentEvidence": "reader-receipt-independent-verification-2026-10-11.md",
+  "sourceCommit": "pending final consolidated publication",
+    "sourceHashes": "reader-receipt-source-hashes.json",
+  "validation": {
+    "bFocusedPassed": 66,
+    "bTypeBuild": "passed",
+    "cFocusedPassed": 71,
+    "cFailed": 0,
+    "cSkipped": 0,
+    "cIndependentNewCases": 5,
+    "fullBrowser": "pending one consolidated corrected-source run",
+    "historical503": "connection-versus-query cause unproven; cleanup recovery fix has synthetic proof"
+  },
+  "privateCatalogBootstrap": {
+    "knownDescriptors": 2,
+    "newUnmappedLiveReferences": 0,
+    "sizeBytes": 1046,
+    "sha256": "5c1e48aa591049b106b27260b2b0fbdceeb88708f6549ace8e64bb357f668296",
+    "verification": "F fresh DEV identity/reference/key/generation/content/media proof; private payload outside repositories",
+    "secretVersion": "not created"
+  },
+  "infrastructure": {
+    "format": "passed",
+    "validate": "passed",
+    "privatePlan": "two creates: DEV secret container and existing command-SA accessor; null version leaves services unchanged",
+    "applied": false,
+    "numericVersionRequired": true
+  },
+  "frontend": {
+    "unchanged": true,
+    "bundle": "index-Ds3BPdhd.js",
+    "publicVersion": "2f860d243c59a543b0bc522a",
+    "hostingVersion": "b10ec07fb3d67204",
+    "rebuild": "not needed while exact inputs unchanged"
+  },
+  "rollback": {
+    "readerRevision": "mw-credit-app-read-dev-00015-22g",
+    "commandRevision": "mw-credit-app-command-dev-00016-gc9",
+    "databaseVersion": 85,
+    "catalog": "optional version absent preserves built-in descriptors; retain secret versions",
+    "financial": "application rollback does not reverse SQL or financial data"
+  },
+  "limits": [
+    "No PROD, notifications or live financial writes.",
+    "No new live arbitrary native receipt exists; onboarding beyond two known references has synthetic proof only.",
+    "Operator input assertions do not authenticate their own SQL/AppSheet/GCS provenance.",
+    "Physical iPhone/iPad/Safari/native keyboard/PWA/full Thai and owner acceptance remain separate."
+  ],
+  "checkpointOrder": "Final corrected consolidated CI -> changed-component DEV delivery/read smoke -> owner DEV testing -> Phase3 after owner go-ahead"
+}
 }

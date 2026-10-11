@@ -20,7 +20,7 @@ const options=await connector.getOptions({instanceConnectionName:config.instance
 const pool=new pg.Pool({...options,user:config.dbUser,database:config.database,max:2,connectionTimeoutMillis:5000,idleTimeoutMillis:30000,statement_timeout:10000,query_timeout:12000});
 const client=await pool.connect();
 try{await createDevCommandConnectionGuard(config)(client)}finally{client.release()}
-const sourceReceiptReader=createSourceReceiptReader({storage:createSourceGcsReadTransport(new Storage({projectId:config.projectId})),decodeImage:decodeSourceReceipt});
+const sourceReceiptReader=createSourceReceiptReader({storage:createSourceGcsReadTransport(new Storage({projectId:config.projectId}),{nativeDescriptors:config.nativeReceiptDescriptors}),decodeImage:decodeSourceReceipt,nativeDescriptors:config.nativeReceiptDescriptors});
 const receipts=createCommandReceipts({storage:createGcsReceiptTransport(new Storage({projectId:config.projectId})),decodeImage:decodeCommandReceipt,compatibility:config.receiptCompatibility});
 const store=createDevCommandStore({pool,config,receiptAdapter:receipts,sourceReceiptReader});
 const verifyPrincipal=createCommandPrincipalVerifier({ownerUid:config.ownerUid,verifyIdToken:(token,revoked)=>auth.verifyIdToken(token,revoked)});

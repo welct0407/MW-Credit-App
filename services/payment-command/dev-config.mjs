@@ -1,6 +1,7 @@
 import { loadDevReadConfig } from '../api/dev-read-config.mjs';
 import { COMMAND_DB_USER } from './dev-target.mjs';
 import { DEV_RECEIPT_MAPPING } from '../receipts/dev-receipt-adapter.mjs';
+import { parseNativeDevCatalog } from '../receipts/native-catalog.mjs';
 const id = value => typeof value==='string' && Buffer.byteLength(value)>0 && Buffer.byteLength(value)<=256 && value===value.trim() && !/[\u0000\r\n]/.test(value);
 export function loadDevCommandConfig(env) {
   if (env.DB_USER!==COMMAND_DB_USER || env.OWNER_IDENTITY_MODE!=='uid-pinned' || !['synthetic-only','dev-owner-testing'].includes(env.COMMAND_MODE)
@@ -19,6 +20,7 @@ export function loadDevCommandConfig(env) {
   if (env.RECEIPT_BUCKET!==DEV_RECEIPT_MAPPING.bucket || env.RECEIPT_SQL_PREFIX!==DEV_RECEIPT_MAPPING.sqlPrefix
     || env.RECEIPT_OBJECT_PREFIX!==DEV_RECEIPT_MAPPING.objectPrefix || !env.RECEIPT_COMPATIBILITY_EVIDENCE?.trim()) throw Error('Verified receipt mapping required');
   return Object.freeze({...shared,dbUser:COMMAND_DB_USER,mode:env.COMMAND_MODE,registeredCreators:Object.freeze(['postgres']),
+    nativeReceiptDescriptors:parseNativeDevCatalog(env.RECEIPT_NATIVE_CATALOG_JSON),
     fixture:fixture?Object.freeze({borrowerId:fixture.borrowerId,chargeIds:Object.freeze([...fixture.chargeIds]),cashAccountIds:Object.freeze([...fixture.cashAccountIds])}):null,
     receiptCompatibility:Object.freeze({...DEV_RECEIPT_MAPPING,status:'verified-appsheet-render',evidenceReference:env.RECEIPT_COMPATIBILITY_EVIDENCE})});
 }

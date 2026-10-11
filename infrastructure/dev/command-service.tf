@@ -91,6 +91,18 @@ resource "google_cloud_run_v2_service" "command_api" {
           }
         }
       }
+      dynamic "env" {
+        for_each = var.native_receipt_catalog_secret_version == null ? [] : [var.native_receipt_catalog_secret_version]
+        content {
+          name = "RECEIPT_NATIVE_CATALOG_JSON"
+          value_source {
+            secret_key_ref {
+              secret  = google_secret_manager_secret.native_receipt_catalog[0].secret_id
+              version = env.value
+            }
+          }
+        }
+      }
       startup_probe {
         http_get {
           path = "/health"
@@ -102,7 +114,7 @@ resource "google_cloud_run_v2_service" "command_api" {
       }
     }
   }
-  depends_on = [google_project_iam_member.command_sql, google_project_iam_member.command_auth_user, google_secret_manager_secret_iam_member.command_owner_identity, google_storage_bucket_iam_member.command_receipts]
+  depends_on = [google_project_iam_member.command_sql, google_project_iam_member.command_auth_user, google_secret_manager_secret_iam_member.command_owner_identity, google_secret_manager_secret_iam_member.command_native_receipt_catalog, google_storage_bucket_iam_member.command_receipts]
 }
 # Browser business routes use pinned Firebase auth; no shared/public bucket or
 # organization policy changes. Review this service-specific invocation boundary.
