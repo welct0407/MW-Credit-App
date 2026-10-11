@@ -7,8 +7,8 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
-  "coverage": "catalog metadata"
+  "source": "outputs/r053-notifications-jobs/dictionary-production-closure.json"
+  "coverage": "Actual affected PROD89 catalogue after maintained migration and authority restoration; no business rows."
   "previous_record":
     "commit": "dffa437c29a762f5b87a10b14a32063da8df07aa"
     "path": "Documents/Data Dictionary/systems/postgresql/relations/partners.yaml"
@@ -55,7 +55,7 @@
       "default_expression": null
       "collation": "\"default\""
       "acl": "{metabase_borrower_reader=r/postgres,\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"\
-        }"
+        ,mw_notify_owner_prod=r/postgres,mw_jobs_owner_prod=r/postgres}"
       "comment": null
     "Partner Name":
       "schema": "public"
@@ -92,7 +92,7 @@
       "default_expression": null
       "collation": "\"default\""
       "acl": "{metabase_borrower_reader=r/postgres,\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"\
-        }"
+        ,mw_notify_owner_prod=r/postgres,mw_jobs_owner_prod=r/postgres}"
       "comment": null
     "Email":
       "schema": "public"
@@ -110,7 +110,7 @@
       "compression": ""
       "default_expression": null
       "collation": "\"default\""
-      "acl": null
+      "acl": "{mw_notify_owner_prod=r/postgres}"
       "comment": "Notification delivery address; may be shared. Never use this field to identify/exclude the actor."
     "Instagram Username":
       "schema": "public"
@@ -182,7 +182,7 @@
       "compression": ""
       "default_expression": null
       "collation": "\"default\""
-      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\",mw_notify_owner_prod=r/postgres}"
       "comment": "Unique AppSheet sign-in identity; independent of notification Email. Null means no login mapping."
     "AI Reviewer":
       "schema": "public"

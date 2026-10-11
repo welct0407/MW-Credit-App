@@ -7,7 +7,8 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/r051-production/README.md"
+  "source": "outputs/r053-notifications-jobs/dictionary-production-closure.json"
+  "coverage": "Actual affected PROD89 catalogue after maintained migration and authority restoration; no business rows."
 "content":
   "definition":
     "schema": "public"
@@ -162,7 +163,7 @@
     "settings":
     - "search_path=pg_catalog, public"
     - "plan_cache_mode=force_custom_plan"
-    "acl": "{=X/postgres,postgres=X/postgres,mw_app_prod=X/postgres}"
+    "acl": "{=X/postgres,postgres=X/postgres,mw_app_prod=X/postgres,mw_jobs_owner_prod=X/postgres}"
     "comment": null
     "extension": null
 "evidence":

@@ -45203,6 +45203,16 @@
       "lookup": []
     },
     {
+      "file": "systems/postgresql/routines/public-pwa-agent-receipt-status-v1-request-id-uuid-actor-issuer-text-actor-subject-text-f1658485.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_agent_receipt_status_v1(request_id uuid, actor_issuer text, actor_subject text)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/postgresql/routines/public-pwa-apply-analytics-v2-payload-text-c809ef9e.yaml",
       "system": "postgresql",
       "component": "loan_manager_prod",
@@ -45413,6 +45423,16 @@
       "lookup": []
     },
     {
+      "file": "systems/postgresql/routines/public-pwa-job-run-v1-job-text-business-date-date-scope-text-a1abc701.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_job_run_v1(job text, business_date date, scope text)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/postgresql/routines/public-pwa-loan-version-v2-id-text-96fef22c.yaml",
       "system": "postgresql",
       "component": "loan_manager_prod",
@@ -45458,6 +45478,136 @@
       "component": "loan_manager_prod",
       "kind": "routine",
       "name": "public.pwa_native_inverse_permitted_v2(payment text)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-notify-actor-v1-actor-jsonb-e626a49b.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_notify_actor_v1(actor jsonb)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-notify-candidates-v1-batch-limit-integer-93222a95.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_notify_candidates_v1(batch_limit integer)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-notify-complete-v1-delivery-uuid-generation-bigint-result-class-text-88e95937.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_notify_complete_v1(delivery uuid, generation bigint, result_class text)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-notify-eligible-v1-event-uuid-subscription-uuid-8cc1a59f.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_notify_eligible_v1(event uuid, subscription uuid)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-notify-enqueue-v1-event-uuid-subscription-uuid-subscription-version-bigint-eligible--6acb7550.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_notify_enqueue_v1(event uuid, subscription uuid, subscription_version bigint, eligible boolean)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-notify-history-v1-actor-jsonb-before-at-timestamp-with-time-zone-before-id-uuid-bf7c0177.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_notify_history_v1(actor jsonb, before_at timestamp with time zone, before_id uuid)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-notify-preference-v1-actor-jsonb-preference-boolean-3120f087.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_notify_preference_v1(actor jsonb, preference boolean)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-notify-prepare-send-v1-delivery-uuid-generation-bigint-7a43ba0d.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_notify_prepare_send_v1(delivery uuid, generation bigint)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-notify-revoke-v1-actor-jsonb-id-uuid-0ae5df32.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_notify_revoke_v1(actor jsonb, id uuid)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-notify-start-send-v1-delivery-uuid-generation-bigint-subscription-version-bigint-cf23cbb7.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_notify_start_send_v1(delivery uuid, generation bigint, subscription_version bigint)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-notify-status-v1-actor-jsonb-endpoint-digest-text-2296dc27.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_notify_status_v1(actor jsonb, endpoint_digest text)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-notify-subscribe-v1-actor-jsonb-subscription-jsonb-94312472.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_notify_subscribe_v1(actor jsonb, subscription jsonb)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-notify-target-v1-actor-jsonb-event-uuid-1933b657.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_notify_target_v1(actor jsonb, event uuid)",
       "scope": "production",
       "status": "documented",
       "lookup": []
@@ -45523,6 +45673,16 @@
       "lookup": []
     },
     {
+      "file": "systems/postgresql/routines/public-pwa-submit-agent-receipt-v1-canonical-json-text-48231378.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_submit_agent_receipt_v1(canonical_json text)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/postgresql/routines/public-pwa-submit-operation-v2-canonical-json-text-cc36a6de.yaml",
       "system": "postgresql",
       "component": "loan_manager_prod",
@@ -45538,6 +45698,16 @@
       "component": "loan_manager_prod",
       "kind": "routine",
       "name": "public.pwa_submit_selected_charges_v1(canonical_json text)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-worker-guard-v1-capability-text-433cdec4.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_worker_guard_v1(capability text)",
       "scope": "production",
       "status": "documented",
       "lookup": []
@@ -46048,6 +46218,16 @@
       "component": "loan_manager_prod",
       "kind": "settings",
       "name": "R052 production application capability",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/settingss/r053-production-notification-jobs-and-machine-capability-876a9716.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "settings",
+      "name": "R053 production notification jobs and machine capability",
       "scope": "production",
       "status": "documented",
       "lookup": []

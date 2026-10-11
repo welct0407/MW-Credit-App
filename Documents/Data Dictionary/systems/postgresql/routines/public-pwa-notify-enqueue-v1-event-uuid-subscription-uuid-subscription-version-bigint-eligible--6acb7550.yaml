@@ -1,0 +1,52 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.pwa_notify_enqueue_v1(event uuid, subscription uuid, subscription_version bigint, eligible boolean)"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r053-notifications-jobs/dictionary-production-closure.json"
+  "coverage": "Actual affected PROD89 catalogue after maintained migration and authority restoration; no business rows."
+"content":
+  "definition":
+    "schema": "public"
+    "name": "pwa_notify_enqueue_v1"
+    "arguments": "event uuid, subscription uuid, subscription_version bigint, eligible boolean"
+    "kind": "f"
+    "arguments_with_defaults": "event uuid, subscription uuid, subscription_version bigint, eligible boolean"
+    "result": "boolean"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.pwa_notify_enqueue_v1(event uuid, subscription uuid, subscription_version bigint, eligible boolean)
+       RETURNS boolean
+       LANGUAGE plpgsql
+       SECURITY DEFINER
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+      DECLARE inserted bigint;
+      BEGIN
+       PERFORM public.pwa_worker_guard_v1('dispatch');
+       IF eligible IS NULL THEN RAISE EXCEPTION 'invalid_request'; END IF;
+       -- Subscription lock serializes revocation/rotation with this boundary.
+       PERFORM 1 FROM public.pwa_push_subscriptions s WHERE s.subscription_id=subscription FOR UPDATE;
+       INSERT INTO public.pwa_notification_deliveries(event_id,channel,destination_key,recipient_partner_id,subscription_id,subscription_version,state,provider_result,completed_at)
+       SELECT event,'web-push',s.endpoint_hash,s.partner_id,s.subscription_id,s.version,CASE WHEN eligible THEN 'pending' ELSE 'cancelled' END,CASE WHEN eligible THEN NULL ELSE 'ineligible' END,CASE WHEN eligible THEN NULL ELSE clock_timestamp() END
+       FROM public.pwa_push_subscriptions s WHERE s.subscription_id=subscription AND s.version=subscription_version AND public.pwa_notify_eligible_v1(event,subscription)
+       ON CONFLICT DO NOTHING;
+       GET DIAGNOSTICS inserted=ROW_COUNT;RETURN inserted=1;
+      END $function$
+    "owner": "mw_notify_owner_prod"
+    "language": "plpgsql"
+    "volatility": "v"
+    "strict": false
+    "security_definer": true
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 0.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": "{mw_notify_owner_prod=X/mw_notify_owner_prod,mw_notify_dispatch_prod=X/mw_notify_owner_prod}"
+    "comment": "mw-access:governance fixed notification boundary; explicit capability only"
+    "extension": null

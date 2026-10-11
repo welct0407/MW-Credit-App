@@ -7,8 +7,8 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/r051-production/README.md"
-  "coverage": "catalog metadata"
+  "source": "outputs/r053-notifications-jobs/dictionary-production-closure.json"
+  "coverage": "Actual affected PROD89 catalogue after maintained migration and authority restoration; no business rows."
   "previous_record":
     "commit": "dffa437c29a762f5b87a10b14a32063da8df07aa"
     "path": "Documents/Data Dictionary/systems/postgresql/relations/borrowers.yaml"
@@ -54,7 +54,7 @@
       "compression": ""
       "default_expression": null
       "collation": "\"default\""
-      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\",mw_jobs_owner_prod=rw/postgres}"
       "comment": null
     "Borrower Name":
       "schema": "public"

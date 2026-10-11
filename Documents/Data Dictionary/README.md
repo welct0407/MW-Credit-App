@@ -1,5 +1,7 @@
 # Ecosystem data dictionary
 
+Current R053 PROD reference is SQL89 with five closed worker/API capability roles and exact AppSheet scheduler disable provenance; notification capture remains disabled. This is deployment documentation, not completed device/natural-job verification.
+
 **R052 DEV V87, 11 October 2026:** the bounded [DEV command records](development/postgresql/r052-command/) now include five approved, inactive notification/job relations, twenty affected routines, capture routing and exact application capability metadata. Actual DEV87 catalogue readback follows maintenance-role restoration; PROD remains V77 and AppSheet definitions/scheduled jobs are unchanged. Notifications and PWA job replacement remain deferred. [Verified model evidence](https://github.com/welct0407/MW-Credit-App/blob/codex/r052-review-shell/outputs/r052-promotion-readiness/dev87-model-catalog.json).
 
 **R052 DEV V79, 8 October 2026:** five bounded [DEV-only PostgreSQL objects](development/postgresql/r052-command/) document the command journal, immutable guard, two owner-held command routines and stable application capability/memberships from actual catalog readback. Production definitions remain V77. AppSheet definitions are unchanged. [Activation and verification state](../../outputs/r052-pwa/checkpoint-4g-batch.md).

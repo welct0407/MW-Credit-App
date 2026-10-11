@@ -7,8 +7,8 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/r051-production/README.md"
-  "coverage": "catalog metadata"
+  "source": "outputs/r053-notifications-jobs/dictionary-production-closure.json"
+  "coverage": "Actual affected PROD89 catalogue after maintained migration and authority restoration; no business rows."
 "content":
   "definition":
     "schema": "public"
@@ -45,7 +45,7 @@
       "compression": ""
       "default_expression": "(gen_random_uuid())::text"
       "collation": "\"default\""
-      "acl": null
+      "acl": "{mw_jobs_owner_prod=r/postgres}"
       "comment": null
     "Ref Cash Holder":
       "schema": "public"

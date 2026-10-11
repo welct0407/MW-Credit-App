@@ -7,8 +7,8 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
-  "coverage": "catalog metadata"
+  "source": "outputs/r053-notifications-jobs/dictionary-production-closure.json"
+  "coverage": "Actual affected PROD89 catalogue after maintained migration and authority restoration; no business rows."
   "previous_record":
     "commit": "dffa437c29a762f5b87a10b14a32063da8df07aa"
     "path": "Documents/Data Dictionary/systems/postgresql/relations/cash-account-daily-analytics.yaml"
@@ -30,7 +30,7 @@
     "persistence": "p"
     "is_partition": false
     "options": null
-    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,mw_app_prod=arwd/postgres}"
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,mw_app_prod=arwd/postgres,mw_jobs_owner_prod=arw/postgres}"
     "comment": "R016 reconstructed Bangkok account/date snapshots. Hourly yesterday/today; explicit history rebuild for older\
       \ corrections. Not a live cash source. Pre-opening balances stay NULL. Current immutable account ownership is joined\
       \ for display."

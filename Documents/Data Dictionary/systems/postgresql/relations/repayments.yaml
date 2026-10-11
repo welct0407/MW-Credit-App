@@ -7,8 +7,8 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/r051-production/README.md"
-  "coverage": "catalog metadata"
+  "source": "outputs/r053-notifications-jobs/dictionary-production-closure.json"
+  "coverage": "Actual affected PROD89 catalogue after maintained migration and authority restoration; no business rows."
   "previous_record":
     "commit": "dffa437c29a762f5b87a10b14a32063da8df07aa"
     "path": "Documents/Data Dictionary/systems/postgresql/relations/repayments.yaml"
@@ -72,7 +72,7 @@
       "compression": ""
       "default_expression": null
       "collation": null
-      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\",mw_jobs_owner_prod=r/postgres}"
       "comment": null
     "Principal Paid":
       "schema": "public"
@@ -90,7 +90,7 @@
       "compression": ""
       "default_expression": null
       "collation": null
-      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\",mw_jobs_owner_prod=r/postgres}"
       "comment": null
     "Interest Paid":
       "schema": "public"
@@ -108,7 +108,7 @@
       "compression": ""
       "default_expression": null
       "collation": null
-      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\",mw_jobs_owner_prod=r/postgres}"
       "comment": null
     "Notes":
       "schema": "public"
@@ -144,7 +144,7 @@
       "compression": ""
       "default_expression": null
       "collation": "\"default\""
-      "acl": null
+      "acl": "{mw_jobs_owner_prod=r/postgres}"
       "comment": null
     "Ref Charges":
       "schema": "public"
@@ -162,7 +162,7 @@
       "compression": ""
       "default_expression": null
       "collation": "\"default\""
-      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\",mw_jobs_owner_prod=r/postgres}"
       "comment": null
     "Created By":
       "schema": "public"

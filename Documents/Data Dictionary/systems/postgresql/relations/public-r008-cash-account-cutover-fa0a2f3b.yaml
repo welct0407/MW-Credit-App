@@ -7,9 +7,8 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/r052/dictionary-production-closure.json"
-  "coverage": "Actual bounded PROD87 catalogue after grouped migration and temporary authority restoration; no business-row\
-    \ capture."
+  "source": "outputs/r053-notifications-jobs/dictionary-production-closure.json"
+  "coverage": "Actual affected PROD89 catalogue after maintained migration and authority restoration; no business rows."
 "content":
   "definition":
     "schema": "public"
@@ -46,7 +45,7 @@
       "compression": ""
       "default_expression": null
       "collation": "\"default\""
-      "acl": null
+      "acl": "{mw_jobs_owner_prod=r/postgres}"
       "comment": null
     "Cutover At":
       "schema": "public"
@@ -64,7 +63,7 @@
       "compression": ""
       "default_expression": null
       "collation": null
-      "acl": null
+      "acl": "{mw_jobs_owner_prod=r/postgres}"
       "comment": null
     "Opening Balance":
       "schema": "public"
@@ -82,7 +81,7 @@
       "compression": ""
       "default_expression": null
       "collation": null
-      "acl": null
+      "acl": "{mw_jobs_owner_prod=r/postgres}"
       "comment": null
     "Baseline Cash In":
       "schema": "public"
@@ -100,7 +99,7 @@
       "compression": ""
       "default_expression": null
       "collation": null
-      "acl": null
+      "acl": "{mw_jobs_owner_prod=r/postgres}"
       "comment": null
     "Baseline Cash Out":
       "schema": "public"
@@ -118,7 +117,7 @@
       "compression": ""
       "default_expression": null
       "collation": null
-      "acl": null
+      "acl": "{mw_jobs_owner_prod=r/postgres}"
       "comment": null
     "Created At":
       "schema": "public"

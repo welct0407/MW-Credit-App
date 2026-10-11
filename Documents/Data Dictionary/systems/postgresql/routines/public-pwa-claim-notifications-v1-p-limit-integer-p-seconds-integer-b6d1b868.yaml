@@ -7,7 +7,8 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/r052/dictionary-production-closure.json"
+  "source": "outputs/r053-notifications-jobs/dictionary-production-closure.json"
+  "coverage": "Actual affected PROD89 catalogue after maintained migration and authority restoration; no business rows."
 "content":
   "definition":
     "schema": "public"
@@ -20,10 +21,12 @@
       CREATE OR REPLACE FUNCTION public.pwa_claim_notifications_v1(p_limit integer, p_seconds integer)
        RETURNS SETOF pwa_notification_deliveries
        LANGUAGE plpgsql
+       SECURITY DEFINER
        SET search_path TO 'pg_catalog', 'public'
       AS $function$
       BEGIN
-       IF p_limit NOT BETWEEN 1 AND 50 OR p_seconds NOT BETWEEN 5 AND 120 THEN RAISE EXCEPTION 'Invalid claim bounds';END IF;
+       PERFORM public.pwa_worker_guard_v1('dispatch');
+       IF p_limit IS NULL OR p_seconds IS NULL OR p_limit NOT BETWEEN 1 AND 50 OR p_seconds NOT BETWEEN 5 AND 120 THEN RAISE EXCEPTION 'Invalid claim bounds'; END IF;
        UPDATE public.pwa_notification_deliveries SET state=CASE WHEN send_started_at IS NULL AND attempts<8 THEN 'retry' ELSE 'uncertain' END,lease_expires_at=NULL,provider_result='lease_expired'
        WHERE state='leased' AND lease_expires_at<=clock_timestamp();
        RETURN QUERY WITH due AS (
@@ -33,17 +36,17 @@
        lease_expires_at=clock_timestamp()+make_interval(secs=>p_seconds),send_started_at=NULL,attempts=d.attempts+1
        FROM due WHERE d.delivery_id=due.delivery_id RETURNING d.*;
       END $function$
-    "owner": "postgres"
+    "owner": "mw_notify_owner_prod"
     "language": "plpgsql"
     "volatility": "v"
     "strict": false
-    "security_definer": false
+    "security_definer": true
     "leakproof": false
     "parallel": "u"
     "cost": 100.0
     "rows": 1000.0
     "settings":
     - "search_path=pg_catalog, public"
-    "acl": "{postgres=X/postgres}"
-    "comment": "mw-access:governance fenced dispatcher claim"
+    "acl": "{mw_notify_owner_prod=X/mw_notify_owner_prod,mw_notify_dispatch_prod=X/mw_notify_owner_prod}"
+    "comment": "mw-access:governance fixed notification boundary; explicit capability only"
     "extension": null

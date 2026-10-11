@@ -1,0 +1,84 @@
+{
+  "release": "R053",
+  "status": "Deployment applied; verification incomplete",
+  "releaseStatus": "Frozen",
+  "runtimeSourceCommit": "673223d504bb4c20b408fe97d05f8e8523f8d4f2",
+  "operatorSourceCommit": "dc4e75de24c99b5217c2895066957862a72e2cbb",
+  "agentCommit": "35c7d9e831a49d3e27d0b544728a7efb77a42928",
+  "database": {
+    "dev": 89,
+    "prod": 89,
+    "groupedPending": [
+      88,
+      89
+    ],
+    "authorityRestored": true
+  },
+  "ci": {
+    "databaseRun": 38169216136,
+    "databaseConclusion": "success",
+    "applicationRun": 38165391348,
+    "applicationConclusion": "failure",
+    "applicationSteps": "unit/build/audit/browser passed; Terraform format failure corrected with focused format/validate/24 mocks"
+  },
+  "hosting": {
+    "schemaVersion": 1,
+    "sourceCommit": "dc4e75de24c99b5217c2895066957862a72e2cbb",
+    "site": "mw-credit-prod-737787224638",
+    "version": "sites/mw-credit-prod-737787224638/versions/936affb987431783",
+    "release": "sites/mw-credit-prod-737787224638/releases/1791748994309000",
+    "publicVersion": "eb326b5d1df3862b9c524a64",
+    "fileCount": 14,
+    "cacheControl": "no-store",
+    "approvalReference": "Owner 12 October 2026: run CI, fix any issue, then promote to prod"
+  },
+  "runtime": {
+    "reader": "00003-gpl",
+    "command": "00003-tnr",
+    "jobs": "00002-mb6",
+    "notify": "00001-f68",
+    "imageDigest": "sha256:42534b790ebccd73448d5bc56490a959586ea5494604583443b630705a0c7778"
+  },
+  "appsheet": {
+    "oltp": "3.000275",
+    "olap": "1.100215",
+    "chargesBotEnabled": false,
+    "analyticsBotEnabled": false,
+    "savedZeroIssuesDeployed": true
+  },
+  "jobs": {
+    "dailyChargesSchedule": "ENABLED",
+    "analyticsSchedule": "ENABLED",
+    "timeZone": "Asia/Bangkok",
+    "naturalExecutionVerified": false
+  },
+  "notifications": {
+    "enrollmentApiEnabled": true,
+    "workerEnabled": false,
+    "captureEnabled": false,
+    "dispatchEnabled": false,
+    "recoverySchedule": "PAUSED",
+    "deviceAcceptance": "pending"
+  },
+  "agent": {
+    "sharedReceiptApiEnabled": true,
+    "cutoff": "2026-10-11T20:03:29.6477163+00:00",
+    "previouslyActiveTimersResumed": 6,
+    "readOnlyOidcStatusProbe": "passed",
+    "financialPostTested": false,
+    "remainingAppSheetDependenciesPreserved": true
+  },
+  "verificationPending": [
+    "owner device/provider acceptance and push activation",
+    "first natural charges and analytics runs",
+    "authenticated PWA changed entry-point validation"
+  ],
+  "rollback": "Protected PROD87 and mw_agent dumps with isolated restore; captured Hosting baseline; agent private package/config backup. Restore only under reviewed recovery scope.",
+  "retainedArtifacts": {
+    "purpose": "Pinned recovery and continuation while verification is incomplete",
+    "reviewDate": "2026-10-19",
+    "disposableDatabaseClusters": "removed"
+  },
+  "tagCreated": false,
+  "agentEvidencePublicationCommit": "e8f43d5adcfacdbe5198f56a7e6e330766cdbd07"
+}
