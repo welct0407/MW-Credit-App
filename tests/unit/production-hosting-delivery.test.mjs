@@ -13,6 +13,7 @@ test('delivery CLI requires exact package/roots/run and defaults to no apply',()
 });
 test('actual exact-source CI and executed browser step required before operator credential',async()=>{
  const result=await verifyFullCheckpoint({runId:'1',sourceCommit:sha,githubToken:'synthetic-read-token',request:requestFixture([run,workflow,jobs])});assert.equal(result.fullCheckpoint,'success');
+ const defaultNamedJobs={total_count:1,jobs:[{conclusion:'success',steps:[{name:'Run npm run test:e2e',conclusion:'success'}]}]};assert.equal((await verifyFullCheckpoint({runId:'1',sourceCommit:sha,githubToken:'synthetic',request:requestFixture([run,workflow,defaultNamedJobs])})).fullCheckpoint,'success');
  for(const candidate of [{...run,head_sha:'b'.repeat(40)},{...run,status:'in_progress'},{...run,conclusion:'failure'},{...run,repository:{full_name:'wrong/repo'}}])await assert.rejects(verifyFullCheckpoint({runId:'1',sourceCommit:sha,githubToken:'synthetic',request:requestFixture([candidate,workflow,jobs])}));
  await assert.rejects(verifyFullCheckpoint({runId:'1',sourceCommit:sha,githubToken:'synthetic',request:requestFixture([run,{path:'.github/workflows/database.yml'},jobs])}));
  await assert.rejects(verifyFullCheckpoint({runId:'1',sourceCommit:sha,githubToken:'synthetic',request:requestFixture([run,workflow,{total_count:1,jobs:[{conclusion:'success',steps:[{name:'npm run test:e2e',conclusion:'skipped'}]}]}])}));

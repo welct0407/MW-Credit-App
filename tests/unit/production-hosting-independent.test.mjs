@@ -6,6 +6,20 @@ function readFixture(values){const calls=[];return{calls,request:async(url,optio
 const goodRun={id:8,head_sha:commit,status:'completed',conclusion:'success',workflow_id:20,repository:{full_name:'welct0407/MW-Credit-App'}};
 const goodWorkflow={path:'.github/workflows/ci.yml'};
 const goodJobs={total_count:1,jobs:[{conclusion:'success',steps:[{name:'npm run test:e2e',conclusion:'success'}]}]};
+test('exact GitHub named and default browser steps require successful job and step; aliases cannot qualify',async()=>{
+ for(const name of ['npm run test:e2e','Run npm run test:e2e']){
+  const f=readFixture([goodRun,goodWorkflow,{total_count:1,jobs:[{conclusion:'success',steps:[{name,conclusion:'success'}]}]}]);
+  assert.equal((await verifyFullCheckpoint({runId:'8',sourceCommit:commit,githubToken:'synthetic',request:f.request})).fullCheckpoint,'success');
+  for(const [job,step] of [['success','skipped'],['success','failure'],['failure','success'],['cancelled','success']]){
+   const denied=readFixture([goodRun,goodWorkflow,{total_count:1,jobs:[{conclusion:job,steps:[{name,conclusion:step}]}]}]);
+   await assert.rejects(verifyFullCheckpoint({runId:'8',sourceCommit:commit,githubToken:'synthetic',request:denied.request}));assert.equal(denied.calls.length,3);
+  }
+ }
+ for(const name of ['Run npm run test:e2e --project=desktop-chromium','run npm run test:e2e','Run npm run test:e2e ','npm run test:e2e:affected','Run npm test']){
+  const f=readFixture([goodRun,goodWorkflow,{total_count:1,jobs:[{conclusion:'success',steps:[{name,conclusion:'success'}]}]}]);
+  await assert.rejects(verifyFullCheckpoint({runId:'8',sourceCommit:commit,githubToken:'synthetic',request:f.request}));
+ }
+});
 test('checkpoint failures stop at their stage and skipped/missing browser proof cannot unlock operator delivery',async()=>{
  for(const [run,workflow,jobs,expected] of [
   [{...goodRun,head_sha:'b'.repeat(40)},goodWorkflow,goodJobs,1],

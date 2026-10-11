@@ -21,7 +21,7 @@ export async function verifyFullCheckpoint({runId,sourceCommit,githubToken,reque
   if(String(run.id)!==String(runId)||run.head_sha!==sourceCommit||run.status!=='completed'||run.conclusion!=='success'||run.repository?.full_name!==REPOSITORY)throw Error('Exact-source successful CI required');
   const workflow=await get('/actions/workflows/'+run.workflow_id);if(workflow.path!=='.github/workflows/ci.yml')throw Error('Wrong checkpoint workflow');
   const jobs=await get('/actions/runs/'+runId+'/jobs?per_page=100');if(jobs.total_count>100)throw Error('Unbounded CI job inventory');
-  const browser=jobs.jobs?.some(job=>job.conclusion==='success'&&job.steps?.some(step=>step.name==='npm run test:e2e'&&step.conclusion==='success'));
+  const browser=jobs.jobs?.some(job=>job.conclusion==='success'&&job.steps?.some(step=>['npm run test:e2e','Run npm run test:e2e'].includes(step.name)&&step.conclusion==='success'));
   if(!browser)throw Error('Actual full browser checkpoint required');
   return {runId:String(runId),sourceCommit,fullCheckpoint:'success'};
 }
