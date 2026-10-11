@@ -449,7 +449,7 @@
       "freshSyntheticBuild": "passed",
       "freshLiveDevBuild": "passed",
       "affectedRetests": "passed 126/126; zero failed or skipped; Analytics recipe 1/1 at four widths",
-      "remoteCheckpoint": "pending",
+      "remoteCheckpoint": "Corrected full checkpoint pending after 38107473679 failed270/1/9; Terraform steps skipped",
       "configuredFrontendDelivery": "pending",
       "verifiedWorkingTreeSha256": [
         {
@@ -470,7 +470,7 @@
         },
         {
           "path": "tests/e2e/phase5-final-ui-independent.spec.ts",
-          "sha256": "277407cbfb0da924cf40706b02cde4bca18c9bd659cfbeffe52d9bfa9d4a9a8c"
+          "sha256": "91c7d0f90fb34c8af338b29ad945d8b7e03a3ec702185391975f5656c07b05e9"
         },
         {
           "path": "tests/e2e/payment-command.spec.ts",
@@ -552,7 +552,7 @@
         },
         {
           "path": "tests/e2e/phase5-final-ui-independent.spec.ts",
-          "sha256": "277407cbfb0da924cf40706b02cde4bca18c9bd659cfbeffe52d9bfa9d4a9a8c"
+          "sha256": "91c7d0f90fb34c8af338b29ad945d8b7e03a3ec702185391975f5656c07b05e9"
         },
         {
           "path": "tests/e2e/payment-command.spec.ts",
@@ -615,7 +615,19 @@
           "sha256": "80ae8af426e6733a8599baa24e6b09227803c6122f964c63519d1195c2d389e2"
         }
       ],
-      "hashBoundary": "Windows working-tree hashes identify local browser proof; normalized Git-index SHA256 identifies published source bytes"
+      "hashBoundary": "Windows working-tree hashes identify local browser proof; normalized Git-index SHA256 identifies published source bytes",
+      "automaticDatabaseCheck": {
+        "run": 38107466734,
+        "result": "success",
+        "scope": "owned loopback disposable rebuild/integration validation and runner guards; no live DEV/PROD database mutation"
+      },
+      "nextCorrection": {
+        "path": "tests/e2e/phase5-final-ui-independent.spec.ts",
+        "workingTreeSha256": "91c7d0f90fb34c8af338b29ad945d8b7e03a3ec702185391975f5656c07b05e9",
+        "scope": "Test-only async POST observation; exact one assertion preserved",
+        "proof": "passed C controlled hold2/2 and exact corrected repeats6/6, zero fail/skip/flaky",
+        "runtimeArtifact": "unchanged configured frontend and backend"
+      }
     }
   }
 }
