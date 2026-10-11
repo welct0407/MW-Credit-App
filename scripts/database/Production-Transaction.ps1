@@ -4,9 +4,9 @@ function Assert-ProductionTransactionPackage {
     param([Parameter(Mandatory)][string]$MigrationRoot,[Parameter(Mandatory)]$Manifest,
           [Parameter(Mandatory)][int]$BaselineVersion,[Parameter(Mandatory)][int]$TargetVersion,
           [Parameter(Mandatory)]$Preflight,[datetimeoffset]$Now=[datetimeoffset]::UtcNow)
-    if($BaselineVersion -ne 77 -or $TargetVersion -lt 87){throw 'Grouped R052 package requires verified PROD V77 and complete V78-to-final scope including V87'}
+    if(-not (($BaselineVersion -eq 77 -and $TargetVersion -ge 87) -or ($BaselineVersion -eq 87 -and $TargetVersion -eq 89))){throw 'Grouped package requires R052 verified PROD V77 through V87 or later, or exact R053 V87-to-V89'}
     if($Preflight.environment -ne 'production' -or $Preflight.projectId -ne 'clever-oasis-508610-n7' -or $Preflight.instance -ne 'appsheet-pg-prod-20260914' -or $Preflight.host -ne '34.21.174.215' -or $Preflight.database -ne 'loan_manager_prod' -or $Preflight.baselineVersion -ne $BaselineVersion){throw 'Wrong production CONNECT preflight identity'}
-    $observed=[datetimeoffset]::Parse($Preflight.observedAt)
+    $observed=if($Preflight.observedAt -is [datetimeoffset]){$Preflight.observedAt}elseif($Preflight.observedAt -is [datetime]){[datetimeoffset]$Preflight.observedAt.ToUniversalTime()}else{[datetimeoffset]::Parse($Preflight.observedAt,[Globalization.CultureInfo]::InvariantCulture)}
     if($observed -gt $Now -or ($Now-$observed).TotalMinutes -gt 10){throw 'Fresh production CONNECT preflight required'}
     if($Preflight.publicConnectRevoked -ne $true -or $Preflight.configuredConsumersVerified -ne $true -or $Preflight.consumerReconnectVerified -ne $true -or $Preflight.devInheritedConnectDenied -ne $true -or $Preflight.devSessionCount -ne 0){throw 'Production CONNECT containment remains incomplete'}
     if(@($Preflight.retainedConsumerRoles).Count -lt 1 -or @($Preflight.devPrincipalRoles).Count -lt 1 -or -not $Preflight.identityInventorySha256 -or $Preflight.identityInventorySha256 -notmatch '^[a-f0-9]{64}$'){throw 'Exact retained consumer and DEV principal inventory required'}
@@ -15,6 +15,7 @@ function Assert-ProductionTransactionPackage {
     if(@(Get-ChildItem -LiteralPath $root -File | Where-Object {$_.Name -match '\.conf$' -or $_.Name -notmatch '^V[0-9]+(?:[._][0-9]+)*__[A-Za-z0-9_]+\.sql$'}).Count){throw 'Migration callbacks and sidecar configuration forbidden for grouped production'}
     $pending=@($Manifest | Where-Object {$_.name -match '^V([0-9]+)__' -and [int]$Matches[1] -gt $BaselineVersion})
     if(-not $pending.Count -or -not @($pending | Where-Object {$_.name -match "^V${TargetVersion}__"}).Count){throw 'Complete pending migration scope required'}
+    if($BaselineVersion -eq 87 -and ((@($pending | ForEach-Object {if($_.name -match '^V([0-9]+)__'){[int]$Matches[1]}} | Sort-Object) -join '|') -ne '88|89')){throw 'R053 requires exact pending V88 and V89 once each'}
     foreach($file in $pending){
         if($file.name -notmatch '^V([0-9]+)__' -or [int]$Matches[1] -gt $TargetVersion){throw 'Partial grouped migration target forbidden'}
         $sql=Get-Content -LiteralPath (Join-Path $root $file.name) -Raw

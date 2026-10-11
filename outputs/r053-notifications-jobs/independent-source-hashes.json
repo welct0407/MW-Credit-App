@@ -21,7 +21,7 @@
   },
   {
     "path": "tests/integration/r053-operator-independent.test.mjs",
-    "sha256": "5630bf25b8498c583baa3f41a3059c1446f01bc1c8fd8dd731b239b139f998e5"
+    "sha256": "ee2ca5866885bf2c2bac3ff6033373f6eb8fbff870f79fe4b00e4ade8076c2e3"
   },
   {
     "path": "tests/integration/phase8-rpc-fixture.mjs",
@@ -53,7 +53,7 @@
   },
   {
     "path": "outputs/r053-notifications-jobs/independent-verification.md",
-    "sha256": "5807a32a47a1c11de8432dd21b5495c7715e9cf627ce2457bfe86609ed06101b"
+    "sha256": "896cc4a61d32570cc32ba7abbe183ecb7a1bb0ccbcded04d2ed561ffdfefec0c"
   },
   {
     "path": "tests/integration/Test-R053CleanupGuards.ps1",
@@ -78,5 +78,9 @@
   {
     "path": "tests/integration/r053-binding-independent.test.mjs",
     "sha256": "c8871e69015d2e63946bba2fe67f7299b543bbe8d89d18ad6d7c56b3604db8fa"
+  },
+  {
+    "path": "tests/unit/r053-candidate-independent.test.mjs",
+    "sha256": "8fc89db8fe589ef13b744f2d2e6fb3d5a34cd7e055b2b50fd9a3d31ab62b52bf"
   }
 ]

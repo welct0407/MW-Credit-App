@@ -3,15 +3,21 @@ import {readFile,writeFile,lstat} from 'node:fs/promises';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
 import {gzipSync} from 'node:zlib';
+import {validateR053Candidate} from './r053-candidate.mjs';
 import {validateBusinessApplyReceipts} from './business-candidate.mjs';
 import {verifyOperatorCredential} from '../production/deploy-foundation-hosting.mjs';
 
 export async function businessHostingPlan(prepared,applied,receipts,options){
- await validateBusinessApplyReceipts(prepared,applied,receipts,options);
- const site=applied.target.hosting.site;
+ if(prepared.release==='R053'||applied.release==='R053'){
+  if(prepared.release!=='R053'||applied.release!=='R053'||prepared.status!=='prepared'||applied.status!=='applied')throw Error('Coherent R053 prepared/applied package required');
+  await validateR053Candidate(prepared,options.preparedOptions);await validateR053Candidate(applied,options.appliedOptions);
+  const strip=m=>({...m,status:undefined,evidence:{...m.evidence,appliedSha256:undefined}});
+  if(JSON.stringify(strip(prepared))!==JSON.stringify(strip(applied)))throw Error('R053 prepared package drift');
+ }else await validateBusinessApplyReceipts(prepared,applied,receipts,options);
+ const r053=applied.release==='R053',site=r053?applied.target.site:applied.target.hosting.site;
  if(site!=='mw-credit-prod-737787224638')throw Error('Wrong fixed production Hosting site');
  const contents=new Map(),files={};
- for(const file of applied.artifacts.frontend.files){
+ for(const file of (r053?applied.frontend.files:applied.artifacts.frontend.files)){
   const bytes=await readFile(path.join(options.appliedOptions.artifactRoot,file.path));
   if(createHash('sha256').update(bytes).digest('hex')!==file.sha256)throw Error('Artifact changed after validation');
   const compressed=gzipSync(bytes),hash=createHash('sha256').update(compressed).digest('hex');
@@ -19,7 +25,7 @@ export async function businessHostingPlan(prepared,applied,receipts,options){
  }
  const headers=[{glob:'**',headers:{'X-Content-Type-Options':'nosniff','Referrer-Policy':'strict-origin-when-cross-origin','Cache-Control':'no-store'}}];
  for(const [glob,type]of [['/build-version.json','application/json; charset=utf-8'],['/sw.js','application/javascript; charset=utf-8'],['/manifest.webmanifest','application/manifest+json; charset=utf-8'],['/offline.html','text/html; charset=utf-8']])headers.push({glob,headers:{'Content-Type':type,'Cache-Control':'no-store'}});
- return {site,files,contents,headers,sourceCommit:applied.sourceCommit,publicVersion:applied.artifacts.frontend.publicVersion};
+ return {site,files,contents,headers,sourceCommit:applied.sourceCommit,publicVersion:r053?applied.frontend.publicVersion:applied.artifacts.frontend.publicVersion};
 }
 
 export async function executeBusinessHosting(plan,{request,approvalReference}){

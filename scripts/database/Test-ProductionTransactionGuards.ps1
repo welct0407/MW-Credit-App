@@ -29,6 +29,15 @@ try {
     foreach($target in @(85,86)){$badArgs=$args.Clone();$badArgs.TargetVersion=$target;$rejected=$false;try{Assert-ProductionTransactionPackage @badArgs|Out-Null}catch{$rejected=$true};if(-not $rejected){throw 'Accepted incomplete SQL scope'};$checks++}
     foreach($name in @('beforeMigrate.sql','V78__fixture.sql.conf')){Set-Content -LiteralPath (Join-Path $taskRoot $name) -Value 'SELECT 1';$rejected=$false;try{Assert-ProductionTransactionPackage @args|Out-Null}catch{$rejected=$true};Remove-Item -LiteralPath (Join-Path $taskRoot $name);if(-not $rejected){throw 'Accepted callback/sidecar'};$checks++}
     foreach($sql in @('CREATE INDEX CONCURRENTLY bad ON synthetic_guard(id);','VACUUM synthetic_guard;','COMMIT;','ALTER SYSTEM SET max_connections=1;')){Set-Content -LiteralPath (Join-Path $taskRoot 'V87__fixture.sql') -Value $sql;$rejected=$false;try{Assert-ProductionTransactionPackage @args|Out-Null}catch{$rejected=$true};if(-not $rejected){throw 'Accepted nontransactional SQL'};$checks++}
+    Set-Content -LiteralPath (Join-Path $taskRoot 'V87__fixture.sql') -Value 'SELECT 1;'
+    Set-Content -LiteralPath (Join-Path $taskRoot 'V88__fixture.sql') -Value 'SELECT 1;'
+    Set-Content -LiteralPath (Join-Path $taskRoot 'V89__fixture.sql') -Value 'SELECT 1;'
+    $r53Proof=$proof.PSObject.Copy();$r53Proof.baselineVersion=87
+    $r53Args=@{MigrationRoot=$taskRoot;Manifest=@($manifest)+@([pscustomobject]@{name='V88__fixture.sql'},[pscustomobject]@{name='V89__fixture.sql'});BaselineVersion=87;TargetVersion=89;Preflight=$r53Proof;Now=$now}
+    $r53Result=@(Assert-ProductionTransactionPackage @r53Args)
+    if(($r53Result -join '|') -ne '-group=true|-mixed=false|-executeInTransaction=true'){throw 'R053 pinned flags missing'};$checks++
+    foreach($target in @(88,90)){$bad=$r53Args.Clone();$bad.TargetVersion=$target;$rejected=$false;try{Assert-ProductionTransactionPackage @bad|Out-Null}catch{$rejected=$true};if(-not $rejected){throw 'Accepted unreviewed R053 target'};$checks++}
+    foreach($pending in @(@([pscustomobject]@{name='V89__fixture.sql'}),@([pscustomobject]@{name='V88__fixture.sql'},[pscustomobject]@{name='V89__fixture.sql'},[pscustomobject]@{name='V89__fixture.sql'}),@([pscustomobject]@{name='V88__fixture.sql'},[pscustomobject]@{name='V89__fixture.sql'},[pscustomobject]@{name='V90__fixture.sql'}))){$bad=$r53Args.Clone();$bad.Manifest=$pending;$rejected=$false;try{Assert-ProductionTransactionPackage @bad|Out-Null}catch{$rejected=$true};if(-not $rejected){throw 'Accepted missing/duplicated/extra R053 pending scope'};$checks++}
     "Production transaction guard checks: $checks passed; synthetic inputs only, no database or network effects."
 } finally {
     $resolved=[IO.Path]::GetFullPath($taskRoot)

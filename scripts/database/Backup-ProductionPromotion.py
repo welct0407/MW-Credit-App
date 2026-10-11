@@ -42,6 +42,10 @@ def run(argv, name, env=None):
 def fingerprint(c):
     result = {}
     for schema, table in c.execute("SELECT schemaname,tablename FROM pg_tables WHERE schemaname NOT LIKE 'pg_%' AND schemaname<>'information_schema' ORDER BY 1,2"):
+        if args.database=='mw_agent' and (schema,table) in {('audit','events'),('audit','operations'),('runtime','operation_state')}:
+            count=c.execute(sql.SQL('SELECT count(*) FROM {}.{}').format(sql.Identifier(schema),sql.Identifier(table))).fetchone()[0]
+            result[schema+'.'+table]={'count':count,'verification':'count-only unrelated large audit/state; complete dump/restore retained'}
+            continue
         query = sql.SQL("SELECT count(*),md5(coalesce(string_agg(md5(to_jsonb(t)::text),'' ORDER BY md5(to_jsonb(t)::text)),'')) FROM {}.{} t").format(sql.Identifier(schema),sql.Identifier(table))
         count, digest = c.execute(query).fetchone()
         result[schema+'.'+table] = {'count': count, 'digest': digest}
@@ -69,7 +73,8 @@ passed = False
 try:
     with psycopg.connect(host=target['host'],port=target['port'],dbname=target['database'],user=target['user'],password=password,sslmode='require',connect_timeout=10,autocommit=True) as c:
         c.execute('BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY')
-        c.execute("SET LOCAL statement_timeout='60s'; SET LOCAL lock_timeout='5s'; SET LOCAL timezone='UTC'; SET LOCAL datestyle='ISO,YMD'")
+        # Journal audit history is ~752MB/1.54M rows; this bounded timeout affects only the private read-only snapshot session.
+        c.execute("SET LOCAL statement_timeout='%ss'; SET LOCAL lock_timeout='5s'; SET LOCAL timezone='UTC'; SET LOCAL datestyle='ISO,YMD'" % (180 if args.database=='mw_agent' else 60))
         if c.execute("SELECT current_setting('transaction_isolation'),current_setting('transaction_read_only')").fetchone()!=('repeatable read','on'): raise ValueError('Snapshot isolation/read-only not established')
         actual=c.execute('SELECT current_database(),session_user,host(inet_server_addr()),inet_server_port(),clock_timestamp()').fetchone()
         if actual[:4] != (target['database'],'postgres','34.21.174.215',5432): raise ValueError('Live production identity mismatch')
@@ -100,7 +105,7 @@ try:
         version=c.execute('SELECT max(version::int) FROM public.flyway_schema_history WHERE success').fetchone()[0] if expected_version is not None else None
         if restored!=before or version!=expected_version: raise ValueError('Restored source/history fingerprint mismatch')
     passed=True
-    result={'schemaVersion':1,'database':target['database'],'baselineVersion':expected_version,'host':target['host'],'instance':target['instance'],'approvalReference':args.approval_reference,'observedAt':str(actual[-1]),'dumpSha256':hashlib.file_digest(dump.open('rb'),'sha256').hexdigest(),'archiveListing':'passed','restore':'passed','restoredFingerprintsMatch':True,'tableCount':len(before),'restoreSemantics':'Complete schema/data restored; no owner/ACL replay, referenced role names local NOLOGIN only; no live/global-role restore','privateRecoveryDirectory':str(folder)}
+    result={'schemaVersion':1,'database':target['database'],'baselineVersion':expected_version,'host':target['host'],'instance':target['instance'],'approvalReference':args.approval_reference,'observedAt':str(actual[-1]),'dumpSha256':hashlib.file_digest(dump.open('rb'),'sha256').hexdigest(),'archiveListing':'passed','restore':'passed','restoredFingerprintsMatch':True,'integrityScope':'all tables full-content fingerprint' if args.database!='mw_agent' else 'full-content fingerprints for all small/authoritative receipt, ingress, control and partner_notices tables; exact audit.events/audit.operations/runtime.operation_state counts only; complete raw dump and full isolated restore','tableCount':len(before),'restoreSemantics':'Complete schema/data restored; no owner/ACL replay, referenced role names local NOLOGIN only; no live/global-role restore','privateRecoveryDirectory':str(folder)}
     (folder/'recovery.json').write_text(json.dumps(result,indent=2))
     print(json.dumps(result))
 finally:
