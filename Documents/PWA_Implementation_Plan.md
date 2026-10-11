@@ -50,10 +50,10 @@ Every financial command must enforce server-side identity and permissions, prese
 | 0 | Establish development infrastructure and database ownership | Completed setup | Complete for the recorded scope |
 | 1 | Establish full feature coverage, contracts and acceptance criteria | 0 | In progress; checkpoints 1A and 1B accepted; complete feature/parity and acceptance coverage remains open |
 | 2 | Build the secure application foundation and first read flow | 1 | In progress; 2A owner-validated, 2B/2C reads delivered, 2D domain validated, 2E installation accepted, 2F visibility correction accepted; 2G tracing deployed and owner-accepted |
-| 3 | Make production infrastructure and delivery ready | 2 and owner review of the Phase 6 DEV candidate | Not started; follows DEV owner testing |
+| 3 | Make production infrastructure and delivery ready | 2 and owner review of the Phase 6 DEV candidate | In progress — readiness preparation started11October2026 after explicit owner Phase5/6 verification; no PROD mutation authority inferred |
 | 4 | Prove one complete financial workflow in DEV | 2 | Completed and owner-accepted on 8 October 2026 (Asia/Bangkok); tested/deployed first financial workflow and recorded live synthetic proof |
-| 5 | Complete mobile and desktop OLTP | 4 | Implemented/tested/deployed DEV85; consolidated checkpoint passed, owner/device and unknown native receipt limits remain open |
-| 6 | Complete mobile and desktop OLAP management | Shared contracts from 4; operational dependencies from 5 | Phone/iPad/desktop implementation deployed DEV85; focused tablet portrait/landscape and Pro Max proof passed, physical-device/owner acceptance pending |
+| 5 | Complete mobile and desktop OLTP | 4 | Implemented/tested/deployed DEV85; owner-verified/accepted11October2026, recorded device and future native reconciliation evidence limits retained |
+| 6 | Complete mobile and desktop OLAP management | Shared contracts from 4; operational dependencies from 5 | Phone/iPad/desktop implementation deployed DEV85; owner-verified/accepted11October2026, no specific owner test device inferred |
 | 7 | Enhance Metabase integration and reporting after go-live | Production go-live; 5 and 6 contracts | Deferred by owner |
 | 8 | Complete automation, notifications and coexistence behavior | Event inventory from 1; relevant commands from 4–6 | Not started |
 | 9 | Verify the complete launch release and operational recovery | 3–6 and 8; retained reporting access | Not started |
@@ -111,6 +111,8 @@ This phase does not claim completed application sign-in, financial permissions, 
 ## Phase 3 Production infrastructure readiness
 
 **Objective:** after the Phase 6 DEV owner-testing checkpoint and the owner go-ahead, prepare production infrastructure and delivery readiness. Production mutations still require explicit scoped authorization.
+
+**Status — 11 October 2026:** owner explicitly verified Phase5/6 and requested starting Phase3. Readiness preparation is in progress: [first batch](../outputs/r052-pwa/phase3-foundation-batch.md) and [A design/test plan](../outputs/r052-pwa/phase3-foundation-design-and-test-plan.md). Start with inert separated configuration and read-only inventory; runtime images are currently DEV-bound and need the agreed server-enforced environment/auth contract before any production use. No PROD apply/auth activation or release freeze is authorized by this preparation instruction.
 
 - Refactor the working Terraform into explicit DEV/PROD configurations with separate state, service identities, secrets, application configuration and deployment permissions. Preserve existing Cloud SQL/GCS as retained dependencies.
 - Provision the new production API, frontend hosting/domain/HTTPS, artifact delivery and required execution identities. Define scale, connection-pool, timeout and storage-access limits against the shared instance's actual capacity.
