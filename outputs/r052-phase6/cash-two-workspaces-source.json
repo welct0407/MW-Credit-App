@@ -1,0 +1,34 @@
+{
+  "baseline": "feca0f7",
+  "files": [
+    {
+      "path": "apps/pwa/src/ManagementCash.tsx",
+      "sha256": "EB9D0D5407A92A42FB1EDCAEC846FAD2754D16E4BF4F2E85D8F8F5D30057D966"
+    },
+    {
+      "path": "apps/pwa/src/ManagementFinancialWorkspace.tsx",
+      "sha256": "FCB387BD36572E3619BC7E41F9583C0EBFDD8F7A4BA6236088785BF5BBCF10D0"
+    },
+    {
+      "path": "apps/pwa/src/ManagementPosition.tsx",
+      "sha256": "39447BDE254B25DE7F5943DDBEC443512BFC9146EF10576C07FA0E8D46F33A00"
+    },
+    {
+      "path": "apps/pwa/src/ManagementWorkspace.tsx",
+      "sha256": "E0CF237434C1936266D374B1160AEA1E8C02BBA7FA5E6B1D2A67C8758CB0312A"
+    },
+    {
+      "path": "apps/pwa/src/live-main.tsx",
+      "sha256": "98303E5BB4E6EEA3E6FE93584CF143E4D16E21EFBE3E08BDEBB68B1216A2673B"
+    },
+    {
+      "path": "apps/pwa/src/live-style.css",
+      "sha256": "63D6D48E656148B7CFFB83E2CDE8952C9A2A5407A4B5CAF5AA4EE6763C7422D3"
+    }
+  ],
+  "build": "index-oYPEJTNj.js",
+  "checks": [
+    "npm run build:live-dev PASS"
+  ],
+  "backendChanged": false
+}

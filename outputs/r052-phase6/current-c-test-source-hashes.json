@@ -1,0 +1,182 @@
+{
+  "scope": "Partners final-source focused Back and440x956 synthetic visual PASS; paired deployment pending",
+  "testedMovementV85": "F50EF02EBFA852B0850730F5BB35634EAD42899B491C6697BABC557620E55686",
+  "substantiveSqlCases": 22,
+  "independentMoneyUnitCases": 1,
+  "files": {
+    "scripts/rehearsal/payment-command.mjs": "FADB4716605D0CBA5145A956C615F7B61682F4DF4B40791314B26B669B31DC63",
+    "tests/integration/phase6-populated-fixture.mjs": "5EB92BA5BE33928301D616E5412E394E9E6EA9884BD0228A42C37DE4D3989169",
+    "tests/unit/phase6-financial-independent.test.mjs": "FA60C06B9282DD5EB9834ED73F306CDF264B2B777992045266553DD5EBDE74C4",
+    "tests/unit/phase6-analytics-independent.test.mjs": "598BEFB416591DA1DD8B858CC9210C6B763E2727F74F19DA1023B153FCD3E42F",
+    "tests/e2e/phase5-offline-sdk-independent.spec.ts": "BF6A2E836481C996A34A5FB1EC59A94F24E063A6C60C0457DC86F8DFB61D2932",
+    "tests/e2e/borrower-search.spec.ts": "0611B0032CD87E900633124872994353AC59E8481976DB33778E593A1E741C10",
+    "tests/e2e/collection-loading-shift.spec.ts": "1FB2C1D45D97DA25A9C164C182686ABFAF6D6528C4F8EFA4A637B205B97A5D04",
+    "tests/e2e/collection-read.spec.ts": "85408A9001A18B1F7810D313FEAA8BAD5E6CC8E820AA7705B1233A776B49126B",
+    "tests/e2e/error-recovery.spec.ts": "C744A29652A5A8F565D77EACD052DE91E6D8956DF8312969CE7C52A9213C7B3F",
+    "tests/e2e/live-search-timer.spec.ts": "35E41D653D0C4EFBB6E88BEDB7DCA9C055392AF7A73322C0F877E54E1E9384F5",
+    "tests/e2e/payment-command.spec.ts": "B843DA97ED00CB0C81B709204F15CB3B6595514F6DE9911DD0F65FD2FBEBBAFF",
+    "tests/e2e/payment-offline-sdk.spec.ts": "52547384A85B75625E6BBA9C7EA60735846C5F9A03A9FCF2D9E7B2077C440018",
+    "tests/e2e/upcoming-read.spec.ts": "733B0FFB0B1B6A85A1DC2670E51D3D53FBEAAD77C15805B51CD0BFB7DA3E22A1",
+    "tests/e2e/live-controls.ts": "86AB9643868711F745C1BA98E70A4173179AFF6B928B13E59B4025B566967788",
+    "tests/e2e/payment-phase4-independent.spec.ts": "2EFA6895660CABBF2A1485F00075155BB3CEE20CDF6E2C038F98F4235323F3C9",
+    "tests/e2e/receiving-ux-independent.spec.ts": "92478D03A423E13801FF9F84DBD0C6B0674BA55BDDCD78F4B285547E8807F630",
+    "tests/e2e/unified-receiving-independent.spec.ts": "DF54CC090A1D133D1BB0414F547EA73E534D61C6B23307FC5FAD899518E22D7E",
+    "tests/e2e/unified-receiving.spec.ts": "8951AAFABAAA6325A46313E6E69D5448E1D66CBB522E921342D284944BB24CB1",
+    "tests/e2e/phase5-borrower-independent.spec.ts": "A2328EE33184510C8A1B83DFAF4038234DBC2A299B1A36053A3E2B97DA02FD7C",
+    "tests/e2e/phase5-final-ui-independent.spec.ts": "C66D2E71E735A178FC0CAB9D81F220AE20BF36E1C0945D9C7A3E152D00A9EEE0",
+    "apps/pwa/src/LoanForm.tsx": "19801EA758D3EC5993BC911B4A9F3F589E0C21A594DB35FD46528D6EFFC4A954",
+    "apps/pwa/src/SelectedCharges.tsx": "8C819FD55A7EFB324D7F9C73EF650ABB53F37A0977186CBD2C7AD0206BE65A83",
+    "playwright.config.ts": "E98820676CA9EE233A395B0081906DB4A7FD7BCD42D2624D86CD7B8DE1F5B2D8",
+    "tests/integration/Run-PaymentPhase4.ps1": "1D9D8358EB73C9B745F274A2EE14777DC767B5B4B4B257027DF42B77530478FB",
+    "tests/integration/receiving-ux-independent.test.mjs": "DF68E44A0677AFFD0A4960048BC7ECD210F8C2D6D4F0248CB8D70B267C052090",
+    "tests/integration/Run-Phase5.ps1": "776F1541EDF66D3284DC1F4512E69DBAB8896F85FFD0FA9915AEC7455E6A0BDB",
+    "tests/integration/phase6-management-independent.test.mjs": "B7C9A855339F10A111C0AA8F86A5E1C386E89D9336341EE69731F594841E0814",
+    "tests/integration/phase6-upgrade-independent.test.mjs": "8998F3F5CEEAF4FA8847595A473C538D5F10C6CDF1CB0C4FB2DA36D5338F944C",
+    "apps/pwa/src/live-main.tsx": "80C4362ADAB42672A4FCECBE72A34F38C810D8DF2A1036A37A32AF2593FBED33",
+    "apps/pwa/src/ManagementAnalytics.tsx": "6589340CBFFF5ED80B013C5D9296C6D115E755A07200AEDDAB783B7D1D3B1EA6",
+    "outputs/r052-phase6/mobile-olap-drawer-440.png": "5A7B7A0302636272BC1948B969931050463F4F4197DDACBCB7AF6ED5C0E5DC38",
+    "outputs/r052-phase6/mobile-olap-form-440.png": "F55F4985CED36E6A237199515499793C1B3EF063C8D5C34E8FE4C567EC8C6ACC",
+    "outputs/r052-phase6/mobile-olap-analytics-440.png": "02AE2FB5AA532FADC47A8073543D7ADADEB2CD779049CA172892C18C34DE5D8C",
+    "apps/pwa/src/ManagementWorkspace.tsx": "13C46BC813DC4054389BF32578BC3523FA0CD68119C6807DD7DC7F7005D16EF6",
+    "apps/pwa/src/ManagementFinancialWorkspace.tsx": "142D474F801F7AADBD26CDB0092D1097D86DAF4472E9D849585F497679068995",
+    "apps/pwa/src/live-style.css": "52C282DF5AA6C85CE512C620CEDA9EB0B87FAF3855AFF6130E36AB0D9346FE74",
+    "services/business/management.mjs": "2735584CAAE00DE81D1DBFAF6C74CC673F45331AC298FB3746EE80C8D1844657",
+    "outputs/r052-phase6/partners-list-440.png": "7848D1D9751F8C118FDC6CDCF755061EFCE0F61B0687CDC1FA1E8F222D31A4F8",
+    "outputs/r052-phase6/partners-detail-440.png": "C139DAF6CD935A0E58DF6B99738E1F1A1BD5BAA3028FE06634AA818FA61E2F67",
+    "tests/e2e/fixtures/canonical-server.ts": "C99F18AAF3E7607AD1B057052C5C18EAEC298D45B79480C6B0D92F36B966281C",
+    "tests/e2e/startup-generations-independent.spec.ts": "3CFEBD4C23B5EED734D92508DD4A4EE45CF58DB49EA1C13DA81B41B35398445A",
+    "outputs/r052-phase6/startup-back-consumer-inventory.json": "221FC4D877B65C09E1A42CC1178053AA822A0DAC8E4ECA6C43E41916E739A59E",
+    "outputs/r052-phase6/startup-shared-header-1440.png": "92AA08423B00216A383805F07536E84B57EE53536DA3F6DF29070D3EFA9EED3A",
+    "outputs/r052-phase6/startup-shared-header-440.png": "F88EE99A30813C300A82F49C488D861C43EC723B46DBF7976AFF2A4A6C235491",
+    "apps/pwa/src/ExpenseRecords.tsx": "4535CEBA8047122C45C79CD47B4424CA935FD0E856A89E97AD6A2A863F435A17",
+    "tests/e2e/back-consumers-independent.spec.ts": "12340CCA6A2F67DD17FD16F832F5F46BC7BC5AEF9172B69CE4F18BA1F3D87D47",
+    "outputs/r052-phase6/cash-two-workspaces-source.json": "9061405AB7A13D7079CC58167B8565F850F27FFBB60A5B7D8F2A28EC3AD25CD1",
+    "outputs/r052-phase6/cash-header-subject-440.png": "2778F69866412AFA2610225137B969D6323384361BF89FBDCD86C2136DFDBC51",
+    "outputs/r052-phase6/cash-accounts-two-panes-440.png": "E8AD7AFE54A9D8DFEA5FD561BBDCF5683C464A1C1A6D87A0A8E93CE840ED4762",
+    "outputs/r052-phase6/cash-accounts-two-panes-1440.png": "70879CBCFBFAB9988C837AB1D264622FB582A3A174173C70F06C1EEA5E92FDFF",
+    "outputs/r052-phase6/cash-position-tables-440.png": "47299FA5EB767027A2372C6B07326BA710F82C4FCEF72CBC7882C52861F8CF58",
+    "tests/e2e/fixtures/back-consumers-harness.tsx": "EF94E92328789115BBCA28B143D90DE776F6B109FD2DBDACDABB42EDC58BAC0A",
+    "outputs/r052-phase6/cash-tree-source.json": "0F14431CDA8CF5183A9428D43681B6241BBCA8DB240D7892EDC2579D174C90B4",
+    "outputs/r052-phase6/cash-compact-accounts-440.png": "2C04D98BD654D96A721F8BC448A0D58585C9803961D126788160974BEF15CC1A",
+    "outputs/r052-phase6/cash-tree-ledger-440.png": "C6A22DDC150A6C0614EF6B90A7DC3BBC52EF5F9DDCA29EAE86C4D8A54516268D",
+    "outputs/r052-phase6/cash-tree-ledger-1440.png": "55B5FF2AD9FC16A3668734EB8A264D104722AA5A80E97105B5DD8A7E8B803FFF",
+    "outputs/r052-phase6/cash-ledger-fit-source.json": "08502BCA3883B500E45E10F0F005EDFC74174475084473D72F754A76823EED76",
+    "outputs/r052-phase6/cash-review-accounts-440.png": "B536D4FE48C2F73A399AC3500A344CD22CFB45E00D22612BD6E7DB6AF8DE60DA",
+    "outputs/r052-phase6/cash-review-accounts-1440.png": "DAFE98FF34986F4B8AAFC6F43D87A22A1FE04C1B819D3C9B6B197404F50F504E",
+    "outputs/r052-phase6/cash-review-position-440.png": "DEC651901D607B83D4AEE79640CBCA26C7C6BE3B4CA716643C7BA79612DA4E20",
+    "outputs/r052-phase6/cash-review-position-1440.png": "D4DA411A7059B01C69B0ADEFEA3AD2BB30C0D32F7691B6938E12857A956231B6",
+    "tests/e2e/cash-two-workspaces-independent.spec.ts": "7BE21F603CF4170D413D434476A5BDD115073EACF67B61A7A5BC50F3EE06EA68",
+    "outputs/r052-phase6/cash-approved-ux-source.json": "A157414196537341DA9515EC0F31FD8F89881758B3D5CB1F4F898DF9CAE3E1EC",
+    "outputs/r052-phase6/cash-approved-accounts-440.png": "2E549E43C821873278C4AD6EFD684FCF3D66A86854D32A3B600775C9C33793FD",
+    "outputs/r052-phase6/cash-approved-accounts-1440.png": "754521DE1612048DFC327FEA97D1BE752432FA24FD46B423827D357DC46327EC",
+    "outputs/r052-phase6/cash-approved-position-440.png": "01585B80DFFBB3FE87CBD8782FD2EDFC3AA1F7B862B8B9FC4CDCC990A32F0ACC",
+    "outputs/r052-phase6/cash-approved-position-1440.png": "73E4E0D8C0FF4B1E2EC459509D560D19A94501A0AF6025719784ABFD9ACACE76"
+  },
+  "testedOpeningAssessmentV85": "7295F67C4E747B022D599EC15C89098E52A52CC63107E82D4850FB70DEBE8CDE",
+  "testedAnalyticsV85": "3C0833004BFBEA3D74354365637CDDF1ED02DAC5BCF963B4F2A0F6E4810CCD92",
+  "independentAnalyticsProviderUnitCases": 1,
+  "focusedDesktopManagementUiCases": 5,
+  "repairedCDesktopCases": 50,
+  "repairedBScopedCases": 7,
+  "deployedReadOnlySmoke": {
+    "outcome": "PASS representative desktop authenticated reads; no mutations",
+    "release": "1791576549461000",
+    "commandRevision": "00013-f84",
+    "hostingVersion": "fe54464c7cf5a0b5",
+    "physicalDeviceAcceptance": "not claimed",
+    "bundle": "index-C1CIvmJt.js"
+  },
+  "cashFocusedBatch": {
+    "unitCases": 1,
+    "syntheticInteractionCases": 1,
+    "viewport": "440x956 CSS portrait",
+    "postCount": 0,
+    "pins": {
+      "apps/pwa/src/ManagementCash.tsx": "C558628774098E548EE836B5C45A5AD26DE564CCF461EFDB36717B99CE21A918",
+      "apps/pwa/src/ManagementWorkspace.tsx": "693B7AF2AC571D19C862EB24D1FFA79E35BF8C01D051DD69880750F1066BC895",
+      "apps/pwa/src/ManagementReference.tsx": "B6DCE56FE5D620BAD911977A7CF05BE14EEBD25F692B5DA892042F32E7B37A4D",
+      "apps/pwa/src/live-main.tsx": "C477F1E17BF6467A747FBE93AAA30470CDE8828A113113B9ABC8CF8063B56E68",
+      "apps/pwa/src/live-style.css": "ADAAEFF60490B0A4D80A9B31C92AD5A99B3F7AD28871EBC2EE1283A145EC2844",
+      "services/business/management.mjs": "5644B39255FFD2AA0F4BCF92346E1779257E29B2492CC66B23B5ADF30687859A",
+      "services/payment-command/handler.mjs": "314B53C1B5EC4EE9058728CA903B870CE55B59521619910903FC584E93421A32",
+      "tests/unit/cash-account-filter-independent.test.mjs": "0ED38FBEC920C1575BE6F565AFF8491AC83FBE660F101139104E320B3F9D4B56",
+      "outputs/r052-phase6/cash-movement-picker-440.png": "86BDB0F6E9A911E89BD3A38EE92EF4E8D646ADDD7CEFCF36CD34F627709E76B8"
+    }
+  },
+  "headerStartupFocusedBatch": {
+    "substantiveCases": 5,
+    "portrait": "440x956 CSS",
+    "postCount": 0,
+    "actualFailedInstall": "not newly exercised",
+    "pins": {
+      "apps/pwa/src/HeaderBack.tsx": "6DAFD729D33C4F3B5369443641512FE17AC0F6E023C2A0126942BEA4AA1069F0",
+      "apps/pwa/src/Dashboard.tsx": "51939FDDFBF8F3C8EB1040C8787AC432670B8C1AB427D737406E4A76548ACFC2",
+      "apps/pwa/src/live-main.tsx": "6D2F018A8BCF9266D4CC2A02792FD17A47744B3E37215B43072D319D51A6E641",
+      "apps/pwa/pwa/sw.js": "9F7E1B1D0C900CC6724FF57D2472DD3FA54D77D36731D72DEA0A057B28E9F31F",
+      "apps/pwa/src/usePwa.ts": "712E766743B3D9D7CC0E54050891913B2022579E2C2928CB46DCEE3C05E775CC",
+      "tests/e2e/header-back-independent.spec.ts": "F64639D6B39BC14CAA500D09B5982D89E5AE28E152272BC32C960199E7458451",
+      "tests/e2e/fixtures/header-back-harness.tsx": "8202CE5847C8582D17AA0F0AFB3E999C45C4C474AC8DCCE63F1E7E22916D9A25",
+      "tests/e2e/startup-back-independent.spec.ts": "402B8C0E413FA626C7226480C30960A05B9AD3DDF59CD26ADC60909C5FE263F0",
+      "tests/e2e/payment-sw-independent.spec.ts": "24C3F7A60C288F492842571013C1EA76079F97C6195885CA60C4766CA0E1FA6C"
+    }
+  },
+  "startupAutomaticBackHeaders": {
+    "status": "PASS focused local; D delivery pending",
+    "workerSubstantiveCases": 1,
+    "directConsumerStates": 21,
+    "backInventory": "startup-back-consumer-inventory.json",
+    "physicalDeviceAcceptance": "not performed",
+    "ci": "not run owner scoped"
+  },
+  "cashTwoWorkspaces": {
+    "status": "PASS focused local; D frontend delivery pending",
+    "behaviorCases": 1,
+    "cssReadbackCases": 1,
+    "viewports": [
+      "1440x956",
+      "440x956"
+    ],
+    "liveWrites": 0,
+    "ci": "not run"
+  },
+  "cashTreeLedger": {
+    "status": "PASS focused local; delivery pending",
+    "substantiveCases": 1,
+    "viewports": [
+      "1440x956",
+      "440x956"
+    ],
+    "financialPostCount": 0,
+    "ci": "not run"
+  },
+  "cashLedgerFit": {
+    "status": "PASS focused local; delivery pending",
+    "substantiveCases": 1,
+    "viewports": [
+      "440x956",
+      "1440x956"
+    ],
+    "liveWrites": 0,
+    "ci": "not run",
+    "uxReview": "Four final synthetic captures shared with owner-authorized Agent E; recommendations separate"
+  },
+  "cashApprovedUx": {
+    "status": "PASS focused local; D delivery pending",
+    "substantiveCases": 1,
+    "viewports": [
+      "440x956",
+      "1440x956"
+    ],
+    "approvedCodes": [
+      "POS001",
+      "ACCT001",
+      "ACCT002",
+      "ACCT003"
+    ],
+    "excludedCode": "POS002 unchanged",
+    "financialPostCount": 0,
+    "ci": "not run",
+    "physicalDeviceAcceptance": "not performed",
+    "uxReview": "Final four captures retained for owner-requested Agent E re-review"
+  }
+}

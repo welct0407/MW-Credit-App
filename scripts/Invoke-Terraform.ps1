@@ -8,9 +8,16 @@ try {
   $env:GOOGLE_OAUTH_ACCESS_TOKEN=(& gcloud auth print-access-token).Trim()
   if($LASTEXITCODE -ne 0){throw 'Google authentication unavailable'}
   $argsList=@("-chdir=$mwRoot/infrastructure/$Stack",$Command,'-no-color')
-  if($Command -eq 'plan'){$argsList+=@('-input=false',"-out=$mwPrivate/$Stack.tfplan")}
+  if($Command -eq 'plan'){
+    $argsList+=@('-input=false',"-out=$mwPrivate/$Stack.tfplan")
+    # Persist reviewed live command artifact/config outside Git so future plans
+    # retain the same desired state rather than implicitly destroying it.
+    $activation=Join-Path $mwPrivate "$Stack.activation.tfvars"
+    if(Test-Path -LiteralPath $activation){$argsList+="-var-file=$activation"}
+  }
   if($Command -eq 'apply'){$argsList+=@('-input=false',"$mwPrivate/$Stack.tfplan")}
   if($Command -eq 'init'){$argsList+=@('-input=false')}
   & terraform @argsList
   if($LASTEXITCODE -ne 0){throw "Terraform $Command failed"}
 } finally {Remove-Item Env:GOOGLE_OAUTH_ACCESS_TOKEN -ErrorAction SilentlyContinue}
+

@@ -1,0 +1,23 @@
+{
+  "environment": "owned loopback disposable; sequential first-run samples, no CloudRun/cold-warm claim",
+  "timings": [
+    {
+      "count": 4,
+      "proposalMs": 6.075299999999515,
+      "reviewMs": 5.946100000000115,
+      "postMs": 55.58339999999953,
+      "allocations": 4,
+      "repayments": 4,
+      "cashRows": 1
+    },
+    {
+      "count": 100,
+      "proposalMs": 18.613799999999173,
+      "reviewMs": 20.043300000000272,
+      "postMs": 298.4231,
+      "allocations": 100,
+      "repayments": 100,
+      "cashRows": 1
+    }
+  ]
+}

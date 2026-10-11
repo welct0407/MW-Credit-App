@@ -1,0 +1,30 @@
+{
+  "checkpoint": "4F",
+  "observed_utc": "2026-10-08T05:35:24Z",
+  "executor": "owner CLI welct0407@mw-credit.com and current AppSheet GUI",
+  "environment": {"instance":"appsheet-pg-prod-20260914","host":"34.21.174.215","database":"loan_manager_dev","flyway":77},
+  "app": {"id":"500b27b6-884a-41e8-a9ec-df801b0110ad","internal_name":"MW-OLTP-DEV-20260919-578763613","version":"1.000207","mode":"Deployed","column":"Payments[Uploaded Receipt]","type":"Image","folder_expression":"\"manual-receipts/dev\""},
+  "synthetic_fixture": {"payment":"R046-payment","borrower":"R046-borrower","ownership_evidence":"PM outputs/r047-receipt-upload/HANDOVER.md and gui-after-edit.json; exact live identity/ref matched"},
+  "generated_roundtrip": {
+    "sql_ref":"manual-receipts/dev/pwa/352fccbf088642b4a4155e2d685a1400/9f11b87b721a4cc7a64b4aa9b398e0f5.png",
+    "bucket":"mw-payment-receipts-prod-508610-n7",
+    "object":"appsheet/data/MW_OLTP_DEV_20260919_578763613/manual_receipts/dev/pwa/352fccbf088642b4a4155e2d685a1400/9f11b87b721a4cc7a64b4aa9b398e0f5.png",
+    "generation":"1791437610051090","create_precondition":0,"size":867,"sha256":"a8fde6776f2e9e5d3ea4dd65338762af98fd7a7a8f4c9146e414c395f31b5aaa",
+    "exact_generation_read_sha256_matches":true,"appsheet_render":{"complete":true,"natural_width":320,"natural_height":160,"request_path_matches_sql_ref":true}
+  },
+  "known_native_reverse": {
+    "sql_ref":"manual-receipts/dev/R046-payment.Uploaded Receipt.095636.png",
+    "object":"appsheet/data/MW_OLTP_DEV_20260919_578763613/manual_receipts/dev/R046_payment.Uploaded_Receipt.095636.png",
+    "generation":"1790502998234094","size":45468,"sha256":"6ca9554505fb5910463a6d28c8ab2acbfcc248a8b6b40204dac615e58b4bb184",
+    "exact_generation_read":true,"restored_appsheet_render":{"complete":true,"natural_width":600,"natural_height":800},"mapping_scope":"This exact native pair only; no general legacy conversion and no new native upload in 4F"
+  },
+  "recovery": {
+    "private_snapshot_outside_git":true,"cas_attach_and_restore":true,"original_reference_restored":true,
+    "protected_payment_digest_before_after":"6758ec44066145195474eead2b5e198c",
+    "dependent_fingerprints_unchanged":{"Payment Allocations":{"count":1,"digest":"9fa790ed6b8022fcd433804f08629fd9"},"Repayments":{"count":1,"digest":"584c9f8c977c14ecb8c1fee498088c8b"},"Cash Ledger":{"count":1,"digest":"ebe3ac03bab477e3b6c1deb3e4adf470"}},
+    "old_uploaded_at_bangkok":"2026-09-27 16:56:40.732646","final_uploaded_at_bangkok":"2026-10-08 12:35:24.613193",
+    "timestamp_exception":"Root explicitly authorized truthful advanced timestamp on known synthetic fixture. V52 stamps every changed nonblank ref; normal restore preserves business/agent/dependent state but advances test metadata. No trigger bypass.",
+    "owned_object_generation_specific_delete":true,"post_delete_exact_describe_status":404,"original_native_object_preserved":true
+  },
+  "limits":["Owner CLI transport and live AppSheet path compatibility, not deployed command identity/IAM/authenticated PWA proof","Synthetic PNG only; no real financial fields/borrower records/notifications changed","Manual metadata timestamp remains intentional synthetic test effect","No live SQL migration, role grants, Terraform apply, command deployment or production operation"]
+}

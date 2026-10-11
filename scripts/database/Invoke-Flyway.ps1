@@ -55,6 +55,14 @@ try {
             ($Command -eq 'migrate' -and -not $parsed.success)) {
             throw "Flyway reported an unsuccessful $Command result: $($result -join [Environment]::NewLine)"
         }
+        # Stable DEV capability: reconcile every successful migration, including a
+        # no-op migrate, only when the operator-provisioned package exists.
+        # CLI pins the full DEV tuple, explicit creators and private ACL recovery.
+        if ($Environment -eq 'development' -and $Command -eq 'migrate') {
+            $node = (Get-Command node -ErrorAction Stop).Source
+            & $node (Join-Path $DbRepoRoot 'scripts/database/application-role-cli.mjs') --action post-migrate --if-present --apply
+            if ($LASTEXITCODE -ne 0) { throw 'DEV migration applied; application capability reconciliation failed. Preserve migration history and private recovery evidence; do not repair/replay blindly.' }
+        }
         $result -join [Environment]::NewLine
     } finally { Pop-Location }
 } finally {

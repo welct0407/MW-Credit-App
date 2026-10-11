@@ -25,3 +25,27 @@ if (-not $IsWindows) {
 & "$PSScriptRoot/Test-Migrations.ps1" -PreMigrationTarget 68 -PreMigrationSqlFile scripts/database/Test-DefaultChargeBeforeV69.sql -TestSqlFile scripts/database/Test-DefaultChargeUpgrade.sql
 
 & "$PSScriptRoot/Test-Migrations.ps1" -PreMigrationTarget 69 -PreMigrationSqlFile scripts/database/Test-DefaultRepaymentBeforeV70.sql -TestSqlFile scripts/database/Test-DefaultRepaymentUpgrade.sql
+
+# Phase 4 receiving and true nonsuperuser maintenance proof use separate owned clusters.
+& "$PSScriptRoot/../../tests/integration/Run-PaymentPhase4.ps1"
+if($LASTEXITCODE){throw 'Phase 4 receiving integration checks failed'}
+& "$PSScriptRoot/../rehearsal/Run-ApplicationRoleOperatorProof.ps1" -MaintenanceProof -MaintenanceTarget 83
+if($LASTEXITCODE){throw 'Existing-package V83 operator maintenance proof failed'}
+& "$PSScriptRoot/../rehearsal/Run-ApplicationRoleOperatorProof.ps1" -MaintenanceFailureProof -MaintenanceTarget 83
+if($LASTEXITCODE){throw 'Existing-package operator failure cleanup proof failed'}
+
+# Unified amount-first PWA and preserved legacy routes use an owned disposable cluster.
+& "$PSScriptRoot/../../tests/integration/Run-UnifiedReceiving.ps1"
+if($LASTEXITCODE){throw 'Unified receiving integration checks failed'}
+
+# Phase 5 reuses the maintained borrower and populated-journal upgrade fixtures.
+& "$PSScriptRoot/../../tests/integration/Run-Phase5.ps1"
+if($LASTEXITCODE){throw 'Phase 5 borrower integration checks failed'}
+& "$PSScriptRoot/../../tests/integration/Run-Phase5.ps1" -JournalOnly
+if($LASTEXITCODE){throw 'Phase 5 populated journal and operation integration checks failed'}
+
+# Historical anchor compatibility stays populated83-to84; management runs its own isolated upgrade family.
+& "$PSScriptRoot/../../tests/integration/Run-Phase5.ps1" -AnchorOnly
+if($LASTEXITCODE){throw 'Phase 5 populated anchor compatibility checks failed'}
+& "$PSScriptRoot/../../tests/integration/Run-Phase5.ps1" -ManagementOnly
+if($LASTEXITCODE){throw 'Phase 6 management integration checks failed'}

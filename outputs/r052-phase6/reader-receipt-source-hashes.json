@@ -1,0 +1,20 @@
+{
+  "baselineCommit": "a9e7da96da8d945d362fc32a77118bcea622095f",
+  "evidence": "reader-receipt-independent-verification-2026-10-11.md",
+  "sha256": {
+    "services/api/borrower-read-store.mjs": "8cbdb004c8dccdba19070696f87406ecbb1f0628ac51e9f990cc5d62c2978497",
+    "services/api/dev-read-handler.mjs": "9cc64b5bbecc9fae9abb8110bb2cd1f19622d697024cab5569c429c5346ceed2",
+    "services/payment-command/dev-config.mjs": "5b073b4284814c1ba3329549929cd84f8a5e76f0db6b307be5be3e3437b2b6de",
+    "services/payment-command/dev-server.mjs": "0142c40a138119bd2cfe08eb09343fcc46c335de936b45e01d705826cf3e1580",
+    "services/receipts/native-catalog.mjs": "ba2619420dc89e6fb2746089da07a465a171f7bfdd0d294c22b8b664c0c6aa85",
+    "services/receipts/source-receipts.mjs": "f8964fe484e99746070fbbdecf101fcd0a2283556bc37fc8f2ce66dca1c60125",
+    "scripts/receipts/README.md": "8f7074f5d4ed22065fb138550e0a2c111ad6b10b93b7ee7095438a1814150cc7",
+    "scripts/receipts/reconcile-native.mjs": "4e3f5d29f0478cf8a58871289f78333428bccd0958eb0fd7558e06dc1eb9d130",
+    "tests/unit/native-catalog.test.mjs": "c29eb830f81f0c6edfd370295171d315148438c167a984338b1b4539bad2ff9b",
+    "tests/unit/read-recovery.test.mjs": "fd104ee979f6d74e0db7f1e23a1eb3550684a3bc60ae9b52b9fd92cfc860c827",
+    "tests/unit/phase6-independent.test.mjs": "69253ba30d5e4007a4da4b3315d1f2dda5722c79bd3ef51323a71044034e3878",
+    "infrastructure/dev/native-receipt-catalog.tf": "da48c09ea17c8bab017e76d07f02fec545dcd757c563759d63fffbcf5bbe3d19",
+    "infrastructure/dev/command-service.tf": "f2e93993dd018ecdf8c4c674255ef07fa1df344ff20242cdce6d00cabfec5901"
+  },
+  "hashBoundary": "normalized final candidate Git-index bytes; earlier C local working-tree proof has Windows line endings"
+}

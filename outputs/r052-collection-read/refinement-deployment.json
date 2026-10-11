@@ -1,0 +1,16 @@
+{
+  "ownerReview": "pending",
+  "initialFailedCI": "https://github.com/welct0407/MW-Credit-App/actions/runs/37645929964",
+  "ci": "https://github.com/welct0407/MW-Credit-App/actions/runs/37646540641",
+  "validationSource": "b94c234935e172c76eac678601025270d1fc17e5",
+  "build": "9e34c788-5a4e-4c4d-82f8-c2c46250fa3e",
+  "hosting": "7364ee7db2ffe012",
+  "image": "sha256:49b661f79f89adac7e1f36c3111690a5761747b958f871cce4f3e6a8bac6beb5",
+  "revision": "mw-credit-app-read-dev-00007-st5",
+  "rollbackImage": "sha256:88f91219fbb4ec9abc0a25dcfb9b8d0ed057b1327984f592001d33b3fa549cb0",
+  "rollbackHosting": "1fc4f23a66f185b8",
+  "ownerPinRetained": true,
+  "applicationSource": "5efa533144248b1b76bc434fa3f16461433fa212",
+  "validationDiff": "terraform.tfvars formatting plus intended image selection only",
+  "release": "1791388188643000"
+}

@@ -1,0 +1,123 @@
+{
+  "recordedUtc": "2026-10-08T10:39:25.5261148Z",
+  "startingCommit": "51ab34c0f99d22a6af8421c1603dd439cc61efee",
+  "testScope": "DisposableV80 7/7; browser storage1/1 plus receiving/offline4cases desktop/mobile8/8; latest built canonicalHTTPS+worker install/update/rollback+offlineSW3/3; true nonsuper maintenance success8/8 and injectedfailure7/7 including driftrollback. D independently reran CI=true portable runners. See independent-verification.md; deployedowner/CloudSQLreadback still delivery.; focused actualFirebaseSDK syntheticREST + realcanonicalHTTPSworker offlinebrowserrestart/nav regression1/1 C pass7.8s, no auth/lease policy changes; deployedlive proof recorded separately.",
+  "files": [
+    {
+      "path": "services/contracts/payment-command.mjs",
+      "sha256": "5f26d1aa7850e8505700c6ef1b15f666adb337cb5459da67cfc7fc5bbba14030"
+    },
+    {
+      "path": "services/payment-command/store.mjs",
+      "sha256": "b5e1c8c09f5b6b161447ee816207cefd41e329a3e9b8eebc014299a9117e441f"
+    },
+    {
+      "path": "services/payment-command/draft.mjs",
+      "sha256": "5a545e070a30b0903d07c929919cce251fc80553495a760e35151b05ed4efe03"
+    },
+    {
+      "path": "services/payment-command/result.mjs",
+      "sha256": "42c2ed513bab8ed397618f60e97d8b0d8398d62da5d27a210e515705d5669bc7"
+    },
+    {
+      "path": "services/payment-command/handler.mjs",
+      "sha256": "082455105005b8c311569df41e24f7dcaf629dd1840ac81792346a0e67bc5e5a"
+    },
+    {
+      "path": "services/payment-command/application-target.mjs",
+      "sha256": "3791e5bcf857211f1c7c7e25667b3d97ac379f8d4326fa08eb1df57dac105648"
+    },
+    {
+      "path": "database/migrations/V80__unified_receiving_command_v4.sql",
+      "sha256": "43f643d61f1b242438f9b16bd47ee87ca45c37affc817027c15aabd00f9a55aa"
+    },
+    {
+      "path": "apps/pwa/src/SelectedCharges.tsx",
+      "sha256": "bfd63c16e49114c1600cc2637c6c376f9d453945603e6c89c4824439475cce52"
+    },
+    {
+      "path": "apps/pwa/src/owner-offline.ts",
+      "sha256": "58f490daaeab9dcef89da82750c8e473eec902975ae3b70d9ca088bd32a251eb"
+    },
+    {
+      "path": "apps/pwa/src/live-main.tsx",
+      "sha256": "d84167312ccf27985969427fad69c6ab34b4164464866c55c8e9e012f168c1bd"
+    },
+    {
+      "path": "apps/pwa/src/OfflinePayments.tsx",
+      "sha256": "db4a59787d0c897f6d08f1e72087fb036e69c8e1848cdb622b4ae994b9637db1"
+    },
+    {
+      "path": "apps/pwa/src/PaymentResult.tsx",
+      "sha256": "d3f82b339fcdf9b090485a14dc4623ae94fe0acec2ed24efd39a2ed6a202fe9e"
+    },
+    {
+      "path": "apps/pwa/src/PaymentHistory.tsx",
+      "sha256": "c05c6e75fdac129c312a03a2079e8a58a6d401fbba0fd5f0424901a7495b9c56"
+    },
+    {
+      "path": "apps/pwa/pwa/sw.js",
+      "sha256": "cfff35b7fc45c52c3277c56561ef75ed932396364f832252b0cb5070fc0bd9f0"
+    },
+    {
+      "path": "vite.config.ts",
+      "sha256": "aa4e9439e7f1b3943cf06ae168d23e07dcf502aa49c4ac21ca120781e2b6c0e1"
+    },
+    {
+      "path": "tests/integration/payment-phase4-independent.test.mjs",
+      "sha256": "c667bf024f1fc999cf37eb0300a3dbed23a9acd32997b40efc84954bad8003ed"
+    },
+    {
+      "path": "tests/e2e/payment-offline-independent.spec.ts",
+      "sha256": "3969ea319d3e8943e8424dc7526cf88d393e002384ff45655b891c72f0c0bec9"
+    },
+    {
+      "path": "tests/e2e/payment-phase4-independent.spec.ts",
+      "sha256": "9a81c8ac34098c23546a18fe51be42ad260497137c065735d699deab7f5c2534"
+    },
+    {
+      "path": "tests/e2e/payment-sw-independent.spec.ts",
+      "sha256": "8f158c0653074f67bc2e96024844e6fe62b898451db9b8efb86508b790dcaef9"
+    },
+    {
+      "path": "scripts/database/application-role-provisioning.mjs",
+      "sha256": "a546d5cf1f0f54e6697920efb766663d577b074eb9646111c8ae68fcb5b80c3f"
+    },
+    {
+      "path": "scripts/database/application-role-provision-cli.mjs",
+      "sha256": "a094bd9e2a7aa6724a31325036ce6a665d5ef054debee1f3eadddad0c4602c81"
+    },
+    {
+      "path": "scripts/database/Invoke-DevCommandDatabase.ps1",
+      "sha256": "ec86fc1df3c7bf67c32ebced4d25c3d6f49aa4c2b2dc34bcb44430fb5cb06a19"
+    },
+    {
+      "path": "scripts/rehearsal/Run-ApplicationRoleOperatorProof.ps1",
+      "sha256": "2b77ef09442684383668ca27cbead0fe83f847a9b31da698b5a2314573cccb72"
+    },
+    {
+      "path": "tests/integration/application-role-maintenance-independent.test.mjs",
+      "sha256": "f7ba7c1f7cbd88727b92f8998cdec8067ce7000c1d9ac996c2efc5ae60b7f911"
+    },
+    {
+      "path": "tests/e2e/fixtures/canonical-server.ts",
+      "sha256": "8ed38ee99132c2e558ce244a19daa540497e8b1e4c00dbeb1e3b094dcc47ad99"
+    },
+    {
+      "path": "tests/e2e/pwa-canonical.spec.ts",
+      "sha256": "237c5cda2ceb25c0a42bb9d95d910ebcd9887532c2ae9815862947001a197a73"
+    },
+    {
+      "path": "tests/e2e/pwa-worker.spec.ts",
+      "sha256": "b8a0b9b40dc139da8b1ab28f21203266c5496261faac86336006a886c3802393"
+    },
+    {
+      "path": "tests/integration/Run-PaymentPhase4.ps1",
+      "sha256": "70a0efa59f09d0061f87ea078d1bdd1c17970dfb1b228b6d30a7155c23ad3060"
+    },
+    {
+      "path": "tests/e2e/payment-offline-sdk.spec.ts",
+      "sha256": "401d9ec0e4280c0faabef8f2b512538f4a4601806e7a441562d33b5899e10849"
+    }
+  ]
+}

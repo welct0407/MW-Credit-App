@@ -1,0 +1,16 @@
+{
+  "sourceCommit": "2eaa56cba324f14b13e257841a22e3a764a54528",
+  "ci": "https://github.com/welct0407/MW-Credit-App/actions/runs/37709754501",
+  "cloudBuild": "0a7a2dda-b316-4529-b834-7afb7315edc0",
+  "buildStatus": "SUCCESS",
+  "image": "sha256:ac0e0bede20f367edc322908d8c9c029c6dd97feba6be042b07072a7f68bc0b6",
+  "plan": "One read_api image update; zero additions/deletions; other desired runtime configuration unchanged",
+  "hostingUnchanged": "8fa268235d983461",
+  "rollbackApi": "00010-fzk",
+  "rollbackImage": "sha256:a971a4c97b013ffc2e11acfb3e3f850c930272e049eedeb57fab43c8a92196ca",
+  "visibility": "Directory/detail/related-loan parent eligibility uses IS NOT TRUE; explicit true excluded, false/null eligible",
+  "dataChanges": "None",
+  "deployment": "API00011-z44 Ready; Hosting unchanged",
+  "liveVerification": "Passed:8 unsigned auth/origin/preflight boundary checks. Private operator read-only target eligibility confirmation passed; no record details retained, not authenticated owner UI proof.",
+  "ciConclusion": "success"
+}

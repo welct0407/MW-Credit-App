@@ -1,0 +1,9 @@
+{
+  "checkedAtUtc": "2026-10-07T11:29:17.3227045Z",
+  "url": "https://mw-credit-app-api-dev-pvrgvyg3oq-as.a.run.app/api/borrowers",
+  "status": 403,
+  "expected": 403,
+  "contentType": "text/html; charset=UTF-8",
+  "scope": "Unchanged original API IAM boundary",
+  "responseBodyCaptured": false
+}

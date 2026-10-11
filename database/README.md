@@ -3,7 +3,9 @@
 **Canonical owner: MW-Credit-App, transferred 7 October 2026.** Run all database commands from this repository. The complete V1–V77 history is unchanged. Project-wide planning, releases and historical evidence remain in AppSheet-Loan-Project. See [ownership transfer and recovery](OWNERSHIP.md).
 
 
-Current R051 production closure, 7 October 2026: **DEV and PROD V77**, validated. The pinned nineteen migrations V59â€“77 were applied after a verified private production backup/restore rehearsal. V77 retires the rejected related-list helper; V75/V76 remain immutable. All122 relevant routine hashes match across environments. App upgrades and read-only GUI validation passed. Performance measurements remain bounded samples, not an overall sync-speed claim. [Production evidence](https://github.com/welct0407/AppSheet-Loan-Project/blob/a1cf24ccda21c6dde74edec19e9a792fd5dc2715/outputs/r051-production/README.md).
+Current R052 DEV activation, 10 October 2026: **DEV V85 / PROD V77**. Phase6 closed management operations reuse the existing protected journal/source tables; no new table or column. Combined deferred Phase5/Anchor/Management Database37983749766 passed. Full browser19330bb Development37982226264 passed243 with9 existing skips; final faee43a database-test-only proof staging preserves exact product/E2E/build inputs, with current lightweight checks37983749832 passed. Fresh DEV84 private archive/owned restore, exact V85 migrate/validate and original temporary-rights restoration passed. Final owner has only approved cutover INSERT and assessment_lab USAGE additions; runtime remains protected. Command00013-f84/configured C1CIvmJt deployed; reader unchanged. Representative read-only owner smoke passed with persisted sign-in and no writes; physical-device and owner acceptance remain separate. [Current pins and proof](../outputs/r052-phase6/delivery-manifest.json).
+
+Historical R051 production closure, 7 October 2026: **DEV and PROD V77**, validated. The pinned nineteen migrations V59â€“77 were applied after a verified private production backup/restore rehearsal. V77 retires the rejected related-list helper; V75/V76 remain immutable. All122 relevant routine hashes match across environments. App upgrades and read-only GUI validation passed. Performance measurements remain bounded samples, not an overall sync-speed claim. [Production evidence](https://github.com/welct0407/AppSheet-Loan-Project/blob/a1cf24ccda21c6dde74edec19e9a792fd5dc2715/outputs/r051-production/README.md).
 
 Historical R049 checkpoint: DEV and PROD were **V56**. V56 adds a compatible read-only upcoming summary V2 provider; V1 is unchanged. Full CI and verified DEV/PROD restore rehearsals passed. The pinned migration applied to PROD before normal App Upgrade to OLTP3.000263, and post-migration validation passed. Next migration must be V57 or higher after checking current history. [Production evidence](https://github.com/welct0407/AppSheet-Loan-Project/blob/a1cf24ccda21c6dde74edec19e9a792fd5dc2715/outputs/r049-production/README.md) Â· [DEV handover](https://github.com/welct0407/AppSheet-Loan-Project/blob/a1cf24ccda21c6dde74edec19e9a792fd5dc2715/outputs/r049-upcoming-summary/HANDOVER.md).
 
@@ -74,6 +76,23 @@ The V1 migration is a schema-only export of the verified development/production 
 ./scripts/database/Invoke-Flyway.ps1 -Environment development -Command info
 ./scripts/database/Invoke-Flyway.ps1 -Environment development -Command validate
 ```
+
+## R052 stable DEV application capability tooling
+
+V79 is active in DEV. Initial live provisioning used the guarded `Invoke-DevCommandDatabase.ps1` package; `Test-AppRolePrerequisites.sql` remains disposable-only. Register actual migration creators once in `application-role-creators.json`. The reviewed application policy covers ordinary current/future public application objects with protected journal/governance boundaries; it does not require a new permission decision for each feature.
+
+After a successful DEV `migrate` (including no-op), the maintained runner automatically reconciles the policy only if `mw_app_dev` exists. PROD, `info` and `validate` do not run this hook. If reconciliation fails, the migration may already be applied: preserve Flyway history and the private snapshot and resolve the reported readiness issue; never repair or blindly replay.
+
+Administration CLI defaults to a dry plan, pins the full DEV tuple and established private credential file, and accepts no DSN/host override:
+
+```powershell
+. ./scripts/Enter-Dev.ps1
+node scripts/database/application-role-cli.mjs --action plan
+node scripts/database/application-role-cli.mjs --action membership --runtime-user '<existing nonsuperuser command login>'
+node scripts/database/application-role-cli.mjs --action recover --recovery-file '<private completed before-after snapshot>'
+```
+
+Explicit `--apply` is for the reviewed scoped operation. Apply captures before/after ACL and membership evidence under the maintained private Flyway folder outside Git. Recovery restores only application deltas while preserving original rights and later unrelated grants; malformed snapshots, changed object ownership or conflicting membership drift fail closed. It does not change PUBLIC/default ACLs, drop objects or undo posted financial records. Runtime membership uses INHERIT true, SET false and ADMIN false and rejects journal-owner/migration-creator inheritance. [Candidate and evidence](../outputs/r052-payment-command-api/README.md).
 
 ## Each change
 

@@ -1,0 +1,156 @@
+{
+  "baseline": "46e5a3bae6fd4f5f2e7daf85f7505f1fb8bcc2c0",
+  "build": "8vK9UcXm",
+  "css": "Dx5-93bn",
+  "checks": "Local type/build; 38 focused existing/new boundary/reference/shell unit cases + 5 diagnostics cases passed; C checks pending",
+  "files": [
+    {
+      "path": "apps/pwa/pwa/sw.js",
+      "sha256": "9F7E1B1D0C900CC6724FF57D2472DD3FA54D77D36731D72DEA0A057B28E9F31F"
+    },
+    {
+      "path": "apps/pwa/src/BorrowerPayments.tsx",
+      "sha256": "B24B9C1520564E3A5907F50AF228210736D1DBF6E98DD73C5FFE0CE2A929E115"
+    },
+    {
+      "path": "apps/pwa/src/BorrowerRecord.tsx",
+      "sha256": "7D8F6D6116F8A3ADD29020510CB88813889947A043013CD78DD14FF7850077EE"
+    },
+    {
+      "path": "apps/pwa/src/ChargeForm.tsx",
+      "sha256": "764524620E36B7C969969FEBCE3422BEF145CC2819C316B4743793E851F68547"
+    },
+    {
+      "path": "apps/pwa/src/ChargeRecord.tsx",
+      "sha256": "A497D4FD88244891E123E7234F9A0C6E3CE75213D597222B10255427033B1C94"
+    },
+    {
+      "path": "apps/pwa/src/CollectionRecords.tsx",
+      "sha256": "33D389B9F822C811909777F7C469D72FA5252563DCAF7DD3F8F08C9B757F1E95"
+    },
+    {
+      "path": "apps/pwa/src/Dashboard.tsx",
+      "sha256": "51939FDDFBF8F3C8EB1040C8787AC432670B8C1AB427D737406E4A76548ACFC2"
+    },
+    {
+      "path": "apps/pwa/src/ExpenseRecords.tsx",
+      "sha256": "9F2CBBF5D7DCF169F1F489B5C3659FB278D865EB9CA8B65CCA697569AF24E1A4"
+    },
+    {
+      "path": "apps/pwa/src/LoanClose.tsx",
+      "sha256": "C9F170512EFC4BAA4C23E0AA917207BAB7DF13B90ADE74CA84E377E029CA00A4"
+    },
+    {
+      "path": "apps/pwa/src/LoanForm.tsx",
+      "sha256": "7DF26CA9C4C20E1F705D3D72DAC9EC977E6B2974412D7118B06D087F8A84CE34"
+    },
+    {
+      "path": "apps/pwa/src/LoanRecord.tsx",
+      "sha256": "EF929C99424261C074F4DFB4CD1005CE8C14BC3792D218D4D0F9D68313B202E6"
+    },
+    {
+      "path": "apps/pwa/src/LoanRecords.tsx",
+      "sha256": "C65A387A1A74073EAA27073685968C8C72C3B4E024700502D4BD181915B56EBB"
+    },
+    {
+      "path": "apps/pwa/src/ManagementAnalytics.tsx",
+      "sha256": "A3010D6F6038543CEC2AEF82877A9A90DB4C10F039FF0BC8672DD59E6CF34193"
+    },
+    {
+      "path": "apps/pwa/src/ManagementAssessments.tsx",
+      "sha256": "7A80B0FB1F55A50161D6DE2DADA4CA700BEFA7D0BDCBD02D5E14FE1BA087A6CD"
+    },
+    {
+      "path": "apps/pwa/src/ManagementCash.tsx",
+      "sha256": "01286BD19B33ED91CFDC49D94179A1FD9E32996FBA9454E08E584F00F9FE70E7"
+    },
+    {
+      "path": "apps/pwa/src/ManagementFinancialForm.tsx",
+      "sha256": "0D7C3DEBF7286F177005A682D44B8D030A5EAD2B2420D62183B02A8CCDF6D528"
+    },
+    {
+      "path": "apps/pwa/src/ManagementFinancialWorkspace.tsx",
+      "sha256": "4F98ED53B2785EC22AA47285B763A4B06DD0E11AE3280D3C8394724A964A960A"
+    },
+    {
+      "path": "apps/pwa/src/ManagementForm.tsx",
+      "sha256": "780B1A044AA9DFD6E47675E40F0C973456C1E5435BA849993A212205109C156F"
+    },
+    {
+      "path": "apps/pwa/src/ManagementOpenings.tsx",
+      "sha256": "8265D85417E966581E77DA496C23DF53E9910A71A9D30281F7009AACD3C41E76"
+    },
+    {
+      "path": "apps/pwa/src/ManagementWorkspace.tsx",
+      "sha256": "27B42393BC5DDFF37C3489B097ED20BD2AFFA914E4D83F5C081E7C4531299E47"
+    },
+    {
+      "path": "apps/pwa/src/OfflinePayments.tsx",
+      "sha256": "7CB4CB61002390ADEB64480C0DD60CE4345AE51EF82D59DA3115730AB7650287"
+    },
+    {
+      "path": "apps/pwa/src/OfflineViewedRecord.tsx",
+      "sha256": "97C7576F562F3484A3A9FBEAED5ADAEEBE2625E595A63D4C1DB556F99DB24E02"
+    },
+    {
+      "path": "apps/pwa/src/OperationConfirm.tsx",
+      "sha256": "6CA4AE7E2DA0041CB8960692163EB680B4911E7175DAB680127A2C042E654EA7"
+    },
+    {
+      "path": "apps/pwa/src/PaymentCorrectionForm.tsx",
+      "sha256": "B8663EF085313BF2FC1E974FD4B740730E5CB1EACFAAC81A6A1D37B7BE550857"
+    },
+    {
+      "path": "apps/pwa/src/PaymentHistory.tsx",
+      "sha256": "4C0478F5BEDF92432A30C9982FC14D64D6FEBC4E94113B369061888932CD271C"
+    },
+    {
+      "path": "apps/pwa/src/PaymentRecord.tsx",
+      "sha256": "FD7FDF88A6B905C0809957DA1C63D6EAB3B5AFC0C1390AAD31ECA21C7A5CA651"
+    },
+    {
+      "path": "apps/pwa/src/SelectedCharges.tsx",
+      "sha256": "58C2DACC0C2FDAB7F94DF46D90CD6889FDE62ADFA5BFBC839CAEF4F9D2DF4E9A"
+    },
+    {
+      "path": "apps/pwa/src/StandaloneRecords.tsx",
+      "sha256": "7C9FE817E057AFDC32E2C3EECC5EFFFD65C79B63ED5CC72C0346D44C84AB1CFF"
+    },
+    {
+      "path": "apps/pwa/src/StandaloneUpcoming.tsx",
+      "sha256": "08A51906D47EB4AB90F6AA518F54C924A7CC6456110B27B188C45D592B67EB81"
+    },
+    {
+      "path": "apps/pwa/src/UpcomingCharges.tsx",
+      "sha256": "6D0D1ADD3B8F551EF4F7E40A9D38D3032CA8B4BBD43B61E308316D4B06221E5A"
+    },
+    {
+      "path": "apps/pwa/src/live-main.tsx",
+      "sha256": "6D2F018A8BCF9266D4CC2A02792FD17A47744B3E37215B43072D319D51A6E641"
+    },
+    {
+      "path": "apps/pwa/src/live-style.css",
+      "sha256": "FB477CA599DC117C5E70CACBC0C0B19697ABFEB764C0E7099E0DEF0E26D89D88"
+    },
+    {
+      "path": "services/api/borrower-read-store.mjs",
+      "sha256": "9CEC06E558DEE4F304CB961454A16069E9020C8BDE6C12ADB1280DA51C93AD2F"
+    },
+    {
+      "path": "services/api/dev-read-handler.mjs",
+      "sha256": "F1DD56C174D754642C24C6718BE741FCE125AE15B3C7562FF137A2F415ABCC38"
+    },
+    {
+      "path": "apps/pwa/src/HeaderBack.tsx",
+      "sha256": "6DAFD729D33C4F3B5369443641512FE17AC0F6E023C2A0126942BEA4AA1069F0"
+    },
+    {
+      "path": "tests/unit/public-shell-cache.test.mjs",
+      "sha256": "4FD9144BA1731DFA9A2DE20340A8DA22AD1A179C19C7ED0197E2C06D065FB959"
+    },
+    {
+      "path": "tests/unit/read-stage-diagnostics.test.mjs",
+      "sha256": "73386C77E10992DC59E7F7648720F6063433AEF33CB1A78BC3A01319CEE4BF58"
+    }
+  ]
+}

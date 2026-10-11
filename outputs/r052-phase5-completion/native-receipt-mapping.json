@@ -1,0 +1,50 @@
+{
+  "date": "2026-10-09",
+  "scope": "Bounded read-only DEV Payments manual references and exact current AppSheet folder metadata",
+  "database": "loan_manager_dev",
+  "host": "34.21.174.215",
+  "ssl": true,
+  "bucket": "mw-payment-receipts-prod-508610-n7",
+  "objectRoot": "appsheet/data/MW_OLTP_DEV_20260919_578763613/manual_receipts/dev/",
+  "counts": {
+    "uniquelyMatched": 5,
+    "sqlManualReferences": 5,
+    "native": 2,
+    "generated": 3,
+    "folderObjects": 7,
+    "verifiedNativeGenerationReads": 2
+  },
+  "nativeDescriptors": [
+    {
+      "referenceSha256": "a82069c3747f804b1c21fa8fe25e8a90b6f0a6f2c479a8e921f9791a08c89966",
+      "keySha256": "edf042578c308ee98b8f5845e666e3221c259b668580fef92c5603094d87393f",
+      "generation": "1790502998234094",
+      "mimeType": "image/png",
+      "sha256": "6ca9554505fb5910463a6d28c8ab2acbfcc248a8b6b40204dac615e58b4bb184",
+      "mapping": "exact verified DEV native pair; candidate basename underscore accepted only after key/reference hash match",
+      "sizeBytes": 45468
+    },
+    {
+      "referenceSha256": "e26dae420e40ecb76e6f0dd89ca819cf29a16464fee8b1fef1ab711705a2c86b",
+      "keySha256": "1c4d7fd7fd9e5890cca6958c493d6b0af68dbcc60399a011d72b43492b0b20ff",
+      "generation": "1790503307902448",
+      "mimeType": "image/png",
+      "sha256": "9d7d3cd67f071ee38a91609860b81c63418007305f38dcf37498405c388ce65f",
+      "mapping": "exact verified DEV native pair; candidate basename underscore accepted only after key/reference hash match",
+      "sizeBytes": 46107
+    }
+  ],
+  "observations": [
+    "Generated references match exact suffix beneath verified fixed directory",
+    "Two current native basename pairs use underscores in observed GCS keys where logical references contain spaces/hyphens",
+    "Neither native object contains original logical-name metadata or PWA sha256/environment custom metadata",
+    "Each exact native object generation read succeeded under authorized owner CLI and bytes SHA256 was computed privately"
+  ],
+  "limits": [
+    "Only these exact two native pairs are verified; no general filename conversion rule",
+    "Unknown/new AppSheet native uploads remain unresolved and must fail closed pending exact reconciliation",
+    "No deployed-command-IAM or authenticated adapter proof from this owner-CLI read",
+    "No runtime listing permission, public URL, new credential/table, financial write, storage write or AI activation",
+    "Raw names, keys and media remain outside Git; sanitized hashes are only resolver evidence"
+  ]
+}

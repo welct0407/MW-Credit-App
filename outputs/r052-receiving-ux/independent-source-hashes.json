@@ -1,0 +1,111 @@
+{
+  "recordedUtc": "2026-10-08T12:54:06.3337038Z",
+  "startingCommit": "1aae197994d93f16831857bba9b7a1c69904bf3f",
+  "testScope": "V1-V81 true LOGIN15/15; focused UX/recovery30-case run28pass2fixturefail then exactaffected8/8; quota/cancel/clear/headeroverlap explicit; see independent-verification.md",
+  "files": [
+    {
+      "path": "services/contracts/payment-command.mjs",
+      "sha256": "e50c53134e8d76abd1bce01a691118fd9ea852a601b257d3ffbcb992cc2c1172"
+    },
+    {
+      "path": "services/payment-command/draft.mjs",
+      "sha256": "29a087a9155a20091f081252abe0aa75f69e25c8be56e7c69f33b2c1c5685576"
+    },
+    {
+      "path": "services/payment-command/result.mjs",
+      "sha256": "57eca23d66d95197cd2a30fb9244a3bd6e7dc39fde7ce1f0e8865017d14fba07"
+    },
+    {
+      "path": "services/payment-command/store.mjs",
+      "sha256": "960488a5fbf6366dfa12a9f64884d854ee4790f28b0f506c4fcd49b1db4e3340"
+    },
+    {
+      "path": "database/migrations/V81__payment_command_method_v5.sql",
+      "sha256": "e5910ad6d6b8c844888045a52e930e63a44066fbdba240487faeaae1380d9d7c"
+    },
+    {
+      "path": "apps/pwa/src/SelectedCharges.tsx",
+      "sha256": "212b150c5fb6c2208cf2fdab4713fcc1692b9dcaaf17757972d4d0dd9e768a5f"
+    },
+    {
+      "path": "apps/pwa/src/PaymentResult.tsx",
+      "sha256": "5fa9e95f4cc4a56b7d1af812b1f377b280b47eb4cc895fceec4308cc270f1039"
+    },
+    {
+      "path": "apps/pwa/src/PaymentHistory.tsx",
+      "sha256": "b29d8bbc01ed8361fd30b750e563a5c839b1201b247a70ebbb66c2eb7b00f9c2"
+    },
+    {
+      "path": "apps/pwa/src/CollectionRecords.tsx",
+      "sha256": "d5ed44ca447509941c68c4d864664863aac90d41f255bb813bc90a63ff5755cd"
+    },
+    {
+      "path": "apps/pwa/src/UpcomingCharges.tsx",
+      "sha256": "a152759770118ba6981415a09bffa710c57bc4c3a713d042c7139350ce502992"
+    },
+    {
+      "path": "apps/pwa/src/LoanRecords.tsx",
+      "sha256": "0fb70df9481b231c21d37a79ef7c011f02510ae6663f18d0f7448cc532f20f99"
+    },
+    {
+      "path": "apps/pwa/src/live-main.tsx",
+      "sha256": "b8c8849ca8d5d107cab946fbdaaaf66ba34c0da3bfa63bbb804c23acb2fae783"
+    },
+    {
+      "path": "apps/pwa/src/OfflinePayments.tsx",
+      "sha256": "cf7bfd5e35f9999cce2b03dda32af8c9b9b5e4eb4d8f9dc4f870a3b303e4cdc2"
+    },
+    {
+      "path": "apps/pwa/src/owner-offline.ts",
+      "sha256": "58f490daaeab9dcef89da82750c8e473eec902975ae3b70d9ca088bd32a251eb"
+    },
+    {
+      "path": "apps/pwa/src/request-activity.ts",
+      "sha256": "5675eb3c91d01168514358b5ad05973c4dd43d4f64996eaf970356c485cb64b9"
+    },
+    {
+      "path": "apps/pwa/src/CompactPager.tsx",
+      "sha256": "b730ff0aaa41bb69a3809331fab6487560c3a09c69fb5ecdcb904773abe38742"
+    },
+    {
+      "path": "apps/pwa/src/style.css",
+      "sha256": "f87ca189b7bf48e3e7ede1932cb0a199dc87062a95333cc453cc9f78578285ec"
+    },
+    {
+      "path": "apps/pwa/src/live-style.css",
+      "sha256": "11c5b241b341b34b58e051e143192736e8b7d0098a4ad76b9d09a190bdfa3b01"
+    },
+    {
+      "path": "tests/integration/Run-PaymentPhase4.ps1",
+      "sha256": "d31a241352c77f7555755928bf1ac84888a958f9e1853a6b2209bfc2dd93fd16"
+    },
+    {
+      "path": "tests/integration/receiving-ux-independent.test.mjs",
+      "sha256": "4cecba5f350de521576003234c45271a010a5d3ee2d57d3ed738a8453ccfead3"
+    },
+    {
+      "path": "tests/e2e/receiving-ux-independent.spec.ts",
+      "sha256": "032167b3e5f80c159f66710943fd107ee445c284faae94fcf8530df070a3a681"
+    },
+    {
+      "path": "tests/e2e/payment-phase4-independent.spec.ts",
+      "sha256": "1880ac12009db9056cd90df8f95bcbb655ab7fd092fdac3c0745b8ccf5d129a3"
+    },
+    {
+      "path": "tests/e2e/persistence.spec.ts",
+      "sha256": "a8a4b65ff6311ebb7487dfb352944a50f4e40157d6a602aea3441c014fc991f8"
+    },
+    {
+      "path": "tests/e2e/borrower-search.spec.ts",
+      "sha256": "e3cfeca10f9f157bd8b8a4e81173ca81f4fd32970ca0501fb43da1240c3f44a3"
+    },
+    {
+      "path": "tests/e2e/live-search-timer.spec.ts",
+      "sha256": "22182b54e9445ecfcd3894d194becb8101ce2c90e535517694d9bfab56461c4f"
+    }
+  ],
+  "deliveryWhitespaceCleanup": "D removed trailing whitespace only in LoanRecords/SelectedCharges after C pass; no executable statement changed",
+  "finalHeaderOnlyCorrection": "B surgical suppression of duplicate transient auth body panel; no auth-state/policy change; build and targeted3/3 passed after C core proof",
+  "remoteCorrection": "B8/8 test-only search navigation correction: return to root list before parent refresh/current accessible Back label; no assertions/timeouts/skips weakened",
+  "artifactCodeCommit": "f937bff4d9daf9ecdd1901cd5664e00bcfedf1a7"
+}

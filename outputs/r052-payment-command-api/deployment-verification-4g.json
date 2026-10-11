@@ -1,0 +1,142 @@
+{
+  "schemaVersion": 1,
+  "checkpoint": "4G",
+  "observedAt": "2026-10-08T08:31:35.9147828Z",
+  "sourceCommit": "9a67365f76cd0bb854faa903a4a15edc539d5846",
+  "ci": {
+    "development": {
+      "run": 37744744594,
+      "result": "passed"
+    },
+    "database": {
+      "run": 37744744612,
+      "result": "passed"
+    },
+    "maintainedLocalDatabase": "passed"
+  },
+  "artifact": {
+    "containerSharpAndBootstrapDependencySmoke": "passed",
+    "image": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app/api@sha256:8ed32f3b98caffcd088dc2603b4f3b3ec175908e50da151f2dfc73ca5f13bd12",
+    "cloudBuild": "c6461d6d-3e0d-4186-9db5-30b849b4d64b"
+  },
+  "infrastructure": {
+    "finalPlan": "no changes",
+    "identityApply": "8 added, 0 changed, 0 destroyed",
+    "fullPlanSha256": "7f6354e8a10a266cdda013ff9e593821a38612dee42cff56981839183dc5b1c0",
+    "existingReader": "unchanged",
+    "servicePlanSha256": "75bdb243548abb13fa743040a89d1d8acf4e5fc2f0a9ca8a360cc9ac67b4f489",
+    "serviceApply": "1 added, 0 changed, 0 destroyed"
+  },
+  "database": {
+    "journalOwnerSchemaCreate": false,
+    "successfulHistoryHead": 79,
+    "runtimeAdministrativeFlags": false,
+    "name": "loan_manager_dev",
+    "validate": "passed",
+    "runtime": "mw-credit-app-command-dev@clever-oasis-508610-n7.iam",
+    "operator": "postgres nonsuperuser",
+    "actualIamProof": "real deployed Cloud SQL IAM connector and principal/database/nonadmin/membership bootstrap guard passed before listen",
+    "instance": "appsheet-pg-prod-20260914",
+    "port": 5432,
+    "runtimeAppMember": true,
+    "operatorOwnerInherit": false,
+    "failedHistory": 0,
+    "runtimeCreatorMember": false,
+    "project": "clever-oasis-508610-n7",
+    "runtimeOwnerMember": false,
+    "ownerImpersonation": "unavailable; no tokenCreator grant added",
+    "host": "34.21.174.215",
+    "operatorOwnerSet": false
+  },
+  "service": {
+    "anonymousCommandStatus": 401,
+    "invokerBoundary": "IAM invoker disabled only new command service; application authentication retained",
+    "revision": "mw-credit-app-command-dev-00001-24p",
+    "mode": "synthetic-only",
+    "ready": true,
+    "url": "https://mw-credit-app-command-dev-pvrgvyg3oq-as.a.run.app",
+    "healthStatus": 200,
+    "auth": "Firebase revoked-token verification, UID-pinned secret version1 and current unique Partner mapping",
+    "anonymousCommandCode": "sign_in_required"
+  },
+  "hosting": {
+    "site": "mw-credit-app-dev-737787224638",
+    "sourceBuildMode": "live-dev",
+    "files": 11,
+    "rollbackVersion": "ff1c9ce9a4bfedf2",
+    "release": "1791446345773000",
+    "version": "100e5044b9227d7a",
+    "url": "https://dev-lm.mw-credit.com"
+  },
+  "fixture": {
+    "borrower": "R052-4G-B",
+    "current": "one Posted payment/journal; two allocations/repayments principal2 interest0; both chargesremaining0/paid; loanclosed; cashout2+cashin2/net0",
+    "existing6AffectedTableFingerprints": "unchanged after Posted at2026-10-08T08:30:13Z with exact synthetic exclusions",
+    "retention": "retain posted payment/journal/receipt/ledger/repayments; no financial deletion",
+    "aiCollection": false,
+    "charges": [
+      "R052-4G-C1",
+      "R052-4G-C2"
+    ],
+    "loan": "R052-4G-L",
+    "contacts": "blank",
+    "principalBaht": 2,
+    "interestBaht": 0,
+    "autoCharge": false,
+    "account": "R052-4G-ACCOUNT"
+  },
+  "recovery": {
+    "scope": "stop commands/restore prior Hosting artifact; retain compatible V79 and financial trace; guarded exact ACL recovery",
+    "privateBeforeAfterRoleAclSnapshots": "retained",
+    "dumpSha256": "22a30c9461ef2973285e44cb15d69fd79e1da9e5199eb7da22afd71918847d9c",
+    "privateTerraformStateSha256": "ed6ab0eb2d533dc792954bbe9c265ec5e6fdeab9a61962560897116b7663912b",
+    "privateDumpRestore": "passed"
+  },
+  "actualOwnerBrowser": "passed: real owner authenticated, exact synthetic draft, approved PNG upload/authenticated GET rendered640x360, Thai multiline notes, exactly one Confirm and Posted; see live-ui-verification-4g.json",
+  "limits": [
+    "No PROD changes or cutover",
+    "No real borrower/account/payment mutation",
+    "No notifications or external delivery activated",
+    "Prior4F AppSheet receipt mapping proof reused unchanged",
+    "Local C23 cases use explicit synthetic seams; deployed owner proof recorded separately"
+  ],
+  "syntheticPosting": {
+    "requestId": "549e30ad-1418-4cf2-8b64-c6b8ff6bd7dc",
+    "paymentId": "pwa:549e30ad-1418-4cf2-8b64-c6b8ff6bd7dc",
+    "recordedAt": "2026-10-08T08:24:43.471Z",
+    "journalRows": 1,
+    "paymentRows": 1,
+    "allocationRows": 2,
+    "repaymentRows": 2,
+    "principalBaht": 2,
+    "interestBaht": 0,
+    "remainingChargeBaht": 0,
+    "loanClosed": true,
+    "cashInBaht": 2,
+    "cashOutBaht": 2,
+    "netCashBaht": 0,
+    "thaiMultilineNotesRetained": true
+  },
+  "receiptProof": {
+    "sqlReference": "manual-receipts/dev/pwa/549e30ad14184cf28b64c6b8ff6bd7dc/f0f7c9f2d91d42279e6fecd5d8872d9f.png",
+    "objectKey": "appsheet/data/MW_OLTP_DEV_20260919_578763613/manual_receipts/dev/pwa/549e30ad14184cf28b64c6b8ff6bd7dc/f0f7c9f2d91d42279e6fecd5d8872d9f.png",
+    "generation": "1791447821077162",
+    "sha256": "6d6732776e9ff7e1d2c74228bff891e99826b9db74b98089a686067df04d70af",
+    "sizeBytes": 18947,
+    "mimeType": "image/png",
+    "width": 640,
+    "height": 360,
+    "requestReceiptActorHashContentSizeMimeDevBindings": true,
+    "v52UploadedAt": "2026-10-08T08:24:43.932Z",
+    "agentReceiptFieldsBlank": true,
+    "serviceIamCreateGet": "actual owner authenticated PWA upload/GET/render passed",
+    "independentOwnerCliExactGenerationHashGet": "passed; read-only",
+    "retained": true
+  },
+  "remaining": [
+    "Owner acceptance is separate",
+    "No supported live after-Posted replay/status control; not exercised, prior local tests remain explicitly reused",
+    "No new AppSheet render or editor audit; unchanged exact4F mapping proof reused",
+    "Full receiving parity/event delivery/production readiness remain open"
+  ]
+}

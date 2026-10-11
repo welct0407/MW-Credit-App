@@ -1,0 +1,19 @@
+{
+  "sourceCommit": "a1fc80001963cec93df65bf5d48062e6c8d13f4f",
+  "ci": "https://github.com/welct0407/MW-Credit-App/actions/runs/37712787076",
+  "ciConclusion": "success",
+  "cloudBuild": "b2fb7e36-e5c2-4d43-9180-2a76c77cfb33",
+  "image": "sha256:7695213edf1f4f4a04e51bf49025b2de30cdd00e88a755505109cf53a19b8c61",
+  "plan": "One read_api image update; zero additions/deletions; other desired runtime configuration unchanged",
+  "javascript": "index-DbyM5rK8.js",
+  "workerSha256": "5397340c64eba86386815ba0573943986dbab140666ddcac6a63249c17ad3071",
+  "rollbackApi": "00011-z44",
+  "rollbackImage": "sha256:ac0e0bede20f367edc322908d8c9c029c6dd97feba6be042b07072a7f68bc0b6",
+  "rollbackHosting": "8fa268235d983461",
+  "compatibility": "API header additive; new UI tolerates absent reference",
+  "logging": "Existing stdout capture and operator access; no new IAM/resources",
+  "deployment": "API 00012-99g Ready, then Hosting ff1c9ce9a4bfedf2 released",
+  "liveVerification": "C deployed 5/5 passed: exact unsigned reference/CORS boundaries and canonical/fallback assets/UI; one benign unsigned401 matched sanitized stdout",
+  "ownerReview": "Synthetic read-error/copy/retry review; native offline/update acceptance remains separately open",
+  "hostingRelease": "1791423112911000"
+}

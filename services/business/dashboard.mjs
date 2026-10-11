@@ -1,0 +1,10 @@
+import {readCashOverview} from './cash.mjs';
+const metrics={pendingPaymentAmount:'Pending Payment Amount',todayProfit:"Today's Profit",yesterdayProfit:"Yesterday's Profit",netProfit:'Net Profit',notPaid:'Borrowers Not Paid Today',partiallyPaid:'Borrowers Partially Paid Today',overdue:'Borrowers with Overdue Payment',fullyPaid:'Borrowers Fully Paid Today',expectedDailyInterest:'Expected Daily Interest',realizedProfitMtd:'Realized Profit MTD',forecastRemainingInterest:'Forecast Remaining Interest',projectedMonthlyProfit:'Projected Monthly Profit',totalCashPool:'Total Cash Pool',activeLoanProfit:'Total Profit of Outstanding Loans',profitCoverageRatio:'Profit Coverage of Outstanding Principal'};
+export async function readDashboard(client){
+ const projection=Object.entries(metrics).map(([key,column])=>`"${column}"::text AS "${key}"`).join(',');
+ const rows=(await client.query(`SELECT DISTINCT ${projection} FROM public.olap_portfolio_summary LIMIT 2`)).rows;
+ if(rows.length!==1||Object.values(rows[0]).some(value=>typeof value!=='string'||! /^-?[0-9]+(?:\.[0-9]+)?$/.test(value)))throw Error('Dashboard provider unavailable');
+ const row=rows[0],counts={};for(const key of ['notPaid','partiallyPaid','overdue','fullyPaid']){const number=Number(row[key]);if(!Number.isSafeInteger(number)||number<0)throw Error('Invalid provider count');counts[key]=number;}
+ const stamp=(await client.query(`SELECT to_char(CURRENT_TIMESTAMP AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "asOf",(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date::text AS "businessDate"`)).rows[0],cash=await readCashOverview(client);
+ return {...stamp,pendingPaymentAmount:row.pendingPaymentAmount,todayProfit:row.todayProfit,yesterdayProfit:row.yesterdayProfit,netProfit:row.netProfit,collection:counts,forecast:Object.fromEntries(['expectedDailyInterest','realizedProfitMtd','forecastRemainingInterest','projectedMonthlyProfit'].map(key=>[key,row[key]])),portfolio:Object.fromEntries(['totalCashPool','activeLoanProfit','profitCoverageRatio'].map(key=>[key,row[key]])),incomeMtd:cash.dashboard,businessCashHeld:cash.accounts};
+}

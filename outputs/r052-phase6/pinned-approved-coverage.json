@@ -1,0 +1,355 @@
+{
+  "date": "2026-10-11",
+  "source": {
+    "baseline": "dadb73b",
+    "build": "CCNHihDu",
+    "css": "u0T0Vs8y",
+    "checks": [
+      "npm run build:live-dev: PASS (tsc + Vite)",
+      "node --check: payments, draft, close-summary PASS"
+    ],
+    "files": [
+      {
+        "path": "apps/pwa/src/CollectionRecords.tsx",
+        "sha256": "A2CE85F64632D5884CFFDAD7B6C3C764BAD95B13F8B39BB422D0EAA815656BCD"
+      },
+      {
+        "path": "apps/pwa/src/Dashboard.tsx",
+        "sha256": "50943564171ED4CA4E255329D13BB8EBEEA1843730106909A4BED3FE486A48F3"
+      },
+      {
+        "path": "apps/pwa/src/LoanClose.tsx",
+        "sha256": "2C2DAB17205166186CCE8472A11AACC34485C1CF6B2EDA44CC173E2D2C8FD1C3"
+      },
+      {
+        "path": "apps/pwa/src/LoanRecord.tsx",
+        "sha256": "8BBC2C1631D1A147CB18826FC8EB232C8BB2BCEEE6428A0D7D7BBB0A107FDCAF"
+      },
+      {
+        "path": "apps/pwa/src/LoanRecords.tsx",
+        "sha256": "D87F18314C7E1F9B7880FDD7677B2BAE647DA0D44E013F84997B6B16087EBDB1"
+      },
+      {
+        "path": "apps/pwa/src/PaymentCorrectionForm.tsx",
+        "sha256": "B2BC142426FCAA51E6620E59DCAF3A2AC85DB20F3A794F003DCFC513D7A210B5"
+      },
+      {
+        "path": "apps/pwa/src/PaymentGroups.tsx",
+        "sha256": "5B1927826A67DDF2B1895512C027A7DC675B8691BBED9A9450745B458389549D"
+      },
+      {
+        "path": "apps/pwa/src/PaymentRecord.tsx",
+        "sha256": "71A65652D0A13BAECCD6990F1847464685042BE45E400C5BB2698D40FD6DFA47"
+      },
+      {
+        "path": "apps/pwa/src/SelectedCharges.tsx",
+        "sha256": "12353180D9ADC6749AE385D3CAAA1CF09D8ACF75B3373FC762FFA2D3EB969936"
+      },
+      {
+        "path": "apps/pwa/src/live-main.tsx",
+        "sha256": "56B4CBB7B2FA26BDB78CD7863EF971030A57BC88802D1DC2B42C2E572288219E"
+      },
+      {
+        "path": "apps/pwa/src/live-style.css",
+        "sha256": "E2F2576A5164A2C983AF0C8400E800BA4D2846CC7272E3CF7F9784C8A198F8CA"
+      },
+      {
+        "path": "apps/pwa/src/viewed-snapshot.ts",
+        "sha256": "E14B2B8BCF0ED6D9A37DCC70E9602B8146A4FF7A36CE4633DF41A4A3F4296FEA"
+      },
+      {
+        "path": "services/business/payments.mjs",
+        "sha256": "B810FB4445E64B70F89A8A816AE2AEBFADF1C6EB78153CAB512112A18102A8E8"
+      },
+      {
+        "path": "services/payment-command/draft.mjs",
+        "sha256": "2EDEC4309486FA9997B8D05AB347A2233B6266B38CC7D7F55C8E3D63AE0FC2E9"
+      },
+      {
+        "path": "services/payment-command/store.mjs",
+        "sha256": "1D1DDC01F994649CA26D1DEC5E9E6735713C9459FA2EE7F771CA9B9B34D69A4C"
+      },
+      {
+        "path": "services/payment-command/close-summary.mjs",
+        "sha256": "D825CC7B6D2D4EB145D938CF6858A8220B51C06148A98EA9A3C1F2AC6C041486"
+      }
+    ]
+  },
+  "checks": {
+    "readUnits": "2/2 PASS;27 rows,Snapshotdate,leftjoins,null-label retained,canonical unchanged;exactBigIntcent summary includingzero/mismatch",
+    "allocationsClose": "PASS4.1s;27receivingreviewlines beyond25currentpage;27correctionreviewlines;two same-date LoanKeys;entry+review exactClose components/date;stalehash blocks command until explicitadopt",
+    "roots": "PASS4.9s;Dashboard/Collection/Payments/Borrowers representative440/820/1180/1440;legends/statusnoncolorcue/captionfit",
+    "initialPhone": "PASS1.5s;fresh440 DashboardForecast+Income startcollapsed",
+    "loanActions": "PASS2.1s;4distinctgovernedLoanicons;EN/Thai captions fitbuttons>=768;phoneicons/nooverflow"
+  },
+  "captures": [
+    {
+      "path": "outputs/r052-phase6/pinned-approved-borrower-edit-1180.png",
+      "sha256": "4c3c00a899ae45aa1c0f35ad3693119582479b720982e72c7bb46831f1ac370a"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-borrower-edit-1440.png",
+      "sha256": "bcc42ed8fff73e9397d453fdfa4f0062db05bdd5fc87ee26d46d2362bc0897cb"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-borrower-edit-440.png",
+      "sha256": "71768c86061be2e4e271a93bd62472f64bb815d75b4ff8fc5e69ff17bef056d2"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-borrower-edit-820.png",
+      "sha256": "7723875e000d42f74aa6ed156025f3807d8dda50b2af6687d145314e1d15e65d"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-borrower-summary-1180.png",
+      "sha256": "8e1a3fc286870cf3886bed22f8923a8cf3edc3ae1819ef6eb5c0bda4edaf7ba7"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-borrower-summary-1440.png",
+      "sha256": "3aad035085146915d5e1d0ef892f0860c5e203e8ae72fabbafa5f7e75fcd681c"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-borrower-summary-440.png",
+      "sha256": "73a7addb84a4b6fdc3328169d6082d76875d5683b8e8f8e5b1197025c997fc86"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-borrower-summary-820.png",
+      "sha256": "1a6efd27026a5c2e9c0f5f1a09ed37d2dff7cfbae19a82d0e4e6853a2efe65ee"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-borrowers-root-1180.png",
+      "sha256": "b1fe6124b748a73b038adc9740ff765408de43a9fa1e42f3210bc1379b7db955"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-borrowers-root-1440.png",
+      "sha256": "5cf0c9acf971fba32e559fc46c9708a9f2ba1f07175370a51761018841e1e55a"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-borrowers-root-440.png",
+      "sha256": "39bf7072f2a44e6ca0e0d8acbbf7c87997bd7e63f34cbb748d2be6a9978d8b00"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-borrowers-root-820.png",
+      "sha256": "4c26b9b9f0bed93e89ef0ec71fc65cef0373cfbbd9b9bbd8c97a566c1af6824f"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-close-entry-1180.png",
+      "sha256": "158edd6bfceb9323be82dbfd9beafd18db0d6eaf6c0a0ccbb75b98268410f5cb"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-close-entry-1440.png",
+      "sha256": "636377a52e4d18dae747f978f6c0321acdbfe7820e64bcdedcd8f96654486fd8"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-close-entry-440.png",
+      "sha256": "4a12f31d85f01eed3c89a59128d11f778535fd44feea9a541b949e8a65f4258a"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-close-entry-820.png",
+      "sha256": "392173571059809d7ee700378b194d163cf7bf5651547ea4b9079b8a5a9911bc"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-close-review-1180.png",
+      "sha256": "f5c547d7b7cbd19251de7885b5eb1c4d9103a04d2880f6b81801e033dc975fce"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-close-review-1440.png",
+      "sha256": "b2bb93e3a6fa3f109b2987c30cdc62648b6bfb478729b53e84c3a3da04f85919"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-close-review-440.png",
+      "sha256": "60b95ca86be4e6df1adab74fc74bf95219bb3c5afc99505d3f53badaf4b3d62e"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-close-review-820.png",
+      "sha256": "5bdda05909472fd516d0558da660515a2df6a50c6706b94ae25404af77e0cb72"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-collection-detail-1180.png",
+      "sha256": "edf00a015d60492f568418e01d1e0f0e6db0de84aa396ab8760aae4df47cc636"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-collection-detail-1440.png",
+      "sha256": "1997ae6f050af5968c027094a9ddfb1d463cd5b219891ab24d75b0db4461dd2f"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-collection-detail-440.png",
+      "sha256": "aa692ac7e3d8857a06f9c263f6429b68a066ed7866ff0718b9c978e44c14244c"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-collection-detail-820.png",
+      "sha256": "ca4da5dfd5752225966461f29859ce5bfe67ec37ff720a8a1707f6c2ab73b52b"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-collection-root-1180.png",
+      "sha256": "166207ee16b5105cf9554f6c2119745a02d8f4b60770803d87048da4a0a8d733"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-collection-root-1440.png",
+      "sha256": "17260cce7388bb0bb2aeb7035ef0f909c29ff66af6b624d5796acfb1e71f8edb"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-collection-root-440.png",
+      "sha256": "7e070b0d9442b48d2e13f2f2eb4a77ab4eeca9b39d5aafbc47189cab98e92db2"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-collection-root-820.png",
+      "sha256": "81844cf0dd68fd85431b4a631be1fa9998dad575d026b89702d32741a3592c1f"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-correction-entry-1180.png",
+      "sha256": "147915f9ac22b9671c0b0d0cfe0db2b259455a8015f6ff2e5b1e0bda52ac315e"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-correction-entry-1440.png",
+      "sha256": "d6eb45d9abb7889b6e08ef03d8c54b2c14aceaa768368799c3c6bd2cb177b936"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-correction-entry-440.png",
+      "sha256": "713f63ace71557bd8e655b58f79cf74e5aa5fbf5e5143356b1bcede5ca527511"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-correction-entry-820.png",
+      "sha256": "2305cf7e0e118349944d79896cd74d240a1276490943599060d13ea628eeb35c"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-correction-review-1180.png",
+      "sha256": "59266d018e743586f82dea3313773f5ac94752bfe5c5127cd4b018418c7e4c4d"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-correction-review-1440.png",
+      "sha256": "d0f0a7752a71086b1bf97bf29986939e52444963c128efcc9353775984559ec2"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-correction-review-440.png",
+      "sha256": "29e84651b3a572173d0951ed268591033bcc6e584455c3b13e90c9dfc7af2ef8"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-correction-review-820.png",
+      "sha256": "1e27f3a5224c82b3e0127eaa95aa93682e34198b14a3f784b4a5500f84a76885"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-dashboard-initial-phone-440.png",
+      "sha256": "a893162389c727f8ae2a99f47907da2251bd9a1a0faaa616e5811b87f5c1fbc5"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-dashboard-root-1180.png",
+      "sha256": "9b241a5048f41507599a83419ed3fdca5de0998479c42acb23bb900d85c9fd07"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-dashboard-root-1440.png",
+      "sha256": "4cab2c5ed5bda9210258645449001812a2d35cf32c183360d0485e93f31263e4"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-dashboard-root-440.png",
+      "sha256": "379c959312a005814d0b58e4c68cfe973d4ed5a4f038e808a2d13475e70f4be4"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-dashboard-root-820.png",
+      "sha256": "19d0b2af594bc96c25975abf1182886bdc71e1209ca0e8c70f4cf80ea179f585"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-loan-actions-1180.png",
+      "sha256": "8ff2f6a0c5e619327c1e135a58ec94b061101ba9de491f7ddb728c3cd68033e4"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-loan-actions-1440.png",
+      "sha256": "0f4d17778f370cc65b2fe17c5411494d31e17a4037e0a4474c78dac0554890f3"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-loan-actions-440.png",
+      "sha256": "1b7ea11eb025d58792bd477055e29af14af6321c777ad9a980bc860ac7b838f7"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-loan-actions-820.png",
+      "sha256": "a9ea0df4eeeb6114b164a00338ed37347c8ea0f66ae68bd59331ab80064fd80e"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-loan-actions-thai-1180.png",
+      "sha256": "27b0729c5dd200b544e7794929432f1b44e7230aba5fb4618238542b1c9bf192"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-loan-actions-thai-1440.png",
+      "sha256": "8f356bdb7f273d3d9ca28c94335038239f27cc4acf5a59816b438e0b13a0f367"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-loan-actions-thai-440.png",
+      "sha256": "f895ff46e3c354ae92fe03435bf37b19cd5082734c9228174ca280ee9baaa44a"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-loan-actions-thai-820.png",
+      "sha256": "0d5c766f990fd1fd5827e10c25d3b549de0b2aaf99b817ab2d4454afd73560c7"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-payment-detail-1180.png",
+      "sha256": "2a344ca48d14fb0f2d41f38a96dc01c42b092f635fe311883c4f614431edb36d"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-payment-detail-1440.png",
+      "sha256": "1e06b8a70326be68fc4fb9bffde6dd4ff70e8b16fff759cc127d166fdf63a9cb"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-payment-detail-440.png",
+      "sha256": "1a1ffc8ee4049da8cd61d0aa7f4d5587064854337b5cff246b2b6819292444f7"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-payment-detail-820.png",
+      "sha256": "e0ba56ec0611954cea6808e96b55b01f9bc4ca9e0be670b17a28dd2b4def26ad"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-payments-expanded-1180.png",
+      "sha256": "52db19af66d858cd34c6adc81a1dcd490ada9f69c9e5ef4c8fa91bd2c5958472"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-payments-expanded-1440.png",
+      "sha256": "731d684d157231250b0336cbd863c8e54cd0621fa0a47f31a1aedf7442dd0e02"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-payments-expanded-440.png",
+      "sha256": "a6d049af97aa25a9d14b36681e2ae973eb53e924d9de9dc1accc78eceb77c79b"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-payments-expanded-820.png",
+      "sha256": "275a975c6fdf6291ec096438088804e17079cb8e8d7862571e5eef96aed94cbb"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-payments-root-1180.png",
+      "sha256": "b936612e70b93b1f0ba99978409a78fdc091e2874d240e55e4fc85496863e65c"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-payments-root-1440.png",
+      "sha256": "3c2a98905a39d2657a3e1b05b710024c0a7077ca068d99473035e67a21d59b64"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-payments-root-440.png",
+      "sha256": "2037c11656699a85d99971f1ea153f4590f4c43d2588a51f7a7802c4cd64e479"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-payments-root-820.png",
+      "sha256": "e1ead57feb8756fa1f0e3944df157ea1ba928ef9e3d7490c8cab0f94557f396e"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-receiving-review-1180.png",
+      "sha256": "9bd04adfb0b0be963639fffb82e09d051c96f2d52503db154fbb87130ecdce33"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-receiving-review-1440.png",
+      "sha256": "556dc8f531560a126960c4e31ad87de855727e66b1087631d1ada9a5620a14d7"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-receiving-review-440.png",
+      "sha256": "6ab472a604982f128f498f80652c19e8054be917ed7c18ba3ae9669db46abab0"
+    },
+    {
+      "path": "outputs/r052-phase6/pinned-approved-receiving-review-820.png",
+      "sha256": "9bbe561fb0acd4de2d37816e4835f88e498fc7035854e96cc441a59c482f2add"
+    }
+  ],
+  "safety": "No operational POST/Confirm/upload/financialwrites. One synthetic receiving-review POST only; validates readonlyplan and never submits. No CI.",
+  "limits": [
+    "Synthetic actual-component linkedharness chrome isnotliveproductionheader;fullshellroots used forcaption/nav visuals",
+    "Responsiveemulation440/820/1180/1440, notphysicaldeviceacceptance",
+    "Readhelper BigInthugevalue precision tested; currencyrender ordinaryexactdecimals tested",
+    "PhoneLoanheader subjectwrapsnarrowbesides6icons; actionsnotclipped,7approvedscopeiconsverified",
+    "Prior SQL/auth/SWfinancialproof reusedunchanged; no broadregression"
+  ]
+}

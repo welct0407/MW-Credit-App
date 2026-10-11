@@ -21,7 +21,7 @@ Established 7 October 2026. Infrastructure is managed in this repository; shared
 | Terraform state bucket | mw-credit-app-tfstate-737787224638; versioned; prefixes bootstrap and development |
 | Cloud Build source bucket | mw-credit-app-builds-737787224638; 14-day source cleanup |
 
-The existing SQL instance, GCS receipt bucket, AppSheet apps, Metabase, Grafana and business schedulers are retained. Terraform manages additive identities/bindings and an IAM database login, not the shared instance or receipt bucket. No business table privileges or schema migrations were added. The runtime checks its exact DEV database/instance/prefix before starting; PostgreSQL grants must be designed and verified with the first business API.
+The existing SQL instance, GCS receipt bucket, AppSheet apps, Metabase, Grafana and business schedulers are retained. Terraform manages additive identities/bindings and an IAM database login, not the shared instance or receipt bucket. Initial infrastructure setup added no business table privileges or schema migrations. Checkpoint 2A subsequently added nine exact DEV-only column SELECT grants for the dedicated reader; see the read-service guide. The runtime checks its exact DEV database/instance/prefix before starting; PostgreSQL grants must be designed and verified with the first business API.
 
 ## Credentials
 
@@ -33,7 +33,7 @@ Existing services retain their existing credential arrangements; infrastructure 
 
 Human tooling reuses the existing gcloud sign-in and Git Credential Manager. It does not copy their authentication stores. Private Terraform working data, plans and recovery files on VM-01 are under:
 `C:/Users/MWCredit/Documents/ChatGPT/MW-Credit-App/terraform`.
-Plans/state can contain sensitive metadata; do not publish them.
+Plans/state include sensitive OAuth provider payloads read from Secret Manager; never publish them. Secret Manager storage does not keep those payloads out of Terraform state/plan.
 
 ## Installed VM-01 tooling
 
@@ -59,7 +59,7 @@ Both stacks use the versioned remote GCS backend. The bootstrap bucket has alrea
 
 CI runs TypeScript/build, six configuration guard tests, desktop/mobile browser checks, dependency audit and Terraform formatting/validation. Manual Deploy development builds an immutable image, updates the new service, calls its private readiness endpoint and publishes the synthetic Hosting site through the official Firebase REST API. It runs only from main and the development environment.
 
-The hosting deployer uploads gzip files by content hash, finalizes a version and creates a release. No Firebase CLI or persistent Firebase token is required. The public site contains no borrower/customer data; the API remains IAM protected. End-user Firebase authentication and API authorization will be implemented with the first application slice.
+The hosting deployer uploads gzip files by content hash, finalizes a version and creates a release. No Firebase CLI or persistent Firebase token is required. The public site contains no borrower/customer data; the API remains IAM protected. Checkpoint 2A now implements owner-only Firebase Google authentication and a separate DEV Borrowers read service; the original readiness API stays IAM-protected. The owner reported successful live sign-in/list/detail and the actual UID is now pinned.
 
 Local commands:
 
@@ -80,10 +80,26 @@ For infrastructure recovery, review versioned GCS state and Git configuration to
 
 ## Next application work
 
-Implement Firebase sign-in/role enforcement and narrowly scoped database privileges, followed by the first end-to-end business slice. Add governed Metabase/Grafana integration when application endpoints and metrics exist. Mobile posting requires online confirmation; offline viewing/drafts remain in scope. No duplicate business job scheduler, production API or cutover has been activated.
+Complete checkpoint 2A real owner sign-in/read and UID pinning, then continue separately accepted business slices. Add governed Metabase/Grafana integration when application endpoints and metrics exist. Mobile posting requires online confirmation; offline viewing/drafts remain in scope. No duplicate business job scheduler, production API or cutover has been activated.
 
 ## Completed delivery evidence
 
 [CI 37584672421](https://github.com/welct0407/MW-Credit-App/actions/runs/37584672421) and [deployment 37584673770](https://github.com/welct0407/MW-Credit-App/actions/runs/37584673770) both passed for source fa9679f. GitHub used OIDC throughout; its development environment permits main only. The private readiness probe verifies database, storage and secrets before Hosting publication. Both Terraform stacks returned no-change plans. See [sanitized verification](../outputs/infrastructure-20261007/verification.json). Anonymous API requests returned HTTP 403; the public synthetic page returned HTTP 200. Development infrastructure is ready; the next scope is application authentication and business functionality.
 
 Database tooling ownership moved here on 7 October 2026. Enter-Dev.ps1 selects current-account copies under C:/Users/ideaadmin/AppData/Local/MWCredit/database-tools because PostgreSQL restricted subprocesses cannot read the prior account’s private tool directory. The local V1–V77 disposable rebuild, no-op rerun and checksum-rejection checks passed. See [database ownership](../database/OWNERSHIP.md).
+
+## Read/access checkpoint 1B
+
+The local preview implements a tested synthetic read/access contract before live integration. Its scenario controls simulate access outcomes; they do not sign in or verify tokens. The current Cloud Run health/readiness server remains unchanged. See the [read/access change record](../Change%20Logs/CHANGE_NOTES_R052_READ_ACCESS_CONTRACTS_2026-10-07.md) and project checkpoint design for implementation status and limits.
+
+## Checkpoint 2A deployment
+
+Separate read service: https://mw-credit-app-read-dev-pvrgvyg3oq-as.a.run.app. The owner explicitly approved service-only Firebase application authentication after domain-restricted sharing rejected allUsers membership. Terraform applied only invoker_iam_disabled false to true; organization policies and the old API are unchanged. [Read-service details](Development_Read_Service.md). The persistent owner-identity secret version 1 holds the verified actual owner UID; tracked mode is uid-pinned. Live Hosting version c0872b1adcb4006f is deployed; the owner reported successful sign-in/list/detail, and the verified actual UID is pinned.
+
+## Consolidated UI validation — owner revision, 9 October 2026
+
+The [owning PWA checkpoint policy](https://github.com/welct0407/AppSheet-Loan-Project/blob/codex/pwa-implementation-plan/Documents/PWA_Orchestration.md#consolidated-ui-checkpoints--owner-revision-9-october-2026) governs validation frequency. Batch several related UI iterations into one agreed checkpoint; use focused type/build/affected checks and DEV visual review between iterations. Additive display-only API fields and stale selectors/labels do not automatically require full browser CI. Financial/auth/database changes receive relevant immediate checks; broaden only for changed risk/dependencies or the agreed checkpoint. Production/financial authority, exact-source recovery and applicable protections are unchanged.
+
+Automation: ordinary PR opened/synchronize/reopened events run the existing unit/build/audit/Terraform checks, but browser installation and the full E2E suite are skipped. Apply or reapply the `ci:checkpoint` PR label after consolidating the intended source to run full browser checks on that event. A label left in place does not make later synchronize events full runs. Main pushes and manual workflow_dispatch remain full. Default-branch availability still governs manual dispatch; the PR label event is the checkpoint path on this branch. The pre-existing unpublished affected-path router is not activated by this change; do not claim ordinary PR checks are fully path-selective or that no workflow starts.
+
+Before promotion, the final consolidated source must have actual full browser proof (and applicable other checks). A green ordinary PR job with skipped E2E, or an older full green, is insufficient unless exact relevant inputs are proven unchanged and the evidence boundary is recorded. After a checkpoint failure, run affected checks while fixing it, then full CI once on the corrected consolidated ref. Tests/docs-only changes do not rebuild unchanged product artifacts. Use one checked publication/closeout; report actual preview, checkpoint result, deployment or concrete blocker rather than unchanged polling.

@@ -1,0 +1,15 @@
+{
+  "verifiedAtUtc": "2026-10-07T11:40:14.2913346Z",
+  "exactOwnerEmail": true,
+  "uniqueUser": true,
+  "googleProvider": true,
+  "emailVerified": true,
+  "enabled": true,
+  "uidStoredPrivately": true,
+  "secretVersion": "projects/737787224638/secrets/mw-credit-app-dev-owner-identity/versions/1",
+  "ownerReported": "Signed in; list and details work",
+  "scope": "No token or borrower data inspected; UID not printed",
+  "mode": "uid-pinned",
+  "readyRevision": "mw-credit-app-read-dev-00003-pzr",
+  "pinReadbackPassed": true
+}

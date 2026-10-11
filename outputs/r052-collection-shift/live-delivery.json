@@ -1,0 +1,28 @@
+{
+  "checkedAt": "2026-10-07T23:57:36.888Z",
+  "source": "bb3ac5ce3fc87bacdc7827ec75a1d3378c064027",
+  "hostingVersion": "b11661ef7a7a3d77",
+  "results": [
+    {
+      "name": "canonical",
+      "origin": "https://dev-lm.mw-credit.com",
+      "asset": "index-DlD64PWM.js",
+      "workerSha256": "19c7faf1e390457122e3a3924c820fa313e3db419df56af0ed3f203c17d9ea43",
+      "workerNoStore": true,
+      "signedOut": true,
+      "apiRequests": 0,
+      "records": 0
+    },
+    {
+      "name": "fallback",
+      "origin": "https://mw-credit-app-dev-737787224638.web.app",
+      "asset": "index-DlD64PWM.js",
+      "workerSha256": "19c7faf1e390457122e3a3924c820fa313e3db419df56af0ed3f203c17d9ea43",
+      "workerNoStore": true,
+      "signedOut": true,
+      "apiRequests": 0,
+      "records": 0
+    }
+  ],
+  "limitation": "Unsigned delivery check only; actual installed iPhone Collection recheck remains owner validation."
+}

@@ -1,0 +1,20 @@
+# R052 checkpoint 4B — Local payment notes and manual receipt rehearsal
+
+8 October 2026 (Asia/Bangkok). Owner authorized the next local Notes/manual receipt refinement after scoped visual acceptance of4A. Baselines: app21eab17c058cc93a17a17a0937e5c21dd432d140; PM147d2618ad813a47e7ed93d7639663c817a4a249. The prior preview64891 was stopped and its listener/rehearsal processes confirmed absent. No broad temporary-directory deletion was performed.
+
+Preparation: reuse the full-V77 loopback disposable runner and existing PostgreSQL/Flyway tools. Receipt bytes must stay inside a newly owned random temporary root with server-generated names/path containment; no live credentials, GCS fallback or output-local dependencies. Changes to database tests/runners require the maintained Test-CI once after focused tests freeze; D owns it to avoid duplicates. No tests or implementation are claimed complete at preparation.
+
+Existing recorded receipt ownership: one current optional manual image per Payment, independent protected agent evidence; no automatic object deletion. V52 maintains Uploaded Receipt At for changed/unchanged/removed references. Future GCS integration must prove DEV-path isolation, authenticated access and SQL-relative/AppSheet versus normalized-object-key compatibility; the shared bucket name does not authorize production access. Historical R047 evidence is not a fresh live audit.
+
+Recovery: stop only the owned local runner; preserve unrelated work and diagnostic files. No live API/Hosting, cloud objects, schema, permissions or financial data are changed. Supporting Notes/manual receipt is required parity; individual inputs remain optional. Durable command/event ownership and the other six receiving paths remain separate completion work.
+
+Implementation preparation uses the maintained Python/Pillow12.3.0 decoder with no new installation. PNG/JPEG,5MiB and20MP are local technical limits only, not AppSheet field limits. HEIC/direct iPhone camera compatibility remains pending. Receipt files live in the runner-owned temporary receipts directory beside PostgreSQL data; replaced/removed bytes remain for controlled cleanup. Memory ownership/journal descriptors do not survive restart. A design is saved at outputs/r052-pwa/checkpoint-4b-design.md; final test counts and owner preview remain pending.
+
+Final verification:15 unique full-V77 cases passed; final affected receipt3/3 rerun plus prior12 unchanged financial cases reused. C six HTTP/browser scenarios and large-receipt layout passed; A fixes closed, parent visual review passed. Maintained Test-CI ran once successfully (exit0); see outputs/r052-payment-notes-receipt/database-ci.json. Exact Unicode Notes, V52 metadata-only lifecycle, protected evidence and financial no-reposting checks are distinct from simulated transport races. Owner local4B validation remains pending.
+
+Exact source2c21de5339933940bd53cedc6538f8aab9187f12 passed existing development CI37721556526, independently verified by C. Fresh local4B preview was started for owner review; no live deployment. 4A acceptance does not imply4B Notes/receipt acceptance.
+
+Owner requested a narrow4B review-layout refinement: total above the selected-charge list and a bounded independently scrollable list for long selections. Only prototype DOM/CSS changes; no database/financial behavior changes. Prior SQL/Test-CI evidence remains valid. Owner4B acceptance is not inferred. The old preview62740 expired with no remaining owned rehearsal processes; a fresh synthetic fixture is necessary for the replacement preview.
+Targeted verification passed two browser scenarios at1440/320 in English/Thai: total order/value, long-list scrolling/focus, Notes/receipt preservation and no overflow. A diff review and parent screenshot review passed. No database regression rerun for this UI-only change.
+
+Owner accepted the4B total/scroll refinement and authorized continuation to4C planning on8October. This is scoped local UI acceptance, not live upload/financial readiness or native camera/update acceptance.

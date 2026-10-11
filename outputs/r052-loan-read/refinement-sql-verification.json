@@ -1,0 +1,18 @@
+{
+  "checkedAtUtc": "2026-10-07T13:05:29.566692+00:00",
+  "scope": "Actual grouped borrower/loan SQL EXPLAIN, no ANALYZE/business rows, synthetic parameters",
+  "queriesPassed": 16,
+  "executionIdentity": "existing database operator",
+  "readerPrivilegeCheck": "separate effective has_column_privilege audit",
+  "limitation": "No direct reader EXPLAIN; prior SET ROLE/impersonation limitation retained, no additional permission",
+  "development": {
+    "readableColumns": 26,
+    "businessWrites": 0,
+    "schemaCreate": 0
+  },
+  "production": {
+    "readableColumns": 0,
+    "businessWrites": 0,
+    "schemaCreate": 0
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "scope": "Paired existing-operator source SQL on same privately held parent/date; no rows/identifiers retained",
+  "order": "baseline summary/detail then current summary/detail, single connection; cache/order effects uncontrolled",
+  "baselineSource": "5efa533",
+  "currentSource": "working frozen optimization",
+  "notMeasured": [
+    "HTTP",
+    "Firebase verification",
+    "Cloud Run coldstart",
+    "runtime IAM connection"
+  ],
+  "reports": [
+    {
+      "version": "baseline",
+      "mode": "summary",
+      "queryCount": 5,
+      "ms": 491.36,
+      "success": true
+    },
+    {
+      "version": "baseline",
+      "mode": "detail",
+      "queryCount": 7,
+      "ms": 842.44,
+      "success": true
+    },
+    {
+      "version": "current",
+      "mode": "summary",
+      "queryCount": 5,
+      "ms": 482.67,
+      "success": true
+    },
+    {
+      "version": "current",
+      "mode": "detail",
+      "queryCount": 5,
+      "ms": 551.57,
+      "success": true
+    }
+  ]
+}

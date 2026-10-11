@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "release": "R052",
+  "scope": "Complete Phase 4 DEV receiving; owner hands-on acceptance separate",
+  "backend": {
+    "commit": "4b49a3fd1b4ec2df293f4160e22838b9d54a4745",
+    "image": "sha256:c8400ae773b65f40c062a5345d7375a9c931e1459f6a9dd9e6e9eb8e53b876e2",
+    "revision": "mw-credit-app-command-dev-00002-vrx",
+    "developmentCi": 37761595419,
+    "databaseCi": 37761595413,
+    "ciConclusion": "success",
+    "database": "loan_manager_dev",
+    "flywayVersion": 80,
+    "migrationSha256": "43f643d61f1b242438f9b16bd47ee87ca45c37affc817027c15aabd00f9a55aa",
+    "temporaryPrivileges": "exact original membership/schema ACL restored; other entries unchanged"
+  },
+  "frontend": {
+    "commit": "e88d1ea438f81e6f8bc3cb3c493406425142fc83",
+    "bundle": "index-5Zjk-2dk.js",
+    "hostingVersion": "ab4f267f8f0d1534",
+    "hostingRelease": "1791456290051000",
+    "focusedIndependentSdkOfflineNavigation": "pass",
+    "developmentCi": 37765403876,
+    "remoteCiStatus": "success",
+    "deployedIndependentSmoke": "pass: same-view navigation, real owner offline reload/draft and explicit reconnect; no financial action"
+  },
+  "liveSyntheticProof": {
+    "requestId": "8551f1fc-c72f-4c11-9eea-4afba285e51b",
+    "recordedAt": "2026-10-08T10:27:12.394Z",
+    "amount": "2",
+    "payments": 1,
+    "journals": 1,
+    "allocations": 2,
+    "repayments": 2,
+    "paymentReceiptCashMovements": 1,
+    "dedicatedAccountCashOut": "2",
+    "dedicatedAccountCashIn": "2",
+    "dedicatedAccountNet": "0",
+    "loan": "Closed",
+    "chargeResiduals": [
+      "0",
+      "0"
+    ],
+    "actorMapped": true,
+    "notesOnlyCas": "passed; original journal unchanged",
+    "protectedAgentFields": "unchanged null",
+    "unrelatedTableFingerprints": "six affected tables unchanged",
+    "receipt": {
+      "generation": "1791455190850264",
+      "size": 18947,
+      "mimeType": "image/png",
+      "sha256": "6d6732776e9ff7e1d2c74228bff891e99826b9db74b98089a686067df04d70af",
+      "requestActorHashBinding": "pass",
+      "authenticatedRendering": "640x360"
+    },
+    "executedBy": "C through the owner-authenticated session; not owner hands-on acceptance",
+    "finalNoAutoPostReadback": "pass: exactly one fixture command after final read-only offline/reconnect"
+  },
+  "recovery": {
+    "verifiedDev79DumpSha256": "87386f5a31b8a50e413c153a0723fb11ae95f79c6d74219b17b7a3bbfba1e598",
+    "beforeHostingVersion": "100e5044b9227d7a",
+    "privateRecoveryRetained": true,
+    "financialEvidenceRetained": true
+  },
+  "limitations": [
+    "Notifications remain Phase 8; no delivery activation",
+    "PROD V77 unchanged",
+    "Live Unknown/replay not forced; focused disposable proof retained",
+    "Actual iPhone receiving acceptance not claimed",
+    "No new AppSheet render claim; existing exact mapping proof reused"
+  ],
+  "evidence": [
+    "independent-verification.md",
+    "independent-maintenance-proof.json",
+    "phase4-live-independent-verification.md"
+  ]
+}

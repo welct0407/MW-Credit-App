@@ -1,0 +1,18 @@
+{
+  "sourceCommit": "f6be56f0387a03cf35d48d206f9aea2712b667f6",
+  "ci": "https://github.com/welct0407/MW-Credit-App/actions/runs/37706939264",
+  "ciConclusion": "success",
+  "cloudBuild": "6c13d46c-a7b4-4e42-aef4-e0b1dca4c5c9",
+  "image": "sha256:a971a4c97b013ffc2e11acfb3e3f850c930272e049eedeb57fab43c8a92196ca",
+  "terraformPlan": "One update: read_api image only; zero additions/deletions. UID/env/service account/scaling/auth retained.",
+  "permissions": "Existing56 DEV columns and forecast EXECUTE unchanged; no grants/schema changes in2F",
+  "javascript": "index-D2nJ4crK.js",
+  "workerSha256": "1df70d368dd253818712497df00e59bf0701ab18a317dd26bc639560556cef70",
+  "rollbackApiRevision": "00009-5x5",
+  "rollbackImage": "sha256:04ecadbd8cd841302b5285d43c9e3471190bccc1a003ee6e3e4d37fc7456e70e",
+  "rollbackHosting": "b11661ef7a7a3d77",
+  "rollbackOrder": "UI first, then API; explicitly reload already-open new clients so q/new cursors are not sent to old API",
+  "deployment": "API00010-fzk Ready, then Hosting3f6fbb70ca3dc007/release1791418870970000 deployed",
+  "ownerReview": "Authenticated name-search and native iPhone keyboard/visual review pending",
+  "liveVerification": "Passed: seven unsigned synthetic-q API auth/origin/preflight checks and two fresh unsigned canonical/fallback UI contexts; exact JS/worker hash, correct registration boundary, zero UI API requests/records."
+}

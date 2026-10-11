@@ -1,4 +1,448 @@
-import React from "react";
-import { createRoot } from "react-dom/client";
-import "./style.css";
-createRoot(document.getElementById("root")!).render(<main><span className="badge">DEVELOPMENT</span><h1>MW Credit</h1><p>The development workspace is ready for application features.</p><section><h2>Infrastructure foundation</h2><ul><li>Shared PostgreSQL and private receipt storage</li><li>Dedicated API identity and managed secrets</li><li>AppSheet continues operating in parallel</li></ul></section><p className="note">This page contains no customer data or financial actions.</p></main>);
+import {limitAppZoom} from './zoom-guard';
+import {displayDate} from './display-date';
+import React, { useState, useEffect, useRef } from 'react';
+import { createRoot } from 'react-dom/client';
+import type { Locale } from './fixtures';
+import { previewReadAdapter, toPreviewBorrower, previewBusinessDate as sampleDate, type PreviewAccessState, type PreviewBorrower as Borrower } from './preview-session';
+import './style.css';
+const prodLogoUrl = new URL('./assets/loan-manager-logo.png', import.meta.url).href;
+const devLogoUrl = new URL('./assets/loan-manager-logo-dev-orange.png', import.meta.url).href;
+const routes = [
+  ['dashboard', 'Dashboard', 'ภาพรวม', '◫'], ['collection', 'Collection', 'ติดตามชำระ', '◷'], ['payments', 'Payments', 'การชำระเงิน', '↗'], ['borrowers', 'Borrowers', 'ผู้กู้', '◎'], ['loans', 'Loans', 'สัญญาเงินกู้', '▤'], ['charges', 'Upcoming Charges', 'ยอดเรียกเก็บถัดไป', '▦'], ['expenses', 'Business Expenses', 'ค่าใช้จ่ายธุรกิจ', '↙'], ['statement', 'Cash Statement', 'รายการเงินสด', '≡'],
+  ['partners', 'Partners', 'หุ้นส่วน', '◇'], ['position', 'Cash Position', 'สถานะเงินสด', '◉'], ['accounts', 'Cash Accounts', 'บัญชีเงินสด', '▣'], ['assessment', 'Loan Assessment', 'ประเมินสินเชื่อ', '✓'], ['analytics', 'Analytics / history', 'วิเคราะห์ / ประวัติ', '▥'],
+];
+function App() {
+  useEffect(()=>limitAppZoom(),[]);
+  // Presentation only: never infer service identity from Vite's build mode.
+  const [previewTheme, setPreviewTheme] = useState<'dev' | 'prod'>(() => new URLSearchParams(window.location.search).get('theme') === 'prod' ? 'prod' : 'dev');
+  const [accessState, setAccessState] = useState<PreviewAccessState>('allowed');
+  const [locale, setLocale] = useState<Locale>('en');
+  const [route, setRoute] = useState('collection');
+  const [query, setQuery] = useState('');
+  const [filter, setFilter] = useState('all');
+  const [selected, setSelected] = useState<string | null>(null);
+  const [menu, setMenu] = useState(false);
+  const sidebarRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (!menu)
+      return;
+    const previous = document.activeElement as HTMLElement | null;
+    const panel = sidebarRef.current;
+    const controls = panel?.querySelectorAll<HTMLElement>('a, button');
+    controls?.[0]?.focus();
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setMenu(false);
+      }
+      if (event.key === 'Tab' && controls?.length) {
+        const first = controls[0];
+        const last = controls[controls.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        }
+        else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => { document.removeEventListener('keydown', onKey); previous?.focus(); };
+  }, [menu]);
+  const t = (en: string, th: string) => locale === 'en' ? en : th;
+  const money = (value: number | null) => value === null ? t('Unavailable', 'ไม่มีข้อมูล') : new Intl.NumberFormat(locale === 'en' ? 'en-TH' : 'th-TH', { style: 'currency', currency: 'THB', minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(value);
+  const date = (value: string | null) => value === null ? t('Unavailable', 'ไม่มีข้อมูล') : displayDate(value,locale!=='en');
+  const go = (next: string) => { setRoute(next); setQuery(''); setFilter('all'); setSelected(null); setMenu(false); };
+  const functional = route === 'collection' || route === 'borrowers';
+  const adapter = previewReadAdapter(accessState);
+  const borrowerResult = adapter.listBorrowers();
+  const collectionResult = adapter.listCollection();
+  const accessAllowed = borrowerResult.ok && collectionResult.ok;
+  const borrowers = borrowerResult.ok ? borrowerResult.items.map(toPreviewBorrower) : [];
+  const collection = collectionResult.ok ? collectionResult.items.map(toPreviewBorrower) : [];
+  const base = route === 'collection' ? collection : borrowers;
+  const visible = base.filter(b => (b.name.en + ' ' + b.name.th + ' ' + b.id).toLowerCase().includes(query.toLowerCase().trim()) && (filter === 'all' || (filter === 'active' ? b.hasActiveLoan : filter === 'inactive' ? !b.hasActiveLoan : b.collectionStatus === filter)));
+  const detailResult = selected && visible.some(b => b.id === selected) ? adapter.getBorrowerDetail(selected, route === 'collection' ? 'collection' : 'borrowers') : null;
+  const current = detailResult?.ok ? toPreviewBorrower(detailResult.item) : undefined;
+  // Display-only summary of synthetic decimal strings; no live financial calculation.
+  const dueTotal = collection.some(b => b.remaining === null) ? null : collection.reduce((s, b) => s + (b.remaining ?? 0), 0);
+  const dueCount = collection.filter(b => b.remaining !== null && b.remaining > 0).length;
+  const routeInfo = routes.find(r => r[0] === route)!;
+  const status = (b: Borrower) => b.collectionStatus === 'overdue' ? t('Overdue', 'เลยกำหนด') : b.collectionStatus === 'not_paid' ? t('Not paid', 'ยังไม่ชำระ') : b.collectionStatus === 'partially_paid' ? t('Partially paid', 'ชำระบางส่วน') : b.collectionStatus === 'fully_paid' ? t('Fully paid', 'ชำระครบแล้ว') : t('No collection status', 'ไม่มีสถานะติดตาม');
+  const renderCard = (b: Borrower) => <button key={b.id} className={'borrower-card ' + (current?.id === b.id ? 'selected' : '')} onClick={() => setSelected(b.id)} aria-pressed={current?.id === b.id} data-testid={'borrower-' + b.id}>
+    <span className="avatar">
+      {b.initials}
+    </span>
+    <span className="person">
+      <strong>
+        {b.name[locale]}
+      </strong>
+      <span>
+        {b.id} · {b.area[locale]}
+      </span>
+      <span className={'status ' + b.status}>
+        {status(b)}
+      </span>
+    </span>
+    <span className="card-amount">
+      <strong>
+        {money(route === 'collection' ? b.remaining : b.principal)}
+      </strong>
+      <span>
+        {route === 'collection' ? t('Remaining to collect', 'ยอดคงเหลือต้องติดตาม') : t('Principal outstanding', 'เงินต้นคงเหลือ')}
+      </span>
+      <span className="arrow">↗</span>
+    </span>
+  </button>;
+  return <div className="app-shell" data-preview-theme={previewTheme}>
+    <aside ref={sidebarRef} className={'sidebar ' + (menu ? 'open' : '')}>
+      <a className="brand" href="#" onClick={e => { e.preventDefault(); go('collection'); }}>
+        <img className="brand-logo" src={previewTheme === 'dev' ? devLogoUrl : prodLogoUrl} alt="Loan Manager" />
+        <span>MW Credit<small>
+          {t('WORKSPACE PREVIEW', 'ตัวอย่างพื้นที่ทำงาน')}
+        </small>
+        </span>
+      </a>
+      <div className="nav-caption">
+        {t('OPERATIONS', 'งานปฏิบัติการ')}
+      </div>
+      <nav aria-label={t('Main navigation', 'เมนูหลัก')}>
+        {routes.map((r, i) => <React.Fragment key={r[0]}>
+          {i === 8 && <div className="nav-caption management">
+            {t('MANAGEMENT', 'งานบริหาร')}
+          </div>}
+          <button className={'nav-item ' + (route === r[0] ? 'active' : '')} onClick={() => go(r[0])} aria-current={route === r[0] ? 'page' : undefined}>
+            <span className="nav-icon" aria-hidden="true">
+              {r[3]}
+            </span>
+            {r[locale === 'en' ? 1 : 2]}{r[0] !== 'collection' && r[0] !== 'borrowers' && <span className="planned-dot" title={t('Planned', 'อยู่ในแผน')}>·</span>}
+          </button>
+        </React.Fragment>)}
+      </nav>
+      <div className="sidebar-foot">
+        <span className="outline-dot" />
+        {t('AppSheet continues in parallel', 'AppSheet ยังคงใช้งานควบคู่')}
+        <small>
+          {t('Preview only. No live connection.', 'ตัวอย่างเท่านั้น ไม่มีการเชื่อมต่อข้อมูลจริง')}
+        </small>
+      </div>
+    </aside>
+    {menu && <button className="menu-scrim" aria-label={t('Close navigation', 'ปิดเมนู')} onClick={() => setMenu(false)} />}
+    <div className="workspace" inert={menu}>
+      <header className="topbar">
+        <button className="menu-toggle" aria-expanded={menu} aria-label={t('Open navigation', 'เปิดเมนู')} onClick={() => setMenu(!menu)}>☰</button>
+        <div className="breadcrumb">
+          {t('Workspace', 'พื้นที่ทำงาน')}
+          <span>/</span>
+          <strong>
+            {routeInfo[locale === 'en' ? 1 : 2]}
+          </strong>
+        </div>
+        <div className="language" role="group" aria-label="Language">
+          <button onClick={() => { setLocale('en'); document.documentElement.lang = 'en'; }} aria-pressed={locale === 'en'}>EN</button>
+          <button onClick={() => { setLocale('th'); document.documentElement.lang = 'th'; }} aria-pressed={locale === 'th'}>ไทย</button>
+        </div>
+      </header>
+      <main>
+        <div className="theme-preview" role="group" aria-label={t('Theme preview', 'ตัวอย่างสี')}>
+          <span>{t('Colors only · no environment change', 'ตัวอย่างสีเท่านั้น · ไม่เปลี่ยนระบบ')}</span>
+          <button aria-pressed={previewTheme === 'dev'} onClick={() => setPreviewTheme('dev')}>DEV</button>
+          <button aria-pressed={previewTheme === 'prod'} onClick={() => setPreviewTheme('prod')}>PROD</button>
+        </div>
+        <div className="preview-strip">
+          <span className="preview-dot" />
+          {t('Design preview · synthetic data', 'ตัวอย่างการออกแบบ · ข้อมูลสมมติ')}
+          <span className="preview-detail">
+            {t('No live customer data or financial actions', 'ไม่มีข้อมูลลูกค้าจริงหรือการทำรายการทางการเงิน')}
+          </span>
+        </div>
+        <div className="page-heading">
+          <div>
+            <div className="eyebrow">
+              {t('MW CREDIT / OPERATIONS PREVIEW', 'MW CREDIT / ตัวอย่างระบบ')}
+            </div>
+            <h1>
+              {routeInfo[locale === 'en' ? 1 : 2]}
+            </h1>
+            <p>
+              {route === 'collection' ? t('A clear view of who needs your attention.', 'ดูรายการที่ต้องติดตามได้อย่างชัดเจน') : route === 'borrowers' ? t('People, active loans, and the context you need.', 'ผู้กู้ สัญญาที่ใช้งาน และข้อมูลประกอบที่จำเป็น') : t('A place for the next part of your workflow.', 'พื้นที่สำหรับขั้นตอนถัดไปของงาน')}
+            </p>
+          </div>
+          <div className="sample-date">
+            <span>
+              {t('Sample business date', 'วันที่ทำการตัวอย่าง')}
+            </span>
+            <strong>
+              {date(sampleDate)}
+            </strong>
+          </div>
+        </div>
+        <section className="access-simulator" aria-label={t('Access-state simulator', 'จำลองสถานะสิทธิ์')}>
+          <div><strong>{t('Access-state simulator', 'จำลองสถานะสิทธิ์')}</strong><p>{t('Synthetic session only. No real sign-in or live access is established.', 'เซสชันสมมติเท่านั้น ไม่ใช่การลงชื่อเข้าใช้หรือสิทธิ์เข้าถึงระบบจริง')}</p></div>
+          <label><span>{t('Simulated access', 'สิทธิ์จำลอง')}</span><select aria-label={t('Simulated access', 'สิทธิ์จำลอง')} value={accessState} onChange={event => { setAccessState(event.target.value as PreviewAccessState); setSelected(null); setQuery(''); setFilter('all'); }}>
+            <option value="allowed">{t('Allowed · synthetic', 'อนุญาต · สมมติ')}</option>
+            <option value="signed_out">{t('Signed out · simulated', 'ออกจากระบบ · จำลอง')}</option>
+            <option value="expired">{t('Expired · simulated', 'หมดอายุ · จำลอง')}</option>
+            <option value="access_denied">{t('Access denied · simulated', 'ไม่อนุญาต · จำลอง')}</option>
+            <option value="unmapped_login">{t('Unmapped login · simulated', 'ไม่พบการจับคู่บัญชี · จำลอง')}</option>
+          </select></label>
+        </section>
+        {!accessAllowed ? <section className="access-blocked" role="status">
+          <h2>{accessState === 'signed_out' ? t('Simulated session is signed out', 'เซสชันจำลองออกจากระบบแล้ว') : accessState === 'expired' ? t('Simulated session has expired', 'เซสชันจำลองหมดอายุแล้ว') : accessState === 'unmapped_login' ? t('Simulated login has no unique partner mapping', 'บัญชีจำลองไม่มีการจับคู่หุ้นส่วนที่ไม่ซ้ำ') : t('Simulated access is denied', 'ไม่อนุญาตให้เข้าถึงในสถานะจำลอง')}</h2>
+          <p>{t('Borrower records, totals, and details are withheld. Change the simulator to Allowed to review synthetic data.', 'ซ่อนข้อมูลผู้กู้ ยอดรวม และรายละเอียด เปลี่ยนสถานะจำลองเป็นอนุญาตเพื่อดูข้อมูลสมมติ')}</p>
+        </section> : functional ? <>
+          <section className="metrics" aria-label={t('Sample summary', 'สรุปข้อมูลตัวอย่าง')}>
+            <div className="metric">
+              <span>
+                {t('Remaining to collect · sample portfolio', 'ยอดคงเหลือต้องติดตาม · ชุดข้อมูลตัวอย่าง')}
+              </span>
+              <strong data-testid="total-due">
+                {money(dueTotal)}
+              </strong>
+              <small>
+                {t('Sample residual amounts, separate from principal', 'ยอดคงเหลือตัวอย่าง แยกจากเงินต้น')}
+              </small>
+            </div>
+            <div className="metric">
+              <span>
+                {t('Borrowers with remaining collection', 'ผู้กู้ที่มียอดคงเหลือต้องติดตาม')}
+              </span>
+              <strong>
+                {dueCount.toString().padStart(2, '0')}
+                <small>
+                  {t(' borrowers', ' คน')}
+                </small>
+              </strong>
+              <small>
+                {t('From synthetic collection status outputs', 'จากผลสถานะติดตามข้อมูลสมมติ')}
+              </small>
+            </div>
+</section>
+          <div className={'work-grid ' + (current ? 'has-detail' : '')}>
+            <section className="list-panel">
+              <div className="section-heading">
+                <div>
+                  <h2>
+                    {route === 'collection' ? t('Follow-up list', 'รายการติดตาม') : t('Borrower directory', 'รายชื่อผู้กู้')}
+                  </h2>
+                  <span>
+                    {visible.length} {t('sample borrowers', 'ผู้กู้ตัวอย่าง')}
+                  </span>
+                </div>
+                <span className="section-symbol" aria-hidden="true">◎</span>
+              </div>
+              <div className="filters">
+                <label className="search">
+                  <span aria-hidden="true">⌕</span>
+                  <input aria-label={t('Search borrowers', 'ค้นหาผู้กู้')} placeholder={t('Search name or sample ID', 'ค้นหาชื่อหรือรหัสตัวอย่าง')} value={query} onChange={e => { setQuery(e.target.value); setSelected(null); }} />
+                </label>
+                <label className="filter-label">
+                  <span className="sr-only">
+                    {t('Filter borrowers', 'กรองผู้กู้')}
+                  </span>
+                  <select value={filter} onChange={e => { setFilter(e.target.value); setSelected(null); }}>
+                    {(route === 'collection' ? [['all', 'All statuses', 'ทุกสถานะ'], ['not_paid', 'Not paid', 'ยังไม่ชำระ'], ['partially_paid', 'Partially paid', 'ชำระบางส่วน'], ['overdue', 'Overdue', 'เลยกำหนด'], ['fully_paid', 'Fully paid', 'ชำระครบแล้ว']] : [['all', 'All borrowers', 'ผู้กู้ทั้งหมด'], ['active', 'Active loans', 'มีสัญญาที่ใช้งาน'], ['inactive', 'No active loan', 'ไม่มีสัญญาที่ใช้งาน']]).map(o => <option key={o[0]} value={o[0]}>
+                      {o[locale === 'en' ? 1 : 2]}
+                    </option>)}
+                  </select>
+                </label>
+              </div>
+              <div className="borrower-list">
+                {visible.length === 0 ? <div className="empty-state">
+                  <span>⌕</span>
+                  <h3>
+                    {t('No matching borrowers', 'ไม่พบผู้กู้ที่ตรงกัน')}
+                  </h3>
+                  <p>
+                    {t('Try another name or reset your filters.', 'ลองชื่ออื่นหรือล้างตัวกรอง')}
+                  </p>
+                  <button className="secondary-button" onClick={() => { setQuery(''); setFilter('all'); }}>
+                    {t('Reset filters', 'ล้างตัวกรอง')}
+                  </button>
+                </div> : route === 'borrowers' ? <>
+                  {[true, false].map(active => {
+                    const group = visible.filter(b => b.hasActiveLoan === active); return group.length > 0 && <div key={String(active)}>
+                      <h3 className="group-label">
+                        {active ? t('Active loans', 'มีสัญญาที่ใช้งาน') : t('No active loan', 'ไม่มีสัญญาที่ใช้งาน')}
+                        <span>
+                          {group.length}
+                        </span>
+                      </h3>
+                      {group.map(renderCard)}
+                    </div>;
+                  })}
+                </> : visible.map(renderCard)}
+              </div>
+              <div className="list-foot">
+                {t('Fictional records for design review only.', 'ข้อมูลสมมติสำหรับตรวจสอบการออกแบบเท่านั้น')}
+              </div>
+            </section>
+            <section className={'detail-panel ' + (!current ? 'unselected' : '')} aria-label={t('Borrower details', 'รายละเอียดผู้กู้')}>
+              {current ? <>
+                <button className="back-button" onClick={() => setSelected(null)}>← {t('Back to list', 'กลับไปรายการ')}
+                </button>
+                <div className="detail-heading">
+                  <span className="avatar large">
+                    {current.initials}
+                  </span>
+                  <span className={'status ' + current.status}>
+                    {status(current)}
+                  </span>
+                </div>
+                <h2>
+                  {current.name[locale]}
+                </h2>
+                <p className="detail-id">
+                  {current.id} · {current.area[locale]}
+                </p>
+                <div className="detail-amounts">
+                  <div>
+                    <span>
+                      {t('Remaining to collect', 'ยอดคงเหลือต้องติดตาม')}
+                    </span>
+                    <strong>
+                      {money(current.remaining)}
+                    </strong>
+                  </div>
+                  <div>
+                    <span>
+                      {t('Principal outstanding', 'เงินต้นคงเหลือ')}
+                    </span>
+                    <strong>
+                      {money(current.principal)}
+                    </strong>
+                  </div>
+                </div>
+                {current.note && <div className={'issue-note ' + (current.status === 'overdue' ? 'attention' : '')}>
+                  <strong>
+                    {t('Follow-up note', 'หมายเหตุการติดตาม')}
+                  </strong>
+                  <p>
+                    {current.note[locale]}
+                  </p>
+                </div>}
+                <h3 className="detail-section-title">
+                  {t('Related loans & charges', 'สัญญาและยอดเรียกเก็บที่เกี่ยวข้อง')}
+                  <span>
+                    {current.loans.length}
+                  </span>
+                </h3>
+                {current.loans.length === 0 ? <p className="muted">
+                  {t('No active sample loans.', 'ไม่มีสัญญาตัวอย่างที่ใช้งาน')}
+                </p> : current.loans.map(loan => <article className="loan" key={loan.id}>
+                  <div className="loan-title">
+                    <strong>
+                      {loan.id}
+                    </strong>
+                    <span>
+                      {t('Sample loan', 'สัญญาตัวอย่าง')}
+                    </span>
+                  </div>
+                  <dl>
+                    <div>
+                      <dt>
+                        {t('Principal outstanding', 'เงินต้นคงเหลือ')}
+                      </dt>
+                      <dd>
+                        {money(loan.principal)}
+                      </dd>
+                    </div>
+                    {loan.charges.map(charge => <div key={charge.id}>
+                      <dt>
+                        {charge.label[locale]}
+                        <small>
+                          {date(charge.date)}
+                        </small>
+                      </dt>
+                      <dd>
+                        {money(charge.amount)}
+                      </dd>
+                    </div>)}
+                    <div>
+                      <dt>
+                        {t('Next scheduled date', 'กำหนดถัดไป')}
+                      </dt>
+                      <dd>
+                        {date(loan.nextDate)}
+                      </dd>
+                    </div>
+                  </dl>
+                </article>)}
+                <div className="receipt">
+                  <span aria-hidden="true">▧</span>
+                  <div>
+                    <strong>
+                      {t('Receipt preview', 'ตัวอย่างใบเสร็จ')}
+                    </strong>
+                    <p>
+                      {t('No receipt attached. Placeholder only.', 'ไม่มีใบเสร็จแนบ เป็นพื้นที่ตัวอย่างเท่านั้น')}
+                    </p>
+                  </div>
+                </div>
+                <button className="post-button" disabled>
+                  {t('Record payment · planned', 'บันทึกการชำระ · อยู่ในแผน')}
+                </button>
+                <p className="action-note">
+                  {t('Payment posting and online confirmation are not available in this preview.', 'ตัวอย่างนี้ยังไม่รองรับการบันทึกการชำระหรือยืนยันรายการออนไลน์')}
+                </p>
+              </> : <div className="detail-empty">
+                <span className="detail-illustration">◎<i>↗</i>
+                </span>
+                <h2>
+                  {t('The details, in one place', 'รายละเอียดในที่เดียว')}
+                </h2>
+                <p>
+                  {t('Select a borrower to see sample loans, charges, and follow-up context.', 'เลือกผู้กู้เพื่อดูสัญญาตัวอย่าง ยอดเรียกเก็บ และข้อมูลติดตาม')}
+                </p>
+                <div>
+                  {t('Select a borrower to begin', 'เลือกผู้กู้เพื่อเริ่มต้น')} <span>→</span>
+                </div>
+              </div>}
+            </section>
+          </div>
+        </> : <section className="planned-panel">
+          <span className="planned-icon" aria-hidden="true">
+            {routeInfo[3]}
+          </span>
+          <div className="eyebrow">
+            {t('PLANNED WORKFLOW', 'ขั้นตอนที่อยู่ในแผน')}
+          </div>
+          <h2>
+            {t('This workspace is taking shape.', 'กำลังออกแบบพื้นที่ทำงานนี้')}
+          </h2>
+          <p>
+            {t('Collection and Borrowers are ready to explore in this design checkpoint. This section has no live data or actions.', 'จุดตรวจสอบนี้สามารถทดลองหน้าติดตามชำระและผู้กู้ได้ ส่วนนี้ยังไม่มีข้อมูลจริงหรือการทำรายการ')}
+          </p>
+          {route === 'analytics' ? <p>
+            {t('Native analytics, history, and assessment controls remain planned before production go-live. Existing reports remain in their current tools. Metabase integration follows production go-live.', 'การวิเคราะห์ ประวัติ และการประเมินภายในแอปยังอยู่ในแผนก่อนเปิดใช้งานจริง รายงานเดิมยังอยู่ในเครื่องมือปัจจุบัน การเชื่อมต่อ Metabase จะดำเนินการหลังเปิดใช้งานจริง')}
+          </p> : routes.findIndex(r => r[0] === route) >= 8 && <p>
+            {t('Native management workflows remain planned before production go-live.', 'งานบริหารภายในแอปยังอยู่ในแผนก่อนเปิดใช้งานจริง')}
+          </p>}
+          <button className="secondary-button" onClick={() => go('collection')}>
+            {t('Explore Collection', 'ทดลองหน้าติดตามชำระ')} →</button>
+        </section>}
+        <footer className="page-footer">
+          <span>MW CREDIT</span>
+          {t('Design checkpoint 01 · Local, synthetic preview', 'จุดตรวจสอบการออกแบบ 01 · ตัวอย่างข้อมูลสมมติในเครื่อง')}
+        </footer>
+      </main>
+      <nav className="mobile-nav" aria-label={t('Quick navigation', 'เมนูลัด')}>
+        <button aria-current={route === 'collection' ? 'page' : undefined} onClick={() => go('collection')}>
+          <span>◷</span>
+          {t('Collection', 'ติดตามชำระ')}
+        </button>
+        <button aria-current={route === 'borrowers' ? 'page' : undefined} onClick={() => go('borrowers')}>
+          <span>◎</span>
+          {t('Borrowers', 'ผู้กู้')}
+        </button>
+        <button onClick={() => setMenu(!menu)}>
+          <span>☰</span>
+          {t('More', 'เพิ่มเติม')}
+        </button>
+      </nav>
+    </div>
+  </div>;
+}
+createRoot(document.getElementById('root')!).render(<App />);

@@ -1,0 +1,88 @@
+{
+  "checkpoint": "4G",
+  "date": "2026-10-08",
+  "status": "Actual owner-browser synthetic command Posted and authenticated receipt rendered.",
+  "scope": "Only the root-approved DEV synthetic fixture and single 2-baht command. No ordinary borrower screenshots, token extraction, auth-store access, injected requests, or production writes.",
+  "target": {
+    "url": "https://dev-lm.mw-credit.com/",
+    "deploymentEvidence": "deployment-verification-4g.json",
+    "note": "D owns deployment/source/schema pins and database/GCS reconciliation; this file records observed UI behavior only."
+  },
+  "authentication": "Normal Google chooser displayed the expected owner account. Owner completed sign-in. Existing authenticated Chrome tab was resumed; no mock authentication or token extraction.",
+  "fixture": {
+    "borrowerId": "R052-4G-B",
+    "loanId": "R052-4G-L",
+    "chargeIds": [
+      "R052-4G-C1",
+      "R052-4G-C2"
+    ],
+    "cashAccountId": "R052-4G-ACCOUNT",
+    "amountReceived": "2",
+    "currency": "THB"
+  },
+  "observations": [
+    {
+      "step": "Collection",
+      "expected": "Exact synthetic borrower only, amount due 2.",
+      "actual": "Fixture search 'R052 4G' selected the approved borrower; amount due 2, collected 0, remaining 2."
+    },
+    {
+      "step": "Draft",
+      "expected": "Two 1-baht charges, exact receiving account, total 2.",
+      "actual": "Both configured charges selected; displayed total 2 and native select value R052-4G-ACCOUNT."
+    },
+    {
+      "step": "Notes and receipt",
+      "expected": "Synthetic Thai multiline notes and approved generated PNG.",
+      "actual": "Notes retained; normal chooser uploaded approved PNG, selected receipt preview appeared and review enabled."
+    },
+    {
+      "step": "Full review",
+      "expected": "Borrower, both charges, exact total/account/date/method/notes/image before one confirmation.",
+      "actual": "Review showed two 1-baht entries, total 2, synthetic account, Bangkok date 2026-10-08, Bank Transfer, Thai notes and receipt preview."
+    },
+    {
+      "step": "Confirm",
+      "expected": "Exactly one explicit Confirm; no duplicate/new command.",
+      "actual": "Confirm invoked once. Original request displayed then Posted."
+    },
+    {
+      "step": "Posted",
+      "expected": "Retain original outcome, notes, amount and verified receipt.",
+      "actual": "Original payment recorded as Posted; amount 2, synthetic account and Thai notes retained. Authenticated receipt GET rendered complete 640×360."
+    },
+    {
+      "step": "Responsive evidence",
+      "expected": "Synthetic-only desktop/mobile proof.",
+      "actual": "Review and result screenshots captured in task transcript. At 390px viewport DOM card width 366.4 and receipt width 334.4 fit. Temporary override reset; original Posted tab preserved."
+    }
+  ],
+  "request": {
+    "requestId": "549e30ad-1418-4cf2-8b64-c6b8ff6bd7dc",
+    "recordedAt": "2026-10-08T08:24:43.471Z",
+    "outcome": "posted",
+    "confirmInvocations": 1
+  },
+  "notes": "ทดสอบรับชำระข้อมูลจำลอง R052 4G\nยอดรวม 2 บาท — ไม่ใช่รายการลูกค้าจริง",
+  "receipt": {
+    "approvedImageSha256": "6d6732776e9ff7e1d2c74228bff891e99826b9db74b98089a686067df04d70af",
+    "approvedImageBytes": 18947,
+    "visibleImageComplete": true,
+    "naturalWidth": 640,
+    "naturalHeight": 360,
+    "proof": "Image visible after service-authenticated GET, distinct from the local pre-confirmation preview. D verifies journal descriptor/exact GCS generation."
+  },
+  "recoveryAndLimits": {
+    "liveReplay": "Not exercised. Posted UI exposes no supported same-request replay/status control; no pending-ID injection, custom fetch, second Confirm or new draft was used.",
+    "reloadStatus": "Not forced after Posted because pending reference is normally cleared and no supported recovery entry remains. Prior actual SQL and synthetic UI tests remain labeled independent evidence.",
+    "appSheet": "No new AppSheet render claim. Existing receipt-compatibility-4f.json actual AppSheet mapping/render proof reused; this run proves actual PWA upload/read/render.",
+    "database": "D independently verifies one journal/payment, allocations, account zero and existing-row fingerprints; link deployment-verification-4g.json.",
+    "screenshots": "Synthetic-only review and Posted screenshots are in this task's browser tool transcript; no separate local screenshot file was produced.",
+    "initialBlockers": "Normal owner sign-in needed owner completion; Chrome extension file-URL permission required owner enablement. Before successful upload/Confirm, D verified zero fixture payments/journal. Permission reload changed browser binding; same draft tab resumed."
+  },
+  "references": [
+    "independent-verification-4g.json",
+    "receipt-compatibility-4f.json",
+    "deployment-verification-4g.json"
+  ]
+}

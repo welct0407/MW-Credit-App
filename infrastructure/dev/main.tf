@@ -293,7 +293,17 @@ resource "google_service_account_iam_member" "deploy_runtime" {
   member             = "serviceAccount:${google_service_account.deploy.email}"
 }
 
+variable "automated_hosting_delivery_enabled" {
+  description = "Existing DEV project-wide Hosting automation grant; disable only with the reviewed shared operator delivery route."
+  type        = bool
+  default     = true
+}
+moved {
+  from = google_project_iam_member.hosting_deploy
+  to   = google_project_iam_member.hosting_deploy[0]
+}
 resource "google_project_iam_member" "hosting_deploy" {
+  count   = var.automated_hosting_delivery_enabled ? 1 : 0
   project = local.project
   role    = "roles/firebasehosting.admin"
   member  = "serviceAccount:${google_service_account.deploy.email}"

@@ -1,0 +1,10 @@
+import {validBorrowerId} from './borrowers.mjs';
+/** Explicit related-record queries; source providers/guards retain all financial ownership. */
+export async function readLoanRelated(client,loanId,kind,{limit=25,cursor=null}={}){
+ if(!validBorrowerId(loanId)||!['charges','payments'].includes(kind)||!Number.isInteger(limit)||limit<1||limit>100)throw Error('invalid_request');
+ if(!(await client.query('SELECT 1 FROM public."Loans" WHERE "Row ID"=$1',[loanId])).rowCount)return null;
+ let after=null;if(cursor!==null){try{if(typeof cursor!=='string'||cursor.length>4096)throw Error();after=JSON.parse(Buffer.from(cursor,'base64url').toString('utf8'));if(JSON.stringify(Object.keys(after).sort())!==JSON.stringify(['id','kind','loanId','v'])||after.v!==1||after.kind!==kind||after.loanId!==loanId||!validBorrowerId(after.id)||Buffer.from(JSON.stringify(after)).toString('base64url')!==cursor)throw Error()}catch{throw Error('invalid_request')}}
+ const query=kind==='charges'?`SELECT c."Row ID" id,c."Charge Date"::text AS date,c."Principal Due"::numeric::text AS principal,c."Interest Due"::numeric::text AS interest,c."Amount Remaining"::numeric::text AS remaining,c."Notes" notes FROM public."Charges" c WHERE c."Ref Loans"=$1 AND ($2::text IS NULL OR c."Row ID" COLLATE "C">$2 COLLATE "C") ORDER BY c."Row ID" COLLATE "C" LIMIT $3`:`SELECT p."Row ID" id,p."Payment Date"::text AS date,p."Amount Received"::numeric::text AS amount,p."Payment Method" AS method,p."Status" status,p."Notes" notes FROM public."Payments" p WHERE (p."Ref Target Loan"=$1 OR EXISTS(SELECT 1 FROM public."Repayments" r JOIN public."Charges" c ON c."Row ID"=r."Ref Charges" WHERE r."Ref Payment"=p."Row ID" AND c."Ref Loans"=$1)) AND ($2::text IS NULL OR p."Row ID" COLLATE "C">$2 COLLATE "C") ORDER BY p."Row ID" COLLATE "C" LIMIT $3`;
+ const rows=(await client.query(query,[loanId,after?.id??null,limit+1])).rows,items=rows.slice(0,limit),last=items.at(-1);
+ return {items,nextCursor:rows.length>limit?Buffer.from(JSON.stringify({v:1,loanId,kind,id:last.id})).toString('base64url'):null};
+}

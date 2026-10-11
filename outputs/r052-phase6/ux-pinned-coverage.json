@@ -1,0 +1,473 @@
+{
+  "scope": "Owner-requested E review of four pinned pages and reachable representative subpages",
+  "date": "2026-10-11",
+  "roots": [
+    "Dashboard",
+    "Collection",
+    "Payments",
+    "Borrowers"
+  ],
+  "captures": [
+    {
+      "file": "ux-pinned-borrower-chooser-1440.png",
+      "sha256": "7591C9D2F3D09B51709437D4256788BE2F156C9B58E4D361B38C55D760ABA87B",
+      "synthetic": true,
+      "viewport": "1440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-borrower-chooser-440.png",
+      "sha256": "495F76ECF0D68A62E97F830FC5D63D45402C02310FDE28667CCCA5FD17E11258",
+      "synthetic": true,
+      "viewport": "440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-borrower-edit-1440.png",
+      "sha256": "70E4203E5757E0704604190870E9077255B91169CAEF39BD269900CCBA4CFF7E",
+      "synthetic": true,
+      "viewport": "1440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-borrower-edit-440.png",
+      "sha256": "BFC72F8E289045D211DCA826EABF978F3025A0AF54E1136D8C755E74676AC8EE",
+      "synthetic": true,
+      "viewport": "440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-borrower-history-1440.png",
+      "sha256": "0D47303CBDE5D0A75356074CAF903C4D843090029C2FD4DDDFCD96179C29310E",
+      "synthetic": true,
+      "viewport": "1440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-borrower-history-440.png",
+      "sha256": "586CD291462C4052E1D981616964E51F8F5EE44B12647FD4C6B1762D8ECDC7F8",
+      "synthetic": true,
+      "viewport": "440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-borrower-new-1440.png",
+      "sha256": "978F7F90C628C92D59D177954ABCF379F4F69E36AC7FBE5DE56F4BE6A3B64BDC",
+      "synthetic": true,
+      "viewport": "1440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-borrower-new-440.png",
+      "sha256": "1EA62140E782AF02199B30654C7103FFEDA0BBAD6A569A9A80694B5059B31319",
+      "synthetic": true,
+      "viewport": "440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-borrower-summary-1440.png",
+      "sha256": "43225EE98D459B8319CB3E38D354F7D26F0A3117A8637F216AA063C9D550C926",
+      "synthetic": true,
+      "viewport": "1440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-borrower-summary-440.png",
+      "sha256": "6A83713A994304DB6C9796DEB7521E64D2DBC4EA643BECD1204FB93609845B72",
+      "synthetic": true,
+      "viewport": "440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-borrowers-root-1440.png",
+      "sha256": "AF7892EDF4AEEB826DFBE021DC2294CD1A53DCD81D1A87269D6A98AE2936E944",
+      "synthetic": true,
+      "viewport": "1440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-borrowers-root-440.png",
+      "sha256": "372756B312D75ABE9F566E90894BD2E6B2C3AB5D77FE235E5585CD589E38AF1D",
+      "synthetic": true,
+      "viewport": "440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-charge-detail-1440.png",
+      "sha256": "6E413B97628DEAC5000909CD49D982D617A82D353341F4DB02D7DB6C59BFFE93",
+      "synthetic": true,
+      "viewport": "1440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-charge-detail-440.png",
+      "sha256": "E7B29305AF7C03799D29062CE5D574CDF7A875EFAA016E6A400A13D791CBA6F7",
+      "synthetic": true,
+      "viewport": "440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-charge-edit-1440.png",
+      "sha256": "6F4356F28FC3C908783C23AB4EBF1584A597A71EBB991AA98AE204CB3C35744E",
+      "synthetic": true,
+      "viewport": "1440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-charge-edit-440.png",
+      "sha256": "0F73633632A5FB0A2A6E9BBE2ACF4DBCCB8B43927B3021A4DA03F7634F0CD183",
+      "synthetic": true,
+      "viewport": "440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-charge-new-form-1440.png",
+      "sha256": "4EEE2DD930AB0A8565B573E719F731AF54B2102A6C529C40ED5AE64B16764C3C",
+      "synthetic": true,
+      "viewport": "1440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-charge-new-form-440.png",
+      "sha256": "46B39D58E3BFEDB35722BEEC705FCE1B8728BC2A5590B330F38715810900BE1D",
+      "synthetic": true,
+      "viewport": "440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-collection-detail-1440.png",
+      "sha256": "3CD3F9EBB982159881CFD37A8D1FFB832CEAF4140765663EAB0C82103ECDA3E4",
+      "synthetic": true,
+      "viewport": "1440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-collection-detail-440.png",
+      "sha256": "8DC6F97CAF92D2DBA6061598E456E55E1926B16DF4D99218820460FE337466FB",
+      "synthetic": true,
+      "viewport": "440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-collection-root-1440.png",
+      "sha256": "EB655549F86866927DEFA18B0145B9DE9E8DC960110C868DADFFCF1ADB9EE4CF",
+      "synthetic": true,
+      "viewport": "1440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-collection-root-440.png",
+      "sha256": "52EE1DC0D61262646EA82832CD98A564D5F68260ACA98FA5E3D4906AD32454D7",
+      "synthetic": true,
+      "viewport": "440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-collection-upcoming-date-1440.png",
+      "sha256": "E53DC634D52E1C72E3792DC7A3855355502C2EEC60EFD162FBCE13979E920B25",
+      "synthetic": true,
+      "viewport": "1440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-collection-upcoming-date-440.png",
+      "sha256": "E8DC9834543CDA0F63088F6C0623B3A0DF39AF432307653ECE98D4DB37D83CF8",
+      "synthetic": true,
+      "viewport": "440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-collection-upcoming-summary-1440.png",
+      "sha256": "CAF987C58941C0DF0412D7CA9098A016016A6AB683A2C70FB674C11C47C0AAD2",
+      "synthetic": true,
+      "viewport": "1440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-collection-upcoming-summary-440.png",
+      "sha256": "D616A943C28F4C38A96798304F868CBFC72F3FC6D2316D7CAF04F2AF2A7414B1",
+      "synthetic": true,
+      "viewport": "440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-correction-review-1440.png",
+      "sha256": "557C9900D4634F5CD9041C20A316C0C72CF08F674614A914FA74F582EF66563F",
+      "synthetic": true,
+      "viewport": "1440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-correction-review-440.png",
+      "sha256": "C4831114A478B3C52BFC329848B43428AAC911E18704561F920709B63C864713",
+      "synthetic": true,
+      "viewport": "440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-dashboard-root-1440.png",
+      "sha256": "62EBAE373343FE551340D19E33003AF4284B1F50690390F1D600A881B2E5144E",
+      "synthetic": true,
+      "viewport": "1440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-dashboard-root-440.png",
+      "sha256": "2CB3AC4BD85FBD86493F407C5EB07030644825D2D7A6386CFC8AE86FBED7AEDE",
+      "synthetic": true,
+      "viewport": "440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-loan-close-preview-1440.png",
+      "sha256": "CA13492945683DEB5B8186A7BE96D13A0DDE28BFB81E225F49C2AAC91E1652E6",
+      "synthetic": true,
+      "viewport": "1440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-loan-close-preview-440.png",
+      "sha256": "CDD493D0A06F0A0A926AD4F7ADA89F47DB03499CCCEBD79D0B7698B1DEA6C487",
+      "synthetic": true,
+      "viewport": "440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-loan-close-review-1440.png",
+      "sha256": "1292E9CA6745CE02FF02C892527CA23A832F3D2E62E06C61F30B7CE7196A20B1",
+      "synthetic": true,
+      "viewport": "1440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-loan-close-review-440.png",
+      "sha256": "43FB5146A938F9AD5FC0519CB38D1803A7C308715C4D1FB2B2938E38C5B663E6",
+      "synthetic": true,
+      "viewport": "440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-loan-detail-1440.png",
+      "sha256": "F48174503C10B7716ABD14130F4AEA4C35EED358FDE274D07728FF12759DE75C",
+      "synthetic": true,
+      "viewport": "1440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-loan-detail-440.png",
+      "sha256": "252118E4119AD7A9167496B1CFFF05D8A499F380364DAF9951B29E263DFE1493",
+      "synthetic": true,
+      "viewport": "440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-loan-edit-1440.png",
+      "sha256": "9472291114E1EB371D97D7D71F5D76F0B0A897650889B70B3F7B062A36290F4D",
+      "synthetic": true,
+      "viewport": "1440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-loan-edit-440.png",
+      "sha256": "7E246848B18C434C1FF4D9686F603D86D10581301B654F22ABCF074CCA767EC2",
+      "synthetic": true,
+      "viewport": "440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-loan-new-form-1440.png",
+      "sha256": "37A07508AFC83B27C32C5938A2F5263C34F4204281B8EE7586EC5D3078AF52DB",
+      "synthetic": true,
+      "viewport": "1440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-loan-new-form-440.png",
+      "sha256": "4AA58E61DD6B84A83F4235A8F18BFD6EDDD45970D4DF94FC5355143120DB9714",
+      "synthetic": true,
+      "viewport": "440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-payment-correction-1440.png",
+      "sha256": "BA424ADDBB47342FD84DB261E79D4EFB36EC44664A2B50B9770AA20BA70C14F8",
+      "synthetic": true,
+      "viewport": "1440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-payment-correction-440.png",
+      "sha256": "030C3287D6BDE376E6E887437AEB3D7E81E1EA620F27C3D10ED93D7B38F18EF6",
+      "synthetic": true,
+      "viewport": "440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-payment-detail-1440.png",
+      "sha256": "EEC90A50A09429DC65E28BBC95FD882E5E038002E796CE371E980F2505791D0B",
+      "synthetic": true,
+      "viewport": "1440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-payment-detail-440.png",
+      "sha256": "156E02161A2F3E7CE4D676664B4CD220CF49350B34D7F637E6D05F39D2F6B245",
+      "synthetic": true,
+      "viewport": "440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-payments-expanded-1440.png",
+      "sha256": "3885400FED9ADEBD1B738CC949025585CB37D65F9714E2C878A25AD691479AF8",
+      "synthetic": true,
+      "viewport": "1440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-payments-expanded-440.png",
+      "sha256": "818CD4C40051DCFB4933C2C3A74AA77B5FF8F9DA1DF27E1740455FA9F0A1CE32",
+      "synthetic": true,
+      "viewport": "440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-payments-root-1440.png",
+      "sha256": "7E8CC8EF3065E964002B0840A9F4868B2B8FFD37DB737D0D01B0FE89EECEBB45",
+      "synthetic": true,
+      "viewport": "1440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-payments-root-440.png",
+      "sha256": "7A3CF5BB103FF9690100275CB55A72211C40AC2386380F239FBA9664ADD12033",
+      "synthetic": true,
+      "viewport": "440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-receiving-entry-1440.png",
+      "sha256": "4392934B7EE75C24E166B6E34979211EC2055B2E053349D2E8F3DD2B135E097D",
+      "synthetic": true,
+      "viewport": "1440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-receiving-entry-440.png",
+      "sha256": "726B1F8B37B2E15B66F6BC8CB96AAEC9E442BA40BA7B920A376F2D683E13610D",
+      "synthetic": true,
+      "viewport": "440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-receiving-review-1440.png",
+      "sha256": "D9625B83E58072793411C602D0ED8A417CF1A6FE03D2662DD81E598D3B58203F",
+      "synthetic": true,
+      "viewport": "1440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-receiving-review-440.png",
+      "sha256": "82D3B559BD8B61F06A62EBAA6A661D56C980384C760FFE4C3CC2C3C24BF84E89",
+      "synthetic": true,
+      "viewport": "440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-saved-note-1440.png",
+      "sha256": "4338DBD129FACA4B52781C987D9F17C76A7CC4C2D7B639BAB410E649972F4B8A",
+      "synthetic": true,
+      "viewport": "1440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-saved-note-440.png",
+      "sha256": "4253E1182C9F904D90052BE3FDFDA79ACA27EC05759D4FF760FAAB251BC343E0",
+      "synthetic": true,
+      "viewport": "440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-saved-note-list-1440.png",
+      "sha256": "67FD97CD4C2EE605D3E738B7290D366370340EC37C7B513E827A01FB0026F761",
+      "synthetic": true,
+      "viewport": "1440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-saved-note-list-440.png",
+      "sha256": "2F0A717817E9DC5FB4A77E1B48C808ED80A34332E33D48661C834A323461B101",
+      "synthetic": true,
+      "viewport": "440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-upcoming-date-1440.png",
+      "sha256": "9C28FD94D8786C039A881C416B894FEF514DFDFE2EED6A12FD5EA2EE642EEB1F",
+      "synthetic": true,
+      "viewport": "1440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-upcoming-date-440.png",
+      "sha256": "5985FE44E06C9D3A21561F0D55A288A38BA18E89977EAF2D49ABFC3209B4277E",
+      "synthetic": true,
+      "viewport": "440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-upcoming-event-1440.png",
+      "sha256": "7732E722089C2C9A41D80FD96FB2AD00A33C2435109E4EE51B54F965E8169C57",
+      "synthetic": true,
+      "viewport": "1440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-upcoming-event-440.png",
+      "sha256": "27737E91EEBEA2364F19C2D721001879509C69B1C949AB1B215A185AD6E4F023",
+      "synthetic": true,
+      "viewport": "440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-upcoming-root-1440.png",
+      "sha256": "B481750FD678EEF8E68F8D41D3A0E62D5468A6ECAC55FFA39D1EA4B8B3E86737",
+      "synthetic": true,
+      "viewport": "1440x956",
+      "fullPage": true
+    },
+    {
+      "file": "ux-pinned-upcoming-root-440.png",
+      "sha256": "B8531475B41E11A49AF372342579B9E8B50DCA2C77F93CCE8149692EABACB64A",
+      "synthetic": true,
+      "viewport": "440x956",
+      "fullPage": true
+    }
+  ],
+  "rootRenderer": "Actual live-main with synthetic auth and HTTP",
+  "linkedRenderer": "Actual application components in existing back-consumers-harness; synthetic chrome and stable synthetic GET DTOs",
+  "noOperationalPost": true,
+  "noLiveWrites": true,
+  "ci": "Not run; bounded review-only capture invocations, not regression assertions",
+  "unrendered": [
+    "Actual receipt image/manual-agent variants",
+    "Two-loan same-date allocation ambiguity",
+    "Move-interest eligible form/confirmation",
+    "Charge confirmation",
+    "Transient immutable recovery/OS picker: source inventory only",
+    "Ordinary restored note: minimal fixture renders locked recovery-unavailable state"
+  ],
+  "limitations": [
+    "Not an acceptance/regression-suite pass",
+    "No physical iPhone test",
+    "English with synthetic bilingual names, no complete Thai-screen matrix",
+    "Nested harness toolbar is synthetic and must not be reviewed as production chrome"
+  ],
+  "sourceManifest": "cash-approved-ux-source.json",
+  "captureSource": "ux-pinned-capture-source.ts",
+  "syntheticReadOnlyReviewPost": "One intercepted receiving review response; no command dispatch/server mutation",
+  "collectionUpcoming": "collection-upcoming-summary/date use actual live-main content-linked UpcomingCharges; upcoming-root/date/event use separate StandaloneUpcoming",
+  "sourceRecipes": [
+    "ux-pinned-capture-source.ts",
+    "ux-pinned-extension-capture-source.ts"
+  ]
+}

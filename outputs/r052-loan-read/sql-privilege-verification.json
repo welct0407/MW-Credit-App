@@ -1,0 +1,18 @@
+{
+  "checkedAtUtc": "2026-10-07T12:14:09.358970+00:00",
+  "scope": "Actual source SQL EXPLAIN only, no ANALYZE/business rows; synthetic parameters",
+  "queriesPassed": 4,
+  "executionIdentity": "existing database operator",
+  "readerPrivilegeCheck": "separate effective has_column_privilege audit",
+  "limitation": "SET ROLE and service-account impersonation unavailable; no new permissions requested or changed",
+  "development": {
+    "readableColumns": 23,
+    "businessWrites": 0,
+    "schemaCreate": 0
+  },
+  "production": {
+    "readableColumns": 0,
+    "businessWrites": 0,
+    "schemaCreate": 0
+  }
+}

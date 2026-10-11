@@ -1,0 +1,17 @@
+{
+  "checkpoint": "2E",
+  "sourceCommit": "848750a216511af514b37f97fbddacae7a9d1707",
+  "ci": "https://github.com/welct0407/MW-Credit-App/actions/runs/37702097252",
+  "ciConclusion": "success",
+  "hostingVersion": "6a5b8f75b50f4537",
+  "hostingRelease": "1791415694758000",
+  "canonicalOrigin": "https://dev-lm.mw-credit.com",
+  "fallbackOrigin": "https://mw-credit-app-dev-737787224638.web.app",
+  "workerSha256": "d5939ba01524083acb956618322532a0e881effeb691d62839472d183b24b63d",
+  "javascript": "index-sGHwhqbu.js",
+  "priorHostingVersion": "ccb0af261babf04b",
+  "recovery": "Prior release is pre-worker: pair earlier frontend with maintained retirement worker, or deploy a valid earlier PWA worker. See docs/Development_PWA_Delivery.md.",
+  "apiRevisionUnchanged": "00009-5x5",
+  "liveVerification": "Passed: exact worker hash and six asset MIME/no-store checks; fresh unsigned canonical desktop/mobile and fallback EN/Thai, canonical public-only cache and fallback no registration, zero API/business reads.",
+  "ownerInstallReview": "Pending; native OS installation not proven by synthetic event tests"
+}

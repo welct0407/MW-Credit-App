@@ -1,0 +1,75 @@
+{
+  "baseline": "dadb73b",
+  "build": "CCNHihDu",
+  "css": "u0T0Vs8y",
+  "checks": [
+    "npm run build:live-dev: PASS (tsc + Vite)",
+    "node --check: payments, draft, close-summary PASS"
+  ],
+  "files": [
+    {
+      "path": "apps/pwa/src/CollectionRecords.tsx",
+      "sha256": "A2CE85F64632D5884CFFDAD7B6C3C764BAD95B13F8B39BB422D0EAA815656BCD"
+    },
+    {
+      "path": "apps/pwa/src/Dashboard.tsx",
+      "sha256": "50943564171ED4CA4E255329D13BB8EBEEA1843730106909A4BED3FE486A48F3"
+    },
+    {
+      "path": "apps/pwa/src/LoanClose.tsx",
+      "sha256": "2C2DAB17205166186CCE8472A11AACC34485C1CF6B2EDA44CC173E2D2C8FD1C3"
+    },
+    {
+      "path": "apps/pwa/src/LoanRecord.tsx",
+      "sha256": "8BBC2C1631D1A147CB18826FC8EB232C8BB2BCEEE6428A0D7D7BBB0A107FDCAF"
+    },
+    {
+      "path": "apps/pwa/src/LoanRecords.tsx",
+      "sha256": "D87F18314C7E1F9B7880FDD7677B2BAE647DA0D44E013F84997B6B16087EBDB1"
+    },
+    {
+      "path": "apps/pwa/src/PaymentCorrectionForm.tsx",
+      "sha256": "B2BC142426FCAA51E6620E59DCAF3A2AC85DB20F3A794F003DCFC513D7A210B5"
+    },
+    {
+      "path": "apps/pwa/src/PaymentGroups.tsx",
+      "sha256": "5B1927826A67DDF2B1895512C027A7DC675B8691BBED9A9450745B458389549D"
+    },
+    {
+      "path": "apps/pwa/src/PaymentRecord.tsx",
+      "sha256": "71A65652D0A13BAECCD6990F1847464685042BE45E400C5BB2698D40FD6DFA47"
+    },
+    {
+      "path": "apps/pwa/src/SelectedCharges.tsx",
+      "sha256": "12353180D9ADC6749AE385D3CAAA1CF09D8ACF75B3373FC762FFA2D3EB969936"
+    },
+    {
+      "path": "apps/pwa/src/live-main.tsx",
+      "sha256": "56B4CBB7B2FA26BDB78CD7863EF971030A57BC88802D1DC2B42C2E572288219E"
+    },
+    {
+      "path": "apps/pwa/src/live-style.css",
+      "sha256": "E2F2576A5164A2C983AF0C8400E800BA4D2846CC7272E3CF7F9784C8A198F8CA"
+    },
+    {
+      "path": "apps/pwa/src/viewed-snapshot.ts",
+      "sha256": "E14B2B8BCF0ED6D9A37DCC70E9602B8146A4FF7A36CE4633DF41A4A3F4296FEA"
+    },
+    {
+      "path": "services/business/payments.mjs",
+      "sha256": "B810FB4445E64B70F89A8A816AE2AEBFADF1C6EB78153CAB512112A18102A8E8"
+    },
+    {
+      "path": "services/payment-command/draft.mjs",
+      "sha256": "2EDEC4309486FA9997B8D05AB347A2233B6266B38CC7D7F55C8E3D63AE0FC2E9"
+    },
+    {
+      "path": "services/payment-command/store.mjs",
+      "sha256": "1D1DDC01F994649CA26D1DEC5E9E6735713C9459FA2EE7F771CA9B9B34D69A4C"
+    },
+    {
+      "path": "services/payment-command/close-summary.mjs",
+      "sha256": "D825CC7B6D2D4EB145D938CF6858A8220B51C06148A98EA9A3C1F2AC6C041486"
+    }
+  ]
+}
