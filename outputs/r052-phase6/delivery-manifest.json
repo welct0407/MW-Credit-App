@@ -265,5 +265,39 @@
     },
     "review": "ux-ipad-review-2026-10-11.md",
     "limits": "Responsive Chromium proof only; physical iPad/Safari/native keyboard/PWA/fullThai acceptance not performed. Time-series and conditional receipt/confirmation/recovery variants source-only or valid reused evidence. Existing business/API/SQL/auth/SW proof unchanged; prior unknown native receipts/intermittent503cause unresolved."
+  },
+  "pinnedApprovedUx": {
+    "sourceCommit": "023945dd67833496e8c29a877b4ebf5c1a45bc34",
+    "sourceManifest": "pinned-ux-source.json",
+    "evidence": "pinned-approved-evidence.md",
+    "codes": [
+      "PIN-LOAN-001",
+      "PIN-LOAN-002",
+      "PIN-PAY-001",
+      "PIN-PAY-002",
+      "PIN-ACTION-001",
+      "PIN-LIST-001",
+      "PIN-DASH-001"
+    ],
+    "commandBuild": "56f12e57-4863-4770-885b-e48f2a7be4ca",
+    "commandImage": "sha256:5907ea5c1f18fb08148569880b0c7995da7f1f442c8669e0b7a250dc2f89bb19",
+    "commandRevision": "mw-credit-app-command-dev-00016-gc9",
+    "planSha256": "C32DCD23EF263C1F75FA1E55CDE00245642C464786962876654F025D9C138AC6",
+    "settingsUnchanged": true,
+    "frontendBundle": "index-CON-hIdp.js",
+    "publicVersion": "b873e01d1388930fa4654c9c",
+    "hostingVersion": "41c242f719db0cee",
+    "hostingRelease": "1791678384453000",
+    "publicMarker": "HTTP200/no-store exact entry/version",
+    "readerUnchanged": "mw-credit-app-read-dev-00015-22g",
+    "databaseUnchanged": 85,
+    "validation": "B type/build; C2 read units+4 focused UI cases/65synthetic captures; configured guard PASS; no CI",
+    "rollback": {
+      "commandRevision": "00015-75d",
+      "hostingVersion": "49e196eaf3f90049",
+      "commandImage": "sha256:7cd2e3b80164659ab624ba1da14bfdc221e2120caac4e01d3832479cfcee38e4",
+      "frontendBundle": "index-zBnMbgVH.js"
+    },
+    "limits": "No new E review/physical-device acceptance/live financial writes; phone subject wraps without clipped controls; unknown native receipts and intermittent503cause unresolved"
   }
 }
