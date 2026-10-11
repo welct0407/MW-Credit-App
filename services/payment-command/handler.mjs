@@ -1,3 +1,4 @@
+import {wakeContext} from '../notifications/postcommit.mjs';
 import { randomUUID } from 'node:crypto';
 import { canonicalCommand } from '../contracts/payment-command.mjs';
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -81,6 +82,9 @@ function body(req,raw=false) {
 function buildHandler({ origins, verifyPrincipal, store, completionLogger = () => {} }) {
   const allowedOrigins = Object.freeze([...origins]);
   return async (req, res) => {
+    const clientDeadline=req.headers['x-mw-wake-deadline'];
+    const wakeDeadline = typeof clientDeadline==='string'&&/^\d{13}$/.test(clientDeadline)?Math.min(Date.now()+14000,Number(clientDeadline)-1000):Date.now(), wakeAbort = new AbortController();
+    res.once('close',()=>wakeAbort.abort());
     const reference = randomUUID(), started = performance.now(), target = route(req.url);
     const operation = req.method === 'OPTIONS' ? 'preflight' : target.operation;
     let code = 'command_unavailable';
@@ -96,14 +100,15 @@ function buildHandler({ origins, verifyPrincipal, store, completionLogger = () =
     if (origin !== undefined && !allowed) return reject(403, 'origin_denied');
     if (allowed) { res.setHeader('Access-Control-Allow-Origin', origin); res.setHeader('Access-Control-Expose-Headers', 'X-Request-ID'); }
     if (req.method === 'OPTIONS') {
-      if (!allowed || !['GET','POST','PATCH','DELETE'].includes(req.headers['access-control-request-method']) || (req.headers['access-control-request-headers'] || '').split(',').some(value => value.trim() && !['authorization','content-type','x-borrower-id'].includes(value.trim().toLowerCase()))) return reject(403, 'origin_denied');
-      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE');res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type, X-Borrower-ID');return send(204);
+      if (!allowed || !['GET','POST','PATCH','DELETE'].includes(req.headers['access-control-request-method']) || (req.headers['access-control-request-headers'] || '').split(',').some(value => value.trim() && !['authorization','content-type','x-borrower-id','x-mw-wake-deadline'].includes(value.trim().toLowerCase()))) return reject(403, 'origin_denied');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE');res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type, X-Borrower-ID, X-MW-Wake-Deadline');return send(204);
     }
     if (!['GET','POST','PATCH','DELETE'].includes(req.method)) return reject(405, 'method_not_allowed');
     if(target.operation==='health' && req.method==='GET')return send(200,{ok:true});
     let principal;
     try { principal = await verifyPrincipal(req.headers.authorization); } catch { return reject(401, 'session_invalid'); }
     if (!principal?.ok) return reject(principal?.status === 403 ? 403 : 401, ['sign_in_required','session_invalid','access_denied'].includes(principal?.code) ? principal.code : 'session_invalid');
+    principal = {...principal, [wakeContext]: {deadline:wakeDeadline, signal:wakeAbort.signal}};
     if (target.invalid) return reject(400, 'invalid_request');
     if (target.operation === 'unknown') return reject(404, 'not_found');
     if ((target.operation === 'command_submit' && req.method !== 'POST') || (['command_status','command_result','payment_draft','payment_history'].includes(target.operation) && req.method !== 'GET')) return reject(405, 'method_not_allowed');

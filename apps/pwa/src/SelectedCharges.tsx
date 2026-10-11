@@ -41,10 +41,10 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
  const money=(value:string)=>typeof value==='string'&&/^-?[0-9]+$/.test(value)?'฿'+BigInt(value).toLocaleString(thai?'th-TH':'en-US'):t('Unavailable','ไม่มีข้อมูล');
  async function call(path:string,init:RequestInit={}) {
   if(access.offlineOnly||!navigator.onLine)throw Error('Offline');
-  const done=beginRequest(),controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);
+  const done=beginRequest(),controller=new AbortController(),deadline=Date.now()+15000,timer=setTimeout(()=>controller.abort(),15000);
   try {
    const token=await access.token();
-   const response=await fetch(access.origin+path,{...init,signal:controller.signal,headers:{...init.headers,Authorization:'Bearer '+token}});
+   const response=await fetch(access.origin+path,{...init,signal:controller.signal,headers:{'X-MW-Wake-Deadline':String(deadline),...init.headers,Authorization:'Bearer '+token}});
    const data=await response.json();
    if(response.status===401||response.status===403){access.authFailure(response.status);throw Error('access_denied');}
    return {response,data};

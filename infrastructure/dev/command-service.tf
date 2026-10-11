@@ -41,6 +41,14 @@ resource "google_cloud_run_v2_service" "command_api" {
   invoker_iam_disabled = true
   lifecycle {
     precondition {
+      condition     = !var.agent_receipt_api.enabled || (var.agent_receipt_api.policy_infrastructure_enabled && var.agent_receipt_api.policy_version != null)
+      error_message = "Machine receipt API requires its reviewed DEV policy container and numeric secret version."
+    }
+    precondition {
+      condition     = !var.workers.command_dispatch_enabled || (var.workers.enabled && var.workers.image != null && var.workers.command_notification_enabled)
+      error_message = "Direct dispatch requires the reviewed worker image and owner-only command enrollment."
+    }
+    precondition {
       condition     = var.command_infrastructure_enabled && ((var.command_mode == "synthetic-only" && var.command_fixture != null) || (var.command_mode == "dev-owner-testing" && var.command_fixture == null)) && var.owner_identity_mode == "uid-pinned" && var.owner_uid_secret_version != null
       error_message = "Command runtime requires its separate identity, pinned owner secret, and a fixture only in synthetic-only mode."
     }
@@ -79,6 +87,13 @@ resource "google_cloud_run_v2_service" "command_api" {
           }, var.command_mode == "synthetic-only" ? { COMMAND_FIXTURE_JSON = jsonencode(var.command_fixture) } : {}, var.workers.command_notification_enabled ? {
           PWA_NOTIFICATIONS                                                = "enabled"
           WEB_PUSH_PUBLIC_KEY                                              = var.workers.web_push_public_key
+          } : {}, var.workers.command_dispatch_enabled ? {
+          NOTIFICATION_DISPATCH_ENABLED  = "true"
+          NOTIFICATION_DISPATCH_URL      = "https://mw-credit-app-notify-dev-737787224638.asia-southeast1.run.app/internal/dispatch"
+          NOTIFICATION_DISPATCH_AUDIENCE = "https://mw-credit-app-notify-dev-737787224638.asia-southeast1.run.app"
+          } : {}, var.agent_receipt_api.enabled ? {
+          AGENT_RECEIPT_API_ENABLED           = "true"
+          AGENT_RECEIPT_POLICY_SECRET_VERSION = "projects/${local.project}/secrets/mw-credit-app-dev-agent-receipt-policy/versions/${var.agent_receipt_api.policy_version == null ? "UNBOUND" : var.agent_receipt_api.policy_version}"
         } : {})
         content {
           name  = env.key
@@ -91,6 +106,18 @@ resource "google_cloud_run_v2_service" "command_api" {
           secret_key_ref {
             secret  = google_secret_manager_secret.owner_identity.secret_id
             version = var.owner_uid_secret_version
+          }
+        }
+      }
+      dynamic "env" {
+        for_each = var.agent_receipt_api.enabled ? [var.agent_receipt_api.policy_version] : []
+        content {
+          name = "AGENT_RECEIPT_POLICY_JSON"
+          value_source {
+            secret_key_ref {
+              secret  = "mw-credit-app-dev-agent-receipt-policy"
+              version = env.value
+            }
           }
         }
       }
@@ -129,7 +156,7 @@ resource "google_cloud_run_v2_service" "command_api" {
       }
     }
   }
-  depends_on = [google_project_iam_member.command_sql, google_project_iam_member.command_auth_user, google_secret_manager_secret_iam_member.command_owner_identity, google_secret_manager_secret_iam_member.command_native_receipt_catalog, google_storage_bucket_iam_member.command_receipts, google_secret_manager_secret_iam_member.command_notification_policy]
+  depends_on = [google_project_iam_member.command_sql, google_project_iam_member.command_auth_user, google_secret_manager_secret_iam_member.command_owner_identity, google_secret_manager_secret_iam_member.command_native_receipt_catalog, google_storage_bucket_iam_member.command_receipts, google_secret_manager_secret_iam_member.command_notification_policy, google_secret_manager_secret_iam_member.command_agent_receipt_policy]
 }
 # Browser business routes use pinned Firebase auth; no shared/public bucket or
 # organization policy changes. Review this service-specific invocation boundary.

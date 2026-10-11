@@ -54,6 +54,10 @@ variable "notification_enabled" {
   type    = bool
   default = false
 }
+variable "command_dispatch_enabled" {
+  type    = bool
+  default = false
+}
 variable "jobs_enabled" {
   type    = bool
   default = false
@@ -143,11 +147,11 @@ resource "google_cloud_run_v2_service" "worker" {
   name                 = local.names[each.key]
   location             = local.region
   deletion_protection  = true
-  ingress              = "INGRESS_TRAFFIC_INTERNAL_ONLY"
+  ingress              = each.key == "notify" ? "INGRESS_TRAFFIC_ALL" : "INGRESS_TRAFFIC_INTERNAL_ONLY"
   invoker_iam_disabled = false
-  # Keep the warm minimum at service scope, not on every historical revision.
+  # Direct post-commit dispatch and recovery ticks need CPU only during requests.
   scaling {
-    min_instance_count = each.key == "notify" && var.notification_enabled ? 1 : 0
+    min_instance_count = 0
     max_instance_count = 1
   }
   lifecycle {
@@ -171,7 +175,7 @@ resource "google_cloud_run_v2_service" "worker" {
       args    = ["services/workers/server.mjs"]
       resources {
         limits   = { cpu = "1", memory = "512Mi" }
-        cpu_idle = !(each.key == "notify" && var.notification_enabled)
+        cpu_idle = true
       }
       dynamic "env" {
         for_each = merge({
@@ -227,6 +231,14 @@ resource "google_cloud_run_v2_service_iam_member" "scheduler" {
   name     = google_cloud_run_v2_service.worker[each.key].name
   role     = "roles/run.invoker"
   member   = "serviceAccount:${google_service_account.scheduler[0].email}"
+}
+resource "google_cloud_run_v2_service_iam_member" "command_dispatch" {
+  count    = var.enabled && var.image != null && var.command_dispatch_enabled ? 1 : 0
+  project  = local.project
+  location = local.region
+  name     = google_cloud_run_v2_service.worker["notify"].name
+  role     = "roles/run.invoker"
+  member   = "serviceAccount:mw-credit-app-command-dev@${local.project}.iam.gserviceaccount.com"
 }
 resource "google_cloud_scheduler_job" "tick" {
   for_each         = local.schedules

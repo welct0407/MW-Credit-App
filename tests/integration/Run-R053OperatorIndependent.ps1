@@ -1,4 +1,4 @@
-param([string]$TestNamePattern)
+param([string]$TestNamePattern,[switch]$AgentReceipts)
 $ErrorActionPreference='Stop'
 if($env:CI -ne 'true'){. "$PSScriptRoot/../../scripts/Enter-Dev.ps1"}
 . "$PSScriptRoot/../../scripts/database/Common.ps1"
@@ -10,7 +10,7 @@ New-Item -ItemType Directory -Path $fixtureRoot | Out-Null
 Write-Host "Owned Phase8 disposable fixture: $fixtureRoot"
 $listener=[Net.Sockets.TcpListener]::new([Net.IPAddress]::Loopback,0);$listener.Start();$fixturePort=$listener.LocalEndpoint.Port;$listener.Stop()
 $started=$false;$saved=@{}
-$names=@('PHASE8_TEST_DISPOSABLE','PHASE8_TEST_HOST','PHASE8_TEST_PORT','PHASE8_TEST_DATABASE','PHASE8_TEST_USER','PHASE8_TEST_PASSWORD','PHASE8_TEST_DATA_DIRECTORY')
+$names=@('PHASE8_AGENT_RECEIPTS','PHASE8_TEST_DISPOSABLE','PHASE8_TEST_HOST','PHASE8_TEST_PORT','PHASE8_TEST_DATABASE','PHASE8_TEST_USER','PHASE8_TEST_PASSWORD','PHASE8_TEST_DATA_DIRECTORY')
 Get-ChildItem Env:FLYWAY_* -ErrorAction SilentlyContinue | ForEach-Object {$names+=$_.Name}
 foreach($name in $names){$saved[$name]=[Environment]::GetEnvironmentVariable($name);[Environment]::SetEnvironmentVariable($name,$null)}
 try {
@@ -34,6 +34,7 @@ try {
  } finally {Pop-Location}
  & (Join-Path $pgBin 'psql.exe') -X -q -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $fixturePort -U postgres -d $database -f "$PSScriptRoot/phase8-identity-fixture.sql"
  if($LASTEXITCODE){throw 'Synthetic identity setup failed'}
+ if($AgentReceipts){$env:PHASE8_AGENT_RECEIPTS='1'}
  $env:PHASE8_TEST_DISPOSABLE='1';$env:PHASE8_TEST_HOST='127.0.0.1';$env:PHASE8_TEST_PORT=[string]$fixturePort;$env:PHASE8_TEST_DATABASE=$database;$env:PHASE8_TEST_USER='postgres';$env:PHASE8_TEST_DATA_DIRECTORY=$data
  $arguments=@('--test','--test-concurrency=1');if($TestNamePattern){$arguments+=('--test-name-pattern='+$TestNamePattern)}
  & node @arguments "$PSScriptRoot/r053-operator-independent.test.mjs"

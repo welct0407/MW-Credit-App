@@ -4,6 +4,9 @@ const q=x=>'"'+x.replaceAll('"','""')+'"';
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 export const r053Roles=['mw_notify_owner_dev','mw_notify_api_dev','mw_notify_dispatch_dev','mw_jobs_owner_dev','mw_jobs_dev'];
 const owners=[r053Roles[0],r053Roles[3]];
+const journalOwner='mw_app_dev_journal_owner';
+export const r053AgentReceiptSignatures=['public.pwa_submit_agent_receipt_v1(text)','public.pwa_agent_receipt_status_v1(uuid,text,text)'];
+const commandUser='mw-credit-app-command-dev@clever-oasis-508610-n7.iam';
 async function context(c,config){
  if(!['loan_manager_dev','payment_rehearsal'].includes(config?.database)||!Array.isArray(config.creators)||config.creators.length!==1)throw Error('Explicit DEV operator required');
  const x=(await c.query("SELECT current_database() database,session_user operator,host(inet_server_addr()) host,inet_server_port() port,r.rolsuper,r.rolcreaterole,r.rolbypassrls,pg_get_userbyid(n.nspowner) schemaGrantor,pg_has_role(session_user,n.nspowner,'SET') schema_set,has_schema_privilege(session_user,n.oid,'CREATE') schema_create FROM pg_roles r CROSS JOIN pg_namespace n WHERE r.rolname=session_user AND n.nspname='public'")).rows[0];
@@ -18,11 +21,11 @@ async function transaction(c,fn){await c.query('BEGIN');try{const x=await fn();a
 async function roles(c){return(await c.query('SELECT rolname,rolcanlogin,rolinherit,rolsuper,rolcreatedb,rolcreaterole,rolreplication,rolbypassrls FROM pg_roles WHERE rolname=ANY($1::text[]) ORDER BY rolname',[r053Roles])).rows;}
 function closed(rows){if(rows.length!==5||rows.some(x=>x.rolcanlogin||x.rolinherit||x.rolsuper||x.rolcreatedb||x.rolcreaterole||x.rolreplication||x.rolbypassrls))throw Error('Five closed roles required');}
 async function memberships(c){return(await c.query('SELECT r.rolname role,m.rolname member,g.rolname grantor,a.admin_option,a.inherit_option,a.set_option FROM pg_auth_members a JOIN pg_roles r ON r.oid=a.roleid JOIN pg_roles m ON m.oid=a.member JOIN pg_roles g ON g.oid=a.grantor ORDER BY 1,2,3')).rows;}
-async function selected(c,ctx){
+async function selected(c,ctx,maintenanceOwners=owners){
  const ms=await memberships(c);if(ms.some(x=>r053Roles.includes(x.member)))throw Error('Worker roles must not inherit another role');
- if(ms.some(x=>owners.includes(x.role)&&x.member===ctx.operator&&x.grantor!==ctx.grantor&&(x.inherit_option||x.set_option)))throw Error('Unexpected additional operator authority');
+ if(ms.some(x=>maintenanceOwners.includes(x.role)&&x.member===ctx.operator&&x.grantor!==ctx.grantor&&(x.inherit_option||x.set_option)))throw Error('Unexpected additional operator authority');
  const acl=(await c.query("SELECT pg_get_userbyid(a.grantor) grantor,pg_get_userbyid(a.grantee) grantee,a.is_grantable grantable FROM pg_namespace n CROSS JOIN LATERAL aclexplode(coalesce(n.nspacl,acldefault('n',n.nspowner))) a WHERE n.nspname='public' AND a.privilege_type='CREATE' ORDER BY 1,2")).rows;
- return owners.map(role=>{const member=ms.filter(x=>x.role===role&&x.member===ctx.operator&&x.grantor===ctx.grantor);if(member.length!==1)throw Error('Exact reviewed owner creator tuple required');const a=acl.filter(x=>x.grantee===role);if(a.length>1||a.some(x=>x.grantor!==ctx.schemaGrantor))throw Error('Unknown owner CREATE grantor');return{role,membership:member[0],create:a[0]??null};});
+ return maintenanceOwners.map(role=>{const member=ms.filter(x=>x.role===role&&x.member===ctx.operator&&x.grantor===ctx.grantor);if(member.length!==1)throw Error('Exact reviewed owner creator tuple required');const a=acl.filter(x=>x.grantee===role);if(a.length>1||a.some(x=>x.grantor!==ctx.schemaGrantor))throw Error('Unknown owner CREATE grantor');return{role,membership:member[0],create:a[0]??null};});
 }
 function memberSql(ctx,m){return `GRANT ${q(m.role)} TO ${q(m.member)} WITH ${ctx.mode==='explicit'?`ADMIN ${m.admin_option?'TRUE':'FALSE'}, `:''}INHERIT ${m.inherit_option?'TRUE':'FALSE'}, SET ${m.set_option?'TRUE':'FALSE'}${ctx.mode==='explicit'?' GRANTED BY '+q(ctx.grantor):''}`;}
 export async function provisionR053Roles(c,config,{apply=false}={}){
@@ -45,22 +48,27 @@ export async function provisionR053Roles(c,config,{apply=false}={}){
   return{mode:'roles-provisioned',context:ctx,roles:await roles(c),memberships:after.filter(x=>r053Roles.includes(x.role)||r053Roles.includes(x.member)),statements};
  });
 }
-export async function prepareR053Maintenance(c,config,{apply=false,expectedRestoreState=null}={}){
- const ctx=await context(c,config);closed(await roles(c));const baseline=await selected(c,ctx);
+export async function prepareR053Maintenance(c,config,{apply=false,expectedRestoreState=null,includeAgentReceipts=false}={}){
+ const ctx=await context(c,config);closed(await roles(c));
+ if(typeof includeAgentReceipts!=='boolean')throw Error('Explicit agent maintenance boolean required');
+ const maintenanceOwners=includeAgentReceipts?[...owners,journalOwner]:owners;
+ if(includeAgentReceipts){const r=(await c.query('SELECT rolcanlogin,rolsuper,rolcreatedb,rolcreaterole,rolreplication,rolbypassrls FROM pg_roles WHERE rolname=$1',[journalOwner])).rows[0];if(!r||Object.values(r).some(Boolean))throw Error('Existing closed journal owner required');}
+ const baseline=await selected(c,ctx,maintenanceOwners);
  if(baseline.some(x=>x.membership.admin_option||x.membership.inherit_option||x.membership.set_option||x.create))throw Error('Closed owner authority baseline required');
  const elevated=baseline.map(x=>({...x,membership:{...x.membership,inherit_option:true,set_option:true},create:{grantor:ctx.schemaGrantor,grantee:x.role,grantable:false}}));
- const state={version:1,context:ctx,baseline,elevated};if(expectedRestoreState&&!same(state,expectedRestoreState))throw Error('R053 maintenance baseline changed');
+ const state={version:includeAgentReceipts?2:1,context:ctx,baseline,elevated};if(expectedRestoreState&&!same(state,expectedRestoreState))throw Error('R053 maintenance baseline changed');
  const statements=elevated.flatMap(x=>[memberSql(ctx,x.membership),`SET LOCAL ROLE ${q(ctx.schemaGrantor)}`,`GRANT CREATE ON SCHEMA public TO ${q(x.role)}`,`RESET ROLE`]);
- if(apply)await transaction(c,async()=>{for(const sql of statements)await c.query(sql);if(!same(await selected(c,ctx),elevated))throw Error('R053 elevation mismatch');});
+ if(apply)await transaction(c,async()=>{for(const sql of statements)await c.query(sql);if(!same(await selected(c,ctx,maintenanceOwners),elevated))throw Error('R053 elevation mismatch');});
  return{mode:apply?'authority-prepared':'authority-plan',restoreState:state,statements};
 }
 export async function restoreR053Maintenance(c,config,state,{apply=false}={}){
- const ctx=await context(c,config);if(state?.version!==1||!same(ctx,state.context))throw Error('R053 restore context mismatch');
- if(!Array.isArray(state.baseline)||state.baseline.length!==2||!same(state.baseline.map(x=>x.role),owners)||state.baseline.some(x=>x.create!==null||x.membership?.role!==x.role||x.membership?.member!==ctx.operator||x.membership?.grantor!==ctx.grantor||x.membership?.admin_option!==false||x.membership?.inherit_option!==false||x.membership?.set_option!==false)||!same(state.elevated,state.baseline.map(x=>({...x,membership:{...x.membership,inherit_option:true,set_option:true},create:{grantor:ctx.schemaGrantor,grantee:x.role,grantable:false}}))))throw Error('Invalid R053 restoration snapshot');
- closed(await roles(c));const actual=await selected(c,ctx);
+ const ctx=await context(c,config);if(![1,2].includes(state?.version)||!same(ctx,state.context))throw Error('R053 restore context mismatch');
+ const maintenanceOwners=state.version===2?[...owners,journalOwner]:owners;
+ if(!Array.isArray(state.baseline)||state.baseline.length!==maintenanceOwners.length||!same(state.baseline.map(x=>x.role),maintenanceOwners)||state.baseline.some(x=>x.create!==null||x.membership?.role!==x.role||x.membership?.member!==ctx.operator||x.membership?.grantor!==ctx.grantor||x.membership?.admin_option!==false||x.membership?.inherit_option!==false||x.membership?.set_option!==false)||!same(state.elevated,state.baseline.map(x=>({...x,membership:{...x.membership,inherit_option:true,set_option:true},create:{grantor:ctx.schemaGrantor,grantee:x.role,grantable:false}}))))throw Error('Invalid R053 restoration snapshot');
+ closed(await roles(c));const actual=await selected(c,ctx,maintenanceOwners);
  if(same(actual,state.baseline))return{mode:'authority-already-restored',statements:[]};if(!same(actual,state.elevated))throw Error('Owned authority changed concurrently');
  const statements=state.baseline.flatMap(x=>[`SET LOCAL ROLE ${q(ctx.schemaGrantor)}`,`REVOKE CREATE ON SCHEMA public FROM ${q(x.role)} RESTRICT`,`RESET ROLE`,memberSql(ctx,x.membership)]);
- if(apply)await transaction(c,async()=>{for(const sql of statements)await c.query(sql);if(!same(await selected(c,ctx),state.baseline))throw Error('R053 restoration mismatch');});
+ if(apply)await transaction(c,async()=>{for(const sql of statements)await c.query(sql);if(!same(await selected(c,ctx,maintenanceOwners),state.baseline))throw Error('R053 restoration mismatch');});
  return{mode:apply?'authority-restored':'restore-plan',statements};
 }
 async function capture(c,ctx){const x=(await c.query("SELECT p.oid::text,pg_get_userbyid(p.proowner) owner,p.proconfig FROM pg_proc p WHERE p.oid=to_regprocedure('public.pwa_capture_notification_v1()')")).rows[0];if(!x||x.owner!==owners[0])throw Error('Exact capture ownership required');const h=(await c.query("SELECT 1 FROM public.flyway_schema_history WHERE version='88' AND success")).rowCount;if(!h)throw Error('Applied V88 required');return{database:ctx.database,...x};}
@@ -98,4 +106,23 @@ export async function bindR053Runtime(c,config,{kind,apply=false}={}){
  const statements=[`GRANT ${q(role)} TO ${q(user)} WITH ADMIN FALSE, INHERIT TRUE, SET FALSE`];
  if(apply)await transaction(c,async()=>{for(const sql of statements)await c.query(sql);const now=await memberships(c);const x=now.filter(x=>x.member===user&&x.role===role);if(x.length!==1||x[0].admin_option||!x[0].inherit_option||x[0].set_option)throw Error('Runtime binding mismatch');});
  return{mode:apply?'runtime-bound':'runtime-plan',kind,user,capability:role,beforeMemberships:ms.filter(x=>x.member===user),statements};
+}
+
+// V89 machine entrypoints are granted directly to the existing command login only.
+export async function grantR053AgentReceiptApi(c,config,{apply=false,expectedBefore=null}={}){
+ const ctx=await context(c,config);
+ if(!(await c.query("SELECT 1 FROM public.flyway_schema_history WHERE version='89' AND success")).rowCount)throw Error('Applied V89 required');
+ const user=(await c.query('SELECT rolcanlogin,rolsuper,rolcreatedb,rolcreaterole,rolreplication,rolbypassrls FROM pg_roles WHERE rolname=$1',[commandUser])).rows[0];
+ if(!user?.rolcanlogin||user.rolsuper||user.rolcreatedb||user.rolcreaterole||user.rolreplication||user.rolbypassrls)throw Error('Existing closed DEV command login required');
+ async function snapshot(){const rows=[];for(const signature of r053AgentReceiptSignatures){
+  const r=(await c.query("SELECT p.oid::text,pg_get_userbyid(p.proowner) owner,p.prosecdef definer,p.proacl::text acl,has_function_privilege($2,p.oid,'EXECUTE') command_execute,has_function_privilege('mw_app_dev',p.oid,'EXECUTE') app_execute FROM pg_proc p WHERE p.oid=to_regprocedure($1)",[signature,commandUser])).rows[0];
+  if(!r||r.owner!==journalOwner||!r.definer||r.app_execute)throw Error('Exact journal-owned machine-only function required');
+  const acl=(await c.query("SELECT CASE WHEN a.grantee=0 THEN 'PUBLIC' ELSE pg_get_userbyid(a.grantee) END grantee,pg_get_userbyid(a.grantor) grantor,a.privilege_type privilege,a.is_grantable grantable FROM pg_proc p CROSS JOIN LATERAL aclexplode(coalesce(p.proacl,acldefault('f',p.proowner))) a WHERE p.oid=$1",[r.oid])).rows;
+  if(acl.some(a=>![journalOwner,commandUser].includes(a.grantee)||a.grantor!==journalOwner||a.privilege!=='EXECUTE'||(a.grantee===commandUser&&a.grantable)))throw Error('Unreviewed machine function ACL');
+  rows.push({signature,...r});
+ }return rows;}
+ const before=await snapshot();if(expectedBefore&&!same(before,expectedBefore))throw Error('Agent API ACL baseline changed');
+ const statements=[`SET LOCAL ROLE ${q(journalOwner)}`,...r053AgentReceiptSignatures.map(s=>`GRANT EXECUTE ON FUNCTION ${s} TO ${q(commandUser)}`),'RESET ROLE'];let after=before;
+ if(apply)await transaction(c,async()=>{for(const sql of statements)await c.query(sql);after=await snapshot();if(after.some((r,i)=>!r.command_execute||r.oid!==before[i].oid||r.owner!==before[i].owner))throw Error('Machine function grant mismatch');});
+ return{mode:apply?'agent-api-granted':'agent-api-plan',context:ctx,user:commandUser,before,after,statements};
 }

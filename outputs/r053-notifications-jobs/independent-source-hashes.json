@@ -9,19 +9,19 @@
   },
   {
     "path": "tests/integration/Run-Phase8.ps1",
-    "sha256": "5f5af109b9ea3f67a1aaa08563010bb66ada1048a34c79146db9c2049daf99b6"
+    "sha256": "66db1af83405b0ebffd2f7c636a89ed4113f4568db5b89b335727b304d60aaf6"
   },
   {
     "path": "tests/integration/r053-rpc-independent.test.mjs",
-    "sha256": "3701826e1d43162a8d965b9531b2348469a20e125d69925ddbee6f4b51b37663"
+    "sha256": "274c87271a566ad4c14be23f2509ad4ee7835632187fd68cf2cc1b3d39a8d2e6"
   },
   {
     "path": "tests/integration/Run-R053OperatorIndependent.ps1",
-    "sha256": "818f444e3742efe57711a7e312363e0b54600b7a0c8fb005f297affd6a532800"
+    "sha256": "26de1b5dc2374d6b42cfbcbf5bc517dcd37749fb29d4011b354cb86ca0591bd7"
   },
   {
     "path": "tests/integration/r053-operator-independent.test.mjs",
-    "sha256": "54d4e303452598dda3264d592022dc83c3b53fe0c00f6d097cfbbd6821d5d6ba"
+    "sha256": "5630bf25b8498c583baa3f41a3059c1446f01bc1c8fd8dd731b239b139f998e5"
   },
   {
     "path": "tests/integration/phase8-rpc-fixture.mjs",
@@ -37,11 +37,11 @@
   },
   {
     "path": "tests/integration/r053-wakeup-independent.test.mjs",
-    "sha256": "fd4da3756593ba8aa91ffb23d08209a1b430717675649c56b3084085d63ce0f1"
+    "sha256": "7ff8f02381d8273cb1defb278c487e3bbd01d66ffa620b969db295ee2e5b906d"
   },
   {
     "path": "tests/integration/r053-worker-http-independent.test.mjs",
-    "sha256": "04d434c59bcc648d638a4879e8acf75ff566f35f0b59c023a9f3df15ee839d26"
+    "sha256": "41ecb1f33d8db0f23ff8f03dd51bbca1d906f29e617a1b49c98a82878bebd645"
   },
   {
     "path": "outputs/r053-notifications-jobs/v87-jobs-catalogue.json",
@@ -53,10 +53,22 @@
   },
   {
     "path": "outputs/r053-notifications-jobs/independent-verification.md",
-    "sha256": "4e822c2aff613be936b935ffb1e5ef8eb40328cd21766aa099e312414656203a"
+    "sha256": "605d9d3e4ff1b15fecbe15638e1ac5521e5b5a422d93d0a0ebb622c355fe9fed"
   },
   {
     "path": "tests/integration/Test-R053CleanupGuards.ps1",
     "sha256": "17a28416a0761e7d3deaaf69917f04b053ec7c6d2dfb3b20ce23cf3ffb270114"
+  },
+  {
+    "path": "tests/integration/r053-agent-receipt-independent.test.mjs",
+    "sha256": "99fc27913d525eb58c4995d60e02e2c0b33f42ae80a4e6ccc05c6e65349e19b2"
+  },
+  {
+    "path": "tests/unit/notifications-independent.test.mjs",
+    "sha256": "9890cb9f573452e53189422f2eb91e0d414ad71bb2b624deb4af8834549c5755"
+  },
+  {
+    "path": "tests/unit/agent-receipt-command-independent.test.mjs",
+    "sha256": "563bc87bb50ccf7458deac3bb90ac65fa8e70ce01f89a9e29f12e222fe470721"
   }
 ]

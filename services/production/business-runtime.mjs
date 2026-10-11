@@ -1,3 +1,5 @@
+import {createAgentReceiptHandler,loadAgentReceiptPolicy} from '../agent-receipts/runtime.mjs';
+import {createPostCommitWake,loadDispatchConfig} from '../notifications/postcommit.mjs';
 import {createProductionCommandReceipts} from '../receipts/command-receipts.mjs';
 import {createProductionGcsReceiptTransport} from '../receipts/gcs-transport.mjs';
 import {createProductionSourceReceiptReader} from '../receipts/production-source-receipts.mjs';
@@ -34,9 +36,11 @@ export async function createProductionBusinessRuntime(env,dependencies) {
       // Business commands without receipts use the existing canonical transaction/journal implementations.
       let receiptAdapter,sourceReceiptReader;
       if(config.receiptCatalog){const storage=await dependencies.createStorage(config);receiptAdapter=createProductionCommandReceipts({storage:createProductionGcsReceiptTransport(storage),decodeImage:decodeCommandReceipt,compatibility:config.receiptCompatibility});sourceReceiptReader=createProductionSourceReceiptReader({catalog:config.receiptCatalog,storage,decodeImage:decodeSourceReceipt});}
-      const store=createEnvironmentCommandStore({receiptAdapter,sourceReceiptReader,pool,guardConnection,principalAllowed:membership.principalAllowed,resolveActor:membership.resolveActor,actorIssuer:config.issuer});
+      const afterCommit=createPostCommitWake(loadDispatchConfig(env,'prod'),{log:completionLogger});
+      const store=createEnvironmentCommandStore({afterCommit,receiptAdapter,sourceReceiptReader,pool,guardConnection,principalAllowed:membership.principalAllowed,resolveActor:membership.resolveActor,actorIssuer:config.issuer});
       handler=createEnvironmentCommandHandler({config,verifyPrincipal,store,completionLogger});
       if(config.notificationsEnabled)handler=notificationHandler({next:handler,enabled:true,verifyPrincipal,origins:config.origins,publicKey:config.pushPublicKey,store:createNotificationStore({pool,guardConnection,resolveActor:membership.resolveActor,issuer:config.issuer})});
+      handler=createAgentReceiptHandler({next:handler,policy:loadAgentReceiptPolicy(env,'prod'),pool,guardConnection,afterCommit,verifyOidc:dependencies.verifyOidc});
     }
     return {enabled:true,handler,close:()=>pool.end()};
   } catch(error) {await pool.end();throw error;}

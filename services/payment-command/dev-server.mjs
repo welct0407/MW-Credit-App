@@ -1,3 +1,5 @@
+import {createAgentReceiptHandler,loadAgentReceiptPolicy} from '../agent-receipts/runtime.mjs';
+import {createPostCommitWake,loadDispatchConfig} from '../notifications/postcommit.mjs';
 import {createSourceReceiptReader,createSourceGcsReadTransport} from '../receipts/source-receipts.mjs';
 import http from 'node:http';
 import {initializeApp,applicationDefault} from 'firebase-admin/app';
@@ -23,10 +25,12 @@ const client=await pool.connect();
 try{await createDevCommandConnectionGuard(config)(client)}finally{client.release()}
 const sourceReceiptReader=createSourceReceiptReader({storage:createSourceGcsReadTransport(new Storage({projectId:config.projectId}),{nativeDescriptors:config.nativeReceiptDescriptors}),decodeImage:decodeSourceReceipt,nativeDescriptors:config.nativeReceiptDescriptors});
 const receipts=createCommandReceipts({storage:createGcsReceiptTransport(new Storage({projectId:config.projectId})),decodeImage:decodeCommandReceipt,compatibility:config.receiptCompatibility});
-const store=createDevCommandStore({pool,config,receiptAdapter:receipts,sourceReceiptReader});
+const afterCommit=createPostCommitWake(loadDispatchConfig(process.env,'dev'),{log:r=>console.log(JSON.stringify(r))});
+const store=createDevCommandStore({afterCommit,pool,config,receiptAdapter:receipts,sourceReceiptReader});
 const verifyPrincipal=createCommandPrincipalVerifier({ownerUid:config.ownerUid,verifyIdToken:(token,revoked)=>auth.verifyIdToken(token,revoked)});
 const commandHandler=createDevCommandHandler({config,store,verifyPrincipal,completionLogger:record=>console.log(JSON.stringify(record))});
-const server=http.createServer(createDevNotificationHandler({next:commandHandler,config,pool,verifyPrincipal,guardConnection:createDevCommandConnectionGuard(config)}));
+const humanHandler=createDevNotificationHandler({next:commandHandler,config,pool,verifyPrincipal,guardConnection:createDevCommandConnectionGuard(config)});
+const server=http.createServer(createAgentReceiptHandler({next:humanHandler,policy:loadAgentReceiptPolicy(process.env,'dev'),pool,guardConnection:createDevCommandConnectionGuard(config),afterCommit}));
 server.requestTimeout=20000;server.headersTimeout=10000;
 server.listen(Number(process.env.PORT||8080),'0.0.0.0');
 process.on('SIGTERM',()=>server.close(async()=>{await pool.end();connector.close();process.exit(0)}));

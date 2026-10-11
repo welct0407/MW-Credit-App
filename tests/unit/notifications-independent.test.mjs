@@ -1,6 +1,5 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import https from 'node:https';
 import {EventEmitter} from 'node:events';
 import {createECDH,randomBytes,createPublicKey,verify} from 'node:crypto';
 import webpush from 'web-push';
@@ -12,15 +11,14 @@ import {createCanonicalJobRunner} from '../../services/jobs/runner.mjs';
 test('maintained web-push actually encrypts generic payload and binds VAPID; provider outcomes never leak bodies',async()=>{
  const receiver=createECDH('prime256v1');receiver.generateKeys();const auth=randomBytes(16).toString('base64url');
  const subscription={endpoint:'https://fcm.googleapis.com/fcm/send/independent-synthetic',expirationTime:null,keys:{p256dh:receiver.getPublicKey().toString('base64url'),auth}};
- const vapid=webpush.generateVAPIDKeys();const transport=await createWebPushTransport({subject:'mailto:synthetic@example.invalid',...vapid});
- const original=https.request,requests=[];let status=201;
- https.request=(options,callback)=>{
+ const vapid=webpush.generateVAPIDKeys(),requests=[];let status=201;
+ const request=(url,options,callback)=>{
   const req=new EventEmitter(),chunks=[];req.write=b=>chunks.push(Buffer.from(b));req.destroy=e=>req.emit('error',e);
-  req.end=()=>{requests.push({options,body:Buffer.concat(chunks)});queueMicrotask(()=>{const res=new EventEmitter();res.statusCode=status;res.headers={};callback(res);res.emit('data','PRIVATE_PROVIDER_BODY');res.emit('end');});};return req;
+  req.end=body=>{if(body)chunks.push(Buffer.from(body));requests.push({url,options,body:Buffer.concat(chunks)});queueMicrotask(()=>{const res=new EventEmitter();res.statusCode=status;res.headers={};res.destroy=()=>{res.closed=true;};callback(res);assert.equal(res.closed,true,'provider response closed before acknowledgement');});};return req;
  };
- try{
+ const transport=await createWebPushTransport({subject:'mailto:synthetic@example.invalid',...vapid},{request});
   const event='aaaabbbb-cccc-4ddd-8eee-ffffffffffff';assert.deepEqual(await transport(subscription,event),{kind:'accepted'});
-  const first=requests[0];assert.equal(first.options.hostname,'fcm.googleapis.com');assert.equal(first.options.method,'POST');assert.equal(first.options.headers['Content-Encoding'],'aes128gcm');assert.equal(first.options.headers.TTL,3600);assert.match(first.options.headers.Authorization,/^vapid t=/);
+  const first=requests[0];assert.equal(new URL(first.url).hostname,'fcm.googleapis.com');assert.equal(first.options.method,'POST');assert.equal(first.options.headers['Content-Encoding'],'aes128gcm');assert.equal(first.options.headers.TTL,3600);assert.match(first.options.headers.Authorization,/^vapid t=/);
   const jwt=first.options.headers.Authorization.match(/^vapid t=([^,]+), k=/)[1].split('.'),publicBytes=Buffer.from(vapid.publicKey,'base64url');
   const publicKey=createPublicKey({format:'jwk',key:{kty:'EC',crv:'P-256',x:publicBytes.subarray(1,33).toString('base64url'),y:publicBytes.subarray(33).toString('base64url')}});
   assert.equal(verify('sha256',Buffer.from(jwt.slice(0,2).join('.')),{key:publicKey,dsaEncoding:'ieee-p1363'},Buffer.from(jwt[2],'base64url')),true);
@@ -32,7 +30,6 @@ test('maintained web-push actually encrypts generic payload and binds VAPID; pro
   assert.equal(requests.length,7); // A redirect was not followed.
   await assert.rejects(transport({...subscription,endpoint:'https://127.0.0.1/private'},event));assert.equal(requests.length,7);
   assert.doesNotMatch(JSON.stringify(requests.map(r=>({status:r.status}))),/PRIVATE_PROVIDER_BODY/);
- }finally{https.request=original;}
 });
 
 test('malformed elliptic-curve enrollment rejects before a provider request',()=>{

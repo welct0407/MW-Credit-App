@@ -1,5 +1,7 @@
 # R053 — lower-cost immediate push proposal
 
+**Superseded, 12 October 2026:** The owner selected direct authenticated post-commit wake-ups to a request-based minimum0 dispatcher. No Debian LISTEN bridge or minimum1 notification worker will be implemented. See the owning [design and test contract](design-test-plan.md). The original option review below is dated evidence, not current implementation authority.
+
 12 October 2026. **Undecided review draft; push redesign and notification activation remain held for a later owner discussion.** The owner asked to finish current work first, then discuss push design. A prepared this proposal with F's bounded infrastructure/capacity review. App checkout at review: `ea789870599a5444914a1c7730e736f01e917d7f`. This separate proposal does not replace the tested design/code, authorize Debian changes, or change PROD. Existing CI/DEV API/jobs delivery continues.
 
 ## Recommendation

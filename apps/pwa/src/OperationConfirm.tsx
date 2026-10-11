@@ -14,9 +14,9 @@ export function OperationConfirm({access,command,domain,label,thai,recovery=fals
    let retained=false;try{if(!access.offline)throw Error();await access.offline.savePending(payload.current.requestId,{domain,command:payload.current,borrowerLabel:label,recoveryKind:'action'});retained=true;if(draftKey)await access.offline.remove('draft',draftKey);}catch{if(retained)setUnknown(true);inflight.current=false;setBusy(false);done();setError(t('Request not sent. Device storage is unavailable or full.','ยังไม่ได้ส่งคำขอ พื้นที่จัดเก็บใช้ไม่ได้หรือเต็ม'));return;}
    if(current!==generation.current){inflight.current=false;done();return;}setUnknown(true);
   }
-  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);
+  const controller=new AbortController(),deadline=Date.now()+15000,timer=setTimeout(()=>controller.abort(),15000);
   try{
-   const response=await fetch(access.origin+'/api/operations'+(method==='GET'?'/'+payload.current.requestId:''),{method,headers:{Authorization:'Bearer '+await access.token(),'Content-Type':'application/json'},body:method==='POST'?JSON.stringify(payload.current):undefined,signal:controller.signal,credentials:'omit',cache:'no-store',redirect:'error'});
+   const response=await fetch(access.origin+'/api/operations'+(method==='GET'?'/'+payload.current.requestId:''),{method,headers:{'X-MW-Wake-Deadline':String(deadline),Authorization:'Bearer '+await access.token(),'Content-Type':'application/json'},body:method==='POST'?JSON.stringify(payload.current):undefined,signal:controller.signal,credentials:'omit',cache:'no-store',redirect:'error'});
    if(response.status===401||response.status===403)access.authFailure(response.status);
    const data=await response.json();if(current!==generation.current)return;
    if([400,413,415].includes(response.status)||(response.status===422&&data.kind!=='recorded')){

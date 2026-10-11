@@ -30,7 +30,7 @@ run "contained_runtime" {
     registered_creators = ["postgres"]
   }
   assert {
-    condition     = length(google_cloud_run_v2_service.worker) == 2 && alltrue([for s in google_cloud_run_v2_service.worker : !s.invoker_iam_disabled && s.ingress == "INGRESS_TRAFFIC_INTERNAL_ONLY" && s.template[0].scaling[0].min_instance_count == 0 && s.template[0].scaling[0].max_instance_count == 1 && s.template[0].max_instance_request_concurrency == 1 && s.scaling[0].min_instance_count == 0 && s.template[0].containers[0].resources[0].cpu_idle])
+    condition     = length(google_cloud_run_v2_service.worker) == 2 && alltrue([for key, s in google_cloud_run_v2_service.worker : !s.invoker_iam_disabled && s.ingress == (key == "notify" ? "INGRESS_TRAFFIC_ALL" : "INGRESS_TRAFFIC_INTERNAL_ONLY") && s.template[0].scaling[0].min_instance_count == 0 && s.template[0].scaling[0].max_instance_count == 1 && s.template[0].max_instance_request_concurrency == 1 && s.scaling[0].min_instance_count == 0 && s.template[0].containers[0].resources[0].cpu_idle])
     error_message = "Both workers must be private IAM-enforced bounded runtimes."
   }
   assert {
@@ -55,7 +55,7 @@ run "reject_latest" {
   variables { vapid_version = "latest" }
   expect_failures = [var.vapid_version]
 }
-run "only_enabled_notification_stays_warm" {
+run "enabled_notification_remains_request_based" {
   command = plan
   variables {
     enabled              = true
@@ -65,14 +65,19 @@ run "only_enabled_notification_stays_warm" {
     push_subject         = "mailto:synthetic@example.invalid"
     registered_creators  = ["postgres"]
     notification_enabled = true
+    command_dispatch_enabled = true
   }
   assert {
-    condition     = google_cloud_run_v2_service.worker["notify"].scaling[0].min_instance_count == 1 && google_cloud_run_v2_service.worker["notify"].scaling[0].max_instance_count == 1 && !google_cloud_run_v2_service.worker["notify"].template[0].containers[0].resources[0].cpu_idle && google_cloud_run_v2_service.worker["notify"].template[0].scaling[0].min_instance_count == 0
-    error_message = "Enabled listener needs service-level minimum one and allocated CPU; never revision-level warm copies."
+    condition = length(google_cloud_run_v2_service_iam_member.command_dispatch) == 1 && google_cloud_run_v2_service_iam_member.command_dispatch[0].role == "roles/run.invoker" && google_cloud_run_v2_service_iam_member.command_dispatch[0].member == "serviceAccount:mw-credit-app-command-dev@clever-oasis-508610-n7.iam.gserviceaccount.com"
+    error_message = "Only the exact DEV command identity receives the notify service invocation grant."
+  }
+  assert {
+    condition     = google_cloud_run_v2_service.worker["notify"].scaling[0].min_instance_count == 0 && google_cloud_run_v2_service.worker["notify"].scaling[0].max_instance_count == 1 && google_cloud_run_v2_service.worker["notify"].template[0].containers[0].resources[0].cpu_idle && google_cloud_run_v2_service.worker["notify"].template[0].scaling[0].min_instance_count == 0
+    error_message = "Enabled dispatcher must scale to zero and allocate CPU only during requests."
   }
   assert {
     condition     = google_cloud_run_v2_service.worker["jobs"].scaling[0].min_instance_count == 0 && google_cloud_run_v2_service.worker["jobs"].template[0].containers[0].resources[0].cpu_idle && alltrue([for j in google_cloud_scheduler_job.tick : j.paused])
-    error_message = "Listener activation must not warm jobs or resume any schedule."
+    error_message = "Dispatcher activation must not warm jobs or resume any schedule."
   }
 }
 run "reject_prod_image" {

@@ -1,3 +1,4 @@
+import {wakeContext} from '../notifications/postcommit.mjs';
 import {closeSummary} from './close-summary.mjs';
 import {readManagementPosition} from '../business/management-position.mjs';
 import {readManagementAnalytics,readAnalyticsOverview,readAnalyticsChart} from '../business/management-analytics.mjs';
@@ -29,10 +30,10 @@ const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{1
 const failure = (status, code) => ({ ok: false, status, code });
 
 /** DISPOSABLE candidate only. No ambient connection/config, service launcher or live permission. */
-function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAdapter, sourceReceiptReader, ownerTesting=false, draftMode='dev-owner-testing', principalAllowed=principal=>principal?.ok&&principal.email===OWNER_EMAIL&&typeof principal.subject==='string'&&!!principal.subject, resolveActor, actorIssuer=issuer }) {
+function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAdapter, sourceReceiptReader, afterCommit, ownerTesting=false, draftMode='dev-owner-testing', principalAllowed=principal=>principal?.ok&&principal.email===OWNER_EMAIL&&typeof principal.subject==='string'&&!!principal.subject, resolveActor, actorIssuer=issuer }) {
   async function run(principal, operation, readonly = false, capability) {
     if (!principalAllowed(principal)) return failure(403, 'access_denied');
-    let client, attempted = false, commitStarted = false, quarantine = false;
+    let client, committedResult, attempted = false, commitStarted = false, quarantine = false;
     const rollback = async () => { try { await client?.query('ROLLBACK'); } catch (error) { quarantine = true; throw error; } };
     try {
       client = await pool.connect();
@@ -61,7 +62,7 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
       const { value } = result;
       if (value.kind === 'conflict') return failure(409, 'command_conflict');
       if (!readonly && value.originalOutcome?.status === 'rejected') return { ...failure(422, 'command_rejected'), ...value };
-      return { ok: true, status: 200, ...value };
+      committedResult = { ok: true, status: 200, ...value };
     } catch (error) {
       if (commitStarted) quarantine = true;
       try { await rollback(); } catch { /* The failed rollback already quarantined this client. */ }
@@ -71,6 +72,10 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
     } finally {
       try { client?.release(quarantine); } catch { /* Cleanup must not mask the intended unavailable/unknown outcome. */ }
     }
+    // Outside the transaction catch and after releasing its client: a failed hint
+    // must never turn an acknowledged COMMIT into an unknown financial outcome.
+    if (!readonly && afterCommit) { try { await afterCommit(principal[wakeContext]); } catch { /* Recovery owns a missed wake. */ } }
+    return committedResult;
   }
   return {
     async management(principal,kind,options){if(!ownerTesting)return failure(403,'access_denied');return run(principal,async client=>{const value=kind==='cash-position'?await readManagementPosition(client):kind==='analytics-overview'?await readAnalyticsOverview(client):kind==='analytics-chart'?await readAnalyticsChart(client,options):kind==='analytics-validation'?await readManagementAnalytics(client,options):kind==='assessments'?await readManagementAssessments(client,options):kind==='openings'?await readManagementOpenings(client,options):await (['contributions','settlements','cash-movements'].includes(kind)?readManagementFinancial:readManagement)(client,kind,options);return options?.id&&!value.item?failure(404,'not_found'):{ok:true,value}},true)},
@@ -307,12 +312,12 @@ export function createApplicationRoleCommandStore({pool,targetAttestation,resolv
  return buildStore({pool,resolveReceipt,fixture,receiptAdapter,sourceReceiptReader,ownerTesting,guardConnection:applicationConnectionGuard(targetAttestation)});
 }
 
-export function createDevCommandStore({pool,config,receiptAdapter,sourceReceiptReader}) {
- return buildStore({pool,fixture:config.fixture,ownerTesting:config.mode==='dev-owner-testing',receiptAdapter,sourceReceiptReader,resolveReceipt:input=>receiptAdapter.resolveReceipt(input),guardConnection:createDevCommandConnectionGuard(config)});
+export function createDevCommandStore({pool,config,receiptAdapter,sourceReceiptReader,afterCommit}) {
+ return buildStore({pool,afterCommit,fixture:config.fixture,ownerTesting:config.mode==='dev-owner-testing',receiptAdapter,sourceReceiptReader,resolveReceipt:input=>receiptAdapter.resolveReceipt(input),guardConnection:createDevCommandConnectionGuard(config)});
 }
 
 /** Internal composition seam: callers must supply verified identity and transaction membership policies. */
-export function createEnvironmentCommandStore({pool,guardConnection,principalAllowed,resolveActor,actorIssuer,receiptAdapter,sourceReceiptReader}) {
+export function createEnvironmentCommandStore({pool,guardConnection,principalAllowed,resolveActor,actorIssuer,receiptAdapter,sourceReceiptReader,afterCommit}) {
  if(!pool||[guardConnection,principalAllowed,resolveActor].some(value=>typeof value!=='function')||typeof actorIssuer!=='string')throw Error('Explicit application policies required');
- return buildStore({pool,guardConnection,principalAllowed,resolveActor,actorIssuer,ownerTesting:true,draftMode:'production-business',receiptAdapter,sourceReceiptReader,resolveReceipt:receiptAdapter?input=>receiptAdapter.resolveReceipt(input):undefined});
+ return buildStore({pool,afterCommit,guardConnection,principalAllowed,resolveActor,actorIssuer,ownerTesting:true,draftMode:'production-business',receiptAdapter,sourceReceiptReader,resolveReceipt:receiptAdapter?input=>receiptAdapter.resolveReceipt(input):undefined});
 }

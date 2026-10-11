@@ -51,3 +51,18 @@ test('jobs permit a bounded original schedule retry and reject future or over-ag
  now=Date.parse('2026-10-11T17:15:00Z');assert.equal(await invoke('recent-analytics','2026-10-11T17:00:00Z'),409);
  now=Date.parse('2026-10-11T18:06:00Z');assert.equal(await invoke('daily-charges','2026-10-11T17:05:00Z'),409);assert.equal(effects,1);await runtime.close();
 });
+
+import {createECDH} from 'node:crypto';
+test('notify accepts only exact command and scheduler, waits for bounded RPC drain, and needs producer deadline',async()=>{
+ const key=createECDH('prime256v1');key.generateKeys();
+ const notify={...env,WORKER_ROLE:'notify',DB_USER:env.DB_USER.replace('-jobs-','-notify-'),RUNTIME_SERVICE_ACCOUNT:env.RUNTIME_SERVICE_ACCOUNT.replace('-jobs-','-notify-'),WORKER_AUDIENCE:env.WORKER_AUDIENCE.replace('-jobs-','-notify-'),WEB_PUSH_VAPID_JSON:JSON.stringify({publicKey:key.getPublicKey().toString('base64url'),privateKey:key.getPrivateKey().toString('base64url')}),WEB_PUSH_SUBJECT:'mailto:synthetic@example.invalid',NOTIFICATION_POLICY_JSON:JSON.stringify({schemaVersion:1,environment:'dev',evidenceSha256:'a'.repeat(64),members:[{partnerId:'owner',loginEmail:'welct0407@mw-credit.com',partnerRole:'A',capabilities:['read']}],owner:{subject:'owner',partnerId:'owner',loginEmail:'welct0407@mw-credit.com',endpointSha256:'b'.repeat(64)}})};
+ let caller=`mw-credit-app-command-dev@${project}.iam.gserviceaccount.com`,release,entered;
+ const ready=new Promise(r=>entered=r),gate=new Promise(r=>release=r);let effects=0;
+ const client={release(){},query:async(sql)=>{if(sql.includes('FROM pg_roles'))return{rows:[{database:notify.DB_NAME,principal:notify.DB_USER,session:notify.DB_USER,rolcanlogin:true,capability:true,other_membership:false}]};effects++;if(sql.includes('pwa_notify_candidates')){entered();await gate;}return{rows:[]};}};
+ const runtime=await createWorkerRuntime(notify,{createPool:async()=>({connect:async()=>client,end:async()=>{}}),getUser:async()=>{},createListener:()=>{throw Error('no listener allowed');},verifyOidc:async()=>({aud:notify.WORKER_AUDIENCE,iss:'https://accounts.google.com',email:caller,email_verified:true})});
+ const invoke=async(headers={})=>{let code;await runtime.handler({method:'POST',url:'/internal/dispatch',headers:{authorization:'Bearer token',...headers}},{writeHead(c){code=c;},end(){}});return code;};
+ assert.equal(await invoke(),400);caller=`mw-credit-app-command-prod@${project}.iam.gserviceaccount.com`;assert.equal(await invoke(),403);assert.equal(effects,0);
+ caller=`mw-credit-app-command-dev@${project}.iam.gserviceaccount.com`;let done=false;
+ const pending=invoke({'x-mw-wake-deadline':String(Date.now()+15000)}).then(code=>{done=true;return code;});await ready;assert.equal(done,false);release();assert.equal(await pending,200);await runtime.close();
+ assert.throws(()=>loadWorkerConfig({...notify,NOTIFICATION_AGENT_CALLER_EMAIL:`mw-integration-agent@${project}.iam.gserviceaccount.com`}));
+});
