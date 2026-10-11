@@ -1,11 +1,13 @@
-param([string]$TestNamePattern)
+param([string]$TestNamePattern,[switch]$R053,[switch]$LegacyIdentity)
 $ErrorActionPreference='Stop'
+if($R053 -and $LegacyIdentity){throw 'Choose one exact Phase8 fixture mode'}
+if(-not $LegacyIdentity){$R053=$true}
 if($env:CI -ne 'true'){. "$PSScriptRoot/../../scripts/Enter-Dev.ps1"}
 . "$PSScriptRoot/../../scripts/database/Common.ps1"
 $pgBin=Get-PgBin
 $token=[guid]::NewGuid().ToString('N')
 $fixtureRoot=Join-Path ([IO.Path]::GetTempPath()) ('mw-phase8-'+$token)
-$data=Join-Path $fixtureRoot 'data';$database='mw_phase8_'+$token
+$data=Join-Path $fixtureRoot 'data';$database=if($R053){'loan_manager_dev'}else{'mw_phase8_'+$token}
 New-Item -ItemType Directory -Path $fixtureRoot | Out-Null
 Write-Host "Owned Phase8 disposable fixture: $fixtureRoot"
 $listener=[Net.Sockets.TcpListener]::new([Net.IPAddress]::Loopback,0);$listener.Start();$fixturePort=$listener.LocalEndpoint.Port;$listener.Stop()
@@ -29,14 +31,15 @@ try {
  try {
   & (Get-FlywayPath) '-outputType=json' '-target=85' migrate | Out-File (Join-Path $fixtureRoot 'migration85.json')
   if($LASTEXITCODE){Get-Content (Join-Path $fixtureRoot 'migration85.json');throw 'V85 fixture migration failed'}
-  & (Get-FlywayPath) '-outputType=json' '-target=86' migrate | Out-File (Join-Path $fixtureRoot 'migration86.json')
+  $finalTarget=if($R053){88}else{86}
+  & (Get-FlywayPath) '-outputType=json' "-target=$finalTarget" '-group=true' '-mixed=false' '-executeInTransaction=true' migrate | Out-File (Join-Path $fixtureRoot 'migration86.json')
   if($LASTEXITCODE){Get-Content (Join-Path $fixtureRoot 'migration86.json');throw 'V86 fixture migration failed'}
  } finally {Pop-Location}
  & (Join-Path $pgBin 'psql.exe') -X -q -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $fixturePort -U postgres -d $database -f "$PSScriptRoot/phase8-identity-fixture.sql"
  if($LASTEXITCODE){throw 'Synthetic identity setup failed'}
  $env:PHASE8_TEST_DISPOSABLE='1';$env:PHASE8_TEST_HOST='127.0.0.1';$env:PHASE8_TEST_PORT=[string]$fixturePort;$env:PHASE8_TEST_DATABASE=$database;$env:PHASE8_TEST_USER='postgres';$env:PHASE8_TEST_DATA_DIRECTORY=$data
  $arguments=@('--test','--test-concurrency=1');if($TestNamePattern){$arguments+=('--test-name-pattern='+$TestNamePattern)}
- & node @arguments "$PSScriptRoot/production-business-independent.test.mjs" "$PSScriptRoot/phase8-notifications.test.mjs" "$PSScriptRoot/phase8-notifications-independent.test.mjs"
+ if($R053){& node @arguments "$PSScriptRoot/r053-rpc-independent.test.mjs" "$PSScriptRoot/phase8-notifications.test.mjs" "$PSScriptRoot/phase8-notifications-independent.test.mjs" "$PSScriptRoot/r053-wakeup-independent.test.mjs" "$PSScriptRoot/r053-worker-http-independent.test.mjs"}else{& node @arguments "$PSScriptRoot/production-business-independent.test.mjs"}
  if($LASTEXITCODE){throw 'Phase8 identity tests failed'}
 } finally {
  foreach($name in (@($names)+@('FLYWAY_URL','FLYWAY_USER','FLYWAY_CONFIG_FILES')|Select-Object -Unique)){[Environment]::SetEnvironmentVariable($name,$saved[$name])}

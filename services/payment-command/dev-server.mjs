@@ -13,6 +13,7 @@ import {createDevCommandHandler} from './handler.mjs';
 import {createGcsReceiptTransport} from '../receipts/gcs-transport.mjs';
 import {decodeCommandReceipt,decodeSourceReceipt} from '../receipts/decode-image.mjs';
 import {createCommandReceipts} from '../receipts/command-receipts.mjs';
+import {createDevNotificationHandler} from '../notifications/dev-api.mjs';
 const config=loadDevCommandConfig(process.env);
 const auth=getAuth(initializeApp({credential:applicationDefault(),projectId:config.projectId},'dev-command'));
 const connector=new Connector();
@@ -24,7 +25,8 @@ const sourceReceiptReader=createSourceReceiptReader({storage:createSourceGcsRead
 const receipts=createCommandReceipts({storage:createGcsReceiptTransport(new Storage({projectId:config.projectId})),decodeImage:decodeCommandReceipt,compatibility:config.receiptCompatibility});
 const store=createDevCommandStore({pool,config,receiptAdapter:receipts,sourceReceiptReader});
 const verifyPrincipal=createCommandPrincipalVerifier({ownerUid:config.ownerUid,verifyIdToken:(token,revoked)=>auth.verifyIdToken(token,revoked)});
-const server=http.createServer(createDevCommandHandler({config,store,verifyPrincipal,completionLogger:record=>console.log(JSON.stringify(record))}));
+const commandHandler=createDevCommandHandler({config,store,verifyPrincipal,completionLogger:record=>console.log(JSON.stringify(record))});
+const server=http.createServer(createDevNotificationHandler({next:commandHandler,config,pool,verifyPrincipal,guardConnection:createDevCommandConnectionGuard(config)}));
 server.requestTimeout=20000;server.headersTimeout=10000;
 server.listen(Number(process.env.PORT||8080),'0.0.0.0');
 process.on('SIGTERM',()=>server.close(async()=>{await pool.end();connector.close();process.exit(0)}));

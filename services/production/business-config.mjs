@@ -13,7 +13,7 @@ export function loadProductionBusinessConfig(env) {
   const serviceRole=env.FOUNDATION_ROLE,dbUser=`mw-credit-app-${serviceRole==='reader'?'read':'command'}-prod@${BUSINESS_PROJECT}.iam`;
   if(env.DB_USER!==dbUser||env.RUNTIME_SERVICE_ACCOUNT!==dbUser+'.gserviceaccount.com')fail();
   if(['DATABASE_URL','PGHOST','PGHOSTADDR','PGDATABASE','PGPORT','PGUSER','PGPASSWORD','PGSERVICE','PGSERVICEFILE','PGPASSFILE','FIREBASE_AUTH_EMULATOR_HOST','FIREBASE_AUTH_TENANT_ID','STORAGE_EMULATOR_HOST','COMMAND_MODE','COMMAND_FIXTURE_JSON','OWNER_FIREBASE_UID','RECEIPT_NATIVE_CATALOG_JSON'].some(k=>env[k]!==undefined))fail();
-  if(env.PWA_NOTIFICATIONS!==undefined&&!['disabled','enabled'].includes(env.PWA_NOTIFICATIONS))fail();
+  if(env.PWA_NOTIFICATIONS!==undefined&&!['disabled','enabled'].includes(env.PWA_NOTIFICATIONS)||env.WEB_PUSH_PRIVATE_KEY!==undefined||env.WEB_PUSH_VAPID_JSON!==undefined)fail();
   if(env.PWA_NOTIFICATIONS==='enabled'&&(!/^[A-Za-z0-9_-]{87}$/.test(env.WEB_PUSH_PUBLIC_KEY??'')||env.FOUNDATION_ROLE!=='command'))fail();
   const site=env.HOSTING_SITE_ID;
   if(site!=='mw-credit-prod-737787224638')fail();

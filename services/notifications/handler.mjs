@@ -12,7 +12,8 @@ export function notificationHandler({next,store,verifyPrincipal,origins,enabled=
   try{
    let value;const p=url.pathname;
    if(req.method==='GET'&&p==='/api/notifications'&&[...url.searchParams.keys()].every(k=>k==='before')&&url.searchParams.getAll('before').length<=1)value=await store.history(principal,url.searchParams.get('before'));
-   else if(req.method==='GET'&&p==='/api/notifications/push-config'&&!url.search){await store.history(principal,null);value={publicKey};}
+   else if(req.method==='GET'&&p==='/api/notifications/status'&&[...url.searchParams.keys()].every(k=>k==='device')&&url.searchParams.getAll('device').length<=1)value=await store.status(principal,url.searchParams.get('device'));
+   else if(req.method==='GET'&&p==='/api/notifications/push-config'&&!url.search){await store.status(principal,null);value={publicKey};}
    else if(req.method==='GET'&&/^\/api\/notifications\/[a-f0-9-]{36}$/.test(p)&&!url.search)value=await store.target(principal,p.split('/').at(-1));
    else if(req.method==='DELETE'&&/^\/api\/notifications\/subscriptions\/[a-f0-9-]{36}$/.test(p)&&!url.search)value=await store.revoke(principal,p.split('/').at(-1));
    else if((req.method==='POST'&&p==='/api/notifications/subscriptions'||req.method==='PUT'&&p==='/api/notifications/preference')&&!url.search){

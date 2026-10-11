@@ -1,0 +1,58 @@
+[
+  {
+    "path": "tests/integration/Run-R053JobsCatalogueIndependent.ps1",
+    "sha256": "6b2cb821845749b95cc45736309e38bffab31bd54d21965e865d1044af10c4ff"
+  },
+  {
+    "path": "tests/integration/r053-jobs-catalogue-independent.test.mjs",
+    "sha256": "3144e110b68df923bacf440d4d8433bda541c44e0b66a4496f7903133cd6849b"
+  },
+  {
+    "path": "tests/integration/Run-Phase8.ps1",
+    "sha256": "bc9d8bc899fe50ca05ac6bdb4ea7bd33e53036a69baf24c4af8bc25fb2fd42b7"
+  },
+  {
+    "path": "tests/integration/r053-rpc-independent.test.mjs",
+    "sha256": "3701826e1d43162a8d965b9531b2348469a20e125d69925ddbee6f4b51b37663"
+  },
+  {
+    "path": "tests/integration/Run-R053OperatorIndependent.ps1",
+    "sha256": "9746eb455889daabacfca5e670f69ceab354a42278b70aac79430cd3554bb302"
+  },
+  {
+    "path": "tests/integration/r053-operator-independent.test.mjs",
+    "sha256": "54d4e303452598dda3264d592022dc83c3b53fe0c00f6d097cfbbd6821d5d6ba"
+  },
+  {
+    "path": "tests/integration/phase8-rpc-fixture.mjs",
+    "sha256": "6c94db5c36239ad5502812446d1833363723aa6856fea5e3da228ceb97c70d88"
+  },
+  {
+    "path": "tests/integration/phase8-notifications.test.mjs",
+    "sha256": "140c72f83bc40ac824223589c3711fe9e4f99778ea0e9155148243b16efae35a"
+  },
+  {
+    "path": "tests/integration/phase8-notifications-independent.test.mjs",
+    "sha256": "3300aa30851a6685f7527ed802917344139f75ef499deee225e907c7fd98c5b8"
+  },
+  {
+    "path": "tests/integration/r053-wakeup-independent.test.mjs",
+    "sha256": "fd4da3756593ba8aa91ffb23d08209a1b430717675649c56b3084085d63ce0f1"
+  },
+  {
+    "path": "tests/integration/r053-worker-http-independent.test.mjs",
+    "sha256": "04d434c59bcc648d638a4879e8acf75ff566f35f0b59c023a9f3df15ee839d26"
+  },
+  {
+    "path": "outputs/r053-notifications-jobs/v87-jobs-catalogue.json",
+    "sha256": "7022374407c75caddfc7d190083ef303e9b812ad8d21599aaffc670e0f62ff3c"
+  },
+  {
+    "path": "outputs/r053-notifications-jobs/jobs-owner-reviewed-dependencies.json",
+    "sha256": "41c2d9371a2ed2b05bbe804838dbcf74bca8b425bde396a173a4111261451a42"
+  },
+  {
+    "path": "outputs/r053-notifications-jobs/independent-verification.md",
+    "sha256": "3d6b0d5cb2376c429991c180e830679590e20a33223046e98f5ce166e4d7b4f3"
+  }
+]

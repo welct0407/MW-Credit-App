@@ -20,7 +20,12 @@ steps:
         await decodeCommandReceipt(await image.clone().jpeg().toBuffer(),'image/jpeg');
         await assert.rejects(decodeCommandReceipt(Buffer.from('invalid'),'image/png'),/invalid_receipt/);
         await assert.rejects(import('./services/payment-command/dev-server.mjs'),/Invalid DEV command configuration/);
-        console.log(JSON.stringify({containerSharpDecode:'passed',bootstrapDependenciesAndMissingConfigFailClosed:'passed',liveIAMAndFirebase:'not exercised by this smoke'}));
+        const {loadWorkerConfig}=await import('./services/workers/config.mjs');
+        assert.equal(loadWorkerConfig({}),null);
+        assert.throws(()=>loadWorkerConfig({WORKER_ACTIVATION:'enabled'}),/invalid_worker_configuration/);
+        const workerRuntime=await import('./services/workers/runtime.mjs');
+        assert.equal(typeof workerRuntime.createWorkerRuntime,'function');
+        console.log(JSON.stringify({workerDependenciesAndDisabledConfig:'passed',containerSharpDecode:'passed',bootstrapDependenciesAndMissingConfigFailClosed:'passed',liveIAMAndFirebase:'not exercised by this smoke'}));
 images:
   - 'asia-southeast1-docker.pkg.dev/$PROJECT_ID/mw-credit-app/api:$BUILD_ID'
 options:

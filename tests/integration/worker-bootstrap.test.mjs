@@ -1,0 +1,7 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {spawn} from 'node:child_process';import {once} from 'node:events';import net from 'node:net';
+test('packaged worker entrypoint starts disabled and serves startup health without credentials',async()=>{
+ const reservation=net.createServer();await new Promise(resolve=>reservation.listen(0,'127.0.0.1',resolve));const port=reservation.address().port;await new Promise(resolve=>reservation.close(resolve));
+ const child=spawn(process.execPath,['services/workers/server.mjs'],{cwd:process.cwd(),env:{PATH:process.env.PATH,SYSTEMROOT:process.env.SYSTEMROOT,PORT:String(port),WORKER_ACTIVATION:'disabled'},stdio:['ignore','pipe','pipe'],windowsHide:true});
+ const exited=once(child,'exit');let stderr='';child.stderr.on('data',chunk=>{stderr=(stderr+chunk.toString()).slice(-4096);});
+ try{let response;for(let i=0;i<150;i++){if(child.exitCode!==null)throw Error('Worker failed to start: '+stderr);try{response=await fetch(`http://127.0.0.1:${port}/health`,{signal:AbortSignal.timeout(500)});break;}catch{await new Promise(resolve=>setTimeout(resolve,100));}}assert.equal(response?.status,200,'Worker health did not become available: '+stderr);assert.equal(response.headers.get('cache-control'),'no-store');assert.deepEqual(await response.json(),{status:'ok',enabled:false});const disabled=await fetch(`http://127.0.0.1:${port}/internal/dispatch`,{method:'POST'});assert.equal(disabled.status,503);}finally{child.kill('SIGTERM');await exited;}
+});

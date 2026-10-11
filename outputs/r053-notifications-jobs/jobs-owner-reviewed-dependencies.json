@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "database": "loan_manager_dev",
+  "owner": "mw_jobs_owner_dev",
+  "basis": "Actual V87 canonical engine exercised through V88 nonsuperuser jobs RPC: three loan types, analytics, statement/deferred COMMIT, rollback, concurrent replay passed. No Payments DML or application-role membership.",
+  "select": {
+    "Loans": null,
+    "Charges": null,
+    "Repayments": ["Ref Loans", "Ref Charges", "Principal Paid", "Interest Paid", "Payment Date"],
+    "Borrowers": ["Row ID"],
+    "Cash Pool Contributions": ["Contribution Date", "Amount", "Transaction Type", "Ref Partner"],
+    "Partners": ["Row ID", "Partner Role"],
+    "Business Expenses": ["Expense Date", "Amount", "Partner A Expense", "Partner B Expense"],
+    "Settlements": ["Transfer Date", "Amount", "Status", "Ref Partner"],
+    "Cash Ledger": ["Movement Date", "Ref From Cash Account", "Ref To Cash Account", "Amount"],
+    "Cash Accounts": ["Row ID"],
+    "r008_cash_account_cutover": ["Ref Cash Account", "Cutover At", "Opening Balance", "Baseline Cash In", "Baseline Cash Out"],
+    "olap_repayments_analytics": null,
+    "Daily Analytics": null,
+    "Cash Account Daily Analytics": null
+  },
+  "insert": {
+    "Charges": ["Row ID", "Ref Loans", "Charge Date", "Principal Due", "Interest Due"],
+    "Daily Analytics": null,
+    "Cash Account Daily Analytics": null
+  },
+  "update": {
+    "Borrowers": ["Row ID"],
+    "Loans": ["Row ID"],
+    "Charges": ["Row ID"],
+    "Daily Analytics": null,
+    "Cash Account Daily Analytics": null
+  },
+  "executeRoots": [
+    "public.generate_due_charges(date,text[])",
+    "public.generate_loan_charge(text,date,boolean)",
+    "public.refresh_daily_analytics(date,date)",
+    "public.refresh_daily_analytics_scoped(date,date,text[])"
+  ],
+  "caveats": [
+    "null denotes the current full row required by canonical SELECT *, composite values, view or analytics upsert; never default future-object grants",
+    "Column UPDATE Row ID permits SELECT FOR UPDATE; runtime gets no direct UPDATE",
+    "Nested invoker routine EXECUTE currently relies on existing PUBLIC canonical grants; review their exact catalogue before applying explicit grants. Installed trigger invocation does not imply grant every trigger routine to runtime",
+    "No Cloud SQL operator mutation or live scheduler activation tested"
+  ]
+}

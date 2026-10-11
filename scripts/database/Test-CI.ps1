@@ -49,3 +49,9 @@ if($LASTEXITCODE){throw 'Phase 5 populated journal and operation integration che
 if($LASTEXITCODE){throw 'Phase 5 populated anchor compatibility checks failed'}
 & "$PSScriptRoot/../../tests/integration/Run-Phase5.ps1" -ManagementOnly
 if($LASTEXITCODE){throw 'Phase 6 management integration checks failed'}
+
+# R053 reuses the independently verified RPC/listener and true operator fixtures.
+& "$PSScriptRoot/../../tests/integration/Run-Phase8.ps1" -R053
+if($LASTEXITCODE){throw 'R053 notification/jobs RPC and listener checks failed'}
+& "$PSScriptRoot/../../tests/integration/Run-R053OperatorIndependent.ps1"
+if($LASTEXITCODE){throw 'R053 nonsuperuser operator/restoration checks failed'}

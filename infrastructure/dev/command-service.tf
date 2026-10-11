@@ -63,20 +63,23 @@ resource "google_cloud_run_v2_service" "command_api" {
       }
       dynamic "env" {
         for_each = merge({
-          APP_ENV                        = "dev"
-          AUTH_MODE                      = "firebase"
-          FIREBASE_PROJECT_ID            = local.project
-          DB_NAME                        = "loan_manager_dev"
-          DB_USER                        = google_sql_user.command_runtime[0].name
-          INSTANCE_CONNECTION_NAME       = "${local.project}:${local.region}:${local.instance}"
-          OWNER_IDENTITY_MODE            = "uid-pinned"
-          COMMAND_MODE                   = var.command_mode
-          ALLOWED_WEB_ORIGINS            = jsonencode(["https://${google_firebase_hosting_site.dev.site_id}.web.app", "https://dev-lm.mw-credit.com"])
-          RECEIPT_BUCKET                 = local.bucket
-          RECEIPT_SQL_PREFIX             = "manual-receipts/dev/pwa/"
-          RECEIPT_OBJECT_PREFIX          = "appsheet/data/MW_OLTP_DEV_20260919_578763613/manual_receipts/dev/pwa/"
-          RECEIPT_COMPATIBILITY_EVIDENCE = "r052-4f:receipt-compatibility-4f.json:generated-png-appsheet-render"
-        }, var.command_mode == "synthetic-only" ? { COMMAND_FIXTURE_JSON = jsonencode(var.command_fixture) } : {})
+          APP_ENV                                                          = "dev"
+          AUTH_MODE                                                        = "firebase"
+          FIREBASE_PROJECT_ID                                              = local.project
+          DB_NAME                                                          = "loan_manager_dev"
+          DB_USER                                                          = google_sql_user.command_runtime[0].name
+          INSTANCE_CONNECTION_NAME                                         = "${local.project}:${local.region}:${local.instance}"
+          OWNER_IDENTITY_MODE                                              = "uid-pinned"
+          COMMAND_MODE                                                     = var.command_mode
+          ALLOWED_WEB_ORIGINS                                              = jsonencode(["https://${google_firebase_hosting_site.dev.site_id}.web.app", "https://dev-lm.mw-credit.com"])
+          RECEIPT_BUCKET                                                   = local.bucket
+          RECEIPT_SQL_PREFIX                                               = "manual-receipts/dev/pwa/"
+          RECEIPT_OBJECT_PREFIX                                            = "appsheet/data/MW_OLTP_DEV_20260919_578763613/manual_receipts/dev/pwa/"
+          RECEIPT_COMPATIBILITY_EVIDENCE                                   = "r052-4f:receipt-compatibility-4f.json:generated-png-appsheet-render"
+          }, var.command_mode == "synthetic-only" ? { COMMAND_FIXTURE_JSON = jsonencode(var.command_fixture) } : {}, var.workers.command_notification_enabled ? {
+          PWA_NOTIFICATIONS                                                = "enabled"
+          WEB_PUSH_PUBLIC_KEY                                              = var.workers.web_push_public_key
+        } : {})
         content {
           name  = env.key
           value = env.value
@@ -88,6 +91,18 @@ resource "google_cloud_run_v2_service" "command_api" {
           secret_key_ref {
             secret  = google_secret_manager_secret.owner_identity.secret_id
             version = var.owner_uid_secret_version
+          }
+        }
+      }
+      dynamic "env" {
+        for_each = var.workers.command_notification_enabled ? [var.workers.policy_version] : []
+        content {
+          name = "NOTIFICATION_POLICY_JSON"
+          value_source {
+            secret_key_ref {
+              secret  = "mw-credit-app-dev-notification-policy"
+              version = env.value
+            }
           }
         }
       }
@@ -114,7 +129,7 @@ resource "google_cloud_run_v2_service" "command_api" {
       }
     }
   }
-  depends_on = [google_project_iam_member.command_sql, google_project_iam_member.command_auth_user, google_secret_manager_secret_iam_member.command_owner_identity, google_secret_manager_secret_iam_member.command_native_receipt_catalog, google_storage_bucket_iam_member.command_receipts]
+  depends_on = [google_project_iam_member.command_sql, google_project_iam_member.command_auth_user, google_secret_manager_secret_iam_member.command_owner_identity, google_secret_manager_secret_iam_member.command_native_receipt_catalog, google_storage_bucket_iam_member.command_receipts, google_secret_manager_secret_iam_member.command_notification_policy]
 }
 # Browser business routes use pinned Firebase auth; no shared/public bucket or
 # organization policy changes. Review this service-specific invocation boundary.

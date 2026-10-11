@@ -1,0 +1,27 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {randomUUID,createHash} from 'node:crypto';
+import pg from 'pg';
+import {phase8RpcPools} from './phase8-rpc-fixture.mjs';
+import {createNotificationWakeup} from '../../services/notifications/wakeup.mjs';
+import {enqueueNotifications} from '../../services/notifications/store.mjs';
+import {createNotificationDispatcher} from '../../services/notifications/dispatcher.mjs';
+
+async function until(predicate,label){const deadline=Date.now()+4000;while(Date.now()<deadline){if(await predicate())return;await new Promise(r=>setTimeout(r,10));}assert.fail(label);}
+test('real LISTEN startup gap, commit-only hints, held-send wake latch and reconnect durable catchup',async()=>{
+ const e=process.env;assert.equal(e.PHASE8_TEST_DISPOSABLE,'1');assert.equal(e.PHASE8_TEST_HOST,'127.0.0.1');assert.equal(e.PHASE8_TEST_DATABASE,'loan_manager_dev');
+ const base={host:e.PHASE8_TEST_HOST,port:Number(e.PHASE8_TEST_PORT),database:e.PHASE8_TEST_DATABASE};const admin=new pg.Pool({...base,user:'postgres'}),rpc=await phase8RpcPools(admin),prefix='C-WAKE-'+randomUUID();let wake,listener,releaseStartup,releaseSend,enteredSend;const startup=new Promise(r=>releaseStartup=r),held=new Promise(r=>releaseSend=r),entered=new Promise(r=>enteredSend=r);let sends=0,active=0,maxActive=0,connections=0;const logs=[];
+ const recipient=prefix+'-recipient',actor=prefix+'-actor';let reconnectEntered,releaseReconnect;const reconnectStarted=new Promise(r=>reconnectEntered=r),reconnectHeld=new Promise(r=>releaseReconnect=r);const eligible=async(_c,row)=>row.partner_id===recipient;
+ async function event(id,{hint=true,rollback=false}={}){const c=await admin.connect();try{await c.query('BEGIN');await c.query("INSERT INTO public.pwa_notification_events(dedupe_key,event_type,source_kind,source_id,source_version,actor_partner_id,actor_login_email) VALUES($1,'payment.posted','payment',$1,'posted',$2,$3)",[prefix+id,actor,(actor+'@example.invalid').toLowerCase()]);if(hint)await c.query("SELECT pg_notify('mw_pwa_notifications_v1','')");await c.query(rollback?'ROLLBACK':'COMMIT');}finally{c.release();}}
+ try{
+  for(const id of [actor,recipient])await admin.query('INSERT INTO public."Partners"("Row ID","Partner Role","Login Email","Email") VALUES($1,\'B\',$2,$2)',[id,(id+'@example.invalid').toLowerCase()]);
+  await admin.query("INSERT INTO public.pwa_push_subscriptions(issuer,subject,partner_id,endpoint_hash,endpoint,p256dh,auth) VALUES('https://securetoken.google.com/clever-oasis-508610-n7',$1,$2,$3,'https://fcm.googleapis.com/fcm/send/synthetic','synthetic','synthetic')",[prefix,recipient,createHash('sha256').update(prefix).digest('hex')]);
+  const dispatch=createNotificationDispatcher({pool:rpc.dispatchPool,guardConnection:rpc.dispatchGuard,enabled:true,eligible,transport:async()=>{active++;maxActive=Math.max(maxActive,active);sends++;try{if(sends===1){enteredSend();await held;}return{kind:'accepted'};}finally{active--;}}});
+  wake=await createNotificationWakeup({retryMs:10,log:x=>logs.push(x),guardConnection:rpc.dispatchGuard,createListener:async()=>{connections++;if(connections===1)await startup;if(connections===2){reconnectEntered();await reconnectHeld;}listener=new pg.Client({...base,user:'c_phase8_rpc_dispatch'});return listener;},run:async()=>{const queued=await enqueueNotifications(rpc.dispatchPool,{eligible});const sent=await dispatch();return{enqueued:queued.enqueued,claimed:sent.claimed};}});
+  await event('startup',{hint:false});releaseStartup();await entered;assert.equal(sends,1,'LISTEN-before-drain finds pre-listener durable event');
+  await event('rolledback',{rollback:true});await event('during-send');for(let i=0;i<5;i++)await admin.query("SELECT pg_notify('mw_pwa_notifications_v1','spoofed-hint')");releaseSend();await until(()=>sends===2,'pending wake retained while send held');assert.equal(maxActive,1);
+  await until(()=>logs.filter(x=>x.event==='drain_completed').length>=2,'previous wake drain fully settled');
+  const pid=Number((await listener.query('SELECT pg_backend_pid() p')).rows[0].p);await admin.query('SELECT pg_terminate_backend($1)',[pid]);await until(()=>logs.some(x=>x.event==='listener_disconnected'),'listener disconnect observed');await reconnectStarted;await event('reconnect',{hint:false});releaseReconnect();await until(()=>sends===3&&connections>=2,'reconnect LISTEN-before-drain catches missed hint');
+  assert.equal((await admin.query('SELECT count(*)::int n FROM public.pwa_notification_events WHERE dedupe_key=$1',[prefix+'rolledback'])).rows[0].n,0);assert.ok(logs.every(x=>Object.keys(x).sort().join(',')==='component,event'));await wake.close();assert.equal(wake.stopped,true);await event('after-stop');await new Promise(r=>setTimeout(r,30));assert.equal(sends,3,'shutdown stops new claims');
+ }finally{releaseStartup?.();releaseSend?.();releaseReconnect?.();await wake?.close();await admin.query('DELETE FROM public.pwa_notification_deliveries WHERE event_id IN(SELECT event_id FROM public.pwa_notification_events WHERE dedupe_key LIKE $1)',[prefix+'%']);await admin.query('DELETE FROM public.pwa_notification_events WHERE dedupe_key LIKE $1',[prefix+'%']);await admin.query('DELETE FROM public.pwa_push_subscriptions WHERE subject=$1',[prefix]);await admin.query('DELETE FROM public."Partners" WHERE "Row ID"=ANY($1::text[])',[[actor,recipient]]);await rpc.close();await admin.end();}
+});
