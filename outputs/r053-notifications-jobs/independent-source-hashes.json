@@ -1,7 +1,7 @@
 [
   {
     "path": "tests/integration/Run-R053JobsCatalogueIndependent.ps1",
-    "sha256": "6b2cb821845749b95cc45736309e38bffab31bd54d21965e865d1044af10c4ff"
+    "sha256": "fe1450276f8a717c172710c8df80db0fe911485af5a30a5250b1fc12dcd000ea"
   },
   {
     "path": "tests/integration/r053-jobs-catalogue-independent.test.mjs",
@@ -9,7 +9,7 @@
   },
   {
     "path": "tests/integration/Run-Phase8.ps1",
-    "sha256": "bc9d8bc899fe50ca05ac6bdb4ea7bd33e53036a69baf24c4af8bc25fb2fd42b7"
+    "sha256": "5f5af109b9ea3f67a1aaa08563010bb66ada1048a34c79146db9c2049daf99b6"
   },
   {
     "path": "tests/integration/r053-rpc-independent.test.mjs",
@@ -17,7 +17,7 @@
   },
   {
     "path": "tests/integration/Run-R053OperatorIndependent.ps1",
-    "sha256": "9746eb455889daabacfca5e670f69ceab354a42278b70aac79430cd3554bb302"
+    "sha256": "818f444e3742efe57711a7e312363e0b54600b7a0c8fb005f297affd6a532800"
   },
   {
     "path": "tests/integration/r053-operator-independent.test.mjs",
@@ -53,6 +53,10 @@
   },
   {
     "path": "outputs/r053-notifications-jobs/independent-verification.md",
-    "sha256": "3d6b0d5cb2376c429991c180e830679590e20a33223046e98f5ce166e4d7b4f3"
+    "sha256": "4e822c2aff613be936b935ffb1e5ef8eb40328cd21766aa099e312414656203a"
+  },
+  {
+    "path": "tests/integration/Test-R053CleanupGuards.ps1",
+    "sha256": "17a28416a0761e7d3deaaf69917f04b053ec7c6d2dfb3b20ce23cf3ffb270114"
   }
 ]
