@@ -1,246 +1,170 @@
-{
-  "format": 1,
-  "identity": {
-    "system": "postgresql",
-    "component": "loan_manager_dev",
-    "kind": "relation",
-    "name": "public.pwa_push_subscriptions",
-    "scope": "development:R052-command"
-  },
-  "content": {
-    "release": "R052",
-    "status": "DEV87 present; approved V86 governance state is inactive for launch; PROD77 has no corresponding migration applied.",
-    "observedAt": "2026-10-11T12:42:15.709Z",
-    "catalog_observation": {
-      "name": "pwa_push_subscriptions",
-      "owner": "postgres",
-      "acl": "{postgres=arwdDxtm/postgres}",
-      "comment": "mw-access:secret authenticated device credentials",
-      "columns": [
-        {
-          "name": "subscription_id",
-          "type": "uuid",
-          "not_null": true,
-          "default": "gen_random_uuid()",
-          "acl": null
-        },
-        {
-          "name": "issuer",
-          "type": "text",
-          "not_null": true,
-          "default": null,
-          "acl": null
-        },
-        {
-          "name": "subject",
-          "type": "text",
-          "not_null": true,
-          "default": null,
-          "acl": null
-        },
-        {
-          "name": "partner_id",
-          "type": "text",
-          "not_null": true,
-          "default": null,
-          "acl": null
-        },
-        {
-          "name": "endpoint_hash",
-          "type": "text",
-          "not_null": true,
-          "default": null,
-          "acl": null
-        },
-        {
-          "name": "endpoint",
-          "type": "text",
-          "not_null": true,
-          "default": null,
-          "acl": null
-        },
-        {
-          "name": "p256dh",
-          "type": "text",
-          "not_null": true,
-          "default": null,
-          "acl": null
-        },
-        {
-          "name": "auth",
-          "type": "text",
-          "not_null": true,
-          "default": null,
-          "acl": null
-        },
-        {
-          "name": "enabled",
-          "type": "boolean",
-          "not_null": true,
-          "default": "true",
-          "acl": null
-        },
-        {
-          "name": "version",
-          "type": "bigint",
-          "not_null": true,
-          "default": "1",
-          "acl": null
-        },
-        {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "not_null": true,
-          "default": "clock_timestamp()",
-          "acl": null
-        },
-        {
-          "name": "last_seen_at",
-          "type": "timestamp with time zone",
-          "not_null": true,
-          "default": "clock_timestamp()",
-          "acl": null
-        },
-        {
-          "name": "expires_at",
-          "type": "timestamp with time zone",
-          "not_null": false,
-          "default": null,
-          "acl": null
-        }
-      ],
-      "constraints": [
-        {
-          "name": "pwa_push_subscriptions_auth_check",
-          "type": "c",
-          "definition": "CHECK (((length(auth) >= 1) AND (length(auth) <= 256)))"
-        },
-        {
-          "name": "pwa_push_subscriptions_auth_not_null",
-          "type": "n",
-          "definition": "NOT NULL auth"
-        },
-        {
-          "name": "pwa_push_subscriptions_created_at_not_null",
-          "type": "n",
-          "definition": "NOT NULL created_at"
-        },
-        {
-          "name": "pwa_push_subscriptions_enabled_not_null",
-          "type": "n",
-          "definition": "NOT NULL enabled"
-        },
-        {
-          "name": "pwa_push_subscriptions_endpoint_check",
-          "type": "c",
-          "definition": "CHECK (((length(endpoint) >= 1) AND (length(endpoint) <= 4096)))"
-        },
-        {
-          "name": "pwa_push_subscriptions_endpoint_hash_check",
-          "type": "c",
-          "definition": "CHECK ((endpoint_hash ~ '^[a-f0-9]{64}$'::text))"
-        },
-        {
-          "name": "pwa_push_subscriptions_endpoint_hash_key",
-          "type": "u",
-          "definition": "UNIQUE (endpoint_hash)"
-        },
-        {
-          "name": "pwa_push_subscriptions_endpoint_hash_not_null",
-          "type": "n",
-          "definition": "NOT NULL endpoint_hash"
-        },
-        {
-          "name": "pwa_push_subscriptions_endpoint_not_null",
-          "type": "n",
-          "definition": "NOT NULL endpoint"
-        },
-        {
-          "name": "pwa_push_subscriptions_issuer_check",
-          "type": "c",
-          "definition": "CHECK ((issuer = 'https://securetoken.google.com/clever-oasis-508610-n7'::text))"
-        },
-        {
-          "name": "pwa_push_subscriptions_issuer_not_null",
-          "type": "n",
-          "definition": "NOT NULL issuer"
-        },
-        {
-          "name": "pwa_push_subscriptions_last_seen_at_not_null",
-          "type": "n",
-          "definition": "NOT NULL last_seen_at"
-        },
-        {
-          "name": "pwa_push_subscriptions_p256dh_check",
-          "type": "c",
-          "definition": "CHECK (((length(p256dh) >= 1) AND (length(p256dh) <= 256)))"
-        },
-        {
-          "name": "pwa_push_subscriptions_p256dh_not_null",
-          "type": "n",
-          "definition": "NOT NULL p256dh"
-        },
-        {
-          "name": "pwa_push_subscriptions_partner_id_check",
-          "type": "c",
-          "definition": "CHECK (((length(partner_id) >= 1) AND (length(partner_id) <= 256)))"
-        },
-        {
-          "name": "pwa_push_subscriptions_partner_id_not_null",
-          "type": "n",
-          "definition": "NOT NULL partner_id"
-        },
-        {
-          "name": "pwa_push_subscriptions_pkey",
-          "type": "p",
-          "definition": "PRIMARY KEY (subscription_id)"
-        },
-        {
-          "name": "pwa_push_subscriptions_subject_check",
-          "type": "c",
-          "definition": "CHECK (((length(subject) >= 1) AND (length(subject) <= 128)))"
-        },
-        {
-          "name": "pwa_push_subscriptions_subject_not_null",
-          "type": "n",
-          "definition": "NOT NULL subject"
-        },
-        {
-          "name": "pwa_push_subscriptions_subscription_id_not_null",
-          "type": "n",
-          "definition": "NOT NULL subscription_id"
-        },
-        {
-          "name": "pwa_push_subscriptions_version_check",
-          "type": "c",
-          "definition": "CHECK ((version > 0))"
-        },
-        {
-          "name": "pwa_push_subscriptions_version_not_null",
-          "type": "n",
-          "definition": "NOT NULL version"
-        }
-      ],
-      "indexes": [
-        {
-          "name": "pwa_push_subscription_owner",
-          "definition": "CREATE INDEX pwa_push_subscription_owner ON public.pwa_push_subscriptions USING btree (partner_id, subject) WHERE enabled"
-        },
-        {
-          "name": "pwa_push_subscriptions_endpoint_hash_key",
-          "definition": "CREATE UNIQUE INDEX pwa_push_subscriptions_endpoint_hash_key ON public.pwa_push_subscriptions USING btree (endpoint_hash)"
-        },
-        {
-          "name": "pwa_push_subscriptions_pkey",
-          "definition": "CREATE UNIQUE INDEX pwa_push_subscriptions_pkey ON public.pwa_push_subscriptions USING btree (subscription_id)"
-        }
-      ]
-    },
-    "currentMigration": 87
-  },
-  "verification": {
-    "status": "documented",
-    "source": "https://github.com/welct0407/MW-Credit-App/blob/codex/r052-review-shell/outputs/r052-promotion-readiness/dev87-model-catalog.json",
-    "coverage": "Actual bounded DEV87 catalog; current fields below supersede dated retained observations. PROD77 and AppSheet definitions unchanged."
-  }
-}
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_dev"
+  "kind": "relation"
+  "name": "public.pwa_push_subscriptions"
+  "scope": "development:R052-command"
+"content":
+  "release": "R052"
+  "status": "SQL scope promoted to PROD V87; retained DEV observations are dated evidence. Environment-specific roles and\
+    \ bindings remain intentional; notifications and replacement jobs remain deferred."
+  "observedAt": "2026-10-11T12:42:15.709Z"
+  "catalog_observation":
+    "name": "pwa_push_subscriptions"
+    "owner": "postgres"
+    "acl": "{postgres=arwdDxtm/postgres}"
+    "comment": "mw-access:secret authenticated device credentials"
+    "columns":
+    - "name": "subscription_id"
+      "type": "uuid"
+      "not_null": true
+      "default": "gen_random_uuid()"
+      "acl": null
+    - "name": "issuer"
+      "type": "text"
+      "not_null": true
+      "default": null
+      "acl": null
+    - "name": "subject"
+      "type": "text"
+      "not_null": true
+      "default": null
+      "acl": null
+    - "name": "partner_id"
+      "type": "text"
+      "not_null": true
+      "default": null
+      "acl": null
+    - "name": "endpoint_hash"
+      "type": "text"
+      "not_null": true
+      "default": null
+      "acl": null
+    - "name": "endpoint"
+      "type": "text"
+      "not_null": true
+      "default": null
+      "acl": null
+    - "name": "p256dh"
+      "type": "text"
+      "not_null": true
+      "default": null
+      "acl": null
+    - "name": "auth"
+      "type": "text"
+      "not_null": true
+      "default": null
+      "acl": null
+    - "name": "enabled"
+      "type": "boolean"
+      "not_null": true
+      "default": "true"
+      "acl": null
+    - "name": "version"
+      "type": "bigint"
+      "not_null": true
+      "default": "1"
+      "acl": null
+    - "name": "created_at"
+      "type": "timestamp with time zone"
+      "not_null": true
+      "default": "clock_timestamp()"
+      "acl": null
+    - "name": "last_seen_at"
+      "type": "timestamp with time zone"
+      "not_null": true
+      "default": "clock_timestamp()"
+      "acl": null
+    - "name": "expires_at"
+      "type": "timestamp with time zone"
+      "not_null": false
+      "default": null
+      "acl": null
+    "constraints":
+    - "name": "pwa_push_subscriptions_auth_check"
+      "type": "c"
+      "definition": "CHECK (((length(auth) >= 1) AND (length(auth) <= 256)))"
+    - "name": "pwa_push_subscriptions_auth_not_null"
+      "type": "n"
+      "definition": "NOT NULL auth"
+    - "name": "pwa_push_subscriptions_created_at_not_null"
+      "type": "n"
+      "definition": "NOT NULL created_at"
+    - "name": "pwa_push_subscriptions_enabled_not_null"
+      "type": "n"
+      "definition": "NOT NULL enabled"
+    - "name": "pwa_push_subscriptions_endpoint_check"
+      "type": "c"
+      "definition": "CHECK (((length(endpoint) >= 1) AND (length(endpoint) <= 4096)))"
+    - "name": "pwa_push_subscriptions_endpoint_hash_check"
+      "type": "c"
+      "definition": "CHECK ((endpoint_hash ~ '^[a-f0-9]{64}$'::text))"
+    - "name": "pwa_push_subscriptions_endpoint_hash_key"
+      "type": "u"
+      "definition": "UNIQUE (endpoint_hash)"
+    - "name": "pwa_push_subscriptions_endpoint_hash_not_null"
+      "type": "n"
+      "definition": "NOT NULL endpoint_hash"
+    - "name": "pwa_push_subscriptions_endpoint_not_null"
+      "type": "n"
+      "definition": "NOT NULL endpoint"
+    - "name": "pwa_push_subscriptions_issuer_check"
+      "type": "c"
+      "definition": "CHECK ((issuer = 'https://securetoken.google.com/clever-oasis-508610-n7'::text))"
+    - "name": "pwa_push_subscriptions_issuer_not_null"
+      "type": "n"
+      "definition": "NOT NULL issuer"
+    - "name": "pwa_push_subscriptions_last_seen_at_not_null"
+      "type": "n"
+      "definition": "NOT NULL last_seen_at"
+    - "name": "pwa_push_subscriptions_p256dh_check"
+      "type": "c"
+      "definition": "CHECK (((length(p256dh) >= 1) AND (length(p256dh) <= 256)))"
+    - "name": "pwa_push_subscriptions_p256dh_not_null"
+      "type": "n"
+      "definition": "NOT NULL p256dh"
+    - "name": "pwa_push_subscriptions_partner_id_check"
+      "type": "c"
+      "definition": "CHECK (((length(partner_id) >= 1) AND (length(partner_id) <= 256)))"
+    - "name": "pwa_push_subscriptions_partner_id_not_null"
+      "type": "n"
+      "definition": "NOT NULL partner_id"
+    - "name": "pwa_push_subscriptions_pkey"
+      "type": "p"
+      "definition": "PRIMARY KEY (subscription_id)"
+    - "name": "pwa_push_subscriptions_subject_check"
+      "type": "c"
+      "definition": "CHECK (((length(subject) >= 1) AND (length(subject) <= 128)))"
+    - "name": "pwa_push_subscriptions_subject_not_null"
+      "type": "n"
+      "definition": "NOT NULL subject"
+    - "name": "pwa_push_subscriptions_subscription_id_not_null"
+      "type": "n"
+      "definition": "NOT NULL subscription_id"
+    - "name": "pwa_push_subscriptions_version_check"
+      "type": "c"
+      "definition": "CHECK ((version > 0))"
+    - "name": "pwa_push_subscriptions_version_not_null"
+      "type": "n"
+      "definition": "NOT NULL version"
+    "indexes":
+    - "name": "pwa_push_subscription_owner"
+      "definition": "CREATE INDEX pwa_push_subscription_owner ON public.pwa_push_subscriptions USING btree (partner_id, subject)\
+        \ WHERE enabled"
+    - "name": "pwa_push_subscriptions_endpoint_hash_key"
+      "definition": "CREATE UNIQUE INDEX pwa_push_subscriptions_endpoint_hash_key ON public.pwa_push_subscriptions USING btree\
+        \ (endpoint_hash)"
+    - "name": "pwa_push_subscriptions_pkey"
+      "definition": "CREATE UNIQUE INDEX pwa_push_subscriptions_pkey ON public.pwa_push_subscriptions USING btree (subscription_id)"
+  "currentMigration": 87
+  "production_delivery":
+    "evidence": "outputs/r052/dictionary-production-closure.json"
+    "PostgreSQL": 87
+    "observedAt": "2026-10-11T14:01:01.082491+00:00"
+    "scope": "SQL definitions/capability only; no AppSheet definition upgrade or notification/job activation."
+"verification":
+  "status": "documented"
+  "source": "https://github.com/welct0407/MW-Credit-App/blob/codex/r052-review-shell/outputs/r052-promotion-readiness/dev87-model-catalog.json"
+  "coverage": "Dated DEV observation; current production delivery is recorded in content.production_delivery and canonical\
+    \ PROD objects."

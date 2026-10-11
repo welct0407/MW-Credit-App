@@ -7,8 +7,9 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
-  "coverage": "catalog metadata"
+  "source": "outputs/r052/dictionary-production-closure.json"
+  "coverage": "Actual bounded PROD87 catalogue after grouped migration and temporary authority restoration; no business-row\
+    \ capture."
 "content":
   "definition":
     "schema": "public"
@@ -17,34 +18,17 @@
     "kind": "f"
     "arguments_with_defaults": "p_loan text"
     "result": "void"
-    "definition": |
-      CREATE OR REPLACE FUNCTION public.create_first_day_charge(p_loan text)
-       RETURNS void
-       LANGUAGE plpgsql
-       SET search_path TO 'pg_catalog', 'public'
-      AS $function$
-      DECLARE l public."Loans"%ROWTYPE; principal numeric:=0; interest numeric; days integer;
-      BEGIN
-        SELECT * INTO STRICT l FROM public."Loans" WHERE "Row ID"=p_loan;
-        IF NOT coalesce(l."Auto Charge Enabled",false) OR NOT coalesce((
-          (l."Loan Type"='ดอกเบี้ยรายวัน' AND l."Current Daily Interest"::numeric>0) OR
-          (l."Loan Type"='ผ่อนชำระรายวัน' AND l."Daily Payment Amount"::numeric>0)),false) THEN RETURN; END IF;
-        PERFORM 1 FROM public."Borrowers" WHERE "Row ID"=l."Ref Borrowers" FOR UPDATE;
-        IF EXISTS(SELECT 1 FROM public."Charges" WHERE "Ref Loans"=p_loan AND "Charge Date"=l."Loan Date") THEN RETURN; END IF;
-        IF l."Loan Date" IS NULL THEN RAISE EXCEPTION 'First-day charge requires Loan Date'; END IF;
-        IF l."Loan Type"='ผ่อนชำระรายวัน' THEN
-          days:=l."Due Date"-l."Loan Date"+1;
-          IF days IS NULL OR days<=0 OR l."Principal Amount" IS NULL OR l."Principal Amount"::numeric<0 THEN
-            RAISE EXCEPTION 'Invalid installment principal or inclusive loan term';
-          END IF;
-          principal:=floor(l."Principal Amount"::numeric/days)+CASE WHEN mod(l."Principal Amount"::numeric,days)>0 THEN 1 ELSE 0 END;
-          interest:=l."Daily Payment Amount"::numeric-principal+coalesce(l."Transfer Fee"::numeric,0);
-        ELSE interest:=l."Current Daily Interest"::numeric+coalesce(l."Transfer Fee"::numeric,0);
-        END IF;
-        IF interest IS NULL OR interest<0 THEN RAISE EXCEPTION 'Invalid first-day interest component'; END IF;
-        INSERT INTO public."Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Interest Due")
-          VALUES('fd6:'||p_loan,p_loan,l."Loan Date",principal::money,interest::money);
-      END $function$
+    "definition": "CREATE OR REPLACE FUNCTION public.create_first_day_charge(p_loan text)\n RETURNS void\n LANGUAGE plpgsql\n\
+      \ SET search_path TO 'pg_catalog', 'public'\nAS $function$\r\nDECLARE l public.\"Loans\"%ROWTYPE; principal numeric:=0;\
+      \ interest numeric; days integer;\r\nBEGIN\r\n  SELECT * INTO STRICT l FROM public.\"Loans\" WHERE \"Row ID\"=p_loan;\r\
+      \n  IF NOT coalesce(l.\"Auto Charge Enabled\",false) OR NOT coalesce((\r\n    (l.\"Loan Type\"='ดอกเบี้ยรายวัน' AND\
+      \ l.\"Current Daily Interest\"::numeric>0) OR\r\n    (l.\"Loan Type\"='ผ่อนชำระรายวัน' AND l.\"Daily Payment Amount\"\
+      ::numeric>0)),false) THEN RETURN; END IF;\r\n  PERFORM 1 FROM public.\"Borrowers\" WHERE \"Row ID\"=l.\"Ref Borrowers\"\
+      \ FOR UPDATE;\r\n  IF EXISTS(SELECT 1 FROM public.\"Charges\" WHERE \"Ref Loans\"=p_loan AND \"Charge Date\"=l.\"Loan\
+      \ Date\") THEN RETURN; END IF;\r\n  IF l.\"Loan Date\" IS NULL THEN RAISE EXCEPTION 'First-day charge requires Loan\
+      \ Date'; END IF;\r\n  SELECT parts.principal,parts.interest INTO STRICT principal,interest\r\n    FROM public.first_day_components_v83(l)\
+      \ parts;\r\n  INSERT INTO public.\"Charges\"(\"Row ID\",\"Ref Loans\",\"Charge Date\",\"Principal Due\",\"Interest Due\"\
+      )\r\n    VALUES('fd6:'||p_loan,p_loan,l.\"Loan Date\",principal::money,interest::money);\r\nEND $function$\n"
     "owner": "postgres"
     "language": "plpgsql"
     "volatility": "v"
@@ -56,6 +40,6 @@
     "rows": 0.0
     "settings":
     - "search_path=pg_catalog, public"
-    "acl": null
+    "acl": "{=X/postgres,postgres=X/postgres,mw_app_prod=X/postgres}"
     "comment": null
     "extension": null

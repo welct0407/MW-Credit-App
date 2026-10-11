@@ -1,636 +1,589 @@
-{
-  "format": 1,
-  "identity": {
-    "system": "postgresql",
-    "component": "loan_manager_prod",
-    "kind": "relation",
-    "name": "public.reporting_borrower_payments_v1",
-    "scope": "production"
-  },
-  "verification": {
-    "status": "documented",
-    "source": "outputs/r042-borrower-payments/dictionary-catalog.json"
-  },
-  "content": {
-    "definition": {
-      "schema": "public",
-      "name": "reporting_borrower_payments_v1",
-      "kind": "v",
-      "owner": "postgres",
-      "row_security": false,
-      "force_row_security": false,
-      "replica_identity": "n",
-      "persistence": "p",
-      "is_partition": false,
-      "options": null,
-      "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,metabase_borrower_reader=r/postgres}",
-      "comment": "One row per original payment receipt, including unposted states and all payment fields. Owner explicitly requested full details. Reference labels included; immutable IDs are for joins, not dashboard display. Amount received is not necessarily posted.",
-      "view_definition": " SELECT p.\"Row ID\" AS payment_id,\n    p.\"Ref Borrower\" AS borrower_id,\n    p.\"Payment Date\" AS payment_date,\n    p.\"Status\" AS status,\n    p.\"Amount Received\"::numeric AS amount_received,\n    p.\"Payment Method\" AS payment_method,\n    p.\"Allocation Method\" AS allocation_method,\n    p.\"Planned Allocation Amount\" AS planned_allocation_amount,\n    p.\"Posted Amount\" AS posted_amount,\n    p.\"Created At\" AS created_at,\n    p.\"Processed At\" AS processed_at,\n    p.\"Bank Reference\" AS bank_reference,\n    p.\"Notes\" AS notes,\n    p.\"Created By\" AS created_by,\n    p.\"Ref Target Loan\" AS target_loan_id,\n    p.\"Ref Target Charge\" AS target_charge_id,\n    p.\"Ref Received By Cash Holder\" AS received_holder_id,\n    p.\"Ref Received By Cash Account\" AS received_account_id,\n    h.\"Holder Name\" AS received_holder,\n    a.\"Account Label\" AS received_account,\n    c.\"Charge Date\" AS target_charge_date,\n    c.\"Ref Loans\" AS target_charge_loan_id\n   FROM \"Payments\" p\n     LEFT JOIN \"Cash Holders\" h ON h.\"Row ID\" = p.\"Ref Received By Cash Holder\"\n     LEFT JOIN \"Cash Accounts\" a ON a.\"Row ID\" = p.\"Ref Received By Cash Account\"\n     LEFT JOIN \"Charges\" c ON c.\"Row ID\" = p.\"Ref Target Charge\";",
-      "partition_key": null,
-      "partition_bound": null,
-      "parents": null,
-      "extension": null
-    },
-    "columns": {
-      "payment_id": {
-        "schema": "public",
-        "relation": "reporting_borrower_payments_v1",
-        "name": "payment_id",
-        "ordinal": 1,
-        "data_type": "text",
-        "type_schema": "pg_catalog",
-        "type_name": "text",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "x",
-        "compression": "",
-        "default_expression": null,
-        "collation": "\"default\"",
-        "acl": null,
-        "comment": null
-      },
-      "borrower_id": {
-        "schema": "public",
-        "relation": "reporting_borrower_payments_v1",
-        "name": "borrower_id",
-        "ordinal": 2,
-        "data_type": "text",
-        "type_schema": "pg_catalog",
-        "type_name": "text",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "x",
-        "compression": "",
-        "default_expression": null,
-        "collation": "\"default\"",
-        "acl": null,
-        "comment": null
-      },
-      "payment_date": {
-        "schema": "public",
-        "relation": "reporting_borrower_payments_v1",
-        "name": "payment_date",
-        "ordinal": 3,
-        "data_type": "date",
-        "type_schema": "pg_catalog",
-        "type_name": "date",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "p",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "status": {
-        "schema": "public",
-        "relation": "reporting_borrower_payments_v1",
-        "name": "status",
-        "ordinal": 4,
-        "data_type": "text",
-        "type_schema": "pg_catalog",
-        "type_name": "text",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "x",
-        "compression": "",
-        "default_expression": null,
-        "collation": "\"default\"",
-        "acl": null,
-        "comment": null
-      },
-      "amount_received": {
-        "schema": "public",
-        "relation": "reporting_borrower_payments_v1",
-        "name": "amount_received",
-        "ordinal": 5,
-        "data_type": "numeric",
-        "type_schema": "pg_catalog",
-        "type_name": "numeric",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "m",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "payment_method": {
-        "schema": "public",
-        "relation": "reporting_borrower_payments_v1",
-        "name": "payment_method",
-        "ordinal": 6,
-        "data_type": "text",
-        "type_schema": "pg_catalog",
-        "type_name": "text",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "x",
-        "compression": "",
-        "default_expression": null,
-        "collation": "\"default\"",
-        "acl": null,
-        "comment": null
-      },
-      "allocation_method": {
-        "schema": "public",
-        "relation": "reporting_borrower_payments_v1",
-        "name": "allocation_method",
-        "ordinal": 7,
-        "data_type": "text",
-        "type_schema": "pg_catalog",
-        "type_name": "text",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "x",
-        "compression": "",
-        "default_expression": null,
-        "collation": "\"default\"",
-        "acl": null,
-        "comment": null
-      },
-      "planned_allocation_amount": {
-        "schema": "public",
-        "relation": "reporting_borrower_payments_v1",
-        "name": "planned_allocation_amount",
-        "ordinal": 8,
-        "data_type": "numeric",
-        "type_schema": "pg_catalog",
-        "type_name": "numeric",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "m",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "posted_amount": {
-        "schema": "public",
-        "relation": "reporting_borrower_payments_v1",
-        "name": "posted_amount",
-        "ordinal": 9,
-        "data_type": "numeric",
-        "type_schema": "pg_catalog",
-        "type_name": "numeric",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "m",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "created_at": {
-        "schema": "public",
-        "relation": "reporting_borrower_payments_v1",
-        "name": "created_at",
-        "ordinal": 10,
-        "data_type": "timestamp without time zone",
-        "type_schema": "pg_catalog",
-        "type_name": "timestamp",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "p",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "processed_at": {
-        "schema": "public",
-        "relation": "reporting_borrower_payments_v1",
-        "name": "processed_at",
-        "ordinal": 11,
-        "data_type": "timestamp without time zone",
-        "type_schema": "pg_catalog",
-        "type_name": "timestamp",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "p",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "bank_reference": {
-        "schema": "public",
-        "relation": "reporting_borrower_payments_v1",
-        "name": "bank_reference",
-        "ordinal": 12,
-        "data_type": "text",
-        "type_schema": "pg_catalog",
-        "type_name": "text",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "x",
-        "compression": "",
-        "default_expression": null,
-        "collation": "\"default\"",
-        "acl": null,
-        "comment": null
-      },
-      "notes": {
-        "schema": "public",
-        "relation": "reporting_borrower_payments_v1",
-        "name": "notes",
-        "ordinal": 13,
-        "data_type": "text",
-        "type_schema": "pg_catalog",
-        "type_name": "text",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "x",
-        "compression": "",
-        "default_expression": null,
-        "collation": "\"default\"",
-        "acl": null,
-        "comment": null
-      },
-      "created_by": {
-        "schema": "public",
-        "relation": "reporting_borrower_payments_v1",
-        "name": "created_by",
-        "ordinal": 14,
-        "data_type": "text",
-        "type_schema": "pg_catalog",
-        "type_name": "text",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "x",
-        "compression": "",
-        "default_expression": null,
-        "collation": "\"default\"",
-        "acl": null,
-        "comment": null
-      },
-      "target_loan_id": {
-        "schema": "public",
-        "relation": "reporting_borrower_payments_v1",
-        "name": "target_loan_id",
-        "ordinal": 15,
-        "data_type": "text",
-        "type_schema": "pg_catalog",
-        "type_name": "text",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "x",
-        "compression": "",
-        "default_expression": null,
-        "collation": "\"default\"",
-        "acl": null,
-        "comment": null
-      },
-      "target_charge_id": {
-        "schema": "public",
-        "relation": "reporting_borrower_payments_v1",
-        "name": "target_charge_id",
-        "ordinal": 16,
-        "data_type": "text",
-        "type_schema": "pg_catalog",
-        "type_name": "text",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "x",
-        "compression": "",
-        "default_expression": null,
-        "collation": "\"default\"",
-        "acl": null,
-        "comment": null
-      },
-      "received_holder_id": {
-        "schema": "public",
-        "relation": "reporting_borrower_payments_v1",
-        "name": "received_holder_id",
-        "ordinal": 17,
-        "data_type": "text",
-        "type_schema": "pg_catalog",
-        "type_name": "text",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "x",
-        "compression": "",
-        "default_expression": null,
-        "collation": "\"default\"",
-        "acl": null,
-        "comment": null
-      },
-      "received_account_id": {
-        "schema": "public",
-        "relation": "reporting_borrower_payments_v1",
-        "name": "received_account_id",
-        "ordinal": 18,
-        "data_type": "text",
-        "type_schema": "pg_catalog",
-        "type_name": "text",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "x",
-        "compression": "",
-        "default_expression": null,
-        "collation": "\"default\"",
-        "acl": null,
-        "comment": null
-      },
-      "received_holder": {
-        "schema": "public",
-        "relation": "reporting_borrower_payments_v1",
-        "name": "received_holder",
-        "ordinal": 19,
-        "data_type": "text",
-        "type_schema": "pg_catalog",
-        "type_name": "text",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "x",
-        "compression": "",
-        "default_expression": null,
-        "collation": "\"default\"",
-        "acl": null,
-        "comment": null
-      },
-      "received_account": {
-        "schema": "public",
-        "relation": "reporting_borrower_payments_v1",
-        "name": "received_account",
-        "ordinal": 20,
-        "data_type": "text",
-        "type_schema": "pg_catalog",
-        "type_name": "text",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "x",
-        "compression": "",
-        "default_expression": null,
-        "collation": "\"default\"",
-        "acl": null,
-        "comment": null
-      },
-      "target_charge_date": {
-        "schema": "public",
-        "relation": "reporting_borrower_payments_v1",
-        "name": "target_charge_date",
-        "ordinal": 21,
-        "data_type": "date",
-        "type_schema": "pg_catalog",
-        "type_name": "date",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "p",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "target_charge_loan_id": {
-        "schema": "public",
-        "relation": "reporting_borrower_payments_v1",
-        "name": "target_charge_loan_id",
-        "ordinal": 22,
-        "data_type": "text",
-        "type_schema": "pg_catalog",
-        "type_name": "text",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "x",
-        "compression": "",
-        "default_expression": null,
-        "collation": "\"default\"",
-        "acl": null,
-        "comment": null
-      }
-    },
-    "constraints": {},
-    "indexes": {},
-    "triggers": {},
-    "policies": {},
-    "dependencies": [
-      {
-        "schema": "public",
-        "relation": "reporting_borrower_payments_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Cash Accounts",
-        "referenced_column": "Account Label"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_borrower_payments_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Cash Accounts",
-        "referenced_column": "Row ID"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_borrower_payments_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Cash Holders",
-        "referenced_column": "Holder Name"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_borrower_payments_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Cash Holders",
-        "referenced_column": "Row ID"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_borrower_payments_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Charges",
-        "referenced_column": "Charge Date"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_borrower_payments_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Charges",
-        "referenced_column": "Ref Loans"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_borrower_payments_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Charges",
-        "referenced_column": "Row ID"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_borrower_payments_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Payments",
-        "referenced_column": "Allocation Method"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_borrower_payments_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Payments",
-        "referenced_column": "Amount Received"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_borrower_payments_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Payments",
-        "referenced_column": "Bank Reference"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_borrower_payments_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Payments",
-        "referenced_column": "Created At"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_borrower_payments_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Payments",
-        "referenced_column": "Created By"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_borrower_payments_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Payments",
-        "referenced_column": "Notes"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_borrower_payments_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Payments",
-        "referenced_column": "Payment Date"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_borrower_payments_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Payments",
-        "referenced_column": "Payment Method"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_borrower_payments_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Payments",
-        "referenced_column": "Planned Allocation Amount"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_borrower_payments_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Payments",
-        "referenced_column": "Posted Amount"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_borrower_payments_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Payments",
-        "referenced_column": "Processed At"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_borrower_payments_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Payments",
-        "referenced_column": "Ref Borrower"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_borrower_payments_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Payments",
-        "referenced_column": "Ref Received By Cash Account"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_borrower_payments_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Payments",
-        "referenced_column": "Ref Received By Cash Holder"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_borrower_payments_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Payments",
-        "referenced_column": "Ref Target Charge"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_borrower_payments_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Payments",
-        "referenced_column": "Ref Target Loan"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_borrower_payments_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Payments",
-        "referenced_column": "Row ID"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_borrower_payments_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Payments",
-        "referenced_column": "Status"
-      }
-    ]
-  }
-}
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "relation"
+  "name": "public.reporting_borrower_payments_v1"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r042-borrower-payments/dictionary-catalog.json"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "reporting_borrower_payments_v1"
+    "kind": "v"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "n"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,metabase_borrower_reader=r/postgres,mw_app_prod=r/postgres}"
+    "comment": "One row per original payment receipt, including unposted states and all payment fields. Owner explicitly requested\
+      \ full details. Reference labels included; immutable IDs are for joins, not dashboard display. Amount received is not\
+      \ necessarily posted."
+    "view_definition": |2-
+       SELECT p."Row ID" AS payment_id,
+          p."Ref Borrower" AS borrower_id,
+          p."Payment Date" AS payment_date,
+          p."Status" AS status,
+          p."Amount Received"::numeric AS amount_received,
+          p."Payment Method" AS payment_method,
+          p."Allocation Method" AS allocation_method,
+          p."Planned Allocation Amount" AS planned_allocation_amount,
+          p."Posted Amount" AS posted_amount,
+          p."Created At" AS created_at,
+          p."Processed At" AS processed_at,
+          p."Bank Reference" AS bank_reference,
+          p."Notes" AS notes,
+          p."Created By" AS created_by,
+          p."Ref Target Loan" AS target_loan_id,
+          p."Ref Target Charge" AS target_charge_id,
+          p."Ref Received By Cash Holder" AS received_holder_id,
+          p."Ref Received By Cash Account" AS received_account_id,
+          h."Holder Name" AS received_holder,
+          a."Account Label" AS received_account,
+          c."Charge Date" AS target_charge_date,
+          c."Ref Loans" AS target_charge_loan_id
+         FROM "Payments" p
+           LEFT JOIN "Cash Holders" h ON h."Row ID" = p."Ref Received By Cash Holder"
+           LEFT JOIN "Cash Accounts" a ON a."Row ID" = p."Ref Received By Cash Account"
+           LEFT JOIN "Charges" c ON c."Row ID" = p."Ref Target Charge";
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "columns":
+    "payment_id":
+      "schema": "public"
+      "relation": "reporting_borrower_payments_v1"
+      "name": "payment_id"
+      "ordinal": 1
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "borrower_id":
+      "schema": "public"
+      "relation": "reporting_borrower_payments_v1"
+      "name": "borrower_id"
+      "ordinal": 2
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "payment_date":
+      "schema": "public"
+      "relation": "reporting_borrower_payments_v1"
+      "name": "payment_date"
+      "ordinal": 3
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "status":
+      "schema": "public"
+      "relation": "reporting_borrower_payments_v1"
+      "name": "status"
+      "ordinal": 4
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "amount_received":
+      "schema": "public"
+      "relation": "reporting_borrower_payments_v1"
+      "name": "amount_received"
+      "ordinal": 5
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "payment_method":
+      "schema": "public"
+      "relation": "reporting_borrower_payments_v1"
+      "name": "payment_method"
+      "ordinal": 6
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "allocation_method":
+      "schema": "public"
+      "relation": "reporting_borrower_payments_v1"
+      "name": "allocation_method"
+      "ordinal": 7
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "planned_allocation_amount":
+      "schema": "public"
+      "relation": "reporting_borrower_payments_v1"
+      "name": "planned_allocation_amount"
+      "ordinal": 8
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "posted_amount":
+      "schema": "public"
+      "relation": "reporting_borrower_payments_v1"
+      "name": "posted_amount"
+      "ordinal": 9
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "created_at":
+      "schema": "public"
+      "relation": "reporting_borrower_payments_v1"
+      "name": "created_at"
+      "ordinal": 10
+      "data_type": "timestamp without time zone"
+      "type_schema": "pg_catalog"
+      "type_name": "timestamp"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "processed_at":
+      "schema": "public"
+      "relation": "reporting_borrower_payments_v1"
+      "name": "processed_at"
+      "ordinal": 11
+      "data_type": "timestamp without time zone"
+      "type_schema": "pg_catalog"
+      "type_name": "timestamp"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "bank_reference":
+      "schema": "public"
+      "relation": "reporting_borrower_payments_v1"
+      "name": "bank_reference"
+      "ordinal": 12
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "notes":
+      "schema": "public"
+      "relation": "reporting_borrower_payments_v1"
+      "name": "notes"
+      "ordinal": 13
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "created_by":
+      "schema": "public"
+      "relation": "reporting_borrower_payments_v1"
+      "name": "created_by"
+      "ordinal": 14
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "target_loan_id":
+      "schema": "public"
+      "relation": "reporting_borrower_payments_v1"
+      "name": "target_loan_id"
+      "ordinal": 15
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "target_charge_id":
+      "schema": "public"
+      "relation": "reporting_borrower_payments_v1"
+      "name": "target_charge_id"
+      "ordinal": 16
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "received_holder_id":
+      "schema": "public"
+      "relation": "reporting_borrower_payments_v1"
+      "name": "received_holder_id"
+      "ordinal": 17
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "received_account_id":
+      "schema": "public"
+      "relation": "reporting_borrower_payments_v1"
+      "name": "received_account_id"
+      "ordinal": 18
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "received_holder":
+      "schema": "public"
+      "relation": "reporting_borrower_payments_v1"
+      "name": "received_holder"
+      "ordinal": 19
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "received_account":
+      "schema": "public"
+      "relation": "reporting_borrower_payments_v1"
+      "name": "received_account"
+      "ordinal": 20
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "target_charge_date":
+      "schema": "public"
+      "relation": "reporting_borrower_payments_v1"
+      "name": "target_charge_date"
+      "ordinal": 21
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "target_charge_loan_id":
+      "schema": "public"
+      "relation": "reporting_borrower_payments_v1"
+      "name": "target_charge_loan_id"
+      "ordinal": 22
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+  "constraints": {}
+  "indexes": {}
+  "triggers": {}
+  "policies": {}
+  "dependencies":
+  - "schema": "public"
+    "relation": "reporting_borrower_payments_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Accounts"
+    "referenced_column": "Account Label"
+  - "schema": "public"
+    "relation": "reporting_borrower_payments_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Accounts"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "reporting_borrower_payments_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Holders"
+    "referenced_column": "Holder Name"
+  - "schema": "public"
+    "relation": "reporting_borrower_payments_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Holders"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "reporting_borrower_payments_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Charges"
+    "referenced_column": "Charge Date"
+  - "schema": "public"
+    "relation": "reporting_borrower_payments_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Charges"
+    "referenced_column": "Ref Loans"
+  - "schema": "public"
+    "relation": "reporting_borrower_payments_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Charges"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "reporting_borrower_payments_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Payments"
+    "referenced_column": "Allocation Method"
+  - "schema": "public"
+    "relation": "reporting_borrower_payments_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Payments"
+    "referenced_column": "Amount Received"
+  - "schema": "public"
+    "relation": "reporting_borrower_payments_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Payments"
+    "referenced_column": "Bank Reference"
+  - "schema": "public"
+    "relation": "reporting_borrower_payments_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Payments"
+    "referenced_column": "Created At"
+  - "schema": "public"
+    "relation": "reporting_borrower_payments_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Payments"
+    "referenced_column": "Created By"
+  - "schema": "public"
+    "relation": "reporting_borrower_payments_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Payments"
+    "referenced_column": "Notes"
+  - "schema": "public"
+    "relation": "reporting_borrower_payments_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Payments"
+    "referenced_column": "Payment Date"
+  - "schema": "public"
+    "relation": "reporting_borrower_payments_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Payments"
+    "referenced_column": "Payment Method"
+  - "schema": "public"
+    "relation": "reporting_borrower_payments_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Payments"
+    "referenced_column": "Planned Allocation Amount"
+  - "schema": "public"
+    "relation": "reporting_borrower_payments_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Payments"
+    "referenced_column": "Posted Amount"
+  - "schema": "public"
+    "relation": "reporting_borrower_payments_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Payments"
+    "referenced_column": "Processed At"
+  - "schema": "public"
+    "relation": "reporting_borrower_payments_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Payments"
+    "referenced_column": "Ref Borrower"
+  - "schema": "public"
+    "relation": "reporting_borrower_payments_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Payments"
+    "referenced_column": "Ref Received By Cash Account"
+  - "schema": "public"
+    "relation": "reporting_borrower_payments_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Payments"
+    "referenced_column": "Ref Received By Cash Holder"
+  - "schema": "public"
+    "relation": "reporting_borrower_payments_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Payments"
+    "referenced_column": "Ref Target Charge"
+  - "schema": "public"
+    "relation": "reporting_borrower_payments_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Payments"
+    "referenced_column": "Ref Target Loan"
+  - "schema": "public"
+    "relation": "reporting_borrower_payments_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Payments"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "reporting_borrower_payments_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Payments"
+    "referenced_column": "Status"
+"evidence":
+  "/content/definition/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"

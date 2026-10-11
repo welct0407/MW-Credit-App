@@ -43,3 +43,9 @@
     "security_definer": false
     "settings":
     - "search_path=pg_catalog, public"
+    "acl": "{=X/postgres,postgres=X/postgres,mw_app_prod=X/postgres}"
+"evidence":
+  "/content/definition/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"

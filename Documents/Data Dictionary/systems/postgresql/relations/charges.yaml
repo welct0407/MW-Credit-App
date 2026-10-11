@@ -30,7 +30,7 @@
     "persistence": "p"
     "is_partition": false
     "options": null
-    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,mw_reviewer_dml=arwd/postgres}"
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,mw_reviewer_dml=arwd/postgres,mw_app_prod=arwd/postgres}"
     "comment": null
     "view_definition": null
     "partition_key": null
@@ -54,7 +54,7 @@
       "compression": ""
       "default_expression": null
       "collation": "\"default\""
-      "acl": null
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
       "comment": null
     "Ref Loans":
       "schema": "public"
@@ -72,7 +72,7 @@
       "compression": ""
       "default_expression": null
       "collation": "\"default\""
-      "acl": null
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
       "comment": null
     "Charge Date":
       "schema": "public"
@@ -90,7 +90,7 @@
       "compression": ""
       "default_expression": null
       "collation": null
-      "acl": null
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
       "comment": null
     "Interest Due":
       "schema": "public"
@@ -198,7 +198,7 @@
       "compression": ""
       "default_expression": null
       "collation": null
-      "acl": null
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
       "comment": null
     "Principal Remaining":
       "schema": "public"
@@ -252,7 +252,7 @@
       "compression": ""
       "default_expression": null
       "collation": null
-      "acl": null
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
       "comment": null
     "Payment Count":
       "schema": "public"
@@ -288,7 +288,7 @@
       "compression": ""
       "default_expression": null
       "collation": "\"default\""
-      "acl": null
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
       "comment": null
     "Payment Date":
       "schema": "public"
@@ -306,7 +306,7 @@
       "compression": ""
       "default_expression": null
       "collation": null
-      "acl": null
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
       "comment": null
     "Payment Request Cash Account":
       "schema": "public"
@@ -733,3 +733,36 @@
       "comment": null
   "policies": {}
   "dependencies": []
+"evidence":
+  "/content/definition/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"
+  "/content/columns/Amount Remaining/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"
+  "/content/columns/Charge Date/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"
+  "/content/columns/Payment Date/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"
+  "/content/columns/Payment Status/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"
+  "/content/columns/Ref Loans/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"
+  "/content/columns/Row ID/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"
+  "/content/columns/Total Paid/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"

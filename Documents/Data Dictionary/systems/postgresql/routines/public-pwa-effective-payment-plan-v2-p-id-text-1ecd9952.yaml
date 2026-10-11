@@ -1,0 +1,63 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.pwa_effective_payment_plan_v2(p_id text)"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r052/dictionary-production-closure.json"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "pwa_effective_payment_plan_v2"
+    "arguments": "p_id text"
+    "kind": "f"
+    "arguments_with_defaults": "p_id text"
+    "result": "jsonb"
+    "definition": "CREATE OR REPLACE FUNCTION public.pwa_effective_payment_plan_v2(p_id text)\n RETURNS jsonb\n LANGUAGE plpgsql\n\
+      \ STABLE\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\r\nDECLARE r public.pwa_payment_commands%ROWTYPE;\
+      \ revision public.pwa_payment_commands%ROWTYPE;\r\n origin uuid; head uuid; source_creator text; origin_actor jsonb;\
+      \ correction_actor jsonb; plan jsonb; c jsonb; matches integer; visited uuid[];\r\nBEGIN\r\n SELECT count(*) INTO matches\
+      \ FROM public.pwa_payment_commands j WHERE\r\n  (j.contract_version=1 AND j.payment_id=p_id AND j.outcome='posted' AND\
+      \ j.canonical_json::jsonb#>>'{command,schemaVersion}'='6') OR\r\n  (j.contract_version=2 AND j.outcome='applied' AND\
+      \ j.result_json->>'paymentId'=p_id AND j.canonical_json::jsonb#>>'{command,operation}' IN('loan.create','loan.close','charge.create'));\r\
+      \n IF matches=0 THEN RETURN NULL;END IF;\r\n IF matches<>1 THEN RAISE EXCEPTION 'Ambiguous payment provenance';END IF;\r\
+      \n SELECT * INTO STRICT r FROM public.pwa_payment_commands j WHERE\r\n  (j.contract_version=1 AND j.payment_id=p_id\
+      \ AND j.outcome='posted' AND j.canonical_json::jsonb#>>'{command,schemaVersion}'='6') OR\r\n  (j.contract_version=2\
+      \ AND j.outcome='applied' AND j.result_json->>'paymentId'=p_id AND j.canonical_json::jsonb#>>'{command,operation}' IN('loan.create','loan.close','charge.create'));\r\
+      \n origin:=r.request_id;head:=origin;visited:=ARRAY[head];origin_actor:=r.canonical_json::jsonb->'actor';source_creator:=CASE\
+      \ WHEN r.result_json ? 'sourceCreatedBy' THEN r.result_json->>'sourceCreatedBy' ELSE origin_actor->>'loginEmail' END;\r\
+      \n IF r.contract_version=1 THEN\r\n  c:=r.canonical_json::jsonb->'command';\r\n  plan:=jsonb_build_object('borrowerId',c->'borrowerId','amountReceived',c->'amountReceived','allocations',c->'allocations','allocationMethod','Selected\
+      \ Charges','targetChargeId',NULL,'targetLoanId',NULL,'cashAccountId',c->'cashAccountId','paymentDate',c->'paymentDate','paymentMethod',c->'paymentMethod');\r\
+      \n ELSE plan:=r.result_json->'plan';END IF;\r\n LOOP\r\n  SELECT count(*) INTO matches FROM public.pwa_payment_commands\
+      \ j WHERE j.contract_version=2 AND j.outcome='applied'\r\n   AND j.canonical_json::jsonb#>>'{command,operation}'='payment.correct'\r\
+      \n   AND j.canonical_json::jsonb#>>'{command,targetType}'='payment' AND j.canonical_json::jsonb#>>'{command,targetId}'=p_id\r\
+      \n   AND j.canonical_json::jsonb#>>'{command,predecessorRequestId}'=head::text;\r\n  EXIT WHEN matches=0;\r\n  IF matches<>1\
+      \ OR cardinality(visited)>=10000 THEN RAISE EXCEPTION 'Invalid payment revision lineage';END IF;\r\n  SELECT * INTO\
+      \ STRICT revision FROM public.pwa_payment_commands j WHERE j.contract_version=2 AND j.outcome='applied'\r\n   AND j.canonical_json::jsonb#>>'{command,operation}'='payment.correct'\r\
+      \n   AND j.canonical_json::jsonb#>>'{command,targetType}'='payment' AND j.canonical_json::jsonb#>>'{command,targetId}'=p_id\r\
+      \n   AND j.canonical_json::jsonb#>>'{command,predecessorRequestId}'=head::text;\r\n  IF revision.request_id=ANY(visited)\
+      \ OR revision.result_json->>'paymentId' IS DISTINCT FROM p_id THEN RAISE EXCEPTION 'Invalid payment revision identity';END\
+      \ IF;\r\n  head:=revision.request_id;visited:=array_append(visited,head);correction_actor:=revision.canonical_json::jsonb->'actor';plan:=revision.result_json->'plan';\r\
+      \n END LOOP;\r\n IF (SELECT count(*) FROM public.pwa_payment_commands j WHERE j.contract_version=2 AND j.outcome='applied'\
+      \ AND j.canonical_json::jsonb#>>'{command,operation}'='payment.correct' AND j.canonical_json::jsonb#>>'{command,targetType}'='payment'\
+      \ AND j.canonical_json::jsonb#>>'{command,targetId}'=p_id)<>cardinality(visited)-1 THEN RAISE EXCEPTION 'Disconnected\
+      \ payment revision lineage';END IF;\r\n IF jsonb_typeof(plan) IS DISTINCT FROM 'object' OR jsonb_typeof(plan->'allocations')\
+      \ IS DISTINCT FROM 'array' THEN RAISE EXCEPTION 'Missing payment provenance plan';END IF;\r\n RETURN jsonb_build_object('sourceCreatedBy',source_creator,'originActor',origin_actor,'correctionActor',correction_actor,'plan',plan,'originRequestId',origin,'effectivePlanRequestId',head);\r\
+      \nEND $function$\n"
+    "owner": "postgres"
+    "language": "plpgsql"
+    "volatility": "s"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 0.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": "{=X/postgres,postgres=X/postgres,mw_app_prod=X/postgres}"
+    "comment": null
+    "extension": null

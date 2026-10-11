@@ -8,11 +8,12 @@
 "verification":
   "status": "documented"
   "source": "Change Logs/CHANGE_NOTES_R052_UNIFIED_RECEIVING_2026-10-08.md"
-  "coverage": "bounded live DEV V82 catalog and exact restored maintenance privileges; independent disposable financial proof;\
-    \ no live financial rows"
+  "coverage": "Dated DEV observation; current production delivery is recorded in content.production_delivery and canonical\
+    \ PROD objects."
 "content":
   "release": "R052"
-  "status": "DEV V82 active; separate PWA v6 engine and preserved AppSheet/v3-v5 legacy route; PROD V77 unchanged"
+  "status": "SQL scope promoted to PROD V87; retained DEV observations are dated evidence. Environment-specific roles and\
+    \ bindings remain intentional; notifications and replacement jobs remain deferred."
   "migration_source": "https://github.com/welct0407/MW-Credit-App/blob/8803b6d35371257e37efc21d02e5d2d3baebf38f/database/migrations/V82__explicit_payment_allocation_plan_v6.sql"
   "behavior": "Preserves the V59 legacy algorithm for ordinary AppSheet and v3-v5 commands; rejects authoritative v6 origin.\
     \ Retain through parallel operation and rollback."
@@ -89,3 +90,8 @@
       \ ledger reconciliation failed';\r\n  END IF;\r\n  PERFORM public.close_payment_loans(p_id);\r\n  UPDATE public.\"Payments\"\
       \ SET \"Status\"='Posted',\"Processed At\"=clock_timestamp() AT TIME ZONE 'Asia/Bangkok'\r\n    WHERE \"Row ID\"=p_id;\r\
       \nEND $function$\n"
+  "production_delivery":
+    "evidence": "outputs/r052/dictionary-production-closure.json"
+    "PostgreSQL": 87
+    "observedAt": "2026-10-11T14:01:01.082491+00:00"
+    "scope": "SQL definitions/capability only; no AppSheet definition upgrade or notification/job activation."

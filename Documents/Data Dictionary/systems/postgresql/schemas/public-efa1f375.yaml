@@ -7,11 +7,12 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
-  "coverage": "catalog metadata"
+  "source": "outputs/r052/dictionary-production-closure.json"
+  "coverage": "Actual bounded PROD87 catalogue after grouped migration and temporary authority restoration; no business-row\
+    \ capture."
 "content":
   "definition":
     "name": "public"
     "owner": "pg_database_owner"
-    "acl": "{pg_database_owner=UC/pg_database_owner,=U/pg_database_owner,cloudsqlsuperuser=UC/pg_database_owner,mw_integration_agent=U/pg_database_owner,mw_reviewer_dml=U/pg_database_owner,metabase_borrower_reader=U/pg_database_owner}"
+    "acl": "{pg_database_owner=UC/pg_database_owner,=U/pg_database_owner,cloudsqlsuperuser=UC/pg_database_owner,mw_integration_agent=U/pg_database_owner,mw_reviewer_dml=U/pg_database_owner,metabase_borrower_reader=U/pg_database_owner,mw_chart_reader=U/pg_database_owner,mw_receipt_projector=U/pg_database_owner,mw_app_prod_journal_owner=U/pg_database_owner,mw_app_prod=U/pg_database_owner}"
     "comment": "standard public schema"

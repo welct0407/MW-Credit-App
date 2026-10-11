@@ -1,232 +1,232 @@
-{
-  "format": 1,
-  "identity": {
-    "system": "postgresql",
-    "component": "loan_manager_prod",
-    "kind": "relation",
-    "name": "public.reporting_forecast_context_v1",
-    "scope": "production"
-  },
-  "verification": {
-    "status": "documented",
-    "source": "outputs/r045-forecast-planning/dictionary-catalog.json"
-  },
-  "content": {
-    "definition": {
-      "schema": "public",
-      "name": "reporting_forecast_context_v1",
-      "kind": "v",
-      "owner": "postgres",
-      "row_security": false,
-      "force_row_security": false,
-      "replica_identity": "n",
-      "persistence": "p",
-      "is_partition": false,
-      "options": null,
-      "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,metabase_borrower_reader=r/postgres}",
-      "comment": null,
-      "view_definition": " SELECT olap_reporting_date() AS reporting_date,\n    statement_timestamp() AS calculated_at,\n    c.\"Business Cash Held\" AS current_cash,\n    c.\"Cash Status\" AS cash_status,\n    ( SELECT count(*) AS count\n           FROM \"Repayments\"\n          WHERE \"Repayments\".\"Payment Date\" IS NULL OR \"Repayments\".\"Interest Paid\" IS NULL OR \"Repayments\".\"Principal Paid\" IS NULL) AS invalid_receipts,\n    ( SELECT count(*) AS count\n           FROM \"Charges\" c_1\n             LEFT JOIN \"Loans\" l ON l.\"Row ID\" = c_1.\"Ref Loans\"\n          WHERE l.\"Row ID\" IS NULL) AS orphan_charges\n   FROM ( SELECT 1 AS \"?column?\") anchor\n     LEFT JOIN reporting_cash_daily c ON c.\"Date\" = olap_reporting_date();",
-      "partition_key": null,
-      "partition_bound": null,
-      "parents": null,
-      "extension": null
-    },
-    "development_definition": {
-      "schema": "public",
-      "name": "reporting_forecast_context_v1",
-      "kind": "v",
-      "owner": "postgres",
-      "row_security": false,
-      "force_row_security": false,
-      "replica_identity": "n",
-      "persistence": "p",
-      "is_partition": false,
-      "options": null,
-      "acl": "{postgres=arwdDxtm/postgres,metabase_borrower_reader=r/postgres}",
-      "comment": null,
-      "view_definition": " SELECT olap_reporting_date() AS reporting_date,\n    statement_timestamp() AS calculated_at,\n    c.\"Business Cash Held\" AS current_cash,\n    c.\"Cash Status\" AS cash_status,\n    ( SELECT count(*) AS count\n           FROM \"Repayments\"\n          WHERE \"Repayments\".\"Payment Date\" IS NULL OR \"Repayments\".\"Interest Paid\" IS NULL OR \"Repayments\".\"Principal Paid\" IS NULL) AS invalid_receipts,\n    ( SELECT count(*) AS count\n           FROM \"Charges\" c_1\n             LEFT JOIN \"Loans\" l ON l.\"Row ID\" = c_1.\"Ref Loans\"\n          WHERE l.\"Row ID\" IS NULL) AS orphan_charges\n   FROM ( SELECT 1 AS \"?column?\") anchor\n     LEFT JOIN reporting_cash_daily c ON c.\"Date\" = olap_reporting_date();",
-      "partition_key": null,
-      "partition_bound": null,
-      "parents": null,
-      "extension": null
-    },
-    "columns": {
-      "reporting_date": {
-        "schema": "public",
-        "relation": "reporting_forecast_context_v1",
-        "name": "reporting_date",
-        "ordinal": 1,
-        "data_type": "date",
-        "type_schema": "pg_catalog",
-        "type_name": "date",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "p",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "calculated_at": {
-        "schema": "public",
-        "relation": "reporting_forecast_context_v1",
-        "name": "calculated_at",
-        "ordinal": 2,
-        "data_type": "timestamp with time zone",
-        "type_schema": "pg_catalog",
-        "type_name": "timestamptz",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "p",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "current_cash": {
-        "schema": "public",
-        "relation": "reporting_forecast_context_v1",
-        "name": "current_cash",
-        "ordinal": 3,
-        "data_type": "numeric",
-        "type_schema": "pg_catalog",
-        "type_name": "numeric",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "m",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "cash_status": {
-        "schema": "public",
-        "relation": "reporting_forecast_context_v1",
-        "name": "cash_status",
-        "ordinal": 4,
-        "data_type": "text",
-        "type_schema": "pg_catalog",
-        "type_name": "text",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "x",
-        "compression": "",
-        "default_expression": null,
-        "collation": "\"default\"",
-        "acl": null,
-        "comment": null
-      },
-      "invalid_receipts": {
-        "schema": "public",
-        "relation": "reporting_forecast_context_v1",
-        "name": "invalid_receipts",
-        "ordinal": 5,
-        "data_type": "bigint",
-        "type_schema": "pg_catalog",
-        "type_name": "int8",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "p",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "orphan_charges": {
-        "schema": "public",
-        "relation": "reporting_forecast_context_v1",
-        "name": "orphan_charges",
-        "ordinal": 6,
-        "data_type": "bigint",
-        "type_schema": "pg_catalog",
-        "type_name": "int8",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "p",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      }
-    },
-    "constraints": {},
-    "indexes": {},
-    "triggers": {},
-    "policies": {},
-    "dependencies": [
-      {
-        "schema": "public",
-        "relation": "reporting_forecast_context_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Charges",
-        "referenced_column": "Ref Loans"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_forecast_context_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Loans",
-        "referenced_column": "Row ID"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_forecast_context_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Repayments",
-        "referenced_column": "Interest Paid"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_forecast_context_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Repayments",
-        "referenced_column": "Payment Date"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_forecast_context_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Repayments",
-        "referenced_column": "Principal Paid"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_forecast_context_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "reporting_cash_daily",
-        "referenced_column": "Business Cash Held"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_forecast_context_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "reporting_cash_daily",
-        "referenced_column": "Cash Status"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_forecast_context_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "reporting_cash_daily",
-        "referenced_column": "Date"
-      }
-    ]
-  }
-}
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "relation"
+  "name": "public.reporting_forecast_context_v1"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r045-forecast-planning/dictionary-catalog.json"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "reporting_forecast_context_v1"
+    "kind": "v"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "n"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,metabase_borrower_reader=r/postgres,mw_app_prod=r/postgres}"
+    "comment": null
+    "view_definition": |2-
+       SELECT olap_reporting_date() AS reporting_date,
+          statement_timestamp() AS calculated_at,
+          c."Business Cash Held" AS current_cash,
+          c."Cash Status" AS cash_status,
+          ( SELECT count(*) AS count
+                 FROM "Repayments"
+                WHERE "Repayments"."Payment Date" IS NULL OR "Repayments"."Interest Paid" IS NULL OR "Repayments"."Principal Paid" IS NULL) AS invalid_receipts,
+          ( SELECT count(*) AS count
+                 FROM "Charges" c_1
+                   LEFT JOIN "Loans" l ON l."Row ID" = c_1."Ref Loans"
+                WHERE l."Row ID" IS NULL) AS orphan_charges
+         FROM ( SELECT 1 AS "?column?") anchor
+           LEFT JOIN reporting_cash_daily c ON c."Date" = olap_reporting_date();
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "development_definition":
+    "schema": "public"
+    "name": "reporting_forecast_context_v1"
+    "kind": "v"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "n"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,metabase_borrower_reader=r/postgres}"
+    "comment": null
+    "view_definition": |2-
+       SELECT olap_reporting_date() AS reporting_date,
+          statement_timestamp() AS calculated_at,
+          c."Business Cash Held" AS current_cash,
+          c."Cash Status" AS cash_status,
+          ( SELECT count(*) AS count
+                 FROM "Repayments"
+                WHERE "Repayments"."Payment Date" IS NULL OR "Repayments"."Interest Paid" IS NULL OR "Repayments"."Principal Paid" IS NULL) AS invalid_receipts,
+          ( SELECT count(*) AS count
+                 FROM "Charges" c_1
+                   LEFT JOIN "Loans" l ON l."Row ID" = c_1."Ref Loans"
+                WHERE l."Row ID" IS NULL) AS orphan_charges
+         FROM ( SELECT 1 AS "?column?") anchor
+           LEFT JOIN reporting_cash_daily c ON c."Date" = olap_reporting_date();
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "columns":
+    "reporting_date":
+      "schema": "public"
+      "relation": "reporting_forecast_context_v1"
+      "name": "reporting_date"
+      "ordinal": 1
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "calculated_at":
+      "schema": "public"
+      "relation": "reporting_forecast_context_v1"
+      "name": "calculated_at"
+      "ordinal": 2
+      "data_type": "timestamp with time zone"
+      "type_schema": "pg_catalog"
+      "type_name": "timestamptz"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "current_cash":
+      "schema": "public"
+      "relation": "reporting_forecast_context_v1"
+      "name": "current_cash"
+      "ordinal": 3
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "cash_status":
+      "schema": "public"
+      "relation": "reporting_forecast_context_v1"
+      "name": "cash_status"
+      "ordinal": 4
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "invalid_receipts":
+      "schema": "public"
+      "relation": "reporting_forecast_context_v1"
+      "name": "invalid_receipts"
+      "ordinal": 5
+      "data_type": "bigint"
+      "type_schema": "pg_catalog"
+      "type_name": "int8"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "orphan_charges":
+      "schema": "public"
+      "relation": "reporting_forecast_context_v1"
+      "name": "orphan_charges"
+      "ordinal": 6
+      "data_type": "bigint"
+      "type_schema": "pg_catalog"
+      "type_name": "int8"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+  "constraints": {}
+  "indexes": {}
+  "triggers": {}
+  "policies": {}
+  "dependencies":
+  - "schema": "public"
+    "relation": "reporting_forecast_context_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Charges"
+    "referenced_column": "Ref Loans"
+  - "schema": "public"
+    "relation": "reporting_forecast_context_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Loans"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "reporting_forecast_context_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Repayments"
+    "referenced_column": "Interest Paid"
+  - "schema": "public"
+    "relation": "reporting_forecast_context_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Repayments"
+    "referenced_column": "Payment Date"
+  - "schema": "public"
+    "relation": "reporting_forecast_context_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Repayments"
+    "referenced_column": "Principal Paid"
+  - "schema": "public"
+    "relation": "reporting_forecast_context_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_cash_daily"
+    "referenced_column": "Business Cash Held"
+  - "schema": "public"
+    "relation": "reporting_forecast_context_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_cash_daily"
+    "referenced_column": "Cash Status"
+  - "schema": "public"
+    "relation": "reporting_forecast_context_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_cash_daily"
+    "referenced_column": "Date"
+"evidence":
+  "/content/definition/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"

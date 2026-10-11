@@ -1,0 +1,861 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "relation"
+  "name": "public.pwa_notification_deliveries"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r052/dictionary-production-closure.json"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "pwa_notification_deliveries"
+    "kind": "r"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "d"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres}"
+    "comment": "mw-access:governance notification fenced delivery state"
+    "view_definition": null
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "columns":
+    "delivery_id":
+      "schema": "public"
+      "relation": "pwa_notification_deliveries"
+      "name": "delivery_id"
+      "ordinal": 1
+      "data_type": "uuid"
+      "type_schema": "pg_catalog"
+      "type_name": "uuid"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": "gen_random_uuid()"
+      "collation": null
+      "acl": null
+      "comment": null
+    "event_id":
+      "schema": "public"
+      "relation": "pwa_notification_deliveries"
+      "name": "event_id"
+      "ordinal": 2
+      "data_type": "uuid"
+      "type_schema": "pg_catalog"
+      "type_name": "uuid"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "channel":
+      "schema": "public"
+      "relation": "pwa_notification_deliveries"
+      "name": "channel"
+      "ordinal": 3
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "destination_key":
+      "schema": "public"
+      "relation": "pwa_notification_deliveries"
+      "name": "destination_key"
+      "ordinal": 4
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "recipient_partner_id":
+      "schema": "public"
+      "relation": "pwa_notification_deliveries"
+      "name": "recipient_partner_id"
+      "ordinal": 5
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "subscription_id":
+      "schema": "public"
+      "relation": "pwa_notification_deliveries"
+      "name": "subscription_id"
+      "ordinal": 6
+      "data_type": "uuid"
+      "type_schema": "pg_catalog"
+      "type_name": "uuid"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "subscription_version":
+      "schema": "public"
+      "relation": "pwa_notification_deliveries"
+      "name": "subscription_version"
+      "ordinal": 7
+      "data_type": "bigint"
+      "type_schema": "pg_catalog"
+      "type_name": "int8"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "state":
+      "schema": "public"
+      "relation": "pwa_notification_deliveries"
+      "name": "state"
+      "ordinal": 8
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": "'pending'::text"
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "lease_generation":
+      "schema": "public"
+      "relation": "pwa_notification_deliveries"
+      "name": "lease_generation"
+      "ordinal": 9
+      "data_type": "bigint"
+      "type_schema": "pg_catalog"
+      "type_name": "int8"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": "0"
+      "collation": null
+      "acl": null
+      "comment": null
+    "lease_expires_at":
+      "schema": "public"
+      "relation": "pwa_notification_deliveries"
+      "name": "lease_expires_at"
+      "ordinal": 10
+      "data_type": "timestamp with time zone"
+      "type_schema": "pg_catalog"
+      "type_name": "timestamptz"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "send_started_at":
+      "schema": "public"
+      "relation": "pwa_notification_deliveries"
+      "name": "send_started_at"
+      "ordinal": 11
+      "data_type": "timestamp with time zone"
+      "type_schema": "pg_catalog"
+      "type_name": "timestamptz"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "attempts":
+      "schema": "public"
+      "relation": "pwa_notification_deliveries"
+      "name": "attempts"
+      "ordinal": 12
+      "data_type": "integer"
+      "type_schema": "pg_catalog"
+      "type_name": "int4"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": "0"
+      "collation": null
+      "acl": null
+      "comment": null
+    "next_attempt_at":
+      "schema": "public"
+      "relation": "pwa_notification_deliveries"
+      "name": "next_attempt_at"
+      "ordinal": 13
+      "data_type": "timestamp with time zone"
+      "type_schema": "pg_catalog"
+      "type_name": "timestamptz"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": "clock_timestamp()"
+      "collation": null
+      "acl": null
+      "comment": null
+    "provider_result":
+      "schema": "public"
+      "relation": "pwa_notification_deliveries"
+      "name": "provider_result"
+      "ordinal": 14
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "created_at":
+      "schema": "public"
+      "relation": "pwa_notification_deliveries"
+      "name": "created_at"
+      "ordinal": 15
+      "data_type": "timestamp with time zone"
+      "type_schema": "pg_catalog"
+      "type_name": "timestamptz"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": "clock_timestamp()"
+      "collation": null
+      "acl": null
+      "comment": null
+    "completed_at":
+      "schema": "public"
+      "relation": "pwa_notification_deliveries"
+      "name": "completed_at"
+      "ordinal": 16
+      "data_type": "timestamp with time zone"
+      "type_schema": "pg_catalog"
+      "type_name": "timestamptz"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+  "constraints":
+    "pwa_notification_deliveries_attempts_check":
+      "schema": "public"
+      "relation": "pwa_notification_deliveries"
+      "name": "pwa_notification_deliveries_attempts_check"
+      "kind": "c"
+      "definition": "CHECK (attempts >= 0 AND attempts <= 8)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 12
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_notification_deliveries_attempts_not_null":
+      "schema": "public"
+      "relation": "pwa_notification_deliveries"
+      "name": "pwa_notification_deliveries_attempts_not_null"
+      "kind": "n"
+      "definition": "NOT NULL attempts"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 12
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_notification_deliveries_channel_check":
+      "schema": "public"
+      "relation": "pwa_notification_deliveries"
+      "name": "pwa_notification_deliveries_channel_check"
+      "kind": "c"
+      "definition": "CHECK (channel = 'web-push'::text)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 3
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_notification_deliveries_channel_not_null":
+      "schema": "public"
+      "relation": "pwa_notification_deliveries"
+      "name": "pwa_notification_deliveries_channel_not_null"
+      "kind": "n"
+      "definition": "NOT NULL channel"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 3
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_notification_deliveries_check":
+      "schema": "public"
+      "relation": "pwa_notification_deliveries"
+      "name": "pwa_notification_deliveries_check"
+      "kind": "c"
+      "definition": "CHECK ((state = 'leased'::text) = (lease_expires_at IS NOT NULL))"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 8
+      - 10
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_notification_deliveries_created_at_not_null":
+      "schema": "public"
+      "relation": "pwa_notification_deliveries"
+      "name": "pwa_notification_deliveries_created_at_not_null"
+      "kind": "n"
+      "definition": "NOT NULL created_at"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 15
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_notification_deliveries_delivery_id_not_null":
+      "schema": "public"
+      "relation": "pwa_notification_deliveries"
+      "name": "pwa_notification_deliveries_delivery_id_not_null"
+      "kind": "n"
+      "definition": "NOT NULL delivery_id"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_notification_deliveries_destination_key_check":
+      "schema": "public"
+      "relation": "pwa_notification_deliveries"
+      "name": "pwa_notification_deliveries_destination_key_check"
+      "kind": "c"
+      "definition": "CHECK (destination_key ~ '^[a-f0-9]{64}$'::text)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 4
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_notification_deliveries_destination_key_not_null":
+      "schema": "public"
+      "relation": "pwa_notification_deliveries"
+      "name": "pwa_notification_deliveries_destination_key_not_null"
+      "kind": "n"
+      "definition": "NOT NULL destination_key"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 4
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_notification_deliveries_event_id_channel_destination_ke_key":
+      "schema": "public"
+      "relation": "pwa_notification_deliveries"
+      "name": "pwa_notification_deliveries_event_id_channel_destination_ke_key"
+      "kind": "u"
+      "definition": "UNIQUE (event_id, channel, destination_key)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 2
+      - 3
+      - 4
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_notification_deliveries_event_id_fkey":
+      "schema": "public"
+      "relation": "pwa_notification_deliveries"
+      "name": "pwa_notification_deliveries_event_id_fkey"
+      "kind": "f"
+      "definition": "FOREIGN KEY (event_id) REFERENCES pwa_notification_events(event_id)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 2
+      "referenced_column_numbers":
+      - 1
+      "referenced_relation": "pwa_notification_events"
+      "update_action": "a"
+      "delete_action": "a"
+      "match_type": "s"
+      "comment": null
+    "pwa_notification_deliveries_event_id_not_null":
+      "schema": "public"
+      "relation": "pwa_notification_deliveries"
+      "name": "pwa_notification_deliveries_event_id_not_null"
+      "kind": "n"
+      "definition": "NOT NULL event_id"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 2
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_notification_deliveries_lease_generation_check":
+      "schema": "public"
+      "relation": "pwa_notification_deliveries"
+      "name": "pwa_notification_deliveries_lease_generation_check"
+      "kind": "c"
+      "definition": "CHECK (lease_generation >= 0)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 9
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_notification_deliveries_lease_generation_not_null":
+      "schema": "public"
+      "relation": "pwa_notification_deliveries"
+      "name": "pwa_notification_deliveries_lease_generation_not_null"
+      "kind": "n"
+      "definition": "NOT NULL lease_generation"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 9
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_notification_deliveries_next_attempt_at_not_null":
+      "schema": "public"
+      "relation": "pwa_notification_deliveries"
+      "name": "pwa_notification_deliveries_next_attempt_at_not_null"
+      "kind": "n"
+      "definition": "NOT NULL next_attempt_at"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 13
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_notification_deliveries_pkey":
+      "schema": "public"
+      "relation": "pwa_notification_deliveries"
+      "name": "pwa_notification_deliveries_pkey"
+      "kind": "p"
+      "definition": "PRIMARY KEY (delivery_id)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_notification_deliveries_provider_result_check":
+      "schema": "public"
+      "relation": "pwa_notification_deliveries"
+      "name": "pwa_notification_deliveries_provider_result_check"
+      "kind": "c"
+      "definition": "CHECK (provider_result = ANY (ARRAY['accepted'::text, 'expired'::text, 'throttled'::text, 'unavailable'::text,\
+        \ 'network'::text, 'rejected'::text, 'ineligible'::text, 'lease_expired'::text]))"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 14
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_notification_deliveries_recipient_partner_id_check":
+      "schema": "public"
+      "relation": "pwa_notification_deliveries"
+      "name": "pwa_notification_deliveries_recipient_partner_id_check"
+      "kind": "c"
+      "definition": "CHECK (length(recipient_partner_id) >= 1 AND length(recipient_partner_id) <= 256)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 5
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_notification_deliveries_recipient_partner_id_not_null":
+      "schema": "public"
+      "relation": "pwa_notification_deliveries"
+      "name": "pwa_notification_deliveries_recipient_partner_id_not_null"
+      "kind": "n"
+      "definition": "NOT NULL recipient_partner_id"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 5
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_notification_deliveries_state_check":
+      "schema": "public"
+      "relation": "pwa_notification_deliveries"
+      "name": "pwa_notification_deliveries_state_check"
+      "kind": "c"
+      "definition": "CHECK (state = ANY (ARRAY['pending'::text, 'leased'::text, 'sent'::text, 'retry'::text, 'uncertain'::text,\
+        \ 'cancelled'::text, 'dead'::text]))"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 8
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_notification_deliveries_state_not_null":
+      "schema": "public"
+      "relation": "pwa_notification_deliveries"
+      "name": "pwa_notification_deliveries_state_not_null"
+      "kind": "n"
+      "definition": "NOT NULL state"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 8
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_notification_deliveries_subscription_id_fkey":
+      "schema": "public"
+      "relation": "pwa_notification_deliveries"
+      "name": "pwa_notification_deliveries_subscription_id_fkey"
+      "kind": "f"
+      "definition": "FOREIGN KEY (subscription_id) REFERENCES pwa_push_subscriptions(subscription_id)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 6
+      "referenced_column_numbers":
+      - 1
+      "referenced_relation": "pwa_push_subscriptions"
+      "update_action": "a"
+      "delete_action": "a"
+      "match_type": "s"
+      "comment": null
+    "pwa_notification_deliveries_subscription_id_not_null":
+      "schema": "public"
+      "relation": "pwa_notification_deliveries"
+      "name": "pwa_notification_deliveries_subscription_id_not_null"
+      "kind": "n"
+      "definition": "NOT NULL subscription_id"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 6
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_notification_deliveries_subscription_version_check":
+      "schema": "public"
+      "relation": "pwa_notification_deliveries"
+      "name": "pwa_notification_deliveries_subscription_version_check"
+      "kind": "c"
+      "definition": "CHECK (subscription_version > 0)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 7
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_notification_deliveries_subscription_version_not_null":
+      "schema": "public"
+      "relation": "pwa_notification_deliveries"
+      "name": "pwa_notification_deliveries_subscription_version_not_null"
+      "kind": "n"
+      "definition": "NOT NULL subscription_version"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 7
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+  "indexes":
+    "pwa_notification_deliveries_event_id_channel_destination_ke_key":
+      "schema": "public"
+      "relation": "pwa_notification_deliveries"
+      "name": "pwa_notification_deliveries_event_id_channel_destination_ke_key"
+      "definition": "CREATE UNIQUE INDEX pwa_notification_deliveries_event_id_channel_destination_ke_key ON public.pwa_notification_deliveries\
+        \ USING btree (event_id, channel, destination_key)"
+      "unique": true
+      "primary": false
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 3
+      "total_attribute_count": 3
+      "predicate": null
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
+    "pwa_notification_deliveries_pkey":
+      "schema": "public"
+      "relation": "pwa_notification_deliveries"
+      "name": "pwa_notification_deliveries_pkey"
+      "definition": "CREATE UNIQUE INDEX pwa_notification_deliveries_pkey ON public.pwa_notification_deliveries USING btree\
+        \ (delivery_id)"
+      "unique": true
+      "primary": true
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 1
+      "total_attribute_count": 1
+      "predicate": null
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
+    "pwa_notification_delivery_due":
+      "schema": "public"
+      "relation": "pwa_notification_deliveries"
+      "name": "pwa_notification_delivery_due"
+      "definition": "CREATE INDEX pwa_notification_delivery_due ON public.pwa_notification_deliveries USING btree (next_attempt_at,\
+        \ delivery_id) WHERE (state = ANY (ARRAY['pending'::text, 'retry'::text]))"
+      "unique": false
+      "primary": false
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 2
+      "total_attribute_count": 2
+      "predicate": "(state = ANY (ARRAY['pending'::text, 'retry'::text]))"
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
+  "triggers":
+    "RI_ConstraintTrigger_c_22478":
+      "schema": "public"
+      "relation": "pwa_notification_deliveries"
+      "name": "RI_ConstraintTrigger_c_22478"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_22478\" AFTER INSERT ON pwa_notification_deliveries\
+        \ FROM pwa_notification_events NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"\
+        ()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_ins\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_22479":
+      "schema": "public"
+      "relation": "pwa_notification_deliveries"
+      "name": "RI_ConstraintTrigger_c_22479"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_22479\" AFTER UPDATE ON pwa_notification_deliveries\
+        \ FROM pwa_notification_events NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"\
+        ()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_22483":
+      "schema": "public"
+      "relation": "pwa_notification_deliveries"
+      "name": "RI_ConstraintTrigger_c_22483"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_22483\" AFTER INSERT ON pwa_notification_deliveries\
+        \ FROM pwa_push_subscriptions NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"\
+        ()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_ins\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_22484":
+      "schema": "public"
+      "relation": "pwa_notification_deliveries"
+      "name": "RI_ConstraintTrigger_c_22484"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_22484\" AFTER UPDATE ON pwa_notification_deliveries\
+        \ FROM pwa_push_subscriptions NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"\
+        ()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+  "policies": {}
+  "dependencies": []

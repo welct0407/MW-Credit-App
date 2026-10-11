@@ -7,8 +7,9 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
-  "coverage": "catalog metadata"
+  "source": "outputs/r052/dictionary-production-closure.json"
+  "coverage": "Actual bounded PROD87 catalogue after grouped migration and temporary authority restoration; no business-row\
+    \ capture."
 "content":
   "definition":
     "schema": "public"
@@ -21,7 +22,7 @@
     "persistence": "p"
     "is_partition": false
     "options": null
-    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,mw_reviewer_dml=r/postgres}"
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,mw_reviewer_dml=r/postgres,mw_app_prod_journal_owner=a/postgres,mw_app_prod=r/postgres}"
     "comment": null
     "view_definition": null
     "partition_key": null

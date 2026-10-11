@@ -21,7 +21,7 @@
     "persistence": "p"
     "is_partition": false
     "options": null
-    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,metabase_borrower_reader=r/postgres}"
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,metabase_borrower_reader=r/postgres,mw_app_prod=r/postgres}"
     "comment": "R016: database-owned Income Statement source. Live Bangkok dates; original model grain and financial semantics\
       \ preserved."
     "view_definition": |2-
@@ -975,3 +975,8 @@
     "referenced_schema": "public"
     "referenced_relation": "olap_repayments_analytics"
     "referenced_column": "Row ID"
+"evidence":
+  "/content/definition/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"

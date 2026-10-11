@@ -1,49 +1,57 @@
-{
-  "format": 1,
-  "identity": {
-    "system": "postgresql",
-    "component": "loan_manager_dev",
-    "kind": "routine",
-    "name": "public.pwa_operation_status_v2(uuid,text,text)",
-    "scope": "development:R052-command"
-  },
-  "verification": {
-    "status": "documented",
-    "source": "https://github.com/welct0407/MW-Credit-App/blob/codex/r052-review-shell/outputs/r052-promotion-readiness/dev87-model-catalog.json",
-    "coverage": "Actual bounded DEV87 catalog; current fields below supersede dated retained observations. PROD77 and AppSheet definitions unchanged."
-  },
-  "content": {
-    "release": "R052",
-    "status": "DEV87 actual definition and privileges; notifications/jobs remain deferred and disabled for launch; PROD77 unchanged.",
-    "observedAt": "2026-10-11T12:42:15.709Z",
-    "catalog_observation": {
-      "signature": "pwa_operation_status_v2(uuid,text,text)",
-      "owner": "mw_app_dev_journal_owner",
-      "security_definer": true,
-      "configuration": [
-        "search_path=pg_catalog, public"
-      ],
-      "acl": "{mw_app_dev_journal_owner=X/mw_app_dev_journal_owner,mw_app_dev=X/mw_app_dev_journal_owner}",
-      "definition": "CREATE OR REPLACE FUNCTION public.pwa_operation_status_v2(request_id uuid, actor_issuer text, actor_subject text)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\r\nDECLARE r public.pwa_payment_commands%ROWTYPE;\r\nBEGIN\r\n IF current_database() NOT IN ('loan_manager_dev','payment_rehearsal','loan_manager_prod') OR NOT pg_has_role(session_user,CASE current_database() WHEN 'loan_manager_prod' THEN 'mw_app_prod' ELSE 'mw_app_dev' END,'MEMBER') THEN RAISE EXCEPTION USING ERRCODE='42501',MESSAGE='Application session required';END IF;\r\n SELECT * INTO r FROM public.pwa_payment_commands p WHERE p.request_id=$1 AND p.contract_version=2 AND p.actor_issuer=$2 AND p.actor_subject=$3;\r\n IF NOT FOUND THEN RETURN jsonb_build_object('kind','unresolved');END IF;\r\n IF (SELECT count(*) FROM public.\"Partners\" WHERE lower(btrim(\"Login Email\"))=r.actor_login_email)<>1 OR NOT EXISTS(SELECT 1 FROM public.\"Partners\" WHERE \"Row ID\"=r.actor_partner_id AND lower(btrim(\"Login Email\"))=r.actor_login_email) THEN RAISE EXCEPTION USING ERRCODE='42501',MESSAGE='Current actor mapping required';END IF;\r\n RETURN jsonb_build_object('kind','recorded','originalOutcome',jsonb_build_object('status',r.outcome,'code',r.rejection_code,'result',r.result_json,'recordedAt',to_char(r.recorded_at AT TIME ZONE 'UTC','YYYY-MM-DD\"T\"HH24:MI:SS.MS\"Z\"')));\r\nEND $function$\n"
-    },
-    "migration": "V83__generalized_application_commands.sql",
-    "behavior": "Existing journal v1 retained; typed v2 operations and shared First-day/Close/correction paths; exact source in immutable migration",
-    "evidence": "https://github.com/welct0407/MW-Credit-App/blob/codex/r052-review-shell/outputs/r052-phase6/delivery-manifest.json",
-    "historical_catalog_observation": {
-      "observedAt": "2026-10-08T22:24:57.915Z",
-      "catalog": {
-        "signature": "pwa_operation_status_v2(uuid,text,text)",
-        "owner": "mw_app_dev_journal_owner",
-        "security_definer": true,
-        "settings": [
-          "search_path=pg_catalog, public"
-        ],
-        "acl": "{mw_app_dev_journal_owner=X/mw_app_dev_journal_owner,mw_app_dev=X/mw_app_dev_journal_owner}",
-        "body_md5": "1058da9aa37ca4248eaf9ae07905917f"
-      }
-    },
-    "managementExtension": "V85 closed existing-journal management operations; v1/v2 historical canonical replay retained",
-    "latestExtensionMigration": "V85__pwa_management_operations.sql",
-    "currentMigration": 87
-  }
-}
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_dev"
+  "kind": "routine"
+  "name": "public.pwa_operation_status_v2(uuid,text,text)"
+  "scope": "development:R052-command"
+"verification":
+  "status": "documented"
+  "source": "https://github.com/welct0407/MW-Credit-App/blob/codex/r052-review-shell/outputs/r052-promotion-readiness/dev87-model-catalog.json"
+  "coverage": "Dated DEV observation; current production delivery is recorded in content.production_delivery and canonical\
+    \ PROD objects."
+"content":
+  "release": "R052"
+  "status": "SQL scope promoted to PROD V87; retained DEV observations are dated evidence. Environment-specific roles and\
+    \ bindings remain intentional; notifications and replacement jobs remain deferred."
+  "observedAt": "2026-10-11T12:42:15.709Z"
+  "catalog_observation":
+    "signature": "pwa_operation_status_v2(uuid,text,text)"
+    "owner": "mw_app_dev_journal_owner"
+    "security_definer": true
+    "configuration":
+    - "search_path=pg_catalog, public"
+    "acl": "{mw_app_dev_journal_owner=X/mw_app_dev_journal_owner,mw_app_dev=X/mw_app_dev_journal_owner}"
+    "definition": "CREATE OR REPLACE FUNCTION public.pwa_operation_status_v2(request_id uuid, actor_issuer text, actor_subject\
+      \ text)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\r\
+      \nDECLARE r public.pwa_payment_commands%ROWTYPE;\r\nBEGIN\r\n IF current_database() NOT IN ('loan_manager_dev','payment_rehearsal','loan_manager_prod')\
+      \ OR NOT pg_has_role(session_user,CASE current_database() WHEN 'loan_manager_prod' THEN 'mw_app_prod' ELSE 'mw_app_dev'\
+      \ END,'MEMBER') THEN RAISE EXCEPTION USING ERRCODE='42501',MESSAGE='Application session required';END IF;\r\n SELECT\
+      \ * INTO r FROM public.pwa_payment_commands p WHERE p.request_id=$1 AND p.contract_version=2 AND p.actor_issuer=$2 AND\
+      \ p.actor_subject=$3;\r\n IF NOT FOUND THEN RETURN jsonb_build_object('kind','unresolved');END IF;\r\n IF (SELECT count(*)\
+      \ FROM public.\"Partners\" WHERE lower(btrim(\"Login Email\"))=r.actor_login_email)<>1 OR NOT EXISTS(SELECT 1 FROM public.\"\
+      Partners\" WHERE \"Row ID\"=r.actor_partner_id AND lower(btrim(\"Login Email\"))=r.actor_login_email) THEN RAISE EXCEPTION\
+      \ USING ERRCODE='42501',MESSAGE='Current actor mapping required';END IF;\r\n RETURN jsonb_build_object('kind','recorded','originalOutcome',jsonb_build_object('status',r.outcome,'code',r.rejection_code,'result',r.result_json,'recordedAt',to_char(r.recorded_at\
+      \ AT TIME ZONE 'UTC','YYYY-MM-DD\"T\"HH24:MI:SS.MS\"Z\"')));\r\nEND $function$\n"
+  "migration": "V83__generalized_application_commands.sql"
+  "behavior": "Existing journal v1 retained; typed v2 operations and shared First-day/Close/correction paths; exact source\
+    \ in immutable migration"
+  "evidence": "https://github.com/welct0407/MW-Credit-App/blob/codex/r052-review-shell/outputs/r052-phase6/delivery-manifest.json"
+  "historical_catalog_observation":
+    "observedAt": "2026-10-08T22:24:57.915Z"
+    "catalog":
+      "signature": "pwa_operation_status_v2(uuid,text,text)"
+      "owner": "mw_app_dev_journal_owner"
+      "security_definer": true
+      "settings":
+      - "search_path=pg_catalog, public"
+      "acl": "{mw_app_dev_journal_owner=X/mw_app_dev_journal_owner,mw_app_dev=X/mw_app_dev_journal_owner}"
+      "body_md5": "1058da9aa37ca4248eaf9ae07905917f"
+  "managementExtension": "V85 closed existing-journal management operations; v1/v2 historical canonical replay retained"
+  "latestExtensionMigration": "V85__pwa_management_operations.sql"
+  "currentMigration": 87
+  "production_delivery":
+    "evidence": "outputs/r052/dictionary-production-closure.json"
+    "PostgreSQL": 87
+    "observedAt": "2026-10-11T14:01:01.082491+00:00"
+    "scope": "SQL definitions/capability only; no AppSheet definition upgrade or notification/job activation."

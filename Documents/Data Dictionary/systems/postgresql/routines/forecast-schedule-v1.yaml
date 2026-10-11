@@ -89,7 +89,8 @@
     "rows": 1000.0
     "settings":
     - "search_path=pg_catalog, public"
-    "acl": "{postgres=X/postgres,metabase_borrower_reader=X/postgres}"
+    "acl": "{postgres=X/postgres,metabase_borrower_reader=X/postgres,mw_app_prod=X/postgres,\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\
+      \"=X/postgres\"}"
     "comment": null
     "extension": null
   "development_definition":
@@ -184,3 +185,7 @@
     "reference": "outputs/r048-loan-interest-production/postgresql-affected-definitions.json"
     "reason": "Owner-authorized R048 manual PROD cutover; targeted saved-state closure"
     "state": "value"
+  "/content/definition/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"

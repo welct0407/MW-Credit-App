@@ -20,7 +20,7 @@
     "persistence": "p"
     "is_partition": false
     "options": null
-    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres}"
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,mw_app_prod=r/postgres}"
     "comment": "R048: one loan/date; recorded-first remaining obligations; next seven days union borrower first five dates\
       \ within three calendar months (max 93 days). Read-only."
     "view_definition": |2-
@@ -108,7 +108,7 @@
       "compression": ""
       "default_expression": null
       "collation": "\"default\""
-      "acl": null
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
       "comment": null
     "Ref Borrower":
       "schema": "public"
@@ -126,7 +126,7 @@
       "compression": ""
       "default_expression": null
       "collation": "\"default\""
-      "acl": null
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
       "comment": null
     "Ref Loan":
       "schema": "public"
@@ -144,7 +144,7 @@
       "compression": ""
       "default_expression": null
       "collation": "\"default\""
-      "acl": null
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
       "comment": null
     "Due Date":
       "schema": "public"
@@ -162,7 +162,7 @@
       "compression": ""
       "default_expression": null
       "collation": null
-      "acl": null
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
       "comment": null
     "Principal Remaining":
       "schema": "public"
@@ -180,7 +180,7 @@
       "compression": ""
       "default_expression": null
       "collation": null
-      "acl": null
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
       "comment": null
     "Interest Remaining":
       "schema": "public"
@@ -198,7 +198,7 @@
       "compression": ""
       "default_expression": null
       "collation": null
-      "acl": null
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
       "comment": null
     "Amount Remaining":
       "schema": "public"
@@ -216,7 +216,7 @@
       "compression": ""
       "default_expression": null
       "collation": null
-      "acl": null
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
       "comment": null
     "Basis":
       "schema": "public"
@@ -234,7 +234,7 @@
       "compression": ""
       "default_expression": null
       "collation": "\"default\""
-      "acl": null
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
       "comment": null
     "As Of Date":
       "schema": "public"
@@ -252,7 +252,7 @@
       "compression": ""
       "default_expression": null
       "collation": null
-      "acl": null
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
       "comment": null
     "Horizon End":
       "schema": "public"
@@ -324,5 +324,50 @@
       "compression": ""
       "default_expression": null
       "collation": null
-      "acl": null
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
       "comment": null
+"evidence":
+  "/content/definition/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"
+  "/content/columns/Amount Remaining/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"
+  "/content/columns/As Of Date/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"
+  "/content/columns/Basis/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"
+  "/content/columns/Borrower Due Date Rank/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"
+  "/content/columns/Due Date/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"
+  "/content/columns/Interest Remaining/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"
+  "/content/columns/Principal Remaining/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"
+  "/content/columns/Ref Borrower/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"
+  "/content/columns/Ref Loan/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"
+  "/content/columns/Row ID/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"

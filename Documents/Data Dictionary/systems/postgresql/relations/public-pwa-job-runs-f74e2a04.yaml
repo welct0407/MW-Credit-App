@@ -1,0 +1,578 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "relation"
+  "name": "public.pwa_job_runs"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r052/dictionary-production-closure.json"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "pwa_job_runs"
+    "kind": "r"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "d"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres}"
+    "comment": "mw-access:governance canonical job evidence"
+    "view_definition": null
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "columns":
+    "run_id":
+      "schema": "public"
+      "relation": "pwa_job_runs"
+      "name": "run_id"
+      "ordinal": 1
+      "data_type": "uuid"
+      "type_schema": "pg_catalog"
+      "type_name": "uuid"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": "gen_random_uuid()"
+      "collation": null
+      "acl": null
+      "comment": null
+    "job_name":
+      "schema": "public"
+      "relation": "pwa_job_runs"
+      "name": "job_name"
+      "ordinal": 2
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "business_date":
+      "schema": "public"
+      "relation": "pwa_job_runs"
+      "name": "business_date"
+      "ordinal": 3
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "scope_key":
+      "schema": "public"
+      "relation": "pwa_job_runs"
+      "name": "scope_key"
+      "ordinal": 4
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "state":
+      "schema": "public"
+      "relation": "pwa_job_runs"
+      "name": "state"
+      "ordinal": 5
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "lease_generation":
+      "schema": "public"
+      "relation": "pwa_job_runs"
+      "name": "lease_generation"
+      "ordinal": 6
+      "data_type": "bigint"
+      "type_schema": "pg_catalog"
+      "type_name": "int8"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": "0"
+      "collation": null
+      "acl": null
+      "comment": null
+    "lease_expires_at":
+      "schema": "public"
+      "relation": "pwa_job_runs"
+      "name": "lease_expires_at"
+      "ordinal": 7
+      "data_type": "timestamp with time zone"
+      "type_schema": "pg_catalog"
+      "type_name": "timestamptz"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "checkpoint":
+      "schema": "public"
+      "relation": "pwa_job_runs"
+      "name": "checkpoint"
+      "ordinal": 8
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "started_at":
+      "schema": "public"
+      "relation": "pwa_job_runs"
+      "name": "started_at"
+      "ordinal": 9
+      "data_type": "timestamp with time zone"
+      "type_schema": "pg_catalog"
+      "type_name": "timestamptz"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "completed_at":
+      "schema": "public"
+      "relation": "pwa_job_runs"
+      "name": "completed_at"
+      "ordinal": 10
+      "data_type": "timestamp with time zone"
+      "type_schema": "pg_catalog"
+      "type_name": "timestamptz"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "result_count":
+      "schema": "public"
+      "relation": "pwa_job_runs"
+      "name": "result_count"
+      "ordinal": 11
+      "data_type": "bigint"
+      "type_schema": "pg_catalog"
+      "type_name": "int8"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "error_code":
+      "schema": "public"
+      "relation": "pwa_job_runs"
+      "name": "error_code"
+      "ordinal": 12
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+  "constraints":
+    "pwa_job_runs_business_date_check":
+      "schema": "public"
+      "relation": "pwa_job_runs"
+      "name": "pwa_job_runs_business_date_check"
+      "kind": "c"
+      "definition": "CHECK (isfinite(business_date))"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 3
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_job_runs_business_date_not_null":
+      "schema": "public"
+      "relation": "pwa_job_runs"
+      "name": "pwa_job_runs_business_date_not_null"
+      "kind": "n"
+      "definition": "NOT NULL business_date"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 3
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_job_runs_check":
+      "schema": "public"
+      "relation": "pwa_job_runs"
+      "name": "pwa_job_runs_check"
+      "kind": "c"
+      "definition": "CHECK ((state = 'leased'::text) = (lease_expires_at IS NOT NULL))"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 5
+      - 7
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_job_runs_checkpoint_check":
+      "schema": "public"
+      "relation": "pwa_job_runs"
+      "name": "pwa_job_runs_checkpoint_check"
+      "kind": "c"
+      "definition": "CHECK (length(checkpoint) <= 512)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 8
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_job_runs_error_code_check":
+      "schema": "public"
+      "relation": "pwa_job_runs"
+      "name": "pwa_job_runs_error_code_check"
+      "kind": "c"
+      "definition": "CHECK (error_code = ANY (ARRAY['execution_failed'::text, 'lease_expired'::text]))"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 12
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_job_runs_job_name_business_date_scope_key_key":
+      "schema": "public"
+      "relation": "pwa_job_runs"
+      "name": "pwa_job_runs_job_name_business_date_scope_key_key"
+      "kind": "u"
+      "definition": "UNIQUE (job_name, business_date, scope_key)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 2
+      - 3
+      - 4
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_job_runs_job_name_check":
+      "schema": "public"
+      "relation": "pwa_job_runs"
+      "name": "pwa_job_runs_job_name_check"
+      "kind": "c"
+      "definition": "CHECK (job_name = ANY (ARRAY['daily-charges'::text, 'recent-analytics'::text]))"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 2
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_job_runs_job_name_not_null":
+      "schema": "public"
+      "relation": "pwa_job_runs"
+      "name": "pwa_job_runs_job_name_not_null"
+      "kind": "n"
+      "definition": "NOT NULL job_name"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 2
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_job_runs_lease_generation_check":
+      "schema": "public"
+      "relation": "pwa_job_runs"
+      "name": "pwa_job_runs_lease_generation_check"
+      "kind": "c"
+      "definition": "CHECK (lease_generation >= 0)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 6
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_job_runs_lease_generation_not_null":
+      "schema": "public"
+      "relation": "pwa_job_runs"
+      "name": "pwa_job_runs_lease_generation_not_null"
+      "kind": "n"
+      "definition": "NOT NULL lease_generation"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 6
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_job_runs_pkey":
+      "schema": "public"
+      "relation": "pwa_job_runs"
+      "name": "pwa_job_runs_pkey"
+      "kind": "p"
+      "definition": "PRIMARY KEY (run_id)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_job_runs_result_count_check":
+      "schema": "public"
+      "relation": "pwa_job_runs"
+      "name": "pwa_job_runs_result_count_check"
+      "kind": "c"
+      "definition": "CHECK (result_count >= 0)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 11
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_job_runs_run_id_not_null":
+      "schema": "public"
+      "relation": "pwa_job_runs"
+      "name": "pwa_job_runs_run_id_not_null"
+      "kind": "n"
+      "definition": "NOT NULL run_id"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_job_runs_scope_key_check":
+      "schema": "public"
+      "relation": "pwa_job_runs"
+      "name": "pwa_job_runs_scope_key_check"
+      "kind": "c"
+      "definition": "CHECK (length(scope_key) >= 1 AND length(scope_key) <= 256)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 4
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_job_runs_scope_key_not_null":
+      "schema": "public"
+      "relation": "pwa_job_runs"
+      "name": "pwa_job_runs_scope_key_not_null"
+      "kind": "n"
+      "definition": "NOT NULL scope_key"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 4
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_job_runs_state_check":
+      "schema": "public"
+      "relation": "pwa_job_runs"
+      "name": "pwa_job_runs_state_check"
+      "kind": "c"
+      "definition": "CHECK (state = ANY (ARRAY['pending'::text, 'leased'::text, 'completed'::text, 'uncertain'::text, 'failed'::text]))"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 5
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_job_runs_state_not_null":
+      "schema": "public"
+      "relation": "pwa_job_runs"
+      "name": "pwa_job_runs_state_not_null"
+      "kind": "n"
+      "definition": "NOT NULL state"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 5
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+  "indexes":
+    "pwa_job_runs_job_name_business_date_scope_key_key":
+      "schema": "public"
+      "relation": "pwa_job_runs"
+      "name": "pwa_job_runs_job_name_business_date_scope_key_key"
+      "definition": "CREATE UNIQUE INDEX pwa_job_runs_job_name_business_date_scope_key_key ON public.pwa_job_runs USING btree\
+        \ (job_name, business_date, scope_key)"
+      "unique": true
+      "primary": false
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 3
+      "total_attribute_count": 3
+      "predicate": null
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
+    "pwa_job_runs_pkey":
+      "schema": "public"
+      "relation": "pwa_job_runs"
+      "name": "pwa_job_runs_pkey"
+      "definition": "CREATE UNIQUE INDEX pwa_job_runs_pkey ON public.pwa_job_runs USING btree (run_id)"
+      "unique": true
+      "primary": true
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 1
+      "total_attribute_count": 1
+      "predicate": null
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
+  "triggers": {}
+  "policies": {}
+  "dependencies": []

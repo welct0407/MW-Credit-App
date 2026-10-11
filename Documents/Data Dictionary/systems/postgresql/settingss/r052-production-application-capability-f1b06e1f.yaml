@@ -1,0 +1,95 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "settings"
+  "name": "R052 production application capability"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r052/dictionary-production-closure.json"
+"content":
+  "release": "R052"
+  "observedAt": "2026-10-11T14:01:01.082491+00:00"
+  "currentMigration": 87
+  "sections":
+    "application_roles":
+    - "name": "mw_app_dev"
+      "login": false
+      "superuser": false
+      "create_db": false
+      "create_role": false
+      "replication": false
+      "bypass_rls": false
+    - "name": "mw_app_dev_journal_owner"
+      "login": false
+      "superuser": false
+      "create_db": false
+      "create_role": false
+      "replication": false
+      "bypass_rls": false
+    - "name": "mw_app_prod"
+      "login": false
+      "superuser": false
+      "create_db": false
+      "create_role": false
+      "replication": false
+      "bypass_rls": false
+    - "name": "mw_app_prod_journal_owner"
+      "login": false
+      "superuser": false
+      "create_db": false
+      "create_role": false
+      "replication": false
+      "bypass_rls": false
+    "application_memberships":
+    - "role": "mw_app_dev"
+      "member": "mw-credit-app-command-dev@clever-oasis-508610-n7.iam"
+      "grantor": "cloudsqladmin"
+      "admin_option": false
+      "inherit_option": true
+      "set_option": false
+    - "role": "mw_app_dev"
+      "member": "mw_app_dev_journal_owner"
+      "grantor": "cloudsqladmin"
+      "admin_option": false
+      "inherit_option": true
+      "set_option": false
+    - "role": "mw_app_dev_journal_owner"
+      "member": "postgres"
+      "grantor": "cloudsqladmin"
+      "admin_option": false
+      "inherit_option": false
+      "set_option": false
+    - "role": "mw_app_prod"
+      "member": "mw-credit-app-command-prod@clever-oasis-508610-n7.iam"
+      "grantor": "cloudsqladmin"
+      "admin_option": false
+      "inherit_option": true
+      "set_option": false
+    - "role": "mw_app_prod"
+      "member": "mw_app_prod_journal_owner"
+      "grantor": "cloudsqladmin"
+      "admin_option": false
+      "inherit_option": true
+      "set_option": false
+    - "role": "mw_app_prod_journal_owner"
+      "member": "postgres"
+      "grantor": "cloudsqladmin"
+      "admin_option": false
+      "inherit_option": false
+      "set_option": false
+    "database_acl":
+    - "database": "loan_manager_prod"
+      "owner": "cloudsqlsuperuser"
+      "acl": "{=T/cloudsqlsuperuser,cloudsqlsuperuser=CTc/cloudsqlsuperuser,mw_integration_agent=Tc/cloudsqlsuperuser,mw_reviewer_dml=c/cloudsqlsuperuser,metabase_borrower_reader=c/cloudsqlsuperuser,mw_chart_reader=c/cloudsqlsuperuser,mw_receipt_projector=c/cloudsqlsuperuser,postgres=c/cloudsqlsuperuser,mw_agent_relay=c/cloudsqlsuperuser,\"\
+        \\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=c/cloudsqlsuperuser\",\"\\\"mw-credit-app-command-prod@clever-oasis-508610-n7.iam\\\
+        \"=c/cloudsqlsuperuser\",mw_app_prod=c/cloudsqlsuperuser}"
+    "runtimeSettings":
+    - "role": "mw-credit-app-read-prod@clever-oasis-508610-n7.iam"
+      "database": "loan_manager_prod"
+      "setconfig":
+      - "default_transaction_read_only=on"
+      - "statement_timeout=5000ms"
+  "deferredActivation": "Notification delivery, replacement analytics/charge jobs and automatic purge remain disabled. AppSheet\
+    \ retains scheduled job ownership."

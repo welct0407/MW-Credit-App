@@ -40454,6 +40454,792 @@
       ]
     },
     {
+      "file": "systems/postgresql/relations/public-pwa-job-runs-f74e2a04.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "relation",
+      "name": "public.pwa_job_runs",
+      "scope": "production",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "run_id",
+          "pointer": "/content/columns/run_id"
+        },
+        {
+          "subject": "job_name",
+          "pointer": "/content/columns/job_name"
+        },
+        {
+          "subject": "business_date",
+          "pointer": "/content/columns/business_date"
+        },
+        {
+          "subject": "scope_key",
+          "pointer": "/content/columns/scope_key"
+        },
+        {
+          "subject": "state",
+          "pointer": "/content/columns/state"
+        },
+        {
+          "subject": "lease_generation",
+          "pointer": "/content/columns/lease_generation"
+        },
+        {
+          "subject": "lease_expires_at",
+          "pointer": "/content/columns/lease_expires_at"
+        },
+        {
+          "subject": "checkpoint",
+          "pointer": "/content/columns/checkpoint"
+        },
+        {
+          "subject": "started_at",
+          "pointer": "/content/columns/started_at"
+        },
+        {
+          "subject": "completed_at",
+          "pointer": "/content/columns/completed_at"
+        },
+        {
+          "subject": "result_count",
+          "pointer": "/content/columns/result_count"
+        },
+        {
+          "subject": "error_code",
+          "pointer": "/content/columns/error_code"
+        },
+        {
+          "subject": "pwa_job_runs_business_date_check",
+          "pointer": "/content/constraints/pwa_job_runs_business_date_check"
+        },
+        {
+          "subject": "pwa_job_runs_business_date_not_null",
+          "pointer": "/content/constraints/pwa_job_runs_business_date_not_null"
+        },
+        {
+          "subject": "pwa_job_runs_check",
+          "pointer": "/content/constraints/pwa_job_runs_check"
+        },
+        {
+          "subject": "pwa_job_runs_checkpoint_check",
+          "pointer": "/content/constraints/pwa_job_runs_checkpoint_check"
+        },
+        {
+          "subject": "pwa_job_runs_error_code_check",
+          "pointer": "/content/constraints/pwa_job_runs_error_code_check"
+        },
+        {
+          "subject": "pwa_job_runs_job_name_business_date_scope_key_key",
+          "pointer": "/content/constraints/pwa_job_runs_job_name_business_date_scope_key_key"
+        },
+        {
+          "subject": "pwa_job_runs_job_name_check",
+          "pointer": "/content/constraints/pwa_job_runs_job_name_check"
+        },
+        {
+          "subject": "pwa_job_runs_job_name_not_null",
+          "pointer": "/content/constraints/pwa_job_runs_job_name_not_null"
+        },
+        {
+          "subject": "pwa_job_runs_lease_generation_check",
+          "pointer": "/content/constraints/pwa_job_runs_lease_generation_check"
+        },
+        {
+          "subject": "pwa_job_runs_lease_generation_not_null",
+          "pointer": "/content/constraints/pwa_job_runs_lease_generation_not_null"
+        },
+        {
+          "subject": "pwa_job_runs_pkey",
+          "pointer": "/content/constraints/pwa_job_runs_pkey"
+        },
+        {
+          "subject": "pwa_job_runs_result_count_check",
+          "pointer": "/content/constraints/pwa_job_runs_result_count_check"
+        },
+        {
+          "subject": "pwa_job_runs_run_id_not_null",
+          "pointer": "/content/constraints/pwa_job_runs_run_id_not_null"
+        },
+        {
+          "subject": "pwa_job_runs_scope_key_check",
+          "pointer": "/content/constraints/pwa_job_runs_scope_key_check"
+        },
+        {
+          "subject": "pwa_job_runs_scope_key_not_null",
+          "pointer": "/content/constraints/pwa_job_runs_scope_key_not_null"
+        },
+        {
+          "subject": "pwa_job_runs_state_check",
+          "pointer": "/content/constraints/pwa_job_runs_state_check"
+        },
+        {
+          "subject": "pwa_job_runs_state_not_null",
+          "pointer": "/content/constraints/pwa_job_runs_state_not_null"
+        }
+      ]
+    },
+    {
+      "file": "systems/postgresql/relations/public-pwa-notification-deliveries-1f58adbc.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "relation",
+      "name": "public.pwa_notification_deliveries",
+      "scope": "production",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "delivery_id",
+          "pointer": "/content/columns/delivery_id"
+        },
+        {
+          "subject": "event_id",
+          "pointer": "/content/columns/event_id"
+        },
+        {
+          "subject": "channel",
+          "pointer": "/content/columns/channel"
+        },
+        {
+          "subject": "destination_key",
+          "pointer": "/content/columns/destination_key"
+        },
+        {
+          "subject": "recipient_partner_id",
+          "pointer": "/content/columns/recipient_partner_id"
+        },
+        {
+          "subject": "subscription_id",
+          "pointer": "/content/columns/subscription_id"
+        },
+        {
+          "subject": "subscription_version",
+          "pointer": "/content/columns/subscription_version"
+        },
+        {
+          "subject": "state",
+          "pointer": "/content/columns/state"
+        },
+        {
+          "subject": "lease_generation",
+          "pointer": "/content/columns/lease_generation"
+        },
+        {
+          "subject": "lease_expires_at",
+          "pointer": "/content/columns/lease_expires_at"
+        },
+        {
+          "subject": "send_started_at",
+          "pointer": "/content/columns/send_started_at"
+        },
+        {
+          "subject": "attempts",
+          "pointer": "/content/columns/attempts"
+        },
+        {
+          "subject": "next_attempt_at",
+          "pointer": "/content/columns/next_attempt_at"
+        },
+        {
+          "subject": "provider_result",
+          "pointer": "/content/columns/provider_result"
+        },
+        {
+          "subject": "created_at",
+          "pointer": "/content/columns/created_at"
+        },
+        {
+          "subject": "completed_at",
+          "pointer": "/content/columns/completed_at"
+        },
+        {
+          "subject": "pwa_notification_deliveries_attempts_check",
+          "pointer": "/content/constraints/pwa_notification_deliveries_attempts_check"
+        },
+        {
+          "subject": "pwa_notification_deliveries_attempts_not_null",
+          "pointer": "/content/constraints/pwa_notification_deliveries_attempts_not_null"
+        },
+        {
+          "subject": "pwa_notification_deliveries_channel_check",
+          "pointer": "/content/constraints/pwa_notification_deliveries_channel_check"
+        },
+        {
+          "subject": "pwa_notification_deliveries_channel_not_null",
+          "pointer": "/content/constraints/pwa_notification_deliveries_channel_not_null"
+        },
+        {
+          "subject": "pwa_notification_deliveries_check",
+          "pointer": "/content/constraints/pwa_notification_deliveries_check"
+        },
+        {
+          "subject": "pwa_notification_deliveries_created_at_not_null",
+          "pointer": "/content/constraints/pwa_notification_deliveries_created_at_not_null"
+        },
+        {
+          "subject": "pwa_notification_deliveries_delivery_id_not_null",
+          "pointer": "/content/constraints/pwa_notification_deliveries_delivery_id_not_null"
+        },
+        {
+          "subject": "pwa_notification_deliveries_destination_key_check",
+          "pointer": "/content/constraints/pwa_notification_deliveries_destination_key_check"
+        },
+        {
+          "subject": "pwa_notification_deliveries_destination_key_not_null",
+          "pointer": "/content/constraints/pwa_notification_deliveries_destination_key_not_null"
+        },
+        {
+          "subject": "pwa_notification_deliveries_event_id_channel_destination_ke_key",
+          "pointer": "/content/constraints/pwa_notification_deliveries_event_id_channel_destination_ke_key"
+        },
+        {
+          "subject": "pwa_notification_deliveries_event_id_fkey",
+          "pointer": "/content/constraints/pwa_notification_deliveries_event_id_fkey"
+        },
+        {
+          "subject": "pwa_notification_deliveries_event_id_not_null",
+          "pointer": "/content/constraints/pwa_notification_deliveries_event_id_not_null"
+        },
+        {
+          "subject": "pwa_notification_deliveries_lease_generation_check",
+          "pointer": "/content/constraints/pwa_notification_deliveries_lease_generation_check"
+        },
+        {
+          "subject": "pwa_notification_deliveries_lease_generation_not_null",
+          "pointer": "/content/constraints/pwa_notification_deliveries_lease_generation_not_null"
+        },
+        {
+          "subject": "pwa_notification_deliveries_next_attempt_at_not_null",
+          "pointer": "/content/constraints/pwa_notification_deliveries_next_attempt_at_not_null"
+        },
+        {
+          "subject": "pwa_notification_deliveries_pkey",
+          "pointer": "/content/constraints/pwa_notification_deliveries_pkey"
+        },
+        {
+          "subject": "pwa_notification_deliveries_provider_result_check",
+          "pointer": "/content/constraints/pwa_notification_deliveries_provider_result_check"
+        },
+        {
+          "subject": "pwa_notification_deliveries_recipient_partner_id_check",
+          "pointer": "/content/constraints/pwa_notification_deliveries_recipient_partner_id_check"
+        },
+        {
+          "subject": "pwa_notification_deliveries_recipient_partner_id_not_null",
+          "pointer": "/content/constraints/pwa_notification_deliveries_recipient_partner_id_not_null"
+        },
+        {
+          "subject": "pwa_notification_deliveries_state_check",
+          "pointer": "/content/constraints/pwa_notification_deliveries_state_check"
+        },
+        {
+          "subject": "pwa_notification_deliveries_state_not_null",
+          "pointer": "/content/constraints/pwa_notification_deliveries_state_not_null"
+        },
+        {
+          "subject": "pwa_notification_deliveries_subscription_id_fkey",
+          "pointer": "/content/constraints/pwa_notification_deliveries_subscription_id_fkey"
+        },
+        {
+          "subject": "pwa_notification_deliveries_subscription_id_not_null",
+          "pointer": "/content/constraints/pwa_notification_deliveries_subscription_id_not_null"
+        },
+        {
+          "subject": "pwa_notification_deliveries_subscription_version_check",
+          "pointer": "/content/constraints/pwa_notification_deliveries_subscription_version_check"
+        },
+        {
+          "subject": "pwa_notification_deliveries_subscription_version_not_null",
+          "pointer": "/content/constraints/pwa_notification_deliveries_subscription_version_not_null"
+        }
+      ]
+    },
+    {
+      "file": "systems/postgresql/relations/public-pwa-notification-events-d261a229.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "relation",
+      "name": "public.pwa_notification_events",
+      "scope": "production",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "event_id",
+          "pointer": "/content/columns/event_id"
+        },
+        {
+          "subject": "dedupe_key",
+          "pointer": "/content/columns/dedupe_key"
+        },
+        {
+          "subject": "event_type",
+          "pointer": "/content/columns/event_type"
+        },
+        {
+          "subject": "source_kind",
+          "pointer": "/content/columns/source_kind"
+        },
+        {
+          "subject": "source_id",
+          "pointer": "/content/columns/source_id"
+        },
+        {
+          "subject": "source_version",
+          "pointer": "/content/columns/source_version"
+        },
+        {
+          "subject": "actor_partner_id",
+          "pointer": "/content/columns/actor_partner_id"
+        },
+        {
+          "subject": "actor_login_email",
+          "pointer": "/content/columns/actor_login_email"
+        },
+        {
+          "subject": "occurred_at",
+          "pointer": "/content/columns/occurred_at"
+        },
+        {
+          "subject": "pwa_notification_events_actor_login_email_check",
+          "pointer": "/content/constraints/pwa_notification_events_actor_login_email_check"
+        },
+        {
+          "subject": "pwa_notification_events_actor_partner_id_check",
+          "pointer": "/content/constraints/pwa_notification_events_actor_partner_id_check"
+        },
+        {
+          "subject": "pwa_notification_events_dedupe_key_check",
+          "pointer": "/content/constraints/pwa_notification_events_dedupe_key_check"
+        },
+        {
+          "subject": "pwa_notification_events_dedupe_key_key",
+          "pointer": "/content/constraints/pwa_notification_events_dedupe_key_key"
+        },
+        {
+          "subject": "pwa_notification_events_dedupe_key_not_null",
+          "pointer": "/content/constraints/pwa_notification_events_dedupe_key_not_null"
+        },
+        {
+          "subject": "pwa_notification_events_event_id_not_null",
+          "pointer": "/content/constraints/pwa_notification_events_event_id_not_null"
+        },
+        {
+          "subject": "pwa_notification_events_event_type_check",
+          "pointer": "/content/constraints/pwa_notification_events_event_type_check"
+        },
+        {
+          "subject": "pwa_notification_events_event_type_not_null",
+          "pointer": "/content/constraints/pwa_notification_events_event_type_not_null"
+        },
+        {
+          "subject": "pwa_notification_events_occurred_at_not_null",
+          "pointer": "/content/constraints/pwa_notification_events_occurred_at_not_null"
+        },
+        {
+          "subject": "pwa_notification_events_pkey",
+          "pointer": "/content/constraints/pwa_notification_events_pkey"
+        },
+        {
+          "subject": "pwa_notification_events_source_id_check",
+          "pointer": "/content/constraints/pwa_notification_events_source_id_check"
+        },
+        {
+          "subject": "pwa_notification_events_source_id_not_null",
+          "pointer": "/content/constraints/pwa_notification_events_source_id_not_null"
+        },
+        {
+          "subject": "pwa_notification_events_source_kind_check",
+          "pointer": "/content/constraints/pwa_notification_events_source_kind_check"
+        },
+        {
+          "subject": "pwa_notification_events_source_kind_not_null",
+          "pointer": "/content/constraints/pwa_notification_events_source_kind_not_null"
+        },
+        {
+          "subject": "pwa_notification_events_source_version_check",
+          "pointer": "/content/constraints/pwa_notification_events_source_version_check"
+        },
+        {
+          "subject": "pwa_notification_events_source_version_not_null",
+          "pointer": "/content/constraints/pwa_notification_events_source_version_not_null"
+        }
+      ]
+    },
+    {
+      "file": "systems/postgresql/relations/public-pwa-notification-preferences-062546f8.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "relation",
+      "name": "public.pwa_notification_preferences",
+      "scope": "production",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "partner_id",
+          "pointer": "/content/columns/partner_id"
+        },
+        {
+          "subject": "channel",
+          "pointer": "/content/columns/channel"
+        },
+        {
+          "subject": "enabled",
+          "pointer": "/content/columns/enabled"
+        },
+        {
+          "subject": "version",
+          "pointer": "/content/columns/version"
+        },
+        {
+          "subject": "updated_at",
+          "pointer": "/content/columns/updated_at"
+        },
+        {
+          "subject": "pwa_notification_preferences_channel_check",
+          "pointer": "/content/constraints/pwa_notification_preferences_channel_check"
+        },
+        {
+          "subject": "pwa_notification_preferences_channel_not_null",
+          "pointer": "/content/constraints/pwa_notification_preferences_channel_not_null"
+        },
+        {
+          "subject": "pwa_notification_preferences_enabled_not_null",
+          "pointer": "/content/constraints/pwa_notification_preferences_enabled_not_null"
+        },
+        {
+          "subject": "pwa_notification_preferences_partner_id_check",
+          "pointer": "/content/constraints/pwa_notification_preferences_partner_id_check"
+        },
+        {
+          "subject": "pwa_notification_preferences_partner_id_not_null",
+          "pointer": "/content/constraints/pwa_notification_preferences_partner_id_not_null"
+        },
+        {
+          "subject": "pwa_notification_preferences_pkey",
+          "pointer": "/content/constraints/pwa_notification_preferences_pkey"
+        },
+        {
+          "subject": "pwa_notification_preferences_updated_at_not_null",
+          "pointer": "/content/constraints/pwa_notification_preferences_updated_at_not_null"
+        },
+        {
+          "subject": "pwa_notification_preferences_version_check",
+          "pointer": "/content/constraints/pwa_notification_preferences_version_check"
+        },
+        {
+          "subject": "pwa_notification_preferences_version_not_null",
+          "pointer": "/content/constraints/pwa_notification_preferences_version_not_null"
+        }
+      ]
+    },
+    {
+      "file": "systems/postgresql/relations/public-pwa-payment-commands-93248f5b.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "relation",
+      "name": "public.pwa_payment_commands",
+      "scope": "production",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "request_id",
+          "pointer": "/content/columns/request_id"
+        },
+        {
+          "subject": "contract_version",
+          "pointer": "/content/columns/contract_version"
+        },
+        {
+          "subject": "actor_issuer",
+          "pointer": "/content/columns/actor_issuer"
+        },
+        {
+          "subject": "actor_subject",
+          "pointer": "/content/columns/actor_subject"
+        },
+        {
+          "subject": "actor_partner_id",
+          "pointer": "/content/columns/actor_partner_id"
+        },
+        {
+          "subject": "actor_login_email",
+          "pointer": "/content/columns/actor_login_email"
+        },
+        {
+          "subject": "canonical_json",
+          "pointer": "/content/columns/canonical_json"
+        },
+        {
+          "subject": "payload_sha256",
+          "pointer": "/content/columns/payload_sha256"
+        },
+        {
+          "subject": "outcome",
+          "pointer": "/content/columns/outcome"
+        },
+        {
+          "subject": "payment_id",
+          "pointer": "/content/columns/payment_id"
+        },
+        {
+          "subject": "rejection_code",
+          "pointer": "/content/columns/rejection_code"
+        },
+        {
+          "subject": "recorded_at",
+          "pointer": "/content/columns/recorded_at"
+        },
+        {
+          "subject": "result_json",
+          "pointer": "/content/columns/result_json"
+        },
+        {
+          "subject": "pwa_contract_versions",
+          "pointer": "/content/constraints/pwa_contract_versions"
+        },
+        {
+          "subject": "pwa_payment_commands_actor_issuer_check",
+          "pointer": "/content/constraints/pwa_payment_commands_actor_issuer_check"
+        },
+        {
+          "subject": "pwa_payment_commands_actor_issuer_not_null",
+          "pointer": "/content/constraints/pwa_payment_commands_actor_issuer_not_null"
+        },
+        {
+          "subject": "pwa_payment_commands_actor_login_email_check",
+          "pointer": "/content/constraints/pwa_payment_commands_actor_login_email_check"
+        },
+        {
+          "subject": "pwa_payment_commands_actor_login_email_not_null",
+          "pointer": "/content/constraints/pwa_payment_commands_actor_login_email_not_null"
+        },
+        {
+          "subject": "pwa_payment_commands_actor_partner_id_check",
+          "pointer": "/content/constraints/pwa_payment_commands_actor_partner_id_check"
+        },
+        {
+          "subject": "pwa_payment_commands_actor_partner_id_not_null",
+          "pointer": "/content/constraints/pwa_payment_commands_actor_partner_id_not_null"
+        },
+        {
+          "subject": "pwa_payment_commands_actor_subject_check",
+          "pointer": "/content/constraints/pwa_payment_commands_actor_subject_check"
+        },
+        {
+          "subject": "pwa_payment_commands_actor_subject_not_null",
+          "pointer": "/content/constraints/pwa_payment_commands_actor_subject_not_null"
+        },
+        {
+          "subject": "pwa_payment_commands_canonical_json_check",
+          "pointer": "/content/constraints/pwa_payment_commands_canonical_json_check"
+        },
+        {
+          "subject": "pwa_payment_commands_canonical_json_not_null",
+          "pointer": "/content/constraints/pwa_payment_commands_canonical_json_not_null"
+        },
+        {
+          "subject": "pwa_payment_commands_check1",
+          "pointer": "/content/constraints/pwa_payment_commands_check1"
+        },
+        {
+          "subject": "pwa_payment_commands_contract_version_not_null",
+          "pointer": "/content/constraints/pwa_payment_commands_contract_version_not_null"
+        },
+        {
+          "subject": "pwa_payment_commands_outcome_not_null",
+          "pointer": "/content/constraints/pwa_payment_commands_outcome_not_null"
+        },
+        {
+          "subject": "pwa_payment_commands_payload_sha256_check",
+          "pointer": "/content/constraints/pwa_payment_commands_payload_sha256_check"
+        },
+        {
+          "subject": "pwa_payment_commands_payload_sha256_not_null",
+          "pointer": "/content/constraints/pwa_payment_commands_payload_sha256_not_null"
+        },
+        {
+          "subject": "pwa_payment_commands_payment_id_key",
+          "pointer": "/content/constraints/pwa_payment_commands_payment_id_key"
+        },
+        {
+          "subject": "pwa_payment_commands_pkey",
+          "pointer": "/content/constraints/pwa_payment_commands_pkey"
+        },
+        {
+          "subject": "pwa_payment_commands_recorded_at_not_null",
+          "pointer": "/content/constraints/pwa_payment_commands_recorded_at_not_null"
+        },
+        {
+          "subject": "pwa_payment_commands_request_id_check",
+          "pointer": "/content/constraints/pwa_payment_commands_request_id_check"
+        },
+        {
+          "subject": "pwa_payment_commands_request_id_not_null",
+          "pointer": "/content/constraints/pwa_payment_commands_request_id_not_null"
+        },
+        {
+          "subject": "pwa_versioned_envelope",
+          "pointer": "/content/constraints/pwa_versioned_envelope"
+        },
+        {
+          "subject": "pwa_versioned_outcome",
+          "pointer": "/content/constraints/pwa_versioned_outcome"
+        }
+      ]
+    },
+    {
+      "file": "systems/postgresql/relations/public-pwa-push-subscriptions-b661bfd3.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "relation",
+      "name": "public.pwa_push_subscriptions",
+      "scope": "production",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "subscription_id",
+          "pointer": "/content/columns/subscription_id"
+        },
+        {
+          "subject": "issuer",
+          "pointer": "/content/columns/issuer"
+        },
+        {
+          "subject": "subject",
+          "pointer": "/content/columns/subject"
+        },
+        {
+          "subject": "partner_id",
+          "pointer": "/content/columns/partner_id"
+        },
+        {
+          "subject": "endpoint_hash",
+          "pointer": "/content/columns/endpoint_hash"
+        },
+        {
+          "subject": "endpoint",
+          "pointer": "/content/columns/endpoint"
+        },
+        {
+          "subject": "p256dh",
+          "pointer": "/content/columns/p256dh"
+        },
+        {
+          "subject": "auth",
+          "pointer": "/content/columns/auth"
+        },
+        {
+          "subject": "enabled",
+          "pointer": "/content/columns/enabled"
+        },
+        {
+          "subject": "version",
+          "pointer": "/content/columns/version"
+        },
+        {
+          "subject": "created_at",
+          "pointer": "/content/columns/created_at"
+        },
+        {
+          "subject": "last_seen_at",
+          "pointer": "/content/columns/last_seen_at"
+        },
+        {
+          "subject": "expires_at",
+          "pointer": "/content/columns/expires_at"
+        },
+        {
+          "subject": "pwa_push_subscriptions_auth_check",
+          "pointer": "/content/constraints/pwa_push_subscriptions_auth_check"
+        },
+        {
+          "subject": "pwa_push_subscriptions_auth_not_null",
+          "pointer": "/content/constraints/pwa_push_subscriptions_auth_not_null"
+        },
+        {
+          "subject": "pwa_push_subscriptions_created_at_not_null",
+          "pointer": "/content/constraints/pwa_push_subscriptions_created_at_not_null"
+        },
+        {
+          "subject": "pwa_push_subscriptions_enabled_not_null",
+          "pointer": "/content/constraints/pwa_push_subscriptions_enabled_not_null"
+        },
+        {
+          "subject": "pwa_push_subscriptions_endpoint_check",
+          "pointer": "/content/constraints/pwa_push_subscriptions_endpoint_check"
+        },
+        {
+          "subject": "pwa_push_subscriptions_endpoint_hash_check",
+          "pointer": "/content/constraints/pwa_push_subscriptions_endpoint_hash_check"
+        },
+        {
+          "subject": "pwa_push_subscriptions_endpoint_hash_key",
+          "pointer": "/content/constraints/pwa_push_subscriptions_endpoint_hash_key"
+        },
+        {
+          "subject": "pwa_push_subscriptions_endpoint_hash_not_null",
+          "pointer": "/content/constraints/pwa_push_subscriptions_endpoint_hash_not_null"
+        },
+        {
+          "subject": "pwa_push_subscriptions_endpoint_not_null",
+          "pointer": "/content/constraints/pwa_push_subscriptions_endpoint_not_null"
+        },
+        {
+          "subject": "pwa_push_subscriptions_issuer_check",
+          "pointer": "/content/constraints/pwa_push_subscriptions_issuer_check"
+        },
+        {
+          "subject": "pwa_push_subscriptions_issuer_not_null",
+          "pointer": "/content/constraints/pwa_push_subscriptions_issuer_not_null"
+        },
+        {
+          "subject": "pwa_push_subscriptions_last_seen_at_not_null",
+          "pointer": "/content/constraints/pwa_push_subscriptions_last_seen_at_not_null"
+        },
+        {
+          "subject": "pwa_push_subscriptions_p256dh_check",
+          "pointer": "/content/constraints/pwa_push_subscriptions_p256dh_check"
+        },
+        {
+          "subject": "pwa_push_subscriptions_p256dh_not_null",
+          "pointer": "/content/constraints/pwa_push_subscriptions_p256dh_not_null"
+        },
+        {
+          "subject": "pwa_push_subscriptions_partner_id_check",
+          "pointer": "/content/constraints/pwa_push_subscriptions_partner_id_check"
+        },
+        {
+          "subject": "pwa_push_subscriptions_partner_id_not_null",
+          "pointer": "/content/constraints/pwa_push_subscriptions_partner_id_not_null"
+        },
+        {
+          "subject": "pwa_push_subscriptions_pkey",
+          "pointer": "/content/constraints/pwa_push_subscriptions_pkey"
+        },
+        {
+          "subject": "pwa_push_subscriptions_subject_check",
+          "pointer": "/content/constraints/pwa_push_subscriptions_subject_check"
+        },
+        {
+          "subject": "pwa_push_subscriptions_subject_not_null",
+          "pointer": "/content/constraints/pwa_push_subscriptions_subject_not_null"
+        },
+        {
+          "subject": "pwa_push_subscriptions_subscription_id_not_null",
+          "pointer": "/content/constraints/pwa_push_subscriptions_subscription_id_not_null"
+        },
+        {
+          "subject": "pwa_push_subscriptions_version_check",
+          "pointer": "/content/constraints/pwa_push_subscriptions_version_check"
+        },
+        {
+          "subject": "pwa_push_subscriptions_version_not_null",
+          "pointer": "/content/constraints/pwa_push_subscriptions_version_not_null"
+        }
+      ]
+    },
+    {
       "file": "systems/postgresql/relations/public-r008-cash-account-cutover-fa0a2f3b.yaml",
       "system": "postgresql",
       "component": "loan_manager_prod",
@@ -43687,6 +44473,16 @@
       "lookup": []
     },
     {
+      "file": "systems/postgresql/routines/public-apply-loan-close-calculation-v83-p-loan-text-p-day-date-p-expected-text-570561c2.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.apply_loan_close_calculation_v83(p_loan text, p_day date, p_expected text)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/postgresql/routines/public-apply-principal-daily-interest-r036.yaml",
       "system": "postgresql",
       "component": "loan_manager_prod",
@@ -43907,6 +44703,16 @@
       "lookup": []
     },
     {
+      "file": "systems/postgresql/routines/public-first-day-components-v83-l-loans-2a8f14e3.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.first_day_components_v83(l \"Loans\")",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/postgresql/routines/public-first-day-loan-trigger-9b6575bb.yaml",
       "system": "postgresql",
       "component": "loan_manager_prod",
@@ -44047,6 +44853,26 @@
       "lookup": []
     },
     {
+      "file": "systems/postgresql/routines/public-guard-pwa-explicit-payment-v6-255d25c8.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.guard_pwa_explicit_payment_v6()",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-guard-pwa-payment-commands-immutable-42b4e1b1.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.guard_pwa_payment_commands_immutable()",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/postgresql/routines/public-guard-selected-charge-scope-f9f3b170.yaml",
       "system": "postgresql",
       "component": "loan_manager_prod",
@@ -44102,6 +44928,26 @@
       "component": "loan_manager_prod",
       "kind": "routine",
       "name": "public.loan_cashpool_lock()",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-loan-close-calculation-v83-p-loan-text-p-day-date-a09ca671.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.loan_close_calculation_v83(p_loan text, p_day date)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-loan-close-calculation-v83-p-loan-text-p-day-date-p-exclude-payment-text-4dbe26e4.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.loan_close_calculation_v83(p_loan text, p_day date, p_exclude_payment text)",
       "scope": "production",
       "status": "documented",
       "lookup": []
@@ -44207,11 +45053,31 @@
       "lookup": []
     },
     {
+      "file": "systems/postgresql/routines/public-payment-crud-finish-core-v83-p-old-payments-p-new-payments-operation-text-610ec645.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.payment_crud_finish_core_v83(p_old \"Payments\", p_new \"Payments\", operation text)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/postgresql/routines/public-payment-crud-prepare-c8c2c378.yaml",
       "system": "postgresql",
       "component": "loan_manager_prod",
       "kind": "routine",
       "name": "public.payment_crud_prepare()",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-payment-crud-prepare-core-v83-p-old-payments-p-new-payments-operation-text-d4ab7cda.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.payment_crud_prepare_core_v83(p_old \"Payments\", p_new \"Payments\", operation text)",
       "scope": "production",
       "status": "documented",
       "lookup": []
@@ -44267,6 +45133,26 @@
       "lookup": []
     },
     {
+      "file": "systems/postgresql/routines/public-post-payment-explicit-v6-p-id-text-26ff4be9.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.post_payment_explicit_v6(p_id text)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-post-payment-legacy-v59-p-id-text-3d2d4a4b.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.post_payment_legacy_v59(p_id text)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/postgresql/routines/public-post-payment-p-id-text-6fe680cd.yaml",
       "system": "postgresql",
       "component": "loan_manager_prod",
@@ -44312,6 +45198,346 @@
       "component": "loan_manager_prod",
       "kind": "routine",
       "name": "public.protect_cash_cutover()",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-apply-analytics-v2-payload-text-c809ef9e.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_apply_analytics_v2(payload text)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-apply-assessment-v2-payload-text-4d06ca5d.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_apply_assessment_v2(payload text)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-apply-cash-opening-v2-payload-text-b0e99b71.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_apply_cash_opening_v2(payload text)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-apply-charge-v2-canonical-text-46559f1d.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_apply_charge_v2(canonical text)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-apply-expense-v2-canonical-text-639070e7.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_apply_expense_v2(canonical text)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-apply-loan-close-v2-canonical-text-533cd12e.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_apply_loan_close_v2(canonical text)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-apply-loan-create-v2-canonical-text-7a696fe9.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_apply_loan_create_v2(canonical text)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-apply-loan-source-v2-canonical-text-a646c61b.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_apply_loan_source_v2(canonical text)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-apply-management-financial-v2-payload-text-69f1b89c.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_apply_management_financial_v2(payload text)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-apply-management-v2-payload-text-cb052b7f.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_apply_management_v2(payload text)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-apply-payment-v2-canonical-text-61771881.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_apply_payment_v2(canonical text)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-apply-preference-v2-canonical-text-21e2a363.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_apply_preference_v2(canonical text)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-assessment-refresh-window-v2-start-day-date-end-day-date-as-of-date-2bafe3a2.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_assessment_refresh_window_v2(start_day date, end_day date, as_of date)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-borrower-version-v2-id-text-6dffa572.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_borrower_version_v2(id text)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-capture-notification-v1-2ffdc181.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_capture_notification_v1()",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-cash-opening-basis-v2-p-holder-text-d9f91524.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_cash_opening_basis_v2(p_holder text)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-charge-version-v2-id-text-8d8b36a9.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_charge_version_v2(id text)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-claim-notifications-v1-p-limit-integer-p-seconds-integer-b6d1b868.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_claim_notifications_v1(p_limit integer, p_seconds integer)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-command-status-v1-request-id-uuid-actor-issuer-text-actor-subject-text-8840d2f3.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_command_status_v1(request_id uuid, actor_issuer text, actor_subject text)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-effective-payment-plan-v2-p-id-text-1ecd9952.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_effective_payment_plan_v2(p_id text)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-expense-version-v2-id-text-724059dc.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_expense_version_v2(id text)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-loan-version-v2-id-text-96fef22c.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_loan_version_v2(id text)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-management-financial-text-v2-op-text-i-jsonb-034ff4ca.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_management_financial_text_v2(op text, i jsonb)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-management-input-text-v2-op-text-i-jsonb-0df5d64e.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_management_input_text_v2(op text, i jsonb)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-management-tools-text-v2-op-text-i-jsonb-2529a93b.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_management_tools_text_v2(op text, i jsonb)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-native-inverse-permitted-v2-payment-text-949d2a58.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_native_inverse_permitted_v2(payment text)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-operation-status-v2-request-id-uuid-actor-issuer-text-actor-subject-text-55e9da9d.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_operation_status_v2(request_id uuid, actor_issuer text, actor_subject text)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-payment-correction-text-v2-i-jsonb-91c6f1f4.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_payment_correction_text_v2(i jsonb)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-payment-head-v2-id-text-a32fdfa5.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_payment_head_v2(id text)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-payment-version-v2-id-text-3830327b.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_payment_version_v2(id text)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-plan-effects-v83-lines-jsonb-fbcbe3ae.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_plan_effects_v83(lines jsonb)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-preference-version-v2-id-text-11ab4705.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_preference_version_v2(id text)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-submit-operation-v2-canonical-json-text-cc36a6de.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_submit_operation_v2(canonical_json text)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-submit-selected-charges-v1-canonical-json-text-3c7ad2de.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_submit_selected_charges_v1(canonical_json text)",
       "scope": "production",
       "status": "documented",
       "lookup": []
@@ -44812,6 +46038,16 @@
       "component": "appsheet-pg-prod-20260914/loan_manager_prod",
       "kind": "settings",
       "name": "mw_chart_reader",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/settingss/r052-production-application-capability-f1b06e1f.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "settings",
+      "name": "R052 production application capability",
       "scope": "production",
       "status": "documented",
       "lookup": []

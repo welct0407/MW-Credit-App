@@ -21,7 +21,7 @@
     "persistence": "p"
     "is_partition": false
     "options": null
-    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,metabase_borrower_reader=r/postgres}"
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,metabase_borrower_reader=r/postgres,mw_app_prod=r/postgres}"
     "comment": "R016 cash by account at Bangkok period end using immutable opening-minus-baseline and dated ledger effects.\
       \ Unavailable before the account cutover. Later corrections restate history; account ownership is immutable."
     "view_definition": |2-
@@ -390,3 +390,8 @@
     "referenced_schema": "public"
     "referenced_relation": "reporting_income_daily"
     "referenced_column": "Date"
+"evidence":
+  "/content/definition/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"

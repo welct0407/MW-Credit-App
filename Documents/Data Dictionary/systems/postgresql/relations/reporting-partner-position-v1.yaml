@@ -1,691 +1,890 @@
-{
-  "format": 1,
-  "identity": {
-    "system": "postgresql",
-    "component": "loan_manager_prod",
-    "kind": "relation",
-    "name": "public.reporting_partner_position_v1",
-    "scope": "production"
-  },
-  "verification": {
-    "status": "documented",
-    "source": "outputs/r044-partners/dictionary-catalog.json"
-  },
-  "content": {
-    "definition": {
-      "schema": "public",
-      "name": "reporting_partner_position_v1",
-      "kind": "v",
-      "owner": "postgres",
-      "row_security": false,
-      "force_row_security": false,
-      "replica_identity": "n",
-      "persistence": "p",
-      "is_partition": false,
-      "options": null,
-      "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,metabase_borrower_reader=r/postgres}",
-      "comment": "R044 current all-record partner entitlement. Net earned less all non-Cancelled reservations. Nullable safe availability, full-pool denominator, role uniqueness and global data-quality checks. Not cash liquidity.",
-      "view_definition": " WITH partners AS (\n         SELECT \"Partners\".\"Row ID\" AS partner_id,\n            \"Partners\".\"Partner Name\" AS partner_name,\n            \"Partners\".\"Partner Role\" AS partner_role,\n            count(*) OVER (PARTITION BY \"Partners\".\"Partner Role\") AS role_count\n           FROM \"Partners\"\n          WHERE \"Partners\".\"Partner Role\" = ANY (ARRAY['A'::text, 'B'::text])\n        ), capital AS (\n         SELECT reporting_partner_capital_v1.partner_id,\n            sum(reporting_partner_capital_v1.net_movement) AS net_capital,\n            count(*) FILTER (WHERE NOT reporting_partner_capital_v1.valid) AS invalid_count\n           FROM reporting_partner_capital_v1\n          GROUP BY reporting_partner_capital_v1.partner_id\n        ), earnings AS (\n         SELECT reporting_partner_earnings_v1.partner_id,\n            sum(reporting_partner_earnings_v1.allocated_interest) AS interest_earned,\n            sum(reporting_partner_earnings_v1.allocated_expense) AS expenses,\n            count(*) FILTER (WHERE NOT reporting_partner_earnings_v1.valid OR reporting_partner_earnings_v1.activity_date > olap_reporting_date()) AS invalid_count\n           FROM reporting_partner_earnings_v1\n          GROUP BY reporting_partner_earnings_v1.partner_id\n        ), settlements AS (\n         SELECT reporting_partner_settlements_v1.partner_id,\n            sum(reporting_partner_settlements_v1.completed_amount) AS completed,\n            sum(reporting_partner_settlements_v1.pending_amount) AS pending,\n            sum(reporting_partner_settlements_v1.reserved_amount) AS reserved,\n            count(*) FILTER (WHERE reporting_partner_settlements_v1.status = 'Pending'::text) AS pending_count,\n            count(*) FILTER (WHERE NOT reporting_partner_settlements_v1.valid OR reporting_partner_settlements_v1.status = 'Completed'::text AND (reporting_partner_settlements_v1.activity_date IS NULL OR reporting_partner_settlements_v1.activity_date > olap_reporting_date())) AS invalid_count\n           FROM reporting_partner_settlements_v1\n          GROUP BY reporting_partner_settlements_v1.partner_id\n        ), quality AS (\n         SELECT ( SELECT count(*) AS count\n                   FROM reporting_partner_capital_v1\n                  WHERE NOT reporting_partner_capital_v1.valid OR reporting_partner_capital_v1.activity_date > olap_reporting_date()) AS capital_exceptions,\n            ( SELECT count(*) AS count\n                   FROM reporting_partner_earnings_v1\n                  WHERE NOT reporting_partner_earnings_v1.valid OR reporting_partner_earnings_v1.activity_date > olap_reporting_date()) AS earnings_exceptions,\n            ( SELECT count(*) AS count\n                   FROM reporting_partner_settlements_v1\n                  WHERE NOT reporting_partner_settlements_v1.valid OR reporting_partner_settlements_v1.status = 'Completed'::text AND (reporting_partner_settlements_v1.activity_date IS NULL OR reporting_partner_settlements_v1.activity_date > olap_reporting_date())) AS settlement_exceptions,\n            ( SELECT count(*) AS count\n                   FROM reporting_partner_settlements_v1\n                  WHERE reporting_partner_settlements_v1.status = 'Pending'::text AND reporting_partner_settlements_v1.activity_date IS NULL) AS undated_pending,\n            ( SELECT COALESCE(sum(reporting_partner_capital_v1.net_movement), 0::numeric) AS \"coalesce\"\n                   FROM reporting_partner_capital_v1) AS pool,\n            ( SELECT COALESCE(sum(olap_repayments_analytics.\"Partner A Profit\" + olap_repayments_analytics.\"Partner B Profit\" - olap_repayments_analytics.\"Interest Paid\"::numeric), 0::numeric) AS \"coalesce\"\n                   FROM olap_repayments_analytics) AS allocation_residual\n        ), amounts AS (\n         SELECT p.partner_id,\n            p.partner_name,\n            p.partner_role,\n            p.role_count,\n            COALESCE(c.net_capital, 0::numeric) AS net_capital,\n                CASE\n                    WHEN p.role_count = 1 AND q.earnings_exceptions = 0 AND q.capital_exceptions = 0 THEN COALESCE(e.interest_earned, 0::numeric)\n                    ELSE NULL::numeric\n                END AS interest_earned,\n                CASE\n                    WHEN p.role_count = 1 AND q.earnings_exceptions = 0 AND q.capital_exceptions = 0 THEN COALESCE(e.expenses, 0::numeric)\n                    ELSE NULL::numeric\n                END AS expenses,\n            COALESCE(s.completed, 0::numeric) AS completed,\n            COALESCE(s.pending, 0::numeric) AS pending,\n            COALESCE(s.reserved, 0::numeric) AS reserved,\n            COALESCE(s.pending_count, 0::bigint) AS pending_count,\n            q.capital_exceptions,\n            q.earnings_exceptions,\n            q.settlement_exceptions,\n            q.undated_pending,\n            q.pool,\n            q.allocation_residual\n           FROM partners p\n             LEFT JOIN capital c USING (partner_id)\n             LEFT JOIN earnings e USING (partner_id)\n             LEFT JOIN settlements s USING (partner_id)\n             CROSS JOIN quality q\n        ), final AS (\n         SELECT a.partner_id,\n            a.partner_name,\n            a.partner_role,\n            a.role_count,\n            a.net_capital,\n            a.interest_earned,\n            a.expenses,\n            a.completed,\n            a.pending,\n            a.reserved,\n            a.pending_count,\n            a.capital_exceptions,\n            a.earnings_exceptions,\n            a.settlement_exceptions,\n            a.undated_pending,\n            a.pool,\n            a.allocation_residual,\n            a.interest_earned - a.expenses AS net_earned,\n                CASE\n                    WHEN a.pool > 0::numeric AND a.capital_exceptions = 0 AND NOT (EXISTS ( SELECT 1\n                       FROM amounts\n                      WHERE amounts.net_capital < 0::numeric)) THEN a.net_capital / a.pool\n                    ELSE NULL::numeric\n                END AS capital_share,\n            a.role_count = 1 AND a.capital_exceptions = 0 AND a.earnings_exceptions = 0 AND a.settlement_exceptions = 0 AS ready\n           FROM amounts a\n        )\n SELECT partner_id,\n    partner_name,\n    partner_role,\n    role_count,\n    net_capital,\n    interest_earned,\n    expenses,\n    completed,\n    pending,\n    reserved,\n    pending_count,\n    capital_exceptions,\n    earnings_exceptions,\n    settlement_exceptions,\n    undated_pending,\n    pool,\n    allocation_residual,\n    net_earned,\n    capital_share,\n    ready,\n    net_earned - completed AS unpaid,\n        CASE\n            WHEN ready THEN net_earned - reserved\n            ELSE NULL::numeric\n        END AS available,\n    reserved - completed - pending AS other_reserved,\n        CASE\n            WHEN ready THEN 'Ready'::text\n            ELSE 'Needs review'::text\n        END AS quality_status,\n    (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok'::text) AS queried_at\n   FROM final f;",
-      "partition_key": null,
-      "partition_bound": null,
-      "parents": null,
-      "extension": null
-    },
-    "development_definition": {
-      "schema": "public",
-      "name": "reporting_partner_position_v1",
-      "kind": "v",
-      "owner": "postgres",
-      "row_security": false,
-      "force_row_security": false,
-      "replica_identity": "n",
-      "persistence": "p",
-      "is_partition": false,
-      "options": null,
-      "acl": "{postgres=arwdDxtm/postgres,metabase_borrower_reader=r/postgres}",
-      "comment": "R044 current all-record partner entitlement. Net earned less all non-Cancelled reservations. Nullable safe availability, full-pool denominator, role uniqueness and global data-quality checks. Not cash liquidity.",
-      "view_definition": " WITH partners AS (\n         SELECT \"Partners\".\"Row ID\" AS partner_id,\n            \"Partners\".\"Partner Name\" AS partner_name,\n            \"Partners\".\"Partner Role\" AS partner_role,\n            count(*) OVER (PARTITION BY \"Partners\".\"Partner Role\") AS role_count\n           FROM \"Partners\"\n          WHERE \"Partners\".\"Partner Role\" = ANY (ARRAY['A'::text, 'B'::text])\n        ), capital AS (\n         SELECT reporting_partner_capital_v1.partner_id,\n            sum(reporting_partner_capital_v1.net_movement) AS net_capital,\n            count(*) FILTER (WHERE NOT reporting_partner_capital_v1.valid) AS invalid_count\n           FROM reporting_partner_capital_v1\n          GROUP BY reporting_partner_capital_v1.partner_id\n        ), earnings AS (\n         SELECT reporting_partner_earnings_v1.partner_id,\n            sum(reporting_partner_earnings_v1.allocated_interest) AS interest_earned,\n            sum(reporting_partner_earnings_v1.allocated_expense) AS expenses,\n            count(*) FILTER (WHERE NOT reporting_partner_earnings_v1.valid OR reporting_partner_earnings_v1.activity_date > olap_reporting_date()) AS invalid_count\n           FROM reporting_partner_earnings_v1\n          GROUP BY reporting_partner_earnings_v1.partner_id\n        ), settlements AS (\n         SELECT reporting_partner_settlements_v1.partner_id,\n            sum(reporting_partner_settlements_v1.completed_amount) AS completed,\n            sum(reporting_partner_settlements_v1.pending_amount) AS pending,\n            sum(reporting_partner_settlements_v1.reserved_amount) AS reserved,\n            count(*) FILTER (WHERE reporting_partner_settlements_v1.status = 'Pending'::text) AS pending_count,\n            count(*) FILTER (WHERE NOT reporting_partner_settlements_v1.valid OR reporting_partner_settlements_v1.status = 'Completed'::text AND (reporting_partner_settlements_v1.activity_date IS NULL OR reporting_partner_settlements_v1.activity_date > olap_reporting_date())) AS invalid_count\n           FROM reporting_partner_settlements_v1\n          GROUP BY reporting_partner_settlements_v1.partner_id\n        ), quality AS (\n         SELECT ( SELECT count(*) AS count\n                   FROM reporting_partner_capital_v1\n                  WHERE NOT reporting_partner_capital_v1.valid OR reporting_partner_capital_v1.activity_date > olap_reporting_date()) AS capital_exceptions,\n            ( SELECT count(*) AS count\n                   FROM reporting_partner_earnings_v1\n                  WHERE NOT reporting_partner_earnings_v1.valid OR reporting_partner_earnings_v1.activity_date > olap_reporting_date()) AS earnings_exceptions,\n            ( SELECT count(*) AS count\n                   FROM reporting_partner_settlements_v1\n                  WHERE NOT reporting_partner_settlements_v1.valid OR reporting_partner_settlements_v1.status = 'Completed'::text AND (reporting_partner_settlements_v1.activity_date IS NULL OR reporting_partner_settlements_v1.activity_date > olap_reporting_date())) AS settlement_exceptions,\n            ( SELECT count(*) AS count\n                   FROM reporting_partner_settlements_v1\n                  WHERE reporting_partner_settlements_v1.status = 'Pending'::text AND reporting_partner_settlements_v1.activity_date IS NULL) AS undated_pending,\n            ( SELECT COALESCE(sum(reporting_partner_capital_v1.net_movement), 0::numeric) AS \"coalesce\"\n                   FROM reporting_partner_capital_v1) AS pool,\n            ( SELECT COALESCE(sum(olap_repayments_analytics.\"Partner A Profit\" + olap_repayments_analytics.\"Partner B Profit\" - olap_repayments_analytics.\"Interest Paid\"::numeric), 0::numeric) AS \"coalesce\"\n                   FROM olap_repayments_analytics) AS allocation_residual\n        ), amounts AS (\n         SELECT p.partner_id,\n            p.partner_name,\n            p.partner_role,\n            p.role_count,\n            COALESCE(c.net_capital, 0::numeric) AS net_capital,\n                CASE\n                    WHEN p.role_count = 1 AND q.earnings_exceptions = 0 AND q.capital_exceptions = 0 THEN COALESCE(e.interest_earned, 0::numeric)\n                    ELSE NULL::numeric\n                END AS interest_earned,\n                CASE\n                    WHEN p.role_count = 1 AND q.earnings_exceptions = 0 AND q.capital_exceptions = 0 THEN COALESCE(e.expenses, 0::numeric)\n                    ELSE NULL::numeric\n                END AS expenses,\n            COALESCE(s.completed, 0::numeric) AS completed,\n            COALESCE(s.pending, 0::numeric) AS pending,\n            COALESCE(s.reserved, 0::numeric) AS reserved,\n            COALESCE(s.pending_count, 0::bigint) AS pending_count,\n            q.capital_exceptions,\n            q.earnings_exceptions,\n            q.settlement_exceptions,\n            q.undated_pending,\n            q.pool,\n            q.allocation_residual\n           FROM partners p\n             LEFT JOIN capital c USING (partner_id)\n             LEFT JOIN earnings e USING (partner_id)\n             LEFT JOIN settlements s USING (partner_id)\n             CROSS JOIN quality q\n        ), final AS (\n         SELECT a.partner_id,\n            a.partner_name,\n            a.partner_role,\n            a.role_count,\n            a.net_capital,\n            a.interest_earned,\n            a.expenses,\n            a.completed,\n            a.pending,\n            a.reserved,\n            a.pending_count,\n            a.capital_exceptions,\n            a.earnings_exceptions,\n            a.settlement_exceptions,\n            a.undated_pending,\n            a.pool,\n            a.allocation_residual,\n            a.interest_earned - a.expenses AS net_earned,\n                CASE\n                    WHEN a.pool > 0::numeric AND a.capital_exceptions = 0 AND NOT (EXISTS ( SELECT 1\n                       FROM amounts\n                      WHERE amounts.net_capital < 0::numeric)) THEN a.net_capital / a.pool\n                    ELSE NULL::numeric\n                END AS capital_share,\n            a.role_count = 1 AND a.capital_exceptions = 0 AND a.earnings_exceptions = 0 AND a.settlement_exceptions = 0 AS ready\n           FROM amounts a\n        )\n SELECT partner_id,\n    partner_name,\n    partner_role,\n    role_count,\n    net_capital,\n    interest_earned,\n    expenses,\n    completed,\n    pending,\n    reserved,\n    pending_count,\n    capital_exceptions,\n    earnings_exceptions,\n    settlement_exceptions,\n    undated_pending,\n    pool,\n    allocation_residual,\n    net_earned,\n    capital_share,\n    ready,\n    net_earned - completed AS unpaid,\n        CASE\n            WHEN ready THEN net_earned - reserved\n            ELSE NULL::numeric\n        END AS available,\n    reserved - completed - pending AS other_reserved,\n        CASE\n            WHEN ready THEN 'Ready'::text\n            ELSE 'Needs review'::text\n        END AS quality_status,\n    (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok'::text) AS queried_at\n   FROM final f;",
-      "partition_key": null,
-      "partition_bound": null,
-      "parents": null,
-      "extension": null
-    },
-    "columns": {
-      "partner_id": {
-        "schema": "public",
-        "relation": "reporting_partner_position_v1",
-        "name": "partner_id",
-        "ordinal": 1,
-        "data_type": "text",
-        "type_schema": "pg_catalog",
-        "type_name": "text",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "x",
-        "compression": "",
-        "default_expression": null,
-        "collation": "\"default\"",
-        "acl": null,
-        "comment": null
-      },
-      "partner_name": {
-        "schema": "public",
-        "relation": "reporting_partner_position_v1",
-        "name": "partner_name",
-        "ordinal": 2,
-        "data_type": "text",
-        "type_schema": "pg_catalog",
-        "type_name": "text",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "x",
-        "compression": "",
-        "default_expression": null,
-        "collation": "\"default\"",
-        "acl": null,
-        "comment": null
-      },
-      "partner_role": {
-        "schema": "public",
-        "relation": "reporting_partner_position_v1",
-        "name": "partner_role",
-        "ordinal": 3,
-        "data_type": "text",
-        "type_schema": "pg_catalog",
-        "type_name": "text",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "x",
-        "compression": "",
-        "default_expression": null,
-        "collation": "\"default\"",
-        "acl": null,
-        "comment": null
-      },
-      "role_count": {
-        "schema": "public",
-        "relation": "reporting_partner_position_v1",
-        "name": "role_count",
-        "ordinal": 4,
-        "data_type": "bigint",
-        "type_schema": "pg_catalog",
-        "type_name": "int8",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "p",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "net_capital": {
-        "schema": "public",
-        "relation": "reporting_partner_position_v1",
-        "name": "net_capital",
-        "ordinal": 5,
-        "data_type": "numeric",
-        "type_schema": "pg_catalog",
-        "type_name": "numeric",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "m",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "interest_earned": {
-        "schema": "public",
-        "relation": "reporting_partner_position_v1",
-        "name": "interest_earned",
-        "ordinal": 6,
-        "data_type": "numeric",
-        "type_schema": "pg_catalog",
-        "type_name": "numeric",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "m",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "expenses": {
-        "schema": "public",
-        "relation": "reporting_partner_position_v1",
-        "name": "expenses",
-        "ordinal": 7,
-        "data_type": "numeric",
-        "type_schema": "pg_catalog",
-        "type_name": "numeric",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "m",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "completed": {
-        "schema": "public",
-        "relation": "reporting_partner_position_v1",
-        "name": "completed",
-        "ordinal": 8,
-        "data_type": "numeric",
-        "type_schema": "pg_catalog",
-        "type_name": "numeric",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "m",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "pending": {
-        "schema": "public",
-        "relation": "reporting_partner_position_v1",
-        "name": "pending",
-        "ordinal": 9,
-        "data_type": "numeric",
-        "type_schema": "pg_catalog",
-        "type_name": "numeric",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "m",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "reserved": {
-        "schema": "public",
-        "relation": "reporting_partner_position_v1",
-        "name": "reserved",
-        "ordinal": 10,
-        "data_type": "numeric",
-        "type_schema": "pg_catalog",
-        "type_name": "numeric",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "m",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "pending_count": {
-        "schema": "public",
-        "relation": "reporting_partner_position_v1",
-        "name": "pending_count",
-        "ordinal": 11,
-        "data_type": "bigint",
-        "type_schema": "pg_catalog",
-        "type_name": "int8",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "p",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "capital_exceptions": {
-        "schema": "public",
-        "relation": "reporting_partner_position_v1",
-        "name": "capital_exceptions",
-        "ordinal": 12,
-        "data_type": "bigint",
-        "type_schema": "pg_catalog",
-        "type_name": "int8",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "p",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "earnings_exceptions": {
-        "schema": "public",
-        "relation": "reporting_partner_position_v1",
-        "name": "earnings_exceptions",
-        "ordinal": 13,
-        "data_type": "bigint",
-        "type_schema": "pg_catalog",
-        "type_name": "int8",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "p",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "settlement_exceptions": {
-        "schema": "public",
-        "relation": "reporting_partner_position_v1",
-        "name": "settlement_exceptions",
-        "ordinal": 14,
-        "data_type": "bigint",
-        "type_schema": "pg_catalog",
-        "type_name": "int8",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "p",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "undated_pending": {
-        "schema": "public",
-        "relation": "reporting_partner_position_v1",
-        "name": "undated_pending",
-        "ordinal": 15,
-        "data_type": "bigint",
-        "type_schema": "pg_catalog",
-        "type_name": "int8",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "p",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "pool": {
-        "schema": "public",
-        "relation": "reporting_partner_position_v1",
-        "name": "pool",
-        "ordinal": 16,
-        "data_type": "numeric",
-        "type_schema": "pg_catalog",
-        "type_name": "numeric",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "m",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "allocation_residual": {
-        "schema": "public",
-        "relation": "reporting_partner_position_v1",
-        "name": "allocation_residual",
-        "ordinal": 17,
-        "data_type": "numeric",
-        "type_schema": "pg_catalog",
-        "type_name": "numeric",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "m",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "net_earned": {
-        "schema": "public",
-        "relation": "reporting_partner_position_v1",
-        "name": "net_earned",
-        "ordinal": 18,
-        "data_type": "numeric",
-        "type_schema": "pg_catalog",
-        "type_name": "numeric",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "m",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "capital_share": {
-        "schema": "public",
-        "relation": "reporting_partner_position_v1",
-        "name": "capital_share",
-        "ordinal": 19,
-        "data_type": "numeric",
-        "type_schema": "pg_catalog",
-        "type_name": "numeric",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "m",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "ready": {
-        "schema": "public",
-        "relation": "reporting_partner_position_v1",
-        "name": "ready",
-        "ordinal": 20,
-        "data_type": "boolean",
-        "type_schema": "pg_catalog",
-        "type_name": "bool",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "p",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "unpaid": {
-        "schema": "public",
-        "relation": "reporting_partner_position_v1",
-        "name": "unpaid",
-        "ordinal": 21,
-        "data_type": "numeric",
-        "type_schema": "pg_catalog",
-        "type_name": "numeric",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "m",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "available": {
-        "schema": "public",
-        "relation": "reporting_partner_position_v1",
-        "name": "available",
-        "ordinal": 22,
-        "data_type": "numeric",
-        "type_schema": "pg_catalog",
-        "type_name": "numeric",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "m",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "other_reserved": {
-        "schema": "public",
-        "relation": "reporting_partner_position_v1",
-        "name": "other_reserved",
-        "ordinal": 23,
-        "data_type": "numeric",
-        "type_schema": "pg_catalog",
-        "type_name": "numeric",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "m",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "quality_status": {
-        "schema": "public",
-        "relation": "reporting_partner_position_v1",
-        "name": "quality_status",
-        "ordinal": 24,
-        "data_type": "text",
-        "type_schema": "pg_catalog",
-        "type_name": "text",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "x",
-        "compression": "",
-        "default_expression": null,
-        "collation": "\"default\"",
-        "acl": null,
-        "comment": null
-      },
-      "queried_at": {
-        "schema": "public",
-        "relation": "reporting_partner_position_v1",
-        "name": "queried_at",
-        "ordinal": 25,
-        "data_type": "timestamp without time zone",
-        "type_schema": "pg_catalog",
-        "type_name": "timestamp",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "p",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      }
-    },
-    "constraints": {},
-    "indexes": {},
-    "triggers": {},
-    "policies": {},
-    "dependencies": [
-      {
-        "schema": "public",
-        "relation": "reporting_partner_position_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Partners",
-        "referenced_column": "Partner Name"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_partner_position_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Partners",
-        "referenced_column": "Partner Role"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_partner_position_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Partners",
-        "referenced_column": "Row ID"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_partner_position_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "olap_repayments_analytics",
-        "referenced_column": "Interest Paid"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_partner_position_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "olap_repayments_analytics",
-        "referenced_column": "Partner A Profit"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_partner_position_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "olap_repayments_analytics",
-        "referenced_column": "Partner B Profit"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_partner_position_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "reporting_partner_capital_v1",
-        "referenced_column": "activity_date"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_partner_position_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "reporting_partner_capital_v1",
-        "referenced_column": "net_movement"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_partner_position_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "reporting_partner_capital_v1",
-        "referenced_column": "partner_id"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_partner_position_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "reporting_partner_capital_v1",
-        "referenced_column": "valid"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_partner_position_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "reporting_partner_earnings_v1",
-        "referenced_column": "activity_date"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_partner_position_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "reporting_partner_earnings_v1",
-        "referenced_column": "allocated_expense"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_partner_position_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "reporting_partner_earnings_v1",
-        "referenced_column": "allocated_interest"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_partner_position_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "reporting_partner_earnings_v1",
-        "referenced_column": "partner_id"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_partner_position_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "reporting_partner_earnings_v1",
-        "referenced_column": "valid"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_partner_position_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "reporting_partner_settlements_v1",
-        "referenced_column": "activity_date"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_partner_position_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "reporting_partner_settlements_v1",
-        "referenced_column": "completed_amount"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_partner_position_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "reporting_partner_settlements_v1",
-        "referenced_column": "partner_id"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_partner_position_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "reporting_partner_settlements_v1",
-        "referenced_column": "pending_amount"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_partner_position_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "reporting_partner_settlements_v1",
-        "referenced_column": "reserved_amount"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_partner_position_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "reporting_partner_settlements_v1",
-        "referenced_column": "status"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_partner_position_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "reporting_partner_settlements_v1",
-        "referenced_column": "valid"
-      }
-    ]
-  }
-}
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "relation"
+  "name": "public.reporting_partner_position_v1"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r044-partners/dictionary-catalog.json"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "reporting_partner_position_v1"
+    "kind": "v"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "n"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,metabase_borrower_reader=r/postgres,mw_app_prod=r/postgres}"
+    "comment": "R044 current all-record partner entitlement. Net earned less all non-Cancelled reservations. Nullable safe\
+      \ availability, full-pool denominator, role uniqueness and global data-quality checks. Not cash liquidity."
+    "view_definition": |2-
+       WITH partners AS (
+               SELECT "Partners"."Row ID" AS partner_id,
+                  "Partners"."Partner Name" AS partner_name,
+                  "Partners"."Partner Role" AS partner_role,
+                  count(*) OVER (PARTITION BY "Partners"."Partner Role") AS role_count
+                 FROM "Partners"
+                WHERE "Partners"."Partner Role" = ANY (ARRAY['A'::text, 'B'::text])
+              ), capital AS (
+               SELECT reporting_partner_capital_v1.partner_id,
+                  sum(reporting_partner_capital_v1.net_movement) AS net_capital,
+                  count(*) FILTER (WHERE NOT reporting_partner_capital_v1.valid) AS invalid_count
+                 FROM reporting_partner_capital_v1
+                GROUP BY reporting_partner_capital_v1.partner_id
+              ), earnings AS (
+               SELECT reporting_partner_earnings_v1.partner_id,
+                  sum(reporting_partner_earnings_v1.allocated_interest) AS interest_earned,
+                  sum(reporting_partner_earnings_v1.allocated_expense) AS expenses,
+                  count(*) FILTER (WHERE NOT reporting_partner_earnings_v1.valid OR reporting_partner_earnings_v1.activity_date > olap_reporting_date()) AS invalid_count
+                 FROM reporting_partner_earnings_v1
+                GROUP BY reporting_partner_earnings_v1.partner_id
+              ), settlements AS (
+               SELECT reporting_partner_settlements_v1.partner_id,
+                  sum(reporting_partner_settlements_v1.completed_amount) AS completed,
+                  sum(reporting_partner_settlements_v1.pending_amount) AS pending,
+                  sum(reporting_partner_settlements_v1.reserved_amount) AS reserved,
+                  count(*) FILTER (WHERE reporting_partner_settlements_v1.status = 'Pending'::text) AS pending_count,
+                  count(*) FILTER (WHERE NOT reporting_partner_settlements_v1.valid OR reporting_partner_settlements_v1.status = 'Completed'::text AND (reporting_partner_settlements_v1.activity_date IS NULL OR reporting_partner_settlements_v1.activity_date > olap_reporting_date())) AS invalid_count
+                 FROM reporting_partner_settlements_v1
+                GROUP BY reporting_partner_settlements_v1.partner_id
+              ), quality AS (
+               SELECT ( SELECT count(*) AS count
+                         FROM reporting_partner_capital_v1
+                        WHERE NOT reporting_partner_capital_v1.valid OR reporting_partner_capital_v1.activity_date > olap_reporting_date()) AS capital_exceptions,
+                  ( SELECT count(*) AS count
+                         FROM reporting_partner_earnings_v1
+                        WHERE NOT reporting_partner_earnings_v1.valid OR reporting_partner_earnings_v1.activity_date > olap_reporting_date()) AS earnings_exceptions,
+                  ( SELECT count(*) AS count
+                         FROM reporting_partner_settlements_v1
+                        WHERE NOT reporting_partner_settlements_v1.valid OR reporting_partner_settlements_v1.status = 'Completed'::text AND (reporting_partner_settlements_v1.activity_date IS NULL OR reporting_partner_settlements_v1.activity_date > olap_reporting_date())) AS settlement_exceptions,
+                  ( SELECT count(*) AS count
+                         FROM reporting_partner_settlements_v1
+                        WHERE reporting_partner_settlements_v1.status = 'Pending'::text AND reporting_partner_settlements_v1.activity_date IS NULL) AS undated_pending,
+                  ( SELECT COALESCE(sum(reporting_partner_capital_v1.net_movement), 0::numeric) AS "coalesce"
+                         FROM reporting_partner_capital_v1) AS pool,
+                  ( SELECT COALESCE(sum(olap_repayments_analytics."Partner A Profit" + olap_repayments_analytics."Partner B Profit" - olap_repayments_analytics."Interest Paid"::numeric), 0::numeric) AS "coalesce"
+                         FROM olap_repayments_analytics) AS allocation_residual
+              ), amounts AS (
+               SELECT p.partner_id,
+                  p.partner_name,
+                  p.partner_role,
+                  p.role_count,
+                  COALESCE(c.net_capital, 0::numeric) AS net_capital,
+                      CASE
+                          WHEN p.role_count = 1 AND q.earnings_exceptions = 0 AND q.capital_exceptions = 0 THEN COALESCE(e.interest_earned, 0::numeric)
+                          ELSE NULL::numeric
+                      END AS interest_earned,
+                      CASE
+                          WHEN p.role_count = 1 AND q.earnings_exceptions = 0 AND q.capital_exceptions = 0 THEN COALESCE(e.expenses, 0::numeric)
+                          ELSE NULL::numeric
+                      END AS expenses,
+                  COALESCE(s.completed, 0::numeric) AS completed,
+                  COALESCE(s.pending, 0::numeric) AS pending,
+                  COALESCE(s.reserved, 0::numeric) AS reserved,
+                  COALESCE(s.pending_count, 0::bigint) AS pending_count,
+                  q.capital_exceptions,
+                  q.earnings_exceptions,
+                  q.settlement_exceptions,
+                  q.undated_pending,
+                  q.pool,
+                  q.allocation_residual
+                 FROM partners p
+                   LEFT JOIN capital c USING (partner_id)
+                   LEFT JOIN earnings e USING (partner_id)
+                   LEFT JOIN settlements s USING (partner_id)
+                   CROSS JOIN quality q
+              ), final AS (
+               SELECT a.partner_id,
+                  a.partner_name,
+                  a.partner_role,
+                  a.role_count,
+                  a.net_capital,
+                  a.interest_earned,
+                  a.expenses,
+                  a.completed,
+                  a.pending,
+                  a.reserved,
+                  a.pending_count,
+                  a.capital_exceptions,
+                  a.earnings_exceptions,
+                  a.settlement_exceptions,
+                  a.undated_pending,
+                  a.pool,
+                  a.allocation_residual,
+                  a.interest_earned - a.expenses AS net_earned,
+                      CASE
+                          WHEN a.pool > 0::numeric AND a.capital_exceptions = 0 AND NOT (EXISTS ( SELECT 1
+                             FROM amounts
+                            WHERE amounts.net_capital < 0::numeric)) THEN a.net_capital / a.pool
+                          ELSE NULL::numeric
+                      END AS capital_share,
+                  a.role_count = 1 AND a.capital_exceptions = 0 AND a.earnings_exceptions = 0 AND a.settlement_exceptions = 0 AS ready
+                 FROM amounts a
+              )
+       SELECT partner_id,
+          partner_name,
+          partner_role,
+          role_count,
+          net_capital,
+          interest_earned,
+          expenses,
+          completed,
+          pending,
+          reserved,
+          pending_count,
+          capital_exceptions,
+          earnings_exceptions,
+          settlement_exceptions,
+          undated_pending,
+          pool,
+          allocation_residual,
+          net_earned,
+          capital_share,
+          ready,
+          net_earned - completed AS unpaid,
+              CASE
+                  WHEN ready THEN net_earned - reserved
+                  ELSE NULL::numeric
+              END AS available,
+          reserved - completed - pending AS other_reserved,
+              CASE
+                  WHEN ready THEN 'Ready'::text
+                  ELSE 'Needs review'::text
+              END AS quality_status,
+          (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok'::text) AS queried_at
+         FROM final f;
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "development_definition":
+    "schema": "public"
+    "name": "reporting_partner_position_v1"
+    "kind": "v"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "n"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,metabase_borrower_reader=r/postgres}"
+    "comment": "R044 current all-record partner entitlement. Net earned less all non-Cancelled reservations. Nullable safe\
+      \ availability, full-pool denominator, role uniqueness and global data-quality checks. Not cash liquidity."
+    "view_definition": |2-
+       WITH partners AS (
+               SELECT "Partners"."Row ID" AS partner_id,
+                  "Partners"."Partner Name" AS partner_name,
+                  "Partners"."Partner Role" AS partner_role,
+                  count(*) OVER (PARTITION BY "Partners"."Partner Role") AS role_count
+                 FROM "Partners"
+                WHERE "Partners"."Partner Role" = ANY (ARRAY['A'::text, 'B'::text])
+              ), capital AS (
+               SELECT reporting_partner_capital_v1.partner_id,
+                  sum(reporting_partner_capital_v1.net_movement) AS net_capital,
+                  count(*) FILTER (WHERE NOT reporting_partner_capital_v1.valid) AS invalid_count
+                 FROM reporting_partner_capital_v1
+                GROUP BY reporting_partner_capital_v1.partner_id
+              ), earnings AS (
+               SELECT reporting_partner_earnings_v1.partner_id,
+                  sum(reporting_partner_earnings_v1.allocated_interest) AS interest_earned,
+                  sum(reporting_partner_earnings_v1.allocated_expense) AS expenses,
+                  count(*) FILTER (WHERE NOT reporting_partner_earnings_v1.valid OR reporting_partner_earnings_v1.activity_date > olap_reporting_date()) AS invalid_count
+                 FROM reporting_partner_earnings_v1
+                GROUP BY reporting_partner_earnings_v1.partner_id
+              ), settlements AS (
+               SELECT reporting_partner_settlements_v1.partner_id,
+                  sum(reporting_partner_settlements_v1.completed_amount) AS completed,
+                  sum(reporting_partner_settlements_v1.pending_amount) AS pending,
+                  sum(reporting_partner_settlements_v1.reserved_amount) AS reserved,
+                  count(*) FILTER (WHERE reporting_partner_settlements_v1.status = 'Pending'::text) AS pending_count,
+                  count(*) FILTER (WHERE NOT reporting_partner_settlements_v1.valid OR reporting_partner_settlements_v1.status = 'Completed'::text AND (reporting_partner_settlements_v1.activity_date IS NULL OR reporting_partner_settlements_v1.activity_date > olap_reporting_date())) AS invalid_count
+                 FROM reporting_partner_settlements_v1
+                GROUP BY reporting_partner_settlements_v1.partner_id
+              ), quality AS (
+               SELECT ( SELECT count(*) AS count
+                         FROM reporting_partner_capital_v1
+                        WHERE NOT reporting_partner_capital_v1.valid OR reporting_partner_capital_v1.activity_date > olap_reporting_date()) AS capital_exceptions,
+                  ( SELECT count(*) AS count
+                         FROM reporting_partner_earnings_v1
+                        WHERE NOT reporting_partner_earnings_v1.valid OR reporting_partner_earnings_v1.activity_date > olap_reporting_date()) AS earnings_exceptions,
+                  ( SELECT count(*) AS count
+                         FROM reporting_partner_settlements_v1
+                        WHERE NOT reporting_partner_settlements_v1.valid OR reporting_partner_settlements_v1.status = 'Completed'::text AND (reporting_partner_settlements_v1.activity_date IS NULL OR reporting_partner_settlements_v1.activity_date > olap_reporting_date())) AS settlement_exceptions,
+                  ( SELECT count(*) AS count
+                         FROM reporting_partner_settlements_v1
+                        WHERE reporting_partner_settlements_v1.status = 'Pending'::text AND reporting_partner_settlements_v1.activity_date IS NULL) AS undated_pending,
+                  ( SELECT COALESCE(sum(reporting_partner_capital_v1.net_movement), 0::numeric) AS "coalesce"
+                         FROM reporting_partner_capital_v1) AS pool,
+                  ( SELECT COALESCE(sum(olap_repayments_analytics."Partner A Profit" + olap_repayments_analytics."Partner B Profit" - olap_repayments_analytics."Interest Paid"::numeric), 0::numeric) AS "coalesce"
+                         FROM olap_repayments_analytics) AS allocation_residual
+              ), amounts AS (
+               SELECT p.partner_id,
+                  p.partner_name,
+                  p.partner_role,
+                  p.role_count,
+                  COALESCE(c.net_capital, 0::numeric) AS net_capital,
+                      CASE
+                          WHEN p.role_count = 1 AND q.earnings_exceptions = 0 AND q.capital_exceptions = 0 THEN COALESCE(e.interest_earned, 0::numeric)
+                          ELSE NULL::numeric
+                      END AS interest_earned,
+                      CASE
+                          WHEN p.role_count = 1 AND q.earnings_exceptions = 0 AND q.capital_exceptions = 0 THEN COALESCE(e.expenses, 0::numeric)
+                          ELSE NULL::numeric
+                      END AS expenses,
+                  COALESCE(s.completed, 0::numeric) AS completed,
+                  COALESCE(s.pending, 0::numeric) AS pending,
+                  COALESCE(s.reserved, 0::numeric) AS reserved,
+                  COALESCE(s.pending_count, 0::bigint) AS pending_count,
+                  q.capital_exceptions,
+                  q.earnings_exceptions,
+                  q.settlement_exceptions,
+                  q.undated_pending,
+                  q.pool,
+                  q.allocation_residual
+                 FROM partners p
+                   LEFT JOIN capital c USING (partner_id)
+                   LEFT JOIN earnings e USING (partner_id)
+                   LEFT JOIN settlements s USING (partner_id)
+                   CROSS JOIN quality q
+              ), final AS (
+               SELECT a.partner_id,
+                  a.partner_name,
+                  a.partner_role,
+                  a.role_count,
+                  a.net_capital,
+                  a.interest_earned,
+                  a.expenses,
+                  a.completed,
+                  a.pending,
+                  a.reserved,
+                  a.pending_count,
+                  a.capital_exceptions,
+                  a.earnings_exceptions,
+                  a.settlement_exceptions,
+                  a.undated_pending,
+                  a.pool,
+                  a.allocation_residual,
+                  a.interest_earned - a.expenses AS net_earned,
+                      CASE
+                          WHEN a.pool > 0::numeric AND a.capital_exceptions = 0 AND NOT (EXISTS ( SELECT 1
+                             FROM amounts
+                            WHERE amounts.net_capital < 0::numeric)) THEN a.net_capital / a.pool
+                          ELSE NULL::numeric
+                      END AS capital_share,
+                  a.role_count = 1 AND a.capital_exceptions = 0 AND a.earnings_exceptions = 0 AND a.settlement_exceptions = 0 AS ready
+                 FROM amounts a
+              )
+       SELECT partner_id,
+          partner_name,
+          partner_role,
+          role_count,
+          net_capital,
+          interest_earned,
+          expenses,
+          completed,
+          pending,
+          reserved,
+          pending_count,
+          capital_exceptions,
+          earnings_exceptions,
+          settlement_exceptions,
+          undated_pending,
+          pool,
+          allocation_residual,
+          net_earned,
+          capital_share,
+          ready,
+          net_earned - completed AS unpaid,
+              CASE
+                  WHEN ready THEN net_earned - reserved
+                  ELSE NULL::numeric
+              END AS available,
+          reserved - completed - pending AS other_reserved,
+              CASE
+                  WHEN ready THEN 'Ready'::text
+                  ELSE 'Needs review'::text
+              END AS quality_status,
+          (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok'::text) AS queried_at
+         FROM final f;
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "columns":
+    "partner_id":
+      "schema": "public"
+      "relation": "reporting_partner_position_v1"
+      "name": "partner_id"
+      "ordinal": 1
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "partner_name":
+      "schema": "public"
+      "relation": "reporting_partner_position_v1"
+      "name": "partner_name"
+      "ordinal": 2
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "partner_role":
+      "schema": "public"
+      "relation": "reporting_partner_position_v1"
+      "name": "partner_role"
+      "ordinal": 3
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "role_count":
+      "schema": "public"
+      "relation": "reporting_partner_position_v1"
+      "name": "role_count"
+      "ordinal": 4
+      "data_type": "bigint"
+      "type_schema": "pg_catalog"
+      "type_name": "int8"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "net_capital":
+      "schema": "public"
+      "relation": "reporting_partner_position_v1"
+      "name": "net_capital"
+      "ordinal": 5
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "interest_earned":
+      "schema": "public"
+      "relation": "reporting_partner_position_v1"
+      "name": "interest_earned"
+      "ordinal": 6
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "expenses":
+      "schema": "public"
+      "relation": "reporting_partner_position_v1"
+      "name": "expenses"
+      "ordinal": 7
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "completed":
+      "schema": "public"
+      "relation": "reporting_partner_position_v1"
+      "name": "completed"
+      "ordinal": 8
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "pending":
+      "schema": "public"
+      "relation": "reporting_partner_position_v1"
+      "name": "pending"
+      "ordinal": 9
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "reserved":
+      "schema": "public"
+      "relation": "reporting_partner_position_v1"
+      "name": "reserved"
+      "ordinal": 10
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "pending_count":
+      "schema": "public"
+      "relation": "reporting_partner_position_v1"
+      "name": "pending_count"
+      "ordinal": 11
+      "data_type": "bigint"
+      "type_schema": "pg_catalog"
+      "type_name": "int8"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "capital_exceptions":
+      "schema": "public"
+      "relation": "reporting_partner_position_v1"
+      "name": "capital_exceptions"
+      "ordinal": 12
+      "data_type": "bigint"
+      "type_schema": "pg_catalog"
+      "type_name": "int8"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "earnings_exceptions":
+      "schema": "public"
+      "relation": "reporting_partner_position_v1"
+      "name": "earnings_exceptions"
+      "ordinal": 13
+      "data_type": "bigint"
+      "type_schema": "pg_catalog"
+      "type_name": "int8"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "settlement_exceptions":
+      "schema": "public"
+      "relation": "reporting_partner_position_v1"
+      "name": "settlement_exceptions"
+      "ordinal": 14
+      "data_type": "bigint"
+      "type_schema": "pg_catalog"
+      "type_name": "int8"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "undated_pending":
+      "schema": "public"
+      "relation": "reporting_partner_position_v1"
+      "name": "undated_pending"
+      "ordinal": 15
+      "data_type": "bigint"
+      "type_schema": "pg_catalog"
+      "type_name": "int8"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "pool":
+      "schema": "public"
+      "relation": "reporting_partner_position_v1"
+      "name": "pool"
+      "ordinal": 16
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "allocation_residual":
+      "schema": "public"
+      "relation": "reporting_partner_position_v1"
+      "name": "allocation_residual"
+      "ordinal": 17
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "net_earned":
+      "schema": "public"
+      "relation": "reporting_partner_position_v1"
+      "name": "net_earned"
+      "ordinal": 18
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "capital_share":
+      "schema": "public"
+      "relation": "reporting_partner_position_v1"
+      "name": "capital_share"
+      "ordinal": 19
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "ready":
+      "schema": "public"
+      "relation": "reporting_partner_position_v1"
+      "name": "ready"
+      "ordinal": 20
+      "data_type": "boolean"
+      "type_schema": "pg_catalog"
+      "type_name": "bool"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "unpaid":
+      "schema": "public"
+      "relation": "reporting_partner_position_v1"
+      "name": "unpaid"
+      "ordinal": 21
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "available":
+      "schema": "public"
+      "relation": "reporting_partner_position_v1"
+      "name": "available"
+      "ordinal": 22
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "other_reserved":
+      "schema": "public"
+      "relation": "reporting_partner_position_v1"
+      "name": "other_reserved"
+      "ordinal": 23
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "quality_status":
+      "schema": "public"
+      "relation": "reporting_partner_position_v1"
+      "name": "quality_status"
+      "ordinal": 24
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "queried_at":
+      "schema": "public"
+      "relation": "reporting_partner_position_v1"
+      "name": "queried_at"
+      "ordinal": 25
+      "data_type": "timestamp without time zone"
+      "type_schema": "pg_catalog"
+      "type_name": "timestamp"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+  "constraints": {}
+  "indexes": {}
+  "triggers": {}
+  "policies": {}
+  "dependencies":
+  - "schema": "public"
+    "relation": "reporting_partner_position_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Partners"
+    "referenced_column": "Partner Name"
+  - "schema": "public"
+    "relation": "reporting_partner_position_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Partners"
+    "referenced_column": "Partner Role"
+  - "schema": "public"
+    "relation": "reporting_partner_position_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Partners"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "reporting_partner_position_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Interest Paid"
+  - "schema": "public"
+    "relation": "reporting_partner_position_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Partner A Profit"
+  - "schema": "public"
+    "relation": "reporting_partner_position_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Partner B Profit"
+  - "schema": "public"
+    "relation": "reporting_partner_position_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_partner_capital_v1"
+    "referenced_column": "activity_date"
+  - "schema": "public"
+    "relation": "reporting_partner_position_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_partner_capital_v1"
+    "referenced_column": "net_movement"
+  - "schema": "public"
+    "relation": "reporting_partner_position_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_partner_capital_v1"
+    "referenced_column": "partner_id"
+  - "schema": "public"
+    "relation": "reporting_partner_position_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_partner_capital_v1"
+    "referenced_column": "valid"
+  - "schema": "public"
+    "relation": "reporting_partner_position_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_partner_earnings_v1"
+    "referenced_column": "activity_date"
+  - "schema": "public"
+    "relation": "reporting_partner_position_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_partner_earnings_v1"
+    "referenced_column": "allocated_expense"
+  - "schema": "public"
+    "relation": "reporting_partner_position_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_partner_earnings_v1"
+    "referenced_column": "allocated_interest"
+  - "schema": "public"
+    "relation": "reporting_partner_position_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_partner_earnings_v1"
+    "referenced_column": "partner_id"
+  - "schema": "public"
+    "relation": "reporting_partner_position_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_partner_earnings_v1"
+    "referenced_column": "valid"
+  - "schema": "public"
+    "relation": "reporting_partner_position_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_partner_settlements_v1"
+    "referenced_column": "activity_date"
+  - "schema": "public"
+    "relation": "reporting_partner_position_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_partner_settlements_v1"
+    "referenced_column": "completed_amount"
+  - "schema": "public"
+    "relation": "reporting_partner_position_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_partner_settlements_v1"
+    "referenced_column": "partner_id"
+  - "schema": "public"
+    "relation": "reporting_partner_position_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_partner_settlements_v1"
+    "referenced_column": "pending_amount"
+  - "schema": "public"
+    "relation": "reporting_partner_position_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_partner_settlements_v1"
+    "referenced_column": "reserved_amount"
+  - "schema": "public"
+    "relation": "reporting_partner_position_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_partner_settlements_v1"
+    "referenced_column": "status"
+  - "schema": "public"
+    "relation": "reporting_partner_position_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_partner_settlements_v1"
+    "referenced_column": "valid"
+"evidence":
+  "/content/definition/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"

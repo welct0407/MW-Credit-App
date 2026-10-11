@@ -1,282 +1,197 @@
-{
-  "format": 1,
-  "identity": {
-    "system": "postgresql",
-    "component": "loan_manager_dev",
-    "kind": "relation",
-    "name": "public.pwa_notification_deliveries",
-    "scope": "development:R052-command"
-  },
-  "content": {
-    "release": "R052",
-    "status": "DEV87 present; approved V86 governance state is inactive for launch; PROD77 has no corresponding migration applied.",
-    "observedAt": "2026-10-11T12:42:15.709Z",
-    "catalog_observation": {
-      "name": "pwa_notification_deliveries",
-      "owner": "postgres",
-      "acl": "{postgres=arwdDxtm/postgres}",
-      "comment": "mw-access:governance notification fenced delivery state",
-      "columns": [
-        {
-          "name": "delivery_id",
-          "type": "uuid",
-          "not_null": true,
-          "default": "gen_random_uuid()",
-          "acl": null
-        },
-        {
-          "name": "event_id",
-          "type": "uuid",
-          "not_null": true,
-          "default": null,
-          "acl": null
-        },
-        {
-          "name": "channel",
-          "type": "text",
-          "not_null": true,
-          "default": null,
-          "acl": null
-        },
-        {
-          "name": "destination_key",
-          "type": "text",
-          "not_null": true,
-          "default": null,
-          "acl": null
-        },
-        {
-          "name": "recipient_partner_id",
-          "type": "text",
-          "not_null": true,
-          "default": null,
-          "acl": null
-        },
-        {
-          "name": "subscription_id",
-          "type": "uuid",
-          "not_null": true,
-          "default": null,
-          "acl": null
-        },
-        {
-          "name": "subscription_version",
-          "type": "bigint",
-          "not_null": true,
-          "default": null,
-          "acl": null
-        },
-        {
-          "name": "state",
-          "type": "text",
-          "not_null": true,
-          "default": "'pending'::text",
-          "acl": null
-        },
-        {
-          "name": "lease_generation",
-          "type": "bigint",
-          "not_null": true,
-          "default": "0",
-          "acl": null
-        },
-        {
-          "name": "lease_expires_at",
-          "type": "timestamp with time zone",
-          "not_null": false,
-          "default": null,
-          "acl": null
-        },
-        {
-          "name": "send_started_at",
-          "type": "timestamp with time zone",
-          "not_null": false,
-          "default": null,
-          "acl": null
-        },
-        {
-          "name": "attempts",
-          "type": "integer",
-          "not_null": true,
-          "default": "0",
-          "acl": null
-        },
-        {
-          "name": "next_attempt_at",
-          "type": "timestamp with time zone",
-          "not_null": true,
-          "default": "clock_timestamp()",
-          "acl": null
-        },
-        {
-          "name": "provider_result",
-          "type": "text",
-          "not_null": false,
-          "default": null,
-          "acl": null
-        },
-        {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "not_null": true,
-          "default": "clock_timestamp()",
-          "acl": null
-        },
-        {
-          "name": "completed_at",
-          "type": "timestamp with time zone",
-          "not_null": false,
-          "default": null,
-          "acl": null
-        }
-      ],
-      "constraints": [
-        {
-          "name": "pwa_notification_deliveries_attempts_check",
-          "type": "c",
-          "definition": "CHECK (((attempts >= 0) AND (attempts <= 8)))"
-        },
-        {
-          "name": "pwa_notification_deliveries_attempts_not_null",
-          "type": "n",
-          "definition": "NOT NULL attempts"
-        },
-        {
-          "name": "pwa_notification_deliveries_channel_check",
-          "type": "c",
-          "definition": "CHECK ((channel = 'web-push'::text))"
-        },
-        {
-          "name": "pwa_notification_deliveries_channel_not_null",
-          "type": "n",
-          "definition": "NOT NULL channel"
-        },
-        {
-          "name": "pwa_notification_deliveries_check",
-          "type": "c",
-          "definition": "CHECK (((state = 'leased'::text) = (lease_expires_at IS NOT NULL)))"
-        },
-        {
-          "name": "pwa_notification_deliveries_created_at_not_null",
-          "type": "n",
-          "definition": "NOT NULL created_at"
-        },
-        {
-          "name": "pwa_notification_deliveries_delivery_id_not_null",
-          "type": "n",
-          "definition": "NOT NULL delivery_id"
-        },
-        {
-          "name": "pwa_notification_deliveries_destination_key_check",
-          "type": "c",
-          "definition": "CHECK ((destination_key ~ '^[a-f0-9]{64}$'::text))"
-        },
-        {
-          "name": "pwa_notification_deliveries_destination_key_not_null",
-          "type": "n",
-          "definition": "NOT NULL destination_key"
-        },
-        {
-          "name": "pwa_notification_deliveries_event_id_channel_destination_ke_key",
-          "type": "u",
-          "definition": "UNIQUE (event_id, channel, destination_key)"
-        },
-        {
-          "name": "pwa_notification_deliveries_event_id_fkey",
-          "type": "f",
-          "definition": "FOREIGN KEY (event_id) REFERENCES pwa_notification_events(event_id)"
-        },
-        {
-          "name": "pwa_notification_deliveries_event_id_not_null",
-          "type": "n",
-          "definition": "NOT NULL event_id"
-        },
-        {
-          "name": "pwa_notification_deliveries_lease_generation_check",
-          "type": "c",
-          "definition": "CHECK ((lease_generation >= 0))"
-        },
-        {
-          "name": "pwa_notification_deliveries_lease_generation_not_null",
-          "type": "n",
-          "definition": "NOT NULL lease_generation"
-        },
-        {
-          "name": "pwa_notification_deliveries_next_attempt_at_not_null",
-          "type": "n",
-          "definition": "NOT NULL next_attempt_at"
-        },
-        {
-          "name": "pwa_notification_deliveries_pkey",
-          "type": "p",
-          "definition": "PRIMARY KEY (delivery_id)"
-        },
-        {
-          "name": "pwa_notification_deliveries_provider_result_check",
-          "type": "c",
-          "definition": "CHECK ((provider_result = ANY (ARRAY['accepted'::text, 'expired'::text, 'throttled'::text, 'unavailable'::text, 'network'::text, 'rejected'::text, 'ineligible'::text, 'lease_expired'::text])))"
-        },
-        {
-          "name": "pwa_notification_deliveries_recipient_partner_id_check",
-          "type": "c",
-          "definition": "CHECK (((length(recipient_partner_id) >= 1) AND (length(recipient_partner_id) <= 256)))"
-        },
-        {
-          "name": "pwa_notification_deliveries_recipient_partner_id_not_null",
-          "type": "n",
-          "definition": "NOT NULL recipient_partner_id"
-        },
-        {
-          "name": "pwa_notification_deliveries_state_check",
-          "type": "c",
-          "definition": "CHECK ((state = ANY (ARRAY['pending'::text, 'leased'::text, 'sent'::text, 'retry'::text, 'uncertain'::text, 'cancelled'::text, 'dead'::text])))"
-        },
-        {
-          "name": "pwa_notification_deliveries_state_not_null",
-          "type": "n",
-          "definition": "NOT NULL state"
-        },
-        {
-          "name": "pwa_notification_deliveries_subscription_id_fkey",
-          "type": "f",
-          "definition": "FOREIGN KEY (subscription_id) REFERENCES pwa_push_subscriptions(subscription_id)"
-        },
-        {
-          "name": "pwa_notification_deliveries_subscription_id_not_null",
-          "type": "n",
-          "definition": "NOT NULL subscription_id"
-        },
-        {
-          "name": "pwa_notification_deliveries_subscription_version_check",
-          "type": "c",
-          "definition": "CHECK ((subscription_version > 0))"
-        },
-        {
-          "name": "pwa_notification_deliveries_subscription_version_not_null",
-          "type": "n",
-          "definition": "NOT NULL subscription_version"
-        }
-      ],
-      "indexes": [
-        {
-          "name": "pwa_notification_deliveries_event_id_channel_destination_ke_key",
-          "definition": "CREATE UNIQUE INDEX pwa_notification_deliveries_event_id_channel_destination_ke_key ON public.pwa_notification_deliveries USING btree (event_id, channel, destination_key)"
-        },
-        {
-          "name": "pwa_notification_deliveries_pkey",
-          "definition": "CREATE UNIQUE INDEX pwa_notification_deliveries_pkey ON public.pwa_notification_deliveries USING btree (delivery_id)"
-        },
-        {
-          "name": "pwa_notification_delivery_due",
-          "definition": "CREATE INDEX pwa_notification_delivery_due ON public.pwa_notification_deliveries USING btree (next_attempt_at, delivery_id) WHERE (state = ANY (ARRAY['pending'::text, 'retry'::text]))"
-        }
-      ]
-    },
-    "currentMigration": 87
-  },
-  "verification": {
-    "status": "documented",
-    "source": "https://github.com/welct0407/MW-Credit-App/blob/codex/r052-review-shell/outputs/r052-promotion-readiness/dev87-model-catalog.json",
-    "coverage": "Actual bounded DEV87 catalog; current fields below supersede dated retained observations. PROD77 and AppSheet definitions unchanged."
-  }
-}
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_dev"
+  "kind": "relation"
+  "name": "public.pwa_notification_deliveries"
+  "scope": "development:R052-command"
+"content":
+  "release": "R052"
+  "status": "SQL scope promoted to PROD V87; retained DEV observations are dated evidence. Environment-specific roles and\
+    \ bindings remain intentional; notifications and replacement jobs remain deferred."
+  "observedAt": "2026-10-11T12:42:15.709Z"
+  "catalog_observation":
+    "name": "pwa_notification_deliveries"
+    "owner": "postgres"
+    "acl": "{postgres=arwdDxtm/postgres}"
+    "comment": "mw-access:governance notification fenced delivery state"
+    "columns":
+    - "name": "delivery_id"
+      "type": "uuid"
+      "not_null": true
+      "default": "gen_random_uuid()"
+      "acl": null
+    - "name": "event_id"
+      "type": "uuid"
+      "not_null": true
+      "default": null
+      "acl": null
+    - "name": "channel"
+      "type": "text"
+      "not_null": true
+      "default": null
+      "acl": null
+    - "name": "destination_key"
+      "type": "text"
+      "not_null": true
+      "default": null
+      "acl": null
+    - "name": "recipient_partner_id"
+      "type": "text"
+      "not_null": true
+      "default": null
+      "acl": null
+    - "name": "subscription_id"
+      "type": "uuid"
+      "not_null": true
+      "default": null
+      "acl": null
+    - "name": "subscription_version"
+      "type": "bigint"
+      "not_null": true
+      "default": null
+      "acl": null
+    - "name": "state"
+      "type": "text"
+      "not_null": true
+      "default": "'pending'::text"
+      "acl": null
+    - "name": "lease_generation"
+      "type": "bigint"
+      "not_null": true
+      "default": "0"
+      "acl": null
+    - "name": "lease_expires_at"
+      "type": "timestamp with time zone"
+      "not_null": false
+      "default": null
+      "acl": null
+    - "name": "send_started_at"
+      "type": "timestamp with time zone"
+      "not_null": false
+      "default": null
+      "acl": null
+    - "name": "attempts"
+      "type": "integer"
+      "not_null": true
+      "default": "0"
+      "acl": null
+    - "name": "next_attempt_at"
+      "type": "timestamp with time zone"
+      "not_null": true
+      "default": "clock_timestamp()"
+      "acl": null
+    - "name": "provider_result"
+      "type": "text"
+      "not_null": false
+      "default": null
+      "acl": null
+    - "name": "created_at"
+      "type": "timestamp with time zone"
+      "not_null": true
+      "default": "clock_timestamp()"
+      "acl": null
+    - "name": "completed_at"
+      "type": "timestamp with time zone"
+      "not_null": false
+      "default": null
+      "acl": null
+    "constraints":
+    - "name": "pwa_notification_deliveries_attempts_check"
+      "type": "c"
+      "definition": "CHECK (((attempts >= 0) AND (attempts <= 8)))"
+    - "name": "pwa_notification_deliveries_attempts_not_null"
+      "type": "n"
+      "definition": "NOT NULL attempts"
+    - "name": "pwa_notification_deliveries_channel_check"
+      "type": "c"
+      "definition": "CHECK ((channel = 'web-push'::text))"
+    - "name": "pwa_notification_deliveries_channel_not_null"
+      "type": "n"
+      "definition": "NOT NULL channel"
+    - "name": "pwa_notification_deliveries_check"
+      "type": "c"
+      "definition": "CHECK (((state = 'leased'::text) = (lease_expires_at IS NOT NULL)))"
+    - "name": "pwa_notification_deliveries_created_at_not_null"
+      "type": "n"
+      "definition": "NOT NULL created_at"
+    - "name": "pwa_notification_deliveries_delivery_id_not_null"
+      "type": "n"
+      "definition": "NOT NULL delivery_id"
+    - "name": "pwa_notification_deliveries_destination_key_check"
+      "type": "c"
+      "definition": "CHECK ((destination_key ~ '^[a-f0-9]{64}$'::text))"
+    - "name": "pwa_notification_deliveries_destination_key_not_null"
+      "type": "n"
+      "definition": "NOT NULL destination_key"
+    - "name": "pwa_notification_deliveries_event_id_channel_destination_ke_key"
+      "type": "u"
+      "definition": "UNIQUE (event_id, channel, destination_key)"
+    - "name": "pwa_notification_deliveries_event_id_fkey"
+      "type": "f"
+      "definition": "FOREIGN KEY (event_id) REFERENCES pwa_notification_events(event_id)"
+    - "name": "pwa_notification_deliveries_event_id_not_null"
+      "type": "n"
+      "definition": "NOT NULL event_id"
+    - "name": "pwa_notification_deliveries_lease_generation_check"
+      "type": "c"
+      "definition": "CHECK ((lease_generation >= 0))"
+    - "name": "pwa_notification_deliveries_lease_generation_not_null"
+      "type": "n"
+      "definition": "NOT NULL lease_generation"
+    - "name": "pwa_notification_deliveries_next_attempt_at_not_null"
+      "type": "n"
+      "definition": "NOT NULL next_attempt_at"
+    - "name": "pwa_notification_deliveries_pkey"
+      "type": "p"
+      "definition": "PRIMARY KEY (delivery_id)"
+    - "name": "pwa_notification_deliveries_provider_result_check"
+      "type": "c"
+      "definition": "CHECK ((provider_result = ANY (ARRAY['accepted'::text, 'expired'::text, 'throttled'::text, 'unavailable'::text,\
+        \ 'network'::text, 'rejected'::text, 'ineligible'::text, 'lease_expired'::text])))"
+    - "name": "pwa_notification_deliveries_recipient_partner_id_check"
+      "type": "c"
+      "definition": "CHECK (((length(recipient_partner_id) >= 1) AND (length(recipient_partner_id) <= 256)))"
+    - "name": "pwa_notification_deliveries_recipient_partner_id_not_null"
+      "type": "n"
+      "definition": "NOT NULL recipient_partner_id"
+    - "name": "pwa_notification_deliveries_state_check"
+      "type": "c"
+      "definition": "CHECK ((state = ANY (ARRAY['pending'::text, 'leased'::text, 'sent'::text, 'retry'::text, 'uncertain'::text,\
+        \ 'cancelled'::text, 'dead'::text])))"
+    - "name": "pwa_notification_deliveries_state_not_null"
+      "type": "n"
+      "definition": "NOT NULL state"
+    - "name": "pwa_notification_deliveries_subscription_id_fkey"
+      "type": "f"
+      "definition": "FOREIGN KEY (subscription_id) REFERENCES pwa_push_subscriptions(subscription_id)"
+    - "name": "pwa_notification_deliveries_subscription_id_not_null"
+      "type": "n"
+      "definition": "NOT NULL subscription_id"
+    - "name": "pwa_notification_deliveries_subscription_version_check"
+      "type": "c"
+      "definition": "CHECK ((subscription_version > 0))"
+    - "name": "pwa_notification_deliveries_subscription_version_not_null"
+      "type": "n"
+      "definition": "NOT NULL subscription_version"
+    "indexes":
+    - "name": "pwa_notification_deliveries_event_id_channel_destination_ke_key"
+      "definition": "CREATE UNIQUE INDEX pwa_notification_deliveries_event_id_channel_destination_ke_key ON public.pwa_notification_deliveries\
+        \ USING btree (event_id, channel, destination_key)"
+    - "name": "pwa_notification_deliveries_pkey"
+      "definition": "CREATE UNIQUE INDEX pwa_notification_deliveries_pkey ON public.pwa_notification_deliveries USING btree\
+        \ (delivery_id)"
+    - "name": "pwa_notification_delivery_due"
+      "definition": "CREATE INDEX pwa_notification_delivery_due ON public.pwa_notification_deliveries USING btree (next_attempt_at,\
+        \ delivery_id) WHERE (state = ANY (ARRAY['pending'::text, 'retry'::text]))"
+  "currentMigration": 87
+  "production_delivery":
+    "evidence": "outputs/r052/dictionary-production-closure.json"
+    "PostgreSQL": 87
+    "observedAt": "2026-10-11T14:01:01.082491+00:00"
+    "scope": "SQL definitions/capability only; no AppSheet definition upgrade or notification/job activation."
+"verification":
+  "status": "documented"
+  "source": "https://github.com/welct0407/MW-Credit-App/blob/codex/r052-review-shell/outputs/r052-promotion-readiness/dev87-model-catalog.json"
+  "coverage": "Dated DEV observation; current production delivery is recorded in content.production_delivery and canonical\
+    \ PROD objects."

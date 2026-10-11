@@ -1,117 +1,86 @@
-{
-  "format": 1,
-  "identity": {
-    "system": "postgresql",
-    "component": "loan_manager_dev",
-    "kind": "relation",
-    "name": "public.pwa_notification_preferences",
-    "scope": "development:R052-command"
-  },
-  "content": {
-    "release": "R052",
-    "status": "DEV87 present; approved V86 governance state is inactive for launch; PROD77 has no corresponding migration applied.",
-    "observedAt": "2026-10-11T12:42:15.709Z",
-    "catalog_observation": {
-      "name": "pwa_notification_preferences",
-      "owner": "postgres",
-      "acl": "{postgres=arwdDxtm/postgres}",
-      "comment": "mw-access:governance authenticated notification preferences",
-      "columns": [
-        {
-          "name": "partner_id",
-          "type": "text",
-          "not_null": true,
-          "default": null,
-          "acl": null
-        },
-        {
-          "name": "channel",
-          "type": "text",
-          "not_null": true,
-          "default": null,
-          "acl": null
-        },
-        {
-          "name": "enabled",
-          "type": "boolean",
-          "not_null": true,
-          "default": null,
-          "acl": null
-        },
-        {
-          "name": "version",
-          "type": "bigint",
-          "not_null": true,
-          "default": "1",
-          "acl": null
-        },
-        {
-          "name": "updated_at",
-          "type": "timestamp with time zone",
-          "not_null": true,
-          "default": "clock_timestamp()",
-          "acl": null
-        }
-      ],
-      "constraints": [
-        {
-          "name": "pwa_notification_preferences_channel_check",
-          "type": "c",
-          "definition": "CHECK ((channel = 'web-push'::text))"
-        },
-        {
-          "name": "pwa_notification_preferences_channel_not_null",
-          "type": "n",
-          "definition": "NOT NULL channel"
-        },
-        {
-          "name": "pwa_notification_preferences_enabled_not_null",
-          "type": "n",
-          "definition": "NOT NULL enabled"
-        },
-        {
-          "name": "pwa_notification_preferences_partner_id_check",
-          "type": "c",
-          "definition": "CHECK (((length(partner_id) >= 1) AND (length(partner_id) <= 256)))"
-        },
-        {
-          "name": "pwa_notification_preferences_partner_id_not_null",
-          "type": "n",
-          "definition": "NOT NULL partner_id"
-        },
-        {
-          "name": "pwa_notification_preferences_pkey",
-          "type": "p",
-          "definition": "PRIMARY KEY (partner_id, channel)"
-        },
-        {
-          "name": "pwa_notification_preferences_updated_at_not_null",
-          "type": "n",
-          "definition": "NOT NULL updated_at"
-        },
-        {
-          "name": "pwa_notification_preferences_version_check",
-          "type": "c",
-          "definition": "CHECK ((version > 0))"
-        },
-        {
-          "name": "pwa_notification_preferences_version_not_null",
-          "type": "n",
-          "definition": "NOT NULL version"
-        }
-      ],
-      "indexes": [
-        {
-          "name": "pwa_notification_preferences_pkey",
-          "definition": "CREATE UNIQUE INDEX pwa_notification_preferences_pkey ON public.pwa_notification_preferences USING btree (partner_id, channel)"
-        }
-      ]
-    },
-    "currentMigration": 87
-  },
-  "verification": {
-    "status": "documented",
-    "source": "https://github.com/welct0407/MW-Credit-App/blob/codex/r052-review-shell/outputs/r052-promotion-readiness/dev87-model-catalog.json",
-    "coverage": "Actual bounded DEV87 catalog; current fields below supersede dated retained observations. PROD77 and AppSheet definitions unchanged."
-  }
-}
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_dev"
+  "kind": "relation"
+  "name": "public.pwa_notification_preferences"
+  "scope": "development:R052-command"
+"content":
+  "release": "R052"
+  "status": "SQL scope promoted to PROD V87; retained DEV observations are dated evidence. Environment-specific roles and\
+    \ bindings remain intentional; notifications and replacement jobs remain deferred."
+  "observedAt": "2026-10-11T12:42:15.709Z"
+  "catalog_observation":
+    "name": "pwa_notification_preferences"
+    "owner": "postgres"
+    "acl": "{postgres=arwdDxtm/postgres}"
+    "comment": "mw-access:governance authenticated notification preferences"
+    "columns":
+    - "name": "partner_id"
+      "type": "text"
+      "not_null": true
+      "default": null
+      "acl": null
+    - "name": "channel"
+      "type": "text"
+      "not_null": true
+      "default": null
+      "acl": null
+    - "name": "enabled"
+      "type": "boolean"
+      "not_null": true
+      "default": null
+      "acl": null
+    - "name": "version"
+      "type": "bigint"
+      "not_null": true
+      "default": "1"
+      "acl": null
+    - "name": "updated_at"
+      "type": "timestamp with time zone"
+      "not_null": true
+      "default": "clock_timestamp()"
+      "acl": null
+    "constraints":
+    - "name": "pwa_notification_preferences_channel_check"
+      "type": "c"
+      "definition": "CHECK ((channel = 'web-push'::text))"
+    - "name": "pwa_notification_preferences_channel_not_null"
+      "type": "n"
+      "definition": "NOT NULL channel"
+    - "name": "pwa_notification_preferences_enabled_not_null"
+      "type": "n"
+      "definition": "NOT NULL enabled"
+    - "name": "pwa_notification_preferences_partner_id_check"
+      "type": "c"
+      "definition": "CHECK (((length(partner_id) >= 1) AND (length(partner_id) <= 256)))"
+    - "name": "pwa_notification_preferences_partner_id_not_null"
+      "type": "n"
+      "definition": "NOT NULL partner_id"
+    - "name": "pwa_notification_preferences_pkey"
+      "type": "p"
+      "definition": "PRIMARY KEY (partner_id, channel)"
+    - "name": "pwa_notification_preferences_updated_at_not_null"
+      "type": "n"
+      "definition": "NOT NULL updated_at"
+    - "name": "pwa_notification_preferences_version_check"
+      "type": "c"
+      "definition": "CHECK ((version > 0))"
+    - "name": "pwa_notification_preferences_version_not_null"
+      "type": "n"
+      "definition": "NOT NULL version"
+    "indexes":
+    - "name": "pwa_notification_preferences_pkey"
+      "definition": "CREATE UNIQUE INDEX pwa_notification_preferences_pkey ON public.pwa_notification_preferences USING btree\
+        \ (partner_id, channel)"
+  "currentMigration": 87
+  "production_delivery":
+    "evidence": "outputs/r052/dictionary-production-closure.json"
+    "PostgreSQL": 87
+    "observedAt": "2026-10-11T14:01:01.082491+00:00"
+    "scope": "SQL definitions/capability only; no AppSheet definition upgrade or notification/job activation."
+"verification":
+  "status": "documented"
+  "source": "https://github.com/welct0407/MW-Credit-App/blob/codex/r052-review-shell/outputs/r052-promotion-readiness/dev87-model-catalog.json"
+  "coverage": "Dated DEV observation; current production delivery is recorded in content.production_delivery and canonical\
+    \ PROD objects."

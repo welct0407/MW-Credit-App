@@ -1,289 +1,288 @@
-{
-  "format": 1,
-  "identity": {
-    "system": "postgresql",
-    "component": "loan_manager_prod",
-    "kind": "relation",
-    "name": "public.reporting_partner_capital_v1",
-    "scope": "production"
-  },
-  "verification": {
-    "status": "documented",
-    "source": "outputs/r044-partners/dictionary-catalog.json"
-  },
-  "content": {
-    "definition": {
-      "schema": "public",
-      "name": "reporting_partner_capital_v1",
-      "kind": "v",
-      "owner": "postgres",
-      "row_security": false,
-      "force_row_security": false,
-      "replica_identity": "n",
-      "persistence": "p",
-      "is_partition": false,
-      "options": null,
-      "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,metabase_borrower_reader=r/postgres}",
-      "comment": null,
-      "view_definition": " SELECT c.\"Row ID\" AS capital_id,\n    c.\"Ref Partner\" AS partner_id,\n    p.\"Partner Name\" AS partner_name,\n    p.\"Partner Role\" AS partner_role,\n    c.\"Contribution Date\" AS activity_date,\n    c.\"Transaction Type\" AS transaction_type,\n    c.\"Amount\"::numeric AS amount,\n        CASE\n            WHEN c.\"Transaction Type\" = 'Contribution'::text THEN c.\"Amount\"::numeric\n            ELSE - c.\"Amount\"::numeric\n        END AS net_movement,\n    ((p.\"Partner Role\" = ANY (ARRAY['A'::text, 'B'::text])) AND c.\"Amount\" IS NOT NULL AND c.\"Contribution Date\" IS NOT NULL AND (c.\"Transaction Type\" = ANY (ARRAY['Contribution'::text, 'Withdrawal'::text]))) IS TRUE AS valid\n   FROM \"Cash Pool Contributions\" c\n     LEFT JOIN \"Partners\" p ON p.\"Row ID\" = c.\"Ref Partner\";",
-      "partition_key": null,
-      "partition_bound": null,
-      "parents": null,
-      "extension": null
-    },
-    "development_definition": {
-      "schema": "public",
-      "name": "reporting_partner_capital_v1",
-      "kind": "v",
-      "owner": "postgres",
-      "row_security": false,
-      "force_row_security": false,
-      "replica_identity": "n",
-      "persistence": "p",
-      "is_partition": false,
-      "options": null,
-      "acl": "{postgres=arwdDxtm/postgres,metabase_borrower_reader=r/postgres}",
-      "comment": null,
-      "view_definition": " SELECT c.\"Row ID\" AS capital_id,\n    c.\"Ref Partner\" AS partner_id,\n    p.\"Partner Name\" AS partner_name,\n    p.\"Partner Role\" AS partner_role,\n    c.\"Contribution Date\" AS activity_date,\n    c.\"Transaction Type\" AS transaction_type,\n    c.\"Amount\"::numeric AS amount,\n        CASE\n            WHEN c.\"Transaction Type\" = 'Contribution'::text THEN c.\"Amount\"::numeric\n            ELSE - c.\"Amount\"::numeric\n        END AS net_movement,\n    ((p.\"Partner Role\" = ANY (ARRAY['A'::text, 'B'::text])) AND c.\"Amount\" IS NOT NULL AND c.\"Contribution Date\" IS NOT NULL AND (c.\"Transaction Type\" = ANY (ARRAY['Contribution'::text, 'Withdrawal'::text]))) IS TRUE AS valid\n   FROM \"Cash Pool Contributions\" c\n     LEFT JOIN \"Partners\" p ON p.\"Row ID\" = c.\"Ref Partner\";",
-      "partition_key": null,
-      "partition_bound": null,
-      "parents": null,
-      "extension": null
-    },
-    "columns": {
-      "capital_id": {
-        "schema": "public",
-        "relation": "reporting_partner_capital_v1",
-        "name": "capital_id",
-        "ordinal": 1,
-        "data_type": "text",
-        "type_schema": "pg_catalog",
-        "type_name": "text",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "x",
-        "compression": "",
-        "default_expression": null,
-        "collation": "\"default\"",
-        "acl": null,
-        "comment": null
-      },
-      "partner_id": {
-        "schema": "public",
-        "relation": "reporting_partner_capital_v1",
-        "name": "partner_id",
-        "ordinal": 2,
-        "data_type": "text",
-        "type_schema": "pg_catalog",
-        "type_name": "text",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "x",
-        "compression": "",
-        "default_expression": null,
-        "collation": "\"default\"",
-        "acl": null,
-        "comment": null
-      },
-      "partner_name": {
-        "schema": "public",
-        "relation": "reporting_partner_capital_v1",
-        "name": "partner_name",
-        "ordinal": 3,
-        "data_type": "text",
-        "type_schema": "pg_catalog",
-        "type_name": "text",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "x",
-        "compression": "",
-        "default_expression": null,
-        "collation": "\"default\"",
-        "acl": null,
-        "comment": null
-      },
-      "partner_role": {
-        "schema": "public",
-        "relation": "reporting_partner_capital_v1",
-        "name": "partner_role",
-        "ordinal": 4,
-        "data_type": "text",
-        "type_schema": "pg_catalog",
-        "type_name": "text",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "x",
-        "compression": "",
-        "default_expression": null,
-        "collation": "\"default\"",
-        "acl": null,
-        "comment": null
-      },
-      "activity_date": {
-        "schema": "public",
-        "relation": "reporting_partner_capital_v1",
-        "name": "activity_date",
-        "ordinal": 5,
-        "data_type": "date",
-        "type_schema": "pg_catalog",
-        "type_name": "date",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "p",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "transaction_type": {
-        "schema": "public",
-        "relation": "reporting_partner_capital_v1",
-        "name": "transaction_type",
-        "ordinal": 6,
-        "data_type": "text",
-        "type_schema": "pg_catalog",
-        "type_name": "text",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "x",
-        "compression": "",
-        "default_expression": null,
-        "collation": "\"default\"",
-        "acl": null,
-        "comment": null
-      },
-      "amount": {
-        "schema": "public",
-        "relation": "reporting_partner_capital_v1",
-        "name": "amount",
-        "ordinal": 7,
-        "data_type": "numeric",
-        "type_schema": "pg_catalog",
-        "type_name": "numeric",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "m",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "net_movement": {
-        "schema": "public",
-        "relation": "reporting_partner_capital_v1",
-        "name": "net_movement",
-        "ordinal": 8,
-        "data_type": "numeric",
-        "type_schema": "pg_catalog",
-        "type_name": "numeric",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "m",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "valid": {
-        "schema": "public",
-        "relation": "reporting_partner_capital_v1",
-        "name": "valid",
-        "ordinal": 9,
-        "data_type": "boolean",
-        "type_schema": "pg_catalog",
-        "type_name": "bool",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "p",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      }
-    },
-    "constraints": {},
-    "indexes": {},
-    "triggers": {},
-    "policies": {},
-    "dependencies": [
-      {
-        "schema": "public",
-        "relation": "reporting_partner_capital_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Cash Pool Contributions",
-        "referenced_column": "Amount"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_partner_capital_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Cash Pool Contributions",
-        "referenced_column": "Contribution Date"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_partner_capital_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Cash Pool Contributions",
-        "referenced_column": "Ref Partner"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_partner_capital_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Cash Pool Contributions",
-        "referenced_column": "Row ID"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_partner_capital_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Cash Pool Contributions",
-        "referenced_column": "Transaction Type"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_partner_capital_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Partners",
-        "referenced_column": "Partner Name"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_partner_capital_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Partners",
-        "referenced_column": "Partner Role"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_partner_capital_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Partners",
-        "referenced_column": "Row ID"
-      }
-    ]
-  }
-}
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "relation"
+  "name": "public.reporting_partner_capital_v1"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r044-partners/dictionary-catalog.json"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "reporting_partner_capital_v1"
+    "kind": "v"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "n"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,metabase_borrower_reader=r/postgres,mw_app_prod=r/postgres}"
+    "comment": null
+    "view_definition": |2-
+       SELECT c."Row ID" AS capital_id,
+          c."Ref Partner" AS partner_id,
+          p."Partner Name" AS partner_name,
+          p."Partner Role" AS partner_role,
+          c."Contribution Date" AS activity_date,
+          c."Transaction Type" AS transaction_type,
+          c."Amount"::numeric AS amount,
+              CASE
+                  WHEN c."Transaction Type" = 'Contribution'::text THEN c."Amount"::numeric
+                  ELSE - c."Amount"::numeric
+              END AS net_movement,
+          ((p."Partner Role" = ANY (ARRAY['A'::text, 'B'::text])) AND c."Amount" IS NOT NULL AND c."Contribution Date" IS NOT NULL AND (c."Transaction Type" = ANY (ARRAY['Contribution'::text, 'Withdrawal'::text]))) IS TRUE AS valid
+         FROM "Cash Pool Contributions" c
+           LEFT JOIN "Partners" p ON p."Row ID" = c."Ref Partner";
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "development_definition":
+    "schema": "public"
+    "name": "reporting_partner_capital_v1"
+    "kind": "v"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "n"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,metabase_borrower_reader=r/postgres}"
+    "comment": null
+    "view_definition": |2-
+       SELECT c."Row ID" AS capital_id,
+          c."Ref Partner" AS partner_id,
+          p."Partner Name" AS partner_name,
+          p."Partner Role" AS partner_role,
+          c."Contribution Date" AS activity_date,
+          c."Transaction Type" AS transaction_type,
+          c."Amount"::numeric AS amount,
+              CASE
+                  WHEN c."Transaction Type" = 'Contribution'::text THEN c."Amount"::numeric
+                  ELSE - c."Amount"::numeric
+              END AS net_movement,
+          ((p."Partner Role" = ANY (ARRAY['A'::text, 'B'::text])) AND c."Amount" IS NOT NULL AND c."Contribution Date" IS NOT NULL AND (c."Transaction Type" = ANY (ARRAY['Contribution'::text, 'Withdrawal'::text]))) IS TRUE AS valid
+         FROM "Cash Pool Contributions" c
+           LEFT JOIN "Partners" p ON p."Row ID" = c."Ref Partner";
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "columns":
+    "capital_id":
+      "schema": "public"
+      "relation": "reporting_partner_capital_v1"
+      "name": "capital_id"
+      "ordinal": 1
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "partner_id":
+      "schema": "public"
+      "relation": "reporting_partner_capital_v1"
+      "name": "partner_id"
+      "ordinal": 2
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "partner_name":
+      "schema": "public"
+      "relation": "reporting_partner_capital_v1"
+      "name": "partner_name"
+      "ordinal": 3
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "partner_role":
+      "schema": "public"
+      "relation": "reporting_partner_capital_v1"
+      "name": "partner_role"
+      "ordinal": 4
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "activity_date":
+      "schema": "public"
+      "relation": "reporting_partner_capital_v1"
+      "name": "activity_date"
+      "ordinal": 5
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "transaction_type":
+      "schema": "public"
+      "relation": "reporting_partner_capital_v1"
+      "name": "transaction_type"
+      "ordinal": 6
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "amount":
+      "schema": "public"
+      "relation": "reporting_partner_capital_v1"
+      "name": "amount"
+      "ordinal": 7
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "net_movement":
+      "schema": "public"
+      "relation": "reporting_partner_capital_v1"
+      "name": "net_movement"
+      "ordinal": 8
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "valid":
+      "schema": "public"
+      "relation": "reporting_partner_capital_v1"
+      "name": "valid"
+      "ordinal": 9
+      "data_type": "boolean"
+      "type_schema": "pg_catalog"
+      "type_name": "bool"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+  "constraints": {}
+  "indexes": {}
+  "triggers": {}
+  "policies": {}
+  "dependencies":
+  - "schema": "public"
+    "relation": "reporting_partner_capital_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Pool Contributions"
+    "referenced_column": "Amount"
+  - "schema": "public"
+    "relation": "reporting_partner_capital_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Pool Contributions"
+    "referenced_column": "Contribution Date"
+  - "schema": "public"
+    "relation": "reporting_partner_capital_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Pool Contributions"
+    "referenced_column": "Ref Partner"
+  - "schema": "public"
+    "relation": "reporting_partner_capital_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Pool Contributions"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "reporting_partner_capital_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Pool Contributions"
+    "referenced_column": "Transaction Type"
+  - "schema": "public"
+    "relation": "reporting_partner_capital_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Partners"
+    "referenced_column": "Partner Name"
+  - "schema": "public"
+    "relation": "reporting_partner_capital_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Partners"
+    "referenced_column": "Partner Role"
+  - "schema": "public"
+    "relation": "reporting_partner_capital_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Partners"
+    "referenced_column": "Row ID"
+"evidence":
+  "/content/definition/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"

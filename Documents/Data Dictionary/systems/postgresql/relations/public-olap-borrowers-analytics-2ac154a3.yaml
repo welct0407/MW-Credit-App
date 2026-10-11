@@ -21,7 +21,7 @@
     "persistence": "p"
     "is_partition": false
     "options": null
-    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,mw_reviewer_dml=r/postgres,metabase_borrower_reader=r/postgres}"
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,mw_reviewer_dml=r/postgres,metabase_borrower_reader=r/postgres,mw_app_prod=r/postgres}"
     "comment": null
     "view_definition": |2-
        SELECT old_view."Row ID",
@@ -614,7 +614,7 @@
       "compression": ""
       "default_expression": null
       "collation": "\"default\""
-      "acl": "{metabase_borrower_reader=r/postgres}"
+      "acl": "{metabase_borrower_reader=r/postgres,mw_chart_reader=r/postgres}"
       "comment": null
     "Borrower Name":
       "schema": "public"
@@ -650,7 +650,7 @@
       "compression": ""
       "default_expression": null
       "collation": "\"default\""
-      "acl": "{metabase_borrower_reader=r/postgres}"
+      "acl": "{metabase_borrower_reader=r/postgres,mw_chart_reader=r/postgres}"
       "comment": null
     "Creation Date":
       "schema": "public"
@@ -2166,3 +2166,16 @@
     "referenced_schema": "public"
     "referenced_relation": "olap_repayments_analytics"
     "referenced_column": "Ref Loans"
+"evidence":
+  "/content/definition/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"
+  "/content/columns/Description/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"
+  "/content/columns/Row ID/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"

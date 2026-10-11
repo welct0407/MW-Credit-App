@@ -1,0 +1,530 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "relation"
+  "name": "public.pwa_notification_events"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r052/dictionary-production-closure.json"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "pwa_notification_events"
+    "kind": "r"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "d"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres}"
+    "comment": "mw-access:governance notification immutable occurrence; explicit capture authority only"
+    "view_definition": null
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "columns":
+    "event_id":
+      "schema": "public"
+      "relation": "pwa_notification_events"
+      "name": "event_id"
+      "ordinal": 1
+      "data_type": "uuid"
+      "type_schema": "pg_catalog"
+      "type_name": "uuid"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": "gen_random_uuid()"
+      "collation": null
+      "acl": null
+      "comment": null
+    "dedupe_key":
+      "schema": "public"
+      "relation": "pwa_notification_events"
+      "name": "dedupe_key"
+      "ordinal": 2
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "event_type":
+      "schema": "public"
+      "relation": "pwa_notification_events"
+      "name": "event_type"
+      "ordinal": 3
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "source_kind":
+      "schema": "public"
+      "relation": "pwa_notification_events"
+      "name": "source_kind"
+      "ordinal": 4
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "source_id":
+      "schema": "public"
+      "relation": "pwa_notification_events"
+      "name": "source_id"
+      "ordinal": 5
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "source_version":
+      "schema": "public"
+      "relation": "pwa_notification_events"
+      "name": "source_version"
+      "ordinal": 6
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "actor_partner_id":
+      "schema": "public"
+      "relation": "pwa_notification_events"
+      "name": "actor_partner_id"
+      "ordinal": 7
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "actor_login_email":
+      "schema": "public"
+      "relation": "pwa_notification_events"
+      "name": "actor_login_email"
+      "ordinal": 8
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "occurred_at":
+      "schema": "public"
+      "relation": "pwa_notification_events"
+      "name": "occurred_at"
+      "ordinal": 9
+      "data_type": "timestamp with time zone"
+      "type_schema": "pg_catalog"
+      "type_name": "timestamptz"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": "clock_timestamp()"
+      "collation": null
+      "acl": null
+      "comment": null
+  "constraints":
+    "pwa_notification_events_actor_login_email_check":
+      "schema": "public"
+      "relation": "pwa_notification_events"
+      "name": "pwa_notification_events_actor_login_email_check"
+      "kind": "c"
+      "definition": "CHECK (actor_login_email IS NULL OR length(actor_login_email) >= 1 AND length(actor_login_email) <= 320)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 8
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_notification_events_actor_partner_id_check":
+      "schema": "public"
+      "relation": "pwa_notification_events"
+      "name": "pwa_notification_events_actor_partner_id_check"
+      "kind": "c"
+      "definition": "CHECK (actor_partner_id IS NULL OR length(actor_partner_id) >= 1 AND length(actor_partner_id) <= 256)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 7
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_notification_events_dedupe_key_check":
+      "schema": "public"
+      "relation": "pwa_notification_events"
+      "name": "pwa_notification_events_dedupe_key_check"
+      "kind": "c"
+      "definition": "CHECK (length(dedupe_key) >= 1 AND length(dedupe_key) <= 512)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 2
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_notification_events_dedupe_key_key":
+      "schema": "public"
+      "relation": "pwa_notification_events"
+      "name": "pwa_notification_events_dedupe_key_key"
+      "kind": "u"
+      "definition": "UNIQUE (dedupe_key)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 2
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_notification_events_dedupe_key_not_null":
+      "schema": "public"
+      "relation": "pwa_notification_events"
+      "name": "pwa_notification_events_dedupe_key_not_null"
+      "kind": "n"
+      "definition": "NOT NULL dedupe_key"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 2
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_notification_events_event_id_not_null":
+      "schema": "public"
+      "relation": "pwa_notification_events"
+      "name": "pwa_notification_events_event_id_not_null"
+      "kind": "n"
+      "definition": "NOT NULL event_id"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_notification_events_event_type_check":
+      "schema": "public"
+      "relation": "pwa_notification_events"
+      "name": "pwa_notification_events_event_type_check"
+      "kind": "c"
+      "definition": "CHECK (event_type = ANY (ARRAY['loan.created'::text, 'loan.closed'::text, 'payment.posted'::text]))"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 3
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_notification_events_event_type_not_null":
+      "schema": "public"
+      "relation": "pwa_notification_events"
+      "name": "pwa_notification_events_event_type_not_null"
+      "kind": "n"
+      "definition": "NOT NULL event_type"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 3
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_notification_events_occurred_at_not_null":
+      "schema": "public"
+      "relation": "pwa_notification_events"
+      "name": "pwa_notification_events_occurred_at_not_null"
+      "kind": "n"
+      "definition": "NOT NULL occurred_at"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 9
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_notification_events_pkey":
+      "schema": "public"
+      "relation": "pwa_notification_events"
+      "name": "pwa_notification_events_pkey"
+      "kind": "p"
+      "definition": "PRIMARY KEY (event_id)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_notification_events_source_id_check":
+      "schema": "public"
+      "relation": "pwa_notification_events"
+      "name": "pwa_notification_events_source_id_check"
+      "kind": "c"
+      "definition": "CHECK (length(source_id) >= 1 AND length(source_id) <= 256)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 5
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_notification_events_source_id_not_null":
+      "schema": "public"
+      "relation": "pwa_notification_events"
+      "name": "pwa_notification_events_source_id_not_null"
+      "kind": "n"
+      "definition": "NOT NULL source_id"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 5
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_notification_events_source_kind_check":
+      "schema": "public"
+      "relation": "pwa_notification_events"
+      "name": "pwa_notification_events_source_kind_check"
+      "kind": "c"
+      "definition": "CHECK (source_kind = ANY (ARRAY['loan'::text, 'payment'::text]))"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 4
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_notification_events_source_kind_not_null":
+      "schema": "public"
+      "relation": "pwa_notification_events"
+      "name": "pwa_notification_events_source_kind_not_null"
+      "kind": "n"
+      "definition": "NOT NULL source_kind"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 4
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_notification_events_source_version_check":
+      "schema": "public"
+      "relation": "pwa_notification_events"
+      "name": "pwa_notification_events_source_version_check"
+      "kind": "c"
+      "definition": "CHECK (length(source_version) >= 1 AND length(source_version) <= 256)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 6
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_notification_events_source_version_not_null":
+      "schema": "public"
+      "relation": "pwa_notification_events"
+      "name": "pwa_notification_events_source_version_not_null"
+      "kind": "n"
+      "definition": "NOT NULL source_version"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 6
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+  "indexes":
+    "pwa_notification_events_dedupe_key_key":
+      "schema": "public"
+      "relation": "pwa_notification_events"
+      "name": "pwa_notification_events_dedupe_key_key"
+      "definition": "CREATE UNIQUE INDEX pwa_notification_events_dedupe_key_key ON public.pwa_notification_events USING btree\
+        \ (dedupe_key)"
+      "unique": true
+      "primary": false
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 1
+      "total_attribute_count": 1
+      "predicate": null
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
+    "pwa_notification_events_pkey":
+      "schema": "public"
+      "relation": "pwa_notification_events"
+      "name": "pwa_notification_events_pkey"
+      "definition": "CREATE UNIQUE INDEX pwa_notification_events_pkey ON public.pwa_notification_events USING btree (event_id)"
+      "unique": true
+      "primary": true
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 1
+      "total_attribute_count": 1
+      "predicate": null
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
+  "triggers":
+    "RI_ConstraintTrigger_a_22476":
+      "schema": "public"
+      "relation": "pwa_notification_events"
+      "name": "RI_ConstraintTrigger_a_22476"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_22476\" AFTER DELETE ON pwa_notification_events FROM\
+        \ pwa_notification_deliveries NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_del\"\
+        ()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_del\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_22477":
+      "schema": "public"
+      "relation": "pwa_notification_events"
+      "name": "RI_ConstraintTrigger_a_22477"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_22477\" AFTER UPDATE ON pwa_notification_events FROM\
+        \ pwa_notification_deliveries NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"\
+        ()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+  "policies": {}
+  "dependencies": []
