@@ -1,0 +1,14 @@
+{
+  "deviceEnrollmentProof": "pending",
+  "sqlState": "42501",
+  "recordedAtUtc": "2026-10-11T20:06:42.4563119Z",
+  "permissionsChanged": false,
+  "ownerFiltered": true,
+  "notificationDispatchEnabled": false,
+  "attemptCount": 1,
+  "environment": "dev",
+  "result": "unknown",
+  "retryPerformed": false,
+  "reason": "postgres has no SELECT authority on closed pwa_push_subscriptions table",
+  "rowsRead": 0
+}

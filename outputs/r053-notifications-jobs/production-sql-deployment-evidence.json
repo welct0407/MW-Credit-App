@@ -1,0 +1,29 @@
+{
+  "sourceCommit": "dc4e75de24c99b5217c2895066957862a72e2cbb",
+  "database": "loan_manager_prod",
+  "startedAt": "2026-10-11T19:57:35.6741876+00:00",
+  "migrationSucceeded": true,
+  "runtimeCapabilitiesBound": true,
+  "authorityRestored": true,
+  "validationSuccessful": true,
+  "captureEnabled": false,
+  "finishedAt": "2026-10-11T19:57:52.7396150+00:00",
+  "release": "R053",
+  "baselineVersion": 87,
+  "sqlVersion": 89,
+  "group": true,
+  "mixed": false,
+  "executeInTransaction": true,
+  "callbacks": [],
+  "directCommandExecuteVerified": true,
+  "closedCapabilityRoleCount": 5,
+  "metadataCaptureSha256": "a2282b41692f0301b67c4310ab4713adef4dbd5de15538ec0fe7922e2d956031",
+  "metadataCaptureBusinessRowsRead": 0,
+  "privateControllerReceiptSha256": "2c5741f095a6a0976684e19e2a2b7d8ff9e790fd025362550d3a516dc9b06b3f",
+  "verificationPending": [
+    "owner device/provider acceptance and push activation",
+    "first natural charges and analytics runs",
+    "authenticated PWA changed entry-point validation"
+  ],
+  "deploymentState": "Deployment applied; verification incomplete"
+}

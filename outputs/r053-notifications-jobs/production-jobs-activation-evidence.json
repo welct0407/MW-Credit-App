@@ -1,0 +1,17 @@
+{
+  "image": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app-prod/api@sha256:42534b790ebccd73448d5bc56490a959586ea5494604583443b630705a0c7778",
+  "revision": "mw-credit-app-jobs-prod-00002-mb6",
+  "ready": "True",
+  "traffic": [
+    {
+      "latestRevision": true,
+      "percent": 100,
+      "revisionName": "mw-credit-app-jobs-prod-00002-mb6"
+    }
+  ],
+  "observedAt": "2026-10-11T20:03:46.2393628Z",
+  "schedulesResumed": false,
+  "service": "mw-credit-app-jobs-prod",
+  "planSha256": "efa503487f56b87ca1b787e4662cca300c199e6788b9aaad4acebd8e81da3fc3",
+  "activation": "enabled"
+}
