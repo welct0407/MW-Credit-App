@@ -245,5 +245,25 @@
     },
     "limits": "Controlled Chromium1440/440 proof; no new live owner-session or physical iPhone claim. Existing financial/API/worker proof unchanged; unknown native receipts and intermittent503cause remain unresolved.",
     "uxFollowup": "Owner-requested E final review: four approved codes resolved in controlled1440/440 evidence; POS002 intentionally excluded, not a blocker; no new material findings. Original report/history retained."
+  },
+  "iPadPlatform": {
+    "sourceCommit": "fde76ed59db82f928986dd53dca24470f48b16f1",
+    "scope": "All-page iPad portrait/landscape layouts; batch-only preapproved IPAD-ACTION-001/NAV-001/DASH-001 resolved, Reporting compact rail retained; phone/desktop preserved",
+    "capturedSourceBuild": "index-CoDiTIfp.js",
+    "validation": "B type/build; C82current images/41states plus3before,820x1180/1180x820,edited sameDOM form across12widths,Unknown/navigation/Reporting/no document overflow zero operationalPOST PASS; E3findings resolved/no further confirmed issue; configured type/build/marker guard PASS; no CI",
+    "frontendBundle": "index-zBnMbgVH.js",
+    "publicVersion": "43a77e979f727b3a1fa36d34",
+    "hostingVersion": "49e196eaf3f90049",
+    "hostingRelease": "1791676917703000",
+    "publicMarkerReadback": "HTTP200/no-store exact entry/version",
+    "readerRevisionUnchanged": "mw-credit-app-read-dev-00015-22g",
+    "commandRevisionUnchanged": "mw-credit-app-command-dev-00015-75d",
+    "databaseUnchanged": 85,
+    "rollback": {
+      "hostingVersion": "81099c7a13e92eb6",
+      "frontendBundle": "index-BMt4jSMn.js"
+    },
+    "review": "ux-ipad-review-2026-10-11.md",
+    "limits": "Responsive Chromium proof only; physical iPad/Safari/native keyboard/PWA/fullThai acceptance not performed. Time-series and conditional receipt/confirmation/recovery variants source-only or valid reused evidence. Existing business/API/SQL/auth/SW proof unchanged; prior unknown native receipts/intermittent503cause unresolved."
   }
 }
