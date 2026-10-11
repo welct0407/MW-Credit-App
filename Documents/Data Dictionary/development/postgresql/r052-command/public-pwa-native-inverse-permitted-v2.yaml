@@ -1,0 +1,31 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "postgresql",
+    "component": "loan_manager_dev",
+    "kind": "routine",
+    "name": "public.pwa_native_inverse_permitted_v2(text)",
+    "scope": "development:R052-command"
+  },
+  "content": {
+    "release": "R052",
+    "status": "DEV87 actual definition and privileges; notifications/jobs remain deferred and disabled for launch; PROD77 unchanged.",
+    "observedAt": "2026-10-11T12:42:15.709Z",
+    "catalog_observation": {
+      "signature": "pwa_native_inverse_permitted_v2(text)",
+      "owner": "postgres",
+      "security_definer": false,
+      "configuration": [
+        "search_path=pg_catalog, public"
+      ],
+      "acl": "{postgres=X/postgres,mw_app_dev=X/postgres}",
+      "definition": "CREATE OR REPLACE FUNCTION public.pwa_native_inverse_permitted_v2(payment text)\n RETURNS boolean\n LANGUAGE sql\n STABLE\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\r\n SELECT current_database() IN ('loan_manager_dev','payment_rehearsal','loan_manager_prod') AND current_user=CASE current_database() WHEN 'loan_manager_prod' THEN 'mw_app_prod_journal_owner' ELSE 'mw_app_dev_journal_owner' END\r\n AND nullif(current_setting('pwa.native_inverse_request',true),'') IS NOT NULL\r\n AND EXISTS(SELECT 1 FROM public.pwa_payment_commands j WHERE j.request_id::text=current_setting('pwa.native_inverse_request',true)\r\n  AND j.contract_version=2 AND j.outcome='applied' AND j.canonical_json::jsonb#>>'{command,operation}'='payment.correct'\r\n  AND j.canonical_json::jsonb#>>'{command,targetId}'=$1\r\n  AND j.actor_partner_id=(SELECT \"Row ID\" FROM public.\"Partners\" WHERE lower(btrim(\"Login Email\"))=j.actor_login_email)\r\n  AND NOT EXISTS(SELECT 1 FROM public.pwa_payment_commands successor WHERE successor.contract_version=2 AND successor.outcome='applied' AND successor.canonical_json::jsonb#>>'{command,operation}'='payment.correct' AND successor.canonical_json::jsonb#>>'{command,targetId}'=$1 AND successor.canonical_json::jsonb#>>'{command,predecessorRequestId}'=j.request_id::text));\r\n$function$\n"
+    },
+    "currentMigration": 87
+  },
+  "verification": {
+    "status": "documented",
+    "source": "https://github.com/welct0407/MW-Credit-App/blob/codex/r052-review-shell/outputs/r052-promotion-readiness/dev87-model-catalog.json",
+    "coverage": "Actual bounded DEV87 catalog; current fields below supersede dated retained observations. PROD77 and AppSheet definitions unchanged."
+  }
+}

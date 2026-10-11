@@ -1,5 +1,7 @@
 # Dictionary tooling
 
+R052 promotion preparation: `close_r052_promotion_dev.py --capture ABSOLUTE_PRIVATE_CAPTURE` previews the bounded DEV87 five relations, twenty routines and two settings records; `--apply` writes only those objects after actual identity/count checks and concurrent-file guards. It performs no live access. Rebuild the index and validate afterward; use Windows extended-length paths with `dictionary.py --root` when the canonical worktree has long existing filenames. PROD77 and existing AppSheet definitions remain unchanged.
+
 R051 production: `capture_r051_production.py` reads only the affected V77 PostgreSQL metadata; `close_r051_production.py` previews or (`--apply`) writes guarded canonical production definitions and closes dated DEV overlays from private final AppDoc captures. Validated107 production objects and91 closed overlays; neither helper mutates live apps or databases. [Evidence](../../outputs/r051-production/README.md).
 
 R051 performance: `capture_r051_performance.py` reads the ten affected V73 routines and three relations; `close_r051_performance.py --apply` updates only their guarded DEV overlays. [Evidence](../../outputs/r051-trigger-performance/README.md).

@@ -1,0 +1,31 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "postgresql",
+    "component": "loan_manager_dev",
+    "kind": "routine",
+    "name": "public.pwa_apply_loan_close_v2(text)",
+    "scope": "development:R052-command"
+  },
+  "content": {
+    "release": "R052",
+    "status": "DEV87 actual definition and privileges; notifications/jobs remain deferred and disabled for launch; PROD77 unchanged.",
+    "observedAt": "2026-10-11T12:42:15.709Z",
+    "catalog_observation": {
+      "signature": "pwa_apply_loan_close_v2(text)",
+      "owner": "postgres",
+      "security_definer": false,
+      "configuration": [
+        "search_path=pg_catalog, public"
+      ],
+      "acl": "{postgres=X/postgres,mw_app_dev_journal_owner=X/postgres,mw_app_dev=X/postgres}",
+      "definition": "CREATE OR REPLACE FUNCTION public.pwa_apply_loan_close_v2(canonical text)\n RETURNS jsonb\n LANGUAGE plpgsql\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\r\nDECLARE e jsonb:=canonical::jsonb;i jsonb:=e#>'{command,inputs}';a jsonb:=e->'actor';target text:=e#>>'{command,targetId}';\r\n parent text;day date:=(statement_timestamp() AT TIME ZONE 'Asia/Bangkok')::date;calculation jsonb;plan jsonb;result_value jsonb;payment text:='pwa:'||(e->>'requestId');message text;actual public.\"Payments\"%ROWTYPE;\r\nBEGIN\r\n IF (current_database() NOT IN ('loan_manager_dev','payment_rehearsal','loan_manager_prod') OR current_user<>CASE current_database() WHEN 'loan_manager_prod' THEN 'mw_app_prod_journal_owner' ELSE 'mw_app_dev_journal_owner' END) OR e#>>'{command,operation}'<>'loan.close' THEN RAISE EXCEPTION USING ERRCODE='42501',MESSAGE='Governed operation required';END IF;\r\n SELECT \"Ref Borrowers\" INTO parent FROM public.\"Loans\" WHERE \"Row ID\"=target;\r\n IF NOT FOUND THEN RAISE EXCEPTION USING ERRCODE='P5B02';END IF;\r\n PERFORM 1 FROM public.\"Borrowers\" WHERE \"Row ID\"=parent FOR UPDATE;\r\n PERFORM 1 FROM public.\"Loans\" WHERE \"Row ID\"=target FOR UPDATE;\r\n PERFORM 1 FROM public.\"Charges\" WHERE \"Ref Loans\"=target ORDER BY \"Row ID\" COLLATE \"C\" FOR UPDATE;\r\n IF public.pwa_loan_version_v2(target) IS DISTINCT FROM e#>>'{command,expectedVersion}' THEN RAISE EXCEPTION USING ERRCODE='P5B01';END IF;\r\n IF (i->>'paymentDate')::date IS DISTINCT FROM day THEN RAISE EXCEPTION USING ERRCODE='P5B08';END IF;\r\n IF NOT EXISTS(SELECT 1 FROM public.\"Cash Accounts\" ca JOIN public.\"Cash Holders\" ch ON ch.\"Row ID\"=ca.\"Ref Cash Holder\" WHERE ca.\"Row ID\"=i->>'cashAccountId' AND ca.\"Active\" IS TRUE AND ch.\"Active\" IS TRUE) THEN RAISE EXCEPTION USING ERRCODE='P5B07';END IF;\r\n BEGIN calculation:=public.loan_close_calculation_v83(target,day);\r\n EXCEPTION WHEN SQLSTATE 'P0001' THEN GET STACKED DIAGNOSTICS message=MESSAGE_TEXT;\r\n  IF message=ANY(ARRAY['Loan Close requires an open auto-enabled daily-interest loan','Loan Close requires valid loan date, principal and daily interest','Loan charge components require reconciliation before closing','Loan has no outstanding principal to close','Principal already due exceeds outstanding loan principal','Multiple charges today require reconciliation before closing','Final receipt must be a positive whole-baht amount']) THEN RAISE EXCEPTION USING ERRCODE='P5B06';ELSE RAISE;END IF;\r\n END;\r\n IF calculation->>'planHash' IS DISTINCT FROM i->>'expectedPlanHash' OR calculation->>'amount' IS DISTINCT FROM i->>'expectedAmount' THEN RAISE EXCEPTION USING ERRCODE='P5B09';END IF;\r\n IF EXISTS(SELECT 1 FROM jsonb_array_elements(calculation->'allocations') line WHERE line->>'principal'!~'^(0|[1-9][0-9]*)$' OR line->>'interest'!~'^(0|[1-9][0-9]*)$' OR line->>'chargeDate' IS NULL) THEN RAISE EXCEPTION USING ERRCODE='P5B06';END IF;\r\n PERFORM public.apply_loan_close_calculation_v83(target,day,i->>'expectedPlanHash');\r\n plan:=jsonb_build_object('borrowerId',parent,'amountReceived',calculation->>'amount','allocations',calculation->'allocations','allocationMethod','Loan Close','targetChargeId',calculation->>'targetChargeId','targetLoanId',target,'cashAccountId',i->>'cashAccountId','paymentDate',day::text,'paymentMethod',i->>'paymentMethod');\r\n result_value:=jsonb_build_object('operation','loan.close','targetType','loan','targetId',target,'paymentId',payment,'plan',plan,'predecessorRequestId',NULL,'sourceCreatedBy',a->>'loginEmail');\r\n INSERT INTO public.pwa_payment_commands(request_id,contract_version,actor_issuer,actor_subject,actor_partner_id,actor_login_email,canonical_json,payload_sha256,outcome,payment_id,rejection_code,result_json)\r\n VALUES((e->>'requestId')::uuid,2,a->>'issuer',a->>'subject',a->>'partnerId',a->>'loginEmail',canonical,encode(sha256(convert_to(canonical,'UTF8')),'hex'),'applied',NULL,NULL,result_value);\r\n INSERT INTO public.\"Payments\"(\"Row ID\",\"Ref Borrower\",\"Payment Date\",\"Amount Received\",\"Payment Method\",\"Allocation Method\",\"Ref Target Charge\",\"Ref Target Loan\",\"Ref Received By Cash Account\",\"Notes\",\"Uploaded Receipt\",\"Created By\",\"Status\")\r\n VALUES(payment,parent,day,(calculation->>'amount')::numeric::money,i->>'paymentMethod','Loan Close',calculation->>'targetChargeId',target,i->>'cashAccountId',i->>'notes',e#>>'{receipt,storageReference}',a->>'loginEmail','Processing');\r\n SELECT * INTO actual FROM public.\"Payments\" WHERE \"Row ID\"=payment;\r\n IF NOT FOUND OR actual.\"Status\" IS DISTINCT FROM 'Posted' OR actual.\"Amount Received\"::numeric IS DISTINCT FROM (calculation->>'amount')::numeric THEN RAISE EXCEPTION 'Close receipt differs from immutable plan';END IF;\r\n RETURN result_value;\r\nEND $function$\n"
+    },
+    "currentMigration": 87
+  },
+  "verification": {
+    "status": "documented",
+    "source": "https://github.com/welct0407/MW-Credit-App/blob/codex/r052-review-shell/outputs/r052-promotion-readiness/dev87-model-catalog.json",
+    "coverage": "Actual bounded DEV87 catalog; current fields below supersede dated retained observations. PROD77 and AppSheet definitions unchanged."
+  }
+}

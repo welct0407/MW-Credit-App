@@ -5029,6 +5029,16 @@
       "lookup": []
     },
     {
+      "file": "development/postgresql/r052-command/dev-notification-capture-routing.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "settings",
+      "name": "R052 DEV notification capture routing",
+      "scope": "development:R052-command",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "development/postgresql/r052-command/public-create-first-day-charge.yaml",
       "system": "postgresql",
       "component": "loan_manager_dev",
@@ -5109,11 +5119,201 @@
       "lookup": []
     },
     {
+      "file": "development/postgresql/r052-command/public-pwa-apply-analytics-v2.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "routine",
+      "name": "public.pwa_apply_analytics_v2(text)",
+      "scope": "development:R052-command",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/postgresql/r052-command/public-pwa-apply-assessment-v2.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "routine",
+      "name": "public.pwa_apply_assessment_v2(text)",
+      "scope": "development:R052-command",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/postgresql/r052-command/public-pwa-apply-cash-opening-v2.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "routine",
+      "name": "public.pwa_apply_cash_opening_v2(text)",
+      "scope": "development:R052-command",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/postgresql/r052-command/public-pwa-apply-charge-v2.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "routine",
+      "name": "public.pwa_apply_charge_v2(text)",
+      "scope": "development:R052-command",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/postgresql/r052-command/public-pwa-apply-expense-v2.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "routine",
+      "name": "public.pwa_apply_expense_v2(text)",
+      "scope": "development:R052-command",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/postgresql/r052-command/public-pwa-apply-loan-close-v2.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "routine",
+      "name": "public.pwa_apply_loan_close_v2(text)",
+      "scope": "development:R052-command",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/postgresql/r052-command/public-pwa-apply-loan-create-v2.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "routine",
+      "name": "public.pwa_apply_loan_create_v2(text)",
+      "scope": "development:R052-command",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/postgresql/r052-command/public-pwa-apply-loan-source-v2.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "routine",
+      "name": "public.pwa_apply_loan_source_v2(text)",
+      "scope": "development:R052-command",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/postgresql/r052-command/public-pwa-apply-management-financial-v2.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "routine",
+      "name": "public.pwa_apply_management_financial_v2(text)",
+      "scope": "development:R052-command",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/postgresql/r052-command/public-pwa-apply-management-v2.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "routine",
+      "name": "public.pwa_apply_management_v2(text)",
+      "scope": "development:R052-command",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/postgresql/r052-command/public-pwa-apply-payment-v2.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "routine",
+      "name": "public.pwa_apply_payment_v2(text)",
+      "scope": "development:R052-command",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/postgresql/r052-command/public-pwa-apply-preference-v2.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "routine",
+      "name": "public.pwa_apply_preference_v2(text)",
+      "scope": "development:R052-command",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/postgresql/r052-command/public-pwa-capture-notification-v1.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "routine",
+      "name": "public.pwa_capture_notification_v1()",
+      "scope": "development:R052-command",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/postgresql/r052-command/public-pwa-claim-notifications-v1.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "routine",
+      "name": "public.pwa_claim_notifications_v1(integer,integer)",
+      "scope": "development:R052-command",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "development/postgresql/r052-command/public-pwa-command-status-v1.yaml",
       "system": "postgresql",
       "component": "loan_manager_dev",
       "kind": "routine",
       "name": "public.pwa_command_status_v1(uuid,text,text)",
+      "scope": "development:R052-command",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/postgresql/r052-command/public-pwa-job-runs.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "relation",
+      "name": "public.pwa_job_runs",
+      "scope": "development:R052-command",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/postgresql/r052-command/public-pwa-native-inverse-permitted-v2.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "routine",
+      "name": "public.pwa_native_inverse_permitted_v2(text)",
+      "scope": "development:R052-command",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/postgresql/r052-command/public-pwa-notification-deliveries.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "relation",
+      "name": "public.pwa_notification_deliveries",
+      "scope": "development:R052-command",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/postgresql/r052-command/public-pwa-notification-events.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "relation",
+      "name": "public.pwa_notification_events",
+      "scope": "development:R052-command",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/postgresql/r052-command/public-pwa-notification-preferences.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "relation",
+      "name": "public.pwa_notification_preferences",
       "scope": "development:R052-command",
       "status": "documented",
       "lookup": []
@@ -5134,6 +5334,16 @@
       "component": "loan_manager_dev",
       "kind": "relation",
       "name": "public.pwa_payment_commands",
+      "scope": "development:R052-command",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/postgresql/r052-command/public-pwa-push-subscriptions.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "relation",
+      "name": "public.pwa_push_subscriptions",
       "scope": "development:R052-command",
       "status": "documented",
       "lookup": []
