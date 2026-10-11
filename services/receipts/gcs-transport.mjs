@@ -1,10 +1,12 @@
-import { DEV_RECEIPT_MAPPING } from './dev-receipt-adapter.mjs';
+import { DEV_RECEIPT_MAPPING,PROD_RECEIPT_MAPPING } from './dev-receipt-adapter.mjs';
 const gen = value => typeof value === 'string' && /^[1-9][0-9]*$/.test(value);
 /** Only exact generated DEV keys; no listing, deletion, overwrite or public URLs. */
-export function createGcsReceiptTransport(storage) {
+export function createGcsReceiptTransport(storage){return createBoundGcsReceiptTransport(storage,DEV_RECEIPT_MAPPING)}
+export function createProductionGcsReceiptTransport(storage){return createBoundGcsReceiptTransport(storage,PROD_RECEIPT_MAPPING)}
+function createBoundGcsReceiptTransport(storage,mapping) {
   function file(bucket, key, generation) {
-    if (bucket !== DEV_RECEIPT_MAPPING.bucket || typeof key !== 'string'
-      || !new RegExp('^'+DEV_RECEIPT_MAPPING.objectPrefix+'[a-f0-9]{32}/[a-f0-9]{32}\\.(png|jpg)$').test(key)
+    if (bucket !== mapping.bucket || typeof key !== 'string'
+      || !new RegExp('^'+mapping.objectPrefix+'[a-f0-9]{32}/[a-f0-9]{32}\\.(png|jpg)$').test(key)
       || (generation !== undefined && !gen(generation))) throw Error('Invalid receipt object');
     return storage.bucket(bucket).file(key, generation ? {generation} : {});
   }

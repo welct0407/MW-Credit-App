@@ -61,3 +61,17 @@ self.addEventListener('fetch', event => {
     }
   })());
 });
+
+// Generic lock-screen contents only. The application resolves the opaque event
+// through authenticated same-environment APIs after sign-in.
+self.addEventListener('push',event=>{
+ event.waitUntil((async()=>{let payload;try{payload=event.data?.json()}catch{return;}
+ if(payload?.v!==1||typeof payload.eventId!=='string'||!/^[a-f0-9-]{36}$/.test(payload.eventId))return;
+ await self.registration.showNotification('MW Credit',{body:'An update is available.',tag:'mw-credit-'+payload.eventId,data:{eventId:payload.eventId}});
+ })());
+});
+self.addEventListener('notificationclick',event=>{
+ event.notification.close();const id=event.notification.data?.eventId;if(typeof id!=='string'||!/^[a-f0-9-]{36}$/.test(id))return;
+ const url=new URL('/?notification='+id,self.location.origin).href;
+ event.waitUntil((async()=>{const windows=await self.clients.matchAll({type:'window',includeUncontrolled:true});const existing=windows.find(c=>new URL(c.url).origin===self.location.origin);if(existing){await existing.navigate(url);await existing.focus()}else await self.clients.openWindow(url)})());
+});

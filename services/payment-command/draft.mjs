@@ -34,7 +34,7 @@ export function decodeDraftCursor(value,borrowerId,scope='due'){
   if(Object.keys(row).join(',')!=='v,borrowerId,scope,businessDate,chargeDate,id'||row.v!==3||row.scope!==scope||row.borrowerId!==borrowerId||!validDay(row.businessDate)||!validDay(row.chargeDate)||typeof row.id!=='string'||!row.id||Buffer.byteLength(row.id)>256||Buffer.from(JSON.stringify(row)).toString('base64url')!==value)throw Error();return row;
  }catch{throw Error('invalid_request')}
 }
-export async function readOwnerPaymentDraft(client,borrowerId,{limit=25,cursor=null,selectedChargeIds=null,scope='due',all=false}={}){
+export async function readOwnerPaymentDraft(client,borrowerId,{limit=25,cursor=null,selectedChargeIds=null,scope='due',all=false,mode='dev-owner-testing'}={}){
  const after=decodeDraftCursor(cursor,borrowerId,scope);
  if(!['due','future','all'].includes(scope)||all&&scope!=='due')throw Error('invalid_request');
  if(!Number.isInteger(limit)||limit<1||limit>100)throw Error('invalid_request');
@@ -64,7 +64,7 @@ export async function readOwnerPaymentDraft(client,borrowerId,{limit=25,cursor=n
  const accounts=(await client.query(`SELECT a."Row ID" AS id,a."Account Label" AS label FROM public."Cash Accounts" a JOIN public."Cash Holders" h ON h."Row ID"=a."Ref Cash Holder" WHERE a."Active" IS TRUE AND h."Active" IS TRUE ORDER BY a."Sort Order",a."Row ID" COLLATE "C"`)).rows;
  if(accounts.some(row=>typeof row.label!=='string'||!row.label))throw Error('Draft unavailable');
  const last=page.at(-1),nextCursor=more?Buffer.from(JSON.stringify({v:3,borrowerId,scope,businessDate:clock.day,chargeDate:last.chargeDate,id:last.id})).toString('base64url'):null;
- return {mode:'dev-owner-testing',scope,businessDate:clock.day,asOf:new Date(clock.instant).toISOString(),borrower:{id:borrowerId,displayName:name},charges,accounts,nextCursor,preferredReceivingAccountId:accounts.some(row=>row.id===borrower.preferred_account)?borrower.preferred_account:null};
+ return {mode,scope,businessDate:clock.day,asOf:new Date(clock.instant).toISOString(),borrower:{id:borrowerId,displayName:name},charges,accounts,nextCursor,preferredReceivingAccountId:accounts.some(row=>row.id===borrower.preferred_account)?borrower.preferred_account:null};
 }
 
 /** Shared read-only loan label, identical to receiving entry. Missing parent stays unavailable. */

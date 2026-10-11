@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "environment": "prod",
+  "status": "actual-projected-agent-receipt-verified",
+  "observedAt": "2026-10-11T12:06:15.654Z",
+  "referenceSha256": "84526bb2d5023aa29378a6511ad6d3703deb999b5e63619b9c83f0c5aa779f25",
+  "keySha256": "46d1989827f191f18a64ca88f49d555e7ccb7cb641d42594a382db393f7e9073",
+  "generation": "1790505747144532",
+  "sizeBytes": 192411,
+  "mimeType": "image/jpeg",
+  "sha256": "c539a89df5cde1e75c29cc5ff5a29848d5fda3e4b16a4a534efe9bc4eacbe36f",
+  "snapshotSha256": "d9dcd82a73e173fd5286a7e78e4b71fc94e2edd65cf8358dcb105bbcd2991b7a",
+  "effects": "One SQL projection and exact-generation storage read only; no grants, writes or deployment."
+}

@@ -1,3 +1,4 @@
+import {applicationEnvironment,canonicalAppOrigin} from './environment';
 import { useEffect, useRef, useState } from 'react';
 
 type InstallEvent = Event & {
@@ -6,8 +7,8 @@ type InstallEvent = Event & {
 };
 
 // No test hostname override is shipped. The worker can be tested by a separate harness.
-const canonical = import.meta.env.PROD && import.meta.env.MODE === 'live-dev'
-  && location.origin === 'https://dev-lm.mw-credit.com';
+const canonical = import.meta.env.PROD && applicationEnvironment !== 'synthetic'
+  && location.origin === canonicalAppOrigin;
 
 export function usePwa() {
   const [startup,setStartup]=useState<'checking'|'upgrading'|'ready'|'error'|'offline'>(canonical?(navigator.onLine?'checking':'offline'):'ready');

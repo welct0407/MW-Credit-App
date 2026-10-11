@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "release": "R052",
   "scope": "contained-production-foundation",
-  "status": "deployed-canonical-https-pending",
+  "status": "deployed-canonical-https-verified-access-incomplete",
   "productSourceCommit": "184d19945f8d75994f5b58b13b0fadbf7b3c8b57",
   "deliveryToolingCommit": "7bf8dd0f2d38ed7276970c67c4934c0e8c2814b5",
   "deliveryHelperSha256": "339eb2c425208e225431735af6f877e66b0e06362e7cd5f5f714d2b58c264a6a",
@@ -303,12 +303,12 @@
     "restoredBytesVerifiedAt": "2026-10-11T05:05:13.313Z",
     "independentPublicVerificationAt": "2026-10-11T05:06:19.793Z",
     "canonicalCertificate": {
-      "observedAt": "2026-10-11T05:05:33Z",
-      "hostState": "HOST_UNHOSTED",
-      "ownershipState": "OWNERSHIP_MISSING",
-      "certificateState": "CERT_VALIDATING",
+      "observedAt": "2026-10-11T05:14:17Z",
+      "hostState": "HOST_ACTIVE",
+      "ownershipState": "OWNERSHIP_ACTIVE",
+      "certificateState": "CERT_ACTIVE",
       "issues": null,
-      "status": "pending"
+      "status": "verified-https-200-no-store"
     }
   },
   "ownerVerification": {
@@ -324,6 +324,34 @@
     "noBusinessRequests": true,
     "noTokenOrUidExtraction": true,
     "devAuthenticatedRefreshAfterProductionSignOut": "Ready Dashboard zero alerts"
+  },
+  "canonicalOwnerVerification": {
+    "origin": "https://lm.mw-credit.com",
+    "observedAt": null,
+    "observationTimeRetained": false,
+    "sharedExistingGoogleAccount": true,
+    "bothProductionSessionsVerified": true,
+    "businessAccess": false,
+    "membershipVerified": false,
+    "capabilities": [],
+    "currentTurnSignOutAndFinalDevRefreshPerformed": false,
+    "reusedSignOutAndDevEvidence": "ownerVerification at 2026-10-11T05:06:12Z; fallback signout and DEV Ready proof reused, not rerun"
+  },
+  "effectiveAccessContinuation": {
+    "status": "incomplete",
+    "apiPlanSha256": "3fca04ff9dd70d3d762d888605d7fef9b90626d17771c0f8fac2902ba2f487b1",
+    "apiApplied": "policytroubleshooter.googleapis.com",
+    "created": 1,
+    "changed": 0,
+    "destroyed": 0,
+    "iamGrantsChanged": false,
+    "postApplyNoChangeChecked": false,
+    "retainedRows": [
+      { "principalRole": "DEV reader", "target": "PROD state bucket", "permission": "storage.objects.list", "access": "CANNOT_ACCESS", "allowAccessState": "ALLOW_ACCESS_STATE_NOT_GRANTED", "denyAccessState": "DENY_ACCESS_STATE_NOT_DENIED" },
+      { "principalRole": "DEV reader", "target": "PROD state bucket", "permission": "storage.buckets.setIamPolicy", "access": "CANNOT_ACCESS", "allowAccessState": "ALLOW_ACCESS_STATE_NOT_GRANTED", "denyAccessState": "DENY_ACCESS_STATE_NOT_DENIED" }
+    ],
+    "remainingMatrix": "unresponsive execution stopped; broader in-memory results not retained or claimed",
+    "scriptValidation": "PowerShell parser passed; per-row checkpoint/20-second timeout revision not rerun live"
   },
   "monitoring": {
     "windowStart": "2026-10-11T04:47:36Z",
@@ -370,12 +398,14 @@
     "no5xxSeriesObserved": true,
     "trafficScope": "deliberate safe health/preflight/auth/denial probes only",
     "sloOrLoadTest": false,
-    "dedicatedAlertOrUptimeProbe": false
+    "dedicatedAlertOrUptimeProbe": false,
+    "dedicatedAlertWorkStatus": "OWNERDEFERRED",
+    "newMonitoringAssetsOrTestNotifications": false
   },
   "limits": [
-    "Canonical domain certificate is pending; fallback HTTPS verified.",
+    "Canonical HTTPS and both foundation owner sessions verified; current-turn signout/DEV refresh not rerun, prior evidence reused.",
     "Full Phase3 remains in progress; R052 stays Open, no business release/tag.",
-    "Shared project administrators are outside logical resource boundaries; inherited organization authority was not fully resolved.",
+    "Effective access matrix remains incomplete: only two DEV-reader/PROD-state bucket denials retained; no broader ancestor-IAM denial claim. Shared project administrators remain outside logical boundaries.",
     "Main-only GitHub production environment exists; main is unprotected and no protected-source WIF automation is claimed.",
     "No SQL/receipt/business/financial/notification operation, new dashboard or alert change.",
     "Existing backup/PITR/soft-delete metadata is not a restore exercise; Phase9 remains pending.",

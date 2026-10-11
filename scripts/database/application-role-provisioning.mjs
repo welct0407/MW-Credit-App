@@ -1,14 +1,17 @@
-// Operator-managed DEV capability prerequisites; migrations never create roles.
+// Operator-managed environment capability prerequisites; migrations never create roles.
+import {applicationDatabaseRoles} from './app-role-policy.mjs';
 const APP='mw_app_dev',OWNER='mw_app_dev_journal_owner';
 const ident=s=>'"'+s.replaceAll('"','""')+'"';
 async function operator(client,config){
- if(!config||!['loan_manager_dev','payment_rehearsal'].includes(config.database)||!Array.isArray(config.creators)||!config.creators.length||config.creators.some(x=>typeof x!=='string'||!x))throw Error('Invalid registered DEV operator config');
+ applicationDatabaseRoles(config?.database);
+ if(!Array.isArray(config.creators)||!config.creators.length||config.creators.some(x=>typeof x!=='string'||!x))throw Error('Invalid registered operator config');
  const {rows:[x]}=await client.query("SELECT current_database() database,session_user operator,r.rolsuper,r.rolcreaterole,r.rolbypassrls,has_schema_privilege(session_user,'public','CREATE') schema_create FROM pg_roles r WHERE r.rolname=session_user");
  if(x.database!==config.database||!config.creators.includes(x.operator)||x.rolsuper||!x.rolcreaterole||x.rolbypassrls||!x.schema_create)throw Error('True nonsuperuser registered migration operator required');
  return x.operator;
 }
 async function execute(client,statements,apply,verify=null){if(apply){await client.query('BEGIN');try{for(const sql of statements)await client.query(sql);if(verify)await verify();await client.query('COMMIT');}catch(e){await client.query('ROLLBACK');throw e;}}}
 export async function prepareApplicationRoles(client,config,{apply=false}={}){
+ const {APP,JOURNAL_OWNER:OWNER}=applicationDatabaseRoles(config?.database);
  const name=await operator(client,config);
  const existing=await client.query('SELECT rolname FROM pg_roles WHERE rolname=ANY($1::text[])',[[APP,OWNER]]);
  if(existing.rowCount)throw Error('Application role package already exists; inspect private provisioning evidence before recovery or continuation');
@@ -20,16 +23,20 @@ export async function prepareApplicationRoles(client,config,{apply=false}={}){
   `GRANT USAGE, CREATE ON SCHEMA public TO ${ident(OWNER)}`
  ];
  await execute(client,statements,apply);
- return {mode:apply?'applied':'plan',database:config.database,operator:name,statements,temporaryAuthority:'journal-owner temporary INHERIT/SET membership and public-schema CREATE until exact V79 transfer is verified; no runtime membership'};
+ return {mode:apply?'applied':'plan',database:config.database,operator:name,statements,temporaryAuthority:`journal-owner temporary INHERIT/SET membership and public-schema CREATE until exact ${config.database==='loan_manager_prod'?'V87':'V79'} transfer is verified; no runtime membership`};
 }
 export async function finalizeApplicationRoleProvisioning(client,config,{apply=false}={}){
+ const {APP,JOURNAL_OWNER:OWNER}=applicationDatabaseRoles(config?.database);
  const name=await operator(client,config);
  const roles=await client.query('SELECT rolname,rolcanlogin,rolsuper,rolcreatedb,rolcreaterole,rolreplication,rolbypassrls FROM pg_roles WHERE rolname=ANY($1::text[])',[[APP,OWNER]]);
  if(roles.rowCount!==2||roles.rows.some(x=>x.rolcanlogin||x.rolsuper||x.rolcreatedb||x.rolcreaterole||x.rolreplication||x.rolbypassrls))throw Error('Application role flags differ from reviewed package');
- const funcs=await client.query("SELECT p.oid::regprocedure::text signature,pg_get_userbyid(p.proowner) owner,p.prosecdef FROM pg_proc p WHERE p.oid IN (to_regprocedure('public.pwa_submit_selected_charges_v1(text)'),to_regprocedure('public.pwa_command_status_v1(uuid,text,text)'))");
- if(funcs.rowCount!==2||funcs.rows.some(x=>x.owner!==OWNER||!x.prosecdef))throw Error('Exact V79 definer owner proof required before finalizing prerequisites');
- const history=await client.query("SELECT 1 FROM public.flyway_schema_history WHERE version='79' AND success");
- if(!history.rowCount)throw Error('Successful V79 history required');
+ const prod=config.database==='loan_manager_prod';
+ const signatures=['public.pwa_submit_selected_charges_v1(text)','public.pwa_command_status_v1(uuid,text,text)',...(prod?['public.pwa_operation_status_v2(uuid,text,text)','public.pwa_submit_operation_v2(text)']:[])];
+ const funcs=await client.query('SELECT p.oid::regprocedure::text signature,pg_get_userbyid(p.proowner) owner,p.prosecdef FROM pg_proc p WHERE p.oid=ANY(SELECT to_regprocedure(s) FROM unnest($1::text[]) s)',[signatures]);
+ if(funcs.rowCount!==signatures.length||funcs.rows.some(x=>x.owner!==OWNER||!x.prosecdef))throw Error('Exact environment definer owner proof required before finalizing prerequisites');
+ const history=await client.query("SELECT 1 FROM public.flyway_schema_history WHERE version=$1 AND success",[prod?'87':'79']);
+ if(!history.rowCount)throw Error(`Successful ${prod?'V87':'V79'} history required`);
+ if(prod){if(apply)throw Error('PROD finalization requires exact dual-owner restoration state; coarse cleanup refused');return {mode:'finalization-proof-only',database:config.database,operator:name,statements:[],remainingAuthority:'Exact dual-owner restoration and expected V87 catalogue proof required; no automatic CREATE/membership revocation'};}
  const statements=[`REVOKE CREATE ON SCHEMA public FROM ${ident(OWNER)}`,`GRANT ${ident(OWNER)} TO ${ident(name)} WITH INHERIT FALSE, SET FALSE`];
  await execute(client,statements,apply);
  return {mode:apply?'applied':'plan',database:config.database,operator:name,statements,remainingAuthority:'role creator ADMIN retained; operator SET/INHERIT disabled; journal owner public schema USAGE retained'};
@@ -38,6 +45,8 @@ export async function finalizeApplicationRoleProvisioning(client,config,{apply=f
 
 
 export async function cleanupTemporaryApplicationRoleAuthority(client,config,{apply=false}={}){
+ const {APP,JOURNAL_OWNER:OWNER}=applicationDatabaseRoles(config?.database);
+ if(config.database==='loan_manager_prod')throw Error('PROD temporary authority cleanup requires exact dual-owner restoration state');
  const name=await operator(client,config);
  const roles=await client.query('SELECT rolname,rolcanlogin,rolsuper,rolcreatedb,rolcreaterole,rolreplication,rolbypassrls FROM pg_roles WHERE rolname=ANY($1::text[])',[[APP,OWNER]]);
  if(roles.rowCount!==2||roles.rows.some(x=>x.rolcanlogin||x.rolsuper||x.rolcreatedb||x.rolcreaterole||x.rolreplication||x.rolbypassrls))throw Error('Cannot clean changed/missing capability package');
@@ -48,6 +57,7 @@ export async function cleanupTemporaryApplicationRoleAuthority(client,config,{ap
 
 // Closed existing-package authority paths; no fallback or runtime elevation.
 async function maintenanceContext(client,config,name){
+ if(!['loan_manager_dev','payment_rehearsal'].includes(config.database))throw Error('Single-owner maintenance is DEV-only; grouped PROD requires dual-owner support');
  const x=(await client.query("SELECT host(inet_server_addr()) host,inet_server_port() port,'mw_app_dev_journal_owner'::regrole::oid::int owner_id,session_user::regrole::oid::int operator_id")).rows[0];
  const schema=(await client.query("SELECT pg_get_userbyid(nspowner) grantor,nspowner::int grantor_id,pg_has_role(session_user,nspowner,'USAGE') owned FROM pg_namespace WHERE nspname='public'")).rows[0];
  if(!schema?.owned)throw Error('Verified operator schema ownership required');

@@ -38,9 +38,9 @@ export function decodeCursor(cursor, query = '') {
   if (!((row.v === 3 && canonical === cursor) || (row.v === 2 && normalizeSearchQuery(query) === '' && legacy === cursor))) throw new Error('Invalid cursor');
   return row;
 }
-export function createBorrowerReadStore({ pool, config, now = () => new Date() }) {
+export function createBorrowerReadStore({ pool, config, now = () => new Date(), guardConnection, resolveMember, emailAllowed = email => email === config.ownerEmail, source = 'dev' }) {
   async function run(email, operation, repeatableRead = false) {
-    if (email !== config.ownerEmail) return { ok: false, status: 403, code: 'access_denied' };
+    if (!emailAllowed(email)) return { ok: false, status: 403, code: 'access_denied' };
     let client;let stage='connect';let transactionUncertain=false;let quarantine=false;
     const rollback=async()=>{try { await client.query('ROLLBACK');transactionUncertain=false; } catch(error) { quarantine=true;throw error; }};
     try {
@@ -48,10 +48,10 @@ export function createBorrowerReadStore({ pool, config, now = () => new Date() }
       transactionUncertain=true;
       await client.query(repeatableRead ? 'BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY' : 'BEGIN READ ONLY');
       await client.query("SET LOCAL statement_timeout = '5000ms'");
-      stage='identity';const identity = await client.query('SELECT current_database() AS database, current_user AS principal');
+      stage='identity';if(guardConnection)await guardConnection(client);const identity = await client.query('SELECT current_database() AS database, current_user AS principal');
       if (identity.rows.length !== 1 || identity.rows[0].database !== config.database || identity.rows[0].principal !== config.dbUser) throw new Error('Unexpected database identity');
       stage='mapping';const mapping = await client.query('SELECT "Row ID" AS id FROM public."Partners" WHERE lower(btrim("Login Email")) = $1 LIMIT 2', [email]);
-      if (mapping.rows.length !== 1 || !validId(mapping.rows[0].id)) { await rollback(); return { ok: false, status: 403, code: 'access_denied' }; }
+      if (mapping.rows.length !== 1 || !validId(mapping.rows[0].id) || (resolveMember && !(await resolveMember(client,email,mapping.rows[0].id)))) { await rollback(); return { ok: false, status: 403, code: 'access_denied' }; }
       stage='read';const data = await operation(client);
       stage='commit';
       await client.query('COMMIT');
@@ -59,7 +59,7 @@ export function createBorrowerReadStore({ pool, config, now = () => new Date() }
       const timestamp = now();
       const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Bangkok', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(timestamp);
       const value = type => parts.find(p => p.type === type).value;
-      return { ok: true, schemaVersion: 1, source: 'dev', businessDate: `${value('year')}-${value('month')}-${value('day')}`, timezone: 'Asia/Bangkok', asOf: timestamp.toISOString(), ...data };
+      return { ok: true, schemaVersion: 1, source, businessDate: `${value('year')}-${value('month')}-${value('day')}`, timezone: 'Asia/Bangkok', asOf: timestamp.toISOString(), ...data };
     } catch (error) {
       const category=failureCategory(error);
       quarantine=quarantine||fatalCodes.has(error?.code)||category==='connection_timeout';

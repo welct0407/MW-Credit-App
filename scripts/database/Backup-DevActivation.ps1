@@ -14,6 +14,10 @@ New-Item -ItemType Directory -Path $restoreRoot -Force | Out-Null
 $data=Join-Path $restoreRoot ([guid]::NewGuid().ToString('N'))
 $roleFile=Join-Path $private 'restore-roles.sql'
 $started=$false
+$restorePassed=$false
+$oldPassword=$env:PGPASSWORD
+$oldSslMode=$env:PGSSLMODE
+$began=[DateTimeOffset]::UtcNow
 try {
  $env:PGPASSWORD=[IO.File]::ReadAllText($target.passwordFile).Trim()
  $env:PGSSLMODE='require'
@@ -41,13 +45,23 @@ try {
  if($LASTEXITCODE){throw 'DEV private restore failed; see private diagnostic'}
  $verification=& "$bin/psql.exe" -h 127.0.0.1 -p $port -U postgres -d loan_manager_dev -X -A -t -v ON_ERROR_STOP=1 -c "SELECT json_build_object('database',current_database(),'latestVersion',(SELECT version FROM public.flyway_schema_history WHERE success ORDER BY installed_rank DESC LIMIT 1),'historyRows',(SELECT count(*) FROM public.flyway_schema_history),'publicTables',(SELECT count(*) FROM pg_tables WHERE schemaname='public'))"
  if($LASTEXITCODE){throw 'Restored history verification failed'}
+ $restorePassed=$true
  $evidence=[ordered]@{environment='development';instance=$target.instance;host=$target.host;database=$target.database;dumpSha256=(Get-FileHash -LiteralPath $dump -Algorithm SHA256).Hash.ToLowerInvariant();archiveListing='passed';restore='passed';restoreSemantics='schema/data restored with no ownership/ACL replay; policy role names local NOLOGIN only';restored=($verification | ConvertFrom-Json);completedAt=[DateTimeOffset]::UtcNow.ToString('o');privateRecoveryDirectory=$private}
  $evidence | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $private 'recovery.json') -Encoding utf8
  $evidence | ConvertTo-Json -Depth 5
 } finally {
- if($started){& "$bin/pg_ctl.exe" -D $data -m fast -w stop > (Join-Path $private 'stop.out') 2> (Join-Path $private 'stop.err');if($LASTEXITCODE){Write-Warning 'Owned restore cluster stop failed; inspect private diagnostic'}}
- Remove-Item Env:PGPASSWORD -ErrorAction SilentlyContinue
- Remove-Item Env:PGSSLMODE -ErrorAction SilentlyContinue
+ $stopped=-not $started
+ if($started){& "$bin/pg_ctl.exe" -D $data -m fast -w stop > (Join-Path $private 'stop.out') 2> (Join-Path $private 'stop.err');$stopped=$LASTEXITCODE -eq 0;if(-not $stopped){Write-Warning 'Owned restore cluster stop failed; inspect private diagnostic'}}
+ $env:PGPASSWORD=$oldPassword
+ $env:PGSSLMODE=$oldSslMode
+ if($restorePassed -and $stopped -and (Test-Path -LiteralPath $data)){
+  $resolvedData=(Get-Item -LiteralPath $data).FullName
+  $resolvedParent=(Get-Item -LiteralPath $restoreRoot).FullName
+  if([IO.Path]::GetDirectoryName($resolvedData) -ne $resolvedParent -or [IO.Path]::GetFileName($resolvedData) -notmatch '^[a-f0-9]{32}$' -or ((Get-Item -LiteralPath $data).Attributes -band [IO.FileAttributes]::ReparsePoint)){throw 'Owned restore cleanup boundary rejected'}
+  Remove-Item -LiteralPath $resolvedData -Recurse -Force
+  @{stopped=$true;ownedRestoreRemoved=(-not(Test-Path -LiteralPath $resolvedData));backupRetained=$true;elapsedSeconds=[Math]::Round(([DateTimeOffset]::UtcNow-$began).TotalSeconds,2)} | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $private 'cleanup.json') -Encoding utf8
+ }
+ "Purpose: protected DEV rollback dump and isolated schema/data restore evidence. Retain backup; diagnostics review $([DateTimeOffset]::UtcNow.AddDays(7).ToString('yyyy-MM-dd'))." | Set-Content -LiteralPath (Join-Path $private 'retention.txt') -Encoding utf8
 }
 
 

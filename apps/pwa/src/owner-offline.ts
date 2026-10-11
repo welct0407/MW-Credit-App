@@ -1,12 +1,11 @@
+import {offlineNamespace,applicationEnvironment,type ApplicationEnvironment} from './environment';
 import {validateViewedSnapshot,type ViewedSnapshot} from './viewed-snapshot';
-const issuer='https://securetoken.google.com/clever-oasis-508610-n7';
 const expiry=24*60*60*1000;
 const namespaceEpochs=new Map<string,number>();
 type Saved<T>={key:string;kind:'snapshot'|'draft'|'pending'|'lease';savedAt:number;value:T};
 /** Caller must supply the currently verified owner session. No authentication is inferred here. */
-export function ownerOfflineRepository(identity:{issuer:string;uid:string}) {
- if(identity.issuer!==issuer||!identity.uid||identity.uid.length>128)throw Error('Offline owner identity unavailable');
- const name='mw-credit-dev-owner:'+identity.issuer+':'+identity.uid;
+export function ownerOfflineRepository(identity:{issuer:string;uid:string},environment:ApplicationEnvironment=applicationEnvironment) {
+ const name=offlineNamespace(identity,environment);
  const instanceEpoch=namespaceEpochs.get(name)??0;
  const validInstance=()=>instanceEpoch===(namespaceEpochs.get(name)??0);
  let opened:Promise<IDBDatabase>|null=null;

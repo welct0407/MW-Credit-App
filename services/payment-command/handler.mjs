@@ -188,3 +188,9 @@ export function createDevCommandHandler({config,...options}) {
  if(!['synthetic-only','dev-owner-testing'].includes(config?.mode)||!Array.isArray(config.origins)||!config.origins.length||config.origins.some(origin=>!allowed.includes(origin)))throw Error('Invalid DEV command origins');
  return buildHandler({...options,origins:config.origins});
 }
+
+/** Internal HTTP composition with an independently validated production config. */
+export function createEnvironmentCommandHandler({config,...options}) {
+ if(config?.environment!=='prod'||config.mode!=='business-candidate'||!Array.isArray(config.origins)||config.origins.some(origin=>!['https://lm.mw-credit.com',`https://${config.hostingSite}.web.app`].includes(origin)))throw Error('Invalid production command origins');
+ return buildHandler({...options,origins:config.origins});
+}

@@ -51,7 +51,7 @@ export function createDevReadHandler({ config, verifyPrincipal, store, completio
     try {
       const url = new URL(req.url, 'http://request.invalid');
       if (url.searchParams.has('q') && !['/api/borrowers', '/api/collection'].includes(url.pathname)) return send(400, { ok: false, code: 'invalid_request' });
-      if (url.pathname === '/health') return send(200, { status: 'ok', environment: 'dev', service: 'borrower-read' });
+      if (url.pathname === '/health') return send(200, { status: 'ok', environment: config.environment ?? 'dev', service: 'borrower-read' });
       const principal = await verifyPrincipal(req.headers.authorization);
       if (!principal.ok) return send(principal.status, { ok: false, code: principal.code });
       let result;

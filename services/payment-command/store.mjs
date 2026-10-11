@@ -29,20 +29,24 @@ const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{1
 const failure = (status, code) => ({ ok: false, status, code });
 
 /** DISPOSABLE candidate only. No ambient connection/config, service launcher or live permission. */
-function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAdapter, sourceReceiptReader, ownerTesting=false }) {
-  async function run(principal, operation, readonly = false) {
-    if (!principal?.ok || principal.email !== OWNER_EMAIL || typeof principal.subject !== 'string' || !principal.subject) return failure(403, 'access_denied');
+function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAdapter, sourceReceiptReader, ownerTesting=false, draftMode='dev-owner-testing', principalAllowed=principal=>principal?.ok&&principal.email===OWNER_EMAIL&&typeof principal.subject==='string'&&!!principal.subject, resolveActor, actorIssuer=issuer }) {
+  async function run(principal, operation, readonly = false, capability) {
+    if (!principalAllowed(principal)) return failure(403, 'access_denied');
     let client, attempted = false, commitStarted = false, quarantine = false;
     const rollback = async () => { try { await client?.query('ROLLBACK'); } catch (error) { quarantine = true; throw error; } };
     try {
       client = await pool.connect();
-      await client.query(readonly ? 'BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY' : 'BEGIN');
+      await client.query(readonly ? (capability==='receipt.read'?'BEGIN ISOLATION LEVEL READ COMMITTED READ ONLY':'BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY') : 'BEGIN');
       await client.query("SET LOCAL statement_timeout='10000ms'");
       await client.query("SET LOCAL lock_timeout='3000ms'");
       await guardConnection(client);
-      const rows = (await client.query('SELECT "Row ID" AS id FROM public."Partners" WHERE lower(btrim("Login Email"))=$1 LIMIT 2', [principal.email])).rows;
-      if (rows.length !== 1) { await rollback(); return failure(403, 'access_denied'); }
-      const actor = canonicalActor({ issuer, subject: principal.subject, partnerId: rows[0].id, loginEmail: principal.email });
+      let actor;
+      if(resolveActor) actor=await resolveActor(client,principal,capability??(readonly?'read':'command'));
+      else {
+        const rows=(await client.query('SELECT "Row ID" AS id FROM public."Partners" WHERE lower(btrim("Login Email"))=$1 LIMIT 2',[principal.email])).rows;
+        if(rows.length===1)actor=canonicalActor({issuer:actorIssuer,subject:principal.subject,partnerId:rows[0].id,loginEmail:principal.email});
+      }
+      if(!actor){await rollback();return failure(403,'access_denied');}
       const result = await operation(client, actor, () => { attempted = true; });
       if (!result.ok) { await rollback(); return result; }
       // Timestamp successful viewed-source reads in their repeatable-read transaction.
@@ -113,7 +117,24 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
     async expenses(principal,options){if(!ownerTesting)return failure(403,'access_denied');return run(principal,async client=>({ok:true,value:await readExpensePage(client,options)}),true)},
     async paymentImage(principal,id,source='preferred'){
       if(!ownerTesting)return failure(403,'access_denied');if(!validBorrowerId(id)||!['preferred','manual','agent'].includes(source))return failure(400,'invalid_request');
-      return run(principal,async client=>{const row=(await client.query('SELECT "Uploaded Receipt" manual,"Receipt Image" agent FROM public."Payments" WHERE "Row ID"=$1',[id])).rows[0];if(!row)return failure(404,'not_found');const kind=source==='preferred'?(typeof row.manual==='string'&&row.manual.trim()?'manual':'agent'):source,reference=row[kind];if(typeof reference!=='string'||!reference.trim())return failure(404,'receipt_not_found');if(typeof sourceReceiptReader!=='function')return failure(503,'receipt_unavailable');try{return {ok:true,value:await sourceReceiptReader(reference,kind)}}catch(error){return failure(error.message==='receipt_reference_unsupported'?422:503,error.message==='receipt_reference_unsupported'?'receipt_reference_unsupported':'receipt_unavailable')}},true);
+      return run(principal,async(client,actor)=>{
+        const sql='SELECT "Uploaded Receipt" manual,"Receipt Image" agent,"IG Receipt ID" AS "agentReceiptId","Receipt Received At"::text AS "agentReceivedAt" FROM public."Payments" WHERE "Row ID"=$1';
+        const row=(await client.query(sql,[id])).rows[0];if(!row)return failure(404,'not_found');
+        const selectKind=value=>source==='preferred'?(typeof value.manual==='string'&&value.manual.trim()?'manual':'agent'):source;
+        const kind=selectKind(row),reference=row[kind];
+        if(typeof reference!=='string'||!reference.trim())return failure(404,'receipt_not_found');
+        if(typeof sourceReceiptReader!=='function')return failure(503,'receipt_unavailable');
+        try{
+          const value=await sourceReceiptReader(reference,kind,row);
+          // READ COMMITTED observes changes during the download rather than the old snapshot.
+          const current=(await client.query(sql,[id])).rows[0];
+          if(!current||selectKind(current)!==kind||current[kind]!==reference||(kind==='agent'&&(current.agentReceiptId!==row.agentReceiptId||current.agentReceivedAt!==row.agentReceivedAt)))return failure(503,'receipt_unavailable');
+          if(!principalAllowed(principal))return failure(403,'access_denied');
+          const freshActor=resolveActor?await resolveActor(client,principal,'receipt.read'):(await client.query('SELECT "Row ID" AS id FROM public."Partners" WHERE lower(btrim("Login Email"))=$1 LIMIT 2',[principal.email])).rows;
+          if(resolveActor?!freshActor||JSON.stringify(freshActor)!==JSON.stringify(actor):freshActor.length!==1||freshActor[0].id!==actor.partnerId)return failure(403,'access_denied');
+          return {ok:true,value};
+        }catch(error){return failure(error.message==='receipt_reference_unsupported'?422:503,error.message==='receipt_reference_unsupported'?'receipt_reference_unsupported':'receipt_unavailable')}
+      },true,'receipt.read');
     },
     async collectionReceipts(principal,id,options){if(!ownerTesting)return failure(403,'access_denied');return run(principal,async client=>{try{return {ok:true,value:await readCollectionReceipts(client,id,options)}}catch(error){if(['invalid_request','selection_changed','business_date_changed'].includes(error.message))return failure(error.message==='invalid_request'?400:409,error.message);throw error}},true);},
     async paymentRecord(principal,id,{preview=false,targetLoanId=null,paymentDate=null,proposedBorrowerId=null}={}){
@@ -181,7 +202,7 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
       if (!ownerTesting&&(!fixture || borrowerId!==fixture.borrowerId)) return failure(403,'access_denied');
       if(typeof borrowerId!=='string'||!borrowerId||Buffer.byteLength(borrowerId)>256)return failure(400,'invalid_request');
       return run(principal,async client=>{
-        const value=ownerTesting?await readOwnerPaymentDraft(client,borrowerId,options):await readPaymentDraft(client,fixture);
+        const value=ownerTesting?await readOwnerPaymentDraft(client,borrowerId,{...options,mode:draftMode}):await readPaymentDraft(client,fixture);
         return value.draftError?failure(value.status,value.draftError):{ok:true,value};
       },true);
     },
@@ -263,7 +284,7 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
           const value=bytes ? await receiptAdapter.upload({...input,bytes,mimeType}) : await receiptAdapter.retrieve(input);
           return {ok:true,value};
         } catch(error) { return failure(error?.message==='receipt_conflict'?409:error?.receiptInvalid||error?.message==='invalid_receipt'?422:503,error?.message==='receipt_conflict'?'receipt_conflict':'receipt_unavailable'); }
-      },true);
+      },true,bytes?'receipt.write':'receipt.read');
     },
     async status(principal, requestId) {
       if (typeof requestId !== 'string' || !uuid.test(requestId)) return failure(400, 'invalid_request');
@@ -288,4 +309,10 @@ export function createApplicationRoleCommandStore({pool,targetAttestation,resolv
 
 export function createDevCommandStore({pool,config,receiptAdapter,sourceReceiptReader}) {
  return buildStore({pool,fixture:config.fixture,ownerTesting:config.mode==='dev-owner-testing',receiptAdapter,sourceReceiptReader,resolveReceipt:input=>receiptAdapter.resolveReceipt(input),guardConnection:createDevCommandConnectionGuard(config)});
+}
+
+/** Internal composition seam: callers must supply verified identity and transaction membership policies. */
+export function createEnvironmentCommandStore({pool,guardConnection,principalAllowed,resolveActor,actorIssuer,receiptAdapter,sourceReceiptReader}) {
+ if(!pool||[guardConnection,principalAllowed,resolveActor].some(value=>typeof value!=='function')||typeof actorIssuer!=='string')throw Error('Explicit application policies required');
+ return buildStore({pool,guardConnection,principalAllowed,resolveActor,actorIssuer,ownerTesting:true,draftMode:'production-business',receiptAdapter,sourceReceiptReader,resolveReceipt:receiptAdapter?input=>receiptAdapter.resolveReceipt(input):undefined});
 }

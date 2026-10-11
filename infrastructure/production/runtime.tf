@@ -57,6 +57,14 @@ resource "google_cloud_run_v2_service" "foundation" {
       condition     = var.foundation_authorized && var.foundation_image != null && var.owner_secret_version != null
       error_message = "Runtime requires the reviewed foundation, tested immutable image and actual enrolled owner version."
     }
+    precondition {
+      condition     = !var.business_runtime_authorized || (var.business_infrastructure_authorized && var.business_image != null && var.capability_policy_version != null && var.capability_policy_sha256 != null && length(var.business_registered_creators) > 0)
+      error_message = "Business runtime requires separately authorized SQL prerequisites, tested image, reviewed numeric policy pin/hash and registered creators."
+    }
+    precondition {
+      condition     = !(var.business_runtime_authorized && var.business_receipts_authorized) || (var.native_catalog_version != null && var.receipt_source_evidence_sha256 != null && var.receipt_compatibility_evidence_sha256 != null)
+      error_message = "Receipts require actual numeric catalog version and reviewed source/render-binding evidence."
+    }
   }
   template {
     service_account                  = google_service_account.application[each.key].email
@@ -67,15 +75,15 @@ resource "google_cloud_run_v2_service" "foundation" {
       max_instance_count = 1
     }
     containers {
-      image   = var.foundation_image
+      image   = var.business_runtime_authorized ? var.business_image : var.foundation_image
       command = ["node"]
-      args    = ["services/production/server.mjs"]
+      args    = [var.business_runtime_authorized ? "services/production/business-server.mjs" : "services/production/server.mjs"]
       resources {
         limits   = { cpu = "1", memory = "512Mi" }
         cpu_idle = true
       }
       dynamic "env" {
-        for_each = {
+        for_each = merge({
           APP_ENV                       = "prod"
           FOUNDATION_MODE               = "foundation"
           FOUNDATION_ROLE               = each.value
@@ -91,7 +99,28 @@ resource "google_cloud_run_v2_service" "foundation" {
           HOSTING_SITE_ID               = var.hosting_site_id
           ALLOWED_WEB_ORIGINS           = jsonencode(["https://lm.mw-credit.com", "https://${var.hosting_site_id}.web.app"])
           OWNER_IDENTITY_SECRET_VERSION = "projects/${var.application_project_id}/secrets/mw-credit-app-prod-owner-identity/versions/${var.owner_secret_version == null ? "UNBOUND" : var.owner_secret_version}"
-        }
+          }, var.business_runtime_authorized ? {
+          BUSINESS_ACTIVATION                   = "approved-candidate"
+          BUSINESS_MODE                         = "business-candidate"
+          DB_USER                               = trimsuffix(google_service_account.application[each.key].email, ".gserviceaccount.com")
+          PROD_CAPABILITY_POLICY_SECRET_VERSION = "projects/${var.application_project_id}/secrets/mw-credit-app-prod-capability-policy/versions/${var.capability_policy_version == null ? "UNBOUND" : var.capability_policy_version}"
+          PROD_CAPABILITY_POLICY_SHA256         = var.capability_policy_sha256
+          PROD_SQL_APPLICATION_ROLE             = "mw_app_prod"
+          PROD_SQL_JOURNAL_OWNER_ROLE           = "mw_app_prod_journal_owner"
+          PROD_SQL_REGISTERED_CREATORS          = jsonencode(var.business_registered_creators)
+          PWA_NOTIFICATIONS                     = "disabled"
+          PROD_RECEIPTS                         = var.business_receipts_authorized && each.key == "command" ? "enabled" : "disabled"
+          } : {}, var.business_runtime_authorized && var.business_receipts_authorized && each.key == "command" ? {
+          PROD_RECEIPT_CATALOG_SECRET_VERSION = "projects/${var.application_project_id}/secrets/mw-credit-app-prod-native-receipt-catalog/versions/${var.native_catalog_version == null ? "UNBOUND" : var.native_catalog_version}"
+          PROD_RECEIPT_SOURCE_EVIDENCE_SHA256 = var.receipt_source_evidence_sha256
+          PROD_RECEIPT_COMPATIBILITY_JSON = jsonencode({
+            status            = "verified-dev-render-and-prod-binding"
+            evidenceReference = var.receipt_compatibility_evidence_sha256
+            bucket            = local.receipt_bucket
+            sqlPrefix         = "manual-receipts/prod/pwa/"
+            objectPrefix      = "${local.native_receipt_root}pwa/"
+          })
+        } : {})
         content {
           name  = env.key
           value = env.value
@@ -106,6 +135,22 @@ resource "google_cloud_run_v2_service" "foundation" {
           }
         }
       }
+      dynamic "env" {
+        for_each = var.business_runtime_authorized ? merge({
+          PROD_CAPABILITY_POLICY_JSON = { secret = "mw-credit-app-prod-capability-policy", version = var.capability_policy_version }
+          }, var.business_receipts_authorized && each.key == "command" ? {
+          PROD_RECEIPT_NATIVE_CATALOG_JSON = { secret = "mw-credit-app-prod-native-receipt-catalog", version = var.native_catalog_version }
+        } : {}) : {}
+        content {
+          name = env.key
+          value_source {
+            secret_key_ref {
+              secret  = env.value.secret
+              version = env.value.version
+            }
+          }
+        }
+      }
       startup_probe {
         http_get {
           path = "/health"
@@ -116,5 +161,5 @@ resource "google_cloud_run_v2_service" "foundation" {
       }
     }
   }
-  depends_on = [google_project_iam_member.runtime_auth, google_secret_manager_secret_iam_member.runtime_owner]
+  depends_on = [google_project_iam_member.runtime_auth, google_secret_manager_secret_iam_member.runtime_owner, google_project_iam_member.business_sql, google_sql_user.business_runtime, google_secret_manager_secret_iam_member.business_policy, google_secret_manager_secret_iam_member.business_catalog, google_storage_bucket_iam_member.business_receipt]
 }

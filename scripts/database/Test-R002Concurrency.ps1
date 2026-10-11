@@ -1,4 +1,4 @@
-param([string]$PgBin,[int]$Port,[string]$OutputDirectory)
+param([string]$PgBin,[int]$Port,[string]$OutputDirectory,[ValidateSet('postgres','loan_manager_dev','payment_rehearsal')][string]$Database='postgres')
 $ErrorActionPreference='Stop'
 $psql=Join-Path $PgBin 'psql.exe'
 $setup=@'
@@ -9,7 +9,7 @@ INSERT INTO "Cash Pool Contributions"("Row ID","Ref Partner","Contribution Date"
 INSERT INTO "Borrowers"("Row ID","Borrower Name")
  VALUES('R002CON-BORROWER','SYNTHETIC CONCURRENCY');
 '@
-$setup | & $psql -X -q -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d postgres
+$setup | & $psql -X -q -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d $Database
 if($LASTEXITCODE){throw 'Cashpool concurrency setup failed'}
 $first=@'
 BEGIN;
@@ -21,7 +21,7 @@ COMMIT;
 $file=Join-Path $OutputDirectory 'r002-first.sql'
 [IO.File]::WriteAllText($file,$first,[Text.UTF8Encoding]::new($false))
 $out=Join-Path $OutputDirectory 'r002-first.out';$err=Join-Path $OutputDirectory 'r002-first.err'
-$proc=Start-Process $psql -ArgumentList @('-X','-v','ON_ERROR_STOP=1','-h','127.0.0.1','-p',"$Port",'-U','postgres','-d','postgres','-f',('"'+$file+'"')) -WindowStyle Hidden -PassThru -RedirectStandardOutput $out -RedirectStandardError $err
+$proc=Start-Process $psql -ArgumentList @('-X','-v','ON_ERROR_STOP=1','-h','127.0.0.1','-p',"$Port",'-U','postgres','-d',$Database,'-f',('"'+$file+'"')) -WindowStyle Hidden -PassThru -RedirectStandardOutput $out -RedirectStandardError $err
 $deadline=[DateTime]::UtcNow.AddSeconds(10)
 while(-not((Get-Content $out -Raw -ErrorAction SilentlyContinue)-match 'CASHPOOL_LOCK_READY')) {
  if($proc.HasExited -or [DateTime]::UtcNow -gt $deadline){throw 'Cashpool lock barrier failed'}
@@ -29,11 +29,11 @@ while(-not((Get-Content $out -Raw -ErrorAction SilentlyContinue)-match 'CASHPOOL
 }
 $competing='INSERT INTO "Loans"("Row ID","Ref Borrowers","Principal Amount","Auto Charge Enabled") VALUES(''R002CON-S2'',''R002CON-BORROWER'',600::money,false);'
 $watch=[Diagnostics.Stopwatch]::StartNew()
-$result=$competing | & $psql -X -q -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d postgres 2>&1
+$result=$competing | & $psql -X -q -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d $Database 2>&1
 if($LASTEXITCODE -eq 0 -or ($result -join "`n") -notmatch 'Cashpool is busy'){throw 'Concurrent loan did not fail safely'}
 $watch.Stop()
 if($watch.Elapsed.TotalSeconds -ge 2){throw 'Loan waited on cashpool lock'}
 $proc.WaitForExit();if($proc.ExitCode){throw 'First loan failed'}
-$result=$competing | & $psql -X -q -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d postgres 2>&1
+$result=$competing | & $psql -X -q -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d $Database 2>&1
 if($LASTEXITCODE -eq 0 -or ($result -join "`n") -notmatch 'exceeds available cashpool'){throw 'Retry exceeded available cashpool'}
 [pscustomobject]@{cashpoolLockFailsPromptly=$true;concurrentLoanCannotOverspend=$true;busyMilliseconds=$watch.Elapsed.TotalMilliseconds}

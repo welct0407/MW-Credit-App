@@ -3,6 +3,7 @@ import {readFile, realpath} from 'node:fs/promises';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
 import {pathToFileURL} from 'node:url';
+import {validateBusinessDraft,validateBusinessCandidate,validateBusinessPreparation} from './business-candidate.mjs';
 
 const DATA_PROJECT = 'clever-oasis-508610-n7';
 const DATA_NUMBER = '737787224638';
@@ -80,6 +81,7 @@ function checkTarget(target,complete,phase='foundation') {
   return missing;
 }
 export function validateDraft(manifest) {
+  if(manifest?.mode==='business') return validateBusinessDraft(manifest);
   inspect(manifest,shape);equal(manifest.schemaVersion,1,'schema version');equal(manifest.environment,'prod','environment');equal(manifest.mode,'foundation','mode');equal(manifest.status,'draft','draft status');
   const missing=checkTarget(manifest.target??{},false,manifest.artifacts?.frontend?.phase??'foundation').map(p=>'target.'+p);
   for(const key of ['sourceCommit','targetSha256','artifacts','rollback','evidence','sql']) if(!present(manifest[key])) missing.push(key);
@@ -160,6 +162,7 @@ async function shellFrontend(artifact,target,targetSha,root) {
   }
 }
 export async function validateCandidate(manifest,{artifactRoot,rollbackRoot}={}) {
+  if(manifest?.mode==='business') return (manifest.status==='prepared'?validateBusinessPreparation:validateBusinessCandidate)(manifest,arguments[1]??{});
   inspect(manifest,shape);equal(manifest.schemaVersion,1,'schema version');equal(manifest.environment,'prod','environment');equal(manifest.mode,'foundation','mode');equal(manifest.status,'reviewable','candidate status');
   const phase=manifest.artifacts?.frontend?.phase??'foundation';checkTarget(manifest.target,true,phase);
   if(!COMMIT.test(manifest.sourceCommit)) fail('Full source commit required');hash(manifest.targetSha256,'target');equal(manifest.targetSha256,fingerprint(manifest.target),'target fingerprint');equal(manifest.sql?.mode,'none','foundation SQL mode');
@@ -195,18 +198,19 @@ export async function validateCandidate(manifest,{artifactRoot,rollbackRoot}={})
 }
 export const validateReviewable=validateCandidate;
 export async function validateAuthorizedPackage(manifest,options) {
+  if(manifest?.mode==='business') fail('Business candidate execution is not authorized or implemented');
   const result=await validateCandidate(manifest,options);const ref=manifest.authorization;
   text(ref?.reference,'authorization reference');equal(ref.scope,'contained-production-foundation','authorization scope');equal(ref.targetSha256,manifest.targetSha256,'authorized target');equal(ref.sourceCommit,manifest.sourceCommit,'authorized source');
   return {...result,approvalRequired:false,authorizationRecorded:true,deployReady:false,execution:'Reference recorded only; a future executor must verify authority and live target. No apply implementation'};
 }
 export function parseArguments(args) {
-  const allowed=new Set(['--manifest','--artifact-root','--rollback-root','--dry-run']);const opts={};
+  const allowed=new Set(['--manifest','--artifact-root','--rollback-root','--policy-file','--receipt-catalog-file','--migration-root','--baseline-file','--ci-evidence-file','--build-evidence-file','--connect-evidence-file','--preparation-evidence-file','--source-set-file','--required-tests-file','--rollback-backup-file','--dry-run']);const opts={};
   for(let i=0;i<args.length;i++) {const key=args[i];if(!allowed.has(key) || Object.hasOwn(opts,key)) fail('Usage: --manifest PATH [--artifact-root PATH --rollback-root PATH] [--dry-run]; apply is unsupported');opts[key]=key==='--dry-run'?true:args[++i];if(!opts[key] || typeof opts[key]==='string' && opts[key].startsWith('--')) fail('Missing argument');}
   if(!opts['--manifest']) fail('Manifest required');return opts;
 }
 async function cli(args) {
   const opts=parseArguments(args);const raw=await readFile(opts['--manifest']);if(raw.length>256*1024) fail('Manifest exceeds bound');const manifest=json(raw,'manifest');
-  const result=manifest.status==='draft'?validateDraft(manifest):await validateCandidate(manifest,{artifactRoot:opts['--artifact-root'],rollbackRoot:opts['--rollback-root']});
+  const result=manifest.status==='draft'?validateDraft(manifest):await validateCandidate(manifest,{artifactRoot:opts['--artifact-root'],rollbackRoot:opts['--rollback-root'],policyFile:opts['--policy-file'],receiptCatalogFile:opts['--receipt-catalog-file'],migrationRoot:opts['--migration-root'],baselineFile:opts['--baseline-file'],ciEvidenceFile:opts['--ci-evidence-file'],buildEvidenceFile:opts['--build-evidence-file'],connectEvidenceFile:opts['--connect-evidence-file'],preparationEvidenceFile:opts['--preparation-evidence-file'],sourceSetFile:opts['--source-set-file'],requiredTestsFile:opts['--required-tests-file'],rollbackBackupFile:opts['--rollback-backup-file']});
   process.stdout.write(JSON.stringify(result)+'\n');
 }
 if(process.argv[1] && import.meta.url===pathToFileURL(path.resolve(process.argv[1])).href) cli(process.argv.slice(2)).catch(()=>{process.stderr.write('Promotion preparation rejected; invalid, incomplete or mismatched metadata/artifacts. No actions executed.\n');process.exitCode=1;});

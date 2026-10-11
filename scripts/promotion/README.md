@@ -44,3 +44,38 @@ Use the established signed-in gcloud account welct0407@mw-credit.com to capture 
 DEV workflow API steps remain unchanged. Its Hosting step now reports controlled operator instructions; the automated DEV identity must not publish either site. DEV Hosting continues through the maintained scripts/deploy-hosting.mjs --live-dev route using its exact DEV artifact. Coordinate verified human access before F removes the project-wide automated Hosting grant.
 
 cloudbuild-foundation.yaml builds only exact Docker/package/services input into the separate mw-credit-app-prod registry with the verified production build service account/source bucket. Do not submit a dirty repository or reuse the DEV repository. Record build/source/input hashes, immutable digest and final source input-equivalence; successful artifact build does not substitute for final full CI or live proof.
+
+## Business candidate preparation â€” no production execution
+
+`mode: business` is a separate local contract. Drafts list missing inputs. A complete reviewable package still returns `deploymentAuthorized:false`, `deployReady:false` and `approvalRequired:true`. `validateAuthorizedPackage` and the existing foundation Hosting executor reject business mode; `--apply` remains unsupported by candidate validation. No production business migration, grants, Hosting publication, notification or job switch is implemented here.
+
+Supply explicit absolute current/rollback artifact roots, private policy/catalog files, migration root, sanitized build/CI evidence and the actual foundation delivery baseline:
+
+```powershell
+node scripts/promotion/manifest.mjs --manifest PRIVATE_CANDIDATE --artifact-root CURRENT_ROOT --rollback-root FOUNDATION_ROOT --policy-file PRIVATE_POLICY --receipt-catalog-file PRIVATE_CATALOG --migration-root MIGRATIONS --baseline-file BASELINE_EVIDENCE --ci-evidence-file CI_EVIDENCE --build-evidence-file BUILD_EVIDENCE --dry-run
+```
+
+The business contract checks the exact shared PROD tuple/services/site/origins; immutable business-server image digests and exact-source build/input hashes; successful executed full browser CI source/run pins; all migration filenames/hashes; complete private current-sharing Partner policy and numeric policy/catalog secret versions; B's production receipt parser with a separately reviewed object-root/evidence binding; compiled PROD public config/entry/worker hashes; inactive notification/job/purge flags; retained AppSheet job ownership; source-adapter/recovery evidence; and the real foundation revision/image/Hosting pins with unchanged rollback bytes. It emits counts/hashes, never policy members or catalog keys. Synthetic tests are contract proof, not live readiness or a production authorization grant.
+
+`Prepare-ProductionPolicy.ps1` reads only the two reviewed sharing identities' current Partner key, financial role and Login Email, from PROD under a read-only session. Inputs and output stay under the private current-user candidate-policy root, outputs never overwrite existing files, and capabilities come from explicit reviewed sharing/action evidence. Financial A/B does not select authorization rights. Policy preparation creates no secret version, account or grant.
+
+## Later grouped SQL promotion
+
+Fresh read-only 11 October PROD history is V77; pending migrations are V78 through the final candidate (including V87 environment isolation). The maintained `Invoke-Flyway.ps1` requires its existing clean tested commit, full migration hashes, owner production approval and verified backup. This task prepares the following later execution contract; it does not execute it:
+
+```powershell
+./scripts/database/Invoke-Flyway.ps1 -Environment production -Command migrate -ReleaseFile PRIVATE_TESTED_RELEASE -ApprovalReference SCOPED_OWNER_APPROVAL -BackupReference VERIFIED_RESTORE_REFERENCE -GroupedProduction -ConnectPreflightFile PRIVATE_FRESH_CONTAINMENT_PROOF
+```
+
+The tested release's `productionTransaction` pins `baselineVersion:77`, complete final target, `group:true`, `mixed:false`, `executeInTransaction:true`, empty `callbacks`, and exact CONNECT preflight SHA256. Callback/sidecar/nontransactional SQL and ambient overrides refuse. The runner re-reads actual PROD history/pending scope immediately before the later write. A fresh CONNECT preflight must verify current configured legitimate consumers (not only active sessions), explicit reconnect, PUBLIC CONNECT removal, every DEV principal's direct/inherited denial and zero pre-existing DEV sessions. Current observed PUBLIC/DEV CONNECT means that prerequisite is still incomplete; no permissions changed during preparation.
+
+The operator separately snapshots, temporarily establishes only the exact reviewed SET/INHERIT/schema CREATE prerequisites, and restores original grantors/options in `finally`. Failure preserves persistent CONNECT containment; never automatically regrant PUBLIC, repair history, delete new audit tables or replay uncertain effects. The actual shared-cluster group observer/failure/authority restoration rehearsal remains required before promotion readiness. Pure guard tests alone do not establish atomic Flyway behavior.
+
+Maintained full migration fixtures now use a disposable `loan_manager_dev` database so V87's database mapping is exercised rather than relaxed. Concurrency helpers accept a bounded optional database name and preserve their original `postgres` default for other callers. No live database is renamed.
+The role-prerequisite CLI accepts `--environment production --creator-file <reviewed-private-registry>` for read-only plans. Production `--apply` is rejected before credential lookup. `--grouped-maintenance` and `--restore-grouped-maintenance` use the two-owner helper; both exact membership/schema grantors must be reviewed. The helper restores only its own tuples and preserves unrelated permanent V87 ACL changes, but callers must verify the final V87 manifest and run restoration in `finally`. It never restores PUBLIC CONNECT. Pure planner checks do not replace actual nonsuperuser/grantor/failure-path verification. The generic coarse role-recovery helper remains DEV-only.
+
+## Prepared package and applied receipts
+
+`status: prepared` uses planned secret `{status:"planned",projectId,name,payloadSha256}` and never invents numeric versions. Supply `--connect-evidence-file`, `--preparation-evidence-file`, `--source-set-file`, `--required-tests-file`, `--rollback-backup-file` in addition to current artifact/policy/catalog/migration/CI/build/baseline inputs. Actual bytes must match preparation hashes; ordered apply/recovery actions and current configured-consumer sources/planned CONNECT diff are required. Complete pending78–87 includes inactive86. Both prepared and applied reports retain deployReady=false/deploymentAuthorized=false.
+
+The applied contract requires numeric versions and fresh real CONNECT denial/reconnect/session evidence. `validateBusinessApplyReceipts` binds prepared canonical digest, exact source/artifacts/SQL/rollback, intended resources and actual version/readback hashes. Drift rejects; no execution is implemented. build-mode.json schemaVersion1/mode live-prod and actual compiled API/Firebase bindings are checked; successful Vite exit alone does not establish artifact readiness. Preserve current historical catalog provenance privately and refresh at cutover; approved PWA→AppSheet proof is actual DEV rendering plus PROD binding, with first real PROD view after authorized promotion.

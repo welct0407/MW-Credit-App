@@ -1,7 +1,9 @@
 import {createHash} from 'node:crypto';
-import {createDevReceiptAdapter,generatedReceiptPaths} from './dev-receipt-adapter.mjs';
-export function createCommandReceipts({storage,decodeImage,compatibility}) {
- const adapter=createDevReceiptAdapter({storage,decodeImage,compatibility});
+import {createDevReceiptAdapter,createProductionReceiptAdapter,PROD_RECEIPT_MAPPING,DEV_RECEIPT_MAPPING,generatedReceiptPaths} from './dev-receipt-adapter.mjs';
+export function createCommandReceipts(options){return createBoundCommandReceipts(options,createDevReceiptAdapter,DEV_RECEIPT_MAPPING)}
+export function createProductionCommandReceipts(options){return createBoundCommandReceipts(options,createProductionReceiptAdapter,PROD_RECEIPT_MAPPING)}
+function createBoundCommandReceipts({storage,decodeImage,compatibility},factory,mapping) {
+ const adapter=factory({storage,decodeImage,compatibility});
  const publicReceipt=value=>({receiptId:value.descriptor.receiptId,mimeType:value.descriptor.mimeType,sizeBytes:value.descriptor.sizeBytes,sha256:value.descriptor.sha256,generation:value.generation});
  return {
   resolveReceipt:adapter.resolveReceipt,
@@ -19,7 +21,7 @@ export function createCommandReceipts({storage,decodeImage,compatibility}) {
   async retrieve(input) {
    const bound=await adapter.resolveReceipt(input);
    const verified=await adapter.resolve({...input,mimeType:bound.descriptor.mimeType});
-   const paths=generatedReceiptPaths({...input,mimeType:bound.descriptor.mimeType});
+   const paths=generatedReceiptPaths({...input,mimeType:bound.descriptor.mimeType},mapping);
    const object=await storage.read({bucket:paths.bucket,key:paths.key,generation:verified.generation});
    if(createHash('sha256').update(object.bytes).digest('hex')!==verified.descriptor.sha256)throw Error('receipt_unavailable');
    return {bytes:object.bytes,mimeType:verified.descriptor.mimeType};
