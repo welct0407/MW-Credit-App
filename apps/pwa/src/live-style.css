@@ -453,3 +453,6 @@ main[data-workspace=management] pre{white-space:pre-wrap;overflow-wrap:anywhere}
  .live-shell .dashboard-section h3{margin:18px 0 8px}
  .live-shell .dashboard-section:not(:first-of-type) dl:has(>div){grid-template-columns:minmax(0,1fr)}
 }
+
+.live-reporting-link{display:flex;align-items:center;gap:10px;min-height:44px;box-sizing:border-box}.live-reporting-link>.live-nav-icon{display:none}
+@media(min-width:1051px){.nav-collapsed .live-desktop-nav .live-reporting-link{justify-content:center;padding:10px;min-width:44px}.nav-collapsed .live-desktop-nav .live-reporting-link>.live-nav-icon{display:inline-flex}}
