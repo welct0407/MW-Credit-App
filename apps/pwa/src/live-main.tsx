@@ -50,6 +50,7 @@ function configuration() {
 function App() {
   useEffect(()=>limitAppZoom(),[]);
   const pwa = usePwa();
+  const [authRevision,setAuthRevision]=useState(0);
   const offlineBlocked = useRef(!navigator.onLine);
   const [thai, setThai] = useState(false);
   const languageRevision=useRef(0),preferenceOwner=useRef<string|null>(null);
@@ -279,13 +280,13 @@ function App() {
         if (disposed || (signingOut.current && next)) return;
         if(!next||currentUser.current&&currentUser.current.uid!==next.uid)void offlineRepositoryRef.current?.purge();
         if (offlineBlocked.current) { clear();currentUser.current=next;setUser(next);setStatus('offline');return; }
-        resetSearch(); clear(); currentUser.current = next; setUser(next);
+        resetSearch(); clear(); currentUser.current = next; setUser(next);setAuthRevision(value=>value+1);
         if (next) { setView(import.meta.env.VITE_COMMAND_MODE==='dev-owner-testing'?'dashboard':'borrowers'); setStatus('loading'); } else setStatus('signed_out');
       }, () => { if (!disposed && !offlineBlocked.current) { clear(); setStatus('auth_unavailable'); } });
     } catch { setStatus(offlineBlocked.current ? 'offline' : 'unavailable'); }
     return () => { disposed = true; unsubscribe?.(); generation.current++; pending.current?.abort(); };
   }, []);
-  useEffect(()=>{if(!user||offlineBlocked.current||pwa.startup!=='ready')return;if(import.meta.env.VITE_COMMAND_MODE==='dev-owner-testing')setStatus('ready');else void load(user)},[user,pwa.startup]);
+  useEffect(()=>{if(!user||offlineBlocked.current||pwa.startup!=='ready')return;if(import.meta.env.VITE_COMMAND_MODE==='dev-owner-testing')setStatus('ready');else void load(user)},[user,pwa.startup,authRevision]);
   async function login() {
     if (!auth || offlineBlocked.current) return;
     clear(); setStatus('signing_in');

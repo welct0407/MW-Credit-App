@@ -1,4 +1,4 @@
-import {chooseLanguage,signOut} from './live-controls';
+import {chooseLanguage,chooseLanguagePreservingForm,signOutPreservingActiveChild} from './live-controls';
 import {test,expect} from '@playwright/test';
 import {spawn,type ChildProcess} from 'node:child_process';
 let server:ChildProcess;let base:string;let serverLog="";
@@ -38,7 +38,7 @@ test('G06 bounded list preserves notes, total, scroll and bilingual review at 32
  await region.getByRole('checkbox').last().check();expect(await region.evaluate(el=>el.scrollTop)).toBe(scroll);
  await expect(page.locator('output')).toContainText('Allocated฿330');await expect(page.getByRole('textbox',{name:'Notes',exact:true})).toHaveValue('Synthetic preserved notes');
  await page.getByRole('button',{name:'Review payment',exact:true}).click();await expect(page.locator('.selected-payment')).toContainText('Synthetic preserved notes');await expect(page.locator('.selected-payment')).toContainText('฿330');
- await page.getByRole('button',{name:'Edit',exact:true}).click();await chooseLanguage(page,'ไทย');await expect(page.getByRole('region',{name:'จัดสรรการรับชำระ'})).toBeVisible();
+ await page.getByRole('button',{name:'Edit',exact:true}).click();await chooseLanguagePreservingForm(page,'ไทย');await expect(page.getByRole('region',{name:'จัดสรรการรับชำระ'})).toBeVisible();
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
  await page.screenshot({path:'outputs/r052-payment-command-api/ui-'+info.project.name+'-'+width+'-th.png',fullPage:true});
  await page.unroute('https://mw-credit-app-command-dev-test.run.app/**');
@@ -114,7 +114,7 @@ test('G07 pending-reference storage refusal warns and auth loss clears business 
  await page.locator('.collection-tile-main').first().click();await page.getByRole('button',{name:'Receive selected charges'}).click();await page.getByRole('combobox',{name:/^Receiving account(?: \*)?$/}).selectOption('synthetic-account');await page.getByRole('textbox',{name:/^Amount received(?: \*)?$/}).fill('110');await page.locator('.payment-allocation-row input[type=checkbox]').first().check();
  await page.getByRole('button',{name:'Review payment'}).click();await page.getByRole('button',{name:'Confirm payment online'}).click();
  await expect(page.getByText('This browser cannot retain the reference. Copy it before leaving.')).toBeVisible();expect(posts).toBe(1);
- await signOut(page);await expect(page.getByRole('heading',{name:'Sign in to continue',exact:true})).toBeVisible();await expect(page.locator('.selected-payment')).toHaveCount(0);
+ await signOutPreservingActiveChild(page);await expect(page.getByRole('heading',{name:'Sign in to continue',exact:true})).toBeVisible();await expect(page.locator('.selected-payment')).toHaveCount(0);
 });
 test('G07 offline before confirmation clears business draft and never dispatches',async({page,context})=>{
  let posts=0;

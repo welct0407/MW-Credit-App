@@ -1,4 +1,4 @@
-import {chooseLanguage,signOut} from './live-controls';
+import {chooseLanguage,signOutPreservingActiveChild} from './live-controls';
 import {test,expect} from '@playwright/test';
 import {spawn,type ChildProcess} from 'node:child_process';
 let server:ChildProcess,base:string;
@@ -54,7 +54,7 @@ test('P4-13 failed pending storage freezes original command before any dispatch'
 test('P4-10 delayed old-owner draft response cannot refill storage after sign-out',async({page})=>{
  const posts:any[]=[];await setup(page,posts);await page.getByRole('button',{name:'Back to Collection',exact:true}).click();let release:(()=>void)|undefined,done:(()=>void)|undefined;const completed=new Promise<void>(resolve=>done=resolve);
  await page.route('https://mw-credit-app-command-dev-test.run.app/api/payment-drafts/**',async r=>{await new Promise<void>(resolve=>release=resolve);await r.fulfill({contentType:'application/json',body:JSON.stringify(draft)}).catch(()=>{});done!()});
- await page.getByRole('button',{name:'Receive selected charges',exact:true}).click();await expect.poll(()=>!!release).toBe(true);await signOut(page);await expect(page.getByRole('button',{name:/Google/})).toBeVisible();release!();await completed;
+ await page.getByRole('button',{name:'Receive selected charges',exact:true}).click();await expect.poll(()=>!!release).toBe(true);await signOutPreservingActiveChild(page);await expect(page.getByRole('button',{name:/Google/})).toBeVisible();release!();await completed;
  const saved=await page.evaluate(async()=>{const {ownerOfflineRepository}=await import('/apps/pwa/src/owner-offline.ts');const repo=ownerOfflineRepository({issuer:'https://securetoken.google.com/clever-oasis-508610-n7',uid:'phase4-owner'});return {snapshots:(await repo.list('snapshot')).length,drafts:(await repo.list('draft')).length,pending:(await repo.list('pending')).length,authorized:await repo.authorized()}});expect(saved).toEqual({snapshots:0,drafts:0,pending:0,authorized:false});expect(posts).toHaveLength(0);
 });
 

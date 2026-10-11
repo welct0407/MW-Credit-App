@@ -1,4 +1,4 @@
-import {chooseLanguage,signOut} from './live-controls';
+import {chooseLanguagePreservingForm,signOut} from './live-controls';
 import {test,expect} from '@playwright/test';
 import {spawn,type ChildProcess} from 'node:child_process';
 let server:ChildProcess;let base:string;let serverLog="";
@@ -27,8 +27,8 @@ test('nested loans synthetic list detail pagination errors and stale logout',asy
  });
  await page.goto(base);await page.getByRole('button',{name:'Continue with Google'}).click();await page.locator('.borrower-tile-main').first().click();await expect(page.locator('.related-loans .group-inactive')).toContainText('Closed loans');await expect(page.locator('.loan-record')).toContainText('฿');await page.screenshot({path:`outputs/r052-loan-read/REFINED-${info.project.name}-list-en.png`,fullPage:true});
  await page.locator('.loan-record').click();const detail=page.getByRole('article',{name:'Loan details'});await expect(detail).toContainText('2,345.67');await expect(detail).toContainText('Unavailable');await page.screenshot({path:`outputs/r052-loan-read/REFINED-${info.project.name}-detail-en.png`,fullPage:true});
- await chooseLanguage(page,'ไทย');await expect(page.getByRole('article',{name:'รายละเอียดสัญญา'})).toContainText('เงินต้นเริ่มต้น');expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await page.screenshot({path:`outputs/r052-loan-read/REFINED-${info.project.name}-detail-th.png`,fullPage:true});
- await chooseLanguage(page,'EN');await page.getByRole('button',{name:'Back to loans'}).click();await page.getByRole('button',{name:'Next loans page',exact:true}).click();await expect(page.getByText('No loans for this borrower.',{exact:true})).toBeVisible();expect(calls.some(p=>p.includes('cursor=synthetic-next'))).toBe(true);
+ await chooseLanguagePreservingForm(page,'ไทย');await expect(page.getByRole('article',{name:'รายละเอียดสัญญา'})).toContainText('เงินต้นเริ่มต้น');expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await page.screenshot({path:`outputs/r052-loan-read/REFINED-${info.project.name}-detail-th.png`,fullPage:true});
+ await chooseLanguagePreservingForm(page,'EN');await page.getByRole('button',{name:'Back to loans'}).click();await page.getByRole('button',{name:'Next loans page',exact:true}).click();await expect(page.getByText('No loans for this borrower.',{exact:true})).toBeVisible();expect(calls.some(p=>p.includes('cursor=synthetic-next'))).toBe(true);
  code=503;await page.getByRole('button',{name:'First loans page / refresh',exact:true}).click();await expect(page.getByText('Unable to load loan records.',{exact:true})).toBeVisible();await expect(page.getByRole('region',{name:'Borrower details'})).toBeVisible();await expect(page.locator('.loan-freshness')).toHaveCount(0);
  code=404;await page.getByRole('button',{name:'Retry loan list'}).click();await expect(page.getByText('This borrower or loan is no longer available.',{exact:true})).toBeVisible();code=200;await page.getByRole('button',{name:'Retry loan list'}).click();await expect(page.locator('.loan-record')).toHaveCount(1);
  // Back cancels an in-flight nested read; selecting another parent must not revive it.
@@ -39,5 +39,5 @@ test('nested loans synthetic list detail pagination errors and stale logout',asy
  await page.getByRole('button',{name:'Back to list'}).click();await page.locator('.borrower-tile-main').first().click();await expect(page.locator('.loan-record')).toHaveCount(1);
  code=401;await page.getByRole('button',{name:'First loans page / refresh',exact:true}).click();await expect(page.getByRole('heading',{name:'Please sign in again'})).toBeVisible();await expect(page.locator('.borrower-tile-main')).toHaveCount(0);await expect(page.locator('.related-loans')).toHaveCount(0);
  code=200;await page.getByRole('button',{name:'Continue with Google'}).click();await page.locator('.borrower-tile-main').first().click();await expect(page.locator('.loan-record')).toHaveCount(1);release=undefined;
- hold=true;await page.getByRole('button',{name:'First loans page / refresh',exact:true}).click();await expect.poll(()=>Boolean(release)).toBe(true);await signOut(page);release!();await expect(page.getByRole('heading',{name:'Sign in to continue'})).toBeVisible();await expect(page.locator('.related-loans')).toHaveCount(0);
+ hold=true;await page.getByRole('button',{name:'First loans page / refresh',exact:true}).click();await expect.poll(()=>Boolean(release)).toBe(true);await page.setViewportSize({width:1440,height:844});await signOut(page);release!();await expect(page.getByRole('heading',{name:'Sign in to continue'})).toBeVisible();await expect(page.locator('.related-loans')).toHaveCount(0);
 });
