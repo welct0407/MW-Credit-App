@@ -1,6 +1,6 @@
 {
   "release": "R052",
-  "status": "implemented, verified and deployed in DEV; owner/device acceptance pending",
+  "status": "implemented, verified and deployed in DEV; Phase5 and6 owner-verified/accepted11October2026; Phase3 readiness preparation in progress",
   "sourceCommit": "44682ad5e055e2d09cd44369625fb28877d0e707",
   "productCommit": "19263a536332f54f64a46e69ecf9fdcc75bd1209",
   "backendArtifactCommit": "ba850002783dddd287e015e461c57571dda9cf0f",
@@ -34,7 +34,7 @@
   },
   "limitations": [
     "Unknown/new native AppSheet receipt references require exact trusted reconciliation; only two closed native descriptors established.",
-    "Physical-device and owner acceptance remain separate; browser proof is not physical-device acceptance.",
+    "Owner accepted Phase5/6; no particular physical device or device-specific test result was stated. Browser evidence retains its recorded limits.",
     "No PROD, notifications or live financial test writes."
   ],
   "deployment": {
@@ -342,7 +342,7 @@
     "limits": "No new E review/livefinancialwrite/physicaldevice acceptance/full accessibility claim; prior native receipts/source-only and intermittent503cause limits retained"
   },
   "readerReceiptContinuation": {
-    "status": "Implemented, verified and deployed in DEV; root authenticated read smoke passed; owner/device acceptance pending",
+    "status": "Implemented, verified and deployed in DEV; owner Phase5/6 verification/acceptance complete11October2026; Phase3 preparation started",
     "baselineCommit": "a9e7da96da8d945d362fc32a77118bcea622095f",
     "design": "reader-receipt-continuation-design-2026-10-11.md",
     "independentEvidence": "reader-receipt-independent-verification-2026-10-11.md",
@@ -411,9 +411,9 @@
       "No PROD, notifications or live financial writes.",
       "No new live arbitrary native receipt exists; onboarding beyond two known references has synthetic proof only.",
       "Operator input assertions do not authenticate their own SQL/AppSheet/GCS provenance.",
-      "Physical iPhone/iPad/Safari/native keyboard/PWA/full Thai and owner acceptance remain separate."
+      "Owner accepted Phase5/6; physical/device-specific evidence remains only as recorded, with no invented Safari/keyboard/PWA/Thai results."
     ],
-    "checkpointOrder": "Final corrected consolidated CI -> changed-component DEV delivery/read smoke -> owner DEV testing -> Phase3 after owner go-ahead",
+    "checkpointOrder": "Final corrected CI and DEV delivery/read smoke complete; owner explicitly verified Phase5/6; Phase3 readiness preparation started, no PROD mutation authority inferred",
     "runtimeArtifactCommit": "ba850002783dddd287e015e461c57571dda9cf0f",
     "artifactReuse": "Dockerfile/.dockerignore/CloudBuild/package/services exact diff empty from ba850002; retain build41cd49a5",
     "runtimeBuild": {
@@ -697,5 +697,17 @@
       "ownerSessionSmoke": "passed; persisted owner Dashboard, Cash Position, Cash Accounts, Loan Assessments, Collection Ready; no mutations"
     },
     "meaning": "Dated original Phase6 checkpoint; current continuation is owning readerReceiptContinuation and current top-level pins"
+  },
+  "ownerAcceptance": {
+    "dateBangkok": "2026-10-11",
+    "phases": [
+      5,
+      6
+    ],
+    "status": "owner-verified and accepted",
+    "ownerStatement": "Phase5,6 are verified by me",
+    "nextInstruction": "Start Phase3 readiness preparation",
+    "deviceDetails": "No specific owner-tested device or individual test result stated; recorded evidence limits retained",
+    "authority": "Clears prior owner checkpoint; no PROD mutation, auth-policy activation or release freeze inferred"
   }
 }

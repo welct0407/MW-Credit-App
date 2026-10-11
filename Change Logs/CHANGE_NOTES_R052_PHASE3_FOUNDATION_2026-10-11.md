@@ -1,0 +1,17 @@
+# R052 Phase 3 foundation preparation — 11 October 2026
+
+The owner explicitly verified/accepted Phase 5 and 6 and requested Phase 3. R052 remains Open. The selected design uses a new production application project under the existing organization/billing and lm.mw-credit.com, retaining existing SQL/GCS. Preparation does not authorize production mutations or auth/business activation.
+
+Baseline: app24532742, canonical PM9e037c98. The single owning batch and A design/test plan are outputs/r052-pwa/phase3-foundation-batch.md and phase3-foundation-design-and-test-plan.md in the canonical PM repository. No duplicate promotion checklist is created.
+
+B adds the contained production runtime and focused evidence under services/production, tests/unit/production-foundation.test.mjs and outputs/r052-phase3/foundation-code-evidence.md. Existing DEV entrypoints remain unchanged. Foundation routes deny business operations before DB/GCS access. B reports 34 focused tests passing, including 30 existing DEV tests.
+
+F owns nine new files in infrastructure/production and production-bootstrap. Both roots pass fmt/validate and three mocked tests each. The actual read-only bootstrap plan has exactly three creates and no updates/deletes; no apply. Application optional resources are separate from project/state bootstrap. READINESS_INVENTORY.md owns exact proposed/live facts and limitations; WIF/production GitHub environment enforcement is not configured or verified.
+
+D adds scripts/promotion/manifest.mjs and README plus tests/unit/phase3-promotion-manifest.test.mjs. Twelve focused tests pass with zero failures/skips. Complete synthetic reviewable packages are accepted before mutation approval and return approvalRequired=true/deployReady=false. Exact target, immutable digests, contained services/production/server.mjs, separate PROD frontend/config/worker bytes and matched predecessor pins are checked. Drafts list unbound inputs without DEV fallback. No apply, cloud client, network, subprocess or SQL execution exists. Optional future authorization-reference validation cannot establish actual authority.
+
+Rollback is the starting Git commit and preserved current uncommitted work; no live asset changes occur. Unrelated CI/router/AGENTS/Development process edits, generated captures and excluded recovery snapshots remain outside this batch. Initial dirty screenshot bytes were not captured before earlier reruns; current snapshots do not recover those initial bytes. Historical reader503 cause remains unproven; owner acceptance does not invent device-specific evidence.
+
+Bootstrap creation recovery is stop/inert retention with private state reconciliation, never automatic destroy or shared-resource changes. Actual runtime provisioning, DB/GCS access, auth, Hosting/domain/DNS and business activation remain later reviewed scopes.
+
+Status: local preparation implemented; C independent verification passed 52/52 focused checks with zero skips; exact evidence outputs/r052-phase3/independent-foundation-verification.md SHA256798788ffc5d11d60a6a0671fcceb1e4078280bd7283aae440b10c0fcd77aa36d. Root staged review passed; preparation checkpoint completed and authorized for normal upstream publication with [skip ci]. Next is scoped owner approval of the reviewed bootstrap plan, not runtime activation. No full CI, deployment, production readiness claim or release freeze. Update this log with final independent findings/publication instead of creating per-save records.

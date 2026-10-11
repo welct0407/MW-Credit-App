@@ -1,5 +1,5 @@
 {
-  "scope": "R052 Phase5 implementation tested/deployed DEV83; owner-session read-only smoke passed, owner/device acceptance separate",
+  "scope": "R052 Phase5 implementation tested/deployed; owner explicitly verified/accepted Phase5 and6 on11October2026. Prior DEV83 test/deployment pins below remain dated evidence; current DEV85 continuation is in Phase6 manifest.",
   "localVerification": {
     "candidateTree": "d49d6381f63fdb7a9cf86b3ff5afc99d75c481a4",
     "v83Sha256": "e7185ed56ec5036d80816f6af7c3e6fa86732c1631792aacda0c5f949a86dcc5",
@@ -459,5 +459,17 @@
     "ownerPageReceipt": "Not applicable: direct request",
     "financialWrites": "No live financial writes",
     "ownerAcceptance": "Broader owner/device acceptance separate"
+  },
+  "ownerAcceptance": {
+    "dateBangkok": "2026-10-11",
+    "phases": [
+      5,
+      6
+    ],
+    "status": "owner-verified and accepted",
+    "ownerStatement": "Phase5,6 are verified by me",
+    "nextInstruction": "Start Phase3 readiness preparation",
+    "deviceDetails": "No specific owner-tested device or individual test result stated; recorded evidence limits retained",
+    "authority": "Clears prior owner checkpoint; no PROD mutation, auth-policy activation or release freeze inferred"
   }
 }
