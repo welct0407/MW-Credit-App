@@ -452,7 +452,7 @@
       "freshLiveDevBuild": "passed",
       "affectedRetests": "passed 126/126; zero failed or skipped; Analytics recipe 1/1 at four widths",
       "remoteCheckpoint": "38108172618 SUCCESS at44682ad:271 passed/0failed/9existing skips; build/unit/audit and Terraform fmt/DEV/DEV-DNS validation passed",
-      "configuredFrontendDelivery": "Delivered300fa698bebf6de5; exact public marker/worker/no-store verification passed; root GUI pending",
+      "configuredFrontendDelivery": "Delivered300fa698bebf6de5; exact public marker/worker/no-store verification and root authenticated read-only GUI smoke passed",
       "verifiedWorkingTreeSha256": [
         {
           "path": "apps/pwa/src/live-main.tsx",
