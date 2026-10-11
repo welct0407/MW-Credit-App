@@ -1,0 +1,7 @@
+# Existing-project production state proposal
+
+This separate inert root supersedes the new-project bootstrap for the selected production target. It proposes only `mw-credit-app-prod-tfstate-737787224638` in existing project `clever-oasis-508610-n7`; the bucket is not claimed created. It creates no project, billing association, API or IAM grant. `state_bootstrap_authorized=false` means zero resources. The parked `production-bootstrap` root/private partial state must remain untouched.
+
+After an actual saved plan is prepared and approved, initialize this local backend using explicit absolute private state/workspace paths and a distinct external TF_DATA_DIR. Never initialize without private path arguments. Following successful authorized creation, preserve original state/backup and change this backend to GCS in a reviewed follow-up; migrate to the new bucket's `bootstrap` prefix without force-copy, verify lineage/resources/remote versions and require a no-change plan. The application root then uses its `application` prefix. No shared or DEV backend is used. Recovery and operator access review are required; versioning alone does not prove environment IAM isolation.
+
+Preparation checks use `init -backend=false`, `validate`, and mocked `test` with private provider data. No apply or migration is authorized by these files. Inherited bucket access must be audited: DEV build/deploy/runtime identities must not receive this state, and privileged human administration remains a shared-project trust boundary.

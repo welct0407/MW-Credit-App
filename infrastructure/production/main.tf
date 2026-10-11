@@ -1,9 +1,9 @@
-# Phase 3 preparation only. This root does not create a project, enable APIs,
-# configure auth, deploy services, grant retained-data access, or manage DNS.
+# Phase 3 staged preparation. No retained-data authority or DNS records.
 terraform {
   required_version = "= 1.16.5"
   required_providers {
-    google = { source = "hashicorp/google", version = "= 8.6.0" }
+    google      = { source = "hashicorp/google", version = "= 8.6.0" }
+    google-beta = { source = "hashicorp/google-beta", version = "= 8.6.0" }
   }
   # Supply a separately approved production bucket/prefix outside the repository.
   # Never initialize this root against the DEV backend.
@@ -14,21 +14,25 @@ provider "google" {
   project = var.application_project_id
   region  = var.region
 }
+provider "google-beta" {
+  project = var.application_project_id
+  region  = var.region
+}
 
 variable "application_project_id" {
-  description = "Verified separately provisioned PROD application project; no default or project creation."
+  description = "Owner-selected existing application/data project; no project creation."
   type        = string
   validation {
-    condition     = can(regex("^[a-z][a-z0-9-]{4,28}[a-z0-9]$", var.application_project_id)) && var.application_project_id != "clever-oasis-508610-n7"
-    error_message = "Use a verified separate application project, never the existing DEV/data project."
+    condition     = var.application_project_id == "clever-oasis-508610-n7"
+    error_message = "Use the owner-selected existing project only."
   }
 }
 variable "application_project_number" {
   description = "Verified numeric identity of the selected application project."
   type        = string
   validation {
-    condition     = can(regex("^[0-9]+$", var.application_project_number)) && var.application_project_number != "737787224638"
-    error_message = "Use the verified separate application project number."
+    condition     = var.application_project_number == "737787224638"
+    error_message = "Use the verified existing project number."
   }
 }
 variable "region" {
@@ -44,7 +48,7 @@ variable "foundation_authorized" {
 locals {
   # Proposed account names become real only after separately authorized creation.
   identities = var.foundation_authorized ? toset(["read", "command", "build", "deploy"]) : toset([])
-  secrets    = var.foundation_authorized ? toset(["google-auth", "firebase-web", "owner-identity", "native-receipt-catalog"]) : toset([])
+  secrets    = var.foundation_authorized ? toset(["owner-identity"]) : toset([])
 }
 
 resource "google_service_account" "application" {
@@ -70,7 +74,7 @@ resource "google_artifact_registry_repository" "application" {
   count         = var.foundation_authorized ? 1 : 0
   project       = var.application_project_id
   location      = var.region
-  repository_id = "mw-credit-app"
+  repository_id = "mw-credit-app-prod"
   format        = "DOCKER"
   lifecycle { prevent_destroy = true }
 }
@@ -80,7 +84,7 @@ output "foundation_status" {
     authorized                 = var.foundation_authorized
     application_project_id     = var.application_project_id
     application_project_number = var.application_project_number
-    runtime_deployment         = "not implemented or authorized by this root"
+    runtime_deployment         = var.runtime_authorized ? "contained owner-only foundation" : "disabled pending enrolled owner and reviewed image"
     retained_data_access       = "not granted by this root"
   }
 }

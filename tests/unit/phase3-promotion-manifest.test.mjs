@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtemp,mkdir,writeFile,readFile,rm,symlink} from 'node:fs/promises';
+import {mkdtemp,mkdir,writeFile,readFile,readdir,rm,symlink} from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
@@ -86,4 +86,66 @@ test('canonical artifact path rejects directory symlink/junction escape',async t
 });
 test('tool source has no subprocess, network, cloud imports or apply implementation',async()=>{
   const source=await readFile(new URL('../../scripts/promotion/manifest.mjs',import.meta.url),'utf8');assert.doesNotMatch(source,/from ['"](?:node:child_process|node:https?|@google-cloud|google-auth-library)|\bfetch\s*\(|\bspawn\s*\(|\bexecFile\s*\(/);
+});
+
+async function sharedFixture(t,phase='foundation') {
+  const result=await fixture(t),m=result.manifest,app='clever-oasis-508610-n7';
+  m.target.isolation='shared-project-default-auth';m.target.applicationProject={id:app,number:'737787224638'};
+  m.target.auth={projectId:app,issuer:'https://securetoken.google.com/'+app,audience:app,tenant:null};
+  m.target.artifactRepository.projectId=app;m.target.artifactRepository.name='mw-credit-app-prod';m.target.state.projectId=app;
+  delete m.target.storage.receiptPrefix;delete m.target.storage.healthPrefix;
+  m.target.secretVersions=phase==='enrollment'?[]:[{name:'mw-credit-app-prod-owner-identity',version:7,projectId:app}];
+  for(const role of ['reader','command']) {const stem=role==='reader'?'read':'command';m.target.runtime[role].serviceAccount='mw-credit-app-'+stem+'-prod@'+app+'.iam.gserviceaccount.com';m.target.runtime[role].origin='https://mw-credit-app-'+stem+'-prod-737787224638.asia-southeast1.run.app';}
+  m.targetSha256=fingerprint(m.target);m.evidence.serverVerifier='synthetic tenant verifier evidence';m.evidence.devDeliveryContainment='synthetic denied DEV/preview deployment evidence';
+  for(const role of ['reader','command']) m.artifacts[role].image='asia-southeast1-docker.pkg.dev/'+app+'/mw-credit-app-prod/api@sha256:'+'a'.repeat(64);
+  if(phase==='enrollment'){delete m.artifacts.reader;delete m.artifacts.command;}
+  async function shell(root,shellPhase) {
+    const config={schemaVersion:1,environment:'prod',phase:shellPhase,origin:m.target.hosting.canonicalOrigin,authIsolation:'none',endpoints:null};
+    if(shellPhase!=='maintenance') {config.authIsolation='shared-default';config.firebase={projectId:app,apiKey:'AIza'+'A'.repeat(35),appId:'1:737787224638:web:abcdef',authDomain:app+'.firebaseapp.com'};if(shellPhase==='foundation')config.endpoints={reader:m.target.runtime.reader.origin+'/api/session',command:m.target.runtime.command.origin+'/api/session'};}
+    const configBytes=JSON.stringify(config),configSha256=sha(configBytes);
+    const files={'public-config.json':configBytes,'foundation-shell.json':JSON.stringify({schemaVersion:1,kind:'production-foundation-shell',phase:shellPhase,cachePolicy:'no-store',worker:null,entry:'index.html',configSha256}),'index.html':shellPhase==='maintenance'?'<p>Temporarily unavailable</p>':'<script src="./shell.js"></script>','shell.js':shellPhase==='maintenance'?'document.body.textContent="Temporarily unavailable";':'const config='+JSON.stringify(config)+';'};
+    for(const[name,bytes]of Object.entries(files)){await mkdir(path.dirname(path.join(root,name)),{recursive:true});await writeFile(path.join(root,name),bytes);}
+    return {mode:'prod-foundation',phase:shellPhase,publicWorker:false,cachePolicy:'no-store',targetSha256:m.targetSha256,configSha256,entry:'index.html',files:Object.entries(files).map(([path,bytes])=>({path,sha256:sha(bytes)}))};
+  }
+  m.artifacts.frontend=await shell(result.options.artifactRoot,phase);
+  m.rollback={kind:'first-deployment',sourceCommit:'b'.repeat(40),targetSha256:m.targetSha256,baseline:{projectId:app,projectNumber:'737787224638',stateGeneration:3,stateLineage:'11111111-1111-1111-1111-111111111111',evidence:'synthetic absence and state readback',readerAbsent:true,commandAbsent:true,hostingVersionAbsent:true},dnsBefore:{name:'lm.mw-credit.com',observedAt:'2026-10-11T04:00:00Z',evidence:'synthetic DNS readback',records:[]},containment:{traffic:'withhold-runtime-traffic',route:'withhold-domain-activation',retainResources:true},artifacts:{frontend:await shell(result.options.rollbackRoot,'maintenance')}};
+  return result;
+}
+
+test('shared foundation uses default auth, owner-only secret and immutable workerless first-deployment recovery',async t=>{
+  const {manifest,options}=await sharedFixture(t);const result=await validateCandidate(manifest,options);assert.equal(result.reviewReady,true);assert.equal(result.approvalRequired,true);assert.equal(result.deployReady,false);assert.equal(result.rollback.kind,'first-deployment');assert.equal(Object.hasOwn(result.rollback,'readerRevision'),false);
+});
+test('enrollment has no runtime image, owner secret version or application endpoints',async t=>{
+  const {manifest,options}=await sharedFixture(t,'enrollment');assert.equal((await validateCandidate(manifest,options)).reviewReady,true);
+  manifest.artifacts.reader={image:'unused'};await assert.rejects(validateCandidate(manifest,options),/Enrollment/);
+});
+test('shared project equality alone, missing null tenant binding, DEV registry and missing isolation evidence reject',async t=>{
+  const {manifest,options}=await sharedFixture(t);
+  const mutations=[m=>delete m.target.isolation,m=>delete m.target.auth.tenant,m=>m.target.auth.tenant='default',m=>m.target.applicationProject.number='219146337993',m=>m.target.artifactRepository.name='mw-credit-app',m=>delete m.evidence.devDeliveryContainment,m=>delete m.evidence.serverVerifier,m=>m.target.secretVersions=[]];
+  for(const change of mutations){const m=clone(manifest);change(m);await assert.rejects(validateCandidate(m,options));}
+});
+test('first deployment requires measured absence, state/DNS before-state and no fabricated predecessor',async t=>{
+  const {manifest,options}=await sharedFixture(t);
+  for(const change of [m=>m.rollback.readerRevision='invented',m=>m.rollback.baseline.readerAbsent=false,m=>delete m.rollback.baseline.stateLineage,m=>delete m.rollback.dnsBefore,m=>m.rollback.dnsBefore.name='dev-lm.mw-credit.com',m=>m.rollback.containment.retainResources=false]){const m=clone(manifest);change(m);await assert.rejects(validateCandidate(m,options));}
+});
+test('workerless shell rejects fake worker, stale hashes and forbidden tenant/session endpoint',async t=>{
+  const {manifest,options}=await sharedFixture(t);const file=path.join(options.artifactRoot,'public-config.json');const original=JSON.parse(await readFile(file,'utf8'));
+  async function replaceConfig(config){const bytes=JSON.stringify(config);await writeFile(file,bytes);manifest.artifacts.frontend.configSha256=sha(bytes);manifest.artifacts.frontend.files.find(f=>f.path==='public-config.json').sha256=sha(bytes);const marker=JSON.parse(await readFile(path.join(options.artifactRoot,'foundation-shell.json'),'utf8'));marker.configSha256=sha(bytes);const markerBytes=JSON.stringify(marker);await writeFile(path.join(options.artifactRoot,'foundation-shell.json'),markerBytes);manifest.artifacts.frontend.files.find(f=>f.path==='foundation-shell.json').sha256=sha(markerBytes);}
+  const wrongTenant=clone(original);wrongTenant.firebase.tenantId='other-tenant';await replaceConfig(wrongTenant);await assert.rejects(validateCandidate(manifest,options),/tenant/);
+  const wrongEndpoint=clone(original);wrongEndpoint.endpoints.reader=wrongEndpoint.endpoints.reader.replace('/api/session','/api/borrowers');await replaceConfig(wrongEndpoint);await assert.rejects(validateCandidate(manifest,options),/endpoint/);
+  await replaceConfig(original);manifest.artifacts.frontend.workerSha256='f'.repeat(64);await assert.rejects(validateCandidate(manifest,options),/workerless/);
+});
+test('maintenance recovery refuses auth/API scripts even if content hash is adjusted',async t=>{
+  const {manifest,options}=await sharedFixture(t);const bytes='fetch("/api/session")';await writeFile(path.join(options.rollbackRoot,'shell.js'),bytes);manifest.rollback.artifacts.frontend.files.find(f=>f.path==='shell.js').sha256=sha(bytes);await assert.rejects(validateCandidate(manifest,options),/Maintenance/);
+});
+
+test('actual B workerless build and maintenance artifact satisfy the exact shared-default package',async t=>{
+  const result=await sharedFixture(t),{manifest,base}=result;
+  const {buildFoundationShell,buildMaintenanceShell}=await import('../../scripts/production/build-foundation-shell.mjs');
+  const config=JSON.parse(await readFile(path.join(result.options.artifactRoot,'public-config.json'),'utf8'));
+  const current=path.join(base,'actual-current'),prior=path.join(base,'actual-maintenance');
+  await buildFoundationShell({config,outDir:current});await buildMaintenanceShell({outDir:prior});
+  async function metadata(root,phase){const files=[];for(const name of await readdir(root))files.push({path:name,sha256:sha(await readFile(path.join(root,name)))});return{mode:'prod-foundation',phase,publicWorker:false,cachePolicy:'no-store',targetSha256:manifest.targetSha256,configSha256:sha(await readFile(path.join(root,'public-config.json'))),entry:'index.html',files};}
+  manifest.artifacts.frontend=await metadata(current,'foundation');manifest.rollback.artifacts.frontend=await metadata(prior,'maintenance');
+  assert.equal((await validateCandidate(manifest,{artifactRoot:current,rollbackRoot:prior})).reviewReady,true);
 });

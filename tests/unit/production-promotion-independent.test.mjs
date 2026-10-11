@@ -1,12 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtemp,mkdir,writeFile,readFile,rm,symlink} from 'node:fs/promises';
+import {mkdtemp,mkdir,writeFile,readFile,readdir,rm,symlink} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {spawnSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import {fingerprint} from '../../scripts/promotion/manifest.mjs';
+import {buildFoundationShell,buildMaintenanceShell} from '../../scripts/production/build-foundation-shell.mjs';
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 const cli=fileURLToPath(new URL('../../scripts/promotion/manifest.mjs',import.meta.url));
 async function packageFixture(t){
@@ -57,4 +58,50 @@ test('actual CLI rejects mismatched rollback, former nonexistent entrypoint, hos
  await symlink(outside,path.join(f.current.dir,'alias'),process.platform==='win32'?'junction':'dir');
  assert.equal((await f.run(m=>m.artifacts.frontend.files.push({path:'alias/escape.js',sha256:hash('synthetic outside')}))).status,1);
  await writeFile(path.join(f.prior.dir,'sw.js'),'changed predecessor');assert.equal((await f.run()).status,1);
+});
+
+async function sharedPackage(t,phase='foundation'){
+ const f=await packageFixture(t),m=f.manifest,app='clever-oasis-508610-n7';
+ m.target.isolation='shared-project-default-auth';m.target.applicationProject={id:app,number:'737787224638'};
+ m.target.auth={projectId:app,tenant:null,issuer:'https://securetoken.google.com/'+app,audience:app};
+ m.target.artifactRepository={projectId:app,region:'asia-southeast1',name:'mw-credit-app-prod'};m.target.state.projectId=app;
+ m.target.storage={bucket:'mw-payment-receipts-prod-508610-n7'};
+ m.target.secretVersions=phase==='enrollment'?[]:[{name:'mw-credit-app-prod-owner-identity',projectId:app,version:7}];
+ for(const role of ['reader','command']){const stem=role==='reader'?'read':'command';m.target.runtime[role]={service:'mw-credit-app-'+stem+'-prod',serviceAccount:'mw-credit-app-'+stem+'-prod@'+app+'.iam.gserviceaccount.com',origin:'https://mw-credit-app-'+stem+'-prod-737787224638.asia-southeast1.run.app'};}
+ m.targetSha256=fingerprint(m.target);m.evidence.serverVerifier='synthetic shared default verifier';m.evidence.devDeliveryContainment='synthetic denied DEV/preview release';
+ const config={schemaVersion:1,environment:'prod',authIsolation:'shared-default',phase,origin:'https://lm.mw-credit.com',firebase:{projectId:app,apiKey:'AIza'+'a'.repeat(35),appId:'1:737787224638:web:abc123',authDomain:app+'.firebaseapp.com'},endpoints:phase==='enrollment'?null:Object.fromEntries(['reader','command'].map(role=>[role,m.target.runtime[role].origin+'/api/session']))};
+ async function pack(dir){const names=await readdir(dir);return{mode:'prod-foundation',phase:JSON.parse(await readFile(path.join(dir,'public-config.json'),'utf8')).phase,publicWorker:false,cachePolicy:'no-store',entry:'index.html',targetSha256:m.targetSha256,configSha256:hash(await readFile(path.join(dir,'public-config.json'))),files:await Promise.all(names.map(async name=>({path:name,sha256:hash(await readFile(path.join(dir,name)))})))};}
+ f.current.dir=path.join(f.root,'shared-'+phase);f.prior.dir=path.join(f.root,'maintenance');
+ await buildFoundationShell({config,outDir:f.current.dir});await buildMaintenanceShell({outDir:f.prior.dir});
+ m.artifacts.frontend=await pack(f.current.dir);
+ if(phase==='enrollment'){delete m.artifacts.reader;delete m.artifacts.command;}else for(const role of ['reader','command'])m.artifacts[role].image='asia-southeast1-docker.pkg.dev/'+app+'/mw-credit-app-prod/api@sha256:'+'a'.repeat(64);
+ m.rollback={kind:'first-deployment',sourceCommit:'b'.repeat(40),targetSha256:m.targetSha256,
+  baseline:{projectId:app,projectNumber:'737787224638',stateGeneration:11,stateLineage:'11111111-1111-1111-1111-111111111111',evidence:'synthetic measured absence',readerAbsent:true,commandAbsent:true,hostingVersionAbsent:true},
+  dnsBefore:{name:'lm.mw-credit.com',observedAt:'2026-10-11T04:00:00Z',evidence:'synthetic DNS before',records:[]},containment:{traffic:'withhold-runtime-traffic',route:'withhold-domain-activation',retainResources:true},artifacts:{frontend:await pack(f.prior.dir)}};
+ return{...f,config,pack};
+}
+test('actual CLI accepts actual workerless builders for enrollment/foundation and first-deployment maintenance only',async t=>{
+ for(const phase of ['enrollment','foundation']){const f=await sharedPackage(t,phase),result=await f.run();assert.equal(result.status,0,result.stderr);
+  const report=JSON.parse(result.stdout);assert.equal(report.rollback.kind,'first-deployment');assert.equal(report.approvalRequired,true);assert.equal(report.deployReady,false);
+  assert.deepEqual(report.rollback.baseline,f.manifest.rollback.baseline);assert.deepEqual(report.rollback.dnsBefore,f.manifest.rollback.dnsBefore);assert.deepEqual(report.rollback.containment,f.manifest.rollback.containment);
+  assert.equal(report.rollback.maintenanceConfigSha256,f.manifest.rollback.artifacts.frontend.configSha256);assert.equal(Object.hasOwn(report.rollback,'readerImage'),false);
+  assert.equal((await readdir(f.current.dir)).includes('sw.js'),false);assert.equal((await readdir(f.prior.dir)).includes('shell.js'),false);
+ }
+});
+test('actual shared CLI rejects missing containment proof, invented predecessor, default/tenant aliases and enrollment runtime',async t=>{
+ const f=await sharedPackage(t);
+ for(const change of [m=>delete m.evidence.devDeliveryContainment,m=>delete m.evidence.serverVerifier,m=>delete m.target.isolation,
+  m=>m.target.auth.tenant='tenant',m=>m.target.applicationProject.number='123456789014',m=>m.target.database.name='loan_manager_dev',
+  m=>m.rollback.readerRevision='invented',m=>m.rollback.baseline.readerAbsent=false,m=>m.rollback.containment.retainResources=false,
+  m=>m.target.secretVersions.push({name:'mw-credit-app-prod-google-auth',projectId:m.target.applicationProject.id,version:7}),
+  m=>m.artifacts.frontend.publicWorker=true,m=>m.artifacts.frontend.cachePolicy='public,max-age=3600'])assert.equal((await f.run(change)).status,1);
+ const enrollment=await sharedPackage(t,'enrollment');assert.equal((await enrollment.run(m=>m.artifacts.reader={image:'invented'})).status,1);
+});
+test('self-consistent wrong project-number Web App ID and changed maintenance bytes reject through actual CLI',async t=>{
+ const f=await sharedPackage(t),wrong='1:123456789014:web:abc123';
+ const bytes=JSON.stringify({...f.config,firebase:{...f.config.firebase,appId:wrong}});await writeFile(path.join(f.current.dir,'public-config.json'),bytes);
+ const marker=JSON.parse(await readFile(path.join(f.current.dir,'foundation-shell.json'),'utf8'));marker.configSha256=hash(bytes);await writeFile(path.join(f.current.dir,'foundation-shell.json'),JSON.stringify(marker));
+ const script=await readFile(path.join(f.current.dir,'shell.js'),'utf8');assert.ok(script.includes(f.config.firebase.appId));await writeFile(path.join(f.current.dir,'shell.js'),script.replaceAll(f.config.firebase.appId,wrong));
+ const artifact=await f.pack(f.current.dir);const rejected=await f.run(m=>m.artifacts.frontend=artifact);assert.equal(rejected.status,1);assert.equal(rejected.stdout,'');assert.doesNotMatch(rejected.stderr,/123456789014|abc123|phase3-independent/);
+ const fresh=await sharedPackage(t);await writeFile(path.join(fresh.prior.dir,'index.html'),'<script>fetch("/api/operations")</script>');assert.equal((await fresh.run()).status,1);
 });

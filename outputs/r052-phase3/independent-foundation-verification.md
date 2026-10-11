@@ -1,5 +1,7 @@
 # Phase 3A independent foundation verification
 
+**Current checkpoint is the Phase3B shared-default section at the end of this file.** The initial separate-project record below is historical and superseded; its target/tenant/readiness assertions are not the current release contract.
+
 Agent C, 11 October 2026. Starting application commit `24532742bd65a9fbf2bd53810b35e68100b5c3db`. Contract read from A's uncommitted design at `C:/Users/ideaadmin/.codex/worktrees/pwa-implementation-plan/AppSheet-Loan-Project/outputs/r052-pwa/phase3-foundation-design-and-test-plan.md`. Owner Phase5/6 verification and new-project/domain selection are retained; no additional cloud mutation authority was inferred.
 
 **Local preparation checks passed: 52/52, zero skips.** This is not full Phase3 completion, live PROD readiness, a deployment or cutover result. No browser, full CI, cloud API, SQL, receipt upload or notification was executed by C. Existing source/output changes were preserved; synthetic CLI artifacts were created in bounded temporary directories outside the repository and cleaned by the tests. No historical screenshots were written.
@@ -47,3 +49,47 @@ SHA256 at verification; D owns coherent publication/change log:
 C intended paths: `tests/unit/production-independent.test.mjs`, `tests/unit/production-promotion-independent.test.mjs`, and this evidence. Diff checks passed. Rollback is removal/reversion of these additive tests/evidence; no live recovery is needed. No unrelated source or deployment file was edited.
 
 The reviewed code is ready for coherent preparation publication. Actual bootstrap creation remains subject to its concrete saved plan and scoped owner authorization; F/root's separately reviewed read-only plan is not a C execution. Project availability/number, organization/billing admission, state recovery, production auth/Hosting/runtime, cross-project SQL/GCS access, monitoring/capacity, live IAM isolation and contained deployment smoke remain separate pending deliverables. Business activation/notifications/cutover are outside this result.
+
+## Current Phase3B shared-default checkpoint — 11 October 2026
+
+Starting commit `1dc61115632a8f2b377f36051cc60630542b6aa6`. Read the revised A design at the same absolute worktree path above, current application AGENTS, B's [shared-auth shell contract](shared-auth-shell-evidence.md), D's current manifest contract and F's current Terraform files. Latest owner decision selects existing `clever-oasis-508610-n7` / `737787224638`, existing default Firebase authentication/same users, and `lm.mw-credit.com`. Neither a new application project nor a tenant is current. The partial new project/private recovery and old `production-bootstrap` root are parked; no replay/deletion/recovery action was performed here.
+
+**69/69 focused Node tests and7/7 Terraform mock cases passed, zero failures/skips.** Commands after Enter-Dev:
+
+```text
+node --test tests/unit/production-independent.test.mjs tests/unit/production-foundation.test.mjs tests/unit/production-shell.test.mjs tests/unit/dev-read-boundary.test.mjs
+node --test tests/unit/production-promotion-independent.test.mjs tests/unit/phase3-promotion-manifest.test.mjs
+terraform -chdir=infrastructure/production validate
+terraform -chdir=infrastructure/production test
+terraform -chdir=infrastructure/production-state-bootstrap validate
+terraform -chdir=infrastructure/production-state-bootstrap test
+```
+
+Node commands passed45 and24 respectively. Terraform validate succeeded for both roots; mock cases passed5 and2. Terraform used F's already initialized backend-disabled private provider caches via external `TF_DATA_DIR` (`production-validation-data`, then `production-state-validation-data` under the established private Terraform directory). No backend initialization, cloud plan/apply, browser, full CI or existing capture writes occurred. Synthetic shell/CLI builds used fresh OS temporary artifact directories.
+
+Independent runtime proof now explicitly accepts the **same valid default-project owner token in both DEV and PROD**. Both production runtime roles select the exact shared project and call Admin verification with revocation=true. Foreign issuer/audience, wrong owner/email/provider, unverified/expired/future claims, tenant claims including null and SDK revocation errors deny. Production session retains empty capabilities/businessAccess=false/membershipVerified=false; raw malformed/business/readiness routes deny before auth/data effects. Earlier unchanged privacy, dependency-graph, private error and disabled-probe assertions passed against the new configuration. These are synthetic verifier seams, not signed-token or live account/IAM proof.
+
+Shell checks establish optional enrollment/sign-in verification zero application API calls, foundation sign-in alone zero calls and explicit check exactly two pinned session GETs with credentials omitted/no-store/redirect-error. Held token acquisition followed by sign-out cannot dispatch or revive success. Tenant-scoped identities clear and auth is reset to default. Actual B builder outputs are workerless, globally no-store, strict public identifiers only; maintenance has no script/auth/API code. Independent actual CLI cases consume B-built enrollment/foundation plus B-built maintenance artifacts, not fabricated workers or predecessor versions.
+
+Promotion checks require explicit shared isolation, exact project/default null tenant, production registry/runtime endpoints, server-verifier and DEV-delivery-containment references, owner-only numeric secret for foundation and no runtime image/secret/API endpoints for enrollment. First deployment binds measured-absence/state/DNS references and explicit withhold/retain actions plus immutable maintenance bytes. Wrong/default aliases, tenant fields, missing containment evidence, invented predecessor, changed bytes, enrollment images and worker/cache-policy changes reject; prior strong matched-update/path/private-error tests remain intact. References/local hashes still do not authenticate their live evidence or execute recovery.
+
+C found a numeric WebApp-ID validation mismatch: D's initial public config validator accepted any numeric project component, while B required737787224638. D corrected it to the exact target project number. C then changed config, marker and bundled script to the same wrong App ID and recomputed every artifact hash; the actual CLI still rejected the self-consistent wrong binding. No B product defect was found.
+
+F source/mock review confirms production default inert; wrong superseded project rejects; owner enrollment creates no runtime; runtime needs immutable image/actual numeric owner secret and only auth-user lookup plus its secret. Exact repository/owner/main/production subject is pinned, separate PROD registry/service-scoped delivery grants are proposed, and no automated Hosting admin/shared auth ownership/API/SQL/GCS-business grant exists. New `production-state-bootstrap` owns only one separately named protected state bucket in the existing project, default false. Old new-project bootstrap is not an apply path. Mock assertions establish planned policy only: inherited project authority, live DEV/PR denial and actual provisioning remain unproven. Project administrators retain shared-project authority.
+
+### Current SHA256 pins
+
+| Source | SHA256 |
+| --- | --- |
+| `services/production/config.mjs` | `929c820d502ee794db2f0b932892155f10691278a844c1c8899421fe773b3214` |
+| `apps/production-foundation/config.mjs` | `85ed9cbfd6bbbb3c4a6ba3cea3cdb5077994f42951fba057268f60dc4265774e` |
+| `apps/production-foundation/controller.mjs` | `19c6b67bade4cd44fe510076047e65d05753707daf391483fa1d0e78f4a379b5` |
+| `scripts/production/build-foundation-shell.mjs` | `98d2898eb3493d9c08f0ccebcfd62303d71988f137c7d9973c957d7749a588a1` |
+| `scripts/promotion/manifest.mjs` | `2e3f1b203c519e0bc220fc1783e3636be9fb5cae459f1d79dfaece2d59939ba7` |
+| `infrastructure/production/main.tf` | `17b92f922d4367812f93c17cd092bf2af15731bbf9d03198e6ff1b3620469a23` |
+| `infrastructure/production/enrollment.tf` | `42be6abaf5699e917ba22f2ffa1029c9800975a7342da667d1233152e7f7d0ee` |
+| `infrastructure/production/runtime.tf` | `99597cc752f8c0c9c8fc663738d0e1a7705a8952892bef067acc5f8778abb516` |
+| `infrastructure/production/delivery.tf` | `71d1a9c623db6bd4303e04e824d986b29e61574a36326b77d17569b6558ae606` |
+| `infrastructure/production-state-bootstrap/main.tf` | `deeb2f837a17c2b0b99849979e7343ffb1f11a8d669d1b841edeb4b7c19f266b` |
+
+Principal, handler, runtime/server unchanged hashes remain as recorded above. C revised its same two independent test files and this additive evidence only; diff checks passed, no staging/commit. D owns coherent publication. Preparation verification is complete; live state/provisioning/IAM containment, authoritative owner-secret readback, actual WebApp/endpoints, Hosting/DNS activation, contained smoke, monitoring/capacity and recovery remain pending. Readiness is still disabled, with no authorized SQL/storage probe proof or business activation/cutover claim.

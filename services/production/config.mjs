@@ -1,13 +1,12 @@
 const DEV_PROJECT = 'clever-oasis-508610-n7';
-const projectPattern = /^[a-z][a-z0-9-]{4,28}[a-z0-9]$/;
 const fail = () => { throw Error('Invalid production foundation configuration'); };
 /** Explicit inventory bindings are validated here; this foundation never opens a data client. */
 export function loadProductionFoundationConfig(env) {
   const projectId = env.APPLICATION_PROJECT_ID;
   if (env.APP_ENV !== 'prod' || env.FOUNDATION_MODE !== 'foundation'
     || !['reader', 'command'].includes(env.FOUNDATION_ROLE)
-    || !projectPattern.test(projectId ?? '') || projectId === DEV_PROJECT
-    || !/^[1-9][0-9]{5,19}$/.test(env.APPLICATION_PROJECT_NUMBER ?? '') || env.APPLICATION_PROJECT_NUMBER === '737787224638'
+    || projectId !== DEV_PROJECT
+    || env.APPLICATION_PROJECT_NUMBER !== '737787224638'
     || env.AUTH_MODE !== 'firebase' || env.FIREBASE_PROJECT_ID !== projectId
     || env.OWNER_IDENTITY_MODE !== 'uid-pinned') fail();
   const serviceRole = env.FOUNDATION_ROLE;

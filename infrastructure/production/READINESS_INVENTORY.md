@@ -1,6 +1,8 @@
 # Phase 3 infrastructure inventory — 11 October 2026
 
-Read-only observation; no DEV or PROD cloud mutation. App starting commit `24532742bd65a9fbf2bd53810b35e68100b5c3db`; canonical management instructions read from `9e037c98ac902c82d161d32e03d4be416ad7f6b8`, because the local management checkout had moved to another commit. Current owner acceptance and Phase 3 authorization supersede that checkpoint's pending-acceptance wording.
+Current target: owner-selected existing project clever-oasis-508610-n7 /737787224638 with shared default Firebase Google authentication. New shared-project production resources remain unapplied. The separate unbilled project219146337993 and partial state are parked. Earlier sections below are dated evidence; the final shared-project revision and README govern the current proposal.
+
+Historical initial read-only observation (superseded by the partial attempt and target revision below). App starting commit `24532742bd65a9fbf2bd53810b35e68100b5c3db`; canonical management instructions read from `9e037c98ac902c82d161d32e03d4be416ad7f6b8`, because the local management checkout had moved to another commit. Current owner acceptance and Phase 3 authorization supersede that checkpoint's pending-acceptance wording.
 
 ## Retained target and DEV baseline
 
@@ -42,3 +44,21 @@ The acting identity `welct0407@mw-credit.com` passed read-only permission checks
 An actual enabled Terraform saved plan was prepared with explicit private local state/workspace paths and a separate provider directory. Its SHA256 is `5685b7bf353eecf897517f27b0a2283529e4726da1e067a96589480f3230f878`. It contains exactly three creates: `google_project.application[0]`, `google_project_service.storage[0]`, and `google_storage_bucket.state[0]`; no updates or deletes. Target is proposed project `mw-credit-app-prod-20261011`, organization `594773370606`, billing `0125EC-78CB0F-A74AAD`, no default network. Bucket uses the computed new project number, Asia Southeast1, versioning, uniform access, enforced public-access prevention, force-destroy false and604800-second soft delete. Project number/bucket final name remain computed, not claimed created.
 
 Saved plan and execution metadata are private under `C:/Users/MWCredit/Documents/ChatGPT/MW-Credit-App/terraform/production-bootstrap-live-preparation`; no state, plan or provider data is inside the repository. Root reviews this concrete plan before requesting scoped owner apply approval. **No apply, project creation, billing association or API enablement has occurred.**
+
+## Authorized bootstrap attempt — partial outcome
+
+The owner subsequently explicitly authorized the reviewed bootstrap apply and migration to its new state bucket. Plan/source hashes and acting identity were rechecked, and the exact plan was applied once from app baseline `1dc61115632a8f2b377f36051cc60630542b6aa6`.
+
+**Project creation succeeded:** `mw-credit-app-prod-20261011`, actual number `219146337993`, ACTIVE under organization `594773370606`. **Billing association failed:** Google returned HTTP400 QuotaFailure, “Cloud billing quota exceeded,” for `0125EC-78CB0F-A74AAD`. Readback confirms billing disabled and no billing account attached. Storage API/state bucket creation and backend migration were not reached. This is partial application, not completed bootstrap or production readiness.
+
+Private local state serial2, lineage `3b5ad514-f8ab-5f45-96fa-61bf3e1686b5`, contains the one project resource, marked tainted after the interrupted creation sequence. The recovery copy `bootstrap-partial-billing-quota.tfstate` has SHA256 `22037b2f971b9070aaafae299b2e1719e7baa879c199b56b4510c669dad8f1fb`; original state and available backup remain private. The API verified project number is authoritative; the partial provider state has not yet refreshed it.
+
+No retry, deletion, replacement, policy relaxation, billing-account substitution or state mutation was attempted. The old creation plan must not be reused. After the billing blocker is resolved, reconcile this same existing project with the preserved state using a reviewed recovery procedure and prepare a fresh plan; do not delete/recreate it to hide partial failure. Backend migration remains pending until the protected bucket exists. Independent preparation may use the now-verified project ID/number, while all dependent provisioning stays blocked.
+
+## Current owner-selected shared-project revision
+
+Production target is now existing My First Project clever-oasis-508610-n7 /737787224638 with active existing billing. The unbilled new project219146337993 and tainted private state remain parked. No further billing, project or state mutation is authorized. The superseding owner decision shares existing default Firebase Google authentication (no tenant/new provider), with separate PROD identities/site/state/artifacts and no duplicate existing Firebase/default-auth ownership. All new same-project resources remain uncreated; see README for operator-only Hosting, pending DEV automated Hosting permission removal and verified shared-default owner pin prerequisites. The earlier new-project plan and initial9-resource foundation are historical, not current apply candidates.
+
+
+
+Final affected local checks:5 application+2 newstate mocktests pass. Actual read-only plans were saved externally: statebucket1createSHA690183679b2b269fe61745d4307ba4d72307dbad62c7da495815b4eb8b422da5; F1privatewrapper18createsSHAb1830c50d84017c67ed8269686ba64cd157280f84dd493a9ca206b8e2eb217f2. Noapply. F1wrapperaddresses require a fresh final-root plan after newstateexists. ProposedHosting site mw-credit-prod-737787224638 is withinlengthbounds butavailabilityunverified. WIFimmutableprefix readback confirmedbyD; actualissuedproductiontoken andenvironmentprotection remainunverified.
