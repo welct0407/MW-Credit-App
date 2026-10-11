@@ -112,11 +112,11 @@ This phase does not claim completed application sign-in, financial permissions, 
 
 **Objective:** after the Phase 6 DEV owner-testing checkpoint and the owner go-ahead, prepare production infrastructure and delivery readiness. Production mutations still require explicit scoped authorization.
 
-**Status — 11 October 2026:** owner explicitly verified Phase5/6 and requested starting Phase3. Readiness preparation is in progress: [first batch](../outputs/r052-pwa/phase3-foundation-batch.md) and [A design/test plan](../outputs/r052-pwa/phase3-foundation-design-and-test-plan.md). Start with inert separated configuration and read-only inventory; runtime images are currently DEV-bound and need the agreed server-enforced environment/auth contract before any production use. No PROD apply/auth activation or release freeze is authorized by this preparation instruction.
+**Status — 11 October 2026:** Phase 5/6 are owner-accepted. The explicitly approved shared-project/default-auth contained foundation is deployed: exact-source full CI, Ready runtime, real fallback owner sessions/business denial, immutable no-store/no-worker frontend, live maintenance rollback/restore and initial safe-test metrics passed; DEV remains working. [Owning batch](../outputs/r052-pwa/phase3-foundation-batch.md) records actual pins and recovery metadata. Canonical certificate is pending; dedicated monitoring/promotion hardening remains explicit scoped readiness work. Full Phase 3 remains in progress, R052 stays Open and business launch is disabled.
 
 - Refactor the working Terraform into explicit DEV/PROD configurations with separate state, service identities, secrets, application configuration and deployment permissions. Preserve existing Cloud SQL/GCS as retained dependencies.
 - Provision the new production API, frontend hosting/domain/HTTPS, artifact delivery and required execution identities. Define scale, connection-pool, timeout and storage-access limits against the shared instance's actual capacity.
-- Implement the agreed authentication isolation. Separate frontend configuration alone is insufficient; the server must enforce the intended issuer/audience/tenant and business membership.
+- Implement the agreed shared human Firebase authentication with separate API authorization/runtime and delivery bindings. Separate frontend configuration alone is insufficient; the server must enforce the intended issuer/audience/tenant and business membership.
 - Keep credentials in managed identity/OIDC or Secret Manager. Inventory remaining credential-file consumers, then migrate required application/promotion integrations deliberately while retaining verified recovery until replacement access is proven.
 - Create the protected production promotion path. Promote tested immutable frontend/API artifacts and the exact reviewed SQL package; support compatible artifact rollback.
 - Add initial availability, error, latency, connection and cost visibility to existing Grafana/monitoring. Configure actionable ownership and escalation; preserve existing alert routes.
@@ -125,7 +125,7 @@ This phase does not claim completed application sign-in, financial permissions, 
 
 **Deliverables:** production infrastructure inventory, tested promotion/rollback path, access matrix, monitoring baseline and recovery plan.
 
-**Exit criteria:** authorized deployment and access work; DEV credentials/configuration cannot operate the production application; production secrets are unavailable to previews; no duplicate jobs or accidental financial writes occur. This means infrastructure ready, not business launch.
+**Exit criteria:** authorized contained deployment/access, monitoring baseline and recovery responsibilities verified; DEV automated runtime/deployment credentials and configuration remain separated from production resources after actual reviewed containment; shared human Firebase authentication is intentional, with server-side production authorization and no tenant claim. Production secrets stay unavailable to previews; no duplicate jobs or financial effects. Passing local preparation alone is not Phase3 completion or business launch.
 
 ## Phase 4 First financial workflow
 
