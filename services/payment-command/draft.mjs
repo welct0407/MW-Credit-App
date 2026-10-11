@@ -60,11 +60,18 @@ export async function readOwnerPaymentDraft(client,borrowerId,{limit=25,cursor=n
  if((all||selectedChargeIds)&&rows.length>10000)return {draftError:'selection_limit_exceeded',status:422};
  const name=borrowerDisplayName(borrower.name,borrower.description),more=!selectedChargeIds&&!all&&rows.length>limit,page=more?rows.slice(0,limit):rows;
  const charges=page.map(row=>{if(Number(row.invalidComponents)>0||![row.principalRemaining,row.interestRemaining].every(value=>typeof value==='string'&&/^[0-9]+(?:\.0+)?$/.test(value)))throw Error('Draft unavailable');if(!validDay(row.chargeDate)||!/^[0-9]+(?:\.0+)?$/.test(row.amount))throw Error('Draft unavailable');
- const principal=row.principal===null?'':new Intl.NumberFormat('en-US',{style:'currency',currency:'THB',currencyDisplay:'narrowSymbol',maximumFractionDigits:0}).format(Number(row.principal));
- const date=row.loanDate===null?'':validDay(row.loanDate)?row.loanDate.slice(8,10)+'/'+row.loanDate.slice(5,7):(()=>{throw Error('Draft unavailable')})();
- return {id:row.id,chargeDate:row.chargeDate,loanDisplayKey:name+'-'+principal+'-'+date+'-'+(row.rate===null?'Unavailable':row.rate+'%'),amountRemaining:BigInt(row.amount.split('.')[0]).toString(),principalRemaining:BigInt(row.principalRemaining.split('.')[0]).toString(),interestRemaining:BigInt(row.interestRemaining.split('.')[0]).toString()};});
+ return {id:row.id,chargeDate:row.chargeDate,loanDisplayKey:paymentLoanDisplayKey({...row,name}),amountRemaining:BigInt(row.amount.split('.')[0]).toString(),principalRemaining:BigInt(row.principalRemaining.split('.')[0]).toString(),interestRemaining:BigInt(row.interestRemaining.split('.')[0]).toString()};});
  const accounts=(await client.query(`SELECT a."Row ID" AS id,a."Account Label" AS label FROM public."Cash Accounts" a JOIN public."Cash Holders" h ON h."Row ID"=a."Ref Cash Holder" WHERE a."Active" IS TRUE AND h."Active" IS TRUE ORDER BY a."Sort Order",a."Row ID" COLLATE "C"`)).rows;
  if(accounts.some(row=>typeof row.label!=='string'||!row.label))throw Error('Draft unavailable');
  const last=page.at(-1),nextCursor=more?Buffer.from(JSON.stringify({v:3,borrowerId,scope,businessDate:clock.day,chargeDate:last.chargeDate,id:last.id})).toString('base64url'):null;
  return {mode:'dev-owner-testing',scope,businessDate:clock.day,asOf:new Date(clock.instant).toISOString(),borrower:{id:borrowerId,displayName:name},charges,accounts,nextCursor,preferredReceivingAccountId:accounts.some(row=>row.id===borrower.preferred_account)?borrower.preferred_account:null};
+}
+
+/** Shared read-only loan label, identical to receiving entry. Missing parent stays unavailable. */
+export function paymentLoanDisplayKey(row){
+ if(!row || row.name==null)return null;
+ const principal=row.principal==null?'':new Intl.NumberFormat('en-US',{style:'currency',currency:'THB',currencyDisplay:'narrowSymbol',maximumFractionDigits:0}).format(Number(row.principal));
+ const date=row.loanDate==null?'':validDay(row.loanDate)?row.loanDate.slice(8,10)+'/'+row.loanDate.slice(5,7):null;
+ if(date===null)return null;
+ return row.name+'-'+principal+'-'+date+'-'+(row.rate==null?'Unavailable':row.rate+'%');
 }

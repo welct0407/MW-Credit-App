@@ -456,3 +456,25 @@ main[data-workspace=management] pre{white-space:pre-wrap;overflow-wrap:anywhere}
 
 .live-reporting-link{display:flex;align-items:center;gap:10px;min-height:44px;box-sizing:border-box}.live-reporting-link>.live-nav-icon{display:none}
 @media(min-width:1051px){.nav-collapsed .live-desktop-nav .live-reporting-link{justify-content:center;padding:10px;min-width:44px}.nav-collapsed .live-desktop-nav .live-reporting-link>.live-nav-icon{display:inline-flex}}
+
+/* Approved pinned-page interpretation and caption fit; financial values are unchanged. */
+.list-meaning-legend{font-size:13px;line-height:1.4;color:#555;margin:8px 10px;overflow-wrap:anywhere}
+.payment-status-symbol{display:inline-block;font-size:.85em;min-width:1em;margin-right:5px;text-align:center}
+.record-action.destructive-action{color:#b3261e;border-color:#b3261e!important}
+.close-summary{padding:12px;border:1px solid #ccc;border-radius:8px;background:#f7f8f9}
+.close-summary dl{display:flex;flex-wrap:wrap;gap:16px 32px;margin:0}.close-summary dd{margin:4px 0;font-weight:600}.close-summary dl>div:last-child dd{font-size:1.3em}
+.dashboard-secondary>summary{font-size:1.15rem;font-weight:600;min-height:44px;align-content:center;cursor:pointer}
+@media(min-width:768px){
+ .live-shell .record-action,.live-shell .borrower-record .record-action.icon-action{width:auto;max-width:100%;flex:0 1 auto;padding:7px 10px!important}
+ .live-shell .record-action-label{display:inline!important;overflow-wrap:normal;word-break:normal}
+ .live-shell .related-loans-heading.collection-charges-heading{grid-template-columns:minmax(0,1fr) auto;gap:12px}
+ .live-shell .related-loans-heading,.live-shell .root-record-heading{flex-wrap:wrap;gap:10px}
+ .live-shell .record-action-icon{flex-shrink:0}
+}
+@media(min-width:1200px){
+ .dashboard-record{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start}
+ .dashboard-record>.dashboard-section:first-of-type{grid-column:1/-1}
+ .dashboard-record>.dashboard-section:first-of-type dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 24px}
+ .dashboard-section{min-width:0}
+}
+@media(max-width:767px){.dashboard-record>.dashboard-section:last-of-type{order:1}.dashboard-record>.dashboard-section:first-of-type{order:0}.dashboard-record>.dashboard-section:nth-of-type(2){order:2}}

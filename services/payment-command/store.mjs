@@ -1,3 +1,4 @@
+import {closeSummary} from './close-summary.mjs';
 import {readManagementPosition} from '../business/management-position.mjs';
 import {readManagementAnalytics,readAnalyticsOverview,readAnalyticsChart} from '../business/management-analytics.mjs';
 import {readManagementOpenings} from '../business/management-openings.mjs';
@@ -101,7 +102,7 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
         }
         const accounts=(await client.query(`SELECT a."Row ID" id,a."Account Label" label FROM public."Cash Accounts" a JOIN public."Cash Holders" h ON h."Row ID"=a."Ref Cash Holder" WHERE a."Active" IS TRUE AND h."Active" IS TRUE ORDER BY a."Sort Order",a."Row ID" COLLATE "C"`)).rows;
         const {sourceVersion,businessDate,amount,planHash}=calculation;
-        return {ok:true,value:{sourceVersion,businessDate,amount,planHash,accounts,plan:{borrowerId:calculation.borrowerId,amountReceived:amount,allocations:calculation.allocations,allocationMethod:'Loan Close',targetChargeId:calculation.targetChargeId,targetLoanId:id,cashAccountId:null,paymentDate:businessDate,paymentMethod:null}}};
+        return {ok:true,value:{sourceVersion,businessDate,amount,planHash,...closeSummary(calculation),accounts,plan:{borrowerId:calculation.borrowerId,amountReceived:amount,allocations:calculation.allocations,allocationMethod:'Loan Close',targetChargeId:calculation.targetChargeId,targetLoanId:id,cashAccountId:null,paymentDate:businessDate,paymentMethod:null}}};
       },true);
     },
     async preferences(principal){if(!ownerTesting)return failure(403,'access_denied');return run(principal,async(client,actor)=>({ok:true,value:await readPreferences(client,actor)}),true)},
