@@ -25,7 +25,7 @@
     "privateOriginalRetained": true
   },
   "runtime": {
-    "readerPrivileges": "Eight exact table/view column SELECT scopes, forecast EXECUTE, database-local readonly/5s timeout, no application/owner membership, no business write or schema CREATE",
+    "readerPrivileges": "57 exact columns/eight relations (DEV56 plus PROD Partners.Partner Role); both required routines executable; database-local readonly/5s; no application/owner membership or business DML",
     "cacheControl": "no-store",
     "receiptCatalogVersion": 1,
     "commandPrivileges": "Reviewed object-classified application capability; four owner journal entrypoint EXECUTE grants; no owner membership",
@@ -60,7 +60,7 @@
     "Grafana monitoring"
   ],
   "verificationPending": [
-    "Authenticated canonical PWA and historical receipt read GUI: owner manual Google account selection remains pending",
+    "Owner refresh of authenticated canonical PWA screens and historical receipt read GUI after repaired mapping permission",
     "First real PWA receipt AppSheet rendering"
   ],
   "financialTestWrites": 0,
@@ -72,6 +72,7 @@
     "aclOnlyObjects": 184,
     "objectsWritten": 279
   },
-  "authenticationObservation": "The pending Google account chooser has not completed authentication. No authenticated SQL request or server/database failure was observed; bounded server logs returned no 5xx.",
-  "documentation": "Selective model and owning records complete; evidence publication in this batch"
+  "authenticationObservation": "Owner signed in on iPhone; authenticated Collection and Borrowers requests reached reader00002-984 and failed with mapping SQLSTATE42501. The PROD membership override required Partners.Partner Role SELECT, omitted from the generic DEV reader scope. The owner-approved single-column grant is committed; metadata-only bulk comparison confirms all57 PROD reader columns, both required routine EXECUTE privileges and zero command-policy violations. Owner refresh/read GUI verification remains pending.",
+  "documentation": "Selective model and owning records complete; evidence publication in this batch",
+  "permissionRepairEvidence": "production-reader-permission-repair.json"
 }

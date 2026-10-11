@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "observedAt": "2026-10-11T16:12:21.246050+00:00",
+  "release": "R052",
+  "status": "Approved column repair committed; complete business capability comparison passed",
+  "businessRowsRead": 0,
+  "repair": {
+    "relation": "public.Partners",
+    "column": "Partner Role",
+    "privilege": "SELECT",
+    "beforeEffective": false,
+    "afterEffective": true,
+    "changedColumnAclCount": 1,
+    "unrelatedColumnAclsUnchanged": true,
+    "roleMembershipsSchemasAndDatabaseAclsUnchanged": true,
+    "appliesTo": [
+      "Collection",
+      "Borrowers"
+    ],
+    "cause": "Production membership mapping selects Partner Role beyond generic DEV mapping",
+    "authority": "Owner explicitly approved exact column SELECT and complete business capability reconciliation on 2026-10-11",
+    "evidencePersistence": "Commit succeeded before private after-evidence write was blocked; subsequent read-only capture recovered proof without repeating grant"
+  },
+  "bulkComparison": {
+    "devReaderColumns": 56,
+    "prodReaderColumns": 57,
+    "relations": 8,
+    "readerDifferences": [
+      "PROD-only Partners.Partner Role SELECT"
+    ],
+    "readerRelationRoutineSchemaDifferences": 0,
+    "commandColumnRelationRoutineSchemaDifferences": 0,
+    "commandPolicyViolations": {
+      "development": 0,
+      "production": 0
+    },
+    "requiredFunctionExecute": {
+      "forecast_schedule_v1": true,
+      "olap_reporting_date": true
+    },
+    "additionalGrantsRequired": 0
+  },
+  "readerReadOnly": true,
+  "readerApplicationOrOwnerMembership": false,
+  "privateBeforeSha256": "4dc1f90ef1714e59c264d4e4b31e77f58444451fbf692c99885fbdeca053ca3a",
+  "privateAfterSha256": "69c4b53d1760e63c01b35de57d504c02b81162fe8db5688074d193b40da3b1a5",
+  "guiRefreshVerification": "Owner refresh of authenticated screens and historical receipt GUI pending; first real new PWA receipt AppSheet rendering remains pending"
+}
