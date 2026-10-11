@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "sourceCommit": "b40c69526bc40b2ef3f6ab6b631df8c51695c921",
+  "status": "actual-archived-frontend-build-verified",
+  "inputSetSha256": "24b8af04b05afc72db14f0dfddd55e58b561f7df4724cd9f2df113eed9fcfb7f",
+  "frontendConfigSha256": "db4bfdbc6a072746fdfa00bde7fa58b6334561cb52e379eec89d621625247370",
+  "entry": "/assets/index-BRCp7IWg.js",
+  "publicVersion": "c8e9c5007ab5c35436a6b084",
+  "entrySha256": "8886b85378223f487ef65715f416498db2ec2cc1285331f4b055fb080cf49e37",
+  "fileCount": 14,
+  "mode": "live-prod",
+  "notificationsEnabled": false,
+  "compiledPublicBindingsVerified": true,
+  "effects": "Local exact Git archive build only; no Hosting/runtime/SQL changes",
+  "limits": "Local exact-source build and compiled public configuration verified; deployment not executed."
+}
