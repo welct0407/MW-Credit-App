@@ -1,5 +1,5 @@
 {
-  "revision": 25,
+  "revision": 26,
   "default_policy": "deny",
   "services": {
     "receipt_evidence": {
@@ -68,6 +68,10 @@
     },
     "reviewer_database_dml": {
       "enabled": true,
+      "implemented": true
+    },
+    "shared_receipt_payment_api": {
+      "enabled": false,
       "implemented": true
     }
   }

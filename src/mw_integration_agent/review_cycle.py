@@ -13,6 +13,7 @@ from .partner_notice import NoticeJournal,receipt_notice
 from .partner_review import ReviewStore,request_text,review_id
 from .review_proposal import facts,plan,review_posts_overpayment
 from .review_execution import add_payment,readback
+from . import receipt_api
 from .cash_statement import read_query
 from .receipt_identity import receipt_borrower
 
@@ -124,11 +125,16 @@ def cycle(config,journal,identity_reader):
                 reviews.decide(event,dict(notice),live['partners'],identity,reviewer_ids=live.get('reviewer_ids',[]))
         for review in db.execute("SELECT * FROM partner_reviews WHERE state IN ('APPROVED','POSTING','UNKNOWN')").fetchall():
             with isolated(failures,'execution'):
-                proposal=json.loads(review['proposal']);key='igr:'+review['id'][:48]
+                proposal=json.loads(review['proposal']);key=review['payment_id'] if str(review['payment_id'] or '').startswith('pwa:') else 'igr:'+review['id'][:48]
                 if review['state'] in ('POSTING','UNKNOWN'):
                     if review['state']=='POSTING':
                         with db:db.execute("UPDATE partner_reviews SET state='UNKNOWN' WHERE id=?",(review['id'],))
-                    if readback(config,key,proposal):
+                    api_result=receipt_api.status(config,key,review['id']) if key.startswith('pwa:') else None
+                    if api_result and api_result.get('originalOutcome',{}).get('status')=='rejected':
+                        with db:db.execute("UPDATE partner_reviews SET state='MANUAL_REQUIRED',detail='RECEIPT_API_REJECTED' WHERE id=?",(review['id'],))
+                        continue
+                    verified_api=api_result is None or receipt_api.posted(api_result,key)
+                    if verified_api and readback(config,key,proposal):
                         with db:db.execute("UPDATE partner_reviews SET state='POSTED',payment_id=? WHERE id=?",(key,review['id']))
                     continue
                 live=masters(config)
@@ -180,16 +186,27 @@ def cycle(config,journal,identity_reader):
                 except ReceiptInvalid as exc:
                     with db:db.execute("UPDATE partner_reviews SET state='STALE',detail=? WHERE id=?",(str(exc),review['id']))
                     continue
+                api_payload=None
+                if config.get('receipt_payment_api_enabled') is True and job['created_at']>=datetime.fromisoformat(config['receipt_payment_api_cutoff']).timestamp():
+                    asset=db.execute('SELECT * FROM receipt_assets WHERE job_id=?',(review['job_id'],)).fetchone()
+                    api_payload=receipt_api.payload(config,review,proposal,asset,automatic)
+                    key='pwa:'+api_payload['command']['requestId']
                 with db:
                     claimed=db.execute("UPDATE partner_reviews SET state='POSTING',payment_id=? WHERE id=? AND state='APPROVED'",(key,review['id'])).rowcount
                 if not claimed:continue
                 posting_config=dict(config,_receipt_automatic=True) if automatic else dict(config,_receipt_reviewer_approved=True)
-                try:add_payment(posting_config,key,proposal,actors[0])
+                api_result=None
+                try:
+                    if api_payload is not None:api_result=receipt_api.submit(posting_config,api_payload)
+                    else:add_payment(posting_config,key,proposal,actors[0])
                 except Exception:pass
                 verified=False
-                try:verified=readback(config,key,proposal)
+                try:
+                    if api_payload is not None and api_result is None:api_result=receipt_api.status(config,key,review['id'])
+                    verified=(api_payload is None or receipt_api.posted(api_result,key)) and readback(config,key,proposal)
                 except Exception as exc:failures.append({'stage':'readback','exception':type(exc).__name__})
-                with db:db.execute("UPDATE partner_reviews SET state=? WHERE id=?",('POSTED' if verified else 'UNKNOWN',review['id']))
+                state='POSTED' if verified else 'MANUAL_REQUIRED' if api_result and api_result.get('originalOutcome',{}).get('status')=='rejected' else 'UNKNOWN'
+                with db:db.execute("UPDATE partner_reviews SET state=? WHERE id=?",(state,review['id']))
         with isolated(notification_failures,'notification-cycle'):
             notify(config,journal,notices,identity_reader,notification_failures)
         return {'failures':failures,'notification_failures':notification_failures,'reviews':[dict(r) for r in db.execute('SELECT state,count(*) count FROM partner_reviews GROUP BY state')]}

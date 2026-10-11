@@ -1,0 +1,17 @@
+# Shared receipt-payment API — implemented, not activated
+
+The owner approved source implementation on 12 October 2026. Production still uses AppSheet `Payments Add`; no live agent configuration, financial write or deployment occurred. The existing reviewer/automatic checks and duplicate-reference policy remain in force.
+
+`receipt_payment_api_enabled` defaults false. The matching catalogue service must also be explicitly enabled; a config switch alone fails closed. Enabling requires exact environment-bound `receipt_payment_api_origin` and `receipt_payment_api_audience` (the command Cloud Run service origin), the existing matching receipt environment/database/archive, and explicit timezone-bearing `receipt_payment_api_cutoff`. Only an unattempted APPROVED review whose source job was created at/after that cutoff selects the API. Earlier approved work retains the legacy route.
+
+The agent requests a Google workload ID token from its attached VM identity. The API separately verifies the pinned issuer/audience/email/numeric subject; it does not accept this token on human Firebase routes. Private API policy constrains the automatic Partner and reviewer Partners; SQL resolves the current unique Login Email and checks current reviewer/IG eligibility. No human identity is forged.
+
+The typed schema7 command carries exact receipt amount/date/transfer minute/bank reference, original full review ID, frozen proposal SHA256 and immutable ARCHIVED metadata. The API retains native Lump Sum/Bank Transfer behavior through existing financial triggers, journals atomically, and requests push only after acknowledged commit. Archive metadata is a trusted executor assertion, not a claim that the API downloaded image bytes. Receipt projection remains separate and unchanged.
+
+Request ID is the first16bytes of SHA256 UTF8 compact JSON `["mw-credit-agent-receipt-v1",environment,fullReviewId]`, with UUID version4/variant bits set. `pwa:<UUID>` is saved atomically with POSTING before network. A successful API response must still pass the existing exact SQL readback before POSTED. Any uncertain attempt reconciles only that saved request via status and readback; an unresolved result remains UNKNOWN. There is no automatic second POST, new key or AppSheet fallback. Definitively rejected commands require manual handling.
+
+Existing POSTING/UNKNOWN with an `igr:` or missing legacy payment ID always use legacy readback, regardless of the new switch/cutoff. Retain legacy AppSheet credentials until the old approved/pending work is resolved. Disabling the API prevents new API submissions; unresolved `pwa:` requests remain held until the same API status route can be safely restored. Do not rewrite persisted payment IDs as rollback.
+
+The existing projector reads the saved payment_id and repeats exact financial readback before attaching the native IG Receipt ID/Receipt Image/Receipt Received At triplet. Original object path, generation, SHA256 and capture timestamp remain unchanged. No new SQL/GCS permission or agent-to-notify grant is required. Generic reviewer SQL/AppSheet writes remain on their current paths and minute notification recovery.
+
+Verification and publication are recorded in the [change log](../Change%20Logs/CHANGE_NOTES_SHARED_RECEIPT_PAYMENT_API_2026-10-12.md). Production cutover, actual workload policy/identity pin and effective grants require a separate reviewed deployment; no live cutoff is chosen by this source change.

@@ -50,5 +50,9 @@
   "receipt_environment": "prod",
   "receipt_bucket": "mw-payment-receipts-prod-508610-n7",
   "receipt_spool_limit_bytes": 536870912,
-  "receipt_projector_password_file": "/etc/mw-integration-agent/secrets/receipt-projector-password.txt"
+  "receipt_projector_password_file": "/etc/mw-integration-agent/secrets/receipt-projector-password.txt",
+  "receipt_payment_api_enabled": false,
+  "receipt_payment_api_origin": null,
+  "receipt_payment_api_audience": null,
+  "receipt_payment_api_cutoff": null
 }

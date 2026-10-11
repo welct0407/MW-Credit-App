@@ -71,3 +71,8 @@ From 29 September 2026, send `review` as a standalone direct message to the agen
 The requester receives fresh copies of pending, unexpired proposals that existed when the command was sent, including proposals originally delivered by email fallback. Other reviewers are not notified by this command. Use Instagram Reply directly on a resent request to approve/reject under the existing rules. The proposal and its original 24-hour expiry remain unchanged; rejected, posted, expired, stale or superseded proposals stay closed. Validation-hold alerts are not proposals and are not included in this command. A localized acknowledgement reports that requests were queued, or that none are eligible. Delivery rechecks current facts/duplicates, so a changed proposal can become stale instead of being sent.
 
 Each signed command and each per-proposal resend have durable identities. Retries recover partial reservations without repeating accepted/unknown sends; old notice records remain immutable. A deliberately new command may request a new copy. Existing email fallback still applies if IG delivery is unavailable. Monitoring accepts either original or resent delivery as evidence for the same review, without resetting the overdue clock. No new database schema or service is introduced.
+
+
+## R053 shared receipt transport (disabled candidate)
+
+The [shared receipt-payment adapter](SHARED_RECEIPT_PAYMENT_API.md) is implemented with an explicit future cutoff and remains disabled. It changes only the posting transport after the existing approval/automatic checks. Current production continues through AppSheet. Persisted legacy uncertainty never changes route; a new API uncertainty uses status/readback only.
