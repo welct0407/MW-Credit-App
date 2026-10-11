@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "observedAt": "2026-10-11T21:05:18.2879408+07:00",
+  "outcome": "Deployment applied; verification incomplete",
+  "release": "R052",
+  "productSourceCommit": "b40c69526bc40b2ef3f6ab6b631df8c51695c921",
+  "operatorSourceCommit": "4a27a1cfacdd1d59bbdb531a49d95962c230967a",
+  "preparedDigest": "7f64e9a96dd2ec3416e4fb0a0ed81f33e598dc1364421b26fb995330b65b588d",
+  "sql": {
+    "executeInTransaction": true,
+    "after": 87,
+    "before": 77,
+    "database": "loan_manager_prod",
+    "group": true,
+    "validationSuccessful": true,
+    "mixed": false,
+    "migrationsExecuted": 10,
+    "pending": 0,
+    "firstAttempt": "Timestamp locale freshness refusal before migration; authority restored; invariant-culture invocation reused unmodified maintained runner",
+    "temporaryAuthority": "exact restoration verified; temporary capability absent"
+  },
+  "backup": {
+    "sha256": "602b2e5ed424ff9751eb833e895d766e5b2548544fc526376aa627c990ecfef7",
+    "isolatedRestore": "26 table/history fingerprints matched; catalogue passed; owned cluster removed",
+    "privateOriginalRetained": true
+  },
+  "runtime": {
+    "readerPrivileges": "Eight exact table/view column SELECT scopes, forecast EXECUTE, database-local readonly/5s timeout, no application/owner membership, no business write or schema CREATE",
+    "cacheControl": "no-store",
+    "receiptCatalogVersion": 1,
+    "commandPrivileges": "Reviewed object-classified application capability; four owner journal entrypoint EXECUTE grants; no owner membership",
+    "trafficPercent": 100,
+    "health": 200,
+    "policyVersion": 1,
+    "command": "mw-credit-app-command-prod-00002-vtl",
+    "reader": "mw-credit-app-read-prod-00002-984",
+    "image": "api@sha256:4cc345a86ec153722a67d0e9a8a42d352530c736b5023546d20f08728acdf66b",
+    "unauthenticatedSession": 401
+  },
+  "hosting": {
+    "schemaVersion": 1,
+    "sourceCommit": "b40c69526bc40b2ef3f6ab6b631df8c51695c921",
+    "site": "mw-credit-prod-737787224638",
+    "version": "sites/mw-credit-prod-737787224638/versions/3227832eb21e31cc",
+    "release": "sites/mw-credit-prod-737787224638/releases/1791727412743000",
+    "publicVersion": "c8e9c5007ab5c35436a6b084",
+    "fileCount": 14,
+    "cacheControl": "no-store",
+    "approvalReference": "Owner explicitly approved R052 production promotion 2026-10-11; pinned b40 package"
+  },
+  "appsheet": {
+    "oltp": "3.000274",
+    "definitions": "unchanged",
+    "olap": "1.100214",
+    "gui": "Both deployed, no editor issues, loaded/synced after V87; root evidence production-appsheet-gui.json"
+  },
+  "deferred": [
+    "PWA notifications",
+    "PWA replacement scheduled jobs",
+    "Grafana monitoring"
+  ],
+  "verificationPending": [
+    "Authenticated canonical PWA and historical receipt read GUI: owner manual Google account selection remains pending",
+    "First real PWA receipt AppSheet rendering"
+  ],
+  "financialTestWrites": 0,
+  "dictionary": {
+    "closedDevOverlays": 35,
+    "evidence": "canonical PM outputs/r052/dictionary-production-closure.json",
+    "documentsValidated": 1622,
+    "errors": 0,
+    "aclOnlyObjects": 184,
+    "objectsWritten": 279
+  },
+  "authenticationObservation": "The pending Google account chooser has not completed authentication. No authenticated SQL request or server/database failure was observed; bounded server logs returned no 5xx.",
+  "documentation": "Selective model and owning records complete; evidence publication in this batch"
+}

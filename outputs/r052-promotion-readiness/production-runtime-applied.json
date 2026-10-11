@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "observedAt": "2026-10-11T14:02:22.9801667Z",
+  "status": "applied",
+  "projectId": "clever-oasis-508610-n7",
+  "region": "asia-southeast1",
+  "planSha256": "28b2512d6f2a872ed7471952445149cb8d59227cd2f83811ea9e49e1f9b77164",
+  "resourceActions": {
+    "created": 0,
+    "deleted": 0,
+    "updated": 2
+  },
+  "sourceCommit": "b40c69526bc40b2ef3f6ab6b631df8c51695c921",
+  "image": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app-prod/api@sha256:4cc345a86ec153722a67d0e9a8a42d352530c736b5023546d20f08728acdf66b",
+  "services": [
+    {
+      "trafficPercent": 100,
+      "cacheControl": "no-store",
+      "healthStatus": 200,
+      "revision": "mw-credit-app-read-prod-00002-984",
+      "name": "mw-credit-app-read-prod",
+      "ready": true
+    },
+    {
+      "trafficPercent": 100,
+      "cacheControl": "no-store",
+      "healthStatus": 200,
+      "revision": "mw-credit-app-command-prod-00002-vtl",
+      "name": "mw-credit-app-command-prod",
+      "ready": true
+    }
+  ],
+  "appliedConfiguration": {
+    "maxInstances": 1,
+    "capabilityPolicyVersion": "1",
+    "notifications": "disabled",
+    "concurrency": 5,
+    "cpu": "1",
+    "receiptCompatibilityEvidenceSha256": "e13cfa40c78f345d60ce58f3dbda783925a04b757f53e20d4581ad890641d54b",
+    "registeredCreators": [
+      "postgres"
+    ],
+    "minInstances": 0,
+    "receipts": "command-only",
+    "nativeCatalogVersion": "1",
+    "timeout": "15s",
+    "memory": "512Mi"
+  },
+  "prerequisites": "D verified grouped PROD87, exact temporary authority restoration and reader/command SQL contract before apply",
+  "limitations": [
+    "Health is process readiness, not authenticated SQL business acceptance",
+    "First real new PROD receipt AppSheet rendering remains owner observation; no financial write fabricated"
+  ],
+  "rollback": "Reviewed existing foundation image/entrypoint can be restored through Terraform; SQL87 and persistent CONNECT containment remain; no destructive rollback",
+  "cleanup": {
+    "privatePlansStateRecoveryRetained": true,
+    "stableHostTrustRetained": true,
+    "temporarySshKeysRemoved": true,
+    "ownedHelpersRunning": 0,
+    "reviewDate": "2026-10-18"
+  }
+}
