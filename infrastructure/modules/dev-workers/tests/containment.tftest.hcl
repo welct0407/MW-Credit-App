@@ -58,17 +58,17 @@ run "reject_latest" {
 run "enabled_notification_remains_request_based" {
   command = plan
   variables {
-    enabled              = true
-    image                = "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app/api@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-    vapid_version        = "1"
-    policy_version       = "1"
-    push_subject         = "mailto:synthetic@example.invalid"
-    registered_creators  = ["postgres"]
-    notification_enabled = true
+    enabled                  = true
+    image                    = "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app/api@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    vapid_version            = "1"
+    policy_version           = "1"
+    push_subject             = "mailto:synthetic@example.invalid"
+    registered_creators      = ["postgres"]
+    notification_enabled     = true
     command_dispatch_enabled = true
   }
   assert {
-    condition = length(google_cloud_run_v2_service_iam_member.command_dispatch) == 1 && google_cloud_run_v2_service_iam_member.command_dispatch[0].role == "roles/run.invoker" && google_cloud_run_v2_service_iam_member.command_dispatch[0].member == "serviceAccount:mw-credit-app-command-dev@clever-oasis-508610-n7.iam.gserviceaccount.com"
+    condition     = length(google_cloud_run_v2_service_iam_member.command_dispatch) == 1 && google_cloud_run_v2_service_iam_member.command_dispatch[0].role == "roles/run.invoker" && google_cloud_run_v2_service_iam_member.command_dispatch[0].member == "serviceAccount:mw-credit-app-command-dev@clever-oasis-508610-n7.iam.gserviceaccount.com"
     error_message = "Only the exact DEV command identity receives the notify service invocation grant."
   }
   assert {
@@ -99,18 +99,18 @@ run "reject_unbound_notify" {
 run "prod_workers_are_separate_and_scale_zero" {
   command = plan
   variables {
-    environment = "prod"
-    enabled = true
-    image = "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app-prod/api@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-    vapid_version = "1"
-    policy_version = "2"
-    push_subject = "mailto:synthetic@example.invalid"
-    registered_creators = ["postgres"]
-    notification_enabled = true
+    environment              = "prod"
+    enabled                  = true
+    image                    = "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app-prod/api@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    vapid_version            = "1"
+    policy_version           = "2"
+    push_subject             = "mailto:synthetic@example.invalid"
+    registered_creators      = ["postgres"]
+    notification_enabled     = true
     command_dispatch_enabled = true
   }
   assert {
-    condition = alltrue([for key,s in google_cloud_run_v2_service.worker : s.name == "mw-credit-app-${key}-prod" && s.scaling[0].min_instance_count == 0 && s.template[0].containers[0].resources[0].cpu_idle && one([for e in s.template[0].containers[0].env : e.value if e.name == "DB_NAME"]) == "loan_manager_prod"]) && google_cloud_run_v2_service_iam_member.command_dispatch[0].member == "serviceAccount:mw-credit-app-command-prod@clever-oasis-508610-n7.iam.gserviceaccount.com"
+    condition     = alltrue([for key, s in google_cloud_run_v2_service.worker : s.name == "mw-credit-app-${key}-prod" && s.scaling[0].min_instance_count == 0 && s.template[0].containers[0].resources[0].cpu_idle && one([for e in s.template[0].containers[0].env : e.value if e.name == "DB_NAME"]) == "loan_manager_prod"]) && google_cloud_run_v2_service_iam_member.command_dispatch[0].member == "serviceAccount:mw-credit-app-command-prod@clever-oasis-508610-n7.iam.gserviceaccount.com"
     error_message = "PROD must use separate names/DB/caller and remain request based."
   }
 }
@@ -118,7 +118,7 @@ run "prod_rejects_dev_image" {
   command = plan
   variables {
     environment = "prod"
-    image = "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app/api@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    image       = "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app/api@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
   }
   expect_failures = [var.image]
 }

@@ -158,21 +158,21 @@ run "business_candidate_has_exact_bounded_receipt_authority" {
 run "prod_notification_and_machine_policy_command_only" {
   command = plan
   variables {
-    foundation_authorized = true
-    runtime_authorized = true
+    foundation_authorized              = true
+    runtime_authorized                 = true
     business_infrastructure_authorized = true
-    business_runtime_authorized = true
-    owner_secret_version = "1"
-    foundation_image = "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app-prod/api@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-    business_image = "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app-prod/api@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
-    capability_policy_version = "2"
-    capability_policy_sha256 = "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
-    business_registered_creators = ["postgres"]
-    workers = { enabled = true, image = "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app-prod/api@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", vapid_version = "1", policy_version = "2", push_subject = "mailto:synthetic@example.invalid", registered_creators = ["postgres"], command_notification_enabled = true, command_dispatch_enabled = true, web_push_public_key = "synthetic" }
-    agent_receipt_api = { policy_infrastructure_enabled = true, enabled = true, policy_version = "3" }
+    business_runtime_authorized        = true
+    owner_secret_version               = "1"
+    foundation_image                   = "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app-prod/api@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    business_image                     = "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app-prod/api@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    capability_policy_version          = "2"
+    capability_policy_sha256           = "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    business_registered_creators       = ["postgres"]
+    workers                            = { enabled = true, image = "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app-prod/api@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", vapid_version = "1", policy_version = "2", push_subject = "mailto:synthetic@example.invalid", registered_creators = ["postgres"], command_notification_enabled = true, command_dispatch_enabled = true, web_push_public_key = "synthetic" }
+    agent_receipt_api                  = { policy_infrastructure_enabled = true, enabled = true, policy_version = "3" }
   }
   assert {
-    condition = one([for e in google_cloud_run_v2_service.foundation["command"].template[0].containers[0].env : e.value if e.name == "PWA_NOTIFICATIONS"]) == "enabled" && one([for e in google_cloud_run_v2_service.foundation["command"].template[0].containers[0].env : e.value if e.name == "AGENT_RECEIPT_POLICY_SECRET_VERSION"]) == "projects/clever-oasis-508610-n7/secrets/mw-credit-app-prod-agent-receipt-policy/versions/3" && alltrue([for e in google_cloud_run_v2_service.foundation["read"].template[0].containers[0].env : !startswith(e.name,"AGENT_RECEIPT_") && e.name != "NOTIFICATION_POLICY_JSON" && e.name != "WEB_PUSH_VAPID_JSON"])
+    condition     = one([for e in google_cloud_run_v2_service.foundation["command"].template[0].containers[0].env : e.value if e.name == "PWA_NOTIFICATIONS"]) == "enabled" && one([for e in google_cloud_run_v2_service.foundation["command"].template[0].containers[0].env : e.value if e.name == "AGENT_RECEIPT_POLICY_SECRET_VERSION"]) == "projects/clever-oasis-508610-n7/secrets/mw-credit-app-prod-agent-receipt-policy/versions/3" && alltrue([for e in google_cloud_run_v2_service.foundation["read"].template[0].containers[0].env : !startswith(e.name, "AGENT_RECEIPT_") && e.name != "NOTIFICATION_POLICY_JSON" && e.name != "WEB_PUSH_VAPID_JSON"])
     error_message = "Only command receives notification enrollment and the pinned PROD machine policy."
   }
 }

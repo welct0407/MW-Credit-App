@@ -54,4 +54,6 @@ if($LASTEXITCODE){throw 'Phase 6 management integration checks failed'}
 & "$PSScriptRoot/../../tests/integration/Run-Phase8.ps1" -R053
 if($LASTEXITCODE){throw 'R053 notification/jobs and agent receipt RPC checks failed'}
 & "$PSScriptRoot/../../tests/integration/Run-R053OperatorIndependent.ps1" -AgentReceipts
+if ($LASTEXITCODE) { throw "R053 DEV operator proof failed" }
+& "$PSScriptRoot/../../tests/integration/Run-R053OperatorIndependent.ps1" -Production -AgentReceipts
 if($LASTEXITCODE){throw 'R053 nonsuperuser operator/restoration checks failed'}

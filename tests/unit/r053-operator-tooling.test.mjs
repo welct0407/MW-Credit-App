@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';import {spawnSync} from 'node:child_process';
-import {provisionR053Roles,prepareR053Maintenance,configureR053Capture,grantR053AgentReceiptApi} from '../../scripts/database/r053-operator-tooling.mjs';
+import {provisionR053Roles,prepareR053Maintenance,configureR053Capture,grantR053AgentReceiptApi,r053Environment} from '../../scripts/database/r053-operator-tooling.mjs';
 const trap={query(){throw Error('Unexpected SQL access');}};
 test('R053 operator refuses PROD before querying and requires explicit capture boolean',async()=>{
  for(const fn of [provisionR053Roles,prepareR053Maintenance,grantR053AgentReceiptApi])await assert.rejects(fn(trap,{database:'loan_manager_prod',creators:['postgres'],executionMode:'cloudsql-dev'}),/DEV operator/);
@@ -27,4 +27,14 @@ test('V89 grants only fixed command login and refuses PUBLIC/app/wrong ownership
  for(const options of [{publicAcl:true},{appExecute:true},{owner:'postgres'}]){const c=agentFixture(options);await assert.rejects(grantR053AgentReceiptApi(c,loopback,{apply:true}),/machine/);assert(!c.statements.includes('BEGIN'));}
  const c=agentFixture();const plan=await grantR053AgentReceiptApi(c,loopback);assert.equal(plan.statements.filter(x=>x.startsWith('GRANT')).length,2);assert(!c.statements.includes('BEGIN'));
  const result=await grantR053AgentReceiptApi(c,loopback,{apply:true});assert(result.after.every(x=>x.command_execute));assert.equal(result.user,'mw-credit-app-command-dev@clever-oasis-508610-n7.iam');assert(!result.statements.some(x=>/TO mw_app_dev|PUBLIC|CREATE ROLE/.test(x)));
+});
+
+
+test('PROD mapping is closed and live CLI refuses missing approval/backup before credentials',()=>{
+ const x=r053Environment('loan_manager_prod');
+ assert.deepEqual(x.roles,['mw_notify_owner_prod','mw_notify_api_prod','mw_notify_dispatch_prod','mw_jobs_owner_prod','mw_jobs_prod']);
+ assert.equal(x.journalOwner,'mw_app_prod_journal_owner');assert.equal(x.commandUser,'mw-credit-app-command-prod@clever-oasis-508610-n7.iam');
+ assert.throws(()=>r053Environment('postgres'));
+ const r=spawnSync(process.execPath,['scripts/database/r053-production-operator-cli.mjs','roles'],{encoding:'utf8'});
+ assert.notEqual(r.status,0);assert.match(r.stderr,/Explicit production approval/);assert.doesNotMatch(r.stderr,/ENOENT|authentication failed/);
 });

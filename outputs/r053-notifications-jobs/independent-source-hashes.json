@@ -17,7 +17,7 @@
   },
   {
     "path": "tests/integration/Run-R053OperatorIndependent.ps1",
-    "sha256": "26de1b5dc2374d6b42cfbcbf5bc517dcd37749fb29d4011b354cb86ca0591bd7"
+    "sha256": "8283e72112e821c5b5c30f37084df7c13bb4f41754f26db75df1fff12ff0017a"
   },
   {
     "path": "tests/integration/r053-operator-independent.test.mjs",
@@ -53,7 +53,7 @@
   },
   {
     "path": "outputs/r053-notifications-jobs/independent-verification.md",
-    "sha256": "605d9d3e4ff1b15fecbe15638e1ac5521e5b5a422d93d0a0ebb622c355fe9fed"
+    "sha256": "5807a32a47a1c11de8432dd21b5495c7715e9cf627ce2457bfe86609ed06101b"
   },
   {
     "path": "tests/integration/Test-R053CleanupGuards.ps1",
@@ -61,7 +61,7 @@
   },
   {
     "path": "tests/integration/r053-agent-receipt-independent.test.mjs",
-    "sha256": "99fc27913d525eb58c4995d60e02e2c0b33f42ae80a4e6ccc05c6e65349e19b2"
+    "sha256": "2acc5b75848714a923171d189d99d06be8e97277f5a7399e781a98040e0ce964"
   },
   {
     "path": "tests/unit/notifications-independent.test.mjs",
@@ -70,5 +70,13 @@
   {
     "path": "tests/unit/agent-receipt-command-independent.test.mjs",
     "sha256": "563bc87bb50ccf7458deac3bb90ac65fa8e70ce01f89a9e29f12e222fe470721"
+  },
+  {
+    "path": "tests/integration/r053-production-operator-independent.test.mjs",
+    "sha256": "4542ba4ddb57450c324c0e671cb20765b3a0830be51febff7ba87ba2f4070d6c"
+  },
+  {
+    "path": "tests/integration/r053-binding-independent.test.mjs",
+    "sha256": "c8871e69015d2e63946bba2fe67f7299b543bbe8d89d18ad6d7c56b3604db8fa"
   }
 ]
