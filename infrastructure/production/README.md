@@ -1,5 +1,15 @@
 # Production contained foundation — shared default authentication
 
+## R053 promotion preparation
+
+`workers.tf` binds the shared worker module explicitly to PROD names, SQL database, artifact repository and authentication role. Defaults add nothing. Notification/job activation, schedules, command enrollment/direct dispatch and machine receipt API remain separate gates. Both workers always use min0 and request-based CPU; notify accepts IAM-enforced network ingress for the exact command/Scheduler identities, while jobs retains internal ingress. Existing DEV state alone owns the shared Scheduler API enablement.
+
+Before an actual saved plan: deliver and verify the exact candidate in DEV; capture current PROD runtime revisions, activation variables, state generation and SQL recovery; initialize a separate PROD VAPID pair only if none exists; derive/verify the PROD notification policy from reviewed business membership, and verify the machine caller/Partner policy privately. Upload payloads separately and pin numeric versions, never Terraform payload resources. Existing owner/capability/catalog pins and unrelated runtime settings must survive each plan. No DEV endpoint or policy may be substituted for PROD.
+
+Review enrollment first, then runtime definitions with schedules paused, then the coordinated SQL/AppSheet ownership handoff and intended activation. The command receives only policy/public-key settings; only notify receives private VAPID. The agent's machine API route uses its exact policy-bound identity without adding agent-to-notify IAM. Actual plan counts/hashes, image pins and readbacks are delivery evidence, not established by mocked tests.
+
+Rollback uses captured immutable images and private activation variables. Stop capture/direct calls and pause recovery/job schedules before disabling dispatch or reversing scheduler ownership; preserve outbox, operation and payment journals. Revert the agent adapter to its captured prior artifact only after reconciling in-flight/unknown receipts. Do not destroy protected secrets, reset SQL history or replay uncertain payments. Existing independent DEV resources and shared SQL/GCS remain intact.
+
 The owner selected existing **My First Project**, `clever-oasis-508610-n7` / `737787224638`, `lm.mw-credit.com`, and shared Google sign-in/default Firebase authentication for the same users. No tenant, new provider, re-enrollment or multi-tenancy change is proposed. The unbilled new project and its partial state are parked, not deleted/reused. The authorized foundation is deployed; see [current inventory](READINESS_INVENTORY.md) for exact pins and remaining verification. Default gates remain inert for local preparation; never use false gates as cleanup of live protected resources.
 
 ## One package, staged dependencies

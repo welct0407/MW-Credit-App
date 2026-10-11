@@ -54,6 +54,18 @@ resource "google_cloud_run_v2_service" "foundation" {
   lifecycle {
     prevent_destroy = true
     precondition {
+      condition     = !var.workers.command_notification_enabled || (var.business_runtime_authorized && var.workers.enabled && var.workers.policy_version != null && var.workers.web_push_public_key != null)
+      error_message = "Production enrollment requires business runtime and reviewed notification policy/public key."
+    }
+    precondition {
+      condition     = !var.workers.command_dispatch_enabled || (var.workers.command_notification_enabled && var.workers.image != null)
+      error_message = "Direct dispatch requires the bound worker and enrollment."
+    }
+    precondition {
+      condition     = !var.agent_receipt_api.enabled || (var.business_runtime_authorized && var.agent_receipt_api.policy_infrastructure_enabled && var.agent_receipt_api.policy_version != null)
+      error_message = "Machine receipt API requires business runtime and a reviewed numeric PROD policy version."
+    }
+    precondition {
       condition     = var.foundation_authorized && var.foundation_image != null && var.owner_secret_version != null
       error_message = "Runtime requires the reviewed foundation, tested immutable image and actual enrolled owner version."
     }
@@ -108,7 +120,7 @@ resource "google_cloud_run_v2_service" "foundation" {
           PROD_SQL_APPLICATION_ROLE             = "mw_app_prod"
           PROD_SQL_JOURNAL_OWNER_ROLE           = "mw_app_prod_journal_owner"
           PROD_SQL_REGISTERED_CREATORS          = jsonencode(var.business_registered_creators)
-          PWA_NOTIFICATIONS                     = "disabled"
+          PWA_NOTIFICATIONS                     = each.key == "command" && var.workers.command_notification_enabled ? "enabled" : "disabled"
           PROD_RECEIPTS                         = var.business_receipts_authorized && each.key == "command" ? "enabled" : "disabled"
           } : {}, var.business_runtime_authorized && var.business_receipts_authorized && each.key == "command" ? {
           PROD_RECEIPT_CATALOG_SECRET_VERSION = "projects/${var.application_project_id}/secrets/mw-credit-app-prod-native-receipt-catalog/versions/${var.native_catalog_version == null ? "UNBOUND" : var.native_catalog_version}"
@@ -120,6 +132,15 @@ resource "google_cloud_run_v2_service" "foundation" {
             sqlPrefix         = "manual-receipts/prod/pwa/"
             objectPrefix      = "${local.native_receipt_root}pwa/"
           })
+          } : {}, each.key == "command" && var.workers.command_notification_enabled ? {
+          WEB_PUSH_PUBLIC_KEY = var.workers.web_push_public_key
+          } : {}, each.key == "command" && var.workers.command_dispatch_enabled ? {
+          NOTIFICATION_DISPATCH_ENABLED  = "true"
+          NOTIFICATION_DISPATCH_URL      = "https://mw-credit-app-notify-prod-737787224638.asia-southeast1.run.app/internal/dispatch"
+          NOTIFICATION_DISPATCH_AUDIENCE = "https://mw-credit-app-notify-prod-737787224638.asia-southeast1.run.app"
+          } : {}, each.key == "command" && var.agent_receipt_api.enabled ? {
+          AGENT_RECEIPT_API_ENABLED           = "true"
+          AGENT_RECEIPT_POLICY_SECRET_VERSION = "projects/${var.application_project_id}/secrets/mw-credit-app-prod-agent-receipt-policy/versions/${var.agent_receipt_api.policy_version == null ? "UNBOUND" : var.agent_receipt_api.policy_version}"
         } : {})
         content {
           name  = env.key
@@ -140,6 +161,8 @@ resource "google_cloud_run_v2_service" "foundation" {
           PROD_CAPABILITY_POLICY_JSON = { secret = "mw-credit-app-prod-capability-policy", version = var.capability_policy_version }
           }, var.business_receipts_authorized && each.key == "command" ? {
           PROD_RECEIPT_NATIVE_CATALOG_JSON = { secret = "mw-credit-app-prod-native-receipt-catalog", version = var.native_catalog_version }
+          } : {}, each.key == "command" && var.agent_receipt_api.enabled ? {
+          AGENT_RECEIPT_POLICY_JSON = { secret = "mw-credit-app-prod-agent-receipt-policy", version = var.agent_receipt_api.policy_version }
         } : {}) : {}
         content {
           name = env.key
@@ -161,5 +184,5 @@ resource "google_cloud_run_v2_service" "foundation" {
       }
     }
   }
-  depends_on = [google_project_iam_member.runtime_auth, google_secret_manager_secret_iam_member.runtime_owner, google_project_iam_member.business_sql, google_sql_user.business_runtime, google_secret_manager_secret_iam_member.business_policy, google_secret_manager_secret_iam_member.business_catalog, google_storage_bucket_iam_member.business_receipt]
+  depends_on = [google_project_iam_member.runtime_auth, google_secret_manager_secret_iam_member.runtime_owner, google_project_iam_member.business_sql, google_sql_user.business_runtime, google_secret_manager_secret_iam_member.business_policy, google_secret_manager_secret_iam_member.business_catalog, google_storage_bucket_iam_member.business_receipt, google_secret_manager_secret_iam_member.command_agent_receipt_policy]
 }

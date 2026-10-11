@@ -3,12 +3,12 @@
   "release": "R053",
   "status": "development-source-frozen-publication-authorized-ci-pending",
   "createdDate": "2026-10-12",
-  "scope": "app-triggered min0 push and shared receipt-payment API source/DEV; no live agent/PROD cutover",
+  "scope": "Owner-authorized final CI/fixes then reviewed request-driven push, jobs and shared receipt API production promotion; no live effect from publication.",
   "repositories": [
     {
       "root": "C:/GitHub/MW-Credit-App",
       "branch": "codex/r052-review-shell",
-      "baseline": "5199f0f49982900f0ca89afe5cacca89664efe22",
+      "baseline": "a4deae72ac8f136b319881b9ed70433510e40b4e",
       "owners": {
         "A": [
           "outputs/r053-notifications-jobs/design-test-plan.md",
@@ -41,7 +41,8 @@
           "tests/unit/notification-wakeup.test.mjs",
           "tests/unit/worker-runtime.test.mjs",
           "outputs/r053-notifications-jobs/implementation-handoff.md",
-          "Change Logs/CHANGE_NOTES_R053_NOTIFICATIONS_JOBS_2026-10-11.md"
+          "Change Logs/CHANGE_NOTES_R053_NOTIFICATIONS_JOBS_2026-10-11.md",
+          "tests/unit/production-business.test.mjs"
         ],
         "C": [
           "tests/integration/Run-Phase8.ps1",
@@ -62,23 +63,29 @@
           "scripts/database/R053_OPERATOR.md",
           "scripts/database/Test-CI.ps1",
           "tests/unit/r053-operator-tooling.test.mjs",
-          "Change Logs/CHANGE_NOTES_R053_NOTIFICATIONS_JOBS_2026-10-11.md"
+          "Change Logs/CHANGE_NOTES_R053_NOTIFICATIONS_JOBS_2026-10-11.md",
+          "scripts/database/Backup-ProductionPromotion.py"
         ],
         "F": [
-          "infrastructure/dev/command-service.tf",
-          "infrastructure/dev/workers.tf",
           "infrastructure/dev/agent-receipt-policy.tf",
+          "infrastructure/dev/command-service.tf",
           "infrastructure/dev/tests/workers.tftest.hcl",
-          "infrastructure/modules/dev-workers/main.tf",
+          "infrastructure/dev/workers.tf",
           "infrastructure/modules/dev-workers/README.md",
-          "infrastructure/modules/dev-workers/tests/containment.tftest.hcl"
+          "infrastructure/modules/dev-workers/main.tf",
+          "infrastructure/modules/dev-workers/tests/containment.tftest.hcl",
+          "infrastructure/production/README.md",
+          "infrastructure/production/agent-receipt-policy.tf",
+          "infrastructure/production/runtime.tf",
+          "infrastructure/production/tests/inert.tftest.hcl",
+          "infrastructure/production/workers.tf"
         ]
       },
       "manifestPath": "outputs/r053-notifications-jobs/checkpoint-staging-plan.json",
       "files": [
         {
           "path": "Change Logs/CHANGE_NOTES_R053_NOTIFICATIONS_JOBS_2026-10-11.md",
-          "worktreeSha256": "1c35ddba240551ecf7a39074640b561e32c27c95954bab58394d4ab7459c4b70",
+          "worktreeSha256": "9f1cf832874eac3591c660331dafe1d9027c7c41c3e3fdc6ffd49242861b5c40",
           "operation": "stage"
         },
         {
@@ -133,17 +140,42 @@
         },
         {
           "path": "infrastructure/modules/dev-workers/README.md",
-          "worktreeSha256": "c74f996add710260c5e65f8db488699389a18dd0b26589be1a73491c21969e5d",
+          "worktreeSha256": "0ef265fc20c511218538a22be3cec5fdfb296d1af05f631b1853dd08282895ed",
           "operation": "stage"
         },
         {
           "path": "infrastructure/modules/dev-workers/main.tf",
-          "worktreeSha256": "fad96990dfa48baeae0c9b61736cc1327b386a71e2a015f7388a4f214afaee0f",
+          "worktreeSha256": "4f247dd7dc32c09a2e006c5a471d2adc739698d8844bb245ee5bc6c7dc338c19",
           "operation": "stage"
         },
         {
           "path": "infrastructure/modules/dev-workers/tests/containment.tftest.hcl",
-          "worktreeSha256": "74b676afbb719d18417d7488c353955414d7a1ca10328a3f2a8d847c9cd36bdc",
+          "worktreeSha256": "de9cd29e2ffc3f22f30892d02ba036895efe7ab0a5cab1c6bd40119ae7c1b7a7",
+          "operation": "stage"
+        },
+        {
+          "path": "infrastructure/production/README.md",
+          "worktreeSha256": "2e7b55abf750914c44115dec3c101ccfe88cd271d6b602426bd403db170504d8",
+          "operation": "stage"
+        },
+        {
+          "path": "infrastructure/production/agent-receipt-policy.tf",
+          "worktreeSha256": "d76ea6fcde419f2b5689076aceb38bf42a114bb9e0e0b86887752dd82b09a222",
+          "operation": "stage"
+        },
+        {
+          "path": "infrastructure/production/runtime.tf",
+          "worktreeSha256": "fed5255c8cd832be269a3e8175f8fe05b62770825bff6b6199cc66af7d3c8bc9",
+          "operation": "stage"
+        },
+        {
+          "path": "infrastructure/production/tests/inert.tftest.hcl",
+          "worktreeSha256": "a1b2bb7fbbce3fb99db3466b4ba18528ef3df5ed93a137d3f3dc2816100c3d76",
+          "operation": "stage"
+        },
+        {
+          "path": "infrastructure/production/workers.tf",
+          "worktreeSha256": "9c0932c040f20d765312951c9a3cdf894e4e8834d3a57177b5aced704c5f43a2",
           "operation": "stage"
         },
         {
@@ -169,6 +201,11 @@
         {
           "path": "outputs/r053-notifications-jobs/lower-cost-push-proposal.md",
           "worktreeSha256": "3bd3d7c087958b1b640cf0dbe2074cd625253f78e584242e6262fa99d2b9839e",
+          "operation": "stage"
+        },
+        {
+          "path": "scripts/database/Backup-ProductionPromotion.py",
+          "worktreeSha256": "07c090c390689f5bccff7f95c93b113846efb0143136b9eb219efcce7b3604a3",
           "operation": "stage"
         },
         {
@@ -327,6 +364,11 @@
           "operation": "stage"
         },
         {
+          "path": "tests/unit/production-business.test.mjs",
+          "worktreeSha256": "7ff300d52a4e1f44ac1b8480ef830a6a2e4689021d43cf341a5e8a23f19ef366",
+          "operation": "stage"
+        },
+        {
           "path": "tests/unit/r053-operator-tooling.test.mjs",
           "worktreeSha256": "5e7070cae83f11ea498c1448f22aaa95f45a82d989353b80dbb4fc9e27d5c22f",
           "operation": "stage"
@@ -426,22 +468,28 @@
       "paths": [
         "Change Logs/CHANGE_NOTES_R053_NOTIFICATIONS_JOBS_2026-10-11.md",
         "outputs/r053-notifications-jobs/continuation.md",
-        "Documents/Release_Tracker.md"
+        "Documents/Release_Tracker.md",
+        "outputs/r053-notifications-jobs/promotion-checklist.md"
       ],
       "files": [
         {
           "path": "Change Logs/CHANGE_NOTES_R053_NOTIFICATIONS_JOBS_2026-10-11.md",
-          "worktreeSha256": "bce83be62f42e3d1d5cb38dbf47d0615a6db450d4be2a04425eca3baf73f3f02",
+          "worktreeSha256": "c6c5d4e8074fbbf6dfc60bfbbf63c79ae04a102cee4aacac3af9ab366504a79f",
           "operation": "stage"
         },
         {
           "path": "Documents/Release_Tracker.md",
-          "worktreeSha256": "46380f646fc0de815826995fc39f16060ffd69736982e3e6a08a93754ec4a1c8",
+          "worktreeSha256": "1ae017f9651707cff244fc7dbbdcfbee6d36cbcf07db7a48481d3b870fe6afff",
           "operation": "stage"
         },
         {
           "path": "outputs/r053-notifications-jobs/continuation.md",
-          "worktreeSha256": "dae054fbd9040722c863997516708f5a43085d79e8fd3a0773b7d43989c90c6b",
+          "worktreeSha256": "47d605600bec5ca35adfbffd167f504a0c7225879f3f5ea194c86e70e4bc46f6",
+          "operation": "stage"
+        },
+        {
+          "path": "outputs/r053-notifications-jobs/promotion-checklist.md",
+          "worktreeSha256": "b6ec980ad3e05c53ac79bb2c3f044e4a18f0ce21719faf1930f58c64d7d796d5",
           "operation": "stage"
         }
       ]
@@ -458,7 +506,7 @@
     "services/notifications/wakeup.mjs"
   ],
   "checkpointPlan": {
-    "app": "Publish exact scoped source, retain one normal database push run and one ci.yml workflow_dispatch at exact branch head; cancel duplicate PR runs. Preserve immutable-migration check.",
+    "app": "Retain valid unchanged-SQL database push38164950918; final exact-head ci.yml workflow_dispatch includes PROD Terraform and composition tests. Cancel duplicate PR/push DB runs; preserve immutable guard.",
     "agent": "Publish default-off candidate and new PR; bind exact source to final C focused Python evidence (repository has no existing workflow).",
     "pm": "Publish intended continuation/tracker/log without release freeze or tag.",
     "hold": "B/C frozen; root authorized scoped publication and one final checkpoint. DEV live delivery still depends on actual checkpoint success."

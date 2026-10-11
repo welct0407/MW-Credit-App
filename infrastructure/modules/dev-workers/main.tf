@@ -4,8 +4,16 @@ terraform {
   }
 }
 
-# DEV-only module. No existing browser service, shared instance, or PROD resource
+# Environment-bound module. No existing browser service or shared instance
 # is managed here. Secret payloads and SQL capability membership stay outside TF.
+variable "environment" {
+  type    = string
+  default = "dev"
+  validation {
+    condition     = contains(["dev", "prod"], var.environment)
+    error_message = "Select the exact reviewed dev or prod environment."
+  }
+}
 variable "enabled" {
   type    = bool
   default = false
@@ -15,8 +23,8 @@ variable "image" {
   default  = null
   nullable = true
   validation {
-    condition     = var.image == null ? true : can(regex("^asia-southeast1-docker[.]pkg[.]dev/clever-oasis-508610-n7/mw-credit-app/api@sha256:[a-f0-9]{64}$", var.image))
-    error_message = "Pin the tested immutable DEV worker image."
+    condition     = var.image == null ? true : can(regex("^asia-southeast1-docker[.]pkg[.]dev/clever-oasis-508610-n7/${var.environment == "prod" ? "mw-credit-app-prod" : "mw-credit-app"}/api@sha256:[a-f0-9]{64}$", var.image))
+    error_message = "Pin the tested immutable image from the matching environment repository."
   }
 }
 variable "vapid_version" {
@@ -76,7 +84,7 @@ locals {
   region        = "asia-southeast1"
   roles         = var.enabled ? toset(["notify", "jobs"]) : toset([])
   runtime_roles = var.enabled && var.image != null ? local.roles : toset([])
-  names         = { for role in ["notify", "jobs"] : role => "mw-credit-app-${role}-dev" }
+  names         = { for role in ["notify", "jobs"] : role => "mw-credit-app-${role}-${var.environment}" }
   audiences     = { for role, name in local.names : role => "https://${name}-737787224638.${local.region}.run.app" }
   schedules = var.enabled && var.image != null ? {
     notifications    = { role = "notify", path = "/internal/dispatch", cron = "* * * * *", enabled = var.notification_schedule_enabled }
@@ -85,7 +93,8 @@ locals {
   } : {}
 }
 resource "google_project_service" "scheduler" {
-  count              = var.enabled ? 1 : 0
+  # Shared API enablement remains owned by the existing DEV state.
+  count              = var.enabled && var.environment == "dev" ? 1 : 0
   project            = local.project
   service            = "cloudscheduler.googleapis.com"
   disable_on_destroy = false
@@ -99,7 +108,7 @@ resource "google_service_account" "worker" {
 resource "google_service_account" "scheduler" {
   count        = var.enabled ? 1 : 0
   project      = local.project
-  account_id   = "mw-credit-app-scheduler-dev"
+  account_id   = "mw-credit-app-scheduler-${var.environment}"
   display_name = "MW Credit DEV worker scheduler caller"
 }
 resource "google_project_iam_member" "sql" {
@@ -119,15 +128,15 @@ resource "google_sql_user" "worker" {
 resource "google_secret_manager_secret" "policy" {
   count     = var.enabled ? 1 : 0
   project   = local.project
-  secret_id = "mw-credit-app-dev-notification-policy"
+  secret_id = "mw-credit-app-${var.environment}-notification-policy"
   replication {
     auto {}
   }
-  labels = { application = "mw-credit-app", environment = "dev" }
+  labels = { application = "mw-credit-app", environment = var.environment }
   lifecycle { prevent_destroy = true }
 }
 resource "google_secret_manager_secret_iam_member" "notify" {
-  for_each   = var.enabled ? toset(["mw-credit-app-dev-vapid", "mw-credit-app-dev-notification-policy"]) : toset([])
+  for_each   = var.enabled ? toset(["mw-credit-app-${var.environment}-vapid", "mw-credit-app-${var.environment}-notification-policy"]) : toset([])
   project    = local.project
   secret_id  = each.key
   role       = "roles/secretmanager.secretAccessor"
@@ -138,7 +147,7 @@ resource "google_project_iam_member" "notify_auth" {
   count   = var.enabled ? 1 : 0
   project = local.project
   # Reuse the existing single-permission firebaseauth.users.get custom role.
-  role   = "projects/${local.project}/roles/mwCreditAppReadAuthUser"
+  role   = "projects/${local.project}/roles/${var.environment == "prod" ? "mwCreditProductionAuthUser" : "mwCreditAppReadAuthUser"}"
   member = "serviceAccount:${google_service_account.worker["notify"].email}"
 }
 resource "google_cloud_run_v2_service" "worker" {
@@ -179,12 +188,12 @@ resource "google_cloud_run_v2_service" "worker" {
       }
       dynamic "env" {
         for_each = merge({
-          APP_ENV                      = "dev"
+          APP_ENV                      = var.environment
           WORKER_ROLE                  = each.key
           WORKER_ACTIVATION            = (each.key == "notify" ? var.notification_enabled : var.jobs_enabled) ? "enabled" : "disabled"
           APPLICATION_PROJECT_ID       = local.project
           INSTANCE_CONNECTION_NAME     = "${local.project}:${local.region}:appsheet-pg-prod-20260914"
-          DB_NAME                      = "loan_manager_dev"
+          DB_NAME                      = "loan_manager_${var.environment}"
           DB_USER                      = google_sql_user.worker[each.key].name
           RUNTIME_SERVICE_ACCOUNT      = google_service_account.worker[each.key].email
           WORKER_AUDIENCE              = local.audiences[each.key]
@@ -198,8 +207,8 @@ resource "google_cloud_run_v2_service" "worker" {
       }
       dynamic "env" {
         for_each = each.key == "notify" ? {
-          WEB_PUSH_VAPID_JSON      = { secret = "mw-credit-app-dev-vapid", version = var.vapid_version }
-          NOTIFICATION_POLICY_JSON = { secret = "mw-credit-app-dev-notification-policy", version = var.policy_version }
+          WEB_PUSH_VAPID_JSON      = { secret = "mw-credit-app-${var.environment}-vapid", version = var.vapid_version }
+          NOTIFICATION_POLICY_JSON = { secret = "mw-credit-app-${var.environment}-notification-policy", version = var.policy_version }
         } : {}
         content {
           name = env.key
@@ -238,13 +247,13 @@ resource "google_cloud_run_v2_service_iam_member" "command_dispatch" {
   location = local.region
   name     = google_cloud_run_v2_service.worker["notify"].name
   role     = "roles/run.invoker"
-  member   = "serviceAccount:mw-credit-app-command-dev@${local.project}.iam.gserviceaccount.com"
+  member   = "serviceAccount:mw-credit-app-command-${var.environment}@${local.project}.iam.gserviceaccount.com"
 }
 resource "google_cloud_scheduler_job" "tick" {
   for_each         = local.schedules
   project          = local.project
   region           = local.region
-  name             = "mw-credit-app-dev-${replace(each.key, "_", "-")}"
+  name             = "mw-credit-app-${var.environment}-${replace(each.key, "_", "-")}"
   schedule         = each.value.cron
   time_zone        = "Asia/Bangkok"
   paused           = !each.value.enabled

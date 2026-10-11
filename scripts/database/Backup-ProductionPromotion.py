@@ -1,4 +1,4 @@
-"""Private PROD77 snapshot and isolated restore; no live writes or migrations."""
+"""Private fixed PROD/journal snapshot and isolated restore; no live writes or migrations."""
 import argparse, hashlib, json, os, socket, subprocess, sys, uuid
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
@@ -10,12 +10,18 @@ from psycopg import sql
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--approval-reference', required=True)
+parser.add_argument('--database', choices=('loan_manager_prod','mw_agent'), default='loan_manager_prod')
+parser.add_argument('--expected-version', type=int, choices=(77,87))
 args = parser.parse_args()
 if not args.approval_reference.strip(): raise ValueError('Actual owner approval reference required')
+if args.database=='mw_agent' and args.expected_version is not None: raise ValueError('Journal database has no Flyway history')
+expected_version=(args.expected_version or 77) if args.database=='loan_manager_prod' else None
 repo = Path(__file__).resolve().parents[2]
 target = json.loads((repo / 'database/environments.json').read_text())['production']
 if (target['instance'], target['host'], target['port'], target['database'], target['user']) != ('appsheet-pg-prod-20260914', '34.21.174.215', 5432, 'loan_manager_prod', 'postgres'):
     raise ValueError('Wrong fixed production tuple')
+# Journal mode changes only the fixed database name on this verified instance.
+target={**target,'database':args.database}
 if any(os.environ.get(k) for k in ('PGHOST','PGHOSTADDR','PGPORT','PGDATABASE','PGUSER','PGPASSWORD','PGSERVICE','PGSERVICEFILE','PGPASSFILE','PGOPTIONS','DATABASE_URL')):
     raise ValueError('Remove ambient database routing overrides')
 private_root = Path('C:/Users/ideaadmin/Documents/ChatGPT/AppSheet-Loan-Project/flyway')
@@ -23,7 +29,7 @@ credential = Path(target['passwordFile']).resolve()
 if not credential.is_relative_to(Path('C:/Users/ideaadmin/Documents/ChatGPT').resolve()): raise ValueError('Private credential required')
 folder = private_root / ('prod-promotion-' + uuid.uuid4().hex)
 folder.mkdir(parents=True, exist_ok=False)
-dump = folder / 'loan_manager_prod.dump'
+dump = folder / (target['database']+'.dump')
 tools = local_appdata / 'MWCredit/database-tools/postgresql-18.6-3/pgsql/bin'
 restore_parent = local_appdata / 'MWCredit/production-promotion-restores'
 data = restore_parent / uuid.uuid4().hex
@@ -66,8 +72,8 @@ try:
         c.execute("SET LOCAL statement_timeout='60s'; SET LOCAL lock_timeout='5s'; SET LOCAL timezone='UTC'; SET LOCAL datestyle='ISO,YMD'")
         if c.execute("SELECT current_setting('transaction_isolation'),current_setting('transaction_read_only')").fetchone()!=('repeatable read','on'): raise ValueError('Snapshot isolation/read-only not established')
         actual=c.execute('SELECT current_database(),session_user,host(inet_server_addr()),inet_server_port(),clock_timestamp()').fetchone()
-        if actual[:4] != ('loan_manager_prod','postgres','34.21.174.215',5432): raise ValueError('Live production identity mismatch')
-        if c.execute('SELECT max(version::int) FROM public.flyway_schema_history WHERE success').fetchone()[0] != 77: raise ValueError('Production history drift')
+        if actual[:4] != (target['database'],'postgres','34.21.174.215',5432): raise ValueError('Live production identity mismatch')
+        if expected_version is not None and c.execute('SELECT max(version::int) FROM public.flyway_schema_history WHERE success').fetchone()[0] != expected_version: raise ValueError('Production history drift')
         before=fingerprint(c)
         roles=[r[0] for r in c.execute("SELECT rolname FROM pg_roles WHERE rolname<>'postgres' AND rolname NOT LIKE 'pg_%' ORDER BY rolname")]
         memberships=[list(r) for r in c.execute('SELECT roleid,member,grantor,admin_option,inherit_option,set_option FROM pg_auth_members ORDER BY roleid,member,grantor')]
@@ -85,16 +91,16 @@ try:
     with psycopg.connect(host='127.0.0.1',port=port,dbname='postgres',user='postgres',autocommit=True) as c:
         if Path(c.execute('SHOW data_directory').fetchone()[0]).resolve()!=data.resolve(): raise ValueError('Owned restore identity mismatch')
         for role in roles: c.execute(sql.SQL('CREATE ROLE {} NOLOGIN').format(sql.Identifier(role)))
-        c.execute('CREATE DATABASE loan_manager_prod')
-    run([str(tools/'pg_restore.exe'),'-h','127.0.0.1','-p',str(port),'-U','postgres','-d','loan_manager_prod','--no-owner','--no-privileges','--exit-on-error',str(dump)],'restore.log')
-    with psycopg.connect(host='127.0.0.1',port=port,dbname='loan_manager_prod',user='postgres') as c:
+        c.execute(sql.SQL('CREATE DATABASE {}').format(sql.Identifier(target['database'])))
+    run([str(tools/'pg_restore.exe'),'-h','127.0.0.1','-p',str(port),'-U','postgres','-d',target['database'],'--no-owner','--no-privileges','--exit-on-error',str(dump)],'restore.log')
+    with psycopg.connect(host='127.0.0.1',port=port,dbname=target['database'],user='postgres') as c:
         if Path(c.execute('SHOW data_directory').fetchone()[0]).resolve()!=data.resolve(): raise ValueError('Restored owned directory mismatch')
         c.execute("SET LOCAL timezone='UTC'; SET LOCAL datestyle='ISO,YMD'")
         restored=fingerprint(c)
-        version=c.execute('SELECT max(version::int) FROM public.flyway_schema_history WHERE success').fetchone()[0]
-        if restored!=before or version!=77: raise ValueError('Restored source/history fingerprint mismatch')
+        version=c.execute('SELECT max(version::int) FROM public.flyway_schema_history WHERE success').fetchone()[0] if expected_version is not None else None
+        if restored!=before or version!=expected_version: raise ValueError('Restored source/history fingerprint mismatch')
     passed=True
-    result={'schemaVersion':1,'database':'loan_manager_prod','baselineVersion':77,'host':target['host'],'instance':target['instance'],'approvalReference':args.approval_reference,'observedAt':str(actual[-1]),'dumpSha256':hashlib.file_digest(dump.open('rb'),'sha256').hexdigest(),'archiveListing':'passed','restore':'passed','restoredFingerprintsMatch':True,'tableCount':len(before),'restoreSemantics':'Complete schema/data restored; no owner/ACL replay, referenced role names local NOLOGIN only; no live/global-role/mw_agent restore','privateRecoveryDirectory':str(folder)}
+    result={'schemaVersion':1,'database':target['database'],'baselineVersion':expected_version,'host':target['host'],'instance':target['instance'],'approvalReference':args.approval_reference,'observedAt':str(actual[-1]),'dumpSha256':hashlib.file_digest(dump.open('rb'),'sha256').hexdigest(),'archiveListing':'passed','restore':'passed','restoredFingerprintsMatch':True,'tableCount':len(before),'restoreSemantics':'Complete schema/data restored; no owner/ACL replay, referenced role names local NOLOGIN only; no live/global-role restore','privateRecoveryDirectory':str(folder)}
     (folder/'recovery.json').write_text(json.dumps(result,indent=2))
     print(json.dumps(result))
 finally:
@@ -108,4 +114,4 @@ finally:
         import shutil
         shutil.rmtree(data)
     (folder/'cleanup.json').write_text(json.dumps({'stopped':stopped,'ownedRestoreRemoved':not data.exists(),'backupRetained':True,'restorePassed':passed,'ownedRestorePath':str(data)},indent=2))
-    (folder/'retention.txt').write_text('Protected PROD77 rollback backup/private restore proof. Keep recovery; diagnostics review '+(datetime.now(timezone.utc)+timedelta(days=7)).date().isoformat())
+    (folder/'retention.txt').write_text('Protected '+target['database']+' rollback backup/private restore proof. Keep recovery; diagnostics review '+(datetime.now(timezone.utc)+timedelta(days=7)).date().isoformat())

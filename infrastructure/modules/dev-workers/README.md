@@ -1,6 +1,6 @@
-# DEV notification and canonical job workers
+# Environment-bound notification and canonical job workers
 
-R053 uses two private Cloud Run services and separate IAM/SQL identities. The DEV root calls this module from `workers.tf`; it does not manage PROD or alter the shared SQL instance. `enabled=false` creates nothing. Enrollment (`enabled=true`, no image) creates fourteen prerequisites only. Runtime requires a reviewed immutable DEV image and explicit numeric notification-policy/VAPID versions. Worker activation and schedule activation are independent flags, all false by default.
+R053 uses two private Cloud Run services and separate IAM/SQL identities. DEV and PROD roots call this module from `workers.tf` with explicit environment binding (default DEV). Each root owns only its separate worker resources; neither alters the shared SQL instance. The existing DEV state alone owns shared Scheduler API enablement. `enabled=false` creates nothing. Enrollment (`enabled=true`, no image) creates fourteen prerequisites only. Runtime requires a reviewed immutable image from the matching environment repository and explicit numeric notification-policy/VAPID versions. Worker activation and schedule activation are independent flags, all false by default.
 
 | Worker | Identity prefix | Fixed POST route | Bangkok schedule |
 | --- | --- | --- | --- |
