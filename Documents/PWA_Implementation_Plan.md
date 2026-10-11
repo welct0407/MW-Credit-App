@@ -22,7 +22,7 @@ Completing the plan makes the system **ready for cutover**. Switching the defaul
 | Database tooling | Complete V1–V77 history, promotion runners and tests moved to MW-Credit-App; hashes, disposable rebuilds and CI verified | One canonical migration sequence and one history per existing database |
 | Existing application baseline | R051 records PROD OLTP 3.000270, OLAP 1.100212 and SQL V77 | Phase 1 checks for subsequent changes before freezing the feature map |
 | Application implementation | Synthetic landing page and infrastructure readiness endpoint | Authentication, business APIs, functional screens and workflow parity remain to be built |
-| Production replacement | New production application runtime and deployment controls not yet established | Prepare them in Phase 3, before feature development finishes |
+| Production replacement | New production application runtime and deployment controls not yet established | Prepare them in Phase 3 after the Phase 6 DEV owner-testing checkpoint |
 | Repository transition | Database transfer complete; remaining implementation-code transfer deferred by owner | Schedule its required parts explicitly, preserving unrelated and in-progress work |
 
 The [database ownership handover](Database_Ownership_Transfer.md), [development runbook](https://github.com/welct0407/MW-Credit-App/blob/main/docs/Development.md) and [R051 production record](../outputs/r051-production/README.md) provide the starting evidence. Recorded versions are checkpoints, not a reason to skip checking affected live objects when implementation starts.
@@ -50,8 +50,8 @@ Every financial command must enforce server-side identity and permissions, prese
 | 0 | Establish development infrastructure and database ownership | Completed setup | Complete for the recorded scope |
 | 1 | Establish full feature coverage, contracts and acceptance criteria | 0 | In progress; checkpoints 1A and 1B accepted; complete feature/parity and acceptance coverage remains open |
 | 2 | Build the secure application foundation and first read flow | 1 | In progress; 2A owner-validated, 2B/2C reads delivered, 2D domain validated, 2E installation accepted, 2F visibility correction accepted; 2G tracing deployed and owner-accepted |
-| 3 | Make production infrastructure and delivery ready | 2 | Not started |
-| 4 | Prove one complete financial workflow in DEV | 2; production setup can proceed alongside it | Completed and owner-accepted on 8 October 2026 (Asia/Bangkok); tested/deployed first financial workflow and recorded live synthetic proof |
+| 3 | Make production infrastructure and delivery ready | 2 and owner review of the Phase 6 DEV candidate | Not started; follows DEV owner testing |
+| 4 | Prove one complete financial workflow in DEV | 2 | Completed and owner-accepted on 8 October 2026 (Asia/Bangkok); tested/deployed first financial workflow and recorded live synthetic proof |
 | 5 | Complete mobile and desktop OLTP | 4 | Implemented/tested/deployed DEV85; consolidated checkpoint passed, owner/device and unknown native receipt limits remain open |
 | 6 | Complete mobile and desktop OLAP management | Shared contracts from 4; operational dependencies from 5 | Phone/iPad/desktop implementation deployed DEV85; focused tablet portrait/landscape and Pro Max proof passed, physical-device/owner acceptance pending |
 | 7 | Enhance Metabase integration and reporting after go-live | Production go-live; 5 and 6 contracts | Deferred by owner |
@@ -61,7 +61,7 @@ Every financial command must enforce server-side identity and permissions, prese
 | 11 | Operate and validate the parallel production pilot | 10 and approved pilot scope | Not started |
 | 12 | Close readiness gaps and prepare the cutover decision | 11 | Not started |
 
-The launch sequence is **1 → 2 → 3/4 → 5 → 6 → 8 → 9 → 10 → 11 → 12**. Phase numbers stay stable for traceability. Phase 7 is a separate post-go-live workstream, scheduled with the owner after production is operating; it does not block deployment, parallel operation or cutover readiness. Infrastructure work in Phase 3 can overlap Phase 4 once Phase 2 is accepted. Coordinated preparation may overlap where interfaces are settled, but workers must stop at the agreed owner-review checkpoint.
+The launch sequence is **1 → 2 → 4 → 5 → 6 → DEV owner testing → 3 → 8 → 9 → 10 → 11 → 12**. Phase numbers stay stable for traceability. Phase 7 is a separate post-go-live workstream, scheduled with the owner after production is operating; it does not block deployment, parallel operation or cutover readiness. Owner revision, 11 October 2026: complete authorized development through Phase 6 and fix affected defects before one consolidated CI checkpoint on the final corrected source; deliver DEV for owner testing before starting Phase 3 production readiness. This batch authorizes no PROD changes. Coordinated preparation may overlap where interfaces are settled, but workers must stop at the agreed owner-review checkpoint.
 
 Existing reports, governed calculations, exports and reporting access required by current workflows must remain usable before cutover, using their retained interfaces where appropriate. Deferring Metabase does not defer native OLAP forms, assessments or management actions, nor does it remove required features. New embeds, dashboard changes and report-navigation enhancements belong to Phase 7.
 
@@ -110,7 +110,7 @@ This phase does not claim completed application sign-in, financial permissions, 
 
 ## Phase 3 Production infrastructure readiness
 
-**Objective:** provision and verify production early enough to uncover deployment, identity and integration issues before v1 is finished.
+**Objective:** after the Phase 6 DEV owner-testing checkpoint and the owner go-ahead, prepare production infrastructure and delivery readiness. Production mutations still require explicit scoped authorization.
 
 - Refactor the working Terraform into explicit DEV/PROD configurations with separate state, service identities, secrets, application configuration and deployment permissions. Preserve existing Cloud SQL/GCS as retained dependencies.
 - Provision the new production API, frontend hosting/domain/HTTPS, artifact delivery and required execution identities. Define scale, connection-pool, timeout and storage-access limits against the shared instance's actual capacity.
