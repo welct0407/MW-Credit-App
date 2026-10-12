@@ -3,8 +3,12 @@ import {createWorkerConnectionGuard} from './target.mjs';
 import {createNotificationWorker} from '../notifications/worker.mjs';
 import {createCanonicalJobRunner} from '../jobs/runner.mjs';
 export function scheduledBoundary(value){
- if(typeof value!=='string'||!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?Z$/.test(value))throw Error('invalid_schedule_time');
- const instant=new Date(value);if(!Number.isFinite(instant.getTime())||instant.toISOString().slice(0,19)!==value.slice(0,19))throw Error('invalid_schedule_time');
+ // Scheduler supplies RFC3339, which permits numeric UTC offsets as well as Z.
+ const match=typeof value==='string'&&/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(?:\.\d{1,9})?(Z|([+-])(\d{2}):(\d{2}))$/.exec(value);
+ if(!match||Number(match[4]??0)>23||Number(match[5]??0)>59)throw Error('invalid_schedule_time');
+ const offset=match[2]==='Z'?0:(match[3]==='-'?-1:1)*(Number(match[4])*60+Number(match[5]))*60000;
+ const instant=new Date(value);
+ if(!Number.isFinite(instant.getTime())||new Date(instant.getTime()+offset).toISOString().slice(0,19)!==match[1])throw Error('invalid_schedule_time');
  const local=new Date(instant.getTime()+7*60*60*1000).toISOString();
  return{day:local.slice(0,10),hour:local.slice(11,13)};
 }
@@ -29,9 +33,9 @@ export async function createWorkerRuntime(env,dependencies){
    if(req.aborted||res.destroyed)return;
    if(stopping)return respond(res,503,{error:'worker_stopping'});
    if(active)return respond(res,409,{error:'worker_busy'});
-   if(req.headers['transfer-encoding']||Number(req.headers['content-length']??0)!==0)return respond(res,400,{error:'empty_body_required'});
+   if(req.headers['transfer-encoding']||Number(req.headers['content-length']??0)!==0){if(job)dependencies.log?.({component:config.role,event:'rejected',job,code:'empty_body_required'});return respond(res,400,{error:'empty_body_required'});}
    let intended=null;
-   if(job){try{intended=scheduledBoundary(req.headers['x-cloudscheduler-scheduletime']);}catch{return respond(res,400,{error:'invalid_schedule_time'});}}
+   if(job){try{intended=scheduledBoundary(req.headers['x-cloudscheduler-scheduletime']);}catch{dependencies.log?.({component:config.role,event:'rejected',job,code:'invalid_schedule_time'});return respond(res,400,{error:'invalid_schedule_time'});}}
    const requestId=job?`${job}|${intended.day}|${job==='daily-charges'?'daily':'hour:'+intended.hour}`:null;
    if(config.role==='notify'){
     const raw=req.headers['x-mw-wake-deadline'];

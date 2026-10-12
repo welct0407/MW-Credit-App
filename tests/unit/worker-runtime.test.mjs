@@ -1,4 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';
+import {createServer} from 'node:http';
 import {loadWorkerConfig} from '../../services/workers/config.mjs';
 import {createWorkerRuntime,scheduledBoundary} from '../../services/workers/runtime.mjs';
 import {parseNotificationPolicy} from '../../services/notifications/policy.mjs';
@@ -22,7 +23,8 @@ test('disabled worker creates no pool, credentials or effect',async()=>{
 });
 test('scheduler boundary preserves original Bangkok date/hour and rejects malformed calendar values',()=>{
  assert.deepEqual(scheduledBoundary('2026-10-11T17:05:00Z'),{day:'2026-10-12',hour:'00'});
- for(const value of [undefined,'2026-02-30T00:00:00Z','today','2026-10-11'])assert.throws(()=>scheduledBoundary(value));
+ for(const value of ['2026-10-11T17:05:00+00:00','2026-10-12T00:05:00.123456789+07:00','2026-10-11T12:05:00-05:00'])assert.deepEqual(scheduledBoundary(value),{day:'2026-10-12',hour:'00'});
+ for(const value of [undefined,'2026-02-30T00:00:00Z','2026-02-30T00:00:00+07:00','2026-10-12T24:00:00+07:00','2026-10-12T00:00:00+24:00','2026-10-12T00:00:00+07:60','2026-10-12T00:00:00','today','2026-10-11'])assert.throws(()=>scheduledBoundary(value));
 });
 test('delayed previous-day and previous-hour invocations never become current work',async()=>{
  let effects=0;const logs=[];
@@ -50,6 +52,29 @@ test('jobs permit a bounded original schedule retry and reject future or over-ag
  assert.equal(await invoke('daily-charges','2026-10-11T17:07:00Z'),409);
  now=Date.parse('2026-10-11T17:15:00Z');assert.equal(await invoke('recent-analytics','2026-10-11T17:00:00Z'),409);
  now=Date.parse('2026-10-11T18:06:00Z');assert.equal(await invoke('daily-charges','2026-10-11T17:05:00Z'),409);assert.equal(effects,1);await runtime.close();
+});
+
+test('real HTTP empty Scheduler POST accepts RFC3339 offsets while auth, body and stale boundaries deny effects',async()=>{
+ const logs=[];let effects=0,authorized=true;
+ const client={release(){},query:async(sql,args)=>{
+  if(sql.includes('FROM pg_roles'))return{rows:[{database:env.DB_NAME,principal:env.DB_USER,session:env.DB_USER,rolcanlogin:true,capability:true,other_membership:false}]};
+  if(sql.includes('clock_timestamp'))return{rows:[{day:'2026-10-12',hour:'08',milliseconds:String(Date.parse('2026-10-12T01:01:00Z'))}]};
+  assert.match(sql,/pwa_job_run_v1/);assert.deepEqual(args,['recent-analytics','2026-10-12','hour:08']);effects++;return{rows:[{result:{state:'completed'}}]};
+ }};
+ const runtime=await createWorkerRuntime(env,{createPool:async()=>({connect:async()=>client,end:async()=>{}}),verifyOidc:async()=>({aud:env.WORKER_AUDIENCE,iss:'https://accounts.google.com',email:authorized?env.SCHEDULER_SERVICE_ACCOUNT:'wrong@example.invalid',email_verified:true}),log:value=>logs.push(value)});
+ const server=createServer(runtime.handler);await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+ const invoke=(time,body)=>fetch(`http://127.0.0.1:${server.address().port}/internal/jobs/recent-analytics`,{method:'POST',headers:{authorization:'Bearer synthetic',...(time===undefined?{}:{'X-CloudScheduler-ScheduleTime':time})},body});
+ try{
+  for(const time of ['2026-10-12T01:00:00+00:00','2026-10-12T08:00:00+07:00','2026-10-11T20:00:00-05:00'])assert.equal((await invoke(time)).status,200);
+  assert.equal(effects,3);
+  authorized=false;assert.equal((await invoke('2026-10-12T01:00:00+00:00')).status,403);authorized=true;
+  const body=await invoke('2026-10-12T01:00:00+00:00','{}');assert.equal(body.status,400);assert.deepEqual(await body.json(),{error:'empty_body_required'});
+  const missing=await invoke();assert.equal(missing.status,400);assert.deepEqual(await missing.json(),{error:'invalid_schedule_time'});
+  assert.equal((await invoke('2026-10-12T00:00:00+00:00')).status,409);
+  assert.equal(effects,3);
+  assert.deepEqual(logs.filter(x=>x.event==='rejected').map(x=>x.code),['empty_body_required','invalid_schedule_time','job_boundary_changed']);
+  assert.ok(logs.every(x=>!JSON.stringify(x).includes('synthetic')));
+ }finally{await new Promise(resolve=>server.close(resolve));await runtime.close();}
 });
 
 import {createECDH} from 'node:crypto';
