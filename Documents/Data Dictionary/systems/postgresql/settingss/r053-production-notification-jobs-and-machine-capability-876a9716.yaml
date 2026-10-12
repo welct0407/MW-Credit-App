@@ -7,8 +7,9 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/r053-notifications-jobs/dictionary-production-closure.json"
-  "coverage": "Actual affected PROD89 catalogue after maintained migration and authority restoration; no business rows."
+  "source": "outputs/r053-notifications-jobs/production-notification-activation.json"
+  "coverage": "Actual maintained PROD capture toggle after verified DEV phone receipt; unchanged OID/owner/search_path and\
+    \ exact temporary authority restoration. No financial writes or PROD test send."
 "content":
   "release": "R053"
   "sqlVersion": 89
@@ -132,6 +133,7 @@
   "commandExecute":
     "public.pwa_submit_agent_receipt_v1(text)": true
     "public.pwa_agent_receipt_status_v1(uuid,text,text)": true
-  "captureEnabled": false
-  "runtimeActivationEvidence": "MW-Credit-App outputs/r053-notifications-jobs/production-contained-runtime-evidence.json"
+  "captureEnabled": true
+  "runtimeActivationEvidence": "MW-Credit-App outputs/r053-notifications-jobs/production-notification-runtime-activation.json"
   "note": "SQL state is distinct from final worker/scheduler/device/agent release verification."
+  "notificationRecoveryEvidence": "MW-Credit-App outputs/r053-notifications-jobs/production-notification-recovery-activation.json"

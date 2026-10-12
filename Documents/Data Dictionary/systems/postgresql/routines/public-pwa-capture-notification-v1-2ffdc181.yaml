@@ -7,8 +7,9 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/r053-notifications-jobs/dictionary-production-closure.json"
-  "coverage": "Actual affected PROD89 catalogue after maintained migration and authority restoration; no business rows."
+  "source": "outputs/r053-notifications-jobs/production-notification-activation.json"
+  "coverage": "Actual maintained PROD capture toggle after verified DEV phone receipt; unchanged OID/owner/search_path and\
+    \ exact temporary authority restoration. No financial writes or PROD test send."
 "content":
   "definition":
     "schema": "public"
@@ -23,7 +24,7 @@
        LANGUAGE plpgsql
        SECURITY DEFINER
        SET search_path TO 'pg_catalog', 'public'
-       SET application_name TO 'mw_pwa_capture_disabled_v1'
+       SET application_name TO 'mw_pwa_capture_enabled_v1'
       AS $function$
       DECLARE kind text; actor_email text; actor_id text; matches bigint; version text;
       BEGIN
@@ -61,7 +62,7 @@
     "rows": 0.0
     "settings":
     - "search_path=pg_catalog, public"
-    - "application_name=mw_pwa_capture_disabled_v1"
+    - "application_name=mw_pwa_capture_enabled_v1"
     "acl": "{mw_notify_owner_prod=X/mw_notify_owner_prod}"
     "comment": "mw-access:governance fixed notification boundary; explicit capability only"
     "extension": null

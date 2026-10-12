@@ -34,10 +34,13 @@
   },
   "runtime": {
     "reader": "00003-gpl",
-    "command": "00003-tnr",
-    "jobs": "00002-mb6",
-    "notify": "00001-f68",
-    "imageDigest": "sha256:42534b790ebccd73448d5bc56490a959586ea5494604583443b630705a0c7778"
+    "command": "00004-xkp",
+    "jobs": "00003-q4h",
+    "notify": "00002-cth",
+    "imageDigest": "sha256:42534b790ebccd73448d5bc56490a959586ea5494604583443b630705a0c7778",
+    "jobsImageDigest": "sha256:11c149f746bceefc0b4c5d81dfce0295cdca533fa36d63c101f9971f3f643d56",
+    "jobsSourceCommit": "959b1181715547729e11588ba1bfdac10a8a9f20",
+    "imageDigestScope": "reader/command/notify remain42534b; jobs uses separate recovery digest"
   },
   "appsheet": {
     "oltp": "3.000275",
@@ -60,17 +63,20 @@
       "sourceCommit": "959b1181715547729e11588ba1bfdac10a8a9f20",
       "scope": "RFC3339 offset validation and fixed diagnostics",
       "focusedTests": "9/9 passed",
-      "imageDeployment": "pending jobs-only",
-      "nextNaturalInvocation": "pending; HTTP400 cause not yet proven"
+      "imageDeployment": "applied jobs-only11c149/00003-q4h",
+      "nextNaturalInvocation": "pending; live400 cause not yet proven"
     }
   },
   "notifications": {
     "enrollmentApiEnabled": true,
-    "workerEnabled": false,
-    "captureEnabled": false,
-    "dispatchEnabled": false,
-    "recoverySchedule": "PAUSED",
-    "deviceAcceptance": "pending"
+    "workerEnabled": true,
+    "captureEnabled": true,
+    "dispatchEnabled": true,
+    "recoverySchedule": "ENABLED",
+    "deviceAcceptance": "DEV actual receipt PASS; PROD Home Screen notification enrollment/authenticated enable route PASS",
+    "activationEvidence": "MW-Credit-App outputs/r053-notifications-jobs/production-notification-runtime-activation.json",
+    "captureEvidence": "MW-Credit-App outputs/r053-notifications-jobs/production-capture-activation-evidence.json",
+    "productionEnrollment": "owner confirmed Notifications enabled"
   },
   "agent": {
     "sharedReceiptApiEnabled": true,
@@ -81,9 +87,8 @@
     "remainingAppSheetDependenciesPreserved": true
   },
   "verificationPending": [
-    "owner actual phone receipt and PROD push activation",
-    "first natural charges and analytics runs",
-    "authenticated PWA changed entry-point validation"
+    "next natural corrected analytics success and first due charges run",
+    "first genuine shared agent receipt-payment API outcome; no forced financial sample"
   ],
   "rollback": "Protected PROD87 and mw_agent dumps with isolated restore; captured Hosting baseline; agent private package/config backup. Restore only under reviewed recovery scope.",
   "retainedArtifacts": {
@@ -100,10 +105,11 @@
     "deliveryState": "sent",
     "attempts": 1,
     "completedAt": "2026-10-12T01:32:22.828Z",
-    "deviceReceipt": "pending",
+    "deviceReceipt": "owner confirmed received YES",
     "captureEnabled": false,
     "recoverySchedulerState": "PAUSED",
     "financialRowsWritten": 0,
-    "evidence": "MW-Credit-App outputs/r053-notifications-jobs/dev-owner-notification-provider-proof.json"
+    "evidence": "MW-Credit-App outputs/r053-notifications-jobs/dev-owner-notification-provider-proof.json",
+    "deviceGate": "PASS"
   }
 }
