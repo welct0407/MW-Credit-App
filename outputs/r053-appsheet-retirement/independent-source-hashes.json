@@ -13,11 +13,11 @@
   },
   {
     "path": "outputs/r053-appsheet-retirement/independent-verification.md",
-    "sha256": "460e7e26bb4091da15f1ec3dd247db31e4d48ee069fee6ac039f745fd8368fad"
+    "sha256": "215354fee886e31b09da60c45347a58d400f173bcbade5272f734e1dce0b0f78"
   },
   {
     "path": "Change Logs/CHANGE_NOTES_R053_APPSHEET_RETIREMENT_2026-10-12.md",
-    "sha256": "6fce41c6c6afe9960ab9d79b5d6b3b32a2ccfc04365bb61d7a47e046a27d599a"
+    "sha256": "54c4becff853db38f698c8f9f455ae63a133238e011a5607e282db1c6e20c1b0"
   },
   {
     "path": "tests/unit/agent-native-defaults-independent.test.mjs",
@@ -61,5 +61,13 @@
   {
     "path": "tests/e2e/payment-command.spec.ts",
     "sha256": "6310fed0cfbce8da91da54dd018649c7b9fffeb4b7a4dc499e1c734da707ba82"
+  },
+  {
+    "path": "outputs/r053-appsheet-retirement/live-dev-read-smoke.json",
+    "sha256": "ab85a12e4506ee4d3780ad03dfa383a906acb564913302f49a53ab31cdf317d0"
+  },
+  {
+    "path": "tests/e2e/foundation.spec.ts",
+    "sha256": "2aa390b220a4e329147980c53439fc876608284e50f3fbc8ba3ada844cb41077"
   }
 ]

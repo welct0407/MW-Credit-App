@@ -4,7 +4,15 @@ const cards=(page:Page)=>page.locator('.borrower-card');
 const nav=(page:Page)=>page.getByRole('navigation',{name: page.viewportSize()!.width<900?'Quick navigation':'Main navigation'});
 const amount=(text:string|null)=>Number(text?.replace(/[^0-9]/g,''));
 async function noOverflow(page:Page){expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true)}
-test.beforeEach(async({page})=>{await page.goto('/')});
+test.beforeEach(async({page},info)=>{
+ if(process.env.FOUNDATION_IMAGE_LOAD_DIAGNOSTIC==='1'&&info.title==='AppSheet colors are presentation only with neutral surfaces and themed headers and theme logos'){
+  let release:(()=>void)|undefined;let finished:()=>void;const resumed=new Promise<void>(resolve=>finished=resolve);const pattern='**/*loan-manager-logo-dev-orange.png*';
+  const hold=async(route:any)=>{if(route.request().resourceType()!=='image')return route.continue();await new Promise<void>(resolve=>release=resolve);await route.continue();finished();};
+  await page.route(pattern,hold);await page.goto('/',{waitUntil:'domcontentloaded'});
+  await expect.poll(()=>!!release).toBe(true);expect(await page.locator('.brand-logo').evaluate((img:HTMLImageElement)=>img.complete&&img.naturalWidth>0)).toBe(false);
+  release!();await resumed;await page.unroute(pattern,hold);
+ }else await page.goto('/');
+});
 test('reconciles sample charges separately from principal and filters collection',async({page})=>{
  const due=borrowers.reduce((sum,b)=>sum+b.loans.reduce((s,l)=>s+l.charges.filter(c=>c.date<=sampleDate).reduce((s,c)=>s+c.amount,0),0),0);
  expect(due).toBe(4400); expect(borrowers.reduce((s,b)=>s+b.principal,0)).toBe(90000);
@@ -62,7 +70,7 @@ test('AppSheet colors are presentation only with neutral surfaces and themed hea
  await page.setViewportSize(mobile?{width:390,height:844}:{width:1440,height:900});
  const requests:string[]=[];page.on('request',request=>{requests.push(request.url())});
  const logo=page.locator('.brand-logo');
- expect(await logo.evaluate((img:HTMLImageElement)=>img.complete&&img.naturalWidth>0)).toBe(true);
+ await expect.poll(()=>logo.evaluate((img:HTMLImageElement)=>img.complete&&img.naturalWidth>0)).toBe(true);
  await expect(logo).toHaveAttribute('alt','Loan Manager');
  for(const [theme,color,tint,selected] of [['dev','rgb(232, 113, 10)','rgb(255, 255, 255)','rgb(241, 241, 241)'],['prod','rgb(216, 27, 96)','rgb(255, 255, 255)','rgb(241, 241, 241)']]){
   await page.getByRole('group',{name:'Theme preview'}).getByRole('button',{name:theme.toUpperCase(),exact:true}).click();
@@ -75,10 +83,10 @@ test('AppSheet colors are presentation only with neutral surfaces and themed hea
   for(const metric of await page.locator('.metric,.list-panel,.detail-panel').all())await expect(metric).toHaveCSS('background-color',tint);
   for(const label of await page.locator('.metric > span,.metric > strong,.metric small,.status').all())await expect(label).toHaveCSS('background-color','rgba(0, 0, 0, 0)');
   await noOverflow(page);
-  await page.screenshot({path:`outputs/r052-loan-read/NEUTRAL-${theme}-${mobile?'mobile':'desktop'}-style-viewport.png`});
+  await page.screenshot({path:`${process.env.FOUNDATION_CAPTURE_OUTPUT_ROOT??'outputs/r052-loan-read'}/NEUTRAL-${theme}-${mobile?'mobile':'desktop'}-style-viewport.png`});
   await page.getByTestId('borrower-SAMPLE-002').click();await page.mouse.move(0,0);await expect(page.locator('.borrower-card.selected')).toHaveCSS('background-color',selected);
   await checkTextContrast(page);
-  if(mobile){await page.getByRole('button',{name:'Back to list'}).click();await page.getByRole('button',{name:'Open navigation',exact:true}).click();await expect(logo).toBeVisible();await page.screenshot({path:"outputs/r052-loan-read/NEUTRAL-logo-"+theme+'-mobile-menu.png'});await page.keyboard.press('Escape');}
+  if(mobile){await page.getByRole('button',{name:'Back to list'}).click();await page.getByRole('button',{name:'Open navigation',exact:true}).click();await expect(logo).toBeVisible();await page.screenshot({path:(process.env.FOUNDATION_CAPTURE_OUTPUT_ROOT??'outputs/r052-loan-read')+'/NEUTRAL-logo-'+theme+'-mobile-menu.png'});await page.keyboard.press('Escape');}
  }
  expect(requests.every(url=>{const parsed=new URL(url);return parsed.hostname==='127.0.0.1'&&parsed.pathname.endsWith('.png')})).toBe(true);
  await page.reload();await expect(page.locator('.app-shell')).toHaveAttribute('data-preview-theme','dev');

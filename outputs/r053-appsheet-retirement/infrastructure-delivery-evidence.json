@@ -33,10 +33,9 @@
     "plannedDeletes": 0
   },
   "holds": [
-    "No PROD apply until CI and DEV success",
-    "No runtime activation before V90 and exact image",
+    "PROD apply held until full CI and DEV success",
     "Receipt API state unchanged; new DEV receipt container unused",
-    "Preserve jobs11c149 and notify425 images; module sharedimage requires narrow runtime targets"
+    "Preserve jobs11c149 and notify425 images; module sharedimage requires exact private plan configuration"
   ],
   "privatePlans": "C:/Users/ideaadmin/Documents/ChatGPT/MW-Credit-App/terraform/r053-agent-native",
   "retentionReview": "2026-10-19",
@@ -57,7 +56,7 @@
   "devRuntimePlan": {
     "policyVersion": 1,
     "creates": 0,
-    "applied": false,
+    "applied": true,
     "commandNewEnv": [
       "AGENT_CONVERSATION_API_ENABLED",
       "AGENT_CONVERSATION_POLICY_JSON",
@@ -70,7 +69,21 @@
       "google_cloud_run_v2_service.read_api[0]"
     ],
     "destroys": 0,
-    "privateConfigurationAdjustment": "Preserve observed notification Scheduler max_doublings=5; no source change, all worker/scheduler resources no-op."
+    "privateConfigurationAdjustment": "Preserve observed notification Scheduler max_doublings=5; no source change, all worker/scheduler resources no-op.",
+    "appliedAtUtc": "2026-10-12T04:00:42.3054193Z",
+    "actualResources": {
+      "destroyed": 0,
+      "changed": 2,
+      "added": 0
+    },
+    "readback": {
+      "readerRevision": "mw-credit-app-read-dev-00018-msw",
+      "trafficPercent": 100,
+      "image": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app/api@sha256:b7ef43e2a319c78fc3927203b5ad0677b2d64ab0aa2a3c93984e1c50157f1665",
+      "sourceCommit": "1bc08f3e171d043a5a3ca01335d3746113c68cb2",
+      "commandRevision": "mw-credit-app-command-dev-00021-kdw",
+      "ready": true
+    }
   },
   "prodRuntimePreview": {
     "updates": 2,
