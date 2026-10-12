@@ -8,7 +8,8 @@ Use one copy under the existing checkpoint evidence directory. For an existing b
 - Existing authorization / missing decision:
 - File/object owners: A Architect; B Coding; C Testing; D Miscellaneous / Delivery and Documentation (tooling/support); E requested User Experience; F Infrastructure:
 - Design + executable test plan link:
-- Checkpoint and owner-review stopping point:
+- Selected checks and reason; full consolidated CI only if needed:
+- Existing owner authorization / actual remaining review stopping point, if any:
 
 ## Current handoff
 - State / changed paths / decisions:
@@ -17,8 +18,9 @@ Use one copy under the existing checkpoint evidence directory. For an existing b
 - Actual limitations:
 
 ## Candidate and closeout
-- Source/artifact/config/evidence manifest:
-- Local / affected CI / full CI / applicable database / smoke results (separate):
+- Artifact source / candidate-evidence commit / configuration / manifest:
+- Input-equivalence evidence for reused artifacts/tests; invalidated checks:
+- Selected local / affected CI / full CI if needed / applicable database / smoke results (separate; skipped is not passed):
 - Deployed state / recovery / owner acceptance (separate):
 - Progress + affected owning records updated:
 - Publication verified, or local-only/pending reason:
