@@ -1,14 +1,15 @@
 {
-  "deviceEnrollmentProof": "pending",
-  "sqlState": "42501",
-  "recordedAtUtc": "2026-10-11T20:06:42.4563119Z",
-  "permissionsChanged": false,
-  "ownerFiltered": true,
-  "notificationDispatchEnabled": false,
-  "attemptCount": 1,
+  "observedAt": "2026-10-12T01:26:36.375Z",
   "environment": "dev",
-  "result": "unknown",
-  "retryPerformed": false,
-  "reason": "postgres has no SELECT authority on closed pwa_push_subscriptions table",
-  "rowsRead": 0
+  "ownerFiltered": true,
+  "activeSubscriptionCount": 1,
+  "subscriptions": [
+    {
+      "provider_host": "web.push.apple.com",
+      "endpoint_hash": "4a20751394f50828c359575390f5b779518c3c5acd6cf9bfb127b41f48b23bfc"
+    }
+  ],
+  "closedOwnerTupleRestored": true,
+  "scope": "Single-owner metadata read using transaction-local SET authority, fully rolled back. No persisted grants or endpoint/key exposure.",
+  "deviceDeliveryProof": "pending"
 }
