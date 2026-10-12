@@ -64,7 +64,17 @@
       "scope": "RFC3339 offset validation and fixed diagnostics",
       "focusedTests": "9/9 passed",
       "imageDeployment": "applied jobs-only11c149/00003-q4h",
-      "nextNaturalInvocation": "pending; live400 cause not yet proven"
+      "nextNaturalInvocation": "Natural corrected analytics passed; first due charges remains unobserved"
+    },
+    "naturalAnalytics": {
+      "status": "PASS: bounded actual natural execution",
+      "revision": "mw-credit-app-jobs-prod-00003-q4h",
+      "httpStatus": 200,
+      "httpAt": "2026-10-12T02:00:04.265768Z",
+      "structuredCompletedAt": "2026-10-12T02:00:09.419068Z",
+      "requestId": "recent-analytics|2026-10-12|hour:09",
+      "forced": false,
+      "financialRowsAudited": false
     }
   },
   "notifications": {
@@ -87,8 +97,8 @@
     "remainingAppSheetDependenciesPreserved": true
   },
   "verificationPending": [
-    "next natural corrected analytics success and first due charges run",
-    "first genuine shared agent receipt-payment API outcome; no forced financial sample"
+    "Expanded native agent/API/app capability coverage and coherent candidate verification/delivery",
+    "First due charges and first genuine shared-agent payment"
   ],
   "rollback": "Protected PROD87 and mw_agent dumps with isolated restore; captured Hosting baseline; agent private package/config backup. Restore only under reviewed recovery scope.",
   "retainedArtifacts": {
@@ -111,5 +121,13 @@
     "financialRowsWritten": 0,
     "evidence": "MW-Credit-App outputs/r053-notifications-jobs/dev-owner-notification-provider-proof.json",
     "deviceGate": "PASS"
+  },
+  "scopeException": {
+    "ownerDate": "2026-10-12",
+    "releaseStillFrozen": true,
+    "successorStillOpen": "R054",
+    "scope": "Remove remaining operational AppSheet dependencies; native agent/API/app candidate in progress, not deployed",
+    "monitoring": "Explicitly deferred; temporary failure accepted and not an R053 API/app blocker",
+    "newMigration": "B reserved V90 function-only; live SQL remains V89"
   }
 }
