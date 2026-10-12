@@ -1,5 +1,17 @@
 # R053 continuation — applied, verification incomplete
 
+## 12 October: owner-authorized AppSheet retirement extension
+
+Owner explicitly included removal of remaining AppSheet dependencies in R053 and retired the PWA Reporting link. Keep R053 Frozen and R054 the sole Open release. Current source work: native agent catalogue/query/commands and recovery, Reporting removal, native receipt verification and monitoring replacement. Nothing in this extension has yet been deployed. Preserve existing working PROD, resource names, exact receipt mappings and historical recovery evidence; no app deletion or blanket credential revocation is authorized.
+
+Corrected analytics completed its normal **09:00 Bangkok / 02:00 UTC on 12 October** run: HTTP200 at `2026-10-12T02:00:04.265768Z`, structured completion `02:00:09.419068Z`, request `recent-analytics|2026-10-12|hour:09`. This supersedes the pending-next-analytics statement below; first due charges and first genuine shared-agent payment remain unobserved.
+
+Fresh bounded read-only editor audit: PROD OLTP3.000275 and OLAP1.100215 were saved and Deployed. OLTP Create First-Day Charge, Generate Daily Charges and Payments - Process Receipt are disabled. Four Notification routes use notification tasks, with email/SMS unselected; R008 Receive All, Single Full and Loan Close Confirmed definitions remain. Both OLAP Refresh Daily Analytics Daily and Daily Loan Analysis Export are disabled. No editor changes or sends occurred. Replacement capability coverage must preserve the intended native financial effects.
+
+App source baseline `ae27da21c394ff3e0b99e253c43de0baba682558`; agent baseline `e8f43d5adcfacdbe5198f56a7e6e330766cdbd07`. Design/test plan: `C:/GitHub/MW-Credit-App/outputs/r053-appsheet-retirement/design-test-plan.md`. Root frontend/receipt focused checks passed; independent C checks and broader B implementation remain in progress. F is retrieving schema-only metadata from Debian for capability reconciliation; no credentials or business rows are requested. Monitoring collector still invokes old AppSheet probes and must be replaced before retirement can be claimed.
+
+## Prior deployed checkpoint (retained evidence)
+
 R053 deployment applied; verification incomplete. PROD SQL89/PWA/API/shared agent receipt route are active. DEV owner registration and actual phone push receipt passed. PROD notification worker, command immediate dispatch, function-owned capture and minute recovery are now enabled; no arbitrary PROD test push. Owner now confirmed Production Home Screen Notifications enabled; authenticated Notifications enable route PASS. Actual PROD event receipt is not inferred from DEV. Jobs-only RFC3339 correction is deployed as11c149/jobs00003-q4h; API/notify retain42534b, command00004-xkp/notify00002-cth. Verify the next natural analytics outcome and first charges run; earlier analytics400 remains recorded. R053 stays Frozen, R054 sole Open, nextR055 unused; no final tag.
 
 [Actual manifest](promotion-actual.json) · [single master checklist](promotion-checklist.md) · [capture activation](production-notification-activation.json). Earlier CI failures remain preserved; final DB38169216136 passed. Runtime/frontend base673223d, jobs correction959b118, operatordc4, agent35c/evidencee8f43d5. No broad CI repeated; focused jobs9/9 and one exact-source jobs-only build/deploy.

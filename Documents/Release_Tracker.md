@@ -4,6 +4,8 @@
 
 ## Current development release
 
+**12 October owner exception for R053:** the owner explicitly added retirement of all remaining AppSheet dependencies to the still-incomplete R053, and retired the PWA Reporting link without a replacement. R053 remains Frozen; this scoped exception does not reopen it or assign unrelated work to it. R054 remains the sole Open release. Native agent replacements, monitoring and controlled delivery are in progress; dependency-free production completion is not yet claimed. See [retirement continuation](../outputs/r053-notifications-jobs/continuation.md).
+
 | Start-of-work lookup | Value |
 | --- | --- |
 | **Use this release for new development** | **R054 — Open** |
