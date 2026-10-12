@@ -19,6 +19,8 @@ from .receipt_rules import ReceiptInvalid,borrower_for,recipients,summary,valida
 def controls(config_path,catalogue_path):
     config=load_json(config_path); validate_config(config)
     catalogue=load_json(catalogue_path); validate_catalogue(catalogue)
+    if config.get('receipt_payment_api_enabled') and not catalogue['services'].get('shared_receipt_payment_api',{}).get('enabled'):
+        raise ConfigurationError('SHARED_RECEIPT_PAYMENT_API_DISABLED')
     if config.get('receipt_archive_enabled') and not catalogue['services'].get('receipt_evidence',{}).get('enabled'):
         raise ConfigurationError('RECEIPT_EVIDENCE_SERVICE_DISABLED')
     if config.get('partner_review_enabled') and not catalogue['services'].get('partner_receipt_review',{}).get('enabled'):

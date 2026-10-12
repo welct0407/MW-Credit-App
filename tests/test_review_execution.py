@@ -9,40 +9,13 @@ import tempfile
 from pathlib import Path
 
 class ExecutionBoundaryTests(unittest.TestCase):
-    def test_overpayment_requires_explicit_review_policy_and_posts_lump_sum(self):
-        c={'partner_review_execution_enabled':True,'appsheet_app_id':'93844270-6aa5-420b-a960-bcdf08abd357'}
-        p={'action':'Overpayment review','approved_allocation_method':'Lump Sum','borrower':{'id':'b'},
-           'receipt':{'amount':'450.00','reference':'TESTREF','account_id':'a','date':'2026-09-23','time':'12:10'}}
-        response=MagicMock()
-        with patch('mw_integration_agent.review_execution.load_secret',return_value='synthetic'),patch('urllib.request.urlopen',return_value=response) as call:
-            with self.assertRaises(ConfigurationError):add_payment(c,'igr:test',p,'actor@example.invalid')
-            c['_receipt_reviewer_approved']=True
-            add_payment(c,'igr:test',p,'actor@example.invalid')
-            row=json.loads(call.call_args.args[0].data)['Rows'][0]
-            self.assertEqual((row['Allocation Method'],row['Amount Received']),('Lump Sum','450.00'))
-            self.assertEqual(row['Created At'],'09/23/2026 12:10:00')
-            c['_receipt_automatic']=True
-            with self.assertRaises(ConfigurationError):add_payment(c,'igr:test',p,'actor@example.invalid')
-            self.assertEqual(call.call_count,1)
-    def test_only_approved_scope_and_exact_row(self):
-        c={'partner_review_execution_enabled':True,'appsheet_app_id':'93844270-6aa5-420b-a960-bcdf08abd357'}
-        p={'action':'Lump Sum','borrower':{'id':'b'},'receipt':{'amount':'100.00','reference':'TESTREF','account_id':'a','date':'2026-09-21','time':'12:10'}}
-        response=MagicMock();response.__enter__.return_value.read.return_value=b'[]'
-        with patch('mw_integration_agent.review_execution.load_secret',return_value='synthetic'),patch('urllib.request.urlopen',return_value=response) as call:
-            add_payment(c,'igr:test',p,'actor@example.invalid')
-            data=json.loads(call.call_args.args[0].data);row=data['Rows'][0]
-            self.assertEqual(row['Created At'],'09/21/2026 12:10:00');self.assertEqual(row['Amount Received'],'100.00')
-            self.assertEqual(row['Allocation Method'],'Lump Sum');self.assertEqual(data['Action'],'Add')
-            c.update(_receipt_automatic=True,receipt_auto_payment_enabled=True)
-            add_payment(c,'igr:auto',p,'actor@example.invalid')
-            auto=json.loads(call.call_args.args[0].data)['Rows'][0]
-            self.assertEqual(auto['Created By'],'actor@example.invalid')
-            self.assertTrue(auto['Notes'].startswith('Automatic Instagram receipt payment'))
-            c['receipt_auto_payment_enabled']=False
-            with self.assertRaises(ConfigurationError):add_payment(c,'igr:blocked',p,'actor@example.invalid')
-            p['action']='Loan Close'
-            with self.assertRaises(ConfigurationError):add_payment(c,'igr:test',p,'actor@example.invalid')
-            self.assertEqual(call.call_count,2)
+    def test_legacy_payment_entrypoint_is_retired_without_network(self):
+        with patch('urllib.request.urlopen') as call:
+            for config in ({},{'partner_review_execution_enabled':True,'_receipt_reviewer_approved':True},{'_receipt_automatic':True}):
+                with self.assertRaisesRegex(ConfigurationError,'LEGACY_RECEIPT_TRANSPORT_RETIRED'):
+                    add_payment(config,'igr:historical',{'action':'Lump Sum'},'synthetic@example.invalid')
+            call.assert_not_called()
+
     def test_signed_reply_link_survives_capture(self):
         payload={'object':'instagram','entry':[{'id':'999','messaging':[{'sender':{'id':'123'},'recipient':{'id':'999'},'timestamp':100000,'message':{'mid':'in','text':'YES','reply_to':{'mid':'out'}}}]}]}
         messages=extract_messages(payload,'999',now=101)

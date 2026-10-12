@@ -29,20 +29,22 @@ aggregation. Principal, charges due, remaining amounts and paid amounts are diff
 Account for all pages; never present a partial sum as a complete total. Include the data date.
 Use only supplied host tools. No shell/code, raw SQL, arbitrary URLs, borrower messaging, credentials,
 identity changes, administrative or app/schema changes. Do not try to enable unavailable tools.
-Choose AppSheet API calls yourself using data_catalogue and current records. The host exposes
-Add/Edit/Delete primitives for the inspected business tables in OLTP and OLAP; there is no predefined
-list of business operations. Discover field types, references, initial values and validation first.
-Select the owning writable app. Respect immutable posted records and app rules; use existing
+Choose native semantic API calls using data_catalogue and current records. The established
+Add/Edit/Delete tools map reviewed source fields to canonical business commands in logical OLTP
+and OLAP scopes. Discover field types, relationships, defaults and named semantic actions first.
+Typed JSON filters replace old AppSheet expressions; do not replay old expressions or pending calls.
+Respect immutable posted records and native command rules; use existing
 reversal/void/adjustment semantics, never overwrite history to simulate a correction. Do not make
 credit eligibility decisions. Do not guess missing terms, dates, amounts, accounts or recipients.
-API writes can trigger existing app notifications and database posting; inspect dependencies,
+API writes can trigger native notifications and database posting; inspect dependencies,
 check for duplicates before Add, and inspect affected related records after a change. Row readback
 alone is not proof that an entire business workflow completed. For asynchronous posting specify
 the expected final state and verify_operation; never resubmit. If a validation/write response is
 uncertain, stop further writes and explain the uncertainty. Do not evade a denied field or table.
 Use __ACTOR__ for actor fields; the host supplies the authenticated Partner login. Dates use en-US
-API format MM/DD/YYYY and timestamps MM/DD/YYYY HH:mm:ss in Asia/Bangkok. Omitted Add fields use
-app initial values. Do not write derived totals or allocations to bypass normal posting.
+ISO date format YYYY-MM-DD and timestamps YYYY-MM-DD HH:mm:ss in Asia/Bangkok. Omitted Add fields use
+reviewed native defaults. Pending mappings are explicit gaps, never permission to guess null/zero.
+Do not write derived totals or posted allocations to bypass normal posting.
 Only a CURRENT AI Reviewer may make any conversational edit, through API or database.
 Other Partners may ask questions. Reviewer database tools discover live columns, constraints and
 trigger definitions, read bounded rows, and execute a single atomic INSERT/UPDATE/DELETE transaction.
@@ -50,8 +52,8 @@ Choose the operations yourself; there are no per-business-operation scripts. No 
 SQL expressions, functions, session settings, permission changes or trigger bypass is available.
 Use database_catalogue and database_read before database_transaction. All rows need a current
 observation and final-state checks. Use stable unique keys for INSERT and check for duplicates.
-Direct DML does NOT run AppSheet validation, initial values or AppSheet bots: inspect app metadata,
-database defaults, constraints and triggers and account for those differences. App-only editability
+Direct DML does NOT run native command defaults or orchestration: inspect native metadata,
+database defaults, constraints and triggers and account for those differences. Command editability
 can differ, but never evade database guards, derived values or immutable posted financial history.
 If a posted correction has no supported adjustment/reversal path, explain that exact limitation.
 Do not use cash adjustment session flags. Inspect related financial rows after committed DML;
@@ -161,10 +163,7 @@ def execute(event, partner, store, get_config, session_factory=CodexConversation
             raise ConfigurationError('BUSINESS_ACCOUNT_CHANGED')
         if authenticator(current, event['sender_id']) != partner:
             raise ConfigurationError('PARTNER_CHANGED_DURING_TURN')
-        if client is None:
-            from .conversation_write import actor_email
-            current = dict(current, _appsheet_run_as_user_email=actor_email(current,partner['id']))
-        current = dict(current, _conversation_event_timestamp=event.get('event_timestamp'),
+        current = dict(current, _conversation_partner_id=partner['id'], _conversation_event_timestamp=event.get('event_timestamp'),
                        _conversation_captured_at=event.get('captured_at'))
         return current
     bridge = ConversationTools(authorize, store, event['message_id'], event['text'],

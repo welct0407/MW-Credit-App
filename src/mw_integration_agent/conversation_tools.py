@@ -3,7 +3,7 @@ import json
 from datetime import datetime
 from decimal import Decimal, InvalidOperation
 
-from .appsheet import AppSheet
+from .conversation_api import NativeConversationClient
 from .config import ConfigurationError
 from .receipt_rules import BANGKOK
 
@@ -21,15 +21,15 @@ def spec(name, description, properties):
 STR = {'type': 'string'}
 STRINGS = {'type': 'array', 'items': STR}
 TOOLS = [
-    spec('data_catalogue', 'List apps/tables using empty app/table, or discover inspected fields, keys, types, references, initial values and validation rules. Use before API calls. No business-operation scripts.',
+    spec('data_catalogue', 'List native oltp/olap resources using empty app/table, or inspect reviewed fields, types, relationships, defaults and semantic actions. Pending capabilities are unavailable; never invent a formula or raw write.',
          {'app': STR, 'table': STR}),
-    spec('read_records', 'Fresh Find-only records. Page limit MUST be 1..100. Use exact keys, field text, or an AppSheet boolean filter expression (empty for unused choices). Host wraps the filter in bounded Top(Filter(table,...),1001). All matching rows must fit 1000 rows; narrow search otherwise. Select columns and page current-turn snapshot. Ref fields link exact keys.',
+    spec('read_records', 'Fresh native read-only records. Page limit MUST be 1..100. Use exact keys, literal field text, or filter containing JSON typed AST: eq/ne/lt/lte/gt/gte/contains/in with op,field,value; isNull with op,field; and/or with op,args; not with op,arg. Numeric values are decimal strings. Empty filter means no predicate. No AppSheet expressions or SQL. All matches must fit 1000 rows; otherwise narrow search. Ref fields link exact keys.',
          {'app': STR, 'table': STR, 'keys': STRINGS,
           'match_field': STR, 'match_text': STR, 'filter': STR, 'columns': STRINGS,
           'offset': {'type': 'integer', 'minimum': 0}, 'limit': {'type': 'integer', 'minimum': 1, 'maximum': 100}}),
     spec('sum_field', 'Exact decimal sum of current-turn observed rows only; result explicitly reports partial pages. Never extrapolate a partial sum.',
          {'observation': STR, 'field': STR, 'group_by': STR}),
-    spec('api_action', 'Execute an AppSheet Add or Edit selected by you. Choose app/table/field values from data_catalogue and current records. row_json is a JSON object of supplied column values WITHOUT the key; row_id identifies an Edit or is empty for Add (host generates key). operation_key is stable and unique per logical step. observation must show the edited fields or complete duplicate search for Add. expected_final_json is a JSON object of additional final checks and intentional server transitions; supplied values otherwise must match readback. Use __ACTOR__ for actor fields. API initial values apply to omitted Add fields. Up to 10 sequential row calls; verify effects after every call. Never repeat UNKNOWN. Approved Delete uses app=appsheet_delete with action=Edit carrier, row_json containing only owning_app, and empty expected_final_json. No configuration, identities or computed-field writes.',
+    spec('api_action', 'Execute a native semantic Add or Edit selected by you. Choose app/table/field values from data_catalogue and current records. row_json is a JSON object of supplied column values WITHOUT the key; row_id identifies an Edit or is empty for Add (host generates key). operation_key is stable and unique per logical step. observation must show the edited fields or complete duplicate search for Add. expected_final_json is a JSON object of additional final checks and intentional server transitions; supplied values otherwise must match readback. Use __ACTOR__ for actor fields. Reviewed native defaults apply to omitted Add fields; unsupported defaults fail closed. Up to 10 sequential row calls; verify effects after every call. Never repeat UNKNOWN. Approved Delete uses app=appsheet_delete with action=Edit carrier, row_json containing only owning_app, and empty expected_final_json. No configuration, identities or computed-field writes.',
          {'app': STR, 'table': STR, 'action': {'type':'string','enum':['Add','Edit']},
           'row_id': STR, 'row_json': STR, 'expected_final_json': STR,
           'operation_key': STR, 'observation': STR, 'instruction_quote': STR}),
@@ -37,7 +37,7 @@ TOOLS = [
          {'operation': STR}),
     spec('database_catalogue', 'Reviewer only. Empty table lists allowed resources. Otherwise inspect live database columns, defaults, constraints, triggers and writable fields before planning DML. No SQL input.', {'table': STR}),
     spec('database_read', 'Reviewer only. Fresh database rows using a nonempty JSON object of equality filters. All columns returned, maximum 100 matching rows; narrow filter if exceeded. Use exact Row ID for an absent INSERT key. No SQL expressions.', {'table': STR, 'where_json': STR}),
-    spec('database_transaction', 'Reviewer only. One atomic transaction per turn; 1..10 INSERT/UPDATE/DELETE exact-key steps. DELETE has empty values/expected_after; include every child key as a DELETE step, child before parent. steps_json is an array of objects with action,table,row_id,values,expected_after,observation. values/expected_after are scalar objects without Row ID. All submitted fields are checked unless overridden by expected_after for a documented trigger transition. Actor values must be __ACTOR__. Observe existing complete rows or absent INSERT key first. Requires current instruction quote and audit reason. No DDL/SQL/functions/settings. Reason starts api_gap: or atomic: with concrete capability/transaction evidence. AppSheet bots and initial values do not run. Never mix with API writes or replay UNKNOWN.', {'steps_json': STR, 'instruction_quote': STR, 'reason': STR}),
+    spec('database_transaction', 'Reviewer only. One atomic transaction per turn; 1..10 INSERT/UPDATE/DELETE exact-key steps. DELETE has empty values/expected_after; include every child key as a DELETE step, child before parent. steps_json is an array of objects with action,table,row_id,values,expected_after,observation. values/expected_after are scalar objects without Row ID. All submitted fields are checked unless overridden by expected_after for a documented trigger transition. Actor values must be __ACTOR__. Observe existing complete rows or absent INSERT key first. Requires current instruction quote and audit reason. No DDL/SQL/functions/settings. Reason starts api_gap: or atomic: with concrete capability/transaction evidence. Native command side effects and defaults do not run on this separate bounded SQL route. Never mix with API writes or replay UNKNOWN.', {'steps_json': STR, 'instruction_quote': STR, 'reason': STR}),
     spec('finish', 'Finish once. VERIFIED requires current-turn evidence; use CLARIFY or REFUSE when unavailable. Never claim an uncertain edit succeeded. Reply in the specified partner language. No more tools after finish.',
          {'status': {'type': 'string', 'enum': ['VERIFIED', 'CLARIFY', 'REFUSE']},
           'message': STR, 'observations': STRINGS}),
@@ -51,21 +51,19 @@ def literal(value):
 
 
 def filter_expression(value):
-    if not isinstance(value,str) or len(value)>3000 or '\x00' in value:
+    if not isinstance(value,str) or len(value.encode())>16384 or '\x00' in value:
         raise ConfigurationError('INVALID_FIND_FILTER')
-    # The model chooses the expression, but cannot escape the host's Top/Filter.
-    depth, quoted = 0,False
-    for char in value:
-        if char == '"': quoted = not quoted
-        elif not quoted and char == '(' : depth += 1
-        elif not quoted and char == ')' : depth -= 1
-        if depth < 0: raise ConfigurationError('UNBALANCED_FIND_FILTER')
-    if depth or quoted: raise ConfigurationError('UNBALANCED_FIND_FILTER')
-    return value
+    try:
+        node=json.loads(value,parse_constant=lambda _: (_ for _ in ()).throw(ValueError()))
+    except (ValueError,TypeError):
+        raise ConfigurationError('NATIVE_TYPED_FILTER_REQUIRED_NO_LEGACY_REPLAY') from None
+    if node is not None and not isinstance(node,dict):
+        raise ConfigurationError('NATIVE_TYPED_FILTER_REQUIRED_NO_LEGACY_REPLAY')
+    return node
 
 
 class ConversationTools:
-    def __init__(self, authorize, store, message_id, instruction, client=AppSheet, partner_id=None, schema_reader=load_schema):
+    def __init__(self, authorize, store, message_id, instruction, client=NativeConversationClient, partner_id=None, schema_reader=load_schema):
         self.authorize, self.store, self.message_id = authorize, store, message_id
         self.instruction, self.client = instruction, client
         self.partner_id, self.schema_reader = partner_id, schema_reader
@@ -155,7 +153,7 @@ class ConversationTools:
                     'writable_fields': {action:[k for k in table['columns'] if writable(a['table'],table,k,action)]
                                         for action in ('Add','Edit')},
                     'protected_table': a['table'] in PROTECTED_TABLES,
-                    'guidance': 'Use current app rules and Ref keys. AppSheet enforces its live validation. Existing automation and database triggers execute normally. Inspect related effects before claiming workflow completion. Reviewer-approved exact-key Delete is available with dependency checks; atomic/cascading effects require the SQL fallback.'}
+                    'guidance': 'Use reviewed native capabilities and Ref keys. Canonical business commands and database triggers enforce their rules. Inspect related effects and pending capabilities before claiming completion. Bounded reviewer SQL is reserved for documented gaps or atomic transactions; no raw API patch authority.'}
         if name == 'read_records':
             table = a['table']
             app = a['app']
@@ -175,21 +173,22 @@ class ConversationTools:
                 raise ConfigurationError('USE_KEYS_OR_SEARCH')
             if a['filter'] and (keys or a['match_field'] or a['match_text']):
                 raise ConfigurationError('USE_FILTER_OR_KEYS_OR_SEARCH')
-            predicate = 'true'
+            predicate = None
             if a['filter']:
                 predicate = filter_expression(a['filter'])
             elif keys:
-                predicate = 'OR(' + ','.join(f'[{key}] = ' + literal(k) for k in keys) + ')'
+                predicate = {'op':'in','field':key,'value':keys}
             elif a['match_field']:
                 field = a['match_field']
                 if field not in fields or any(c in field for c in '[]"'):
                     raise ConfigurationError('UNKNOWN_SEARCH_FIELD')
-                predicate = f'CONTAINS(LOWER([{field}]), {literal(a["match_text"].lower())})'
+                predicate = {'op':'contains','field':field,'value':a['match_text']}
             elif a['match_text']:
                 raise ConfigurationError('SEARCH_FIELD_REQUIRED')
-            cache_key = (app, table, predicate)
+            projected=list(dict.fromkeys([key]+columns))
+            cache_key = (app, table, json.dumps(predicate,sort_keys=True), tuple(projected))
             if cache_key not in self.cache:
-                rows = self.client(self.authorize(),app).find(table, f'Top(Filter({literal(table)}, {predicate}), 1001)')
+                rows = self.client(self.authorize(),app).query(table, projected, predicate, 1001)
                 ids = [r.get(key) for r in rows]
                 if len(rows) >= 1001:
                     raise ConfigurationError('READ_BOUND_REACHED_NARROW_SEARCH')
@@ -202,7 +201,7 @@ class ConversationTools:
             if any(k not in row for row in rows for k in columns):
                 raise ConfigurationError('APP_SCHEMA_CHANGED_OR_FIELD_UNAVAILABLE')
             return self.observe({'app': app, 'table': table, 'total_matched': len(rows), 'offset': offset,
-                'rows': [{k: r.get(k) for k in dict.fromkeys([key] + columns)} for r in rows[offset:offset + limit]],
+                'rows': [{k: r.get(k) for k in dict.fromkeys([key] + columns + (['_nativeVersion'] if '_nativeVersion' in r else []))} for r in rows[offset:offset + limit]],
                 'complete': offset == 0 and len(rows) <= limit})
         if name == 'sum_field':
             source = self.observations.get(a['observation'])

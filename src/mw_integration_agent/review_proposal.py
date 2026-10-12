@@ -1,31 +1,77 @@
 """Build a fixed payment proposal from current balances, never an AI command."""
 from datetime import date,datetime
-from decimal import Decimal
+from copy import deepcopy
+from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from .cash_statement import read_query
-from .appsheet import AppSheet
-import json
 from .receipt_rules import BANGKOK,ReceiptInvalid
+
+
+def loan_display_key(name, description, principal, loan_date, rate):
+    """Native receiving label: payment-command/draft.mjs paymentLoanDisplayKey."""
+    borrower = (name if isinstance(name, str) else '') + ' - ' + (description if isinstance(description, str) else '')
+    try:
+        if principal is None:
+            amount = ''
+        else:
+            number = Decimal(str(principal))
+            if not number.is_finite() or abs(number) > 9007199254740991:
+                raise ValueError()
+            rounded = abs(number).quantize(Decimal('1'), rounding=ROUND_HALF_UP)
+            amount = ('-' if number.is_signed() else '') + '฿' + format(rounded, ',.0f')
+        day = '' if loan_date is None else date.fromisoformat(loan_date).strftime('%d/%m')
+        if loan_date is not None and date.fromisoformat(loan_date).isoformat() != loan_date:
+            raise ValueError()
+    except (ValueError, TypeError, InvalidOperation):
+        raise ReceiptInvalid('LOAN_KEY_UNAVAILABLE') from None
+    return borrower + '-' + amount + '-' + day + '-' + ('Unavailable' if rate is None else str(rate) + '%')
 
 
 def facts(config,borrower_id):
     key="'"+str(borrower_id).replace("'","''")+"'"
     result=read_query(config,'''SELECT json_build_object(
       'loans',(SELECT coalesce(json_agg(t),'[]'::json) FROM (
-       SELECT "Row ID" id,"Loan Status" status,"Loan Type" type,"Auto Charge Enabled" auto,
-        "Outstanding Principal"::text principal,"Current Daily Interest"::numeric::text daily,
-        "Loan Date"::text date FROM public."Loans" WHERE "Ref Borrowers"='''+key+''' ORDER BY "Row ID") t),
+       SELECT l."Row ID" id,l."Loan Status" status,l."Loan Type" type,l."Auto Charge Enabled" auto,
+        l."Outstanding Principal"::text principal,l."Current Daily Interest"::numeric::text daily,
+        l."Loan Date"::text date,b."Row ID" label_borrower_id,b."Borrower Name" label_name,b."Description" label_description,
+        l."Principal Amount"::numeric::text label_principal,l."Original Daily Interest Rate"::text label_rate
+       FROM public."Loans" l LEFT JOIN public."Borrowers" b ON b."Row ID"=l."Ref Borrowers"
+       WHERE l."Ref Borrowers"='''+key+''' ORDER BY l."Row ID") t),
       'charges',(SELECT coalesce(json_agg(t),'[]'::json) FROM (
        SELECT c."Row ID" id,c."Ref Loans" loan,c."Charge Date"::text date,
         c."Principal Remaining"::text principal,c."Interest Remaining"::text interest
        FROM public."Charges" c JOIN public."Loans" l ON l."Row ID"=c."Ref Loans"
        WHERE l."Ref Borrowers"='''+key+''' ORDER BY c."Row ID") t));''')
-    rows=AppSheet(config).find('Loans','Top(Filter(Loans, [Ref Borrowers] = '+json.dumps(str(borrower_id))+'), 100)')
-    if len(rows)>=100:raise ReceiptInvalid('LOAN_LABEL_READ_INCOMPLETE')
-    labels={r['Row ID']:r.get('Loan Key') for r in rows}
     for loan in result['loans']:
-        loan['loan_key']=labels.get(loan['id'])
-        if not loan['loan_key']:raise ReceiptInvalid('LOAN_KEY_UNAVAILABLE')
+        if loan.pop('label_borrower_id') != str(borrower_id):raise ReceiptInvalid('LOAN_KEY_UNAVAILABLE')
+        loan['loan_key']=loan_display_key(loan.pop('label_name'),loan.pop('label_description'),
+                                         loan.pop('label_principal'),loan['date'],loan.pop('label_rate'))
     return result
+
+
+def same_proposal_facts(saved, fresh):
+    """Retain an approval across display-only provider formatting; never rewrite it."""
+    if saved == fresh:
+        return True
+    try:
+        old, new = deepcopy(saved), deepcopy(fresh)
+        old_loans, new_loans = old['facts']['loans'], new['facts']['loans']
+        old_ids = [loan['id'] for loan in old_loans]
+        new_ids = [loan['id'] for loan in new_loans]
+        if (not old_ids or len(set(old_ids)) != len(old_ids) or len(set(new_ids)) != len(new_ids)
+                or set(old_ids) != set(new_ids)):
+            return False
+        # Every listed display label must still refer to the same exact loan ID.
+        for proposal, loans in [(old, old_loans), (new, new_loans)]:
+            labels = {}
+            for loan in loans:
+                label = loan.pop('loan_key')
+                if not isinstance(label, str) or not label or label in labels:
+                    return False
+                labels[label] = loan['id']
+            proposal['loan_keys'] = [labels[label] for label in proposal['loan_keys']]
+        return old == new
+    except (KeyError, TypeError, ValueError):
+        return False
 
 
 def plan(receipt,borrower,current,today=None):

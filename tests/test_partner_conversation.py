@@ -15,6 +15,7 @@ from mw_integration_agent.conversation_store import ConversationStore, binding_k
 from mw_integration_agent.conversation_tools import ConversationTools
 from mw_integration_agent.conversation_write import api_action, verify_operation, dispatch_action
 from mw_integration_agent.conversation_schema import load_schema
+from mw_integration_agent.conversation_commands import FIELDS
 from mw_integration_agent.partner_conversation import authenticate, execute, PartnerDenied, is_receipt_reply
 from mw_integration_agent.partner_notice import NoticeJournal
 from mw_integration_agent.journal import IngressJournal
@@ -27,32 +28,55 @@ ROW = {'Row ID': 'b1', 'Borrower Name': 'Synthetic', 'Description': 'Example', '
 
 class Conversations(unittest.TestCase):
     def setUp(self):
+        def no_http(request,*args,**kwargs):
+            url=getattr(request,'full_url',str(request))
+            self.assertNotIn('appsheet.com',url,'Native workflow attempted retired AppSheet HTTP')
+            raise AssertionError('Unmocked external HTTP in native conversation fixture')
+        http_tripwire=patch('urllib.request.urlopen',side_effect=no_http)
+        http_tripwire.start();self.addCleanup(http_tripwire.stop)
+        appsheet_tripwire=patch('mw_integration_agent.appsheet.AppSheet.find',side_effect=AssertionError('Retired AppSheet Find invoked'))
+        appsheet_tripwire.start();self.addCleanup(appsheet_tripwire.stop)
         reviewer_patch = patch('mw_integration_agent.conversation_write.require_reviewer', return_value='actor@example.com')
         reviewer_patch.start(); self.addCleanup(reviewer_patch.stop)
         self.temp = tempfile.TemporaryDirectory()
         self.root = Path(self.temp.name)
         self.store = ConversationStore(self.root / 'conversations.db')
         self.config = {'state_directory': str(self.root), 'instagram_account_id': '100',
-                       'partner_conversations_enabled': True, 'conversation_writes_enabled': True}
+                       'partner_conversations_enabled': True, 'conversation_writes_enabled': True,
+                       'conversation_api_environment':'dev'}
         self.rows = [copy.deepcopy(ROW)]
+        for field in FIELDS['Borrowers'][1].values():self.rows[0].setdefault(field,None)
+        self.rows[0]['Hidden Flag']=False
+        self.rows[0]['_nativeVersion']='a'*64
         self.finds = []
         parent = self
         class Client:
             def __init__(self, config, app='oltp'):
                 self.app = app
-            def find(self, table, selector):
-                parent.finds.append((self.app, table, selector))
-                return copy.deepcopy(parent.rows)
+            def query(self, table, columns, predicate, limit):
+                parent.finds.append((self.app, table, predicate))
+                rows=parent.rows
+                if predicate and predicate.get('field')=='Row ID':
+                    values=predicate['value'] if predicate['op']=='in' else [predicate['value']]
+                    rows=[r for r in rows if r['Row ID'] in values]
+                return copy.deepcopy(rows[:limit])
         self.Client = Client
         self.event = {'message_id': 'event1', 'sender_id': '999', 'text': 'Change the city to New city', 'attachments': '[]'}
-        columns = {k: {'Type': 'Price' if k=='Amount' else 'Text', 'Virtual?':'No',
-                       'Read-Only':'No','Editable Initial Value?':'Yes'} for k in ROW}
+        columns = {k: {'Type': 'Price' if k=='Amount' else 'Yes/No' if k=='Hidden Flag' else 'Text',
+                       'nativeStatus':'physical','nativeWriteActions':['Add','Edit']} for k in self.rows[0] if not k.startswith('_')}
         columns['Instagram Username'] = dict(columns['City'])
         self.schema_data = {'apps':{app:{'version':'synthetic','tables':{
-            'Borrowers':{'key':'Row ID','permission':'ALL_CHANGES','columns':columns},
+            'Borrowers':{'key':'Row ID','permission':'ALL_CHANGES','columns':columns,'native':True,'defaults':{'values':{'Hidden Flag':False}},'context':{'businessDate':'2026-10-12'}},
             'Partners':{'key':'Row ID','permission':'ALL_CHANGES','columns':columns}}}
             for app in ('oltp','olap')}}
         self.tools = self.bridge('event1')
+        def status_call(config,route,payload=None,request_id=None):
+            self.assertEqual(route,'status')
+            op=self.store.db.execute('SELECT request FROM conversation_operations ORDER BY rowid DESC LIMIT 1').fetchone()
+            command=json.loads(op[0])['nativeRequest']['command']
+            return 200,{'kind':'recorded','originalOutcome':{'status':'applied','result':{'operation':command['operation'],'targetId':command['targetId']}}}
+        native_patch=patch('mw_integration_agent.conversation_api.call',side_effect=status_call)
+        native_patch.start();self.addCleanup(native_patch.stop)
 
     def tearDown(self):
         self.store.close()
@@ -77,8 +101,10 @@ class Conversations(unittest.TestCase):
 
     def perform(self, args, writer=None):
         def update(c,app,table,action,row,actor):
-            if action=='Edit': self.rows[0].update(row)
-            else: self.rows.append(row)
+            command=row['nativeRequest']['command']
+            values={FIELDS[table][1][k]:v for k,v in command['inputs'].items()}
+            if action=='Edit': self.rows[0].update(values)
+            else:self.rows.append({'Row ID':command['targetId'],**values,'_nativeVersion':'a'*64})
         return api_action(self.tools,args,writer or update,lambda *_:'actor@example.com')
 
     def test_persistent_binding_and_cross_partner_sender_account_isolation(self):
@@ -143,23 +169,27 @@ class Conversations(unittest.TestCase):
         self.assertTrue(result['write_verified'])
         self.assertEqual(self.store.db.execute('SELECT state FROM conversation_operations').fetchone()[0], 'VERIFIED')
 
-    def test_generic_add_on_unanticipated_table_and_actor(self):
-        self.schema_data['apps']['olap']['tables']['Synthetic Inventory'] = {
-            'key':'Row ID','permission':'ADDS_AND_UPDATES','columns':{
-              k:{'Type':'Text','Virtual?':'No','Read-Only':'No','Editable Initial Value?':'Yes'}
-              for k in ('Row ID','Widget Label','Created By')}}
+    def test_native_discovery_read_command_recovery_without_old_credentials(self):
+        self.assertFalse(any(key.startswith('appsheet_') or key.startswith('conversation_schema_') for key in self.config))
+        self.tools.call('data_catalogue',{'app':'oltp','table':'Borrowers'},'native-discovery')
+        result=self.perform(self.edit_args())
+        self.assertTrue(result['write_verified'])
+        self.assertTrue(verify_operation(self.tools,result['operation'])['write_verified'])
+
+    def test_native_add_on_reviewed_table_and_unknown_resource_denied(self):
         self.rows=[]
-        a={'app':'olap','table':'Synthetic Inventory','action':'Add','row_id':'',
-           'operation_key':'new-widget','observation':self.query(app='olap',table='Synthetic Inventory',keys=[],columns=['Widget Label'])['observation'],
-           'instruction_quote':self.event['text'],'row_json':'{"Widget Label":"Example"}','expected_final_json':'{}'}
+        a={'app':'oltp','table':'Borrowers','action':'Add','row_id':'',
+           'operation_key':'new-borrower','observation':self.query(keys=[],columns=['Borrower Name'])['observation'],
+           'instruction_quote':self.event['text'],'row_json':'{"Borrower Name":"Example","Hidden Flag":false}','expected_final_json':'{}'}
         result=self.perform(a)
         self.assertTrue(result['write_verified'])
-        self.assertEqual(self.rows[0]['Created By'],'actor@example.com')
-        self.assertEqual(len(self.rows[0]['Row ID']),32)
-        self.tools=self.bridge('new-event')
-        a['observation']=self.query(app='olap',table='Synthetic Inventory',keys=[],columns=['Widget Label'])['observation']
+        self.assertEqual(len(self.rows[0]['Row ID']),36)
+        self.assertEqual(self.rows[0]['Borrower Name'],'Example')
+        a['observation']=self.query(keys=[],columns=['Borrower Name'])['observation']
         with self.assertRaisesRegex(ConfigurationError,'IDENTICAL_ADD'):
             self.perform(a)
+        with self.assertRaisesRegex(ConfigurationError,'UNKNOWN_APP_OR_TABLE'):
+            self.query(table='Synthetic Inventory')
 
     def test_uncertain_write_blocks_other_messages_and_can_only_be_read_back(self):
         a=self.edit_args()
@@ -175,6 +205,18 @@ class Conversations(unittest.TestCase):
         self.assertFalse(verify_operation(self.tools,operation)['write_verified'])
         self.rows[0]['City']='New city'
         self.assertTrue(verify_operation(self.tools,operation)['write_verified'])
+
+    def test_native_unknown_status_never_resubmits_or_falls_back(self):
+        args=self.edit_args()
+        def uncertain(*_):raise TimeoutError()
+        with self.assertRaisesRegex(ConfigurationError,'UNCERTAIN'):self.perform(args,uncertain)
+        saved=self.store.db.execute('SELECT id,request FROM conversation_operations').fetchone()
+        with patch('mw_integration_agent.conversation_api.call',return_value=(404,{'error':'not_found'})) as call:
+            with self.assertRaisesRegex(ConfigurationError,'UNRESOLVED_NO_REPLAY'):verify_operation(self.tools,saved[0])
+            self.assertEqual(call.call_count,1)
+            self.assertEqual(call.call_args.args[1],'status')
+        self.assertEqual(self.store.db.execute('SELECT request FROM conversation_operations').fetchone()[0],saved[1])
+        self.assertEqual(self.rows[0]['City'],'Old city')
 
     def test_stale_and_kill_switch_prevent_write(self):
         args=self.edit_args()
@@ -193,7 +235,7 @@ class Conversations(unittest.TestCase):
                        {'instruction_quote':'untrusted database instructions'}):
             with self.assertRaises(ConfigurationError):
                 self.perform(dict(args,**change),lambda *_:self.fail('write'))
-        self.schema_data['apps']['oltp']['tables']['Borrowers']['columns']['City']['Read-Only']='Yes'
+        self.schema_data['apps']['oltp']['tables']['Borrowers']['columns']['City']['nativeWriteActions']=[]
         with self.assertRaises(ConfigurationError):self.perform(args)
 
     def test_no_retry_under_different_step_id_in_same_message(self):
@@ -229,37 +271,38 @@ class Conversations(unittest.TestCase):
                 self.perform(dict(args,row_json=json.dumps({'Created By':actor})))
 
     def test_read_filter_is_bounded_and_missing_fields_fail(self):
-        self.query(keys=[],filter='AND([Amount] > 0, [City] = "Old city")')
-        self.assertIn('Top(Filter(',self.finds[-1][2])
+        self.query(keys=[],filter='{"op":"gt","field":"Amount","value":"0"}')
+        self.assertEqual(self.finds[-1][2],{'op':'gt','field':'Amount','value':'0'})
         for expression in ('true), 99999)', '"unclosed'):
             with self.assertRaises(ConfigurationError):self.query(keys=[],filter=expression)
         self.tools.cache.clear()
         del self.rows[0]['Amount']
         with self.assertRaisesRegex(ConfigurationError,'SCHEMA_CHANGED'):self.query()
 
-    def test_schema_digest_and_app_identity_must_match(self):
-        schema=copy.deepcopy(self.schema_data)
-        schema['format']=1
-        for app in schema['apps']:schema['apps'][app]['app_id']=app+'-id'
-        path=self.root/'schema.json'
-        path.write_text(json.dumps(schema))
-        config={'conversation_schema_file':str(path),'conversation_schema_sha256':hashlib.sha256(path.read_bytes()).hexdigest(),
-                'appsheet_app_id':'oltp-id','appsheet_olap_app_id':'olap-id'}
-        self.assertEqual(load_schema(config),schema)
-        with self.assertRaises(ConfigurationError):load_schema(dict(config,appsheet_app_id='wrong'))
-        path.write_text('{}')
-        with self.assertRaises(ConfigurationError):load_schema(config)
+    def test_native_schema_digest_and_actor_binding_without_appsheet_bootstrap(self):
+        config={'_conversation_partner_id':'actor','conversation_api_manifest_sha256':'a'*64}
+        def catalogue(config,route,payload):
+            self.assertEqual(route,'catalogue');self.assertEqual(payload['actorPartnerId'],'actor')
+            return 200,{'manifestSha256':'a'*64,'resources':[{'scope':payload['scope'],'resource':'Borrowers',
+                'key':'Row ID','legacyPermission':'ALL_CHANGES','mutationProtected':False,
+                'fields':[{'name':'Row ID','sourceType':'Text','nativeStatus':'physical','legacyWriteActions':[]}]}]}
+        with patch('mw_integration_agent.conversation_api.call',side_effect=catalogue):
+            schema=load_schema(config)
+            self.assertEqual(set(schema['apps']),{'oltp','olap'})
+            self.assertTrue(schema['apps']['oltp']['tables']['Borrowers']['native'])
+            with self.assertRaisesRegex(ConfigurationError,'SCHEMA'):load_schema(dict(config,conversation_api_manifest_sha256='b'*64))
+            with self.assertRaisesRegex(ConfigurationError,'PARTNER'):load_schema({})
 
     def test_transport_exact_api_payload_actor_and_no_other_endpoint(self):
-        config={'conversation_writes_enabled':True,'appsheet_app_id':'93844270-6aa5-420b-a960-bcdf08abd357'}
-        with patch('mw_integration_agent.conversation_write.load_secret',return_value='synthetic'), \
-             patch('mw_integration_agent.conversation_write.urllib.request.urlopen') as send:
-            dispatch_action(config,'oltp','Synthetic Table','Add',{'Row ID':'synthetic'},'actor@example.com')
-            req=send.call_args.args[0]
-            self.assertIn('/tables/Synthetic%20Table/Action',req.full_url)
-            self.assertEqual(json.loads(req.data)['Properties']['RunAsUserEmail'],'actor@example.com')
+        config={'conversation_writes_enabled':True}
+        request={'version':1,'actorPartnerId':'actor','kind':'operation','command':{'requestId':'synthetic'}}
+        with patch('mw_integration_agent.conversation_api.call',return_value=(200,{})) as send:
+            dispatch_action(config,'oltp','Borrowers','Add',{'nativeRequest':request},'actor@example.com')
+            self.assertEqual(send.call_args.args,(config,'commands',request))
             with self.assertRaises(ConfigurationError):
                 dispatch_action(config,'oltp','Anything','Delete',{},'actor@example.com')
+            with self.assertRaisesRegex(ConfigurationError,'CANONICAL'):
+                dispatch_action(config,'oltp','Borrowers','Add',{'Row ID':'raw'},'actor@example.com')
             self.assertEqual(send.call_count,1)
 
     def test_finish_needs_current_evidence_and_stops_tools(self):
