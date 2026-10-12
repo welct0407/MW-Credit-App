@@ -26,7 +26,7 @@ const config={database:'loan_manager_prod',creators:['postgres'],executionMode:'
 const c=new pg.Client({host:t.host,port:t.port,database:t.database,user:t.user,password:fs.readFileSync(credentials,'utf8').trim(),ssl:{rejectUnauthorized:false},connectionTimeoutMillis:10000,application_name:'mw-r053-prod-operator'});
 const file=opts.state?external(opts.state):external(path.join(privateRoot,'r053-prod-'+action+'-'+randomUUID()+'.json'));let result;
 await c.connect();try{await c.query("SET statement_timeout='30s'; SET lock_timeout='5s'");await c.query('SELECT pg_advisory_lock(1052026,53)');
- if(action==='restore'){const saved=JSON.parse(fs.readFileSync(file,'utf8'));result=await restoreR053Maintenance(c,config,saved.result.restoreState,{apply:!!opts.apply});if(opts.apply)fs.writeFileSync(file,JSON.stringify({...saved,restoration:result,restoredAt:new Date().toISOString()},null,2));}
+ if(action==='restore'){const saved=JSON.parse(fs.readFileSync(file,'utf8'));result=await restoreR053Maintenance(c,config,saved.result?.restoreState??saved.plan?.restoreState,{apply:!!opts.apply});if(opts.apply)fs.writeFileSync(file,JSON.stringify({...saved,restoration:result,restoredAt:new Date().toISOString()},null,2));}
  else{
   let fn=action==='roles'?provisionR053Roles:action.startsWith('prepare')?prepareR053Maintenance:configureR053Capture;
   let extra=action.startsWith('capture-')?{enabled:action==='capture-enable'}:action==='prepare-agent'?{includeAgentReceipts:true}:action==='prepare-conversation'?{conversationOnly:true}:{};
