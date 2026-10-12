@@ -23,7 +23,8 @@ export default defineConfig(({ mode }) => {
             hash.update(name).update(entry.type === 'chunk' ? entry.code : entry.source);
           }
           for (const fileName of paths) {
-            const source = readFileSync('apps/pwa/pwa/' + fileName);
+            const assetPath = mode==='live-prod' && fileName.startsWith('icons/') ? fileName.replace('icons/','icons-prod/') : fileName;
+            const source = readFileSync('apps/pwa/pwa/' + assetPath);
             hash.update(source);
             this.emitFile({ type: 'asset', fileName, source });
           }
