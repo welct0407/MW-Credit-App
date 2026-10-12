@@ -13,6 +13,7 @@ Start with [AGENTS task routing](../AGENTS.md#working-method-and-task-routing), 
 | Which release to use for new development / status | [Current development release](Release_Tracker.md#current-development-release) and tracker history |
 | Open DEV work | [Development Changes](Development_Changes.md) |
 | Collection receipts limited to displayed charges | [R048 handover](../outputs/r048-collection-receipts/HANDOVER.md) — DEV1.000124 and direct PROD3.000253 correction verified |
+| Infrastructure cleanup, Secret Manager gaps and Terraform adoption proposal | [Phase 1 inventory and proposal](../outputs/infrastructure-cleanup-phase1/README.md) — read-only review; later phases require owner selection |
 | Current identities/settings | [Environment Inventory](Environment_Inventory.md) |
 | Current Metabase tab order and retired Forecast & Partners page | [R050 navigation evidence](../outputs/r050-remove-forecast-partners/README.md) |
 | Service login account / browser profile | [Service account and browser mapping](Service_Account_Browser_Mapping.md) |
