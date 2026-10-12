@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "observedAt": "2026-10-12T03:42:20.4063026+00:00",
+  "scope": "R053 native conversation infrastructure delivery",
+  "devPrerequisites": {
+    "created": 6,
+    "updated": 0,
+    "applied": true,
+    "callerSubject": "102181282557619011045",
+    "deleted": 0,
+    "callerEmail": "mw-credit-app-agent-test-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+    "ownerOnlyOpenIdTokenCreatorVerified": true,
+    "planSha256": "7e4afb0417642811b4dcc2812893a844a74f91e0ccb19addfe185947657bffc0",
+    "runtimeChanged": false
+  },
+  "devPolicy": {
+    "reviewerPartnerCount": 1,
+    "parser": "passed",
+    "prepared": true,
+    "payloadSha256": "ab9c0370cb79cbb9f4155ef63944baf2e307bda060b52d431b2d22857ea023a9",
+    "evidenceSha256": "3d5b270ca1d1b510c659f901cc7a6de76df0860baba8b08247d07627c2b53342",
+    "readPartnerCount": 2,
+    "scope": "Current IG Integration Enabled; AI Reviewer intersection; unique Login Email",
+    "published": false
+  },
+  "prodPrerequisites": {
+    "planSha256": "ac60124ea742eb3a4579d80715a1f0d5c1d91cb8f73dcd861e344f30d2e8e209",
+    "applied": false,
+    "plannedUpdates": 0,
+    "plannedCreates": 2,
+    "plannedDeletes": 0
+  },
+  "holds": [
+    "No PROD apply until CI and DEV success",
+    "No runtime activation before V90 and exact image",
+    "Receipt API state unchanged; new DEV receipt container unused",
+    "Preserve jobs11c149 and notify425 images; module sharedimage requires narrow runtime targets"
+  ],
+  "privatePlans": "C:/Users/ideaadmin/Documents/ChatGPT/MW-Credit-App/terraform/r053-agent-native",
+  "retentionReview": "2026-10-19",
+  "cloudBuild": "Await exact published source pin; Docker COPY services includes native manifest"
+}

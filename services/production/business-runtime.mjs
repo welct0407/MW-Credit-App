@@ -1,4 +1,5 @@
 import {createAgentReceiptHandler,loadAgentReceiptPolicy} from '../agent-receipts/runtime.mjs';
+import {createAgentConversationRuntime} from '../agent-conversations/runtime.mjs';
 import {createPostCommitWake,loadDispatchConfig} from '../notifications/postcommit.mjs';
 import {createProductionCommandReceipts} from '../receipts/command-receipts.mjs';
 import {createProductionGcsReceiptTransport} from '../receipts/gcs-transport.mjs';
@@ -41,6 +42,7 @@ export async function createProductionBusinessRuntime(env,dependencies) {
       handler=createEnvironmentCommandHandler({config,verifyPrincipal,store,completionLogger});
       if(config.notificationsEnabled)handler=notificationHandler({next:handler,enabled:true,verifyPrincipal,origins:config.origins,publicKey:config.pushPublicKey,store:createNotificationStore({pool,guardConnection,resolveActor:membership.resolveActor,issuer:config.issuer})});
       handler=createAgentReceiptHandler({next:handler,policy:loadAgentReceiptPolicy(env,'prod'),pool,guardConnection,afterCommit,verifyOidc:dependencies.verifyOidc});
+      handler=createAgentConversationRuntime({next:handler,env,environment:'prod',pool,guardConnection,afterCommit,verifyOidc:dependencies.verifyOidc});
     }
     return {enabled:true,handler,close:()=>pool.end()};
   } catch(error) {await pool.end();throw error;}

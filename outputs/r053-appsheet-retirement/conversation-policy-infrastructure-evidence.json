@@ -1,0 +1,48 @@
+{
+  "tests": {
+    "dev": 6,
+    "production": 4
+  },
+  "changedFileFmt": "passed",
+  "validate": {
+    "dev": "passed",
+    "production": "passed"
+  },
+  "sourceHashes": {
+    "infrastructure/production/agent-conversation-policy.tf": "f3851914af3ebe76da05e2b9ce70165f6449974aafcba748b8292fb30f1e97da",
+    "infrastructure/dev/agent-conversation-policy.tf": "f74ff80682a34d34975cfc4c745ef70ab482dbd1379dceb292d8cd8d1542010f",
+    "infrastructure/dev/tests/agent-conversations.tftest.hcl": "11a8abeeac16a4c2b22fc3505aec829a7085fa7b3c6e5e40119559dbae617782",
+    "infrastructure/production/tests/agent-conversations.tftest.hcl": "09fbc1c0b0edee10ed3f5f12143c10bdd868258d2a05f456b79ae12a9b86141d",
+    "infrastructure/production/runtime.tf": "e27a79cdfb30404bc04e5c6c0baa08f43a164058d440a788d2d2584eacff29b6",
+    "infrastructure/dev/command-service.tf": "8094d2214eb8edcbff8f7e4e5acdced5959cb97ca4292268321912929d2a7454"
+  },
+  "filter": "tests\\agent-conversations.tftest.hcl",
+  "excluded": "Preexisting infrastructure/dev/main.tf",
+  "schemaVersion": 1,
+  "cloudMutation": false,
+  "delivery": "Default-off; prepare two resources/environment, private payload initialization, then reviewed numeric pin+tested command image; preserve existing mixed worker image pins",
+  "sourceOnly": true,
+  "deliveryPreparation": {
+    "observed": "Bounded existing source/private-delivery metadata review only; no cloud identity enumeration or mutation",
+    "preserve": "Mixed jobs11c149/notify425 images, SQL identity boundaries, single schedule ownership, all monitoring deferred",
+    "prodCaller": "Existing verified attached mw-integration-agent service account; use metadata OIDC with exact PROD command audience only after policy/runtime tests and controlled cutover",
+    "priorReceiptRehearsal": "tests/integration/r053-agent-receipt-independent.test.mjs uses injected synthetic OIDC, not a live DEV workload",
+    "reference": "https://docs.cloud.google.com/docs/authentication/get-id-token",
+    "policyFacts": "Actual numeric Google subject and current read/reviewer Partner sets/evidence hashes required; no guessed values or PROD identity in DEV",
+    "devExistingApprovedCaller": "Not established by retained evidence",
+    "minimalProposal": "Source implemented default-off conversation_test_caller_enabled: dedicated mw-credit-app-agent-test-dev SA (zero project/data roles) plus exact owner-only service-account-scoped OpenIdTokenCreator. Two creates when enabled, no live plan/apply.",
+    "rollback": "Disable conversation API/remove its injected env via reviewed command-only plan; retain protected policy containers/versions, preserve agent config snapshot and revert agent transport flags until reconciliation; no automatic replay of uncertain operations",
+    "tokenMethod": "Direct IAM Credentials generateIdToken with exact DEV command origin and includeEmail=true; token stays in process memory. Do not require broader getAccessToken/TokenCreator via gcloud impersonation.",
+    "existingImpersonation": "No proven suitable route; prior scheduler-dev token mint returned403 and its approved role was notification invocation"
+  },
+  "rehearsalCaller": {
+    "resourceCountWhenEnabled": 2,
+    "role": "roles/iam.serviceAccountOpenIdTokenCreator",
+    "flag": "conversation_test_caller_enabled",
+    "subject": "Output from actual service account unique_id only, never fixture value",
+    "owner": "user:welct0407@mw-credit.com",
+    "default": false,
+    "proposedAccountId": "mw-credit-app-agent-test-dev",
+    "liveResourcesCreated": false
+  }
+}

@@ -16,7 +16,7 @@ export function r053Environment(database){
 async function context(c,config){
  const binding=r053Environment(config?.database);
  if(!Array.isArray(config.creators)||config.creators.length!==1)throw Error('Explicit DEV operator required');
- if(binding.environment==='prod'&&config.executionMode!=='owned-loopback'){const a=config.productionAuthorization;if(config.executionMode!=='cloudsql-prod'||!a?.approvalReference||!/^[a-f0-9]{64}$/.test(a.backupSha256??'')||! /^[a-f0-9]{40}$/.test(a.sourceCommit??'')||a.baselineVersion!==87)throw Error('Explicit DEV operator or guarded PROD operator required');}
+ if(binding.environment==='prod'&&config.executionMode!=='owned-loopback'){const a=config.productionAuthorization;if(config.executionMode!=='cloudsql-prod'||!a?.approvalReference||!/^[a-f0-9]{64}$/.test(a.backupSha256??'')||! /^[a-f0-9]{40}$/.test(a.sourceCommit??'')||!(a.baselineVersion===87||(a.baselineVersion===89&&a.targetVersion===90)))throw Error('Explicit DEV operator or guarded PROD operator required');}
  const x=(await c.query("SELECT current_database() database,session_user operator,host(inet_server_addr()) host,inet_server_port() port,r.rolsuper,r.rolcreaterole,r.rolbypassrls,pg_get_userbyid(n.nspowner) schemaGrantor,pg_has_role(session_user,n.nspowner,'SET') schema_set,has_schema_privilege(session_user,n.oid,'CREATE') schema_create FROM pg_roles r CROSS JOIN pg_namespace n WHERE r.rolname=session_user AND n.nspname='public'")).rows[0];
  if(x.database!==config.database||x.operator!==config.creators[0]||x.rolsuper||!x.rolcreaterole||x.rolbypassrls||!x.schema_set||!x.schema_create)throw Error('True nonsuperuser exact schema operator required');
  let mode,grantor;
@@ -57,22 +57,25 @@ export async function provisionR053Roles(c,config,{apply=false}={}){
   return{mode:'roles-provisioned',context:ctx,roles:await roles(c,r053Roles),memberships:after.filter(x=>r053Roles.includes(x.role)||r053Roles.includes(x.member)),statements};
  });
 }
-export async function prepareR053Maintenance(c,config,{apply=false,expectedRestoreState=null,includeAgentReceipts=false}={}){
+export async function prepareR053Maintenance(c,config,{apply=false,expectedRestoreState=null,includeAgentReceipts=false,conversationOnly=false}={}){
  const ctx=await context(c,config);const {roles:r053Roles,owners,journalOwner,commandUser,appRole,environment,manifestDatabase}=r053Environment(ctx.database);closed(await roles(c,r053Roles));
- if(typeof includeAgentReceipts!=='boolean')throw Error('Explicit agent maintenance boolean required');
- const maintenanceOwners=includeAgentReceipts?[...owners,journalOwner]:owners;
- if(includeAgentReceipts){const r=(await c.query('SELECT rolcanlogin,rolsuper,rolcreatedb,rolcreaterole,rolreplication,rolbypassrls FROM pg_roles WHERE rolname=$1',[journalOwner])).rows[0];if(!r||Object.values(r).some(Boolean))throw Error('Existing closed journal owner required');}
+ if(typeof includeAgentReceipts!=='boolean'||typeof conversationOnly!=='boolean'||(includeAgentReceipts&&conversationOnly))throw Error('Explicit exclusive agent maintenance boolean required');
+ if(config.productionAuthorization?.baselineVersion===89&&!conversationOnly)throw Error('PROD89 permits journal-only V90 maintenance');
+ const maintenanceOwners=conversationOnly?[journalOwner]:includeAgentReceipts?[...owners,journalOwner]:owners;
+ if(conversationOnly){const history=(await c.query("SELECT max(version::integer) FILTER(WHERE success) AS version,count(*) FILTER(WHERE NOT success)::integer AS failed FROM public.flyway_schema_history")).rows[0];if(Number(history?.version)!==89||Number(history?.failed)!==0)throw Error('Exact successful V89 maintenance baseline required');}
+ if(includeAgentReceipts||conversationOnly){const r=(await c.query('SELECT rolcanlogin,rolsuper,rolcreatedb,rolcreaterole,rolreplication,rolbypassrls FROM pg_roles WHERE rolname=$1',[journalOwner])).rows[0];if(!r||Object.values(r).some(Boolean))throw Error('Existing closed journal owner required');}
  const baseline=await selected(c,ctx,maintenanceOwners);
  if(baseline.some(x=>x.membership.admin_option||x.membership.inherit_option||x.membership.set_option||x.create))throw Error('Closed owner authority baseline required');
  const elevated=baseline.map(x=>({...x,membership:{...x.membership,inherit_option:true,set_option:true},create:{grantor:ctx.schemaGrantor,grantee:x.role,grantable:false}}));
- const state={version:includeAgentReceipts?2:1,context:ctx,baseline,elevated};if(expectedRestoreState&&!same(state,expectedRestoreState))throw Error('R053 maintenance baseline changed');
+ const state={version:conversationOnly?3:includeAgentReceipts?2:1,context:ctx,baseline,elevated};if(expectedRestoreState&&!same(state,expectedRestoreState))throw Error('R053 maintenance baseline changed');
  const statements=elevated.flatMap(x=>[memberSql(ctx,x.membership),`SET LOCAL ROLE ${q(ctx.schemaGrantor)}`,`GRANT CREATE ON SCHEMA public TO ${q(x.role)}`,`RESET ROLE`]);
  if(apply)await transaction(c,async()=>{for(const sql of statements)await c.query(sql);if(!same(await selected(c,ctx,maintenanceOwners),elevated))throw Error('R053 elevation mismatch');});
  return{mode:apply?'authority-prepared':'authority-plan',restoreState:state,statements};
 }
 export async function restoreR053Maintenance(c,config,state,{apply=false}={}){
- const ctx=await context(c,config);const {roles:r053Roles,owners,journalOwner,commandUser,appRole,environment,manifestDatabase}=r053Environment(ctx.database);if(![1,2].includes(state?.version)||!same(ctx,state.context))throw Error('R053 restore context mismatch');
- const maintenanceOwners=state.version===2?[...owners,journalOwner]:owners;
+ const ctx=await context(c,config);const {roles:r053Roles,owners,journalOwner,commandUser,appRole,environment,manifestDatabase}=r053Environment(ctx.database);if(![1,2,3].includes(state?.version)||!same(ctx,state.context))throw Error('R053 restore context mismatch');
+ if(config.productionAuthorization?.baselineVersion===89&&state.version!==3)throw Error('PROD89 requires journal-only restoration');
+ const maintenanceOwners=state.version===3?[journalOwner]:state.version===2?[...owners,journalOwner]:owners;
  if(!Array.isArray(state.baseline)||state.baseline.length!==maintenanceOwners.length||!same(state.baseline.map(x=>x.role),maintenanceOwners)||state.baseline.some(x=>x.create!==null||x.membership?.role!==x.role||x.membership?.member!==ctx.operator||x.membership?.grantor!==ctx.grantor||x.membership?.admin_option!==false||x.membership?.inherit_option!==false||x.membership?.set_option!==false)||!same(state.elevated,state.baseline.map(x=>({...x,membership:{...x.membership,inherit_option:true,set_option:true},create:{grantor:ctx.schemaGrantor,grantee:x.role,grantable:false}}))))throw Error('Invalid R053 restoration snapshot');
  closed(await roles(c,r053Roles));const actual=await selected(c,ctx,maintenanceOwners);
  if(same(actual,state.baseline))return{mode:'authority-already-restored',statements:[]};if(!same(actual,state.elevated))throw Error('Owned authority changed concurrently');

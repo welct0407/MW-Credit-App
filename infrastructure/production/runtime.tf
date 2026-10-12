@@ -66,6 +66,10 @@ resource "google_cloud_run_v2_service" "foundation" {
       error_message = "Machine receipt API requires business runtime and a reviewed numeric PROD policy version."
     }
     precondition {
+      condition     = !var.agent_conversation_api.enabled || (var.business_runtime_authorized && var.agent_conversation_api.policy_infrastructure_enabled && var.agent_conversation_api.policy_version != null)
+      error_message = "Machine conversation API requires business runtime and a reviewed numeric PROD policy version."
+    }
+    precondition {
       condition     = var.foundation_authorized && var.foundation_image != null && var.owner_secret_version != null
       error_message = "Runtime requires the reviewed foundation, tested immutable image and actual enrolled owner version."
     }
@@ -141,6 +145,9 @@ resource "google_cloud_run_v2_service" "foundation" {
           } : {}, each.key == "command" && var.agent_receipt_api.enabled ? {
           AGENT_RECEIPT_API_ENABLED           = "true"
           AGENT_RECEIPT_POLICY_SECRET_VERSION = "projects/${var.application_project_id}/secrets/mw-credit-app-prod-agent-receipt-policy/versions/${var.agent_receipt_api.policy_version == null ? "UNBOUND" : var.agent_receipt_api.policy_version}"
+          } : {}, each.key == "command" && var.agent_conversation_api.enabled ? {
+          AGENT_CONVERSATION_API_ENABLED           = "true"
+          AGENT_CONVERSATION_POLICY_SECRET_VERSION = "projects/${var.application_project_id}/secrets/mw-credit-app-prod-agent-conversation-policy/versions/${var.agent_conversation_api.policy_version == null ? "UNBOUND" : var.agent_conversation_api.policy_version}"
         } : {})
         content {
           name  = env.key
@@ -163,6 +170,8 @@ resource "google_cloud_run_v2_service" "foundation" {
           PROD_RECEIPT_NATIVE_CATALOG_JSON = { secret = "mw-credit-app-prod-native-receipt-catalog", version = var.native_catalog_version }
           } : {}, each.key == "command" && var.agent_receipt_api.enabled ? {
           AGENT_RECEIPT_POLICY_JSON = { secret = "mw-credit-app-prod-agent-receipt-policy", version = var.agent_receipt_api.policy_version }
+          } : {}, each.key == "command" && var.agent_conversation_api.enabled ? {
+          AGENT_CONVERSATION_POLICY_JSON = { secret = "mw-credit-app-prod-agent-conversation-policy", version = var.agent_conversation_api.policy_version }
         } : {}) : {}
         content {
           name = env.key
@@ -184,5 +193,5 @@ resource "google_cloud_run_v2_service" "foundation" {
       }
     }
   }
-  depends_on = [google_project_iam_member.runtime_auth, google_secret_manager_secret_iam_member.runtime_owner, google_project_iam_member.business_sql, google_sql_user.business_runtime, google_secret_manager_secret_iam_member.business_policy, google_secret_manager_secret_iam_member.business_catalog, google_storage_bucket_iam_member.business_receipt, google_secret_manager_secret_iam_member.command_agent_receipt_policy]
+  depends_on = [google_project_iam_member.runtime_auth, google_secret_manager_secret_iam_member.runtime_owner, google_project_iam_member.business_sql, google_sql_user.business_runtime, google_secret_manager_secret_iam_member.business_policy, google_secret_manager_secret_iam_member.business_catalog, google_storage_bucket_iam_member.business_receipt, google_secret_manager_secret_iam_member.command_agent_receipt_policy, google_secret_manager_secret_iam_member.command_agent_conversation_policy]
 }

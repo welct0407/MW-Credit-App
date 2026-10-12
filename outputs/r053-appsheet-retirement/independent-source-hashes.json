@@ -13,10 +13,49 @@
   },
   {
     "path": "outputs/r053-appsheet-retirement/independent-verification.md",
-    "sha256": "051c78bce7de85f6ff6e10b10014bee0ec61c624d6dfcf116fc975bfe20b1fe0"
+    "sha256": "8d23fbe7ffa2bdaeef36ada2f363f85c47dcc02dbb07c74b9d68587dc2a66c2d"
   },
   {
     "path": "Change Logs/CHANGE_NOTES_R053_APPSHEET_RETIREMENT_2026-10-12.md",
-    "sha256": "f5562936b10c17920babdc0e1374b9b06d7149a99c939f278c044509eff89936"
+    "sha256": "7b1f1da727aa2bb33300e40783fef778f1a20bd5b04f2f01153baa154a94b79c"
+  },
+  {
+    "path": "tests/unit/agent-native-defaults-independent.test.mjs",
+    "sha256": "7a94ed8586cbba27afec9eb2792f7713d1bc454fddadd368c75be8cf95789980"
+  },
+  {
+    "repository": "MW-Integration-Agent",
+    "path": "tests/test_receipt_transport_retirement_independent.py",
+    "sha256": "2b9e5ed7aa554b32778829c58677d7f5f37d712197554eb49908697c007249ab"
+  },
+  {
+    "repository": "MW-Integration-Agent",
+    "path": "Change Logs/CHANGE_NOTES_R053_RECEIPT_TRANSPORT_RETIREMENT_2026-10-12.md",
+    "sha256": "9bfa16cf7873a6fa2f66a4ef9ba0e80f07a606c8c1059e3d52cfd25c7c18782d"
+  },
+  {
+    "path": "tests/integration/Run-Phase8.ps1",
+    "sha256": "86520dd4376a6d8153b219b5c64791b1c10967c65cd110775a9243729989e883"
+  },
+  {
+    "path": "tests/integration/agent-conversation-read-independent.test.mjs",
+    "sha256": "3e5b0c81480f06eb11e79b2eefd484e296a7c356d14f5f8cdca426955e72c6a2"
+  },
+  {
+    "path": "tests/integration/agent-native-operation-independent.test.mjs",
+    "sha256": "12f233c0d38640c75f0605bda8e43d6e43021db2f8a38092bce2d3e2aced544e"
+  },
+  {
+    "path": "tests/integration/agent-native-historical-fixture.sql",
+    "sha256": "5472de150d86ac75479dfdc51c034ec37bc450a6cd8072e87fea785b89aa905d"
+  },
+  {
+    "path": "scripts/database/Test-CI.ps1",
+    "sha256": "e11d3d8e410a7e3e182816a9203ab44042de2056a25bd3fd9a309e1533909707"
+  },
+  {
+    "repository": "MW-Integration-Agent",
+    "path": "tests/test_conversation_defaults_independent.py",
+    "sha256": "2691cdf359622620d249a7d8f23285d8606d9586c31a12e46b76d6a73fdacd31"
   }
 ]

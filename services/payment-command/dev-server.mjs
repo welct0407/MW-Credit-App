@@ -1,4 +1,5 @@
 import {createAgentReceiptHandler,loadAgentReceiptPolicy} from '../agent-receipts/runtime.mjs';
+import {createAgentConversationRuntime} from '../agent-conversations/runtime.mjs';
 import {createPostCommitWake,loadDispatchConfig} from '../notifications/postcommit.mjs';
 import {createSourceReceiptReader,createSourceGcsReadTransport} from '../receipts/source-receipts.mjs';
 import http from 'node:http';
@@ -30,7 +31,8 @@ const store=createDevCommandStore({afterCommit,pool,config,receiptAdapter:receip
 const verifyPrincipal=createCommandPrincipalVerifier({ownerUid:config.ownerUid,verifyIdToken:(token,revoked)=>auth.verifyIdToken(token,revoked)});
 const commandHandler=createDevCommandHandler({config,store,verifyPrincipal,completionLogger:record=>console.log(JSON.stringify(record))});
 const humanHandler=createDevNotificationHandler({next:commandHandler,config,pool,verifyPrincipal,guardConnection:createDevCommandConnectionGuard(config)});
-const server=http.createServer(createAgentReceiptHandler({next:humanHandler,policy:loadAgentReceiptPolicy(process.env,'dev'),pool,guardConnection:createDevCommandConnectionGuard(config),afterCommit}));
+const machineReceiptHandler=createAgentReceiptHandler({next:humanHandler,policy:loadAgentReceiptPolicy(process.env,'dev'),pool,guardConnection:createDevCommandConnectionGuard(config),afterCommit});
+const server=http.createServer(createAgentConversationRuntime({next:machineReceiptHandler,env:process.env,environment:'dev',pool,guardConnection:createDevCommandConnectionGuard(config),afterCommit}));
 server.requestTimeout=20000;server.headersTimeout=10000;
 server.listen(Number(process.env.PORT||8080),'0.0.0.0');
 process.on('SIGTERM',()=>server.close(async()=>{await pool.end();connector.close();process.exit(0)}));

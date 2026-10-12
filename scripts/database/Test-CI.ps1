@@ -53,6 +53,10 @@ if($LASTEXITCODE){throw 'Phase 6 management integration checks failed'}
 # R053 covers request-driven push, V89 agent RPCs and true three-owner restoration.
 & "$PSScriptRoot/../../tests/integration/Run-Phase8.ps1" -R053
 if($LASTEXITCODE){throw 'R053 notification/jobs and agent receipt RPC checks failed'}
+& "$PSScriptRoot/../../tests/integration/Run-Phase8.ps1" -AgentNativeOnly
+if($LASTEXITCODE){throw 'R053 native source-operation compatibility and race checks failed'}
+& "$PSScriptRoot/../../tests/integration/Run-Phase8.ps1" -AgentReadsOnly
+if($LASTEXITCODE){throw 'R053 native read column/type/ACL checks failed'}
 & "$PSScriptRoot/../../tests/integration/Run-R053OperatorIndependent.ps1" -AgentReceipts
 if ($LASTEXITCODE) { throw "R053 DEV operator proof failed" }
 & "$PSScriptRoot/../../tests/integration/Run-R053OperatorIndependent.ps1" -Production -AgentReceipts

@@ -34,3 +34,20 @@ test('R053 rejects actual foundation build recipe drift and repinned wrong PROD 
 test('R053 cannot disguise skipped browser, wrong head or additional application failures',async t=>{
  const f=await fixture(t),source=f.manifest.artifactSourceCommit;assert.equal(validateR053ApplicationReceipt(f.proofs.applicationCi,source).originalConclusion,'failure');for(const mutate of [r=>r.run.head_sha='d'.repeat(40),r=>r.jobs[0].steps.find(x=>x.name==='Run npm run test:e2e').conclusion='skipped',r=>r.jobs[0].steps.push({name:'Run npm run other',conclusion:'failure'})]){const receipt=structuredClone(f.proofs.applicationCi);mutate(receipt);assert.throws(()=>validateR053ApplicationReceipt(receipt,source));}
 });
+test('R053 native retirement pins V90 recovery and preserves distinct live workers',async t=>{
+ const f=await fixture(t),name='V90__native_fixture.sql',bytes='SELECT 90;\n';
+ await writeFile(path.join(f.repo,'database/migrations',name),bytes);f.git('add','.');f.git('-c','user.name=Synthetic C','-c','user.email=c@example.invalid','commit','-m','native candidate');
+ const source=f.git('rev-parse','HEAD');f.manifest.sourceCommit=f.manifest.artifactSourceCommit=source;
+ f.proofs.build.sourceCommit=source;f.proofs.applicationCi.run.head_sha=source;f.proofs.databaseCi.run.head_sha=source;
+ f.manifest.sql={baselineVersion:89,targetVersion:90,group:true,mixed:false,executeInTransaction:true,callbacks:[],migrations:[{version:90,name,sha256:hash(bytes)}]};
+ f.proofs.backup.baselineVersion=89;f.proofs.terraformRecovery.totalMockTestsPassed=34;
+ const image=f.proofs.build.prod.image,workers={notify:image.replace('b'.repeat(64),'d'.repeat(64)),jobs:image.replace('b'.repeat(64),'e'.repeat(64))};
+ f.proofs.baseline.workers=workers;f.manifest.images={reader:image,command:image,...workers};
+ Object.assign(f.proofs.applied,{sourceCommit:source,runtimeSourceCommit:source,sqlVersion:90,conversationApiEnabled:true,preservedWorkers:workers});
+ for(const key of Object.keys(f.proofs))await f.persist(key);
+ const applied={...f.manifest,status:'applied'};assert.equal((await validateR053Candidate(applied,f.options)).deployReady,true);
+ f.proofs.applied.preservedWorkers={...workers,jobs:workers.notify};await f.persist('applied');
+ await assert.rejects(validateR053Candidate(applied,f.options),/worker runtime drift/);
+ f.proofs.applied.preservedWorkers=workers;await f.persist('applied');f.proofs.backup.baselineVersion=87;await f.persist('backup');
+ await assert.rejects(validateR053Candidate(applied,f.options),/baseline recovery/);
+});

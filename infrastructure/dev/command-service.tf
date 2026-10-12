@@ -45,6 +45,10 @@ resource "google_cloud_run_v2_service" "command_api" {
       error_message = "Machine receipt API requires its reviewed DEV policy container and numeric secret version."
     }
     precondition {
+      condition     = !var.agent_conversation_api.enabled || (var.agent_conversation_api.policy_infrastructure_enabled && var.agent_conversation_api.policy_version != null)
+      error_message = "Machine conversation API requires its reviewed DEV policy container and numeric secret version."
+    }
+    precondition {
       condition     = !var.workers.command_dispatch_enabled || (var.workers.enabled && var.workers.image != null && var.workers.command_notification_enabled)
       error_message = "Direct dispatch requires the reviewed worker image and owner-only command enrollment."
     }
@@ -94,6 +98,9 @@ resource "google_cloud_run_v2_service" "command_api" {
           } : {}, var.agent_receipt_api.enabled ? {
           AGENT_RECEIPT_API_ENABLED           = "true"
           AGENT_RECEIPT_POLICY_SECRET_VERSION = "projects/${local.project}/secrets/mw-credit-app-dev-agent-receipt-policy/versions/${var.agent_receipt_api.policy_version == null ? "UNBOUND" : var.agent_receipt_api.policy_version}"
+          } : {}, var.agent_conversation_api.enabled ? {
+          AGENT_CONVERSATION_API_ENABLED           = "true"
+          AGENT_CONVERSATION_POLICY_SECRET_VERSION = "projects/${local.project}/secrets/mw-credit-app-dev-agent-conversation-policy/versions/${var.agent_conversation_api.policy_version == null ? "UNBOUND" : var.agent_conversation_api.policy_version}"
         } : {})
         content {
           name  = env.key
@@ -116,6 +123,18 @@ resource "google_cloud_run_v2_service" "command_api" {
           value_source {
             secret_key_ref {
               secret  = "mw-credit-app-dev-agent-receipt-policy"
+              version = env.value
+            }
+          }
+        }
+      }
+      dynamic "env" {
+        for_each = var.agent_conversation_api.enabled ? [var.agent_conversation_api.policy_version] : []
+        content {
+          name = "AGENT_CONVERSATION_POLICY_JSON"
+          value_source {
+            secret_key_ref {
+              secret  = "mw-credit-app-dev-agent-conversation-policy"
               version = env.value
             }
           }
@@ -156,7 +175,7 @@ resource "google_cloud_run_v2_service" "command_api" {
       }
     }
   }
-  depends_on = [google_project_iam_member.command_sql, google_project_iam_member.command_auth_user, google_secret_manager_secret_iam_member.command_owner_identity, google_secret_manager_secret_iam_member.command_native_receipt_catalog, google_storage_bucket_iam_member.command_receipts, google_secret_manager_secret_iam_member.command_notification_policy, google_secret_manager_secret_iam_member.command_agent_receipt_policy]
+  depends_on = [google_project_iam_member.command_sql, google_project_iam_member.command_auth_user, google_secret_manager_secret_iam_member.command_owner_identity, google_secret_manager_secret_iam_member.command_native_receipt_catalog, google_storage_bucket_iam_member.command_receipts, google_secret_manager_secret_iam_member.command_notification_policy, google_secret_manager_secret_iam_member.command_agent_receipt_policy, google_secret_manager_secret_iam_member.command_agent_conversation_policy]
 }
 # Browser business routes use pinned Firebase auth; no shared/public bucket or
 # organization policy changes. Review this service-specific invocation boundary.
