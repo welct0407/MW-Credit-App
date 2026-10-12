@@ -1,0 +1,121 @@
+{
+  "schemaVersion": 1,
+  "status": "planned-not-observed",
+  "release": "R052",
+  "sourceCommit": "b40c69526bc40b2ef3f6ab6b631df8c51695c921",
+  "targetDatabase": "loan_manager_prod",
+  "requiredHistoryVersion": 87,
+  "migrations": [
+    {
+      "name": "V78__pwa_payment_command_journal.sql",
+      "sha256": "8ea5009d29bf8c78fadcdaa478680defd3f161ef2a7e22e7999c2a2aa7170c30"
+    },
+    {
+      "name": "V79__application_role_journal_boundary.sql",
+      "sha256": "e81297140973409917286eef35745e49abc2bbb81bfd056c37881757880477fd"
+    },
+    {
+      "name": "V80__unified_receiving_command_v4.sql",
+      "sha256": "43f643d61f1b242438f9b16bd47ee87ca45c37affc817027c15aabd00f9a55aa"
+    },
+    {
+      "name": "V81__payment_command_method_v5.sql",
+      "sha256": "e5910ad6d6b8c844888045a52e930e63a44066fbdba240487faeaae1380d9d7c"
+    },
+    {
+      "name": "V82__explicit_payment_allocation_plan_v6.sql",
+      "sha256": "82c7475634aa4df6e7286506f0854e42b39949b1e0a99dffbfe0f4cc27d551cf"
+    },
+    {
+      "name": "V83__generalized_application_commands.sql",
+      "sha256": "e7185ed56ec5036d80816f6af7c3e6fa86732c1631792aacda0c5f949a86dcc5"
+    },
+    {
+      "name": "V84__compatible_loan_schedule_anchor.sql",
+      "sha256": "87c53005dbdf1483e000684bfb5ad0d42c95bf7279c9fd96e23d8b7b3ccc2cc9"
+    },
+    {
+      "name": "V85__pwa_management_operations.sql",
+      "sha256": "3c0833004bfbea3d74354365637cddf1ed02dac5bcf963b4f2a0f6e4810ccd92"
+    },
+    {
+      "name": "V86__durable_notification_and_job_state.sql",
+      "sha256": "af9227720a21f45eecc506894db58f230ecd3de6a0db7cc6fa1522da16148eaa"
+    },
+    {
+      "name": "V87__database_bound_application_roles.sql",
+      "sha256": "e360d46400a30a6d12d24fe7574350001753ce3ea1d65e9dd7c8103ceb1e8325"
+    }
+  ],
+  "routineNames": [
+    "public.apply_loan_close_calculation_v83",
+    "public.create_first_day_charge",
+    "public.first_day_components_v83",
+    "public.guard_pwa_explicit_payment_v6",
+    "public.guard_pwa_payment_commands_immutable",
+    "public.loan_close_calculation_v83",
+    "public.payment_crud_finish",
+    "public.payment_crud_finish_core_v83",
+    "public.payment_crud_prepare",
+    "public.payment_crud_prepare_core_v83",
+    "public.post_payment",
+    "public.post_payment_explicit_v6",
+    "public.post_payment_legacy_v59",
+    "public.pwa_apply_analytics_v2",
+    "public.pwa_apply_assessment_v2",
+    "public.pwa_apply_cash_opening_v2",
+    "public.pwa_apply_charge_v2",
+    "public.pwa_apply_expense_v2",
+    "public.pwa_apply_loan_close_v2",
+    "public.pwa_apply_loan_create_v2",
+    "public.pwa_apply_loan_source_v2",
+    "public.pwa_apply_management_financial_v2",
+    "public.pwa_apply_management_v2",
+    "public.pwa_apply_payment_v2",
+    "public.pwa_apply_preference_v2",
+    "public.pwa_assessment_refresh_window_v2",
+    "public.pwa_borrower_version_v2",
+    "public.pwa_capture_notification_v1",
+    "public.pwa_cash_opening_basis_v2",
+    "public.pwa_charge_version_v2",
+    "public.pwa_claim_notifications_v1",
+    "public.pwa_command_status_v1",
+    "public.pwa_effective_payment_plan_v2",
+    "public.pwa_expense_version_v2",
+    "public.pwa_loan_version_v2",
+    "public.pwa_management_financial_text_v2",
+    "public.pwa_management_input_text_v2",
+    "public.pwa_management_tools_text_v2",
+    "public.pwa_native_inverse_permitted_v2",
+    "public.pwa_operation_status_v2",
+    "public.pwa_payment_correction_text_v2",
+    "public.pwa_payment_head_v2",
+    "public.pwa_payment_version_v2",
+    "public.pwa_plan_effects_v83",
+    "public.pwa_preference_version_v2",
+    "public.pwa_submit_operation_v2",
+    "public.pwa_submit_selected_charges_v1"
+  ],
+  "relations": [
+    "public.pwa_payment_commands",
+    "public.pwa_notification_events",
+    "public.pwa_push_subscriptions",
+    "public.pwa_notification_preferences",
+    "public.pwa_notification_deliveries",
+    "public.pwa_job_runs",
+    "public.Payments",
+    "public.Loans",
+    "public.r008_cash_account_cutover"
+  ],
+  "schemaNames": [
+    "public",
+    "assessment_lab"
+  ],
+  "settings": [
+    "production application roles and exact memberships",
+    "persistent PROD CONNECT consumer allowlist and DEV denial",
+    "notifications and replacement jobs inactive"
+  ],
+  "dictionaryDestination": "Canonical PM systems/postgresql production objects; affected r052-command development overlays retained with closed/promotion status",
+  "capturePolicy": "Only selected catalogue definitions/ACLs/history; no business rows. Capture actual PROD87 only after successful grouped migration and temporary authority restoration."
+}

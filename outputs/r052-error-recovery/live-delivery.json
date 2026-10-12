@@ -1,0 +1,60 @@
+{
+  "checkedAt": "2026-10-08T01:33:05.181Z",
+  "source": "a1fc80001963cec93df65bf5d48062e6c8d13f4f",
+  "revision": "00012-99g",
+  "hosting": "ff1c9ce9a4bfedf2",
+  "results": [
+    {
+      "kind": "API",
+      "origin": "https://dev-lm.mw-credit.com",
+      "status": 401,
+      "reference": "c0a298c3-9932-4c9e-b073-f1fd70bf9d1c",
+      "expose": "X-Request-ID",
+      "body": {
+        "ok": false,
+        "code": "sign_in_required"
+      }
+    },
+    {
+      "kind": "API",
+      "origin": "https://mw-credit-app-dev-737787224638.web.app",
+      "status": 401,
+      "reference": "7dccb639-128e-44d8-a790-e0aa5d07072c",
+      "expose": "X-Request-ID",
+      "body": {
+        "ok": false,
+        "code": "sign_in_required"
+      }
+    },
+    {
+      "kind": "API",
+      "origin": "https://untrusted.example.invalid",
+      "status": 403,
+      "reference": "a82ce189-8ad9-40b2-aa1f-bbc29b92da72",
+      "expose": null,
+      "body": {
+        "ok": false,
+        "code": "origin_denied"
+      }
+    },
+    {
+      "kind": "UI",
+      "name": "canonical",
+      "width": 320,
+      "asset": "/assets/index-DbyM5rK8.js",
+      "workerSha256": "5397340c64eba86386815ba0573943986dbab140666ddcac6a63249c17ad3071",
+      "signedOutEnglishAndThai": true,
+      "apiRequests": 0
+    },
+    {
+      "kind": "UI",
+      "name": "fallback",
+      "width": 1440,
+      "asset": "/assets/index-DbyM5rK8.js",
+      "workerSha256": "5397340c64eba86386815ba0573943986dbab140666ddcac6a63249c17ad3071",
+      "signedOutEnglishAndThai": true,
+      "apiRequests": 0
+    }
+  ],
+  "limitation": "Unsigned delivery only. No injected failure, login, business read or log-correlation probe."
+}

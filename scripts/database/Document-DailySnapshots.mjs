@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises';
 import {Workbook,SpreadsheetFile,FileBlob} from '@oai/artifact-tool';
-const privateDir='C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r016-20260922/daily-snapshots';
+const privateDir='C:/Users/ideaadmin/Documents/ChatGPT/AppSheet-Loan-Project/r016-20260922/daily-snapshots';
 const plan=JSON.parse(await fs.readFile(privateDir+'/dictionary-patches.json','utf8'));
 if(process.argv.includes('--verify')){
  const w=await SpreadsheetFile.importXlsx(await FileBlob.load('Documents/AppSheet_Data_Dictionary.xlsx'));

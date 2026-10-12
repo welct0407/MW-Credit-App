@@ -1,0 +1,27 @@
+{
+  "environment": "development",
+  "instance": "appsheet-pg-prod-20260914",
+  "host": "34.21.174.215",
+  "database": "loan_manager_dev",
+  "dumpSha256": "a82414e7d2d74c0598dbfd4e52cfd1c1ed8116d86542184c87c7910484d25bba",
+  "archiveListing": "passed",
+  "restore": "passed",
+  "restoreSemantics": "schema/data restored with no ownership/ACL replay; policy role names local NOLOGIN only",
+  "restored": {
+    "database": "loan_manager_dev",
+    "latestVersion": "87",
+    "historyRows": 87,
+    "publicTables": 29
+  },
+  "completedAt": "2026-10-11T16:57:07.6690710+00:00",
+  "cleanup": {
+    "stopped": true,
+    "ownedRestoreRemoved": true,
+    "elapsedSeconds": 20.7,
+    "backupRetained": true
+  },
+  "release": "R053",
+  "purpose": "Current DEV87 rollback before approved V88/operator/API/workers batch",
+  "privateRecoveryRetained": true,
+  "reviewDate": "2026-10-18"
+}

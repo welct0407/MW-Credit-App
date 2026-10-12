@@ -1,4 +1,4 @@
-param([string]$PgBin,[int]$Port,[string]$OutputDirectory)
+param([string]$PgBin,[int]$Port,[string]$OutputDirectory,[ValidateSet('postgres','loan_manager_dev','payment_rehearsal')][string]$Database='postgres')
 $ErrorActionPreference='Stop'
 $psql=Join-Path $PgBin 'psql.exe'
 $setup=@'
@@ -9,7 +9,7 @@ INSERT INTO "Cash Pool Contributions"("Row ID","Ref Partner","Contribution Date"
 INSERT INTO "Business Expenses"("Row ID","Expense Date","Expense Category","Amount","Notes")
  VALUES('EX15CON-CREDIT',current_date,'Other',(-1000)::money,'Synthetic adjustment provides settlement entitlement');
 '@
-$setup | & $psql -X -q -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d postgres
+$setup | & $psql -X -q -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d $Database
 if($LASTEXITCODE){throw 'Expense concurrency setup failed'}
 $first=@'
 BEGIN;
@@ -21,7 +21,7 @@ COMMIT;
 $file=Join-Path $OutputDirectory 'expense-first.sql'
 [IO.File]::WriteAllText($file,$first,[Text.UTF8Encoding]::new($false))
 $out=Join-Path $OutputDirectory 'expense-first.out';$err=Join-Path $OutputDirectory 'expense-first.err'
-$proc=Start-Process $psql -ArgumentList @('-X','-v','ON_ERROR_STOP=1','-h','127.0.0.1','-p',"$Port",'-U','postgres','-d','postgres','-f',('"'+$file+'"')) -WindowStyle Hidden -PassThru -RedirectStandardOutput $out -RedirectStandardError $err
+$proc=Start-Process $psql -ArgumentList @('-X','-v','ON_ERROR_STOP=1','-h','127.0.0.1','-p',"$Port",'-U','postgres','-d',$Database,'-f',('"'+$file+'"')) -WindowStyle Hidden -PassThru -RedirectStandardOutput $out -RedirectStandardError $err
 $deadline=[DateTime]::UtcNow.AddSeconds(10)
 while(-not((Get-Content $out -Raw -ErrorAction SilentlyContinue)-match 'EXPENSE_LOCK_READY')) {
  if($proc.HasExited -or [DateTime]::UtcNow -gt $deadline){throw 'Expense lock barrier failed'}
@@ -29,11 +29,11 @@ while(-not((Get-Content $out -Raw -ErrorAction SilentlyContinue)-match 'EXPENSE_
 }
 $competing='INSERT INTO "Settlements"("Row ID","Ref Partner","Amount","Status") VALUES(''EX15CON-S2'',''EX15CON-A'',600::money,''Pending'');'
 $watch=[Diagnostics.Stopwatch]::StartNew()
-$result=$competing | & $psql -X -q -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d postgres 2>&1
+$result=$competing | & $psql -X -q -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d $Database 2>&1
 if($LASTEXITCODE -eq 0 -or ($result -join "`n") -notmatch 'Partner allocation is busy'){throw 'Concurrent settlement did not fail safely'}
 $watch.Stop()
 if($watch.Elapsed.TotalSeconds -ge 2){throw 'Settlement waited on allocation lock'}
 $proc.WaitForExit();if($proc.ExitCode){throw 'First settlement failed'}
-$result=$competing | & $psql -X -q -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d postgres 2>&1
+$result=$competing | & $psql -X -q -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d $Database 2>&1
 if($LASTEXITCODE -eq 0 -or ($result -join "`n") -notmatch 'exceeds net'){throw 'Retry over-reserved entitlement'}
 [pscustomobject]@{expenseLockFailsPromptly=$true;concurrentSettlementCannotDoubleReserve=$true;busyMilliseconds=$watch.Elapsed.TotalMilliseconds}

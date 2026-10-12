@@ -1,0 +1,11 @@
+{
+  "rollbackHosting": "dacf7a53b31f09b0",
+  "release": "1791397663752000",
+  "ci": "https://github.com/welct0407/MW-Credit-App/actions/runs/37664554957",
+  "ciAttempt": 2,
+  "source": "dcf4b606c306656c16511164e1298a306036a7a6",
+  "domainWork": "explicitly deferred; no probes",
+  "unchangedApi": "00009-5x5",
+  "ownerReview": "pending",
+  "hosting": "ccb0af261babf04b"
+}

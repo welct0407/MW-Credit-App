@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param([switch]$RehearseMigration,[ValidatePattern('^[a-z0-9-]+$')][string]$Label='development-before')
 . "$PSScriptRoot/Common.ps1"
-$private='C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r005-20260917'
+$private='C:/Users/ideaadmin/Documents/ChatGPT/AppSheet-Loan-Project/r005-20260917'
 $bin=Get-PgBin
 $root=Join-Path $DbToolRoot ('r005-restore-'+[guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $root | Out-Null

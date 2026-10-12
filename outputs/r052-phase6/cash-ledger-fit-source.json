@@ -1,0 +1,17 @@
+{
+  "baseline": "d2045ce",
+  "files": [
+    {
+      "path": "apps/pwa/src/ManagementPosition.tsx",
+      "sha256": "F0FEBACB97297290B2AA4A3CE37DC4DF73205656FBC5038EA6145EFEF16883F3"
+    },
+    {
+      "path": "apps/pwa/src/live-style.css",
+      "sha256": "6E80EE9B676B9E6E832063E308F6803E53B01190AB7CDC4DAF13BCF20EB94246"
+    }
+  ],
+  "checks": [
+    "npm run build:live-dev PASS"
+  ],
+  "backendChanged": false
+}

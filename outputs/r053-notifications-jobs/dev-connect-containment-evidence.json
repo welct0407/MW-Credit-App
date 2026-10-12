@@ -1,0 +1,48 @@
+{
+  "recordedAtUtc": "2026-10-11T19:18:01.275Z",
+  "identity": {
+    "database": "loan_manager_dev",
+    "operator": "postgres",
+    "host": "34.21.174.215",
+    "port": 5432
+  },
+  "committed": true,
+  "retainedConsumerChecks": [
+    {
+      "rolname": "mw-credit-app-command-dev@clever-oasis-508610-n7.iam",
+      "connect": true
+    },
+    {
+      "rolname": "mw-credit-app-command-prod@clever-oasis-508610-n7.iam",
+      "connect": false
+    },
+    {
+      "rolname": "mw-credit-app-jobs-dev@clever-oasis-508610-n7.iam",
+      "connect": true
+    },
+    {
+      "rolname": "mw-credit-app-notify-dev@clever-oasis-508610-n7.iam",
+      "connect": true
+    },
+    {
+      "rolname": "mw-credit-app-read-dev@clever-oasis-508610-n7.iam",
+      "connect": true
+    },
+    {
+      "rolname": "mw-credit-app-read-prod@clever-oasis-508610-n7.iam",
+      "connect": false
+    },
+    {
+      "rolname": "postgres",
+      "connect": true
+    }
+  ],
+  "publicConnect": false,
+  "publicTemporaryRetained": true,
+  "freshPostgresReconnect": true,
+  "beforeEvidenceSha256": "cff31dfed59acd946e886dbcac0e6fa7f949fa3d82f82ebe254a14c9a8458fad",
+  "afterEvidenceSha256": "cf07e20ecf9d247f4b42e5431bee74072ff0e268fb7c74c10556dd7711e0571b",
+  "recoverySha256": "0b6aa41ae45a31f965e0b802c194183b5ef3db9695049c078d4baecde2bf1058",
+  "scope": "Four explicit CONNECT grants, then PUBLIC CONNECT revoke in one transaction. Existing owner/read-dev/mw_app_dev/receipt-projector grants retained. No role membership or data change.",
+  "limitation": "IAM consumer checks use effective has_database_privilege; no fresh IAM-authenticated connection attempted. Existing receipt-projector grant retained; new PROD notify/jobs not yet created."
+}

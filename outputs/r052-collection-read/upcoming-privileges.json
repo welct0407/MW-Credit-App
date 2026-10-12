@@ -1,0 +1,20 @@
+{
+  "development": {
+    "readableColumns": 56,
+    "tableWrites": 0,
+    "columnWrites": 0,
+    "schemaCreate": 0,
+    "forecastExecute": true
+  },
+  "production": {
+    "readableColumns": 0,
+    "tableWrites": 0,
+    "columnWrites": 0,
+    "schemaCreate": 0,
+    "forecastExecute": false
+  },
+  "recoveryFile": "read-role-before-20261007T154008052935Z.json",
+  "baseColumnsPreserved": 37,
+  "viewColumnsAdded": 19,
+  "settingsChanged": false
+}

@@ -1,0 +1,16 @@
+{
+  "ci": "https://github.com/welct0407/MW-Credit-App/actions/runs/37652555729",
+  "validationDiff": "two e2e helper synchronization fixes plus report only",
+  "rollbackHosting": "7364ee7db2ffe012",
+  "revision": "mw-credit-app-read-dev-00008-9fw",
+  "accessAndScalingChanged": false,
+  "ownerPinRetained": true,
+  "hosting": "49547c853832dd36",
+  "release": "1791390859183000",
+  "image": "sha256:0b5352a9430d366d28e4e6e9517c641463f805929d1ff3acdac6f7ac434dd0d8",
+  "rollbackImage": "sha256:49b661f79f89adac7e1f36c3111690a5761747b958f871cce4f3e6a8bac6beb5",
+  "validationSource": "c280c58c539b7f1e1576d108ff0587a55f5a89e2",
+  "build": "04262e7c-a08b-4926-ba9f-51f4c248228a",
+  "applicationSource": "5d203daf641973a02e3d1268cbcd69983bd9435f",
+  "ownerReview": "pending"
+}

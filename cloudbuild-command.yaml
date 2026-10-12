@@ -1,0 +1,32 @@
+# Exact-source command image build plus real container decoder/bootstrap smoke.
+# The deployed service separately proves real IAM/Firebase startup; no fake auth.
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args: [build, -t, 'asia-southeast1-docker.pkg.dev/$PROJECT_ID/mw-credit-app/api:$BUILD_ID', .]
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - run
+      - --rm
+      - 'asia-southeast1-docker.pkg.dev/$PROJECT_ID/mw-credit-app/api:$BUILD_ID'
+      - node
+      - --input-type=module
+      - -e
+      - |
+        import assert from 'node:assert/strict';
+        import sharp from 'sharp';
+        import {decodeCommandReceipt} from './services/receipts/decode-image.mjs';
+        const image=sharp({create:{width:16,height:8,channels:3,background:{r:30,g:100,b:160}}});
+        await decodeCommandReceipt(await image.clone().png().toBuffer(),'image/png');
+        await decodeCommandReceipt(await image.clone().jpeg().toBuffer(),'image/jpeg');
+        await assert.rejects(decodeCommandReceipt(Buffer.from('invalid'),'image/png'),/invalid_receipt/);
+        await assert.rejects(import('./services/payment-command/dev-server.mjs'),/Invalid DEV command configuration/);
+        const {loadWorkerConfig}=await import('./services/workers/config.mjs');
+        assert.equal(loadWorkerConfig({}),null);
+        assert.throws(()=>loadWorkerConfig({WORKER_ACTIVATION:'enabled'}),/invalid_worker_configuration/);
+        const workerRuntime=await import('./services/workers/runtime.mjs');
+        assert.equal(typeof workerRuntime.createWorkerRuntime,'function');
+        console.log(JSON.stringify({workerDependenciesAndDisabledConfig:'passed',containerSharpDecode:'passed',bootstrapDependenciesAndMissingConfigFailClosed:'passed',liveIAMAndFirebase:'not exercised by this smoke'}));
+images:
+  - 'asia-southeast1-docker.pkg.dev/$PROJECT_ID/mw-credit-app/api:$BUILD_ID'
+options:
+  logging: CLOUD_LOGGING_ONLY

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "environment": "dev",
+  "sourceCommit": "b40c69526bc40b2ef3f6ab6b631df8c51695c921",
+  "origin": "https://dev-lm.mw-credit.com",
+  "observedAt": "2026-10-11T12:50:03.1290197Z",
+  "method": "Existing authenticated browser session; actual Dashboard load and explicit read-only Refresh Dashboard",
+  "dashboardLoaded": true,
+  "versionCheckCompleted": true,
+  "refreshCompleted": true,
+  "alertCount": 0,
+  "signInPrompt": false,
+  "financialWrites": 0,
+  "businessDataPublished": false,
+  "limits": "Representative authenticated load/read smoke only; no new owner acceptance or production behavior claim."
+}

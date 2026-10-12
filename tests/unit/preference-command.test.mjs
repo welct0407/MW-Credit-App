@@ -1,0 +1,5 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {canonicalPreferenceFields} from '../../services/contracts/preference-command.mjs';
+test('own preference payload excludes actor, delivery and financial fields',()=>{const input={language:'ไทย',statementAccountId:'synthetic-account',statementDate:'2026-10-09'};assert.deepEqual(canonicalPreferenceFields(input),input);for(const extra of ['partnerId','loginEmail','email','reviewer','amount'])assert.throws(()=>canonicalPreferenceFields({...input,[extra]:'x'}));});
+test('preference clearing is explicit and dates/languages closed',()=>{assert.deepEqual(canonicalPreferenceFields({language:'English',statementAccountId:null,statementDate:null}),{language:'English',statementAccountId:null,statementDate:null});for(const value of ['2026-02-30','2026-13-01','not-date'])assert.throws(()=>canonicalPreferenceFields({language:'English',statementAccountId:null,statementDate:value}));assert.throws(()=>canonicalPreferenceFields({language:'other',statementAccountId:null,statementDate:null}));});

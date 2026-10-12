@@ -10,7 +10,7 @@ parser=argparse.ArgumentParser()
 parser.add_argument('--environment',choices=['development','production'],required=True)
 args=parser.parse_args()
 repo=Path(__file__).resolve().parents[2]
-private=Path('C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r016-20260922/statement-cleanup')
+private=Path('C:/Users/ideaadmin/Documents/ChatGPT/AppSheet-Loan-Project/r016-20260922/statement-cleanup')
 private.mkdir(parents=True,exist_ok=True)
 out=repo/'outputs/r016-20260922/statement-cleanup';out.mkdir(parents=True,exist_ok=True)
 target=json.loads((repo/'database/environments.json').read_text())[args.environment]

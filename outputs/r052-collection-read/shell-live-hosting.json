@@ -1,0 +1,52 @@
+{
+  "checkedAt": "2026-10-07T16:35:10.124Z",
+  "hostingVersion": "49547c853832dd36",
+  "builtApplication": "5d203daf641973a02e3d1268cbcd69983bd9435f",
+  "validationSource": "c280c58c539b7f1e1576d108ff0587a55f5a89e2",
+  "ci": "https://github.com/welct0407/MW-Credit-App/actions/runs/37652555729",
+  "scope": "Fresh unsigned contexts; no Google login or business records. Authenticated navigation/provider behavior verified separately with synthetic fixtures.",
+  "results": [
+    {
+      "name": "desktop",
+      "width": 1440,
+      "height": 900,
+      "apiRequests": 0,
+      "records": 0,
+      "overflow": false,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 1440
+      },
+      "englishAndThaiSignedOut": true
+    },
+    {
+      "name": "wide",
+      "width": 2560,
+      "height": 1440,
+      "apiRequests": 0,
+      "records": 0,
+      "overflow": false,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 2560
+      },
+      "englishAndThaiSignedOut": true
+    },
+    {
+      "name": "mobile",
+      "width": 390,
+      "height": 844,
+      "apiRequests": 0,
+      "records": 0,
+      "overflow": false,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390
+      },
+      "englishAndThaiSignedOut": true
+    }
+  ]
+}

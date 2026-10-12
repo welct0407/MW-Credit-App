@@ -1,0 +1,89 @@
+{
+  "cloudMutationsPerformed": false,
+  "schemaVersion": 1,
+  "checks": [
+    {
+      "command": "terraform fmt -check -recursive infrastructure",
+      "exitCode": 0
+    },
+    {
+      "command": "terraform -chdir=infrastructure/dev validate -no-color",
+      "exitCode": 0
+    },
+    {
+      "command": "terraform -chdir=infrastructure/production validate -no-color",
+      "exitCode": 0
+    },
+    {
+      "passed": 6,
+      "failed": 0,
+      "exitCode": 0,
+      "reused": false,
+      "command": "DEV workers mock"
+    },
+    {
+      "passed": 9,
+      "failed": 0,
+      "exitCode": 0,
+      "reused": false,
+      "command": "PROD inert mock"
+    },
+    {
+      "command": "worker module containment mock",
+      "passed": 9,
+      "evidence": "outputs/r053-notifications-jobs/terraform-format-recovery-evidence.json",
+      "exitCode": 0,
+      "failed": 0,
+      "reused": true
+    },
+    {
+      "command": "DEV and PROD conversation mock",
+      "passed": 10,
+      "evidence": "outputs/r053-appsheet-retirement/conversation-policy-infrastructure-evidence.json",
+      "exitCode": 0,
+      "failed": 0,
+      "reused": true
+    }
+  ],
+  "totalMockTestsPassed": 34,
+  "sourceHashes": {
+    "infrastructure/dev/read-service.tf": "17a28d5b861ac0da4271e7163703cf77f969f929cbc963759b7700f01d45ee12",
+    "infrastructure/production/runtime.tf": "e27a79cdfb30404bc04e5c6c0baa08f43a164058d440a788d2d2584eacff29b6",
+    "infrastructure/dev/cloudflare-credential.tf": "af1e48cb115d46a7b268a90cebf9e4805aa540be2694dc4a71376030e81ba841",
+    "infrastructure/dev/custom-domain.tf": "346fd4ec20768fe24a17c59c92c6485116f7ab77ce92327ad1bb8b2c16464f53",
+    "infrastructure/dev/command-identity.tf": "54c29f1277409a03e8e57f19ecdc695d4874230ed39dbeb0242400c457e79afe",
+    "infrastructure/production/business.tf": "2cebab57a1cdac17dc0e9c7ce9b2b7db4cd782be12c2013e4db42d17f85e641b",
+    "infrastructure/modules/dev-workers/main.tf": "4f247dd7dc32c09a2e006c5a471d2adc739698d8844bb245ee5bc6c7dc338c19",
+    "infrastructure/dev/owner-identity.tf": "6c7293817448d653dc1e3df8bc2b8ad7f6ad97ac30aaaad8490bbf7c2a7d5308",
+    "infrastructure/production/workers.tf": "9c0932c040f20d765312951c9a3cdf894e4e8834d3a57177b5aced704c5f43a2",
+    "infrastructure/production/delivery.tf": "cf21e928865c2a7a9f805139c2ccd87fa0ea5cc5b8fa2b04b9f7e605cf58b667",
+    "infrastructure/dev/workers.tf": "4f300c6e47eeec1bf4e0096723f9bc8a3f43aed00314bc88a53575768e79d6a9",
+    "infrastructure/dev/auth-secrets.tf": "344f9394d68dbef9ba7368d9e0be6dd7ca240251c6d4954889800ef3ec9dc3ad",
+    "infrastructure/modules/dev-workers/tests/containment.tftest.hcl": "507f151d8850efd4fafab3c3693bbe3c4a9454064475eddfdfee43ae07855b5a",
+    "infrastructure/dev/tests/agent-conversations.tftest.hcl": "11a8abeeac16a4c2b22fc3505aec829a7085fa7b3c6e5e40119559dbae617782",
+    "infrastructure/bootstrap/main.tf": "528d4803bac46f4092a2428e52a91b5a1b9078be645f6af933c28c94f1a114af",
+    "infrastructure/production-dns/main.tf": "81b2e1d78bc3b9796a4a663395221b7a149114d42879e653daa813bdb47c00c6",
+    "infrastructure/production/enrollment.tf": "215fcc6a74dc30d951dddde1022532dd66baf81b8148c8031ae5ee3816fe543d",
+    "infrastructure/production-state-bootstrap/tests/state.tftest.hcl": "6b6f846474b5cba772dcefbb3914e8bd78ab1dab4fd007501218c41757508e4a",
+    "infrastructure/dev/auth-read.tf": "45e1fb11020ee6899e2f4c60d7598b9ee0d4791d1d315a398dfb16731fb6eef8",
+    "infrastructure/production/agent-receipt-policy.tf": "d76ea6fcde419f2b5689076aceb38bf42a114bb9e0e0b86887752dd82b09a222",
+    "infrastructure/production/business-candidate.tf": "15b77a4dc2c274923907beb7ab862b61cedec5d8095b13326310fb7ee483b237",
+    "infrastructure/production-bootstrap/main.tf": "b2938317258519326d072799a87dda2de5a64a301772cec17134e289a12e34c6",
+    "infrastructure/production-bootstrap/tests/bootstrap.tftest.hcl": "776182389b9eb57b034025abca4018043627892415adbb7c49c831ccbb014799",
+    "infrastructure/dev/command-service.tf": "8094d2214eb8edcbff8f7e4e5acdced5959cb97ca4292268321912929d2a7454",
+    "infrastructure/dev/agent-conversation-policy.tf": "f74ff80682a34d34975cfc4c745ef70ab482dbd1379dceb292d8cd8d1542010f",
+    "infrastructure/production-state-bootstrap/main.tf": "0fade7ff130865b16bf6d9dad866508d85a8faffe652943ec13dc240b3201ca7",
+    "infrastructure/production/tests/inert.tftest.hcl": "bf7917cf798048ad5db117c53591fceb5e7ce4565a4a937a60e5637207e55d15",
+    "infrastructure/dev/native-receipt-catalog.tf": "da48c09ea17c8bab017e76d07f02fec545dcd757c563759d63fffbcf5bbe3d19",
+    "infrastructure/production/main.tf": "86dbcce2e384d18a15c456161c65040f12ffed6814aa6e7946c67a6fe4ee4c97",
+    "infrastructure/production/tests/agent-conversations.tftest.hcl": "09fbc1c0b0edee10ed3f5f12143c10bdd868258d2a05f456b79ae12a9b86141d",
+    "infrastructure/dev/agent-receipt-policy.tf": "09f62064e7160c8a74fde0c9fe0642e2c5eb7e4b2990bd870b4ca70de5e2e10b",
+    "infrastructure/dev/main.tf": "cb795900fd49dd1eb2eae011a2dd4bd070fa2b7782041bb744053f713afc28a3",
+    "infrastructure/production/agent-conversation-policy.tf": "f3851914af3ebe76da05e2b9ce70165f6449974aafcba748b8292fb30f1e97da",
+    "infrastructure/dev/tests/workers.tftest.hcl": "be35a27b4e976451fe6db6d62ba65d686b5c5455cf936438c6fcc697c6222a13",
+    "infrastructure/dev-dns/main.tf": "519f505879efe6e4bb74ab84b374f9f1a21857e9889a91d5f8c944fdce63760e"
+  },
+  "notes": "15 tests rerun; 19 prior passing tests reused after recorded source hash verification. Existing dirty dev/main.tf preserved.",
+  "sourceCommit": "1bc08f3e171d043a5a3ca01335d3746113c68cb2",
+  "recordedAtUtc": "2026-10-12T03:52:34.4114939Z"
+}

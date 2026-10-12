@@ -1,0 +1,11 @@
+{
+  "image": "sha256:04ecadbd8cd841302b5285d43c9e3471190bccc1a003ee6e3e4d37fc7456e70e",
+  "build": "3996f956-5f86-4979-8436-cb872729c8d7",
+  "revision": "mw-credit-app-read-dev-00009-5x5",
+  "source": "838561430faefdbf128ea2e802992e590e6352b6",
+  "domain": "dev-lm.mw-credit.com",
+  "dnsStatus": "pending owner private token provisioning",
+  "rollback": "API00008-9fw image0b5352a9…dd0d8 and singular ALLOWED_WEB_ORIGIN web.app paired",
+  "hostingUnchanged": "dacf7a53b31f09b0",
+  "ci": "https://github.com/welct0407/MW-Credit-App/actions/runs/37660003633"
+}

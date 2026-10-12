@@ -1,16 +1,16 @@
-param([Parameter(Mandatory)][string]$PgBin,[Parameter(Mandatory)][int]$Port,[Parameter(Mandatory)][string]$OutputDirectory)
+param([Parameter(Mandatory)][string]$PgBin,[Parameter(Mandatory)][int]$Port,[Parameter(Mandatory)][string]$OutputDirectory,[ValidateSet('postgres','loan_manager_dev','payment_rehearsal')][string]$Database='postgres')
 $ErrorActionPreference='Stop'
 $psql=Join-Path $PgBin 'psql.exe'
 # Deliberately loopback-only; called by the disposable migration runner.
 function Invoke-LocalSql([string]$Sql){
- $Sql | & $psql -X -q -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d postgres
+ $Sql | & $psql -X -q -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d $Database
  if($LASTEXITCODE){throw 'R008 local fixture/assertion failed'}
 }
 function Test-R008Race([string]$Name,[string]$First,[string]$Second,[string]$Expected,[string]$Check){
  $file=Join-Path $OutputDirectory "r008-$Name.sql"
  [IO.File]::WriteAllText($file,"BEGIN;`n$First;`n\echo R008_LOCK_READY`nSELECT pg_sleep(3);`nCOMMIT;",[Text.UTF8Encoding]::new($false))
  $out=Join-Path $OutputDirectory "r008-$Name.out"; $err=Join-Path $OutputDirectory "r008-$Name.err"
- $proc=Start-Process $psql -ArgumentList @('-X','-v','ON_ERROR_STOP=1','-h','127.0.0.1','-p',"$Port",'-U','postgres','-d','postgres','-f',('"'+$file+'"')) -WindowStyle Hidden -PassThru -RedirectStandardOutput $out -RedirectStandardError $err
+ $proc=Start-Process $psql -ArgumentList @('-X','-v','ON_ERROR_STOP=1','-h','127.0.0.1','-p',"$Port",'-U','postgres','-d',$Database,'-f',('"'+$file+'"')) -WindowStyle Hidden -PassThru -RedirectStandardOutput $out -RedirectStandardError $err
  try{
   $deadline=[DateTime]::UtcNow.AddSeconds(10)
   while(-not((Get-Content $out -Raw -ErrorAction SilentlyContinue)-match 'R008_LOCK_READY')){
@@ -18,7 +18,7 @@ function Test-R008Race([string]$Name,[string]$First,[string]$Second,[string]$Exp
    Start-Sleep -Milliseconds 50
   }
   $timer=[Diagnostics.Stopwatch]::StartNew()
-  $result=("SET statement_timeout='8s';`n"+$Second) | & $psql -X -q -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d postgres 2>&1
+  $result=("SET statement_timeout='8s';`n"+$Second) | & $psql -X -q -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d $Database 2>&1
   $timer.Stop()
   if($LASTEXITCODE -eq 0 -or ($result -join "`n") -notmatch $Expected){throw "R008 $Name did not reject competing write as expected: $result"}
   $proc.WaitForExit();if($proc.ExitCode){throw "R008 $Name first transaction failed"}

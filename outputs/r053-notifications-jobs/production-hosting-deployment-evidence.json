@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "sourceCommit": "dc4e75de24c99b5217c2895066957862a72e2cbb",
+  "site": "mw-credit-prod-737787224638",
+  "version": "sites/mw-credit-prod-737787224638/versions/936affb987431783",
+  "release": "sites/mw-credit-prod-737787224638/releases/1791748994309000",
+  "publicVersion": "eb326b5d1df3862b9c524a64",
+  "fileCount": 14,
+  "cacheControl": "no-store",
+  "approvalReference": "Owner 12 October 2026: run CI, fix any issue, then promote to prod"
+}

@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 1,
+  "environment": "production",
+  "database": "loan_manager_prod",
+  "role": "mw-credit-app-read-prod@clever-oasis-508610-n7.iam",
+  "columnSelect": {
+    "Borrowers": [
+      "Row ID",
+      "Borrower Name",
+      "Creation Date",
+      "Hidden Flag",
+      "Total Outstanding Principal",
+      "Has Active Loan",
+      "Borrower Note",
+      "Description",
+      "Total Interest Earned"
+    ],
+    "Partners": [
+      "Row ID",
+      "Login Email",
+      "Partner Role"
+    ],
+    "Charges": [
+      "Row ID",
+      "Ref Loans",
+      "Charge Date",
+      "Payment Status",
+      "Payment Date",
+      "Amount Remaining",
+      "Total Paid"
+    ],
+    "Repayments": [
+      "Ref Charges",
+      "Payment Date",
+      "Principal Paid",
+      "Interest Paid"
+    ],
+    "Loans": [
+      "Row ID",
+      "Ref Borrowers",
+      "Loan Date",
+      "Due Date",
+      "Close Date",
+      "Loan Type",
+      "Loan Status",
+      "Principal Amount",
+      "Outstanding Principal",
+      "Total Principal Received",
+      "Total Interest Received",
+      "Total Amount Received",
+      "Defaulted",
+      "Auto Charge Enabled",
+      "Original Daily Interest Rate"
+    ],
+    "oltp_upcoming_charge_summary_v2": [
+      "Row ID",
+      "Ref Borrower",
+      "Due Date",
+      "Total Charge",
+      "As Of Date"
+    ],
+    "oltp_upcoming_charge_events_v1": [
+      "Row ID",
+      "Ref Borrower",
+      "Ref Loan",
+      "Due Date",
+      "Principal Remaining",
+      "Interest Remaining",
+      "Amount Remaining",
+      "Basis",
+      "As Of Date",
+      "Borrower Due Date Rank"
+    ],
+    "oltp_upcoming_charge_coverage_v1": [
+      "Ref Borrower",
+      "As Of Date",
+      "Horizon End",
+      "Review Loans"
+    ]
+  },
+  "requiredFunctionExecute": [
+    "public.forecast_schedule_v1(jsonb,jsonb,date,date)",
+    "public.olap_reporting_date()"
+  ],
+  "databaseSettings": {
+    "default_transaction_read_only": "on",
+    "statement_timeout": "5s"
+  },
+  "applicationMembership": false,
+  "journalOwnerMembership": false,
+  "schemaCreate": false,
+  "businessDml": false,
+  "sourceCommit": "b40c69526bc40b2ef3f6ab6b631df8c51695c921",
+  "productionDependency": "services/production/business-policy.mjs requires Partners.Partner Role; DEV contract remains unchanged"
+}

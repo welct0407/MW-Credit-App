@@ -1,0 +1,18 @@
+[
+  {
+    "width": 1440,
+    "paidChargeFreshGet": 1,
+    "editAvailableAtZero": true,
+    "exactFields": true,
+    "backToCollectionCharges": true,
+    "posts": 0
+  },
+  {
+    "width": 320,
+    "paidChargeFreshGet": 1,
+    "editAvailableAtZero": true,
+    "exactFields": true,
+    "backToCollectionCharges": true,
+    "posts": 0
+  }
+]

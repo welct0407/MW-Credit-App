@@ -2,7 +2,7 @@
 param([ValidateSet('development','production')][string]$Environment='development')
 . "$PSScriptRoot/Common.ps1"
 $target=Get-DbEnvironment $Environment
-$private='C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r004-20260917'
+$private='C:/Users/ideaadmin/Documents/ChatGPT/AppSheet-Loan-Project/r004-20260917'
 New-Item -ItemType Directory -Force -Path $private | Out-Null
 $dump=Join-Path $private "$Environment-before.dump"
 if(Test-Path $dump){throw 'R004 snapshot already exists; do not overwrite'}

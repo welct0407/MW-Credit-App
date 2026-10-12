@@ -1,0 +1,10 @@
+import http from 'node:http';
+import { initializeApp, applicationDefault } from 'firebase-admin/app';
+import { getAuth } from 'firebase-admin/auth';
+import { createProductionFoundationRuntime } from './runtime.mjs';
+const handler = createProductionFoundationRuntime(process.env, { initializeApp, applicationDefault, getAuth, completionLogger: record => console.log(JSON.stringify(record)) });
+const server = http.createServer(handler);
+server.requestTimeout = 15000;
+server.headersTimeout = 10000;
+server.listen(Number(process.env.PORT || 8080), '0.0.0.0');
+process.on('SIGTERM', () => server.close(() => process.exit(0)));

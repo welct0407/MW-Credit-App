@@ -1,0 +1,13 @@
+{
+  "sourceCommit": "bb3ac5ce3fc87bacdc7827ec75a1d3378c064027",
+  "ci": "https://github.com/welct0407/MW-Credit-App/actions/runs/37704697997",
+  "ciConclusion": "success",
+  "hostingVersion": "b11661ef7a7a3d77",
+  "hostingRelease": "1791417424598000",
+  "javascript": "index-DlD64PWM.js",
+  "workerSha256": "19c7faf1e390457122e3a3924c820fa313e3db419df56af0ed3f203c17d9ea43",
+  "rollbackHosting": "6a5b8f75b50f4537",
+  "apiRevisionUnchanged": "00009-5x5",
+  "liveCheck": "Passed: canonical/fallback exact new JavaScript and worker hash/no-store; unsigned UI, canonical registration and fallback none, zero API requests/records.",
+  "ownerCheck": "Use explicit Update/reload, then verify Collection load completion in iPhone Safari/installed app; pending"
+}

@@ -1,0 +1,24 @@
+{
+  "schemaGrantor": "pg_database_owner",
+  "helperSha256": "a546d5cf1f0f54e6697920efb766663d577b074eb9646111c8ae68fcb5b80c3f",
+  "localLogin": "postgres, actual NOSUPERUSER CREATEROLE CREATEDB",
+  "success": {
+    "restorePrecommitDriftRollback": true,
+    "unrelatedGrantorPreserved": true,
+    "actualFlyway": "V79 to V80",
+    "passed": 8,
+    "checks": 8,
+    "repeatedRestoreNoOp": true,
+    "exactBaselineRestore": true,
+    "command": "pwsh -NoProfile -File scripts/rehearsal/Run-ApplicationRoleOperatorProof.ps1 -MaintenanceProof"
+  },
+  "failure": {
+    "command": "pwsh -NoProfile -File scripts/rehearsal/Run-ApplicationRoleOperatorProof.ps1 -MaintenanceFailureProof",
+    "preparePrecommitDriftRollback": true,
+    "sqlFailureCleanup": true,
+    "exactBaselineRestore": true,
+    "checks": 7,
+    "passed": 7
+  },
+  "boundary": "Loopback-only disposable PostgreSQL18; not proof of CloudSQL extension behavior; no live mutation."
+}

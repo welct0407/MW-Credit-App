@@ -6,7 +6,7 @@ never uses the historical static cleanup list as complete runtime inventory.
 import json
 import sys
 from pathlib import Path
-sys.path.insert(0, r'C:\Users\MWCredit\AppData\Local\AppSheetLoanTools\python-deps')
+sys.path.insert(0, r'C:\Users\ideaadmin\AppData\Local\AppSheetLoanTools\python-deps')
 import psycopg
 from psycopg import sql
 from R051UiAdditionalFixtures import rows, keys, setup
@@ -16,7 +16,7 @@ assert mode in ('readback', 'cleanup')
 repo = Path(__file__).resolve().parents[2]
 target = json.loads((repo / 'database/environments.json').read_text())['development']
 assert (target['instance'], target['host'], target['database']) == ('appsheet-pg-prod-20260914', '34.21.174.215', 'loan_manager_dev')
-private = Path('C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r051-receipt-corrections')
+private = Path('C:/Users/ideaadmin/Documents/ChatGPT/AppSheet-Loan-Project/r051-receipt-corrections')
 inventory = private / 'vm01-original-readback.json'
 state = private / 'vm01-original-cleanup.json'
 borrower = 'SYN-R051-UI-B'

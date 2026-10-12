@@ -1,0 +1,16 @@
+{
+  "baseline": "e9281e9075b33995bc51ce4233c977ffe06f1a01",
+  "scope": "27 deterministic synthetic borrowers; mocked response boundary, not live SQL",
+  "requests": [
+    "/api/borrowers?limit=25",
+    "/api/borrowers?limit=25&cursor=cm93LTI1"
+  ],
+  "firstPageCount": 25,
+  "secondPageCount": 2,
+  "secondPageLabels": [
+    "Synthetic Borrower 26row-26No active loanTHB 100Principal outstanding",
+    "Synthetic Borrower 27row-27No active loanTHB 100Principal outstanding"
+  ],
+  "nextDisabled": true,
+  "finding": "Old UI forwards returned cursor and changes rows correctly in this controlled reproduction. This does not establish cause of owner-reported live failure."
+}

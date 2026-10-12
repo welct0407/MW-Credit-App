@@ -5,7 +5,7 @@
     "port": 5432,
     "database": "loan_manager_dev",
     "user": "postgres",
-    "passwordFile": "C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/cloud-sql-poc-postgres-password.txt"
+    "passwordFile": "C:/Users/ideaadmin/Documents/ChatGPT/AppSheet-Loan-Project/cloud-sql-poc-postgres-password.txt"
   },
   "production": {
     "instance": "appsheet-pg-prod-20260914",
@@ -13,6 +13,6 @@
     "port": 5432,
     "database": "loan_manager_prod",
     "user": "postgres",
-    "passwordFile": "C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/cloud-sql-poc-postgres-password.txt"
+    "passwordFile": "C:/Users/ideaadmin/Documents/ChatGPT/AppSheet-Loan-Project/cloud-sql-poc-postgres-password.txt"
   }
 }

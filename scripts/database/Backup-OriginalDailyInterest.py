@@ -10,7 +10,7 @@ repo=Path(__file__).resolve().parents[2]
 target=json.loads((repo/'database/environments.json').read_text())['development']
 assert (target['instance'],target['host'],target['database'])==('appsheet-pg-prod-20260914','34.21.174.215','loan_manager_dev')
 stamp=datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')
-folder=Path('C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r048-loan-interest')/stamp
+folder=Path('C:/Users/ideaadmin/Documents/ChatGPT/AppSheet-Loan-Project/r048-loan-interest')/stamp
 folder.mkdir(parents=True,exist_ok=False)
 out=repo/'outputs/r048-loan-interest';out.mkdir(parents=True,exist_ok=True)
 pgbin=Path(os.environ['LOCALAPPDATA'])/'AppSheetLoanTools/postgresql-18.6-3/pgsql/bin'

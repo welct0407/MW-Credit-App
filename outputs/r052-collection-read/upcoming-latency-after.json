@@ -1,0 +1,73 @@
+{
+  "measurement": "Existing operator SQL/source timing, not runtime IAM/API/auth/network/coldstart proof",
+  "sample": "Same selection protocol; one private eligible parent/date, identity not retained so exact same-parent equivalence not asserted",
+  "temperature": "Sequential same connection after selection; cache warmth uncontrolled",
+  "reports": [
+    {
+      "mode": "summary",
+      "sourceQueryCount": 5,
+      "totalSourceAndCommitMs": 672.52,
+      "resultKind": "success",
+      "stages": [
+        {
+          "stage": "clock",
+          "ms": 3.3,
+          "rowCount": 1
+        },
+        {
+          "stage": "quality",
+          "ms": 5.52,
+          "rowCount": 1
+        },
+        {
+          "stage": "membership",
+          "ms": 4.93,
+          "rowCount": 1
+        },
+        {
+          "stage": "coverage",
+          "ms": 146.03,
+          "rowCount": 1
+        },
+        {
+          "stage": "snapshot",
+          "ms": 478.6,
+          "rowCount": 1
+        }
+      ]
+    },
+    {
+      "mode": "detail",
+      "sourceQueryCount": 5,
+      "totalSourceAndCommitMs": 476.14,
+      "resultKind": "success",
+      "stages": [
+        {
+          "stage": "clock",
+          "ms": 3.25,
+          "rowCount": 1
+        },
+        {
+          "stage": "quality",
+          "ms": 5.71,
+          "rowCount": 1
+        },
+        {
+          "stage": "membership",
+          "ms": 4.9,
+          "rowCount": 1
+        },
+        {
+          "stage": "coverage",
+          "ms": 146.69,
+          "rowCount": 1
+        },
+        {
+          "stage": "snapshot",
+          "ms": 311.63,
+          "rowCount": 1
+        }
+      ]
+    }
+  ]
+}

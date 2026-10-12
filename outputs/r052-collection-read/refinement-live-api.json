@@ -1,0 +1,56 @@
+{
+  "checkedAt": "2026-10-07T15:50:44.142Z",
+  "revision": "mw-credit-app-read-dev-00007-st5",
+  "scope": "Unsigned or deliberately invalid synthetic token only; no owner/business read",
+  "results": [
+    {
+      "name": "health",
+      "status": 200,
+      "cacheControl": "no-store",
+      "allowOrigin": null,
+      "body": "{\"status\":\"ok\",\"environment\":\"dev\",\"service\":\"borrower-read\"}"
+    },
+    {
+      "name": "unsigned Upcoming summary",
+      "status": 401,
+      "cacheControl": "no-store",
+      "allowOrigin": null,
+      "body": "{\"ok\":false,\"code\":\"sign_in_required\"}"
+    },
+    {
+      "name": "unsigned Upcoming detail",
+      "status": 401,
+      "cacheControl": "no-store",
+      "allowOrigin": null,
+      "body": "{\"ok\":false,\"code\":\"sign_in_required\"}"
+    },
+    {
+      "name": "invalid synthetic token",
+      "status": 401,
+      "cacheControl": "no-store",
+      "allowOrigin": null,
+      "body": "{\"ok\":false,\"code\":\"session_invalid\"}"
+    },
+    {
+      "name": "write method",
+      "status": 405,
+      "cacheControl": "no-store",
+      "allowOrigin": null,
+      "body": "{\"ok\":false,\"code\":\"method_not_allowed\"}"
+    },
+    {
+      "name": "wrong origin",
+      "status": 403,
+      "cacheControl": "no-store",
+      "allowOrigin": null,
+      "body": "{\"ok\":false,\"code\":\"origin_denied\"}"
+    },
+    {
+      "name": "exact origin preflight",
+      "status": 204,
+      "cacheControl": "no-store",
+      "allowOrigin": "https://mw-credit-app-dev-737787224638.web.app",
+      "body": ""
+    }
+  ]
+}

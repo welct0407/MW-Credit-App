@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "environment": "prod",
+  "status": "current-reference-set-verified",
+  "observedAt": "2026-10-11T19:07:28.684306+07:00",
+  "referenceCount": 35,
+  "catalogCount": 35,
+  "catalogSha256": "d4ff54e8006aea4ba3bf6101f6c048fd236297c9733ab0ce835e5685cbec5974",
+  "snapshotSha256": "b1e588a856d09446db391072997826a6d337e475311179725ebada7fda555e4b",
+  "refreshAtCutoverRequired": true,
+  "effects": "Read-only current key/reference comparison; no storage or SQL writes"
+}

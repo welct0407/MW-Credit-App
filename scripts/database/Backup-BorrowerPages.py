@@ -15,7 +15,7 @@ parser.add_argument('--rehearse-pages',action='store_true')
 args=parser.parse_args()
 repo=Path(__file__).resolve().parents[2]
 assert args.release == 'r035-borrower-pages'
-private=Path('C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project')/args.release
+private=Path('C:/Users/ideaadmin/Documents/ChatGPT/AppSheet-Loan-Project')/args.release
 private.mkdir(parents=True,exist_ok=True)
 out=repo/'outputs'/args.release;out.mkdir(parents=True,exist_ok=True)
 target=json.loads((repo/'database/environments.json').read_text())[args.environment]

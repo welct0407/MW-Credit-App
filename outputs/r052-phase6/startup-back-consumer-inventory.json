@@ -1,0 +1,154 @@
+{
+  "scope": "All current HeaderBack consumer families; actual paths plus explicitly reviewed conditional delegates, not exhaustive financial workflows",
+  "viewport": [
+    "1440x956 desktop",
+    "440x956 Pro Max representative"
+  ],
+  "consumers": [
+    {
+      "file": "apps/pwa/src/BorrowerPayments.tsx",
+      "sha256": "B24B9C1520564E3A5907F50AF228210736D1DBF6E98DD73C5FFE0CE2A929E115",
+      "coverage": "Actual consumer/component or its identical shared form/confirmation delegate exercised; loading/error/list/root branch reviewed"
+    },
+    {
+      "file": "apps/pwa/src/ChargeRecord.tsx",
+      "sha256": "6776B547051B1B37001307518885948D1E60E0B0F8855F7FD1FD16218B330ECD",
+      "coverage": "Actual consumer/component or its identical shared form/confirmation delegate exercised; loading/error/list/root branch reviewed"
+    },
+    {
+      "file": "apps/pwa/src/ChargeForm.tsx",
+      "sha256": "764524620E36B7C969969FEBCE3422BEF145CC2819C316B4743793E851F68547",
+      "coverage": "Actual consumer/component or its identical shared form/confirmation delegate exercised; loading/error/list/root branch reviewed"
+    },
+    {
+      "file": "apps/pwa/src/CollectionRecords.tsx",
+      "sha256": "60AFD2B5C53252BFD3BBAD0DEEA5039B399963D9BDB7A7C874A6B8AAA25780F8",
+      "coverage": "Actual consumer/component or its identical shared form/confirmation delegate exercised; loading/error/list/root branch reviewed"
+    },
+    {
+      "file": "apps/pwa/src/BorrowerRecord.tsx",
+      "sha256": "970D6D31C26E06738321442E9B6A18E050DA04413944B65E461221F322394B1F",
+      "coverage": "Actual consumer/component or its identical shared form/confirmation delegate exercised; loading/error/list/root branch reviewed"
+    },
+    {
+      "file": "apps/pwa/src/ExpenseRecords.tsx",
+      "sha256": "4535CEBA8047122C45C79CD47B4424CA935FD0E856A89E97AD6A2A863F435A17",
+      "coverage": "Actual consumer/component or its identical shared form/confirmation delegate exercised; loading/error/list/root branch reviewed"
+    },
+    {
+      "file": "apps/pwa/src/live-main.tsx",
+      "sha256": "9AE46901389389E632480E176188D5DD75D76B8CAD88FB67CD2249C17BE0657A",
+      "coverage": "Shared registry search precedence and restored SDK startup proof; conditional source branch review"
+    },
+    {
+      "file": "apps/pwa/src/LoanForm.tsx",
+      "sha256": "7DF26CA9C4C20E1F705D3D72DAC9EC977E6B2974412D7118B06D087F8A84CE34",
+      "coverage": "Actual consumer/component or its identical shared form/confirmation delegate exercised; loading/error/list/root branch reviewed"
+    },
+    {
+      "file": "apps/pwa/src/LoanClose.tsx",
+      "sha256": "C9F170512EFC4BAA4C23E0AA917207BAB7DF13B90ADE74CA84E377E029CA00A4",
+      "coverage": "Actual consumer/component or its identical shared form/confirmation delegate exercised; loading/error/list/root branch reviewed"
+    },
+    {
+      "file": "apps/pwa/src/LoanRecord.tsx",
+      "sha256": "05446A8077771818CE2537410B5730B11FABFD22EC3A3A01532099D9423805D9",
+      "coverage": "Actual consumer/component or its identical shared form/confirmation delegate exercised; loading/error/list/root branch reviewed"
+    },
+    {
+      "file": "apps/pwa/src/LoanRecords.tsx",
+      "sha256": "C65A387A1A74073EAA27073685968C8C72C3B4E024700502D4BD181915B56EBB",
+      "coverage": "Actual consumer/component or its identical shared form/confirmation delegate exercised; loading/error/list/root branch reviewed"
+    },
+    {
+      "file": "apps/pwa/src/ManagementAnalytics.tsx",
+      "sha256": "AD99A839411612797BDD897D6D9CF74FF4490112B3644EA232D18C104B98F7CC",
+      "coverage": "Actual consumer/component or its identical shared form/confirmation delegate exercised; loading/error/list/root branch reviewed"
+    },
+    {
+      "file": "apps/pwa/src/ManagementAssessments.tsx",
+      "sha256": "A7271D9B2518E2BFD3ED29EF959A0F38ECC20A281A22FEF0CA62B9F212BF46A3",
+      "coverage": "Actual consumer/component or its identical shared form/confirmation delegate exercised; loading/error/list/root branch reviewed"
+    },
+    {
+      "file": "apps/pwa/src/ManagementCash.tsx",
+      "sha256": "01286BD19B33ED91CFDC49D94179A1FD9E32996FBA9454E08E584F00F9FE70E7",
+      "coverage": "Actual consumer/component or its identical shared form/confirmation delegate exercised; loading/error/list/root branch reviewed"
+    },
+    {
+      "file": "apps/pwa/src/ManagementFinancialForm.tsx",
+      "sha256": "0D7C3DEBF7286F177005A682D44B8D030A5EAD2B2420D62183B02A8CCDF6D528",
+      "coverage": "Actual consumer/component or its identical shared form/confirmation delegate exercised; loading/error/list/root branch reviewed"
+    },
+    {
+      "file": "apps/pwa/src/ManagementFinancialWorkspace.tsx",
+      "sha256": "3BDC3E60B84C01B7CEAA4C70C211726FB6481E5DD46D7EB0886EF924E94D6F58",
+      "coverage": "Actual consumer/component or its identical shared form/confirmation delegate exercised; loading/error/list/root branch reviewed"
+    },
+    {
+      "file": "apps/pwa/src/ManagementOpenings.tsx",
+      "sha256": "8265D85417E966581E77DA496C23DF53E9910A71A9D30281F7009AACD3C41E76",
+      "coverage": "Actual consumer/component or its identical shared form/confirmation delegate exercised; loading/error/list/root branch reviewed"
+    },
+    {
+      "file": "apps/pwa/src/ManagementForm.tsx",
+      "sha256": "780B1A044AA9DFD6E47675E40F0C973456C1E5435BA849993A212205109C156F",
+      "coverage": "Actual consumer/component or its identical shared form/confirmation delegate exercised; loading/error/list/root branch reviewed"
+    },
+    {
+      "file": "apps/pwa/src/ManagementWorkspace.tsx",
+      "sha256": "504E07F22F7C4AD3B2F2B03A3A65B59541AA39249FEF253E2304E8D6DA9BE111",
+      "coverage": "Actual consumer/component or its identical shared form/confirmation delegate exercised; loading/error/list/root branch reviewed"
+    },
+    {
+      "file": "apps/pwa/src/OfflinePayments.tsx",
+      "sha256": "7CB4CB61002390ADEB64480C0DD60CE4345AE51EF82D59DA3115730AB7650287",
+      "coverage": "Actual consumer/component or its identical shared form/confirmation delegate exercised; loading/error/list/root branch reviewed"
+    },
+    {
+      "file": "apps/pwa/src/OfflineViewedRecord.tsx",
+      "sha256": "97C7576F562F3484A3A9FBEAED5ADAEEBE2625E595A63D4C1DB556F99DB24E02",
+      "coverage": "Actual consumer/component or its identical shared form/confirmation delegate exercised; loading/error/list/root branch reviewed"
+    },
+    {
+      "file": "apps/pwa/src/OperationConfirm.tsx",
+      "sha256": "6CA4AE7E2DA0041CB8960692163EB680B4911E7175DAB680127A2C042E654EA7",
+      "coverage": "Actual consumer/component or its identical shared form/confirmation delegate exercised; loading/error/list/root branch reviewed"
+    },
+    {
+      "file": "apps/pwa/src/PaymentCorrectionForm.tsx",
+      "sha256": "B8663EF085313BF2FC1E974FD4B740730E5CB1EACFAAC81A6A1D37B7BE550857",
+      "coverage": "Actual consumer/component or its identical shared form/confirmation delegate exercised; loading/error/list/root branch reviewed"
+    },
+    {
+      "file": "apps/pwa/src/PaymentRecord.tsx",
+      "sha256": "56FC380FFBC638DC4BA663E2EBD0AB6DB3F16A41138DDB249C469B4D5A5A5ADA",
+      "coverage": "Actual consumer/component or its identical shared form/confirmation delegate exercised; loading/error/list/root branch reviewed"
+    },
+    {
+      "file": "apps/pwa/src/PaymentHistory.tsx",
+      "sha256": "4C0478F5BEDF92432A30C9982FC14D64D6FEBC4E94113B369061888932CD271C",
+      "coverage": "Actual consumer/component or its identical shared form/confirmation delegate exercised; loading/error/list/root branch reviewed"
+    },
+    {
+      "file": "apps/pwa/src/StandaloneRecords.tsx",
+      "sha256": "BEB0AA6351E280B382B5351BF690D002EAC6E1446E4533F29BA9A171FB7EAA3F",
+      "coverage": "Actual consumer/component or its identical shared form/confirmation delegate exercised; loading/error/list/root branch reviewed"
+    },
+    {
+      "file": "apps/pwa/src/SelectedCharges.tsx",
+      "sha256": "4FCE527354ED3A1D868E8394FC814A35092AA3BCD199A388011BDED5E83EDD34",
+      "coverage": "Actual consumer/component or its identical shared form/confirmation delegate exercised; loading/error/list/root branch reviewed"
+    },
+    {
+      "file": "apps/pwa/src/UpcomingCharges.tsx",
+      "sha256": "6D0D1ADD3B8F551EF4F7E40A9D38D3032CA8B4BBD43B61E308316D4B06221E5A",
+      "coverage": "Actual consumer/component or its identical shared form/confirmation delegate exercised; loading/error/list/root branch reviewed"
+    },
+    {
+      "file": "apps/pwa/src/StandaloneUpcoming.tsx",
+      "sha256": "08A51906D47EB4AB90F6AA518F54C924A7CC6456110B27B188C45D592B67EB81",
+      "coverage": "Actual consumer/component or its identical shared form/confirmation delegate exercised; loading/error/list/root branch reviewed"
+    }
+  ]
+}

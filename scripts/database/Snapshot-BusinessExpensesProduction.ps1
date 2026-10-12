@@ -3,7 +3,7 @@ param()
 . "$PSScriptRoot/Common.ps1"
 $target=Get-DbEnvironment production
 if($target.host -ne '34.21.174.215'){throw 'Reviewed production host required'}
-$private='C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/business-expenses-production-20260916'
+$private='C:/Users/ideaadmin/Documents/ChatGPT/AppSheet-Loan-Project/business-expenses-production-20260916'
 New-Item -ItemType Directory -Force -Path $private | Out-Null
 $dump=Join-Path $private 'production-before.dump'
 if(Test-Path -LiteralPath $dump){throw 'Do not overwrite the production rollback snapshot'}
@@ -11,7 +11,7 @@ if(Test-Path -LiteralPath $dump){throw 'Do not overwrite the production rollback
 $schema=& "$PSScriptRoot/Export-Schema.ps1" -Environment production
 $normalized=Join-Path $private 'schema-before.normalized.sql'
 & "$PSScriptRoot/Normalize-Schema.ps1" -InputFile $schema -OutputFile $normalized
-$reviewed='C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/business-expenses-20260916/schema-before.normalized.sql'
+$reviewed='C:/Users/ideaadmin/Documents/ChatGPT/AppSheet-Loan-Project/business-expenses-20260916/schema-before.normalized.sql'
 if(-not(Test-Path -LiteralPath $reviewed)){throw 'Reviewed development V14 schema is unavailable'}
 if((Get-FileHash $normalized).Hash -ne (Get-FileHash $reviewed).Hash){throw 'Production schema drifted from the reviewed V14 pre-release schema'}
 $prior=@{};foreach($name in @('PGPASSWORD','PGSSLMODE','PGCONNECT_TIMEOUT')){$prior[$name]=[Environment]::GetEnvironmentVariable($name,'Process')}

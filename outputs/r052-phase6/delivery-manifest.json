@@ -1,0 +1,713 @@
+{
+  "release": "R052",
+  "status": "implemented, verified and deployed in DEV; Phase5 and6 owner-verified/accepted11October2026; Phase3 readiness preparation in progress",
+  "sourceCommit": "44682ad5e055e2d09cd44369625fb28877d0e707",
+  "productCommit": "19263a536332f54f64a46e69ecf9fdcc75bd1209",
+  "backendArtifactCommit": "ba850002783dddd287e015e461c57571dda9cf0f",
+  "backendImage": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app/api@sha256:af1dfc44737a082239c21431341e679aced741c18e51032d499a1ebcba1f904d",
+  "frontendBundle": "index-CN0TdzFd.js",
+  "migration": {
+    "version": 85,
+    "sha256": "3c0833004bfbea3d74354365637cddf1ed02dac5bcf963b4f2a0f6e4810ccd92"
+  },
+  "validation": {
+    "fullBrowser": {
+      "source": "44682ad5e055e2d09cd44369625fb28877d0e707",
+      "run": 38108172618,
+      "status": "passed",
+      "passed": 271,
+      "failed": 0,
+      "existingSkipped": 9
+    },
+    "unit": {
+      "passed": 192,
+      "failed": 0,
+      "skipped": 0
+    },
+    "database": {
+      "run": 38108165703,
+      "status": "passed",
+      "scope": "Disposable rebuild/integration/runner checks only; no live database mutation"
+    },
+    "buildAuditTerraform": "passed build/unit/audit/fmt/DEV and DEV-DNS validation",
+    "reuse": "Backend ba850002 exact Docker/package/service inputs match44682ad; configured frontend19263a5 exact apps/build/config/deploy inputs match44682ad. Final evidence is documentation-only."
+  },
+  "limitations": [
+    "Unknown/new native AppSheet receipt references require exact trusted reconciliation; only two closed native descriptors established.",
+    "Owner accepted Phase5/6; no particular physical device or device-specific test result was stated. Browser evidence retains its recorded limits.",
+    "No PROD, notifications or live financial test writes."
+  ],
+  "deployment": {
+    "databaseVersion": 85,
+    "readerRevision": "mw-credit-app-read-dev-00016-k4l",
+    "commandRevision": "mw-credit-app-command-dev-00017-q5n",
+    "image": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app/api@sha256:af1dfc44737a082239c21431341e679aced741c18e51032d499a1ebcba1f904d",
+    "catalogSecret": "mw-credit-app-dev-native-receipt-catalog",
+    "catalogVersion": 1,
+    "ready": "latestReady100% both; DEV instance/database/existing SAs verified",
+    "hostingVersion": "300fa698bebf6de5",
+    "hostingRelease": "1791689656191000",
+    "frontendBundle": "index-CN0TdzFd.js",
+    "publicVersion": "33577e39b896de7ad5ca6a62",
+    "configuredCompiledGuard": "passed12files",
+    "publicReadback": "Canonical marker/worker/index/manifest HTTP200,no-store; exact entry/version and MIME",
+    "ownerSessionSmoke": "Root fresh authenticated read-only GUI: exact script, Dashboard startup finished, Borrowers/Collection enabledRefresh/noLoading/noRetry; existing synthetic Posted manual receipt complete600x800,zero alerts. No writes/media export."
+  },
+  "recovery": {
+    "completedAt": "2026-10-10T03:03:33.4479504+07:00",
+    "version": 84,
+    "archiveListing": "passed",
+    "ownedRestore": "passed",
+    "privateOutsideGit": true,
+    "rollback": {
+      "commandRevision": "mw-credit-app-command-dev-00012-5cj",
+      "hostingVersion": "932f1c91b20e7f67",
+      "frontendBundle": "index-CHuqnyVx.js",
+      "policy": "App rollback does not undo SQL/financial data. Preserve journal/audit and V85-compatible recovery; do not delete initialized cutover rows."
+    }
+  },
+  "checkpointLabel": "removed after full proof",
+  "publication": "Final evidence commit is documentation-only; application artifacts remain pinned above.",
+  "mobileOlap": {
+    "ownerRevision": "2026-10-10",
+    "sourceCommit": "2fb807903a5042927f582b42ee4d8b99601fb664",
+    "scope": "All existing Management workflows mobile and desktop; same APIs and authorization",
+    "target": "iPhone16/17/18 Pro Max only; no assumed iPhone18 dimensions",
+    "validation": "Type/build and compiled DEV guard passed; C 440x956 Chromium portrait representative visual/read PASS, zero POST; no CI requested",
+    "hostingVersion": "e58a2cb8f52967fe",
+    "hostingRelease": "1791587270355000",
+    "frontendBundle": "index-DzT32uER.js",
+    "rollbackHostingVersion": "fe54464c7cf5a0b5",
+    "limitations": "Landscape, expanded-table interaction and physical Safari/device acceptance not separately tested; native receipt limitations unchanged"
+  },
+  "partnersUi": {
+    "sourceCommit": "ab4eb7f86ede97205dd7e0347fb671ebba21239c",
+    "scope": "Responsive Partner cards/detail Back preservation and additive existing-source list metrics",
+    "validation": "B type/build plus focused adapter2/2 passed; C440x956 focused navigation/visual PASS, zero POST; no CI requested",
+    "commandBuild": "e1d4f592-c9ff-454f-ac69-4e62b048c8e6",
+    "commandImage": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app/api@sha256:2940fc339d6621e5769ac33c0095e0c5aac6926a44698c9a459eff84ef270d1e",
+    "commandRevision": "mw-credit-app-command-dev-00014-zxj",
+    "runtimeSpecUnchangedExceptImage": true,
+    "frontendBundle": "index--YK4pv5X.js",
+    "hostingVersion": "b3a48677dee858cc",
+    "hostingRelease": "1791635175415000",
+    "configuredGuard": "passed",
+    "plan": "0 add,1 command image update,0 destroy",
+    "rollback": {
+      "commandRevision": "mw-credit-app-command-dev-00013-f84",
+      "commandImage": "sha256:bea30b8bcd86956fc4cfb37c92f32a0254968812de15d28d9ed7b11861620a73",
+      "hostingVersion": "e58a2cb8f52967fe",
+      "frontendBundle": "index-DzT32uER.js"
+    },
+    "limitations": "Portrait Chromium controlled proof; no new live SQL calculation or physical-device claim. Unknown native receipt limitation unchanged.",
+    "liveReadVerification": "Unavailable: browser tool kernel asset initialization failed before tab access, including one reset/rebind. No UI action or auth/session-loss inference; synthetic proof and deployment readback remain valid."
+  },
+  "cashNavigation": {
+    "sourceCommit": "780745b1edd50afd55cccf4b41b4cf92ceb0a98f",
+    "scope": "One Management Cash menu/four subpages; holder-scoped account paging and compact picker closure; OLTP Cash unchanged",
+    "validation": "C holder-filter unit1/1 and synthetic440x956 navigation/picker1/1 passed, zeroPOST; B type/build/syntax passed; no CI",
+    "commandBuild": "538bcce8-48d9-498f-a4f5-4a332f23171a",
+    "commandImage": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app/api@sha256:7cd2e3b80164659ab624ba1da14bfdc221e2120caac4e01d3832479cfcee38e4",
+    "commandRevision": "mw-credit-app-command-dev-00015-75d",
+    "runtimeSpecUnchangedExceptImage": true,
+    "frontendBundle": "index-BcIkQ1CZ.js",
+    "hostingVersion": "11b7d37d64542175",
+    "hostingRelease": "1791646429272000",
+    "configuredGuard": "passed",
+    "plan": "0 add,1 command image update,0 destroy",
+    "rollback": {
+      "commandRevision": "mw-credit-app-command-dev-00014-zxj",
+      "commandImage": "sha256:2940fc339d6621e5769ac33c0095e0c5aac6926a44698c9a459eff84ef270d1e",
+      "hostingVersion": "b3a48677dee858cc",
+      "frontendBundle": "index--YK4pv5X.js"
+    },
+    "limitations": "Controlled portrait proof only; no new live browser/physical device claim, previous browser-tool failure remains. Native receipt limits unchanged."
+  },
+  "headerStartup": {
+    "sourceCommit": "accef247587f18959552c7299ca7b83118270f23",
+    "scope": "Shared global Back registry; direct Dashboard authorization without Borrowers bootstrap; public shell cache-first/explicit safe update; sanitized reader stage/category diagnostics",
+    "validation": "B43focused units/typebuild; C5substantive focused registry/warmcache/private exclusion/bootstrap-auth/form-pending/update-two-tab checks passed; no CI",
+    "readerBuild": "619a48d8-8316-4411-9cb6-a9a7821b4d27",
+    "readerImage": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app/api@sha256:fd2f63e3c770df44eceafc4fac128d3d2827c387c7758a00e906f2e77a4bd6ba",
+    "readerRevision": "mw-credit-app-read-dev-00015-22g",
+    "runtimeSpecUnchangedExceptImage": true,
+    "commandRevisionUnchanged": "mw-credit-app-command-dev-00015-75d",
+    "frontendBundle": "index-Dz5AVl9U.js",
+    "hostingVersion": "bb0fded9c99a8764",
+    "hostingRelease": "1791648933910000",
+    "configuredGuard": "passed",
+    "plan": "0add,1reader-image-update,0destroy",
+    "rollback": {
+      "readerRevision": "mw-credit-app-read-dev-00014-bmw",
+      "readerImage": "sha256:594702475b5ae2d35f6c974045fdd6b0589bdeca109c85d8896821a38231da12",
+      "hostingVersion": "11b7d37d64542175",
+      "frontendBundle": "index-BcIkQ1CZ.js"
+    },
+    "incident": "Reference78cb8a19-f43a-4667-b003-929b71ef6df0 borrowers_list503/5300ms; intermittent connection-vs-query root remains unproven. Operator query0.268ms is not runtimeIAM proof.",
+    "limits": "First safe update must install/warm public shell before cache-first benefit; API/auth/private data never worker-cached. No live owner/physical device repeat; failed-install/rollback not newly exercised. No SQL/IAM/timeout/index changes."
+  },
+  "startupAutoHeader": {
+    "sourceCommit": "a2165c720a420a7b5ba1e992f2ccf47bc9564e8f",
+    "scope": "Latest-build startup gate and initiating-tab automatic upgrade; retained public assets for live old tabs; shared header actions and cancellable assessment/Expense Back",
+    "validation": "Actual three-build worker upgrade/failure/retry/private-cache proof; 21 direct Back consumer states and shared delegation; 1440/440 header visual PASS; configured type/build/marker guard PASS; no CI",
+    "frontendBundle": "index-BDOl2LBp.js",
+    "publicVersion": "ce27a19e3dd8e1b111552f74",
+    "hostingVersion": "16e2f48883f89e70",
+    "hostingRelease": "1791651112865000",
+    "publicMarkerReadback": "HTTP200 application/json; charset=utf-8 / Cache-Control:no-store / exact compiled entry and version",
+    "readerRevisionUnchanged": "mw-credit-app-read-dev-00015-22g",
+    "commandRevisionUnchanged": "mw-credit-app-command-dev-00015-75d",
+    "databaseUnchanged": 85,
+    "rollback": {
+      "hostingVersion": "bb0fded9c99a8764",
+      "frontendBundle": "index-Dz5AVl9U.js"
+    },
+    "limits": "Focused synthetic Chromium proof only; no new owner-session/physical device claim. Actual intermittent Borrowers503 connection-vs-query root remains unproven. No SQL/IAM/timeout/index/API changes."
+  },
+  "cashTwoWorkspaces": {
+    "sourceCommit": "a5b24739331f0646a14e883c934223649aebf8af",
+    "scope": "Direct Cash Accounts holder/account workspace and Cash Position holder/account tables with20-row ledger; shared hidden Back marker/header spacing and fitting desktop record-action captions",
+    "validation": "B type/build; C focused behavior1 and final desktop-caption readback1 PASS; representative1440/440 visual/back/CRUD-entry/paging checks zeroPOST; configured type/build/marker guard PASS; no CI",
+    "frontendBundle": "index-B6ZjQLA6.js",
+    "publicVersion": "6e63867e9913c7c9c2391a68",
+    "hostingVersion": "1fe6e8be97328293",
+    "hostingRelease": "1791672104494000",
+    "publicMarkerReadback": "HTTP200/no-store exact entry/version",
+    "readerRevisionUnchanged": "mw-credit-app-read-dev-00015-22g",
+    "commandRevisionUnchanged": "mw-credit-app-command-dev-00015-75d",
+    "databaseUnchanged": 85,
+    "rollback": {
+      "hostingVersion": "16e2f48883f89e70",
+      "frontendBundle": "index-BDOl2LBp.js"
+    },
+    "limits": "Controlled Chromium1440/440 proof; no new live owner-session or physical iPhone claim. Prior financial/API/worker evidence reused unchanged; unknown native receipt and intermittent503cause remain unresolved."
+  },
+  "cashTree": {
+    "sourceCommit": "d56c7dd27adc0e53cb842d3f4d3ffe9f72be5baa",
+    "scope": "Compact Accounts; full provider holder-account tree with bold holder/plain account metrics and no client aggregate;20-row ledger date/Bangkok CreatedAt time and accessible whole-row detail",
+    "validation": "B type/build; C focused1 PASS provider totals/nulls/membership/20paging/click-Enter-Space-Back and1440/440 visuals zeroPOST; configured type/build/marker guard PASS; no CI",
+    "frontendBundle": "index-AEzGTaqe.js",
+    "publicVersion": "de8c8bca99d4fae5050fa90f",
+    "hostingVersion": "d376db73b3a2393b",
+    "hostingRelease": "1791673170610000",
+    "publicMarkerReadback": "HTTP200/no-store exact entry/version",
+    "readerRevisionUnchanged": "mw-credit-app-read-dev-00015-22g",
+    "commandRevisionUnchanged": "mw-credit-app-command-dev-00015-75d",
+    "databaseUnchanged": 85,
+    "rollback": {
+      "hostingVersion": "1fe6e8be97328293",
+      "frontendBundle": "index-B6ZjQLA6.js"
+    },
+    "limits": "Controlled Chromium1440/440 proof; no new live owner-session or physical iPhone claim. Existing financial/API/worker proof reused unchanged; unknown native receipts and intermittent503cause remain unresolved."
+  },
+  "cashLedgerFit": {
+    "sourceCommit": "216657f6dc58b837e349af3580ac5ba6939e4e87",
+    "scope": "Responsive Cash ledger column fit for longTE account names and large amounts",
+    "validation": "B type/build; C focused1 PASS440/1440 ledger fit/keyboarddetailBack zeroPOST; configured type/build/marker guard PASS; no CI",
+    "frontendBundle": "index-kjSGivyF.js",
+    "publicVersion": "4953bd68ad5e9e5e8af5460a",
+    "hostingVersion": "24aa6dc55a865541",
+    "hostingRelease": "1791674172765000",
+    "publicMarkerReadback": "HTTP200/no-store exact entry/version",
+    "readerRevisionUnchanged": "mw-credit-app-read-dev-00015-22g",
+    "commandRevisionUnchanged": "mw-credit-app-command-dev-00015-75d",
+    "databaseUnchanged": 85,
+    "rollback": {
+      "hostingVersion": "d376db73b3a2393b",
+      "frontendBundle": "index-AEzGTaqe.js"
+    },
+    "uxReview": "ux-cash-review-2026-10-11.md: five uniquely coded page-grouped E recommendations, not approved implementation",
+    "limits": "Controlled Chromium1440/440 proof; no new live owner-session or physical iPhone claim. Existing financial/API/worker proof unchanged; unknown native receipts and intermittent503cause remain unresolved."
+  },
+  "cashApprovedUx": {
+    "sourceCommit": "b83f65a2e3bcc51bf8829f779de79b253454be45",
+    "scope": "Owner-approved CASH-POS-001 and CASH-ACCT-001/002/003; mobile balance-first details, selected-holder state/focus, distinct Add-Details-Edit icons and shorter visible Details caption",
+    "excluded": "CASH-POS-002 date/time unchanged",
+    "validation": "B type/build; C focused1 actual-component1440/440 selection/reveal/icons/caption/balance/pagingBack zeroPOST PASS; configured type/build/marker guard PASS; no CI",
+    "frontendBundle": "index-BMt4jSMn.js",
+    "publicVersion": "c5f5dbb4eb7f9acacd02a0f9",
+    "hostingVersion": "81099c7a13e92eb6",
+    "hostingRelease": "1791674722658000",
+    "publicMarkerReadback": "HTTP200/no-store exact entry/version",
+    "readerRevisionUnchanged": "mw-credit-app-read-dev-00015-22g",
+    "commandRevisionUnchanged": "mw-credit-app-command-dev-00015-75d",
+    "databaseUnchanged": 85,
+    "rollback": {
+      "hostingVersion": "24aa6dc55a865541",
+      "frontendBundle": "index-kjSGivyF.js"
+    },
+    "limits": "Controlled Chromium1440/440 proof; no new live owner-session or physical iPhone claim. Existing financial/API/worker proof unchanged; unknown native receipts and intermittent503cause remain unresolved.",
+    "uxFollowup": "Owner-requested E final review: four approved codes resolved in controlled1440/440 evidence; POS002 intentionally excluded, not a blocker; no new material findings. Original report/history retained."
+  },
+  "iPadPlatform": {
+    "sourceCommit": "fde76ed59db82f928986dd53dca24470f48b16f1",
+    "scope": "All-page iPad portrait/landscape layouts; batch-only preapproved IPAD-ACTION-001/NAV-001/DASH-001 resolved, Reporting compact rail retained; phone/desktop preserved",
+    "capturedSourceBuild": "index-CoDiTIfp.js",
+    "validation": "B type/build; C82current images/41states plus3before,820x1180/1180x820,edited sameDOM form across12widths,Unknown/navigation/Reporting/no document overflow zero operationalPOST PASS; E3findings resolved/no further confirmed issue; configured type/build/marker guard PASS; no CI",
+    "frontendBundle": "index-zBnMbgVH.js",
+    "publicVersion": "43a77e979f727b3a1fa36d34",
+    "hostingVersion": "49e196eaf3f90049",
+    "hostingRelease": "1791676917703000",
+    "publicMarkerReadback": "HTTP200/no-store exact entry/version",
+    "readerRevisionUnchanged": "mw-credit-app-read-dev-00015-22g",
+    "commandRevisionUnchanged": "mw-credit-app-command-dev-00015-75d",
+    "databaseUnchanged": 85,
+    "rollback": {
+      "hostingVersion": "81099c7a13e92eb6",
+      "frontendBundle": "index-BMt4jSMn.js"
+    },
+    "review": "ux-ipad-review-2026-10-11.md",
+    "limits": "Responsive Chromium proof only; physical iPad/Safari/native keyboard/PWA/fullThai acceptance not performed. Time-series and conditional receipt/confirmation/recovery variants source-only or valid reused evidence. Existing business/API/SQL/auth/SW proof unchanged; prior unknown native receipts/intermittent503cause unresolved."
+  },
+  "pinnedApprovedUx": {
+    "sourceCommit": "023945dd67833496e8c29a877b4ebf5c1a45bc34",
+    "sourceManifest": "pinned-ux-source.json",
+    "evidence": "pinned-approved-evidence.md",
+    "codes": [
+      "PIN-LOAN-001",
+      "PIN-LOAN-002",
+      "PIN-PAY-001",
+      "PIN-PAY-002",
+      "PIN-ACTION-001",
+      "PIN-LIST-001",
+      "PIN-DASH-001"
+    ],
+    "commandBuild": "56f12e57-4863-4770-885b-e48f2a7be4ca",
+    "commandImage": "sha256:5907ea5c1f18fb08148569880b0c7995da7f1f442c8669e0b7a250dc2f89bb19",
+    "commandRevision": "mw-credit-app-command-dev-00016-gc9",
+    "planSha256": "C32DCD23EF263C1F75FA1E55CDE00245642C464786962876654F025D9C138AC6",
+    "settingsUnchanged": true,
+    "frontendBundle": "index-CON-hIdp.js",
+    "publicVersion": "b873e01d1388930fa4654c9c",
+    "hostingVersion": "41c242f719db0cee",
+    "hostingRelease": "1791678384453000",
+    "publicMarker": "HTTP200/no-store exact entry/version",
+    "readerUnchanged": "mw-credit-app-read-dev-00015-22g",
+    "databaseUnchanged": 85,
+    "validation": "B type/build; C2 read units+4 focused UI cases/65synthetic captures; configured guard PASS; no CI",
+    "rollback": {
+      "commandRevision": "00015-75d",
+      "hostingVersion": "49e196eaf3f90049",
+      "commandImage": "sha256:7cd2e3b80164659ab624ba1da14bfdc221e2120caac4e01d3832479cfcee38e4",
+      "frontendBundle": "index-zBnMbgVH.js"
+    },
+    "limits": "No new E review/physical-device acceptance/live financial writes; phone subject wraps without clipped controls; unknown native receipts and intermittent503cause unresolved"
+  },
+  "actionIcons": {
+    "sourceCommit": "cac1c37f1584f3b497338ce693c71a54f442881a",
+    "sourceManifest": "action-icons-source.json",
+    "evidence": "action-icons-evidence.md",
+    "validation": "B type/build; C2/2 focused four-width actual components/36 synthetic screenshots; configured guard PASS; no CI",
+    "frontendBundle": "index-O-LQ7fuD.js",
+    "publicVersion": "772e24f519286d09613c8f3b",
+    "hostingVersion": "42cc2ae3fcc9c201",
+    "hostingRelease": "1791679308667000",
+    "publicMarker": "HTTP200/no-store exact entry/version",
+    "readerUnchanged": "00015-22g",
+    "commandUnchanged": "00016-gc9",
+    "databaseUnchanged": 85,
+    "rollback": {
+      "frontendBundle": "index-CON-hIdp.js",
+      "hostingVersion": "41c242f719db0cee"
+    },
+    "limits": "No live financial writes/physical-device acceptance/new E recommendations implementation; prior native receipt and intermittent503cause limits retained"
+  },
+  "remainingApprovedUx": {
+    "sourceCommit": "b3678ac277a9d6900523d9bb875d27846ea67596",
+    "sourceManifest": "remaining-ux-source.json",
+    "review": "ux-remaining-and-colors-review-2026-10-11.md",
+    "evidence": "remaining-approved-evidence.md",
+    "codes": [
+      "REM-ASSESS-001",
+      "REM-ANALYTICS-001",
+      "REM-ANALYTICS-002",
+      "REM-SETTLEMENT-001",
+      "COLOR-ANALYTICS-001",
+      "COLOR-DASH-001",
+      "COLOR-AMOUNT-001"
+    ],
+    "validation": "B type/build; C4 focused cases/20 synthetic captures four widths; configured type/build/version guard PASS; no CI",
+    "frontendBundle": "index-Ds3BPdhd.js",
+    "publicVersion": "2f860d243c59a543b0bc522a",
+    "hostingVersion": "b10ec07fb3d67204",
+    "hostingRelease": "1791681425651000",
+    "publicMarker": "HTTP200/no-store exact entry/version",
+    "readerUnchanged": "00015-22g",
+    "commandUnchanged": "00016-gc9",
+    "databaseUnchanged": 85,
+    "rollback": {
+      "frontendBundle": "index-O-LQ7fuD.js",
+      "hostingVersion": "42cc2ae3fcc9c201"
+    },
+    "limits": "No new E review/livefinancialwrite/physicaldevice acceptance/full accessibility claim; prior native receipts/source-only and intermittent503cause limits retained"
+  },
+  "readerReceiptContinuation": {
+    "status": "Implemented, verified and deployed in DEV; owner Phase5/6 verification/acceptance complete11October2026; Phase3 preparation started",
+    "baselineCommit": "a9e7da96da8d945d362fc32a77118bcea622095f",
+    "design": "reader-receipt-continuation-design-2026-10-11.md",
+    "independentEvidence": "reader-receipt-independent-verification-2026-10-11.md",
+    "sourceCommit": "44682ad5e055e2d09cd44369625fb28877d0e707",
+    "sourceHashes": "reader-receipt-source-hashes.json",
+    "validation": {
+      "bFocusedPassed": 66,
+      "bTypeBuild": "passed",
+      "cFocusedPassed": 71,
+      "cFailed": 0,
+      "cSkipped": 0,
+      "cIndependentNewCases": 5,
+      "fullBrowser": "Final38108172618 passed271/0failed/9existing skips;192units/0failed/0skipped, build/audit and Terraform validation passed",
+      "historical503": "connection-versus-query cause unproven; cleanup recovery fix has synthetic proof",
+      "firstConsolidatedRun": 38104425262,
+      "firstConsolidatedResult": "failed npm run check; missing optional sibling root; E2E skipped",
+      "ancillarySynchronizeRun": 38104420121,
+      "ancillarySynchronizeResult": "canceled",
+      "correctedFocusedPassed": 12,
+      "correction": "portable private-path guard, missing/junction roots and dot-prefixed containment; no runtime input changes",
+      "correctedConsolidatedRun": 38104661233,
+      "correctedConsolidatedResult": "canceled after root observed repeated E2E failures;192/192 units passed,30 desktop failures recorded; full browser not passing",
+      "correctedAncillarySynchronizeRun": 38104653112,
+      "correctedAncillarySynchronizeResult": "canceled",
+      "failureInventory": "ci38104661233-e2e-failure-inventory.md",
+      "finalConsolidatedRun": 38108172618,
+      "finalDatabaseRun": 38108165703
+    },
+    "privateCatalogBootstrap": {
+      "knownDescriptors": 2,
+      "newUnmappedLiveReferences": 0,
+      "sizeBytes": 1046,
+      "sha256": "5c1e48aa591049b106b27260b2b0fbdceeb88708f6549ace8e64bb357f668296",
+      "verification": "F fresh DEV identity/reference/key/generation/content/media proof; private payload outside repositories",
+      "secretVersion": 1
+    },
+    "infrastructure": {
+      "format": "passed",
+      "validate": "passed",
+      "privatePlan": "two creates: DEV secret container and existing command-SA accessor; null version leaves services unchanged",
+      "applied": true,
+      "numericVersionRequired": true,
+      "actualScope": "Two reviewed resource creates, private numeric catalog version1, two image updates and command catalog env; no other runtime templates, limits/network/storage or SQL changed"
+    },
+    "frontend": {
+      "unchanged": false,
+      "bundle": "index-CN0TdzFd.js",
+      "publicVersion": "33577e39b896de7ad5ca6a62",
+      "hostingVersion": "300fa698bebf6de5",
+      "rebuild": "Configured artifact built at19263a5; exact runtime/build/config/deploy equivalence to44682ad, reused without rebuild",
+      "hostingRelease": "1791689656191000",
+      "publicReadback": "Canonical marker/worker/index/manifest HTTP200,no-store; exact version/entry and correct JS/manifest MIME"
+    },
+    "rollback": {
+      "readerRevision": "mw-credit-app-read-dev-00015-22g",
+      "commandRevision": "mw-credit-app-command-dev-00016-gc9",
+      "databaseVersion": 85,
+      "catalog": "optional version absent preserves built-in descriptors; retain secret versions",
+      "financial": "application rollback does not reverse SQL or financial data",
+      "readerImage": "sha256:fd2f63e3c770df44eceafc4fac128d3d2827c387c7758a00e906f2e77a4bd6ba",
+      "commandImage": "sha256:5907ea5c1f18fb08148569880b0c7995da7f1f442c8669e0b7a250dc2f89bb19",
+      "hostingVersion": "b10ec07fb3d67204",
+      "frontendBundle": "index-Ds3BPdhd.js"
+    },
+    "limits": [
+      "No PROD, notifications or live financial writes.",
+      "No new live arbitrary native receipt exists; onboarding beyond two known references has synthetic proof only.",
+      "Operator input assertions do not authenticate their own SQL/AppSheet/GCS provenance.",
+      "Owner accepted Phase5/6; physical/device-specific evidence remains only as recorded, with no invented Safari/keyboard/PWA/Thai results."
+    ],
+    "checkpointOrder": "Final corrected CI and DEV delivery/read smoke complete; owner explicitly verified Phase5/6; Phase3 readiness preparation started, no PROD mutation authority inferred",
+    "runtimeArtifactCommit": "ba850002783dddd287e015e461c57571dda9cf0f",
+    "artifactReuse": "Dockerfile/.dockerignore/CloudBuild/package/services exact diff empty from ba850002; retain build41cd49a5",
+    "runtimeBuild": {
+      "id": "41cd49a5-53c9-4b40-bd14-b61ade659d8c",
+      "sourceCommit": "ba850002783dddd287e015e461c57571dda9cf0f",
+      "status": "success",
+      "image": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app/api@sha256:af1dfc44737a082239c21431341e679aced741c18e51032d499a1ebcba1f904d",
+      "deployed": true
+    },
+    "frontendDefects": [
+      "Repeated Firebase same-User callback must rerun authorized startup after clearing/loading.",
+      "Empty Analytics date ticks must not dereference missing points; no historical503-cause claim."
+    ],
+    "preservation": {
+      "scope": "current recovery aids only; no initial-byte claim, no restore/cleanup, no dependency installation",
+      "initialUncommittedCaptureRecovery": "not established; early reruns overwrote historical paths before byte snapshot",
+      "isolatedCandidate": "outputs/.tmp/checkpoint-candidate-20261011",
+      "currentSnapshot": "outputs/.tmp/checkpoint-preservation-20261011",
+      "freezeSnapshot": "outputs/.tmp/checkpoint-preservation-20261011-freeze"
+    },
+    "browserCorrectionStatus": "Completed isolated failed252/19/9, affected126/0/0 and Analytics1/1, controlledhold2/2 and correction6/6; final remote271/0/9 passed",
+    "browserCorrectionCheckpoint": {
+      "baseline": "4cbb9695f97557e9484fe16c73acfd82ca166b6e",
+      "localFullRun": {
+        "passed": 252,
+        "failed": 19,
+        "existingSkips": 9,
+        "total": 280,
+        "minutes": 15.2
+      },
+      "overlayFiles": 20,
+      "candidateManifest": "outputs/.tmp/checkpoint-candidate-20261011/checkpoint-source-manifest.json",
+      "currentRecoverySnapshot": "outputs/.tmp/checkpoint-preservation-20261011-correction-100138",
+      "initialDirtyCaptureRecoveryEstablished": false,
+      "freshSyntheticBuild": "passed",
+      "freshLiveDevBuild": "passed",
+      "affectedRetests": "passed 126/126; zero failed or skipped; Analytics recipe 1/1 at four widths",
+      "remoteCheckpoint": "38108172618 SUCCESS at44682ad:271 passed/0failed/9existing skips; build/unit/audit and Terraform fmt/DEV/DEV-DNS validation passed",
+      "configuredFrontendDelivery": "Delivered300fa698bebf6de5; exact public marker/worker/no-store verification and root authenticated read-only GUI smoke passed",
+      "verifiedWorkingTreeSha256": [
+        {
+          "path": "apps/pwa/src/live-main.tsx",
+          "sha256": "b8d37e4fe8fb8131df8dbcd5186934b7b5b47cad2266044e239367f0b1cb1aff"
+        },
+        {
+          "path": "tests/e2e/live-controls.ts",
+          "sha256": "6766db2264284e02388b30de7b0069bb678b97d7c79b742e577234cffb69f4a5"
+        },
+        {
+          "path": "tests/e2e/loan-read.spec.ts",
+          "sha256": "36fe55f0309110a7ff2ffe8a168bb8d64c8b26c206dad7a9fdfc5f00e232703d"
+        },
+        {
+          "path": "tests/e2e/phase5-borrower-independent.spec.ts",
+          "sha256": "7331bb00d569c9e9e99096556c1463f0e2cbecf421801010bba1ba1ae747e480"
+        },
+        {
+          "path": "tests/e2e/phase5-final-ui-independent.spec.ts",
+          "sha256": "91c7d0f90fb34c8af338b29ad945d8b7e03a3ec702185391975f5656c07b05e9"
+        },
+        {
+          "path": "tests/e2e/payment-command.spec.ts",
+          "sha256": "c9ff1ac643f828511676f78e76dcae53a49f8d0656082ac07135a5d6edbdcd40"
+        },
+        {
+          "path": "tests/e2e/receiving-ux-independent.spec.ts",
+          "sha256": "bda40c79cfe88518686b78a4591f7c24f2b581983da469d5e524655d57456c24"
+        },
+        {
+          "path": "tests/e2e/back-consumers-independent.spec.ts",
+          "sha256": "2be2d181e2fbd79b792822c280fb1f2fa20e8e207a54a0ec5957fe811ee85ace"
+        },
+        {
+          "path": "tests/e2e/cash-two-workspaces-independent.spec.ts",
+          "sha256": "86efda4d7890bd0a061f057b58421db36a1a70ec5ee205ba05281b77fa488111"
+        },
+        {
+          "path": "tests/e2e/grouped-read.spec.ts",
+          "sha256": "bc3e79a90bb8d2fe98d3f7f4bf44343b0c74a96014729d6d40c20527728bbc23"
+        },
+        {
+          "path": "tests/e2e/responsive-gaps.spec.ts",
+          "sha256": "0b58d3f2f5067dc542c5a411fa06740657e5118a58593f8e73fc25ce9dcecd1f"
+        },
+        {
+          "path": "tests/e2e/fixtures/canonical-server.ts",
+          "sha256": "6827fbe741cdbd6358b9432134ac0fdd496355183b1242dc6c0f5a6f209ec85f"
+        },
+        {
+          "path": "tests/e2e/startup-back-independent.spec.ts",
+          "sha256": "922ab0fd2fbba8f7e2e4eb6431780ba3ab6f1f00eff757198ff1be080cc7958f"
+        },
+        {
+          "path": "tests/e2e/startup-generations-independent.spec.ts",
+          "sha256": "5ff9e5bcc9d30f4ab1124280df5d627149cb4ec0c64655aeeec9fe88a62ac843"
+        },
+        {
+          "path": "tests/e2e/pwa-canonical.spec.ts",
+          "sha256": "c6d7f4f6e59028b22a1174333d972bfa92d2a3751d0353dbfdce7ea7a3479413"
+        },
+        {
+          "path": "apps/pwa/src/ManagementAnalytics.tsx",
+          "sha256": "6ab0ba3b353861d4662e632e9a5eed1c8ca65356b165ba87ac0c37dafc671295"
+        },
+        {
+          "path": "tests/e2e/payment-phase4-independent.spec.ts",
+          "sha256": "f1fe72370ae4d6cf1c5bdc7f444a54c9dcb0b079d03c787e874938d715ae9470"
+        },
+        {
+          "path": "tests/e2e/upcoming-read.spec.ts",
+          "sha256": "78ccded78976a3d04b27898a47d4d7b685eb6bb795ca97918d592a646b9b637e"
+        },
+        {
+          "path": "tests/e2e/unified-receiving-independent.spec.ts",
+          "sha256": "113a699f4e78ede50904a9b918ea4f1ae2de042241f8a70f0ecc845adc79345a"
+        },
+        {
+          "path": "tests/e2e/collection-read.spec.ts",
+          "sha256": "51b0e2c6fd8bfaf76c2bcd42bc26d1e916e7d06df0d831f5adaedda9ca4b662d"
+        }
+      ],
+      "normalizedGitIndexSha256": [
+        {
+          "path": "apps/pwa/src/live-main.tsx",
+          "sha256": "876891a644ba2bf0b1a863f552cd3c631bec449e66182fd10f9e2fb5b3001e0c"
+        },
+        {
+          "path": "tests/e2e/live-controls.ts",
+          "sha256": "09dee89f9f47ec1c2a2773700951cbea4c0a7b8eae963c2defd4b11234c2f9c1"
+        },
+        {
+          "path": "tests/e2e/loan-read.spec.ts",
+          "sha256": "0dff2f2c7e53b518e40800f4190abce900c8e1d437a4f02c7a8e75f06454f77b"
+        },
+        {
+          "path": "tests/e2e/phase5-borrower-independent.spec.ts",
+          "sha256": "7331bb00d569c9e9e99096556c1463f0e2cbecf421801010bba1ba1ae747e480"
+        },
+        {
+          "path": "tests/e2e/phase5-final-ui-independent.spec.ts",
+          "sha256": "91c7d0f90fb34c8af338b29ad945d8b7e03a3ec702185391975f5656c07b05e9"
+        },
+        {
+          "path": "tests/e2e/payment-command.spec.ts",
+          "sha256": "603bb05913974e4043db9c4b37a13cc67257f84794693e8c71b988e93314b2e8"
+        },
+        {
+          "path": "tests/e2e/receiving-ux-independent.spec.ts",
+          "sha256": "bd55dff4ec304e0f24f589f346a394aab60a5f385464f62a36fea8631eb259d0"
+        },
+        {
+          "path": "tests/e2e/back-consumers-independent.spec.ts",
+          "sha256": "5293e8fe204e5a4173d42b2787da88a869e1ba1952dceac5c28038fe1bb60acb"
+        },
+        {
+          "path": "tests/e2e/cash-two-workspaces-independent.spec.ts",
+          "sha256": "86efda4d7890bd0a061f057b58421db36a1a70ec5ee205ba05281b77fa488111"
+        },
+        {
+          "path": "tests/e2e/grouped-read.spec.ts",
+          "sha256": "7a68cd52d04e28f54e08079af8239dc126b0eaadf760884ca7773fe22cd5eee9"
+        },
+        {
+          "path": "tests/e2e/responsive-gaps.spec.ts",
+          "sha256": "a4d089cd5f81d727d571c46740237ad5315fd84c6f45b1352d16fccafa7c5ae8"
+        },
+        {
+          "path": "tests/e2e/fixtures/canonical-server.ts",
+          "sha256": "735f88d16f318a5c067d700450dfb084e86b427b989fb7e3d6a2f7a44e9a3f94"
+        },
+        {
+          "path": "tests/e2e/startup-back-independent.spec.ts",
+          "sha256": "cdfe37315df90a5e24b13340911ede073e4280e91375fc4d751d90e78bc031a3"
+        },
+        {
+          "path": "tests/e2e/startup-generations-independent.spec.ts",
+          "sha256": "3aa10436d3a1fa9bb529bdc92eeb0e1661e84b812d63a9556f47e25646525628"
+        },
+        {
+          "path": "tests/e2e/pwa-canonical.spec.ts",
+          "sha256": "f3c1dfc8985b3009bb510304eeab9e6375bc3b496a5740d36d1dbfe9d69caa9b"
+        },
+        {
+          "path": "apps/pwa/src/ManagementAnalytics.tsx",
+          "sha256": "f502f46e82ab7f9a139d404744bb2c755d77d127f0cdff2ba176abca736f7e60"
+        },
+        {
+          "path": "tests/e2e/payment-phase4-independent.spec.ts",
+          "sha256": "903453578aac8488d9df26534665dce4e759e97ba5aeab7b53cfaa2dfa978bb9"
+        },
+        {
+          "path": "tests/e2e/upcoming-read.spec.ts",
+          "sha256": "ea5bb9581cebd9b17a89ebb09f55c16b364945360cd59cf203a1d4d16911c95a"
+        },
+        {
+          "path": "tests/e2e/unified-receiving-independent.spec.ts",
+          "sha256": "d502341770f4189db6b5b357f71cf89d9a37bc6500c8d3b81b4b5f3028be9101"
+        },
+        {
+          "path": "tests/e2e/collection-read.spec.ts",
+          "sha256": "80ae8af426e6733a8599baa24e6b09227803c6122f964c63519d1195c2d389e2"
+        }
+      ],
+      "hashBoundary": "Windows working-tree hashes identify local browser proof; normalized Git-index SHA256 identifies published source bytes",
+      "automaticDatabaseCheck": {
+        "run": 38108165703,
+        "result": "success",
+        "scope": "owned loopback disposable rebuild/integration validation and runner guards; no live DEV/PROD database mutation"
+      },
+      "nextCorrection": {
+        "path": "tests/e2e/phase5-final-ui-independent.spec.ts",
+        "workingTreeSha256": "91c7d0f90fb34c8af338b29ad945d8b7e03a3ec702185391975f5656c07b05e9",
+        "scope": "Test-only async POST observation; exact one assertion preserved",
+        "proof": "passed C controlled hold2/2 and exact corrected repeats6/6, zero fail/skip/flaky",
+        "runtimeArtifact": "unchanged configured frontend and backend"
+      },
+      "verifiedSource": "44682ad5e055e2d09cd44369625fb28877d0e707"
+    },
+    "runtimeDeployment": {
+      "readerRevision": "mw-credit-app-read-dev-00016-k4l",
+      "commandRevision": "mw-credit-app-command-dev-00017-q5n",
+      "ready": "latestReady100% both",
+      "identity": "DEV instance/database and existing separate service accounts verified",
+      "health": "both200,no-store; unsigned businessGET401",
+      "catalogSecret": "mw-credit-app-dev-native-receipt-catalog",
+      "catalogVersion": 1,
+      "preparationPlanSha256": "19492a8b71ae352966a304c7968e4035c723e95adf05e9194a597da9cbdefb98",
+      "servicePlanSha256": "c8b1dc98743a4abfd5beba234c643b845d5bb2804fc4bda06c6309fde1e8f586",
+      "rootGuiSmoke": "Root fresh authenticated read-only GUI: exact script, Dashboard startup finished, Borrowers/Collection enabledRefresh/noLoading/noRetry; existing synthetic Posted manual receipt complete600x800,zero alerts. No writes/media export."
+    }
+  },
+  "priorPhase6Checkpoint": {
+    "sourceCommit": "faee43aca7284321618f6683d62494efcf6ece53",
+    "productCommit": "19330bb8ce77864d25b95309a33d4de7ccf73f43",
+    "backendArtifactCommit": "061a99556e89ec06d8e9e5adc98e95684055bb26",
+    "backendImage": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app/api@sha256:bea30b8bcd86956fc4cfb37c92f32a0254968812de15d28d9ed7b11861620a73",
+    "frontendBundle": "index-C1CIvmJt.js",
+    "validation": {
+      "fullBrowser": {
+        "source": "19330bb8ce77864d25b95309a33d4de7ccf73f43",
+        "run": 37982226264,
+        "status": "passed",
+        "passed": 243,
+        "existingSkipped": 9
+      },
+      "currentLightweight": {
+        "source": "faee43aca7284321618f6683d62494efcf6ece53",
+        "run": 37983749832,
+        "status": "passed",
+        "browser": "skipped; not full proof"
+      },
+      "database": {
+        "run": 37983749766,
+        "status": "passed",
+        "management": {
+          "historicalWholeGraph": 1,
+          "remainingUnfiltered": 24,
+          "passed": 25,
+          "skipped": 0
+        },
+        "anchorPassed": 4,
+        "phase5JournalPassed": 78
+      },
+      "reuse": "19330bb to faee43a changes only test proof staging and evidence; complete product/E2E/build/config/SQL/infra input comparison empty. Backend build inputs identical from 061a995."
+    },
+    "deployment": {
+      "databaseVersion": 85,
+      "protectedReadiness": "verified",
+      "temporaryAuthorityRestoration": "exact original rights restored; other memberships/public ACL unchanged",
+      "permanentOwnerDelta": [
+        "INSERT-only without grant option on public.r008_cash_account_cutover",
+        "USAGE-only without CREATE on assessment_lab"
+      ],
+      "commandRevision": "mw-credit-app-command-dev-00013-f84",
+      "readerRevision": "mw-credit-app-read-dev-00014-bmw",
+      "onlyCommandImageChanged": true,
+      "hostingVersion": "fe54464c7cf5a0b5",
+      "hostingRelease": "1791576549461000",
+      "frontendBundle": "index-C1CIvmJt.js",
+      "configuredCompiledGuard": "passed",
+      "ownerSessionSmoke": "passed; persisted owner Dashboard, Cash Position, Cash Accounts, Loan Assessments, Collection Ready; no mutations"
+    },
+    "meaning": "Dated original Phase6 checkpoint; current continuation is owning readerReceiptContinuation and current top-level pins"
+  },
+  "ownerAcceptance": {
+    "dateBangkok": "2026-10-11",
+    "phases": [
+      5,
+      6
+    ],
+    "status": "owner-verified and accepted",
+    "ownerStatement": "Phase5,6 are verified by me",
+    "nextInstruction": "Start Phase3 readiness preparation",
+    "deviceDetails": "No specific owner-tested device or individual test result stated; recorded evidence limits retained",
+    "authority": "Clears prior owner checkpoint; no PROD mutation, auth-policy activation or release freeze inferred"
+  }
+}

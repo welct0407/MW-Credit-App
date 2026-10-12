@@ -1,0 +1,150 @@
+{
+  "observedAt": "2026-10-09T20:08:43.037Z",
+  "environment": "development",
+  "instance": "appsheet-pg-prod-20260914",
+  "target": {
+    "database": "loan_manager_dev",
+    "host": "34.21.174.215",
+    "port": 5432
+  },
+  "history": {
+    "version": "85",
+    "description": "pwa management operations",
+    "success": true
+  },
+  "readiness": {
+    "mode": "verified",
+    "cutoverOwner": "INSERT without grant option",
+    "assessmentOwner": "USAGE without CREATE or grant option",
+    "runtimeCutoverWrites": false
+  },
+  "routines": [
+    {
+      "signature": "pwa_apply_analytics_v2(text)",
+      "owner": "postgres",
+      "security_definer": false,
+      "settings": [
+        "search_path=pg_catalog, public"
+      ],
+      "acl": "{postgres=X/postgres,mw_app_dev_journal_owner=X/postgres,mw_app_dev=X/postgres}",
+      "body_md5": "5c7153e552fcebaab1da136c67d17871"
+    },
+    {
+      "signature": "pwa_apply_assessment_v2(text)",
+      "owner": "postgres",
+      "security_definer": false,
+      "settings": [
+        "search_path=pg_catalog, public"
+      ],
+      "acl": "{postgres=X/postgres,mw_app_dev_journal_owner=X/postgres,mw_app_dev=X/postgres}",
+      "body_md5": "c9ccef7a468f46f2d82bec5a698c6353"
+    },
+    {
+      "signature": "pwa_apply_cash_opening_v2(text)",
+      "owner": "postgres",
+      "security_definer": false,
+      "settings": [
+        "search_path=pg_catalog, public"
+      ],
+      "acl": "{postgres=X/postgres,mw_app_dev_journal_owner=X/postgres,mw_app_dev=X/postgres}",
+      "body_md5": "f32814779685b02c3bb8c7754f03c7d7"
+    },
+    {
+      "signature": "pwa_apply_management_financial_v2(text)",
+      "owner": "postgres",
+      "security_definer": false,
+      "settings": [
+        "search_path=pg_catalog, public"
+      ],
+      "acl": "{postgres=X/postgres,mw_app_dev_journal_owner=X/postgres,mw_app_dev=X/postgres}",
+      "body_md5": "d641029384b21c5c37eec9919ca1c880"
+    },
+    {
+      "signature": "pwa_apply_management_v2(text)",
+      "owner": "postgres",
+      "security_definer": false,
+      "settings": [
+        "search_path=pg_catalog, public"
+      ],
+      "acl": "{postgres=X/postgres,mw_app_dev_journal_owner=X/postgres,mw_app_dev=X/postgres}",
+      "body_md5": "2276c4bd566f77a0c7ed806ecf407872"
+    },
+    {
+      "signature": "pwa_assessment_refresh_window_v2(date,date,date)",
+      "owner": "postgres",
+      "security_definer": false,
+      "settings": [
+        "search_path=pg_catalog, public"
+      ],
+      "acl": "{postgres=X/postgres,mw_app_dev_journal_owner=X/postgres,mw_app_dev=X/postgres}",
+      "body_md5": "93942f651da8e15796f52ad544d6f636"
+    },
+    {
+      "signature": "pwa_cash_opening_basis_v2(text)",
+      "owner": "postgres",
+      "security_definer": false,
+      "settings": [
+        "search_path=pg_catalog, public"
+      ],
+      "acl": "{postgres=X/postgres,mw_app_dev_journal_owner=X/postgres,mw_app_dev=X/postgres}",
+      "body_md5": "9da4b11d85b9ec6cb01d3587e1eea9e6"
+    },
+    {
+      "signature": "pwa_management_financial_text_v2(text,jsonb)",
+      "owner": "postgres",
+      "security_definer": false,
+      "settings": [
+        "search_path=pg_catalog, public"
+      ],
+      "acl": "{postgres=X/postgres,mw_app_dev_journal_owner=X/postgres,mw_app_dev=X/postgres}",
+      "body_md5": "9fcecbd388a747d08aba8fdcd9b0e989"
+    },
+    {
+      "signature": "pwa_management_input_text_v2(text,jsonb)",
+      "owner": "postgres",
+      "security_definer": false,
+      "settings": [
+        "search_path=pg_catalog, public"
+      ],
+      "acl": "{postgres=X/postgres,mw_app_dev_journal_owner=X/postgres,mw_app_dev=X/postgres}",
+      "body_md5": "db8d3d017c3c372e56120c550119e3b5"
+    },
+    {
+      "signature": "pwa_management_tools_text_v2(text,jsonb)",
+      "owner": "postgres",
+      "security_definer": false,
+      "settings": [
+        "search_path=pg_catalog, public"
+      ],
+      "acl": "{postgres=X/postgres,mw_app_dev_journal_owner=X/postgres,mw_app_dev=X/postgres}",
+      "body_md5": "9bc288dac7797b5f9970c65aa72519d6"
+    },
+    {
+      "signature": "pwa_operation_status_v2(uuid,text,text)",
+      "owner": "mw_app_dev_journal_owner",
+      "security_definer": true,
+      "settings": [
+        "search_path=pg_catalog, public"
+      ],
+      "acl": "{mw_app_dev_journal_owner=X/mw_app_dev_journal_owner,mw_app_dev=X/mw_app_dev_journal_owner}",
+      "body_md5": "7ac6bb3ddfd68c6ea34b26a8fb81a358"
+    },
+    {
+      "signature": "pwa_submit_operation_v2(text)",
+      "owner": "mw_app_dev_journal_owner",
+      "security_definer": true,
+      "settings": [
+        "search_path=pg_catalog, public"
+      ],
+      "acl": "{mw_app_dev_journal_owner=X/mw_app_dev_journal_owner,mw_app_dev=X/mw_app_dev_journal_owner}",
+      "body_md5": "d8f1cb11d396d09a3faef8c41714498d"
+    }
+  ],
+  "ownerCutoverGrants": [
+    {
+      "privilege_type": "INSERT",
+      "is_grantable": "NO"
+    }
+  ],
+  "scope": "Affected V85 protected routines/privilege metadata only; no business rows or production access"
+}

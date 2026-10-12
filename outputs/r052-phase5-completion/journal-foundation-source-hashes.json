@@ -1,0 +1,45 @@
+{
+  "files": [
+    {
+      "path": "database/migrations/V83__generalized_application_commands.sql",
+      "sha256": "01d579010b5033e20d7e9960b813296fbb362a8586b1adfe1966c60332689567"
+    },
+    {
+      "path": "services/contracts/operation-command.mjs",
+      "sha256": "c4596a15188f7c6234a8f4df6bc4453e1f30ce96c648aa04cfc5c178f0a4f2b6"
+    },
+    {
+      "path": "services/payment-command/store.mjs",
+      "sha256": "9de0528e934a01597a7de2a7cada756063503327b168facfbd6988e5b47d66a7"
+    },
+    {
+      "path": "services/payment-command/application-target.mjs",
+      "sha256": "3791e5bcf857211f1c7c7e25667b3d97ac379f8d4326fa08eb1df57dac105648"
+    },
+    {
+      "path": "services/business/borrowers.mjs",
+      "sha256": "8cc6fd9a42d4e8e2876b63f6363a00319a8774d2d00fbb71ae40a3ddffe0851f"
+    },
+    {
+      "path": "services/business/loans.mjs",
+      "sha256": "ac3d6be3b46962ff63892d827756fa7344b6c34720751899b54d74c685d2ae79"
+    },
+    {
+      "path": "scripts/database/app-role-policy.mjs",
+      "sha256": "6d2c2a43d7b651c790c16d3042d4eafffc33d1313b893726fd39273bf95da6ec"
+    },
+    {
+      "path": "tests/integration/Run-Phase5.ps1",
+      "sha256": "31099a29c9935fd83426ed78718d9b8019b9e355ee5307d305417a58b428e6d4"
+    },
+    {
+      "path": "tests/integration/phase5-populated-journal-fixture.mjs",
+      "sha256": "127c72a34c48960b11f7d29c3b6a6af5228273d812e22b11af2f9c477f4ab405"
+    },
+    {
+      "path": "tests/integration/phase5-journal-independent.test.mjs",
+      "sha256": "5a4d859eef1e166c33b8e1d26e26d767f3c6374268df95f45427d5d21ce353b9"
+    }
+  ],
+  "scope": "Initial V83 existing-journal borrower-operation foundation; not financial lifecycle completion"
+}

@@ -1,0 +1,416 @@
+{
+  "schemaVersion": 1,
+  "release": "R052",
+  "scope": "contained-production-foundation",
+  "status": "deployed-canonical-https-verified-access-incomplete",
+  "productSourceCommit": "184d19945f8d75994f5b58b13b0fadbf7b3c8b57",
+  "deliveryToolingCommit": "7bf8dd0f2d38ed7276970c67c4934c0e8c2814b5",
+  "deliveryHelperSha256": "339eb2c425208e225431735af6f877e66b0e06362e7cd5f5f714d2b58c264a6a",
+  "ci": {
+    "runId": "38112831074",
+    "status": "success",
+    "unitPassed": 241,
+    "unitFailed": 0,
+    "unitSkipped": 0,
+    "browserPassed": 271,
+    "browserFailed": 0,
+    "browserSkipped": 9,
+    "browserCompletedAt": "2026-10-11T04:57:00Z",
+    "jobCompletedAt": "2026-10-11T04:57:10Z",
+    "automaticDatabaseRun": "38112814124",
+    "automaticDatabaseResult": "success-disposable-only",
+    "ancillarySynchronizeRun": "38112814128",
+    "ancillaryResult": "cancelled",
+    "toolingFocusedPassed": 11,
+    "toolingFocusedSkipped": 0,
+    "additionalFullRuns": 0,
+    "checkpointLabelRemoved": true,
+    "checkpointLabelReadback": "absent"
+  },
+  "build": {
+    "id": "fdc3b5bf-fc9e-4def-ad5c-1daa5020d87c",
+    "sourceCommit": "6e8f26b2ea8932c6777f1da94bdbdffe492c9ae8",
+    "completedAt": "2026-10-11T04:40:02Z",
+    "result": "success",
+    "artifactInputsEqualProductAndTooling": true
+  },
+  "promotion": {
+    "schemaVersion": 1,
+    "environment": "prod",
+    "mode": "foundation",
+    "status": "reviewable",
+    "sourceCommit": "184d19945f8d75994f5b58b13b0fadbf7b3c8b57",
+    "target": {
+      "isolation": "shared-project-default-auth",
+      "applicationProject": {
+        "id": "clever-oasis-508610-n7",
+        "number": "737787224638"
+      },
+      "dataProject": {
+        "id": "clever-oasis-508610-n7",
+        "number": "737787224638"
+      },
+      "region": "asia-southeast1",
+      "auth": {
+        "projectId": "clever-oasis-508610-n7",
+        "tenant": null,
+        "issuer": "https://securetoken.google.com/clever-oasis-508610-n7",
+        "audience": "clever-oasis-508610-n7"
+      },
+      "database": {
+        "connectionName": "clever-oasis-508610-n7:asia-southeast1:appsheet-pg-prod-20260914",
+        "host": "34.21.174.215",
+        "name": "loan_manager_prod"
+      },
+      "storage": {
+        "bucket": "mw-payment-receipts-prod-508610-n7"
+      },
+      "runtime": {
+        "reader": {
+          "service": "mw-credit-app-read-prod",
+          "serviceAccount": "mw-credit-app-read-prod@clever-oasis-508610-n7.iam.gserviceaccount.com",
+          "origin": "https://mw-credit-app-read-prod-pvrgvyg3oq-as.a.run.app"
+        },
+        "command": {
+          "service": "mw-credit-app-command-prod",
+          "serviceAccount": "mw-credit-app-command-prod@clever-oasis-508610-n7.iam.gserviceaccount.com",
+          "origin": "https://mw-credit-app-command-prod-pvrgvyg3oq-as.a.run.app"
+        }
+      },
+      "hosting": {
+        "site": "mw-credit-prod-737787224638",
+        "canonicalOrigin": "https://lm.mw-credit.com",
+        "fallbackOrigin": "https://mw-credit-prod-737787224638.web.app"
+      },
+      "state": {
+        "projectId": "clever-oasis-508610-n7",
+        "bucket": "mw-credit-app-prod-tfstate-737787224638",
+        "prefix": "application/",
+        "generation": 1791694752120444
+      },
+      "artifactRepository": {
+        "projectId": "clever-oasis-508610-n7",
+        "region": "asia-southeast1",
+        "name": "mw-credit-app-prod"
+      },
+      "secretVersions": [
+        {
+          "projectId": "clever-oasis-508610-n7",
+          "name": "mw-credit-app-prod-owner-identity",
+          "version": 1
+        }
+      ]
+    },
+    "targetSha256": "d2950cf782c1796d01191ddc95fa721f5b3242826e02011b08a98dc62dee65a3",
+    "artifacts": {
+      "reader": {
+        "image": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app-prod/api@sha256:6cf9db0bfcf6861c8438ef9c713392c76874e0bce94a08c89cb90d35d37d1a1f",
+        "entrypoint": "services/production/server.mjs"
+      },
+      "command": {
+        "image": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app-prod/api@sha256:6cf9db0bfcf6861c8438ef9c713392c76874e0bce94a08c89cb90d35d37d1a1f",
+        "entrypoint": "services/production/server.mjs"
+      },
+      "frontend": {
+        "mode": "prod-foundation",
+        "phase": "foundation",
+        "publicWorker": false,
+        "cachePolicy": "no-store",
+        "targetSha256": "d2950cf782c1796d01191ddc95fa721f5b3242826e02011b08a98dc62dee65a3",
+        "configSha256": "2a26d49e936e665f55cf9420273ac98080a71935a178aae9a45141821e19a97a",
+        "entry": "index.html",
+        "files": [
+          {
+            "path": "firebase.json",
+            "sha256": "a2990f0f0b3a68d67776fa59bc8acdd496c3d9917d116e5db5885a99794c5711"
+          },
+          {
+            "path": "foundation-shell.json",
+            "sha256": "6b5bd15ac51860f75ab50d7a94074f7a16199bbf549cbd8d3b7055ee380ad0be"
+          },
+          {
+            "path": "index.html",
+            "sha256": "f87fc34e59129bd2127b4eae10296d53cd217bc59731299caa7bd50acad80e6b"
+          },
+          {
+            "path": "public-config.json",
+            "sha256": "2a26d49e936e665f55cf9420273ac98080a71935a178aae9a45141821e19a97a"
+          },
+          {
+            "path": "shell.js",
+            "sha256": "8ac8a062d23ea6bd67a298411c3d25465b93c06641e2a427540b256a76db7f03"
+          }
+        ]
+      }
+    },
+    "rollback": {
+      "kind": "first-deployment",
+      "sourceCommit": "184d19945f8d75994f5b58b13b0fadbf7b3c8b57",
+      "targetSha256": "d2950cf782c1796d01191ddc95fa721f5b3242826e02011b08a98dc62dee65a3",
+      "baseline": {
+        "projectId": "clever-oasis-508610-n7",
+        "projectNumber": "737787224638",
+        "stateGeneration": 1791693493236383,
+        "stateLineage": "f2536962-5280-6b41-f3a5-457f0c50608a",
+        "evidence": "F measured both exact PROD services HTTP404 at2026-10-11T04:57:46.4815941Z and initial Hosting releases0; private pre-runtime-functional-checks.json/state proof",
+        "readerAbsent": true,
+        "commandAbsent": true,
+        "hostingVersionAbsent": true
+      },
+      "dnsBefore": {
+        "name": "lm.mw-credit.com",
+        "observedAt": "2026-10-11T04:40:28.0421541Z",
+        "evidence": "F private shared-production-dns/before.json count0 before approved DNS plan",
+        "records": []
+      },
+      "containment": {
+        "traffic": "retain-denying-foundation",
+        "route": "restore-dns-before-state",
+        "retainResources": true
+      },
+      "artifacts": {
+        "frontend": {
+          "mode": "prod-foundation",
+          "phase": "maintenance",
+          "publicWorker": false,
+          "cachePolicy": "no-store",
+          "targetSha256": "d2950cf782c1796d01191ddc95fa721f5b3242826e02011b08a98dc62dee65a3",
+          "configSha256": "635e4708a01d1760d0f923cd63c3d50a7765c9a277aa5318b9a3264e55ce88e8",
+          "entry": "index.html",
+          "files": [
+            {
+              "path": "firebase.json",
+              "sha256": "a2990f0f0b3a68d67776fa59bc8acdd496c3d9917d116e5db5885a99794c5711"
+            },
+            {
+              "path": "foundation-shell.json",
+              "sha256": "348cb1eeade0104cb15308be03751a7f1961899bf2fceb6b6848070c5bcd5a6e"
+            },
+            {
+              "path": "index.html",
+              "sha256": "fdb04d74652fdee073f3f94674bfb73a42da3da5be9905704e1f6bbb5ea308cd"
+            },
+            {
+              "path": "public-config.json",
+              "sha256": "635e4708a01d1760d0f923cd63c3d50a7765c9a277aa5318b9a3264e55ce88e8"
+            }
+          ]
+        }
+      }
+    },
+    "evidence": {
+      "sourceVerification": "GitHub full CI38112831074 exact184d199:241units/271browserpasses9existing skips; helper tooling7bf8dd0 independent11passes with unchanged product inputs",
+      "artifactVerification": "Cloud Build fdc3b5bf-fc9e-4def-ad5c-1daa5020d87c immutable6cf9db0b image; local exact frontend/maintenance hash manifests",
+      "targetReview": "Root reviewed F3 plan3d9e5c6eda6b74a7882872ff8119fcb04f4c761fda95cece47c0804ba3a8bfc6; actual Ready revisions00001-9rm/00001-g9j and final state generation/lineage",
+      "containmentTests": "C32anonymous live service checks passed; root actual shared-owner Google sign-in and both session access checks passed05:06:12Z with businessAccess=false/membershipVerified=false/capabilities=[]; signout succeeded; DEV remained Ready/noalerts",
+      "rollbackTests": "Actual Hosting maintenance versione4c85ca1551041a5 then foundation316fc7cc1ea40685; recorded maintenance rollback release1791695097947000 and exact foundation restore1791695110822000, exact bytes/no-store/sw404 verified05:05:13Z; no rebuild",
+      "serverVerifier": "Published contained production verifier; shared default issuer/audience/noTenant with private ownersecretv1 actual trusted lookup",
+      "devDeliveryContainment": "Applied DEV Hosting containment plan e617236be729aae6cf7fa3f381a1f30d09bbe5471fe6a535c8d563bcb2ee1833; DEV API unchanged and actual after checks pass; inherited-org authority limits retained"
+    },
+    "sql": {
+      "mode": "none"
+    },
+    "authorization": {
+      "reference": "Owner explicitly approved revised shared-project/default-auth contained foundation delivery11October2026; root reviewed exact plans and authorized bounded Hosting rollback/restore; business remains disabled",
+      "scope": "contained-production-foundation",
+      "targetSha256": "d2950cf782c1796d01191ddc95fa721f5b3242826e02011b08a98dc62dee65a3",
+      "sourceCommit": "184d19945f8d75994f5b58b13b0fadbf7b3c8b57"
+    }
+  },
+  "runtime": {
+    "reader": {
+      "revision": "mw-credit-app-read-prod-00001-9rm",
+      "origin": "https://mw-credit-app-read-prod-pvrgvyg3oq-as.a.run.app",
+      "ready": true,
+      "trafficPercent": 100
+    },
+    "command": {
+      "revision": "mw-credit-app-command-prod-00001-g9j",
+      "origin": "https://mw-credit-app-command-prod-pvrgvyg3oq-as.a.run.app",
+      "ready": true,
+      "trafficPercent": 100
+    },
+    "businessAccess": false,
+    "membershipVerified": false,
+    "capabilities": [],
+    "databasePoolCount": 0
+  },
+  "hosting": {
+    "site": "mw-credit-prod-737787224638",
+    "canonicalOrigin": "https://lm.mw-credit.com",
+    "fallbackOrigin": "https://mw-credit-prod-737787224638.web.app",
+    "activeVersion": "316fc7cc1ea40685",
+    "activeRelease": "1791695110822000",
+    "worker": false,
+    "cachePolicy": "no-store",
+    "stages": [
+      {
+        "site": "mw-credit-prod-737787224638",
+        "phase": "maintenance",
+        "sourceCommit": "184d19945f8d75994f5b58b13b0fadbf7b3c8b57",
+        "targetSha256": "d2950cf782c1796d01191ddc95fa721f5b3242826e02011b08a98dc62dee65a3",
+        "version": "sites/mw-credit-prod-737787224638/versions/e4c85ca1551041a5",
+        "release": "sites/mw-credit-prod-737787224638/releases/1791694978263000",
+        "url": "https://mw-credit-prod-737787224638.web.app",
+        "cachePolicy": "no-store",
+        "worker": false,
+        "ci": {
+          "runId": "38112831074",
+          "sourceCommit": "184d19945f8d75994f5b58b13b0fadbf7b3c8b57",
+          "fullCheckpoint": "success"
+        }
+      },
+      {
+        "site": "mw-credit-prod-737787224638",
+        "phase": "foundation",
+        "sourceCommit": "184d19945f8d75994f5b58b13b0fadbf7b3c8b57",
+        "targetSha256": "d2950cf782c1796d01191ddc95fa721f5b3242826e02011b08a98dc62dee65a3",
+        "version": "sites/mw-credit-prod-737787224638/versions/316fc7cc1ea40685",
+        "release": "sites/mw-credit-prod-737787224638/releases/1791695050853000",
+        "url": "https://mw-credit-prod-737787224638.web.app",
+        "cachePolicy": "no-store",
+        "worker": false,
+        "ci": {
+          "runId": "38112831074",
+          "sourceCommit": "184d19945f8d75994f5b58b13b0fadbf7b3c8b57",
+          "fullCheckpoint": "success"
+        }
+      },
+      {
+        "stage": "rollback",
+        "phase": "maintenance",
+        "checkedAt": "2026-10-11T05:04:58.929Z",
+        "sourceCommit": "184d19945f8d75994f5b58b13b0fadbf7b3c8b57",
+        "targetSha256": "d2950cf782c1796d01191ddc95fa721f5b3242826e02011b08a98dc62dee65a3",
+        "version": "sites/mw-credit-prod-737787224638/versions/e4c85ca1551041a5",
+        "release": "sites/mw-credit-prod-737787224638/releases/1791695097947000",
+        "existingExactVersion": true,
+        "rebuilt": false
+      },
+      {
+        "stage": "restore",
+        "phase": "foundation",
+        "checkedAt": "2026-10-11T05:05:11.806Z",
+        "sourceCommit": "184d19945f8d75994f5b58b13b0fadbf7b3c8b57",
+        "targetSha256": "d2950cf782c1796d01191ddc95fa721f5b3242826e02011b08a98dc62dee65a3",
+        "version": "sites/mw-credit-prod-737787224638/versions/316fc7cc1ea40685",
+        "release": "sites/mw-credit-prod-737787224638/releases/1791695110822000",
+        "existingExactVersion": true,
+        "rebuilt": false
+      }
+    ],
+    "rollbackRestoreVerified": true,
+    "restoredBytesVerifiedAt": "2026-10-11T05:05:13.313Z",
+    "independentPublicVerificationAt": "2026-10-11T05:06:19.793Z",
+    "canonicalCertificate": {
+      "observedAt": "2026-10-11T05:14:17Z",
+      "hostState": "HOST_ACTIVE",
+      "ownershipState": "OWNERSHIP_ACTIVE",
+      "certificateState": "CERT_ACTIVE",
+      "issues": null,
+      "status": "verified-https-200-no-store"
+    }
+  },
+  "ownerVerification": {
+    "observedAt": "2026-10-11T05:06:12Z",
+    "origin": "fallback",
+    "sharedExistingGoogleAccount": true,
+    "newAccountRequired": false,
+    "bothProductionSessionsVerified": true,
+    "businessAccess": false,
+    "membershipVerified": false,
+    "capabilities": [],
+    "signOutPassed": true,
+    "noBusinessRequests": true,
+    "noTokenOrUidExtraction": true,
+    "devAuthenticatedRefreshAfterProductionSignOut": "Ready Dashboard zero alerts"
+  },
+  "canonicalOwnerVerification": {
+    "origin": "https://lm.mw-credit.com",
+    "observedAt": null,
+    "observationTimeRetained": false,
+    "sharedExistingGoogleAccount": true,
+    "bothProductionSessionsVerified": true,
+    "businessAccess": false,
+    "membershipVerified": false,
+    "capabilities": [],
+    "currentTurnSignOutAndFinalDevRefreshPerformed": false,
+    "reusedSignOutAndDevEvidence": "ownerVerification at 2026-10-11T05:06:12Z; fallback signout and DEV Ready proof reused, not rerun"
+  },
+  "effectiveAccessContinuation": {
+    "status": "incomplete",
+    "apiPlanSha256": "3fca04ff9dd70d3d762d888605d7fef9b90626d17771c0f8fac2902ba2f487b1",
+    "apiApplied": "policytroubleshooter.googleapis.com",
+    "created": 1,
+    "changed": 0,
+    "destroyed": 0,
+    "iamGrantsChanged": false,
+    "postApplyNoChangeChecked": false,
+    "retainedRows": [
+      { "principalRole": "DEV reader", "target": "PROD state bucket", "permission": "storage.objects.list", "access": "CANNOT_ACCESS", "allowAccessState": "ALLOW_ACCESS_STATE_NOT_GRANTED", "denyAccessState": "DENY_ACCESS_STATE_NOT_DENIED" },
+      { "principalRole": "DEV reader", "target": "PROD state bucket", "permission": "storage.buckets.setIamPolicy", "access": "CANNOT_ACCESS", "allowAccessState": "ALLOW_ACCESS_STATE_NOT_GRANTED", "denyAccessState": "DENY_ACCESS_STATE_NOT_DENIED" }
+    ],
+    "remainingMatrix": "unresponsive execution stopped; broader in-memory results not retained or claimed",
+    "scriptValidation": "PowerShell parser passed; per-row checkpoint/20-second timeout revision not rerun live"
+  },
+  "monitoring": {
+    "windowStart": "2026-10-11T04:47:36Z",
+    "windowEnd": "2026-10-11T05:02:36Z",
+    "latestSample": "2026-10-11T05:02:00Z",
+    "samplePeriodSeconds": 60,
+    "ingestDelaySeconds": 120,
+    "services": [
+      {
+        "name": "mw-credit-app-read-prod",
+        "requestCount": 16,
+        "codes": {
+          "200": 1,
+          "204": 1,
+          "401": 3,
+          "403": 11
+        },
+        "latencyMeanMs": {
+          "200": 2.886,
+          "204": 3.921,
+          "401": 3.746,
+          "403": 2.513
+        },
+        "activeIdleGaugeMaximum": 1
+      },
+      {
+        "name": "mw-credit-app-command-prod",
+        "requestCount": 16,
+        "codes": {
+          "200": 1,
+          "204": 1,
+          "401": 3,
+          "403": 11
+        },
+        "latencyMeanMs": {
+          "200": 3.587,
+          "204": 3.1,
+          "401": 3.697,
+          "403": 2.661
+        },
+        "activeIdleGaugeMaximum": 1
+      }
+    ],
+    "no5xxSeriesObserved": true,
+    "trafficScope": "deliberate safe health/preflight/auth/denial probes only",
+    "sloOrLoadTest": false,
+    "dedicatedAlertOrUptimeProbe": false,
+    "dedicatedAlertWorkStatus": "OWNERDEFERRED",
+    "newMonitoringAssetsOrTestNotifications": false
+  },
+  "limits": [
+    "Canonical HTTPS and both foundation owner sessions verified; current-turn signout/DEV refresh not rerun, prior evidence reused.",
+    "Full Phase3 remains in progress; R052 stays Open, no business release/tag.",
+    "Effective access matrix remains incomplete: only two DEV-reader/PROD-state bucket denials retained; no broader ancestor-IAM denial claim. Shared project administrators remain outside logical boundaries.",
+    "Main-only GitHub production environment exists; main is unprotected and no protected-source WIF automation is claimed.",
+    "No SQL/receipt/business/financial/notification operation, new dashboard or alert change.",
+    "Existing backup/PITR/soft-delete metadata is not a restore exercise; Phase9 remains pending.",
+    "Original partial new project/private tainted state remains parked.",
+    "Initial dirty capture bytes were not recovered; unrelated local work remains preserved.",
+    "Historical503 cause remains unproven; no additional unmapped native references discovered."
+  ]
+}

@@ -1,0 +1,73 @@
+{
+  "checkedAt": "2026-10-08T00:22:01.288Z",
+  "source": "f6be56f0387a03cf35d48d206f9aea2712b667f6",
+  "apiRevision": "mw-credit-app-read-dev-00010-fzk",
+  "hostingVersion": "3f6fbb70ca3dc007",
+  "checks": [
+    {
+      "path": "/api/borrowers?q=SYNTHETIC_SEARCH_CHECK",
+      "origin": "https://dev-lm.mw-credit.com",
+      "status": 401,
+      "originEcho": true,
+      "noStore": true,
+      "noRows": true
+    },
+    {
+      "path": "/api/collection?q=SYNTHETIC_SEARCH_CHECK",
+      "origin": "https://dev-lm.mw-credit.com",
+      "status": 401,
+      "originEcho": true,
+      "noStore": true,
+      "noRows": true
+    },
+    {
+      "path": "/api/borrowers?q=SYNTHETIC_SEARCH_CHECK",
+      "origin": "https://mw-credit-app-dev-737787224638.web.app",
+      "status": 401,
+      "originEcho": true,
+      "noStore": true,
+      "noRows": true
+    },
+    {
+      "path": "/api/collection?q=SYNTHETIC_SEARCH_CHECK",
+      "origin": "https://mw-credit-app-dev-737787224638.web.app",
+      "status": 401,
+      "originEcho": true,
+      "noStore": true,
+      "noRows": true
+    },
+    {
+      "name": "invalid bearer",
+      "status": 401
+    },
+    {
+      "name": "untrusted origin",
+      "status": 403
+    },
+    {
+      "name": "preflight",
+      "status": 204
+    }
+  ],
+  "ui": [
+    {
+      "name": "canonical",
+      "asset": "index-D2nJ4crK.js",
+      "workerSha256": "1df70d368dd253818712497df00e59bf0701ab18a317dd26bc639560556cef70",
+      "signedOut": true,
+      "searchHidden": true,
+      "apiRequests": 0,
+      "records": 0
+    },
+    {
+      "name": "fallback",
+      "asset": "index-D2nJ4crK.js",
+      "workerSha256": "1df70d368dd253818712497df00e59bf0701ab18a317dd26bc639560556cef70",
+      "signedOut": true,
+      "searchHidden": true,
+      "apiRequests": 0,
+      "records": 0
+    }
+  ],
+  "limitation": "Unsigned synthetic-query boundary and delivery checks only. Owner authenticated search/iPhone validation pending."
+}

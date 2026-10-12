@@ -1,0 +1,12 @@
+{
+  "checkedAtUtc": "2026-10-07T11:36:03.2274421Z",
+  "url": "https://mw-credit-app-read-dev-pvrgvyg3oq-as.a.run.app/health",
+  "status": 200,
+  "cacheControl": "no-store",
+  "body": {
+    "status": "ok",
+    "environment": "dev",
+    "service": "borrower-read"
+  },
+  "scope": "Static endpoint only; no database/business query"
+}

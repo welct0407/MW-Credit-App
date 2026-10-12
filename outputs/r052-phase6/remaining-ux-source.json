@@ -1,0 +1,35 @@
+{
+  "baseline": "bb95b94",
+  "build": "D5kCTBZO",
+  "css": "eph9df7s",
+  "checks": [
+    "npm run build:live-dev PASS (typecheck and Vite)",
+    "git diff --check PASS"
+  ],
+  "files": [
+    {
+      "path": "apps/pwa/src/CashWorkspace.tsx",
+      "sha256": "40292685EB3D4F2407A8525B2937AAB353B6EBBA153146CC19A35F1A59304DD4"
+    },
+    {
+      "path": "apps/pwa/src/Dashboard.tsx",
+      "sha256": "31F4980876CE5BE521E6BE306704F1BC52CACFA8DB816B2CC72E87D4A4CDB8DE"
+    },
+    {
+      "path": "apps/pwa/src/ManagementAnalytics.tsx",
+      "sha256": "301057AC2326301411A6F292BBBC39EE0D7EC04E1A3D7E275F8D7E30A20C6855"
+    },
+    {
+      "path": "apps/pwa/src/ManagementAssessments.tsx",
+      "sha256": "AF2EC77720E5C75B530D8E639D30A2FA39041B469A31552DEA84C106D124C56D"
+    },
+    {
+      "path": "apps/pwa/src/ManagementFinancialWorkspace.tsx",
+      "sha256": "44C33CDBAEB731F3F4D02994A053281E45F56F0EA06624469A2ED9CCD73DBF5C"
+    },
+    {
+      "path": "apps/pwa/src/live-style.css",
+      "sha256": "B67FEC78443F7502722098E0E992AA96A9AFF9C000A3F2776ED84CBCD35AD72F"
+    }
+  ]
+}

@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "release": "R052",
+  "status": "Implemented, tested and deployed in DEV; owner acceptance pending",
+  "artifactCodeCommit": "f937bff4d9daf9ecdd1901cd5664e00bcfedf1a7",
+  "checkedTestCommit": "cde2ec704702c1f349b2faa71085ad2946ef83e2",
+  "ci": {
+    "developmentRun": 37779120566,
+    "developmentConclusion": "success",
+    "databaseRun": 37779120518,
+    "databaseConclusion": "success",
+    "originalDatabaseRun": 37777429195,
+    "originalDevelopmentFailure": "initial-remote-check.json"
+  },
+  "database": {
+    "name": "loan_manager_dev",
+    "history": {
+      "head": 81,
+      "successful": 81,
+      "failed": 0
+    },
+    "migration81Sha256": "e5910ad6d6b8c844888045a52e930e63a44066fbdba240487faeaae1380d9d7c",
+    "migration80Sha256": "43f643d61f1b242438f9b16bd47ee87ca45c37affc817027c15aabd00f9a55aa",
+    "operatorRightsRestoredExactly": true,
+    "unrelatedMembershipAndSchemaAclUnchanged": true,
+    "protectedRuntimeBoundaryVerified": true,
+    "routineOwnerAndSecurityVerified": true
+  },
+  "command": {
+    "revision": "mw-credit-app-command-dev-00003-gcl",
+    "image": "sha256:f83f4b9facef7b652afb5a39045a8e65ece890abca9010d25c9206efd5ec2d57",
+    "buildId": "1c0489e6-455a-456f-a37e-e0a7576c0fce",
+    "containerSmoke": "passed",
+    "health": 200,
+    "anonymousCommandStatus": 401,
+    "authIdentityModeConfiguration": "unchanged"
+  },
+  "frontend": {
+    "hostingVersion": "sites/mw-credit-app-dev-737787224638/versions/879d75b2e91a0b85",
+    "release": "sites/mw-credit-app-dev-737787224638/releases/1791464876130000",
+    "bundle": "index-BxDdxTZs.js",
+    "publicPage": 200,
+    "finalCorrection": "ready Upcoming refresh removed; B4/4/build and C affected deployed read-only empty/header-refresh pass",
+    "codeCommit": "d0581b38a22e0b0f30d948deed51abde8984ef05"
+  },
+  "terraform": {
+    "actions": "0create/1image-onlyupdate/0destroy",
+    "appliedPlanSha256": "a1374f691bbdc745538fbb3b939bb25fec27ef3262df932378e7b3f20e02d573",
+    "finalNoOp": "passed"
+  },
+  "recovery": {
+    "freshDev80Restore": "passed after intervening owner activity",
+    "dumpSha256": "0c440af77c359dd3068cd4fb4eb0657e6173185fbb591d67b7150ae6005f5260",
+    "privateRecoveryRetained": true,
+    "beforeRevision": "mw-credit-app-command-dev-00002-vrx",
+    "beforeHosting": "ab4f267f8f0d1534",
+    "noBlindFinancialRestore": true
+  },
+  "scopeLimits": [
+    "No live financial writes/uploads/CAS by this UX batch",
+    "Posted auto-return/tender accounting verified in disposable SQL/browser; no new live post",
+    "Notifications remain Phase8; PROD V77 unchanged",
+    "No measured Cloud Run latency improvement claimed",
+    "Owner hands-on acceptance separate"
+  ],
+  "evidence": [
+    "independent-verification.md",
+    "independent-source-hashes.json",
+    "review-timings.json",
+    "recovery-verification.json",
+    "live-readonly-smoke.md"
+  ]
+}

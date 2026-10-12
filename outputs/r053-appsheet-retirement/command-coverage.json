@@ -1,0 +1,1111 @@
+{
+  "status": "implementation-in-progress-not-acceptance",
+  "sourceManifestSha256": "46bff40b93ad4635d833c0fc65ea5ef7a16c0eaeb29df8f584be7ab670250db5",
+  "fields": [
+    {
+      "scope": "oltp",
+      "resource": "Borrowers",
+      "field": "Borrower Name",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Borrowers",
+      "field": "Description",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Borrowers",
+      "field": "Creation Date",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "explicit-reviewed-dml-gap-route"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Borrowers",
+      "field": "Hidden Flag",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Borrowers",
+      "field": "Communication Name",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Borrowers",
+      "field": "City",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Borrowers",
+      "field": "Working Location",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Borrowers",
+      "field": "Address",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Borrowers",
+      "field": "Ref Referrer",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Borrowers",
+      "field": "Ref Preferred Receiving Cash Account",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Borrowers",
+      "field": "Payment Request Cash Account",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "semantic-action"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Borrowers",
+      "field": "Payment Request Token",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "semantic-action"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Borrowers",
+      "field": "Borrower Note",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Loans",
+      "field": "Loan Date",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Loans",
+      "field": "Close Date",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "explicit-reviewed-dml-gap-route"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Loans",
+      "field": "Principal Amount",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Loans",
+      "field": "Due Date",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Loans",
+      "field": "Ref Borrowers",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Loans",
+      "field": "Loan Arrangement",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Loans",
+      "field": "Loan Status",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "semantic-action"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Loans",
+      "field": "Loan Type",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Loans",
+      "field": "Current Daily Interest",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Loans",
+      "field": "Fixed Interest",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Loans",
+      "field": "Transfer Fee",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Loans",
+      "field": "Interest Payment Interval",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Loans",
+      "field": "Defaulted",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "semantic-action"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Loans",
+      "field": "Default Loss Amount",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "explicit-reviewed-dml-gap-route"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Loans",
+      "field": "Daily Payment Amount",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Loans",
+      "field": "Auto Charge Enabled",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Loans",
+      "field": "Interest Schedule Anchor Date",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "semantic-action"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Loans",
+      "field": "Charge Generation Request",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "semantic-action"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Loans",
+      "field": "Ref Disbursed From Cash Account",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Loans",
+      "field": "Payment Request Cash Account",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "semantic-action"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Loans",
+      "field": "Payment Request Token",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "semantic-action"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Repayments",
+      "field": "Payment Date",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "explicit-reviewed-dml-gap-route"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Repayments",
+      "field": "Principal Paid",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "explicit-reviewed-dml-gap-route"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Repayments",
+      "field": "Interest Paid",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "explicit-reviewed-dml-gap-route"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Repayments",
+      "field": "Notes",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "explicit-reviewed-dml-gap-route"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Repayments",
+      "field": "Ref Charges",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "explicit-reviewed-dml-gap-route"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Repayments",
+      "field": "Ref Payment",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "explicit-reviewed-dml-gap-route"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Repayments",
+      "field": "Ref Payment Allocation",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "explicit-reviewed-dml-gap-route"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Charges",
+      "field": "Ref Loans",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Charges",
+      "field": "Charge Date",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Charges",
+      "field": "Interest Due",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Charges",
+      "field": "Principal Due",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Charges",
+      "field": "Notes",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Charges",
+      "field": "Payment Request Cash Account",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "semantic-action"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Charges",
+      "field": "Payment Request Token",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "semantic-action"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Payment Allocations",
+      "field": "Charge Date Snapshot",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Payment Allocations",
+      "field": "Ref Payment",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Payment Allocations",
+      "field": "Ref Charge",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Payment Allocations",
+      "field": "Charge Row Number Snapshot",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Payment Allocations",
+      "field": "Interest Remaining Snapshot",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Payment Allocations",
+      "field": "Principal Remaining Snapshot",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Payment Allocations",
+      "field": "Amount Remaining Snapshot",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Payment Allocations",
+      "field": "Allocation Order",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Payment Allocations",
+      "field": "Allocated Interest",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Payment Allocations",
+      "field": "Allocated Principal",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Payment Allocations",
+      "field": "Allocated Amount",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Payment Allocations",
+      "field": "Created At",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Payments",
+      "field": "Status",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "explicit-reviewed-dml-gap-route"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Payments",
+      "field": "Ref Borrower",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Payments",
+      "field": "Amount Received",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Payments",
+      "field": "Payment Method",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Payments",
+      "field": "Allocation Method",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Payments",
+      "field": "Bank Reference",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Payments",
+      "field": "Notes",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Payments",
+      "field": "Payment Date",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Payments",
+      "field": "Created At",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Payments",
+      "field": "Processed At",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-engine-owned"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Payments",
+      "field": "Ref Target Charge",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Payments",
+      "field": "Ref Target Loan",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Payments",
+      "field": "Ref Received By Cash Holder",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Payments",
+      "field": "Ref Received By Cash Account",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Business Expenses",
+      "field": "Expense Date",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Business Expenses",
+      "field": "Expense Category",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Business Expenses",
+      "field": "Amount",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Business Expenses",
+      "field": "Payee Name",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Business Expenses",
+      "field": "Ref Related Borrower",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Business Expenses",
+      "field": "Ref Related Loan",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Business Expenses",
+      "field": "Notes",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Business Expenses",
+      "field": "Ref Paid By Cash Holder",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "explicit-reviewed-dml-gap-route"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Business Expenses",
+      "field": "Ref Paid By Cash Account",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Cash Statement Context",
+      "field": "Ref Cash Account",
+      "legacyActions": [
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "oltp",
+      "resource": "Cash Statement Context",
+      "field": "Statement Date",
+      "legacyActions": [
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "olap",
+      "resource": "Loan Assessment",
+      "field": "Ref Borrower",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "olap",
+      "resource": "Loan Assessment",
+      "field": "Proposed Loan Amount",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "olap",
+      "resource": "Loan Assessment",
+      "field": "Minimum Daily Profit Rate",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "olap",
+      "resource": "Loan Assessment",
+      "field": "SQL Refresh Token",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "semantic-action"
+    },
+    {
+      "scope": "olap",
+      "resource": "Cash Pool Contributions",
+      "field": "Ref Partner",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "olap",
+      "resource": "Cash Pool Contributions",
+      "field": "Contribution Date",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "olap",
+      "resource": "Cash Pool Contributions",
+      "field": "Transaction Type",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "olap",
+      "resource": "Cash Pool Contributions",
+      "field": "Amount",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "olap",
+      "resource": "Cash Pool Contributions",
+      "field": "Notes",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "olap",
+      "resource": "Settlements",
+      "field": "Settlement Date",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "olap",
+      "resource": "Settlements",
+      "field": "Ref Partner",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "olap",
+      "resource": "Settlements",
+      "field": "Amount",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "olap",
+      "resource": "Settlements",
+      "field": "Status",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "olap",
+      "resource": "Settlements",
+      "field": "Transfer Date",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "olap",
+      "resource": "Settlements",
+      "field": "Notes",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "olap",
+      "resource": "Settlements",
+      "field": "Ref Paid From Cash Account",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "olap",
+      "resource": "Cash Ledger",
+      "field": "Movement Date",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "olap",
+      "resource": "Cash Ledger",
+      "field": "Movement Type",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "olap",
+      "resource": "Cash Ledger",
+      "field": "Amount",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "olap",
+      "resource": "Cash Ledger",
+      "field": "Ref From Cash Holder",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "explicit-reviewed-dml-gap-route"
+    },
+    {
+      "scope": "olap",
+      "resource": "Cash Ledger",
+      "field": "Ref To Cash Holder",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "explicit-reviewed-dml-gap-route"
+    },
+    {
+      "scope": "olap",
+      "resource": "Cash Ledger",
+      "field": "Ref Business Expense",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "olap",
+      "resource": "Cash Ledger",
+      "field": "Notes",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "olap",
+      "resource": "Cash Ledger",
+      "field": "Ref From Cash Account",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    },
+    {
+      "scope": "olap",
+      "resource": "Cash Ledger",
+      "field": "Ref To Cash Account",
+      "legacyActions": [
+        "Add",
+        "Edit"
+      ],
+      "route": "canonical-command"
+    }
+  ],
+  "unresolved": [],
+  "notes": [
+    "Routes remain subject to current actor, constraints and exact operation eligibility.",
+    "Posted allocation snapshots use parent payment correction; they are never raw child writes.",
+    "Payments Created At Add is native creation; Edit uses narrow versioned payment.update-metadata. Processed At remains canonical engine-owned.",
+    "No automatic native-command to DML fallback exists."
+  ]
+}

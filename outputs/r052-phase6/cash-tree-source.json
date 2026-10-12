@@ -1,0 +1,22 @@
+{
+  "baseline": "cbe784a",
+  "files": [
+    {
+      "path": "apps/pwa/src/ManagementPosition.tsx",
+      "sha256": "5437E803F56ADF281BCEF74C614952678FCAEA405F84E66F9E214E437C6317BA"
+    },
+    {
+      "path": "apps/pwa/src/ManagementWorkspace.tsx",
+      "sha256": "DD4D5FED7E7B494A377482F1D1BD09AD7EFA87E14346EED3D1AC5AB9F115F78A"
+    },
+    {
+      "path": "apps/pwa/src/live-style.css",
+      "sha256": "0B5DFA46D7AE11DBE05B496D016436388B6ECC9997BC5F2275DE66AE4999905C"
+    }
+  ],
+  "build": "index-Bgd33_e7.js",
+  "checks": [
+    "npm run build:live-dev PASS"
+  ],
+  "backendChanged": false
+}

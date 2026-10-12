@@ -1,0 +1,92 @@
+{
+  "checkedAtUtc": "2026-10-07T11:28:53.6178364Z",
+  "base": "https://mw-credit-app-read-dev-pvrgvyg3oq-as.a.run.app",
+  "scope": "Unauthenticated application boundary only; no valid credentials or borrower rows",
+  "results": [
+    {
+      "name": "anonymous",
+      "status": 401,
+      "expected": 401,
+      "passed": true,
+      "cacheControl": "no-store",
+      "allowOrigin": "",
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "ok": false,
+        "code": "sign_in_required"
+      }
+    },
+    {
+      "name": "invalid-token",
+      "status": 401,
+      "expected": 401,
+      "passed": true,
+      "cacheControl": "no-store",
+      "allowOrigin": "",
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "ok": false,
+        "code": "session_invalid"
+      }
+    },
+    {
+      "name": "disallowed-origin",
+      "status": 403,
+      "expected": 403,
+      "passed": true,
+      "cacheControl": "no-store",
+      "allowOrigin": "",
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "ok": false,
+        "code": "origin_denied"
+      }
+    },
+    {
+      "name": "preflight",
+      "status": 204,
+      "expected": 204,
+      "passed": true,
+      "cacheControl": "no-store",
+      "allowOrigin": "https://mw-credit-app-dev-737787224638.web.app",
+      "contentType": "application/json; charset=utf-8",
+      "body": null
+    },
+    {
+      "name": "write-method",
+      "status": 405,
+      "expected": 405,
+      "passed": true,
+      "cacheControl": "no-store",
+      "allowOrigin": "",
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "ok": false,
+        "code": "method_not_allowed"
+      }
+    },
+    {
+      "name": "static-health",
+      "status": 404,
+      "expected": 200,
+      "passed": false,
+      "cacheControl": "",
+      "allowOrigin": "",
+      "contentType": "text/html; charset=UTF-8",
+      "body": null
+    },
+    {
+      "name": "removed-readiness",
+      "status": 401,
+      "expected": 401,
+      "passed": true,
+      "cacheControl": "no-store",
+      "allowOrigin": "",
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "ok": false,
+        "code": "sign_in_required"
+      }
+    }
+  ]
+}

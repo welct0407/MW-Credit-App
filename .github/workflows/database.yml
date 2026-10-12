@@ -2,9 +2,9 @@ name: Database migrations
 on:
   push:
     branches: ['**'] # Release tags reuse the tested commit; avoid duplicate tag runs.
-    paths: ['database/**', 'scripts/database/**', '.github/workflows/database.yml', 'scripts/analysis/**', 'scripts/dictionary/capture_postgresql.py', 'outputs/database-transfer-20261007/source-manifest.json']
+    paths: ['database/**', 'scripts/database/**', 'tests/integration/**', 'scripts/rehearsal/Run-ApplicationRoleOperatorProof.ps1', '.github/workflows/database.yml', 'scripts/analysis/**', 'scripts/dictionary/capture_postgresql.py', 'outputs/database-transfer-20261007/source-manifest.json']
   pull_request:
-    paths: ['database/**', 'scripts/database/**', '.github/workflows/database.yml', 'scripts/analysis/**', 'scripts/dictionary/capture_postgresql.py', 'outputs/database-transfer-20261007/source-manifest.json']
+    paths: ['database/**', 'scripts/database/**', 'tests/integration/**', 'scripts/rehearsal/Run-ApplicationRoleOperatorProof.ps1', '.github/workflows/database.yml', 'scripts/analysis/**', 'scripts/dictionary/capture_postgresql.py', 'outputs/database-transfer-20261007/source-manifest.json']
   workflow_dispatch:
 permissions:
   contents: read
@@ -35,6 +35,12 @@ jobs:
       - name: Install pinned tools outside checkout
         shell: pwsh
         run: ./scripts/database/Install-Tools.ps1
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Install application test dependencies
+        run: npm ci
       - name: Rebuild and validate disposable database
         shell: pwsh
         run: ./scripts/database/Test-CI.ps1

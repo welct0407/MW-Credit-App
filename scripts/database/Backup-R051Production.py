@@ -2,7 +2,7 @@
 import hashlib, json, os, socket, subprocess, sys
 from pathlib import Path
 from datetime import datetime, timezone
-sys.path.insert(0,r'C:\Users\MWCredit\AppData\Local\AppSheetLoanTools\python-deps')
+sys.path.insert(0,r'C:\Users\ideaadmin\AppData\Local\AppSheetLoanTools\python-deps')
 import psycopg
 from psycopg import sql
 
@@ -15,7 +15,7 @@ args=parser.parse_args()
 target=json.loads((repo/'database/environments.json').read_text())[args.environment]
 assert (target['instance'],target['host'],target['database'])==('appsheet-pg-prod-20260914','34.21.174.215',('loan_manager_prod' if args.environment=='production' else 'loan_manager_dev'))
 stamp=datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')
-folder=Path('C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r051-production')/stamp
+folder=Path('C:/Users/ideaadmin/Documents/ChatGPT/AppSheet-Loan-Project/r051-production')/stamp
 folder.mkdir(parents=True,exist_ok=False)
 out=repo/'outputs/r051-production';out.mkdir(parents=True,exist_ok=True)
 pgbin=Path(os.environ['LOCALAPPDATA'])/'AppSheetLoanTools/postgresql-18.6-3/pgsql/bin'

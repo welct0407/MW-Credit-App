@@ -1,0 +1,873 @@
+{
+  "schemaVersion": 1,
+  "status": "review-only-not-staged",
+  "baseline": "57ae2ca23d8ab17b07b975def3e482ec30ce68cf",
+  "generatedAt": "2026-10-11T12:15:44.2105082+00:00",
+  "files": [
+    {
+      "path": "apps/pwa/pwa/sw.js",
+      "owners": [
+        "B"
+      ],
+      "sha256": "4b57f1f8fabf97daf295103d24792b1f23310618f40567d736ec0497f753e1ec"
+    },
+    {
+      "path": "apps/pwa/src/environment.ts",
+      "owners": [
+        "B"
+      ],
+      "sha256": "282e6f67bd841643c5f842991424b81faac1bbe0823580b24582c0bfb948291d"
+    },
+    {
+      "path": "apps/pwa/src/live-main.tsx",
+      "owners": [
+        "B"
+      ],
+      "sha256": "69f765d68e45391d02c5f1c2d1c693d43681bcd3fd0756aab140beb8f7fbd301"
+    },
+    {
+      "path": "apps/pwa/src/Notifications.tsx",
+      "owners": [
+        "B"
+      ],
+      "sha256": "e26e6ad5c0e3b471a60d9b9eb6d40f94b3baa379070dfeef5981457eeedac41c"
+    },
+    {
+      "path": "apps/pwa/src/owner-offline.ts",
+      "owners": [
+        "B"
+      ],
+      "sha256": "6aa0046527dc07d1fe941aa98310380ae7067147c04e4a90521ac5ec5b74855e"
+    },
+    {
+      "path": "apps/pwa/src/usePwa.ts",
+      "owners": [
+        "B"
+      ],
+      "sha256": "305e219af485f914a5b35c9174a5a1fdf37d6fb5ce40c69b844e6fff77aba66c"
+    },
+    {
+      "path": "Change Logs/CHANGE_NOTES_R052_PHASE3_FOUNDATION_2026-10-11.md",
+      "owners": [
+        "F"
+      ],
+      "sha256": "2561086cb300d814ca7a23d1fb3044763fa3d8e1cb794236dadc5a0ebe0c7554"
+    },
+    {
+      "path": "Change Logs/CHANGE_NOTES_R052_PROMOTION_READINESS_2026-10-11.md",
+      "owners": [
+        "D"
+      ],
+      "sha256": "90f69f659783cb48a1cb65828538b1fa541bd4e3d2a60d1a2602977eb3b889fe"
+    },
+    {
+      "path": "cloudbuild-business.yaml",
+      "owners": [
+        "F"
+      ],
+      "sha256": "01e5baac59d61bd33cb986d91ce904f06d0f7bb3a54a24578ea6299c51d51964"
+    },
+    {
+      "path": "database/migrations/V86__durable_notification_and_job_state.sql",
+      "owners": [
+        "B"
+      ],
+      "sha256": "af9227720a21f45eecc506894db58f230ecd3de6a0db7cc6fa1522da16148eaa"
+    },
+    {
+      "path": "database/migrations/V87__database_bound_application_roles.sql",
+      "owners": [
+        "B"
+      ],
+      "sha256": "e360d46400a30a6d12d24fe7574350001753ce3ea1d65e9dd7c8103ceb1e8325"
+    },
+    {
+      "path": "infrastructure/production/business-candidate.tf",
+      "owners": [
+        "F"
+      ],
+      "sha256": "15b77a4dc2c274923907beb7ab862b61cedec5d8095b13326310fb7ee483b237"
+    },
+    {
+      "path": "infrastructure/production/business.tf",
+      "owners": [
+        "F"
+      ],
+      "sha256": "2cebab57a1cdac17dc0e9c7ce9b2b7db4cd782be12c2013e4db42d17f85e641b"
+    },
+    {
+      "path": "infrastructure/production/READINESS_INVENTORY.md",
+      "owners": [
+        "F"
+      ],
+      "sha256": "0bfdeab37ac33d1e1249c5cadce451f4dc5ecae2de2e2b0f7546d1ba5158047f"
+    },
+    {
+      "path": "infrastructure/production/README.md",
+      "owners": [
+        "F"
+      ],
+      "sha256": "bdc70a58c2eeb5c31afdd19063b2a2832f222b29f54551e2f5f43476df730880"
+    },
+    {
+      "path": "infrastructure/production/runtime.tf",
+      "owners": [
+        "F"
+      ],
+      "sha256": "c98b26c44b814d4e80c4c7ac6e89190fcfab9693262d17c7b70995b7950e7fdf"
+    },
+    {
+      "path": "infrastructure/production/tests/inert.tftest.hcl",
+      "owners": [
+        "F"
+      ],
+      "sha256": "756de579e768ca10d96063a949fa54886c020ebae08f10d27b4879c2e08b553a"
+    },
+    {
+      "path": "outputs/r052-phase3/effective-access-readiness.json",
+      "owners": [
+        "F"
+      ],
+      "sha256": "bd7faf7cffcc0fbcdb0f4a7e68a8e181164a25f8f45c0b829e9384ae59709e3a"
+    },
+    {
+      "path": "outputs/r052-phase3/production-foundation-delivery.json",
+      "owners": [
+        "D"
+      ],
+      "sha256": "84be02fe871f4339b1c9ab79949f5bdeb342c7a1d034b8328351bde334e7b222"
+    },
+    {
+      "path": "outputs/r052-promotion-readiness/agent-receipt-reader-handoff.md",
+      "owners": [
+        "B"
+      ],
+      "sha256": "501a455639e35fdb9e9f92d2ae6f33eec3c04caab4ba191f67cd7a14a1feab51"
+    },
+    {
+      "path": "outputs/r052-promotion-readiness/appsheet-current-contract.md",
+      "owners": [
+        "root/A"
+      ],
+      "sha256": "ea299203ff7c111a3c03b886d030785f48241bd16492122e4ea23e96e6f16b00"
+    },
+    {
+      "path": "outputs/r052-promotion-readiness/coding-checkpoint.md",
+      "owners": [
+        "B"
+      ],
+      "sha256": "be367400d7ee35f2711f3224100a5003fd48b2e26285a3f6f7c9fa1a8768d3cf"
+    },
+    {
+      "path": "outputs/r052-promotion-readiness/coding-source-hashes.json",
+      "owners": [
+        "B"
+      ],
+      "sha256": "b3fe4843865157a09087c8e31948754ce02cfd5da59bd22a664ccdfb16352ccf"
+    },
+    {
+      "path": "outputs/r052-promotion-readiness/delivery-source-hashes.json",
+      "owners": [
+        "D"
+      ],
+      "sha256": "2ba5eb0a369475b86c0f626dd0778f9f58b91603d801777a127f1ba231e26125"
+    },
+    {
+      "path": "outputs/r052-promotion-readiness/design-test-plan.md",
+      "owners": [
+        "root/A"
+      ],
+      "sha256": "6cc2b818c4198b07bd81aa5bfaa4e17d3c3211a3e29bb7e91397dcd16e82e4d8"
+    },
+    {
+      "path": "outputs/r052-promotion-readiness/frontend-config-fix.md",
+      "owners": [
+        "B"
+      ],
+      "sha256": "8bfbb38728f14a71a7f69cb926086e865d14a779715702d7b50e5b455a2d8f76"
+    },
+    {
+      "path": "outputs/r052-promotion-readiness/independent-verification.md",
+      "owners": [
+        "C"
+      ],
+      "sha256": "f3b3c9d0de7e083f802301c2f98b837e539e9d0a8aa4d0433899393f71814d84"
+    },
+    {
+      "path": "outputs/r052-promotion-readiness/production-agent-receipt-proof.json",
+      "owners": [
+        "D"
+      ],
+      "sha256": "00c1959f195d34dba0665fe4ea8bc1376fa6c12b9a330cde53597b4c503cfc24"
+    },
+    {
+      "path": "outputs/r052-promotion-readiness/production-receipt-current-reference-proof.json",
+      "owners": [
+        "D"
+      ],
+      "sha256": "d3b69a3c4bc7b410043ead8acf48a838ff74f04ba3a589119780735bc139bab3"
+    },
+    {
+      "path": "outputs/r052-promotion-readiness/production-receipt-reconciliation-35.json",
+      "owners": [
+        "D"
+      ],
+      "sha256": "ca2cbff2148f00c805efa5e0637b8b3b182b4116b8faaabfc7b0909683c7f418"
+    },
+    {
+      "path": "outputs/r052-promotion-readiness/runtime-candidate.md",
+      "owners": [
+        "B"
+      ],
+      "sha256": "ecefc401a8c3dfedc559512724d7d17ff588afd77de107ff6af272abd1981157"
+    },
+    {
+      "path": "package-lock.json",
+      "owners": [
+        "B"
+      ],
+      "sha256": "d0363d3fa694b8c0ff2dc831c0643f015cd02bf118d6571e6efbbf10554fefdc"
+    },
+    {
+      "path": "package.json",
+      "owners": [
+        "B"
+      ],
+      "sha256": "f9111f646bf4be938baedf70177168ba1d57074300cfed2be4c8f076943d3868"
+    },
+    {
+      "path": "scripts/database/app-role-policy.mjs",
+      "owners": [
+        "B"
+      ],
+      "sha256": "89f9ec43732aacdb60df05ba69b13921104c2db045f5dd53c401047acb39d1e3"
+    },
+    {
+      "path": "scripts/database/application-role-provision-cli.mjs",
+      "owners": [
+        "D"
+      ],
+      "sha256": "3b2efdeee61d355b0437a6fff72c3863f566c1981213f1b12d71aac51618ff14"
+    },
+    {
+      "path": "scripts/database/application-role-provisioning.mjs",
+      "owners": [
+        "D"
+      ],
+      "sha256": "67879080dbd59aadb8cf3abb2e6269cf736befe728163f16547ee5b164c7a443"
+    },
+    {
+      "path": "scripts/database/application-role-tooling.mjs",
+      "owners": [
+        "D"
+      ],
+      "sha256": "e99389fb8bdf8a30666ab5fd42ab8c4821398c6bd69cbf7681dbc6228999e21a"
+    },
+    {
+      "path": "scripts/database/Backup-DevActivation.ps1",
+      "owners": [
+        "D"
+      ],
+      "sha256": "a5654cd7cf91cd94ca83c1f3f5ed9da8abd91744a529927e1d53d7f4c7668bfd"
+    },
+    {
+      "path": "scripts/database/Get-ProductionReadinessInventory.ps1",
+      "owners": [
+        "D"
+      ],
+      "sha256": "f205c7d10116b6cd4ff9fce8580ce63a221a0dd670351c51453ab730e3655d18"
+    },
+    {
+      "path": "scripts/database/grouped-owner-maintenance.mjs",
+      "owners": [
+        "D"
+      ],
+      "sha256": "8a9ce5b90f651237124c1a7e0b10fd64c6bdbfd3c7d01d4ed3dd2a4fc352e03e"
+    },
+    {
+      "path": "scripts/database/Invoke-Flyway.ps1",
+      "owners": [
+        "D"
+      ],
+      "sha256": "4fff0e696d1add2e284910ae29d8b4e07a9a38a34d8b35622f78780438adb1d3"
+    },
+    {
+      "path": "scripts/database/Production-Transaction.ps1",
+      "owners": [
+        "D"
+      ],
+      "sha256": "bb1f224a4963dc5645271c75c19093ed86b863c75e29d4480aeb0a493f12a040"
+    },
+    {
+      "path": "scripts/database/Test-AtomicLoanCloseConcurrency.ps1",
+      "owners": [
+        "D"
+      ],
+      "sha256": "0eb68592ef680a7dac0a14a7948b90cd29dddff306d65225f585925e17f381a5"
+    },
+    {
+      "path": "scripts/database/Test-BusinessExpensesConcurrency.ps1",
+      "owners": [
+        "D"
+      ],
+      "sha256": "d3abb6a1325303444cdf965ab30f2735c607460bbde779053f067f93352f0387"
+    },
+    {
+      "path": "scripts/database/Test-ChargeGenerationConcurrency.ps1",
+      "owners": [
+        "D"
+      ],
+      "sha256": "19abe894cd1ccf6e420c3f2b735d824dc426b10547529af5951bc0e795483ac2"
+    },
+    {
+      "path": "scripts/database/Test-CorePaymentConcurrency.ps1",
+      "owners": [
+        "D"
+      ],
+      "sha256": "8f4c9bc8905ce8baffc8985d860fc71f9b8fb42e91614bb1be58f9f77298369a"
+    },
+    {
+      "path": "scripts/database/Test-DefaultLoanConcurrency.ps1",
+      "owners": [
+        "D"
+      ],
+      "sha256": "cd98fface2b7066483ac74eaa5b34042492dbed91c4ee02abb3cf33f229676d6"
+    },
+    {
+      "path": "scripts/database/Test-ExpenseReimbursementConcurrency.ps1",
+      "owners": [
+        "D"
+      ],
+      "sha256": "1fdcbde005b00ebaa7fe74920658d5c830fd6918f2991c5d38fe55a4e4de92c2"
+    },
+    {
+      "path": "scripts/database/Test-InterestReallocationConcurrency.ps1",
+      "owners": [
+        "D"
+      ],
+      "sha256": "c44732819a4bde0682d224d761b4af180cb4d8c858d39c74ec2cc49a1b064844"
+    },
+    {
+      "path": "scripts/database/Test-LumpSumConcurrency.ps1",
+      "owners": [
+        "D"
+      ],
+      "sha256": "ffb9f4d5eaecd2665a7de9ab51d17d46a8666915d2064b273e6160fd976ad5d4"
+    },
+    {
+      "path": "scripts/database/Test-Migrations.ps1",
+      "owners": [
+        "D"
+      ],
+      "sha256": "c7a3a43b823f4b1b4e361dd50965736c76cdca45221f601647476310b4e232b8"
+    },
+    {
+      "path": "scripts/database/Test-MigrationsCloud.py",
+      "owners": [
+        "D"
+      ],
+      "sha256": "f810b0ffe3a85b82bac6013d1cad36f7178fb596c9fa87a8cff25e2022a66200"
+    },
+    {
+      "path": "scripts/database/Test-PaymentCrudConcurrency.ps1",
+      "owners": [
+        "D"
+      ],
+      "sha256": "1656b82b908d7cce156bbb85a5fa449d401a93e6f34661b1d6c9473c4102de14"
+    },
+    {
+      "path": "scripts/database/Test-ProductionTransactionGuards.ps1",
+      "owners": [
+        "D"
+      ],
+      "sha256": "d89b767d42a11d08c68a39fe47e6b8bea72504731db4ad19e67556e3352e4c42"
+    },
+    {
+      "path": "scripts/database/Test-R002Concurrency.ps1",
+      "owners": [
+        "D"
+      ],
+      "sha256": "64486ab3f61aff2b502803ed78f9242c14ad611548a00329931faf0d095ae641"
+    },
+    {
+      "path": "scripts/database/Test-R005Concurrency.ps1",
+      "owners": [
+        "D"
+      ],
+      "sha256": "23a926d5326a79b48f322bc7b08f82df393addfe95b766c0337c095fbe84c844"
+    },
+    {
+      "path": "scripts/database/Test-R008Concurrency.ps1",
+      "owners": [
+        "D"
+      ],
+      "sha256": "3ee0ed69a4f4fb4cf1940a99e1ec2458a4ea788b65ba7b236f10b28d56ba205a"
+    },
+    {
+      "path": "scripts/database/Test-ReceiptDeleteConcurrency.ps1",
+      "owners": [
+        "D"
+      ],
+      "sha256": "6c32c6e3306e6ebc598aca9c934050303761ae68c92cf4c09f5710c2f2a0e2c6"
+    },
+    {
+      "path": "scripts/production/build-business-candidate.mjs",
+      "owners": [
+        "B"
+      ],
+      "sha256": "97452ff0b71a5c32adaea043450c63bbb2b5552cfbe679c6f92071d3b42fb144"
+    },
+    {
+      "path": "scripts/production/Test-ProductionAccess.ps1",
+      "owners": [
+        "F"
+      ],
+      "sha256": "2dc065cf2ec8e0d122abbc87b53627a691fb2e330d297d5f95f3f94e2102f637"
+    },
+    {
+      "path": "scripts/promotion/business-candidate.mjs",
+      "owners": [
+        "D"
+      ],
+      "sha256": "495bb9331477c9ff8ad44203c57dea5ebcefef84692e0e657592da0350f75725"
+    },
+    {
+      "path": "scripts/promotion/manifest.mjs",
+      "owners": [
+        "D"
+      ],
+      "sha256": "b393c5e853b5f317f90ccd7ff3b95e830e3eaa8bfccfb02219bf51ef1c19967a"
+    },
+    {
+      "path": "scripts/promotion/Prepare-ProductionPolicy.ps1",
+      "owners": [
+        "D"
+      ],
+      "sha256": "9efc3b48089feb2083616442556b14a9a4ea8f1c96a8a365ce0f0cd2e796d5df"
+    },
+    {
+      "path": "scripts/promotion/README.md",
+      "owners": [
+        "D"
+      ],
+      "sha256": "05d91e1eba26bd370b5354a840e46cdd3fbdea9ce377a2d9d25d749c81722613"
+    },
+    {
+      "path": "scripts/receipts/Prepare-ProductionCapture.ps1",
+      "owners": [
+        "D"
+      ],
+      "sha256": "986739aee636b232471201fc84d352d281ea87e73baac0da366e3983a63da3f9"
+    },
+    {
+      "path": "scripts/receipts/README.md",
+      "owners": [
+        "D"
+      ],
+      "sha256": "2f601a4eba961b90e9550e694dbd9219183c111b4ad32a294f765d2b94b1173b"
+    },
+    {
+      "path": "scripts/receipts/reconcile-native.mjs",
+      "owners": [
+        "D"
+      ],
+      "sha256": "1b832fb64b83d0ee46dbf09224c4abb90ee54176afea26ca9f7983afb39c7738"
+    },
+    {
+      "path": "scripts/receipts/Verify-ProductionAgentReceipt.mjs",
+      "owners": [
+        "D"
+      ],
+      "sha256": "ec3c587ffb8a34d870d05a5b969876ddfb512866f6168926a1fdd696a7efacd4"
+    },
+    {
+      "path": "services/api/borrower-read-store.mjs",
+      "owners": [
+        "B"
+      ],
+      "sha256": "f029407403eb139abdf17248c85cd6b5cd87dce5868514c3582575b7d624d23e"
+    },
+    {
+      "path": "services/api/dev-read-handler.mjs",
+      "owners": [
+        "B"
+      ],
+      "sha256": "82408641b97fc585d53e0f3242b73b7c180641fd1212c61cdfe1bef90e7d6e04"
+    },
+    {
+      "path": "services/jobs/runner.mjs",
+      "owners": [
+        "B"
+      ],
+      "sha256": "b7f8577228e480c601d2c4e3cfd8ff57041ef81407b949f7a690d40a63262073"
+    },
+    {
+      "path": "services/notifications/dispatcher.mjs",
+      "owners": [
+        "B"
+      ],
+      "sha256": "cc88ec3da419875a1c8a0df89a3e1cdf5ef5a9ce4b627d68b7662ed5f04e71e9"
+    },
+    {
+      "path": "services/notifications/handler.mjs",
+      "owners": [
+        "B"
+      ],
+      "sha256": "c2d4527c0030d62c8db57adb84cc0e59343c5f8c5e3f37e41597f859bf0d5661"
+    },
+    {
+      "path": "services/notifications/store.mjs",
+      "owners": [
+        "B"
+      ],
+      "sha256": "e47dea72ff28e9b97b075048d86d351763e9d39bab005bbbd812470a9bb741fc"
+    },
+    {
+      "path": "services/notifications/web-push.mjs",
+      "owners": [
+        "B"
+      ],
+      "sha256": "aaa417bd53e2f7de9a48733d92c81083fdcfe9d6161a20c662eccc712d122d3a"
+    },
+    {
+      "path": "services/notifications/worker.mjs",
+      "owners": [
+        "B"
+      ],
+      "sha256": "70fdd1f4f1c5b94b5c5d84da0f7feb805566585094e8758a10ea024f2cc8af33"
+    },
+    {
+      "path": "services/payment-command/draft.mjs",
+      "owners": [
+        "B"
+      ],
+      "sha256": "e199fdb3eb0e53c6128234af1f2c4d3f9dacb9152383cd2ef90295f86689ed27"
+    },
+    {
+      "path": "services/payment-command/handler.mjs",
+      "owners": [
+        "B"
+      ],
+      "sha256": "b524e8cd93601c84f8ef9f6a2524a9a51cf67a0caaf989d4911883b512e64d2a"
+    },
+    {
+      "path": "services/payment-command/store.mjs",
+      "owners": [
+        "B"
+      ],
+      "sha256": "5c4d01e50b17fdfaadc795b372c60adf7d7835989b212de5c9f4946fef86cdcf"
+    },
+    {
+      "path": "services/production/business-config.mjs",
+      "owners": [
+        "B"
+      ],
+      "sha256": "3781f8a9ee8d8b1e07742a9f7eed972db43dc01067460e0b872ea4380bc5d1cc"
+    },
+    {
+      "path": "services/production/business-policy.mjs",
+      "owners": [
+        "B"
+      ],
+      "sha256": "81032b7bbc3d03664f7629b09692cedac040f9476d01464c0e5f634fe3b85b1e"
+    },
+    {
+      "path": "services/production/business-principal.mjs",
+      "owners": [
+        "B"
+      ],
+      "sha256": "ad09dee918d0e20a17ac2b26b7fb13c022e06a6dd98a36698faa10ad25454378"
+    },
+    {
+      "path": "services/production/business-runtime.mjs",
+      "owners": [
+        "B"
+      ],
+      "sha256": "2faf1171257c7578468360104d09fead7fd75dcbe6f4a32e8c7443ccad5d3b3d"
+    },
+    {
+      "path": "services/production/business-server.mjs",
+      "owners": [
+        "B"
+      ],
+      "sha256": "a16f2c5383dc9a3282460c5a03bca05d2adbee935214989dc4ab4a1f0849f280"
+    },
+    {
+      "path": "services/production/business-target.mjs",
+      "owners": [
+        "B"
+      ],
+      "sha256": "50aebc6e2ccf49bf096a8fd857dd0602eed85ace372be9caf6aea1c8a89b2de3"
+    },
+    {
+      "path": "services/receipts/command-receipts.mjs",
+      "owners": [
+        "B"
+      ],
+      "sha256": "a28f9ad0dc7d44c148708dedd2ee70659c7cfa98b644874445b1dcd07baec950"
+    },
+    {
+      "path": "services/receipts/dev-receipt-adapter.mjs",
+      "owners": [
+        "B"
+      ],
+      "sha256": "3948809006b5239297e0d022e0883f6fba896e1a329daeaa2bcffa07697b9676"
+    },
+    {
+      "path": "services/receipts/gcs-transport.mjs",
+      "owners": [
+        "B"
+      ],
+      "sha256": "933c13e418b92fb3e5f3ef79f49d4fcda9d699ff5d120bdcb35852364647205f"
+    },
+    {
+      "path": "services/receipts/production-agent-receipts.mjs",
+      "owners": [
+        "B"
+      ],
+      "sha256": "0f7b3d78942c88b6595d19d2ebae299ce377b38777e695054f45624a3aaa7d8f"
+    },
+    {
+      "path": "services/receipts/production-native-catalog.mjs",
+      "owners": [
+        "B"
+      ],
+      "sha256": "1f7abc8f2c1fbc831651d8eea45ddb7866b63381ab13348a58df91b7e120b3ac"
+    },
+    {
+      "path": "services/receipts/production-source-receipts.mjs",
+      "owners": [
+        "B"
+      ],
+      "sha256": "2e7dfd25e857c7351b44dc9baace0a871b3d4b8a2e0fab5ade301ebf3625d3f8"
+    },
+    {
+      "path": "tests/integration/grouped-owner-maintenance-independent.test.mjs",
+      "owners": [
+        "C"
+      ],
+      "sha256": "f1910ec7a76113803a6c2fdec53e81c588f742335fbac7fdecc70050e18afdb8"
+    },
+    {
+      "path": "tests/integration/phase8-browser-independent.test.mjs",
+      "owners": [
+        "C"
+      ],
+      "sha256": "b11e4f7a9665a713022d2ebe1ad4b2c9e8c47b1668ad02844f61217380e20a67"
+    },
+    {
+      "path": "tests/integration/phase8-identity-fixture.sql",
+      "owners": [
+        "B"
+      ],
+      "sha256": "a6ed5f23809ea28ea7bd009b245a3bff2aa5d8edf0f7fd2ae64047baf318d659"
+    },
+    {
+      "path": "tests/integration/phase8-notifications-independent.test.mjs",
+      "owners": [
+        "C"
+      ],
+      "sha256": "3f3689fea85fd22e35886045877abf5a350a45c4bc66c103bd9c4fc509431e3a"
+    },
+    {
+      "path": "tests/integration/phase8-notifications.test.mjs",
+      "owners": [
+        "B"
+      ],
+      "sha256": "b1bdfdcc7d4a9b00e4a6bd87dab52a157e6b26e28667798bf9ea7cbc1bf8992f"
+    },
+    {
+      "path": "tests/integration/production-agent-receipts-independent.test.mjs",
+      "owners": [
+        "C"
+      ],
+      "sha256": "e3fed217ccbd3d25f50c5930ce7e93bc4898838f0d1e776f0e03d3761213e13d"
+    },
+    {
+      "path": "tests/integration/production-business-independent.test.mjs",
+      "owners": [
+        "C"
+      ],
+      "sha256": "5003c4d148c25df8d70bece5a7bbee85db2769dbadb54d287ad22a9a6f6bd166"
+    },
+    {
+      "path": "tests/integration/production-financial-role-independent.test.mjs",
+      "owners": [
+        "C"
+      ],
+      "sha256": "8ae4ec3f3a0e302e546d12a13662b532886e2a67e229973f5438ff1d0669efcb"
+    },
+    {
+      "path": "tests/integration/production-offline-independent.test.mjs",
+      "owners": [
+        "C"
+      ],
+      "sha256": "56edbfe73694c19a6043ed99de0c432af01f3edf8bfb501dd14466fd7dc50055"
+    },
+    {
+      "path": "tests/integration/role-isolation-independent.test.mjs",
+      "owners": [
+        "C"
+      ],
+      "sha256": "9e5e55c6dc5da9a39abeb01a603439f2ae499b040259ee11eeaf322c3c0ec455"
+    },
+    {
+      "path": "tests/integration/role-isolation.test.mjs",
+      "owners": [
+        "B"
+      ],
+      "sha256": "d60f178cde1f0ebbdc4adb01ac1c9f041dc3e6f278f8a679e04777ca575ec5a0"
+    },
+    {
+      "path": "tests/integration/Run-GroupedOwnerMaintenanceIndependent.ps1",
+      "owners": [
+        "C"
+      ],
+      "sha256": "9624444d46e31f55aa2ca85b58caac3bba4c457f88ba9ad416703bd795efb484"
+    },
+    {
+      "path": "tests/integration/Run-Phase8.ps1",
+      "owners": [
+        "C"
+      ],
+      "sha256": "21a75dd477b5c512d1f8aeed592d1ef2e9bd10186c7dacb4fcf272f98c3472f2"
+    },
+    {
+      "path": "tests/integration/Run-ProductionAgentReceiptsIndependent.ps1",
+      "owners": [
+        "C"
+      ],
+      "sha256": "850af3c1d2cfdc1e48c3174bdfa92a3dfa0f2476e7458daf8b7c42991cf71fac"
+    },
+    {
+      "path": "tests/integration/Run-ProductionFinancialRoleIndependent.ps1",
+      "owners": [
+        "C"
+      ],
+      "sha256": "f413227fc47adb1cdd0d08870226271d565e751ef16f453508544819c7cb2615"
+    },
+    {
+      "path": "tests/integration/Run-RoleIsolation.ps1",
+      "owners": [
+        "B"
+      ],
+      "sha256": "8699d9f2b8cd9f2563037f724b057b6ee074a2280cef8df52a41b75b02a639eb"
+    },
+    {
+      "path": "tests/integration/Run-RoleIsolationIndependent.ps1",
+      "owners": [
+        "C"
+      ],
+      "sha256": "a2f63028543f5f2888239f1a7957c471ecbdb7a7e16f79a9a03087a3dcf92e07"
+    },
+    {
+      "path": "tests/unit/grouped-owner-maintenance.test.mjs",
+      "owners": [
+        "D"
+      ],
+      "sha256": "dfb9422fc5d85bddffb8bd418dc515528929cc435ae43cfc5bf2e4ca26f7f434"
+    },
+    {
+      "path": "tests/unit/notifications-independent.test.mjs",
+      "owners": [
+        "C"
+      ],
+      "sha256": "8b2ab614ab28d8d8206488e1da8b19348892baf9dcaa3f643b9f971c8ed37939"
+    },
+    {
+      "path": "tests/unit/notifications.test.mjs",
+      "owners": [
+        "B"
+      ],
+      "sha256": "fcb866f65d051d873fabb7c78714544fae8f561bb18a50c4ee19307d6ea82b00"
+    },
+    {
+      "path": "tests/unit/production-agent-receipts-independent.test.mjs",
+      "owners": [
+        "C"
+      ],
+      "sha256": "29d234da7e8d03a2461b3c66e05b2ac3958466974a3c5f2a5c2d14ccda88691d"
+    },
+    {
+      "path": "tests/unit/production-agent-receipts.test.mjs",
+      "owners": [
+        "B"
+      ],
+      "sha256": "212ddd2585f065c072b76e6b0d81f27a424f753d25602ebc772e1c2ad8691a3c"
+    },
+    {
+      "path": "tests/unit/production-build-environment.test.mjs",
+      "owners": [
+        "B"
+      ],
+      "sha256": "8589d16b8be2523a2a6d85266d7086fca5534fbe843349f5a82d6e25956854b2"
+    },
+    {
+      "path": "tests/unit/production-business-independent.test.mjs",
+      "owners": [
+        "C"
+      ],
+      "sha256": "9a9d000964b856acb4020588944dad5b1b33506ff81f81775b56e4593502d9ef"
+    },
+    {
+      "path": "tests/unit/production-business-promotion.test.mjs",
+      "owners": [
+        "D"
+      ],
+      "sha256": "5c6c30c6ac02d52b466714b7b40a30f7d1a54719b42bd0ba2eb4c38f0d423f64"
+    },
+    {
+      "path": "tests/unit/production-business.test.mjs",
+      "owners": [
+        "B"
+      ],
+      "sha256": "e14e3e98676442470b9dd78b1bcb0614afc5b9b7d1a18ebad68c393d4a7374f1"
+    },
+    {
+      "path": "tests/unit/production-receipts.test.mjs",
+      "owners": [
+        "B"
+      ],
+      "sha256": "53f3e328039c5ec657e24333b3de0061a868642f06e973e23d350749f6da7774"
+    },
+    {
+      "path": "tests/unit/production-reconciliation.test.mjs",
+      "owners": [
+        "D"
+      ],
+      "sha256": "90a40b33059412911d7703f389c8b66bc7acf83590f6069a93dd1d279e32ead9"
+    },
+    {
+      "path": "tests/unit/production-role-tooling.test.mjs",
+      "owners": [
+        "D"
+      ],
+      "sha256": "a2a7a1d559c7e1a7f68bec6be35d6ac2d75227c7a0097214d81adc6af66f9c15"
+    },
+    {
+      "path": "tests/unit/production-transaction-independent.ps1",
+      "owners": [
+        "C"
+      ],
+      "sha256": "b5a96239dc8394e2e7c5981d805e943622047a877c513e0a976d72f3f201cf6e"
+    },
+    {
+      "path": "vite.config.ts",
+      "owners": [
+        "B"
+      ],
+      "sha256": "da6b25ee3210582c26785f430c6a4012449909e659053d530ac290dad09db357"
+    }
+  ],
+  "exclude": [
+    ".github/workflows/ci.yml",
+    "AGENTS.md",
+    "infrastructure/dev/main.tf",
+    "docs/Development.md"
+  ],
+  "limits": [
+    "B historical source hashfile retains dated pins; eight sanctioned later refinements pinned here",
+    "F prior source is current owning-file handoff; live matrix statuses remain qualified",
+    "No staging, commit, CI, DEV migration or PROD change performed"
+  ]
+}

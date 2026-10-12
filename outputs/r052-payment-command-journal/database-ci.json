@@ -1,0 +1,17 @@
+{
+  "migration": "V78__pwa_payment_command_journal.sql",
+  "liveDatabaseVersion": "V77 unchanged",
+  "liveApplied": false,
+  "checks": [
+    "Full migration rebuild/validation/no-op/baseline/checksum/concurrency",
+    "Historical opening CRUD",
+    "Account opening attribution",
+    "Legacy default charge upgrade",
+    "Legacy repayment preservation"
+  ],
+  "sha256": "8ea5009d29bf8c78fadcdaa478680defd3f161ef2a7e22e7999c2a2aa7170c30",
+  "command": "pwsh -NoProfile -File scripts/database/Test-CI.ps1",
+  "dateBangkok": "2026-10-08",
+  "scope": "Maintained full migration/regression suite on five fresh disposable loopback clusters",
+  "exitCode": 0
+}

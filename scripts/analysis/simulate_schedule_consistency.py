@@ -297,7 +297,7 @@ def main():
     parser.add_argument('--confirmed-names', nargs='*', default=[])
     args = parser.parse_args()
     private = args.private_directory.resolve()
-    allowed = Path('C:/Users/MWCredit/Documents/ChatGPT').resolve()
+    allowed = Path('C:/Users/ideaadmin/Documents/ChatGPT').resolve()
     assert private.is_relative_to(allowed), 'Identifiable data must remain in external private storage'
     source = private / 'snapshot.json'
     if args.capture:

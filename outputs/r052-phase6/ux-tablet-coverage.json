@@ -1,0 +1,864 @@
+{
+  "date": "2026-10-11",
+  "scope": "Tablet responsive whole-PWA review; no CI or live financial writes",
+  "productSource": {
+    "baseline": "d3f2ff1",
+    "files": [
+      {
+        "path": "apps/pwa/src/live-main.tsx",
+        "sha256": "8CD20D3E2847F56D4887BE0DD9128B12FEFA8582ECE586C0ECB8886FE7262DA8"
+      },
+      {
+        "path": "apps/pwa/src/live-style.css",
+        "sha256": "22E1B4A8FCAE2F6BB0AAD840C1D2E73C0F89814B918BDBC6E26AAB15CEAD6E6F"
+      }
+    ],
+    "build": "index-CoDiTIfp.js",
+    "checks": [
+      "npm run build:live-dev PASS"
+    ],
+    "backendChanged": false
+  },
+  "captures": [
+    {
+      "path": "outputs/r052-phase6/ux-tablet-account-form-1180.png",
+      "state": "account-form",
+      "viewport": {
+        "width": 1180,
+        "height": 820
+      },
+      "synthetic": true,
+      "sha256": "2717a57f5e7701eade506d2d42e453d2b8631991c1fe9387dd779de86248b2a2"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-account-form-820.png",
+      "state": "account-form",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "synthetic": true,
+      "sha256": "cd8ff324031f075b584c1de4b1cf6c1ef7b07c673d3a8f83607cfcd92e263928"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-borrower-edit-1180.png",
+      "state": "borrower-edit",
+      "viewport": {
+        "width": 1180,
+        "height": 820
+      },
+      "synthetic": true,
+      "sha256": "fe57fdbefa9a9a549a27356c7c40406c930b9012e2b7f0f516fa202393db572a"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-borrower-edit-820.png",
+      "state": "borrower-edit",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "synthetic": true,
+      "sha256": "7723875e000d42f74aa6ed156025f3807d8dda50b2af6687d145314e1d15e65d"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-borrower-new-1180.png",
+      "state": "borrower-new",
+      "viewport": {
+        "width": 1180,
+        "height": 820
+      },
+      "synthetic": true,
+      "sha256": "6aa7d53fcaf44b9da8ea5e9b72a20bea3d111904ce8cff94738894e3312baa34"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-borrower-new-820.png",
+      "state": "borrower-new",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "synthetic": true,
+      "sha256": "878bf16bdbf3b5d07d297ceb3cc194837342822bdfda1cf5782f5777365d8939"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-borrower-summary-1180.png",
+      "state": "borrower-summary",
+      "viewport": {
+        "width": 1180,
+        "height": 820
+      },
+      "synthetic": true,
+      "sha256": "49dbcd86696d4dce2e4a884ebdba8e3cf9061d166d7827c12dc3998d956a2cb3"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-borrower-summary-820.png",
+      "state": "borrower-summary",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "synthetic": true,
+      "sha256": "fc837465d9d689afcf7bf58ad0e07cf3f121a03de2c11b2a18059a515c02b098"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-borrowers-root-1180.png",
+      "state": "borrowers-root",
+      "viewport": {
+        "width": 1180,
+        "height": 820
+      },
+      "synthetic": true,
+      "sha256": "70ea75d3d0474f1ca47d0040052242974fe8bb881cf785777ce646e43e0f8a4b"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-borrowers-root-820.png",
+      "state": "borrowers-root",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "synthetic": true,
+      "sha256": "a6147de634d906e3c24a9005f7f4a5fffd3d6e9529610ac494c4e3e8386ec124"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-cash-root-1180.png",
+      "state": "cash-root",
+      "viewport": {
+        "width": 1180,
+        "height": 820
+      },
+      "synthetic": true,
+      "sha256": "5871e65b8d7bc547cd553dfe103c5a61af4e2e367984e86330d8c577cce3ee06"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-cash-root-820.png",
+      "state": "cash-root",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "synthetic": true,
+      "sha256": "d7e244a6b0658b223f2f934024354ca9fffbc28b67a25a5d22cb94b349abbf53"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-charge-detail-1180.png",
+      "state": "charge-detail",
+      "viewport": {
+        "width": 1180,
+        "height": 820
+      },
+      "synthetic": true,
+      "sha256": "8db2906b28b370c317f9805030a9dc33f3c1eeafe9b5cb13f41f623ff4b43802"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-charge-detail-820.png",
+      "state": "charge-detail",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "synthetic": true,
+      "sha256": "4e5852cc4cc81e43b6d600ce834f21eb2f44819415013ea2af1dc07057c05917"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-charge-edit-1180.png",
+      "state": "charge-edit",
+      "viewport": {
+        "width": 1180,
+        "height": 820
+      },
+      "synthetic": true,
+      "sha256": "47437aee014cf070ceff6e21da9ff112c8495b28656efe053b05e47707083d31"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-charge-edit-820.png",
+      "state": "charge-edit",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "synthetic": true,
+      "sha256": "0206a568d8e21b0a53ee18ec85d2465d67ffd8b1485cacf57cdcfe1baa95ec2d"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-charge-new-form-1180.png",
+      "state": "charge-new-form",
+      "viewport": {
+        "width": 1180,
+        "height": 820
+      },
+      "synthetic": true,
+      "sha256": "f9cf453286640482912548d588bd3ad658c392e9a32e134e29e8525e98168984"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-charge-new-form-820.png",
+      "state": "charge-new-form",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "synthetic": true,
+      "sha256": "8fd97f488f78a4b99cc9289a42536d85b4fa00491ed2eb8894da24c62d311696"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-collection-detail-1180.png",
+      "state": "collection-detail",
+      "viewport": {
+        "width": 1180,
+        "height": 820
+      },
+      "synthetic": true,
+      "sha256": "7ad038045d6f074297fc727aa155211083875bb31c914440cdc35e2a2de1c705"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-collection-detail-820.png",
+      "state": "collection-detail",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "synthetic": true,
+      "sha256": "703e548d8c68397d6e6a408ad7a93c02d14e4462e031132f6f27cfb09260e83a"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-collection-root-1180.png",
+      "state": "collection-root",
+      "viewport": {
+        "width": 1180,
+        "height": 820
+      },
+      "synthetic": true,
+      "sha256": "bf4e610351ab35d47263be94bc1e1c3e64f11bfcb0d6684be0a1d69a4dc85cab"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-collection-root-820.png",
+      "state": "collection-root",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "synthetic": true,
+      "sha256": "222898c829e2e939ecf64e5d856626dd73b19c53221af11d298b8c25d5ad5890"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-contribution-detail-1180.png",
+      "state": "contribution-detail",
+      "viewport": {
+        "width": 1180,
+        "height": 820
+      },
+      "synthetic": true,
+      "sha256": "3dbc156e7880ff5bfe95b87920d3ff44616c3a0d575d2c34a331d96055424b35"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-contribution-detail-820.png",
+      "state": "contribution-detail",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "synthetic": true,
+      "sha256": "961b3eed4047fcd7f13fe7a6e592d510f9c797a7e59f874e0520444178872049"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-contribution-form-1180.png",
+      "state": "contribution-form",
+      "viewport": {
+        "width": 1180,
+        "height": 820
+      },
+      "synthetic": true,
+      "sha256": "d3f34d309a5db505c991047e2da4a3393133a34c8db2c1dc3cbcafd502823641"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-contribution-form-820.png",
+      "state": "contribution-form",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "synthetic": true,
+      "sha256": "bdf9eea600fde1ea7855ba2f0786d79a5a78b6041d71fe7059b9f82aa01ba68f"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-dashboard-root-1180.png",
+      "state": "dashboard-root",
+      "viewport": {
+        "width": 1180,
+        "height": 820
+      },
+      "synthetic": true,
+      "sha256": "cf55124881805f0971e8247a0c375fcb335d7b3db83d5bc0a2dbe7d0fc141988"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-dashboard-root-820.png",
+      "state": "dashboard-root",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "synthetic": true,
+      "sha256": "d0c04bfa5dfe1678e5165233fe56821355247d91e0873e75ea8ac2cfb0a03c15"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-expense-detail-1180.png",
+      "state": "expense-detail",
+      "viewport": {
+        "width": 1180,
+        "height": 820
+      },
+      "synthetic": true,
+      "sha256": "05ccc351758d146794986439d20fe20f3ff9bf2850f429dc80532a5e72251e5f"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-expense-detail-820.png",
+      "state": "expense-detail",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "synthetic": true,
+      "sha256": "e75dce79db34d048d40ea0f9ed54941b638326be7dc16444631a46d477828279"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-expense-form-1180.png",
+      "state": "expense-form",
+      "viewport": {
+        "width": 1180,
+        "height": 820
+      },
+      "synthetic": true,
+      "sha256": "517fb3127d7e5840943d5d21f2de8168b6f13504287cfe11bd2b33e162ab850c"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-expense-form-820.png",
+      "state": "expense-form",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "synthetic": true,
+      "sha256": "22914922c28f6c6997df5d8b901703363c928fc13b2cdbc4ec2c8772825523ca"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-expenses-root-1180.png",
+      "state": "expenses-root",
+      "viewport": {
+        "width": 1180,
+        "height": 820
+      },
+      "synthetic": true,
+      "sha256": "7ee4a1bea4d8737497e44536ac81b5607d6ab31f48c2effd93a84f979199fff0"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-expenses-root-820.png",
+      "state": "expenses-root",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "synthetic": true,
+      "sha256": "8eb6e485e6d8024a2959ab38977bf6721400fae9fbaccde1e8bb2561cc1430ad"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-holder-detail-1180.png",
+      "state": "holder-detail",
+      "viewport": {
+        "width": 1180,
+        "height": 820
+      },
+      "synthetic": true,
+      "sha256": "683cab8a01869f34ae3181074bd3bca36aff8fcab4025815f6d8d980f939fc37"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-holder-detail-820.png",
+      "state": "holder-detail",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "synthetic": true,
+      "sha256": "f82be60444d24642b7202ec3781c7c637c56dd5551292d0e7bf84a1936ff5d93"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-holder-form-1180.png",
+      "state": "holder-form",
+      "viewport": {
+        "width": 1180,
+        "height": 820
+      },
+      "synthetic": true,
+      "sha256": "b6aeea37bdf0434ad1e0c75d352d4e7460d5a423c403de55de3d9158fd1b4fa1"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-holder-form-820.png",
+      "state": "holder-form",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "synthetic": true,
+      "sha256": "564c01638cb47c0d75cfe3b764026669282b44ba8d901f6f274565ddf69c7aa2"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-loan-close-preview-1180.png",
+      "state": "loan-close-preview",
+      "viewport": {
+        "width": 1180,
+        "height": 820
+      },
+      "synthetic": true,
+      "sha256": "0fe07a24db28410cc114b5d0ba014368b86e3dea028f5d0e5ac9f08c8fb90f58"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-loan-close-preview-820.png",
+      "state": "loan-close-preview",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "synthetic": true,
+      "sha256": "0c9eb50c7b59d2cedab54c34a451b6cf76cfd6d220097f3c6f09e929a22fdcc3"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-loan-detail-1180.png",
+      "state": "loan-detail",
+      "viewport": {
+        "width": 1180,
+        "height": 820
+      },
+      "synthetic": true,
+      "sha256": "9af29bfffd49fd97b2aca351c958e264433fcab7a59549e5c8ae3eff6f3e7c14"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-loan-detail-820.png",
+      "state": "loan-detail",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "synthetic": true,
+      "sha256": "771533a80f48ac95394d62f3eff1a423457b488991f0321f4ab7f3f3145860ec"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-loan-edit-1180.png",
+      "state": "loan-edit",
+      "viewport": {
+        "width": 1180,
+        "height": 820
+      },
+      "synthetic": true,
+      "sha256": "e87d886fbeb4418b90ebfce643bebfdadadad65b5cf0bdf4ac2daacb91f4cb8d"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-loan-edit-820.png",
+      "state": "loan-edit",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "synthetic": true,
+      "sha256": "6638b4a5e896a4e090a6f1f1c8230f1399a112cb7b0afc9a89be1c9a709807b3"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-loan-new-form-1180.png",
+      "state": "loan-new-form",
+      "viewport": {
+        "width": 1180,
+        "height": 820
+      },
+      "synthetic": true,
+      "sha256": "52cf744a12115e308ac96d436ce5631a904a21f184f74046123e4857ecb18042"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-loan-new-form-820.png",
+      "state": "loan-new-form",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "synthetic": true,
+      "sha256": "5889d017b5bf7bd39b39845630330e0851032863c76fd4b1e6d2d8ebc7452ce4"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-management-analytics-1180.png",
+      "state": "management-analytics",
+      "viewport": {
+        "width": 1180,
+        "height": 820
+      },
+      "synthetic": true,
+      "sha256": "cfa96075a06f6cbadd9f84444d44b7adff59614bb7c56970304ad264bff665ff"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-management-analytics-820.png",
+      "state": "management-analytics",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "synthetic": true,
+      "sha256": "95008bb307efcd27cc116a0345facfe723f3e074b8d0cd721dc799adccab61ee"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-management-cash-accounts-1180.png",
+      "state": "management-cash-accounts",
+      "viewport": {
+        "width": 1180,
+        "height": 820
+      },
+      "synthetic": true,
+      "sha256": "6fb1c8905fe87c326d7a4ef444ed0bc386c2997752618e13c02df01d46544dbc"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-management-cash-accounts-820.png",
+      "state": "management-cash-accounts",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "synthetic": true,
+      "sha256": "14e48b1cd53bf5ebb60804846daa85579ef8f905d32b04dc0ced7c8206ec0b63"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-management-cash-position-1180.png",
+      "state": "management-cash-position",
+      "viewport": {
+        "width": 1180,
+        "height": 820
+      },
+      "synthetic": true,
+      "sha256": "7e850669b0e97ffe3d22852d77265909043676ea12ad45c88e0b1d1d357f6e73"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-management-cash-position-820.png",
+      "state": "management-cash-position",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "synthetic": true,
+      "sha256": "214f46d680598d03bcce27c587149c22fcc45c4c51b7632485f281072c428e9c"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-management-contributions-1180.png",
+      "state": "management-contributions",
+      "viewport": {
+        "width": 1180,
+        "height": 820
+      },
+      "synthetic": true,
+      "sha256": "261b45f202cd27ebb9cb9c186f4d58719442e0486074c4e591bbec3a6a0c927f"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-management-contributions-820.png",
+      "state": "management-contributions",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "synthetic": true,
+      "sha256": "deebf5a007cb42ae0bc0d549e08e6bccdcbce24994abef09eb0e2e8727145ff0"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-management-loan-assessments-1180.png",
+      "state": "management-loan-assessments",
+      "viewport": {
+        "width": 1180,
+        "height": 820
+      },
+      "synthetic": true,
+      "sha256": "729458d399bcd48a1550c77d194393e79b552b9c91e32366a4f1a0ad70fe56c9"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-management-loan-assessments-820.png",
+      "state": "management-loan-assessments",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "synthetic": true,
+      "sha256": "a73347db2745e96fda2814a02284639e93bac2474ce1930475a7159fcaf78078"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-management-partners-1180.png",
+      "state": "management-partners",
+      "viewport": {
+        "width": 1180,
+        "height": 820
+      },
+      "synthetic": true,
+      "sha256": "15e0188f96eb2d8cbc2feaf4476cbd010e06593b70ef5b0fe5f7ecd8f6224c77"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-management-partners-820.png",
+      "state": "management-partners",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "synthetic": true,
+      "sha256": "7e69edd497d1645856cef40e5a862c6cdacb1ccc13491df5201a238dee8d1197"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-management-settlements-1180.png",
+      "state": "management-settlements",
+      "viewport": {
+        "width": 1180,
+        "height": 820
+      },
+      "synthetic": true,
+      "sha256": "0972db5e997a8c253070bc53dea8740f9c183a52ec252557c1c0d7040f6c7e76"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-management-settlements-820.png",
+      "state": "management-settlements",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "synthetic": true,
+      "sha256": "a45ceb7ff511cca67fc20258fc9a5c31a122f899a88a6ce908e19501aeb26770"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-movement-form-1180.png",
+      "state": "movement-form",
+      "viewport": {
+        "width": 1180,
+        "height": 820
+      },
+      "synthetic": true,
+      "sha256": "a34f27c35865ff7642e75cc1a592803c1f85e2f7ab57ea2c061a4b372c62887e"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-movement-form-820.png",
+      "state": "movement-form",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "synthetic": true,
+      "sha256": "7e8d6fe6c18fd5df9d7d706d0a31a285550cd356a274daedd56d8472dd25ee29"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-opening-preview-1180.png",
+      "state": "opening-preview",
+      "viewport": {
+        "width": 1180,
+        "height": 820
+      },
+      "synthetic": true,
+      "sha256": "45c50c7b7f3e3c990cb2a1728574e232ef33d0e92a763b4fa2ba25eeb11280ea"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-opening-preview-820.png",
+      "state": "opening-preview",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "synthetic": true,
+      "sha256": "c1c9c4cad7cd3042366365804bea797d98dff796b2d81da2bb9e61709204faea"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-partner-form-1180.png",
+      "state": "partner-form",
+      "viewport": {
+        "width": 1180,
+        "height": 820
+      },
+      "synthetic": true,
+      "sha256": "aa7f37adc558630aa9b9060c62ea235d02658e3bf86db7287f542686952545bc"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-partner-form-820.png",
+      "state": "partner-form",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "synthetic": true,
+      "sha256": "30aa6667febe8cdfc56df08d8a81b7d5525b1b769010191c8abf9cc74c4fd113"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-payment-correction-1180.png",
+      "state": "payment-correction",
+      "viewport": {
+        "width": 1180,
+        "height": 820
+      },
+      "synthetic": true,
+      "sha256": "082790d468a5573acb47e27555df29c55860747efd0adf927d34352acb5da012"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-payment-correction-820.png",
+      "state": "payment-correction",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "synthetic": true,
+      "sha256": "892be54f3c9da7b2beef75a40d554557dc0e3d2e15ce3ef4efaf1d2e6144c284"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-payment-detail-1180.png",
+      "state": "payment-detail",
+      "viewport": {
+        "width": 1180,
+        "height": 820
+      },
+      "synthetic": true,
+      "sha256": "c1ba55050503383443d716b017ece86c457d2f7446b3431ae6c3ac1d531e4379"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-payment-detail-820.png",
+      "state": "payment-detail",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "synthetic": true,
+      "sha256": "4c830a2ee0663afb16cfd05f55f47dfe3bef9d72eda05133866f689796824a5d"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-payments-expanded-1180.png",
+      "state": "payments-expanded",
+      "viewport": {
+        "width": 1180,
+        "height": 820
+      },
+      "synthetic": true,
+      "sha256": "38946f5e0837a2841e209e6fd503c855070dcc6c4f38762fe3a19adf3255cd04"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-payments-expanded-820.png",
+      "state": "payments-expanded",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "synthetic": true,
+      "sha256": "5f7be00139aef6280d4ba2bfae45d7ad6c66c1fd9828e3c721f9ff9ccec1eebc"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-payments-root-1180.png",
+      "state": "payments-root",
+      "viewport": {
+        "width": 1180,
+        "height": 820
+      },
+      "synthetic": true,
+      "sha256": "b11b372dcad3ce480377a2b4fe3c41a772cb2aaad544c4605c1fde6523249b16"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-payments-root-820.png",
+      "state": "payments-root",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "synthetic": true,
+      "sha256": "1d63dd89486a4740647769e44d534d62aa885df19a2b8ad1b596d4c95535b0f2"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-pending-unknown-1180.png",
+      "state": "pending-unknown",
+      "viewport": {
+        "width": 1180,
+        "height": 820
+      },
+      "synthetic": true,
+      "sha256": "e2943c3e03ca22e76c747bd9b04fb9cecc17cf145eda337cfd91afbbfa232651"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-pending-unknown-820.png",
+      "state": "pending-unknown",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "synthetic": true,
+      "sha256": "acc9dcf4b5eccfd2e1b95e9556225cecee327b07e8272eb8f318c72ace407066"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-receiving-entry-1180.png",
+      "state": "receiving-entry",
+      "viewport": {
+        "width": 1180,
+        "height": 820
+      },
+      "synthetic": true,
+      "sha256": "60e3056b04dac436f9baeae2218b00c0653cc883faca80c31241f762f74564ee"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-receiving-entry-820.png",
+      "state": "receiving-entry",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "synthetic": true,
+      "sha256": "5c9be66025267a6ecf7d0b6e32ff510b626fd6cf977e8d5452c023738ee0411a"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-settlement-form-1180.png",
+      "state": "settlement-form",
+      "viewport": {
+        "width": 1180,
+        "height": 820
+      },
+      "synthetic": true,
+      "sha256": "4bd0fb042c9cc1cb1e2e0fd70b830f63d3a4f17eda91d46855792caf885f2a86"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-settlement-form-820.png",
+      "state": "settlement-form",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "synthetic": true,
+      "sha256": "381b1b6461e6739ab0f42cf9b6da899baed894c3dfe579c2ce6ef8ae63f3d674"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-upcoming-charges-root-1180.png",
+      "state": "upcoming-charges-root",
+      "viewport": {
+        "width": 1180,
+        "height": 820
+      },
+      "synthetic": true,
+      "sha256": "af0d6abbd0458ebd5dbfa4da85dbae9f3711de510cf7cfa977437431a674d606"
+    },
+    {
+      "path": "outputs/r052-phase6/ux-tablet-upcoming-charges-root-820.png",
+      "state": "upcoming-charges-root",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "synthetic": true,
+      "sha256": "f838fb2b2e5cc004f44d92f79cfefd13dc63dabe48cbe588055ab3aa45ca12ca"
+    }
+  ],
+  "retainedBefore": [
+    "ux-tablet-before-collection-detail-820.png",
+    "ux-tablet-before-dashboard-root-1180.png",
+    "ux-tablet-before-overlay-1180.png"
+  ],
+  "checks": [
+    "Final root9.2s PASS: drawer Escape/focus return, tablet rail enter collapse/explicit expansion/destination collapse, Reporting icon/caption",
+    "Final linked2.7s PASS: edited Loan Arrangement same DOM/value across12 widths, immediate parent Back once, Unknown disabled Back both tablet orientations",
+    "Document overflow checks PASS across rendered states820/1180 and representative form widths744,767,768,1050,1051,1199,1200,1366,440,1440",
+    "Tablet edited textarea font>=16px; last textarea scrolls into viewport",
+    "Zero operational POST; read-only synthetic API seams"
+  ],
+  "limitations": [
+    "Responsive Chromium emulation only; physical iPad keyboard/safe-area/PWA install acceptance not performed",
+    "Actual live-main root chrome authoritative; linked component harness toolbar/topbar is synthetic and not a production header review",
+    "Analytics positive pie captured. Other metric tabs use same pie fixture and do not establish ordinary time-series/table rendering; time-series layout source-only",
+    "Conditional review/receipt variants, full saved-recovery permutations, OS file picker and all error/empty permutations not re-rendered; prior valid financial/auth/SW/Back proofs reused unchanged",
+    "English captures with Thai borrower labels and edited Thai text. No full Thai-language tablet screenshot matrix",
+    "Portrait/landscape ordinary states and representative form/pending rotation checked; every list page/receipt draft/command permutation not separately rotated"
+  ]
+}

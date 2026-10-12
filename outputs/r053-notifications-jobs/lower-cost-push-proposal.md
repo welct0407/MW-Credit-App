@@ -1,0 +1,54 @@
+# R053 — lower-cost immediate push proposal
+
+**Superseded, 12 October 2026:** The owner selected direct authenticated post-commit wake-ups to a request-based minimum0 dispatcher. No Debian LISTEN bridge or minimum1 notification worker will be implemented. See the owning [design and test contract](design-test-plan.md). The original option review below is dated evidence, not current implementation authority.
+
+12 October 2026. **Undecided review draft; push redesign and notification activation remain held for a later owner discussion.** The owner asked to finish current work first, then discuss push design. A prepared this proposal with F's bounded infrastructure/capacity review. App checkout at review: `ea789870599a5444914a1c7730e736f01e917d7f`. This separate proposal does not replace the tested design/code, authorize Debian changes, or change PROD. Existing CI/DEV API/jobs delivery continues.
+
+## Recommendation
+
+Run a small, separate **DEV wake-up bridge on the existing Debian VM**, and retain recipient checks, push secrets and delivery in the dedicated **private Cloud Run dispatcher with minimum0/request-based billing**.
+
+Flow: committed SQL capture → empty PostgreSQL NOTIFY → Debian LISTEN bridge → authenticated empty HTTP wake-up → Cloud Run's guarded durable queue/leases → Web Push. The minute Scheduler tick remains recovery. The bridge does not process receipts, invoke the integration agent, read business rows, choose recipients or send notifications itself.
+
+| Option | Cost and operational trade-off |
+| --- | --- |
+| Current warm Cloud Run design | About USD59.10/30 continuously enabled days for1vCPU/512Mi, before allowances/extras. No VM dependency; smallest hosting change. |
+| Full dispatcher on Debian | May avoid separate fixed compute, but places Firebase access, VAPID secrets, SQL dispatch authority and heavier dependencies on the shared production agent host. Not recommended. |
+| **Wake-only Debian bridge + min0 Cloud Run** | Removes the separate always-on Cloud Run floor while keeping sensitive dispatch isolated. Adds one lightweight VM service and dependence on that VM for prompt wake-up. Cold starts add latency; recovery remains independent. |
+| Cloud Tasks/Pub/Sub in front of min0 Cloud Run | Still needs a producer that notices committed SQL writes. Does not remove the listener; adds queue/IAM/configuration alongside an existing durable SQL queue. Defer unless measured delivery needs justify it. [Cloud Tasks task creation](https://docs.cloud.google.com/tasks/docs/creating-http-target-tasks) |
+
+## Why free FCM does not mean free hosting
+
+Firebase lists Cloud Messaging (FCM) as no-cost. That is the messaging service, not the compute that listens to PostgreSQL, checks authorization and dispatches work. [Firebase pricing](https://firebase.google.com/pricing)
+
+This repository currently uses the `web-push` library with VAPID and standard browser Push subscriptions, not Firebase Messaging registration-token sending. Chrome subscriptions may use an FCM endpoint; Apple/Mozilla use their browser push providers. Firebase Admin here verifies user eligibility. Switching libraries to FCM would not make the database-event listener or dispatcher compute free, and is not part of this proposal. Source: `services/notifications/web-push.mjs` and `worker.mjs`.
+
+Cloud Run Singapore rates checked12October: instance-based1vCPU +0.5GiB costs USD0.08208/hour, or USD59.10/30days. Request-based active rates are USD0.0000336/vCPU-second, USD0.0000035/GiB-second and USD0.40/million requests. Illustratively,43,200 monthly recovery calls averaging1–3 billable seconds each at1vCPU/512Mi would cost roughly **USD1.54–4.60 gross**, plus event calls, startup/overlap and other services. This is a sensitivity example, not measured runtime or a bill forecast. Shared free allowances may reduce charges; availability is unverified. Existing VM costs remain, and no “zero extra cost” claim is made. SQL load, logging, networking and Secret Manager usage still matter. [Official regional pricing](https://cloud.google.com/run/pricing)
+
+## Exact proposed boundary
+
+- **App-owned package**, maintained in MW-Credit-App; separate root-owned installation/configuration under `/opt/mw-credit-notify-bridge` and `/etc/mw-credit-notify-bridge`, dedicated nonlogin Linux user and systemd unit. No changes to the integration-agent repository/runtime, virtual environment, configuration, private files, timers, journals, AppSheet routes or existing Cloud SQL proxy. No new public or loopback HTTP server is required for the bridge.
+- One dedicated IAM-authenticated PostgreSQL connection to the exact DEV database. Separate bridge IAM/SQL principal with CONNECT/LISTEN only and no app/dispatch/owner membership, business-table access or notification RPC grants. Empty fixed channel only; verify effective permissions including inherited/PUBLIC paths. No new table/column, database topology, instance setting, connection-limit or existing connection change.
+- Bridge cloud identity may invoke **only the DEV notification service**, with exact audience and route; it cannot invoke jobs or access VAPID/policy secrets/Firebase user data. Reuse short-lived credentials, not service-account key files or agent passwords. Cloud Run retains the existing dedicated dispatcher SQL identity/capability and endpoint/owner policy.
+- Authentication requires a concrete reviewed implementation: attached VM credentials are shared across processes. Merely changing Linux user or adding a token broker does not prevent other processes using the metadata identity directly. Restrict any VM identity impersonation to the **wake-only identity**, never the dispatcher. This permits, at most, a host-originated wake/connection under that narrow principal; it is not hard per-process cloud isolation. If stricter isolation is required, resolve that before implementation rather than claim a container supplies it.
+- Candidate host limits for a measured DEV trial: one process/one connection, MemoryMax256Mi, CPUQuota10% of one CPU, low scheduling weight, bounded restart/backoff and log rate. These are proposed ceilings, not measured requirements; confirm the selected runtime fits. Use a pinned standalone package/runtime without upgrading shared Node/Python libraries. Failure should stop/throttle this bridge, not restart the VM or agent.
+
+F's fresh read-only24h sample (`2026-10-10T17:33:12Z`–`2026-10-11T17:33:12Z`) identifies RUNNING `vm-mw-credit-agent`, instance8223265527494214160, e2-small:2GiB and0.5 fractional vCPU across2 exposed CPUs.24 hourly CPU means average41.40%, highest47.09%; memory used averages31.34%, highest hourly31.50%. This supports investigating a tiny bridge, **not a capacity guarantee**: short peaks, concurrent processing and bridge RSS remain unmeasured. Preserve collection/webhook/chart/monitoring workloads; no resize/restart is proposed. Owning references: MW-Integration-Agent `AGENTS.md`, catalogue revision25, `docs/OPERATIONS.md`; their older15% sample is not current evidence.
+
+## Required runtime changes if approved
+
+1. Add an explicit bridge hosting mode. Disable resident LISTEN in Cloud Run and set only the dispatcher to minimum0/request-based CPU. Leave canonical jobs unchanged. Do not merely flip Terraform scaling while retaining background work.
+2. Change dispatch HTTP handling to **await bounded queue work before replying**. The current202/background-drain behavior cannot be relied on after CPU allocation ends. Continue safe batches within the request budget; return a nonsecret more-work result so the bridge can issue another bounded request if needed. Preserve durable claims, lease fencing, uncertain outcomes and backoff. [Cloud Run CPU allocation](https://docs.cloud.google.com/run/docs/configuring/billing-settings)
+3. Bridge verifies DB identity, commits LISTEN, then requests catch-up; repeat on every reconnect. Coalesce signals during an active call and retain one pending wake so the final signal cannot be lost. Send no event IDs/financial data. Use bounded HTTP/reconnect retry with jitter; a lost HTTP response may repeat the wake but cannot bypass SQL dedupe. After retry exhaustion, the independent minute recovery tick remains available.
+4. Add the exact bridge caller to the notification endpoint's OIDC allowlist and IAM invocation binding; retain Scheduler caller and reject the bridge on job endpoints. Confirm the actual same-project VM→internal-ingress route and exact audience without opening public ingress. Google documents supported GCE internal access; actual target routing still needs a bounded check. [Cloud Run ingress](https://docs.cloud.google.com/run/docs/securing/ingress)
+5. Record listener availability, wake duration/failure, dispatcher latency and queue progress without secrets. No new monitoring platform or business alert recipient is needed for the trial.
+
+Prompt dispatch remains event-driven. VM downtime, reconnects, cold starts, provider throttling and an offline device can delay delivery. No hard seconds SLA, exactly-once push or provider-acceptance-equals-device-receipt claim. If Debian is down, Cloud Scheduler recovery still works; the normal prompt path is degraded.
+
+## DEV acceptance, rollback and approval scope
+
+Before activation, test separate-principal access denial, fake/duplicate wake-ups, startup/reconnect gaps, burst coalescing, overlapping recovery, timeout/response loss, and cold-start dispatch with the minute tick disabled. Observe real owner-only device receipt separately from provider acceptance. Measure bridge peakRSS/CPU and concurrent agent health during a bounded synthetic trial; do not fabricate financial payments or send to other recipients. Reuse existing RPC/lease/privacy tests. No PROD or Debian business capability is enabled by this review.
+
+If approved, scope the work to source implementation, those focused tests, the exact DEV bridge identity/service and DEV dispatcher mode; verify existing Debian services before/after. Keep the known package/configuration baseline and install disabled first. Rollback stops/disables only the bridge, revokes only new wake identity/invocation bindings, and returns DEV notifications to the prior held/inactive configuration. Preserve durable queue/events and uncertain send evidence; never replay financial operations or restore old agent journals. Re-enabling the USD59 warm-worker alternative would need the owner's cost choice, not an automatic rollback.
+
+**Deferred discussion:** hosting choice, acceptable shared-host identity boundary, measured cost and cold-start latency remain undecided. No approval is requested now, and this draft authorizes no implementation/deployment. D owns the R053 change-log/publication links; A owns this design proposal; F supplies infrastructure/capacity evidence. Tested plan and code remain untouched by this document.

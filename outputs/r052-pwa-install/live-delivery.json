@@ -1,0 +1,111 @@
+{
+  "checkedAt": "2026-10-07T23:28:58.380Z",
+  "source": "848750a216511af514b37f97fbddacae7a9d1707",
+  "hostingVersion": "6a5b8f75b50f4537",
+  "assets": [
+    {
+      "path": "/sw.js",
+      "status": 200,
+      "mime": "application/javascript; charset=utf-8",
+      "cacheControl": "no-store",
+      "sha256": "d5939ba01524083acb956618322532a0e881effeb691d62839472d183b24b63d"
+    },
+    {
+      "path": "/manifest.webmanifest",
+      "status": 200,
+      "mime": "application/manifest+json; charset=utf-8",
+      "cacheControl": "no-store",
+      "sha256": "05efebff27c72dff7defece85e60690298671a5b7903c6796fc30262577c2e45"
+    },
+    {
+      "path": "/offline.html",
+      "status": 200,
+      "mime": "text/html; charset=utf-8",
+      "cacheControl": "no-store",
+      "sha256": "54b9fa242081eabd83836d4b16197c7b2b3cb8f5c34b519cb4b623370a550848"
+    },
+    {
+      "path": "/icons/icon-192.png",
+      "status": 200,
+      "mime": "image/png",
+      "cacheControl": "no-store",
+      "sha256": "4609ac4072907cd24dd4922319e1e93c422f6203275cd52df7b3bd7952988f43",
+      "width": 192,
+      "height": 192
+    },
+    {
+      "path": "/icons/icon-512.png",
+      "status": 200,
+      "mime": "image/png",
+      "cacheControl": "no-store",
+      "sha256": "1cb152273ba0cd3d8641d11daef6a87ef7cef565111b8748ed27243cc2646b92",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "path": "/icons/apple-touch-icon.png",
+      "status": 200,
+      "mime": "image/png",
+      "cacheControl": "no-store",
+      "sha256": "639acf3bc9afaebeb6106656755b960e7911c86873ecea758f02fb9c337000d9",
+      "width": 180,
+      "height": 180
+    }
+  ],
+  "results": [
+    {
+      "name": "canonical-desktop",
+      "origin": "https://dev-lm.mw-credit.com",
+      "width": 1440,
+      "height": 900,
+      "manifestAttached": true,
+      "registered": true,
+      "cache": {
+        "mw-credit-dev-public-bc78b2d635b62c8429fc8d55": [
+          "/icons/apple-touch-icon.png",
+          "/icons/icon-192.png",
+          "/icons/icon-512.png",
+          "/offline.html"
+        ]
+      },
+      "apiRequests": 0,
+      "records": 0,
+      "englishAndThai": true,
+      "overflow": false
+    },
+    {
+      "name": "canonical-mobile",
+      "origin": "https://dev-lm.mw-credit.com",
+      "width": 320,
+      "height": 844,
+      "manifestAttached": true,
+      "registered": true,
+      "cache": {
+        "mw-credit-dev-public-bc78b2d635b62c8429fc8d55": [
+          "/icons/apple-touch-icon.png",
+          "/icons/icon-192.png",
+          "/icons/icon-512.png",
+          "/offline.html"
+        ]
+      },
+      "apiRequests": 0,
+      "records": 0,
+      "englishAndThai": true,
+      "overflow": false
+    },
+    {
+      "name": "fallback",
+      "origin": "https://mw-credit-app-dev-737787224638.web.app",
+      "width": 1440,
+      "height": 900,
+      "manifestAttached": false,
+      "registered": false,
+      "cache": {},
+      "apiRequests": 0,
+      "records": 0,
+      "englishAndThai": true,
+      "overflow": false
+    }
+  ],
+  "scope": "Fresh unsigned contexts. No login or business API probes. Actual OS installation remains manual."
+}

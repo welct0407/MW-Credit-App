@@ -1,0 +1,9 @@
+{
+  "passed": true,
+  "cases": 2,
+  "scope": "Synthetic UI transport only",
+  "unavailableSeparateFromPosted": true,
+  "notesLabelPreserved": true,
+  "metadataControlsSerialized": true,
+  "competingStatusRequests": 0
+}

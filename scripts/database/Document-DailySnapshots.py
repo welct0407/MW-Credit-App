@@ -5,7 +5,7 @@ import xml.etree.ElementTree as E
 sys.path.insert(0,str(Path(os.environ['LOCALAPPDATA'])/'AppSheetLoanTools/python-deps'))
 import psycopg
 p=argparse.ArgumentParser();p.add_argument('operation',choices=['prepare','apply']);p.add_argument('--environment',default='development',choices=['development','production']);a=p.parse_args()
-repo=Path(__file__).resolve().parents[2];private=Path('C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r016-20260922/daily-snapshots')
+repo=Path(__file__).resolve().parents[2];private=Path('C:/Users/ideaadmin/Documents/ChatGPT/AppSheet-Loan-Project/r016-20260922/daily-snapshots')
 dest=repo/'Documents/AppSheet_Data_Dictionary.xlsx';baseline=private/'dictionary-before.xlsx'
 S='http://schemas.openxmlformats.org/spreadsheetml/2006/main';R='http://schemas.openxmlformats.org/officeDocument/2006/relationships';ns={'s':S};tag=lambda n:'{'+S+'}'+n
 def readbook(path):

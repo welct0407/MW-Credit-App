@@ -1,0 +1,55 @@
+{
+  "checkedAt": "2026-10-07T12:19:45.732Z",
+  "source": "084bb5376ddc6f156cbba7ba4acd931c1f22d8d0",
+  "revision": "mw-credit-app-read-dev-00004-wmg",
+  "scope": "Unsigned synthetic identifiers only; no authenticated data request",
+  "ci": {
+    "url": "https://github.com/welct0407/MW-Credit-App/actions/runs/37619664493",
+    "status": "completed",
+    "conclusion": "success"
+  },
+  "results": [
+    {
+      "name": "health",
+      "status": 200,
+      "cacheControl": "no-store",
+      "allowOrigin": null,
+      "body": "{\"status\":\"ok\",\"environment\":\"dev\",\"service\":\"borrower-read\"}"
+    },
+    {
+      "name": "unsigned nested list",
+      "status": 401,
+      "cacheControl": "no-store",
+      "allowOrigin": null,
+      "body": "{\"ok\":false,\"code\":\"sign_in_required\"}"
+    },
+    {
+      "name": "unsigned nested detail",
+      "status": 401,
+      "cacheControl": "no-store",
+      "allowOrigin": null,
+      "body": "{\"ok\":false,\"code\":\"sign_in_required\"}"
+    },
+    {
+      "name": "invalid token",
+      "status": 401,
+      "cacheControl": "no-store",
+      "allowOrigin": null,
+      "body": "{\"ok\":false,\"code\":\"session_invalid\"}"
+    },
+    {
+      "name": "write method",
+      "status": 405,
+      "cacheControl": "no-store",
+      "allowOrigin": null,
+      "body": "{\"ok\":false,\"code\":\"method_not_allowed\"}"
+    },
+    {
+      "name": "allowed preflight",
+      "status": 204,
+      "cacheControl": "no-store",
+      "allowOrigin": "https://mw-credit-app-dev-737787224638.web.app",
+      "body": ""
+    }
+  ]
+}

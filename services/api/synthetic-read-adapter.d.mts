@@ -1,0 +1,11 @@
+import type { AccessContext, AccessDenial } from './read-access.mjs';
+export type Localized = { en: string; th: string };
+export type CollectionStatus = 'not_paid' | 'partially_paid' | 'overdue' | 'fully_paid' | null;
+export type BorrowerSummary = { id: string; name: Localized; initials: string; area: Localized; hasActiveLoan: boolean; outstandingPrincipal: string | null; collection: { status: CollectionStatus; amountDue: string | null; amountCollected: string | null; amountRemaining: string | null }; note?: Localized };
+export type BorrowerDetail = BorrowerSummary & { loans: { id: string; outstandingPrincipal: string | null; nextDate: string | null; charges: { id: string; label: Localized; amount: string | null; date: string | null }[] }[] };
+export type SourceBorrower = BorrowerDetail & { hidden: boolean; [key: string]: unknown };
+export type Denial = AccessDenial | { ok: false; code: 'not_found' | 'source_unavailable' };
+export type Envelope = { ok: true; schemaVersion: 1; source: 'synthetic'; businessDate: string; timezone: 'Asia/Bangkok'; asOf: string };
+export type ListResult = Denial | (Envelope & { items: BorrowerSummary[] });
+export type DetailResult = Denial | (Envelope & { item: BorrowerDetail });
+export function createSyntheticReadAdapter(options: { getAccessContext: () => AccessContext; getRows: () => SourceBorrower[]; businessDate: string; asOf: string }): { listBorrowers(): ListResult; listCollection(): ListResult; getBorrowerDetail(id: string, view?: 'borrowers' | 'collection'): DetailResult };

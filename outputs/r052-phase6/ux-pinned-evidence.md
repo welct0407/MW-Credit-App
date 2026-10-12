@@ -1,0 +1,12 @@
+# Pinned-page UX capture evidence — 11 October 2026
+
+Owner requested Agent E review of Dashboard, Collection, Payments and Borrowers and their relevant linked views. The initial set contained36 fresh synthetic actual-component captures; the final coverage JSON contains62 images/31 states after the bounded follow-up, at440x956 and1440x956. Root screens use actual live-main with controlled auth/HTTP; linked screens use the existing Back consumer harness. Synthetic toolbar/parent-state text in linked captures is fixture chrome, not production UI.
+
+No operational POST, upload, recalculation, save or live mutation occurred. Two narrow capture invocations completed. This is review evidence, not a new CI suite or broad acceptance claim. Receiving review/confirmation, actual receipt media, same-date two-loan ambiguity and shared saved/recovery states were not freshly rendered; E may identify source-based concerns explicitly. Physical-device acceptance and a complete Thai screen matrix were not performed.
+
+Capture source is retained as ux-pinned-capture-source.ts; it was executed temporarily from tests/e2e and removed from maintained test selection afterward. GET DTOs are controlled, not live borrower data. Loan related rows use the actual date/status/principal/interest and date/status/amount projection. Final Cash approved captures remain in cash-approved-*.png. Agent E owns findings and coverage codes; no product fixes are authorized by this capture work.
+
+The owner's bounded follow-up added borrower chooser/new form, scoped month history, receiving review, Close review and correction review, standalone Upcoming date/event and separately content-linked Collection Upcoming summary/date. New-borrower capture was corrected after supplying the faithful referrers envelope and waiting for its form; its earlier blank screenshot was not treated as evidence. Collection upcoming renders the actual principal/interest/basis detail, not the standalone screen.
+
+Receiving review used one intercepted synthetic read-only POST response; no command Confirm was activated and no server/financial mutation occurred. All other requests were GET. Saved-note captures deliberately show a locked recovery-unavailable fixture state; they do not establish ordinary restored-note rendering. Eligible Move-interest, charge confirmation and actual receipt media/variants remain source-only gaps. Temporary capture source was removed from maintained tests; both source recipes remain under outputs. No further capture run is requested.
+

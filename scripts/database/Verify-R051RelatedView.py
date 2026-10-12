@@ -2,7 +2,7 @@
 import argparse, hashlib, json, statistics, sys
 from datetime import datetime, timezone
 from pathlib import Path
-sys.path.insert(0,r'C:\Users\MWCredit\AppData\Local\AppSheetLoanTools\python-deps')
+sys.path.insert(0,r'C:\Users\ideaadmin\AppData\Local\AppSheetLoanTools\python-deps')
 import psycopg
 from psycopg import sql
 p=argparse.ArgumentParser();p.add_argument('phase',choices=['before','after']);p.add_argument('--batch',choices=['v75','v76'],default='v75');args=p.parse_args()

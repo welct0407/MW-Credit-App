@@ -1,0 +1,83 @@
+{
+  "baseline": "6ffd1b5",
+  "files": [
+    {
+      "path": "apps/pwa/pwa/sw.js",
+      "sha256": "2CD5067A0E4B4656C7FF57C24C3978CB426F081F7C68DF0C85CF15C1654E9C4E"
+    },
+    {
+      "path": "apps/pwa/src/BorrowerRecord.tsx",
+      "sha256": "970D6D31C26E06738321442E9B6A18E050DA04413944B65E461221F322394B1F"
+    },
+    {
+      "path": "apps/pwa/src/ChargeRecord.tsx",
+      "sha256": "6776B547051B1B37001307518885948D1E60E0B0F8855F7FD1FD16218B330ECD"
+    },
+    {
+      "path": "apps/pwa/src/CollectionRecords.tsx",
+      "sha256": "60AFD2B5C53252BFD3BBAD0DEEA5039B399963D9BDB7A7C874A6B8AAA25780F8"
+    },
+    {
+      "path": "apps/pwa/src/ExpenseRecords.tsx",
+      "sha256": "4535CEBA8047122C45C79CD47B4424CA935FD0E856A89E97AD6A2A863F435A17"
+    },
+    {
+      "path": "apps/pwa/src/LoanRecord.tsx",
+      "sha256": "05446A8077771818CE2537410B5730B11FABFD22EC3A3A01532099D9423805D9"
+    },
+    {
+      "path": "apps/pwa/src/ManagementAnalytics.tsx",
+      "sha256": "AD99A839411612797BDD897D6D9CF74FF4490112B3644EA232D18C104B98F7CC"
+    },
+    {
+      "path": "apps/pwa/src/ManagementAssessments.tsx",
+      "sha256": "A7271D9B2518E2BFD3ED29EF959A0F38ECC20A281A22FEF0CA62B9F212BF46A3"
+    },
+    {
+      "path": "apps/pwa/src/ManagementFinancialWorkspace.tsx",
+      "sha256": "3BDC3E60B84C01B7CEAA4C70C211726FB6481E5DD46D7EB0886EF924E94D6F58"
+    },
+    {
+      "path": "apps/pwa/src/ManagementWorkspace.tsx",
+      "sha256": "504E07F22F7C4AD3B2F2B03A3A65B59541AA39249FEF253E2304E8D6DA9BE111"
+    },
+    {
+      "path": "apps/pwa/src/PaymentRecord.tsx",
+      "sha256": "56FC380FFBC638DC4BA663E2EBD0AB6DB3F16A41138DDB249C469B4D5A5A5ADA"
+    },
+    {
+      "path": "apps/pwa/src/SelectedCharges.tsx",
+      "sha256": "4FCE527354ED3A1D868E8394FC814A35092AA3BCD199A388011BDED5E83EDD34"
+    },
+    {
+      "path": "apps/pwa/src/StandaloneRecords.tsx",
+      "sha256": "BEB0AA6351E280B382B5351BF690D002EAC6E1446E4533F29BA9A171FB7EAA3F"
+    },
+    {
+      "path": "apps/pwa/src/live-main.tsx",
+      "sha256": "9AE46901389389E632480E176188D5DD75D76B8CAD88FB67CD2249C17BE0657A"
+    },
+    {
+      "path": "apps/pwa/src/live-style.css",
+      "sha256": "A9C258C7BA03610B0A6D496E6E64F79000C18CEA61CDB1F903205F9CB92D02FD"
+    },
+    {
+      "path": "apps/pwa/src/usePwa.ts",
+      "sha256": "DB32D9A02D982AA37344B99AF261B9B1C78304117168EB89DB2FCC7CBB7BE480"
+    },
+    {
+      "path": "apps/pwa/src/RecordAction.tsx",
+      "sha256": "4D460A5CAA59A4E79E13CA0337214DE823F12EBDD49C6FF18DF0F376F3FF6C92"
+    },
+    {
+      "path": "vite.config.ts",
+      "sha256": "376FDF54AD1C4D0F01303CF71A37035E0CB00605D68DD097DA589234805A4AE9"
+    }
+  ],
+  "build": "index-CX4AAEce.js",
+  "checks": [
+    "npm run build:live-dev PASS",
+    "node --test tests/unit/public-shell-cache.test.mjs 3/3 PASS"
+  ],
+  "backendChanged": false
+}

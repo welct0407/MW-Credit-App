@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "sourceSha256": "46bff40b93ad4635d833c0fc65ea5ef7a16c0eaeb29df8f584be7ab670250db5",
+  "purpose": "Reviewed default families; not runtime capability or permission evidence",
+  "definitions": 130,
+  "classified": {
+    "new-id": 23,
+    "business-date": 26,
+    "literal": 43,
+    "resolver": 14,
+    "actor-login": 7,
+    "business-now": 17
+  },
+  "unclassified": 0,
+  "remaining": "Named relational/account/date/token resolvers require trusted server providers; new IDs require persisted journal context. Classification is not complete runtime integration.",
+  "focusedTests": {"passed": 4, "failed": 0},
+  "liveChanges": false
+}

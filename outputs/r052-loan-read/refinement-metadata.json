@@ -1,0 +1,29 @@
+{
+  "scope": "Checkpoint 2B owner refinements; metadata only, no business rows",
+  "database": "loan_manager_dev",
+  "columns": [
+    {
+      "table": "Borrowers",
+      "column": "Description",
+      "type": "text",
+      "nullable": true
+    },
+    {
+      "table": "Borrowers",
+      "column": "Total Interest Earned",
+      "type": "numeric",
+      "nullable": true
+    },
+    {
+      "table": "Loans",
+      "column": "Original Daily Interest Rate",
+      "type": "integer",
+      "nullable": true
+    }
+  ],
+  "priorAllowedColumns": 23,
+  "plannedAllowedColumns": 26,
+  "grantApplied": true,
+  "formatEvidence": "AppSheet TEXT(column) uses column Type Details; saved Principal Amount has baht symbol, zero decimal digits and thousands separator. This is documentation/configuration inference, not a live screenshot.",
+  "formatSource": "https://support.google.com/appsheet/answer/10107701?hl=en"
+}

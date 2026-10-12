@@ -1,0 +1,11 @@
+# Remaining pages and conditional color review — 11 October 2026
+
+Review-only actual-component captures: 54 phone440/desktop1440 images, including Analytics pie, dated signed/zero bar/line and Values expanded at820/1180. Additional24 full-shell color captures cover negative/zero Dashboard, borrower signed/zero/positive, payment error/zero and Collection/selected context at440/820/1180/1440. Capture runs13.6s and3.9s completed. The canonical78-image inventory is ux-remaining-coverage.json. No CI, operation POST, recalculation, live financial writes or product changes.
+
+Expenses, selected cash statement, management roots and representative forms/details, stale assessment detail and analytics are rendered. Opening preview is an unavailable/error state. Account detail/form has missing holder/bank fields; movement and settlement detail still uses the generic Contribution/Pending fixture; settlement list contains one row. Those images establish representative shells only, not complete faithful ordinary records or mixed-status rendering. E can ground related findings in source, with these limits retained.
+
+A2.4s fixture supplement completed but its intended DTO overrides did not reach the rendered components. Direct pixel inspection confirmed no correction, including unique-name copies. It is not accepted as corrected coverage. Eight duplicate *-final-*.png copies are excluded from the canonical inventory. No further capture attempts were made. The initial color handler was separately narrowed from a broad Collection interception to borrower paths; no product defect is inferred from these fixture failures.
+
+Source literals and estimated white-background color ratios are in ux-color-source.json; this is not conformance evidence. E owns findings/recommendations, which require owner approval before implementation.
+
+Limits: synthetic linked chrome is not production navigation/header evidence; full-shell root captures are authoritative. Current/awaiting assessment, Move interest and review, correction replacement, loan-type variants, charge confirmations, receipt media/OS picker, and complete recovery/draft variants remain source-only or earlier valid evidence. PROD theme is source-only. Responsive emulation is not physical-device acceptance or a complete locale/state matrix.

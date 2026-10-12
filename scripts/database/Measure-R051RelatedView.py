@@ -2,7 +2,7 @@
 import hashlib,json,statistics,sys
 from datetime import datetime,timezone
 from pathlib import Path
-sys.path.insert(0,r'C:\Users\MWCredit\AppData\Local\AppSheetLoanTools\python-deps')
+sys.path.insert(0,r'C:\Users\ideaadmin\AppData\Local\AppSheetLoanTools\python-deps')
 import psycopg
 root=Path(__file__).resolve().parents[2]
 out=root/'outputs/r051-related-list-views/production-query.json';assert not out.exists()

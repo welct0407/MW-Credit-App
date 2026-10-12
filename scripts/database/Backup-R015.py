@@ -17,7 +17,7 @@ expected='loan_manager_dev' if a.environment=='development' else 'loan_manager_p
 assert (target['host'],target['instance'],target['database'])==('34.21.174.215','appsheet-pg-prod-20260914',expected)
 lab=json.loads(Path(a.lab_manifest).read_text(encoding='utf-8-sig'))
 assert lab['host']=='127.0.0.1' and lab['port']!=5432 and 'agent-state-lab-' in lab['root']
-private=Path('C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r015-20260922')
+private=Path('C:/Users/ideaadmin/Documents/ChatGPT/AppSheet-Loan-Project/r015-20260922')
 private.mkdir(parents=True,exist_ok=True)
 dump=private/(a.environment+'-'+a.label+'.dump')
 if dump.exists() and not a.resume_existing:raise RuntimeError('Backup exists; inspect before replacing')

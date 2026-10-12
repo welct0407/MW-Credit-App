@@ -1,0 +1,160 @@
+{
+  "services": [
+    {
+      "traffic": [
+        {
+          "latestRevision": true,
+          "percent": 100,
+          "revisionName": "mw-credit-app-read-prod-00003-gpl"
+        }
+      ],
+      "service": "mw-credit-app-read-prod",
+      "url": "https://mw-credit-app-read-prod-pvrgvyg3oq-as.a.run.app",
+      "serviceAccount": "mw-credit-app-read-prod@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "flags": [
+        {
+          "name": "PWA_NOTIFICATIONS",
+          "value": "disabled"
+        }
+      ],
+      "ready": "True",
+      "secretPins": [
+        {
+          "env": "PROD_OWNER_FIREBASE_UID",
+          "secret": "mw-credit-app-prod-owner-identity",
+          "version": "1"
+        },
+        {
+          "env": "PROD_CAPABILITY_POLICY_JSON",
+          "secret": "mw-credit-app-prod-capability-policy",
+          "version": "1"
+        }
+      ],
+      "image": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app-prod/api@sha256:42534b790ebccd73448d5bc56490a959586ea5494604583443b630705a0c7778",
+      "revision": "mw-credit-app-read-prod-00003-gpl"
+    },
+    {
+      "traffic": [
+        {
+          "latestRevision": true,
+          "percent": 100,
+          "revisionName": "mw-credit-app-command-prod-00003-tnr"
+        }
+      ],
+      "service": "mw-credit-app-command-prod",
+      "url": "https://mw-credit-app-command-prod-pvrgvyg3oq-as.a.run.app",
+      "serviceAccount": "mw-credit-app-command-prod@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "flags": [
+        {
+          "name": "AGENT_RECEIPT_API_ENABLED",
+          "value": "true"
+        },
+        {
+          "name": "PWA_NOTIFICATIONS",
+          "value": "enabled"
+        }
+      ],
+      "ready": "True",
+      "secretPins": [
+        {
+          "env": "PROD_OWNER_FIREBASE_UID",
+          "secret": "mw-credit-app-prod-owner-identity",
+          "version": "1"
+        },
+        {
+          "env": "PROD_RECEIPT_NATIVE_CATALOG_JSON",
+          "secret": "mw-credit-app-prod-native-receipt-catalog",
+          "version": "1"
+        },
+        {
+          "env": "PROD_CAPABILITY_POLICY_JSON",
+          "secret": "mw-credit-app-prod-capability-policy",
+          "version": "1"
+        },
+        {
+          "env": "AGENT_RECEIPT_POLICY_JSON",
+          "secret": "mw-credit-app-prod-agent-receipt-policy",
+          "version": "1"
+        }
+      ],
+      "image": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app-prod/api@sha256:42534b790ebccd73448d5bc56490a959586ea5494604583443b630705a0c7778",
+      "revision": "mw-credit-app-command-prod-00003-tnr"
+    },
+    {
+      "traffic": [
+        {
+          "latestRevision": true,
+          "percent": 100,
+          "revisionName": "mw-credit-app-notify-prod-00001-f68"
+        }
+      ],
+      "service": "mw-credit-app-notify-prod",
+      "url": "https://mw-credit-app-notify-prod-pvrgvyg3oq-as.a.run.app",
+      "serviceAccount": "mw-credit-app-notify-prod@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "flags": [
+        {
+          "name": "WORKER_ACTIVATION",
+          "value": "disabled"
+        }
+      ],
+      "ready": "True",
+      "secretPins": [
+        {
+          "env": "NOTIFICATION_POLICY_JSON",
+          "secret": "mw-credit-app-prod-notification-policy",
+          "version": "1"
+        },
+        {
+          "env": "WEB_PUSH_VAPID_JSON",
+          "secret": "mw-credit-app-prod-vapid",
+          "version": "1"
+        }
+      ],
+      "image": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app-prod/api@sha256:42534b790ebccd73448d5bc56490a959586ea5494604583443b630705a0c7778",
+      "revision": "mw-credit-app-notify-prod-00001-f68"
+    },
+    {
+      "traffic": [
+        {
+          "latestRevision": true,
+          "percent": 100,
+          "revisionName": "mw-credit-app-jobs-prod-00001-24c"
+        }
+      ],
+      "service": "mw-credit-app-jobs-prod",
+      "url": "https://mw-credit-app-jobs-prod-pvrgvyg3oq-as.a.run.app",
+      "serviceAccount": "mw-credit-app-jobs-prod@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "flags": [
+        {
+          "name": "WORKER_ACTIVATION",
+          "value": "disabled"
+        }
+      ],
+      "ready": "True",
+      "secretPins": [],
+      "image": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app-prod/api@sha256:42534b790ebccd73448d5bc56490a959586ea5494604583443b630705a0c7778",
+      "revision": "mw-credit-app-jobs-prod-00001-24c"
+    }
+  ],
+  "recordedAtUtc": "2026-10-11T20:01:31.5449356Z",
+  "planSha256": "cfc1f579c4b3839bed0ffcb0b39f4327c7a8763f9e476ff9a2cd436c485ffed6",
+  "schedules": [
+    {
+      "state": "PAUSED",
+      "name": "projects/clever-oasis-508610-n7/locations/asia-southeast1/jobs/mw-credit-app-prod-daily-charges"
+    },
+    {
+      "state": "PAUSED",
+      "name": "projects/clever-oasis-508610-n7/locations/asia-southeast1/jobs/mw-credit-app-prod-notifications"
+    },
+    {
+      "state": "PAUSED",
+      "name": "projects/clever-oasis-508610-n7/locations/asia-southeast1/jobs/mw-credit-app-prod-recent-analytics"
+    }
+  ],
+  "applyExitCode": 0,
+  "apiHealth": {
+    "reader": 200,
+    "command": 200
+  }
+}

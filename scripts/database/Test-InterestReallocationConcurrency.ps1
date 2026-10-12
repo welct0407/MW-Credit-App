@@ -1,15 +1,15 @@
-param([Parameter(Mandatory)][string]$PgBin,[Parameter(Mandatory)][int]$Port,[Parameter(Mandatory)][string]$OutputDirectory)
+param([Parameter(Mandatory)][string]$PgBin,[Parameter(Mandatory)][int]$Port,[Parameter(Mandatory)][string]$OutputDirectory,[ValidateSet('postgres','loan_manager_dev','payment_rehearsal')][string]$Database='postgres')
 $ErrorActionPreference='Stop'
 $psql=Join-Path $PgBin 'psql.exe'
 # The caller owns the disposable migration-rebuilt server. No Cloud target or
 # credentials are accepted; verify its local data directory before any fixture.
-$actual = & $psql -XAt -h 127.0.0.1 -p $Port -U postgres -d postgres -c 'SHOW data_directory'
+$actual = & $psql -XAt -h 127.0.0.1 -p $Port -U postgres -d $Database -c 'SHOW data_directory'
 if($LASTEXITCODE -or [IO.Path]::GetFullPath($actual.Trim()) -ne [IO.Path]::GetFullPath((Join-Path $OutputDirectory 'data'))){throw 'Disposable server identity mismatch'}
-& $psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d postgres -f "$PSScriptRoot/Test-CashAccountFixtures.sql"
+& $psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d $Database -f "$PSScriptRoot/Test-CashAccountFixtures.sql"
 if($LASTEXITCODE){throw 'Cash fixtures failed'}
 $fixture=[IO.File]::ReadAllText("$PSScriptRoot/Test-InterestReallocation.sql").Split('-- Snapshot staleness')[0]
 $fixture=$fixture.Replace('\ir Test-CashAccountFixtures.sql','').Replace('CREATE TEMP TABLE ir57_request','CREATE TABLE public.ir57_con_request').Replace('CREATE TEMP TABLE ir57_preserved','CREATE TABLE public.ir57_con_preserved') + "`nCOMMIT;`n"
-$fixture | & $psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d postgres
+$fixture | & $psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d $Database
 if($LASTEXITCODE){throw 'Reallocation concurrency fixture failed'}
 $call=@'
 SELECT public.reallocate_payment_interest_audited('00000000-0057-4000-8000-000000000099',jsonb_build_object(
@@ -29,7 +29,7 @@ foreach($lock in $locks){
  $file=Join-Path $OutputDirectory "reallocation-lock-$i.sql"
  [IO.File]::WriteAllText($file,"BEGIN;`n"+$lock.sql+"`n\echo LOCK_READY`nSELECT pg_sleep(3);`nROLLBACK;",[Text.UTF8Encoding]::new($false))
  $out=Join-Path $OutputDirectory "reallocation-lock-$i.out";$err=Join-Path $OutputDirectory "reallocation-lock-$i.err"
- $process=Start-Process $psql -ArgumentList @('-X','-v','ON_ERROR_STOP=1','-h','127.0.0.1','-p',"$Port",'-U','postgres','-d','postgres','-f',('"'+$file+'"')) -WindowStyle Hidden -PassThru -RedirectStandardOutput $out -RedirectStandardError $err
+ $process=Start-Process $psql -ArgumentList @('-X','-v','ON_ERROR_STOP=1','-h','127.0.0.1','-p',"$Port",'-U','postgres','-d',$Database,'-f',('"'+$file+'"')) -WindowStyle Hidden -PassThru -RedirectStandardOutput $out -RedirectStandardError $err
  try{
   $deadline=[DateTime]::UtcNow.AddSeconds(10)
   while(-not ((Get-Content $out -Raw -ErrorAction SilentlyContinue) -match 'LOCK_READY')){
@@ -37,7 +37,7 @@ foreach($lock in $locks){
    Start-Sleep -Milliseconds 50
   }
   $timer=[Diagnostics.Stopwatch]::StartNew()
-  $result=$call | & $psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d postgres 2>&1
+  $result=$call | & $psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d $Database 2>&1
   $timer.Stop()
   if($LASTEXITCODE -eq 0 -or ($result -join "`n") -notmatch $lock.error -or $timer.Elapsed.TotalSeconds -ge 2){throw 'Concurrent correction did not fail promptly'}
   $check=@'
@@ -46,16 +46,16 @@ DO $$ BEGIN
  ASSERT (SELECT sum("Total Paid")=0 FROM public."Charges" WHERE "Row ID" LIKE 'IR57-C%-1'),'busy operation made no changes';
 END $$;
 '@
-  $check | & $psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d postgres
+  $check | & $psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d $Database
   if($LASTEXITCODE){throw 'Busy-operation rollback failed'}
   $process.WaitForExit()
   if($process.ExitCode){throw 'Lock-holder failed'}
  }finally{if(-not $process.HasExited){$process.Kill();$process.WaitForExit()}}
 }
 # Separate psql sessions establish commit visibility and duplicate-safe retry.
-$result=$call | & $psql -XAt -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d postgres
+$result=$call | & $psql -XAt -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d $Database
 if($LASTEXITCODE -or $result.Trim() -ne 'applied'){throw 'First correction failed'}
-$result=$call | & $psql -XAt -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d postgres
+$result=$call | & $psql -XAt -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d $Database
 if($LASTEXITCODE -or $result.Trim() -ne 'already_applied'){throw 'Committed retry failed'}
 $verify=@'
 DO $$ BEGIN
@@ -72,14 +72,14 @@ END $$;
 CREATE ROLE ir57_restricted;
 SET SESSION AUTHORIZATION ir57_restricted;
 '@
-$verify | & $psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d postgres
+$verify | & $psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d $Database
 if($LASTEXITCODE){throw 'Committed readback failed'}
 $denied=@'
 SET SESSION AUTHORIZATION ir57_restricted;
 SELECT public.reallocate_payment_interest_audited('00000000-0057-4000-8000-000000000099','{}');
 '@
-$result=$denied | & $psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d postgres 2>&1
+$result=$denied | & $psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d $Database 2>&1
 if($LASTEXITCODE -eq 0 -or ($result -join "`n") -notmatch 'permission denied for function'){throw 'Restricted role reached admin correction'}
-'DROP ROLE ir57_restricted; DROP TABLE public.ir57_con_request,public.ir57_con_preserved;' | & $psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d postgres
+'DROP ROLE ir57_restricted; DROP TABLE public.ir57_con_request,public.ir57_con_preserved;' | & $psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d $Database
 if($LASTEXITCODE){throw 'Synthetic request cleanup failed'}
 [pscustomobject]@{cashpoolBorrowerChargeRepaymentContentionRejected=$true;independentCommittedRetry=$true;restrictedRoleDenied=$true;receiptCashLoanBorrowerTablesPreserved=$true}

@@ -1,0 +1,145 @@
+{
+  "prod": {
+    "buildId": "149aeba1-3e70-49ff-b7a2-3bb5496101f9",
+    "image": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app-prod/api@sha256:77254376cd3b07bf01b21b1df219c433550ddbdf38f77e6f8d9aede86441678d",
+    "status": "SUCCESS",
+    "frontend": {
+      "sourceCommit": "1bc08f3e171d043a5a3ca01335d3746113c68cb2",
+      "mode": "live-prod",
+      "publicConfigSha256": "0f81205b1d19f737532752e217cc4d31436adf669762ccada51e80573a99662c",
+      "build": {
+        "schemaVersion": 1,
+        "version": "81100bc605443cbb098fdfcc",
+        "entry": "/assets/index-ZeW4VaFq.js"
+      },
+      "files": [
+        {
+          "path": "assets/index-CD30gDMj.css",
+          "sha256": "0ea8147009f38f8cca77f6add63449d465ebf15f73c0b4b84dbb7af6d6be9ff2"
+        },
+        {
+          "path": "assets/index-ZeW4VaFq.js",
+          "sha256": "5a06b0088354eee6c498ee3693cf00fab82a04b74e6355af0bacdba9069c72b6"
+        },
+        {
+          "path": "assets/loan-manager-logo-dev-orange-DNZr_iCT.png",
+          "sha256": "3e0a3a6234376ba263b3cf59d5c4ebd374607357b831972605bde730e54dd0d2"
+        },
+        {
+          "path": "assets/loan-manager-logo-DVHt0b90.png",
+          "sha256": "5808ee79d5b6e843c8ed648e8507678ea349297d1cc687a97021c5d396dd2a8d"
+        },
+        {
+          "path": "build-mode.json",
+          "sha256": "43f9c5d1fbbbb9ce7f5b17a618185118b9a5a25d1a3bca3cec3933b29ed94c53"
+        },
+        {
+          "path": "build-version.json",
+          "sha256": "48d70b29b0a4f358fec8c0dc25966a934fd0816a0940cdb65f3b14afbcc6a7c0"
+        },
+        {
+          "path": "icons/apple-touch-icon.png",
+          "sha256": "639acf3bc9afaebeb6106656755b960e7911c86873ecea758f02fb9c337000d9"
+        },
+        {
+          "path": "icons/icon-192.png",
+          "sha256": "4609ac4072907cd24dd4922319e1e93c422f6203275cd52df7b3bd7952988f43"
+        },
+        {
+          "path": "icons/icon-512.png",
+          "sha256": "1cb152273ba0cd3d8641d11daef6a87ef7cef565111b8748ed27243cc2646b92"
+        },
+        {
+          "path": "index.html",
+          "sha256": "36ffb70af6df3d1b0def9bffbdfd579a5645804232bfa69e3921ca2191263cd4"
+        },
+        {
+          "path": "manifest.webmanifest",
+          "sha256": "7fc0ed375c62f89272a5ded59b861fdea70d7b87bb64f426678bc1989cb31903"
+        },
+        {
+          "path": "offline.html",
+          "sha256": "54b9fa242081eabd83836d4b16197c7b2b3cb8f5c34b519cb4b623370a550848"
+        },
+        {
+          "path": "production-public-config.json",
+          "sha256": "f1824f38590a750742b733306c5c34474ece3be5695640a0688b6be0f1d10330"
+        },
+        {
+          "path": "sw.js",
+          "sha256": "e128584dd8adfb9e5200b3186bca3558e1f99371feb2298071532629adc97500"
+        }
+      ]
+    }
+  },
+  "dev": {
+    "buildId": "6eb4c40d-a031-4c6e-8e71-502dc1aff39d",
+    "image": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app/api@sha256:b7ef43e2a319c78fc3927203b5ad0677b2d64ab0aa2a3c93984e1c50157f1665",
+    "status": "SUCCESS",
+    "frontend": {
+      "sourceCommit": "1bc08f3e171d043a5a3ca01335d3746113c68cb2",
+      "mode": "live-dev",
+      "publicConfigSha256": "3e9f9c63365ca9330bb4df635a1db5fb931f0e48ef8dc2da2b53da65d36bd3f9",
+      "build": {
+        "schemaVersion": 1,
+        "version": "81318cd89ac6e41f2ba092a3",
+        "entry": "/assets/index-BotYxaZy.js"
+      },
+      "files": [
+        {
+          "path": "assets/index-BotYxaZy.js",
+          "sha256": "48aacefd1379a12dcd1a1e3ebf67ea2aaf2a6a3848a934218210e539616f36f4"
+        },
+        {
+          "path": "assets/index-CD30gDMj.css",
+          "sha256": "0ea8147009f38f8cca77f6add63449d465ebf15f73c0b4b84dbb7af6d6be9ff2"
+        },
+        {
+          "path": "assets/loan-manager-logo-dev-orange-DNZr_iCT.png",
+          "sha256": "3e0a3a6234376ba263b3cf59d5c4ebd374607357b831972605bde730e54dd0d2"
+        },
+        {
+          "path": "assets/loan-manager-logo-DVHt0b90.png",
+          "sha256": "5808ee79d5b6e843c8ed648e8507678ea349297d1cc687a97021c5d396dd2a8d"
+        },
+        {
+          "path": "build-mode.json",
+          "sha256": "81ea2c953c9678bdece6c1a4a435a705a854076e8cd572cf29f6ec5e0d268794"
+        },
+        {
+          "path": "build-version.json",
+          "sha256": "855d9a7eb6e01a728e3fbb8f8acc0eaca0a567ab05b3122d7e5b83c3c5c59c6c"
+        },
+        {
+          "path": "icons/apple-touch-icon.png",
+          "sha256": "639acf3bc9afaebeb6106656755b960e7911c86873ecea758f02fb9c337000d9"
+        },
+        {
+          "path": "icons/icon-192.png",
+          "sha256": "4609ac4072907cd24dd4922319e1e93c422f6203275cd52df7b3bd7952988f43"
+        },
+        {
+          "path": "icons/icon-512.png",
+          "sha256": "1cb152273ba0cd3d8641d11daef6a87ef7cef565111b8748ed27243cc2646b92"
+        },
+        {
+          "path": "index.html",
+          "sha256": "2022f09b5fc6cdf79ec769d9ba2323d4be40fe66c2cec175f6b86867422c4e39"
+        },
+        {
+          "path": "manifest.webmanifest",
+          "sha256": "05efebff27c72dff7defece85e60690298671a5b7903c6796fc30262577c2e45"
+        },
+        {
+          "path": "offline.html",
+          "sha256": "54b9fa242081eabd83836d4b16197c7b2b3cb8f5c34b519cb4b623370a550848"
+        },
+        {
+          "path": "sw.js",
+          "sha256": "f213dff70fba7a032ae1050fb6b4ca55ea5f087041895802c4cc23b931af3909"
+        }
+      ]
+    }
+  },
+  "sourceCommit": "1bc08f3e171d043a5a3ca01335d3746113c68cb2"
+}

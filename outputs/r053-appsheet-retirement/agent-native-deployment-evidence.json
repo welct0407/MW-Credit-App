@@ -1,0 +1,53 @@
+{
+  "sourceCommit": "e9fd149914a3fa49f036c1eec75a8d4dc8a07c00",
+  "status": "verified",
+  "sshTrust": "Google-broker verified ed25519 SHA256:XYqq9+D9ChuJ+649WocEueQBm2VkObn4zNSTOktdy7s",
+  "retainedPrivateDiagnostics": "C:/Users/ideaadmin/Documents/ChatGPT/MW-Integration-Agent/r053-native-ssh-20261012",
+  "readOnlyProbe": {
+    "passed": true,
+    "forcedMessages": false,
+    "financialWrites": false,
+    "receiptStatus": "unused UUID unresolved",
+    "nativeScopes": [
+      "oltp",
+      "olap"
+    ]
+  },
+  "schemaVersion": 1,
+  "sshCleanup": {
+    "removedLocalKeyFiles": 3,
+    "verifiedAtUtc": "2026-10-12T04:27:38.0642788Z",
+    "otherKeysPreserved": true,
+    "stableHostTrustPreserved": true,
+    "removedMetadataRows": 4
+  },
+  "verified": {
+    "phase": "verified",
+    "commit": "e9fd149914a3fa49f036c1eec75a8d4dc8a07c00",
+    "catalogueRevision": 27,
+    "changedConfigKeys": [
+      "code_version",
+      "conversation_api_audience",
+      "conversation_api_enabled",
+      "conversation_api_environment",
+      "conversation_api_manifest_sha256",
+      "conversation_api_origin",
+      "conversation_api_probe_partner_id"
+    ],
+    "receiptRoutePreserved": true,
+    "cutoffsPreserved": true,
+    "configSha256": "e8f46780931978842e998910cb6a31837a44d3bc7d49fd97718d08c33bf57569",
+    "catalogueSha256": "513fabe7a9040882812c4637a136332b43584899b159696e476b9945effbff26",
+    "backup": "/var/lib/mw-integration-agent/rollback/r053-20261012T042543032945Z"
+  },
+  "timersResumed": [
+    "mw-conversation-poll.timer",
+    "mw-receipt-summary.timer",
+    "mw-cash-statement.timer",
+    "mw-cash-statement-email-retry.timer",
+    "mw-partner-conversation.timer",
+    "mw-audit-relay.timer"
+  ],
+  "privateInputMode": "0600 root",
+  "retentionReview": "2026-10-19"
+}

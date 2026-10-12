@@ -1,0 +1,25 @@
+import {HeaderBack} from './HeaderBack';
+import {displayDate,displayTimestamp,displayValue} from './display-date';
+import {CompactPager,RefreshIcon} from './CompactPager';
+import { ErrorReference, type ReadFailure } from './ReadFailure';
+import React from 'react';
+export type UpcomingSummary = { ok: true; source: 'dev'; businessDate: string; asOf: string; horizonEnd: string; reviewRequired: boolean; previews?: UpcomingDetail[]; items: { id: string; dueDate: string; totalCharge: string | null }[] };
+export type UpcomingDetail = Omit<UpcomingSummary, 'items' | 'previews'> & { dueDate: string; totalCharge: string | null; nextCursor: string | null; items: { id: string; loanId: string; loanDisplayKey: string; principalRemaining: string | null; interestRemaining: string | null; amountRemaining: string | null; basis: string }[] };
+export function UpcomingCharges({ thai, summary, detail, page, busy, error, onDate, onBack, onRefresh, onNext, onPrevious, onDetailRefresh }: { thai: boolean; summary: UpcomingSummary | null; detail: UpcomingDetail | null; page: number; busy: boolean; error: ReadFailure | null; onDate: (date: string) => void; onBack: () => void; onRefresh: () => void; onNext: () => void; onPrevious?:()=>void; onDetailRefresh: () => void }) {
+  const t = (en: string, th: string) => thai ? th : en;
+  const date = (value: string) => displayDate(value);
+  const money = (value: string | null) => value === null ? t('Unavailable', 'ไม่มีข้อมูล') : new Intl.NumberFormat(thai ? 'th-TH' : 'en-TH', { style: 'currency', currency: 'THB', currencyDisplay: 'narrowSymbol', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Number(value));
+  const basis = (value: string) => ({ Recorded: t('Recorded', 'บันทึกแล้ว'), 'Recorded settlement': t('Recorded settlement', 'รายการชำระที่บันทึกแล้ว'), 'Recorded - review status': t('Recorded - review status', 'บันทึกแล้ว - ตรวจสอบสถานะ'), Projected: t('Projected', 'คาดการณ์') })[value] ?? t('Unavailable', 'ไม่มีข้อมูล');
+  const source = detail ?? summary;
+  return <section className="upcoming-charges" aria-label={t('Upcoming Charges', 'ยอดเรียกเก็บล่วงหน้า')} aria-busy={busy}>
+    {detail && <HeaderBack className="icon-action" aria-label={t('Back to borrower summary','กลับสรุปผู้กู้')} title={t('Back to borrower summary','กลับสรุปผู้กู้')} onClick={onBack}>←</HeaderBack>}
+    <div className="related-loans-heading"><h3>{t('Upcoming Charges', 'ยอดเรียกเก็บล่วงหน้า')}</h3></div>
+    {source?.reviewRequired && <p className="issue-note" role="status">{t('Schedule data is incomplete or loan status needs review.', 'ข้อมูลตารางชำระไม่ครบถ้วนหรือสถานะสินเชื่อต้องตรวจสอบ')}</p>}
+    {error && <div role="status"><ErrorReference failure={error} thai={thai} /><button className="secondary-button" disabled={busy} onClick={detail?onDetailRefresh:onRefresh}>{t('Retry Upcoming Charges','ลองโหลดยอดเรียกเก็บล่วงหน้าอีกครั้ง')}</button><p>{error.code === 'not_found' ? t('This upcoming date is no longer available. Refresh upcoming charges.', 'ไม่พบวันที่เรียกเก็บล่วงหน้านี้แล้ว กรุณารีเฟรช') : t('Unable to load upcoming charges.', 'ไม่สามารถโหลดรายการเรียกเก็บล่วงหน้าได้')}</p></div>}
+    {detail ? <><h3>{date(detail.dueDate)} · {money(detail.totalCharge)}</h3><p className="live-page-status">{t('Total charge for this date', 'ยอดเรียกเก็บรวมสำหรับวันที่นี้')}</p>{detail.items.map(row => <article className="collection-charge" key={row.id}><h4>{row.loanDisplayKey}</h4><dl><div><dt>{t('Principal remaining', 'เงินต้นคงเหลือ')}</dt><dd>{money(row.principalRemaining)}</dd></div><div><dt>{t('Interest remaining', 'ดอกเบี้ยคงเหลือ')}</dt><dd>{money(row.interestRemaining)}</dd></div><div><dt>{t('Amount remaining', 'ยอดคงเหลือ')}</dt><dd>{money(row.amountRemaining)}</dd></div><div><dt>{t('Basis', 'ที่มา')}</dt><dd>{basis(row.basis)}</dd></div></dl></article>)}<CompactPager busy={busy} previous={onPrevious} next={detail.nextCursor?onNext:undefined} previousLabel={t('Previous upcoming details page','หน้ารายละเอียดล่วงหน้าก่อนหน้า')} nextLabel={t('Next upcoming details page','หน้าถัดไปของรายละเอียดล่วงหน้า')}/></> : <>
+      {summary && !summary.items.length && !error && <p>{t('No upcoming charge dates.', 'ไม่มีวันที่เรียกเก็บล่วงหน้า')}</p>}
+      {!!summary?.items.length&&<div className="upcoming-summary-table"><div className="upcoming-table-head"><span>{t('Date','วันที่')}</span><span>{t('Total Charge','ยอดเรียกเก็บรวม')}</span></div>{summary.items.map(row=><button className="upcoming-date-row" disabled={busy} key={row.id} onClick={()=>onDate(row.dueDate)}><span>{date(row.dueDate)}</span><strong>{money(row.totalCharge)}</strong></button>)}</div>}
+    </>}
+
+  </section>;
+}

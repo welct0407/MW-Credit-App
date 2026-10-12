@@ -1,0 +1,30 @@
+{
+  "checkedAt": "2026-10-08T00:42:01.458Z",
+  "source": "eb83cab317b37ab90b50c8c6a1d8efe3b61880d4",
+  "hostingVersion": "8fa268235d983461",
+  "results": [
+    {
+      "name": "canonical",
+      "origin": "https://dev-lm.mw-credit.com",
+      "width": 320,
+      "asset": "index-C8WB96wS.js",
+      "workerSha256": "275a80b9c57f2c2b87918265b97251bb8babfc1165aba13bfd53c7e69ed4452f",
+      "signedOut": true,
+      "searchHidden": true,
+      "apiRequests": 0,
+      "records": 0
+    },
+    {
+      "name": "fallback",
+      "origin": "https://mw-credit-app-dev-737787224638.web.app",
+      "width": 1440,
+      "asset": "index-C8WB96wS.js",
+      "workerSha256": "275a80b9c57f2c2b87918265b97251bb8babfc1165aba13bfd53c7e69ed4452f",
+      "signedOut": true,
+      "searchHidden": true,
+      "apiRequests": 0,
+      "records": 0
+    }
+  ],
+  "limitation": "Unsigned exact-asset delivery only; native iPhone typing validation remains pending."
+}

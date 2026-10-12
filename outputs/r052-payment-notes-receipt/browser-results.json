@@ -1,0 +1,23 @@
+{
+  "results": [
+    {
+      "case": "chunked oversize upload rejected",
+      "passed": true
+    },
+    {
+      "case": "raw split UTF8 JSON chunks preserve exact Thai notes through actual posting; notes never translated/executed",
+      "passed": true
+    },
+    {
+      "case": "actual receipt CAS committed with lost response; explicit refresh resolves without financial repost",
+      "passed": true
+    },
+    {
+      "case": "late removed upload cannot restore selected image",
+      "passed": true
+    }
+  ],
+  "confirms": 1,
+  "externalRequests": 0,
+  "limitations": "Local disposable actual posting/CAS plus explicitly simulated delayed upload. Native iPhone HEIC unsupported; no live storage."
+}

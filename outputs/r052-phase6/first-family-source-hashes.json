@@ -1,0 +1,14 @@
+{
+  "scope": "First-family isolated compatibility and six independent cases; moving Phase6 package, not final completion",
+  "files": {
+    "database/migrations/V85__pwa_management_operations.sql": "DA4228CC10E9162AF80B81C8A5079CCD0FE34E639A1003F5664C1118581484A2",
+    "services/contracts/management-command.mjs": "FB0628283C39D1EEF1FD9424F639A871B35181888DD32B2C1813D669D39550E1",
+    "services/business/management.mjs": "8B1FAF15AC7AE4FB2D0EA3D1C3EC9F45E433D125DF0E1E776A74D374C11F471D",
+    "services/payment-command/store.mjs": "D996B167B0FB224262DAC1668D2DF6D5FF5994DCC3DF656246D6B870AF65CDD6",
+    "services/payment-command/handler.mjs": "0B952DE63BE9B1223AB52037CF6A5A0018E05585CA4AB0F3CD25827EEBF81F4A",
+    "tests/integration/Run-Phase5.ps1": "9982E5E42B8F63A57265F7A6382BC36E4E2BADD7B828FC9D8A0E061360DE1996",
+    "scripts/rehearsal/payment-command.mjs": "FADB4716605D0CBA5145A956C615F7B61682F4DF4B40791314B26B669B31DC63",
+    "tests/integration/phase6-populated-fixture.mjs": "F3163A37A38F503C5F585B15A5A532F225092A70FEB3C254989CE5E5C5DAF4C3",
+    "tests/integration/phase6-management-independent.test.mjs": "621FF05282BC89D5511BD30F2E19723A6CAE4FD76E642C59014094C311D918AF"
+  }
+}

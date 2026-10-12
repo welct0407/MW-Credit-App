@@ -6,7 +6,7 @@ if($target.host -ne '34.158.38.171'){throw 'R009 lab is restricted to verified D
 $saved=@{};foreach($name in @('PGPASSWORD','PGSSLMODE','PGCONNECT_TIMEOUT')){$saved[$name]=[Environment]::GetEnvironmentVariable($name,'Process')}
 try {
  $env:PGPASSWORD=(Get-Content -LiteralPath $target.passwordFile -Raw).Trim();$env:PGSSLMODE='require';$env:PGCONNECT_TIMEOUT='10'
- $private='C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r009-20260919'
+ $private='C:/Users/ideaadmin/Documents/ChatGPT/AppSheet-Loan-Project/r009-20260919'
  $dump=Join-Path $private 'dev-before-fixtures.dump'
  if($Mode -eq 'backup'){
   New-Item -ItemType Directory -Force -Path $private | Out-Null

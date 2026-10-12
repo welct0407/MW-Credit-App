@@ -1,0 +1,8 @@
+{
+  "passed": true,
+  "fixture": "synthetic browser transport only, no database submission",
+  "posts": 1,
+  "statusReads": 2,
+  "missingStatusRetryDisabled": true,
+  "unavailableStatusRetryDisabled": true
+}

@@ -1,0 +1,28 @@
+{
+  "recordedAtUtc": "2026-10-11T19:57:42.9239690Z",
+  "project": "clever-oasis-508610-n7",
+  "prerequisitePlanSha256": "df578dabdb0480aadeebba4343bc59e281fb0c80d2847f532f16ef2c2bd88e4d",
+  "applyExitCode": 0,
+  "resourceCreates": 16,
+  "secretVersionPins": {
+    "mw-credit-app-prod-vapid": "projects/737787224638/secrets/mw-credit-app-prod-vapid/versions/1",
+    "mw-credit-app-prod-notification-policy": "projects/737787224638/secrets/mw-credit-app-prod-notification-policy/versions/1",
+    "mw-credit-app-prod-agent-receipt-policy": "projects/737787224638/secrets/mw-credit-app-prod-agent-receipt-policy/versions/1"
+  },
+  "secretPayloadHandling": "External private files delivered through nonlogging stdin; no payload/version Terraform resources",
+  "newRuntimeConnectChecks": [
+    {
+      "rolname": "mw-credit-app-jobs-prod@clever-oasis-508610-n7.iam",
+      "dev": false,
+      "prod": true
+    },
+    {
+      "rolname": "mw-credit-app-notify-prod@clever-oasis-508610-n7.iam",
+      "dev": false,
+      "prod": true
+    }
+  ],
+  "connectRecoverySha256": "95d9c32f7f14725eddd1e9e42dd61a5b6b4036fec0578d9d18d33e647927c9ce",
+  "runtimeApplied": false,
+  "schedulesActivated": false
+}

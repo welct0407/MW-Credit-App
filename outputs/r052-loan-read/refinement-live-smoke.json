@@ -1,0 +1,58 @@
+{
+  "checkedAt": "2026-10-07T13:11:59.430Z",
+  "revision": "mw-credit-app-read-dev-00005-wn4",
+  "applicationSource": "9ffc95704bcc5d15d7ee85bc72dd2cd7c1a43fc4",
+  "testCorrection": "6fbcb5c8ab3ea49ae1159512b6c18598cf77e373",
+  "scope": "Unsigned only; no Google login/business records",
+  "results": [
+    {
+      "name": "health",
+      "status": 200,
+      "cacheControl": "no-store",
+      "allowOrigin": null,
+      "body": "{\"status\":\"ok\",\"environment\":\"dev\",\"service\":\"borrower-read\"}"
+    },
+    {
+      "name": "unsigned borrowers",
+      "status": 401,
+      "cacheControl": "no-store",
+      "allowOrigin": null,
+      "body": "{\"ok\":false,\"code\":\"sign_in_required\"}"
+    },
+    {
+      "name": "unsigned loans",
+      "status": 401,
+      "cacheControl": "no-store",
+      "allowOrigin": null,
+      "body": "{\"ok\":false,\"code\":\"sign_in_required\"}"
+    },
+    {
+      "name": "unsigned detail",
+      "status": 401,
+      "cacheControl": "no-store",
+      "allowOrigin": null,
+      "body": "{\"ok\":false,\"code\":\"sign_in_required\"}"
+    },
+    {
+      "name": "invalid token",
+      "status": 401,
+      "cacheControl": "no-store",
+      "allowOrigin": null,
+      "body": "{\"ok\":false,\"code\":\"session_invalid\"}"
+    },
+    {
+      "name": "method",
+      "status": 405,
+      "cacheControl": "no-store",
+      "allowOrigin": null,
+      "body": "{\"ok\":false,\"code\":\"method_not_allowed\"}"
+    },
+    {
+      "name": "preflight",
+      "status": 204,
+      "cacheControl": "no-store",
+      "allowOrigin": "https://mw-credit-app-dev-737787224638.web.app",
+      "body": ""
+    }
+  ]
+}

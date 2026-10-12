@@ -1,0 +1,21 @@
+{
+  "applicationBuildSource": "9ffc95704bcc5d15d7ee85bc72dd2cd7c1a43fc4",
+  "validationCommit": "6fbcb5c8ab3ea49ae1159512b6c18598cf77e373",
+  "validationDiff": "tests/e2e/grouped-read.spec.ts and refinement-test-report.md only; no application change",
+  "ci": "https://github.com/welct0407/MW-Credit-App/actions/runs/37626536327",
+  "initialFailedCi": "https://github.com/welct0407/MW-Credit-App/actions/runs/37625943526",
+  "cloudBuild": "c9ef1ee8-0277-4471-b19f-7a972167b821",
+  "image": "sha256:aab122ed6262bf4f857598e8c35989899399fabcc7ee5b4dd10f00964a632c0d",
+  "readyRevision": "mw-credit-app-read-dev-00005-wn4",
+  "ownerIdentityMode": "uid-pinned",
+  "ownerPinRetained": true,
+  "hostingVersion": "3f33c848f8542024",
+  "hostingRelease": "1791378835319000",
+  "rollbackHostingVersion": "0e7710ff18851030",
+  "rollbackImage": "sha256:b0a44c370d7afa7c17675a0a0f12fa290a9d3bc2714b32e731e237444f554c30",
+  "devReadableColumns": 26,
+  "prodReadableColumns": 0,
+  "businessWrites": 0,
+  "ownerAcceptance": "pending",
+  "checkpoint": "2B refinement, no next slice"
+}

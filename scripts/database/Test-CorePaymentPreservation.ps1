@@ -26,7 +26,7 @@ COMMIT;
 '@
  $result=$sql | & (Join-Path (Get-PgBin) 'psql.exe') -X -q -t -A -v ON_ERROR_STOP=1 -h $target.host -U $target.user -d $target.database
  if($LASTEXITCODE){throw 'Preservation query failed'}
- $baseline=Get-Content 'C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/core-payment-20260915/database-before.jsonl' | ForEach-Object {$_|ConvertFrom-Json} | Where-Object {$_.PSObject.Properties.Name -contains 'table'}
+ $baseline=Get-Content 'C:/Users/ideaadmin/Documents/ChatGPT/AppSheet-Loan-Project/core-payment-20260915/database-before.jsonl' | ForEach-Object {$_|ConvertFrom-Json} | Where-Object {$_.PSObject.Properties.Name -contains 'table'}
  $after=$result | ForEach-Object {$_|ConvertFrom-Json}
  $checks=foreach($b in $baseline){$a=$after|Where-Object table -eq $b.table;[pscustomobject]@{table=$b.table;rows=$a.rows;unchanged=($a.rows -eq $b.rows -and $a.fingerprint -eq $b.fingerprint)}}
  $checks | ConvertTo-Json | Set-Content 'outputs/core-payment-20260915/original-record-preservation.json' -Encoding utf8

@@ -1,0 +1,303 @@
+{
+  "checkpoint": "R052 4F",
+  "date": "2026-10-08",
+  "reviewer": "Agent C — GPT-6.1 Sol Medium",
+  "appBaseline": "8b9dd63aa99f72c2b120e43201579756611d9d3c",
+  "plan": "PM outputs/r052-pwa/checkpoint-4f-design-and-test-plan.md",
+  "command": [
+    ". ./scripts/Enter-Dev.ps1",
+    "./tests/integration/Run-DevAppCapability.ps1",
+    "node --test tests/unit/application-role-recovery-independent.test.mjs"
+  ],
+  "final": {
+    "independentNamedCases": 24,
+    "codingNamedCases": 2,
+    "totalUniqueNamedCases": 26,
+    "passed": 26,
+    "failed": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "testDurationMs": 13962.2981,
+    "disposableFullMigrationVersion": 79,
+    "clusterStopped": true,
+    "integrationNamedCases": 23,
+    "focusedRecoveryUnitCases": 3,
+    "integrationPass": 23,
+    "focusedRecoveryUnitPass": 3,
+    "correctedToolingSha256": "895460c7cf0e9689af487cd47a0b10eb3a79642be4d9ee871018e784ceb79b40",
+    "reuse": "The 23 passing actual-role/integration cases tested the pre-validation tooling hash recorded separately. After A/D's validation-only correction, three focused pure tests passed on corrected tooling. Root approved reusing the valid-input integration/apply/hook evidence; no new full database run."
+  },
+  "countRule": "Named Node test cases only. Matrix assertions and repeated runs are not added to counts. Existing 4E and V78 historical suites were not rerun or relabelled as new 4F tests.",
+  "hashes": {
+    "database/migrations/V78__pwa_payment_command_journal.sql": "8ea5009d29bf8c78fadcdaa478680defd3f161ef2a7e22e7999c2a2aa7170c30",
+    "database/migrations/V79__application_role_journal_boundary.sql": "e81297140973409917286eef35745e49abc2bbb81bfd056c37881757880477fd",
+    "database/application-role-creators.json": "f3c4b5c4b74345f8659fc1888e23655f76858cd3d0022f24c33f9c4406381752",
+    "scripts/database/app-role-policy.mjs": "63ce312766ec7d2fca4cc4964942ed4c84dbfb80b7b3bb730791bf5a714ea504",
+    "scripts/database/application-role-tooling.mjs": "895460c7cf0e9689af487cd47a0b10eb3a79642be4d9ee871018e784ceb79b40",
+    "scripts/database/application-role-cli.mjs": "bd9163846002fbc6fe546721724bfb01e87ef8ae4838c8cb12ac6d7e9f98aa83",
+    "scripts/database/Invoke-Flyway.ps1": "ef301aabb1e222d4a6799e4ddc26a85102607840e704b47b39852e61015978ba",
+    "scripts/database/Test-AppRolePrerequisites.sql": "4e1de8b5b0dfbc8beded6c65999ea6a785fffa1df0c9b64e9123b813cce48d27",
+    "scripts/rehearsal/decode-receipt-image.mjs": "93cee85b6cd5dd93366ec110d237659f3674833e02f125b86839c85266e338cf",
+    "services/payment-command/application-target.mjs": "3cf20f79e8432292a552e8f94dc8e8233f997678d84861569cac5ec8bf8bb1c7",
+    "services/payment-command/store.mjs": "20c90539e78d2d86b3ece2935ded4ce5092f30d7be53aef34985924a4a978852",
+    "services/receipts/dev-receipt-adapter.mjs": "67fdf69f9f5814b279b095dde59c8cf9ffcb725e3683f4cf7173d1561366b810",
+    "tests/integration/Run-DevAppCapability.ps1": "6c3611f1daaf99f5393a863a8129bb42bbbc0ddb77092a2ead19c0f84bc371c7",
+    "tests/integration/dev-app-capability.test.mjs": "7fab636a94e6251c5a773a3cbf65e2eb0fc26e37eddbc8f1836f19ba80d7e170",
+    "tests/integration/dev-app-capability-independent.test.mjs": "8e336a4c6542c7e0cf27e292bdf26e56b14d13329f88a6d7192c60547c8c9deb",
+    "tests/unit/application-role-recovery-independent.test.mjs": "67986b0b06aca99d54c1051d4b27e9198e9f4959ad44d7350562830be7c6b566"
+  },
+  "runs": [
+    {
+      "stage": "interim draft",
+      "namedCases": 18,
+      "passed": 15,
+      "failed": 3,
+      "clusterStopped": true,
+      "failingCases": [
+        "F-C06",
+        "F-C15",
+        "F-C16"
+      ],
+      "note": "Actual runtime/business/trigger positives established; failures were retained rather than weakened."
+    },
+    {
+      "stage": "frozen focused package",
+      "namedCases": 23,
+      "passed": 23,
+      "failed": 0,
+      "clusterStopped": true,
+      "note": "All three interim assertions passed after implementation corrections; added inherited/default ACL, creator membership, snapshot/recovery/membership and migration-hook cases."
+    },
+    {
+      "stage": "corrected strict snapshot validation",
+      "namedCases": 3,
+      "passed": 3,
+      "failed": 0,
+      "noDatabaseOrSqlExecutor": true,
+      "testDurationMs": 132.0005,
+      "toolingSha256": "895460c7cf0e9689af487cd47a0b10eb3a79642be4d9ee871018e784ceb79b40",
+      "note": "All before/after/current snapshot variants rejected malformed kinds, privilege injection, nonboolean grantable and foreign-role/nonboolean membership shapes before SQL planning; valid delta preservation passed. Existing 23 valid-input integration cases reused explicitly."
+    }
+  ],
+  "findings": [
+    {
+      "id": "F1",
+      "actualBefore": "Protected relation inherited PUBLICSELECT was effective, while policy reported no violation.",
+      "fix": "B audits protected effective table and column rights; final F-C06/F-C17 pass. No automatic PUBLIC revoke."
+    },
+    {
+      "id": "F2",
+      "actualBefore": "Unapproved SECURITY DEFINER overload received execution because its basename matched the approved routine.",
+      "fix": "B requires exact signature/schema/owner; final F-C15 pass."
+    },
+    {
+      "id": "F3",
+      "actualBefore": "Oversized input called decoder once, expected zero; mutation half of interim test did not execute.",
+      "fix": "B bounds/checks Buffer before decode and snapshots bytes before async work; final F-C16 fully passed."
+    },
+    {
+      "id": "F4",
+      "actualBefore": "Source lacked registered migration-creator membership checks at target attestation/connection.",
+      "fix": "B freezes registeredCreators in opaque proof and checks at issuance/every connection; final F-C18 pass."
+    },
+    {
+      "id": "F5",
+      "actualBefore": "Unsafe registered creator PUBLIC table/sequence default privileges were not reported before creation of future protected objects.",
+      "fix": "B reports registered global/schema defaults to PUBLIC/capability-inherited roles, retaining ordinary implicit PUBLIC function baseline; final registered-creator PUBLIC table/default and protected-column tests pass."
+    },
+    {
+      "id": "F6",
+      "actualBefore": "Maintained DEV migrate hook and before/after recoverable ACL tooling were absent in early draft.",
+      "fix": "D adds guarded CLI, source hook and injected-client tooling; final F-C19/F-C20/F-C21 pass. No live CLI execution claimed."
+    },
+    {
+      "id": "F7",
+      "actualBefore": "A source review found malformed recovery JSON privilege/member fields could reach SQL statement construction. No malicious SQL was executed.",
+      "fix": "D added kind-specific closed privilege allowlists, strict boolean and capability membership role validation for all snapshots. Three independent pure tests passed on corrected tooling; valid delta semantics preserved."
+    }
+  ],
+  "independentCases": [
+    {
+      "id": "F-C01",
+      "expected": "Fresh actual LOGIN; no elevated flags or owner/migration escalation.",
+      "actual": "Actual session/current identity matched; administrative/owner/creator escalation and permanent schema creation denied.",
+      "result": "pass"
+    },
+    {
+      "id": "F-C02",
+      "expected": "Ordinary operational/master data and OLAP access; governing business triggers under runtime.",
+      "actual": "Runtime created fixture borrower/loan/charge/account/contribution data, edited borrower, read two existing OLAP views and posted/deleted synthetic direct payment; posted amount330; boolean-only reallocation helper false.",
+      "result": "pass"
+    },
+    {
+      "id": "F-C03",
+      "expected": "Second registered creator future table/view/sequence/invoker access, without policy list changes.",
+      "actual": "Unregistered ownership reported; after reconciliation fresh runtime performed CRUD, view read, nextval and invoker call; setval/TRUNCATE denied. Fixture objects dropped.",
+      "result": "pass"
+    },
+    {
+      "id": "F-C04",
+      "expected": "Protected journal/Flyway/audit/cutover/admin boundaries and fixed journal definer owner.",
+      "actual": "Journal direct insert/update/delete/TRUNCATE denied; Flyway read/update, cutover writes, schema/trigger alteration denied. No grant option/audit schema usage. Two exact journal definers owned by dedicated NOLOGIN role. Unrelated true LOGIN with isolated EXECUTE grant still denied by session guard.",
+      "result": "pass"
+    },
+    {
+      "id": "F-C05",
+      "expected": "Governance-tagged/name-reserved future objects and unknown definer excluded.",
+      "actual": "Protected tables and revoked-PUBLIC definer inaccessible; exposing unknown definer through PUBLIC was readiness violation.",
+      "result": "pass"
+    },
+    {
+      "id": "F-C06",
+      "expected": "Incompatible capability defaults and protected effective PUBLIC relation access reported.",
+      "actual": "Capability table default grants flagged; actual protected PUBLICSELECT remained inherited but policy reported violation instead of silently revoking PUBLIC.",
+      "result": "pass"
+    },
+    {
+      "id": "F-C07",
+      "expected": "Actual runtime HTTP/verified-principal seam; concurrent journal/replay/source-change/current actor behavior.",
+      "actual": "Two identical concurrent HTTP posts produced one original Posted result; changed Notes409; status agreed; runtime source correction/deletion retained original; missing current actor mapping403; fresh verifications requested revocation.",
+      "result": "pass"
+    },
+    {
+      "id": "F-C08",
+      "expected": "Real commit with injected lost acknowledgement returns Unknown and discards client.",
+      "actual": "HTTP503 command_outcome_unknown; release(true); fresh authenticated status found one committed journal/payment.",
+      "result": "pass"
+    },
+    {
+      "id": "F-C09",
+      "expected": "Opaque target attestation and per-connection target/user/flags/membership checks.",
+      "actual": "Forged proof rejected; seven metadata-result seams returned command_unavailable before financial SQL; zero effects.",
+      "result": "pass"
+    },
+    {
+      "id": "F-C10",
+      "expected": "Isolated PROD stand-in without business grants; API wrong-target rejection.",
+      "actual": "Existing PUBLICCONNECT allowed fresh connection, reported truthfully. Table reads/writes denied; API rejected PROD tuple and provisioning plan rejected PROD database. Stand-in dropped.",
+      "result": "pass"
+    },
+    {
+      "id": "F-C11",
+      "expected": "Canonical generated paths, immutable create0/exact reads and binding.",
+      "actual": "PNG uploaded/read through fake transport with actual Pillow decode; exact request/actor binding only. Collision, foreign scope, invalid/traversal/uppercase path, invalid bytes, oversize and HEIC denied. Transport only create/read; every create generation0.",
+      "result": "pass"
+    },
+    {
+      "id": "F-C12",
+      "expected": "Receipt metadata/bytes/generation integrity and unknown-upload same-key reconciliation.",
+      "actual": "Seven metadata mismatches, bytes tampering and generation mismatch denied; simulated post-create acknowledgement loss reconciled through exact-key read with retained hash/generation.",
+      "result": "pass"
+    },
+    {
+      "id": "F-C13",
+      "expected": "Actual runtime command-resolver adapter integration and retained replay.",
+      "actual": "Adapter descriptor reference stored in real synthetic payment; object disappearance did not call current resolver on known replay or repost; changed receiptId409; one journal/payment.",
+      "result": "pass"
+    },
+    {
+      "id": "F-C14",
+      "expected": "Maintained decoder limits and fail-closed dependencies/configuration.",
+      "actual": "Actual Pillow rejected valid compressed PNG above20MP and wrong MIME; missing decoder and foreign bucket config failed closed.",
+      "result": "pass"
+    },
+    {
+      "id": "F-C15",
+      "expected": "SECURITY DEFINER approval bound to exact signature and owner.",
+      "actual": "Revoked-PUBLIC integer overload sharing approved submit basename remained unexecutable after reconcile.",
+      "result": "pass"
+    },
+    {
+      "id": "F-C16",
+      "expected": "Bounds before decoder and input snapshot before async upload.",
+      "actual": "Oversize produced zero decoder/transport calls; caller buffer mutation while decoder awaited did not alter uploaded bytes/hash; actual Pillow pipeline verified original bytes.",
+      "result": "pass"
+    },
+    {
+      "id": "F-C17",
+      "expected": "Registered creator unsafe PUBLIC table defaults and protected column rights reported.",
+      "actual": "PUBLIC table default flagged before new governance creation; protected column-only PUBLICSELECT detected although table-level SELECT false. Fixture default restored.",
+      "result": "pass"
+    },
+    {
+      "id": "F-C18",
+      "expected": "Migration creator membership blocked at issuance and rechecked on existing connections.",
+      "actual": "Actual role membership prevented new attestation and existing-proof API use; membership revoked in cleanup.",
+      "result": "pass"
+    },
+    {
+      "id": "F-C19",
+      "expected": "ACL snapshot/idempotent apply/recovery retains original/later unrelated rights.",
+      "actual": "Second apply retained identical normalized rights; recovery removed introduced CRUD only, preserved originalSELECT, laterREFERENCES and third-role SELECT; plan default read-only.",
+      "result": "pass"
+    },
+    {
+      "id": "F-C20",
+      "expected": "Safe runtime membership plan/apply and scoped recovery.",
+      "actual": "Read-only plan changed no membership; apply granted inherit=true/set=false/admin=false; recovery preserved later unrelated membership; creator-inheriting identity rejected before grant.",
+      "result": "pass"
+    },
+    {
+      "id": "F-C21",
+      "expected": "Maintained DEV post-migrate helper read-only default/automatic local application and environment guards.",
+      "actual": "Production/info/validate skipped without queries; absent package skipped. Local helper plan left future table inaccessible, apply enabled CRUD. Maintained Invoke-Flyway source calls pinned CLI only after successful DEV migrate, including no-op migrations.",
+      "result": "pass"
+    }
+  ],
+  "runtimeEvidence": {
+    "trueFreshLogin": true,
+    "sessionUserEqualsCurrentUser": true,
+    "elevatedRoleFlags": false,
+    "journalOwnerMembership": false,
+    "directJournalWriteDenied": true,
+    "flywayAccessDenied": true,
+    "permanentSchemaDdlDenied": true,
+    "registeredCreatorEscalationDenied": true,
+    "ordinaryDomainAccess": "CRUD on governed synthetic master/operational fixtures; representative current OLAP reads; future registered-creator table/view/sequence/invoker rights.",
+    "prodConnect": "Inherited PUBLIC CONNECT allowed only in isolated stand-in; business access denied and API tuple rejected. No live PROD connection attempted.",
+    "inheritedLimit": "Legacy initialize_cash_accounts retains PUBLIC execution as an explicit policy exception; dedicated protected cutover write privileges stay denied. It was not invoked in this suite. No blanket assertion that explicit capability REVOKE removes PUBLIC rights or inherited TEMP/CONNECT."
+  },
+  "migrationHookEvidence": {
+    "maintainedPath": "scripts/database/Invoke-Flyway.ps1",
+    "sourceReview": "Successful development+migrate calls application-role-cli.mjs --action post-migrate --if-present --apply; no info/validate/PROD invocation. CLI pins actual DEV configuration and writes private before/after recovery data.",
+    "executed": "Injected real owned local V79 client for hook plan/apply plus controlled skip spies; actual future object gained rights automatically through helper.",
+    "notExecuted": "No live Invoke-Flyway migrate or live CLI/grant action. Maintained entrypoint wiring was inspected, not executed against live DEV."
+  },
+  "receipts": {
+    "independentTransport": "Synthetic create/read transport; actual maintained Pillow PNG/JPEG validation; no storage SDK credentials.",
+    "actualCompatibilityEvidence": "outputs/r052-payment-command-api/receipt-compatibility-4f.json",
+    "independentReview": "D's saved actual known-synthetic generated PNG path rendered320x160 in current DEV AppSheet; original manual reference restored and native image rendered600x800; exact-generation read/hash, protected/dependent state equality and generation-specific cleanup404 recorded.",
+    "timestamp": "Original reference restoration intentionally advances manual upload timestamp on the identified synthetic fixture under root-approved V52 behavior. No timestamp bypass or real-record exception.",
+    "limits": "D evidence proves generated path compatibility through owner CLI/current AppSheet only. It does not prove deployed command-service IAM/PWA authorization or arbitrary legacy path conversion."
+  },
+  "scopeAndLimits": [
+    "C performed no live database/cloud/GCS writes, role grants, schema application, Terraform apply, command deployment, PROD operation or notification.",
+    "V78 SHA256 remained unchanged. V79 business-body equivalence to V78 was reviewed by A; C reran changed runtime execution paths rather than the historical full engine suite.",
+    "Firebase crypto/revocation service verification is injected synthetic dependency; true non-superuser PostgreSQL LOGIN and business transaction effects are real local disposable execution.",
+    "Metadata guard and lost-acknowledgement/transport seams are labelled synthetic faults, not physical-network experiments.",
+    "Live DEV database remains outside C's testing. No actual live broad-role provisioning or command endpoint activation is established.",
+    "Default-ACL tests cover explicit APP and registered second-creator PUBLIC table defaults; protected column/default classification and representative future classes. Report does not claim every possible future schema/creator/privileged definer is permitted.",
+    "D owns maintained database CI, infrastructure validation, publication and private live recovery evidence. This report establishes tested candidate completion, not all-channel financial parity or production readiness."
+  ],
+  "integrationToolingSha256": "c4072f8bfbaa052d22d17b967f93156456cdd19917b97ed9bf9c02e72fe8dc10",
+  "focusedRecoveryCases": [
+    {
+      "id": "R-C01",
+      "expected": "Reject malformed right kind/privilege/grantable in before, after and current, including before-only privilege injection.",
+      "actual": "All negative variants threw before a plan was returned; no SQL executor exists in these pure tests.",
+      "result": "pass"
+    },
+    {
+      "id": "R-C02",
+      "expected": "Reject foreign membership role, invalid member and nonboolean flags in every snapshot.",
+      "actual": "All before/after/current variants threw before statement planning.",
+      "result": "pass"
+    },
+    {
+      "id": "R-C03",
+      "expected": "Valid recovery removes introduced deltas only, preserving original and later unrelated rights/memberships.",
+      "actual": "Exact three introduced table privilege revokes and one introduced membership revoke; no originalSELECT/laterREFERENCES/unrelated membership statement.",
+      "result": "pass"
+    }
+  ]
+}

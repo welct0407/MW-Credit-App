@@ -1,16 +1,16 @@
-param([Parameter(Mandatory)][string]$PgBin,[Parameter(Mandatory)][int]$Port,[Parameter(Mandatory)][string]$OutputDirectory)
+param([Parameter(Mandatory)][string]$PgBin,[Parameter(Mandatory)][int]$Port,[Parameter(Mandatory)][string]$OutputDirectory,[ValidateSet('postgres','loan_manager_dev','payment_rehearsal')][string]$Database='postgres')
 $ErrorActionPreference='Stop'
 $psql=Join-Path $PgBin 'psql.exe'
-$actual=& $psql -XAt -h 127.0.0.1 -p $Port -U postgres -d postgres -c 'SHOW data_directory'
+$actual=& $psql -XAt -h 127.0.0.1 -p $Port -U postgres -d $Database -c 'SHOW data_directory'
 if($LASTEXITCODE -or [IO.Path]::GetFullPath($actual.Trim()) -ne [IO.Path]::GetFullPath((Join-Path $OutputDirectory 'data'))){throw 'Disposable server identity mismatch'}
 function Run-Sql([string]$Query) {
- $result=$Query | & $psql -XqAt -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d postgres 2>&1
+ $result=$Query | & $psql -XqAt -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d $Database 2>&1
  if($LASTEXITCODE){throw ($result -join "`n")}; return ($result -join "`n")
 }
 function Start-Sql([string]$Name,[string]$Query) {
  $file=Join-Path $OutputDirectory ($Name+'.sql');$out=Join-Path $OutputDirectory ($Name+'.out');$err=Join-Path $OutputDirectory ($Name+'.err')
  [IO.File]::WriteAllText($file,$Query,[Text.UTF8Encoding]::new($false))
- $process=Start-Process $psql -ArgumentList @('-X','-v','ON_ERROR_STOP=1','-h','127.0.0.1','-p',"$Port",'-U','postgres','-d','postgres','-f',('"'+$file+'"')) -PassThru -RedirectStandardOutput $out -RedirectStandardError $err
+ $process=Start-Process $psql -ArgumentList @('-X','-v','ON_ERROR_STOP=1','-h','127.0.0.1','-p',"$Port",'-U','postgres','-d',$Database,'-f',('"'+$file+'"')) -PassThru -RedirectStandardOutput $out -RedirectStandardError $err
  return @{Process=$process;Out=$out;Err=$err}
 }
 $fixture=[IO.File]::ReadAllText("$PSScriptRoot/Test-ExpenseReimbursement.sql").Split('-- CONCURRENCY FIXTURE END')[0]
@@ -37,10 +37,10 @@ foreach($kind in @('expense_commit','reimbursement_commit','expense_rollback','r
    if($one.Process.HasExited -or [DateTime]::UtcNow -gt $deadline){throw 'Reimbursement first-writer barrier failed'}
    Start-Sleep -Milliseconds 30
   }
-  $competing="SET statement_timeout='8s'; SET lock_timeout='1s'; $second" | & $psql -Xq -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d postgres 2>&1
+  $competing="SET statement_timeout='8s'; SET lock_timeout='1s'; $second" | & $psql -Xq -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d $Database 2>&1
   if($LASTEXITCODE -eq 0 -or ($competing -join "`n") -notmatch 'Partner allocation is busy'){throw "Expected existing shared allocation lock for $kind"}
   if(-not $one.Process.WaitForExit(10000) -or $one.Process.ExitCode){throw 'First writer failed'}
-  $retried=$second | & $psql -Xq -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d postgres 2>&1
+  $retried=$second | & $psql -Xq -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d $Database 2>&1
   $reject=$kind -in @('expense_commit','reimbursement_commit')
   if($reject) {
    $expected=if($expenseFirst){'must have been paid by Tommy'}else{'Correct linked reimbursement'}
@@ -79,10 +79,10 @@ foreach($kind in @('source','reimbursement')) {
 }
 # Invoker permissions remain intact: no privilege is granted by the migration.
 Run-Sql 'DELETE FROM "Cash Ledger" WHERE "Row ID"=''REIM66-R''; UPDATE "Business Expenses" SET "Ref Paid By Cash Account"=''REIM66-T1'',"Ref Paid By Cash Holder"=''ch:tommy'' WHERE "Row ID"=''REIM66-E''; CREATE ROLE reim66_writer; GRANT USAGE ON SCHEMA public TO reim66_writer; GRANT SELECT ON ALL TABLES IN SCHEMA public TO reim66_writer; GRANT INSERT ON "Cash Ledger" TO reim66_writer;' | Out-Null
-$denied="SET SESSION AUTHORIZATION reim66_writer; $reimburse" | & $psql -Xq -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d postgres 2>&1
+$denied="SET SESSION AUTHORIZATION reim66_writer; $reimburse" | & $psql -Xq -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d $Database 2>&1
 if($LASTEXITCODE -eq 0 -or ($denied -join "`n") -notmatch 'permission denied for table Cash Accounts'){throw 'Existing account-lock privilege prerequisite changed'}
 Run-Sql 'GRANT UPDATE ("Row ID") ON "Cash Accounts","Cash Holders" TO reim66_writer;' | Out-Null
-$denied="SET SESSION AUTHORIZATION reim66_writer; $reimburse" | & $psql -Xq -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d postgres 2>&1
+$denied="SET SESSION AUTHORIZATION reim66_writer; $reimburse" | & $psql -Xq -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d $Database 2>&1
 if($LASTEXITCODE -eq 0 -or ($denied -join "`n") -notmatch 'permission denied for table Business Expenses'){throw 'Missing underlying expense UPDATE must remain denied'}
 Run-Sql 'REVOKE UPDATE ("Row ID") ON "Cash Accounts","Cash Holders" FROM reim66_writer; REVOKE ALL ON ALL TABLES IN SCHEMA public FROM reim66_writer; REVOKE USAGE ON SCHEMA public FROM reim66_writer; DROP ROLE reim66_writer; DELETE FROM "Business Expenses" WHERE "Row ID" IN (''REIM66-E'',''REIM66-E2'');' | Out-Null
 [pscustomobject]@{concurrentOrderings=2;bothRollbackOrderings=$true;sameHolderAllowed=$true;sharedAllocationContentionObserved=$true;repeatableReadOrderings=2;existingAccountLockPrivilegeDenied=$true;missingExpenseUpdateDenied=$true;invariantPreserved=$true}

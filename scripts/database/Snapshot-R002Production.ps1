@@ -3,7 +3,7 @@ param()
 . "$PSScriptRoot/Common.ps1"
 $target = Get-DbEnvironment production
 if ($target.host -ne '34.21.174.215') { throw 'Reviewed production host required' }
-$private = 'C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r002-production-20260916'
+$private = 'C:/Users/ideaadmin/Documents/ChatGPT/AppSheet-Loan-Project/r002-production-20260916'
 New-Item -ItemType Directory -Force -Path $private | Out-Null
 $dump = Join-Path $private 'production-before.dump'
 if (Test-Path -LiteralPath $dump) { throw 'Do not overwrite the R002 production rollback snapshot' }
@@ -13,7 +13,7 @@ if (Test-Path -LiteralPath $dump) { throw 'Do not overwrite the R002 production 
 $schema = & "$PSScriptRoot/Export-Schema.ps1" -Environment production
 $normalized = Join-Path $private 'schema-before.normalized.sql'
 & "$PSScriptRoot/Normalize-Schema.ps1" -InputFile $schema -OutputFile $normalized
-$expected = 'C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r002-20260916/schema-before.normalized.sql'
+$expected = 'C:/Users/ideaadmin/Documents/ChatGPT/AppSheet-Loan-Project/r002-20260916/schema-before.normalized.sql'
 if (-not (Test-Path -LiteralPath $expected)) { throw 'Reviewed R002 pre-V17 V16 schema is unavailable' }
 if ((Get-FileHash $normalized).Hash -ne (Get-FileHash $expected).Hash) {
     throw 'Production schema drifted from the reviewed R002 V16 starting schema'

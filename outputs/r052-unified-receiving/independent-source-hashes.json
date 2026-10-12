@@ -1,0 +1,100 @@
+{
+  "sql": {
+    "stopped": true,
+    "diagnostics": "mw-payment-rehearsal-eb3e4b8b1ab340a8a58ea5d0508e0ccf",
+    "independentPassed": 19,
+    "combinedPassed": 20,
+    "bSmokePassed": 1
+  },
+  "sources": [
+    {
+      "sha256": "464237eb483c6bb966f8cf80b5e71710caed504b4edf4a97fce3f09ed01451ba",
+      "path": "services/contracts/payment-command.mjs"
+    },
+    {
+      "sha256": "ea2b9e0393141cb47cacc2569394bc7778ffe77e49f14ecd001c7e4155b3d9de",
+      "path": "services/payment-command/store.mjs"
+    },
+    {
+      "sha256": "5cca90aaa67441dfced390648f8272ea1766c2aebfbc2fdaf702682c1beccaa6",
+      "path": "services/payment-command/draft.mjs"
+    },
+    {
+      "sha256": "f12d9a94e33e3619bc87c10b3d3996d770ac432ee7749b9cad595cbcae26d5c8",
+      "path": "services/payment-command/result.mjs"
+    },
+    {
+      "sha256": "da43aade63e0588a4a6399cbed24973b00c9ac380befe98a8a836f66e828ef33",
+      "path": "services/payment-command/handler.mjs"
+    },
+    {
+      "sha256": "82c7475634aa4df6e7286506f0854e42b39949b1e0a99dffbfe0f4cc27d551cf",
+      "path": "database/migrations/V82__explicit_payment_allocation_plan_v6.sql"
+    },
+    {
+      "sha256": "23c634e1f2a2c4f751a4a63e2f16e139e1643c9779d631a0ec175e419bdafdfe",
+      "path": "apps/pwa/src/SelectedCharges.tsx"
+    },
+    {
+      "sha256": "58f490daaeab9dcef89da82750c8e473eec902975ae3b70d9ca088bd32a251eb",
+      "path": "apps/pwa/src/owner-offline.ts"
+    },
+    {
+      "sha256": "2182d6b4a355ed559040d568ed4275b7952d2a06268d6772fb27ecc31afb9eb1",
+      "path": "apps/pwa/src/live-style.css"
+    },
+    {
+      "sha256": "f87ca189b7bf48e3e7ede1932cb0a199dc87062a95333cc453cc9f78578285ec",
+      "path": "apps/pwa/src/style.css"
+    },
+    {
+      "sha256": "60b455a338a7c005e7c46ccad6b65b81b32e4eeb6fd5da95a5925f830d3cbaad",
+      "path": "tests/integration/Run-UnifiedReceiving.ps1"
+    },
+    {
+      "sha256": "9f21f29a0cadb2555b05af2b8171830fd1a4ab5a9e1e41c730f449570501db7d",
+      "path": "tests/integration/unified-receiving-independent.test.mjs"
+    },
+    {
+      "sha256": "efc6bcefa6c1ff258dd4b8603ecab68ccd559619a28d0b6675db4aabdc2ee35d",
+      "path": "tests/integration/unified-receiving.test.mjs"
+    },
+    {
+      "sha256": "1781634ea3ccc583bbe2aa79b9578682e8ce27019bb59c05a7dac8f412a28b56",
+      "path": "tests/e2e/unified-receiving-independent.spec.ts"
+    },
+    {
+      "sha256": "1d474c26fd01f0da76d934385e3e64ee63c87d3d918c858eb2eb9129d15353ed",
+      "path": "tests/e2e/receiving-ux-independent.spec.ts"
+    },
+    {
+      "sha256": "4687a96495b4da223994e00cc86fcced29dc780cb17c60a3d80c8a089d5b504f",
+      "path": "tests/e2e/payment-phase4-independent.spec.ts"
+    },
+    {
+      "sha256": "95ba06dedf64e938b0ff7a454bed489971ed1aed6773b75b072f469f18ecaf7b",
+      "path": "tests/e2e/error-recovery.spec.ts"
+    }
+  ],
+  "scope": "C independent full82 synthetic SQL and affected desktop/mobile browser verification; no live mutation",
+  "baseline": "e2549d18dcfa1d79244b9f1280dc338ca8c8e1a9",
+  "ui": {
+    "affectedRunPassed": 59,
+    "correctedFocusedTotal": 2,
+    "correctedFocusedPassed": 2,
+    "noSkipped": true,
+    "affectedRunTotal": 60,
+    "testFixtureDestinationFailure": 1
+  },
+  "recordedHead": "373aec1c347e109939f964eecfe3fa610dab8a78",
+  "portabilityCorrection": {
+    "passed": 8,
+    "sqlReused": true,
+    "strictWidth": "body/document <=320 unchanged",
+    "total": 8,
+    "errorRecoverySha256": "95ba06dedf64e938b0ff7a454bed489971ed1aed6773b75b072f469f18ecaf7b",
+    "liveStyleSha256": "2182d6b4a355ed559040d568ed4275b7952d2a06268d6772fb27ecc31afb9eb1",
+    "linuxCI": "pending corrected full Development",
+    "platform": "Windows local Chromium desktop/mobile"
+  }
+}

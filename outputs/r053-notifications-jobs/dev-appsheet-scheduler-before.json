@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "release": "R053",
+  "observedAt": "2026-10-11T16:36:16.9073159Z",
+  "method": "Current AppSheet editor in verified work-account Chrome; read-only",
+  "mutation": false,
+  "apps": [
+    {
+      "diagnostics": "No issues found",
+      "forEachRow": true,
+      "schedule": "Daily 00:05",
+      "version": "1.000207",
+      "canonicalGuardVerified": true,
+      "enabledEvidence": "Bot actions menu offers Disable",
+      "deployment": "Deployed",
+      "process": "Canonical app execution guard; Generate Today's Charge",
+      "bot": "Generate Daily Charges",
+      "enabled": true,
+      "internalName": "MW-OLTP-DEV-20260919-578763613",
+      "event": "Daily 00:05",
+      "table": "Loans",
+      "timezone": "SE Asia Standard Time",
+      "id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
+      "saveDisabled": true,
+      "kind": "OLTP"
+    },
+    {
+      "kind": "OLAP",
+      "timezone": "SE Asia Standard Time",
+      "version": "1.000056",
+      "internalName": "MW-OLAP-DEV-20260919-578763613",
+      "deployment": "Deployed",
+      "enabled": true,
+      "enabledEvidence": "Bot actions menu offers Disable",
+      "filter": "Canonical DEV/PROD allowlist and first sorted Statistics Row ID",
+      "schedule": "Hourly minute 0",
+      "forEachRow": true,
+      "table": "Statistics",
+      "diagnostics": "No issues found",
+      "id": "9f3422be-bc87-4a5a-a42a-67528ee80393",
+      "process": "Canonical app execution guard; Request Recent Analytics Refresh",
+      "saveDisabled": true,
+      "canonicalGuardVerified": true,
+      "bot": "Refresh Daily Analytics Daily",
+      "event": "Every Hour"
+    }
+  ],
+  "rollback": "If DEV handoff is applied later, pause new schedules first and reconcile current boundary, then restore these enabled bot states; versions are restorable before-images.",
+  "production": "Unchanged; no PROD editor accessed for this baseline",
+  "handoffStatus": "Not started; current AppSheet DEV schedulers remain enabled"
+}

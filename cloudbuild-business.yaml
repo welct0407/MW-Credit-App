@@ -1,0 +1,32 @@
+# Preparation artifact only. Submit the reviewed exact source commit with the
+# existing PROD builder identity; this config builds/smokes/pushes, never deploys.
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args: [build, -t, 'asia-southeast1-docker.pkg.dev/$PROJECT_ID/mw-credit-app-prod/api:$BUILD_ID', .]
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - run
+      - --rm
+      - 'asia-southeast1-docker.pkg.dev/$PROJECT_ID/mw-credit-app-prod/api:$BUILD_ID'
+      - node
+      - --input-type=module
+      - -e
+      - |
+        import assert from 'node:assert/strict';
+        import sharp from 'sharp';
+        import {loadProductionBusinessConfig} from './services/production/business-config.mjs';
+        import {decodeCommandReceipt,decodeSourceReceipt} from './services/receipts/decode-image.mjs';
+        assert.equal(loadProductionBusinessConfig({}),null);
+        assert.equal(loadProductionBusinessConfig({BUSINESS_ACTIVATION:'disabled'}),null);
+        assert.throws(()=>loadProductionBusinessConfig({BUSINESS_ACTIVATION:'approved-candidate'}),/Invalid production business/);
+        await assert.rejects(import('./services/production/business-server.mjs'),/Invalid production foundation/);
+        for(const format of ['png','jpeg','webp']){
+          const bytes=await sharp({create:{width:2,height:2,channels:3,background:'#fff'}}).toFormat(format).toBuffer();
+          await (format==='webp'?decodeSourceReceipt:decodeCommandReceipt)(bytes,'image/'+format);
+        }
+        await assert.rejects(decodeCommandReceipt(Buffer.from('invalid'),'image/png'),/invalid_receipt/);
+        console.log(JSON.stringify({businessDefaultOff:'passed',missingConfigFailsClosed:'passed',syntheticContainerDecoders:'passed',liveAuthIAMDatabaseReceiptAccess:'not exercised'}));
+images:
+  - 'asia-southeast1-docker.pkg.dev/$PROJECT_ID/mw-credit-app-prod/api:$BUILD_ID'
+options:
+  logging: CLOUD_LOGGING_ONLY

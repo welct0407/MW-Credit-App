@@ -1,0 +1,15 @@
+{
+  "development": {
+    "readableBusinessColumns": 37,
+    "tableWritePrivileges": 0,
+    "schemaCreatePrivileges": 0
+  },
+  "production": {
+    "readableBusinessColumns": 0,
+    "tableWritePrivileges": 0,
+    "schemaCreatePrivileges": 0
+  },
+  "privateRecoveryFile": "read-role-before-20261007T150016802239Z.json",
+  "addedColumns": 11,
+  "settingsChanged": false
+}

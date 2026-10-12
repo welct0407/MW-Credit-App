@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param()
 . "$PSScriptRoot/Common.ps1"
-$private='C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r004-20260917'
+$private='C:/Users/ideaadmin/Documents/ChatGPT/AppSheet-Loan-Project/r004-20260917'
 $bin=Get-PgBin
 $root=Join-Path $DbToolRoot ('r004-restore-'+[guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $root | Out-Null

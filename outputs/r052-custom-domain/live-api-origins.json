@@ -1,0 +1,113 @@
+{
+  "checkedAt": "2026-10-07T17:38:43.345Z",
+  "source": "838561430faefdbf128ea2e802992e590e6352b6",
+  "revision": "mw-credit-app-read-dev-00009-5x5",
+  "ci": "https://github.com/welct0407/MW-Credit-App/actions/runs/37660003633",
+  "scope": "Unsigned and deliberately invalid synthetic bearer only. Custom Origin header acceptance is not DNS/TLS or actual custom-host browser proof. No business records/login.",
+  "results": [
+    {
+      "name": "unsigned https://mw-credit-app-dev-737787224638.web.app",
+      "status": 401,
+      "allowOrigin": "https://mw-credit-app-dev-737787224638.web.app",
+      "vary": "Origin",
+      "cacheControl": "no-store",
+      "body": "{\"ok\":false,\"code\":\"sign_in_required\"}"
+    },
+    {
+      "name": "invalid token https://mw-credit-app-dev-737787224638.web.app",
+      "status": 401,
+      "allowOrigin": "https://mw-credit-app-dev-737787224638.web.app",
+      "vary": "Origin",
+      "cacheControl": "no-store",
+      "body": "{\"ok\":false,\"code\":\"session_invalid\"}"
+    },
+    {
+      "name": "preflight https://mw-credit-app-dev-737787224638.web.app",
+      "status": 204,
+      "allowOrigin": "https://mw-credit-app-dev-737787224638.web.app",
+      "vary": "Origin",
+      "cacheControl": "no-store",
+      "body": ""
+    },
+    {
+      "name": "unsigned https://dev-lm.mw-credit.com",
+      "status": 401,
+      "allowOrigin": "https://dev-lm.mw-credit.com",
+      "vary": "Origin",
+      "cacheControl": "no-store",
+      "body": "{\"ok\":false,\"code\":\"sign_in_required\"}"
+    },
+    {
+      "name": "invalid token https://dev-lm.mw-credit.com",
+      "status": 401,
+      "allowOrigin": "https://dev-lm.mw-credit.com",
+      "vary": "Origin",
+      "cacheControl": "no-store",
+      "body": "{\"ok\":false,\"code\":\"session_invalid\"}"
+    },
+    {
+      "name": "preflight https://dev-lm.mw-credit.com",
+      "status": 204,
+      "allowOrigin": "https://dev-lm.mw-credit.com",
+      "vary": "Origin",
+      "cacheControl": "no-store",
+      "body": ""
+    },
+    {
+      "name": "denied null",
+      "status": 403,
+      "allowOrigin": null,
+      "vary": "Origin",
+      "cacheControl": "no-store",
+      "body": "{\"ok\":false,\"code\":\"origin_denied\"}"
+    },
+    {
+      "name": "denied https://dev-lm.mw-credit.com/",
+      "status": 403,
+      "allowOrigin": null,
+      "vary": "Origin",
+      "cacheControl": "no-store",
+      "body": "{\"ok\":false,\"code\":\"origin_denied\"}"
+    },
+    {
+      "name": "denied https://dev-lm.mw-credit.com:443",
+      "status": 403,
+      "allowOrigin": null,
+      "vary": "Origin",
+      "cacheControl": "no-store",
+      "body": "{\"ok\":false,\"code\":\"origin_denied\"}"
+    },
+    {
+      "name": "denied https://dev-lm.mw-credit.com.evil.test",
+      "status": 403,
+      "allowOrigin": null,
+      "vary": "Origin",
+      "cacheControl": "no-store",
+      "body": "{\"ok\":false,\"code\":\"origin_denied\"}"
+    },
+    {
+      "name": "no-Origin unsigned",
+      "status": 401,
+      "allowOrigin": null,
+      "vary": "Origin",
+      "cacheControl": "no-store",
+      "body": "{\"ok\":false,\"code\":\"sign_in_required\"}"
+    },
+    {
+      "name": "no-Origin invalid token",
+      "status": 401,
+      "allowOrigin": null,
+      "vary": "Origin",
+      "cacheControl": "no-store",
+      "body": "{\"ok\":false,\"code\":\"session_invalid\"}"
+    },
+    {
+      "name": "write method",
+      "status": 405,
+      "allowOrigin": "https://dev-lm.mw-credit.com",
+      "vary": "Origin",
+      "cacheControl": "no-store",
+      "body": "{\"ok\":false,\"code\":\"method_not_allowed\"}"
+    }
+  ]
+}

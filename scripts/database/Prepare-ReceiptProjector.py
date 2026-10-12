@@ -11,7 +11,7 @@ root=Path(__file__).resolve().parents[2]
 target=json.loads((root/'database/environments.json').read_text())[a.environment]
 assert target['host']=='34.21.174.215' and target['instance']=='appsheet-pg-prod-20260914'
 assert target['database']=={'development':'loan_manager_dev','production':'loan_manager_prod'}[a.environment]
-private=Path('C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/receipt-storage')
+private=Path('C:/Users/ideaadmin/Documents/ChatGPT/AppSheet-Loan-Project/receipt-storage')
 private.mkdir(parents=True,exist_ok=True)
 key=private/'receipt-projector-password.txt'
 with psycopg.connect(host=target['host'],port=5432,dbname=target['database'],user='postgres',sslmode='require',

@@ -1,0 +1,86 @@
+[
+  {
+    "path": "tests/integration/Run-R053JobsCatalogueIndependent.ps1",
+    "sha256": "fe1450276f8a717c172710c8df80db0fe911485af5a30a5250b1fc12dcd000ea"
+  },
+  {
+    "path": "tests/integration/r053-jobs-catalogue-independent.test.mjs",
+    "sha256": "3144e110b68df923bacf440d4d8433bda541c44e0b66a4496f7903133cd6849b"
+  },
+  {
+    "path": "tests/integration/Run-Phase8.ps1",
+    "sha256": "66db1af83405b0ebffd2f7c636a89ed4113f4568db5b89b335727b304d60aaf6"
+  },
+  {
+    "path": "tests/integration/r053-rpc-independent.test.mjs",
+    "sha256": "274c87271a566ad4c14be23f2509ad4ee7835632187fd68cf2cc1b3d39a8d2e6"
+  },
+  {
+    "path": "tests/integration/Run-R053OperatorIndependent.ps1",
+    "sha256": "8283e72112e821c5b5c30f37084df7c13bb4f41754f26db75df1fff12ff0017a"
+  },
+  {
+    "path": "tests/integration/r053-operator-independent.test.mjs",
+    "sha256": "7a7a49be1807d136c55783f08b72ab6a08d095abed37f33c29b517eb538e61f1"
+  },
+  {
+    "path": "tests/integration/phase8-rpc-fixture.mjs",
+    "sha256": "6c94db5c36239ad5502812446d1833363723aa6856fea5e3da228ceb97c70d88"
+  },
+  {
+    "path": "tests/integration/phase8-notifications.test.mjs",
+    "sha256": "140c72f83bc40ac824223589c3711fe9e4f99778ea0e9155148243b16efae35a"
+  },
+  {
+    "path": "tests/integration/phase8-notifications-independent.test.mjs",
+    "sha256": "3300aa30851a6685f7527ed802917344139f75ef499deee225e907c7fd98c5b8"
+  },
+  {
+    "path": "tests/integration/r053-wakeup-independent.test.mjs",
+    "sha256": "7ff8f02381d8273cb1defb278c487e3bbd01d66ffa620b969db295ee2e5b906d"
+  },
+  {
+    "path": "tests/integration/r053-worker-http-independent.test.mjs",
+    "sha256": "41ecb1f33d8db0f23ff8f03dd51bbca1d906f29e617a1b49c98a82878bebd645"
+  },
+  {
+    "path": "outputs/r053-notifications-jobs/v87-jobs-catalogue.json",
+    "sha256": "7022374407c75caddfc7d190083ef303e9b812ad8d21599aaffc670e0f62ff3c"
+  },
+  {
+    "path": "outputs/r053-notifications-jobs/jobs-owner-reviewed-dependencies.json",
+    "sha256": "41c2d9371a2ed2b05bbe804838dbcf74bca8b425bde396a173a4111261451a42"
+  },
+  {
+    "path": "outputs/r053-notifications-jobs/independent-verification.md",
+    "sha256": "7e05e9c283bab2d73df6fa54895496380b0fb5208b1836bf1c5f44d2262d5e7b"
+  },
+  {
+    "path": "tests/integration/Test-R053CleanupGuards.ps1",
+    "sha256": "17a28416a0761e7d3deaaf69917f04b053ec7c6d2dfb3b20ce23cf3ffb270114"
+  },
+  {
+    "path": "tests/integration/r053-agent-receipt-independent.test.mjs",
+    "sha256": "2acc5b75848714a923171d189d99d06be8e97277f5a7399e781a98040e0ce964"
+  },
+  {
+    "path": "tests/unit/notifications-independent.test.mjs",
+    "sha256": "9890cb9f573452e53189422f2eb91e0d414ad71bb2b624deb4af8834549c5755"
+  },
+  {
+    "path": "tests/unit/agent-receipt-command-independent.test.mjs",
+    "sha256": "563bc87bb50ccf7458deac3bb90ac65fa8e70ce01f89a9e29f12e222fe470721"
+  },
+  {
+    "path": "tests/integration/r053-production-operator-independent.test.mjs",
+    "sha256": "1c58ac4012d718ed050fd7fd51014a58d15545fa7a953974e5745b09f99ff168"
+  },
+  {
+    "path": "tests/integration/r053-binding-independent.test.mjs",
+    "sha256": "c8871e69015d2e63946bba2fe67f7299b543bbe8d89d18ad6d7c56b3604db8fa"
+  },
+  {
+    "path": "tests/unit/r053-candidate-independent.test.mjs",
+    "sha256": "8fc89db8fe589ef13b744f2d2e6fb3d5a34cd7e055b2b50fd9a3d31ab62b52bf"
+  }
+]

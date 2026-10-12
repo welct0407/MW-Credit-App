@@ -10,7 +10,7 @@ root=Path(__file__).resolve().parents[2]
 t=json.loads((root/'database/environments.json').read_text())['production']
 assert (t['host'],t['instance'],t['database'])==('34.21.174.215','appsheet-pg-prod-20260914','loan_manager_prod')
 password=Path(t['passwordFile']).read_text().strip()
-private=Path('C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r046-receipt-evidence')
+private=Path('C:/Users/ideaadmin/Documents/ChatGPT/AppSheet-Loan-Project/r046-receipt-evidence')
 bin=Path(os.environ['LOCALAPPDATA'])/'AppSheetLoanTools/postgresql-18.6-3/pgsql/bin'
 result={}
 for database in ('loan_manager_prod','mw_agent'):

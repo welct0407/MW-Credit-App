@@ -1,0 +1,117 @@
+[
+  {
+    "stage": "before",
+    "scrollY": 0,
+    "header": {
+      "top": 0,
+      "height": 56,
+      "scrollTop": 0,
+      "scrollHeight": 56
+    },
+    "detail": {
+      "top": 0,
+      "height": 0,
+      "scrollTop": 0,
+      "scrollHeight": 0
+    },
+    "active": "",
+    "headerVariable": "",
+    "calls": []
+  },
+  {
+    "stage": "selected",
+    "scrollY": 4,
+    "header": {
+      "top": 0,
+      "height": 56,
+      "scrollTop": 0,
+      "scrollHeight": 56
+    },
+    "detail": {
+      "top": 64,
+      "height": 726.578125,
+      "scrollTop": 0,
+      "scrollHeight": 725
+    },
+    "active": "",
+    "headerVariable": "",
+    "calls": [
+      {
+        "className": "detail-panel ",
+        "time": 447.69999999552965
+      }
+    ]
+  },
+  {
+    "stage": "charges",
+    "scrollY": 4,
+    "header": {
+      "top": 0,
+      "height": 56,
+      "scrollTop": 0,
+      "scrollHeight": 56
+    },
+    "detail": {
+      "top": 64,
+      "height": 1830.578125,
+      "scrollTop": 0,
+      "scrollHeight": 1829
+    },
+    "active": "",
+    "headerVariable": "",
+    "calls": [
+      {
+        "className": "detail-panel ",
+        "time": 447.69999999552965
+      }
+    ]
+  },
+  {
+    "stage": "waiting",
+    "scrollY": 200,
+    "header": {
+      "top": 0,
+      "height": 56,
+      "scrollTop": 0,
+      "scrollHeight": 56
+    },
+    "detail": {
+      "top": -132,
+      "height": 1830.578125,
+      "scrollTop": 0,
+      "scrollHeight": 1829
+    },
+    "active": "",
+    "headerVariable": "",
+    "calls": [
+      {
+        "className": "detail-panel ",
+        "time": 447.69999999552965
+      }
+    ]
+  },
+  {
+    "stage": "complete",
+    "scrollY": 200,
+    "header": {
+      "top": 0,
+      "height": 56,
+      "scrollTop": 0,
+      "scrollHeight": 56
+    },
+    "detail": {
+      "top": -132,
+      "height": 1914.578125,
+      "scrollTop": 0,
+      "scrollHeight": 1913
+    },
+    "active": "",
+    "headerVariable": "",
+    "calls": [
+      {
+        "className": "detail-panel ",
+        "time": 447.69999999552965
+      }
+    ]
+  }
+]

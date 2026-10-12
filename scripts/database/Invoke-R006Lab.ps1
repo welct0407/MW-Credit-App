@@ -8,7 +8,7 @@ SELECT json_build_object('host',inet_server_addr(),'database',current_database()
 SELECT column_name,data_type FROM information_schema.columns WHERE table_name IN ('Borrowers','Charges','Payments','Loans') AND column_name IN ('Payment Status','Amount Remaining','Payment Date','Loan Arrangement','Ref Loans','Ref Borrowers','Hidden Flag') ORDER BY table_name,column_name;
 '@
 if($Mode -eq 'seed'){
- if(-not(Test-Path 'C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r005-20260917/r006-dev-before-fixtures.dump')){throw 'Required DEV snapshot missing'}
+ if(-not(Test-Path 'C:/Users/ideaadmin/Documents/ChatGPT/AppSheet-Loan-Project/r005-20260917/r006-dev-before-fixtures.dump')){throw 'Required DEV snapshot missing'}
  $sql=@'
 BEGIN;
 INSERT INTO "Borrowers" ("Row ID","Borrower Name","Description","Communication Name","Creation Date","Hidden Flag","AI Collection Enabled")

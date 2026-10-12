@@ -1,7 +1,7 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $DbRepoRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
-$DbPrivateRoot = 'C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/flyway'
+$DbPrivateRoot = 'C:/Users/ideaadmin/Documents/ChatGPT/AppSheet-Loan-Project/flyway'
 $DbToolRoot = if ($env:MW_DB_TOOL_ROOT) { [IO.Path]::GetFullPath($env:MW_DB_TOOL_ROOT) } else { Join-Path $env:LOCALAPPDATA 'AppSheetLoanTools' }
 $DbToolchain = Get-Content (Join-Path $DbRepoRoot 'database/toolchain.json') -Raw | ConvertFrom-Json
 function Assert-DbEnvironmentIdentity([string]$Name, $Target) {
@@ -26,7 +26,7 @@ function Get-DbEnvironment([string]$Name) {
     }
     Assert-DbEnvironmentIdentity $Name $target
     $passwordPath = [IO.Path]::GetFullPath($target.passwordFile)
-    if (-not $passwordPath.StartsWith('C:\Users\MWCredit\Documents\ChatGPT\',[StringComparison]::OrdinalIgnoreCase)) {
+    if (-not $passwordPath.StartsWith('C:\Users\ideaadmin\Documents\ChatGPT\',[StringComparison]::OrdinalIgnoreCase)) {
         throw 'Credential path must remain outside Git in Documents/ChatGPT'
     }
     return $target

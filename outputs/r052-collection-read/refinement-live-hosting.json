@@ -1,0 +1,28 @@
+{
+  "checkedAt": "2026-10-07T15:50:48.944Z",
+  "hostingVersion": "7364ee7db2ffe012",
+  "builtApplication": "5efa533144248b1b76bc434fa3f16461433fa212",
+  "validationSource": "b94c234935e172c76eac678601025270d1fc17e5",
+  "ci": "https://github.com/welct0407/MW-Credit-App/actions/runs/37646540641",
+  "scope": "Fresh unsigned contexts; no Google login or business records",
+  "results": [
+    {
+      "name": "desktop",
+      "width": 1440,
+      "height": 900,
+      "apiRequests": 0,
+      "records": 0,
+      "overflow": false,
+      "thaiHeading": "ผู้กู้"
+    },
+    {
+      "name": "mobile",
+      "width": 390,
+      "height": 844,
+      "apiRequests": 0,
+      "records": 0,
+      "overflow": false,
+      "thaiHeading": "ผู้กู้"
+    }
+  ]
+}

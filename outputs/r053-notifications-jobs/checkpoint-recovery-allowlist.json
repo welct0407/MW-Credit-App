@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "release": "R053",
+  "kind": "fixture-only database checkpoint recovery and truthful delivery records",
+  "productSourceCommit": "ea789870599a5444914a1c7730e736f01e917d7f",
+  "productInputsChanged": false,
+  "priorConsolidatedRun": 38159736767,
+  "priorDatabaseRun": 38159730482,
+  "entries": [
+    {
+      "path": "tests/integration/Run-Phase8.ps1",
+      "sha256": "5f5af109b9ea3f67a1aaa08563010bb66ada1048a34c79146db9c2049daf99b6"
+    },
+    {
+      "path": "tests/integration/Run-R053OperatorIndependent.ps1",
+      "sha256": "818f444e3742efe57711a7e312363e0b54600b7a0c8fb005f297affd6a532800"
+    },
+    {
+      "path": "tests/integration/Run-R053JobsCatalogueIndependent.ps1",
+      "sha256": "fe1450276f8a717c172710c8df80db0fe911485af5a30a5250b1fc12dcd000ea"
+    },
+    {
+      "path": "tests/integration/Test-R053CleanupGuards.ps1",
+      "sha256": "17a28416a0761e7d3deaaf69917f04b053ec7c6d2dfb3b20ce23cf3ffb270114"
+    },
+    {
+      "path": "outputs/r053-notifications-jobs/independent-verification.md",
+      "sha256": "4e822c2aff613be936b935ffb1e5ef8eb40328cd21766aa099e312414656203a"
+    },
+    {
+      "path": "outputs/r053-notifications-jobs/independent-source-hashes.json",
+      "sha256": "718346f93cd936e242b0ee1c4cb6ea49ac8499285409ffa96a93ff1589a62cda"
+    },
+    {
+      "path": "outputs/r053-notifications-jobs/consolidated-ci-evidence.json",
+      "sha256": "cce90b70b0abdb4557697ca2b63e93ebc53aff48acb84fe82d110e343fe3c4b1"
+    },
+    {
+      "path": "outputs/r053-notifications-jobs/dev-build-evidence.json",
+      "sha256": "33b58a016032b225b7bc88098386049ac0cf0168ef6e56574dc74fafff741efc"
+    },
+    {
+      "path": "outputs/r053-notifications-jobs/lower-cost-push-proposal.md",
+      "sha256": "ef607216e7da5e029c2f493e950e74822611b29675dddf7b81e06bc41686ff53"
+    },
+    {
+      "path": "Change Logs/CHANGE_NOTES_R053_NOTIFICATIONS_JOBS_2026-10-11.md",
+      "sha256": "ac50a441eebd6171f52e278ba8ba7323af0a7af7cc129e4877016aa3fadd1725"
+    }
+  ],
+  "manifestSelfIncludedOnPublication": true
+}

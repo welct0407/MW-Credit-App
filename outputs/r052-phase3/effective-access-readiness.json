@@ -1,0 +1,849 @@
+{
+  "checkedAt": "2026-10-11T10:42:21.4667764Z",
+  "project": "clever-oasis-508610-n7",
+  "matrixRows": 132,
+  "analyzerCannotAccess": 128,
+  "analyzerUnknownInfo": 4,
+  "structuralProof": {
+    "deployerPolicySha256": "d325e0c286a29aa25ac35f80bbd1dca2af056d932b25ea28dc348015c446555b",
+    "basis": "Google service-account principals are disjoint from the external GitHub production workload-identity pool principalSet. Sole relevant service-account grant is workloadIdentityUser to that principalSet; other inherited policy explanations report not granted. No token mint or impersonation was performed.",
+    "rows": [
+      {
+        "principal": "mw-credit-app-read-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+        "permission": "iam.serviceAccounts.getAccessToken",
+        "resource": "//iam.googleapis.com/projects/clever-oasis-508610-n7/serviceAccounts/mw-credit-app-deploy-prod@clever-oasis-508610-n7.iam.gserviceaccount.com",
+        "unknownPolicies": 1,
+        "unknownRoles": [
+          "roles/iam.workloadIdentityUser"
+        ]
+      },
+      {
+        "principal": "mw-credit-app-command-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+        "permission": "iam.serviceAccounts.getAccessToken",
+        "resource": "//iam.googleapis.com/projects/clever-oasis-508610-n7/serviceAccounts/mw-credit-app-deploy-prod@clever-oasis-508610-n7.iam.gserviceaccount.com",
+        "unknownPolicies": 1,
+        "unknownRoles": [
+          "roles/iam.workloadIdentityUser"
+        ]
+      },
+      {
+        "principal": "mw-credit-app-build@clever-oasis-508610-n7.iam.gserviceaccount.com",
+        "permission": "iam.serviceAccounts.getAccessToken",
+        "resource": "//iam.googleapis.com/projects/clever-oasis-508610-n7/serviceAccounts/mw-credit-app-deploy-prod@clever-oasis-508610-n7.iam.gserviceaccount.com",
+        "unknownPolicies": 1,
+        "unknownRoles": [
+          "roles/iam.workloadIdentityUser"
+        ]
+      },
+      {
+        "principal": "mw-credit-app-deploy@clever-oasis-508610-n7.iam.gserviceaccount.com",
+        "permission": "iam.serviceAccounts.getAccessToken",
+        "resource": "//iam.googleapis.com/projects/clever-oasis-508610-n7/serviceAccounts/mw-credit-app-deploy-prod@clever-oasis-508610-n7.iam.gserviceaccount.com",
+        "unknownPolicies": 1,
+        "unknownRoles": [
+          "roles/iam.workloadIdentityUser"
+        ]
+      }
+    ],
+    "providerSha256": "a850f21a1708b61bb1e5594d0d48b424a2be499a79758d803ce0fd0aca87baa4"
+  },
+  "limitations": [
+    "Point-in-time named-principal/resource/permission scope, not universal isolation.",
+    "Production GitHub main-only subject is not proof of protected main or an actual automated production token.",
+    "Application authentication and shared human/project administration remain separate boundaries."
+  ],
+  "checks": [
+    {
+      "principal": "mw-credit-app-read-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//storage.googleapis.com/projects/_/buckets/mw-credit-app-prod-tfstate-737787224638",
+      "permission": "storage.objects.list",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-read-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//storage.googleapis.com/projects/_/buckets/mw-credit-app-prod-tfstate-737787224638",
+      "permission": "storage.buckets.setIamPolicy",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-read-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//storage.googleapis.com/projects/_/buckets/mw-credit-app-prod-tfstate-737787224638",
+      "permission": "storage.objects.get",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-read-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//storage.googleapis.com/projects/_/buckets/mw-credit-app-prod-tfstate-737787224638",
+      "permission": "storage.objects.create",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-read-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//storage.googleapis.com/projects/_/buckets/mw-credit-app-prod-tfstate-737787224638",
+      "permission": "storage.objects.delete",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-read-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//secretmanager.googleapis.com/projects/737787224638/secrets/mw-credit-app-prod-owner-identity",
+      "permission": "secretmanager.versions.add",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-read-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//secretmanager.googleapis.com/projects/737787224638/secrets/mw-credit-app-prod-owner-identity",
+      "permission": "secretmanager.secrets.setIamPolicy",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-read-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//secretmanager.googleapis.com/projects/737787224638/secrets/mw-credit-app-prod-owner-identity",
+      "permission": "secretmanager.versions.access",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-read-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//secretmanager.googleapis.com/projects/737787224638/secrets/mw-credit-app-prod-owner-identity",
+      "permission": "secretmanager.versions.disable",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-read-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//secretmanager.googleapis.com/projects/737787224638/secrets/mw-credit-app-prod-owner-identity",
+      "permission": "secretmanager.versions.destroy",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-read-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//artifactregistry.googleapis.com/projects/clever-oasis-508610-n7/locations/asia-southeast1/repositories/mw-credit-app-prod",
+      "permission": "artifactregistry.repositories.downloadArtifacts",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-read-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//artifactregistry.googleapis.com/projects/clever-oasis-508610-n7/locations/asia-southeast1/repositories/mw-credit-app-prod",
+      "permission": "artifactregistry.repositories.uploadArtifacts",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-read-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//artifactregistry.googleapis.com/projects/clever-oasis-508610-n7/locations/asia-southeast1/repositories/mw-credit-app-prod",
+      "permission": "artifactregistry.repositories.delete",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-read-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//artifactregistry.googleapis.com/projects/clever-oasis-508610-n7/locations/asia-southeast1/repositories/mw-credit-app-prod",
+      "permission": "artifactregistry.repositories.setIamPolicy",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-read-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//run.googleapis.com/projects/clever-oasis-508610-n7/locations/asia-southeast1/services/mw-credit-app-read-prod",
+      "permission": "run.services.update",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-read-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//run.googleapis.com/projects/clever-oasis-508610-n7/locations/asia-southeast1/services/mw-credit-app-read-prod",
+      "permission": "run.services.delete",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-read-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//run.googleapis.com/projects/clever-oasis-508610-n7/locations/asia-southeast1/services/mw-credit-app-read-prod",
+      "permission": "run.services.setIamPolicy",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-read-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//run.googleapis.com/projects/clever-oasis-508610-n7/locations/asia-southeast1/services/mw-credit-app-command-prod",
+      "permission": "run.services.update",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-read-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//run.googleapis.com/projects/clever-oasis-508610-n7/locations/asia-southeast1/services/mw-credit-app-command-prod",
+      "permission": "run.services.delete",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-read-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//run.googleapis.com/projects/clever-oasis-508610-n7/locations/asia-southeast1/services/mw-credit-app-command-prod",
+      "permission": "run.services.setIamPolicy",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-read-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//iam.googleapis.com/projects/clever-oasis-508610-n7/serviceAccounts/mw-credit-app-read-prod@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "permission": "iam.serviceAccounts.actAs",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-read-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//iam.googleapis.com/projects/clever-oasis-508610-n7/serviceAccounts/mw-credit-app-read-prod@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "permission": "iam.serviceAccounts.getAccessToken",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-read-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//iam.googleapis.com/projects/clever-oasis-508610-n7/serviceAccounts/mw-credit-app-read-prod@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "permission": "iam.serviceAccounts.setIamPolicy",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-read-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//iam.googleapis.com/projects/clever-oasis-508610-n7/serviceAccounts/mw-credit-app-command-prod@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "permission": "iam.serviceAccounts.actAs",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-read-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//iam.googleapis.com/projects/clever-oasis-508610-n7/serviceAccounts/mw-credit-app-command-prod@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "permission": "iam.serviceAccounts.getAccessToken",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-read-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//iam.googleapis.com/projects/clever-oasis-508610-n7/serviceAccounts/mw-credit-app-build-prod@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "permission": "iam.serviceAccounts.getAccessToken",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-read-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//iam.googleapis.com/projects/clever-oasis-508610-n7/serviceAccounts/mw-credit-app-build-prod@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "permission": "iam.serviceAccounts.setIamPolicy",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-read-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//iam.googleapis.com/projects/clever-oasis-508610-n7/serviceAccounts/mw-credit-app-deploy-prod@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "permission": "iam.serviceAccounts.actAs",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-command-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//run.googleapis.com/projects/clever-oasis-508610-n7/locations/asia-southeast1/services/mw-credit-app-read-prod",
+      "permission": "run.services.update",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-command-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//run.googleapis.com/projects/clever-oasis-508610-n7/locations/asia-southeast1/services/mw-credit-app-read-prod",
+      "permission": "run.services.delete",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-command-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//run.googleapis.com/projects/clever-oasis-508610-n7/locations/asia-southeast1/services/mw-credit-app-command-prod",
+      "permission": "run.services.update",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-command-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//run.googleapis.com/projects/clever-oasis-508610-n7/locations/asia-southeast1/services/mw-credit-app-command-prod",
+      "permission": "run.services.delete",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-command-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//run.googleapis.com/projects/clever-oasis-508610-n7/locations/asia-southeast1/services/mw-credit-app-command-prod",
+      "permission": "run.services.setIamPolicy",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-command-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//iam.googleapis.com/projects/clever-oasis-508610-n7/serviceAccounts/mw-credit-app-read-prod@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "permission": "iam.serviceAccounts.actAs",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-command-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//iam.googleapis.com/projects/clever-oasis-508610-n7/serviceAccounts/mw-credit-app-read-prod@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "permission": "iam.serviceAccounts.getAccessToken",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-command-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//iam.googleapis.com/projects/clever-oasis-508610-n7/serviceAccounts/mw-credit-app-read-prod@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "permission": "iam.serviceAccounts.setIamPolicy",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-command-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//iam.googleapis.com/projects/clever-oasis-508610-n7/serviceAccounts/mw-credit-app-command-prod@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "permission": "iam.serviceAccounts.actAs",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-command-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//iam.googleapis.com/projects/clever-oasis-508610-n7/serviceAccounts/mw-credit-app-command-prod@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "permission": "iam.serviceAccounts.getAccessToken",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-read-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//iam.googleapis.com/projects/clever-oasis-508610-n7/serviceAccounts/mw-credit-app-command-prod@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "permission": "iam.serviceAccounts.setIamPolicy",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-read-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//iam.googleapis.com/projects/clever-oasis-508610-n7/serviceAccounts/mw-credit-app-build-prod@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "permission": "iam.serviceAccounts.actAs",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-read-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//iam.googleapis.com/projects/clever-oasis-508610-n7/serviceAccounts/mw-credit-app-deploy-prod@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "permission": "iam.serviceAccounts.getAccessToken",
+      "analyzerState": "UNKNOWN_INFO"
+    },
+    {
+      "principal": "mw-credit-app-read-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//iam.googleapis.com/projects/clever-oasis-508610-n7/serviceAccounts/mw-credit-app-deploy-prod@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "permission": "iam.serviceAccounts.setIamPolicy",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-read-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//cloudresourcemanager.googleapis.com/projects/clever-oasis-508610-n7",
+      "permission": "firebasehosting.sites.update",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-command-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//storage.googleapis.com/projects/_/buckets/mw-credit-app-prod-tfstate-737787224638",
+      "permission": "storage.objects.list",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-command-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//storage.googleapis.com/projects/_/buckets/mw-credit-app-prod-tfstate-737787224638",
+      "permission": "storage.buckets.setIamPolicy",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-command-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//storage.googleapis.com/projects/_/buckets/mw-credit-app-prod-tfstate-737787224638",
+      "permission": "storage.objects.get",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-command-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//storage.googleapis.com/projects/_/buckets/mw-credit-app-prod-tfstate-737787224638",
+      "permission": "storage.objects.create",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-command-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//storage.googleapis.com/projects/_/buckets/mw-credit-app-prod-tfstate-737787224638",
+      "permission": "storage.objects.delete",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-command-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//secretmanager.googleapis.com/projects/737787224638/secrets/mw-credit-app-prod-owner-identity",
+      "permission": "secretmanager.versions.add",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-command-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//secretmanager.googleapis.com/projects/737787224638/secrets/mw-credit-app-prod-owner-identity",
+      "permission": "secretmanager.secrets.setIamPolicy",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-command-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//secretmanager.googleapis.com/projects/737787224638/secrets/mw-credit-app-prod-owner-identity",
+      "permission": "secretmanager.versions.access",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-command-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//secretmanager.googleapis.com/projects/737787224638/secrets/mw-credit-app-prod-owner-identity",
+      "permission": "secretmanager.versions.disable",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-command-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//secretmanager.googleapis.com/projects/737787224638/secrets/mw-credit-app-prod-owner-identity",
+      "permission": "secretmanager.versions.destroy",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-command-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//artifactregistry.googleapis.com/projects/clever-oasis-508610-n7/locations/asia-southeast1/repositories/mw-credit-app-prod",
+      "permission": "artifactregistry.repositories.downloadArtifacts",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-command-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//artifactregistry.googleapis.com/projects/clever-oasis-508610-n7/locations/asia-southeast1/repositories/mw-credit-app-prod",
+      "permission": "artifactregistry.repositories.uploadArtifacts",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-command-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//artifactregistry.googleapis.com/projects/clever-oasis-508610-n7/locations/asia-southeast1/repositories/mw-credit-app-prod",
+      "permission": "artifactregistry.repositories.delete",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-command-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//artifactregistry.googleapis.com/projects/clever-oasis-508610-n7/locations/asia-southeast1/repositories/mw-credit-app-prod",
+      "permission": "artifactregistry.repositories.setIamPolicy",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-command-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//run.googleapis.com/projects/clever-oasis-508610-n7/locations/asia-southeast1/services/mw-credit-app-read-prod",
+      "permission": "run.services.setIamPolicy",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-command-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//iam.googleapis.com/projects/clever-oasis-508610-n7/serviceAccounts/mw-credit-app-command-prod@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "permission": "iam.serviceAccounts.setIamPolicy",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-command-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//iam.googleapis.com/projects/clever-oasis-508610-n7/serviceAccounts/mw-credit-app-build-prod@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "permission": "iam.serviceAccounts.actAs",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-command-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//iam.googleapis.com/projects/clever-oasis-508610-n7/serviceAccounts/mw-credit-app-build-prod@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "permission": "iam.serviceAccounts.getAccessToken",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-command-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//iam.googleapis.com/projects/clever-oasis-508610-n7/serviceAccounts/mw-credit-app-build-prod@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "permission": "iam.serviceAccounts.setIamPolicy",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-command-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//iam.googleapis.com/projects/clever-oasis-508610-n7/serviceAccounts/mw-credit-app-deploy-prod@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "permission": "iam.serviceAccounts.actAs",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-command-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//iam.googleapis.com/projects/clever-oasis-508610-n7/serviceAccounts/mw-credit-app-deploy-prod@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "permission": "iam.serviceAccounts.getAccessToken",
+      "analyzerState": "UNKNOWN_INFO"
+    },
+    {
+      "principal": "mw-credit-app-command-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//iam.googleapis.com/projects/clever-oasis-508610-n7/serviceAccounts/mw-credit-app-deploy-prod@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "permission": "iam.serviceAccounts.setIamPolicy",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-command-dev@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//cloudresourcemanager.googleapis.com/projects/clever-oasis-508610-n7",
+      "permission": "firebasehosting.sites.update",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-build@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//storage.googleapis.com/projects/_/buckets/mw-credit-app-prod-tfstate-737787224638",
+      "permission": "storage.objects.list",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-build@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//storage.googleapis.com/projects/_/buckets/mw-credit-app-prod-tfstate-737787224638",
+      "permission": "storage.buckets.setIamPolicy",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-build@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//storage.googleapis.com/projects/_/buckets/mw-credit-app-prod-tfstate-737787224638",
+      "permission": "storage.objects.get",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-build@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//storage.googleapis.com/projects/_/buckets/mw-credit-app-prod-tfstate-737787224638",
+      "permission": "storage.objects.create",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-build@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//storage.googleapis.com/projects/_/buckets/mw-credit-app-prod-tfstate-737787224638",
+      "permission": "storage.objects.delete",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-build@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//secretmanager.googleapis.com/projects/737787224638/secrets/mw-credit-app-prod-owner-identity",
+      "permission": "secretmanager.versions.add",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-build@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//secretmanager.googleapis.com/projects/737787224638/secrets/mw-credit-app-prod-owner-identity",
+      "permission": "secretmanager.secrets.setIamPolicy",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-build@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//secretmanager.googleapis.com/projects/737787224638/secrets/mw-credit-app-prod-owner-identity",
+      "permission": "secretmanager.versions.access",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-build@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//secretmanager.googleapis.com/projects/737787224638/secrets/mw-credit-app-prod-owner-identity",
+      "permission": "secretmanager.versions.disable",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-build@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//secretmanager.googleapis.com/projects/737787224638/secrets/mw-credit-app-prod-owner-identity",
+      "permission": "secretmanager.versions.destroy",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-build@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//artifactregistry.googleapis.com/projects/clever-oasis-508610-n7/locations/asia-southeast1/repositories/mw-credit-app-prod",
+      "permission": "artifactregistry.repositories.downloadArtifacts",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-build@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//artifactregistry.googleapis.com/projects/clever-oasis-508610-n7/locations/asia-southeast1/repositories/mw-credit-app-prod",
+      "permission": "artifactregistry.repositories.uploadArtifacts",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-build@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//artifactregistry.googleapis.com/projects/clever-oasis-508610-n7/locations/asia-southeast1/repositories/mw-credit-app-prod",
+      "permission": "artifactregistry.repositories.delete",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-build@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//artifactregistry.googleapis.com/projects/clever-oasis-508610-n7/locations/asia-southeast1/repositories/mw-credit-app-prod",
+      "permission": "artifactregistry.repositories.setIamPolicy",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-build@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//run.googleapis.com/projects/clever-oasis-508610-n7/locations/asia-southeast1/services/mw-credit-app-read-prod",
+      "permission": "run.services.update",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-build@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//run.googleapis.com/projects/clever-oasis-508610-n7/locations/asia-southeast1/services/mw-credit-app-read-prod",
+      "permission": "run.services.delete",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-build@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//run.googleapis.com/projects/clever-oasis-508610-n7/locations/asia-southeast1/services/mw-credit-app-read-prod",
+      "permission": "run.services.setIamPolicy",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-build@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//run.googleapis.com/projects/clever-oasis-508610-n7/locations/asia-southeast1/services/mw-credit-app-command-prod",
+      "permission": "run.services.update",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-build@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//run.googleapis.com/projects/clever-oasis-508610-n7/locations/asia-southeast1/services/mw-credit-app-command-prod",
+      "permission": "run.services.delete",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-build@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//run.googleapis.com/projects/clever-oasis-508610-n7/locations/asia-southeast1/services/mw-credit-app-command-prod",
+      "permission": "run.services.setIamPolicy",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-build@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//iam.googleapis.com/projects/clever-oasis-508610-n7/serviceAccounts/mw-credit-app-read-prod@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "permission": "iam.serviceAccounts.actAs",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-build@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//iam.googleapis.com/projects/clever-oasis-508610-n7/serviceAccounts/mw-credit-app-read-prod@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "permission": "iam.serviceAccounts.getAccessToken",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-build@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//iam.googleapis.com/projects/clever-oasis-508610-n7/serviceAccounts/mw-credit-app-read-prod@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "permission": "iam.serviceAccounts.setIamPolicy",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-build@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//iam.googleapis.com/projects/clever-oasis-508610-n7/serviceAccounts/mw-credit-app-command-prod@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "permission": "iam.serviceAccounts.actAs",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-build@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//iam.googleapis.com/projects/clever-oasis-508610-n7/serviceAccounts/mw-credit-app-command-prod@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "permission": "iam.serviceAccounts.getAccessToken",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-build@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//iam.googleapis.com/projects/clever-oasis-508610-n7/serviceAccounts/mw-credit-app-command-prod@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "permission": "iam.serviceAccounts.setIamPolicy",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-build@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//iam.googleapis.com/projects/clever-oasis-508610-n7/serviceAccounts/mw-credit-app-build-prod@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "permission": "iam.serviceAccounts.actAs",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-build@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//iam.googleapis.com/projects/clever-oasis-508610-n7/serviceAccounts/mw-credit-app-build-prod@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "permission": "iam.serviceAccounts.getAccessToken",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-build@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//iam.googleapis.com/projects/clever-oasis-508610-n7/serviceAccounts/mw-credit-app-build-prod@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "permission": "iam.serviceAccounts.setIamPolicy",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-build@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//iam.googleapis.com/projects/clever-oasis-508610-n7/serviceAccounts/mw-credit-app-deploy-prod@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "permission": "iam.serviceAccounts.actAs",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-build@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//iam.googleapis.com/projects/clever-oasis-508610-n7/serviceAccounts/mw-credit-app-deploy-prod@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "permission": "iam.serviceAccounts.getAccessToken",
+      "analyzerState": "UNKNOWN_INFO"
+    },
+    {
+      "principal": "mw-credit-app-build@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//iam.googleapis.com/projects/clever-oasis-508610-n7/serviceAccounts/mw-credit-app-deploy-prod@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "permission": "iam.serviceAccounts.setIamPolicy",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-build@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//cloudresourcemanager.googleapis.com/projects/clever-oasis-508610-n7",
+      "permission": "firebasehosting.sites.update",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-deploy@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//storage.googleapis.com/projects/_/buckets/mw-credit-app-prod-tfstate-737787224638",
+      "permission": "storage.objects.list",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-deploy@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//storage.googleapis.com/projects/_/buckets/mw-credit-app-prod-tfstate-737787224638",
+      "permission": "storage.buckets.setIamPolicy",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-deploy@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//storage.googleapis.com/projects/_/buckets/mw-credit-app-prod-tfstate-737787224638",
+      "permission": "storage.objects.get",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-deploy@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//storage.googleapis.com/projects/_/buckets/mw-credit-app-prod-tfstate-737787224638",
+      "permission": "storage.objects.create",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-deploy@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//storage.googleapis.com/projects/_/buckets/mw-credit-app-prod-tfstate-737787224638",
+      "permission": "storage.objects.delete",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-deploy@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//secretmanager.googleapis.com/projects/737787224638/secrets/mw-credit-app-prod-owner-identity",
+      "permission": "secretmanager.versions.add",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-deploy@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//secretmanager.googleapis.com/projects/737787224638/secrets/mw-credit-app-prod-owner-identity",
+      "permission": "secretmanager.secrets.setIamPolicy",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-deploy@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//secretmanager.googleapis.com/projects/737787224638/secrets/mw-credit-app-prod-owner-identity",
+      "permission": "secretmanager.versions.access",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-deploy@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//secretmanager.googleapis.com/projects/737787224638/secrets/mw-credit-app-prod-owner-identity",
+      "permission": "secretmanager.versions.disable",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-deploy@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//secretmanager.googleapis.com/projects/737787224638/secrets/mw-credit-app-prod-owner-identity",
+      "permission": "secretmanager.versions.destroy",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-deploy@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//artifactregistry.googleapis.com/projects/clever-oasis-508610-n7/locations/asia-southeast1/repositories/mw-credit-app-prod",
+      "permission": "artifactregistry.repositories.downloadArtifacts",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-deploy@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//artifactregistry.googleapis.com/projects/clever-oasis-508610-n7/locations/asia-southeast1/repositories/mw-credit-app-prod",
+      "permission": "artifactregistry.repositories.uploadArtifacts",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-deploy@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//artifactregistry.googleapis.com/projects/clever-oasis-508610-n7/locations/asia-southeast1/repositories/mw-credit-app-prod",
+      "permission": "artifactregistry.repositories.delete",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-deploy@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//artifactregistry.googleapis.com/projects/clever-oasis-508610-n7/locations/asia-southeast1/repositories/mw-credit-app-prod",
+      "permission": "artifactregistry.repositories.setIamPolicy",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-deploy@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//run.googleapis.com/projects/clever-oasis-508610-n7/locations/asia-southeast1/services/mw-credit-app-read-prod",
+      "permission": "run.services.update",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-deploy@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//run.googleapis.com/projects/clever-oasis-508610-n7/locations/asia-southeast1/services/mw-credit-app-read-prod",
+      "permission": "run.services.delete",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-deploy@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//run.googleapis.com/projects/clever-oasis-508610-n7/locations/asia-southeast1/services/mw-credit-app-read-prod",
+      "permission": "run.services.setIamPolicy",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-deploy@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//run.googleapis.com/projects/clever-oasis-508610-n7/locations/asia-southeast1/services/mw-credit-app-command-prod",
+      "permission": "run.services.update",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-deploy@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//run.googleapis.com/projects/clever-oasis-508610-n7/locations/asia-southeast1/services/mw-credit-app-command-prod",
+      "permission": "run.services.delete",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-deploy@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//run.googleapis.com/projects/clever-oasis-508610-n7/locations/asia-southeast1/services/mw-credit-app-command-prod",
+      "permission": "run.services.setIamPolicy",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-deploy@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//iam.googleapis.com/projects/clever-oasis-508610-n7/serviceAccounts/mw-credit-app-read-prod@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "permission": "iam.serviceAccounts.actAs",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-deploy@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//iam.googleapis.com/projects/clever-oasis-508610-n7/serviceAccounts/mw-credit-app-read-prod@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "permission": "iam.serviceAccounts.getAccessToken",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-deploy@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//iam.googleapis.com/projects/clever-oasis-508610-n7/serviceAccounts/mw-credit-app-read-prod@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "permission": "iam.serviceAccounts.setIamPolicy",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-deploy@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//iam.googleapis.com/projects/clever-oasis-508610-n7/serviceAccounts/mw-credit-app-command-prod@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "permission": "iam.serviceAccounts.actAs",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-deploy@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//iam.googleapis.com/projects/clever-oasis-508610-n7/serviceAccounts/mw-credit-app-command-prod@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "permission": "iam.serviceAccounts.getAccessToken",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-deploy@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//iam.googleapis.com/projects/clever-oasis-508610-n7/serviceAccounts/mw-credit-app-command-prod@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "permission": "iam.serviceAccounts.setIamPolicy",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-deploy@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//iam.googleapis.com/projects/clever-oasis-508610-n7/serviceAccounts/mw-credit-app-build-prod@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "permission": "iam.serviceAccounts.actAs",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-deploy@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//iam.googleapis.com/projects/clever-oasis-508610-n7/serviceAccounts/mw-credit-app-build-prod@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "permission": "iam.serviceAccounts.getAccessToken",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-deploy@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//iam.googleapis.com/projects/clever-oasis-508610-n7/serviceAccounts/mw-credit-app-build-prod@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "permission": "iam.serviceAccounts.setIamPolicy",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-deploy@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//iam.googleapis.com/projects/clever-oasis-508610-n7/serviceAccounts/mw-credit-app-deploy-prod@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "permission": "iam.serviceAccounts.actAs",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-deploy@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//iam.googleapis.com/projects/clever-oasis-508610-n7/serviceAccounts/mw-credit-app-deploy-prod@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "permission": "iam.serviceAccounts.getAccessToken",
+      "analyzerState": "UNKNOWN_INFO"
+    },
+    {
+      "principal": "mw-credit-app-deploy@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//iam.googleapis.com/projects/clever-oasis-508610-n7/serviceAccounts/mw-credit-app-deploy-prod@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "permission": "iam.serviceAccounts.setIamPolicy",
+      "analyzerState": "CANNOT_ACCESS"
+    },
+    {
+      "principal": "mw-credit-app-deploy@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "resource": "//cloudresourcemanager.googleapis.com/projects/clever-oasis-508610-n7",
+      "permission": "firebasehosting.sites.update",
+      "analyzerState": "CANNOT_ACCESS"
+    }
+  ]
+}

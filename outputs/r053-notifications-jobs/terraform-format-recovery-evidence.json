@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "recordedAtUtc": "2026-10-11T19:09:35.0885458Z",
+  "purpose": "Narrow Terraform formatting recovery for CI 38165391348; original CI formatting failure remains recorded",
+  "changes": {
+    "infrastructure/production/tests/inert.tftest.hcl": "bf7917cf798048ad5db117c53591fceb5e7ce4565a4a937a60e5637207e55d15",
+    "infrastructure/modules/dev-workers/tests/containment.tftest.hcl": "507f151d8850efd4fafab3c3693bbe3c4a9454064475eddfdfee43ae07855b5a"
+  },
+  "checks": [
+    {
+      "exitCode": 0,
+      "command": "terraform fmt infrastructure/modules/dev-workers/tests/containment.tftest.hcl"
+    },
+    {
+      "exitCode": 0,
+      "command": "terraform fmt infrastructure/production/tests/inert.tftest.hcl"
+    },
+    {
+      "exitCode": 0,
+      "command": "terraform fmt -check -recursive infrastructure"
+    },
+    {
+      "command": "terraform -chdir=infrastructure/modules/dev-workers test -no-color",
+      "passed": 9,
+      "failed": 0,
+      "exitCode": 0
+    },
+    {
+      "command": "terraform -chdir=infrastructure/dev test -no-color",
+      "passed": 6,
+      "failed": 0,
+      "exitCode": 0
+    },
+    {
+      "command": "terraform -chdir=infrastructure/production test -no-color",
+      "passed": 9,
+      "failed": 0,
+      "exitCode": 0
+    },
+    {
+      "exitCode": 0,
+      "command": "terraform -chdir=infrastructure/dev validate -no-color"
+    },
+    {
+      "exitCode": 0,
+      "command": "terraform -chdir=infrastructure/production validate -no-color"
+    }
+  ],
+  "totalMockTestsPassed": 24,
+  "cloudMutationsPerformed": false,
+  "privateLogsRetained": false,
+  "notes": "Existing external provider contexts used. Module temporarily borrowed DEV provider lock; temporary lock removed. Tests use mock providers. No browser or full CI rerun."
+}

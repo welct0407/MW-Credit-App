@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "release": "R053",
+  "records": [
+    {
+      "database": "loan_manager_prod",
+      "baselineVersion": 87,
+      "host": "34.21.174.215",
+      "instance": "appsheet-pg-prod-20260914",
+      "observedAt": "2026-10-11 18:50:26.749952+00:00",
+      "dumpSha256": "f118ff6080785c022f470cf0bda4314b72a6baec8973f7cb1bff8ea4476128a5",
+      "restore": "passed",
+      "restoredFingerprintsMatch": true,
+      "tableCount": 32,
+      "restoreSemantics": "Complete schema/data restored; no owner/ACL replay, referenced role names local NOLOGIN only; no live/global-role restore",
+      "integrityScope": "full-content table fingerprints",
+      "cleanup": {
+        "stopped": true,
+        "ownedRestoreRemoved": true,
+        "backupRetained": true,
+        "restorePassed": true
+      },
+      "privateRecoveryReceiptSha256": "fce71b18ee930f4180474cf225a49d1713ecce11d573d9b406419b5674519a0e"
+    },
+    {
+      "database": "mw_agent",
+      "baselineVersion": null,
+      "host": "34.21.174.215",
+      "instance": "appsheet-pg-prod-20260914",
+      "observedAt": "2026-10-11 19:06:28.801245+00:00",
+      "dumpSha256": "5b84c7020394d5c00a9f4ba92cf71b66eced625ef8ac5c905f910aa782478df9",
+      "restore": "passed",
+      "restoredFingerprintsMatch": true,
+      "tableCount": 32,
+      "restoreSemantics": "Complete schema/data restored; no owner/ACL replay, referenced role names local NOLOGIN only; no live/global-role restore",
+      "integrityScope": "full-content fingerprints for all small/authoritative receipt, ingress, control and partner_notices tables; exact audit.events/audit.operations/runtime.operation_state counts only; complete raw dump and full isolated restore",
+      "cleanup": {
+        "stopped": true,
+        "ownedRestoreRemoved": true,
+        "backupRetained": true,
+        "restorePassed": true
+      },
+      "privateRecoveryReceiptSha256": "766f1cf596e834de5af96859cf2990283a5a7406535ea08254b1b76a90c10e72"
+    }
+  ],
+  "retention": "Protected original dumps and recovery receipts retained privately; review 2026-10-18. No live restore or business writes."
+}

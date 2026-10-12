@@ -1,0 +1,469 @@
+{
+  "date": "2026-10-11",
+  "source": {
+    "baseline": "13cbd9b",
+    "build": "DqWqgSXP",
+    "css": "wfkw17mC",
+    "checks": [
+      "tsc --noEmit + Vite live-dev PASS",
+      "git diff --check PASS"
+    ],
+    "files": [
+      {
+        "path": "apps/pwa/src/BorrowerRecord.tsx",
+        "sha256": "5A8B0A3408961CB9C7ACC3A1912F0692AD6CCB4654F76F8C79D25EF0E9EC09DD"
+      },
+      {
+        "path": "apps/pwa/src/ChargeRecord.tsx",
+        "sha256": "D275DBEC97458F8DEF88123AB3CFD22DEFC089F8A176A51D1FA54126DB67F511"
+      },
+      {
+        "path": "apps/pwa/src/ExpenseRecords.tsx",
+        "sha256": "3A7855865C9B9C0DD1E5E1F86253ECEF22A5D2EB58063CC50A469889E0F5FF0B"
+      },
+      {
+        "path": "apps/pwa/src/ManagementAssessments.tsx",
+        "sha256": "2B70094709DF427F713459D2E5ED2B2EBCBF2175FEBF2E817B4BC71C86C35261"
+      },
+      {
+        "path": "apps/pwa/src/ManagementFinancialWorkspace.tsx",
+        "sha256": "C4F9ABF52420AA60CEC843045AFB74D67D4D295E498B131AA81FF3F1F1D42AA2"
+      },
+      {
+        "path": "apps/pwa/src/ManagementWorkspace.tsx",
+        "sha256": "A63FA8F942EBC413940624C7392211E37D8F7E595D3ED61DC1726EFAE3DA815B"
+      },
+      {
+        "path": "apps/pwa/src/PaymentRecord.tsx",
+        "sha256": "22BC7F8268AED5BFCC52E426B7F7C31DDEB2A932E4EB2731EE0E796A070B4A5C"
+      },
+      {
+        "path": "apps/pwa/src/RecordAction.tsx",
+        "sha256": "DDCBB2EEBBA747720D276BEECE07210F84CF8387AC6F002BABFAD2932F493F68"
+      },
+      {
+        "path": "apps/pwa/src/SelectedCharges.tsx",
+        "sha256": "B7040F7B5C1E37F8FD7C4D423DD23C240A4072DED9B15EA2BEBC72BE5CE8861A"
+      },
+      {
+        "path": "apps/pwa/src/live-main.tsx",
+        "sha256": "C585E024CFBD2402A516AB6F39638F896A92B156BD3F26E3BBF56B6266D1662E"
+      },
+      {
+        "path": "apps/pwa/src/live-style.css",
+        "sha256": "50173601733FCE02EA7BAD7B655CDC05F3419AD16904765F32EE84E24382C23C"
+      }
+    ]
+  },
+  "initialCapture": "PASS13.6s54images",
+  "colorCapture": "PASS3.9s24images",
+  "correctedSupplement": "Capture-only run2.4s completed but intended DTO overrides did not reach rendered components; NOT faithful corrected coverage",
+  "captures": [
+    {
+      "path": "outputs/r052-phase6/ux-colors-borrowers-root-1180.png",
+      "sha256": "9f17badf6a89e58295a66cafe24430a0bb3375effbff9589a662d309ba89648c",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-colors-borrowers-root-1440.png",
+      "sha256": "75af34326b3122156a996dca7fdbf6f3a66d22df8534e1c3b261d5bfbeabe2d6",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-colors-borrowers-root-440.png",
+      "sha256": "b5f7cd352a0ab2091a2fbbb547e3172c3e7583bc53e80762f01e0c48421fa44e",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-colors-borrowers-root-820.png",
+      "sha256": "b17750dd960350d5c6bfb5bd5c1f8e6be2d072594e39ccc49dd460aa2612935f",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-colors-collection-detail-1180.png",
+      "sha256": "3eae195f6a296905f2209b6997ad8d9963982b768dcdd3bef60a5e1df05e6bd8",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-colors-collection-detail-1440.png",
+      "sha256": "89ed941f1d5bbb6c7a7b790f9e6ca9506661c2f15712bccb36dc4c406aa30de9",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-colors-collection-detail-440.png",
+      "sha256": "aa692ac7e3d8857a06f9c263f6429b68a066ed7866ff0718b9c978e44c14244c",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-colors-collection-detail-820.png",
+      "sha256": "ca4da5dfd5752225966461f29859ce5bfe67ec37ff720a8a1707f6c2ab73b52b",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-colors-collection-root-1180.png",
+      "sha256": "166207ee16b5105cf9554f6c2119745a02d8f4b60770803d87048da4a0a8d733",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-colors-collection-root-1440.png",
+      "sha256": "17260cce7388bb0bb2aeb7035ef0f909c29ff66af6b624d5796acfb1e71f8edb",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-colors-collection-root-440.png",
+      "sha256": "7e070b0d9442b48d2e13f2f2eb4a77ab4eeca9b39d5aafbc47189cab98e92db2",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-colors-collection-root-820.png",
+      "sha256": "81844cf0dd68fd85431b4a631be1fa9998dad575d026b89702d32741a3592c1f",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-colors-dashboard-root-1180.png",
+      "sha256": "395ab6facfa178b600a568ce7d4d7c75511db115111bf87db30b55f4f73ef81a",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-colors-dashboard-root-1440.png",
+      "sha256": "38d180457e60f66930ae194c2c222b913ae3b687d436ee767c5996dea1e105aa",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-colors-dashboard-root-440.png",
+      "sha256": "fda2f58ecb1b23a52e2e743c2dda3a58a7f5281c576389e829b29c24a28bb6d4",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-colors-dashboard-root-820.png",
+      "sha256": "06ec9a8ad5e854ecbe49553b0fa4d409eaa95b00a9a66cadbc0c8060d983903c",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-colors-payments-expanded-1180.png",
+      "sha256": "459321bae85e1e798f5bf34002e8a8fa136f400d03b944750202ec9e7081f9e6",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-colors-payments-expanded-1440.png",
+      "sha256": "79c041c16adc5c15860b20afb6fea5295af8a22501cd914aef3493189f1d3ff0",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-colors-payments-expanded-440.png",
+      "sha256": "7795ee22ec895f84c83167f60a81c066495351a7a7d051eb5693800aa152585e",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-colors-payments-expanded-820.png",
+      "sha256": "b9b7e072a0966198aad75b44bd96b25d75802368e883a3db869e05a33c77b5ad",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-colors-payments-root-1180.png",
+      "sha256": "52a0fe23250b2eb0a55c9707ce366e66899f1783ad11f20f0cdfc1af4206fb37",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-colors-payments-root-1440.png",
+      "sha256": "3c2a98905a39d2657a3e1b05b710024c0a7077ca068d99473035e67a21d59b64",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-colors-payments-root-440.png",
+      "sha256": "2037c11656699a85d99971f1ea153f4590f4c43d2588a51f7a7802c4cd64e479",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-colors-payments-root-820.png",
+      "sha256": "e1ead57feb8756fa1f0e3944df157ea1ba928ef9e3d7490c8cab0f94557f396e",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-remaining-account-detail-1440.png",
+      "sha256": "861c4a85c4373d86b9f49626c29f1e49e748aa84dd4c85709930936740d120ff",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-remaining-account-detail-440.png",
+      "sha256": "ad4362e4cfa1d99299038142eca0731ae08c354c7b1e640676c133c9ab6744ac",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-remaining-account-form-1440.png",
+      "sha256": "2023a878beea3ac3d04821f576f0f1bd03509b9528ba40538bc68d6b594cf53e",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-remaining-account-form-440.png",
+      "sha256": "913bd59fce6eb6de52c7fc6e569ca7facf4c888efee552ceda9a9b211ec0e750",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-remaining-analytics-1440.png",
+      "sha256": "38fdf1e41cb0f5f97a14fee697e0907820574b443ccf3da85243b90a2b7189c4",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-remaining-analytics-440.png",
+      "sha256": "ba24a59e7a8352a0955a5d44477d6503562a657b880ecb1fe4fbe0552ea12594",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-remaining-analytics-values-1180.png",
+      "sha256": "3e282c00bcd666d8571c111488ec3a0750ba26445278fe684c6e6a3d113e232b",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-remaining-analytics-values-1440.png",
+      "sha256": "9c93a680828a62c253a943ec9187ea040c9d66c42043fabb55e5d1005a40083a",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-remaining-analytics-values-440.png",
+      "sha256": "6aca8c88fe947910ae14f3b5527d936965d77c3eee22267e9815c0767261772f",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-remaining-analytics-values-820.png",
+      "sha256": "6d2dc287a9b751632afc343f091088634f00e5f71fbe5c5e0c33f13042f8564e",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-remaining-assessment-stale-detail-1440.png",
+      "sha256": "f0807e1076f82bb46a6f43dfb23d628d6bc13bc2fed5211524462898998d2092",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-remaining-assessment-stale-detail-440.png",
+      "sha256": "0efbb269b5abcef2968484a83a96481463a3ce570e47a17fd82dadbc04f9ac1c",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-remaining-assessments-1440.png",
+      "sha256": "9760276bdc0ae6876b51bddc0c395112f6cc8fa4f0e9769013d9a998b08207a7",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-remaining-assessments-440.png",
+      "sha256": "5712161095413c8437c4d044416e93cdb291802bde9bc95715deb2f89fa520b2",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-remaining-cash-1440.png",
+      "sha256": "fac0a64749bd4193b746d4e855eca49008a461106613fc733c6fa25495e31743",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-remaining-cash-440.png",
+      "sha256": "4a875659b1e1cf27925499caba87bcaaeba988d66b4e6871f58f30a226051900",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-remaining-cash-report-1440.png",
+      "sha256": "a0ed3bb699cb1f3dfc0e7784676cd819a2e59e76c9a41ef1cfec58b5f2c27832",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-remaining-cash-report-440.png",
+      "sha256": "8116055b5059b8945efd540c80f0afa05fbb3fd259847140ff1715b6dca25cca",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-remaining-contributions-1440.png",
+      "sha256": "5f74f7bb8e0db92bc5f2f29ab1586793e31bf73c1a642722491bc4020a701735",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-remaining-contributions-440.png",
+      "sha256": "02a5dfcc6c545f6aa1df41d9cc952218e4d2901eaf78f766b4a26896d2fe8bd8",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-remaining-expense-form-1440.png",
+      "sha256": "fe54022b87d58191e1db2d50e4ee44a9a00f29d73119ba23fc5a5f3a978684fe",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-remaining-expense-form-440.png",
+      "sha256": "3232445487f2f0d339f9a27c2f8a9c5a0c5a5b26dbd6eaf943f8aec30dd59ebb",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-remaining-expense-record-error-1440.png",
+      "sha256": "8e0e49e63d7474510580dae1297c63fca43c669cab44226c95e5b27bc0e9d183",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-remaining-expense-record-error-440.png",
+      "sha256": "cc77d95f07bda63d9d21d1c4722e9d2775e51fec98214b4ae2e323619d93cc74",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-remaining-expenses-1440.png",
+      "sha256": "ce692e8e6a051a1fa0ec7cddc2d5bdfefb01277da4618cc288a1198fa889a3a6",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-remaining-expenses-440.png",
+      "sha256": "c31092e48d45ca87a876b80d6f46cb7da30c4031867328b33487701c192efe94",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-remaining-financial-form-1440.png",
+      "sha256": "2eb40d099ef8ce837f72d08f50be7dbb405de7948649a10e118977017794c0f6",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-remaining-financial-form-440.png",
+      "sha256": "5f50a407a901da080e8f1131bec2a8cdbd685da8d4492c8e155d0f066dc5a3a0",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-remaining-financial-record-error-1440.png",
+      "sha256": "4f8a8bde811d48e6208e8d28a224acb536ad822bc4ccd7da6a9ef7d616e9670c",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-remaining-financial-record-error-440.png",
+      "sha256": "e86c0443718431b18355f259cdece9517ede3c67e88362d110b63b9f515645b8",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-remaining-management-form-1440.png",
+      "sha256": "25a13338485ca38a833c87294bfb0c5dbe7723edacbe281e89885ace94021a7e",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-remaining-management-form-440.png",
+      "sha256": "d10c98eb86d76e0b1cacb75ead5134128154ffca6a91b8bcfd92c5912508aa4b",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-remaining-management-partners-1440.png",
+      "sha256": "58f9c515d5871cf52bc4f8ffbdfc8b693434621f4e58315a0c9786793c1af96c",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-remaining-management-partners-440.png",
+      "sha256": "a03a9b595fc024545b4ef967846e3f33ca55c1e9f769314ca036cde062dbc523",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-remaining-management-record-error-1440.png",
+      "sha256": "596c31df77e4bf482555636aa385dbf45c269450bbc4021afd4c11f1afcbe7bf",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-remaining-management-record-error-440.png",
+      "sha256": "bcb07e716664a3a7c4c211c9410f9372c1ac5915090f6815c80e84fd6765990a",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-remaining-movement-detail-1440.png",
+      "sha256": "4f8a8bde811d48e6208e8d28a224acb536ad822bc4ccd7da6a9ef7d616e9670c",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-remaining-movement-detail-440.png",
+      "sha256": "e86c0443718431b18355f259cdece9517ede3c67e88362d110b63b9f515645b8",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-remaining-movement-form-1440.png",
+      "sha256": "ef1e2e096ca64ff9d9fad3a071f330d033a6445f49dee8725cb26c00d89d43a1",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-remaining-movement-form-440.png",
+      "sha256": "1015497177121ec9f57f276c1efec538628e3311696e9ff518f7d03213ec6e54",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-remaining-movements-1440.png",
+      "sha256": "5d75b341dc564dfb778a32459a65319c4afd3ed3d182b7263457da4d21053e47",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-remaining-movements-440.png",
+      "sha256": "eae079e7bc7dfcf4b8ded6c4a4355666060a6a9ed6eeaffef5a7a62951dd59d1",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-remaining-opening-error-1440.png",
+      "sha256": "87d05e2709878a4b9487e28fedf2b6c3eb0ce5e29513a8db688f7ee140ff4eab",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-remaining-opening-error-440.png",
+      "sha256": "ca1e3785856760cdb99a16931128e39bb8871d300b178b2b75abfe10bcdb4241",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-remaining-partner-detail-1440.png",
+      "sha256": "8296cb6109602472068abf4d5e75d5d92ee810b9ab65a71e4739fa81510ccc60",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-remaining-partner-detail-440.png",
+      "sha256": "8cda82a45f5977fb0ea3dae7e5de74d29843a6866fab0036723ba18226c89f55",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-remaining-partner-form-1440.png",
+      "sha256": "b408893b08b58ba7d1dd2f557687b1d72848849cadc4f458f6fc1fbf3f6e1949",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-remaining-partner-form-440.png",
+      "sha256": "697be80a4ee617cd40b2ee44c8c1f59fd713c51892e0081533d10cd7338a980e",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-remaining-settlement-detail-1440.png",
+      "sha256": "10b5ed89d38c39a2f32548c67ef33159ec819a5c5df6dfc2679f8db832ba3d20",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-remaining-settlement-detail-440.png",
+      "sha256": "7d5ad183b374510eba6afea34636642d45208ccb0cefa0a3dcdf852f75ac5afb",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-remaining-settlement-form-1440.png",
+      "sha256": "addba5fc3009841c570c9ff9548a5b3e7ddf6ae334a031f7ae8872a017d52a21",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-remaining-settlement-form-440.png",
+      "sha256": "cad1f37f7cb29dd6c1de6f78a734ac382bc152f04afda044bae71327ca845431",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-remaining-settlements-1440.png",
+      "sha256": "57325d8a176716e095854869d872865c2a59e8d2fed1749b4943a1f1c47097db",
+      "synthetic": true
+    },
+    {
+      "path": "outputs/r052-phase6/ux-remaining-settlements-440.png",
+      "sha256": "26bf5eee85a5ce6acd15bd9b7887ea33f61749a983f4f5a17bd704038dfbc46a",
+      "synthetic": true
+    }
+  ],
+  "limits": [
+    "Synthetic rendered ordinary states are visual review evidence, not live SQL or workflow acceptance",
+    "Actual-component linked harness toolbar/topbar is synthetic; full-shell color roots establish real navigation/chrome",
+    "Account detail/form has missing holder/bank fields; movement and settlement detail uses generic Contribution/Pending DTO; settlement list has one row only. These are representative shells, not faithful complete ordinary record or mixed-status evidence. The attempted supplement did not correct the pixels.",
+    "Assessment stale selected detail captured; current/awaiting result variants remain source-only",
+    "Move-interest/review, correction borrower replacement, loan-type conditional fields, charge confirmation, receipt gallery/media/OS chooser, complete restored note/draft/recovery variants remain source-only or earlier valid evidence; no invented complete render claim",
+    "PROD pink header source tokens reviewed only, no PROD live app observation or separate synthetic theme capture",
+    "English review with Thai names; physical device, complete Thai locale, all conditional colors/permutations unverified",
+    "Suggestions are not authorized for implementation; E owns findings and prioritization"
+  ],
+  "reused": [
+    "ux-tablet-coverage.json ordinary tablet frames valid for unchanged fields/layout; earlier action icons may be superseded",
+    "pinned-approved-coverage.json allocation/closing/restored source state evidence reused",
+    "action-icons-capture-source.ts /36screens current action fix verified separately"
+  ],
+  "excludedDuplicates": "Eight ux-remaining-*-final-*.png copies contain identical uncorrected pixels and are excluded from the canonical78-image inventory."
+}

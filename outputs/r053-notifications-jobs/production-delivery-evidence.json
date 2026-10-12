@@ -1,0 +1,115 @@
+{
+  "release": "R053",
+  "status": "Deployment applied; verification incomplete",
+  "releaseStatus": "Frozen",
+  "runtimeSourceCommit": "673223d504bb4c20b408fe97d05f8e8523f8d4f2",
+  "operatorSourceCommit": "dc4e75de24c99b5217c2895066957862a72e2cbb",
+  "agentCommit": "35c7d9e831a49d3e27d0b544728a7efb77a42928",
+  "database": {
+    "dev": 89,
+    "prod": 89,
+    "groupedPending": [
+      88,
+      89
+    ],
+    "authorityRestored": true
+  },
+  "ci": {
+    "databaseRun": 38169216136,
+    "databaseConclusion": "success",
+    "applicationRun": 38165391348,
+    "applicationConclusion": "failure",
+    "applicationSteps": "unit/build/audit/browser passed; Terraform format failure corrected with focused format/validate/24 mocks"
+  },
+  "hosting": {
+    "schemaVersion": 1,
+    "sourceCommit": "dc4e75de24c99b5217c2895066957862a72e2cbb",
+    "site": "mw-credit-prod-737787224638",
+    "version": "sites/mw-credit-prod-737787224638/versions/936affb987431783",
+    "release": "sites/mw-credit-prod-737787224638/releases/1791748994309000",
+    "publicVersion": "eb326b5d1df3862b9c524a64",
+    "fileCount": 14,
+    "cacheControl": "no-store",
+    "approvalReference": "Owner 12 October 2026: run CI, fix any issue, then promote to prod"
+  },
+  "runtime": {
+    "reader": "00003-gpl",
+    "command": "00004-xkp",
+    "jobs": "00003-q4h",
+    "notify": "00002-cth",
+    "imageDigest": "sha256:42534b790ebccd73448d5bc56490a959586ea5494604583443b630705a0c7778",
+    "jobsImageDigest": "sha256:11c149f746bceefc0b4c5d81dfce0295cdca533fa36d63c101f9971f3f643d56",
+    "jobsSourceCommit": "959b1181715547729e11588ba1bfdac10a8a9f20",
+    "imageDigestScope": "reader/command/notify remain42534b; jobs uses separate recovery digest"
+  },
+  "appsheet": {
+    "oltp": "3.000275",
+    "olap": "1.100215",
+    "chargesBotEnabled": false,
+    "analyticsBotEnabled": false,
+    "savedZeroIssuesDeployed": true
+  },
+  "jobs": {
+    "dailyChargesSchedule": "ENABLED",
+    "analyticsSchedule": "ENABLED",
+    "timeZone": "Asia/Bangkok",
+    "naturalExecutionVerified": false,
+    "firstObservation": {
+      "analytics": "HTTP400 on natural scheduled requests; narrow runtime/header diagnosis active",
+      "charges": "not yet due/no attempt",
+      "evidence": "MW-Credit-App outputs/r053-notifications-jobs/production-jobs-first-observation.json"
+    },
+    "pendingCorrection": {
+      "sourceCommit": "959b1181715547729e11588ba1bfdac10a8a9f20",
+      "scope": "RFC3339 offset validation and fixed diagnostics",
+      "focusedTests": "9/9 passed",
+      "imageDeployment": "applied jobs-only11c149/00003-q4h",
+      "nextNaturalInvocation": "pending; live400 cause not yet proven"
+    }
+  },
+  "notifications": {
+    "enrollmentApiEnabled": true,
+    "workerEnabled": true,
+    "captureEnabled": true,
+    "dispatchEnabled": true,
+    "recoverySchedule": "ENABLED",
+    "deviceAcceptance": "DEV actual receipt PASS; PROD Home Screen notification enrollment/authenticated enable route PASS",
+    "activationEvidence": "MW-Credit-App outputs/r053-notifications-jobs/production-notification-runtime-activation.json",
+    "captureEvidence": "MW-Credit-App outputs/r053-notifications-jobs/production-capture-activation-evidence.json",
+    "productionEnrollment": "owner confirmed Notifications enabled"
+  },
+  "agent": {
+    "sharedReceiptApiEnabled": true,
+    "cutoff": "2026-10-11T20:03:29.6477163+00:00",
+    "previouslyActiveTimersResumed": 6,
+    "readOnlyOidcStatusProbe": "passed",
+    "financialPostTested": false,
+    "remainingAppSheetDependenciesPreserved": true
+  },
+  "verificationPending": [
+    "next natural corrected analytics success and first due charges run",
+    "first genuine shared agent receipt-payment API outcome; no forced financial sample"
+  ],
+  "rollback": "Protected PROD87 and mw_agent dumps with isolated restore; captured Hosting baseline; agent private package/config backup. Restore only under reviewed recovery scope.",
+  "retainedArtifacts": {
+    "purpose": "Pinned recovery and continuation while verification is incomplete",
+    "reviewDate": "2026-10-19",
+    "disposableDatabaseClusters": "removed"
+  },
+  "tagCreated": false,
+  "agentEvidencePublicationCommit": "e8f43d5adcfacdbe5198f56a7e6e330766cdbd07",
+  "devNotificationProof": {
+    "registrationUi": "owner confirmed enabled",
+    "activeOwnerAppleSubscriptions": 1,
+    "providerAcceptance": "verified",
+    "deliveryState": "sent",
+    "attempts": 1,
+    "completedAt": "2026-10-12T01:32:22.828Z",
+    "deviceReceipt": "owner confirmed received YES",
+    "captureEnabled": false,
+    "recoverySchedulerState": "PAUSED",
+    "financialRowsWritten": 0,
+    "evidence": "MW-Credit-App outputs/r053-notifications-jobs/dev-owner-notification-provider-proof.json",
+    "deviceGate": "PASS"
+  }
+}

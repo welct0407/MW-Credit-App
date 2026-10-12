@@ -1,0 +1,27 @@
+{
+  "checkedAtUtc": "2026-10-07T11:42:28.7810865Z",
+  "revision": "mw-credit-app-read-dev-00003-pzr",
+  "mode": "uid-pinned",
+  "scope": "Anonymous static health and denial only; separate from owner-reported pre-pin login/list/detail",
+  "results": [
+    {
+      "path": "/health",
+      "status": 200,
+      "cacheControl": "no-store",
+      "body": {
+        "status": "ok",
+        "environment": "dev",
+        "service": "borrower-read"
+      }
+    },
+    {
+      "path": "/api/borrowers",
+      "status": 401,
+      "cacheControl": "no-store",
+      "body": {
+        "ok": false,
+        "code": "sign_in_required"
+      }
+    }
+  ]
+}

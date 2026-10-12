@@ -3,7 +3,7 @@ param([switch]$Backup)
 . "$PSScriptRoot/Common.ps1"
 $target=Get-DbEnvironment development
 $bin=Get-PgBin
-$private='C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r011-20260920'
+$private='C:/Users/ideaadmin/Documents/ChatGPT/AppSheet-Loan-Project/r011-20260920'
 $saved=@{}; foreach($n in @('PGPASSWORD','PGSSLMODE','PGCONNECT_TIMEOUT')){$saved[$n]=[Environment]::GetEnvironmentVariable($n,'Process')}
 try {
  $env:PGPASSWORD=(Get-Content -LiteralPath $target.passwordFile -Raw).Trim();$env:PGSSLMODE='require';$env:PGCONNECT_TIMEOUT='10'

@@ -1,0 +1,17 @@
+{
+  "planSha256": "9ad7e24291fa9e71c534b1abf0e3987e9d7e356489eee05fa9cad5c2811b03fd",
+  "observedAt": "2026-10-12T01:30:25.3529045Z",
+  "schedulerName": "projects/clever-oasis-508610-n7/locations/asia-southeast1/jobs/mw-credit-app-dev-notifications",
+  "revision": "mw-credit-app-notify-dev-00001-4xh",
+  "policyVersion": "2",
+  "image": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app/api@sha256:ccb475d6360786c316e0f6c6cbac02385152bcf94ffcb9a2a7efb9efea4fde82",
+  "activation": "enabled",
+  "oidc": {
+    "audience": "https://mw-credit-app-notify-dev-737787224638.asia-southeast1.run.app",
+    "serviceAccountEmail": "mw-credit-app-scheduler-dev@clever-oasis-508610-n7.iam.gserviceaccount.com"
+  },
+  "target": "https://mw-credit-app-notify-dev-737787224638.asia-southeast1.run.app/internal/dispatch",
+  "ready": "True",
+  "schedulerState": "PAUSED",
+  "applyExitCode": 0
+}

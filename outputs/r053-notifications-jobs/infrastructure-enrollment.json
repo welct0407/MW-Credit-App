@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "observedAt": "2026-10-11T23:39:13.6111927+07:00",
+  "environment": "dev",
+  "projectId": "clever-oasis-508610-n7",
+  "planSha256": "c2cf78739f53122769147068d6024f1cce581220f09ade68cfe496d9caf217fa",
+  "scope": "targeted isolated DEV worker module enrollment",
+  "applied": {
+    "changed": 0,
+    "workersCreated": 0,
+    "schedulesCreated": 0,
+    "destroyed": 0,
+    "secretPayloadVersionsCreated": 1,
+    "created": 14
+  },
+  "identities": [
+    "mw-credit-app-notify-dev",
+    "mw-credit-app-jobs-dev",
+    "mw-credit-app-scheduler-dev"
+  ],
+  "databaseReadback": {
+    "newWorkerEffectiveConnectDenied": 2,
+    "newWorkerProdSessions": 0,
+    "database": "loan_manager_prod",
+    "devConnectAllowed": 2
+  },
+  "vapid": {
+    "pairMatches": true,
+    "subject": "mailto:welct0407@mw-credit.com",
+    "rotated": false,
+    "state": "ENABLED",
+    "version": "1",
+    "publicKeySha256": "eb7dfd3818af3393cc8b41176f9b8197467a3d9ad969f667e3688ce51b60531f",
+    "curve": "prime256v1"
+  },
+  "enrollmentPolicy": {
+    "apiParserPass": true,
+    "endpointPinned": false,
+    "dispatcherParserRejects": true,
+    "prepared": true,
+    "published": true,
+    "ownerVerified": true,
+    "payloadSha256": "e1b04d0dd7136c1f08166eb9ff2c0fc7f93f86ebb5606b81ea2cd82e344ae793",
+    "members": 1,
+    "evidenceSha256": "8e3f8a04a951673b8cd5f0870d00a19048e27cc1e85512808f6eae87f658b920",
+    "numericVersion": "1",
+    "payloadReadbackSha256": "e1b04d0dd7136c1f08166eb9ff2c0fc7f93f86ebb5606b81ea2cd82e344ae793"
+  },
+  "checks": {
+    "moduleMockCases": 7,
+    "commandIntegrationMockCases": 2,
+    "noLiveDeliveryClaim": true,
+    "moduleAndRootValidate": "pass",
+    "targetedPostapplyPlan": "no changes"
+  },
+  "limits": [
+    "No worker image or runtime deployed; no scheduler job exists",
+    "No DEV business job ownership handoff or notification send",
+    "Existing PROD and browser services unchanged",
+    "Targeted enrollment does not establish full legacy-root no-drift"
+  ],
+  "retention": {
+    "privateDirectory": "C:/Users/ideaadmin/Documents/ChatGPT/MW-Credit-App/terraform/r053-workers",
+    "reviewDate": "2026-10-18",
+    "temporaryHelpers": 0,
+    "purpose": "DEV operational state backup, reviewed plans and provider runtime"
+  }
+}

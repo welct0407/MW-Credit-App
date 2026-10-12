@@ -20,11 +20,15 @@ try {
     $start.WaitForExit()
     if ($start.ExitCode) { throw 'Local PostgreSQL failed to start' }
     $started=$true
+    & (Join-Path $bin 'createdb.exe') -h 127.0.0.1 -p $port -U postgres loan_manager_dev
+    if ($LASTEXITCODE) { throw 'Disposable environment database creation failed' }
     # V33's NOLOGIN owner is operator-managed in Cloud SQL. Provision it only
     # in this verified disposable server before rebuilding the migration chain.
-    & (Join-Path $bin 'psql.exe') -X -q -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $port -U postgres -d postgres -f (Join-Path $DbRepoRoot 'scripts/database/Test-AgentAuditPrerequisites.sql')
+    & (Join-Path $bin 'psql.exe') -X -q -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $port -U postgres -d loan_manager_dev -f (Join-Path $DbRepoRoot 'scripts/database/Test-AgentAuditPrerequisites.sql')
     if ($LASTEXITCODE) { throw 'Disposable audit owner prerequisite failed' }
-    $env:FLYWAY_URL="jdbc:postgresql://127.0.0.1:$port/postgres"
+    & (Join-Path $bin 'psql.exe') -X -q -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $port -U postgres -d loan_manager_dev -f (Join-Path $DbRepoRoot 'scripts/database/Test-AppRolePrerequisites.sql')
+    if ($LASTEXITCODE) { throw 'Disposable app role prerequisite failed' }
+    $env:FLYWAY_URL="jdbc:postgresql://127.0.0.1:$port/loan_manager_dev"
     $env:FLYWAY_USER='postgres'
     $env:FLYWAY_CONFIG_FILES=Join-Path $DbRepoRoot 'database/flyway.conf'
     Push-Location $DbRepoRoot
@@ -33,7 +37,7 @@ try {
             if (-not $PreMigrationSqlFile -or $PreMigrationTarget -lt 1) { throw 'Pre-migration fixture requires both SQL file and target version' }
             $pre = & (Get-FlywayPath) "-target=$PreMigrationTarget" '-outputType=json' migrate
             if ($LASTEXITCODE) { throw 'Pre-fixture migration failed' }
-            & (Join-Path $bin 'psql.exe') -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $port -U postgres -d postgres -f $PreMigrationSqlFile
+            & (Join-Path $bin 'psql.exe') -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $port -U postgres -d loan_manager_dev -f $PreMigrationSqlFile
             if ($LASTEXITCODE) { throw 'Pre-migration fixture failed' }
         }
         $first = & (Get-FlywayPath) '-outputType=json' migrate
@@ -47,50 +51,50 @@ try {
         $second = ($second -join "`n") | ConvertFrom-Json
         if (-not $second.success -or $second.migrationsExecuted -ne 0) { throw 'Second run was not a successful no-op' }
         if ($TestSqlFile) {
-            & (Join-Path $bin 'psql.exe') -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $port -U postgres -d postgres -f $TestSqlFile
+            & (Join-Path $bin 'psql.exe') -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $port -U postgres -d loan_manager_dev -f $TestSqlFile
             if ($LASTEXITCODE) { throw 'Supplemental SQL regression failed' }
         }
         if ($BusinessExpensesConcurrency) {
-            & "$PSScriptRoot/Test-BusinessExpensesConcurrency.ps1" -PgBin $bin -Port $port -OutputDirectory $testRoot
+            & "$PSScriptRoot/Test-BusinessExpensesConcurrency.ps1" -PgBin $bin -Port $port -OutputDirectory $testRoot -Database loan_manager_dev
         }
         if ($ExpenseReimbursementConcurrency) {
-            & "$PSScriptRoot/Test-ExpenseReimbursementConcurrency.ps1" -PgBin $bin -Port $port -OutputDirectory $testRoot
+            & "$PSScriptRoot/Test-ExpenseReimbursementConcurrency.ps1" -PgBin $bin -Port $port -OutputDirectory $testRoot -Database loan_manager_dev
         }
         if ($PaymentCrudConcurrency) {
-            & "$PSScriptRoot/Test-PaymentCrudConcurrency.ps1" -PgBin $bin -Port $port -OutputDirectory $testRoot
+            & "$PSScriptRoot/Test-PaymentCrudConcurrency.ps1" -PgBin $bin -Port $port -OutputDirectory $testRoot -Database loan_manager_dev
         }
         if ($ReceiptDeleteConcurrency) {
-            & "$PSScriptRoot/Test-ReceiptDeleteConcurrency.ps1" -PgBin $bin -Port $port -OutputDirectory $testRoot
+            & "$PSScriptRoot/Test-ReceiptDeleteConcurrency.ps1" -PgBin $bin -Port $port -OutputDirectory $testRoot -Database loan_manager_dev
         }
         if ($InterestReallocationConcurrency) {
-            & "$PSScriptRoot/Test-InterestReallocationConcurrency.ps1" -PgBin $bin -Port $port -OutputDirectory $testRoot
+            & "$PSScriptRoot/Test-InterestReallocationConcurrency.ps1" -PgBin $bin -Port $port -OutputDirectory $testRoot -Database loan_manager_dev
         }
         if ($LumpSumConcurrency) {
-            & "$PSScriptRoot/Test-LumpSumConcurrency.ps1" -PgBin $bin -Port $port -OutputDirectory $testRoot
+            & "$PSScriptRoot/Test-LumpSumConcurrency.ps1" -PgBin $bin -Port $port -OutputDirectory $testRoot -Database loan_manager_dev
         }
         if ($CorePaymentConcurrency) {
-            & "$PSScriptRoot/Test-CorePaymentConcurrency.ps1" -PgBin $bin -Port $port -OutputDirectory $testRoot
+            & "$PSScriptRoot/Test-CorePaymentConcurrency.ps1" -PgBin $bin -Port $port -OutputDirectory $testRoot -Database loan_manager_dev
         }
         if ($AtomicLoanCloseConcurrency) {
-            & "$PSScriptRoot/Test-AtomicLoanCloseConcurrency.ps1" -PgBin $bin -Port $port -OutputDirectory $testRoot
+            & "$PSScriptRoot/Test-AtomicLoanCloseConcurrency.ps1" -PgBin $bin -Port $port -OutputDirectory $testRoot -Database loan_manager_dev
         }
         if ($ChargeGenerationConcurrency) {
-            & "$PSScriptRoot/Test-ChargeGenerationConcurrency.ps1" -PgBin $bin -Port $port -OutputDirectory $testRoot
+            & "$PSScriptRoot/Test-ChargeGenerationConcurrency.ps1" -PgBin $bin -Port $port -OutputDirectory $testRoot -Database loan_manager_dev
         }
         if ($DefaultLoanConcurrency) {
-            & "$PSScriptRoot/Test-DefaultLoanConcurrency.ps1" -PgBin $bin -Port $port -OutputDirectory $testRoot
+            & "$PSScriptRoot/Test-DefaultLoanConcurrency.ps1" -PgBin $bin -Port $port -OutputDirectory $testRoot -Database loan_manager_dev
         }
         if ($R002Concurrency) {
-            & "$PSScriptRoot/Test-R002Concurrency.ps1" -PgBin $bin -Port $port -OutputDirectory $testRoot
+            & "$PSScriptRoot/Test-R002Concurrency.ps1" -PgBin $bin -Port $port -OutputDirectory $testRoot -Database loan_manager_dev
         }
         if ($R005Concurrency) {
-            & "$PSScriptRoot/Test-R005Concurrency.ps1" -PgBin $bin -Port $port -OutputDirectory $testRoot
+            & "$PSScriptRoot/Test-R005Concurrency.ps1" -PgBin $bin -Port $port -OutputDirectory $testRoot -Database loan_manager_dev
         }
         if ($R008Concurrency) {
-            & "$PSScriptRoot/Test-R008Concurrency.ps1" -PgBin $bin -Port $port -OutputDirectory $testRoot
+            & "$PSScriptRoot/Test-R008Concurrency.ps1" -PgBin $bin -Port $port -OutputDirectory $testRoot -Database loan_manager_dev
         }
         $dump = Join-Path $testRoot 'rebuilt.sql'
-        & (Join-Path $bin 'pg_dump.exe') -h 127.0.0.1 -p $port -U postgres -d postgres --schema-only --no-owner --no-privileges --schema=public --schema=assessment_lab --exclude-table=public.flyway_schema_history --file=$dump
+        & (Join-Path $bin 'pg_dump.exe') -h 127.0.0.1 -p $port -U postgres -d loan_manager_dev --schema-only --no-owner --no-privileges --schema=public --schema=assessment_lab --exclude-table=public.flyway_schema_history --file=$dump
         if ($LASTEXITCODE) { throw 'Rebuilt schema export failed' }
         & "$PSScriptRoot/Normalize-Schema.ps1" -InputFile $dump -OutputFile "$dump.normalized"
         # Initial V1 must be exactly reconstructible, not just syntactically valid.

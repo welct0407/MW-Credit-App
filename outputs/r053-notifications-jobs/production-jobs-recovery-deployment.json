@@ -1,0 +1,21 @@
+{
+  "scope": "Jobs service image only; other services and schedules unchanged",
+  "runtimeOutcome": "Pending next natural scheduled invocation",
+  "ready": "True",
+  "traffic": [
+    {
+      "latestRevision": true,
+      "percent": 100,
+      "revisionName": "mw-credit-app-jobs-prod-00003-q4h"
+    }
+  ],
+  "buildId": "625ecf30-3bbf-442e-9eda-f4b1f7a64a32",
+  "planSha256": "4e90f22fb4d8820c661b2adea384abc805fcb351f27423269ae022062410b441",
+  "sourceCommit": "959b1181715547729e11588ba1bfdac10a8a9f20",
+  "observedAt": "2026-10-12T01:43:00.0862643Z",
+  "applyExitCode": 0,
+  "revision": "mw-credit-app-jobs-prod-00003-q4h",
+  "recoveryOverride": "Shared workers.image cannot represent temporary split. Use retained jobs-only override and exact jobs resource target. Future full plan must preserve corrected jobs image and notify/API425 until explicit reconciliation.",
+  "image": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app-prod/api@sha256:11c149f746bceefc0b4c5d81dfce0295cdca533fa36d63c101f9971f3f643d56",
+  "buildStatus": "SUCCESS"
+}

@@ -27,12 +27,14 @@ def main():
  def run(command,**kw):
   return subprocess.run([str(x) for x in command],env=env,check=True,**kw)
  with socket.socket() as s:s.bind(('127.0.0.1',0));port=s.getsockname()[1]
- psql=[PG/'psql','-X','-v','ON_ERROR_STOP=1','-h','127.0.0.1','-p',port,'-U','postgres','-d','postgres']
- flyway=[SETUP/'flyway-13.6.0/flyway',f'-url=jdbc:postgresql://127.0.0.1:{port}/postgres','-user=postgres','-configFiles='+str(REPO/'database/flyway.conf'),'-locations=filesystem:'+str(migrations),'-outputType=json']
+ psql=[PG/'psql','-X','-v','ON_ERROR_STOP=1','-h','127.0.0.1','-p',port,'-U','postgres','-d','loan_manager_dev']
+ flyway=[SETUP/'flyway-13.6.0/flyway',f'-url=jdbc:postgresql://127.0.0.1:{port}/loan_manager_dev','-user=postgres','-configFiles='+str(REPO/'database/flyway.conf'),'-locations=filesystem:'+str(migrations),'-outputType=json']
  run([PG/'initdb','-D',data,'-U','postgres','--auth=trust','--encoding=UTF8','--locale=C'],stdout=subprocess.DEVNULL)
  run([PG/'pg_ctl','-D',data,'-l',root/'postgres.log','-o',f'-h 127.0.0.1 -p {port} -k {root}','-w','start'],stdout=subprocess.DEVNULL)
  try:
+  run([PG/'createdb','-h','127.0.0.1','-p',port,'-U','postgres','loan_manager_dev'],stdout=subprocess.DEVNULL)
   run(psql+['-f',REPO/'scripts/database/Test-AgentAuditPrerequisites.sql'],stdout=subprocess.DEVNULL)
+  run(psql+['-f',REPO/'scripts/database/Test-AppRolePrerequisites.sql'],stdout=subprocess.DEVNULL)
   if args.pre_sql or args.pre_target:
    if not args.pre_sql or not args.pre_target:raise ValueError('Both pre-migration fixture and target are required')
    run(flyway+[f'-target={args.pre_target}','migrate'],cwd=REPO,stdout=subprocess.DEVNULL)
@@ -54,9 +56,9 @@ def main():
    dest=adapted/source.name
    dest.write_text(source.read_text().replace('psql.exe','psql').replace(' -WindowStyle Hidden',''))
    with (root/(name+'.log')).open('w') as log:
-    run([SETUP/'powershell-7.5.4/pwsh','-NoProfile','-File',dest,'-PgBin',PG,'-Port',port,'-OutputDirectory',root],stdout=log,stderr=log)
+    run([SETUP/'powershell-7.5.4/pwsh','-NoProfile','-File',dest,'-PgBin',PG,'-Port',port,'-OutputDirectory',root,'-Database','loan_manager_dev'],stdout=log,stderr=log)
    checks.append(name)
-  run([PG/'pg_dump','-h','127.0.0.1','-p',port,'-U','postgres','-d','postgres','--schema-only','--no-owner','--no-privileges','--schema=public','--schema=assessment_lab','--exclude-table=public.flyway_schema_history','--file='+str(root/'rebuilt.sql')])
+  run([PG/'pg_dump','-h','127.0.0.1','-p',port,'-U','postgres','-d','loan_manager_dev','--schema-only','--no-owner','--no-privileges','--schema=public','--schema=assessment_lab','--exclude-table=public.flyway_schema_history','--file='+str(root/'rebuilt.sql')])
   run([SETUP/'powershell-7.5.4/pwsh','-NoProfile','-File',REPO/'scripts/database/Normalize-Schema.ps1','-InputFile',root/'rebuilt.sql','-OutputFile',root/'rebuilt.normalized.sql'])
   # A one-migration upgrade (for example V68 -> V69) is not a V1-only rebuild.
   if args.pre_target is None and first['migrationsExecuted']==1:

@@ -1,0 +1,120 @@
+{
+  "observedAt": "2026-10-08T11:58:39.638Z",
+  "source": "deployed backend4b49a3f",
+  "httpDraftFamily": {
+    "window": "bounded last2hours",
+    "postCount": 7,
+    "postStatuses": [
+      200
+    ],
+    "minServerSeconds": 0.315575107,
+    "maxServerSeconds": 0.616922252,
+    "noRequestUrlsExported": true
+  },
+  "sqlStages": {
+    "observedAt": "2026-10-08T11:58:39.638Z",
+    "scope": "DEV known synthetic paid fixture; read-only SQL stages, not HTTP/auth/CloudSQL IAM connector latency",
+    "connectionMs": 54.09,
+    "runs": [
+      {
+        "run": 1,
+        "totalMs": 136.76,
+        "stages": [
+          {
+            "stage": "business-clock",
+            "durationMs": 7.61
+          },
+          {
+            "stage": "borrower",
+            "durationMs": 16.03
+          },
+          {
+            "stage": "pending-source",
+            "durationMs": 9.45
+          },
+          {
+            "stage": "invalid-source",
+            "durationMs": 22.22
+          },
+          {
+            "stage": "eligible-charges",
+            "durationMs": 69.51
+          },
+          {
+            "stage": "active-accounts",
+            "durationMs": 10.5
+          }
+        ],
+        "eligibleChargeCount": 0
+      },
+      {
+        "run": 2,
+        "totalMs": 27.08,
+        "stages": [
+          {
+            "stage": "business-clock",
+            "durationMs": 3.84
+          },
+          {
+            "stage": "borrower",
+            "durationMs": 3.92
+          },
+          {
+            "stage": "pending-source",
+            "durationMs": 3.79
+          },
+          {
+            "stage": "invalid-source",
+            "durationMs": 5.98
+          },
+          {
+            "stage": "eligible-charges",
+            "durationMs": 4.51
+          },
+          {
+            "stage": "active-accounts",
+            "durationMs": 4.95
+          }
+        ],
+        "eligibleChargeCount": 0
+      },
+      {
+        "run": 3,
+        "totalMs": 24.14,
+        "stages": [
+          {
+            "stage": "business-clock",
+            "durationMs": 3.56
+          },
+          {
+            "stage": "borrower",
+            "durationMs": 3.52
+          },
+          {
+            "stage": "pending-source",
+            "durationMs": 3.59
+          },
+          {
+            "stage": "invalid-source",
+            "durationMs": 5.59
+          },
+          {
+            "stage": "eligible-charges",
+            "durationMs": 4.2
+          },
+          {
+            "stage": "active-accounts",
+            "durationMs": 3.6
+          }
+        ],
+        "eligibleChargeCount": 0
+      }
+    ],
+    "limitations": [
+      "Fixture has no eligible residual charges after the accepted payment",
+      "Operator connection differs from deployed IAM identity",
+      "No financial request, row IDs, names or amounts exported"
+    ]
+  },
+  "conclusion": "Busy feedback is justified; evidence does not justify infrastructure changes or removing fresh review validation"
+}

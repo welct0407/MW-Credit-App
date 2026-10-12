@@ -1,0 +1,130 @@
+{
+  "checkedAt": "2026-10-08T00:54:33.578Z",
+  "source": "2eaa56cba324f14b13e257841a22e3a764a54528",
+  "revision": "mw-credit-app-read-dev-00011-z44",
+  "scope": "Unsigned boundary only; synthetic identifiers; no owner login, business reads, or frontend probes.",
+  "results": [
+    {
+      "name": "unsigned directory",
+      "status": 401,
+      "expected": 401,
+      "headers": {
+        "cacheControl": "no-store",
+        "vary": "Origin",
+        "allowOrigin": null,
+        "allowMethods": null
+      },
+      "body": {
+        "ok": false,
+        "code": "sign_in_required"
+      },
+      "pass": true
+    },
+    {
+      "name": "unsigned synthetic detail",
+      "status": 401,
+      "expected": 401,
+      "headers": {
+        "cacheControl": "no-store",
+        "vary": "Origin",
+        "allowOrigin": null,
+        "allowMethods": null
+      },
+      "body": {
+        "ok": false,
+        "code": "sign_in_required"
+      },
+      "pass": true
+    },
+    {
+      "name": "unsigned related loans",
+      "status": 401,
+      "expected": 401,
+      "headers": {
+        "cacheControl": "no-store",
+        "vary": "Origin",
+        "allowOrigin": null,
+        "allowMethods": null
+      },
+      "body": {
+        "ok": false,
+        "code": "sign_in_required"
+      },
+      "pass": true
+    },
+    {
+      "name": "invalid token",
+      "status": 401,
+      "expected": 401,
+      "headers": {
+        "cacheControl": "no-store",
+        "vary": "Origin",
+        "allowOrigin": "https://dev-lm.mw-credit.com",
+        "allowMethods": null
+      },
+      "body": {
+        "ok": false,
+        "code": "session_invalid"
+      },
+      "pass": true
+    },
+    {
+      "name": "bad origin",
+      "status": 403,
+      "expected": 403,
+      "headers": {
+        "cacheControl": "no-store",
+        "vary": "Origin",
+        "allowOrigin": null,
+        "allowMethods": null
+      },
+      "body": {
+        "ok": false,
+        "code": "origin_denied"
+      },
+      "pass": true
+    },
+    {
+      "name": "canonical preflight",
+      "status": 204,
+      "expected": 204,
+      "headers": {
+        "cacheControl": "no-store",
+        "vary": "Origin",
+        "allowOrigin": "https://dev-lm.mw-credit.com",
+        "allowMethods": "GET"
+      },
+      "body": null,
+      "pass": true
+    },
+    {
+      "name": "fallback preflight",
+      "status": 204,
+      "expected": 204,
+      "headers": {
+        "cacheControl": "no-store",
+        "vary": "Origin",
+        "allowOrigin": "https://mw-credit-app-dev-737787224638.web.app",
+        "allowMethods": "GET"
+      },
+      "body": null,
+      "pass": true
+    },
+    {
+      "name": "write preflight denied",
+      "status": 403,
+      "expected": 403,
+      "headers": {
+        "cacheControl": "no-store",
+        "vary": "Origin",
+        "allowOrigin": "https://dev-lm.mw-credit.com",
+        "allowMethods": null
+      },
+      "body": {
+        "ok": false,
+        "code": "origin_denied"
+      },
+      "pass": true
+    }
+  ]
+}

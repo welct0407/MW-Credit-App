@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "scope": "operator-helper-v2-only",
+  "startedAt": "2026-10-11T20:43:22.5710845+07:00",
+  "finishedAt": "2026-10-11T20:51:34.8735344+07:00",
+  "exitCode": 0,
+  "databaseCi": "passed",
+  "browserCiRerun": false,
+  "focusedUnitTests": 4,
+  "focusedIntegrationTests": 3,
+  "sourceSha256": {
+    "scripts/database/grouped-owner-maintenance.mjs": "ca897a3a20c92d5960ed758e0a191b23ca19c2e8be14ae467426c91873a29407",
+    "tests/unit/grouped-owner-maintenance.test.mjs": "a61bf36fffeec45202a80c7d1a0755015bd9eb36c35eddcf3ff88d9be4e5ca32",
+    "tests/integration/grouped-owner-maintenance-independent.test.mjs": "2d5f7ad341d3f2f17e14ff6f56adec7dc87a13d4d8a8e8e6630d8bb3726da109"
+  },
+  "privateLogSha256": "e23da8e37373592b1384a282b1ff0ae36ec7677ff977e469baf404b3e9cdd31f",
+  "cleanup": {
+    "allAbsent": true,
+    "freeGiB": 66.108,
+    "ownedFixtureCount": 13
+  },
+  "privateDiagnostics": {
+    "reviewBy": "2026-10-18",
+    "purpose": "Durable CI completion and cleanup evidence"
+  }
+}

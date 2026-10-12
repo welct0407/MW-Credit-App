@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "release": "R052",
+  "status": "Phase5 unified receiving checkpoint tested/deployed/read-only verified; owner acceptance pending",
+  "productBaseCommit": "373aec1c347e109939f964eecfe3fa610dab8a78",
+  "testEvidenceCommit": "dbae90cfd41872ea2fbecc04c6619a771bda2657",
+  "migration82Sha256": "82c7475634aa4df6e7286506f0854e42b39949b1e0a99dffbfe0f4cc27d551cf",
+  "ci": {
+    "initialDevelopmentRun": 37798269942,
+    "initialDevelopmentResult": "failure:136passed/8skipped/8failed",
+    "initialFailureKinds": [
+      "C mobile destination fixture fixed in dbae90c",
+      "old error-recovery nested refresh selector",
+      "actual Linux320px overflow323px"
+    ],
+    "databaseRun": 37798270190,
+    "databaseResult": "passed",
+    "currentDevelopmentRun": 37800625921,
+    "currentDevelopmentResult": "success",
+    "currentDatabaseRun": 37800626024,
+    "currentDatabaseResult": "success",
+    "localMaintainedTestCI": "passed; owned clusters stopped",
+    "independentFinancial": "20/20 C19+B1 passed",
+    "independentUI": "59/60 then corrected affected2/2; final strict geometry/recovery8/8 passed; full Linux Development passed"
+  },
+  "artifacts": {
+    "imageSourceCommit": "373aec1c347e109939f964eecfe3fa610dab8a78",
+    "cloudBuild": "ce1f45ca-9b75-4432-9dde-436bf5c8b6ce",
+    "imageDigest": "sha256:40346325b60d532b53dde34a7db4c3f8c28d0102ef68394aebf58ed69e71effe",
+    "containerSmoke": "passed real decoder/bootstrap fail-closed; no live auth claim",
+    "frontendSourceCommit": "8803b6d35371257e37efc21d02e5d2d3baebf38f",
+    "frontendBundle": "index-2YJpeEdU.js",
+    "frontendStatus": "deployed",
+    "hostingVersion": "416c250e14e60e61",
+    "hostingRelease": "1791474204919000",
+    "commandRevision": "mw-credit-app-command-dev-00004-h44"
+  },
+  "recovery": {
+    "freshDevVersion": 81,
+    "restoredHistoryRows": 81,
+    "restoredPublicTables": 24,
+    "completedAt": "2026-10-08T15:34:03.2890402Z",
+    "dumpSha256": "57121c1dd53d681ca4d0d1db56f823f40fdbd3e1f07a2496b5cd3e069d6faee0",
+    "privateRecoveryRetained": true,
+    "refreshIfInterveningOwnerWrites": true
+  },
+  "preparedPlan": {
+    "actions": "0add/1commandimageonlyupdate/0destroy",
+    "planSha256": "2a8319df7e8435cd2252ff5cdf055e67fc070b1280f1b0deec5d0ca9ae29c7bc",
+    "unchangedConfigIdentityIamStorageReader": true,
+    "applied": true
+  },
+  "limits": [
+    "No live financial write/upload/CAS/new synthetic fixture in this batch",
+    "AppSheet legacy engine and v3-v5 replay retained; no new tables/columns",
+    "Notifications Phase8; PROD77 unchanged; no permission expansion",
+    "U15 local request timings are not cold/warm/cloud speed evidence",
+    "Owner acceptance separate"
+  ],
+  "evidence": [
+    "batch.md",
+    "independent-verification.md",
+    "independent-source-hashes.json",
+    "../r052-unified-receive-payment/design-and-test-plan.md",
+    "live-readonly-smoke.md"
+  ],
+  "finalSourceCommit": "8803b6d35371257e37efc21d02e5d2d3baebf38f",
+  "deployment": {
+    "devDatabase": "loan_manager_dev",
+    "version": 82,
+    "successfulHistoryRows": 82,
+    "failedHistoryRows": 0,
+    "protectedPrivileges": "Exact original operator membership/schema ACLs restored; runtime no journal INSERT/owner/creator membership",
+    "commandReady": true,
+    "healthStatus": 200,
+    "anonymousStatus": 401,
+    "catalogObservedAt": "2026-10-08T15:35:53.161Z",
+    "terraformFinalPlan": "no changes",
+    "dictionaryValidation": {
+      "documents": 1545,
+      "errors": 0
+    },
+    "ownerReadOnlySmoke": "passed exact frontend bundle; saved synthetic draft/history preserved and normal eligible read form rendered; no financial command"
+  },
+  "rollback": {
+    "containment": "After v6 payments exist, retain v6-capable API and both DB engines while containing new submission or reverting frontend; do not blindly restore a v5-only API without proven v6 status/history/pending recovery compatibility",
+    "database": "Frontend/API rollback does not undo migration or financial writes; never overwrite later owner payments with the retained logical backup",
+    "retirement": "Legacy retirement after cutover requires governed historical correction/replay compatibility; preserve audit/journal/history"
+  }
+}

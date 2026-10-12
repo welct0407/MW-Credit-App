@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "runId": "38139391405",
+  "sourceCommit": "b40c69526bc40b2ef3f6ab6b631df8c51695c921",
+  "repository": "welct0407/MW-Credit-App",
+  "workflowPath": ".github/workflows/ci.yml",
+  "status": "completed",
+  "conclusion": "success",
+  "fullBrowserStep": "success",
+  "completedAt": "2026-10-11T12:34:54Z",
+  "url": "https://github.com/welct0407/MW-Credit-App/actions/runs/38139391405",
+  "event": "workflow_dispatch",
+  "checkpointRecovery": "Original attempt38138727905 found two harness gaps across browser/database; two focused fixture fixes were batched before this retry. No runtime or migration changes."
+}

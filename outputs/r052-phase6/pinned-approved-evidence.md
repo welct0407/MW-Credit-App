@@ -1,0 +1,9 @@
+# Seven approved pinned UX refinements — 11 October 2026
+
+Focused checks PASS: two read-unit cases; allocation/Close4.1s; root captions/legends4.9s; initial phone Dashboard1.5s; English/Thai loan action2.1s. Exact source pins are in pinned-ux-source.json and capture hashes/limits in pinned-approved-coverage.json. 65 synthetic captures at440/820/1180/1440 support representative changedscreens. No CI or live financial writes.
+
+Payment read retains27 historical allocation rows with Charge Date Snapshot, LEFT JOIN labels and missinglabelnull; canonical correction unchanged. Two same-date loans are distinguishable in receiving review, correction entry/review and payment detail. Receiving restored27lines while currentGETpageonly25; both receiving/correction reviews showall27. Closing preview and confirmation showexactprincipal/interest/total/date; a changedhash retainsoriginalsummaryandCAS until Use current closing amount, then freshReview. Exactsumtests cover0.10+0.20,zero,wideBigIntprecision and unavailable mismatch.
+
+Inspected actualcaptures: readable Receive/Add captions, directory amountlegends, compactpaymentnoncolorstatussymbols, distinctLoanClose/Default/Generate/Deleteicons, tablet/desktopfullEN+Thaicaptions andphoneiconsonly. Fresh440DashboardForecast/Income startcollapsed, CashbeforeIncome; resizefromtablet correctlypreservesexpandeduserstate. All checkedviewports have nodocumenthorizontaloverflow.
+
+One fixture assertion initially expectedli but correctionreview usesparagraphs; changed toexact27paragraphs without weakeningcount. Initial testlauncher needed existingVite4173 because npmnotonPATH; fixedsetup, no productchange. Temporarycapture spec removed aftersavingrecipe; maintainedreadunits remain forfuturecheckpoints. Linkedharness chrome is synthetic; rootcaptures establishlive-shellpresentation. No physicaldeviceacceptance or fullregression claimed.

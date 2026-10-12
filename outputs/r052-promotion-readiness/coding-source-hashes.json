@@ -1,0 +1,177 @@
+{
+  "status": "coding-checkpoint-not-final-readiness",
+  "files": [
+    {
+      "path": "apps/pwa/pwa/sw.js",
+      "sha256": "4b57f1f8fabf97daf295103d24792b1f23310618f40567d736ec0497f753e1ec"
+    },
+    {
+      "path": "apps/pwa/src/Notifications.tsx",
+      "sha256": "e26e6ad5c0e3b471a60d9b9eb6d40f94b3baa379070dfeef5981457eeedac41c"
+    },
+    {
+      "path": "apps/pwa/src/environment.ts",
+      "sha256": "282e6f67bd841643c5f842991424b81faac1bbe0823580b24582c0bfb948291d"
+    },
+    {
+      "path": "apps/pwa/src/live-main.tsx",
+      "sha256": "69f765d68e45391d02c5f1c2d1c693d43681bcd3fd0756aab140beb8f7fbd301"
+    },
+    {
+      "path": "apps/pwa/src/owner-offline.ts",
+      "sha256": "6aa0046527dc07d1fe941aa98310380ae7067147c04e4a90521ac5ec5b74855e"
+    },
+    {
+      "path": "apps/pwa/src/usePwa.ts",
+      "sha256": "305e219af485f914a5b35c9174a5a1fdf37d6fb5ce40c69b844e6fff77aba66c"
+    },
+    {
+      "path": "database/migrations/V86__durable_notification_and_job_state.sql",
+      "sha256": "af9227720a21f45eecc506894db58f230ecd3de6a0db7cc6fa1522da16148eaa"
+    },
+    {
+      "path": "database/migrations/V87__database_bound_application_roles.sql",
+      "sha256": "e360d46400a30a6d12d24fe7574350001753ce3ea1d65e9dd7c8103ceb1e8325"
+    },
+    {
+      "path": "package-lock.json",
+      "sha256": "d0363d3fa694b8c0ff2dc831c0643f015cd02bf118d6571e6efbbf10554fefdc"
+    },
+    {
+      "path": "package.json",
+      "sha256": "f9111f646bf4be938baedf70177168ba1d57074300cfed2be4c8f076943d3868"
+    },
+    {
+      "path": "scripts/database/app-role-policy.mjs",
+      "sha256": "89f9ec43732aacdb60df05ba69b13921104c2db045f5dd53c401047acb39d1e3"
+    },
+    {
+      "path": "scripts/production/build-business-candidate.mjs",
+      "sha256": "62060c9b5e0f65e9637c9cbda58201044e615b1482a846924797d0aa2b59e916"
+    },
+    {
+      "path": "services/api/borrower-read-store.mjs",
+      "sha256": "f029407403eb139abdf17248c85cd6b5cd87dce5868514c3582575b7d624d23e"
+    },
+    {
+      "path": "services/api/dev-read-handler.mjs",
+      "sha256": "82408641b97fc585d53e0f3242b73b7c180641fd1212c61cdfe1bef90e7d6e04"
+    },
+    {
+      "path": "services/jobs/runner.mjs",
+      "sha256": "b7f8577228e480c601d2c4e3cfd8ff57041ef81407b949f7a690d40a63262073"
+    },
+    {
+      "path": "services/notifications/dispatcher.mjs",
+      "sha256": "cc88ec3da419875a1c8a0df89a3e1cdf5ef5a9ce4b627d68b7662ed5f04e71e9"
+    },
+    {
+      "path": "services/notifications/handler.mjs",
+      "sha256": "c2d4527c0030d62c8db57adb84cc0e59343c5f8c5e3f37e41597f859bf0d5661"
+    },
+    {
+      "path": "services/notifications/store.mjs",
+      "sha256": "e47dea72ff28e9b97b075048d86d351763e9d39bab005bbbd812470a9bb741fc"
+    },
+    {
+      "path": "services/notifications/web-push.mjs",
+      "sha256": "aaa417bd53e2f7de9a48733d92c81083fdcfe9d6161a20c662eccc712d122d3a"
+    },
+    {
+      "path": "services/notifications/worker.mjs",
+      "sha256": "70fdd1f4f1c5b94b5c5d84da0f7feb805566585094e8758a10ea024f2cc8af33"
+    },
+    {
+      "path": "services/payment-command/draft.mjs",
+      "sha256": "e199fdb3eb0e53c6128234af1f2c4d3f9dacb9152383cd2ef90295f86689ed27"
+    },
+    {
+      "path": "services/payment-command/handler.mjs",
+      "sha256": "b524e8cd93601c84f8ef9f6a2524a9a51cf67a0caaf989d4911883b512e64d2a"
+    },
+    {
+      "path": "services/payment-command/store.mjs",
+      "sha256": "82208eba36adeb31e979a222c2d97701db20b8cead63cb6b9ae2408cf7340c50"
+    },
+    {
+      "path": "services/production/business-config.mjs",
+      "sha256": "132ee062e3f9f93b66fc175fc8af1083fe61da56076e3aa8101c1e51ba735254"
+    },
+    {
+      "path": "services/production/business-policy.mjs",
+      "sha256": "81032b7bbc3d03664f7629b09692cedac040f9476d01464c0e5f634fe3b85b1e"
+    },
+    {
+      "path": "services/production/business-principal.mjs",
+      "sha256": "ad09dee918d0e20a17ac2b26b7fb13c022e06a6dd98a36698faa10ad25454378"
+    },
+    {
+      "path": "services/production/business-runtime.mjs",
+      "sha256": "2faf1171257c7578468360104d09fead7fd75dcbe6f4a32e8c7443ccad5d3b3d"
+    },
+    {
+      "path": "services/production/business-server.mjs",
+      "sha256": "a16f2c5383dc9a3282460c5a03bca05d2adbee935214989dc4ab4a1f0849f280"
+    },
+    {
+      "path": "services/production/business-target.mjs",
+      "sha256": "50aebc6e2ccf49bf096a8fd857dd0602eed85ace372be9caf6aea1c8a89b2de3"
+    },
+    {
+      "path": "services/receipts/command-receipts.mjs",
+      "sha256": "a28f9ad0dc7d44c148708dedd2ee70659c7cfa98b644874445b1dcd07baec950"
+    },
+    {
+      "path": "services/receipts/dev-receipt-adapter.mjs",
+      "sha256": "c285dafd84e1885b83d9958e36de8a3dc825cc1be4ad754167902f3ba7ccb0c2"
+    },
+    {
+      "path": "services/receipts/gcs-transport.mjs",
+      "sha256": "933c13e418b92fb3e5f3ef79f49d4fcda9d699ff5d120bdcb35852364647205f"
+    },
+    {
+      "path": "services/receipts/production-native-catalog.mjs",
+      "sha256": "1f7abc8f2c1fbc831651d8eea45ddb7866b63381ab13348a58df91b7e120b3ac"
+    },
+    {
+      "path": "services/receipts/production-source-receipts.mjs",
+      "sha256": "17d24ebace9bf130342b6221f7a42038bac3ea9eb604d114b81e40008e94e9ac"
+    },
+    {
+      "path": "tests/integration/Run-RoleIsolation.ps1",
+      "sha256": "8699d9f2b8cd9f2563037f724b057b6ee074a2280cef8df52a41b75b02a639eb"
+    },
+    {
+      "path": "tests/integration/phase8-identity-fixture.sql",
+      "sha256": "a6ed5f23809ea28ea7bd009b245a3bff2aa5d8edf0f7fd2ae64047baf318d659"
+    },
+    {
+      "path": "tests/integration/phase8-notifications.test.mjs",
+      "sha256": "b1bdfdcc7d4a9b00e4a6bd87dab52a157e6b26e28667798bf9ea7cbc1bf8992f"
+    },
+    {
+      "path": "tests/integration/role-isolation.test.mjs",
+      "sha256": "d60f178cde1f0ebbdc4adb01ac1c9f041dc3e6f278f8a679e04777ca575ec5a0"
+    },
+    {
+      "path": "tests/unit/notifications.test.mjs",
+      "sha256": "fcb866f65d051d873fabb7c78714544fae8f561bb18a50c4ee19307d6ea82b00"
+    },
+    {
+      "path": "tests/unit/production-build-environment.test.mjs",
+      "sha256": "655d1d2bb1d73a5a19bb58d01fd4f15ba92bd881ef0c51dc7dc34ab8451c9a31"
+    },
+    {
+      "path": "tests/unit/production-business.test.mjs",
+      "sha256": "239f5c8365d64fb63c635c2bd532ded9fe11580613a7a571487ca34605a7dba7"
+    },
+    {
+      "path": "tests/unit/production-receipts.test.mjs",
+      "sha256": "671f2487d7055d35244ef019cf3dd23d23c72560a5d9fbeed587bc593b701075"
+    },
+    {
+      "path": "vite.config.ts",
+      "sha256": "da6b25ee3210582c26785f430c6a4012449909e659053d530ac290dad09db357"
+    }
+  ]
+}

@@ -3,7 +3,7 @@ param()
 . "$PSScriptRoot/Common.ps1"
 $target=Get-DbEnvironment development
 if($target.host -ne '34.158.38.171'){throw 'Reviewed development host required'}
-$private='C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/default-loan-20260915'
+$private='C:/Users/ideaadmin/Documents/ChatGPT/AppSheet-Loan-Project/default-loan-20260915'
 New-Item -ItemType Directory -Force -Path $private | Out-Null
 $dump=Join-Path $private 'development-before.dump'
 if(Test-Path -LiteralPath $dump){throw 'Do not overwrite the rollback snapshot'}

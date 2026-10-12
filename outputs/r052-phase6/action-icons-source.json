@@ -1,0 +1,55 @@
+{
+  "baseline": "13cbd9b",
+  "build": "DqWqgSXP",
+  "css": "wfkw17mC",
+  "checks": [
+    "tsc --noEmit + Vite live-dev PASS",
+    "git diff --check PASS"
+  ],
+  "files": [
+    {
+      "path": "apps/pwa/src/BorrowerRecord.tsx",
+      "sha256": "5A8B0A3408961CB9C7ACC3A1912F0692AD6CCB4654F76F8C79D25EF0E9EC09DD"
+    },
+    {
+      "path": "apps/pwa/src/ChargeRecord.tsx",
+      "sha256": "D275DBEC97458F8DEF88123AB3CFD22DEFC089F8A176A51D1FA54126DB67F511"
+    },
+    {
+      "path": "apps/pwa/src/ExpenseRecords.tsx",
+      "sha256": "3A7855865C9B9C0DD1E5E1F86253ECEF22A5D2EB58063CC50A469889E0F5FF0B"
+    },
+    {
+      "path": "apps/pwa/src/ManagementAssessments.tsx",
+      "sha256": "2B70094709DF427F713459D2E5ED2B2EBCBF2175FEBF2E817B4BC71C86C35261"
+    },
+    {
+      "path": "apps/pwa/src/ManagementFinancialWorkspace.tsx",
+      "sha256": "C4F9ABF52420AA60CEC843045AFB74D67D4D295E498B131AA81FF3F1F1D42AA2"
+    },
+    {
+      "path": "apps/pwa/src/ManagementWorkspace.tsx",
+      "sha256": "A63FA8F942EBC413940624C7392211E37D8F7E595D3ED61DC1726EFAE3DA815B"
+    },
+    {
+      "path": "apps/pwa/src/PaymentRecord.tsx",
+      "sha256": "22BC7F8268AED5BFCC52E426B7F7C31DDEB2A932E4EB2731EE0E796A070B4A5C"
+    },
+    {
+      "path": "apps/pwa/src/RecordAction.tsx",
+      "sha256": "DDCBB2EEBBA747720D276BEECE07210F84CF8387AC6F002BABFAD2932F493F68"
+    },
+    {
+      "path": "apps/pwa/src/SelectedCharges.tsx",
+      "sha256": "B7040F7B5C1E37F8FD7C4D423DD23C240A4072DED9B15EA2BEBC72BE5CE8861A"
+    },
+    {
+      "path": "apps/pwa/src/live-main.tsx",
+      "sha256": "C585E024CFBD2402A516AB6F39638F896A92B156BD3F26E3BBF56B6266D1662E"
+    },
+    {
+      "path": "apps/pwa/src/live-style.css",
+      "sha256": "50173601733FCE02EA7BAD7B655CDC05F3419AD16904765F32EE84E24382C23C"
+    }
+  ]
+}
