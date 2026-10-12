@@ -4,7 +4,7 @@ import {environmentForMode,offlineNamespace,liveConfiguration} from '../../apps/
 import {productionBuildEnvironment,buildProductionBusinessCandidate} from '../../scripts/production/build-business-candidate.mjs';
 import ts from 'typescript';
 import {runInNewContext} from 'node:vm';
-const config={schemaVersion:1,environment:'prod',canonicalOrigin:'https://lm.mw-credit.com',firebase:{projectId:'clever-oasis-508610-n7',authDomain:'clever-oasis-508610-n7.firebaseapp.com',apiKey:'AIza'+'a'.repeat(35),appId:'1:737787224638:web:abc123'},readerOrigin:'https://mw-credit-app-read-prod-737787224638.asia-southeast1.run.app',commandOrigin:'https://mw-credit-app-command-prod-737787224638.asia-southeast1.run.app',reportingUrl:'https://www.appsheet.com/start/e74dd368-654f-44d7-bccf-83cf361d1cdb'};
+const config={schemaVersion:1,environment:'prod',canonicalOrigin:'https://lm.mw-credit.com',firebase:{projectId:'clever-oasis-508610-n7',authDomain:'clever-oasis-508610-n7.firebaseapp.com',apiKey:'AIza'+'a'.repeat(35),appId:'1:737787224638:web:abc123'},readerOrigin:'https://mw-credit-app-read-prod-737787224638.asia-southeast1.run.app',commandOrigin:'https://mw-credit-app-command-prod-737787224638.asia-southeast1.run.app'};
 test('same shared identity has three separate offline namespaces; wrong issuer/unknown mode reject',()=>{
  const identity={issuer:'https://securetoken.google.com/clever-oasis-508610-n7',uid:'same-user'};
  const names=['synthetic','dev','prod'].map(e=>offlineNamespace(identity,e));assert.equal(new Set(names).size,3);assert.equal(names[1],'mw-credit-dev-owner:'+identity.issuer+':same-user');assert.notEqual(offlineNamespace({...identity,uid:'other-user'},'prod'),names[2]);assert.throws(()=>offlineNamespace({...identity,issuer:'wrong'},'prod'));assert.throws(()=>environmentForMode('production'));
@@ -20,14 +20,18 @@ test('production candidate uses separate marker, canonical worker and storage bi
  const prior=Object.fromEntries(ambientKeys.map(key=>[key,process.env[key]]));
  for(const key of ambientKeys)process.env[key]='forbidden-ambient-dev-sentinel';
  try{
-  const marker=await buildProductionBusinessCandidate({publicConfig:config,outDir:root});assert.equal(marker.mode,'live-prod');assert.equal(marker.offlineNamespace,'mw-credit-prod-owner');
+  const legacyConfig=Object.freeze({...config,reportingUrl:'https://www.appsheet.com/start/e74dd368-654f-44d7-bccf-83cf361d1cdb'});
+  assert.deepEqual(productionBuildEnvironment(legacyConfig),productionBuildEnvironment(config));
+  const marker=await buildProductionBusinessCandidate({publicConfig:legacyConfig,outDir:root});assert.equal(marker.mode,'live-prod');assert.equal(marker.offlineNamespace,'mw-credit-prod-owner');assert.equal(legacyConfig.reportingUrl,'https://www.appsheet.com/start/e74dd368-654f-44d7-bccf-83cf361d1cdb');
   assert.equal(JSON.parse(await readFile(join(root,'build-mode.json'),'utf8')).mode,'live-prod');assert.match(await readFile(join(root,'sw.js'),'utf8'),/const PREFIX = 'mw-credit-prod-public-'/);assert.equal(JSON.parse(await readFile(join(root,'manifest.webmanifest'),'utf8')).name,'MW Credit');assert.match(await readFile(join(root,'index.html'),'utf8'),/<title>MW Credit<\/title>/);
   assert.deepEqual(JSON.parse(await readFile(join(root,'production-public-config.json'),'utf8')),config);
   // Inspect the actual emitted executable config, not its separate JSON sidecar.
   const entry=JSON.parse(await readFile(join(root,'build-version.json'),'utf8')).entry;
   const javascript=await readFile(join(root,entry.slice(1)),'utf8');
-  for(const value of [config.readerOrigin,config.commandOrigin,config.firebase.apiKey,config.firebase.appId,config.reportingUrl])assert.ok(javascript.includes(value),`emitted JS missing ${value}`);
+  for(const value of [config.readerOrigin,config.commandOrigin,config.firebase.apiKey,config.firebase.appId])assert.ok(javascript.includes(value),`emitted JS missing ${value}`);
   assert.equal(javascript.includes('forbidden-ambient-dev-sentinel'),false);
+  assert.equal(javascript.includes('www.appsheet.com'),false);
+  assert.equal(javascript.includes('live-reporting-link'),false);
   assert.equal(/https:\/\/mw-credit-app-(?:read|command)-dev-[^"'\s]+/.test(javascript),false);
   const objects=[],functions=new Map();let configurationFunction;
   function visit(node){

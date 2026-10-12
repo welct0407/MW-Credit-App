@@ -1,0 +1,22 @@
+[
+  {
+    "path": "scripts/production/build-business-candidate.mjs",
+    "sha256": "c6e9e35ab5c82a9a0ffc5cc080effae664ec5015e2a25cc1cb309bff73db7f12"
+  },
+  {
+    "path": "tests/unit/production-build-environment.test.mjs",
+    "sha256": "fa1ffe87989988b4d591b13dc9a6da856af2385488b74d673753993576b7c1ba"
+  },
+  {
+    "path": "tests/e2e/phase5-final-ui-independent.spec.ts",
+    "sha256": "453fb7986055d69b5252661d05d408784ce5afa87b0e6517dfad483ea95d391b"
+  },
+  {
+    "path": "outputs/r053-appsheet-retirement/independent-verification.md",
+    "sha256": "051c78bce7de85f6ff6e10b10014bee0ec61c624d6dfcf116fc975bfe20b1fe0"
+  },
+  {
+    "path": "Change Logs/CHANGE_NOTES_R053_APPSHEET_RETIREMENT_2026-10-12.md",
+    "sha256": "f5562936b10c17920babdc0e1374b9b06d7149a99c939f278c044509eff89936"
+  }
+]

@@ -21,6 +21,11 @@ test('qualified compatibility is PROD-only, requires hash and exact binding; ada
  const storage={create:async()=>{throw Error('enabled-marker')},read:async()=>{}},decodeImage=async()=>{};
  const input={requestId:'12345678-1234-4234-8234-123456789abc',receiptId:'12345678-1234-4234-8234-123456789abd',actor:{issuer:'https://securetoken.google.com/clever-oasis-508610-n7',subject:'shared-user',partnerId:'synthetic-partner',loginEmail:'synthetic@example.invalid'},bytes:Buffer.from('synthetic-image'),mimeType:'image/png'};
  const compatibility={...PROD_RECEIPT_MAPPING,status:'verified-dev-render-and-prod-binding',evidenceReference:'a'.repeat(64)};
+ for(const [factory,mapping] of [[createProductionReceiptAdapter,PROD_RECEIPT_MAPPING],[createDevReceiptAdapter,DEV_RECEIPT_MAPPING]]){
+  const native={...mapping,status:'verified-native-render',evidenceReference:'b'.repeat(64)};
+  await assert.rejects(factory({storage,decodeImage,compatibility:native}).upload(input),/enabled-marker/);
+  for(const bad of [{...native,evidenceReference:'unhashed'},{...native,objectPrefix:'wrong'}])await assert.rejects(factory({storage,decodeImage,compatibility:bad}).upload(input),/receipt_unsupported/);
+ }
  await assert.rejects(createProductionReceiptAdapter({storage,decodeImage,compatibility}).upload(input),/enabled-marker/);
  for(const c of [undefined,{...compatibility,evidenceReference:'invalid'},{...compatibility,bucket:'wrong'},{...compatibility,objectPrefix:DEV_RECEIPT_MAPPING.objectPrefix}])await assert.rejects(createProductionReceiptAdapter({storage,decodeImage,compatibility:c}).upload(input),/receipt_unsupported/);
  await assert.rejects(createDevReceiptAdapter({storage,decodeImage,compatibility:{...compatibility,...DEV_RECEIPT_MAPPING}}).upload(input),/receipt_unsupported/);

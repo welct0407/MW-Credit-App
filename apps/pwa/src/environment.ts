@@ -12,7 +12,7 @@ export function liveConfiguration(e:Record<string,string|undefined>){
  if(environment==='synthetic'||e.VITE_FIREBASE_PROJECT_ID!=='clever-oasis-508610-n7'||!e.VITE_FIREBASE_API_KEY||!e.VITE_FIREBASE_APP_ID||e.VITE_FIREBASE_AUTH_DOMAIN!=='clever-oasis-508610-n7.firebaseapp.com'||e.VITE_FIREBASE_AUTH_TENANT_ID!==undefined)throw Error('unavailable');
  const apiOrigin=new URL(e.VITE_API_ORIGIN??'');
  if(apiOrigin.protocol!=='https:'||apiOrigin.origin!==e.VITE_API_ORIGIN||!new RegExp('^mw-credit-app-read-'+environment+'-[a-z0-9-]+(?:\\.[a-z0-9-]+)?\\.run\\.app$').test(apiOrigin.hostname))throw Error('unavailable');
- if(environment==='prod'&&(!commandOriginAllowed(e.VITE_COMMAND_API_ORIGIN??'',environment)||e.VITE_COMMAND_MODE!=='production-business'||e.VITE_COMMAND_FIXTURE_BORROWER_ID!==undefined||e.VITE_REPORTING_URL!=='https://www.appsheet.com/start/e74dd368-654f-44d7-bccf-83cf361d1cdb'))throw Error('unavailable');
+ if(environment==='prod'&&(!commandOriginAllowed(e.VITE_COMMAND_API_ORIGIN??'',environment)||e.VITE_COMMAND_MODE!=='production-business'||e.VITE_COMMAND_FIXTURE_BORROWER_ID!==undefined))throw Error('unavailable');
  return{environment,apiOrigin:apiOrigin.origin,firebase:{apiKey:e.VITE_FIREBASE_API_KEY,appId:e.VITE_FIREBASE_APP_ID,projectId:e.VITE_FIREBASE_PROJECT_ID,authDomain:e.VITE_FIREBASE_AUTH_DOMAIN}};
 }
 export function offlineNamespace(identity:{issuer:string;uid:string},environment:ApplicationEnvironment=applicationEnvironment){

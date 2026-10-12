@@ -10,13 +10,14 @@ export function generatedReceiptPaths({requestId,receiptId,mimeType},mapping=DEV
  const suffix=requestId.replaceAll('-','')+'/'+receiptId.replaceAll('-','')+(mimeType==='image/png'?'.png':'.jpg');
  return Object.freeze({bucket:mapping.bucket,storageReference:mapping.sqlPrefix+suffix,key:mapping.objectPrefix+suffix});
 }
-/** No SDK or credentials. Synthetic transport verification does not prove AppSheet rendering. */
+/** No SDK or credentials. Synthetic transport verification does not prove live rendering. */
 export function createDevReceiptAdapter(options={}){return createBoundReceiptAdapter(options,DEV_RECEIPT_MAPPING,'dev')}
 export function createProductionReceiptAdapter(options={}){return createBoundReceiptAdapter(options,PROD_RECEIPT_MAPPING,'prod')}
 function createBoundReceiptAdapter({storage,decodeImage,compatibility},mapping,environment) {
  if(!storage||typeof storage.create!=='function'||typeof storage.read!=='function'||typeof decodeImage!=='function')throw Error('Receipt dependencies required');
  const qualifiedProdReuse=environment==='prod'&&compatibility?.status==='verified-dev-render-and-prod-binding'&&/^[a-f0-9]{64}$/.test(compatibility.evidenceReference??'');
- const enabled=compatibility&&(['synthetic-transport-test','verified-appsheet-render'].includes(compatibility.status)||qualifiedProdReuse)&&typeof compatibility.evidenceReference==='string'&&compatibility.evidenceReference.trim()&&Object.entries(mapping).every(([k,v])=>compatibility[k]===v);
+ const nativeVerified=compatibility?.status==='verified-native-render'&&/^[a-f0-9]{64}$/.test(compatibility.evidenceReference??'');
+ const enabled=compatibility&&(nativeVerified||['synthetic-transport-test','verified-appsheet-render'].includes(compatibility.status)||qualifiedProdReuse)&&typeof compatibility.evidenceReference==='string'&&compatibility.evidenceReference.trim()&&Object.entries(mapping).every(([k,v])=>compatibility[k]===v);
  function guard(){if(!enabled)throw Error('receipt_unsupported')}
  function binding(requestId,receiptId,actor){if(!uuid(requestId)||!uuid(receiptId))throw Error('invalid_receipt');const canonical=canonicalActor(actor);return {actor:canonical,actorSha256:hash(JSON.stringify(canonical))};}
  async function verifyRead({requestId,receiptId,actor,mimeType,expectedGeneration}) {

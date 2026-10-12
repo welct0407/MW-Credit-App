@@ -25,8 +25,8 @@ export function loadProductionBusinessConfig(env) {
    if(env.FOUNDATION_ROLE!=='command'||!/^projects\/clever-oasis-508610-n7\/secrets\/mw-credit-app-prod-native-receipt-catalog\/versions\/[1-9][0-9]*$/.test(env.PROD_RECEIPT_CATALOG_SECRET_VERSION??''))fail();
    receiptCatalog=parseNativeProductionCatalog(env.PROD_RECEIPT_NATIVE_CATALOG_JSON,{environment:'prod',database:'loan_manager_prod',bucket:PROD_RECEIPT_MAPPING.bucket,objectRoot:PROD_RECEIPT_MAPPING.objectPrefix.slice(0,-4),sourceEvidenceSha256:env.PROD_RECEIPT_SOURCE_EVIDENCE_SHA256});
    try{receiptCompatibility=JSON.parse(env.PROD_RECEIPT_COMPATIBILITY_JSON)}catch{fail()}
-   // Qualified reuse is explicit: DEV rendering plus exact PROD binding is not a PROD GUI observation.
-   if(!receiptCompatibility||Object.keys(receiptCompatibility).sort().join(',')!=='bucket,evidenceReference,objectPrefix,sqlPrefix,status'||!['verified-appsheet-render','verified-dev-render-and-prod-binding'].includes(receiptCompatibility.status)||!/^[a-f0-9]{64}$/.test(receiptCompatibility.evidenceReference??'')||Object.entries(PROD_RECEIPT_MAPPING).some(([k,v])=>receiptCompatibility[k]!==v))fail();
+   // Native PWA verification is independent of AppSheet; retained historical evidence remains readable.
+   if(!receiptCompatibility||Object.keys(receiptCompatibility).sort().join(',')!=='bucket,evidenceReference,objectPrefix,sqlPrefix,status'||!['verified-native-render','verified-appsheet-render','verified-dev-render-and-prod-binding'].includes(receiptCompatibility.status)||!/^[a-f0-9]{64}$/.test(receiptCompatibility.evidenceReference??'')||Object.entries(PROD_RECEIPT_MAPPING).some(([k,v])=>receiptCompatibility[k]!==v))fail();
   }
   const policy=parseBusinessPolicy(env.PROD_CAPABILITY_POLICY_JSON);
   if(env.PROD_CAPABILITY_POLICY_SHA256!==policy.evidenceSha256||!/^projects\/clever-oasis-508610-n7\/secrets\/mw-credit-app-prod-capability-policy\/versions\/[1-9][0-9]*$/.test(env.PROD_CAPABILITY_POLICY_SECRET_VERSION??''))fail();
