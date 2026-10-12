@@ -1,0 +1,15 @@
+{
+  "checkpoint": "4E",
+  "dateBangkok": "2026-10-08",
+  "executor": "Agent D",
+  "command": ". ./scripts/Enter-Dev.ps1; ./scripts/database/Test-CI.ps1",
+  "exitCode": 0,
+  "runCount": 1,
+  "completedObservedUtc": "2026-10-08T04:58:49Z",
+  "scope": "Owned disposable loopback PostgreSQL only; complete maintained migration, business/concurrency and historical upgrade checks",
+  "appBaseline": "30b9ddcec7b1b1ecde63951d02a0ab0afcd1697b",
+  "v78Sha256": "8ea5009d29bf8c78fadcdaa478680defd3f161ef2a7e22e7999c2a2aa7170c30",
+  "migrationChanged": false,
+  "liveDevProdRecordedVersion": 77,
+  "limitations": "Does not run the new HTTP integration runner or establish live Firebase, Cloud SQL runtime grants, GCS rendering, events or deployment."
+}

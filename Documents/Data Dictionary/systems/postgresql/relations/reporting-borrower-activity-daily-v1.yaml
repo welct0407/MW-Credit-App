@@ -1,303 +1,317 @@
-{
-  "format": 1,
-  "identity": {
-    "system": "postgresql",
-    "component": "loan_manager_prod",
-    "scope": "production",
-    "kind": "relation",
-    "name": "public.reporting_borrower_activity_daily_v1"
-  },
-  "verification": {
-    "status": "documented",
-    "source": "outputs/r035-borrower-pages/dictionary-catalog.json"
-  },
-  "content": {
-    "definition": {
-      "schema": "public",
-      "name": "reporting_borrower_activity_daily_v1",
-      "kind": "v",
-      "owner": "postgres",
-      "row_security": false,
-      "force_row_security": false,
-      "replica_identity": "n",
-      "persistence": "p",
-      "is_partition": false,
-      "options": null,
-      "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,metabase_borrower_reader=r/postgres}",
-      "comment": null,
-      "view_definition": " WITH events AS (\n         SELECT reporting_borrower_loan_facts_v1.borrower_id,\n            reporting_borrower_loan_facts_v1.loan_date AS activity_date,\n            reporting_borrower_loan_facts_v1.original_principal AS principal_issued,\n            0::numeric AS principal_returned,\n            0::numeric AS interest_received,\n            1::bigint AS loans_issued,\n            (reporting_borrower_loan_facts_v1.borrowing_type = 'First loan'::text)::integer::bigint AS first_loans,\n            (reporting_borrower_loan_facts_v1.borrowing_type = 'Repeat loan'::text)::integer::bigint AS repeat_loans,\n            (reporting_borrower_loan_facts_v1.borrowing_type = 'Unavailable'::text)::integer::bigint AS unclassified_loans,\n            (reporting_borrower_loan_facts_v1.loan_date IS NULL OR reporting_borrower_loan_facts_v1.original_principal IS NULL OR reporting_borrower_loan_facts_v1.borrower_id IS NULL)::integer::bigint AS invalid_events\n           FROM reporting_borrower_loan_facts_v1\n        UNION ALL\n         SELECT l.\"Ref Borrowers\",\n            r.\"Payment Date\",\n            0::numeric AS \"numeric\",\n            r.\"Principal Paid\"::numeric AS \"Principal Paid\",\n            r.\"Interest Paid\"::numeric AS \"Interest Paid\",\n            0::bigint AS int8,\n            0::bigint AS int8,\n            0::bigint AS int8,\n            0::bigint AS int8,\n            (r.\"Payment Date\" IS NULL OR r.\"Principal Paid\" IS NULL OR r.\"Interest Paid\" IS NULL OR l.\"Ref Borrowers\" IS NULL)::integer::bigint AS int8\n           FROM olap_repayments_analytics r\n             LEFT JOIN olap_loans_analytics l ON l.\"Row ID\" = r.\"Ref Loans\"\n        )\n SELECT borrower_id,\n    activity_date,\n        CASE\n            WHEN bool_and(principal_issued IS NOT NULL) THEN sum(principal_issued)\n            ELSE NULL::numeric\n        END AS principal_issued,\n        CASE\n            WHEN bool_and(principal_returned IS NOT NULL) THEN sum(principal_returned)\n            ELSE NULL::numeric\n        END AS principal_returned,\n        CASE\n            WHEN bool_and(interest_received IS NOT NULL) THEN sum(interest_received)\n            ELSE NULL::numeric\n        END AS interest_received,\n    sum(loans_issued)::bigint AS loans_issued,\n    sum(first_loans)::bigint AS first_loans,\n    sum(repeat_loans)::bigint AS repeat_loans,\n    sum(unclassified_loans)::bigint AS unclassified_loans,\n    sum(invalid_events)::bigint AS invalid_events\n   FROM events\n  GROUP BY borrower_id, activity_date;",
-      "partition_key": null,
-      "partition_bound": null,
-      "parents": null,
-      "extension": null
-    },
-    "columns": {
-      "borrower_id": {
-        "schema": "public",
-        "relation": "reporting_borrower_activity_daily_v1",
-        "name": "borrower_id",
-        "ordinal": 1,
-        "data_type": "text",
-        "type_schema": "pg_catalog",
-        "type_name": "text",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "x",
-        "compression": "",
-        "default_expression": null,
-        "collation": "\"default\"",
-        "acl": null,
-        "comment": null
-      },
-      "activity_date": {
-        "schema": "public",
-        "relation": "reporting_borrower_activity_daily_v1",
-        "name": "activity_date",
-        "ordinal": 2,
-        "data_type": "date",
-        "type_schema": "pg_catalog",
-        "type_name": "date",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "p",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "principal_issued": {
-        "schema": "public",
-        "relation": "reporting_borrower_activity_daily_v1",
-        "name": "principal_issued",
-        "ordinal": 3,
-        "data_type": "numeric",
-        "type_schema": "pg_catalog",
-        "type_name": "numeric",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "m",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "principal_returned": {
-        "schema": "public",
-        "relation": "reporting_borrower_activity_daily_v1",
-        "name": "principal_returned",
-        "ordinal": 4,
-        "data_type": "numeric",
-        "type_schema": "pg_catalog",
-        "type_name": "numeric",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "m",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "interest_received": {
-        "schema": "public",
-        "relation": "reporting_borrower_activity_daily_v1",
-        "name": "interest_received",
-        "ordinal": 5,
-        "data_type": "numeric",
-        "type_schema": "pg_catalog",
-        "type_name": "numeric",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "m",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "loans_issued": {
-        "schema": "public",
-        "relation": "reporting_borrower_activity_daily_v1",
-        "name": "loans_issued",
-        "ordinal": 6,
-        "data_type": "bigint",
-        "type_schema": "pg_catalog",
-        "type_name": "int8",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "p",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "first_loans": {
-        "schema": "public",
-        "relation": "reporting_borrower_activity_daily_v1",
-        "name": "first_loans",
-        "ordinal": 7,
-        "data_type": "bigint",
-        "type_schema": "pg_catalog",
-        "type_name": "int8",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "p",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "repeat_loans": {
-        "schema": "public",
-        "relation": "reporting_borrower_activity_daily_v1",
-        "name": "repeat_loans",
-        "ordinal": 8,
-        "data_type": "bigint",
-        "type_schema": "pg_catalog",
-        "type_name": "int8",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "p",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "unclassified_loans": {
-        "schema": "public",
-        "relation": "reporting_borrower_activity_daily_v1",
-        "name": "unclassified_loans",
-        "ordinal": 9,
-        "data_type": "bigint",
-        "type_schema": "pg_catalog",
-        "type_name": "int8",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "p",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "invalid_events": {
-        "schema": "public",
-        "relation": "reporting_borrower_activity_daily_v1",
-        "name": "invalid_events",
-        "ordinal": 10,
-        "data_type": "bigint",
-        "type_schema": "pg_catalog",
-        "type_name": "int8",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "p",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      }
-    },
-    "constraints": {},
-    "indexes": {},
-    "triggers": {},
-    "policies": {},
-    "dependencies": [
-      {
-        "schema": "public",
-        "relation": "reporting_borrower_activity_daily_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "olap_loans_analytics",
-        "referenced_column": "Ref Borrowers"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_borrower_activity_daily_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "olap_loans_analytics",
-        "referenced_column": "Row ID"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_borrower_activity_daily_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "olap_repayments_analytics",
-        "referenced_column": "Interest Paid"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_borrower_activity_daily_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "olap_repayments_analytics",
-        "referenced_column": "Payment Date"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_borrower_activity_daily_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "olap_repayments_analytics",
-        "referenced_column": "Principal Paid"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_borrower_activity_daily_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "olap_repayments_analytics",
-        "referenced_column": "Ref Loans"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_borrower_activity_daily_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "reporting_borrower_loan_facts_v1",
-        "referenced_column": "borrower_id"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_borrower_activity_daily_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "reporting_borrower_loan_facts_v1",
-        "referenced_column": "borrowing_type"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_borrower_activity_daily_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "reporting_borrower_loan_facts_v1",
-        "referenced_column": "loan_date"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_borrower_activity_daily_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "reporting_borrower_loan_facts_v1",
-        "referenced_column": "original_principal"
-      }
-    ]
-  }
-}
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "scope": "production"
+  "kind": "relation"
+  "name": "public.reporting_borrower_activity_daily_v1"
+"verification":
+  "status": "documented"
+  "source": "outputs/r035-borrower-pages/dictionary-catalog.json"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "reporting_borrower_activity_daily_v1"
+    "kind": "v"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "n"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,metabase_borrower_reader=r/postgres,mw_app_prod=r/postgres}"
+    "comment": null
+    "view_definition": |2-
+       WITH events AS (
+               SELECT reporting_borrower_loan_facts_v1.borrower_id,
+                  reporting_borrower_loan_facts_v1.loan_date AS activity_date,
+                  reporting_borrower_loan_facts_v1.original_principal AS principal_issued,
+                  0::numeric AS principal_returned,
+                  0::numeric AS interest_received,
+                  1::bigint AS loans_issued,
+                  (reporting_borrower_loan_facts_v1.borrowing_type = 'First loan'::text)::integer::bigint AS first_loans,
+                  (reporting_borrower_loan_facts_v1.borrowing_type = 'Repeat loan'::text)::integer::bigint AS repeat_loans,
+                  (reporting_borrower_loan_facts_v1.borrowing_type = 'Unavailable'::text)::integer::bigint AS unclassified_loans,
+                  (reporting_borrower_loan_facts_v1.loan_date IS NULL OR reporting_borrower_loan_facts_v1.original_principal IS NULL OR reporting_borrower_loan_facts_v1.borrower_id IS NULL)::integer::bigint AS invalid_events
+                 FROM reporting_borrower_loan_facts_v1
+              UNION ALL
+               SELECT l."Ref Borrowers",
+                  r."Payment Date",
+                  0::numeric AS "numeric",
+                  r."Principal Paid"::numeric AS "Principal Paid",
+                  r."Interest Paid"::numeric AS "Interest Paid",
+                  0::bigint AS int8,
+                  0::bigint AS int8,
+                  0::bigint AS int8,
+                  0::bigint AS int8,
+                  (r."Payment Date" IS NULL OR r."Principal Paid" IS NULL OR r."Interest Paid" IS NULL OR l."Ref Borrowers" IS NULL)::integer::bigint AS int8
+                 FROM olap_repayments_analytics r
+                   LEFT JOIN olap_loans_analytics l ON l."Row ID" = r."Ref Loans"
+              )
+       SELECT borrower_id,
+          activity_date,
+              CASE
+                  WHEN bool_and(principal_issued IS NOT NULL) THEN sum(principal_issued)
+                  ELSE NULL::numeric
+              END AS principal_issued,
+              CASE
+                  WHEN bool_and(principal_returned IS NOT NULL) THEN sum(principal_returned)
+                  ELSE NULL::numeric
+              END AS principal_returned,
+              CASE
+                  WHEN bool_and(interest_received IS NOT NULL) THEN sum(interest_received)
+                  ELSE NULL::numeric
+              END AS interest_received,
+          sum(loans_issued)::bigint AS loans_issued,
+          sum(first_loans)::bigint AS first_loans,
+          sum(repeat_loans)::bigint AS repeat_loans,
+          sum(unclassified_loans)::bigint AS unclassified_loans,
+          sum(invalid_events)::bigint AS invalid_events
+         FROM events
+        GROUP BY borrower_id, activity_date;
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "columns":
+    "borrower_id":
+      "schema": "public"
+      "relation": "reporting_borrower_activity_daily_v1"
+      "name": "borrower_id"
+      "ordinal": 1
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "activity_date":
+      "schema": "public"
+      "relation": "reporting_borrower_activity_daily_v1"
+      "name": "activity_date"
+      "ordinal": 2
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "principal_issued":
+      "schema": "public"
+      "relation": "reporting_borrower_activity_daily_v1"
+      "name": "principal_issued"
+      "ordinal": 3
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "principal_returned":
+      "schema": "public"
+      "relation": "reporting_borrower_activity_daily_v1"
+      "name": "principal_returned"
+      "ordinal": 4
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "interest_received":
+      "schema": "public"
+      "relation": "reporting_borrower_activity_daily_v1"
+      "name": "interest_received"
+      "ordinal": 5
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "loans_issued":
+      "schema": "public"
+      "relation": "reporting_borrower_activity_daily_v1"
+      "name": "loans_issued"
+      "ordinal": 6
+      "data_type": "bigint"
+      "type_schema": "pg_catalog"
+      "type_name": "int8"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "first_loans":
+      "schema": "public"
+      "relation": "reporting_borrower_activity_daily_v1"
+      "name": "first_loans"
+      "ordinal": 7
+      "data_type": "bigint"
+      "type_schema": "pg_catalog"
+      "type_name": "int8"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "repeat_loans":
+      "schema": "public"
+      "relation": "reporting_borrower_activity_daily_v1"
+      "name": "repeat_loans"
+      "ordinal": 8
+      "data_type": "bigint"
+      "type_schema": "pg_catalog"
+      "type_name": "int8"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "unclassified_loans":
+      "schema": "public"
+      "relation": "reporting_borrower_activity_daily_v1"
+      "name": "unclassified_loans"
+      "ordinal": 9
+      "data_type": "bigint"
+      "type_schema": "pg_catalog"
+      "type_name": "int8"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "invalid_events":
+      "schema": "public"
+      "relation": "reporting_borrower_activity_daily_v1"
+      "name": "invalid_events"
+      "ordinal": 10
+      "data_type": "bigint"
+      "type_schema": "pg_catalog"
+      "type_name": "int8"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+  "constraints": {}
+  "indexes": {}
+  "triggers": {}
+  "policies": {}
+  "dependencies":
+  - "schema": "public"
+    "relation": "reporting_borrower_activity_daily_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Ref Borrowers"
+  - "schema": "public"
+    "relation": "reporting_borrower_activity_daily_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "reporting_borrower_activity_daily_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Interest Paid"
+  - "schema": "public"
+    "relation": "reporting_borrower_activity_daily_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Payment Date"
+  - "schema": "public"
+    "relation": "reporting_borrower_activity_daily_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Principal Paid"
+  - "schema": "public"
+    "relation": "reporting_borrower_activity_daily_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Ref Loans"
+  - "schema": "public"
+    "relation": "reporting_borrower_activity_daily_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_loan_facts_v1"
+    "referenced_column": "borrower_id"
+  - "schema": "public"
+    "relation": "reporting_borrower_activity_daily_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_loan_facts_v1"
+    "referenced_column": "borrowing_type"
+  - "schema": "public"
+    "relation": "reporting_borrower_activity_daily_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_loan_facts_v1"
+    "referenced_column": "loan_date"
+  - "schema": "public"
+    "relation": "reporting_borrower_activity_daily_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_loan_facts_v1"
+    "referenced_column": "original_principal"
+"evidence":
+  "/content/definition/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"

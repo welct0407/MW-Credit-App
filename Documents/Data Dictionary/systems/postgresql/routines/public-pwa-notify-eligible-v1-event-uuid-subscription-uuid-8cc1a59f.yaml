@@ -1,0 +1,51 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.pwa_notify_eligible_v1(event uuid, subscription uuid)"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r053-notifications-jobs/dictionary-production-closure.json"
+  "coverage": "Actual affected PROD89 catalogue after maintained migration and authority restoration; no business rows."
+"content":
+  "definition":
+    "schema": "public"
+    "name": "pwa_notify_eligible_v1"
+    "arguments": "event uuid, subscription uuid"
+    "kind": "f"
+    "arguments_with_defaults": "event uuid, subscription uuid"
+    "result": "boolean"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.pwa_notify_eligible_v1(event uuid, subscription uuid)
+       RETURNS boolean
+       LANGUAGE sql
+       STABLE
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+       SELECT EXISTS(
+        SELECT 1 FROM public.pwa_notification_events e JOIN public.pwa_push_subscriptions s ON s.subscription_id=subscription
+        WHERE e.event_id=event AND e.actor_partner_id IS NOT NULL AND s.partner_id<>e.actor_partner_id
+        AND s.enabled AND (s.expires_at IS NULL OR s.expires_at>statement_timestamp()) AND s.created_at<=e.occurred_at
+        AND (SELECT count(*) FROM public."Partners" p WHERE lower(btrim(p."Login Email"))=e.actor_login_email)=1
+        AND EXISTS(SELECT 1 FROM public."Partners" p WHERE p."Row ID"=e.actor_partner_id AND lower(btrim(p."Login Email"))=e.actor_login_email)
+        AND EXISTS(SELECT 1 FROM public."Partners" p WHERE p."Row ID"=s.partner_id AND nullif(btrim(p."Login Email"),'') IS NOT NULL AND nullif(btrim(p."Email"),'') IS NOT NULL
+         AND (SELECT count(*) FROM public."Partners" other WHERE lower(btrim(other."Login Email"))=lower(btrim(p."Login Email")))=1)
+        AND NOT EXISTS(SELECT 1 FROM public.pwa_notification_preferences p WHERE p.partner_id=s.partner_id AND p.channel='web-push' AND (NOT p.enabled OR p.updated_at>e.occurred_at))
+       );
+      $function$
+    "owner": "mw_notify_owner_prod"
+    "language": "sql"
+    "volatility": "s"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 0.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": "{mw_notify_owner_prod=X/mw_notify_owner_prod}"
+    "comment": "mw-access:governance fixed notification boundary; explicit capability only"
+    "extension": null

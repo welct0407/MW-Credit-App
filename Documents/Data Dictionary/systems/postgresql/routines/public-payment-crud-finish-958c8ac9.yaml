@@ -7,7 +7,9 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/r051-production/README.md"
+  "source": "outputs/r052/dictionary-production-closure.json"
+  "coverage": "Actual bounded PROD87 catalogue after grouped migration and temporary authority restoration; no business-row\
+    \ capture."
 "content":
   "definition":
     "schema": "public"
@@ -16,49 +18,11 @@
     "kind": "f"
     "arguments_with_defaults": ""
     "result": "trigger"
-    "definition": |
-      CREATE OR REPLACE FUNCTION public.payment_crud_finish()
-       RETURNS trigger
-       LANGUAGE plpgsql
-       SET search_path TO 'pg_catalog', 'public'
-      AS $function$
-      #variable_conflict use_column
-      DECLARE d date; first_day date; last_day date; previous jsonb; l public."Loans"%ROWTYPE; prior_context text;
-      BEGIN
-       IF TG_OP='UPDATE' THEN
-        IF public.payment_inputs(NEW) IS NOT DISTINCT FROM public.payment_inputs(OLD)
-         AND NEW."Ref Received By Cash Account" IS NOT DISTINCT FROM OLD."Ref Received By Cash Account" THEN RETURN NULL; END IF;
-        IF EXISTS(SELECT 1 FROM public."Repayments" r JOIN public."Loans" l ON l."Row ID"=r."Ref Loans"
-         WHERE r."Ref Payment"=NEW."Row ID" AND l."Defaulted" IS TRUE) THEN
-         RAISE EXCEPTION 'Corrected payment has a default dependency; undo default first'; END IF;
-        d:=least(OLD."Payment Date",NEW."Payment Date");
-       ELSE d:=OLD."Payment Date";
-       END IF;
-       prior_context:=current_setting('payment_crud.id',true);
-       PERFORM set_config('payment_crud.id',OLD."Row ID",true);
-       FOR previous IN SELECT value FROM jsonb_array_elements(coalesce(nullif(current_setting('payment_crud.parents',true),'')::jsonb->OLD."Row ID",'[]')) LOOP
-        SELECT * INTO l FROM public."Loans" WHERE "Row ID"=previous->>'Row ID';
-        IF l."Ref Closing Payment" IS NOT NULL AND (l."Principal Amount"::numeric>
-          (SELECT coalesce(sum("Principal Paid"::numeric),0) FROM public."Repayments" WHERE "Ref Loans"=l."Row ID")
-          OR EXISTS(SELECT 1 FROM public."Charges" c WHERE c."Ref Loans"=l."Row ID" AND c."Principal Due"::numeric+c."Interest Due"::numeric>
-           (SELECT coalesce(sum(r."Principal Paid"::numeric+r."Interest Paid"::numeric),0) FROM public."Repayments" r WHERE r."Ref Charges"=c."Row ID"))) THEN
-         UPDATE public."Loans" SET "Loan Status"='ยังไม่ปิดยอด',"Ref Closing Payment"=NULL,"Close Date"=NULL,"Closed By"=NULL
-          WHERE "Row ID"=l."Row ID";
-        ELSIF l."Ref Closing Payment" IS NOT NULL THEN
-         -- If the original closing receipt still closes this loan, retain its actual
-         -- closure date/actor; rebuilding derived rows is not a new closure event.
-         IF l."Ref Closing Payment"=previous->>'Ref Closing Payment' AND l."Ref Closing Payment"<>OLD."Row ID" THEN
-          UPDATE public."Loans" SET "Close Date"=(previous->>'Close Date')::date,"Closed By"=previous->>'Closed By'
-           WHERE "Row ID"=l."Row ID";
-         END IF;
-         PERFORM public.create_referral_rebate(l."Row ID");
-        END IF;
-       END LOOP;
-       PERFORM set_config('payment_crud.parents',(coalesce(nullif(current_setting('payment_crud.parents',true),'')::jsonb,'{}')-OLD."Row ID")::text,true);
-       PERFORM set_config('payment_crud.id',coalesce(prior_context,''),true);
-       PERFORM public.request_business_history(d);
-       RETURN NULL;
-      END $function$
+    "definition": "CREATE OR REPLACE FUNCTION public.payment_crud_finish()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path\
+      \ TO 'pg_catalog', 'public'\nAS $function$\r\nBEGIN\r\n IF TG_OP='UPDATE' AND public.payment_inputs(NEW) IS NOT DISTINCT\
+      \ FROM public.payment_inputs(OLD) AND NEW.\"Ref Received By Cash Account\" IS NOT DISTINCT FROM OLD.\"Ref Received By\
+      \ Cash Account\" THEN RETURN NULL;END IF;\r\n PERFORM public.payment_crud_finish_core_v83(OLD,CASE WHEN TG_OP='UPDATE'\
+      \ THEN NEW ELSE OLD END,TG_OP);RETURN NULL;\r\nEND $function$\n"
     "owner": "postgres"
     "language": "plpgsql"
     "volatility": "v"
@@ -70,6 +34,6 @@
     "rows": 0.0
     "settings":
     - "search_path=pg_catalog, public"
-    "acl": null
+    "acl": "{=X/postgres,postgres=X/postgres,mw_app_prod=X/postgres}"
     "comment": null
     "extension": null

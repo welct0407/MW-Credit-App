@@ -7,8 +7,10 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-reconciliation-20260924/editor-observations.json"
+  "source": "outputs/r053-notifications-jobs/appsheet-scheduler-handoff.json"
   "editor_source": "outputs/dictionary-reconciliation-20260924/editor-observations.json"
+  "coverage": "Root current editor full reload after scoped scheduler disable/save; saved, zero issues and still Deployed.\
+    \ Existing definitions and canonical guard preserved."
 "content":
   "editor":
     "panels":
@@ -379,3 +381,5 @@
       "label": "Descriptive comment"
       "values":
       - ""
+    "enabled": false
+    "current_app_version": "1.100215"

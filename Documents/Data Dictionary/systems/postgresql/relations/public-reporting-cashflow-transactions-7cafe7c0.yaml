@@ -21,7 +21,7 @@
     "persistence": "p"
     "is_partition": false
     "options": null
-    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,metabase_borrower_reader=r/postgres}"
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,metabase_borrower_reader=r/postgres,mw_app_prod=r/postgres}"
     "comment": "R016 one ledger side per account or one consolidated entry per ledger. Reuses OLTP effects; internal transfers\
       \ net to zero only in All accounts. Running balances computed before filtering; unknown/pre-opening balances remain\
       \ NULL."
@@ -667,3 +667,8 @@
     "referenced_schema": "public"
     "referenced_relation": "r008_cash_account_cutover"
     "referenced_column": "Ref Cash Account"
+"evidence":
+  "/content/definition/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"

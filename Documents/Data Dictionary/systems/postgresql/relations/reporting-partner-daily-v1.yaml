@@ -1,480 +1,607 @@
-{
-  "format": 1,
-  "identity": {
-    "system": "postgresql",
-    "component": "loan_manager_prod",
-    "kind": "relation",
-    "name": "public.reporting_partner_daily_v1",
-    "scope": "production"
-  },
-  "verification": {
-    "status": "documented",
-    "source": "outputs/r044-partners/dictionary-catalog.json"
-  },
-  "content": {
-    "definition": {
-      "schema": "public",
-      "name": "reporting_partner_daily_v1",
-      "kind": "v",
-      "owner": "postgres",
-      "row_security": false,
-      "force_row_security": false,
-      "replica_identity": "n",
-      "persistence": "p",
-      "is_partition": false,
-      "options": null,
-      "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,metabase_borrower_reader=r/postgres}",
-      "comment": "R044 actual daily allocated earnings, expenses, completed transfer-date payouts and capital. Historical allocations and opening capital precede display filters. Current records restate history; no forecasts or historic pending reconstruction.",
-      "view_definition": " WITH bounds AS (\n         SELECT LEAST(COALESCE(min(x.d), olap_reporting_date()), olap_reporting_date()) AS starts\n           FROM ( SELECT reporting_partner_capital_v1.activity_date AS d\n                   FROM reporting_partner_capital_v1\n                UNION ALL\n                 SELECT reporting_partner_earnings_v1.activity_date\n                   FROM reporting_partner_earnings_v1\n                UNION ALL\n                 SELECT reporting_partner_settlements_v1.activity_date\n                   FROM reporting_partner_settlements_v1) x\n        ), dates AS (\n         SELECT generate_series(bounds.starts::timestamp with time zone, olap_reporting_date()::timestamp with time zone, '1 day'::interval)::date AS activity_date\n           FROM bounds\n        ), capital AS (\n         SELECT reporting_partner_capital_v1.partner_id,\n            reporting_partner_capital_v1.activity_date,\n            sum(reporting_partner_capital_v1.amount) FILTER (WHERE reporting_partner_capital_v1.transaction_type = 'Contribution'::text) AS contributed,\n            sum(reporting_partner_capital_v1.amount) FILTER (WHERE reporting_partner_capital_v1.transaction_type = 'Withdrawal'::text) AS withdrawn,\n            sum(reporting_partner_capital_v1.net_movement) AS movement\n           FROM reporting_partner_capital_v1\n          GROUP BY reporting_partner_capital_v1.partner_id, reporting_partner_capital_v1.activity_date\n        ), earnings AS (\n         SELECT reporting_partner_earnings_v1.partner_id,\n            reporting_partner_earnings_v1.activity_date,\n            sum(reporting_partner_earnings_v1.allocated_interest) AS interest,\n            sum(reporting_partner_earnings_v1.allocated_expense) AS expense\n           FROM reporting_partner_earnings_v1\n          GROUP BY reporting_partner_earnings_v1.partner_id, reporting_partner_earnings_v1.activity_date\n        ), settled AS (\n         SELECT reporting_partner_settlements_v1.partner_id,\n            reporting_partner_settlements_v1.activity_date,\n            sum(reporting_partner_settlements_v1.completed_amount) AS completed\n           FROM reporting_partner_settlements_v1\n          GROUP BY reporting_partner_settlements_v1.partner_id, reporting_partner_settlements_v1.activity_date\n        ), daily AS (\n         SELECT p.partner_id,\n            p.partner_name,\n            d_1.activity_date,\n            p.ready,\n            p.capital_exceptions,\n            p.earnings_exceptions,\n            p.settlement_exceptions,\n                CASE\n                    WHEN p.capital_exceptions = 0 AND p.earnings_exceptions = 0 AND p.role_count = 1 THEN COALESCE(e.interest, 0::numeric)\n                    ELSE NULL::numeric\n                END AS allocated_interest,\n                CASE\n                    WHEN p.capital_exceptions = 0 AND p.earnings_exceptions = 0 AND p.role_count = 1 THEN COALESCE(e.expense, 0::numeric)\n                    ELSE NULL::numeric\n                END AS allocated_expense,\n                CASE\n                    WHEN p.settlement_exceptions = 0 THEN COALESCE(s.completed, 0::numeric)\n                    ELSE NULL::numeric\n                END AS completed_payouts,\n                CASE\n                    WHEN p.capital_exceptions = 0 THEN COALESCE(c.contributed, 0::numeric)\n                    ELSE NULL::numeric\n                END AS capital_contributed,\n                CASE\n                    WHEN p.capital_exceptions = 0 THEN COALESCE(c.withdrawn, 0::numeric)\n                    ELSE NULL::numeric\n                END AS capital_withdrawn,\n                CASE\n                    WHEN p.capital_exceptions = 0 THEN COALESCE(c.movement, 0::numeric)\n                    ELSE NULL::numeric\n                END AS capital_movement\n           FROM reporting_partner_position_v1 p\n             CROSS JOIN dates d_1\n             LEFT JOIN capital c USING (partner_id, activity_date)\n             LEFT JOIN earnings e USING (partner_id, activity_date)\n             LEFT JOIN settled s USING (partner_id, activity_date)\n        )\n SELECT partner_id,\n    partner_name,\n    activity_date,\n    ready,\n    capital_exceptions,\n    earnings_exceptions,\n    settlement_exceptions,\n    allocated_interest,\n    allocated_expense,\n    completed_payouts,\n    capital_contributed,\n    capital_withdrawn,\n    capital_movement,\n    allocated_interest - allocated_expense AS net_earned,\n        CASE\n            WHEN capital_exceptions = 0 THEN sum(capital_movement) OVER (PARTITION BY partner_id ORDER BY activity_date ROWS UNBOUNDED PRECEDING)\n            ELSE NULL::numeric\n        END AS capital_eod\n   FROM daily d;",
-      "partition_key": null,
-      "partition_bound": null,
-      "parents": null,
-      "extension": null
-    },
-    "development_definition": {
-      "schema": "public",
-      "name": "reporting_partner_daily_v1",
-      "kind": "v",
-      "owner": "postgres",
-      "row_security": false,
-      "force_row_security": false,
-      "replica_identity": "n",
-      "persistence": "p",
-      "is_partition": false,
-      "options": null,
-      "acl": "{postgres=arwdDxtm/postgres,metabase_borrower_reader=r/postgres}",
-      "comment": "R044 actual daily allocated earnings, expenses, completed transfer-date payouts and capital. Historical allocations and opening capital precede display filters. Current records restate history; no forecasts or historic pending reconstruction.",
-      "view_definition": " WITH bounds AS (\n         SELECT LEAST(COALESCE(min(x.d), olap_reporting_date()), olap_reporting_date()) AS starts\n           FROM ( SELECT reporting_partner_capital_v1.activity_date AS d\n                   FROM reporting_partner_capital_v1\n                UNION ALL\n                 SELECT reporting_partner_earnings_v1.activity_date\n                   FROM reporting_partner_earnings_v1\n                UNION ALL\n                 SELECT reporting_partner_settlements_v1.activity_date\n                   FROM reporting_partner_settlements_v1) x\n        ), dates AS (\n         SELECT generate_series(bounds.starts::timestamp with time zone, olap_reporting_date()::timestamp with time zone, '1 day'::interval)::date AS activity_date\n           FROM bounds\n        ), capital AS (\n         SELECT reporting_partner_capital_v1.partner_id,\n            reporting_partner_capital_v1.activity_date,\n            sum(reporting_partner_capital_v1.amount) FILTER (WHERE reporting_partner_capital_v1.transaction_type = 'Contribution'::text) AS contributed,\n            sum(reporting_partner_capital_v1.amount) FILTER (WHERE reporting_partner_capital_v1.transaction_type = 'Withdrawal'::text) AS withdrawn,\n            sum(reporting_partner_capital_v1.net_movement) AS movement\n           FROM reporting_partner_capital_v1\n          GROUP BY reporting_partner_capital_v1.partner_id, reporting_partner_capital_v1.activity_date\n        ), earnings AS (\n         SELECT reporting_partner_earnings_v1.partner_id,\n            reporting_partner_earnings_v1.activity_date,\n            sum(reporting_partner_earnings_v1.allocated_interest) AS interest,\n            sum(reporting_partner_earnings_v1.allocated_expense) AS expense\n           FROM reporting_partner_earnings_v1\n          GROUP BY reporting_partner_earnings_v1.partner_id, reporting_partner_earnings_v1.activity_date\n        ), settled AS (\n         SELECT reporting_partner_settlements_v1.partner_id,\n            reporting_partner_settlements_v1.activity_date,\n            sum(reporting_partner_settlements_v1.completed_amount) AS completed\n           FROM reporting_partner_settlements_v1\n          GROUP BY reporting_partner_settlements_v1.partner_id, reporting_partner_settlements_v1.activity_date\n        ), daily AS (\n         SELECT p.partner_id,\n            p.partner_name,\n            d_1.activity_date,\n            p.ready,\n            p.capital_exceptions,\n            p.earnings_exceptions,\n            p.settlement_exceptions,\n                CASE\n                    WHEN p.capital_exceptions = 0 AND p.earnings_exceptions = 0 AND p.role_count = 1 THEN COALESCE(e.interest, 0::numeric)\n                    ELSE NULL::numeric\n                END AS allocated_interest,\n                CASE\n                    WHEN p.capital_exceptions = 0 AND p.earnings_exceptions = 0 AND p.role_count = 1 THEN COALESCE(e.expense, 0::numeric)\n                    ELSE NULL::numeric\n                END AS allocated_expense,\n                CASE\n                    WHEN p.settlement_exceptions = 0 THEN COALESCE(s.completed, 0::numeric)\n                    ELSE NULL::numeric\n                END AS completed_payouts,\n                CASE\n                    WHEN p.capital_exceptions = 0 THEN COALESCE(c.contributed, 0::numeric)\n                    ELSE NULL::numeric\n                END AS capital_contributed,\n                CASE\n                    WHEN p.capital_exceptions = 0 THEN COALESCE(c.withdrawn, 0::numeric)\n                    ELSE NULL::numeric\n                END AS capital_withdrawn,\n                CASE\n                    WHEN p.capital_exceptions = 0 THEN COALESCE(c.movement, 0::numeric)\n                    ELSE NULL::numeric\n                END AS capital_movement\n           FROM reporting_partner_position_v1 p\n             CROSS JOIN dates d_1\n             LEFT JOIN capital c USING (partner_id, activity_date)\n             LEFT JOIN earnings e USING (partner_id, activity_date)\n             LEFT JOIN settled s USING (partner_id, activity_date)\n        )\n SELECT partner_id,\n    partner_name,\n    activity_date,\n    ready,\n    capital_exceptions,\n    earnings_exceptions,\n    settlement_exceptions,\n    allocated_interest,\n    allocated_expense,\n    completed_payouts,\n    capital_contributed,\n    capital_withdrawn,\n    capital_movement,\n    allocated_interest - allocated_expense AS net_earned,\n        CASE\n            WHEN capital_exceptions = 0 THEN sum(capital_movement) OVER (PARTITION BY partner_id ORDER BY activity_date ROWS UNBOUNDED PRECEDING)\n            ELSE NULL::numeric\n        END AS capital_eod\n   FROM daily d;",
-      "partition_key": null,
-      "partition_bound": null,
-      "parents": null,
-      "extension": null
-    },
-    "columns": {
-      "partner_id": {
-        "schema": "public",
-        "relation": "reporting_partner_daily_v1",
-        "name": "partner_id",
-        "ordinal": 1,
-        "data_type": "text",
-        "type_schema": "pg_catalog",
-        "type_name": "text",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "x",
-        "compression": "",
-        "default_expression": null,
-        "collation": "\"default\"",
-        "acl": null,
-        "comment": null
-      },
-      "partner_name": {
-        "schema": "public",
-        "relation": "reporting_partner_daily_v1",
-        "name": "partner_name",
-        "ordinal": 2,
-        "data_type": "text",
-        "type_schema": "pg_catalog",
-        "type_name": "text",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "x",
-        "compression": "",
-        "default_expression": null,
-        "collation": "\"default\"",
-        "acl": null,
-        "comment": null
-      },
-      "activity_date": {
-        "schema": "public",
-        "relation": "reporting_partner_daily_v1",
-        "name": "activity_date",
-        "ordinal": 3,
-        "data_type": "date",
-        "type_schema": "pg_catalog",
-        "type_name": "date",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "p",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "ready": {
-        "schema": "public",
-        "relation": "reporting_partner_daily_v1",
-        "name": "ready",
-        "ordinal": 4,
-        "data_type": "boolean",
-        "type_schema": "pg_catalog",
-        "type_name": "bool",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "p",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "capital_exceptions": {
-        "schema": "public",
-        "relation": "reporting_partner_daily_v1",
-        "name": "capital_exceptions",
-        "ordinal": 5,
-        "data_type": "bigint",
-        "type_schema": "pg_catalog",
-        "type_name": "int8",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "p",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "earnings_exceptions": {
-        "schema": "public",
-        "relation": "reporting_partner_daily_v1",
-        "name": "earnings_exceptions",
-        "ordinal": 6,
-        "data_type": "bigint",
-        "type_schema": "pg_catalog",
-        "type_name": "int8",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "p",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "settlement_exceptions": {
-        "schema": "public",
-        "relation": "reporting_partner_daily_v1",
-        "name": "settlement_exceptions",
-        "ordinal": 7,
-        "data_type": "bigint",
-        "type_schema": "pg_catalog",
-        "type_name": "int8",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "p",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "allocated_interest": {
-        "schema": "public",
-        "relation": "reporting_partner_daily_v1",
-        "name": "allocated_interest",
-        "ordinal": 8,
-        "data_type": "numeric",
-        "type_schema": "pg_catalog",
-        "type_name": "numeric",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "m",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "allocated_expense": {
-        "schema": "public",
-        "relation": "reporting_partner_daily_v1",
-        "name": "allocated_expense",
-        "ordinal": 9,
-        "data_type": "numeric",
-        "type_schema": "pg_catalog",
-        "type_name": "numeric",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "m",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "completed_payouts": {
-        "schema": "public",
-        "relation": "reporting_partner_daily_v1",
-        "name": "completed_payouts",
-        "ordinal": 10,
-        "data_type": "numeric",
-        "type_schema": "pg_catalog",
-        "type_name": "numeric",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "m",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "capital_contributed": {
-        "schema": "public",
-        "relation": "reporting_partner_daily_v1",
-        "name": "capital_contributed",
-        "ordinal": 11,
-        "data_type": "numeric",
-        "type_schema": "pg_catalog",
-        "type_name": "numeric",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "m",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "capital_withdrawn": {
-        "schema": "public",
-        "relation": "reporting_partner_daily_v1",
-        "name": "capital_withdrawn",
-        "ordinal": 12,
-        "data_type": "numeric",
-        "type_schema": "pg_catalog",
-        "type_name": "numeric",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "m",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "capital_movement": {
-        "schema": "public",
-        "relation": "reporting_partner_daily_v1",
-        "name": "capital_movement",
-        "ordinal": 13,
-        "data_type": "numeric",
-        "type_schema": "pg_catalog",
-        "type_name": "numeric",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "m",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "net_earned": {
-        "schema": "public",
-        "relation": "reporting_partner_daily_v1",
-        "name": "net_earned",
-        "ordinal": 14,
-        "data_type": "numeric",
-        "type_schema": "pg_catalog",
-        "type_name": "numeric",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "m",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "capital_eod": {
-        "schema": "public",
-        "relation": "reporting_partner_daily_v1",
-        "name": "capital_eod",
-        "ordinal": 15,
-        "data_type": "numeric",
-        "type_schema": "pg_catalog",
-        "type_name": "numeric",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "m",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      }
-    },
-    "constraints": {},
-    "indexes": {},
-    "triggers": {},
-    "policies": {},
-    "dependencies": [
-      {
-        "schema": "public",
-        "relation": "reporting_partner_daily_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "reporting_partner_capital_v1",
-        "referenced_column": "activity_date"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_partner_daily_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "reporting_partner_capital_v1",
-        "referenced_column": "amount"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_partner_daily_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "reporting_partner_capital_v1",
-        "referenced_column": "net_movement"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_partner_daily_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "reporting_partner_capital_v1",
-        "referenced_column": "partner_id"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_partner_daily_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "reporting_partner_capital_v1",
-        "referenced_column": "transaction_type"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_partner_daily_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "reporting_partner_earnings_v1",
-        "referenced_column": "activity_date"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_partner_daily_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "reporting_partner_earnings_v1",
-        "referenced_column": "allocated_expense"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_partner_daily_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "reporting_partner_earnings_v1",
-        "referenced_column": "allocated_interest"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_partner_daily_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "reporting_partner_earnings_v1",
-        "referenced_column": "partner_id"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_partner_daily_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "reporting_partner_position_v1",
-        "referenced_column": "capital_exceptions"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_partner_daily_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "reporting_partner_position_v1",
-        "referenced_column": "earnings_exceptions"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_partner_daily_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "reporting_partner_position_v1",
-        "referenced_column": "partner_id"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_partner_daily_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "reporting_partner_position_v1",
-        "referenced_column": "partner_name"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_partner_daily_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "reporting_partner_position_v1",
-        "referenced_column": "ready"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_partner_daily_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "reporting_partner_position_v1",
-        "referenced_column": "role_count"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_partner_daily_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "reporting_partner_position_v1",
-        "referenced_column": "settlement_exceptions"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_partner_daily_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "reporting_partner_settlements_v1",
-        "referenced_column": "activity_date"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_partner_daily_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "reporting_partner_settlements_v1",
-        "referenced_column": "completed_amount"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_partner_daily_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "reporting_partner_settlements_v1",
-        "referenced_column": "partner_id"
-      }
-    ]
-  }
-}
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "relation"
+  "name": "public.reporting_partner_daily_v1"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r044-partners/dictionary-catalog.json"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "reporting_partner_daily_v1"
+    "kind": "v"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "n"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,metabase_borrower_reader=r/postgres,mw_app_prod=r/postgres}"
+    "comment": "R044 actual daily allocated earnings, expenses, completed transfer-date payouts and capital. Historical allocations\
+      \ and opening capital precede display filters. Current records restate history; no forecasts or historic pending reconstruction."
+    "view_definition": |2-
+       WITH bounds AS (
+               SELECT LEAST(COALESCE(min(x.d), olap_reporting_date()), olap_reporting_date()) AS starts
+                 FROM ( SELECT reporting_partner_capital_v1.activity_date AS d
+                         FROM reporting_partner_capital_v1
+                      UNION ALL
+                       SELECT reporting_partner_earnings_v1.activity_date
+                         FROM reporting_partner_earnings_v1
+                      UNION ALL
+                       SELECT reporting_partner_settlements_v1.activity_date
+                         FROM reporting_partner_settlements_v1) x
+              ), dates AS (
+               SELECT generate_series(bounds.starts::timestamp with time zone, olap_reporting_date()::timestamp with time zone, '1 day'::interval)::date AS activity_date
+                 FROM bounds
+              ), capital AS (
+               SELECT reporting_partner_capital_v1.partner_id,
+                  reporting_partner_capital_v1.activity_date,
+                  sum(reporting_partner_capital_v1.amount) FILTER (WHERE reporting_partner_capital_v1.transaction_type = 'Contribution'::text) AS contributed,
+                  sum(reporting_partner_capital_v1.amount) FILTER (WHERE reporting_partner_capital_v1.transaction_type = 'Withdrawal'::text) AS withdrawn,
+                  sum(reporting_partner_capital_v1.net_movement) AS movement
+                 FROM reporting_partner_capital_v1
+                GROUP BY reporting_partner_capital_v1.partner_id, reporting_partner_capital_v1.activity_date
+              ), earnings AS (
+               SELECT reporting_partner_earnings_v1.partner_id,
+                  reporting_partner_earnings_v1.activity_date,
+                  sum(reporting_partner_earnings_v1.allocated_interest) AS interest,
+                  sum(reporting_partner_earnings_v1.allocated_expense) AS expense
+                 FROM reporting_partner_earnings_v1
+                GROUP BY reporting_partner_earnings_v1.partner_id, reporting_partner_earnings_v1.activity_date
+              ), settled AS (
+               SELECT reporting_partner_settlements_v1.partner_id,
+                  reporting_partner_settlements_v1.activity_date,
+                  sum(reporting_partner_settlements_v1.completed_amount) AS completed
+                 FROM reporting_partner_settlements_v1
+                GROUP BY reporting_partner_settlements_v1.partner_id, reporting_partner_settlements_v1.activity_date
+              ), daily AS (
+               SELECT p.partner_id,
+                  p.partner_name,
+                  d_1.activity_date,
+                  p.ready,
+                  p.capital_exceptions,
+                  p.earnings_exceptions,
+                  p.settlement_exceptions,
+                      CASE
+                          WHEN p.capital_exceptions = 0 AND p.earnings_exceptions = 0 AND p.role_count = 1 THEN COALESCE(e.interest, 0::numeric)
+                          ELSE NULL::numeric
+                      END AS allocated_interest,
+                      CASE
+                          WHEN p.capital_exceptions = 0 AND p.earnings_exceptions = 0 AND p.role_count = 1 THEN COALESCE(e.expense, 0::numeric)
+                          ELSE NULL::numeric
+                      END AS allocated_expense,
+                      CASE
+                          WHEN p.settlement_exceptions = 0 THEN COALESCE(s.completed, 0::numeric)
+                          ELSE NULL::numeric
+                      END AS completed_payouts,
+                      CASE
+                          WHEN p.capital_exceptions = 0 THEN COALESCE(c.contributed, 0::numeric)
+                          ELSE NULL::numeric
+                      END AS capital_contributed,
+                      CASE
+                          WHEN p.capital_exceptions = 0 THEN COALESCE(c.withdrawn, 0::numeric)
+                          ELSE NULL::numeric
+                      END AS capital_withdrawn,
+                      CASE
+                          WHEN p.capital_exceptions = 0 THEN COALESCE(c.movement, 0::numeric)
+                          ELSE NULL::numeric
+                      END AS capital_movement
+                 FROM reporting_partner_position_v1 p
+                   CROSS JOIN dates d_1
+                   LEFT JOIN capital c USING (partner_id, activity_date)
+                   LEFT JOIN earnings e USING (partner_id, activity_date)
+                   LEFT JOIN settled s USING (partner_id, activity_date)
+              )
+       SELECT partner_id,
+          partner_name,
+          activity_date,
+          ready,
+          capital_exceptions,
+          earnings_exceptions,
+          settlement_exceptions,
+          allocated_interest,
+          allocated_expense,
+          completed_payouts,
+          capital_contributed,
+          capital_withdrawn,
+          capital_movement,
+          allocated_interest - allocated_expense AS net_earned,
+              CASE
+                  WHEN capital_exceptions = 0 THEN sum(capital_movement) OVER (PARTITION BY partner_id ORDER BY activity_date ROWS UNBOUNDED PRECEDING)
+                  ELSE NULL::numeric
+              END AS capital_eod
+         FROM daily d;
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "development_definition":
+    "schema": "public"
+    "name": "reporting_partner_daily_v1"
+    "kind": "v"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "n"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,metabase_borrower_reader=r/postgres}"
+    "comment": "R044 actual daily allocated earnings, expenses, completed transfer-date payouts and capital. Historical allocations\
+      \ and opening capital precede display filters. Current records restate history; no forecasts or historic pending reconstruction."
+    "view_definition": |2-
+       WITH bounds AS (
+               SELECT LEAST(COALESCE(min(x.d), olap_reporting_date()), olap_reporting_date()) AS starts
+                 FROM ( SELECT reporting_partner_capital_v1.activity_date AS d
+                         FROM reporting_partner_capital_v1
+                      UNION ALL
+                       SELECT reporting_partner_earnings_v1.activity_date
+                         FROM reporting_partner_earnings_v1
+                      UNION ALL
+                       SELECT reporting_partner_settlements_v1.activity_date
+                         FROM reporting_partner_settlements_v1) x
+              ), dates AS (
+               SELECT generate_series(bounds.starts::timestamp with time zone, olap_reporting_date()::timestamp with time zone, '1 day'::interval)::date AS activity_date
+                 FROM bounds
+              ), capital AS (
+               SELECT reporting_partner_capital_v1.partner_id,
+                  reporting_partner_capital_v1.activity_date,
+                  sum(reporting_partner_capital_v1.amount) FILTER (WHERE reporting_partner_capital_v1.transaction_type = 'Contribution'::text) AS contributed,
+                  sum(reporting_partner_capital_v1.amount) FILTER (WHERE reporting_partner_capital_v1.transaction_type = 'Withdrawal'::text) AS withdrawn,
+                  sum(reporting_partner_capital_v1.net_movement) AS movement
+                 FROM reporting_partner_capital_v1
+                GROUP BY reporting_partner_capital_v1.partner_id, reporting_partner_capital_v1.activity_date
+              ), earnings AS (
+               SELECT reporting_partner_earnings_v1.partner_id,
+                  reporting_partner_earnings_v1.activity_date,
+                  sum(reporting_partner_earnings_v1.allocated_interest) AS interest,
+                  sum(reporting_partner_earnings_v1.allocated_expense) AS expense
+                 FROM reporting_partner_earnings_v1
+                GROUP BY reporting_partner_earnings_v1.partner_id, reporting_partner_earnings_v1.activity_date
+              ), settled AS (
+               SELECT reporting_partner_settlements_v1.partner_id,
+                  reporting_partner_settlements_v1.activity_date,
+                  sum(reporting_partner_settlements_v1.completed_amount) AS completed
+                 FROM reporting_partner_settlements_v1
+                GROUP BY reporting_partner_settlements_v1.partner_id, reporting_partner_settlements_v1.activity_date
+              ), daily AS (
+               SELECT p.partner_id,
+                  p.partner_name,
+                  d_1.activity_date,
+                  p.ready,
+                  p.capital_exceptions,
+                  p.earnings_exceptions,
+                  p.settlement_exceptions,
+                      CASE
+                          WHEN p.capital_exceptions = 0 AND p.earnings_exceptions = 0 AND p.role_count = 1 THEN COALESCE(e.interest, 0::numeric)
+                          ELSE NULL::numeric
+                      END AS allocated_interest,
+                      CASE
+                          WHEN p.capital_exceptions = 0 AND p.earnings_exceptions = 0 AND p.role_count = 1 THEN COALESCE(e.expense, 0::numeric)
+                          ELSE NULL::numeric
+                      END AS allocated_expense,
+                      CASE
+                          WHEN p.settlement_exceptions = 0 THEN COALESCE(s.completed, 0::numeric)
+                          ELSE NULL::numeric
+                      END AS completed_payouts,
+                      CASE
+                          WHEN p.capital_exceptions = 0 THEN COALESCE(c.contributed, 0::numeric)
+                          ELSE NULL::numeric
+                      END AS capital_contributed,
+                      CASE
+                          WHEN p.capital_exceptions = 0 THEN COALESCE(c.withdrawn, 0::numeric)
+                          ELSE NULL::numeric
+                      END AS capital_withdrawn,
+                      CASE
+                          WHEN p.capital_exceptions = 0 THEN COALESCE(c.movement, 0::numeric)
+                          ELSE NULL::numeric
+                      END AS capital_movement
+                 FROM reporting_partner_position_v1 p
+                   CROSS JOIN dates d_1
+                   LEFT JOIN capital c USING (partner_id, activity_date)
+                   LEFT JOIN earnings e USING (partner_id, activity_date)
+                   LEFT JOIN settled s USING (partner_id, activity_date)
+              )
+       SELECT partner_id,
+          partner_name,
+          activity_date,
+          ready,
+          capital_exceptions,
+          earnings_exceptions,
+          settlement_exceptions,
+          allocated_interest,
+          allocated_expense,
+          completed_payouts,
+          capital_contributed,
+          capital_withdrawn,
+          capital_movement,
+          allocated_interest - allocated_expense AS net_earned,
+              CASE
+                  WHEN capital_exceptions = 0 THEN sum(capital_movement) OVER (PARTITION BY partner_id ORDER BY activity_date ROWS UNBOUNDED PRECEDING)
+                  ELSE NULL::numeric
+              END AS capital_eod
+         FROM daily d;
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "columns":
+    "partner_id":
+      "schema": "public"
+      "relation": "reporting_partner_daily_v1"
+      "name": "partner_id"
+      "ordinal": 1
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "partner_name":
+      "schema": "public"
+      "relation": "reporting_partner_daily_v1"
+      "name": "partner_name"
+      "ordinal": 2
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "activity_date":
+      "schema": "public"
+      "relation": "reporting_partner_daily_v1"
+      "name": "activity_date"
+      "ordinal": 3
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "ready":
+      "schema": "public"
+      "relation": "reporting_partner_daily_v1"
+      "name": "ready"
+      "ordinal": 4
+      "data_type": "boolean"
+      "type_schema": "pg_catalog"
+      "type_name": "bool"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "capital_exceptions":
+      "schema": "public"
+      "relation": "reporting_partner_daily_v1"
+      "name": "capital_exceptions"
+      "ordinal": 5
+      "data_type": "bigint"
+      "type_schema": "pg_catalog"
+      "type_name": "int8"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "earnings_exceptions":
+      "schema": "public"
+      "relation": "reporting_partner_daily_v1"
+      "name": "earnings_exceptions"
+      "ordinal": 6
+      "data_type": "bigint"
+      "type_schema": "pg_catalog"
+      "type_name": "int8"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "settlement_exceptions":
+      "schema": "public"
+      "relation": "reporting_partner_daily_v1"
+      "name": "settlement_exceptions"
+      "ordinal": 7
+      "data_type": "bigint"
+      "type_schema": "pg_catalog"
+      "type_name": "int8"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "allocated_interest":
+      "schema": "public"
+      "relation": "reporting_partner_daily_v1"
+      "name": "allocated_interest"
+      "ordinal": 8
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "allocated_expense":
+      "schema": "public"
+      "relation": "reporting_partner_daily_v1"
+      "name": "allocated_expense"
+      "ordinal": 9
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "completed_payouts":
+      "schema": "public"
+      "relation": "reporting_partner_daily_v1"
+      "name": "completed_payouts"
+      "ordinal": 10
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "capital_contributed":
+      "schema": "public"
+      "relation": "reporting_partner_daily_v1"
+      "name": "capital_contributed"
+      "ordinal": 11
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "capital_withdrawn":
+      "schema": "public"
+      "relation": "reporting_partner_daily_v1"
+      "name": "capital_withdrawn"
+      "ordinal": 12
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "capital_movement":
+      "schema": "public"
+      "relation": "reporting_partner_daily_v1"
+      "name": "capital_movement"
+      "ordinal": 13
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "net_earned":
+      "schema": "public"
+      "relation": "reporting_partner_daily_v1"
+      "name": "net_earned"
+      "ordinal": 14
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "capital_eod":
+      "schema": "public"
+      "relation": "reporting_partner_daily_v1"
+      "name": "capital_eod"
+      "ordinal": 15
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+  "constraints": {}
+  "indexes": {}
+  "triggers": {}
+  "policies": {}
+  "dependencies":
+  - "schema": "public"
+    "relation": "reporting_partner_daily_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_partner_capital_v1"
+    "referenced_column": "activity_date"
+  - "schema": "public"
+    "relation": "reporting_partner_daily_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_partner_capital_v1"
+    "referenced_column": "amount"
+  - "schema": "public"
+    "relation": "reporting_partner_daily_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_partner_capital_v1"
+    "referenced_column": "net_movement"
+  - "schema": "public"
+    "relation": "reporting_partner_daily_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_partner_capital_v1"
+    "referenced_column": "partner_id"
+  - "schema": "public"
+    "relation": "reporting_partner_daily_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_partner_capital_v1"
+    "referenced_column": "transaction_type"
+  - "schema": "public"
+    "relation": "reporting_partner_daily_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_partner_earnings_v1"
+    "referenced_column": "activity_date"
+  - "schema": "public"
+    "relation": "reporting_partner_daily_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_partner_earnings_v1"
+    "referenced_column": "allocated_expense"
+  - "schema": "public"
+    "relation": "reporting_partner_daily_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_partner_earnings_v1"
+    "referenced_column": "allocated_interest"
+  - "schema": "public"
+    "relation": "reporting_partner_daily_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_partner_earnings_v1"
+    "referenced_column": "partner_id"
+  - "schema": "public"
+    "relation": "reporting_partner_daily_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_partner_position_v1"
+    "referenced_column": "capital_exceptions"
+  - "schema": "public"
+    "relation": "reporting_partner_daily_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_partner_position_v1"
+    "referenced_column": "earnings_exceptions"
+  - "schema": "public"
+    "relation": "reporting_partner_daily_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_partner_position_v1"
+    "referenced_column": "partner_id"
+  - "schema": "public"
+    "relation": "reporting_partner_daily_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_partner_position_v1"
+    "referenced_column": "partner_name"
+  - "schema": "public"
+    "relation": "reporting_partner_daily_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_partner_position_v1"
+    "referenced_column": "ready"
+  - "schema": "public"
+    "relation": "reporting_partner_daily_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_partner_position_v1"
+    "referenced_column": "role_count"
+  - "schema": "public"
+    "relation": "reporting_partner_daily_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_partner_position_v1"
+    "referenced_column": "settlement_exceptions"
+  - "schema": "public"
+    "relation": "reporting_partner_daily_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_partner_settlements_v1"
+    "referenced_column": "activity_date"
+  - "schema": "public"
+    "relation": "reporting_partner_daily_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_partner_settlements_v1"
+    "referenced_column": "completed_amount"
+  - "schema": "public"
+    "relation": "reporting_partner_daily_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_partner_settlements_v1"
+    "referenced_column": "partner_id"
+"evidence":
+  "/content/definition/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"

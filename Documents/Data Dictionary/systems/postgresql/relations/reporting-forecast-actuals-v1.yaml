@@ -1,310 +1,311 @@
-{
-  "format": 1,
-  "identity": {
-    "system": "postgresql",
-    "component": "loan_manager_prod",
-    "kind": "relation",
-    "name": "public.reporting_forecast_actuals_v1",
-    "scope": "production"
-  },
-  "verification": {
-    "status": "documented",
-    "source": "outputs/r045-forecast-planning/dictionary-catalog.json"
-  },
-  "content": {
-    "definition": {
-      "schema": "public",
-      "name": "reporting_forecast_actuals_v1",
-      "kind": "v",
-      "owner": "postgres",
-      "row_security": false,
-      "force_row_security": false,
-      "replica_identity": "n",
-      "persistence": "p",
-      "is_partition": false,
-      "options": null,
-      "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,metabase_borrower_reader=r/postgres}",
-      "comment": null,
-      "view_definition": " SELECT r.\"Row ID\" AS repayment_id,\n    r.\"Ref Loans\" AS loan_id,\n    l.\"Ref Borrowers\" AS borrower_id,\n    COALESCE(NULLIF(b.\"Description\", ''::text), b.\"Borrower Name\", 'Unmapped'::text) AS borrower,\n        CASE l.\"Loan Type\"\n            WHEN 'ดอกเบี้ยรายวัน'::text THEN 'Daily Interest'::text\n            WHEN 'กำหนดวันชำระ'::text THEN 'Fixed Due Date'::text\n            WHEN 'ผ่อนชำระรายวัน'::text THEN 'Daily Installment'::text\n            ELSE 'Unknown'::text\n        END AS loan_type,\n    r.\"Payment Date\" AS payment_date,\n    r.\"Interest Paid\"::numeric AS interest,\n    r.\"Principal Paid\"::numeric AS principal,\n    l.\"Row ID\" IS NULL OR b.\"Row ID\" IS NULL OR r.\"Interest Paid\" IS NULL OR r.\"Principal Paid\" IS NULL AS invalid\n   FROM \"Repayments\" r\n     LEFT JOIN \"Loans\" l ON l.\"Row ID\" = r.\"Ref Loans\"\n     LEFT JOIN \"Borrowers\" b ON b.\"Row ID\" = l.\"Ref Borrowers\"\n  WHERE r.\"Payment Date\" >= date_trunc('month'::text, olap_reporting_date()::timestamp with time zone)::date AND r.\"Payment Date\" <= olap_reporting_date();",
-      "partition_key": null,
-      "partition_bound": null,
-      "parents": null,
-      "extension": null
-    },
-    "development_definition": {
-      "schema": "public",
-      "name": "reporting_forecast_actuals_v1",
-      "kind": "v",
-      "owner": "postgres",
-      "row_security": false,
-      "force_row_security": false,
-      "replica_identity": "n",
-      "persistence": "p",
-      "is_partition": false,
-      "options": null,
-      "acl": "{postgres=arwdDxtm/postgres,metabase_borrower_reader=r/postgres}",
-      "comment": null,
-      "view_definition": " SELECT r.\"Row ID\" AS repayment_id,\n    r.\"Ref Loans\" AS loan_id,\n    l.\"Ref Borrowers\" AS borrower_id,\n    COALESCE(NULLIF(b.\"Description\", ''::text), b.\"Borrower Name\", 'Unmapped'::text) AS borrower,\n        CASE l.\"Loan Type\"\n            WHEN 'ดอกเบี้ยรายวัน'::text THEN 'Daily Interest'::text\n            WHEN 'กำหนดวันชำระ'::text THEN 'Fixed Due Date'::text\n            WHEN 'ผ่อนชำระรายวัน'::text THEN 'Daily Installment'::text\n            ELSE 'Unknown'::text\n        END AS loan_type,\n    r.\"Payment Date\" AS payment_date,\n    r.\"Interest Paid\"::numeric AS interest,\n    r.\"Principal Paid\"::numeric AS principal,\n    l.\"Row ID\" IS NULL OR b.\"Row ID\" IS NULL OR r.\"Interest Paid\" IS NULL OR r.\"Principal Paid\" IS NULL AS invalid\n   FROM \"Repayments\" r\n     LEFT JOIN \"Loans\" l ON l.\"Row ID\" = r.\"Ref Loans\"\n     LEFT JOIN \"Borrowers\" b ON b.\"Row ID\" = l.\"Ref Borrowers\"\n  WHERE r.\"Payment Date\" >= date_trunc('month'::text, olap_reporting_date()::timestamp with time zone)::date AND r.\"Payment Date\" <= olap_reporting_date();",
-      "partition_key": null,
-      "partition_bound": null,
-      "parents": null,
-      "extension": null
-    },
-    "columns": {
-      "repayment_id": {
-        "schema": "public",
-        "relation": "reporting_forecast_actuals_v1",
-        "name": "repayment_id",
-        "ordinal": 1,
-        "data_type": "text",
-        "type_schema": "pg_catalog",
-        "type_name": "text",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "x",
-        "compression": "",
-        "default_expression": null,
-        "collation": "\"default\"",
-        "acl": null,
-        "comment": null
-      },
-      "loan_id": {
-        "schema": "public",
-        "relation": "reporting_forecast_actuals_v1",
-        "name": "loan_id",
-        "ordinal": 2,
-        "data_type": "text",
-        "type_schema": "pg_catalog",
-        "type_name": "text",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "x",
-        "compression": "",
-        "default_expression": null,
-        "collation": "\"default\"",
-        "acl": null,
-        "comment": null
-      },
-      "borrower_id": {
-        "schema": "public",
-        "relation": "reporting_forecast_actuals_v1",
-        "name": "borrower_id",
-        "ordinal": 3,
-        "data_type": "text",
-        "type_schema": "pg_catalog",
-        "type_name": "text",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "x",
-        "compression": "",
-        "default_expression": null,
-        "collation": "\"default\"",
-        "acl": null,
-        "comment": null
-      },
-      "borrower": {
-        "schema": "public",
-        "relation": "reporting_forecast_actuals_v1",
-        "name": "borrower",
-        "ordinal": 4,
-        "data_type": "text",
-        "type_schema": "pg_catalog",
-        "type_name": "text",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "x",
-        "compression": "",
-        "default_expression": null,
-        "collation": "\"default\"",
-        "acl": null,
-        "comment": null
-      },
-      "loan_type": {
-        "schema": "public",
-        "relation": "reporting_forecast_actuals_v1",
-        "name": "loan_type",
-        "ordinal": 5,
-        "data_type": "text",
-        "type_schema": "pg_catalog",
-        "type_name": "text",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "x",
-        "compression": "",
-        "default_expression": null,
-        "collation": "\"default\"",
-        "acl": null,
-        "comment": null
-      },
-      "payment_date": {
-        "schema": "public",
-        "relation": "reporting_forecast_actuals_v1",
-        "name": "payment_date",
-        "ordinal": 6,
-        "data_type": "date",
-        "type_schema": "pg_catalog",
-        "type_name": "date",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "p",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "interest": {
-        "schema": "public",
-        "relation": "reporting_forecast_actuals_v1",
-        "name": "interest",
-        "ordinal": 7,
-        "data_type": "numeric",
-        "type_schema": "pg_catalog",
-        "type_name": "numeric",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "m",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "principal": {
-        "schema": "public",
-        "relation": "reporting_forecast_actuals_v1",
-        "name": "principal",
-        "ordinal": 8,
-        "data_type": "numeric",
-        "type_schema": "pg_catalog",
-        "type_name": "numeric",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "m",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "invalid": {
-        "schema": "public",
-        "relation": "reporting_forecast_actuals_v1",
-        "name": "invalid",
-        "ordinal": 9,
-        "data_type": "boolean",
-        "type_schema": "pg_catalog",
-        "type_name": "bool",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "p",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      }
-    },
-    "constraints": {},
-    "indexes": {},
-    "triggers": {},
-    "policies": {},
-    "dependencies": [
-      {
-        "schema": "public",
-        "relation": "reporting_forecast_actuals_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Borrowers",
-        "referenced_column": "Borrower Name"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_forecast_actuals_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Borrowers",
-        "referenced_column": "Description"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_forecast_actuals_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Borrowers",
-        "referenced_column": "Row ID"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_forecast_actuals_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Loans",
-        "referenced_column": "Loan Type"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_forecast_actuals_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Loans",
-        "referenced_column": "Ref Borrowers"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_forecast_actuals_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Loans",
-        "referenced_column": "Row ID"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_forecast_actuals_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Repayments",
-        "referenced_column": "Interest Paid"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_forecast_actuals_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Repayments",
-        "referenced_column": "Payment Date"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_forecast_actuals_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Repayments",
-        "referenced_column": "Principal Paid"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_forecast_actuals_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Repayments",
-        "referenced_column": "Ref Loans"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_forecast_actuals_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Repayments",
-        "referenced_column": "Row ID"
-      }
-    ]
-  }
-}
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "relation"
+  "name": "public.reporting_forecast_actuals_v1"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r045-forecast-planning/dictionary-catalog.json"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "reporting_forecast_actuals_v1"
+    "kind": "v"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "n"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,metabase_borrower_reader=r/postgres,mw_app_prod=r/postgres}"
+    "comment": null
+    "view_definition": |2-
+       SELECT r."Row ID" AS repayment_id,
+          r."Ref Loans" AS loan_id,
+          l."Ref Borrowers" AS borrower_id,
+          COALESCE(NULLIF(b."Description", ''::text), b."Borrower Name", 'Unmapped'::text) AS borrower,
+              CASE l."Loan Type"
+                  WHEN 'ดอกเบี้ยรายวัน'::text THEN 'Daily Interest'::text
+                  WHEN 'กำหนดวันชำระ'::text THEN 'Fixed Due Date'::text
+                  WHEN 'ผ่อนชำระรายวัน'::text THEN 'Daily Installment'::text
+                  ELSE 'Unknown'::text
+              END AS loan_type,
+          r."Payment Date" AS payment_date,
+          r."Interest Paid"::numeric AS interest,
+          r."Principal Paid"::numeric AS principal,
+          l."Row ID" IS NULL OR b."Row ID" IS NULL OR r."Interest Paid" IS NULL OR r."Principal Paid" IS NULL AS invalid
+         FROM "Repayments" r
+           LEFT JOIN "Loans" l ON l."Row ID" = r."Ref Loans"
+           LEFT JOIN "Borrowers" b ON b."Row ID" = l."Ref Borrowers"
+        WHERE r."Payment Date" >= date_trunc('month'::text, olap_reporting_date()::timestamp with time zone)::date AND r."Payment Date" <= olap_reporting_date();
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "development_definition":
+    "schema": "public"
+    "name": "reporting_forecast_actuals_v1"
+    "kind": "v"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "n"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,metabase_borrower_reader=r/postgres}"
+    "comment": null
+    "view_definition": |2-
+       SELECT r."Row ID" AS repayment_id,
+          r."Ref Loans" AS loan_id,
+          l."Ref Borrowers" AS borrower_id,
+          COALESCE(NULLIF(b."Description", ''::text), b."Borrower Name", 'Unmapped'::text) AS borrower,
+              CASE l."Loan Type"
+                  WHEN 'ดอกเบี้ยรายวัน'::text THEN 'Daily Interest'::text
+                  WHEN 'กำหนดวันชำระ'::text THEN 'Fixed Due Date'::text
+                  WHEN 'ผ่อนชำระรายวัน'::text THEN 'Daily Installment'::text
+                  ELSE 'Unknown'::text
+              END AS loan_type,
+          r."Payment Date" AS payment_date,
+          r."Interest Paid"::numeric AS interest,
+          r."Principal Paid"::numeric AS principal,
+          l."Row ID" IS NULL OR b."Row ID" IS NULL OR r."Interest Paid" IS NULL OR r."Principal Paid" IS NULL AS invalid
+         FROM "Repayments" r
+           LEFT JOIN "Loans" l ON l."Row ID" = r."Ref Loans"
+           LEFT JOIN "Borrowers" b ON b."Row ID" = l."Ref Borrowers"
+        WHERE r."Payment Date" >= date_trunc('month'::text, olap_reporting_date()::timestamp with time zone)::date AND r."Payment Date" <= olap_reporting_date();
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "columns":
+    "repayment_id":
+      "schema": "public"
+      "relation": "reporting_forecast_actuals_v1"
+      "name": "repayment_id"
+      "ordinal": 1
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "loan_id":
+      "schema": "public"
+      "relation": "reporting_forecast_actuals_v1"
+      "name": "loan_id"
+      "ordinal": 2
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "borrower_id":
+      "schema": "public"
+      "relation": "reporting_forecast_actuals_v1"
+      "name": "borrower_id"
+      "ordinal": 3
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "borrower":
+      "schema": "public"
+      "relation": "reporting_forecast_actuals_v1"
+      "name": "borrower"
+      "ordinal": 4
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "loan_type":
+      "schema": "public"
+      "relation": "reporting_forecast_actuals_v1"
+      "name": "loan_type"
+      "ordinal": 5
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "payment_date":
+      "schema": "public"
+      "relation": "reporting_forecast_actuals_v1"
+      "name": "payment_date"
+      "ordinal": 6
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "interest":
+      "schema": "public"
+      "relation": "reporting_forecast_actuals_v1"
+      "name": "interest"
+      "ordinal": 7
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "principal":
+      "schema": "public"
+      "relation": "reporting_forecast_actuals_v1"
+      "name": "principal"
+      "ordinal": 8
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "invalid":
+      "schema": "public"
+      "relation": "reporting_forecast_actuals_v1"
+      "name": "invalid"
+      "ordinal": 9
+      "data_type": "boolean"
+      "type_schema": "pg_catalog"
+      "type_name": "bool"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+  "constraints": {}
+  "indexes": {}
+  "triggers": {}
+  "policies": {}
+  "dependencies":
+  - "schema": "public"
+    "relation": "reporting_forecast_actuals_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Borrowers"
+    "referenced_column": "Borrower Name"
+  - "schema": "public"
+    "relation": "reporting_forecast_actuals_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Borrowers"
+    "referenced_column": "Description"
+  - "schema": "public"
+    "relation": "reporting_forecast_actuals_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Borrowers"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "reporting_forecast_actuals_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Loans"
+    "referenced_column": "Loan Type"
+  - "schema": "public"
+    "relation": "reporting_forecast_actuals_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Loans"
+    "referenced_column": "Ref Borrowers"
+  - "schema": "public"
+    "relation": "reporting_forecast_actuals_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Loans"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "reporting_forecast_actuals_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Repayments"
+    "referenced_column": "Interest Paid"
+  - "schema": "public"
+    "relation": "reporting_forecast_actuals_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Repayments"
+    "referenced_column": "Payment Date"
+  - "schema": "public"
+    "relation": "reporting_forecast_actuals_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Repayments"
+    "referenced_column": "Principal Paid"
+  - "schema": "public"
+    "relation": "reporting_forecast_actuals_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Repayments"
+    "referenced_column": "Ref Loans"
+  - "schema": "public"
+    "relation": "reporting_forecast_actuals_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Repayments"
+    "referenced_column": "Row ID"
+"evidence":
+  "/content/definition/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"

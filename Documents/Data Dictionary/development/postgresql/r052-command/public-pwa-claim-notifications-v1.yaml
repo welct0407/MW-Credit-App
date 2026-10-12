@@ -1,0 +1,47 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_dev"
+  "kind": "routine"
+  "name": "public.pwa_claim_notifications_v1(integer,integer)"
+  "scope": "development:R052-command"
+"content":
+  "release": "R052"
+  "status": "SQL scope promoted to PROD V87; retained DEV observations are dated evidence. Environment-specific roles and\
+    \ bindings remain intentional; notifications and replacement jobs remain deferred."
+  "observedAt": "2026-10-11T12:42:15.709Z"
+  "catalog_observation":
+    "signature": "pwa_claim_notifications_v1(integer,integer)"
+    "owner": "postgres"
+    "security_definer": false
+    "configuration":
+    - "search_path=pg_catalog, public"
+    "acl": "{postgres=X/postgres}"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.pwa_claim_notifications_v1(p_limit integer, p_seconds integer)
+       RETURNS SETOF pwa_notification_deliveries
+       LANGUAGE plpgsql
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+      BEGIN
+       IF p_limit NOT BETWEEN 1 AND 50 OR p_seconds NOT BETWEEN 5 AND 120 THEN RAISE EXCEPTION 'Invalid claim bounds';END IF;
+       UPDATE public.pwa_notification_deliveries SET state=CASE WHEN send_started_at IS NULL AND attempts<8 THEN 'retry' ELSE 'uncertain' END,lease_expires_at=NULL,provider_result='lease_expired'
+       WHERE state='leased' AND lease_expires_at<=clock_timestamp();
+       RETURN QUERY WITH due AS (
+       SELECT delivery_id FROM public.pwa_notification_deliveries WHERE state IN ('pending','retry') AND attempts<8 AND next_attempt_at<=clock_timestamp()
+       ORDER BY next_attempt_at,delivery_id FOR UPDATE SKIP LOCKED LIMIT p_limit)
+       UPDATE public.pwa_notification_deliveries d SET state='leased',lease_generation=d.lease_generation+1,
+       lease_expires_at=clock_timestamp()+make_interval(secs=>p_seconds),send_started_at=NULL,attempts=d.attempts+1
+       FROM due WHERE d.delivery_id=due.delivery_id RETURNING d.*;
+      END $function$
+  "currentMigration": 87
+  "production_delivery":
+    "evidence": "outputs/r052/dictionary-production-closure.json"
+    "PostgreSQL": 87
+    "observedAt": "2026-10-11T14:01:01.082491+00:00"
+    "scope": "SQL definitions/capability only; no AppSheet definition upgrade or notification/job activation."
+"verification":
+  "status": "documented"
+  "source": "https://github.com/welct0407/MW-Credit-App/blob/codex/r052-review-shell/outputs/r052-promotion-readiness/dev87-model-catalog.json"
+  "coverage": "Dated DEV observation; current production delivery is recorded in content.production_delivery and canonical\
+    \ PROD objects."

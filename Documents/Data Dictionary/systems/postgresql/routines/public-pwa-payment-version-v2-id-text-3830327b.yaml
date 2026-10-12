@@ -1,0 +1,48 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.pwa_payment_version_v2(id text)"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r052/dictionary-production-closure.json"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "pwa_payment_version_v2"
+    "arguments": "id text"
+    "kind": "f"
+    "arguments_with_defaults": "id text"
+    "result": "text"
+    "definition": "CREATE OR REPLACE FUNCTION public.pwa_payment_version_v2(id text)\n RETURNS text\n LANGUAGE sql\n STABLE\n\
+      \ SET search_path TO 'pg_catalog', 'public'\nAS $function$\r\n SELECT encode(sha256(convert_to(jsonb_build_object(\r\
+      \n  'source',to_jsonb(p),\r\n  'loans',coalesce((SELECT jsonb_agg(to_jsonb(l) ORDER BY l.\"Row ID\" COLLATE \"C\") FROM\
+      \ public.\"Loans\" l WHERE l.\"Ref Borrowers\"=p.\"Ref Borrower\"),'[]'),\r\n  'charges',coalesce((SELECT jsonb_agg(to_jsonb(c)\
+      \ ORDER BY c.\"Row ID\" COLLATE \"C\") FROM public.\"Charges\" c JOIN public.\"Loans\" l ON l.\"Row ID\"=c.\"Ref Loans\"\
+      \ WHERE l.\"Ref Borrowers\"=p.\"Ref Borrower\"),'[]'),\r\n  'repayments',coalesce((SELECT jsonb_agg(to_jsonb(r) ORDER\
+      \ BY r.\"Row ID\" COLLATE \"C\") FROM public.\"Repayments\" r JOIN public.\"Loans\" l ON l.\"Row ID\"=r.\"Ref Loans\"\
+      \ WHERE l.\"Ref Borrowers\"=p.\"Ref Borrower\"),'[]'),\r\n  'allocations',coalesce((SELECT jsonb_agg(to_jsonb(a) ORDER\
+      \ BY a.\"Row ID\" COLLATE \"C\") FROM public.\"Payment Allocations\" a WHERE a.\"Ref Payment\"=p.\"Row ID\"),'[]'),\r\
+      \n  'cash',coalesce((SELECT jsonb_agg(to_jsonb(c) ORDER BY c.\"Row ID\" COLLATE \"C\") FROM public.\"Cash Ledger\" c\
+      \ WHERE c.\"Ref Payment\"=p.\"Row ID\"),'[]'),\r\n  'revisionHead',(SELECT j.request_id FROM public.pwa_payment_commands\
+      \ j WHERE j.contract_version=2 AND j.outcome='applied' AND j.canonical_json::jsonb#>>'{command,operation}'='payment.correct'\
+      \ AND j.canonical_json::jsonb#>>'{command,targetId}'=p.\"Row ID\" AND NOT EXISTS(SELECT 1 FROM public.pwa_payment_commands\
+      \ successor WHERE successor.contract_version=2 AND successor.outcome='applied' AND successor.canonical_json::jsonb#>>'{command,operation}'='payment.correct'\
+      \ AND successor.canonical_json::jsonb#>>'{command,targetId}'=p.\"Row ID\" AND successor.canonical_json::jsonb#>>'{command,predecessorRequestId}'=j.request_id::text))\r\
+      \n )::text,'UTF8')),'hex') FROM public.\"Payments\" p WHERE p.\"Row ID\"=$1;\r\n$function$\n"
+    "owner": "postgres"
+    "language": "sql"
+    "volatility": "s"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 0.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": "{postgres=X/postgres,mw_app_prod=X/postgres}"
+    "comment": null
+    "extension": null

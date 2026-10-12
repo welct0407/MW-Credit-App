@@ -20,7 +20,7 @@
     "persistence": "p"
     "is_partition": false
     "options": null
-    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres}"
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,mw_app_prod=r/postgres}"
     "comment": "R048: read-only one borrower/date, first five distinct dates within existing three-month horizon; sum matches\
       \ upcoming details."
     "view_definition": |2-
@@ -127,3 +127,8 @@
       "collation": null
       "acl": null
       "comment": null
+"evidence":
+  "/content/definition/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"

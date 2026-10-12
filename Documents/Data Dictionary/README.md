@@ -1,5 +1,11 @@
 # Ecosystem data dictionary
 
+Current R053 PROD reference is SQL89 with five closed worker/API capability roles and exact AppSheet scheduler disable provenance; notification capture remains disabled. This is deployment documentation, not completed device/natural-job verification.
+
+**R052 DEV V87, 11 October 2026:** the bounded [DEV command records](development/postgresql/r052-command/) now include five approved, inactive notification/job relations, twenty affected routines, capture routing and exact application capability metadata. Actual DEV87 catalogue readback follows maintenance-role restoration; PROD remains V77 and AppSheet definitions/scheduled jobs are unchanged. Notifications and PWA job replacement remain deferred. [Verified model evidence](https://github.com/welct0407/MW-Credit-App/blob/codex/r052-review-shell/outputs/r052-promotion-readiness/dev87-model-catalog.json).
+
+**R052 DEV V79, 8 October 2026:** five bounded [DEV-only PostgreSQL objects](development/postgresql/r052-command/) document the command journal, immutable guard, two owner-held command routines and stable application capability/memberships from actual catalog readback. Production definitions remain V77. AppSheet definitions are unchanged. [Activation and verification state](../../outputs/r052-pwa/checkpoint-4g-batch.md).
+
 R051 production closure:42 affected AppSheet objects and65 PostgreSQL objects (51 routines,14 relations) are reconciled from saved production AppDoc and read-only V77 metadata. All91 R051 DEV overlays are closed and retained as dated evidence; the retired trial stays explicitly rejected. [Production evidence](../../outputs/r051-production/README.md) · [Dated DEV delta](DEV_R051_CRUD.md).
 
 **R026 partial-state notice, 24 September:** database pg_cron retirement and export lifecycle are updated. App records from the earlier audit have not been fully reconciled after the partial OLAP upgrade and DEV Daily Analytics regeneration. Use the [owner-directed closure](../../outputs/r026-dictionary-fixes/closure.md) for actual versions, remaining locale/schema differences and verification limits; do not treat older app records as current verified truth for those affected properties.

@@ -1,827 +1,981 @@
-{
-  "format": 1,
-  "identity": {
-    "system": "postgresql",
-    "component": "loan_manager_prod",
-    "kind": "relation",
-    "name": "public.reporting_loan_schedule_health_v1",
-    "scope": "production"
-  },
-  "verification": {
-    "status": "documented",
-    "source": "outputs/r028-schedule-health/dictionary-catalog.json"
-  },
-  "content": {
-    "definition": {
-      "schema": "public",
-      "name": "reporting_loan_schedule_health_v1",
-      "kind": "v",
-      "owner": "postgres",
-      "row_security": false,
-      "force_row_security": false,
-      "replica_identity": "n",
-      "persistence": "p",
-      "is_partition": false,
-      "options": null,
-      "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,metabase_borrower_reader=r/postgres}",
-      "comment": "R028 automatic: current-terms counterfactual, 30 completed days, anchor-aware; >=7 days and >=2 due dates; auto-off plus <80% interest amount OR charge-date coverage restricts category. No manual labels. Amounts are not extra debt.",
-      "view_definition": " WITH ctx AS (\n         SELECT olap_reporting_date() AS d,\n            statement_timestamp() AS t\n        ), charge_dates AS (\n         SELECT \"Charges\".\"Ref Loans\" AS loan_id,\n            \"Charges\".\"Charge Date\" AS due_date,\n            sum(\"Charges\".\"Interest Due\"::numeric) AS interest,\n            sum(\"Charges\".\"Principal Due\"::numeric) AS principal,\n            bool_or(\"Charges\".\"Charge Date\" IS NULL OR \"Charges\".\"Interest Due\" IS NULL OR \"Charges\".\"Principal Due\" IS NULL OR \"Charges\".\"Interest Due\"::numeric < 0::numeric OR \"Charges\".\"Principal Due\"::numeric < 0::numeric) AS invalid\n           FROM \"Charges\"\n          GROUP BY \"Charges\".\"Ref Loans\", \"Charges\".\"Charge Date\"\n        ), base AS (\n         SELECT l.\"Row ID\" AS loan_id,\n            l.\"Ref Borrowers\" AS borrower_id,\n            l.\"Loan Type\" AS loan_type,\n            l.\"Loan Date\" AS start_date,\n            COALESCE(l.\"Interest Schedule Anchor Date\", l.\"Loan Date\") AS anchor_date,\n            l.\"Interest Payment Interval\" AS payment_interval,\n            l.\"Current Daily Interest\"::numeric AS daily_interest,\n            COALESCE(l.\"Transfer Fee\"::numeric, 0::numeric) AS transfer_fee,\n            COALESCE(l.\"Auto Charge Enabled\", false) AS auto_charge_enabled,\n            l.\"Outstanding Principal\" AS outstanding_principal,\n            COALESCE(l.\"Defaulted\", false) AS defaulted,\n            ctx.d AS reporting_date,\n            ctx.t AS calculated_at,\n                CASE\n                    WHEN l.\"Loan Type\" IS DISTINCT FROM 'ดอกเบี้ยรายวัน'::text THEN 'Unsupported loan type'::text\n                    WHEN l.\"Loan Date\" IS NULL OR l.\"Interest Payment Interval\" IS NULL OR l.\"Interest Payment Interval\" < 1 OR l.\"Current Daily Interest\" IS NULL OR l.\"Current Daily Interest\"::numeric <= 0::numeric OR COALESCE(l.\"Interest Schedule Anchor Date\", l.\"Loan Date\") < l.\"Loan Date\" OR COALESCE(l.\"Defaulted\", false) THEN 'Source review'::text\n                    ELSE 'Supported'::text\n                END AS setup_status\n           FROM \"Loans\" l\n             CROSS JOIN ctx\n          WHERE l.\"Loan Status\" = 'ยังไม่ปิดยอด'::text AND (l.\"Loan Date\" <= ctx.d OR l.\"Loan Date\" IS NULL) AND (l.\"Close Date\" IS NULL OR l.\"Close Date\" > ctx.d)\n        ), dates AS (\n         SELECT b.loan_id,\n            b.borrower_id,\n            b.loan_type,\n            b.start_date,\n            b.anchor_date,\n            b.payment_interval,\n            b.daily_interest,\n            b.transfer_fee,\n            b.auto_charge_enabled,\n            b.outstanding_principal,\n            b.defaulted,\n            b.reporting_date,\n            b.calculated_at,\n            b.setup_status,\n            GREATEST(b.reporting_date - 30,\n                CASE\n                    WHEN b.anchor_date > b.start_date THEN b.anchor_date + 1\n                    ELSE b.start_date\n                END) AS comparison_start,\n                CASE\n                    WHEN b.anchor_date > b.start_date THEN COALESCE(( SELECT max(c.due_date) AS max\n                       FROM charge_dates c\n                      WHERE c.loan_id = b.loan_id AND c.due_date <= b.anchor_date), b.start_date)\n                    ELSE b.start_date\n                END AS accrual_baseline\n           FROM base b\n        ), expected_dates AS (\n         SELECT dates.loan_id,\n            dates.start_date AS due_date,\n            dates.daily_interest AS amount\n           FROM dates\n          WHERE dates.setup_status = 'Supported'::text AND dates.anchor_date = dates.start_date AND dates.start_date >= dates.comparison_start AND dates.start_date < dates.reporting_date\n        UNION ALL\n         SELECT b.loan_id,\n            b.anchor_date + n.n * b.payment_interval,\n            b.daily_interest *\n                CASE\n                    WHEN n.n = 1 THEN b.anchor_date + b.payment_interval - b.accrual_baseline\n                    ELSE b.payment_interval\n                END::numeric\n           FROM dates b\n             CROSS JOIN LATERAL generate_series(GREATEST(1, ceil((b.comparison_start - b.anchor_date)::numeric / NULLIF(b.payment_interval, 0)::numeric)::integer), floor((b.reporting_date - 1 - b.anchor_date)::numeric / NULLIF(b.payment_interval, 0)::numeric)::integer) n(n)\n          WHERE b.setup_status = 'Supported'::text\n        ), expected AS (\n         SELECT expected_dates.loan_id,\n            sum(expected_dates.amount) AS expected_interest_30d,\n            count(*)::integer AS expected_due_dates_30d\n           FROM expected_dates\n          GROUP BY expected_dates.loan_id\n        ), actual AS (\n         SELECT b.loan_id,\n            COALESCE(sum(c.interest -\n                CASE\n                    WHEN c.due_date = b.start_date THEN b.transfer_fee\n                    ELSE 0::numeric\n                END) FILTER (WHERE c.due_date >= b.comparison_start AND c.due_date < b.reporting_date), 0::numeric) AS recorded_interest_30d,\n            COALESCE(sum(c.principal) FILTER (WHERE c.due_date >= b.comparison_start AND c.due_date < b.reporting_date), 0::numeric) AS recorded_principal_30d,\n            count(*) FILTER (WHERE c.due_date >= b.comparison_start AND c.due_date < b.reporting_date AND (c.interest -\n                CASE\n                    WHEN c.due_date = b.start_date THEN b.transfer_fee\n                    ELSE 0::numeric\n                END) > 0::numeric)::integer AS recorded_interest_dates_30d,\n            max(c.due_date) FILTER (WHERE c.due_date < b.reporting_date) AS last_recorded_due_date,\n            min(c.due_date) FILTER (WHERE c.due_date >= b.reporting_date AND c.due_date < (b.reporting_date + 90)) AS next_plan_due_date,\n            bool_or(c.invalid OR c.due_date = b.start_date AND c.interest < b.transfer_fee) AS source_invalid\n           FROM dates b\n             LEFT JOIN charge_dates c USING (loan_id)\n          GROUP BY b.loan_id\n        ), metrics AS (\n         SELECT b.loan_id,\n            b.borrower_id,\n            b.loan_type,\n            b.start_date,\n            b.anchor_date,\n            b.payment_interval,\n            b.daily_interest,\n            b.transfer_fee,\n            b.auto_charge_enabled,\n            b.outstanding_principal,\n            b.defaulted,\n            b.reporting_date,\n            b.calculated_at,\n            b.setup_status,\n            b.comparison_start,\n            b.accrual_baseline,\n            GREATEST(0, b.reporting_date - b.comparison_start) AS observation_days,\n                CASE\n                    WHEN b.setup_status = 'Supported'::text AND NOT COALESCE(a.source_invalid, false) THEN COALESCE(e.expected_interest_30d, 0::numeric)\n                    ELSE NULL::numeric\n                END AS expected_interest_30d,\n                CASE\n                    WHEN b.setup_status = 'Supported'::text AND NOT COALESCE(a.source_invalid, false) THEN a.recorded_interest_30d\n                    ELSE NULL::numeric\n                END AS recorded_interest_30d,\n            a.recorded_principal_30d,\n            COALESCE(e.expected_due_dates_30d, 0) AS expected_due_dates_30d,\n            a.recorded_interest_dates_30d,\n            a.last_recorded_due_date,\n            a.next_plan_due_date,\n            f.interest AS next_plan_interest,\n            f.principal AS next_plan_principal,\n                CASE\n                    WHEN COALESCE(a.source_invalid, false) THEN 'Source review'::text\n                    ELSE b.setup_status\n                END AS comparison_status\n           FROM dates b\n             LEFT JOIN expected e USING (loan_id)\n             JOIN actual a USING (loan_id)\n             LEFT JOIN charge_dates f ON f.loan_id = b.loan_id AND f.due_date = a.next_plan_due_date\n        ), ratios AS (\n         SELECT metrics.loan_id,\n            metrics.borrower_id,\n            metrics.loan_type,\n            metrics.start_date,\n            metrics.anchor_date,\n            metrics.payment_interval,\n            metrics.daily_interest,\n            metrics.transfer_fee,\n            metrics.auto_charge_enabled,\n            metrics.outstanding_principal,\n            metrics.defaulted,\n            metrics.reporting_date,\n            metrics.calculated_at,\n            metrics.setup_status,\n            metrics.comparison_start,\n            metrics.accrual_baseline,\n            metrics.observation_days,\n            metrics.expected_interest_30d,\n            metrics.recorded_interest_30d,\n            metrics.recorded_principal_30d,\n            metrics.expected_due_dates_30d,\n            metrics.recorded_interest_dates_30d,\n            metrics.last_recorded_due_date,\n            metrics.next_plan_due_date,\n            metrics.next_plan_interest,\n            metrics.next_plan_principal,\n            metrics.comparison_status,\n            metrics.recorded_interest_30d / NULLIF(metrics.expected_interest_30d, 0::numeric) AS interest_coverage_30d,\n            metrics.recorded_interest_dates_30d::numeric / NULLIF(metrics.expected_due_dates_30d, 0)::numeric AS interest_date_coverage_30d,\n            metrics.comparison_status = 'Supported'::text AND metrics.observation_days >= 7 AND metrics.expected_due_dates_30d >= 2 AS assessment_eligible\n           FROM metrics\n        )\n SELECT loan_id,\n    borrower_id,\n    loan_type,\n    start_date,\n    anchor_date,\n    payment_interval,\n    daily_interest,\n    transfer_fee,\n    auto_charge_enabled,\n    outstanding_principal,\n    defaulted,\n    reporting_date,\n    calculated_at,\n    setup_status,\n    comparison_start,\n    accrual_baseline,\n    observation_days,\n    expected_interest_30d,\n    recorded_interest_30d,\n    recorded_principal_30d,\n    expected_due_dates_30d,\n    recorded_interest_dates_30d,\n    last_recorded_due_date,\n    next_plan_due_date,\n    next_plan_interest,\n    next_plan_principal,\n    comparison_status,\n    interest_coverage_30d,\n    interest_date_coverage_30d,\n    assessment_eligible,\n    COALESCE(assessment_eligible AND (interest_coverage_30d < 0.8 OR interest_date_coverage_30d < 0.8), false) AS schedule_departure,\n    COALESCE(assessment_eligible AND (interest_coverage_30d < 0.8 OR interest_date_coverage_30d < 0.8) AND NOT auto_charge_enabled, false) AS modified_schedule,\n        CASE\n            WHEN assessment_eligible AND (interest_coverage_30d < 0.8 OR interest_date_coverage_30d < 0.8) AND NOT auto_charge_enabled THEN 'Modified payment schedule'::text\n            WHEN comparison_status <> 'Supported'::text THEN comparison_status\n            WHEN NOT assessment_eligible THEN 'Insufficient observation'::text\n            ELSE 'No schedule restriction'::text\n        END AS arrangement_status,\n        CASE\n            WHEN NOT auto_charge_enabled AND assessment_eligible AND interest_coverage_30d < 0.8 AND interest_date_coverage_30d < 0.8 THEN 'Reduced/deferred interest and fewer charge dates'::text\n            WHEN NOT auto_charge_enabled AND assessment_eligible AND interest_coverage_30d < 0.8 THEN 'Reduced/deferred interest'::text\n            WHEN NOT auto_charge_enabled AND assessment_eligible AND interest_date_coverage_30d < 0.8 THEN 'Fewer charge dates / deferred payment frequency'::text\n            WHEN comparison_status <> 'Supported'::text THEN comparison_status\n            WHEN NOT assessment_eligible THEN 'At least seven observed days and two expected dates required'::text\n            ELSE 'Automatic schedule rule does not restrict category'::text\n        END AS schedule_reason,\n    'schedule-health-v1'::text AS schedule_method_version\n   FROM ratios;",
-      "partition_key": null,
-      "partition_bound": null,
-      "parents": null,
-      "extension": null
-    },
-    "columns": {
-      "loan_id": {
-        "schema": "public",
-        "relation": "reporting_loan_schedule_health_v1",
-        "name": "loan_id",
-        "ordinal": 1,
-        "data_type": "text",
-        "type_schema": "pg_catalog",
-        "type_name": "text",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "x",
-        "compression": "",
-        "default_expression": null,
-        "collation": "\"default\"",
-        "acl": null,
-        "comment": null
-      },
-      "borrower_id": {
-        "schema": "public",
-        "relation": "reporting_loan_schedule_health_v1",
-        "name": "borrower_id",
-        "ordinal": 2,
-        "data_type": "text",
-        "type_schema": "pg_catalog",
-        "type_name": "text",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "x",
-        "compression": "",
-        "default_expression": null,
-        "collation": "\"default\"",
-        "acl": null,
-        "comment": null
-      },
-      "loan_type": {
-        "schema": "public",
-        "relation": "reporting_loan_schedule_health_v1",
-        "name": "loan_type",
-        "ordinal": 3,
-        "data_type": "text",
-        "type_schema": "pg_catalog",
-        "type_name": "text",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "x",
-        "compression": "",
-        "default_expression": null,
-        "collation": "\"default\"",
-        "acl": null,
-        "comment": null
-      },
-      "start_date": {
-        "schema": "public",
-        "relation": "reporting_loan_schedule_health_v1",
-        "name": "start_date",
-        "ordinal": 4,
-        "data_type": "date",
-        "type_schema": "pg_catalog",
-        "type_name": "date",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "p",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "anchor_date": {
-        "schema": "public",
-        "relation": "reporting_loan_schedule_health_v1",
-        "name": "anchor_date",
-        "ordinal": 5,
-        "data_type": "date",
-        "type_schema": "pg_catalog",
-        "type_name": "date",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "p",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "payment_interval": {
-        "schema": "public",
-        "relation": "reporting_loan_schedule_health_v1",
-        "name": "payment_interval",
-        "ordinal": 6,
-        "data_type": "integer",
-        "type_schema": "pg_catalog",
-        "type_name": "int4",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "p",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "daily_interest": {
-        "schema": "public",
-        "relation": "reporting_loan_schedule_health_v1",
-        "name": "daily_interest",
-        "ordinal": 7,
-        "data_type": "numeric",
-        "type_schema": "pg_catalog",
-        "type_name": "numeric",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "m",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "transfer_fee": {
-        "schema": "public",
-        "relation": "reporting_loan_schedule_health_v1",
-        "name": "transfer_fee",
-        "ordinal": 8,
-        "data_type": "numeric",
-        "type_schema": "pg_catalog",
-        "type_name": "numeric",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "m",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "auto_charge_enabled": {
-        "schema": "public",
-        "relation": "reporting_loan_schedule_health_v1",
-        "name": "auto_charge_enabled",
-        "ordinal": 9,
-        "data_type": "boolean",
-        "type_schema": "pg_catalog",
-        "type_name": "bool",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "p",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "outstanding_principal": {
-        "schema": "public",
-        "relation": "reporting_loan_schedule_health_v1",
-        "name": "outstanding_principal",
-        "ordinal": 10,
-        "data_type": "numeric",
-        "type_schema": "pg_catalog",
-        "type_name": "numeric",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "m",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "defaulted": {
-        "schema": "public",
-        "relation": "reporting_loan_schedule_health_v1",
-        "name": "defaulted",
-        "ordinal": 11,
-        "data_type": "boolean",
-        "type_schema": "pg_catalog",
-        "type_name": "bool",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "p",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "reporting_date": {
-        "schema": "public",
-        "relation": "reporting_loan_schedule_health_v1",
-        "name": "reporting_date",
-        "ordinal": 12,
-        "data_type": "date",
-        "type_schema": "pg_catalog",
-        "type_name": "date",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "p",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "calculated_at": {
-        "schema": "public",
-        "relation": "reporting_loan_schedule_health_v1",
-        "name": "calculated_at",
-        "ordinal": 13,
-        "data_type": "timestamp with time zone",
-        "type_schema": "pg_catalog",
-        "type_name": "timestamptz",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "p",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "setup_status": {
-        "schema": "public",
-        "relation": "reporting_loan_schedule_health_v1",
-        "name": "setup_status",
-        "ordinal": 14,
-        "data_type": "text",
-        "type_schema": "pg_catalog",
-        "type_name": "text",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "x",
-        "compression": "",
-        "default_expression": null,
-        "collation": "\"default\"",
-        "acl": null,
-        "comment": null
-      },
-      "comparison_start": {
-        "schema": "public",
-        "relation": "reporting_loan_schedule_health_v1",
-        "name": "comparison_start",
-        "ordinal": 15,
-        "data_type": "date",
-        "type_schema": "pg_catalog",
-        "type_name": "date",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "p",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "accrual_baseline": {
-        "schema": "public",
-        "relation": "reporting_loan_schedule_health_v1",
-        "name": "accrual_baseline",
-        "ordinal": 16,
-        "data_type": "date",
-        "type_schema": "pg_catalog",
-        "type_name": "date",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "p",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "observation_days": {
-        "schema": "public",
-        "relation": "reporting_loan_schedule_health_v1",
-        "name": "observation_days",
-        "ordinal": 17,
-        "data_type": "integer",
-        "type_schema": "pg_catalog",
-        "type_name": "int4",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "p",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "expected_interest_30d": {
-        "schema": "public",
-        "relation": "reporting_loan_schedule_health_v1",
-        "name": "expected_interest_30d",
-        "ordinal": 18,
-        "data_type": "numeric",
-        "type_schema": "pg_catalog",
-        "type_name": "numeric",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "m",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "recorded_interest_30d": {
-        "schema": "public",
-        "relation": "reporting_loan_schedule_health_v1",
-        "name": "recorded_interest_30d",
-        "ordinal": 19,
-        "data_type": "numeric",
-        "type_schema": "pg_catalog",
-        "type_name": "numeric",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "m",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "recorded_principal_30d": {
-        "schema": "public",
-        "relation": "reporting_loan_schedule_health_v1",
-        "name": "recorded_principal_30d",
-        "ordinal": 20,
-        "data_type": "numeric",
-        "type_schema": "pg_catalog",
-        "type_name": "numeric",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "m",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "expected_due_dates_30d": {
-        "schema": "public",
-        "relation": "reporting_loan_schedule_health_v1",
-        "name": "expected_due_dates_30d",
-        "ordinal": 21,
-        "data_type": "integer",
-        "type_schema": "pg_catalog",
-        "type_name": "int4",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "p",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "recorded_interest_dates_30d": {
-        "schema": "public",
-        "relation": "reporting_loan_schedule_health_v1",
-        "name": "recorded_interest_dates_30d",
-        "ordinal": 22,
-        "data_type": "integer",
-        "type_schema": "pg_catalog",
-        "type_name": "int4",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "p",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "last_recorded_due_date": {
-        "schema": "public",
-        "relation": "reporting_loan_schedule_health_v1",
-        "name": "last_recorded_due_date",
-        "ordinal": 23,
-        "data_type": "date",
-        "type_schema": "pg_catalog",
-        "type_name": "date",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "p",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "next_plan_due_date": {
-        "schema": "public",
-        "relation": "reporting_loan_schedule_health_v1",
-        "name": "next_plan_due_date",
-        "ordinal": 24,
-        "data_type": "date",
-        "type_schema": "pg_catalog",
-        "type_name": "date",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "p",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "next_plan_interest": {
-        "schema": "public",
-        "relation": "reporting_loan_schedule_health_v1",
-        "name": "next_plan_interest",
-        "ordinal": 25,
-        "data_type": "numeric",
-        "type_schema": "pg_catalog",
-        "type_name": "numeric",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "m",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "next_plan_principal": {
-        "schema": "public",
-        "relation": "reporting_loan_schedule_health_v1",
-        "name": "next_plan_principal",
-        "ordinal": 26,
-        "data_type": "numeric",
-        "type_schema": "pg_catalog",
-        "type_name": "numeric",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "m",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "comparison_status": {
-        "schema": "public",
-        "relation": "reporting_loan_schedule_health_v1",
-        "name": "comparison_status",
-        "ordinal": 27,
-        "data_type": "text",
-        "type_schema": "pg_catalog",
-        "type_name": "text",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "x",
-        "compression": "",
-        "default_expression": null,
-        "collation": "\"default\"",
-        "acl": null,
-        "comment": null
-      },
-      "interest_coverage_30d": {
-        "schema": "public",
-        "relation": "reporting_loan_schedule_health_v1",
-        "name": "interest_coverage_30d",
-        "ordinal": 28,
-        "data_type": "numeric",
-        "type_schema": "pg_catalog",
-        "type_name": "numeric",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "m",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "interest_date_coverage_30d": {
-        "schema": "public",
-        "relation": "reporting_loan_schedule_health_v1",
-        "name": "interest_date_coverage_30d",
-        "ordinal": 29,
-        "data_type": "numeric",
-        "type_schema": "pg_catalog",
-        "type_name": "numeric",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "m",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "assessment_eligible": {
-        "schema": "public",
-        "relation": "reporting_loan_schedule_health_v1",
-        "name": "assessment_eligible",
-        "ordinal": 30,
-        "data_type": "boolean",
-        "type_schema": "pg_catalog",
-        "type_name": "bool",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "p",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "schedule_departure": {
-        "schema": "public",
-        "relation": "reporting_loan_schedule_health_v1",
-        "name": "schedule_departure",
-        "ordinal": 31,
-        "data_type": "boolean",
-        "type_schema": "pg_catalog",
-        "type_name": "bool",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "p",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "modified_schedule": {
-        "schema": "public",
-        "relation": "reporting_loan_schedule_health_v1",
-        "name": "modified_schedule",
-        "ordinal": 32,
-        "data_type": "boolean",
-        "type_schema": "pg_catalog",
-        "type_name": "bool",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "p",
-        "compression": "",
-        "default_expression": null,
-        "collation": null,
-        "acl": null,
-        "comment": null
-      },
-      "arrangement_status": {
-        "schema": "public",
-        "relation": "reporting_loan_schedule_health_v1",
-        "name": "arrangement_status",
-        "ordinal": 33,
-        "data_type": "text",
-        "type_schema": "pg_catalog",
-        "type_name": "text",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "x",
-        "compression": "",
-        "default_expression": null,
-        "collation": "\"default\"",
-        "acl": null,
-        "comment": null
-      },
-      "schedule_reason": {
-        "schema": "public",
-        "relation": "reporting_loan_schedule_health_v1",
-        "name": "schedule_reason",
-        "ordinal": 34,
-        "data_type": "text",
-        "type_schema": "pg_catalog",
-        "type_name": "text",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "x",
-        "compression": "",
-        "default_expression": null,
-        "collation": "\"default\"",
-        "acl": null,
-        "comment": null
-      },
-      "schedule_method_version": {
-        "schema": "public",
-        "relation": "reporting_loan_schedule_health_v1",
-        "name": "schedule_method_version",
-        "ordinal": 35,
-        "data_type": "text",
-        "type_schema": "pg_catalog",
-        "type_name": "text",
-        "not_null": false,
-        "identity": "",
-        "generated": "",
-        "dimensions": 0,
-        "storage": "x",
-        "compression": "",
-        "default_expression": null,
-        "collation": "\"default\"",
-        "acl": null,
-        "comment": null
-      }
-    },
-    "constraints": {},
-    "indexes": {},
-    "triggers": {},
-    "policies": {},
-    "dependencies": [
-      {
-        "schema": "public",
-        "relation": "reporting_loan_schedule_health_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Charges",
-        "referenced_column": "Charge Date"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_loan_schedule_health_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Charges",
-        "referenced_column": "Interest Due"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_loan_schedule_health_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Charges",
-        "referenced_column": "Principal Due"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_loan_schedule_health_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Charges",
-        "referenced_column": "Ref Loans"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_loan_schedule_health_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Loans",
-        "referenced_column": "Auto Charge Enabled"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_loan_schedule_health_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Loans",
-        "referenced_column": "Close Date"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_loan_schedule_health_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Loans",
-        "referenced_column": "Current Daily Interest"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_loan_schedule_health_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Loans",
-        "referenced_column": "Defaulted"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_loan_schedule_health_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Loans",
-        "referenced_column": "Interest Payment Interval"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_loan_schedule_health_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Loans",
-        "referenced_column": "Interest Schedule Anchor Date"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_loan_schedule_health_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Loans",
-        "referenced_column": "Loan Date"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_loan_schedule_health_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Loans",
-        "referenced_column": "Loan Status"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_loan_schedule_health_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Loans",
-        "referenced_column": "Loan Type"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_loan_schedule_health_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Loans",
-        "referenced_column": "Outstanding Principal"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_loan_schedule_health_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Loans",
-        "referenced_column": "Ref Borrowers"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_loan_schedule_health_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Loans",
-        "referenced_column": "Row ID"
-      },
-      {
-        "schema": "public",
-        "relation": "reporting_loan_schedule_health_v1",
-        "referenced_schema": "public",
-        "referenced_relation": "Loans",
-        "referenced_column": "Transfer Fee"
-      }
-    ]
-  }
-}
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "relation"
+  "name": "public.reporting_loan_schedule_health_v1"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r028-schedule-health/dictionary-catalog.json"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "reporting_loan_schedule_health_v1"
+    "kind": "v"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "n"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,metabase_borrower_reader=r/postgres,mw_app_prod=r/postgres}"
+    "comment": "R028 automatic: current-terms counterfactual, 30 completed days, anchor-aware; >=7 days and >=2 due dates;\
+      \ auto-off plus <80% interest amount OR charge-date coverage restricts category. No manual labels. Amounts are not extra\
+      \ debt."
+    "view_definition": |2-
+       WITH ctx AS (
+               SELECT olap_reporting_date() AS d,
+                  statement_timestamp() AS t
+              ), charge_dates AS (
+               SELECT "Charges"."Ref Loans" AS loan_id,
+                  "Charges"."Charge Date" AS due_date,
+                  sum("Charges"."Interest Due"::numeric) AS interest,
+                  sum("Charges"."Principal Due"::numeric) AS principal,
+                  bool_or("Charges"."Charge Date" IS NULL OR "Charges"."Interest Due" IS NULL OR "Charges"."Principal Due" IS NULL OR "Charges"."Interest Due"::numeric < 0::numeric OR "Charges"."Principal Due"::numeric < 0::numeric) AS invalid
+                 FROM "Charges"
+                GROUP BY "Charges"."Ref Loans", "Charges"."Charge Date"
+              ), base AS (
+               SELECT l."Row ID" AS loan_id,
+                  l."Ref Borrowers" AS borrower_id,
+                  l."Loan Type" AS loan_type,
+                  l."Loan Date" AS start_date,
+                  COALESCE(l."Interest Schedule Anchor Date", l."Loan Date") AS anchor_date,
+                  l."Interest Payment Interval" AS payment_interval,
+                  l."Current Daily Interest"::numeric AS daily_interest,
+                  COALESCE(l."Transfer Fee"::numeric, 0::numeric) AS transfer_fee,
+                  COALESCE(l."Auto Charge Enabled", false) AS auto_charge_enabled,
+                  l."Outstanding Principal" AS outstanding_principal,
+                  COALESCE(l."Defaulted", false) AS defaulted,
+                  ctx.d AS reporting_date,
+                  ctx.t AS calculated_at,
+                      CASE
+                          WHEN l."Loan Type" IS DISTINCT FROM 'ดอกเบี้ยรายวัน'::text THEN 'Unsupported loan type'::text
+                          WHEN l."Loan Date" IS NULL OR l."Interest Payment Interval" IS NULL OR l."Interest Payment Interval" < 1 OR l."Current Daily Interest" IS NULL OR l."Current Daily Interest"::numeric <= 0::numeric OR COALESCE(l."Interest Schedule Anchor Date", l."Loan Date") < l."Loan Date" OR COALESCE(l."Defaulted", false) THEN 'Source review'::text
+                          ELSE 'Supported'::text
+                      END AS setup_status
+                 FROM "Loans" l
+                   CROSS JOIN ctx
+                WHERE l."Loan Status" = 'ยังไม่ปิดยอด'::text AND (l."Loan Date" <= ctx.d OR l."Loan Date" IS NULL) AND (l."Close Date" IS NULL OR l."Close Date" > ctx.d)
+              ), dates AS (
+               SELECT b.loan_id,
+                  b.borrower_id,
+                  b.loan_type,
+                  b.start_date,
+                  b.anchor_date,
+                  b.payment_interval,
+                  b.daily_interest,
+                  b.transfer_fee,
+                  b.auto_charge_enabled,
+                  b.outstanding_principal,
+                  b.defaulted,
+                  b.reporting_date,
+                  b.calculated_at,
+                  b.setup_status,
+                  GREATEST(b.reporting_date - 30,
+                      CASE
+                          WHEN b.anchor_date > b.start_date THEN b.anchor_date + 1
+                          ELSE b.start_date
+                      END) AS comparison_start,
+                      CASE
+                          WHEN b.anchor_date > b.start_date THEN COALESCE(( SELECT max(c.due_date) AS max
+                             FROM charge_dates c
+                            WHERE c.loan_id = b.loan_id AND c.due_date <= b.anchor_date), b.start_date)
+                          ELSE b.start_date
+                      END AS accrual_baseline
+                 FROM base b
+              ), expected_dates AS (
+               SELECT dates.loan_id,
+                  dates.start_date AS due_date,
+                  dates.daily_interest AS amount
+                 FROM dates
+                WHERE dates.setup_status = 'Supported'::text AND dates.anchor_date = dates.start_date AND dates.start_date >= dates.comparison_start AND dates.start_date < dates.reporting_date
+              UNION ALL
+               SELECT b.loan_id,
+                  b.anchor_date + n.n * b.payment_interval,
+                  b.daily_interest *
+                      CASE
+                          WHEN n.n = 1 THEN b.anchor_date + b.payment_interval - b.accrual_baseline
+                          ELSE b.payment_interval
+                      END::numeric
+                 FROM dates b
+                   CROSS JOIN LATERAL generate_series(GREATEST(1, ceil((b.comparison_start - b.anchor_date)::numeric / NULLIF(b.payment_interval, 0)::numeric)::integer), floor((b.reporting_date - 1 - b.anchor_date)::numeric / NULLIF(b.payment_interval, 0)::numeric)::integer) n(n)
+                WHERE b.setup_status = 'Supported'::text
+              ), expected AS (
+               SELECT expected_dates.loan_id,
+                  sum(expected_dates.amount) AS expected_interest_30d,
+                  count(*)::integer AS expected_due_dates_30d
+                 FROM expected_dates
+                GROUP BY expected_dates.loan_id
+              ), actual AS (
+               SELECT b.loan_id,
+                  COALESCE(sum(c.interest -
+                      CASE
+                          WHEN c.due_date = b.start_date THEN b.transfer_fee
+                          ELSE 0::numeric
+                      END) FILTER (WHERE c.due_date >= b.comparison_start AND c.due_date < b.reporting_date), 0::numeric) AS recorded_interest_30d,
+                  COALESCE(sum(c.principal) FILTER (WHERE c.due_date >= b.comparison_start AND c.due_date < b.reporting_date), 0::numeric) AS recorded_principal_30d,
+                  count(*) FILTER (WHERE c.due_date >= b.comparison_start AND c.due_date < b.reporting_date AND (c.interest -
+                      CASE
+                          WHEN c.due_date = b.start_date THEN b.transfer_fee
+                          ELSE 0::numeric
+                      END) > 0::numeric)::integer AS recorded_interest_dates_30d,
+                  max(c.due_date) FILTER (WHERE c.due_date < b.reporting_date) AS last_recorded_due_date,
+                  min(c.due_date) FILTER (WHERE c.due_date >= b.reporting_date AND c.due_date < (b.reporting_date + 90)) AS next_plan_due_date,
+                  bool_or(c.invalid OR c.due_date = b.start_date AND c.interest < b.transfer_fee) AS source_invalid
+                 FROM dates b
+                   LEFT JOIN charge_dates c USING (loan_id)
+                GROUP BY b.loan_id
+              ), metrics AS (
+               SELECT b.loan_id,
+                  b.borrower_id,
+                  b.loan_type,
+                  b.start_date,
+                  b.anchor_date,
+                  b.payment_interval,
+                  b.daily_interest,
+                  b.transfer_fee,
+                  b.auto_charge_enabled,
+                  b.outstanding_principal,
+                  b.defaulted,
+                  b.reporting_date,
+                  b.calculated_at,
+                  b.setup_status,
+                  b.comparison_start,
+                  b.accrual_baseline,
+                  GREATEST(0, b.reporting_date - b.comparison_start) AS observation_days,
+                      CASE
+                          WHEN b.setup_status = 'Supported'::text AND NOT COALESCE(a.source_invalid, false) THEN COALESCE(e.expected_interest_30d, 0::numeric)
+                          ELSE NULL::numeric
+                      END AS expected_interest_30d,
+                      CASE
+                          WHEN b.setup_status = 'Supported'::text AND NOT COALESCE(a.source_invalid, false) THEN a.recorded_interest_30d
+                          ELSE NULL::numeric
+                      END AS recorded_interest_30d,
+                  a.recorded_principal_30d,
+                  COALESCE(e.expected_due_dates_30d, 0) AS expected_due_dates_30d,
+                  a.recorded_interest_dates_30d,
+                  a.last_recorded_due_date,
+                  a.next_plan_due_date,
+                  f.interest AS next_plan_interest,
+                  f.principal AS next_plan_principal,
+                      CASE
+                          WHEN COALESCE(a.source_invalid, false) THEN 'Source review'::text
+                          ELSE b.setup_status
+                      END AS comparison_status
+                 FROM dates b
+                   LEFT JOIN expected e USING (loan_id)
+                   JOIN actual a USING (loan_id)
+                   LEFT JOIN charge_dates f ON f.loan_id = b.loan_id AND f.due_date = a.next_plan_due_date
+              ), ratios AS (
+               SELECT metrics.loan_id,
+                  metrics.borrower_id,
+                  metrics.loan_type,
+                  metrics.start_date,
+                  metrics.anchor_date,
+                  metrics.payment_interval,
+                  metrics.daily_interest,
+                  metrics.transfer_fee,
+                  metrics.auto_charge_enabled,
+                  metrics.outstanding_principal,
+                  metrics.defaulted,
+                  metrics.reporting_date,
+                  metrics.calculated_at,
+                  metrics.setup_status,
+                  metrics.comparison_start,
+                  metrics.accrual_baseline,
+                  metrics.observation_days,
+                  metrics.expected_interest_30d,
+                  metrics.recorded_interest_30d,
+                  metrics.recorded_principal_30d,
+                  metrics.expected_due_dates_30d,
+                  metrics.recorded_interest_dates_30d,
+                  metrics.last_recorded_due_date,
+                  metrics.next_plan_due_date,
+                  metrics.next_plan_interest,
+                  metrics.next_plan_principal,
+                  metrics.comparison_status,
+                  metrics.recorded_interest_30d / NULLIF(metrics.expected_interest_30d, 0::numeric) AS interest_coverage_30d,
+                  metrics.recorded_interest_dates_30d::numeric / NULLIF(metrics.expected_due_dates_30d, 0)::numeric AS interest_date_coverage_30d,
+                  metrics.comparison_status = 'Supported'::text AND metrics.observation_days >= 7 AND metrics.expected_due_dates_30d >= 2 AS assessment_eligible
+                 FROM metrics
+              )
+       SELECT loan_id,
+          borrower_id,
+          loan_type,
+          start_date,
+          anchor_date,
+          payment_interval,
+          daily_interest,
+          transfer_fee,
+          auto_charge_enabled,
+          outstanding_principal,
+          defaulted,
+          reporting_date,
+          calculated_at,
+          setup_status,
+          comparison_start,
+          accrual_baseline,
+          observation_days,
+          expected_interest_30d,
+          recorded_interest_30d,
+          recorded_principal_30d,
+          expected_due_dates_30d,
+          recorded_interest_dates_30d,
+          last_recorded_due_date,
+          next_plan_due_date,
+          next_plan_interest,
+          next_plan_principal,
+          comparison_status,
+          interest_coverage_30d,
+          interest_date_coverage_30d,
+          assessment_eligible,
+          COALESCE(assessment_eligible AND (interest_coverage_30d < 0.8 OR interest_date_coverage_30d < 0.8), false) AS schedule_departure,
+          COALESCE(assessment_eligible AND (interest_coverage_30d < 0.8 OR interest_date_coverage_30d < 0.8) AND NOT auto_charge_enabled, false) AS modified_schedule,
+              CASE
+                  WHEN assessment_eligible AND (interest_coverage_30d < 0.8 OR interest_date_coverage_30d < 0.8) AND NOT auto_charge_enabled THEN 'Modified payment schedule'::text
+                  WHEN comparison_status <> 'Supported'::text THEN comparison_status
+                  WHEN NOT assessment_eligible THEN 'Insufficient observation'::text
+                  ELSE 'No schedule restriction'::text
+              END AS arrangement_status,
+              CASE
+                  WHEN NOT auto_charge_enabled AND assessment_eligible AND interest_coverage_30d < 0.8 AND interest_date_coverage_30d < 0.8 THEN 'Reduced/deferred interest and fewer charge dates'::text
+                  WHEN NOT auto_charge_enabled AND assessment_eligible AND interest_coverage_30d < 0.8 THEN 'Reduced/deferred interest'::text
+                  WHEN NOT auto_charge_enabled AND assessment_eligible AND interest_date_coverage_30d < 0.8 THEN 'Fewer charge dates / deferred payment frequency'::text
+                  WHEN comparison_status <> 'Supported'::text THEN comparison_status
+                  WHEN NOT assessment_eligible THEN 'At least seven observed days and two expected dates required'::text
+                  ELSE 'Automatic schedule rule does not restrict category'::text
+              END AS schedule_reason,
+          'schedule-health-v1'::text AS schedule_method_version
+         FROM ratios;
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "columns":
+    "loan_id":
+      "schema": "public"
+      "relation": "reporting_loan_schedule_health_v1"
+      "name": "loan_id"
+      "ordinal": 1
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "borrower_id":
+      "schema": "public"
+      "relation": "reporting_loan_schedule_health_v1"
+      "name": "borrower_id"
+      "ordinal": 2
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "loan_type":
+      "schema": "public"
+      "relation": "reporting_loan_schedule_health_v1"
+      "name": "loan_type"
+      "ordinal": 3
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "start_date":
+      "schema": "public"
+      "relation": "reporting_loan_schedule_health_v1"
+      "name": "start_date"
+      "ordinal": 4
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "anchor_date":
+      "schema": "public"
+      "relation": "reporting_loan_schedule_health_v1"
+      "name": "anchor_date"
+      "ordinal": 5
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "payment_interval":
+      "schema": "public"
+      "relation": "reporting_loan_schedule_health_v1"
+      "name": "payment_interval"
+      "ordinal": 6
+      "data_type": "integer"
+      "type_schema": "pg_catalog"
+      "type_name": "int4"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "daily_interest":
+      "schema": "public"
+      "relation": "reporting_loan_schedule_health_v1"
+      "name": "daily_interest"
+      "ordinal": 7
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "transfer_fee":
+      "schema": "public"
+      "relation": "reporting_loan_schedule_health_v1"
+      "name": "transfer_fee"
+      "ordinal": 8
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "auto_charge_enabled":
+      "schema": "public"
+      "relation": "reporting_loan_schedule_health_v1"
+      "name": "auto_charge_enabled"
+      "ordinal": 9
+      "data_type": "boolean"
+      "type_schema": "pg_catalog"
+      "type_name": "bool"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "outstanding_principal":
+      "schema": "public"
+      "relation": "reporting_loan_schedule_health_v1"
+      "name": "outstanding_principal"
+      "ordinal": 10
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "defaulted":
+      "schema": "public"
+      "relation": "reporting_loan_schedule_health_v1"
+      "name": "defaulted"
+      "ordinal": 11
+      "data_type": "boolean"
+      "type_schema": "pg_catalog"
+      "type_name": "bool"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "reporting_date":
+      "schema": "public"
+      "relation": "reporting_loan_schedule_health_v1"
+      "name": "reporting_date"
+      "ordinal": 12
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "calculated_at":
+      "schema": "public"
+      "relation": "reporting_loan_schedule_health_v1"
+      "name": "calculated_at"
+      "ordinal": 13
+      "data_type": "timestamp with time zone"
+      "type_schema": "pg_catalog"
+      "type_name": "timestamptz"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "setup_status":
+      "schema": "public"
+      "relation": "reporting_loan_schedule_health_v1"
+      "name": "setup_status"
+      "ordinal": 14
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "comparison_start":
+      "schema": "public"
+      "relation": "reporting_loan_schedule_health_v1"
+      "name": "comparison_start"
+      "ordinal": 15
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "accrual_baseline":
+      "schema": "public"
+      "relation": "reporting_loan_schedule_health_v1"
+      "name": "accrual_baseline"
+      "ordinal": 16
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "observation_days":
+      "schema": "public"
+      "relation": "reporting_loan_schedule_health_v1"
+      "name": "observation_days"
+      "ordinal": 17
+      "data_type": "integer"
+      "type_schema": "pg_catalog"
+      "type_name": "int4"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "expected_interest_30d":
+      "schema": "public"
+      "relation": "reporting_loan_schedule_health_v1"
+      "name": "expected_interest_30d"
+      "ordinal": 18
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "recorded_interest_30d":
+      "schema": "public"
+      "relation": "reporting_loan_schedule_health_v1"
+      "name": "recorded_interest_30d"
+      "ordinal": 19
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "recorded_principal_30d":
+      "schema": "public"
+      "relation": "reporting_loan_schedule_health_v1"
+      "name": "recorded_principal_30d"
+      "ordinal": 20
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "expected_due_dates_30d":
+      "schema": "public"
+      "relation": "reporting_loan_schedule_health_v1"
+      "name": "expected_due_dates_30d"
+      "ordinal": 21
+      "data_type": "integer"
+      "type_schema": "pg_catalog"
+      "type_name": "int4"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "recorded_interest_dates_30d":
+      "schema": "public"
+      "relation": "reporting_loan_schedule_health_v1"
+      "name": "recorded_interest_dates_30d"
+      "ordinal": 22
+      "data_type": "integer"
+      "type_schema": "pg_catalog"
+      "type_name": "int4"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "last_recorded_due_date":
+      "schema": "public"
+      "relation": "reporting_loan_schedule_health_v1"
+      "name": "last_recorded_due_date"
+      "ordinal": 23
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "next_plan_due_date":
+      "schema": "public"
+      "relation": "reporting_loan_schedule_health_v1"
+      "name": "next_plan_due_date"
+      "ordinal": 24
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "next_plan_interest":
+      "schema": "public"
+      "relation": "reporting_loan_schedule_health_v1"
+      "name": "next_plan_interest"
+      "ordinal": 25
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "next_plan_principal":
+      "schema": "public"
+      "relation": "reporting_loan_schedule_health_v1"
+      "name": "next_plan_principal"
+      "ordinal": 26
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "comparison_status":
+      "schema": "public"
+      "relation": "reporting_loan_schedule_health_v1"
+      "name": "comparison_status"
+      "ordinal": 27
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "interest_coverage_30d":
+      "schema": "public"
+      "relation": "reporting_loan_schedule_health_v1"
+      "name": "interest_coverage_30d"
+      "ordinal": 28
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "interest_date_coverage_30d":
+      "schema": "public"
+      "relation": "reporting_loan_schedule_health_v1"
+      "name": "interest_date_coverage_30d"
+      "ordinal": 29
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "assessment_eligible":
+      "schema": "public"
+      "relation": "reporting_loan_schedule_health_v1"
+      "name": "assessment_eligible"
+      "ordinal": 30
+      "data_type": "boolean"
+      "type_schema": "pg_catalog"
+      "type_name": "bool"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "schedule_departure":
+      "schema": "public"
+      "relation": "reporting_loan_schedule_health_v1"
+      "name": "schedule_departure"
+      "ordinal": 31
+      "data_type": "boolean"
+      "type_schema": "pg_catalog"
+      "type_name": "bool"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "modified_schedule":
+      "schema": "public"
+      "relation": "reporting_loan_schedule_health_v1"
+      "name": "modified_schedule"
+      "ordinal": 32
+      "data_type": "boolean"
+      "type_schema": "pg_catalog"
+      "type_name": "bool"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "arrangement_status":
+      "schema": "public"
+      "relation": "reporting_loan_schedule_health_v1"
+      "name": "arrangement_status"
+      "ordinal": 33
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "schedule_reason":
+      "schema": "public"
+      "relation": "reporting_loan_schedule_health_v1"
+      "name": "schedule_reason"
+      "ordinal": 34
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "schedule_method_version":
+      "schema": "public"
+      "relation": "reporting_loan_schedule_health_v1"
+      "name": "schedule_method_version"
+      "ordinal": 35
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+  "constraints": {}
+  "indexes": {}
+  "triggers": {}
+  "policies": {}
+  "dependencies":
+  - "schema": "public"
+    "relation": "reporting_loan_schedule_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Charges"
+    "referenced_column": "Charge Date"
+  - "schema": "public"
+    "relation": "reporting_loan_schedule_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Charges"
+    "referenced_column": "Interest Due"
+  - "schema": "public"
+    "relation": "reporting_loan_schedule_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Charges"
+    "referenced_column": "Principal Due"
+  - "schema": "public"
+    "relation": "reporting_loan_schedule_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Charges"
+    "referenced_column": "Ref Loans"
+  - "schema": "public"
+    "relation": "reporting_loan_schedule_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Loans"
+    "referenced_column": "Auto Charge Enabled"
+  - "schema": "public"
+    "relation": "reporting_loan_schedule_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Loans"
+    "referenced_column": "Close Date"
+  - "schema": "public"
+    "relation": "reporting_loan_schedule_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Loans"
+    "referenced_column": "Current Daily Interest"
+  - "schema": "public"
+    "relation": "reporting_loan_schedule_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Loans"
+    "referenced_column": "Defaulted"
+  - "schema": "public"
+    "relation": "reporting_loan_schedule_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Loans"
+    "referenced_column": "Interest Payment Interval"
+  - "schema": "public"
+    "relation": "reporting_loan_schedule_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Loans"
+    "referenced_column": "Interest Schedule Anchor Date"
+  - "schema": "public"
+    "relation": "reporting_loan_schedule_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Loans"
+    "referenced_column": "Loan Date"
+  - "schema": "public"
+    "relation": "reporting_loan_schedule_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Loans"
+    "referenced_column": "Loan Status"
+  - "schema": "public"
+    "relation": "reporting_loan_schedule_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Loans"
+    "referenced_column": "Loan Type"
+  - "schema": "public"
+    "relation": "reporting_loan_schedule_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Loans"
+    "referenced_column": "Outstanding Principal"
+  - "schema": "public"
+    "relation": "reporting_loan_schedule_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Loans"
+    "referenced_column": "Ref Borrowers"
+  - "schema": "public"
+    "relation": "reporting_loan_schedule_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Loans"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "reporting_loan_schedule_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Loans"
+    "referenced_column": "Transfer Fee"
+"evidence":
+  "/content/definition/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"

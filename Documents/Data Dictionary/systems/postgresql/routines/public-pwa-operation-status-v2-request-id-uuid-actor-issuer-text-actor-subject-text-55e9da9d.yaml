@@ -1,0 +1,43 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.pwa_operation_status_v2(request_id uuid, actor_issuer text, actor_subject text)"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r052/dictionary-production-closure.json"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "pwa_operation_status_v2"
+    "arguments": "request_id uuid, actor_issuer text, actor_subject text"
+    "kind": "f"
+    "arguments_with_defaults": "request_id uuid, actor_issuer text, actor_subject text"
+    "result": "jsonb"
+    "definition": "CREATE OR REPLACE FUNCTION public.pwa_operation_status_v2(request_id uuid, actor_issuer text, actor_subject\
+      \ text)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\r\
+      \nDECLARE r public.pwa_payment_commands%ROWTYPE;\r\nBEGIN\r\n IF current_database() NOT IN ('loan_manager_dev','payment_rehearsal','loan_manager_prod')\
+      \ OR NOT pg_has_role(session_user,CASE current_database() WHEN 'loan_manager_prod' THEN 'mw_app_prod' ELSE 'mw_app_dev'\
+      \ END,'MEMBER') THEN RAISE EXCEPTION USING ERRCODE='42501',MESSAGE='Application session required';END IF;\r\n SELECT\
+      \ * INTO r FROM public.pwa_payment_commands p WHERE p.request_id=$1 AND p.contract_version=2 AND p.actor_issuer=$2 AND\
+      \ p.actor_subject=$3;\r\n IF NOT FOUND THEN RETURN jsonb_build_object('kind','unresolved');END IF;\r\n IF (SELECT count(*)\
+      \ FROM public.\"Partners\" WHERE lower(btrim(\"Login Email\"))=r.actor_login_email)<>1 OR NOT EXISTS(SELECT 1 FROM public.\"\
+      Partners\" WHERE \"Row ID\"=r.actor_partner_id AND lower(btrim(\"Login Email\"))=r.actor_login_email) THEN RAISE EXCEPTION\
+      \ USING ERRCODE='42501',MESSAGE='Current actor mapping required';END IF;\r\n RETURN jsonb_build_object('kind','recorded','originalOutcome',jsonb_build_object('status',r.outcome,'code',r.rejection_code,'result',r.result_json,'recordedAt',to_char(r.recorded_at\
+      \ AT TIME ZONE 'UTC','YYYY-MM-DD\"T\"HH24:MI:SS.MS\"Z\"')));\r\nEND $function$\n"
+    "owner": "mw_app_prod_journal_owner"
+    "language": "plpgsql"
+    "volatility": "v"
+    "strict": false
+    "security_definer": true
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 0.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": "{mw_app_prod_journal_owner=X/mw_app_prod_journal_owner,mw_app_prod=X/mw_app_prod_journal_owner}"
+    "comment": null
+    "extension": null

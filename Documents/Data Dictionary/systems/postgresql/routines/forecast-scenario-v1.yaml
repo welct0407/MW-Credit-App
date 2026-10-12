@@ -1,64 +1,89 @@
-{
-  "format": 1,
-  "identity": {
-    "system": "postgresql",
-    "component": "loan_manager_prod",
-    "kind": "routine",
-    "name": "public.forecast_scenario_v1(ui numeric, up numeric, oi numeric, op numeric, ci numeric, cp numeric, rr numeric, scenario text)",
-    "scope": "production"
-  },
-  "verification": {
-    "status": "documented",
-    "source": "outputs/r045-forecast-planning/dictionary-catalog.json"
-  },
-  "content": {
-    "definition": {
-      "schema": "public",
-      "name": "forecast_scenario_v1",
-      "arguments": "ui numeric, up numeric, oi numeric, op numeric, ci numeric, cp numeric, rr numeric, scenario text",
-      "kind": "f",
-      "arguments_with_defaults": "ui numeric, up numeric, oi numeric, op numeric, ci numeric, cp numeric, rr numeric, scenario text",
-      "result": "TABLE(remaining_interest numeric, remaining_principal numeric)",
-      "definition": "CREATE OR REPLACE FUNCTION public.forecast_scenario_v1(ui numeric, up numeric, oi numeric, op numeric, ci numeric, cp numeric, rr numeric, scenario text)\n RETURNS TABLE(remaining_interest numeric, remaining_principal numeric)\n LANGUAGE plpgsql\n IMMUTABLE\n SET search_path TO 'pg_catalog'\nAS $function$\nBEGIN\n IF ci IS NULL OR cp IS NULL OR rr IS NULL OR ci<0 OR ci>100 OR cp<0 OR cp>100 OR rr<0 OR rr>100\n OR ci::text='NaN' OR cp::text='NaN' OR rr::text='NaN' OR scenario NOT IN ('Planning','Schedule','Stress') OR scenario IS NULL\n THEN RAISE EXCEPTION 'Scenario inputs require percentages 0 to 100 and a valid scenario';END IF;\n RETURN QUERY SELECT CASE scenario WHEN 'Schedule' THEN ui WHEN 'Stress' THEN greatest(ci-20,0)*ui/100 ELSE (ci*ui+rr*oi)/100 END,\n CASE scenario WHEN 'Schedule' THEN up WHEN 'Stress' THEN greatest(cp-20,0)*up/100 ELSE (cp*up+rr*op)/100 END;\nEND $function$\n",
-      "owner": "postgres",
-      "language": "plpgsql",
-      "volatility": "i",
-      "strict": false,
-      "security_definer": false,
-      "leakproof": false,
-      "parallel": "u",
-      "cost": 100.0,
-      "rows": 1000.0,
-      "settings": [
-        "search_path=pg_catalog"
-      ],
-      "acl": "{postgres=X/postgres,metabase_borrower_reader=X/postgres}",
-      "comment": null,
-      "extension": null
-    },
-    "development_definition": {
-      "schema": "public",
-      "name": "forecast_scenario_v1",
-      "arguments": "ui numeric, up numeric, oi numeric, op numeric, ci numeric, cp numeric, rr numeric, scenario text",
-      "kind": "f",
-      "arguments_with_defaults": "ui numeric, up numeric, oi numeric, op numeric, ci numeric, cp numeric, rr numeric, scenario text",
-      "result": "TABLE(remaining_interest numeric, remaining_principal numeric)",
-      "definition": "CREATE OR REPLACE FUNCTION public.forecast_scenario_v1(ui numeric, up numeric, oi numeric, op numeric, ci numeric, cp numeric, rr numeric, scenario text)\n RETURNS TABLE(remaining_interest numeric, remaining_principal numeric)\n LANGUAGE plpgsql\n IMMUTABLE\n SET search_path TO 'pg_catalog'\nAS $function$\nBEGIN\n IF ci IS NULL OR cp IS NULL OR rr IS NULL OR ci<0 OR ci>100 OR cp<0 OR cp>100 OR rr<0 OR rr>100\n OR ci::text='NaN' OR cp::text='NaN' OR rr::text='NaN' OR scenario NOT IN ('Planning','Schedule','Stress') OR scenario IS NULL\n THEN RAISE EXCEPTION 'Scenario inputs require percentages 0 to 100 and a valid scenario';END IF;\n RETURN QUERY SELECT CASE scenario WHEN 'Schedule' THEN ui WHEN 'Stress' THEN greatest(ci-20,0)*ui/100 ELSE (ci*ui+rr*oi)/100 END,\n CASE scenario WHEN 'Schedule' THEN up WHEN 'Stress' THEN greatest(cp-20,0)*up/100 ELSE (cp*up+rr*op)/100 END;\nEND $function$\n",
-      "owner": "postgres",
-      "language": "plpgsql",
-      "volatility": "i",
-      "strict": false,
-      "security_definer": false,
-      "leakproof": false,
-      "parallel": "u",
-      "cost": 100.0,
-      "rows": 1000.0,
-      "settings": [
-        "search_path=pg_catalog"
-      ],
-      "acl": "{postgres=X/postgres,metabase_borrower_reader=X/postgres}",
-      "comment": null,
-      "extension": null
-    }
-  }
-}
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.forecast_scenario_v1(ui numeric, up numeric, oi numeric, op numeric, ci numeric, cp numeric, rr numeric,\
+    \ scenario text)"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r045-forecast-planning/dictionary-catalog.json"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "forecast_scenario_v1"
+    "arguments": "ui numeric, up numeric, oi numeric, op numeric, ci numeric, cp numeric, rr numeric, scenario text"
+    "kind": "f"
+    "arguments_with_defaults": "ui numeric, up numeric, oi numeric, op numeric, ci numeric, cp numeric, rr numeric, scenario\
+      \ text"
+    "result": "TABLE(remaining_interest numeric, remaining_principal numeric)"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.forecast_scenario_v1(ui numeric, up numeric, oi numeric, op numeric, ci numeric, cp numeric, rr numeric, scenario text)
+       RETURNS TABLE(remaining_interest numeric, remaining_principal numeric)
+       LANGUAGE plpgsql
+       IMMUTABLE
+       SET search_path TO 'pg_catalog'
+      AS $function$
+      BEGIN
+       IF ci IS NULL OR cp IS NULL OR rr IS NULL OR ci<0 OR ci>100 OR cp<0 OR cp>100 OR rr<0 OR rr>100
+       OR ci::text='NaN' OR cp::text='NaN' OR rr::text='NaN' OR scenario NOT IN ('Planning','Schedule','Stress') OR scenario IS NULL
+       THEN RAISE EXCEPTION 'Scenario inputs require percentages 0 to 100 and a valid scenario';END IF;
+       RETURN QUERY SELECT CASE scenario WHEN 'Schedule' THEN ui WHEN 'Stress' THEN greatest(ci-20,0)*ui/100 ELSE (ci*ui+rr*oi)/100 END,
+       CASE scenario WHEN 'Schedule' THEN up WHEN 'Stress' THEN greatest(cp-20,0)*up/100 ELSE (cp*up+rr*op)/100 END;
+      END $function$
+    "owner": "postgres"
+    "language": "plpgsql"
+    "volatility": "i"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 1000.0
+    "settings":
+    - "search_path=pg_catalog"
+    "acl": "{postgres=X/postgres,metabase_borrower_reader=X/postgres,mw_app_prod=X/postgres}"
+    "comment": null
+    "extension": null
+  "development_definition":
+    "schema": "public"
+    "name": "forecast_scenario_v1"
+    "arguments": "ui numeric, up numeric, oi numeric, op numeric, ci numeric, cp numeric, rr numeric, scenario text"
+    "kind": "f"
+    "arguments_with_defaults": "ui numeric, up numeric, oi numeric, op numeric, ci numeric, cp numeric, rr numeric, scenario\
+      \ text"
+    "result": "TABLE(remaining_interest numeric, remaining_principal numeric)"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.forecast_scenario_v1(ui numeric, up numeric, oi numeric, op numeric, ci numeric, cp numeric, rr numeric, scenario text)
+       RETURNS TABLE(remaining_interest numeric, remaining_principal numeric)
+       LANGUAGE plpgsql
+       IMMUTABLE
+       SET search_path TO 'pg_catalog'
+      AS $function$
+      BEGIN
+       IF ci IS NULL OR cp IS NULL OR rr IS NULL OR ci<0 OR ci>100 OR cp<0 OR cp>100 OR rr<0 OR rr>100
+       OR ci::text='NaN' OR cp::text='NaN' OR rr::text='NaN' OR scenario NOT IN ('Planning','Schedule','Stress') OR scenario IS NULL
+       THEN RAISE EXCEPTION 'Scenario inputs require percentages 0 to 100 and a valid scenario';END IF;
+       RETURN QUERY SELECT CASE scenario WHEN 'Schedule' THEN ui WHEN 'Stress' THEN greatest(ci-20,0)*ui/100 ELSE (ci*ui+rr*oi)/100 END,
+       CASE scenario WHEN 'Schedule' THEN up WHEN 'Stress' THEN greatest(cp-20,0)*up/100 ELSE (cp*up+rr*op)/100 END;
+      END $function$
+    "owner": "postgres"
+    "language": "plpgsql"
+    "volatility": "i"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 1000.0
+    "settings":
+    - "search_path=pg_catalog"
+    "acl": "{postgres=X/postgres,metabase_borrower_reader=X/postgres}"
+    "comment": null
+    "extension": null
+"evidence":
+  "/content/definition/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"

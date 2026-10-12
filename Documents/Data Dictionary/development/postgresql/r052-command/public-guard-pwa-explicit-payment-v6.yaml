@@ -1,0 +1,57 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_dev"
+  "kind": "routine"
+  "name": "public.guard_pwa_explicit_payment_v6()"
+  "scope": "development:R052-command"
+"verification":
+  "status": "documented"
+  "source": "https://github.com/welct0407/MW-Credit-App/blob/codex/r052-review-shell/outputs/r052-promotion-readiness/dev87-model-catalog.json"
+  "coverage": "Dated DEV observation; current production delivery is recorded in content.production_delivery and canonical\
+    \ PROD objects."
+"content":
+  "release": "R052"
+  "status": "SQL scope promoted to PROD V87; retained DEV observations are dated evidence. Environment-specific roles and\
+    \ bindings remain intentional; notifications and replacement jobs remain deferred."
+  "migration_source": "https://github.com/welct0407/MW-Credit-App/blob/8803b6d35371257e37efc21d02e5d2d3baebf38f/database/migrations/V82__explicit_payment_allocation_plan_v6.sql"
+  "behavior": "Invoker guard on Payments a000_pwa_explicit_plan BEFORE INSERT OR UPDATE: governed owner insertion and immutable\
+    \ actor/borrower/total/scope; reject ordinary recreation of retained v6 receipt IDs."
+  "data_model_impact": "No new table/column; retained immutable journal JSON is authoritative intent"
+  "rollback": "Retain dispatcher and both engines; preserve audit/journal/history. Retire legacy only after cutover and governed\
+    \ historical correction/replay compatibility."
+  "source_correction_boundary": "Metadata/receipt and compatible account/tender/date corrections preserve original paid component\
+    \ plan. Changes to borrower,total,selected IDs,target refs or allocation method fail atomically; later native financial-plan\
+    \ correction is not implemented."
+  "observedAt": "2026-10-11T12:42:15.709Z"
+  "catalog_observation":
+    "signature": "guard_pwa_explicit_payment_v6()"
+    "owner": "postgres"
+    "security_definer": false
+    "configuration":
+    - "search_path=pg_catalog, public"
+    "acl": "{postgres=X/postgres,mw_app_dev=X/postgres}"
+    "definition": "CREATE OR REPLACE FUNCTION public.guard_pwa_explicit_payment_v6()\n RETURNS trigger\n LANGUAGE plpgsql\n\
+      \ SET search_path TO 'pg_catalog', 'public'\nAS $function$\r\nDECLARE provenance jsonb;c jsonb;ids text[];\r\nBEGIN\r\
+      \n provenance:=public.pwa_effective_payment_plan_v2(NEW.\"Row ID\");IF provenance IS NULL THEN RETURN NEW;END IF;\r\n\
+      \ c:=provenance->'plan';SELECT array_agg(value->>'chargeId' ORDER BY (value->>'chargeId') COLLATE \"C\") INTO ids FROM\
+      \ jsonb_array_elements(c->'allocations');\r\n IF TG_OP='INSERT' AND (current_database() NOT IN ('loan_manager_dev','payment_rehearsal','loan_manager_prod')\
+      \ OR current_user<>CASE current_database() WHEN 'loan_manager_prod' THEN 'mw_app_prod_journal_owner' ELSE 'mw_app_dev_journal_owner'\
+      \ END) THEN RAISE EXCEPTION USING ERRCODE='42501',MESSAGE='Explicit command receipt must originate in governed submit';END\
+      \ IF;\r\n IF NEW.\"Ref Borrower\" IS DISTINCT FROM c->>'borrowerId' OR NEW.\"Amount Received\"::numeric IS DISTINCT\
+      \ FROM (c->>'amountReceived')::numeric OR NEW.\"Allocation Method\" IS DISTINCT FROM c->>'allocationMethod'\r\n  OR\
+      \ NEW.\"Ref Target Charge\" IS DISTINCT FROM c->>'targetChargeId' OR NEW.\"Ref Target Loan\" IS DISTINCT FROM c->>'targetLoanId'\r\
+      \n  OR NEW.\"Created By\" IS DISTINCT FROM provenance->>'sourceCreatedBy'\r\n  OR (c->>'allocationMethod'='Selected\
+      \ Charges' AND public.selected_charge_ids(NEW.\"Selected Charge IDs\") IS DISTINCT FROM ids)\r\n  OR (c->>'allocationMethod'<>'Selected\
+      \ Charges' AND NEW.\"Selected Charge IDs\" IS NOT NULL) THEN RAISE EXCEPTION 'Immutable explicit allocation scope';END\
+      \ IF;\r\n IF TG_OP='INSERT' AND (NEW.\"Status\" IS DISTINCT FROM 'Processing' OR NEW.\"Payment Date\" IS DISTINCT FROM\
+      \ (c->>'paymentDate')::date OR NEW.\"Payment Method\" IS DISTINCT FROM c->>'paymentMethod' OR (NEW.\"Ref Received By\
+      \ Cash Account\" IS DISTINCT FROM c->>'cashAccountId' AND NOT(c->>'allocationMethod'='First-day Auto' AND NEW.\"Ref\
+      \ Received By Cash Account\" IS NULL))) THEN RAISE EXCEPTION 'Explicit command input mismatch';END IF;\r\n RETURN NEW;\r\
+      \nEND $function$\n"
+  "currentMigration": 87
+  "production_delivery":
+    "evidence": "outputs/r052/dictionary-production-closure.json"
+    "PostgreSQL": 87
+    "observedAt": "2026-10-11T14:01:01.082491+00:00"
+    "scope": "SQL definitions/capability only; no AppSheet definition upgrade or notification/job activation."

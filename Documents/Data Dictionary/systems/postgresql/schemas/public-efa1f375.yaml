@@ -7,11 +7,11 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
-  "coverage": "catalog metadata"
+  "source": "outputs/r053-notifications-jobs/dictionary-production-closure.json"
+  "coverage": "Actual affected PROD89 catalogue after maintained migration and authority restoration; no business rows."
 "content":
   "definition":
     "name": "public"
     "owner": "pg_database_owner"
-    "acl": "{pg_database_owner=UC/pg_database_owner,=U/pg_database_owner,cloudsqlsuperuser=UC/pg_database_owner,mw_integration_agent=U/pg_database_owner,mw_reviewer_dml=U/pg_database_owner,metabase_borrower_reader=U/pg_database_owner}"
+    "acl": "{pg_database_owner=UC/pg_database_owner,=U/pg_database_owner,cloudsqlsuperuser=UC/pg_database_owner,mw_integration_agent=U/pg_database_owner,mw_reviewer_dml=U/pg_database_owner,metabase_borrower_reader=U/pg_database_owner,mw_chart_reader=U/pg_database_owner,mw_receipt_projector=U/pg_database_owner,mw_app_prod_journal_owner=U/pg_database_owner,mw_app_prod=U/pg_database_owner,mw_notify_owner_prod=U/pg_database_owner,mw_jobs_owner_prod=U/pg_database_owner,mw_notify_api_prod=U/pg_database_owner,mw_notify_dispatch_prod=U/pg_database_owner,mw_jobs_prod=U/pg_database_owner}"
     "comment": "standard public schema"

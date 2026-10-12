@@ -1,0 +1,29 @@
+{
+  "release": "R053",
+  "status": "persisted disabled after reload",
+  "wholeAppUpgrade": false,
+  "financialWrites": false,
+  "objects": [
+    {
+      "file": "systems/appsheet/oltp/automations/editor-generate-daily-charges-d3f5a697.yaml",
+      "beforeSha256": "8c2fd0eaab401a698022d692bef3d1037810d89a0975aef059a6fb7f449d30d6",
+      "afterSha256": "39f9b61d97cfff7df35230cbe6e63abb692e5be2539acf48cfab96b395f4adb9",
+      "enabled": false,
+      "appVersion": "3.000275",
+      "name": "Generate Daily Charges"
+    },
+    {
+      "file": "systems/appsheet/olap/automations/editor-refresh-daily-analytics-daily-30328483.yaml",
+      "beforeSha256": "7e3789b77abd335c3b21b4323b756ce37c9e3502083e58bcbe7705e0b2c37a1e",
+      "afterSha256": "d5f2c75fbf84b20dd0dfe608bf91e96c0f9b289705a72cb07b1ce2bf6d2ee89c",
+      "enabled": false,
+      "appVersion": "1.100215",
+      "name": "Refresh Daily Analytics Daily"
+    }
+  ],
+  "screenshots": [
+    "MW-Credit-App outputs/r053-notifications-jobs/prod-charges-scheduler-disabled.png",
+    "MW-Credit-App outputs/r053-notifications-jobs/prod-analytics-scheduler-disabled.png"
+  ],
+  "cloudSchedulerEvidence": "MW-Credit-App outputs/r053-notifications-jobs/production-jobs-schedule-handoff-evidence.json"
+}

@@ -1,0 +1,306 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_dev"
+  "kind": "relation"
+  "name": "public.pwa_payment_commands"
+  "scope": "development:R052-command"
+"verification":
+  "status": "documented"
+  "source": "https://github.com/welct0407/MW-Credit-App/blob/codex/r052-review-shell/outputs/r052-phase5-completion/live-catalog.json"
+  "coverage": "Dated DEV observation; current production delivery is recorded in content.production_delivery and canonical\
+    \ PROD objects."
+"content":
+  "release": "R052"
+  "status": "SQL scope promoted to PROD V87; retained DEV observations are dated evidence. Environment-specific roles and\
+    \ bindings remain intentional; notifications and replacement jobs remain deferred."
+  "observedAt": "2026-10-08T08:07:28.168Z"
+  "catalog_observation":
+    "owner": "postgres"
+    "acl": "{postgres=arwdDxtm/postgres,mw_app_dev_journal_owner=ar/postgres,mw_app_dev=r/postgres}"
+    "columns":
+    - "name": "request_id"
+      "type": "uuid"
+      "not_null": true
+      "default": null
+    - "name": "contract_version"
+      "type": "smallint"
+      "not_null": true
+      "default": null
+    - "name": "actor_issuer"
+      "type": "text"
+      "not_null": true
+      "default": null
+    - "name": "actor_subject"
+      "type": "text"
+      "not_null": true
+      "default": null
+    - "name": "actor_partner_id"
+      "type": "text"
+      "not_null": true
+      "default": null
+    - "name": "actor_login_email"
+      "type": "text"
+      "not_null": true
+      "default": null
+    - "name": "canonical_json"
+      "type": "text"
+      "not_null": true
+      "default": null
+    - "name": "payload_sha256"
+      "type": "text"
+      "not_null": true
+      "default": null
+    - "name": "outcome"
+      "type": "text"
+      "not_null": true
+      "default": null
+    - "name": "payment_id"
+      "type": "text"
+      "not_null": false
+      "default": null
+    - "name": "rejection_code"
+      "type": "text"
+      "not_null": false
+      "default": null
+    - "name": "recorded_at"
+      "type": "timestamp with time zone"
+      "not_null": true
+      "default": "transaction_timestamp()"
+    "constraints":
+    - "name": "pwa_payment_commands_actor_issuer_check"
+      "definition": "CHECK (octet_length(actor_issuer) >= 1 AND octet_length(actor_issuer) <= 1024)"
+    - "name": "pwa_payment_commands_actor_issuer_not_null"
+      "definition": "NOT NULL actor_issuer"
+    - "name": "pwa_payment_commands_actor_login_email_check"
+      "definition": "CHECK (octet_length(actor_login_email) >= 1 AND octet_length(actor_login_email) <= 320)"
+    - "name": "pwa_payment_commands_actor_login_email_not_null"
+      "definition": "NOT NULL actor_login_email"
+    - "name": "pwa_payment_commands_actor_partner_id_check"
+      "definition": "CHECK (octet_length(actor_partner_id) >= 1 AND octet_length(actor_partner_id) <= 256)"
+    - "name": "pwa_payment_commands_actor_partner_id_not_null"
+      "definition": "NOT NULL actor_partner_id"
+    - "name": "pwa_payment_commands_actor_subject_check"
+      "definition": "CHECK (octet_length(actor_subject) >= 1 AND octet_length(actor_subject) <= 128)"
+    - "name": "pwa_payment_commands_actor_subject_not_null"
+      "definition": "NOT NULL actor_subject"
+    - "name": "pwa_payment_commands_canonical_json_check"
+      "definition": "CHECK (octet_length(canonical_json) <= 524288)"
+    - "name": "pwa_payment_commands_canonical_json_not_null"
+      "definition": "NOT NULL canonical_json"
+    - "name": "pwa_payment_commands_check"
+      "definition": "CHECK ((outcome = 'posted'::text AND payment_id = ('pwa:'::text || request_id::text) AND rejection_code\
+        \ IS NULL OR outcome = 'rejected'::text AND payment_id IS NULL AND (rejection_code = ANY (ARRAY['invalid_date'::text,\
+        \ 'borrower_unavailable'::text, 'account_unavailable'::text, 'selection_unavailable'::text]))) IS TRUE)"
+    - "name": "pwa_payment_commands_check1"
+      "definition": "CHECK (payload_sha256 = encode(sha256(convert_to(canonical_json, 'UTF8'::name)), 'hex'::text))"
+    - "name": "pwa_payment_commands_check2"
+      "definition": "CHECK ((jsonb_typeof(canonical_json::jsonb) = 'object'::text AND (canonical_json::jsonb ->> 'contractVersion'::text)\
+        \ = '1'::text AND (canonical_json::jsonb #>> '{command,requestId}'::text[]) = request_id::text AND (canonical_json::jsonb\
+        \ #>> '{actor,issuer}'::text[]) = actor_issuer AND (canonical_json::jsonb #>> '{actor,subject}'::text[]) = actor_subject\
+        \ AND (canonical_json::jsonb #>> '{actor,partnerId}'::text[]) = actor_partner_id AND (canonical_json::jsonb #>> '{actor,loginEmail}'::text[])\
+        \ = actor_login_email) IS TRUE)"
+    - "name": "pwa_payment_commands_contract_version_check"
+      "definition": "CHECK (contract_version = 1)"
+    - "name": "pwa_payment_commands_contract_version_not_null"
+      "definition": "NOT NULL contract_version"
+    - "name": "pwa_payment_commands_outcome_check"
+      "definition": "CHECK (outcome = ANY (ARRAY['posted'::text, 'rejected'::text]))"
+    - "name": "pwa_payment_commands_outcome_not_null"
+      "definition": "NOT NULL outcome"
+    - "name": "pwa_payment_commands_payload_sha256_check"
+      "definition": "CHECK (payload_sha256 ~ '^[0-9a-f]{64}$'::text)"
+    - "name": "pwa_payment_commands_payload_sha256_not_null"
+      "definition": "NOT NULL payload_sha256"
+    - "name": "pwa_payment_commands_payment_id_key"
+      "definition": "UNIQUE (payment_id)"
+    - "name": "pwa_payment_commands_pkey"
+      "definition": "PRIMARY KEY (request_id)"
+    - "name": "pwa_payment_commands_recorded_at_not_null"
+      "definition": "NOT NULL recorded_at"
+    - "name": "pwa_payment_commands_request_id_check"
+      "definition": "CHECK (request_id::text ~ '^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'::text)"
+    - "name": "pwa_payment_commands_request_id_not_null"
+      "definition": "NOT NULL request_id"
+    "triggers":
+    - "name": "pwa_payment_commands_no_mutation"
+      "definition": "CREATE TRIGGER pwa_payment_commands_no_mutation BEFORE DELETE OR UPDATE ON pwa_payment_commands FOR EACH\
+        \ ROW EXECUTE FUNCTION guard_pwa_payment_commands_immutable()"
+    - "name": "pwa_payment_commands_no_truncate"
+      "definition": "CREATE TRIGGER pwa_payment_commands_no_truncate BEFORE TRUNCATE ON pwa_payment_commands FOR EACH STATEMENT\
+        \ EXECUTE FUNCTION guard_pwa_payment_commands_immutable()"
+    "indexes":
+    - "name": "pwa_payment_commands_payment_id_key"
+      "definition": "CREATE UNIQUE INDEX pwa_payment_commands_payment_id_key ON public.pwa_payment_commands USING btree (payment_id)"
+    - "name": "pwa_payment_commands_pkey"
+      "definition": "CREATE UNIQUE INDEX pwa_payment_commands_pkey ON public.pwa_payment_commands USING btree (request_id)"
+  "candidate_schema":
+    "status": "DEV V83 applied/validated; bounded live catalog verified9October2026"
+    "closure": "Actual affected catalog captured in canonical live-catalog.json; earlier catalog_observation retained as dated\
+      \ evidence"
+    "protected_routines":
+    - "public.pwa_submit_operation_v2(text)"
+    - "public.pwa_operation_status_v2(uuid,text,text)"
+    "evidence": "https://github.com/welct0407/MW-Credit-App/blob/codex/r052-review-shell/outputs/r052-phase5-completion/journal-foundation-independent-verification.md"
+    "contract": "Versioned v2 applied/rejected operations use NULL payment_id and typed target/result provenance; no second\
+      \ table or fabricated Payments"
+    "added_column":
+      "name": "result_json"
+      "default": null
+      "type": "jsonb"
+      "not_null": false
+    "preserved": "Existing twelve fields, unique payment_id and v1 historical canonical/replay remain unchanged"
+    "owner": "mw_app_dev_journal_owner"
+    "migration": "V83__generalized_application_commands.sql"
+  "v83_catalog_observation":
+    "observedAt": "2026-10-08T22:24:57.915Z"
+    "columns":
+    - "column_name": "request_id"
+      "data_type": "uuid"
+      "is_nullable": "NO"
+      "column_default": null
+    - "column_name": "contract_version"
+      "data_type": "smallint"
+      "is_nullable": "NO"
+      "column_default": null
+    - "column_name": "actor_issuer"
+      "data_type": "text"
+      "is_nullable": "NO"
+      "column_default": null
+    - "column_name": "actor_subject"
+      "data_type": "text"
+      "is_nullable": "NO"
+      "column_default": null
+    - "column_name": "actor_partner_id"
+      "data_type": "text"
+      "is_nullable": "NO"
+      "column_default": null
+    - "column_name": "actor_login_email"
+      "data_type": "text"
+      "is_nullable": "NO"
+      "column_default": null
+    - "column_name": "canonical_json"
+      "data_type": "text"
+      "is_nullable": "NO"
+      "column_default": null
+    - "column_name": "payload_sha256"
+      "data_type": "text"
+      "is_nullable": "NO"
+      "column_default": null
+    - "column_name": "outcome"
+      "data_type": "text"
+      "is_nullable": "NO"
+      "column_default": null
+    - "column_name": "payment_id"
+      "data_type": "text"
+      "is_nullable": "YES"
+      "column_default": null
+    - "column_name": "rejection_code"
+      "data_type": "text"
+      "is_nullable": "YES"
+      "column_default": null
+    - "column_name": "recorded_at"
+      "data_type": "timestamp with time zone"
+      "is_nullable": "NO"
+      "column_default": "transaction_timestamp()"
+    - "column_name": "result_json"
+      "data_type": "jsonb"
+      "is_nullable": "YES"
+      "column_default": null
+    "constraints":
+    - "conname": "pwa_contract_versions"
+      "definition": "CHECK ((contract_version = ANY (ARRAY[1, 2])))"
+    - "conname": "pwa_payment_commands_actor_issuer_check"
+      "definition": "CHECK (((octet_length(actor_issuer) >= 1) AND (octet_length(actor_issuer) <= 1024)))"
+    - "conname": "pwa_payment_commands_actor_issuer_not_null"
+      "definition": "NOT NULL actor_issuer"
+    - "conname": "pwa_payment_commands_actor_login_email_check"
+      "definition": "CHECK (((octet_length(actor_login_email) >= 1) AND (octet_length(actor_login_email) <= 320)))"
+    - "conname": "pwa_payment_commands_actor_login_email_not_null"
+      "definition": "NOT NULL actor_login_email"
+    - "conname": "pwa_payment_commands_actor_partner_id_check"
+      "definition": "CHECK (((octet_length(actor_partner_id) >= 1) AND (octet_length(actor_partner_id) <= 256)))"
+    - "conname": "pwa_payment_commands_actor_partner_id_not_null"
+      "definition": "NOT NULL actor_partner_id"
+    - "conname": "pwa_payment_commands_actor_subject_check"
+      "definition": "CHECK (((octet_length(actor_subject) >= 1) AND (octet_length(actor_subject) <= 128)))"
+    - "conname": "pwa_payment_commands_actor_subject_not_null"
+      "definition": "NOT NULL actor_subject"
+    - "conname": "pwa_payment_commands_canonical_json_check"
+      "definition": "CHECK ((octet_length(canonical_json) <= 524288))"
+    - "conname": "pwa_payment_commands_canonical_json_not_null"
+      "definition": "NOT NULL canonical_json"
+    - "conname": "pwa_payment_commands_check1"
+      "definition": "CHECK ((payload_sha256 = encode(sha256(convert_to(canonical_json, 'UTF8'::name)), 'hex'::text)))"
+    - "conname": "pwa_payment_commands_contract_version_not_null"
+      "definition": "NOT NULL contract_version"
+    - "conname": "pwa_payment_commands_outcome_not_null"
+      "definition": "NOT NULL outcome"
+    - "conname": "pwa_payment_commands_payload_sha256_check"
+      "definition": "CHECK ((payload_sha256 ~ '^[0-9a-f]{64}$'::text))"
+    - "conname": "pwa_payment_commands_payload_sha256_not_null"
+      "definition": "NOT NULL payload_sha256"
+    - "conname": "pwa_payment_commands_payment_id_key"
+      "definition": "UNIQUE (payment_id)"
+    - "conname": "pwa_payment_commands_pkey"
+      "definition": "PRIMARY KEY (request_id)"
+    - "conname": "pwa_payment_commands_recorded_at_not_null"
+      "definition": "NOT NULL recorded_at"
+    - "conname": "pwa_payment_commands_request_id_check"
+      "definition": "CHECK (((request_id)::text ~ '^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'::text))"
+    - "conname": "pwa_payment_commands_request_id_not_null"
+      "definition": "NOT NULL request_id"
+    - "conname": "pwa_versioned_envelope"
+      "definition": |-
+        CHECK ((((jsonb_typeof((canonical_json)::jsonb) = 'object'::text) AND (((canonical_json)::jsonb ->> 'contractVersion'::text) = (contract_version)::text) AND (
+        CASE
+            WHEN (contract_version = 1) THEN ((canonical_json)::jsonb #>> '{command,requestId}'::text[])
+            ELSE ((canonical_json)::jsonb ->> 'requestId'::text)
+        END = (request_id)::text) AND (((canonical_json)::jsonb #>> '{actor,issuer}'::text[]) = actor_issuer) AND (((canonical_json)::jsonb #>> '{actor,subject}'::text[]) = actor_subject) AND (((canonical_json)::jsonb #>> '{actor,partnerId}'::text[]) = actor_partner_id) AND (((canonical_json)::jsonb #>> '{actor,loginEmail}'::text[]) = actor_login_email)) IS TRUE))
+    - "conname": "pwa_versioned_outcome"
+      "definition": "CHECK (((((contract_version = 1) AND (result_json IS NULL) AND (((outcome = 'posted'::text) AND (payment_id\
+        \ = ('pwa:'::text || (request_id)::text)) AND (rejection_code IS NULL)) OR ((outcome = 'rejected'::text) AND (payment_id\
+        \ IS NULL) AND (rejection_code = ANY (ARRAY['invalid_date'::text, 'borrower_unavailable'::text, 'account_unavailable'::text,\
+        \ 'selection_unavailable'::text]))))) OR ((contract_version = 2) AND (payment_id IS NULL) AND (((outcome = 'applied'::text)\
+        \ AND (rejection_code IS NULL) AND (jsonb_typeof(result_json) = 'object'::text) AND (octet_length((result_json)::text)\
+        \ <= 524288) AND (result_json ?& ARRAY['operation'::text, 'targetType'::text, 'targetId'::text, 'paymentId'::text,\
+        \ 'plan'::text, 'predecessorRequestId'::text]) AND ((result_json - ARRAY['operation'::text, 'targetType'::text, 'targetId'::text,\
+        \ 'paymentId'::text, 'plan'::text, 'predecessorRequestId'::text, 'sourceCreatedBy'::text]) = '{}'::jsonb) AND ((NOT\
+        \ (result_json ? 'sourceCreatedBy'::text)) OR (jsonb_typeof((result_json -> 'sourceCreatedBy'::text)) = ANY (ARRAY['string'::text,\
+        \ 'null'::text]))) AND ((result_json ->> 'operation'::text) = ((canonical_json)::jsonb #>> '{command,operation}'::text[]))\
+        \ AND ((result_json ->> 'targetType'::text) = ((canonical_json)::jsonb #>> '{command,targetType}'::text[])) AND ((result_json\
+        \ ->> 'targetId'::text) = ((canonical_json)::jsonb #>> '{command,targetId}'::text[]))) OR ((outcome = 'rejected'::text)\
+        \ AND (result_json IS NULL) AND (rejection_code = ANY (ARRAY['source_conflict'::text, 'not_found'::text, 'invalid_reference'::text,\
+        \ 'borrower_name_exists'::text, 'dependency_conflict'::text, 'insufficient_funds'::text, 'plan_changed'::text, 'invalid_date'::text,\
+        \ 'account_unavailable'::text, 'record_requires_reconciliation'::text])))))) IS TRUE))"
+    "indexes":
+    - "indexname": "pwa_operation_actor_v2"
+      "indexdef": "CREATE INDEX pwa_operation_actor_v2 ON public.pwa_payment_commands USING btree (actor_issuer, actor_subject,\
+        \ recorded_at, request_id) WHERE (contract_version = 2)"
+    - "indexname": "pwa_operation_receipt_v2"
+      "indexdef": "CREATE UNIQUE INDEX pwa_operation_receipt_v2 ON public.pwa_payment_commands USING btree (((result_json\
+        \ ->> 'paymentId'::text))) WHERE ((contract_version = 2) AND (outcome = 'applied'::text) AND (((canonical_json)::jsonb\
+        \ #>> '{command,operation}'::text[]) = ANY (ARRAY['loan.create'::text, 'loan.close'::text, 'charge.create'::text])))"
+    - "indexname": "pwa_operation_successor_v2"
+      "indexdef": "CREATE UNIQUE INDEX pwa_operation_successor_v2 ON public.pwa_payment_commands USING btree ((((canonical_json)::jsonb\
+        \ #>> '{command,targetId}'::text[])), COALESCE(((canonical_json)::jsonb #>> '{command,predecessorRequestId}'::text[]),\
+        \ ''::text)) WHERE ((contract_version = 2) AND (outcome = 'applied'::text) AND (((canonical_json)::jsonb #>> '{command,operation}'::text[])\
+        \ = 'payment.correct'::text))"
+    - "indexname": "pwa_operation_target_v2"
+      "indexdef": "CREATE INDEX pwa_operation_target_v2 ON public.pwa_payment_commands USING btree ((((canonical_json)::jsonb\
+        \ #>> '{command,operation}'::text[])), (((canonical_json)::jsonb #>> '{command,targetType}'::text[])), (((canonical_json)::jsonb\
+        \ #>> '{command,targetId}'::text[])), recorded_at, request_id) WHERE (contract_version = 2)"
+    - "indexname": "pwa_payment_commands_payment_id_key"
+      "indexdef": "CREATE UNIQUE INDEX pwa_payment_commands_payment_id_key ON public.pwa_payment_commands USING btree (payment_id)"
+    - "indexname": "pwa_payment_commands_pkey"
+      "indexdef": "CREATE UNIQUE INDEX pwa_payment_commands_pkey ON public.pwa_payment_commands USING btree (request_id)"
+  "production_delivery":
+    "evidence": "outputs/r052/dictionary-production-closure.json"
+    "PostgreSQL": 87
+    "observedAt": "2026-10-11T14:01:01.082491+00:00"
+    "scope": "SQL definitions/capability only; no AppSheet definition upgrade or notification/job activation."
+"evidence":
+  "/content/candidate_schema":
+    "reference": "../../Change Logs/CHANGE_NOTES_R052_PHASE5_COMPLETION_2026-10-08.md"
+    "reason": "Approved existing-journal generalization applied to DEV83 with exact maintenance restoration and catalog readback"
+    "state": "value"
