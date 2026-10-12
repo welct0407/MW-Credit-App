@@ -23,3 +23,9 @@ Reviewed exact PR heads, mergeability, stacked-base absence and existing CI; che
 ## Verified final state
 
 All three repositories have zero open PRs. Remote heads are only master for PM and main for app/agent. Removed the three already-merged app heads after exact ancestry checks and the closed superseded PR17 head after recovery-ref verification. PM/agent completed heads were removed by their existing GitHub merge policy. Primary PM, app and agent checkouts are clean on default branches; the former PM planning worktree is detached at the consolidated master. Local recovery stashes/refs and unrelated historical worktrees remain protected. No pending PR or active WIP branch is carried into R054.
+
+## Owner-requested repository retirement
+
+Archived welct0407/MW-Partner-Operations and welct0407/MW-AI-Collection on 12 October 2026; GitHub readback confirms isArchived=true for both. Daily-Use remains unchanged and unarchived. No local folders or runtime services changed. Archival can be reversed through GitHub repository settings.
+
+Deletion of cloud-launch-smoke-20260930 is authorized; inspection found only README.md on main, with no workflows or open PRs. CLI deletion was rejected with HTTP 403 because its token lacks delete_repo scope. The existing authorized GitHub browser session reached the deletion confirmation and now awaits owner GitHub Mobile reauthentication; deletion is not yet confirmed. No token scopes were expanded. Documentation starting commit: 912a6eebdc89ade9ead1a384892331011c625ae7. No product CI is applicable to these repository lifecycle operations.
