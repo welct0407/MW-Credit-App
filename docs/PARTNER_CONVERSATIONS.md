@@ -1,5 +1,7 @@
 # Persistent Partner conversations
 
+**Production native transport, 12 October 2026:** source `e9fd149` and catalogue27 are active after actual authenticated operational/analytical read and receipt-status probes. Existing conversation/receipt cutoffs, service flags and six active timers were preserved. Native catalogue/query/typed command/status transport replaces operational AppSheet calls and schema bootstrap; no financial sample was issued during deployment. First genuine operation remains the production business verification opportunity. Monitoring/Grafana remains explicitly deferred. Exact delivery and recovery: `MW-Credit-App/outputs/r053-appsheet-retirement/agent-native-deployment-evidence.json`.
+
 Resumed by the owner on 22 September 2026 at 02:17 Bangkok after the temporary 02:07 pause. The timer is enabled and both conversation switches are true. History and journals are preserved. A fresh ingress cutoff excludes paused-period messages; prior accepted replies are not resent. Initially activated on Debian at 01:23 Bangkok. Owner requested persistent conversations and Codex-selected general operational API edits. Runtime deployment and checks are recorded in the [change log](../Change%20Logs/CHANGE_NOTES_PARTNER_CONVERSATIONS_2026-09-22.md).
 
 Signed ingress → standalone post-cutoff text (no reply_to) → fresh Partner authentication → once-only turn → persistent Codex App Server thread → host data tools → durable localized reply → Instagram, or complete email fallback.

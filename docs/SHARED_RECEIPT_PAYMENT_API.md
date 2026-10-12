@@ -1,4 +1,6 @@
-# Shared receipt-payment API — production cutover and retirement candidate
+# Shared receipt-payment API — production native transport
+
+**Current production, 12 October 2026:** native retirement source `e9fd149`/catalogue27 is active. Both native read scopes and receipt status passed with workload OIDC before the six original timers resumed. The existing receipt API route and cutoff below were preserved. All never-attempted approved work uses the shared API after fresh authorization/proposal checks; legacy uncertain identities remain native readback-only, without AppSheet fallback or resubmission. No financial sample was submitted; first genuine payment is still pending verification. The original cutover paragraphs below retain their dated evidence. [Current catalogue](../SERVICE_CATALOGUE.md).
 
 The owner authorized promotion after CI. Source `35c7d9e831a49d3e27d0b544728a7efb77a42928` is installed and active on Debian, with cutoff `2026-10-11T20:03:29.6477163+00:00` (12 October 03:03:29 Bangkok). The workload OIDC read-only status probe passed before activation; configuration hashes and all six resumed timers were verified. The existing reviewer/automatic checks and duplicate-reference policy remain in force. No financial sample was submitted: the next eligible real receipt remains the operational verification opportunity. Central push delivery is now active and owner device delivery has been verified; this later verification does not change the original receipt API cutoff.
 
