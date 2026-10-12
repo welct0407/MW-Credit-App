@@ -1,18 +1,18 @@
-# R053 continuation — applied, verification incomplete
+# R053 continuation — Released; R054 UI fine-tuning next
 
-## 12 October: native retirement applied; verification incomplete
+## 12 October: native retirement applied; owner closure accepted
 
 Owner authorized CI/failure repair, deployment and promotion within the Frozen R053 exception. Tested source `5fca4e476c010f6a90e5e18f72881577ed467c7b`, artifacts `1bc08f3e171d043a5a3ca01335d3746113c68cb2` and agent `e9fd149914a3fa49f036c1eec75a8d4dc8a07c00` are distinct from documentation commits. Full app38202842623 passed 271 browser tests/nine existing skips, database38201112557 passed, agent Linux38200988357 passed 312/42 prerequisite skips. Unchanged runtime/SQL inputs justify reuse. Initial asynchronous fixture failures and focused corrections remain dated receipts, not current blockers.
 
 DEV/PROD V90 applied/validated; exact temporary journal-owner authority restored. Fresh DEV89/PROD89/mw_agent protected dumps and isolated restores passed. PROD reader 00004-htx/command 00005-p4s Ready100% on 77254376; Hosting 9dd049f29f6d77d6 serves 81100bc605443cbb098fdfcc with Reporting absent. Agent e9fd149/catalogue 27 passed native operational/analytical reads and unused-UUID receipt status before six original timers resumed. Receipt route/cutoffs/flags preserved. Notify42534b/jobs11c149, capture and schedules unchanged. C DEV read/auth11/11 and bounded PROD V90 routine/ACL proof passed; no financial sample or arbitrary push.
 
-Natural analytics09:00Bangkok12October passed. First natural charges and genuine shared-agent payment remain unobserved: deployment applied; verification incomplete. R053 Frozen/R054 sole Open/nextR055 unused; no tag. Monitoring/Grafana is deferred with accepted temporary failure, so no blanket ecosystem dependency-free claim. Five monitoring files remain uncommitted/excluded. Automatic review blocked C diagnostic cleanup before execution; exact task roots retained for 19 October review without workaround. [Actual manifest](promotion-actual.json); exact evidence in `MW-Credit-App/outputs/r053-appsheet-retirement/deployment-evidence.json`.
+Natural analytics09:00Bangkok12October passed. First natural charges and genuine shared-agent payment remain unobserved: owner accepted these checks as deferred on12October, not tested. R053 Released with final tag R053; R054 sole Open for UI fine-tuning/nextR055 unused. Monitoring/Grafana is deferred with accepted temporary failure, so no blanket ecosystem dependency-free claim. Five monitoring files remain uncommitted/excluded. Automatic review blocked C diagnostic cleanup before execution; exact task roots retained for 19 October review without workaround. [Actual manifest](promotion-actual.json); exact evidence in `MW-Credit-App/outputs/r053-appsheet-retirement/deployment-evidence.json`.
 
 The earlier bounded AppSheet audit at OLTP3.000275/OLAP1.100215 remains dated: saved/Deployed, selected financial and OLAP bots disabled, four push tasks/email0/SMS0, retained R008 definitions. No whole-app upgrade, definition deletion, asset rename or blanket key revocation was performed. Operational replacement does not authorize historical cleanup.
 
 ## Dependency inventory for the owner-expanded R053 scope
 
-This table distinguishes current deployed behavior from source-only replacements. It is not a claim that the ecosystem is dependency-free. The existing applied source/image/receipt pins remain recovery evidence; R053 stays Frozen and R054 stays the sole Open release.
+This table distinguishes current deployed behavior from source-only replacements. It is not a claim that the ecosystem is dependency-free. The existing applied source/image/receipt pins remain recovery evidence; R053 is Released with owner-accepted deferred natural-business checks; R054 is the sole Open release.
 
 | Dependency | Replacement | Status | Remaining proof |
 | --- | --- | --- | --- |
@@ -39,3 +39,7 @@ R053 deployment applied; verification incomplete. PROD SQL V89/PWA/API/shared ag
 Next: owner PROD enrollment/changed entry points; observe the next natural analytics result and first due charges run. Do not force financial execution or arbitrary sends. Existing AppSheet lookup/conversation/schema/legacy paths remain dependencies; API keys retained. DEV AppSheet jobs remain unchanged; DEV capture/recovery stays off after the single approved proof.
 
 The shared workers.image variable cannot represent the corrected jobs11c149/API-notify42534b split. Preserve both using exact private jobs-only recovery inputs and review future per-service image diffs; refuse silent jobs rollback or notify/API upgrade until explicit reconciliation. Retain pinned private source/build/operator/recovery artifacts for continuation, review19October, including automatically blocked build scratch cleanup; disposable database clusters are removed. R052 genuine manual receipt/AppSheet view remains separately owner-accepted deferred.
+
+## Owner closeout — 12 October 2026
+
+Owner accepted closure on 12 October 2026; first natural charges and first genuine shared-agent payment remain unobserved and explicitly deferred, not claimed tested. R054 remains Open for the requested UI fine-tuning; no UI changes have been specified or implemented in this closure. Grafana remains deferred. Existing deployed versions, backups and diagnostics retention are unchanged. Final evidence tag: R053.

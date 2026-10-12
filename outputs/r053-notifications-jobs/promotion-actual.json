@@ -1,7 +1,7 @@
 {
   "release": "R053",
-  "status": "Deployment applied; verification incomplete",
-  "releaseStatus": "Frozen",
+  "status": "Released with owner-accepted deferred natural-business checks",
+  "releaseStatus": "Released",
   "runtimeSourceCommit": "1bc08f3e171d043a5a3ca01335d3746113c68cb2",
   "operatorSourceCommit": "5fca4e476c010f6a90e5e18f72881577ed467c7b",
   "agentCommit": "e9fd149914a3fa49f036c1eec75a8d4dc8a07c00",
@@ -109,18 +109,14 @@
     "nativeReadOnlyProbe": "Two scopes plus unused UUID receipt status passed",
     "cutoffsAndReceiptRoutePreserved": true
   },
-  "verificationPending": [
-    "First natural charges execution",
-    "First genuine shared-agent payment"
-  ],
+  "verificationPending": [],
   "rollback": "Fresh protected DEV89/PROD89/mw_agent dumps and isolated restores; captured Hosting baseline and native-agent package/config pointer. Reviewed recovery only; preserve original cutoffs and later writes.",
   "retainedArtifacts": {
-    "purpose": "Pinned recovery and continuation while verification is incomplete",
+    "purpose": "Protected recovery and owner-accepted deferred natural-business follow-up",
     "reviewDate": "2026-10-19",
     "disposableDatabaseClusters": "removed"
   },
-  "tagCreated": false,
-  "agentEvidencePublicationCommit": "e8f43d5adcfacdbe5198f56a7e6e330766cdbd07",
+  "agentEvidencePublicationCommit": "a4b347d5e799c846267d1c90151fbfc5752076a6",
   "devNotificationProof": {
     "registrationUi": "owner confirmed enabled",
     "activeOwnerAppleSubscriptions": 1,
@@ -137,7 +133,7 @@
   },
   "scopeException": {
     "ownerDate": "2026-10-12",
-    "releaseStillFrozen": true,
+    "releaseStillFrozen": false,
     "successorStillOpen": "R054",
     "scope": "Native operational agent/API/app retirement applied; historical AppSheet assets and deferred monitoring retained",
     "monitoring": "Explicitly deferred; temporary failure accepted and not an R053 API/app blocker",
@@ -148,5 +144,18 @@
     "operatorSourceCommit": "dc4e75de24c99b5217c2895066957862a72e2cbb",
     "agentCommit": "35c7d9e831a49d3e27d0b544728a7efb77a42928"
   },
-  "nativeRetirementEvidence": "MW-Credit-App outputs/r053-appsheet-retirement/deployment-evidence.json"
+  "nativeRetirementEvidence": "MW-Credit-App outputs/r053-appsheet-retirement/deployment-evidence.json",
+  "ownerAcceptedDeferredChecks": [
+    "First natural charges execution",
+    "First genuine shared-agent payment"
+  ],
+  "ownerClosure": {
+    "date": "2026-10-12",
+    "instruction": "ok. close R053. then we will make some UI fine-tuning in R054",
+    "acceptance": "Owner accepted closure on 12 October 2026; first natural charges and first genuine shared-agent payment remain unobserved and explicitly deferred, not claimed tested.",
+    "successor": "R054",
+    "successorScope": "UI fine-tuning; individual changes not yet specified"
+  },
+  "finalEvidenceTag": "R053",
+  "appEvidencePublicationCommit": "5e360d1566af29b3878aef567ccd33a1adc56a4d"
 }
