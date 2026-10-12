@@ -7,7 +7,7 @@
   "eventSha256": "d6de6c720090a0e5f6a6b0618135313eee75747e87dcf42dd2a633dcf7dc46a8",
   "policySha256": "f1eb8e6decb0c27dbd0189b08cdb4e51992885dcacdc6b12926563b115ed3e46",
   "providerAcceptance": "verified",
-  "deviceReceipt": "pending owner confirmation",
+  "deviceReceipt": "owner confirmed received YES",
   "closedOwnerAuthorityRestored": true,
   "observedAt": "2026-10-12T01:32:33.123Z",
   "deliveryCount": 1,
@@ -40,5 +40,7 @@
   "retention": {
     "purpose": "Synthetic event/actor retained as controlled notification diagnostics; no queue/history purge",
     "reviewDate": "2026-10-19"
-  }
+  },
+  "deviceGate": "PASS",
+  "productionDeviceReceipt": "not inferred"
 }

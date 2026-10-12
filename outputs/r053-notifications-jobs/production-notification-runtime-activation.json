@@ -1,0 +1,71 @@
+{
+  "services": [
+    {
+      "traffic": [
+        {
+          "latestRevision": true,
+          "percent": 100,
+          "revisionName": "mw-credit-app-notify-prod-00002-cth"
+        }
+      ],
+      "flags": [
+        {
+          "name": "WORKER_ACTIVATION",
+          "value": "enabled"
+        }
+      ],
+      "service": "mw-credit-app-notify-prod",
+      "revision": "mw-credit-app-notify-prod-00002-cth",
+      "policyPins": [
+        {
+          "version": "1",
+          "name": "NOTIFICATION_POLICY_JSON",
+          "secret": "mw-credit-app-prod-notification-policy"
+        },
+        {
+          "version": "1",
+          "name": "WEB_PUSH_VAPID_JSON",
+          "secret": "mw-credit-app-prod-vapid"
+        }
+      ],
+      "ready": "True",
+      "image": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app-prod/api@sha256:42534b790ebccd73448d5bc56490a959586ea5494604583443b630705a0c7778"
+    },
+    {
+      "traffic": [
+        {
+          "latestRevision": true,
+          "percent": 100,
+          "revisionName": "mw-credit-app-command-prod-00004-xkp"
+        }
+      ],
+      "flags": [
+        {
+          "name": "NOTIFICATION_DISPATCH_URL",
+          "value": "https://mw-credit-app-notify-prod-737787224638.asia-southeast1.run.app/internal/dispatch"
+        },
+        {
+          "name": "NOTIFICATION_DISPATCH_ENABLED",
+          "value": "true"
+        },
+        {
+          "name": "NOTIFICATION_DISPATCH_AUDIENCE",
+          "value": "https://mw-credit-app-notify-prod-737787224638.asia-southeast1.run.app"
+        }
+      ],
+      "service": "mw-credit-app-command-prod",
+      "revision": "mw-credit-app-command-prod-00004-xkp",
+      "policyPins": [],
+      "ready": "True",
+      "image": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app-prod/api@sha256:42534b790ebccd73448d5bc56490a959586ea5494604583443b630705a0c7778"
+    }
+  ],
+  "invokerMembers": [
+    "serviceAccount:mw-credit-app-command-prod@clever-oasis-508610-n7.iam.gserviceaccount.com",
+    "serviceAccount:mw-credit-app-scheduler-prod@clever-oasis-508610-n7.iam.gserviceaccount.com"
+  ],
+  "planSha256": "3e7075f8fe3fb0a184e7955eca0a2a356ece306b8f7ffb22eecc047342132474",
+  "applyExitCode": 0,
+  "observedAt": "2026-10-12T01:44:52.5085081Z",
+  "recoveryScheduleResumed": false
+}

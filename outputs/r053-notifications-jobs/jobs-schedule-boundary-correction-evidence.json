@@ -21,5 +21,6 @@
   "naturalFinancialInvocationForced": false,
   "sqlMigrationsChanged": false,
   "notificationLogicChanged": false,
-  "deploymentState": "source correction published; jobs image deployment pending"
+  "deploymentState": "jobs-only corrected image deployed; next natural invocation pending",
+  "deploymentEvidence": "production-jobs-recovery-deployment.json"
 }

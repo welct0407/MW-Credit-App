@@ -1,0 +1,15 @@
+{
+  "state": "ENABLED",
+  "observedAt": "2026-10-12T01:46:32.5784928Z",
+  "name": "projects/clever-oasis-508610-n7/locations/asia-southeast1/jobs/mw-credit-app-prod-notifications",
+  "route": "Exact Scheduler resume; Terraform target plan rejected because dependency traversal included jobs image rollback",
+  "timeZone": "Asia/Bangkok",
+  "productionTestPushPerformed": false,
+  "retryCount": 0,
+  "retryCountReadback": "Omitted protobuf default zero",
+  "maxDoublings": 5,
+  "schedule": "* * * * *",
+  "next": "2026-10-12T01:47:00Z",
+  "refreshOnlyPlanSha256": "6605cbcd4de2c0c4f720eadc106fb7a0f5922bb226f9f90a87c29dcd48e7259f",
+  "refreshOnlyApplyExitCode": 0
+}
