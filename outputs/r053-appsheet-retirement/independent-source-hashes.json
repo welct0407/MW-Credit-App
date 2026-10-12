@@ -13,11 +13,11 @@
   },
   {
     "path": "outputs/r053-appsheet-retirement/independent-verification.md",
-    "sha256": "215354fee886e31b09da60c45347a58d400f173bcbade5272f734e1dce0b0f78"
+    "sha256": "addbc32d8c319681ad1183750eb252a7513fcd7d683d689c36f1e41639497df8"
   },
   {
     "path": "Change Logs/CHANGE_NOTES_R053_APPSHEET_RETIREMENT_2026-10-12.md",
-    "sha256": "54c4becff853db38f698c8f9f455ae63a133238e011a5607e282db1c6e20c1b0"
+    "sha256": "460f700cc75c2c63800ebe7caab2489733cb5c9d0653fbe4918bb8f8d17a0978"
   },
   {
     "path": "tests/unit/agent-native-defaults-independent.test.mjs",
@@ -69,5 +69,9 @@
   {
     "path": "tests/e2e/foundation.spec.ts",
     "sha256": "2aa390b220a4e329147980c53439fc876608284e50f3fbc8ba3ada844cb41077"
+  },
+  {
+    "path": "outputs/r053-appsheet-retirement/prod-v90-catalogue-proof.json",
+    "sha256": "4c9708cce985937e01fd7cf352b35be3c60e75b7f26c9cdd6735adbb0d78d4e6"
   }
 ]

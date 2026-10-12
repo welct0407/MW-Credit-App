@@ -27,16 +27,12 @@
   },
   "prodPrerequisites": {
     "planSha256": "ac60124ea742eb3a4579d80715a1f0d5c1d91cb8f73dcd861e344f30d2e8e209",
-    "applied": false,
+    "applied": true,
     "plannedUpdates": 0,
     "plannedCreates": 2,
     "plannedDeletes": 0
   },
-  "holds": [
-    "PROD apply held until full CI and DEV success",
-    "Receipt API state unchanged; new DEV receipt container unused",
-    "Preserve jobs11c149 and notify425 images; module sharedimage requires exact private plan configuration"
-  ],
+  "holds": [],
   "privatePlans": "C:/Users/ideaadmin/Documents/ChatGPT/MW-Credit-App/terraform/r053-agent-native",
   "retentionReview": "2026-10-19",
   "cloudBuild": {
@@ -94,5 +90,46 @@
     "planSha256": "d9f4b554f6456f3485fef89b3f68fe21f7d36fb0f5ca872142aca88aecebf15f",
     "destroys": 0,
     "creates": 2
-  }
+  },
+  "prodPolicy": {
+    "numericVersion": 1,
+    "readPartnerCount": 1,
+    "payloadSha256": "ea6deadbbf88d00b8abe5413d8cfca227c67b61a2f5cbe9a37872dd30a155b14",
+    "reviewerPartnerCount": 1,
+    "actualReadbackMatches": true
+  },
+  "prodRuntimeApplied": {
+    "proof": {
+      "purgeEnabled": false,
+      "services": [
+        {
+          "revision": "mw-credit-app-read-prod-00004-htx",
+          "service": "mw-credit-app-read-prod",
+          "image": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app-prod/api@sha256:77254376cd3b07bf01b21b1df219c433550ddbdf38f77e6f8d9aede86441678d",
+          "trafficPercent": 100,
+          "ready": true
+        },
+        {
+          "revision": "mw-credit-app-command-prod-00005-p4s",
+          "service": "mw-credit-app-command-prod",
+          "image": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app-prod/api@sha256:77254376cd3b07bf01b21b1df219c433550ddbdf38f77e6f8d9aede86441678d",
+          "trafficPercent": 100,
+          "ready": true
+        }
+      ],
+      "notificationApiEnabled": true,
+      "agentApiEnabled": true,
+      "observedAtUtc": "2026-10-12T04:23:58.8263846Z",
+      "conversationApiEnabled": true,
+      "preservedWorkers": {
+        "notify": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app-prod/api@sha256:42534b790ebccd73448d5bc56490a959586ea5494604583443b630705a0c7778",
+        "jobs": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app-prod/api@sha256:11c149f746bceefc0b4c5d81dfce0295cdca533fa36d63c101f9971f3f643d56"
+      }
+    },
+    "added": 0,
+    "destroyed": 0,
+    "planSha256": "4802bb3902b2277648d0a5571db3883596d3287464821dbe6a7fe976b0241c14",
+    "changed": 2
+  },
+  "agentDeliveryEvidence": "outputs/r053-appsheet-retirement/agent-native-deployment-evidence.json"
 }

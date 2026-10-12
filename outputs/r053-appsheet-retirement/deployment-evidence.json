@@ -1,0 +1,114 @@
+{
+  "release": "R053",
+  "sourceCommit": "5fca4e476c010f6a90e5e18f72881577ed467c7b",
+  "artifactSourceCommit": "1bc08f3e171d043a5a3ca01335d3746113c68cb2",
+  "agentSourceCommit": "e9fd149914a3fa49f036c1eec75a8d4dc8a07c00",
+  "status": "DEV and PROD deployment verified; R053 natural business acceptance remains pending",
+  "dev": {
+    "sql": 90,
+    "migrationCount": 1,
+    "validate": "passed",
+    "authorityRestored": true,
+    "hosting": {
+      "site": "mw-credit-app-dev-737787224638",
+      "mode": "live-dev",
+      "retirePwa": false,
+      "version": "sites/mw-credit-app-dev-737787224638/versions/369a5ad5d0b9bd0f",
+      "release": "sites/mw-credit-app-dev-737787224638/releases/1791777601655000",
+      "url": "https://mw-credit-app-dev-737787224638.web.app"
+    },
+    "publicVersion": "81318cd89ac6e41f2ba092a3",
+    "servedVersionVerified": true,
+    "reportingLinkRemoved": true,
+    "readerRevision": "mw-credit-app-read-dev-00018-msw",
+    "commandRevision": "mw-credit-app-command-dev-00021-kdw",
+    "readOnlyMachineVerification": "11/11 passed; live-dev-read-smoke.json"
+  },
+  "productionChanged": true,
+  "financialSampleExecuted": false,
+  "testNotificationSent": false,
+  "prod": {
+    "sql": 90,
+    "migrationCount": 1,
+    "validate": "passed:91 migrations; zero invalid",
+    "authorityRestored": true,
+    "observedAt": "2026-10-12T04:21:30Z",
+    "migrationSha256": "b8f2b2dc9542825e34c9e570cbf7cfa2792f3dbf946c520c7bb798da65fb9888",
+    "backupDumpSha256": "e9023a65b22e3be89988b51901a2168871361f5aa4b31de409286564abcc0a7a",
+    "api": {
+      "purgeEnabled": false,
+      "services": [
+        {
+          "revision": "mw-credit-app-read-prod-00004-htx",
+          "service": "mw-credit-app-read-prod",
+          "image": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app-prod/api@sha256:77254376cd3b07bf01b21b1df219c433550ddbdf38f77e6f8d9aede86441678d",
+          "trafficPercent": 100,
+          "ready": true
+        },
+        {
+          "revision": "mw-credit-app-command-prod-00005-p4s",
+          "service": "mw-credit-app-command-prod",
+          "image": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app-prod/api@sha256:77254376cd3b07bf01b21b1df219c433550ddbdf38f77e6f8d9aede86441678d",
+          "trafficPercent": 100,
+          "ready": true
+        }
+      ],
+      "notificationApiEnabled": true,
+      "agentApiEnabled": true,
+      "observedAtUtc": "2026-10-12T04:23:58.8263846Z",
+      "conversationApiEnabled": true,
+      "preservedWorkers": {
+        "notify": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app-prod/api@sha256:42534b790ebccd73448d5bc56490a959586ea5494604583443b630705a0c7778",
+        "jobs": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app-prod/api@sha256:11c149f746bceefc0b4c5d81dfce0295cdca533fa36d63c101f9971f3f643d56"
+      },
+      "sourceCommit": "5fca4e476c010f6a90e5e18f72881577ed467c7b",
+      "runtimeSourceCommit": "1bc08f3e171d043a5a3ca01335d3746113c68cb2",
+      "database": "loan_manager_prod",
+      "sqlVersion": 90,
+      "authorityRestored": true
+    },
+    "hosting": {
+      "schemaVersion": 1,
+      "sourceCommit": "5fca4e476c010f6a90e5e18f72881577ed467c7b",
+      "site": "mw-credit-prod-737787224638",
+      "version": "sites/mw-credit-prod-737787224638/versions/9dd049f29f6d77d6",
+      "release": "sites/mw-credit-prod-737787224638/releases/1791779076726000",
+      "publicVersion": "81100bc605443cbb098fdfcc",
+      "fileCount": 14,
+      "cacheControl": "no-store",
+      "approvalReference": "Owner 12 October 2026: proceed CI and deployment then promote production"
+    },
+    "agent": {
+      "sourceCommit": "e9fd149914a3fa49f036c1eec75a8d4dc8a07c00",
+      "catalogueRevision": 27,
+      "nativeConversationEnabled": true,
+      "twoScopeReadProbe": "passed",
+      "unusedReceiptStatusProbe": "passed",
+      "originalTimersResumed": 6,
+      "receiptRoutePreserved": true,
+      "allActivationCutoffsPreserved": true,
+      "changedConfigKeys": 7,
+      "rollbackPointer": "/var/lib/mw-integration-agent/rollback/r053-native-current",
+      "rollbackDirectory": "/var/lib/mw-integration-agent/rollback/r053-20261012T042543032945Z",
+      "configSha256": "e8f46780931978842e998910cb6a31837a44d3bc7d49fd97718d08c33bf57569",
+      "catalogueSha256": "513fabe7a9040882812c4637a136332b43584899b159696e476b9945effbff26"
+    },
+    "servedFrontend": {
+      "observedAt": "2026-10-12T04:24:54.144Z",
+      "origin": "https://lm.mw-credit.com",
+      "publicVersion": "81100bc605443cbb098fdfcc",
+      "entry": "/assets/index-ZeW4VaFq.js",
+      "markerStatus": 200,
+      "entryStatus": 200,
+      "entryHashMatches": true,
+      "retiredReportingLinkAbsent": true,
+      "authenticatedBusinessWrite": false
+    },
+    "boundedSqlVerification": "passed; C actual V90 body/owner/ACL, receipt bodies unchanged, fixed capture enabled"
+  },
+  "remaining": [
+    "First natural charges execution after enablement",
+    "First genuine agent receipt payment after shared API cutover",
+    "Grafana and collector changes deferred by owner; excluded from this deployment"
+  ]
+}

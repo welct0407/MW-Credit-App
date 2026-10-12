@@ -1,4 +1,10 @@
-# R053 DEV operator and delivery procedure
+# R053 operator and delivery procedure
+
+## Current native retirement delivery — V89 to V90
+
+DEV and PROD now validate at V90. The reviewed fixed PROD operation is `prepare-conversation --baseline-version 89`, with explicit owner approval, tested source and the fresh verified PROD89 backup. It grants temporary authority only for the existing journal owner, persists the version3 recovery snapshot, executes the exact grouped V90 package through the maintained runner, and restores the exact prior membership/CREATE state in `finally`. V90 itself transfers the single native-operation function and grants EXECUTE only to the exact command login. It does not provision roles, alter notify/jobs capabilities or enable capture. The backup-only `Backup-R053Protected.mjs` procedure is separately documented in [the native operator note](../../outputs/r053-appsheet-retirement/production-v90-operator-procedure.md).
+
+Actual PROD application completed at `2026-10-12T04:21:30Z`; validate91 passed with zero invalid and exact authority restoration. Promotion source is `5fca4e4`, built API/frontend source is `1bc08f3`; unchanged runtime inputs justify that reuse. Reader/command use the new `77254376…` image while notification `42534b…` and jobs `11c149…` remain pinned separately. Never apply an old shared-image plan that rolls back jobs or changes notification delivery. [Actual deployment evidence](../../outputs/r053-appsheet-retirement/deployment-evidence.json) records API/Hosting/agent and protected rollback. No financial sample or arbitrary notification was sent; first genuine payment/natural charges remain verification work. Earlier V88/V89 procedures below are retained as dated recovery instructions, not the current migration recipe.
 
 The original DEV CLI remains DEV-only and has no PROD/environment override, refuses ambient SQL routing before reading credentials, and binds the existing Cloud SQL tuple. Module loopback support is only for owned disposable tests. No schema/table creation occurs outside immutable V88/V89. V89 adds only two journal-owned functions; no new roles or agent SQL grants.
 

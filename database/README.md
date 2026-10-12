@@ -1,5 +1,7 @@
 # PostgreSQL development with Flyway
 
+**Current R053 checkpoint, 12 October 2026:** DEV/PROD V90 applied and validated (91 migration records, zero invalid), with exact temporary owner authority restored. Promotion source `5fca4e4`, runtime artifacts `1bc08f3` and agent `e9fd149` are distinct from later documentation commits. V90 adds only `pwa_submit_agent_operation_v1(text)`, owned by the existing environment journal owner and callable by the exact command principal; no new relation/column or generic SQL authority. Full app recovery `38202842623`, database `38201112557` and agent Linux `38200988357` passed, with explicit unchanged-input reuse and retained failure receipts. Fresh DEV89/PROD89/mw_agent protected dumps passed isolated restore. Native API/Hosting/agent cutover is applied; notify/jobs images and capture/schedules remain preserved. First natural charges and genuine shared-agent payment remain unobserved; R053 stays Frozen, without a final tag. [Actual retirement delivery](../outputs/r053-appsheet-retirement/deployment-evidence.json). The dated R052 sections below are historical checkpoints.
+
 **Canonical owner: MW-Credit-App, transferred 7 October 2026.** Run all database commands from this repository. The complete V1–V77 history is unchanged. Project-wide planning, releases and historical evidence remain in AppSheet-Loan-Project. See [ownership transfer and recovery](OWNERSHIP.md).
 
 
