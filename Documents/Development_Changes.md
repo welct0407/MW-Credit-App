@@ -1,5 +1,9 @@
 # Open development differences
 
+## R054 UI production delivery — 13 October 2026
+
+The reviewed dashboard/account Notifications/pink production-branding subset is deployed from `c07ada0`; PROD Hosting `218943a0966051ca` serves marker `461e27e038cef8ff1d645ac8` with exact built entry hash/no-store. Owner authorized frontend-only promotion without CI. No backend, database, job, notification or AppSheet change. PROD signed-out load and pink header were visually verified; authenticated screen verification is blocked by browser OAuth account-selection control timeout. R054 is Frozen at `2026-10-12T17:18:13Z`; its Phase 2 credential scope remains unfinished and preserved. R055 is sole Open, next R056. No Released/tag claim. [Single UI checklist](../outputs/r054-production/promotion-checklist.md). Earlier Open/status statements below are dated scope records, not a second Open release.
+
 ## Current R053 closure — 12 October 2026
 
 R053 Released by owner direction on 12 October 2026. DEV/PROD SQL V90 validates with exact temporary owner authority restored. PROD reader 00004-htx/command 00005-p4s use image 77254376; Hosting 9dd049f29f6d77d6 serves marker 81100bc605443cbb098fdfcc with Reporting absent. Agent e9fd149/catalogue 27 is active after two native read scopes and unused-UUID receipt status passed, with six timers resumed and prior routes/cutoffs preserved. Notify42534b/jobs11c149 and push/capture/schedules are unchanged. Full app 271 browser passes/nine skips, database CI and agent Linux 312 passes/42 prerequisite skips are recorded. Natural analytics09:00Bangkok passed; first natural charges and genuine shared-agent payment remain unobserved. Remaining natural-business checks are owner-accepted deferred, not tested. Final evidence tag R053; R054 sole Open for UI fine-tuning, nextR055 unused. [Actual manifest](../outputs/r053-notifications-jobs/promotion-actual.json).

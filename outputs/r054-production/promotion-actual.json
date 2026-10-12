@@ -1,0 +1,138 @@
+{
+  "schemaVersion": 1,
+  "release": "R054",
+  "scope": "frontend-only",
+  "site": "mw-credit-prod-737787224638",
+  "sourceCommit": "c07ada0e2cf6b73c46c47a049f1aa8976a53cc75",
+  "approvalReference": "Owner explicit R054 UI production promotion without CI, 13 October 2026",
+  "ciRequired": false,
+  "freezeAt": "2026-10-12T17:18:13Z",
+  "rollback": {
+    "version": "sites/mw-credit-prod-737787224638/versions/9dd049f29f6d77d6",
+    "release": "sites/mw-credit-prod-737787224638/releases/1791779076726000"
+  },
+  "publicConfigSha256": "e70a02877c3e9b56d40cae8c0de4c2345546d3dadfd2dc78a67c3c0602fded26",
+  "sourceFiles": {
+    "apps/pwa/src/Dashboard.tsx": "41d252f8b1d022669ea904e0fdb2af8972b5b15c44f1fb0a6a6416de65c2f737",
+    "apps/pwa/src/Notifications.tsx": "dc5f29e136e11047d447e011dc8c7e477122b7dc01ea9c5b5b4d4e764f711219",
+    "apps/pwa/src/live-main.tsx": "f2fc18f56fe2917abb434fcb4a941c572baf8205e1e590aa6331fa6119c1851d",
+    "apps/pwa/src/live-style.css": "941c8e0f8e3d50ae0b3f628544359149472cff28a5c99a58903b280b31f7b5bf",
+    "vite.config.ts": "acfc0f5585d035dad06f155deddd996c46d61ff68116aa322b980f620aa2e9b9",
+    "apps/pwa/src/assets/loan-manager-logo-prod-pink.png": "5808ee79d5b6e843c8ed648e8507678ea349297d1cc687a97021c5d396dd2a8d",
+    "apps/pwa/pwa/icons-prod/icon-192.png": "088e9a8fa742fd67585a3ccec58ed90bf2cd920df838210384483b0ea628fdd5",
+    "apps/pwa/pwa/icons-prod/icon-512.png": "6438a8d44f54d5b1606dd948f723faaae8727e6944c06d625928aa02ac072b22",
+    "apps/pwa/pwa/icons-prod/apple-touch-icon.png": "f20d1aafd6c6c5f92ce36fee6eaf3704b53656a6761621b5956ace4599af0079",
+    "apps/pwa/src/environment.ts": "3646fa1a0d9500ab5208f619c0be9a73e4fd871732f04be7a2c077c7f9c0ee6e",
+    "package.json": "c7315b3fa79a2dc4f81e79a85cce273a12a2abda4aed89717de9d3fcabcb0614",
+    "package-lock.json": "7d79c6c9a57e7f3199562443a26f02b00ef6a3d37114d0bd512d2e0d59241df7"
+  },
+  "files": [
+    {
+      "path": "assets/index-BWudIHd4.js",
+      "sha256": "d5ac7f6cfabb8f0699ab124fdd50bb9f4a974c37e6707d093643d57d07a87401"
+    },
+    {
+      "path": "assets/index-CbUpmF66.css",
+      "sha256": "73806845ac306c9f5d0c47e31c655768449c695145f01c4b91fb8b7fbb1a8688"
+    },
+    {
+      "path": "assets/loan-manager-logo-dev-orange-DNZr_iCT.png",
+      "sha256": "3e0a3a6234376ba263b3cf59d5c4ebd374607357b831972605bde730e54dd0d2"
+    },
+    {
+      "path": "assets/loan-manager-logo-prod-pink-DVHt0b90.png",
+      "sha256": "5808ee79d5b6e843c8ed648e8507678ea349297d1cc687a97021c5d396dd2a8d"
+    },
+    {
+      "path": "build-mode.json",
+      "sha256": "43f9c5d1fbbbb9ce7f5b17a618185118b9a5a25d1a3bca3cec3933b29ed94c53"
+    },
+    {
+      "path": "build-version.json",
+      "sha256": "0a7f2170a2c5c15e6906b7a930aa3729c24ee9543542487bc9599bd7535698c1"
+    },
+    {
+      "path": "icons/apple-touch-icon.png",
+      "sha256": "f20d1aafd6c6c5f92ce36fee6eaf3704b53656a6761621b5956ace4599af0079"
+    },
+    {
+      "path": "icons/icon-192.png",
+      "sha256": "088e9a8fa742fd67585a3ccec58ed90bf2cd920df838210384483b0ea628fdd5"
+    },
+    {
+      "path": "icons/icon-512.png",
+      "sha256": "6438a8d44f54d5b1606dd948f723faaae8727e6944c06d625928aa02ac072b22"
+    },
+    {
+      "path": "index.html",
+      "sha256": "eae28280fa80a782fa6c2897c6a7fc779c43f7e78e7d0d0ecb71f75c3aae0b62"
+    },
+    {
+      "path": "manifest.webmanifest",
+      "sha256": "7fc0ed375c62f89272a5ded59b861fdea70d7b87bb64f426678bc1989cb31903"
+    },
+    {
+      "path": "offline.html",
+      "sha256": "54b9fa242081eabd83836d4b16197c7b2b3cb8f5c34b519cb4b623370a550848"
+    },
+    {
+      "path": "production-public-config.json",
+      "sha256": "f1824f38590a750742b733306c5c34474ece3be5695640a0688b6be0f1d10330"
+    },
+    {
+      "path": "sw.js",
+      "sha256": "e879af2ca276b845dde4d88b9b517480c9708d735a356e5e763caa7799c1da76"
+    }
+  ],
+  "publicVersion": "461e27e038cef8ff1d645ac8",
+  "entry": "/assets/index-BWudIHd4.js",
+  "applied": {
+    "schemaVersion": 1,
+    "sourceCommit": "c07ada0e2cf6b73c46c47a049f1aa8976a53cc75",
+    "site": "mw-credit-prod-737787224638",
+    "version": "sites/mw-credit-prod-737787224638/versions/218943a0966051ca",
+    "release": "sites/mw-credit-prod-737787224638/releases/1791825659922000",
+    "publicVersion": "461e27e038cef8ff1d645ac8",
+    "fileCount": 14,
+    "cacheControl": "no-store",
+    "approvalReference": "Owner explicit R054 UI production promotion without CI, 13 October 2026"
+  },
+  "served": {
+    "observedAt": "2026-10-12T17:21:14.808Z",
+    "origin": "https://lm.mw-credit.com",
+    "marker": {
+      "schemaVersion": 1,
+      "version": "461e27e038cef8ff1d645ac8",
+      "entry": "/assets/index-BWudIHd4.js"
+    },
+    "markerHttp": 200,
+    "entryHttp": 200,
+    "entrySha256": "d5ac7f6cfabb8f0699ab124fdd50bb9f4a974c37e6707d093643d57d07a87401",
+    "cacheControl": "no-store",
+    "pinkSourceSha256": "5808ee79d5b6e843c8ed648e8507678ea349297d1cc687a97021c5d396dd2a8d",
+    "icons": [
+      {
+        "path": "icons/apple-touch-icon.png",
+        "sha256": "f20d1aafd6c6c5f92ce36fee6eaf3704b53656a6761621b5956ace4599af0079"
+      },
+      {
+        "path": "icons/icon-192.png",
+        "sha256": "088e9a8fa742fd67585a3ccec58ed90bf2cd920df838210384483b0ea628fdd5"
+      },
+      {
+        "path": "icons/icon-512.png",
+        "sha256": "6438a8d44f54d5b1606dd948f723faaae8727e6944c06d625928aa02ac072b22"
+      }
+    ]
+  },
+  "releaseStatus": "Frozen; UI deployed; Phase 2 credential scope remains unfinished",
+  "trackerFreezeAt": "2026-10-12T17:18:13Z",
+  "candidateCapturedAt": "2026-10-12T17:19:25.732Z",
+  "uiVerification": {
+    "reuse": "Accepted DEV behavior and exact PROD served artifact",
+    "authenticated": "Google account-selection CDP Input.dispatchMouseEvent timeout; no app error seen; no authenticated success claimed",
+    "status": "Partial; authenticated verification blocked",
+    "signedOut": "Root visually verified signed-out page and pink header"
+  },
+  "appEvidenceCommit": "3e97140"
+}
