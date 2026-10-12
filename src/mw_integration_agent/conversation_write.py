@@ -1,4 +1,4 @@
-"""Generic AppSheet Add/Edit transport, durable intents and readback.
+"""Native semantic commands, durable intents and read-only reconciliation.
 
 Codex supplies the table, fields, values and planned final state. This module
 contains no loan, payment, expense or other business-operation implementation.
@@ -6,11 +6,9 @@ contains no loan, payment, expense or other business-operation implementation.
 import hashlib
 import json
 import re
-import urllib.parse
-import urllib.request
 from decimal import Decimal, InvalidOperation
 from datetime import datetime
-from .config import ConfigurationError, load_secret
+from .config import ConfigurationError
 from .conversation_reviewer import require_reviewer
 from .conversation_schema import ACTOR_FIELDS, PROTECTED_TABLES, table_schema, writable
 from .state import is_postgres
@@ -54,18 +52,10 @@ def dispatch_action(config, app, table, action, row, actor):
         raise ConfigurationError('CONVERSATION_WRITES_DISABLED')
     if action=='Delete' and (not config.get('reviewer_delete_enabled') or config.get('state_backend')!='postgres'):
         raise ConfigurationError('REVIEWER_DELETE_DISABLED')
-    id_key, secret_key = ('appsheet_app_id','appsheet_key_file') if app == 'oltp' else ('appsheet_olap_app_id','appsheet_olap_key_file')
-    expected = {'oltp':'93844270-6aa5-420b-a960-bcdf08abd357','olap':'e74dd368-654f-44d7-bccf-83cf361d1cdb'}
-    if app not in expected or config.get(id_key) != expected[app] or action not in ('Add','Edit','Delete'):
-        raise ConfigurationError('UNAPPROVED_API_TARGET_OR_ACTION')
-    request = urllib.request.Request(
-        'https://www.appsheet.com/api/v2/apps/' + config[id_key] + '/tables/' + urllib.parse.quote(table, safe='') + '/Action',
-        data=json.dumps({'Action': action, 'Properties': {'Locale':'en-US','Timezone':'Asia/Bangkok',
-                         'RunAsUserEmail':actor}, 'Rows':[row]}, allow_nan=False).encode(),
-        headers={'Content-Type':'application/json','ApplicationAccessKey':load_secret(config,secret_key)}, method='POST')
-    # No network retry, including HTTP errors: automations may already have run.
-    with urllib.request.urlopen(request, timeout=60) as response:
-        response.read(1048576)
+    if app not in ('oltp','olap') or action not in ('Add','Edit','Delete') or set(row)!={'nativeRequest'}:
+        raise ConfigurationError('NATIVE_CANONICAL_REQUEST_REQUIRED')
+    from .conversation_api import call
+    return call(config,'commands',row['nativeRequest'])
 
 
 def same(value, expected, column):
@@ -100,8 +90,13 @@ def same(value, expected, column):
 
 
 def read_one(bridge, app, table, key, ident):
-    from .conversation_tools import literal
-    rows = bridge.client(bridge.authorize(),app).find(table, f'Top(Filter({literal(table)}, [{key}] = {literal(ident)}), 2)')
+    definition=table_schema(bridge.schema(),app,table)
+    columns=[name for name,column in definition['columns'].items()
+             if column.get('nativeStatus') in ('physical','semantic-action','provider')]
+    if key not in columns:
+        columns.insert(0,key)
+    rows = bridge.client(bridge.authorize(),app).query(table, columns,
+        {'op':'eq','field':key,'value':ident}, 2)
     if len(rows) > 1 or any(str(r.get(key)) != ident for r in rows):
         raise ConfigurationError('RECORD_IDENTITY_MISMATCH')
     return rows
@@ -126,19 +121,62 @@ def verify_operation(bridge, operation):
                     (operation,bridge.message_id)).fetchone()
     if not op:
         raise ConfigurationError('CURRENT_OPERATION_REQUIRED')
+    intent=json.loads(op['request'])
+    native=intent.get('transport')=='native-v1'
+    recorded_effect=None
+    if native:
+        from .conversation_api import call
+        status,outcome=call(bridge.authorize(),'status',request_id=intent['nativeRequest']['command']['requestId'])
+        if status!=200 or outcome.get('kind')!='recorded':
+            raise ConfigurationError('NATIVE_OUTCOME_UNRESOLVED_NO_REPLAY operation='+operation)
+        original=outcome.get('originalOutcome',{})
+        if original.get('status')=='rejected':
+            result={'operation':operation,'app':op['app'],'table':op['table_name'],'row_id':op['row_id'],
+                    'state':'REJECTED','write_verified':True,'applied':False,'code':original.get('code'),'rows':[], 'complete':True}
+            with db:
+                db.execute('UPDATE conversation_operations SET state=?,result=? WHERE id=?',
+                           ('REJECTED',json.dumps(result),operation))
+            bridge.write_verified=not db.execute("SELECT 1 FROM conversation_operations WHERE message_id=? AND state='UNKNOWN'",(bridge.message_id,)).fetchone()
+            return result
+        if original.get('status')!='applied':
+            raise ConfigurationError('NATIVE_OUTCOME_UNRESOLVED_NO_REPLAY operation='+operation)
+        recorded_effect=original.get('result')
+        command=intent['nativeRequest']['command']
+        if not isinstance(recorded_effect,dict) or recorded_effect.get('operation')!=command['operation'] or recorded_effect.get('targetId')!=command['targetId']:
+            raise ConfigurationError('NATIVE_RECORDED_EFFECT_MISMATCH')
     schema = table_schema(bridge.schema(),op['app'],op['table_name'])
     actual = read_one(bridge,op['app'],op['table_name'],schema['key'],op['row_id'])
     expected = json.loads(op['verification'])
+    if native:
+        semantic_tokens={'loan.generate-charge':{'Charge Generation Request'},'assessment.refresh':{'SQL Refresh Token'},
+                         'loan.close':{'Payment Request Token','Payment Request Cash Account'}}
+        expected={k:v for k,v in expected.items() if k not in semantic_tokens.get(command['operation'],set())}
+        if command['operation']=='loan.close':expected['Loan Status']='ปิดยอดแล้ว'
+        if command['operation']=='payment.create' and op['table_name'] in ('Borrowers','Charges'):
+            expected={k:v for k,v in expected.items() if k not in {'Payment Request Token','Payment Request Cash Account'}}
     verified = (not actual) if op['action']=='Delete' else (len(actual)==1 and all(k in actual[0] and same(actual[0][k],v,schema['columns'][k]) for k,v in expected.items()))
+    effect_rows=None
+    if native and command['operation'] in ('payment.create','loan.close'):
+        payment_id=recorded_effect.get('paymentId')
+        if not isinstance(payment_id,str):raise ConfigurationError('NATIVE_PAYMENT_EFFECT_ID_REQUIRED')
+        effect_rows=read_one(bridge,'oltp','Payments','Row ID',payment_id)
+        verified=verified and len(effect_rows)==1 and effect_rows[0].get('Status')=='Posted'
+        if command['operation']=='payment.create' and len(effect_rows)==1:
+            payment_schema=table_schema(bridge.schema(),'oltp','Payments')
+            effect_fields={'Ref Borrower':'borrowerId','Amount Received':'amountReceived','Payment Date':'paymentDate',
+                           'Created At':'createdAt','Bank Reference':'bankReference'}
+            verified=verified and all(same(effect_rows[0].get(field),command['inputs'][key],payment_schema['columns'][field]) for field,key in effect_fields.items())
     result = {'operation':operation,'app':op['app'],'table':op['table_name'],'row_id':op['row_id'],
               'state':'VERIFIED' if verified else 'UNKNOWN','write_verified':verified,
               'rows':actual,'expected_final':expected,'complete':True}
+    if native:result['recorded_native_effect']=recorded_effect
+    if effect_rows is not None:result['payment_effect_rows']=effect_rows
     with db:
         db.execute('UPDATE conversation_operations SET state=?,result=? WHERE id=?',
                    (result['state'],json.dumps(result,ensure_ascii=False),operation))
         if is_postgres(db):
             audit.event(db.conn,audit.stable('reviewer_api:'+operation),'verified' if verified else 'unknown',
-                result,'appsheet','VERIFIED' if verified else 'UNKNOWN')
+                result,'native_api' if native else 'legacy_native_readback','VERIFIED' if verified else 'UNKNOWN')
     bridge.write_verified = not db.execute("SELECT 1 FROM conversation_operations WHERE message_id=? AND state='UNKNOWN'",(bridge.message_id,)).fetchone()
     bridge.cache.clear()
     return result
@@ -175,7 +213,8 @@ def api_action(bridge, args, writer=dispatch_action, actor_reader=actor_email):
             raise ConfigurationError('REVIEWER_DELETE_DISABLED')
         if not ident or row or expected:
             raise ConfigurationError('DELETE_EXACT_KEY_EMPTY_VALUES_REQUIRED')
-        api_delete_scope(config,table,ident)
+        # Native semantic commands enforce their own dependency/child guards.
+        # The separate reviewer DML route retains its exact deletion manifest.
     if action == 'Add' and ident:
         raise ConfigurationError('ADD_KEY_IS_HOST_GENERATED')
     if any(k not in definition['columns'] for k in expected):
@@ -207,7 +246,7 @@ def api_action(bridge, args, writer=dispatch_action, actor_reader=actor_email):
         if len(observed) != 1 or any(f not in observed[0] for f in row):
             raise ConfigurationError('OBSERVE_EXISTING_FIELDS_BEFORE_EDIT')
         fresh = read_one(bridge,app,table,key,ident)
-        if len(fresh)!=1 or any(f not in fresh[0] or not same(fresh[0][f],v,definition['columns'][f]) for f,v in observed[0].items()):
+        if len(fresh)!=1 or any(f not in fresh[0] or (fresh[0][f]!=v if f in ('_nativeVersion','_nativeCommand') else not same(fresh[0][f],v,definition['columns'][f])) for f,v in observed[0].items()):
             raise ConfigurationError('RECORD_CHANGED_BEFORE_EDIT')
     elif not source.get('complete'):
         raise ConfigurationError('COMPLETE_DUPLICATE_SEARCH_REQUIRED_BEFORE_ADD')
@@ -218,30 +257,57 @@ def api_action(bridge, args, writer=dispatch_action, actor_reader=actor_email):
         raise ConfigurationError('TURN_WRITE_LIMIT_REACHED')
     operation = hashlib.sha256((bridge.message_id+':'+step).encode()).hexdigest()
     fingerprint = hashlib.sha256(json.dumps([app,table,action,ident,row],sort_keys=True).encode()).hexdigest()
+    if 'Payment Request Token' in row:
+        fingerprint=hashlib.sha256(json.dumps([app,table,'Payment Request Token',ident,row['Payment Request Token']],sort_keys=True).encode()).hexdigest()
+        if db.execute('SELECT 1 FROM conversation_operations WHERE fingerprint=?',(fingerprint,)).fetchone():
+            raise ConfigurationError('PAYMENT_TOKEN_ALREADY_ATTEMPTED_NO_REPLAY')
+        # V23's historical key remains a read-only duplicate boundary after
+        # retiring source-token mutation. Never reinterpret a past quick action.
+        legacy_key='r008:'+hashlib.md5((table+'|'+str(len(ident))+':'+ident+'|'+str(row['Payment Request Token'])).encode()).hexdigest()
+        if bridge.client(config,'oltp').query('Payments',['Row ID'],{'op':'eq','field':'Row ID','value':legacy_key},2):
+            raise ConfigurationError('LEGACY_PAYMENT_TOKEN_ALREADY_ATTEMPTED_NO_REPLAY')
     if action=='Add' and db.execute('SELECT 1 FROM conversation_operations WHERE fingerprint=?',(fingerprint,)).fetchone():
         raise ConfigurationError('IDENTICAL_ADD_ALREADY_ATTEMPTED_RECONCILE_FIRST')
     if action=='Add':
-        ident = operation[:32]
+        from .conversation_api import request_id
+        ident = request_id(config['conversation_api_environment'],bridge.message_id,step)
         if read_one(bridge,app,table,key,ident):
             raise ConfigurationError('ADD_KEY_ALREADY_EXISTS')
+    from .conversation_commands import build_operation, FIELDS
+    defaults={}
+    if action=='Add':
+        from .conversation_defaults import resolve_creation_defaults
+        wanted=set(FIELDS.get(table,('',{}))[1].values())
+        defaults=resolve_creation_defaults(config,app,table,definition,row,ident,wanted,client_factory=bridge.client)
+    elif table in ('Borrowers','Charges') and 'Payment Request Token' in row:
+        from .conversation_defaults import resolve_creation_defaults
+        payment_definition=table_schema(bridge.schema(),'oltp','Payments')
+        account=row.get('Payment Request Cash Account',fresh[0].get('Payment Request Cash Account'))
+        defaults=resolve_creation_defaults(config,'oltp','Payments',payment_definition,
+            {'Ref Received By Cash Account':account},ident,{'Created At','Ref Received By Cash Holder'},client_factory=bridge.client)
+    native=build_operation(config,bridge.message_id,step,table,action,ident,row,definition,
+                           fresh[0] if action!='Add' else None,defaults)
+    request={'version':1,'actorPartnerId':bridge.partner_id,**native}
     bridge.authorize()
     with db:
         inserted = db.execute('INSERT OR IGNORE INTO conversation_operations VALUES (?,?,?,?,?,?,?,?,?,?,NULL)',
-            (operation,bridge.message_id,fingerprint,app,table,ident,action,json.dumps({key:ident,**row}),json.dumps(expected),'UNKNOWN')).rowcount
+            (operation,bridge.message_id,fingerprint,app,table,ident,action,json.dumps({'transport':'native-v1','nativeRequest':request,'sourceRow':{key:ident,**row}},ensure_ascii=False),json.dumps(expected),'UNKNOWN')).rowcount
         if inserted and is_postgres(db):
             op=audit.begin(db.conn,config,'reviewer_api',operation,{'Add':'INSERT','Edit':'UPDATE','Delete':'DELETE'}[action],
                 {'app':app,'table':table,'action':action,'row_id':ident,'values':row,'before':source['rows'],
                  'expected':expected,'instruction_quote':quote,'coverage':'observed_not_atomic'},
                 {'kind':'reviewer','id':bridge.partner_id,'login':actor,'authorization':{'current_ai_reviewer':True}},bridge.message_id)
-            audit.event(db.conn,op,'route_selected',{'capability':'owning_app_permits_action','route':'appsheet'},'appsheet','AUTHORIZED')
-            audit.event(db.conn,op,'dispatch_started',route='appsheet',state='DISPATCHING')
+            audit.event(db.conn,op,'route_selected',{'capability':'reviewed_native_command','route':'native_api'},'native_api','AUTHORIZED')
+            audit.event(db.conn,op,'dispatch_started',route='native_api',state='DISPATCHING')
     if not inserted:
         raise ConfigurationError('OPERATION_ALREADY_ATTEMPTED_NO_REPLAY')
     bridge.possible_write, bridge.write_verified = True,False
     try:
         fresh_config = bridge.authorize()
         require_reviewer(fresh_config, bridge.partner_id)
-        writer(fresh_config,app,table,action,{key:ident,**row},actor)
+        response=writer(fresh_config,app,table,action,{'nativeRequest':request},actor)
+        if response is not None and response[0] not in (200,422):
+            raise ConfigurationError('NATIVE_COMMAND_NOT_ACKNOWLEDGED')
     except Exception:
         raise ConfigurationError('API_OUTCOME_UNCERTAIN_NO_REPLAY operation='+operation) from None
     return verify_operation(bridge,operation)

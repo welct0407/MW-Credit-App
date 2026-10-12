@@ -35,6 +35,8 @@ def load_json(path: str | Path) -> dict[str, Any]:
 
 
 def validate_config(config: dict[str, Any]) -> None:
+    from .conversation_api import validate as validate_conversation_api
+    validate_conversation_api(config)
     from .receipt_api import validate as validate_receipt_api
     validate_receipt_api(config)
     if type(config.get('receipt_archive_enabled',False)) is not bool:
@@ -93,14 +95,8 @@ def validate_config(config: dict[str, Any]) -> None:
                 raise ValueError()
         except (KeyError, TypeError, ValueError) as exc:
             raise ConfigurationError('partner_conversation_cutoff must include timezone') from exc
-        if not all(config.get(k) for k in ('receiver_enabled', 'database_enabled', 'appsheet_enabled')):
-            raise ConfigurationError('conversations require receiver, database and AppSheet')
-        if config.get('appsheet_app_id') != '93844270-6aa5-420b-a960-bcdf08abd357':
-            raise ConfigurationError('conversations require the approved production OLTP app')
-        if config.get('conversation_writes_enabled') and not config.get('appsheet_olap_app_id'):
-            raise ConfigurationError('conversation edits require OLAP readback')
-        from .conversation_schema import load_schema
-        load_schema(config)
+        if not all(config.get(k) for k in ('receiver_enabled', 'database_enabled', 'conversation_api_enabled')):
+            raise ConfigurationError('conversations require receiver, database and native API')
     if config.get('reviewer_dml_enabled'):
         from datetime import datetime
         if not config.get('partner_conversations_enabled') or not config.get('database_enabled'):

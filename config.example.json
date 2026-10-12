@@ -54,5 +54,10 @@
   "receipt_payment_api_enabled": false,
   "receipt_payment_api_origin": null,
   "receipt_payment_api_audience": null,
-  "receipt_payment_api_cutoff": null
+  "receipt_payment_api_cutoff": null,
+  "conversation_api_enabled": false,
+  "conversation_api_environment": null,
+  "conversation_api_origin": null,
+  "conversation_api_audience": null,
+  "conversation_api_manifest_sha256": null
 }

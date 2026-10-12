@@ -39,6 +39,7 @@ class RoutingTests(unittest.TestCase):
     run_cycle = existing_cycle.CycleTests.run_cycle
 
     def enable_api(self):
+        self.payload.side_effect=existing_cycle.REAL_RECEIPT_PAYLOAD
         self.config.update(receipt_payment_api_enabled=True, receipt_environment='dev',
             database_name='loan_manager_dev', receipt_archive_enabled=True,
             receipt_archive_cutoff='2026-01-01T00:00:00+00:00',
@@ -91,14 +92,29 @@ class RoutingTests(unittest.TestCase):
         self.add_payment.assert_not_called()
         self.readback.assert_called_once_with(self.config,'igr:'+self.key[:48],self.proposal)
 
-    def test_before_cutoff_approved_review_keeps_legacy_transport(self):
-        self.enable_api()
+    def test_before_cutoff_unattempted_review_uses_native_after_fresh_checks(self):
+        key=self.enable_api()
         self.j.db.execute('UPDATE receipt_jobs SET created_at=0')
         self.j.db.commit()
-        with patch('mw_integration_agent.receipt_api.submit') as submit:
-            self.run_cycle();submit.assert_not_called()
-        self.add_payment.assert_called_once()
-        self.assertEqual(self.j.db.execute('SELECT payment_id FROM partner_reviews').fetchone()[0], 'igr:'+self.key[:48])
+        self.run_cycle()
+        self.submit.assert_called_once()
+        self.add_payment.assert_not_called()
+        self.assertEqual(self.j.db.execute('SELECT payment_id FROM partner_reviews').fetchone()[0],key)
+
+    def test_disabled_native_transport_leaves_approved_review_unattempted(self):
+        self.config['receipt_payment_api_enabled']=False
+        self.run_cycle()
+        self.submit.assert_not_called();self.add_payment.assert_not_called()
+        self.assertEqual(self.j.db.execute('SELECT state,payment_id FROM partner_reviews').fetchone()[:],('APPROVED',None))
+
+    def test_saved_identity_is_never_reselected_if_state_was_reset(self):
+        self.enable_api()
+        self.j.db.execute("UPDATE partner_reviews SET payment_id=?",('igr:'+self.key[:48],))
+        self.j.db.commit()
+        self.run_cycle()
+        self.submit.assert_not_called();self.add_payment.assert_not_called()
+        row=self.j.db.execute('SELECT state,payment_id FROM partner_reviews').fetchone()
+        self.assertEqual(tuple(row),('UNKNOWN','igr:'+self.key[:48]))
 
     def test_recorded_api_rejection_becomes_manual_handling_without_readback_or_retry(self):
         self.enable_api()

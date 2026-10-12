@@ -56,6 +56,10 @@ def build_parser() -> argparse.ArgumentParser:
     appsheet.add_argument("--config", required=True)
     appsheet.add_argument("--catalogue", required=True)
     appsheet.add_argument('--app', choices=('oltp','olap'), default='oltp')
+    native = sub.add_parser('native-api-probe', help='verify authenticated native catalogue and one key-only read')
+    native.add_argument('--config', required=True)
+    native.add_argument('--catalogue', required=True)
+    native.add_argument('--scope', choices=('oltp','olap'), required=True)
     statement = sub.add_parser("cash-statement", help="prepare or explicitly deliver the latest completed daily cash statement")
     statement.add_argument("--config", required=True)
     statement.add_argument("--catalogue", required=True)
@@ -192,6 +196,16 @@ def execute(args) -> int:
                 raise ConfigurationError("instagram_delivery is disabled")
             message_id = Instagram(config).send(args.recipient, args.text)
             print(json.dumps({"status": "accepted", "message_id": message_id}))
+            return 0
+        if args.command == 'native-api-probe':
+            from .conversation_api import probe
+            config = load_json(args.config)
+            catalogue = load_json(args.catalogue)
+            validate_config(config)
+            validate_catalogue(catalogue)
+            if not catalogue['services']['operational_data_read']['enabled']:
+                raise ConfigurationError('operational_data_read is disabled')
+            print(json.dumps(probe(config,args.scope)))
             return 0
         if args.command == "appsheet-probe":
             config = load_json(args.config)

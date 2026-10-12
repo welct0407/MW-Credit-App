@@ -11,7 +11,7 @@ from .receipt_master import masters
 from .payment_match import check
 from .partner_notice import NoticeJournal,receipt_notice
 from .partner_review import ReviewStore,request_text,review_id
-from .review_proposal import facts,plan,review_posts_overpayment
+from .review_proposal import facts,plan,review_posts_overpayment,same_proposal_facts
 from .review_execution import add_payment,readback
 from . import receipt_api
 from .cash_statement import read_query
@@ -125,7 +125,9 @@ def cycle(config,journal,identity_reader):
                 reviews.decide(event,dict(notice),live['partners'],identity,reviewer_ids=live.get('reviewer_ids',[]))
         for review in db.execute("SELECT * FROM partner_reviews WHERE state IN ('APPROVED','POSTING','UNKNOWN')").fetchall():
             with isolated(failures,'execution'):
-                proposal=json.loads(review['proposal']);key=review['payment_id'] if str(review['payment_id'] or '').startswith('pwa:') else 'igr:'+review['id'][:48]
+                proposal=json.loads(review['proposal']);key=review['payment_id'] if review['payment_id'] is not None else 'igr:'+review['id'][:48]
+                if not isinstance(key,str) or not key.startswith(('pwa:','igr:')) or not key.removeprefix('pwa:').removeprefix('igr:'):
+                    raise ConfigurationError('INVALID_SAVED_PAYMENT_IDENTITY')
                 if review['state'] in ('POSTING','UNKNOWN'):
                     if review['state']=='POSTING':
                         with db:db.execute("UPDATE partner_reviews SET state='UNKNOWN' WHERE id=?",(review['id'],))
@@ -137,6 +139,11 @@ def cycle(config,journal,identity_reader):
                     if verified_api and readback(config,key,proposal):
                         with db:db.execute("UPDATE partner_reviews SET state='POSTED',payment_id=? WHERE id=?",(key,review['id']))
                     continue
+                # A saved dispatch identity is never reassigned, even if a stale state
+                # was manually reset. Reconcile its existing attempt on the next cycle.
+                if review['payment_id'] is not None:
+                    with db:db.execute("UPDATE partner_reviews SET state='UNKNOWN' WHERE id=?",(review['id'],))
+                    continue
                 live=masters(config)
                 automatic=review['detail']==AUTO_POLICY
                 if not automatic and review['deciding_partner'] not in live.get('reviewer_ids',[]):
@@ -146,6 +153,7 @@ def cycle(config,journal,identity_reader):
                     with db:db.execute("UPDATE partner_reviews SET state='MANUAL_REQUIRED' WHERE id=?",(review['id'],))
                     continue
                 if config.get('partner_review_execution_enabled') is not True:continue
+                if config.get('receipt_payment_api_enabled') is not True:continue
                 live=masters(config)
                 try:
                     job=db.execute('SELECT * FROM receipt_jobs WHERE id=?',(review['job_id'],)).fetchone()
@@ -177,7 +185,7 @@ def cycle(config,journal,identity_reader):
                         raise ReceiptInvalid('RECEIPT_DATE_TOO_OLD')
                     check(config,proposal['receipt'],b)
                     fresh=plan(proposal['receipt'],b,facts(config,b['id']))
-                    if fresh!=proposal:raise ReceiptInvalid('PROPOSAL_FACTS_CHANGED')
+                    if not same_proposal_facts(proposal,fresh):raise ReceiptInvalid('PROPOSAL_FACTS_CHANGED')
                     if not any(a['id']==proposal['receipt']['account_id'] and a['active'] is True for a in live['accounts']):
                         raise ReceiptInvalid('RECEIVING_ACCOUNT_CHANGED')
                     pid="'"+review['deciding_partner'].replace("'","''")+"'"
@@ -186,24 +194,24 @@ def cycle(config,journal,identity_reader):
                 except ReceiptInvalid as exc:
                     with db:db.execute("UPDATE partner_reviews SET state='STALE',detail=? WHERE id=?",(str(exc),review['id']))
                     continue
-                api_payload=None
-                if config.get('receipt_payment_api_enabled') is True and job['created_at']>=datetime.fromisoformat(config['receipt_payment_api_cutoff']).timestamp():
-                    asset=db.execute('SELECT * FROM receipt_assets WHERE job_id=?',(review['job_id'],)).fetchone()
-                    api_payload=receipt_api.payload(config,review,proposal,asset,automatic)
-                    key='pwa:'+api_payload['command']['requestId']
+                # Only never-attempted approved reviews reach this branch. All current
+                # authorization, duplicate, archive and immutable facts checks ran above.
+                # The original cutoff remains deployment history, not a legacy fallback.
+                asset=db.execute('SELECT * FROM receipt_assets WHERE job_id=?',(review['job_id'],)).fetchone()
+                api_payload=receipt_api.payload(config,review,proposal,asset,automatic)
+                key='pwa:'+api_payload['command']['requestId']
                 with db:
                     claimed=db.execute("UPDATE partner_reviews SET state='POSTING',payment_id=? WHERE id=? AND state='APPROVED'",(key,review['id'])).rowcount
                 if not claimed:continue
                 posting_config=dict(config,_receipt_automatic=True) if automatic else dict(config,_receipt_reviewer_approved=True)
                 api_result=None
                 try:
-                    if api_payload is not None:api_result=receipt_api.submit(posting_config,api_payload)
-                    else:add_payment(posting_config,key,proposal,actors[0])
+                    api_result=receipt_api.submit(posting_config,api_payload)
                 except Exception:pass
                 verified=False
                 try:
-                    if api_payload is not None and api_result is None:api_result=receipt_api.status(config,key,review['id'])
-                    verified=(api_payload is None or receipt_api.posted(api_result,key)) and readback(config,key,proposal)
+                    if api_result is None:api_result=receipt_api.status(config,key,review['id'])
+                    verified=receipt_api.posted(api_result,key) and readback(config,key,proposal)
                 except Exception as exc:failures.append({'stage':'readback','exception':type(exc).__name__})
                 state='POSTED' if verified else 'MANUAL_REQUIRED' if api_result and api_result.get('originalOutcome',{}).get('status')=='rejected' else 'UNKNOWN'
                 with db:db.execute("UPDATE partner_reviews SET state=? WHERE id=?",(state,review['id']))

@@ -14,6 +14,18 @@ class ConfigurationTests(unittest.TestCase):
         validate_config(load_json(ROOT / "config.example.json"))
         validate_catalogue(load_json(ROOT / "service-catalogue.json"))
 
+    def test_native_conversations_start_without_appsheet_keys_ids_or_schema_file(self):
+        config=load_json(ROOT/'config.example.json')
+        config={k:v for k,v in config.items() if not k.startswith('appsheet_')}
+        origin='https://mw-credit-app-command-prod-737787224638.asia-southeast1.run.app'
+        config.update(appsheet_enabled=False,partner_conversations_enabled=True,receiver_enabled=True,database_enabled=True,
+            instagram_account_id='100',partner_conversation_cutoff='2026-10-12T00:00:00+07:00',
+            conversation_api_enabled=True,conversation_api_environment='prod',conversation_api_origin=origin,
+            conversation_api_audience=origin,conversation_api_manifest_sha256='a'*64)
+        validate_config(config)
+        config['conversation_api_enabled']=False
+        with self.assertRaisesRegex(ConfigurationError,'native API'):validate_config(config)
+
     def test_enabled_unimplemented_service_fails_closed(self):
         catalogue = load_json(ROOT / "service-catalogue.json")
         catalogue["services"]["partner_oltp_gui"]["enabled"] = True
