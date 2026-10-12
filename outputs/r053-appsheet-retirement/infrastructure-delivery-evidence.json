@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "observedAt": "2026-10-12T03:42:20.4063026+00:00",
+  "observedAt": "2026-10-12T10:42:20.4063026+07:00",
   "scope": "R053 native conversation infrastructure delivery",
   "devPrerequisites": {
     "created": 6,
@@ -21,7 +21,9 @@
     "evidenceSha256": "3d5b270ca1d1b510c659f901cc7a6de76df0860baba8b08247d07627c2b53342",
     "readPartnerCount": 2,
     "scope": "Current IG Integration Enabled; AI Reviewer intersection; unique Login Email",
-    "published": false
+    "published": true,
+    "numericVersion": 1,
+    "readbackSha256": "ab9c0370cb79cbb9f4155ef63944baf2e307bda060b52d431b2d22857ea023a9"
   },
   "prodPrerequisites": {
     "planSha256": "ac60124ea742eb3a4579d80715a1f0d5c1d91cb8f73dcd861e344f30d2e8e209",
@@ -38,5 +40,46 @@
   ],
   "privatePlans": "C:/Users/ideaadmin/Documents/ChatGPT/MW-Credit-App/terraform/r053-agent-native",
   "retentionReview": "2026-10-19",
-  "cloudBuild": "Await exact published source pin; Docker COPY services includes native manifest"
+  "cloudBuild": {
+    "sourceCommit": "1bc08f3e171d043a5a3ca01335d3746113c68cb2",
+    "devBuild": "6eb4c40d-a031-4c6e-8e71-502dc1aff39d",
+    "prodBuild": "149aeba1-3e70-49ff-b7a2-3bb5496101f9",
+    "status": "SUCCESS",
+    "nativeManifestIncluded": true
+  },
+  "focusedTerraformChecks": {
+    "devWorkersPassed": 6,
+    "prodInertPassed": 9,
+    "devValidate": "passed",
+    "prodValidate": "passed",
+    "fmt": "passed"
+  },
+  "devRuntimePlan": {
+    "policyVersion": 1,
+    "creates": 0,
+    "applied": false,
+    "commandNewEnv": [
+      "AGENT_CONVERSATION_API_ENABLED",
+      "AGENT_CONVERSATION_POLICY_JSON",
+      "AGENT_CONVERSATION_POLICY_SECRET_VERSION"
+    ],
+    "updates": 2,
+    "planSha256": "f2fbc7d73ef35064b997a7e95ef4492b8c71df8faebcb56bc859d795879ba961",
+    "resources": [
+      "google_cloud_run_v2_service.command_api[0]",
+      "google_cloud_run_v2_service.read_api[0]"
+    ],
+    "destroys": 0,
+    "privateConfigurationAdjustment": "Preserve observed notification Scheduler max_doublings=5; no source change, all worker/scheduler resources no-op."
+  },
+  "prodRuntimePreview": {
+    "updates": 2,
+    "requiredOrder": "Apply prerequisite-only plan; publish and hash-readback reviewed policy numeric version; refresh API-only plan; apply after CI/DEV/V90 release.",
+    "applied": false,
+    "privateConfigurationAdjustment": "Preserve notify425/jobs11c149 images and observed notify retry max_doublings5; no source edits.",
+    "workerSchedulerChanges": 0,
+    "planSha256": "d9f4b554f6456f3485fef89b3f68fe21f7d36fb0f5ca872142aca88aecebf15f",
+    "destroys": 0,
+    "creates": 2
+  }
 }

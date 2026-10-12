@@ -46,6 +46,11 @@ test('R053 native retirement pins V90 recovery and preserves distinct live worke
  Object.assign(f.proofs.applied,{sourceCommit:source,runtimeSourceCommit:source,sqlVersion:90,conversationApiEnabled:true,preservedWorkers:workers});
  for(const key of Object.keys(f.proofs))await f.persist(key);
  const applied={...f.manifest,status:'applied'};assert.equal((await validateR053Candidate(applied,f.options)).deployReady,true);
+ await writeFile(path.join(f.repo,'test-only.txt'),'asynchronous test correction\n');f.git('add','.');f.git('-c','user.name=Synthetic C','-c','user.email=c@example.invalid','commit','-m','test-only correction');
+ const finalSource=f.git('rev-parse','HEAD');applied.sourceCommit=finalSource;f.proofs.applied.sourceCommit=finalSource;await f.persist('applied');
+ await assert.rejects(validateR053Candidate(applied,f.options),/wrong actual application run/);
+ f.proofs.applicationCi.run.head_sha=finalSource;await f.persist('applicationCi');
+ assert.equal((await validateR053Candidate(applied,f.options)).deployReady,true);
  f.proofs.applied.preservedWorkers={...workers,jobs:workers.notify};await f.persist('applied');
  await assert.rejects(validateR053Candidate(applied,f.options),/worker runtime drift/);
  f.proofs.applied.preservedWorkers=workers;await f.persist('applied');f.proofs.backup.baselineVersion=87;await f.persist('backup');

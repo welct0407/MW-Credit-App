@@ -10,7 +10,7 @@ test.beforeAll(async({},info)=>{
 });
 function return0(){return 0}
 test.afterAll(()=>server?.kill()); test.afterEach(async({},info)=>{if(info.status!==info.expectedStatus)console.log(serverLog)});
-const authMock=`let listener;export const browserLocalPersistence='local';export const inMemoryPersistence='memory';export const browserPopupRedirectResolver={};export function initializeAuth(a,o){if(o.persistence!=='local')throw Error('persistence');return {}};export function getAuth(){return {}};export async function setPersistence(a,p){if(p!=='local')throw Error('persistence');}export function onAuthStateChanged(a,fn){listener=fn;fn(null);return()=>{listener=null}};export class GoogleAuthProvider{setCustomParameters(){}};export async function signInWithPopup(){listener({uid:'synthetic-owner',getIdToken:async()=>'synthetic-bearer'})};export async function signOut(){listener(null)};`;
+const authMock=`let listener;export const browserLocalPersistence='local';export const inMemoryPersistence='memory';export const browserPopupRedirectResolver={};export function initializeAuth(a,o){if(o.persistence!=='local')throw Error('persistence');return {}};export function getAuth(){return {}};export async function setPersistence(a,p){if(p!=='local')throw Error('persistence');}export function onAuthStateChanged(a,fn){listener=fn;fn(null);return()=>{listener=null}};export class GoogleAuthProvider{setCustomParameters(){}};export async function signInWithPopup(){listener({uid:'synthetic-owner',getIdToken:async()=>{if(globalThis.__g07PendingReferenceTokenGate)await globalThis.__g07PendingReferenceTokenGate;return 'synthetic-bearer'}})};export async function signOut(){listener(null)};`;
 test.use({timezoneId:'America/Los_Angeles'});test.setTimeout(60000);
 
 const borrower={id:'4G-UI-B',displayName:'Synthetic borrower / ผู้กู้จำลอง',status:'not_paid',amountDue:'330',amountCollected:'0',amountRemaining:'330'};
@@ -103,18 +103,27 @@ test('G07 invalid replacement releases upload busy and Posted retains notes desp
 });
 
 test('G07 pending-reference storage refusal warns and auth loss clears business state',async({page})=>{
- let posts=0;
+ let posts=0;let postedBody:any;
  await page.route('https://mw-credit-app-command-dev-test.run.app/**',async r=>{
  if(new URL(r.request().url()).pathname.includes('payment-drafts'))return replyDraft(r);
- if(r.request().method()==='POST'){posts++;return r.abort('failed')}
+ if(r.request().method()==='POST'){posts++;postedBody=r.request().postDataJSON();return r.abort('failed')}
  await r.fulfill({contentType:'application/json',body:JSON.stringify(draft)});
  });
  await setup(page);
- await page.evaluate(()=>{const original=Storage.prototype.setItem;Storage.prototype.setItem=function(key,value){if(this===sessionStorage&&key==='mw-credit.pending-command')throw new DOMException('blocked','SecurityError');return original.call(this,key,value)}});
+ await page.evaluate(()=>{const original=Storage.prototype.setItem;Storage.prototype.setItem=function(key,value){if(this===sessionStorage&&key==='mw-credit.pending-command'){
+  const fixture=window as any;if(!fixture.__g07PendingReferenceTokenGate)fixture.__g07PendingReferenceTokenGate=new Promise<void>(resolve=>fixture.__g07ReleasePendingReferenceToken=resolve);
+  throw new DOMException('blocked','SecurityError');
+ }return original.call(this,key,value)}});
  await page.locator('.collection-tile-main').first().click();await page.getByRole('button',{name:'Receive selected charges'}).click();await page.getByRole('combobox',{name:/^Receiving account(?: \*)?$/}).selectOption('synthetic-account');await page.getByRole('textbox',{name:/^Amount received(?: \*)?$/}).fill('110');await page.locator('.payment-allocation-row input[type=checkbox]').first().check();
  await page.getByRole('button',{name:'Review payment'}).click();await page.getByRole('button',{name:'Confirm payment online'}).click();
- await expect(page.getByText('This browser cannot retain the reference. Copy it before leaving.')).toBeVisible();expect(posts).toBe(1);
+ await expect(page.getByText('This browser cannot retain the reference. Copy it before leaving.')).toBeVisible();
+ expect(posts).toBe(0);expect(await page.evaluate(()=>sessionStorage.getItem('mw-credit.pending-command'))).toBeNull();
+ const reference=await page.locator('.selected-payment code').innerText();expect(reference).toMatch(/^[a-f0-9-]{36}$/);
+ await page.evaluate(()=>(window as any).__g07ReleasePendingReferenceToken());
+ await expect.poll(()=>posts).toBe(1);expect(postedBody.requestId).toBe(reference);
+ await expect(page.getByRole('heading',{name:'Outcome unknown',exact:true})).toBeVisible();
  await signOutPreservingActiveChild(page);await expect(page.getByRole('heading',{name:'Sign in to continue',exact:true})).toBeVisible();await expect(page.locator('.selected-payment')).toHaveCount(0);
+ expect(posts).toBe(1);
 });
 test('G07 offline before confirmation clears business draft and never dispatches',async({page,context})=>{
  let posts=0;

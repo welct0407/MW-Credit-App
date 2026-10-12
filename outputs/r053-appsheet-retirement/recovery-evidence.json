@@ -1,0 +1,34 @@
+{
+  "release": "R053",
+  "scope": "AppSheet retirement promotion",
+  "sourceCommit": "1bc08f3e171d043a5a3ca01335d3746113c68cb2",
+  "approval": "Owner 12 October 2026: proceed CI and deployment then promote production",
+  "dev": {
+    "version": 89,
+    "dumpSha256": "6137f7f5f03c8c9b08d8b8356a8232e67e99026b29483176dc3f5871c63c71c3",
+    "restore": "passed",
+    "authorityRestored": true,
+    "privateRecoveryDirectory": "C:/Users/ideaadmin/Documents/ChatGPT/AppSheet-Loan-Project/flyway/dev-activation-d1748de7f52740d0a0cbc220218868ad"
+  },
+  "prod": {
+    "version": 89,
+    "dumpSha256": "e9023a65b22e3be89988b51901a2168871361f5aa4b31de409286564abcc0a7a",
+    "restore": "passed",
+    "fullContentFingerprintsMatched": 32,
+    "authorityRestored": true,
+    "privateRecoveryDirectory": "C:/Users/ideaadmin/Documents/ChatGPT/AppSheet-Loan-Project/flyway/prod-promotion-43541b03524e44c8bb6a79be9631f802"
+  },
+  "restoreCleanup": "Owned DEV and PROD local restore clusters stopped and removed; protected dumps retained",
+  "initialDevAttempt": "Denied SELECT on closed-owner notification table; no database mutation. Fixed backup-only authority wrapper completed with exact finally restoration.",
+  "productionSchemaOrRuntimeChanged": false,
+  "agentJournal": {
+    "database": "mw_agent",
+    "dumpSha256": "7f58d86b4a380880b6dbaf16b46c7db6bcbd8cbd12c7812470216f84cb1c4958",
+    "restore": "passed",
+    "restoredFingerprintsMatch": true,
+    "tableCount": 32,
+    "integrityScope": "full content fingerprints on small authoritative receipt/ingress/control/notice tables; exact counts only on audit.events, audit.operations and runtime.operation_state; complete raw dump and full local restore",
+    "privateRecoveryDirectory": "C:/Users/ideaadmin/Documents/ChatGPT/AppSheet-Loan-Project/flyway/prod-promotion-dce71b931fdb4ea8892970a928f51225",
+    "ownedRestoreStoppedAndRemoved": true
+  }
+}

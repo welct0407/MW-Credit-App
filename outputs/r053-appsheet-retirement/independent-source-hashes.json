@@ -13,11 +13,11 @@
   },
   {
     "path": "outputs/r053-appsheet-retirement/independent-verification.md",
-    "sha256": "8d23fbe7ffa2bdaeef36ada2f363f85c47dcc02dbb07c74b9d68587dc2a66c2d"
+    "sha256": "460e7e26bb4091da15f1ec3dd247db31e4d48ee069fee6ac039f745fd8368fad"
   },
   {
     "path": "Change Logs/CHANGE_NOTES_R053_APPSHEET_RETIREMENT_2026-10-12.md",
-    "sha256": "7b1f1da727aa2bb33300e40783fef778f1a20bd5b04f2f01153baa154a94b79c"
+    "sha256": "6fce41c6c6afe9960ab9d79b5d6b3b32a2ccfc04365bb61d7a47e046a27d599a"
   },
   {
     "path": "tests/unit/agent-native-defaults-independent.test.mjs",
@@ -57,5 +57,9 @@
     "repository": "MW-Integration-Agent",
     "path": "tests/test_conversation_defaults_independent.py",
     "sha256": "2691cdf359622620d249a7d8f23285d8606d9586c31a12e46b76d6a73fdacd31"
+  },
+  {
+    "path": "tests/e2e/payment-command.spec.ts",
+    "sha256": "6310fed0cfbce8da91da54dd018649c7b9fffeb4b7a4dc499e1c734da707ba82"
   }
 ]
