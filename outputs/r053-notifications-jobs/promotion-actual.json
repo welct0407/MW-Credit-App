@@ -2,45 +2,52 @@
   "release": "R053",
   "status": "Deployment applied; verification incomplete",
   "releaseStatus": "Frozen",
-  "runtimeSourceCommit": "673223d504bb4c20b408fe97d05f8e8523f8d4f2",
-  "operatorSourceCommit": "dc4e75de24c99b5217c2895066957862a72e2cbb",
-  "agentCommit": "35c7d9e831a49d3e27d0b544728a7efb77a42928",
+  "runtimeSourceCommit": "1bc08f3e171d043a5a3ca01335d3746113c68cb2",
+  "operatorSourceCommit": "5fca4e476c010f6a90e5e18f72881577ed467c7b",
+  "agentCommit": "e9fd149914a3fa49f036c1eec75a8d4dc8a07c00",
   "database": {
-    "dev": 89,
-    "prod": 89,
+    "dev": 90,
+    "prod": 90,
     "groupedPending": [
-      88,
-      89
+      90
     ],
     "authorityRestored": true
   },
   "ci": {
-    "databaseRun": 38169216136,
+    "applicationRun": 38202842623,
+    "applicationConclusion": "success",
+    "databaseRun": 38201112557,
     "databaseConclusion": "success",
-    "applicationRun": 38165391348,
-    "applicationConclusion": "failure",
-    "applicationSteps": "unit/build/audit/browser passed; Terraform format failure corrected with focused format/validate/24 mocks"
+    "databaseSourceCommit": "1bc08f3e171d043a5a3ca01335d3746113c68cb2",
+    "agentRun": 38200988357,
+    "agentConclusion": "success",
+    "browserPassed": 271,
+    "browserSkipped": 9,
+    "agentPassed": 312,
+    "agentPrerequisiteSkips": 42,
+    "reuse": "Runtime/build and SQL/database/integration inputs unchanged at promotion5fca; original failure receipts retained"
   },
   "hosting": {
     "schemaVersion": 1,
-    "sourceCommit": "dc4e75de24c99b5217c2895066957862a72e2cbb",
+    "sourceCommit": "5fca4e476c010f6a90e5e18f72881577ed467c7b",
     "site": "mw-credit-prod-737787224638",
-    "version": "sites/mw-credit-prod-737787224638/versions/936affb987431783",
-    "release": "sites/mw-credit-prod-737787224638/releases/1791748994309000",
-    "publicVersion": "eb326b5d1df3862b9c524a64",
+    "version": "sites/mw-credit-prod-737787224638/versions/9dd049f29f6d77d6",
+    "release": "sites/mw-credit-prod-737787224638/releases/1791779076726000",
+    "publicVersion": "81100bc605443cbb098fdfcc",
     "fileCount": 14,
     "cacheControl": "no-store",
-    "approvalReference": "Owner 12 October 2026: run CI, fix any issue, then promote to prod"
+    "approvalReference": "Owner 12 October 2026: proceed CI and deployment then promote production"
   },
   "runtime": {
-    "reader": "00003-gpl",
-    "command": "00004-xkp",
+    "reader": "00004-htx",
+    "command": "00005-p4s",
     "jobs": "00003-q4h",
     "notify": "00002-cth",
-    "imageDigest": "sha256:42534b790ebccd73448d5bc56490a959586ea5494604583443b630705a0c7778",
+    "imageDigest": "sha256:77254376cd3b07bf01b21b1df219c433550ddbdf38f77e6f8d9aede86441678d",
     "jobsImageDigest": "sha256:11c149f746bceefc0b4c5d81dfce0295cdca533fa36d63c101f9971f3f643d56",
     "jobsSourceCommit": "959b1181715547729e11588ba1bfdac10a8a9f20",
-    "imageDigestScope": "reader/command/notify remain42534b; jobs uses separate recovery digest"
+    "imageDigestScope": "reader/command77254376; notify42534b and jobs11c149 preserved",
+    "notifyImageDigest": "sha256:42534b790ebccd73448d5bc56490a959586ea5494604583443b630705a0c7778"
   },
   "appsheet": {
     "oltp": "3.000275",
@@ -94,13 +101,19 @@
     "previouslyActiveTimersResumed": 6,
     "readOnlyOidcStatusProbe": "passed",
     "financialPostTested": false,
-    "remainingAppSheetDependenciesPreserved": true
+    "remainingAppSheetDependenciesPreserved": true,
+    "nativeConversationApiEnabled": true,
+    "catalogueRevision": 27,
+    "remainingOperationalAppSheetDependencies": false,
+    "monitoringException": "Owner deferred collector/Grafana AppSheet probes; accepted temporary failure",
+    "nativeReadOnlyProbe": "Two scopes plus unused UUID receipt status passed",
+    "cutoffsAndReceiptRoutePreserved": true
   },
   "verificationPending": [
-    "Expanded native agent/API/app capability coverage and coherent candidate verification/delivery",
-    "First due charges and first genuine shared-agent payment"
+    "First natural charges execution",
+    "First genuine shared-agent payment"
   ],
-  "rollback": "Protected PROD87 and mw_agent dumps with isolated restore; captured Hosting baseline; agent private package/config backup. Restore only under reviewed recovery scope.",
+  "rollback": "Fresh protected DEV89/PROD89/mw_agent dumps and isolated restores; captured Hosting baseline and native-agent package/config pointer. Reviewed recovery only; preserve original cutoffs and later writes.",
   "retainedArtifacts": {
     "purpose": "Pinned recovery and continuation while verification is incomplete",
     "reviewDate": "2026-10-19",
@@ -126,8 +139,14 @@
     "ownerDate": "2026-10-12",
     "releaseStillFrozen": true,
     "successorStillOpen": "R054",
-    "scope": "Remove remaining operational AppSheet dependencies; native agent/API/app candidate in progress, not deployed",
+    "scope": "Native operational agent/API/app retirement applied; historical AppSheet assets and deferred monitoring retained",
     "monitoring": "Explicitly deferred; temporary failure accepted and not an R053 API/app blocker",
-    "newMigration": "B reserved V90 function-only; live SQL remains V89"
-  }
+    "newMigration": "Function-only V90 applied; DEV/PROD validate90"
+  },
+  "initialR053SourcePins": {
+    "runtimeSourceCommit": "673223d504bb4c20b408fe97d05f8e8523f8d4f2",
+    "operatorSourceCommit": "dc4e75de24c99b5217c2895066957862a72e2cbb",
+    "agentCommit": "35c7d9e831a49d3e27d0b544728a7efb77a42928"
+  },
+  "nativeRetirementEvidence": "MW-Credit-App outputs/r053-appsheet-retirement/deployment-evidence.json"
 }
