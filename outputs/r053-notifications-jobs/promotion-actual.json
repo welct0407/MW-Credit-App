@@ -55,6 +55,13 @@
       "analytics": "HTTP400 on natural scheduled requests; narrow runtime/header diagnosis active",
       "charges": "not yet due/no attempt",
       "evidence": "MW-Credit-App outputs/r053-notifications-jobs/production-jobs-first-observation.json"
+    },
+    "pendingCorrection": {
+      "sourceCommit": "959b1181715547729e11588ba1bfdac10a8a9f20",
+      "scope": "RFC3339 offset validation and fixed diagnostics",
+      "focusedTests": "9/9 passed",
+      "imageDeployment": "pending jobs-only",
+      "nextNaturalInvocation": "pending; HTTP400 cause not yet proven"
     }
   },
   "notifications": {
