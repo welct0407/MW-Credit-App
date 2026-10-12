@@ -50,7 +50,12 @@
     "dailyChargesSchedule": "ENABLED",
     "analyticsSchedule": "ENABLED",
     "timeZone": "Asia/Bangkok",
-    "naturalExecutionVerified": false
+    "naturalExecutionVerified": false,
+    "firstObservation": {
+      "analytics": "HTTP400 on natural scheduled requests; narrow runtime/header diagnosis active",
+      "charges": "not yet due/no attempt",
+      "evidence": "MW-Credit-App outputs/r053-notifications-jobs/production-jobs-first-observation.json"
+    }
   },
   "notifications": {
     "enrollmentApiEnabled": true,
@@ -69,7 +74,7 @@
     "remainingAppSheetDependenciesPreserved": true
   },
   "verificationPending": [
-    "owner device/provider acceptance and push activation",
+    "owner actual phone receipt and PROD push activation",
     "first natural charges and analytics runs",
     "authenticated PWA changed entry-point validation"
   ],
@@ -80,5 +85,18 @@
     "disposableDatabaseClusters": "removed"
   },
   "tagCreated": false,
-  "agentEvidencePublicationCommit": "e8f43d5adcfacdbe5198f56a7e6e330766cdbd07"
+  "agentEvidencePublicationCommit": "e8f43d5adcfacdbe5198f56a7e6e330766cdbd07",
+  "devNotificationProof": {
+    "registrationUi": "owner confirmed enabled",
+    "activeOwnerAppleSubscriptions": 1,
+    "providerAcceptance": "verified",
+    "deliveryState": "sent",
+    "attempts": 1,
+    "completedAt": "2026-10-12T01:32:22.828Z",
+    "deviceReceipt": "pending",
+    "captureEnabled": false,
+    "recoverySchedulerState": "PAUSED",
+    "financialRowsWritten": 0,
+    "evidence": "MW-Credit-App outputs/r053-notifications-jobs/dev-owner-notification-provider-proof.json"
+  }
 }

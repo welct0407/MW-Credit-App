@@ -4,6 +4,10 @@ R053 deployment applied; verification incomplete. DEV and PROD SQL89; exact temp
 
 Runtime/artifact source673223d, operator dc4e75d, agent35c7d9. Final database38169216136 SUCCESS. Earlier full application38165391348 has passing application/browser steps and a preserved Terraform format failure, followed by focused format/validate/24-mock recovery. No further CI is required for this evidence publication.
 
-Next: owner device enrollment/provider receipt and bounded push activation; first natural charges/analytics runs; authenticated PWA changed entry points. Current subscription state is UNKNOWN after a closed-owner42501 lookup, not confirmed absent. Do not enable push or claim Released from that observation. No forced financial sample or arbitrary send.
+Next: owner actual phone receipt and bounded PROD push activation; first natural charges/analytics runs; authenticated PWA changed entry points. The earlier closed-owner42501 lookup is superseded by one scoped, rollback-contained owner Apple metadata proof. Device display/click and PROD activation remain unverified. No forced financial sample or arbitrary send.
 
 [Master checklist](promotion-checklist.md) · [Actual manifest](promotion-actual.json). Retain pinned source/build/recovery artifacts for resume, review19October. Existing AppSheet loan lookup, conversation operations, cached metadata and legacy receipt paths remain dependencies; keep API keys. R052 first genuine manual receipt/AppSheet rendering remains separately owner-accepted deferred. Six named orchestration roles/models remain unchanged.
+
+DEV owner registration and real Apple provider acceptance are now verified: one synthetic event, one sent/accepted attempt, original closed authority restored. Actual phone receipt/click remains pending. DEV min0 worker is enabled with policy2; capture and recurring recovery remain off. Existing scheduler was temporarily moved to an annual schedule for one manual test and restored PAUSED/minute cron. See app dev-owner-notification-provider-proof.json; no CI/runtime source repetition.
+
+Concrete current recovery: natural PROD analytics requests returned HTTP400; root/B/F are diagnosing the specific runtime/header boundary. Charges has not yet been due/attempted. Keep natural-job verification incomplete; do not force an invocation or infer success.
