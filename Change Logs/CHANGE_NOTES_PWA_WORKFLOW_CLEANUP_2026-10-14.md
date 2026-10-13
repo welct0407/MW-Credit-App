@@ -19,6 +19,6 @@ Publication baseline: project 16f324f21c5e4046cce740294feea20c633d4117 (includes
 
 Pre-existing paused Phase2 content/artifacts remain outside this publication. Its original Development_Changes patch is preserved privately at C:/Users/ideaadmin/Documents/ChatGPT/AppSheet-Loan-Project/documentation-cleanup-20261014/preexisting-development-changes.patch; current local paused-work references remain unstaged.
 
-## Limitation
+## Cleanup outcome
 
-Automatic approval review rejected recursive cleanup as “blocked by policy”, including after explicit owner approval. Explicit tracked text edits succeeded. Three obsolete XLSX files remain: Documents/AppSheet_Data_Dictionary.xlsx and the two AppSheet_Data_Dictionary_before_*.xlsx under Documents/archive/2026-09-20. They are not registered, indexed or exported. No alternative deletion route was attempted for these blocked files.
+Recursive deletion was rejected by automatic approval review even after owner approval. The narrower explicit tracked-file cleanup succeeded: text files through reviewed edits, and the three obsolete XLSX workbooks through exact nonrecursive git rm paths. No untracked files or private recovery data were removed. Removed documentation remains recoverable from Git; no history copy is maintained in current documentation.
