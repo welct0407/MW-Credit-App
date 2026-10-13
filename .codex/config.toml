@@ -1,9 +1,7 @@
 #:schema https://developers.openai.com/codex/config-schema.json
 
-# Let Codex request escalation when necessary,
-# but let the automatic reviewer handle eligible requests.
+# Let Codex request escalation when necessary.
 approval_policy = "on-request"
-approvals_reviewer = "auto_review"
 
 # Normal development access: modify the checked-out workspace
 # without giving unrestricted host filesystem access.

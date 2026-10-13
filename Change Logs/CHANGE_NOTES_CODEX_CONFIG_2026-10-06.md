@@ -9,3 +9,11 @@
 - Status: repository configuration complete; publication follows the standing commit/push instruction.
 - Runtime verification: no new Codex session was launched to verify effective settings. This file edit does not establish a change to the current session's permissions.
 - Reference: [Official Codex configuration reference](https://learn.chatgpt.com/docs/config-file/config-reference).
+
+## 14 October 2026 refinement (Asia/Bangkok)
+
+- Purpose: owner requested removal of automatic approval review.
+- Change: removed `approvals_reviewer = "auto_review"` and its comment from `.codex/config.toml`; retained all other settings.
+- Recovery: starting Git commit `8f25a2c01c135a4637eb3499a04b36e05444bf97`; revert the refinement commit to restore the previous repository setting.
+- Checks: saved configuration readback and focused Git diff/whitespace checks; unrelated working-tree changes excluded from the task commit.
+- Outcome: repository auto-review override removed. Effective runtime settings were not tested in a new session.
