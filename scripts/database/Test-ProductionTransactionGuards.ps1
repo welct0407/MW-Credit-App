@@ -38,6 +38,17 @@ try {
     if(($r53Result -join '|') -ne '-group=true|-mixed=false|-executeInTransaction=true'){throw 'R053 pinned flags missing'};$checks++
     foreach($target in @(88,90)){$bad=$r53Args.Clone();$bad.TargetVersion=$target;$rejected=$false;try{Assert-ProductionTransactionPackage @bad|Out-Null}catch{$rejected=$true};if(-not $rejected){throw 'Accepted unreviewed R053 target'};$checks++}
     foreach($pending in @(@([pscustomobject]@{name='V89__fixture.sql'}),@([pscustomobject]@{name='V88__fixture.sql'},[pscustomobject]@{name='V89__fixture.sql'},[pscustomobject]@{name='V89__fixture.sql'}),@([pscustomobject]@{name='V88__fixture.sql'},[pscustomobject]@{name='V89__fixture.sql'},[pscustomobject]@{name='V90__fixture.sql'}))){$bad=$r53Args.Clone();$bad.Manifest=$pending;$rejected=$false;try{Assert-ProductionTransactionPackage @bad|Out-Null}catch{$rejected=$true};if(-not $rejected){throw 'Accepted missing/duplicated/extra R053 pending scope'};$checks++}
+    Set-Content -LiteralPath (Join-Path $taskRoot 'V91__fixture.sql') -Value 'SELECT 1;'
+    $r56Proof=$proof.PSObject.Copy();$r56Proof.baselineVersion=90
+    $r56Args=@{MigrationRoot=$taskRoot;Manifest=@([pscustomobject]@{name='V91__fixture.sql'});BaselineVersion=90;TargetVersion=91;Preflight=$r56Proof;Now=$now}
+    $r56Result=@(Assert-ProductionTransactionPackage @r56Args)
+    if(($r56Result -join '|') -ne '-group=true|-mixed=false|-executeInTransaction=true'){throw 'R056 pinned flags missing'};$checks++
+    foreach($target in @(90,92)){$bad=$r56Args.Clone();$bad.TargetVersion=$target;$rejected=$false;try{Assert-ProductionTransactionPackage @bad|Out-Null}catch{$rejected=$true};if(-not $rejected){throw 'Accepted unreviewed R056 target'};$checks++}
+    foreach($pending in @(@([pscustomobject]@{name='V90__fixture.sql'}),@([pscustomobject]@{name='V91__fixture.sql'},[pscustomobject]@{name='V91__fixture.sql'}),@([pscustomobject]@{name='V91__fixture.sql'},[pscustomobject]@{name='V92__fixture.sql'}))){$bad=$r56Args.Clone();$bad.Manifest=$pending;$rejected=$false;try{Assert-ProductionTransactionPackage @bad|Out-Null}catch{$rejected=$true};if(-not $rejected){throw 'Accepted missing/duplicated/extra R056 pending scope'};$checks++}
+    foreach($change in @(@{database='loan_manager_dev'},@{baselineVersion=89},@{observedAt=$now.AddMinutes(-11).ToString('o')},@{publicConnectRevoked=$false})){
+        $badProof=$r56Proof.PSObject.Copy();foreach($key in $change.Keys){$badProof.$key=$change[$key]};$bad=$r56Args.Clone();$bad.Preflight=$badProof
+        $rejected=$false;try{Assert-ProductionTransactionPackage @bad|Out-Null}catch{$rejected=$true};if(-not $rejected){throw 'Accepted invalid R056 containment proof'};$checks++
+    }
     "Production transaction guard checks: $checks passed; synthetic inputs only, no database or network effects."
 } finally {
     $resolved=[IO.Path]::GetFullPath($taskRoot)
