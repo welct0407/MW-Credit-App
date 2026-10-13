@@ -4,7 +4,8 @@ import {provisionR053Roles,prepareR053Maintenance,restoreR053Maintenance,configu
 const args=process.argv.slice(2),actions=['roles','prepare','prepare-agent','prepare-conversation','agent-api-grants','restore','capture-enable','capture-disable','jobs-dependencies','bind-api','bind-notify','bind-jobs'];
 const action=args.shift();if(!actions.includes(action))throw Error('One fixed R053 PROD action required');
 const opts={};for(let i=0;i<args.length;i++){if(args[i]==='--apply'){if(opts.apply)throw Error('Duplicate apply');opts.apply=true;}else if(['--state','--dependency-sha256','--approval-reference','--backup-proof','--source-commit','--baseline-version'].includes(args[i])&&args[i+1]&&!opts[args[i]]){opts[args[i]]=args[++i];}else throw Error('Unknown R053 operator option');}opts.state=opts['--state'];
-const baselineVersion=Number(opts['--baseline-version']??'87');if(!['87','89'].includes(opts['--baseline-version']??'87'))throw Error('Exact reviewed PROD baseline required');
+const baselineVersion=Number(opts['--baseline-version']??'87');if(!['87','89','90'].includes(opts['--baseline-version']??'87'))throw Error('Exact reviewed PROD baseline required');
+if(baselineVersion===90&&!['prepare','restore'].includes(action))throw Error('PROD90 permits only V91 notification/jobs maintenance and restoration');
 if(baselineVersion===89&&!['prepare-conversation','restore'].includes(action))throw Error('PROD89 permits only V90 journal maintenance and restoration');
 if(action==='prepare-conversation'&&baselineVersion!==89)throw Error('Conversation maintenance requires explicit baseline89');
 if(['DATABASE_URL','PGHOST','PGHOSTADDR','PGPORT','PGDATABASE','PGUSER','PGPASSWORD','PGSERVICE','PGSERVICEFILE','PGPASSFILE','PGOPTIONS'].some(k=>process.env[k]!==undefined))throw Error('Ambient SQL route refused');
@@ -22,7 +23,7 @@ if(dumpHash.digest('hex')!==backup.dumpSha256)throw Error('Recovery dump changed
 const t=JSON.parse(fs.readFileSync(path.join(repo,'database/environments.json'),'utf8')).production;
 if(t.instance!=='appsheet-pg-prod-20260914'||t.host!=='34.21.174.215'||t.port!==5432||t.database!=='loan_manager_prod'||t.user!=='postgres')throw Error('PROD configuration mismatch');
 const credentials=path.resolve(t.passwordFile);if(!credentials.startsWith(path.resolve('C:/Users/ideaadmin/Documents/ChatGPT')+path.sep))throw Error('Private credential required');
-const config={database:'loan_manager_prod',creators:['postgres'],executionMode:'cloudsql-prod',productionAuthorization:{approvalReference:opts['--approval-reference'],backupSha256:backup.dumpSha256,sourceCommit:opts['--source-commit'],baselineVersion,...(baselineVersion===89?{targetVersion:90}:{})}};
+const config={database:'loan_manager_prod',creators:['postgres'],executionMode:'cloudsql-prod',productionAuthorization:{approvalReference:opts['--approval-reference'],backupSha256:backup.dumpSha256,sourceCommit:opts['--source-commit'],baselineVersion,...(baselineVersion===89?{targetVersion:90}:baselineVersion===90?{targetVersion:91}:{})}};
 const c=new pg.Client({host:t.host,port:t.port,database:t.database,user:t.user,password:fs.readFileSync(credentials,'utf8').trim(),ssl:{rejectUnauthorized:false},connectionTimeoutMillis:10000,application_name:'mw-r053-prod-operator'});
 const file=opts.state?external(opts.state):external(path.join(privateRoot,'r053-prod-'+action+'-'+randomUUID()+'.json'));let result;
 await c.connect();try{await c.query("SET statement_timeout='30s'; SET lock_timeout='5s'");await c.query('SELECT pg_advisory_lock(1052026,53)');
