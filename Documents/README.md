@@ -8,7 +8,7 @@ Read [AGENTS.md](../AGENTS.md) first, then only the reference needed for the tas
 
 ## 2. Evolving project documents — Documents
 
-Keep these references current as development changes the application. Update each fact in its owning document; Git retains superseded versions.
+Keeping this entire set current is a required part of each development batch under the [documentation maintenance step](Rules/Development_Workflow.md#required-documentation-maintenance). Review coverage of the full index and update every affected existing reference before completion; unchanged facts need no cosmetic edits. Update each fact in its owning document; Git retains superseded versions. No new document may be created without explicit owner approval, including a new log, report, release record or export copy.
 
 | Current information | Reference |
 | --- | --- |

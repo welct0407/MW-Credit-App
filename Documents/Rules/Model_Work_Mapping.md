@@ -11,7 +11,7 @@ Agents A–F are the standing PWA development team under the [six-agent process]
 | Agent A — Architect | `gpt-6-astra` | high | Design, technical direction and a compact executable test plan |
 | Agent B — Coding | `gpt-6-astra` | medium | Application implementation and fixes |
 | Agent C — Testing | `gpt-6.1-sol` | medium | Execute selected tests; report failures and retest corrections |
-| Agent D — Miscellaneous / Delivery and Documentation | `gpt-6.1-sol` | medium | Tooling, documentation, delivery coordination and support |
+| Agent D — Miscellaneous / Delivery and Documentation | `gpt-6.1-sol` | medium | Own required maintenance of the full evolving-document set; tooling, delivery coordination and existing records |
 | Agent E — User Experience Officer | `gpt-6-astra` | low | Automatically review affected UX; choose relevant desktop/iPhone Pro Max/iPad views; recommendations grouped by page/category with unique human-readable codes |
 | Agent F — Infrastructure | `gpt-6-astra` | low | Terraform, cloud resources, IAM, Secret Manager and networking |
 

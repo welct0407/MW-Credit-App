@@ -8,6 +8,8 @@ Use the [current Open release](../Release_Tracker.md#current-development-release
 
 Use DEV or disposable tests for changed behavior. Do not hold a harmless UI fix for unrelated features or unfinished credentials. An owner-requested hands-on checkpoint remains binding; otherwise no automatic extra review round is added.
 
+Complete [required documentation maintenance](Development_Workflow.md#required-documentation-maintenance) as part of each batch. Update every affected evolving reference in place. Creating a new document, including a release record or runner manifest, requires explicit owner approval; promotion authority alone is not that approval.
+
 ## Release-scope freeze and number handoff
 
 At authorized promotion start:
@@ -26,12 +28,12 @@ Pin runtime/build/dependency/configuration inputs and, for test reuse, tests/fix
 
 ## Promotion
 
-Use one existing release record based on the [compact promotion template](../../scripts/releases/templates/promotion-checklist.md). Fill applicable evidence only; no second gate sheet.
+Use one existing release record based on the [compact promotion template](../../scripts/releases/templates/promotion-checklist.md). Fill applicable evidence only; no second gate sheet. If a required record/manifest is missing, prepare its path, purpose and draft in chat or an existing record and obtain explicit owner approval before creation; keep the dependent promotion step pending rather than bypassing its validator.
 
 1. **Authority and recovery:** reuse scoped owner approval; verify the affected target and deployed baseline. Capture prior service revisions/Hosting version/configuration. UI-only deployment needs no DB backup. SQL changes need the canonical guarded migration procedure, verified restorable backup, expected schema/history, exact tested commit/hashes and all pending prerequisites.
 2. **Deploy changed components:** apply in dependency order from the tested package. Preserve existing identities, access, scheduler ownership and unrelated configuration. Build a separate environment variant when bindings differ; do not relabel DEV artifacts as PROD.
 3. **Verify once:** confirm deployed artifact/environment and one representative affected entry point. Add authentication, service-worker/update, database-role or delivery checks only where changed. Prefer read-only PROD smoke; never force payment, notification or job execution without scoped authority.
-4. **Close once:** record actual result, recovery and limitations; update changed inventory/model facts and release status; publish intended files and final unique Rnnn evidence tag. Later documentation corrections do not require redeployment or moving tags.
+4. **Close once:** record actual result, recovery and limitations; complete the evolving-document coverage check and update every affected reference, including inventory/model facts and release status; publish intended files and final unique Rnnn evidence tag. Later documentation corrections do not require redeployment or moving tags.
 
 Relevant unresolved failures prevent “Released”; distinguish applied, verified and owner-accepted. Explicit owner deferrals remain visible. No current release requires AppSheet editor diagnostics, app modes, copying, source rebinding, App Upgrade, logo parity, bots or RC cleanup.
 

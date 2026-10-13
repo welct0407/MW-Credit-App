@@ -36,7 +36,34 @@ Use the approved Secret Manager/unattended identity route before requesting huma
 - Promote only the tested source/artifact/configuration under existing scoped authority. Hosting, Cloud Run, worker package and SQL are separate components; change only those required.
 - Preserve current native scheduler ownership and environment isolation. Do not disable existing business operation merely for a source/doc edit.
 - Recover with pinned native artifacts and the [recovery runbook](Release_Recovery_Runbook.md). A rollback does not reverse accepted payments or messages.
-- Use one compact release record and update only changed facts. No duplicated review/documentation checklist.
+- Complete the required documentation maintenance step below before closing the batch. Reuse existing records; creating a new document requires explicit owner approval.
+
+## Required documentation maintenance
+
+Documentation is part of development completion, not an optional later task. At planning, use the complete evolving-document index in [Documents/README](../README.md) to map the requested change to its owning references. At closeout, check the final source/configuration diff and actual results against that full set, then update every affected existing document. Unchanged facts remain unchanged; this coverage check requires neither a live audit nor a new checklist or per-document no-change entry.
+
+| Evolving reference | Keep current as development progresses |
+| --- | --- |
+| [Development Changes](../Development_Changes.md) | Current operation, active scope, remaining work, limitations and delivery-tooling status |
+| [Release Tracker](../Release_Tracker.md) | Open/Frozen/Released state, numbering and pending release actions; change state only at the authorized transition |
+| [Solution Design](../Solution_Design.md) | Implemented architecture, component ownership and business meaning |
+| [PWA Data Model](../PWA_Data_Model_Overview.md) | Relationships, command/user-flow semantics and source-correction behavior |
+| [Data Dictionary](../Data%20Dictionary/README.md) | Exact affected data/API/model definitions, system guides and coverage limits; use the helper and validate the affected batch |
+| Existing dictionary upload snapshot | Regenerate through the [export procedure](Data_Dictionary_Export.md) when included source content changes; do not leave an outdated snapshot after changing its inputs |
+| [Environment Inventory](../Environment_Inventory.md) | Verified service bindings, identities and deployment versions; distinguish planned from applied/verified state |
+| [Service/account Mapping](../Service_Account_Browser_Mapping.md) | Confirmed account/profile assignments and access routes |
+| [Resource Monitoring](../Resource_Monitoring.md) | Current monitoring operation, resource ownership and known limitations |
+| [Dashboard Guide](../Resource_Monitoring_Dashboard_Guide.md) | Actual dashboard panels, metric meanings, UX and coverage limits |
+| [Events Bridge](../Grafana_MCP_Events_Bridge.md) | Current bridge contracts, configuration, recovery and unresolved limitations |
+| [Documents index](../README.md) and its linked current work/evidence records | Accurate navigation, ownership and outstanding work; update existing infrastructure/credential/release records when affected |
+
+Agent D owns this maintenance step for the six-agent process, obtaining facts from A/B/E/F. Agent C checks changed documentation against the implemented behavior and test evidence; the orchestrator confirms coverage and completion before publication. For smaller documentation tasks or explicit personal execution, the executor performs these responsibilities directly. Summarize updated references and genuine gaps once in the existing task/development record. Do not declare the batch complete while affected documentation remains stale.
+
+### New documents require owner approval
+
+Update existing documents by default. Do not create a new document in any repository, folder, format or external destination without explicit owner approval for that document. This includes change logs, plans, handoffs, reports, checklists, release records/manifests, dictionary document files and new export copies. A template, tool, development request, delegated assignment or release/publication approval is not document-creation approval. An explicit owner request to create the particular document is sufficient; do not ask again when that approval already exists.
+
+If no existing document can hold required information, prepare the proposed path/title, purpose and content in chat or an existing record, then request approval before creating it. Continue independent authorized work while waiting. If a validator requires a missing document/manifest, leave that dependent step pending; never bypass the validator or claim completion. Updating an existing generated snapshot is permitted; a missing snapshot or differently named copy requires creation approval. Keep rules in Rules and ongoing facts in Documents.
 
 ## Debian runtime and deployment boundaries
 

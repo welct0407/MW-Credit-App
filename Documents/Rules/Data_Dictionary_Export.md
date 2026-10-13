@@ -2,6 +2,8 @@
 
 ## Generate one upload file
 
+During development, regenerate the existing snapshot whenever its included source content changes. Creating the snapshot when absent, or creating another export document, requires explicit owner approval under the [document rule](Development_Workflow.md#new-documents-require-owner-approval). An explicit owner request for that export supplies the approval.
+
 1. In File Explorer, open the repository's `scripts` folder.
 2. Double-click **Export Data Dictionary.cmd**.
 3. Wait for **Export complete**. The window shows the output location and stays open until you press a key.
