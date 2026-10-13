@@ -5,10 +5,10 @@ Template revision: 2026-09-24. **Single master:** `scripts/releases/templates/pr
 ## Continue here
 
 - Scope: owner-approved Grafana Terraform adoption and native PWA monitoring; CLI/Terraform/API only. No financial, scheduler or notification test writes.
-- Release: R055 Open; R056 unused. Root signals actual promotion start before freeze/handoff.
+- Release: R055 Frozen at 2026-10-13T04:10:19.463891+00:00; R056 sole Open, next R057. Exact source and saved plan pins: release-manifest.json.
 - Authority: owner approved scoped live adoption/deployment13October; external saved token privately handled by F.
 - Prepared: B collector/dashboard/guides and C focused verification; F authenticated metadata inventory passed (Performance40/Cost15). Exact resource/source plan pins pending F.
-- Actual: no live adoption/deployment result claimed. Existing PWA/SQL/workers remain baseline.
+- Actual: twelve existing resources imported with no-change proof. Dashboard/secret/collector deployment remains pending; existing PWA/SQL/workers remain baseline.
 - Recovery: authenticated exports/state/import baseline and deployed collector/unit rollback pending.
 - Selected checks: existing focused fixtures, provider schema/fmt/validate, import no-change proof, guarded grouped plans, saved-definition readback and one natural collector interval. No blanket full CI.
 - Current handoff: continuation.md; root owns plan/log, F infrastructure, B collector/guides, C verification, D release records.
@@ -76,6 +76,8 @@ Released requires applicable activities, documentation, RC cleanup and publicati
 | Reviewed source/resource change plan | Pending | F plan pins + B/C exact source/evidence; preserve owner route/recipients and unrelated definitions |
 | Scoped deployment/readback | Pending | Actual imports/applies/collector/dashboard/rules, truthful partial failures |
 | Required visual guide and operating reference closure | Prepared | B owns both; verify saved definitions match guide before completion |
-| Release freeze/publication | Held | Root signal only at actual promotion start; no R056 allocation yet |
+| Release freeze/publication | Done | Coordinated tracker handoff and source/plan pins in release-manifest.json |
 
 Prepared evidence is not live deployment proof. Prior template AppSheet wording applies only if separately triggered; scoped API verification above governs monitoring. Core3 records and this checklist remain D-owned. Broader carried-forward credential programme remains unfinished.
+
+Promotion start: 2026-10-13T04:10:19.463891+00:00. Source and exact saved-plan identities are recorded in release-manifest.json. Focused checks reused from verification.md; no full CI. No replacement/deletion, business runtime change or new notification recipient is authorized by this plan.

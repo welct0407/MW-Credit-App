@@ -15,3 +15,7 @@ Root review clarified standing authorization for local source/tooling/tests/publ
 ## Approved implementation
 
 Owner authorized Grafana Terraform adoption followed by native PWA monitoring on 13 October. F owns Terraform/access/adoption; B owns selective native collector/dashboard source reconciliation and focused tests. Existing unrelated dirty credential work and stash are preserved. Code/API-only operations; missing bootstrap credential is requested from owner, with no browser-session extraction. No live adoption/deployment is yet claimed. Starting PM378a5526/app3e97140 provide source rollback; each affected live definition requires a captured baseline before mutation.
+
+## Scoped promotion start
+
+2026-10-13T04:10:19.463891+00:00: R055 Frozen / R056 Open / next R057, with source and exact saved-plan pins in outputs/r055-grafana/release-manifest.json. Twelve existing resources imported with zero configuration changes. Reviewed changes create PWA Platform, update only Performance panels56/57 labels, and create two protected Secret Manager containers; payloads stay outside Terraform. No IAM, recipient, financial or worker change. Apply/readback remain pending. Unrelated dirty work is preserved.

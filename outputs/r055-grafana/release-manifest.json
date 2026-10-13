@@ -1,0 +1,38 @@
+{
+  "release": "R055",
+  "status": "Frozen - scoped Grafana promotion starting",
+  "frozenAt": "2026-10-13T04:10:19.463891+00:00",
+  "sources": {
+    "projectManagement": "3aca2683634db914f034d3dfbd1c733d47509759",
+    "applicationInfrastructure": "d9b32ff824120b56049db6e9a111b8482f65486e"
+  },
+  "authority": "Owner approved Terraform management of Grafana and native PWA monitoring; token supplied privately.",
+  "plans": {
+    "grafana": {
+      "sha256": "f387b3188537f4efe486a6d008fdf69d50d13773a0ac07e8bee63e8ecafe1569",
+      "create": 1,
+      "update": 1,
+      "delete": 0
+    },
+    "grafanaAccess": {
+      "sha256": "d89ef0b187e2a75e9f59371650ebc373c9c2a342ca689ca2c9a5956e8104e96b",
+      "create": 2,
+      "update": 0,
+      "delete": 0
+    }
+  },
+  "adoptionBaselineSha256": "6ad99575edf19f3a4074cfd79d779aa7af55381162e9798433500423234667b1",
+  "unchanged": [
+    "PWA runtime",
+    "SQL",
+    "business workers and schedules",
+    "alert recipients",
+    "IAM"
+  ],
+  "remaining": [
+    "Scoped apply and readback",
+    "Natural collector output",
+    "Contact API recovery adapter",
+    "Carried-forward credential programme unfinished"
+  ]
+}
