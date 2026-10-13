@@ -1,0 +1,139 @@
+{
+  "productionBaseline": {
+    "commandRevision": "mw-credit-app-command-prod-00005-p4s",
+    "commandDigest": "sha256:77254376cd3b07bf01b21b1df219c433550ddbdf38f77e6f8d9aede86441678d",
+    "notifyDigest": "sha256:42534b790ebccd73448d5bc56490a959586ea5494604583443b630705a0c7778",
+    "notifyRevision": "mw-credit-app-notify-prod-00002-cth",
+    "trafficPercent": 100
+  },
+  "cloudBuild": {
+    "digest": "sha256:b4f528bc8ac48008ed0951e227089d3d0802a7a6c2dbaa826ada5e021e156aea",
+    "id": "a1a851a2-5f96-4b66-90f6-edb8b16f8dcc",
+    "status": "SUCCESS"
+  },
+  "backup": {
+    "tableCount": 32,
+    "restore": "passed",
+    "temporaryOwnerAuthority": "exact prior memberships restored; maintained wrapper",
+    "cleanup": {
+      "stopped": true,
+      "ownedRestoreRemoved": true,
+      "backupRetained": true,
+      "restorePassed": true,
+      "ownedRestorePath": "C:\\Users\\ideaadmin\\AppData\\Local\\MWCredit\\production-promotion-restores\\329f35a7ee844e339adb714ed89d879b"
+    },
+    "dumpSha256": "42a0dc9d1d7c188dc7be5f5a367d66d4332f23da07d00be1d38f117f8403863e",
+    "restoredFingerprintsMatch": true,
+    "baselineVersion": 90,
+    "initialReadOnlyAttempt": "blocked by existing owner permissions, recovered using reviewed scoped wrapper"
+  },
+  "privateRetentionReview": "2026-10-20",
+  "databaseBaseline": {
+    "prodVersion": 90,
+    "successfulHistoryRows": 90,
+    "readOnly": true,
+    "devVersion": 90
+  },
+  "observedAtUtc": "2026-10-13T12:01:50.7320968+00:00",
+  "status": "PROD SQL and both affected runtimes deployed and verified; Lisa device retry pending",
+  "rollback": "Restore previous command/notify image pins through same root; retain additive compatible SQL guard unless separately authorized forward correction",
+  "preserved": [
+    "read image",
+    "jobs image",
+    "scheduler definitions/enabled state",
+    "notification policy and VAPID versions",
+    "IAM",
+    "Hosting/PWA"
+  ],
+  "infrastructureCommit": "29060fc",
+  "release": "R056",
+  "plan": {
+    "sha256": "3347a0da6f294c1d1c4526a7c05ce33a656462e7b0524af670231777d380e735",
+    "update": 2,
+    "onlyChangedPath": "/template/0/containers/0/image",
+    "destroy": 0,
+    "addresses": [
+      "google_cloud_run_v2_service.foundation[\"command\"]",
+      "module.workers.google_cloud_run_v2_service.worker[\"notify\"]"
+    ],
+    "create": 0
+  },
+  "imageSourceCommit": "018a59a",
+  "operatorSourceCommit": "b2a37f2456f975305eb84c0a82486795ff304df6",
+  "sqlDeployment": {
+    "validateCount": 92,
+    "prodAuthorityRestored": true,
+    "connectPreflight": "fresh identity/current effective privilege/DEV denial/session checks; unchanged prior actual consumer reconnect evidence explicitly reused",
+    "devAuthorityRestored": true,
+    "migrationSha256": "44cee4e1b4eb23449d4be5035247c7c904b83cfadd9c150000ad0fa3094a97c2",
+    "developmentVersion": 91,
+    "validationSuccessful": true,
+    "productionVersion": 91,
+    "devPostMigrateRecovery": "V91 applied once; automatic capability hook initially lacked journal-owner function permission; completed same hook under existing prepare-agent route, zero violations, exact authority restored",
+    "productionMigrationsExecuted": 1
+  },
+  "runtimeDeployment": {
+    "forcedNotificationSent": false,
+    "commandHealthHTTP": 200,
+    "added": 0,
+    "changed": 2,
+    "naturalNotifyPOSTs": [
+      {
+        "timestamp": "2026-10-13T11:59:02.505962Z",
+        "status": 200
+      },
+      {
+        "timestamp": "2026-10-13T12:00:02.482630Z",
+        "status": 200
+      },
+      {
+        "timestamp": "2026-10-13T12:01:03.080485Z",
+        "status": 200
+      }
+    ],
+    "postApplyPlanExitCode": 0,
+    "notifyUnauthenticatedHealthHTTP": 403,
+    "services": [
+      {
+        "url": "https://mw-credit-app-command-prod-pvrgvyg3oq-as.a.run.app",
+        "revision": "mw-credit-app-command-prod-00006-lrd",
+        "service": "mw-credit-app-command-prod",
+        "image": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app-prod/api@sha256:b4f528bc8ac48008ed0951e227089d3d0802a7a6c2dbaa826ada5e021e156aea",
+        "traffic": [
+          {
+            "latestRevision": true,
+            "percent": 100,
+            "revisionName": "mw-credit-app-command-prod-00006-lrd"
+          }
+        ],
+        "ready": "True"
+      },
+      {
+        "url": "https://mw-credit-app-notify-prod-pvrgvyg3oq-as.a.run.app",
+        "revision": "mw-credit-app-notify-prod-00003-bj4",
+        "service": "mw-credit-app-notify-prod",
+        "image": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app-prod/api@sha256:b4f528bc8ac48008ed0951e227089d3d0802a7a6c2dbaa826ada5e021e156aea",
+        "traffic": [
+          {
+            "latestRevision": true,
+            "percent": 100,
+            "revisionName": "mw-credit-app-notify-prod-00003-bj4"
+          }
+        ],
+        "ready": "True"
+      }
+    ],
+    "destroyed": 0
+  },
+  "affectedRoutine": {
+    "searchPath": [
+      "search_path=pg_catalog, public"
+    ],
+    "name": "public.pwa_notify_subscribe_v1(jsonb,jsonb)",
+    "prodOwner": "mw_notify_owner_prod",
+    "securityDefiner": true,
+    "prodACL": "{mw_notify_owner_prod=X/mw_notify_owner_prod,mw_notify_api_prod=X/mw_notify_owner_prod}",
+    "definitionSha256": "6e28ffebd16d05887f64da717e9c7c9166a0482f0fad57875f5d504c17d20b13",
+    "devOwner": "mw_notify_owner_dev"
+  }
+}
