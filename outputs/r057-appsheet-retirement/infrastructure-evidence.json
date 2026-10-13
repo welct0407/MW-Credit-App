@@ -1,0 +1,52 @@
+{
+  "release": "R057",
+  "date": "2026-10-13",
+  "status": "deployed and verified; automatic approval blocked temporary SSH cleanup",
+  "target": {
+    "project": "clever-oasis-508610-n7",
+    "zone": "asia-southeast1-a",
+    "instance": "vm-mw-credit-agent",
+    "instanceId": "8223265527494214160"
+  },
+  "transport": "existing Tailscale public-key SSH with retained strict host pin; temporary one-hour instance metadata key",
+  "installedAgentSource": "a8568e385051a20a3b7efd3374bade6c193d6882",
+  "collectorSha256": "6d9caffc1b20ca1411420441b92eb030cddca7b4f72eb67403db562a9c8458bc",
+  "privateRecovery": "/var/backups/mw-appsheet-retirement-r057-20261013",
+  "recoveryFilesIntegrityVerified": 4,
+  "recoveryPermissions": "root-only directory 0700; files 0600",
+  "configChange": {
+    "appsheet_enabled": false,
+    "removedFields": [
+      "appsheet_api_base",
+      "appsheet_app_id",
+      "appsheet_key_file",
+      "appsheet_olap_app_id",
+      "appsheet_olap_key_file"
+    ],
+    "allNonAppSheetFieldsPreserved": true
+  },
+  "checks": {
+    "config": "passed",
+    "nativeOltpBeforeAfter": "authenticated, count 1",
+    "nativeOlapBeforeAfter": "authenticated, count 1",
+    "nativeTargetVersion": "30e9e9da20af8e739fac6473bca0544037adb0aef40e5d1a156eade559990eec",
+    "sixExistingBusinessTimers": "active; unchanged"
+  },
+  "activeLegacyKeys": "two active key files removed after native smoke; private recovery retained",
+  "excluded": "No financial writes, business cycle invocation, message, database operation, AppSheet GUI or license change.",
+  "temporarySshCleanup": "Automatic approval review rejected exact row/local-key cleanup before execution: blocked by policy. No workaround attempted. Metadata expires2026-10-13T17:31:44Z; local key remains private.",
+  "secretManagerAppSheetNamedContainers": 0,
+  "collectorNaturalCycle": {
+    "exitTimestamp": "2026-10-13T23:37:09+07:00",
+    "timer": "active",
+    "exitStatus": 0,
+    "result": "success"
+  },
+  "verifiedAtUtc": "2026-10-13T16:42:41.705571+00:00",
+  "packageRecovery": "/var/lib/mw-integration-agent/rollback/r053-20261013T164158301626Z",
+  "rollbackPointer": "/var/lib/mw-integration-agent/rollback/r057-appsheet-retirement-current",
+  "catalogueRevision": 27,
+  "unusedUuidReceiptStatus": "unresolved; passed before timers resumed",
+  "privateLocalDiagnostics": "C:/Users/ideaadmin/Documents/ChatGPT/MW-Credit-App/ssh-r057-retirement",
+  "retentionReview": "2026-10-20"
+}

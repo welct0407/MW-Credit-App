@@ -1,0 +1,161 @@
+# __generated__ by Terraform
+# Please review these resources and move them into your main configuration files.
+
+# __generated__ by Terraform
+resource "google_sql_database_instance" "shared" {
+  # API UNSET/day=0 is not representable by google 8.6.0; window stays externally managed.
+  lifecycle {
+    prevent_destroy = true
+    ignore_changes  = [settings[0].maintenance_window]
+  }
+  backupdr_backup                                  = null
+  database_version                                 = "POSTGRES_18"
+  deletion_policy                                  = "DELETE"
+  deletion_protection                              = true
+  enforce_new_sql_network_architecture             = true
+  final_backup_description                         = null
+  include_replicas_for_major_version_upgrade       = null
+  instance_type                                    = "CLOUD_SQL_INSTANCE"
+  maintenance_version                              = "POSTGRES_18_6.R20260712.01_10"
+  name                                             = "appsheet-pg-prod-20260914"
+  node_count                                       = 0
+  project                                          = "clever-oasis-508610-n7"
+  region                                           = "asia-southeast1"
+  replica_names                                    = []
+  root_password                                    = null # sensitive
+  root_password_wo                                 = null
+  root_password_wo_version                         = null
+  switch_transaction_logs_to_cloud_storage_enabled = null
+  replication_cluster {
+    failover_dr_replica_name = null
+  }
+  settings {
+    activation_policy                = "ALWAYS"
+    auto_upgrade_enabled             = false
+    availability_type                = "ZONAL"
+    collation                        = null
+    connector_enforcement            = "NOT_REQUIRED"
+    data_disk_provisioned_iops       = 0
+    data_disk_provisioned_throughput = 0
+    deletion_protection_enabled      = true
+    disk_autoresize                  = true
+    disk_autoresize_limit            = 0
+    disk_size                        = 10
+    disk_type                        = "PD_HDD"
+    edition                          = "ENTERPRISE"
+    enable_dataplex_integration      = true
+    enable_google_ml_integration     = false
+    pricing_plan                     = "PER_USE"
+    replication_lag_max_seconds      = 31536000
+    retain_backups_on_delete         = true
+    tier                             = "db-f1-micro"
+    time_zone                        = null
+    user_labels                      = {}
+    backup_configuration {
+      binary_log_enabled             = false
+      enabled                        = true
+      location                       = "asia"
+      point_in_time_recovery_enabled = true
+      start_time                     = "12:00"
+      transaction_log_retention_days = 7
+      backup_retention_settings {
+        retained_backups = 7
+        retention_unit   = "COUNT"
+      }
+    }
+    data_cache_config {
+      data_cache_enabled = false
+    }
+    database_flags {
+      name  = "cloudsql.enable_pg_cron"
+      value = "on"
+    }
+    database_flags {
+      name  = "cloudsql.iam_authentication"
+      value = "on"
+    }
+    database_flags {
+      name  = "cron.database_name"
+      value = "loan_manager_prod"
+    }
+    database_flags {
+      name  = "cron.max_running_jobs"
+      value = "1"
+    }
+    database_flags {
+      name  = "cron.timezone"
+      value = "Asia/Bangkok"
+    }
+    database_flags {
+      name  = "max_connections"
+      value = "200"
+    }
+    final_backup_config {
+      enabled        = true
+      retention_days = 30
+    }
+    ip_configuration {
+      allocated_ip_range                            = null
+      custom_subject_alternative_names              = []
+      enable_private_path_for_google_cloud_services = false
+      ipv4_enabled                                  = true
+      private_network                               = null
+      server_ca_mode                                = "GOOGLE_MANAGED_INTERNAL_CA"
+      server_ca_pool                                = null
+      ssl_mode                                      = "ENCRYPTED_ONLY"
+      authorized_networks {
+        expiration_time = null
+        name            = "Flyway-owner-workstation-20260915"
+        value           = "20.198.200.25/32"
+      }
+    }
+    location_preference {
+      follow_gae_application = null
+      secondary_zone         = null
+      zone                   = "asia-southeast1-c"
+    }
+    password_validation_policy {
+      complexity                  = "COMPLEXITY_DEFAULT"
+      disallow_username_substring = true
+      enable_password_policy      = true
+      min_length                  = 8
+      password_change_interval    = null
+      reuse_interval              = 0
+    }
+  }
+}
+
+# __generated__ by Terraform from "mw-payment-receipts-prod-508610-n7"
+resource "google_storage_bucket" "receipts" {
+  lifecycle { prevent_destroy = true }
+  default_event_based_hold    = false
+  deletion_policy             = "DELETE"
+  enable_object_retention     = false
+  force_destroy               = false
+  labels                      = {}
+  location                    = "ASIA-SOUTHEAST1"
+  name                        = "mw-payment-receipts-prod-508610-n7"
+  project                     = "clever-oasis-508610-n7"
+  public_access_prevention    = "enforced"
+  requester_pays              = false
+  storage_class               = "STANDARD"
+  uniform_bucket_level_access = true
+  encryption {
+    default_kms_key_name = null
+    customer_managed_encryption_enforcement_config {
+      restriction_mode = "NotRestricted"
+    }
+    customer_supplied_encryption_enforcement_config {
+      restriction_mode = "FullyRestricted"
+    }
+    google_managed_encryption_enforcement_config {
+      restriction_mode = "NotRestricted"
+    }
+  }
+  hierarchical_namespace {
+    enabled = false
+  }
+  soft_delete_policy {
+    retention_duration_seconds = 604800
+  }
+}

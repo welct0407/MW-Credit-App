@@ -1,0 +1,196 @@
+{
+  "release": "R057",
+  "date": "2026-10-13",
+  "baselineCommit": "f39c61d32d4889303de01e9929d0a046641fd5cf",
+  "operator": {
+    "audience": "https://management.azure.com/",
+    "azure_client_id": "de1479ff-b26f-4f80-a791-d938c1dbae83",
+    "azure_identity_id": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/rg-mwcredit/providers/Microsoft.ManagedIdentity/userAssignedIdentities/mw-credit-unattended-admin",
+    "azure_principal_id": "8ddefa37-5092-45e2-a24a-9a6fdc304ab3",
+    "azure_subscription_id": "50f792fa-803e-4280-833d-1fe60fef5293",
+    "azure_tenant_id": "9e29c895-606a-420b-acc2-1c24375df4d9",
+    "google_provider": "projects/737787224638/locations/global/workloadIdentityPools/mw-credit-azure-admin/providers/vm01",
+    "google_service_account": "mw-credit-unattended-admin@clever-oasis-508610-n7.iam.gserviceaccount.com"
+  },
+  "createPlan": {
+    "existingUpdates": 0,
+    "applied": true,
+    "destroys": 0,
+    "creates": 10,
+    "sha256": "a1c5c979f7d195925b250e4889fafc5b8ec65d2af212f94b357f6cc0ee4cdcc3",
+    "resources": [
+      {
+        "address": "azurerm_role_assignment.backup_operator",
+        "action": [
+          "create"
+        ],
+        "id": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/rg-backup/providers/Microsoft.RecoveryServices/vaults/vm-backup-vault/backupFabrics/Azure/protectionContainers/IaasVMContainer;iaasvmcontainerv2;RG-MWCREDIT;VM-01/protectedItems/VM;iaasvmcontainerv2;RG-MWCREDIT;VM-01/providers/Microsoft.Authorization/roleAssignments/dec349b9-f659-9c1f-f8e3-9994eccae6f3",
+        "scope": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/rg-backup/providers/Microsoft.RecoveryServices/vaults/vm-backup-vault/backupFabrics/Azure/protectionContainers/IaasVMContainer;iaasvmcontainerv2;RG-MWCREDIT;VM-01/protectedItems/VM;iaasvmcontainerv2;RG-MWCREDIT;VM-01",
+        "role": "Backup Contributor"
+      },
+      {
+        "address": "azurerm_role_assignment.backup_reader",
+        "action": [
+          "create"
+        ],
+        "id": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/rg-backup/providers/Microsoft.RecoveryServices/vaults/vm-backup-vault/providers/Microsoft.Authorization/roleAssignments/fc255eae-a816-309e-d6a2-9abfaabafc80",
+        "scope": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/rg-backup/providers/Microsoft.RecoveryServices/vaults/vm-backup-vault",
+        "role": "Reader"
+      },
+      {
+        "address": "azurerm_role_assignment.resource_admin[\"Contributor\"]",
+        "action": [
+          "create"
+        ],
+        "id": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/rg-mwcredit/providers/Microsoft.Authorization/roleAssignments/be8b054e-e65e-e052-9954-a913e13d2b84",
+        "scope": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/rg-mwcredit",
+        "role": "Contributor"
+      },
+      {
+        "address": "azurerm_role_assignment.resource_admin[\"Role Based Access Control Administrator\"]",
+        "action": [
+          "create"
+        ],
+        "id": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/rg-mwcredit/providers/Microsoft.Authorization/roleAssignments/e693f3a3-f18b-df75-518b-16c8fbeada4e",
+        "scope": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/rg-mwcredit",
+        "role": "Role Based Access Control Administrator"
+      },
+      {
+        "address": "azurerm_user_assigned_identity.operator",
+        "action": [
+          "create"
+        ],
+        "id": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/rg-mwcredit/providers/Microsoft.ManagedIdentity/userAssignedIdentities/mw-credit-unattended-admin",
+        "scope": null,
+        "role": null
+      },
+      {
+        "address": "google_iam_workload_identity_pool.azure",
+        "action": [
+          "create"
+        ],
+        "id": "projects/clever-oasis-508610-n7/locations/global/workloadIdentityPools/mw-credit-azure-admin",
+        "scope": null,
+        "role": null
+      },
+      {
+        "address": "google_iam_workload_identity_pool_provider.azure",
+        "action": [
+          "create"
+        ],
+        "id": "projects/clever-oasis-508610-n7/locations/global/workloadIdentityPools/mw-credit-azure-admin/providers/vm01",
+        "scope": null,
+        "role": null
+      },
+      {
+        "address": "google_project_iam_member.operator",
+        "action": [
+          "create"
+        ],
+        "id": "clever-oasis-508610-n7/roles/owner/serviceAccount:mw-credit-unattended-admin@clever-oasis-508610-n7.iam.gserviceaccount.com",
+        "scope": null,
+        "role": "roles/owner"
+      },
+      {
+        "address": "google_service_account.operator",
+        "action": [
+          "create"
+        ],
+        "id": "projects/clever-oasis-508610-n7/serviceAccounts/mw-credit-unattended-admin@clever-oasis-508610-n7.iam.gserviceaccount.com",
+        "scope": null,
+        "role": null
+      },
+      {
+        "address": "google_service_account_iam_member.federation",
+        "action": [
+          "create"
+        ],
+        "id": "projects/clever-oasis-508610-n7/serviceAccounts/mw-credit-unattended-admin@clever-oasis-508610-n7.iam.gserviceaccount.com/roles/iam.workloadIdentityUser/principal://iam.googleapis.com/projects/737787224638/locations/global/workloadIdentityPools/mw-credit-azure-admin/subject/8ddefa37-5092-45e2-a24a-9a6fdc304ab3",
+        "scope": null,
+        "role": "roles/iam.workloadIdentityUser"
+      }
+    ]
+  },
+  "vmAttachment": {
+    "bodyUnchanged": true,
+    "updatedResource": "azapi_resource.vm",
+    "planSha256": "3dfa4c9f2a72fb0420a11a122a2e5fc96c608fa3c99a8235eee11702d472ca07",
+    "originalSystemPrincipal": "cd26ee57-d1bf-4309-b00f-a45ed39ab198",
+    "afterSystemPrincipal": "cd26ee57-d1bf-4309-b00f-a45ed39ab198",
+    "readback": "Bounded az vm identity show after apply confirmed exact original principal and dedicated UAMI",
+    "applied": true,
+    "change": "Add dedicated UAMI; preserve SystemAssigned identity",
+    "afterIdentityType": "SystemAssigned, UserAssigned"
+  },
+  "verification": {
+    "transient": "Immediate post-attachment IMDS unavailable; later bounded availability check succeeded; subsequent authentication passed",
+    "synthetic": "PASS: IMDS unavailable and wrong identity fail closed before token exchange; isolated empty caches and caller environment restoration",
+    "postPlans": [
+      {
+        "root": "infrastructure/unattended-admin",
+        "exitCode": 0,
+        "authentication": "Dedicated MSI and GCP WIF; empty human CLI caches",
+        "sha256": "3412129403b6a67d99592bdf69f6b44fa79def71ea695671383cb23b56ea2709"
+      },
+      {
+        "root": "infrastructure/ecosystem-azure",
+        "exitCode": 0,
+        "authentication": "Dedicated MSI and GCP WIF; empty human CLI caches",
+        "sha256": "3f18adb38a8c9b94e9caca81131d9750874c127d5e42fb4cc8b1747f2ad02b43"
+      },
+      {
+        "root": "infrastructure/ecosystem-azure-metadata",
+        "exitCode": 0,
+        "authentication": "Dedicated MSI and GCP WIF; empty human CLI caches",
+        "sha256": "ff64ef79165bff0bd41e67438a371a6adce0c3320fce8c83f316bea8da0bb2d2"
+      }
+    ],
+    "negative": {
+      "oldSystemIdentityDenied": true,
+      "httpStatus": 400,
+      "error": "unauthorized_client",
+      "description": "The given credential is rejected by the attribute condition.",
+      "oldSystemPrincipal": "cd26ee57-d1bf-4309-b00f-a45ed39ab198"
+    },
+    "freshProcess1": {
+      "googleProject": "clever-oasis-508610-n7",
+      "azureVmId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/RG-MWCREDIT/providers/Microsoft.Compute/virtualMachines/VM-01",
+      "azurePrincipalId": "8ddefa37-5092-45e2-a24a-9a6fdc304ab3",
+      "googleServiceAccount": "mw-credit-unattended-admin@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "secretVersion1Accessible": true,
+      "humanCachesUsed": false,
+      "expiresAt": "2026-10-13T17:02:19Z"
+    },
+    "freshProcess2": {
+      "googleProject": "clever-oasis-508610-n7",
+      "azureVmId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/RG-MWCREDIT/providers/Microsoft.Compute/virtualMachines/VM-01",
+      "azurePrincipalId": "8ddefa37-5092-45e2-a24a-9a6fdc304ab3",
+      "googleServiceAccount": "mw-credit-unattended-admin@clever-oasis-508610-n7.iam.gserviceaccount.com",
+      "secretVersion1Accessible": true,
+      "humanCachesUsed": false,
+      "expiresAt": "2026-10-13T17:03:20Z"
+    }
+  },
+  "controller": {
+    "evidence": "Fresh pre-change resource metadata confirms separate controller RG. Reviewed create plan touches only new identities/bindings; VM attachment plan changes only identity, same VM body and alert no-ops. No controller API writes, cert reads, role changes, configuration or power operations were performed.",
+    "resourceGroup": "rg-vm01-controller",
+    "changed": false
+  },
+  "credentials": {
+    "bootstrap": "Nonsecret operator.json plus Azure IMDS; no Secret Manager circular dependency",
+    "method": "Azure managed identity and GCP workload federation, short-lived process-memory tokens only",
+    "tokenLifetimeSeconds": 3600,
+    "newPersistentSecretCount": 0
+  },
+  "scopeLimits": [
+    "GCP Owner is full administration of clever-oasis-508610-n7 only; no organization or parked-project authority",
+    "Azure RG-MWCREDIT Contributor and RBAC Administrator; shared backup vault Reader and exact VM01 protected-item Backup Contributor",
+    "No Entra directory or Microsoft Graph roles; no dedicated app/SP needed",
+    "Off-Azure execution requires separate reviewed trust; another Azure executor requires authorized UAMI attachment",
+    "Existing runtime/deployment identities, controller and human recovery access preserved"
+  ],
+  "privateEvidence": {
+    "path": "C:/Users/ideaadmin/Documents/ChatGPT/MW-Credit-App/terraform/r057-adoption",
+    "reviewDate": "2026-10-20"
+  }
+}

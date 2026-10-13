@@ -1,0 +1,64 @@
+{
+  "resource": "google_sql_database_instance.shared",
+  "actions": [
+    "update"
+  ],
+  "removedAppSheetEntries": 73,
+  "retainedNetwork": [
+    {
+      "expiration_time": null,
+      "name": "Flyway-owner-workstation-20260915",
+      "value": "20.198.200.25/32"
+    }
+  ],
+  "expirationNormalization": "empty string to null; both unset",
+  "allOtherFieldsEqual": true,
+  "receiptBucketAction": "no-op",
+  "planSha256": "c6cd55b2d1bbb8982132c5fb6818b0a74feb0b65af877958ef8bbf31d98aae3d",
+  "status": "applied and verified",
+  "terraformApplyLimitation": "SQL API400 invalid unspecified maintenance day from provider full settings update; no successful change. Exact authorized network change applied using narrow SQL Admin PATCH, preserving API-unset window.",
+  "apiOperation": "0db362ad-89e4-4c22-ba31-5f8400000031",
+  "operationResult": {
+    "error": null,
+    "status": "DONE",
+    "endTime": "2026-10-13T17:02:37.46Z",
+    "startTime": "2026-10-13T17:02:16.243Z"
+  },
+  "sqlState": "RUNNABLE",
+  "liveMetadataDiff": [
+    "settings.ipConfiguration.authorizedNetworks",
+    "settings.settingsVersion",
+    "etag"
+  ],
+  "refreshedTerraformPlan": "exit0; no changes",
+  "refreshedPlanSha256": "e691fb74b87a01715ec16d0739c17538cafcf5e2665c56a5ad51436e852c7c9e",
+  "naturalCollector": [
+    {
+      "component": "database",
+      "timestamp": "2026-10-13T17:03:08.887283Z",
+      "value": "1"
+    },
+    {
+      "component": "olap",
+      "timestamp": "2026-10-13T17:03:08.887283Z",
+      "value": "1"
+    },
+    {
+      "component": "oltp",
+      "timestamp": "2026-10-13T17:03:08.887283Z",
+      "value": "1"
+    },
+    {
+      "component": "pwa_hosting_dev",
+      "timestamp": "2026-10-13T17:03:08.887283Z",
+      "value": "1"
+    },
+    {
+      "component": "pwa_hosting_prod",
+      "timestamp": "2026-10-13T17:03:08.887283Z",
+      "value": "1"
+    }
+  ],
+  "directProbeLimitation": "Agent identity impersonation returned403; no IAM change. Post-operation natural collector proves native authenticated key-only reads and DB connectivity.",
+  "recovery": "Prior Git authorized_networks and private before-state retained; restore only through reviewed scoped update."
+}
