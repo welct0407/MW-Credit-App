@@ -1,8 +1,8 @@
 # Environment inventory
 
-## R054 UI production delivery — 13 October 2026
+## R054 owner-accepted closure — 13 October 2026
 
-Frontend-only source `c07ada0` is applied to https://lm.mw-credit.com: Hosting version `218943a0966051ca`, release `1791825659922000`, marker `461e27e038cef8ff1d645ac8`. Served entry hash matches the clean production build, with no-store; production header/install icons use the reviewed pink asset. DEV remains accepted marker `c4527a71d929908c7ee29770`. Rollback is PROD version `9dd049f29f6d77d6` / release `1791779076726000`. No API, SQL V90, agent, worker, jobs, notification or AppSheet setting changed. PROD signed-out load and pink header were visually verified; authenticated screen verification is blocked by browser OAuth account-selection control timeout; no CI at explicit owner direction. R054 is Frozen with credential scope unfinished; R055 is sole Open, next R056. [Actual UI manifest](../outputs/r054-production/promotion-actual.json).
+R054 Released by owner direction on 13 October 2026 after real-operation and latest PROD UI acceptance. Frontend source `c07ada0` remains deployed at Hosting `218943a0966051ca`, release `1791825659922000`, marker `461e27e038cef8ff1d645ac8`; rollback `9dd049f29f6d77d6`. No new deployment or CI. The prior browser-control limitation is retained as dated evidence and superseded for closure by owner confirmation, not retested. Unfinished operational credential work is carried forward into R055, not completed or published by this closeout. R055 remains sole Open, next R056; Grafana is next via CLI/Terraform/API only. [Single checklist](../outputs/r054-production/promotion-checklist.md) · [Actual manifest](../outputs/r054-production/promotion-actual.json).
 
 Earlier entries below are dated deployment evidence.
 

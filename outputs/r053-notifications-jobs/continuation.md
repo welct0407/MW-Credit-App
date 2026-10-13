@@ -1,4 +1,8 @@
-# R053 continuation — Released; R054 UI fine-tuning next
+# R053 continuation — Released; real-operation acceptance confirmed
+
+## Current owner acceptance — 13 October 2026
+
+Owner confirmed the outstanding real-operation checks, including first natural charges and genuine shared-agent payment, on 13 October and confirmed the latest PROD UI verification DONE. These are owner confirmations, not newly collected independent logs or live tests; no execution timestamps are invented. R053 remains Released with its existing immutable evidence tag; R054 UI is now Released by owner direction. Unfinished credential work carries to R055, the sole Open release, with Grafana next through CLI/Terraform/API only. Earlier deferred-check observations below are dated evidence.
 
 ## 12 October: native retirement applied; owner closure accepted
 
@@ -12,16 +16,16 @@ The earlier bounded AppSheet audit at OLTP3.000275/OLAP1.100215 remains dated: s
 
 ## Dependency inventory for the owner-expanded R053 scope
 
-This table distinguishes current deployed behavior from source-only replacements. It is not a claim that the ecosystem is dependency-free. The existing applied source/image/receipt pins remain recovery evidence; R053 is Released with owner-accepted deferred natural-business checks; R054 is the sole Open release.
+This table distinguishes deployed behavior from retained historical dependencies. It is not a claim that the ecosystem is dependency-free. Existing source/image/receipt pins remain recovery evidence. Owner confirmed the previously deferred natural-business checks on 13 October; R053 and R054 are Released, R055 is sole Open.
 
 | Dependency | Replacement | Status | Remaining proof |
 | --- | --- | --- | --- |
-| Agent loan lookup and receipt validation | Native loan-key/read | e9fd149/catalogue 27 active; isolated parity/native reads passed | First genuine payment; no forced sample |
-| Conversation reads/writes/readback/schema | Native workload catalogue/query/typed commands/status/defaults | SQL V90/API/agent applied; independent SQL/read/default, DEV 11/11 and two PROD scopes passed | First genuine business operation |
+| Agent loan lookup and receipt validation | Native loan-key/read | e9fd149/catalogue 27 active; isolated parity/native reads passed | Owner confirmed genuine shared-agent payment13October; no new independent test |
+| Conversation reads/writes/readback/schema | Native workload catalogue/query/typed commands/status/defaults | SQL V90/API/agent applied; independent SQL/read/default, DEV 11/11 and two PROD scopes passed | Owner real-operation confirmation13October; no new independent test |
 | Legacy uncertain receipt reconciliation | Native immutable-ID status | Deployed; Linux passed; actual unused-UUID status passed | Real unknowns remain status-only, no replay/fallback |
 | PWA Reporting link | Removed; no replacement requested | PROD served entry hash/marker verified, link absent | Complete |
 | Historical receipts | Exact native reference/bucket/generation/content | Native qualification deployed; historical mapping/decoder proof retained | No invented new render/payment |
-| AppSheet bots/defaults/validations | Typed commands/canonical triggers/native push | Coverage/SQL parity passed; native route deployed; old definitions retained | First genuine operation; no blind definition changes |
+| AppSheet bots/defaults/validations | Typed commands/canonical triggers/native push | Coverage/SQL parity passed; native route deployed; old definitions retained | Owner real-operation confirmation13October; no definition change |
 | Monitoring AppSheet probes | Future native-api-probe for operational/analytical scopes; same metric labels with explicit native UI mapping | Owner deferred collector/Grafana work after source preparation; temporary monitoring failure is explicitly accepted | Not an R053 API/app blocker. Five source/guide edits remain uncommitted for a later combined monitoring batch; no deployment or monitoring success claimed |
 | Metabase and email | Existing direct PostgreSQL reporting and Graph email | No AppSheet URL found in maintained Metabase definitions, not a fresh live all-report audit. B confirms email recipients/accounts use fixed SQL reads | No replacement feature or broad service audit required; preserve access and recipient policy |
 | AppSheet-named GCP resources and old Windows catalogues | Retain independent Cloud SQL/GCS assets and historical recovery | Names alone are not service dependencies; Windows legacy instructions are historical/paused references | No rename/move, old-program replay, blanket key revocation or app deletion |
