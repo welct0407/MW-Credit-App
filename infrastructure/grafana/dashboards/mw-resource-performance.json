@@ -1709,7 +1709,7 @@
           "type": "yesoreyeram-infinity-datasource",
           "uid": "mw-gcp-monitoring"
         },
-        "description": "Bounded authenticated read-only production API probe from Debian. No business writes. Does not certify interactive browser load/sync. UNKNOWN after six minutes without a fresh report.",
+        "description": "Native machine API catalogue and bounded Partners key-only read, OLTP logical scope. Exact PROD environment, origin, audience and pinned manifest required. No AppSheet fallback or business writes. Explicitly disabled: Paused; missing configuration or stale/missing report: Unknown; authentication, binding or malformed proof failure: Down. Existing oltp metric and alert identity retained.",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -1828,7 +1828,7 @@
             }
           }
         ],
-        "title": "",
+        "title": "Native operational API",
         "type": "stat"
       },
       {
@@ -1836,7 +1836,7 @@
           "type": "yesoreyeram-infinity-datasource",
           "uid": "mw-gcp-monitoring"
         },
-        "description": "Bounded authenticated read-only production API probe from Debian. No business writes. Does not certify interactive browser load/sync. UNKNOWN after six minutes without a fresh report.",
+        "description": "Native machine API catalogue and bounded Partners key-only read, OLAP logical scope. Exact PROD environment, origin, audience and pinned manifest required. No AppSheet fallback or business writes. Explicitly disabled: Paused; missing configuration or stale/missing report: Unknown; authentication, binding or malformed proof failure: Down. Existing olap metric and alert identity retained.",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -1955,7 +1955,7 @@
             }
           }
         ],
-        "title": "",
+        "title": "Native analytical API",
         "type": "stat"
       },
       {

@@ -19,3 +19,13 @@ resource "google_secret_manager_secret" "provisioning_token" {
 }
 # Payload/version and existing Grafana account20/token21 are not Terraform resources.
 # No new accessor grant: existing authorized operator only; never runtime bridge SAs.
+resource "google_secret_manager_secret" "contact_integrations" {
+  project             = "clever-oasis-508610-n7"
+  secret_id           = "mw-grafana-contact-integrations"
+  deletion_protection = true
+  replication {
+    auto {}
+  }
+  labels = { application = "mw-monitoring", purpose = "grafana-recovery" }
+  lifecycle { prevent_destroy = true }
+}

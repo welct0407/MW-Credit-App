@@ -96,9 +96,15 @@ def validated_tf_args(values, plan_sha=None):
         if op == 'apply' and (not plan_sha or hashlib.sha256(path.read_bytes()).hexdigest() != plan_sha):
             raise ValueError('Reviewed saved-plan SHA256 required')
     elif op == 'import':
-        if len(rest) != 2 or not re.fullmatch(r'grafana_(?:folder|apps_dashboard_dashboard_v(?:1beta1|2beta1|2))\.existing\["[A-Za-z0-9_-]+"\]', rest[0]):
-            raise ValueError('Exact supported resource address required')
-        if not re.fullmatch(r'[A-Za-z0-9_:/.-]+', rest[1]): raise ValueError('Invalid actual import ID')
+        if len(rest) != 2: raise ValueError('Exact resource and import ID required')
+        if re.fullmatch(r'grafana_(?:folder|apps_dashboard_dashboard_v(?:1beta1|2beta1|2))\.existing\["[A-Za-z0-9_-]+"\]', rest[0]):
+            if not re.fullmatch(r'[A-Za-z0-9_:/.-]+', rest[1]): raise ValueError('Invalid actual import ID')
+        else:
+            owned = json.loads((ROOT / 'infrastructure/grafana/owned-services.tf.json').read_text(encoding='utf-8'))['resource']
+            exact = {'grafana_data_source.' + name: data['uid'] for name, data in owned['grafana_data_source'].items()}
+            exact.update({'grafana_rule_group.performance': 'f9w88d:Performance 2m', 'grafana_notification_policy.existing': '1:existing'})
+            if exact.get(rest[0]) != rest[1]: raise ValueError('Import must match observed owned resource')
+
     else:
         raise ValueError('Unsupported Terraform operation')
     return values
