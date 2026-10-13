@@ -1,57 +1,66 @@
-{
-  "format": 1,
-  "identity": {
-    "system": "pwa",
-    "component": "mw-credit",
-    "kind": "application",
-    "name": "application",
-    "scope": "dev-and-prod"
-  },
-  "verification": {
-    "status": "documented",
-    "source": "https://github.com/welct0407/MW-Credit-App/blob/808cdf53225ce627ea41ef4d3666bf97a3c9cbfe/apps/pwa/src",
-    "coverage": "Source and published deployment reconciliation, 14 October 2026; no new live audit."
-  },
-  "content": {
-    "environments": {
-      "dev": {
-        "origin": "https://dev-lm.mw-credit.com",
-        "database": "loan_manager_dev"
-      },
-      "prod": {
-        "origin": "https://lm.mw-credit.com",
-        "database": "loan_manager_prod"
-      }
-    },
-    "authentication": "Shared Firebase/Google sign-in; server-side Partner membership and capabilities; environment-specific routes",
-    "pages": [
-      "Dashboard",
-      "Collection",
-      "Borrowers",
-      "Loans",
-      "Charges",
-      "Payments",
-      "Expenses",
-      "Cash statements",
-      "Partners",
-      "Cash holders",
-      "Cash accounts",
-      "Contributions",
-      "Settlements",
-      "Cash movements",
-      "Openings",
-      "Assessments",
-      "Analytics",
-      "Analytics validation"
-    ],
-    "source_contracts": [
-      "apps/pwa/src",
-      "services/api/read-access.mjs",
-      "services/production/business-principal.mjs",
-      "services/payment-command/handler.mjs"
-    ],
-    "data_ownership": "PostgreSQL owns financial calculations; UI does not post offline or automatically replay drafts",
-    "reporting_link": false,
-    "source_base": "https://github.com/welct0407/MW-Credit-App/blob/808cdf53225ce627ea41ef4d3666bf97a3c9cbfe/"
-  }
-}
+"format": 1
+"identity":
+  "system": "pwa"
+  "component": "mw-credit"
+  "kind": "application"
+  "name": "application"
+  "scope": "dev-and-prod"
+"verification":
+  "status": "documented"
+  "source": "https://github.com/welct0407/MW-Credit-App/blob/808cdf53225ce627ea41ef4d3666bf97a3c9cbfe/apps/pwa/src"
+  "coverage": "Source and published deployment reconciliation, 14 October 2026; no new live audit."
+"content":
+  "environments":
+    "dev":
+      "origin": "https://dev-lm.mw-credit.com"
+      "database": "loan_manager_dev"
+    "prod":
+      "origin": "https://lm.mw-credit.com"
+      "database": "loan_manager_prod"
+  "authentication": "Shared Firebase/Google sign-in; server-side Partner membership and capabilities; environment-specific\
+    \ routes"
+  "pages":
+  - "Dashboard"
+  - "Collection"
+  - "Borrowers"
+  - "Loans"
+  - "Charges"
+  - "Payments"
+  - "Expenses"
+  - "Cash statements"
+  - "Partners"
+  - "Cash holders"
+  - "Cash accounts"
+  - "Contributions"
+  - "Settlements"
+  - "Cash movements"
+  - "Openings"
+  - "Assessments"
+  - "Analytics"
+  - "Analytics validation"
+  "source_contracts":
+  - "apps/pwa/src"
+  - "services/api/read-access.mjs"
+  - "services/production/business-principal.mjs"
+  - "services/payment-command/handler.mjs"
+  "data_ownership": "PostgreSQL owns financial calculations; UI does not post offline or automatically replay drafts"
+  "reporting_link": false
+  "source_base": "https://github.com/welct0407/MW-Credit-App/blob/808cdf53225ce627ea41ef4d3666bf97a3c9cbfe/"
+  "borrower_upcoming":
+    "scope": "Selected visible borrower detail in both operational full detail and read-only fallback; includes borrowers\
+      \ with only future charges"
+    "presentation": "Shared Collection Upcoming Charges summary, date detail and paging; independent refresh, loading, empty\
+      \ and retry states"
+    "freshness": "Previews reused for at most 60 seconds on the same Asia/Bangkok day and invalidated on visibility change;\
+      \ date paging uses fresh API reads"
+    "request_safety": "Abort and generation guards reject stale borrower results; controls do not submit borrower changes"
+    "financial_effect": "Read-only forecast; no charge or financial write"
+    "delivery": "R058 Open source scope; not deployed by this batch"
+    "source": "https://github.com/welct0407/MW-Credit-App/blob/68e8a39e63e44123dcbab3f819c72d711e2a3240/apps/pwa/src/SharedBorrowerDetail.tsx"
+    "read_only_source": "https://github.com/welct0407/MW-Credit-App/blob/68e8a39e63e44123dcbab3f819c72d711e2a3240/apps/pwa/src/live-main.tsx"
+"evidence":
+  "/content/borrower_upcoming":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/68e8a39e63e44123dcbab3f819c72d711e2a3240/apps/pwa/src/SharedBorrowerDetail.tsx"
+    "reason": "R058 selected Borrower Upcoming Charges; immutable implemented source, focused verification; no deployment\
+      \ or SQL change"
+    "state": "value"

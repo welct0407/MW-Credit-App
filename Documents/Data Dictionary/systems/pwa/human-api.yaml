@@ -1,56 +1,73 @@
-{
-  "format": 1,
-  "identity": {
-    "system": "pwa",
-    "component": "mw-credit",
-    "kind": "api",
-    "name": "human-api",
-    "scope": "dev-and-prod"
-  },
-  "verification": {
-    "status": "documented",
-    "source": "https://github.com/welct0407/MW-Credit-App/blob/808cdf53225ce627ea41ef4d3666bf97a3c9cbfe/services/api/dev-read-handler.mjs",
-    "coverage": "Source and published deployment reconciliation, 14 October 2026; no new live audit."
-  },
-  "content": {
-    "read_routes": [
-      "GET /api/session",
-      "GET /api/borrowers",
-      "GET /api/collection"
-    ],
-    "command_service_read_routes": [
-      "GET /api/loan-records",
-      "GET /api/payment-records",
-      "GET /api/cash-statements",
-      "GET /api/management/cash-position",
-      "GET /api/management/analytics-overview",
-      "GET /api/management/analytics-chart"
-    ],
-    "management_resources": [
-      "cash-accounts",
-      "cash-holders",
-      "partners",
-      "contributions",
-      "settlements",
-      "cash-movements",
-      "assessments",
-      "openings",
-      "analytics-validation"
-    ],
-    "contracts": [
-      "services/api/dev-read-handler.mjs",
-      "services/payment-command/handler.mjs",
-      "services/contracts/payment-command.mjs",
-      "services/contracts/payment-correction.mjs",
-      "services/contracts/operation-command.mjs"
-    ],
-    "coverage": "Named route families and owning contracts, not an exhaustive OpenAPI schema. Exact methods, fields and validation remain in the linked source.",
-    "guards": [
-      "Firebase identity and business membership",
-      "environment/origin validation",
-      "SQL capability boundary",
-      "idempotency and unknown-outcome reconciliation"
-    ],
-    "source_base": "https://github.com/welct0407/MW-Credit-App/blob/808cdf53225ce627ea41ef4d3666bf97a3c9cbfe/"
-  }
-}
+"format": 1
+"identity":
+  "system": "pwa"
+  "component": "mw-credit"
+  "kind": "api"
+  "name": "human-api"
+  "scope": "dev-and-prod"
+"verification":
+  "status": "documented"
+  "source": "https://github.com/welct0407/MW-Credit-App/blob/808cdf53225ce627ea41ef4d3666bf97a3c9cbfe/services/api/dev-read-handler.mjs"
+  "coverage": "Source and published deployment reconciliation, 14 October 2026; no new live audit."
+"content":
+  "read_routes":
+  - "GET /api/session"
+  - "GET /api/borrowers"
+  - "GET /api/collection"
+  - "GET /api/borrowers/:id/upcoming"
+  - "GET /api/borrowers/:id/upcoming/:dueDate"
+  "command_service_read_routes":
+  - "GET /api/loan-records"
+  - "GET /api/payment-records"
+  - "GET /api/cash-statements"
+  - "GET /api/management/cash-position"
+  - "GET /api/management/analytics-overview"
+  - "GET /api/management/analytics-chart"
+  "management_resources":
+  - "cash-accounts"
+  - "cash-holders"
+  - "partners"
+  - "contributions"
+  - "settlements"
+  - "cash-movements"
+  - "assessments"
+  - "openings"
+  - "analytics-validation"
+  "contracts":
+  - "services/api/dev-read-handler.mjs"
+  - "services/payment-command/handler.mjs"
+  - "services/contracts/payment-command.mjs"
+  - "services/contracts/payment-correction.mjs"
+  - "services/contracts/operation-command.mjs"
+  "coverage": "Named route families and owning contracts, not an exhaustive OpenAPI schema. Exact methods, fields and validation\
+    \ remain in the linked source."
+  "guards":
+  - "Firebase identity and business membership"
+  - "environment/origin validation"
+  - "SQL capability boundary"
+  - "idempotency and unknown-outcome reconciliation"
+  "source_base": "https://github.com/welct0407/MW-Credit-App/blob/808cdf53225ce627ea41ef4d3666bf97a3c9cbfe/"
+  "borrower_upcoming":
+    "summary_query":
+      "businessDate": "required YYYY-MM-DD matching current Asia/Bangkok business date"
+    "date_query":
+      "businessDate": "required YYYY-MM-DD matching current Asia/Bangkok business date"
+      "limit": "optional; default 25"
+      "cursor": "optional; bound to borrower, business date and due date"
+    "access": "Fresh Firebase principal, Partner oltp.read capability and visible borrower (Hidden Flag IS NOT TRUE); independent\
+      \ of current Collection membership"
+    "result": "Up to five upcoming dates ascending; selected-date detail ordered by loanId then event id using C collation"
+    "source_rules": "Existing forecast SQL, horizon, freshness, review flags and calculations; no migration or grant change"
+    "routes_source": "https://github.com/welct0407/MW-Credit-App/blob/68e8a39e63e44123dcbab3f819c72d711e2a3240/services/api/dev-read-handler.mjs"
+    "forecast_source": "https://github.com/welct0407/MW-Credit-App/blob/68e8a39e63e44123dcbab3f819c72d711e2a3240/services/api/upcoming-read-contract.mjs"
+"evidence":
+  "/content/read_routes":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/68e8a39e63e44123dcbab3f819c72d711e2a3240/services/api/dev-read-handler.mjs"
+    "reason": "R058 selected Borrower Upcoming Charges; immutable implemented source, focused verification; no deployment\
+      \ or SQL change"
+    "state": "value"
+  "/content/borrower_upcoming":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/68e8a39e63e44123dcbab3f819c72d711e2a3240/services/api/dev-read-handler.mjs"
+    "reason": "R058 selected Borrower Upcoming Charges; immutable implemented source, focused verification; no deployment\
+      \ or SQL change"
+    "state": "value"
