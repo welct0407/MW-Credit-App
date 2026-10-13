@@ -100,8 +100,8 @@ resource "azapi_resource" "vm" {
   update_headers                   = null
   update_query_parameters          = null
   identity {
-    identity_ids = []
-    type         = "SystemAssigned"
+    identity_ids = ["/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/rg-mwcredit/providers/Microsoft.ManagedIdentity/userAssignedIdentities/mw-credit-unattended-admin"]
+    type         = "SystemAssigned, UserAssigned"
   }
 }
 
