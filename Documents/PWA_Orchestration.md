@@ -1,22 +1,29 @@
 # PWA delivery, validation and promotion
 
-**Owner revision: 14 October 2026 (Asia/Bangkok).** Optimize for a two-user application: short batches, direct execution, useful tests and a single concise record. This is the test-selection policy; [Release Workflow](Release_Workflow.md) owns promotion mechanics. Old phase plans, full-checkpoint receipts and retired AppSheet procedures add no new gates.
+**Owner revision: 14 October 2026 (Asia/Bangkok).** Use the six-agent development process below automatically in future PWA conversations. Keep batches short, tests useful and records concise for this two-user application. This document owns orchestration and test selection; [Release Workflow](Release_Workflow.md) owns promotion mechanics.
 
-## Responsibilities
+## Six-agent development process
 
-Default to one executor. A routine change does not need separate architect, coder, tester and documentation handoffs. Use the roster only where delegation is authorized and an independent task benefits from it; reuse workers and do not duplicate roles. The owner may request that the main agent perform all work personally.
+The owner has authorized Agents A–F as the default PWA development team. The orchestrator activates all six roles for a product change without asking the owner to repeat the request. Start each with a bounded task and the shared scope; a role with no affected surface returns a brief not-applicable finding and stops. Do not invent UX, infrastructure or design work to keep a worker busy. Documentation-only tasks and read-only answers may use a smaller team. A task-specific request for personal execution overrides this default.
 
 | Role | Responsibility |
 | --- | --- |
-| Main conversation — Orchestrator | Own scope, authority, integration and completion; perform routine work directly |
+| Main conversation — Orchestrator | Own scope, authority, assignment, integration and completion; resolve shared dependencies |
 | Agent A — Architect | Resolve actual design ambiguity; supply a compact executable test plan for that design |
 | Agent B — Coding | Implement and fix the agreed behavior |
-| Agent C — Testing | Independently check affected behavior when warranted; report reproduction and evidence |
+| Agent C — Testing | Independently verify affected behavior using the selected checks; report reproduction and evidence |
 | Agent D — Miscellaneous / Delivery and Documentation | Tooling, delivery coordination, records and support |
-| Agent E — User Experience Officer | Request-only desktop/iPhone Pro Max/iPad review; recommendations grouped by page/category with unique human-readable codes |
+| Agent E — User Experience Officer | Automatically review affected user flows and relevant viewports; recommendations grouped by page/category with unique human-readable codes |
 | Agent F — Infrastructure | Terraform, cloud resources, IAM, Secret Manager, networking and infrastructure configuration |
 
 Exact models/efforts live only in [Model Work Mapping](Model_Work_Mapping.md). Names include roles. Role assignment grants no extra authority. One writer owns each mutable file/live object; worktrees do not isolate shared DEV services.
+
+1. The orchestrator reads current scope, release and affected instructions, then assigns A the design/test approach, E the affected user flows and F the infrastructure impact. Keep established design decisions; each review can be short.
+2. B implements the agreed batch. D handles independent tooling/records/delivery preparation. F owns infrastructure changes when in scope; E supplies actionable UX findings. Give every mutable path/object one writer.
+3. C verifies the completed behavior and B/F fix relevant failures. E checks changed UX where applicable. Reuse valid test evidence; role participation does not require six duplicate test runs or six approval documents.
+4. The orchestrator integrates findings and D closes the concise record/publication. Promotion still requires the existing scoped authority and release procedure.
+
+Use supported sub-agents in the current conversation, not new user-owned chats or messages to outside agents. Run roles in dependency order and in waves within the available worker limit; six roles need not run simultaneously. Reuse workers for corrections. If a required agent/model is unavailable, disclose the exact limitation once, use an available supported setting or cover that role directly, and record the fallback without claiming an agent ran. Do not stall authorized work or request the same standing delegation approval again.
 
 ## One coherent delivery batch
 
@@ -26,7 +33,7 @@ Exact models/efforts live only in [Model Work Mapping](Model_Work_Mapping.md). N
 4. When authorized, deploy only changed components from verified artifacts and perform one bounded deployed smoke.
 5. Record results/limitations and publish once. No extra owner checkpoint, design review or sign-off unless requested or necessary to resolve a real gap.
 
-The [optional batch note](templates/PWA_Batch_Record.md) is for longer handoffs, not another required record.
+Use the existing change log or continuation note for longer handoffs; no separate batch template is required.
 
 ## Proportional validation
 
@@ -77,7 +84,7 @@ Required checks/guards remain effective. Report a concrete conflict once; update
 
 Keep one concise change log and the existing release record/runner manifest. Update progress only when project status changes, the tracker at release transitions and inventory/model/runbooks only for changed facts. Delete obsolete documents; Git retains history. Do not duplicate hash lists or create a continuation file for a completed task.
 
-A handoff normally fits within 300 words: outcome, scope/paths, authority, pins/results and next action. Review evidence without repeating its checks. Prefer bounded searches, batched reads and meaningful progress updates over unchanged polling. Routine token/time measurement is optional, never a delivery gate.
+A handoff normally fits within 300 words: outcome, scope/paths and starting baseline, authority, pins/results, recovery and next action. Review evidence without repeating its checks. Prefer bounded searches, batched reads and meaningful progress updates over unchanged polling. Stop affected workers when the owner stops the task. Routine token/time measurement is optional, never a delivery gate.
 
 <a id="routine-ui-delivery--owner-revision-8-october-2026"></a>
 <a id="consolidated-ui-checkpoints--owner-revision-9-october-2026"></a>

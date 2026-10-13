@@ -70,7 +70,7 @@ Exact migration candidate fdedfa28f96e008c491492c7b4c87b6bea3c133d passed [CI373
 
 These are psql client timings, including network round trips. The formerly failing daily-loan insert completed in324ms. Every test transaction rolled back; all 26 table fingerprints and the reserved GUI fixture baseline matched. Backend write window is released and no owned test sessions remain.
 
-Coverage includes source update/delete, both parents, cash, later receipts, closure/referrals, current daily rates with booked charges retained, default undo, expenses/contributions/settlements/manual movements, unpaid loans/charges, master records, invalid dependencies/capacity, no-op/retry, final-step failure and dedicated multirow/concurrency tests. SQL atomicity does not imply atomicity of separately synced AppSheet rows. See the [scenario matrix](../../Documents/R051_CRUD_Scenarios.md) for exact supported operations and restrictions.
+Coverage includes source update/delete, both parents, cash, later receipts, closure/referrals, current daily rates with booked charges retained, default undo, expenses/contributions/settlements/manual movements, unpaid loans/charges, master records, invalid dependencies/capacity, no-op/retry, final-step failure and dedicated multirow/concurrency tests. SQL atomicity does not imply atomicity of separately synced AppSheet rows. See the [scenario matrix](../../Documents/PWA_Data_Model_Overview.md#source-correction-contract) for exact supported operations and restrictions.
 
 ## Recovery and earlier attempts
 

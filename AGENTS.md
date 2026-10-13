@@ -4,7 +4,7 @@ Owner revision: **14 October 2026, Asia/Bangkok**. This is a small PWA used by t
 
 ## Working method and task routing
 
-- Work directly by default. Use an agent only for a useful independent task under existing authorization; the six-role roster is available, not a mandatory pipeline. When the owner requests personal execution, do not delegate.
+- For PWA product development, use the six-agent process in [PWA orchestration](Documents/PWA_Orchestration.md#six-agent-development-process) automatically in every conversation. This is standing owner authorization to delegate to Agents A–F; do not wait for another request. The main conversation orchestrates. Run bounded waves when concurrency is limited, reuse existing workers, and respect a task-specific personal-execution request. Documentation-only work and read-only answers use only the roles that help.
 - Start with this file, the relevant continuation note, affected files and Git status/starting commit. Read the current release row before product development; read other documents only when triggered below. Reuse context within a task.
 - Use bounded searches/reads, batch independent operations and use maintained CLI/API tools. Prefer Terraform for infrastructure; use a documented API exception only when the provider cannot perform the reviewed change, then reconcile state. Do not use GUI where a suitable supported tool exists.
 - Make routine reversible decisions and finish authorized implementation, relevant verification, records and publication. Reuse scoped approvals; ask only for a missing decision or authority that materially changes the work. An approval should concern a concrete prepared result.
@@ -14,7 +14,7 @@ Owner revision: **14 October 2026, Asia/Bangkok**. This is a small PWA used by t
 | Trigger | Read only what applies |
 | --- | --- |
 | Status or explanation | Current continuation/evidence; no live audit unless needed |
-| Product development or promotion | Current [release row](Documents/Release_Tracker.md#current-development-release), affected source; [PWA delivery policy](Documents/PWA_Orchestration.md) for check selection |
+| Product development or promotion | Current [release row](Documents/Release_Tracker.md#current-development-release), affected source; [PWA orchestration](Documents/PWA_Orchestration.md) for the automatic six-agent process and check selection |
 | Promotion or recovery | [Release workflow](Documents/Release_Workflow.md) or [recovery](Documents/Release_Recovery_Runbook.md); existing release record |
 | Live target/access change | Affected [environment inventory](Documents/Environment_Inventory.md) entry and owning access/runbook |
 | Cross-repository/host work | [Development workflow](Documents/Development_Workflow.md); destination AGENTS/catalogue |

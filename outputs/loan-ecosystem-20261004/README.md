@@ -1,6 +1,6 @@
 # Loan ecosystem — 4 October 2026
 
-The original [editable draw.io file](../../Documents/Loan_Business_Ecosystem.drawio) now contains three pages:
+The original [editable draw.io file](https://github.com/welct0407/AppSheet-Loan-Project/blob/16f324f21c5e4046cce740294feea20c633d4117/Documents/Loan_Business_Ecosystem.drawio) now contains three pages:
 
 | Page | Scope | PNG preview | Editable SVG companion |
 | --- | --- | --- | --- |
@@ -15,7 +15,7 @@ All pages use the original 2400 × 1770 canvas, Helvetica typography, pastel pan
 - [Solution Design](../../Documents/Solution_Design.md) and [Environment Inventory](../../Documents/Environment_Inventory.md): business ownership, separate DEV/PROD/internal databases on shared Cloud SQL, reporting and runtime placement. Existing business flows are preserved, not freshly live-audited.
 - [Resource Monitoring](../../Documents/Resource_Monitoring.md) and [dashboard guide](../../Documents/Resource_Monitoring_Dashboard_Guide.md): direct provider queries, Debian collector cadence, dashboard semantics and ten documented rules. The former source-only bridge introduction is superseded within deployment/delivery scope by the newer bridge checkpoint.
 - [Grafana bridge](../../Documents/Grafana_MCP_Events_Bridge.md): Cloud Run, Firestore, Scheduler and additive delivery retaining IRM/mobile. The task coordinator supplied successful native connection checks at **12:22 and 12:28 UTC, 4 October**; source deployment PR [#9](https://github.com/welct0407/AppSheet-Loan-Project/pull/9) was **merge-pending at handoff**. These are supplied observations, not repeated live checks by this diagram task. The earlier pending-native-acceptance label is intentionally omitted.
-- [Development Workflow](../../Documents/Development_Workflow.md), [Model Work Mapping](../../Documents/Model_Work_Mapping.md), [Dots policy](../../Documents/Dots_Orchestration_Rules.md) and [Release Workflow](../../Documents/Release_Workflow.md): executor routing, repository ownership and promotion boundaries.
+- [Development Workflow](../../Documents/Development_Workflow.md), [Model Work Mapping](../../Documents/Model_Work_Mapping.md), [orchestration policy](../../Documents/PWA_Orchestration.md) and [Release Workflow](../../Documents/Release_Workflow.md): executor routing, repository ownership and promotion boundaries.
 - [R050 closeout](../../Change%20Logs/CHANGE_NOTES_R050_VM01_CONTROLLER_2026-10-01.md): completed controller/certificate lifecycle. The task coordinator reconfirmed that the **idle hold remains valid**. Do not infer that the older automatic-idle design-pending paragraph or technical certificate access authorizes a power operation.
 
 No fresh service audit, business test, notification, deployment, merge, credential operation or access change occurred. Details of authentication are deliberately excluded. The drawing records an architecture checkpoint, not universal service-health or recovery proof.

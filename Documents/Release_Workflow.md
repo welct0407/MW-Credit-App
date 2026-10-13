@@ -4,7 +4,7 @@ Owner revision: **14 October 2026**. A release is a tested code/configuration pa
 
 ## Development
 
-Use the [current Open release](Release_Tracker.md#current-development-release). Record the intended outcome and affected behavior in the existing task/release log. Implement the coherent change, use [proportional checks](PWA_Orchestration.md#proportional-validation), fix failures and reuse unaffected passing evidence. A small change can be designed and checked in the same record; no separate plan or multi-agent review is required.
+Use the [current Open release](Release_Tracker.md#current-development-release) and automatic [six-agent development process](PWA_Orchestration.md#six-agent-development-process). Record the intended outcome and affected behavior in the existing task/release log. Implement the coherent change, use [proportional checks](PWA_Orchestration.md#proportional-validation), fix failures and reuse unaffected passing evidence. A small change can be designed and checked in the same record; role participation requires no separate plan or approval document.
 
 Use DEV or disposable tests for changed behavior. Do not hold a harmless UI fix for unrelated features or unfinished credentials. An owner-requested hands-on checkpoint remains binding; otherwise no automatic extra review round is added.
 

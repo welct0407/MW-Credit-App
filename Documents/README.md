@@ -4,10 +4,10 @@ Read [AGENTS.md](../AGENTS.md) and only the reference needed for the task. Curre
 
 | Need | Reference |
 | --- | --- |
-| Current work and release number | [Progress](PWA_Progress.md), [release tracker](Release_Tracker.md), [open changes](Development_Changes.md) |
+| Current operation, open work and release number | [Current work](Development_Changes.md), [release tracker](Release_Tracker.md) |
 | Fast development and promotion | [PWA policy](PWA_Orchestration.md), [release workflow](Release_Workflow.md), [promotion record](../scripts/releases/templates/promotion-checklist.md) |
 | Repository, host and access ownership | [Development workflow](Development_Workflow.md), [service accounts](Service_Account_Browser_Mapping.md) |
-| Agent roles | [Model mapping](Model_Work_Mapping.md), [coordination](Dots_Orchestration_Rules.md) |
+| Agent roles | [Automatic six-agent process](PWA_Orchestration.md#six-agent-development-process), [model mapping](Model_Work_Mapping.md) |
 | Architecture and business model | [Solution design](Solution_Design.md), [PWA data model](PWA_Data_Model_Overview.md) |
 | Exact data/API contracts | [Dictionary](Data%20Dictionary/README.md), [export](Data_Dictionary_Export.md) |
 | Runtime identities | [Environment inventory](Environment_Inventory.md) |

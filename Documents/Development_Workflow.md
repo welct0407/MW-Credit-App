@@ -14,6 +14,8 @@ Owner revision: **14 October 2026**. Use the current capable workspace and estab
 
 Keep current primary folder and repositories separate. Choose by component, not active checkout. Read the owning instructions/catalogue only when working on that component. Confirm branch, commit and dirty state; preserve unrelated edits and use an existing suitable isolated checkout when needed. Worktrees do not isolate shared databases.
 
+MW-Credit-App is the sole source owner of shared migrations, runners, tests and database CI. Use its [canonical database procedure](https://github.com/welct0407/MW-Credit-App/blob/codex/r057-infrastructure-adoption/database/README.md) and exact tested migration commit/manifest. Preserve existing Flyway histories and immutable migrations. Retained tooling here locates that checkout through `scripts/database_location.py` or `scripts/database-location.mjs`; set `MW_CREDIT_APP_ROOT` when it is not adjacent. There is no second migration set here. Remaining implementation-code moves are deferred; this ownership does not authorize moving credentials, data, services or repositories.
+
 Windows roots currently use C:/GitHub; a Cloud task has its own checkout. Do not assume a Windows path, historical account profile or an old cloud environment ID exists elsewhere. The [environment inventory](Environment_Inventory.md) owns actual service identities; verify the affected target before live action.
 
 ## Responsibilities and routing
@@ -30,7 +32,7 @@ Use the approved Secret Manager/unattended identity route before requesting huma
 ## Development, review, promotion and rollback
 
 - Implement in the owning repository against the affected DEV or disposable path. No new live environment or copy for every change.
-- Follow proportional checks and reuse valid results. Normal small work stays with one executor; read [model mapping](Model_Work_Mapping.md) only if selecting/delegating a model.
+- Automatically use the [six-agent PWA process](PWA_Orchestration.md#six-agent-development-process) and [model mapping](Model_Work_Mapping.md) for product development, without another delegation request. Assign bounded work in waves, preserve one writer per surface, and use proportional checks with reusable results. Documentation-only/read-only tasks may use fewer roles; honor explicit personal-execution requests.
 - Promote only the tested source/artifact/configuration under existing scoped authority. Hosting, Cloud Run, worker package and SQL are separate components; change only those required.
 - Preserve current native scheduler ownership and environment isolation. Do not disable existing business operation merely for a source/doc edit.
 - Recover with pinned native artifacts and the [recovery runbook](Release_Recovery_Runbook.md). A rollback does not reverse accepted payments or messages.

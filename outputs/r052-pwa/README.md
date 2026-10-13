@@ -1,6 +1,6 @@
 # R052 PWA checkpoints
 
-**[Overall progress: completed, current review and next steps](../../Documents/PWA_Progress.md)** — updated at every development-session closeout.
+**[Overall progress: completed, current review and next steps](../../Documents/Development_Changes.md#current-operation)** — updated at every development-session closeout.
 
 Date: 8 October 2026, Asia/Bangkok.
 
