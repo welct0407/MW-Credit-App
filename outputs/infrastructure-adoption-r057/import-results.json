@@ -1,0 +1,431 @@
+{
+  "release": "R057",
+  "date": "2026-10-13",
+  "baselineCommit": "53cf5c0",
+  "priorOwnership": {
+    "stateCount": 9,
+    "managedInstanceCount": 186,
+    "includes": "R055 grafana/grafana-access and paused Phase2 operational-secrets"
+  },
+  "batches": [
+    {
+      "root": "infrastructure/ecosystem-bridge",
+      "backendBucket": "mw-credit-app-tfstate-737787224638",
+      "backendPrefix": "ecosystem-bridge",
+      "planSha256": "1adddf118b520f7dd25a3bb2d9ba3fa9e56342eefa9eedaab99fcf047c446f09",
+      "importCount": 21,
+      "remoteChangeCount": 0,
+      "applied": true,
+      "refreshedPostPlanExitCode": 0,
+      "resources": [
+        {
+          "address": "google_artifact_registry_repository.monitoring",
+          "importId": "projects/clever-oasis-508610-n7/locations/asia-southeast1/repositories/mw-monitoring",
+          "actions": [
+            "no-op"
+          ]
+        },
+        {
+          "address": "google_cloud_run_v2_service.bridge",
+          "importId": "projects/clever-oasis-508610-n7/locations/asia-southeast1/services/mw-grafana-events",
+          "actions": [
+            "no-op"
+          ]
+        },
+        {
+          "address": "google_cloud_scheduler_job.dispatch",
+          "importId": "projects/clever-oasis-508610-n7/locations/asia-southeast1/jobs/mw-grafana-dispatch",
+          "actions": [
+            "no-op"
+          ]
+        },
+        {
+          "address": "google_firestore_database.bridge",
+          "importId": "projects/clever-oasis-508610-n7/databases/mw-grafana-events",
+          "actions": [
+            "no-op"
+          ]
+        },
+        {
+          "address": "google_firestore_field.deliveries_ttl",
+          "importId": "projects/clever-oasis-508610-n7/databases/mw-grafana-events/collectionGroups/deliveries/fields/deleteAfter",
+          "actions": [
+            "no-op"
+          ]
+        },
+        {
+          "address": "google_firestore_field.events_ttl",
+          "importId": "projects/clever-oasis-508610-n7/databases/mw-grafana-events/collectionGroups/events/fields/deleteAfter",
+          "actions": [
+            "no-op"
+          ]
+        },
+        {
+          "address": "google_firestore_field.googleStates_ttl",
+          "importId": "projects/clever-oasis-508610-n7/databases/mw-grafana-events/collectionGroups/googleStates/fields/deleteAfter",
+          "actions": [
+            "no-op"
+          ]
+        },
+        {
+          "address": "google_firestore_field.oauth_ttl",
+          "importId": "projects/clever-oasis-508610-n7/databases/mw-grafana-events/collectionGroups/oauth/fields/deleteAfter",
+          "actions": [
+            "no-op"
+          ]
+        },
+        {
+          "address": "google_firestore_field.revokedGrants_ttl",
+          "importId": "projects/clever-oasis-508610-n7/databases/mw-grafana-events/collectionGroups/revokedGrants/fields/deleteAfter",
+          "actions": [
+            "no-op"
+          ]
+        },
+        {
+          "address": "google_firestore_field.subscriptions_ttl",
+          "importId": "projects/clever-oasis-508610-n7/databases/mw-grafana-events/collectionGroups/subscriptions/fields/deleteAfter",
+          "actions": [
+            "no-op"
+          ]
+        },
+        {
+          "address": "google_firestore_index.index_1",
+          "importId": "projects/clever-oasis-508610-n7/databases/mw-grafana-events/collectionGroups/oauth/indexes/CICAgJim14AK",
+          "actions": [
+            "no-op"
+          ]
+        },
+        {
+          "address": "google_firestore_index.index_2",
+          "importId": "projects/clever-oasis-508610-n7/databases/mw-grafana-events/collectionGroups/deliveries/indexes/CICAgOjXh4EK",
+          "actions": [
+            "no-op"
+          ]
+        },
+        {
+          "address": "google_firestore_index.index_3",
+          "importId": "projects/clever-oasis-508610-n7/databases/mw-grafana-events/collectionGroups/oauth/indexes/CICAgJiUpoMK",
+          "actions": [
+            "no-op"
+          ]
+        },
+        {
+          "address": "google_firestore_index.index_4",
+          "importId": "projects/clever-oasis-508610-n7/databases/mw-grafana-events/collectionGroups/deliveries/indexes/CICAgOi39IkK",
+          "actions": [
+            "no-op"
+          ]
+        },
+        {
+          "address": "google_secret_manager_secret.mw_grafana_cookie_keys",
+          "importId": "projects/clever-oasis-508610-n7/secrets/mw-grafana-cookie-keys",
+          "actions": [
+            "no-op"
+          ]
+        },
+        {
+          "address": "google_secret_manager_secret.mw_grafana_google_client_secret",
+          "importId": "projects/clever-oasis-508610-n7/secrets/mw-grafana-google-client-secret",
+          "actions": [
+            "no-op"
+          ]
+        },
+        {
+          "address": "google_secret_manager_secret.mw_grafana_hmac",
+          "importId": "projects/clever-oasis-508610-n7/secrets/mw-grafana-hmac",
+          "actions": [
+            "no-op"
+          ]
+        },
+        {
+          "address": "google_secret_manager_secret.mw_grafana_oauth_jwks",
+          "importId": "projects/clever-oasis-508610-n7/secrets/mw-grafana-oauth-jwks",
+          "actions": [
+            "no-op"
+          ]
+        },
+        {
+          "address": "google_secret_manager_secret.mw_grafana_state_key",
+          "importId": "projects/clever-oasis-508610-n7/secrets/mw-grafana-state-key",
+          "actions": [
+            "no-op"
+          ]
+        },
+        {
+          "address": "google_service_account.mw_grafana_dispatch",
+          "importId": "projects/clever-oasis-508610-n7/serviceAccounts/mw-grafana-dispatch@clever-oasis-508610-n7.iam.gserviceaccount.com",
+          "actions": [
+            "no-op"
+          ]
+        },
+        {
+          "address": "google_service_account.mw_grafana_events",
+          "importId": "projects/clever-oasis-508610-n7/serviceAccounts/mw-grafana-events@clever-oasis-508610-n7.iam.gserviceaccount.com",
+          "actions": [
+            "no-op"
+          ]
+        }
+      ],
+      "postPlanSha256": "fbb9d7423f7d9cab8cee5fcf0b180571565944ac7f420562f848efebb69d406b",
+      "readbackMethod": "Ordinary Terraform provider refresh against exact imported IDs; exit 0 and no configuration changes"
+    },
+    {
+      "root": "infrastructure/ecosystem-shared",
+      "backendBucket": "mw-credit-app-tfstate-737787224638",
+      "backendPrefix": "ecosystem-shared",
+      "planSha256": "c707e2864d31c42d5263e06e2974e8ae4634a998c85b351fb5dbf3f6907c90e2",
+      "importCount": 2,
+      "remoteChangeCount": 0,
+      "applied": true,
+      "refreshedPostPlanExitCode": 0,
+      "resources": [
+        {
+          "address": "google_sql_database_instance.shared",
+          "importId": "clever-oasis-508610-n7/appsheet-pg-prod-20260914",
+          "actions": [
+            "no-op"
+          ]
+        },
+        {
+          "address": "google_storage_bucket.receipts",
+          "importId": "mw-payment-receipts-prod-508610-n7",
+          "actions": [
+            "no-op"
+          ]
+        }
+      ],
+      "postPlanSha256": "40189f6c6c726b9a17aeb7158cec0b65ae12b130a4f22a9dac2d4d5115b14770",
+      "readbackMethod": "Ordinary Terraform provider refresh against exact imported IDs; exit 0 and no configuration changes"
+    },
+    {
+      "root": "infrastructure/ecosystem-debian",
+      "backendBucket": "mw-credit-app-tfstate-737787224638",
+      "backendPrefix": "ecosystem-debian",
+      "planSha256": "f0d0cfd7ba95d02bd79a60f88a178f30f169116d6e07feabb977487deb89fdcd",
+      "importCount": 4,
+      "remoteChangeCount": 0,
+      "applied": true,
+      "refreshedPostPlanExitCode": 0,
+      "resources": [
+        {
+          "address": "google_compute_address.debian",
+          "importId": "projects/clever-oasis-508610-n7/regions/asia-southeast1/addresses/vm-mw-credit-agent-ip",
+          "actions": [
+            "no-op"
+          ]
+        },
+        {
+          "address": "google_compute_disk.debian",
+          "importId": "projects/clever-oasis-508610-n7/zones/asia-southeast1-a/disks/vm-mw-credit-agent",
+          "actions": [
+            "no-op"
+          ]
+        },
+        {
+          "address": "google_compute_firewall.iap",
+          "importId": "projects/clever-oasis-508610-n7/global/firewalls/allow-ssh-iap-mw-integration-agent",
+          "actions": [
+            "no-op"
+          ]
+        },
+        {
+          "address": "google_compute_instance.debian",
+          "importId": "projects/clever-oasis-508610-n7/zones/asia-southeast1-a/instances/vm-mw-credit-agent",
+          "actions": [
+            "no-op"
+          ]
+        }
+      ],
+      "postPlanSha256": "7bdc9e575b425448e3fe680168858c42989a700eb835a013e2292a4a55b6fd4f",
+      "readbackMethod": "Ordinary Terraform provider refresh against exact imported IDs; exit 0 and no configuration changes"
+    },
+    {
+      "root": "infrastructure/ecosystem-dns",
+      "backendBucket": "mw-credit-app-tfstate-737787224638",
+      "backendPrefix": "ecosystem-dns",
+      "planSha256": "7dbb639b79f5b5f1d9150c6daa5c294d27d77da06e19a461feb4dc25def7872d",
+      "importCount": 5,
+      "remoteChangeCount": 0,
+      "applied": true,
+      "refreshedPostPlanExitCode": 0,
+      "resources": [
+        {
+          "address": "cloudflare_dns_record.alerts",
+          "importId": "77d9da76cfeaaf21ae589f95a958965c/12d90c87273bd42fa4f80caba62aaf4e",
+          "actions": [
+            "no-op"
+          ]
+        },
+        {
+          "address": "cloudflare_dns_record.charts",
+          "importId": "77d9da76cfeaaf21ae589f95a958965c/5a3e2cf73d5daf5b07ddff18f4b11b50",
+          "actions": [
+            "no-op"
+          ]
+        },
+        {
+          "address": "cloudflare_dns_record.hooks",
+          "importId": "77d9da76cfeaaf21ae589f95a958965c/59f7b018abd772a52b373ef9800ecac2",
+          "actions": [
+            "no-op"
+          ]
+        },
+        {
+          "address": "cloudflare_dns_record.monitor",
+          "importId": "77d9da76cfeaaf21ae589f95a958965c/0812c2993b6ef3b4b9553810f8ebe597",
+          "actions": [
+            "no-op"
+          ]
+        },
+        {
+          "address": "cloudflare_dns_record.reports",
+          "importId": "77d9da76cfeaaf21ae589f95a958965c/68b6d51c8ab20d5ae51bf48c0a5a07cf",
+          "actions": [
+            "no-op"
+          ]
+        }
+      ],
+      "postPlanSha256": "7508c4227daf7e42d2a3009c60fea9ca851b92baaf31ffdce02b272fad9abdb1",
+      "readbackMethod": "Ordinary Terraform provider refresh against exact imported IDs; exit 0 and no configuration changes"
+    },
+    {
+      "root": "infrastructure/ecosystem-azure",
+      "backendBucket": "mw-credit-app-tfstate-737787224638",
+      "backendPrefix": "ecosystem-azure",
+      "planSha256": "fe5a1249f1750fd50172b70a13794fb38cb86c7c72203377d0bdbef1492de608",
+      "importCount": 9,
+      "remoteChangeCount": 0,
+      "applied": true,
+      "refreshedPostPlanExitCode": 0,
+      "resources": [
+        {
+          "address": "azurerm_backup_protected_vm.vm",
+          "importId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/rg-backup/providers/Microsoft.RecoveryServices/vaults/vm-backup-vault/backupFabrics/Azure/protectionContainers/IaasVMContainer;iaasvmcontainerv2;RG-MWCREDIT;VM-01/protectedItems/VM;iaasvmcontainerv2;RG-MWCREDIT;VM-01",
+          "actions": [
+            "no-op"
+          ]
+        },
+        {
+          "address": "azurerm_managed_disk.os",
+          "importId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/RG-MWCREDIT/providers/Microsoft.Compute/disks/vm01-osdisk-20260912-091515",
+          "actions": [
+            "no-op"
+          ]
+        },
+        {
+          "address": "azurerm_monitor_data_collection_rule.vm",
+          "importId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/rg-mwcredit/providers/Microsoft.Insights/dataCollectionRules/msvmi-southeastasia-vm-01",
+          "actions": [
+            "no-op"
+          ]
+        },
+        {
+          "address": "azurerm_network_interface.vm",
+          "importId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/rg-mwcredit/providers/Microsoft.Network/networkInterfaces/vm-01366",
+          "actions": [
+            "no-op"
+          ]
+        },
+        {
+          "address": "azurerm_network_security_group.vm",
+          "importId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/rg-mwcredit/providers/Microsoft.Network/networkSecurityGroups/VM-01-nsg",
+          "actions": [
+            "no-op"
+          ]
+        },
+        {
+          "address": "azurerm_public_ip.vm",
+          "importId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/rg-mwcredit/providers/Microsoft.Network/publicIPAddresses/vm01-ip",
+          "actions": [
+            "no-op"
+          ]
+        },
+        {
+          "address": "azurerm_virtual_machine_extension.entra",
+          "importId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/rg-mwcredit/providers/Microsoft.Compute/virtualMachines/VM-01/extensions/AADLoginForWindows",
+          "actions": [
+            "no-op"
+          ]
+        },
+        {
+          "address": "azurerm_virtual_machine_extension.monitor",
+          "importId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/rg-mwcredit/providers/Microsoft.Compute/virtualMachines/vm-01/extensions/AzureMonitorWindowsAgent",
+          "actions": [
+            "no-op"
+          ]
+        },
+        {
+          "address": "azurerm_virtual_network.network",
+          "importId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/rg-mwcredit/providers/Microsoft.Network/virtualNetworks/vnet-mwcredit",
+          "actions": [
+            "no-op"
+          ]
+        }
+      ],
+      "postPlanSha256": "46278df5121cf60d48d141d62c10fb5bf8cacc1a0c8c9e71fc39bb0de782b3e1",
+      "readbackMethod": "Ordinary Terraform provider refresh against exact imported IDs; exit 0 and no configuration changes"
+    },
+    {
+      "root": "infrastructure/ecosystem-azure-metadata",
+      "backendBucket": "mw-credit-app-tfstate-737787224638",
+      "backendPrefix": "ecosystem-azure-metadata",
+      "planSha256": "df48ac86bae4fbe2ae68877bcf614bb2bb2bb556e1bc94b5d1657a3ebcebbfe0",
+      "importCount": 4,
+      "remoteChangeCount": 0,
+      "applied": true,
+      "refreshedPostPlanExitCode": 0,
+      "resources": [
+        {
+          "address": "azapi_resource.availability",
+          "importId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/rg-mwcredit/providers/Microsoft.Insights/metricAlerts/VM Availability - VM-01?api-version=2018-03-01",
+          "actions": [
+            "no-op"
+          ]
+        },
+        {
+          "address": "azapi_resource.cpu",
+          "importId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/rg-mwcredit/providers/Microsoft.Insights/metricAlerts/Percentage CPU - VM-01?api-version=2018-03-01",
+          "actions": [
+            "no-op"
+          ]
+        },
+        {
+          "address": "azapi_resource.memory",
+          "importId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/rg-mwcredit/providers/Microsoft.Insights/metricAlerts/Available Memory Bytes - VM-01?api-version=2018-03-01",
+          "actions": [
+            "no-op"
+          ]
+        },
+        {
+          "address": "azapi_resource.vm",
+          "importId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/RG-MWCREDIT/providers/Microsoft.Compute/virtualMachines/VM-01?api-version=2024-11-01",
+          "actions": [
+            "no-op"
+          ]
+        }
+      ],
+      "postPlanSha256": "40daa130f4fcf140a401c420b185e9fef4d113db24d4dea843573d9bf62c09d6",
+      "readbackMethod": "Ordinary Terraform provider refresh against exact imported IDs; exit 0 and no configuration changes"
+    }
+  ],
+  "exclusions": [
+    "Azure VM controller Function/storage/plan/roles",
+    "Azure storage accounts: provider computes access keys/connection strings",
+    "Shared Azure backup vault and EnhancedPolicy also serve VM02; reference only",
+    "VM02/default/service-managed Azure resources and restore-point artifacts",
+    "Secret payloads/versions, SQL users/databases/content, receipt objects",
+    "IAM grants/policies not adopted; two GCP service-account containers only",
+    "Cloudflare mail/verification/www/controller DNS, tunnels/account access",
+    "Tailscale and unrelated cloud resources"
+  ],
+  "exceptions": [
+    "SQL settings[0].maintenance_window: API UNSET/day=0 unrepresentable in google8.6.0; externally managed",
+    "Debian metadata[\"ssh-keys\"]: gcloud-maintained ephemeral public keys; externally managed",
+    "IAP firewall log_config: API disabled/unset empty metadata enum unrepresentable; externally managed"
+  ],
+  "privateEvidence": {
+    "purpose": "Saved plans, metadata and diagnostics; never publish raw plans/state",
+    "path": "C:/Users/ideaadmin/Documents/ChatGPT/MW-Credit-App/terraform/r057-adoption",
+    "reviewDate": "2026-10-20"
+  }
+}
