@@ -13,3 +13,11 @@ Recovery is a reviewed state ownership correction using the existing versioned p
 ## Owner-authorized tunnel/Tailscale extension
 
 A subsequent owner instruction added existing Cloudflare tunnels and manageable Tailscale configuration to scope. Bounded read-only access checks found Cloudflare tunnel/configuration HTTP403 with the established DNS token, and no established Tailscale admin API credential. Zero additional resources were imported; the original45 remain verified. Exact identities, blockers, supported authentication/scopes and continuation boundaries are recorded in [network-extension-access.md](../outputs/infrastructure-adoption-r057/network-extension-access.md). No credentials, routes, policies or device authorization changed.
+
+## Administrative access resolved; network extension completed
+
+The owner approved and created a Cloudflare account/zone administrative token and Tailscale All Read/Write OAuth credentials, retained as three Secret Manager containers at numeric version1. Existing credential blockers are resolved. Independently reviewed import-only plans adopted7 additional resources: Cloudflare tunnel/configuration2, Tailscale complete policy/DNS2 and Google secret containers3. All three ordinary refreshed post-plans exited0. Combined R057 adoption is52 resources across9 roots; the previous45 were not changed.
+
+New roots: infrastructure/ecosystem-tunnels, ecosystem-tailnet and network-operator-secrets, with exact-ID import blocks, prevent_destroy, pinned lockfiles and authentication/recovery READMEs. The exact original HuJSON policy and DNS settings were preserved. Cloudflare's existing unsupported warp-routing.enabled=false remains external/preserved. No access policy, route, membership, device authorization, credential payload/version or IAM grant was changed by these imports. Provider inspection and saved-plan checks confirmed no tunnel token capture, tunnel_secret=null and environment-only operator credentials.
+
+See [extension results](../outputs/infrastructure-adoption-r057/network-extension-results.json) for exact IDs, hashes and post-plan outcomes. The earlier access note is retained as labeled history. Independent format/validation and plan review passed; no runtime/GUI/full-application tests were required. Recovery and private retention remain as above.

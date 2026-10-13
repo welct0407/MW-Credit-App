@@ -8,4 +8,4 @@ The three narrow lifecycle exceptions preserve existing provider-unrepresentable
 
 Private plans and diagnostics are retained at C:/Users/ideaadmin/Documents/ChatGPT/MW-Credit-App/terraform/r057-adoption for review on 2026-10-20. They are not publication artifacts. Recovery means correcting Terraform ownership against the versioned protected backend; never deleting or replacing live resources.
 
-A subsequent owner-authorized [Cloudflare tunnel/Tailscale extension](network-extension-access.md) is blocked on administrative access; zero additional imports. This supersedes their earlier out-of-scope classification only, without changing the original45 import evidence.
+The owner-authorized Cloudflare/Tailscale extension subsequently completed7 additional imports: tunnel/configuration2, tailnet policy/DNS2 and operational secret containers3. All three reviewed plans had zero remote actions and refreshed post-plans exited0. See [extension results](network-extension-results.json) and [access history](network-extension-access.md). Combined verified total:52 imports across9 roots; the original45 evidence remains unchanged.

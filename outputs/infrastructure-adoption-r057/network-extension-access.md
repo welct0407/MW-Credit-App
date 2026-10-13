@@ -1,4 +1,6 @@
-# Cloudflare tunnels and Tailscale — authorized extension, access blocked
+# Cloudflare tunnels and Tailscale — access history
+
+**Current status:** The owner subsequently approved and created administrative credentials, stored in three operational Secret Manager containers at version1. Cloudflare and Tailscale authenticated reads now succeed. Seven additional resources were imported across three roots after independent review; all saved plans had zero remote actions and all ordinary refreshed post-plans exited0. See [current import evidence](network-extension-results.json); the blocked observations below are retained as dated history, not a current access limitation.
 
 Owner authorization on 13 October 2026 extends R057 to existing Cloudflare tunnels and manageable Tailscale configuration, preserving current behavior. The completed 45 imports remain unchanged. This extension imported **zero resources**: no Terraform plan/apply was attempted without control-plane visibility.
 
@@ -27,4 +29,4 @@ Resume needs an existing tailnet administrative API access token supplied as `TA
 
 The retained nine-state ownership inventory and completed R057 import matrix contain no Cloudflare tunnel or Tailscale resource addresses. This bounded reuse does not replace the exact current ownership check required once accessible import candidates are known. No placeholder root/import block was published, and no access policy, local routing, node authorization or connectivity setting changed. Azure controller exclusions remain in force.
 
-Both extension batches are **blocked on established administrative credentials/access**, not completed. After access is available: inspect exact current resources, privately review generated configuration for credentials, pin provider/root ownership, require a reviewed import-only plan with zero remote changes, then an ordinary refreshed no-change plan. Existing R057 private diagnostic retention remains 20 October 2026.
+At this historical checkpoint, both extension batches were **blocked on established administrative credentials/access**. This blocker was subsequently resolved and the authorized imports completed as recorded above. After access is available: inspect exact current resources, privately review generated configuration for credentials, pin provider/root ownership, require a reviewed import-only plan with zero remote changes, then an ordinary refreshed no-change plan. Existing R057 private diagnostic retention remains 20 October 2026.

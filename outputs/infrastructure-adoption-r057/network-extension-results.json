@@ -1,0 +1,124 @@
+{
+  "release": "R057",
+  "date": "2026-10-13",
+  "baselineCommit": "b0a3c5c",
+  "authorization": "Owner approved administrative credentials and existing-resource import only; no network behavior changes",
+  "account": {
+    "tailscale": "zhcyidea@gmail.com",
+    "cloudflare": "03566f0be789f9d2ba2a5389dfb0f1f6"
+  },
+  "credentialReferences": [
+    "projects/737787224638/secrets/mw-credit-ops-cloudflare-api-token/versions/1",
+    "projects/737787224638/secrets/mw-credit-ops-tailscale-oauth-client-id/versions/1",
+    "projects/737787224638/secrets/mw-credit-ops-tailscale-oauth-client-secret/versions/1"
+  ],
+  "ownershipCheck": "Reused nine-state inventory plus completed R05745-resource matrix; no exact resource collisions",
+  "providerSecretBehavior": {
+    "cloudflare": "5.27.0 import/read calls metadata GET only; saved plan tunnel_secret=null and no token attribute; no token data source",
+    "tailscale": "0.29.2 provider credentials injected via environment only; policy and DNS resources contain no credential payload",
+    "google": "8.6.0 secret containers only; no version resources/data reads in Terraform"
+  },
+  "batches": [
+    {
+      "root": "infrastructure/ecosystem-tunnels",
+      "backendBucket": "mw-credit-app-tfstate-737787224638",
+      "backendPrefix": "ecosystem-tunnels",
+      "importCount": 2,
+      "remoteChangeCount": 0,
+      "planSha256": "2d0550150330c861d7589c13d8cafc6744a0d8e96c772a7d582899f6147f89d0",
+      "applied": true,
+      "refreshedPostPlanExitCode": 0,
+      "resources": [
+        {
+          "address": "cloudflare_zero_trust_tunnel_cloudflared.bridge",
+          "importId": "03566f0be789f9d2ba2a5389dfb0f1f6/f75df9f1-0acf-4e8c-b797-a5fcf85b22f9",
+          "actions": [
+            "no-op"
+          ]
+        },
+        {
+          "address": "cloudflare_zero_trust_tunnel_cloudflared_config.bridge",
+          "importId": "03566f0be789f9d2ba2a5389dfb0f1f6/f75df9f1-0acf-4e8c-b797-a5fcf85b22f9",
+          "actions": [
+            "no-op"
+          ]
+        }
+      ],
+      "postPlanSha256": "4581cc093ea4d8d1b9acf0365344aed2669253c197a626780e673a09ef2bd2ee",
+      "readbackMethod": "Ordinary provider refresh against imported identities; no configuration changes"
+    },
+    {
+      "root": "infrastructure/ecosystem-tailnet",
+      "backendBucket": "mw-credit-app-tfstate-737787224638",
+      "backendPrefix": "ecosystem-tailnet",
+      "importCount": 2,
+      "remoteChangeCount": 0,
+      "planSha256": "dfa4a743d36e0f983aff018237dfbae92b126412a57f5a4455870ca6db396e48",
+      "applied": true,
+      "refreshedPostPlanExitCode": 0,
+      "resources": [
+        {
+          "address": "tailscale_acl.policy",
+          "importId": "acl",
+          "actions": [
+            "no-op"
+          ]
+        },
+        {
+          "address": "tailscale_dns_configuration.tailnet",
+          "importId": "dns_configuration",
+          "actions": [
+            "no-op"
+          ]
+        }
+      ],
+      "postPlanSha256": "530208dc45ff97035db37fc3fd6fa338b76efb7ade7044927c60d0c4e50b9ba6",
+      "readbackMethod": "Ordinary provider refresh against imported identities; no configuration changes"
+    },
+    {
+      "root": "infrastructure/network-operator-secrets",
+      "backendBucket": "mw-credit-app-tfstate-737787224638",
+      "backendPrefix": "network-operator-secrets",
+      "importCount": 3,
+      "remoteChangeCount": 0,
+      "planSha256": "1e3403f70e44b81b0e76943574e5ed70afa8fee0c2b3379746d264e76b851d08",
+      "applied": true,
+      "refreshedPostPlanExitCode": 0,
+      "resources": [
+        {
+          "address": "google_secret_manager_secret.mw_credit_ops_cloudflare_api_token",
+          "importId": "projects/737787224638/secrets/mw-credit-ops-cloudflare-api-token",
+          "actions": [
+            "no-op"
+          ]
+        },
+        {
+          "address": "google_secret_manager_secret.mw_credit_ops_tailscale_oauth_client_id",
+          "importId": "projects/737787224638/secrets/mw-credit-ops-tailscale-oauth-client-id",
+          "actions": [
+            "no-op"
+          ]
+        },
+        {
+          "address": "google_secret_manager_secret.mw_credit_ops_tailscale_oauth_client_secret",
+          "importId": "projects/737787224638/secrets/mw-credit-ops-tailscale-oauth-client-secret",
+          "actions": [
+            "no-op"
+          ]
+        }
+      ],
+      "postPlanSha256": "fa56d869e039d15842edc9e246dce5f4610ca6bc03df88d51c69fa2f4664bd4c",
+      "readbackMethod": "Ordinary provider refresh against imported identities; no configuration changes"
+    }
+  ],
+  "external": [
+    "Cloudflare warp-routing.enabled=false is observed but unsupported by pinned configuration schema; preserved remotely, not managed",
+    "Tailscale device memberships/authorization/keys, OAuth client resource and users remain external",
+    "Secret payloads and versions; existing IAM policies/grants",
+    "Azure controller remains excluded"
+  ],
+  "privateEvidence": {
+    "path": "C:/Users/ideaadmin/Documents/ChatGPT/MW-Credit-App/terraform/r057-adoption",
+    "reviewDate": "2026-10-20"
+  }
+}
