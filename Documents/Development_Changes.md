@@ -1,8 +1,12 @@
 # Open development differences
 
+## R057 AppSheet retirement — 13 October 2026
+
+Owner authorized retirement of all four AppSheet apps and active integration dependencies. Technical retirement is in progress; definitions, SQL/GCS/historical receipts and native compatibility are retained. License revocation remains the owner's later action. The [current record](../outputs/r057-appsheet-retirement/README.md) owns per-app saved-state proof, integration/deployment pins, checks/recovery and pending work; use the [single R057 checklist](../outputs/r057-infrastructure-adoption/promotion-checklist.md). No DB changes, financial writes or license action.
+
 ## R057 existing infrastructure adoption — 13 October 2026
 
-Owner authorized Terraform metadata/state adoption for existing Grafana bridge hosting, Debian VM/disk/IP/firewall, Azure VM-01/network/backup/monitor configuration excluding the controller, selected service DNS, and shared Cloud SQL instance/receipt bucket. R057 remains Open; no release freeze or runtime promotion is needed for behavior-preserving state adoption. All nine roots and 52 imports, including the owner-selected tunnel/tailnet/container extension, are verified with zero remote changes and ordinary refreshed no-change post-plans; three narrow fields remain externally managed. Owner-approved unattended administration is also applied/verified: ten new auth resources plus preserved-SystemAssigned VM attachment, two fresh auth checks and three MSI/WIF no-change plans; controller unchanged. Paused credential work remains separate and unfinished. [Current scope and completion matrix](../outputs/r057-infrastructure-adoption/README.md).
+Owner authorized Terraform metadata/state adoption for existing Grafana bridge hosting, Debian VM/disk/IP/firewall, Azure VM-01/network/backup/monitor configuration excluding the controller, selected service DNS, and shared Cloud SQL instance/receipt bucket. The behavior-preserving adoption did not freeze R057; the later authorized retirement now does. R057 is Frozen and R058 is the sole Open development release. All nine roots and 52 imports, including the owner-selected tunnel/tailnet/container extension, are verified with zero remote changes and ordinary refreshed no-change post-plans; three narrow fields remain externally managed. Owner-approved unattended administration is also applied/verified: ten new auth resources plus preserved-SystemAssigned VM attachment, two fresh auth checks and three MSI/WIF no-change plans; controller unchanged. Paused credential work remains separate and unfinished. [Current scope and completion matrix](../outputs/r057-infrastructure-adoption/README.md).
 
 ## R056 Apple push registration fix — 13 October 2026
 

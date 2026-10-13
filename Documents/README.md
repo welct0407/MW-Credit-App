@@ -12,6 +12,7 @@ Start with [AGENTS task routing](../AGENTS.md#working-method-and-task-routing), 
 | Which model and reasoning effort to use for each kind of work | [Model Work Mapping](Model_Work_Mapping.md) — owner-editable defaults read before task dispatch |
 | Which release to use for new development / status | [Current development release](Release_Tracker.md#current-development-release) and tracker history |
 | Open DEV work | [Development Changes](Development_Changes.md) |
+| AppSheet retirement and owner license handoff | [R057 current retirement](../outputs/r057-appsheet-retirement/README.md) — four apps, integration/runtime evidence and pending license revocation |
 | Existing ecosystem infrastructure Terraform ownership | [R057 adoption and completion matrix](../outputs/r057-infrastructure-adoption/README.md) — selected metadata/state adoption, preserved behavior and explicit remaining scope |
 | Collection receipts limited to displayed charges | [R048 handover](../outputs/r048-collection-receipts/HANDOVER.md) — DEV1.000124 and direct PROD3.000253 correction verified |
 | Infrastructure cleanup, Secret Manager gaps and original adoption proposal | [Phase 1 inventory and proposal](../outputs/infrastructure-cleanup-phase1/README.md) — dated read-only evidence; current selected scope is in the R057 matrix |
