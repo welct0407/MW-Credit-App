@@ -1,0 +1,7 @@
+# R056 Apple push compatibility — 13 October 2026
+
+Production incident: device subscription registration returned HTTP400 while authenticated configuration/status requests succeeded. Corrected the confirmed Apple hostname compatibility defect in API/delivery validation and V91 subscription RPC. Exact rejected payload was unavailable; Lisa's retry is the final device-specific check.
+
+DEV/PROD V91 validated. Command 00006-lrd and notify 00003-bj4 are Ready at 100% on image b4f528bc8ac48008ed0951e227089d3d0802a7a6c2dbaa826ada5e021e156aea. Only two image updates; reader/jobs/frontend/schedules and push policies preserved. Protected backup restoration verified; temporary owner access restored. DEV post-migrate capability hook initially lacked journal-owner access, then completed under the maintained scoped route without migration replay.
+
+Focused tests12, transactionguards35, maintenancechecks10 and one disposable database CI (189 Node passes plus SQL) passed. Thirteen test directories removed. See outputs/r056-apple-push/testing.md and deployment-evidence.json for exact pins, backup recovery, retained paths and limitations. Private diagnostic review 20 October 2026. Runtime rollback restores prior command/notify image pins; retain compatible V91 unless separately corrected forward. No forced push or financial test performed. Paused Phase2 changes excluded.

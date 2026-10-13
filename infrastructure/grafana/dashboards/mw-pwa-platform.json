@@ -1,0 +1,2813 @@
+{
+  "apiVersion": "dashboard.grafana.app/v1beta1",
+  "kind": "Dashboard",
+  "spec": {
+    "title": "PWA Platform",
+    "schemaVersion": 41,
+    "editable": false,
+    "tags": [
+      "mw-credit",
+      "resource-monitoring",
+      "pwa"
+    ],
+    "timezone": "Asia/Bangkok",
+    "time": {
+      "from": "now-24h",
+      "to": "now-2m"
+    },
+    "refresh": "2m",
+    "panels": [
+      {
+        "id": 1,
+        "type": "text",
+        "title": "Scope and interpretation",
+        "gridPos": {
+          "x": 0,
+          "y": 0,
+          "w": 24,
+          "h": 8
+        },
+        "options": {
+          "mode": "markdown",
+          "content": "- **Timing:** 5-minute windows; range ends 2 minutes ago.\n- **Missing \u2260 healthy:** idle workers may have no data. Query errors remain errors.\n- **HTTP 4xx:** may be client/auth rejection. No new alert thresholds.\n- **Limits:** Hosting is one Debian vantage, not login or regional coverage. Job completion and notification delivery are not measured."
+        },
+        "description": "Cloud Run platform observations for DEV and PROD, with a two-minute ingestion allowance. Requests and latency use five-minute windows. Empty series means no observed telemetry, not healthy or failed; min-zero workers may be idle. HTTP 4xx includes authorization/client rejection, not necessarily a service outage. No latency/error-ratio alert thresholds are introduced. Job completion freshness and notification queue/device delivery are not measured by these charts. Hosting checks are a single Debian vantage, not browser authentication or multi-region availability."
+      },
+      {
+        "id": 2,
+        "type": "row",
+        "title": "PROD",
+        "collapsed": false,
+        "gridPos": {
+          "x": 0,
+          "y": 8,
+          "w": 24,
+          "h": 1
+        },
+        "panels": []
+      },
+      {
+        "id": 3,
+        "title": "PROD Hosting \u00b7 single vantage",
+        "type": "stat",
+        "description": "Read-only canonical shell and matching build-version entry. Explicit unexpected/failed response Down; absent report or older than 6 min Unknown. No redirect, login or business request. Collected by the existing monitoring timer.",
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "type": "json",
+            "source": "url",
+            "parser": "jq-backend",
+            "format": "timeseries",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fhealth%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22pwa_hosting_prod%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+            "root_selector": "if .error then error(\"Monitoring query failed\") elif .nextPageToken then error(\"Hosting response truncated\") else [.timeSeries[]?.points[]?]|sort_by(.interval.endTime)|last as $p | (try ($p.interval.endTime|sub(\"[.][0-9]+Z$\";\"Z\")|fromdateiso8601) catch null) as $t | {time:($p.interval.endTime//(now|todateiso8601)),value:(if $t==null or now-$t>360 or $t>now+120 then 4 elif ($p.value.int64Value|tonumber)==1 then 1 elif ($p.value.int64Value|tonumber)==0 then 0 else 4 end)} end",
+            "columns": [
+              {
+                "text": "Time",
+                "selector": "time",
+                "type": "timestamp"
+              },
+              {
+                "text": "Hosting",
+                "selector": "value",
+                "type": "number"
+              }
+            ],
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "gridPos": {
+          "x": 0,
+          "y": 9,
+          "w": 24,
+          "h": 3
+        },
+        "fieldConfig": {
+          "defaults": {
+            "noValue": "Unknown",
+            "mappings": [
+              {
+                "type": "value",
+                "options": {
+                  "0": {
+                    "text": "Down",
+                    "color": "red"
+                  },
+                  "1": {
+                    "text": "Reachable",
+                    "color": "green"
+                  },
+                  "4": {
+                    "text": "Unknown",
+                    "color": "gray"
+                  }
+                }
+              }
+            ]
+          },
+          "overrides": []
+        },
+        "options": {
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "colorMode": "background",
+          "graphMode": "none"
+        }
+      },
+      {
+        "id": 4,
+        "title": "PROD read \u00b7 Requests / 5 min",
+        "description": "Sum of request counts across revisions. 4xx/client rejection and 5xx/server failure are subsets of All; absent subsets remain missing, never fabricated zero.",
+        "type": "timeseries",
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "type": "json",
+            "source": "url",
+            "parser": "jq-backend",
+            "format": "timeseries",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Frequest_count%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20%22mw-credit-app-read-prod%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_SUM&aggregation.crossSeriesReducer=REDUCE_SUM",
+            "root_selector": "if .error then error(\"Monitoring query failed\") elif .nextPageToken then error(\"Metric response truncated; shorten range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime,value:((.value.doubleValue // .value.int64Value)|tonumber)}] | sort_by(.time) | .[] end",
+            "columns": [
+              {
+                "text": "Time",
+                "selector": "time",
+                "type": "timestamp"
+              },
+              {
+                "text": "All",
+                "selector": "value",
+                "type": "number"
+              }
+            ],
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "refId": "B",
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "type": "json",
+            "source": "url",
+            "parser": "jq-backend",
+            "format": "timeseries",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Frequest_count%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20%22mw-credit-app-read-prod%22%20AND%20metric.labels.response_code_class%20%3D%20%224xx%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_SUM&aggregation.crossSeriesReducer=REDUCE_SUM",
+            "root_selector": "if .error then error(\"Monitoring query failed\") elif .nextPageToken then error(\"Metric response truncated; shorten range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime,value:((.value.doubleValue // .value.int64Value)|tonumber)}] | sort_by(.time) | .[] end",
+            "columns": [
+              {
+                "text": "Time",
+                "selector": "time",
+                "type": "timestamp"
+              },
+              {
+                "text": "4xx",
+                "selector": "value",
+                "type": "number"
+              }
+            ],
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "refId": "C",
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "type": "json",
+            "source": "url",
+            "parser": "jq-backend",
+            "format": "timeseries",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Frequest_count%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20%22mw-credit-app-read-prod%22%20AND%20metric.labels.response_code_class%20%3D%20%225xx%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_SUM&aggregation.crossSeriesReducer=REDUCE_SUM",
+            "root_selector": "if .error then error(\"Monitoring query failed\") elif .nextPageToken then error(\"Metric response truncated; shorten range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime,value:((.value.doubleValue // .value.int64Value)|tonumber)}] | sort_by(.time) | .[] end",
+            "columns": [
+              {
+                "text": "Time",
+                "selector": "time",
+                "type": "timestamp"
+              },
+              {
+                "text": "5xx",
+                "selector": "value",
+                "type": "number"
+              }
+            ],
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "gridPos": {
+          "x": 0,
+          "y": 12,
+          "w": 8,
+          "h": 7
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "noValue": "No observed telemetry",
+            "min": 0,
+            "custom": {
+              "spanNulls": false,
+              "drawStyle": "line"
+            }
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "All"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "fixed",
+                    "fixedColor": "blue"
+                  }
+                },
+                {
+                  "id": "custom.lineStyle",
+                  "value": {
+                    "fill": "solid"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "4xx"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "fixed",
+                    "fixedColor": "orange"
+                  }
+                },
+                {
+                  "id": "custom.lineStyle",
+                  "value": {
+                    "fill": "dash"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "5xx"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "fixed",
+                    "fixedColor": "red"
+                  }
+                },
+                {
+                  "id": "custom.lineStyle",
+                  "value": {
+                    "fill": "dots"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "options": {
+          "legend": {
+            "displayMode": "list",
+            "placement": "bottom"
+          },
+          "tooltip": {
+            "mode": "multi"
+          }
+        }
+      },
+      {
+        "id": 5,
+        "title": "PROD read \u00b7 p95 latency (ms)",
+        "description": "Merge per-series latency distributions per 5 min with ALIGN_SUM, then REDUCE_PERCENTILE_95 across revisions/codes. No average of percentiles; low-sample values are descriptive, no alert threshold.",
+        "type": "timeseries",
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "type": "json",
+            "source": "url",
+            "parser": "jq-backend",
+            "format": "timeseries",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Frequest_latencies%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20%22mw-credit-app-read-prod%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_SUM&aggregation.crossSeriesReducer=REDUCE_PERCENTILE_95",
+            "root_selector": "if .error then error(\"Monitoring query failed\") elif .nextPageToken then error(\"Metric response truncated; shorten range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime,value:((.value.doubleValue // .value.int64Value)|tonumber)}] | sort_by(.time) | .[] end",
+            "columns": [
+              {
+                "text": "Time",
+                "selector": "time",
+                "type": "timestamp"
+              },
+              {
+                "text": "p95",
+                "selector": "value",
+                "type": "number"
+              }
+            ],
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "gridPos": {
+          "x": 8,
+          "y": 12,
+          "w": 8,
+          "h": 7
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "ms",
+            "noValue": "No observed telemetry",
+            "min": 0,
+            "custom": {
+              "spanNulls": false,
+              "drawStyle": "line"
+            }
+          },
+          "overrides": []
+        },
+        "options": {
+          "legend": {
+            "displayMode": "list",
+            "placement": "bottom"
+          },
+          "tooltip": {
+            "mode": "multi"
+          }
+        }
+      },
+      {
+        "id": 6,
+        "title": "PROD read \u00b7 Instance peak envelope",
+        "description": "Sum of each revision/state series maximum per 5 min. Upper envelope, not exact simultaneous instance count. Zero/absent instances can be expected for min-zero services.",
+        "type": "timeseries",
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "type": "json",
+            "source": "url",
+            "parser": "jq-backend",
+            "format": "timeseries",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Fcontainer%2Finstance_count%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20%22mw-credit-app-read-prod%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_MAX&aggregation.crossSeriesReducer=REDUCE_SUM",
+            "root_selector": "if .error then error(\"Monitoring query failed\") elif .nextPageToken then error(\"Metric response truncated; shorten range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime,value:((.value.doubleValue // .value.int64Value)|tonumber)}] | sort_by(.time) | .[] end",
+            "columns": [
+              {
+                "text": "Time",
+                "selector": "time",
+                "type": "timestamp"
+              },
+              {
+                "text": "Peak envelope",
+                "selector": "value",
+                "type": "number"
+              }
+            ],
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "gridPos": {
+          "x": 16,
+          "y": 12,
+          "w": 8,
+          "h": 7
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "noValue": "No observed telemetry",
+            "min": 0,
+            "custom": {
+              "spanNulls": false,
+              "drawStyle": "line"
+            }
+          },
+          "overrides": []
+        },
+        "options": {
+          "legend": {
+            "displayMode": "list",
+            "placement": "bottom"
+          },
+          "tooltip": {
+            "mode": "multi"
+          }
+        }
+      },
+      {
+        "id": 7,
+        "title": "PROD command \u00b7 Requests / 5 min",
+        "description": "Sum of request counts across revisions. 4xx/client rejection and 5xx/server failure are subsets of All; absent subsets remain missing, never fabricated zero.",
+        "type": "timeseries",
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "type": "json",
+            "source": "url",
+            "parser": "jq-backend",
+            "format": "timeseries",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Frequest_count%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20%22mw-credit-app-command-prod%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_SUM&aggregation.crossSeriesReducer=REDUCE_SUM",
+            "root_selector": "if .error then error(\"Monitoring query failed\") elif .nextPageToken then error(\"Metric response truncated; shorten range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime,value:((.value.doubleValue // .value.int64Value)|tonumber)}] | sort_by(.time) | .[] end",
+            "columns": [
+              {
+                "text": "Time",
+                "selector": "time",
+                "type": "timestamp"
+              },
+              {
+                "text": "All",
+                "selector": "value",
+                "type": "number"
+              }
+            ],
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "refId": "B",
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "type": "json",
+            "source": "url",
+            "parser": "jq-backend",
+            "format": "timeseries",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Frequest_count%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20%22mw-credit-app-command-prod%22%20AND%20metric.labels.response_code_class%20%3D%20%224xx%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_SUM&aggregation.crossSeriesReducer=REDUCE_SUM",
+            "root_selector": "if .error then error(\"Monitoring query failed\") elif .nextPageToken then error(\"Metric response truncated; shorten range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime,value:((.value.doubleValue // .value.int64Value)|tonumber)}] | sort_by(.time) | .[] end",
+            "columns": [
+              {
+                "text": "Time",
+                "selector": "time",
+                "type": "timestamp"
+              },
+              {
+                "text": "4xx",
+                "selector": "value",
+                "type": "number"
+              }
+            ],
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "refId": "C",
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "type": "json",
+            "source": "url",
+            "parser": "jq-backend",
+            "format": "timeseries",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Frequest_count%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20%22mw-credit-app-command-prod%22%20AND%20metric.labels.response_code_class%20%3D%20%225xx%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_SUM&aggregation.crossSeriesReducer=REDUCE_SUM",
+            "root_selector": "if .error then error(\"Monitoring query failed\") elif .nextPageToken then error(\"Metric response truncated; shorten range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime,value:((.value.doubleValue // .value.int64Value)|tonumber)}] | sort_by(.time) | .[] end",
+            "columns": [
+              {
+                "text": "Time",
+                "selector": "time",
+                "type": "timestamp"
+              },
+              {
+                "text": "5xx",
+                "selector": "value",
+                "type": "number"
+              }
+            ],
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "gridPos": {
+          "x": 0,
+          "y": 19,
+          "w": 8,
+          "h": 7
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "noValue": "No observed telemetry",
+            "min": 0,
+            "custom": {
+              "spanNulls": false,
+              "drawStyle": "line"
+            }
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "All"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "fixed",
+                    "fixedColor": "blue"
+                  }
+                },
+                {
+                  "id": "custom.lineStyle",
+                  "value": {
+                    "fill": "solid"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "4xx"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "fixed",
+                    "fixedColor": "orange"
+                  }
+                },
+                {
+                  "id": "custom.lineStyle",
+                  "value": {
+                    "fill": "dash"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "5xx"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "fixed",
+                    "fixedColor": "red"
+                  }
+                },
+                {
+                  "id": "custom.lineStyle",
+                  "value": {
+                    "fill": "dots"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "options": {
+          "legend": {
+            "displayMode": "list",
+            "placement": "bottom"
+          },
+          "tooltip": {
+            "mode": "multi"
+          }
+        }
+      },
+      {
+        "id": 8,
+        "title": "PROD command \u00b7 p95 latency (ms)",
+        "description": "Merge per-series latency distributions per 5 min with ALIGN_SUM, then REDUCE_PERCENTILE_95 across revisions/codes. No average of percentiles; low-sample values are descriptive, no alert threshold.",
+        "type": "timeseries",
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "type": "json",
+            "source": "url",
+            "parser": "jq-backend",
+            "format": "timeseries",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Frequest_latencies%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20%22mw-credit-app-command-prod%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_SUM&aggregation.crossSeriesReducer=REDUCE_PERCENTILE_95",
+            "root_selector": "if .error then error(\"Monitoring query failed\") elif .nextPageToken then error(\"Metric response truncated; shorten range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime,value:((.value.doubleValue // .value.int64Value)|tonumber)}] | sort_by(.time) | .[] end",
+            "columns": [
+              {
+                "text": "Time",
+                "selector": "time",
+                "type": "timestamp"
+              },
+              {
+                "text": "p95",
+                "selector": "value",
+                "type": "number"
+              }
+            ],
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "gridPos": {
+          "x": 8,
+          "y": 19,
+          "w": 8,
+          "h": 7
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "ms",
+            "noValue": "No observed telemetry",
+            "min": 0,
+            "custom": {
+              "spanNulls": false,
+              "drawStyle": "line"
+            }
+          },
+          "overrides": []
+        },
+        "options": {
+          "legend": {
+            "displayMode": "list",
+            "placement": "bottom"
+          },
+          "tooltip": {
+            "mode": "multi"
+          }
+        }
+      },
+      {
+        "id": 9,
+        "title": "PROD command \u00b7 Instance peak envelope",
+        "description": "Sum of each revision/state series maximum per 5 min. Upper envelope, not exact simultaneous instance count. Zero/absent instances can be expected for min-zero services.",
+        "type": "timeseries",
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "type": "json",
+            "source": "url",
+            "parser": "jq-backend",
+            "format": "timeseries",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Fcontainer%2Finstance_count%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20%22mw-credit-app-command-prod%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_MAX&aggregation.crossSeriesReducer=REDUCE_SUM",
+            "root_selector": "if .error then error(\"Monitoring query failed\") elif .nextPageToken then error(\"Metric response truncated; shorten range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime,value:((.value.doubleValue // .value.int64Value)|tonumber)}] | sort_by(.time) | .[] end",
+            "columns": [
+              {
+                "text": "Time",
+                "selector": "time",
+                "type": "timestamp"
+              },
+              {
+                "text": "Peak envelope",
+                "selector": "value",
+                "type": "number"
+              }
+            ],
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "gridPos": {
+          "x": 16,
+          "y": 19,
+          "w": 8,
+          "h": 7
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "noValue": "No observed telemetry",
+            "min": 0,
+            "custom": {
+              "spanNulls": false,
+              "drawStyle": "line"
+            }
+          },
+          "overrides": []
+        },
+        "options": {
+          "legend": {
+            "displayMode": "list",
+            "placement": "bottom"
+          },
+          "tooltip": {
+            "mode": "multi"
+          }
+        }
+      },
+      {
+        "id": 10,
+        "title": "PROD jobs \u00b7 Requests / 5 min",
+        "description": "Sum of request counts across revisions. 4xx/client rejection and 5xx/server failure are subsets of All; absent subsets remain missing, never fabricated zero.",
+        "type": "timeseries",
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "type": "json",
+            "source": "url",
+            "parser": "jq-backend",
+            "format": "timeseries",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Frequest_count%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20%22mw-credit-app-jobs-prod%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_SUM&aggregation.crossSeriesReducer=REDUCE_SUM",
+            "root_selector": "if .error then error(\"Monitoring query failed\") elif .nextPageToken then error(\"Metric response truncated; shorten range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime,value:((.value.doubleValue // .value.int64Value)|tonumber)}] | sort_by(.time) | .[] end",
+            "columns": [
+              {
+                "text": "Time",
+                "selector": "time",
+                "type": "timestamp"
+              },
+              {
+                "text": "All",
+                "selector": "value",
+                "type": "number"
+              }
+            ],
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "refId": "B",
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "type": "json",
+            "source": "url",
+            "parser": "jq-backend",
+            "format": "timeseries",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Frequest_count%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20%22mw-credit-app-jobs-prod%22%20AND%20metric.labels.response_code_class%20%3D%20%224xx%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_SUM&aggregation.crossSeriesReducer=REDUCE_SUM",
+            "root_selector": "if .error then error(\"Monitoring query failed\") elif .nextPageToken then error(\"Metric response truncated; shorten range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime,value:((.value.doubleValue // .value.int64Value)|tonumber)}] | sort_by(.time) | .[] end",
+            "columns": [
+              {
+                "text": "Time",
+                "selector": "time",
+                "type": "timestamp"
+              },
+              {
+                "text": "4xx",
+                "selector": "value",
+                "type": "number"
+              }
+            ],
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "refId": "C",
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "type": "json",
+            "source": "url",
+            "parser": "jq-backend",
+            "format": "timeseries",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Frequest_count%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20%22mw-credit-app-jobs-prod%22%20AND%20metric.labels.response_code_class%20%3D%20%225xx%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_SUM&aggregation.crossSeriesReducer=REDUCE_SUM",
+            "root_selector": "if .error then error(\"Monitoring query failed\") elif .nextPageToken then error(\"Metric response truncated; shorten range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime,value:((.value.doubleValue // .value.int64Value)|tonumber)}] | sort_by(.time) | .[] end",
+            "columns": [
+              {
+                "text": "Time",
+                "selector": "time",
+                "type": "timestamp"
+              },
+              {
+                "text": "5xx",
+                "selector": "value",
+                "type": "number"
+              }
+            ],
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "gridPos": {
+          "x": 0,
+          "y": 26,
+          "w": 8,
+          "h": 7
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "noValue": "No observed telemetry",
+            "min": 0,
+            "custom": {
+              "spanNulls": false,
+              "drawStyle": "line"
+            }
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "All"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "fixed",
+                    "fixedColor": "blue"
+                  }
+                },
+                {
+                  "id": "custom.lineStyle",
+                  "value": {
+                    "fill": "solid"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "4xx"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "fixed",
+                    "fixedColor": "orange"
+                  }
+                },
+                {
+                  "id": "custom.lineStyle",
+                  "value": {
+                    "fill": "dash"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "5xx"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "fixed",
+                    "fixedColor": "red"
+                  }
+                },
+                {
+                  "id": "custom.lineStyle",
+                  "value": {
+                    "fill": "dots"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "options": {
+          "legend": {
+            "displayMode": "list",
+            "placement": "bottom"
+          },
+          "tooltip": {
+            "mode": "multi"
+          }
+        }
+      },
+      {
+        "id": 11,
+        "title": "PROD jobs \u00b7 p95 latency (ms)",
+        "description": "Merge per-series latency distributions per 5 min with ALIGN_SUM, then REDUCE_PERCENTILE_95 across revisions/codes. No average of percentiles; low-sample values are descriptive, no alert threshold.",
+        "type": "timeseries",
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "type": "json",
+            "source": "url",
+            "parser": "jq-backend",
+            "format": "timeseries",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Frequest_latencies%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20%22mw-credit-app-jobs-prod%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_SUM&aggregation.crossSeriesReducer=REDUCE_PERCENTILE_95",
+            "root_selector": "if .error then error(\"Monitoring query failed\") elif .nextPageToken then error(\"Metric response truncated; shorten range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime,value:((.value.doubleValue // .value.int64Value)|tonumber)}] | sort_by(.time) | .[] end",
+            "columns": [
+              {
+                "text": "Time",
+                "selector": "time",
+                "type": "timestamp"
+              },
+              {
+                "text": "p95",
+                "selector": "value",
+                "type": "number"
+              }
+            ],
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "gridPos": {
+          "x": 8,
+          "y": 26,
+          "w": 8,
+          "h": 7
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "ms",
+            "noValue": "No observed telemetry",
+            "min": 0,
+            "custom": {
+              "spanNulls": false,
+              "drawStyle": "line"
+            }
+          },
+          "overrides": []
+        },
+        "options": {
+          "legend": {
+            "displayMode": "list",
+            "placement": "bottom"
+          },
+          "tooltip": {
+            "mode": "multi"
+          }
+        }
+      },
+      {
+        "id": 12,
+        "title": "PROD jobs \u00b7 Instance peak envelope",
+        "description": "Sum of each revision/state series maximum per 5 min. Upper envelope, not exact simultaneous instance count. Zero/absent instances can be expected for min-zero services.",
+        "type": "timeseries",
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "type": "json",
+            "source": "url",
+            "parser": "jq-backend",
+            "format": "timeseries",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Fcontainer%2Finstance_count%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20%22mw-credit-app-jobs-prod%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_MAX&aggregation.crossSeriesReducer=REDUCE_SUM",
+            "root_selector": "if .error then error(\"Monitoring query failed\") elif .nextPageToken then error(\"Metric response truncated; shorten range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime,value:((.value.doubleValue // .value.int64Value)|tonumber)}] | sort_by(.time) | .[] end",
+            "columns": [
+              {
+                "text": "Time",
+                "selector": "time",
+                "type": "timestamp"
+              },
+              {
+                "text": "Peak envelope",
+                "selector": "value",
+                "type": "number"
+              }
+            ],
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "gridPos": {
+          "x": 16,
+          "y": 26,
+          "w": 8,
+          "h": 7
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "noValue": "No observed telemetry",
+            "min": 0,
+            "custom": {
+              "spanNulls": false,
+              "drawStyle": "line"
+            }
+          },
+          "overrides": []
+        },
+        "options": {
+          "legend": {
+            "displayMode": "list",
+            "placement": "bottom"
+          },
+          "tooltip": {
+            "mode": "multi"
+          }
+        }
+      },
+      {
+        "id": 13,
+        "title": "PROD notify \u00b7 Requests / 5 min",
+        "description": "Sum of request counts across revisions. 4xx/client rejection and 5xx/server failure are subsets of All; absent subsets remain missing, never fabricated zero.",
+        "type": "timeseries",
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "type": "json",
+            "source": "url",
+            "parser": "jq-backend",
+            "format": "timeseries",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Frequest_count%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20%22mw-credit-app-notify-prod%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_SUM&aggregation.crossSeriesReducer=REDUCE_SUM",
+            "root_selector": "if .error then error(\"Monitoring query failed\") elif .nextPageToken then error(\"Metric response truncated; shorten range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime,value:((.value.doubleValue // .value.int64Value)|tonumber)}] | sort_by(.time) | .[] end",
+            "columns": [
+              {
+                "text": "Time",
+                "selector": "time",
+                "type": "timestamp"
+              },
+              {
+                "text": "All",
+                "selector": "value",
+                "type": "number"
+              }
+            ],
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "refId": "B",
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "type": "json",
+            "source": "url",
+            "parser": "jq-backend",
+            "format": "timeseries",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Frequest_count%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20%22mw-credit-app-notify-prod%22%20AND%20metric.labels.response_code_class%20%3D%20%224xx%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_SUM&aggregation.crossSeriesReducer=REDUCE_SUM",
+            "root_selector": "if .error then error(\"Monitoring query failed\") elif .nextPageToken then error(\"Metric response truncated; shorten range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime,value:((.value.doubleValue // .value.int64Value)|tonumber)}] | sort_by(.time) | .[] end",
+            "columns": [
+              {
+                "text": "Time",
+                "selector": "time",
+                "type": "timestamp"
+              },
+              {
+                "text": "4xx",
+                "selector": "value",
+                "type": "number"
+              }
+            ],
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "refId": "C",
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "type": "json",
+            "source": "url",
+            "parser": "jq-backend",
+            "format": "timeseries",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Frequest_count%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20%22mw-credit-app-notify-prod%22%20AND%20metric.labels.response_code_class%20%3D%20%225xx%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_SUM&aggregation.crossSeriesReducer=REDUCE_SUM",
+            "root_selector": "if .error then error(\"Monitoring query failed\") elif .nextPageToken then error(\"Metric response truncated; shorten range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime,value:((.value.doubleValue // .value.int64Value)|tonumber)}] | sort_by(.time) | .[] end",
+            "columns": [
+              {
+                "text": "Time",
+                "selector": "time",
+                "type": "timestamp"
+              },
+              {
+                "text": "5xx",
+                "selector": "value",
+                "type": "number"
+              }
+            ],
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "gridPos": {
+          "x": 0,
+          "y": 33,
+          "w": 8,
+          "h": 7
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "noValue": "No observed telemetry",
+            "min": 0,
+            "custom": {
+              "spanNulls": false,
+              "drawStyle": "line"
+            }
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "All"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "fixed",
+                    "fixedColor": "blue"
+                  }
+                },
+                {
+                  "id": "custom.lineStyle",
+                  "value": {
+                    "fill": "solid"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "4xx"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "fixed",
+                    "fixedColor": "orange"
+                  }
+                },
+                {
+                  "id": "custom.lineStyle",
+                  "value": {
+                    "fill": "dash"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "5xx"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "fixed",
+                    "fixedColor": "red"
+                  }
+                },
+                {
+                  "id": "custom.lineStyle",
+                  "value": {
+                    "fill": "dots"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "options": {
+          "legend": {
+            "displayMode": "list",
+            "placement": "bottom"
+          },
+          "tooltip": {
+            "mode": "multi"
+          }
+        }
+      },
+      {
+        "id": 14,
+        "title": "PROD notify \u00b7 p95 latency (ms)",
+        "description": "Merge per-series latency distributions per 5 min with ALIGN_SUM, then REDUCE_PERCENTILE_95 across revisions/codes. No average of percentiles; low-sample values are descriptive, no alert threshold.",
+        "type": "timeseries",
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "type": "json",
+            "source": "url",
+            "parser": "jq-backend",
+            "format": "timeseries",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Frequest_latencies%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20%22mw-credit-app-notify-prod%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_SUM&aggregation.crossSeriesReducer=REDUCE_PERCENTILE_95",
+            "root_selector": "if .error then error(\"Monitoring query failed\") elif .nextPageToken then error(\"Metric response truncated; shorten range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime,value:((.value.doubleValue // .value.int64Value)|tonumber)}] | sort_by(.time) | .[] end",
+            "columns": [
+              {
+                "text": "Time",
+                "selector": "time",
+                "type": "timestamp"
+              },
+              {
+                "text": "p95",
+                "selector": "value",
+                "type": "number"
+              }
+            ],
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "gridPos": {
+          "x": 8,
+          "y": 33,
+          "w": 8,
+          "h": 7
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "ms",
+            "noValue": "No observed telemetry",
+            "min": 0,
+            "custom": {
+              "spanNulls": false,
+              "drawStyle": "line"
+            }
+          },
+          "overrides": []
+        },
+        "options": {
+          "legend": {
+            "displayMode": "list",
+            "placement": "bottom"
+          },
+          "tooltip": {
+            "mode": "multi"
+          }
+        }
+      },
+      {
+        "id": 15,
+        "title": "PROD notify \u00b7 Instance peak envelope",
+        "description": "Sum of each revision/state series maximum per 5 min. Upper envelope, not exact simultaneous instance count. Zero/absent instances can be expected for min-zero services.",
+        "type": "timeseries",
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "type": "json",
+            "source": "url",
+            "parser": "jq-backend",
+            "format": "timeseries",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Fcontainer%2Finstance_count%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20%22mw-credit-app-notify-prod%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_MAX&aggregation.crossSeriesReducer=REDUCE_SUM",
+            "root_selector": "if .error then error(\"Monitoring query failed\") elif .nextPageToken then error(\"Metric response truncated; shorten range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime,value:((.value.doubleValue // .value.int64Value)|tonumber)}] | sort_by(.time) | .[] end",
+            "columns": [
+              {
+                "text": "Time",
+                "selector": "time",
+                "type": "timestamp"
+              },
+              {
+                "text": "Peak envelope",
+                "selector": "value",
+                "type": "number"
+              }
+            ],
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "gridPos": {
+          "x": 16,
+          "y": 33,
+          "w": 8,
+          "h": 7
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "noValue": "No observed telemetry",
+            "min": 0,
+            "custom": {
+              "spanNulls": false,
+              "drawStyle": "line"
+            }
+          },
+          "overrides": []
+        },
+        "options": {
+          "legend": {
+            "displayMode": "list",
+            "placement": "bottom"
+          },
+          "tooltip": {
+            "mode": "multi"
+          }
+        }
+      },
+      {
+        "id": 16,
+        "type": "row",
+        "title": "DEV",
+        "collapsed": false,
+        "gridPos": {
+          "x": 0,
+          "y": 40,
+          "w": 24,
+          "h": 1
+        },
+        "panels": []
+      },
+      {
+        "id": 17,
+        "title": "DEV Hosting \u00b7 single vantage",
+        "type": "stat",
+        "description": "Read-only canonical shell and matching build-version entry. Explicit unexpected/failed response Down; absent report or older than 6 min Unknown. No redirect, login or business request. Collected by the existing monitoring timer.",
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "type": "json",
+            "source": "url",
+            "parser": "jq-backend",
+            "format": "timeseries",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fhealth%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22pwa_hosting_dev%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+            "root_selector": "if .error then error(\"Monitoring query failed\") elif .nextPageToken then error(\"Hosting response truncated\") else [.timeSeries[]?.points[]?]|sort_by(.interval.endTime)|last as $p | (try ($p.interval.endTime|sub(\"[.][0-9]+Z$\";\"Z\")|fromdateiso8601) catch null) as $t | {time:($p.interval.endTime//(now|todateiso8601)),value:(if $t==null or now-$t>360 or $t>now+120 then 4 elif ($p.value.int64Value|tonumber)==1 then 1 elif ($p.value.int64Value|tonumber)==0 then 0 else 4 end)} end",
+            "columns": [
+              {
+                "text": "Time",
+                "selector": "time",
+                "type": "timestamp"
+              },
+              {
+                "text": "Hosting",
+                "selector": "value",
+                "type": "number"
+              }
+            ],
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "gridPos": {
+          "x": 0,
+          "y": 41,
+          "w": 24,
+          "h": 3
+        },
+        "fieldConfig": {
+          "defaults": {
+            "noValue": "Unknown",
+            "mappings": [
+              {
+                "type": "value",
+                "options": {
+                  "0": {
+                    "text": "Down",
+                    "color": "red"
+                  },
+                  "1": {
+                    "text": "Reachable",
+                    "color": "green"
+                  },
+                  "4": {
+                    "text": "Unknown",
+                    "color": "gray"
+                  }
+                }
+              }
+            ]
+          },
+          "overrides": []
+        },
+        "options": {
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "colorMode": "background",
+          "graphMode": "none"
+        }
+      },
+      {
+        "id": 18,
+        "title": "DEV read \u00b7 Requests / 5 min",
+        "description": "Sum of request counts across revisions. 4xx/client rejection and 5xx/server failure are subsets of All; absent subsets remain missing, never fabricated zero.",
+        "type": "timeseries",
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "type": "json",
+            "source": "url",
+            "parser": "jq-backend",
+            "format": "timeseries",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Frequest_count%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20%22mw-credit-app-read-dev%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_SUM&aggregation.crossSeriesReducer=REDUCE_SUM",
+            "root_selector": "if .error then error(\"Monitoring query failed\") elif .nextPageToken then error(\"Metric response truncated; shorten range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime,value:((.value.doubleValue // .value.int64Value)|tonumber)}] | sort_by(.time) | .[] end",
+            "columns": [
+              {
+                "text": "Time",
+                "selector": "time",
+                "type": "timestamp"
+              },
+              {
+                "text": "All",
+                "selector": "value",
+                "type": "number"
+              }
+            ],
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "refId": "B",
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "type": "json",
+            "source": "url",
+            "parser": "jq-backend",
+            "format": "timeseries",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Frequest_count%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20%22mw-credit-app-read-dev%22%20AND%20metric.labels.response_code_class%20%3D%20%224xx%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_SUM&aggregation.crossSeriesReducer=REDUCE_SUM",
+            "root_selector": "if .error then error(\"Monitoring query failed\") elif .nextPageToken then error(\"Metric response truncated; shorten range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime,value:((.value.doubleValue // .value.int64Value)|tonumber)}] | sort_by(.time) | .[] end",
+            "columns": [
+              {
+                "text": "Time",
+                "selector": "time",
+                "type": "timestamp"
+              },
+              {
+                "text": "4xx",
+                "selector": "value",
+                "type": "number"
+              }
+            ],
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "refId": "C",
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "type": "json",
+            "source": "url",
+            "parser": "jq-backend",
+            "format": "timeseries",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Frequest_count%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20%22mw-credit-app-read-dev%22%20AND%20metric.labels.response_code_class%20%3D%20%225xx%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_SUM&aggregation.crossSeriesReducer=REDUCE_SUM",
+            "root_selector": "if .error then error(\"Monitoring query failed\") elif .nextPageToken then error(\"Metric response truncated; shorten range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime,value:((.value.doubleValue // .value.int64Value)|tonumber)}] | sort_by(.time) | .[] end",
+            "columns": [
+              {
+                "text": "Time",
+                "selector": "time",
+                "type": "timestamp"
+              },
+              {
+                "text": "5xx",
+                "selector": "value",
+                "type": "number"
+              }
+            ],
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "gridPos": {
+          "x": 0,
+          "y": 44,
+          "w": 8,
+          "h": 7
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "noValue": "No observed telemetry",
+            "min": 0,
+            "custom": {
+              "spanNulls": false,
+              "drawStyle": "line"
+            }
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "All"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "fixed",
+                    "fixedColor": "blue"
+                  }
+                },
+                {
+                  "id": "custom.lineStyle",
+                  "value": {
+                    "fill": "solid"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "4xx"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "fixed",
+                    "fixedColor": "orange"
+                  }
+                },
+                {
+                  "id": "custom.lineStyle",
+                  "value": {
+                    "fill": "dash"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "5xx"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "fixed",
+                    "fixedColor": "red"
+                  }
+                },
+                {
+                  "id": "custom.lineStyle",
+                  "value": {
+                    "fill": "dots"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "options": {
+          "legend": {
+            "displayMode": "list",
+            "placement": "bottom"
+          },
+          "tooltip": {
+            "mode": "multi"
+          }
+        }
+      },
+      {
+        "id": 19,
+        "title": "DEV read \u00b7 p95 latency (ms)",
+        "description": "Merge per-series latency distributions per 5 min with ALIGN_SUM, then REDUCE_PERCENTILE_95 across revisions/codes. No average of percentiles; low-sample values are descriptive, no alert threshold.",
+        "type": "timeseries",
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "type": "json",
+            "source": "url",
+            "parser": "jq-backend",
+            "format": "timeseries",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Frequest_latencies%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20%22mw-credit-app-read-dev%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_SUM&aggregation.crossSeriesReducer=REDUCE_PERCENTILE_95",
+            "root_selector": "if .error then error(\"Monitoring query failed\") elif .nextPageToken then error(\"Metric response truncated; shorten range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime,value:((.value.doubleValue // .value.int64Value)|tonumber)}] | sort_by(.time) | .[] end",
+            "columns": [
+              {
+                "text": "Time",
+                "selector": "time",
+                "type": "timestamp"
+              },
+              {
+                "text": "p95",
+                "selector": "value",
+                "type": "number"
+              }
+            ],
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "gridPos": {
+          "x": 8,
+          "y": 44,
+          "w": 8,
+          "h": 7
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "ms",
+            "noValue": "No observed telemetry",
+            "min": 0,
+            "custom": {
+              "spanNulls": false,
+              "drawStyle": "line"
+            }
+          },
+          "overrides": []
+        },
+        "options": {
+          "legend": {
+            "displayMode": "list",
+            "placement": "bottom"
+          },
+          "tooltip": {
+            "mode": "multi"
+          }
+        }
+      },
+      {
+        "id": 20,
+        "title": "DEV read \u00b7 Instance peak envelope",
+        "description": "Sum of each revision/state series maximum per 5 min. Upper envelope, not exact simultaneous instance count. Zero/absent instances can be expected for min-zero services.",
+        "type": "timeseries",
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "type": "json",
+            "source": "url",
+            "parser": "jq-backend",
+            "format": "timeseries",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Fcontainer%2Finstance_count%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20%22mw-credit-app-read-dev%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_MAX&aggregation.crossSeriesReducer=REDUCE_SUM",
+            "root_selector": "if .error then error(\"Monitoring query failed\") elif .nextPageToken then error(\"Metric response truncated; shorten range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime,value:((.value.doubleValue // .value.int64Value)|tonumber)}] | sort_by(.time) | .[] end",
+            "columns": [
+              {
+                "text": "Time",
+                "selector": "time",
+                "type": "timestamp"
+              },
+              {
+                "text": "Peak envelope",
+                "selector": "value",
+                "type": "number"
+              }
+            ],
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "gridPos": {
+          "x": 16,
+          "y": 44,
+          "w": 8,
+          "h": 7
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "noValue": "No observed telemetry",
+            "min": 0,
+            "custom": {
+              "spanNulls": false,
+              "drawStyle": "line"
+            }
+          },
+          "overrides": []
+        },
+        "options": {
+          "legend": {
+            "displayMode": "list",
+            "placement": "bottom"
+          },
+          "tooltip": {
+            "mode": "multi"
+          }
+        }
+      },
+      {
+        "id": 21,
+        "title": "DEV command \u00b7 Requests / 5 min",
+        "description": "Sum of request counts across revisions. 4xx/client rejection and 5xx/server failure are subsets of All; absent subsets remain missing, never fabricated zero.",
+        "type": "timeseries",
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "type": "json",
+            "source": "url",
+            "parser": "jq-backend",
+            "format": "timeseries",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Frequest_count%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20%22mw-credit-app-command-dev%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_SUM&aggregation.crossSeriesReducer=REDUCE_SUM",
+            "root_selector": "if .error then error(\"Monitoring query failed\") elif .nextPageToken then error(\"Metric response truncated; shorten range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime,value:((.value.doubleValue // .value.int64Value)|tonumber)}] | sort_by(.time) | .[] end",
+            "columns": [
+              {
+                "text": "Time",
+                "selector": "time",
+                "type": "timestamp"
+              },
+              {
+                "text": "All",
+                "selector": "value",
+                "type": "number"
+              }
+            ],
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "refId": "B",
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "type": "json",
+            "source": "url",
+            "parser": "jq-backend",
+            "format": "timeseries",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Frequest_count%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20%22mw-credit-app-command-dev%22%20AND%20metric.labels.response_code_class%20%3D%20%224xx%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_SUM&aggregation.crossSeriesReducer=REDUCE_SUM",
+            "root_selector": "if .error then error(\"Monitoring query failed\") elif .nextPageToken then error(\"Metric response truncated; shorten range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime,value:((.value.doubleValue // .value.int64Value)|tonumber)}] | sort_by(.time) | .[] end",
+            "columns": [
+              {
+                "text": "Time",
+                "selector": "time",
+                "type": "timestamp"
+              },
+              {
+                "text": "4xx",
+                "selector": "value",
+                "type": "number"
+              }
+            ],
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "refId": "C",
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "type": "json",
+            "source": "url",
+            "parser": "jq-backend",
+            "format": "timeseries",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Frequest_count%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20%22mw-credit-app-command-dev%22%20AND%20metric.labels.response_code_class%20%3D%20%225xx%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_SUM&aggregation.crossSeriesReducer=REDUCE_SUM",
+            "root_selector": "if .error then error(\"Monitoring query failed\") elif .nextPageToken then error(\"Metric response truncated; shorten range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime,value:((.value.doubleValue // .value.int64Value)|tonumber)}] | sort_by(.time) | .[] end",
+            "columns": [
+              {
+                "text": "Time",
+                "selector": "time",
+                "type": "timestamp"
+              },
+              {
+                "text": "5xx",
+                "selector": "value",
+                "type": "number"
+              }
+            ],
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "gridPos": {
+          "x": 0,
+          "y": 51,
+          "w": 8,
+          "h": 7
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "noValue": "No observed telemetry",
+            "min": 0,
+            "custom": {
+              "spanNulls": false,
+              "drawStyle": "line"
+            }
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "All"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "fixed",
+                    "fixedColor": "blue"
+                  }
+                },
+                {
+                  "id": "custom.lineStyle",
+                  "value": {
+                    "fill": "solid"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "4xx"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "fixed",
+                    "fixedColor": "orange"
+                  }
+                },
+                {
+                  "id": "custom.lineStyle",
+                  "value": {
+                    "fill": "dash"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "5xx"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "fixed",
+                    "fixedColor": "red"
+                  }
+                },
+                {
+                  "id": "custom.lineStyle",
+                  "value": {
+                    "fill": "dots"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "options": {
+          "legend": {
+            "displayMode": "list",
+            "placement": "bottom"
+          },
+          "tooltip": {
+            "mode": "multi"
+          }
+        }
+      },
+      {
+        "id": 22,
+        "title": "DEV command \u00b7 p95 latency (ms)",
+        "description": "Merge per-series latency distributions per 5 min with ALIGN_SUM, then REDUCE_PERCENTILE_95 across revisions/codes. No average of percentiles; low-sample values are descriptive, no alert threshold.",
+        "type": "timeseries",
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "type": "json",
+            "source": "url",
+            "parser": "jq-backend",
+            "format": "timeseries",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Frequest_latencies%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20%22mw-credit-app-command-dev%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_SUM&aggregation.crossSeriesReducer=REDUCE_PERCENTILE_95",
+            "root_selector": "if .error then error(\"Monitoring query failed\") elif .nextPageToken then error(\"Metric response truncated; shorten range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime,value:((.value.doubleValue // .value.int64Value)|tonumber)}] | sort_by(.time) | .[] end",
+            "columns": [
+              {
+                "text": "Time",
+                "selector": "time",
+                "type": "timestamp"
+              },
+              {
+                "text": "p95",
+                "selector": "value",
+                "type": "number"
+              }
+            ],
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "gridPos": {
+          "x": 8,
+          "y": 51,
+          "w": 8,
+          "h": 7
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "ms",
+            "noValue": "No observed telemetry",
+            "min": 0,
+            "custom": {
+              "spanNulls": false,
+              "drawStyle": "line"
+            }
+          },
+          "overrides": []
+        },
+        "options": {
+          "legend": {
+            "displayMode": "list",
+            "placement": "bottom"
+          },
+          "tooltip": {
+            "mode": "multi"
+          }
+        }
+      },
+      {
+        "id": 23,
+        "title": "DEV command \u00b7 Instance peak envelope",
+        "description": "Sum of each revision/state series maximum per 5 min. Upper envelope, not exact simultaneous instance count. Zero/absent instances can be expected for min-zero services.",
+        "type": "timeseries",
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "type": "json",
+            "source": "url",
+            "parser": "jq-backend",
+            "format": "timeseries",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Fcontainer%2Finstance_count%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20%22mw-credit-app-command-dev%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_MAX&aggregation.crossSeriesReducer=REDUCE_SUM",
+            "root_selector": "if .error then error(\"Monitoring query failed\") elif .nextPageToken then error(\"Metric response truncated; shorten range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime,value:((.value.doubleValue // .value.int64Value)|tonumber)}] | sort_by(.time) | .[] end",
+            "columns": [
+              {
+                "text": "Time",
+                "selector": "time",
+                "type": "timestamp"
+              },
+              {
+                "text": "Peak envelope",
+                "selector": "value",
+                "type": "number"
+              }
+            ],
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "gridPos": {
+          "x": 16,
+          "y": 51,
+          "w": 8,
+          "h": 7
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "noValue": "No observed telemetry",
+            "min": 0,
+            "custom": {
+              "spanNulls": false,
+              "drawStyle": "line"
+            }
+          },
+          "overrides": []
+        },
+        "options": {
+          "legend": {
+            "displayMode": "list",
+            "placement": "bottom"
+          },
+          "tooltip": {
+            "mode": "multi"
+          }
+        }
+      },
+      {
+        "id": 24,
+        "title": "DEV jobs \u00b7 Requests / 5 min",
+        "description": "Sum of request counts across revisions. 4xx/client rejection and 5xx/server failure are subsets of All; absent subsets remain missing, never fabricated zero.",
+        "type": "timeseries",
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "type": "json",
+            "source": "url",
+            "parser": "jq-backend",
+            "format": "timeseries",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Frequest_count%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20%22mw-credit-app-jobs-dev%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_SUM&aggregation.crossSeriesReducer=REDUCE_SUM",
+            "root_selector": "if .error then error(\"Monitoring query failed\") elif .nextPageToken then error(\"Metric response truncated; shorten range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime,value:((.value.doubleValue // .value.int64Value)|tonumber)}] | sort_by(.time) | .[] end",
+            "columns": [
+              {
+                "text": "Time",
+                "selector": "time",
+                "type": "timestamp"
+              },
+              {
+                "text": "All",
+                "selector": "value",
+                "type": "number"
+              }
+            ],
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "refId": "B",
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "type": "json",
+            "source": "url",
+            "parser": "jq-backend",
+            "format": "timeseries",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Frequest_count%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20%22mw-credit-app-jobs-dev%22%20AND%20metric.labels.response_code_class%20%3D%20%224xx%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_SUM&aggregation.crossSeriesReducer=REDUCE_SUM",
+            "root_selector": "if .error then error(\"Monitoring query failed\") elif .nextPageToken then error(\"Metric response truncated; shorten range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime,value:((.value.doubleValue // .value.int64Value)|tonumber)}] | sort_by(.time) | .[] end",
+            "columns": [
+              {
+                "text": "Time",
+                "selector": "time",
+                "type": "timestamp"
+              },
+              {
+                "text": "4xx",
+                "selector": "value",
+                "type": "number"
+              }
+            ],
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "refId": "C",
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "type": "json",
+            "source": "url",
+            "parser": "jq-backend",
+            "format": "timeseries",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Frequest_count%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20%22mw-credit-app-jobs-dev%22%20AND%20metric.labels.response_code_class%20%3D%20%225xx%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_SUM&aggregation.crossSeriesReducer=REDUCE_SUM",
+            "root_selector": "if .error then error(\"Monitoring query failed\") elif .nextPageToken then error(\"Metric response truncated; shorten range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime,value:((.value.doubleValue // .value.int64Value)|tonumber)}] | sort_by(.time) | .[] end",
+            "columns": [
+              {
+                "text": "Time",
+                "selector": "time",
+                "type": "timestamp"
+              },
+              {
+                "text": "5xx",
+                "selector": "value",
+                "type": "number"
+              }
+            ],
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "gridPos": {
+          "x": 0,
+          "y": 58,
+          "w": 8,
+          "h": 7
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "noValue": "No observed telemetry",
+            "min": 0,
+            "custom": {
+              "spanNulls": false,
+              "drawStyle": "line"
+            }
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "All"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "fixed",
+                    "fixedColor": "blue"
+                  }
+                },
+                {
+                  "id": "custom.lineStyle",
+                  "value": {
+                    "fill": "solid"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "4xx"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "fixed",
+                    "fixedColor": "orange"
+                  }
+                },
+                {
+                  "id": "custom.lineStyle",
+                  "value": {
+                    "fill": "dash"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "5xx"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "fixed",
+                    "fixedColor": "red"
+                  }
+                },
+                {
+                  "id": "custom.lineStyle",
+                  "value": {
+                    "fill": "dots"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "options": {
+          "legend": {
+            "displayMode": "list",
+            "placement": "bottom"
+          },
+          "tooltip": {
+            "mode": "multi"
+          }
+        }
+      },
+      {
+        "id": 25,
+        "title": "DEV jobs \u00b7 p95 latency (ms)",
+        "description": "Merge per-series latency distributions per 5 min with ALIGN_SUM, then REDUCE_PERCENTILE_95 across revisions/codes. No average of percentiles; low-sample values are descriptive, no alert threshold.",
+        "type": "timeseries",
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "type": "json",
+            "source": "url",
+            "parser": "jq-backend",
+            "format": "timeseries",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Frequest_latencies%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20%22mw-credit-app-jobs-dev%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_SUM&aggregation.crossSeriesReducer=REDUCE_PERCENTILE_95",
+            "root_selector": "if .error then error(\"Monitoring query failed\") elif .nextPageToken then error(\"Metric response truncated; shorten range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime,value:((.value.doubleValue // .value.int64Value)|tonumber)}] | sort_by(.time) | .[] end",
+            "columns": [
+              {
+                "text": "Time",
+                "selector": "time",
+                "type": "timestamp"
+              },
+              {
+                "text": "p95",
+                "selector": "value",
+                "type": "number"
+              }
+            ],
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "gridPos": {
+          "x": 8,
+          "y": 58,
+          "w": 8,
+          "h": 7
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "ms",
+            "noValue": "No observed telemetry",
+            "min": 0,
+            "custom": {
+              "spanNulls": false,
+              "drawStyle": "line"
+            }
+          },
+          "overrides": []
+        },
+        "options": {
+          "legend": {
+            "displayMode": "list",
+            "placement": "bottom"
+          },
+          "tooltip": {
+            "mode": "multi"
+          }
+        }
+      },
+      {
+        "id": 26,
+        "title": "DEV jobs \u00b7 Instance peak envelope",
+        "description": "Sum of each revision/state series maximum per 5 min. Upper envelope, not exact simultaneous instance count. Zero/absent instances can be expected for min-zero services.",
+        "type": "timeseries",
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "type": "json",
+            "source": "url",
+            "parser": "jq-backend",
+            "format": "timeseries",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Fcontainer%2Finstance_count%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20%22mw-credit-app-jobs-dev%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_MAX&aggregation.crossSeriesReducer=REDUCE_SUM",
+            "root_selector": "if .error then error(\"Monitoring query failed\") elif .nextPageToken then error(\"Metric response truncated; shorten range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime,value:((.value.doubleValue // .value.int64Value)|tonumber)}] | sort_by(.time) | .[] end",
+            "columns": [
+              {
+                "text": "Time",
+                "selector": "time",
+                "type": "timestamp"
+              },
+              {
+                "text": "Peak envelope",
+                "selector": "value",
+                "type": "number"
+              }
+            ],
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "gridPos": {
+          "x": 16,
+          "y": 58,
+          "w": 8,
+          "h": 7
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "noValue": "No observed telemetry",
+            "min": 0,
+            "custom": {
+              "spanNulls": false,
+              "drawStyle": "line"
+            }
+          },
+          "overrides": []
+        },
+        "options": {
+          "legend": {
+            "displayMode": "list",
+            "placement": "bottom"
+          },
+          "tooltip": {
+            "mode": "multi"
+          }
+        }
+      },
+      {
+        "id": 27,
+        "title": "DEV notify \u00b7 Requests / 5 min",
+        "description": "Sum of request counts across revisions. 4xx/client rejection and 5xx/server failure are subsets of All; absent subsets remain missing, never fabricated zero.",
+        "type": "timeseries",
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "type": "json",
+            "source": "url",
+            "parser": "jq-backend",
+            "format": "timeseries",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Frequest_count%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20%22mw-credit-app-notify-dev%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_SUM&aggregation.crossSeriesReducer=REDUCE_SUM",
+            "root_selector": "if .error then error(\"Monitoring query failed\") elif .nextPageToken then error(\"Metric response truncated; shorten range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime,value:((.value.doubleValue // .value.int64Value)|tonumber)}] | sort_by(.time) | .[] end",
+            "columns": [
+              {
+                "text": "Time",
+                "selector": "time",
+                "type": "timestamp"
+              },
+              {
+                "text": "All",
+                "selector": "value",
+                "type": "number"
+              }
+            ],
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "refId": "B",
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "type": "json",
+            "source": "url",
+            "parser": "jq-backend",
+            "format": "timeseries",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Frequest_count%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20%22mw-credit-app-notify-dev%22%20AND%20metric.labels.response_code_class%20%3D%20%224xx%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_SUM&aggregation.crossSeriesReducer=REDUCE_SUM",
+            "root_selector": "if .error then error(\"Monitoring query failed\") elif .nextPageToken then error(\"Metric response truncated; shorten range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime,value:((.value.doubleValue // .value.int64Value)|tonumber)}] | sort_by(.time) | .[] end",
+            "columns": [
+              {
+                "text": "Time",
+                "selector": "time",
+                "type": "timestamp"
+              },
+              {
+                "text": "4xx",
+                "selector": "value",
+                "type": "number"
+              }
+            ],
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "refId": "C",
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "type": "json",
+            "source": "url",
+            "parser": "jq-backend",
+            "format": "timeseries",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Frequest_count%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20%22mw-credit-app-notify-dev%22%20AND%20metric.labels.response_code_class%20%3D%20%225xx%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_SUM&aggregation.crossSeriesReducer=REDUCE_SUM",
+            "root_selector": "if .error then error(\"Monitoring query failed\") elif .nextPageToken then error(\"Metric response truncated; shorten range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime,value:((.value.doubleValue // .value.int64Value)|tonumber)}] | sort_by(.time) | .[] end",
+            "columns": [
+              {
+                "text": "Time",
+                "selector": "time",
+                "type": "timestamp"
+              },
+              {
+                "text": "5xx",
+                "selector": "value",
+                "type": "number"
+              }
+            ],
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "gridPos": {
+          "x": 0,
+          "y": 65,
+          "w": 8,
+          "h": 7
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "noValue": "No observed telemetry",
+            "min": 0,
+            "custom": {
+              "spanNulls": false,
+              "drawStyle": "line"
+            }
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "All"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "fixed",
+                    "fixedColor": "blue"
+                  }
+                },
+                {
+                  "id": "custom.lineStyle",
+                  "value": {
+                    "fill": "solid"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "4xx"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "fixed",
+                    "fixedColor": "orange"
+                  }
+                },
+                {
+                  "id": "custom.lineStyle",
+                  "value": {
+                    "fill": "dash"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "5xx"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "fixed",
+                    "fixedColor": "red"
+                  }
+                },
+                {
+                  "id": "custom.lineStyle",
+                  "value": {
+                    "fill": "dots"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "options": {
+          "legend": {
+            "displayMode": "list",
+            "placement": "bottom"
+          },
+          "tooltip": {
+            "mode": "multi"
+          }
+        }
+      },
+      {
+        "id": 28,
+        "title": "DEV notify \u00b7 p95 latency (ms)",
+        "description": "Merge per-series latency distributions per 5 min with ALIGN_SUM, then REDUCE_PERCENTILE_95 across revisions/codes. No average of percentiles; low-sample values are descriptive, no alert threshold.",
+        "type": "timeseries",
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "type": "json",
+            "source": "url",
+            "parser": "jq-backend",
+            "format": "timeseries",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Frequest_latencies%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20%22mw-credit-app-notify-dev%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_SUM&aggregation.crossSeriesReducer=REDUCE_PERCENTILE_95",
+            "root_selector": "if .error then error(\"Monitoring query failed\") elif .nextPageToken then error(\"Metric response truncated; shorten range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime,value:((.value.doubleValue // .value.int64Value)|tonumber)}] | sort_by(.time) | .[] end",
+            "columns": [
+              {
+                "text": "Time",
+                "selector": "time",
+                "type": "timestamp"
+              },
+              {
+                "text": "p95",
+                "selector": "value",
+                "type": "number"
+              }
+            ],
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "gridPos": {
+          "x": 8,
+          "y": 65,
+          "w": 8,
+          "h": 7
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "ms",
+            "noValue": "No observed telemetry",
+            "min": 0,
+            "custom": {
+              "spanNulls": false,
+              "drawStyle": "line"
+            }
+          },
+          "overrides": []
+        },
+        "options": {
+          "legend": {
+            "displayMode": "list",
+            "placement": "bottom"
+          },
+          "tooltip": {
+            "mode": "multi"
+          }
+        }
+      },
+      {
+        "id": 29,
+        "title": "DEV notify \u00b7 Instance peak envelope",
+        "description": "Sum of each revision/state series maximum per 5 min. Upper envelope, not exact simultaneous instance count. Zero/absent instances can be expected for min-zero services.",
+        "type": "timeseries",
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "type": "json",
+            "source": "url",
+            "parser": "jq-backend",
+            "format": "timeseries",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Fcontainer%2Finstance_count%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20%22mw-credit-app-notify-dev%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_MAX&aggregation.crossSeriesReducer=REDUCE_SUM",
+            "root_selector": "if .error then error(\"Monitoring query failed\") elif .nextPageToken then error(\"Metric response truncated; shorten range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime,value:((.value.doubleValue // .value.int64Value)|tonumber)}] | sort_by(.time) | .[] end",
+            "columns": [
+              {
+                "text": "Time",
+                "selector": "time",
+                "type": "timestamp"
+              },
+              {
+                "text": "Peak envelope",
+                "selector": "value",
+                "type": "number"
+              }
+            ],
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "gridPos": {
+          "x": 16,
+          "y": 65,
+          "w": 8,
+          "h": 7
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "noValue": "No observed telemetry",
+            "min": 0,
+            "custom": {
+              "spanNulls": false,
+              "drawStyle": "line"
+            }
+          },
+          "overrides": []
+        },
+        "options": {
+          "legend": {
+            "displayMode": "list",
+            "placement": "bottom"
+          },
+          "tooltip": {
+            "mode": "multi"
+          }
+        }
+      }
+    ],
+    "links": [
+      {
+        "title": "Performance",
+        "type": "link",
+        "url": "/d/mw-resource-performance",
+        "targetBlank": false
+      },
+      {
+        "title": "Cost",
+        "type": "link",
+        "url": "/d/mw-resource-cost",
+        "targetBlank": false
+      }
+    ],
+    "templating": {
+      "list": []
+    }
+  }
+}

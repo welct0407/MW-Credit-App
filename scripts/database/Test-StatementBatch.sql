@@ -32,3 +32,4 @@ DO $$ BEGIN
   RAISE EXCEPTION 'Retired experimental related-ID view still exists';
  END IF;
 END $$;
+\ir Test-ApplePushEndpoints.sql

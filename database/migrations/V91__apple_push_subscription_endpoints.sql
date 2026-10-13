@@ -1,0 +1,29 @@
+-- R056: Apple Web Push may use any valid DNS subdomain of push.apple.com.
+-- Preserve the existing definer, owner, ACLs and all subscription/actor checks.
+CREATE OR REPLACE FUNCTION public.pwa_notify_subscribe_v1(actor jsonb,subscription jsonb) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,public AS $$
+DECLARE partner text; endpoint text; endpoint_digest text; expires timestamptz; subscription_id uuid; key_bytes bytea; auth_bytes bytea;
+BEGIN
+ partner:=public.pwa_notify_actor_v1(actor);endpoint:=subscription->>'endpoint';
+ IF jsonb_typeof(subscription) IS DISTINCT FROM 'object' OR (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(subscription) key) IS DISTINCT FROM ARRAY['endpoint','expirationTime','keys']::text[]
+ OR jsonb_typeof(subscription->'keys') IS DISTINCT FROM 'object' OR (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(subscription->'keys') key) IS DISTINCT FROM ARRAY['auth','p256dh']::text[]
+ OR jsonb_typeof(subscription->'endpoint') IS DISTINCT FROM 'string' OR coalesce(length(endpoint),0) NOT BETWEEN 1 AND 4096
+ OR endpoint !~ '^https://(fcm\.googleapis\.com|([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+push\.apple\.com|updates\.push\.services\.mozilla\.com)/[^[:space:]#]*$'
+ OR coalesce(subscription#>>'{keys,p256dh}','') !~ '^[A-Za-z0-9_-]{87}$' OR coalesce(subscription#>>'{keys,auth}','') !~ '^[A-Za-z0-9_-]{22}$' THEN RAISE EXCEPTION 'invalid_subscription'; END IF;
+ BEGIN
+  key_bytes:=decode(translate(subscription#>>'{keys,p256dh}','-_','+/')||'=','base64');auth_bytes:=decode(translate(subscription#>>'{keys,auth}','-_','+/')||'==','base64');
+  IF octet_length(key_bytes)<>65 OR get_byte(key_bytes,0)<>4 OR octet_length(auth_bytes)<>16 THEN RAISE EXCEPTION 'invalid_subscription'; END IF;
+  IF subscription->'expirationTime'<>'null'::jsonb THEN
+   IF jsonb_typeof(subscription->'expirationTime')<>'number' OR subscription->>'expirationTime' !~ '^[0-9]{1,16}$' THEN RAISE EXCEPTION 'invalid_subscription'; END IF;
+   expires:=to_timestamp((subscription->>'expirationTime')::numeric/1000);IF expires<=clock_timestamp() THEN RAISE EXCEPTION 'invalid_subscription'; END IF;
+  END IF;
+ EXCEPTION WHEN OTHERS THEN RAISE EXCEPTION 'invalid_subscription'; END;
+ endpoint_digest:=encode(sha256(convert_to(endpoint,'UTF8')),'hex');
+ INSERT INTO public.pwa_push_subscriptions AS s(issuer,subject,partner_id,endpoint_hash,endpoint,p256dh,auth,expires_at)
+ VALUES(actor->>'issuer',actor->>'subject',partner,endpoint_digest,endpoint,subscription#>>'{keys,p256dh}',subscription#>>'{keys,auth}',expires)
+ ON CONFLICT(endpoint_hash) DO UPDATE SET p256dh=excluded.p256dh,auth=excluded.auth,expires_at=excluded.expires_at,enabled=true,version=s.version+1,last_seen_at=clock_timestamp()
+ WHERE s.issuer=excluded.issuer AND s.subject=excluded.subject AND s.partner_id=excluded.partner_id RETURNING s.subscription_id INTO subscription_id;
+ IF subscription_id IS NULL THEN RAISE EXCEPTION 'access_denied'; END IF;
+ RETURN jsonb_build_object('subscriptionId',subscription_id);
+END $$;
+

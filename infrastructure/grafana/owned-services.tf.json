@@ -1,0 +1,713 @@
+{
+  "resource": {
+    "grafana_data_source": {
+      "mw_azure_monitoring": {
+        "uid": "mw-azure-monitoring",
+        "name": "MW \u00b7 Azure Monitoring and Cost",
+        "type": "yesoreyeram-infinity-datasource",
+        "access_mode": "proxy",
+        "url": "",
+        "is_default": false,
+        "basic_auth_enabled": false,
+        "json_data_encoded": "{\"allowedHosts\":[\"https://management.azure.com\",\"https://login.microsoftonline.com/9e29c895-606a-420b-acc2-1c24375df4d9\"],\"auth_method\":\"oauth2\",\"customHealthCheckEnabled\":true,\"customHealthCheckUrl\":\"https://management.azure.com/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/rg-mwcredit/providers/Microsoft.Compute/virtualMachines/VM-01?api-version=2024-07-01\",\"oauth2\":{\"client_id\":\"c285a10c-5054-4f79-928f-46d7488b3f46\",\"oauth2_type\":\"client_credentials\",\"scopes\":[\"https://management.azure.com/.default\"],\"token_url\":\"https://login.microsoftonline.com/9e29c895-606a-420b-acc2-1c24375df4d9/oauth2/v2.0/token\"},\"timeout\":60}",
+        "lifecycle": {
+          "prevent_destroy": true,
+          "ignore_changes": [
+            "secure_json_data_encoded",
+            "http_headers"
+          ]
+        }
+      },
+      "mw_gcp_monitoring": {
+        "uid": "mw-gcp-monitoring",
+        "name": "MW \u00b7 GCP Monitoring and Billing",
+        "type": "yesoreyeram-infinity-datasource",
+        "access_mode": "proxy",
+        "url": "",
+        "is_default": false,
+        "basic_auth_enabled": false,
+        "json_data_encoded": "{\"allowedHosts\":[\"https://monitoring.googleapis.com\",\"https://bigquery.googleapis.com\",\"https://oauth2.googleapis.com\"],\"auth_method\":\"oauth2\",\"customHealthCheckEnabled\":true,\"customHealthCheckUrl\":\"https://bigquery.googleapis.com/bigquery/v2/projects/clever-oasis-508610-n7/datasets/mw_cloud_billing\",\"oauth2\":{\"email\":\"mw-grafana-monitoring@clever-oasis-508610-n7.iam.gserviceaccount.com\",\"oauth2_type\":\"jwt\",\"private_key_id\":\"b3a93d5134ab7b2dd9e99834a5a23a0fe1cf08a0\",\"scopes\":[\"https://www.googleapis.com/auth/monitoring.read\",\"https://www.googleapis.com/auth/bigquery\"],\"token_url\":\"https://oauth2.googleapis.com/token\"},\"timeout\":60}",
+        "lifecycle": {
+          "prevent_destroy": true,
+          "ignore_changes": [
+            "secure_json_data_encoded",
+            "http_headers"
+          ]
+        }
+      },
+      "mw_railway_monitoring": {
+        "uid": "mw-railway-monitoring",
+        "name": "MW \u00b7 Railway Monitoring and Usage",
+        "type": "yesoreyeram-infinity-datasource",
+        "access_mode": "proxy",
+        "url": "",
+        "is_default": false,
+        "basic_auth_enabled": false,
+        "json_data_encoded": "{\"allowedHosts\":[\"https://backboard.railway.com\"],\"auth_method\":\"bearerToken\",\"timeout\":60}",
+        "lifecycle": {
+          "prevent_destroy": true,
+          "ignore_changes": [
+            "secure_json_data_encoded",
+            "http_headers"
+          ]
+        }
+      },
+      "cfz1i3v9ruk1sb": {
+        "uid": "cfz1i3v9ruk1sb",
+        "name": "mw-azure-vm-control",
+        "type": "yesoreyeram-infinity-datasource",
+        "access_mode": "proxy",
+        "url": "",
+        "is_default": false,
+        "basic_auth_enabled": false,
+        "json_data_encoded": "{\"allowedHosts\":[\"https://management.azure.com\"],\"auth_method\":\"oauth2\",\"global_queries\":[],\"oauth2\":{\"client_id\":\"f8351796-82db-4d90-9c66-d2e925e78068\",\"scopes\":[\"https://management.azure.com/.default\"],\"token_url\":\"https://login.microsoftonline.com/9e29c895-606a-420b-acc2-1c24375df4d9/oauth2/v2.0/token\"},\"oauthPassThru\":false,\"pdcInjected\":true}",
+        "lifecycle": {
+          "prevent_destroy": true,
+          "ignore_changes": [
+            "secure_json_data_encoded",
+            "http_headers"
+          ]
+        }
+      },
+      "efz19dcu6cwzka": {
+        "uid": "efz19dcu6cwzka",
+        "name": "mw-public-fx",
+        "type": "yesoreyeram-infinity-datasource",
+        "access_mode": "proxy",
+        "url": "",
+        "is_default": false,
+        "basic_auth_enabled": false,
+        "json_data_encoded": "{\"allowedHosts\":[\"https://api.frankfurter.dev\"],\"global_queries\":[],\"pdcInjected\":true}",
+        "lifecycle": {
+          "prevent_destroy": true,
+          "ignore_changes": [
+            "secure_json_data_encoded",
+            "http_headers"
+          ]
+        }
+      },
+      "cfz10a9eaokjkd": {
+        "uid": "cfz10a9eaokjkd",
+        "name": "mw-public-status",
+        "type": "yesoreyeram-infinity-datasource",
+        "access_mode": "proxy",
+        "url": "",
+        "is_default": false,
+        "basic_auth_enabled": false,
+        "json_data_encoded": "{\"allowedHosts\":[\"https://status.openai.com\"],\"global_queries\":[],\"pdcInjected\":true}",
+        "lifecycle": {
+          "prevent_destroy": true,
+          "ignore_changes": [
+            "secure_json_data_encoded",
+            "http_headers"
+          ]
+        }
+      }
+    },
+    "grafana_rule_group": {
+      "performance": {
+        "name": "Performance 2m",
+        "folder_uid": "f9w88d",
+        "interval_seconds": 120,
+        "rule": [
+          {
+            "uid": "ffzb4act1o0zka",
+            "name": "MW | Metabase component unhealthy",
+            "condition": "C",
+            "for": "4m",
+            "no_data_state": "KeepLast",
+            "exec_err_state": "KeepLast",
+            "is_paused": false,
+            "annotations": {
+              "description": "The Metabase probe {{ $labels.component }} has been Down or Degraded for 4 minutes. Inspect its Performance tile; Unknown or stale telemetry does not trigger a fresh page. PITR archive health is included.",
+              "runbook_url": "https://monitor.mw-credit.com/d/mw-resource-performance",
+              "summary": "Metabase {{ $labels.component }} is Down or Degraded"
+            },
+            "labels": {},
+            "data": [
+              {
+                "ref_id": "A",
+                "datasource_uid": "mw-gcp-monitoring",
+                "query_type": "",
+                "relative_time_range": [
+                  {
+                    "from": 600,
+                    "to": 0
+                  }
+                ],
+                "model": "{\"columns\":[{\"selector\":\"component\",\"text\":\"\",\"type\":\"string\"},{\"selector\":\"value\",\"text\":\"\",\"type\":\"number\"}],\"datasource\":{\"type\":\"yesoreyeram-infinity-datasource\",\"uid\":\"mw-gcp-monitoring\"},\"filters\":[],\"format\":\"table\",\"global_query_id\":\"\",\"instant\":true,\"intervalMs\":1000,\"maxDataPoints\":43200,\"parser\":\"jq-backend\",\"refId\":\"A\",\"root_selector\":\"if .nextPageToken then error(\\\"Metabase probe response truncated\\\") else\\n  [\\\"metabase_platform\\\",\\\"metabase_appdb\\\",\\\"metabase_reporting\\\",\\\"metabase_charts\\\",\\\"metabase_pitr\\\"] as $wanted |\\n  [.timeSeries[]? | select(.metric.labels.field == \\\"status\\\") |\\n    {component:.metric.labels.component,point:(.points|sort_by(.interval.endTime)|last)}] as $samples |\\n  $wanted[] as $component |\\n  ([$samples[]|select(.component == $component)]|first|.point) as $point |\\n  {component:$component,value:(\\n    if $point == null then 0\\n    elif (now-($point.interval.endTime|sub(\\\"[.][0-9]+Z$\\\";\\\"Z\\\")|fromdateiso8601)) > 360 then 0\\n    else ($point.value.int64Value|tonumber) as $status |\\n      if $status == 0 or $status == 2 then 1 else 0 end\\n    end)}\\nend\\n\",\"source\":\"url\",\"type\":\"json\",\"url\":\"https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fmetabase_probe%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22&interval.startTime=$${__timeFrom:date:iso}&interval.endTime=$${__timeTo:date:iso}&pageSize=100000\",\"url_options\":{\"data\":\"\",\"method\":\"GET\"}}"
+              },
+              {
+                "ref_id": "reducer",
+                "datasource_uid": "__expr__",
+                "query_type": "expression",
+                "relative_time_range": [
+                  {
+                    "from": 0,
+                    "to": 0
+                  }
+                ],
+                "model": "{\"conditions\":[{\"evaluator\":{\"params\":[0,0],\"type\":\"gt\"},\"operator\":{\"type\":\"and\"},\"query\":{\"params\":[]},\"reducer\":{\"params\":[],\"type\":\"avg\"},\"type\":\"query\"}],\"datasource\":{\"name\":\"Expression\",\"type\":\"__expr__\",\"uid\":\"__expr__\"},\"expression\":\"A\",\"intervalMs\":1000,\"maxDataPoints\":43200,\"reducer\":\"last\",\"refId\":\"reducer\",\"type\":\"reduce\"}"
+              },
+              {
+                "ref_id": "C",
+                "datasource_uid": "__expr__",
+                "query_type": "expression",
+                "relative_time_range": [
+                  {
+                    "from": 0,
+                    "to": 0
+                  }
+                ],
+                "model": "{\"conditions\":[{\"evaluator\":{\"params\":[0],\"type\":\"gt\"},\"operator\":{\"type\":\"and\"},\"query\":{\"params\":[\"C\"]},\"reducer\":{\"params\":[],\"type\":\"last\"},\"type\":\"query\"}],\"datasource\":{\"type\":\"__expr__\",\"uid\":\"__expr__\"},\"expression\":\"reducer\",\"intervalMs\":1000,\"maxDataPoints\":43200,\"refId\":\"C\",\"type\":\"threshold\"}"
+              }
+            ],
+            "notification_settings": [
+              {
+                "contact_point": "MW Performance IRM"
+              }
+            ]
+          },
+          {
+            "uid": "mw-metabase-backup-health",
+            "name": "MW | Metabase scheduled backup unhealthy",
+            "condition": "C",
+            "for": "4m",
+            "no_data_state": "KeepLast",
+            "exec_err_state": "KeepLast",
+            "is_paused": false,
+            "annotations": {
+              "description": "The scheduled {{ $labels.component }} snapshot is missing or stale. First-run grace applies; manual snapshots do not count. A listed snapshot is not restore verification.",
+              "runbook_url": "https://monitor.mw-credit.com/d/mw-resource-performance",
+              "summary": "Metabase {{ $labels.component }} backup is missing or stale"
+            },
+            "labels": {},
+            "data": [
+              {
+                "ref_id": "A",
+                "datasource_uid": "mw-railway-monitoring",
+                "query_type": "",
+                "relative_time_range": [
+                  {
+                    "from": 600,
+                    "to": 0
+                  }
+                ],
+                "model": "{\"columns\":[{\"selector\":\"component\",\"text\":\"\",\"type\":\"string\"},{\"selector\":\"value\",\"text\":\"\",\"type\":\"number\"}],\"datasource\":{\"type\":\"yesoreyeram-infinity-datasource\",\"uid\":\"mw-railway-monitoring\"},\"filters\":[],\"format\":\"table\",\"global_query_id\":\"\",\"instant\":true,\"intervalMs\":1000,\"maxDataPoints\":43200,\"parser\":\"jq-backend\",\"refId\":\"A\",\"root_selector\":\"def stamp: sub(\\\"[.][0-9]+Z$\\\";\\\"Z\\\") | fromdateiso8601;\\nif .errors then error(\\\"Railway backup API failed\\\") else\\n  .data as $data |\\n  [{kind:\\\"DAILY\\\",component:\\\"metabase_backup_daily\\\",healthy:108000,degraded:129600,first_grace:108000},\\n   {kind:\\\"WEEKLY\\\",component:\\\"metabase_backup_weekly\\\",healthy:691200,degraded:777600,first_grace:691200}][] as $cfg |\\n  ($data.volumeInstanceBackupScheduleList // [] | map(select(.kind == $cfg.kind)) | first) as $schedule |\\n  ($data.volumeInstanceBackupList // [] | map(select(.scheduleId != null and .scheduleId == $schedule.id)) | sort_by(.createdAt) | last) as $backup |\\n  {component:$cfg.component,value:(\\n    if $schedule == null then 1\\n    elif $backup == null then (if now - ($schedule.createdAt | stamp) <= $cfg.first_grace then 0 else 1 end)\\n    else (if now - ($backup.createdAt | stamp) <= $cfg.healthy then 0 else 1 end)\\n    end)}\\nend\\n\",\"source\":\"url\",\"type\":\"json\",\"url\":\"https://backboard.railway.com/graphql/v2\",\"url_options\":{\"body_content_type\":\"application/json\",\"body_type\":\"raw\",\"data\":\"{\\\"query\\\":\\\"query { volumeInstanceBackupList(volumeInstanceId:\\\\\\\"a5acf57b-dc84-4b7d-b787-bbbeb9935f04\\\\\\\") { createdAt scheduleId } volumeInstanceBackupScheduleList(volumeInstanceId:\\\\\\\"a5acf57b-dc84-4b7d-b787-bbbeb9935f04\\\\\\\") { id kind cron createdAt retentionSeconds } }\\\"}\",\"method\":\"POST\"}}"
+              },
+              {
+                "ref_id": "reducer",
+                "datasource_uid": "__expr__",
+                "query_type": "expression",
+                "relative_time_range": [
+                  {
+                    "from": 0,
+                    "to": 0
+                  }
+                ],
+                "model": "{\"conditions\":[{\"evaluator\":{\"params\":[0,0],\"type\":\"gt\"},\"operator\":{\"type\":\"and\"},\"query\":{\"params\":[]},\"reducer\":{\"params\":[],\"type\":\"avg\"},\"type\":\"query\"}],\"datasource\":{\"name\":\"Expression\",\"type\":\"__expr__\",\"uid\":\"__expr__\"},\"expression\":\"A\",\"intervalMs\":1000,\"maxDataPoints\":43200,\"reducer\":\"last\",\"refId\":\"reducer\",\"type\":\"reduce\"}"
+              },
+              {
+                "ref_id": "C",
+                "datasource_uid": "__expr__",
+                "query_type": "expression",
+                "relative_time_range": [
+                  {
+                    "from": 0,
+                    "to": 0
+                  }
+                ],
+                "model": "{\"conditions\":[{\"evaluator\":{\"params\":[0],\"type\":\"gt\"},\"operator\":{\"type\":\"and\"},\"query\":{\"params\":[\"C\"]},\"reducer\":{\"params\":[],\"type\":\"last\"},\"type\":\"query\"}],\"datasource\":{\"type\":\"__expr__\",\"uid\":\"__expr__\"},\"expression\":\"reducer\",\"intervalMs\":1000,\"maxDataPoints\":43200,\"refId\":\"C\",\"type\":\"threshold\"}"
+              }
+            ],
+            "notification_settings": [
+              {
+                "contact_point": "MW Performance IRM"
+              }
+            ]
+          },
+          {
+            "uid": "efz3jiz9qmhhce",
+            "name": "MW | Webhook external health impaired",
+            "condition": "C",
+            "for": "10m",
+            "no_data_state": "KeepLast",
+            "exec_err_state": "KeepLast",
+            "is_paused": false,
+            "annotations": {
+              "description": "At least one of three fresh external uptime regions failed for 10 minutes. All three passing is healthy; missing or stale regions are Unknown and do not page. Inspect Webhook and Tunnel tiles.",
+              "runbook_url": "https://monitor.mw-credit.com/d/mw-resource-performance",
+              "summary": "External webhook check is Degraded or Down"
+            },
+            "labels": {},
+            "data": [
+              {
+                "ref_id": "A",
+                "datasource_uid": "mw-gcp-monitoring",
+                "query_type": "",
+                "relative_time_range": [
+                  {
+                    "from": 600,
+                    "to": 0
+                  }
+                ],
+                "model": "{\"columns\":[{\"selector\":\"time\",\"text\":\"\",\"type\":\"timestamp\"},{\"selector\":\"value\",\"text\":\"\",\"type\":\"number\"}],\"datasource\":{\"type\":\"yesoreyeram-infinity-datasource\",\"uid\":\"mw-gcp-monitoring\"},\"filters\":[],\"format\":\"timeseries\",\"global_query_id\":\"\",\"instant\":true,\"intervalMs\":1000,\"maxDataPoints\":43200,\"parser\":\"jq-backend\",\"refId\":\"A\",\"root_selector\":\"[.timeSeries[]? | .points | sort_by(.interval.endTime) | last | select(. != null) | select((now-(.interval.endTime|sub(\\\"[.][0-9]+Z$\\\";\\\"Z\\\")|fromdateiso8601)) < 720)] as $p | {time:(now|todateiso8601),value:(if ($p|length) < 3 then 0 elif all($p[];.value.boolValue == true) then 0 else 1 end)}\",\"source\":\"url\",\"type\":\"json\",\"url\":\"https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22monitoring.googleapis.com%2Fuptime_check%2Fcheck_passed%22%20AND%20metric.labels.check_id%20%3D%20%22mw-webhook-external-health-ySLl0784KgI%22&interval.startTime=$${__timeFrom:date:iso}&interval.endTime=$${__timeTo:date:iso}&pageSize=100000\",\"url_options\":{\"data\":\"\",\"method\":\"GET\"}}"
+              },
+              {
+                "ref_id": "reducer",
+                "datasource_uid": "__expr__",
+                "query_type": "expression",
+                "relative_time_range": [
+                  {
+                    "from": 0,
+                    "to": 0
+                  }
+                ],
+                "model": "{\"conditions\":[{\"evaluator\":{\"params\":[0,0],\"type\":\"gt\"},\"operator\":{\"type\":\"and\"},\"query\":{\"params\":[]},\"reducer\":{\"params\":[],\"type\":\"avg\"},\"type\":\"query\"}],\"datasource\":{\"name\":\"Expression\",\"type\":\"__expr__\",\"uid\":\"__expr__\"},\"expression\":\"A\",\"intervalMs\":1000,\"maxDataPoints\":43200,\"reducer\":\"last\",\"refId\":\"reducer\",\"type\":\"reduce\"}"
+              },
+              {
+                "ref_id": "C",
+                "datasource_uid": "__expr__",
+                "query_type": "expression",
+                "relative_time_range": [
+                  {
+                    "from": 0,
+                    "to": 0
+                  }
+                ],
+                "model": "{\"conditions\":[{\"evaluator\":{\"params\":[0],\"type\":\"gt\"},\"operator\":{\"type\":\"and\"},\"query\":{\"params\":[\"C\"]},\"reducer\":{\"params\":[],\"type\":\"last\"},\"type\":\"query\"}],\"datasource\":{\"type\":\"__expr__\",\"uid\":\"__expr__\"},\"expression\":\"reducer\",\"intervalMs\":1000,\"maxDataPoints\":43200,\"refId\":\"C\",\"type\":\"threshold\"}"
+              }
+            ],
+            "notification_settings": [
+              {
+                "contact_point": "MW Performance IRM"
+              }
+            ]
+          },
+          {
+            "uid": "efz3jt5gcrbpca",
+            "name": "MW | Cloud SQL connection pressure",
+            "condition": "C",
+            "for": "10m",
+            "no_data_state": "KeepLast",
+            "exec_err_state": "KeepLast",
+            "is_paused": false,
+            "annotations": {
+              "description": "The shared Cloud SQL instance has used over 80% of its configured max_connections=200 for 10 minutes. Reserved PostgreSQL slots reduce ordinary-client capacity. Inspect database connections on Performance.",
+              "runbook_url": "https://monitor.mw-credit.com/d/mw-resource-performance",
+              "summary": "Cloud SQL connections exceed 160 of 200"
+            },
+            "labels": {},
+            "data": [
+              {
+                "ref_id": "A",
+                "datasource_uid": "mw-gcp-monitoring",
+                "query_type": "",
+                "relative_time_range": [
+                  {
+                    "from": 600,
+                    "to": 0
+                  }
+                ],
+                "model": "{\"columns\":[{\"selector\":\"time\",\"text\":\"\",\"type\":\"timestamp\"},{\"selector\":\"value\",\"text\":\"\",\"type\":\"number\"}],\"datasource\":{\"type\":\"yesoreyeram-infinity-datasource\",\"uid\":\"mw-gcp-monitoring\"},\"filters\":[],\"format\":\"timeseries\",\"global_query_id\":\"\",\"instant\":true,\"intervalMs\":1000,\"maxDataPoints\":43200,\"parser\":\"jq-backend\",\"refId\":\"A\",\"root_selector\":\"if .nextPageToken then error(\\\"Metric response truncated\\\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime,value:((.value.doubleValue // .value.int64Value)|tonumber)}] | sort_by(.time) | .[] end\",\"source\":\"url\",\"type\":\"json\",\"url\":\"https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22cloudsql.googleapis.com%2Fdatabase%2Fpostgresql%2Fnum_backends%22%20AND%20resource.labels.database_id%20%3D%20%22clever-oasis-508610-n7%3Aappsheet-pg-prod-20260914%22&interval.startTime=$${__timeFrom:date:iso}&interval.endTime=$${__timeTo:date:iso}&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_MEAN&aggregation.crossSeriesReducer=REDUCE_SUM&pageSize=100000\",\"url_options\":{\"data\":\"\",\"method\":\"GET\"}}"
+              },
+              {
+                "ref_id": "reducer",
+                "datasource_uid": "__expr__",
+                "query_type": "expression",
+                "relative_time_range": [
+                  {
+                    "from": 0,
+                    "to": 0
+                  }
+                ],
+                "model": "{\"conditions\":[{\"evaluator\":{\"params\":[0,0],\"type\":\"gt\"},\"operator\":{\"type\":\"and\"},\"query\":{\"params\":[]},\"reducer\":{\"params\":[],\"type\":\"avg\"},\"type\":\"query\"}],\"datasource\":{\"name\":\"Expression\",\"type\":\"__expr__\",\"uid\":\"__expr__\"},\"expression\":\"A\",\"intervalMs\":1000,\"maxDataPoints\":43200,\"reducer\":\"last\",\"refId\":\"reducer\",\"type\":\"reduce\"}"
+              },
+              {
+                "ref_id": "C",
+                "datasource_uid": "__expr__",
+                "query_type": "expression",
+                "relative_time_range": [
+                  {
+                    "from": 0,
+                    "to": 0
+                  }
+                ],
+                "model": "{\"conditions\":[{\"evaluator\":{\"params\":[160],\"type\":\"gt\"},\"operator\":{\"type\":\"and\"},\"query\":{\"params\":[\"C\"]},\"reducer\":{\"params\":[],\"type\":\"last\"},\"type\":\"query\"}],\"datasource\":{\"type\":\"__expr__\",\"uid\":\"__expr__\"},\"expression\":\"reducer\",\"intervalMs\":1000,\"maxDataPoints\":43200,\"refId\":\"C\",\"type\":\"threshold\"}"
+              }
+            ],
+            "notification_settings": [
+              {
+                "contact_point": "MW Performance IRM"
+              }
+            ]
+          },
+          {
+            "uid": "efz3jvnnv8zcwb",
+            "name": "MW | Cloud SQL CPU sustained high",
+            "condition": "C",
+            "for": "10m",
+            "no_data_state": "KeepLast",
+            "exec_err_state": "KeepLast",
+            "is_paused": false,
+            "annotations": {
+              "description": "Five-minute mean CPU utilization of the shared Cloud SQL instance exceeds 85% for 10 minutes. This is an operational warning threshold; the chart capacity reference remains 100%.",
+              "runbook_url": "https://monitor.mw-credit.com/d/mw-resource-performance",
+              "summary": "Cloud SQL CPU above 85% for 10 minutes"
+            },
+            "labels": {},
+            "data": [
+              {
+                "ref_id": "A",
+                "datasource_uid": "mw-gcp-monitoring",
+                "query_type": "",
+                "relative_time_range": [
+                  {
+                    "from": 600,
+                    "to": 0
+                  }
+                ],
+                "model": "{\"columns\":[{\"selector\":\"time\",\"text\":\"\",\"type\":\"timestamp\"},{\"selector\":\"value\",\"text\":\"\",\"type\":\"number\"}],\"datasource\":{\"type\":\"yesoreyeram-infinity-datasource\",\"uid\":\"mw-gcp-monitoring\"},\"filters\":[],\"format\":\"timeseries\",\"global_query_id\":\"\",\"instant\":true,\"intervalMs\":1000,\"maxDataPoints\":43200,\"parser\":\"jq-backend\",\"refId\":\"A\",\"root_selector\":\"if .nextPageToken then error(\\\"Metric response truncated\\\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime,value:((.value.doubleValue // .value.int64Value)|tonumber)}] | sort_by(.time) | .[] end\",\"source\":\"url\",\"type\":\"json\",\"url\":\"https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22cloudsql.googleapis.com%2Fdatabase%2Fcpu%2Futilization%22%20AND%20resource.labels.database_id%20%3D%20%22clever-oasis-508610-n7%3Aappsheet-pg-prod-20260914%22&interval.startTime=$${__timeFrom:date:iso}&interval.endTime=$${__timeTo:date:iso}&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_MEAN&pageSize=100000\",\"url_options\":{\"data\":\"\",\"method\":\"GET\"}}"
+              },
+              {
+                "ref_id": "reducer",
+                "datasource_uid": "__expr__",
+                "query_type": "expression",
+                "relative_time_range": [
+                  {
+                    "from": 0,
+                    "to": 0
+                  }
+                ],
+                "model": "{\"conditions\":[{\"evaluator\":{\"params\":[0,0],\"type\":\"gt\"},\"operator\":{\"type\":\"and\"},\"query\":{\"params\":[]},\"reducer\":{\"params\":[],\"type\":\"avg\"},\"type\":\"query\"}],\"datasource\":{\"name\":\"Expression\",\"type\":\"__expr__\",\"uid\":\"__expr__\"},\"expression\":\"A\",\"intervalMs\":1000,\"maxDataPoints\":43200,\"reducer\":\"last\",\"refId\":\"reducer\",\"type\":\"reduce\"}"
+              },
+              {
+                "ref_id": "C",
+                "datasource_uid": "__expr__",
+                "query_type": "expression",
+                "relative_time_range": [
+                  {
+                    "from": 0,
+                    "to": 0
+                  }
+                ],
+                "model": "{\"conditions\":[{\"evaluator\":{\"params\":[0.85],\"type\":\"gt\"},\"operator\":{\"type\":\"and\"},\"query\":{\"params\":[\"C\"]},\"reducer\":{\"params\":[],\"type\":\"last\"},\"type\":\"query\"}],\"datasource\":{\"type\":\"__expr__\",\"uid\":\"__expr__\"},\"expression\":\"reducer\",\"intervalMs\":1000,\"maxDataPoints\":43200,\"refId\":\"C\",\"type\":\"threshold\"}"
+              }
+            ],
+            "notification_settings": [
+              {
+                "contact_point": "MW Performance IRM"
+              }
+            ]
+          },
+          {
+            "uid": "afz3jy61wh3i8e",
+            "name": "MW | Cloud SQL used memory high",
+            "condition": "C",
+            "for": "10m",
+            "no_data_state": "KeepLast",
+            "exec_err_state": "KeepLast",
+            "is_paused": false,
+            "annotations": {
+              "description": "The Cloud SQL database/memory/components Usage component exceeds 85% for 10 minutes. This matches the RAM Used card; cache and free are separate components. This is an operational warning threshold.",
+              "runbook_url": "https://monitor.mw-credit.com/d/mw-resource-performance",
+              "summary": "Cloud SQL Used memory above 85% for 10 minutes"
+            },
+            "labels": {},
+            "data": [
+              {
+                "ref_id": "A",
+                "datasource_uid": "mw-gcp-monitoring",
+                "query_type": "",
+                "relative_time_range": [
+                  {
+                    "from": 600,
+                    "to": 0
+                  }
+                ],
+                "model": "{\"columns\":[{\"selector\":\"time\",\"text\":\"\",\"type\":\"timestamp\"},{\"selector\":\"value\",\"text\":\"\",\"type\":\"number\"}],\"datasource\":{\"type\":\"yesoreyeram-infinity-datasource\",\"uid\":\"mw-gcp-monitoring\"},\"filters\":[],\"format\":\"timeseries\",\"global_query_id\":\"\",\"instant\":true,\"intervalMs\":1000,\"maxDataPoints\":43200,\"parser\":\"jq-backend\",\"refId\":\"A\",\"root_selector\":\"if .nextPageToken then error(\\\"Metric response truncated\\\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime,value:((.value.doubleValue // .value.int64Value)|tonumber)}] | sort_by(.time) | .[] end\",\"source\":\"url\",\"type\":\"json\",\"url\":\"https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22cloudsql.googleapis.com%2Fdatabase%2Fmemory%2Fcomponents%22%20AND%20resource.labels.database_id%20%3D%20%22clever-oasis-508610-n7%3Aappsheet-pg-prod-20260914%22%20AND%20metric.labels.component%20%3D%20%22Usage%22&interval.startTime=$${__timeFrom:date:iso}&interval.endTime=$${__timeTo:date:iso}&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_MEAN&pageSize=100000\",\"url_options\":{\"data\":\"\",\"method\":\"GET\"}}"
+              },
+              {
+                "ref_id": "reducer",
+                "datasource_uid": "__expr__",
+                "query_type": "expression",
+                "relative_time_range": [
+                  {
+                    "from": 0,
+                    "to": 0
+                  }
+                ],
+                "model": "{\"conditions\":[{\"evaluator\":{\"params\":[0,0],\"type\":\"gt\"},\"operator\":{\"type\":\"and\"},\"query\":{\"params\":[]},\"reducer\":{\"params\":[],\"type\":\"avg\"},\"type\":\"query\"}],\"datasource\":{\"name\":\"Expression\",\"type\":\"__expr__\",\"uid\":\"__expr__\"},\"expression\":\"A\",\"intervalMs\":1000,\"maxDataPoints\":43200,\"reducer\":\"last\",\"refId\":\"reducer\",\"type\":\"reduce\"}"
+              },
+              {
+                "ref_id": "C",
+                "datasource_uid": "__expr__",
+                "query_type": "expression",
+                "relative_time_range": [
+                  {
+                    "from": 0,
+                    "to": 0
+                  }
+                ],
+                "model": "{\"conditions\":[{\"evaluator\":{\"params\":[85],\"type\":\"gt\"},\"operator\":{\"type\":\"and\"},\"query\":{\"params\":[\"C\"]},\"reducer\":{\"params\":[],\"type\":\"last\"},\"type\":\"query\"}],\"datasource\":{\"type\":\"__expr__\",\"uid\":\"__expr__\"},\"expression\":\"reducer\",\"intervalMs\":1000,\"maxDataPoints\":43200,\"refId\":\"C\",\"type\":\"threshold\"}"
+              }
+            ],
+            "notification_settings": [
+              {
+                "contact_point": "MW Performance IRM"
+              }
+            ]
+          },
+          {
+            "uid": "efz3k36z3ptdsb",
+            "name": "MW | Debian VM used memory high",
+            "condition": "C",
+            "for": "10m",
+            "no_data_state": "KeepLast",
+            "exec_err_state": "KeepLast",
+            "is_paused": false,
+            "annotations": {
+              "description": "GCP Ops Agent memory percent_used with state=used exceeds 85% for 10 minutes on the always-on Debian agent VM. Cache/buffer are excluded.",
+              "runbook_url": "https://monitor.mw-credit.com/d/mw-resource-performance",
+              "summary": "Debian VM Used memory above 85% for 10 minutes"
+            },
+            "labels": {},
+            "data": [
+              {
+                "ref_id": "A",
+                "datasource_uid": "mw-gcp-monitoring",
+                "query_type": "",
+                "relative_time_range": [
+                  {
+                    "from": 600,
+                    "to": 0
+                  }
+                ],
+                "model": "{\"columns\":[{\"selector\":\"time\",\"text\":\"\",\"type\":\"timestamp\"},{\"selector\":\"value\",\"text\":\"\",\"type\":\"number\"}],\"datasource\":{\"type\":\"yesoreyeram-infinity-datasource\",\"uid\":\"mw-gcp-monitoring\"},\"filters\":[],\"format\":\"timeseries\",\"global_query_id\":\"\",\"instant\":true,\"intervalMs\":1000,\"maxDataPoints\":43200,\"parser\":\"jq-backend\",\"refId\":\"A\",\"root_selector\":\"if .nextPageToken then error(\\\"Metric response truncated\\\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime,value:((.value.doubleValue // .value.int64Value)|tonumber)}] | sort_by(.time) | .[] end\",\"source\":\"url\",\"type\":\"json\",\"url\":\"https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22agent.googleapis.com%2Fmemory%2Fpercent_used%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.state%20%3D%20%22used%22&interval.startTime=$${__timeFrom:date:iso}&interval.endTime=$${__timeTo:date:iso}&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_MEAN&pageSize=100000\",\"url_options\":{\"data\":\"\",\"method\":\"GET\"}}"
+              },
+              {
+                "ref_id": "reducer",
+                "datasource_uid": "__expr__",
+                "query_type": "expression",
+                "relative_time_range": [
+                  {
+                    "from": 0,
+                    "to": 0
+                  }
+                ],
+                "model": "{\"conditions\":[{\"evaluator\":{\"params\":[0,0],\"type\":\"gt\"},\"operator\":{\"type\":\"and\"},\"query\":{\"params\":[]},\"reducer\":{\"params\":[],\"type\":\"avg\"},\"type\":\"query\"}],\"datasource\":{\"name\":\"Expression\",\"type\":\"__expr__\",\"uid\":\"__expr__\"},\"expression\":\"A\",\"intervalMs\":1000,\"maxDataPoints\":43200,\"reducer\":\"last\",\"refId\":\"reducer\",\"type\":\"reduce\"}"
+              },
+              {
+                "ref_id": "C",
+                "datasource_uid": "__expr__",
+                "query_type": "expression",
+                "relative_time_range": [
+                  {
+                    "from": 0,
+                    "to": 0
+                  }
+                ],
+                "model": "{\"conditions\":[{\"evaluator\":{\"params\":[85],\"type\":\"gt\"},\"operator\":{\"type\":\"and\"},\"query\":{\"params\":[\"C\"]},\"reducer\":{\"params\":[],\"type\":\"last\"},\"type\":\"query\"}],\"datasource\":{\"type\":\"__expr__\",\"uid\":\"__expr__\"},\"expression\":\"reducer\",\"intervalMs\":1000,\"maxDataPoints\":43200,\"refId\":\"C\",\"type\":\"threshold\"}"
+              }
+            ],
+            "notification_settings": [
+              {
+                "contact_point": "MW Performance IRM"
+              }
+            ]
+          },
+          {
+            "uid": "cfz3kb8tpk16oc",
+            "name": "MW | Metabase Railway memory pressure",
+            "condition": "C",
+            "for": "10m",
+            "no_data_state": "KeepLast",
+            "exec_err_state": "KeepLast",
+            "is_paused": false,
+            "annotations": {
+              "description": "Metabase MEMORY_USAGE_GB / latest matching MEMORY_LIMIT_GB exceeds 90% for 10 minutes. The live limit tracks Railway allocation changes.",
+              "runbook_url": "https://monitor.mw-credit.com/d/mw-resource-performance",
+              "summary": "Railway Metabase memory above 90% of live limit"
+            },
+            "labels": {},
+            "data": [
+              {
+                "ref_id": "A",
+                "datasource_uid": "mw-railway-monitoring",
+                "query_type": "",
+                "relative_time_range": [
+                  {
+                    "from": 600,
+                    "to": 0
+                  }
+                ],
+                "model": "{\"columns\":[{\"selector\":\"time\",\"text\":\"\",\"type\":\"timestamp_epoch\"},{\"selector\":\"value\",\"text\":\"\",\"type\":\"number\"}],\"datasource\":{\"type\":\"yesoreyeram-infinity-datasource\",\"uid\":\"mw-railway-monitoring\"},\"filters\":[],\"format\":\"timeseries\",\"global_query_id\":\"\",\"instant\":true,\"intervalMs\":1000,\"maxDataPoints\":43200,\"parser\":\"jq-backend\",\"refId\":\"A\",\"root_selector\":\"if .errors then error(.errors|tostring) else ([.data.metrics[] | select(.measurement==\\\"MEMORY_LIMIT_GB\\\") | .values[]] | sort_by(.ts)) as $limits | [.data.metrics[] | select(.measurement==\\\"MEMORY_USAGE_GB\\\") | .values[] | . as $used | ([$limits[] | select(.ts <= $used.ts)] | last) as $limit | select($limit.value > 0) | {time:(.ts*1000),value:(100*.value/$limit.value)}] | sort_by(.time) | .[] end\",\"source\":\"url\",\"type\":\"json\",\"url\":\"https://backboard.railway.com/graphql/v2\",\"url_options\":{\"body_content_type\":\"application/json\",\"body_type\":\"raw\",\"data\":\"{\\\"query\\\":\\\"{ metrics(projectId:\\\\\\\"c8e57452-36dc-41f1-8d00-856b521a96c7\\\\\\\",environmentId:\\\\\\\"df3ba125-0d62-446a-b4d8-5196780982c9\\\\\\\",serviceId:\\\\\\\"2959d509-c829-4420-8650-e72827d88170\\\\\\\",startDate:\\\\\\\"$${__timeFrom:date:iso}\\\\\\\",endDate:\\\\\\\"$${__timeTo:date:iso}\\\\\\\",measurements:[MEMORY_USAGE_GB,MEMORY_LIMIT_GB],sampleRateSeconds:300,averagingWindowSeconds:300) {measurement values{ts value}} }\\\"}\",\"method\":\"POST\"}}"
+              },
+              {
+                "ref_id": "reducer",
+                "datasource_uid": "__expr__",
+                "query_type": "expression",
+                "relative_time_range": [
+                  {
+                    "from": 0,
+                    "to": 0
+                  }
+                ],
+                "model": "{\"conditions\":[{\"evaluator\":{\"params\":[0,0],\"type\":\"gt\"},\"operator\":{\"type\":\"and\"},\"query\":{\"params\":[]},\"reducer\":{\"params\":[],\"type\":\"avg\"},\"type\":\"query\"}],\"datasource\":{\"name\":\"Expression\",\"type\":\"__expr__\",\"uid\":\"__expr__\"},\"expression\":\"A\",\"intervalMs\":1000,\"maxDataPoints\":43200,\"reducer\":\"last\",\"refId\":\"reducer\",\"type\":\"reduce\"}"
+              },
+              {
+                "ref_id": "C",
+                "datasource_uid": "__expr__",
+                "query_type": "expression",
+                "relative_time_range": [
+                  {
+                    "from": 0,
+                    "to": 0
+                  }
+                ],
+                "model": "{\"conditions\":[{\"evaluator\":{\"params\":[90],\"type\":\"gt\"},\"operator\":{\"type\":\"and\"},\"query\":{\"params\":[\"C\"]},\"reducer\":{\"params\":[],\"type\":\"last\"},\"type\":\"query\"}],\"datasource\":{\"type\":\"__expr__\",\"uid\":\"__expr__\"},\"expression\":\"reducer\",\"intervalMs\":1000,\"maxDataPoints\":43200,\"refId\":\"C\",\"type\":\"threshold\"}"
+              }
+            ],
+            "notification_settings": [
+              {
+                "contact_point": "MW Performance IRM"
+              }
+            ]
+          },
+          {
+            "uid": "afz3o5cmmfabkb",
+            "name": "MW | Debian component unhealthy",
+            "condition": "C",
+            "for": "4m",
+            "no_data_state": "Alerting",
+            "exec_err_state": "Alerting",
+            "is_paused": false,
+            "annotations": {
+              "description": "Down or Degraded for 4 minutes. Receipt processing includes aged queues, overdue reviews, unconfirmed posting and failed notifications. Missing, stale or Unknown receipts/polling telemetry also alerts; intentional Paused does not. Query no-data/errors alert. Inspect the Payment processing group. Never replay an unconfirmed payment.",
+              "runbook_url": "https://monitor.mw-credit.com/d/mw-resource-performance",
+              "summary": "Debian component {{ $labels.component }} needs attention"
+            },
+            "labels": {},
+            "data": [
+              {
+                "ref_id": "A",
+                "datasource_uid": "mw-gcp-monitoring",
+                "query_type": "",
+                "relative_time_range": [
+                  {
+                    "from": 600,
+                    "to": 0
+                  }
+                ],
+                "model": "{\"columns\":[{\"selector\":\"component\",\"text\":\"\",\"type\":\"string\"},{\"selector\":\"value\",\"text\":\"\",\"type\":\"number\"}],\"datasource\":{\"type\":\"yesoreyeram-infinity-datasource\",\"uid\":\"mw-gcp-monitoring\"},\"filters\":[],\"format\":\"table\",\"global_query_id\":\"\",\"instant\":true,\"intervalMs\":1000,\"maxDataPoints\":43200,\"parser\":\"jq-backend\",\"refId\":\"A\",\"root_selector\":\"def stamp: sub(\\\"[.][0-9]+Z$\\\";\\\"Z\\\") | fromdateiso8601;\\nif .nextPageToken or .error then error(\\\"Health response unavailable or truncated\\\") else\\n[\\\"tunnel\\\",\\\"tailscale_node\\\",\\\"webhook_local\\\",\\\"oltp\\\",\\\"olap\\\",\\\"conversations\\\",\\\"receipts\\\",\\\"polling\\\",\\\"daily_jobs\\\",\\\"database\\\",\\\"audit_relay\\\",\\\"codex_ready\\\"] as $wanted |\\n[(.timeSeries // [])[] | {c:.metric.labels.component,p:(.points|sort_by(.interval.endTime)|last)}] as $rows |\\n$wanted[] as $n | ($n==\\\"receipts\\\" or $n==\\\"polling\\\") as $critical |\\n([$rows[]|select(.c==$n)]|sort_by(.p.interval.endTime)|last|.p) as $p |\\n(try ($p.interval.endTime|stamp) catch null) as $t |\\n(try ($p.value.int64Value|tonumber) catch null) as $v |\\n($t!=null and now-$t<=360 and $t-now<=120 and ($v|IN(0,1,2,3,4))) as $valid |\\n{component:$n,value:(if ($valid|not) then (if $critical then 1 else 0 end)\\n elif $v==0 or $v==2 or ($critical and $v==4) then 1 else 0 end)}\\nend\",\"source\":\"url\",\"type\":\"json\",\"url\":\"https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fhealth%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22&interval.startTime=$${__timeFrom:date:iso}&interval.endTime=$${__timeTo:date:iso}&pageSize=100000\",\"url_options\":{\"data\":\"\",\"method\":\"GET\"}}"
+              },
+              {
+                "ref_id": "reducer",
+                "datasource_uid": "__expr__",
+                "query_type": "expression",
+                "relative_time_range": [
+                  {
+                    "from": 0,
+                    "to": 0
+                  }
+                ],
+                "model": "{\"conditions\":[{\"evaluator\":{\"params\":[0,0],\"type\":\"gt\"},\"operator\":{\"type\":\"and\"},\"query\":{\"params\":[]},\"reducer\":{\"params\":[],\"type\":\"avg\"},\"type\":\"query\"}],\"datasource\":{\"name\":\"Expression\",\"type\":\"__expr__\",\"uid\":\"__expr__\"},\"expression\":\"A\",\"intervalMs\":1000,\"maxDataPoints\":43200,\"reducer\":\"last\",\"refId\":\"reducer\",\"type\":\"reduce\"}"
+              },
+              {
+                "ref_id": "C",
+                "datasource_uid": "__expr__",
+                "query_type": "expression",
+                "relative_time_range": [
+                  {
+                    "from": 0,
+                    "to": 0
+                  }
+                ],
+                "model": "{\"conditions\":[{\"evaluator\":{\"params\":[0],\"type\":\"gt\"},\"operator\":{\"type\":\"and\"},\"query\":{\"params\":[\"C\"]},\"reducer\":{\"params\":[],\"type\":\"last\"},\"type\":\"query\"}],\"datasource\":{\"type\":\"__expr__\",\"uid\":\"__expr__\"},\"expression\":\"reducer\",\"intervalMs\":1000,\"maxDataPoints\":43200,\"refId\":\"C\",\"type\":\"threshold\"}"
+              }
+            ],
+            "notification_settings": [
+              {
+                "contact_point": "MW Performance IRM"
+              }
+            ]
+          },
+          {
+            "uid": "efz3obf98zksga",
+            "name": "MW | OpenAI product status impaired",
+            "condition": "C",
+            "for": "10m",
+            "no_data_state": "KeepLast",
+            "exec_err_state": "KeepLast",
+            "is_paused": false,
+            "annotations": {
+              "description": "OpenAI reports an active incident or non-operational component in the {{ $labels.component }} product group for 10 minutes. Hover its Performance dashboard light for incident details and Singapore update time. Provider report only; unknown/missing response does not page.",
+              "runbook_url": "https://monitor.mw-credit.com/d/mw-resource-performance",
+              "summary": "Published OpenAI {{ $labels.component }} status is impaired"
+            },
+            "labels": {},
+            "data": [
+              {
+                "ref_id": "A",
+                "datasource_uid": "cfz10a9eaokjkd",
+                "query_type": "",
+                "relative_time_range": [
+                  {
+                    "from": 600,
+                    "to": 0
+                  }
+                ],
+                "model": "{\"columns\":[{\"selector\":\"component\",\"text\":\"\",\"type\":\"string\"},{\"selector\":\"value\",\"text\":\"\",\"type\":\"number\"}],\"datasource\":{\"type\":\"yesoreyeram-infinity-datasource\",\"uid\":\"cfz10a9eaokjkd\"},\"filters\":[],\"format\":\"table\",\"global_query_id\":\"\",\"instant\":true,\"intervalMs\":1000,\"maxDataPoints\":43200,\"parser\":\"jq-backend\",\"refId\":\"A\",\"root_selector\":\"def sgt: try (sub(\\\"[.][0-9]+Z$\\\"; \\\"Z\\\") | fromdateiso8601 | . + 28800 | strftime(\\\"%Y-%m-%d %H:%M SGT\\\")) catch \\\"Time unavailable\\\";\\ndef text: if type == \\\"string\\\" then . else \\\"\\\" end;\\n.summary as $s | [\\\"ChatGPT\\\", \\\"Codex\\\"][] as $product |\\n([$s.structure.items[]?.group? | select(.name == $product)] | first) as $group |\\n[$group.components[]? | select(.hidden != true) | .component_id] as $ids |\\n[$s.affected_components[]? | select(.component_id as $id | $ids | index($id))] as $affected |\\n[$s.ongoing_incidents[]? | select(.status != \\\"resolved\\\" and .status != \\\"closed\\\") | select(any(.affected_components[]?; .component_id as $id | $ids | index($id)))] as $incidents |\\n(($s.id == \\\"01JMDK9XYNY6RXSED6SDWW50WY\\\") and ($s.name == \\\"OpenAI\\\") and (($s.affected_components | type) == \\\"array\\\") and (($s.ongoing_incidents | type) == \\\"array\\\") and ($ids | length) > 0 and (all($s.ongoing_incidents[]?; (.affected_components | type) == \\\"array\\\" and (.affected_components | length) > 0)) and (all($affected[]; .status == \\\"operational\\\" or .status == \\\"degraded_performance\\\" or .status == \\\"partial_outage\\\" or .status == \\\"full_outage\\\" or .status == \\\"major_outage\\\" or .status == \\\"under_maintenance\\\"))) as $valid |\\n(if $valid != true then 4 elif any($affected[]; .status == \\\"full_outage\\\" or .status == \\\"major_outage\\\") then 0 elif any($affected[]; .status != \\\"operational\\\") or ($incidents | length) > 0 then 2 else 1 end) as $status |\\n(if $status == 4 then \\\"Unknown\\\" elif $status == 0 then \\\"Down\\\" elif $status == 2 then \\\"Degraded\\\" else \\\"Healthy\\\" end) as $state |\\n($incidents | sort_by(.published_at) | reverse) as $ordered |\\n{component:($product | ascii_downcase), status:$status, value:(if $status == 0 or $status == 2 then 1 else 0 end),\\n details:($product + \\\" \\u2014 \\\" + $state + \\\"\\n\\\" + (if $status == 4 then \\\"Current provider status unavailable or response format changed.\\\" elif ($ordered | length) > 0 then ([$ordered[] | (.updates | sort_by(.published_at) | last) as $update | .name + \\\"\\nStatus: \\\" + (.status | text) + \\\"\\nUpdated: \\\" + (($update.published_at // .published_at) | sgt) + \\\"\\n\\\" + (($update.message_string // $update.message.markdown // \\\"No explanation published yet.\\\") | text) + \\\"\\nhttps://status.openai.com/incidents/\\\" + .id] | join(\\\"\\n\\n\\\")) elif $status != 1 then \\\"Affected components: \\\" + ([$affected[] | .component_id as $id | $group.components[] | select(.component_id == $id) | .name] | join(\\\", \\\")) + \\\". No incident explanation published yet.\\\" else \\\"No active incident reported.\\\" end) + \\\"\\nChecked: \\\" + (now + 28800 | strftime(\\\"%Y-%m-%d %H:%M SGT\\\"))),\\n url:(if ($ordered | length) > 0 then \\\"https://status.openai.com/incidents/\\\" + $ordered[0].id else \\\"https://status.openai.com/\\\" end)} | {component,value}\",\"source\":\"url\",\"type\":\"json\",\"url\":\"https://status.openai.com/proxy/status.openai.com\",\"url_options\":{\"data\":\"\",\"method\":\"GET\"}}"
+              },
+              {
+                "ref_id": "reducer",
+                "datasource_uid": "__expr__",
+                "query_type": "expression",
+                "relative_time_range": [
+                  {
+                    "from": 0,
+                    "to": 0
+                  }
+                ],
+                "model": "{\"conditions\":[{\"evaluator\":{\"params\":[0,0],\"type\":\"gt\"},\"operator\":{\"type\":\"and\"},\"query\":{\"params\":[]},\"reducer\":{\"params\":[],\"type\":\"avg\"},\"type\":\"query\"}],\"datasource\":{\"name\":\"Expression\",\"type\":\"__expr__\",\"uid\":\"__expr__\"},\"expression\":\"A\",\"intervalMs\":1000,\"maxDataPoints\":43200,\"reducer\":\"last\",\"refId\":\"reducer\",\"type\":\"reduce\"}"
+              },
+              {
+                "ref_id": "C",
+                "datasource_uid": "__expr__",
+                "query_type": "expression",
+                "relative_time_range": [
+                  {
+                    "from": 0,
+                    "to": 0
+                  }
+                ],
+                "model": "{\"conditions\":[{\"evaluator\":{\"params\":[0],\"type\":\"gt\"},\"operator\":{\"type\":\"and\"},\"query\":{\"params\":[\"C\"]},\"reducer\":{\"params\":[],\"type\":\"last\"},\"type\":\"query\"}],\"datasource\":{\"type\":\"__expr__\",\"uid\":\"__expr__\"},\"expression\":\"reducer\",\"intervalMs\":1000,\"maxDataPoints\":43200,\"refId\":\"C\",\"type\":\"threshold\"}"
+              }
+            ],
+            "notification_settings": [
+              {
+                "contact_point": "MW Performance IRM"
+              }
+            ]
+          }
+        ],
+        "lifecycle": {
+          "prevent_destroy": true
+        }
+      }
+    },
+    "grafana_notification_policy": {
+      "existing": {
+        "contact_point": "empty",
+        "group_by": [
+          "grafana_folder",
+          "alertname"
+        ],
+        "lifecycle": {
+          "prevent_destroy": true
+        },
+        "disable_provenance": true
+      }
+    }
+  }
+}

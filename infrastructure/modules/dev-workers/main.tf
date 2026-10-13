@@ -27,6 +27,24 @@ variable "image" {
     error_message = "Pin the tested immutable image from the matching environment repository."
   }
 }
+variable "image_overrides" {
+  description = "Optional per-worker immutable image pins; omitted roles retain image."
+  type        = map(string)
+  default     = {}
+  validation {
+    condition     = alltrue([for role, image in var.image_overrides : contains(["notify", "jobs"], role) && can(regex("^asia-southeast1-docker[.]pkg[.]dev/clever-oasis-508610-n7/${var.environment == "prod" ? "mw-credit-app-prod" : "mw-credit-app"}/api@sha256:[a-f0-9]{64}$", image))])
+    error_message = "Only notify/jobs immutable matching-environment image overrides are allowed."
+  }
+}
+variable "notification_retry_max_doublings" {
+  description = "Preserve the reviewed provider-normalized notification retry value."
+  type        = number
+  default     = 0
+  validation {
+    condition     = contains([0, 5], var.notification_retry_max_doublings)
+    error_message = "Use the existing source or reviewed provider-normalized retry value."
+  }
+}
 variable "vapid_version" {
   type     = string
   default  = null
@@ -179,7 +197,7 @@ resource "google_cloud_run_v2_service" "worker" {
       max_instance_count = 1
     }
     containers {
-      image   = var.image
+      image   = lookup(var.image_overrides, each.key, var.image)
       command = ["node"]
       args    = ["services/workers/server.mjs"]
       resources {
@@ -263,7 +281,7 @@ resource "google_cloud_scheduler_job" "tick" {
     max_retry_duration   = each.value.role == "jobs" ? "600s" : "0s"
     min_backoff_duration = each.value.role == "jobs" ? "30s" : "60s"
     max_backoff_duration = each.value.role == "jobs" ? "120s" : "60s"
-    max_doublings        = each.value.role == "jobs" ? 2 : 0
+    max_doublings        = each.value.role == "jobs" ? 2 : var.notification_retry_max_doublings
   }
   http_target {
     http_method = "POST"

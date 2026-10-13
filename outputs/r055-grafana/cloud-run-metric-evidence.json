@@ -1,0 +1,206 @@
+{
+  "project": "clever-oasis-508610-n7",
+  "observedAtUtc": "2026-10-13T03:51:04.4330132Z",
+  "businessLogsRead": false,
+  "aggregateQueries": [
+    {
+      "aligner": "ALIGN_SUM",
+      "reducer": "REDUCE_SUM",
+      "period": "300s",
+      "metric": "run.googleapis.com/request_count",
+      "services": [
+        {
+          "newest": "2026-10-13T02:53:40.191488Z",
+          "pointCount": 67,
+          "name": "mw-credit-app-command-dev"
+        },
+        {
+          "newest": "2026-10-13T03:48:40.191488Z",
+          "pointCount": 79,
+          "name": "mw-credit-app-command-prod"
+        },
+        {
+          "newest": "2026-10-13T03:23:40.191488Z",
+          "pointCount": 121,
+          "name": "mw-credit-app-jobs-prod"
+        },
+        {
+          "newest": "2026-10-13T03:48:40.191488Z",
+          "pointCount": 288,
+          "name": "mw-credit-app-notify-prod"
+        },
+        {
+          "newest": "2026-10-13T02:58:40.191488Z",
+          "pointCount": 47,
+          "name": "mw-credit-app-read-prod"
+        }
+      ],
+      "queryPassed": true
+    },
+    {
+      "aligner": "ALIGN_SUM",
+      "reducer": "REDUCE_PERCENTILE_95",
+      "period": "300s",
+      "metric": "run.googleapis.com/request_latencies",
+      "services": [
+        {
+          "newest": "2026-10-13T02:33:40.191488Z",
+          "pointCount": 17,
+          "name": "mw-credit-app-command-dev"
+        },
+        {
+          "newest": "2026-10-13T03:28:40.191488Z",
+          "pointCount": 23,
+          "name": "mw-credit-app-command-prod"
+        },
+        {
+          "newest": "2026-10-13T03:03:40.191488Z",
+          "pointCount": 25,
+          "name": "mw-credit-app-jobs-prod"
+        },
+        {
+          "newest": "2026-10-13T03:48:40.191488Z",
+          "pointCount": 288,
+          "name": "mw-credit-app-notify-prod"
+        },
+        {
+          "newest": "2026-10-13T02:33:40.191488Z",
+          "pointCount": 11,
+          "name": "mw-credit-app-read-prod"
+        }
+      ],
+      "queryPassed": true
+    },
+    {
+      "aligner": "ALIGN_MAX",
+      "reducer": "REDUCE_SUM",
+      "period": "300s",
+      "metric": "run.googleapis.com/container/instance_count",
+      "services": [
+        {
+          "newest": "2026-10-13T02:53:40.191488Z",
+          "pointCount": 66,
+          "name": "mw-credit-app-command-dev"
+        },
+        {
+          "newest": "2026-10-13T03:48:40.191488Z",
+          "pointCount": 79,
+          "name": "mw-credit-app-command-prod"
+        },
+        {
+          "newest": "2026-10-13T03:23:40.191488Z",
+          "pointCount": 121,
+          "name": "mw-credit-app-jobs-prod"
+        },
+        {
+          "newest": "2026-10-13T03:48:40.191488Z",
+          "pointCount": 288,
+          "name": "mw-credit-app-notify-prod"
+        },
+        {
+          "newest": "2026-10-12T04:23:40.191488Z",
+          "pointCount": 5,
+          "name": "mw-credit-app-read-dev"
+        },
+        {
+          "newest": "2026-10-13T02:58:40.191488Z",
+          "pointCount": 49,
+          "name": "mw-credit-app-read-prod"
+        }
+      ],
+      "queryPassed": true
+    }
+  ],
+  "authority": "existing human gcloud; Grafana datasource execution not yet tested",
+  "descriptors": [
+    {
+      "kind": "DELTA",
+      "labels": [
+        {
+          "key": "response_code",
+          "valueType": null
+        },
+        {
+          "key": "response_code_class",
+          "valueType": null
+        },
+        {
+          "key": "route",
+          "valueType": null
+        }
+      ],
+      "type": "run.googleapis.com/request_count",
+      "metadata": {
+        "launchStage": "GA",
+        "samplePeriod": "60s",
+        "ingestDelay": "120s",
+        "timeSeriesResourceHierarchyLevel": [
+          "PROJECT"
+        ]
+      },
+      "monitoredResourceTypes": [
+        "cloud_run_instance",
+        "cloud_run_revision"
+      ],
+      "valueType": "INT64",
+      "unit": "1"
+    },
+    {
+      "kind": "DELTA",
+      "labels": [
+        {
+          "key": "response_code",
+          "valueType": null
+        },
+        {
+          "key": "response_code_class",
+          "valueType": null
+        },
+        {
+          "key": "route",
+          "valueType": null
+        }
+      ],
+      "type": "run.googleapis.com/request_latencies",
+      "metadata": {
+        "launchStage": "GA",
+        "samplePeriod": "60s",
+        "ingestDelay": "120s",
+        "timeSeriesResourceHierarchyLevel": [
+          "PROJECT"
+        ]
+      },
+      "monitoredResourceTypes": [
+        "cloud_run_instance",
+        "cloud_run_revision"
+      ],
+      "valueType": "DISTRIBUTION",
+      "unit": "ms"
+    },
+    {
+      "kind": "GAUGE",
+      "labels": {
+        "key": "state",
+        "valueType": null
+      },
+      "type": "run.googleapis.com/container/instance_count",
+      "metadata": {
+        "launchStage": "GA",
+        "samplePeriod": "60s",
+        "ingestDelay": "120s",
+        "timeSeriesResourceHierarchyLevel": [
+          "PROJECT"
+        ]
+      },
+      "monitoredResourceTypes": [
+        "cloud_run_instance",
+        "cloud_run_revision",
+        "cloud_run_worker_pool"
+      ],
+      "valueType": "INT64",
+      "unit": "1"
+    }
+  ],
+  "window": "24h ending2min before observation",
+  "resourceType": "cloud_run_revision"
+}
