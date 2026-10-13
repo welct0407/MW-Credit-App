@@ -1,116 +1,29 @@
-# Development and infrastructure
+# Development and delivery
 
-Established 7 October 2026. Infrastructure is managed in this repository; shared SQL migrations and promotion tooling are now owned here under database/. Overall release coordination remains in AppSheet-Loan-Project.
+MW-Credit-App owns PWA/API/shared SQL/infrastructure. AppSheet-Loan-Project owns release coordination and current business references. MW-Integration-Agent owns Debian runtime. AppSheet is retired.
 
-## Resources
+## Setup
 
-| Component | Development resource |
-| --- | --- |
-| Google project | clever-oasis-508610-n7 (737787224638) |
-| Region | asia-southeast1 |
-| Cloud Run | mw-credit-app-api-dev; IAM protected; zero minimum/two maximum instances |
-| Firebase Hosting | mw-credit-app-dev-737787224638 |
-| Artifact Registry | asia-southeast1/mw-credit-app |
-| Runtime service account | mw-credit-app-dev@clever-oasis-508610-n7.iam.gserviceaccount.com |
-| Build / deploy identities | mw-credit-app-build / mw-credit-app-deploy in the same project |
-| Existing SQL instance | appsheet-pg-prod-20260914 |
-| Development database | loan_manager_dev |
-| Existing receipt bucket | mw-payment-receipts-prod-508610-n7 |
-| New storage prefix | mw-credit-app/dev/ |
-| Secret Manager | mw-credit-app-dev-vapid |
-| Terraform state bucket | mw-credit-app-tfstate-737787224638; versioned; prefixes bootstrap and development |
-| Cloud Build source bucket | mw-credit-app-builds-737787224638; 14-day source cleanup |
+On VM-01, dot-source `scripts/Enter-Dev.ps1`; reuse installed tooling and root dependencies. Elsewhere use supported tools matching .nvmrc/package-lock and Terraform required_version. Run npm ci only when dependencies require it. Cloud Build/GitHub handle image builds; local Docker is not a routine prerequisite.
 
-The existing SQL instance, GCS receipt bucket, AppSheet apps, Metabase, Grafana and business schedulers are retained. Terraform manages additive identities/bindings and an IAM database login, not the shared instance or receipt bucket. Initial infrastructure setup added no business table privileges or schema migrations. Checkpoint 2A subsequently added nine exact DEV-only column SELECT grants for the dedicated reader; see the read-service guide. The runtime checks its exact DEV database/instance/prefix before starting; PostgreSQL grants must be designed and verified with the first business API.
+Google project `clever-oasis-508610-n7`, region `asia-southeast1`; shared SQL `appsheet-pg-prod-20260914`; databases `loan_manager_dev` / `loan_manager_prod`. Receipt bucket `mw-payment-receipts-prod-508610-n7` remains private. Verify complete targets before operations. Current origins/pins are maintained in the project's Environment_Inventory.md.
 
-## Credentials
+## Credentials and Terraform
 
-Cloud Run uses its attached service account and automatic IAM database authentication. GitHub delivery uses Workload Identity Federation: numeric repository/owner IDs, main branch and development environment are required. No service-account keys or database passwords are needed for the new runtime or delivery path.
+Cloud Run uses workload identities and IAM database authentication. Delivery uses established federation; operator tooling uses the maintained unattended route. Prefer Secret Manager references over manual password-file requests. Never print values or commit secrets, plans/state, auth exports or private data.
 
-Secret Manager holds the VAPID private key. Terraform creates only the container and IAM; the payload is generated with `node scripts/initialize-secrets.mjs` and sent through stdin. Existing versions are preserved. Never print or export secret values into this repository. Push delivery itself is not yet implemented.
-
-Existing services retain their existing credential arrangements; infrastructure setup did not rotate their credentials. Future integration credentials belong in separate Secret Manager secrets with access granted only to the relevant runtime.
-
-Human tooling reuses the existing gcloud sign-in and Git Credential Manager. It does not copy their authentication stores. Private Terraform working data, plans and recovery files on VM-01 are under:
-`C:/Users/ideaadmin/Documents/ChatGPT/MW-Credit-App/terraform`.
-Plans/state include sensitive OAuth provider payloads read from Secret Manager; never publish them. Secret Manager storage does not keep those payloads out of Terraform state/plan.
-
-## Installed VM-01 tooling
-
-Dot-source `scripts/Enter-Dev.ps1` in each shell. It selects Node 24.21.0 / npm 11.19.0, Terraform 1.16.5 and GitHub CLI 2.102.0 under the user's LocalAppData MWCredit/tools folder, and reuses gcloud, PostgreSQL 18.6 and Flyway 13.6.0. Official archive SHA256 checks were verified for the new installations. Playwright Chromium is installed in the user cache. Repository dependencies use the root package lock.
-
-Docker builds run in Cloud Build or GitHub Actions; local Docker is not required. Do not run the shared Flyway runner against a database merely to test tool installation. Shared schema changes follow [the canonical database procedure](../database/README.md).
-
-For another workstation, install the versions pinned in .nvmrc and Terraform required_version, use its supported gcloud authentication, run npm ci and npx playwright install chromium, and adapt the local paths in Enter-Dev.ps1. The PowerShell helper is VM-01 specific.
-
-## Terraform
-
-```powershell
-./scripts/Invoke-Terraform.ps1 -Stack dev -Command init
-./scripts/Invoke-Terraform.ps1 -Stack dev -Command validate
-./scripts/Invoke-Terraform.ps1 -Stack dev -Command plan
-# Review the plan before applying its exact saved file:
-./scripts/Invoke-Terraform.ps1 -Stack dev -Command apply
-```
-
-Both stacks use the versioned remote GCS backend. The bootstrap bucket has already been created and local state migrated. Do not repeat the initial local bootstrap or create competing state. The helper obtains a temporary access token and removes it afterwards. Terraform manages service settings; application image changes are deliberately ignored and owned by artifact delivery.
-
-## Build and delivery
-
-Use [Delivery process and validation](#delivery-process-and-validation) for current test selection and actual automation. The manual Deploy development workflow builds an immutable image for the original DEV API and checks its readiness; it runs only from main in the development environment. Hosting uses the separate maintained operator route.
-
-The Hosting deployer uploads gzip files by content hash, finalizes a version and creates a release. No Firebase CLI or persistent Firebase token is required. The initial synthetic-site and Checkpoint 2A observations below are dated setup evidence, not the current business application's release contract.
-
-Local commands:
-
-```powershell
-npm ci
-npm run check
-npm run test:e2e
-npm audit --audit-level=moderate
-```
-
-## Verification and rollback
-
-The initial Cloud Build a7e25d62-8461-4a2d-bc6e-b34ca2c6eefb succeeded. Live /readyz verified the exact DEV database identity using a read-only query, accessed the managed secret without returning its value, and wrote/read/deleted a synthetic object in the dedicated health prefix. It does not test financial posting or table permissions.
-
-For an application rollback, redeploy a previously verified Artifact Registry digest to the new Cloud Run service and restore the prior Firebase Hosting version. Keep the old AppSheet apps serving their existing users. This does not undo SQL/financial writes. No such writes were made during setup.
-
-For infrastructure recovery, review versioned GCS state and Git configuration together. Do not blindly restore old state or run terraform destroy: shared project bindings and the SQL IAM login must be assessed first. Secret, state bucket, Firebase project and Cloud Run deletion guards are intentional. Preserve Secret Manager versions; never regenerate a lost key as if it were recovery.
-
-## Next application work
-
-Complete checkpoint 2A real owner sign-in/read and UID pinning, then continue separately accepted business slices. Add governed Metabase/Grafana integration when application endpoints and metrics exist. Mobile posting requires online confirmation; offline viewing/drafts remain in scope. No duplicate business job scheduler, production API or cutover has been activated.
-
-## Completed delivery evidence
-
-[CI 37584672421](https://github.com/welct0407/MW-Credit-App/actions/runs/37584672421) and [deployment 37584673770](https://github.com/welct0407/MW-Credit-App/actions/runs/37584673770) both passed for source fa9679f. GitHub used OIDC throughout; its development environment permits main only. The private readiness probe verifies database, storage and secrets before Hosting publication. Both Terraform stacks returned no-change plans. See [sanitized verification](../outputs/infrastructure-20261007/verification.json). Anonymous API requests returned HTTP 403; the public synthetic page returned HTTP 200. Development infrastructure is ready; the next scope is application authentication and business functionality.
-
-Database tooling ownership moved here on 7 October 2026. Enter-Dev.ps1 selects current-account copies under C:/Users/ideaadmin/AppData/Local/MWCredit/database-tools because PostgreSQL restricted subprocesses cannot read the prior account’s private tool directory. The local V1–V77 disposable rebuild, no-op rerun and checksum-rejection checks passed. See [database ownership](../database/OWNERSHIP.md).
-
-## Read/access checkpoint 1B
-
-The local preview implements a tested synthetic read/access contract before live integration. Its scenario controls simulate access outcomes; they do not sign in or verify tokens. The current Cloud Run health/readiness server remains unchanged. See the [read/access change record](../Change%20Logs/CHANGE_NOTES_R052_READ_ACCESS_CONTRACTS_2026-10-07.md) and project checkpoint design for implementation status and limits.
-
-## Checkpoint 2A deployment
-
-Separate read service: https://mw-credit-app-read-dev-pvrgvyg3oq-as.a.run.app. The owner explicitly approved service-only Firebase application authentication after domain-restricted sharing rejected allUsers membership. Terraform applied only invoker_iam_disabled false to true; organization policies and the old API are unchanged. [Read-service details](Development_Read_Service.md). The persistent owner-identity secret version 1 holds the verified actual owner UID; tracked mode is uid-pinned. Live Hosting version c0872b1adcb4006f is deployed; the owner reported successful sign-in/list/detail, and the verified actual UID is pinned.
+Use the owning infrastructure root's README/wrapper. Remote state already exists: do not bootstrap competing state. Review an exact plan before authorized apply. Terraform owns service settings; artifact delivery owns application image versions where configured. Shared SQL/bucket metadata is adopted; contents and the Azure VM controller are excluded.
 
 ## Delivery process and validation
 
-The [PWA delivery policy](https://github.com/welct0407/AppSheet-Loan-Project/blob/master/Documents/PWA_Orchestration.md) is authoritative for batching, proportional checks, evidence reuse and production promotion. Use its change matrix; this document does not add a second test or approval gate. Batch related UI work and run one consolidated full suite only when its combined behavior warrants it. Preserve immediate financial/auth/access/database verification and scoped production authority.
+Follow [PWA policy](https://github.com/welct0407/AppSheet-Loan-Project/blob/master/Documents/PWA_Orchestration.md). Select affected unit/contract/SQL/browser checks during implementation; run one broad checkpoint when scope warrants it and reuse that result for promotion. Required workflows remain in force.
 
-Reuse an existing artifact and test results across docs/merge commits only with recorded equivalence of relevant runtime, dependency, build, configuration **and test** inputs. Pin artifact source separately from the candidate/evidence commit. A skipped test is not a pass; relevant failures still require repair and affected verification. No product CI is needed merely to publish this documentation.
+Current automation is not a complete implementation of proportional test selection: CI runs check/build/audit on its configured events; browser checks depend on event/checkpoint label. Database workflow paths also match database documentation. The original manual DEV deployment workflow covers its configured API; maintained release tooling owns full package/Hosting delivery. Do not bypass validators or claim this documentation changed workflows.
 
-### Tooling as implemented — inspected 12 October 2026
+Use one promotion record plus runner-required manifest. Pin immutable artifacts and dependencies, record existing scoped authority/recovery, deploy the intended components, run one bounded smoke and update changed facts. No AppSheet validation or duplicate design/checklist/continuation inventory.
 
-- `.github/workflows/ci.yml` runs unit/build/audit/DEV Terraform checks for every listed PR event. Browser installation/E2E runs on a PR only when the event applies `ci:checkpoint`; leaving the label in place does not run E2E on subsequent updates. Every main push and manual dispatch runs the full workflow, including docs-only main changes. No affected-input router or automatic input-equivalence reuse is implemented there.
-- `database.yml` is path-filtered but may duplicate checks on branch push and PR events. Relevant migration/runner changes still use the maintained disposable database procedure.
-- `deploy-dev.yml` is a manual main-only deployment of the original DEV API; it repeats app checks and does not publish Hosting. Use the maintained scoped procedure for the actual services/Hosting, with exact artifacts and recovery pins; do not mistake this legacy workflow for complete PWA delivery.
-- `scripts/promotion/business-candidate.mjs` and the foundation delivery gate retain full-browser requirements. `r053-candidate.mjs` requires a manual-dispatch application receipt and has a bounded artifact-input equivalence check. They do not yet implement general proportional test selection.
+## Recovery
 
-These implementation gaps are tracked in the [policy's follow-up table](https://github.com/welct0407/AppSheet-Loan-Project/blob/master/Documents/PWA_Orchestration.md#current-automation-and-follow-up): add tested affected-input/checkpoint routing, deduplicate necessary runs, and let delivery consume required evidence without weakening target/artifact/SQL/authority/recovery guards. This documentation change modifies no workflow or validator. Report an actual conflicting tool constraint; correct the maintained path through a scoped tested change instead of falsifying evidence or bypassing it. Existing required branch checks remain effective.
+Restore a verified Cloud Run digest/Hosting version or agent package/configuration for affected code. This does not reverse financial writes or SQL. SQL recovery follows [database procedure](../database/README.md); preserve later user data. Review Git configuration/state together for infrastructure recovery; never blindly destroy resources or restore old state.
 
-<a id="consolidated-ui-validation--owner-revision-9-october-2026"></a>
-
-The former UI-validation anchor is retained for existing links; use [Delivery process and validation](#delivery-process-and-validation).
+No live service or financial operation is authorized by these development instructions.
