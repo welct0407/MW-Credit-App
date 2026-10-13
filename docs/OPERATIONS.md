@@ -2,17 +2,15 @@
 
 ## Current state
 
-R015 is active from 22 September 2026, 13:58 Bangkok. Catalogue revision 15 uses PostgreSQL state/audit and current-reviewer API-first Add/Edit/Delete, with bounded SQL fallback. Read [PostgreSQL operations and recovery](POSTGRESQL_OPERATIONS.md) before a runtime update or recovery. The previous SQLite updater is not the current cutover procedure. [Partner conversations](PARTNER_CONVERSATIONS.md) retain their separate switches, durable threads and history.
+R053 native workload transport and catalogue revision27 are deployed. R057 removes the remaining AppSheet probe/credential setup and rejects attempts to re-enable that transport. Read [Partner conversations](PARTNER_CONVERSATIONS.md) for current native endpoint, manifest and recovery controls, and [PostgreSQL operations and recovery](POSTGRESQL_OPERATIONS.md) for journal recovery. Existing switches, cutoffs, durable threads and history remain in force. The earlier revision descriptions below are dated activation evidence.
 
 Daily cash statements are implemented and scheduled under catalogue revision 9; see [cash statement operations](CASH_STATEMENT.md). The owner authorized a 00:15 Asia/Bangkok daily production timer for current Partners with `IG Integration Enabled=true`, plus Microsoft Graph email fallback to each Partner's current Email. The dedicated schedule and fallback controls are enabled; generic sending, processing and writes remain false.
 
 Catalogue revision 9 adds [receipt-only borrower processing and IG-first Partner summaries with email fallback](RECEIPTS.md) active under a dedicated activation switch and cutoff (21 September 2026, 02:50:41 Bangkok). AppSheet Find reads and dedicated PostgreSQL connectivity remain bounded. At that earlier revision, AppSheet edits and durable SQL DML were disabled; current R015 authority is described above. A one-time Instagram reply was accepted by Meta on 20 September 2026, and `sending_enabled` was immediately restored to `false`.
 
-## Production API connections — owner update, 21 September
+## Native production API connections
 
-Both PROD OLTP and OLAP inbound APIs are enabled directly outside the product release process; DEV is unchanged. `appsheet-probe --app oltp` and `--app olap` verify each named connection. OLTP keeps the existing key; OLAP uses its own protected `appsheet-olap-key.txt`. `scripts/configure-appsheet-apis.py` backs up configuration and installs the owner-authorized OLAP connection without displaying credentials. The read client is Find-only; current reviewer mutations use the separate generic audited transport. Receipt posting retains its independent approval workflow.
-
-Do not assume App Upgrade preserves API Enable. The previous recorded enabled OLTP state was found disabled on 21 September. The vendor upgrade guide does not explicitly guarantee this setting; check both production APIs after upgrades without enabling DEV as a workaround.
+Use `native-api-probe --scope oltp` and `--scope olap` with the private config and catalogue paths to verify the authenticated native capability catalogue and a key-only read. The native command origin/audience and capability-manifest pin identify the approved API. AppSheet IDs, access keys and schema-export paths are retired runtime inputs; the old probe, connection installer and AppSheet schema verifier are removed. `appsheet_enabled` may be absent or explicitly false; true is rejected. Preserve old private recovery snapshots without restoring their retired credentials into active configuration.
 
 All Partner notices are Instagram first, email fallback. The former SQLite updater is historical. Current journal recovery uses Cloud SQL backups/PITR and a verified private logical restore; package/configuration/Codex files retain private VM recovery copies. It never resets receipt activation or replays history. See the [16-page process diagram](BUSINESS_PROCESS.md).
 
@@ -63,7 +61,7 @@ sudo -u mwagent /opt/mw-integration-agent/.venv/bin/mw-integration-agent \
 sudo -u mwagent /opt/mw-integration-agent/.venv/bin/mw-integration-agent \
   messages --config /etc/mw-integration-agent/config.json --limit 10
 sudo -u mwagent /opt/mw-integration-agent/.venv/bin/mw-integration-agent \
-  appsheet-probe --config /etc/mw-integration-agent/config.json \
+  native-api-probe --scope oltp --config /etc/mw-integration-agent/config.json \
   --catalogue /etc/mw-integration-agent/service-catalogue.json
 sudo -u mwagent /opt/mw-integration-agent-src/scripts/test-postgres-access.sh
 ```

@@ -71,7 +71,7 @@ instruction_quote=CURRENT_QUOTE) executes database_transaction. STEPS_ARRAY_JSON
 with action INSERT/UPDATE/DELETE, table, row_id, values object, expected_after object and observation ID.
 JSON_OBJECT_WITH_REASON is {"reason":"a concrete correction reason"}. These are aliases for the
 same reviewer tools, not a permission workaround. Existing conversation history stays intact.
-AppSheet API is the first route for reads and changes. SQL is a fallback when inspected API
+The native MW Credit API is the first route for reads and changes. SQL is a fallback when inspected API
 capabilities cannot express the request or an atomic transaction/approved deletion-set guarantee
 is required. Give a reason starting api_gap: for a demonstrated unsupported API capability, or
 atomic: followed by the concrete transaction requirement. API rejection or uncertain completion

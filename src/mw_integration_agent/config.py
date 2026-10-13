@@ -14,7 +14,6 @@ BOOLEAN_FLAGS = (
     "cash_statement_schedule_enabled",
     "email_fallback_enabled",
     "receiver_enabled",
-    "appsheet_enabled",
     "database_enabled",
 )
 
@@ -183,16 +182,9 @@ def validate_config(config: dict[str, Any]) -> None:
             except ValueError as exc:
                 raise ConfigurationError(f"{key} must be under secrets_directory") from exc
 
-    if config.get("appsheet_enabled"):
-        if not re.fullmatch(r"[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}", str(config.get("appsheet_app_id", ""))):
-            raise ConfigurationError("appsheet_app_id must be a lowercase UUID")
-        if config.get("appsheet_api_base") != "https://www.appsheet.com":
-            raise ConfigurationError("appsheet_api_base is not approved")
-        _validate_secret_path(config, "appsheet_key_file")
-        if config.get('appsheet_olap_app_id') or config.get('appsheet_olap_key_file'):
-            if config.get('appsheet_olap_app_id') != 'e74dd368-654f-44d7-bccf-83cf361d1cdb':
-                raise ConfigurationError('OLAP API must identify the approved production application')
-            _validate_secret_path(config, 'appsheet_olap_key_file')
+    # Retain false as a compatible retirement marker; native runtime needs no legacy fields.
+    if config.get("appsheet_enabled", False) is not False:
+        raise ConfigurationError("AppSheet transport is retired; appsheet_enabled must be false or absent")
 
     if config.get("database_enabled"):
         if config.get("database_host") not in {"127.0.0.1", "::1"}:
