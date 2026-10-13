@@ -32,6 +32,19 @@ function build(evidence,{uidAvailable=false}={}){
    charts.forEach((c,i)=>{c.targets.forEach((q,j)=>q.refId=String.fromCharCode(65+j));d.panels.push({id:id++,title:environment.toUpperCase()+' '+service+' · '+c.title,description:c.description,type:'timeseries',datasource:DS,targets:c.targets,gridPos:{x:i*8,y,w:8,h:7},fieldConfig:{defaults:{unit:c.unit,noValue:'No observed telemetry',min:0,custom:{spanNulls:false,drawStyle:'line'}},overrides:[]},options:{legend:{displayMode:'list',placement:'bottom'},tooltip:{mode:'multi'}}});});y+=7;
   }
  }
+ // Agent E: presentation-only refinement; preserve all metric targets and status mappings.
+ const overview=d.panels[0];
+ overview.description=overview.options.content.replace('HTTP4xx','HTTP 4xx');
+ overview.options.content='- **Timing:** 5-minute windows; range ends 2 minutes ago.\n- **Missing \u2260 healthy:** idle workers may have no data. Query errors remain errors.\n- **HTTP 4xx:** may be client/auth rejection. No new alert thresholds.\n- **Limits:** Hosting is one Debian vantage, not login or regional coverage. Job completion and notification delivery are not measured.';
+ overview.gridPos.h=8;
+ for(const panel of d.panels.slice(1)){
+  panel.gridPos.y+=4;
+  if(panel.description)panel.description=panel.description.replace('older than6min','older than 6 min').replaceAll('per5min','per 5 min').replace('and5xx','and 5xx').replace('Collector activation required.','Collected by the existing monitoring timer.');
+  panel.title=panel.title.replace('canonical Hosting \u00b7 Debian vantage','Hosting \u00b7 single vantage').replace('requests / 5 min','Requests / 5 min').replace('request latency p95','p95 latency (ms)').replace('instance peak envelope','Instance peak envelope');
+  if(panel.targets?.length===3){
+   panel.fieldConfig.overrides=[['All','blue','solid'],['4xx','orange','dash'],['5xx','red','dots']].map(([name,color,fill])=>({matcher:{id:'byName',options:name},properties:[{id:'color',value:{mode:'fixed',fixedColor:color}},{id:'custom.lineStyle',value:{fill}}]}));
+  }
+ }
  return d;
 }
 module.exports={build,numericSelector,hostingSelector};

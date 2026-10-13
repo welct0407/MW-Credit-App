@@ -19,3 +19,7 @@ Owner authorized Grafana Terraform adoption followed by native PWA monitoring on
 ## Scoped promotion start
 
 2026-10-13T04:10:19.463891+00:00: R055 Frozen / R056 Open / next R057, with source and exact saved-plan pins in outputs/r055-grafana/release-manifest.json. Twelve existing resources imported with zero configuration changes. Reviewed changes create PWA Platform, update only Performance panels56/57 labels, and create two protected Secret Manager containers; payloads stay outside Terraform. No IAM, recipient, financial or worker change. Apply/readback remain pending. Unrelated dirty work is preserved.
+
+## Owner-requested UX refinement
+
+Agent E configuration review accepted GRAF-INFO-01, GRAF-SERIES-01 and GRAF-LABEL-01. Root updated the generator and JSON, preserving targets/math/IDs/status mappings and current range. Exact delta checks passed; no broad CI. See outputs/r055-grafana/ux-review.md. F owns one corrective Terraform apply/readback. No device visual validation claimed.

@@ -63,3 +63,7 @@ Earlier native collector and dashboard identity checks are reused: their functio
 ## Remaining live boundaries
 
 Authenticated org/resource inventory, exact current dashboard/rule/data-source baseline, provider adoption/no-change plan, final PWA metric coverage, natural collector interval, and readback remain pending. Local checks cannot establish these facts. No token, state, private payload or live business data was written into a repository. No C-owned scratch/helper was created by the collector checks.
+
+## Owner-requested Agent E refinement
+
+Root verified the generated presentation-only delta against the published prior JSON: all29 panel IDs, query targets, datasources, field defaults/status mappings, links, range/refresh and template bindings unchanged; overview height4 to8 and every later y+4 preserve the prior non-overlap layout. Only labels/descriptions/overview and request-series style overrides changed. No broad CI rerun; F saved-definition readback remains required. See ux-review.md for the three accepted codes.
