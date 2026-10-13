@@ -1,5 +1,10 @@
 # Open development differences
 
+## R056 Apple push registration fix — 13 October 2026
+
+DEV/PROD V91 validated. PROD command `00006-lrd` and notify `00003-bj4` are Ready at 100% on digest `b4f528bc8ac48008ed0951e227089d3d0802a7a6c2dbaa826ada5e021e156aea`. Apple subdomain validation now matches across registration and delivery. Reader/jobs/frontend/schedules and account policies are unchanged. Protected backups/restore and temporary-authority restoration passed; Terraform has no remaining diff. Deployment verified; Lisa's retry remains pending. [Evidence](../outputs/r056-apple-push/README.md).
+
+
 ## R055 monitoring delivery - 13 October 2026
 
 R055 monitoring is deployed: existing Grafana resources adopted without configuration drift, PWA Platform added, Performance native API labels corrected, and provisioning/contact recovery references stored in protected Secret Manager containers. The normal collector cycle at 2026-10-13T04:17:47.642329Z exported reachable observations for both native scopes and DEV/PROD Hosting. This is a point-in-time single-vantage observation, not complete business workflow health. PWA/API/SQL/workers, business schedules, IAM and alert recipients are unchanged. Agent E presentation refinements are saved in PWA dashboard version2; Performance41 and Cost15 are verified. Final plans show no drift across13 Grafana and2 protected access resources. R055 remains Frozen because carried credential work is unfinished; R056 is sole Open, next R057. [Continuation](../outputs/r055-grafana/continuation.md).
