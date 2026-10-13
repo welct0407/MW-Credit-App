@@ -11,6 +11,8 @@
 - Available Grafana bridge connector exposes sanitized event lookup and bridge health only; it is not a dashboard/datasource/alert administration API. Phase 1 previously observed public health 200 and unauthenticated datasource inventory 401; these are dated reachability facts, not authenticated inventory today.
 - No maintained Grafana Terraform root was identified in the affected source. Existing scripts provision dashboards/datasources; GCP bridge resources are outside the six application Terraform states recorded in the [Phase 1 inventory](../infrastructure-cleanup-phase1/infrastructure-inventory.md).
 
+All subsequent management must be code-based: Terraform for supported resources, version-controlled API tooling for verified provider gaps. Preserve existing identities and URLs; bootstrap access precedes imports and monitoring updates.
+
 ## Proposed ordered batches
 
 | Batch | Concrete work and acceptance | Boundary / approval |
@@ -29,7 +31,7 @@ Terraform owns secret container metadata and reviewed IAM, not ordinary payloads
 
 ## Blockers and limits
 
-1. No usable administrator credential established through maintained paths; authenticated live inventory, existing IRM/contact validity and provider permissions remain unknown. Do not ask for a replacement until the owner reviews this route; no current secret values were inspected.
+1. Owner confirmed no Grafana token is available and included access setup in the proposal. First establish a supported authenticated bootstrap authority; creating a service-account token through the API itself requires authenticated authority and cannot be bypassed by using a CLI. The owner can supply an appropriate existing bootstrap credential/access route; the agent will not use a browser GUI. After approval, create or reuse a dedicated provisioning service account with the minimum supported dashboard/folder/alert permissions for the verified stack. Propose Secret Manager container `mw-grafana-provisioning-token` with numeric version pins, executor-only accessor, explicit expiry/renewal owner and preserved recovery authority. Transfer token bytes directly through the API outside Terraform state/logs; verify identity and bounded read access before imports. Do not grant runtime bridge identities provisioning access. Authenticated inventory then determines exact roles and resource IDs.
 2. Separate collector installed revision and live dashboard/rule definitions have not been read today. Stash tests and source presence do not establish current health.
 3. Full GCP/other-cloud credential centralization remains the separate six-phase proposal. This task does not adopt Azure, Cloudflare, Tailscale or Railway infrastructure, rotate credentials, or retire compatibility secrets.
 4. Owner approval is needed for implementation scope, any credential bootstrap/access changes, exact imports/applies/publication, collector deployment, and optional alert delivery test. Existing approval to inspect and write this proposal covers none of those live actions.

@@ -7,3 +7,5 @@ Added `outputs/r055-grafana/plan.md`. Confirmed five native-monitoring recovery 
 Proposal covers selective source recovery, authenticated API inventory, no-change Terraform adoption, native collector/label repair, PWA monitoring coverage, focused verification and rollback. Authenticated platform inventory and all implementation/import/deployment steps remain pending owner review. Related credential work preserved.
 
 Validation: read back new Markdown, verified scope/paths and stash pin; documentation-only, no runtime suite required. Rollback: remove the two new files. Publication: root/D authorized exact-file commit/push on PM master; live work remains proposal-only.
+
+Owner follow-up: no existing Grafana token; access setup is included in the proposal. Added supported authenticated bootstrap prerequisite, dedicated least-privilege provisioning identity, proposed numeric-pinned SM container and code-only management requirement. No credential was created.
