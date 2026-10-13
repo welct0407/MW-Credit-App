@@ -59,7 +59,13 @@
     "otherKeysPreserved": 2,
     "taskPrivateKeyRemoved": true,
     "stableHostTrustPreserved": true,
-    "tunnelStopped": true
+    "tunnelStopped": true,
+    "retainedIgnoredCaches": [
+      "C:/GitHub/MW-Credit-App/scripts/grafana/__pycache__",
+      "C:/GitHub/MW-Credit-App/tests/grafana/__pycache__"
+    ],
+    "cacheReviewBy": "2026-10-20",
+    "cacheCleanupBlocked": "Automatic command review rejected bundled cleanup/publication; no detailed reason supplied; no deletion retry"
   },
   "contactWrites": false,
   "notificationsSent": false,
