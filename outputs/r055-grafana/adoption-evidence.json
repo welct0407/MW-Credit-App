@@ -1,0 +1,46 @@
+{
+  "status": "initial-adoption-no-change",
+  "providerVersion": "4.45.2",
+  "stackId": 1839781,
+  "orgId": 1,
+  "resources": [
+    {
+      "address": "grafana_apps_dashboard_dashboard_v1beta1.existing[\"mw-resource-cost\"]",
+      "actions": [
+        "no-op"
+      ]
+    },
+    {
+      "address": "grafana_apps_dashboard_dashboard_v1beta1.existing[\"mw-resource-performance\"]",
+      "actions": [
+        "no-op"
+      ]
+    },
+    {
+      "address": "grafana_folder.existing[\"f9w88d\"]",
+      "actions": [
+        "no-op"
+      ]
+    },
+    {
+      "address": "grafana_folder.existing[\"mw-resource-monitoring\"]",
+      "actions": [
+        "no-op"
+      ]
+    }
+  ],
+  "planSha256": "a7d9acfbf17d7f528f064651ec6e3a6a46c6c0f89a8c50d31c0e22d69b159d62",
+  "tokenMetadata": {
+    "serviceAccountId": 20,
+    "tokenId": 21,
+    "expiration": null
+  },
+  "remaining": [
+    "six custom datasources",
+    "ten alert rules and routing",
+    "token Secret Manager publication",
+    "native and PWA dashboard deployment",
+    "collector deployment"
+  ],
+  "liveBehaviorChanges": false
+}
