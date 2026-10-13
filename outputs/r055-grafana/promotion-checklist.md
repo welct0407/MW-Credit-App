@@ -4,14 +4,10 @@ Template revision: 2026-09-24. **Single master:** `scripts/releases/templates/pr
 
 ## Continue here
 
-- Scope: owner-approved Grafana Terraform adoption and native PWA monitoring; CLI/Terraform/API only. No financial, scheduler or notification test writes.
-- Release: R055 Frozen at 2026-10-13T04:10:19.463891+00:00; R056 sole Open, next R057. Exact source and saved plan pins: release-manifest.json.
-- Authority: owner approved scoped live adoption/deployment13October; external saved token privately handled by F.
-- Prepared: B collector/dashboard/guides and C focused verification; F authenticated metadata inventory passed (Performance40/Cost15). Exact resource/source plan pins pending F.
-- Actual: twelve existing resources imported with no-change proof. Dashboard/secret/collector deployment remains pending; existing PWA/SQL/workers remain baseline.
-- Recovery: authenticated exports/state/import baseline and deployed collector/unit rollback pending.
-- Selected checks: existing focused fixtures, provider schema/fmt/validate, import no-change proof, guarded grouped plans, saved-definition readback and one natural collector interval. No blanket full CI.
-- Current handoff: continuation.md; root owns plan/log, F infrastructure, B collector/guides, C verification, D release records.
+- Monitoring slice deployed and verified; R055 remains Frozen for unfinished carried credential scope. R056 sole Open, next R057.
+- Authority: owner-approved code-only adoption/deployment plus Agent E refinement. No business or notification test writes.
+- Exact pinned plans, actual dashboard versions, clean plans, collector recovery and natural output: release-manifest.json.
+- Selected focused checks passed and reused; no blanket CI. Final whole-R055 closure/tag is not claimed.
 
 ## Execution rules
 
@@ -21,30 +17,30 @@ Execute applicable rows in order; one result/evidence link per coherent check. S
 
 | ID | Stage | When required | Activity / completion criterion | Status | Evidence / reason |
 | --- | --- | --- | --- | --- | --- |
-| P01 | A Readiness | Always | Use the tracker's single current Open release for development; do not reserve a successor during development/review. Confirm scope, integrated DEV features/PROD fixes, dependencies and app Upgrade/Unchanged decisions. Reuse existing evidence; resolve unrelated unreleased work. Record readiness/owner acceptance; readiness does not freeze scope. | Pending | |
-| P10 | A Readiness | Always; reuse passing evidence | Accept recorded integrated DEV tests and both apps’ final zero-warning/error diagnostics. Rerun only checks invalidated by changed behavior, dependencies or data. No new full regression or live audit merely to start promotion. | Pending | Reuse C focused fixtures; scoped provider/plan/source checks only. No new full CI or AppSheet editor audit. |
+| P01 | A Readiness | Always | Use the tracker's single current Open release for development; do not reserve a successor during development/review. Confirm scope, integrated DEV features/PROD fixes, dependencies and app Upgrade/Unchanged decisions. Reuse existing evidence; resolve unrelated unreleased work. Record readiness/owner acceptance; readiness does not freeze scope. | Done | Scoped source/authority captured in manifest; unrelated credential work remains preserved. |
+| P10 | A Readiness | Always; reuse passing evidence | Accept recorded integrated DEV tests and both apps’ final zero-warning/error diagnostics. Rerun only checks invalidated by changed behavior, dependencies or data. No new full regression or live audit merely to start promotion. | Reused | Focused source/provider tests in verification.md; no affected AppSheet configuration or broad CI trigger. |
 | P06 | A Readiness | First use / guard changed | Install/test scheduled guards in DEV before copy, including child calls and per-row filters. Prove canonical DEV allowed and harmless copy excluded in scheduled context. Reuse this proof in later releases. | N/A | Grafana/collector-only scope; no AppSheet RC/upgrade, SQL, routing or business scheduler change. |
 | P08 | A Readiness | DEV setup / routing changed | Use DEV preparation only for missing/changed setup: DEV sources/links, owner-only Partner delivery data, distinct Login Email and initial deployment if needed. Keep audit fields and channels. Unmapped actors must be resolved for affected tests. | N/A | Grafana/collector-only scope; no AppSheet RC/upgrade, SQL, routing or business scheduler change. |
 | P04 | A Readiness | SQL changes | Reuse completed Flyway-chain/DEV tests and old/new-app compatibility evidence, including relevant queued clients/locks. Pin the clean tested commit with New-Release.ps1 before DEV advances; include every pending migration/prerequisite. | N/A | Grafana/collector-only scope; no AppSheet RC/upgrade, SQL, routing or business scheduler change. |
-| P13 | B Capture | Always, including SQL/report-only | At authorized promotion start, pin scope/package and record scope-freeze timestamp/evidence. In one published tracker handoff mark this release Frozen, open the next unused number as the sole development release and advance the counter. Hold shared DEV edits until capture completes. Record PROD baseline/recovery order and reuse scoped authority/eligibility; recheck eligibility only after access/plan changes. | Pending | |
+| P13 | B Capture | Always, including SQL/report-only | At authorized promotion start, pin scope/package and record scope-freeze timestamp/evidence. In one published tracker handoff mark this release Frozen, open the next unused number as the sole development release and advance the counter. Hold shared DEV edits until capture completes. Record PROD baseline/recovery order and reuse scoped authority/eligibility; recheck eligibility only after access/plan changes. | Done | Private snapshot-001 and Debian prior collector/units captured; exact pins in manifest. |
 | P14 | B Capture | App Upgrade; SQL-only pins above | Briefly freeze DEV and pin tested versions/commit. Create named Rnnn-RCk apps by definition-only copy: the copy-data checkbox is checked by default—actively UNCHECK it for every copy/retry. Also uncheck file-data-copy options and verify all are unchecked before clicking Copy. Never copy data, even temporarily; unresolved options mean do not submit. Record this confirmation with IDs/internal names and contain execution. Rebind existing sources in P25; reject accidental data copies. Resume DEV once independent copies/pins are verified. | N/A | Grafana/collector-only scope; no AppSheet RC/upgrade, SQL, routing or business scheduler change. |
 | P22 | C SQL | SQL changes / DB writes | Verify restorable DB backup, schema drift and history; then validate/migrate/validate with the pinned manifest and existing runner. Record target/schema checks and before/after SQL versions. Complete compatible SQL before final RC PROD validation. | N/A | Grafana/collector-only scope; no AppSheet RC/upgrade, SQL, routing or business scheduler change. |
 | P25 | D RC | App Upgrade | Rebind/reconcile every RC table/view and auxiliary source to PROD host/database/object. Save exact mappings once. No DEV source remains. Keep RC contained before PROD binding. | N/A | Grafana/collector-only scope; no AppSheet RC/upgrade, SQL, routing or business scheduler change. |
 | P18 | D RC | App Upgrade | Capture the existing PROD logo setting/appearance; apply the corresponding PROD theme/branding/logo and companion links. If needed restore the correct logo from resources/ in durable PROD/shared storage, independent of RC lifetime. Keep shared recipients on PROD contact data; confirm Login Email prerequisites. Restore only documented legacy DEV overrides. Verify these substitutions once. | N/A | Grafana/collector-only scope; no AppSheet RC/upgrade, SQL, routing or business scheduler change. |
-| P28 | D RC | External asset / access changes | Provision/check only affected templates, files, grants, endpoints and integrations outside App Upgrade. Link existing evidence for unchanged assets. | Pending | |
+| P28 | D RC | External asset / access changes | Provision/check only affected templates, files, grants, endpoints and integrations outside App Upgrade. Link existing evidence for unchanged assets. | Done | Protected Secret Manager containers and numeric payload references; no IAM or recipient changes. |
 | P29 | D RC | App Upgrade | Check copied guard coverage and this RC’s exact name exclusion; retain canonical DEV/PROD literals and intended bot states/schedules. Reuse runtime proof; no repeated diagnostic app or wait for every daily job. | N/A | Grafana/collector-only scope; no AppSheet RC/upgrade, SQL, routing or business scheduler change. |
 | P30 | D RC | App Upgrade | One RC validation pass: save/reload, editor data validation, zero issues, open/sync and representative changed screens. Resolve unexpected generated changes only. Complete initial Deployment Check and deploy new RC; reuse DEV business tests. | N/A | Grafana/collector-only scope; no AppSheet RC/upgrade, SQL, routing or business scheduler change. |
 | P33 | E Upgrade | App Upgrade | Freeze final deployed RC identity/version and mapping evidence. Confirm authorization covers that revision. Immediately before each upgrade, confirm unchanged PROD baseline and frozen RC version; drift/fixes require a new integrated RC. | N/A | Grafana/collector-only scope; no AppSheet RC/upgrade, SQL, routing or business scheduler change. |
 | P37 | E Upgrade | Each included app | App Upgrade the existing PROD ID from the frozen RC’s full internal name in planned order. Record source, target and before/after versions. Confirm success before dependent steps; never hand-recreate settings in PROD. | N/A | Grafana/collector-only scope; no AppSheet RC/upgrade, SQL, routing or business scheduler change. |
-| P39 | F Validate | Always; mappings if upgraded | One PROD pass: verify version/Deployed state, sources/substitutions, PROD-allowed/RC-excluded guards, both editors clear and both apps open/sync with changed entry points. Visually verify each upgraded logo loads and matches its pre-promotion appearance; use resources/ originals if restoration is needed and recheck the affected logo. Check recipients only if changed. Reuse DEV tests; no repeat Deployment Check. | Pending | API-based saved UID/version/query/rule readback and affected monitoring views, no GUI mandate for this approved slice. |
-| P41 | F Validate | Uncovered SQL / critical / external effects | Run only targeted checks not already covered by SQL/RC/PROD evidence. At first guard introduction observe the next normal PROD run; later releases reuse proof. Record execution/delivery limits; no forced writes/notifications without scoped authority. | Pending | One natural collector interval; distinguish missing/stale telemetry from service failure. No forced business job or notification. |
+| P39 | F Validate | Always; mappings if upgraded | One PROD pass: verify version/Deployed state, sources/substitutions, PROD-allowed/RC-excluded guards, both editors clear and both apps open/sync with changed entry points. Visually verify each upgraded logo loads and matches its pre-promotion appearance; use resources/ originals if restoration is needed and recheck the affected logo. Check recipients only if changed. Reuse DEV tests; no repeat Deployment Check. | Done | Saved Performance41/Cost15/PWA2; final13resource plan no changes. |
+| P41 | F Validate | Uncovered SQL / critical / external effects | Run only targeted checks not already covered by SQL/RC/PROD evidence. At first guard introduction observe the next normal PROD run; later releases reuse proof. Record execution/delivery limits; no forced writes/notifications without scoped authority. | Done | Natural collector04:17:47Z exported both native and Hosting components reachable; no forced business action. |
 | P38 | F Validate | Paused jobs / cutover steps | Complete approved external cutover steps and resume temporary pauses. Keep integrity triggers and one active scheduler per job/environment. | N/A | Grafana/collector-only scope; no AppSheet RC/upgrade, SQL, routing or business scheduler change. |
-| P45 | G Close | Always | Complete the documentation table below: update/verify the three core records and add only affected documents. No archive/history dispositions or routine folder scan. | Pending | |
-| P46 | G Close | Always | Reconcile manifest/log, versions, approvals/tests and recovery links. Close only promoted differences. Update exact dictionary rows when changed; revise overview only if explained behavior/architecture changes. Check relevant links/model values and intended Git diff once. | Pending | |
+| P45 | G Close | Always | Complete the documentation table below: update/verify the three core records and add only affected documents. No archive/history dispositions or routine folder scan. | Done | Core3 records and both monitoring guides updated for this delivery. |
+| P46 | G Close | Always | Reconcile manifest/log, versions, approvals/tests and recovery links. Close only promoted differences. Update exact dictionary rows when changed; revise overview only if explained behavior/architecture changes. Check relevant links/model values and intended Git diff once. | Done | Manifest/log/guides reconciled; no SQL/data-model change. |
 | P49 | G Close | RC exists | After all upgrades and required PROD validation pass, automatically delete the recorded RC apps for this promotion, including rejected/superseded attempts; no further owner confirmation. Delete definitions only, preserving DEV/PROD, shared data/files/logos and recovery evidence. Verify deletion and update manifest/log/inventory/checklist before P48. Keep failed/incomplete promotion RCs contained; report cleanup failures as pending. No DEV refresh. | N/A | Grafana/collector-only scope; no AppSheet RC/upgrade, SQL, routing or business scheduler change. |
-| P48 | G Close | Always | Commit/push final sanitized evidence/docs; create/push unique annotated Rnnn tag at that evidence commit. Verify remote branch/tag. Do not move tags or redeploy to fix publication. | Pending | |
-| P50 | G Close | Always | Report Released only after required validation, documentation and publication pass. Give versions, evidence/tag, rollback and limitations. Otherwise state the incomplete phase; repair documents without repeating live tests. | Pending | |
-| P51 | X Exception | Failure / drift / required gap only | Stop affected dependent steps, record actual partial state and follow only the matching recovery branch. Preserve later writes/work; no blind replay or manual PROD fallback. Ask only for missing authority/material decisions. Reconcile resulting status and documents. | Pending | |
+| P48 | G Close | Always | Commit/push final sanitized evidence/docs; create/push unique annotated Rnnn tag at that evidence commit. Verify remote branch/tag. Do not move tags or redeploy to fix publication. | In progress | Publish scoped monitoring evidence; whole-R055 tag deferred because carried credential scope is unfinished. |
+| P50 | G Close | Always | Report Released only after required validation, documentation and publication pass. Give versions, evidence/tag, rollback and limitations. Otherwise state the incomplete phase; repair documents without repeating live tests. | In progress | Monitoring delivered; whole release not closed. |
+| P51 | X Exception | Failure / drift / required gap only | Stop affected dependent steps, record actual partial state and follow only the matching recovery branch. Preserve later writes/work; no blind replay or manual PROD fallback. Ask only for missing authority/material decisions. Reconcile resulting status and documents. | N/A | No unresolved deployment failure; documented contact provider secret-state limitation uses code/API. |
 
 ## Documentation impact and closure
 
@@ -54,15 +50,15 @@ Triggers: exact model/formula changes → dictionary; changed behavior/relations
 
 | Document | Disposition | Updated section / evidence |
 | --- | --- | --- |
-| [Release Tracker](../../../Documents/Release_Tracker.md) | Pending | |
-| [Environment Inventory](../../../Documents/Environment_Inventory.md) | Pending | |
-| [Development Changes](../../../Documents/Development_Changes.md) | Pending | |
+| [Release Tracker](../../../Documents/Release_Tracker.md) | Updated | Current R055 delivery section |
+| [Environment Inventory](../../../Documents/Environment_Inventory.md) | Updated | Current R055 delivery section |
+| [Development Changes](../../../Documents/Development_Changes.md) | Updated | Current R055 delivery section |
 
 ## Close
 
-- Outcome / limitations / rollback: Pending
-- Final evidence commit / Rnnn tag / remote verification: Pending
-- RC cleanup / verified deleted IDs and evidence: Pending or justified N/A
+- Outcome: monitoring deployed/verified; job-boundary and delivery-outcome telemetry remains future scope. Recovery references in manifest.
+- Final scoped evidence publication recorded in Git; whole-R055 tag withheld for unfinished carried credential scope.
+- RC cleanup: N/A; no RC apps created.
 
 Released requires applicable activities, documentation, RC cleanup and publication complete. If only documents/publication remain, repair them without redeploying. Record final outcome in the manifest/tracker before the final evidence commit and verify publication afterward; do not create self-referential commit hashes.
 
@@ -70,14 +66,16 @@ Released requires applicable activities, documentation, RC cleanup and publicati
 
 | Gate | Status | Owning evidence / required result |
 | --- | --- | --- |
-| Authenticated exact Grafana target, resource IDs and provider/schema boundaries | In progress | F metadata: Performance40/Cost15, namespace stacks-1839781, SA20/Admin token21; exact provider/source plan pending. No token payloads in Git or Terraform state |
-| Recovery exports/current remote versions and private state | Pending | F private recovery plus sanitized hash/IDs; B collector/unit rollback |
-| Import adoption without configuration changes | Pending | F exact resource/import list and no-change plan proof |
-| Reviewed source/resource change plan | Pending | F plan pins + B/C exact source/evidence; preserve owner route/recipients and unrelated definitions |
-| Scoped deployment/readback | Pending | Actual imports/applies/collector/dashboard/rules, truthful partial failures |
-| Required visual guide and operating reference closure | Prepared | B owns both; verify saved definitions match guide before completion |
+| Authenticated exact Grafana target, resource IDs and provider/schema boundaries | Done | Authenticated baseline Performance40/Cost15, namespace stacks-1839781, SA20/Admin token21; actual deployment and source pins in manifest. No token payloads in Git or Terraform state |
+| Recovery exports/current remote versions and private state | Done | F private recovery plus sanitized hash/IDs; B collector/unit rollback |
+| Import adoption without configuration changes | Done | F exact resource/import list and no-change plan proof |
+| Reviewed source/resource change plan | Done | F plan pins + B/C exact source/evidence; preserve owner route/recipients and unrelated definitions |
+| Scoped deployment/readback | Done | Actual imports/applies/collector/dashboard/rules, truthful partial failures |
+| Required visual guide and operating reference closure | Done | Both guides match saved definitions and accepted E refinements |
 | Release freeze/publication | Done | Coordinated tracker handoff and source/plan pins in release-manifest.json |
 
-Prepared evidence is not live deployment proof. Prior template AppSheet wording applies only if separately triggered; scoped API verification above governs monitoring. Core3 records and this checklist remain D-owned. Broader carried-forward credential programme remains unfinished.
+Prepared evidence is not live deployment proof. Prior template AppSheet wording applies only if separately triggered; scoped API verification above governs monitoring. Root completed Core3 records and this checklist. Broader carried-forward credential programme remains unfinished.
 
 Promotion start: 2026-10-13T04:10:19.463891+00:00. Source and exact saved-plan identities are recorded in release-manifest.json. Focused checks reused from verification.md; no full CI. No replacement/deletion, business runtime change or new notification recipient is authorized by this plan.
+
+Final infrastructure source0edd5653f0d0dbba6b57d6e23fadb8c8d93b86e8 is published. Two task Python cache folders remain ignored after automatic review rejected bundled cleanup/publication, with no detailed reason supplied. No deletion retry; exact paths and20October review date are in manifest actual.cleanup. This does not affect live deployment. Scoped PM publication follows; no whole-R055 tag or closure is asserted.
