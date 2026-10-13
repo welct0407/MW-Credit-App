@@ -1,5 +1,7 @@
 # Ecosystem data dictionary
 
+**R057 retirement,13October2026:** exact selected PROD API controls, twelve retained bot enablement definitions (disabled in both environments) and four app runtime-availability objects now reflect saved retirement readbacks. Historical panels/snapshots remain dated. Allfour apps are paused; source connections are removed, and zero-issue proof precedes that removal. [Current retirement record](../../outputs/r057-appsheet-retirement/README.md).
+
 Current R053 PROD reference is SQL89 with five closed worker/API capability roles and exact AppSheet scheduler disable provenance; notification capture remains disabled. This is deployment documentation, not completed device/natural-job verification.
 
 **R052 DEV V87, 11 October 2026:** the bounded [DEV command records](development/postgresql/r052-command/) now include five approved, inactive notification/job relations, twenty affected routines, capture routing and exact application capability metadata. Actual DEV87 catalogue readback follows maintenance-role restoration; PROD remains V77 and AppSheet definitions/scheduled jobs are unchanged. Notifications and PWA job replacement remain deferred. [Verified model evidence](https://github.com/welct0407/MW-Credit-App/blob/codex/r052-review-shell/outputs/r052-promotion-readiness/dev87-model-catalog.json).

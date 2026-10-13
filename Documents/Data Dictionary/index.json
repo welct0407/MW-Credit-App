@@ -1913,6 +1913,16 @@
       "lookup": []
     },
     {
+      "file": "development/appsheet/environment/olap-runtime-retirement-r057.yaml",
+      "system": "appsheet",
+      "component": "olap",
+      "kind": "settings",
+      "name": "Runtime retirement controls R057",
+      "scope": "development:environment",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "development/appsheet/environment/olap-settings-appdoc-app-properties-7f213707.yaml",
       "system": "appsheet",
       "component": "olap",
@@ -2149,6 +2159,16 @@
       "kind": "action",
       "name": "Statistics.Open Loan Business Insights",
       "scope": "development:observed",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/appsheet/environment/oltp-runtime-retirement-r057.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "settings",
+      "name": "Runtime retirement controls R057",
+      "scope": "development:environment",
       "status": "documented",
       "lookup": []
     },
@@ -20868,6 +20888,16 @@
       "lookup": []
     },
     {
+      "file": "systems/appsheet/olap/settings/runtime-retirement-r057.yaml",
+      "system": "appsheet",
+      "component": "olap",
+      "kind": "settings",
+      "name": "Runtime retirement controls R057",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/appsheet/olap/slices/borrowers-with-outstanding-loans.yaml",
       "system": "appsheet",
       "component": "olap",
@@ -26763,6 +26793,16 @@
       "component": "oltp",
       "kind": "settings",
       "name": "Editor settings/View type options",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/appsheet/oltp/settings/runtime-retirement-r057.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "settings",
+      "name": "Runtime retirement controls R057",
       "scope": "production",
       "status": "documented",
       "lookup": []

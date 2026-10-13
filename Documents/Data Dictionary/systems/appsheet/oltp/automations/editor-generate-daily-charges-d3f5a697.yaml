@@ -385,3 +385,16 @@
       - "Automatically generate loan at 00:05"
     "enabled": false
     "current_app_version": "3.000275"
+    "r057_retirement":
+      "production_app_id": "93844270-6aa5-420b-a960-bcdf08abd357"
+      "production_starting_version": "3.000275"
+      "development_app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad"
+      "development_starting_version": "1.000207"
+      "enabled_both_environments": false
+      "saved_state": "Root current-editor saved readbacks13October2026; pause handled separately."
+      "historical_panels": "Retained dated event/process/task settings; not a fresh complete export."
+"evidence":
+  "/content/editor/r057_retirement":
+    "reference": "outputs/r057-appsheet-retirement/README.md"
+    "reason": "Owner-authorized retirement: this bot saved disabled in both retained OLTP app definitions."
+    "state": "value"

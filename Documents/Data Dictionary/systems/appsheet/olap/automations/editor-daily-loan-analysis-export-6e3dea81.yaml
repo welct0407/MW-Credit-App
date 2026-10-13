@@ -429,3 +429,21 @@
       "label": "Descriptive comment"
       "values":
       - ""
+    "enabled": false
+    "r057_retirement":
+      "production_app_id": "e74dd368-654f-44d7-bccf-83cf361d1cdb"
+      "production_starting_version": "1.100215"
+      "development_app_id": "9f3422be-bc87-4a5a-a42a-67528ee80393"
+      "development_starting_version": "1.000056"
+      "enabled_both_environments": false
+      "saved_state": "Root current-editor saved readbacks13October2026; pause handled separately."
+      "historical_panels": "Retained dated event/process/task settings; not a fresh complete export."
+"evidence":
+  "/content/editor/enabled":
+    "reference": "outputs/r057-appsheet-retirement/README.md"
+    "reason": "Owner-authorized retirement: this bot saved disabled in both retained OLAP app definitions."
+    "state": "value"
+  "/content/editor/r057_retirement":
+    "reference": "outputs/r057-appsheet-retirement/README.md"
+    "reason": "Owner-authorized retirement: this bot saved disabled in both retained OLAP app definitions."
+    "state": "value"

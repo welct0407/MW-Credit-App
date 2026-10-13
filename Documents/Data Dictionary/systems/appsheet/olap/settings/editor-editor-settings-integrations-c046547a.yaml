@@ -21,7 +21,7 @@
       "selected": null
       "tag": "INPUT"
       "type": "checkbox"
-      "value": true
+      "value": false
     - "label": "Allow Firebase"
       "selected": null
       "tag": "INPUT"
@@ -75,3 +75,16 @@
         - text: You can create your own scanning service via the MyAccount page
         - combobox "Select an option":
           - option "System Default" [selected]
+    "snapshot_provenance": "Snapshot retained from24September2026; API Enable control superseded by saved R057 retirement\
+      \ readback13October2026."
+"evidence":
+  "/content/editor/controls":
+    "reference": "outputs/r057-appsheet-retirement/README.md"
+    "reason": "Owner-authorized R057 retirement; current saved PROD API Enable=false. Other integrations remain at their dated\
+      \ observation; snapshot is historical."
+    "state": "value"
+  "/content/editor/snapshot_provenance":
+    "reference": "outputs/r057-appsheet-retirement/README.md"
+    "reason": "Owner-authorized R057 retirement; current saved PROD API Enable=false. Other integrations remain at their dated\
+      \ observation; snapshot is historical."
+    "state": "value"
