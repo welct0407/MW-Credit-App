@@ -26,6 +26,17 @@ class ConfigurationTests(unittest.TestCase):
         config['conversation_api_enabled']=False
         with self.assertRaisesRegex(ConfigurationError,'native API'):validate_config(config)
 
+    def test_retired_appsheet_configuration_cannot_be_enabled(self):
+        config = load_json(ROOT / "config.example.json")
+        self.assertFalse(any(key.startswith("appsheet_") for key in config))
+        validate_config(config)
+        config["appsheet_enabled"] = False
+        validate_config(config)
+        for value in (True, "false", None, 0):
+            config["appsheet_enabled"] = value
+            with self.subTest(value=value), self.assertRaisesRegex(ConfigurationError, "retired"):
+                validate_config(config)
+
     def test_enabled_unimplemented_service_fails_closed(self):
         catalogue = load_json(ROOT / "service-catalogue.json")
         catalogue["services"]["partner_oltp_gui"]["enabled"] = True

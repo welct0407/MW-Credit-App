@@ -1,5 +1,8 @@
 # Agent service processes
 
+**Historical diagram:** the AppSheet API paths in this diagram and its generator describe the pre-retirement architecture. Current native runtime, monitoring and configuration are documented in [Partner conversations](PARTNER_CONVERSATIONS.md) and [Operations](OPERATIONS.md); do not use the diagram's legacy setup commands.
+
+
 The authoritative editable diagram is [BUSINESS_PROCESS.drawio](BUSINESS_PROCESS.drawio). Its 18 linked pages start with an agent operating-flow overview (01), followed by the service index (02) and a detailed page for each service, including disabled and pending capabilities. Each detail page names its scripts, steps, decisions and exceptions. [BUSINESS_PROCESS.png](BUSINESS_PROCESS.png) is the overview; individual page images are in [process-pages](process-pages/). The drawio contains targeted changes; reconcile the historical generator before rebuilding it. To export the current overview:
 
 ```powershell

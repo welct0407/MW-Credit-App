@@ -34,8 +34,6 @@ class Conversations(unittest.TestCase):
             raise AssertionError('Unmocked external HTTP in native conversation fixture')
         http_tripwire=patch('urllib.request.urlopen',side_effect=no_http)
         http_tripwire.start();self.addCleanup(http_tripwire.stop)
-        appsheet_tripwire=patch('mw_integration_agent.appsheet.AppSheet.find',side_effect=AssertionError('Retired AppSheet Find invoked'))
-        appsheet_tripwire.start();self.addCleanup(appsheet_tripwire.stop)
         reviewer_patch = patch('mw_integration_agent.conversation_write.require_reviewer', return_value='actor@example.com')
         reviewer_patch.start(); self.addCleanup(reviewer_patch.stop)
         self.temp = tempfile.TemporaryDirectory()

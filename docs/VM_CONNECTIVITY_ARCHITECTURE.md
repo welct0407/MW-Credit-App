@@ -1,5 +1,8 @@
 # Debian VM connectivity architecture
 
+**Historical diagram:** the AppSheet API paths in this diagram and its generator describe the pre-retirement architecture. Current native runtime, monitoring and configuration are documented in [Partner conversations](PARTNER_CONVERSATIONS.md) and [Operations](OPERATIONS.md); do not use the diagram's legacy setup commands.
+
+
 The authoritative editable diagram is [VM_CONNECTIVITY_ARCHITECTURE.drawio](VM_CONNECTIVITY_ARCHITECTURE.drawio). A rendered preview is available at [VM_CONNECTIVITY_ARCHITECTURE.png](VM_CONNECTIVITY_ARCHITECTURE.png).
 
 It documents the current connectivity boundaries for `vm-mw-credit-agent`: Tailscale administration, IAP recovery, disabled public SSH/RDP, Cloudflare webhook ingress, agent runtime services, Cloud SQL Auth Proxy, AppSheet and messaging APIs, telemetry, GitHub deployment and disk snapshots.
