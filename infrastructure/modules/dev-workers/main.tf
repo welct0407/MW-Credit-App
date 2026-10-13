@@ -36,6 +36,15 @@ variable "image_overrides" {
     error_message = "Only notify/jobs immutable matching-environment image overrides are allowed."
   }
 }
+variable "notification_retry_max_doublings" {
+  description = "Preserve the reviewed provider-normalized notification retry value."
+  type        = number
+  default     = 0
+  validation {
+    condition     = contains([0, 5], var.notification_retry_max_doublings)
+    error_message = "Use the existing source or reviewed provider-normalized retry value."
+  }
+}
 variable "vapid_version" {
   type     = string
   default  = null
@@ -272,7 +281,7 @@ resource "google_cloud_scheduler_job" "tick" {
     max_retry_duration   = each.value.role == "jobs" ? "600s" : "0s"
     min_backoff_duration = each.value.role == "jobs" ? "30s" : "60s"
     max_backoff_duration = each.value.role == "jobs" ? "120s" : "60s"
-    max_doublings        = each.value.role == "jobs" ? 2 : 0
+    max_doublings        = each.value.role == "jobs" ? 2 : var.notification_retry_max_doublings
   }
   http_target {
     http_method = "POST"
