@@ -88,6 +88,16 @@ export function createBorrowerReadStore({ pool, config, now = () => new Date(), 
       return run(email, client => readUpcoming(client, { borrowerId, businessDate, dueDate, limit, after }), true)
         .then(result => result.collectionError ? { ok: false, status: result.collectionStatus, code: result.collectionError } : result);
     },
+    getBorrowerUpcoming: (email, borrowerId, { businessDate, dueDate = null, limit = 25, cursor = null } = {}) => {
+      if (!validId(borrowerId)) return Promise.resolve({ ok: false, status: 404, code: 'not_found' });
+      let after;
+      try {
+        if (!validUpcomingDate(businessDate) || (dueDate !== null && !validUpcomingDate(dueDate)) || !Number.isInteger(limit) || limit < 1 || limit > 100 || (!dueDate && cursor)) throw new Error();
+        after = dueDate ? decodeUpcomingCursor(cursor, borrowerId, businessDate, dueDate) : null;
+      } catch { return Promise.resolve({ ok: false, status: 400, code: 'invalid_request' }); }
+      return run(email, client => readUpcoming(client, { borrowerId, businessDate, dueDate, limit, after, scope: 'borrower' }), true)
+        .then(result => result.collectionError ? { ok: false, status: result.collectionStatus, code: result.collectionError } : result);
+    },
     listCollection: (email, { limit = 25, cursor = null, q = '' } = {}) => {
       let after;
       try { q = normalizeSearchQuery(q); after = decodeCollectionCursor(cursor, 'collection', undefined, q); if (!Number.isInteger(limit) || limit < 1 || limit > 100) throw new Error(); }

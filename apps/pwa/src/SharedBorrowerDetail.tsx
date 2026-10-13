@@ -1,5 +1,36 @@
-import React,{useEffect,useRef,useState} from 'react';
 import {BorrowerRecord} from './BorrowerRecord';import {BorrowerPayments} from './BorrowerPayments';import {LoanRecords,type LoanRecord as LoanRow} from './LoanRecords';import {LoanRecord} from './LoanRecord';import {LoanForm} from './LoanForm';import {beginRequest} from './request-activity';import {useContextRefresh} from './context-refresh';import type {CommandAccess} from './SelectedCharges';
+import {HeaderBack} from './HeaderBack';
+import React,{useEffect,useRef,useState} from 'react';
+import {UpcomingCharges,type UpcomingSummary,type UpcomingDetail} from './UpcomingCharges';
+import {responseReference,type ReadFailure} from './ReadFailure';
+export function BorrowerUpcoming({access,id,thai}:{access:Pick<CommandAccess,'token'|'authFailure'|'offlineOnly'>;id:string;thai:boolean}){
+ const [summary,setSummary]=useState<UpcomingSummary|null>(null),[detail,setDetail]=useState<UpcomingDetail|null>(null),[selectedDate,setSelectedDate]=useState<string|null>(null),[page,setPage]=useState(0),[busy,setBusy]=useState(false),[error,setError]=useState<ReadFailure|null>(null);
+ const generation=useRef(0),cursors=useRef<(string|undefined)[]>([undefined]),pending=useRef<AbortController|null>(null),receivedAt=useRef(0);
+ const today=()=>{const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Bangkok',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());return ['year','month','day'].map(type=>parts.find(part=>part.type===type)!.value).join('-')};
+ async function load(date:string|null=null,cursor?:string,index=0){
+  const current=++generation.current;pending.current?.abort();const controller=new AbortController();pending.current=controller;
+  setBusy(true);setError(null);setSelectedDate(date);setDetail(null);if(!date)setSummary(null);
+  const done=beginRequest(),timer=setTimeout(()=>controller.abort(),15000);
+  try{
+   if(access.offlineOnly||!navigator.onLine)throw Error();
+   const day=date?summary?.businessDate??today():today(),params=new URLSearchParams({businessDate:day});if(date){params.set('limit','25');if(cursor)params.set('cursor',cursor)}
+   const response=await fetch(import.meta.env.VITE_API_ORIGIN+'/api/borrowers/'+encodeURIComponent(id)+'/upcoming'+(date?'/'+encodeURIComponent(date):'')+'?'+params,{headers:{Authorization:'Bearer '+await access.token()},signal:controller.signal,cache:'no-store',credentials:'omit',redirect:'error'});
+   if(current!==generation.current)return;
+   if(response.status===401||response.status===403)access.authFailure(response.status);
+   const data=await response.json();if(current!==generation.current)return;
+   if(!response.ok||!data.ok){setError({code:data.code??'unavailable',reference:responseReference(response)});return}
+   if(data.businessDate!==day){setError({code:'business_date_changed'});return}
+   if(date){if(index===0)cursors.current=[undefined];cursors.current[index]=cursor;setPage(index);setDetail(data)}else{setSummary(data);receivedAt.current=performance.now();setPage(0);cursors.current=[undefined]}
+  }catch{if(current===generation.current)setError({code:'unavailable'})}finally{clearTimeout(timer);done();if(current===generation.current)setBusy(false)}
+ }
+ useEffect(()=>{void load();return()=>{generation.current++;pending.current?.abort()}},[id]);
+ useEffect(()=>{const invalidate=()=>{receivedAt.current=-Infinity};document.addEventListener('visibilitychange',invalidate);return()=>document.removeEventListener('visibilitychange',invalidate)},[]);
+ function openDate(date:string){const preview=summary?.businessDate===today()&&performance.now()-receivedAt.current<60000?summary.previews?.find(item=>item.dueDate===date):undefined;if(!preview){void load(date);return}generation.current++;pending.current?.abort();setBusy(false);setError(null);setSelectedDate(date);setDetail(preview);setPage(0);cursors.current=[undefined]}
+ function back(){generation.current++;pending.current?.abort();setBusy(false);setError(null);setSelectedDate(null);setDetail(null);setPage(0)}
+ return <><div className="related-loans-heading"><button type="button" className="secondary-button" disabled={busy} onClick={()=>void load()}>{thai?'รีเฟรชยอดเรียกเก็บล่วงหน้า':'Refresh Upcoming Charges'}</button></div>{busy&&<p role="status">{thai?'กำลังโหลดยอดเรียกเก็บล่วงหน้า…':'Loading upcoming charges…'}</p>}
+ {selectedDate&&!detail&&<HeaderBack type="button" className="secondary-button" aria-label={thai?'กลับสรุปผู้กู้':'Back to borrower summary'} onClick={back}>{thai?'กลับสรุปผู้กู้':'Back to borrower summary'}</HeaderBack>}
+ <UpcomingCharges thai={thai} summary={selectedDate?null:summary} detail={detail} page={page+1} busy={busy} error={error} onDate={openDate} onBack={back} onRefresh={()=>void load(selectedDate)} onDetailRefresh={()=>void load(selectedDate)} onNext={()=>{if(detail?.nextCursor)void load(selectedDate,detail.nextCursor,page+1)}} onPrevious={page>0?()=>void load(selectedDate,cursors.current[page-1],page-1):undefined}/></>;
+}
 export function SharedBorrowerDetail({access,id,label,thai,onBack,onSaved}:{access:CommandAccess;id:string;label?:string;thai:boolean;onBack:()=>void;onSaved?:(id:string|null)=>void}){
  const [history,setHistory]=useState(false),[newLoan,setNewLoan]=useState(false),[loan,setLoan]=useState<string|null>(null),[version,setVersion]=useState(0),[items,setItems]=useState<LoanRow[]>([]),[next,setNext]=useState<string|null>(null),[page,setPage]=useState(0),[busy,setBusy]=useState(false),[error,setError]=useState(false),generation=useRef(0),cursors=useRef<(string|undefined)[]>([undefined]);
  async function load(cursor?:string,index=0){if(access.offlineOnly||!navigator.onLine){setError(true);setBusy(false);return;}const current=++generation.current,done=beginRequest(),controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);setBusy(true);setError(false);try{const response=await fetch(import.meta.env.VITE_API_ORIGIN+'/api/borrowers/'+encodeURIComponent(id)+'/loans?limit=25'+(cursor?'&cursor='+encodeURIComponent(cursor):''),{headers:{Authorization:'Bearer '+await access.token()},signal:controller.signal,cache:'no-store',credentials:'omit',redirect:'error'});if(response.status===401||response.status===403)access.authFailure(response.status);if(!response.ok)throw Error();const data=await response.json();if(current!==generation.current)return;if(index===0)cursors.current=[undefined];cursors.current[index]=cursor;setPage(index);setItems(data.items);setNext(data.nextCursor)}catch{if(current===generation.current)setError(true)}finally{clearTimeout(timer);done();if(current===generation.current)setBusy(false)}}
@@ -7,5 +38,5 @@ export function SharedBorrowerDetail({access,id,label,thai,onBack,onSaved}:{acce
  if(loan)return <LoanRecord access={access} id={loan} thai={thai} onBack={()=>{setLoan(null);void load(cursors.current[page],page)}}/>;
  if(newLoan)return <LoanForm access={access} borrowerId={id} borrowerLabel={label??items[0]?.borrowerDisplayName??''} thai={thai} onBack={()=>setNewLoan(false)} onSaved={value=>{setNewLoan(false);setLoan(value)}}/>;
  if(history)return <BorrowerPayments access={access} borrowerId={id} label={label??items[0]?.borrowerDisplayName??(thai?'ผู้กู้':'Borrower')} thai={thai} onBack={()=>setHistory(false)}/>;
- return <BorrowerRecord key={id+':'+version} access={access} id={id} displayName={label} thai={thai} onBack={onBack} onNewLoan={()=>setNewLoan(true)} onHistory={()=>setHistory(true)} onSaved={value=>{onSaved?.(value);if(value){setVersion(old=>old+1);void load()}else onBack()}} related={<LoanRecords thai={thai} page={page+1} items={items} selected={null} busy={busy} loading={busy} error={error?{code:'unavailable'}:null} nextCursor={next} listAsOf="" detailAsOf="" onSelect={setLoan} onBack={()=>{}} onRefresh={()=>void load(cursors.current[page],page)} onPrevious={page>0?()=>void load(cursors.current[page-1],page-1):undefined} onNext={()=>{if(next)void load(next,page+1)}}/>}/>;
+ return <BorrowerRecord key={id+':'+version} access={access} id={id} displayName={label} thai={thai} onBack={onBack} onNewLoan={()=>setNewLoan(true)} onHistory={()=>setHistory(true)} onSaved={value=>{onSaved?.(value);if(value){setVersion(old=>old+1);void load()}else onBack()}} related={<><BorrowerUpcoming key={id} access={access} id={id} thai={thai}/><LoanRecords thai={thai} page={page+1} items={items} selected={null} busy={busy} loading={busy} error={error?{code:'unavailable'}:null} nextCursor={next} listAsOf="" detailAsOf="" onSelect={setLoan} onBack={()=>{}} onRefresh={()=>void load(cursors.current[page],page)} onPrevious={page>0?()=>void load(cursors.current[page-1],page-1):undefined} onNext={()=>{if(next)void load(next,page+1)}}/></>}/>;
 }

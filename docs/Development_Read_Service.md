@@ -20,6 +20,8 @@ Validate Firebase identity and current Partner membership/capabilities. Use expl
 
 Borrower visibility excludes only Hidden Flag=true; false/null remain eligible under the source contract. SQL supplies governed balances and financial calculations. Paging/search are bounded and cursor-bound; one page is not a complete portfolio.
 
+Borrower detail Upcoming Charges reuses Collection's five-date forecast, date detail and paging for the selected visible borrower, including borrowers with only future charges. Borrower-scoped upcoming reads use the visible-borrower boundary; Collection-scoped reads retain their existing Collection membership check. Both use the existing forecast SQL, cursor binding and freshness checks. Viewing upcoming rows is read-only and does not submit borrower changes.
+
 Authentication state uses the Firebase SDK. Do not copy tokens into custom storage/logs/URLs. Clear or reject stale-session results and preserve denied access rather than granting permissions automatically. Offline viewed snapshots follow the current bounded cache policy; they do not authorize posting.
 
 ## Changes and verification
