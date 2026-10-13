@@ -1,5 +1,9 @@
 # Open development differences
 
+## R057 existing infrastructure adoption — 13 October 2026
+
+Owner authorized Terraform metadata/state adoption for existing Grafana bridge hosting, Debian VM/disk/IP/firewall, Azure VM-01/network/backup/monitor configuration excluding the controller, selected service DNS, and shared Cloud SQL instance/receipt bucket. R057 remains Open; no release freeze or runtime promotion is needed for behavior-preserving state adoption. All six roots and 45 imports are verified with zero remote changes and ordinary refreshed no-change post-plans; three narrow fields remain externally managed. Paused credential work remains separate and unfinished. [Current scope and completion matrix](../outputs/r057-infrastructure-adoption/README.md).
+
 ## R056 Apple push registration fix — 13 October 2026
 
 DEV/PROD V91 validated. PROD command `00006-lrd` and notify `00003-bj4` are Ready at 100% on digest `b4f528bc8ac48008ed0951e227089d3d0802a7a6c2dbaa826ada5e021e156aea`. Apple subdomain validation now matches across registration and delivery. Reader/jobs/frontend/schedules and account policies are unchanged. Protected backups/restore and temporary-authority restoration passed; Terraform has no remaining diff. Deployment verified; Lisa's retry remains pending. [Evidence](../outputs/r056-apple-push/README.md).

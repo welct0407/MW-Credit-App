@@ -1,5 +1,9 @@
 # Environment inventory
 
+## R057 infrastructure ownership adoption — 13 October 2026
+
+Terraform ownership now covers 45 additional existing metadata objects across Grafana bridge hosting (21), shared Cloud SQL/receipt bucket (2), Debian host/network (4), selected service DNS (5) and Azure network/VM-01 backup configuration (9), plus VM-01/three metric alerts through AzAPI (4). Every root has an ordinary refreshed no-change post-plan after import-only apply with zero remote changes. Service identities, routing, power state, schedules and application/data behavior are preserved. Narrow externally managed fields, shared backup/storage exclusions and exact evidence are maintained in the [R057 completion matrix](../outputs/r057-infrastructure-adoption/README.md). Published source: `48603b7051a4b222f57d4e1bb544c739f510a6ff` ([PR #5](https://github.com/welct0407/MW-Credit-App/pull/5)). R057 remains Open.
+
 ## R056 Apple push registration fix — 13 October 2026
 
 DEV/PROD V91 validated. PROD command `00006-lrd` and notify `00003-bj4` are Ready at 100% on digest `b4f528bc8ac48008ed0951e227089d3d0802a7a6c2dbaa826ada5e021e156aea`. Apple subdomain validation now matches across registration and delivery. Reader/jobs/frontend/schedules and account policies are unchanged. Protected backups/restore and temporary-authority restoration passed; Terraform has no remaining diff. Deployment verified; Lisa's retry remains pending. [Evidence](../outputs/r056-apple-push/README.md).
