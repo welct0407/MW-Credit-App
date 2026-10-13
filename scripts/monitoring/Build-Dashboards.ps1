@@ -167,8 +167,8 @@ $null=Add-HealthCard 52 'Tunnel' (New-DebianHealthQuery 'tunnel') 6 11 'Debian c
 $null=Add-HealthCard 53 'Tailscale node' (New-DebianHealthQuery 'tailscale_node') 9 11 'Debian node reports Running and Online, with no local health warnings. This is node health, not an external peer connectivity test. UNKNOWN after six minutes without a fresh report.'
 $null=Add-HealthCard 54 'ChatGPT' (New-OpenAiHealthQuery 'chatgpt') 12 11 'OpenAI published status for available ChatGPT components: login, search, file uploads, voice, deep research, agent and desktop Codex. Provider status only; your account/session is not tested. Unrecognized/missing components show UNKNOWN.'
 $null=Add-HealthCard 55 'Codex' (New-OpenAiHealthQuery 'codex') 15 11 'OpenAI published Codex Web, API, CLI and VS Code service status. Independent of Debian; does not run a model prompt or verify your account quota.'
-$null=Add-HealthCard 56 'OLTP API' (New-DebianHealthQuery 'oltp') 18 11 'Bounded authenticated read-only production API probe from Debian. No business writes. Does not certify interactive browser load/sync. UNKNOWN after six minutes without a fresh report.'
-$null=Add-HealthCard 57 'OLAP API' (New-DebianHealthQuery 'olap') 21 11 'Bounded authenticated read-only production API probe from Debian. No business writes. Does not certify interactive browser load/sync. UNKNOWN after six minutes without a fresh report.'
+$null=Add-HealthCard 56 'Native operational API' (New-DebianHealthQuery 'oltp') 18 11 'Native machine API catalogue and bounded Partners key-only read, logical OLTP scope. No AppSheet fallback or business writes. Does not certify interactive browser history/clicks. Metric label oltp retained for alert compatibility; UNKNOWN after six minutes without a fresh report.'
+$null=Add-HealthCard 57 'Native analytical API' (New-DebianHealthQuery 'olap') 21 11 'Native machine API catalogue and bounded Partners key-only read, logical OLAP scope. No AppSheet fallback or business writes. Does not certify all reports or workflows. Metric label olap retained for alert compatibility; UNKNOWN after six minutes without a fresh report.'
 $cards=@(
     @('Ingress','webhook_local','Local webhook receiver response and fresh monitor heartbeat.'),
     @('Converse','conversations','Partner conversation timer, last completion/result and maximum run time.'),
@@ -192,7 +192,7 @@ $header.options.content=''
 foreach($p in $perf.panels){if($p.id -in @(2,3,4,5,6,7,8,9)){$p.gridPos.y-=2}}
 $groups=@(
     @{id=70;name='CONNECTIVITY';x=0;y=9;cards=@(51,52,53,60);labels=@('🔗 Webhook','☁ Tunnel','🛡 Tailscale','📥 Ingress')},
-    @{id=71;name='APPS & OPENAI';x=12;y=9;cards=@(56,57,54,55);labels=@('📱 OLTP API','📊 OLAP API','💬 ChatGPT','⌘ Codex')},
+    @{id=71;name='APPS & OPENAI';x=12;y=9;cards=@(56,57,54,55);labels=@('📱 Native operational API','📊 Native analytical API','💬 ChatGPT','⌘ Codex')},
     @{id=72;name='AGENT WORKFLOWS';x=0;y=13;cards=@(61,62,63,64);labels=@('🗨 Converse','🧾 Receipts','📷 IG polling','📅 Daily jobs')},
     @{id=73;name='DATA & RUNTIME';x=12;y=13;cards=@(50,65,66,67);labels=@('🛢 SQL / 200','🗄 Database','📋 Audit relay','⚙ Codex ready')}
 )

@@ -11,3 +11,7 @@ Validation: read back new Markdown, verified scope/paths and stash pin; document
 Owner follow-up: no existing Grafana token; access setup is included in the proposal. Added supported authenticated bootstrap prerequisite, dedicated least-privilege provisioning identity, proposed numeric-pinned SM container and code-only management requirement. No credential was created.
 
 Root review clarified standing authorization for local source/tooling/tests/publication; consolidated live-plan approval retained. GCP bridge adoption is optional and independent of native probe repair.
+
+## Approved implementation
+
+Owner authorized Grafana Terraform adoption followed by native PWA monitoring on 13 October. F owns Terraform/access/adoption; B owns selective native collector/dashboard source reconciliation and focused tests. Existing unrelated dirty credential work and stash are preserved. Code/API-only operations; missing bootstrap credential is requested from owner, with no browser-session extraction. No live adoption/deployment is yet claimed. Starting PM378a5526/app3e97140 provide source rollback; each affected live definition requires a captured baseline before mutation.

@@ -6,8 +6,10 @@ Installed separately from the integration-agent package; uses its existing confi
 import datetime as dt
 import json
 import os
+import re
 from pathlib import Path
 import subprocess
+import sys
 import time
 import urllib.request
 
@@ -27,6 +29,96 @@ def completion_epoch(service, monotonic_now, epoch_now):
 
 def run(args, timeout=15, env=None):
     return subprocess.run(args, capture_output=True, text=True, timeout=timeout, env=env)
+
+
+def native_api_status(config, scope, runner=None):
+    """Native machine API only; legacy metric labels remain alert-compatible."""
+    if scope not in ('oltp', 'olap'):
+        raise ValueError('Invalid native probe scope')
+    if 'conversation_api_enabled' not in config:
+        return 4  # Missing configuration is not an intentional pause.
+    if config['conversation_api_enabled'] is False:
+        return 3
+    if config['conversation_api_enabled'] is not True:
+        return 0
+    origin = 'https://mw-credit-app-command-prod-737787224638.asia-southeast1.run.app'
+    if (config.get('conversation_api_environment') != 'prod'
+            or config.get('database_name') != 'loan_manager_prod'
+            or config.get('conversation_api_origin') != origin
+            or config.get('conversation_api_audience') != origin):
+        return 0
+    expected = config.get('conversation_api_manifest_sha256')
+    if not isinstance(expected, str) or len(expected) != 64 or any(c not in '0123456789abcdef' for c in expected):
+        return 0
+    try:
+        p = (runner or run)([
+            '/opt/mw-integration-agent/.venv/bin/mw-integration-agent', 'native-api-probe',
+            '--scope', scope, '--config', CONFIG,
+            '--catalogue', '/etc/mw-integration-agent/service-catalogue.json'], 70)
+        if p.returncode != 0:
+            return 0
+        value = json.loads(p.stdout)
+        return 1 if (value.get('authenticated') is True and value.get('scope') == scope
+                     and value.get('targetVersion') == expected
+                     and type(value.get('count')) is int and 0 <= value['count'] <= 1) else 0
+    except Exception:
+        return 0
+
+
+HOSTING_ORIGINS = {'dev': 'https://dev-lm.mw-credit.com', 'prod': 'https://lm.mw-credit.com'}
+
+class NoHostingRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, request, response, code, message, headers, new_url):
+        return None
+
+
+def hosting_fetch(url, timeout, limit):
+    with urllib.request.build_opener(NoHostingRedirect()).open(
+            urllib.request.Request(url, headers={'Cache-Control': 'no-cache'}), timeout=timeout) as response:
+        body = response.read(limit + 1)
+        if response.status != 200 or response.url != url or len(body) > limit:
+            raise ValueError('Unexpected Hosting response')
+        return body.decode('utf-8')
+
+
+def hosting_status(environment, fetcher=None, clock=time.monotonic):
+    """Single Debian vantage: canonical public shell/version only, no authentication."""
+    if environment not in HOSTING_ORIGINS:
+        raise ValueError('Unknown Hosting environment')
+    if fetcher is None:
+        # A killed/reaped fixed child bounds DNS, headers and trickling bodies,
+        # not merely an individual socket's inactivity timeout.
+        try:
+            result = subprocess.run([sys.executable, str(Path(__file__).resolve()), '--hosting-probe', environment],
+                                    capture_output=True, text=True, timeout=10, check=False)
+            value = json.loads(result.stdout)
+            return value['status'] if result.returncode == 0 and type(value.get('status')) is int and value['status'] in (0, 1) else 0
+        except Exception:
+            return 0
+    origin = HOSTING_ORIGINS[environment]
+    until = clock() + 10
+    def read(path, limit):
+        remaining = until - clock()
+        if remaining <= 0:
+            raise TimeoutError('Hosting probe deadline')
+        body = fetcher(origin + path, remaining, limit)
+        if clock() >= until:
+            raise TimeoutError('Hosting probe deadline')
+        return body
+    try:
+        html = read('/', 262144)
+        marker = json.loads(read('/build-version.json', 16384))
+        if (not isinstance(marker, dict) or type(marker.get('schemaVersion')) is not int or marker.get('schemaVersion') != 1
+                or not re.fullmatch('[a-f0-9]{24}', str(marker.get('version', '')))
+                or not re.fullmatch('/assets/[A-Za-z0-9_-]+[.]js', str(marker.get('entry', '')))):
+            return 0
+        html = re.sub(r'<!--.*?-->', '', html, flags=re.S)
+        title = 'MW Credit' if environment == 'prod' else 'MW Credit Development'
+        return 1 if (f'<title>{title}</title>' in html and re.search(r'<div\s+id=[\"\']root[\"\']', html)
+                     and re.search(r'<script\b[^>]*\btype=[\"\']module[\"\'][^>]*\bsrc=[\"\']'
+                                   + re.escape(marker['entry']) + r'[\"\']', html)) else 0
+    except Exception:
+        return 0
 
 
 def properties(unit):
@@ -224,14 +316,11 @@ def main():
         login = run([config['codex_executable'], 'login', 'status'], env=env)
         return 1 if version.returncode == login.returncode == 0 else 0
     check('codex_ready', codex)
-    for app in ('oltp', 'olap'):
-        def probe(app=app):
-            if not config.get('appsheet_enabled'):
-                return 3
-            p = run(['/opt/mw-integration-agent/.venv/bin/mw-integration-agent', 'appsheet-probe',
-                     '--app', app, '--config', CONFIG, '--catalogue', '/etc/mw-integration-agent/service-catalogue.json'], 70)
-            return 1 if p.returncode == 0 and json.loads(p.stdout).get('authenticated') is True else 0
-        check(app, probe)
+    # Keep oltp/olap labels for the existing 12-instance rule; their meaning is native API.
+    for scope in ('oltp', 'olap'):
+        check(scope, lambda scope=scope: native_api_status(config, scope))
+    for environment in ('dev', 'prod'):
+        check('pwa_hosting_' + environment, lambda environment=environment: hosting_status(environment))
     from metabase_probes import collect
     metabase = collect()
     timestamp = dt.datetime.now(dt.timezone.utc).isoformat()
@@ -276,7 +365,12 @@ def main():
 
 if __name__ == '__main__':
     try:
-        main()
+        if len(sys.argv) == 3 and sys.argv[1] == '--hosting-probe' and sys.argv[2] in HOSTING_ORIGINS:
+            print(json.dumps({'status': hosting_status(sys.argv[2], fetcher=hosting_fetch)}))
+        elif len(sys.argv) == 1:
+            main()
+        else:
+            raise ValueError('Unknown monitoring command')
     except Exception as exc:
         # Never serialize provider response bodies or private configuration.
         print(json.dumps({'exported': False, 'errorType': type(exc).__name__}))

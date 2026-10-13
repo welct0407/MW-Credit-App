@@ -1,6 +1,6 @@
 # R055 — Grafana CLI/API/Terraform proposal
 
-13 October 2026. **Proposal for owner review; no live changes authorized by this document.** Root/D own R054 closure and core references. Starting PM commit: `3e0372b3ac0bd40ff639fff88ee4d16ec4eacb9a`. R055 is the sole Open release. Preserve the unrelated credential-phase work already dirty in this checkout.
+13 October 2026. **Owner approved execution:** “let terraform manage the Grafana environment, then implement the monitoring of the new PWA platform.” This supersedes the proposal-review holds below for scoped non-destructive Grafana adoption and native monitoring implementation/deployment. Preserve dashboard identities, existing recipients, secrets and rollback; inspect and validate actual plans before applying. No blanket authority for unrelated cloud adoption, paid features, financial writes or forced notification tests. API bootstrap access is still unavailable; an owner-assisted one-time credential setup was requested while independent source preparation proceeds. Starting implementation PM commit: `378a55262d353e78fd36a6e06b9b96b74cc310c9`; app commit: `3e9714030f40992af3397996084c4d85590264ff`. R055 is the sole Open release. Preserve unrelated credential-phase work.
 
 ## Established findings
 

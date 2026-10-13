@@ -34,7 +34,7 @@ The following rules evaluate every two minutes with a rolling ten-minute query w
 | 7, 22 | Debian VM Ops Agent `memory/percent_used`, state `used`, above **85%** | 10 min | Used RAM only; other memory states are excluded. |
 | 9, 42 | Railway Metabase used memory above **90% of its corresponding live limit** | 10 min | Uses `100 × MEMORY_USAGE_GB / MEMORY_LIMIT_GB`; allocation changes are reflected in the limit metric. |
 
-The Debian-backed tile-to-component mapping is: 52 Tunnel → `tunnel`; 53 Tailscale → `tailscale_node`; 60 Ingress → `webhook_local`; 56 OLTP → `oltp`; 57 OLAP → `olap`; 61 Converse → `conversations`; 62 Receipts → `receipts`; 63 IG polling → `polling`; 64 Daily jobs → `daily_jobs`; 65 Database → `database`; 66 Audit relay → `audit_relay`; 67 Codex ready → `codex_ready`. Each is evaluated separately, even though one Grafana rule hosts all 12 instances. SQL connections (50) and OpenAI (54–55) and the external webhook (51) complete the 16 tile conditions. The superseded grouped four-component rule was deleted after its replacement was verified.
+The Debian-backed tile-to-component mapping is: 52 Tunnel → `tunnel`; 53 Tailscale → `tailscale_node`; 60 Ingress → `webhook_local`; 56 Native operational API → `oltp`; 57 Native analytical API → `olap`; 61 Converse → `conversations`; 62 Receipts → `receipts`; 63 IG polling → `polling`; 64 Daily jobs → `daily_jobs`; 65 Database → `database`; 66 Audit relay → `audit_relay`; 67 Codex ready → `codex_ready`. R055 retains the `oltp`/`olap` metric labels for existing alert compatibility; the replacement probes concern native logical scopes, not AppSheet. Each is evaluated separately, even though one Grafana rule hosts all 12 instances. SQL connections (50) and OpenAI (54–55) and the external webhook (51) complete the 16 tile conditions. The superseded grouped four-component rule was deleted after its replacement was verified.
 
 These values are alert thresholds, not newly configured subscription/resource limits. Azure VM-01 has no uptime push rule because it is intentionally not 24x7. Receipts/polling Unknown or stale telemetry pages; the Debian rule also alerts on no-data/query errors. Other rules retain their previous missing-data policy. The external webhook, local ingress and other Debian components may all alert during one incident; their separate labels show which checks failed.
 
@@ -46,7 +46,7 @@ Panel IDs below are maintenance references, unique **within each page**. Names r
 |---|---|---|
 | 1 | Azure · GCP · Railway · SGT · 2m and status legend | Static context and light-color key. The text itself is not a monitoring signal. |
 | 70 | CONNECTIVITY | Groups the public entry point and Debian network/receiver checks. |
-| 71 | APPS & OPENAI | Groups the two AppSheet API probes and two published OpenAI service checks. |
+| 71 | APPS & OPENAI | Groups native operational/analytical API probes and two published OpenAI service checks. |
 | 72 | AGENT WORKFLOWS | Groups scheduled business-worker health on Debian. |
 | 73 | DATA & RUNTIME | Groups SQL connections, database access, audit relay and local Codex readiness. |
 | 74 | METABASE · PLATFORM | Platform and application database, right side of row 3. |
@@ -94,8 +94,8 @@ Debian collects every two minutes. Reports older than **six minutes** become Unk
 
 | ID | Tile | Check and interpretation |
 |---|---|---|
-| 56 | 📱 OLTP API | Debian runs the existing authenticated, bounded, read-only production AppSheet API probe for OLTP. Passing proves that probe can authenticate/read; it does not prove browser login, all screens, sync or every workflow works. AppSheet integration disabled → Paused. |
-| 57 | 📊 OLAP API | The equivalent separate probe for the production OLAP app using its own binding/key. Same limitations as OLTP; one app passing does not substitute for the other. |
+| 56 | 📱 Native operational API | Debian invokes `native-api-probe --scope oltp`: exact native machine policy/catalogue and a key-only Partners read limited to one row. Success must match the pinned manifest, scope and authenticated result; no AppSheet fallback or business write. Native API explicitly disabled → Paused; missing activation configuration or missing/stale report → Unknown; malformed configuration, wrong PROD environment/origin/audience, authentication failure or malformed proof → Down. This does not prove browser history/clicks or every workflow. |
+| 57 | 📊 Native analytical API | The equivalent separate native `olap` logical-scope probe. Passing one scope does not substitute for the other or prove all report calculations. Existing independent SQL health still checks database connectivity. |
 | 54 | 💬 ChatGPT | Reads the current ChatGPT product group and matching active incidents from OpenAI's status website. Hover the centered light for the incident explanation; click/tap it to open the official incident or status page. It does not test this user's login, subscription or an actual conversation. |
 | 55 | ⌘ Codex | Reads the current Codex product group and matching active incidents, with the same hover/click behavior. Independent of Debian; does not test this user's quota or model execution. Compare with **Codex ready**, which checks the local runtime instead. |
 
@@ -322,3 +322,21 @@ Debian VM measures elapsed time since Compute Engine VM start, using the latest 
 The original registration expired at06:18:33UTC without observed renewal. The owner then authorized replacement of the existing automation registration, retaining its ten alerts and destination, plus a privately verified monitoring-list update. One native update was accepted07:16:31UTC; the replacement was active, with expiry6 October2026 at07:16:29.893UTC and authoritative grant expiry3 October2028 at12:22:25UTC. The old registration remained expired and unchanged; no duplicate automation was created. Saved monitoring readback completed07:29:41.231UTC.
 
 Parent's cloud-browser refresh07:31:37UTC (15:31:37SGT) showed Expected subscriptions **Healthy1/1**, Renewal **Healthy**, approximately24 hours of subscription authority and2 years of grant authority. All bridge/outbox/continuity checks were Healthy and no row5 tile showed Unknown. These are UI observations; individual metric sample timestamps were not independently verified. Next automatic renewal is **not proven**. Read-only Cloud Run logs00:00–06:25UTC showed three successful tool calls and no `events/subscribe`; OAuth request logs were excluded for privacy, leaving host dispatch versus authentication prerequisite unresolved. This documentation update changes no dashboard layout, query, runtime or alert. Private identifiers/callbacks/backups stay outside Git. [Sanitized recovery evidence](../outputs/grafana-row5-vm01-20261004/subscription-recovery-20261005.json).
+
+## R055 PWA Platform — source candidate, not yet deployed
+
+Dedicated dashboard UID `mw-pwa-platform`, existing folder `mw-resource-monitoring`, existing Infinity datasource `mw-gcp-monitoring`. F verified the UID was unused and exact Cloud Run metric descriptors/aggregate queries on 13 October. Publication is Terraform-owned after adoption; do not run the legacy publisher for this candidate.
+
+| Panel IDs | Group / visual | Definition and limits |
+| --- | --- | --- |
+| 1 | Scope and interpretation | Explicit data lag, idle/no-data and business-coverage limitations; static text, not a health signal. |
+| 2,16 | PROD / DEV | Environment rows; no cross-environment aggregation. |
+| 3,17 | Canonical Hosting, Debian vantage | Existing health metric components `pwa_hosting_prod` / `pwa_hosting_dev`. GET fixed HTTPS origin shell and build-version.json with no redirects or authentication headers; exact environment title, root mount, entry reference and version marker. 10s total per environment, bounded response sizes. Reachable1, failed/malformed0; missing or older than6min Unknown4. This is one Debian vantage, not browser login, asset execution or multi-region availability. |
+| 4–6 /18–20 | PROD / DEV reader | Requests per5min, request p95 milliseconds, instance peak envelope. |
+| 7–9 /21–23 | PROD / DEV command | Same platform metrics; includes browser and machine route traffic, not individual business outcomes. |
+| 10–12 /24–26 | PROD / DEV jobs | Same platform metrics; does not measure last successful intended business boundary or financial result. |
+| 13–15 /27–29 | PROD / DEV notify | Same platform metrics; HTTP completion does not imply provider acceptance/device delivery or absence of queued/uncertain deliveries. |
+
+Request panels use `run.googleapis.com/request_count`, exact service filter, DELTA counts aligned SUM over300s and reduced SUM across revisions. All requests plus4xx and5xx subset lines are shown; 4xx can reflect intentional access rejection. Missing subset series stay missing, not invented zero. Latency uses `run.googleapis.com/request_latencies` distributions: ALIGN_SUM then REDUCE_PERCENTILE_95; it does not average percentiles. Instance `container/instance_count` uses ALIGN_MAX then REDUCE_SUM: sum of per-series peaks is an upper envelope, not simultaneous exact count. All ranges default to last24h ending2min ago for observed60s sampling/120s ingestion lag; refresh2min. No new alert threshold or minimum sample count is invented. No-data/min-zero idle service is not marked Down or Healthy. Queries fail visibly on permission errors or truncation.
+
+Hosting is collected by the existing timer; no new scheduler or business invocation. Native operational/analytical panels56/57 remain in Performance. Missing job completion freshness and protected notification queue aggregates are explicitly unimplemented until a narrowly reviewed telemetry source exists. Official aggregation references: [Cloud Monitoring aggregation](https://docs.cloud.google.com/monitoring/api/ref_v3/rpc/google.monitoring.v3), [distribution percentiles](https://docs.cloud.google.com/monitoring/api/v3/distribution-metrics).

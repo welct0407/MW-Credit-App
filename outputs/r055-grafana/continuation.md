@@ -1,0 +1,13 @@
+# R055 Grafana adoption and native PWA monitoring
+
+## Current handoff — 13 October 2026
+
+R055 remains the sole Open release; R056 is unused. The owner approved scoped Grafana Terraform adoption and new PWA monitoring through CLI, Terraform and APIs, and provided an external saved token for F. This supersedes the proposal's earlier access/approval-pending observations. No additional routine approval is required within that scope. F's authenticated metadata read confirmed service account20/Admin, token21 (no expiry reported), Performance version40/Cost15, dashboard API v1beta1 namespace `stacks-1839781`, 18 datasources (12 builtin/6 custom), 10 rules and two contacts/policies. Token bytes are not included. Initial planned no-change adoption is two folders and two dashboards before behavior writes; imports and source/resource plan pins remain pending. No adoption or collector/dashboard deployment is claimed here.
+
+F owns authenticated Grafana/GCP inventory, provider/state/secret boundaries, Terraform imports/plans and infrastructure execution. B owns native collector/dashboard selectors, the monitoring operating reference and visual guide. C owns focused independent checks and `verification.md`. Root owns `plan.md`, the current release log, scope decisions and execution sequencing. D owns this continuation, the single checklist and core release records. Existing live PWA/SQL/worker pins remain unchanged by preparation.
+
+Local source and scoped tests are prepared; their owning evidence distinguishes fixture proof from live observations. Reuse valid checks under the PWA delivery policy, with no blanket CI or business/scheduler/notification test writes. Exact saved dashboards/rules/datasources/route IDs, recovery exports/state and source commits must come from F's authenticated handoff, not historical guesses. Token values, endpoints containing credentials and private state remain outside Git.
+
+Next: bind F's authenticated resource/source plan and rollback evidence into [the single promotion checklist](promotion-checklist.md). At actual promotion start only, root will signal D to publish the coordinated R055 Frozen/R056 Open/next R057 handoff with exact pins. Do not freeze, tag, publish or allocate a successor before that signal. Carry-forward credential work from R054 remains unfinished; this slice does not claim the complete credential-centralization programme finished.
+
+Owner-authored plan and implementation evidence: [plan](plan.md), [PWA coverage inventory](pwa-coverage-inventory.md), [independent verification](verification.md). These are owning references; this handoff does not duplicate their resource or metric inventories.

@@ -80,4 +80,49 @@ class RelaySnapshotTests(unittest.TestCase):
         self.assertEqual(health.relay_snapshot({},Mock(return_value=0),Mock(return_value=self.values))['status'],0)
         self.assertEqual(health.relay_snapshot({},Mock(side_effect=RuntimeError()),Mock(return_value=self.values))['status'],0)
 
+class NativeApiProbeTests(unittest.TestCase):
+    def setUp(self):
+        self.digest='a'*64
+        self.config={'conversation_api_enabled':True,'conversation_api_manifest_sha256':self.digest,
+                     'conversation_api_environment':'prod','database_name':'loan_manager_prod',
+                     'conversation_api_origin':'https://mw-credit-app-command-prod-737787224638.asia-southeast1.run.app',
+                     'conversation_api_audience':'https://mw-credit-app-command-prod-737787224638.asia-southeast1.run.app'}
+    def result(self,scope='oltp',**values):
+        import json
+        return Mock(returncode=0,stdout=json.dumps(dict(authenticated=True,scope=scope,count=1,targetVersion=self.digest,**values)))
+    def test_disabled_never_uses_old_appsheet_switch(self):
+        runner=Mock()
+        self.assertEqual(health.native_api_status({'appsheet_enabled':True},'oltp',runner),4)
+        runner.assert_not_called()
+    def test_explicit_disabled_and_invalid_flag_are_distinct(self):
+        for flag,expected in [(False,3),('true',0),(1,0),(None,0)]:
+            runner=Mock()
+            self.assertEqual(health.native_api_status(dict(self.config,conversation_api_enabled=flag),'oltp',runner),expected)
+            runner.assert_not_called()
+    def test_wrong_environment_or_binding_never_runs(self):
+        for field,value in [('conversation_api_environment','dev'),('database_name','loan_manager_dev'),('conversation_api_origin','https://unreviewed.invalid'),('conversation_api_audience','other')]:
+            runner=Mock()
+            self.assertEqual(health.native_api_status(dict(self.config,**{field:value}),'oltp',runner),0)
+            runner.assert_not_called()
+    def test_both_native_scopes_have_fixed_read_only_command(self):
+        for scope in ('oltp','olap'):
+            runner=Mock(return_value=self.result(scope))
+            self.assertEqual(health.native_api_status(self.config,scope,runner),1)
+            runner.assert_called_once_with(['/opt/mw-integration-agent/.venv/bin/mw-integration-agent','native-api-probe','--scope',scope,'--config',health.CONFIG,'--catalogue','/etc/mw-integration-agent/service-catalogue.json'],70)
+    def test_wrong_scope_manifest_and_unbounded_or_boolean_count_are_down(self):
+        import json
+        for value in [dict(authenticated=True,scope='olap',count=1,targetVersion=self.digest),dict(authenticated=True,scope='oltp',count=1,targetVersion='b'*64),dict(authenticated=True,scope='oltp',count=2,targetVersion=self.digest),dict(authenticated=True,scope='oltp',count=True,targetVersion=self.digest),dict(authenticated=False,scope='oltp',count=1,targetVersion=self.digest)]:
+            self.assertEqual(health.native_api_status(self.config,'oltp',Mock(return_value=Mock(returncode=0,stdout=json.dumps(value)))),0)
+    def test_missing_pin_does_not_invoke(self):
+        runner=Mock()
+        self.assertEqual(health.native_api_status({'conversation_api_enabled':True},'oltp',runner),0)
+        runner.assert_not_called()
+    def test_subprocess_failure_invalid_output_and_timeout_are_down(self):
+        for runner in [Mock(return_value=Mock(returncode=1,stdout='')),Mock(return_value=Mock(returncode=0,stdout='not json')),Mock(side_effect=TimeoutError())]:
+            self.assertEqual(health.native_api_status(self.config,'oltp',runner),0)
+    def test_unknown_scope_refused_before_subprocess(self):
+        runner=Mock()
+        with self.assertRaises(ValueError):health.native_api_status(self.config,'other',runner)
+        runner.assert_not_called()
+
 if __name__=='__main__': unittest.main()

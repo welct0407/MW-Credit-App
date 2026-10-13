@@ -1,5 +1,7 @@
 # Centralized resource monitoring
 
+**R055 native probe source checkpoint, 13 October 2026:** the collector and cards56/57 replace AppSheet probes with the agent's fixed `native-api-probe --scope oltp|olap`. The new private `conversation_api_enabled` flag and exact manifest pin control the read-only probe. This is source-only until the integrated native endpoint/configuration, collector and dashboard changes are reviewed and deployed; existing live monitoring is not relabeled by documentation. Keep the current `oltp`/`olap` metric labels for the existing 12-instance rule, with UI names Native operational API / Native analytical API. Freshness, missing-data behavior, recipients and IRM owner routing are unchanged; no alert/filter rewrite is needed for this compatibility mapping. The independent SQL `SELECT 1` check remains. No AppSheet fallback or financial write is permitted.
+
 **Source-only extension, 2 October 2026:** the [Grafana MCP Events bridge](Grafana_MCP_Events_Bridge.md) implements authenticated ChatGPT/Dots subscriptions, filtering and durable signed retries. It is not deployed, connected or added to Grafana. Current IRM/mobile alert delivery remains intact. The linked guide owns the proposed GCP service, security/deployment prerequisites, cost model and rollback.
 
 Receipt monitoring activated 25 September: the [implementation handover](https://github.com/welct0407/MW-Integration-Agent/blob/main/docs/MONITORING_IMPLEMENTATION_HANDOVER.md) is implemented in the existing collector, eight Payment processing visuals and existing Debian IRM rule. See [implementation evidence](../outputs/receipt-monitoring-20260925/README.md).
@@ -22,7 +24,7 @@ The overview has four rows: CPU cards, matching RAM cards, connectivity/provider
 The 23 overview tiles are arranged across two rows: the four original groups plus Metabase in the rightmost third of both rows (**Metabase · Live** with four tiles and **Metabase · Recovery** with three):
 
 - **Connectivity:** public webhook, Cloudflare tunnel, Tailscale node, local ingress.
-- **Apps & OpenAI:** production OLTP/OLAP API probes, published ChatGPT/Codex status.
+- **Apps & OpenAI:** native operational/analytical API logical-scope probes, published ChatGPT/Codex status. See the source-only deployment boundary above.
 - **Agent workflows:** conversation worker, receipt worker, Instagram polling, daily jobs.
 - **Data & runtime:** SQL connections (configured limit 200), database access, audit relay, local Codex readiness.
 
@@ -172,3 +174,13 @@ Infrastructure Uptime follow-up, 5 October: owner-approved Debian collector tele
 Keep unverified expected subscriber/grant state Unknown. Existing owner Firestore document access must verify exact expected native membership before seeding the approved monitoring-only control/monitoring.expectedSubscriptionIds field. CLI adapter cannot perform document access; no token export or extra IAM workaround. Legacy grant metadata arrives only through ordinary authenticated renewal. Passive Azure definition/three-day minute series verified, with815null of4320rows; exact daily backend query/save verification remains parent-owned. No verified Activity Log HTTP status/history. Available hours are a lower bound across gaps, not exact power runtime or billable allocation. Owner idle hold persists.
 
 R051 parent live acceptance4 October17:30 UTC: both dashboards saved and verified. Performance generation33/69elements, only four fieldConfigs repaired since prior save; numeric0/0s display correctly and subscription/renewal remain Unknown pending expected membership. Cost saved chart visually verified with corrected plain numeric selectors and explicit gray unknown bars, same UID/folder/timezone; final Cost code-export verification denied twice, so full-object equality after UI is not established. [Exact acceptance and remaining membership work](../outputs/grafana-row5-vm01-20261004/live-acceptance.json). Eight IRM alerts remain uncreated; no merge or further deployment.
+
+## R055 native platform source handoff
+
+The source-only candidate `outputs/r055-grafana/pwa-platform-dashboard.json` is reproducibly built by `scripts/monitoring/pwa-platform-dashboard.cjs` from F's actual metric evidence. F confirmed the new UID unused. Keep existing Performance/Cost definitions intact apart from the two native probe label/description pairs; `native-api-dashboard.cjs` supports fresh classic/v2 snapshots without rebuilding unrelated layout. Terraform is the only dashboard write path for this task.
+
+Collector adds public canonical Hosting checks for dev-lm.mw-credit.com and lm.mw-credit.com with fixed bounds/no redirects/no credentials, exporting the existing health metric with two new component values. Existing two-minute timer remains; each environment has a10s total budget. No native service is awakened by a synthetic command/payment and no alert recipient/routing changes are included. See the visual guide for all29panel definitions and non-coverage. Actual Grafana datasource execution, collector activation, natural samples and saved-definition readback remain F/root delivery checks; human GCP descriptor/query success is not Grafana datasource authority proof.
+
+Read-only jobs/notification incident queries and their exact semantic limits are maintained in [R055 worker log operations](../outputs/r055-grafana/worker-log-operations.md). They do not invoke business work or replace reconciliation.
+
+Focused handoff update: actual Grafana datasource execution passed all five PROD command candidate targets (All/4xx/5xx/p95/instance envelope). C accepted bounded Hosting and executable selectors. Other service panels reuse exact verified query structure with fixed service filters; no live dashboard/collector deployment is inferred. Existing timer starts120s after the previous unit becomes inactive, preventing overlap; unit timeout180s remains unchanged.
