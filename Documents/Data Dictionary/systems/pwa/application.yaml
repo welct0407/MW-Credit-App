@@ -49,16 +49,17 @@
   "borrower_upcoming":
     "scope": "Selected visible borrower detail in both operational full detail and read-only fallback; includes borrowers\
       \ with only future charges"
-    "presentation": "Shared Collection Upcoming Charges summary, date detail and paging; independent refresh, loading, empty\
-      \ and retry states"
+    "presentation": "Borrower Upcoming Charges auto-loads on opening, with independent loading/empty states and error-only\
+      \ retry; no dedicated refresh button. Retry reloads the summary for a changed business date or unavailable selected\
+      \ date. Shared Collection summary, date detail and paging remain unchanged."
     "freshness": "Previews reused for at most 60 seconds on the same Asia/Bangkok day and invalidated on visibility change;\
       \ date paging uses fresh API reads"
     "request_safety": "Abort and generation guards reject stale borrower results; controls do not submit borrower changes"
     "financial_effect": "Read-only forecast; no charge or financial write"
-    "delivery": "R058 Open; source 68e8a39 deployed to DEV reader revision 00019-ntb and Hosting 78e4d9de3188ce2f on 14 October\
-      \ 2026; bounded artifact/unauthenticated access checks passed, owner-authenticated forecast/UX smoke unavailable; PROD\
-      \ promotion pending. Exact pins/recovery in Environment_Inventory and Development_Changes."
-    "source": "https://github.com/welct0407/MW-Credit-App/blob/68e8a39e63e44123dcbab3f819c72d711e2a3240/apps/pwa/src/SharedBorrowerDetail.tsx"
+    "delivery": "R058 Open; frontend source 95fab655 deployed to DEV Hosting f453babe4ceae360 on 14 October 2026; reader revision\
+      \ 00019-ntb remains source 68e8a39. Bounded artifact checks passed; owner-authenticated forecast/UX smoke unavailable;\
+      \ PROD promotion pending. Exact pins/recovery in Environment_Inventory and Development_Changes."
+    "source": "https://github.com/welct0407/MW-Credit-App/blob/95fab655431a4459e22ec1dbdd1541d035333d78/apps/pwa/src/SharedBorrowerDetail.tsx"
     "read_only_source": "https://github.com/welct0407/MW-Credit-App/blob/68e8a39e63e44123dcbab3f819c72d711e2a3240/apps/pwa/src/live-main.tsx"
 "evidence":
   "/content/borrower_upcoming":
@@ -67,7 +68,17 @@
       \ or SQL change"
     "state": "value"
   "/content/borrower_upcoming/delivery":
-    "reference": "https://github.com/welct0407/AppSheet-Loan-Project/pull/20"
-    "reason": "Owner-authorized R058 DEV reader and Hosting deployment; bounded public/auth-gate checks, authenticated behavior\
-      \ smoke unavailable"
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/95fab655431a4459e22ec1dbdd1541d035333d78/apps/pwa/src/SharedBorrowerDetail.tsx"
+    "reason": "Owner followup removes dedicated Borrower Upcoming refresh; tested auto-load and error-only retry deployed\
+      \ Hosting-only"
+    "state": "value"
+  "/content/borrower_upcoming/presentation":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/95fab655431a4459e22ec1dbdd1541d035333d78/apps/pwa/src/SharedBorrowerDetail.tsx"
+    "reason": "Owner followup removes dedicated Borrower Upcoming refresh; tested auto-load and error-only retry deployed\
+      \ Hosting-only"
+    "state": "value"
+  "/content/borrower_upcoming/source":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/95fab655431a4459e22ec1dbdd1541d035333d78/apps/pwa/src/SharedBorrowerDetail.tsx"
+    "reason": "Owner followup removes dedicated Borrower Upcoming refresh; tested auto-load and error-only retry deployed\
+      \ Hosting-only"
     "state": "value"
