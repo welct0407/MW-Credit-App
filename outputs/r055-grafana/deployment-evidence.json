@@ -1,0 +1,88 @@
+{
+  "at": "2026-10-13T04:19:48.814562+00:00",
+  "dashboards": [
+    {
+      "uid": "mw-resource-performance",
+      "version": 41,
+      "folderUid": "mw-resource-monitoring",
+      "panelCount": 77
+    },
+    {
+      "uid": "mw-resource-cost",
+      "version": 15,
+      "folderUid": "mw-resource-monitoring",
+      "panelCount": 27
+    },
+    {
+      "uid": "mw-pwa-platform",
+      "version": 2,
+      "folderUid": "mw-resource-monitoring",
+      "panelCount": 29
+    }
+  ],
+  "grafanaPlanNoChange": true,
+  "grafanaPlanSha256": "231448efa7e6157441065bc086b11bb7bb347b1ea8a0beeb5b9f25723b58e766",
+  "resourceCount": 13,
+  "accessPlanNoChange": true,
+  "accessPlanSha256": "ecb4861665140a59061b00f0d36db2ccb163c1564bbad2ad0850f23e5a258362",
+  "naturalTelemetry": [
+    {
+      "component": "olap",
+      "time": "2026-10-13T04:17:47.642329Z",
+      "status": "1"
+    },
+    {
+      "component": "oltp",
+      "time": "2026-10-13T04:17:47.642329Z",
+      "status": "1"
+    },
+    {
+      "component": "pwa_hosting_dev",
+      "time": "2026-10-13T04:17:47.642329Z",
+      "status": "1"
+    },
+    {
+      "component": "pwa_hosting_prod",
+      "time": "2026-10-13T04:17:47.642329Z",
+      "status": "1"
+    }
+  ],
+  "collector": {
+    "sha256": "6d9caffc1b20ca1411420441b92eb030cddca7b4f72eb67403db562a9c8458bc",
+    "previousSha256": "9f79bb7f8938548bdf6c811bbe293d3eeab5e81fd87599ad08f30c63b429b79c",
+    "rollback": "/var/backups/mw-resource-monitoring-r055-20261013",
+    "unitTimerUnchanged": true
+  },
+  "cleanup": {
+    "at": "2026-10-13T04:19:13.145114+00:00",
+    "taskMetadataKeyAbsent": true,
+    "otherKeysPreserved": 2,
+    "taskPrivateKeyRemoved": true,
+    "stableHostTrustPreserved": true,
+    "tunnelStopped": true
+  },
+  "contactWrites": false,
+  "notificationsSent": false,
+  "reviewBy": "2026-10-20",
+  "uxRefinement": {
+    "sourceCommit": "bddee97c",
+    "version": 2,
+    "all29PanelsExactReadback": true,
+    "lineStyleAccepted": [
+      "solid",
+      "dash",
+      "dots"
+    ],
+    "allTargetsUnchanged": true,
+    "planSha256": "facc8949c08a8b7341b0b11c79eddeacd780a87b4ecf819d1a397bb5bac7a27a"
+  },
+  "contactRecovery": {
+    "configurationVersion": "1",
+    "privateReadbackHashMatched": true,
+    "existingHmacVersion": "1",
+    "existingHmacState": "ENABLED",
+    "hmacPayloadAccessed": false,
+    "restoreExecuted": false,
+    "focusedTests": 5
+  }
+}

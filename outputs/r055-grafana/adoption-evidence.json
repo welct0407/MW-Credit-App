@@ -83,11 +83,8 @@
     "tokenId": 21,
     "expiration": null
   },
-  "remaining": [
-    "secret-safe contact integration reference adapter",
-    "token Secret Manager publication",
-    "native and PWA dashboard deployment",
-    "collector deployment"
-  ],
-  "liveBehaviorChanges": false
+  "remaining": [],
+  "liveBehaviorChanges": false,
+  "completionEvidence": "deployment-evidence.json",
+  "contactManagement": "Secret-safe API recovery adapter; contact payloads excluded from Terraform state"
 }

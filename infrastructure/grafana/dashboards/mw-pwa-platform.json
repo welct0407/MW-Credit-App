@@ -25,12 +25,13 @@
           "x": 0,
           "y": 0,
           "w": 24,
-          "h": 4
+          "h": 8
         },
         "options": {
           "mode": "markdown",
-          "content": "Cloud Run platform observations for DEV and PROD, with a two-minute ingestion allowance. Requests and latency use five-minute windows. Empty series means no observed telemetry, not healthy or failed; min-zero workers may be idle. HTTP4xx includes authorization/client rejection, not necessarily a service outage. No latency/error-ratio alert thresholds are introduced. Job completion freshness and notification queue/device delivery are not measured by these charts. Hosting checks are a single Debian vantage, not browser authentication or multi-region availability."
-        }
+          "content": "- **Timing:** 5-minute windows; range ends 2 minutes ago.\n- **Missing \u2260 healthy:** idle workers may have no data. Query errors remain errors.\n- **HTTP 4xx:** may be client/auth rejection. No new alert thresholds.\n- **Limits:** Hosting is one Debian vantage, not login or regional coverage. Job completion and notification delivery are not measured."
+        },
+        "description": "Cloud Run platform observations for DEV and PROD, with a two-minute ingestion allowance. Requests and latency use five-minute windows. Empty series means no observed telemetry, not healthy or failed; min-zero workers may be idle. HTTP 4xx includes authorization/client rejection, not necessarily a service outage. No latency/error-ratio alert thresholds are introduced. Job completion freshness and notification queue/device delivery are not measured by these charts. Hosting checks are a single Debian vantage, not browser authentication or multi-region availability."
       },
       {
         "id": 2,
@@ -39,7 +40,7 @@
         "collapsed": false,
         "gridPos": {
           "x": 0,
-          "y": 4,
+          "y": 8,
           "w": 24,
           "h": 1
         },
@@ -47,9 +48,9 @@
       },
       {
         "id": 3,
-        "title": "PROD canonical Hosting \u00b7 Debian vantage",
+        "title": "PROD Hosting \u00b7 single vantage",
         "type": "stat",
-        "description": "Read-only canonical shell and matching build-version entry. Explicit unexpected/failed response Down; absent report or older than6min Unknown. No redirect, login or business request. Collector activation required.",
+        "description": "Read-only canonical shell and matching build-version entry. Explicit unexpected/failed response Down; absent report or older than 6 min Unknown. No redirect, login or business request. Collected by the existing monitoring timer.",
         "datasource": {
           "type": "yesoreyeram-infinity-datasource",
           "uid": "mw-gcp-monitoring"
@@ -86,7 +87,7 @@
         ],
         "gridPos": {
           "x": 0,
-          "y": 5,
+          "y": 9,
           "w": 24,
           "h": 3
         },
@@ -129,8 +130,8 @@
       },
       {
         "id": 4,
-        "title": "PROD read \u00b7 requests / 5 min",
-        "description": "Sum of request counts across revisions. 4xx/client rejection and5xx/server failure are subsets of All; absent subsets remain missing, never fabricated zero.",
+        "title": "PROD read \u00b7 Requests / 5 min",
+        "description": "Sum of request counts across revisions. 4xx/client rejection and 5xx/server failure are subsets of All; absent subsets remain missing, never fabricated zero.",
         "type": "timeseries",
         "datasource": {
           "type": "yesoreyeram-infinity-datasource",
@@ -224,7 +225,7 @@
         ],
         "gridPos": {
           "x": 0,
-          "y": 8,
+          "y": 12,
           "w": 8,
           "h": 7
         },
@@ -238,7 +239,71 @@
               "drawStyle": "line"
             }
           },
-          "overrides": []
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "All"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "fixed",
+                    "fixedColor": "blue"
+                  }
+                },
+                {
+                  "id": "custom.lineStyle",
+                  "value": {
+                    "fill": "solid"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "4xx"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "fixed",
+                    "fixedColor": "orange"
+                  }
+                },
+                {
+                  "id": "custom.lineStyle",
+                  "value": {
+                    "fill": "dash"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "5xx"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "fixed",
+                    "fixedColor": "red"
+                  }
+                },
+                {
+                  "id": "custom.lineStyle",
+                  "value": {
+                    "fill": "dots"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "options": {
           "legend": {
@@ -252,8 +317,8 @@
       },
       {
         "id": 5,
-        "title": "PROD read \u00b7 request latency p95",
-        "description": "Merge per-series latency distributions per5min with ALIGN_SUM, then REDUCE_PERCENTILE_95 across revisions/codes. No average of percentiles; low-sample values are descriptive, no alert threshold.",
+        "title": "PROD read \u00b7 p95 latency (ms)",
+        "description": "Merge per-series latency distributions per 5 min with ALIGN_SUM, then REDUCE_PERCENTILE_95 across revisions/codes. No average of percentiles; low-sample values are descriptive, no alert threshold.",
         "type": "timeseries",
         "datasource": {
           "type": "yesoreyeram-infinity-datasource",
@@ -291,7 +356,7 @@
         ],
         "gridPos": {
           "x": 8,
-          "y": 8,
+          "y": 12,
           "w": 8,
           "h": 7
         },
@@ -319,8 +384,8 @@
       },
       {
         "id": 6,
-        "title": "PROD read \u00b7 instance peak envelope",
-        "description": "Sum of each revision/state series maximum per5min. Upper envelope, not exact simultaneous instance count. Zero/absent instances can be expected for min-zero services.",
+        "title": "PROD read \u00b7 Instance peak envelope",
+        "description": "Sum of each revision/state series maximum per 5 min. Upper envelope, not exact simultaneous instance count. Zero/absent instances can be expected for min-zero services.",
         "type": "timeseries",
         "datasource": {
           "type": "yesoreyeram-infinity-datasource",
@@ -358,7 +423,7 @@
         ],
         "gridPos": {
           "x": 16,
-          "y": 8,
+          "y": 12,
           "w": 8,
           "h": 7
         },
@@ -386,8 +451,8 @@
       },
       {
         "id": 7,
-        "title": "PROD command \u00b7 requests / 5 min",
-        "description": "Sum of request counts across revisions. 4xx/client rejection and5xx/server failure are subsets of All; absent subsets remain missing, never fabricated zero.",
+        "title": "PROD command \u00b7 Requests / 5 min",
+        "description": "Sum of request counts across revisions. 4xx/client rejection and 5xx/server failure are subsets of All; absent subsets remain missing, never fabricated zero.",
         "type": "timeseries",
         "datasource": {
           "type": "yesoreyeram-infinity-datasource",
@@ -481,7 +546,7 @@
         ],
         "gridPos": {
           "x": 0,
-          "y": 15,
+          "y": 19,
           "w": 8,
           "h": 7
         },
@@ -495,7 +560,71 @@
               "drawStyle": "line"
             }
           },
-          "overrides": []
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "All"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "fixed",
+                    "fixedColor": "blue"
+                  }
+                },
+                {
+                  "id": "custom.lineStyle",
+                  "value": {
+                    "fill": "solid"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "4xx"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "fixed",
+                    "fixedColor": "orange"
+                  }
+                },
+                {
+                  "id": "custom.lineStyle",
+                  "value": {
+                    "fill": "dash"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "5xx"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "fixed",
+                    "fixedColor": "red"
+                  }
+                },
+                {
+                  "id": "custom.lineStyle",
+                  "value": {
+                    "fill": "dots"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "options": {
           "legend": {
@@ -509,8 +638,8 @@
       },
       {
         "id": 8,
-        "title": "PROD command \u00b7 request latency p95",
-        "description": "Merge per-series latency distributions per5min with ALIGN_SUM, then REDUCE_PERCENTILE_95 across revisions/codes. No average of percentiles; low-sample values are descriptive, no alert threshold.",
+        "title": "PROD command \u00b7 p95 latency (ms)",
+        "description": "Merge per-series latency distributions per 5 min with ALIGN_SUM, then REDUCE_PERCENTILE_95 across revisions/codes. No average of percentiles; low-sample values are descriptive, no alert threshold.",
         "type": "timeseries",
         "datasource": {
           "type": "yesoreyeram-infinity-datasource",
@@ -548,7 +677,7 @@
         ],
         "gridPos": {
           "x": 8,
-          "y": 15,
+          "y": 19,
           "w": 8,
           "h": 7
         },
@@ -576,8 +705,8 @@
       },
       {
         "id": 9,
-        "title": "PROD command \u00b7 instance peak envelope",
-        "description": "Sum of each revision/state series maximum per5min. Upper envelope, not exact simultaneous instance count. Zero/absent instances can be expected for min-zero services.",
+        "title": "PROD command \u00b7 Instance peak envelope",
+        "description": "Sum of each revision/state series maximum per 5 min. Upper envelope, not exact simultaneous instance count. Zero/absent instances can be expected for min-zero services.",
         "type": "timeseries",
         "datasource": {
           "type": "yesoreyeram-infinity-datasource",
@@ -615,7 +744,7 @@
         ],
         "gridPos": {
           "x": 16,
-          "y": 15,
+          "y": 19,
           "w": 8,
           "h": 7
         },
@@ -643,8 +772,8 @@
       },
       {
         "id": 10,
-        "title": "PROD jobs \u00b7 requests / 5 min",
-        "description": "Sum of request counts across revisions. 4xx/client rejection and5xx/server failure are subsets of All; absent subsets remain missing, never fabricated zero.",
+        "title": "PROD jobs \u00b7 Requests / 5 min",
+        "description": "Sum of request counts across revisions. 4xx/client rejection and 5xx/server failure are subsets of All; absent subsets remain missing, never fabricated zero.",
         "type": "timeseries",
         "datasource": {
           "type": "yesoreyeram-infinity-datasource",
@@ -738,7 +867,7 @@
         ],
         "gridPos": {
           "x": 0,
-          "y": 22,
+          "y": 26,
           "w": 8,
           "h": 7
         },
@@ -752,7 +881,71 @@
               "drawStyle": "line"
             }
           },
-          "overrides": []
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "All"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "fixed",
+                    "fixedColor": "blue"
+                  }
+                },
+                {
+                  "id": "custom.lineStyle",
+                  "value": {
+                    "fill": "solid"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "4xx"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "fixed",
+                    "fixedColor": "orange"
+                  }
+                },
+                {
+                  "id": "custom.lineStyle",
+                  "value": {
+                    "fill": "dash"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "5xx"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "fixed",
+                    "fixedColor": "red"
+                  }
+                },
+                {
+                  "id": "custom.lineStyle",
+                  "value": {
+                    "fill": "dots"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "options": {
           "legend": {
@@ -766,8 +959,8 @@
       },
       {
         "id": 11,
-        "title": "PROD jobs \u00b7 request latency p95",
-        "description": "Merge per-series latency distributions per5min with ALIGN_SUM, then REDUCE_PERCENTILE_95 across revisions/codes. No average of percentiles; low-sample values are descriptive, no alert threshold.",
+        "title": "PROD jobs \u00b7 p95 latency (ms)",
+        "description": "Merge per-series latency distributions per 5 min with ALIGN_SUM, then REDUCE_PERCENTILE_95 across revisions/codes. No average of percentiles; low-sample values are descriptive, no alert threshold.",
         "type": "timeseries",
         "datasource": {
           "type": "yesoreyeram-infinity-datasource",
@@ -805,7 +998,7 @@
         ],
         "gridPos": {
           "x": 8,
-          "y": 22,
+          "y": 26,
           "w": 8,
           "h": 7
         },
@@ -833,8 +1026,8 @@
       },
       {
         "id": 12,
-        "title": "PROD jobs \u00b7 instance peak envelope",
-        "description": "Sum of each revision/state series maximum per5min. Upper envelope, not exact simultaneous instance count. Zero/absent instances can be expected for min-zero services.",
+        "title": "PROD jobs \u00b7 Instance peak envelope",
+        "description": "Sum of each revision/state series maximum per 5 min. Upper envelope, not exact simultaneous instance count. Zero/absent instances can be expected for min-zero services.",
         "type": "timeseries",
         "datasource": {
           "type": "yesoreyeram-infinity-datasource",
@@ -872,7 +1065,7 @@
         ],
         "gridPos": {
           "x": 16,
-          "y": 22,
+          "y": 26,
           "w": 8,
           "h": 7
         },
@@ -900,8 +1093,8 @@
       },
       {
         "id": 13,
-        "title": "PROD notify \u00b7 requests / 5 min",
-        "description": "Sum of request counts across revisions. 4xx/client rejection and5xx/server failure are subsets of All; absent subsets remain missing, never fabricated zero.",
+        "title": "PROD notify \u00b7 Requests / 5 min",
+        "description": "Sum of request counts across revisions. 4xx/client rejection and 5xx/server failure are subsets of All; absent subsets remain missing, never fabricated zero.",
         "type": "timeseries",
         "datasource": {
           "type": "yesoreyeram-infinity-datasource",
@@ -995,7 +1188,7 @@
         ],
         "gridPos": {
           "x": 0,
-          "y": 29,
+          "y": 33,
           "w": 8,
           "h": 7
         },
@@ -1009,7 +1202,71 @@
               "drawStyle": "line"
             }
           },
-          "overrides": []
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "All"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "fixed",
+                    "fixedColor": "blue"
+                  }
+                },
+                {
+                  "id": "custom.lineStyle",
+                  "value": {
+                    "fill": "solid"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "4xx"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "fixed",
+                    "fixedColor": "orange"
+                  }
+                },
+                {
+                  "id": "custom.lineStyle",
+                  "value": {
+                    "fill": "dash"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "5xx"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "fixed",
+                    "fixedColor": "red"
+                  }
+                },
+                {
+                  "id": "custom.lineStyle",
+                  "value": {
+                    "fill": "dots"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "options": {
           "legend": {
@@ -1023,8 +1280,8 @@
       },
       {
         "id": 14,
-        "title": "PROD notify \u00b7 request latency p95",
-        "description": "Merge per-series latency distributions per5min with ALIGN_SUM, then REDUCE_PERCENTILE_95 across revisions/codes. No average of percentiles; low-sample values are descriptive, no alert threshold.",
+        "title": "PROD notify \u00b7 p95 latency (ms)",
+        "description": "Merge per-series latency distributions per 5 min with ALIGN_SUM, then REDUCE_PERCENTILE_95 across revisions/codes. No average of percentiles; low-sample values are descriptive, no alert threshold.",
         "type": "timeseries",
         "datasource": {
           "type": "yesoreyeram-infinity-datasource",
@@ -1062,7 +1319,7 @@
         ],
         "gridPos": {
           "x": 8,
-          "y": 29,
+          "y": 33,
           "w": 8,
           "h": 7
         },
@@ -1090,8 +1347,8 @@
       },
       {
         "id": 15,
-        "title": "PROD notify \u00b7 instance peak envelope",
-        "description": "Sum of each revision/state series maximum per5min. Upper envelope, not exact simultaneous instance count. Zero/absent instances can be expected for min-zero services.",
+        "title": "PROD notify \u00b7 Instance peak envelope",
+        "description": "Sum of each revision/state series maximum per 5 min. Upper envelope, not exact simultaneous instance count. Zero/absent instances can be expected for min-zero services.",
         "type": "timeseries",
         "datasource": {
           "type": "yesoreyeram-infinity-datasource",
@@ -1129,7 +1386,7 @@
         ],
         "gridPos": {
           "x": 16,
-          "y": 29,
+          "y": 33,
           "w": 8,
           "h": 7
         },
@@ -1162,7 +1419,7 @@
         "collapsed": false,
         "gridPos": {
           "x": 0,
-          "y": 36,
+          "y": 40,
           "w": 24,
           "h": 1
         },
@@ -1170,9 +1427,9 @@
       },
       {
         "id": 17,
-        "title": "DEV canonical Hosting \u00b7 Debian vantage",
+        "title": "DEV Hosting \u00b7 single vantage",
         "type": "stat",
-        "description": "Read-only canonical shell and matching build-version entry. Explicit unexpected/failed response Down; absent report or older than6min Unknown. No redirect, login or business request. Collector activation required.",
+        "description": "Read-only canonical shell and matching build-version entry. Explicit unexpected/failed response Down; absent report or older than 6 min Unknown. No redirect, login or business request. Collected by the existing monitoring timer.",
         "datasource": {
           "type": "yesoreyeram-infinity-datasource",
           "uid": "mw-gcp-monitoring"
@@ -1209,7 +1466,7 @@
         ],
         "gridPos": {
           "x": 0,
-          "y": 37,
+          "y": 41,
           "w": 24,
           "h": 3
         },
@@ -1252,8 +1509,8 @@
       },
       {
         "id": 18,
-        "title": "DEV read \u00b7 requests / 5 min",
-        "description": "Sum of request counts across revisions. 4xx/client rejection and5xx/server failure are subsets of All; absent subsets remain missing, never fabricated zero.",
+        "title": "DEV read \u00b7 Requests / 5 min",
+        "description": "Sum of request counts across revisions. 4xx/client rejection and 5xx/server failure are subsets of All; absent subsets remain missing, never fabricated zero.",
         "type": "timeseries",
         "datasource": {
           "type": "yesoreyeram-infinity-datasource",
@@ -1347,7 +1604,7 @@
         ],
         "gridPos": {
           "x": 0,
-          "y": 40,
+          "y": 44,
           "w": 8,
           "h": 7
         },
@@ -1361,7 +1618,71 @@
               "drawStyle": "line"
             }
           },
-          "overrides": []
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "All"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "fixed",
+                    "fixedColor": "blue"
+                  }
+                },
+                {
+                  "id": "custom.lineStyle",
+                  "value": {
+                    "fill": "solid"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "4xx"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "fixed",
+                    "fixedColor": "orange"
+                  }
+                },
+                {
+                  "id": "custom.lineStyle",
+                  "value": {
+                    "fill": "dash"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "5xx"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "fixed",
+                    "fixedColor": "red"
+                  }
+                },
+                {
+                  "id": "custom.lineStyle",
+                  "value": {
+                    "fill": "dots"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "options": {
           "legend": {
@@ -1375,8 +1696,8 @@
       },
       {
         "id": 19,
-        "title": "DEV read \u00b7 request latency p95",
-        "description": "Merge per-series latency distributions per5min with ALIGN_SUM, then REDUCE_PERCENTILE_95 across revisions/codes. No average of percentiles; low-sample values are descriptive, no alert threshold.",
+        "title": "DEV read \u00b7 p95 latency (ms)",
+        "description": "Merge per-series latency distributions per 5 min with ALIGN_SUM, then REDUCE_PERCENTILE_95 across revisions/codes. No average of percentiles; low-sample values are descriptive, no alert threshold.",
         "type": "timeseries",
         "datasource": {
           "type": "yesoreyeram-infinity-datasource",
@@ -1414,7 +1735,7 @@
         ],
         "gridPos": {
           "x": 8,
-          "y": 40,
+          "y": 44,
           "w": 8,
           "h": 7
         },
@@ -1442,8 +1763,8 @@
       },
       {
         "id": 20,
-        "title": "DEV read \u00b7 instance peak envelope",
-        "description": "Sum of each revision/state series maximum per5min. Upper envelope, not exact simultaneous instance count. Zero/absent instances can be expected for min-zero services.",
+        "title": "DEV read \u00b7 Instance peak envelope",
+        "description": "Sum of each revision/state series maximum per 5 min. Upper envelope, not exact simultaneous instance count. Zero/absent instances can be expected for min-zero services.",
         "type": "timeseries",
         "datasource": {
           "type": "yesoreyeram-infinity-datasource",
@@ -1481,7 +1802,7 @@
         ],
         "gridPos": {
           "x": 16,
-          "y": 40,
+          "y": 44,
           "w": 8,
           "h": 7
         },
@@ -1509,8 +1830,8 @@
       },
       {
         "id": 21,
-        "title": "DEV command \u00b7 requests / 5 min",
-        "description": "Sum of request counts across revisions. 4xx/client rejection and5xx/server failure are subsets of All; absent subsets remain missing, never fabricated zero.",
+        "title": "DEV command \u00b7 Requests / 5 min",
+        "description": "Sum of request counts across revisions. 4xx/client rejection and 5xx/server failure are subsets of All; absent subsets remain missing, never fabricated zero.",
         "type": "timeseries",
         "datasource": {
           "type": "yesoreyeram-infinity-datasource",
@@ -1604,7 +1925,7 @@
         ],
         "gridPos": {
           "x": 0,
-          "y": 47,
+          "y": 51,
           "w": 8,
           "h": 7
         },
@@ -1618,7 +1939,71 @@
               "drawStyle": "line"
             }
           },
-          "overrides": []
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "All"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "fixed",
+                    "fixedColor": "blue"
+                  }
+                },
+                {
+                  "id": "custom.lineStyle",
+                  "value": {
+                    "fill": "solid"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "4xx"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "fixed",
+                    "fixedColor": "orange"
+                  }
+                },
+                {
+                  "id": "custom.lineStyle",
+                  "value": {
+                    "fill": "dash"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "5xx"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "fixed",
+                    "fixedColor": "red"
+                  }
+                },
+                {
+                  "id": "custom.lineStyle",
+                  "value": {
+                    "fill": "dots"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "options": {
           "legend": {
@@ -1632,8 +2017,8 @@
       },
       {
         "id": 22,
-        "title": "DEV command \u00b7 request latency p95",
-        "description": "Merge per-series latency distributions per5min with ALIGN_SUM, then REDUCE_PERCENTILE_95 across revisions/codes. No average of percentiles; low-sample values are descriptive, no alert threshold.",
+        "title": "DEV command \u00b7 p95 latency (ms)",
+        "description": "Merge per-series latency distributions per 5 min with ALIGN_SUM, then REDUCE_PERCENTILE_95 across revisions/codes. No average of percentiles; low-sample values are descriptive, no alert threshold.",
         "type": "timeseries",
         "datasource": {
           "type": "yesoreyeram-infinity-datasource",
@@ -1671,7 +2056,7 @@
         ],
         "gridPos": {
           "x": 8,
-          "y": 47,
+          "y": 51,
           "w": 8,
           "h": 7
         },
@@ -1699,8 +2084,8 @@
       },
       {
         "id": 23,
-        "title": "DEV command \u00b7 instance peak envelope",
-        "description": "Sum of each revision/state series maximum per5min. Upper envelope, not exact simultaneous instance count. Zero/absent instances can be expected for min-zero services.",
+        "title": "DEV command \u00b7 Instance peak envelope",
+        "description": "Sum of each revision/state series maximum per 5 min. Upper envelope, not exact simultaneous instance count. Zero/absent instances can be expected for min-zero services.",
         "type": "timeseries",
         "datasource": {
           "type": "yesoreyeram-infinity-datasource",
@@ -1738,7 +2123,7 @@
         ],
         "gridPos": {
           "x": 16,
-          "y": 47,
+          "y": 51,
           "w": 8,
           "h": 7
         },
@@ -1766,8 +2151,8 @@
       },
       {
         "id": 24,
-        "title": "DEV jobs \u00b7 requests / 5 min",
-        "description": "Sum of request counts across revisions. 4xx/client rejection and5xx/server failure are subsets of All; absent subsets remain missing, never fabricated zero.",
+        "title": "DEV jobs \u00b7 Requests / 5 min",
+        "description": "Sum of request counts across revisions. 4xx/client rejection and 5xx/server failure are subsets of All; absent subsets remain missing, never fabricated zero.",
         "type": "timeseries",
         "datasource": {
           "type": "yesoreyeram-infinity-datasource",
@@ -1861,7 +2246,7 @@
         ],
         "gridPos": {
           "x": 0,
-          "y": 54,
+          "y": 58,
           "w": 8,
           "h": 7
         },
@@ -1875,7 +2260,71 @@
               "drawStyle": "line"
             }
           },
-          "overrides": []
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "All"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "fixed",
+                    "fixedColor": "blue"
+                  }
+                },
+                {
+                  "id": "custom.lineStyle",
+                  "value": {
+                    "fill": "solid"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "4xx"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "fixed",
+                    "fixedColor": "orange"
+                  }
+                },
+                {
+                  "id": "custom.lineStyle",
+                  "value": {
+                    "fill": "dash"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "5xx"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "fixed",
+                    "fixedColor": "red"
+                  }
+                },
+                {
+                  "id": "custom.lineStyle",
+                  "value": {
+                    "fill": "dots"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "options": {
           "legend": {
@@ -1889,8 +2338,8 @@
       },
       {
         "id": 25,
-        "title": "DEV jobs \u00b7 request latency p95",
-        "description": "Merge per-series latency distributions per5min with ALIGN_SUM, then REDUCE_PERCENTILE_95 across revisions/codes. No average of percentiles; low-sample values are descriptive, no alert threshold.",
+        "title": "DEV jobs \u00b7 p95 latency (ms)",
+        "description": "Merge per-series latency distributions per 5 min with ALIGN_SUM, then REDUCE_PERCENTILE_95 across revisions/codes. No average of percentiles; low-sample values are descriptive, no alert threshold.",
         "type": "timeseries",
         "datasource": {
           "type": "yesoreyeram-infinity-datasource",
@@ -1928,7 +2377,7 @@
         ],
         "gridPos": {
           "x": 8,
-          "y": 54,
+          "y": 58,
           "w": 8,
           "h": 7
         },
@@ -1956,8 +2405,8 @@
       },
       {
         "id": 26,
-        "title": "DEV jobs \u00b7 instance peak envelope",
-        "description": "Sum of each revision/state series maximum per5min. Upper envelope, not exact simultaneous instance count. Zero/absent instances can be expected for min-zero services.",
+        "title": "DEV jobs \u00b7 Instance peak envelope",
+        "description": "Sum of each revision/state series maximum per 5 min. Upper envelope, not exact simultaneous instance count. Zero/absent instances can be expected for min-zero services.",
         "type": "timeseries",
         "datasource": {
           "type": "yesoreyeram-infinity-datasource",
@@ -1995,7 +2444,7 @@
         ],
         "gridPos": {
           "x": 16,
-          "y": 54,
+          "y": 58,
           "w": 8,
           "h": 7
         },
@@ -2023,8 +2472,8 @@
       },
       {
         "id": 27,
-        "title": "DEV notify \u00b7 requests / 5 min",
-        "description": "Sum of request counts across revisions. 4xx/client rejection and5xx/server failure are subsets of All; absent subsets remain missing, never fabricated zero.",
+        "title": "DEV notify \u00b7 Requests / 5 min",
+        "description": "Sum of request counts across revisions. 4xx/client rejection and 5xx/server failure are subsets of All; absent subsets remain missing, never fabricated zero.",
         "type": "timeseries",
         "datasource": {
           "type": "yesoreyeram-infinity-datasource",
@@ -2118,7 +2567,7 @@
         ],
         "gridPos": {
           "x": 0,
-          "y": 61,
+          "y": 65,
           "w": 8,
           "h": 7
         },
@@ -2132,7 +2581,71 @@
               "drawStyle": "line"
             }
           },
-          "overrides": []
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "All"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "fixed",
+                    "fixedColor": "blue"
+                  }
+                },
+                {
+                  "id": "custom.lineStyle",
+                  "value": {
+                    "fill": "solid"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "4xx"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "fixed",
+                    "fixedColor": "orange"
+                  }
+                },
+                {
+                  "id": "custom.lineStyle",
+                  "value": {
+                    "fill": "dash"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "5xx"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "fixed",
+                    "fixedColor": "red"
+                  }
+                },
+                {
+                  "id": "custom.lineStyle",
+                  "value": {
+                    "fill": "dots"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "options": {
           "legend": {
@@ -2146,8 +2659,8 @@
       },
       {
         "id": 28,
-        "title": "DEV notify \u00b7 request latency p95",
-        "description": "Merge per-series latency distributions per5min with ALIGN_SUM, then REDUCE_PERCENTILE_95 across revisions/codes. No average of percentiles; low-sample values are descriptive, no alert threshold.",
+        "title": "DEV notify \u00b7 p95 latency (ms)",
+        "description": "Merge per-series latency distributions per 5 min with ALIGN_SUM, then REDUCE_PERCENTILE_95 across revisions/codes. No average of percentiles; low-sample values are descriptive, no alert threshold.",
         "type": "timeseries",
         "datasource": {
           "type": "yesoreyeram-infinity-datasource",
@@ -2185,7 +2698,7 @@
         ],
         "gridPos": {
           "x": 8,
-          "y": 61,
+          "y": 65,
           "w": 8,
           "h": 7
         },
@@ -2213,8 +2726,8 @@
       },
       {
         "id": 29,
-        "title": "DEV notify \u00b7 instance peak envelope",
-        "description": "Sum of each revision/state series maximum per5min. Upper envelope, not exact simultaneous instance count. Zero/absent instances can be expected for min-zero services.",
+        "title": "DEV notify \u00b7 Instance peak envelope",
+        "description": "Sum of each revision/state series maximum per 5 min. Upper envelope, not exact simultaneous instance count. Zero/absent instances can be expected for min-zero services.",
         "type": "timeseries",
         "datasource": {
           "type": "yesoreyeram-infinity-datasource",
@@ -2252,7 +2765,7 @@
         ],
         "gridPos": {
           "x": 16,
-          "y": 61,
+          "y": 65,
           "w": 8,
           "h": 7
         },
