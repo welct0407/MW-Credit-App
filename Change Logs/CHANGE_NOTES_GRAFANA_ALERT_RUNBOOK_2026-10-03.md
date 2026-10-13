@@ -8,7 +8,7 @@ Starting Git commit / rollback reference: `a460295d8e50f82541c0e10c1bdc0af86a5ac
 
 ## Changes
 
-- Added [Grafana Alert Troubleshooting Runbook](../Documents/Grafana_Alert_Troubleshooting_Runbook.md): ordered triage, all 10 documented rule UIDs/thresholds, every Debian component, receipt/review/posting distinctions, Metabase Live/PITR/scheduled backups, capacity diagnosis, telemetry/delivery failure, routing, bounded recovery decisions, verification and a Dots incident-report template.
+- Added [Grafana Alert Troubleshooting Runbook](../Documents/Rules/Grafana_Alert_Troubleshooting_Runbook.md): ordered triage, all 10 documented rule UIDs/thresholds, every Debian component, receipt/review/posting distinctions, Metabase Live/PITR/scheduled backups, capacity diagnosis, telemetry/delivery failure, routing, bounded recovery decisions, verification and a Dots incident-report template.
 - Linked the runbook from `Documents/README.md`, `Documents/Dots_Orchestration_Rules.md` and `Documents/Resource_Monitoring.md`. Existing Custom rule bodies and their character counts are unchanged.
 - Reconciled stale monitoring summaries with already recorded 26 September evidence: 10 rules, four multi-instance rules, 23 availability/data tiles, five Metabase component instances and the separate scheduled-backup rule. The ninth non-Debian rule also retains KeepLast. No rule was added or changed live.
 - Aligned `Documents/Resource_Monitoring_Dashboard_Guide.md` with the existing 2 October receipt correction: optional Partner-result delivery failures remain visible without degrading receipt processing. Pending live metadata alignment remains explicitly pending.

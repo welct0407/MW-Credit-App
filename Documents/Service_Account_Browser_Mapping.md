@@ -1,6 +1,6 @@
 # Service account and browser mapping
 
-This register maps **human sign-in accounts**, not cloud service-account credentials. Account identifiers only; no passwords, tokens or recovery codes. Account assignments are retained from the owner review; execution routing follows the current [Development Workflow](Development_Workflow.md). Use suitable supported APIs/CLIs first. The table below applies when browser work is necessary.
+This register maps **human sign-in accounts**, not cloud service-account credentials. Account identifiers only; no passwords, tokens or recovery codes. Account assignments are retained from the owner review; execution routing follows the current [Development Workflow](Rules/Development_Workflow.md). Use suitable supported APIs/CLIs first. The table below applies when browser work is necessary.
 
 ## Browser routing
 

@@ -13,7 +13,7 @@ Status: Combined checkpoint 4F candidate verification passed: 23 focused integra
 - Independent desktop/mobile checks and screenshots.
 - Updated roadmap: Metabase enhancements after production go-live.
 
-[Architecture and acceptance](checkpoint-1-design.md) · [Recorded feature baseline](feature-baseline.md) · [Orchestration](../../Documents/PWA_Orchestration.md)
+[Architecture and acceptance](checkpoint-1-design.md) · [Recorded feature baseline](feature-baseline.md) · [Orchestration](../../Documents/Rules/PWA_Orchestration.md)
 
 ## Baseline and boundaries
 

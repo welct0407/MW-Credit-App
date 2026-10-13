@@ -9,4 +9,4 @@ Owner requested a direct review and rewrite to remove duplicate promotion work a
 - **Checks:** affected-file readback, exact-file whitespace/diff review, local link/anchor consistency and agreement with the inspected workflow/validator source. No product CI, builds, tests, deployments or live audits are required/run for this documentation batch.
 - **Status:** policy edits prepared and checked; root owns final diff review and exact-path publication. No fresh owner approval is required for this authorized rewrite. No product/model/runtime state changed; release tracker, environment inventory, data dictionary and concurrent R054 credential records are untouched.
 
-The [owning policy](../Documents/PWA_Orchestration.md) contains the current rules; this log records the change without duplicating them. App publication evidence is recorded by root after review.
+The [owning policy](../Documents/Rules/PWA_Orchestration.md) contains the current rules; this log records the change without duplicating them. App publication evidence is recorded by root after review.

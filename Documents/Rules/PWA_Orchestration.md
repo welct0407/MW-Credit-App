@@ -65,20 +65,11 @@ A skipped test is not a pass. A green badge does not prove that required steps e
 
 Follow the five-step [release workflow](Release_Workflow.md#promotion) using its single compact record. Reuse scoped authorization and actual test/recovery evidence, promote the tested artifact, check the affected deployed behavior and update changed facts. Production payment/push/job execution is not implicit in a UI deployment.
 
-No retired app editor, copy, upgrade, branding or source-parity check applies. No database backup for UI-only work. New tables/columns, financial integrity, authentication/access, migration backup and scoped production authority retain the protections in [AGENTS](../AGENTS.md).
+No retired app editor, copy, upgrade, branding or source-parity check applies. No database backup for UI-only work. New tables/columns, financial integrity, authentication/access, migration backup and scoped production authority retain the protections in [AGENTS](../../AGENTS.md).
 
 ## Current automation and follow-up
 
-Source inspected **14 October 2026**. This policy changes no product workflow or validator; implementation limits remain explicit:
-
-| Tool | Actual constraint |
-| --- | --- |
-| App `ci.yml` | Main pushes/manual dispatch run broad checks including E2E; PR E2E executes only on the `ci:checkpoint` label event, not later synchronize events with the label still present. Other listed PR steps run even for docs. |
-| `database.yml` | Path-filtered, but push and PR events can duplicate checks and database documentation paths also trigger it. |
-| `deploy-dev.yml` | Manual main-only original API deployment; repeats checks and does not publish Hosting. It is not the complete PWA release route. |
-| Legacy foundation/business/R053 validators | Retain historical full-browser/manual-dispatch receipt requirements; they do not implement general proportional check selection. |
-
-Required checks/guards remain effective. Report a concrete conflict once; update the owning tool through a scoped tested change rather than bypass it or fabricate receipts. Useful future tooling work is affected-input routing, duplicate-run suppression and deployment consuming existing evidence. It is not an extra gate for this instruction cleanup.
+Current CI/runner limitations and implementation follow-up are maintained in [Development Changes](../Development_Changes.md#delivery-tooling-status). Required checks/guards remain effective. Report a concrete conflict once; update the owning tool through a scoped tested change rather than bypass it or fabricate receipts.
 
 ## Records and communication
 

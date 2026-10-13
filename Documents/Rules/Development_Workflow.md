@@ -1,6 +1,6 @@
 # Development workflow and execution ownership
 
-Owner revision: **14 October 2026**. Use the current capable workspace and established access. Do not create a handoff merely to follow an old host preference. [AGENTS](../AGENTS.md) owns authority/data protections; [PWA policy](PWA_Orchestration.md) owns checks; [Release Workflow](Release_Workflow.md) owns promotion.
+Owner revision: **14 October 2026**. Use the current capable workspace and established access. Do not create a handoff merely to follow an old host preference. [AGENTS](../../AGENTS.md) owns authority/data protections; [PWA policy](PWA_Orchestration.md) owns checks; [Release Workflow](Release_Workflow.md) owns promotion.
 
 ## Repository and instruction ownership
 
@@ -16,14 +16,14 @@ Keep current primary folder and repositories separate. Choose by component, not 
 
 MW-Credit-App is the sole source owner of shared migrations, runners, tests and database CI. Use its [canonical database procedure](https://github.com/welct0407/MW-Credit-App/blob/codex/r057-infrastructure-adoption/database/README.md) and exact tested migration commit/manifest. Preserve existing Flyway histories and immutable migrations. Retained tooling here locates that checkout through `scripts/database_location.py` or `scripts/database-location.mjs`; set `MW_CREDIT_APP_ROOT` when it is not adjacent. There is no second migration set here. Remaining implementation-code moves are deferred; this ownership does not authorize moving credentials, data, services or repositories.
 
-Windows roots currently use C:/GitHub; a Cloud task has its own checkout. Do not assume a Windows path, historical account profile or an old cloud environment ID exists elsewhere. The [environment inventory](Environment_Inventory.md) owns actual service identities; verify the affected target before live action.
+Windows roots currently use C:/GitHub; a Cloud task has its own checkout. Do not assume a Windows path, historical account profile or an old cloud environment ID exists elsewhere. The [environment inventory](../Environment_Inventory.md) owns actual service identities; verify the affected target before live action.
 
 ## Responsibilities and routing
 
 | Surface | Use |
 | --- | --- |
 | Current Codex/local or Cloud workspace | Source edits, CLI/API/Terraform and authorized data work using available supported access |
-| Authenticated browser | Only for work not supported adequately by a maintained API/tool; use the [service account mapping](Service_Account_Browser_Mapping.md) |
+| Authenticated browser | Only for work not supported adequately by a maintained API/tool; use the [service account mapping](../Service_Account_Browser_Mapping.md) |
 | VM-01 | Windows/local tool and account-bound access requirements; preserve its existing work and sign-in stores |
 | Debian | Persistent integration, chart and collector runtime; a controlled deployment target, not a duplicate development worker |
 
@@ -47,7 +47,7 @@ The recorded target is vm-mw-credit-agent, Debian, project clever-oasis-508610-n
 | Integration source/package/configuration/journals | [Operations](https://github.com/welct0407/MW-Integration-Agent/blob/main/docs/OPERATIONS.md), [service catalogue](https://github.com/welct0407/MW-Integration-Agent/blob/main/SERVICE_CATALOGUE.md) |
 | Journal/database recovery | [PostgreSQL operations](https://github.com/welct0407/MW-Integration-Agent/blob/main/docs/POSTGRESQL_OPERATIONS.md) |
 | Tunnel and SQL proxy | Integration systemd/configuration and MW-Credit-App Terraform ownership |
-| Charts and monitoring collector | [Monitoring](Resource_Monitoring.md) and affected maintained scripts |
+| Charts and monitoring collector | [Monitoring](../Resource_Monitoring.md) and affected maintained scripts |
 
 Private service config remains under /etc; mutable integration state under /var/lib/mw-integration-agent; installed package/source under /opt. Use the existing strict-host SSH/IAP/Tailscale route documented for the current executor. Never disable host checks, add public SSH ingress or expand IAM to bypass an access failure.
 

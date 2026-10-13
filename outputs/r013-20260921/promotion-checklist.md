@@ -1,6 +1,6 @@
 # R013 promotion checklist
 
-Template revision: 2026-09-21. **Single master:** `scripts/releases/templates/promotion-checklist.md`. Implementation detail: [Release Workflow](../../Documents/Release_Workflow.md); exceptions: [Recovery](../../Documents/Release_Recovery_Runbook.md).
+Template revision: 2026-09-21. **Single master:** `scripts/releases/templates/promotion-checklist.md`. Implementation detail: [Release Workflow](../../Documents/Rules/Release_Workflow.md); exceptions: [Recovery](../../Documents/Rules/Release_Recovery_Runbook.md).
 
 ## Continue here
 

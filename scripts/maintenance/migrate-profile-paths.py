@@ -22,7 +22,7 @@ for name in repos:
         if any(x.lower() in {'outputs', 'sources', 'change logs', 'archive', 'reference', 'migrations', 'backups'} for x in parts):
             continue
         is_code = pathlib.PurePosixPath(rel).suffix in {'.ps1', '.py', '.mjs', '.cjs', '.js', '.json', '.cmd', '.bat', '.toml', '.yml', '.yaml'}
-        is_current_doc = rel in {'AGENTS.md', 'scripts/README.md', 'Documents/Development_Workflow.md', 'Documents/Development_Environment_Preparation.md', 'Documents/Development_Refresh_Runbook.md', 'database/OWNERSHIP.md'}
+        is_current_doc = rel in {'AGENTS.md', 'scripts/README.md', 'Documents/Rules/Development_Workflow.md', 'Documents/Rules/Development_Environment_Preparation.md', 'Documents/Rules/Development_Refresh_Runbook.md', 'database/OWNERSHIP.md'}
         if not (is_code or is_current_doc):
             continue
         file = root / rel

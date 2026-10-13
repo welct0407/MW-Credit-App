@@ -53,7 +53,7 @@ Status: **Ready for review — DEV closure fix verified; corrected production re
 
 ## Implementation and runbook
 
-Re-read the latest 19 September [Release Workflow Gate A](../Documents/Release_Workflow.md#61-develop-and-integrate--gate-a), AGENTS and [DEV recipient procedure](../Documents/Development_Environment_Preparation.md#dev-recipient-override-procedure) following the owner's reminder. Preserve Deployed mode, owner-only direct notification settings, existing schedules/guards and environment isolation. The R009 request authorizes correction of the diagnosed creator-exclusion bug; it does not authorize the broader deferred Partner-ID redesign or removal of DEV isolation.
+Re-read the latest 19 September [Release Workflow Gate A](../Documents/Rules/Release_Workflow.md#61-develop-and-integrate--gate-a), AGENTS and [DEV recipient procedure](../Documents/Rules/Development_Environment_Preparation.md#dev-recipient-override-procedure) following the owner's reminder. Preserve Deployed mode, owner-only direct notification settings, existing schedules/guards and environment isolation. The R009 request authorizes correction of the diagnosed creator-exclusion bug; it does not authorize the broader deferred Partner-ID redesign or removal of DEV isolation.
 
 DEV OLTP **1.000010 → 1.000011**. In all three quick-payment processes, recreated the existing custom push closure task in the Yes branch of Notify payment-closed loans and removed its unconditional predecessor. Original title/body/deep link retained. Receive All child is named `R009 closure summary`; Charges/Loans children are `Send closure summary when loans closed`. The exact receipt count must exceed zero. Payment notification steps and event conditions remain unchanged.
 

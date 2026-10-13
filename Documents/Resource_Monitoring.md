@@ -68,9 +68,9 @@ Edit or pause rules under [Alert rules](https://monitor.mw-credit.com/alerting/l
 
 ### Dots incident response — 3 October 2026
 
-Use the [Grafana alert troubleshooting runbook](Grafana_Alert_Troubleshooting_Runbook.md) for the ordered response, per-alert diagnosis, bounded recovery decisions and verification/reporting steps.
+Use the [Grafana alert troubleshooting runbook](Rules/Grafana_Alert_Troubleshooting_Runbook.md) for the ordered response, per-alert diagnosis, bounded recovery decisions and verification/reporting steps.
 
-The owner reports that Dots is configured to receive Grafana alerts across the entire monitored ecosystem, including Azure, GCP, Railway and other providers; VMs, containers, databases, storage, networks, integrations, applications, reporting and external dependencies. These examples do not limit coverage to a fixed provider or resource list. The requested diagnosis, bounded automatic worker restart/retry, verification and owner-reporting policy is maintained in [alert recovery authority](Grafana_Alert_Troubleshooting_Runbook.md#recovery-authority). Use each affected service's owning runbook and execution route. This documentation records the owner's report and response instruction; it does not verify delivery or change alert/contact-point definitions. Unknown financial or delivery outcomes remain reconciliation-only under the owning service catalogue.
+The owner reports that Dots is configured to receive Grafana alerts across the entire monitored ecosystem, including Azure, GCP, Railway and other providers; VMs, containers, databases, storage, networks, integrations, applications, reporting and external dependencies. These examples do not limit coverage to a fixed provider or resource list. The requested diagnosis, bounded automatic worker restart/retry, verification and owner-reporting policy is maintained in [alert recovery authority](Rules/Grafana_Alert_Troubleshooting_Runbook.md#recovery-authority). Use each affected service's owning runbook and execution route. This documentation records the owner's report and response instruction; it does not verify delivery or change alert/contact-point definitions. Unknown financial or delivery outcomes remain reconciliation-only under the owning service catalogue.
 
 ## Verified limits (22 September 2026)
 

@@ -4,7 +4,7 @@
 
 ## Evidence and limits
 
-- [Implementation plan](../../Documents/PWA_Orchestration.md) defines full mobile OLTP and desktop OLTP/OLAP coverage, online-confirmed payments, offline viewing/drafts, retained SQL/GCS and parallel operation.
+- [Implementation plan](../../Documents/Rules/PWA_Orchestration.md) defines full mobile OLTP and desktop OLTP/OLAP coverage, online-confirmed payments, offline viewing/drafts, retained SQL/GCS and parallel operation.
 - [R051 production record](../r051-production/README.md) records OLTP 3.000270, OLAP 1.100212, SQL V77 and seven-channel unified receiving. This is dated production evidence, not a fresh live audit.
 - [Solution design](../../Documents/Solution_Design.md) supplies current ownership and later release refinements. [Model overview](https://github.com/welct0407/AppSheet-Loan-Project/blob/16f324f21c5e4046cce740294feea20c633d4117/Documents/AppSheet_Data_Model_Overview.md) supplies relationships; some older paragraphs describe pre-R051 correction restrictions.
 - [R051 scenario matrix](../../Documents/PWA_Data_Model_Overview.md#source-correction-contract) contains the intended source CRUD contracts. Its historical DEV-only status prose is superseded by the linked R051 production record. Preserve its behavior contract; never reinstate blanket posted-receipt locks from older overview text.

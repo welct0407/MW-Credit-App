@@ -4,7 +4,7 @@ Owner revision: **14 October 2026**. A release is a tested code/configuration pa
 
 ## Development
 
-Use the [current Open release](Release_Tracker.md#current-development-release) and automatic [six-agent development process](PWA_Orchestration.md#six-agent-development-process). Record the intended outcome and affected behavior in the existing task/release log. Implement the coherent change, use [proportional checks](PWA_Orchestration.md#proportional-validation), fix failures and reuse unaffected passing evidence. A small change can be designed and checked in the same record; role participation requires no separate plan or approval document.
+Use the [current Open release](../Release_Tracker.md#current-development-release) and automatic [six-agent development process](PWA_Orchestration.md#six-agent-development-process). Record the intended outcome and affected behavior in the existing task/release log. Implement the coherent change, use [proportional checks](PWA_Orchestration.md#proportional-validation), fix failures and reuse unaffected passing evidence. A small change can be designed and checked in the same record; role participation requires no separate plan or approval document.
 
 Use DEV or disposable tests for changed behavior. Do not hold a harmless UI fix for unrelated features or unfinished credentials. An owner-requested hands-on checkpoint remains binding; otherwise no automatic extra review round is added.
 
@@ -26,7 +26,7 @@ Pin runtime/build/dependency/configuration inputs and, for test reuse, tests/fix
 
 ## Promotion
 
-Use one existing release record based on the [compact promotion template](../scripts/releases/templates/promotion-checklist.md). Fill applicable evidence only; no second gate sheet.
+Use one existing release record based on the [compact promotion template](../../scripts/releases/templates/promotion-checklist.md). Fill applicable evidence only; no second gate sheet.
 
 1. **Authority and recovery:** reuse scoped owner approval; verify the affected target and deployed baseline. Capture prior service revisions/Hosting version/configuration. UI-only deployment needs no DB backup. SQL changes need the canonical guarded migration procedure, verified restorable backup, expected schema/history, exact tested commit/hashes and all pending prerequisites.
 2. **Deploy changed components:** apply in dependency order from the tested package. Preserve existing identities, access, scheduler ownership and unrelated configuration. Build a separate environment variant when bindings differ; do not relabel DEV artifacts as PROD.

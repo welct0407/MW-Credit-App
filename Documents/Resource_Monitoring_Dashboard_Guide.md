@@ -1,6 +1,6 @@
 # Resource monitoring dashboard — visual guide
 
-Current guide, consolidated **14 October 2026**. Covers deployed Performance, Cost and PWA Platform definitions. [Resource Monitoring](Resource_Monitoring.md) owns setup, access, collection, recovery and configuration; the [alert troubleshooting runbook](Grafana_Alert_Troubleshooting_Runbook.md) owns incident response. Recorded versions are Performance 41, Cost 15 and PWA Platform 2; see [deployment evidence](../outputs/r055-grafana/continuation.md).
+Current guide, consolidated **14 October 2026**. Covers deployed Performance, Cost and PWA Platform definitions. [Resource Monitoring](Resource_Monitoring.md) owns setup, access, collection, recovery and configuration; the [alert troubleshooting runbook](Rules/Grafana_Alert_Troubleshooting_Runbook.md) owns incident response. Recorded versions are Performance 41, Cost 15 and PWA Platform 2; see [deployment evidence](../outputs/r055-grafana/continuation.md).
 
 - [Open Performance](https://monitor.mw-credit.com/d/mw-resource-performance)
 - [Open Cost](https://monitor.mw-credit.com/d/mw-resource-cost)

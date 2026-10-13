@@ -4,8 +4,9 @@ Owner revision: **14 October 2026, Asia/Bangkok**. This is a small PWA used by t
 
 ## Working method and task routing
 
-- For PWA product development, use the six-agent process in [PWA orchestration](Documents/PWA_Orchestration.md#six-agent-development-process) automatically in every conversation. This is standing owner authorization to delegate to Agents A–F; do not wait for another request. The main conversation orchestrates. Run bounded waves when concurrency is limited, reuse existing workers, and respect a task-specific personal-execution request. Documentation-only work and read-only answers use only the roles that help.
+- For PWA product development, use the six-agent process in [PWA orchestration](Documents/Rules/PWA_Orchestration.md#six-agent-development-process) automatically in every conversation. This is standing owner authorization to delegate to Agents A–F; do not wait for another request. The main conversation orchestrates. Run bounded waves when concurrency is limited, reuse existing workers, and respect a task-specific personal-execution request. Documentation-only work and read-only answers use only the roles that help.
 - Start with this file, the relevant continuation note, affected files and Git status/starting commit. Read the current release row before product development; read other documents only when triggered below. Reuse context within a task.
+- Keep standing rules and procedures in [Documents/Rules](Documents/Rules/README.md). Follow them until deliberately revised under owner direction; routine development updates belong in the evolving references in [Documents](Documents/README.md), including its Data Dictionary. Do not append progress reports to rule documents.
 - Use bounded searches/reads, batch independent operations and use maintained CLI/API tools. Prefer Terraform for infrastructure; use a documented API exception only when the provider cannot perform the reviewed change, then reconcile state. Do not use GUI where a suitable supported tool exists.
 - Make routine reversible decisions and finish authorized implementation, relevant verification, records and publication. Reuse scoped approvals; ask only for a missing decision or authority that materially changes the work. An approval should concern a concrete prepared result.
 - Investigate a failure before changing limits or retrying. Once the affected checks pass, finish. No repeated audits, unchanged polling, ceremonial handoffs or full-suite runs merely for task closure.
@@ -14,13 +15,13 @@ Owner revision: **14 October 2026, Asia/Bangkok**. This is a small PWA used by t
 | Trigger | Read only what applies |
 | --- | --- |
 | Status or explanation | Current continuation/evidence; no live audit unless needed |
-| Product development or promotion | Current [release row](Documents/Release_Tracker.md#current-development-release), affected source; [PWA orchestration](Documents/PWA_Orchestration.md) for the automatic six-agent process and check selection |
-| Promotion or recovery | [Release workflow](Documents/Release_Workflow.md) or [recovery](Documents/Release_Recovery_Runbook.md); existing release record |
+| Product development or promotion | Current [release row](Documents/Release_Tracker.md#current-development-release), affected source; [PWA orchestration](Documents/Rules/PWA_Orchestration.md) for the automatic six-agent process and check selection |
+| Promotion or recovery | [Release workflow](Documents/Rules/Release_Workflow.md) or [recovery](Documents/Rules/Release_Recovery_Runbook.md); existing release record |
 | Live target/access change | Affected [environment inventory](Documents/Environment_Inventory.md) entry and owning access/runbook |
-| Cross-repository/host work | [Development workflow](Documents/Development_Workflow.md); destination AGENTS/catalogue |
-| Delegation/model selection | [Model mapping](Documents/Model_Work_Mapping.md); do not reload it for routine solo execution |
+| Cross-repository/host work | [Development workflow](Documents/Rules/Development_Workflow.md); destination AGENTS/catalogue |
+| Delegation/model selection | [Model mapping](Documents/Rules/Model_Work_Mapping.md); do not reload it for routine solo execution |
 | SQL change | MW-Credit-App's database/README.md and affected migrations/tests |
-| DEV setup or owner-requested refresh | [Preparation](Documents/Development_Environment_Preparation.md) or [refresh](Documents/Development_Refresh_Runbook.md) |
+| DEV setup or owner-requested refresh | [Preparation](Documents/Rules/Development_Environment_Preparation.md) or [refresh](Documents/Rules/Development_Refresh_Runbook.md) |
 | Business/model/dashboard change | Affected design/dictionary/runbook only |
 
 ## Ownership and environments
@@ -49,11 +50,11 @@ Use Secret Manager and established workload/unattended identities. Read secret r
 
 Keep secrets, state/plans, private exports, borrower data and backups outside every repository, including ignored directories. Preserve application-managed sign-in stores. Use the current user's established private location, not an assumed historical profile path. Consult [scripts guidance](scripts/README.md) only for affected runtime/credential work.
 
-`sources/` is read-only. Maintained tools belong in `scripts/`; sanitized evidence in `outputs/`. Reuse installed tools and root dependencies; do not create per-output dependency copies. Preserve all pre-existing uncommitted work. Clean only this task's verified disposable paths under [local storage policy](Documents/VM01_Local_Storage.md); failed cleanup is reported, not worked around.
+`sources/` is read-only. Maintained tools belong in `scripts/`; sanitized evidence in `outputs/`. Reuse installed tools and root dependencies; do not create per-output dependency copies. Preserve all pre-existing uncommitted work. Clean only this task's verified disposable paths under [local storage policy](Documents/Rules/VM01_Local_Storage.md); failed cleanup is reported, not worked around.
 
 ## Delivery and records
 
-Follow the [PWA policy](Documents/PWA_Orchestration.md): focused checks during development; one consolidated broad run only when the combined change warrants it; promote tested artifacts; one bounded deployed smoke. A valid existing CI run can satisfy promotion. No extra design document, independent reviewer, device matrix or owner testing round for every small change. Required repository checks still apply; never claim a skipped check passed or bypass a validator.
+Follow the [PWA policy](Documents/Rules/PWA_Orchestration.md): focused checks during development; one consolidated broad run only when the combined change warrants it; promote tested artifacts; one bounded deployed smoke. A valid existing CI run can satisfy promotion. No extra design document, independent reviewer, device matrix or owner testing round for every small change. Required repository checks still apply; never claim a skipped check passed or bypass a validator.
 
 Use the single Open release for product work. Freeze only when authorized promotion starts, pin the package, then publish the coordinated next-number handoff in the [tracker](Documents/Release_Tracker.md). Frozen corrections stay with that release; new features use the Open successor. Capture independently before later shared DEV changes. Documentation/governance-only work requires no product release or deployment.
 

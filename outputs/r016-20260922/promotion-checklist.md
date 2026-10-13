@@ -20,7 +20,7 @@ Read-only retained evidence supersedes the stale original-Performance replacemen
 Whole-R016 acceptance remains separately unrecorded, and retained evidence does not independently establish retirement of the temporary Metabase migration API key. The 22 September owner rule retained that key until full migration closure. This task authorizes no credential mutation or deletion; do not infer revocation from Looker Studio Trash retirement or later report releases. Final R016 closure/tag cannot be asserted from the available evidence. Historical rows below retain their original dates and completed checks; their pending original-Performance decision is superseded only by R023.
 
 
-Template revision: 2026-09-21. **Single master:** `scripts/releases/templates/promotion-checklist.md`. Create one release copy under outputs; fill that copy throughout development/promotion. Do not maintain an Excel checklist or separate document checklist. Implementation detail: [Release Workflow](../../Documents/Release_Workflow.md); exceptions: [Recovery](../../Documents/Release_Recovery_Runbook.md).
+Template revision: 2026-09-21. **Single master:** `scripts/releases/templates/promotion-checklist.md`. Create one release copy under outputs; fill that copy throughout development/promotion. Do not maintain an Excel checklist or separate document checklist. Implementation detail: [Release Workflow](../../Documents/Rules/Release_Workflow.md); exceptions: [Recovery](../../Documents/Rules/Release_Recovery_Runbook.md).
 
 ## 2R snapshot report part 2 closure — 23 September 2026
 

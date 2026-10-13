@@ -1,6 +1,6 @@
 # R009 DEV verification — 19 September 2026
 
-Target: canonical DEV OLTP `500b27b6-884a-41e8-a9ec-df801b0110ad`, internal `MW-OLTP-DEV-20260919-578763613`, saved **1.000011**. SQL host `34.158.38.171`, Flyway **24**. Companion DEV OLAP `9f3422be-bc87-4a5a-a42a-67528ee80393`, **1.000013**, unchanged. Current [SDLC Gate A](../../Documents/Release_Workflow.md#61-develop-and-integrate--gate-a) and direct owner-only DEV routing applied.
+Target: canonical DEV OLTP `500b27b6-884a-41e8-a9ec-df801b0110ad`, internal `MW-OLTP-DEV-20260919-578763613`, saved **1.000011**. SQL host `34.158.38.171`, Flyway **24**. Companion DEV OLAP `9f3422be-bc87-4a5a-a42a-67528ee80393`, **1.000013**, unchanged. Current [SDLC Gate A](../../Documents/Rules/Release_Workflow.md#61-develop-and-integrate--gate-a) and direct owner-only DEV routing applied.
 
 ## Current-GUI workflow results
 

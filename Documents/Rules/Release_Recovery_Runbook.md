@@ -27,4 +27,4 @@ Reproduce the defect against the production baseline in an isolated checkout/DEV
 
 Emergency direct changes require scoped owner authority and exact before/after evidence. Reconcile them into source/Terraform or an immutable migration before the next affected release. Do not turn an emergency workaround into the normal delivery path.
 
-AppSheet is not a fallback runtime. Its exceptional reactivation requires separate owner direction and the [retirement recovery record](../outputs/r057-appsheet-retirement/README.md).
+AppSheet is not a fallback runtime. Its exceptional reactivation requires separate owner direction and the [retirement recovery record](../../outputs/r057-appsheet-retirement/README.md).

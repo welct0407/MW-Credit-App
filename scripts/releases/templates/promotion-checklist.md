@@ -1,6 +1,6 @@
 # {{RELEASE}} promotion record
 
-Template revision: 14 October 2026. One copy per release; reuse an existing record. [Workflow](../../../Documents/Release_Workflow.md) · [Test selection](../../../Documents/PWA_Orchestration.md#proportional-validation) · [Recovery](../../../Documents/Release_Recovery_Runbook.md).
+Template revision: 14 October 2026. One copy per release; reuse an existing record. [Workflow](../../../Documents/Rules/Release_Workflow.md) · [Test selection](../../../Documents/Rules/PWA_Orchestration.md#proportional-validation) · [Recovery](../../../Documents/Rules/Release_Recovery_Runbook.md).
 
 ## Continue here
 

@@ -11,7 +11,7 @@ Owner requested a non-AI exporter with a double-click launcher inside the reposi
 - Includes complete YAML/YML sources across all systems plus dictionary guidance, Solution Design, Model Overview and Development Changes. Adds a contents index, system coverage, exact source paths/hashes, Git baseline, generation time and uncommitted-source disclosure.
 - Uses the common format/registry without a product-specific property list. Supports arbitrary nested content and registered future systems/kinds. Preserves expressions, literal types and order. Rejects unsupported envelope versions, invalid sources and duplicate identities.
 - Verifies each embedded source byte-for-byte, checks for concurrent source changes, protects handwritten/source outputs, prevents competing exports and atomically publishes the Markdown. No AI/network calls, live app access, dictionary writes or Git mutations occur.
-- Added export tests and [user instructions](../Documents/Data_Dictionary_Export.md), and updated documentation/script entry points.
+- Added export tests and [user instructions](../Documents/Rules/Data_Dictionary_Export.md), and updated documentation/script entry points.
 
 ## Rollback and concurrent work
 

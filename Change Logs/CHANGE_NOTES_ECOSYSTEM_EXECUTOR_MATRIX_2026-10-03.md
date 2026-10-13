@@ -10,7 +10,7 @@ Starting checkout was clean `work` at `9ded8599f411a749748ea8659553472187b84573`
 
 ## Changed files
 
-- [Development Workflow](../Documents/Development_Workflow.md): dated accepted review summary, service/task matrix, current saved Cloud version, role separation, manual browser handoff and review closure/limits. Executor, runtime and plugin identity are explicitly distinct. The matrix replaces outdated confirmed/pending rows rather than adding another routing document.
+- [Development Workflow](../Documents/Rules/Development_Workflow.md): dated accepted review summary, service/task matrix, current saved Cloud version, role separation, manual browser handoff and review closure/limits. Executor, runtime and plugin identity are explicitly distinct. The matrix replaces outdated confirmed/pending rows rather than adding another routing document.
 - [Service account/browser register](../Documents/Service_Account_Browser_Mapping.md): replace the obsolete Cloudflare parity-test requirement with the accepted matrix pointer and the owner's retained local-tool choice. All 17 service/account/profile rows remain unchanged.
 - This log: scope, provenance, validation and rollback. AGENTS and Model Work Mapping remain unchanged; the established AGENTS workflow link already provides the reference. No borrowed custom-rule text or new instruction activation is added.
 

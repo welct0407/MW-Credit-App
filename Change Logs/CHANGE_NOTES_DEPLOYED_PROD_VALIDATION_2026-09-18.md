@@ -4,7 +4,7 @@ Status: Promotion instructions corrected following the owner's clarification. Do
 
 ## Scope and result
 
-- [AGENTS.md Section 6.2](../AGENTS.md#62-test-recommend-readiness-and-freeze) and the [release workflow](../Documents/Release_Workflow.md) no longer require a fresh Deployment Check for already-Deployed PROD apps.
+- [AGENTS.md Section 6.2](../AGENTS.md#62-test-recommend-readiness-and-freeze) and the [release workflow](../Documents/Rules/Release_Workflow.md) no longer require a fresh Deployment Check for already-Deployed PROD apps.
 - Preserve PROD Deployed mode. Never switch it to Prototype, repeatedly search for an unavailable Run control or wait for that control to close a release.
 - Retain complete independent saved-delta readback, zero current-editor configuration warnings/errors and focused runtime smoke checks. Deployed status is not proof that the delta was applied correctly.
 - Mark obsolete deployment-check checklist entries **Not applicable — app already deployed**, not pending, verified or owner-waived. This supersedes the reported R006 blocker; reuse applicable recorded checks to finish normal closure if no other requirement remains. The R006 tracker/log were not independently reassessed or changed by this methodology task.

@@ -14,7 +14,7 @@ Status: Implemented and locally verified; repository publication recorded by the
 Reduce repeated context loading, documentation copying, broad verification and unnecessary test reruns while preserving complete release deltas, zero-warning gates and production authorization.
 
 - [AGENTS.md](../AGENTS.md): shortened Section 6 to essential rules and a runbook route, retaining its subsection numbers. Section 5.2 explicitly batches affected overview/dictionary updates per completed development batch and promotion. Unrelated project rules are preserved.
-- [Release workflow](../Documents/Release_Workflow.md): retains detailed capture, freeze, promotion and closure requirements; adds change-based test tiers, explicit evidence invalidation/reuse, short continuation notes and a single exact-value delta source. Starting diagnostics may reuse evidence for the same saved versions; final diagnostics remain mandatory.
+- [Release workflow](../Documents/Rules/Release_Workflow.md): retains detailed capture, freeze, promotion and closure requirements; adds change-based test tiers, explicit evidence invalidation/reuse, short continuation notes and a single exact-value delta source. Starting diagnostics may reuse evidence for the same saved versions; final diagnostics remain mandatory.
 - [Documentation index](../Documents/README.md) and [scripts index](../scripts/README.md): routes to workflow/tools and replaces stale full-definition wording with changed-property evidence.
 - `scripts/releases/`: local JSON delta validator, checklist/continuation generator, saved DEV/PROD observation comparator, optional test-input fingerprints and existing-row dictionary updater. Includes a synthetic template, usage instructions and repeatable tests.
 

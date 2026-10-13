@@ -1,6 +1,6 @@
 # VM-01 local storage and task cleanup
 
-Owner rule, 11 October 2026. Applies to Windows development work under ideaadmin. The owner has removed MWCredit; the subsequently requested [tool validation](../Change%20Logs/CHANGE_NOTES_VM01_TOOL_VALIDATION_2026-10-11.md) records passing checks and remaining private-configuration limits. This policy changes task closeout, not production retention or service operation.
+Owner rule, 11 October 2026. Applies to Windows development work under ideaadmin. The owner has removed MWCredit; the subsequently requested [tool validation](../../Change%20Logs/CHANGE_NOTES_VM01_TOOL_VALIDATION_2026-10-11.md) records passing checks and remaining private-configuration limits. This policy changes task closeout, not production retention or service operation.
 
 ## Storage by purpose
 

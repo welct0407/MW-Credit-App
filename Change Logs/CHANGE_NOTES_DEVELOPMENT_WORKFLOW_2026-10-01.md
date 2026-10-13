@@ -8,7 +8,7 @@ Initial checkout: clean `work` at master commit `7a23d62c4da3886d130bc40fc4fdb18
 
 ## Changes and ownership
 
-- [Development Workflow](../Documents/Development_Workflow.md): authoritative executor responsibilities, repository ownership, Debian services/paths, task handoff, existing SDLC routing, safeguards, secret/access boundaries, fallback conditions and confirmed-versus-pending evidence.
+- [Development Workflow](../Documents/Rules/Development_Workflow.md): authoritative executor responsibilities, repository ownership, Debian services/paths, task handoff, existing SDLC routing, safeguards, secret/access boundaries, fallback conditions and confirmed-versus-pending evidence.
 - [AGENTS.md](../AGENTS.md): clear workflow link and task route; environment-specific runtime/credential wording. Release numbering, approval, financial integrity, backups, immutable migrations, RC/App Upgrade, zero-warning, recovery and publication controls remain intact.
 - [Documentation map](../Documents/README.md): direct workflow entry.
 - [Service account/browser register](../Documents/Service_Account_Browser_Mapping.md): current workflow pointer and Cloudflare exception; all 17 service assignments/authentication notes and VM browser mappings preserved.

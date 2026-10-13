@@ -1,6 +1,6 @@
 # Checkpoint 4G — DEV command activation and selected-charge receiving
 
-R052 Open. Delta from [4F](checkpoint-4f-design-and-test-plan.md), [4E](checkpoint-4e-design-and-test-plan.md) and the accepted 4A/4B receiving prototype. Follow [orchestration](../../Documents/PWA_Orchestration.md). D maintains the single [4G batch record](checkpoint-4g-batch.md), exact source/config/artifact pins, live action/recovery plan and results. A owns this design/test plan; B application code; C independent verification; D infrastructure/tooling/publication. Preserve concurrent CI/process edits and unrelated planning work.
+R052 Open. Delta from [4F](checkpoint-4f-design-and-test-plan.md), [4E](checkpoint-4e-design-and-test-plan.md) and the accepted 4A/4B receiving prototype. Follow [orchestration](../../Documents/Rules/PWA_Orchestration.md). D maintains the single [4G batch record](checkpoint-4g-batch.md), exact source/config/artifact pins, live action/recovery plan and results. A owns this design/test plan; B application code; C independent verification; D infrastructure/tooling/publication. Preserve concurrent CI/process edits and unrelated planning work.
 
 ## Outcome and authority
 

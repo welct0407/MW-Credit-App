@@ -40,7 +40,7 @@ Actual maintenance rollback artifact has four files, global no-store, and measur
 | Runtime / Hosting / DNS — F / D / operator | Immutable image and real maintenance bytes pinned; exact DNS plan/readback; shared auth and independent owner-secret pin | Ready revisions and exact live release rollback/restore passed; canonical HTTPS verified; effective access readiness remains incomplete |
 | Monitoring — root / F, existing owner routes | Built-in Cloud Run request count and latency descriptors available; existing SQL connection warning 160/200 and escalation unchanged; existing Cost dashboard includes aggregate project billing | Actual service-label baseline below; no new alert, continuous uptime probe, Grafana panel or restore proof claimed |
 
-Use the existing [recovery runbook](../../Documents/Release_Recovery_Runbook.md) and [resource monitoring reference](../../Documents/Resource_Monitoring.md). Owner deferred Grafana/alert work (OWNERDEFERRED). No uptime checks, monitoring configuration, channels, credentials or test notifications were created. No automatic reminder is created.
+Use the existing [recovery runbook](../../Documents/Rules/Release_Recovery_Runbook.md) and [resource monitoring reference](../../Documents/Resource_Monitoring.md). Owner deferred Grafana/alert work (OWNERDEFERRED). No uptime checks, monitoring configuration, channels, credentials or test notifications were created. No automatic reminder is created.
 
 ## Dated decisions and preservation limits
 

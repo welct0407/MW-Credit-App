@@ -33,4 +33,4 @@ One native scheduler owns each job/environment. Daily charges run at 00:05 and r
 
 This repository owns coordination/business references; MW-Credit-App owns PWA/API/SQL/infrastructure; MW-Integration-Agent owns Debian. DEV/PROD share Cloud SQL but use separate business databases, API identities and routes.
 
-Use Secret Manager and unattended/workload identities. Terraform owns adopted infrastructure; Azure VM controller remains excluded. Follow [delivery policy](PWA_Orchestration.md) and [recovery](Release_Recovery_Runbook.md). Runtime identities/pins belong in [environment inventory](Environment_Inventory.md).
+Use Secret Manager and unattended/workload identities. Terraform owns adopted infrastructure; Azure VM controller remains excluded. Follow [delivery policy](Rules/PWA_Orchestration.md) and [recovery](Rules/Release_Recovery_Runbook.md). Runtime identities/pins belong in [environment inventory](Environment_Inventory.md).
