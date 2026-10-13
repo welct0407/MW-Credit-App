@@ -9,3 +9,5 @@ Proposal covers selective source recovery, authenticated API inventory, no-chang
 Validation: read back new Markdown, verified scope/paths and stash pin; documentation-only, no runtime suite required. Rollback: remove the two new files. Publication: root/D authorized exact-file commit/push on PM master; live work remains proposal-only.
 
 Owner follow-up: no existing Grafana token; access setup is included in the proposal. Added supported authenticated bootstrap prerequisite, dedicated least-privilege provisioning identity, proposed numeric-pinned SM container and code-only management requirement. No credential was created.
+
+Root review clarified standing authorization for local source/tooling/tests/publication; consolidated live-plan approval retained. GCP bridge adoption is optional and independent of native probe repair.
