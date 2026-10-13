@@ -2,7 +2,7 @@
 
 ## R057 existing infrastructure adoption — 13 October 2026
 
-Owner authorized Terraform metadata/state adoption for existing Grafana bridge hosting, Debian VM/disk/IP/firewall, Azure VM-01/network/backup/monitor configuration excluding the controller, selected service DNS, and shared Cloud SQL instance/receipt bucket. R057 remains Open; no release freeze or runtime promotion is needed for behavior-preserving state adoption. All six roots and 45 imports are verified with zero remote changes and ordinary refreshed no-change post-plans; three narrow fields remain externally managed. Paused credential work remains separate and unfinished. [Current scope and completion matrix](../outputs/r057-infrastructure-adoption/README.md).
+Owner authorized Terraform metadata/state adoption for existing Grafana bridge hosting, Debian VM/disk/IP/firewall, Azure VM-01/network/backup/monitor configuration excluding the controller, selected service DNS, and shared Cloud SQL instance/receipt bucket. R057 remains Open; no release freeze or runtime promotion is needed for behavior-preserving state adoption. All nine roots and 52 imports, including the owner-selected tunnel/tailnet/container extension, are verified with zero remote changes and ordinary refreshed no-change post-plans; three narrow fields remain externally managed. Paused credential work remains separate and unfinished. [Current scope and completion matrix](../outputs/r057-infrastructure-adoption/README.md).
 
 ## R056 Apple push registration fix — 13 October 2026
 
