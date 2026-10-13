@@ -1,9 +1,5 @@
 # Metabase dictionary
 
-The [models](models/) directory contains the model and field records already present in the Excel dictionary. Grain, IDs, field metadata, definitions and source references are preserved as recorded, with `imported-unreconciled` status. This migration did not inspect Metabase or establish a complete current inventory.
+Current source-backed dashboard/model/question records live here. The service remains separate from the PWA; the PWA Reporting link is removed. Obsolete workbook-only model snapshots are removed.
 
-Future additions can use `models/`, `questions/`, `dashboards/` and `snippets/` under this namespace. Follow the [shared format](../../FORMAT.md), use the exact instance reference as the component once established, and preserve stable object IDs. Link maintained SQL/query definitions and release evidence; avoid duplicating executable source as a second owner. Existing imported model names remain their migration identities until a separately scoped identity/reconciliation update.
-
-The scoped canonical cash-page update is documented under `dashboards/loan-reports.yaml`, `snippets/`, and `models/income-events.yaml`. Seven imported models carry an archived lifecycle; Daily Income Ledger is superseded by Income Events at the same card ID. Imported field evidence remains historical. Daily Cash Snapshots adds three verified stored-flow fields. Unaffected imported objects remain unreconciled.
-
-R027 adds the parallel Borrower Health Review tab 31 and 17 exact saved question definitions under `questions/borrower-health-*`. SQL V41 supplies governed health and independent categories. Existing tabs remain unchanged. [Evidence](../../../../outputs/r027-payment-health/README.md).
+Use each object's provenance and the actual saved definition when changing a report. This cleanup does not claim a new complete Metabase audit. Preserve stable object IDs and SQL grain/date contracts; update affected records only. Do not create a second executable source owner.

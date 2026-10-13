@@ -1,0 +1,56 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "pwa",
+    "component": "mw-credit",
+    "kind": "api",
+    "name": "human-api",
+    "scope": "dev-and-prod"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "https://github.com/welct0407/MW-Credit-App/blob/808cdf53225ce627ea41ef4d3666bf97a3c9cbfe/services/api/dev-read-handler.mjs",
+    "coverage": "Source and published deployment reconciliation, 14 October 2026; no new live audit."
+  },
+  "content": {
+    "read_routes": [
+      "GET /api/session",
+      "GET /api/borrowers",
+      "GET /api/collection"
+    ],
+    "command_service_read_routes": [
+      "GET /api/loan-records",
+      "GET /api/payment-records",
+      "GET /api/cash-statements",
+      "GET /api/management/cash-position",
+      "GET /api/management/analytics-overview",
+      "GET /api/management/analytics-chart"
+    ],
+    "management_resources": [
+      "cash-accounts",
+      "cash-holders",
+      "partners",
+      "contributions",
+      "settlements",
+      "cash-movements",
+      "assessments",
+      "openings",
+      "analytics-validation"
+    ],
+    "contracts": [
+      "services/api/dev-read-handler.mjs",
+      "services/payment-command/handler.mjs",
+      "services/contracts/payment-command.mjs",
+      "services/contracts/payment-correction.mjs",
+      "services/contracts/operation-command.mjs"
+    ],
+    "coverage": "Named route families and owning contracts, not an exhaustive OpenAPI schema. Exact methods, fields and validation remain in the linked source.",
+    "guards": [
+      "Firebase identity and business membership",
+      "environment/origin validation",
+      "SQL capability boundary",
+      "idempotency and unknown-outcome reconciliation"
+    ],
+    "source_base": "https://github.com/welct0407/MW-Credit-App/blob/808cdf53225ce627ea41ef4d3666bf97a3c9cbfe/"
+  }
+}

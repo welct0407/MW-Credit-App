@@ -1,63 +1,10 @@
 "format": 1
 "items":
-- "id": "UNRECONCILED"
-  "status": "deferred"
-  "detail": "Current AppSheet and PostgreSQL definitions reconciled on 2026-09-24. Historical imports and Metabase definitions\
-    \ retain their recorded provenance; this audit does not establish current Metabase/Grafana truth."
-- "id": "SUPPLEMENTS"
-  "status": "resolved"
-  "detail": "Current AppSheet/PostgreSQL values and DEV overlays now come from independent live captures. Retained historical\
-    \ workbook records are dated evidence and are never automatic overrides."
-  "path": "imports/excel-20260923/r008-production"
-  "resolution_evidence": "outputs/dictionary-reconciliation-20260924/README.md"
-- "id": "DEV-HISTORY"
-  "status": "resolved"
-  "detail": "Current AppSheet/PostgreSQL values and DEV overlays now come from independent live captures. Retained historical\
-    \ workbook records are dated evidence and are never automatic overrides."
-  "path": "imports/excel-20260923/dev-differences"
-  "resolution_evidence": "outputs/dictionary-reconciliation-20260924/README.md"
-- "id": "UNPLACED"
-  "status": "resolved"
-  "detail": "Removed seven empty-identity residue rows: five held only v1.100081 and two held only ordinals 1 and 2. They\
-    \ define no object. Original records remain in frozen Excel and migration commit faa51d2."
-  "source_rows":
-  - - "Prod Tables"
-    - 33
-  - - "Prod Tables"
-    - 34
-  - - "Prod Tables"
-    - 35
-  - - "Prod Tables"
-    - 36
-  - - "Prod Tables"
-    - 37
-  - - "Slice Columns"
-    - 56
-  - - "Slice Columns"
-    - 57
-  "resolution_evidence": "outputs/dictionary-migration-20260923/cleanup.json"
-- "id": "LABELS"
-  "status": "deferred"
-  "detail": "Current AppSheet/PostgreSQL target identities established independently. Historical labels remain unchanged;\
-    \ ambiguous Metabase instance identities remain outside this task."
-- "id": "EXCEL-FORMULA"
-  "status": "resolved"
-  "detail": "Normalized App Settings D121 to the literal string ADDS_AND_UPDATES. The original constant Excel formula and\
-    \ cached result agree; both original values remain in migration evidence and Git. No live configuration claim."
-  "resolution_evidence": "outputs/dictionary-migration-20260923/cleanup.json"
-- "id": "COVERAGE"
+- "id": "SOURCE-VS-LIVE"
   "status": "informational"
-  "detail": "AppSheet actions/views/automation and PostgreSQL definitions now have current metadata records. Grafana and current\
-    \ Metabase/dashboard inventories remain outside this scoped reconciliation."
-- "id": "TABLE-LOCALE-POLICY"
+  "detail": "PWA contracts and changed SQL bodies reconciled against pinned native source and published deployment evidence.\
+    \ No new live metadata audit; retained per-object capture provenance remains explicit."
+- "id": "REPORTING-COVERAGE"
   "status": "deferred"
-  "detail": "All 37 PROD business table Locale controls are blank; corresponding DEV controls are en-US. Exact settings verified;\
-    \ intended policy and effective inherited locale not established. No live change performed."
-- "id": "TEMPLATE-ENVIRONMENT-LABEL"
-  "status": "informational"
-  "detail": "Both OLAP apps reference one disabled export template with literal PROD app ID/name and Asia/Singapore timezone\
-    \ label. This can mislabel a future DEV export. Template references resolve; no export executed."
-- "id": "PRIVACY-EXCLUSIONS"
-  "status": "informational"
-  "detail": "Personal app-user identity and signed logo access signatures are retained only in private evidence and explicitly\
-    \ redacted from current public records. Published placeholders are not working configuration values."
+  "detail": "Metabase/Grafana dictionary coverage is bounded; owning current dashboard and Terraform source definitions remain\
+    \ authoritative. This task does not recapture every external dashboard."

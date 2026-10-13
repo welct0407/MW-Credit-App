@@ -11,7 +11,7 @@
 "content":
   "release": "R052"
   "observedAt": "2026-10-11T14:01:01.082491+00:00"
-  "currentMigration": 87
+  "currentMigration": 91
   "sections":
     "application_roles":
     - "name": "mw_app_dev"
@@ -91,5 +91,14 @@
       "setconfig":
       - "default_transaction_read_only=on"
       - "statement_timeout=5000ms"
-  "deferredActivation": "Notification delivery, replacement analytics/charge jobs and automatic purge remain disabled. AppSheet\
-    \ retains scheduled job ownership."
+  "deferredActivation": "Native notification dispatch and replacement analytics/charge workers are enabled. Automatic purge\
+    \ is not authorized. AppSheet has no scheduler ownership."
+"evidence":
+  "/content/currentMigration":
+    "reference": "outputs/r056-apple-push/README.md"
+    "reason": "Latest verified DEV/PROD migration V91; retained role metadata has its original capture provenance."
+    "state": "value"
+  "/content/deferredActivation":
+    "reference": "outputs/r053-notifications-jobs/promotion-actual.json"
+    "reason": "Replace superseded inactive-foundation state with deployed native worker ownership."
+    "state": "value"

@@ -2,22 +2,15 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import {createChecklist,repository,masterPath} from './checklist.mjs';
-test('master has unique activities and only three mandatory document rows',async()=>{
- const body=await fs.readFile(masterPath,'utf8');
- const ids=[...body.matchAll(/^\| (P\d+) \|/gm)].map(m=>m[1]);
- assert.equal(ids.length,24);assert.equal(new Set(ids).size,24);
- const docs=body.split('## Documentation impact and closure')[1].split('## Close')[0];
- assert.equal((docs.match(/\| Pending \|/g)||[]).length,3);
- assert.doesNotMatch(docs,/Preserved history|DOC-\d+/);
-});
+import {createChecklist,repository} from './checklist.mjs';
 test('create a scoped copy with working links; refuse overwrite, archive and duplicates',async()=>{
  const dir=await fs.mkdtemp(path.join(repository,'outputs/.tmp-checklist-'));
  try{
   const output=path.join(dir,'promotion-checklist.md');
-  await createChecklist('R999',output,['Documents/AppSheet_Data_Model_Overview.md']);
-  const text=await fs.readFile(output,'utf8');assert.match(text,/# R999 promotion checklist/);
-  assert.match(text,/AppSheet_Data_Model_Overview\.md/);assert.doesNotMatch(text,/\{\{RELEASE\}\}/);
+  await createChecklist('R999',output,['Documents/Release_Tracker.md','Documents/Solution_Design.md']);
+  const text=await fs.readFile(output,'utf8');assert.match(text,/# R999 promotion record/);
+  assert.match(text,/Changed documents, if any:.*Release_Tracker\.md.*Solution_Design\.md/);
+  assert.doesNotMatch(text,/Environment_Inventory\.md|Development_Changes\.md|\{\{RELEASE\}\}/);
   for(const [,url] of text.matchAll(/\]\(([^)]+)\)/g))if(!/^[a-z]+:|^#/i.test(url))await fs.access(path.resolve(dir,decodeURIComponent(url.split('#')[0])));
   await assert.rejects(createChecklist('R999',output),/EEXIST/);
   await assert.rejects(createChecklist('R999',path.join(dir,'bad.md'),['Documents/archive/README.md']),/archive/);

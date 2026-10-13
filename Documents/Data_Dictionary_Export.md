@@ -13,7 +13,7 @@ The [launcher](../scripts/Export%20Data%20Dictionary.cmd) works regardless of th
 
 - Every dictionary YAML/YML definition and metadata file, across all systems, imports and development scopes.
 - Dictionary Markdown guides and the system registry, including planned-system status and unresolved/resolved items.
-- The current Solution Design, AppSheet Data Model Overview and Development Changes documents.
+- The current Solution Design, PWA Data Model Overview and Development Changes documents.
 - Contents links, source paths, the Git baseline, export time, source hashes and a list of included uncommitted source files.
 
 Source text is reproduced completely inside labeled code blocks. Exact expressions, types, lists, nested metadata and evidence survive intact. New systems/kinds registered in the shared format are discovered automatically; they do not need a new exporter. Unknown format versions, malformed YAML and unregistered kinds fail clearly rather than producing a partial reference. The current supported contract is [dictionary format 1](Data%20Dictionary/FORMAT.md).

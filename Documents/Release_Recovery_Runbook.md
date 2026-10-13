@@ -1,35 +1,30 @@
-# Release recovery and hotfix runbook
+# PWA recovery and hotfix
 
-Use for a failed/partial [RC promotion](Release_Workflow.md) or an explicitly authorized hotfix. Record actions in the existing release log/manifest; don't create duplicate incident histories. This procedure grants no new production-write, notification or destructive-restoration authority.
+Use only when deployment fails or recovery is requested. Record actions in the existing release record. This runbook does not authorize financial replay, data loss or reactivation of retired services.
 
-## Before promotion
+## Recovery prepared with the change
 
-Record each affected PROD app's actual pre-upgrade/restorable version, UUID, current SQL version, pre-migration DB backup/recovery evidence and the ordered recovery plan. Verify retention covers the intended recovery window; a version string is not proof a deleted app or expired version can be restored. Where needed preserve a recoverable private app copy without active duplicate jobs. Keep raw data/credentials outside Git.
+Record the affected live baseline and a usable recovery target: previous Cloud Run image/revision, Hosting version, package and configuration/secret-version references. Check old/new API and schema compatibility where changed, including cached PWA clients. A file-only edit needs only its Git baseline.
 
-Test compatibility of the **old app and new app with expanded SQL** in DEV. Include intermediate OLTP/OLAP combinations and old/queued clients relevant to deployment order. Defer destructive column/table/function removal until a later release after app stability and client compatibility are established. A genuinely incompatible change needs an explicitly reviewed outage/data-recovery plan before promotion; don't claim additive rollback safety without evidence.
+For database changes retain a verified restorable backup and exact migration manifest under MW-Credit-App's database procedure. Prefer compatible additions; defer destructive removal until current and relevant older clients no longer need it. A prior version identifier is not proof an artifact or backup remains available.
 
 ## Failure response
 
-1. Stop dependent deployment steps and uncontrolled RC execution. Capture actual SQL migration state, each app's saved version, completed external steps and first failure. Keep integrity/calculation triggers intact. Investigate before retrying; a timeout doesn't prove an upgrade failed or authorize replaying a financial operation.
-2. Choose the smallest recovery within existing scoped approval. If recovery or data loss exceeds it, explain the exact missing authority while continuing independent diagnosis. Preserve subsequent user writes and other tasks' work.
-3. **SQL migrated; apps unchanged:** if the old apps remain compatible, leave additive SQL in place and stop app promotion. Fix in controlled development, make a new RC and retest. Don't restore the DB just to erase a successfully applied version.
-4. **One or both apps upgraded:** use the captured versions and dependency-safe restore order from the release plan, or complete an already-approved safe forward fix. Check compatibility of the temporarily mixed app pair. Restore definitions using AppSheet's supported version restore into the same PROD IDs, never by copying current DEV or deleting/recreating PROD. A frozen RC is not edited in place.
-5. **App restore:** verify saved versions, PROD sources/links/themes, production recipient configuration (no DEV-only overrides) and relevant recovery targets, both editor diagnostics and current-GUI load/sync/affected read-only flows. Restoration of an app definition does **not** reverse database schema, data changes, sent notifications or external side effects. Reconcile those separately; never describe app restore as a full database rollback.
-6. **Database defect:** prefer a reviewed higher immutable Flyway forward-fix migration tested with affected app versions. Do not use ad-hoc destructive SQL, `clean`, `repair`, edited checksums or casual undo. Severe backup/PITR recovery requires explicit scope, verified restore point, write pause, treatment of newer transactions, compatible app definitions and the established database recovery procedure. Revalidate SQL/history/permissions, app consumers and scheduler ownership afterward.
-7. Record the final actual state: Rolled back, partial/incomplete or forward-fixed. Update tracker, environment inventory, Development Changes, affected model records and the affected-document rows in the release’s single promotion checklist. If a release was reversed, reopen its differences accurately; don't delete successful deployment history or mark untested recovery passed. Publish evidence; never move an existing release tag to hide a rollback.
+1. Stop dependent rollout and capture the actual deployed versions, database history and first failure. Reconcile unknown outcomes before retrying.
+2. Choose the smallest recovery within existing scoped authority. Preserve newer financial records, journals, queued work, identities and other tasks' changes.
+3. **PWA/API regression:** restore the pinned previous Hosting/service artifacts and affected configuration in a compatible order, or use an already-authorized forward fix. Verify version/environment and affected read-only behavior once.
+4. **Agent regression:** follow its catalogue/package recovery procedure; retain switches, cutoffs, accepted sends and journal state. Do not restore old queues or replay uncertain receipts/messages.
+5. **Additive SQL succeeded:** leave compatible schema in place when rolling back the application. Do not restore the database merely to erase a migration version.
+6. **Database defect:** use a reviewed higher immutable migration where safe. Backup/PITR restoration requires explicit scope, treatment of newer writes, a verified restore point and controlled writers. Never use clean/repair, edited checksums or ad-hoc destructive undo.
+7. **Infrastructure failure:** inspect actual provider state before retry; use the reviewed configuration/plan or bounded recovery. Never blindly restore Terraform state or destroy shared SQL/storage. Record any necessary API exception and reconcile Terraform.
+8. Record rolled back, partially applied or forward-fixed; update only changed records and publish evidence. Never move a tag to hide failure.
 
-## Hotfix and emergency reconciliation
+An application/package rollback does not undo SQL, financial transactions, sent notifications or external effects. Keep integrity triggers and one scheduler owner per job/environment.
 
-Normal hotfix uses the [current Open release](Release_Tracker.md#current-development-release), marked as a hotfix with its predecessor linked; never reserve a second Open number. Reconcile its scope/dependencies, explicitly deferring unrelated unfinished work to the successor when the hotfix freezes. Reproduce the PROD defect in controlled DEV → implement/test → authorized promotion start and release-scope freeze/number handoff → named new RC → PROD mappings/themes and containment → final RC-version freeze → App Upgrade → validation/documentation/tag. A correction to an already-frozen promotion stays in that release as a new candidate revision. Keep the project-wide numbering convention; don't invent `Rnnn.1` or freeze a release merely to obtain a number.
+## Hotfix
 
-If shared DEV already contains later features, preserve them and use an isolated development copy of the current production baseline for the hotfix. Integrate the fix back into main DEV and retest affected paths before its next RC. Independent feature copies must never be promoted sequentially as if App Upgrade merged them.
+Reproduce the defect against the production baseline in an isolated checkout/DEV path, fix and run affected checks, then follow the short [promotion workflow](Release_Workflow.md). Preserve later DEV work and integrate the fix back. Frozen-release corrections keep that release number; new hotfix scope uses the sole Open release.
 
-An unavoidable manual PROD edit is **emergency recovery only**, with explicit scoped authorization, exact before/after values and saved versions/evidence. Reconcile the change into DEV and Git immediately, before the next RC; record any remaining reconciliation as an explicit blocker to that candidate. SQL emergency changes must also be reconciled through reviewed migrations under the database procedure. Replace the emergency app state through a controlled RC release as soon as practical. Never make manual replication the normal promotion fallback.
+Emergency direct changes require scoped owner authority and exact before/after evidence. Reconcile them into source/Terraform or an immutable migration before the next affected release. Do not turn an emergency workaround into the normal delivery path.
 
-## RC retention
-
-During failed/incomplete promotion, keep RCs contained for diagnosis/recovery. Any containment change must be app-specific; if it changes a frozen definition, that changed version is no longer the approved source.
-
-After successful upgrades and required PROD validation, automatically delete all RC apps created for that promotion, including rejected/superseded attempts, under the owner's standing authorization; no further confirmation or retention-window decision. Follow [P49 cleanup](Release_Workflow.md#64-validate-production-and-close--gate-f). Preserve source identities/versions, mapping/test evidence, existing PROD restorable versions and DB recovery artifacts. Recovery after closure uses those PROD versions/artifacts, not deleted RCs. Retain shared data, folders, templates and logo files. Record verified deletion or the specific pending cleanup failure before final publication. DEV refresh cleanup does not include RCs or PROD apps.
-
-The [scheduled-bot guard](Release_Workflow.md#scheduled-bot-execution-guard) remains part of the frozen definition: the retained RC's internal name is excluded, so no post-release bot disabling/edit is needed for guarded scheduled business work. Preserve this exclusion when restoring/copying definitions and never rename an RC to an allowed canonical name. Review restored guard coverage and pre-existing job states together; older PROD rollback versions may predate guard installation. The canonical PROD scheduler can continue under its recorded baseline, but any new recovery copy must be contained before it can execute. Platform alerts, external jobs and interactive writes remain separate controls.
+AppSheet is not a fallback runtime. Its exceptional reactivation requires separate owner direction and the [retirement recovery record](../outputs/r057-appsheet-retirement/README.md).

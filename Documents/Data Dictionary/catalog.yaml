@@ -1,21 +1,7 @@
 "format": 1
-"migration":
-  "id": "excel-20260923"
-  "workbook": "../AppSheet_Data_Dictionary.xlsx"
-  "sha256": "1b33aebd71f79ef16023d510ceb8276942444b4665045611f12acce5f247b377"
 "systems":
-  "appsheet":
-    "status": "documented-with-historical-imports"
-    "kinds":
-    - "table"
-    - "slice"
-    - "settings"
-    - "action"
-    - "view"
-    - "automation"
-    - "format-rule"
   "postgresql":
-    "status": "documented-with-historical-imports"
+    "status": "active"
     "kinds":
     - "relation"
     - "recorded-logic"
@@ -25,20 +11,23 @@
     - "type"
     - "settings"
   "metabase":
-    "status": "imported-unreconciled"
+    "status": "active"
     "kinds":
     - "model"
     - "question"
     - "dashboard"
     - "snippet"
   "grafana":
-    "status": "planned"
+    "status": "active"
     "kinds":
     - "dashboard"
     - "datasource"
     - "alert-rule"
     - "recording-rule"
-  "workbook-evidence":
-    "status": "imported-unreconciled"
+  "pwa":
+    "status": "active"
     "kinds":
-    - "sheet-records"
+    - "application"
+    - "api"
+    - "storage-contract"
+    - "worker-contract"

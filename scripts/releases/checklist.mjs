@@ -21,12 +21,10 @@ export async function createChecklist(release,output,affected=[]){
   const [p,fragment]=url.split('#'),resolved=path.resolve(path.dirname(masterPath),decodeURIComponent(p));
   return ']('+path.relative(path.dirname(target),resolved).replaceAll('\\','/').replaceAll(' ','%20')+(fragment?'#'+fragment:'')+')';
  });
- const core=new Set(['Documents/Release_Tracker.md','Documents/Environment_Inventory.md','Documents/Development_Changes.md']);
- const additional=[...unique].filter(d=>!core.has(d));
+ const additional=[...unique];
  if(additional.length){
-  const rows=additional.map(d=>`| [${path.basename(d)}](${path.relative(path.dirname(target),path.join(repository,d)).replaceAll('\\','/').replaceAll(' ','%20')}) | Pending | |`).join('\n');
-  body=body.replace(/\n\n## Close/,'\n'+rows+'\n\n## Close');
-  body=body.replace('Documentation impact: Pending — list affected paths or None with a scope-based reason; add their closure rows below.','Documentation impact: '+additional.join(', ')+'. Confirm no other document is affected from release scope.');
+  const links=additional.map(d=>`[${path.basename(d)}](${path.relative(path.dirname(target),path.join(repository,d)).replaceAll('\\','/').replaceAll(' ','%20')})`).join(', ');
+  body=body.replace('- Changed documents, if any:', '- Changed documents, if any: '+links);
  }
  await fs.mkdir(path.dirname(target),{recursive:true});
  const actualParent=await fs.realpath(path.dirname(target)),actualOutputs=await fs.realpath(outputs);

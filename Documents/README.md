@@ -1,51 +1,21 @@
-# Documentation map
+# MW Credit documentation
 
-Start with [AGENTS task routing](../AGENTS.md#working-method-and-task-routing), not a full document read. The [master Markdown checklist](../scripts/releases/templates/promotion-checklist.md) is copied once per release; its filled copy is the sole promotion/documentation checklist for that release.
+Read [AGENTS.md](../AGENTS.md) and only the reference needed for the task. Current documents describe the running PWA; Git retains superseded instructions.
 
 | Need | Reference |
 | --- | --- |
-| Full mobile OLTP and desktop OLTP/OLAP rebuild phases | [PWA Implementation Plan](PWA_Implementation_Plan.md) — development, production readiness, parallel pilot and cutover readiness |
-| PWA agent responsibilities and visual review checkpoints | [PWA Orchestration](PWA_Orchestration.md) — Astra A/B/C roles, stop/go loop and post-go-live Metabase work |
-| Dots Browser, Codex Cloud, VM-01 and Debian responsibilities / handoffs | [Development Workflow](Development_Workflow.md) — authoritative routing, access boundaries and confirmed/pending proof |
-| Which repository owns a task | [Repository and instruction ownership](Development_Workflow.md#repository-and-instruction-ownership) — task-to-repository mapping and cross-repository routing |
-| Dots completion, confirmations, delegation, progress updates, repository selection and Grafana response | [Dots Orchestration Rules](Dots_Orchestration_Rules.md) — six standing Custom rules and setup text |
-| Which model and reasoning effort to use for each kind of work | [Model Work Mapping](Model_Work_Mapping.md) — owner-editable defaults read before task dispatch |
-| Which release to use for new development / status | [Current development release](Release_Tracker.md#current-development-release) and tracker history |
-| Open DEV work | [Development Changes](Development_Changes.md) |
-| AppSheet retirement and owner license handoff | [R057 current retirement](../outputs/r057-appsheet-retirement/README.md) — four apps, integration/runtime evidence and pending license revocation |
-| Existing ecosystem infrastructure Terraform ownership | [R057 adoption and completion matrix](../outputs/r057-infrastructure-adoption/README.md) — selected metadata/state adoption, preserved behavior and explicit remaining scope |
-| Collection receipts limited to displayed charges | [R048 handover](../outputs/r048-collection-receipts/HANDOVER.md) — DEV1.000124 and direct PROD3.000253 correction verified |
-| Infrastructure cleanup, Secret Manager gaps and original adoption proposal | [Phase 1 inventory and proposal](../outputs/infrastructure-cleanup-phase1/README.md) — dated read-only evidence; current selected scope is in the R057 matrix |
-| Current identities/settings | [Environment Inventory](Environment_Inventory.md) |
-| Current Metabase tab order and retired Forecast & Partners page | [R050 navigation evidence](../outputs/r050-remove-forecast-partners/README.md) |
-| Service login account / browser profile | [Service account and browser mapping](Service_Account_Browser_Mapping.md) |
-| Business/design decisions and diagrams | [Solution Design](Solution_Design.md) |
-| Receive one payment for selected Collection charges | [R047 implementation and verification](../outputs/r047-selected-charges/IMPLEMENTATION.md) and [original design](../outputs/r047-selected-charges/HANDOVER.md) — implemented in DEV; owner review and promotion pending |
-| Upload receipt pictures when creating/editing a Payment | [R047 manual-upload handover](../outputs/r047-receipt-upload/HANDOVER.md) — DEV implemented and upload/GCS tests passed; owner review pending; explains agent catalogue boundary |
-| Debian receipt picture capture and AppSheet viewing | [Receipt storage implementation handover — 27 September 2026](../outputs/receipt-storage-design-20260927/HANDOVER.md) and [GCS configuration/creation evidence](../outputs/receipt-storage-design-20260927/GCS_REVIEW.md) — one private bucket; DEV receipt display verified; PROD backend deployment recorded in the linked implementation |
-| Proposed Borrower Portfolio / Detail pages and implementation handover | [Borrower pages design — 25 September 2026](../outputs/borrower-pages-design-20260925/HANDOVER.md) — design only; pending owner review |
-| Partners tab, actual metrics and implementation handover | [Partners tab design — 26 September 2026](../outputs/partners-tab-design-20260926/HANDOVER.md) — delivered in R044; actual metrics, no forecast content |
-| Forecast & Planning page | [Design summary](../outputs/forecast-planning-design-20260927/README.md) and [implementation handover — 27 September 2026](../outputs/forecast-planning-design-20260927/HANDOVER.md) — delivered in R045; [implementation and verification](../outputs/r045-forecast-planning/IMPLEMENTATION.md) |
-| Model explanations | [Model Overview](AppSheet_Data_Model_Overview.md) |
-| Exact model/configuration values across ecosystem systems | [Data Dictionary](Data%20Dictionary/README.md) |
-| Instructions for a thorough OLTP/OLAP/PostgreSQL dictionary reconciliation | [Execution prompt](Data_Dictionary_Reconciliation_Prompt.md) |
-| Verified 24 September OLTP/OLAP/PostgreSQL metadata, coverage and findings | [Reconciliation evidence](../outputs/dictionary-reconciliation-20260924/README.md), [AppSheet guide](Data%20Dictionary/systems/appsheet/README.md), [PostgreSQL guide](Data%20Dictionary/systems/postgresql/README.md) |
-| One-file dictionary upload for ChatGPT feature design | [Double-click export instructions](Data_Dictionary_Export.md) |
-| Triggered promotion implementation detail | [Release Workflow](Release_Workflow.md) |
-| Failure/hotfix handling | [Release Recovery](Release_Recovery_Runbook.md) |
-| DEV setup or changed routing | [DEV Preparation](Development_Environment_Preparation.md) |
-| Requested apps/DB refresh | [DEV Refresh](Development_Refresh_Runbook.md) |
-| SQL migrations | [Database procedure](https://github.com/welct0407/MW-Credit-App/blob/main/database/README.md#each-change) |
-| Release record tooling | [Release helpers](../scripts/releases/README.md) |
-| Correct app logos / restoration | [Logo resources](../resources/README.md) |
-| How to read every resource dashboard visual | [Resource Monitoring Dashboard Guide](Resource_Monitoring_Dashboard_Guide.md) |
-| Resource monitoring setup, access and recovery | [Resource Monitoring](Resource_Monitoring.md) |
-| Grafana events → ChatGPT/Dots bridge, OAuth, retries and deployment prerequisites | [Grafana MCP Events Bridge](Grafana_MCP_Events_Bridge.md) — deployed bridge, verified notification acceptance, current configuration and recovery evidence |
-| Dots troubleshooting steps for configured Grafana alerts | [Grafana Alert Troubleshooting Runbook](Grafana_Alert_Troubleshooting_Runbook.md) — triage, per-alert diagnosis, bounded recovery, escalation and verification |
-| Dated changes/tests/decisions | [Change Logs](../Change%20Logs/) |
-| Dormant analysis/export pilot | [Feature reference](reference/Daily_Loan_Analysis_Automation.md) |
-| Historical evidence | [Archive index](archive/README.md) — excluded from routine work |
+| Current work and release number | [Progress](PWA_Progress.md), [release tracker](Release_Tracker.md), [open changes](Development_Changes.md) |
+| Fast development and promotion | [PWA policy](PWA_Orchestration.md), [release workflow](Release_Workflow.md), [promotion record](../scripts/releases/templates/promotion-checklist.md) |
+| Repository, host and access ownership | [Development workflow](Development_Workflow.md), [service accounts](Service_Account_Browser_Mapping.md) |
+| Agent roles | [Model mapping](Model_Work_Mapping.md), [coordination](Dots_Orchestration_Rules.md) |
+| Architecture and business model | [Solution design](Solution_Design.md), [PWA data model](PWA_Data_Model_Overview.md) |
+| Exact data/API contracts | [Dictionary](Data%20Dictionary/README.md), [export](Data_Dictionary_Export.md) |
+| Runtime identities | [Environment inventory](Environment_Inventory.md) |
+| DEV setup or requested refresh | [Preparation](Development_Environment_Preparation.md), [refresh](Development_Refresh_Runbook.md) |
+| Recovery | [Release recovery](Release_Recovery_Runbook.md) |
+| SQL migrations | [Database procedure](https://github.com/welct0407/MW-Credit-App/blob/codex/r057-infrastructure-adoption/database/README.md) |
+| Infrastructure ownership and remaining cleanup | [Adoption matrix](../outputs/r057-infrastructure-adoption/README.md) |
+| Monitoring | [Operations](Resource_Monitoring.md), [visual guide](Resource_Monitoring_Dashboard_Guide.md), [alerts](Grafana_Alert_Troubleshooting_Runbook.md), [bridge](Grafana_MCP_Events_Bridge.md) |
+| Tools and storage | [Scripts](../scripts/README.md), [VM-01 storage](VM01_Local_Storage.md) |
 
-Update this map when paths or purposes change. Version/status facts belong in the tracker/inventory, policy in AGENTS, and completed history in release evidence. Read/update only documents affected by the task.
-
-- [Database ownership transfer](Database_Ownership_Transfer.md): source ownership, retained-consumer routing and recovery.
+Update owning facts once. Do not append old release narratives or duplicate deployment evidence in current references.

@@ -1,87 +1,86 @@
 # PWA delivery, validation and promotion
 
-**Owner revision: 12 October 2026 (Asia/Bangkok).** This is the single PWA policy for test selection, batching, evidence reuse and promotion. It replaces the overlapping 8–9 October routine-UI/full-checkpoint rules. [PWA Progress](PWA_Progress.md) owns current status; the [implementation plan](PWA_Implementation_Plan.md) owns phase scope. Historical checkpoints and generic checklists do not add a fresh full-CI or owner-review gate to routine changes.
+**Owner revision: 14 October 2026 (Asia/Bangkok).** Optimize for a two-user application: short batches, direct execution, useful tests and a single concise record. This is the test-selection policy; [Release Workflow](Release_Workflow.md) owns promotion mechanics. Old phase plans, full-checkpoint receipts and retired AppSheet procedures add no new gates.
 
 ## Responsibilities
 
-| Role | Model and effort | Responsibility |
-| --- | --- | --- |
-| Main conversation | Orchestrator | Coordinate scope, authority, ownership and completion; review evidence without repeating passing checks |
-| Agent A — Architect | GPT-6 Astra High | Resolve design ambiguity and supply an executable test plan; reuse existing designs for routine refinements |
-| Agent B — Coding | GPT-6 Astra Medium | Implement the agreed change and resolve defects directly with C |
-| Agent C — Testing | GPT-6.1 Sol Medium | Independently verify affected behavior, record failures and retest fixes; escalate ambiguity to A |
-| Agent D — Miscellaneous / Delivery and Documentation | GPT-6.1 Sol Medium | Tooling, delivery, documentation, evidence and authorized publication |
-| Agent E — User Experience Officer | GPT-6 Astra Low | Owner-requested desktop/iPhone Pro Max/iPad UX suggestions grouped by page/category with unique human-readable codes; request-only, no automatic implementation authority |
-| Agent F — Infrastructure | GPT-6 Astra Low | Terraform, cloud resources, IAM, Secret Manager and networking |
+Default to one executor. A routine change does not need separate architect, coder, tester and documentation handoffs. Use the roster only where delegation is authorized and an independent task benefits from it; reuse workers and do not duplicate roles. The owner may request that the main agent perform all work personally.
 
-Reuse active workers within available capacity; do not activate every role for a routine edit. One owner controls each mutable file/live object. Worktrees do not isolate shared services. Roles grant no additional production/service authority; the [model mapping](Model_Work_Mapping.md) owns model preferences.
+| Role | Responsibility |
+| --- | --- |
+| Main conversation — Orchestrator | Own scope, authority, integration and completion; perform routine work directly |
+| Agent A — Architect | Resolve actual design ambiguity; supply a compact executable test plan for that design |
+| Agent B — Coding | Implement and fix the agreed behavior |
+| Agent C — Testing | Independently check affected behavior when warranted; report reproduction and evidence |
+| Agent D — Miscellaneous / Delivery and Documentation | Tooling, delivery coordination, records and support |
+| Agent E — User Experience Officer | Request-only desktop/iPhone Pro Max/iPad review; recommendations grouped by page/category with unique human-readable codes |
+| Agent F — Infrastructure | Terraform, cloud resources, IAM, Secret Manager, networking and infrastructure configuration |
+
+Exact models/efforts live only in [Model Work Mapping](Model_Work_Mapping.md). Names include roles. Role assignment grants no extra authority. One writer owns each mutable file/live object; worktrees do not isolate shared DEV services.
 
 ## One coherent delivery batch
 
-1. **Define the outcome and checks once.** Use the current batch record or [compact template](templates/PWA_Batch_Record.md): scope, baseline, authority, affected components, selected checks and actual owner decisions still needed. Reuse the existing design; involve A only for a real ambiguity, changed boundary or missing acceptance criterion.
-2. **Batch related UI work.** Implement several related refinements before candidate acceptance. During iteration use the smallest useful type/build, interaction and visual checks. Do not publish, run global suites or request review after every save, selector fix or screenshot. Do not combine unrelated sensitive work merely to save a run.
-3. **Resolve defects directly.** C gives B the failing case/reproduction; B fixes it and C reruns affected cases. Preserve unaffected passes. Root handles scope/authority conflicts; A handles design ambiguity. Avoid acknowledgements and unchanged-status worker wake-ups.
-4. **Deliver changed components.** Use the validation matrix below, build from intended inputs, capture the digest/configuration and deploy the tested artifact through the maintained authorized route. Rebuild only when its inputs change. Independent UI need not wait for unrelated work; relevant unresolved failures block dependent delivery.
-5. **Close once.** Record checks/reuse, deployed pins, recovery and limitations in the owning manifest/log and link required release/progress records. Publish intended files. Continue already authorized work; pause only for an actual missing decision, explicit owner checkpoint or authority boundary. Task completion does not create another approval round.
+1. State the outcome and relevant checks in the existing log/task note. Reuse established design; create a separate design only for a material ambiguity or boundary change.
+2. Implement related changes together. Use the smallest useful checks during iteration; fix defects directly without status-only handoff loops.
+3. Run the selected acceptance checks once on the completed batch. Preserve unaffected passes after corrections.
+4. When authorized, deploy only changed components from verified artifacts and perform one bounded deployed smoke.
+5. Record results/limitations and publish once. No extra owner checkpoint, design review or sign-off unless requested or necessary to resolve a real gap.
+
+The [optional batch note](templates/PWA_Batch_Record.md) is for longer handoffs, not another required record.
 
 ## Proportional validation
 
-Classify changed **behavior**, not filenames. Authentication or financial logic in a frontend file is sensitive; an additive display field in an API is not automatically a full-regression trigger. Focused checks and full CI are different evidence and must be labeled accurately.
+Classify changed behavior, not filenames. Frontend authorization or financial logic is sensitive; an API display label is not automatically broad regression.
 
-| Change | Required checks | Full-suite decision |
-| --- | --- | --- |
-| Documentation, evidence or policy only | Relevant content/link/format consistency and exact-file diff review | No product build, browser CI or deployment solely for these edits |
-| Text, spacing, layout or other reversible presentation | Type/build when code/build inputs change; one representative visual pass over affected states/viewports and relevant accessibility/interaction checks | No full CI by default, including before production; no tests that merely mirror text/CSS |
-| UI interaction or additive display/read field | Focused regression and source/data binding checks; changed read/auth boundary where relevant; representative visual pass | Consolidate related changes; broaden only when combined impact reaches shared workflows or focused coverage cannot establish correctness |
-| Shared navigation, session integration, service worker/offline/cache behavior, shared dependency/build changes or interacting feature families | Affected integration and cross-workflow checks | One consolidated full browser/application run when broad interaction risk warrants it; state that reason, not merely “checkpoint” or “promotion” |
-| Financial, authentication, authorization, access, database or infrastructure behavior | Relevant immediate positive/negative, identity, concurrency and recovery checks. Actual restricted SQL/runtime proof where mocks are insufficient. Database runner/migration changes retain disposable `Test-CI.ps1`; infrastructure retains relevant plan/validation checks | Select broader suites for affected dependencies/risk. Do not postpone sensitive verification or run unrelated browser/database/Terraform suites |
+| Change | Sufficient default |
+| --- | --- |
+| Documentation/policy only | Intended diff and relevant links/consistency; no product CI or live audit |
+| Text/style/layout | Build/type check if executable inputs changed; one visual check of affected states on the relevant device; no tests mirroring wording/CSS |
+| Bounded UI interaction or read field | Focused regression plus affected data/access binding; one representative UI pass |
+| Shared navigation/session/service worker/cache/build/dependencies or several interacting workflows | Affected integration coverage; one consolidated broader run when focused tests cannot cover the shared impact |
+| Financial/authentication/authorization/data behavior | Relevant positive/negative, role, retry/concurrency and reconciliation checks; disposable or DEV proof of real SQL/runtime behavior where mocks are insufficient |
+| Migration/database runner | Canonical disposable database CI and affected feature proof; reuse the migration-chain test already executed by that runner |
+| Infrastructure | Format/validate/reviewed plan for the affected stack, scoped actual readback/health; no unrelated browser/DB suite |
 
-When a full run is needed, finish the related source batch first and use **one consolidated run** for candidate acceptance and promotion. Do not run another solely for a merge, documentation publication, phase closure or deployment. This avoids duplication; it does not waive failures. After a fix rerun failed/invalidated checks, repeating the full suite only when changed behavior or an unresolved integration failure invalidates broader evidence. Explicit owner-requested tests remain in scope.
+For UI, choose the device that exposes the change: iPhone Home Screen behavior for installation/push, desktop for desktop layout, additional viewports only for responsive/shared effects or an explicit request. Agent E's full review matrix is not a routine release prerequisite.
+
+When broad CI is warranted, finish the source batch first and run **one consolidated acceptance run**. Reuse it for promotion. Do not launch another solely for merge, documentation, release number, phase closure or deployment. After fixes rerun failed/invalidated checks; repeat the full suite only when broader evidence actually became invalid. Do not duplicate a required automatic CI run with a manual dispatch.
 
 ## Evidence reuse and exact candidate identity
 
-Pin artifact source, candidate/evidence commit, build inputs and target configuration separately. Valid evidence can span documentation, merge or publication commits with different SHAs when relevant inputs are unchanged. A merge with changed runtime inputs is not equivalent merely because branch/title match.
+Record source/artifact/configuration pins once in the owning manifest or promotion record. A documentation or merge SHA may differ from the artifact source when relevant inputs remain identical. Verify that with a bounded diff/input manifest; do not compare entire repositories repeatedly.
 
-Record one bounded diff or input manifest covering component source, shared code, lockfile/dependencies, build scripts/toolchain, generated assets and target configuration. For **test** reuse also check relevant tests, fixtures, runner configuration and environmental assumptions: identical artifacts do not prove a changed test passes. Build DEV/PROD variants when bindings differ and verify them; never relabel a DEV artifact as PROD.
+For build reuse compare component/shared code, dependencies, build tooling/assets and environment configuration. For test reuse also compare tests, fixtures, runner configuration and relevant identity/data assumptions. Build environment variants where necessary; never relabel a DEV artifact PROD.
 
-- Reuse actual passing results and artifact digests while those inputs/assumptions remain valid. Record the comparison and any new focused checks, not another whole suite.
-- A skipped E2E step is no browser evidence. When required, inspect the actual run/step result; a green job badge alone is insufficient.
-- An old green, acceptance statement or unrelated narrower pass cannot clear a known relevant failure.
-- Rerun affected cases when source, dependencies, configuration, fixtures, identity/data assumptions or observed failures invalidate them. Reuse unaffected results, visuals and live observations; no repeated access/receipt/job audit without a concrete trigger.
+A skipped test is not a pass. A green badge does not prove that required steps executed. Old evidence cannot clear a known relevant failure. Reuse unaffected results rather than repeatedly auditing access, receipts, jobs or every page.
 
 ## Minimal production promotion
 
-Use the release's existing filled [master checklist](../scripts/releases/templates/promotion-checklist.md), executing applicable PWA rows only; link the batch manifest rather than create another checklist. AppSheet copy/editor/upgrade procedures apply only when changing an AppSheet definition, not a PWA-only release.
+Follow the five-step [release workflow](Release_Workflow.md#promotion) using its single compact record. Reuse scoped authorization and actual test/recovery evidence, promote the tested artifact, check the affected deployed behavior and update changed facts. Production payment/push/job execution is not implicit in a UI deployment.
 
-1. **Confirm scope and authority.** Reuse existing scoped production authorization and acceptance. Ask only when missing or when scope/material behavior/authority changed. Do not ask again at each technical step. A UI deployment does not implicitly authorize production financial writes, forced notifications or job-ownership changes.
-2. **Confirm candidate and rollback.** Verify tested input/artifact/configuration pins and only the affected live baseline. Capture the current Hosting version/service revision/image and changed configuration/secret-version pins needed for recovery. Reuse valid recovery evidence; UI-only delivery needs no new database backup. Actual database writes retain verified restorable backup, exact migration hashes and guarded runners.
-3. **Apply once in dependency order.** Deploy only changed components with reviewed artifacts. Preserve independent services/scheduler ownership. Stop dependent actions on failure; reconcile unknown outcomes before retrying. Do not rerun candidate tests simply because deployment starts.
-4. **Perform one bounded deployed smoke.** Verify intended version/digest/environment and changed entry point, including session or service-worker update behavior when affected. Reuse DEV/disposable financial proof; no repeated behavioral suite or invented live payment/push test. Restore pinned artifacts/configuration on failure; application rollback does not undo SQL/financial effects.
-5. **Record and close.** Update applicable release/environment/model records with actual outcome and evidence links. Distinguish applied, verified and accepted; required unresolved checks remain explicit. Publish once. No additional ceremonial A/C/root review after relevant evidence is accepted.
+No retired app editor, copy, upgrade, branding or source-parity check applies. No database backup for UI-only work. New tables/columns, financial integrity, authentication/access, migration backup and scoped production authority retain the protections in [AGENTS](../AGENTS.md).
 
 ## Current automation and follow-up
 
-Source inspected on 12 October 2026. **This policy edit changes no workflow YAML or candidate validator.** Use maintained executors honestly. A conflicting hard-coded legacy gate is a tooling gap: correct it through a scoped tested change before using that path; do not fabricate full-run receipts, bypass validation or launch duplicate CI without explaining the actual constraint.
+Source inspected **14 October 2026**. This policy changes no product workflow or validator; implementation limits remain explicit:
 
-| Current implementation | Consequence and concrete follow-up |
+| Tool | Actual constraint |
 | --- | --- |
-| App `ci.yml`: main pushes/manual dispatch execute app checks, live-DEV build, audit, full E2E and DEV Terraform checks. All listed PR events run nonbrowser steps; E2E runs only on the `ci:checkpoint` label event. | Docs/main merges currently trigger broad work. Add vetted affected-input routing and explicit full-checkpoint selection while preserving required-check reporting. Do not claim routing exists today. A necessary exact-input main run can satisfy the checkpoint; do not also dispatch one. |
-| Leaving `ci:checkpoint` on a PR does not run E2E on later synchronize events. | Until routing changes, deliberately apply/reapply it only for a needed consolidated run; verify executed steps/ref. No label merely to promote low-risk UI. |
-| `database.yml` filters affected paths but runs on branch pushes and PR events. | Deduplicate the same tested inputs across push/PR/merge, retaining immutable-migration checks and actual disposable-runner coverage; test event/path behavior before claiming reduced runs. |
-| Legacy R052 business/foundation validators require full browser evidence. R053 additionally pins a manual-dispatch receipt while supporting selected artifact-input equivalence. | Future promotion tooling should accept reviewed test selection, actual required results and explicit input equivalence. Preserve target/artifact/SQL/authority/recovery guards and immutable historical receipts. |
-| Manual `deploy-dev.yml` deploys the original DEV API, repeats app checks and does not publish Hosting. | It is not the full live PWA delivery route. Reuse maintained scoped delivery, then consolidate around verified artifact inputs/results so deployment consumes evidence rather than repeats unchanged checks. |
+| App `ci.yml` | Main pushes/manual dispatch run broad checks including E2E; PR E2E executes only on the `ci:checkpoint` label event, not later synchronize events with the label still present. Other listed PR steps run even for docs. |
+| `database.yml` | Path-filtered, but push and PR events can duplicate checks and database documentation paths also trigger it. |
+| `deploy-dev.yml` | Manual main-only original API deployment; repeats checks and does not publish Hosting. It is not the complete PWA release route. |
+| Legacy foundation/business/R053 validators | Retain historical full-browser/manual-dispatch receipt requirements; they do not implement general proportional check selection. |
 
-These follow-ups are implementation work, not extra gates for completing this policy update. No workflow, deployment or live-operation changes are made here. Required branch checks still apply until intentionally updated; this policy does not authorize bypassing them.
+Required checks/guards remain effective. Report a concrete conflict once; update the owning tool through a scoped tested change rather than bypass it or fabricate receipts. Useful future tooling work is affected-input routing, duplicate-run suppression and deployment consuming existing evidence. It is not an extra gate for this instruction cleanup.
 
 ## Records and communication
 
-Keep one batch record, one design/test contract when needed and one sanitized result manifest. Link source/artifact/test/recovery pins from required records rather than copy hash lists everywhere. Progress owns current status/acceptance, the implementation plan owns scope, the tracker owns release state and change logs retain history. Update affected facts only and preserve concurrent work.
+Keep one concise change log and the existing release record/runner manifest. Update progress only when project status changes, the tracker at release transitions and inventory/model/runbooks only for changed facts. Delete obsolete documents; Git retains history. Do not duplicate hash lists or create a continuation file for a completed task.
 
-Handoffs contain changed scope, paths, decisions, result/blocker and exact next action, normally under 300 words. C supplies concise evidence; root reviews it without repeating passing tests. Reuse representative screenshots, bounded reads and event-driven waits. Report meaningful progress/limitations, not unchanged polling. Optional time/token measurements use existing evidence and never become a gate.
+A handoff normally fits within 300 words: outcome, scope/paths, authority, pins/results and next action. Review evidence without repeating its checks. Prefer bounded searches, batched reads and meaningful progress updates over unchanged polling. Routine token/time measurement is optional, never a delivery gate.
 
 <a id="routine-ui-delivery--owner-revision-8-october-2026"></a>
 <a id="consolidated-ui-checkpoints--owner-revision-9-october-2026"></a>
 <a id="delivery-cycle--owner-revision-8-october-2026"></a>
 <a id="batched-validation"></a>
-
-Older delivery anchors are retained for compatibility; the owning rules are now [Proportional validation](#proportional-validation), [Evidence reuse](#evidence-reuse-and-exact-candidate-identity) and [Minimal production promotion](#minimal-production-promotion).
+Older delivery links resolve here; current rules are the sections above.

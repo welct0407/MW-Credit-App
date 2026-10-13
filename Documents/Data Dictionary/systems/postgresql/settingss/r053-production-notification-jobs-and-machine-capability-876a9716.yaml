@@ -12,7 +12,7 @@
     \ exact temporary authority restoration. No financial writes or PROD test send."
 "content":
   "release": "R053"
-  "sqlVersion": 89
+  "sqlVersion": 91
   "sourceCommit": "dc4e75de24c99b5217c2895066957862a72e2cbb"
   "observedAt": "2026-10-11T19:59:31.963115+00:00"
   "roles":
@@ -137,3 +137,8 @@
   "runtimeActivationEvidence": "MW-Credit-App outputs/r053-notifications-jobs/production-notification-runtime-activation.json"
   "note": "SQL state is distinct from final worker/scheduler/device/agent release verification."
   "notificationRecoveryEvidence": "MW-Credit-App outputs/r053-notifications-jobs/production-notification-recovery-activation.json"
+"evidence":
+  "/content/sqlVersion":
+    "reference": "outputs/r056-apple-push/README.md"
+    "reason": "Latest verified DEV/PROD migration V91; retained role metadata has its original capture provenance."
+    "state": "value"

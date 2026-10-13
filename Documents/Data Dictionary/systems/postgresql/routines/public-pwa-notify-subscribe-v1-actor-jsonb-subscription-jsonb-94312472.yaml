@@ -17,13 +17,9 @@
     "kind": "f"
     "arguments_with_defaults": "actor jsonb, subscription jsonb"
     "result": "jsonb"
-    "definition": |
-      CREATE OR REPLACE FUNCTION public.pwa_notify_subscribe_v1(actor jsonb, subscription jsonb)
-       RETURNS jsonb
-       LANGUAGE plpgsql
-       SECURITY DEFINER
-       SET search_path TO 'pg_catalog', 'public'
-      AS $function$
+    "definition": |-
+      CREATE OR REPLACE FUNCTION public.pwa_notify_subscribe_v1(actor jsonb,subscription jsonb) RETURNS jsonb
+      LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,public AS $$
       DECLARE partner text; endpoint text; endpoint_digest text; expires timestamptz; subscription_id uuid; key_bytes bytea; auth_bytes bytea;
       BEGIN
        partner:=public.pwa_notify_actor_v1(actor);endpoint:=subscription->>'endpoint';
@@ -47,7 +43,7 @@
        WHERE s.issuer=excluded.issuer AND s.subject=excluded.subject AND s.partner_id=excluded.partner_id RETURNING s.subscription_id INTO subscription_id;
        IF subscription_id IS NULL THEN RAISE EXCEPTION 'access_denied'; END IF;
        RETURN jsonb_build_object('subscriptionId',subscription_id);
-      END $function$
+      END $$;
     "owner": "mw_notify_owner_prod"
     "language": "plpgsql"
     "volatility": "v"
@@ -64,6 +60,6 @@
     "extension": null
 "evidence":
   "/content/definition/definition":
-    "reference": "outputs/r056-apple-push/affected-routine-readback.json"
-    "reason": "R056 verified Apple Web Push subdomain compatibility"
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/808cdf53225ce627ea41ef4d3666bf97a3c9cbfe/database/migrations/V91__apple_push_subscription_endpoints.sql"
+    "reason": "Reconcile current deployed V91 Apple endpoint validation from immutable source; other captured metadata unchanged."
     "state": "value"

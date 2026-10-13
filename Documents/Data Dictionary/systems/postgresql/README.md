@@ -1,14 +1,12 @@
-# PostgreSQL current metadata
+# Shared PostgreSQL model
 
-The two databases share one Cloud SQL instance. Use [Environment Inventory](../../../Environment_Inventory.md) for the complete host/instance/database tuple and [run evidence](../../../../outputs/dictionary-reconciliation-20260924/README.md) for capture times, SSL/read-only assertions and coverage.
+MW-Credit-App owns immutable migrations, guarded runners and database CI. DEV `loan_manager_dev` and PROD `loan_manager_prod` share one Cloud SQL instance; latest verified migration is V91. Use the complete target tuple in [environment inventory](../../../Environment_Inventory.md).
 
-- `relations/`: tables, views and materialized-view metadata, exact columns, constraints, indexes, triggers, policies and catalog-discovered view dependencies. Internal integrity triggers are identified separately by their `internal` flag.
-- `routines/`: full definitions and exact argument signatures, return types, volatility, security/settings, ownership and privileges. Overloads remain separate.
-- `schemas/` and `sequences/`: exact namespace/ownership/ACL and sequence configuration/ownership. No custom types/domains/enums were found in these captures.
-- `settings/`: database attributes/settings, extensions, default privileges, relevant roles and recursive memberships, job definitions, Flyway metadata and empty-inventory evidence for other inspected categories.
+- `relations/`: columns, constraints, indexes, triggers, policies and dependencies.
+- `routines/`: exact signatures/bodies and captured ownership/access metadata.
+- `schemas/`, `sequences/`: namespace and sequence definitions.
+- `settings/`, `settingss/`: bounded application capability/configuration records.
 
-After R027 V41, PROD and DEV each have 61 relations and 83 routines. Five new payment-health/matrix views and their exact scoped catalog metadata are recorded in the R027 evidence; only the three reporting views have Metabase SELECT grants. AppSheet adapters remain unbound. The earlier R026 V40 checkpoint had 56 relations. The unused PROD `pg_cron` extension and its sole disabled job were removed; DEV already omitted it. All non-cron business catalog sections are unchanged. The shared instance preload flag remains on pending restart coordination. [Verified retirement](../../../../outputs/r026-dictionary-fixes/database-verification.json). System namespaces are excluded. The `assessment_lab` namespace contains five routines; the assessment source relations are in `public`. No business rows or sequence current values were queried.
+The PWA, native agent, workers and reporting consume this model. Preserve physical identifiers and compatibility providers still in use. AppSheet retirement does not authorize dropping SQL objects.
 
-Exact DEV differences retain ACL/ordinal/internal-trigger identifiers and literal line endings. Six routine body differences are line-ending-only; no normalization changes the saved canonical text. Their presence is not evidence of a missing migration. Full Flyway V39 validation passed in both databases.
-
-`recorded-logic/`, imported aliases and old `reporting/` records remain dated/historical evidence. Follow their current-definition references; do not treat them as competing live declarations. This audit changes no schema, permissions, jobs or financial data. Static dependency checks do not prove dynamic SQL behavior or financial correctness.
+Provenance belongs to each object. Current migration source reconciles changed function bodies; unchanged catalog properties retain their original observation basis. Structural validation does not prove live grants or behavior. Capture only affected metadata when a change invalidates it, not the entire database for routine documentation.
