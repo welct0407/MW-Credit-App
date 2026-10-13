@@ -23,7 +23,7 @@ test('Borrower Upcoming keeps context, preview, paging, retry, empty and borrowe
  const borrowers=['first','second'].map(id=>({id,name:'Synthetic '+id,borrowerDisplayName:'Synthetic '+id,createdDate:'2026-10-01',outstandingPrincipal:'100',totalProfitEarned:'10',hasActiveLoan:true}));
  const event={id:'event',loanId:'loan',loanDisplayKey:'Synthetic first loan',principalRemaining:'100',interestRemaining:'10',amountRemaining:'110',basis:'Projected'};
  const detail={...envelope,dueDate:'2026-10-12',totalCharge:'110',items:[event],nextCursor:'page-2'};
- let fail=false,hold=false,release:(()=>void)|undefined;const paths:string[]=[];
+ let fail=false,dateChanged=false,hold=false,release:(()=>void)|undefined;const paths:string[]=[];
  await page.route('**/deps/firebase_app.js*',r=>r.fulfill({contentType:'text/javascript',body:'export function initializeApp(){return {}}'}));
  await page.route('**/deps/firebase_auth.js*',r=>r.fulfill({contentType:'text/javascript',body:authMock}));
  await page.route('https://mw-credit-app-read-dev-test.run.app/**',async r=>{
@@ -32,18 +32,19 @@ test('Borrower Upcoming keeps context, preview, paging, retry, empty and borrowe
   else if(u.pathname==='/api/borrowers/first')result={...result,item:borrowers[0]};
   else if(u.pathname==='/api/borrowers/second')result={...result,item:borrowers[1]};
   else if(u.pathname==='/api/borrowers/first/upcoming'){if(hold)await new Promise<void>(resolve=>release=resolve);status=fail?503:200;result=fail?{ok:false,code:'source_unavailable'}:{...envelope,items:[{id:'date',dueDate:detail.dueDate,totalCharge:'110'}],previews:[detail]}}
-  else if(u.pathname.includes('/upcoming/'))result={...detail,items:[{...event,loanDisplayKey:'Synthetic later loan'}],nextCursor:null};
+  else if(u.pathname.includes('/upcoming/')){status=dateChanged?409:200;result=dateChanged?{ok:false,code:'business_date_changed'}:{...detail,items:[{...event,loanDisplayKey:'Synthetic later loan'}],nextCursor:null};}
   await r.fulfill({status,contentType:'application/json',body:JSON.stringify(result)}).catch(()=>{});
  });
  await page.goto(base);await page.getByRole('button',{name:'Continue with Google',exact:true}).click();await page.getByRole('button',{name:'Borrowers',exact:true}).click();await page.locator('.borrower-tile-main').first().click();
  const region=page.getByRole('region',{name:'Upcoming Charges',exact:true});await expect(region.locator('.upcoming-date-row')).toHaveCount(1);await page.screenshot({path:test.info().outputPath('borrower-upcoming.png'),fullPage:true});
- const before=paths.length;await region.locator('.upcoming-date-row').click();await expect(region).toContainText('Synthetic first loan');expect(paths.length).toBe(before);
+ await expect(page.getByRole('button',{name:'Refresh Upcoming Charges',exact:true})).toHaveCount(0);const before=paths.length;await region.locator('.upcoming-date-row').click();await expect(region).toContainText('Synthetic first loan');expect(paths.length).toBe(before);
  await page.getByRole('button',{name:'Next upcoming details page',exact:true}).click();await expect(region).toContainText('Synthetic later loan');await expect(page.getByRole('button',{name:'Previous upcoming details page',exact:true})).toBeVisible();
- await page.getByRole('button',{name:'Back to borrower summary',exact:true}).click();await expect(region.locator('.upcoming-date-row')).toHaveCount(1);
- fail=true;await page.getByRole('button',{name:'Refresh Upcoming Charges',exact:true}).click();await expect(region).toContainText('Unable to load');await expect(page.getByRole('heading',{name:'Synthetic first',exact:true})).toBeVisible();
+ dateChanged=true;await page.getByRole('button',{name:'Previous upcoming details page',exact:true}).click();await expect(region).toContainText('Unable to load');dateChanged=false;await region.getByRole('button',{name:'Retry Upcoming Charges',exact:true}).click();await expect(region.locator('.upcoming-date-row')).toHaveCount(1);
+ await region.locator('.upcoming-date-row').click();await page.getByRole('button',{name:'Back to borrower summary',exact:true}).click();await expect(region.locator('.upcoming-date-row')).toHaveCount(1);
+ fail=true;await page.getByRole('button',{name:'Back to list',exact:true}).click();await page.locator('.borrower-tile-main').first().click();await expect(region).toContainText('Unable to load');await expect(page.getByRole('heading',{name:'Synthetic first',exact:true})).toBeVisible();
  fail=false;await region.getByRole('button',{name:'Retry Upcoming Charges',exact:true}).click();await expect(region.locator('.upcoming-date-row')).toHaveCount(1);
- await chooseLanguagePreservingForm(page,'ไทย');await expect(page.getByRole('region',{name:'ยอดเรียกเก็บล่วงหน้า',exact:true})).toBeVisible();await chooseLanguagePreservingForm(page,'EN');
- hold=true;await page.getByRole('button',{name:'Refresh Upcoming Charges',exact:true}).click();await expect.poll(()=>!!release).toBe(true);
+ await chooseLanguagePreservingForm(page,'ไทย');await expect(page.getByRole('region',{name:'ยอดเรียกเก็บล่วงหน้า',exact:true})).toBeVisible();await expect(page.getByRole('button',{name:'รีเฟรชยอดเรียกเก็บล่วงหน้า',exact:true})).toHaveCount(0);await chooseLanguagePreservingForm(page,'EN');
+ hold=true;await page.getByRole('button',{name:'Back to list',exact:true}).click();await page.locator('.borrower-tile-main').first().click();await expect.poll(()=>!!release).toBe(true);
  await page.getByRole('button',{name:'Back to list',exact:true}).click();await page.locator('.borrower-tile-main').nth(1).click();await expect(region).toContainText('No upcoming charge dates.');hold=false;release!();await expect(region.locator('.upcoming-date-row')).toHaveCount(0);
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);expect(paths.some(path=>path.startsWith('/api/collection/'))).toBe(false);
 });
