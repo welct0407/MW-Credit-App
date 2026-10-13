@@ -3,6 +3,7 @@ variable "workers" {
   type = object({
     enabled                       = optional(bool, false)
     image                         = optional(string)
+    image_overrides               = optional(map(string), {})
     vapid_version                 = optional(string)
     policy_version                = optional(string)
     push_subject                  = optional(string)
@@ -22,6 +23,7 @@ module "workers" {
   environment                   = "prod"
   enabled                       = var.workers.enabled
   image                         = var.workers.image
+  image_overrides               = var.workers.image_overrides
   vapid_version                 = var.workers.vapid_version
   policy_version                = var.workers.policy_version
   push_subject                  = var.workers.push_subject

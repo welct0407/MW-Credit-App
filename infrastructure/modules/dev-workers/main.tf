@@ -27,6 +27,15 @@ variable "image" {
     error_message = "Pin the tested immutable image from the matching environment repository."
   }
 }
+variable "image_overrides" {
+  description = "Optional per-worker immutable image pins; omitted roles retain image."
+  type        = map(string)
+  default     = {}
+  validation {
+    condition     = alltrue([for role, image in var.image_overrides : contains(["notify", "jobs"], role) && can(regex("^asia-southeast1-docker[.]pkg[.]dev/clever-oasis-508610-n7/${var.environment == "prod" ? "mw-credit-app-prod" : "mw-credit-app"}/api@sha256:[a-f0-9]{64}$", image))])
+    error_message = "Only notify/jobs immutable matching-environment image overrides are allowed."
+  }
+}
 variable "vapid_version" {
   type     = string
   default  = null
@@ -179,7 +188,7 @@ resource "google_cloud_run_v2_service" "worker" {
       max_instance_count = 1
     }
     containers {
-      image   = var.image
+      image   = lookup(var.image_overrides, each.key, var.image)
       command = ["node"]
       args    = ["services/workers/server.mjs"]
       resources {

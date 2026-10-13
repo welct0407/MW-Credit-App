@@ -20,6 +20,15 @@ variable "owner_secret_version" {
     error_message = "Pin the privately verified existing authoritative shared-default owner's numeric secret version."
   }
 }
+variable "runtime_image_overrides" {
+  description = "Optional exact image pins for independent read/command recovery and delivery."
+  type        = map(string)
+  default     = {}
+  validation {
+    condition     = alltrue([for role, image in var.runtime_image_overrides : contains(["read", "command"], role) && can(regex("^${var.region}-docker[.]pkg[.]dev/${var.application_project_id}/mw-credit-app-prod/api@sha256:[a-f0-9]{64}$", image))])
+    error_message = "Only read/command immutable production image overrides are allowed."
+  }
+}
 locals {
   runtime_roles = var.runtime_authorized ? { read = "reader", command = "command" } : {}
 }
@@ -91,7 +100,7 @@ resource "google_cloud_run_v2_service" "foundation" {
       max_instance_count = 1
     }
     containers {
-      image   = var.business_runtime_authorized ? var.business_image : var.foundation_image
+      image   = lookup(var.runtime_image_overrides, each.key, var.business_runtime_authorized ? var.business_image : var.foundation_image)
       command = ["node"]
       args    = [var.business_runtime_authorized ? "services/production/business-server.mjs" : "services/production/server.mjs"]
       resources {
