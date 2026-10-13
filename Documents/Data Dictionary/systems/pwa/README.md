@@ -2,7 +2,7 @@
 
 Source reconciled at MW-Credit-App commit `808cdf53225ce627ea41ef4d3666bf97a3c9cbfe` (see exact source URLs in each object for the authoritative pin). Current deployments are recorded in [environment inventory](../../../Environment_Inventory.md).
 
-R058 Borrower Upcoming Charges is documented separately in the Application and Human API content at immutable source `68e8a39e63e44123dcbab3f819c72d711e2a3240`. This is checked source pending promotion, not a deployment update; other definitions retain their recorded source pins.
+R058 Borrower Upcoming Charges is documented separately in the Application and Human API content at immutable source `68e8a39e63e44123dcbab3f819c72d711e2a3240`. This source is deployed to DEV; PROD promotion remains pending. Deployment pins are in the environment inventory; other definitions retain their recorded source pins.
 
 - [Application](application.yaml): environment bindings, pages, authentication and ownership.
 - [Human API](human-api.yaml): key route families and exact owning validation contracts.

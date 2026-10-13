@@ -55,7 +55,9 @@
       \ date paging uses fresh API reads"
     "request_safety": "Abort and generation guards reject stale borrower results; controls do not submit borrower changes"
     "financial_effect": "Read-only forecast; no charge or financial write"
-    "delivery": "R058 Open source scope; not deployed by this batch"
+    "delivery": "R058 Open; source 68e8a39 deployed to DEV reader revision 00019-ntb and Hosting 78e4d9de3188ce2f on 14 October\
+      \ 2026; bounded artifact/unauthenticated access checks passed, owner-authenticated forecast/UX smoke unavailable; PROD\
+      \ promotion pending. Exact pins/recovery in Environment_Inventory and Development_Changes."
     "source": "https://github.com/welct0407/MW-Credit-App/blob/68e8a39e63e44123dcbab3f819c72d711e2a3240/apps/pwa/src/SharedBorrowerDetail.tsx"
     "read_only_source": "https://github.com/welct0407/MW-Credit-App/blob/68e8a39e63e44123dcbab3f819c72d711e2a3240/apps/pwa/src/live-main.tsx"
 "evidence":
@@ -63,4 +65,9 @@
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/68e8a39e63e44123dcbab3f819c72d711e2a3240/apps/pwa/src/SharedBorrowerDetail.tsx"
     "reason": "R058 selected Borrower Upcoming Charges; immutable implemented source, focused verification; no deployment\
       \ or SQL change"
+    "state": "value"
+  "/content/borrower_upcoming/delivery":
+    "reference": "https://github.com/welct0407/AppSheet-Loan-Project/pull/20"
+    "reason": "Owner-authorized R058 DEV reader and Hosting deployment; bounded public/auth-gate checks, authenticated behavior\
+      \ smoke unavailable"
     "state": "value"

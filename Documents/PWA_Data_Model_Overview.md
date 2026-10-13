@@ -33,7 +33,7 @@ Access requires authenticated ownership/permission checks. Preserve object gener
 
 Operational pages cover Dashboard, Collection, Borrowers, Loans, Charges, Payments, Expenses and cash statements. Management covers partners, holders/accounts, contributions, settlements, cash movements, openings, assessments and analytics/validation. Server capabilities and Partner roles control access.
 
-R058 adds Upcoming Charges to the selected visible Borrower detail. It reuses Collection's five upcoming charge dates, date detail and paging, including borrowers whose loans have only future charges. Forecasts remain derived read-only SQL results; viewing them does not create charges or submit borrower edits. The existing Collection membership boundary remains unchanged. This is source scope pending promotion, not a new deployed capability.
+R058 adds Upcoming Charges to the selected visible Borrower detail. It reuses Collection's five upcoming charge dates, date detail and paging, including borrowers whose loans have only future charges. Forecasts remain derived read-only SQL results; viewing them does not create charges or submit borrower edits. The existing Collection membership boundary remains unchanged. This R058 capability is deployed to DEV; PROD promotion remains pending.
 
 Google/Firebase sign-in resolves current business membership. Offline snapshots have bounded validity and do not extend authorization; commands require online confirmation. Native workers own push and scheduled jobs. Debian owns capture/review/message workflows under its service catalogue. AppSheet forms, slices, bots and editor settings are no longer maintained.
 
