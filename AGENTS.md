@@ -8,13 +8,16 @@ This repository is the Linux-native integration-agent runtime for Debian 13 on G
 
 - Default deny: no production integration, webhook, sending, financial write, scheduled job, or partner operation is enabled until the owner explicitly authorizes that capability in this repository.
 - Treat `C:\GitHub\MW-Partner-Operations` as a dated source reference. Its private state, credentials, browser profiles, journals, queues, task definitions, and activation flags are not source code and must never be copied automatically.
-- Preserve the current paused state of the Windows agent. Provisioning or testing this repository does not authorize cutover, route changes, replay, partner messaging, or AppSheet writes.
-- Store secrets under `/etc/mw-integration-agent` and mutable state under `/var/lib/mw-integration-agent`; never commit either. Codex authentication is a credential.
+- Preserve the current paused state of the Windows agent. Provisioning or testing this repository does not authorize cutover, route changes, replay, partner messaging, or financial writes.
+- Use the established Secret Manager/workload-identity route. Protected runtime configuration remains under `/etc/mw-integration-agent` and mutable state under `/var/lib/mw-integration-agent`; never commit either. Codex authentication is a credential.
 - Use least-privilege service identities. Do not put long-lived secrets in VM metadata, startup-script text, Git, shell history, logs, or command output.
 - Public ingress must use an authenticated tunnel or explicitly reviewed firewall/load-balancer path. Never expose the worker, Codex, debugging, or health endpoints directly to the internet.
 - Before any live migration, back up and integrity-check the source journals, establish a new activation cutoff, reconcile delayed webhook retries, and prove single ownership of every scheduled job and public route.
 
 ## Development workflow
+
+AppSheet is retired. Use native MW Credit API capabilities; preserve existing payment idempotency, receipt evidence and service-catalogue boundaries. Work directly by default and honor requests for personal execution. Use affected checks and reuse valid results under the project PWA delivery policy; do not repeat full CI for documentation, merge or closure. Production activation remains separately authorized.
+
 
 - Read `SERVICE_CATALOGUE.md`, `service-catalogue.json`, and the affected documentation before runtime changes.
 - Keep the Markdown catalogue and JSON manifest aligned; validation must fail closed on unknown or enabled-but-unimplemented services.
