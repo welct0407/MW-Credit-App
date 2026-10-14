@@ -3,6 +3,7 @@ import type {CommandAccess} from './SelectedCharges';
 import type {PendingSync} from './owner-offline';
 
 export type SavedSyncResult={kind:'queued'|'synced'|'blocked';data?:any;status?:number};
+export type SavedSyncSummary={remaining:number;blocked:number;synced:number;reason?:'offline'|'authorization'|'connection'|'waiting'|'attention'};
 const inFlight=new Map<string,Promise<SavedSyncResult>>();
 const uuid=/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/;
 const outcome=(scopeName:string,requestId:string,result:SavedSyncResult)=>{
@@ -19,15 +20,20 @@ function allowedOrigin(access:CommandAccess){
 export function syncSavedRequest(access:CommandAccess,requestId:string):Promise<SavedSyncResult>{
  const key=(access.offline?.scopeName??'missing')+':'+access.origin+':'+requestId;
  const current=inFlight.get(key);if(current)return current;
- const task=syncOne(access,requestId).catch(()=>({kind:'queued'} as SavedSyncResult));
+ // A browser lock disappears with its tab. Its next holder can recover that tab's
+ // durable claim immediately; browsers without locks retain the timed IDB lease.
+ const task=(async():Promise<SavedSyncResult>=>{
+  if(typeof navigator.locks!=='undefined'&&access.offline)return await navigator.locks.request('mw-credit-request:'+access.offline.scopeName+':'+requestId,{ifAvailable:true},async lock=>lock?await syncOne(access,requestId,true):{kind:'queued'} as SavedSyncResult);
+  return syncOne(access,requestId);
+ })().catch(()=>({kind:'queued'} as SavedSyncResult));
  inFlight.set(key,task);
  void task.then(result=>{const clear=()=>{if(inFlight.get(key)===task)inFlight.delete(key)};if(result.kind==='queued')clear();else setTimeout(clear,1000)});
  return task;
 }
-async function syncOne(access:CommandAccess,requestId:string):Promise<SavedSyncResult>{
+async function syncOne(access:CommandAccess,requestId:string,exclusive=false):Promise<SavedSyncResult>{
  const repository=access.offline;
  if(!repository||!navigator.onLine||!allowedOrigin(access)||!await repository.syncAuthorized())return {kind:'queued'};
- const owner=crypto.randomUUID(),row=await repository.claimPending(requestId,owner);
+ const owner=crypto.randomUUID(),row=await repository.claimPending(requestId,owner,exclusive);
  if(!row){const existing=await repository.pending(requestId);return existing?.sync?.state==='blocked'?{kind:'blocked',data:existing.sync.outcome}:{kind:'queued'}}
  let attempted=row.sync?.attempted??true;
  const settle=async(result:SavedSyncResult,code?:string)=>{
@@ -39,13 +45,14 @@ async function syncOne(access:CommandAccess,requestId:string):Promise<SavedSyncR
  const request=async(path:string,init:RequestInit={})=>{
   if(!navigator.onLine||!await repository.syncAuthorized())throw Error('Sync paused');
   const controller=new AbortController(),deadline=Date.now()+15000,timer=setTimeout(()=>controller.abort(),15000);
+  const pause=()=>controller.abort();window.addEventListener('offline',pause);window.addEventListener('pagehide',pause);
   try{
    const token=await access.token();
    if(controller.signal.aborted||!navigator.onLine||!await repository.syncAuthorized())throw Error('Sync paused');
    const response=await fetch(access.origin+path,{...init,signal:controller.signal,headers:{Authorization:'Bearer '+token,'X-MW-Wake-Deadline':String(deadline),...init.headers},cache:'no-store',credentials:'omit',redirect:'error'});
    if(response.status===401||response.status===403){access.authFailure(response.status);throw Error('Authentication required')}
    const data=await response.json();return {response,data};
-  }finally{clearTimeout(timer)}
+  }finally{clearTimeout(timer);window.removeEventListener('offline',pause);window.removeEventListener('pagehide',pause)}
  };
  const classify=async(response:Response,data:any):Promise<SavedSyncResult|null>=>{
   if(data?.kind==='recorded'){
@@ -94,31 +101,40 @@ async function syncOne(access:CommandAccess,requestId:string):Promise<SavedSyncR
  }
 }
 
-export async function syncSavedRequests(access:CommandAccess){
+export async function syncSavedRequests(access:CommandAccess):Promise<SavedSyncSummary>{
  const repository=access.offline;
- if(!repository||!navigator.onLine||!await repository.syncAuthorized())return;
+ const unavailable=(reason:SavedSyncSummary['reason']):SavedSyncSummary=>({remaining:0,blocked:0,synced:0,reason});
+ if(!navigator.onLine)return unavailable('offline');
+ if(!repository||!allowedOrigin(access))return unavailable('authorization');
+ try{await access.prepareSync?.()}catch{return unavailable(navigator.onLine?'connection':'offline')}
+ if(!await repository.syncAuthorized())return unavailable('authorization');
  await repository.migrateSavedNotes();
  const rows=(await repository.list('pending')).sort((a,b)=>a.savedAt-b.savedAt||a.key.localeCompare(b.key));
- for(const row of rows){if(!navigator.onLine||!await repository.syncAuthorized())break;if(row.sync?.state==='blocked')continue;await syncSavedRequest(access,row.key.slice('pending:'.length));}
+ let synced=0;
+ for(const row of rows){if(!navigator.onLine||!await repository.syncAuthorized())break;if(row.sync?.state==='blocked')continue;const result=await syncSavedRequest(access,row.key.slice('pending:'.length));if(result.kind==='synced')synced++;}
+ if(!await repository.syncAuthorized())return {...unavailable('authorization'),synced};
+ const remaining=await repository.list('pending'),blocked=remaining.filter(row=>row.sync?.state==='blocked').length;
+ return {remaining:remaining.length,blocked,synced,...(!navigator.onLine?{reason:'offline' as const}:remaining.length?{reason:remaining.length===blocked?'attention' as const:'waiting' as const}:{})};
 }
 
 /** One app-scoped coordinator; IndexedDB leases also serialize separate tabs. */
 export function startSavedRequestSync(access:CommandAccess){
  if(access.offline?.environment==='prod')return()=>{};
- let active=true,running=false,again=false,timer:ReturnType<typeof setTimeout>|null=null;
+ let active=true,running=false,again=false,retries=0,timer:ReturnType<typeof setTimeout>|null=null;
+ const retryDelays=[1000,2000,5000,10000,30000];
  const channel=typeof BroadcastChannel!=='undefined'&&access.offline?new BroadcastChannel('mw-credit-sync:'+access.offline.scopeName):null;
  if(channel)channel.onmessage=event=>{if(active){window.dispatchEvent(new Event('mw-offline-saved'));window.dispatchEvent(new CustomEvent('mw-offline-sync-outcome',{detail:event.data}));}};
  const run=async()=>{
   if(!active)return;if(running){again=true;return;}if(timer)clearTimeout(timer);timer=null;
   if(!navigator.onLine)return;
   running=true;
-  try{await syncSavedRequests(access)}catch{/* Durable requests remain for reconnect. */}
+  try{const result=await syncSavedRequests(access);if(result.synced)retries=0}catch{/* Durable requests remain for reconnect. */}
   finally{
    running=false;if(!active)return;
-   if(again){again=false;timer=setTimeout(()=>void run(),1000)}
-   else if(navigator.onLine&&access.offline){const rows=await access.offline.list('pending').catch(()=>[]);if(active&&rows.some(row=>row.sync?.state!=='blocked'))timer=setTimeout(()=>void run(),30000)}
+   if(again){again=false;timer=setTimeout(()=>void run(),0)}
+   else if(navigator.onLine&&access.offline){const rows=await access.offline.list('pending').catch(()=>[]);if(active&&rows.some(row=>row.sync?.state!=='blocked'))timer=setTimeout(()=>void run(),retryDelays[Math.min(retries++,retryDelays.length-1)])}
   }
  };
- const wake=()=>void run();window.addEventListener('online',wake);window.addEventListener('focus',wake);window.addEventListener('mw-offline-queued',wake);void run();
- return()=>{active=false;if(timer)clearTimeout(timer);channel?.close();window.removeEventListener('online',wake);window.removeEventListener('focus',wake);window.removeEventListener('mw-offline-queued',wake)};
+ const wake=()=>{retries=0;void run()},visible=()=>{if(document.visibilityState==='visible')wake()};window.addEventListener('online',wake);window.addEventListener('focus',wake);window.addEventListener('pageshow',wake);document.addEventListener('visibilitychange',visible);window.addEventListener('mw-offline-queued',wake);void run();
+ return()=>{active=false;if(timer)clearTimeout(timer);channel?.close();window.removeEventListener('online',wake);window.removeEventListener('focus',wake);window.removeEventListener('pageshow',wake);document.removeEventListener('visibilitychange',visible);window.removeEventListener('mw-offline-queued',wake)};
 }

@@ -29,7 +29,7 @@ test('swipe accepts control starts, preserves taps and excludes horizontal owner
  for(const [dx,dy]of [[-130,0],[30,0],[50,70],[0,100]])await swipe(page,undefined,dx,dy);
  await touch(page,'touchstart',30,180);await touch(page,'touchmove',33,210);await touch(page,'touchend',230,210);
  await touch(page,'touchstart',30,180);await touch(page,'touchstart',50,180,undefined,true);await touch(page,'touchend',230,180);
- await open(page,'Open dialog');await swipe(page);await open(page,'Close dialog');await expect(page.locator('#root output')).toHaveText('2:0');
+ await page.waitForTimeout(450);await open(page,'Open dialog');await swipe(page);await open(page,'Close dialog');await expect(page.locator('#root output')).toHaveText('2:0');
  await page.getByRole('textbox',{name:'Editable name',exact:true}).fill('kept draft');await page.getByRole('textbox',{name:'Editable name',exact:true}).click();await expect(page.getByRole('textbox',{name:'Editable name',exact:true})).toHaveValue('kept draft');await expect(page.locator('[data-back-transition]')).toHaveCount(0);
 });
 
@@ -60,4 +60,17 @@ test('same screen remount retains parent and successful create replaces its form
 
 test('nested related navigation can reuse a semantic screen without losing its immediate parent',async({page})=>{
  await harness(page);await open(page,'Open parent');await open(page,'Open related parent');await touch(page,'touchstart',30,180);await touch(page,'touchmove',100,180);await expect(page.locator('[data-back-layer="current"]')).toContainText('Nested parent page');await expect(page.locator('[data-back-layer="previous"]')).toContainText('Parent borrower page');await touch(page,'touchcancel',100,180);await finish(page);await swipe(page);await expect(page.locator('#root output')).toHaveText('1:0');await swipe(page);await expect(page.locator('#root output')).toHaveText('0:0');
+});
+
+test('workspace left menu and pull refresh dispatch only deliberate root and top-scroll actions',async({page})=>{
+ await harness(page);await swipe(page,undefined,-120);await expect(page.getByTestId('menu-opens')).toHaveText('1');await swipe(page,undefined,0,100);await expect(page.getByTestId('refreshes')).toHaveText('1');
+ await page.getByRole('textbox',{name:'Editable name'}).fill('Unsaved name');await swipe(page,undefined,0,100);await expect(page.getByRole('textbox',{name:'Editable name'})).toHaveValue('Unsaved name');await expect(page.getByTestId('refreshes')).toHaveText('2');
+ await page.locator('main').evaluate(e=>e.scrollTop=100);await swipe(page,undefined,0,100);await expect(page.getByTestId('refreshes')).toHaveText('2');await page.locator('main').evaluate(e=>e.scrollTop=0);
+ await swipe(page,undefined,0,30);await swipe(page,'input[aria-label="Editable name"]',0,100);await swipe(page,'[data-testid="horizontal"]',-120);await expect(page.getByTestId('refreshes')).toHaveText('2');await expect(page.getByTestId('menu-opens')).toHaveText('1');
+ await page.waitForTimeout(450);await open(page,'Open parent');await expect(page.locator('output')).toHaveText('1:0');await swipe(page,undefined,-120);await expect(page.getByTestId('menu-opens')).toHaveText('1');await swipe(page,undefined,0,100);await expect(page.getByTestId('refreshes')).toHaveText('3');await expect(page.locator('output')).toHaveText('1:0');
+ await page.waitForTimeout(450);await open(page,'Toggle busy');await swipe(page,undefined,0,100);await expect(page.getByTestId('refreshes')).toHaveText('3');
+});
+
+test('native workspace touch opens root menu and pulls refresh while retaining editable content',async({page,browserName},info)=>{
+ test.skip(browserName!=='chromium'||!info.project.name.startsWith('mobile'),'Native CDP touch requires mobile Chromium');await harness(page);const session=await page.context().newCDPSession(page);const surface=await page.getByTestId('swipe-surface').boundingBox();const y=Math.max(surface!.y+30,160);const drag=async(dx:number,dy:number)=>{await session.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:250,y}]});for(let i=1;i<=5;i++)await session.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:250+dx*i/5,y:y+dy*i/5}]});await session.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]})};await drag(-130,0);await expect(page.getByTestId('menu-opens')).toHaveText('1');await page.waitForTimeout(450);await page.getByRole('textbox',{name:'Editable name',exact:true}).fill('Preserved native touch');await page.locator('main').evaluate(node=>node.scrollTop=0);await drag(0,110);await expect(page.getByTestId('refreshes')).toHaveText('1');await expect(page.getByRole('textbox',{name:'Editable name',exact:true})).toHaveValue('Preserved native touch');await expect(page.locator('[data-back-transition]')).toHaveCount(0);await session.detach();
 });

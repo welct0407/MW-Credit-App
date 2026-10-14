@@ -2,7 +2,7 @@ import {offlineNamespace,applicationEnvironment,type ApplicationEnvironment} fro
 import {validateViewedSnapshot,type ViewedSnapshot} from './viewed-snapshot';
 const expiry=24*60*60*1000;
 const namespaceEpochs=new Map<string,number>();
-export type PendingSync={state:'queued'|'syncing'|'blocked';code?:string;outcome?:any;attempted?:boolean;leaseOwner?:string;leaseUntil?:number};
+export type PendingSync={state:'queued'|'syncing'|'blocked';code?:string;outcome?:any;attempted?:boolean;leaseOwner?:string;leaseUntil?:number;exclusive?:boolean};
 type Saved<T>={key:string;kind:'snapshot'|'draft'|'pending'|'lease';savedAt:number;value:T;sync?:PendingSync;identity?:string};
 const changed=()=>window.dispatchEvent(new Event('mw-offline-saved'));
 async function pendingIdentity(value:any){
@@ -82,8 +82,8 @@ export function ownerOfflineRepository(identity:{issuer:string;uid:string},envir
    const expected=await capturedEpoch;
    return transaction<boolean>('readonly',(store,done)=>{const epoch=store.get('meta:epoch');epoch.onsuccess=()=>{if(!validInstance()||(epoch.result?.value??'initial')!==expected){done(false);return;}const lease=store.get('lease:owner');lease.onsuccess=()=>done(!!lease.result&&Date.now()-lease.result.value.verifiedAt<expiry)}});
   },
-  async claimPending(id:string,owner:string){
-   const claimed=await transaction<Saved<any>|null>('readwrite',(store,done)=>{const request=store.get('pending:'+id);request.onsuccess=()=>{const row=request.result as Saved<any>|undefined;if(!row||row.sync?.state==='blocked'||(row.sync?.leaseUntil??0)>Date.now()){done(null);return;}row.sync={state:'syncing',attempted:row.sync?.attempted??true,leaseOwner:owner,leaseUntil:Date.now()+90000};store.put(row);done(row)}});if(claimed)changed();return claimed;
+  async claimPending(id:string,owner:string,exclusive=false){
+   const claimed=await transaction<Saved<any>|null>('readwrite',(store,done)=>{const request=store.get('pending:'+id);request.onsuccess=()=>{const row=request.result as Saved<any>|undefined;if(!row||row.sync?.state==='blocked'||((row.sync?.leaseUntil??0)>Date.now()&&!(exclusive&&row.sync?.exclusive))){done(null);return;}row.sync={state:'syncing',attempted:row.sync?.attempted??true,leaseOwner:owner,leaseUntil:Date.now()+90000,exclusive};store.put(row);done(row)}});if(claimed)changed();return claimed;
   },
   async markPendingDispatched(id:string,owner:string){
    return transaction<boolean>('readwrite',(store,done)=>{const request=store.get('pending:'+id);request.onsuccess=()=>{const row=request.result as Saved<any>|undefined;if(row?.sync?.leaseOwner!==owner){done(false);return;}row.sync={...row.sync,attempted:true};store.put(row);done(true)}});

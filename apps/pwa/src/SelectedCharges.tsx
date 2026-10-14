@@ -12,7 +12,7 @@ type Draft={preferredReceivingAccountId?:string|null;nextCursor?:string|null;asO
 type Allocation={chargeId:string;principal:string;interest:string;expectedPrincipalRemaining:string;expectedInterestRemaining:string;chargeDate:string};
 type Command={schemaVersion:3|4|5|6;requestId:string;borrowerId:string;selectedChargeIds?:string[];allocations?:Allocation[];cashAccountId:string;paymentDate:string;amountReceived:string;paymentMethod:'Bank Transfer'|'Cash'|'Net-off at Disbursement';allocationMethod?:'Selected Charges'|'Single Full'|'Receive All';notes:string|null;receiptId:string|null};
 type Outcome={status:'posted'|'rejected';paymentId:string|null;code:string|null;recordedAt:string};
-export type CommandAccess={origin:string;fixtureBorrowerId:string;ownerTesting?:boolean;offline?:OwnerOfflineRepository;offlineOnly?:boolean;onPosted?:(requestId:string)=>void;token:()=>Promise<string>;authFailure:(status:number)=>void};
+export type CommandAccess={origin:string;fixtureBorrowerId:string;ownerTesting?:boolean;offline?:OwnerOfflineRepository;offlineOnly?:boolean;prepareSync?:()=>Promise<void>;onPosted?:(requestId:string)=>void;token:()=>Promise<string>;authFailure:(status:number)=>void};
 const pendingKey='mw-credit.pending-command';
 const uuid=/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i;
 export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access:CommandAccess;borrowerId:string;thai:boolean;onBack:()=>void;onPosted?:(requestId:string)=>void}) {
