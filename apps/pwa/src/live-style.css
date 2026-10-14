@@ -514,3 +514,12 @@ main[data-workspace=management] pre{white-space:pre-wrap;overflow-wrap:anywhere}
 .header-load-progress::-webkit-progress-value { background: #252525; border-radius: 4px; transition: width 180ms ease; }
 .header-load-progress::-moz-progress-bar { background: #252525; border-radius: 4px; }
 .offline-preparation-status { margin: 4px 0; font-size: 12px; }
+
+/* Only the modal drawer moves; the workspace and fixed navigation stay put. */
+.live-menu-dialog { transform: translateX(var(--drawer-offset, 0px)); }
+.live-menu-dialog::backdrop { opacity: var(--drawer-opacity, 1); }
+.live-menu-dialog[data-drawer-motion=settling] { transition: transform 180ms ease-out; }
+.live-menu-dialog[data-drawer-motion=settling]::backdrop { transition: opacity 180ms ease-out; }
+.live-menu-dialog[data-drawer-motion=dragging] { transition: none; }
+.live-menu-dialog[data-drawer-motion=dragging]::backdrop { transition: none; }
+@media(prefers-reduced-motion:reduce){.live-menu-dialog[data-drawer-motion=settling],.live-menu-dialog[data-drawer-motion=settling]::backdrop{transition:none}}

@@ -1,3 +1,4 @@
+import {useMenuDrawer} from './menu-drawer';
 import {startOfflinePreparation,subscribeOfflinePreparation,getOfflinePreparation} from './offline-dataset';
 import {subscribeOfflineDataset,readCachedJson,subscribeCachedReadFailure,hasCachedReadFailure,hasReadRefreshFailure,clearCachedReadFailures} from './read-cache';
 import {useWorkspaceGestures} from './workspace-gestures';
@@ -129,7 +130,8 @@ function App() {
   const [status, setStatus] = useState('initializing');
   useLayoutEffect(()=>{clearCachedReadFailures(offlineRepository?.scopeName)},[view,activeBack?.navigationKey,managementSection,user?.uid]);
   useSwipeBack(workspace,searchOpen?searchBack:menuToggle,searchOpen?{token:searchBackToken.current,navigationKey:'search',disabled:false}:activeBack,(user?.uid??'')+':'+view+':'+(status==='ready'?'ready':'unavailable'));
-  useWorkspaceGestures(workspace,{scope:(user?.uid??'')+':'+view+':'+(activeBack?.navigationKey??'root')+':'+searchOpen+':'+status,canOpenMenu:status==='ready'&&!activeBack&&!searchOpen,onOpenMenu:()=>{if(matchMedia('(max-width:1050px)').matches){if(!menuDialog.current?.open)menuDialog.current?.showModal()}else setNavigationCollapsed(false)},refreshButtonRef:refreshButton,refreshIdentity:activeRefresh});
+  const menuDrawer=useMenuDrawer(menuDialog,(user?.uid??'')+':'+view+':'+status);
+  useWorkspaceGestures(workspace,{menuMotion:menuDrawer,scope:(user?.uid??'')+':'+view+':'+(activeBack?.navigationKey??'root')+':'+searchOpen+':'+status,canOpenMenu:status==='ready'&&!activeBack&&!searchOpen,onOpenMenu:()=>{if(matchMedia('(max-width:1050px)').matches){menuDrawer.open()}else setNavigationCollapsed(false)},refreshButtonRef:refreshButton,refreshIdentity:activeRefresh});
   const [temporarySignIn, setTemporarySignIn] = useState(false);
   const signingOut = useRef(false);
   const authInstance = useRef<Auth | null>(null);
@@ -243,12 +245,13 @@ function App() {
   const collectionRequest = <T,>(path: string, onError: (failure: ReadFailure<CollectionReadError>) => void, onCached?: (value:T)=>void) => user
     ? request<T>(user, path, onError, failure => onError(failure),onCached) : Promise.resolve(null);
   function changeView(next: 'borrowers' | 'collection' | 'expenses' | 'cash' | 'dashboard' | 'upcoming' | 'loans' | 'payments' | 'management' | 'notifications') {
-    setBorrowerEditor(undefined);
+    menuDrawer.close(()=>{
+      setBorrowerEditor(undefined);
     setNotificationPayment(null);
-    menuDialog.current?.close();
     if (next === view && !savedPayments && !borrowerPayment && !fullLoan && !notificationPayment) return;
     resetSearch(); setCollectionStatus('idle');
     const change=()=>{flushSync(()=>{clear();setView(next)});if(next==='borrowers'&&user)void load(user)};const transition=(document as Document&{startViewTransition?:(callback:()=>void)=>unknown}).startViewTransition;if(transition&&!matchMedia('(prefers-reduced-motion: reduce)').matches)transition.call(document,change);else change();
+    });
   }
   async function load(signedInUser: User, cursor?: string, page = 1, query = searchQuery.current) {
     if(page===1)borrowerCursors.current=[undefined];borrowerCursors.current[page-1]=cursor;
@@ -384,7 +387,7 @@ function App() {
     return cancelSearchTimer;
   }, [searchDraft, searchOpen, searchComposing, status, user, view]);
   const accountControls = (compact = false) => <div className="live-account-controls">
-    {status==='ready'&&user&&<WaitingToSyncButton repository={offlineRepository} thai={thai} compact={compact} onClick={()=>{setSavedPayments(true);menuDialog.current?.close()}}/>}
+    {status==='ready'&&user&&<WaitingToSyncButton repository={offlineRepository} thai={thai} compact={compact} onClick={()=>menuDrawer.close(()=>setSavedPayments(true))}/>}
     {status==='ready'&&user&&import.meta.env.VITE_NOTIFICATIONS==='enabled'&&<button className="secondary-button" aria-label={t('Notifications','การแจ้งเตือน')} title={t('Notifications','การแจ้งเตือน')} aria-current={view==='notifications'?'page':undefined} onClick={()=>changeView('notifications')}>{compact?<span aria-hidden="true">🔔</span>:t('Notifications','การแจ้งเตือน')}</button>}
     {compact && <button ref={languageToggle} className="secondary-button live-account-icon" aria-label={t('Language', 'ภาษา')} title={t('Language', 'ภาษา')} aria-expanded={languageChoices} aria-controls="live-language-choices" onClick={() => setLanguageChoices(value => !value)}><span aria-hidden="true">文</span></button>}
     {(!compact || languageChoices) && <div ref={compact ? languagePanel : undefined} id={compact ? 'live-language-choices' : undefined} className="language" aria-label={t('Language', 'ภาษา')} role="group" onKeyDown={event => { if (compact && event.key === 'Escape') { event.preventDefault(); setLanguageChoices(false); languageToggle.current?.focus({ preventScroll: true }); } }}><button onClick={() => chooseLanguage(false, compact)} aria-pressed={!thai}>EN</button><button onClick={() => chooseLanguage(true, compact)} aria-pressed={thai}>ไทย</button></div>}
@@ -438,7 +441,7 @@ function App() {
       <button type="submit" aria-label={t('Submit search', 'ค้นหา')} title={t('Submit search', 'ค้นหา')}><span aria-hidden="true" className={searchPending || headerState === 'loading' ? 'collection-spinner' : ''}>{searchPending || headerState === 'loading' ? '' : '⌕'}</span></button>
       <span className="live-status-text" role="status" aria-live="polite">{searchPending || headerState === 'loading' ? t('Loading…', 'กำลังโหลด…') : headerState === 'error' ? t('Could not update', 'อัปเดตไม่สำเร็จ') : t('Updated', 'อัปเดตแล้ว')}</span>
     </form> : <>
-    <button ref={menuToggle} className={"live-menu-toggle secondary-button"+(activeBack?" has-back":"")} disabled={activeBack?.disabled} aria-label={activeBack?.label??t('Open navigation', 'เปิดเมนู')} onClick={event => activeBack?activeBack.run(event):menuDialog.current?.showModal()}>{activeBack?'←':'☰'}</button>
+    <button ref={menuToggle} className={"live-menu-toggle secondary-button"+(activeBack?" has-back":"")} disabled={activeBack?.disabled} aria-label={activeBack?.label??t('Open navigation', 'เปิดเมนู')} onClick={event => activeBack?activeBack.run(event):menuDrawer.open()}>{activeBack?'←':'☰'}</button>
     <div className="live-brand"><img className="brand-logo" src={logo} alt="Loan Manager" /><div><h1 title={(view==='management'?t(managementViews.find(item=>item.id===managementSection)?.en??'Management',managementViews.find(item=>item.id===managementSection)?.th??'การจัดการ'):view==='loans'?t('Loans','สินเชื่อ'):view==='payments'?t('Payments','รับชำระ'):view === 'collection' ? t('Collection', 'งานติดตาม') : view==='expenses'?t('Expenses','ค่าใช้จ่าย'):view==='cash'?t('Cash','เงินสด'):view==='upcoming'?t('Upcoming Charges','รายการเรียกเก็บล่วงหน้า'):view==='notifications'?t('Notifications','การแจ้งเตือน'):view==='dashboard'?t('Dashboard','ภาพรวม'):t('Borrowers', 'ผู้กู้')) + (appliedQuery ? ' · ' + appliedQuery : '')}>{view==='management'?t(managementViews.find(item=>item.id===managementSection)?.en??'Management',managementViews.find(item=>item.id===managementSection)?.th??'การจัดการ'):view==='loans'?t('Loans','สินเชื่อ'):view==='payments'?t('Payments','รับชำระ'):view === 'collection' ? t('Collection', 'งานติดตาม') : view==='expenses'?t('Expenses','ค่าใช้จ่าย'):view==='cash'?t('Cash','เงินสด'):view==='upcoming'?t('Upcoming Charges','รายการเรียกเก็บล่วงหน้า'):view==='notifications'?t('Notifications','การแจ้งเตือน'):view==='dashboard'?t('Dashboard','ภาพรวม'):t('Borrowers', 'ผู้กู้')}{appliedQuery ? ' · ' + appliedQuery : ''}</h1></div></div>
     <div className="live-header-actions">{status === 'ready' && !['expenses','cash','dashboard','upcoming','notifications'].includes(view) && <button ref={searchToggle} className="live-header-refresh" aria-label={t('Search borrowers', 'ค้นหาผู้กู้')} title={t('Search borrowers', 'ค้นหาผู้กู้')} onClick={() => { setSearchDraft(searchQuery.current); setSearchOpen(true); }}><span aria-hidden="true">⌕</span></button>}{offlinePreparation.syncActive&&<span className="header-load-status"><progress className="header-load-progress" max={100} value={Math.floor(offlinePreparation.progress)} aria-label={t('Loading progress','ความคืบหน้าการโหลด')} title={t('Completed sync work','งานซิงค์ที่เสร็จแล้ว')+' '+Math.floor(offlinePreparation.progress)+'%'}/><span className="header-load-percent" aria-hidden="true">{Math.floor(offlinePreparation.progress)}%</span></span>}<button ref={refreshButton} className={"live-header-refresh collection-update"+(headerState==='error'?' refresh-failed':'')} data-refresh-state={headerState} aria-busy={headerState==='loading'} disabled={status!=='ready'||headerState==='loading'} aria-label={activeRefresh?.label??(view === 'collection' ? t('Refresh Collection — return to first page', 'รีเฟรชงานติดตาม — กลับหน้าแรก') : t('Refresh Borrowers — return to first page', 'รีเฟรชผู้กู้ — กลับหน้าแรก'))} title={headerState==='error'?t('Refresh failed — tap to retry','รีเฟรชไม่สำเร็จ — แตะเพื่อลองอีกครั้ง'):activeRefresh?.label??(view === 'collection' ? t('Refresh Collection — return to first page', 'รีเฟรชงานติดตาม — กลับหน้าแรก') : t('Refresh Borrowers — return to first page', 'รีเฟรชผู้กู้ — กลับหน้าแรก'))} onClick={refreshCurrentScreen}><span aria-hidden="true" className={headerState==='loading'?'collection-spinner':''}>{headerState==='loading'?'':'↻'}</span>{headerState==='error'&&<span className="refresh-failure-badge" aria-hidden="true">!</span>}<span className="live-status-text" role="status" aria-live="polite">{refreshFeedback||(headerState==='loading'?t('Loading…','กำลังโหลด…'):headerState==='error'?t('Could not update','อัปเดตไม่สำเร็จ'):t('Ready','พร้อม'))}</span></button></div>
     </>}
@@ -457,6 +460,6 @@ function App() {
     const first = controls[0], last = controls.at(-1);
     if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
     else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
-  }} onClick={event => { if (event.target === event.currentTarget) menuDialog.current?.close(); }} aria-label={t('Navigation menu', 'เมนูนำทาง')}><button autoFocus className="secondary-button" onClick={() => menuDialog.current?.close()}>{t('Close menu', 'ปิดเมนู')}</button>{navigation('drawer')}{accountControls()}</dialog>{navigation('mobile-bottom')}</div></div>;
+  }} onClick={event => { if (event.target === event.currentTarget) menuDrawer.close(); }} aria-label={t('Navigation menu', 'เมนูนำทาง')}><button autoFocus className="secondary-button" onClick={() => menuDrawer.close()}>{t('Close menu', 'ปิดเมนู')}</button>{navigation('drawer')}{accountControls()}</dialog>{navigation('mobile-bottom')}</div></div>;
 }
 createRoot(document.getElementById('root')!).render(<App />);
