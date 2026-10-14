@@ -1,7 +1,7 @@
 import {useEffect,useRef,type RefObject} from 'react';
 
 type Options={scope:string;refreshIdentity?:unknown;canOpenMenu:boolean;onOpenMenu:()=>void;refreshButtonRef:RefObject<HTMLButtonElement|null>};
-type Gesture={id:number;x:number;y:number;time:number;scope:string;direction:'menu'|'refresh'|null;button:HTMLButtonElement|null;top:boolean;distance:number};
+type Gesture={id:number;x:number;y:number;time:number;scope:string;direction:'menu'|'refresh'|null;button:HTMLButtonElement|null;top:boolean};
 const usable=(button:HTMLButtonElement|null)=>!!button&&!button.disabled&&button.isConnected&&button.getClientRects().length>0;
 function startContext(target:EventTarget|null,shell:HTMLElement){
  if(!(target instanceof Element)||target.closest('input,textarea,select,[contenteditable="true"],[role="slider"],audio,video,dialog,[aria-modal="true"]')||window.getSelection()?.toString())return null;
@@ -21,13 +21,17 @@ export function useWorkspaceGestures(workspaceRef:RefObject<HTMLElement|null>,op
   const shell=workspaceRef.current?.closest<HTMLElement>('.live-shell')??workspaceRef.current;if(!shell)return;
   let gesture:Gesture|null=null,suppressUntil=0;
   const cancel=()=>{gesture=null};
-  const start=(event:TouchEvent)=>{cancel();if(event.touches.length!==1||document.querySelector('dialog[open],[aria-modal="true"]'))return;const context=startContext(event.target,shell);if(!context)return;const touch=event.touches[0],current=latest.current;gesture={id:touch.identifier,x:touch.clientX,y:touch.clientY,time:performance.now(),scope:current.scope,direction:null,button:current.refreshButtonRef.current,top:context.top,distance:0}};
+  const start=(event:TouchEvent)=>{cancel();if(event.touches.length!==1||document.querySelector('dialog[open],[aria-modal="true"]'))return;const context=startContext(event.target,shell);if(!context)return;const touch=event.touches[0],current=latest.current;gesture={id:touch.identifier,x:touch.clientX,y:touch.clientY,time:performance.now(),scope:current.scope,direction:null,button:current.refreshButtonRef.current,top:context.top}};
   const move=(event:TouchEvent)=>{if(!gesture)return;if(event.touches.length!==1||latest.current.scope!==gesture.scope){cancel();return}const touch=Array.from(event.touches).find(t=>t.identifier===gesture!.id);if(!touch){cancel();return}const dx=touch.clientX-gesture.x,dy=touch.clientY-gesture.y;
    if(!gesture.direction){if(Math.max(Math.abs(dx),Math.abs(dy))<12)return;if(dx<0&&-dx>Math.abs(dy)*1.5&&latest.current.canOpenMenu)gesture.direction='menu';else if(dy>0&&dy>Math.abs(dx)*1.5&&gesture.top&&usable(gesture.button))gesture.direction='refresh';else{cancel();return}}
-   if(gesture.direction==='menu'){if(dx>0||Math.abs(dy)>Math.abs(dx)){cancel();return}gesture.distance=-dx}else{if(dy<0||Math.abs(dx)>Math.abs(dy)){cancel();return}gesture.distance=dy}
+   if(gesture.direction==='menu'){if(dx>0||Math.abs(dy)>Math.abs(dx)){cancel();return}}else{if(dy<0||Math.abs(dx)>Math.abs(dy)){cancel();return}}
    if(event.cancelable)event.preventDefault();
   };
-  const end=(event:TouchEvent)=>{const current=gesture;cancel();if(!current||event.touches.length||!event.changedTouches.length||event.changedTouches[0].identifier!==current.id||current.scope!==latest.current.scope||performance.now()-current.time>1800||current.distance<80||document.querySelector('dialog[open],[aria-modal="true"]'))return;
+  const end=(event:TouchEvent)=>{const current=gesture;cancel();if(!current||event.touches.length||!event.changedTouches.length||event.changedTouches[0].identifier!==current.id||current.scope!==latest.current.scope||performance.now()-current.time>1800||document.querySelector('dialog[open],[aria-modal="true"]'))return;
+   // A quick release can travel beyond the last delivered touchmove. Judge
+   // the completed gesture at its final point, including reversal/axis guards.
+   const touch=event.changedTouches[0],dx=touch.clientX-current.x,dy=touch.clientY-current.y;
+   if(current.direction==='menu'?dx> -80||Math.abs(dy)>-dx:current.direction==='refresh'?dy<80||Math.abs(dx)>dy:true)return;
    if(current.direction==='menu'&&latest.current.canOpenMenu){if(event.cancelable)event.preventDefault();suppressUntil=performance.now()+400;latest.current.onOpenMenu()}
    else if(current.direction==='refresh'&&current.button===latest.current.refreshButtonRef.current&&usable(current.button)){if(event.cancelable)event.preventDefault();suppressUntil=0;current.button!.click();suppressUntil=performance.now()+400}
   };
