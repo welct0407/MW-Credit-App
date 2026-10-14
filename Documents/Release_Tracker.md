@@ -4,8 +4,8 @@
 
 | Item | Current value |
 | --- | --- |
-| New product work | **R061 — Open** |
-| Next unused number | **R062**, only opened when authorized R061 promotion starts |
+| New product work | **R062 — Open** |
+| Next unused number | **R063**, only opened when authorized R062 promotion starts |
 | Current runtime baseline | [Environment inventory](Environment_Inventory.md) |
 
 All new features/fixes use the sole Open release. Freeze only at authorized promotion start, pin the package, then publish the next Open number in the same update. Frozen corrections stay with their release; new features use the successor. Do not reserve a second Open release or reuse a number. Documentation/governance changes do not allocate releases.
@@ -14,14 +14,15 @@ All new features/fixes use the sole Open release. Freeze only at authorized prom
 
 | Release | Status | Remaining action / owning record |
 | --- | --- | --- |
-| R061 | Open | Direct online Loan Delete and shared submitted-action/rejection feedback; [existing record](Development_Changes.md#r061-direct-loan-delete-and-submitted-action-feedback), source `1e0dd73ae856ef55fdcdd6fc1e8097d5d9335817`, CI/12focused cases passed and DEVHosting248bea737cd1b078 verified; owner authorized directPRODfrontend promotion; separateartifact/guard and explicitprivate-file creation approval pending, nofreeze yet. Also retains unfinished integration deployment tooling: reload the active webhook receiver and verify readiness before workers resume; excluded from R060 API hotfix. Existing integration owning record below. |
+| R062 | Open | Carried unfinished integration deployment tooling: reload the active webhook receiver and verify readiness before workers resume. Excluded from R061frontend promotion; existing integration owning record below. |
+| R061 | Frozen — 15October2026 03:25:59Bangkok / 14October20:25:59UTC | Owner-authorized UI-only PRODfrontend package: runtime/artifact `1e0dd73ae856ef55fdcdd6fc1e8097d5d9335817`, runner `5e8237917a5f54c59d281fedccd0651d4fe59194`; package SHA256 `541a287712d50fe6253fb90485832471640dd3faee534b99a5fc740fe906a832`, guard passed, apply pending; [existing record](Development_Changes.md#r061-prod-frontend-record-preparation). |
 | R056 | Frozen; V91 deployed | Lisa enrollment retry/closure; [record](../outputs/r056-apple-push/README.md) |
 | R055 | Frozen; monitoring delivered | Carried credential work unfinished; [record](../outputs/r055-grafana/continuation.md) |
 | R016 | Owner-accepted reporting; administrative follow-up | Migration-key retirement evidence/final tag unresolved; do not reopen product development |
 
-R060 command-only offline-dataset recovery is Released: source `a2f683eb74f3c3c5dc027520642a07a07f4c1558`, PRODcommand00008-qb7 verified15October2026 at00:19:59Bangkok; [existing record](Development_Changes.md#r060-production-offline-dataset-recovery). R061 remains Open; nextR062.
+R060 command-only offline-dataset recovery is Released: source `a2f683eb74f3c3c5dc027520642a07a07f4c1558`, PRODcommand00008-qb7 verified15October2026 at00:19:59Bangkok; [existing record](Development_Changes.md#r060-production-offline-dataset-recovery). R062 is Open; nextR063.
 
-R059 cumulative PWA package is Released: source `7aecf695789fee3ca3b1fd1f2bece4c4a4bc8ba6`, DEV-first and PROD verified14October2026 at23:55:51Bangkok; [existing promotion record](Development_Changes.md#r059-pwa-production-preparation). R061 is Open; nextR062.
+R059 cumulative PWA package is Released: source `7aecf695789fee3ca3b1fd1f2bece4c4a4bc8ba6`, DEV-first and PROD verified14October2026 at23:55:51Bangkok; [existing promotion record](Development_Changes.md#r059-pwa-production-preparation). R062 is Open; nextR063.
 
 R058 strict Instagram-first delivery is Released: Debian source `a8cf94999aee33e9762614241b31904a967b7cac` verified on 14 October at 14:53 Bangkok; [existing promotion record](https://github.com/welct0407/MW-Integration-Agent/blob/codex/pwa-documentation-cleanup/Change%20Logs/CHANGE_NOTES_RECEIPT_NOTIFICATION_ISOLATION_2026-10-02.md#r058-strict-instagram-fallback-candidate--14-october-2026). R057 technical retirement is Released. Owner license revocation is outside technical closure. Current versions/recovery evidence belong in the environment inventory and owning records. Completed release history remains in Git; no duplicate historical table is maintained here.
 
