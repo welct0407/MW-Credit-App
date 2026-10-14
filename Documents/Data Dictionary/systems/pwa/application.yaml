@@ -58,7 +58,7 @@
       \ date paging uses fresh API reads"
     "request_safety": "Abort and generation guards reject stale borrower results; controls do not submit borrower changes"
     "financial_effect": "Read-only forecast; no charge or financial write"
-    "delivery": "R058 Open; frontend source 5d5af4b0 deployed to DEV Hosting cc4e9ba03e2d0155; reader revision 00020-m9t remains\
+    "delivery": "R058 Open; frontend source 51d4ce98 deployed to DEV Hosting 4bce41e9dcada751; reader revision 00020-m9t remains\
       \ source 2ef73db. Artifact checks passed; owner-authenticated forecast/UX smoke unavailable; PROD promotion pending.\
       \ Exact pins/recovery in Environment_Inventory and Development_Changes."
     "source": "https://github.com/welct0407/MW-Credit-App/blob/95fab655431a4459e22ec1dbdd1541d035333d78/apps/pwa/src/SharedBorrowerDetail.tsx"
@@ -75,7 +75,7 @@
       \ Back action or disabled control cancel the gesture."
     "source": "https://github.com/welct0407/MW-Credit-App/blob/5d046627481ff151f299bad30b784ca418f4b58c/apps/pwa/src/swipe-back.ts"
     "shell_source": "https://github.com/welct0407/MW-Credit-App/blob/5d046627481ff151f299bad30b784ca418f4b58c/apps/pwa/src/live-main.tsx"
-    "delivery": "R058 Open; interactive navigation included in frontend 5d5af4b0 deployed to DEV Hosting cc4e9ba03e2d0155.\
+    "delivery": "R058 Open; interactive navigation included in frontend 51d4ce98 deployed to DEV Hosting 4bce41e9dcada751.\
       \ Local touch/browser and Windows WebKit rendering checks passed; artifact verified. Physical iPhone native gesture\
       \ and authenticated live gesture remain unverified; PROD promotion pending."
   "collection_receiving_ui":
@@ -94,8 +94,8 @@
     - "https://github.com/welct0407/MW-Credit-App/blob/5e981335ad42846dac6bde13e24a45a147ab2676/apps/pwa/src/CollectionReceipts.tsx"
     - "https://github.com/welct0407/MW-Credit-App/blob/5e981335ad42846dac6bde13e24a45a147ab2676/apps/pwa/src/SelectedCharges.tsx"
     - "https://github.com/welct0407/MW-Credit-App/blob/5e981335ad42846dac6bde13e24a45a147ab2676/apps/pwa/src/live-style.css"
-    "delivery": "R058 Open; receipt UI and durable note-queue updates included in frontend 5d5af4b0 deployed to DEV Hosting\
-      \ cc4e9ba03e2d0155; command 00022-nhc retains source 2ef73db. Focused checks and configured development CI passed; artifact\
+    "delivery": "R058 Open; receipt UI and durable note-queue updates included in frontend 51d4ce98 deployed to DEV Hosting\
+      \ 4bce41e9dcada751; command 00022-nhc retains source 2ef73db. Focused checks and configured development CI passed; artifact\
       \ verified, authenticated live note/receiver smoke not performed. No Page status changes; PROD promotion pending."
   "phase5_ui":
     "money_display": "THB currency presentation uses whole baht across affected views; editable amounts, storage and financial\
@@ -110,12 +110,15 @@
     - "https://github.com/welct0407/MW-Credit-App/blob/2ef73db0f91769f1566cd83d91467390080c36ab/apps/pwa/src/LoanRelated.tsx"
     - "https://github.com/welct0407/MW-Credit-App/blob/8ba8e6320f44fb147c54474302adb0076c2e4bd2/apps/pwa/src/OfflinePayments.tsx"
     - "https://github.com/welct0407/MW-Credit-App/blob/2ef73db0f91769f1566cd83d91467390080c36ab/apps/pwa/src/display-money.ts"
-    "delivery": "R058 Open; frontend source 5d5af4b0 deployed to DEV Hosting cc4e9ba03e2d0155; reader 00020-m9t and command\
+    "delivery": "R058 Open; frontend source 51d4ce98 deployed to DEV Hosting 4bce41e9dcada751; reader 00020-m9t and command\
       \ 00022-nhc retain runtime source 2ef73db. Focused checks and configured development CI passed; artifact verified. Authenticated\
       \ business smoke not performed; PROD promotion pending."
   "saved_change_queue":
     "contents": "Only saved/confirmed unsynced requests, including autosaved notes. Applied/posted requests removed; rejected/conflicting\
-      \ requests retained for review. Ordinary drafts/snapshots hidden."
+      \ requests retained for review. Ordinary drafts/snapshots hidden. Waiting to sync sidebar/mobile button shows a top-right\
+      \ count only when above zero, including queued/syncing/blocked pending states and excluding ordinary drafts/snapshots.\
+      \ Count respects the current authorized repository and refreshes on saved events/focus and every 15 seconds; English/Thai\
+      \ accessible labels include the count."
     "unfinished_forms": "Restore contextually in original forms; wait for restored draft before defaults/server data; no submission\
       \ until explicit Save/Confirm."
     "sync": "DEV startup/reconnect/queue events reconcile status by GET before retrying same UUID/payload. Reconnect re-verifies\
@@ -136,9 +139,9 @@
     - "https://github.com/welct0407/MW-Credit-App/blob/5d5af4b0783fe6a44419a4dd5e07ecc135419b43/apps/pwa/src/CollectionNote.tsx"
     - "https://github.com/welct0407/MW-Credit-App/blob/5d5af4b0783fe6a44419a4dd5e07ecc135419b43/apps/pwa/src/domain-draft.ts"
     - "https://github.com/welct0407/MW-Credit-App/blob/5d5af4b0783fe6a44419a4dd5e07ecc135419b43/apps/pwa/src/live-main.tsx"
-    "delivery": "R058 Open; final source 5d5af4b0 deployed to DEV Hosting cc4e9ba03e2d0155. Actual IndexedDB/focused component\
-      \ checks and development CI passed; artifact verified. Whole authenticated live coordinator/backlog not exercised; automatic\
-      \ PROD sync/migration disabled. Reader/command unchanged; PROD promotion pending."
+    "delivery": "R058 Open; queue source 5d5af4b0 and badge frontend 51d4ce98 deployed to DEV Hosting 4bce41e9dcada751. Focused\
+      \ IndexedDB/component checks and development CI passed; artifact verified. Authenticated live queue/badge not exercised;\
+      \ automatic PROD sync/migration disabled. Reader/command unchanged; PROD promotion pending."
 "evidence":
   "/content/borrower_upcoming":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/68e8a39e63e44123dcbab3f819c72d711e2a3240/apps/pwa/src/SharedBorrowerDetail.tsx"
@@ -147,8 +150,7 @@
     "state": "value"
   "/content/borrower_upcoming/delivery":
     "reference": "https://github.com/welct0407/AppSheet-Loan-Project/pull/20"
-    "reason": "Exact final saved-change queue frontend delivered Hosting-only to DEV; retain verified artifact versus live\
-      \ backlog limits"
+    "reason": "Exact badge-only frontend delivered to DEV; existing runtime/storage and queue behavior preserved"
     "state": "value"
   "/content/borrower_upcoming/presentation":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/95fab655431a4459e22ec1dbdd1541d035333d78/apps/pwa/src/SharedBorrowerDetail.tsx"
@@ -167,8 +169,7 @@
     "state": "value"
   "/content/navigation/delivery":
     "reference": "https://github.com/welct0407/AppSheet-Loan-Project/pull/20"
-    "reason": "Exact final saved-change queue frontend delivered Hosting-only to DEV; retain verified artifact versus live\
-      \ backlog limits"
+    "reason": "Exact badge-only frontend delivered to DEV; existing runtime/storage and queue behavior preserved"
     "state": "value"
   "/content/collection_receiving_ui":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/5e981335ad42846dac6bde13e24a45a147ab2676/apps/pwa/src/CollectionReceipts.tsx"
@@ -177,8 +178,7 @@
     "state": "value"
   "/content/collection_receiving_ui/delivery":
     "reference": "https://github.com/welct0407/AppSheet-Loan-Project/pull/20"
-    "reason": "Exact final saved-change queue frontend delivered Hosting-only to DEV; retain verified artifact versus live\
-      \ backlog limits"
+    "reason": "Exact badge-only frontend delivered to DEV; existing runtime/storage and queue behavior preserved"
     "state": "value"
   "/content/collection_receiving_ui/collection_note":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/efd9fab2d9cf7326e94f4e380b2117e6bae16a5e/apps/pwa/src/offline-sync.ts"
@@ -197,8 +197,7 @@
     "state": "value"
   "/content/phase5_ui/delivery":
     "reference": "https://github.com/welct0407/AppSheet-Loan-Project/pull/20"
-    "reason": "Exact final saved-change queue frontend delivered Hosting-only to DEV; retain verified artifact versus live\
-      \ backlog limits"
+    "reason": "Exact badge-only frontend delivered to DEV; existing runtime/storage and queue behavior preserved"
     "state": "value"
   "/content/phase5_ui/offline_order":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/5d5af4b0783fe6a44419a4dd5e07ecc135419b43/apps/pwa/src/OfflinePayments.tsx"
@@ -226,6 +225,9 @@
     "state": "value"
   "/content/saved_change_queue/delivery":
     "reference": "https://github.com/welct0407/AppSheet-Loan-Project/pull/20"
-    "reason": "Exact final saved-change queue frontend delivered Hosting-only to DEV; retain verified artifact versus live\
-      \ backlog limits"
+    "reason": "Exact badge-only frontend delivered to DEV; existing runtime/storage and queue behavior preserved"
+    "state": "value"
+  "/content/saved_change_queue/contents":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/51d4ce9856e7730b1881caf84bd429fc718b46e3/apps/pwa/src/WaitingToSyncButton.tsx"
+    "reason": "Small saved-change count badge UI; real IndexedDB count/scope/authorization and compact geometry checks passed"
     "state": "value"

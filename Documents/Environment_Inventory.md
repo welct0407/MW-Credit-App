@@ -19,7 +19,7 @@ Private receipts: `gs://mw-payment-receipts-prod-508610-n7`. Agent originals and
 
 | Component | Pin / evidence |
 | --- | --- |
-| DEV frontend | source `5d5af4b0783fe6a44419a4dd5e07ecc135419b43`, Hosting `cc4e9ba03e2d0155`, release `1791953321397000`, marker `5171fc6a75d8ec581d5c9d39`, entry `index-44Z0MLqZ.js`; live-dev build, verified 14 October 2026 11:48 ICT; [R058 record](Development_Changes.md#r058-borrower-upcoming-batch) |
+| DEV frontend | source `51d4ce9856e7730b1881caf84bd429fc718b46e3`, Hosting `4bce41e9dcada751`, release `1791953991724000`, marker `ffc6b09f0d906ac36df825a0`, entry `index-C8WiVBTh.js`; live-dev build, verified 14 October 2026 12:00 ICT; [R058 record](Development_Changes.md#r058-borrower-upcoming-batch) |
 | DEV reader | `mw-credit-app-read-dev-00020-m9t`, Ready and 100% traffic; digest `sha256:60c9f6c7cfe701264a5add48de2934fa18db8b418652e5622b054a2a40eb0958`, source `2ef73db`; DEV database/IAM/origins preserved; [R058 record](Development_Changes.md#r058-borrower-upcoming-batch) |
 | DEV command | `mw-credit-app-command-dev-00022-nhc`, Ready and 100% traffic; same digest/source as DEV reader, with existing DEV command bindings preserved; [R058 record](Development_Changes.md#r058-borrower-upcoming-batch) |
 | PROD frontend | source c07ada0, Hosting 218943a0966051ca, release 1791825659922000; [actual record](../outputs/r054-production/promotion-actual.json) |
