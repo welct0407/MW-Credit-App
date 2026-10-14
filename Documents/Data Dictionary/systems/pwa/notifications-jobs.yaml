@@ -52,20 +52,21 @@
   - "infrastructure/modules/dev-workers/main.tf"
   - "database/migrations/V91__apple_push_subscription_endpoints.sql"
   "source_base": "https://github.com/welct0407/MW-Credit-App/blob/808cdf53225ce627ea41ef4d3666bf97a3c9cbfe/"
-  "offline_history": "DEV-only GET /api/notifications/offline-dataset uses authenticated existing recipient history/target/status\
-    \ RPCs in read-only repeatable-read, complete schemaVersion 1 bundle. Shared bulk read slot and cancellation preserve\
-    \ foreground capacity. Dispatch, subscriptions, scheduled work and delivery side effects unchanged."
-  "offline_history_source": "https://github.com/welct0407/MW-Credit-App/blob/f261edcd51995795f250699f1ee91fb0d0c95a54/services/notifications/store.mjs"
+  "offline_history": "DEV-only GET /api/notifications/offline-dataset retains legacy complete response when protocol omitted;\
+    \ protocol=2 with optional cursor returns bounded recipient-scoped history/targets/status patches through existing protected\
+    \ RPCs. Actor/day-scoped traversal, per-request read-only repeatable-read, shared bulk slot and cancellation preserve\
+    \ access/foreground capacity. Dispatch/subscriptions/schedules unchanged."
+  "offline_history_source": "https://github.com/welct0407/MW-Credit-App/blob/374fe98ed21ab233f068dd337d7cbaef0eb24788/services/notifications/store.mjs"
 "evidence":
   "/content/offline_history":
-    "reference": "https://github.com/welct0407/MW-Credit-App/blob/f261edcd51995795f250699f1ee91fb0d0c95a54/services/notifications/store.mjs"
-    "reason": "Full-app DEV offline preparation via existing bulk read DTOs/recipient contracts, persistent bundles and current-page\
-      \ refresh state; note autosave unchanged"
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/374fe98ed21ab233f068dd337d7cbaef0eb24788/services/notifications/store.mjs"
+    "reason": "Resumable bounded protocol-2 preparation fixes measured DEV timeouts while retaining legacy compatibility and\
+      \ existing DTO/authorization contracts"
     "state": "value"
   "/content/offline_history_source":
-    "reference": "https://github.com/welct0407/MW-Credit-App/blob/f261edcd51995795f250699f1ee91fb0d0c95a54/services/notifications/store.mjs"
-    "reason": "Full-app DEV offline preparation via existing bulk read DTOs/recipient contracts, persistent bundles and current-page\
-      \ refresh state; note autosave unchanged"
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/374fe98ed21ab233f068dd337d7cbaef0eb24788/services/notifications/store.mjs"
+    "reason": "Resumable bounded protocol-2 preparation fixes measured DEV timeouts while retaining legacy compatibility and\
+      \ existing DTO/authorization contracts"
     "state": "value"
   "/content/browser_routes":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/f261edcd51995795f250699f1ee91fb0d0c95a54/services/notifications/handler.mjs"

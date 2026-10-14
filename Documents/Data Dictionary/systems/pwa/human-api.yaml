@@ -86,19 +86,28 @@
     - "GET /api/notifications/offline-dataset"
     "guard": "DEV-only existing authenticated issuer/membership/capabilities and fixed target guards; production-business\
       \ composition denies bulk domain route; recipient notification endpoint enabled only in DEV."
-    "transaction": "Read-only repeatable-read; batches existing SELECT readers/projections; one shared bulk connection reservation\
-      \ and request cancellation preserve foreground capacity."
-    "result": "Complete schemaVersion 1 domain bundle with asOf, Asia/Bangkok businessDate and data. Notification history/targets/status\
-      \ remain recipient-scoped. Cash coverage uses existing recent-statement dates."
+    "transaction": "Each chunk uses ordinary authenticated read-only repeatable-read checks and existing projections/providers;\
+      \ one shared bulk connection reservation preserves foreground capacity. No transaction snapshot is exported between\
+      \ HTTP requests."
+    "result": "Main schemaVersion 2 includes domain/generation/startedAt/asOf/businessDate, patches, nextCursor, complete,\
+      \ phase progress and chunksCompleted. Notification schemaVersion 2 has recipient page progress but no chunksCompleted.\
+      \ Complete requires traversal end and null nextCursor. Legacy omission returns complete schemaVersion 1."
     "data_contract": "No tables/columns/migrations/grants or financial calculation changes; no arbitrary SQL input or raw\
       \ storage access."
     "sources":
-    - "https://github.com/welct0407/MW-Credit-App/blob/f261edcd51995795f250699f1ee91fb0d0c95a54/services/business/offline-dataset.mjs"
-    - "https://github.com/welct0407/MW-Credit-App/blob/f261edcd51995795f250699f1ee91fb0d0c95a54/services/payment-command/handler.mjs"
-    - "https://github.com/welct0407/MW-Credit-App/blob/f261edcd51995795f250699f1ee91fb0d0c95a54/services/payment-command/store.mjs"
-    - "https://github.com/welct0407/MW-Credit-App/blob/f261edcd51995795f250699f1ee91fb0d0c95a54/services/api/offline-read-slot.mjs"
-    - "https://github.com/welct0407/MW-Credit-App/blob/f261edcd51995795f250699f1ee91fb0d0c95a54/services/notifications/handler.mjs"
-    - "https://github.com/welct0407/MW-Credit-App/blob/f261edcd51995795f250699f1ee91fb0d0c95a54/services/notifications/store.mjs"
+    - "https://github.com/welct0407/MW-Credit-App/blob/374fe98ed21ab233f068dd337d7cbaef0eb24788/services/business/offline-dataset-chunks.mjs"
+    - "https://github.com/welct0407/MW-Credit-App/blob/374fe98ed21ab233f068dd337d7cbaef0eb24788/services/api/offline-dataset-cursor.mjs"
+    - "https://github.com/welct0407/MW-Credit-App/blob/374fe98ed21ab233f068dd337d7cbaef0eb24788/services/payment-command/handler.mjs"
+    - "https://github.com/welct0407/MW-Credit-App/blob/374fe98ed21ab233f068dd337d7cbaef0eb24788/services/payment-command/store.mjs"
+    - "https://github.com/welct0407/MW-Credit-App/blob/374fe98ed21ab233f068dd337d7cbaef0eb24788/services/notifications/handler.mjs"
+    - "https://github.com/welct0407/MW-Credit-App/blob/374fe98ed21ab233f068dd337d7cbaef0eb24788/services/notifications/store.mjs"
+    "protocol": "Omitted protocol retains legacy schemaVersion 1 complete response. protocol=2 selects schemaVersion 2 on\
+      \ both routes, with optional cursor. Explicit protocol=1, unknown/duplicate params or cursor without protocol=2 rejected."
+    "cursor": "Canonical traversal cursor validates actor issuer/subject/partner, domain, business day, startedAt/generation,\
+      \ phase/state and done count. Day change or age over 24h yields dataset_changed; no owner/domain traversal reuse."
+    "bounds": "Main domain responses pack at most 8 logical pages, checking elapsed 750ms or 512KiB between pages; targets\
+      \ are not hard limits on one query/page. Notification responses retain at most 25 history rows per page. Existing reader/detail\
+      \ batching limits retained."
 "evidence":
   "/content/read_routes":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/68e8a39e63e44123dcbab3f819c72d711e2a3240/services/api/dev-read-handler.mjs"
@@ -127,4 +136,32 @@
   "/content/command_service_read_routes":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/f261edcd51995795f250699f1ee91fb0d0c95a54/services/notifications/handler.mjs"
     "reason": "Register new DEV-only bulk browser reads alongside exact scoped contracts"
+    "state": "value"
+  "/content/offline_dataset/protocol":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/374fe98ed21ab233f068dd337d7cbaef0eb24788/services/business/offline-dataset-chunks.mjs"
+    "reason": "Resumable bounded protocol-2 preparation fixes measured DEV timeouts while retaining legacy compatibility and\
+      \ existing DTO/authorization contracts"
+    "state": "value"
+  "/content/offline_dataset/transaction":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/374fe98ed21ab233f068dd337d7cbaef0eb24788/services/business/offline-dataset-chunks.mjs"
+    "reason": "Resumable bounded protocol-2 preparation fixes measured DEV timeouts while retaining legacy compatibility and\
+      \ existing DTO/authorization contracts"
+    "state": "value"
+  "/content/offline_dataset/result":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/374fe98ed21ab233f068dd337d7cbaef0eb24788/services/notifications/store.mjs"
+    "reason": "Differentiate main packed phase traversal from recipient notification page protocol exactly"
+    "state": "value"
+  "/content/offline_dataset/cursor":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/374fe98ed21ab233f068dd337d7cbaef0eb24788/services/business/offline-dataset-chunks.mjs"
+    "reason": "Resumable bounded protocol-2 preparation fixes measured DEV timeouts while retaining legacy compatibility and\
+      \ existing DTO/authorization contracts"
+    "state": "value"
+  "/content/offline_dataset/bounds":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/374fe98ed21ab233f068dd337d7cbaef0eb24788/services/notifications/store.mjs"
+    "reason": "Differentiate main packed phase traversal from recipient notification page protocol exactly"
+    "state": "value"
+  "/content/offline_dataset/sources":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/374fe98ed21ab233f068dd337d7cbaef0eb24788/services/business/offline-dataset-chunks.mjs"
+    "reason": "Resumable bounded protocol-2 preparation fixes measured DEV timeouts while retaining legacy compatibility and\
+      \ existing DTO/authorization contracts"
     "state": "value"

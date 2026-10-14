@@ -19,9 +19,9 @@ Private receipts: `gs://mw-payment-receipts-prod-508610-n7`. Agent originals and
 
 | Component | Pin / evidence |
 | --- | --- |
-| DEV frontend | source `f261edcd51995795f250699f1ee91fb0d0c95a54`, Hosting `a937917a6be4eb8d`, release `1791962760263000`, marker `cc657ff758e4184964be246c`, entry `index-CX4JgELq.js`; live-dev build, verified 14 October 2026 14:26 ICT; [R058 record](Development_Changes.md#r058-borrower-upcoming-batch) |
+| DEV frontend | source `374fe98ed21ab233f068dd337d7cbaef0eb24788`, Hosting `1349356cb8fee134`, release `1791965441426000`, marker `820737c7a209eaf6baa3b466`, entry `index-yGazutK2.js`; live-dev build, verified 14 October 2026 15:10 ICT; [R058 record](Development_Changes.md#r058-borrower-upcoming-batch) |
 | DEV reader | `mw-credit-app-read-dev-00020-m9t`, Ready and 100% traffic; digest `sha256:60c9f6c7cfe701264a5add48de2934fa18db8b418652e5622b054a2a40eb0958`, source `2ef73db`; DEV database/IAM/origins preserved; [R058 record](Development_Changes.md#r058-borrower-upcoming-batch) |
-| DEV command | `mw-credit-app-command-dev-00023-q5s`, Ready and 100% traffic; digest `sha256:88960f9bd8d903e9c40393426178dab84423c2342a6c0c6fa296d74a8561bbe7`, source `f261edcd`; existing DEV command bindings and notification enablement preserved; [R058 record](Development_Changes.md#r058-borrower-upcoming-batch) |
+| DEV command | `mw-credit-app-command-dev-00024-s64`, Ready and 100% traffic; digest `sha256:7933ec5bdf820469eead8211814e2cde8327132d7dbbdfd0961b8aaabb324ab7`, source `374fe98e`; existing DEV command bindings and notification enablement preserved; [R058 record](Development_Changes.md#r058-borrower-upcoming-batch) |
 | PROD frontend | source c07ada0, Hosting 218943a0966051ca, release 1791825659922000; [actual record](../outputs/r054-production/promotion-actual.json) |
 | PROD command / notify | revisions 00006-lrd / 00003-bj4, digest b4f528bc8ac48008ed0951e227089d3d0802a7a6c2dbaa826ada5e021e156aea; [V91 fix](../outputs/r056-apple-push/README.md) |
 | PROD reader / jobs | unchanged by V91; [R053 actual package](../outputs/r053-notifications-jobs/promotion-actual.json) |
