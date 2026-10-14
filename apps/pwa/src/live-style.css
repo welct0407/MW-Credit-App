@@ -506,3 +506,9 @@ main[data-workspace=management] pre{white-space:pre-wrap;overflow-wrap:anywhere}
 /* Keep the refresh action recognizable; shape and text distinguish failure. */
 .live-header-refresh.refresh-failed { position: relative; }
 .refresh-failure-badge { position: absolute; top: 1px; right: 0; min-width: 17px; height: 17px; border-radius: 50%; background: #8b1a1a; color: white; border: 1px solid white; font: bold 13px/15px sans-serif; text-align: center; }
+
+.header-load-progress { width: 52px; height: 6px; flex: 0 0 52px; align-self: center; accent-color: #252525; border: 0; border-radius: 4px; overflow: hidden; }
+.header-load-progress::-webkit-progress-bar { background: rgb(255 255 255 / 55%); border-radius: 4px; }
+.header-load-progress::-webkit-progress-value { background: #252525; border-radius: 4px; transition: width 180ms ease; }
+.header-load-progress::-moz-progress-bar { background: #252525; border-radius: 4px; }
+.offline-preparation-status { margin: 4px 0; font-size: 12px; }

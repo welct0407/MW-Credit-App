@@ -24,6 +24,10 @@ Borrower detail Upcoming Charges reuses Collection's five-date forecast, date de
 
 Collection preserves status grouping and orders borrower names ascending within each group with stable id ties. Loan-related charges/payments order by business date descending, null dates last, then id ascending. Both use matching scoped/versioned cursor boundaries; existing eligibility, balances and authorization remain unchanged.
 
+DEV bulk reads use `GET /api/offline-dataset?domain=records|collection|cash|management` and recipient-scoped `GET /api/notifications/offline-dataset`. They retain authenticated membership/capabilities, existing read DTOs and SQL calculations in read-only repeatable-read transactions. One shared bulk connection slot preserves foreground SQL capacity; cancellation stops abandoned preparation. Cash coverage follows the existing recent-statement provider. These routes are disabled in PROD.
+
+The PWA prepares complete owner-scoped bundles and authorized receipt images separately from the response-cache LRU, enabling local search/paging and unvisited offline views. Foreground reads take priority; atomic replacement preserves prior complete data on storage failure. The header shows actual preparation progress and page-scoped refresh failures. Financial close/correction/auto-assignment/review and command-status reads remain online. Only the initial read-only Collection Note baseline may use prepared data; note autosave behavior is unchanged.
+
 Authentication state uses the Firebase SDK. Do not copy tokens into custom storage/logs/URLs. Clear or reject stale-session results and preserve denied access rather than granting permissions automatically. Offline viewed snapshots follow the current bounded cache policy; they do not authorize posting.
 
 ## Changes and verification

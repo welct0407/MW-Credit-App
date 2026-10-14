@@ -1,4 +1,6 @@
 import {wakeContext} from '../notifications/postcommit.mjs';
+import {readOfflineDataset,offlineDomains} from '../business/offline-dataset.mjs';
+import {withOfflineReadSlot,offlineReadClient} from '../api/offline-read-slot.mjs';
 import {canonicalNativeOperation,nativeOperationIdentity} from '../agent-conversations/native-operation-contract.mjs';
 import {closeSummary} from './close-summary.mjs';
 import {readManagementPosition} from '../business/management-position.mjs';
@@ -79,6 +81,12 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
     return committedResult;
   }
   return {
+    async offlineDataset(principal,domain,signal){
+      if(!ownerTesting||draftMode==='production-business')return failure(403,'access_denied');
+      if(!principalAllowed(principal))return failure(403,'access_denied');
+      if(!offlineDomains.includes(domain))return failure(400,'invalid_request');
+      try{return await withOfflineReadSlot(pool,signal,()=>run(principal,async(client,actor)=>({ok:true,value:await readOfflineDataset(offlineReadClient(client,signal),actor,domain)}),true))}catch{return failure(503,'command_unavailable')}
+    },
     async nativeOperation(principal,input){
       if(!ownerTesting)return failure(403,'access_denied');
       let command;try{command=canonicalNativeOperation(input)}catch{return failure(400,'invalid_request')}

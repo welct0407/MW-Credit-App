@@ -4,6 +4,18 @@ import {createNotificationStore,enqueueNotifications} from '../../services/notif
 import {createNotificationDispatcher} from '../../services/notifications/dispatcher.mjs';
 import {createCanonicalJobRunner} from '../../services/jobs/runner.mjs';
 import {createDevNotificationHandler} from '../../services/notifications/dev-api.mjs';
+import {withOfflineReadSlot,offlineReadClient} from '../../services/api/offline-read-slot.mjs';
+test('offline bundles share one pool reservation and cancel queued work before database access',async()=>{
+ const pool={},events=[],abort=new AbortController();let release;
+ const first=withOfflineReadSlot(pool,undefined,async()=>{events.push('first');await new Promise(resolve=>{release=resolve})});
+ await Promise.resolve();
+ const second=withOfflineReadSlot(pool,abort.signal,async()=>events.push('cancelled'));
+ const rejection=assert.rejects(second,/cancelled/);abort.abort();await rejection;
+ const third=withOfflineReadSlot(pool,undefined,async()=>events.push('third'));
+ assert.deepEqual(events,['first']);release();await Promise.all([first,third]);assert.deepEqual(events,['first','third']);
+ let calls=0;const client=offlineReadClient({query:async()=>{calls++;return {rows:[]}}},abort.signal);
+ await assert.rejects(client.query('SELECT 1'),/cancelled/);assert.equal(calls,0);
+});
 const id='00000000-0000-4000-8000-000000000001';
 const actor={issuer:'https://securetoken.google.com/clever-oasis-508610-n7',subject:'owner',partnerId:'partner',loginEmail:'owner@example.invalid'};
 test('API resolves fresh actor, uses fixed RPC and rejects wrong issuer before state access',async()=>{

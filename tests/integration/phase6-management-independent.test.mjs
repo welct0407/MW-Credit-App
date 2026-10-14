@@ -1,6 +1,34 @@
 import test,{before,after} from 'node:test';import assert from 'node:assert/strict';import {randomUUID} from 'node:crypto';import {readFileSync} from 'node:fs';
 import {connect,principal,command,journalRows,financialRows,sqlErrors} from './phase6-populated-fixture.mjs';import {verifyPopulatedJournalAfter83} from './phase5-populated-journal-fixture.mjs';import {canonicalOperation,operationIdentity} from '../../services/contracts/operation-command.mjs';import {OWNER_EMAIL,DEV_PROJECT} from '../../services/api/dev-read-config.mjs';
+import {bulkReadClient,readOfflineDataset} from '../../services/business/offline-dataset.mjs';
 let admin,app,store,proof,snapshot;before(async()=>{({admin,app,store,proof}=await connect(85));snapshot=JSON.parse(readFileSync(process.env.PHASE6_POPULATED_SNAPSHOT,'utf8'))});after(async()=>{await app?.end();await admin?.end()});
+test('offline bulk dataset preserves restricted-role detail DTOs and complete domain reads',async()=>{
+ await admin.query(`INSERT INTO public."Statistics"("Row ID","Statistics ID") SELECT 'C-P6-ANALYTICS','Synthetic analytics' WHERE NOT EXISTS(SELECT 1 FROM public."Statistics")`);
+ const beforeGraph=await financialRows(admin),beforeJournal=await journalRows(admin),start=sqlErrors.length;
+ const actor={issuer:`https://securetoken.google.com/${DEV_PROJECT}`,subject:principal.subject,partnerId:snapshot.fixture.actorId,loginEmail:OWNER_EMAIL};
+ const c=await app.connect();try{
+  await c.query('BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY');
+  const batch=bulkReadClient(c),query='SELECT n::text AS value FROM generate_series(1,$2::integer) n WHERE $1::text IS NOT NULL ORDER BY n DESC';
+  const values=await Promise.all([batch.query(query,['a',3]),batch.query(query,[null,3]),batch.query(query,['c',2])]);
+  assert.deepEqual(values.map(value=>value.rows),[[{value:'3'},{value:'2'},{value:'1'}],[],[{value:'2'},{value:'1'}]]);
+  await assert.rejects(batch.query('DELETE FROM public."Borrowers"'),/internal bulk/);
+  for(const domain of ['records','collection','cash','management']){
+   const result=await readOfflineDataset(c,actor,domain);assert.equal(result.complete,true);assert.equal(result.domain,domain);
+   if(domain==='records'){
+    assert.ok(result.data.borrowers.some(row=>row.id===snapshot.fixture.borrowerId));
+    const detail=(await store.borrowerRecord(principal,snapshot.fixture.borrowerId)).item;
+    const cached=result.data.borrowers.find(row=>row.id===detail.id);for(const key of Object.keys(detail).filter(key=>!['asOf','businessDate'].includes(key)))assert.deepEqual(cached[key],detail[key],key);
+    assert.ok(result.data.loanRelated[snapshot.fixture.loanIds[0]]);
+    assert.ok(result.data.paymentDrafts[snapshot.fixture.borrowerId].due);
+    assert.equal(JSON.stringify(result).includes('gs://'),false);
+   }
+  }
+  await c.query('ROLLBACK');
+ }catch(error){await c.query('ROLLBACK');throw error}finally{c.release()}
+ assert.deepEqual(sqlErrors.slice(start),[]);assert.deepEqual(await financialRows(admin),beforeGraph);assert.deepEqual(await journalRows(admin),beforeJournal);
+ assert.equal((await store.offlineDataset({...principal,email:'denied@example.test'},'records')).status,403);
+ assert.equal((await store.offlineDataset(principal,'unknown')).status,400);
+});
 const holderFields=()=>({holderName:'C holder '+randomUUID(),active:true,sortOrder:1});const accountFields=(id,label='C account '+randomUUID())=>({cashHolderId:id,accountLabel:label,bankName:'Synthetic bank',accountNumber:'SYNTHETIC-ONLY',alternativeAccountNumber:'SYNTHETIC-ALT',defaultAccount:false,active:true,sortOrder:1});
 async function read(kind,id){const r=await store.management(principal,kind,{id});assert.equal(r.status,200,JSON.stringify(r));assert.match(r.item.version,/^[a-f0-9]{64}$/);return r.item}
 async function applied(c){const r=await store.operation(principal,c);assert.equal(r.originalOutcome?.status,'applied',JSON.stringify(r));assert.deepEqual(await store.operation(principal,c),r);return r}

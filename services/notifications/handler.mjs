@@ -1,5 +1,5 @@
 /** Independent bounded, authenticated notification route wrapper; absent activation delegates. */
-export function notificationHandler({next,store,verifyPrincipal,origins,enabled=false,publicKey}){
+export function notificationHandler({next,store,verifyPrincipal,origins,enabled=false,publicKey,offlineDataset=false}){
  return async(req,res)=>{
   let url;try{url=new URL(req.url,'http://local.invalid')}catch{return next(req,res)}
   if(!enabled||!url.pathname.startsWith('/api/notifications'))return next(req,res);
@@ -11,7 +11,8 @@ export function notificationHandler({next,store,verifyPrincipal,origins,enabled=
   let principal;try{principal=await verifyPrincipal(req.headers.authorization)}catch{return reply(503,{error:'notification_unavailable'})}if(!principal?.ok)return reply(401,{error:'sign_in_required'});
   try{
    let value;const p=url.pathname;
-   if(req.method==='GET'&&p==='/api/notifications'&&[...url.searchParams.keys()].every(k=>k==='before')&&url.searchParams.getAll('before').length<=1)value=await store.history(principal,url.searchParams.get('before'));
+   if(req.method==='GET'&&p==='/api/notifications/offline-dataset'&&!url.search&&offlineDataset){const controller=new AbortController();res.once('close',()=>controller.abort());value=await store.offlineDataset(principal,controller.signal);}
+   else if(req.method==='GET'&&p==='/api/notifications'&&[...url.searchParams.keys()].every(k=>k==='before')&&url.searchParams.getAll('before').length<=1)value=await store.history(principal,url.searchParams.get('before'));
    else if(req.method==='GET'&&p==='/api/notifications/status'&&[...url.searchParams.keys()].every(k=>k==='device')&&url.searchParams.getAll('device').length<=1)value=await store.status(principal,url.searchParams.get('device'));
    else if(req.method==='GET'&&p==='/api/notifications/push-config'&&!url.search){await store.status(principal,null);value={publicKey};}
    else if(req.method==='GET'&&/^\/api\/notifications\/[a-f0-9-]{36}$/.test(p)&&!url.search)value=await store.target(principal,p.split('/').at(-1));

@@ -1,3 +1,4 @@
+import {readOfflineDataset} from './offline-dataset';
 import {applicationEnvironment} from './environment';
 import {syncSavedRequest} from './offline-sync';
 import {RecordAction} from './RecordAction';
@@ -70,7 +71,7 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
     let data:Draft;
     if(access.offlineOnly||!navigator.onLine){
      if(!await access.offline?.authorized())throw Error();
-     const snapshot=await access.offline!.snapshot<Draft>(borrowerId);if(!snapshot)throw Error();data=snapshot.value;setSavedAt(snapshot.savedAt);
+     const prepared=await readOfflineDataset(access,'/api/payment-drafts/'+encodeURIComponent(borrowerId)+'?scope=all');const snapshot=prepared?null:await access.offline!.snapshot<Draft>(borrowerId);if(!prepared&&!snapshot)throw Error();data=prepared??snapshot!.value;setSavedAt(snapshot?.savedAt??Date.parse(prepared.asOf));
     }else{
      const response=await call('/api/payment-drafts/'+encodeURIComponent(borrowerId)+'?scope=all');if(!response.response.ok)throw Error();data=response.data;
      if(current!==generation.current)return;
@@ -159,7 +160,7 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
   if(paging)return;
   const cursor=index>pageIndex?draft?.nextCursor:pageCursors.current[index];if(index>pageIndex&&!cursor)return;
   const current=generation.current;setPaging(true);
-  try{const {response,data}=await call('/api/payment-drafts/'+encodeURIComponent(borrowerId)+'?scope=all'+(cursor?'&cursor='+encodeURIComponent(cursor):''));if(current!==generation.current)return;if(!response.ok)throw Error();pageCursors.current[index]=cursor??undefined;setDraft(data);setPageIndex(index)}catch{if(current===generation.current)setError(t('Unable to load the page.','โหลดหน้านี้ไม่ได้'));}finally{if(current===generation.current)setPaging(false)}
+  try{const path='/api/payment-drafts/'+encodeURIComponent(borrowerId)+'?scope=all'+(cursor?'&cursor='+encodeURIComponent(cursor):'');const cached=access.offlineOnly||!navigator.onLine?await readOfflineDataset(access,path):null;const {response,data}=cached?{response:{ok:true},data:cached}:await call(path);if(current!==generation.current)return;if(!response.ok)throw Error();pageCursors.current[index]=cursor??undefined;setDraft(data);setPageIndex(index)}catch{if(current===generation.current)setError(t('Unable to load the page.','โหลดหน้านี้ไม่ได้'));}finally{if(current===generation.current)setPaging(false)}
  }
  async function review(){if(reviewing)return;setState('review');setReviewing(true);try{await refreshSelection()}finally{setReviewing(false)}}
  useEffect(()=>()=>{if(preview)URL.revokeObjectURL(preview)},[preview]);

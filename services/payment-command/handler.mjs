@@ -8,6 +8,7 @@ function route(raw) {
   try {
     const url = new URL(raw, 'http://candidate.invalid');
     if (url.hash) return { invalid: true, operation: 'unknown' };
+    if(url.pathname==='/api/offline-dataset'){if([...url.searchParams.keys()].some(key=>key!=='domain')||url.searchParams.getAll('domain').length!==1)return {invalid:true,operation:'unknown'};return {operation:'offline_dataset',domain:url.searchParams.get('domain')};}
     if(url.pathname==='/api/management/cash-position'){if(url.search)return {invalid:true,operation:'unknown'};return {operation:'management',kind:'cash-position',options:{}};}
     if(url.pathname==='/api/management/analytics-overview'){if(url.search)return {invalid:true,operation:'unknown'};return {operation:'management',kind:'analytics-overview',options:{}};}
     if(url.pathname==='/api/management/analytics-chart'){if([...url.searchParams.keys()].some(key=>!['metric','limit','cursor'].includes(key)||url.searchParams.getAll(key).length!==1))return {invalid:true,operation:'unknown'};return {operation:'management',kind:'analytics-chart',options:{metric:url.searchParams.get('metric'),limit:url.searchParams.has('limit')?Number(url.searchParams.get('limit')):25,cursor:url.searchParams.get('cursor')}};}
@@ -116,7 +117,8 @@ function buildHandler({ origins, verifyPrincipal, store, completionLogger = () =
     if(['borrower_create','operation_submit'].includes(target.operation)&&req.method!=='POST'||['management','record_list','collection_receipts','upcoming','payment_image','dashboard','loan_related','preferences','cash_overview','cash_statement','borrower_options','loan_options','loan_record','charge_record','payment_record','expense_record','expense_options','expense_list','loan_close_preview','operation_status'].includes(target.operation)&&req.method!=='GET'||target.operation==='borrower_record'&&!['GET','PATCH','DELETE'].includes(req.method))return reject(405,'method_not_allowed');
     let result;
     try {
-      if(target.operation==='operation_status')result=await store.operationStatus(principal,target.requestId);
+      if(target.operation==='offline_dataset'){if(req.method!=='GET')return reject(405,'method_not_allowed');result=await store.offlineDataset(principal,target.domain,wakeAbort.signal);}
+      else if(target.operation==='operation_status')result=await store.operationStatus(principal,target.requestId);
       else if(target.operation==='operation_submit'){
         if(!/^application\/json(?:\s*;\s*charset=utf-8)?$/i.test(req.headers['content-type']||'')||(req.headers['content-encoding']&&req.headers['content-encoding']!=='identity'))return reject(415,'invalid_request');
         let input;try{input=await body(req)}catch(error){return reject(error.bodyCode==='body_too_large'?413:400,error.bodyCode||'invalid_request')}

@@ -1,13 +1,23 @@
 import {validateSubscription} from './web-push.mjs';
+import {withOfflineReadSlot,offlineReadClient} from '../api/offline-read-slot.mjs';
 const uuid=v=>typeof v==='string'&&/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(v);
 /** Only fixed RPCs touch protected notification state. Identity is resolved afresh. */
 export function createNotificationStore({pool,guardConnection,resolveActor,issuer}){
- async function run(principal,action){
+ async function run(principal,action,readonly=false){
   const c=await pool.connect();let healthy=false;
-  try{await c.query('BEGIN');await guardConnection(c);const actor=await resolveActor(c,principal,'read');if(!actor||actor.issuer!==issuer)throw Error('access_denied');const value=await action(c,actor);await c.query('COMMIT');healthy=true;return value;}
+  try{await c.query(readonly?'BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY':'BEGIN');await guardConnection(c);const actor=await resolveActor(c,principal,'read');if(!actor||actor.issuer!==issuer)throw Error('access_denied');const value=await action(c,actor);await c.query('COMMIT');healthy=true;return value;}
   catch(e){try{await c.query('ROLLBACK');healthy=true}catch{}throw e;}finally{c.release(!healthy);}
  }
  return{
+  offlineDataset:(p,signal)=>withOfflineReadSlot(pool,signal,()=>run(p,async(c,a)=>{
+   c=offlineReadClient(c,signal);
+   const stamp=(await c.query(`SELECT to_char(CURRENT_TIMESTAMP AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "asOf",(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date::text AS "businessDate"`)).rows[0];
+   const items=[],seen=new Set();let before=null;
+   do{const rows=(await c.query('SELECT * FROM public.pwa_notify_history_v1($1::jsonb,$2::timestamptz,$3::uuid)',[a,before?.occurredAt??null,before?.eventId??null])).rows;items.push(...rows.slice(0,25));if(rows.length<=25)break;before=rows[24];const key=before.occurredAt+'|'+before.eventId;if(seen.has(key))throw Error('notification_unavailable');seen.add(key)}while(true);
+   const targets=items.length?(await c.query('SELECT event_id AS "eventId",to_jsonb(target) AS value FROM unnest($2::uuid[]) AS events(event_id) CROSS JOIN LATERAL public.pwa_notify_target_v1($1::jsonb,event_id) target',[a,items.map(row=>row.eventId)])).rows.map(row=>({eventId:row.eventId,...row.value})):[];
+   const status=(await c.query('SELECT public.pwa_notify_status_v1($1::jsonb,NULL::text) AS value',[a])).rows[0].value;
+   return {ok:true,schemaVersion:1,domain:'notifications',...stamp,complete:true,data:{items,targets,status}};
+  },true)),
   subscribe:(p,input)=>run(p,async(c,a)=>{validateSubscription(input);return(await c.query('SELECT public.pwa_notify_subscribe_v1($1::jsonb,$2::jsonb) AS value',[a,input])).rows[0].value;}),
   revoke:(p,id)=>run(p,async(c,a)=>{if(!uuid(id))throw Error('invalid_request');await c.query('SELECT public.pwa_notify_revoke_v1($1::jsonb,$2::uuid)',[a,id]);return{ok:true};}),
   preference:(p,enabled)=>run(p,async(c,a)=>{if(typeof enabled!=='boolean')throw Error('invalid_request');await c.query('SELECT public.pwa_notify_preference_v1($1::jsonb,$2::boolean)',[a,enabled]);return{enabled};}),

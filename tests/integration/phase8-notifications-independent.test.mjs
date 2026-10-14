@@ -41,6 +41,18 @@ test('enqueue drains more than100 events per device, excludes actor/unknown and 
  }finally{await f.close();}
 });
 
+test('offline notification dataset matches restricted history pages and targets without writes or delivery credentials',async()=>{
+ const f=await fixture();try{
+  const recipient=await f.subscription(f.recipient,'offline'),other=await f.subscription(f.other,'isolated');
+  for(let n=0;n<31;n++){const event=await f.event('offline-'+n);await f.delivery(event,recipient);if(n===0)await f.delivery(event,other)}
+  const before=(await f.pool.query('SELECT count(*)::int AS events FROM public.pwa_notification_events WHERE dedupe_key LIKE $1',[f.prefix+'%'])).rows[0];
+  const expected=[];let cursor=null;do{const page=await f.store.history(f.principal(f.recipient),cursor);expected.push(...page.items);cursor=page.nextCursor}while(cursor);
+  assert.equal(expected.length,31);const result=await f.store.offlineDataset(f.principal(f.recipient));assert.equal(result.schemaVersion,1);assert.equal(result.domain,'notifications');assert.equal(result.complete,true);assert.equal(result.ok,true);assert.match(result.businessDate,/^\d{4}-\d{2}-\d{2}$/);assert.ok(Number.isFinite(Date.parse(result.asOf)));assert.deepEqual(result.data.items,expected);assert.equal(new Set(result.data.items.map(row=>row.eventId)).size,31);
+  assert.equal(result.data.targets.length,31);for(const target of result.data.targets){const{eventId,...value}=target;assert.deepEqual(value,await f.store.target(f.principal(f.recipient),eventId))}assert.deepEqual(result.data.status,await f.store.status(f.principal(f.recipient),null));
+  const isolated=await f.store.offlineDataset(f.principal(f.other));assert.equal(isolated.data.items.length,1);const own=await f.store.offlineDataset(f.principal(f.actor));assert.deepEqual(own.data.items,[]);assert.deepEqual(own.data.targets,[]);assert.doesNotMatch(JSON.stringify(result),new RegExp([recipient.endpoint,other.endpoint,f.keys.auth,f.keys.p256dh].map(value=>value.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')));assert.deepEqual((await f.pool.query('SELECT count(*)::int AS events FROM public.pwa_notification_events WHERE dedupe_key LIKE $1',[f.prefix+'%'])).rows[0],before);assert.equal((await f.pool.query("SELECT count(*)::int AS changed FROM public.pwa_notification_deliveries WHERE event_id IN(SELECT event_id FROM public.pwa_notification_events WHERE dedupe_key LIKE $1) AND state<>'pending'",[f.prefix+'%'])).rows[0].changed,0);
+ }finally{await f.close()}
+});
+
 test('two real DB dispatchers cannot both send one delivery and later rows remain unleased until send',async()=>{
  const f=await fixture();try{
   const s=await f.subscription(f.recipient,'one'),first=await f.delivery(await f.event(1),s),second=await f.delivery(await f.event(2),s);let sends=0;
