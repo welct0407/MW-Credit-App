@@ -5,7 +5,7 @@ import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {spawnSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
-import {executeBusinessHosting,appOnlyHostingPlan,verifyAppOnlyOperator} from '../../scripts/promotion/deploy-business-hosting.mjs';
+import {executeBusinessHosting,appOnlyHostingPlan,verifyAppOnlyOperator,validateFrontendSource,validateFrontendCi,frontendOnlyHostingPlan,verifyFrontendOnlyLivePackage} from '../../scripts/promotion/deploy-business-hosting.mjs';
 const site='mw-credit-prod-737787224638',version=`sites/${site}/versions/abc123`,release=`sites/${site}/releases/xyz123`;
 const plan=()=>({site,files:{'/index.html':'a'.repeat(64)},contents:new Map([['a'.repeat(64),Buffer.from('compressed')]]),headers:[],sourceCommit:'b'.repeat(40),publicVersion:'marker'});
 function transport({target=version,hash='a'.repeat(64),upload='https://upload-firebasehosting.googleapis.com/upload/'+version+'/files',failFinalize=false}={}){const calls=[];return {calls,request:async(url,method,body)=>{calls.push({url,method,body});if(url.endsWith('/versions'))return {name:target};if(url.endsWith(':populateFiles'))return {uploadRequiredHashes:[hash],uploadUrl:upload};if(method==='PATCH'){if(failFinalize)throw Error('Finalize failed');return {name:version,status:'FINALIZED'};}if(url.includes('/releases?'))return {name:release,version:{name:version}};return {};}};}
@@ -46,4 +46,34 @@ test('app-only exact package validates and repinned configuration, worker, CI, a
  assert.equal((await appOnlyHostingPlan(m)).site,site);
  for(const mutate of [x=>x.applicationCi.jobs[0].steps[3].conclusion='skipped',x=>x.target.database='loan_manager_dev',x=>x.applied.services.command.trafficPercent=99,x=>x.applied.services.jobs={...x.applied.services.jobs,image:image.replace(/b/g,'d')},x=>x.sql.targetVersion=92,x=>x.frontend.files[0].sha256='d'.repeat(64)]){const candidate=structuredClone(m);mutate(candidate);await assert.rejects(appOnlyHostingPlan(candidate));}
  await writeFile(path.join(artifact,'sw.js'),content['sw.js'].replace('mw-credit-prod-public-','mw-credit-dev-public-'));const altered=structuredClone(m);altered.frontend.files.find(x=>x.path==='sw.js').sha256=createHash('sha256').update(content['sw.js'].replace('mw-credit-prod-public-','mw-credit-dev-public-')).digest('hex');await assert.rejects(appOnlyHostingPlan(altered),/worker/);
+});
+
+const frontendSteps=['Run npm run check','Run npm run build:live-dev','Run npm audit --omit=dev --audit-level=moderate','Run terraform fmt -check -recursive infrastructure','Run terraform -chdir=infrastructure/dev init -backend=false','Run terraform -chdir=infrastructure/dev validate','Run terraform -chdir=infrastructure/dev-dns init -backend=false','Run terraform -chdir=infrastructure/dev-dns validate'];
+function frontendReceipt(){return {run:{id:123,repository:{full_name:'welct0407/MW-Credit-App'},path:'.github/workflows/ci.yml',head_sha:'a'.repeat(40),event:'pull_request',status:'completed',conclusion:'success'},jobs:[{steps:[...frontendSteps.map(name=>({name,conclusion:'success'})),{name:'Run npm run test:e2e',conclusion:'skipped'}]}]};}
+test('R061 frontend CI requires executed build, unit, audit and Terraform while reporting skipped browser truthfully',()=>{
+ const receipt=frontendReceipt();assert.deepEqual(validateFrontendCi(receipt,'a'.repeat(40)),{runId:123,browser:'skipped'});
+ for(const name of frontendSteps){const bad=structuredClone(receipt);bad.jobs[0].steps.find(step=>step.name===name).conclusion='skipped';assert.throws(()=>validateFrontendCi(bad,'a'.repeat(40)),/missing executed/)}
+ for(const mutate of [r=>r.run.head_sha='b'.repeat(40),r=>r.run.conclusion='failure',r=>r.run.event='workflow_dispatch',r=>r.run.repository.full_name='other/repo',r=>r.jobs[0].steps.at(-1).conclusion='failure']){const bad=structuredClone(receipt);mutate(bad);assert.throws(()=>validateFrontendCi(bad,'a'.repeat(40)))}
+});
+test('R061 apply re-reads actual CI and rejects changed source or failed executed check',async()=>{
+ const receipt=frontendReceipt(),calls=[],m={sourceCommit:'a'.repeat(40),applicationCi:receipt};
+ const readGithub=async args=>{calls.push(args);return args[1].includes('/jobs?')?{jobs:receipt.jobs}:receipt.run};
+ assert.equal((await verifyFrontendOnlyLivePackage(m,{readGithub})).browser,'skipped');assert.equal(calls.length,2);
+ receipt.jobs[0].steps[0].conclusion='failure';await assert.rejects(verifyFrontendOnlyLivePackage(m,{readGithub}),/missing executed/);
+});
+test('R061 parity permits only frontend and tests; delivery-only correction cannot smuggle API, SQL or dirty inputs',()=>{
+ const baseline='66af7a5bea4c69a108b0eee96d6386d6134cba47',source='a'.repeat(40),tool='b'.repeat(40);
+ const m={sourceCommit:source,artifactSourceCommit:source,sourceBaseline:baseline,repoRoot:path.resolve('.'),artifactRoot:path.resolve('dist'),deliveryToolSource:tool,deliveryToolChecks:{command:'node --test tests/unit/business-hosting-delivery.test.mjs',exitCode:0}};
+ const git=({changed='apps/pwa/src/LoanRecord.tsx\ntests/e2e/back-consumers-independent.spec.ts',delivery='scripts/promotion/deploy-business-hosting.mjs',dirty='',untracked=''}={})=>(_root,args)=>args[0]==='rev-parse'?(args[1]==='HEAD'?tool:source):args[0]==='merge-base'?baseline:args[0]==='ls-files'?untracked:args.includes('--')?dirty:args[2]===baseline?changed:delivery;
+ assert.doesNotThrow(()=>validateFrontendSource(m,git()));
+ for(const changed of ['services/api/server.mjs','database/migrations/V092.sql','package-lock.json','infrastructure/prod/main.tf','.github/workflows/ci.yml','scripts/production/build-business-candidate.mjs'])assert.throws(()=>validateFrontendSource(m,git({changed})),/non-frontend/);
+ assert.throws(()=>validateFrontendSource(m,git({delivery:'apps/pwa/src/LoanRecord.tsx'})),/delivery-only/);
+ assert.throws(()=>validateFrontendSource(m,git({dirty:'services/api/server.mjs'})),/working/);
+ assert.throws(()=>validateFrontendSource(m,git({untracked:'services/new.mjs'})),/untracked/);
+ assert.throws(()=>validateFrontendSource({...m,sourceBaseline:source},git()),/baseline/);
+});
+test('R061 contract rejects wrong scope and runtime apply fields without weakening R059',async()=>{
+ await assert.rejects(frontendOnlyHostingPlan({schemaVersion:3,release:'R062',environment:'prod',scope:'frontend-only',status:'prepared'}),/package kind/);
+ await assert.rejects(frontendOnlyHostingPlan({schemaVersion:3,release:'R061',environment:'prod',scope:'frontend-only',status:'prepared',sql:{}}),/must not apply/);
+ await assert.rejects(appOnlyHostingPlan({schemaVersion:3,release:'R061',environment:'prod',scope:'frontend-only',status:'prepared'}),/package kind/);
 });
