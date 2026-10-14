@@ -15,10 +15,11 @@ All new features/fixes use the sole Open release. Freeze only at authorized prom
 | Release | Status | Remaining action / owning record |
 | --- | --- | --- |
 | R062 | Open | Carried unfinished integration deployment tooling: reload the active webhook receiver and verify readiness before workers resume. Excluded from R061frontend promotion; existing integration owning record below. |
-| R061 | Frozen — 15October2026 03:25:59Bangkok / 14October20:25:59UTC | Owner-authorized UI-only PRODfrontend package: runtime/artifact `1e0dd73ae856ef55fdcdd6fc1e8097d5d9335817`, runner `5e8237917a5f54c59d281fedccd0651d4fe59194`; package SHA256 `541a287712d50fe6253fb90485832471640dd3faee534b99a5fc740fe906a832`, guard passed, apply pending; [existing record](Development_Changes.md#r061-prod-frontend-record-preparation). |
 | R056 | Frozen; V91 deployed | Lisa enrollment retry/closure; [record](../outputs/r056-apple-push/README.md) |
 | R055 | Frozen; monitoring delivered | Carried credential work unfinished; [record](../outputs/r055-grafana/continuation.md) |
 | R016 | Owner-accepted reporting; administrative follow-up | Migration-key retirement evidence/final tag unresolved; do not reopen product development |
+
+R061 directLoanDelete/sharedsubmitted-action frontend is Released: app/artifact `1e0dd73ae856ef55fdcdd6fc1e8097d5d9335817`, tool `5e8237917a5f54c59d281fedccd0651d4fe59194`, PRODHostingadaa39161d4af455 verified15October2026 03:27:42Bangkok; [existing record](Development_Changes.md#r061-prod-frontend-record-preparation). R062Open,nextR063.
 
 R060 command-only offline-dataset recovery is Released: source `a2f683eb74f3c3c5dc027520642a07a07f4c1558`, PRODcommand00008-qb7 verified15October2026 at00:19:59Bangkok; [existing record](Development_Changes.md#r060-production-offline-dataset-recovery). R062 is Open; nextR063.
 
