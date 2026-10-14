@@ -1,3 +1,4 @@
+import {useAppUpdateBlock} from './app-update-safety';
 import {Icon} from './Icon';
 import {HeaderBack} from './HeaderBack';
 import React,{useEffect,useRef,useState} from 'react';
@@ -7,6 +8,7 @@ import {syncSavedRequest} from './offline-sync';
 export function OperationConfirm({access,command,domain,label,thai,recovery=false,draftKey,receipt,children,onBack,onApplied}:{access:CommandAccess;command:any;domain:string;label:string;thai:boolean;recovery?:boolean;draftKey?:string;receipt?:{id:string;image:Blob;borrowerId?:string};children?:React.ReactNode;onBack:()=>void;onApplied:(result:any)=>void}){
  const t=(en:string,th:string)=>thai?th:en,payload=useRef(command),inflight=useRef(false),applied=useRef(false);
  const [busy,setBusy]=useState(false),[saved,setSaved]=useState(recovery),[error,setError]=useState(''),[blocked,setBlocked]=useState(false);
+ useAppUpdateBlock(!saved||busy);
  const accept=useRef((outcome:any)=>{});accept.current=outcome=>{if(outcome.kind==='synced'&&!applied.current){applied.current=true;onApplied(outcome.data?.originalOutcome?.result)}else if(outcome.kind==='blocked'){setBlocked(true);setError(t('This saved change needs attention. Review the current record before making a new change.','รายการที่บันทึกนี้ต้องตรวจสอบ เปิดข้อมูลปัจจุบันก่อนทำรายการใหม่'))}};
  useEffect(()=>{const outcome=(event:Event)=>{const detail=(event as CustomEvent).detail;if(detail?.requestId===payload.current.requestId)accept.current(detail)};window.addEventListener('mw-offline-sync-outcome',outcome);return()=>window.removeEventListener('mw-offline-sync-outcome',outcome)},[]);
  async function save(){if(inflight.current)return;inflight.current=true;setBusy(true);setError('');try{

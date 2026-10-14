@@ -1,3 +1,4 @@
+import {useAppUpdateBlock} from './app-update-safety';
 import {Icon} from './Icon';
 import {subscribeOfflineDataset,readCachedJson,readCachedBlob} from './read-cache';
 import {wholeBaht} from './display-money';
@@ -18,6 +19,7 @@ export function PaymentRecord({access,id,thai,onBack}:{access:CommandAccess;id:s
  useViewedSnapshot(access,'payment',item);
  useEffect(()=>{let active=true,url:string|null=null;setReceiptUrl(null);setReceiptError(false);if(!item||(!item.receiptReference&&!item.agentReceiptPresent))return;const done=beginRequest(),controller=new AbortController();void(async()=>{try{const {response,data:blob}=await readCachedBlob(access,'/api/payment-records/'+encodeURIComponent(id)+'/receipt?source='+receiptSource,{signal:controller.signal,onCached:blob=>{if(active){if(url)URL.revokeObjectURL(url);url=URL.createObjectURL(blob);setReceiptUrl(url)}}});if(!response.ok)throw Error();if(!active)return;if(url)URL.revokeObjectURL(url);url=URL.createObjectURL(blob);setReceiptUrl(url)}catch{if(active)setReceiptError(true)}finally{done()}})();return()=>{active=false;controller.abort();if(url)URL.revokeObjectURL(url)}},[id,item?.receiptAt,item?.agentReceiptAt,item?.receiptReference,item?.agentReceiptPresent,receiptSource,access.offlineOnly]);
 
+ useAppUpdateBlock((!!moving&&!action)||flight.current);
  const preserveSource=useRef(false);preserveSource.current=!!(editing||!!action||!!moving);
  async function load(){const current=++generation.current,done=beginRequest();setError('');try{const value=await read(false,value=>{if(current===generation.current)if(!preserveSource.current)setItem(value)});if(current===generation.current)if(!preserveSource.current)setItem(value)}catch{if(current===generation.current)setError(t('Payment details unavailable.','ไม่สามารถโหลดรายละเอียดรับชำระ'))}finally{done()}}
  useEffect(()=>{setAction(null);setItem(null);setReceiptSource('preferred');void load();return()=>{generation.current++}},[id]);

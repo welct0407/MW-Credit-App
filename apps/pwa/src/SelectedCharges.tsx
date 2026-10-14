@@ -1,3 +1,4 @@
+import {useAppUpdateBlock} from './app-update-safety';
 import {Icon} from './Icon';
 import {ReceiptPicker} from './ReceiptPicker';
 import {readOfflineDataset} from './offline-dataset';
@@ -23,6 +24,7 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
  const queueEnabled=applicationEnvironment!=='prod'&&!!access.offline;
  const [draft,setDraft]=useState<Draft|null>(null),[selected,setSelected]=useState<string[]>([]),[account,setAccount]=useState(''),[notes,setNotes]=useState('');
  const [state,setState]=useState<'loading'|'edit'|'review'|'sending'|'unknown'|'posted'|'rejected'|'conflict'|'error'|'queued'>('loading');
+ useAppUpdateBlock(['loading','edit','review','sending','unknown','conflict'].includes(state));
  const [draftSaveFailed,setDraftSaveFailed]=useState(false);
  const [error,setError]=useState(''),[receipt,setReceipt]=useState<string|null>(null),[preview,setPreview]=useState<string|null>(null),[uploading,setUploading]=useState(false),[uploadFailed,setUploadFailed]=useState(false);
  const [checking,setChecking]=useState(false),[receiptReadError,setReceiptReadError]=useState(''),[verifiedPreview,setVerifiedPreview]=useState<string|null>(null);

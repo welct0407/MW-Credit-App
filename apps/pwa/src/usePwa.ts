@@ -1,3 +1,4 @@
+import {appUpdateSafe,useAppUpdateSafe} from './app-update-safety';
 import {applicationEnvironment,canonicalAppOrigin} from './environment';
 import { useEffect, useRef, useState } from 'react';
 
@@ -11,6 +12,13 @@ const canonical = import.meta.env.PROD && applicationEnvironment !== 'synthetic'
   && location.origin === canonicalAppOrigin;
 
 export function usePwa() {
+  const safe=useAppUpdateSafe();
+  const [resumeTick,setResumeTick]=useState(0),[retryPending,setRetryPending]=useState(false);
+  const attemptedUpdates=useRef(new Set<ServiceWorker>()),checkUpdateRef=useRef<(force?:boolean)=>void>(()=>{});
+  const canReload=()=>appUpdateSafe()&&document.visibilityState==='visible';
+  const reload=()=>{if(!canReload())return false;try{const page=document.querySelector<HTMLElement>('main[data-workspace]');if(page)sessionStorage.setItem('mw-app-update-navigation',JSON.stringify({view:page.dataset.workspace,management:page.dataset.managementSection}))}catch{/* Navigation restoration is optional. */}location.reload();return true};
+  useEffect(()=>{const resume=()=>setResumeTick(value=>value+1);window.addEventListener('focus',resume);window.addEventListener('pageshow',resume);document.addEventListener('visibilitychange',resume);return()=>{window.removeEventListener('focus',resume);window.removeEventListener('pageshow',resume);document.removeEventListener('visibilitychange',resume)}},[]);
+
   const [startup,setStartup]=useState<'checking'|'upgrading'|'ready'|'error'|'offline'>(canonical?(navigator.onLine?'checking':'offline'):'ready');
   const [attempt,setAttempt]=useState(0);
   const startupReload=useRef(false);
@@ -25,6 +33,7 @@ export function usePwa() {
   useEffect(() => () => { activationCleanup.current?.(); chosenActivation.current = null; }, []);
   useEffect(() => {
     if (!canonical) return;
+    if(!appUpdateSafe()){setRetryPending(true);return;}
     if(!navigator.onLine){setStartup('offline');return;}
     setStartup('checking');startupReload.current=false;
     const manifest = document.createElement('link'); manifest.rel = 'manifest'; manifest.href = '/manifest.webmanifest';
@@ -39,17 +48,23 @@ export function usePwa() {
     window.addEventListener('beforeinstallprompt', beforeInstall);
     window.addEventListener('appinstalled', installed);
     let disposed = false;
+    let startupActivationTimer:ReturnType<typeof setTimeout>|undefined;
     let registration: ServiceWorkerRegistration | undefined;
     let previousController = navigator.serviceWorker?.controller ?? null;
     let lastCheck = 0;
-    const checkUpdate = () => {
-      if (document.visibilityState !== 'visible' || !registration || performance.now() - lastCheck < 60000) return;
-      lastCheck = performance.now();
-      void registration.update().catch(() => { if (!disposed) setUnavailable(true); });
+    let checking=false;
+    const checkUpdate = (force=false) => {
+      if (document.visibilityState !== 'visible' || !navigator.onLine || !registration || checking || (!force&&performance.now() - lastCheck < 60000)) return;
+      lastCheck = performance.now();checking=true;
+      void registration.update().catch(() => { if (!disposed) setUnavailable(true); }).finally(()=>{checking=false});
     };
+    checkUpdateRef.current=checkUpdate;
+    const checkOnResume=()=>checkUpdate();
+    const checkTimer=setInterval(checkOnResume,60000);
+    window.addEventListener('focus',checkOnResume);window.addEventListener('pageshow',checkOnResume);window.addEventListener('online',checkOnResume);
     const changed = () => {
-      if(startupReload.current){startupReload.current=false;location.reload();return;}
-      if (chosenActivation.current === navigator.serviceWorker.controller && chosenActivation.current) { activationCleanup.current?.(); chosenActivation.current = null; location.reload(); return; }
+      if(startupReload.current){clearTimeout(startupActivationTimer);startupReload.current=false;if(!reload()){setStartup('ready');setReloadAvailable(true)}return;}
+      if (chosenActivation.current === navigator.serviceWorker.controller && chosenActivation.current) { activationCleanup.current?.(); chosenActivation.current = null; setActivating(false);setWaiting(null);if(!reload())setReloadAvailable(true);return; }
       if (previousController) { setWaiting(null); setReloadAvailable(true); }
       previousController = navigator.serviceWorker.controller;
     };
@@ -89,19 +104,19 @@ export function usePwa() {
             if(sessionStorage.getItem('mw-startup-upgrade')===latest.version)throw Error('upgrade_reload_incomplete');
             sessionStorage.setItem('mw-startup-upgrade',latest.version);
             setStartup('upgrading');
-            if(value.waiting){startupReload.current=true;value.waiting.postMessage({type:'ACTIVATE_UPDATE'});setTimeout(()=>{if(!disposed){startupReload.current=false;setStartup('error')}},20000)}
-            else {startupReload.current=true;location.reload()}
+            if(value.waiting){startupReload.current=true;value.waiting.postMessage({type:'ACTIVATE_UPDATE'});startupActivationTimer=setTimeout(()=>{if(!disposed&&startupReload.current){startupReload.current=false;setStartup('error')}},20000)}
+            else {startupReload.current=true;if(!reload()){startupReload.current=false;setReloadAvailable(true);setStartup('ready')}}
           }else {sessionStorage.removeItem('mw-startup-upgrade');setStartup('ready');}
-        } catch { if (!disposed){startupReload.current=false;setUnavailable(true);setStartup(navigator.onLine?'error':'offline')} }
+        } catch { clearTimeout(startupActivationTimer);if (!disposed){startupReload.current=false;setUnavailable(true);setStartup(navigator.onLine?'error':'offline')} }
       }).catch(() => { if (!disposed){startupReload.current=false;setUnavailable(true);setStartup(navigator.onLine?'error':'offline')} });
-      document.addEventListener('visibilitychange', checkUpdate);
+      document.addEventListener('visibilitychange', checkOnResume);
     } else {setUnavailable(true);setStartup('error');}
     return () => {
-      disposed = true; startupReload.current=false; manifest.remove(); touch.remove(); theme.remove();
+      disposed = true;clearTimeout(startupActivationTimer); startupReload.current=false; manifest.remove(); touch.remove(); theme.remove();
       display.removeEventListener('change', checkDisplay);
       window.removeEventListener('beforeinstallprompt', beforeInstall); window.removeEventListener('appinstalled', installed);
       navigator.serviceWorker?.removeEventListener('controllerchange', changed);
-      document.removeEventListener('visibilitychange', checkUpdate);
+      document.removeEventListener('visibilitychange', checkOnResume);clearInterval(checkTimer);checkUpdateRef.current=()=>{};window.removeEventListener('focus',checkOnResume);window.removeEventListener('pageshow',checkOnResume);window.removeEventListener('online',checkOnResume);
     };
   }, [attempt]);
   async function install() {
@@ -111,10 +126,11 @@ export function usePwa() {
     finally { setInstallPrompt(null); }
   }
   function update() {
-    if (reloadAvailable) { location.reload(); return; }
+    if(!canReload()||activating)return;
+    if (reloadAvailable) { reload(); return; }
     if (!waiting) return;
     activationCleanup.current?.();
-    const target = waiting;
+    const target = waiting;attemptedUpdates.current.add(target);
     chosenActivation.current = target; setActivating(true); setUnavailable(false);
     const failed = () => {
       activationCleanup.current?.(); chosenActivation.current = null;
@@ -133,5 +149,7 @@ export function usePwa() {
       target.postMessage({ type: 'ACTIVATE_UPDATE' });
     } catch { failed(); }
   }
-  return { startup,retryStartup:()=>setAttempt(value=>value+1),useSavedOffline:()=>setStartup('offline'),canonical, standalone, canInstall: Boolean(installPrompt), install, waiting: Boolean(waiting), reloadAvailable, unavailable, activating, update };
+  useEffect(()=>{if(retryPending&&safe&&document.visibilityState==='visible'){setRetryPending(false);setAttempt(value=>value+1)}},[retryPending,safe,resumeTick]);
+  useEffect(()=>{if(startup!=='ready'||!safe||activating||document.visibilityState!=='visible')return;if(reloadAvailable||(waiting&&!attemptedUpdates.current.has(waiting)))update()},[startup,safe,activating,waiting,reloadAvailable,resumeTick]);
+  return { safe,checkUpdate:()=>checkUpdateRef.current(true),startup,retryStartup:()=>{if(canReload())setAttempt(value=>value+1);else setRetryPending(true)},useSavedOffline:()=>setStartup('offline'),canonical, standalone, canInstall: Boolean(installPrompt), install, waiting: Boolean(waiting), reloadAvailable, unavailable, activating, update };
 }

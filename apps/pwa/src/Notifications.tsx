@@ -1,3 +1,4 @@
+import {useAppUpdateBlock} from './app-update-safety';
 import {readOfflineDataset} from './offline-dataset';
 import React,{useEffect,useState,useRef} from 'react';
 import {subscribeOfflineDataset,readCachedJson} from './read-cache';
@@ -8,6 +9,7 @@ type Access=Pick<CommandAccess,'origin'|'token'|'authFailure'|'offline'>;
 export function Notifications({access,thai,onTarget,visible=true}:{access:Access;thai:boolean;visible?:boolean;onTarget:(target:{kind:'loan'|'payment';id:string})=>void}){
  const mounted=useRef(true);useEffect(()=>{mounted.current=true;return()=>{mounted.current=false}},[]);
  const [message,setMessage]=useState(''),[items,setItems]=useState<{eventId:string;type:string;state:string}[]>([]),[busy,setBusy]=useState(false);
+ useAppUpdateBlock(busy);
  const t=(en:string,th:string)=>thai?th:en;
  const [cursor,setCursor]=useState<string|null>(null),[status,setStatus]=useState<{enabled:boolean;deviceRegistered:boolean;subscriptionId:string|null}|null>(null);
  async function request(path:string,method='GET',body?:unknown){if(method==='GET'&&(/^\/[a-f0-9-]{36}$/.test(path)||path.startsWith('/status'))){const {response,data}=await readCachedJson<any>(access,'/api/notifications'+path);if(!mounted.current||!response.ok)throw Error('unavailable');return data}const response=await fetch(access.origin+'/api/notifications'+path,{method,headers:{Authorization:'Bearer '+await access.token(),...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined,cache:'no-store',credentials:'omit',redirect:'error',signal:AbortSignal.timeout(15000)});if(!mounted.current)throw Error('stale_session');if([401,403].includes(response.status))access.authFailure(response.status);if(!response.ok)throw Error('unavailable');return response.json();}

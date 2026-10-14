@@ -1,3 +1,4 @@
+import {useAppUpdateBlock} from './app-update-safety';
 import {subscribeOfflineDataset} from './read-cache';
 import {readOfflineDataset} from './offline-dataset';
 import {syncSavedRequest} from './offline-sync';
@@ -11,6 +12,7 @@ export function CollectionNote({access,id,thai}:{access:CommandAccess;id:string;
 
  const draftKey='borrower-note:'+id;
  const [text,setText]=useState(''),[status,setStatus]=useState(''),[ready,setReady]=useState(false),[blocked,setBlocked]=useState(false),[unknown,setUnknown]=useState(false),[working,setWorking]=useState(false);
+ useAppUpdateBlock(working||(unknown&&!pending.current)||text!==(pending.current?.inputs.note??baseline.current?.note??''));
  flush.current=()=>{if(debounce.current)clearTimeout(debounce.current);debounce.current=null;if(busy.current&&queueAllowed.current&&!blocked)queuedBlur.current=typed.current;else void send()};
  const textarea=useRef<HTMLTextAreaElement>(null);
  useEffect(()=>{const apply=(data:any)=>{if(busy.current||pending.current||blocked||!ready||textarea.current===document.activeElement||typed.current!==(baseline.current?.note??''))return;if(data.deleted){setBlocked(true);setStatus(t('This borrower does not exist.','ไม่พบผู้กู้รายนี้'));return}if(!data.item)return;baseline.current=data.item;typed.current=data.item.note??'';setText(typed.current)};return subscribeOfflineDataset<any>(access,'/api/borrower-records/'+encodeURIComponent(id),apply,()=>apply({deleted:true}));},[access.offline,id,blocked,ready]);
