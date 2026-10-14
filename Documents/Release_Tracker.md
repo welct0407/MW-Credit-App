@@ -15,7 +15,7 @@ All new features/fixes use the sole Open release. Freeze only at authorized prom
 | Release | Status | Remaining action / owning record |
 | --- | --- | --- |
 | R060 | Open | Unfinished integration deployment tooling: reload the active webhook receiver and verify readiness before workers resume. Excluded from the frozen PWA package; existing integration owning record below. |
-| R059 | Frozen — 14 October 2026 21:46:58 Bangkok / 14:46:58 UTC | Owner-authorized cumulative PWA package: runtime/artifact source `7db48d2b07d1128878533ba0ebff39286368cd39`, tooling-only correction `bb1254f6f2231c343ab2322f7463ae8bde40871a`; captured PROD image/frontend and image-only plan in [existing promotion record](Development_Changes.md#r059-pwa-production-preparation). Full CI and private-file approval pending; no apply claimed. |
+| R059 | Frozen — 14 October 2026 21:46:58 Bangkok / 14:46:58 UTC | Owner-authorized cumulative PWA package: runtime/artifact source `7db48d2b07d1128878533ba0ebff39286368cd39`, tooling-only correction `bb1254f6f2231c343ab2322f7463ae8bde40871a`; captured PROD image/frontend and image-only plan in [existing promotion record](Development_Changes.md#r059-pwa-production-preparation). Required full CI38582833986 failed; promotion blocked for remediation, private-file creation approved, production unchanged. |
 | R056 | Frozen; V91 deployed | Lisa enrollment retry/closure; [record](../outputs/r056-apple-push/README.md) |
 | R055 | Frozen; monitoring delivered | Carried credential work unfinished; [record](../outputs/r055-grafana/continuation.md) |
 | R016 | Owner-accepted reporting; administrative follow-up | Migration-key retirement evidence/final tag unresolved; do not reopen product development |
