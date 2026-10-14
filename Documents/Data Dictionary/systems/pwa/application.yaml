@@ -56,11 +56,22 @@
       \ date paging uses fresh API reads"
     "request_safety": "Abort and generation guards reject stale borrower results; controls do not submit borrower changes"
     "financial_effect": "Read-only forecast; no charge or financial write"
-    "delivery": "R058 Open; frontend source e03df9cf deployed to DEV Hosting 5570046e589a4168 on 14 October 2026; reader revision\
+    "delivery": "R058 Open; frontend source 8a7e04bb deployed to DEV Hosting aab1f3f30c2e316e on 14 October 2026; reader revision\
       \ 00019-ntb remains source 68e8a39. Bounded artifact checks passed; owner-authenticated forecast/UX smoke unavailable;\
       \ PROD promotion pending. Exact pins/recovery in Environment_Inventory and Development_Changes."
     "source": "https://github.com/welct0407/MW-Credit-App/blob/95fab655431a4459e22ec1dbdd1541d035333d78/apps/pwa/src/SharedBorrowerDetail.tsx"
     "read_only_source": "https://github.com/welct0407/MW-Credit-App/blob/68e8a39e63e44123dcbab3f819c72d711e2a3240/apps/pwa/src/live-main.tsx"
+  "navigation":
+    "swipe_back": "Single-touch right swipe in main content invokes the currently visible enabled Back control, including\
+      \ search; pages without Back do not navigate. Existing form/discard behavior is preserved."
+    "gesture": "At least 80px rightward, horizontal distance at least twice vertical distance, within 700ms; browser screen\
+      \ edges excluded"
+    "exclusions": "Interactive controls, text selection, open dialogs and horizontal scrolling; vertical-first movement, multiple\
+      \ touches, changed Back action or disabled control cancel the gesture"
+    "source": "https://github.com/welct0407/MW-Credit-App/blob/8a7e04bbee6c70d6b937fae1b6bbea3ed2776668/apps/pwa/src/swipe-back.ts"
+    "shell_source": "https://github.com/welct0407/MW-Credit-App/blob/8a7e04bbee6c70d6b937fae1b6bbea3ed2776668/apps/pwa/src/live-main.tsx"
+    "delivery": "R058 Open; deployed to DEV Hosting aab1f3f30c2e316e. Local touch/browser checks passed; deployed artifact\
+      \ verified, authenticated live gesture smoke unavailable; PROD promotion pending."
 "evidence":
   "/content/borrower_upcoming":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/68e8a39e63e44123dcbab3f819c72d711e2a3240/apps/pwa/src/SharedBorrowerDetail.tsx"
@@ -68,9 +79,8 @@
       \ or SQL change"
     "state": "value"
   "/content/borrower_upcoming/delivery":
-    "reference": "https://github.com/welct0407/MW-Credit-App/blob/e03df9cfd237eeebb32d468d61f8b7fe6988537e/apps/pwa/src/UpcomingCharges.tsx"
-    "reason": "Owner-requested disclaimer display removal deployed Hosting-only; API reviewRequired and forecast behavior\
-      \ unchanged"
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/8a7e04bbee6c70d6b937fae1b6bbea3ed2776668/apps/pwa/src/swipe-back.ts"
+    "reason": "R058 shared right-swipe invokes existing Back; tested local native touch and Hosting-only DEV artifact verified"
     "state": "value"
   "/content/borrower_upcoming/presentation":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/95fab655431a4459e22ec1dbdd1541d035333d78/apps/pwa/src/SharedBorrowerDetail.tsx"
@@ -81,4 +91,8 @@
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/95fab655431a4459e22ec1dbdd1541d035333d78/apps/pwa/src/SharedBorrowerDetail.tsx"
     "reason": "Owner followup removes dedicated Borrower Upcoming refresh; tested auto-load and error-only retry deployed\
       \ Hosting-only"
+    "state": "value"
+  "/content/navigation":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/8a7e04bbee6c70d6b937fae1b6bbea3ed2776668/apps/pwa/src/swipe-back.ts"
+    "reason": "R058 shared right-swipe invokes existing Back; tested local native touch and Hosting-only DEV artifact verified"
     "state": "value"
