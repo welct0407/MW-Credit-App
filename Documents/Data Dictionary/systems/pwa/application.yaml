@@ -105,6 +105,10 @@
       "placement_sources":
       - "https://github.com/welct0407/MW-Credit-App/blob/a22aa5da1c92d65f56912ba9f25cbae3aec9fd40/apps/pwa/src/live-main.tsx"
       - "https://github.com/welct0407/MW-Credit-App/blob/a22aa5da1c92d65f56912ba9f25cbae3aec9fd40/apps/pwa/src/live-style.css"
+    "upcoming_back":
+      "behavior": "Returning from Collection Upcoming date detail cancels the active read, advances request revision and resets\
+        \ busy/status before clearing detail, so late cached revalidation cannot reopen the date after Back."
+      "source": "https://github.com/welct0407/MW-Credit-App/blob/a5c6de58138625dba6257ad0fb0931ebaf0d0512/apps/pwa/src/CollectionRecords.tsx"
   "collection_receiving_ui":
     "collection_note": "Textarea grows to fit loaded/edited contents and on resize. Autosave after 650ms pause or blur queues\
       \ a durable saved-note request, deferred during IME. Preserve versions, immutable pending identity and unknown-outcome\
@@ -567,4 +571,8 @@
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/b77a1ef3d58c488a2113b97948aefe83945e84ec/apps/pwa/src/read-cache.ts"
     "reason": "Pin corrected frozen R059 candidate after cache/draft restoration remediation; finalCI/artifacts/deployment\
       \ pending."
+    "state": "value"
+  "/content/navigation/upcoming_back":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/a5c6de58138625dba6257ad0fb0931ebaf0d0512/apps/pwa/src/CollectionRecords.tsx"
+    "reason": "Pin verified late Upcoming detail response correction within frozenR059; fullCI/delivery pending."
     "state": "value"
