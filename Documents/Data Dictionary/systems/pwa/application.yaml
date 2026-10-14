@@ -56,22 +56,26 @@
       \ date paging uses fresh API reads"
     "request_safety": "Abort and generation guards reject stale borrower results; controls do not submit borrower changes"
     "financial_effect": "Read-only forecast; no charge or financial write"
-    "delivery": "R058 Open; frontend source 8a7e04bb deployed to DEV Hosting aab1f3f30c2e316e on 14 October 2026; reader revision\
+    "delivery": "R058 Open; frontend source 5d046627 deployed to DEV Hosting 62c051180c5db132 on 14 October 2026; reader revision\
       \ 00019-ntb remains source 68e8a39. Bounded artifact checks passed; owner-authenticated forecast/UX smoke unavailable;\
       \ PROD promotion pending. Exact pins/recovery in Environment_Inventory and Development_Changes."
     "source": "https://github.com/welct0407/MW-Credit-App/blob/95fab655431a4459e22ec1dbdd1541d035333d78/apps/pwa/src/SharedBorrowerDetail.tsx"
     "read_only_source": "https://github.com/welct0407/MW-Credit-App/blob/68e8a39e63e44123dcbab3f819c72d711e2a3240/apps/pwa/src/live-main.tsx"
   "navigation":
-    "swipe_back": "Single-touch right swipe in main content invokes the currently visible enabled Back control, including\
-      \ search; pages without Back do not navigate. Existing form/discard behavior is preserved."
-    "gesture": "At least 80px rightward, horizontal distance at least twice vertical distance, within 700ms; browser screen\
-      \ edges excluded"
-    "exclusions": "Interactive controls, text selection, open dialogs and horizontal scrolling; vertical-first movement, multiple\
-      \ touches, changed Back action or disabled control cancel the gesture"
-    "source": "https://github.com/welct0407/MW-Credit-App/blob/8a7e04bbee6c70d6b937fae1b6bbea3ed2776668/apps/pwa/src/swipe-back.ts"
-    "shell_source": "https://github.com/welct0407/MW-Credit-App/blob/8a7e04bbee6c70d6b937fae1b6bbea3ed2776668/apps/pwa/src/live-main.tsx"
-    "delivery": "R058 Open; deployed to DEV Hosting aab1f3f30c2e316e. Local touch/browser checks passed; deployed artifact\
-      \ verified, authenticated live gesture smoke unavailable; PROD promotion pending."
+    "swipe_back": "Single-touch right drag moves only the middle content and reveals the prior page with parallax; colored\
+      \ header/footer stay fixed. Starts at left edge or over controls; eligible pages invoke the existing current Back action\
+      \ and its form/discard guards. Root pages without Back do not navigate."
+    "gesture": "Commit at 35% of middle viewport width or at least 60px with forward velocity over 0.5px/ms; otherwise snap\
+      \ back. Settling is 180ms, zero duration for reduced motion."
+    "previews": "Inert, aria-hidden session-memory DOM previews capture scroll/input state; scoped navigation keys and successful-creation\
+      \ replacement preserve the correct parent. Context changes clear previews."
+    "exclusions": "Horizontal scrollers, sliders/media and open dialogs; vertical-first movement, multiple touches, changed\
+      \ Back action or disabled control cancel the gesture."
+    "source": "https://github.com/welct0407/MW-Credit-App/blob/5d046627481ff151f299bad30b784ca418f4b58c/apps/pwa/src/swipe-back.ts"
+    "shell_source": "https://github.com/welct0407/MW-Credit-App/blob/5d046627481ff151f299bad30b784ca418f4b58c/apps/pwa/src/live-main.tsx"
+    "delivery": "R058 Open; corrected source 5d046627 deployed to DEV Hosting 62c051180c5db132. Local touch/browser and Windows\
+      \ WebKit rendering checks passed; deployed artifact verified. Physical iPhone native gesture and authenticated live\
+      \ gesture remain unverified; PROD promotion pending."
 "evidence":
   "/content/borrower_upcoming":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/68e8a39e63e44123dcbab3f819c72d711e2a3240/apps/pwa/src/SharedBorrowerDetail.tsx"
@@ -79,8 +83,9 @@
       \ or SQL change"
     "state": "value"
   "/content/borrower_upcoming/delivery":
-    "reference": "https://github.com/welct0407/MW-Credit-App/blob/8a7e04bbee6c70d6b937fae1b6bbea3ed2776668/apps/pwa/src/swipe-back.ts"
-    "reason": "R058 shared right-swipe invokes existing Back; tested local native touch and Hosting-only DEV artifact verified"
+    "reference": "https://github.com/welct0407/AppSheet-Loan-Project/pull/20"
+    "reason": "Verified exact corrected interactive middle-content frontend deployed to DEV; physical iPhone and authenticated\
+      \ behavior smoke unverified"
     "state": "value"
   "/content/borrower_upcoming/presentation":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/95fab655431a4459e22ec1dbdd1541d035333d78/apps/pwa/src/SharedBorrowerDetail.tsx"
@@ -93,6 +98,12 @@
       \ Hosting-only"
     "state": "value"
   "/content/navigation":
-    "reference": "https://github.com/welct0407/MW-Credit-App/blob/8a7e04bbee6c70d6b937fae1b6bbea3ed2776668/apps/pwa/src/swipe-back.ts"
-    "reason": "R058 shared right-swipe invokes existing Back; tested local native touch and Hosting-only DEV artifact verified"
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/5d046627481ff151f299bad30b784ca418f4b58c/apps/pwa/src/swipe-back.ts"
+    "reason": "Owner correction replaces release-only swipe with interactive middle-content transition, guarded Back and inert\
+      \ prior-page previews"
+    "state": "value"
+  "/content/navigation/delivery":
+    "reference": "https://github.com/welct0407/AppSheet-Loan-Project/pull/20"
+    "reason": "Verified exact corrected interactive middle-content frontend deployed to DEV; physical iPhone and authenticated\
+      \ behavior smoke unverified"
     "state": "value"
