@@ -56,9 +56,9 @@
       \ date paging uses fresh API reads"
     "request_safety": "Abort and generation guards reject stale borrower results; controls do not submit borrower changes"
     "financial_effect": "Read-only forecast; no charge or financial write"
-    "delivery": "R058 Open; frontend/source 2ef73db deployed to DEV Hosting d52dfb7a3013d1c6 and reader revision 00020-m9t.\
-      \ Bounded artifact checks passed; owner-authenticated forecast/UX smoke unavailable; PROD promotion pending. Exact pins/recovery\
-      \ in Environment_Inventory and Development_Changes."
+    "delivery": "R058 Open; frontend source 8ba8e632 deployed to DEV Hosting 29e6064a26466bc1; reader revision 00020-m9t remains\
+      \ source 2ef73db. Artifact checks passed; owner-authenticated forecast/UX smoke unavailable; PROD promotion pending.\
+      \ Exact pins/recovery in Environment_Inventory and Development_Changes."
     "source": "https://github.com/welct0407/MW-Credit-App/blob/95fab655431a4459e22ec1dbdd1541d035333d78/apps/pwa/src/SharedBorrowerDetail.tsx"
     "read_only_source": "https://github.com/welct0407/MW-Credit-App/blob/68e8a39e63e44123dcbab3f819c72d711e2a3240/apps/pwa/src/live-main.tsx"
   "navigation":
@@ -73,13 +73,14 @@
       \ Back action or disabled control cancel the gesture."
     "source": "https://github.com/welct0407/MW-Credit-App/blob/5d046627481ff151f299bad30b784ca418f4b58c/apps/pwa/src/swipe-back.ts"
     "shell_source": "https://github.com/welct0407/MW-Credit-App/blob/5d046627481ff151f299bad30b784ca418f4b58c/apps/pwa/src/live-main.tsx"
-    "delivery": "R058 Open; corrected navigation source 5d046627 is included in frontend 2ef73db deployed to DEV Hosting d52dfb7a3013d1c6.\
-      \ Local touch/browser and Windows WebKit rendering checks passed; deployed artifact verified. Physical iPhone native\
-      \ gesture and authenticated live gesture remain unverified; PROD promotion pending."
+    "delivery": "R058 Open; corrected navigation source 5d046627 included in frontend 8ba8e632 deployed to DEV Hosting 29e6064a26466bc1.\
+      \ Local touch/browser and Windows WebKit rendering checks passed; artifact verified. Physical iPhone native gesture\
+      \ and authenticated live gesture remain unverified; PROD promotion pending."
   "collection_receiving_ui":
     "collection_note": "Textarea grows to fit loaded/edited contents and on resize. Autosave after 650ms typing pause or blur,\
-      \ deferred during IME composition; version checks, durable pending request identity, latest-text queuing and unknown-outcome\
-      \ recovery remain."
+      \ deferred during IME composition. A failed draft save at the shared five-draft cap does not block online saving if\
+      \ the complete immutable pending request can be durably stored; pending-write failure blocks POST. Existing drafts/cap,\
+      \ versions, latest-text queuing and unknown-outcome same-request recovery are preserved."
     "collection_receipts": "Large horizontal image-only gallery displays both eligible manual and agent evidence per payment\
       \ through existing authenticated receipt source reads; no date/amount/processing-time captions. Incremental paging appends\
       \ images; retry preserves loaded images and resumes the failed cursor. Existing eligibility and request scope remain."
@@ -92,25 +93,26 @@
     - "https://github.com/welct0407/MW-Credit-App/blob/5e981335ad42846dac6bde13e24a45a147ab2676/apps/pwa/src/CollectionReceipts.tsx"
     - "https://github.com/welct0407/MW-Credit-App/blob/5e981335ad42846dac6bde13e24a45a147ab2676/apps/pwa/src/SelectedCharges.tsx"
     - "https://github.com/welct0407/MW-Credit-App/blob/5e981335ad42846dac6bde13e24a45a147ab2676/apps/pwa/src/live-style.css"
-    "delivery": "R058 Open; receipt UI source 5e981335 and note-autosave update 2ef73db included in DEV Hosting d52dfb7a3013d1c6;\
-      \ command revision 00022-nhc. Focused synthetic browser checks and configured development CI passed; artifact verified,\
-      \ authenticated live receipt/receiver smoke not performed. No Page status changes; PROD promotion pending."
+    "delivery": "R058 Open; receipt UI source 5e981335 and note-storage correction 8ba8e632 included in DEV Hosting 29e6064a26466bc1;\
+      \ command 00022-nhc retains source 2ef73db. Real IndexedDB/focused synthetic browser checks and configured development\
+      \ CI passed; artifact verified, authenticated live note/receiver smoke not performed. No Page status changes; PROD promotion\
+      \ pending."
   "phase5_ui":
     "money_display": "THB currency presentation uses whole baht across affected views; editable amounts, storage and financial\
       \ calculation precision remain unchanged."
     "loan_related_cards": "Compact labeled Principal Due and Interest Due for charges, Amount Received for payments; whole-baht\
       \ display, normal detail navigation retained."
-    "offline_order": "Merged saved/pending/offline views sorted by savedAt descending, stable id ascending for ties; no automatic\
-      \ financial replay."
+    "offline_order": "Merged saved/pending/offline views sorted by savedAt descending, handling numeric repository timestamps\
+      \ and legacy date strings; stable id ascending for ties; no automatic financial replay."
     "other_lists": "Existing intentional order retained for other audited lists."
     "sources":
-    - "https://github.com/welct0407/MW-Credit-App/blob/2ef73db0f91769f1566cd83d91467390080c36ab/apps/pwa/src/CollectionNote.tsx"
+    - "https://github.com/welct0407/MW-Credit-App/blob/8ba8e6320f44fb147c54474302adb0076c2e4bd2/apps/pwa/src/CollectionNote.tsx"
     - "https://github.com/welct0407/MW-Credit-App/blob/2ef73db0f91769f1566cd83d91467390080c36ab/apps/pwa/src/LoanRelated.tsx"
-    - "https://github.com/welct0407/MW-Credit-App/blob/2ef73db0f91769f1566cd83d91467390080c36ab/apps/pwa/src/OfflinePayments.tsx"
+    - "https://github.com/welct0407/MW-Credit-App/blob/8ba8e6320f44fb147c54474302adb0076c2e4bd2/apps/pwa/src/OfflinePayments.tsx"
     - "https://github.com/welct0407/MW-Credit-App/blob/2ef73db0f91769f1566cd83d91467390080c36ab/apps/pwa/src/display-money.ts"
-    "delivery": "R058 Open; source 2ef73db deployed to DEV reader 00020-m9t, command 00022-nhc and Hosting d52dfb7a3013d1c6.\
-      \ Focused unit/browser/restricted disposable SQL and canonical database checks passed; configured development CI passed.\
-      \ Artifact/health/auth-gate checks passed; authenticated business smoke not performed; PROD promotion pending."
+    "delivery": "R058 Open; frontend source 8ba8e632 deployed to DEV Hosting 29e6064a26466bc1; reader 00020-m9t and command\
+      \ 00022-nhc retain runtime source 2ef73db. Real IndexedDB/focused browser and configured development CI passed; artifact\
+      \ verified. Authenticated business smoke not performed; PROD promotion pending."
 "evidence":
   "/content/borrower_upcoming":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/68e8a39e63e44123dcbab3f819c72d711e2a3240/apps/pwa/src/SharedBorrowerDetail.tsx"
@@ -119,8 +121,8 @@
     "state": "value"
   "/content/borrower_upcoming/delivery":
     "reference": "https://github.com/welct0407/AppSheet-Loan-Project/pull/20"
-    "reason": "Verified exact phase-5 reader/command/Hosting DEV delivery; keep authenticated and physical-device limitations\
-      \ explicit"
+    "reason": "Verified exact autosave/numeric timestamp frontend delivered Hosting-only; retain distinct runtime source and\
+      \ test limitations"
     "state": "value"
   "/content/borrower_upcoming/presentation":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/95fab655431a4459e22ec1dbdd1541d035333d78/apps/pwa/src/SharedBorrowerDetail.tsx"
@@ -139,8 +141,8 @@
     "state": "value"
   "/content/navigation/delivery":
     "reference": "https://github.com/welct0407/AppSheet-Loan-Project/pull/20"
-    "reason": "Verified exact phase-5 reader/command/Hosting DEV delivery; keep authenticated and physical-device limitations\
-      \ explicit"
+    "reason": "Verified exact autosave/numeric timestamp frontend delivered Hosting-only; retain distinct runtime source and\
+      \ test limitations"
     "state": "value"
   "/content/collection_receiving_ui":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/5e981335ad42846dac6bde13e24a45a147ab2676/apps/pwa/src/CollectionReceipts.tsx"
@@ -149,13 +151,13 @@
     "state": "value"
   "/content/collection_receiving_ui/delivery":
     "reference": "https://github.com/welct0407/AppSheet-Loan-Project/pull/20"
-    "reason": "Verified exact phase-5 reader/command/Hosting DEV delivery; keep authenticated and physical-device limitations\
-      \ explicit"
+    "reason": "Verified exact autosave/numeric timestamp frontend delivered Hosting-only; retain distinct runtime source and\
+      \ test limitations"
     "state": "value"
   "/content/collection_receiving_ui/collection_note":
-    "reference": "https://github.com/welct0407/MW-Credit-App/blob/2ef73db0f91769f1566cd83d91467390080c36ab/apps/pwa/src/CollectionNote.tsx"
-    "reason": "Phase-5 note/amount/ordering feedback verified with focused browser and actual restricted disposable PostgreSQL\
-      \ tests plus canonical Test-CI"
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/8ba8e6320f44fb147c54474302adb0076c2e4bd2/apps/pwa/src/CollectionNote.tsx"
+    "reason": "Real IndexedDB five-draft regression reproduced before and passed after durable pending-before-POST fix; numeric\
+      \ savedAt sorting corrected"
     "state": "value"
   "/content/phase5_ui":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/2ef73db0f91769f1566cd83d91467390080c36ab/apps/pwa/src/CollectionNote.tsx"
@@ -163,11 +165,17 @@
       \ tests plus canonical Test-CI"
     "state": "value"
   "/content/phase5_ui/sources":
-    "reference": "https://github.com/welct0407/MW-Credit-App/blob/2ef73db0f91769f1566cd83d91467390080c36ab/services/payment-command/handler.mjs"
-    "reason": "Exact source path and loan-related route reconciliation"
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/8ba8e6320f44fb147c54474302adb0076c2e4bd2/apps/pwa/src/CollectionNote.tsx"
+    "reason": "Real IndexedDB five-draft regression reproduced before and passed after durable pending-before-POST fix; numeric\
+      \ savedAt sorting corrected"
     "state": "value"
   "/content/phase5_ui/delivery":
     "reference": "https://github.com/welct0407/AppSheet-Loan-Project/pull/20"
-    "reason": "Verified exact phase-5 reader/command/Hosting DEV delivery; keep authenticated and physical-device limitations\
-      \ explicit"
+    "reason": "Verified exact autosave/numeric timestamp frontend delivered Hosting-only; retain distinct runtime source and\
+      \ test limitations"
+    "state": "value"
+  "/content/phase5_ui/offline_order":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/8ba8e6320f44fb147c54474302adb0076c2e4bd2/apps/pwa/src/OfflinePayments.tsx"
+    "reason": "Real IndexedDB five-draft regression reproduced before and passed after durable pending-before-POST fix; numeric\
+      \ savedAt sorting corrected"
     "state": "value"
