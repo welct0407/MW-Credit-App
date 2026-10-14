@@ -4,7 +4,7 @@ A two-user financial operations PWA using the existing PostgreSQL financial engi
 
 | Component | Responsibility |
 | --- | --- |
-| PWA | Mobile/desktop operations, management, analytics, online posting, bounded offline viewing/drafts |
+| PWA | Mobile/desktop operations, management, analytics, online posting, contextual drafts and durable saved-change synchronization |
 | Native read/command APIs | Authentication, authorization, validation, idempotent commands and private receipt access |
 | PostgreSQL | Financial records, allocations, cash effects, constraints and analytical providers |
 | Debian integration agent | Receipt capture/review and messaging under its service catalogue |
@@ -19,7 +19,7 @@ PWA and agent payments converge on native API/SQL command handling. Do not dupli
 
 Use [data model](PWA_Data_Model_Overview.md) and [dictionary](Data%20Dictionary/README.md). Heavy reusable computation belongs in SQL. Preserve grain, unknown/null values, signed corrections, date rules and provenance. Operational values use live providers; completed-day analytics use governed snapshots. Historical corrections require rebuilding affected dates.
 
-Principal, interest, capital, expenses and settlements remain distinct. Do not silently change reporting formulas in UI work. Partner identity/roles control access; delivery addresses are not authentication. DEV delivery stays isolated. Offline drafts are never automatically posted on reconnect.
+Principal, interest, capital, expenses and settlements remain distinct. Do not silently change reporting formulas in UI work. Partner identity/roles control access; delivery addresses are not authentication. DEV delivery stays isolated. Unfinished forms restore in their original context and require Save/Confirm before synchronization. The DEV saved-change coordinator reconciles durable queued requests by request ID before posting on startup/reconnect, serializes tabs and retains rejected/conflicting changes for review. Authorized one-time DEV backlog handling promotes previously saved notes; automatic backlog/synchronization remains disabled for PROD.
 
 ## Receipts, push and jobs
 
