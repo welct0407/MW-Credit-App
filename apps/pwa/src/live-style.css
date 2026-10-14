@@ -227,6 +227,15 @@
 
 
 .root-record-heading{border:1px solid #ccc;border-radius:8px;background:#f2f2f2;padding:0 8px;margin-bottom:8px;min-height:44px}.root-record-heading h2{font-size:18px;margin:0}.payment-compact-row{min-height:44px;padding:8px 12px;justify-content:space-between}.payment-status-posted{color:#188038}.payment-status-error{color:#b3261e}.payment-status-processing{color:#9a6700}.payment-status-unknown{color:#666}.dashboard-record{display:flex;flex-direction:column;gap:16px}.dashboard-section{border:1px solid #ccc;border-radius:10px;padding:16px;background:#fff;box-shadow:0 1px 3px #00000012}.dashboard-section>h2:first-child{margin-top:0}
+/* Native transition snapshots paint above DOM z-index; keep app chrome in its own stationary layers. */
+:root:has(.live-shell){view-transition-name:none}
+.live-shell .topbar{view-transition-name:live-header}
+.live-shell .live-bottom-nav{view-transition-name:live-footer}
+.live-shell .live-desktop-nav{view-transition-name:live-sidebar}
+::view-transition-group(workspace){z-index:1}
+::view-transition-group(live-header),::view-transition-group(live-footer),::view-transition-group(live-sidebar){z-index:2;animation:none}
+::view-transition-old(live-header),::view-transition-old(live-footer),::view-transition-old(live-sidebar){animation:none;opacity:0}
+::view-transition-new(live-header),::view-transition-new(live-footer),::view-transition-new(live-sidebar){animation:none;opacity:1;mix-blend-mode:normal}
 @media(prefers-reduced-motion:no-preference){::view-transition-old(workspace){animation:workspace-out 150ms ease both}::view-transition-new(workspace){animation:workspace-in 150ms ease both}@keyframes workspace-out{to{transform:translateX(-24px);opacity:0}}@keyframes workspace-in{from{transform:translateX(24px);opacity:0}}}.live-shell main{view-transition-name:workspace}@media(prefers-reduced-motion:reduce){::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important}}
 
 .live-shell .borrower-card.payment-compact-row{display:grid;grid-template-columns:max-content minmax(0,1fr);align-items:center;gap:12px;min-height:44px;padding:6px 12px}.payment-compact-row>span{white-space:nowrap}.payment-compact-row>strong{min-width:0;text-align:right;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
