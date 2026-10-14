@@ -14,7 +14,7 @@ All new features/fixes use the sole Open release. Freeze only at authorized prom
 
 | Release | Status | Remaining action / owning record |
 | --- | --- | --- |
-| R061 | Open | Unfinished integration deployment tooling: reload the active webhook receiver and verify readiness before workers resume; excluded from R060 API hotfix. Existing integration owning record below. |
+| R061 | Open | Direct online Loan Delete and shared submitted-action/rejection feedback; [existing record](Development_Changes.md#r061-direct-loan-delete-and-submitted-action-feedback), source `1e0dd73ae856ef55fdcdd6fc1e8097d5d9335817`, CI/12focused cases passed and DEVHosting248bea737cd1b078 verified; owner authorized directPRODfrontend promotion; separateartifact/guard and explicitprivate-file creation approval pending, nofreeze yet. Also retains unfinished integration deployment tooling: reload the active webhook receiver and verify readiness before workers resume; excluded from R060 API hotfix. Existing integration owning record below. |
 | R056 | Frozen; V91 deployed | Lisa enrollment retry/closure; [record](../outputs/r056-apple-push/README.md) |
 | R055 | Frozen; monitoring delivered | Carried credential work unfinished; [record](../outputs/r055-grafana/continuation.md) |
 | R016 | Owner-accepted reporting; administrative follow-up | Migration-key retirement evidence/final tag unresolved; do not reopen product development |
