@@ -2,7 +2,7 @@
 
 Source reconciled at MW-Credit-App commit `808cdf53225ce627ea41ef4d3666bf97a3c9cbfe` (see exact source URLs in each object for the authoritative pin). Current deployments are recorded in [environment inventory](../../../Environment_Inventory.md).
 
-Current R058 DEV frontend is pinned at `e0f3c330f321aea97ae456f77fce0c1e93a0b43c`; command/API package remains `6a3cf8cde2710a45b0368bc7f177f21bdab2693c`, including incremental protocol-3 refresh after initial protocol-2 preparation. Application, Human API and Notifications content carry exact contracts and immutable field evidence; unchanged definitions retain their earlier source pins. Verified deployments/recovery are in the environment inventory. R058 remains Open; PROD promotion is pending.
+Current R058 DEV frontend is pinned at `a5c3f9f7141ece8b522fbdb76024d132a24cae11`; command/API package remains `6a3cf8cde2710a45b0368bc7f177f21bdab2693c`, including incremental protocol-3 refresh after initial protocol-2 preparation. Application, Human API and Notifications content carry exact contracts and immutable field evidence; unchanged definitions retain their earlier source pins. Verified deployments/recovery are in the environment inventory. R058 remains Open; PROD promotion is pending.
 
 - [Application](application.yaml): environment bindings, pages, authentication and ownership.
 - [Human API](human-api.yaml): key route families and exact owning validation contracts.
