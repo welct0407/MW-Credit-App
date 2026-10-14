@@ -441,7 +441,29 @@ function App() {
     return startSavedRequestSync({...initial,prepareSync:()=>{const current=latestCommandAccess.current;if(!current||current.offline!==initial.offline)throw Error('Session unavailable');return current.prepareSync?.()??Promise.resolve()},token:()=>{const current=latestCommandAccess.current;if(!current||current.offline!==initial.offline)throw Error('Session unavailable');return current.token()},authFailure:code=>{const current=latestCommandAccess.current;if(current&&current.offline===initial.offline)current.authFailure(code)}});
   },[user?.uid,offlineRepository,status,pwa.startup]);
   useEffect(()=>{setNotificationPayment(null)},[user?.uid]);
-  useEffect(()=>{if(!user){preferenceOwner.current=null;return;}if(status!=='ready'||!commandAccess?.ownerTesting)return;const applyPreference=preferenceOwner.current!==user.uid;preferenceOwner.current=user.uid;let active=true;const revision=languageRevision.current,done=beginRequest(),controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);void(async()=>{try{const saved=await commandAccess.offline?.snapshot<{language:string}>('preference-language');if(active&&applyPreference&&revision===languageRevision.current&&saved&&await commandAccess.offline?.authorized()&&['English','ไทย'].includes(saved.value.language)){setThai(saved.value.language==='ไทย');document.documentElement.lang=saved.value.language==='ไทย'?'th':'en'}const {response,data,fromCache}=await readCachedJson<any>(commandAccess,'/api/preferences',{signal:controller.signal});if(!active||!response.ok)return;const value=fromCache&&saved?saved.value.language:data.item?.language;if(!active)return;if(revision===languageRevision.current&&!fromCache&&['English','ไทย'].includes(value))await commandAccess.offline?.saveSnapshot('preference-language',{charges:[],language:value});if(liveOfflineEnabled&&!fromCache)await commandAccess.offline?.authorize();if(active&&applyPreference&&revision===languageRevision.current&&['English','ไทย'].includes(value)){setThai(value==='ไทย');document.documentElement.lang=value==='ไทย'?'th':'en';}}catch{}finally{clearTimeout(timer);done()}})();return()=>{active=false;controller.abort()}},[user,status,authRevision]);
+  useEffect(()=>{
+    if(!user){preferenceOwner.current=null;return;}
+    if(status!=='ready'||!commandAccess?.ownerTesting)return;
+    const applyPreference=preferenceOwner.current!==user.uid;preferenceOwner.current=user.uid;
+    let active=true;const revision=languageRevision.current,done=beginRequest(),controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);
+    const current=()=>active&&currentUser.current===user&&offlineRepositoryRef.current===commandAccess.offline&&revision===languageRevision.current;
+    const pendingLanguage=async()=>{const rows=await commandAccess.offline?.list('pending');return rows?.find(row=>row.value.command?.operation==='preference.update')?.value.command.inputs.language};
+    const apply=(language:string|undefined)=>{if(current()&&applyPreference&&['English','ไทย'].includes(language??'')){setThai(language==='ไทย');document.documentElement.lang=language==='ไทย'?'th':'en'}};
+    void(async()=>{try{
+      const saved=await commandAccess.offline?.snapshot<{language:string}>('preference-language');
+      const queued=await pendingLanguage();
+      if(await commandAccess.offline?.authorized())apply(queued??saved?.value.language);
+      const {response,data,fromCache}=await readCachedJson<any>(commandAccess,'/api/preferences',{signal:controller.signal});
+      if(!active||!response.ok)return;
+      // Pending selection may predate this effect or arrive during the read.
+      const latestQueued=await pendingLanguage();
+      const value=latestQueued??(fromCache&&saved?saved.value.language:data.item?.language);
+      if(current()&&!latestQueued&&!fromCache&&['English','ไทย'].includes(value))await commandAccess.offline?.saveSnapshot('preference-language',{charges:[],language:value});
+      if(active&&liveOfflineEnabled&&!fromCache)await commandAccess.offline?.authorize();
+      apply(value);
+    }catch{}finally{clearTimeout(timer);done()}})();
+    return()=>{active=false;controller.abort()};
+  },[user,status,authRevision]);
   return <div className="app-shell live-shell" data-preview-theme={applicationEnvironment} data-pull-phase={refreshPull?.phase} style={{'--workspace-pull':(refreshPull?.distance??0)+'px'} as React.CSSProperties}><div className="workspace">
     <div className="workspace-pull-feedback" role="status" aria-live="polite" aria-atomic="true">{refreshPull&&refreshPull.phase!=='settling'&&<span className={'workspace-pull-cue'+(refreshPull.armed?' armed':'')}><Icon name={refreshPull.phase==='refreshing'||refreshPull.armed?'refresh':'down'}/><span>{refreshPull.phase==='refreshing'?t('Refreshing…','กำลังรีเฟรช…'):refreshPull.armed?t('Release to refresh','ปล่อยเพื่อรีเฟรช'):t('Pull to refresh','ดึงลงเพื่อรีเฟรช')}</span></span>}</div>
     <header ref={topbar} className="topbar">
