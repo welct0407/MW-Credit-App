@@ -11,3 +11,17 @@ test('standalone payment provider-result seam retains unposted nullable sources 
  for(const{sql}of [...calls,...monthCalls,...leafCalls])assert.doesNotMatch(sql,/(?:WHERE|AND)\s+p\."Status"\s*(?:=|IN)/i);
  for(const options of [{q:'different',unassigned:true,month:'undated',cursor:first.nextCursor},{q,borrowerId:'other',month:'undated',cursor:first.nextCursor},{q,unassigned:true,month:'2026-10',cursor:first.nextCursor},{q,cursor:first.nextCursor},{q,unassigned:true,cursor:borrowers.nextCursor}])await assert.rejects(readRecordList(leaf,'payments',options),/invalid_request/);assert.equal(leafCalls.length,2);
 });
+
+import {readLoanRelated} from '../../services/business/loan-related.mjs';
+test('loan-related cursor binds date, parent and kind and rejects obsolete or malformed tokens before SQL',async()=>{
+ const row={v:2,loanId:'loan-a',kind:'charges',date:'2026-10-07',id:'a'};
+ const invalid=[{...row,v:1},{...row,date:'2026-02-30'},{...row,date:'0000-01-01'},{...row,date:undefined},{...row,loanId:'other'},{...row,kind:'payments'},{...row,extra:true}];
+ const none={query(){throw Error('Unexpected SQL')}};
+ for(const value of invalid)await assert.rejects(readLoanRelated(none,'loan-a','charges',{cursor:encode(value)}),/invalid_request/);
+ await assert.rejects(readLoanRelated(none,'loan-a','charges',{cursor:encode(row)+'='}),/invalid_request/);
+ for(const date of ['2026-10-07',null]){
+  const calls=[],client={async query(sql,params){calls.push({sql,params});return sql.startsWith('SELECT 1')?{rowCount:1}:{rows:[]}}};
+  assert.deepEqual(await readLoanRelated(client,'loan-a','charges',{cursor:encode({...row,date})}),{items:[],nextCursor:null});
+  assert.deepEqual(calls[1].params,['loan-a',true,date,'a',26]);
+ }
+});

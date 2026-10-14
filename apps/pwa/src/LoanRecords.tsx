@@ -30,7 +30,7 @@ const loanGroup = (value: string | null) => value === 'ยังไม่ปิ�
 export function LoanRecords(props: Props) {
   const t = (en: string, th: string) => props.thai ? th : en;
   const unavailable = t('Unavailable', 'ไม่มีข้อมูล');
-  const money = (value: string | null) => value === null ? unavailable : new Intl.NumberFormat(props.thai ? 'th-TH' : 'en-TH', { style: 'currency', currency: 'THB', currencyDisplay: 'narrowSymbol', minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(Number(value));
+  const money = (value: string | null) => value === null ? unavailable : new Intl.NumberFormat(props.thai ? 'th-TH' : 'en-TH', { style: 'currency', currency: 'THB', currencyDisplay: 'narrowSymbol', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Number(value));
   const date = (value: string | null) => value === null ? unavailable : displayDate(value);
   const yesNo = (value: boolean | null) => value === null ? unavailable : value ? t('Yes', 'ใช่') : t('No', 'ไม่ใช่');
   const status = (value: string | null) => value === 'ยังไม่ปิดยอด' ? t('Open', 'ยังไม่ปิดยอด') : value === 'ปิดยอดแล้ว' ? t('Closed', 'ปิดยอดแล้ว') : value === null ? unavailable : `${t('Other status', 'สถานะอื่น')}: ${value}`;

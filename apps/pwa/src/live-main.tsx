@@ -309,7 +309,7 @@ function App() {
       signingOut.current = false; setStatus(offlineBlocked.current ? 'offline' : 'signed_out');
     } catch { setStatus('sign_out_error'); }
   }
-  const money = (value: string | null) => value === null ? t('Unavailable', 'ไม่มีข้อมูล') : new Intl.NumberFormat(thai ? 'th-TH' : 'en-TH', { style: 'currency', currency: 'THB', currencyDisplay: 'narrowSymbol', minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(Number(value));
+  const money = (value: string | null) => value === null ? t('Unavailable', 'ไม่มีข้อมูล') : new Intl.NumberFormat(thai ? 'th-TH' : 'en-TH', { style: 'currency', currency: 'THB', currencyDisplay: 'narrowSymbol', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Number(value));
   const date = (value: string | null) => value === null ? t('Unavailable', 'ไม่มีข้อมูล') : displayDate(value);
   useContextRefresh(status==='ready'&&view==='borrowers'&&!!selected&&!borrowerPayment&&!savedPayments,t('First loans page / refresh','หน้าแรกของสัญญา / รีเฟรช'),()=>{if(user&&selected)void loadLoans(user,selected.id,undefined,1,true)});
   const headerState = pendingActivity>0 ? 'loading' : ['loading', 'initializing', 'signing_in', 'signing_out'].includes(status) ? 'loading' : status !== 'ready' ? ['error', 'denied', 'sign_out_error', 'auth_unavailable', 'unavailable'].includes(status) ? 'error' : 'idle' : view === 'collection' ? collectionStatus : busy ? 'loading' : 'success';

@@ -492,3 +492,10 @@ main[data-workspace=management] pre{white-space:pre-wrap;overflow-wrap:anywhere}
 .selected-payment .payment-receipt-preview{display:block;width:100%;height:auto;max-width:640px;max-height:none;object-fit:contain;margin-block:12px}
 .payment-receipt-slot{position:relative;width:100%;max-width:640px;min-height:64px}
 .selected-payment .payment-receipt-remove{position:absolute;top:8px;right:8px;display:grid;place-items:center;width:44px;height:44px;min-width:44px;padding:0;border:1px solid #666;border-radius:50%;background:#fff;color:#222;font-size:28px;line-height:1;box-shadow:0 1px 5px #0003}
+
+.live-shell .borrower-card.loan-related-row{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;padding:8px 10px}
+.loan-related-date{display:flex;flex-direction:column;gap:2px;min-width:0;text-align:left}
+.loan-related-date small{overflow-wrap:anywhere}
+.loan-related-amounts{display:flex;gap:12px;flex-shrink:0;text-align:right;font-variant-numeric:tabular-nums}
+.loan-related-amounts>span{display:flex;flex-direction:column;gap:2px}
+.loan-related-amounts small{font-size:11px;font-weight:400}

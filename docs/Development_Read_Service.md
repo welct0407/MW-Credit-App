@@ -22,6 +22,8 @@ Borrower visibility excludes only Hidden Flag=true; false/null remain eligible u
 
 Borrower detail Upcoming Charges reuses Collection's five-date forecast, date detail and paging for the selected visible borrower, including borrowers with only future charges. Borrower-scoped upcoming reads use the visible-borrower boundary; Collection-scoped reads retain their existing Collection membership check. Both use the existing forecast SQL, cursor binding and freshness checks. Viewing upcoming rows is read-only and does not submit borrower changes.
 
+Collection preserves status grouping and orders borrower names ascending within each group with stable id ties. Loan-related charges/payments order by business date descending, null dates last, then id ascending. Both use matching scoped/versioned cursor boundaries; existing eligibility, balances and authorization remain unchanged.
+
 Authentication state uses the Firebase SDK. Do not copy tokens into custom storage/logs/URLs. Clear or reject stale-session results and preserve denied access rather than granting permissions automatically. Offline viewed snapshots follow the current bounded cache policy; they do not authorize posting.
 
 ## Changes and verification

@@ -52,7 +52,7 @@ function App() {
     return () => { document.removeEventListener('keydown', onKey); previous?.focus(); };
   }, [menu]);
   const t = (en: string, th: string) => locale === 'en' ? en : th;
-  const money = (value: number | null) => value === null ? t('Unavailable', 'ไม่มีข้อมูล') : new Intl.NumberFormat(locale === 'en' ? 'en-TH' : 'th-TH', { style: 'currency', currency: 'THB', minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(value);
+  const money = (value: number | null) => value === null ? t('Unavailable', 'ไม่มีข้อมูล') : new Intl.NumberFormat(locale === 'en' ? 'en-TH' : 'th-TH', { style: 'currency', currency: 'THB', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
   const date = (value: string | null) => value === null ? t('Unavailable', 'ไม่มีข้อมูล') : displayDate(value,locale!=='en');
   const go = (next: string) => { setRoute(next); setQuery(''); setFilter('all'); setSelected(null); setMenu(false); };
   const functional = route === 'collection' || route === 'borrowers';

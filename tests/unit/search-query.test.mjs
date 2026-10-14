@@ -21,12 +21,13 @@ test('borrower cursor binds canonical query and accepts old cursor only unfilter
   assert.throws(() => decodeCursor(legacy, 'Somchai'));
 });
 test('collection root binds query without changing child cursor contract', () => {
-  const row = { kind: 'collection', businessDate: '2026-10-08', rank: 1, id: 'b1' };
+  const row = { kind: 'collection', businessDate: '2026-10-08', rank: 1, name: 'สมชาย', id: 'b1' };
   const cursor = encodeCollectionCursor(row, '%_');
-  assert.equal(decodeCollectionCursor(cursor, 'collection', undefined, '%_').v, 2);
+  assert.equal(decodeCollectionCursor(cursor, 'collection', undefined, '%_').v, 3);
   assert.throws(() => decodeCollectionCursor(cursor, 'collection', undefined, 'other'));
   const legacy = old({ v: 1, ...row });
-  assert.equal(decodeCollectionCursor(legacy, 'collection').id, 'b1');
+  assert.throws(() => decodeCollectionCursor(legacy, 'collection'));
+  assert.throws(() => decodeCollectionCursor(old({ v: 2, ...row, queryHash: searchQueryHash('') }), 'collection'));
   assert.throws(() => decodeCollectionCursor(legacy, 'collection', undefined, 'x'));
   const child = encodeCollectionCursor({ kind: 'collection-charges', businessDate: '2026-10-08', parentId: 'b1', chargeDate: '2026-10-08', id: 'c1' });
   assert.equal(decodeCollectionCursor(child, 'collection-charges', 'b1').v, 1);

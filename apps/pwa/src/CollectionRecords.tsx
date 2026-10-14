@@ -168,7 +168,7 @@ export function CollectionRecords({ thai, request, cancel, onStatus, refreshToke
     else setUpdateState('error');
   }
   useEffect(() => { void loadBoard(); return () => { revision.current++; }; }, [refreshToken, query]);
-  const money = (value: string | null) => value === null ? t('Unavailable', 'ไม่มีข้อมูล') : Number(value)===0?<span className="zero-currency">฿0</span>:new Intl.NumberFormat(thai ? 'th-TH' : 'en-TH', { style: 'currency', currency: 'THB', currencyDisplay: 'narrowSymbol', minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(Number(value));
+  const money = (value: string | null) => value === null ? t('Unavailable', 'ไม่มีข้อมูล') : Number(value)===0?<span className="zero-currency">฿0</span>:new Intl.NumberFormat(thai ? 'th-TH' : 'en-TH', { style: 'currency', currency: 'THB', currencyDisplay: 'narrowSymbol', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Number(value));
   const date = (value: string | null) => value === null ? t('Unavailable', 'ไม่มีข้อมูล') : displayDate(value);
   const statusLabel = (value: CollectionStatus) => ({ not_paid: t('Not paid', 'ยังไม่ชำระ'), partially_paid: t('Partially paid', 'ชำระบางส่วน'), overdue: t('Overdue', 'เกินกำหนด'), fully_paid: t('Fully paid', 'ชำระครบ') })[value];
   const paymentLabel = (value: string) => value === 'รอชำระ' ? t('Pending', 'รอชำระ') : value === 'ชำระบางส่วน' ? t('Partially paid', 'ชำระบางส่วน') : t('Paid', 'ชำระแล้ว');
