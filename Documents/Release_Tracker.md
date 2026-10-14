@@ -14,7 +14,7 @@ All new features/fixes use the sole Open release. Freeze only at authorized prom
 
 | Release | Status | Remaining action / owning record |
 | --- | --- | --- |
-| R062 | Open | Carried unfinished integration deployment tooling: reload the active webhook receiver and verify readiness before workers resume. Excluded from R061frontend promotion; existing integration owning record below. |
+| R062 | Open | Editable Borrower/Partner flags and delivery Email, immediate persisted language and explicit saved cash-view defaults; [existing record](Development_Changes.md#r062-editable-settings), candidate `327aa25d58867d280d148aee3991cf386c4be244`/PR9, focused checks passed and canonical completed by segment recovery; appCI passed/database rebuildCI pending, DEVV91/V92pending after rolled-back migrate, two private-record approvals pending. Also carries unfinished integration deployment tooling: reload the active webhook receiver and verify readiness before workers resume. Excluded from R061frontend promotion; existing integration owning record below. |
 | R056 | Frozen; V91 deployed | Lisa enrollment retry/closure; [record](../outputs/r056-apple-push/README.md) |
 | R055 | Frozen; monitoring delivered | Carried credential work unfinished; [record](../outputs/r055-grafana/continuation.md) |
 | R016 | Owner-accepted reporting; administrative follow-up | Migration-key retirement evidence/final tag unresolved; do not reopen product development |

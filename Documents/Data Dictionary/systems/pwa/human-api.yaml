@@ -133,6 +133,28 @@
       \ success/full-traversal claim (bounded natural logs had no events). R059 smoke had not tested signed-in dataset content;\
       \ dashboard/preferences200 did not imply broader dashboard failure."
     "recovery_source": "https://github.com/welct0407/MW-Credit-App/blob/a2f683eb74f3c3c5dc027520642a07a07f4c1558/services/payment-command/store.mjs"
+  "settings_contract":
+    "borrower_ai": "Owner-selected new borrower AI Collection Enabled default true. Existing true/false/null values and old\
+      \ canonical replay are preserved; omission by legacy inputs does not overwrite existing flags."
+    "partner_flags": "Editable Instagram collection flag remains nullable/off by unchanged default; AI Reviewer defaults false.\
+      \ Existing authorized role/capability checks remain."
+    "partner_email": "Delivery Email accepts any valid address and starts blank on new partner; Login Email retains authentication\
+      \ identity semantics and is not rebound by delivery-email edits."
+    "language": "Sidebar language changes immediately and persists through the existing preference operation. Language-only\
+      \ save preserves unchanged aged statement date/inactive account. Synced saved language restores at offline startup,\
+      \ not only a pending preference; session switch resets busy state."
+    "cash_views": "Date/account filter edits are temporary until Save as defaults. Restore valid saved account/date; PWA fallback\
+      \ is yesterday if saved date expired. SQL-created context default remains current Asia/Bangkok day, distinct from PWA\
+      \ fallback. Invalid newly selected date/account defaults are rejected locally before queueing; unchanged existing aged/inactive\
+      \ values remain preserved."
+    "delivery": "R062Open exactcandidate327aa25 publishedPR9; focused Settings4/4 and8unique desktop/mobile browsercases0skip\
+      \ passed, canonical completedfamilies with segmentrecovery (initialrunnerexit1). AppCI38646759254 passed56s; database\
+      \ runner-guards passed, database rebuildCI still pending. DEVschemaV91/V92pending after transactional owner-permission\
+      \ rollback; maintenance+release-manifest approval pending, noDEVorPRODapply claim."
+    "sources":
+    - "https://github.com/welct0407/MW-Credit-App/blob/327aa25d58867d280d148aee3991cf386c4be244/services/business/borrowers.mjs"
+    - "https://github.com/welct0407/MW-Credit-App/blob/327aa25d58867d280d148aee3991cf386c4be244/services/contracts/management-command.mjs"
+    - "https://github.com/welct0407/MW-Credit-App/blob/327aa25d58867d280d148aee3991cf386c4be244/database/migrations/V92__editable_application_settings.sql"
 "evidence":
   "/content/read_routes":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/68e8a39e63e44123dcbab3f819c72d711e2a3240/services/api/dev-read-handler.mjs"
@@ -221,4 +243,26 @@
   "/content/offline_dataset/recovery_source":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/a2f683eb74f3c3c5dc027520642a07a07f4c1558/services/payment-command/store.mjs"
     "reason": "Pin scopedR060 production-factory offline denial correction; no live delivery or release claim."
+    "state": "value"
+  "/content/settings_contract":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/327aa25d58867d280d148aee3991cf386c4be244/apps/pwa/src/preference-save.ts"
+    "reason": "Document owner-reviewed R062settings behavior while exact SQL/source/check/delivery pins remain pending."
+    "state": "value"
+  "/content/settings_contract/language":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/327aa25d58867d280d148aee3991cf386c4be244/apps/pwa/src/preference-save.ts"
+    "reason": "Include finalreview requirements for offline savedlanguage and beforequeue changedcashdefault validation; fixes/checks\
+      \ pending."
+    "state": "value"
+  "/content/settings_contract/cash_views":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/327aa25d58867d280d148aee3991cf386c4be244/apps/pwa/src/preference-save.ts"
+    "reason": "Include finalreview requirements for offline savedlanguage and beforequeue changedcashdefault validation; fixes/checks\
+      \ pending."
+    "state": "value"
+  "/content/settings_contract/delivery":
+    "reference": "https://github.com/welct0407/MW-Credit-App/actions/runs/38646759254"
+    "reason": "Record passed applicationCI separately from pending database-rebuild workflows and DEVapproval."
+    "state": "value"
+  "/content/settings_contract/sources":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/327aa25d58867d280d148aee3991cf386c4be244/apps/pwa/src/preference-save.ts"
+    "reason": "Pin testedR062settings source and factual pendingDEVmaintenance/manifest approval."
     "state": "value"

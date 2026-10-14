@@ -56,3 +56,44 @@
     "acl": "{postgres=X/postgres,mw_app_prod_journal_owner=X/postgres,mw_app_prod=X/postgres}"
     "comment": null
     "extension": null
+  "candidate_v92":
+    "migration": "V92__editable_application_settings.sql"
+    "migration_sha256": "7bedc0566acd1765db4b1eda60285d5ecf588ea9d43734637a88cc2b6bc08fd1"
+    "definition": "CREATE OR REPLACE FUNCTION public.pwa_management_input_text_v2(op text, i jsonb)\n RETURNS text\n LANGUAGE\
+      \ plpgsql\n IMMUTABLE\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\r\nDECLARE keys text[];k text;result\
+      \ text:='{';\r\nBEGIN\r\n IF op NOT IN('cash-holder.create','cash-holder.update','cash-holder.delete','cash-account.create','cash-account.update','cash-account.delete','partner.create','partner.update','partner.delete')\
+      \ OR jsonb_typeof(i) IS DISTINCT FROM 'object' THEN RAISE EXCEPTION USING ERRCODE='22023';END IF;\r\n IF split_part(op,'.',2)='delete'\
+      \ THEN IF i<>'{}'::jsonb THEN RAISE EXCEPTION USING ERRCODE='22023';END IF;RETURN '{}';END IF;\r\n IF split_part(op,'.',1)='cash-holder'\
+      \ THEN keys:=ARRAY['holderName','active','sortOrder'];\r\n ELSIF split_part(op,'.',1)='cash-account' THEN keys:=ARRAY['cashHolderId','accountLabel','bankName','accountNumber','alternativeAccountNumber','defaultAccount','active','sortOrder'];\r\
+      \n IF op='cash-account.update' THEN keys:=array_remove(keys,'cashHolderId');END IF;\r\n ELSIF split_part(op,'.',1)='partner'\
+      \ THEN keys:=ARRAY['partnerName','partnerRole','loginEmail','email','instagramUsername','languagePreference','igIntegrationEnabled','aiReviewer'];\r\
+      \n END IF;\r\n IF (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(i) key) IS DISTINCT FROM (SELECT array_agg(key\
+      \ ORDER BY key) FROM unnest(keys) key) THEN RAISE EXCEPTION USING ERRCODE='22023';END IF;\r\n FOREACH k IN ARRAY keys\
+      \ LOOP\r\n  IF k IN('active','defaultAccount','aiReviewer') THEN IF jsonb_typeof(i->k) IS DISTINCT FROM 'boolean' THEN\
+      \ RAISE EXCEPTION USING ERRCODE='22023';END IF;\r\n  ELSIF k='igIntegrationEnabled' THEN IF jsonb_typeof(i->k) NOT IN('boolean','null')\
+      \ THEN RAISE EXCEPTION USING ERRCODE='22023';END IF;\r\n  ELSIF k='sortOrder' THEN IF jsonb_typeof(i->k) IS DISTINCT\
+      \ FROM 'number' OR i->>k!~'^-?(0|[1-9][0-9]*)$' OR (i->>k)::numeric NOT BETWEEN -2147483648 AND 2147483647 THEN RAISE\
+      \ EXCEPTION USING ERRCODE='22023';END IF;\r\n  ELSE IF jsonb_typeof(i->k) NOT IN('string','null') OR octet_length(i->>k)>65536\
+      \ THEN RAISE EXCEPTION USING ERRCODE='22023';END IF;END IF;\r\n  IF k IN('holderName','accountLabel','bankName','partnerName','partnerRole')\
+      \ AND (jsonb_typeof(i->k) IS DISTINCT FROM 'string' OR btrim(i->>k)='') THEN RAISE EXCEPTION USING ERRCODE='22023';END\
+      \ IF;\r\n  IF k='cashHolderId' AND (jsonb_typeof(i->k) IS DISTINCT FROM 'string' OR octet_length(i->>k) NOT BETWEEN\
+      \ 1 AND 256 OR i->>k~'[[:cntrl:]]') THEN RAISE EXCEPTION USING ERRCODE='22023';END IF;\r\n  IF k='partnerRole' AND i->>k\
+      \ NOT IN('A','B') THEN RAISE EXCEPTION USING ERRCODE='22023';END IF;\r\n  IF k='languagePreference' AND i->k<>'null'::jsonb\
+      \ AND i->>k NOT IN('English','ไทย') THEN RAISE EXCEPTION USING ERRCODE='22023';END IF;\r\n  IF k='loginEmail' AND i->k<>'null'::jsonb\
+      \ AND (btrim(i->>k)='' OR octet_length(i->>k)>320 OR i->>k~'[\\r\\n]') THEN RAISE EXCEPTION USING ERRCODE='22023';END\
+      \ IF;\r\n  IF k='email' AND nullif(btrim(i->>k),'') IS NOT NULL AND (octet_length(i->>k)>320 OR btrim(i->>k)!~'^[^[:space:]@]+@[^[:space:]@]+\\\
+      .[^[:space:]@]+$') THEN RAISE EXCEPTION USING ERRCODE='22023';END IF;\r\n  result:=result||CASE WHEN result='{' THEN\
+      \ '' ELSE ',' END||to_json(k)::text||':'||CASE WHEN i->k='null'::jsonb THEN 'null' WHEN k IN('active','defaultAccount','aiReviewer','igIntegrationEnabled','sortOrder')\
+      \ THEN (i->k)::text ELSE to_json(i->>k)::text END;\r\n END LOOP;RETURN result||'}';\r\nEND $function$\n"
+    "status": "Exactsource327aa25 V92candidate: restricted Settings4/4 and affected canonical families/tail passed after obsolete-test\
+      \ correction; initial fullrunner exited1, not claimed exit0. DEV migrate rolled back toV91/V92pending; private maintenance+manifest\
+      \ creation approval pending. DeployedPRODdefinition/default remains above (PRODV91)."
+"evidence":
+  "/content/candidate_v92":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/327aa25d58867d280d148aee3991cf386c4be244/database/migrations/V92__editable_application_settings.sql"
+    "reason": "Record exactV92candidate in existingproductionobject without claiming deployedPRODschema changed."
+    "state": "value"
+  "/content/candidate_v92/status":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/327aa25d58867d280d148aee3991cf386c4be244/database/migrations/V92__editable_application_settings.sql"
+    "reason": "Pin exacttestedV92candidate while preserving actualDEVrollback/PRODV91 and originalcanonical failure limits."
+    "state": "value"
