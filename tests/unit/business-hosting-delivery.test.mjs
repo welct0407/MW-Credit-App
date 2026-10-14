@@ -23,6 +23,9 @@ test('current keyless operator binds supplied token and signed impersonation to 
  const fixtures=()=>[{email,expires_in:1200},{email,projectId:project,uniqueId:'123456'},{token:'signed'},...['mw-credit-prod-737787224638','mw-credit-app-dev-737787224638'].map(site=>({name:`projects/${project}/sites/${site}`}))];
  async function run(rows,proof={email,email_verified:true,sub:'123456',aud}){let calls=0;const result=await verifyAppOnlyOperator({token:'synthetic',request:async()=>({ok:true,json:async()=>rows[calls++]}),verifyIdToken:async(token,audience)=>{assert.equal(token,'signed');assert.equal(audience,aud);return proof}});return {result,calls};}
  assert.equal((await run(fixtures())).calls,5);
+ const clientBound=fixtures();delete clientBound[0].email;clientBound[0].aud='123456';clientBound[0].azp='123456';clientBound[1].oauth2ClientId='123456';assert.equal((await run(clientBound)).calls,5);
+ for(const field of ['aud','azp']){const wrong=structuredClone(clientBound);wrong[0][field]='wrong';await assert.rejects(run(wrong),/principal/);}
+ const wrongEmail=structuredClone(clientBound);wrongEmail[0].email='other@example.invalid';await assert.rejects(run(wrongEmail),/principal/);
  for(const edit of [rows=>rows[0].email='other',rows=>rows[0].expires_in=0,rows=>rows[1].projectId='other',rows=>rows[4].name='other']){const rows=fixtures();edit(rows);await assert.rejects(run(rows));}
  for(const proof of [{email,email_verified:true,sub:'wrong',aud},{email,email_verified:false,sub:'123456',aud},{email,email_verified:true,sub:'123456',aud:'wrong'}])await assert.rejects(run(fixtures(),proof),/impersonation/);
  await assert.rejects(verifyAppOnlyOperator({}),/token required/);
