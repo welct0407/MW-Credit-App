@@ -23,10 +23,10 @@
   - "GET /api/management/cash-position"
   - "GET /api/management/analytics-overview"
   - "GET /api/management/analytics-chart"
-  - "GET /api/offline-dataset?domain=records|collection|cash|management (DEV only)"
-  - "GET /api/notifications/offline-dataset (DEV only)"
-  - "POST /api/offline-dataset?domain=records|collection|cash|management&protocol=3 (DEV read-only)"
-  - "POST /api/notifications/offline-dataset?protocol=3 (DEV read-only)"
+  - "GET /api/offline-dataset?domain=records|collection|cash|management (DEV and owner-authorized PROD package)"
+  - "GET /api/notifications/offline-dataset (DEV and owner-authorized PROD package)"
+  - "POST /api/offline-dataset?domain=records|collection|cash|management&protocol=3 (DEV/PROD read-only)"
+  - "POST /api/notifications/offline-dataset?protocol=3 (DEV/PROD read-only)"
   "management_resources":
   - "cash-accounts"
   - "cash-holders"
@@ -86,8 +86,9 @@
     - "GET /api/offline-dataset?domain=cash"
     - "GET /api/offline-dataset?domain=management"
     - "GET /api/notifications/offline-dataset"
-    "guard": "DEV-only existing authenticated issuer/membership/capabilities and fixed target guards; production-business\
-      \ composition denies bulk domain route; recipient notification endpoint enabled only in DEV."
+    "guard": "Existing environment-specific authenticated issuer/membership/capabilities and fixed target guards apply in\
+      \ DEV and owner-authorized PROD package. Production recipient endpoint requires existing notifications-enabled composition;\
+      \ deployment pending."
     "transaction": "Each chunk uses ordinary authenticated read-only repeatable-read checks and existing projections/providers;\
       \ one shared bulk connection reservation preserves foreground capacity. No transaction snapshot is exported between\
       \ HTTP requests."
@@ -123,6 +124,9 @@
     "delta_consistency": "Raw-table content/xmin fingerprints scoped actor/domain/day; deletes/direct other-user changes included.\
       \ Main start/end source gate rejects changed traversal with dataset_changed. Canonical value hashing normalizes Date\
       \ to JSON ISO and ignores asOf metadata. No CDC/retained server snapshot, no universal point-in-time guarantee."
+    "production_sources":
+    - "https://github.com/welct0407/MW-Credit-App/blob/7db48d2b07d1128878533ba0ebff39286368cd39/services/production/business-runtime.mjs"
+    - "https://github.com/welct0407/MW-Credit-App/blob/7db48d2b07d1128878533ba0ebff39286368cd39/services/payment-command/handler.mjs"
 "evidence":
   "/content/read_routes":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/68e8a39e63e44123dcbab3f819c72d711e2a3240/services/api/dev-read-handler.mjs"
@@ -149,8 +153,8 @@
       \ refresh state; note autosave unchanged"
     "state": "value"
   "/content/command_service_read_routes":
-    "reference": "https://github.com/welct0407/MW-Credit-App/blob/6a3cf8cde2710a45b0368bc7f177f21bdab2693c/services/notifications/handler.mjs"
-    "reason": "Exact incremental DEV deployment and protocol3 read-only route registration, preserving protocol2 limits distinctly"
+    "reference": "https://github.com/welct0407/MW-Credit-App/pull/6"
+    "reason": "Owner-authorized production offline parity candidate; final source/deployment pending."
     "state": "value"
   "/content/offline_dataset/protocol":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/6a3cf8cde2710a45b0368bc7f177f21bdab2693c/services/business/offline-dataset-delta.mjs"
@@ -194,4 +198,13 @@
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/6a3cf8cde2710a45b0368bc7f177f21bdab2693c/services/business/offline-dataset-delta.mjs"
     "reason": "Incremental content-only refresh after full preparation; canonical restricted SQL and browser checks protect\
       \ pending edits and actor/recipient boundaries"
+    "state": "value"
+  "/content/offline_dataset/guard":
+    "reference": "https://github.com/welct0407/MW-Credit-App/pull/6"
+    "reason": "Owner-authorized production offline parity candidate; final source/deployment pending."
+    "state": "value"
+  "/content/offline_dataset/production_sources":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/7db48d2b07d1128878533ba0ebff39286368cd39/services/production/business-runtime.mjs"
+    "reason": "Pin focused-tested owner-authorized R059 production offline parity candidate; full workflow/artifacts/deployment\
+      \ pending."
     "state": "value"
