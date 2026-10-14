@@ -11,6 +11,16 @@ node scripts/promotion/manifest.mjs --manifest PATH --artifact-root CURRENT_ROOT
 node --test tests/unit/phase3-promotion-manifest.test.mjs
 ```
 
+## Current R059 app-only promotion
+
+`deploy-business-hosting.mjs` supports a separate `schemaVersion: 2`, `release: R059`, `environment: prod`, `scope: app-only` package. Historical foundation/R053 contracts remain unchanged. Use an absolute private `--inputs` path with `--check`; `--apply` also requires owner approval and an absolute private `--output` receipt. Creating a missing package/receipt requires explicit document-creation approval.
+
+The package pins one immutable source/build, exact PROD target, V91→V91 with no migrations, a reviewed reader/command-image-only plan and prior Hosting plus all four runtime recovery pins. Apply requires Ready/100% reader and command readback and unchanged notify/jobs. Artifact bytes, public bindings, mode/marker/entry and matched PROD service worker are validated. Source drift rejects.
+
+Application evidence must be the successful exact-source `.github/workflows/ci.yml` `workflow_dispatch` run with executed check, live-dev build, audit and full `test:e2e`; a PR run with skipped browsers cannot satisfy this gate. Operator verification checks the supplied access-token principal and signed audience-bound impersonation proof for the established unattended admin, then verifies the live package identities/configuration before Hosting effects.
+
+The runner reserves the private receipt exclusively as `pending-reconciliation` before mutation and replaces it with actual applied release identity. If the outcome or final receipt write is unknown, do not replay: retain emitted identities and reconcile the live Hosting release first. `manifest.mjs` remains preparation-only; it is not this apply route.
+
 ## Draft, candidate and authority
 
 Use schemaVersion1, environment prod, mode foundation. status draft accepts unbound inputs and returns an explicit missing list; it never invents DEV defaults. status reviewable requires complete exact target, stage artifacts, evidence links and recovery. validateCandidate (alias validateReviewable) accepts a complete candidate before owner mutation approval: reviewReady=true, approvalRequired=true, deployReady=false. Optional validateAuthorizedPackage checks a future reference against source/target but still cannot execute or prove authority. A future executor must independently verify scope, live identities, plan hashes, provenance and recovery.

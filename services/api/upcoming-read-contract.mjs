@@ -51,21 +51,23 @@ SELECT COALESCE((SELECT jsonb_agg(to_jsonb(d) ORDER BY d."dueDate") FROM allowed
   COALESCE((SELECT jsonb_agg(to_jsonb(r) ORDER BY r."dueDate", r."loanId" COLLATE "C", r.id COLLATE "C") FROM ranked_events r WHERE r.ordinal <= $5::integer + 1), '[]'::jsonb) AS events,
   EXISTS (SELECT 1 FROM selected_events e WHERE e."Basis" IS NULL OR e."Basis" NOT IN ('Recorded', 'Recorded settlement', 'Recorded - review status', 'Projected')
     OR NOT EXISTS (SELECT 1 FROM public."Loans" l WHERE l."Row ID" = e."Ref Loan" AND l."Ref Borrowers" = $1)) AS invalid`;
-function projectUpcomingEvent(row) {
+export function projectUpcomingEvent(row) {
   if (!validLoanId(row.id) || !validLoanId(row.loanId) || !bases.includes(row.basis)) throw new Error('Invalid upcoming detail');
   const principal = row.principal === null ? '' : new Intl.NumberFormat('en-US', { style: 'currency', currency: 'THB', currencyDisplay: 'narrowSymbol', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Number(decimal(row.principal)));
   const date = row.loanDate === null ? '' : validUpcomingDate(row.loanDate) ? row.loanDate.slice(8, 10) + '/' + row.loanDate.slice(5, 7) : (() => { throw new Error('Invalid loan date'); })();
   const rate = row.rate === null ? 'Unavailable' : decimal(row.rate) + '%';
   return { id: row.id, loanId: row.loanId, loanDisplayKey: `${borrowerDisplayName(row.name, row.description)}-${principal}-${date}-${rate}`, principalRemaining: decimal(row.principalRemaining), interestRemaining: decimal(row.interestRemaining), amountRemaining: decimal(row.amountRemaining), basis: row.basis };
 }
-export async function readUpcoming(client, { borrowerId, businessDate: requestedDate, dueDate = null, limit = 25, after = null }) {
+export async function readUpcoming(client, { borrowerId, businessDate: requestedDate, dueDate = null, limit = 25, after = null, scope = 'collection' }) {
   const clock = await client.query(`SELECT CURRENT_TIMESTAMP AS "asOf", (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date::text AS "businessDate"`);
   const { businessDate, asOf } = clock.rows[0];
   if (requestedDate !== businessDate) return failure('business_date_changed', 409);
   const metadata = { businessDate, asOf: new Date(asOf).toISOString(), timezone: 'Asia/Bangkok' };
   const quality = await client.query(collectionQualitySql, [borrowerId]);
   if (quality.rows[0]?.invalid !== false) return failure('source_unavailable');
-  const membership = await client.query(`${collectionCte} SELECT id FROM summaries`, [businessDate, borrowerId]);
+  const membership = scope === 'borrower'
+    ? await client.query('SELECT "Row ID" AS id FROM public."Borrowers" WHERE "Hidden Flag" IS NOT TRUE AND "Row ID" = $1 LIMIT 2', [borrowerId])
+    : await client.query(`${collectionCte} SELECT id FROM summaries`, [businessDate, borrowerId]);
   if (membership.rows.length !== 1) return failure('not_found', 404);
   const coverage = await client.query(`SELECT "As Of Date"::text AS "businessDate", "Horizon End"::text AS "horizonEnd", "Review Loans" AS "reviewLoans", LEAST(($2::date + interval '3 months')::date, $2::date + 93)::text AS "expectedHorizonEnd" FROM public.oltp_upcoming_charge_coverage_v1 WHERE "Ref Borrower" = $1 LIMIT 2`, [borrowerId, businessDate]);
   if (coverage.rows.length !== 1) return failure('source_unavailable');

@@ -1,6 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {executeBusinessHosting} from '../../scripts/promotion/deploy-business-hosting.mjs';
+import {mkdtemp,mkdir,writeFile,rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import path from 'node:path';
+import {spawnSync} from 'node:child_process';
+import {createHash} from 'node:crypto';
+import {executeBusinessHosting,appOnlyHostingPlan,verifyAppOnlyOperator} from '../../scripts/promotion/deploy-business-hosting.mjs';
 const site='mw-credit-prod-737787224638',version=`sites/${site}/versions/abc123`,release=`sites/${site}/releases/xyz123`;
 const plan=()=>({site,files:{'/index.html':'a'.repeat(64)},contents:new Map([['a'.repeat(64),Buffer.from('compressed')]]),headers:[],sourceCommit:'b'.repeat(40),publicVersion:'marker'});
 function transport({target=version,hash='a'.repeat(64),upload='https://upload-firebasehosting.googleapis.com/upload/'+version+'/files',failFinalize=false}={}){const calls=[];return {calls,request:async(url,method,body)=>{calls.push({url,method,body});if(url.endsWith('/versions'))return {name:target};if(url.endsWith(':populateFiles'))return {uploadRequiredHashes:[hash],uploadUrl:upload};if(method==='PATCH'){if(failFinalize)throw Error('Finalize failed');return {name:version,status:'FINALIZED'};}if(url.includes('/releases?'))return {name:release,version:{name:version}};return {};}};}
@@ -8,3 +13,37 @@ test('owner approval and fixed site refuse before requests',async()=>{let calls=
 test('verified version upload finalize release order produces exact delivery receipt',async()=>{const t=transport(),result=await executeBusinessHosting(plan(),{request:t.request,approvalReference:'owner'});assert.equal(result.version,version);assert.equal(result.release,release);assert.deepEqual(t.calls.map(x=>x.method),['POST','POST','POST','PATCH','POST']);assert.equal(t.calls[2].url,'https://upload-firebasehosting.googleapis.com/upload/'+version+'/files/'+'a'.repeat(64));});
 test('wrong returned site, upload route and unplanned hash stop before release',async()=>{for(const options of [{target:'sites/other/versions/abc123'},{upload:'https://evil.example/upload'},{hash:'c'.repeat(64)}]){const t=transport(options);await assert.rejects(executeBusinessHosting(plan(),{request:t.request,approvalReference:'owner'}),/Unexpected/);assert.equal(t.calls.some(x=>x.url.includes('/releases?')),false);}});
 test('failed finalization never releases partially uploaded version',async()=>{const t=transport({failFinalize:true});await assert.rejects(executeBusinessHosting(plan(),{request:t.request,approvalReference:'owner'}),/Finalize failed/);assert.equal(t.calls.some(x=>x.url.includes('/releases?')),false);});
+
+test('current app-only package refuses legacy release, DEV and missing applied phase',async()=>{
+ for(const m of [{},{schemaVersion:2,release:'R058',environment:'prod',scope:'app-only',status:'applied'},{schemaVersion:2,release:'R059',environment:'dev',scope:'app-only',status:'applied'}])await assert.rejects(appOnlyHostingPlan(m),/package kind/);
+ await assert.rejects(appOnlyHostingPlan({schemaVersion:2,release:'R059',environment:'prod',scope:'app-only',status:'prepared'}),/apply\/readback/);
+});
+test('current keyless operator binds supplied token and signed impersonation to exact SA',async()=>{
+ const email='mw-credit-unattended-admin@clever-oasis-508610-n7.iam.gserviceaccount.com',project='clever-oasis-508610-n7',aud='https://lm.mw-credit.com/promotion/r059';
+ const fixtures=()=>[{email,expires_in:1200},{email,projectId:project,uniqueId:'123456'},{token:'signed'},...['mw-credit-prod-737787224638','mw-credit-app-dev-737787224638'].map(site=>({name:`projects/${project}/sites/${site}`}))];
+ async function run(rows,proof={email,email_verified:true,sub:'123456',aud}){let calls=0;const result=await verifyAppOnlyOperator({token:'synthetic',request:async()=>({ok:true,json:async()=>rows[calls++]}),verifyIdToken:async(token,audience)=>{assert.equal(token,'signed');assert.equal(audience,aud);return proof}});return {result,calls};}
+ assert.equal((await run(fixtures())).calls,5);
+ const clientBound=fixtures();delete clientBound[0].email;clientBound[0].aud='123456';clientBound[0].azp='123456';clientBound[1].oauth2ClientId='123456';assert.equal((await run(clientBound)).calls,5);
+ for(const field of ['aud','azp']){const wrong=structuredClone(clientBound);wrong[0][field]='wrong';await assert.rejects(run(wrong),/principal/);}
+ const wrongEmail=structuredClone(clientBound);wrongEmail[0].email='other@example.invalid';await assert.rejects(run(wrongEmail),/principal/);
+ for(const edit of [rows=>rows[0].email='other',rows=>rows[0].expires_in=0,rows=>rows[1].projectId='other',rows=>rows[4].name='other']){const rows=fixtures();edit(rows);await assert.rejects(run(rows));}
+ for(const proof of [{email,email_verified:true,sub:'wrong',aud},{email,email_verified:false,sub:'123456',aud},{email,email_verified:true,sub:'123456',aud:'wrong'}])await assert.rejects(run(fixtures(),proof),/impersonation/);
+ await assert.rejects(verifyAppOnlyOperator({}),/token required/);
+});
+test('changed live rollback stops before any Hosting mutation',async()=>{
+ let calls=0;await assert.rejects(executeBusinessHosting({...plan(),rollback:{hostingVersion:version,hostingRelease:release}},{approvalReference:'owner',request:async(url,method)=>{calls++;assert.equal(method,'GET');return {releases:[{name:release,version:{name:version+'changed'}}]}}}),/baseline changed/);assert.equal(calls,1);
+});
+
+test('app-only exact package validates and repinned configuration, worker, CI, and recovery tampering rejects',async t=>{
+ const root=await mkdtemp(path.join(tmpdir(),'mw-hosting-unit-'));t.after(()=>rm(root,{recursive:true,force:true}));
+ const git=args=>{const r=spawnSync('git',['-C',root,...args],{encoding:'utf8'});assert.equal(r.status,0,r.stderr);return r.stdout.trim()};git(['init']);git(['-c','user.name=Test','-c','user.email=test@example.invalid','commit','--allow-empty','-m','synthetic']);const commit=git(['rev-parse','HEAD']);
+ const artifact=path.join(root,'frontend');await mkdir(path.join(artifact,'assets'),{recursive:true});const project='clever-oasis-508610-n7',version='a'.repeat(24),entry='/assets/test.js';
+ const config={schemaVersion:1,environment:'prod',canonicalOrigin:'https://lm.mw-credit.com',notificationsEnabled:true,firebase:{projectId:project,authDomain:project+'.firebaseapp.com',apiKey:'AIza'+'x'.repeat(35),appId:'1:737787224638:web:abc123'},readerOrigin:'https://mw-credit-app-read-prod-pvrgvyg3oq-as.a.run.app',commandOrigin:'https://mw-credit-app-command-prod-pvrgvyg3oq-as.a.run.app'};
+ const content={'index.html':`<script type="module" src="${entry}"></script>`,'production-public-config.json':JSON.stringify(config),'build-mode.json':JSON.stringify({schemaVersion:1,mode:'live-prod'}),'build-version.json':JSON.stringify({schemaVersion:1,version,entry}),'sw.js':`const VERSION = '${version}';\nconst PREFIX = 'mw-credit-prod-public-';\nconst APP_ASSETS = ["${entry}"];`,'manifest.webmanifest':'{}','assets/test.js':JSON.stringify(config)};
+ const files=[];for(const [name,value]of Object.entries(content)){await writeFile(path.join(artifact,name),value);files.push({path:name,sha256:createHash('sha256').update(value).digest('hex')});}
+ const image=`asia-southeast1-docker.pkg.dev/${project}/mw-credit-app-prod/api@sha256:`+'b'.repeat(64),services=Object.fromEntries(['read','command','notify','jobs'].map(role=>[role,{revision:`mw-credit-app-${role}-prod-00001-abc`,image}]));
+ const m={schemaVersion:2,release:'R059',environment:'prod',scope:'app-only',status:'applied',sourceCommit:commit,artifactSourceCommit:commit,repoRoot:root,artifactRoot:artifact,target:{projectId:project,projectNumber:'737787224638',region:'asia-southeast1',site,database:'loan_manager_prod',connectionName:project+':asia-southeast1:appsheet-pg-prod-20260914',canonicalOrigin:'https://lm.mw-credit.com'},sql:{baselineVersion:91,targetVersion:91,migrations:[]},applicationCi:{run:{repository:{full_name:'welct0407/MW-Credit-App'},path:'.github/workflows/ci.yml',head_sha:commit,event:'workflow_dispatch',status:'completed',conclusion:'success'},jobs:[{steps:['Run npm run check','Run npm run build:live-dev','Run npm audit --omit=dev --audit-level=moderate','Run npm run test:e2e'].map(name=>({name,conclusion:'success'}))}]},build:{sourceCommit:commit,status:'SUCCESS',image,id:'synthetic-build'},plan:{sha256:'c'.repeat(64),actions:['reader.image','command.image']},rollback:{hostingVersion:`sites/${site}/versions/prior`,hostingRelease:`sites/${site}/releases/123`,services},applied:{sourceCommit:commit,planSha256:'c'.repeat(64),database:'loan_manager_prod',sqlVersion:91,services:{...services,read:{...services.read,ready:true,trafficPercent:100},command:{...services.command,ready:true,trafficPercent:100}}},frontend:{publicVersion:version,entry,files}};
+ assert.equal((await appOnlyHostingPlan(m)).site,site);
+ for(const mutate of [x=>x.applicationCi.jobs[0].steps[3].conclusion='skipped',x=>x.target.database='loan_manager_dev',x=>x.applied.services.command.trafficPercent=99,x=>x.applied.services.jobs={...x.applied.services.jobs,image:image.replace(/b/g,'d')},x=>x.sql.targetVersion=92,x=>x.frontend.files[0].sha256='d'.repeat(64)]){const candidate=structuredClone(m);mutate(candidate);await assert.rejects(appOnlyHostingPlan(candidate));}
+ await writeFile(path.join(artifact,'sw.js'),content['sw.js'].replace('mw-credit-prod-public-','mw-credit-dev-public-'));const altered=structuredClone(m);altered.frontend.files.find(x=>x.path==='sw.js').sha256=createHash('sha256').update(content['sw.js'].replace('mw-credit-prod-public-','mw-credit-dev-public-')).digest('hex');await assert.rejects(appOnlyHostingPlan(altered),/worker/);
+});

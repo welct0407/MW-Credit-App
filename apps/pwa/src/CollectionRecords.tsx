@@ -1,3 +1,5 @@
+import {Icon} from './Icon';
+import {subscribeOfflineDataset} from './read-cache';
 import {RecordAction} from './RecordAction';
 import {HeaderBack} from './HeaderBack';
 import {ChargeRecord} from './ChargeRecord';
@@ -8,7 +10,7 @@ import {displayDate,displayTimestamp,displayValue} from './display-date';
 import {CollectionReceipts} from './CollectionReceipts';
 import {PaymentRecord} from './PaymentRecord';
 import {useContextRefresh} from './context-refresh';
-import {CompactPager,ReceiveIcon,RefreshIcon} from './CompactPager';
+import {CompactPager,RefreshIcon} from './CompactPager';
 import {PaymentHistory} from './PaymentHistory';
 import {SelectedCharges,type CommandAccess} from './SelectedCharges';
 import { ErrorReference, type ReadFailure } from './ReadFailure';
@@ -22,7 +24,7 @@ type Envelope = { ok: true; source: 'dev'; businessDate: string; asOf: string; n
 type BoardResult = Envelope & { items: Summary[] };
 type DetailResult = Envelope & { borrower: Summary; items: Charge[] };
 export type CollectionReadError = 'not_found' | 'unavailable' | 'business_date_changed';
-export type CollectionRequest = <T>(path: string, onError: (failure: ReadFailure<CollectionReadError>) => void) => Promise<T | null>;
+export type CollectionRequest = <T>(path: string, onError: (failure: ReadFailure<CollectionReadError>) => void, onCached?: (value:T)=>void) => Promise<T | null>;
 export function CollectionRecords({ thai, request, cancel, onStatus, refreshToken, query, commandAccess }: { thai: boolean; request: CollectionRequest; cancel: () => void; onStatus: (value: 'idle' | 'loading' | 'success' | 'error') => void; refreshToken: number; query: string; commandAccess?: CommandAccess }) {
   const t = (en: string, th: string) => thai ? th : en;
   const [borrowerOpen,setBorrowerOpen]=useState(false),[loanOpen,setLoanOpen]=useState<string|null>(null);
@@ -42,6 +44,7 @@ export function CollectionRecords({ thai, request, cancel, onStatus, refreshToke
   const [chargeCursor, setChargeCursor] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const boardCursors=useRef<(string|undefined)[]>([undefined]),chargeCursors=useRef<(string|undefined)[]>([undefined]),upcomingCursors=useRef<(string|undefined)[]>([undefined]);
+  const lastBoardKey=useRef('');
 
   const [chargePage, setChargePage] = useState(1);
   const [businessDate, setBusinessDate] = useState('');
@@ -80,27 +83,40 @@ export function CollectionRecords({ thai, request, cancel, onStatus, refreshToke
       else window.scrollTo({ top: savedDetailScroll.current });
     }
   }, [selectedCharge, upcomingDetail]);
-  function reset() { setPaymentOpen(false); previews.current = null; setUpcoming(null); setUpcomingDetail(null); setUpcomingError(null); setUpcomingPage(1); setSelectedCharge(null); setChildError(null); setItems([]); setSelected(null); setCharges([]); setCursor(null); setChargeCursor(null); setBusinessDate(''); setAsOf(''); setChargeAsOf(''); setPage(1); setChargePage(1); }
+  function reset(keepBoard=false) { setPaymentOpen(false); previews.current = null; setUpcoming(null); setUpcomingDetail(null); setUpcomingError(null); setUpcomingPage(1); setSelectedCharge(null); setChildError(null); if(!keepBoard){setItems([]);setCursor(null);setBusinessDate('');setAsOf('');setPage(1)}setSelected(null);setCharges([]);setChargeCursor(null);setChargeAsOf('');setChargePage(1); }
   function fail(code: ReadFailure<CollectionReadError>) { reset(); setError(code); setUpdateState('error'); }
   async function loadBoard(next?: string, pageNumber = 1) {
     if(pageNumber===1)boardCursors.current=[undefined];boardCursors.current[pageNumber-1]=next;
-    cancel(); const current = ++revision.current; reset(); setError(null); setBusy(true); setUpdateState('loading');
+    cancel(); const current = ++revision.current,key=query+'|'+(next??'');reset(lastBoardKey.current===key);lastBoardKey.current=key;setError(null); setBusy(true); setUpdateState('loading');
     setScrollTarget(value => ({ kind: 'list', sequence: value.sequence + 1 }));
-    const result = await request<BoardResult>('/api/collection?limit=25' + (query ? '&q=' + encodeURIComponent(query) : '') + (next ? '&cursor=' + encodeURIComponent(next) : ''), code => { if (current === revision.current) fail(code); });
+    const apply=(value:BoardResult)=>{if(current!==revision.current)return;setItems(value.items);setCursor(value.nextCursor);setPage(pageNumber);setBusinessDate(value.businessDate);setAsOf(value.asOf);setBusy(false)};
+    const result = await request<BoardResult>('/api/collection?limit=25' + (query ? '&q=' + encodeURIComponent(query) : '') + (next ? '&cursor=' + encodeURIComponent(next) : ''), code => { if (current === revision.current) fail(code); },apply);
     if (current !== revision.current) return;
     setBusy(false);
-    if (result) { setUpdateState('success'); setItems(result.items); setCursor(result.nextCursor); setPage(pageNumber); setBusinessDate(result.businessDate); setAsOf(result.asOf); }
+    if (result) { setUpdateState('success');apply(result); }
   }
-  async function fetchUpcoming(row: Summary, day: string, current: number) {
+  useEffect(()=>{
+    if(!commandAccess||busy)return;
+    const boardCursor=boardCursors.current[page-1],stops=[subscribeOfflineDataset<BoardResult>(commandAccess,'/api/collection?limit=25'+(query?'&q='+encodeURIComponent(query):'')+(boardCursor?'&cursor='+encodeURIComponent(boardCursor):''),value=>{setItems(value.items);setCursor(value.nextCursor);setBusinessDate(value.businessDate);setAsOf(value.asOf)})];
+    if(selected&&!paymentOpen&&!pendingPayment){
+      const base='/api/collection/'+encodeURIComponent(selected.id),cursor=chargeCursors.current[chargePage-1];
+      stops.push(subscribeOfflineDataset<DetailResult>(commandAccess,base+'/charges?limit=10'+(cursor?'&cursor='+encodeURIComponent(cursor):''),value=>{setSelected(value.borrower);setCharges(value.items);setChargeCursor(value.nextCursor);setChargeAsOf(value.asOf)}));
+      stops.push(subscribeOfflineDataset<UpcomingSummary>(commandAccess,base+'/upcoming',value=>{setUpcoming(value);previews.current={borrowerId:selected.id,businessDate:value.businessDate,asOf:value.asOf,receivedAt:performance.now(),items:value.previews??[]}}));
+      if(upcomingDetail){const next=upcomingCursors.current[upcomingPage-1];stops.push(subscribeOfflineDataset<UpcomingDetail>(commandAccess,base+'/upcoming/'+encodeURIComponent(upcomingDetail.dueDate)+'?limit=25'+(next?'&cursor='+encodeURIComponent(next):''),setUpcomingDetail))}
+    }
+    return()=>stops.forEach(stop=>stop());
+  },[commandAccess?.offline,query,page,chargePage,selected?.id,busy,paymentOpen,pendingPayment,upcomingDetail?.dueDate,upcomingPage]);
+  async function fetchUpcoming(row: Summary, day: string, current: number,onUnavailable?:()=>void) {
     previews.current = null; setUpcoming(null); setUpcomingError(null);
+    const apply=(value:UpcomingSummary)=>{if(current===revision.current&&value.businessDate===day)setUpcoming(value)};
     const result = await request<UpcomingSummary>('/api/collection/' + encodeURIComponent(row.id) + '/upcoming?businessDate=' + encodeURIComponent(day), code => {
       if (current !== revision.current) return;
-      if (code.code === 'business_date_changed') { fail(code); return; }
+      if (code.code === 'business_date_changed') {onUnavailable?.();fail(code); return; }
       setUpcomingError(code);
-      if (code.code === 'not_found') { setSelected(null); setCharges([]); setChargeAsOf(''); setChildError(code); }
-    });
+      if (code.code === 'not_found') {onUnavailable?.();setSelected(null); setCharges([]); setChargeAsOf(''); setChildError(code); }
+    },apply);
     if (current !== revision.current) return false;
-    if (result && result.businessDate !== day) { fail({ code: 'business_date_changed' }); return false; }
+    if (result && result.businessDate !== day) {onUnavailable?.();fail({ code: 'business_date_changed' }); return false; }
     if (result) { setUpcoming(result); previews.current = { borrowerId: row.id, businessDate: result.businessDate, asOf: result.asOf, receivedAt: performance.now(), items: result.previews ?? [] }; }
     return result !== null;
   }
@@ -108,22 +124,25 @@ export function CollectionRecords({ thai, request, cancel, onStatus, refreshToke
     if(pageNumber===1)chargeCursors.current=[undefined];chargeCursors.current[pageNumber-1]=next;
     cancel(); const current = ++revision.current;
     previews.current = null; setSelected(row); if(!keepCharge)setSelectedCharge(null); setUpcoming(null); setUpcomingDetail(null); setUpcomingError(null);
-    setChildError(null); setCharges([]); setChargeCursor(null); setChargeAsOf(''); setError(null); setBusy(true); setUpdateState('loading');
+    setChildError(null);if(selected?.id!==row.id||chargePage!==pageNumber){setCharges([]);setChargeCursor(null);setChargeAsOf('')}setError(null); setBusy(true); setUpdateState('loading');
     // Keep the shared charge detail mounted while refreshing its Collection context.
     if(!keepCharge)setScrollTarget(value => ({ kind: 'detail', sequence: value.sequence + 1 }));
     let parentUnavailable = false;
+    let upcomingTask:Promise<boolean>|null=null;
+    const apply=(value:DetailResult)=>{if(current!==revision.current)return;setSelected(value.borrower);setCharges(value.items);setChargeCursor(value.nextCursor);setChargePage(pageNumber);setBusinessDate(value.businessDate);setChargeAsOf(value.asOf);setBusy(false)};
     const result = await request<DetailResult>('/api/collection/' + encodeURIComponent(row.id) + '/charges?limit=10' + (next ? '&cursor=' + encodeURIComponent(next) : ''), code => {
       if (current !== revision.current) return;
       if (code.code === 'business_date_changed') { parentUnavailable = true; fail(code); return; }
       setCharges([]); setChargeCursor(null); setChargeAsOf(''); setChildError(code);
       if (code.code === 'not_found') { parentUnavailable = true; setSelected(null); }
-    });
+    },value=>{apply(value);if(current===revision.current)upcomingTask=fetchUpcoming(value.borrower,value.businessDate,current,()=>{parentUnavailable=true})});
     if (current !== revision.current) return;
-    if (result && businessDate && result.businessDate !== businessDate) { fail({ code: 'business_date_changed' }); setBusy(false); return; }
-    if (parentUnavailable) { setSelectedCharge(null);setBusy(false); setUpdateState('error'); return; }
-    if (result) { setSelected(result.borrower); setCharges(result.items); setChargeCursor(result.nextCursor); setChargePage(pageNumber); setBusinessDate(result.businessDate); setChargeAsOf(result.asOf); }
-    const upcomingOk = await fetchUpcoming(result?.borrower ?? row, result?.businessDate ?? businessDate, current);
+    if (result && businessDate && result.businessDate !== businessDate) {cancel();revision.current++;fail({ code: 'business_date_changed' }); setBusy(false); return; }
+    if (parentUnavailable) {cancel();revision.current++;setSelectedCharge(null);setBusy(false); setUpdateState('error'); return; }
+    if (result) apply(result);
+    const upcomingOk = await (upcomingTask??fetchUpcoming(result?.borrower ?? row, result?.businessDate ?? businessDate, current,()=>{parentUnavailable=true}));
     if (current !== revision.current) return;
+    if(parentUnavailable){cancel();revision.current++;setSelected(null);setBusy(false);setUpdateState('error');return;}
     setBusy(false); setUpdateState(result && upcomingOk ? 'success' : 'error');
   }
   async function chargeChanged() {
@@ -157,10 +176,11 @@ export function CollectionRecords({ thai, request, cancel, onStatus, refreshToke
     }
     previews.current = null;
     cancel(); const current = ++revision.current; setSelectedCharge(null); setUpcomingDetail(null); setUpcomingError(null); setBusy(true); setUpdateState('loading');
+    const apply=(value:UpcomingDetail)=>{if(current===revision.current&&value.businessDate===businessDate){setUpcomingDetail(value);setUpcomingPage(pageNumber);setBusy(false)}};
     const result = await request<UpcomingDetail>('/api/collection/' + encodeURIComponent(selected.id) + '/upcoming/' + encodeURIComponent(dueDate) + '?businessDate=' + encodeURIComponent(businessDate) + '&limit=25' + (next ? '&cursor=' + encodeURIComponent(next) : ''), code => {
       if (current !== revision.current) return;
       if (code.code === 'business_date_changed') fail(code); else setUpcomingError(code);
-    });
+    },apply);
     if (current !== revision.current) return;
     setBusy(false);
     if (result && result.businessDate !== businessDate) { fail({ code: 'business_date_changed' }); return; }
@@ -168,14 +188,14 @@ export function CollectionRecords({ thai, request, cancel, onStatus, refreshToke
     else setUpdateState('error');
   }
   useEffect(() => { void loadBoard(); return () => { revision.current++; }; }, [refreshToken, query]);
-  const money = (value: string | null) => value === null ? t('Unavailable', 'ไม่มีข้อมูล') : Number(value)===0?<span className="zero-currency">฿0</span>:new Intl.NumberFormat(thai ? 'th-TH' : 'en-TH', { style: 'currency', currency: 'THB', currencyDisplay: 'narrowSymbol', minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(Number(value));
+  const money = (value: string | null) => value === null ? t('Unavailable', 'ไม่มีข้อมูล') : Number(value)===0?<span className="zero-currency">฿0</span>:new Intl.NumberFormat(thai ? 'th-TH' : 'en-TH', { style: 'currency', currency: 'THB', currencyDisplay: 'narrowSymbol', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Number(value));
   const date = (value: string | null) => value === null ? t('Unavailable', 'ไม่มีข้อมูล') : displayDate(value);
   const statusLabel = (value: CollectionStatus) => ({ not_paid: t('Not paid', 'ยังไม่ชำระ'), partially_paid: t('Partially paid', 'ชำระบางส่วน'), overdue: t('Overdue', 'เกินกำหนด'), fully_paid: t('Fully paid', 'ชำระครบ') })[value];
   const paymentLabel = (value: string) => value === 'รอชำระ' ? t('Pending', 'รอชำระ') : value === 'ชำระบางส่วน' ? t('Partially paid', 'ชำระบางส่วน') : t('Paid', 'ชำระแล้ว');
   const amounts = (row: Summary) => <dl className="collection-amounts"><div><dt>{t('Amount due', 'ยอดที่ต้องชำระ')}</dt><dd className={row.amountDue!==null&&Number(row.amountDue)===0?'zero-currency':''}>{money(row.amountDue)}</dd></div><div><dt>{t('Collected today', 'รับชำระวันนี้')}</dt><dd className={row.amountCollected!==null&&Number(row.amountCollected)===0?'zero-currency':''}>{money(row.amountCollected)}</dd></div><div><dt>{t('Remaining to collect', 'ยอดคงเหลือที่ต้องรับชำระ')}</dt><dd className={row.amountRemaining!==null&&Number(row.amountRemaining)===0?'zero-currency':''}>{money(row.amountRemaining)}</dd></div></dl>;
 
   useContextRefresh(!!selected&&!paymentOpen&&!receiptRecord&&!selectedCharge&&!loanOpen&&!borrowerOpen,upcomingDetail?t('First upcoming details page / refresh','หน้าแรกของรายละเอียดล่วงหน้า / รีเฟรช'):t('First charges page / refresh','หน้าแรกยอดเรียกเก็บ / รีเฟรช'),()=>{if(upcomingDetail)void openUpcoming(upcomingDetail.dueDate,undefined,1,true);else if(selected)void loadCharges(selected)});
-  const upcomingView = (detail: UpcomingDetail | null) => <UpcomingCharges thai={thai} summary={upcoming} detail={detail} page={upcomingPage} busy={busy} error={upcomingError} onDate={value => void openUpcoming(value)} onBack={() => { restoreDetailScroll.current = true; setUpcomingError(null); setUpcomingDetail(null); }} onRefresh={() => void refreshUpcoming()} onDetailRefresh={() => upcomingDetail && void openUpcoming(upcomingDetail.dueDate, undefined, 1, true)} onPrevious={upcomingPage>1&&upcomingDetail?()=>void openUpcoming(upcomingDetail.dueDate,upcomingCursors.current[upcomingPage-2],upcomingPage-1,true):undefined} onNext={() => upcomingDetail?.nextCursor && void openUpcoming(upcomingDetail.dueDate, upcomingDetail.nextCursor, upcomingPage + 1)} />;
+  const upcomingView = (detail: UpcomingDetail | null) => <UpcomingCharges thai={thai} summary={upcoming} detail={detail} page={upcomingPage} busy={busy} error={upcomingError} onDate={value => void openUpcoming(value)} onBack={() => { cancel(); revision.current++; setBusy(false); setUpdateState('idle'); restoreDetailScroll.current = true; setUpcomingError(null); setUpcomingDetail(null); }} onRefresh={() => void refreshUpcoming()} onDetailRefresh={() => upcomingDetail && void openUpcoming(upcomingDetail.dueDate, undefined, 1, true)} onPrevious={upcomingPage>1&&upcomingDetail?()=>void openUpcoming(upcomingDetail.dueDate,upcomingCursors.current[upcomingPage-2],upcomingPage-1,true):undefined} onNext={() => upcomingDetail?.nextCursor && void openUpcoming(upcomingDetail.dueDate, upcomingDetail.nextCursor, upcomingPage + 1)} />;
   if(loanOpen&&commandAccess)return <LoanRecord access={commandAccess} id={loanOpen} thai={thai} onBack={()=>setLoanOpen(null)}/>;
   if(borrowerOpen&&selected&&commandAccess)return <SharedBorrowerDetail access={commandAccess} id={selected.id} label={selected.displayName} thai={thai} onBack={()=>setBorrowerOpen(false)}/>;
   if(selectedCharge&&commandAccess)return <ChargeRecord key={selectedCharge.id} access={commandAccess} id={selectedCharge.id} thai={thai} backLabel={t('Back to charges','กลับรายการเรียกเก็บ')} onChanged={()=>void chargeChanged()} onBack={()=>{restoreDetailScroll.current=true;setSelectedCharge(null)}}/>;
@@ -191,11 +211,11 @@ export function CollectionRecords({ thai, request, cancel, onStatus, refreshToke
       <section className="list-panel" aria-busy={busy && !selected} ref={listPanel} tabIndex={0} aria-label={t('Collection borrower list', 'รายชื่อผู้กู้งานติดตาม')}>
         <div className="section-heading"><h2>{t('Collection borrowers', 'ผู้กู้งานติดตาม')}</h2></div>
         {!busy && !items.length && <p className="live-empty">{query ? t('No matching borrowers.', 'ไม่พบผู้กู้ที่ตรงกับการค้นหา') : t('No borrowers in Collection today.', 'ไม่มีผู้กู้ในงานติดตามวันนี้')}</p>}
-        <p className="list-meaning-legend">{t('Left: remaining · Right: collected today','ซ้าย: คงเหลือ · ขวา: รับชำระวันนี้')}</p>{items.map((row,index)=><React.Fragment key={row.id}>{(index===0||items[index-1].status!==row.status)&&<h3 className={'record-group-heading collection-status-'+row.status}><span>{statusLabel(row.status)}</span><strong className={row.status==='fully_paid'&&Number(row.groupCollected)>0?'paid-group-total':''}>{money((row.status==='fully_paid'?row.groupCollected:row.groupRemaining)??null)}</strong></h3>}<article className={'collection-compact-tile collection-status-'+row.status+(selected?.id===row.id?' selected':'')}><button className="collection-tile-main" disabled={busy} onClick={()=>void loadCharges(row)}><strong>{row.displayName}</strong><span className={row.amountRemaining!==null&&Number(row.amountRemaining)===0?'zero-currency':''}>{money(row.amountRemaining)}</span></button><div className="collection-tile-right"><strong className={row.amountCollected!==null&&Number(row.amountCollected)===0?'zero-currency':Number(row.amountCollected)>0?'positive-paid':''} aria-label={t('Paid amount','ยอดชำระ')}>{money(row.amountCollected)}</strong>{commandAccess&&(commandAccess.ownerTesting||commandAccess.fixtureBorrowerId===row.id)&&<button className="secondary-button icon-action" disabled={busy} aria-label={t('Receive payment for ','รับชำระให้ ')+row.displayName} title={t('Receive payment','รับชำระ')} onClick={()=>{cancel();revision.current++;previews.current=null;setSelected(row);setBusy(false);setUpdateState('idle');setPaymentOpen(true)}}><ReceiveIcon/></button>}</div></article></React.Fragment>)}
+        <p className="list-meaning-legend">{t('Left: remaining · Right: collected today','ซ้าย: คงเหลือ · ขวา: รับชำระวันนี้')}</p>{items.map((row,index)=><React.Fragment key={row.id}>{(index===0||items[index-1].status!==row.status)&&<h3 className={'record-group-heading collection-status-'+row.status}><span>{statusLabel(row.status)}</span><strong className={row.status==='fully_paid'&&Number(row.groupCollected)>0?'paid-group-total':''}>{money((row.status==='fully_paid'?row.groupCollected:row.groupRemaining)??null)}</strong></h3>}<article className={'collection-compact-tile collection-status-'+row.status+(selected?.id===row.id?' selected':'')}><button className="collection-tile-main" disabled={busy} onClick={()=>void loadCharges(row)}><strong>{row.displayName}</strong><span className={row.amountRemaining!==null&&Number(row.amountRemaining)===0?'zero-currency':''}>{money(row.amountRemaining)}</span></button><div className="collection-tile-right"><strong className={row.amountCollected!==null&&Number(row.amountCollected)===0?'zero-currency':Number(row.amountCollected)>0?'positive-paid':''} aria-label={t('Paid amount','ยอดชำระ')}>{money(row.amountCollected)}</strong>{commandAccess&&(commandAccess.ownerTesting||commandAccess.fixtureBorrowerId===row.id)&&<button className="secondary-button icon-action" disabled={busy} aria-label={t('Receive payment for ','รับชำระให้ ')+row.displayName} title={t('Receive payment','รับชำระ')} onClick={()=>{cancel();revision.current++;previews.current=null;setSelected(row);setBusy(false);setUpdateState('idle');setPaymentOpen(true)}}><Icon name="receive"/></button>}</div></article></React.Fragment>)}
         <CompactPager busy={busy} previous={page>1?()=>void loadBoard(boardCursors.current[page-2],page-1):undefined} next={cursor?()=>void loadBoard(cursor,page+1):undefined} previousLabel={t('Previous Collection page','หน้างานติดตามก่อนหน้า')} nextLabel={t('Next Collection page','หน้าถัดไปของงานติดตาม')}/>
       </section>
       <section className={'detail-panel ' + (!selected ? 'unselected' : '')} aria-busy={busy && !!selected} ref={detailPanel} tabIndex={0} aria-label={t('Collection charge details', 'รายละเอียดยอดเรียกเก็บงานติดตาม')}>
-        {selected ? selectedCharge ? <article className="collection-charge-detail" aria-label={t('Charge detail', 'รายละเอียดยอดเรียกเก็บ')}><HeaderBack className="icon-action" aria-label={t('Back to charges', 'กลับรายการเรียกเก็บ')} onClick={() => { restoreDetailScroll.current = true; setSelectedCharge(null); }}>←</HeaderBack><h2>{t('Charge detail', 'รายละเอียดยอดเรียกเก็บ')}</h2><h3>{selectedCharge.loanDisplayKey}</h3><dl><div><dt>{t('Charge date', 'วันที่เรียกเก็บ')}</dt><dd>{date(selectedCharge.chargeDate)}</dd></div><div><dt>{t('Payment status', 'สถานะชำระเงิน')}</dt><dd>{paymentLabel(selectedCharge.paymentStatus)}</dd></div>{selectedCharge.paymentDate !== null && <div><dt>{t('Payment date', 'วันที่ชำระเงิน')}</dt><dd>{date(selectedCharge.paymentDate)}</dd></div>}<div><dt>{t('Amount remaining', 'ยอดคงเหลือ')}</dt><dd>{money(selectedCharge.amountRemaining)}</dd></div><div><dt>{t('Total paid', 'ยอดชำระรวม')}</dt><dd>{money(selectedCharge.totalPaid)}</dd></div><div><dt>{t('Received today', 'รับชำระวันนี้')}</dt><dd>{money(selectedCharge.receivedToday)}</dd></div></dl></article> : upcomingDetail ? upcomingView(upcomingDetail) : <><div className="payment-context collection-context"><HeaderBack className="secondary-button icon-action" aria-label={t('Back to Collection','กลับงานติดตาม')} title={t('Back to Collection','กลับงานติดตาม')} onClick={() => { cancel(); revision.current++; previews.current = null; setChildError(null); setSelected(null); setSelectedCharge(null); setUpcoming(null); setUpcomingDetail(null); setUpcomingError(null); setCharges([]); setChargeCursor(null); setChargeAsOf(''); setBusy(false); setUpdateState('idle'); }}><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M19 12H5m6-6-6 6 6 6"/></svg></HeaderBack>{commandAccess?<button className={'collection-name-link collection-status-'+selected.status} onClick={()=>setBorrowerOpen(true)}>{selected.displayName}</button>:<strong className={'collection-status-'+selected.status}>{selected.displayName}</strong>}{commandAccess&&<PaymentHistory compact access={commandAccess} borrowerId={selected.id} thai={thai}/>}</div>{amounts(selected)}{commandAccess?.ownerTesting&&<CollectionNote key={selected.id} access={commandAccess} id={selected.id} thai={thai}/>}<div className="related-loans-heading collection-charges-heading"><h3>{t('Today’s charges', 'ยอดเรียกเก็บวันนี้')}</h3>{commandAccess&&(commandAccess.ownerTesting||commandAccess.fixtureBorrowerId===selected.id)&&<RecordAction icon="↗" className="secondary-button icon-action" aria-label={t('Receive selected charges','รับชำระรายการที่เลือก')} title={t('Receive selected charges','รับชำระรายการที่เลือก')} onClick={()=>{cancel();revision.current++;previews.current=null;setPaymentOpen(true)}}><ReceiveIcon/></RecordAction>}</div>
+        {selected ? selectedCharge ? <article className="collection-charge-detail" aria-label={t('Charge detail', 'รายละเอียดยอดเรียกเก็บ')}><HeaderBack navigationKey="collection-charge-detail" className="icon-action" aria-label={t('Back to charges', 'กลับรายการเรียกเก็บ')} onClick={() => { restoreDetailScroll.current = true; setSelectedCharge(null); }}><Icon name="back"/></HeaderBack><h2>{t('Charge detail', 'รายละเอียดยอดเรียกเก็บ')}</h2><h3>{selectedCharge.loanDisplayKey}</h3><dl><div><dt>{t('Charge date', 'วันที่เรียกเก็บ')}</dt><dd>{date(selectedCharge.chargeDate)}</dd></div><div><dt>{t('Payment status', 'สถานะชำระเงิน')}</dt><dd>{paymentLabel(selectedCharge.paymentStatus)}</dd></div>{selectedCharge.paymentDate !== null && <div><dt>{t('Payment date', 'วันที่ชำระเงิน')}</dt><dd>{date(selectedCharge.paymentDate)}</dd></div>}<div><dt>{t('Amount remaining', 'ยอดคงเหลือ')}</dt><dd>{money(selectedCharge.amountRemaining)}</dd></div><div><dt>{t('Total paid', 'ยอดชำระรวม')}</dt><dd>{money(selectedCharge.totalPaid)}</dd></div><div><dt>{t('Received today', 'รับชำระวันนี้')}</dt><dd>{money(selectedCharge.receivedToday)}</dd></div></dl></article> : upcomingDetail ? upcomingView(upcomingDetail) : <><div className="payment-context collection-context"><HeaderBack navigationKey="collection-summary" className="secondary-button icon-action" aria-label={t('Back to Collection','กลับงานติดตาม')} title={t('Back to Collection','กลับงานติดตาม')} onClick={() => { cancel(); revision.current++; previews.current = null; setChildError(null); setSelected(null); setSelectedCharge(null); setUpcoming(null); setUpcomingDetail(null); setUpcomingError(null); setCharges([]); setChargeCursor(null); setChargeAsOf(''); setBusy(false); setUpdateState('idle'); }}><Icon name="back"/></HeaderBack>{commandAccess?<button className={'collection-name-link collection-status-'+selected.status} onClick={()=>setBorrowerOpen(true)}>{selected.displayName}</button>:<strong className={'collection-status-'+selected.status}>{selected.displayName}</strong>}{commandAccess&&<PaymentHistory compact access={commandAccess} borrowerId={selected.id} thai={thai}/>}</div>{amounts(selected)}{commandAccess?.ownerTesting&&<CollectionNote key={selected.id} access={commandAccess} id={selected.id} thai={thai}/>}<div className="related-loans-heading collection-charges-heading"><h3>{t('Today’s charges', 'ยอดเรียกเก็บวันนี้')}</h3>{commandAccess&&(commandAccess.ownerTesting||commandAccess.fixtureBorrowerId===selected.id)&&<RecordAction icon="receive" className="secondary-button icon-action" aria-label={t('Receive selected charges','รับชำระรายการที่เลือก')} title={t('Receive selected charges','รับชำระรายการที่เลือก')} onClick={()=>{cancel();revision.current++;previews.current=null;setBusy(false);setUpdateState('idle');setPaymentOpen(true)}}></RecordAction>}</div>
           {childError?.code === 'unavailable' && <div role="status"><ErrorReference failure={childError} thai={thai} />{selected&&<button className="secondary-button" disabled={busy} onClick={()=>void loadCharges(selected)}>{t('Retry charges','ลองโหลดยอดเรียกเก็บอีกครั้ง')}</button>}<p>{t('Unable to load charges. Refresh the charges page to try again.', 'ไม่สามารถโหลดรายการเรียกเก็บได้ กรุณารีเฟรชหน้ายอดเรียกเก็บเพื่อลองอีกครั้ง')}</p></div>}
           {charges.map(charge=><article className="collection-charge collection-charge-row" key={charge.id}><span className="charge-row-left"><strong>{date(charge.chargeDate)}</strong>{commandAccess?<button className="record-field-link charge-loan-link" disabled={busy} onClick={()=>setLoanOpen(charge.loanId)}>{charge.loanDisplayKey}</button>:<span>{charge.loanDisplayKey}</span>}</span><span className="charge-row-right"><strong className={'charge-remaining '+(charge.amountRemaining!==null&&Number(charge.amountRemaining)===0?'zero-currency':'')}>{money(charge.amountRemaining)}</strong><strong className={'charge-received '+(charge.totalPaid!==null&&Number(charge.totalPaid)===0?'zero-currency':'')}>{money(charge.totalPaid)}</strong></span><button className="charge-tile-action" disabled={busy} aria-label={t('Charge details for ','รายละเอียดรายการเรียกเก็บ ')+charge.loanDisplayKey+' '+date(charge.chargeDate)} onClick={()=>{savedDetailScroll.current=window.innerWidth>1050?detailPanel.current?.scrollTop??0:window.scrollY;setSelectedCharge(charge);setScrollTarget(value=>({kind:'detail',sequence:value.sequence+1}))}}></button></article>)}
           <CompactPager busy={busy} previous={chargePage>1?()=>void loadCharges(selected,chargeCursors.current[chargePage-2],chargePage-1):undefined} next={chargeCursor?()=>void loadCharges(selected,chargeCursor,chargePage+1):undefined} previousLabel={t('Previous charges page','หน้ายอดเรียกเก็บก่อนหน้า')} nextLabel={t('Next charges page','หน้าถัดไปของยอดเรียกเก็บ')}/>

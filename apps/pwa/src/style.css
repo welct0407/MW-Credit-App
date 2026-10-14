@@ -1266,3 +1266,5 @@ button, .filters select { min-height: 44px; }
 .payment-options{margin-left:auto;position:relative}.payment-options summary{list-style:none;width:44px;height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:24px}.payment-options summary::-webkit-details-marker{display:none}.payment-options[open] button{position:absolute;right:0;top:44px;white-space:nowrap;z-index:2;background:white}
 
 .live-shell .back-button.icon-action{display:inline-flex;padding:10px;background:transparent;border:0}
+
+.app-icon{display:inline-block;flex:none;vertical-align:middle;width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
