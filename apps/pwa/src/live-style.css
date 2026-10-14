@@ -552,3 +552,8 @@ main[data-workspace=management] pre{white-space:pre-wrap;overflow-wrap:anywhere}
 .refresh-failure-badge .app-icon{width:12px;height:12px;stroke-width:2}
 .payment-receipt-remove .app-icon{width:24px;height:24px}
 .payment-status-symbol .app-icon,.list-meaning-legend .app-icon{width:18px;height:18px}
+
+/* Gesture feedback overlays the workspace without moving content or fixed chrome. */
+.workspace-pull-feedback{position:fixed;top:var(--live-header-height,60px);left:50%;z-index:40;pointer-events:none;width:max-content;max-width:calc(100vw - 32px);transform:translateX(-50%)}
+.workspace-pull-cue{display:flex;align-items:center;gap:8px;padding:8px 14px;border:1px solid #777;border-radius:24px;background:#fff;color:#303030;box-shadow:0 2px 6px #0002;font-size:14px;line-height:1.5;transform:translateY(calc(8px + var(--pull-distance,0px)))}
+.workspace-pull-cue.armed{border-color:#444;font-weight:600}
