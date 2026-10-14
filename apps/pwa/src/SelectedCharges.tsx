@@ -1,3 +1,4 @@
+import {ReceiptPicker} from './ReceiptPicker';
 import {readOfflineDataset} from './offline-dataset';
 import {applicationEnvironment} from './environment';
 import {syncSavedRequest} from './offline-sync';
@@ -245,8 +246,7 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
  <label><span className="field-title">{t('Payment method','วิธีชำระเงิน')}</span><select required value={paymentMethod==='Net-off at Disbursement'?'':paymentMethod} onChange={event=>{reviewOperation.current++;setPaymentMethod(event.target.value as Command['paymentMethod'])}}><option value="" disabled>{t('Choose payment method','เลือกวิธีชำระเงิน')}</option><option value="Bank Transfer">{t('Bank Transfer','โอนเงิน')}</option><option value="Cash">{t('Cash','เงินสด')}</option></select></label>
  <label><span className="field-title">{t('Receiving account','บัญชีรับชำระ')}</span><select required value={account} onChange={event=>setAccount(event.target.value)}><option value="">{t('Select account','เลือกบัญชี')}</option>{draft.accounts.map(row=><option key={row.id} value={row.id}>{row.label}</option>)}</select></label>
  <label><span className="field-title">{t('Notes','หมายเหตุ')}</span><textarea value={notes} onChange={event=>setNotes(event.target.value)}/></label>
- {!(receipt||localImage||uploadFailed||uploading)&&<label className="receipt-camera-picker"><span>{t('Receipt (optional PNG/JPEG)','หลักฐาน (PNG/JPEG ไม่บังคับ)')}</span><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 6h4l2-3h4l2 3h4v15H4z"/><circle cx="12" cy="13" r="4"/></svg><input type="file" multiple={false} accept="image/png,image/jpeg" onChange={event=>void upload(event.target.files?.[0])}/></label>}
- {(receipt||localImage||uploadFailed||uploading)&&<div className="payment-receipt-slot">{preview&&<img className="payment-receipt-preview" src={preview} alt={t('Selected receipt','หลักฐานที่เลือก')}/>}<button type="button" className="payment-receipt-remove" aria-label={t('Remove receipt','นำหลักฐานออก')} onClick={()=>{uploadGeneration.current++;setReceipt(null);setLocalImage(null);setPreview(null);setUploadFailed(false);setUploading(false);setError('')}}><span aria-hidden="true">×</span></button></div>}
+ <ReceiptPicker thai={thai} attached={!!(receipt||localImage||uploadFailed||uploading)} preview={preview} busy={uploading} onPick={file=>void upload(file)} onRemove={()=>{uploadGeneration.current++;setReceipt(null);setLocalImage(null);setPreview(null);setUploadFailed(false);setUploading(false);setError('')}}/>
  {localImage&&!receipt&&!access.offlineOnly&&<button className="secondary-button" disabled={uploading} onClick={()=>void upload(new File([localImage],'receipt',{type:localImage.type}))}>{t('Upload saved receipt','อัปโหลดหลักฐานที่บันทึกไว้')}</button>}
 
  </>}

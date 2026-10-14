@@ -489,9 +489,9 @@ main[data-workspace=management] pre{white-space:pre-wrap;overflow-wrap:anywhere}
 .collection-receipt-card{flex:0 0 min(86%,480px);min-width:0;padding:0;overflow:hidden;border:1px solid #d5d5d5;border-radius:10px;background:#f4f4f4}
 .collection-receipt-image{display:grid;place-items:center;width:100%;min-height:280px;background:#f4f4f4}
 .collection-receipt-image img{display:block;width:100%;height:360px;object-fit:contain}
-.selected-payment .payment-receipt-preview{display:block;width:100%;height:auto;max-width:640px;max-height:none;object-fit:contain;margin-block:12px}
+.selected-payment .payment-receipt-preview,.receipt-control .payment-receipt-preview{display:block;width:100%;height:auto;max-width:640px;max-height:none;object-fit:contain;margin-block:12px}
 .payment-receipt-slot{position:relative;width:100%;max-width:640px;min-height:64px}
-.selected-payment .payment-receipt-remove{position:absolute;top:8px;right:8px;display:grid;place-items:center;width:44px;height:44px;min-width:44px;padding:0;border:1px solid #666;border-radius:50%;background:#fff;color:#222;font-size:28px;line-height:1;box-shadow:0 1px 5px #0003}
+.selected-payment .payment-receipt-remove,.receipt-control .payment-receipt-remove{position:absolute;top:8px;right:8px;display:grid;place-items:center;width:44px;height:44px;min-width:44px;padding:0;border:1px solid #666;border-radius:50%;background:#fff;color:#222;font-size:28px;line-height:1;box-shadow:0 1px 5px #0003}
 
 .live-shell .borrower-card.loan-related-row{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;padding:8px 10px}
 .loan-related-date{display:flex;flex-direction:column;gap:2px;min-width:0;text-align:left}
@@ -523,3 +523,5 @@ main[data-workspace=management] pre{white-space:pre-wrap;overflow-wrap:anywhere}
 .live-menu-dialog[data-drawer-motion=dragging] { transition: none; }
 .live-menu-dialog[data-drawer-motion=dragging]::backdrop { transition: none; }
 @media(prefers-reduced-motion:reduce){.live-menu-dialog[data-drawer-motion=settling],.live-menu-dialog[data-drawer-motion=settling]::backdrop{transition:none}}
+
+.receipt-preview-placeholder{padding:20px 60px 20px 12px;margin:0;background:#f4f4f4;border:1px solid #ddd;border-radius:8px}
