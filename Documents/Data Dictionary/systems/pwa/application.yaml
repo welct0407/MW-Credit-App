@@ -58,9 +58,9 @@
       \ date paging uses fresh API reads"
     "request_safety": "Abort and generation guards reject stale borrower results; controls do not submit borrower changes"
     "financial_effect": "Read-only forecast; no charge or financial write"
-    "delivery": "R058 Open; source 6a3cf8cd deployed to DEV Hosting 954c221804e763f3/command 00025-7qx; reader 00020-m9t remains\
+    "delivery": "R058 Open; source 6a3cf8cd deployed to DEV Hosting 7a5caa74e4a59435/command 00025-7qx; reader 00020-m9t remains\
       \ source 2ef73db. Artifact checks passed; authenticated forecast/UX smoke untested; PROD promotion pending. Exact pins/recovery\
-      \ in Environment_Inventory and Development_Changes."
+      \ in Environment_Inventory and Development_Changes. Frontend UI-only source 8aeaaa28; command/API remains 6a3cf8cd."
     "source": "https://github.com/welct0407/MW-Credit-App/blob/95fab655431a4459e22ec1dbdd1541d035333d78/apps/pwa/src/SharedBorrowerDetail.tsx"
     "read_only_source": "https://github.com/welct0407/MW-Credit-App/blob/68e8a39e63e44123dcbab3f819c72d711e2a3240/apps/pwa/src/live-main.tsx"
   "navigation":
@@ -75,14 +75,14 @@
       \ Back action or disabled control cancel the gesture."
     "source": "https://github.com/welct0407/MW-Credit-App/blob/5d046627481ff151f299bad30b784ca418f4b58c/apps/pwa/src/swipe-back.ts"
     "shell_source": "https://github.com/welct0407/MW-Credit-App/blob/5d046627481ff151f299bad30b784ca418f4b58c/apps/pwa/src/live-main.tsx"
-    "delivery": "R058 Open; gestures included in frontend 6a3cf8cd deployed to DEV Hosting 954c221804e763f3. Actual mobile\
+    "delivery": "R058 Open; gestures included in frontend 6a3cf8cd deployed to DEV Hosting 7a5caa74e4a59435. Actual mobile\
       \ CDP/mocked app checks passed; artifact verified. Physical iPhone and owner-authenticated live gestures unverified;\
-      \ PROD promotion pending."
+      \ PROD promotion pending. Frontend UI-only source 8aeaaa28; command/API remains 6a3cf8cd."
     "workspace_gestures": "Root left swipe opens the existing menu. Pull-down at scroll top invokes the current enabled header\
       \ context refresh with fixed chrome. Reference-choice refresh preserves entered values; static/unsafe unsaved editors\
       \ show a preserve-entries message instead of reloading. Waiting-to-sync pull runs safe synchronization. Inputs, open\
       \ dialogs, selection and horizontal scrollers retain their interactions; changed context/multiple touches cancel."
-    "workspace_source": "https://github.com/welct0407/MW-Credit-App/blob/dfaa46d280e99e9f3694d735d75e615074249a97/apps/pwa/src/workspace-gestures.ts"
+    "workspace_source": "https://github.com/welct0407/MW-Credit-App/blob/8aeaaa28f9aca3436c5b6b024d35e63389e7a343/apps/pwa/src/workspace-gestures.ts"
   "collection_receiving_ui":
     "collection_note": "Textarea grows to fit loaded/edited contents and on resize. Autosave after 650ms pause or blur queues\
       \ a durable saved-note request, deferred during IME. Preserve versions, immutable pending identity and unknown-outcome\
@@ -99,10 +99,10 @@
     - "https://github.com/welct0407/MW-Credit-App/blob/5e981335ad42846dac6bde13e24a45a147ab2676/apps/pwa/src/CollectionReceipts.tsx"
     - "https://github.com/welct0407/MW-Credit-App/blob/5e981335ad42846dac6bde13e24a45a147ab2676/apps/pwa/src/SelectedCharges.tsx"
     - "https://github.com/welct0407/MW-Credit-App/blob/5e981335ad42846dac6bde13e24a45a147ab2676/apps/pwa/src/live-style.css"
-    "delivery": "R058 Open; receipt UI and existing note autosave included in 6a3cf8cd deployed to DEV Hosting 954c221804e763f3/command\
+    "delivery": "R058 Open; receipt UI and existing note autosave included in 6a3cf8cd deployed to DEV Hosting 7a5caa74e4a59435/command\
       \ 00025-7qx. Only initial read-only note baseline gains prepared data; autosave concern deferred unchanged. Focused\
       \ checks/CI passed; artifact verified, authenticated live note/receiver smoke untested. No Page status changes; PROD\
-      \ promotion pending."
+      \ promotion pending. Frontend UI-only source 8aeaaa28; command/API remains 6a3cf8cd."
   "phase5_ui":
     "money_display": "THB currency presentation uses whole baht across affected views; editable amounts, storage and financial\
       \ calculation precision remain unchanged."
@@ -116,9 +116,9 @@
     - "https://github.com/welct0407/MW-Credit-App/blob/2ef73db0f91769f1566cd83d91467390080c36ab/apps/pwa/src/LoanRelated.tsx"
     - "https://github.com/welct0407/MW-Credit-App/blob/8ba8e6320f44fb147c54474302adb0076c2e4bd2/apps/pwa/src/OfflinePayments.tsx"
     - "https://github.com/welct0407/MW-Credit-App/blob/2ef73db0f91769f1566cd83d91467390080c36ab/apps/pwa/src/display-money.ts"
-    "delivery": "R058 Open; frontend and command source 6a3cf8cd deployed to DEV Hosting 954c221804e763f3/command 00025-7qx;\
+    "delivery": "R058 Open; frontend and command source 6a3cf8cd deployed to DEV Hosting 7a5caa74e4a59435/command 00025-7qx;\
       \ reader 00020-m9t retains source 2ef73db. Focused checks and configured CI passed; artifact verified. Authenticated\
-      \ business smoke untested; PROD promotion pending."
+      \ business smoke untested; PROD promotion pending. Frontend UI-only source 8aeaaa28; command/API remains 6a3cf8cd."
   "saved_change_queue":
     "contents": "Only saved/confirmed unsynced requests, including autosaved notes. Applied/posted requests removed; rejected/conflicting\
       \ requests retained for review. Ordinary drafts/snapshots hidden. Waiting to sync sidebar/mobile button shows a top-right\
@@ -146,9 +146,10 @@
     - "https://github.com/welct0407/MW-Credit-App/blob/dfaa46d280e99e9f3694d735d75e615074249a97/apps/pwa/src/CollectionNote.tsx"
     - "https://github.com/welct0407/MW-Credit-App/blob/dfaa46d280e99e9f3694d735d75e615074249a97/apps/pwa/src/domain-draft.ts"
     - "https://github.com/welct0407/MW-Credit-App/blob/dfaa46d280e99e9f3694d735d75e615074249a97/apps/pwa/src/live-main.tsx"
-    "delivery": "R058 Open; queue behavior included in frontend 6a3cf8cd deployed to DEV Hosting 954c221804e763f3 and command\
+    "delivery": "R058 Open; queue behavior included in frontend 6a3cf8cd deployed to DEV Hosting 7a5caa74e4a59435 and command\
       \ 00025-7qx. Focused queue/mocked app checks passed; artifact verified. Authenticated live coordinator/backlog untested;\
-      \ automatic PROD sync/migration disabled. Reader unchanged; PROD promotion pending."
+      \ automatic PROD sync/migration disabled. Reader unchanged; PROD promotion pending. Frontend UI-only source 8aeaaa28;\
+      \ command/API remains 6a3cf8cd."
     "manual_sync": "Sync now is inside Waiting to sync page, visible when saved changes exist. It uses the same guarded engine;\
       \ repeated activation cannot overlap. Outcome reports offline/authorization, remaining requests or attention truthfully;\
       \ does not claim complete while unresolved/blocked changes remain."
@@ -180,10 +181,10 @@
     - "https://github.com/welct0407/MW-Credit-App/blob/2963e0ec6d04fb020a51cf1e23a8711c03587093/apps/pwa/src/read-cache.ts"
     - "https://github.com/welct0407/MW-Credit-App/blob/2963e0ec6d04fb020a51cf1e23a8711c03587093/apps/pwa/src/owner-offline.ts"
     - "https://github.com/welct0407/MW-Credit-App/blob/2963e0ec6d04fb020a51cf1e23a8711c03587093/apps/pwa/src/live-main.tsx"
-    "delivery": "R058 Open; hybrid reads included in dataset frontend 6a3cf8cd deployed to DEV Hosting 954c221804e763f3 and\
+    "delivery": "R058 Open; hybrid reads included in dataset frontend 6a3cf8cd deployed to DEV Hosting 7a5caa74e4a59435 and\
       \ command 00025-7qx. Current local 98 browser cases and development CI 393 units passed; artifact verified. Authenticated\
       \ live cache/preparation untested; latest note autosave concern deferred unchanged. Reader remains source 2ef73db; PROD\
-      \ promotion pending."
+      \ promotion pending. Frontend UI-only source 8aeaaa28; command/API remains 6a3cf8cd."
   "offline_datasets":
     "domains":
     - "records"
@@ -213,10 +214,11 @@
     - "https://github.com/welct0407/MW-Credit-App/blob/6a3cf8cde2710a45b0368bc7f177f21bdab2693c/apps/pwa/src/owner-offline.ts"
     - "https://github.com/welct0407/MW-Credit-App/blob/6a3cf8cde2710a45b0368bc7f177f21bdab2693c/apps/pwa/src/read-cache.ts"
     - "https://github.com/welct0407/MW-Credit-App/blob/6a3cf8cde2710a45b0368bc7f177f21bdab2693c/apps/pwa/src/live-main.tsx"
-    "delivery": "R058 Open; incremental source 6a3cf8cd deployed to DEV command 00025-7qx and Hosting 954c221804e763f3. Full\
+    "delivery": "R058 Open; incremental source 6a3cf8cd deployed to DEV command 00025-7qx and Hosting 7a5caa74e4a59435. Full\
       \ canonical restricted SQL, 98 browser project cases and development CI 393 units passed. Operator main-domain source-gate/manifest\
       \ performance proof is separate from runtime authentication. Artifact/health/auth-gate verified; authenticated live\
-      \ content untested. Reader unchanged; PROD promotion pending."
+      \ content untested. Reader unchanged; PROD promotion pending. Frontend UI-only source 8aeaaa28; command/API remains\
+      \ 6a3cf8cd."
     "traversal": "Protocol 2 bounded resumable traversal; cursors bind actor/domain/day/start/phase/state/generation. startedAt\
       \ through final asOf is an interval of authoritative per-request reads, not a global MVCC snapshot. Old complete bundle\
       \ stays available across pause/failure/reconnect."
@@ -238,7 +240,7 @@
     "state": "value"
   "/content/borrower_upcoming/delivery":
     "reference": "https://github.com/welct0407/AppSheet-Loan-Project/pull/20"
-    "reason": "Exact incremental DEV deployment and protocol3 read-only route registration, preserving protocol2 limits distinctly"
+    "reason": "UI-only Hosting provenance/current gesture source; API and data contracts unchanged, no model rebuild"
     "state": "value"
   "/content/borrower_upcoming/presentation":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/95fab655431a4459e22ec1dbdd1541d035333d78/apps/pwa/src/SharedBorrowerDetail.tsx"
@@ -257,7 +259,7 @@
     "state": "value"
   "/content/navigation/delivery":
     "reference": "https://github.com/welct0407/AppSheet-Loan-Project/pull/20"
-    "reason": "Exact incremental DEV deployment and protocol3 read-only route registration, preserving protocol2 limits distinctly"
+    "reason": "UI-only Hosting provenance/current gesture source; API and data contracts unchanged, no model rebuild"
     "state": "value"
   "/content/collection_receiving_ui":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/5e981335ad42846dac6bde13e24a45a147ab2676/apps/pwa/src/CollectionReceipts.tsx"
@@ -266,7 +268,7 @@
     "state": "value"
   "/content/collection_receiving_ui/delivery":
     "reference": "https://github.com/welct0407/AppSheet-Loan-Project/pull/20"
-    "reason": "Exact incremental DEV deployment and protocol3 read-only route registration, preserving protocol2 limits distinctly"
+    "reason": "UI-only Hosting provenance/current gesture source; API and data contracts unchanged, no model rebuild"
     "state": "value"
   "/content/collection_receiving_ui/collection_note":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/efd9fab2d9cf7326e94f4e380b2117e6bae16a5e/apps/pwa/src/offline-sync.ts"
@@ -285,7 +287,7 @@
     "state": "value"
   "/content/phase5_ui/delivery":
     "reference": "https://github.com/welct0407/AppSheet-Loan-Project/pull/20"
-    "reason": "Exact incremental DEV deployment and protocol3 read-only route registration, preserving protocol2 limits distinctly"
+    "reason": "UI-only Hosting provenance/current gesture source; API and data contracts unchanged, no model rebuild"
     "state": "value"
   "/content/phase5_ui/offline_order":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/5d5af4b0783fe6a44419a4dd5e07ecc135419b43/apps/pwa/src/OfflinePayments.tsx"
@@ -313,7 +315,7 @@
     "state": "value"
   "/content/saved_change_queue/delivery":
     "reference": "https://github.com/welct0407/AppSheet-Loan-Project/pull/20"
-    "reason": "Exact incremental DEV deployment and protocol3 read-only route registration, preserving protocol2 limits distinctly"
+    "reason": "UI-only Hosting provenance/current gesture source; API and data contracts unchanged, no model rebuild"
     "state": "value"
   "/content/saved_change_queue/contents":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/51d4ce9856e7730b1881caf84bd429fc718b46e3/apps/pwa/src/WaitingToSyncButton.tsx"
@@ -325,9 +327,8 @@
       \ and mocked Firebase full-app composition"
     "state": "value"
   "/content/navigation/workspace_source":
-    "reference": "https://github.com/welct0407/MW-Credit-App/blob/dfaa46d280e99e9f3694d735d75e615074249a97/apps/pwa/src/workspace-gestures.ts"
-    "reason": "Gesture/context-refresh and foreground/manual queue synchronization followups verified with real IndexedDB\
-      \ and mocked Firebase full-app composition"
+    "reference": "https://github.com/welct0407/AppSheet-Loan-Project/pull/20"
+    "reason": "UI-only Hosting provenance/current gesture source; API and data contracts unchanged, no model rebuild"
     "state": "value"
   "/content/saved_change_queue/manual_sync":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/dfaa46d280e99e9f3694d735d75e615074249a97/apps/pwa/src/OfflinePayments.tsx"
@@ -340,7 +341,7 @@
     "state": "value"
   "/content/hybrid_read_cache/delivery":
     "reference": "https://github.com/welct0407/AppSheet-Loan-Project/pull/20"
-    "reason": "Exact incremental DEV deployment and protocol3 read-only route registration, preserving protocol2 limits distinctly"
+    "reason": "UI-only Hosting provenance/current gesture source; API and data contracts unchanged, no model rebuild"
     "state": "value"
   "/content/offline_datasets":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/f261edcd51995795f250699f1ee91fb0d0c95a54/apps/pwa/src/offline-dataset.ts"
@@ -359,7 +360,7 @@
     "state": "value"
   "/content/offline_datasets/delivery":
     "reference": "https://github.com/welct0407/AppSheet-Loan-Project/pull/20"
-    "reason": "Exact incremental DEV deployment and protocol3 read-only route registration, preserving protocol2 limits distinctly"
+    "reason": "UI-only Hosting provenance/current gesture source; API and data contracts unchanged, no model rebuild"
     "state": "value"
   "/content/offline_datasets/preparation":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/374fe98ed21ab233f068dd337d7cbaef0eb24788/apps/pwa/src/offline-dataset.ts"
