@@ -553,13 +553,12 @@ main[data-workspace=management] pre{white-space:pre-wrap;overflow-wrap:anywhere}
 .payment-receipt-remove .app-icon{width:24px;height:24px}
 .payment-status-symbol .app-icon,.list-meaning-legend .app-icon{width:18px;height:18px}
 
-/* Pulling reveals a real white gap and shifts only the middle workspace. */
-.live-shell main{--workspace-base-padding:16px;position:relative;padding-top:calc(var(--workspace-base-padding) + var(--workspace-pull,0px))}
-@media(max-width:1050px){.live-shell main{--workspace-base-padding:12px}}
-.workspace-pull-feedback{position:absolute;top:0;left:0;right:0;height:var(--workspace-pull,0px);overflow:hidden;display:flex;justify-content:center;align-items:center;background:#fff;color:#303030;pointer-events:none}
+/* The shared pull strip precedes the header; fixed footer positioning is unchanged. */
+.workspace-pull-feedback{height:var(--workspace-pull,0px);flex:0 0 var(--workspace-pull,0px);overflow:hidden;display:flex;justify-content:center;align-items:center;background:#fff;color:#303030;pointer-events:none}
 .workspace-pull-cue{display:flex;align-items:center;gap:8px;font-size:14px;line-height:1.5}
 .workspace-pull-cue.armed{font-weight:600}
-@media(prefers-reduced-motion:no-preference){.live-shell main[data-pull-phase="settling"]{transition:padding-top 180ms ease-out}.live-shell main[data-pull-phase="settling"] .workspace-pull-feedback{transition:height 180ms ease-out}}
+@media(min-width:1051px) and (max-width:1199px){.live-desktop-nav{top:calc(var(--live-header-height,60px) + var(--workspace-pull,0px))}}
+@media(prefers-reduced-motion:no-preference){.live-shell[data-pull-phase="settling"] .workspace-pull-feedback{transition:height 180ms ease-out,flex-basis 180ms ease-out}.live-shell[data-pull-phase="settling"] .live-desktop-nav{transition:top 180ms ease-out}}
 
 .app-update-status{font-size:12px;line-height:1.3;max-width:110px;color:inherit}
 
