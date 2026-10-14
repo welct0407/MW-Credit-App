@@ -58,11 +58,12 @@
       \ date paging uses fresh API reads"
     "request_safety": "Abort and generation guards reject stale borrower results; controls do not submit borrower changes"
     "financial_effect": "Read-only forecast; no charge or financial write"
-    "delivery": "R059 Released14October2026 at23:55:51Bangkok verification checkpoint. Exactsource 7aecf695789fee3ca3b1fd1f2bece4c4a4bc8ba6\
-      \ deployed to DEVHostingad24287c9a3def84 and PRODHostingca22762299e518df; PRODreader00005-v9z/command00007-gh2 ready100%,\
-      \ workers andV91 preserved. FullCI38600194302 passed403units and423browsercases with11existing skips. Canonical artifacts/health/auth-gate\
-      \ verified; no signed-in business or physicaliPhone smoke, financialwrites or deferredCollectionNote fix claimed. Recovery/pins\
-      \ in Environment_Inventory and Development_Changes."
+    "delivery": "R059 frontend source7aecf695 remains deployed to DEVHostingad24287c9a3def84 and PRODHostingca22762299e518df.\
+      \ R060 command-only recovery sourcea2f683eb is Released15October2026 at00:19:59Bangkok verification checkpoint: DEVcommand00026-7lj\
+      \ and PRODcommand00008-qb7 Ready100%; reader/workers/SQL/Hosting unchanged. CI404units and3focused cases passed; target/health/auth-gate\
+      \ verified, no authenticated dataset traversal claimed. R059 fullCI403units/423browsercases with11existing skips remains\
+      \ valid for unchanged scope. No physicaliPhone/financialwrite/deferredCollectionNote fix claim. Exactcurrentpins/recovery\
+      \ in inventory and development record."
     "source": "https://github.com/welct0407/MW-Credit-App/blob/95fab655431a4459e22ec1dbdd1541d035333d78/apps/pwa/src/SharedBorrowerDetail.tsx"
     "read_only_source": "https://github.com/welct0407/MW-Credit-App/blob/68e8a39e63e44123dcbab3f819c72d711e2a3240/apps/pwa/src/live-main.tsx"
   "navigation":
@@ -77,11 +78,12 @@
       \ Back action or disabled control cancel the gesture."
     "source": "https://github.com/welct0407/MW-Credit-App/blob/5d046627481ff151f299bad30b784ca418f4b58c/apps/pwa/src/swipe-back.ts"
     "shell_source": "https://github.com/welct0407/MW-Credit-App/blob/5d046627481ff151f299bad30b784ca418f4b58c/apps/pwa/src/live-main.tsx"
-    "delivery": "R059 Released14October2026 at23:55:51Bangkok verification checkpoint. Exactsource 7aecf695789fee3ca3b1fd1f2bece4c4a4bc8ba6\
-      \ deployed to DEVHostingad24287c9a3def84 and PRODHostingca22762299e518df; PRODreader00005-v9z/command00007-gh2 ready100%,\
-      \ workers andV91 preserved. FullCI38600194302 passed403units and423browsercases with11existing skips. Canonical artifacts/health/auth-gate\
-      \ verified; no signed-in business or physicaliPhone smoke, financialwrites or deferredCollectionNote fix claimed. Recovery/pins\
-      \ in Environment_Inventory and Development_Changes."
+    "delivery": "R059 frontend source7aecf695 remains deployed to DEVHostingad24287c9a3def84 and PRODHostingca22762299e518df.\
+      \ R060 command-only recovery sourcea2f683eb is Released15October2026 at00:19:59Bangkok verification checkpoint: DEVcommand00026-7lj\
+      \ and PRODcommand00008-qb7 Ready100%; reader/workers/SQL/Hosting unchanged. CI404units and3focused cases passed; target/health/auth-gate\
+      \ verified, no authenticated dataset traversal claimed. R059 fullCI403units/423browsercases with11existing skips remains\
+      \ valid for unchanged scope. No physicaliPhone/financialwrite/deferredCollectionNote fix claim. Exactcurrentpins/recovery\
+      \ in inventory and development record."
     "workspace_gestures": "Eligible root rightward left-edge drag opens the menu interactively; existing leftward root gesture\
       \ remains compatible. Drawer left drag closes interactively. Reference-choice context refresh preserves entered fields;\
       \ static/unsafe edits show preserve-entries feedback, and queue pull uses safe sync. Input/dialog/selection/horizontal-scroll\
@@ -135,11 +137,12 @@
     - "https://github.com/welct0407/MW-Credit-App/blob/9b0224032acb841c4d8ff42210d7a285881bdc89/apps/pwa/src/PaymentCorrectionForm.tsx"
     - "https://github.com/welct0407/MW-Credit-App/blob/9b0224032acb841c4d8ff42210d7a285881bdc89/apps/pwa/src/PaymentResult.tsx"
     - "https://github.com/welct0407/MW-Credit-App/blob/9b0224032acb841c4d8ff42210d7a285881bdc89/apps/pwa/src/live-style.css"
-    "delivery": "R059 Released14October2026 at23:55:51Bangkok verification checkpoint. Exactsource 7aecf695789fee3ca3b1fd1f2bece4c4a4bc8ba6\
-      \ deployed to DEVHostingad24287c9a3def84 and PRODHostingca22762299e518df; PRODreader00005-v9z/command00007-gh2 ready100%,\
-      \ workers andV91 preserved. FullCI38600194302 passed403units and423browsercases with11existing skips. Canonical artifacts/health/auth-gate\
-      \ verified; no signed-in business or physicaliPhone smoke, financialwrites or deferredCollectionNote fix claimed. Recovery/pins\
-      \ in Environment_Inventory and Development_Changes."
+    "delivery": "R059 frontend source7aecf695 remains deployed to DEVHostingad24287c9a3def84 and PRODHostingca22762299e518df.\
+      \ R060 command-only recovery sourcea2f683eb is Released15October2026 at00:19:59Bangkok verification checkpoint: DEVcommand00026-7lj\
+      \ and PRODcommand00008-qb7 Ready100%; reader/workers/SQL/Hosting unchanged. CI404units and3focused cases passed; target/health/auth-gate\
+      \ verified, no authenticated dataset traversal claimed. R059 fullCI403units/423browsercases with11existing skips remains\
+      \ valid for unchanged scope. No physicaliPhone/financialwrite/deferredCollectionNote fix claim. Exactcurrentpins/recovery\
+      \ in inventory and development record."
   "phase5_ui":
     "money_display": "THB currency presentation uses whole baht across affected views; editable amounts, storage and financial\
       \ calculation precision remain unchanged."
@@ -153,11 +156,12 @@
     - "https://github.com/welct0407/MW-Credit-App/blob/2ef73db0f91769f1566cd83d91467390080c36ab/apps/pwa/src/LoanRelated.tsx"
     - "https://github.com/welct0407/MW-Credit-App/blob/8ba8e6320f44fb147c54474302adb0076c2e4bd2/apps/pwa/src/OfflinePayments.tsx"
     - "https://github.com/welct0407/MW-Credit-App/blob/2ef73db0f91769f1566cd83d91467390080c36ab/apps/pwa/src/display-money.ts"
-    "delivery": "R059 Released14October2026 at23:55:51Bangkok verification checkpoint. Exactsource 7aecf695789fee3ca3b1fd1f2bece4c4a4bc8ba6\
-      \ deployed to DEVHostingad24287c9a3def84 and PRODHostingca22762299e518df; PRODreader00005-v9z/command00007-gh2 ready100%,\
-      \ workers andV91 preserved. FullCI38600194302 passed403units and423browsercases with11existing skips. Canonical artifacts/health/auth-gate\
-      \ verified; no signed-in business or physicaliPhone smoke, financialwrites or deferredCollectionNote fix claimed. Recovery/pins\
-      \ in Environment_Inventory and Development_Changes."
+    "delivery": "R059 frontend source7aecf695 remains deployed to DEVHostingad24287c9a3def84 and PRODHostingca22762299e518df.\
+      \ R060 command-only recovery sourcea2f683eb is Released15October2026 at00:19:59Bangkok verification checkpoint: DEVcommand00026-7lj\
+      \ and PRODcommand00008-qb7 Ready100%; reader/workers/SQL/Hosting unchanged. CI404units and3focused cases passed; target/health/auth-gate\
+      \ verified, no authenticated dataset traversal claimed. R059 fullCI403units/423browsercases with11existing skips remains\
+      \ valid for unchanged scope. No physicaliPhone/financialwrite/deferredCollectionNote fix claim. Exactcurrentpins/recovery\
+      \ in inventory and development record."
   "saved_change_queue":
     "contents": "Only saved/confirmed unsynced requests, including autosaved notes. Applied/posted requests removed; rejected/conflicting\
       \ requests retained for review. Ordinary drafts/snapshots hidden. Waiting to sync sidebar/mobile button shows a top-right\
@@ -189,11 +193,12 @@
     - "https://github.com/welct0407/MW-Credit-App/blob/dfaa46d280e99e9f3694d735d75e615074249a97/apps/pwa/src/CollectionNote.tsx"
     - "https://github.com/welct0407/MW-Credit-App/blob/dfaa46d280e99e9f3694d735d75e615074249a97/apps/pwa/src/domain-draft.ts"
     - "https://github.com/welct0407/MW-Credit-App/blob/dfaa46d280e99e9f3694d735d75e615074249a97/apps/pwa/src/live-main.tsx"
-    "delivery": "R059 Released14October2026 at23:55:51Bangkok verification checkpoint. Exactsource 7aecf695789fee3ca3b1fd1f2bece4c4a4bc8ba6\
-      \ deployed to DEVHostingad24287c9a3def84 and PRODHostingca22762299e518df; PRODreader00005-v9z/command00007-gh2 ready100%,\
-      \ workers andV91 preserved. FullCI38600194302 passed403units and423browsercases with11existing skips. Canonical artifacts/health/auth-gate\
-      \ verified; no signed-in business or physicaliPhone smoke, financialwrites or deferredCollectionNote fix claimed. Recovery/pins\
-      \ in Environment_Inventory and Development_Changes."
+    "delivery": "R059 frontend source7aecf695 remains deployed to DEVHostingad24287c9a3def84 and PRODHostingca22762299e518df.\
+      \ R060 command-only recovery sourcea2f683eb is Released15October2026 at00:19:59Bangkok verification checkpoint: DEVcommand00026-7lj\
+      \ and PRODcommand00008-qb7 Ready100%; reader/workers/SQL/Hosting unchanged. CI404units and3focused cases passed; target/health/auth-gate\
+      \ verified, no authenticated dataset traversal claimed. R059 fullCI403units/423browsercases with11existing skips remains\
+      \ valid for unchanged scope. No physicaliPhone/financialwrite/deferredCollectionNote fix claim. Exactcurrentpins/recovery\
+      \ in inventory and development record."
     "manual_sync": "Sync now is inside Waiting to sync page, visible when saved changes exist. It uses the same guarded engine;\
       \ repeated activation cannot overlap. Outcome reports offline/authorization, remaining requests or attention truthfully;\
       \ does not claim complete while unresolved/blocked changes remain."
@@ -234,11 +239,12 @@
     - "https://github.com/welct0407/MW-Credit-App/blob/2963e0ec6d04fb020a51cf1e23a8711c03587093/apps/pwa/src/read-cache.ts"
     - "https://github.com/welct0407/MW-Credit-App/blob/2963e0ec6d04fb020a51cf1e23a8711c03587093/apps/pwa/src/owner-offline.ts"
     - "https://github.com/welct0407/MW-Credit-App/blob/2963e0ec6d04fb020a51cf1e23a8711c03587093/apps/pwa/src/live-main.tsx"
-    "delivery": "R059 Released14October2026 at23:55:51Bangkok verification checkpoint. Exactsource 7aecf695789fee3ca3b1fd1f2bece4c4a4bc8ba6\
-      \ deployed to DEVHostingad24287c9a3def84 and PRODHostingca22762299e518df; PRODreader00005-v9z/command00007-gh2 ready100%,\
-      \ workers andV91 preserved. FullCI38600194302 passed403units and423browsercases with11existing skips. Canonical artifacts/health/auth-gate\
-      \ verified; no signed-in business or physicaliPhone smoke, financialwrites or deferredCollectionNote fix claimed. Recovery/pins\
-      \ in Environment_Inventory and Development_Changes."
+    "delivery": "R059 frontend source7aecf695 remains deployed to DEVHostingad24287c9a3def84 and PRODHostingca22762299e518df.\
+      \ R060 command-only recovery sourcea2f683eb is Released15October2026 at00:19:59Bangkok verification checkpoint: DEVcommand00026-7lj\
+      \ and PRODcommand00008-qb7 Ready100%; reader/workers/SQL/Hosting unchanged. CI404units and3focused cases passed; target/health/auth-gate\
+      \ verified, no authenticated dataset traversal claimed. R059 fullCI403units/423browsercases with11existing skips remains\
+      \ valid for unchanged scope. No physicaliPhone/financialwrite/deferredCollectionNote fix claim. Exactcurrentpins/recovery\
+      \ in inventory and development record."
     "remediation_source":
     - "https://github.com/welct0407/MW-Credit-App/blob/b77a1ef3d58c488a2113b97948aefe83945e84ec/apps/pwa/src/read-cache.ts"
   "offline_datasets":
@@ -271,11 +277,12 @@
     - "https://github.com/welct0407/MW-Credit-App/blob/283ac3c50ec4a1a98fca2af9c06b51693aa2e992/apps/pwa/src/owner-offline.ts"
     - "https://github.com/welct0407/MW-Credit-App/blob/283ac3c50ec4a1a98fca2af9c06b51693aa2e992/apps/pwa/src/read-cache.ts"
     - "https://github.com/welct0407/MW-Credit-App/blob/283ac3c50ec4a1a98fca2af9c06b51693aa2e992/apps/pwa/src/live-main.tsx"
-    "delivery": "R059 Released14October2026 at23:55:51Bangkok verification checkpoint. Exactsource 7aecf695789fee3ca3b1fd1f2bece4c4a4bc8ba6\
-      \ deployed to DEVHostingad24287c9a3def84 and PRODHostingca22762299e518df; PRODreader00005-v9z/command00007-gh2 ready100%,\
-      \ workers andV91 preserved. FullCI38600194302 passed403units and423browsercases with11existing skips. Canonical artifacts/health/auth-gate\
-      \ verified; no signed-in business or physicaliPhone smoke, financialwrites or deferredCollectionNote fix claimed. Recovery/pins\
-      \ in Environment_Inventory and Development_Changes."
+    "delivery": "R059 frontend source7aecf695 remains deployed to DEVHostingad24287c9a3def84 and PRODHostingca22762299e518df.\
+      \ R060 command-only recovery sourcea2f683eb is Released15October2026 at00:19:59Bangkok verification checkpoint: DEVcommand00026-7lj\
+      \ and PRODcommand00008-qb7 Ready100%; reader/workers/SQL/Hosting unchanged. CI404units and3focused cases passed; target/health/auth-gate\
+      \ verified, no authenticated dataset traversal claimed. R059 fullCI403units/423browsercases with11existing skips remains\
+      \ valid for unchanged scope. No physicaliPhone/financialwrite/deferredCollectionNote fix claim. Exactcurrentpins/recovery\
+      \ in inventory and development record."
     "traversal": "Protocol 2 bounded resumable traversal; cursors bind actor/domain/day/start/phase/state/generation. startedAt\
       \ through final asOf is an interval of authoritative per-request reads, not a global MVCC snapshot. Old complete bundle\
       \ stays available across pause/failure/reconnect."
@@ -293,6 +300,13 @@
     - "https://github.com/welct0407/MW-Credit-App/blob/b77a1ef3d58c488a2113b97948aefe83945e84ec/apps/pwa/src/offline-dataset.ts"
     - "https://github.com/welct0407/MW-Credit-App/blob/b77a1ef3d58c488a2113b97948aefe83945e84ec/apps/pwa/src/environment.ts"
     - "https://github.com/welct0407/MW-Credit-App/blob/b77a1ef3d58c488a2113b97948aefe83945e84ec/services/production/business-runtime.mjs"
+    "production_incident": "R060 Released15October2026 at00:19:59Bangkok verification checkpoint. Confirmed priorproduction-business403-before-SQL\
+      \ denial corrected by only removing mode-specific veto; ownerTesting/principalAllowed/transactioncapability guards retained.\
+      \ Source a2f683eb74f3c3c5dc027520642a07a07f4c1558 deployed to DEVcommand00026-7lj and PRODcommand00008-qb7 Ready100%;\
+      \ CI404units and3focused cases passed. Live exactenvironment/health/auth-gate verified, no authenticated PROD dataset\
+      \ success/full-traversal claim (bounded natural logs had no events). R059 smoke had not tested signed-in dataset content;\
+      \ dashboard/preferences200 did not imply broader dashboard failure."
+    "recovery_source": "https://github.com/welct0407/MW-Credit-App/blob/a2f683eb74f3c3c5dc027520642a07a07f4c1558/services/payment-command/store.mjs"
   "app_updates":
     "checks": "Check while visible and online every60s and on focus, reconnect, pageshow or header refresh. Header shows Checking\
       \ / Updating; status is not placed in page content."
@@ -301,11 +315,12 @@
     "retry": "One automatic attempt per worker; manual retry remains available."
     "restore": "After safe reload restore only top-level menu and management section from session state, never record IDs\
       \ or editor contents."
-    "delivery": "R059 Released14October2026 at23:55:51Bangkok verification checkpoint. Exactsource 7aecf695789fee3ca3b1fd1f2bece4c4a4bc8ba6\
-      \ deployed to DEVHostingad24287c9a3def84 and PRODHostingca22762299e518df; PRODreader00005-v9z/command00007-gh2 ready100%,\
-      \ workers andV91 preserved. FullCI38600194302 passed403units and423browsercases with11existing skips. Canonical artifacts/health/auth-gate\
-      \ verified; no signed-in business or physicaliPhone smoke, financialwrites or deferredCollectionNote fix claimed. Recovery/pins\
-      \ in Environment_Inventory and Development_Changes."
+    "delivery": "R059 frontend source7aecf695 remains deployed to DEVHostingad24287c9a3def84 and PRODHostingca22762299e518df.\
+      \ R060 command-only recovery sourcea2f683eb is Released15October2026 at00:19:59Bangkok verification checkpoint: DEVcommand00026-7lj\
+      \ and PRODcommand00008-qb7 Ready100%; reader/workers/SQL/Hosting unchanged. CI404units and3focused cases passed; target/health/auth-gate\
+      \ verified, no authenticated dataset traversal claimed. R059 fullCI403units/423browsercases with11existing skips remains\
+      \ valid for unchanged scope. No physicaliPhone/financialwrite/deferredCollectionNote fix claim. Exactcurrentpins/recovery\
+      \ in inventory and development record."
     "sources":
     - "https://github.com/welct0407/MW-Credit-App/blob/a5c3f9f7141ece8b522fbdb76024d132a24cae11/apps/pwa/src/usePwa.ts"
     - "https://github.com/welct0407/MW-Credit-App/blob/a5c3f9f7141ece8b522fbdb76024d132a24cae11/apps/pwa/src/app-update-safety.ts"
@@ -318,8 +333,8 @@
       \ or SQL change"
     "state": "value"
   "/content/borrower_upcoming/delivery":
-    "reference": "https://github.com/welct0407/MW-Credit-App/blob/7aecf695789fee3ca3b1fd1f2bece4c4a4bc8ba6/services/production/business-runtime.mjs"
-    "reason": "Reconcile owner-authorized R059 verified DEV-first/PROD release; preserve test and live-smoke limits."
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/a2f683eb74f3c3c5dc027520642a07a07f4c1558/services/payment-command/store.mjs"
+    "reason": "Precisely distinguish unchanged R059frontend source from R060command-only source in current delivery metadata."
     "state": "value"
   "/content/borrower_upcoming/presentation":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/95fab655431a4459e22ec1dbdd1541d035333d78/apps/pwa/src/SharedBorrowerDetail.tsx"
@@ -337,8 +352,8 @@
       \ prior-page previews"
     "state": "value"
   "/content/navigation/delivery":
-    "reference": "https://github.com/welct0407/MW-Credit-App/blob/7aecf695789fee3ca3b1fd1f2bece4c4a4bc8ba6/services/production/business-runtime.mjs"
-    "reason": "Reconcile owner-authorized R059 verified DEV-first/PROD release; preserve test and live-smoke limits."
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/a2f683eb74f3c3c5dc027520642a07a07f4c1558/services/payment-command/store.mjs"
+    "reason": "Precisely distinguish unchanged R059frontend source from R060command-only source in current delivery metadata."
     "state": "value"
   "/content/collection_receiving_ui":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/5e981335ad42846dac6bde13e24a45a147ab2676/apps/pwa/src/CollectionReceipts.tsx"
@@ -346,8 +361,8 @@
       \ preserved"
     "state": "value"
   "/content/collection_receiving_ui/delivery":
-    "reference": "https://github.com/welct0407/MW-Credit-App/blob/7aecf695789fee3ca3b1fd1f2bece4c4a4bc8ba6/services/production/business-runtime.mjs"
-    "reason": "Reconcile owner-authorized R059 verified DEV-first/PROD release; preserve test and live-smoke limits."
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/a2f683eb74f3c3c5dc027520642a07a07f4c1558/services/payment-command/store.mjs"
+    "reason": "Precisely distinguish unchanged R059frontend source from R060command-only source in current delivery metadata."
     "state": "value"
   "/content/collection_receiving_ui/collection_note":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/efd9fab2d9cf7326e94f4e380b2117e6bae16a5e/apps/pwa/src/offline-sync.ts"
@@ -365,8 +380,8 @@
       \ savedAt sorting corrected"
     "state": "value"
   "/content/phase5_ui/delivery":
-    "reference": "https://github.com/welct0407/MW-Credit-App/blob/7aecf695789fee3ca3b1fd1f2bece4c4a4bc8ba6/services/production/business-runtime.mjs"
-    "reason": "Reconcile owner-authorized R059 verified DEV-first/PROD release; preserve test and live-smoke limits."
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/a2f683eb74f3c3c5dc027520642a07a07f4c1558/services/payment-command/store.mjs"
+    "reason": "Precisely distinguish unchanged R059frontend source from R060command-only source in current delivery metadata."
     "state": "value"
   "/content/phase5_ui/offline_order":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/5d5af4b0783fe6a44419a4dd5e07ecc135419b43/apps/pwa/src/OfflinePayments.tsx"
@@ -391,8 +406,8 @@
     "reason": "Document owner-authorized R059 production offline parity candidate; final source and deployment pending."
     "state": "value"
   "/content/saved_change_queue/delivery":
-    "reference": "https://github.com/welct0407/MW-Credit-App/blob/7aecf695789fee3ca3b1fd1f2bece4c4a4bc8ba6/services/production/business-runtime.mjs"
-    "reason": "Reconcile owner-authorized R059 verified DEV-first/PROD release; preserve test and live-smoke limits."
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/a2f683eb74f3c3c5dc027520642a07a07f4c1558/services/payment-command/store.mjs"
+    "reason": "Precisely distinguish unchanged R059frontend source from R060command-only source in current delivery metadata."
     "state": "value"
   "/content/saved_change_queue/contents":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/51d4ce9856e7730b1881caf84bd429fc718b46e3/apps/pwa/src/WaitingToSyncButton.tsx"
@@ -417,8 +432,8 @@
     "reason": "Owner cache-first Page issue and distinct header refresh-failure feedback; note concern deferred unchanged"
     "state": "value"
   "/content/hybrid_read_cache/delivery":
-    "reference": "https://github.com/welct0407/MW-Credit-App/blob/7aecf695789fee3ca3b1fd1f2bece4c4a4bc8ba6/services/production/business-runtime.mjs"
-    "reason": "Reconcile owner-authorized R059 verified DEV-first/PROD release; preserve test and live-smoke limits."
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/a2f683eb74f3c3c5dc027520642a07a07f4c1558/services/payment-command/store.mjs"
+    "reason": "Precisely distinguish unchanged R059frontend source from R060command-only source in current delivery metadata."
     "state": "value"
   "/content/offline_datasets":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/f261edcd51995795f250699f1ee91fb0d0c95a54/apps/pwa/src/offline-dataset.ts"
@@ -436,8 +451,8 @@
       \ refresh state; note autosave unchanged"
     "state": "value"
   "/content/offline_datasets/delivery":
-    "reference": "https://github.com/welct0407/MW-Credit-App/blob/7aecf695789fee3ca3b1fd1f2bece4c4a4bc8ba6/services/production/business-runtime.mjs"
-    "reason": "Reconcile owner-authorized R059 verified DEV-first/PROD release; preserve test and live-smoke limits."
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/a2f683eb74f3c3c5dc027520642a07a07f4c1558/services/payment-command/store.mjs"
+    "reason": "Precisely distinguish unchanged R059frontend source from R060command-only source in current delivery metadata."
     "state": "value"
   "/content/offline_datasets/preparation":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/374fe98ed21ab233f068dd337d7cbaef0eb24788/apps/pwa/src/offline-dataset.ts"
@@ -518,8 +533,8 @@
     "reason": "Pin tested pull-gap and automatic app update behavior to immutable source."
     "state": "value"
   "/content/app_updates/delivery":
-    "reference": "https://github.com/welct0407/MW-Credit-App/blob/7aecf695789fee3ca3b1fd1f2bece4c4a4bc8ba6/services/production/business-runtime.mjs"
-    "reason": "Reconcile owner-authorized R059 verified DEV-first/PROD release; preserve test and live-smoke limits."
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/a2f683eb74f3c3c5dc027520642a07a07f4c1558/services/payment-command/store.mjs"
+    "reason": "Precisely distinguish unchanged R059frontend source from R060command-only source in current delivery metadata."
     "state": "value"
   "/content/navigation/pull_refresh/placement_sources":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/a22aa5da1c92d65f56912ba9f25cbae3aec9fd40/apps/pwa/src/live-main.tsx"
@@ -568,4 +583,12 @@
   "/content/navigation/upcoming_back":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/a5c6de58138625dba6257ad0fb0931ebaf0d0512/apps/pwa/src/CollectionRecords.tsx"
     "reason": "Pin verified late Upcoming detail response correction within frozenR059; fullCI/delivery pending."
+    "state": "value"
+  "/content/offline_datasets/production_incident":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/a2f683eb74f3c3c5dc027520642a07a07f4c1558/services/payment-command/store.mjs"
+    "reason": "Reconcile approved verifiedR060 command-only recovery with explicit authenticated-smoke limitation."
+    "state": "value"
+  "/content/offline_datasets/recovery_source":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/a2f683eb74f3c3c5dc027520642a07a07f4c1558/services/payment-command/store.mjs"
+    "reason": "Pin scopedR060 production-factory offline denial correction; no live delivery or release claim."
     "state": "value"
