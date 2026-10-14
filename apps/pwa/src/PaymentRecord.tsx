@@ -1,4 +1,4 @@
-import {readCachedJson,readCachedBlob} from './read-cache';
+import {subscribeOfflineDataset,readCachedJson,readCachedBlob} from './read-cache';
 import {wholeBaht} from './display-money';
 import {RecordAction} from './RecordAction';
 import {HeaderBack} from './HeaderBack';
@@ -20,6 +20,7 @@ export function PaymentRecord({access,id,thai,onBack}:{access:CommandAccess;id:s
  const preserveSource=useRef(false);preserveSource.current=!!(editing||!!action||!!moving);
  async function load(){const current=++generation.current,done=beginRequest();setError('');try{const value=await read(false,value=>{if(current===generation.current)if(!preserveSource.current)setItem(value)});if(current===generation.current)if(!preserveSource.current)setItem(value)}catch{if(current===generation.current)setError(t('Payment details unavailable.','ไม่สามารถโหลดรายละเอียดรับชำระ'))}finally{done()}}
  useEffect(()=>{setAction(null);setItem(null);setReceiptSource('preferred');void load();return()=>{generation.current++}},[id]);
+ useEffect(()=>{const apply=(data:any)=>{if(preserveSource.current)return;if(data.deleted){setItem(null);setError(t('Payment no longer exists.','ไม่พบการรับชำระนี้แล้ว'))}else if(data.item){setItem(data.item);setError('')}};return subscribeOfflineDataset<any>(access,'/api/payment-records/'+encodeURIComponent(id),apply,()=>apply({deleted:true}));},[access.offline,id]);
  useContextRefresh(!action&&!editing&&!moving,t('Refresh payment details','โหลดรายละเอียดรับชำระใหม่'),()=>void load());
  async function remove(){if(flight.current||access.offlineOnly||!navigator.onLine)return;flight.current=true;setBusy(true);const current=generation.current,done=beginRequest();setError('');try{const preview=await read(true);if(current!==generation.current)return;setAction({requestId:crypto.randomUUID(),operation:'payment.delete',targetId:id,expectedVersion:preview.sourceVersion,predecessorRequestId:preview.predecessorRequestId,inputs:{},receiptId:null})}catch{if(current===generation.current)setError(t('Current payment could not be checked.','ตรวจสอบข้อมูลรับชำระปัจจุบันไม่ได้'))}finally{flight.current=false;setBusy(false);done()}}
  async function chooseMove(){if(flight.current||access.offlineOnly||!navigator.onLine)return;flight.current=true;setBusy(true);const current=generation.current,done=beginRequest();setError('');try{const preview=await read(true);if(current!==generation.current)return;setMoving(preview);setAllocationId('');setTargetChargeId('')}catch{if(current===generation.current)setError(t('Current payment could not be checked.','ตรวจสอบข้อมูลรับชำระปัจจุบันไม่ได้'))}finally{flight.current=false;setBusy(false);done()}}

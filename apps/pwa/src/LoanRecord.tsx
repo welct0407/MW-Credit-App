@@ -1,5 +1,5 @@
 import {applicationEnvironment} from './environment';
-import {readCachedJson} from './read-cache';
+import {subscribeOfflineDataset,readCachedJson} from './read-cache';
 import {wholeBaht} from './display-money';
 import {RecordAction} from './RecordAction';
 import {HeaderBack} from './HeaderBack';
@@ -23,6 +23,7 @@ export function LoanRecord({access,id,thai,onBack}:{access:CommandAccess;id:stri
  const t=(en:string,th:string)=>thai?th:en,[item,setItem]=useState<any>(null),[error,setError]=useState(''),[editing,setEditing]=useState(false),[related,setRelated]=useState<{kind:string;id:string}|null>(null),[action,setAction]=useState<any>(null),[closing,setClosing]=useState(false),[addingCharge,setAddingCharge]=useState(false),generation=useRef(0),actionFlight=useRef(false),actionController=useRef<AbortController|null>(null),[choosing,setChoosing]=useState(false);
  useViewedSnapshot(access,'loan',item);
  const preserveSource=useRef(false);preserveSource.current=!!(editing||closing||addingCharge||!!action);
+ useEffect(()=>{const apply=(data:any)=>{if(preserveSource.current)return;if(data.deleted){setItem(null);setError(t('Loan no longer exists.','ไม่พบสินเชื่อนี้แล้ว'))}else if(data.item){setItem(data.item);setError('')}};return subscribeOfflineDataset<any>(access,'/api/loan-records/'+encodeURIComponent(id),apply,()=>apply({deleted:true}));},[access.offline,id]);
  async function load(){const current=++generation.current,done=beginRequest(),controller=new AbortController();setError('');try{const {response:response,data:value}=await readCachedJson<any>(access,'/api/loan-records/'+encodeURIComponent(id),{signal:controller.signal,onCached:(value)=>{if(current===generation.current)if(!preserveSource.current)setItem(value.item)}});if(response.status===401||response.status===403)access.authFailure(response.status);if(!response.ok)throw Error();if(current===generation.current)if(!preserveSource.current)setItem(value.item)}catch{if(current===generation.current)setError(t('Loan details unavailable.','ไม่สามารถโหลดรายละเอียดสินเชื่อ'))}finally{done()}}
  useEffect(()=>{setAction(null);setClosing(false);void load();return()=>{generation.current++;actionController.current?.abort()}},[id]);
  useContextRefresh(!related&&!editing&&!closing&&!addingCharge&&!action,t('Refresh loan details','โหลดรายละเอียดสินเชื่อใหม่'),()=>void load());

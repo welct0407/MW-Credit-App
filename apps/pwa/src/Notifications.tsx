@@ -1,5 +1,6 @@
+import {readOfflineDataset} from './offline-dataset';
 import React,{useEffect,useState,useRef} from 'react';
-import {readCachedJson} from './read-cache';
+import {subscribeOfflineDataset,readCachedJson} from './read-cache';
 import type {CommandAccess} from './SelectedCharges';
 import {useContextRefresh} from './context-refresh';
 type Access=Pick<CommandAccess,'origin'|'token'|'authFailure'|'offline'>;
@@ -16,6 +17,13 @@ export function Notifications({access,thai,onTarget,visible=true}:{access:Access
  const historyGeneration=useRef(0),historyFlight=useRef<AbortController|null>(null);
  async function loadHistory(more=false){const current=++historyGeneration.current;historyFlight.current?.abort();const controller=new AbortController();historyFlight.current=controller;setBusy(true);const apply=(page:any)=>{if(!mounted.current||current!==historyGeneration.current)return;setItems(previous=>more?[...previous,...page.items.filter((row:{eventId:string})=>!previous.some(p=>p.eventId===row.eventId))]:page.items);setCursor(page.nextCursor);setBusy(false)};try{const {response,data}=await readCachedJson<any>(access,'/api/notifications'+(more&&cursor?'?before='+encodeURIComponent(cursor):''),{signal:controller.signal,onCached:apply});if(!response.ok)throw Error();apply(data)}catch{if(mounted.current&&current===historyGeneration.current&&!controller.signal.aborted)setMessage(t('History unavailable.','ประวัติไม่พร้อมใช้งาน'));}finally{if(current===historyGeneration.current)setBusy(false)}}
  useEffect(()=>{if(visible)void loadHistory();return()=>{historyGeneration.current++;historyFlight.current?.abort()}},[visible]);
+ useEffect(()=>{
+  if(!visible||busy)return;let active=true;const count=Math.max(25,items.length);
+  const history=subscribeOfflineDataset<any>(access,'/api/notifications',async first=>{const rows=[...first.items];let next=first.nextCursor;while(active&&next&&rows.length<count){const page=await readOfflineDataset(access,'/api/notifications?before='+encodeURIComponent(next)).catch(()=>null);if(!page||page.nextCursor===next)return;rows.push(...page.items);next=page.nextCursor}if(active){setItems(rows);setCursor(next)}});
+  // The dataset carries account preference; device registration remains the last verified device result.
+  const preference=subscribeOfflineDataset<any>(access,'/api/notifications/status',value=>setStatus(previous=>previous?{...previous,enabled:value.enabled}:previous));
+  return()=>{active=false;history();preference()};
+ },[access.offline,visible,busy,items.length]);
  async function refreshStatus(knownSubscription?:PushSubscription){let subscription=knownSubscription;if(!subscription&&'serviceWorker'in navigator){const registration=await navigator.serviceWorker.getRegistration();subscription=await registration?.pushManager?.getSubscription()??undefined;}const hash=subscription?Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(subscription.endpoint))),b=>b.toString(16).padStart(2,'0')).join(''):'';setStatus(await request('/status'+(hash?'?device='+hash:'')));}
  async function checkStatus(){setBusy(true);try{await refreshStatus();}catch{setMessage(t('Notification status unavailable.','สถานะการแจ้งเตือนไม่พร้อมใช้งาน'));}finally{setBusy(false)}}
  async function removeDevice(){if(!status?.subscriptionId)return;setBusy(true);try{await request('/subscriptions/'+status.subscriptionId,'DELETE');const registration=await navigator.serviceWorker.getRegistration();await(await registration?.pushManager.getSubscription())?.unsubscribe();setStatus(previous=>previous?{...previous,deviceRegistered:false,subscriptionId:null}:null);setMessage(t('This device was removed. Other devices keep their account preference.','นำอุปกรณ์นี้ออกแล้ว อุปกรณ์อื่นยังใช้การตั้งค่าของบัญชี'));}catch{setMessage(t('Could not remove this device. Try again.','นำอุปกรณ์นี้ออกไม่สำเร็จ กรุณาลองอีกครั้ง'));}finally{setBusy(false)}}

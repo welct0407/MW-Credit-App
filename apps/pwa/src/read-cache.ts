@@ -1,10 +1,20 @@
 import {beginRequest} from './request-activity';
-import {readOfflineDataset,isOfflineDatasetCursor,refreshOfflineDataset} from './offline-dataset';
+import {readOfflineDataset,isOfflineDatasetCursor,refreshOfflineDataset,routeDomain} from './offline-dataset';
 import {commandOriginAllowed} from './environment';
 import type {OwnerOfflineRepository,CachedResponse} from './owner-offline';
 
 type Access={origin:string;offline?:OwnerOfflineRepository;offlineOnly?:boolean;token:()=>Promise<string>;authFailure:(status:number)=>void};
 type Options<T>={origin?:string;signal?:AbortSignal;onCached?:(data:T)=>void;policy?:'cache-first'|'network-only'};
+/** Subscribe only mounted read-only views. The caller owns edit/generation guards;
+ * this reads the committed bundle without a network request or loading state. */
+export function subscribeOfflineDataset<T=any>(access:Access,path:string,apply:(data:T)=>void,onMissing?:()=>void){
+ const repository=access.offline,scope=repository?.scopeName,domain=routeDomain(new URL(path,access.origin).pathname);let active=true,generation=0;
+ const update=(event:Event)=>{const detail=(event as CustomEvent).detail;if(!active||!scope||detail?.scopeName!==scope||detail.domain!==domain||detail.changed===false)return;const current=++generation;
+  void readOfflineDataset(access,path).then(async data=>{if(!active||current!==generation)return;if(data!==null){apply(data as T);return;}if(onMissing&&repository&&await repository.syncAuthorized()&&(await repository.readDataset(domain))?.complete&&active&&current===generation)onMissing()}).catch(()=>{});
+ };
+ window.addEventListener('mw-offline-dataset-ready',update);
+ return()=>{active=false;generation++;window.removeEventListener('mw-offline-dataset-ready',update)};
+}
 export type CachedReadResult<T>={response:Response;data:T;fromCache:boolean};
 const failures=new Set<string>(),refreshFailures=new Set<string>(),listeners=new Set<()=>void>();
 const failureEpochs=new Map<string,number>();
@@ -40,6 +50,11 @@ async function read<T>(access:Access,path:string,options:Options<T>,format:'json
  const reportFailure=(failed:boolean,cachedFailure=false)=>{if(failureEpoch!==(failureEpochs.get(failureScope)??0))return;refreshFailure(scopeKey,failed);failure(scopeKey,failed&&cachedFailure)};
  const controller=new AbortController(),abort=()=>controller.abort();options.signal?.addEventListener('abort',abort,{once:true});if(options.signal?.aborted)controller.abort();
  let settled=false,denied=false,cached:CachedResponse|null=null;
+ const currentCacheRevision=async()=>{try{return await repository!.readCacheRevision()}catch{cacheAllowed=false;return undefined}};
+ let cacheRevision=cacheAllowed?await currentCacheRevision():null;const cachedEpoch=cacheRevision;
+ // An absent/expired offline lease is not an online authorization failure.
+ // Keep this read network-only; a later verified session can renew the lease.
+ if(cacheRevision==null)cacheAllowed=false;
  const requireCurrent=()=>{if(controller.signal.aborted)throw new DOMException('Read cancelled','AbortError')};
  const currentRevision=async()=>{try{return await repository!.readRevision()}catch{cacheAllowed=false;return undefined}};
  const localCursor=format==='json'&&isOfflineDatasetCursor(url.href);
@@ -49,7 +64,7 @@ async function read<T>(access:Access,path:string,options:Options<T>,format:'json
    const data=await readOfflineDataset(access,url.href).catch(()=>null),revision=await currentRevision();
    if(data!==null&&revision!=null)value={data,format:'json',contentType:'application/json',savedAt:Date.now(),revision};
   }
-  if(value&&value.format===format&&!settled&&!controller.signal.aborted&&await repository!.syncAuthorized()&&await repository!.readRevision()===value.revision){
+  if(value&&value.format===format&&!settled&&!controller.signal.aborted&&await repository!.syncAuthorized()&&await repository!.readRevision()===value.revision&&await currentCacheRevision()===cachedEpoch){
    cached=value;options.onCached?.(structuredClone(value.data));
   }
   return value;
@@ -76,15 +91,16 @@ async function read<T>(access:Access,path:string,options:Options<T>,format:'json
    if(cacheAllowed){
     const current=await currentRevision();requireCurrent();
     if(current===null){denied=true;settled=true;throw Error('Read owner scope revoked')}
-    if(current!==undefined&&current!==revision){revision=current;if(attempt===0)continue;throw Error('Read changed during refresh')}
+    const cacheCurrent=cacheAllowed?await currentCacheRevision():null;
+    if(current!==undefined&&current!==revision||cacheCurrent!==cacheRevision){revision=current;cacheRevision=cacheCurrent;cached=null;if(attempt===0)continue;throw Error('Read changed during refresh')}
    }
    if(response.status>=500||response.status===429)throw Error('Read temporarily unavailable');
    if(response.ok&&cacheAllowed&&revision!=null&&cacheable(data)){
     try{
      if(!await repository!.syncAuthorized())await repository!.authorize();
-     await repository!.saveCachedResponse(key,{data,format,contentType:response.headers.get('Content-Type')??(format==='json'?'application/json':'application/octet-stream')},revision);
+     await repository!.saveCachedResponse(key,{data,format,contentType:response.headers.get('Content-Type')??(format==='json'?'application/json':'application/octet-stream')},revision,cacheRevision);
     }catch{/* Unavailable local storage must not block an authenticated online read. */}
-    requireCurrent();const current=await currentRevision();if(current!==undefined&&current!==revision)throw Error('Read changed during refresh');
+    requireCurrent();const current=await currentRevision();if(current!==undefined&&current!==revision||cacheAllowed&&await currentCacheRevision()!==cacheRevision)throw Error('Read changed during refresh');
    }else if(cacheAllowed&&response.status===404)await repository!.remove('cache',key).catch(()=>{});
    settled=true;reportFailure(!response.ok);return {response,data,fromCache:false};
   }
@@ -94,7 +110,7 @@ async function read<T>(access:Access,path:string,options:Options<T>,format:'json
   const fallback=cached??await cachedRead.catch(()=>null);
   // Explicit navigation aborts and authorization failures must never resurrect
   // cached records. Timeouts may retain the already displayed saved response.
-  if(!denied&&!options.signal?.aborted&&fallback&&fallback.format===format&&await repository!.syncAuthorized()&&await repository!.readRevision()===fallback.revision){
+  if(!denied&&!options.signal?.aborted&&fallback&&fallback.format===format&&await repository!.syncAuthorized()&&await repository!.readRevision()===fallback.revision&&await currentCacheRevision()===cachedEpoch){
    settled=true;reportFailure(true,true);return savedResult<T>(fallback);
   }
   throw error;

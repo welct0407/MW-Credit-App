@@ -11,7 +11,13 @@ export function notificationHandler({next,store,verifyPrincipal,origins,enabled=
   let principal;try{principal=await verifyPrincipal(req.headers.authorization)}catch{return reply(503,{error:'notification_unavailable'})}if(!principal?.ok)return reply(401,{error:'sign_in_required'});
   try{
    let value;const p=url.pathname;
-   if(req.method==='GET'&&p==='/api/notifications/offline-dataset'&&offlineDataset){
+   if(req.method==='POST'&&p==='/api/notifications/offline-dataset'&&offlineDataset){
+    if(url.searchParams.get('protocol')!=='3'||[...url.searchParams.keys()].some(key=>key!=='protocol')||url.searchParams.getAll('protocol').length!==1||!/^application\/json(?:;|$)/i.test(req.headers['content-type']??''))return reply(400,{error:'invalid_request'});
+    req.setTimeout(10000,()=>req.destroy());const chunks=[];let size=0;for await(const chunk of req){size+=chunk.length;if(size>524288)return reply(413,{error:'invalid_request'});chunks.push(chunk)}req.setTimeout(0);
+    let request;try{request=JSON.parse(Buffer.concat(chunks).toString('utf8'))}catch{return reply(400,{error:'invalid_request'})}
+    const controller=new AbortController();res.once('close',()=>controller.abort());value=await store.offlineDataset(principal,controller.signal,{protocol:3,input:request});
+   }
+   else if(req.method==='GET'&&p==='/api/notifications/offline-dataset'&&offlineDataset){
     const protocol=url.searchParams.get('protocol'),cursor=url.searchParams.get('cursor');
     if([...url.searchParams.keys()].some(key=>!['protocol','cursor'].includes(key))||url.searchParams.getAll('protocol').length>1||url.searchParams.getAll('cursor').length>1||(protocol!==null&&protocol!=='2')||(cursor!==null&&protocol!=='2'))return reply(400,{error:'invalid_request'});
     const controller=new AbortController();res.once('close',()=>controller.abort());value=await store.offlineDataset(principal,controller.signal,{protocol:protocol==='2'?2:1,cursor});

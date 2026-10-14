@@ -9,7 +9,7 @@ function route(raw) {
   try {
     const url = new URL(raw, 'http://candidate.invalid');
     if (url.hash) return { invalid: true, operation: 'unknown' };
-    if(url.pathname==='/api/offline-dataset'){if([...url.searchParams.keys()].some(key=>!['domain','protocol','cursor'].includes(key)||url.searchParams.getAll(key).length!==1)||url.searchParams.getAll('domain').length!==1||(url.searchParams.has('protocol')&&url.searchParams.get('protocol')!=='2')||(url.searchParams.has('cursor')&&url.searchParams.get('protocol')!=='2'))return {invalid:true,operation:'unknown'};return {operation:'offline_dataset',domain:url.searchParams.get('domain'),options:{protocol:url.searchParams.has('protocol')?2:1,cursor:url.searchParams.get('cursor')}};}
+    if(url.pathname==='/api/offline-dataset'){if([...url.searchParams.keys()].some(key=>!['domain','protocol','cursor'].includes(key)||url.searchParams.getAll(key).length!==1)||url.searchParams.getAll('domain').length!==1||(url.searchParams.has('protocol')&&!['2','3'].includes(url.searchParams.get('protocol')))||(url.searchParams.has('cursor')&&url.searchParams.get('protocol')!=='2'))return {invalid:true,operation:'unknown'};return {operation:'offline_dataset',domain:url.searchParams.get('domain'),options:{protocol:url.searchParams.has('protocol')?Number(url.searchParams.get('protocol')):1,cursor:url.searchParams.get('cursor')}};}
     if(url.pathname==='/api/management/cash-position'){if(url.search)return {invalid:true,operation:'unknown'};return {operation:'management',kind:'cash-position',options:{}};}
     if(url.pathname==='/api/management/analytics-overview'){if(url.search)return {invalid:true,operation:'unknown'};return {operation:'management',kind:'analytics-overview',options:{}};}
     if(url.pathname==='/api/management/analytics-chart'){if([...url.searchParams.keys()].some(key=>!['metric','limit','cursor'].includes(key)||url.searchParams.getAll(key).length!==1))return {invalid:true,operation:'unknown'};return {operation:'management',kind:'analytics-chart',options:{metric:url.searchParams.get('metric'),limit:url.searchParams.has('limit')?Number(url.searchParams.get('limit')):25,cursor:url.searchParams.get('cursor')}};}
@@ -118,7 +118,15 @@ function buildHandler({ origins, verifyPrincipal, store, completionLogger = () =
     if(['borrower_create','operation_submit'].includes(target.operation)&&req.method!=='POST'||['management','record_list','collection_receipts','upcoming','payment_image','dashboard','loan_related','preferences','cash_overview','cash_statement','borrower_options','loan_options','loan_record','charge_record','payment_record','expense_record','expense_options','expense_list','loan_close_preview','operation_status'].includes(target.operation)&&req.method!=='GET'||target.operation==='borrower_record'&&!['GET','PATCH','DELETE'].includes(req.method))return reject(405,'method_not_allowed');
     let result;
     try {
-      if(target.operation==='offline_dataset'){if(req.method!=='GET')return reject(405,'method_not_allowed');result=await store.offlineDataset(principal,target.domain,wakeAbort.signal,target.options);}
+      if(target.operation==='offline_dataset'){
+        if(req.method!==(target.options.protocol===3?'POST':'GET'))return reject(405,'method_not_allowed');
+        if(target.options.protocol===3){
+          if(!/^application\/json(?:\s*;\s*charset=utf-8)?$/i.test(req.headers['content-type']||'')||(req.headers['content-encoding']&&req.headers['content-encoding']!=='identity'))return reject(415,'invalid_request');
+          try{target.options.input=await body(req)}catch(error){return reject(error.bodyCode==='body_too_large'?413:400,error.bodyCode||'invalid_request')}
+          if(req.aborted||res.destroyed)return;
+        }
+        result=await store.offlineDataset(principal,target.domain,wakeAbort.signal,target.options);
+      }
       else if(target.operation==='operation_status')result=await store.operationStatus(principal,target.requestId);
       else if(target.operation==='operation_submit'){
         if(!/^application\/json(?:\s*;\s*charset=utf-8)?$/i.test(req.headers['content-type']||'')||(req.headers['content-encoding']&&req.headers['content-encoding']!=='identity'))return reject(415,'invalid_request');

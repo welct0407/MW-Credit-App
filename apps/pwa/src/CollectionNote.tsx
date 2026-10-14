@@ -1,3 +1,4 @@
+import {subscribeOfflineDataset} from './read-cache';
 import {readOfflineDataset} from './offline-dataset';
 import {syncSavedRequest} from './offline-sync';
 import React,{useEffect,useLayoutEffect,useRef,useState} from 'react';
@@ -12,6 +13,7 @@ export function CollectionNote({access,id,thai}:{access:CommandAccess;id:string;
  const [text,setText]=useState(''),[status,setStatus]=useState(''),[ready,setReady]=useState(false),[blocked,setBlocked]=useState(false),[unknown,setUnknown]=useState(false),[working,setWorking]=useState(false);
  flush.current=()=>{if(debounce.current)clearTimeout(debounce.current);debounce.current=null;if(busy.current&&queueAllowed.current&&!blocked)queuedBlur.current=typed.current;else void send()};
  const textarea=useRef<HTMLTextAreaElement>(null);
+ useEffect(()=>{const apply=(data:any)=>{if(busy.current||pending.current||blocked||!ready||textarea.current===document.activeElement||typed.current!==(baseline.current?.note??''))return;if(data.deleted){setBlocked(true);setStatus(t('This borrower does not exist.','ไม่พบผู้กู้รายนี้'));return}if(!data.item)return;baseline.current=data.item;typed.current=data.item.note??'';setText(typed.current)};return subscribeOfflineDataset<any>(access,'/api/borrower-records/'+encodeURIComponent(id),apply,()=>apply({deleted:true}));},[access.offline,id,blocked,ready]);
  const resizeNote=()=>{const node=textarea.current;if(node){node.style.height='auto';node.style.height=(node.scrollHeight+node.offsetHeight-node.clientHeight)+'px';}};
  useLayoutEffect(resizeNote,[text]);
  useEffect(()=>{const node=textarea.current;if(!node)return;let width=node.getBoundingClientRect().width;const observer=new ResizeObserver(()=>{const next=node.getBoundingClientRect().width;if(next!==width){width=next;resizeNote();}});observer.observe(node);return()=>observer.disconnect()},[]);

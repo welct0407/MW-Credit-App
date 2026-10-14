@@ -1,5 +1,5 @@
 import {applicationEnvironment} from './environment';
-import {readCachedJson} from './read-cache';
+import {subscribeOfflineDataset,readCachedJson} from './read-cache';
 import {wholeBaht} from './display-money';
 import {RecordAction} from './RecordAction';
 import {HeaderBack} from './HeaderBack';
@@ -11,6 +11,7 @@ export function ChargeRecord({access,id,thai,onBack,onChanged,backLabel}:{access
  const preserveSource=useRef(false);preserveSource.current=!!(editing||!!command);
  const flight=useRef<AbortController|null>(null);
  const validItem=(value:any)=>value&&value.id===id&&typeof value.loanId==='string'&&Array.isArray(value.repayments)&&Array.isArray(value.allocations);
+ useEffect(()=>{const apply=(data:any)=>{if(preserveSource.current)return;if(data.deleted){setItem(null);setError(true)}else if(validItem(data.item)){setItem(data.item);setError(false)}};return subscribeOfflineDataset<any>(access,'/api/charge-records/'+encodeURIComponent(id),apply,()=>apply({deleted:true}));},[access.offline,id]);
  async function load(){const current=++generation.current,done=beginRequest(),controller=new AbortController();flight.current?.abort();flight.current=controller;setError(false);setLoading(true);try{const {response,data}=await readCachedJson<any>(access,'/api/charge-records/'+encodeURIComponent(id),{signal:controller.signal,onCached:data=>{if(current===generation.current&&validItem(data?.item)&&!preserveSource.current){setItem(data.item);setLoading(false)}}});if(!response.ok||!validItem(data?.item))throw Error();if(current===generation.current&&!preserveSource.current)setItem(data.item)}catch{if(current===generation.current&&!controller.signal.aborted)setError(true)}finally{done();if(current===generation.current)setLoading(false)}}
  useEffect(()=>{setItem(null);setPayment(null);setEditing(false);setCommand(null);void load();return()=>{generation.current++;flight.current?.abort()}},[id]);useContextRefresh(!editing&&!command&&!payment,t('Refresh charge details','โหลดรายละเอียดเรียกเก็บใหม่'),()=>void load());
  if(payment)return <PaymentRecord access={access} id={payment} thai={thai} onBack={()=>setPayment(null)}/>;
