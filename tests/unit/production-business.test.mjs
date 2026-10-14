@@ -4,6 +4,7 @@ import {parseBusinessPolicy,createBusinessMembership} from '../../services/produ
 import {createBusinessPrincipalVerifier} from '../../services/production/business-principal.mjs';
 import {createProductionConnectionGuard} from '../../services/production/business-target.mjs';
 import {createProductionBusinessRuntime} from '../../services/production/business-runtime.mjs';
+import {deltaValueHash} from '../../services/api/offline-dataset-delta.mjs';
 import {createEnvironmentCommandStore} from '../../services/payment-command/store.mjs';
 import {PROD_RECEIPT_MAPPING} from '../../services/receipts/dev-receipt-adapter.mjs';
 import {loadDispatchConfig} from '../../services/notifications/postcommit.mjs';
@@ -29,7 +30,7 @@ test('PROD notification and machine receipt activation remains explicit and envi
  assert.equal(loadAgentReceiptPolicy(machineEnv,'prod').callerEmail,machine.callerEmail);
  for(const patch of [{AGENT_RECEIPT_POLICY_SECRET_VERSION:machineEnv.AGENT_RECEIPT_POLICY_SECRET_VERSION.replace('/1','/latest')},{AGENT_RECEIPT_POLICY_JSON:JSON.stringify({...machine,environment:'dev'})},{AGENT_RECEIPT_POLICY_JSON:JSON.stringify({...machine,audience:machine.audience.replace('-prod-','-dev-')})}])assert.throws(()=>loadAgentReceiptPolicy({...machineEnv,...patch},'prod'));
 });
-function poolFixture(config){let rows=[{id:member.partnerId,role:member.partnerRole}],identity={database:config.database,principal:config.dbUser,session:config.dbUser,rolcanlogin:true,rolsuper:false,rolcreatedb:false,rolcreaterole:false,rolreplication:false,rolbypassrls:false,member:config.serviceRole==='command',owner_member:false,creator_member:false,dev_member:false};const calls=[];return{calls,setRows:v=>rows=v,identity,async connect(){return{async query(sql,args){calls.push({sql,args});if(sql.includes('pg_roles'))return{rows:[identity]};if(sql.startsWith('SELECT current_database'))return{rows:[identity]};if(sql.includes('FROM public."Partners"'))return{rows};if(sql.includes('pwa_submit_operation_v2'))return{rows:[{result:{kind:'recorded',originalOutcome:{status:'applied',result:{id:'synthetic'}}}}]};if(sql.includes('canonical_json'))return{rows:[]};return{rows:[]};},release(discard){calls.push({release:discard});}};},async end(){calls.push({end:true});}};}
+function poolFixture(config){let rows=[{id:member.partnerId,role:member.partnerRole}],identity={database:config.database,principal:config.dbUser,session:config.dbUser,rolcanlogin:true,rolsuper:false,rolcreatedb:false,rolcreaterole:false,rolreplication:false,rolbypassrls:false,member:config.serviceRole==='command',owner_member:false,creator_member:false,dev_member:false};const calls=[];return{calls,setRows:v=>rows=v,identity,async connect(){return{async query(sql,args){calls.push({sql,args});if(sql.includes('AS fingerprint'))return{rows:[]};if(sql.startsWith('SELECT to_char(CURRENT_TIMESTAMP'))return{rows:[{asOf:'2026-10-15T00:00:00.000Z',businessDate:'2026-10-15'}]};if(sql.includes('pg_roles'))return{rows:[identity]};if(sql.startsWith('SELECT current_database'))return{rows:[identity]};if(sql.includes('FROM public."Partners"'))return{rows};if(sql.includes('pwa_submit_operation_v2'))return{rows:[{result:{kind:'recorded',originalOutcome:{status:'applied',result:{id:'synthetic'}}}}]};if(sql.includes('canonical_json'))return{rows:[]};return{rows:[]};},release(discard){calls.push({release:discard});}};},async end(){calls.push({end:true});}};}
 test('business candidate rejects missing policy, wrong targets, DEV identities and ambient data credentials',()=>{
  assert.equal(loadProductionBusinessConfig({}),null);assert.equal(loadProductionBusinessConfig({BUSINESS_ACTIVATION:'disabled'}),null);
  for(const key of Object.keys(env).filter(k=>k!=='BUSINESS_ACTIVATION'))assert.throws(()=>loadProductionBusinessConfig({...env,[key]:undefined}),key);
@@ -93,3 +94,21 @@ test('PROD command composition serves enabled notifications and isolated machine
  }finally{await new Promise(r=>server.close(r));await runtime.close();}
 });
 
+
+
+test('PROD factory permits authorized offline traversal and delta while retaining membership and target guards',async()=>{
+ const config=loadProductionBusinessConfig({...env,FOUNDATION_ROLE:'command',DB_USER:env.DB_USER.replace('-read-','-command-'),RUNTIME_SERVICE_ACCOUNT:env.RUNTIME_SERVICE_ACCOUNT.replace('-read-','-command-')}),membership=createBusinessMembership(config),pool=poolFixture(config);
+ const store=createEnvironmentCommandStore({pool,guardConnection:createProductionConnectionGuard(config),principalAllowed:membership.principalAllowed,resolveActor:membership.resolveActor,actorIssuer:config.issuer});
+ const chunk=await store.offlineDataset(principal,'records',undefined,{protocol:2});
+ assert.equal(chunk.status,200,JSON.stringify(chunk));assert.equal(chunk.schemaVersion,2);assert.equal(chunk.domain,'records');assert.ok(chunk.patches.length);assert.equal(typeof chunk.nextCursor,'string');
+ for(const domain of ['records','collection','cash','management']){
+  const sourceVersion=deltaValueHash(['business-offline-v3',config.issuer,principal.subject,member.partnerId,domain,'2026-10-15',[]]);
+  const delta=await store.offlineDataset(principal,domain,undefined,{protocol:3,input:{cursor:null,need:[],sourceVersion}});
+  assert.equal(delta.status,200,domain+JSON.stringify(delta));assert.equal(delta.schemaVersion,3);assert.equal(delta.unchanged,true);assert.equal(delta.sourceVersion,sourceVersion);
+  assert.deepEqual(delta.values,{});assert.deepEqual(delta.patches,[]);
+ }
+ assert.ok(pool.calls.some(call=>call.sql==='BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY'));assert.ok(pool.calls.some(call=>call.sql==='COMMIT'));
+ const before=pool.calls.length;assert.equal((await store.offlineDataset({...principal,email:'outsider@example.invalid'},'records',undefined,{protocol:2})).status,403);assert.equal(pool.calls.length,before);
+ pool.setRows([]);assert.equal((await store.offlineDataset(principal,'records',undefined,{protocol:2})).status,403);pool.setRows([{id:member.partnerId,role:member.partnerRole}]);
+ pool.identity.database='loan_manager_dev';assert.equal((await store.offlineDataset(principal,'records',undefined,{protocol:2})).ok,false);
+});
