@@ -1,10 +1,10 @@
 # Open development changes
 
-The sole Open product release is **R058**. Its current product scope is the Debian agent strict Instagram-first delivery correction; source a8cf949 passed Linux Python 3.13 CI (323 passed, 42 optional skips) and production promotion is pending. The separate documentation/process cleanup does not deploy a product release.
+The sole Open product release is **R059**; no product scope is allocated yet. **R058 is Frozen** for the owner-approved Debian agent strict Instagram-first delivery promotion, pinned to source a8cf949 with passing Linux Python 3.13 CI (323 passed, 42 optional skips). Owner also approved the rollback manifest and backup; production installation remains pending their verified capture. The separate documentation/process cleanup does not deploy a product release.
 
 | Outstanding work | Owning reference |
 | --- | --- |
-| R058 strict Instagram-first delivery | [Existing integration notification record](https://github.com/welct0407/MW-Integration-Agent/blob/codex/pwa-documentation-cleanup/Change%20Logs/CHANGE_NOTES_RECEIPT_NOTIFICATION_ISOLATION_2026-10-02.md#r058-strict-instagram-fallback-candidate--14-october-2026); email only after an explicit provider window rejection; production not authorized or changed |
+| R058 strict Instagram-first delivery | [Existing integration notification record](https://github.com/welct0407/MW-Integration-Agent/blob/codex/pwa-documentation-cleanup/Change%20Logs/CHANGE_NOTES_RECEIPT_NOTIFICATION_ISOLATION_2026-10-02.md#r058-strict-instagram-fallback-candidate--14-october-2026); owner approved production deployment on 14 October; rollback manifest and backup approved, capture pending, runtime unchanged |
 | Carried operational credential migration | R055 remains Frozen; paused work is unfinished |
 | Apple push enrollment follow-up | R056 V91 deployed; Lisa retry/closure remains pending |
 | Owner license action | AppSheet technical retirement complete; license revocation unconfirmed |

@@ -4,8 +4,8 @@
 
 | Item | Current value |
 | --- | --- |
-| New product work | **R058 — Open** |
-| Next unused number | **R059**, only opened when authorized R058 promotion starts |
+| New product work | **R059 — Open** |
+| Next unused number | **R060**, only opened when authorized R059 promotion starts |
 | Current runtime baseline | [Environment inventory](Environment_Inventory.md) |
 
 All new features/fixes use the sole Open release. Freeze only at authorized promotion start, pin the package, then publish the next Open number in the same update. Frozen corrections stay with their release; new features use the successor. Do not reserve a second Open release or reuse a number. Documentation/governance changes do not allocate releases.
@@ -14,7 +14,8 @@ All new features/fixes use the sole Open release. Freeze only at authorized prom
 
 | Release | Status | Remaining action / owning record |
 | --- | --- | --- |
-| R058 | Open | Strict Instagram-first agent delivery candidate: no local outbound-window gate; email only after explicit provider window rejection. Source a8cf949 passed [Linux CI](https://github.com/welct0407/MW-Integration-Agent/actions/runs/38529416943); scoped production promotion pending; [existing record](https://github.com/welct0407/MW-Integration-Agent/blob/codex/pwa-documentation-cleanup/Change%20Logs/CHANGE_NOTES_RECEIPT_NOTIFICATION_ISOLATION_2026-10-02.md#r058-strict-instagram-fallback-candidate--14-october-2026) |
+| R059 | Open | No product scope allocated yet |
+| R058 | Frozen — 14 October 2026, 14:48 Bangkok | Owner-approved strict Instagram-first agent deployment; tested source `a8cf94999aee33e9762614241b31904a967b7cac`, [Linux CI](https://github.com/welct0407/MW-Integration-Agent/actions/runs/38529416943). Production installation pending approved recovery/rollback-manifest capture; [existing promotion record](https://github.com/welct0407/MW-Integration-Agent/blob/codex/pwa-documentation-cleanup/Change%20Logs/CHANGE_NOTES_RECEIPT_NOTIFICATION_ISOLATION_2026-10-02.md#r058-strict-instagram-fallback-candidate--14-october-2026) |
 | R056 | Frozen; V91 deployed | Lisa enrollment retry/closure; [record](../outputs/r056-apple-push/README.md) |
 | R055 | Frozen; monitoring delivered | Carried credential work unfinished; [record](../outputs/r055-grafana/continuation.md) |
 | R016 | Owner-accepted reporting; administrative follow-up | Migration-key retirement evidence/final tag unresolved; do not reopen product development |
