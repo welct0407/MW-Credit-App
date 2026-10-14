@@ -58,10 +58,9 @@
       \ date paging uses fresh API reads"
     "request_safety": "Abort and generation guards reject stale borrower results; controls do not submit borrower changes"
     "financial_effect": "Read-only forecast; no charge or financial write"
-    "delivery": "R058 Open; source 6a3cf8cd deployed to DEV Hosting 9686400d67b7247e/command 00025-7qx; reader 00020-m9t remains\
+    "delivery": "R058 Open; source 6a3cf8cd deployed to DEV Hosting 1aa144b2baa20b0f/command 00025-7qx; reader 00020-m9t remains\
       \ source 2ef73db. Artifact checks passed; authenticated forecast/UX smoke untested; PROD promotion pending. Exact pins/recovery\
-      \ in Environment_Inventory and Development_Changes. Frontend transition-layering source 65b9a0e7; command/API remains\
-      \ 6a3cf8cd."
+      \ in Environment_Inventory and Development_Changes. Frontend pull-refresh source e0f3c330; command/API remains 6a3cf8cd."
     "source": "https://github.com/welct0407/MW-Credit-App/blob/95fab655431a4459e22ec1dbdd1541d035333d78/apps/pwa/src/SharedBorrowerDetail.tsx"
     "read_only_source": "https://github.com/welct0407/MW-Credit-App/blob/68e8a39e63e44123dcbab3f819c72d711e2a3240/apps/pwa/src/live-main.tsx"
   "navigation":
@@ -76,14 +75,14 @@
       \ Back action or disabled control cancel the gesture."
     "source": "https://github.com/welct0407/MW-Credit-App/blob/5d046627481ff151f299bad30b784ca418f4b58c/apps/pwa/src/swipe-back.ts"
     "shell_source": "https://github.com/welct0407/MW-Credit-App/blob/5d046627481ff151f299bad30b784ca418f4b58c/apps/pwa/src/live-main.tsx"
-    "delivery": "R058 Open; gestures included in frontend 6a3cf8cd deployed to DEV Hosting 9686400d67b7247e. Actual mobile\
+    "delivery": "R058 Open; gestures included in frontend 6a3cf8cd deployed to DEV Hosting 1aa144b2baa20b0f. Actual mobile\
       \ CDP/mocked app checks passed; artifact verified. Physical iPhone and owner-authenticated live gestures unverified;\
-      \ PROD promotion pending. Frontend transition-layering source 65b9a0e7; command/API remains 6a3cf8cd."
+      \ PROD promotion pending. Frontend pull-refresh source e0f3c330; command/API remains 6a3cf8cd."
     "workspace_gestures": "Eligible root rightward left-edge drag opens the menu interactively; existing leftward root gesture\
       \ remains compatible. Drawer left drag closes interactively. Reference-choice context refresh preserves entered fields;\
       \ static/unsafe edits show preserve-entries feedback, and queue pull uses safe sync. Input/dialog/selection/horizontal-scroll\
       \ guards remain."
-    "workspace_source": "https://github.com/welct0407/MW-Credit-App/blob/dbc6940ee754c569103484a536f5a800c161ab24/apps/pwa/src/workspace-gestures.ts"
+    "workspace_source": "https://github.com/welct0407/MW-Credit-App/blob/e0f3c330f321aea97ae456f77fce0c1e93a0b43c/apps/pwa/src/workspace-gestures.ts"
     "menu_drawer":
       "motion": "Drawer follows the finger during eligible opening/closing drag while underlying page/header/footer remain\
         \ fixed. Short/canceled drag restores starting state; committed drag settles."
@@ -92,6 +91,14 @@
       "guards": "Single-touch/direction/context guards and click suppression; focus trap/restoration retained. Close button,\
         \ backdrop, Escape and menu actions use the same drawer controller; resize/visibility/scope changes cancel safely."
       "source": "https://github.com/welct0407/MW-Credit-App/blob/dbc6940ee754c569103484a536f5a800c161ab24/apps/pwa/src/menu-drawer.ts"
+    "pull_refresh":
+      "threshold": "Deliberate96px downward pull at scroll top arms the existing enabled header refresh action; moving below\
+        \ threshold disarms it, long holds remain eligible and release invokes it once."
+      "feedback": "Bilingual Pull to refresh / Release to refresh cue sits below fixed header; footer layering and editor-preserving\
+        \ context action remain."
+      "haptic": "Feature-detected12ms vibration requested only on committed release where supported; iPhone Safari/PWA has\
+        \ no Vibration API. Mocked call-order proof is not hardware verification."
+      "source": "https://github.com/welct0407/MW-Credit-App/blob/e0f3c330f321aea97ae456f77fce0c1e93a0b43c/apps/pwa/src/workspace-gestures.ts"
   "collection_receiving_ui":
     "collection_note": "Textarea grows to fit loaded/edited contents and on resize. Autosave after 650ms pause or blur queues\
       \ a durable saved-note request, deferred during IME. Preserve versions, immutable pending identity and unknown-outcome\
@@ -115,11 +122,11 @@
     - "https://github.com/welct0407/MW-Credit-App/blob/9b0224032acb841c4d8ff42210d7a285881bdc89/apps/pwa/src/PaymentCorrectionForm.tsx"
     - "https://github.com/welct0407/MW-Credit-App/blob/9b0224032acb841c4d8ff42210d7a285881bdc89/apps/pwa/src/PaymentResult.tsx"
     - "https://github.com/welct0407/MW-Credit-App/blob/9b0224032acb841c4d8ff42210d7a285881bdc89/apps/pwa/src/live-style.css"
-    "delivery": "R058 Open; receipt UI and existing note autosave included in 6a3cf8cd deployed to DEV Hosting 9686400d67b7247e/command\
+    "delivery": "R058 Open; receipt UI and existing note autosave included in 6a3cf8cd deployed to DEV Hosting 1aa144b2baa20b0f/command\
       \ 00025-7qx. Guarded read-only note baseline uses prepared data; autosave concern deferred unchanged. Shared-picker\
       \ 8 focused browser cases passed; configured CI38558540644 passed, browser workflow skipped; artifact verified, authenticated\
-      \ live note/receiver smoke untested. No Page status changes; PROD promotion pending. Frontend transition-layering source\
-      \ 65b9a0e7; command/API remains 6a3cf8cd."
+      \ live note/receiver smoke untested. No Page status changes; PROD promotion pending. Frontend pull-refresh source e0f3c330;\
+      \ command/API remains 6a3cf8cd."
   "phase5_ui":
     "money_display": "THB currency presentation uses whole baht across affected views; editable amounts, storage and financial\
       \ calculation precision remain unchanged."
@@ -133,10 +140,9 @@
     - "https://github.com/welct0407/MW-Credit-App/blob/2ef73db0f91769f1566cd83d91467390080c36ab/apps/pwa/src/LoanRelated.tsx"
     - "https://github.com/welct0407/MW-Credit-App/blob/8ba8e6320f44fb147c54474302adb0076c2e4bd2/apps/pwa/src/OfflinePayments.tsx"
     - "https://github.com/welct0407/MW-Credit-App/blob/2ef73db0f91769f1566cd83d91467390080c36ab/apps/pwa/src/display-money.ts"
-    "delivery": "R058 Open; frontend and command source 6a3cf8cd deployed to DEV Hosting 9686400d67b7247e/command 00025-7qx;\
+    "delivery": "R058 Open; frontend and command source 6a3cf8cd deployed to DEV Hosting 1aa144b2baa20b0f/command 00025-7qx;\
       \ reader 00020-m9t retains source 2ef73db. Focused checks and configured CI passed; artifact verified. Authenticated\
-      \ business smoke untested; PROD promotion pending. Frontend transition-layering source 65b9a0e7; command/API remains\
-      \ 6a3cf8cd."
+      \ business smoke untested; PROD promotion pending. Frontend pull-refresh source e0f3c330; command/API remains 6a3cf8cd."
   "saved_change_queue":
     "contents": "Only saved/confirmed unsynced requests, including autosaved notes. Applied/posted requests removed; rejected/conflicting\
       \ requests retained for review. Ordinary drafts/snapshots hidden. Waiting to sync sidebar/mobile button shows a top-right\
@@ -164,10 +170,10 @@
     - "https://github.com/welct0407/MW-Credit-App/blob/dfaa46d280e99e9f3694d735d75e615074249a97/apps/pwa/src/CollectionNote.tsx"
     - "https://github.com/welct0407/MW-Credit-App/blob/dfaa46d280e99e9f3694d735d75e615074249a97/apps/pwa/src/domain-draft.ts"
     - "https://github.com/welct0407/MW-Credit-App/blob/dfaa46d280e99e9f3694d735d75e615074249a97/apps/pwa/src/live-main.tsx"
-    "delivery": "R058 Open; queue behavior included in frontend 6a3cf8cd deployed to DEV Hosting 9686400d67b7247e and command\
+    "delivery": "R058 Open; queue behavior included in frontend 6a3cf8cd deployed to DEV Hosting 1aa144b2baa20b0f and command\
       \ 00025-7qx. Focused queue/mocked app checks passed; artifact verified. Authenticated live coordinator/backlog untested;\
-      \ automatic PROD sync/migration disabled. Reader unchanged; PROD promotion pending. Frontend transition-layering source\
-      \ 65b9a0e7; command/API remains 6a3cf8cd."
+      \ automatic PROD sync/migration disabled. Reader unchanged; PROD promotion pending. Frontend pull-refresh source e0f3c330;\
+      \ command/API remains 6a3cf8cd."
     "manual_sync": "Sync now is inside Waiting to sync page, visible when saved changes exist. It uses the same guarded engine;\
       \ repeated activation cannot overlap. Outcome reports offline/authorization, remaining requests or attention truthfully;\
       \ does not claim complete while unresolved/blocked changes remain."
@@ -199,11 +205,11 @@
     - "https://github.com/welct0407/MW-Credit-App/blob/2963e0ec6d04fb020a51cf1e23a8711c03587093/apps/pwa/src/read-cache.ts"
     - "https://github.com/welct0407/MW-Credit-App/blob/2963e0ec6d04fb020a51cf1e23a8711c03587093/apps/pwa/src/owner-offline.ts"
     - "https://github.com/welct0407/MW-Credit-App/blob/2963e0ec6d04fb020a51cf1e23a8711c03587093/apps/pwa/src/live-main.tsx"
-    "delivery": "R058 Open; hybrid reads included in dataset frontend 6a3cf8cd deployed to DEV Hosting 9686400d67b7247e and\
+    "delivery": "R058 Open; hybrid reads included in dataset frontend 6a3cf8cd deployed to DEV Hosting 1aa144b2baa20b0f and\
       \ command 00025-7qx. API6a baseline 98 browser cases passed; UI/cycle283 baseline has20 focused passes; current drawerdbc\
       \ has11 focused passes including native CDP drawer cases/1 intentional desktop skip and final held-drag2/2, with configured\
       \ CI passed; artifact verified. Authenticated live cache/preparation untested; latest note autosave concern deferred\
-      \ unchanged. Reader remains source 2ef73db; PROD promotion pending. Frontend transition-layering source 65b9a0e7; command/API\
+      \ unchanged. Reader remains source 2ef73db; PROD promotion pending. Frontend pull-refresh source e0f3c330; command/API\
       \ remains 6a3cf8cd."
   "offline_datasets":
     "domains":
@@ -235,12 +241,12 @@
     - "https://github.com/welct0407/MW-Credit-App/blob/283ac3c50ec4a1a98fca2af9c06b51693aa2e992/apps/pwa/src/owner-offline.ts"
     - "https://github.com/welct0407/MW-Credit-App/blob/283ac3c50ec4a1a98fca2af9c06b51693aa2e992/apps/pwa/src/read-cache.ts"
     - "https://github.com/welct0407/MW-Credit-App/blob/283ac3c50ec4a1a98fca2af9c06b51693aa2e992/apps/pwa/src/live-main.tsx"
-    "delivery": "R058 Open; incremental source 6a3cf8cd deployed to DEV command 00025-7qx and Hosting 9686400d67b7247e. API6a\
+    "delivery": "R058 Open; incremental source 6a3cf8cd deployed to DEV command 00025-7qx and Hosting 1aa144b2baa20b0f. API6a\
       \ baseline canonical SQL and 98 browser cases passed; UI/cycle283 baseline has20 focused passes; current drawerdbc has11\
       \ focused passes including native CDP drawer cases/1 intentional desktop skip and final held-drag2/2, with configured\
       \ CI passed. Operator main-domain source-gate/manifest performance proof is separate from runtime authentication. Artifact/health/auth-gate\
-      \ verified; authenticated live content untested. Reader unchanged; PROD promotion pending. Frontend transition-layering\
-      \ source 65b9a0e7; command/API remains 6a3cf8cd."
+      \ verified; authenticated live content untested. Reader unchanged; PROD promotion pending. Frontend pull-refresh source\
+      \ e0f3c330; command/API remains 6a3cf8cd."
     "traversal": "Protocol 2 bounded resumable traversal; cursors bind actor/domain/day/start/phase/state/generation. startedAt\
       \ through final asOf is an interval of authoritative per-request reads, not a global MVCC snapshot. Old complete bundle\
       \ stays available across pause/failure/reconnect."
@@ -262,7 +268,7 @@
     "state": "value"
   "/content/borrower_upcoming/delivery":
     "reference": "https://github.com/welct0407/MW-Credit-App/pull/6"
-    "reason": "Reconcile verified frontend-only transition layering deployment; data/API unchanged."
+    "reason": "Reconcile verified frontend-only pull-refresh delivery; backend/API unchanged."
     "state": "value"
   "/content/borrower_upcoming/presentation":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/95fab655431a4459e22ec1dbdd1541d035333d78/apps/pwa/src/SharedBorrowerDetail.tsx"
@@ -281,7 +287,7 @@
     "state": "value"
   "/content/navigation/delivery":
     "reference": "https://github.com/welct0407/MW-Credit-App/pull/6"
-    "reason": "Reconcile verified frontend-only transition layering deployment; data/API unchanged."
+    "reason": "Reconcile verified frontend-only pull-refresh delivery; backend/API unchanged."
     "state": "value"
   "/content/collection_receiving_ui":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/5e981335ad42846dac6bde13e24a45a147ab2676/apps/pwa/src/CollectionReceipts.tsx"
@@ -290,7 +296,7 @@
     "state": "value"
   "/content/collection_receiving_ui/delivery":
     "reference": "https://github.com/welct0407/MW-Credit-App/pull/6"
-    "reason": "Reconcile verified frontend-only transition layering deployment; data/API unchanged."
+    "reason": "Reconcile verified frontend-only pull-refresh delivery; backend/API unchanged."
     "state": "value"
   "/content/collection_receiving_ui/collection_note":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/efd9fab2d9cf7326e94f4e380b2117e6bae16a5e/apps/pwa/src/offline-sync.ts"
@@ -309,7 +315,7 @@
     "state": "value"
   "/content/phase5_ui/delivery":
     "reference": "https://github.com/welct0407/MW-Credit-App/pull/6"
-    "reason": "Reconcile verified frontend-only transition layering deployment; data/API unchanged."
+    "reason": "Reconcile verified frontend-only pull-refresh delivery; backend/API unchanged."
     "state": "value"
   "/content/phase5_ui/offline_order":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/5d5af4b0783fe6a44419a4dd5e07ecc135419b43/apps/pwa/src/OfflinePayments.tsx"
@@ -337,7 +343,7 @@
     "state": "value"
   "/content/saved_change_queue/delivery":
     "reference": "https://github.com/welct0407/MW-Credit-App/pull/6"
-    "reason": "Reconcile verified frontend-only transition layering deployment; data/API unchanged."
+    "reason": "Reconcile verified frontend-only pull-refresh delivery; backend/API unchanged."
     "state": "value"
   "/content/saved_change_queue/contents":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/51d4ce9856e7730b1881caf84bd429fc718b46e3/apps/pwa/src/WaitingToSyncButton.tsx"
@@ -349,9 +355,8 @@
       \ current versus baseline tests distinct"
     "state": "value"
   "/content/navigation/workspace_source":
-    "reference": "https://github.com/welct0407/MW-Credit-App/blob/dbc6940ee754c569103484a536f5a800c161ab24/apps/pwa/src/menu-drawer.ts"
-    "reason": "Bounded interactive menu drawer opening/closing with fixed page/chrome; native held-drag and guard/focus checks\
-      \ passed"
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/e0f3c330f321aea97ae456f77fce0c1e93a0b43c/apps/pwa/src/workspace-gestures.ts"
+    "reason": "Document deliberate pull-refresh feedback and optional haptic while preserving context actions."
     "state": "value"
   "/content/saved_change_queue/manual_sync":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/dfaa46d280e99e9f3694d735d75e615074249a97/apps/pwa/src/OfflinePayments.tsx"
@@ -364,7 +369,7 @@
     "state": "value"
   "/content/hybrid_read_cache/delivery":
     "reference": "https://github.com/welct0407/MW-Credit-App/pull/6"
-    "reason": "Reconcile verified frontend-only transition layering deployment; data/API unchanged."
+    "reason": "Reconcile verified frontend-only pull-refresh delivery; backend/API unchanged."
     "state": "value"
   "/content/offline_datasets":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/f261edcd51995795f250699f1ee91fb0d0c95a54/apps/pwa/src/offline-dataset.ts"
@@ -383,7 +388,7 @@
     "state": "value"
   "/content/offline_datasets/delivery":
     "reference": "https://github.com/welct0407/MW-Credit-App/pull/6"
-    "reason": "Reconcile verified frontend-only transition layering deployment; data/API unchanged."
+    "reason": "Reconcile verified frontend-only pull-refresh delivery; backend/API unchanged."
     "state": "value"
   "/content/offline_datasets/preparation":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/374fe98ed21ab233f068dd337d7cbaef0eb24788/apps/pwa/src/offline-dataset.ts"
@@ -441,4 +446,8 @@
   "/content/collection_receiving_ui/sources":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/9b0224032acb841c4d8ff42210d7a285881bdc89/apps/pwa/src/ReceiptPicker.tsx"
     "reason": "Document shared receipt presentation without changing receipt commands or offline recovery."
+    "state": "value"
+  "/content/navigation/pull_refresh":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/e0f3c330f321aea97ae456f77fce0c1e93a0b43c/apps/pwa/src/workspace-gestures.ts"
+    "reason": "Document deliberate pull-refresh feedback and optional haptic while preserving context actions."
     "state": "value"
