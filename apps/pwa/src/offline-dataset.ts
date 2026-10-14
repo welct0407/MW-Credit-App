@@ -3,8 +3,8 @@ import type {OwnerOfflineRepository} from './owner-offline';
 
 type Access={origin:string;offline?:OwnerOfflineRepository;offlineOnly?:boolean;token:()=>Promise<string>;authFailure:(status:number)=>void};
 const domains=['records','collection','cash','management','notifications'] as const;
-export type OfflinePreparation={state:'idle'|'preparing'|'ready'|'incomplete';completed:number;total:number;progress:number;chunks:number;updating:boolean;updateFailed:boolean;lastChecked:number|null};
-const idle:OfflinePreparation={state:'idle',completed:0,total:domains.length,progress:0,chunks:0,updating:false,updateFailed:false,lastChecked:null};
+export type OfflinePreparation={state:'idle'|'preparing'|'ready'|'incomplete';completed:number;total:number;progress:number;chunks:number;syncActive:boolean;updating:boolean;updateFailed:boolean;lastChecked:number|null};
+const idle:OfflinePreparation={state:'idle',completed:0,total:domains.length,progress:0,chunks:0,syncActive:false,updating:false,updateFailed:false,lastChecked:null};
 const states=new Map<string,OfflinePreparation>(),listeners=new Set<()=>void>();
 export const getOfflinePreparation=(scopeName?:string)=>scopeName?states.get(scopeName)??idle:idle;
 export const subscribeOfflinePreparation=(listener:()=>void)=>{listeners.add(listener);return()=>{listeners.delete(listener)}};
@@ -29,18 +29,30 @@ async function indexDataset(bundle:any){
 export function startOfflinePreparation(access:Access,_options:{readOrigin?:string}={}){
  const repository=access.offline;if(!repository||repository.environment==='prod')return()=>{};const repo=repository;
  let stopped=false,running=false,initialized=false,initializing=false,queue:string[]=[],media:string[]=[],requestedDomain:string|null=null,paused=false,timer:ReturnType<typeof setTimeout>|undefined,retryTimer:ReturnType<typeof setTimeout>|undefined,retryAttempts=0,controller:AbortController|null=null,activeTask:string|null=null;
- let lastChecked:number|null=null;
+ let lastChecked:number|null=null,recheck=false;
+ const cycleDomains=new Set<string>(),cycleDone=new Set<string>();
+ const beginCycle=(targets:readonly string[]=domains)=>{cycleDomains.clear();cycleDone.clear();fractions.clear();chunkCounts.clear();changedRetries.clear();for(const domain of targets)cycleDomains.add(domain)};
  const valueIndexes=new Map<string,{base:string|null,values:Record<string,any>}>();
  const completed=new Set<string>(),failed=new Set<string>(),fractions=new Map<string,number>(),chunkCounts=new Map<string,number>(),changedRetries=new Map<string,number>(),mediaVersion=new Map<string,number>(),preferred=new Set<string>();
  const mediaKeys=(records:any)=>(records?.data?.payments??[]).flatMap((row:any)=>[...(row.receiptReference?['manual']:[]),...(row.agentReceiptPresent?['agent']:[])].map(source=>{const path='/api/payment-records/'+encodeURIComponent(row.id)+'/receipt?source='+source;mediaVersion.set(path,Date.parse(source==='manual'?row.receiptAt:row.agentReceiptAt));if(source===(row.receiptReference?'manual':'agent'))preferred.add(path);return path}));
- const progress=()=>{const core=domains.reduce((sum,domain)=>sum+(completed.has(domain)?1:fractions.get(domain)??0),0),images=media.filter(path=>completed.has(path)).length;return core===domains.length?(media.length?80+20*images/media.length:100):80*core/domains.length};
- const status=()=>publish(repo.scopeName,{state:domains.every(domain=>completed.has(domain))&&media.every(path=>completed.has(path))?'ready':paused?'incomplete':queue.length||running?'preparing':'incomplete',completed:completed.size,total:domains.length+media.length,progress:progress(),updating:domains.every(domain=>completed.has(domain))&&(running||queue.length>0)&&!paused,updateFailed:domains.every(domain=>completed.has(domain))&&failed.size>0,lastChecked,chunks:[...chunkCounts.values()].reduce((sum,count)=>sum+count,0)});
+ // Cache availability and this sweep's completed work are independent.
+ const progress=()=>{
+  const discovered=!cycleDomains.has('records')||cycleDone.has('records');
+  const images=discovered?(media.length?media.filter(path=>completed.has(path)).length/media.length:1):0;
+  const core=cycleDomains.size?[...cycleDomains].reduce((sum,domain)=>sum+(cycleDone.has(domain)?1:fractions.get(domain)??0),0)/cycleDomains.size:1;
+  const value=cycleDomains.has('records')||media.some(path=>!completed.has(path))?80*core+20*images:100*core;
+  const complete=[...cycleDomains].every(domain=>cycleDone.has(domain))&&discovered&&media.every(path=>completed.has(path));
+  return Math.max(0,Math.min(complete?100:99,value));
+ };
+ const syncActive=()=>navigator.onLine&&!access.offlineOnly&&!paused&&document.visibilityState!=='hidden'&&(running||queue.length>0&&(activitySnapshot()===0||!!requestedDomain));
+ const status=()=>publish(repo.scopeName,{state:domains.every(domain=>completed.has(domain))&&media.every(path=>completed.has(path))?'ready':paused?'incomplete':queue.length||running?'preparing':'incomplete',completed:completed.size,total:domains.length+media.length,progress:progress(),syncActive:!!syncActive(),updating:domains.every(domain=>completed.has(domain))&&!!syncActive(),updateFailed:domains.every(domain=>completed.has(domain))&&failed.size>0,lastChecked,chunks:[...chunkCounts.values()].reduce((sum,count)=>sum+count,0)});
  const retryLater=()=>{if(stopped||retryTimer||retryAttempts>=3||!navigator.onLine||paused)return;const delay=[5000,15000,30000][retryAttempts++];retryTimer=setTimeout(()=>{retryTimer=undefined;resume()},delay)};
  const enqueue=(task:string,first=false)=>{if(queue.includes(task))return;first?queue.unshift(task):queue.push(task)};
  const schedule=()=>{if(stopped||timer)return;timer=setTimeout(()=>{timer=undefined;void pump()},200)};
  const addMedia=()=>{if(domains.every(domain=>completed.has(domain)))for(const path of media)if(!completed.has(path)&&!failed.has(path))enqueue(path)};
  async function initialize(){if(initializing)return;initializing=true;try{
   if(!await repo.syncAuthorized()){paused=true;status();return}
+  beginCycle();
   for(const domain of domains){const [bundle,partial]=await Promise.all([repo.readDataset(domain),repo.readDatasetProgress(domain)]);if(stopped)return;
    if(bundle?.complete){completed.add(domain);if(domain==='records')media=mediaKeys(bundle)}
    if(partial&&bundle?.complete&&partial.protocolVersion!==3)await repo.discardDatasetProgress(domain);
@@ -49,13 +61,13 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
    if(navigator.onLine&&!access.offlineOnly){enqueue(domain)}
   }
   for(const path of media){const saved=await repo.readDatasetMedia('blob:'+new URL(path,access.origin).href);if(stopped)return;if(saved&&saved.savedAt>=(mediaVersion.get(path)??Infinity))completed.add(path)}
-  initialized=true;paused=!navigator.onLine||!!access.offlineOnly;addMedia();if(paused&&completed.size>=domains.length+media.length)paused=false;status();schedule();
+  initialized=true;paused=!navigator.onLine||!!access.offlineOnly;addMedia();status();schedule();
  }catch{paused=true;status()}finally{initializing=false}}
  async function pump(){
   if(stopped||running)return;
   if(!initialized){await initialize();return}
-  if(!navigator.onLine||access.offlineOnly){paused=completed.size<domains.length+media.length;status();return}
-  if((activitySnapshot()>0||document.visibilityState==='hidden')&&!requestedDomain)return;
+  if(!navigator.onLine||access.offlineOnly){paused=true;status();return}
+  if((activitySnapshot()>0||document.visibilityState==='hidden')&&!requestedDomain){status();return;}
   if(!await repo.syncAuthorized()){paused=true;status();return}if(stopped||running)return;paused=false;
   addMedia();if(!queue.length){status();return}
   const task=queue.shift()!,isMedia=task.startsWith('/api/');running=true;activeTask=task;controller=new AbortController();const flight=controller;status();
@@ -80,7 +92,7 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
     if(value.unchanged){
      if(value.domain!==task||!value.complete||value.nextCursor!==null||!bundle?.complete||partial||value.sourceVersion!==bundle.sourceVersion)throw Error('Invalid unchanged checkpoint');
      if(!await repo.saveDataset(task,{...bundle,cacheStale:false},revision,null,base,!!bundle.cacheStale))throw Error('Dataset changed during check');
-     completed.add(task);failed.delete(task);
+     completed.add(task);cycleDone.add(task);failed.delete(task);
      window.dispatchEvent(new CustomEvent('mw-offline-dataset-ready',{detail:{scopeName:repo.scopeName,domain:task,changed:false}}));return;
     }
     const indexed=valueIndexes.get(task);
@@ -123,26 +135,26 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
    const dataChanged=!isMedia&&JSON.stringify(canonicalValue(bundle?.data))!==JSON.stringify(canonicalValue(full.data));
    const saved=isMedia?await repo.saveDatasetMedia('blob:'+url.href,value,revision):await repo.saveDataset(task,full,revision,partial?.nextCursor??null,base,dataChanged||!!bundle?.cacheStale);if(!saved)throw Error();if(!isMedia&&full.chunks)chunkCounts.set(task,full.chunks);
    if(isMedia&&preferred.has(task)){const alias=new URL(url);alias.searchParams.set('source','preferred');if(!await repo.saveDatasetMedia('blob:'+alias.href,value,revision))throw Error()}
-   if(stopped)return;completed.add(task);queue=queue.filter(queued=>queued!==task);failed.delete(task);if(task==='records'){const oldVersions=new Map(mediaVersion);preferred.clear();mediaVersion.clear();media=mediaKeys(full);for(const path of media)if(oldVersions.get(path)!==mediaVersion.get(path)){completed.delete(path);failed.delete(path)}}
+   if(stopped)return;completed.add(task);cycleDone.add(task);queue=queue.filter(queued=>queued!==task);failed.delete(task);if(task==='records'){const oldVersions=new Map(mediaVersion);preferred.clear();mediaVersion.clear();media=mediaKeys(full);for(const path of media)if(oldVersions.get(path)!==mediaVersion.get(path)){completed.delete(path);failed.delete(path)}}
    if(!isMedia)window.dispatchEvent(new CustomEvent('mw-offline-dataset-ready',{detail:{scopeName:repo.scopeName,domain:task,changed:dataChanged}}));
-  }catch{if(!stopped){if(!navigator.onLine||flight.signal.aborted&&flight.signal.reason==='offline'){enqueue(task);paused=true}else failed.add(task)}}finally{
-   clearTimeout(timeout);running=false;activeTask=null;controller=null;if(!queue.includes(task)||failed.has(task)){if(task===requestedDomain)requestedDomain=null}if(!stopped){addMedia();if(!queue.length&&!failed.size&&domains.every(domain=>completed.has(domain)))lastChecked=Date.now();status();if(queue.length&&!paused)schedule();else if(failed.size)retryLater()}
+  }catch{if(!stopped){if(!navigator.onLine||flight.signal.aborted&&flight.signal.reason==='offline'){enqueue(task);paused=!navigator.onLine||!!access.offlineOnly}else failed.add(task)}}finally{
+   clearTimeout(timeout);running=false;activeTask=null;controller=null;if(!queue.includes(task)||failed.has(task)){if(task===requestedDomain)requestedDomain=null}if(!stopped){addMedia();if(!queue.length&&recheck){recheck=false;beginCycle();for(const domain of domains)enqueue(domain)}if(!queue.length&&!failed.size&&domains.every(domain=>completed.has(domain)))lastChecked=Date.now();status();if(queue.length&&!paused)schedule();else if(failed.size)retryLater()}
   }
  }
  const request=(event?:Event)=>{if(stopped)return;retryAttempts=0;if(retryTimer){clearTimeout(retryTimer);retryTimer=undefined;}const detail=(event as CustomEvent|undefined)?.detail;const priority=domains.includes(detail?.domain)?detail.domain:undefined;
   if(detail?.foreground)requestedDomain=priority;
-  if(event?.type==='mw-read-invalidated'){for(const domain of domains){fractions.delete(domain);chunkCounts.delete(domain);enqueue(domain)}failed.clear()}
-  else if(!running&&!queue.length&&event?.type==='mw-offline-prepare'&&!failed.size){for(const domain of domains){fractions.delete(domain);chunkCounts.delete(domain);enqueue(domain)}}
+  if(event?.type==='mw-read-invalidated'){if(running||queue.length)recheck=true;else{beginCycle();for(const domain of domains)enqueue(domain)}failed.clear()}
+  else if(!running&&!queue.length&&event?.type==='mw-offline-prepare'&&!failed.size){beginCycle(priority?[priority]:domains);for(const domain of cycleDomains)enqueue(domain)}
   else{for(const task of failed)enqueue(task);failed.clear()}
-  if(priority){queue=queue.filter(task=>task!==priority);enqueue(priority,true)}
+  if(priority){cycleDomains.add(priority);cycleDone.delete(priority);fractions.delete(priority);queue=queue.filter(task=>task!==priority);enqueue(priority,true)}
   changedRetries.clear();paused=false;status();schedule();
  };
- const check=()=>{if(stopped||document.visibilityState==='hidden'||!navigator.onLine||access.offlineOnly)return;for(const domain of domains)if(domain!==activeTask)enqueue(domain);resume()};
- const visible=()=>{if(document.visibilityState!=='hidden')check()};
+ const check=()=>{if(stopped||document.visibilityState==='hidden'||!navigator.onLine||access.offlineOnly)return;if(!running&&!queue.length&&!failed.size){beginCycle();for(const domain of domains)enqueue(domain)}resume()};
+ const visible=()=>{if(document.visibilityState!=='hidden')check();status()};
  const poll=setInterval(check,60000);
- const resume=()=>{if(stopped)return;for(const task of failed)enqueue(task);failed.clear();for(const domain of domains)if(!completed.has(domain)&&domain!==activeTask)enqueue(domain);paused=false;schedule()};
- const offline=()=>{controller?.abort('offline');paused=completed.size<domains.length+media.length;status()};
- const unsubscribe=subscribeActivity(()=>{if(activitySnapshot()===0)schedule()});
+ const resume=()=>{if(stopped)return;for(const task of failed)enqueue(task);failed.clear();for(const domain of domains)if(!completed.has(domain)&&domain!==activeTask)enqueue(domain);paused=false;status();schedule()};
+ const offline=()=>{paused=true;controller?.abort('offline');status()};
+ const unsubscribe=subscribeActivity(()=>{status();if(activitySnapshot()===0)schedule()});
  window.addEventListener('mw-offline-queued',resume);window.addEventListener('online',check);window.addEventListener('offline',offline);window.addEventListener('focus',check);document.addEventListener('visibilitychange',visible);window.addEventListener('mw-read-invalidated',request);window.addEventListener('mw-offline-prepare',request);
  void initialize();
  return()=>{stopped=true;if(timer)clearTimeout(timer);if(retryTimer)clearTimeout(retryTimer);controller?.abort();unsubscribe();window.removeEventListener('mw-offline-queued',resume);window.removeEventListener('online',check);window.removeEventListener('offline',offline);window.removeEventListener('focus',check);document.removeEventListener('visibilitychange',visible);clearInterval(poll);window.removeEventListener('mw-read-invalidated',request);window.removeEventListener('mw-offline-prepare',request);states.delete(repo.scopeName);listeners.forEach(listener=>listener())};

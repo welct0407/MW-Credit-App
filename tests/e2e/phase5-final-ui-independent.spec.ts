@@ -127,6 +127,10 @@ test('Page7 Dashboard source formats and collapsed Payments remain readable and 
  }finally{await context.close()}
 });
 
+test('Dashboard native left edge rightward swipe opens menu without replacing the page',async()=>{
+ const{context,page}=await launch();try{await page.setViewportSize({width:390,height:844});await page.locator('.live-bottom-nav').getByRole('button',{name:'Dashboard',exact:true}).click();await expect(page.getByRole('region',{name:'Dashboard',exact:true}).getByRole('heading',{name:'KPIs',exact:true})).toBeVisible();const session=await context.newCDPSession(page);await session.send('Emulation.setTouchEmulationEnabled',{enabled:true});const y=220;await expect.poll(()=>page.evaluate(()=>!!document.elementFromPoint(8,220)?.closest('.live-shell'))).toBe(true);await session.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:8,y}]});for(let i=1;i<=8;i++)await session.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:8+160*i/8,y}]});await session.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await expect(page.getByRole('dialog',{name:'Navigation menu',exact:true})).toBeVisible();await expect(page.getByRole('region',{name:'Dashboard',exact:true})).toBeVisible();await session.detach()}finally{await context.close()}
+});
+
 test('F13 lazy Payments child pages preserve full totals dates status and bounded requests',async({},info)=>{
  const{context,page,s}=await launch();try{
   const width=mobile?320:1440;await page.setViewportSize({width,height:900});await page.emulateMedia({reducedMotion:'reduce'});await page.evaluate(()=>{(globalThis as any).__cTransitionCalls=0;(document as any).startViewTransition=(callback:()=>void)=>{(globalThis as any).__cTransitionCalls++;callback()}});

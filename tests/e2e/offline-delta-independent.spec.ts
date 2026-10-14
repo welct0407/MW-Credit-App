@@ -16,6 +16,19 @@ async function settled(page:Page){await expect.poll(async()=>{const s=await stat
 const bundle=(domain:string,patches:any[],sourceVersion=newVersion,nextCursor:string|null=null)=>({schemaVersion:2,domain,generation:'changed-generation',startedAt:asOf,asOf,businessDate:'2026-10-14',sourceVersion,patches,nextCursor,complete:nextCursor===null,progress:{completed:nextCursor?1:2,total:2}});
 const patches=(data:any)=>Object.entries(data).map(([key,value])=>({key,mode:Array.isArray(value)?'append':'replace',value}));
 
+test('active delta progress excludes retained bundles and long poll focus overlap does not restart completed work',async({page,context})=>{
+ await fixture(page,'delta-long-cycle');await page.clock.install();const calls:string[]=[];let release!:()=>void,held=0;
+ await page.route('**/api/**',async route=>{const url=new URL(route.request().url()),domain=url.searchParams.get('domain')??'notifications',body=route.request().postDataJSON();calls.push(domain+':'+(body.cursor??'start'));
+  if(domain==='records'){held++;await new Promise<void>(resolve=>release=resolve);const step=body.cursor?Number(body.cursor):0;return route.fulfill({json:{...bundle(domain,[],newVersion,step<3?String(step+1):null),schemaVersion:3,values:{},progress:{completed:step+1,total:4}}})}
+  return route.fulfill({json:{...bundle(domain,[],oldVersion),schemaVersion:3,unchanged:true,values:{}}});
+ });
+ await start(page);await page.clock.runFor(1000);await expect.poll(()=>held).toBe(1);expect((await state(page)).state).toBe('ready');expect((await state(page)).syncActive).toBe(true);expect((await state(page)).progress).toBeLessThan(100);
+ for(let step=0;step<4;step++){await page.clock.runFor(18000);await page.evaluate(()=>window.dispatchEvent(new Event('focus')));expect(held).toBe(step+1);release();await page.clock.runFor(1000);if(step<3){await expect.poll(()=>held).toBe(step+2);expect((await state(page)).progress).toBeGreaterThan(0);expect((await state(page)).progress).toBeLessThan(100)}}
+ await page.clock.runFor(2000);await settled(page);expect((await state(page)).syncActive).toBe(false);expect((await state(page)).progress).toBe(100);expect(calls).toEqual(['records:start','collection:start','cash:start','management:start','notifications:start','records:1','records:2','records:3']);
+ await page.evaluate(()=>window.dispatchEvent(new Event('focus')));await page.clock.runFor(1000);await expect.poll(()=>held).toBe(5);expect((await state(page)).syncActive).toBe(true);expect((await state(page)).progress).toBeLessThan(100);await context.setOffline(true);expect((await state(page)).syncActive).toBe(false);expect(await page.evaluate(async()=>(await(window as any).__syncRepo.readDataset('records')).complete)).toBe(true);release();await page.clock.runFor(1000);expect((await state(page)).syncActive).toBe(false);
+ await context.setOffline(false);await page.clock.runFor(1000);await expect.poll(()=>held).toBe(6);for(let step=0;step<4;step++){release();await page.clock.runFor(1000);if(step<3)await expect.poll(()=>held).toBe(7+step)}await page.clock.runFor(2000);await settled(page);expect((await state(page)).syncActive).toBe(false);expect((await state(page)).progress).toBe(100);
+});
+
 test('delta reuses complete data, transfers only edits and derived changes, polls visibly and preserves pending conflicts',async({page,context})=>{
  await fixture(page,'delta-edits');await page.clock.install();
  let version=oldVersion,data:any=initial;const calls:any[]=[],transferred:any[]=[];
