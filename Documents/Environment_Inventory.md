@@ -21,7 +21,7 @@ Private receipts: `gs://mw-payment-receipts-prod-508610-n7`. Agent originals and
 | --- | --- |
 | DEV frontend | exact source `7aecf695789fee3ca3b1fd1f2bece4c4a4bc8ba6`, Hosting `ad24287c9a3def84`, release `1791996774916000`, marker `6ae7e66d2a8818c198356638`, entry `index-Ct107wO3.js`; verified14October2026 23:55:51Bangkok checkpoint, APIs retained; [R059 record](Development_Changes.md#r059-pwa-production-preparation) |
 | DEV reader | `mw-credit-app-read-dev-00020-m9t`, Ready and 100% traffic; digest `sha256:60c9f6c7cfe701264a5add48de2934fa18db8b418652e5622b054a2a40eb0958`, source `2ef73db`; DEV database/IAM/origins preserved; [R058 record](Development_Changes.md#r058-borrower-upcoming-batch) |
-| DEV command | `mw-credit-app-command-dev-00025-7qx`, Ready and 100% traffic; digest `sha256:bf6fb9137be02e7afcb9677b783a6fd8a71ae46b57ae710d3c248e22d12479ab`, source `6a3cf8cd`; existing DEV command bindings and notification enablement preserved; [R058 record](Development_Changes.md#r058-borrower-upcoming-batch) |
+| DEV command | `mw-credit-app-command-dev-00026-7lj`, Ready100%; digest `sha256:303c77cc8af3184ac13ffb58a4459d25b3ac8544db1873652acdc99801e4823a`, source `a2f683eb74f3c3c5dc027520642a07a07f4c1558`; exactDEVbindings/health/auth-gate verified; [R060 record](Development_Changes.md#r060-production-offline-dataset-recovery) |
 | PROD frontend | exact source `7aecf695789fee3ca3b1fd1f2bece4c4a4bc8ba6`, Hosting `ca22762299e518df`, release `1791996880225000`, marker `63b8bc2e99685b0109f5dc90`, entry `index-CRty4uhK.js`; verified14October2026 23:55:51Bangkok checkpoint; [R059 record](Development_Changes.md#r059-pwa-production-preparation) |
 | PROD reader / command | Ready100% revisions `00005-v9z` / `00007-gh2`, image SHA256 `105e815709717c381f3f6b85e9279aa5e30f2b601405b3d7c184ca1114ed1933`, exact source `7aecf695789fee3ca3b1fd1f2bece4c4a4bc8ba6`; V91/database/IAM/storage preserved; [R059 record](Development_Changes.md#r059-pwa-production-preparation) |
 | PROD notify / jobs | preserved revisions `00003-bj4` / `00003-q4h`, digests `b4f528bc8ac48008ed0951e227089d3d0802a7a6c2dbaa826ada5e021e156aea` / `11c149f746bceefc0b4c5d81dfce0295cdca533fa36d63c101f9971f3f643d56`; [R059 record](Development_Changes.md#r059-pwa-production-preparation) |
@@ -32,6 +32,8 @@ Private receipts: `gs://mw-payment-receipts-prod-508610-n7`. Agent originals and
 Native schedules: notifications every minute for recovery; daily charges 00:05; recent analytics hourly. Immediate push is post-commit. Existing agent timers/cutoffs/routes are governed by MW-Integration-Agent's service catalogue.
 
 The separate `mw_agent` database holds integration journals/audit state. Metabase remains on Railway, using governed PostgreSQL reporting sources and its own application database. The Debian-hosted borrower chart remains separately owned.
+
+PROD main offline-dataset reads have the confirmed production-store403 incident; command-only correction is prepared but held for scoped owner approval. Other authenticated dashboard/preferences reads succeed; no wider failure is inferred. See [R060 record](Development_Changes.md#r060-production-offline-dataset-recovery).
 
 ## Infrastructure and credentials
 

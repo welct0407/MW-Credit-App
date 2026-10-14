@@ -129,9 +129,10 @@
     "production_incident": "R060 incident: deployed production-business command store denies main offlineDataset with403 before\
       \ SQL despite authenticated dashboard/preferences succeeding. Candidate removes only the mode-specific denial, preserving\
       \ ownerTesting, principalAllowed and transaction/capability guards; Candidate source a2f683eb74f3c3c5dc027520642a07a07f4c1558\
-      \ is published; CI/focused verification and deployment facts pending. PROD apply held for scoped concrete-plan approval.\
-      \ R059 smoke covered artifact bytes, health and missing-auth denial, not signed-in dataset success. No blanket dashboard\
-      \ failure is inferred."
+      \ is published; CI404units and3focused cases passed. DEVcommand00026-7lj deployed/Ready100%, health/auth-gate verified;\
+      \ no owner-auth traversal claim. PROD remains at00007-gh2 with the known denial; prepared command-image-only forward\
+      \ plan held for scoped owner approval. R059 smoke covered artifact bytes, health and missing-auth denial, not signed-in\
+      \ dataset success. No blanket dashboard failure is inferred."
     "recovery_source": "https://github.com/welct0407/MW-Credit-App/blob/a2f683eb74f3c3c5dc027520642a07a07f4c1558/services/payment-command/store.mjs"
 "evidence":
   "/content/read_routes":
@@ -216,7 +217,7 @@
     "state": "value"
   "/content/offline_dataset/production_incident":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/a2f683eb74f3c3c5dc027520642a07a07f4c1558/services/payment-command/store.mjs"
-    "reason": "Pin scopedR060 production-factory offline denial correction; no live delivery or release claim."
+    "reason": "Reconcile verifiedDEV recovery and concrete heldPROD command-only plan, noPROD applyclaim."
     "state": "value"
   "/content/offline_dataset/recovery_source":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/a2f683eb74f3c3c5dc027520642a07a07f4c1558/services/payment-command/store.mjs"
