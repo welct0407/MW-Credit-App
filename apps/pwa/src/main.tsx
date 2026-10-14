@@ -1,3 +1,4 @@
+import {Icon} from './Icon';
 import {limitAppZoom} from './zoom-guard';
 import {displayDate} from './display-date';
 import React, { useState, useEffect, useRef } from 'react';
@@ -8,9 +9,9 @@ import './style.css';
 const prodLogoUrl = new URL('./assets/loan-manager-logo.png', import.meta.url).href;
 const devLogoUrl = new URL('./assets/loan-manager-logo-dev-orange.png', import.meta.url).href;
 const routes = [
-  ['dashboard', 'Dashboard', 'ภาพรวม', '◫'], ['collection', 'Collection', 'ติดตามชำระ', '◷'], ['payments', 'Payments', 'การชำระเงิน', '↗'], ['borrowers', 'Borrowers', 'ผู้กู้', '◎'], ['loans', 'Loans', 'สัญญาเงินกู้', '▤'], ['charges', 'Upcoming Charges', 'ยอดเรียกเก็บถัดไป', '▦'], ['expenses', 'Business Expenses', 'ค่าใช้จ่ายธุรกิจ', '↙'], ['statement', 'Cash Statement', 'รายการเงินสด', '≡'],
-  ['partners', 'Partners', 'หุ้นส่วน', '◇'], ['position', 'Cash Position', 'สถานะเงินสด', '◉'], ['accounts', 'Cash Accounts', 'บัญชีเงินสด', '▣'], ['assessment', 'Loan Assessment', 'ประเมินสินเชื่อ', '✓'], ['analytics', 'Analytics / history', 'วิเคราะห์ / ประวัติ', '▥'],
-];
+  ['dashboard', 'Dashboard', 'ภาพรวม', 'dashboard'], ['collection', 'Collection', 'ติดตามชำระ', 'collection'], ['payments', 'Payments', 'การชำระเงิน', 'receive'], ['borrowers', 'Borrowers', 'ผู้กู้', 'borrowers'], ['loans', 'Loans', 'สัญญาเงินกู้', 'loans'], ['charges', 'Upcoming Charges', 'ยอดเรียกเก็บถัดไป', 'upcoming'], ['expenses', 'Business Expenses', 'ค่าใช้จ่ายธุรกิจ', 'expenses'], ['statement', 'Cash Statement', 'รายการเงินสด', 'cash'],
+  ['partners', 'Partners', 'หุ้นส่วน', 'partners'], ['position', 'Cash Position', 'สถานะเงินสด', 'cash-position'], ['accounts', 'Cash Accounts', 'บัญชีเงินสด', 'accounts'], ['assessment', 'Loan Assessment', 'ประเมินสินเชื่อ', 'assessments'], ['analytics', 'Analytics / history', 'วิเคราะห์ / ประวัติ', 'analytics'],
+] as const;
 function App() {
   useEffect(()=>limitAppZoom(),[]);
   // Presentation only: never infer service identity from Vite's build mode.
@@ -93,7 +94,7 @@ function App() {
       <span>
         {route === 'collection' ? t('Remaining to collect', 'ยอดคงเหลือต้องติดตาม') : t('Principal outstanding', 'เงินต้นคงเหลือ')}
       </span>
-      <span className="arrow">↗</span>
+      <Icon className="arrow" name="open"/>
     </span>
   </button>;
   return <div className="app-shell" data-preview-theme={previewTheme}>
@@ -115,7 +116,7 @@ function App() {
           </div>}
           <button className={'nav-item ' + (route === r[0] ? 'active' : '')} onClick={() => go(r[0])} aria-current={route === r[0] ? 'page' : undefined}>
             <span className="nav-icon" aria-hidden="true">
-              {r[3]}
+              <Icon name={r[3]}/>
             </span>
             {r[locale === 'en' ? 1 : 2]}{r[0] !== 'collection' && r[0] !== 'borrowers' && <span className="planned-dot" title={t('Planned', 'อยู่ในแผน')}>·</span>}
           </button>
@@ -132,7 +133,7 @@ function App() {
     {menu && <button className="menu-scrim" aria-label={t('Close navigation', 'ปิดเมนู')} onClick={() => setMenu(false)} />}
     <div className="workspace" inert={menu}>
       <header className="topbar">
-        <button className="menu-toggle" aria-expanded={menu} aria-label={t('Open navigation', 'เปิดเมนู')} onClick={() => setMenu(!menu)}>☰</button>
+        <button className="menu-toggle" aria-expanded={menu} aria-label={t('Open navigation', 'เปิดเมนู')} onClick={() => setMenu(!menu)}><Icon name="menu"/></button>
         <div className="breadcrumb">
           {t('Workspace', 'พื้นที่ทำงาน')}
           <span>/</span>
@@ -231,11 +232,11 @@ function App() {
                     {visible.length} {t('sample borrowers', 'ผู้กู้ตัวอย่าง')}
                   </span>
                 </div>
-                <span className="section-symbol" aria-hidden="true">◎</span>
+                <Icon className="section-symbol" name="borrowers"/>
               </div>
               <div className="filters">
                 <label className="search">
-                  <span aria-hidden="true">⌕</span>
+                  <Icon name="search"/>
                   <input aria-label={t('Search borrowers', 'ค้นหาผู้กู้')} placeholder={t('Search name or sample ID', 'ค้นหาชื่อหรือรหัสตัวอย่าง')} value={query} onChange={e => { setQuery(e.target.value); setSelected(null); }} />
                 </label>
                 <label className="filter-label">
@@ -251,7 +252,7 @@ function App() {
               </div>
               <div className="borrower-list">
                 {visible.length === 0 ? <div className="empty-state">
-                  <span>⌕</span>
+                  <Icon name="search"/>
                   <h3>
                     {t('No matching borrowers', 'ไม่พบผู้กู้ที่ตรงกัน')}
                   </h3>
@@ -388,7 +389,7 @@ function App() {
                   {t('Payment posting and online confirmation are not available in this preview.', 'ตัวอย่างนี้ยังไม่รองรับการบันทึกการชำระหรือยืนยันรายการออนไลน์')}
                 </p>
               </> : <div className="detail-empty">
-                <span className="detail-illustration">◎<i>↗</i>
+                <span className="detail-illustration"><Icon name="borrowers"/><i><Icon name="open"/></i>
                 </span>
                 <h2>
                   {t('The details, in one place', 'รายละเอียดในที่เดียว')}
@@ -397,14 +398,14 @@ function App() {
                   {t('Select a borrower to see sample loans, charges, and follow-up context.', 'เลือกผู้กู้เพื่อดูสัญญาตัวอย่าง ยอดเรียกเก็บ และข้อมูลติดตาม')}
                 </p>
                 <div>
-                  {t('Select a borrower to begin', 'เลือกผู้กู้เพื่อเริ่มต้น')} <span>→</span>
+                  {t('Select a borrower to begin', 'เลือกผู้กู้เพื่อเริ่มต้น')} <Icon name="forward"/>
                 </div>
               </div>}
             </section>
           </div>
         </> : <section className="planned-panel">
           <span className="planned-icon" aria-hidden="true">
-            {routeInfo[3]}
+            <Icon name={routeInfo[3]}/>
           </span>
           <div className="eyebrow">
             {t('PLANNED WORKFLOW', 'ขั้นตอนที่อยู่ในแผน')}
@@ -421,7 +422,7 @@ function App() {
             {t('Native management workflows remain planned before production go-live.', 'งานบริหารภายในแอปยังอยู่ในแผนก่อนเปิดใช้งานจริง')}
           </p>}
           <button className="secondary-button" onClick={() => go('collection')}>
-            {t('Explore Collection', 'ทดลองหน้าติดตามชำระ')} →</button>
+            {t('Explore Collection', 'ทดลองหน้าติดตามชำระ')} <Icon name="forward"/></button>
         </section>}
         <footer className="page-footer">
           <span>MW CREDIT</span>
@@ -430,15 +431,15 @@ function App() {
       </main>
       <nav className="mobile-nav" aria-label={t('Quick navigation', 'เมนูลัด')}>
         <button aria-current={route === 'collection' ? 'page' : undefined} onClick={() => go('collection')}>
-          <span>◷</span>
+          <Icon name="collection"/>
           {t('Collection', 'ติดตามชำระ')}
         </button>
         <button aria-current={route === 'borrowers' ? 'page' : undefined} onClick={() => go('borrowers')}>
-          <span>◎</span>
+          <Icon name="borrowers"/>
           {t('Borrowers', 'ผู้กู้')}
         </button>
         <button onClick={() => setMenu(!menu)}>
-          <span>☰</span>
+          <Icon name="menu"/>
           {t('More', 'เพิ่มเติม')}
         </button>
       </nav>

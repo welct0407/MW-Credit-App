@@ -1,3 +1,4 @@
+import {Icon} from './Icon';
 import React,{useEffect,useState} from 'react';
 import type {OwnerOfflineRepository} from './owner-offline';
 
@@ -14,5 +15,5 @@ export function WaitingToSyncButton({repository,thai,compact=false,onClick}:{rep
   return()=>{active=false;revision++;clearInterval(timer);window.removeEventListener('mw-offline-saved',refresh);window.removeEventListener('focus',refresh)};
  },[repository]);
  const count=saved.repository===repository?saved.count:0,title=thai?'รอซิงค์':'Waiting to sync',label=count>0?(thai?title+' มีรายการที่บันทึก '+count+' รายการ':title+', '+count+' saved changes'):title;
- return <button type="button" className="secondary-button waiting-sync-button" aria-label={label} title={label} onClick={onClick}>{compact?'▤':title}{count>0&&<span className="waiting-sync-badge" aria-hidden="true">{count}</span>}</button>;
+ return <button type="button" className="secondary-button waiting-sync-button" aria-label={label} title={label} onClick={onClick}>{compact?<Icon name="waiting"/>:title}{count>0&&<span className="waiting-sync-badge" aria-hidden="true">{count}</span>}</button>;
 }

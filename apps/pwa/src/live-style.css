@@ -536,3 +536,10 @@ main[data-workspace=management] pre{white-space:pre-wrap;overflow-wrap:anywhere}
 @media(prefers-reduced-motion:reduce){.live-menu-dialog[data-drawer-motion=settling],.live-menu-dialog[data-drawer-motion=settling]::backdrop{transition:none}}
 
 .receipt-preview-placeholder{padding:20px 60px 20px 12px;margin:0;background:#f4f4f4;border:1px solid #ddd;border-radius:8px}
+
+/* Shared semantic artwork scales within existing accessible control targets. */
+.live-nav-icon{display:inline-flex;align-items:center;justify-content:center}
+.live-nav-label .nav-disclosure-icon{width:16px;height:16px;margin-left:4px}
+.refresh-failure-badge .app-icon{width:12px;height:12px;stroke-width:2}
+.payment-receipt-remove .app-icon{width:24px;height:24px}
+.payment-status-symbol .app-icon,.list-meaning-legend .app-icon{width:18px;height:18px}
