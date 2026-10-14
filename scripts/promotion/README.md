@@ -11,6 +11,14 @@ node scripts/promotion/manifest.mjs --manifest PATH --artifact-root CURRENT_ROOT
 node --test tests/unit/phase3-promotion-manifest.test.mjs
 ```
 
+## R061 frontend-only promotion
+
+`deploy-business-hosting.mjs` also accepts the separate `schemaVersion: 3`, `release: R061`, `environment: prod`, `scope: frontend-only`, `status: prepared` package. It forbids runtime build/plan/SQL/applied fields and preserves the existing API/SQL baseline. Source must descend from the deployed frontend baseline, with only allowed frontend/test changes; separately pinned delivery-tool changes are limited to the runner and its unit tests with passing focused checks.
+
+This path validates the successful exact-source PR CI and reads the actual GitHub run/jobs back before apply. Browser workflow steps may be skipped, but the package must supply the 12 passing/zero-skip focused cases, three commands and an immutable PM Development_Changes record commit/hash. It validates exact PROD bindings, all artifact bytes and Hosting recovery pins. Existing signed-operator verification and exclusive private pending-reconciliation receipt handling remain mandatory. A failed/unknown mutation outcome requires reconciliation before retry. This path does not fabricate the R059 two-image apply or require unrelated full browser dispatch.
+
+R061 was delivered at app/artifact source1e0dd73 and runner5e823791; exact environment versions, verification limits and recovery live in the existing PM R061 record/inventory. Creation of its private package/receipt was explicitly owner-approved. Historical R059/foundation/R053 contracts remain separate.
+
 ## Current R059 app-only promotion
 
 `deploy-business-hosting.mjs` supports a separate `schemaVersion: 2`, `release: R059`, `environment: prod`, `scope: app-only` package. Historical foundation/R053 contracts remain unchanged. Use an absolute private `--inputs` path with `--check`; `--apply` also requires owner approval and an absolute private `--output` receipt. Creating a missing package/receipt requires explicit document-creation approval.
