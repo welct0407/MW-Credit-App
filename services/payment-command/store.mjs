@@ -84,7 +84,7 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
   }
   return {
     async offlineDataset(principal,domain,signal,options={}){
-      if(!ownerTesting||draftMode==='production-business')return failure(403,'access_denied');
+      if(!ownerTesting)return failure(403,'access_denied');
       if(!principalAllowed(principal))return failure(403,'access_denied');
       if(!offlineDomains.includes(domain))return failure(400,'invalid_request');
       try{return await withOfflineReadSlot(pool,signal,()=>run(principal,async(client,actor)=>{try{return {ok:true,value:options.protocol===3?await readOfflineDatasetDelta(offlineReadClient(client,signal),actor,domain,options.input):options.protocol===2?await readOfflineDatasetChunk(offlineReadClient(client,signal),actor,domain,options.cursor??null):await readOfflineDataset(offlineReadClient(client,signal),actor,domain)}}catch(error){if(error.message==='dataset_changed')return failure(409,'dataset_changed');if(error.message==='invalid_request')return failure(400,'invalid_request');throw error}},true))}catch{return failure(503,'command_unavailable')}
