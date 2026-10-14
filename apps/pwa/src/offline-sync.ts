@@ -71,6 +71,8 @@ async function syncOne(access:CommandAccess,requestId:string,exclusive=false):Pr
  const settle=async(result:SavedSyncResult,code?:string)=>{
   if(code)result={...result,code};
   const sync:PendingSync|null=result.kind==='synced'?null:{state:result.kind==='blocked'?'blocked':'queued',attempted,...(code?{code}:{}),...(result.data?{outcome:result.data}:{})};
+  const preference=row.value?.command;
+  if(result.kind==='synced'&&preference?.operation==='preference.update'&&['English','ไทย'].includes(preference.inputs?.language))await repository.saveSnapshot('preference-language',{charges:[],language:preference.inputs.language});
   await repository.settlePending(requestId,owner,sync);
   if(result.kind!=='queued')outcome(repository.scopeName,requestId,result);
   return result;
@@ -108,6 +110,7 @@ async function syncOne(access:CommandAccess,requestId:string,exclusive=false):Pr
   if(value.notePredecessor){
    const predecessor=value.notePredecessor;
    const fields=['name','description','communicationName','instagramUsername','city','workingLocation','address','hidden','referrerId','preferredReceivingAccountId','note'];
+   if(Object.hasOwn(predecessor.inputs??{},'aiCollectionEnabled')||Object.hasOwn(command.inputs,'aiCollectionEnabled'))fields.push('aiCollectionEnabled');
    if(command.operation!=='borrower.update'||attempted||!uuid.test(predecessor.requestId)||!predecessor.inputs||fields.some(key=>!Object.hasOwn(predecessor.inputs,key)||!Object.hasOwn(command.inputs,key))||fields.some(key=>key!=='note'&&command.inputs[key]!==predecessor.inputs[key]))return settle({kind:'blocked'},'saved_note_invalid');
    const previous=await request('/api/operations/'+predecessor.requestId);
    if(previous.data?.kind!=='recorded')return settle({kind:'queued'},'previous_note_pending');

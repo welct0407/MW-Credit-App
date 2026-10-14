@@ -22,7 +22,7 @@ export function canonicalManagementFields(operation,input){
   if(key==='partnerRole'&&!['A','B'].includes(value))throw Error('invalid_request');
   if(key==='languagePreference'&&value!==null&&!['English','ไทย'].includes(value))throw Error('invalid_request');
   if(key==='loginEmail'&&value!==null&&(!value.trim()||Buffer.byteLength(value)>320||/[\r\n]/.test(value)))throw Error('invalid_request');
-  if(key==='email'&&value!==null&&value.trim()&&value.trim().toLowerCase()!=='welct0407@mw-credit.com')throw Error('invalid_request');
+  if(key==='email'&&value!==null&&value.trim()&&(Buffer.byteLength(value)>320||! /^[^\s@]+@[^\s@]+\.[^\s@]+$/u.test(value.trim())))throw Error('invalid_request');
   result[key]=value;
  }return result;
 }

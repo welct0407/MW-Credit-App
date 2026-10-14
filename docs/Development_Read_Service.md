@@ -36,6 +36,12 @@ The PWA prepares complete owner-scoped bundles and authorized receipt images sep
 
 Authentication state uses the Firebase SDK. Do not copy tokens into custom storage/logs/URLs. Clear or reject stale-session results and preserve denied access rather than granting permissions automatically. Offline viewed snapshots follow the current bounded cache policy; they do not authorize posting.
 
+## Editable settings candidate
+
+R062 exposes Borrower AI collection while preserving existing true/false/null and legacy omitted-field replay; new borrowers default true. Authorized Partner edits expose the nullable Instagram flag and AI Reviewer (unchanged false default), with valid optional Delivery Email separate from Login Email authentication. Sidebar language applies immediately and persists through the existing preference operation. Cash date/account choices remain temporary until Save as defaults; valid saved values restore with yesterday fallback for expired PWA dates. SQL context creation remains Bangkok today. Language-only preference saves preserve unchanged aged date/inactive account, while changed account/date choices retain existing validity checks. One preference pending request per owner scope prevents overlapping saves and uses the existing durable status/retry engine. Synced language must also restore at offline startup; invalid newly chosen cash defaults are rejected locally before queueing, while unchanged aged/inactive context is retained and busy state resets on session switch. Final review corrections and verification remain pending.
+
+V92 changes existing functions and the future Borrower flag default only, with no new tables/columns or backfill. Exact source verification, canonical/restricted-role tests and DEV delivery are pending; this paragraph does not claim PROD activation.
+
 ## Changes and verification
 
 Select affected route/SQL/access/browser checks. Test restricted-role failures and malformed identity/cursor inputs when those boundaries change. Use sanitized error references for diagnostics; establish whether failure is connection or query-related before changing limits. Reuse valid CI and deployed proof. No AppSheet parity or editor tests.
