@@ -125,8 +125,8 @@
       \ Main start/end source gate rejects changed traversal with dataset_changed. Canonical value hashing normalizes Date\
       \ to JSON ISO and ignores asOf metadata. No CDC/retained server snapshot, no universal point-in-time guarantee."
     "production_sources":
-    - "https://github.com/welct0407/MW-Credit-App/blob/7db48d2b07d1128878533ba0ebff39286368cd39/services/production/business-runtime.mjs"
-    - "https://github.com/welct0407/MW-Credit-App/blob/7db48d2b07d1128878533ba0ebff39286368cd39/services/payment-command/handler.mjs"
+    - "https://github.com/welct0407/MW-Credit-App/blob/b77a1ef3d58c488a2113b97948aefe83945e84ec/services/production/business-runtime.mjs"
+    - "https://github.com/welct0407/MW-Credit-App/blob/b77a1ef3d58c488a2113b97948aefe83945e84ec/services/payment-command/handler.mjs"
 "evidence":
   "/content/read_routes":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/68e8a39e63e44123dcbab3f819c72d711e2a3240/services/api/dev-read-handler.mjs"
@@ -204,7 +204,7 @@
     "reason": "Owner-authorized production offline parity candidate; final source/deployment pending."
     "state": "value"
   "/content/offline_dataset/production_sources":
-    "reference": "https://github.com/welct0407/MW-Credit-App/blob/7db48d2b07d1128878533ba0ebff39286368cd39/services/production/business-runtime.mjs"
-    "reason": "Pin focused-tested owner-authorized R059 production offline parity candidate; full workflow/artifacts/deployment\
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/b77a1ef3d58c488a2113b97948aefe83945e84ec/apps/pwa/src/read-cache.ts"
+    "reason": "Pin corrected frozen R059 candidate after cache/draft restoration remediation; finalCI/artifacts/deployment\
       \ pending."
     "state": "value"

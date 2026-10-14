@@ -58,7 +58,7 @@
     \ through protected recipient RPCs. sourceVersion=null: every sweep scans manifests, without main-domain fast gate or\
     \ global snapshot claim. Dispatch/subscriptions/schedules unchanged."
   "offline_history_source": "https://github.com/welct0407/MW-Credit-App/blob/6a3cf8cde2710a45b0368bc7f177f21bdab2693c/services/notifications/store.mjs"
-  "offline_history_production_source": "https://github.com/welct0407/MW-Credit-App/blob/7db48d2b07d1128878533ba0ebff39286368cd39/services/production/business-runtime.mjs"
+  "offline_history_production_source": "https://github.com/welct0407/MW-Credit-App/blob/b77a1ef3d58c488a2113b97948aefe83945e84ec/services/production/business-runtime.mjs"
 "evidence":
   "/content/offline_history":
     "reference": "https://github.com/welct0407/MW-Credit-App/pull/6"
@@ -74,7 +74,7 @@
     "reason": "Owner-authorized production offline parity candidate; final source/deployment pending."
     "state": "value"
   "/content/offline_history_production_source":
-    "reference": "https://github.com/welct0407/MW-Credit-App/blob/7db48d2b07d1128878533ba0ebff39286368cd39/services/production/business-runtime.mjs"
-    "reason": "Pin focused-tested owner-authorized R059 production offline parity candidate; full workflow/artifacts/deployment\
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/b77a1ef3d58c488a2113b97948aefe83945e84ec/apps/pwa/src/read-cache.ts"
+    "reason": "Pin corrected frozen R059 candidate after cache/draft restoration remediation; finalCI/artifacts/deployment\
       \ pending."
     "state": "value"
