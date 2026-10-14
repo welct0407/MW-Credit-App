@@ -58,7 +58,7 @@
       \ date paging uses fresh API reads"
     "request_safety": "Abort and generation guards reject stale borrower results; controls do not submit borrower changes"
     "financial_effect": "Read-only forecast; no charge or financial write"
-    "delivery": "R058 Open; frontend source dfaa46d2 deployed to DEV Hosting 8c195e6fa3add5bc; reader revision 00020-m9t remains\
+    "delivery": "R058 Open; frontend source 2963e0ec deployed to DEV Hosting 50a6d940f5dd4a77; reader revision 00020-m9t remains\
       \ source 2ef73db. Artifact checks passed; owner-authenticated forecast/UX smoke unavailable; PROD promotion pending.\
       \ Exact pins/recovery in Environment_Inventory and Development_Changes."
     "source": "https://github.com/welct0407/MW-Credit-App/blob/95fab655431a4459e22ec1dbdd1541d035333d78/apps/pwa/src/SharedBorrowerDetail.tsx"
@@ -75,8 +75,8 @@
       \ Back action or disabled control cancel the gesture."
     "source": "https://github.com/welct0407/MW-Credit-App/blob/5d046627481ff151f299bad30b784ca418f4b58c/apps/pwa/src/swipe-back.ts"
     "shell_source": "https://github.com/welct0407/MW-Credit-App/blob/5d046627481ff151f299bad30b784ca418f4b58c/apps/pwa/src/live-main.tsx"
-    "delivery": "R058 Open; interactive Back, root menu swipe and pull-to-context-refresh included in frontend dfaa46d2 deployed\
-      \ to DEV Hosting 8c195e6fa3add5bc. Actual mobile CDP and mocked full-app checks passed; artifact verified. Physical\
+    "delivery": "R058 Open; interactive Back, root menu swipe and pull-to-context-refresh included in frontend 2963e0ec deployed\
+      \ to DEV Hosting 50a6d940f5dd4a77. Actual mobile CDP and mocked full-app checks passed; artifact verified. Physical\
       \ iPhone and owner-authenticated live gestures remain unverified; PROD promotion pending."
     "workspace_gestures": "Root left swipe opens the existing menu. Pull-down at scroll top invokes the current enabled header\
       \ context refresh with fixed chrome. Reference-choice refresh preserves entered values; static/unsafe unsaved editors\
@@ -99,8 +99,8 @@
     - "https://github.com/welct0407/MW-Credit-App/blob/5e981335ad42846dac6bde13e24a45a147ab2676/apps/pwa/src/CollectionReceipts.tsx"
     - "https://github.com/welct0407/MW-Credit-App/blob/5e981335ad42846dac6bde13e24a45a147ab2676/apps/pwa/src/SelectedCharges.tsx"
     - "https://github.com/welct0407/MW-Credit-App/blob/5e981335ad42846dac6bde13e24a45a147ab2676/apps/pwa/src/live-style.css"
-    "delivery": "R058 Open; receipt UI and durable note-queue updates included in frontend dfaa46d2 deployed to DEV Hosting\
-      \ 8c195e6fa3add5bc; command 00022-nhc retains source 2ef73db. Focused checks and configured development CI passed; artifact\
+    "delivery": "R058 Open; receipt UI and durable note-queue updates included in frontend 2963e0ec deployed to DEV Hosting\
+      \ 50a6d940f5dd4a77; command 00022-nhc retains source 2ef73db. Focused checks and configured development CI passed; artifact\
       \ verified, authenticated live note/receiver smoke not performed. No Page status changes; PROD promotion pending."
   "phase5_ui":
     "money_display": "THB currency presentation uses whole baht across affected views; editable amounts, storage and financial\
@@ -115,7 +115,7 @@
     - "https://github.com/welct0407/MW-Credit-App/blob/2ef73db0f91769f1566cd83d91467390080c36ab/apps/pwa/src/LoanRelated.tsx"
     - "https://github.com/welct0407/MW-Credit-App/blob/8ba8e6320f44fb147c54474302adb0076c2e4bd2/apps/pwa/src/OfflinePayments.tsx"
     - "https://github.com/welct0407/MW-Credit-App/blob/2ef73db0f91769f1566cd83d91467390080c36ab/apps/pwa/src/display-money.ts"
-    "delivery": "R058 Open; frontend source dfaa46d2 deployed to DEV Hosting 8c195e6fa3add5bc; reader 00020-m9t and command\
+    "delivery": "R058 Open; frontend source 2963e0ec deployed to DEV Hosting 50a6d940f5dd4a77; reader 00020-m9t and command\
       \ 00022-nhc retain runtime source 2ef73db. Focused checks and configured development CI passed; artifact verified. Authenticated\
       \ business smoke not performed; PROD promotion pending."
   "saved_change_queue":
@@ -145,13 +145,42 @@
     - "https://github.com/welct0407/MW-Credit-App/blob/dfaa46d280e99e9f3694d735d75e615074249a97/apps/pwa/src/CollectionNote.tsx"
     - "https://github.com/welct0407/MW-Credit-App/blob/dfaa46d280e99e9f3694d735d75e615074249a97/apps/pwa/src/domain-draft.ts"
     - "https://github.com/welct0407/MW-Credit-App/blob/dfaa46d280e99e9f3694d735d75e615074249a97/apps/pwa/src/live-main.tsx"
-    "delivery": "R058 Open; final gesture/reconnect/manual-sync source dfaa46d2 deployed to DEV Hosting 8c195e6fa3add5bc.\
-      \ Real IndexedDB and mocked Firebase full-app checks plus development CI passed; artifact verified. Owner-authenticated\
-      \ live coordinator/backlog not exercised; automatic PROD sync/migration disabled. Reader/command unchanged; PROD promotion\
-      \ pending."
+    "delivery": "R058 Open; queue behavior included in hybrid-read frontend 2963e0ec deployed to DEV Hosting 50a6d940f5dd4a77.\
+      \ Focused queue and mocked app checks passed; artifact verified. Owner-authenticated live coordinator/backlog not exercised;\
+      \ automatic PROD sync/migration disabled. Reader/command unchanged; PROD promotion pending."
     "manual_sync": "Sync now is inside Waiting to sync page, visible when saved changes exist. It uses the same guarded engine;\
       \ repeated activation cannot overlap. Outcome reports offline/authorization, remaining requests or attention truthfully;\
       \ does not claim complete while unresolved/blocked changes remain."
+  "hybrid_read_cache":
+    "behavior": "Used read views render cached data/receipt images first where available; authorized network refresh updates\
+      \ the same view without navigation. Header spinner indicates activity; distinct ! badge/tooltip/live status indicates\
+      \ refresh failure, even without cache; successful retry clears failure and navigation resets scope. Cached fallback\
+      \ indication is separate."
+    "isolation": "Owner issuer/uid and environment namespace; full URL/query and relevant Asia/Bangkok business date keys;\
+      \ account/session authorization lease and read-revision guards; no cross-owner/environment/search/date leakage."
+    "bounds":
+      "maximum_responses": 512
+      "maximum_total_bytes": 33554432
+      "maximum_response_bytes": 8388608
+      "authorization_lease_hours": 24
+      "note": "Authorization lease is not a claim that every cached response expires after 24 hours; cache retains bounded\
+        \ responses with revision/authorization checks."
+    "formats": "Allowlisted authenticated GET JSON and receipt PNG/JPEG/WebP blobs. Tokens/auth fields/signed URLs excluded;\
+      \ no credential-bearing URLs."
+    "network_authority": "Financial/action previews, command status and Collection Note source baseline remain network-only.\
+      \ Note behavior is unchanged and its latest concern is deferred."
+    "invalidation": "Applied writes invalidate response revisions; queued offline changes retain viewed cache. Responses begun\
+      \ before invalidation cannot revive old data. Authorization denial/navigation abort prevents cached fallback; cache\
+      \ storage failure must not block valid network reads."
+    "editor_safety": "Dirty editable values are not replaced by refresh; current navigation/context and pending-write revisions\
+      \ protect late child/parent updates."
+    "sources":
+    - "https://github.com/welct0407/MW-Credit-App/blob/2963e0ec6d04fb020a51cf1e23a8711c03587093/apps/pwa/src/read-cache.ts"
+    - "https://github.com/welct0407/MW-Credit-App/blob/2963e0ec6d04fb020a51cf1e23a8711c03587093/apps/pwa/src/owner-offline.ts"
+    - "https://github.com/welct0407/MW-Credit-App/blob/2963e0ec6d04fb020a51cf1e23a8711c03587093/apps/pwa/src/live-main.tsx"
+    "delivery": "R058 Open; source 2963e0ec deployed to DEV Hosting 50a6d940f5dd4a77. Current local 70/70 browser checks and\
+      \ configured development CI (383 units) passed; exact artifact verified. Owner-authenticated live cache behavior untested;\
+      \ latest note concern deferred unchanged. Reader/command unchanged; PROD promotion pending."
 "evidence":
   "/content/borrower_upcoming":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/68e8a39e63e44123dcbab3f819c72d711e2a3240/apps/pwa/src/SharedBorrowerDetail.tsx"
@@ -160,8 +189,8 @@
     "state": "value"
   "/content/borrower_upcoming/delivery":
     "reference": "https://github.com/welct0407/AppSheet-Loan-Project/pull/20"
-    "reason": "Exact final gesture/reconnect/manual-sync frontend delivered Hosting-only to DEV; retained mock/live and device\
-      \ limitations"
+    "reason": "Exact hybrid cache/failure-feedback frontend delivered Hosting-only; retain deferred note and owner-authenticated\
+      \ smoke limitations"
     "state": "value"
   "/content/borrower_upcoming/presentation":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/95fab655431a4459e22ec1dbdd1541d035333d78/apps/pwa/src/SharedBorrowerDetail.tsx"
@@ -180,8 +209,8 @@
     "state": "value"
   "/content/navigation/delivery":
     "reference": "https://github.com/welct0407/AppSheet-Loan-Project/pull/20"
-    "reason": "Exact final gesture/reconnect/manual-sync frontend delivered Hosting-only to DEV; retained mock/live and device\
-      \ limitations"
+    "reason": "Exact hybrid cache/failure-feedback frontend delivered Hosting-only; retain deferred note and owner-authenticated\
+      \ smoke limitations"
     "state": "value"
   "/content/collection_receiving_ui":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/5e981335ad42846dac6bde13e24a45a147ab2676/apps/pwa/src/CollectionReceipts.tsx"
@@ -190,8 +219,8 @@
     "state": "value"
   "/content/collection_receiving_ui/delivery":
     "reference": "https://github.com/welct0407/AppSheet-Loan-Project/pull/20"
-    "reason": "Exact final gesture/reconnect/manual-sync frontend delivered Hosting-only to DEV; retained mock/live and device\
-      \ limitations"
+    "reason": "Exact hybrid cache/failure-feedback frontend delivered Hosting-only; retain deferred note and owner-authenticated\
+      \ smoke limitations"
     "state": "value"
   "/content/collection_receiving_ui/collection_note":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/efd9fab2d9cf7326e94f4e380b2117e6bae16a5e/apps/pwa/src/offline-sync.ts"
@@ -210,8 +239,8 @@
     "state": "value"
   "/content/phase5_ui/delivery":
     "reference": "https://github.com/welct0407/AppSheet-Loan-Project/pull/20"
-    "reason": "Exact final gesture/reconnect/manual-sync frontend delivered Hosting-only to DEV; retained mock/live and device\
-      \ limitations"
+    "reason": "Exact hybrid cache/failure-feedback frontend delivered Hosting-only; retain deferred note and owner-authenticated\
+      \ smoke limitations"
     "state": "value"
   "/content/phase5_ui/offline_order":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/5d5af4b0783fe6a44419a4dd5e07ecc135419b43/apps/pwa/src/OfflinePayments.tsx"
@@ -239,8 +268,8 @@
     "state": "value"
   "/content/saved_change_queue/delivery":
     "reference": "https://github.com/welct0407/AppSheet-Loan-Project/pull/20"
-    "reason": "Exact final gesture/reconnect/manual-sync frontend delivered Hosting-only to DEV; retained mock/live and device\
-      \ limitations"
+    "reason": "Exact hybrid cache/failure-feedback frontend delivered Hosting-only; retain deferred note and owner-authenticated\
+      \ smoke limitations"
     "state": "value"
   "/content/saved_change_queue/contents":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/51d4ce9856e7730b1881caf84bd429fc718b46e3/apps/pwa/src/WaitingToSyncButton.tsx"
@@ -260,4 +289,13 @@
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/dfaa46d280e99e9f3694d735d75e615074249a97/apps/pwa/src/OfflinePayments.tsx"
     "reason": "Gesture/context-refresh and foreground/manual queue synchronization followups verified with real IndexedDB\
       \ and mocked Firebase full-app composition"
+    "state": "value"
+  "/content/hybrid_read_cache":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/2963e0ec6d04fb020a51cf1e23a8711c03587093/apps/pwa/src/read-cache.ts"
+    "reason": "Owner cache-first Page issue and distinct header refresh-failure feedback; note concern deferred unchanged"
+    "state": "value"
+  "/content/hybrid_read_cache/delivery":
+    "reference": "https://github.com/welct0407/AppSheet-Loan-Project/pull/20"
+    "reason": "Exact hybrid cache/failure-feedback frontend delivered Hosting-only; retain deferred note and owner-authenticated\
+      \ smoke limitations"
     "state": "value"
