@@ -1,3 +1,4 @@
+import {WaitingToSyncButton} from './WaitingToSyncButton';
 import {startSavedRequestSync} from './offline-sync';
 import {Notifications} from './Notifications';
 import {PaymentRecord as NotificationPaymentRecord} from './PaymentRecord';
@@ -355,7 +356,7 @@ function App() {
     return cancelSearchTimer;
   }, [searchDraft, searchOpen, searchComposing, status, user, view]);
   const accountControls = (compact = false) => <div className="live-account-controls">
-    {status==='ready'&&user&&<button className="secondary-button" aria-label={t('Waiting to sync','รอซิงค์')} title={t('Waiting to sync','รอซิงค์')} onClick={()=>{setSavedPayments(true);menuDialog.current?.close()}}>{compact?'▤':t('Waiting to sync','รอซิงค์')}</button>}
+    {status==='ready'&&user&&<WaitingToSyncButton repository={offlineRepository} thai={thai} compact={compact} onClick={()=>{setSavedPayments(true);menuDialog.current?.close()}}/>}
     {status==='ready'&&user&&import.meta.env.VITE_NOTIFICATIONS==='enabled'&&<button className="secondary-button" aria-label={t('Notifications','การแจ้งเตือน')} title={t('Notifications','การแจ้งเตือน')} aria-current={view==='notifications'?'page':undefined} onClick={()=>changeView('notifications')}>{compact?<span aria-hidden="true">🔔</span>:t('Notifications','การแจ้งเตือน')}</button>}
     {compact && <button ref={languageToggle} className="secondary-button live-account-icon" aria-label={t('Language', 'ภาษา')} title={t('Language', 'ภาษา')} aria-expanded={languageChoices} aria-controls="live-language-choices" onClick={() => setLanguageChoices(value => !value)}><span aria-hidden="true">文</span></button>}
     {(!compact || languageChoices) && <div ref={compact ? languagePanel : undefined} id={compact ? 'live-language-choices' : undefined} className="language" aria-label={t('Language', 'ภาษา')} role="group" onKeyDown={event => { if (compact && event.key === 'Escape') { event.preventDefault(); setLanguageChoices(false); languageToggle.current?.focus({ preventScroll: true }); } }}><button onClick={() => chooseLanguage(false, compact)} aria-pressed={!thai}>EN</button><button onClick={() => chooseLanguage(true, compact)} aria-pressed={thai}>ไทย</button></div>}
