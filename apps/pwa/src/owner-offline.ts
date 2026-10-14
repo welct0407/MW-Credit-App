@@ -2,7 +2,15 @@ import {offlineNamespace,applicationEnvironment,type ApplicationEnvironment} fro
 import {validateViewedSnapshot,type ViewedSnapshot} from './viewed-snapshot';
 const expiry=24*60*60*1000;
 const namespaceEpochs=new Map<string,number>();
-type Saved<T>={key:string;kind:'snapshot'|'draft'|'pending'|'lease';savedAt:number;value:T};
+export type PendingSync={state:'queued'|'syncing'|'blocked';code?:string;outcome?:any;attempted?:boolean;leaseOwner?:string;leaseUntil?:number};
+type Saved<T>={key:string;kind:'snapshot'|'draft'|'pending'|'lease';savedAt:number;value:T;sync?:PendingSync;identity?:string};
+const changed=()=>window.dispatchEvent(new Event('mw-offline-saved'));
+async function pendingIdentity(value:any){
+ const image=value?.receipt?.image;
+ if(!(image instanceof Blob))return JSON.stringify(value);
+ const hash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',await image.arrayBuffer())),byte=>byte.toString(16).padStart(2,'0')).join('');
+ return JSON.stringify({...value,receipt:{...value.receipt,image:{type:image.type,size:image.size,hash}}});
+}
 /** Caller must supply the currently verified owner session. No authentication is inferred here. */
 export function ownerOfflineRepository(identity:{issuer:string;uid:string},environment:ApplicationEnvironment=applicationEnvironment) {
  const name=offlineNamespace(identity,environment);
@@ -38,22 +46,25 @@ export function ownerOfflineRepository(identity:{issuer:string;uid:string},envir
   if(value?.kind==='snapshot'&&Date.now()-value.savedAt>expiry){await remove(kind,id);return null;}
   return value??null;
  }
- async function remove(kind:Saved<unknown>['kind'],id:string){await transaction<void>('readwrite',(store,done)=>{store.delete(kind+':'+id);done()});}
+ async function remove(kind:Saved<unknown>['kind'],id:string){await transaction<void>('readwrite',(store,done)=>{store.delete(kind+':'+id);done()});if(kind==='pending')changed();}
  async function save<T>(kind:Saved<T>['kind'],id:string,value:T,savedAt=Date.now()){
   if(!id)throw Error('Offline record identity required');
-  return transaction<void>('readwrite',(store,done,fail)=>{
+  const identity=kind==='pending'?await pendingIdentity(value):undefined;
+  await transaction<void>('readwrite',(store,done,fail)=>{
    const req=store.getAll();req.onsuccess=()=>{
     const existing=(req.result as Saved<unknown>[]).find(row=>row.key===kind+':'+id);
-    if(kind==='pending'&&existing&&JSON.stringify(existing.value)!==JSON.stringify(value)){store.transaction.abort();return;}
+    if(kind==='pending'&&existing){if((existing.identity??JSON.stringify(existing.value))!==identity){fail(Error('Saved request is immutable'));return;}done();return;}
     const rows=(req.result as Saved<unknown>[]).filter(row=>row.kind===kind&&row.key!==kind+':'+id);
     if(kind==='draft'&&rows.length>=5){fail(Error('Offline draft limit reached'));return;}
     if(kind==='snapshot')for(const row of rows.sort((a,b)=>b.savedAt-a.savedAt).slice(19))store.delete(row.key);
-    store.put({key:kind+':'+id,kind,savedAt,value});done();
+    store.put({key:kind+':'+id,kind,savedAt,value,...(kind==='pending'?{identity,sync:{state:'queued',attempted:false}}:{})});done();
    };
   });
+  if(kind==='pending'){changed();window.dispatchEvent(new Event('mw-offline-queued'));}
  }
  return {
-  async authorize(){await save('lease','owner',{verifiedAt:Date.now()})},
+  scopeName:name,environment,
+  async authorize(){await save('lease','owner',{verifiedAt:Date.now()});window.dispatchEvent(new Event('mw-offline-queued'))},
   async authorized(){const lease=await read<{verifiedAt:number}>('lease','owner');return !!lease&&Date.now()-lease.value.verifiedAt<expiry},
   async list(kind:'snapshot'|'draft'|'pending'){
    const rows=await transaction<Saved<any>[]>('readonly',(store,done)=>{const req=store.getAll();req.onsuccess=()=>done(req.result)});
@@ -66,6 +77,41 @@ export function ownerOfflineRepository(identity:{issuer:string;uid:string},envir
   draft:<T,>(id:string)=>read<T>('draft',id),
   savePending:<T,>(id:string,value:T)=>save('pending',id,value),
   pending:<T,>(id:string)=>read<T>('pending',id),
+  async syncAuthorized(){
+   if(!validInstance())return false;
+   const expected=await capturedEpoch;
+   return transaction<boolean>('readonly',(store,done)=>{const epoch=store.get('meta:epoch');epoch.onsuccess=()=>{if(!validInstance()||(epoch.result?.value??'initial')!==expected){done(false);return;}const lease=store.get('lease:owner');lease.onsuccess=()=>done(!!lease.result&&Date.now()-lease.result.value.verifiedAt<expiry)}});
+  },
+  async claimPending(id:string,owner:string){
+   const claimed=await transaction<Saved<any>|null>('readwrite',(store,done)=>{const request=store.get('pending:'+id);request.onsuccess=()=>{const row=request.result as Saved<any>|undefined;if(!row||row.sync?.state==='blocked'||(row.sync?.leaseUntil??0)>Date.now()){done(null);return;}row.sync={state:'syncing',attempted:row.sync?.attempted??true,leaseOwner:owner,leaseUntil:Date.now()+90000};store.put(row);done(row)}});if(claimed)changed();return claimed;
+  },
+  async markPendingDispatched(id:string,owner:string){
+   return transaction<boolean>('readwrite',(store,done)=>{const request=store.get('pending:'+id);request.onsuccess=()=>{const row=request.result as Saved<any>|undefined;if(row?.sync?.leaseOwner!==owner){done(false);return;}row.sync={...row.sync,attempted:true};store.put(row);done(true)}});
+  },
+  async coalescePendingNote(oldId:string,newId:string,value:any){
+   const identity=await pendingIdentity(value);
+   const replaced=await transaction<boolean>('readwrite',(store,done)=>{const request=store.get('pending:'+oldId);request.onsuccess=()=>{const row=request.result as Saved<any>|undefined;if(!row||row.sync?.attempted!==false||(row.sync?.leaseUntil??0)>Date.now()||row.value?.command?.operation!=='borrower.update'||value?.command?.operation!=='borrower.update'||row.value.command.targetId!==value.command.targetId||value.command.requestId!==newId||newId===oldId){done(false);return;}
+    const before={...row.value.command.inputs,note:null},after={...value.command.inputs,note:null};if(JSON.stringify(before)!==JSON.stringify(after)||row.value.command.expectedVersion!==value.command.expectedVersion){done(false);return;}const existing=store.get('pending:'+newId);existing.onsuccess=()=>{if(existing.result){done(false);return;}const nextValue=row.value.notePredecessor?{...value,notePredecessor:row.value.notePredecessor}:value;store.delete(row.key);store.put({key:'pending:'+newId,kind:'pending',savedAt:Date.now(),value:nextValue,identity:row.value.notePredecessor?JSON.stringify(nextValue):identity,sync:{state:'queued',attempted:false}});done(true)}}});
+   if(replaced){changed();window.dispatchEvent(new Event('mw-offline-queued'));}return replaced;
+  },
+  async bindPendingNote(id:string,owner:string,command:any){
+   return transaction<boolean>('readwrite',(store,done)=>{const request=store.get('pending:'+id);request.onsuccess=()=>{const row=request.result as Saved<any>|undefined,prior=row?.value?.command;
+    if(!row?.value?.notePredecessor||row.sync?.leaseOwner!==owner||row.sync.attempted!==false||command?.operation!=='borrower.update'||command.requestId!==id||JSON.stringify({...prior,expectedVersion:command.expectedVersion})!==JSON.stringify(command)){done(false);return;}
+    const value={...row.value,command};delete value.notePredecessor;store.put({...row,value,identity:JSON.stringify(value)});done(true)}});
+  },
+  async settlePending(id:string,owner:string,sync:PendingSync|null){
+   await transaction<void>('readwrite',(store,done)=>{const request=store.get('pending:'+id);request.onsuccess=()=>{const row=request.result as Saved<any>|undefined;if(row?.sync?.leaseOwner===owner){if(sync===null)store.delete(row.key);else store.put({...row,sync});}done()}});changed();
+  },
+  async migrateSavedNotes(){
+   await transaction<void>('readwrite',(store,done)=>{const request=store.getAll();request.onsuccess=()=>{if(request.result.some((row:any)=>row.key==='meta:note-queue-v1')){done();return;}for(const row of request.result as Saved<any>[]){const draft=row.value?.draft;if(row.kind!=='draft'||draft?.kind!=='collection-note'||typeof draft.id!=='string'||typeof draft.text!=='string'||!draft.record||!/^[a-f0-9]{64}$/.test(draft.record.version??''))continue;
+    const fields=['name','description','communicationName','instagramUsername','city','workingLocation','address','hidden','referrerId','preferredReceivingAccountId','note'];
+    if(fields.some(key=>!Object.hasOwn(draft.record,key)))continue;
+    if(draft.text===(draft.record.note??'')){store.delete(row.key);continue;}
+    const inputs=Object.fromEntries(fields.map(key=>[key,key==='note'?draft.text:draft.record[key]]));
+    const duplicate=(request.result as Saved<any>[]).some(other=>other.kind==='pending'&&other.value?.command?.operation==='borrower.update'&&other.value.command.targetId===draft.id&&other.value.command.expectedVersion===draft.record.version&&JSON.stringify(other.value.command.inputs)===JSON.stringify(inputs));
+    if(!duplicate){const requestId=crypto.randomUUID(),value={domain:'borrower',borrowerLabel:row.value.label,command:{requestId,operation:'borrower.update',targetId:draft.id,expectedVersion:draft.record.version,predecessorRequestId:null,inputs,receiptId:null}};store.put({key:'pending:'+requestId,kind:'pending',savedAt:row.savedAt,value,identity:JSON.stringify(value),sync:{state:'queued',attempted:false}});}store.delete(row.key);
+   }store.put({key:'meta:note-queue-v1',kind:'meta',value:true,savedAt:Date.now()});done()}});changed();
+  },
   remove,
   async purge(){namespaceEpochs.set(name,(namespaceEpochs.get(name)??0)+1);await transaction<void>('readwrite',(store,done)=>{store.clear();store.put({key:'meta:epoch',kind:'meta',value:crypto.randomUUID(),savedAt:Date.now()});done()},true)},
  };
