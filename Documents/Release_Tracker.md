@@ -4,8 +4,8 @@
 
 | Item | Current value |
 | --- | --- |
-| New product work | **R058 — Open** |
-| Next unused number | **R059**, only opened when authorized R058 promotion starts |
+| New product work | **R059 — Open** |
+| Next unused number | **R060**, only opened when authorized R059 promotion starts |
 | Current runtime baseline | [Environment inventory](Environment_Inventory.md) |
 
 All new features/fixes use the sole Open release. Freeze only at authorized promotion start, pin the package, then publish the next Open number in the same update. Frozen corrections stay with their release; new features use the successor. Do not reserve a second Open release or reuse a number. Documentation/governance changes do not allocate releases.
@@ -14,11 +14,11 @@ All new features/fixes use the sole Open release. Freeze only at authorized prom
 
 | Release | Status | Remaining action / owning record |
 | --- | --- | --- |
-| R058 | Open | Borrower Upcoming Charges, interactive Back navigation, six Collection note/receipt/receiver UI feedback fixes, phase-5 note/amount/ordering feedback, saved-change/offline queue simplification, gesture/reconnect/manual-sync followups, hybrid cache-first reads, full-app offline dataset preparation, bounded resumable preparation recovery, and incremental post-preparation refresh; implementation/check evidence in [development changes](Development_Changes.md). Current scope DEV deployed; PR review and PROD promotion pending. R058 remains Open. |
+| R059 | Open; production preparation authorized | Cumulative PWA changes developed under the historical R058 label are being prepared for production through [app PR #6](https://github.com/welct0407/MW-Credit-App/pull/6); evidence in [development changes](Development_Changes.md). Also carries unfinished integration deployment tooling to reload the active webhook receiver and verify readiness before workers resume; this tooling is outside the PWA package and moves to the successor at freeze. |
 | R056 | Frozen; V91 deployed | Lisa enrollment retry/closure; [record](../outputs/r056-apple-push/README.md) |
 | R055 | Frozen; monitoring delivered | Carried credential work unfinished; [record](../outputs/r055-grafana/continuation.md) |
 | R016 | Owner-accepted reporting; administrative follow-up | Migration-key retirement evidence/final tag unresolved; do not reopen product development |
 
-R057 technical retirement is Released. Owner license revocation is outside technical closure. Current versions/recovery evidence belong in the environment inventory and owning records. Completed release history remains in Git; no duplicate historical table is maintained here.
+R058 strict Instagram-first delivery is Released: Debian source `a8cf94999aee33e9762614241b31904a967b7cac` verified on 14 October at 14:53 Bangkok; [existing promotion record](https://github.com/welct0407/MW-Integration-Agent/blob/codex/pwa-documentation-cleanup/Change%20Logs/CHANGE_NOTES_RECEIPT_NOTIFICATION_ISOLATION_2026-10-02.md#r058-strict-instagram-fallback-candidate--14-october-2026). R057 technical retirement is Released. Owner license revocation is outside technical closure. Current versions/recovery evidence belong in the environment inventory and owning records. Completed release history remains in Git; no duplicate historical table is maintained here.
 
 Follow [freeze/promotion](Rules/Release_Workflow.md#release-scope-freeze-and-number-handoff). The promotion record and delivery manifest carry authority, package pins, checks and recovery.

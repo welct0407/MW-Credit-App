@@ -1,10 +1,10 @@
 # Open development changes
 
-The sole Open product release is **R058**. Its current scope is Upcoming Charges on the selected Borrower detail, its UI followups, interactive Back navigation, six Collection note/receipt/receiver UI feedback fixes, phase-5 note/amount/ordering feedback, saved-change/offline queue simplification, gesture/reconnect/manual-sync followups, hybrid cache-first reads, full-app offline dataset preparation, bounded resumable preparation recovery, and incremental post-preparation refresh. Earlier implementation and focused verification are recorded in [app PR #6](https://github.com/welct0407/MW-Credit-App/pull/6); prior DEV reader/frontend deployment passed bounded checks with the authenticated business-smoke limitation below. Collection/receiver feedback is verified and deployed to DEV; phase-5 feedback is verified and deployed to DEV; queue changes are verified and deployed to DEV; gesture/reconnect/manual-sync followups are verified and deployed to DEV; hybrid cache reads are verified and deployed to DEV; full-app datasets were deployed to DEV; resumable preparation recovery is verified and deployed to DEV; incremental refresh is verified and deployed to DEV. PR review and PROD promotion remain pending; R058 has not been frozen.
+The sole Open product release is **R059**. The owner authorized production promotion of the cumulative PWA changes in [app PR #6](https://github.com/welct0407/MW-Credit-App/pull/6). Their historical DEV evidence below uses R058; coordinated numbering now places the PWA package in R059 because R058 strict Instagram-first delivery was separately released and verified. Preparation includes production offline feature gates, exact-source checks, artifact and recovery pins. No production deployment is claimed yet. Unfinished integration deployment tooling (reload the active webhook receiver and verify readiness before resuming workers) remains outside this PWA package and will move to the successor at freeze. Current runtime pins and recovery evidence belong in the environment inventory and existing integration record.
 
 | Outstanding work | Owning reference |
 | --- | --- |
-| R058 UI scope | R058; [app PR #6](https://github.com/welct0407/MW-Credit-App/pull/6) and coordinated documentation PR review before promotion |
+| R059 PWA promotion | R059; [app PR #6](https://github.com/welct0407/MW-Credit-App/pull/6) and coordinated documentation PR review before promotion |
 | Carried operational credential migration | R055 remains Frozen; paused work is unfinished |
 | Apple push enrollment follow-up | R056 V91 deployed; Lisa retry/closure remains pending |
 | Owner license action | AppSheet technical retirement complete; license revocation unconfirmed |
@@ -151,7 +151,7 @@ DEV deployment cleanup was also rejected by automatic approval as **blocked by p
 
 ## Current operation
 
-The owner accepted the core operational/management flows and subsequent UI release. Native PWA/API payment receiving, Debian agent API integration, receipts, notifications, scheduled jobs and monitoring are deployed. Production is https://lm.mw-credit.com and DEV is https://dev-lm.mw-credit.com. Runtime identities and verified versions belong in the [environment inventory](Environment_Inventory.md). AppSheet technical retirement is complete; the owner license action remains separate. Natural business observations and the Lisa push retry retain the limits in their owning release evidence; documentation cleanup does not establish fresh live acceptance.
+The owner accepted the core operational/management flows and subsequent UI release. Native PWA/API payment receiving, Debian agent API integration, receipts, notifications, scheduled jobs and monitoring are deployed. R058 agent delivery attempts authorized Instagram sends without a local window gate and permits automatic email only after an explicit provider messaging-window rejection. Production is https://lm.mw-credit.com and DEV is https://dev-lm.mw-credit.com. Runtime identities and verified versions belong in the [environment inventory](Environment_Inventory.md). AppSheet technical retirement is complete; the owner license action remains separate. Natural business observations and the Lisa push retry retain the limits in their owning release evidence; documentation cleanup does not establish fresh live acceptance.
 
 ## Delivery tooling status
 
@@ -162,6 +162,7 @@ Source inspected **14 October 2026**. This policy changes no product workflow or
 | App `ci.yml` | Main pushes/manual dispatch run broad checks including E2E; PR E2E executes only on the `ci:checkpoint` label event, not later synchronize events with the label still present. Other listed PR steps run even for docs. |
 | `database.yml` | Path-filtered, but push and PR events can duplicate checks and database documentation paths also trigger it. |
 | `deploy-dev.yml` | Manual main-only original API deployment; repeats checks and does not publish Hosting. It is not the complete PWA release route. |
+| Integration shared deployment helper | Receiver lifecycle/readiness correction is source tooling for R059; the existing R058 receiver was repaired by restart on 14 October at 18:43 Bangkok. No new runtime package was deployed for this repair. |
 | Legacy foundation/business/R053 validators | Retain historical full-browser/manual-dispatch receipt requirements; they do not implement general proportional check selection. |
 
 Required checks/guards remain effective. Report a concrete conflict once; update the owning tool through a scoped tested change rather than bypass it or fabricate receipts. Useful future tooling work is affected-input routing, duplicate-run suppression and deployment consuming existing evidence. These tooling gaps do not add another documentation gate.

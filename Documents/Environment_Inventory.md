@@ -25,7 +25,7 @@ Private receipts: `gs://mw-payment-receipts-prod-508610-n7`. Agent originals and
 | PROD frontend | source c07ada0, Hosting 218943a0966051ca, release 1791825659922000; [actual record](../outputs/r054-production/promotion-actual.json) |
 | PROD command / notify | revisions 00006-lrd / 00003-bj4, digest b4f528bc8ac48008ed0951e227089d3d0802a7a6c2dbaa826ada5e021e156aea; [V91 fix](../outputs/r056-apple-push/README.md) |
 | PROD reader / jobs | unchanged by V91; [R053 actual package](../outputs/r053-notifications-jobs/promotion-actual.json) |
-| Debian | vm-mw-credit-agent, deployed a8568e385051a20a3b7efd3374bade6c193d6882, catalogue27; [current retirement/agent proof](../outputs/r057-appsheet-retirement/README.md) |
+| Debian | vm-mw-credit-agent, R058 deployed `a8cf94999aee33e9762614241b31904a967b7cac`, catalogue 27, verified 14 October 2026 at 14:53 Bangkok; webhook receiver reloaded at 18:43 Bangkok to repair inbound commands, public verification/authentication checks passed; genuine 18:50 review command captured and acknowledgment accepted by Instagram; [deployment and recovery record](https://github.com/welct0407/MW-Integration-Agent/blob/codex/pwa-documentation-cleanup/Change%20Logs/CHANGE_NOTES_RECEIPT_NOTIFICATION_ISOLATION_2026-10-02.md#r058-promotion-status) |
 | Grafana | Performance41, Cost15, PWA Platform2; [monitoring record](../outputs/r055-grafana/continuation.md) |
 | Infrastructure | [Adoption and unattended-access matrix](../outputs/r057-infrastructure-adoption/README.md); source808cdf5 records completed network retirement |
 
