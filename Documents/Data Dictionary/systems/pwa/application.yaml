@@ -56,7 +56,7 @@
       \ date paging uses fresh API reads"
     "request_safety": "Abort and generation guards reject stale borrower results; controls do not submit borrower changes"
     "financial_effect": "Read-only forecast; no charge or financial write"
-    "delivery": "R058 Open; frontend source 5d046627 deployed to DEV Hosting 62c051180c5db132 on 14 October 2026; reader revision\
+    "delivery": "R058 Open; frontend source 5e981335 deployed to DEV Hosting c4c2d9c64fc0b44a on 14 October 2026; reader revision\
       \ 00019-ntb remains source 68e8a39. Bounded artifact checks passed; owner-authenticated forecast/UX smoke unavailable;\
       \ PROD promotion pending. Exact pins/recovery in Environment_Inventory and Development_Changes."
     "source": "https://github.com/welct0407/MW-Credit-App/blob/95fab655431a4459e22ec1dbdd1541d035333d78/apps/pwa/src/SharedBorrowerDetail.tsx"
@@ -73,9 +73,27 @@
       \ Back action or disabled control cancel the gesture."
     "source": "https://github.com/welct0407/MW-Credit-App/blob/5d046627481ff151f299bad30b784ca418f4b58c/apps/pwa/src/swipe-back.ts"
     "shell_source": "https://github.com/welct0407/MW-Credit-App/blob/5d046627481ff151f299bad30b784ca418f4b58c/apps/pwa/src/live-main.tsx"
-    "delivery": "R058 Open; corrected source 5d046627 deployed to DEV Hosting 62c051180c5db132. Local touch/browser and Windows\
-      \ WebKit rendering checks passed; deployed artifact verified. Physical iPhone native gesture and authenticated live\
-      \ gesture remain unverified; PROD promotion pending."
+    "delivery": "R058 Open; corrected navigation source 5d046627 is included in frontend 5e981335 deployed to DEV Hosting\
+      \ c4c2d9c64fc0b44a. Local touch/browser and Windows WebKit rendering checks passed; deployed artifact verified. Physical\
+      \ iPhone native gesture and authenticated live gesture remain unverified; PROD promotion pending."
+  "collection_receiving_ui":
+    "collection_note": "Textarea grows to fit loaded/edited note contents and adjusts on resize; existing save/conflict behavior\
+      \ remains."
+    "collection_receipts": "Large horizontal image-only gallery displays both eligible manual and agent evidence per payment\
+      \ through existing authenticated receipt source reads; no date/amount/processing-time captions. Incremental paging appends\
+      \ images; retry preserves loaded images and resumes the failed cursor. Existing eligibility and request scope remain."
+    "receiver_image": "Single image picker hides while local image/receipt/upload state exists; content-width preview is shown\
+      \ during receive and confirmation. Accessible top-right remove control restores picker and invalidates late upload results."
+    "financial_effect": "Presentation only; receipt storage/access, eligibility, upload reconciliation and financial command\
+      \ behavior unchanged."
+    "sources":
+    - "https://github.com/welct0407/MW-Credit-App/blob/5e981335ad42846dac6bde13e24a45a147ab2676/apps/pwa/src/CollectionNote.tsx"
+    - "https://github.com/welct0407/MW-Credit-App/blob/5e981335ad42846dac6bde13e24a45a147ab2676/apps/pwa/src/CollectionReceipts.tsx"
+    - "https://github.com/welct0407/MW-Credit-App/blob/5e981335ad42846dac6bde13e24a45a147ab2676/apps/pwa/src/SelectedCharges.tsx"
+    - "https://github.com/welct0407/MW-Credit-App/blob/5e981335ad42846dac6bde13e24a45a147ab2676/apps/pwa/src/live-style.css"
+    "delivery": "R058 Open; source 5e981335 deployed to DEV Hosting c4c2d9c64fc0b44a on 14 October 2026. Four focused synthetic\
+      \ browser cases and configured CI passed; deployed artifact verified, authenticated live receipt/receiver smoke not\
+      \ performed. No Page status changes; PROD promotion pending."
 "evidence":
   "/content/borrower_upcoming":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/68e8a39e63e44123dcbab3f819c72d711e2a3240/apps/pwa/src/SharedBorrowerDetail.tsx"
@@ -84,8 +102,8 @@
     "state": "value"
   "/content/borrower_upcoming/delivery":
     "reference": "https://github.com/welct0407/AppSheet-Loan-Project/pull/20"
-    "reason": "Verified exact corrected interactive middle-content frontend deployed to DEV; physical iPhone and authenticated\
-      \ behavior smoke unverified"
+    "reason": "Verified exact receipt/note frontend deployed Hosting-only to DEV, reader unchanged; explicit synthetic/live\
+      \ verification limits retained"
     "state": "value"
   "/content/borrower_upcoming/presentation":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/95fab655431a4459e22ec1dbdd1541d035333d78/apps/pwa/src/SharedBorrowerDetail.tsx"
@@ -104,6 +122,16 @@
     "state": "value"
   "/content/navigation/delivery":
     "reference": "https://github.com/welct0407/AppSheet-Loan-Project/pull/20"
-    "reason": "Verified exact corrected interactive middle-content frontend deployed to DEV; physical iPhone and authenticated\
-      \ behavior smoke unverified"
+    "reason": "Verified exact receipt/note frontend deployed Hosting-only to DEV, reader unchanged; explicit synthetic/live\
+      \ verification limits retained"
+    "state": "value"
+  "/content/collection_receiving_ui":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/5e981335ad42846dac6bde13e24a45a147ab2676/apps/pwa/src/CollectionReceipts.tsx"
+    "reason": "Six owner feedback UI requests; exact existing gallery eligibility/source reads and receiver upload safety\
+      \ preserved"
+    "state": "value"
+  "/content/collection_receiving_ui/delivery":
+    "reference": "https://github.com/welct0407/AppSheet-Loan-Project/pull/20"
+    "reason": "Verified exact receipt/note frontend deployed Hosting-only to DEV, reader unchanged; explicit synthetic/live\
+      \ verification limits retained"
     "state": "value"
