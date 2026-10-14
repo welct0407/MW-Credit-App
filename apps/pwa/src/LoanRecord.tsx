@@ -1,3 +1,4 @@
+import {readCachedJson} from './read-cache';
 import {wholeBaht} from './display-money';
 import {RecordAction} from './RecordAction';
 import {HeaderBack} from './HeaderBack';
@@ -20,7 +21,8 @@ const terms=[['loanDate','Loan Date','วันที่กู้'],['principal'
 export function LoanRecord({access,id,thai,onBack}:{access:CommandAccess;id:string;thai:boolean;onBack:()=>void}){
  const t=(en:string,th:string)=>thai?th:en,[item,setItem]=useState<any>(null),[error,setError]=useState(''),[editing,setEditing]=useState(false),[related,setRelated]=useState<{kind:string;id:string}|null>(null),[action,setAction]=useState<any>(null),[closing,setClosing]=useState(false),[addingCharge,setAddingCharge]=useState(false),generation=useRef(0),actionFlight=useRef(false),actionController=useRef<AbortController|null>(null),[choosing,setChoosing]=useState(false);
  useViewedSnapshot(access,'loan',item);
- async function load(){const current=++generation.current,done=beginRequest(),controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);setError('');try{const response=await fetch(access.origin+'/api/loan-records/'+encodeURIComponent(id),{headers:{Authorization:'Bearer '+await access.token()},signal:controller.signal,cache:'no-store',credentials:'omit',redirect:'error'});if(response.status===401||response.status===403)access.authFailure(response.status);if(!response.ok)throw Error();const value=await response.json();if(current===generation.current)setItem(value.item)}catch{if(current===generation.current)setError(t('Loan details unavailable.','ไม่สามารถโหลดรายละเอียดสินเชื่อ'))}finally{clearTimeout(timer);done()}}
+ const preserveSource=useRef(false);preserveSource.current=!!(editing||closing||addingCharge||!!action);
+ async function load(){const current=++generation.current,done=beginRequest(),controller=new AbortController();setError('');try{const {response:response,data:value}=await readCachedJson<any>(access,'/api/loan-records/'+encodeURIComponent(id),{signal:controller.signal,onCached:(value)=>{if(current===generation.current)if(!preserveSource.current)setItem(value.item)}});if(response.status===401||response.status===403)access.authFailure(response.status);if(!response.ok)throw Error();if(current===generation.current)if(!preserveSource.current)setItem(value.item)}catch{if(current===generation.current)setError(t('Loan details unavailable.','ไม่สามารถโหลดรายละเอียดสินเชื่อ'))}finally{done()}}
  useEffect(()=>{setAction(null);setClosing(false);void load();return()=>{generation.current++;actionController.current?.abort()}},[id]);
  useContextRefresh(!related&&!editing&&!closing&&!addingCharge&&!action,t('Refresh loan details','โหลดรายละเอียดสินเชื่อใหม่'),()=>void load());
  async function chooseAction(operation:string,label:string){

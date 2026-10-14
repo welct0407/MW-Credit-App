@@ -22,7 +22,7 @@ type Envelope = { ok: true; source: 'dev'; businessDate: string; asOf: string; n
 type BoardResult = Envelope & { items: Summary[] };
 type DetailResult = Envelope & { borrower: Summary; items: Charge[] };
 export type CollectionReadError = 'not_found' | 'unavailable' | 'business_date_changed';
-export type CollectionRequest = <T>(path: string, onError: (failure: ReadFailure<CollectionReadError>) => void) => Promise<T | null>;
+export type CollectionRequest = <T>(path: string, onError: (failure: ReadFailure<CollectionReadError>) => void, onCached?: (value:T)=>void) => Promise<T | null>;
 export function CollectionRecords({ thai, request, cancel, onStatus, refreshToken, query, commandAccess }: { thai: boolean; request: CollectionRequest; cancel: () => void; onStatus: (value: 'idle' | 'loading' | 'success' | 'error') => void; refreshToken: number; query: string; commandAccess?: CommandAccess }) {
   const t = (en: string, th: string) => thai ? th : en;
   const [borrowerOpen,setBorrowerOpen]=useState(false),[loanOpen,setLoanOpen]=useState<string|null>(null);
@@ -42,6 +42,7 @@ export function CollectionRecords({ thai, request, cancel, onStatus, refreshToke
   const [chargeCursor, setChargeCursor] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const boardCursors=useRef<(string|undefined)[]>([undefined]),chargeCursors=useRef<(string|undefined)[]>([undefined]),upcomingCursors=useRef<(string|undefined)[]>([undefined]);
+  const lastBoardKey=useRef('');
 
   const [chargePage, setChargePage] = useState(1);
   const [businessDate, setBusinessDate] = useState('');
@@ -80,27 +81,29 @@ export function CollectionRecords({ thai, request, cancel, onStatus, refreshToke
       else window.scrollTo({ top: savedDetailScroll.current });
     }
   }, [selectedCharge, upcomingDetail]);
-  function reset() { setPaymentOpen(false); previews.current = null; setUpcoming(null); setUpcomingDetail(null); setUpcomingError(null); setUpcomingPage(1); setSelectedCharge(null); setChildError(null); setItems([]); setSelected(null); setCharges([]); setCursor(null); setChargeCursor(null); setBusinessDate(''); setAsOf(''); setChargeAsOf(''); setPage(1); setChargePage(1); }
+  function reset(keepBoard=false) { setPaymentOpen(false); previews.current = null; setUpcoming(null); setUpcomingDetail(null); setUpcomingError(null); setUpcomingPage(1); setSelectedCharge(null); setChildError(null); if(!keepBoard){setItems([]);setCursor(null);setBusinessDate('');setAsOf('');setPage(1)}setSelected(null);setCharges([]);setChargeCursor(null);setChargeAsOf('');setChargePage(1); }
   function fail(code: ReadFailure<CollectionReadError>) { reset(); setError(code); setUpdateState('error'); }
   async function loadBoard(next?: string, pageNumber = 1) {
     if(pageNumber===1)boardCursors.current=[undefined];boardCursors.current[pageNumber-1]=next;
-    cancel(); const current = ++revision.current; reset(); setError(null); setBusy(true); setUpdateState('loading');
+    cancel(); const current = ++revision.current,key=query+'|'+(next??'');reset(lastBoardKey.current===key);lastBoardKey.current=key;setError(null); setBusy(true); setUpdateState('loading');
     setScrollTarget(value => ({ kind: 'list', sequence: value.sequence + 1 }));
-    const result = await request<BoardResult>('/api/collection?limit=25' + (query ? '&q=' + encodeURIComponent(query) : '') + (next ? '&cursor=' + encodeURIComponent(next) : ''), code => { if (current === revision.current) fail(code); });
+    const apply=(value:BoardResult)=>{if(current!==revision.current)return;setItems(value.items);setCursor(value.nextCursor);setPage(pageNumber);setBusinessDate(value.businessDate);setAsOf(value.asOf);setBusy(false)};
+    const result = await request<BoardResult>('/api/collection?limit=25' + (query ? '&q=' + encodeURIComponent(query) : '') + (next ? '&cursor=' + encodeURIComponent(next) : ''), code => { if (current === revision.current) fail(code); },apply);
     if (current !== revision.current) return;
     setBusy(false);
-    if (result) { setUpdateState('success'); setItems(result.items); setCursor(result.nextCursor); setPage(pageNumber); setBusinessDate(result.businessDate); setAsOf(result.asOf); }
+    if (result) { setUpdateState('success');apply(result); }
   }
-  async function fetchUpcoming(row: Summary, day: string, current: number) {
+  async function fetchUpcoming(row: Summary, day: string, current: number,onUnavailable?:()=>void) {
     previews.current = null; setUpcoming(null); setUpcomingError(null);
+    const apply=(value:UpcomingSummary)=>{if(current===revision.current&&value.businessDate===day)setUpcoming(value)};
     const result = await request<UpcomingSummary>('/api/collection/' + encodeURIComponent(row.id) + '/upcoming?businessDate=' + encodeURIComponent(day), code => {
       if (current !== revision.current) return;
-      if (code.code === 'business_date_changed') { fail(code); return; }
+      if (code.code === 'business_date_changed') {onUnavailable?.();fail(code); return; }
       setUpcomingError(code);
-      if (code.code === 'not_found') { setSelected(null); setCharges([]); setChargeAsOf(''); setChildError(code); }
-    });
+      if (code.code === 'not_found') {onUnavailable?.();setSelected(null); setCharges([]); setChargeAsOf(''); setChildError(code); }
+    },apply);
     if (current !== revision.current) return false;
-    if (result && result.businessDate !== day) { fail({ code: 'business_date_changed' }); return false; }
+    if (result && result.businessDate !== day) {onUnavailable?.();fail({ code: 'business_date_changed' }); return false; }
     if (result) { setUpcoming(result); previews.current = { borrowerId: row.id, businessDate: result.businessDate, asOf: result.asOf, receivedAt: performance.now(), items: result.previews ?? [] }; }
     return result !== null;
   }
@@ -108,22 +111,25 @@ export function CollectionRecords({ thai, request, cancel, onStatus, refreshToke
     if(pageNumber===1)chargeCursors.current=[undefined];chargeCursors.current[pageNumber-1]=next;
     cancel(); const current = ++revision.current;
     previews.current = null; setSelected(row); if(!keepCharge)setSelectedCharge(null); setUpcoming(null); setUpcomingDetail(null); setUpcomingError(null);
-    setChildError(null); setCharges([]); setChargeCursor(null); setChargeAsOf(''); setError(null); setBusy(true); setUpdateState('loading');
+    setChildError(null);if(selected?.id!==row.id||chargePage!==pageNumber){setCharges([]);setChargeCursor(null);setChargeAsOf('')}setError(null); setBusy(true); setUpdateState('loading');
     // Keep the shared charge detail mounted while refreshing its Collection context.
     if(!keepCharge)setScrollTarget(value => ({ kind: 'detail', sequence: value.sequence + 1 }));
     let parentUnavailable = false;
+    let upcomingTask:Promise<boolean>|null=null;
+    const apply=(value:DetailResult)=>{if(current!==revision.current)return;setSelected(value.borrower);setCharges(value.items);setChargeCursor(value.nextCursor);setChargePage(pageNumber);setBusinessDate(value.businessDate);setChargeAsOf(value.asOf);setBusy(false)};
     const result = await request<DetailResult>('/api/collection/' + encodeURIComponent(row.id) + '/charges?limit=10' + (next ? '&cursor=' + encodeURIComponent(next) : ''), code => {
       if (current !== revision.current) return;
       if (code.code === 'business_date_changed') { parentUnavailable = true; fail(code); return; }
       setCharges([]); setChargeCursor(null); setChargeAsOf(''); setChildError(code);
       if (code.code === 'not_found') { parentUnavailable = true; setSelected(null); }
-    });
+    },value=>{apply(value);if(current===revision.current)upcomingTask=fetchUpcoming(value.borrower,value.businessDate,current,()=>{parentUnavailable=true})});
     if (current !== revision.current) return;
-    if (result && businessDate && result.businessDate !== businessDate) { fail({ code: 'business_date_changed' }); setBusy(false); return; }
-    if (parentUnavailable) { setSelectedCharge(null);setBusy(false); setUpdateState('error'); return; }
-    if (result) { setSelected(result.borrower); setCharges(result.items); setChargeCursor(result.nextCursor); setChargePage(pageNumber); setBusinessDate(result.businessDate); setChargeAsOf(result.asOf); }
-    const upcomingOk = await fetchUpcoming(result?.borrower ?? row, result?.businessDate ?? businessDate, current);
+    if (result && businessDate && result.businessDate !== businessDate) {cancel();revision.current++;fail({ code: 'business_date_changed' }); setBusy(false); return; }
+    if (parentUnavailable) {cancel();revision.current++;setSelectedCharge(null);setBusy(false); setUpdateState('error'); return; }
+    if (result) apply(result);
+    const upcomingOk = await (upcomingTask??fetchUpcoming(result?.borrower ?? row, result?.businessDate ?? businessDate, current,()=>{parentUnavailable=true}));
     if (current !== revision.current) return;
+    if(parentUnavailable){cancel();revision.current++;setSelected(null);setBusy(false);setUpdateState('error');return;}
     setBusy(false); setUpdateState(result && upcomingOk ? 'success' : 'error');
   }
   async function chargeChanged() {
@@ -157,10 +163,11 @@ export function CollectionRecords({ thai, request, cancel, onStatus, refreshToke
     }
     previews.current = null;
     cancel(); const current = ++revision.current; setSelectedCharge(null); setUpcomingDetail(null); setUpcomingError(null); setBusy(true); setUpdateState('loading');
+    const apply=(value:UpcomingDetail)=>{if(current===revision.current&&value.businessDate===businessDate){setUpcomingDetail(value);setUpcomingPage(pageNumber);setBusy(false)}};
     const result = await request<UpcomingDetail>('/api/collection/' + encodeURIComponent(selected.id) + '/upcoming/' + encodeURIComponent(dueDate) + '?businessDate=' + encodeURIComponent(businessDate) + '&limit=25' + (next ? '&cursor=' + encodeURIComponent(next) : ''), code => {
       if (current !== revision.current) return;
       if (code.code === 'business_date_changed') fail(code); else setUpcomingError(code);
-    });
+    },apply);
     if (current !== revision.current) return;
     setBusy(false);
     if (result && result.businessDate !== businessDate) { fail({ code: 'business_date_changed' }); return; }

@@ -3,7 +3,8 @@ import {validateViewedSnapshot,type ViewedSnapshot} from './viewed-snapshot';
 const expiry=24*60*60*1000;
 const namespaceEpochs=new Map<string,number>();
 export type PendingSync={state:'queued'|'syncing'|'blocked';code?:string;outcome?:any;attempted?:boolean;leaseOwner?:string;leaseUntil?:number;exclusive?:boolean};
-type Saved<T>={key:string;kind:'snapshot'|'draft'|'pending'|'lease';savedAt:number;value:T;sync?:PendingSync;identity?:string};
+type Saved<T>={key:string;kind:'snapshot'|'draft'|'pending'|'lease'|'cache';savedAt:number;value:T;sync?:PendingSync;identity?:string};
+export type CachedResponse={data:any;contentType:string;format:'json'|'blob';savedAt:number;revision:number};
 const changed=()=>window.dispatchEvent(new Event('mw-offline-saved'));
 async function pendingIdentity(value:any){
  const image=value?.receipt?.image;
@@ -46,7 +47,12 @@ export function ownerOfflineRepository(identity:{issuer:string;uid:string},envir
   if(value?.kind==='snapshot'&&Date.now()-value.savedAt>expiry){await remove(kind,id);return null;}
   return value??null;
  }
- async function remove(kind:Saved<unknown>['kind'],id:string){await transaction<void>('readwrite',(store,done)=>{store.delete(kind+':'+id);done()});if(kind==='pending')changed();}
+ function bumpReadRevision(store:IDBObjectStore){const request=store.get('meta:read-revision');request.onsuccess=()=>store.put({key:'meta:read-revision',kind:'meta',value:(request.result?.value??0)+1})}
+ async function cacheTransaction<T>(mode:IDBTransactionMode,fallback:T,work:(store:IDBObjectStore,done:(value:T)=>void)=>void){
+  if(!validInstance())return fallback;const expected=await capturedEpoch;
+  return transaction<T>(mode,(store,done)=>{const epoch=store.get('meta:epoch');epoch.onsuccess=()=>{if(!validInstance()||(epoch.result?.value??'initial')!==expected){done(fallback);return;}const lease=store.get('lease:owner');lease.onsuccess=()=>{if(!lease.result||Date.now()-lease.result.value.verifiedAt>=expiry){done(fallback);return;}work(store,done)}}});
+ }
+ async function remove(kind:Saved<unknown>['kind'],id:string){await transaction<void>('readwrite',(store,done)=>{store.delete(kind+':'+id);if(kind==='pending')bumpReadRevision(store);done()});if(kind==='pending')changed();}
  async function save<T>(kind:Saved<T>['kind'],id:string,value:T,savedAt=Date.now()){
   if(!id)throw Error('Offline record identity required');
   const identity=kind==='pending'?await pendingIdentity(value):undefined;
@@ -64,6 +70,17 @@ export function ownerOfflineRepository(identity:{issuer:string;uid:string},envir
  }
  return {
   scopeName:name,environment,
+  async readRevision(){
+   if(!validInstance())return null;const expected=await capturedEpoch;
+   return transaction<number|null>('readonly',(store,done)=>{const epoch=store.get('meta:epoch');epoch.onsuccess=()=>{if(!validInstance()||(epoch.result?.value??'initial')!==expected){done(null);return;}const request=store.get('meta:read-revision');request.onsuccess=()=>done(request.result?.value??0)}});
+  },
+  async invalidateReads(){await transaction<void>('readwrite',(store,done)=>{bumpReadRevision(store);done()})},
+  async readCachedResponse(key:string){return cacheTransaction<CachedResponse|null>('readwrite',null,(store,done)=>{const request=store.get('cache:'+key);request.onsuccess=()=>{const row=request.result;if(!row){done(null);return;}const current=store.get('meta:read-revision');current.onsuccess=()=>{if(row.revision!==(current.result?.value??0)){done(null);return;}store.put({...row,lastUsed:Date.now()});done({...row.value,savedAt:row.savedAt,revision:row.revision})}}})},
+  async saveCachedResponse(key:string,value:Omit<CachedResponse,'savedAt'|'revision'>,revision:number){
+   const size=value.format==='blob'&&value.data instanceof Blob?value.data.size:new TextEncoder().encode(JSON.stringify(value.data)).byteLength;
+   if(size>8388608)return false;
+   return cacheTransaction<boolean>('readwrite',false,(store,done)=>{const version=store.get('meta:read-revision');version.onsuccess=()=>{if((version.result?.value??0)!==revision){done(false);return;}const request=store.getAll();request.onsuccess=()=>{const rows=request.result.filter((row:any)=>row.kind==='cache'&&row.key!=='cache:'+key).sort((a:any,b:any)=>(b.lastUsed??b.savedAt)-(a.lastUsed??a.savedAt));let count=1,bytes=size;for(const row of rows){count++;bytes+=row.size??0;if(count>512||bytes>33554432)store.delete(row.key)}store.put({key:'cache:'+key,kind:'cache',savedAt:Date.now(),lastUsed:Date.now(),size,value,revision});done(true)}}});
+  },
   async authorize(){await save('lease','owner',{verifiedAt:Date.now()});window.dispatchEvent(new Event('mw-offline-queued'))},
   async authorized(){const lease=await read<{verifiedAt:number}>('lease','owner');return !!lease&&Date.now()-lease.value.verifiedAt<expiry},
   async list(kind:'snapshot'|'draft'|'pending'){
@@ -100,7 +117,7 @@ export function ownerOfflineRepository(identity:{issuer:string;uid:string},envir
     const value={...row.value,command};delete value.notePredecessor;store.put({...row,value,identity:JSON.stringify(value)});done(true)}});
   },
   async settlePending(id:string,owner:string,sync:PendingSync|null){
-   await transaction<void>('readwrite',(store,done)=>{const request=store.get('pending:'+id);request.onsuccess=()=>{const row=request.result as Saved<any>|undefined;if(row?.sync?.leaseOwner===owner){if(sync===null)store.delete(row.key);else store.put({...row,sync});}done()}});changed();
+   await transaction<void>('readwrite',(store,done)=>{const request=store.get('pending:'+id);request.onsuccess=()=>{const row=request.result as Saved<any>|undefined;if(row?.sync?.leaseOwner===owner){if(sync===null){store.delete(row.key);bumpReadRevision(store)}else store.put({...row,sync});}done()}});changed();
   },
   async migrateSavedNotes(){
    await transaction<void>('readwrite',(store,done)=>{const request=store.getAll();request.onsuccess=()=>{if(request.result.some((row:any)=>row.key==='meta:note-queue-v1')){done();return;}for(const row of request.result as Saved<any>[]){const draft=row.value?.draft;if(row.kind!=='draft'||draft?.kind!=='collection-note'||typeof draft.id!=='string'||typeof draft.text!=='string'||!draft.record||!/^[a-f0-9]{64}$/.test(draft.record.version??''))continue;

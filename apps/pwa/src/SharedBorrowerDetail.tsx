@@ -1,28 +1,28 @@
+import {readCachedJson} from './read-cache';
 import {replaceBackTransition} from './swipe-back';
 import {BorrowerRecord} from './BorrowerRecord';import {BorrowerPayments} from './BorrowerPayments';import {LoanRecords,type LoanRecord as LoanRow} from './LoanRecords';import {LoanRecord} from './LoanRecord';import {LoanForm} from './LoanForm';import {beginRequest} from './request-activity';import {useContextRefresh} from './context-refresh';import type {CommandAccess} from './SelectedCharges';
 import {HeaderBack} from './HeaderBack';
 import React,{useEffect,useRef,useState} from 'react';
 import {UpcomingCharges,type UpcomingSummary,type UpcomingDetail} from './UpcomingCharges';
 import {responseReference,type ReadFailure} from './ReadFailure';
-export function BorrowerUpcoming({access,id,thai}:{access:Pick<CommandAccess,'token'|'authFailure'|'offlineOnly'>;id:string;thai:boolean}){
+export function BorrowerUpcoming({access,id,thai}:{access:Pick<CommandAccess,'token'|'authFailure'|'offlineOnly'|'offline'>;id:string;thai:boolean}){
  const [summary,setSummary]=useState<UpcomingSummary|null>(null),[detail,setDetail]=useState<UpcomingDetail|null>(null),[selectedDate,setSelectedDate]=useState<string|null>(null),[page,setPage]=useState(0),[busy,setBusy]=useState(false),[error,setError]=useState<ReadFailure|null>(null);
  const generation=useRef(0),cursors=useRef<(string|undefined)[]>([undefined]),pending=useRef<AbortController|null>(null),receivedAt=useRef(0);
  const today=()=>{const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Bangkok',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());return ['year','month','day'].map(type=>parts.find(part=>part.type===type)!.value).join('-')};
  async function load(date:string|null=null,cursor?:string,index=0){
   const current=++generation.current;pending.current?.abort();const controller=new AbortController();pending.current=controller;
-  setBusy(true);setError(null);setSelectedDate(date);setDetail(null);if(!date)setSummary(null);
-  const done=beginRequest(),timer=setTimeout(()=>controller.abort(),15000);
+  setBusy(true);setError(null);setSelectedDate(date);if(date!==selectedDate)setDetail(null);
+  const done=beginRequest();
   try{
-   if(access.offlineOnly||!navigator.onLine)throw Error();
    const day=date?summary?.businessDate??today():today(),params=new URLSearchParams({businessDate:day});if(date){params.set('limit','25');if(cursor)params.set('cursor',cursor)}
-   const response=await fetch(import.meta.env.VITE_API_ORIGIN+'/api/borrowers/'+encodeURIComponent(id)+'/upcoming'+(date?'/'+encodeURIComponent(date):'')+'?'+params,{headers:{Authorization:'Bearer '+await access.token()},signal:controller.signal,cache:'no-store',credentials:'omit',redirect:'error'});
+   const {response,data}=await readCachedJson<any>({...access,origin:import.meta.env.VITE_API_ORIGIN},'/api/borrowers/'+encodeURIComponent(id)+'/upcoming'+(date?'/'+encodeURIComponent(date):'')+'?'+params,{signal:controller.signal,onCached:data=>{if(current!==generation.current||data.businessDate!==day)return;if(date){if(index===0)cursors.current=[undefined];cursors.current[index]=cursor;setPage(index);setDetail(data)}else{setSummary(data);receivedAt.current=performance.now();setPage(0);cursors.current=[undefined]}setBusy(false)}});
    if(current!==generation.current)return;
    if(response.status===401||response.status===403)access.authFailure(response.status);
-   const data=await response.json();if(current!==generation.current)return;
+   if(current!==generation.current)return;
    if(!response.ok||!data.ok){setError({code:data.code??'unavailable',reference:responseReference(response)});return}
    if(data.businessDate!==day){setError({code:'business_date_changed'});return}
    if(date){if(index===0)cursors.current=[undefined];cursors.current[index]=cursor;setPage(index);setDetail(data)}else{setSummary(data);receivedAt.current=performance.now();setPage(0);cursors.current=[undefined]}
-  }catch{if(current===generation.current)setError({code:'unavailable'})}finally{clearTimeout(timer);done();if(current===generation.current)setBusy(false)}
+  }catch{if(current===generation.current)setError({code:'unavailable'})}finally{done();if(current===generation.current)setBusy(false)}
  }
  useEffect(()=>{void load();return()=>{generation.current++;pending.current?.abort()}},[id]);
  useEffect(()=>{const invalidate=()=>{receivedAt.current=-Infinity};document.addEventListener('visibilitychange',invalidate);return()=>document.removeEventListener('visibilitychange',invalidate)},[]);
@@ -35,7 +35,7 @@ export function BorrowerUpcoming({access,id,thai}:{access:Pick<CommandAccess,'to
 }
 export function SharedBorrowerDetail({access,id,label,thai,onBack,onSaved}:{access:CommandAccess;id:string;label?:string;thai:boolean;onBack:()=>void;onSaved?:(id:string|null)=>void}){
  const [history,setHistory]=useState(false),[newLoan,setNewLoan]=useState(false),[loan,setLoan]=useState<string|null>(null),[version,setVersion]=useState(0),[items,setItems]=useState<LoanRow[]>([]),[next,setNext]=useState<string|null>(null),[page,setPage]=useState(0),[busy,setBusy]=useState(false),[error,setError]=useState(false),generation=useRef(0),cursors=useRef<(string|undefined)[]>([undefined]);
- async function load(cursor?:string,index=0){if(access.offlineOnly||!navigator.onLine){setError(true);setBusy(false);return;}const current=++generation.current,done=beginRequest(),controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);setBusy(true);setError(false);try{const response=await fetch(import.meta.env.VITE_API_ORIGIN+'/api/borrowers/'+encodeURIComponent(id)+'/loans?limit=25'+(cursor?'&cursor='+encodeURIComponent(cursor):''),{headers:{Authorization:'Bearer '+await access.token()},signal:controller.signal,cache:'no-store',credentials:'omit',redirect:'error'});if(response.status===401||response.status===403)access.authFailure(response.status);if(!response.ok)throw Error();const data=await response.json();if(current!==generation.current)return;if(index===0)cursors.current=[undefined];cursors.current[index]=cursor;setPage(index);setItems(data.items);setNext(data.nextCursor)}catch{if(current===generation.current)setError(true)}finally{clearTimeout(timer);done();if(current===generation.current)setBusy(false)}}
+ async function load(cursor?:string,index=0){const current=++generation.current,done=beginRequest(),controller=new AbortController();setBusy(true);setError(false);try{const {response,data}=await readCachedJson<any>({...access,origin:import.meta.env.VITE_API_ORIGIN},'/api/borrowers/'+encodeURIComponent(id)+'/loans?limit=25'+(cursor?'&cursor='+encodeURIComponent(cursor):''),{signal:controller.signal,onCached:data=>{if(current===generation.current){if(index===0)cursors.current=[undefined];cursors.current[index]=cursor;setPage(index);setItems(data.items);setNext(data.nextCursor);setBusy(false)}}});if(response.status===401||response.status===403)access.authFailure(response.status);if(!response.ok)throw Error();if(current!==generation.current)return;if(index===0)cursors.current=[undefined];cursors.current[index]=cursor;setPage(index);setItems(data.items);setNext(data.nextCursor)}catch{if(current===generation.current)setError(true)}finally{done();if(current===generation.current)setBusy(false)}}
  useEffect(()=>{void load();return()=>{generation.current++}},[id]);useContextRefresh(!history&&!newLoan&&!loan,thai?'โหลดสินเชื่อที่เกี่ยวข้อง':'Refresh related loans',()=>void load());
  if(loan)return <LoanRecord access={access} id={loan} thai={thai} onBack={()=>{setLoan(null);void load(cursors.current[page],page)}}/>;
  if(newLoan)return <LoanForm access={access} borrowerId={id} borrowerLabel={label??items[0]?.borrowerDisplayName??''} thai={thai} onBack={()=>setNewLoan(false)} onSaved={value=>{replaceBackTransition("borrower-record");setNewLoan(false);setLoan(value)}}/>;

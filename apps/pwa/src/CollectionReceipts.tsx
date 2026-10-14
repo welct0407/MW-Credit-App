@@ -1,10 +1,11 @@
+import {readCachedJson,readCachedBlob} from './read-cache';
 import React,{useEffect,useRef,useState} from 'react';
 import type {CommandAccess} from './SelectedCharges';
 import {beginRequest} from './request-activity';
 import {useContextRefresh} from './context-refresh';
 function ReceiptThumbnail({access,row,source,thai}:{access:CommandAccess;row:any;source:'manual'|'agent';thai:boolean}){
  const [url,setUrl]=useState<string|null>(null),[unavailable,setUnavailable]=useState(false);
- useEffect(()=>{let active=true,created:string|null=null;setUrl(null);setUnavailable(false);if(!row.manualReceiptPresent&&!row.agentReceiptPresent)return;const done=beginRequest(),controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);void(async()=>{try{const response=await fetch(access.origin+'/api/payment-records/'+encodeURIComponent(row.id)+'/receipt?source='+source,{headers:{Authorization:'Bearer '+await access.token()},signal:controller.signal,credentials:'omit',cache:'no-store',redirect:'error'});if(response.status===401||response.status===403)access.authFailure(response.status);if(!response.ok)throw Error();const blob=await response.blob();if(active){created=URL.createObjectURL(blob);setUrl(created)}}catch{if(active)setUnavailable(true)}finally{clearTimeout(timer);done()}})();return()=>{active=false;controller.abort();if(created)URL.revokeObjectURL(created)}},[row.id,row.receiptAt,row.manualReceiptPresent,row.agentReceiptPresent,source]);
+ useEffect(()=>{let active=true,created:string|null=null;setUrl(null);setUnavailable(false);if(!row.manualReceiptPresent&&!row.agentReceiptPresent)return;const done=beginRequest(),controller=new AbortController();void(async()=>{try{const {response,data:blob}=await readCachedBlob(access,'/api/payment-records/'+encodeURIComponent(row.id)+'/receipt?source='+source,{signal:controller.signal,onCached:blob=>{if(active){if(created)URL.revokeObjectURL(created);created=URL.createObjectURL(blob);setUrl(created)}}});if(!response.ok)throw Error();if(active){if(created)URL.revokeObjectURL(created);created=URL.createObjectURL(blob);setUrl(created)}}catch{if(active)setUnavailable(true)}finally{done()}})();return()=>{active=false;controller.abort();if(created)URL.revokeObjectURL(created)}},[row.id,row.receiptAt,row.manualReceiptPresent,row.agentReceiptPresent,source]);
  return <span className="collection-receipt-image">{url?<img src={url} alt={thai?'หลักฐานรับชำระ':'Receipt evidence'}/>:unavailable?(thai?'หลักฐานใช้ไม่ได้':'Receipt unavailable'):null}</span>;
 }
 export function CollectionReceipts({access,borrowerId,businessDate,chargeIds,thai,onOpen}:{access:CommandAccess;borrowerId:string;businessDate:string;chargeIds:string[];thai:boolean;onOpen:(id:string)=>void}){
@@ -13,21 +14,20 @@ export function CollectionReceipts({access,borrowerId,businessDate,chargeIds,tha
   if(cursor&&active.current)return;
   active.current?.abort();retryCursor.current=cursor;const current=++generation.current;
   if(!chargeIds.length){setItems([]);setNext(null);return;}
-  const done=beginRequest(),controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);active.current=controller;setBusy(true);setError(false);
+  const done=beginRequest(),controller=new AbortController();active.current=controller;setBusy(true);setError(false);
   if(!cursor)seen.current.clear();
   try{
    const params=new URLSearchParams({businessDate,chargeIds:JSON.stringify(chargeIds),limit:'25'});if(cursor)params.set('cursor',cursor);
    const collected:any[]=[];const visited=new Set<string>();let value:any;
    do{
-    const response=await fetch(access.origin+'/api/borrowers/'+encodeURIComponent(borrowerId)+'/collection-receipts?'+params,{headers:{Authorization:'Bearer '+await access.token()},signal:controller.signal,cache:'no-store',credentials:'omit',redirect:'error'});
-    if(response.status===401||response.status===403)access.authFailure(response.status);if(!response.ok)throw Error();value=await response.json();
+    const {response,data}=await readCachedJson<any>(access,'/api/borrowers/'+encodeURIComponent(borrowerId)+'/collection-receipts?'+params,{signal:controller.signal,onCached:data=>{if(current!==generation.current)return;const rows=data.items.filter((row:any)=>row.manualReceiptPresent||row.agentReceiptPresent);setItems(previous=>Array.from(new Map([...(cursor?previous:[]),...collected,...rows].map(row=>[row.id,row])).values()));setNext(data.nextCursor??null);setBusy(false)}});if(!response.ok)throw Error();value=data;
     collected.push(...value.items.filter((row:any)=>row.manualReceiptPresent||row.agentReceiptPresent));
     if(value.nextCursor){if(seen.current.has(value.nextCursor)||visited.has(value.nextCursor)||value.nextCursor===cursor)throw Error();visited.add(value.nextCursor);params.set('cursor',value.nextCursor);}
    }while(!collected.length&&value.nextCursor);
    if(current!==generation.current)return;
    for(const token of visited)seen.current.add(token);
    setItems(previous=>Array.from(new Map([...(cursor?previous:[]),...collected].map(row=>[row.id,row])).values()));setNext(value.nextCursor??null);
-  }catch{if(current===generation.current)setError(true)}finally{clearTimeout(timer);done();if(current===generation.current){active.current=null;setBusy(false)}}
+  }catch{if(current===generation.current)setError(true)}finally{done();if(current===generation.current){active.current=null;setBusy(false)}}
  }
  useEffect(()=>{setItems([]);setNext(null);void load();return()=>{generation.current++;active.current?.abort();active.current=null}},[scope]);
  useContextRefresh(chargeIds.length>0,t('Refresh collection receipts','โหลดหลักฐานงานติดตามใหม่'),()=>void load());
