@@ -1,9 +1,10 @@
 # Open development changes
 
-The sole Open product release is **R058**; no product scope is allocated yet. This documentation/process cleanup does not allocate or deploy a product release.
+The sole Open product release is **R058**. Its current product scope is the Debian agent strict Instagram-first delivery correction; source a8cf949 passed Linux Python 3.13 CI (323 passed, 42 optional skips) and production promotion is pending. The separate documentation/process cleanup does not deploy a product release.
 
 | Outstanding work | Owning reference |
 | --- | --- |
+| R058 strict Instagram-first delivery | [Existing integration notification record](https://github.com/welct0407/MW-Integration-Agent/blob/codex/pwa-documentation-cleanup/Change%20Logs/CHANGE_NOTES_RECEIPT_NOTIFICATION_ISOLATION_2026-10-02.md#r058-strict-instagram-fallback-candidate--14-october-2026); email only after an explicit provider window rejection; production not authorized or changed |
 | Carried operational credential migration | R055 remains Frozen; paused work is unfinished |
 | Apple push enrollment follow-up | R056 V91 deployed; Lisa retry/closure remains pending |
 | Owner license action | AppSheet technical retirement complete; license revocation unconfirmed |
