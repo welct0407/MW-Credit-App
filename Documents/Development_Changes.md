@@ -1,6 +1,6 @@
 # Open development changes
 
-The sole Open product release is **R059**; no product scope is allocated yet. R058 strict Instagram-first delivery is deployed and verified; current pins and recovery evidence belong in the environment inventory and existing integration record.
+The sole Open product release is **R059**; its current scope is integration deployment tooling that reloads the active webhook receiver and checks request readiness before resuming workers. R058 strict Instagram-first delivery is deployed and verified; current pins and recovery evidence belong in the environment inventory and existing integration record.
 
 | Outstanding work | Owning reference |
 | --- | --- |
@@ -23,6 +23,7 @@ Source inspected **14 October 2026**. This policy changes no product workflow or
 | App `ci.yml` | Main pushes/manual dispatch run broad checks including E2E; PR E2E executes only on the `ci:checkpoint` label event, not later synchronize events with the label still present. Other listed PR steps run even for docs. |
 | `database.yml` | Path-filtered, but push and PR events can duplicate checks and database documentation paths also trigger it. |
 | `deploy-dev.yml` | Manual main-only original API deployment; repeats checks and does not publish Hosting. It is not the complete PWA release route. |
+| Integration shared deployment helper | Receiver lifecycle/readiness correction is source tooling for R059; the existing R058 receiver was repaired by restart on 14 October at 18:43 Bangkok. No new runtime package was deployed for this repair. |
 | Legacy foundation/business/R053 validators | Retain historical full-browser/manual-dispatch receipt requirements; they do not implement general proportional check selection. |
 
 Required checks/guards remain effective. Report a concrete conflict once; update the owning tool through a scoped tested change rather than bypass it or fabricate receipts. Useful future tooling work is affected-input routing, duplicate-run suppression and deployment consuming existing evidence. These tooling gaps do not add another documentation gate.
