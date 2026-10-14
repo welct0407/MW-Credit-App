@@ -1,46 +1,63 @@
 import{test,expect}from'@playwright/test';
 test('global Back preserves deepest guarded action across parent rerender and sibling cleanup',async({page})=>{await page.route('http://127.0.0.1:4173/',r=>r.fulfill({contentType:'text/html',body:'<div id="root"></div><script type="module" src="/tests/e2e/fixtures/header-back-harness.tsx"></script>'}));await page.goto('/');await expect(page.locator('header button')).toHaveCount(0);await page.getByRole('button',{name:'Open parent',exact:true}).click();await expect(page.locator('header button')).toHaveAccessibleName('Back parent');await page.getByRole('button',{name:'Open child',exact:true}).click();await expect(page.locator('header button')).toHaveAccessibleName('Back child');await page.getByRole('button',{name:'Rerender parent',exact:true}).click();await expect(page.locator('header button')).toHaveAccessibleName('Back child');await page.getByRole('button',{name:'Toggle stale sibling',exact:true}).click();await expect(page.locator('header button')).toHaveAccessibleName('Back child');await page.getByRole('button',{name:'Toggle stale sibling',exact:true}).click();await expect(page.locator('header button')).toHaveAccessibleName('Back child');await page.getByRole('button',{name:'Toggle busy',exact:true}).click();await expect(page.locator('header button')).toBeDisabled();await expect(page.locator('output')).toHaveText('2:1');await page.getByRole('button',{name:'Toggle busy',exact:true}).click();await page.getByRole('button',{name:'Toggle search',exact:true}).click();await expect(page.locator('header button')).toHaveAccessibleName('Close search');await page.locator('header button').click();await expect(page.locator('header button')).toHaveAccessibleName('Back child');await page.locator('header button').click();await expect(page.locator('header button')).toHaveAccessibleName('Back parent');await page.locator('header button').click();await expect(page.locator('header button')).toHaveCount(0)});
 
-async function harness(page:import('@playwright/test').Page){await page.route('http://127.0.0.1:4173/',r=>r.fulfill({contentType:'text/html',body:'<meta name="viewport" content="width=device-width,initial-scale=1"><div id="root"></div><script type="module" src="/tests/e2e/fixtures/header-back-harness.tsx"></script>'}));await page.goto('/')}
-async function touch(page:import('@playwright/test').Page,type:string,x:number,y:number,selector='[data-testid="swipe-surface"]',multiple=false){
- return page.locator(selector).evaluate((target,{type,x,y,multiple})=>{const point=new Touch({identifier:1,target,clientX:x,clientY:y});const points=multiple?[point,new Touch({identifier:2,target,clientX:x+20,clientY:y+20})]:[point];const event=new TouchEvent(type,{bubbles:true,cancelable:true,touches:type==='touchend'||type==='touchcancel'?[]:points,changedTouches:points});target.dispatchEvent(event);return event.defaultPrevented},{type,x,y,multiple})
-}
-async function swipe(page:import('@playwright/test').Page,selector='[data-testid="swipe-surface"]',dx=130,dy=0){await touch(page,'touchstart',70,160,selector);await touch(page,'touchmove',70+dx,160+dy,selector);expect(await touch(page,'touchend',70+dx,160+dy,selector)).toBe(false)}
-async function nativeSwipe(page:import('@playwright/test').Page,dx:number,dy:number){
- const box=await page.getByTestId('swipe-surface').boundingBox();const x=box!.x+60,y=box!.y+130,session=await page.context().newCDPSession(page);
- await session.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y}]});
- for(let step=1;step<=5;step++)await session.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:x+dx*step/5,y:y+dy*step/5}]});
- await session.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await session.detach();
-}
+async function harness(page:import('@playwright/test').Page){await page.route('http://127.0.0.1:4173/',r=>r.fulfill({contentType:'text/html',body:'<meta name="viewport" content="width=device-width,initial-scale=1"><style>body{margin:0}</style><div id="root"></div><script type="module" src="/tests/e2e/fixtures/header-back-harness.tsx"></script>'}));await page.goto('/');await settle(page)}
+async function settle(page:import('@playwright/test').Page){await page.evaluate(()=>new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve()))))}
+async function open(page:import('@playwright/test').Page,name:string){await page.getByRole('button',{name,exact:true}).click();await settle(page)}
+async function touch(page:import('@playwright/test').Page,type:string,x:number,y:number,selector='#root [data-testid="swipe-surface"]',multiple=false){return page.locator(selector).evaluate((target,{type,x,y,multiple})=>{const make=(identifier:number,clientX:number,clientY:number)=>{const data={identifier,target,clientX,clientY};try{return new Touch(data)}catch{return data as Touch}};const point=make(1,x,y),points=multiple?[point,make(2,x+20,y+20)]:[point],touches=type==='touchend'||type==='touchcancel'?[]:points;let event:Event;try{event=new TouchEvent(type,{bubbles:true,cancelable:true,touches,changedTouches:points})}catch{event=new Event(type,{bubbles:true,cancelable:true});Object.defineProperties(event,{touches:{value:touches},changedTouches:{value:points}})}target.dispatchEvent(event);return event.defaultPrevented},{type,x,y,multiple})}
+async function finish(page:import('@playwright/test').Page){await expect(page.locator('[data-back-transition]')).toHaveCount(0);await settle(page)}
+async function swipe(page:import('@playwright/test').Page,selector?:string,dx?:number,dy=0){const distance=dx??page.viewportSize()!.width*.55;await touch(page,'touchstart',30,180,selector);await touch(page,'touchmove',30+distance,180+dy,selector);await touch(page,'touchend',30+distance,180+dy,selector);await finish(page)}
 
-test('swipe Back uses the current guarded button, search identity and disabled transitions',async({page})=>{
- await harness(page);await swipe(page);await expect(page.locator('output')).toHaveText('0:0');await expect(page.getByTestId('attempts')).toHaveText('0');
- await page.getByRole('button',{name:'Open child',exact:true}).click();await swipe(page);await expect(page.locator('output')).toHaveText('1:0');await expect(page.getByTestId('attempts')).toHaveText('1');
- await page.getByRole('button',{name:'Toggle guard',exact:true}).click();page.once('dialog',dialog=>dialog.dismiss());await swipe(page);await expect(page.locator('output')).toHaveText('1:0');await expect(page.getByTestId('attempts')).toHaveText('2');
- page.once('dialog',dialog=>dialog.accept());await page.locator('header button').click();await expect(page.locator('output')).toHaveText('0:0');
- await page.getByRole('button',{name:'Toggle guard',exact:true}).click();await page.getByRole('button',{name:'Open child',exact:true}).click();
- await touch(page,'touchstart',70,160);await page.getByRole('button',{name:'Toggle busy',exact:true}).click();await touch(page,'touchend',220,160);await expect(page.locator('output')).toHaveText('2:0');
- await page.getByRole('button',{name:'Toggle busy',exact:true}).click();await touch(page,'touchstart',70,160);await page.getByRole('button',{name:'Open parent',exact:true}).click();await page.getByRole('button',{name:'Open child',exact:true}).click();await touch(page,'touchend',220,160);await expect(page.locator('output')).toHaveText('2:0');
- await touch(page,'touchstart',70,160);await page.getByRole('button',{name:'Toggle search',exact:true}).click();await touch(page,'touchend',220,160);await expect(page.locator('header button')).toHaveAccessibleName('Close search');await swipe(page);await expect(page.locator('header button')).toHaveAccessibleName('Back child');await expect(page.locator('output')).toHaveText('2:0');
- await page.getByRole('button',{name:'Toggle stale sibling',exact:true}).click();await swipe(page);await expect(page.locator('output')).toHaveText('1:0');
+test('interactive Back reveals the actual parent before release and short swipe snaps back',async({page},info)=>{
+ await harness(page);await open(page,'Open parent');await open(page,'Open child');
+ await touch(page,'touchstart',1,180);await touch(page,'touchmove',91,180);
+ const front=page.locator('[data-back-layer="current"]'),back=page.locator('[data-back-layer="previous"]');
+ await expect(front).toContainText('Child loan page');await expect(back).toContainText('Parent borrower page');await expect(page.locator('#root header')).toContainText('Screen 2');expect((await page.locator('#root header').boundingBox())!.x).toBe(0);expect((await page.locator('#root footer').boundingBox())!.x).toBe(0);const viewport=await page.locator('[data-back-transition]').boundingBox();expect(viewport!.y).toBeGreaterThanOrEqual((await page.locator('#root header').boundingBox())!.y+(await page.locator('#root header').boundingBox())!.height);expect(viewport!.y+viewport!.height).toBeLessThanOrEqual((await page.locator('#root footer').boundingBox())!.y);
+ expect(await front.evaluate(node=>new DOMMatrixReadOnly(getComputedStyle(node).transform).m41)).toBeCloseTo(90,0);await expect(page.locator('#root output')).toHaveText('2:0');await expect(page.locator('#root [data-testid="attempts"]')).toHaveText('0');
+ await page.screenshot({path:info.outputPath('interactive-back-mid-drag.png')});await touch(page,'touchmove',26,180);await touch(page,'touchend',26,180);await finish(page);await expect(page.locator('#root output')).toHaveText('2:0');
+ await swipe(page);await expect(page.locator('#root output')).toHaveText('1:0');await expect(page.locator('#root [data-testid="attempts"]')).toHaveText('1');
+ await touch(page,'touchstart',30,180);await touch(page,'touchmove',100,180);await expect(back).toContainText('Directory page');await touch(page,'touchcancel',100,180);await finish(page);
+ await open(page,'Toggle guard');page.once('dialog',dialog=>dialog.dismiss());await swipe(page);await expect(page.locator('#root output')).toHaveText('1:0');await expect(page.locator('#root [data-testid="attempts"]')).toHaveText('2');
+ page.once('dialog',dialog=>dialog.accept());await swipe(page);await expect(page.locator('#root output')).toHaveText('0:0');await swipe(page);await expect(page.locator('#root [data-testid="attempts"]')).toHaveText('3');
 });
 
-test('swipe ignores editing, scrolling, selection, modal, edge and cancelled gestures',async({page})=>{
- await harness(page);await page.getByRole('button',{name:'Open child',exact:true}).click();
- for(const selector of ['input','textarea','select','main button','main a','[contenteditable]','[data-testid="horizontal"]'])await swipe(page,selector);
- for(const [dx,dy]of [[-130,0],[60,0],[100,70],[0,100]])await swipe(page,undefined,dx,dy);
- await touch(page,'touchstart',5,160);await touch(page,'touchend',150,160);
- await touch(page,'touchstart',70,160);await touch(page,'touchmove',73,195);await touch(page,'touchend',230,195);
- await touch(page,'touchstart',70,160);await touch(page,'touchstart',80,160,undefined,true);await touch(page,'touchend',230,160);
- await touch(page,'touchstart',70,160);await touch(page,'touchcancel',100,160);await touch(page,'touchend',230,160);
- await page.clock.install();await touch(page,'touchstart',70,160);await page.clock.fastForward(701);await touch(page,'touchend',230,160);
- await page.getByTestId('selectable').evaluate(node=>{const range=document.createRange();range.selectNodeContents(node);const selection=window.getSelection()!;selection.removeAllRanges();selection.addRange(range)});await swipe(page);await page.evaluate(()=>window.getSelection()?.removeAllRanges());
- await page.getByRole('button',{name:'Open dialog',exact:true}).click();await swipe(page);await page.getByRole('button',{name:'Close dialog',exact:true}).click();
- await expect(page.locator('output')).toHaveText('2:0');await expect(page.getByTestId('attempts')).toHaveText('0');
- await swipe(page);await expect(page.locator('output')).toHaveText('1:0');
+test('swipe accepts control starts, preserves taps and excludes horizontal ownership',async({page})=>{
+ await harness(page);await open(page,'Open parent');
+ for(const selector of ['#root input:not([type])','#root textarea','#root main button','#root main a','#root [contenteditable]']){await open(page,'Open child');await swipe(page,selector);await expect(page.locator('#root output')).toHaveText('1:0')}
+ await open(page,'Open child');
+ for(const selector of ['#root [data-testid="horizontal"]','#root input[type="range"]'])await swipe(page,selector);
+ for(const [dx,dy]of [[-130,0],[30,0],[50,70],[0,100]])await swipe(page,undefined,dx,dy);
+ await touch(page,'touchstart',30,180);await touch(page,'touchmove',33,210);await touch(page,'touchend',230,210);
+ await touch(page,'touchstart',30,180);await touch(page,'touchstart',50,180,undefined,true);await touch(page,'touchend',230,180);
+ await open(page,'Open dialog');await swipe(page);await open(page,'Close dialog');await expect(page.locator('#root output')).toHaveText('2:0');
+ await page.getByRole('textbox',{name:'Editable name',exact:true}).fill('kept draft');await page.getByRole('textbox',{name:'Editable name',exact:true}).click();await expect(page.getByRole('textbox',{name:'Editable name',exact:true})).toHaveValue('kept draft');await expect(page.locator('[data-back-transition]')).toHaveCount(0);
 });
 
-test('touchscreen swipe goes Back once while vertical content still scrolls',async({page},info)=>{
- test.skip(!info.project.name.startsWith('mobile'),'Native touch coverage uses the mobile Chromium project');await harness(page);await page.getByRole('button',{name:'Open child',exact:true}).click();await nativeSwipe(page,140,0);await expect(page.locator('output')).toHaveText('1:0');await expect(page.getByTestId('attempts')).toHaveText('1');
- await page.getByRole('button',{name:'Open child',exact:true}).click();await nativeSwipe(page,0,-110);await expect.poll(()=>page.locator('main').evaluate(node=>node.scrollTop)).toBeGreaterThan(0);await expect(page.locator('output')).toHaveText('2:0');await expect(page.getByTestId('attempts')).toHaveText('1');
+test('navigation identity, disabled state and search invalidate an in-progress drag',async({page})=>{
+ await harness(page);await open(page,'Open parent');await open(page,'Open child');
+ await touch(page,'touchstart',30,180);await open(page,'Toggle busy');await touch(page,'touchend',240,180);await expect(page.locator('#root output')).toHaveText('2:0');await open(page,'Toggle busy');
+ await touch(page,'touchstart',30,180);await open(page,'Open parent');await open(page,'Open child');await touch(page,'touchend',240,180);await expect(page.locator('#root output')).toHaveText('2:0');
+ await open(page,'Toggle search');await touch(page,'touchstart',30,180);await touch(page,'touchmove',100,180);await expect(page.locator('[data-back-layer="previous"]')).toContainText('Child loan page');await touch(page,'touchcancel',100,180);await finish(page);await swipe(page);await expect(page.locator('#root header button')).toHaveAccessibleName('Back child');await expect(page.locator('#root output')).toHaveText('2:0');
+ await open(page,'Toggle stale sibling');await swipe(page);await expect(page.locator('#root output')).toHaveText('1:0');
+});
+
+test('native touch tracks the page from center and left edge while vertical content scrolls',async({page},info)=>{
+ test.skip(!info.project.name.startsWith('mobile')||info.project.name.includes('webkit'),'CDP native touch uses mobile Chromium');
+ await harness(page);await open(page,'Open parent');await open(page,'Open child');const session=await page.context().newCDPSession(page);
+ const box=await page.locator('#root [data-testid="swipe-surface"]').boundingBox(),y=box!.y+70;
+ await session.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:1,y}]});await session.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:101,y}]});await expect(page.locator('[data-back-layer="current"]')).toBeVisible();await expect(page.locator('#root output')).toHaveText('2:0');
+ await session.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:page.viewportSize()!.width*.65,y}]});await session.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await finish(page);await expect(page.locator('#root output')).toHaveText('1:0');
+ await open(page,'Open child');const fling=await page.locator('#root [data-testid="swipe-surface"]').boundingBox(),flingY=fling!.y+70;
+ await session.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:60,y:flingY}]});await session.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:135,y:flingY}]});await session.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await finish(page);await expect(page.locator('#root output')).toHaveText('1:0');await expect(page.locator('#root [data-testid="attempts"]')).toHaveText('2');
+ await open(page,'Open child');const again=await page.locator('#root [data-testid="swipe-surface"]').boundingBox(),startY=again!.y+130;
+ await session.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:70,y:startY}]});for(let i=1;i<=5;i++)await session.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:70,y:startY-110*i/5}]});await session.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await expect.poll(()=>page.locator('#root main').evaluate(node=>node.scrollTop)).toBeGreaterThan(0);await expect(page.locator('#root output')).toHaveText('2:0');await expect(page.locator('[data-back-transition]')).toHaveCount(0);await session.detach();
+});
+
+test('same screen remount retains parent and successful create replaces its form',async({page})=>{
+ await harness(page);await open(page,'Open parent');await open(page,'Open child');await open(page,'Rerender parent');await touch(page,'touchstart',30,180);await touch(page,'touchmove',100,180);await expect(page.locator('[data-back-layer="previous"]')).toContainText('Parent borrower page');await touch(page,'touchcancel',100,180);await finish(page);await swipe(page);await swipe(page);await expect(page.locator('#root output')).toHaveText('0:1');
+ await open(page,'Open new');await open(page,'Save new');await touch(page,'touchstart',30,180);await touch(page,'touchmove',100,180);await expect(page.locator('[data-back-layer="previous"]')).toContainText('Directory page');await expect(page.locator('[data-back-layer="previous"]')).not.toContainText('New form page');await touch(page,'touchcancel',100,180);await finish(page);await swipe(page);await expect(page.locator('#root output')).toHaveText('0:1');
+});
+
+test('nested related navigation can reuse a semantic screen without losing its immediate parent',async({page})=>{
+ await harness(page);await open(page,'Open parent');await open(page,'Open related parent');await touch(page,'touchstart',30,180);await touch(page,'touchmove',100,180);await expect(page.locator('[data-back-layer="current"]')).toContainText('Nested parent page');await expect(page.locator('[data-back-layer="previous"]')).toContainText('Parent borrower page');await touch(page,'touchcancel',100,180);await finish(page);await swipe(page);await expect(page.locator('#root output')).toHaveText('1:0');await swipe(page);await expect(page.locator('#root output')).toHaveText('0:0');
 });

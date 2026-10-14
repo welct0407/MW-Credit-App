@@ -17,8 +17,21 @@ const rows=Array.from({length:27},(_,i)=>({id:'private-board-'+i,displayName:'�
 const charges=Array.from({length:27},(_,i)=>({id:'private-charge-'+i,loanId:'private-loan',loanDisplayKey:'ผู้กู้ตัวอย่างชื่อยาว - Long synthetic borrower English name-฿12,000-07/10-2%',chargeDate:'2026-10-07',paymentStatus:'ชำระบางส่วน',paymentDate:null,amountRemaining:i===0?null:'10.50',totalPaid:'0',receivedToday:'-2.50'}));
 async function backFromUpcoming(page:import('@playwright/test').Page,mobile:boolean){
  if(!mobile){await page.getByRole('button',{name:'Back to borrower summary',exact:true}).click();return}
- const heading=page.locator('.upcoming-charges h3').first();await heading.scrollIntoViewIfNeeded();const box=await heading.boundingBox();const x=box!.x+45,y=box!.y+box!.height/2,session=await page.context().newCDPSession(page);
- await session.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y}]});for(let step=1;step<=5;step++)await session.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:x+130*step/5,y}]});await session.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await session.detach();
+ const shell=page.locator('.live-shell').first(),heading=shell.locator('.upcoming-charges h3').first();await heading.scrollIntoViewIfNeeded();const box=await heading.boundingBox();const x=box!.x+45,y=box!.y+box!.height/2,session=await page.context().newCDPSession(page);
+ const start=async(startX:number)=>session.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:startX,y}]});
+ const move=async(startX:number,dx:number)=>{for(let step=1;step<=5;step++)await session.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:startX+dx*step/5,y}]})};
+ const release=async()=>session.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+ const originalRows=await shell.locator('.upcoming-charges article').count();expect(originalRows).toBeGreaterThan(0);const originalHeader=await shell.locator('.topbar').boundingBox(),originalFooter=await shell.locator('.live-bottom-nav').boundingBox();
+ try{
+  // A short real touch drag reveals the immediate summary but must not navigate before or after release.
+  await start(x);await move(x,40);const transition=page.locator('[data-back-transition]'),current=transition.locator('[data-back-layer="current"]'),previous=transition.locator('[data-back-layer="previous"]');
+  await expect(transition).toHaveCount(1);await expect(previous.locator('.upcoming-date-row').first()).toBeVisible();expect(await shell.locator('.upcoming-charges article').count()).toBe(originalRows);
+  const header=await shell.locator('.topbar').boundingBox(),footer=await shell.locator('.live-bottom-nav').boundingBox();expect(header!.x).toBe(originalHeader!.x);expect(footer!.x).toBe(originalFooter!.x);await expect(shell.locator('.topbar')).toBeVisible();await expect(shell.locator('.live-bottom-nav')).toBeVisible();expect((await current.boundingBox())!.x).toBeGreaterThanOrEqual(35);
+  await release();await expect(transition).toHaveCount(0);await expect(page.getByRole('button',{name:'Back to borrower summary',exact:true})).toBeVisible();expect(await shell.locator('.upcoming-charges article').count()).toBe(originalRows);
+  // The leftmost screen pixel also drives the middle content; release commits the same Back action.
+  await start(1);await move(1,140);await expect(transition).toHaveCount(1);await expect(previous.locator('.upcoming-date-row').first()).toBeVisible();expect(await shell.locator('.upcoming-charges article').count()).toBe(originalRows);
+  expect((await shell.locator('.topbar').boundingBox())!.x).toBe(originalHeader!.x);expect((await shell.locator('.live-bottom-nav').boundingBox())!.x).toBe(originalFooter!.x);await page.screenshot({path:test.info().outputPath('upcoming-interactive-back.png')});await release();await expect(transition).toHaveCount(0);
+ }finally{await session.detach()}
 }
 
 test('Borrower Upcoming keeps context, preview, paging, retry, empty and borrower isolation',async({page},info)=>{
