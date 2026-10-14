@@ -4,12 +4,19 @@ The sole Open product release is **R060**; the owner-authorized PWA package is *
 
 | Outstanding work | Owning reference |
 | --- | --- |
+| R060 offline-dataset recovery | Confirmed production-factory denial; scoped correction and verification pending |
 | Deferred Collection Note concern | Unchanged by released R059; a separate owner-directed correction remains pending |
 | Carried operational credential migration | R055 remains Frozen; paused work is unfinished |
 | Apple push enrollment follow-up | R056 V91 deployed; Lisa retry/closure remains pending |
 | Owner license action | AppSheet technical retirement complete; license revocation unconfirmed |
 
 Use the [release tracker](Release_Tracker.md), including the carried R016 administrative follow-up. Current runtime versions belong in [environment inventory](Environment_Inventory.md). Update this page for actual outstanding work, not completed-release history.
+
+## R060 production offline-dataset recovery
+
+Confirmed incident: the deployed command store hard-codes a production-business403 before offline-dataset SQL; authenticated dashboard/preferences reads succeed. No broader blank-dashboard cause is inferred. The narrow candidate removes only that mode denial, preserving ownerTesting, principalAllowed and existing transaction/capability checks. Candidate `a2f683eb74f3c3c5dc027520642a07a07f4c1558` is published in [app PR7](https://github.com/welct0407/MW-Credit-App/pull/7), stacked on PR6. Nineteen focused unit checks passed; independent production-factory verification is being reconciled. Required [PR CI38604123847](https://github.com/welct0407/MW-Credit-App/actions/runs/38604123847) is running; backend-only selection intentionally skips browser steps, and skipped steps are not counted passed. R059 verification checked artifact bytes, API health and missing-auth denial, explicitly not signed-in dataset content, so that smoke could not expose this authenticated composition path.
+
+R060 remains Open and retains the unfinished integration receiver deployment-tooling scope. No freeze/release or deployment is claimed. Prior DEV authority permits the verified command-only correction after the required CI passes; concrete command-only DEV/PROD plans are being prepared. PROD apply remains held for scoped owner approval of the prepared result. Financial data/schema, identity and capability guards remain unchanged. Existing R059 artifacts are the recovery baseline.
 
 ## R059 PWA production preparation
 

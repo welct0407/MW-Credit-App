@@ -14,7 +14,7 @@ All new features/fixes use the sole Open release. Freeze only at authorized prom
 
 | Release | Status | Remaining action / owning record |
 | --- | --- | --- |
-| R060 | Open | Unfinished integration deployment tooling: reload the active webhook receiver and verify readiness before workers resume. Excluded from the frozen PWA package; existing integration owning record below. |
+| R060 | Open | Confirmed PROD offline-dataset403 recovery; [existing record](Development_Changes.md#r060-production-offline-dataset-recovery), candidate `a2f683eb74f3c3c5dc027520642a07a07f4c1558`, CI/focused verification pending; DEV command-only preparation authorized, PROD held for concrete-plan approval. Also retains unfinished integration deployment tooling: reload the active webhook receiver and verify readiness before workers resume. Excluded from the frozen PWA package; existing integration owning record below. |
 | R056 | Frozen; V91 deployed | Lisa enrollment retry/closure; [record](../outputs/r056-apple-push/README.md) |
 | R055 | Frozen; monitoring delivered | Carried credential work unfinished; [record](../outputs/r055-grafana/continuation.md) |
 | R016 | Owner-accepted reporting; administrative follow-up | Migration-key retirement evidence/final tag unresolved; do not reopen product development |

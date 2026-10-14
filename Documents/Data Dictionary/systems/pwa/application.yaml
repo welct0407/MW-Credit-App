@@ -293,6 +293,13 @@
     - "https://github.com/welct0407/MW-Credit-App/blob/b77a1ef3d58c488a2113b97948aefe83945e84ec/apps/pwa/src/offline-dataset.ts"
     - "https://github.com/welct0407/MW-Credit-App/blob/b77a1ef3d58c488a2113b97948aefe83945e84ec/apps/pwa/src/environment.ts"
     - "https://github.com/welct0407/MW-Credit-App/blob/b77a1ef3d58c488a2113b97948aefe83945e84ec/services/production/business-runtime.mjs"
+    "production_incident": "R060 incident: deployed production-business command store denies main offlineDataset with403 before\
+      \ SQL despite authenticated dashboard/preferences succeeding. Candidate removes only the mode-specific denial, preserving\
+      \ ownerTesting, principalAllowed and transaction/capability guards; Candidate source a2f683eb74f3c3c5dc027520642a07a07f4c1558\
+      \ is published; CI/focused verification and deployment facts pending. PROD apply held for scoped concrete-plan approval.\
+      \ R059 smoke covered artifact bytes, health and missing-auth denial, not signed-in dataset success. No blanket dashboard\
+      \ failure is inferred."
+    "recovery_source": "https://github.com/welct0407/MW-Credit-App/blob/a2f683eb74f3c3c5dc027520642a07a07f4c1558/services/payment-command/store.mjs"
   "app_updates":
     "checks": "Check while visible and online every60s and on focus, reconnect, pageshow or header refresh. Header shows Checking\
       \ / Updating; status is not placed in page content."
@@ -568,4 +575,12 @@
   "/content/navigation/upcoming_back":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/a5c6de58138625dba6257ad0fb0931ebaf0d0512/apps/pwa/src/CollectionRecords.tsx"
     "reason": "Pin verified late Upcoming detail response correction within frozenR059; fullCI/delivery pending."
+    "state": "value"
+  "/content/offline_datasets/production_incident":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/a2f683eb74f3c3c5dc027520642a07a07f4c1558/services/payment-command/store.mjs"
+    "reason": "Pin scopedR060 production-factory offline denial correction; no live delivery or release claim."
+    "state": "value"
+  "/content/offline_datasets/recovery_source":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/a2f683eb74f3c3c5dc027520642a07a07f4c1558/services/payment-command/store.mjs"
+    "reason": "Pin scopedR060 production-factory offline denial correction; no live delivery or release claim."
     "state": "value"
