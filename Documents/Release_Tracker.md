@@ -15,10 +15,11 @@ All new features/fixes use the sole Open release. Freeze only at authorized prom
 | Release | Status | Remaining action / owning record |
 | --- | --- | --- |
 | R061 | Open | Unfinished integration deployment tooling: reload the active webhook receiver and verify readiness before workers resume; excluded from R060 API hotfix. Existing integration owning record below. |
-| R060 | Frozen — 15 October 2026 00:17:38 Bangkok / 14 October 17:17:38 UTC | Owner approved command-only offline-dataset recovery: source `a2f683eb74f3c3c5dc027520642a07a07f4c1558`, PROD image SHA256 `327e4b2023ab19b59f4df5af38e382039c65168373e6a74db185c544bd5eff58`, reviewed0/1/0 plan. DEV verified; PROD apply pending; [existing record](Development_Changes.md#r060-production-offline-dataset-recovery). |
 | R056 | Frozen; V91 deployed | Lisa enrollment retry/closure; [record](../outputs/r056-apple-push/README.md) |
 | R055 | Frozen; monitoring delivered | Carried credential work unfinished; [record](../outputs/r055-grafana/continuation.md) |
 | R016 | Owner-accepted reporting; administrative follow-up | Migration-key retirement evidence/final tag unresolved; do not reopen product development |
+
+R060 command-only offline-dataset recovery is Released: source `a2f683eb74f3c3c5dc027520642a07a07f4c1558`, PRODcommand00008-qb7 verified15October2026 at00:19:59Bangkok; [existing record](Development_Changes.md#r060-production-offline-dataset-recovery). R061 remains Open; nextR062.
 
 R059 cumulative PWA package is Released: source `7aecf695789fee3ca3b1fd1f2bece4c4a4bc8ba6`, DEV-first and PROD verified14October2026 at23:55:51Bangkok; [existing promotion record](Development_Changes.md#r059-pwa-production-preparation). R061 is Open; nextR062.
 

@@ -126,13 +126,12 @@
     "production_sources":
     - "https://github.com/welct0407/MW-Credit-App/blob/b77a1ef3d58c488a2113b97948aefe83945e84ec/services/production/business-runtime.mjs"
     - "https://github.com/welct0407/MW-Credit-App/blob/b77a1ef3d58c488a2113b97948aefe83945e84ec/services/payment-command/handler.mjs"
-    "production_incident": "R060 incident: deployed production-business command store denies main offlineDataset with403 before\
-      \ SQL despite authenticated dashboard/preferences succeeding. Candidate removes only the mode-specific denial, preserving\
-      \ ownerTesting, principalAllowed and transaction/capability guards; Candidate source a2f683eb74f3c3c5dc027520642a07a07f4c1558\
-      \ is published; CI404units and3focused cases passed. DEVcommand00026-7lj deployed/Ready100%, health/auth-gate verified;\
-      \ no owner-auth traversal claim. PROD remains at00007-gh2 with the known denial; prepared command-image-only forward\
-      \ plan held for scoped owner approval. R059 smoke covered artifact bytes, health and missing-auth denial, not signed-in\
-      \ dataset success. No blanket dashboard failure is inferred."
+    "production_incident": "R060 Released15October2026 at00:19:59Bangkok verification checkpoint. Confirmed priorproduction-business403-before-SQL\
+      \ denial corrected by only removing mode-specific veto; ownerTesting/principalAllowed/transactioncapability guards retained.\
+      \ Source a2f683eb74f3c3c5dc027520642a07a07f4c1558 deployed to DEVcommand00026-7lj and PRODcommand00008-qb7 Ready100%;\
+      \ CI404units and3focused cases passed. Live exactenvironment/health/auth-gate verified, no authenticated PROD dataset\
+      \ success/full-traversal claim (bounded natural logs had no events). R059 smoke had not tested signed-in dataset content;\
+      \ dashboard/preferences200 did not imply broader dashboard failure."
     "recovery_source": "https://github.com/welct0407/MW-Credit-App/blob/a2f683eb74f3c3c5dc027520642a07a07f4c1558/services/payment-command/store.mjs"
 "evidence":
   "/content/read_routes":
@@ -217,7 +216,7 @@
     "state": "value"
   "/content/offline_dataset/production_incident":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/a2f683eb74f3c3c5dc027520642a07a07f4c1558/services/payment-command/store.mjs"
-    "reason": "Reconcile verifiedDEV recovery and concrete heldPROD command-only plan, noPROD applyclaim."
+    "reason": "Reconcile approved verifiedR060 command-only recovery with explicit authenticated-smoke limitation."
     "state": "value"
   "/content/offline_dataset/recovery_source":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/a2f683eb74f3c3c5dc027520642a07a07f4c1558/services/payment-command/store.mjs"
