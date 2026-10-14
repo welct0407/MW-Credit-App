@@ -23,6 +23,7 @@
   - "POST /api/notifications/subscriptions"
   - "PUT /api/notifications/preference"
   - "GET /api/notifications/offline-dataset (DEV only)"
+  - "POST /api/notifications/offline-dataset?protocol=3 (DEV read-only)"
   "dispatch": "Command service performs authenticated post-commit wake to /internal/dispatch. Wake failure defers to recovery\
     \ without changing the committed payment result."
   "schedules":
@@ -52,23 +53,23 @@
   - "infrastructure/modules/dev-workers/main.tf"
   - "database/migrations/V91__apple_push_subscription_endpoints.sql"
   "source_base": "https://github.com/welct0407/MW-Credit-App/blob/808cdf53225ce627ea41ef4d3666bf97a3c9cbfe/"
-  "offline_history": "DEV-only GET /api/notifications/offline-dataset retains legacy complete response when protocol omitted;\
-    \ protocol=2 with optional cursor returns bounded recipient-scoped history/targets/status patches through existing protected\
-    \ RPCs. Actor/day-scoped traversal, per-request read-only repeatable-read, shared bulk slot and cancellation preserve\
-    \ access/foreground capacity. Dispatch/subscriptions/schedules unchanged."
-  "offline_history_source": "https://github.com/welct0407/MW-Credit-App/blob/374fe98ed21ab233f068dd337d7cbaef0eb24788/services/notifications/store.mjs"
+  "offline_history": "DEV recipient endpoint retains omitted-protocol complete GET and protocol2 cursor GET. Protocol3 read-only\
+    \ POST uses bounded content-hash manifests, transferring only requested missing values through protected recipient RPCs.\
+    \ sourceVersion=null: every sweep scans manifests, without main-domain fast gate or global snapshot claim. Dispatch/subscriptions/schedules\
+    \ unchanged."
+  "offline_history_source": "https://github.com/welct0407/MW-Credit-App/blob/6a3cf8cde2710a45b0368bc7f177f21bdab2693c/services/notifications/store.mjs"
 "evidence":
   "/content/offline_history":
-    "reference": "https://github.com/welct0407/MW-Credit-App/blob/374fe98ed21ab233f068dd337d7cbaef0eb24788/services/notifications/store.mjs"
-    "reason": "Resumable bounded protocol-2 preparation fixes measured DEV timeouts while retaining legacy compatibility and\
-      \ existing DTO/authorization contracts"
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/6a3cf8cde2710a45b0368bc7f177f21bdab2693c/services/notifications/store.mjs"
+    "reason": "Incremental content-only refresh after full preparation; canonical restricted SQL and browser checks protect\
+      \ pending edits and actor/recipient boundaries"
     "state": "value"
   "/content/offline_history_source":
-    "reference": "https://github.com/welct0407/MW-Credit-App/blob/374fe98ed21ab233f068dd337d7cbaef0eb24788/services/notifications/store.mjs"
-    "reason": "Resumable bounded protocol-2 preparation fixes measured DEV timeouts while retaining legacy compatibility and\
-      \ existing DTO/authorization contracts"
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/6a3cf8cde2710a45b0368bc7f177f21bdab2693c/services/notifications/store.mjs"
+    "reason": "Incremental content-only refresh after full preparation; canonical restricted SQL and browser checks protect\
+      \ pending edits and actor/recipient boundaries"
     "state": "value"
   "/content/browser_routes":
-    "reference": "https://github.com/welct0407/MW-Credit-App/blob/f261edcd51995795f250699f1ee91fb0d0c95a54/services/notifications/handler.mjs"
-    "reason": "Register new DEV-only bulk browser reads alongside exact scoped contracts"
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/6a3cf8cde2710a45b0368bc7f177f21bdab2693c/services/notifications/handler.mjs"
+    "reason": "Exact incremental DEV deployment and protocol3 read-only route registration, preserving protocol2 limits distinctly"
     "state": "value"

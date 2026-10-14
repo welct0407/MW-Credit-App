@@ -14,7 +14,7 @@ All new features/fixes use the sole Open release. Freeze only at authorized prom
 
 | Release | Status | Remaining action / owning record |
 | --- | --- | --- |
-| R058 | Open | Borrower Upcoming Charges, interactive Back navigation, six Collection note/receipt/receiver UI feedback fixes, phase-5 note/amount/ordering feedback, saved-change/offline queue simplification, gesture/reconnect/manual-sync followups, hybrid cache-first reads, full-app offline dataset preparation, and bounded resumable preparation recovery; implementation/check evidence in [development changes](Development_Changes.md). Current scope DEV deployed; PR review and PROD promotion pending. R058 remains Open. |
+| R058 | Open | Borrower Upcoming Charges, interactive Back navigation, six Collection note/receipt/receiver UI feedback fixes, phase-5 note/amount/ordering feedback, saved-change/offline queue simplification, gesture/reconnect/manual-sync followups, hybrid cache-first reads, full-app offline dataset preparation, bounded resumable preparation recovery, and incremental post-preparation refresh; implementation/check evidence in [development changes](Development_Changes.md). Current scope DEV deployed; PR review and PROD promotion pending. R058 remains Open. |
 | R056 | Frozen; V91 deployed | Lisa enrollment retry/closure; [record](../outputs/r056-apple-push/README.md) |
 | R055 | Frozen; monitoring delivered | Carried credential work unfinished; [record](../outputs/r055-grafana/continuation.md) |
 | R016 | Owner-accepted reporting; administrative follow-up | Migration-key retirement evidence/final tag unresolved; do not reopen product development |
