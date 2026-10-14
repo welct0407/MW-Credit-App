@@ -58,9 +58,9 @@
       \ date paging uses fresh API reads"
     "request_safety": "Abort and generation guards reject stale borrower results; controls do not submit borrower changes"
     "financial_effect": "Read-only forecast; no charge or financial write"
-    "delivery": "R058 Open; frontend source 2963e0ec deployed to DEV Hosting 50a6d940f5dd4a77; reader revision 00020-m9t remains\
-      \ source 2ef73db. Artifact checks passed; owner-authenticated forecast/UX smoke unavailable; PROD promotion pending.\
-      \ Exact pins/recovery in Environment_Inventory and Development_Changes."
+    "delivery": "R058 Open; source f261edcd deployed to DEV Hosting a937917a6be4eb8d/command 00023-q5s; reader 00020-m9t remains\
+      \ source 2ef73db. Artifact checks passed; authenticated forecast/UX smoke untested; PROD promotion pending. Exact pins/recovery\
+      \ in Environment_Inventory and Development_Changes."
     "source": "https://github.com/welct0407/MW-Credit-App/blob/95fab655431a4459e22ec1dbdd1541d035333d78/apps/pwa/src/SharedBorrowerDetail.tsx"
     "read_only_source": "https://github.com/welct0407/MW-Credit-App/blob/68e8a39e63e44123dcbab3f819c72d711e2a3240/apps/pwa/src/live-main.tsx"
   "navigation":
@@ -75,9 +75,9 @@
       \ Back action or disabled control cancel the gesture."
     "source": "https://github.com/welct0407/MW-Credit-App/blob/5d046627481ff151f299bad30b784ca418f4b58c/apps/pwa/src/swipe-back.ts"
     "shell_source": "https://github.com/welct0407/MW-Credit-App/blob/5d046627481ff151f299bad30b784ca418f4b58c/apps/pwa/src/live-main.tsx"
-    "delivery": "R058 Open; interactive Back, root menu swipe and pull-to-context-refresh included in frontend 2963e0ec deployed\
-      \ to DEV Hosting 50a6d940f5dd4a77. Actual mobile CDP and mocked full-app checks passed; artifact verified. Physical\
-      \ iPhone and owner-authenticated live gestures remain unverified; PROD promotion pending."
+    "delivery": "R058 Open; gestures included in frontend f261edcd deployed to DEV Hosting a937917a6be4eb8d. Actual mobile\
+      \ CDP/mocked app checks passed; artifact verified. Physical iPhone and owner-authenticated live gestures unverified;\
+      \ PROD promotion pending."
     "workspace_gestures": "Root left swipe opens the existing menu. Pull-down at scroll top invokes the current enabled header\
       \ context refresh with fixed chrome. Reference-choice refresh preserves entered values; static/unsafe unsaved editors\
       \ show a preserve-entries message instead of reloading. Waiting-to-sync pull runs safe synchronization. Inputs, open\
@@ -99,9 +99,10 @@
     - "https://github.com/welct0407/MW-Credit-App/blob/5e981335ad42846dac6bde13e24a45a147ab2676/apps/pwa/src/CollectionReceipts.tsx"
     - "https://github.com/welct0407/MW-Credit-App/blob/5e981335ad42846dac6bde13e24a45a147ab2676/apps/pwa/src/SelectedCharges.tsx"
     - "https://github.com/welct0407/MW-Credit-App/blob/5e981335ad42846dac6bde13e24a45a147ab2676/apps/pwa/src/live-style.css"
-    "delivery": "R058 Open; receipt UI and durable note-queue updates included in frontend 2963e0ec deployed to DEV Hosting\
-      \ 50a6d940f5dd4a77; command 00022-nhc retains source 2ef73db. Focused checks and configured development CI passed; artifact\
-      \ verified, authenticated live note/receiver smoke not performed. No Page status changes; PROD promotion pending."
+    "delivery": "R058 Open; receipt UI and existing note autosave included in f261edcd deployed to DEV Hosting a937917a6be4eb8d/command\
+      \ 00023-q5s. Only initial read-only note baseline gains prepared data; autosave concern deferred unchanged. Focused\
+      \ checks/CI passed; artifact verified, authenticated live note/receiver smoke untested. No Page status changes; PROD\
+      \ promotion pending."
   "phase5_ui":
     "money_display": "THB currency presentation uses whole baht across affected views; editable amounts, storage and financial\
       \ calculation precision remain unchanged."
@@ -115,9 +116,9 @@
     - "https://github.com/welct0407/MW-Credit-App/blob/2ef73db0f91769f1566cd83d91467390080c36ab/apps/pwa/src/LoanRelated.tsx"
     - "https://github.com/welct0407/MW-Credit-App/blob/8ba8e6320f44fb147c54474302adb0076c2e4bd2/apps/pwa/src/OfflinePayments.tsx"
     - "https://github.com/welct0407/MW-Credit-App/blob/2ef73db0f91769f1566cd83d91467390080c36ab/apps/pwa/src/display-money.ts"
-    "delivery": "R058 Open; frontend source 2963e0ec deployed to DEV Hosting 50a6d940f5dd4a77; reader 00020-m9t and command\
-      \ 00022-nhc retain runtime source 2ef73db. Focused checks and configured development CI passed; artifact verified. Authenticated\
-      \ business smoke not performed; PROD promotion pending."
+    "delivery": "R058 Open; frontend and command source f261edcd deployed to DEV Hosting a937917a6be4eb8d/command 00023-q5s;\
+      \ reader 00020-m9t retains source 2ef73db. Focused checks and configured CI passed; artifact verified. Authenticated\
+      \ business smoke untested; PROD promotion pending."
   "saved_change_queue":
     "contents": "Only saved/confirmed unsynced requests, including autosaved notes. Applied/posted requests removed; rejected/conflicting\
       \ requests retained for review. Ordinary drafts/snapshots hidden. Waiting to sync sidebar/mobile button shows a top-right\
@@ -145,17 +146,17 @@
     - "https://github.com/welct0407/MW-Credit-App/blob/dfaa46d280e99e9f3694d735d75e615074249a97/apps/pwa/src/CollectionNote.tsx"
     - "https://github.com/welct0407/MW-Credit-App/blob/dfaa46d280e99e9f3694d735d75e615074249a97/apps/pwa/src/domain-draft.ts"
     - "https://github.com/welct0407/MW-Credit-App/blob/dfaa46d280e99e9f3694d735d75e615074249a97/apps/pwa/src/live-main.tsx"
-    "delivery": "R058 Open; queue behavior included in hybrid-read frontend 2963e0ec deployed to DEV Hosting 50a6d940f5dd4a77.\
-      \ Focused queue and mocked app checks passed; artifact verified. Owner-authenticated live coordinator/backlog not exercised;\
-      \ automatic PROD sync/migration disabled. Reader/command unchanged; PROD promotion pending."
+    "delivery": "R058 Open; queue behavior included in frontend f261edcd deployed to DEV Hosting a937917a6be4eb8d and command\
+      \ 00023-q5s. Focused queue/mocked app checks passed; artifact verified. Authenticated live coordinator/backlog untested;\
+      \ automatic PROD sync/migration disabled. Reader unchanged; PROD promotion pending."
     "manual_sync": "Sync now is inside Waiting to sync page, visible when saved changes exist. It uses the same guarded engine;\
       \ repeated activation cannot overlap. Outcome reports offline/authorization, remaining requests or attention truthfully;\
       \ does not claim complete while unresolved/blocked changes remain."
   "hybrid_read_cache":
-    "behavior": "Used read views render cached data/receipt images first where available; authorized network refresh updates\
-      \ the same view without navigation. Header spinner indicates activity; distinct ! badge/tooltip/live status indicates\
-      \ refresh failure, even without cache; successful retry clears failure and navigation resets scope. Cached fallback\
-      \ indication is separate."
+    "behavior": "Used read views render cached/prepared data and receipt images first; authorized network refresh updates\
+      \ the same view. Header spinner and left progress bar show request/preparation activity. Distinct ! badge/tooltip/live\
+      \ status indicates current-page refresh failure even without cache; scope epoch blocks late prior-page failures. Successful\
+      \ retry clears failure; cached fallback indication is separate."
     "isolation": "Owner issuer/uid and environment namespace; full URL/query and relevant Asia/Bangkok business date keys;\
       \ account/session authorization lease and read-revision guards; no cross-owner/environment/search/date leakage."
     "bounds":
@@ -167,8 +168,8 @@
         \ responses with revision/authorization checks."
     "formats": "Allowlisted authenticated GET JSON and receipt PNG/JPEG/WebP blobs. Tokens/auth fields/signed URLs excluded;\
       \ no credential-bearing URLs."
-    "network_authority": "Financial/action previews, command status and Collection Note source baseline remain network-only.\
-      \ Note behavior is unchanged and its latest concern is deferred."
+    "network_authority": "Fresh financial/action previews and command status remain network-only. Initial read-only Collection\
+      \ Note baseline may use prepared dataset; note autosave unchanged and latest concern deferred."
     "invalidation": "Applied writes invalidate response revisions; queued offline changes retain viewed cache. Responses begun\
       \ before invalidation cannot revive old data. Authorization denial/navigation abort prevents cached fallback; cache\
       \ storage failure must not block valid network reads."
@@ -178,9 +179,40 @@
     - "https://github.com/welct0407/MW-Credit-App/blob/2963e0ec6d04fb020a51cf1e23a8711c03587093/apps/pwa/src/read-cache.ts"
     - "https://github.com/welct0407/MW-Credit-App/blob/2963e0ec6d04fb020a51cf1e23a8711c03587093/apps/pwa/src/owner-offline.ts"
     - "https://github.com/welct0407/MW-Credit-App/blob/2963e0ec6d04fb020a51cf1e23a8711c03587093/apps/pwa/src/live-main.tsx"
-    "delivery": "R058 Open; source 2963e0ec deployed to DEV Hosting 50a6d940f5dd4a77. Current local 70/70 browser checks and\
-      \ configured development CI (383 units) passed; exact artifact verified. Owner-authenticated live cache behavior untested;\
-      \ latest note concern deferred unchanged. Reader/command unchanged; PROD promotion pending."
+    "delivery": "R058 Open; hybrid reads included in dataset frontend f261edcd deployed to DEV Hosting a937917a6be4eb8d and\
+      \ command 00023-q5s. Current local 84 browser cases and development CI 384 units passed; artifact verified. Authenticated\
+      \ live cache/preparation untested; latest note autosave concern deferred unchanged. Reader remains source 2ef73db; PROD\
+      \ promotion pending."
+  "offline_datasets":
+    "domains":
+    - "records"
+    - "collection"
+    - "cash"
+    - "management"
+    - "notifications"
+    "behavior": "DEV prepares complete read DTO bundles and authorized receipt images so unvisited pages, local search and\
+      \ paging can work offline once prepared. Ordinary queued forms use prepared reference data."
+    "preparation": "Active-screen foreground requests first; background bundles/media yield to foreground reads. Owner/session/context\
+      \ cancellation prevents late writes; fixed background-domain order does not guarantee every active-page domain is prepared\
+      \ first."
+    "storage": "Complete bundles and dataset media persist separately from response-cache LRU; atomic replacement retains\
+      \ prior complete bundle on failed storage. Existing owner/environment authorization lease and read-revision isolation\
+      \ retained."
+    "coverage": "Used server read DTOs, existing membership/financial calculations, eligible records and recent cash-statement\
+      \ dates. Receipt media uses authenticated native reads, not raw storage access or signed URLs."
+    "progress": "Bar left of refresh uses actual prepared counts: core data 80%, media 20%; current GET can be indeterminate.\
+      \ Hidden when preparation ready and foreground idle. Failed-refresh marker belongs to current page epoch so prior-page\
+      \ late failure cannot revive it."
+    "network_only": "Fresh financial close/correction/auto-assignment/review and command status stay online. Only initial\
+      \ read-only Collection Note baseline uses prepared data; autosave semantics and deferred note concern unchanged."
+    "sources":
+    - "https://github.com/welct0407/MW-Credit-App/blob/f261edcd51995795f250699f1ee91fb0d0c95a54/apps/pwa/src/offline-dataset.ts"
+    - "https://github.com/welct0407/MW-Credit-App/blob/f261edcd51995795f250699f1ee91fb0d0c95a54/apps/pwa/src/owner-offline.ts"
+    - "https://github.com/welct0407/MW-Credit-App/blob/f261edcd51995795f250699f1ee91fb0d0c95a54/apps/pwa/src/read-cache.ts"
+    - "https://github.com/welct0407/MW-Credit-App/blob/f261edcd51995795f250699f1ee91fb0d0c95a54/apps/pwa/src/live-main.tsx"
+    "delivery": "R058 Open; source f261edcd deployed to DEV command 00023-q5s and Hosting a937917a6be4eb8d. Canonical restricted-role\
+      \ SQL, 84 browser cases and development CI 384 units passed; artifact/health/auth-gate verified. Authenticated live\
+      \ datasets/preparation untested; reader unchanged; PROD promotion pending."
 "evidence":
   "/content/borrower_upcoming":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/68e8a39e63e44123dcbab3f819c72d711e2a3240/apps/pwa/src/SharedBorrowerDetail.tsx"
@@ -189,8 +221,8 @@
     "state": "value"
   "/content/borrower_upcoming/delivery":
     "reference": "https://github.com/welct0407/AppSheet-Loan-Project/pull/20"
-    "reason": "Exact hybrid cache/failure-feedback frontend delivered Hosting-only; retain deferred note and owner-authenticated\
-      \ smoke limitations"
+    "reason": "Exact full-app dataset command/API and frontend DEV delivery; distinguish foreground priority and retained\
+      \ authenticated-live limits"
     "state": "value"
   "/content/borrower_upcoming/presentation":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/95fab655431a4459e22ec1dbdd1541d035333d78/apps/pwa/src/SharedBorrowerDetail.tsx"
@@ -209,8 +241,8 @@
     "state": "value"
   "/content/navigation/delivery":
     "reference": "https://github.com/welct0407/AppSheet-Loan-Project/pull/20"
-    "reason": "Exact hybrid cache/failure-feedback frontend delivered Hosting-only; retain deferred note and owner-authenticated\
-      \ smoke limitations"
+    "reason": "Exact full-app dataset command/API and frontend DEV delivery; distinguish foreground priority and retained\
+      \ authenticated-live limits"
     "state": "value"
   "/content/collection_receiving_ui":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/5e981335ad42846dac6bde13e24a45a147ab2676/apps/pwa/src/CollectionReceipts.tsx"
@@ -219,8 +251,8 @@
     "state": "value"
   "/content/collection_receiving_ui/delivery":
     "reference": "https://github.com/welct0407/AppSheet-Loan-Project/pull/20"
-    "reason": "Exact hybrid cache/failure-feedback frontend delivered Hosting-only; retain deferred note and owner-authenticated\
-      \ smoke limitations"
+    "reason": "Exact full-app dataset command/API and frontend DEV delivery; distinguish foreground priority and retained\
+      \ authenticated-live limits"
     "state": "value"
   "/content/collection_receiving_ui/collection_note":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/efd9fab2d9cf7326e94f4e380b2117e6bae16a5e/apps/pwa/src/offline-sync.ts"
@@ -239,8 +271,8 @@
     "state": "value"
   "/content/phase5_ui/delivery":
     "reference": "https://github.com/welct0407/AppSheet-Loan-Project/pull/20"
-    "reason": "Exact hybrid cache/failure-feedback frontend delivered Hosting-only; retain deferred note and owner-authenticated\
-      \ smoke limitations"
+    "reason": "Exact full-app dataset command/API and frontend DEV delivery; distinguish foreground priority and retained\
+      \ authenticated-live limits"
     "state": "value"
   "/content/phase5_ui/offline_order":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/5d5af4b0783fe6a44419a4dd5e07ecc135419b43/apps/pwa/src/OfflinePayments.tsx"
@@ -268,8 +300,8 @@
     "state": "value"
   "/content/saved_change_queue/delivery":
     "reference": "https://github.com/welct0407/AppSheet-Loan-Project/pull/20"
-    "reason": "Exact hybrid cache/failure-feedback frontend delivered Hosting-only; retain deferred note and owner-authenticated\
-      \ smoke limitations"
+    "reason": "Exact full-app dataset command/API and frontend DEV delivery; distinguish foreground priority and retained\
+      \ authenticated-live limits"
     "state": "value"
   "/content/saved_change_queue/contents":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/51d4ce9856e7730b1881caf84bd429fc718b46e3/apps/pwa/src/WaitingToSyncButton.tsx"
@@ -296,6 +328,31 @@
     "state": "value"
   "/content/hybrid_read_cache/delivery":
     "reference": "https://github.com/welct0407/AppSheet-Loan-Project/pull/20"
-    "reason": "Exact hybrid cache/failure-feedback frontend delivered Hosting-only; retain deferred note and owner-authenticated\
-      \ smoke limitations"
+    "reason": "Exact full-app dataset command/API and frontend DEV delivery; distinguish foreground priority and retained\
+      \ authenticated-live limits"
+    "state": "value"
+  "/content/offline_datasets":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/f261edcd51995795f250699f1ee91fb0d0c95a54/apps/pwa/src/offline-dataset.ts"
+    "reason": "Full-app DEV offline preparation via existing bulk read DTOs/recipient contracts, persistent bundles and current-page\
+      \ refresh state; note autosave unchanged"
+    "state": "value"
+  "/content/hybrid_read_cache/network_authority":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/f261edcd51995795f250699f1ee91fb0d0c95a54/apps/pwa/src/offline-dataset.ts"
+    "reason": "Full-app DEV offline preparation via existing bulk read DTOs/recipient contracts, persistent bundles and current-page\
+      \ refresh state; note autosave unchanged"
+    "state": "value"
+  "/content/hybrid_read_cache/behavior":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/f261edcd51995795f250699f1ee91fb0d0c95a54/apps/pwa/src/offline-dataset.ts"
+    "reason": "Full-app DEV offline preparation via existing bulk read DTOs/recipient contracts, persistent bundles and current-page\
+      \ refresh state; note autosave unchanged"
+    "state": "value"
+  "/content/offline_datasets/delivery":
+    "reference": "https://github.com/welct0407/AppSheet-Loan-Project/pull/20"
+    "reason": "Exact full-app dataset command/API and frontend DEV delivery; distinguish foreground priority and retained\
+      \ authenticated-live limits"
+    "state": "value"
+  "/content/offline_datasets/preparation":
+    "reference": "https://github.com/welct0407/AppSheet-Loan-Project/pull/20"
+    "reason": "Exact full-app dataset command/API and frontend DEV delivery; distinguish foreground priority and retained\
+      \ authenticated-live limits"
     "state": "value"

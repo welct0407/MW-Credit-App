@@ -1,70 +1,73 @@
-{
-  "format": 1,
-  "identity": {
-    "system": "pwa",
-    "component": "mw-credit",
-    "kind": "worker-contract",
-    "name": "notifications-jobs",
-    "scope": "dev-and-prod"
-  },
-  "verification": {
-    "status": "documented",
-    "source": "https://github.com/welct0407/MW-Credit-App/blob/808cdf53225ce627ea41ef4d3666bf97a3c9cbfe/services/notifications/handler.mjs",
-    "coverage": "Source and published deployment reconciliation, 14 October 2026; no new live audit."
-  },
-  "content": {
-    "tables": [
-      "public.pwa_notification_events",
-      "public.pwa_notification_deliveries",
-      "public.pwa_push_subscriptions",
-      "public.pwa_notification_preferences",
-      "public.pwa_job_runs"
-    ],
-    "browser_routes": [
-      "GET /api/notifications",
-      "GET /api/notifications/status",
-      "GET /api/notifications/push-config",
-      "POST /api/notifications/subscriptions",
-      "PUT /api/notifications/preference"
-    ],
-    "dispatch": "Command service performs authenticated post-commit wake to /internal/dispatch. Wake failure defers to recovery without changing the committed payment result.",
-    "schedules": [
-      {
-        "name": "notifications",
-        "cron": "* * * * *",
-        "path": "/internal/dispatch"
-      },
-      {
-        "name": "daily_charges",
-        "cron": "5 0 * * *",
-        "path": "/internal/jobs/daily-charges"
-      },
-      {
-        "name": "recent_analytics",
-        "cron": "0 * * * *",
-        "path": "/internal/jobs/recent-analytics"
-      }
-    ],
-    "time_zone": "Asia/Bangkok",
-    "roles": {
-      "notify_callers": [
-        "scheduler",
-        "command service"
-      ],
-      "jobs_callers": [
-        "scheduler"
-      ]
-    },
-    "transport": "Web Push with VAPID secret in Secret Manager; iPhone Home Screen enrollment; no always-on listener",
-    "apple_endpoint_rule": "Valid DNS subdomains of push.apple.com accepted by V91 registration and current delivery validation",
-    "contracts": [
-      "services/notifications/handler.mjs",
-      "services/notifications/postcommit.mjs",
-      "services/workers/config.mjs",
-      "services/notifications/web-push.mjs",
-      "infrastructure/modules/dev-workers/main.tf",
-      "database/migrations/V91__apple_push_subscription_endpoints.sql"
-    ],
-    "source_base": "https://github.com/welct0407/MW-Credit-App/blob/808cdf53225ce627ea41ef4d3666bf97a3c9cbfe/"
-  }
-}
+"format": 1
+"identity":
+  "system": "pwa"
+  "component": "mw-credit"
+  "kind": "worker-contract"
+  "name": "notifications-jobs"
+  "scope": "dev-and-prod"
+"verification":
+  "status": "documented"
+  "source": "https://github.com/welct0407/MW-Credit-App/blob/808cdf53225ce627ea41ef4d3666bf97a3c9cbfe/services/notifications/handler.mjs"
+  "coverage": "Source and published deployment reconciliation, 14 October 2026; no new live audit."
+"content":
+  "tables":
+  - "public.pwa_notification_events"
+  - "public.pwa_notification_deliveries"
+  - "public.pwa_push_subscriptions"
+  - "public.pwa_notification_preferences"
+  - "public.pwa_job_runs"
+  "browser_routes":
+  - "GET /api/notifications"
+  - "GET /api/notifications/status"
+  - "GET /api/notifications/push-config"
+  - "POST /api/notifications/subscriptions"
+  - "PUT /api/notifications/preference"
+  - "GET /api/notifications/offline-dataset (DEV only)"
+  "dispatch": "Command service performs authenticated post-commit wake to /internal/dispatch. Wake failure defers to recovery\
+    \ without changing the committed payment result."
+  "schedules":
+  - "name": "notifications"
+    "cron": "* * * * *"
+    "path": "/internal/dispatch"
+  - "name": "daily_charges"
+    "cron": "5 0 * * *"
+    "path": "/internal/jobs/daily-charges"
+  - "name": "recent_analytics"
+    "cron": "0 * * * *"
+    "path": "/internal/jobs/recent-analytics"
+  "time_zone": "Asia/Bangkok"
+  "roles":
+    "notify_callers":
+    - "scheduler"
+    - "command service"
+    "jobs_callers":
+    - "scheduler"
+  "transport": "Web Push with VAPID secret in Secret Manager; iPhone Home Screen enrollment; no always-on listener"
+  "apple_endpoint_rule": "Valid DNS subdomains of push.apple.com accepted by V91 registration and current delivery validation"
+  "contracts":
+  - "services/notifications/handler.mjs"
+  - "services/notifications/postcommit.mjs"
+  - "services/workers/config.mjs"
+  - "services/notifications/web-push.mjs"
+  - "infrastructure/modules/dev-workers/main.tf"
+  - "database/migrations/V91__apple_push_subscription_endpoints.sql"
+  "source_base": "https://github.com/welct0407/MW-Credit-App/blob/808cdf53225ce627ea41ef4d3666bf97a3c9cbfe/"
+  "offline_history": "DEV-only GET /api/notifications/offline-dataset uses authenticated existing recipient history/target/status\
+    \ RPCs in read-only repeatable-read, complete schemaVersion 1 bundle. Shared bulk read slot and cancellation preserve\
+    \ foreground capacity. Dispatch, subscriptions, scheduled work and delivery side effects unchanged."
+  "offline_history_source": "https://github.com/welct0407/MW-Credit-App/blob/f261edcd51995795f250699f1ee91fb0d0c95a54/services/notifications/store.mjs"
+"evidence":
+  "/content/offline_history":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/f261edcd51995795f250699f1ee91fb0d0c95a54/services/notifications/store.mjs"
+    "reason": "Full-app DEV offline preparation via existing bulk read DTOs/recipient contracts, persistent bundles and current-page\
+      \ refresh state; note autosave unchanged"
+    "state": "value"
+  "/content/offline_history_source":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/f261edcd51995795f250699f1ee91fb0d0c95a54/services/notifications/store.mjs"
+    "reason": "Full-app DEV offline preparation via existing bulk read DTOs/recipient contracts, persistent bundles and current-page\
+      \ refresh state; note autosave unchanged"
+    "state": "value"
+  "/content/browser_routes":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/f261edcd51995795f250699f1ee91fb0d0c95a54/services/notifications/handler.mjs"
+    "reason": "Register new DEV-only bulk browser reads alongside exact scoped contracts"
+    "state": "value"
