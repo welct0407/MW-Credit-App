@@ -24,6 +24,12 @@ async function setup(page:any,empty=false){
  await page.route('https://mw-credit-app-read-dev-test.run.app/**',async(r:any)=>r.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,source:'dev',businessDate:'2026-10-08',timezone:'Asia/Bangkok',asOf:'2026-10-08T05:00:00Z',items:empty||r.request().url().includes('/charges')||r.request().url().includes('/upcoming')?[]:[borrower],borrower,nextCursor:null,horizonEnd:'2027-01-08',reviewRequired:false})}));
  await page.goto(base);await page.getByRole('button',{name:/Google/}).click();await chooseLanguage(page,'EN');await page.getByRole('button',{name:'Collection',exact:true}).click();
 }
+// Use the actual desktop account control without cancelling the retained child form.
+async function openSavedPayments(page:any){
+ const viewport=page.viewportSize()!;if(viewport.width<=1050)await page.setViewportSize({...viewport,width:1440});
+ await page.getByRole('button',{name:/^Waiting to sync/}).filter({visible:true}).first().click();
+ if(viewport.width<=1050)await page.setViewportSize(viewport);
+}
 function replyDraft(route:any){
  const path=new URL(route.request().url()).pathname;
  const input=path.endsWith('/review')?route.request().postDataJSON():null;
@@ -47,35 +53,29 @@ test('G06 bounded list preserves notes, total, scroll and bilingual review at 32
  await page.unroute('https://mw-credit-app-command-dev-test.run.app/**');
  }
 });
-test('G07 Unknown exact retry and immutable pending recovery remains accessible without Collection row',async({page})=>{
- const posts:any[]=[];let statusGets=0;
+test('G07 queued unknown outcome keeps immutable request and reconciles before retry without Collection row',async({page})=>{
+ const posts:any[]=[],events:string[]=[];let recorded=false;
  await page.route('https://mw-credit-app-command-dev-test.run.app/**',async r=>{
  const path=new URL(r.request().url()).pathname;
  if(path.includes('payment-drafts'))return replyDraft(r);
- if(path.endsWith('/result'))return r.fulfill({status:503,contentType:'application/json',body:JSON.stringify({ok:false,code:'command_unavailable'})});
- if(r.request().method()==='POST'){posts.push(r.request().postDataJSON());return r.abort('failed')}
- statusGets++;await r.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,kind:'unresolved',safeToUseNewRequestId:false})});
+ if(/^\/api\/payment-commands\/[^/]+$/.test(path)&&r.request().method()==='GET'){
+ events.push('status:'+path.split('/').at(-1));return r.fulfill({json:recorded?{ok:true,kind:'recorded',originalOutcome:{status:'posted',paymentId:'synthetic-payment'}}:{ok:true,kind:'unresolved',safeToUseNewRequestId:false}});
+ }
+ if(path==='/api/payment-commands'&&r.request().method()==='POST'){const body=r.request().postDataJSON();events.push('post:'+body.requestId);posts.push(body);return r.abort('failed')}
+ return r.fulfill({json:{ok:true,items:[]}});
  });
- await setup(page);await page.locator('.collection-tile-main').first().click();await expect(page.getByRole('button',{name:'Receive selected charges'}),await page.locator('body').innerText()).toBeVisible({timeout:8000});await page.getByRole('button',{name:'Receive selected charges'}).click();await page.getByRole('combobox',{name:/^Receiving account(?: \*)?$/}).selectOption('synthetic-account');
+ await setup(page);await page.locator('.collection-tile-main').first().click();await page.getByRole('button',{name:'Receive selected charges'}).click();await page.getByRole('combobox',{name:/^Receiving account(?: \*)?$/}).selectOption('synthetic-account');
  await page.getByRole('textbox',{name:/^Amount received(?: \*)?$/}).fill('110');await page.locator('.payment-allocation-row input[type=checkbox]').first().check();await page.getByRole('textbox',{name:'Notes',exact:true}).fill('Immutable synthetic note');
- await page.getByRole('button',{name:'Review payment'}).click();await page.getByRole('button',{name:'Confirm payment online'}).click();
- await expect(page.getByRole('heading',{name:'Outcome unknown'})).toBeVisible();expect(posts).toHaveLength(1);await expect(page.getByRole('button',{name:'Retry same command'})).toBeDisabled();
- await page.evaluate(()=>{const b=Array.from(document.querySelectorAll('button')).find(b=>b.textContent==='Check status')!;b.click();b.click()});await expect.poll(()=>statusGets).toBe(1);await expect(page.getByRole('button',{name:'Retry same command'})).toBeEnabled();
- await page.getByRole('button',{name:'Retry same command'}).click();await expect(page.getByRole('heading',{name:'Outcome unknown'})).toBeVisible();await expect.poll(()=>posts.length).toBe(2);expect(posts[1]).toEqual(posts[0]);
- expect(await page.evaluate(()=>Object.fromEntries(Object.entries(sessionStorage)))).toEqual({'mw-credit.pending-command':posts[0].requestId});
- await page.unroute('https://mw-credit-app-read-dev-test.run.app/**');await setup(page,true);
- await page.getByRole('button',{name:'Check pending payment status'}).click();await expect(page.getByRole('heading',{name:'Outcome unknown'})).toBeVisible();await expect(page.getByRole('button',{name:'Retry same command'})).toBeDisabled();
- await page.getByRole('button',{name:'Check status',exact:true}).click();await expect.poll(()=>statusGets).toBe(2);expect(posts).toHaveLength(2);
+ await page.getByRole('button',{name:'Review payment'}).click();await page.getByRole('button',{name:'Confirm payment'}).click();
+ await expect(page.getByText('Saved on this device. Will sync when connected.',{exact:true})).toBeVisible();await expect.poll(()=>posts.length).toBe(1);
+ const original=posts[0];expect(original).toMatchObject({amountReceived:'110',notes:'Immutable synthetic note'});
+ const pending=await page.evaluate(async()=>{const {ownerOfflineRepository}=await import('/apps/pwa/src/owner-offline.ts');return (await ownerOfflineRepository({issuer:'https://securetoken.google.com/clever-oasis-508610-n7',uid:'synthetic-owner'}).list('pending'))[0].value.command});expect(pending).toEqual(original);
+ await openSavedPayments(page);await page.getByRole('button',{name:'Sync now',exact:true}).click();await expect.poll(()=>posts.length).toBe(2);expect(posts[1]).toEqual(original);
+ expect(events).toEqual(['status:'+original.requestId,'post:'+original.requestId,'status:'+original.requestId,'post:'+original.requestId]);
+ recorded=true;await page.route('https://mw-credit-app-read-dev-test.run.app/**',r=>r.fulfill({json:{ok:true,source:'dev',timezone:'Asia/Bangkok',items:[],nextCursor:null,businessDate:draft.businessDate,asOf:draft.asOf}}));
+ await page.route('**/deps/firebase_auth.js*',r=>r.fulfill({contentType:'text/javascript',body:authMock.replace('fn(null)',"fn({uid:'synthetic-owner',getIdToken:async()=>'synthetic-bearer'})")}));await page.reload();await expect(page.locator('.live-body')).toBeVisible();
+ await openSavedPayments(page);await expect(page.getByText('No unsynced changes.',{exact:true})).toBeVisible();expect(posts).toHaveLength(2);expect(events.at(-1)).toBe('status:'+original.requestId);
 });
-
-
-
-
-
-
-
-
-
 
 test('G07 removed delayed upload cannot revive receipt and Posted retains notes despite receipt GET failure',async({page})=>{
  let releaseUpload:(()=>void)|undefined,postedBody:any,receiptGets=0,posts=0,oldReceiptId:string|undefined,oldUploadSettled=false;
@@ -88,6 +88,8 @@ test('G07 removed delayed upload cannot revive receipt and Posted retains notes 
   const held=!releaseUpload;if(held){oldReceiptId=path.split('/').at(-1);await new Promise<void>(resolve=>releaseUpload=resolve)}
   await r.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,receipt:{receiptId:path.split('/').at(-1)}})}).catch(()=>{});if(held)oldUploadSettled=true;return;
  }
+ if(r.request().method()==='GET')return r.fulfill({json:{ok:true,kind:'unresolved',safeToUseNewRequestId:false}});
+ if(path!=='/api/payment-commands')return r.fulfill({json:{ok:true}});
  posts++;postedBody=r.request().postDataJSON();await r.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,kind:'recorded',originalOutcome:{status:'posted',paymentId:'synthetic-payment',code:null,recordedAt:'2026-10-08T05:00:00Z'}})});
  });
  await setup(page);await page.locator('.collection-tile-main').first().click();await page.getByRole('button',{name:'Receive selected charges'}).click();await page.getByRole('combobox',{name:/^Receiving account(?: \*)?$/}).selectOption('synthetic-account');
@@ -100,7 +102,7 @@ test('G07 removed delayed upload cannot revive receipt and Posted retains notes 
  await expect(page.getByText('Uploading receipt…',{exact:true})).toHaveCount(0);await expect(page.getByRole('button',{name:'Review payment',exact:true})).toBeDisabled();
  await page.getByRole('button',{name:'Remove receipt',exact:true}).click();
  await input.setInputFiles({name:'synthetic.png',mimeType:'image/png',buffer:png});await expect(page.getByRole('button',{name:'Review payment',exact:true})).toBeEnabled();
- await page.getByRole('button',{name:'Review payment'}).click();await page.getByRole('button',{name:'Confirm payment online'}).click();
+ await page.getByRole('button',{name:'Review payment'}).click();await page.getByRole('button',{name:'Confirm payment'}).click();
  await expect(page.locator('.payment-success')).toContainText('Payment received');await page.getByRole('button',{name:'Payment details',exact:true}).click();await expect(page.getByText('Current receipt could not be verified. Recorded payment is unchanged.')).toBeVisible();
  await expect(page.getByRole('region',{name:'Payment result details'})).toContainText('Posted synthetic notes');await expect(page.getByRole('region',{name:'Payment result details'})).toContainText('฿110');
  expect(posts).toBe(1);expect(receiptGets).toBe(1);expect(postedBody.receiptId).toMatch(/^[0-9a-f-]{36}$/);expect(postedBody.receiptId).not.toBe(oldReceiptId);
@@ -113,7 +115,8 @@ for(const width of [320,390])test(`G07 receipt picker and large removable previe
  await page.route('https://mw-credit-app-command-dev-test.run.app/**',async r=>{
   const path=new URL(r.request().url()).pathname;if(path.includes('payment-drafts'))return replyDraft(r);
   if(path.includes('/receipts/')){uploadId=path.split('/').at(-1);return r.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,receipt:{receiptId:uploadId}})})}
-  if(r.request().method()!=='POST')return r.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,items:[],nextCursor:null})});
+  if(r.request().method()!=='POST')return r.fulfill({json:{ok:true,kind:'unresolved',safeToUseNewRequestId:false}});
+  if(path!=='/api/payment-commands')return r.fulfill({json:{ok:true}});
   posted.push(r.request().postDataJSON());return r.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,kind:'recorded',originalOutcome:{status:'posted',paymentId:'synthetic-payment',code:null,recordedAt:'2026-10-08T05:00:00Z'}})});
  });
  await setup(page);await page.locator('.collection-tile-main').first().click();await page.getByRole('button',{name:'Receive selected charges',exact:true}).click();await page.getByRole('combobox',{name:/^Receiving account(?: \*)?$/}).selectOption('synthetic-account');await page.getByRole('textbox',{name:/^Amount received(?: \*)?$/}).fill('110');await page.locator('.payment-allocation-row input[type=checkbox]').first().check();
@@ -123,7 +126,7 @@ for(const width of [320,390])test(`G07 receipt picker and large removable previe
  const remove=page.getByRole('button',{name:'Remove receipt',exact:true});const imageBox=await image.boundingBox(),removeBox=await remove.boundingBox();expect(removeBox!.x+removeBox!.width).toBeGreaterThan(imageBox!.x+imageBox!.width-55);expect(removeBox!.y).toBeLessThan(imageBox!.y+55);await page.screenshot({path:info.outputPath('selected-receipt-edit.png'),fullPage:true});
  await page.getByRole('button',{name:'Review payment',exact:true}).click();await expect(image).toBeVisible();expect((await image.boundingBox())!.width).toBeGreaterThan(width*.75);await page.screenshot({path:info.outputPath('selected-receipt-review.png'),fullPage:true});expect(posted).toHaveLength(0);
  await page.getByRole('button',{name:'Edit',exact:true}).click();await remove.click();await expect(image).toHaveCount(0);await expect(input).toHaveCount(1);await expect(page.getByRole('button',{name:'Review payment',exact:true})).toBeEnabled();expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
- await page.getByRole('button',{name:'Review payment',exact:true}).click();await page.getByRole('button',{name:'Confirm payment online',exact:true}).click();await expect(page.locator('.payment-success')).toContainText('Payment received');expect(posted).toHaveLength(1);expect(posted[0].receiptId).toBeNull();
+ await page.getByRole('button',{name:'Review payment',exact:true}).click();await page.getByRole('button',{name:'Confirm payment',exact:true}).click();await expect(page.locator('.payment-success')).toContainText('Payment received');expect(posted).toHaveLength(1);expect(posted[0].receiptId).toBeNull();
 });
 
 test('G07 pending-reference storage refusal warns and auth loss clears business state',async({page})=>{
@@ -131,7 +134,7 @@ test('G07 pending-reference storage refusal warns and auth loss clears business 
  await page.route('https://mw-credit-app-command-dev-test.run.app/**',async r=>{
  if(new URL(r.request().url()).pathname.includes('payment-drafts'))return replyDraft(r);
  if(r.request().method()==='POST'){posts++;postedBody=r.request().postDataJSON();return r.abort('failed')}
- await r.fulfill({contentType:'application/json',body:JSON.stringify(draft)});
+ await r.fulfill({json:{ok:true,kind:'unresolved',safeToUseNewRequestId:false}});
  });
  await setup(page);
  await page.evaluate(()=>{const original=Storage.prototype.setItem;Storage.prototype.setItem=function(key,value){if(this===sessionStorage&&key==='mw-credit.pending-command'){
@@ -139,26 +142,26 @@ test('G07 pending-reference storage refusal warns and auth loss clears business 
   throw new DOMException('blocked','SecurityError');
  }return original.call(this,key,value)}});
  await page.locator('.collection-tile-main').first().click();await page.getByRole('button',{name:'Receive selected charges'}).click();await page.getByRole('combobox',{name:/^Receiving account(?: \*)?$/}).selectOption('synthetic-account');await page.getByRole('textbox',{name:/^Amount received(?: \*)?$/}).fill('110');await page.locator('.payment-allocation-row input[type=checkbox]').first().check();
- await page.getByRole('button',{name:'Review payment'}).click();await page.getByRole('button',{name:'Confirm payment online'}).click();
+ await page.getByRole('button',{name:'Review payment'}).click();await page.getByRole('button',{name:'Confirm payment'}).click();
  await expect(page.getByText('This browser cannot retain the reference. Copy it before leaving.')).toBeVisible();
  expect(posts).toBe(0);expect(await page.evaluate(()=>sessionStorage.getItem('mw-credit.pending-command'))).toBeNull();
  const reference=await page.locator('.selected-payment code').innerText();expect(reference).toMatch(/^[a-f0-9-]{36}$/);
  await page.evaluate(()=>(window as any).__g07ReleasePendingReferenceToken());
  await expect.poll(()=>posts).toBe(1);expect(postedBody.requestId).toBe(reference);
- await expect(page.getByRole('heading',{name:'Outcome unknown',exact:true})).toBeVisible();
+ await expect(page.getByText('Saved on this device. Will sync when connected.',{exact:true})).toBeVisible();
  await signOutPreservingActiveChild(page);await expect(page.getByRole('heading',{name:'Sign in to continue',exact:true})).toBeVisible();await expect(page.locator('.selected-payment')).toHaveCount(0);
  expect(posts).toBe(1);
 });
-test('G07 offline before confirmation clears business draft and never dispatches',async({page,context})=>{
+test('G07 offline before confirmation retains review without dispatching an unconfirmed payment',async({page,context})=>{
  let posts=0;
  await page.route('https://mw-credit-app-command-dev-test.run.app/**',async r=>{
  if(new URL(r.request().url()).pathname.includes('payment-drafts'))return replyDraft(r);
  if(r.request().method()==='POST'){posts++;return r.abort('failed')}
- await r.fulfill({contentType:'application/json',body:JSON.stringify(draft)});
+ await r.fulfill({json:{ok:true,kind:'unresolved',safeToUseNewRequestId:false}});
  });
  await setup(page);await page.locator('.collection-tile-main').first().click();await page.getByRole('button',{name:'Receive selected charges'}).click();await page.getByRole('combobox',{name:/^Receiving account(?: \*)?$/}).selectOption('synthetic-account');await page.getByRole('textbox',{name:/^Amount received(?: \*)?$/}).fill('110');await page.locator('.payment-allocation-row input[type=checkbox]').first().check();
  await page.getByRole('button',{name:'Review payment'}).click();await context.setOffline(true);
- await expect(page.locator('.selected-payment')).toHaveCount(0);await expect(page.getByRole('button',{name:'Confirm payment online'})).toHaveCount(0);
+ await expect(page.locator('.selected-payment')).toBeVisible();await expect(page.getByRole('button',{name:'Confirm payment'})).toBeEnabled();await expect(page.locator('.selected-payment')).toContainText('฿110');
  expect(posts).toBe(0);await context.setOffline(false);expect(posts).toBe(0);
 });
 

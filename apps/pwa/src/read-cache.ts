@@ -50,6 +50,7 @@ async function read<T>(access:Access,path:string,options:Options<T>,format:'json
  const reportFailure=(failed:boolean,cachedFailure=false)=>{if(failureEpoch!==(failureEpochs.get(failureScope)??0))return;refreshFailure(scopeKey,failed);failure(scopeKey,failed&&cachedFailure)};
  const controller=new AbortController(),abort=()=>controller.abort();options.signal?.addEventListener('abort',abort,{once:true});if(options.signal?.aborted)controller.abort();
  let settled=false,denied=false,cached:CachedResponse|null=null;
+ let httpFailure:{response:Response;data:T;revision:number|null|undefined;cacheRevision:number|null|undefined;scoped:boolean}|null=null;
  const currentCacheRevision=async()=>{try{return await repository!.readCacheRevision()}catch{cacheAllowed=false;return undefined}};
  let cacheRevision=cacheAllowed?await currentCacheRevision():null;const cachedEpoch=cacheRevision;
  // An absent/expired offline lease is not an online authorization failure.
@@ -94,7 +95,7 @@ async function read<T>(access:Access,path:string,options:Options<T>,format:'json
     const cacheCurrent=cacheAllowed?await currentCacheRevision():null;
     if(current!==undefined&&current!==revision||cacheCurrent!==cacheRevision){revision=current;cacheRevision=cacheCurrent;cached=null;if(attempt===0)continue;throw Error('Read changed during refresh')}
    }
-   if(response.status>=500||response.status===429)throw Error('Read temporarily unavailable');
+   if(response.status>=500||response.status===429){httpFailure={response,data,revision,cacheRevision,scoped:cacheAllowed};throw Error('Read temporarily unavailable');}
    if(response.ok&&cacheAllowed&&revision!=null&&cacheable(data)){
     try{
      if(!await repository!.syncAuthorized())await repository!.authorize();
@@ -112,6 +113,14 @@ async function read<T>(access:Access,path:string,options:Options<T>,format:'json
   // cached records. Timeouts may retain the already displayed saved response.
   if(!denied&&!options.signal?.aborted&&fallback&&fallback.format===format&&await repository!.syncAuthorized()&&await repository!.readRevision()===fallback.revision&&await currentCacheRevision()===cachedEpoch){
    settled=true;reportFailure(true,true);return savedResult<T>(fallback);
+  }
+  if(httpFailure&&!denied&&!options.signal?.aborted){
+   requireCurrent();
+   // Preserve the server's status/body/request reference when no valid saved
+   // response exists, without exposing a response from an obsolete owner epoch.
+   if(!httpFailure.scoped||await repository!.syncAuthorized()&&await repository!.readRevision()===httpFailure.revision&&await currentCacheRevision()===httpFailure.cacheRevision){
+    requireCurrent();settled=true;return {response:httpFailure.response,data:httpFailure.data,fromCache:false};
+   }
   }
   throw error;
  }finally{settled=true;clearTimeout(timer);options.signal?.removeEventListener('abort',abort);done()}

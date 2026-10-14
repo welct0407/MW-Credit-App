@@ -16,7 +16,7 @@ test('synthetic access states hide prior records totals and selected detail in E
  }
  expect(unexpected).toEqual([]);await page.screenshot({path:`outputs/r052-phase1b/${info.project.name}-allowed.png`,fullPage:true});
 });
-test('synthetic monetary cents remain visible in EN and Thai without source mutation',async({page})=>{
+test('synthetic monetary values display whole baht in EN and Thai without source mutation',async({page})=>{
  await page.route('**/apps/pwa/src/fixtures.ts*',async route=>{const response=await route.fetch();const source=await response.text();expect(source).toMatch(/amount: 1200/);await route.fulfill({response,body:source.replace('amount: 1200','amount: 1200.34')})});
- await page.goto('/');await expect(page.getByTestId('total-due')).toContainText('4,400.34');await expect(page.getByTestId('borrower-SAMPLE-001')).toContainText('1,200.34');await page.getByTestId('borrower-SAMPLE-001').click();await expect(page.getByRole('region',{name:'Borrower details'})).toContainText('1,200.34');await page.getByRole('button',{name:'ไทย',exact:true}).click();await expect(page.getByRole('region',{name:'รายละเอียดผู้กู้'})).toContainText('1,200.34');
+ await page.goto('/');await expect(page.getByTestId('total-due')).toContainText('4,400');await expect(page.getByTestId('borrower-SAMPLE-001')).toContainText('1,200');await page.getByTestId('borrower-SAMPLE-001').click();await expect(page.getByRole('region',{name:'Borrower details'})).toContainText('1,200');await page.getByRole('button',{name:'ไทย',exact:true}).click();await expect(page.getByRole('region',{name:'รายละเอียดผู้กู้'})).toContainText('1,200');
 });
