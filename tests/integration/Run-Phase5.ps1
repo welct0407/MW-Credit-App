@@ -1,4 +1,5 @@
-param([switch]$JournalOnly,[switch]$AnchorOnly,[switch]$ManagementOnly,[string]$TestNamePattern)
+param([switch]$JournalOnly,[switch]$AnchorOnly,[switch]$ManagementOnly,[switch]$SettingsOnly,[string]$TestNamePattern)
+if($SettingsOnly){$ManagementOnly=$true}
 if($AnchorOnly -and $ManagementOnly){throw "Choose one explicit upgrade family"}
 if($ManagementOnly){$JournalOnly=$true}
 if($AnchorOnly){$JournalOnly=$true}
@@ -60,6 +61,15 @@ try {
       if($LASTEXITCODE){throw 'Populated V84 management seed failed'}
       & (Get-FlywayPath) '-outputType=json' '-target=85' migrate | Out-File (Join-Path $fixtureRoot 'migration85.json')
       if($LASTEXITCODE){throw 'V85 management upgrade failed'}
+      if($SettingsOnly){
+       & (Get-FlywayPath) '-outputType=json' '-target=91' migrate | Out-File (Join-Path $fixtureRoot 'migration91.json')
+       if($LASTEXITCODE){throw 'V91 settings baseline failed'}
+       $env:SETTINGS_POPULATED_SNAPSHOT=Join-Path $fixtureRoot 'populated-settings91.json'
+       & node "$PSScriptRoot/settings-populated-fixture.mjs" seed-settings
+       if($LASTEXITCODE){throw 'Populated V91 settings seed failed'}
+       & (Get-FlywayPath) '-outputType=json' '-target=92' migrate | Out-File (Join-Path $fixtureRoot 'migration92.json')
+       if($LASTEXITCODE){throw 'V92 settings upgrade failed'}
+      }
      }
     }
    }
@@ -72,17 +82,17 @@ try {
  $env:PAYMENT_REHEARSAL_DISPOSABLE='1';$env:PAYMENT_REHEARSAL_PORT=[string]$fixturePort;$env:PAYMENT_REHEARSAL_DIRECTORY=$data
  # Prove exact populated-upgrade preservation before any mutating test module.
  # Node file ordering is lexical, independent of the supplied file array order.
- if($ManagementOnly){
+ if($ManagementOnly -and !$SettingsOnly){
   & node --test "$PSScriptRoot/phase6-upgrade-independent.test.mjs"
   if($LASTEXITCODE){throw 'Populated V84 to V85 compatibility failed'}
  }
- [string[]]$testFiles=if($ManagementOnly){@("$PSScriptRoot/phase6-management-independent.test.mjs","$PSScriptRoot/phase6-financial-smoke.test.mjs")}elseif($AnchorOnly){@("$PSScriptRoot/loan-anchor-independent.test.mjs")}elseif($JournalOnly){@("$PSScriptRoot/phase5-operation.test.mjs","$PSScriptRoot/phase5-journal-independent.test.mjs","$PSScriptRoot/phase5-record-lists-independent.test.mjs")}else{@("$PSScriptRoot/borrower-domain.test.mjs","$PSScriptRoot/phase5-borrower-independent.test.mjs")}
+ [string[]]$testFiles=if($SettingsOnly){@("$PSScriptRoot/settings-independent.test.mjs")}elseif($ManagementOnly){@("$PSScriptRoot/phase6-management-independent.test.mjs","$PSScriptRoot/phase6-financial-smoke.test.mjs")}elseif($AnchorOnly){@("$PSScriptRoot/loan-anchor-independent.test.mjs")}elseif($JournalOnly){@("$PSScriptRoot/phase5-operation.test.mjs","$PSScriptRoot/phase5-journal-independent.test.mjs","$PSScriptRoot/phase5-record-lists-independent.test.mjs")}else{@("$PSScriptRoot/borrower-domain.test.mjs","$PSScriptRoot/phase5-borrower-independent.test.mjs")}
 
  $testArguments=@('--test','--test-concurrency=1');if($TestNamePattern){$testArguments+=('--test-name-pattern='+$TestNamePattern)}
  & node @testArguments @testFiles
  if($LASTEXITCODE){throw 'Payment command API rehearsal failed'}
 } finally {
- Remove-Item Env:PAYMENT_REHEARSAL_DISPOSABLE,Env:PAYMENT_REHEARSAL_PORT,Env:PAYMENT_REHEARSAL_DIRECTORY,Env:PHASE5_POPULATED_JOURNAL_SNAPSHOT,Env:LOAN_ANCHOR_SNAPSHOT,Env:PHASE6_POPULATED_SNAPSHOT -ErrorAction SilentlyContinue
+ Remove-Item Env:PAYMENT_REHEARSAL_DISPOSABLE,Env:PAYMENT_REHEARSAL_PORT,Env:PAYMENT_REHEARSAL_DIRECTORY,Env:PHASE5_POPULATED_JOURNAL_SNAPSHOT,Env:LOAN_ANCHOR_SNAPSHOT,Env:PHASE6_POPULATED_SNAPSHOT,Env:SETTINGS_POPULATED_SNAPSHOT -ErrorAction SilentlyContinue
  if($started){& (Join-Path $pgBin 'pg_ctl.exe') -D $data -m fast -w stop | Out-Null}
  Write-Host "Stopped disposable PostgreSQL; synthetic diagnostics retained at $fixtureRoot"
 }

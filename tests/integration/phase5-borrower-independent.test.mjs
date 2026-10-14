@@ -36,7 +36,7 @@ test('B-C01 exact nullable and Unicode field roundtrip preserves immutable creat
 
 test('B-C02 closed editable fields reject forged identity, AI, date, missing and malformed values without writes',async()=>{
  const f=fields(),item=await create(f),original=await fingerprint(item.id);
- for(const invalid of [{...f,id:randomUUID()},{...f,aiCollectionEnabled:true},{...f,createdDate:'1900-01-01'},{...f,hidden:'false'},{...f,note:'bad\0note'},{...f,note:'\ud800'},{...f,referrerId:''},{...f,note:'x'.repeat(65537)},Object.fromEntries(Object.entries(f).filter(([key])=>key!=='note'))]){
+ for(const invalid of [{...f,id:randomUUID()},{...f,aiCollectionEnabled:"invalid"},{...f,createdDate:'1900-01-01'},{...f,hidden:'false'},{...f,note:'bad\0note'},{...f,note:'\ud800'},{...f,referrerId:''},{...f,note:'x'.repeat(65537)},Object.fromEntries(Object.entries(f).filter(([key])=>key!=='note'))]){
   assert.throws(()=>canonicalBorrowerFields(invalid));const r=await store.borrowerRecord(principal,item.id,'edit',{expectedVersion:item.version,fields:invalid});assert.equal(r.status,400,JSON.stringify(r));assert.deepEqual(await fingerprint(item.id),original);
  }
 });
