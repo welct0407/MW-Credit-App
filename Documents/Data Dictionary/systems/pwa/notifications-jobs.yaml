@@ -22,7 +22,7 @@
   - "GET /api/notifications/push-config"
   - "POST /api/notifications/subscriptions"
   - "PUT /api/notifications/preference"
-  - "GET /api/notifications/offline-dataset (DEV and owner-authorized PROD package)"
+  - "GET /api/notifications/offline-dataset (DEV and PROD)"
   - "POST /api/notifications/offline-dataset?protocol=3 (DEV/PROD read-only)"
   "dispatch": "Command service performs authenticated post-commit wake to /internal/dispatch. Wake failure defers to recovery\
     \ without changing the committed payment result."
@@ -70,8 +70,8 @@
       \ pending edits and actor/recipient boundaries"
     "state": "value"
   "/content/browser_routes":
-    "reference": "https://github.com/welct0407/MW-Credit-App/pull/6"
-    "reason": "Owner-authorized production offline parity candidate; final source/deployment pending."
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/7aecf695789fee3ca3b1fd1f2bece4c4a4bc8ba6/services/production/business-runtime.mjs"
+    "reason": "Reconcile owner-authorized R059 verified DEV-first/PROD release; preserve test and live-smoke limits."
     "state": "value"
   "/content/offline_history_production_source":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/b77a1ef3d58c488a2113b97948aefe83945e84ec/apps/pwa/src/read-cache.ts"

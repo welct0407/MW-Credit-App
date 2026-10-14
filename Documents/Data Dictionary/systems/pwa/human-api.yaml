@@ -23,8 +23,8 @@
   - "GET /api/management/cash-position"
   - "GET /api/management/analytics-overview"
   - "GET /api/management/analytics-chart"
-  - "GET /api/offline-dataset?domain=records|collection|cash|management (DEV and owner-authorized PROD package)"
-  - "GET /api/notifications/offline-dataset (DEV and owner-authorized PROD package)"
+  - "GET /api/offline-dataset?domain=records|collection|cash|management (DEV and PROD)"
+  - "GET /api/notifications/offline-dataset (DEV and PROD)"
   - "POST /api/offline-dataset?domain=records|collection|cash|management&protocol=3 (DEV/PROD read-only)"
   - "POST /api/notifications/offline-dataset?protocol=3 (DEV/PROD read-only)"
   "management_resources":
@@ -87,8 +87,7 @@
     - "GET /api/offline-dataset?domain=management"
     - "GET /api/notifications/offline-dataset"
     "guard": "Existing environment-specific authenticated issuer/membership/capabilities and fixed target guards apply in\
-      \ DEV and owner-authorized PROD package. Production recipient endpoint requires existing notifications-enabled composition;\
-      \ deployment pending."
+      \ DEV and PROD. Production recipient endpoint requires existing notifications-enabled composition; deployment verified."
     "transaction": "Each chunk uses ordinary authenticated read-only repeatable-read checks and existing projections/providers;\
       \ one shared bulk connection reservation preserves foreground capacity. No transaction snapshot is exported between\
       \ HTTP requests."
@@ -153,8 +152,8 @@
       \ refresh state; note autosave unchanged"
     "state": "value"
   "/content/command_service_read_routes":
-    "reference": "https://github.com/welct0407/MW-Credit-App/pull/6"
-    "reason": "Owner-authorized production offline parity candidate; final source/deployment pending."
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/7aecf695789fee3ca3b1fd1f2bece4c4a4bc8ba6/services/production/business-runtime.mjs"
+    "reason": "Reconcile owner-authorized R059 verified DEV-first/PROD release; preserve test and live-smoke limits."
     "state": "value"
   "/content/offline_dataset/protocol":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/6a3cf8cde2710a45b0368bc7f177f21bdab2693c/services/business/offline-dataset-delta.mjs"
@@ -200,8 +199,8 @@
       \ pending edits and actor/recipient boundaries"
     "state": "value"
   "/content/offline_dataset/guard":
-    "reference": "https://github.com/welct0407/MW-Credit-App/pull/6"
-    "reason": "Owner-authorized production offline parity candidate; final source/deployment pending."
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/7aecf695789fee3ca3b1fd1f2bece4c4a4bc8ba6/services/production/business-runtime.mjs"
+    "reason": "Reconcile owner-authorized R059 verified DEV-first/PROD release; preserve test and live-smoke limits."
     "state": "value"
   "/content/offline_dataset/production_sources":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/b77a1ef3d58c488a2113b97948aefe83945e84ec/apps/pwa/src/read-cache.ts"
