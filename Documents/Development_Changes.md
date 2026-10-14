@@ -1,10 +1,9 @@
 # Open development changes
 
-The sole Open product release is **R059**; no product scope is allocated yet. **R058 is Frozen** for the owner-approved Debian agent strict Instagram-first delivery promotion, pinned to source a8cf949 with passing Linux Python 3.13 CI (323 passed, 42 optional skips). Owner also approved the rollback manifest and backup; production installation remains pending their verified capture. The separate documentation/process cleanup does not deploy a product release.
+The sole Open product release is **R059**; no product scope is allocated yet. R058 strict Instagram-first delivery is deployed and verified; current pins and recovery evidence belong in the environment inventory and existing integration record.
 
 | Outstanding work | Owning reference |
 | --- | --- |
-| R058 strict Instagram-first delivery | [Existing integration notification record](https://github.com/welct0407/MW-Integration-Agent/blob/codex/pwa-documentation-cleanup/Change%20Logs/CHANGE_NOTES_RECEIPT_NOTIFICATION_ISOLATION_2026-10-02.md#r058-strict-instagram-fallback-candidate--14-october-2026); owner approved production deployment on 14 October; rollback manifest and backup approved, capture pending, runtime unchanged |
 | Carried operational credential migration | R055 remains Frozen; paused work is unfinished |
 | Apple push enrollment follow-up | R056 V91 deployed; Lisa retry/closure remains pending |
 | Owner license action | AppSheet technical retirement complete; license revocation unconfirmed |
@@ -13,7 +12,7 @@ Use the [release tracker](Release_Tracker.md), including the carried R016 admini
 
 ## Current operation
 
-The owner accepted the core operational/management flows and subsequent UI release. Native PWA/API payment receiving, Debian agent API integration, receipts, notifications, scheduled jobs and monitoring are deployed. Production is https://lm.mw-credit.com and DEV is https://dev-lm.mw-credit.com. Runtime identities and verified versions belong in the [environment inventory](Environment_Inventory.md). AppSheet technical retirement is complete; the owner license action remains separate. Natural business observations and the Lisa push retry retain the limits in their owning release evidence; documentation cleanup does not establish fresh live acceptance.
+The owner accepted the core operational/management flows and subsequent UI release. Native PWA/API payment receiving, Debian agent API integration, receipts, notifications, scheduled jobs and monitoring are deployed. R058 agent delivery attempts authorized Instagram sends without a local window gate and permits automatic email only after an explicit provider messaging-window rejection. Production is https://lm.mw-credit.com and DEV is https://dev-lm.mw-credit.com. Runtime identities and verified versions belong in the [environment inventory](Environment_Inventory.md). AppSheet technical retirement is complete; the owner license action remains separate. Natural business observations and the Lisa push retry retain the limits in their owning release evidence; documentation cleanup does not establish fresh live acceptance.
 
 ## Delivery tooling status
 
