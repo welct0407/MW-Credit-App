@@ -19,8 +19,9 @@ Private receipts: `gs://mw-payment-receipts-prod-508610-n7`. Agent originals and
 
 | Component | Pin / evidence |
 | --- | --- |
-| DEV frontend | source `5e981335ad42846dac6bde13e24a45a147ab2676`, Hosting `c4c2d9c64fc0b44a`, release `1791946967931000`, marker `5d9d0d2ac7683d03f1712ea6`, entry `index-9Vh3-y9E.js`; live-dev build, verified 14 October 2026 10:03 ICT; [R058 record](Development_Changes.md#r058-borrower-upcoming-batch) |
-| DEV reader | `mw-credit-app-read-dev-00019-ntb`, Ready and 100% traffic; digest `sha256:5b2922462dab154a4c4fa94856f69d82488ebc41bfef7e2a219d5b68ed47af54`, source `68e8a39`; existing DEV database/IAM identity/origins preserved; [R058 record](Development_Changes.md#r058-borrower-upcoming-batch) |
+| DEV frontend | source `2ef73db0f91769f1566cd83d91467390080c36ab`, Hosting `d52dfb7a3013d1c6`, release `1791949671497000`, marker `c0ae44525d786cb0329cafa5`, entry `index-CB3Jtvss.js`; live-dev build, verified 14 October 2026 10:48 ICT; [R058 record](Development_Changes.md#r058-borrower-upcoming-batch) |
+| DEV reader | `mw-credit-app-read-dev-00020-m9t`, Ready and 100% traffic; digest `sha256:60c9f6c7cfe701264a5add48de2934fa18db8b418652e5622b054a2a40eb0958`, source `2ef73db`; DEV database/IAM/origins preserved; [R058 record](Development_Changes.md#r058-borrower-upcoming-batch) |
+| DEV command | `mw-credit-app-command-dev-00022-nhc`, Ready and 100% traffic; same digest/source as DEV reader, with existing DEV command bindings preserved; [R058 record](Development_Changes.md#r058-borrower-upcoming-batch) |
 | PROD frontend | source c07ada0, Hosting 218943a0966051ca, release 1791825659922000; [actual record](../outputs/r054-production/promotion-actual.json) |
 | PROD command / notify | revisions 00006-lrd / 00003-bj4, digest b4f528bc8ac48008ed0951e227089d3d0802a7a6c2dbaa826ada5e021e156aea; [V91 fix](../outputs/r056-apple-push/README.md) |
 | PROD reader / jobs | unchanged by V91; [R053 actual package](../outputs/r053-notifications-jobs/promotion-actual.json) |
