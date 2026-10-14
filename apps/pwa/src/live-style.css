@@ -483,3 +483,12 @@ main[data-workspace=management] pre{white-space:pre-wrap;overflow-wrap:anywhere}
 .chart-tick{font-size:16px;fill:#444;font-variant-numeric:tabular-nums}.analytics-pie-legend{list-style:none;padding:0;margin:12px 0;font-size:14px}.analytics-pie-legend li{display:grid;grid-template-columns:12px minmax(0,1fr) auto;gap:8px;align-items:baseline;margin:6px 0}.analytics-pie-legend li>span:nth-child(2){overflow-wrap:anywhere}.pie-swatch{width:12px;height:12px;display:inline-block;border:1px solid #777}.analytics-pie-legend strong{white-space:nowrap;font-variant-numeric:tabular-nums}
 
 .notification-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+
+.collection-note textarea{overflow-y:hidden;resize:none}
+.collection-receipt-gallery{display:flex;gap:12px;overflow-x:auto;max-width:100%;padding-block:4px 12px;overscroll-behavior-x:contain}
+.collection-receipt-card{flex:0 0 min(86%,480px);min-width:0;padding:0;overflow:hidden;border:1px solid #d5d5d5;border-radius:10px;background:#f4f4f4}
+.collection-receipt-image{display:grid;place-items:center;width:100%;min-height:280px;background:#f4f4f4}
+.collection-receipt-image img{display:block;width:100%;height:360px;object-fit:contain}
+.selected-payment .payment-receipt-preview{display:block;width:100%;height:auto;max-width:640px;max-height:none;object-fit:contain;margin-block:12px}
+.payment-receipt-slot{position:relative;width:100%;max-width:640px;min-height:64px}
+.selected-payment .payment-receipt-remove{position:absolute;top:8px;right:8px;display:grid;place-items:center;width:44px;height:44px;min-width:44px;padding:0;border:1px solid #666;border-radius:50%;background:#fff;color:#222;font-size:28px;line-height:1;box-shadow:0 1px 5px #0003}

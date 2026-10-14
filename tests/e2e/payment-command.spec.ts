@@ -1,6 +1,7 @@
 import {chooseLanguage,chooseLanguagePreservingForm,signOutPreservingActiveChild} from './live-controls';
 import {test,expect} from '@playwright/test';
 import {spawn,type ChildProcess} from 'node:child_process';
+import sharp from 'sharp';
 let server:ChildProcess;let base:string;let serverLog="";
 test.beforeAll(async({},info)=>{
  const port=5800+info.workerIndex;base=`http://127.0.0.1:${port}`;
@@ -74,16 +75,16 @@ test('G07 Unknown exact retry and immutable pending recovery remains accessible 
 
 
 
-test('G07 invalid replacement releases upload busy and Posted retains notes despite receipt GET failure',async({page})=>{
- let releaseUpload:(()=>void)|undefined,postedBody:any,receiptGets=0,posts=0;
+test('G07 removed delayed upload cannot revive receipt and Posted retains notes despite receipt GET failure',async({page})=>{
+ let releaseUpload:(()=>void)|undefined,postedBody:any,receiptGets=0,posts=0,oldReceiptId:string|undefined,oldUploadSettled=false;
  await page.route('https://mw-credit-app-command-dev-test.run.app/**',async r=>{
  const path=new URL(r.request().url()).pathname;
  if(path.includes('payment-drafts'))return replyDraft(r);
  if(path.endsWith('/result'))return r.fulfill({contentType:'application/json',body:JSON.stringify({originalCommand:postedBody,originalOutcome:{status:'posted'},currentSource:'present',payment:{status:'Posted',paymentDate:'2026-10-08',amountReceived:'110',postedAmount:'110',notes:'Posted synthetic notes',receiptReference:'manual-receipts/dev/pwa/'+postedBody.requestId.replaceAll('-','')+'/'+postedBody.receiptId.replaceAll('-','')+'.png',receiptAt:'now'},allocations:[],repayments:[],cashMovements:[],history:{recordedAt:'now'}})});
  if(path.includes('/receipts/')){
   if(r.request().method()==='GET'){receiptGets++;return r.fulfill({status:503,contentType:'application/json',body:JSON.stringify({ok:false,code:'receipt_unavailable'})})}
-  if(!releaseUpload)await new Promise<void>(resolve=>releaseUpload=resolve);
-  return r.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,receipt:{receiptId:path.split('/').at(-1)}})}).catch(()=>{});
+  const held=!releaseUpload;if(held){oldReceiptId=path.split('/').at(-1);await new Promise<void>(resolve=>releaseUpload=resolve)}
+  await r.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,receipt:{receiptId:path.split('/').at(-1)}})}).catch(()=>{});if(held)oldUploadSettled=true;return;
  }
  posts++;postedBody=r.request().postDataJSON();await r.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,kind:'recorded',originalOutcome:{status:'posted',paymentId:'synthetic-payment',code:null,recordedAt:'2026-10-08T05:00:00Z'}})});
  });
@@ -91,15 +92,36 @@ test('G07 invalid replacement releases upload busy and Posted retains notes desp
  await page.getByRole('textbox',{name:/^Amount received(?: \*)?$/}).fill('110');await page.locator('.payment-allocation-row input[type=checkbox]').first().check();await page.getByRole('textbox',{name:'Notes',exact:true}).fill('Posted synthetic notes');
  const input=page.locator('input[type=file]');const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jVhQAAAAASUVORK5CYII=','base64');
  await input.setInputFiles({name:'synthetic.png',mimeType:'image/png',buffer:png});await expect.poll(()=>!!releaseUpload).toBe(true);
+ await expect(input).toHaveCount(0);await page.getByRole('button',{name:'Remove receipt',exact:true}).click();await expect(input).toHaveCount(1);
+ releaseUpload!();await expect.poll(()=>oldUploadSettled).toBe(true);await expect(page.locator('.payment-receipt-preview')).toHaveCount(0);await expect(page.getByText('Uploading receipt…',{exact:true})).toHaveCount(0);
  await input.setInputFiles({name:'invalid.heic',mimeType:'image/heic',buffer:Buffer.from('invalid')});
  await expect(page.getByText('Uploading receipt…',{exact:true})).toHaveCount(0);await expect(page.getByRole('button',{name:'Review payment',exact:true})).toBeDisabled();
- releaseUpload!();await page.getByRole('button',{name:'Remove receipt / proceed without receipt'}).click();
+ await page.getByRole('button',{name:'Remove receipt',exact:true}).click();
  await input.setInputFiles({name:'synthetic.png',mimeType:'image/png',buffer:png});await expect(page.getByRole('button',{name:'Review payment',exact:true})).toBeEnabled();
  await page.getByRole('button',{name:'Review payment'}).click();await page.getByRole('button',{name:'Confirm payment online'}).click();
  await expect(page.locator('.payment-success')).toContainText('Payment received');await page.getByRole('button',{name:'Payment details',exact:true}).click();await expect(page.getByText('Current receipt could not be verified. Recorded payment is unchanged.')).toBeVisible();
  await expect(page.getByRole('region',{name:'Payment result details'})).toContainText('Posted synthetic notes');await expect(page.getByRole('region',{name:'Payment result details'})).toContainText('฿110');
- expect(posts).toBe(1);expect(receiptGets).toBe(1);expect(postedBody.receiptId).toMatch(/^[0-9a-f-]{36}$/);
+ expect(posts).toBe(1);expect(receiptGets).toBe(1);expect(postedBody.receiptId).toMatch(/^[0-9a-f-]{36}$/);expect(postedBody.receiptId).not.toBe(oldReceiptId);
  expect(await page.evaluate(()=>sessionStorage.getItem('mw-credit.pending-command'))).toBeNull();
+});
+
+for(const width of [320,390])test(`G07 receipt picker and large removable preview stay consistent through review ${width}px`,async({page},info)=>{
+ await page.setViewportSize({width,height:850});let uploadId:string|undefined;const posted:any[]=[];
+ const receiptImage=await sharp(Buffer.from('<svg width="320" height="480" xmlns="http://www.w3.org/2000/svg"><rect width="320" height="480" fill="#fffef0"/><text x="24" y="48" font-size="24">SYNTHETIC RECEIPT</text><path d="M24 70H296M24 150H296M24 220H296" stroke="#555"/><text x="24" y="120" font-size="20">UI test only</text><text x="24" y="190" font-size="20">Amount 110</text></svg>')).png().toBuffer();
+ await page.route('https://mw-credit-app-command-dev-test.run.app/**',async r=>{
+  const path=new URL(r.request().url()).pathname;if(path.includes('payment-drafts'))return replyDraft(r);
+  if(path.includes('/receipts/')){uploadId=path.split('/').at(-1);return r.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,receipt:{receiptId:uploadId}})})}
+  if(r.request().method()!=='POST')return r.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,items:[],nextCursor:null})});
+  posted.push(r.request().postDataJSON());return r.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,kind:'recorded',originalOutcome:{status:'posted',paymentId:'synthetic-payment',code:null,recordedAt:'2026-10-08T05:00:00Z'}})});
+ });
+ await setup(page);await page.locator('.collection-tile-main').first().click();await page.getByRole('button',{name:'Receive selected charges',exact:true}).click();await page.getByRole('combobox',{name:/^Receiving account(?: \*)?$/}).selectOption('synthetic-account');await page.getByRole('textbox',{name:/^Amount received(?: \*)?$/}).fill('110');await page.locator('.payment-allocation-row input[type=checkbox]').first().check();
+ const input=page.locator('input[type=file]');expect(await input.evaluate(node=>(node as HTMLInputElement).multiple)).toBe(false);
+ await input.setInputFiles({name:'synthetic-receipt.png',mimeType:'image/png',buffer:receiptImage});await expect.poll(()=>uploadId).toBeTruthy();await expect(page.getByRole('button',{name:'Review payment',exact:true})).toBeEnabled();await expect(input).toHaveCount(0);
+ const image=page.getByRole('img',{name:'Selected receipt',exact:true});await expect(image).toBeVisible();await expect.poll(()=>image.evaluate(node=>(node as HTMLImageElement).naturalWidth)).toBe(320);expect((await image.boundingBox())!.width).toBeGreaterThan(width*.75);
+ const remove=page.getByRole('button',{name:'Remove receipt',exact:true});const imageBox=await image.boundingBox(),removeBox=await remove.boundingBox();expect(removeBox!.x+removeBox!.width).toBeGreaterThan(imageBox!.x+imageBox!.width-55);expect(removeBox!.y).toBeLessThan(imageBox!.y+55);await page.screenshot({path:info.outputPath('selected-receipt-edit.png'),fullPage:true});
+ await page.getByRole('button',{name:'Review payment',exact:true}).click();await expect(image).toBeVisible();expect((await image.boundingBox())!.width).toBeGreaterThan(width*.75);await page.screenshot({path:info.outputPath('selected-receipt-review.png'),fullPage:true});expect(posted).toHaveLength(0);
+ await page.getByRole('button',{name:'Edit',exact:true}).click();await remove.click();await expect(image).toHaveCount(0);await expect(input).toHaveCount(1);await expect(page.getByRole('button',{name:'Review payment',exact:true})).toBeEnabled();expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+ await page.getByRole('button',{name:'Review payment',exact:true}).click();await page.getByRole('button',{name:'Confirm payment online',exact:true}).click();await expect(page.locator('.payment-success')).toContainText('Payment received');expect(posted).toHaveLength(1);expect(posted[0].receiptId).toBeNull();
 });
 
 test('G07 pending-reference storage refusal warns and auth loss clears business state',async({page})=>{
