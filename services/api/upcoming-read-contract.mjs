@@ -51,7 +51,7 @@ SELECT COALESCE((SELECT jsonb_agg(to_jsonb(d) ORDER BY d."dueDate") FROM allowed
   COALESCE((SELECT jsonb_agg(to_jsonb(r) ORDER BY r."dueDate", r."loanId" COLLATE "C", r.id COLLATE "C") FROM ranked_events r WHERE r.ordinal <= $5::integer + 1), '[]'::jsonb) AS events,
   EXISTS (SELECT 1 FROM selected_events e WHERE e."Basis" IS NULL OR e."Basis" NOT IN ('Recorded', 'Recorded settlement', 'Recorded - review status', 'Projected')
     OR NOT EXISTS (SELECT 1 FROM public."Loans" l WHERE l."Row ID" = e."Ref Loan" AND l."Ref Borrowers" = $1)) AS invalid`;
-function projectUpcomingEvent(row) {
+export function projectUpcomingEvent(row) {
   if (!validLoanId(row.id) || !validLoanId(row.loanId) || !bases.includes(row.basis)) throw new Error('Invalid upcoming detail');
   const principal = row.principal === null ? '' : new Intl.NumberFormat('en-US', { style: 'currency', currency: 'THB', currencyDisplay: 'narrowSymbol', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Number(decimal(row.principal)));
   const date = row.loanDate === null ? '' : validUpcomingDate(row.loanDate) ? row.loanDate.slice(8, 10) + '/' + row.loanDate.slice(5, 7) : (() => { throw new Error('Invalid loan date'); })();

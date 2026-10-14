@@ -12,4 +12,4 @@ export async function withOfflineReadSlot(pool,signal,work){
  });
  try{if(signal?.aborted)throw Error('offline_read_cancelled');return await work()}finally{release()}
 }
-export function offlineReadClient(client,signal){return {query(...args){if(signal?.aborted)return Promise.reject(Error('offline_read_cancelled'));return client.query(...args)}}}
+export function offlineReadClient(client,signal){let tail=Promise.resolve();return {query(...args){const next=tail.then(()=>{if(signal?.aborted)throw Error('offline_read_cancelled');return client.query(...args)});tail=next.catch(()=>{});return next}}}

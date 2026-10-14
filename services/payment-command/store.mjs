@@ -1,5 +1,6 @@
 import {wakeContext} from '../notifications/postcommit.mjs';
 import {readOfflineDataset,offlineDomains} from '../business/offline-dataset.mjs';
+import {readOfflineDatasetChunk} from '../business/offline-dataset-chunks.mjs';
 import {withOfflineReadSlot,offlineReadClient} from '../api/offline-read-slot.mjs';
 import {canonicalNativeOperation,nativeOperationIdentity} from '../agent-conversations/native-operation-contract.mjs';
 import {closeSummary} from './close-summary.mjs';
@@ -81,11 +82,11 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
     return committedResult;
   }
   return {
-    async offlineDataset(principal,domain,signal){
+    async offlineDataset(principal,domain,signal,options={}){
       if(!ownerTesting||draftMode==='production-business')return failure(403,'access_denied');
       if(!principalAllowed(principal))return failure(403,'access_denied');
       if(!offlineDomains.includes(domain))return failure(400,'invalid_request');
-      try{return await withOfflineReadSlot(pool,signal,()=>run(principal,async(client,actor)=>({ok:true,value:await readOfflineDataset(offlineReadClient(client,signal),actor,domain)}),true))}catch{return failure(503,'command_unavailable')}
+      try{return await withOfflineReadSlot(pool,signal,()=>run(principal,async(client,actor)=>{try{return {ok:true,value:options.protocol===2?await readOfflineDatasetChunk(offlineReadClient(client,signal),actor,domain,options.cursor??null):await readOfflineDataset(offlineReadClient(client,signal),actor,domain)}}catch(error){if(error.message==='dataset_changed')return failure(409,'dataset_changed');if(error.message==='invalid_request')return failure(400,'invalid_request');throw error}},true))}catch{return failure(503,'command_unavailable')}
     },
     async nativeOperation(principal,input){
       if(!ownerTesting)return failure(403,'access_denied');

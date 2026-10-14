@@ -512,3 +512,8 @@ main[data-workspace=management] pre{white-space:pre-wrap;overflow-wrap:anywhere}
 .header-load-progress::-webkit-progress-value { background: #252525; border-radius: 4px; transition: width 180ms ease; }
 .header-load-progress::-moz-progress-bar { background: #252525; border-radius: 4px; }
 .offline-preparation-status { margin: 4px 0; font-size: 12px; }
+
+.header-load-progress:indeterminate { background: linear-gradient(90deg, transparent 0%, #252525 45%, transparent 85%) rgb(255 255 255 / 55%); background-size: 160% 100%; animation: offline-progress-pulse 1.2s linear infinite; }
+.header-load-progress:indeterminate::-webkit-progress-bar { background: transparent; }
+@keyframes offline-progress-pulse { from { background-position: 150% 0; } to { background-position: -150% 0; } }
+@media (prefers-reduced-motion: reduce) { .header-load-progress:indeterminate { animation-duration: 3s; } }

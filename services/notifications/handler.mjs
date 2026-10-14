@@ -11,7 +11,11 @@ export function notificationHandler({next,store,verifyPrincipal,origins,enabled=
   let principal;try{principal=await verifyPrincipal(req.headers.authorization)}catch{return reply(503,{error:'notification_unavailable'})}if(!principal?.ok)return reply(401,{error:'sign_in_required'});
   try{
    let value;const p=url.pathname;
-   if(req.method==='GET'&&p==='/api/notifications/offline-dataset'&&!url.search&&offlineDataset){const controller=new AbortController();res.once('close',()=>controller.abort());value=await store.offlineDataset(principal,controller.signal);}
+   if(req.method==='GET'&&p==='/api/notifications/offline-dataset'&&offlineDataset){
+    const protocol=url.searchParams.get('protocol'),cursor=url.searchParams.get('cursor');
+    if([...url.searchParams.keys()].some(key=>!['protocol','cursor'].includes(key))||url.searchParams.getAll('protocol').length>1||url.searchParams.getAll('cursor').length>1||(protocol!==null&&protocol!=='2')||(cursor!==null&&protocol!=='2'))return reply(400,{error:'invalid_request'});
+    const controller=new AbortController();res.once('close',()=>controller.abort());value=await store.offlineDataset(principal,controller.signal,{protocol:protocol==='2'?2:1,cursor});
+   }
    else if(req.method==='GET'&&p==='/api/notifications'&&[...url.searchParams.keys()].every(k=>k==='before')&&url.searchParams.getAll('before').length<=1)value=await store.history(principal,url.searchParams.get('before'));
    else if(req.method==='GET'&&p==='/api/notifications/status'&&[...url.searchParams.keys()].every(k=>k==='device')&&url.searchParams.getAll('device').length<=1)value=await store.status(principal,url.searchParams.get('device'));
    else if(req.method==='GET'&&p==='/api/notifications/push-config'&&!url.search){await store.status(principal,null);value={publicKey};}
@@ -24,6 +28,6 @@ export function notificationHandler({next,store,verifyPrincipal,origins,enabled=
     if(p.endsWith('/preference')){if(!body||Object.keys(body).join(',')!=='enabled')return reply(400,{error:'invalid_request'});value=await store.preference(principal,body.enabled);}else value=await store.subscribe(principal,body);
    }else return reply(404,{error:'not_found'});
    return reply(200,value);
-  }catch(error){const code=['access_denied','not_found','invalid_request','invalid_subscription'].includes(error?.message)?error.message:'notification_unavailable';return reply(code==='access_denied'?403:code==='not_found'?404:code.startsWith('invalid_')?400:503,{error:code});}
+  }catch(error){const code=['access_denied','not_found','invalid_request','invalid_subscription','dataset_changed'].includes(error?.message)?error.message:'notification_unavailable';return reply(code==='access_denied'?403:code==='not_found'?404:code==='dataset_changed'?409:code.startsWith('invalid_')?400:503,{error:code,code});}
  };
 }
