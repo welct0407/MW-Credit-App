@@ -2,7 +2,6 @@ import {useAppUpdateBlock} from './app-update-safety';
 import {Icon} from './Icon';
 import {ReceiptPicker} from './ReceiptPicker';
 import {readOfflineDataset} from './offline-dataset';
-import {applicationEnvironment} from './environment';
 import {syncSavedRequest} from './offline-sync';
 import {RecordAction} from './RecordAction';
 import {HeaderBack} from './HeaderBack';
@@ -21,7 +20,7 @@ const pendingKey='mw-credit.pending-command';
 const uuid=/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i;
 export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access:CommandAccess;borrowerId:string;thai:boolean;onBack:()=>void;onPosted?:(requestId:string)=>void}) {
  const t=(en:string,th:string)=>thai?th:en;
- const queueEnabled=applicationEnvironment!=='prod'&&!!access.offline;
+ const queueEnabled=!!access.offline;
  const [draft,setDraft]=useState<Draft|null>(null),[selected,setSelected]=useState<string[]>([]),[account,setAccount]=useState(''),[notes,setNotes]=useState('');
  const [state,setState]=useState<'loading'|'edit'|'review'|'sending'|'unknown'|'posted'|'rejected'|'conflict'|'error'|'queued'>('loading');
  useAppUpdateBlock(['loading','edit','review','sending','unknown','conflict'].includes(state));

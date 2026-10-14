@@ -7,7 +7,7 @@ import {WaitingToSyncButton} from './WaitingToSyncButton';
 import {startSavedRequestSync} from './offline-sync';
 import {Notifications} from './Notifications';
 import {PaymentRecord as NotificationPaymentRecord} from './PaymentRecord';
-import {applicationEnvironment,commandOriginAllowed,liveConfiguration} from './environment';
+import {liveOfflineEnabled,applicationEnvironment,commandOriginAllowed,liveConfiguration} from './environment';
 import {ManagementCash} from './ManagementCash';
 import {RecordAction} from './RecordAction';
 import {HeaderBack,useHeaderBack} from './HeaderBack';
@@ -184,13 +184,13 @@ function App() {
   useEffect(() => {
     const disconnected = () => {
       offlineBlocked.current = true;
-      if(applicationEnvironment==='dev'&&currentUser.current){cancelPending();setStatus(previous=>previous==='ready'?'ready':'offline');}
+      if(liveOfflineEnabled&&currentUser.current){cancelPending();setStatus(previous=>previous==='ready'?'ready':'offline');}
       else {resetSearch();clear(); setCollectionStatus('idle'); setStatus('offline');}
       menuDialog.current?.close();
     };
     let checkingConnection=false;
     const connected=()=>{
-      if(applicationEnvironment!=='dev'||!navigator.onLine||checkingConnection)return;
+      if(!liveOfflineEnabled||!navigator.onLine||checkingConnection)return;
       const blocked=offlineBlocked.current;offlineBlocked.current=false;
       if(pwaLatest.current.startup==='offline')pwaLatest.current.retryStartup();
       if(blocked){setAuthRevision(value=>value+1);return;}
@@ -214,7 +214,7 @@ function App() {
     } catch { setStatus('sign_out_error'); }
   }
   async function request<T>(signedInUser: User, path: string, localError?: (failure: ReadFailure<'not_found' | 'unavailable'>) => void, onDateChanged?: (failure: ReadFailure<'business_date_changed'>) => void, onCached?: (value:T)=>void): Promise<T | null> {
-    if (pwa.startup!=='ready'&&!(applicationEnvironment==='dev'&&pwa.startup==='offline')) return null;
+    if (pwa.startup!=='ready'&&!(liveOfflineEnabled&&pwa.startup==='offline')) return null;
     const controller = new AbortController();pendingReads.current.add(controller); pending.current = controller;
     const revision = generation.current;
     setRootError(null); setBusy(true);
@@ -320,7 +320,7 @@ function App() {
     } catch { setStatus(offlineBlocked.current ? 'offline' : 'unavailable'); }
     return () => { disposed = true; unsubscribe?.(); generation.current++;for(const controller of pendingReads.current)controller.abort();pendingReads.current.clear();pending.current?.abort(); };
   }, []);
-  useEffect(()=>{if(!user)return;let active=true;if(applicationEnvironment==='dev'&&(offlineBlocked.current||pwa.startup==='offline')){void offlineRepository?.syncAuthorized().then(authorized=>{if(!active||currentUser.current!==user)return;if(authorized){setStatus('ready');if(!businessWorkspace)void load(user)}else setStatus('offline')});return()=>{active=false}}if(pwa.startup!=='ready')return;if(businessWorkspace)setStatus('ready');else void load(user)},[user,pwa.startup,authRevision,offlineRepository]);
+  useEffect(()=>{if(!user)return;let active=true;if(liveOfflineEnabled&&(offlineBlocked.current||pwa.startup==='offline')){void offlineRepository?.syncAuthorized().then(authorized=>{if(!active||currentUser.current!==user)return;if(authorized){setStatus('ready');if(!businessWorkspace)void load(user)}else setStatus('offline')});return()=>{active=false}}if(pwa.startup!=='ready')return;if(businessWorkspace)setStatus('ready');else void load(user)},[user,pwa.startup,authRevision,offlineRepository]);
   async function login() {
     if (!auth || offlineBlocked.current) return;
     clear(); setStatus('signing_in');
@@ -402,7 +402,7 @@ function App() {
     </div>}
     {user && <button className="secondary-button live-account-signout" aria-label={t('Sign out', 'ออกจากระบบ')} title={t('Sign out', 'ออกจากระบบ')} onClick={logout}>{compact ? <Icon name="signout"/> : t('Sign out', 'ออกจากระบบ')}</button>}
   </div>;
-  const commandAccess:CommandAccess|undefined=user && commandOriginAllowed(import.meta.env.VITE_COMMAND_API_ORIGIN||'') && (businessWorkspace||import.meta.env.VITE_COMMAND_FIXTURE_BORROWER_ID) ? {origin:import.meta.env.VITE_COMMAND_API_ORIGIN,fixtureBorrowerId:import.meta.env.VITE_COMMAND_FIXTURE_BORROWER_ID??'',ownerTesting:businessWorkspace,offline:offlineRepository??undefined,...(applicationEnvironment==='dev'?{prepareSync:prepareQueuedSync}:{}),onPosted:id=>{clear();setView('collection');setCollectionRefresh(value=>value+1);setPostedNotice(id)},token:async()=>{if(pwa.startup!=='ready'||offlineBlocked.current||currentUser.current!==user)throw Error('Session unavailable');return user.getIdToken()},authFailure:code=>{if(code===401)void expireSession();else {void offlineRepositoryRef.current?.purge();clear();setStatus('denied')}}} : undefined;
+  const commandAccess:CommandAccess|undefined=user && commandOriginAllowed(import.meta.env.VITE_COMMAND_API_ORIGIN||'') && (businessWorkspace||import.meta.env.VITE_COMMAND_FIXTURE_BORROWER_ID) ? {origin:import.meta.env.VITE_COMMAND_API_ORIGIN,fixtureBorrowerId:import.meta.env.VITE_COMMAND_FIXTURE_BORROWER_ID??'',ownerTesting:businessWorkspace,offline:offlineRepository??undefined,...(liveOfflineEnabled?{prepareSync:prepareQueuedSync}:{}),onPosted:id=>{clear();setView('collection');setCollectionRefresh(value=>value+1);setPostedNotice(id)},token:async()=>{if(pwa.startup!=='ready'||offlineBlocked.current||currentUser.current!==user)throw Error('Session unavailable');return user.getIdToken()},authFailure:code=>{if(code===401)void expireSession();else {void offlineRepositoryRef.current?.purge();clear();setStatus('denied')}}} : undefined;
   const preparationAccess=useRef(commandAccess);preparationAccess.current=commandAccess;
   useEffect(()=>{
     if(!commandAccess||status!=='ready'||view!=='borrowers'||busy)return;
@@ -410,11 +410,11 @@ function App() {
     if(selected){const base='/api/borrowers/'+encodeURIComponent(selected.id),loanCursor=loanCursors.current[loanPage-1];stops.push(subscribeOfflineDataset<DetailResult>(commandAccess,base,value=>setSelected(value.item)));stops.push(subscribeOfflineDataset<LoanPageResult>(commandAccess,base+'/loans?limit=25'+(loanCursor?'&cursor='+encodeURIComponent(loanCursor):''),value=>{setLoans(value.items);setLoanCursor(value.nextCursor);setLoanAsOf(value.asOf)}));if(selectedLoan)stops.push(subscribeOfflineDataset<LoanDetailResult>(commandAccess,base+'/loans/'+encodeURIComponent(selectedLoan.id),value=>{setSelectedLoan(value.item);setLoanDetailAsOf(value.asOf)}))}
     return()=>stops.forEach(stop=>stop());
   },[offlineRepository,status,view,appliedQuery,borrowerPage,loanPage,selected?.id,selectedLoan?.id,busy]);
-  useEffect(()=>{if(status!=='ready'||!commandAccess||applicationEnvironment!=='dev')return;return startOfflinePreparation({...commandAccess,token:async()=>{const access=preparationAccess.current;if(!access)throw Error('Session unavailable');return access.token()},authFailure:code=>preparationAccess.current?.authFailure(code)},{readOrigin:import.meta.env.VITE_API_ORIGIN})},[user?.uid,offlineRepository,status==='ready']);
+  useEffect(()=>{if(status!=='ready'||!commandAccess||!liveOfflineEnabled)return;return startOfflinePreparation({...commandAccess,token:async()=>{const access=preparationAccess.current;if(!access)throw Error('Session unavailable');return access.token()},authFailure:code=>preparationAccess.current?.authFailure(code)},{readOrigin:import.meta.env.VITE_API_ORIGIN})},[user?.uid,offlineRepository,status==='ready']);
   const preparingSync=useRef<{repository:typeof offlineRepository;task:Promise<void>}|null>(null);
   async function prepareQueuedSync(){
     const repository=offlineRepository;
-    if(applicationEnvironment!=='dev'||!repository||!user||currentUser.current!==user||!navigator.onLine)throw Error('Connection required');
+    if(!liveOfflineEnabled||!repository||!user||currentUser.current!==user||!navigator.onLine)throw Error('Connection required');
     offlineBlocked.current=false;
     if(pwaLatest.current.startup!=='ready'){if(pwaLatest.current.startup==='offline'||pwaLatest.current.startup==='error')pwaLatest.current.retryStartup();throw Error('Checking app version');}
     if(await repository.syncAuthorized())return;
@@ -430,12 +430,12 @@ function App() {
   }
   const latestCommandAccess=useRef(commandAccess);latestCommandAccess.current=commandAccess;
   useEffect(()=>{
-    if(applicationEnvironment!=='dev'||status!=='ready'||pwa.startup!=='ready'||!commandAccess?.offline)return;
+    if(!liveOfflineEnabled||status!=='ready'||pwa.startup!=='ready'||!commandAccess?.offline)return;
     const initial=commandAccess;
     return startSavedRequestSync({...initial,prepareSync:()=>{const current=latestCommandAccess.current;if(!current||current.offline!==initial.offline)throw Error('Session unavailable');return current.prepareSync?.()??Promise.resolve()},token:()=>{const current=latestCommandAccess.current;if(!current||current.offline!==initial.offline)throw Error('Session unavailable');return current.token()},authFailure:code=>{const current=latestCommandAccess.current;if(current&&current.offline===initial.offline)current.authFailure(code)}});
   },[user?.uid,offlineRepository,status,pwa.startup]);
   useEffect(()=>{setNotificationPayment(null)},[user?.uid]);
-  useEffect(()=>{if(!user){preferenceOwner.current=null;return;}if(status!=='ready'||!commandAccess?.ownerTesting||!navigator.onLine)return;const applyPreference=preferenceOwner.current!==user.uid;preferenceOwner.current=user.uid;let active=true;const revision=languageRevision.current,done=beginRequest(),controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);void(async()=>{try{const response=await fetch(commandAccess.origin+'/api/preferences',{headers:{Authorization:'Bearer '+await commandAccess.token()},signal:controller.signal,cache:'no-store',credentials:'omit',redirect:'error'});if(!active)return;if(response.status===401||response.status===403){commandAccess.authFailure(response.status);return;}if(!response.ok)return;const value=(await response.json()).item?.language;if(!active)return;if(applicationEnvironment==='dev')await commandAccess.offline?.authorize();if(active&&applyPreference&&revision===languageRevision.current&&['English','ไทย'].includes(value)){setThai(value==='ไทย');document.documentElement.lang=value==='ไทย'?'th':'en';}}catch{}finally{clearTimeout(timer);done()}})();return()=>{active=false;controller.abort()}},[user,status,authRevision]);
+  useEffect(()=>{if(!user){preferenceOwner.current=null;return;}if(status!=='ready'||!commandAccess?.ownerTesting||!navigator.onLine)return;const applyPreference=preferenceOwner.current!==user.uid;preferenceOwner.current=user.uid;let active=true;const revision=languageRevision.current,done=beginRequest(),controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);void(async()=>{try{const response=await fetch(commandAccess.origin+'/api/preferences',{headers:{Authorization:'Bearer '+await commandAccess.token()},signal:controller.signal,cache:'no-store',credentials:'omit',redirect:'error'});if(!active)return;if(response.status===401||response.status===403){commandAccess.authFailure(response.status);return;}if(!response.ok)return;const value=(await response.json()).item?.language;if(!active)return;if(liveOfflineEnabled)await commandAccess.offline?.authorize();if(active&&applyPreference&&revision===languageRevision.current&&['English','ไทย'].includes(value)){setThai(value==='ไทย');document.documentElement.lang=value==='ไทย'?'th':'en';}}catch{}finally{clearTimeout(timer);done()}})();return()=>{active=false;controller.abort()}},[user,status,authRevision]);
   return <div className="app-shell live-shell" data-preview-theme={applicationEnvironment} data-pull-phase={refreshPull?.phase} style={{'--workspace-pull':(refreshPull?.distance??0)+'px'} as React.CSSProperties}><div className="workspace">
     <div className="workspace-pull-feedback" role="status" aria-live="polite" aria-atomic="true">{refreshPull&&refreshPull.phase!=='settling'&&<span className={'workspace-pull-cue'+(refreshPull.armed?' armed':'')}><Icon name={refreshPull.phase==='refreshing'||refreshPull.armed?'refresh':'down'}/><span>{refreshPull.phase==='refreshing'?t('Refreshing…','กำลังรีเฟรช…'):refreshPull.armed?t('Release to refresh','ปล่อยเพื่อรีเฟรช'):t('Pull to refresh','ดึงลงเพื่อรีเฟรช')}</span></span>}</div>
     <header ref={topbar} className="topbar">

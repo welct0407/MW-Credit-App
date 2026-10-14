@@ -40,7 +40,7 @@ export async function createProductionBusinessRuntime(env,dependencies) {
       const afterCommit=createPostCommitWake(loadDispatchConfig(env,'prod'),{log:completionLogger});
       const store=createEnvironmentCommandStore({afterCommit,receiptAdapter,sourceReceiptReader,pool,guardConnection,principalAllowed:membership.principalAllowed,resolveActor:membership.resolveActor,actorIssuer:config.issuer});
       handler=createEnvironmentCommandHandler({config,verifyPrincipal,store,completionLogger});
-      if(config.notificationsEnabled)handler=notificationHandler({next:handler,enabled:true,verifyPrincipal,origins:config.origins,publicKey:config.pushPublicKey,store:createNotificationStore({pool,guardConnection,resolveActor:membership.resolveActor,issuer:config.issuer})});
+      if(config.notificationsEnabled)handler=notificationHandler({next:handler,enabled:true,offlineDataset:true,verifyPrincipal,origins:config.origins,publicKey:config.pushPublicKey,store:createNotificationStore({pool,guardConnection,resolveActor:membership.resolveActor,issuer:config.issuer})});
       handler=createAgentReceiptHandler({next:handler,policy:loadAgentReceiptPolicy(env,'prod'),pool,guardConnection,afterCommit,verifyOidc:dependencies.verifyOidc});
       handler=createAgentConversationRuntime({next:handler,env,environment:'prod',pool,guardConnection,afterCommit,verifyOidc:dependencies.verifyOidc});
     }

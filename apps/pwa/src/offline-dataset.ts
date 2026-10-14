@@ -27,7 +27,7 @@ async function indexDataset(bundle:any){
 /** One bounded request at a time. Foreground navigation pauses the next chunk;
  * it does not throw away a request which the server is already processing. */
 export function startOfflinePreparation(access:Access,_options:{readOrigin?:string}={}){
- const repository=access.offline;if(!repository||repository.environment==='prod')return()=>{};const repo=repository;
+ const repository=access.offline;if(!repository)return()=>{};const repo=repository;
  let stopped=false,running=false,initialized=false,initializing=false,queue:string[]=[],media:string[]=[],requestedDomain:string|null=null,paused=false,timer:ReturnType<typeof setTimeout>|undefined,retryTimer:ReturnType<typeof setTimeout>|undefined,retryAttempts=0,controller:AbortController|null=null,activeTask:string|null=null;
  let lastChecked:number|null=null,recheck=false;
  const cycleDomains=new Set<string>(),cycleDone=new Set<string>();
@@ -219,7 +219,7 @@ async function page(rows:any[],url:URL,bundle:any,extra:any={}){
  return {...extra,items,nextCursor};
 }
 export async function readOfflineDataset(access:Access,path:string):Promise<any|null>{
- const repo=access.offline;if(!repo||repo.environment==='prod'||!await repo.syncAuthorized())return null;
+ const repo=access.offline;if(!repo||!await repo.syncAuthorized())return null;
  const url=parsed(path,access.origin),route=url.pathname,q=(url.searchParams.get('q')??'').trim();if([...q].length>100||/[\u0000-\u001f\u007f]/.test(q))return null;
  const domain=routeDomain(route);
  const bundle=await repo.readDataset(domain);if(!bundle||bundle.schemaVersion!==1||!bundle.complete||!await repo.syncAuthorized())return null;

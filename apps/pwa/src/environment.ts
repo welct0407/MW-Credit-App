@@ -3,6 +3,7 @@ export function environmentForMode(mode:string):ApplicationEnvironment {
  if(mode==='synthetic')return 'synthetic';if(mode==='live-dev')return 'dev';if(mode==='live-prod')return 'prod';throw Error('Explicit application environment required');
 }
 export const applicationEnvironment=environmentForMode(import.meta.env?.MODE??'synthetic');
+export const liveOfflineEnabled=applicationEnvironment==='dev'||applicationEnvironment==='prod';
 export const canonicalAppOrigin=applicationEnvironment==='prod'?'https://lm.mw-credit.com':'https://dev-lm.mw-credit.com';
 export function commandOriginAllowed(value:string,environment:ApplicationEnvironment=applicationEnvironment){
  try{const url=new URL(value);return environment!=='synthetic'&&url.origin===value&&url.protocol==='https:'&&new RegExp('^mw-credit-app-command-'+environment+'-[a-z0-9-]+(?:\\.[a-z0-9-]+)?\\.run\\.app$').test(url.hostname);}catch{return false;}

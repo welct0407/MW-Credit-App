@@ -119,7 +119,6 @@ export async function syncSavedRequests(access:CommandAccess):Promise<SavedSyncS
 
 /** One app-scoped coordinator; IndexedDB leases also serialize separate tabs. */
 export function startSavedRequestSync(access:CommandAccess){
- if(access.offline?.environment==='prod')return()=>{};
  let active=true,running=false,again=false,retries=0,timer:ReturnType<typeof setTimeout>|null=null;
  const retryDelays=[1000,2000,5000,10000,30000];
  const channel=typeof BroadcastChannel!=='undefined'&&access.offline?new BroadcastChannel('mw-credit-sync:'+access.offline.scopeName):null;

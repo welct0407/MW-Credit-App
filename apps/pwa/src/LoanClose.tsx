@@ -1,6 +1,5 @@
 import {Icon} from './Icon';
 import {ReceiptPicker} from './ReceiptPicker';
-import {applicationEnvironment} from './environment';
 import {wholeBaht} from './display-money';
 import {displayDate} from './display-date';
 import {HeaderBack} from './HeaderBack';
@@ -10,7 +9,7 @@ import type {CommandAccess} from './SelectedCharges';
 import {beginRequest} from './request-activity';
 import {OperationConfirm} from './OperationConfirm';
 export function LoanClose({access,item,savedDraft,thai,onBack,onApplied}:{access:CommandAccess;item:any;savedDraft?:any;thai:boolean;onBack:()=>void;onApplied:()=>void}){
- const queueEnabled=applicationEnvironment!=='prod'&&!!access.offline;
+ const queueEnabled=!!access.offline;
  const t=(en:string,th:string)=>thai?th:en,requestId=useRef(savedDraft?.requestId??crypto.randomUUID()),generation=useRef(0),uploadGeneration=useRef(0),reviewFlight=useRef(false),restored=useRef(!!savedDraft);
  const [preview,setPreview]=useState<any>(savedDraft?.preview??null),[account,setAccount]=useState(savedDraft?.account??''),[method,setMethod]=useState(savedDraft?.method??'Bank Transfer'),[notes,setNotes]=useState(savedDraft?.notes??''),[receipt,setReceipt]=useState<string|null>(savedDraft?.receipt??null),[receiptName,setReceiptName]=useState(savedDraft?.receiptName??''),[uploading,setUploading]=useState(false),[uploadError,setUploadError]=useState(''),[error,setError]=useState(''),[command,setCommand]=useState<any>(null),[checking,setChecking]=useState(false),[changedPreview,setChangedPreview]=useState<any>(null);
  const [receiptPreview,setReceiptPreview]=useState<Blob|null>(null);

@@ -1,7 +1,6 @@
 import {Icon} from './Icon';
 import {ReceiptPicker} from './ReceiptPicker';
 import {readCachedBlob} from './read-cache';
-import {applicationEnvironment} from './environment';
 import {wholeBaht} from './display-money';
 import {HeaderBack} from './HeaderBack';
 import {borrowerLabel} from './borrower-label';
@@ -14,7 +13,7 @@ import {CompactPager} from './CompactPager';
 import {beginRequest} from './request-activity';
 const whole=(value:unknown)=>String(value??'').replace(/\.0+$/,'');
 export function PaymentCorrectionForm({access,id,savedDraft,thai,onBack,onSaved}:{access:CommandAccess;id:string;savedDraft?:any;thai:boolean;onBack:()=>void;onSaved:()=>void}){
- const queueEnabled=applicationEnvironment!=='prod'&&!!access.offline;
+ const queueEnabled=!!access.offline;
  const t=(en:string,th:string)=>thai?th:en,[preview,setPreview]=useState<any>(savedDraft?.preview??null),[fields,setFields]=useState<any>(savedDraft?.fields??null),[accounts,setAccounts]=useState<any[]>(savedDraft?.accounts??[]),[lines,setLines]=useState<Record<string,any>>(savedDraft?.lines??{}),[page,setPage]=useState(0),[error,setError]=useState(''),[review,setReview]=useState<any>(null),[closeHash,setCloseHash]=useState<string|null>(savedDraft?.closeHash??null),[preparingClose,setPreparingClose]=useState(false),revision=useRef(0),[receiptMode,setReceiptMode]=useState(savedDraft?.receiptMode??'preserve'),[receiptId,setReceiptId]=useState<string|null>(savedDraft?.receiptId??null),[uploading,setUploading]=useState(false),[uploadError,setUploadError]=useState(''),requestId=useRef(savedDraft?.requestId??crypto.randomUUID()),uploadSequence=useRef(0),generation=useRef(0),restored=useRef(!!savedDraft),[borrowerQuery,setBorrowerQuery]=useState(''),[borrowerChoices,setBorrowerChoices]=useState<any[]>([]),[destination,setDestination]=useState<any>(null),destinationSequence=useRef(0);
  const [receiptPreview,setReceiptPreview]=useState<Blob|null>(null),[existingReceipt,setExistingReceipt]=useState<Blob|null>(null);
  const [receiptImage,setReceiptImage]=useState<Blob|null>(savedDraft?.receiptImage??null);

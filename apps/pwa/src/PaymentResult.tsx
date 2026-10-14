@@ -1,3 +1,4 @@
+import {applicationEnvironment} from './environment';
 import {useAppUpdateBlock} from './app-update-safety';
 import {ReceiptPicker} from './ReceiptPicker';
 import {invalidateCachedReads} from './read-cache';
@@ -16,12 +17,12 @@ export function PaymentResult({access,requestId,thai}:{access:CommandAccess;requ
  useAppUpdateBlock(busy||metadataUnknown||!!uploadError||!!localReceipt||receiptTouched||notes!==(data?.payment?.notes??''));
  const money=(value:string|null)=>value===null?'—':new Intl.NumberFormat(thai?'th-TH':'en-US',{style:'currency',currency:'THB',currencyDisplay:'narrowSymbol',maximumFractionDigits:0}).format(Number(value));
  async function call(path:string,init:RequestInit={}){if(access.offlineOnly||!navigator.onLine)throw Error();const done=beginRequest(),controller=new AbortController(),deadline=Date.now()+15000,timer=setTimeout(()=>controller.abort(),15000);try{const response=await fetch(access.origin+path,{...init,headers:{'X-MW-Wake-Deadline':String(deadline),...init.headers,Authorization:'Bearer '+await access.token()},signal:controller.signal,cache:'no-store',credentials:'omit',redirect:'error'});if(response.status===401||response.status===403)access.authFailure(response.status);return {response,data:await response.json()}}finally{clearTimeout(timer);done()}}
- function accept(value:any){setMetadataUnknown(false);setUploadError('');setLocalReceipt(null);setReceiptTouched(false);setData(value);setNotes(value.payment?.notes??'');const reference=value.payment?.receiptReference;const match=typeof reference==='string'?/^manual-receipts\/dev\/pwa\/[a-f0-9]{32}\/([a-f0-9]{32})\.(png|jpg)$/.exec(reference):null;setReceiptId(match?match[1].replace(/^(.{8})(.{4})(.{4})(.{4})(.{12})$/,'$1-$2-$3-$4-$5'):null);setExternal(!!reference&&!match)}
+ function accept(value:any){setMetadataUnknown(false);setUploadError('');setLocalReceipt(null);setReceiptTouched(false);setData(value);setNotes(value.payment?.notes??'');const reference=value.payment?.receiptReference;const match=typeof reference==='string'?new RegExp('^manual-receipts/'+applicationEnvironment+'/pwa/[a-f0-9]{32}/([a-f0-9]{32})\\.(png|jpg)$').exec(reference):null;setReceiptId(match?match[1].replace(/^(.{8})(.{4})(.{4})(.{4})(.{12})$/,'$1-$2-$3-$4-$5'):null);setExternal(!!reference&&!match)}
  async function refresh(){if(working.current)return;working.current=true;const current=++generation.current;setBusy(true);setError('');try{const result=await call('/api/payment-commands/'+requestId+'/result');if(!result.response.ok)throw Error();if(current===generation.current)accept(result.data)}catch{if(current===generation.current)setError(t('Recorded payment is unchanged. Current details could not be loaded.','ผลคำขอเดิมไม่เปลี่ยนแปลง แต่โหลดรายละเอียดปัจจุบันไม่ได้'))}finally{if(current===generation.current)setBusy(false);working.current=false}}
  useEffect(()=>{void refresh();return()=>{generation.current++}},[requestId]);
  useEffect(()=>{
   const reference=data?.payment?.receiptReference;
-  const match=typeof reference==='string'?/^manual-receipts\/dev\/pwa\/[a-f0-9]{32}\/([a-f0-9]{32})\.(png|jpg)$/.exec(reference):null;
+  const match=typeof reference==='string'?new RegExp('^manual-receipts/'+applicationEnvironment+'/pwa/[a-f0-9]{32}/([a-f0-9]{32})\\.(png|jpg)$').exec(reference):null;
   setImage(null);setImageError('');if(!match||access.offlineOnly)return;
   const id=match[1].replace(/^(.{8})(.{4})(.{4})(.{4})(.{12})$/,'$1-$2-$3-$4-$5');
   const done=beginRequest(),controller=new AbortController();let active=true,url:string|null=null;
