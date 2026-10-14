@@ -19,7 +19,7 @@ Private receipts: `gs://mw-payment-receipts-prod-508610-n7`. Agent originals and
 
 | Component | Pin / evidence |
 | --- | --- |
-| DEV frontend | source `95fab655431a4459e22ec1dbdd1541d035333d78`, Hosting `f453babe4ceae360`, release `1791920857649000`, marker `1a196e2e67af5727b44b86f6`, entry `index-Bcvh5i_0.js`; live-dev build, verified 14 October 2026 02:47 ICT; [R058 record](Development_Changes.md#r058-borrower-upcoming-batch) |
+| DEV frontend | source `e03df9cfd237eeebb32d468d61f8b7fe6988537e`, Hosting `5570046e589a4168`, release `1791941281391000`, marker `467ffd6cfed8c20225f57f9c`, entry `index-OiYf6Erc.js`; live-dev build, verified 14 October 2026 08:28 ICT; [R058 record](Development_Changes.md#r058-borrower-upcoming-batch) |
 | DEV reader | `mw-credit-app-read-dev-00019-ntb`, Ready and 100% traffic; digest `sha256:5b2922462dab154a4c4fa94856f69d82488ebc41bfef7e2a219d5b68ed47af54`, source `68e8a39`; existing DEV database/IAM identity/origins preserved; [R058 record](Development_Changes.md#r058-borrower-upcoming-batch) |
 | PROD frontend | source c07ada0, Hosting 218943a0966051ca, release 1791825659922000; [actual record](../outputs/r054-production/promotion-actual.json) |
 | PROD command / notify | revisions 00006-lrd / 00003-bj4, digest b4f528bc8ac48008ed0951e227089d3d0802a7a6c2dbaa826ada5e021e156aea; [V91 fix](../outputs/r056-apple-push/README.md) |
