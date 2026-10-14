@@ -4,7 +4,7 @@ A two-user financial operations PWA using the existing PostgreSQL financial engi
 
 | Component | Responsibility |
 | --- | --- |
-| PWA | Mobile/desktop operations, management, analytics, online posting, bounded offline viewing/drafts |
+| PWA | Mobile/desktop operations, management, analytics, online posting, contextual drafts and durable saved-change synchronization |
 | Native read/command APIs | Authentication, authorization, validation, idempotent commands and private receipt access |
 | PostgreSQL | Financial records, allocations, cash effects, constraints and analytical providers |
 | Debian integration agent | Receipt capture/review and messaging under its service catalogue |
@@ -17,9 +17,9 @@ A two-user financial operations PWA using the existing PostgreSQL financial engi
 
 PWA and agent payments converge on native API/SQL command handling. Do not duplicate allocation logic in clients. Preserve source identity, idempotency, audit and reconciliation; resolve uncertain outcomes before retrying.
 
-Use [data model](PWA_Data_Model_Overview.md) and [dictionary](Data%20Dictionary/README.md). Heavy reusable computation belongs in SQL. Preserve grain, unknown/null values, signed corrections, date rules and provenance. Operational values use live providers; completed-day analytics use governed snapshots. Historical corrections require rebuilding affected dates.
+Use [data model](PWA_Data_Model_Overview.md) and [dictionary](Data%20Dictionary/README.md). Heavy reusable computation belongs in SQL. Preserve grain, unknown/null values, signed corrections, date rules and provenance. Operational reads can display owner-scoped cached responses immediately while revalidating through live providers; completed-day analytics use governed snapshots. DEV and the PROD prepare complete owner-scoped read bundles and authorized receipt media in background, prioritizing foreground reads so unvisited views can query prepared data offline. Persistent bundles are separate from the evictable response cache. Bounded resumable chunks replace an existing complete bundle only after traversal finishes, using actor/day-scoped cursors and local mutation revision guards; traversal is not one global database snapshot. After initial completion, recurring content-hash manifests reuse unchanged DTO content and detect other-user changes; main-domain source fingerprints avoid unchanged provider evaluation, while protected recipient notifications scan manifests. Dataset/checkpoint commit guards preserve local mutations and pending edits. The header shows refresh/failure and active online cycle progress; polling coalesces with in-flight preparation to preserve cursor continuity; applied writes invalidate read revisions. Financial command validation and action previews remain network-authoritative. Historical corrections require rebuilding affected dates.
 
-Principal, interest, capital, expenses and settlements remain distinct. Do not silently change reporting formulas in UI work. Partner identity/roles control access; delivery addresses are not authentication. DEV delivery stays isolated. Offline drafts are never automatically posted on reconnect.
+Principal, interest, capital, expenses and settlements remain distinct. Do not silently change reporting formulas in UI work. Partner identity/roles control access; delivery addresses are not authentication. DEV delivery stays isolated. Unfinished forms restore in their original context and require Save/Confirm before synchronization. The DEV and PROD saved-change coordinator reconciles durable queued requests by request ID before posting on startup/reconnect/foreground wake or manual Sync now, serializes tabs and retains rejected/conflicting changes for review. Manual and automatic synchronization share the same engine; short retries back off while durable requests remain, and abandoned-tab locks recover without changing request identity. Released R059 enables owner-authorized one-time note-draft migration and automatic synchronization in PROD.
 
 ## Receipts, push and jobs
 

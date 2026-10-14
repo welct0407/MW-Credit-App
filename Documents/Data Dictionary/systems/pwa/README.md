@@ -2,6 +2,8 @@
 
 Source reconciled at MW-Credit-App commit `808cdf53225ce627ea41ef4d3666bf97a3c9cbfe` (see exact source URLs in each object for the authoritative pin). Current deployments are recorded in [environment inventory](../../../Environment_Inventory.md).
 
+R059 is Released at exact source `7aecf695789fee3ca3b1fd1f2bece4c4a4bc8ba6`, deployed DEV-first then PROD. Current frontend/API artifacts and recovery are in the environment inventory; unchanged semantic definitions retain their earlier immutable owning source evidence. Full CI passed 403 units and 423 browser cases with 11 existing skips. No signed-in business or physical-device smoke is claimed; the deferred Collection Note concern remains unchanged. Historical DEV work used R058, whose separate integration release remains preserved.
+
 - [Application](application.yaml): environment bindings, pages, authentication and ownership.
 - [Human API](human-api.yaml): key route families and exact owning validation contracts.
 - [Agent API](agent-api.yaml): authenticated machine operations and receipt command identity.

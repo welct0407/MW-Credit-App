@@ -1,70 +1,80 @@
-{
-  "format": 1,
-  "identity": {
-    "system": "pwa",
-    "component": "mw-credit",
-    "kind": "worker-contract",
-    "name": "notifications-jobs",
-    "scope": "dev-and-prod"
-  },
-  "verification": {
-    "status": "documented",
-    "source": "https://github.com/welct0407/MW-Credit-App/blob/808cdf53225ce627ea41ef4d3666bf97a3c9cbfe/services/notifications/handler.mjs",
-    "coverage": "Source and published deployment reconciliation, 14 October 2026; no new live audit."
-  },
-  "content": {
-    "tables": [
-      "public.pwa_notification_events",
-      "public.pwa_notification_deliveries",
-      "public.pwa_push_subscriptions",
-      "public.pwa_notification_preferences",
-      "public.pwa_job_runs"
-    ],
-    "browser_routes": [
-      "GET /api/notifications",
-      "GET /api/notifications/status",
-      "GET /api/notifications/push-config",
-      "POST /api/notifications/subscriptions",
-      "PUT /api/notifications/preference"
-    ],
-    "dispatch": "Command service performs authenticated post-commit wake to /internal/dispatch. Wake failure defers to recovery without changing the committed payment result.",
-    "schedules": [
-      {
-        "name": "notifications",
-        "cron": "* * * * *",
-        "path": "/internal/dispatch"
-      },
-      {
-        "name": "daily_charges",
-        "cron": "5 0 * * *",
-        "path": "/internal/jobs/daily-charges"
-      },
-      {
-        "name": "recent_analytics",
-        "cron": "0 * * * *",
-        "path": "/internal/jobs/recent-analytics"
-      }
-    ],
-    "time_zone": "Asia/Bangkok",
-    "roles": {
-      "notify_callers": [
-        "scheduler",
-        "command service"
-      ],
-      "jobs_callers": [
-        "scheduler"
-      ]
-    },
-    "transport": "Web Push with VAPID secret in Secret Manager; iPhone Home Screen enrollment; no always-on listener",
-    "apple_endpoint_rule": "Valid DNS subdomains of push.apple.com accepted by V91 registration and current delivery validation",
-    "contracts": [
-      "services/notifications/handler.mjs",
-      "services/notifications/postcommit.mjs",
-      "services/workers/config.mjs",
-      "services/notifications/web-push.mjs",
-      "infrastructure/modules/dev-workers/main.tf",
-      "database/migrations/V91__apple_push_subscription_endpoints.sql"
-    ],
-    "source_base": "https://github.com/welct0407/MW-Credit-App/blob/808cdf53225ce627ea41ef4d3666bf97a3c9cbfe/"
-  }
-}
+"format": 1
+"identity":
+  "system": "pwa"
+  "component": "mw-credit"
+  "kind": "worker-contract"
+  "name": "notifications-jobs"
+  "scope": "dev-and-prod"
+"verification":
+  "status": "documented"
+  "source": "https://github.com/welct0407/MW-Credit-App/blob/808cdf53225ce627ea41ef4d3666bf97a3c9cbfe/services/notifications/handler.mjs"
+  "coverage": "Source and published deployment reconciliation, 14 October 2026; no new live audit."
+"content":
+  "tables":
+  - "public.pwa_notification_events"
+  - "public.pwa_notification_deliveries"
+  - "public.pwa_push_subscriptions"
+  - "public.pwa_notification_preferences"
+  - "public.pwa_job_runs"
+  "browser_routes":
+  - "GET /api/notifications"
+  - "GET /api/notifications/status"
+  - "GET /api/notifications/push-config"
+  - "POST /api/notifications/subscriptions"
+  - "PUT /api/notifications/preference"
+  - "GET /api/notifications/offline-dataset (DEV and PROD)"
+  - "POST /api/notifications/offline-dataset?protocol=3 (DEV/PROD read-only)"
+  "dispatch": "Command service performs authenticated post-commit wake to /internal/dispatch. Wake failure defers to recovery\
+    \ without changing the committed payment result."
+  "schedules":
+  - "name": "notifications"
+    "cron": "* * * * *"
+    "path": "/internal/dispatch"
+  - "name": "daily_charges"
+    "cron": "5 0 * * *"
+    "path": "/internal/jobs/daily-charges"
+  - "name": "recent_analytics"
+    "cron": "0 * * * *"
+    "path": "/internal/jobs/recent-analytics"
+  "time_zone": "Asia/Bangkok"
+  "roles":
+    "notify_callers":
+    - "scheduler"
+    - "command service"
+    "jobs_callers":
+    - "scheduler"
+  "transport": "Web Push with VAPID secret in Secret Manager; iPhone Home Screen enrollment; no always-on listener"
+  "apple_endpoint_rule": "Valid DNS subdomains of push.apple.com accepted by V91 registration and current delivery validation"
+  "contracts":
+  - "services/notifications/handler.mjs"
+  - "services/notifications/postcommit.mjs"
+  - "services/workers/config.mjs"
+  - "services/notifications/web-push.mjs"
+  - "infrastructure/modules/dev-workers/main.tf"
+  - "database/migrations/V91__apple_push_subscription_endpoints.sql"
+  "source_base": "https://github.com/welct0407/MW-Credit-App/blob/808cdf53225ce627ea41ef4d3666bf97a3c9cbfe/"
+  "offline_history": "DEV and owner-authorized PROD recipient endpoint retains omitted-protocol complete GET and protocol2\
+    \ cursor GET. Protocol3 read-only POST uses bounded content-hash manifests, transferring only requested missing values\
+    \ through protected recipient RPCs. sourceVersion=null: every sweep scans manifests, without main-domain fast gate or\
+    \ global snapshot claim. Dispatch/subscriptions/schedules unchanged."
+  "offline_history_source": "https://github.com/welct0407/MW-Credit-App/blob/6a3cf8cde2710a45b0368bc7f177f21bdab2693c/services/notifications/store.mjs"
+  "offline_history_production_source": "https://github.com/welct0407/MW-Credit-App/blob/b77a1ef3d58c488a2113b97948aefe83945e84ec/services/production/business-runtime.mjs"
+"evidence":
+  "/content/offline_history":
+    "reference": "https://github.com/welct0407/MW-Credit-App/pull/6"
+    "reason": "Owner-authorized production offline parity candidate; final source/deployment pending."
+    "state": "value"
+  "/content/offline_history_source":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/6a3cf8cde2710a45b0368bc7f177f21bdab2693c/services/notifications/store.mjs"
+    "reason": "Incremental content-only refresh after full preparation; canonical restricted SQL and browser checks protect\
+      \ pending edits and actor/recipient boundaries"
+    "state": "value"
+  "/content/browser_routes":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/7aecf695789fee3ca3b1fd1f2bece4c4a4bc8ba6/services/production/business-runtime.mjs"
+    "reason": "Reconcile owner-authorized R059 verified DEV-first/PROD release; preserve test and live-smoke limits."
+    "state": "value"
+  "/content/offline_history_production_source":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/b77a1ef3d58c488a2113b97948aefe83945e84ec/apps/pwa/src/read-cache.ts"
+    "reason": "Pin corrected frozen R059 candidate after cache/draft restoration remediation; finalCI/artifacts/deployment\
+      \ pending."
+    "state": "value"

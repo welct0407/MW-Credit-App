@@ -1,57 +1,571 @@
-{
-  "format": 1,
-  "identity": {
-    "system": "pwa",
-    "component": "mw-credit",
-    "kind": "application",
-    "name": "application",
-    "scope": "dev-and-prod"
-  },
-  "verification": {
-    "status": "documented",
-    "source": "https://github.com/welct0407/MW-Credit-App/blob/808cdf53225ce627ea41ef4d3666bf97a3c9cbfe/apps/pwa/src",
-    "coverage": "Source and published deployment reconciliation, 14 October 2026; no new live audit."
-  },
-  "content": {
-    "environments": {
-      "dev": {
-        "origin": "https://dev-lm.mw-credit.com",
-        "database": "loan_manager_dev"
-      },
-      "prod": {
-        "origin": "https://lm.mw-credit.com",
-        "database": "loan_manager_prod"
-      }
-    },
-    "authentication": "Shared Firebase/Google sign-in; server-side Partner membership and capabilities; environment-specific routes",
-    "pages": [
-      "Dashboard",
-      "Collection",
-      "Borrowers",
-      "Loans",
-      "Charges",
-      "Payments",
-      "Expenses",
-      "Cash statements",
-      "Partners",
-      "Cash holders",
-      "Cash accounts",
-      "Contributions",
-      "Settlements",
-      "Cash movements",
-      "Openings",
-      "Assessments",
-      "Analytics",
-      "Analytics validation"
-    ],
-    "source_contracts": [
-      "apps/pwa/src",
-      "services/api/read-access.mjs",
-      "services/production/business-principal.mjs",
-      "services/payment-command/handler.mjs"
-    ],
-    "data_ownership": "PostgreSQL owns financial calculations; UI does not post offline or automatically replay drafts",
-    "reporting_link": false,
-    "source_base": "https://github.com/welct0407/MW-Credit-App/blob/808cdf53225ce627ea41ef4d3666bf97a3c9cbfe/"
-  }
-}
+"format": 1
+"identity":
+  "system": "pwa"
+  "component": "mw-credit"
+  "kind": "application"
+  "name": "application"
+  "scope": "dev-and-prod"
+"verification":
+  "status": "documented"
+  "source": "https://github.com/welct0407/MW-Credit-App/blob/808cdf53225ce627ea41ef4d3666bf97a3c9cbfe/apps/pwa/src"
+  "coverage": "Source and published deployment reconciliation, 14 October 2026; no new live audit."
+"content":
+  "environments":
+    "dev":
+      "origin": "https://dev-lm.mw-credit.com"
+      "database": "loan_manager_dev"
+    "prod":
+      "origin": "https://lm.mw-credit.com"
+      "database": "loan_manager_prod"
+  "authentication": "Shared Firebase/Google sign-in; server-side Partner membership and capabilities; environment-specific\
+    \ routes"
+  "pages":
+  - "Dashboard"
+  - "Collection"
+  - "Borrowers"
+  - "Loans"
+  - "Charges"
+  - "Payments"
+  - "Expenses"
+  - "Cash statements"
+  - "Partners"
+  - "Cash holders"
+  - "Cash accounts"
+  - "Contributions"
+  - "Settlements"
+  - "Cash movements"
+  - "Openings"
+  - "Assessments"
+  - "Analytics"
+  - "Analytics validation"
+  "source_contracts":
+  - "apps/pwa/src"
+  - "services/api/read-access.mjs"
+  - "services/production/business-principal.mjs"
+  - "services/payment-command/handler.mjs"
+  "data_ownership": "PostgreSQL owns financial calculations. Financial commands apply online through authenticated APIs. Unfinished\
+    \ drafts never auto-submit; DEV and owner-authorized PROD saved/confirmed durable requests reconcile and synchronize on\
+    \ startup/reconnect with their original identity."
+  "reporting_link": false
+  "source_base": "https://github.com/welct0407/MW-Credit-App/blob/808cdf53225ce627ea41ef4d3666bf97a3c9cbfe/"
+  "borrower_upcoming":
+    "scope": "Selected visible borrower detail in both operational full detail and read-only fallback; includes borrowers\
+      \ with only future charges"
+    "presentation": "Borrower Upcoming Charges auto-loads on opening, with independent loading/empty states and error-only\
+      \ retry; no dedicated refresh button. Retry reloads the summary for a changed business date or unavailable selected\
+      \ date. Shared Collection summary, date detail and paging remain unchanged."
+    "freshness": "Previews reused for at most 60 seconds on the same Asia/Bangkok day and invalidated on visibility change;\
+      \ date paging uses fresh API reads"
+    "request_safety": "Abort and generation guards reject stale borrower results; controls do not submit borrower changes"
+    "financial_effect": "Read-only forecast; no charge or financial write"
+    "delivery": "R059 Released14October2026 at23:55:51Bangkok verification checkpoint. Exactsource 7aecf695789fee3ca3b1fd1f2bece4c4a4bc8ba6\
+      \ deployed to DEVHostingad24287c9a3def84 and PRODHostingca22762299e518df; PRODreader00005-v9z/command00007-gh2 ready100%,\
+      \ workers andV91 preserved. FullCI38600194302 passed403units and423browsercases with11existing skips. Canonical artifacts/health/auth-gate\
+      \ verified; no signed-in business or physicaliPhone smoke, financialwrites or deferredCollectionNote fix claimed. Recovery/pins\
+      \ in Environment_Inventory and Development_Changes."
+    "source": "https://github.com/welct0407/MW-Credit-App/blob/95fab655431a4459e22ec1dbdd1541d035333d78/apps/pwa/src/SharedBorrowerDetail.tsx"
+    "read_only_source": "https://github.com/welct0407/MW-Credit-App/blob/68e8a39e63e44123dcbab3f819c72d711e2a3240/apps/pwa/src/live-main.tsx"
+  "navigation":
+    "swipe_back": "Single-touch right drag moves only the middle content and reveals the prior page with parallax; colored\
+      \ header/footer stay fixed. Starts at left edge or over controls; eligible pages invoke the existing current Back action\
+      \ and its form/discard guards. Root pages without Back do not navigate."
+    "gesture": "Commit at 35% of middle viewport width or at least 60px with forward velocity over 0.5px/ms; otherwise snap\
+      \ back. Settling is 180ms, zero duration for reduced motion."
+    "previews": "Inert, aria-hidden session-memory DOM previews capture scroll/input state; scoped navigation keys and successful-creation\
+      \ replacement preserve the correct parent. Context changes clear previews."
+    "exclusions": "Horizontal scrollers, sliders/media and open dialogs; vertical-first movement, multiple touches, changed\
+      \ Back action or disabled control cancel the gesture."
+    "source": "https://github.com/welct0407/MW-Credit-App/blob/5d046627481ff151f299bad30b784ca418f4b58c/apps/pwa/src/swipe-back.ts"
+    "shell_source": "https://github.com/welct0407/MW-Credit-App/blob/5d046627481ff151f299bad30b784ca418f4b58c/apps/pwa/src/live-main.tsx"
+    "delivery": "R059 Released14October2026 at23:55:51Bangkok verification checkpoint. Exactsource 7aecf695789fee3ca3b1fd1f2bece4c4a4bc8ba6\
+      \ deployed to DEVHostingad24287c9a3def84 and PRODHostingca22762299e518df; PRODreader00005-v9z/command00007-gh2 ready100%,\
+      \ workers andV91 preserved. FullCI38600194302 passed403units and423browsercases with11existing skips. Canonical artifacts/health/auth-gate\
+      \ verified; no signed-in business or physicaliPhone smoke, financialwrites or deferredCollectionNote fix claimed. Recovery/pins\
+      \ in Environment_Inventory and Development_Changes."
+    "workspace_gestures": "Eligible root rightward left-edge drag opens the menu interactively; existing leftward root gesture\
+      \ remains compatible. Drawer left drag closes interactively. Reference-choice context refresh preserves entered fields;\
+      \ static/unsafe edits show preserve-entries feedback, and queue pull uses safe sync. Input/dialog/selection/horizontal-scroll\
+      \ guards remain."
+    "workspace_source": "https://github.com/welct0407/MW-Credit-App/blob/a5c3f9f7141ece8b522fbdb76024d132a24cae11/apps/pwa/src/workspace-gestures.ts"
+    "menu_drawer":
+      "motion": "Drawer follows the finger during eligible opening/closing drag while underlying page/header/footer remain\
+        \ fixed. Short/canceled drag restores starting state; committed drag settles."
+      "commit": "35% drawer width or at least60px with forward velocity above0.5px/ms; settle180ms, zero duration for reduced\
+        \ motion."
+      "guards": "Single-touch/direction/context guards and click suppression; focus trap/restoration retained. Close button,\
+        \ backdrop, Escape and menu actions use the same drawer controller; resize/visibility/scope changes cancel safely."
+      "source": "https://github.com/welct0407/MW-Credit-App/blob/dbc6940ee754c569103484a536f5a800c161ab24/apps/pwa/src/menu-drawer.ts"
+    "pull_refresh":
+      "threshold": "Deliberate96px downward pull at scroll top arms the existing enabled header refresh action; moving below\
+        \ threshold disarms it, long holds remain eligible and release invokes it once."
+      "feedback": "Shared workspace strip places all bilingual Pull to refresh / Release to refresh / Refreshing text above\
+        \ the colored header, moving header and middle content down while footer stays fixed. Armed release leaves56px strip\
+        \ until the current header request settles, then180ms settling (zero duration under reduced motion). Editor-preserving\
+        \ context action remains; no main-local gap."
+      "haptic": "Feature-detected12ms vibration requested only on committed release where supported; iPhone Safari/PWA has\
+        \ no Vibration API. Mocked call-order proof is not hardware verification."
+      "source": "https://github.com/welct0407/MW-Credit-App/blob/a5c3f9f7141ece8b522fbdb76024d132a24cae11/apps/pwa/src/workspace-gestures.ts"
+      "placement_sources":
+      - "https://github.com/welct0407/MW-Credit-App/blob/a22aa5da1c92d65f56912ba9f25cbae3aec9fd40/apps/pwa/src/live-main.tsx"
+      - "https://github.com/welct0407/MW-Credit-App/blob/a22aa5da1c92d65f56912ba9f25cbae3aec9fd40/apps/pwa/src/live-style.css"
+    "upcoming_back":
+      "behavior": "Returning from Collection Upcoming date detail cancels the active read, advances request revision and resets\
+        \ busy/status before clearing detail, so late cached revalidation cannot reopen the date after Back."
+      "source": "https://github.com/welct0407/MW-Credit-App/blob/a5c6de58138625dba6257ad0fb0931ebaf0d0512/apps/pwa/src/CollectionRecords.tsx"
+  "collection_receiving_ui":
+    "collection_note": "Textarea grows to fit loaded/edited contents and on resize. Autosave after 650ms pause or blur queues\
+      \ a durable saved-note request, deferred during IME. Preserve versions, immutable pending identity and unknown-outcome\
+      \ recovery; chained later text is bound only after predecessor applied and current full borrower fields still match."
+    "collection_receipts": "Large horizontal image-only gallery displays both eligible manual and agent evidence per payment\
+      \ through existing authenticated receipt source reads; no date/amount/processing-time captions. Incremental paging appends\
+      \ images; retry preserves loaded images and resumes the failed cursor. Existing eligibility and request scope remain."
+    "receiver_image": "Shared single-image camera picker on receiving, Loan Close, payment correction and payment-result metadata\
+      \ editing. Local/uploading or persisted attached receipts hide the picker even without an available preview; full-width\
+      \ preview and accessible top-right removal restore the picker and invalidate late upload results. Correction preserves\
+      \ explicit preserve/remove/replace choices; payment-result upload errors remain separate from uncertain metadata outcomes\
+      \ requiring refresh before another edit."
+    "financial_effect": "Presentation only; receipt storage/access, eligibility, upload reconciliation and financial command\
+      \ behavior unchanged."
+    "sources":
+    - "https://github.com/welct0407/MW-Credit-App/blob/5e981335ad42846dac6bde13e24a45a147ab2676/apps/pwa/src/CollectionNote.tsx"
+    - "https://github.com/welct0407/MW-Credit-App/blob/5e981335ad42846dac6bde13e24a45a147ab2676/apps/pwa/src/CollectionReceipts.tsx"
+    - "https://github.com/welct0407/MW-Credit-App/blob/9b0224032acb841c4d8ff42210d7a285881bdc89/apps/pwa/src/ReceiptPicker.tsx"
+    - "https://github.com/welct0407/MW-Credit-App/blob/9b0224032acb841c4d8ff42210d7a285881bdc89/apps/pwa/src/SelectedCharges.tsx"
+    - "https://github.com/welct0407/MW-Credit-App/blob/9b0224032acb841c4d8ff42210d7a285881bdc89/apps/pwa/src/LoanClose.tsx"
+    - "https://github.com/welct0407/MW-Credit-App/blob/9b0224032acb841c4d8ff42210d7a285881bdc89/apps/pwa/src/PaymentCorrectionForm.tsx"
+    - "https://github.com/welct0407/MW-Credit-App/blob/9b0224032acb841c4d8ff42210d7a285881bdc89/apps/pwa/src/PaymentResult.tsx"
+    - "https://github.com/welct0407/MW-Credit-App/blob/9b0224032acb841c4d8ff42210d7a285881bdc89/apps/pwa/src/live-style.css"
+    "delivery": "R059 Released14October2026 at23:55:51Bangkok verification checkpoint. Exactsource 7aecf695789fee3ca3b1fd1f2bece4c4a4bc8ba6\
+      \ deployed to DEVHostingad24287c9a3def84 and PRODHostingca22762299e518df; PRODreader00005-v9z/command00007-gh2 ready100%,\
+      \ workers andV91 preserved. FullCI38600194302 passed403units and423browsercases with11existing skips. Canonical artifacts/health/auth-gate\
+      \ verified; no signed-in business or physicaliPhone smoke, financialwrites or deferredCollectionNote fix claimed. Recovery/pins\
+      \ in Environment_Inventory and Development_Changes."
+  "phase5_ui":
+    "money_display": "THB currency presentation uses whole baht across affected views; editable amounts, storage and financial\
+      \ calculation precision remain unchanged."
+    "loan_related_cards": "Compact labeled Principal Due and Interest Due for charges, Amount Received for payments; whole-baht\
+      \ display, normal detail navigation retained."
+    "offline_order": "Visible saved-change list contains only pending saved/confirmed unsynced requests, newest savedAt first\
+      \ with stable id ties; ordinary drafts and viewed snapshots are hidden. Repository numeric timestamps supported."
+    "other_lists": "Existing intentional order retained for other audited lists."
+    "sources":
+    - "https://github.com/welct0407/MW-Credit-App/blob/8ba8e6320f44fb147c54474302adb0076c2e4bd2/apps/pwa/src/CollectionNote.tsx"
+    - "https://github.com/welct0407/MW-Credit-App/blob/2ef73db0f91769f1566cd83d91467390080c36ab/apps/pwa/src/LoanRelated.tsx"
+    - "https://github.com/welct0407/MW-Credit-App/blob/8ba8e6320f44fb147c54474302adb0076c2e4bd2/apps/pwa/src/OfflinePayments.tsx"
+    - "https://github.com/welct0407/MW-Credit-App/blob/2ef73db0f91769f1566cd83d91467390080c36ab/apps/pwa/src/display-money.ts"
+    "delivery": "R059 Released14October2026 at23:55:51Bangkok verification checkpoint. Exactsource 7aecf695789fee3ca3b1fd1f2bece4c4a4bc8ba6\
+      \ deployed to DEVHostingad24287c9a3def84 and PRODHostingca22762299e518df; PRODreader00005-v9z/command00007-gh2 ready100%,\
+      \ workers andV91 preserved. FullCI38600194302 passed403units and423browsercases with11existing skips. Canonical artifacts/health/auth-gate\
+      \ verified; no signed-in business or physicaliPhone smoke, financialwrites or deferredCollectionNote fix claimed. Recovery/pins\
+      \ in Environment_Inventory and Development_Changes."
+  "saved_change_queue":
+    "contents": "Only saved/confirmed unsynced requests, including autosaved notes. Applied/posted requests removed; rejected/conflicting\
+      \ requests retained for review. Ordinary drafts/snapshots hidden. Waiting to sync sidebar/mobile button shows a top-right\
+      \ count only when above zero, including queued/syncing/blocked pending states and excluding ordinary drafts/snapshots.\
+      \ Count respects the current authorized repository and refreshes on saved events/focus and every 15 seconds; English/Thai\
+      \ accessible labels include the count."
+    "unfinished_forms": "Restore contextually in original forms; wait for restored draft before defaults/server data; no submission\
+      \ until explicit Save/Confirm. Exact-key restoration preserves payload.id; only actual recoverNew fallback rebinds it\
+      \ to the new form context. Loan Close and payment-correction initial preview reads wait for draft.ready and skip restored\
+      \ state, so fast network responses cannot suppress IndexedDB restoration."
+    "sync": "DEV and owner-authorized PROD startup/reconnect/foreground and queue events reconcile GET status before same-UUID\
+      \ retry. Focus/pageshow/visible wake recovers missed online events; authenticated preferences renew expired local authorization\
+      \ before draining, while purged repositories cannot renew. Retry delays 1/2/5/10/30 seconds while eligible queued changes\
+      \ remain. Origin/account checked per request; Web Locks serialize tabs and recover abandoned holders, with timed IndexedDB\
+      \ lease fallback."
+    "review_safety": "Explicit removal only for recorded rejection or never-dispatched request, with confirmation; attempted\
+      \ unknown outcome cannot be discarded."
+    "receipts": "Receipt blob and identity durable with pending payment; upload uses same request/receipt identity before\
+      \ command POST."
+    "legacy_notes": "Owner-authorized note-draft migration runs once per device in each authorized environment. Existing pending\
+      \ requests reconcile on each startup/reconnect/retry until terminal. Chained notes preserve full-field checks and unrelated\
+      \ later edits."
+    "production_limit": "Owner-authorized R059 package enables PROD prepared reads, durable saved-change coordinator and one-time\
+      \ legacy-note migration with the same owner/environment isolation and authorization guards. R059 PROD deployment verified."
+    "sources":
+    - "https://github.com/welct0407/MW-Credit-App/blob/dfaa46d280e99e9f3694d735d75e615074249a97/apps/pwa/src/owner-offline.ts"
+    - "https://github.com/welct0407/MW-Credit-App/blob/dfaa46d280e99e9f3694d735d75e615074249a97/apps/pwa/src/offline-sync.ts"
+    - "https://github.com/welct0407/MW-Credit-App/blob/dfaa46d280e99e9f3694d735d75e615074249a97/apps/pwa/src/OfflinePayments.tsx"
+    - "https://github.com/welct0407/MW-Credit-App/blob/dfaa46d280e99e9f3694d735d75e615074249a97/apps/pwa/src/CollectionNote.tsx"
+    - "https://github.com/welct0407/MW-Credit-App/blob/dfaa46d280e99e9f3694d735d75e615074249a97/apps/pwa/src/domain-draft.ts"
+    - "https://github.com/welct0407/MW-Credit-App/blob/dfaa46d280e99e9f3694d735d75e615074249a97/apps/pwa/src/live-main.tsx"
+    "delivery": "R059 Released14October2026 at23:55:51Bangkok verification checkpoint. Exactsource 7aecf695789fee3ca3b1fd1f2bece4c4a4bc8ba6\
+      \ deployed to DEVHostingad24287c9a3def84 and PRODHostingca22762299e518df; PRODreader00005-v9z/command00007-gh2 ready100%,\
+      \ workers andV91 preserved. FullCI38600194302 passed403units and423browsercases with11existing skips. Canonical artifacts/health/auth-gate\
+      \ verified; no signed-in business or physicaliPhone smoke, financialwrites or deferredCollectionNote fix claimed. Recovery/pins\
+      \ in Environment_Inventory and Development_Changes."
+    "manual_sync": "Sync now is inside Waiting to sync page, visible when saved changes exist. It uses the same guarded engine;\
+      \ repeated activation cannot overlap. Outcome reports offline/authorization, remaining requests or attention truthfully;\
+      \ does not claim complete while unresolved/blocked changes remain."
+    "production_sources":
+    - "https://github.com/welct0407/MW-Credit-App/blob/b77a1ef3d58c488a2113b97948aefe83945e84ec/apps/pwa/src/environment.ts"
+    - "https://github.com/welct0407/MW-Credit-App/blob/b77a1ef3d58c488a2113b97948aefe83945e84ec/apps/pwa/src/offline-sync.ts"
+    - "https://github.com/welct0407/MW-Credit-App/blob/b77a1ef3d58c488a2113b97948aefe83945e84ec/apps/pwa/src/live-main.tsx"
+    "remediation_sources":
+    - "https://github.com/welct0407/MW-Credit-App/blob/b77a1ef3d58c488a2113b97948aefe83945e84ec/apps/pwa/src/domain-draft.ts"
+    - "https://github.com/welct0407/MW-Credit-App/blob/b77a1ef3d58c488a2113b97948aefe83945e84ec/apps/pwa/src/LoanClose.tsx"
+    - "https://github.com/welct0407/MW-Credit-App/blob/b77a1ef3d58c488a2113b97948aefe83945e84ec/apps/pwa/src/PaymentCorrectionForm.tsx"
+  "hybrid_read_cache":
+    "behavior": "Used read views render cached/prepared data and receipt images first; authorized network refresh updates\
+      \ the same view. Header spinner and left progress bar show request/preparation activity. Distinct ! badge/tooltip/live\
+      \ status indicates current-page refresh failure even without cache; scope epoch blocks late prior-page failures. Successful\
+      \ retry clears failure; cached fallback indication is separate."
+    "isolation": "Owner issuer/uid and environment namespace; full URL/query and relevant Asia/Bangkok business date keys;\
+      \ account/session authorization lease and read-revision guards; no cross-owner/environment/search/date leakage."
+    "bounds":
+      "maximum_responses": 512
+      "maximum_total_bytes": 33554432
+      "maximum_response_bytes": 8388608
+      "authorization_lease_hours": 24
+      "note": "Authorization lease is not a claim that every cached response expires after 24 hours; cache retains bounded\
+        \ responses with revision/authorization checks."
+    "formats": "Allowlisted authenticated GET JSON and receipt PNG/JPEG/WebP blobs. Tokens/auth fields/signed URLs excluded;\
+      \ no credential-bearing URLs."
+    "network_authority": "Fresh financial/action previews and command status remain network-only. Guarded read-only Collection\
+      \ Note baseline may use prepared datasets without replacing dirty text or pending requests; autosave algorithm unchanged\
+      \ and latest concern deferred."
+    "invalidation": "Applied writes invalidate response revisions; queued offline changes retain viewed cache. Responses begun\
+      \ before invalidation cannot revive old data. Authorization denial/navigation abort prevents cached fallback; cache\
+      \ storage failure must not block valid network reads. Without valid fallback, preserve the actual429/5xx response, body\
+      \ and request reference; do not substitute a generic transport failure."
+    "editor_safety": "Dirty editable values are not replaced by refresh; current navigation/context and pending-write revisions\
+      \ protect late child/parent updates."
+    "sources":
+    - "https://github.com/welct0407/MW-Credit-App/blob/2963e0ec6d04fb020a51cf1e23a8711c03587093/apps/pwa/src/read-cache.ts"
+    - "https://github.com/welct0407/MW-Credit-App/blob/2963e0ec6d04fb020a51cf1e23a8711c03587093/apps/pwa/src/owner-offline.ts"
+    - "https://github.com/welct0407/MW-Credit-App/blob/2963e0ec6d04fb020a51cf1e23a8711c03587093/apps/pwa/src/live-main.tsx"
+    "delivery": "R059 Released14October2026 at23:55:51Bangkok verification checkpoint. Exactsource 7aecf695789fee3ca3b1fd1f2bece4c4a4bc8ba6\
+      \ deployed to DEVHostingad24287c9a3def84 and PRODHostingca22762299e518df; PRODreader00005-v9z/command00007-gh2 ready100%,\
+      \ workers andV91 preserved. FullCI38600194302 passed403units and423browsercases with11existing skips. Canonical artifacts/health/auth-gate\
+      \ verified; no signed-in business or physicaliPhone smoke, financialwrites or deferredCollectionNote fix claimed. Recovery/pins\
+      \ in Environment_Inventory and Development_Changes."
+    "remediation_source":
+    - "https://github.com/welct0407/MW-Credit-App/blob/b77a1ef3d58c488a2113b97948aefe83945e84ec/apps/pwa/src/read-cache.ts"
+  "offline_datasets":
+    "domains":
+    - "records"
+    - "collection"
+    - "cash"
+    - "management"
+    - "notifications"
+    "behavior": "DEV and PROD prepare complete read DTO bundles and authorized receipt images so unvisited pages, local search\
+      \ and paging can work offline once prepared. Ordinary queued forms use prepared reference data."
+    "preparation": "One bounded request at a time. Foreground navigation pauses the next chunk without discarding in-flight\
+      \ server work. Online/focus resumes durable cursor stages; manual active-domain requests coalesce. Failed preparation\
+      \ retries at 5/15/30 seconds; local applied mutation restarts its read revision."
+    "storage": "Complete bundles/media remain separate from response LRU. Partial stages resume; completed data and checkpoint\
+      \ atomically CAS original local mutation revision, expected cursor and prior complete base. Response-cache epoch is\
+      \ separate; missing initial epoch disables cache/fallback for that read while valid online response succeeds. Downloads\
+      \ never rewrite pending requests/drafts; retained complete data remains visible on update/failure."
+    "coverage": "Used server read DTOs, existing membership/financial calculations, eligible records and recent cash-statement\
+      \ dates. Receipt media uses authenticated native reads, not raw storage access or signed URLs."
+    "progress": "Header bar is determinate with numeric percentage only during an active online preparation cycle, using cycle-completed\
+      \ work separate from retained cached completeness. Hides immediately offline or when the current cycle is idle/finished,\
+      \ independent of retained cached readiness. No indeterminate dataset bar; current GET activity remains refresh-icon\
+      \ feedback."
+    "network_only": "Fresh financial close/correction/auto-assignment/review and command status stay online. Guarded read-only\
+      \ Collection Note baseline may use prepared data only when not editing, busy, blocked or pending; dirty text is not\
+      \ replaced. Note autosave algorithm and deferred concern unchanged."
+    "sources":
+    - "https://github.com/welct0407/MW-Credit-App/blob/283ac3c50ec4a1a98fca2af9c06b51693aa2e992/apps/pwa/src/offline-dataset.ts"
+    - "https://github.com/welct0407/MW-Credit-App/blob/283ac3c50ec4a1a98fca2af9c06b51693aa2e992/apps/pwa/src/owner-offline.ts"
+    - "https://github.com/welct0407/MW-Credit-App/blob/283ac3c50ec4a1a98fca2af9c06b51693aa2e992/apps/pwa/src/read-cache.ts"
+    - "https://github.com/welct0407/MW-Credit-App/blob/283ac3c50ec4a1a98fca2af9c06b51693aa2e992/apps/pwa/src/live-main.tsx"
+    "delivery": "R059 Released14October2026 at23:55:51Bangkok verification checkpoint. Exactsource 7aecf695789fee3ca3b1fd1f2bece4c4a4bc8ba6\
+      \ deployed to DEVHostingad24287c9a3def84 and PRODHostingca22762299e518df; PRODreader00005-v9z/command00007-gh2 ready100%,\
+      \ workers andV91 preserved. FullCI38600194302 passed403units and423browsercases with11existing skips. Canonical artifacts/health/auth-gate\
+      \ verified; no signed-in business or physicaliPhone smoke, financialwrites or deferredCollectionNote fix claimed. Recovery/pins\
+      \ in Environment_Inventory and Development_Changes."
+    "traversal": "Protocol 2 bounded resumable traversal; cursors bind actor/domain/day/start/phase/state/generation. startedAt\
+      \ through final asOf is an interval of authoritative per-request reads, not a global MVCC snapshot. Old complete bundle\
+      \ stays available across pause/failure/reconnect."
+    "incremental": "Initial full protocol2 then content-only protocol3; canonical hashes ignore asOf and reuse existing content.\
+      \ Visible 60s poll, reconnect/focus detect other-user changes. Poll signals coalesce while an existing cycle remains\
+      \ active, including cycles longer than60s, preserving queues/cursors rather than adding endless work."
+    "source_gate": "Main domains hash raw source-table content/xmin with actor/day scope, testing sourceVersion at traversal\
+      \ start/end; unchanged sources bypass DTO providers. Recipient notifications always scan protected manifests with sourceVersion=null,\
+      \ no cheap source gate. No CDC/schema or universal snapshot claim."
+    "mounted_views": "Completed updates refresh read-only views in place, preserving dirty editors. Read-only note baseline\
+      \ updates only when not editing/busy/blocked/pending; autosave concern remains deferred. Successful checkpoints set\
+      \ lastChecked and clear stale failure without changing business asOf. Entering receiver cancels obsolete Collection\
+      \ read/header loading without replacing pending form."
+    "production_sources":
+    - "https://github.com/welct0407/MW-Credit-App/blob/b77a1ef3d58c488a2113b97948aefe83945e84ec/apps/pwa/src/offline-dataset.ts"
+    - "https://github.com/welct0407/MW-Credit-App/blob/b77a1ef3d58c488a2113b97948aefe83945e84ec/apps/pwa/src/environment.ts"
+    - "https://github.com/welct0407/MW-Credit-App/blob/b77a1ef3d58c488a2113b97948aefe83945e84ec/services/production/business-runtime.mjs"
+  "app_updates":
+    "checks": "Check while visible and online every60s and on focus, reconnect, pageshow or header refresh. Header shows Checking\
+      \ / Updating; status is not placed in page content."
+    "automatic_apply": "Apply on any focused page only when actual dirty edits/in-flight work permit it; presence of Back\
+      \ alone is not a blocker. Recheck safety immediately before reload and on controller change."
+    "retry": "One automatic attempt per worker; manual retry remains available."
+    "restore": "After safe reload restore only top-level menu and management section from session state, never record IDs\
+      \ or editor contents."
+    "delivery": "R059 Released14October2026 at23:55:51Bangkok verification checkpoint. Exactsource 7aecf695789fee3ca3b1fd1f2bece4c4a4bc8ba6\
+      \ deployed to DEVHostingad24287c9a3def84 and PRODHostingca22762299e518df; PRODreader00005-v9z/command00007-gh2 ready100%,\
+      \ workers andV91 preserved. FullCI38600194302 passed403units and423browsercases with11existing skips. Canonical artifacts/health/auth-gate\
+      \ verified; no signed-in business or physicaliPhone smoke, financialwrites or deferredCollectionNote fix claimed. Recovery/pins\
+      \ in Environment_Inventory and Development_Changes."
+    "sources":
+    - "https://github.com/welct0407/MW-Credit-App/blob/a5c3f9f7141ece8b522fbdb76024d132a24cae11/apps/pwa/src/usePwa.ts"
+    - "https://github.com/welct0407/MW-Credit-App/blob/a5c3f9f7141ece8b522fbdb76024d132a24cae11/apps/pwa/src/app-update-safety.ts"
+    - "https://github.com/welct0407/MW-Credit-App/blob/a5c3f9f7141ece8b522fbdb76024d132a24cae11/apps/pwa/src/live-main.tsx"
+    - "https://github.com/welct0407/MW-Credit-App/blob/a5c3f9f7141ece8b522fbdb76024d132a24cae11/apps/pwa/src/live-style.css"
+"evidence":
+  "/content/borrower_upcoming":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/68e8a39e63e44123dcbab3f819c72d711e2a3240/apps/pwa/src/SharedBorrowerDetail.tsx"
+    "reason": "R058 selected Borrower Upcoming Charges; immutable implemented source, focused verification; no deployment\
+      \ or SQL change"
+    "state": "value"
+  "/content/borrower_upcoming/delivery":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/7aecf695789fee3ca3b1fd1f2bece4c4a4bc8ba6/services/production/business-runtime.mjs"
+    "reason": "Reconcile owner-authorized R059 verified DEV-first/PROD release; preserve test and live-smoke limits."
+    "state": "value"
+  "/content/borrower_upcoming/presentation":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/95fab655431a4459e22ec1dbdd1541d035333d78/apps/pwa/src/SharedBorrowerDetail.tsx"
+    "reason": "Owner followup removes dedicated Borrower Upcoming refresh; tested auto-load and error-only retry deployed\
+      \ Hosting-only"
+    "state": "value"
+  "/content/borrower_upcoming/source":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/95fab655431a4459e22ec1dbdd1541d035333d78/apps/pwa/src/SharedBorrowerDetail.tsx"
+    "reason": "Owner followup removes dedicated Borrower Upcoming refresh; tested auto-load and error-only retry deployed\
+      \ Hosting-only"
+    "state": "value"
+  "/content/navigation":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/5d046627481ff151f299bad30b784ca418f4b58c/apps/pwa/src/swipe-back.ts"
+    "reason": "Owner correction replaces release-only swipe with interactive middle-content transition, guarded Back and inert\
+      \ prior-page previews"
+    "state": "value"
+  "/content/navigation/delivery":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/7aecf695789fee3ca3b1fd1f2bece4c4a4bc8ba6/services/production/business-runtime.mjs"
+    "reason": "Reconcile owner-authorized R059 verified DEV-first/PROD release; preserve test and live-smoke limits."
+    "state": "value"
+  "/content/collection_receiving_ui":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/5e981335ad42846dac6bde13e24a45a147ab2676/apps/pwa/src/CollectionReceipts.tsx"
+    "reason": "Six owner feedback UI requests; exact existing gallery eligibility/source reads and receiver upload safety\
+      \ preserved"
+    "state": "value"
+  "/content/collection_receiving_ui/delivery":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/7aecf695789fee3ca3b1fd1f2bece4c4a4bc8ba6/services/production/business-runtime.mjs"
+    "reason": "Reconcile owner-authorized R059 verified DEV-first/PROD release; preserve test and live-smoke limits."
+    "state": "value"
+  "/content/collection_receiving_ui/collection_note":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/efd9fab2d9cf7326e94f4e380b2117e6bae16a5e/apps/pwa/src/offline-sync.ts"
+    "reason": "Owner-authorized DEV durable saved-change queue/backlog simplification; actual IndexedDB component tests and\
+      \ focused browser checks"
+    "state": "value"
+  "/content/phase5_ui":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/2ef73db0f91769f1566cd83d91467390080c36ab/apps/pwa/src/CollectionNote.tsx"
+    "reason": "Phase-5 note/amount/ordering feedback verified with focused browser and actual restricted disposable PostgreSQL\
+      \ tests plus canonical Test-CI"
+    "state": "value"
+  "/content/phase5_ui/sources":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/8ba8e6320f44fb147c54474302adb0076c2e4bd2/apps/pwa/src/CollectionNote.tsx"
+    "reason": "Real IndexedDB five-draft regression reproduced before and passed after durable pending-before-POST fix; numeric\
+      \ savedAt sorting corrected"
+    "state": "value"
+  "/content/phase5_ui/delivery":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/7aecf695789fee3ca3b1fd1f2bece4c4a4bc8ba6/services/production/business-runtime.mjs"
+    "reason": "Reconcile owner-authorized R059 verified DEV-first/PROD release; preserve test and live-smoke limits."
+    "state": "value"
+  "/content/phase5_ui/offline_order":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/5d5af4b0783fe6a44419a4dd5e07ecc135419b43/apps/pwa/src/OfflinePayments.tsx"
+    "reason": "Exact pending-only saved-list comparator uses repository numeric savedAt timestamps"
+    "state": "value"
+  "/content/data_ownership":
+    "reference": "https://github.com/welct0407/MW-Credit-App/pull/6"
+    "reason": "Document owner-authorized R059 production offline parity candidate; final source and deployment pending."
+    "state": "value"
+  "/content/saved_change_queue":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/efd9fab2d9cf7326e94f4e380b2117e6bae16a5e/apps/pwa/src/offline-sync.ts"
+    "reason": "Owner-authorized DEV durable saved-change queue/backlog simplification; actual IndexedDB component tests and\
+      \ focused browser checks"
+    "state": "value"
+  "/content/saved_change_queue/sources":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/dfaa46d280e99e9f3694d735d75e615074249a97/apps/pwa/src/offline-sync.ts"
+    "reason": "Gesture/context-refresh and foreground/manual queue synchronization followups verified with real IndexedDB\
+      \ and mocked Firebase full-app composition"
+    "state": "value"
+  "/content/saved_change_queue/sync":
+    "reference": "https://github.com/welct0407/MW-Credit-App/pull/6"
+    "reason": "Document owner-authorized R059 production offline parity candidate; final source and deployment pending."
+    "state": "value"
+  "/content/saved_change_queue/delivery":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/7aecf695789fee3ca3b1fd1f2bece4c4a4bc8ba6/services/production/business-runtime.mjs"
+    "reason": "Reconcile owner-authorized R059 verified DEV-first/PROD release; preserve test and live-smoke limits."
+    "state": "value"
+  "/content/saved_change_queue/contents":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/51d4ce9856e7730b1881caf84bd429fc718b46e3/apps/pwa/src/WaitingToSyncButton.tsx"
+    "reason": "Small saved-change count badge UI; real IndexedDB count/scope/authorization and compact geometry checks passed"
+    "state": "value"
+  "/content/navigation/workspace_gestures":
+    "reference": "https://github.com/welct0407/AppSheet-Loan-Project/pull/20"
+    "reason": "Verified interactive drawer Hosting-only delivery; preserve unchanged data/API and prior context-refresh contract;\
+      \ current versus baseline tests distinct"
+    "state": "value"
+  "/content/navigation/workspace_source":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/a5c3f9f7141ece8b522fbdb76024d132a24cae11/apps/pwa/src/workspace-gestures.ts"
+    "reason": "Pin tested pull-gap and automatic app update behavior to immutable source."
+    "state": "value"
+  "/content/saved_change_queue/manual_sync":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/dfaa46d280e99e9f3694d735d75e615074249a97/apps/pwa/src/OfflinePayments.tsx"
+    "reason": "Gesture/context-refresh and foreground/manual queue synchronization followups verified with real IndexedDB\
+      \ and mocked Firebase full-app composition"
+    "state": "value"
+  "/content/hybrid_read_cache":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/2963e0ec6d04fb020a51cf1e23a8711c03587093/apps/pwa/src/read-cache.ts"
+    "reason": "Owner cache-first Page issue and distinct header refresh-failure feedback; note concern deferred unchanged"
+    "state": "value"
+  "/content/hybrid_read_cache/delivery":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/7aecf695789fee3ca3b1fd1f2bece4c4a4bc8ba6/services/production/business-runtime.mjs"
+    "reason": "Reconcile owner-authorized R059 verified DEV-first/PROD release; preserve test and live-smoke limits."
+    "state": "value"
+  "/content/offline_datasets":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/f261edcd51995795f250699f1ee91fb0d0c95a54/apps/pwa/src/offline-dataset.ts"
+    "reason": "Full-app DEV offline preparation via existing bulk read DTOs/recipient contracts, persistent bundles and current-page\
+      \ refresh state; note autosave unchanged"
+    "state": "value"
+  "/content/hybrid_read_cache/network_authority":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/6a3cf8cde2710a45b0368bc7f177f21bdab2693c/apps/pwa/src/offline-dataset.ts"
+    "reason": "Incremental content-only refresh after full preparation; canonical restricted SQL and browser checks protect\
+      \ pending edits and actor/recipient boundaries"
+    "state": "value"
+  "/content/hybrid_read_cache/behavior":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/f261edcd51995795f250699f1ee91fb0d0c95a54/apps/pwa/src/offline-dataset.ts"
+    "reason": "Full-app DEV offline preparation via existing bulk read DTOs/recipient contracts, persistent bundles and current-page\
+      \ refresh state; note autosave unchanged"
+    "state": "value"
+  "/content/offline_datasets/delivery":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/7aecf695789fee3ca3b1fd1f2bece4c4a4bc8ba6/services/production/business-runtime.mjs"
+    "reason": "Reconcile owner-authorized R059 verified DEV-first/PROD release; preserve test and live-smoke limits."
+    "state": "value"
+  "/content/offline_datasets/preparation":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/374fe98ed21ab233f068dd337d7cbaef0eb24788/apps/pwa/src/offline-dataset.ts"
+    "reason": "Resumable bounded protocol-2 preparation fixes measured DEV timeouts while retaining legacy compatibility and\
+      \ existing DTO/authorization contracts"
+    "state": "value"
+  "/content/offline_datasets/storage":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/6a3cf8cde2710a45b0368bc7f177f21bdab2693c/apps/pwa/src/offline-dataset.ts"
+    "reason": "Incremental content-only refresh after full preparation; canonical restricted SQL and browser checks protect\
+      \ pending edits and actor/recipient boundaries"
+    "state": "value"
+  "/content/offline_datasets/progress":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/283ac3c50ec4a1a98fca2af9c06b51693aa2e992/apps/pwa/src/live-main.tsx"
+    "reason": "Distinguish current active sync cycle from retained cache-ready state and current UI tests from prior API baseline\
+      \ evidence"
+    "state": "value"
+  "/content/offline_datasets/traversal":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/374fe98ed21ab233f068dd337d7cbaef0eb24788/apps/pwa/src/offline-dataset.ts"
+    "reason": "Resumable bounded protocol-2 preparation fixes measured DEV timeouts while retaining legacy compatibility and\
+      \ existing DTO/authorization contracts"
+    "state": "value"
+  "/content/offline_datasets/sources":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/283ac3c50ec4a1a98fca2af9c06b51693aa2e992/apps/pwa/src/offline-dataset.ts"
+    "reason": "Three UI/cycle corrections: Dashboard left-edge menu, active determinate percentage/offline hide, long-cycle\
+      \ poll coalescing; API unchanged"
+    "state": "value"
+  "/content/offline_datasets/incremental":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/283ac3c50ec4a1a98fca2af9c06b51693aa2e992/apps/pwa/src/offline-dataset.ts"
+    "reason": "Three UI/cycle corrections: Dashboard left-edge menu, active determinate percentage/offline hide, long-cycle\
+      \ poll coalescing; API unchanged"
+    "state": "value"
+  "/content/offline_datasets/source_gate":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/6a3cf8cde2710a45b0368bc7f177f21bdab2693c/apps/pwa/src/offline-dataset.ts"
+    "reason": "Incremental content-only refresh after full preparation; canonical restricted SQL and browser checks protect\
+      \ pending edits and actor/recipient boundaries"
+    "state": "value"
+  "/content/offline_datasets/mounted_views":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/6a3cf8cde2710a45b0368bc7f177f21bdab2693c/apps/pwa/src/offline-dataset.ts"
+    "reason": "Incremental content-only refresh after full preparation; canonical restricted SQL and browser checks protect\
+      \ pending edits and actor/recipient boundaries"
+    "state": "value"
+  "/content/offline_datasets/network_only":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/6a3cf8cde2710a45b0368bc7f177f21bdab2693c/apps/pwa/src/CollectionNote.tsx"
+    "reason": "Align current guarded subsequent note read-baseline refresh with mounted-view contract; autosave unchanged"
+    "state": "value"
+  "/content/navigation/menu_drawer":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/dbc6940ee754c569103484a536f5a800c161ab24/apps/pwa/src/menu-drawer.ts"
+    "reason": "Bounded interactive menu drawer opening/closing with fixed page/chrome; native held-drag and guard/focus checks\
+      \ passed"
+    "state": "value"
+  "/content/collection_receiving_ui/receiver_image":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/9b0224032acb841c4d8ff42210d7a285881bdc89/apps/pwa/src/ReceiptPicker.tsx"
+    "reason": "Document shared receipt presentation without changing receipt commands or offline recovery."
+    "state": "value"
+  "/content/collection_receiving_ui/sources":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/9b0224032acb841c4d8ff42210d7a285881bdc89/apps/pwa/src/ReceiptPicker.tsx"
+    "reason": "Document shared receipt presentation without changing receipt commands or offline recovery."
+    "state": "value"
+  "/content/navigation/pull_refresh":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/e0f3c330f321aea97ae456f77fce0c1e93a0b43c/apps/pwa/src/workspace-gestures.ts"
+    "reason": "Document deliberate pull-refresh feedback and optional haptic while preserving context actions."
+    "state": "value"
+  "/content/navigation/pull_refresh/feedback":
+    "reference": "https://github.com/welct0407/MW-Credit-App/pull/6"
+    "reason": "Apply owner-directed above-header pull feedback placement; gesture/update behavior unchanged, final delivery\
+      \ pending."
+    "state": "value"
+  "/content/app_updates":
+    "reference": "https://github.com/welct0407/MW-Credit-App/pull/6"
+    "reason": "Document reviewed pull-gap presentation and guarded automatic app update behavior; final source/delivery pending."
+    "state": "value"
+  "/content/navigation/pull_refresh/source":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/a5c3f9f7141ece8b522fbdb76024d132a24cae11/apps/pwa/src/workspace-gestures.ts"
+    "reason": "Pin tested pull-gap and automatic app update behavior to immutable source."
+    "state": "value"
+  "/content/app_updates/sources":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/a5c3f9f7141ece8b522fbdb76024d132a24cae11/apps/pwa/src/workspace-gestures.ts"
+    "reason": "Pin tested pull-gap and automatic app update behavior to immutable source."
+    "state": "value"
+  "/content/app_updates/delivery":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/7aecf695789fee3ca3b1fd1f2bece4c4a4bc8ba6/services/production/business-runtime.mjs"
+    "reason": "Reconcile owner-authorized R059 verified DEV-first/PROD release; preserve test and live-smoke limits."
+    "state": "value"
+  "/content/navigation/pull_refresh/placement_sources":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/a22aa5da1c92d65f56912ba9f25cbae3aec9fd40/apps/pwa/src/live-main.tsx"
+    "reason": "Pin tested above-header pull-strip presentation; gesture and app-update source unchanged."
+    "state": "value"
+  "/content/saved_change_queue/legacy_notes":
+    "reference": "https://github.com/welct0407/MW-Credit-App/pull/6"
+    "reason": "Document owner-authorized R059 production offline parity candidate; final source and deployment pending."
+    "state": "value"
+  "/content/saved_change_queue/production_limit":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/7aecf695789fee3ca3b1fd1f2bece4c4a4bc8ba6/services/production/business-runtime.mjs"
+    "reason": "Reconcile owner-authorized R059 verified DEV-first/PROD release; preserve test and live-smoke limits."
+    "state": "value"
+  "/content/offline_datasets/behavior":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/7aecf695789fee3ca3b1fd1f2bece4c4a4bc8ba6/services/production/business-runtime.mjs"
+    "reason": "Reconcile owner-authorized R059 verified DEV-first/PROD release; preserve test and live-smoke limits."
+    "state": "value"
+  "/content/saved_change_queue/production_sources":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/b77a1ef3d58c488a2113b97948aefe83945e84ec/apps/pwa/src/read-cache.ts"
+    "reason": "Pin corrected frozen R059 candidate after cache/draft restoration remediation; finalCI/artifacts/deployment\
+      \ pending."
+    "state": "value"
+  "/content/offline_datasets/production_sources":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/b77a1ef3d58c488a2113b97948aefe83945e84ec/apps/pwa/src/read-cache.ts"
+    "reason": "Pin corrected frozen R059 candidate after cache/draft restoration remediation; finalCI/artifacts/deployment\
+      \ pending."
+    "state": "value"
+  "/content/hybrid_read_cache/invalidation":
+    "reference": "https://github.com/welct0407/MW-Credit-App/pull/6"
+    "reason": "Document evidenced frozen-scope cache failure and draft identity corrections; finalsource/delivery pending."
+    "state": "value"
+  "/content/saved_change_queue/unfinished_forms":
+    "reference": "https://github.com/welct0407/MW-Credit-App/pull/6"
+    "reason": "Document evidenced initial preview/draft restoration race correction; final package pin pending."
+    "state": "value"
+  "/content/hybrid_read_cache/remediation_source":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/b77a1ef3d58c488a2113b97948aefe83945e84ec/apps/pwa/src/read-cache.ts"
+    "reason": "Pin corrected frozen R059 candidate after cache/draft restoration remediation; finalCI/artifacts/deployment\
+      \ pending."
+    "state": "value"
+  "/content/saved_change_queue/remediation_sources":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/b77a1ef3d58c488a2113b97948aefe83945e84ec/apps/pwa/src/read-cache.ts"
+    "reason": "Pin corrected frozen R059 candidate after cache/draft restoration remediation; finalCI/artifacts/deployment\
+      \ pending."
+    "state": "value"
+  "/content/navigation/upcoming_back":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/a5c6de58138625dba6257ad0fb0931ebaf0d0512/apps/pwa/src/CollectionRecords.tsx"
+    "reason": "Pin verified late Upcoming detail response correction within frozenR059; fullCI/delivery pending."
+    "state": "value"
