@@ -4,7 +4,7 @@
 
 ## Six-agent development process
 
-The owner has authorized Agents A–F as the default PWA development team. The orchestrator activates all six roles for a product change without asking the owner to repeat the request. Start each with a bounded task and the shared scope; a role with no affected surface returns a brief not-applicable finding and stops. Do not invent UX, infrastructure or design work to keep a worker busy. Documentation-only tasks and read-only answers may use a smaller team. A task-specific request for personal execution overrides this default.
+The owner has authorized Agents A–F as the default PWA development team. The orchestrator activates all six roles for a product change without asking the owner to repeat the request. Start each affected role with a bounded task and the shared scope. When the scope plainly excludes a role's surface (for example, no infrastructure in a UI-only fix), the orchestrator records that role as not applicable without starting a worker; when applicability is uncertain, start the role and let it return a brief not-applicable finding. Do not invent UX, infrastructure or design work to keep a worker busy. Documentation-only tasks and read-only answers may use a smaller team. A task-specific request for personal execution overrides this default.
 
 | Role | Responsibility |
 | --- | --- |
