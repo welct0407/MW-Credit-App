@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createPostCommitWake,loadDispatchConfig} from '../../services/notifications/postcommit.mjs';
+import {createPostCommitWake,loadDispatchConfig,wakeContext} from '../../services/notifications/postcommit.mjs';
 const audience='https://mw-credit-app-notify-dev-737787224638.asia-southeast1.run.app';
 const env={NOTIFICATION_DISPATCH_ENABLED:'true',NOTIFICATION_DISPATCH_URL:audience+'/internal/dispatch',NOTIFICATION_DISPATCH_AUDIENCE:audience};
 test('wake is default off and exact environment bound',async()=>{
@@ -24,14 +24,23 @@ test('auth, transport, rejected response, expired budget and throwing logger can
 import {createEnvironmentCommandStore} from '../../services/payment-command/store.mjs';
 const principal={ok:true,subject:'synthetic-subject',email:'synthetic@example.invalid'};
 const command={requestId:'12345678-1234-4234-8234-123456789abc',operation:'borrower.create',targetId:'12345678-1234-4234-8234-123456789abd',expectedVersion:null,predecessorRequestId:null,receiptId:null,inputs:{name:'Synthetic',description:null,communicationName:null,instagramUsername:null,city:null,workingLocation:null,address:null,hidden:null,referrerId:null,preferredReceivingAccountId:null,note:null}};
-test('wake follows acknowledged commit and release, never rollback or read-only; wake errors preserve success',async()=>{
+const settle=async()=>{for(let i=0;i<3;i++)await new Promise(resolve=>setImmediate(resolve))};
+test('wake follows acknowledged commit and release after the result is returned, never rollback or read-only; wake errors preserve success',async()=>{
  for(const commitFailure of [false,true]){
-  const calls=[];let wakes=0;
+  const calls=[];let wakes=0,received=null;
   const pool={connect:async()=>({release:()=>calls.push('release'),query:async(sql)=>{calls.push(sql);if(sql==='COMMIT'&&commitFailure)throw Error('connection_lost');if(sql.includes('canonical_json'))return{rows:[]};if(sql.includes('pwa_submit_operation_v2')||sql.includes('pwa_operation_status_v2'))return{rows:[{result:{kind:'recorded',originalOutcome:{status:'applied'}}}]};return{rows:[]};}})};
-  const store=createEnvironmentCommandStore({pool,guardConnection:async()=>{},principalAllowed:()=>true,resolveActor:async()=>({issuer:'https://issuer.invalid',subject:principal.subject,partnerId:'synthetic',loginEmail:principal.email}),actorIssuer:'https://issuer.invalid',afterCommit:async()=>{wakes++;assert.equal(calls.at(-1),'release');assert.ok(calls.includes('COMMIT'));throw Error('wake_failure');}});
-  const result=await store.operation(principal,command);
-  assert.equal(result.ok,!commitFailure);assert.equal(wakes,commitFailure?0:1);
+  const store=createEnvironmentCommandStore({pool,guardConnection:async()=>{},principalAllowed:()=>true,resolveActor:async()=>({issuer:'https://issuer.invalid',subject:principal.subject,partnerId:'synthetic',loginEmail:principal.email}),actorIssuer:'https://issuer.invalid',afterCommit:async context=>{wakes++;received=context;assert.equal(calls.at(-1),'release');assert.ok(calls.includes('COMMIT'));throw Error('wake_failure');}});
+  const before=Date.now(),result=await store.operation({...principal,[wakeContext]:{deadline:before+14000,signal:new AbortController().signal}},command);
+  // APP-PAY-02: the committed result is returned before the wake runs.
+  assert.equal(result.ok,!commitFailure);assert.equal(wakes,0);
+  await settle();assert.equal(wakes,commitFailure?0:1);
   if(commitFailure)assert.equal(result.code,'operation_outcome_unknown');
-  else{await store.operationStatus(principal,command.requestId);assert.equal(wakes,1);assert.equal(calls.includes('ROLLBACK'),false);}
+  else{assert.ok(received.deadline<=Date.now()+1500&&received.deadline>=before+1000,'wake capped at about 1.5 s');assert.equal(received.signal,undefined);await store.operationStatus(principal,command.requestId);await settle();assert.equal(wakes,1);assert.equal(calls.includes('ROLLBACK'),false);}
  }
+});
+test('a shorter client wake deadline still bounds the deferred wake',async()=>{
+ let received=null;
+ const pool={connect:async()=>({release(){},query:async(sql)=>sql.includes('canonical_json')?{rows:[]}:sql.includes('pwa_submit_operation_v2')?{rows:[{result:{kind:'recorded',originalOutcome:{status:'applied'}}}]}:{rows:[]}})};
+ const store=createEnvironmentCommandStore({pool,guardConnection:async()=>{},principalAllowed:()=>true,resolveActor:async()=>({issuer:'https://issuer.invalid',subject:principal.subject,partnerId:'synthetic',loginEmail:principal.email}),actorIssuer:'https://issuer.invalid',afterCommit:async context=>{received=context}});
+ const deadline=Date.now()+200;assert.equal((await store.operation({...principal,[wakeContext]:{deadline}},command)).ok,true);await settle();assert.equal(received.deadline,deadline);
 });

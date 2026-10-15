@@ -79,7 +79,13 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
     }
     // Outside the transaction catch and after releasing its client: a failed hint
     // must never turn an acknowledged COMMIT into an unknown financial outcome.
-    if (!readonly && afterCommit) { try { await afterCommit(principal[wakeContext]); } catch { /* Recovery owns a missed wake. */ } }
+    // The response is sent first; the wake runs in the next check phase with a short
+    // cap and without the response-bound abort signal (res 'close' fires on finish).
+    // The minute recovery worker owns any wake that misses this budget.
+    if (!readonly && afterCommit) {
+      const context = principal[wakeContext];
+      setImmediate(() => { Promise.resolve().then(() => afterCommit({deadline: Math.min(context?.deadline ?? Infinity, Date.now() + 1500)})).catch(() => { /* Recovery owns a missed wake. */ }); });
+    }
     return committedResult;
   }
   return {
@@ -143,24 +149,30 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
     async expenses(principal,options){if(!ownerTesting)return failure(403,'access_denied');return run(principal,async client=>({ok:true,value:await readExpensePage(client,options)}),true)},
     async paymentImage(principal,id,source='preferred'){
       if(!ownerTesting)return failure(403,'access_denied');if(!validBorrowerId(id)||!['preferred','manual','agent'].includes(source))return failure(400,'invalid_request');
-      return run(principal,async(client,actor)=>{
-        const sql='SELECT "Uploaded Receipt" manual,"Receipt Image" agent,"IG Receipt ID" AS "agentReceiptId","Receipt Received At"::text AS "agentReceivedAt" FROM public."Payments" WHERE "Row ID"=$1';
+      const sql='SELECT "Uploaded Receipt" manual,"Receipt Image" agent,"IG Receipt ID" AS "agentReceiptId","Receipt Received At"::text AS "agentReceivedAt" FROM public."Payments" WHERE "Row ID"=$1';
+      const selectKind=value=>source==='preferred'?(typeof value.manual==='string'&&value.manual.trim()?'manual':'agent'):source;
+      // Phase 1: resolve the reference in a short transaction and release the client.
+      const first=await run(principal,async(client,actor)=>{
         const row=(await client.query(sql,[id])).rows[0];if(!row)return failure(404,'not_found');
-        const selectKind=value=>source==='preferred'?(typeof value.manual==='string'&&value.manual.trim()?'manual':'agent'):source;
         const kind=selectKind(row),reference=row[kind];
         if(typeof reference!=='string'||!reference.trim())return failure(404,'receipt_not_found');
         if(typeof sourceReceiptReader!=='function')return failure(503,'receipt_unavailable');
-        try{
-          const value=await sourceReceiptReader(reference,kind,row);
-          // READ COMMITTED observes changes during the download rather than the old snapshot.
-          const current=(await client.query(sql,[id])).rows[0];
-          if(!current||selectKind(current)!==kind||current[kind]!==reference||(kind==='agent'&&(current.agentReceiptId!==row.agentReceiptId||current.agentReceivedAt!==row.agentReceivedAt)))return failure(503,'receipt_unavailable');
-          if(!principalAllowed(principal))return failure(403,'access_denied');
-          const freshActor=resolveActor?await resolveActor(client,principal,'receipt.read'):(await client.query('SELECT "Row ID" AS id FROM public."Partners" WHERE lower(btrim("Login Email"))=$1 LIMIT 2',[principal.email])).rows;
-          if(resolveActor?!freshActor||JSON.stringify(freshActor)!==JSON.stringify(actor):freshActor.length!==1||freshActor[0].id!==actor.partnerId)return failure(403,'access_denied');
-          return {ok:true,value};
-        }catch(error){return failure(error.message==='receipt_reference_unsupported'?422:503,error.message==='receipt_reference_unsupported'?'receipt_reference_unsupported':'receipt_unavailable')}
+        return {ok:true,value:{row,kind,reference,actor}};
       },true,'receipt.read');
+      if(!first.ok)return first;
+      const {row,kind,reference,actor}=first;
+      // Phase 2: download outside any transaction, so a slow object read never holds a pool slot.
+      let value;
+      try{value=await sourceReceiptReader(reference,kind,row)}
+      catch(error){return failure(error.message==='receipt_reference_unsupported'?422:503,error.message==='receipt_reference_unsupported'?'receipt_reference_unsupported':'receipt_unavailable')}
+      // Phase 3: re-check the row and the actor after the download, exactly as before.
+      const second=await run(principal,async(client,freshActor)=>{
+        const current=(await client.query(sql,[id])).rows[0];
+        if(!current||selectKind(current)!==kind||current[kind]!==reference||(kind==='agent'&&(current.agentReceiptId!==row.agentReceiptId||current.agentReceivedAt!==row.agentReceivedAt)))return failure(503,'receipt_unavailable');
+        if(JSON.stringify(freshActor)!==JSON.stringify(actor))return failure(403,'access_denied');
+        return {ok:true,value};
+      },true,'receipt.read');
+      return second;
     },
     async collectionReceipts(principal,id,options){if(!ownerTesting)return failure(403,'access_denied');return run(principal,async client=>{try{return {ok:true,value:await readCollectionReceipts(client,id,options)}}catch(error){if(['invalid_request','selection_changed','business_date_changed'].includes(error.message))return failure(error.message==='invalid_request'?400:409,error.message);throw error}},true);},
     async paymentRecord(principal,id,{preview=false,targetLoanId=null,paymentDate=null,proposedBorrowerId=null}={}){
@@ -303,14 +315,19 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
       if (!uuid.test(requestId||'') || !uuid.test(receiptId||'')) return failure(400,'invalid_request');
       if (bytes && !ownerTesting && (!fixture || borrowerId!==fixture.borrowerId)) return failure(403,'access_denied');
       if (!receiptAdapter) return failure(422,'receipt_unsupported');
-      return run(principal,async (_client,actor)=>{
-        if(bytes&&ownerTesting&&!(await _client.query('SELECT 1 FROM public."Borrowers" WHERE "Row ID"=$1',[borrowerId])).rows.length)return failure(404,'not_found');
-        try {
-          const input={requestId:requestId.toLowerCase(),receiptId:receiptId.toLowerCase(),actor};
-          const value=bytes ? await receiptAdapter.upload({...input,bytes,mimeType}) : await receiptAdapter.retrieve(input);
-          return {ok:true,value};
-        } catch(error) { return failure(error?.message==='receipt_conflict'?409:error?.receiptInvalid||error?.message==='invalid_receipt'?422:503,error?.message==='receipt_conflict'?'receipt_conflict':'receipt_unavailable'); }
+      // Membership/capability is resolved in a short transaction; the storage I/O runs
+      // after that client is released so a slow upload never holds a pool slot.
+      const authorized=await run(principal,async (client,actor)=>{
+        if(bytes&&ownerTesting&&!(await client.query('SELECT 1 FROM public."Borrowers" WHERE "Row ID"=$1',[borrowerId])).rows.length)return failure(404,'not_found');
+        return {ok:true,value:{actor}};
       },true,bytes?'receipt.write':'receipt.read');
+      if(!authorized.ok)return authorized;
+      const {actor}=authorized;
+      try {
+        const input={requestId:requestId.toLowerCase(),receiptId:receiptId.toLowerCase(),actor};
+        const value=bytes ? await receiptAdapter.upload({...input,bytes,mimeType}) : await receiptAdapter.retrieve(input);
+        return {ok:true,status:200,...value};
+      } catch(error) { return failure(error?.message==='receipt_conflict'?409:error?.receiptInvalid||error?.message==='invalid_receipt'?422:503,error?.message==='receipt_conflict'?'receipt_conflict':'receipt_unavailable'); }
     },
     async status(principal, requestId) {
       if (typeof requestId !== 'string' || !uuid.test(requestId)) return failure(400, 'invalid_request');
