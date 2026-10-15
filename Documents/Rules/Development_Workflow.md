@@ -16,7 +16,7 @@ Keep current primary folder and repositories separate. Choose by component, not 
 
 MW-Credit-App is the sole source owner of shared migrations, runners, tests and database CI. Use its [canonical database procedure](https://github.com/welct0407/MW-Credit-App/blob/codex/r057-infrastructure-adoption/database/README.md) and exact tested migration commit/manifest. Preserve existing Flyway histories and immutable migrations. Retained tooling here locates that checkout through `scripts/database_location.py` or `scripts/database-location.mjs`; set `MW_CREDIT_APP_ROOT` when it is not adjacent. There is no second migration set here. Remaining implementation-code moves are deferred; this ownership does not authorize moving credentials, data, services or repositories.
 
-Windows roots currently use C:/GitHub; a Cloud task has its own checkout. Do not assume a Windows path, historical account profile or an old cloud environment ID exists elsewhere. The [environment inventory](../Environment_Inventory.md) owns actual service identities; verify the affected target before live action.
+Windows roots currently use C:/GitHub; a Cloud task has its own checkout. A Claude Code cloud environment provisions pinned tools, sibling clones under /home/user and optional DEV gcloud sign-in through its setup script, maintained as [scripts/cloud-session-setup.sh](../../scripts/cloud-session-setup.sh). Do not assume a Windows path, historical account profile or an old cloud environment ID exists elsewhere. The [environment inventory](../Environment_Inventory.md) owns actual service identities; verify the affected target before live action.
 
 ## Responsibilities and routing
 
