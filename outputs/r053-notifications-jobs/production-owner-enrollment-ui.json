@@ -1,9 +1,0 @@
-{
-  "release": "R053",
-  "environment": "prod",
-  "provenance": "Owner12October reported Notifications enabled from the Production Home Screen; DEV actual receipt YES reiterated",
-  "notificationEnrollmentUi": "PASS",
-  "authenticatedChangedEntryPoint": "Notifications enable route PASS",
-  "productionPhonePushReceipt": "not inferred; no arbitrary test send",
-  "historyOrClickVerification": "not claimed"
-}

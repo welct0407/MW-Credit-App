@@ -1,7 +1,0 @@
-# R057 retirement continuation
-
-Started13 October; completed technical checks14 October2026 (Bangkok). R057 technical scope Released; R058 soleOpen/R059 nextunused. Allfour apps retained/paused,24 bots/API/key disabled; account/team Sources/Stores empty and weekly updates off. Finalversions: PROD OLAP1.100216/OLTP3.000277; DEV OLTP1.000208/OLAP1.000057. Zero issues proof precedes source-access removal.
-
-Integrationa8568e3 deployed/catalogue27, PR4 merged a53a550; focused49passes/one Windows process-lock skip and automaticCI38432653827 passed. F5213ed2 runtime evidence and808cdf5 network evidence are published.73 AppSheet-only SQL networks removed via approved narrow SQL Admin PATCH after Terraform API400 maintenance-window limitation; RUNNABLE/no-change refreshed plan and normal collector five scopes UP at17:03:08.887283Z /14October00:03Bangkok. No schema/business-data or receipt deletion. Recovery restores metadata/network/app controls only with scoped owner direction/license.
-
-Owner personally revokes license; not performed or claimed by agents. Temporary SSH cleanup was blocked by automatic approval before execution; metadata expiry17:31:44UTC and private20October retention review remain separate. Paused Phase2 credential work is untouched/unpublished. Exact facts/recovery in [record](README.md)/[manifest](release-manifest.json); [single R057 checklist](../r057-infrastructure-adoption/promotion-checklist.md). Final PM tagR057 publication must be verified before reporting complete.
