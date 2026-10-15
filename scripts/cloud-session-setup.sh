@@ -31,12 +31,12 @@ add_apt_repo() { # name key-url repo-line
   fi
 }
 
-# PostgreSQL 18 server binaries (PGDG).
+# PostgreSQL 18 server binaries (PGDG) and the OpenSSH client (database tunnel).
 add_apt_repo pgdg https://www.postgresql.org/media/keys/ACCC4CF8.asc \
   "https://apt.postgresql.org/pub/repos/apt noble-pgdg main"
-if [ "$apt_repos_changed" = 1 ] || [ ! -x /usr/lib/postgresql/$POSTGRES_MAJOR/bin/initdb ]; then
+if [ "$apt_repos_changed" = 1 ] || [ ! -x /usr/lib/postgresql/$POSTGRES_MAJOR/bin/initdb ] || ! command -v ssh >/dev/null; then
   apt-get update -qq
-  apt-get install -y -qq "postgresql-$POSTGRES_MAJOR" unzip >/dev/null
+  apt-get install -y -qq "postgresql-$POSTGRES_MAJOR" unzip openssh-client >/dev/null
 fi
 # Test-MigrationsCloud.py expects postgresql-18.6/bin under $SETUP.
 ln -sfn "/usr/lib/postgresql/$POSTGRES_MAJOR" "$SETUP/postgresql-18.6"
