@@ -1,0 +1,37 @@
+{
+  "release": "R006",
+  "revision": 1,
+  "candidateHash": "d2814e156a81f89c5d7bb245012edb7a70ad1e96027fc2baf07c8e8b03f4c262",
+  "environment": "prod",
+  "complete": true,
+  "results": [
+    {
+      "id": "APP-001",
+      "status": "Verified",
+      "evidence": "prod-saved-observations.json; reloaded current editor",
+      "version": "3.000173",
+      "observedAt": "2026-09-18"
+    },
+    {
+      "id": "APP-002",
+      "status": "Verified",
+      "evidence": "prod-saved-observations.json; reloaded current editor",
+      "version": "3.000173",
+      "observedAt": "2026-09-18"
+    },
+    {
+      "id": "APP-003",
+      "status": "Verified",
+      "evidence": "prod-saved-observations.json; reloaded current editor",
+      "version": "3.000173",
+      "observedAt": "2026-09-18"
+    },
+    {
+      "id": "APP-004",
+      "status": "Verified",
+      "evidence": "prod-saved-observations.json; reloaded current editor",
+      "version": "3.000173",
+      "observedAt": "2026-09-18"
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "checked_at": "2026-09-25T05:37:57.676532+00:00",
+  "desktop": {
+    "names": 23,
+    "icons": 4,
+    "leader_lines": 0,
+    "name_collisions": 0,
+    "uniform_dot_radius": 5.5
+  },
+  "mobile": {
+    "names": 23,
+    "icons": 4,
+    "leader_lines": 0,
+    "name_collisions": 0,
+    "quadrants": "153 x 306 each"
+  },
+  "tooltip": "Gift / Dog; large name then single category verified",
+  "source": "Exact SQL positions and API unchanged",
+  "backup": "Three original static assets verified against R030 hashes",
+  "deployed": "Three static assets; service stays active; no restart required because static files are read per request"
+}

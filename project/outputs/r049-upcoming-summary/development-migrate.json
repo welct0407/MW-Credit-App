@@ -1,0 +1,24 @@
+{
+  "database" : "loan_manager_dev",
+  "databaseType" : "PostgreSQL",
+  "exception" : null,
+  "flywayVersion" : "13.6.0",
+  "initialSchemaVersion" : "55",
+  "licenseFailed" : false,
+  "migrations" : [ {
+    "category" : "Versioned",
+    "description" : "oltp upcoming summary drilldown",
+    "executionTime" : 1093,
+    "filepath" : "C:\\GitHub\\AppSheet-Loan-Project\\database\\migrations\\V56__oltp_upcoming_summary_drilldown.sql",
+    "type" : "SQL",
+    "version" : "56"
+  } ],
+  "migrationsExecuted" : 1,
+  "operation" : "migrate",
+  "schemaName" : "",
+  "success" : true,
+  "targetSchemaVersion" : "56",
+  "timestamp" : "2026-09-29T17:07:45.0866574+07:00",
+  "totalMigrationTime" : 1093,
+  "warnings" : [ ]
+}

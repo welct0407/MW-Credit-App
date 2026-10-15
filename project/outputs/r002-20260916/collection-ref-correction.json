@@ -1,0 +1,15 @@
+{
+  "release": "R002",
+  "date": "2026-09-16",
+  "oltpVersion": "1.000108",
+  "rollback": "1.000106 before correction; 1.000107 after removing rejected custom navigation",
+  "authorization": "Owner explicitly approved a read-only borrower Ref field displayed as Borrower Name TE in the existing Collection detail page, preserving the Text label elsewhere.",
+  "restoration": "Collection Row Selected = **auto**; action bar = Receive All Charges only; Open Borrower from Collection custom action deleted. Existing Todays Collection Board_Detail preserved.",
+  "column": {"table":"Borrowers", "name":"Borrower Reference TE", "type":"Ref", "target":"Borrowers", "targetKey":"Row ID", "formula":"[Row ID]", "displayName":"\"Borrower Name TE\"", "showIf":"CONTEXT(\"View\") = \"Todays Collection Board_Detail\"", "virtual":true, "readOnly":true, "key":false, "label":false, "isPartOf":false},
+  "slices": "Todays Collection Board includes the new Ref. AppSheet also appended it to Visible Borrowers; Show_If hides it outside Collection detail. Existing filters, permissions and actions preserved.",
+  "detailOrder": ["Daily Collection Status - Order", "Borrower Reference TE", "Todays Amount Due", "Todays Amount Collected", "Todays Amount Remaining", "Todays Collection Charges"],
+  "formatRules": "Four existing Collection Borrower TE status rules now target both Borrower Name TE and Borrower Reference TE. Conditions, scopes, green/red/purple/orange colors and all style settings unchanged.",
+  "navigation": "Native Ref rendering with AppSheet-generated View Ref (Borrower Reference TE); no custom navigation action or extra Open Borrower button. Collection row opens Collection detail; the Ref field inside it opens Borrowers_Detail.",
+  "tests": {"extraOpenBorrowerButtons":0, "collectionRowDestination":"Todays Collection Board_Detail", "nativeRefDestination":"Borrowers_Detail", "matchingBorrower":true, "detailFieldOrderVerified":true, "chargesPanelPreserved":true, "redRefColor":"rgb(204, 11, 11)", "purpleRefColor":"rgb(124, 0, 255)", "greenOrange":"No visible fixtures; saved rules verified", "refHiddenOnBorrowerPage":true, "financialWrites":0, "ownerAcceptance":"pending"},
+  "scope": "Dev OLTP configuration only. Text label/key, principal limit/title, SQL V18, OLAP, production and Looker unchanged. No notification sent."
+}

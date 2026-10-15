@@ -1,0 +1,131 @@
+{
+  "beforeVersion": "1.100047",
+  "afterVersion": "1.100051",
+  "developmentVersion": "1.000027",
+  "assessmentCalendarColumnsMatching": 53,
+  "differences": {
+    "Action name": [],
+    "View name": [],
+    "Slice Name": [
+      {
+        "name": "Borrowers with Outstanding Loans",
+        "properties": [
+          "Slice Columns"
+        ]
+      },
+      {
+        "name": "Profit Contribution 30D",
+        "properties": [
+          "Slice Columns"
+        ]
+      }
+    ],
+    "Table name": [
+      {
+        "name": "Calendar",
+        "properties": [
+          "Source Path",
+          "Data Source"
+        ]
+      },
+      {
+        "name": "Loan Assessment",
+        "properties": [
+          "Source Path"
+        ]
+      }
+    ]
+  },
+  "removedColumns": [
+    "Borrowers_Schema|Related Calendars",
+    "Calendar_Schema|Assessment Proposed Amount",
+    "Calendar_Schema|Assessment Borrower",
+    "Calendar_Schema|Assessment Minimum Rate",
+    "Calendar_Schema|Projected Outstanding Principal",
+    "Calendar_Schema|Projected Interest",
+    "Calendar_Schema|Candidate Day Index",
+    "Calendar_Schema|Assessment Principal Base",
+    "Calendar_Schema|Assessment Principal Start Weight",
+    "Calendar_Schema|Minimum Required Profit",
+    "Calendar_Schema|Required Coverage",
+    "Calendar_Schema|Coverage Margin",
+    "Calendar_Schema|Eligible",
+    "Calendar_Schema|Assessment Installment Contract Principal Due",
+    "Calendar_Schema|Assessment Installment Future Principal Due",
+    "Calendar_Schema|Assessment Installment Future Interest Due",
+    "Calendar_Schema|Assessment Installment Contract Outstanding",
+    "Process for Refresh Daily Analytics Daily - 2 Process Table_Schema|Assessment Proposed Amount",
+    "Process for Refresh Daily Analytics Daily - 2 Process Table_Schema|Assessment Borrower",
+    "Process for Refresh Daily Analytics Daily - 2 Process Table_Schema|Assessment Minimum Rate",
+    "Process for Refresh Daily Analytics Daily - 2 Process Table_Schema|Projected Outstanding Principal",
+    "Process for Refresh Daily Analytics Daily - 2 Process Table_Schema|Projected Interest",
+    "Process for Refresh Daily Analytics Daily - 2 Process Table_Schema|Candidate Day Index",
+    "Process for Refresh Daily Analytics Daily - 2 Process Table_Schema|Assessment Principal Base",
+    "Process for Refresh Daily Analytics Daily - 2 Process Table_Schema|Assessment Principal Start Weight",
+    "Process for Refresh Daily Analytics Daily - 2 Process Table_Schema|Minimum Required Profit",
+    "Process for Refresh Daily Analytics Daily - 2 Process Table_Schema|Required Coverage",
+    "Process for Refresh Daily Analytics Daily - 2 Process Table_Schema|Coverage Margin",
+    "Process for Refresh Daily Analytics Daily - 2 Process Table_Schema|Eligible",
+    "Process for Refresh Daily Analytics Daily - 2 Process Table_Schema|Assessment Installment Contract Principal Due",
+    "Process for Refresh Daily Analytics Daily - 2 Process Table_Schema|Assessment Installment Future Principal Due",
+    "Process for Refresh Daily Analytics Daily - 2 Process Table_Schema|Assessment Installment Future Interest Due",
+    "Process for Refresh Daily Analytics Daily - 2 Process Table_Schema|Assessment Installment Contract Outstanding",
+    "Rebuild Yesterday and Today's Analytics Output_Schema|Assessment Proposed Amount",
+    "Rebuild Yesterday and Today's Analytics Output_Schema|Assessment Borrower",
+    "Rebuild Yesterday and Today's Analytics Output_Schema|Assessment Minimum Rate",
+    "Rebuild Yesterday and Today's Analytics Output_Schema|Projected Outstanding Principal",
+    "Rebuild Yesterday and Today's Analytics Output_Schema|Projected Interest",
+    "Rebuild Yesterday and Today's Analytics Output_Schema|Candidate Day Index",
+    "Rebuild Yesterday and Today's Analytics Output_Schema|Assessment Principal Base",
+    "Rebuild Yesterday and Today's Analytics Output_Schema|Assessment Principal Start Weight",
+    "Rebuild Yesterday and Today's Analytics Output_Schema|Minimum Required Profit",
+    "Rebuild Yesterday and Today's Analytics Output_Schema|Required Coverage",
+    "Rebuild Yesterday and Today's Analytics Output_Schema|Coverage Margin",
+    "Rebuild Yesterday and Today's Analytics Output_Schema|Eligible",
+    "Rebuild Yesterday and Today's Analytics Output_Schema|Assessment Installment Contract Principal Due",
+    "Rebuild Yesterday and Today's Analytics Output_Schema|Assessment Installment Future Principal Due",
+    "Rebuild Yesterday and Today's Analytics Output_Schema|Assessment Installment Future Interest Due",
+    "Rebuild Yesterday and Today's Analytics Output_Schema|Assessment Installment Contract Outstanding"
+  ],
+  "addedColumns": [
+    "Loan Assessment_Schema|SQL Current Principal",
+    "Loan Assessment_Schema|SQL Interest Received",
+    "Loan Assessment_Schema|SQL Eligible Date",
+    "Loan Assessment_Schema|SQL Eligible Interest",
+    "Loan Assessment_Schema|SQL Eligible Principal",
+    "Loan Assessment_Schema|SQL Eligible Profit",
+    "Loan Assessment_Schema|SQL Eligible Coverage",
+    "Loan Assessment_Schema|SQL Eligible Margin",
+    "Loan Assessment_Schema|SQL Current Margin",
+    "Loan Assessment_Schema|SQL Calculated At",
+    "Loan Assessment_Schema|SQL As Of",
+    "Loan Assessment_Schema|SQL Forecast Start",
+    "Loan Assessment_Schema|SQL Forecast End",
+    "Loan Assessment_Schema|SQL Refresh Token",
+    "Loan Assessment_Schema|SQL Source Fingerprint",
+    "Loan Assessment_Schema|SQL Input Borrower",
+    "Loan Assessment_Schema|SQL Input Amount",
+    "Loan Assessment_Schema|SQL Input Rate",
+    "Loan Assessment_Schema|SQL Source Current"
+  ],
+  "changedColumns": [
+    "Loan Assessment_Schema|Row ID",
+    "Loan Assessment_Schema|Current Outstanding Principal",
+    "Loan Assessment_Schema|Interest Earned from Active Loans",
+    "Loan Assessment_Schema|Earliest Eligible Date",
+    "Loan Assessment_Schema|Projected Interest at Eligible Date",
+    "Loan Assessment_Schema|Outstanding Principal at Eligible Date",
+    "Loan Assessment_Schema|Minimum Profit at Eligible Date",
+    "Loan Assessment_Schema|Required Coverage at Eligible Date",
+    "Loan Assessment_Schema|Safety Margin",
+    "Loan Assessment_Schema|Current Coverage Margin",
+    "Loan Assessment_Schema|Recommendation Status",
+    "Loan Assessment_Schema|Recommendation"
+  ],
+  "removedActions": [
+    "Calendar|View Ref (Assessment Borrower)"
+  ],
+  "removedViews": [
+    "Calendar_Inline"
+  ]
+}

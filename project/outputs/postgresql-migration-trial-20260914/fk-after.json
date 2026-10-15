@@ -1,0 +1,82 @@
+[
+  [
+    {
+      "definition": "FOREIGN KEY (\"Ref Borrowers\") REFERENCES \"Borrowers\"(\"Row ID\")",
+      "name": "appsheet_ref_01",
+      "table": "\"Loans\"",
+      "validated": true
+    },
+    {
+      "definition": "FOREIGN KEY (\"Ref Loans\") REFERENCES \"Loans\"(\"Row ID\")",
+      "name": "appsheet_ref_02",
+      "table": "\"Repayments\"",
+      "validated": true
+    },
+    {
+      "definition": "FOREIGN KEY (\"Ref Charges\") REFERENCES \"Charges\"(\"Row ID\")",
+      "name": "appsheet_ref_03",
+      "table": "\"Repayments\"",
+      "validated": true
+    },
+    {
+      "definition": "FOREIGN KEY (\"Ref Payment\") REFERENCES \"Payments\"(\"Row ID\")",
+      "name": "appsheet_ref_04",
+      "table": "\"Repayments\"",
+      "validated": true
+    },
+    {
+      "definition": "FOREIGN KEY (\"Ref Payment Allocation\") REFERENCES \"Payment Allocations\"(\"Row ID\")",
+      "name": "appsheet_ref_05",
+      "table": "\"Repayments\"",
+      "validated": true
+    },
+    {
+      "definition": "FOREIGN KEY (\"Ref Loans\") REFERENCES \"Loans\"(\"Row ID\")",
+      "name": "appsheet_ref_06",
+      "table": "\"Charges\"",
+      "validated": true
+    },
+    {
+      "definition": "FOREIGN KEY (\"Ref Borrower\") REFERENCES \"Borrowers\"(\"Row ID\")",
+      "name": "appsheet_ref_07",
+      "table": "\"Loan Assessment\"",
+      "validated": true
+    },
+    {
+      "definition": "FOREIGN KEY (\"Ref Partner\") REFERENCES \"Partners\"(\"Row ID\")",
+      "name": "appsheet_ref_08",
+      "table": "\"Cash Pool Contributions\"",
+      "validated": true
+    },
+    {
+      "definition": "FOREIGN KEY (\"Ref Partner\") REFERENCES \"Partners\"(\"Row ID\")",
+      "name": "appsheet_ref_09",
+      "table": "\"Settlements\"",
+      "validated": true
+    },
+    {
+      "definition": "FOREIGN KEY (\"Ref Payment\") REFERENCES \"Payments\"(\"Row ID\")",
+      "name": "appsheet_ref_10",
+      "table": "\"Payment Allocations\"",
+      "validated": true
+    },
+    {
+      "definition": "FOREIGN KEY (\"Ref Charge\") REFERENCES \"Charges\"(\"Row ID\")",
+      "name": "appsheet_ref_11",
+      "table": "\"Payment Allocations\"",
+      "validated": true
+    },
+    {
+      "definition": "FOREIGN KEY (\"Ref Borrower\") REFERENCES \"Borrowers\"(\"Row ID\")",
+      "name": "appsheet_ref_12",
+      "table": "\"Payments\"",
+      "validated": true
+    },
+    {
+      "definition": "FOREIGN KEY (\"Ref Target Charge\") REFERENCES \"Charges\"(\"Row ID\")",
+      "name": "appsheet_ref_13",
+      "table": "\"Payments\"",
+      "validated": true
+    }
+  ]
+]

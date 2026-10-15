@@ -1,0 +1,26 @@
+{
+  "passed": true,
+  "checks": [
+    {
+      "id": 302,
+      "twoBorrowersLoaded": true,
+      "formulaVerified": false
+    },
+    {
+      "id": 305,
+      "twoBorrowersLoaded": true,
+      "formulaVerified": true
+    },
+    {
+      "id": 317,
+      "twoBorrowersLoaded": true,
+      "formulaVerified": false
+    }
+  ],
+  "boundaries100And200Orange": true,
+  "nullUncolored": true,
+  "existingParametersAndOtherPlacementsPreserved": true,
+  "paymentDateFilterVerified": true,
+  "loanHistoryDateInvariant": true,
+  "visualCheck": "Chrome Wel: colored percentage cells, original Payments with full details and correct table order, interest bars visible"
+}

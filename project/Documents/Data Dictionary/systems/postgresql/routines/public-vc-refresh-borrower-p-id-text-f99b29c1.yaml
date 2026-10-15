@@ -1,0 +1,52 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.vc_refresh_borrower(p_id text)"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "vc_refresh_borrower"
+    "arguments": "p_id text"
+    "kind": "f"
+    "arguments_with_defaults": "p_id text"
+    "result": "void"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.vc_refresh_borrower(p_id text)
+       RETURNS void
+       LANGUAGE plpgsql
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+      BEGIN
+       UPDATE public."Borrowers" b SET "Total Interest Earned"=v.interest,"Total Amount Loaned"=v.principal,
+       "Total Number of Loans"=v.n,"Total Outstanding Principal"=v.outstanding,"Active Loan Interest Earned"=v.active_interest,
+       "Active Daily Interest"=v.daily,"Has Closed Loan"=v.closed,"Has Active Loan"=v.active
+       FROM public.vc_borrower_values(p_id) v WHERE b."Row ID"=p_id AND
+       ROW(b."Total Interest Earned",b."Total Amount Loaned",b."Total Number of Loans",b."Total Outstanding Principal",b."Active Loan Interest Earned",b."Active Daily Interest",b."Has Closed Loan",b."Has Active Loan")
+       IS DISTINCT FROM ROW(v.interest,v.principal,v.n,v.outstanding,v.active_interest,v.daily,v.closed,v.active);
+      END $function$
+    "owner": "postgres"
+    "language": "plpgsql"
+    "volatility": "v"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 0.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": "{=X/postgres,postgres=X/postgres,mw_app_prod=X/postgres}"
+    "comment": null
+    "extension": null
+"evidence":
+  "/content/definition/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"

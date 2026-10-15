@@ -1,0 +1,817 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "relation"
+  "name": "public.reporting_borrower_matrix_plot_v1"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r029-bcg-matrix/dictionary-catalog.json"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "reporting_borrower_matrix_plot_v1"
+    "kind": "v"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "n"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,metabase_borrower_reader=r/postgres,mw_chart_reader=r/postgres,mw_app_prod=r/postgres}"
+    "comment": "R029 display-only coordinates: fixed 0-100 matrix, midpoint 50; high health left, contribution >=1x above.\
+      \ Modified schedules at x75 are categorical placement, not a changed payment score. V3 is unchanged. Padding affects\
+      \ rendering only; invalid inputs and Unclassified remain explicit."
+    "view_definition": |2-
+       WITH inputs AS (
+               SELECT m.borrower_id,
+                  m.contribution_30d,
+                  m.active_borrower_count,
+                  m.portfolio_contribution_30d,
+                  m.contribution_share,
+                  m.equal_share,
+                  m.relative_contribution,
+                  m.reliability_score,
+                  m.confidence,
+                  m.quadrant,
+                  m.classification_reason,
+                  m.outstanding_principal,
+                  m.reporting_date,
+                  m.calculated_at,
+                  m.method_version,
+                  m.payment_only_quadrant,
+                  m.arrangement_status,
+                  m.arrangement_gate,
+                  m.modified_schedule_loan_count,
+                  m.interest_coverage_30d,
+                  m.interest_date_coverage_30d,
+                  m.category_adjusted,
+                      CASE
+                          WHEN m.quadrant = 'Unclassified'::text THEN 'Unclassified'::text
+                          WHEN (m.quadrant <> ALL (ARRAY['Star'::text, 'Cash Cow'::text, 'Question Mark'::text, 'Dog'::text])) OR m.reliability_score IS NULL OR m.reliability_score < 0::numeric OR m.reliability_score > 100::numeric OR m.relative_contribution IS NULL OR (m.relative_contribution::text = ANY (ARRAY['NaN'::text, 'Infinity'::text, '-Infinity'::text])) OR m.arrangement_gate IS NULL THEN 'Invalid plot input'::text
+                          WHEN (m.quadrant = ANY (ARRAY['Star'::text, 'Cash Cow'::text])) <> (m.reliability_score >= 80::numeric AND NOT m.arrangement_gate) OR (m.quadrant = ANY (ARRAY['Star'::text, 'Question Mark'::text])) <> (m.relative_contribution >= 1::numeric) THEN 'Invalid plot input'::text
+                          ELSE 'Plotted'::text
+                      END AS plot_status
+                 FROM reporting_borrower_matrix_v3 m
+              ), coordinates AS (
+               SELECT i.borrower_id,
+                  i.contribution_30d,
+                  i.active_borrower_count,
+                  i.portfolio_contribution_30d,
+                  i.contribution_share,
+                  i.equal_share,
+                  i.relative_contribution,
+                  i.reliability_score,
+                  i.confidence,
+                  i.quadrant,
+                  i.classification_reason,
+                  i.outstanding_principal,
+                  i.reporting_date,
+                  i.calculated_at,
+                  i.method_version,
+                  i.payment_only_quadrant,
+                  i.arrangement_status,
+                  i.arrangement_gate,
+                  i.modified_schedule_loan_count,
+                  i.interest_coverage_30d,
+                  i.interest_date_coverage_30d,
+                  i.category_adjusted,
+                  i.plot_status,
+                      CASE
+                          WHEN i.plot_status = 'Plotted'::text THEN
+                          CASE
+                              WHEN i.arrangement_gate THEN 75::numeric
+                              WHEN i.reliability_score < 80::numeric THEN 100::numeric - 50::numeric * i.reliability_score / 80::numeric
+                              ELSE 50::numeric - 50::numeric * (i.reliability_score - 80::numeric) / 20::numeric
+                          END
+                          ELSE NULL::numeric
+                      END AS matrix_x,
+                      CASE
+                          WHEN i.plot_status = 'Plotted'::text THEN
+                          CASE
+                              WHEN i.relative_contribution < 0::numeric THEN 0::numeric
+                              ELSE 100::numeric * i.relative_contribution / (1::numeric + i.relative_contribution)
+                          END
+                          ELSE NULL::numeric
+                      END AS matrix_y
+                 FROM inputs i
+              )
+       SELECT borrower_id,
+          contribution_30d,
+          active_borrower_count,
+          portfolio_contribution_30d,
+          contribution_share,
+          equal_share,
+          relative_contribution,
+          reliability_score,
+          confidence,
+          quadrant,
+          classification_reason,
+          outstanding_principal,
+          reporting_date,
+          calculated_at,
+          method_version,
+          payment_only_quadrant,
+          arrangement_status,
+          arrangement_gate,
+          modified_schedule_loan_count,
+          interest_coverage_30d,
+          interest_date_coverage_30d,
+          category_adjusted,
+          plot_status,
+          matrix_x,
+          matrix_y,
+              CASE
+                  WHEN plot_status = 'Plotted'::text THEN
+                  CASE
+                      WHEN quadrant = ANY (ARRAY['Star'::text, 'Cash Cow'::text]) THEN GREATEST(2::numeric, LEAST(49.5, matrix_x))
+                      ELSE GREATEST(50.5, LEAST(98::numeric, matrix_x))
+                  END
+                  ELSE NULL::numeric
+              END AS plot_x,
+              CASE
+                  WHEN plot_status = 'Plotted'::text THEN
+                  CASE
+                      WHEN quadrant = ANY (ARRAY['Star'::text, 'Question Mark'::text]) THEN GREATEST(50.5, LEAST(98::numeric, matrix_y))
+                      ELSE GREATEST(2::numeric, LEAST(49.5, matrix_y))
+                  END
+                  ELSE NULL::numeric
+              END AS plot_y,
+              CASE
+                  WHEN plot_status <> 'Plotted'::text THEN plot_status
+                  WHEN arrangement_gate THEN 'Modified-schedule category placement'::text
+                  ELSE 'Measured score'::text
+              END AS position_basis,
+              CASE
+                  WHEN plot_status = 'Plotted'::text THEN relative_contribution < 0::numeric
+                  ELSE false
+              END AS contribution_clipped,
+          'bcg-display-v1'::text AS plot_method_version
+         FROM coordinates c;
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "columns":
+    "borrower_id":
+      "schema": "public"
+      "relation": "reporting_borrower_matrix_plot_v1"
+      "name": "borrower_id"
+      "ordinal": 1
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "contribution_30d":
+      "schema": "public"
+      "relation": "reporting_borrower_matrix_plot_v1"
+      "name": "contribution_30d"
+      "ordinal": 2
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "active_borrower_count":
+      "schema": "public"
+      "relation": "reporting_borrower_matrix_plot_v1"
+      "name": "active_borrower_count"
+      "ordinal": 3
+      "data_type": "integer"
+      "type_schema": "pg_catalog"
+      "type_name": "int4"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "portfolio_contribution_30d":
+      "schema": "public"
+      "relation": "reporting_borrower_matrix_plot_v1"
+      "name": "portfolio_contribution_30d"
+      "ordinal": 4
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "contribution_share":
+      "schema": "public"
+      "relation": "reporting_borrower_matrix_plot_v1"
+      "name": "contribution_share"
+      "ordinal": 5
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "equal_share":
+      "schema": "public"
+      "relation": "reporting_borrower_matrix_plot_v1"
+      "name": "equal_share"
+      "ordinal": 6
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "relative_contribution":
+      "schema": "public"
+      "relation": "reporting_borrower_matrix_plot_v1"
+      "name": "relative_contribution"
+      "ordinal": 7
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "reliability_score":
+      "schema": "public"
+      "relation": "reporting_borrower_matrix_plot_v1"
+      "name": "reliability_score"
+      "ordinal": 8
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "confidence":
+      "schema": "public"
+      "relation": "reporting_borrower_matrix_plot_v1"
+      "name": "confidence"
+      "ordinal": 9
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "quadrant":
+      "schema": "public"
+      "relation": "reporting_borrower_matrix_plot_v1"
+      "name": "quadrant"
+      "ordinal": 10
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "classification_reason":
+      "schema": "public"
+      "relation": "reporting_borrower_matrix_plot_v1"
+      "name": "classification_reason"
+      "ordinal": 11
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "outstanding_principal":
+      "schema": "public"
+      "relation": "reporting_borrower_matrix_plot_v1"
+      "name": "outstanding_principal"
+      "ordinal": 12
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "reporting_date":
+      "schema": "public"
+      "relation": "reporting_borrower_matrix_plot_v1"
+      "name": "reporting_date"
+      "ordinal": 13
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "calculated_at":
+      "schema": "public"
+      "relation": "reporting_borrower_matrix_plot_v1"
+      "name": "calculated_at"
+      "ordinal": 14
+      "data_type": "timestamp with time zone"
+      "type_schema": "pg_catalog"
+      "type_name": "timestamptz"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "method_version":
+      "schema": "public"
+      "relation": "reporting_borrower_matrix_plot_v1"
+      "name": "method_version"
+      "ordinal": 15
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "payment_only_quadrant":
+      "schema": "public"
+      "relation": "reporting_borrower_matrix_plot_v1"
+      "name": "payment_only_quadrant"
+      "ordinal": 16
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "arrangement_status":
+      "schema": "public"
+      "relation": "reporting_borrower_matrix_plot_v1"
+      "name": "arrangement_status"
+      "ordinal": 17
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "arrangement_gate":
+      "schema": "public"
+      "relation": "reporting_borrower_matrix_plot_v1"
+      "name": "arrangement_gate"
+      "ordinal": 18
+      "data_type": "boolean"
+      "type_schema": "pg_catalog"
+      "type_name": "bool"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "modified_schedule_loan_count":
+      "schema": "public"
+      "relation": "reporting_borrower_matrix_plot_v1"
+      "name": "modified_schedule_loan_count"
+      "ordinal": 19
+      "data_type": "integer"
+      "type_schema": "pg_catalog"
+      "type_name": "int4"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "interest_coverage_30d":
+      "schema": "public"
+      "relation": "reporting_borrower_matrix_plot_v1"
+      "name": "interest_coverage_30d"
+      "ordinal": 20
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "interest_date_coverage_30d":
+      "schema": "public"
+      "relation": "reporting_borrower_matrix_plot_v1"
+      "name": "interest_date_coverage_30d"
+      "ordinal": 21
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "category_adjusted":
+      "schema": "public"
+      "relation": "reporting_borrower_matrix_plot_v1"
+      "name": "category_adjusted"
+      "ordinal": 22
+      "data_type": "boolean"
+      "type_schema": "pg_catalog"
+      "type_name": "bool"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "plot_status":
+      "schema": "public"
+      "relation": "reporting_borrower_matrix_plot_v1"
+      "name": "plot_status"
+      "ordinal": 23
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "matrix_x":
+      "schema": "public"
+      "relation": "reporting_borrower_matrix_plot_v1"
+      "name": "matrix_x"
+      "ordinal": 24
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "matrix_y":
+      "schema": "public"
+      "relation": "reporting_borrower_matrix_plot_v1"
+      "name": "matrix_y"
+      "ordinal": 25
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "plot_x":
+      "schema": "public"
+      "relation": "reporting_borrower_matrix_plot_v1"
+      "name": "plot_x"
+      "ordinal": 26
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "plot_y":
+      "schema": "public"
+      "relation": "reporting_borrower_matrix_plot_v1"
+      "name": "plot_y"
+      "ordinal": 27
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "position_basis":
+      "schema": "public"
+      "relation": "reporting_borrower_matrix_plot_v1"
+      "name": "position_basis"
+      "ordinal": 28
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "contribution_clipped":
+      "schema": "public"
+      "relation": "reporting_borrower_matrix_plot_v1"
+      "name": "contribution_clipped"
+      "ordinal": 29
+      "data_type": "boolean"
+      "type_schema": "pg_catalog"
+      "type_name": "bool"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "plot_method_version":
+      "schema": "public"
+      "relation": "reporting_borrower_matrix_plot_v1"
+      "name": "plot_method_version"
+      "ordinal": 30
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+  "constraints": {}
+  "indexes": {}
+  "triggers": {}
+  "policies": {}
+  "dependencies":
+  - "schema": "public"
+    "relation": "reporting_borrower_matrix_plot_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_matrix_v3"
+    "referenced_column": "active_borrower_count"
+  - "schema": "public"
+    "relation": "reporting_borrower_matrix_plot_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_matrix_v3"
+    "referenced_column": "arrangement_gate"
+  - "schema": "public"
+    "relation": "reporting_borrower_matrix_plot_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_matrix_v3"
+    "referenced_column": "arrangement_status"
+  - "schema": "public"
+    "relation": "reporting_borrower_matrix_plot_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_matrix_v3"
+    "referenced_column": "borrower_id"
+  - "schema": "public"
+    "relation": "reporting_borrower_matrix_plot_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_matrix_v3"
+    "referenced_column": "calculated_at"
+  - "schema": "public"
+    "relation": "reporting_borrower_matrix_plot_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_matrix_v3"
+    "referenced_column": "category_adjusted"
+  - "schema": "public"
+    "relation": "reporting_borrower_matrix_plot_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_matrix_v3"
+    "referenced_column": "classification_reason"
+  - "schema": "public"
+    "relation": "reporting_borrower_matrix_plot_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_matrix_v3"
+    "referenced_column": "confidence"
+  - "schema": "public"
+    "relation": "reporting_borrower_matrix_plot_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_matrix_v3"
+    "referenced_column": "contribution_30d"
+  - "schema": "public"
+    "relation": "reporting_borrower_matrix_plot_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_matrix_v3"
+    "referenced_column": "contribution_share"
+  - "schema": "public"
+    "relation": "reporting_borrower_matrix_plot_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_matrix_v3"
+    "referenced_column": "equal_share"
+  - "schema": "public"
+    "relation": "reporting_borrower_matrix_plot_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_matrix_v3"
+    "referenced_column": "interest_coverage_30d"
+  - "schema": "public"
+    "relation": "reporting_borrower_matrix_plot_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_matrix_v3"
+    "referenced_column": "interest_date_coverage_30d"
+  - "schema": "public"
+    "relation": "reporting_borrower_matrix_plot_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_matrix_v3"
+    "referenced_column": "method_version"
+  - "schema": "public"
+    "relation": "reporting_borrower_matrix_plot_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_matrix_v3"
+    "referenced_column": "modified_schedule_loan_count"
+  - "schema": "public"
+    "relation": "reporting_borrower_matrix_plot_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_matrix_v3"
+    "referenced_column": "outstanding_principal"
+  - "schema": "public"
+    "relation": "reporting_borrower_matrix_plot_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_matrix_v3"
+    "referenced_column": "payment_only_quadrant"
+  - "schema": "public"
+    "relation": "reporting_borrower_matrix_plot_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_matrix_v3"
+    "referenced_column": "portfolio_contribution_30d"
+  - "schema": "public"
+    "relation": "reporting_borrower_matrix_plot_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_matrix_v3"
+    "referenced_column": "quadrant"
+  - "schema": "public"
+    "relation": "reporting_borrower_matrix_plot_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_matrix_v3"
+    "referenced_column": "relative_contribution"
+  - "schema": "public"
+    "relation": "reporting_borrower_matrix_plot_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_matrix_v3"
+    "referenced_column": "reliability_score"
+  - "schema": "public"
+    "relation": "reporting_borrower_matrix_plot_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_matrix_v3"
+    "referenced_column": "reporting_date"
+"evidence":
+  "/content/definition/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"

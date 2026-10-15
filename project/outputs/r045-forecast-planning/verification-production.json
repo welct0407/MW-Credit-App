@@ -1,0 +1,571 @@
+{
+  "production": {
+    "database": "loan_manager_prod",
+    "version": 48,
+    "source_functions": {
+      "generate_loan_charge": "52a1d37f65b684ae1dc9b6cd7e89edc80cfa31d24c4787a83d5ab8996b3c8e09",
+      "vc_charge_values": "a96514dec1e2760d4470dedddc9ff456b912293848790d8f5adbb11ab6b9592d",
+      "daily_interest_basis": "775adb43eeee6426a79131596a3ad57f9af3aebebf28d28185c050e60eaef2d2",
+      "apply_principal_daily_interest": "1153a2031d0026559136ea95bdb352e7e245a6d6a937f0e71cbe0a18dcdff4f5"
+    },
+    "columns": [
+      [
+        "Borrowers",
+        "Row ID",
+        "text"
+      ],
+      [
+        "Borrowers",
+        "Borrower Name",
+        "text"
+      ],
+      [
+        "Borrowers",
+        "Description",
+        "text"
+      ],
+      [
+        "Borrowers",
+        "Creation Date",
+        "date"
+      ],
+      [
+        "Borrowers",
+        "Hidden Flag",
+        "boolean"
+      ],
+      [
+        "Borrowers",
+        "Communication Name",
+        "text"
+      ],
+      [
+        "Borrowers",
+        "Instagram Username",
+        "text"
+      ],
+      [
+        "Borrowers",
+        "AI Collection Enabled",
+        "boolean"
+      ],
+      [
+        "Borrowers",
+        "City",
+        "text"
+      ],
+      [
+        "Borrowers",
+        "Working Location",
+        "text"
+      ],
+      [
+        "Borrowers",
+        "Address",
+        "text"
+      ],
+      [
+        "Borrowers",
+        "Total Interest Earned",
+        "numeric"
+      ],
+      [
+        "Borrowers",
+        "Total Amount Loaned",
+        "numeric"
+      ],
+      [
+        "Borrowers",
+        "Total Number of Loans",
+        "integer"
+      ],
+      [
+        "Borrowers",
+        "Total Outstanding Principal",
+        "numeric"
+      ],
+      [
+        "Borrowers",
+        "Active Loan Interest Earned",
+        "numeric"
+      ],
+      [
+        "Borrowers",
+        "Active Daily Interest",
+        "numeric"
+      ],
+      [
+        "Borrowers",
+        "Has Closed Loan",
+        "boolean"
+      ],
+      [
+        "Borrowers",
+        "Has Active Loan",
+        "boolean"
+      ],
+      [
+        "Borrowers",
+        "Ref Referrer",
+        "text"
+      ],
+      [
+        "Borrowers",
+        "Ref Preferred Receiving Cash Account",
+        "text"
+      ],
+      [
+        "Borrowers",
+        "Payment Request Cash Account",
+        "text"
+      ],
+      [
+        "Borrowers",
+        "Payment Request Token",
+        "text"
+      ],
+      [
+        "Borrowers",
+        "Borrower Note",
+        "text"
+      ],
+      [
+        "Charges",
+        "Row ID",
+        "text"
+      ],
+      [
+        "Charges",
+        "Ref Loans",
+        "text"
+      ],
+      [
+        "Charges",
+        "Charge Date",
+        "date"
+      ],
+      [
+        "Charges",
+        "Interest Due",
+        "money"
+      ],
+      [
+        "Charges",
+        "Principal Due",
+        "money"
+      ],
+      [
+        "Charges",
+        "Notes",
+        "text"
+      ],
+      [
+        "Charges",
+        "Principal Paid",
+        "numeric"
+      ],
+      [
+        "Charges",
+        "Interest Paid",
+        "numeric"
+      ],
+      [
+        "Charges",
+        "Total Paid",
+        "numeric"
+      ],
+      [
+        "Charges",
+        "Principal Remaining",
+        "numeric"
+      ],
+      [
+        "Charges",
+        "Interest Remaining",
+        "numeric"
+      ],
+      [
+        "Charges",
+        "Amount Remaining",
+        "numeric"
+      ],
+      [
+        "Charges",
+        "Payment Count",
+        "integer"
+      ],
+      [
+        "Charges",
+        "Payment Status",
+        "text"
+      ],
+      [
+        "Charges",
+        "Payment Date",
+        "date"
+      ],
+      [
+        "Charges",
+        "Payment Request Cash Account",
+        "text"
+      ],
+      [
+        "Charges",
+        "Payment Request Token",
+        "text"
+      ],
+      [
+        "Loans",
+        "Row ID",
+        "text"
+      ],
+      [
+        "Loans",
+        "Loan Date",
+        "date"
+      ],
+      [
+        "Loans",
+        "Close Date",
+        "date"
+      ],
+      [
+        "Loans",
+        "Principal Amount",
+        "money"
+      ],
+      [
+        "Loans",
+        "Due Date",
+        "date"
+      ],
+      [
+        "Loans",
+        "Ref Borrowers",
+        "text"
+      ],
+      [
+        "Loans",
+        "Loan Arrangement",
+        "text"
+      ],
+      [
+        "Loans",
+        "Loan Status",
+        "text"
+      ],
+      [
+        "Loans",
+        "Loan Type",
+        "text"
+      ],
+      [
+        "Loans",
+        "Current Daily Interest",
+        "money"
+      ],
+      [
+        "Loans",
+        "Fixed Interest",
+        "money"
+      ],
+      [
+        "Loans",
+        "Transfer Fee",
+        "money"
+      ],
+      [
+        "Loans",
+        "Interest Payment Interval",
+        "integer"
+      ],
+      [
+        "Loans",
+        "Created By",
+        "text"
+      ],
+      [
+        "Loans",
+        "Closed By",
+        "text"
+      ],
+      [
+        "Loans",
+        "Defaulted",
+        "boolean"
+      ],
+      [
+        "Loans",
+        "Default Loss Amount",
+        "money"
+      ],
+      [
+        "Loans",
+        "Daily Payment Amount",
+        "money"
+      ],
+      [
+        "Loans",
+        "Auto Charge Enabled",
+        "boolean"
+      ],
+      [
+        "Loans",
+        "Interest Schedule Anchor Date",
+        "date"
+      ],
+      [
+        "Loans",
+        "Ref Closing Payment",
+        "text"
+      ],
+      [
+        "Loans",
+        "Charge Generation Request",
+        "text"
+      ],
+      [
+        "Loans",
+        "Total Interest Received",
+        "numeric"
+      ],
+      [
+        "Loans",
+        "Total Principal Received",
+        "numeric"
+      ],
+      [
+        "Loans",
+        "Outstanding Principal",
+        "numeric"
+      ],
+      [
+        "Loans",
+        "Total Amount Received",
+        "numeric"
+      ],
+      [
+        "Loans",
+        "Expected Daily Interest Amount",
+        "numeric"
+      ],
+      [
+        "Loans",
+        "Ref Disbursed From Cash Account",
+        "text"
+      ],
+      [
+        "Loans",
+        "Payment Request Cash Account",
+        "text"
+      ],
+      [
+        "Loans",
+        "Payment Request Token",
+        "text"
+      ],
+      [
+        "Repayments",
+        "Row ID",
+        "text"
+      ],
+      [
+        "Repayments",
+        "Payment Date",
+        "date"
+      ],
+      [
+        "Repayments",
+        "Principal Paid",
+        "money"
+      ],
+      [
+        "Repayments",
+        "Interest Paid",
+        "money"
+      ],
+      [
+        "Repayments",
+        "Notes",
+        "text"
+      ],
+      [
+        "Repayments",
+        "Ref Loans",
+        "text"
+      ],
+      [
+        "Repayments",
+        "Ref Charges",
+        "text"
+      ],
+      [
+        "Repayments",
+        "Created By",
+        "text"
+      ],
+      [
+        "Repayments",
+        "Ref Payment",
+        "text"
+      ],
+      [
+        "Repayments",
+        "Ref Payment Allocation",
+        "text"
+      ],
+      [
+        "reporting_borrower_schedule_health_v1",
+        "borrower_id",
+        "text"
+      ],
+      [
+        "reporting_borrower_schedule_health_v1",
+        "active_loan_count",
+        "integer"
+      ],
+      [
+        "reporting_borrower_schedule_health_v1",
+        "modified_schedule_loan_count",
+        "integer"
+      ],
+      [
+        "reporting_borrower_schedule_health_v1",
+        "unsupported_or_invalid_loan_count",
+        "integer"
+      ],
+      [
+        "reporting_borrower_schedule_health_v1",
+        "assessed_loan_count",
+        "integer"
+      ],
+      [
+        "reporting_borrower_schedule_health_v1",
+        "expected_interest_30d",
+        "numeric"
+      ],
+      [
+        "reporting_borrower_schedule_health_v1",
+        "recorded_interest_30d",
+        "numeric"
+      ],
+      [
+        "reporting_borrower_schedule_health_v1",
+        "recorded_principal_30d",
+        "numeric"
+      ],
+      [
+        "reporting_borrower_schedule_health_v1",
+        "interest_coverage_30d",
+        "numeric"
+      ],
+      [
+        "reporting_borrower_schedule_health_v1",
+        "interest_date_coverage_30d",
+        "numeric"
+      ],
+      [
+        "reporting_borrower_schedule_health_v1",
+        "arrangement_gate",
+        "boolean"
+      ],
+      [
+        "reporting_borrower_schedule_health_v1",
+        "arrangement_status",
+        "text"
+      ],
+      [
+        "reporting_borrower_schedule_health_v1",
+        "reporting_date",
+        "date"
+      ],
+      [
+        "reporting_borrower_schedule_health_v1",
+        "calculated_at",
+        "timestamp with time zone"
+      ],
+      [
+        "reporting_borrower_schedule_health_v1",
+        "method_version",
+        "text"
+      ],
+      [
+        "reporting_cash_daily",
+        "Date",
+        "date"
+      ],
+      [
+        "reporting_cash_daily",
+        "Cash Pool Remaining",
+        "numeric"
+      ],
+      [
+        "reporting_cash_daily",
+        "Business Cash Held",
+        "numeric"
+      ],
+      [
+        "reporting_cash_daily",
+        "Advance Due",
+        "numeric"
+      ],
+      [
+        "reporting_cash_daily",
+        "Retained Profit Through Date",
+        "numeric"
+      ],
+      [
+        "reporting_cash_daily",
+        "Cash Reconciliation Difference",
+        "numeric"
+      ],
+      [
+        "reporting_cash_daily",
+        "Cash Available From",
+        "date"
+      ],
+      [
+        "reporting_cash_daily",
+        "Cash Status",
+        "text"
+      ]
+    ],
+    "loan_rows": 80,
+    "events": [
+      [
+        "Notice",
+        "Recorded plan only",
+        20
+      ],
+      [
+        "Recorded",
+        "Future",
+        15
+      ],
+      [
+        "Recorded",
+        "Overdue",
+        116
+      ],
+      [
+        "Recorded",
+        "Today",
+        24
+      ],
+      [
+        "Simulated",
+        "Future",
+        72
+      ]
+    ],
+    "issues": [
+      [
+        "Manual schedule: only recorded obligations forecast",
+        20
+      ]
+    ],
+    "actual_reconciliation": true,
+    "no_duplicate_simulations": true,
+    "read_only_functions": true
+  }
+}

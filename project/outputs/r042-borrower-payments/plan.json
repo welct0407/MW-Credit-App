@@ -1,0 +1,358 @@
+{
+  "dashboard": 3,
+  "tab": 105,
+  "questions": [
+    {
+      "id": 302,
+      "name": "Interest received over time",
+      "display": "bar",
+      "dataset_query": {
+        "stages": [
+          {
+            "template-tags": [
+              {
+                "widget-type": "date/all-options",
+                "id": "bp-period",
+                "name": "period",
+                "display-name": "Activity period",
+                "type": "dimension",
+                "dimension": [
+                  "field",
+                  {
+                    "base-type": "type/Date",
+                    "lib/uuid": "2cb0df78-0a34-447c-8e5a-9c518b1aca71",
+                    "effective-type": "type/Date"
+                  },
+                  82
+                ],
+                "alias": "d.\"Date\""
+              },
+              {
+                "display-name": "Borrower",
+                "id": "bp-borrower",
+                "name": "borrower_id",
+                "type": "text"
+              }
+            ],
+            "lib/type": "mbql.stage/native",
+            "native": "WITH clock AS (SELECT public.olap_reporting_date() today), selected AS (SELECT d.\"Date\" FROM (SELECT generate_series(DATE '1900-01-01',DATE '2199-12-31',interval '1 day')::date \"Date\") d WHERE [[{{period}} --]] d.\"Date\" BETWEEN (SELECT today-30 FROM clock) AND (SELECT today-1 FROM clock)\n), bounds AS (SELECT min(\"Date\") starts,max(\"Date\") ends,count(*) days,count(*)>0 AND count(*)=max(\"Date\")-min(\"Date\")+1 AND max(\"Date\")<=(SELECT today FROM clock) valid FROM selected), chosen AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE borrower_id= [[{{borrower_id}} --]] '__select_borrower__'\n), activity AS (SELECT a.* FROM public.reporting_borrower_activity_daily_v1 a JOIN chosen c USING(borrower_id) CROSS JOIN bounds b WHERE b.valid AND a.activity_date BETWEEN b.starts AND b.ends) SELECT CASE WHEN b.days<=60 THEN d.\"Date\" ELSE date_trunc('week',d.\"Date\")::date END AS \"Date\",CASE WHEN bool_and(a.activity_date IS NULL OR a.interest_received IS NOT NULL) THEN sum(coalesce(a.interest_received,0)) END AS \"Interest ฿\"\n FROM selected d CROSS JOIN chosen c CROSS JOIN bounds b LEFT JOIN activity a ON a.activity_date=d.\"Date\" WHERE b.valid GROUP BY 1 ORDER BY 1"
+          }
+        ],
+        "lib/type": "mbql/query",
+        "database": 2
+      },
+      "visualization_settings": {
+        "graph.show_values": false,
+        "graph.show_legend": false,
+        "graph.missing": "none",
+        "graph.y_axis.auto_split": false,
+        "graph.metrics": [
+          "Interest ฿"
+        ],
+        "graph.label_value_formatting": "compact",
+        "graph.colors": [
+          "#178F8A",
+          "#7472BE",
+          "#D6816B",
+          "#24435A",
+          "#D4AD60",
+          "#9CA3AF"
+        ],
+        "graph.show_dots": false,
+        "column_settings": {
+          "[\"name\",\"Interest ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        },
+        "graph.dimensions": [
+          "Date"
+        ],
+        "stackable.stack_type": null
+      }
+    },
+    {
+      "id": 305,
+      "name": "Loan history · lifetime",
+      "display": "table",
+      "description": "Lifetime signed interest received / original loan principal. Gross interest before expenses. <100% red; 100–200% inclusive orange; >200% green. Invalid/nonpositive original principal gives no percentage/color. Ignores activity dates.",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH clock AS (SELECT public.olap_reporting_date() today), chosen AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE borrower_id= [[{{borrower_id}} --]] '__select_borrower__'\n) SELECT CASE WHEN k.\"Row ID\" IS NULL THEN 'Loan key unavailable' ELSE coalesce(c.borrower_name,'Unknown borrower')||'-'||to_char(k.\"Principal Amount\"::numeric,'FM999,999,999,990.00')||'-'||to_char(k.\"Loan Date\",'DD/MM')||'-'||coalesce(to_char(k.\"Effective Daily Interest Rate\"::numeric*100,'FM999990.00')||'%','Unavailable') END AS \"Loan Key\",l.loan_date AS \"Loan date\",l.loan_type AS \"Loan type\",l.loan_status AS \"Status\",l.original_principal AS \"Original principal ฿\",l.outstanding_principal AS \"Current principal ฿\",l.principal_received AS \"Principal received ฿\",l.interest_received AS \"Interest received ฿\",CASE WHEN l.original_principal>0 THEN l.interest_received/l.original_principal END AS \"Profit / original principal\",l.close_date AS \"Close date\",l.defaulted AS \"Defaulted\",l.default_loss AS \"Recorded loss ฿\" FROM chosen c JOIN public.reporting_borrower_loan_facts_v1 l USING(borrower_id) LEFT JOIN public.olap_loans_analytics k ON k.\"Row ID\"=l.loan_id ORDER BY l.is_active DESC,l.loan_date DESC,l.loan_id",
+          "template-tags": {
+            "borrower_id": {
+              "id": "bp-borrower",
+              "name": "borrower_id",
+              "display-name": "Borrower",
+              "type": "text"
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "table.pivot": false,
+        "table.columns": [
+          {
+            "name": "Loan Key",
+            "fieldRef": [
+              "field",
+              "Loan Key",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Loan date",
+            "fieldRef": [
+              "field",
+              "Loan date",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Loan type",
+            "fieldRef": [
+              "field",
+              "Loan type",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Status",
+            "fieldRef": [
+              "field",
+              "Status",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Original principal ฿",
+            "fieldRef": [
+              "field",
+              "Original principal ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Current principal ฿",
+            "fieldRef": [
+              "field",
+              "Current principal ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Principal received ฿",
+            "fieldRef": [
+              "field",
+              "Principal received ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Interest received ฿",
+            "fieldRef": [
+              "field",
+              "Interest received ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Profit / original principal",
+            "fieldRef": [
+              "field",
+              "Profit / original principal",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Close date",
+            "fieldRef": [
+              "field",
+              "Close date",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Defaulted",
+            "fieldRef": [
+              "field",
+              "Defaulted",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Recorded loss ฿",
+            "fieldRef": [
+              "field",
+              "Recorded loss ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          }
+        ],
+        "column_settings": {
+          "[\"name\",\"Original principal ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Current principal ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Principal received ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Interest received ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Recorded loss ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Profit / original principal\"]": {
+            "number_style": "percent",
+            "decimals": 1
+          }
+        },
+        "table.column_formatting": [
+          {
+            "columns": [
+              "Profit / original principal"
+            ],
+            "type": "single",
+            "operator": "<",
+            "value": 1,
+            "color": "#E57373",
+            "highlight_row": false
+          },
+          {
+            "columns": [
+              "Profit / original principal"
+            ],
+            "type": "single",
+            "operator": "<=",
+            "value": 2,
+            "color": "#F0AD4E",
+            "highlight_row": false
+          },
+          {
+            "columns": [
+              "Profit / original principal"
+            ],
+            "type": "single",
+            "operator": ">",
+            "value": 2,
+            "color": "#66BB6A",
+            "highlight_row": false
+          }
+        ]
+      }
+    },
+    {
+      "name": "Payments · selected payment dates",
+      "display": "table",
+      "description": "Original payment receipts, one row per Payments record, including unposted states. All payment details included by owner request. Amount received and posted amount are separate; repayments below are allocation rows. Reference IDs are resolved to readable names/Loan Keys.",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH clock AS (SELECT public.olap_reporting_date() today), selected AS (SELECT d.\"Date\" FROM (SELECT generate_series(DATE '1900-01-01',DATE '2199-12-31',interval '1 day')::date \"Date\") d WHERE [[{{period}} --]] d.\"Date\" BETWEEN (SELECT today-30 FROM clock) AND (SELECT today-1 FROM clock)\n), bounds AS (SELECT min(\"Date\") starts,max(\"Date\") ends,count(*) days,count(*)>0 AND count(*)=max(\"Date\")-min(\"Date\")+1 AND max(\"Date\")<=(SELECT today FROM clock) valid FROM selected), chosen AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE borrower_id= [[{{borrower_id}} --]] '__select_borrower__'\n), activity AS (SELECT a.* FROM public.reporting_borrower_activity_daily_v1 a JOIN chosen c USING(borrower_id) CROSS JOIN bounds b WHERE b.valid AND a.activity_date BETWEEN b.starts AND b.ends) SELECT p.payment_date AS \"Payment date\",p.status AS \"Status\",p.amount_received AS \"Amount received ฿\",p.posted_amount AS \"Posted amount ฿\",p.planned_allocation_amount AS \"Planned allocation ฿\",p.payment_method AS \"Payment method\",p.allocation_method AS \"Allocation method\",p.received_holder AS \"Received by\",p.received_account AS \"Receipt account\",p.bank_reference AS \"Bank reference\",p.notes AS \"Notes\",p.created_by AS \"Created by\",p.created_at AS \"Created at\",p.processed_at AS \"Processed at\",CASE WHEN tl.\"Row ID\" IS NULL THEN NULL ELSE c.borrower_name||'-'||to_char(tl.\"Principal Amount\"::numeric,'FM999,999,999,990.00')||'-'||to_char(tl.\"Loan Date\",'DD/MM')||'-'||to_char(tl.\"Effective Daily Interest Rate\"::numeric*100,'FM999990.00')||'%' END AS \"Target Loan Key\",p.target_charge_date AS \"Target charge due date\",CASE WHEN cl.\"Row ID\" IS NULL THEN NULL ELSE c.borrower_name||'-'||to_char(cl.\"Principal Amount\"::numeric,'FM999,999,999,990.00')||'-'||to_char(cl.\"Loan Date\",'DD/MM')||'-'||to_char(cl.\"Effective Daily Interest Rate\"::numeric*100,'FM999990.00')||'%' END AS \"Target charge Loan Key\" FROM chosen c JOIN public.reporting_borrower_payments_v1 p USING(borrower_id) LEFT JOIN public.olap_loans_analytics tl ON tl.\"Row ID\"=p.target_loan_id LEFT JOIN public.olap_loans_analytics cl ON cl.\"Row ID\"=p.target_charge_loan_id CROSS JOIN bounds b WHERE b.valid AND p.payment_date BETWEEN b.starts AND b.ends ORDER BY p.payment_date DESC,p.created_at DESC NULLS LAST,p.payment_id",
+          "template-tags": {
+            "period": {
+              "id": "bp-period",
+              "name": "period",
+              "display-name": "Payment dates",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                82,
+                null
+              ],
+              "widget-type": "date/all-options",
+              "alias": "d.\"Date\""
+            },
+            "borrower_id": {
+              "id": "bp-borrower",
+              "name": "borrower_id",
+              "display-name": "Borrower",
+              "type": "text"
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "table.pivot": false,
+        "column_settings": {
+          "[\"name\",\"Amount received ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,"
+          },
+          "[\"name\",\"Posted amount ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,"
+          },
+          "[\"name\",\"Planned allocation ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,"
+          }
+        }
+      }
+    }
+  ],
+  "insertBefore": 306,
+  "shiftRows": 10
+}

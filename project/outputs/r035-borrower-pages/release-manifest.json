@@ -1,0 +1,81 @@
+{
+  "release": "R035",
+  "scope": "Published Metabase monitoring plus additive borrower Portfolio/Detail",
+  "status": "Released — SQL/report and monitoring; apps unchanged",
+  "sql": {
+    "from": 43,
+    "to": 44,
+    "commit": "d691d661be7ce98543a3b2e466263c6a78adaabc",
+    "manifest": "flyway-manifest.json",
+    "production_migration": "production-migrate.json",
+    "backup": "production-backup.json",
+    "financial_writes": false
+  },
+  "metabase": {
+    "dashboard": 3,
+    "tabs": {
+      "portfolio": 104,
+      "detail": 105
+    },
+    "cards": {
+      "picker": 277,
+      "p-active": 278,
+      "p-loans": 279,
+      "p-principal": 280,
+      "p-interest": 281,
+      "p-issued": 282,
+      "p-issued-count": 283,
+      "p-status": 284,
+      "p-capital": 285,
+      "p-contribution": 286,
+      "p-trend": 287,
+      "p-first-repeat": 288,
+      "p-comparison": 289,
+      "d-identity": 290,
+      "d-principal": 291,
+      "d-active": 292,
+      "d-overdue": 293,
+      "d-share": 294,
+      "d-health": 295,
+      "d-interest": 296,
+      "d-issued": 297,
+      "d-returned": 298,
+      "d-issued-count": 299,
+      "d-status": 300,
+      "d-principal-trend": 301,
+      "d-interest-trend": 302,
+      "d-active-loans": 303,
+      "d-timing": 304,
+      "d-loan-history": 305,
+      "d-payments": 306,
+      "d-obligations": 307,
+      "d-overdue-list": 308,
+      "d-scenario": 309
+    },
+    "recovery_dashboard": 10,
+    "saved_definitions": "metabase-saved.json",
+    "tests": "metabase-verification.json",
+    "refinement_tests": "refinement-verification.json",
+    "load_test": "detail-load-check.json",
+    "original_tabs_preserved": 12,
+    "original_placements_preserved": 212,
+    "health_parity": "health-query-parity.json",
+    "health_uncached_tests": "health-native-verification.json",
+    "browser_tests": "gui-verification.json"
+  },
+  "apps": {
+    "oltp": "Unchanged",
+    "olap": "Unchanged",
+    "rcs": [],
+    "prior_limitations": "R026 unchanged; no app readiness claim"
+  },
+  "monitoring": {
+    "published_commit": "e81d296",
+    "evidence": "Change Logs/CHANGE_NOTES_R035_2026-09-25.md",
+    "retested": false,
+    "reason": "Unaffected scope; previously completed evidence reused"
+  },
+  "freeze_utc": "2026-09-25T10:03:32.6572445Z",
+  "successor": "R036",
+  "final_tag": "R035"
+}

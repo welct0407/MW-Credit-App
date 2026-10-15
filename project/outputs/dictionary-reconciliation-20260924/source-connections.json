@@ -1,0 +1,56 @@
+[
+  {
+    "alias": "database-2",
+    "values": {
+      "dbDatabase": "loan_manager_prod",
+      "dbRequireSSL": {
+        "selected": [
+          "Require SSL"
+        ],
+        "value": "true"
+      },
+      "dbServer": "34.21.174.215",
+      "dbType": {
+        "selected": [
+          "Postgres"
+        ],
+        "value": "Postgres"
+      },
+      "dbUsername": "",
+      "sslMode": {
+        "selected": [
+          "None"
+        ],
+        "value": "None"
+      }
+    },
+    "capturedUtc": "2026-09-24T12:33:38.699Z"
+  },
+  {
+    "alias": "database-3",
+    "values": {
+      "dbDatabase": "loan_manager_dev",
+      "dbRequireSSL": {
+        "selected": [
+          "Require SSL"
+        ],
+        "value": "true"
+      },
+      "dbServer": "34.21.174.215",
+      "dbType": {
+        "selected": [
+          "Postgres"
+        ],
+        "value": "Postgres"
+      },
+      "dbUsername": "",
+      "sslMode": {
+        "selected": [
+          "None"
+        ],
+        "value": "None"
+      }
+    },
+    "capturedUtc": "2026-09-24T12:34:07.839Z"
+  }
+]

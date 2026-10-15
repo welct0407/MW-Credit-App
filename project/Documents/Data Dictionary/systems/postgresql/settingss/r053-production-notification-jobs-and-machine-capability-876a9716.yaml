@@ -1,0 +1,144 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "settings"
+  "name": "R053 production notification jobs and machine capability"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r053-notifications-jobs/production-notification-activation.json"
+  "coverage": "Actual maintained PROD capture toggle after verified DEV phone receipt; unchanged OID/owner/search_path and\
+    \ exact temporary authority restoration. No financial writes or PROD test send."
+"content":
+  "release": "R053"
+  "sqlVersion": 91
+  "sourceCommit": "dc4e75de24c99b5217c2895066957862a72e2cbb"
+  "observedAt": "2026-10-11T19:59:31.963115+00:00"
+  "roles":
+  - "name": "mw_jobs_owner_prod"
+    "login": false
+    "superuser": false
+    "createdb": false
+    "createrole": false
+    "replication": false
+    "bypassrls": false
+  - "name": "mw_jobs_prod"
+    "login": false
+    "superuser": false
+    "createdb": false
+    "createrole": false
+    "replication": false
+    "bypassrls": false
+  - "name": "mw_notify_api_prod"
+    "login": false
+    "superuser": false
+    "createdb": false
+    "createrole": false
+    "replication": false
+    "bypassrls": false
+  - "name": "mw_notify_dispatch_prod"
+    "login": false
+    "superuser": false
+    "createdb": false
+    "createrole": false
+    "replication": false
+    "bypassrls": false
+  - "name": "mw_notify_owner_prod"
+    "login": false
+    "superuser": false
+    "createdb": false
+    "createrole": false
+    "replication": false
+    "bypassrls": false
+  "memberships":
+  - "role": "cloudsqliamserviceaccount"
+    "member": "mw-credit-app-command-prod@clever-oasis-508610-n7.iam"
+    "grantor": "cloudsqladmin"
+    "admin_option": false
+    "inherit_option": true
+    "set_option": true
+  - "role": "cloudsqliamserviceaccount"
+    "member": "mw-credit-app-jobs-prod@clever-oasis-508610-n7.iam"
+    "grantor": "cloudsqladmin"
+    "admin_option": false
+    "inherit_option": true
+    "set_option": true
+  - "role": "cloudsqliamserviceaccount"
+    "member": "mw-credit-app-notify-prod@clever-oasis-508610-n7.iam"
+    "grantor": "cloudsqladmin"
+    "admin_option": false
+    "inherit_option": true
+    "set_option": true
+  - "role": "mw_app_prod"
+    "member": "mw-credit-app-command-prod@clever-oasis-508610-n7.iam"
+    "grantor": "cloudsqladmin"
+    "admin_option": false
+    "inherit_option": true
+    "set_option": false
+  - "role": "mw_app_prod_journal_owner"
+    "member": "postgres"
+    "grantor": "cloudsqladmin"
+    "admin_option": false
+    "inherit_option": false
+    "set_option": false
+  - "role": "mw_jobs_owner_prod"
+    "member": "postgres"
+    "grantor": "cloudsqladmin"
+    "admin_option": false
+    "inherit_option": false
+    "set_option": false
+  - "role": "mw_jobs_prod"
+    "member": "mw-credit-app-jobs-prod@clever-oasis-508610-n7.iam"
+    "grantor": "cloudsqladmin"
+    "admin_option": false
+    "inherit_option": true
+    "set_option": false
+  - "role": "mw_jobs_prod"
+    "member": "postgres"
+    "grantor": "cloudsqladmin"
+    "admin_option": false
+    "inherit_option": false
+    "set_option": false
+  - "role": "mw_notify_api_prod"
+    "member": "mw-credit-app-command-prod@clever-oasis-508610-n7.iam"
+    "grantor": "cloudsqladmin"
+    "admin_option": false
+    "inherit_option": true
+    "set_option": false
+  - "role": "mw_notify_api_prod"
+    "member": "postgres"
+    "grantor": "cloudsqladmin"
+    "admin_option": false
+    "inherit_option": false
+    "set_option": false
+  - "role": "mw_notify_dispatch_prod"
+    "member": "mw-credit-app-notify-prod@clever-oasis-508610-n7.iam"
+    "grantor": "cloudsqladmin"
+    "admin_option": false
+    "inherit_option": true
+    "set_option": false
+  - "role": "mw_notify_dispatch_prod"
+    "member": "postgres"
+    "grantor": "cloudsqladmin"
+    "admin_option": false
+    "inherit_option": false
+    "set_option": false
+  - "role": "mw_notify_owner_prod"
+    "member": "postgres"
+    "grantor": "cloudsqladmin"
+    "admin_option": false
+    "inherit_option": false
+    "set_option": false
+  "commandExecute":
+    "public.pwa_submit_agent_receipt_v1(text)": true
+    "public.pwa_agent_receipt_status_v1(uuid,text,text)": true
+  "captureEnabled": true
+  "runtimeActivationEvidence": "MW-Credit-App outputs/r053-notifications-jobs/production-notification-runtime-activation.json"
+  "note": "SQL state is distinct from final worker/scheduler/device/agent release verification."
+  "notificationRecoveryEvidence": "MW-Credit-App outputs/r053-notifications-jobs/production-notification-recovery-activation.json"
+"evidence":
+  "/content/sqlVersion":
+    "reference": "outputs/r056-apple-push/README.md"
+    "reason": "Latest verified DEV/PROD migration V91; retained role metadata has its original capture provenance."
+    "state": "value"

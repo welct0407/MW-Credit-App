@@ -1,0 +1,89 @@
+[
+  {
+    "file": "systems/appsheet/oltp/slices/submitted-receipt-payments-eeed4b2d.yaml",
+    "expected_sha256": "572b19e8baaf31d33419707604130dfd2e7412dbaf0bcae11bceea23a5afad5e",
+    "evidence": "outputs/r048-collection-receipts/PRODUCTION.md",
+    "reason": "Owner-authorized direct PROD correction verified at3.000253; close matching DEV difference",
+    "changes": [
+      {
+        "pointer": "/content/definition/Row filter condition",
+        "expected": {
+          "state": "value",
+          "value": "=AND([Status] = \"Posted\", OR(ISNOTBLANK([Receipt Image]), ISNOTBLANK([Uploaded Receipt])))"
+        },
+        "target": {
+          "state": "value",
+          "value": "=AND(\n  [Status] = \"Posted\",\n  OR(ISNOTBLANK([Receipt Image]), ISNOTBLANK([Uploaded Receipt])),\n  COUNT(\n    INTERSECT(\n      SELECT([Related Payment Allocations][Ref Charge], [Allocated Amount] > 0),\n      [Ref Borrower].[Todays Collection Charges]\n    )\n  ) > 0\n)"
+        }
+      }
+    ]
+  },
+  {
+    "file": "systems/appsheet/oltp/tables/payments.yaml",
+    "expected_sha256": "db19ec584bd63ec8a42b24044fdd1ee36ea28247f651762383e1efab770617c4",
+    "evidence": "outputs/r048-collection-receipts/PRODUCTION.md",
+    "reason": "Owner-authorized direct PROD correction verified at3.000253; close matching DEV difference",
+    "changes": [
+      {
+        "pointer": "/content/columns/Receipt Preview/inventory/Label",
+        "expected": {
+          "state": "value",
+          "value": "No"
+        },
+        "target": {
+          "state": "value",
+          "value": "Yes"
+        }
+      },
+      {
+        "pointer": "/content/columns/Receipt Preview/rules/Label",
+        "expected": {
+          "state": "value",
+          "value": "No"
+        },
+        "target": {
+          "state": "value",
+          "value": "Yes"
+        }
+      }
+    ]
+  },
+  {
+    "file": "development/appsheet/r048/payments.yaml",
+    "expected_sha256": "c55c3f10e99d6ae598cfbf8ad8f867f8413a6f243d778d518e9a9911dcd36cef",
+    "evidence": "outputs/r048-collection-receipts/PRODUCTION.md",
+    "reason": "Owner-authorized direct PROD correction verified at3.000253; close matching DEV difference",
+    "changes": [
+      {
+        "pointer": "/content/status",
+        "expected": {
+          "state": "value",
+          "value": "DEV implemented; owner review and promotion pending"
+        },
+        "target": {
+          "state": "value",
+          "value": "Delivered directly to PROD3.000253 on 2026-09-27 by scoped owner exception; DEV reconciled; retained as implementation evidence"
+        }
+      }
+    ]
+  },
+  {
+    "file": "development/appsheet/r048/submitted-receipt-payments.yaml",
+    "expected_sha256": "23ff6338680c9caa738c6bcebbdb42e7fde4888b6f93f8aa1856f593178c869b",
+    "evidence": "outputs/r048-collection-receipts/PRODUCTION.md",
+    "reason": "Owner-authorized direct PROD correction verified at3.000253; close matching DEV difference",
+    "changes": [
+      {
+        "pointer": "/content/status",
+        "expected": {
+          "state": "value",
+          "value": "DEV implemented; owner review and promotion pending"
+        },
+        "target": {
+          "state": "value",
+          "value": "Delivered directly to PROD3.000253 on 2026-09-27 by scoped owner exception; DEV reconciled; retained as implementation evidence"
+        }
+      }
+    ]
+  }
+]

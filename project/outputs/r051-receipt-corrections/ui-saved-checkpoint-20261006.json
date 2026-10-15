@@ -1,0 +1,106 @@
+{
+  "title": "R051 saved DEV app checkpoint and dated GUI evidence",
+  "provenance": "Normalized project-only summary of the coordinator's sanitized UI supplement prepared 2026-10-06T07:47:00Z. No browser/AppSheet call or independent app fetch was performed by the repository executor. Raw definitions, audit payloads, request/session identifiers and private screenshots are excluded.",
+  "release_complete": false,
+  "last_verified_saved_apps": {
+    "OLTP": "1.000177",
+    "OLAP": "1.000052",
+    "both_runnable": true,
+    "last_oltp_config_save_verified_utc": "2026-10-06T04:52:34Z",
+    "oltp177": "Server Runnable/Deployable Yes; editor zero issues, Save/Undo disabled; runtime177 and clean queue verified. Default-owned control visibility and unsaved Charge Add were not tested.",
+    "restoration": "Prior AppSheet versions exist, including original OLTP159/OLAP47 baselines. Do not restore blindly or overwrite later unrelated saves."
+  },
+  "database_reconciliation": {
+    "supplement_db_state_was_historical": "V69/checksum245428688 and 05:02:35 UTC fixture readback",
+    "current_verified_version": 70,
+    "current_checksum": 124258995,
+    "current_independent_readback_utc": "2026-10-06T07:05:17.385325Z",
+    "current_evidence": "default-repayment-v70-actual-summary.json",
+    "new_live_read_for_this_checkpoint": false
+  },
+  "applied_configuration": [
+    {"version": "OLTP170", "change": "Atomic receipt deletion adapter: Payments ADDS_AND_UPDATES, submitted slice UPDATES_ONLY; hidden readonly Delete Requested, FALSE initial value and explicit FALSE in three creator actions; confirmed detail-only Delete receipt sets TRUE. Ref/IsAPartOf retained.", "acceptance": "P1 and DAILY-P source deletes and ordinary Add passed; contextual creators remain untested."},
+    {"version": "OLTP171 retained177", "change": "Supported loan borrower/account edit predicates and borrower in loan form; existing validators/defaults retained.", "acceptance": "Saved/compiled; broad direct-loan matrix remains."},
+    {"version": "OLTP174", "change": "Borrower native Delete is detail-only and checks visible linked sources.", "acceptance": "Referenced borrower Delete suppressed; unreferenced positive case and assessment-only coverage pending."},
+    {"version": "OLTP175", "change": "Noncircular manual-expense account choice and payer-after-save preview; existing holder locked, new-row defaults retained.", "acceptance": "Saved/compiled and unsaved new-row behavior passed; existing-row/reimbursement cases pending."},
+    {"version": "OLTP176", "change": "Default Close Date and same-day paid-charge condition use DATE(UTCNOW() + \"007:00:00\") instead of TODAY(); two-property delta.", "acceptance": "Enable/Default/Undo/disable passed GUI/audit/DB; final auto-charge false."},
+    {"version": "OLTP177", "change": "Four action conditions and ten source EditableIf properties plus ten automatic process-schema copies; exact delta described below.", "acceptance": "Saved/compiled/runnable; runtime177 and clean queue verified. Default-owned control visibility and unsaved Charge Add remain pending."},
+    {"version": "OLAP52", "change": "Built-in contribution and scoped manual ledger Edit/Delete; settlement account EditableIf preserving legacy RequiredIf; four readonly-mirror operational links.", "acceptance": "Handover edit/delete and Loan/Charge navigation passed; other listed cases remain untested."}
+  ],
+  "exact_177_source_delta": {
+    "repayment_fields": ["Payment Date", "Principal Paid", "Interest Paid", "Notes", "Ref Charges"],
+    "repayment_fields_before": "=ISBLANK([Ref Payment])",
+    "repayment_fields_after": "=AND(ISBLANK([Ref Payment]), OR(NOT(IN([Row ID], Repayments[Row ID])), NOT([Ref Loans].[Defaulted] = TRUE)))",
+    "charge_fields": ["Ref Loans", "Charge Date", "Interest Due", "Principal Due", "Notes"],
+    "charge_fields_before": null,
+    "charge_fields_after": "=OR(NOT(IN([Row ID], Charges[Row ID])), NOT([Ref Loans].[Defaulted] = TRUE))",
+    "actions": [
+      {"table": "Repayments", "action": "Delete", "before": "=ISBLANK([Ref Payment])", "after": "=AND(ISBLANK([Ref Payment]), NOT([Ref Loans].[Defaulted] = TRUE))"},
+      {"table": "Repayments", "action": "Edit", "before": "=ISBLANK([Ref Payment])", "after": "=AND(ISBLANK([Ref Payment]), NOT([Ref Loans].[Defaulted] = TRUE))"},
+      {"table": "Charges", "action": "Delete", "before": "=COUNT(SELECT(Payment Allocations[Row ID], [Ref Charge] = [_THISROW].[Row ID])) = 0", "after": "=AND(NOT([Ref Loans].[Defaulted] = TRUE), COUNT(SELECT(Payment Allocations[Row ID], [Ref Charge] = [_THISROW].[Row ID])) = 0)"},
+      {"table": "Charges", "action": "Edit", "before": null, "after": "=NOT([Ref Loans].[Defaulted] = TRUE)"}
+    ],
+    "intended_properties": 14,
+    "automatic_propagation": "Five Charge expressions copied to each of two pre-existing process table schemas: ten additional serialized properties.",
+    "unmodified_scope": "No relationship, table-mode, Add, default, validator, view or slice changes in177.",
+    "coverage_limit": "These saved predicates are not the full V70 old/new direct-and-charge-derived parent contract and do not supply visible correction reasons."
+  },
+  "dated_completed_gui_summaries": [
+    {"key": "SYN-R051-UI-P1", "operation": "Amount20 to25", "result": "GUI/DB pass: one15principal+10interest allocation, repayment25/cash25; C1/L1=85."},
+    {"key": "SYN-R051-UI-P1", "operation": "Receiving account Dad to Lisa", "result": "GUI/DB pass: derived holder Lisa, same cash key25, notes/children unchanged."},
+    {"key": "SYN-R051-UI-P2", "operation": "Whole interest5 C2 to C0 and back", "result": "Both directions passed; same allocation key, repayment follows, cash5 unchanged."},
+    {"key": "SYN-R051-UI-H", "operation": "Manual handover1 to2 then Delete", "result": "Passed with same endpoints on edit, row absent after delete, other sources preserved."},
+    {"key": "SYN-R051-UI-P1", "operation": "Target C1 to C2 at25", "result": "Passed: new20principal+5interest children, old child removed, P2 preserved."},
+    {"key": "SYN-R051-UI-P1", "operation": "Notes and unchanged Save", "result": "Passed; amounts, keys and timestamps preserved in independent readback."},
+    {"key": "SYN-R051-UI-P1", "operation": "Confirmed Delete receipt", "result": "GUI/audit/DB pass: source, old/current children and cash absent; P2 preserved; no orphan/duplicate."},
+    {"key": "Bx59mH6SCh4OMcWXvOpo6Y", "operation": "Ordinary Payments Add1", "result": "Full-sync Posted1; one0principal/1interest C2 allocation, repayment and Dad cash1. Initial Processing display was stale."},
+    {"key": "SYN-R051-UI-E", "operation": "Amount1 to2 and valid category", "result": "Passed; one expense cash2Lisa; source date/notes/account and unrelated receipts preserved."},
+    {"key": "SYN-R051-UI-E", "operation": "Built-in Delete", "result": "Passed; source/cash absent, unrelated receipts/loans preserved, no orphan/duplicate."},
+    {"key": "SYN-R051-UI-DAILY-P", "operation": "Amount20 to30", "result": "Passed; same children20principal+10interest and cash key30; outstanding80/daily8/frozen10%; later Oct5 charge9 unchanged."},
+    {"key": "SYN-R051-UI-DAILY-P", "operation": "Confirmed Delete receipt", "result": "Passed after read-only reconciliation of transport interruption without replay; source/children/cash absent, outstanding100/daily10, later charge9 unchanged."},
+    {"key": "SYN-R051-UI-DEFAULT", "operation": "Enable, Default, Undo, disable", "result": "Four separately coordinated steps passed. One100principal/-100interest zero-cash loss pair; Undo restored original100/10 and removed pair; final auto=false/open100/daily10/interval1."},
+    {"key": "SYN-R051-UI-B", "operation": "Referenced borrower Delete visibility", "result": "Absent in list/detail; existing loans/receipts retained. Positive unreferenced case not tested."},
+    {"key": "SYN-R051-UI-L1 / SYN-R051-UI-C1", "operation": "OLAP operational navigation", "result": "Same key opened exact DEV OLTP176; mirror Edit/Delete absent. Payment/expense links statically verified only."},
+    {"key": "Unsaved manual expense", "operation": "New-row defaults after175", "result": "Blank holder and Dad choice preserved expected defaults/filter; cancelled without save. Existing-row preview/save not tested."}
+  ],
+  "historical_failures_reconciled": [
+    "Native receipt cascade attempted generated-child deletion and failed; source remained. Atomic source-command deletion subsequently passed.",
+    "Expense candidate172 caused a dependency cycle; restored173, then noncircular175 saved/compiled. Existing-row runtime case pending.",
+    "Initial DEFAULT form lacked required interval; cancelled, exact synthetic interval repaired to1, then full Default/Undo cycle passed.",
+    "Later V69 inspection setup assertion rolled back before commit with all26 unchanged. Corrected local validator and V70 acceptance subsequently passed; no setup replay is needed."
+  ],
+  "notification_and_date_limits": {
+    "notification": "Inspected synthetic receipt/Default tasks were owner-only. Receipt correction/delete and Undo/disable bot conditions were false. Generic Loan Closed wording for Default remains a limitation. Task success is not independent delivery proof.",
+    "date": "Client TODAY was Oct5 while Bangkok date was Oct6. Default's two affected properties now use the explicit Bangkok expression. Receipt tests used explicit dates; browser/system timezone was not changed.",
+    "analytics": "Each completed GUI data step had independent DB readback. Analytics Generated At drift was separated from financial values; this is not a blanket raw-hash claim."
+  },
+  "proposal_boundary": "All19 supplemental frontend groups remain proposed, unapplied, uncompiled and runtime-untested. Existing saved properties and dated successful operations do not prove complete frontend prevention or current workflow acceptance.",
+  "remaining_acceptance_group_ids": ["GUARD", "ADD", "LEGACY", "CLOSE", "PREPARED", "LOAN", "EXPENSE", "REIMBURSE", "CONTRIBUTION", "SETTLEMENT", "BORROWER", "LOAN_DELETE", "CREATE", "NAV", "CLEANUP"],
+  "remaining_acceptance_summary": {
+    "GUARD": "Default-owned original/generated Charge and Repayment controls unavailable with visible reason. Helper repair/local preservation already passed; any temporary committed setup needs a new coordinated recovery plan. Preserve auto=false and restore exact fixture state.",
+    "ADD": "Unsaved Charge Add remains editable; explicit-date unpaid charge Add/Edit/Delete preserves unrelated siblings. V70 does not introduce an INSERT policy.",
+    "LEGACY": "Independent blank-Ref-Payment interest1 to2 then Delete; verify current starting balance, remaining108 after2 and110 after delete. Lisa-to-Lisa2 loan account correction keeps one cash key/booked facts.",
+    "CLOSE": "Receipt200 date correction within valid dates updates closing/referral date; source deletion removes owned referral/cash and reopens100. Capture generated keys and actual account.",
+    "PREPARED": "Delete only closing100; retain first receipt10 and augmented charge100principal/10interest; reopen100 without duplicate/orphan.",
+    "LOAN": "Allowed principal/date/borrower/account/terms/type changes and rejected dependencies; V68 entering-daily uses frozen basis and preserves booked facts. Do not invent a form defect before runtime proof.",
+    "EXPENSE": "Existing manual account correction shows new payer preview and one canonical cash movement after sync, retaining new-row defaults.",
+    "REIMBURSE": "Strict70 helper rehearsal is complete; seventh batch remains unseeded. Later Add5 to6, same-holder move, incompatible payer/nonpositive rejection, relink, allowed old-expense correction and reimbursement Delete preserving expenses.",
+    "CONTRIBUTION": "Verify current future-safe date and form semantics; Add10 to20/date, Withdrawal5 and exact deletes with captured generated IDs and partner projections. Do not add unsupported historical restrictions.",
+    "SETTLEMENT": "Use actual entitlement for Pending/Complete/Edit/Reverse/Cancel; preserve historical Completed blank-account exceptions and verify cancelled capacity after full sync. Never manufacture funding.",
+    "BORROWER": "No-contact unreferenced Add/Edit/Delete; referenced action remains unavailable. Assessment-only dependency needs trustworthy pre-submit visibility or an authorized OLAP route, with SQL FK retained for stale/direct writers.",
+    "LOAN_DELETE": "Proposed default exclusion and dependency explanation; permitted owned-child removal preserves unrelated rows. Backend V70 protection is proved locally/live; actual AppSheet child request order remains unobserved.",
+    "CREATE": "Three contextual receipt creators with captured IDs, Delete Requested=false, exactly one expected posting set and duplicate/retry checks; ordinary Add already passed.",
+    "NAV": "Payment/expense mirrors open the exact same row in DEV OLTP; OLAP remains read-only. Loan/Charge navigation already passed.",
+    "CLEANUP": "After acceptance and separate coordination, fresh exact generated inventory including Bx59mH6SCh4OMcWXvOpo6Y; supported source-owned cleanup, synthetic snapshots/accounts in safe order, zero residue/autocharge/owned transactions and unrelated preservation."
+  },
+  "frontend_proposal_group_ids": ["PAY_AMOUNT", "PAY_TARGET", "PAY_PROCESSING", "PAY_NOTES", "DEFAULT_CHILD", "GENERATED_CHILD", "BORROWER_DELETE", "LOAN_DELETE", "LOAN_CORRECTION", "CHARGE_CORRECTION", "LEGACY_REPAYMENT", "EXPENSE_REIMBURSE", "EXPENSE_SYSTEM", "REIMBURSE_ACCOUNT", "SETTLEMENT_COMPLETE", "SETTLEMENT_AMOUNT", "CONTRIBUTION", "CASH_ACCOUNT", "READONLY_MIRRORS"],
+  "frontend_proposal_review": "frontend-supplement-review-20261006.md; all19 proposed/unapplied/uncompiled/runtime-untested; messages qualified against current SQL, not new rules",
+  "preserved_fixture_state": {
+    "six_batches": ["DAILY", "DEFAULT", "LEGACY", "CLOSE", "PREPARED", "PARTNER-A"],
+    "REIMBURSE_seeded": false,
+    "confirmed_absent": ["SYN-R051-UI-P1 and owned children/cash", "SYN-R051-UI-H", "SYN-R051-UI-E and expense cash", "SYN-R051-UI-DAILY-P and owned children/cash"],
+    "confirmed_retained": ["Original P2 and its allocation/repayment/cash", "Bx59mH6SCh4OMcWXvOpo6Y and its allocation/repayment/cash", "DEFAULT open100/daily10/interval1/auto=false/originalcharge110/no loss", "DAILY outstanding100/daily10/later charge9"],
+    "latest_preservation_basis": "V70 independent07:05:17 UTC all26/fixture hashes unchanged, linked above; no new live read for this checkpoint.",
+    "cleanup": "Preserve for GUI acceptance. Fresh exact generated-key inventory and separately coordinated cleanup required; static initial cleanup omits GUI-created receipts. CLOSE referral may use an existing default Lisa account: isolate owned keys, not account assumptions. Follow validated source-owned cleanup and synthetic snapshot/account order; never delete unrelated account history."
+  }
+}

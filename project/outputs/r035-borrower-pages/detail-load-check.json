@@ -1,0 +1,146 @@
+{
+  "at": "2026-09-25T10:17:10.401Z",
+  "checks": [
+    {
+      "key": "d-identity",
+      "status": "completed",
+      "wallMs": 276,
+      "runningMs": 165,
+      "error": null
+    },
+    {
+      "key": "d-principal",
+      "status": "completed",
+      "wallMs": 676,
+      "runningMs": 291,
+      "error": null
+    },
+    {
+      "key": "d-active",
+      "status": "completed",
+      "wallMs": 1288,
+      "runningMs": 800,
+      "error": null
+    },
+    {
+      "key": "d-overdue",
+      "status": "completed",
+      "wallMs": 4475,
+      "runningMs": 3988,
+      "error": null
+    },
+    {
+      "key": "d-share",
+      "status": "completed",
+      "wallMs": 5982,
+      "runningMs": 5301,
+      "error": null
+    },
+    {
+      "key": "d-health",
+      "status": "completed",
+      "wallMs": 6223,
+      "runningMs": 5728,
+      "error": null
+    },
+    {
+      "key": "d-interest",
+      "status": "completed",
+      "wallMs": 22708,
+      "runningMs": 12246,
+      "error": null
+    },
+    {
+      "key": "d-issued",
+      "status": "completed",
+      "wallMs": 10479,
+      "runningMs": 7998,
+      "error": null
+    },
+    {
+      "key": "d-returned",
+      "status": "completed",
+      "wallMs": 8231,
+      "runningMs": 7650,
+      "error": null
+    },
+    {
+      "key": "d-issued-count",
+      "status": "completed",
+      "wallMs": 17230,
+      "runningMs": 11019,
+      "error": null
+    },
+    {
+      "key": "d-status",
+      "status": "completed",
+      "wallMs": 32483,
+      "runningMs": 15009,
+      "error": null
+    },
+    {
+      "key": "d-principal-trend",
+      "status": "completed",
+      "wallMs": 29473,
+      "runningMs": 14769,
+      "error": null
+    },
+    {
+      "key": "d-interest-trend",
+      "status": "completed",
+      "wallMs": 17461,
+      "runningMs": 11240,
+      "error": null
+    },
+    {
+      "key": "d-active-loans",
+      "status": "completed",
+      "wallMs": 12227,
+      "runningMs": 7752,
+      "error": null
+    },
+    {
+      "key": "d-timing",
+      "status": "completed",
+      "wallMs": 9994,
+      "runningMs": 8690,
+      "error": null
+    },
+    {
+      "key": "d-loan-history",
+      "status": "completed",
+      "wallMs": 2471,
+      "runningMs": 1893,
+      "error": null
+    },
+    {
+      "key": "d-payments",
+      "status": "completed",
+      "wallMs": 29951,
+      "runningMs": 12493,
+      "error": null
+    },
+    {
+      "key": "d-obligations",
+      "status": "completed",
+      "wallMs": 24204,
+      "runningMs": 11753,
+      "error": null
+    },
+    {
+      "key": "d-overdue-list",
+      "status": "completed",
+      "wallMs": 14485,
+      "runningMs": 6028,
+      "error": null
+    },
+    {
+      "key": "d-scenario",
+      "status": "completed",
+      "wallMs": 22464,
+      "runningMs": 11761,
+      "error": null
+    }
+  ],
+  "passed": true
+}

@@ -1,0 +1,73 @@
+{
+  "azureExternalProbe": {
+    "provisionalRoleRemoved": true,
+    "retained": false,
+    "reason": "VM-01 not 24x7",
+    "scheduledTaskCreated": false
+  },
+  "limitations": [
+    "Tailscale node health, not peer reachability",
+    "OpenAI published component status, not account access",
+    "AppSheet API reads, not GUI load/sync",
+    "Codex local executable/login state, no inference call"
+  ],
+  "externalWebhook": {
+    "periodSeconds": 300,
+    "checkId": "mw-webhook-external-health-ySLl0784KgI",
+    "verifiedPassed": true,
+    "locations": [
+      "apac-singapore",
+      "eur-belgium",
+      "usa-oregon"
+    ]
+  },
+  "tests": {
+    "jqSelectors": 13,
+    "timerHealth": 8
+  },
+  "checkedAt": "2026-09-22T13:51:53.5511727Z",
+  "rollback": {
+    "dashboard": "performance-before-availability-v2.json",
+    "gitBaseline": "2ffdc8553720be0102095e162bb9c758098b2071"
+  },
+  "debian": {
+    "components": [
+      "heartbeat",
+      "conversations",
+      "receipts",
+      "polling",
+      "audit_relay",
+      "daily_jobs",
+      "webhook_local",
+      "tunnel",
+      "tailscale_node",
+      "database",
+      "codex_ready",
+      "oltp",
+      "olap"
+    ],
+    "staleAfterSeconds": 360,
+    "periodSeconds": 120,
+    "timer": "mw-resource-health.timer",
+    "metric": "custom.googleapis.com/mw_resource_monitoring/health",
+    "status": "active; successful export",
+    "service": "mw-resource-health.service",
+    "host": "vm-mw-credit-agent"
+  },
+  "installedSha256": {
+    "debianHealth": "601afe8ee36ea0b14dff1245ed7e287f17556c4370cbfb66f143611519c36bec",
+    "service": "f92d8b6cb483151ae7833b4357d9318230ab8f0f66883b9c95356b299a7cdf23",
+    "timer": "825295360a126bdd8ef0688e204ff906885632377624e8f39e10d0a9e7533da3"
+  },
+  "existingBusinessServicesStillActive": true,
+  "dashboard": {
+    "rowsAtTop": 4,
+    "timezone": "Asia/Singapore",
+    "availabilityCards": 15,
+    "refresh": "2m",
+    "memoryStatCards": 4,
+    "visualPanels": 40,
+    "connectionStatCards": 1,
+    "liveUiVerified": true
+  }
+}

@@ -1,0 +1,414 @@
+{
+  "card": {
+    "id": 233,
+    "name": "Weekly loan return · snapshots",
+    "description": "Loan Return = SUM(gross interest received) / SUM(principal issued) over selected completed days in each Monday–Sunday week. 100% means the period interest equals the period principal issued; this is not a loan-cohort ROI or capital yield. Partial weeks use selected completed days only. Zero total principal issued or missing inputs produce a blank. Bangkok dates; source model 74; existing 6R Performance period filter.",
+    "display": "bar",
+    "dataset_query": {
+      "stages": [
+        {
+          "fields": [
+            [
+              "field",
+              {
+                "lib/uuid": "f4a73d67-d49a-4ad7-bd66-b3873ffdb51b",
+                "base-type": "type/Date",
+                "effective-type": "type/Date"
+              },
+              569
+            ],
+            [
+              "field",
+              {
+                "join-alias": "Snapshot",
+                "base-type": "type/Decimal",
+                "lib/uuid": "113fade9-8df7-4fc1-b2da-be32d9a0afbb"
+              },
+              "Profit"
+            ],
+            [
+              "field",
+              {
+                "join-alias": "Snapshot",
+                "base-type": "type/Decimal",
+                "lib/uuid": "24740b00-ceba-408c-9a33-8726863a1f96"
+              },
+              "Principal Issued"
+            ]
+          ],
+          "lib/type": "mbql.stage/mbql",
+          "source-table": 36,
+          "joins": [
+            {
+              "lib/type": "mbql/join",
+              "alias": "Snapshot",
+              "strategy": "left-join",
+              "conditions": [
+                [
+                  "=",
+                  {
+                    "lib/uuid": "30bc742f-2414-4b20-b80d-83f1a1d646cd"
+                  },
+                  [
+                    "field",
+                    {
+                      "lib/uuid": "34fc4355-8a40-442f-9068-5d3426e8c4c9",
+                      "base-type": "type/Date",
+                      "effective-type": "type/Date"
+                    },
+                    569
+                  ],
+                  [
+                    "field",
+                    {
+                      "join-alias": "Snapshot",
+                      "base-type": "type/Date",
+                      "lib/uuid": "ea4c7af8-3a9d-47c4-bf61-78149f2b8260"
+                    },
+                    "Date"
+                  ]
+                ]
+              ],
+              "stages": [
+                {
+                  "lib/type": "mbql.stage/mbql",
+                  "source-card": 74
+                }
+              ]
+            }
+          ],
+          "filters": [
+            [
+              "<",
+              {
+                "lib/uuid": "ca7899dd-d5e5-4ef1-8d63-41e8de7c3db6"
+              },
+              [
+                "field",
+                {
+                  "lib/uuid": "25ad97de-cc5b-42c5-84a9-4e9119e819c2",
+                  "base-type": "type/Date",
+                  "effective-type": "type/Date"
+                },
+                569
+              ],
+              [
+                "relative-datetime",
+                {
+                  "lib/uuid": "4d3179e3-b59e-41a9-b5c8-cf5cc59e779f"
+                },
+                0,
+                "day"
+              ]
+            ]
+          ]
+        },
+        {
+          "aggregation": [
+            [
+              "case",
+              {
+                "name": "Loan Return",
+                "lib/uuid": "27f82068-d3cd-43ba-8ec8-9a4c112e4b6c",
+                "display-name": "Loan Return"
+              },
+              [
+                [
+                  [
+                    "and",
+                    {
+                      "lib/uuid": "4689635b-39da-4b40-a192-ba1845a1dbdb"
+                    },
+                    [
+                      "=",
+                      {
+                        "lib/uuid": "c02fa8b0-3a34-4940-9d04-4db43c0cf2b6"
+                      },
+                      [
+                        "count",
+                        {
+                          "lib/uuid": "e7978bed-0443-4225-a7f2-b1bd37929422"
+                        },
+                        [
+                          "field",
+                          {
+                            "base-type": "type/Decimal",
+                            "lib/uuid": "389b0590-2f6f-420b-858d-b34ec2659a1e"
+                          },
+                          "Profit"
+                        ]
+                      ],
+                      [
+                        "count",
+                        {
+                          "lib/uuid": "5225caa3-3138-4a4e-9d7d-e3d52290df43"
+                        }
+                      ]
+                    ],
+                    [
+                      "=",
+                      {
+                        "lib/uuid": "b9f64f0a-dae4-4f05-9cd8-6e1e64308c8e"
+                      },
+                      [
+                        "count",
+                        {
+                          "lib/uuid": "4e204980-9c2f-462c-a163-24ab3b8c6d9b"
+                        },
+                        [
+                          "field",
+                          {
+                            "base-type": "type/Decimal",
+                            "lib/uuid": "9b923cf5-1875-441b-a37f-0b3a94c38ab9"
+                          },
+                          "Principal Issued"
+                        ]
+                      ],
+                      [
+                        "count",
+                        {
+                          "lib/uuid": "13c9fc5b-48e8-401d-a551-70447f0f6e81"
+                        }
+                      ]
+                    ]
+                  ],
+                  [
+                    "/",
+                    {
+                      "lib/uuid": "f45762dc-d9d5-428a-8e43-c9d7aff98d9c"
+                    },
+                    [
+                      "sum",
+                      {
+                        "lib/uuid": "1a9adeb9-258d-4cd8-bd60-c60bac80f749"
+                      },
+                      [
+                        "field",
+                        {
+                          "base-type": "type/Decimal",
+                          "lib/uuid": "c95772ef-8ca3-4ad5-af07-596931aa5d9d"
+                        },
+                        "Profit"
+                      ]
+                    ],
+                    [
+                      "sum",
+                      {
+                        "lib/uuid": "6eeb106a-3735-499d-8466-e9cd1a66af38"
+                      },
+                      [
+                        "field",
+                        {
+                          "base-type": "type/Decimal",
+                          "lib/uuid": "7963514d-4363-4aa4-ab36-3cff62cac5a0"
+                        },
+                        "Principal Issued"
+                      ]
+                    ]
+                  ]
+                ]
+              ]
+            ]
+          ],
+          "lib/type": "mbql.stage/mbql",
+          "breakout": [
+            [
+              "field",
+              {
+                "temporal-unit": "week",
+                "base-type": "type/Date",
+                "lib/uuid": "b9c17047-926c-47b8-8fc8-a5e88c384e87"
+              },
+              "Date"
+            ]
+          ],
+          "order-by": [
+            [
+              "asc",
+              {
+                "lib/uuid": "245a3d34-84d7-4102-a780-b890c69f128f"
+              },
+              [
+                "field",
+                {
+                  "temporal-unit": "week",
+                  "base-type": "type/Date",
+                  "lib/uuid": "e55a858b-bb65-4c43-ad9a-afcd98d397c0"
+                },
+                "Date"
+              ]
+            ]
+          ]
+        }
+      ],
+      "lib/type": "mbql/query",
+      "database": 2
+    },
+    "visualization_settings": {
+      "line.missing": "none",
+      "graph.show_goal": true,
+      "graph.show_trendline": false,
+      "graph.y_axis.title_text": "Loan return (%)",
+      "graph.show_values": true,
+      "graph.show_legend": false,
+      "graph.goal_label": "Reference · 100%",
+      "graph.x_axis.title_text": "Week starting (Monday)",
+      "graph.goal_value": 1,
+      "graph.y_axis.auto_split": false,
+      "graph.metrics": [
+        "Loan Return"
+      ],
+      "graph.colors": [
+        "#43A047"
+      ],
+      "column_settings": {
+        "[\"name\",\"Loan Return\"]": {
+          "number_style": "percent",
+          "decimals": 2,
+          "number_separators": ".,"
+        }
+      },
+      "series_settings": {
+        "Loan Return": {
+          "color": "#43A047",
+          "axis": "left"
+        }
+      },
+      "graph.dimensions": [
+        "Date"
+      ],
+      "stackable.stack_type": null
+    },
+    "collection_id": 5
+  },
+  "placement": {
+    "id": 624,
+    "card_id": 233,
+    "dashboard_tab_id": 18,
+    "col": 0,
+    "row": 53,
+    "size_x": 12,
+    "size_y": 7,
+    "series": [],
+    "parameter_mappings": [
+      {
+        "parameter_id": "review-performance",
+        "card_id": 233,
+        "target": [
+          "dimension",
+          [
+            "field",
+            "Date",
+            {
+              "base-type": "type/Date"
+            }
+          ]
+        ]
+      }
+    ],
+    "visualization_settings": {}
+  },
+  "active_placement": {
+    "id": 618,
+    "card_id": 226,
+    "dashboard_tab_id": 18,
+    "col": 12,
+    "row": 53,
+    "size_x": 12,
+    "size_y": 7,
+    "series": [],
+    "parameter_mappings": [
+      {
+        "parameter_id": "review-performance",
+        "card_id": 226,
+        "target": [
+          "dimension",
+          [
+            "template-tag",
+            "performance_period"
+          ]
+        ]
+      }
+    ],
+    "visualization_settings": {
+      "visualization": {
+        "display": "line",
+        "columnValuesMapping": {
+          "COLUMN_1": [
+            {
+              "sourceId": "card:226",
+              "originalName": "Date",
+              "name": "COLUMN_1"
+            }
+          ],
+          "COLUMN_2": [
+            {
+              "sourceId": "card:226",
+              "originalName": "Active loans EOD",
+              "name": "COLUMN_2"
+            }
+          ],
+          "COLUMN_3": [
+            {
+              "sourceId": "card:226",
+              "originalName": "Active borrowers EOD",
+              "name": "COLUMN_3"
+            }
+          ]
+        },
+        "settings": {
+          "graph.show_values": true,
+          "graph.show_legend": true,
+          "graph.missing": "none",
+          "graph.y_axis.auto_split": false,
+          "graph.metrics": [
+            "COLUMN_2",
+            "COLUMN_3"
+          ],
+          "graph.colors": [
+            "#509EE3",
+            "#F2A86F"
+          ],
+          "column_settings": {
+            "[\"name\",\"COLUMN_2\"]": {
+              "number_style": "decimal",
+              "decimals": 0,
+              "number_separators": ".,",
+              "compact": false
+            },
+            "[\"name\",\"COLUMN_3\"]": {
+              "number_style": "decimal",
+              "decimals": 0,
+              "number_separators": ".,",
+              "compact": false
+            }
+          },
+          "graph.dimensions": [
+            "COLUMN_1"
+          ],
+          "stackable.stack_type": null
+        }
+      }
+    }
+  },
+  "note_placement": {
+    "id": 617,
+    "card_id": null,
+    "dashboard_tab_id": 18,
+    "col": 0,
+    "row": 51,
+    "size_x": 24,
+    "size_y": 2,
+    "series": [],
+    "parameter_mappings": [],
+    "visualization_settings": {
+      "card.background": false,
+      "virtual_card": {
+        "display": "text",
+        "visualization_settings": {
+          "text": "Avg loan size = principal ÷ loans. Selected days only."
+        }
+      }
+    }
+  }
+}

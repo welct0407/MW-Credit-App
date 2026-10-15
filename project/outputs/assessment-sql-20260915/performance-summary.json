@@ -1,0 +1,47 @@
+{
+  "triggerOnly": {
+    "control": {
+      "n": 5,
+      "min": 4486,
+      "max": 7208,
+      "median": 5850,
+      "mean": 6050.4
+    },
+    "test": {
+      "n": 5,
+      "min": 5825,
+      "max": 8850,
+      "median": 6531,
+      "mean": 6782.8
+    },
+    "medianSavedMs": -681,
+    "medianImprovementPct": -11.64102564102564,
+    "meanImprovementPct": -12.10498479439377
+  },
+  "combined": {
+    "control": {
+      "n": 5,
+      "min": 6239,
+      "max": 7518,
+      "median": 6734,
+      "mean": 6848
+    },
+    "test": {
+      "n": 5,
+      "min": 4531,
+      "max": 6120,
+      "median": 5613,
+      "mean": 5562
+    },
+    "medianSavedMs": 1121,
+    "medianImprovementPct": 16.64686664686665,
+    "meanImprovementPct": 18.779205607476637
+  },
+  "trigger": {
+    "n": 10,
+    "min": 12.713,
+    "max": 18.265,
+    "median": 15.072,
+    "mean": 15.050999999999998
+  }
+}

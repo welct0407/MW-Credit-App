@@ -1,0 +1,17 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "schema"
+  "name": "agent_audit"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "name": "agent_audit"
+    "owner": "mw_business_audit_owner"
+    "acl": "{mw_business_audit_owner=UC/mw_business_audit_owner,mw_reviewer_dml=U/mw_business_audit_owner,mw_agent_relay=U/mw_business_audit_owner,mw_agent_auditor=U/mw_business_audit_owner}"
+    "comment": null

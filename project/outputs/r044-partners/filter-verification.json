@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "multiPartnerMatchesAll": true,
+  "statusLedgerOnly": true,
+  "statusValues": [
+    "Pending",
+    "Completed",
+    "Cancelled"
+  ],
+  "savedQuestions": 20,
+  "savedModels": 6
+}

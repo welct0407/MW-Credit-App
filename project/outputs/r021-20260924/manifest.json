@@ -1,0 +1,22 @@
+{
+  "release": "R021",
+  "status": "Released — report-only",
+  "scope": "Two live summary cards on 6R; five cards across",
+  "frozen_at": "2026-09-24T09:45:43.369Z",
+  "tested_commit": "01619420c396382596da9550e9079c8fd56dbbe6",
+  "package": [
+    "specs.json",
+    "plan.json"
+  ],
+  "authorization": "Owner: add both of them",
+  "rollback": "Private r021-summary/dashboard.json",
+  "apps": "Unchanged",
+  "database": "Unchanged",
+  "tag": "R021",
+  "cards": [
+    234,
+    235
+  ],
+  "verification": "verification.json; browser-verification.json",
+  "candidate_refinement": "Short dashboard labels for five-card row; saved question names unchanged"
+}

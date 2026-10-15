@@ -1,0 +1,536 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "metabase",
+    "component": "reports.mw-credit.com",
+    "kind": "model",
+    "name": "Partners · position source / 318",
+    "scope": "production"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r044-partners/saved.json"
+  },
+  "content": {
+    "key": "position",
+    "description": "R044 thin metadata over governed read-only PostgreSQL provider. No financial writes.",
+    "result_metadata": [
+      {
+        "database_type": "text",
+        "lib/deduplicated-name": "partner_id",
+        "lib/original-name": "partner_id",
+        "name": "partner_id",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "partner_id",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "partner_id",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "effective_type": "type/Text",
+        "lib/desired-column-alias": "partner_id",
+        "display_name": "partner_id",
+        "base_type": "type/Text"
+      },
+      {
+        "database_type": "text",
+        "lib/deduplicated-name": "partner_name",
+        "lib/original-name": "partner_name",
+        "name": "partner_name",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "partner_name",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "partner_name",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "effective_type": "type/Text",
+        "lib/desired-column-alias": "partner_name",
+        "display_name": "partner_name",
+        "base_type": "type/Text"
+      },
+      {
+        "database_type": "text",
+        "lib/deduplicated-name": "partner_role",
+        "lib/original-name": "partner_role",
+        "name": "partner_role",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "partner_role",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "partner_role",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "effective_type": "type/Text",
+        "lib/desired-column-alias": "partner_role",
+        "display_name": "partner_role",
+        "base_type": "type/Text"
+      },
+      {
+        "database_type": "int8",
+        "lib/deduplicated-name": "role_count",
+        "lib/original-name": "role_count",
+        "name": "role_count",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "role_count",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "role_count",
+          {
+            "base-type": "type/BigInteger"
+          }
+        ],
+        "effective_type": "type/BigInteger",
+        "lib/desired-column-alias": "role_count",
+        "display_name": "role_count",
+        "base_type": "type/BigInteger"
+      },
+      {
+        "database_type": "numeric",
+        "lib/deduplicated-name": "net_capital",
+        "lib/original-name": "net_capital",
+        "name": "net_capital",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "net_capital",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "net_capital",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "net_capital",
+        "display_name": "net_capital",
+        "base_type": "type/Decimal"
+      },
+      {
+        "database_type": "numeric",
+        "lib/deduplicated-name": "interest_earned",
+        "lib/original-name": "interest_earned",
+        "name": "interest_earned",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "interest_earned",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "interest_earned",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "interest_earned",
+        "display_name": "interest_earned",
+        "base_type": "type/Decimal"
+      },
+      {
+        "database_type": "numeric",
+        "lib/deduplicated-name": "expenses",
+        "lib/original-name": "expenses",
+        "name": "expenses",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "expenses",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "expenses",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "expenses",
+        "display_name": "expenses",
+        "base_type": "type/Decimal"
+      },
+      {
+        "database_type": "numeric",
+        "lib/deduplicated-name": "completed",
+        "lib/original-name": "completed",
+        "name": "completed",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "completed",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "completed",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "completed",
+        "display_name": "completed",
+        "base_type": "type/Decimal"
+      },
+      {
+        "database_type": "numeric",
+        "lib/deduplicated-name": "pending",
+        "lib/original-name": "pending",
+        "name": "pending",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "pending",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "pending",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "pending",
+        "display_name": "pending",
+        "base_type": "type/Decimal"
+      },
+      {
+        "database_type": "numeric",
+        "lib/deduplicated-name": "reserved",
+        "lib/original-name": "reserved",
+        "name": "reserved",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "reserved",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "reserved",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "reserved",
+        "display_name": "reserved",
+        "base_type": "type/Decimal"
+      },
+      {
+        "database_type": "int8",
+        "lib/deduplicated-name": "pending_count",
+        "lib/original-name": "pending_count",
+        "name": "pending_count",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "pending_count",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "pending_count",
+          {
+            "base-type": "type/BigInteger"
+          }
+        ],
+        "effective_type": "type/BigInteger",
+        "lib/desired-column-alias": "pending_count",
+        "display_name": "pending_count",
+        "base_type": "type/BigInteger"
+      },
+      {
+        "database_type": "int8",
+        "lib/deduplicated-name": "capital_exceptions",
+        "lib/original-name": "capital_exceptions",
+        "name": "capital_exceptions",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "capital_exceptions",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "capital_exceptions",
+          {
+            "base-type": "type/BigInteger"
+          }
+        ],
+        "effective_type": "type/BigInteger",
+        "lib/desired-column-alias": "capital_exceptions",
+        "display_name": "capital_exceptions",
+        "base_type": "type/BigInteger"
+      },
+      {
+        "database_type": "int8",
+        "lib/deduplicated-name": "earnings_exceptions",
+        "lib/original-name": "earnings_exceptions",
+        "name": "earnings_exceptions",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "earnings_exceptions",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "earnings_exceptions",
+          {
+            "base-type": "type/BigInteger"
+          }
+        ],
+        "effective_type": "type/BigInteger",
+        "lib/desired-column-alias": "earnings_exceptions",
+        "display_name": "earnings_exceptions",
+        "base_type": "type/BigInteger"
+      },
+      {
+        "database_type": "int8",
+        "lib/deduplicated-name": "settlement_exceptions",
+        "lib/original-name": "settlement_exceptions",
+        "name": "settlement_exceptions",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "settlement_exceptions",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "settlement_exceptions",
+          {
+            "base-type": "type/BigInteger"
+          }
+        ],
+        "effective_type": "type/BigInteger",
+        "lib/desired-column-alias": "settlement_exceptions",
+        "display_name": "settlement_exceptions",
+        "base_type": "type/BigInteger"
+      },
+      {
+        "database_type": "int8",
+        "lib/deduplicated-name": "undated_pending",
+        "lib/original-name": "undated_pending",
+        "name": "undated_pending",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "undated_pending",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "undated_pending",
+          {
+            "base-type": "type/BigInteger"
+          }
+        ],
+        "effective_type": "type/BigInteger",
+        "lib/desired-column-alias": "undated_pending",
+        "display_name": "undated_pending",
+        "base_type": "type/BigInteger"
+      },
+      {
+        "database_type": "numeric",
+        "lib/deduplicated-name": "pool",
+        "lib/original-name": "pool",
+        "name": "pool",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "pool",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "pool",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "pool",
+        "display_name": "pool",
+        "base_type": "type/Decimal"
+      },
+      {
+        "database_type": "numeric",
+        "lib/deduplicated-name": "allocation_residual",
+        "lib/original-name": "allocation_residual",
+        "name": "allocation_residual",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "allocation_residual",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "allocation_residual",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "allocation_residual",
+        "display_name": "allocation_residual",
+        "base_type": "type/Decimal"
+      },
+      {
+        "database_type": "numeric",
+        "lib/deduplicated-name": "net_earned",
+        "lib/original-name": "net_earned",
+        "name": "net_earned",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "net_earned",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "net_earned",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "net_earned",
+        "display_name": "net_earned",
+        "base_type": "type/Decimal"
+      },
+      {
+        "database_type": "numeric",
+        "lib/deduplicated-name": "capital_share",
+        "lib/original-name": "capital_share",
+        "name": "capital_share",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "capital_share",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "capital_share",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "capital_share",
+        "display_name": "capital_share",
+        "base_type": "type/Decimal"
+      },
+      {
+        "database_type": "bool",
+        "lib/deduplicated-name": "ready",
+        "lib/original-name": "ready",
+        "name": "ready",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "ready",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "ready",
+          {
+            "base-type": "type/Boolean"
+          }
+        ],
+        "effective_type": "type/Boolean",
+        "lib/desired-column-alias": "ready",
+        "display_name": "ready",
+        "base_type": "type/Boolean"
+      },
+      {
+        "database_type": "numeric",
+        "lib/deduplicated-name": "unpaid",
+        "lib/original-name": "unpaid",
+        "name": "unpaid",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "unpaid",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "unpaid",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "unpaid",
+        "display_name": "unpaid",
+        "base_type": "type/Decimal"
+      },
+      {
+        "database_type": "numeric",
+        "lib/deduplicated-name": "available",
+        "lib/original-name": "available",
+        "name": "available",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "available",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "available",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "available",
+        "display_name": "available",
+        "base_type": "type/Decimal"
+      },
+      {
+        "database_type": "numeric",
+        "lib/deduplicated-name": "other_reserved",
+        "lib/original-name": "other_reserved",
+        "name": "other_reserved",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "other_reserved",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "other_reserved",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "other_reserved",
+        "display_name": "other_reserved",
+        "base_type": "type/Decimal"
+      },
+      {
+        "database_type": "text",
+        "lib/deduplicated-name": "quality_status",
+        "lib/original-name": "quality_status",
+        "name": "quality_status",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "quality_status",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "quality_status",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "effective_type": "type/Text",
+        "lib/desired-column-alias": "quality_status",
+        "display_name": "quality_status",
+        "base_type": "type/Text"
+      },
+      {
+        "database_type": "timestamp",
+        "lib/deduplicated-name": "queried_at",
+        "lib/original-name": "queried_at",
+        "name": "queried_at",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "queried_at",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "queried_at",
+          {
+            "base-type": "type/DateTime"
+          }
+        ],
+        "effective_type": "type/DateTime",
+        "lib/desired-column-alias": "queried_at",
+        "display_name": "queried_at",
+        "base_type": "type/DateTime"
+      }
+    ],
+    "collection_id": 8,
+    "name": "Partners · position source",
+    "type": "model",
+    "dataset_query": {
+      "stages": [
+        {
+          "lib/type": "mbql.stage/native",
+          "native": "SELECT * FROM public.reporting_partner_position_v1"
+        }
+      ],
+      "lib/type": "mbql/query",
+      "database": 2
+    },
+    "id": 318,
+    "display": "table",
+    "visualization_settings": {}
+  }
+}

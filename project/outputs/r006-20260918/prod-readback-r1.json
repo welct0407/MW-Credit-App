@@ -1,0 +1,43 @@
+{
+  "release": "R006",
+  "revision": 1,
+  "candidateHash": "d2814e156a81f89c5d7bb245012edb7a70ad1e96027fc2baf07c8e8b03f4c262",
+  "environment": "prod",
+  "appId": "93844270-6aa5-420b-a960-bcdf08abd357",
+  "version": "3.000173",
+  "observedAt": "2026-09-18",
+  "items": [
+    {
+      "id": "APP-001",
+      "appId": "93844270-6aa5-420b-a960-bcdf08abd357",
+      "version": "3.000173",
+      "observedAt": "2026-09-18",
+      "observed": { "state": "value", "value": "IF(IN([Status], LIST(\"Processing\", \"Error\")), SELECT(Charges[Row ID], AND([Ref Loans].[Ref Borrowers] = [_THISROW].[Ref Borrower], [Amount Remaining] > 0, IFS(IN([_THISROW].[Allocation Method], LIST(\"Single Full\", \"Single Partial\", \"First-day Auto\")), [Row ID] = [_THISROW].[Ref Target Charge], [_THISROW].[Allocation Method] = \"Loan Close\", [Ref Loans] = [_THISROW].[Ref Target Charge].[Ref Loans], IN([_THISROW].[Allocation Method], LIST(\"Receive All\", \"Lump Sum\")), [Charge Date] <= [_THISROW].[Payment Date], TRUE, FALSE))), LIST())" },
+      "evidence": "prod-saved-observations.json; reloaded current editor"
+    },
+    {
+      "id": "APP-002",
+      "appId": "93844270-6aa5-420b-a960-bcdf08abd357",
+      "version": "3.000173",
+      "observedAt": "2026-09-18",
+      "observed": { "state": "value", "value": "IF(IN([Status], LIST(\"Processing\", \"Error\")), SUM([Eligible Charges][Amount Remaining]), 0)" },
+      "evidence": "prod-saved-observations.json; reloaded current editor"
+    },
+    {
+      "id": "APP-003",
+      "appId": "93844270-6aa5-420b-a960-bcdf08abd357",
+      "version": "3.000173",
+      "observedAt": "2026-09-18",
+      "observed": { "state": "value", "value": "SELECT([Related Payment Allocations][Row ID], [Allocated Amount] > 0)" },
+      "evidence": "prod-saved-observations.json; reloaded current editor"
+    },
+    {
+      "id": "APP-004",
+      "appId": "93844270-6aa5-420b-a960-bcdf08abd357",
+      "version": "3.000173",
+      "observedAt": "2026-09-18",
+      "observed": { "state": "value", "value": "IFS( COUNT([Todays Collection Charges]) = 0, \"\", COUNT( SELECT( [Todays Collection Charges][Row ID], AND( [Charge Date] < TODAY(), [Payment Status] <> \"ชำระแล้ว\" ) ) ) > 0, \"Overdue\", AND( NOT(IN(\"รอชำระ\", [Todays Collection Charges][Payment Status])), NOT(IN(\"ชำระบางส่วน\", [Todays Collection Charges][Payment Status])) ), \"Fully Paid\", OR( IN(\"ชำระบางส่วน\", [Todays Collection Charges][Payment Status]), AND( IN(\"ชำระแล้ว\", [Todays Collection Charges][Payment Status]), IN(\"รอชำระ\", [Todays Collection Charges][Payment Status]) ) ), \"Partially Paid\", TRUE, \"Not Paid\")" },
+      "evidence": "prod-saved-observations.json; reloaded current editor"
+    }
+  ]
+}

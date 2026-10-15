@@ -1,0 +1,500 @@
+{
+  "dashboard": 3,
+  "tab": 31,
+  "backup": 6,
+  "cards": {
+    "matrix": 274,
+    "matrix-details": 275
+  },
+  "old_question_preserved": true,
+  "other_tabs_unchanged": true,
+  "layout": [
+    {
+      "id": 844,
+      "card_id": 262,
+      "dashboard_tab_id": 31,
+      "col": 12,
+      "row": 19,
+      "size_x": 12,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {}
+    },
+    {
+      "id": 833,
+      "card_id": null,
+      "dashboard_tab_id": 31,
+      "col": 0,
+      "row": 0,
+      "size_x": 12,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "## Borrower Health Review\nPayment health & BCG · original Borrowers tab retained."
+          }
+        }
+      }
+    },
+    {
+      "id": 849,
+      "card_id": 274,
+      "dashboard_tab_id": 31,
+      "col": 3,
+      "row": 33,
+      "size_x": 18,
+      "size_y": 16,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {}
+    },
+    {
+      "id": 852,
+      "card_id": 269,
+      "dashboard_tab_id": 31,
+      "col": 0,
+      "row": 77,
+      "size_x": 24,
+      "size_y": 7,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {}
+    },
+    {
+      "id": 851,
+      "card_id": 267,
+      "dashboard_tab_id": 31,
+      "col": 0,
+      "row": 65,
+      "size_x": 24,
+      "size_y": 12,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {}
+    },
+    {
+      "id": 839,
+      "card_id": null,
+      "dashboard_tab_id": 31,
+      "col": 0,
+      "row": 6,
+      "size_x": 24,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "## Payment behaviour × contribution\nUpper row: score ≥80 with no automatic schedule restriction. Lower row: score <80 or modified schedule. Left: contribution <1×; right: ≥1×. Unclassified remains outside the board."
+          }
+        }
+      }
+    },
+    {
+      "id": 835,
+      "card_id": 253,
+      "dashboard_tab_id": 31,
+      "col": 0,
+      "row": 3,
+      "size_x": 6,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {}
+    },
+    {
+      "id": 836,
+      "card_id": 254,
+      "dashboard_tab_id": 31,
+      "col": 6,
+      "row": 3,
+      "size_x": 6,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {}
+    },
+    {
+      "id": 837,
+      "card_id": 255,
+      "dashboard_tab_id": 31,
+      "col": 12,
+      "row": 3,
+      "size_x": 6,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {}
+    },
+    {
+      "id": 847,
+      "card_id": 265,
+      "dashboard_tab_id": 31,
+      "col": 12,
+      "row": 11,
+      "size_x": 12,
+      "size_y": 8,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {}
+    },
+    {
+      "id": 845,
+      "card_id": 263,
+      "dashboard_tab_id": 31,
+      "col": 12,
+      "row": 21,
+      "size_x": 12,
+      "size_y": 8,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {}
+    },
+    {
+      "id": 834,
+      "card_id": 257,
+      "dashboard_tab_id": 31,
+      "col": 17,
+      "row": 0,
+      "size_x": 7,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {}
+    },
+    {
+      "id": 843,
+      "card_id": 261,
+      "dashboard_tab_id": 31,
+      "col": 0,
+      "row": 11,
+      "size_x": 12,
+      "size_y": 8,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {}
+    },
+    {
+      "id": 842,
+      "card_id": 260,
+      "dashboard_tab_id": 31,
+      "col": 0,
+      "row": 9,
+      "size_x": 12,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {}
+    },
+    {
+      "id": 840,
+      "card_id": 258,
+      "dashboard_tab_id": 31,
+      "col": 0,
+      "row": 19,
+      "size_x": 12,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {}
+    },
+    {
+      "id": 841,
+      "card_id": 259,
+      "dashboard_tab_id": 31,
+      "col": 0,
+      "row": 21,
+      "size_x": 12,
+      "size_y": 8,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {}
+    },
+    {
+      "id": 854,
+      "card_id": 268,
+      "dashboard_tab_id": 31,
+      "col": 0,
+      "row": 88,
+      "size_x": 24,
+      "size_y": 12,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {}
+    },
+    {
+      "id": 855,
+      "card_id": null,
+      "dashboard_tab_id": 31,
+      "col": 0,
+      "row": 100,
+      "size_x": 24,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "**Freshness:** values update on report refresh; this is not a historical as-of report. Cards can query at slightly different times. Reporting context gives query time, not a guarantee of payment entry or AppSheet sync. Existing dashboard date and borrower filters do not apply to this current-portfolio review."
+          }
+        }
+      }
+    },
+    {
+      "id": 848,
+      "card_id": null,
+      "dashboard_tab_id": 31,
+      "col": 0,
+      "row": 29,
+      "size_x": 24,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "## Borrower portfolio matrix\nPayment health × interest contribution · automatic categories"
+          }
+        }
+      }
+    },
+    {
+      "id": 853,
+      "card_id": null,
+      "dashboard_tab_id": 31,
+      "col": 0,
+      "row": 84,
+      "size_x": 24,
+      "size_y": 4,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "## How the rating is calculated\nRecent punctuality **45%** · older punctuality **15%** · average delay **15%** · current payment health **25%**. Missing components redistribute weight. No recent history → Unclassified. Default-altered history → Data review, no published rating. Severe arrears (>7 days) cap an otherwise available score at 60.\nContribution uses interest from the last 30 completed Bangkok days divided by the active cohort’s equal share; the high-value boundary is **1×**, independent of reliability **80**.\n**Schedule rule:** categories additionally reflect modified schedules. It recalculates automatically and is not a confirmed-hardship label. No manual review or overrides."
+          }
+        }
+      }
+    },
+    {
+      "id": 838,
+      "card_id": 256,
+      "dashboard_tab_id": 31,
+      "col": 18,
+      "row": 3,
+      "size_x": 6,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {}
+    },
+    {
+      "id": 846,
+      "card_id": 264,
+      "dashboard_tab_id": 31,
+      "col": 12,
+      "row": 9,
+      "size_x": 12,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {}
+    },
+    {
+      "id": 850,
+      "card_id": null,
+      "dashboard_tab_id": 31,
+      "col": 0,
+      "row": 62,
+      "size_x": 24,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "## Payment health · all borrowers\nIncludes inactive borrowers with debt. Due today is not overdue. Principal and interest must each be covered. A payment today may clear current arrears without rewriting its historical lateness. Amounts are baht; blank means unavailable."
+          }
+        }
+      }
+    },
+    {
+      "id": 1065,
+      "card_id": 271,
+      "dashboard_tab_id": 31,
+      "col": 0,
+      "row": 106,
+      "size_x": 24,
+      "size_y": 10,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {}
+    },
+    {
+      "id": 1066,
+      "card_id": 272,
+      "dashboard_tab_id": 31,
+      "col": 0,
+      "row": 116,
+      "size_x": 24,
+      "size_y": 10,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {}
+    },
+    {
+      "id": 1063,
+      "card_id": 270,
+      "dashboard_tab_id": 31,
+      "col": 12,
+      "row": 0,
+      "size_x": 5,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {}
+    },
+    {
+      "id": 1064,
+      "card_id": null,
+      "dashboard_tab_id": 31,
+      "col": 0,
+      "row": 103,
+      "size_x": 24,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "## Automatic schedule assessment\nCurrent setup compared with recorded charges over 30 completed days, respecting schedule anchors. Principal is separate. Expected interest is not additional overdue debt. A lump-sum catch-up does not hide reduced charge frequency. Unsupported/short histories are labeled."
+          }
+        }
+      }
+    },
+    {
+      "id": 1279,
+      "card_id": 275,
+      "dashboard_tab_id": 31,
+      "col": 0,
+      "row": 54,
+      "size_x": 24,
+      "size_y": 8,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {}
+    },
+    {
+      "id": 1278,
+      "card_id": null,
+      "dashboard_tab_id": 31,
+      "col": 0,
+      "row": 51,
+      "size_x": 24,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "Positions are normalized for equal quadrants. Categories and payment scores are unchanged. Modified schedules occupy the right half automatically. Use the borrower list below for exact values and overlapping points."
+          }
+        }
+      }
+    },
+    {
+      "id": 1282,
+      "card_id": null,
+      "dashboard_tab_id": 31,
+      "col": 3,
+      "row": 49,
+      "size_x": 9,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "### CASH COW · bottom left\nLow contribution · stronger health"
+          }
+        }
+      }
+    },
+    {
+      "id": 1283,
+      "card_id": null,
+      "dashboard_tab_id": 31,
+      "col": 12,
+      "row": 49,
+      "size_x": 9,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "### DOG · bottom right\nLow contribution · lower health"
+          }
+        }
+      }
+    },
+    {
+      "id": 1280,
+      "card_id": null,
+      "dashboard_tab_id": 31,
+      "col": 3,
+      "row": 31,
+      "size_x": 9,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "### ★ STAR · top left\nHigh contribution · stronger health"
+          }
+        }
+      }
+    },
+    {
+      "id": 1281,
+      "card_id": null,
+      "dashboard_tab_id": 31,
+      "col": 12,
+      "row": 31,
+      "size_x": 9,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "### ? QUESTION MARK · top right\nHigh contribution · lower health"
+          }
+        }
+      }
+    }
+  ]
+}

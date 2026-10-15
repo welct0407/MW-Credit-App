@@ -1,0 +1,22 @@
+SELECT "Row ID" AS "Borrower ID", "Description" AS "Borrower",
+       "Creation Date" AS "Created Date", "Hidden Flag" AS "Hidden",
+       "Total Outstanding Principal" AS "Outstanding Principal",
+       "Active Loan Count" AS "Active Loans", "Overdue Amount" AS "Overdue Amount",
+       "Has Active Loan", "Total Interest Earned", "Total Number of Loans",
+       "Return on Active Principal", "Profit Last 30 Days", "30D Average Outstanding Principal",
+       "30D Return on Average Principal", "Daily Collection Status", "Todays Amount Due",
+       "Todays Amount Collected", "Todays Amount Remaining", "Portfolio Exposure %",
+       "Oldest Active Loan Age", "Historical Charge Count", "Lifetime On Time Rate",
+       "Recent 30D On Time Rate", "Lifetime Late Payment Count", "Recent 30D Late Payment Count",
+       "Maximum Days Late", "Last Late Payment Date", "Largest Successful Loan",
+       "Average Successful Loan Size", "Default Count", "Lifetime Default Loss",
+       "Portfolio Outstanding Principal", "Projected Monthly Profit Contribution",
+       "Matrix Economic Contribution", "Matrix Recent Reliability Score",
+       "Matrix Historical Reliability Score", "Matrix Delay Severity Score",
+       "Matrix Current Condition Score", "Matrix History Sufficient", "Matrix Stability Score",
+       "Matrix Quadrant", "Matrix Scaled Economic Contribution",
+       "Description" || ' · ' || coalesce("Matrix Quadrant", 'Unclassified') AS "Matrix Label",
+       row_number() OVER (ORDER BY "Total Outstanding Principal" DESC NULLS LAST,"Row ID") AS "Principal Rank",
+       EXISTS(SELECT 1 FROM public.olap_loans_analytics l
+              WHERE l."Ref Borrowers"=b."Row ID" AND l."Loan Status"='ปิดยอดแล้ว') AS "Has Closed Loan"
+FROM public.olap_borrowers_analytics b

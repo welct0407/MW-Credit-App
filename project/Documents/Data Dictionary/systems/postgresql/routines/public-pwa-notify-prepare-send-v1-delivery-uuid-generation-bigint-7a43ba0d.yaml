@@ -1,0 +1,48 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.pwa_notify_prepare_send_v1(delivery uuid, generation bigint)"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r053-notifications-jobs/dictionary-production-closure.json"
+  "coverage": "Actual affected PROD89 catalogue after maintained migration and authority restoration; no business rows."
+"content":
+  "definition":
+    "schema": "public"
+    "name": "pwa_notify_prepare_send_v1"
+    "arguments": "delivery uuid, generation bigint"
+    "kind": "f"
+    "arguments_with_defaults": "delivery uuid, generation bigint"
+    "result": "TABLE(subscription_id uuid, version bigint, issuer text, subject text, partner_id text, endpoint_hash text,\
+      \ endpoint text, p256dh text, auth text, expires_at timestamp with time zone, login_email text, partner_role text)"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.pwa_notify_prepare_send_v1(delivery uuid, generation bigint)
+       RETURNS TABLE(subscription_id uuid, version bigint, issuer text, subject text, partner_id text, endpoint_hash text, endpoint text, p256dh text, auth text, expires_at timestamp with time zone, login_email text, partner_role text)
+       LANGUAGE plpgsql
+       SECURITY DEFINER
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+      BEGIN
+       PERFORM public.pwa_worker_guard_v1('dispatch');
+       RETURN QUERY SELECT s.subscription_id,s.version,s.issuer,s.subject,s.partner_id,s.endpoint_hash,s.endpoint,s.p256dh,s.auth,s.expires_at,lower(btrim(p."Login Email")),p."Partner Role"
+       FROM public.pwa_notification_deliveries d JOIN public.pwa_push_subscriptions s USING(subscription_id) JOIN public."Partners" p ON p."Row ID"=s.partner_id
+       WHERE d.delivery_id=delivery AND d.lease_generation=generation AND d.state='leased' AND d.lease_expires_at>clock_timestamp() AND d.send_started_at IS NULL
+       AND s.version=d.subscription_version AND public.pwa_notify_eligible_v1(d.event_id,s.subscription_id);
+      END $function$
+    "owner": "mw_notify_owner_prod"
+    "language": "plpgsql"
+    "volatility": "v"
+    "strict": false
+    "security_definer": true
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 1000.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": "{mw_notify_owner_prod=X/mw_notify_owner_prod,mw_notify_dispatch_prod=X/mw_notify_owner_prod}"
+    "comment": "mw-access:governance fixed notification boundary; explicit capability only"
+    "extension": null

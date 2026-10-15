@@ -1,0 +1,7 @@
+# R050 — legacy Forecast & Partners tab retirement — 29 September 2026
+
+The owner requested removal of tab11 from Metabase Loan Reports. Starting Git commit `4ae7e29389cac1512b6e63462054594d84e46a94`; pre-existing partner-share script/output changes and unrelated untracked risk/R026 files were preserved. The affected report had 13 tabs and 274 placements. Recovery dashboard26 and the complete private pre-change definition were captured before editing.
+
+Removed tab ID11 and its 15 placements. Renamed existing tab249 to **11 · Partners** and tab262 to **12 · Forecast & Planning**, keeping their IDs and content. All 259 remaining placements and dashboard parameters were unchanged on API readback. Browser verification confirmed the navigation and Partners page load. The nine exclusive saved questions were retained. [Implementation, checks and rollback](../outputs/r050-remove-forecast-partners/README.md).
+
+Changed repository objects: scoped removal/verification script, dashboard dictionary tabs, current navigation references in design/model/inventory/development documents, tracker, Metabase scripts guide and this log. Dictionary validation passed. No AppSheet or SQL changes, source financial writes or notifications. R050 remains Open; no release freeze/tag or App Upgrade was involved. Rollback is dashboard26/private pre-change definition, scoped to tab11 and its placements while preserving later edits.

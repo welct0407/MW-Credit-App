@@ -1,0 +1,41 @@
+{
+  "date": "2026-09-18",
+  "environment": "DEV OLTP",
+  "beforeVersion": "1.000131",
+  "afterVersion": "1.000134",
+  "method": "Same Chrome desktop app Dashboard, sync click until Sync button enabled, one excluded warmup and seven samples each. Client wall-clock including browser automation overhead. No financial data writes between sets; all synthetic fixtures created afterwards.",
+  "units": "seconds",
+  "baseline": [
+    5.463,
+    5.717,
+    6.375,
+    5.406,
+    6.322,
+    5.233,
+    6.137
+  ],
+  "after": [
+    4.626,
+    3.321,
+    4.032,
+    2.568,
+    3.733,
+    2.636,
+    2.547
+  ],
+  "excludedWarmup": {
+    "before": "completed; elapsed not retained",
+    "after": 4.631
+  },
+  "medianBefore": 5.717,
+  "medianAfter": 3.321,
+  "improvementSeconds": 2.3959999999999995,
+  "improvementPercent": 41.91009270596466,
+  "classification": "Strong under design thresholds",
+  "limitations": "Sequential samples, not interleaved/randomized; network/cache/automation overhead may contribute. No server-side VC timing or Performance Analyzer measurement captured. No extrapolation to production.",
+  "statisticsBeforeAndAfter": {
+    "Overdue": 32,
+    "FullyPaid": 1,
+    "observation": "Same visible dashboard counts before synthetic fixtures; zero-count groups not displayed."
+  }
+}

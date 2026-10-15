@@ -1,0 +1,356 @@
+{
+  "at": "2026-09-25T10:09:10.549Z",
+  "checks": [
+    "All original tabs, placements, saved queries and formatting preserved",
+    "Original filters and collection permissions preserved",
+    "p-active query complete/no truncation",
+    "p-loans query complete/no truncation",
+    "p-principal query complete/no truncation",
+    "p-interest query complete/no truncation",
+    "p-issued query complete/no truncation",
+    "p-issued-count query complete/no truncation",
+    "p-status query complete/no truncation",
+    "p-capital query complete/no truncation",
+    "p-contribution query complete/no truncation",
+    "p-trend query complete/no truncation",
+    "p-first-repeat query complete/no truncation",
+    "p-comparison query complete/no truncation",
+    "d-identity query complete/no truncation",
+    "d-identity empty selection fails closed",
+    "d-principal query complete/no truncation",
+    "d-principal empty selection fails closed",
+    "d-active query complete/no truncation",
+    "d-active empty selection fails closed",
+    "d-overdue query complete/no truncation",
+    "d-overdue empty selection fails closed",
+    "d-share query complete/no truncation",
+    "d-share empty selection fails closed",
+    "d-health query complete/no truncation",
+    "d-health empty selection fails closed",
+    "d-interest query complete/no truncation",
+    "d-interest empty selection fails closed",
+    "d-issued query complete/no truncation",
+    "d-issued empty selection fails closed",
+    "d-returned query complete/no truncation",
+    "d-returned empty selection fails closed",
+    "d-issued-count query complete/no truncation",
+    "d-issued-count empty selection fails closed",
+    "d-status query complete/no truncation",
+    "d-status empty selection fails closed",
+    "d-principal-trend query complete/no truncation",
+    "d-principal-trend empty selection fails closed",
+    "d-interest-trend query complete/no truncation",
+    "d-interest-trend empty selection fails closed",
+    "d-active-loans query complete/no truncation",
+    "d-active-loans empty selection fails closed",
+    "d-timing query complete/no truncation",
+    "d-timing empty selection fails closed",
+    "d-loan-history query complete/no truncation",
+    "d-loan-history empty selection fails closed",
+    "d-payments query complete/no truncation",
+    "d-payments empty selection fails closed",
+    "d-obligations query complete/no truncation",
+    "d-obligations empty selection fails closed",
+    "d-overdue-list query complete/no truncation",
+    "d-overdue-list empty selection fails closed",
+    "d-scenario query complete/no truncation",
+    "d-scenario empty selection fails closed",
+    "Comparison has unique identities",
+    "d-identity query complete/no truncation",
+    "d-principal query complete/no truncation",
+    "d-active query complete/no truncation",
+    "d-overdue query complete/no truncation",
+    "d-share query complete/no truncation",
+    "d-health query complete/no truncation",
+    "d-interest query complete/no truncation",
+    "d-issued query complete/no truncation",
+    "d-returned query complete/no truncation",
+    "d-issued-count query complete/no truncation",
+    "d-status query complete/no truncation",
+    "d-principal-trend query complete/no truncation",
+    "d-interest-trend query complete/no truncation",
+    "d-active-loans query complete/no truncation",
+    "d-timing query complete/no truncation",
+    "d-loan-history query complete/no truncation",
+    "d-payments query complete/no truncation",
+    "d-obligations query complete/no truncation",
+    "d-overdue-list query complete/no truncation",
+    "d-scenario query complete/no truncation",
+    "Drill-through dates are plain ISO dates",
+    "d-interest query complete/no truncation",
+    "Drill-through explicit range retains interest",
+    "d-principal query complete/no truncation",
+    "Portfolio to Detail current principal agrees",
+    "d-interest query complete/no truncation",
+    "Portfolio to Detail interest agrees",
+    "d-identity query complete/no truncation",
+    "No-match ID never broadens scope",
+    "p-comparison query complete/no truncation",
+    "Currently active cohort filter",
+    "p-comparison query complete/no truncation",
+    "Currently inactive cohort filter",
+    "p-comparison query complete/no truncation",
+    "Date changes preserve current positions",
+    "Period summary reconciles comparison",
+    "Ranking reconciles signed interest",
+    "Trend reconciles signed interest",
+    "d-scenario query complete/no truncation",
+    "Scenario returns one borrower",
+    "d-scenario query complete/no truncation",
+    "Negative scenario rejects projections",
+    "d-identity query complete/no truncation",
+    "Cleared selection restores empty result"
+  ],
+  "passed": 99,
+  "timings": [
+    {
+      "key": "p-active",
+      "ms": 146
+    },
+    {
+      "key": "p-loans",
+      "ms": 75
+    },
+    {
+      "key": "p-principal",
+      "ms": 68
+    },
+    {
+      "key": "p-interest",
+      "ms": 256
+    },
+    {
+      "key": "p-issued",
+      "ms": 290
+    },
+    {
+      "key": "p-issued-count",
+      "ms": 248
+    },
+    {
+      "key": "p-status",
+      "ms": 438
+    },
+    {
+      "key": "p-capital",
+      "ms": 94
+    },
+    {
+      "key": "p-contribution",
+      "ms": 159
+    },
+    {
+      "key": "p-trend",
+      "ms": 237
+    },
+    {
+      "key": "p-first-repeat",
+      "ms": 225
+    },
+    {
+      "key": "p-comparison",
+      "ms": 386
+    },
+    {
+      "key": "d-identity",
+      "ms": 93
+    },
+    {
+      "key": "d-principal",
+      "ms": 124
+    },
+    {
+      "key": "d-active",
+      "ms": 143
+    },
+    {
+      "key": "d-overdue",
+      "ms": 132
+    },
+    {
+      "key": "d-share",
+      "ms": 177
+    },
+    {
+      "key": "d-health",
+      "ms": 579
+    },
+    {
+      "key": "d-interest",
+      "ms": 128
+    },
+    {
+      "key": "d-issued",
+      "ms": 99
+    },
+    {
+      "key": "d-returned",
+      "ms": 111
+    },
+    {
+      "key": "d-issued-count",
+      "ms": 108
+    },
+    {
+      "key": "d-status",
+      "ms": 125
+    },
+    {
+      "key": "d-principal-trend",
+      "ms": 106
+    },
+    {
+      "key": "d-interest-trend",
+      "ms": 107
+    },
+    {
+      "key": "d-active-loans",
+      "ms": 90
+    },
+    {
+      "key": "d-timing",
+      "ms": 129
+    },
+    {
+      "key": "d-loan-history",
+      "ms": 91
+    },
+    {
+      "key": "d-payments",
+      "ms": 143
+    },
+    {
+      "key": "d-obligations",
+      "ms": 153
+    },
+    {
+      "key": "d-overdue-list",
+      "ms": 86
+    },
+    {
+      "key": "d-scenario",
+      "ms": 119
+    },
+    {
+      "key": "d-identity",
+      "ms": 75
+    },
+    {
+      "key": "d-principal",
+      "ms": 113
+    },
+    {
+      "key": "d-active",
+      "ms": 102
+    },
+    {
+      "key": "d-overdue",
+      "ms": 137
+    },
+    {
+      "key": "d-share",
+      "ms": 149
+    },
+    {
+      "key": "d-health",
+      "ms": 493
+    },
+    {
+      "key": "d-interest",
+      "ms": 200
+    },
+    {
+      "key": "d-issued",
+      "ms": 146
+    },
+    {
+      "key": "d-returned",
+      "ms": 151
+    },
+    {
+      "key": "d-issued-count",
+      "ms": 160
+    },
+    {
+      "key": "d-status",
+      "ms": 151
+    },
+    {
+      "key": "d-principal-trend",
+      "ms": 149
+    },
+    {
+      "key": "d-interest-trend",
+      "ms": 153
+    },
+    {
+      "key": "d-active-loans",
+      "ms": 111
+    },
+    {
+      "key": "d-timing",
+      "ms": 158
+    },
+    {
+      "key": "d-loan-history",
+      "ms": 416
+    },
+    {
+      "key": "d-payments",
+      "ms": 268
+    },
+    {
+      "key": "d-obligations",
+      "ms": 204
+    },
+    {
+      "key": "d-overdue-list",
+      "ms": 93
+    },
+    {
+      "key": "d-scenario",
+      "ms": 138
+    },
+    {
+      "key": "d-interest",
+      "ms": 166
+    },
+    {
+      "key": "d-principal",
+      "ms": 115
+    },
+    {
+      "key": "d-interest",
+      "ms": 149
+    },
+    {
+      "key": "d-identity",
+      "ms": 76
+    },
+    {
+      "key": "p-comparison",
+      "ms": 345
+    },
+    {
+      "key": "p-comparison",
+      "ms": 246
+    },
+    {
+      "key": "p-comparison",
+      "ms": 304
+    },
+    {
+      "key": "d-scenario",
+      "ms": 235
+    },
+    {
+      "key": "d-scenario",
+      "ms": 993
+    },
+    {
+      "key": "d-identity",
+      "ms": 656
+    }
+  ],
+  "financial_values_published": false
+}

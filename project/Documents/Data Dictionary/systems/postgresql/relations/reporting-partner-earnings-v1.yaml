@@ -1,0 +1,405 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "relation"
+  "name": "public.reporting_partner_earnings_v1"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r044-partners/dictionary-catalog.json"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "reporting_partner_earnings_v1"
+    "kind": "v"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "n"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,metabase_borrower_reader=r/postgres,mw_app_prod=r/postgres}"
+    "comment": null
+    "view_definition": |2-
+       WITH mapping AS (
+               SELECT "Partners"."Partner Role" AS role,
+                  min("Partners"."Row ID") AS partner_id
+                 FROM "Partners"
+                WHERE "Partners"."Partner Role" = ANY (ARRAY['A'::text, 'B'::text])
+                GROUP BY "Partners"."Partner Role"
+               HAVING count(*) = 1
+              ), events AS (
+               SELECT 'Interest'::text AS event_type,
+                  r."Row ID" AS event_id,
+                  r."Payment Date" AS activity_date,
+                  v.role,
+                  v.amount AS allocated_interest,
+                  0::numeric AS allocated_expense,
+                  r."Interest Paid" IS NOT NULL AS amount_known
+                 FROM olap_repayments_analytics r
+                   CROSS JOIN LATERAL ( VALUES ('A'::text,r."Partner A Profit"), ('B'::text,r."Partner B Profit")) v(role, amount)
+              UNION ALL
+               SELECT 'Expense'::text,
+                  e_1."Row ID",
+                  e_1."Expense Date",
+                  v.role,
+                  0::numeric AS "numeric",
+                  v.amount,
+                  e_1."Amount" IS NOT NULL
+                 FROM "Business Expenses" e_1
+                   CROSS JOIN LATERAL ( VALUES ('A'::text,e_1."Partner A Expense"::numeric), ('B'::text,e_1."Partner B Expense"::numeric)) v(role, amount)
+              )
+       SELECT e.event_type,
+          e.event_id,
+          e.activity_date,
+          e.role,
+          e.allocated_interest,
+          e.allocated_expense,
+          e.amount_known,
+          m.partner_id,
+          p."Partner Name" AS partner_name,
+          e.allocated_interest - e.allocated_expense AS net_earned,
+          m.partner_id IS NOT NULL AND e.activity_date IS NOT NULL AND e.amount_known AND e.allocated_interest IS NOT NULL AND e.allocated_expense IS NOT NULL AS valid
+         FROM events e
+           LEFT JOIN mapping m ON m.role = e.role
+           LEFT JOIN "Partners" p ON p."Row ID" = m.partner_id;
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "development_definition":
+    "schema": "public"
+    "name": "reporting_partner_earnings_v1"
+    "kind": "v"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "n"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,metabase_borrower_reader=r/postgres}"
+    "comment": null
+    "view_definition": |2-
+       WITH mapping AS (
+               SELECT "Partners"."Partner Role" AS role,
+                  min("Partners"."Row ID") AS partner_id
+                 FROM "Partners"
+                WHERE "Partners"."Partner Role" = ANY (ARRAY['A'::text, 'B'::text])
+                GROUP BY "Partners"."Partner Role"
+               HAVING count(*) = 1
+              ), events AS (
+               SELECT 'Interest'::text AS event_type,
+                  r."Row ID" AS event_id,
+                  r."Payment Date" AS activity_date,
+                  v.role,
+                  v.amount AS allocated_interest,
+                  0::numeric AS allocated_expense,
+                  r."Interest Paid" IS NOT NULL AS amount_known
+                 FROM olap_repayments_analytics r
+                   CROSS JOIN LATERAL ( VALUES ('A'::text,r."Partner A Profit"), ('B'::text,r."Partner B Profit")) v(role, amount)
+              UNION ALL
+               SELECT 'Expense'::text,
+                  e_1."Row ID",
+                  e_1."Expense Date",
+                  v.role,
+                  0::numeric AS "numeric",
+                  v.amount,
+                  e_1."Amount" IS NOT NULL
+                 FROM "Business Expenses" e_1
+                   CROSS JOIN LATERAL ( VALUES ('A'::text,e_1."Partner A Expense"::numeric), ('B'::text,e_1."Partner B Expense"::numeric)) v(role, amount)
+              )
+       SELECT e.event_type,
+          e.event_id,
+          e.activity_date,
+          e.role,
+          e.allocated_interest,
+          e.allocated_expense,
+          e.amount_known,
+          m.partner_id,
+          p."Partner Name" AS partner_name,
+          e.allocated_interest - e.allocated_expense AS net_earned,
+          m.partner_id IS NOT NULL AND e.activity_date IS NOT NULL AND e.amount_known AND e.allocated_interest IS NOT NULL AND e.allocated_expense IS NOT NULL AS valid
+         FROM events e
+           LEFT JOIN mapping m ON m.role = e.role
+           LEFT JOIN "Partners" p ON p."Row ID" = m.partner_id;
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "columns":
+    "event_type":
+      "schema": "public"
+      "relation": "reporting_partner_earnings_v1"
+      "name": "event_type"
+      "ordinal": 1
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "event_id":
+      "schema": "public"
+      "relation": "reporting_partner_earnings_v1"
+      "name": "event_id"
+      "ordinal": 2
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "activity_date":
+      "schema": "public"
+      "relation": "reporting_partner_earnings_v1"
+      "name": "activity_date"
+      "ordinal": 3
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "role":
+      "schema": "public"
+      "relation": "reporting_partner_earnings_v1"
+      "name": "role"
+      "ordinal": 4
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "allocated_interest":
+      "schema": "public"
+      "relation": "reporting_partner_earnings_v1"
+      "name": "allocated_interest"
+      "ordinal": 5
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "allocated_expense":
+      "schema": "public"
+      "relation": "reporting_partner_earnings_v1"
+      "name": "allocated_expense"
+      "ordinal": 6
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "amount_known":
+      "schema": "public"
+      "relation": "reporting_partner_earnings_v1"
+      "name": "amount_known"
+      "ordinal": 7
+      "data_type": "boolean"
+      "type_schema": "pg_catalog"
+      "type_name": "bool"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "partner_id":
+      "schema": "public"
+      "relation": "reporting_partner_earnings_v1"
+      "name": "partner_id"
+      "ordinal": 8
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "partner_name":
+      "schema": "public"
+      "relation": "reporting_partner_earnings_v1"
+      "name": "partner_name"
+      "ordinal": 9
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "net_earned":
+      "schema": "public"
+      "relation": "reporting_partner_earnings_v1"
+      "name": "net_earned"
+      "ordinal": 10
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "valid":
+      "schema": "public"
+      "relation": "reporting_partner_earnings_v1"
+      "name": "valid"
+      "ordinal": 11
+      "data_type": "boolean"
+      "type_schema": "pg_catalog"
+      "type_name": "bool"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+  "constraints": {}
+  "indexes": {}
+  "triggers": {}
+  "policies": {}
+  "dependencies":
+  - "schema": "public"
+    "relation": "reporting_partner_earnings_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Business Expenses"
+    "referenced_column": "Amount"
+  - "schema": "public"
+    "relation": "reporting_partner_earnings_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Business Expenses"
+    "referenced_column": "Expense Date"
+  - "schema": "public"
+    "relation": "reporting_partner_earnings_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Business Expenses"
+    "referenced_column": "Partner A Expense"
+  - "schema": "public"
+    "relation": "reporting_partner_earnings_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Business Expenses"
+    "referenced_column": "Partner B Expense"
+  - "schema": "public"
+    "relation": "reporting_partner_earnings_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Business Expenses"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "reporting_partner_earnings_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Partners"
+    "referenced_column": "Partner Name"
+  - "schema": "public"
+    "relation": "reporting_partner_earnings_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Partners"
+    "referenced_column": "Partner Role"
+  - "schema": "public"
+    "relation": "reporting_partner_earnings_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Partners"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "reporting_partner_earnings_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Interest Paid"
+  - "schema": "public"
+    "relation": "reporting_partner_earnings_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Partner A Profit"
+  - "schema": "public"
+    "relation": "reporting_partner_earnings_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Partner B Profit"
+  - "schema": "public"
+    "relation": "reporting_partner_earnings_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Payment Date"
+  - "schema": "public"
+    "relation": "reporting_partner_earnings_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Row ID"
+"evidence":
+  "/content/definition/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"

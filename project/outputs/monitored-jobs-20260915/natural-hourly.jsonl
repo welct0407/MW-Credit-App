@@ -1,0 +1,25 @@
+{"as_of" : "2026-09-16T00:05:36.637527+07:00", "statistics_rows" : 1, "analytics_rows" : 43, "duplicate_dates" : 0, "null_snapshot_dates" : 0, "first_loan_date" : "2026-08-05"}
+{"jobid":1,"jobname":"loan-daily-charges","schedule":"5 0 * * *","active":false}
+{"analytics_keys" : "de4ac739142ec290c2dfe02239bf2065"}
+{"request" : "2026-09-16|Recent|a9c1a6a4"}
+{"Snapshot Date":"2026-09-16","Generated At":"2026-09-16T00:00:05.018097","Model Version":2,"Principal Issued":0.00,"Principal Returned":0.00,"Interest Received":0.00,"Outstanding Principal EOD":116394.00,"Pending Charges EOD":25772.00,"Unsettled Profit EOD":170088.00}
+{"Snapshot Date":"2026-09-15","Generated At":"2026-09-16T00:00:05.018097","Model Version":2,"Principal Issued":300.00,"Principal Returned":101702.00,"Interest Received":104713.00,"Outstanding Principal EOD":116394.00,"Pending Charges EOD":20722.00,"Unsettled Profit EOD":170088.00}
+{"table" : "Daily Analytics", "column" : "Row ID", "type" : "text"}
+{"table" : "Daily Analytics", "column" : "Snapshot Date", "type" : "date"}
+{"table" : "Daily Analytics", "column" : "Generated At", "type" : "timestamp without time zone"}
+{"table" : "Daily Analytics", "column" : "Model Version", "type" : "integer"}
+{"table" : "Daily Analytics", "column" : "Principal Issued", "type" : "money"}
+{"table" : "Daily Analytics", "column" : "Loans Issued", "type" : "integer"}
+{"table" : "Daily Analytics", "column" : "Principal Returned", "type" : "money"}
+{"table" : "Daily Analytics", "column" : "Interest Received", "type" : "money"}
+{"table" : "Daily Analytics", "column" : "Repayments Count", "type" : "integer"}
+{"table" : "Daily Analytics", "column" : "Outstanding Principal EOD", "type" : "money"}
+{"table" : "Daily Analytics", "column" : "Active Loans EOD", "type" : "integer"}
+{"table" : "Daily Analytics", "column" : "Active Borrowers EOD", "type" : "integer"}
+{"table" : "Daily Analytics", "column" : "Pending Charges EOD", "type" : "money"}
+{"table" : "Daily Analytics", "column" : "Total Cash Pool EOD", "type" : "money"}
+{"table" : "Daily Analytics", "column" : "Available Cash EOD", "type" : "money"}
+{"table" : "Daily Analytics", "column" : "Unsettled Profit EOD", "type" : "money"}
+{"table" : "Statistics", "column" : "Row ID", "type" : "text"}
+{"table" : "Statistics", "column" : "Statistics ID", "type" : "text"}
+{"table" : "Statistics", "column" : "Analytics Refresh Request", "type" : "text"}

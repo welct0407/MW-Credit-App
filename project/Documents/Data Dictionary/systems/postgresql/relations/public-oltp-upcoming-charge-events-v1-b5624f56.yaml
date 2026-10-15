@@ -1,0 +1,373 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "relation"
+  "name": "public.oltp_upcoming_charge_events_v1"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r048-production/README.md"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "oltp_upcoming_charge_events_v1"
+    "kind": "v"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "n"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,mw_app_prod=r/postgres}"
+    "comment": "R048: one loan/date; recorded-first remaining obligations; next seven days union borrower first five dates\
+      \ within three calendar months (max 93 days). Read-only."
+    "view_definition": |2-
+       WITH raw AS MATERIALIZED (
+               SELECT i.loan_id,
+                  i.borrower_id,
+                  i.loan,
+                  i.reporting_date,
+                  LEAST((i.reporting_date + '3 mons'::interval)::date, i.reporting_date + 93) AS horizon_end,
+                  s.due_date,
+                  s.origin,
+                  s.bucket,
+                  s.principal,
+                  s.interest,
+                  s.eligible,
+                  s.issue
+                 FROM reporting_forecast_inputs_v1 i
+                   JOIN "Borrowers" b ON b."Row ID" = i.borrower_id
+                   CROSS JOIN LATERAL forecast_schedule_v1(i.loan, i.charges, i.reporting_date, LEAST((i.reporting_date + '3 mons'::interval)::date, i.reporting_date + 93)) s(due_date, origin, bucket, principal, interest, eligible, issue)
+              ), amounts AS (
+               SELECT raw.loan_id,
+                  raw.borrower_id,
+                  raw.reporting_date,
+                  raw.horizon_end,
+                  raw.due_date,
+                  sum(raw.principal) AS principal,
+                  sum(raw.interest) AS interest,
+                      CASE
+                          WHEN bool_or(raw.origin = 'Recorded'::text) THEN
+                          CASE
+                              WHEN bool_or(raw.bucket = 'Recovery only'::text) THEN 'Recorded - review status'::text
+                              WHEN bool_and(NOT COALESCE((raw.loan ->> 'auto'::text)::boolean, false)) THEN 'Recorded settlement'::text
+                              ELSE 'Recorded'::text
+                          END
+                          ELSE 'Projected'::text
+                      END AS basis
+                 FROM raw
+                WHERE raw.due_date > raw.reporting_date AND raw.due_date <= raw.horizon_end AND (raw.principal + raw.interest) > 0::numeric AND (raw.origin = 'Recorded'::text OR raw.origin = 'Simulated'::text AND raw.eligible)
+                GROUP BY raw.loan_id, raw.borrower_id, raw.reporting_date, raw.horizon_end, raw.due_date
+              ), ranked AS (
+               SELECT amounts.loan_id,
+                  amounts.borrower_id,
+                  amounts.reporting_date,
+                  amounts.horizon_end,
+                  amounts.due_date,
+                  amounts.principal,
+                  amounts.interest,
+                  amounts.basis,
+                  dense_rank() OVER (PARTITION BY amounts.borrower_id ORDER BY amounts.due_date)::integer AS due_rank
+                 FROM amounts
+              )
+       SELECT (((('uf1:'::text || length(loan_id)) || ':'::text) || loan_id) || ':'::text) || to_char(due_date::timestamp with time zone, 'YYYY-MM-DD'::text) AS "Row ID",
+          borrower_id AS "Ref Borrower",
+          loan_id AS "Ref Loan",
+          due_date AS "Due Date",
+          principal AS "Principal Remaining",
+          interest AS "Interest Remaining",
+          principal + interest AS "Amount Remaining",
+          basis AS "Basis",
+          reporting_date AS "As Of Date",
+          horizon_end AS "Horizon End",
+          statement_timestamp() AS "Calculated At",
+          due_date <= (reporting_date + 7) AS "Within 7 Days",
+          due_rank AS "Borrower Due Date Rank"
+         FROM ranked
+        WHERE due_date <= (reporting_date + 7) OR due_rank <= 5;
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "columns":
+    "Row ID":
+      "schema": "public"
+      "relation": "oltp_upcoming_charge_events_v1"
+      "name": "Row ID"
+      "ordinal": 1
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
+      "comment": null
+    "Ref Borrower":
+      "schema": "public"
+      "relation": "oltp_upcoming_charge_events_v1"
+      "name": "Ref Borrower"
+      "ordinal": 2
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
+      "comment": null
+    "Ref Loan":
+      "schema": "public"
+      "relation": "oltp_upcoming_charge_events_v1"
+      "name": "Ref Loan"
+      "ordinal": 3
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
+      "comment": null
+    "Due Date":
+      "schema": "public"
+      "relation": "oltp_upcoming_charge_events_v1"
+      "name": "Due Date"
+      "ordinal": 4
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
+      "comment": null
+    "Principal Remaining":
+      "schema": "public"
+      "relation": "oltp_upcoming_charge_events_v1"
+      "name": "Principal Remaining"
+      "ordinal": 5
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
+      "comment": null
+    "Interest Remaining":
+      "schema": "public"
+      "relation": "oltp_upcoming_charge_events_v1"
+      "name": "Interest Remaining"
+      "ordinal": 6
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
+      "comment": null
+    "Amount Remaining":
+      "schema": "public"
+      "relation": "oltp_upcoming_charge_events_v1"
+      "name": "Amount Remaining"
+      "ordinal": 7
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
+      "comment": null
+    "Basis":
+      "schema": "public"
+      "relation": "oltp_upcoming_charge_events_v1"
+      "name": "Basis"
+      "ordinal": 8
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
+      "comment": null
+    "As Of Date":
+      "schema": "public"
+      "relation": "oltp_upcoming_charge_events_v1"
+      "name": "As Of Date"
+      "ordinal": 9
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
+      "comment": null
+    "Horizon End":
+      "schema": "public"
+      "relation": "oltp_upcoming_charge_events_v1"
+      "name": "Horizon End"
+      "ordinal": 10
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Calculated At":
+      "schema": "public"
+      "relation": "oltp_upcoming_charge_events_v1"
+      "name": "Calculated At"
+      "ordinal": 11
+      "data_type": "timestamp with time zone"
+      "type_schema": "pg_catalog"
+      "type_name": "timestamptz"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Within 7 Days":
+      "schema": "public"
+      "relation": "oltp_upcoming_charge_events_v1"
+      "name": "Within 7 Days"
+      "ordinal": 12
+      "data_type": "boolean"
+      "type_schema": "pg_catalog"
+      "type_name": "bool"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Borrower Due Date Rank":
+      "schema": "public"
+      "relation": "oltp_upcoming_charge_events_v1"
+      "name": "Borrower Due Date Rank"
+      "ordinal": 13
+      "data_type": "integer"
+      "type_schema": "pg_catalog"
+      "type_name": "int4"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
+      "comment": null
+"evidence":
+  "/content/definition/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"
+  "/content/columns/Amount Remaining/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"
+  "/content/columns/As Of Date/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"
+  "/content/columns/Basis/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"
+  "/content/columns/Borrower Due Date Rank/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"
+  "/content/columns/Due Date/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"
+  "/content/columns/Interest Remaining/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"
+  "/content/columns/Principal Remaining/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"
+  "/content/columns/Ref Borrower/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"
+  "/content/columns/Ref Loan/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"
+  "/content/columns/Row ID/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"

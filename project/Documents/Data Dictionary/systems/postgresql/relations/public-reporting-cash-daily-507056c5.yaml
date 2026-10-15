@@ -1,0 +1,409 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "relation"
+  "name": "public.reporting_cash_daily"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "reporting_cash_daily"
+    "kind": "v"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "n"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,metabase_borrower_reader=r/postgres,mw_app_prod=r/postgres}"
+    "comment": "R016 dated capital less dated outstanding principal and initialized custody. Prior retained profit, advances\
+      \ and unexplained differences remain separate; never force cash pool plus selected-period earnings to equal cash held."
+    "view_definition": |2-
+       WITH days AS (
+               SELECT reporting_income_daily."Date",
+                  reporting_income_daily."Month",
+                  reporting_income_daily."Operating Income",
+                  reporting_income_daily."Expenses",
+                  reporting_income_daily."Signed Expenses",
+                  reporting_income_daily."Net Profit",
+                  reporting_income_daily."Partner A Net Profit",
+                  reporting_income_daily."Partner B Net Profit",
+                  reporting_income_daily."Prior Partner A Net",
+                  reporting_income_daily."Prior Partner B Net",
+                  reporting_income_daily."Partner A Settled Through Date",
+                  reporting_income_daily."Partner B Settled Through Date",
+                  reporting_income_daily."Net Profit Through Date"
+                 FROM reporting_income_daily
+              ), capital AS (
+               SELECT "Cash Pool Contributions"."Contribution Date" AS d,
+                  sum(
+                      CASE
+                          WHEN "Cash Pool Contributions"."Transaction Type" = 'Contribution'::text THEN "Cash Pool Contributions"."Amount"::numeric
+                          ELSE - "Cash Pool Contributions"."Amount"::numeric
+                      END) AS amount
+                 FROM "Cash Pool Contributions"
+                GROUP BY "Cash Pool Contributions"."Contribution Date"
+              ), loans AS (
+               SELECT "Loans"."Loan Date" AS d,
+                  sum("Loans"."Principal Amount"::numeric) AS amount
+                 FROM "Loans"
+                GROUP BY "Loans"."Loan Date"
+              ), repayments AS (
+               SELECT r."Payment Date" AS d,
+                  sum(r."Principal Paid"::numeric) AS amount
+                 FROM "Repayments" r
+                   JOIN "Loans" l ON l."Row ID" = r."Ref Loans"
+                GROUP BY r."Payment Date"
+              ), custody AS (
+               SELECT reporting_cash_account_daily."Date",
+                  bool_and(reporting_cash_account_daily."Current Balance" IS NOT NULL) AS complete,
+                  sum(reporting_cash_account_daily."Business Cash Held") AS held,
+                  sum(reporting_cash_account_daily."Advance Due") AS advance,
+                  max(reporting_cash_account_daily."Available From") AS available_from
+                 FROM reporting_cash_account_daily
+                GROUP BY reporting_cash_account_daily."Date"
+              ), amounts AS (
+               SELECT d."Date",
+                      CASE
+                          WHEN NOT (EXISTS ( SELECT 1
+                             FROM capital
+                            WHERE capital.d IS NULL)) AND NOT (EXISTS ( SELECT 1
+                             FROM loans
+                            WHERE loans.d IS NULL)) AND NOT (EXISTS ( SELECT 1
+                             FROM repayments
+                            WHERE repayments.d IS NULL)) THEN COALESCE(( SELECT sum(c_1.amount) AS sum
+                             FROM capital c_1
+                            WHERE c_1.d <= d."Date"), 0::numeric) - COALESCE(( SELECT sum(l.amount) AS sum
+                             FROM loans l
+                            WHERE l.d <= d."Date"), 0::numeric) + COALESCE(( SELECT sum(r.amount) AS sum
+                             FROM repayments r
+                            WHERE r.d <= d."Date"), 0::numeric)
+                          ELSE NULL::numeric
+                      END AS pool,
+                  d."Net Profit Through Date" - d."Partner A Settled Through Date" - d."Partner B Settled Through Date" AS retained,
+                      CASE
+                          WHEN c.complete THEN c.held
+                          ELSE NULL::numeric
+                      END AS held,
+                      CASE
+                          WHEN c.complete THEN c.advance
+                          ELSE NULL::numeric
+                      END AS advance,
+                  c.available_from
+                 FROM days d
+                   LEFT JOIN custody c ON c."Date" = d."Date"
+              )
+       SELECT "Date",
+          pool AS "Cash Pool Remaining",
+          held AS "Business Cash Held",
+          advance AS "Advance Due",
+          retained AS "Retained Profit Through Date",
+          held - advance - pool - retained AS "Cash Reconciliation Difference",
+          available_from AS "Cash Available From",
+              CASE
+                  WHEN held IS NULL THEN 'Cash unavailable before account openings'::text
+                  WHEN pool IS NULL THEN 'Cash pool unavailable: source date missing'::text
+                  WHEN abs(held - advance - pool - retained) < 0.005 THEN 'Reconciled'::text
+                  ELSE 'Includes a cash reconciliation difference'::text
+              END AS "Cash Status"
+         FROM amounts;
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "columns":
+    "Date":
+      "schema": "public"
+      "relation": "reporting_cash_daily"
+      "name": "Date"
+      "ordinal": 1
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Cash Pool Remaining":
+      "schema": "public"
+      "relation": "reporting_cash_daily"
+      "name": "Cash Pool Remaining"
+      "ordinal": 2
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Business Cash Held":
+      "schema": "public"
+      "relation": "reporting_cash_daily"
+      "name": "Business Cash Held"
+      "ordinal": 3
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Advance Due":
+      "schema": "public"
+      "relation": "reporting_cash_daily"
+      "name": "Advance Due"
+      "ordinal": 4
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Retained Profit Through Date":
+      "schema": "public"
+      "relation": "reporting_cash_daily"
+      "name": "Retained Profit Through Date"
+      "ordinal": 5
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Cash Reconciliation Difference":
+      "schema": "public"
+      "relation": "reporting_cash_daily"
+      "name": "Cash Reconciliation Difference"
+      "ordinal": 6
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Cash Available From":
+      "schema": "public"
+      "relation": "reporting_cash_daily"
+      "name": "Cash Available From"
+      "ordinal": 7
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Cash Status":
+      "schema": "public"
+      "relation": "reporting_cash_daily"
+      "name": "Cash Status"
+      "ordinal": 8
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+  "constraints": {}
+  "indexes": {}
+  "triggers": {}
+  "policies": {}
+  "dependencies":
+  - "schema": "public"
+    "relation": "reporting_cash_daily"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Pool Contributions"
+    "referenced_column": "Amount"
+  - "schema": "public"
+    "relation": "reporting_cash_daily"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Pool Contributions"
+    "referenced_column": "Contribution Date"
+  - "schema": "public"
+    "relation": "reporting_cash_daily"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Pool Contributions"
+    "referenced_column": "Transaction Type"
+  - "schema": "public"
+    "relation": "reporting_cash_daily"
+    "referenced_schema": "public"
+    "referenced_relation": "Loans"
+    "referenced_column": "Loan Date"
+  - "schema": "public"
+    "relation": "reporting_cash_daily"
+    "referenced_schema": "public"
+    "referenced_relation": "Loans"
+    "referenced_column": "Principal Amount"
+  - "schema": "public"
+    "relation": "reporting_cash_daily"
+    "referenced_schema": "public"
+    "referenced_relation": "Loans"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "reporting_cash_daily"
+    "referenced_schema": "public"
+    "referenced_relation": "Repayments"
+    "referenced_column": "Payment Date"
+  - "schema": "public"
+    "relation": "reporting_cash_daily"
+    "referenced_schema": "public"
+    "referenced_relation": "Repayments"
+    "referenced_column": "Principal Paid"
+  - "schema": "public"
+    "relation": "reporting_cash_daily"
+    "referenced_schema": "public"
+    "referenced_relation": "Repayments"
+    "referenced_column": "Ref Loans"
+  - "schema": "public"
+    "relation": "reporting_cash_daily"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_cash_account_daily"
+    "referenced_column": "Advance Due"
+  - "schema": "public"
+    "relation": "reporting_cash_daily"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_cash_account_daily"
+    "referenced_column": "Available From"
+  - "schema": "public"
+    "relation": "reporting_cash_daily"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_cash_account_daily"
+    "referenced_column": "Business Cash Held"
+  - "schema": "public"
+    "relation": "reporting_cash_daily"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_cash_account_daily"
+    "referenced_column": "Current Balance"
+  - "schema": "public"
+    "relation": "reporting_cash_daily"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_cash_account_daily"
+    "referenced_column": "Date"
+  - "schema": "public"
+    "relation": "reporting_cash_daily"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_income_daily"
+    "referenced_column": "Date"
+  - "schema": "public"
+    "relation": "reporting_cash_daily"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_income_daily"
+    "referenced_column": "Expenses"
+  - "schema": "public"
+    "relation": "reporting_cash_daily"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_income_daily"
+    "referenced_column": "Month"
+  - "schema": "public"
+    "relation": "reporting_cash_daily"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_income_daily"
+    "referenced_column": "Net Profit"
+  - "schema": "public"
+    "relation": "reporting_cash_daily"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_income_daily"
+    "referenced_column": "Net Profit Through Date"
+  - "schema": "public"
+    "relation": "reporting_cash_daily"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_income_daily"
+    "referenced_column": "Operating Income"
+  - "schema": "public"
+    "relation": "reporting_cash_daily"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_income_daily"
+    "referenced_column": "Partner A Net Profit"
+  - "schema": "public"
+    "relation": "reporting_cash_daily"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_income_daily"
+    "referenced_column": "Partner A Settled Through Date"
+  - "schema": "public"
+    "relation": "reporting_cash_daily"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_income_daily"
+    "referenced_column": "Partner B Net Profit"
+  - "schema": "public"
+    "relation": "reporting_cash_daily"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_income_daily"
+    "referenced_column": "Partner B Settled Through Date"
+  - "schema": "public"
+    "relation": "reporting_cash_daily"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_income_daily"
+    "referenced_column": "Prior Partner A Net"
+  - "schema": "public"
+    "relation": "reporting_cash_daily"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_income_daily"
+    "referenced_column": "Prior Partner B Net"
+  - "schema": "public"
+    "relation": "reporting_cash_daily"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_income_daily"
+    "referenced_column": "Signed Expenses"
+"evidence":
+  "/content/definition/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"

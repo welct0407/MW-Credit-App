@@ -1,0 +1,245 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "relation"
+  "name": "public.Loan Assessment"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r051-production/README.md"
+  "coverage": "catalog metadata"
+  "previous_record":
+    "commit": "dffa437c29a762f5b87a10b14a32063da8df07aa"
+    "path": "Documents/Data Dictionary/systems/postgresql/relations/loan-assessment.yaml"
+    "identity":
+      "system": "postgresql"
+      "component": "unassigned-database"
+      "kind": "relation"
+      "name": "Loan Assessment"
+      "scope": "as-recorded"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "Loan Assessment"
+    "kind": "r"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "d"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,mw_reviewer_dml=r/postgres,mw_app_prod=arwd/postgres}"
+    "comment": null
+    "view_definition": null
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "columns":
+    "Row ID":
+      "schema": "public"
+      "relation": "Loan Assessment"
+      "name": "Row ID"
+      "ordinal": 1
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Assessment ID":
+      "schema": "public"
+      "relation": "Loan Assessment"
+      "name": "Assessment ID"
+      "ordinal": 2
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Ref Borrower":
+      "schema": "public"
+      "relation": "Loan Assessment"
+      "name": "Ref Borrower"
+      "ordinal": 3
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Proposed Loan Amount":
+      "schema": "public"
+      "relation": "Loan Assessment"
+      "name": "Proposed Loan Amount"
+      "ordinal": 4
+      "data_type": "money"
+      "type_schema": "pg_catalog"
+      "type_name": "money"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Minimum Daily Profit Rate":
+      "schema": "public"
+      "relation": "Loan Assessment"
+      "name": "Minimum Daily Profit Rate"
+      "ordinal": 5
+      "data_type": "real"
+      "type_schema": "pg_catalog"
+      "type_name": "float4"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+  "constraints":
+    "Loan Assessment_Row ID_not_null":
+      "schema": "public"
+      "relation": "Loan Assessment"
+      "name": "Loan Assessment_Row ID_not_null"
+      "kind": "n"
+      "definition": "NOT NULL \"Row ID\""
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "Loan Assessment_pkey":
+      "schema": "public"
+      "relation": "Loan Assessment"
+      "name": "Loan Assessment_pkey"
+      "kind": "p"
+      "definition": "PRIMARY KEY (\"Row ID\")"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "appsheet_ref_07":
+      "schema": "public"
+      "relation": "Loan Assessment"
+      "name": "appsheet_ref_07"
+      "kind": "f"
+      "definition": "FOREIGN KEY (\"Ref Borrower\") REFERENCES \"Borrowers\"(\"Row ID\") ON DELETE SET NULL"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 3
+      "referenced_column_numbers":
+      - 1
+      "referenced_relation": "\"Borrowers\""
+      "update_action": "a"
+      "delete_action": "n"
+      "match_type": "s"
+      "comment": null
+  "indexes":
+    "Loan Assessment_pkey":
+      "schema": "public"
+      "relation": "Loan Assessment"
+      "name": "Loan Assessment_pkey"
+      "definition": "CREATE UNIQUE INDEX \"Loan Assessment_pkey\" ON public.\"Loan Assessment\" USING btree (\"Row ID\")"
+      "unique": true
+      "primary": true
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 1
+      "total_attribute_count": 1
+      "predicate": null
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
+  "triggers":
+    "RI_ConstraintTrigger_c_21409":
+      "schema": "public"
+      "relation": "Loan Assessment"
+      "name": "RI_ConstraintTrigger_c_21409"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_21409\" AFTER INSERT ON \"Loan Assessment\" FROM \"\
+        Borrowers\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_ins\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_21410":
+      "schema": "public"
+      "relation": "Loan Assessment"
+      "name": "RI_ConstraintTrigger_c_21410"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_21410\" AFTER UPDATE ON \"Loan Assessment\" FROM \"\
+        Borrowers\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "appsheet_blank_refs":
+      "schema": "public"
+      "relation": "Loan Assessment"
+      "name": "appsheet_blank_refs"
+      "definition": "CREATE TRIGGER appsheet_blank_refs BEFORE INSERT OR UPDATE ON \"Loan Assessment\" FOR EACH ROW EXECUTE\
+        \ FUNCTION appsheet_normalize_blank_refs('Ref Borrower')"
+      "enabled": "O"
+      "internal": false
+      "routine": "appsheet_normalize_blank_refs()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+  "policies": {}
+  "dependencies": []
+"evidence":
+  "/content/definition/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"

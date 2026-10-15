@@ -1,0 +1,13 @@
+{
+  "metabaseRollback": "Verified application-poc-complete.dump from accepted POC; new report objects can be archived independently",
+  "scope": [
+    "public",
+    "assessment_lab",
+    "agent_audit"
+  ],
+  "verifiedAt": "2026-09-22T09:44:51.9521753+00:00",
+  "sha256": "5F79FBE117BE85FE308A99FDDF2F0564FBABF170709B5FDBF45800FE1B9730EE",
+  "bytes": 506990,
+  "privateDirectory": "C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r016-20260922",
+  "restored": true
+}

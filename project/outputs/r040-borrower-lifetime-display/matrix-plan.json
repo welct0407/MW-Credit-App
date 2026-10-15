@@ -1,0 +1,10 @@
+{
+  "dashboard": 3,
+  "tab": 104,
+  "question": 289,
+  "column": "BCG Matrix category",
+  "source": "public.reporting_borrower_matrix_v3.quadrant",
+  "inactiveValue": "Outside active cohort",
+  "rows": 30,
+  "startingCommit": "720db01b9218090240a5477fdd83211bcc221326"
+}

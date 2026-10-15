@@ -1,0 +1,50 @@
+{
+  "action": "read",
+  "synthetic": {
+    "Payments": [
+      [
+        "Mxy5iE2XKT8VyXLivvYrcV",
+        "Lump Sum",
+        "6.00",
+        "Posted",
+        "6.00"
+      ],
+      [
+        "4HMPvPR6ROSVYbYVUPScaP",
+        "Lump Sum",
+        "5.00",
+        "Posted",
+        "5.00"
+      ]
+    ],
+    "Charges": [
+      [
+        "SYN-R051-RECV-C1",
+        "0.00"
+      ],
+      [
+        "SYN-R051-RECV-C2",
+        "9.00"
+      ],
+      [
+        "SYN-R051-RECV-C3",
+        "10.00"
+      ],
+      [
+        "SYN-R051-RECV-C4",
+        "10.00"
+      ],
+      [
+        "SYN-R051-RECV-C5",
+        "10.00"
+      ]
+    ],
+    "Loans": [
+      [
+        "SYN-R051-RECV-L",
+        "ยังไม่ปิดยอด",
+        "1000.00"
+      ]
+    ]
+  }
+}

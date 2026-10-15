@@ -1,0 +1,316 @@
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "reports.mw-credit.com"
+  "kind": "question"
+  "name": "Active loans & recorded next plan / 303"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r035-borrower-pages/saved-question-definitions.json"
+"content":
+  "key": "d-active-loans"
+  "id": 303
+  "name": "Active loans & recorded next plan"
+  "description": "R035 additive borrower pages. Immutable borrower keys; Bangkok dates; current health from V41/V42. Signed\
+    \ receipts. No AppSheet/financial writes."
+  "display": "table"
+  "type": "question"
+  "dataset_query":
+    "stages":
+    - "template-tags":
+      - "name": "borrower_id"
+        "display-name": "Borrower"
+        "id": "bp-borrower"
+        "type": "text"
+      "lib/type": "mbql.stage/native"
+      "native": |-
+        WITH clock AS (SELECT public.olap_reporting_date() today), chosen AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE borrower_id= [[{{borrower_id}} --]] '__select_borrower__'
+        ) SELECT CASE WHEN k."Row ID" IS NULL THEN 'Loan key unavailable' ELSE coalesce(c.borrower_name,'Unknown borrower')||'-'||to_char(k."Principal Amount"::numeric,'FM999,999,999,990.00')||'-'||to_char(k."Loan Date",'DD/MM')||'-'||coalesce(to_char(k."Effective Daily Interest Rate"::numeric*100,'FM999990.00')||'%','Unavailable') END AS "Loan Key",l.loan_date AS "Loan date",l.loan_type AS "Loan type",l.original_principal AS "Original principal ฿",l.outstanding_principal AS "Current principal ฿",l.due_date AS "Due date",l.daily_interest AS "Daily interest ฿",s.schedule_reason AS "Schedule",s.next_plan_due_date AS "Next plan due",s.next_plan_principal AS "Next principal ฿",s.next_plan_interest AS "Next interest ฿" FROM chosen c JOIN public.reporting_borrower_loan_facts_v1 l USING(borrower_id) LEFT JOIN public.olap_loans_analytics k ON k."Row ID"=l.loan_id LEFT JOIN public.reporting_loan_schedule_health_v1 s USING(loan_id) WHERE l.is_active ORDER BY l.loan_date DESC,l.loan_id
+    "lib/type": "mbql/query"
+    "database": 2
+  "visualization_settings":
+    "table.pivot": false
+    "table.columns":
+    - "name": "Loan Key"
+      "fieldRef":
+      - "field"
+      - "Loan Key"
+      - "base-type": "type/Text"
+      "enabled": true
+    - "name": "Loan date"
+      "fieldRef":
+      - "field"
+      - "Loan date"
+      - "base-type": "type/Text"
+      "enabled": true
+    - "name": "Loan type"
+      "fieldRef":
+      - "field"
+      - "Loan type"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Original principal ฿"
+      "fieldRef":
+      - "field"
+      - "Original principal ฿"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Current principal ฿"
+      "fieldRef":
+      - "field"
+      - "Current principal ฿"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Due date"
+      "fieldRef":
+      - "field"
+      - "Due date"
+      - "base-type": "type/Text"
+      "enabled": true
+    - "name": "Daily interest ฿"
+      "fieldRef":
+      - "field"
+      - "Daily interest ฿"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Schedule"
+      "fieldRef":
+      - "field"
+      - "Schedule"
+      - "base-type": "type/Text"
+      "enabled": true
+    - "name": "Next plan due"
+      "fieldRef":
+      - "field"
+      - "Next plan due"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Next principal ฿"
+      "fieldRef":
+      - "field"
+      - "Next principal ฿"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Next interest ฿"
+      "fieldRef":
+      - "field"
+      - "Next interest ฿"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    "column_settings":
+      "[\"name\",\"Original principal ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Current principal ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Daily interest ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Next principal ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Next interest ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+  "result_metadata":
+  - "database_type": "text"
+    "semantic_type": null
+    "lib/deduplicated-name": "Loan ID"
+    "lib/original-name": "Loan ID"
+    "name": "Loan ID"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Loan ID"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Loan ID"
+    - "base-type": "type/Text"
+    "effective_type": "type/Text"
+    "lib/desired-column-alias": "Loan ID"
+    "display_name": "Loan ID"
+    "base_type": "type/Text"
+  - "database_type": "date"
+    "semantic_type": null
+    "lib/deduplicated-name": "Loan date"
+    "lib/original-name": "Loan date"
+    "name": "Loan date"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Loan date"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Loan date"
+    - "base-type": "type/Date"
+    "effective_type": "type/Date"
+    "lib/desired-column-alias": "Loan date"
+    "display_name": "Loan date"
+    "base_type": "type/Date"
+  - "database_type": "text"
+    "semantic_type": null
+    "lib/deduplicated-name": "Loan type"
+    "lib/original-name": "Loan type"
+    "name": "Loan type"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Loan type"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Loan type"
+    - "base-type": "type/Text"
+    "effective_type": "type/Text"
+    "lib/desired-column-alias": "Loan type"
+    "display_name": "Loan type"
+    "base_type": "type/Text"
+  - "database_type": "numeric"
+    "semantic_type": null
+    "lib/deduplicated-name": "Original principal ฿"
+    "lib/original-name": "Original principal ฿"
+    "name": "Original principal ฿"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Original principal ฿"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Original principal ฿"
+    - "base-type": "type/Decimal"
+    "effective_type": "type/Decimal"
+    "lib/desired-column-alias": "Original principal ฿"
+    "display_name": "Original principal ฿"
+    "base_type": "type/Decimal"
+  - "database_type": "numeric"
+    "semantic_type": null
+    "lib/deduplicated-name": "Current principal ฿"
+    "lib/original-name": "Current principal ฿"
+    "name": "Current principal ฿"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Current principal ฿"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Current principal ฿"
+    - "base-type": "type/Decimal"
+    "effective_type": "type/Decimal"
+    "lib/desired-column-alias": "Current principal ฿"
+    "display_name": "Current principal ฿"
+    "base_type": "type/Decimal"
+  - "database_type": "date"
+    "semantic_type": null
+    "lib/deduplicated-name": "Due date"
+    "lib/original-name": "Due date"
+    "name": "Due date"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Due date"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Due date"
+    - "base-type": "type/Date"
+    "effective_type": "type/Date"
+    "lib/desired-column-alias": "Due date"
+    "display_name": "Due date"
+    "base_type": "type/Date"
+  - "database_type": "numeric"
+    "semantic_type": null
+    "lib/deduplicated-name": "Daily interest ฿"
+    "lib/original-name": "Daily interest ฿"
+    "name": "Daily interest ฿"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Daily interest ฿"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Daily interest ฿"
+    - "base-type": "type/Decimal"
+    "effective_type": "type/Decimal"
+    "lib/desired-column-alias": "Daily interest ฿"
+    "display_name": "Daily interest ฿"
+    "base_type": "type/Decimal"
+  - "database_type": "text"
+    "semantic_type": null
+    "lib/deduplicated-name": "Schedule"
+    "lib/original-name": "Schedule"
+    "name": "Schedule"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Schedule"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Schedule"
+    - "base-type": "type/Text"
+    "effective_type": "type/Text"
+    "lib/desired-column-alias": "Schedule"
+    "display_name": "Schedule"
+    "base_type": "type/Text"
+  - "database_type": "date"
+    "semantic_type": null
+    "lib/deduplicated-name": "Next plan due"
+    "lib/original-name": "Next plan due"
+    "name": "Next plan due"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Next plan due"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Next plan due"
+    - "base-type": "type/Date"
+    "effective_type": "type/Date"
+    "lib/desired-column-alias": "Next plan due"
+    "display_name": "Next plan due"
+    "base_type": "type/Date"
+  - "database_type": "numeric"
+    "semantic_type": null
+    "lib/deduplicated-name": "Next principal ฿"
+    "lib/original-name": "Next principal ฿"
+    "name": "Next principal ฿"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Next principal ฿"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Next principal ฿"
+    - "base-type": "type/Decimal"
+    "effective_type": "type/Decimal"
+    "lib/desired-column-alias": "Next principal ฿"
+    "display_name": "Next principal ฿"
+    "base_type": "type/Decimal"
+  - "database_type": "numeric"
+    "semantic_type": null
+    "lib/deduplicated-name": "Next interest ฿"
+    "lib/original-name": "Next interest ฿"
+    "name": "Next interest ฿"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Next interest ฿"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Next interest ฿"
+    - "base-type": "type/Decimal"
+    "effective_type": "type/Decimal"
+    "lib/desired-column-alias": "Next interest ฿"
+    "display_name": "Next interest ฿"
+    "base_type": "type/Decimal"
+"evidence":
+  "/content/result_metadata":
+    "reference": "outputs/r035-borrower-pages/README.md"
+    "reason": "R035 additive borrower pages; exact saved definitions and V44 metadata"
+    "state": "value"
+  "/content/dataset_query":
+    "reference": "outputs/r041-borrower-detail/saved.json"
+    "reason": "R041 verified Detail presentation"
+    "state": "value"
+  "/content/visualization_settings":
+    "reference": "outputs/r041-borrower-detail/saved.json"
+    "reason": "R041 verified Detail presentation"
+    "state": "value"

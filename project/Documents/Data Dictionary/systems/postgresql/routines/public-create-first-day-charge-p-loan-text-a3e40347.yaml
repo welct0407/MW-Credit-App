@@ -1,0 +1,45 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.create_first_day_charge(p_loan text)"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r052/dictionary-production-closure.json"
+  "coverage": "Actual bounded PROD87 catalogue after grouped migration and temporary authority restoration; no business-row\
+    \ capture."
+"content":
+  "definition":
+    "schema": "public"
+    "name": "create_first_day_charge"
+    "arguments": "p_loan text"
+    "kind": "f"
+    "arguments_with_defaults": "p_loan text"
+    "result": "void"
+    "definition": "CREATE OR REPLACE FUNCTION public.create_first_day_charge(p_loan text)\n RETURNS void\n LANGUAGE plpgsql\n\
+      \ SET search_path TO 'pg_catalog', 'public'\nAS $function$\r\nDECLARE l public.\"Loans\"%ROWTYPE; principal numeric:=0;\
+      \ interest numeric; days integer;\r\nBEGIN\r\n  SELECT * INTO STRICT l FROM public.\"Loans\" WHERE \"Row ID\"=p_loan;\r\
+      \n  IF NOT coalesce(l.\"Auto Charge Enabled\",false) OR NOT coalesce((\r\n    (l.\"Loan Type\"='ดอกเบี้ยรายวัน' AND\
+      \ l.\"Current Daily Interest\"::numeric>0) OR\r\n    (l.\"Loan Type\"='ผ่อนชำระรายวัน' AND l.\"Daily Payment Amount\"\
+      ::numeric>0)),false) THEN RETURN; END IF;\r\n  PERFORM 1 FROM public.\"Borrowers\" WHERE \"Row ID\"=l.\"Ref Borrowers\"\
+      \ FOR UPDATE;\r\n  IF EXISTS(SELECT 1 FROM public.\"Charges\" WHERE \"Ref Loans\"=p_loan AND \"Charge Date\"=l.\"Loan\
+      \ Date\") THEN RETURN; END IF;\r\n  IF l.\"Loan Date\" IS NULL THEN RAISE EXCEPTION 'First-day charge requires Loan\
+      \ Date'; END IF;\r\n  SELECT parts.principal,parts.interest INTO STRICT principal,interest\r\n    FROM public.first_day_components_v83(l)\
+      \ parts;\r\n  INSERT INTO public.\"Charges\"(\"Row ID\",\"Ref Loans\",\"Charge Date\",\"Principal Due\",\"Interest Due\"\
+      )\r\n    VALUES('fd6:'||p_loan,p_loan,l.\"Loan Date\",principal::money,interest::money);\r\nEND $function$\n"
+    "owner": "postgres"
+    "language": "plpgsql"
+    "volatility": "v"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 0.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": "{=X/postgres,postgres=X/postgres,mw_app_prod=X/postgres}"
+    "comment": null
+    "extension": null

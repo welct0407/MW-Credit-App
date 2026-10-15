@@ -1,0 +1,56 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.pwa_management_financial_text_v2(op text, i jsonb)"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r052/dictionary-production-closure.json"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "pwa_management_financial_text_v2"
+    "arguments": "op text, i jsonb"
+    "kind": "f"
+    "arguments_with_defaults": "op text, i jsonb"
+    "result": "text"
+    "definition": "CREATE OR REPLACE FUNCTION public.pwa_management_financial_text_v2(op text, i jsonb)\n RETURNS text\n LANGUAGE\
+      \ plpgsql\n IMMUTABLE\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\r\nDECLARE keys text[];k text;result\
+      \ text:='{';kind text:=split_part(op,'.',1);action text:=split_part(op,'.',2);\r\nBEGIN\r\n IF op NOT IN('capital-contribution.create','capital-contribution.update','capital-contribution.delete','settlement.create','settlement.update','settlement.complete','settlement.reverse','settlement.cancel','settlement.settle-all','cash-movement.create','cash-movement.update','cash-movement.delete')\
+      \ OR jsonb_typeof(i) IS DISTINCT FROM 'object' THEN RAISE EXCEPTION USING ERRCODE='22023';END IF;\r\n IF action IN('delete','reverse','cancel')\
+      \ THEN IF i<>'{}'::jsonb THEN RAISE EXCEPTION USING ERRCODE='22023';END IF;RETURN '{}';END IF;\r\n IF action='complete'\
+      \ THEN keys:=ARRAY['cashAccountId'];ELSIF action='settle-all' THEN keys:=ARRAY['partnerId','reviewedAmount','notes'];\r\
+      \n ELSIF kind='capital-contribution' THEN keys:=ARRAY['partnerId','contributionDate','transactionType','amount','notes'];\r\
+      \n ELSIF kind='settlement' THEN keys:=ARRAY['settlementDate','partnerId','amount','status','transferDate','notes','cashAccountId'];\r\
+      \n ELSE keys:=ARRAY['movementDate','movementType','amount','fromAccountId','toAccountId','businessExpenseId','notes'];END\
+      \ IF;\r\n IF (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(i) key) IS DISTINCT FROM (SELECT array_agg(key\
+      \ ORDER BY key) FROM unnest(keys) key) THEN RAISE EXCEPTION USING ERRCODE='22023';END IF;\r\n FOREACH k IN ARRAY keys\
+      \ LOOP\r\n IF jsonb_typeof(i->k) NOT IN('string','null') OR octet_length(i->>k)>65536 THEN RAISE EXCEPTION USING ERRCODE='22023';END\
+      \ IF;\r\n IF k LIKE '%Id' AND i->k<>'null'::jsonb AND (octet_length(i->>k) NOT BETWEEN 1 AND 256 OR i->>k~'[[:cntrl:]]')\
+      \ THEN RAISE EXCEPTION USING ERRCODE='22023';END IF;\r\n IF k='partnerId' AND i->k='null'::jsonb THEN RAISE EXCEPTION\
+      \ USING ERRCODE='22023';END IF;\r\n IF k LIKE '%Date' AND NOT(k='transferDate' AND i->k='null'::jsonb) AND (jsonb_typeof(i->k)\
+      \ IS DISTINCT FROM 'string' OR i->>k!~'^[0-9]{4}-[0-9]{2}-[0-9]{2}$' OR ((i->>k)::date)::text<>i->>k) THEN RAISE EXCEPTION\
+      \ USING ERRCODE='22023';END IF;\r\n IF k IN('amount','reviewedAmount') AND (jsonb_typeof(i->k) IS DISTINCT FROM 'string'\
+      \ OR i->>k!~'^(0|[1-9][0-9]*)(\\.[0-9]{1,2})?$' OR (i->>k)::numeric<=0 OR (i->>k)::numeric>92233720368547758.07) THEN\
+      \ RAISE EXCEPTION USING ERRCODE='22023';END IF;\r\n IF kind='cash-movement' AND k='amount' AND i->>k!~'^[1-9][0-9]*$'\
+      \ THEN RAISE EXCEPTION USING ERRCODE='22023';END IF;\r\n IF k='transactionType' AND i->>k NOT IN('Contribution','Withdrawal')\
+      \ OR k='movementType' AND i->>k NOT IN('Cash Handover','Expense Reimbursement') OR k='status' AND i->>k NOT IN('Pending','Completed','Cancelled')\
+      \ THEN RAISE EXCEPTION USING ERRCODE='22023';END IF;\r\n IF k IN('transactionType','movementType','status') AND i->k='null'::jsonb\
+      \ THEN RAISE EXCEPTION USING ERRCODE='22023';END IF;\r\n result:=result||CASE WHEN result='{' THEN '' ELSE ',' END||to_json(k)::text||':'||coalesce(to_json(i->>k)::text,'null');END\
+      \ LOOP;RETURN result||'}';\r\nEND $function$\n"
+    "owner": "postgres"
+    "language": "plpgsql"
+    "volatility": "i"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 0.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": "{postgres=X/postgres,mw_app_prod_journal_owner=X/postgres,mw_app_prod=X/postgres}"
+    "comment": null
+    "extension": null

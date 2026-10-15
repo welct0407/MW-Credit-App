@@ -1,0 +1,23 @@
+{
+  "version": "1.000023",
+  "rollback": "1.000022",
+  "removedAction": "Refresh Assessment",
+  "editedColumns": [
+    "Recommendation",
+    "Recommendation Status"
+  ],
+  "otherSheetsPreserved": true,
+  "exportVerified": true,
+  "ui": {
+    "newInterface": true,
+    "pendingMessageObserved": true,
+    "automaticSyncReturnedNewResult": true,
+    "restoration": {
+      "restored2000": true,
+      "originalDate": true,
+      "pending": false,
+      "refreshAction": false,
+      "verifiedAfterRestart": true
+    }
+  }
+}

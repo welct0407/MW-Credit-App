@@ -1,0 +1,1355 @@
+{
+  "capturedAt": "2026-09-18T03:03:37.010Z",
+  "appId": "65faacd8-2b0d-43bf-9e0a-58eb915dcf9b",
+  "version": "1.000125",
+  "scope": "Affected configuration readback; view data bindings separately verified in editor",
+  "definitions": [
+    {
+      "heading": "Data Summary\t\n21 Tables\n514 Columns\n3 Slices\n\nUX Summary\t\n40 Views\n57 Format Rules\n\nBehavior Summary\t\n85 Actions\n0 Workflow Rules",
+      "rows": [
+        [
+          ""
+        ],
+        [
+          "Short Name",
+          "Loan Manager — DEV"
+        ],
+        [
+          "Short Description",
+          "This app assists users in managing the loans."
+        ],
+        [
+          "Version",
+          "1.000125"
+        ],
+        [
+          "Default app folder",
+          "/appsheet/data/LoanMgrPGTest20260914-578763613"
+        ],
+        [
+          "Runnable?",
+          "Yes"
+        ],
+        [
+          "Deployable?",
+          "Yes"
+        ],
+        [
+          "Personal use only?",
+          "No"
+        ]
+      ],
+      "section": "Loan Manager — DEV"
+    },
+    {
+      "heading": "",
+      "rows": [
+        [
+          "Table name",
+          "Cash Holder Balances"
+        ],
+        [
+          "Visible?",
+          "ALWAYS"
+        ],
+        [
+          "Shared?",
+          "Yes"
+        ],
+        [
+          "Data locale",
+          "en-US"
+        ],
+        [
+          "Schema",
+          "Cash Holder Balances_Schema"
+        ],
+        [
+          "Are updates allowed?",
+          "READ_ONLY"
+        ],
+        [
+          "Source Path",
+          "Cash Holder Balances"
+        ],
+        [
+          "Data Source",
+          "database-3"
+        ],
+        [
+          "Store for image and file capture",
+          "_Default"
+        ],
+        [
+          "Column Order List",
+          "_RowNumber"
+        ],
+        [
+          "Partitioned across many files/sources?",
+          "No"
+        ],
+        [
+          "Partitioned across many worksheets?",
+          "No"
+        ]
+      ],
+      "section": ""
+    },
+    {
+      "heading": "Column 33: Todays Amount Due",
+      "rows": [
+        [
+          "Column name",
+          "Todays Amount Due"
+        ],
+        [
+          "Visible?",
+          "ALWAYS"
+        ],
+        [
+          "Display name",
+          "=\"ยอดที่ต้องชำระวันนี้ / Todays Amount Due\""
+        ],
+        [
+          "Type",
+          "Price"
+        ],
+        [
+          "Type Qualifier",
+          "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\":0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        ],
+        [
+          "App formula",
+          "=[Todays Amount Collected] + [Todays Amount Remaining]"
+        ],
+        [
+          "Read-Only",
+          "Yes"
+        ],
+        [
+          "Hidden",
+          "No"
+        ],
+        [
+          "Label",
+          "No"
+        ],
+        [
+          "Formula version",
+          "0"
+        ],
+        [
+          "Reset on edit?",
+          "No"
+        ],
+        [
+          "System Defined?",
+          "No"
+        ],
+        [
+          "Key",
+          "No"
+        ],
+        [
+          "Part of Key?",
+          "No"
+        ],
+        [
+          "Fixed definition?",
+          "No"
+        ],
+        [
+          "Editable Initial Value?",
+          "Yes"
+        ],
+        [
+          "Virtual?",
+          "Yes"
+        ],
+        [
+          "LocaleName",
+          "en-US"
+        ],
+        [
+          "Searchable",
+          "No"
+        ],
+        [
+          "Scannable",
+          "No"
+        ],
+        [
+          "Sensitive data",
+          "No"
+        ]
+      ],
+      "section": ""
+    },
+    {
+      "heading": "Column 34: Total Cash Pool",
+      "rows": [
+        [
+          "Column name",
+          "Total Cash Pool"
+        ],
+        [
+          "Visible?",
+          "ALWAYS"
+        ],
+        [
+          "Type",
+          "Price"
+        ],
+        [
+          "Type Qualifier",
+          "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\":0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        ],
+        [
+          "App formula",
+          "=ANY(Loan Form Context[Contributed Capital])"
+        ],
+        [
+          "Read-Only",
+          "Yes"
+        ],
+        [
+          "Hidden",
+          "No"
+        ],
+        [
+          "Label",
+          "No"
+        ],
+        [
+          "Formula version",
+          "0"
+        ],
+        [
+          "Reset on edit?",
+          "No"
+        ],
+        [
+          "System Defined?",
+          "No"
+        ],
+        [
+          "Key",
+          "No"
+        ],
+        [
+          "Part of Key?",
+          "No"
+        ],
+        [
+          "Fixed definition?",
+          "No"
+        ],
+        [
+          "Editable Initial Value?",
+          "Yes"
+        ],
+        [
+          "Virtual?",
+          "Yes"
+        ],
+        [
+          "LocaleName",
+          "en-US"
+        ],
+        [
+          "Searchable",
+          "No"
+        ],
+        [
+          "Scannable",
+          "No"
+        ],
+        [
+          "Sensitive data",
+          "No"
+        ]
+      ],
+      "section": ""
+    },
+    {
+      "heading": "Column 9: Related Cash Holder Balances",
+      "rows": [
+        [
+          "Column name",
+          "Related Cash Holder Balances"
+        ],
+        [
+          "Visible?",
+          "ALWAYS"
+        ],
+        [
+          "Description",
+          "Cash Holder Balances entries that reference this entry in the Ref Cash Holder column"
+        ],
+        [
+          "Type",
+          "List"
+        ],
+        [
+          "Type Qualifier",
+          "{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":\"{\\\"ReferencedTableName\\\":\\\"Cash Holder Balances\\\",\\\"ReferencedRootTableName\\\":\\\"Cash Holder Balances\\\",\\\"ReferencedType\\\":\\\"Ref\\\",\\\"ReferencedTypeQualifier\\\":\\\"{\\\\\\\"ReferencedTableName\\\\\\\":\\\\\\\"Cash Holders\\\\\\\",\\\\\\\"ReferencedRootTableName\\\\\\\":\\\\\\\"Cash Holders\\\\\\\",\\\\\\\"ReferencedType\\\\\\\":\\\\\\\"Text\\\\\\\",\\\\\\\"ReferencedTypeQualifier\\\\\\\":\\\\\\\"{\\\\\\\\\\\\\\\"MaxLength\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"MinLength\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"LongTextFormatting\\\\\\\\\\\\\\\":\\\\\\\\\\\\\\\"Plain Text\\\\\\\\\\\\\\\",\\\\\\\\\\\\\\\"IsMulticolumnKey\\\\\\\\\\\\\\\":false,\\\\\\\\\\\\\\\"Valid_If\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"Error_Message_If_Invalid\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"Show_If\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"Required_If\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"Editable_If\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"Reset_If\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"Suggested_Values\\\\\\\\\\\\\\\":null}\\\\\\\",\\\\\\\"ReferencedKeyColumn\\\\\\\":\\\\\\\"Row ID\\\\\\\",\\\\\\\"IsAPartOf\\\\\\\":false,\\\\\\\"RelationshipName\\\\\\\":null,\\\\\\\"InputMode\\\\\\\":\\\\\\\"Auto\\\\\\\",\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\"Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\",\\\"ReferencedKeyColumn\\\":\\\"Ref Cash Holder\\\",\\\"IsAPartOf\\\":false,\\\"RelationshipName\\\":null,\\\"InputMode\\\":\\\"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"ItemSeparator\":\" , \",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        ],
+        [
+          "App formula",
+          "REF_ROWS(\"Cash Holder Balances\", \"Ref Cash Holder\")"
+        ],
+        [
+          "Read-Only",
+          "Yes"
+        ],
+        [
+          "Hidden",
+          "No"
+        ],
+        [
+          "Label",
+          "No"
+        ],
+        [
+          "Formula version",
+          "0"
+        ],
+        [
+          "Reset on edit?",
+          "No"
+        ],
+        [
+          "System Defined?",
+          "Yes"
+        ],
+        [
+          "Key",
+          "No"
+        ],
+        [
+          "Part of Key?",
+          "No"
+        ],
+        [
+          "Fixed definition?",
+          "No"
+        ],
+        [
+          "Editable Initial Value?",
+          "Yes"
+        ],
+        [
+          "Virtual?",
+          "Yes"
+        ],
+        [
+          "LocaleName",
+          "en-US"
+        ],
+        [
+          "Searchable",
+          "Yes"
+        ],
+        [
+          "Scannable",
+          "No"
+        ],
+        [
+          "NFC Scannable",
+          "No"
+        ],
+        [
+          "Sensitive data",
+          "No"
+        ]
+      ],
+      "section": ""
+    },
+    {
+      "heading": "Schema Name Cash Holder Balances_Schema",
+      "rows": [
+        [
+          "Schema Name",
+          "Cash Holder Balances_Schema"
+        ],
+        [
+          "Visible?",
+          "ALWAYS"
+        ]
+      ],
+      "section": ""
+    },
+    {
+      "heading": "Column 1: _RowNumber",
+      "rows": [
+        [
+          "Column name",
+          "_RowNumber"
+        ],
+        [
+          "Visible?",
+          "ALWAYS"
+        ],
+        [
+          "Description",
+          "Number of this row"
+        ],
+        [
+          "Type",
+          "Number"
+        ],
+        [
+          "Type Qualifier",
+          "{\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        ],
+        [
+          "Read-Only",
+          "Yes"
+        ],
+        [
+          "Hidden",
+          "Yes"
+        ],
+        [
+          "Label",
+          "No"
+        ],
+        [
+          "Formula version",
+          "0"
+        ],
+        [
+          "Reset on edit?",
+          "No"
+        ],
+        [
+          "System Defined?",
+          "Yes"
+        ],
+        [
+          "Key",
+          "No"
+        ],
+        [
+          "Part of Key?",
+          "No"
+        ],
+        [
+          "Fixed definition?",
+          "Yes"
+        ],
+        [
+          "Editable Initial Value?",
+          "Yes"
+        ],
+        [
+          "Virtual?",
+          "No"
+        ],
+        [
+          "LocaleName",
+          "en-US"
+        ],
+        [
+          "Searchable",
+          "No"
+        ],
+        [
+          "Scannable",
+          "No"
+        ],
+        [
+          "Sensitive data",
+          "No"
+        ]
+      ],
+      "section": ""
+    },
+    {
+      "heading": "Column 2: Ref Cash Holder",
+      "rows": [
+        [
+          "Column name",
+          "Ref Cash Holder"
+        ],
+        [
+          "Visible?",
+          "ALWAYS"
+        ],
+        [
+          "Type",
+          "Ref"
+        ],
+        [
+          "Type Qualifier",
+          "{\"ReferencedTableName\":\"Cash Holders\",\"ReferencedRootTableName\":\"Cash Holders\",\"ReferencedType\":\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\":\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        ],
+        [
+          "Read-Only",
+          "Yes"
+        ],
+        [
+          "Hidden",
+          "Yes"
+        ],
+        [
+          "Label",
+          "No"
+        ],
+        [
+          "Formula version",
+          "0"
+        ],
+        [
+          "Reset on edit?",
+          "No"
+        ],
+        [
+          "System Defined?",
+          "No"
+        ],
+        [
+          "Key",
+          "Yes"
+        ],
+        [
+          "Part of Key?",
+          "Yes"
+        ],
+        [
+          "Fixed definition?",
+          "No"
+        ],
+        [
+          "Editable Initial Value?",
+          "Yes"
+        ],
+        [
+          "Virtual?",
+          "No"
+        ],
+        [
+          "LocaleName",
+          "en-US"
+        ],
+        [
+          "Searchable",
+          "No"
+        ],
+        [
+          "Scannable",
+          "No"
+        ],
+        [
+          "Sensitive data",
+          "No"
+        ]
+      ],
+      "section": ""
+    },
+    {
+      "heading": "Column 3: Holder Name",
+      "rows": [
+        [
+          "Column name",
+          "Holder Name"
+        ],
+        [
+          "Visible?",
+          "ALWAYS"
+        ],
+        [
+          "Type",
+          "Text"
+        ],
+        [
+          "Type Qualifier",
+          "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        ],
+        [
+          "Read-Only",
+          "Yes"
+        ],
+        [
+          "Hidden",
+          "No"
+        ],
+        [
+          "Label",
+          "Yes"
+        ],
+        [
+          "Formula version",
+          "0"
+        ],
+        [
+          "Reset on edit?",
+          "No"
+        ],
+        [
+          "System Defined?",
+          "No"
+        ],
+        [
+          "Key",
+          "No"
+        ],
+        [
+          "Part of Key?",
+          "No"
+        ],
+        [
+          "Fixed definition?",
+          "No"
+        ],
+        [
+          "Editable Initial Value?",
+          "Yes"
+        ],
+        [
+          "Virtual?",
+          "No"
+        ],
+        [
+          "LocaleName",
+          "en-US"
+        ],
+        [
+          "Searchable",
+          "Yes"
+        ],
+        [
+          "Scannable",
+          "No"
+        ],
+        [
+          "Sensitive data",
+          "No"
+        ]
+      ],
+      "section": ""
+    },
+    {
+      "heading": "Column 4: Cash In",
+      "rows": [
+        [
+          "Column name",
+          "Cash In"
+        ],
+        [
+          "Visible?",
+          "ALWAYS"
+        ],
+        [
+          "Type",
+          "Price"
+        ],
+        [
+          "Type Qualifier",
+          "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\":0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        ],
+        [
+          "Read-Only",
+          "Yes"
+        ],
+        [
+          "Hidden",
+          "No"
+        ],
+        [
+          "Label",
+          "No"
+        ],
+        [
+          "Formula version",
+          "0"
+        ],
+        [
+          "Reset on edit?",
+          "No"
+        ],
+        [
+          "System Defined?",
+          "No"
+        ],
+        [
+          "Key",
+          "No"
+        ],
+        [
+          "Part of Key?",
+          "No"
+        ],
+        [
+          "Fixed definition?",
+          "No"
+        ],
+        [
+          "Editable Initial Value?",
+          "Yes"
+        ],
+        [
+          "Virtual?",
+          "No"
+        ],
+        [
+          "LocaleName",
+          "en-US"
+        ],
+        [
+          "Searchable",
+          "No"
+        ],
+        [
+          "Scannable",
+          "No"
+        ],
+        [
+          "Sensitive data",
+          "No"
+        ]
+      ],
+      "section": ""
+    },
+    {
+      "heading": "Column 5: Cash Out",
+      "rows": [
+        [
+          "Column name",
+          "Cash Out"
+        ],
+        [
+          "Visible?",
+          "ALWAYS"
+        ],
+        [
+          "Type",
+          "Price"
+        ],
+        [
+          "Type Qualifier",
+          "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\":0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        ],
+        [
+          "Read-Only",
+          "Yes"
+        ],
+        [
+          "Hidden",
+          "No"
+        ],
+        [
+          "Label",
+          "No"
+        ],
+        [
+          "Formula version",
+          "0"
+        ],
+        [
+          "Reset on edit?",
+          "No"
+        ],
+        [
+          "System Defined?",
+          "No"
+        ],
+        [
+          "Key",
+          "No"
+        ],
+        [
+          "Part of Key?",
+          "No"
+        ],
+        [
+          "Fixed definition?",
+          "No"
+        ],
+        [
+          "Editable Initial Value?",
+          "Yes"
+        ],
+        [
+          "Virtual?",
+          "No"
+        ],
+        [
+          "LocaleName",
+          "en-US"
+        ],
+        [
+          "Searchable",
+          "No"
+        ],
+        [
+          "Scannable",
+          "No"
+        ],
+        [
+          "Sensitive data",
+          "No"
+        ]
+      ],
+      "section": ""
+    },
+    {
+      "heading": "Column 6: Current Balance",
+      "rows": [
+        [
+          "Column name",
+          "Current Balance"
+        ],
+        [
+          "Visible?",
+          "ALWAYS"
+        ],
+        [
+          "Type",
+          "Price"
+        ],
+        [
+          "Type Qualifier",
+          "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\":0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        ],
+        [
+          "Read-Only",
+          "Yes"
+        ],
+        [
+          "Hidden",
+          "No"
+        ],
+        [
+          "Label",
+          "No"
+        ],
+        [
+          "Formula version",
+          "0"
+        ],
+        [
+          "Reset on edit?",
+          "No"
+        ],
+        [
+          "System Defined?",
+          "No"
+        ],
+        [
+          "Key",
+          "No"
+        ],
+        [
+          "Part of Key?",
+          "No"
+        ],
+        [
+          "Fixed definition?",
+          "No"
+        ],
+        [
+          "Editable Initial Value?",
+          "Yes"
+        ],
+        [
+          "Virtual?",
+          "No"
+        ],
+        [
+          "LocaleName",
+          "en-US"
+        ],
+        [
+          "Searchable",
+          "No"
+        ],
+        [
+          "Scannable",
+          "No"
+        ],
+        [
+          "Sensitive data",
+          "No"
+        ]
+      ],
+      "section": ""
+    },
+    {
+      "heading": "Column 7: Business Cash Held",
+      "rows": [
+        [
+          "Column name",
+          "Business Cash Held"
+        ],
+        [
+          "Visible?",
+          "ALWAYS"
+        ],
+        [
+          "Type",
+          "Price"
+        ],
+        [
+          "Type Qualifier",
+          "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\":0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        ],
+        [
+          "Read-Only",
+          "Yes"
+        ],
+        [
+          "Hidden",
+          "No"
+        ],
+        [
+          "Label",
+          "No"
+        ],
+        [
+          "Formula version",
+          "0"
+        ],
+        [
+          "Reset on edit?",
+          "No"
+        ],
+        [
+          "System Defined?",
+          "No"
+        ],
+        [
+          "Key",
+          "No"
+        ],
+        [
+          "Part of Key?",
+          "No"
+        ],
+        [
+          "Fixed definition?",
+          "No"
+        ],
+        [
+          "Editable Initial Value?",
+          "Yes"
+        ],
+        [
+          "Virtual?",
+          "No"
+        ],
+        [
+          "LocaleName",
+          "en-US"
+        ],
+        [
+          "Searchable",
+          "No"
+        ],
+        [
+          "Scannable",
+          "No"
+        ],
+        [
+          "Sensitive data",
+          "No"
+        ]
+      ],
+      "section": ""
+    },
+    {
+      "heading": "Column 8: Reimbursement / Advance Due",
+      "rows": [
+        [
+          "Column name",
+          "Reimbursement / Advance Due"
+        ],
+        [
+          "Visible?",
+          "ALWAYS"
+        ],
+        [
+          "Type",
+          "Price"
+        ],
+        [
+          "Type Qualifier",
+          "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\":0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        ],
+        [
+          "Read-Only",
+          "Yes"
+        ],
+        [
+          "Hidden",
+          "No"
+        ],
+        [
+          "Label",
+          "No"
+        ],
+        [
+          "Formula version",
+          "0"
+        ],
+        [
+          "Reset on edit?",
+          "No"
+        ],
+        [
+          "System Defined?",
+          "No"
+        ],
+        [
+          "Key",
+          "No"
+        ],
+        [
+          "Part of Key?",
+          "No"
+        ],
+        [
+          "Fixed definition?",
+          "No"
+        ],
+        [
+          "Editable Initial Value?",
+          "Yes"
+        ],
+        [
+          "Virtual?",
+          "No"
+        ],
+        [
+          "LocaleName",
+          "en-US"
+        ],
+        [
+          "Searchable",
+          "No"
+        ],
+        [
+          "Scannable",
+          "No"
+        ],
+        [
+          "Sensitive data",
+          "No"
+        ]
+      ],
+      "section": ""
+    },
+    {
+      "heading": "Slice Name Business Cash Held",
+      "rows": [
+        [
+          "Slice Name",
+          "Business Cash Held"
+        ],
+        [
+          "Slice Columns",
+          "_RowNumber\nRef Cash Holder\nHolder Name\nCash In\nCash Out\nCurrent Balance\nBusiness Cash Held\nReimbursement / Advance Due"
+        ],
+        [
+          "Row filter condition",
+          "=[Business Cash Held] <> 0"
+        ],
+        [
+          "Update mode",
+          "READ_ONLY"
+        ],
+        [
+          "Source Table",
+          "Cash Holder Balances"
+        ],
+        [
+          "Visible?",
+          "ALWAYS"
+        ],
+        [
+          "Slice Actions",
+          "**auto**"
+        ]
+      ],
+      "section": ""
+    },
+    {
+      "heading": "View name Dashboard",
+      "rows": [
+        [
+          "View name",
+          "Dashboard"
+        ],
+        [
+          "Created by",
+          "App owner"
+        ],
+        [
+          "View type",
+          "dashboard"
+        ],
+        [
+          "Position",
+          "left most"
+        ],
+        [
+          "View configuration",
+          "{\"ViewEntries\":[{\"ViewName\":\"KPIs\",\"ViewSize\":\"Small\"},{\"ViewName\":\"Business Cash Held\",\"ViewSize\":\"Small\"}],\"InteractiveMode\":false,\"ShowTabs\":false,\"Events\":[],\"Icon\":\"fas fa-chart-line\",\"IconRunnerUps\":null,\"MenuOrder\":1}"
+        ],
+        [
+          "Visible?",
+          "ALWAYS"
+        ],
+        [
+          "Icon",
+          ""
+        ],
+        [
+          "Menu order",
+          "1"
+        ]
+      ],
+      "section": ""
+    },
+    {
+      "heading": "View name Business Cash Held",
+      "rows": [
+        [
+          "View name",
+          "Business Cash Held"
+        ],
+        [
+          "Created by",
+          "App owner"
+        ],
+        [
+          "View type",
+          "deck"
+        ],
+        [
+          "ActionType",
+          "Square Image"
+        ],
+        [
+          "Position",
+          "ref"
+        ],
+        [
+          "View configuration",
+          "{\"MainDeckImageColumn\":\"**auto**\",\"ImageShape\":\"Square Image\",\"PrimaryDeckHeaderColumn\":\"Holder Name\",\"SecondaryDeckHeaderColumn\":\"Business Cash Held\",\"DeckSummaryColumn\":\"**none**\",\"DeckNestedTableColumn\":null,\"ShowActionBar\":false,\"ActionColumns\":[],\"ActionBarEntries\":[],\"GroupBy\":[],\"GroupAggregate\":\"NONE\",\"SortBy\":[],\"PrimarySortColumn\":null,\"IsPrimarySortDescending\":false,\"Events\":[{\"EventType\":\"Row Selected\",\"EventAction\":\"**auto**\"},{\"EventType\":\"Row Swiped Left\",\"EventAction\":\"**auto**\"},{\"EventType\":\"Row Swiped Right\",\"EventAction\":\"**auto**\"}],\"Icon\":\"fa-list-ul\",\"IconRunnerUps\":null,\"MenuOrder\":1}"
+        ],
+        [
+          "Visible?",
+          "ALWAYS"
+        ],
+        [
+          "Icon",
+          ""
+        ],
+        [
+          "Menu order",
+          "1"
+        ]
+      ],
+      "section": ""
+    },
+    {
+      "heading": "View name Cash Holder Balances_Detail",
+      "rows": [
+        [
+          "View name",
+          "Cash Holder Balances_Detail"
+        ],
+        [
+          "Created by",
+          "System"
+        ],
+        [
+          "View type",
+          "detail"
+        ],
+        [
+          "ActionType",
+          "Automatic"
+        ],
+        [
+          "Position",
+          "ref"
+        ],
+        [
+          "View configuration",
+          "{\"MainSlideshowImageColumn\":\"**auto**\",\"DetailContentColumn\":\"**none**\",\"HeaderColumns\":[],\"QuickEditColumns\":[],\"ColumnOrder\":[],\"ImageStyle\":\"Fill\",\"Layout\":null,\"UseCardLayout\":false,\"DisplayMode\":\"Automatic\",\"MaxNestedRows\":5,\"SlideshowMode\":true,\"DesktopSplitMode\":\"Split view\",\"UseDesktopMultiColumn\":true,\"SortBy\":[],\"PrimarySortColumn\":null,\"IsPrimarySortDescending\":false,\"Events\":[],\"Icon\":\"fa-indent\",\"IconRunnerUps\":null,\"MenuOrder\":1}"
+        ],
+        [
+          "Visible?",
+          "ALWAYS"
+        ],
+        [
+          "Icon",
+          ""
+        ],
+        [
+          "Menu order",
+          "1"
+        ]
+      ],
+      "section": ""
+    },
+    {
+      "heading": "View name Cash Holder Balances_Inline",
+      "rows": [
+        [
+          "View name",
+          "Cash Holder Balances_Inline"
+        ],
+        [
+          "Created by",
+          "System"
+        ],
+        [
+          "View type",
+          "table"
+        ],
+        [
+          "Position",
+          "ref"
+        ],
+        [
+          "View configuration",
+          "{\"ColumnWidth\":\"Default\",\"EnableQuickEdit\":false,\"ColumnOrder\":[],\"GroupBy\":[],\"GroupAggregate\":\"NONE\",\"SortBy\":[],\"PrimarySortColumn\":null,\"IsPrimarySortDescending\":false,\"Events\":[{\"EventType\":\"Row Selected\",\"EventAction\":\"**auto**\"}],\"Icon\":\"fa-table\",\"IconRunnerUps\":null,\"MenuOrder\":1}"
+        ],
+        [
+          "Visible?",
+          "ALWAYS"
+        ],
+        [
+          "Icon",
+          ""
+        ],
+        [
+          "Menu order",
+          "1"
+        ]
+      ],
+      "section": ""
+    },
+    {
+      "heading": "View name Cash Holders_Detail",
+      "rows": [
+        [
+          "View name",
+          "Cash Holders_Detail"
+        ],
+        [
+          "Created by",
+          "System"
+        ],
+        [
+          "View type",
+          "detail"
+        ],
+        [
+          "ActionType",
+          "Automatic"
+        ],
+        [
+          "Position",
+          "ref"
+        ],
+        [
+          "View configuration",
+          "{\"MainSlideshowImageColumn\":\"**auto**\",\"DetailContentColumn\":\"**none**\",\"HeaderColumns\":[],\"QuickEditColumns\":[],\"ColumnOrder\":[],\"ImageStyle\":\"Fill\",\"Layout\":null,\"UseCardLayout\":false,\"DisplayMode\":\"Automatic\",\"MaxNestedRows\":5,\"SlideshowMode\":true,\"DesktopSplitMode\":\"Split view\",\"UseDesktopMultiColumn\":true,\"SortBy\":[],\"PrimarySortColumn\":null,\"IsPrimarySortDescending\":false,\"Events\":[],\"Icon\":\"fa-indent\",\"IconRunnerUps\":null,\"MenuOrder\":1}"
+        ],
+        [
+          "Visible?",
+          "ALWAYS"
+        ],
+        [
+          "Icon",
+          ""
+        ],
+        [
+          "Menu order",
+          "1"
+        ]
+      ],
+      "section": ""
+    },
+    {
+      "heading": "View name KPIs",
+      "rows": [
+        [
+          "View name",
+          "KPIs"
+        ],
+        [
+          "Created by",
+          "App owner"
+        ],
+        [
+          "View type",
+          "detail"
+        ],
+        [
+          "ActionType",
+          "Automatic"
+        ],
+        [
+          "Position",
+          "ref"
+        ],
+        [
+          "View configuration",
+          "{\"MainSlideshowImageColumn\":\"**auto**\",\"DetailContentColumn\":\"**none**\",\"HeaderColumns\":[],\"QuickEditColumns\":[],\"ColumnOrder\":[\"Pending Payment Amount\",\"Today's Profit\",\"Yesterday's Profit\",\"Net Profit\",\"Header - Collection Status\",\"Borrowers Not Paid Today\",\"Borrowers Partially Paid Today\",\"Borrowers with Overdue Payment\",\"Borrowers Fully Paid Today\",\"Header - Monthly Forecast\",\"Expected Daily Interest\",\"Realized Profit MTD\",\"Forecast Remaining Interest\",\"Projected Monthly Profit\",\"Header - Outstanding Loans\",\"Total Cash Pool\",\"Outstanding Principal\",\"Total Profit of Outstanding Loans\",\"Profit Coverage of Outstanding Principal\",\"Header - Income Statement MTD\",\"Operating Income MTD\",\"Income Statement Expenses MTD\",\"Net Profit MTD\"],\"ImageStyle\":\"Fill\",\"Layout\":{\"style\":{\"type\":\"style\",\"backgroundColor\":\"transparent\",\"boxSizing\":\"border-box\",\"height\":\"100%\",\"id\":\"18803ca8-6cbf-41d7-b090-4509e0201431\",\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},\"children\":[{\"style\":{\"type\":\"style\",\"color\":{\"type\":\"variable\",\"value\":\"primaryText\",\"id\":\"10ee5459-af8f-45ac-b486-193a9968c81e\",\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},\"height\":\"100%\",\"display\":\"flex\",\"flexDirection\":\"column\",\"justifyContent\":\"space-between\",\"background\":{\"type\":\"variable\",\"value\":\"mainContentBackground\",\"id\":\"847233a2-0243-4f05-ac39-9d608383512f\",\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},\"fontSize\":14,\"id\":\"0ed6623e-e7c8-4fc6-af1f-01adbfb245a0\",\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},\"children\":[{\"value\":\"imageName\",\"child\":{\"id\":\"media\",\"type\":\"image\",\"style\":{\"type\":\"style\",\"width\":\"100%\",\"height\":194,\"borderRadius\":\"4px 4px 0 0\",\"objectFit\":\"cover\",\"id\":\"3a9f1a4f-a1c1-4e0b-b789-dcf4b8995969\",\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}},\"ignore\":true},\"id\":\"mainImage\",\"type\":\"variable\",\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},{\"style\":{\"type\":\"style\",\"padding\":16,\"id\":\"0f7305f6-5a43-44a0-90cd-2956e5ac4129\",\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},\"children\":[{\"value\":\"Statistics ID\",\"child\":{\"id\":\"label\",\"type\":\"text\",\"style\":{\"type\":\"style\",\"fontSize\":21,\"lineHeight\":1.15,\"id\":\"97559953-75d9-4b10-919d-c416d183b4c9\",\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},\"id\":\"c6a3a013-0faf-4db7-8829-39efc6704784\",\"type\":\"binding\",\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},{\"value\":\"Outstanding Principal\",\"child\":{\"id\":\"subheader\",\"type\":\"text\",\"style\":{\"type\":\"style\",\"fontSize\":14,\"opacity\":0.6,\"paddingTop\":4,\"overflow\":\"hidden\",\"id\":\"f3a98f74-a901-451b-9b64-8c00e5632325\",\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},\"id\":\"bba2d2cb-c355-43aa-a0a3-46e89a578400\",\"type\":\"binding\",\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}}],\"id\":\"headerTextContainer\",\"type\":\"container\",\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},{\"value\":\"Total Interest Received\",\"child\":{\"id\":\"description\",\"type\":\"text\",\"style\":{\"type\":\"style\",\"fontSize\":14,\"padding\":16,\"paddingTop\":8,\"maxHeight\":100,\"overflow\":\"hidden\",\"id\":\"f3a98f74-a901-451b-9b64-8c00e5632327\",\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},\"id\":\"bba2d2cb-c355-43aa-a0a3-46e89a5783d0\",\"type\":\"binding\",\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},{\"style\":{\"type\":\"style\",\"display\":\"flex\",\"alignItems\":\"center\",\"justifyContent\":\"space-between\",\"padding\":8,\"paddingTop\":0,\"paddingBottom\":0,\"id\":\"5fa06ef2-6010-4c1e-aa84-668f8ac967aa\",\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},\"children\":[{\"value\":\"Action 1\",\"child\":{\"id\":\"Action 1\",\"type\":\"text\",\"onClick\":{\"type\":\"action\",\"id\":\"8faa486e-80a1-4bf8-9911-ff05823f7018\",\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},\"style\":{\"type\":\"variable\",\"value\":\"actionButtonTextStyle\",\"id\":\"4fcb9585-70b2-4bc0-a407-be6849bea1a7\",\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}},\"ignore\":true},\"id\":\"c503ebe1-33d7-49e6-979d-a4f4a0345863\",\"type\":\"constant\",\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},{\"value\":\"Edit\",\"child\":{\"id\":\"Action 2\",\"type\":\"text\",\"onClick\":{\"type\":\"action\",\"id\":\"fb9d48ba-a444-4617-8859-7065b058efac\",\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}},\"value\":\"Edit\"},\"style\":{\"type\":\"variable\",\"value\":\"actionButtonTextStyle\",\"id\":\"77f5bd38-248e-4f75-bf97-18e3b5c54d50\",\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},\"id\":\"63cee5fc-bcf9-4cce-bcfe-d330b69732b9\",\"type\":\"actionDisplayText\",\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},{\"style\":{\"type\":\"style\",\"display\":\"flex\",\"alignItems\":\"center\",\"marginLeft\":\"auto\",\"id\":\"ff7fc872-bf93-4502-963e-ecfc16771fd8\",\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},\"children\":[{\"value\":\"fa-trash-alt\",\"child\":{\"id\":\"Action 3\",\"type\":\"icon\",\"onClick\":{\"type\":\"action\",\"id\":\"c49470ae-b53e-4109-9bb7-d85a93cd0fdf\",\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}},\"value\":\"Delete\"},\"style\":{\"type\":\"variable\",\"value\":\"actionButtonIconStyle\",\"id\":\"cd0faa93-c489-4d7b-bcd9-c8dd3e551dd1\",\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},\"id\":\"45097ee1-733e-4faa-b049-2e9be8ba402b\",\"type\":\"constant\",\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},{\"value\":\"fas fa-share-alt\",\"child\":{\"id\":\"Action 4\",\"type\":\"icon\",\"onClick\":{\"type\":\"action\",\"id\":\"aaba7aa9-9bc5-4ca5-aef0-0e834f3b26e2\",\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},\"style\":{\"type\":\"variable\",\"value\":\"actionButtonIconStyle\",\"id\":\"441cc05d-5e46-4753-bd34-6053ef27f305\",\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},\"id\":\"5205cdc0-a69d-4f46-9a0a-4cc48950745a\",\"type\":\"constant\",\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}}],\"id\":\"65eb11c1-7b76-4565-9284-94d6783d8ec0\",\"type\":\"container\",\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}}],\"variables\":[{\"name\":\"actionButtonTextStyle\",\"value\":{\"type\":\"style\",\"maxHeight\":60,\"maxWidth\":100,\"display\":\"flex\",\"alignItems\":\"center\",\"overflow\":\"hidden\",\"overflowWrap\":\"break-word\",\"textTransform\":\"uppercase\",\"fontSize\":12,\"cursor\":\"pointer\",\"color\":{\"type\":\"variable\",\"value\":\"actionIcon\"},\"border\":5,\"padding\":8,\"transition\":\"background 0.8s\",\"hover\":{\"type\":\"style\",\"background\":{\"type\":\"variable\",\"value\":\"mainBackgroundVariant\"},\"transition\":\"background 0.8s\"},\"down\":{\"type\":\"style\",\"background\":{\"type\":\"variable\",\"value\":\"mainBackgroundVariant\"},\"transition\":\"background 0.8s\"}}},{\"name\":\"actionButtonIconStyle\",\"value\":{\"type\":\"style\",\"fontSize\":16,\"color\":{\"type\":\"variable\",\"value\":\"secondaryText\"},\"border\":\"50%\",\"cursor\":\"pointer\",\"padding\":8,\"transition\":\"background 0.8s\",\"hover\":{\"type\":\"style\",\"background\":{\"type\":\"variable\",\"value\":\"mainBackgroundVariant\"},\"transition\":\"background 0.8s\"},\"down\":{\"type\":\"style\",\"background\":{\"type\":\"variable\",\"value\":\"mainBackgroundVariant\"},\"transition\":\"background 0.8s\"}}}],\"id\":\"2a07cf3b-cdec-4e45-90cb-f2b2e14dae8d\",\"type\":\"container\",\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}}],\"id\":\"55f59616-6c4f-48c8-88cc-1edd8388e4c9\",\"type\":\"container\",\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}}],\"name\":\"detail\",\"variables\":[{\"name\":\"imageName\",\"value\":\"https://www.appsheet.com/Content/editor/img/empty-media-template.png\"},{\"name\":\"labelName\",\"value\":\"Title goes here\"}],\"version\":0,\"id\":\"52405288-3f27-45d7-8c68-c7d489a76db4\",\"type\":\"container\",\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},\"UseCardLayout\":false,\"DisplayMode\":\"Automatic\",\"MaxNestedRows\":5,\"SlideshowMode\":false,\"DesktopSplitMode\":\"Split view\",\"UseDesktopMultiColumn\":true,\"SortBy\":[],\"PrimarySortColumn\":null,\"IsPrimarySortDescending\":false,\"Events\":[],\"Icon\":\"fa-list-ul\",\"IconRunnerUps\":null,\"MenuOrder\":1}"
+        ],
+        [
+          "Visible?",
+          "ALWAYS"
+        ],
+        [
+          "Icon",
+          ""
+        ],
+        [
+          "Menu order",
+          "1"
+        ]
+      ],
+      "section": ""
+    },
+    {
+      "heading": "Rule name Statistics - Total Cash Pool - Orange",
+      "rows": [
+        [
+          "Rule name",
+          "Statistics - Total Cash Pool - Orange"
+        ],
+        [
+          "Format these columns and actions",
+          "Total Cash Pool"
+        ],
+        [
+          "For this data",
+          "Statistics"
+        ],
+        [
+          "Rule order",
+          "1"
+        ],
+        [
+          "Is this format rule disabled?",
+          "No"
+        ],
+        [
+          "Like this",
+          "{\"textColor\":\"#FF8C00\",\"highlightColor\":null,\"textSize\":1.0,\"underline\":false,\"strikethrough\":false,\"bold\":false,\"italic\":false,\"uppercase\":false,\"icon\":null,\"imageSize\":null}"
+        ],
+        [
+          "Visible?",
+          "ALWAYS"
+        ]
+      ],
+      "section": ""
+    }
+  ]
+}

@@ -1,0 +1,117 @@
+{
+  "dashboard": 3,
+  "startingCommit": "302ca899fd097fecf41e49ae1aec7858af829cbb",
+  "removeTabs": [
+    6,
+    17
+  ],
+  "promoteTab": 104,
+  "newName": "6 · Borrowers",
+  "newPosition": 5,
+  "removedPlacements": [
+    192,
+    193,
+    194,
+    195,
+    196,
+    197,
+    198,
+    199,
+    202,
+    191,
+    203,
+    204,
+    205,
+    206,
+    207,
+    208,
+    209,
+    210,
+    190,
+    200,
+    201
+  ],
+  "retainedOldQuestionIds": [
+    48,
+    59,
+    81,
+    82,
+    84,
+    83,
+    85,
+    87,
+    78,
+    88,
+    89,
+    90,
+    91,
+    92,
+    93,
+    86
+  ],
+  "tabOrder": [
+    {
+      "id": 4,
+      "name": "1 · Overview",
+      "position": 0
+    },
+    {
+      "id": 14,
+      "name": "2 · Cash Position",
+      "position": 1
+    },
+    {
+      "id": 16,
+      "name": "3 · Income Statement",
+      "position": 2
+    },
+    {
+      "id": 15,
+      "name": "4 · Cashflow Statement",
+      "position": 3
+    },
+    {
+      "id": 18,
+      "name": "5 · Performance",
+      "position": 4
+    },
+    {
+      "id": 104,
+      "name": "6 · Borrowers",
+      "position": 5
+    },
+    {
+      "id": 31,
+      "name": "6R · Borrower Health Review",
+      "position": 6
+    },
+    {
+      "id": 8,
+      "name": "7 · Risks",
+      "position": 7
+    },
+    {
+      "id": 19,
+      "name": "8 · Collection Monitor",
+      "position": 8
+    },
+    {
+      "id": 10,
+      "name": "9 · Borrower Insight",
+      "position": 9
+    },
+    {
+      "id": 11,
+      "name": "10 · Forecast & Partners",
+      "position": 10
+    },
+    {
+      "id": 105,
+      "name": "Borrower Detail · New",
+      "position": 11
+    }
+  ],
+  "placementsBefore": 258,
+  "placementsAfter": 237,
+  "parametersPreserved": true
+}

@@ -1,0 +1,18 @@
+         Row ID         | Allocation Method | Ref Target Loan | Amount Received | Status | ledger
+------------------------+-------------------+-----------------+-----------------+--------+--------
+ GSnVffCV1HmtKmaNfOCxRO | Loan Close        | AC7GUI-Old-L    |          130.00 | Posted | 130.00
+ D6rNpOrsKX6W0si7NWlNGF | Loan Close        | AC7GUI-None-L   |          150.00 | Posted | 150.00
+ QipVktuxRnX4ZCDBLj3z7A | Loan Close        | AC7GUI-Same-L   |          100.00 | Posted | 100.00
+ zvrMxsrZ5cMYxs2yWTIJeJ | Single Partial    |                 |           50.00 | Posted |  50.00
+ v1rKCaXhYvNXiEHBCBnbkI | Loan Close        | AC7GUI-Part-L   |           70.00 | Posted |  70.00
+(5 rows)
+
+    Row ID     | Loan Status |  Ref Closing Payment   | Auto Charge Enabled | charges | principal_paid | interest_paid
+---------------+-------------+------------------------+---------------------+---------+----------------+---------------
+ AC7GUI-None-L | ปิดยอดแล้ว    | D6rNpOrsKX6W0si7NWlNGF | t                   |       1 |         100.00 |         50.00
+ AC7GUI-Old-L  | ปิดยอดแล้ว    | GSnVffCV1HmtKmaNfOCxRO | t                   |       2 |         100.00 |         30.00
+ AC7GUI-Part-L | ปิดยอดแล้ว    | v1rKCaXhYvNXiEHBCBnbkI | t                   |       1 |         100.00 |         20.00
+ AC7GUI-Same-L | ปิดยอดแล้ว    | QipVktuxRnX4ZCDBLj3z7A | t                   |       1 |         100.00 |          0.00
+(4 rows)
+
+DO

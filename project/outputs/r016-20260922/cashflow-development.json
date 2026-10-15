@@ -1,0 +1,60 @@
+{
+  "database": "loan_manager_dev",
+  "verified_at": "2026-09-22T18:54:37.2442590+00:00",
+  "environment": "development",
+  "financial_values_published": false,
+  "checks": [
+    {
+      "name": "Unique transaction grain",
+      "passed": true
+    },
+    {
+      "name": "Unique daily grain",
+      "passed": true
+    },
+    {
+      "name": "All-account ledger count matches source",
+      "passed": true
+    },
+    {
+      "name": "Internal transfers are zero consolidated flow",
+      "passed": true
+    },
+    {
+      "name": "Account sides match OLTP signed amounts",
+      "passed": true
+    },
+    {
+      "name": "Initialized account running balances match OLTP",
+      "passed": true
+    },
+    {
+      "name": "Daily account opening and closing match OLTP",
+      "passed": true
+    },
+    {
+      "name": "Closing balances match governed dated account balances",
+      "passed": true
+    },
+    {
+      "name": "Daily opening plus flow equals closing",
+      "passed": true
+    },
+    {
+      "name": "Consolidated closing is signed sum of accounts",
+      "passed": true
+    },
+    {
+      "name": "Unknown and pre-opening balances remain unavailable",
+      "passed": true
+    },
+    {
+      "name": "Multi-day range opening plus flows equals final closing",
+      "passed": true
+    },
+    {
+      "name": "Same day entry end matches daily closing",
+      "passed": true
+    }
+  ]
+}

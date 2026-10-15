@@ -1,0 +1,109 @@
+- main:
+  - heading [level=2]
+  - button "AppSheet logo"
+  - heading "AppSheet" [level=1]
+  - textbox "Search all apps"
+  - button "Help":
+  - button "Account":
+    - generic: w
+  - button "Show more menu items":
+  - button "Create":
+    - text: Create
+  - list:
+    - button "Recent":
+      - generic: Recent
+    - button "Shared with me":
+      - generic: Shared with me
+    - button "Owned by me":
+      - generic: Owned by me
+    - button "Templates":
+      - generic: Templates
+  - heading "Owned (4)" [level=2]
+  - group "Switch between products":
+    - button "Apps":
+      - generic: Apps
+    - button "Databases":
+      - generic: Databases
+  - button "Grid layout":
+  - grid "Apps Table":
+    - row "Name Status Owner Last modified":
+      - columnheader "Name":
+        - cell "Name":
+          - button "Name":
+            - text: Name
+      - columnheader "Status":
+        - cell "Status":
+          - button "Status":
+            - text: Status
+      - columnheader "Owner":
+        - cell "Owner":
+          - button "Owner":
+            - text: Owner
+      - columnheader "Last modified":
+        - cell "Last modified":
+          - button "Last modified":
+            - text: Last modified
+      - columnheader:
+        - cell:
+          - button
+    - rowgroup "Apps Table":
+      - rowgroup:
+        - row "row":
+          - gridcell "Loan Business Insights — DEV":
+            - cell "Loan Business Insights — DEV":
+              - generic: Loan Business Insights — DEV
+          - gridcell "Prototype":
+            - cell "Prototype":
+              - paragraph: Prototype
+          - gridcell "me":
+            - cell "me"
+          - gridcell "Sep 15, 2026":
+            - cell "Sep 15, 2026"
+          - gridcell "Actions":
+            - cell "Actions":
+              - button "Actions":
+        - row "row":
+          - gridcell "Loan Manager — DEV":
+            - cell "Loan Manager — DEV":
+              - generic: Loan Manager — DEV
+          - gridcell "Prototype":
+            - cell "Prototype":
+              - paragraph: Prototype
+          - gridcell "me":
+            - cell "me"
+          - gridcell "Sep 15, 2026":
+            - cell "Sep 15, 2026"
+          - gridcell "Actions":
+            - cell "Actions":
+              - button "Actions":
+        - row "row":
+          - gridcell "Loan Manager ผู้จัดการสินเชื่อ":
+            - cell "Loan Manager ผู้จัดการสินเชื่อ":
+              - generic: Loan Manager ผู้จัดการสินเชื่อ
+          - gridcell "Deployed":
+            - cell "Deployed":
+              - paragraph: Deployed
+          - gridcell "me":
+            - cell "me"
+          - gridcell "Sep 15, 2026":
+            - cell "Sep 15, 2026"
+          - gridcell "Actions":
+            - cell "Actions":
+              - button "Actions":
+        - row "row":
+          - gridcell "Loan Business Insights":
+            - cell "Loan Business Insights":
+              - generic: Loan Business Insights
+          - gridcell "Deployed":
+            - cell "Deployed":
+              - paragraph: Deployed
+          - gridcell "me":
+            - cell "me"
+          - gridcell "Sep 15, 2026":
+            - cell "Sep 15, 2026"
+          - gridcell "Actions":
+            - cell "Actions":
+              - button "Actions":
+  - alert:
+    - generic: App deleted
+    - button "Close":

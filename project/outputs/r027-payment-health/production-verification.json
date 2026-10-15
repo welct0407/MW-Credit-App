@@ -1,0 +1,59 @@
+{
+  "identity": {
+    "database": "loan_manager_prod",
+    "host": "34.21.174.215",
+    "read_only": "on",
+    "captured_at": "2026-09-24 16:27:45.829717+00:00"
+  },
+  "checks": {
+    "version": true,
+    "borrower_coverage": true,
+    "unique_keys": true,
+    "charge_coverage": true,
+    "aggregate_reconciliation": true,
+    "no_unclassified_rating": true,
+    "no_default_success_rating": true,
+    "no_today_arrears": true,
+    "independent_matrix_axes": true,
+    "read_only_adapters": true
+  },
+  "categories": [
+    {
+      "quadrant": "Cash Cow",
+      "borrowers": 11
+    },
+    {
+      "quadrant": "Dog",
+      "borrowers": 4
+    },
+    {
+      "quadrant": "Question Mark",
+      "borrowers": 3
+    },
+    {
+      "quadrant": "Star",
+      "borrowers": 5
+    }
+  ],
+  "rating_statuses": [
+    {
+      "rating_status": "Data review",
+      "borrowers": 2
+    },
+    {
+      "rating_status": "Rated",
+      "borrowers": 27
+    },
+    {
+      "rating_status": "Unclassified",
+      "borrowers": 1
+    }
+  ],
+  "summary_query_ms": [
+    372.57,
+    223.47,
+    194.09
+  ],
+  "scope": "production current data; no expected live category quota",
+  "financial_writes": false
+}

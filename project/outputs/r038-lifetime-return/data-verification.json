@@ -1,0 +1,8 @@
+{
+  "passed": true,
+  "borrowers": 30,
+  "existingModelFieldsUnchanged": true,
+  "independentLoanAndReceiptAggregation": true,
+  "orgrandReviewed160Percent": true,
+  "financialRowsPublished": false
+}

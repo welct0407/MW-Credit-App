@@ -1,0 +1,1 @@
+SELECT jsonb_agg(jsonb_build_object('name',conname,'table',conrelid::regclass::text,'validated',convalidated,'definition',pg_get_constraintdef(oid)) ORDER BY conname)::text AS foreign_keys FROM pg_constraint WHERE connamespace='public'::regnamespace AND contype='f';

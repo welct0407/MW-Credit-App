@@ -1,0 +1,8 @@
+[
+  {
+    "name": "tagBindings/%2F%2Fiam.googleapis.com%2Fprojects%2F737787224638%2FserviceAccounts%2F100619300087139680910/tagValues/281478530241526",
+    "parent": "//iam.googleapis.com/projects/737787224638/serviceAccounts/100619300087139680910",
+    "tagValue": "tagValues/281478530241526",
+    "tagValueNamespacedName": "clever-oasis-508610-n7/appsheetReceiptKeyException/allowed"
+  }
+]

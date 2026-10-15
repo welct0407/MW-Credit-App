@@ -1,0 +1,646 @@
+{
+  "targets": {
+    "production-oltp": {
+      "verified": {
+        "physical_table_bindings": 18,
+        "system_columns": 18,
+        "physical_columns": 229,
+        "virtual_columns": 125,
+        "refs": 84,
+        "generated_appdoc_tables": 16,
+        "slice_members": 251,
+        "slices": 8,
+        "view_sources": 59,
+        "dashboard_views": 2,
+        "dashboard_members": 6,
+        "action_owners": 104,
+        "assigned_columns": 90,
+        "referenced_actions": 9,
+        "grouped_actions": 5,
+        "format_members": 86,
+        "format_rules": 60
+      },
+      "source_bindings": {
+        "Borrowers": "public.Borrowers",
+        "Business Expenses": "public.Business Expenses",
+        "Cash Account Balances": "public.Cash Account Balances",
+        "Cash Account Daily Summary Recent": "public.Cash Account Daily Summary Recent",
+        "Cash Account Statement Recent": "public.Cash Account Statement Recent",
+        "Cash Accounts": "public.Cash Accounts",
+        "Cash Dashboard": "public.Cash Dashboard",
+        "Cash Holder Balances": "public.Cash Holder Balances",
+        "Cash Holders": "public.Cash Holders",
+        "Cash Statement Context": "public.Cash Statement Context",
+        "Charges": "public.Charges",
+        "Loan Form Context": "public.Loan Form Context",
+        "Loans": "public.Loans",
+        "Partners": "public.Partners",
+        "Payment Allocations": "public.Payment Allocations",
+        "Payments": "public.Payments",
+        "Repayments": "public.Repayments",
+        "Statistics": "public.Statistics"
+      },
+      "view_sources": {
+        "Borrowers": "Visible Borrowers",
+        "Borrowers_Detail": "Borrowers",
+        "Borrowers_Form": "Borrowers",
+        "Borrowers_Inline": "Borrowers",
+        "Business Cash Held": "Cash Account Balances",
+        "Business Expenses": "Business Expenses",
+        "Business Expenses_Detail": "Business Expenses",
+        "Business Expenses_Form": "Business Expenses",
+        "Business Expenses_Inline": "Business Expenses",
+        "Cash Account Balances_Detail": "Cash Account Balances",
+        "Cash Account Balances_Inline": "Cash Account Balances",
+        "Cash Account Daily Summary Recent_Detail": "Cash Account Daily Summary Recent",
+        "Cash Account Daily Summary Recent_Inline": "Cash Account Daily Summary Recent",
+        "Cash Account Statement Recent_Detail": "Cash Account Statement Recent",
+        "Cash Account Statement Recent_Inline": "Cash Account Statement Recent",
+        "Cash Accounts_Detail": "Cash Accounts",
+        "Cash Accounts_Inline": "Cash Accounts",
+        "Cash Dashboard_Detail": "Cash Dashboard",
+        "Cash Holder Balances_Detail": "Cash Holder Balances",
+        "Cash Holder Balances_Inline": "Cash Holder Balances",
+        "Cash Holders_Detail": "Cash Holders",
+        "Cash Statement Context_Detail": "Cash Statement Context",
+        "Cash Statement Context_Form": "Cash Statement Context",
+        "Cash Statement Context_Inline": "Cash Statement Context",
+        "Cash Statement Controls": "Cash Statement Context",
+        "Cash Statement Summary": "Selected Cash Statement Summary",
+        "Cash Statement Transactions": "Selected Cash Statement",
+        "Charges_Detail": "Charges",
+        "Charges_Form": "Charges",
+        "Charges_Inline": "Charges",
+        "Collection": "Todays Collection Board",
+        "Income MTD": "Cash Dashboard",
+        "KPIs": "Statistics",
+        "Loan Form Context_Detail": "Loan Form Context",
+        "Loans": "Loans",
+        "Loans_Detail": "Loans",
+        "Loans_Form": "Loans",
+        "Loans_Inline": "Loans",
+        "Partners_Detail": "Partners",
+        "Payment Allocations_Detail": "Payment Allocations",
+        "Payment Allocations_Form": "Payment Allocations",
+        "Payment Allocations_Inline": "Payment Allocations",
+        "Payments": "Payments",
+        "Payments_Detail": "Payments",
+        "Payments_Form": "Payments",
+        "Payments_Inline": "Payments",
+        "R008 Close Loan": "R008 Loan Commands",
+        "R008 Receive All": "R008 Borrower Commands",
+        "R008 Receive Full": "R008 Charge Commands",
+        "Repayments_Detail": "Repayments",
+        "Repayments_Form": "Repayments",
+        "Repayments_Inline": "Repayments",
+        "Reporting App Shortcut": "Statistics",
+        "Statistics_Detail": "Statistics",
+        "Statistics_Form": "Statistics",
+        "Todays Collection Board_Detail": "Todays Collection Board",
+        "Todays Collection Board_Form": "Todays Collection Board",
+        "Visible Borrowers_Detail": "Visible Borrowers",
+        "Visible Borrowers_Form": "Visible Borrowers"
+      },
+      "explicit_exclusions": [
+        {
+          "kind": "table",
+          "name": "Canonical app execution guard Output",
+          "scope": "Generated AppDoc schema; no independent business source binding in editor Data inventory"
+        },
+        {
+          "kind": "table",
+          "name": "First-day receipt exists Output",
+          "scope": "Generated AppDoc schema; no independent business source binding in editor Data inventory"
+        },
+        {
+          "kind": "table",
+          "name": "Generate Today's Charge Output",
+          "scope": "Generated AppDoc schema; no independent business source binding in editor Data inventory"
+        },
+        {
+          "kind": "table",
+          "name": "Notify payment-closed loans Output",
+          "scope": "Generated AppDoc schema; no independent business source binding in editor Data inventory"
+        },
+        {
+          "kind": "table",
+          "name": "Notify payment-closed loans Output 2",
+          "scope": "Generated AppDoc schema; no independent business source binding in editor Data inventory"
+        },
+        {
+          "kind": "table",
+          "name": "Notify payment-closed loans Output 3",
+          "scope": "Generated AppDoc schema; no independent business source binding in editor Data inventory"
+        },
+        {
+          "kind": "table",
+          "name": "Notify payment-closed loans Output 4",
+          "scope": "Generated AppDoc schema; no independent business source binding in editor Data inventory"
+        },
+        {
+          "kind": "table",
+          "name": "Process for Generate Daily Charges - 1 Process Table",
+          "scope": "Generated AppDoc schema; no independent business source binding in editor Data inventory"
+        },
+        {
+          "kind": "table",
+          "name": "Process for Notification - Charge Received Process Table",
+          "scope": "Generated AppDoc schema; no independent business source binding in editor Data inventory"
+        },
+        {
+          "kind": "table",
+          "name": "Process for Notification - First-Day Charge Process Table",
+          "scope": "Generated AppDoc schema; no independent business source binding in editor Data inventory"
+        },
+        {
+          "kind": "table",
+          "name": "Process for Notification - Loan Closed Process Table",
+          "scope": "Generated AppDoc schema; no independent business source binding in editor Data inventory"
+        },
+        {
+          "kind": "table",
+          "name": "Process for Notification - New Loan Created Process Table",
+          "scope": "Generated AppDoc schema; no independent business source binding in editor Data inventory"
+        },
+        {
+          "kind": "table",
+          "name": "Process for R008 Loan Close Confirmed Process Table",
+          "scope": "Generated AppDoc schema; no independent business source binding in editor Data inventory"
+        },
+        {
+          "kind": "table",
+          "name": "Process for R008 Receive All Confirmed Process Table",
+          "scope": "Generated AppDoc schema; no independent business source binding in editor Data inventory"
+        },
+        {
+          "kind": "table",
+          "name": "Process for R008 Single Full Confirmed Process Table",
+          "scope": "Generated AppDoc schema; no independent business source binding in editor Data inventory"
+        },
+        {
+          "kind": "table",
+          "name": "_Per User Settings",
+          "scope": "Generated AppDoc schema; no independent business source binding in editor Data inventory"
+        }
+      ]
+    },
+    "production-olap": {
+      "verified": {
+        "physical_table_bindings": 19,
+        "system_columns": 19,
+        "physical_columns": 379,
+        "virtual_columns": 151,
+        "refs": 50,
+        "generated_appdoc_tables": 4,
+        "slice_members": 447,
+        "slices": 12,
+        "dashboard_views": 3,
+        "dashboard_members": 15,
+        "view_sources": 63,
+        "action_owners": 88,
+        "assigned_columns": 20,
+        "format_members": 61,
+        "format_rules": 48
+      },
+      "source_bindings": {
+        "Borrowers": "public.olap_borrowers_analytics",
+        "Business Expenses": "public.Business Expenses",
+        "Cash Account Balances": "public.Cash Account Balances",
+        "Cash Accounts": "public.Cash Accounts",
+        "Cash Holder Balances": "public.Cash Holder Balances",
+        "Cash Holders": "public.Cash Holders",
+        "Cash Ledger": "public.Cash Ledger",
+        "Cash Pool Contributions": "public.Cash Pool Contributions",
+        "Charges": "public.olap_charges_analytics",
+        "Daily Analytics": "public.Daily Analytics",
+        "Loan Assessment": "public.Loan Assessment SQL Lab View",
+        "Loans": "public.olap_loans_analytics",
+        "Partners": "public.Partners",
+        "Payment Allocations": "public.Payment Allocations",
+        "Payments": "public.Payments",
+        "Portfolio Summary": "public.olap_portfolio_summary",
+        "Repayments": "public.olap_repayments_analytics",
+        "Settlements": "public.Settlements",
+        "Statistics": "public.Statistics"
+      },
+      "view_sources": {
+        "Analytics Data": "Statistics",
+        "Borrowers": "Borrowers",
+        "Borrowers_Detail": "Borrowers",
+        "Borrowers_Inline": "Borrowers",
+        "Business Expenses_Detail": "Business Expenses",
+        "Business Expenses_Inline": "Business Expenses",
+        "Cash Account Balances_Detail": "Cash Account Balances",
+        "Cash Account Balances_Inline": "Cash Account Balances",
+        "Cash Account Summary": "Cash Account Balances",
+        "Cash Accounts": "Cash Accounts",
+        "Cash Accounts_Detail": "Cash Accounts",
+        "Cash Accounts_Form": "Cash Accounts",
+        "Cash Accounts_Inline": "Cash Accounts",
+        "Cash Holder Balances_Detail": "Cash Holder Balances",
+        "Cash Holder Balances_Inline": "Cash Holder Balances",
+        "Cash Holder Summary": "Cash Holder Balances",
+        "Cash Holders_Detail": "Cash Holders",
+        "Cash Ledger Recent": "Cash Ledger",
+        "Cash Ledger_Detail": "Cash Ledger",
+        "Cash Ledger_Form": "Cash Ledger",
+        "Cash Ledger_Inline": "Cash Ledger",
+        "Cash Pool Contributions_Detail": "Cash Pool Contributions",
+        "Cash Pool Contributions_Form": "Cash Pool Contributions",
+        "Cash Pool Contributions_Inline": "Cash Pool Contributions",
+        "Charges_Detail": "Charges",
+        "Charges_Inline": "Charges",
+        "Daily Analytics - Validation": "Daily Analytics",
+        "Daily Analytics_Detail": "Daily Analytics",
+        "Daily Interest Contribution": "Borrowers with Outstanding Loans",
+        "Daily Outstanding Principle 30D": "Daily Analytics 30 Days",
+        "Daily Profit": "Daily Analytics 7 Days",
+        "Daily Profit Last 30D": "Daily Analytics 30 Days",
+        "KPIs": "Statistics",
+        "Loan Assessment": "Loan Assessment",
+        "Loan Assessment_Detail": "Loan Assessment",
+        "Loan Assessment_Form": "Loan Assessment",
+        "Loan Assessment_Inline": "Loan Assessment",
+        "Loan Distribution": "Borrowers with Outstanding Loans",
+        "Loans": "Loans",
+        "Loans_Detail": "Loans",
+        "Loans_Inline": "Loans",
+        "Monthly Profit": "Daily Analytics 90 Days",
+        "Operations App Shortcut": "Statistics",
+        "Outstanding Principle": "Statistics",
+        "Partners": "Partners",
+        "Partners_Detail": "Partners",
+        "Partners_Form": "Partners",
+        "Payment Allocations_Detail": "Payment Allocations",
+        "Payment Allocations_Inline": "Payment Allocations",
+        "Payments_Detail": "Payments",
+        "Payments_Inline": "Payments",
+        "Profit Contribution 30D": "Profit Contribution 30D",
+        "Projected Monthly Profit Contribution": "Borrowers",
+        "Repayments_Detail": "Repayments",
+        "Repayments_Inline": "Repayments",
+        "Settlements_Detail": "Settlements",
+        "Settlements_Form": "Settlements",
+        "Settlements_Inline": "Settlements",
+        "Statistics_Detail": "Statistics",
+        "Statistics_Form": "Statistics",
+        "Statistics_Inline": "Statistics",
+        "Weekly Profit": "Daily Analytics 30 Days",
+        "olap_portfolio_summary_Detail": "Portfolio Summary"
+      },
+      "explicit_exclusions": [
+        {
+          "kind": "table",
+          "name": "Canonical app execution guard Output",
+          "scope": "Generated AppDoc schema; no independent business source binding in editor Data inventory"
+        },
+        {
+          "kind": "table",
+          "name": "Process for Refresh Daily Analytics Daily - 1 Process Table",
+          "scope": "Generated AppDoc schema; no independent business source binding in editor Data inventory"
+        },
+        {
+          "kind": "table",
+          "name": "Request Recent Analytics Refresh Output",
+          "scope": "Generated AppDoc schema; no independent business source binding in editor Data inventory"
+        },
+        {
+          "kind": "table",
+          "name": "_Per User Settings",
+          "scope": "Generated AppDoc schema; no independent business source binding in editor Data inventory"
+        }
+      ]
+    },
+    "development-oltp": {
+      "verified": {
+        "physical_table_bindings": 18,
+        "system_columns": 18,
+        "physical_columns": 229,
+        "virtual_columns": 125,
+        "refs": 84,
+        "generated_appdoc_tables": 16,
+        "slice_members": 251,
+        "slices": 8,
+        "view_sources": 59,
+        "dashboard_views": 2,
+        "dashboard_members": 6,
+        "action_owners": 104,
+        "assigned_columns": 90,
+        "referenced_actions": 9,
+        "grouped_actions": 5,
+        "format_members": 86,
+        "format_rules": 60
+      },
+      "source_bindings": {
+        "Borrowers": "public.Borrowers",
+        "Business Expenses": "public.Business Expenses",
+        "Cash Account Balances": "public.Cash Account Balances",
+        "Cash Account Daily Summary Recent": "public.Cash Account Daily Summary Recent",
+        "Cash Account Statement Recent": "public.Cash Account Statement Recent",
+        "Cash Accounts": "public.Cash Accounts",
+        "Cash Dashboard": "public.Cash Dashboard",
+        "Cash Holder Balances": "public.Cash Holder Balances",
+        "Cash Holders": "public.Cash Holders",
+        "Cash Statement Context": "public.Cash Statement Context",
+        "Charges": "public.Charges",
+        "Loan Form Context": "public.Loan Form Context",
+        "Loans": "public.Loans",
+        "Partners": "public.Partners",
+        "Payment Allocations": "public.Payment Allocations",
+        "Payments": "public.Payments",
+        "Repayments": "public.Repayments",
+        "Statistics": "public.Statistics"
+      },
+      "view_sources": {
+        "Borrowers": "Visible Borrowers",
+        "Borrowers_Detail": "Borrowers",
+        "Borrowers_Form": "Borrowers",
+        "Borrowers_Inline": "Borrowers",
+        "Business Cash Held": "Cash Account Balances",
+        "Business Expenses": "Business Expenses",
+        "Business Expenses_Detail": "Business Expenses",
+        "Business Expenses_Form": "Business Expenses",
+        "Business Expenses_Inline": "Business Expenses",
+        "Cash Account Balances_Detail": "Cash Account Balances",
+        "Cash Account Balances_Inline": "Cash Account Balances",
+        "Cash Account Daily Summary Recent_Detail": "Cash Account Daily Summary Recent",
+        "Cash Account Daily Summary Recent_Inline": "Cash Account Daily Summary Recent",
+        "Cash Account Statement Recent_Detail": "Cash Account Statement Recent",
+        "Cash Account Statement Recent_Inline": "Cash Account Statement Recent",
+        "Cash Accounts_Detail": "Cash Accounts",
+        "Cash Accounts_Inline": "Cash Accounts",
+        "Cash Dashboard_Detail": "Cash Dashboard",
+        "Cash Holder Balances_Detail": "Cash Holder Balances",
+        "Cash Holder Balances_Inline": "Cash Holder Balances",
+        "Cash Holders_Detail": "Cash Holders",
+        "Cash Statement Context_Detail": "Cash Statement Context",
+        "Cash Statement Context_Form": "Cash Statement Context",
+        "Cash Statement Context_Inline": "Cash Statement Context",
+        "Cash Statement Controls": "Cash Statement Context",
+        "Cash Statement Summary": "Selected Cash Statement Summary",
+        "Cash Statement Transactions": "Selected Cash Statement",
+        "Charges_Detail": "Charges",
+        "Charges_Form": "Charges",
+        "Charges_Inline": "Charges",
+        "Collection": "Todays Collection Board",
+        "Income MTD": "Cash Dashboard",
+        "KPIs": "Statistics",
+        "Loan Form Context_Detail": "Loan Form Context",
+        "Loans": "Loans",
+        "Loans_Detail": "Loans",
+        "Loans_Form": "Loans",
+        "Loans_Inline": "Loans",
+        "Partners_Detail": "Partners",
+        "Payment Allocations_Detail": "Payment Allocations",
+        "Payment Allocations_Form": "Payment Allocations",
+        "Payment Allocations_Inline": "Payment Allocations",
+        "Payments": "Payments",
+        "Payments_Detail": "Payments",
+        "Payments_Form": "Payments",
+        "Payments_Inline": "Payments",
+        "R008 Close Loan": "R008 Loan Commands",
+        "R008 Receive All": "R008 Borrower Commands",
+        "R008 Receive Full": "R008 Charge Commands",
+        "Repayments_Detail": "Repayments",
+        "Repayments_Form": "Repayments",
+        "Repayments_Inline": "Repayments",
+        "Reporting App Shortcut": "Statistics",
+        "Statistics_Detail": "Statistics",
+        "Statistics_Form": "Statistics",
+        "Todays Collection Board_Detail": "Todays Collection Board",
+        "Todays Collection Board_Form": "Todays Collection Board",
+        "Visible Borrowers_Detail": "Visible Borrowers",
+        "Visible Borrowers_Form": "Visible Borrowers"
+      },
+      "explicit_exclusions": [
+        {
+          "kind": "table",
+          "name": "Canonical app execution guard Output",
+          "scope": "Generated AppDoc schema; no independent business source binding in editor Data inventory"
+        },
+        {
+          "kind": "table",
+          "name": "First-day receipt exists Output",
+          "scope": "Generated AppDoc schema; no independent business source binding in editor Data inventory"
+        },
+        {
+          "kind": "table",
+          "name": "Generate Today's Charge Output",
+          "scope": "Generated AppDoc schema; no independent business source binding in editor Data inventory"
+        },
+        {
+          "kind": "table",
+          "name": "Notify payment-closed loans Output",
+          "scope": "Generated AppDoc schema; no independent business source binding in editor Data inventory"
+        },
+        {
+          "kind": "table",
+          "name": "Notify payment-closed loans Output 2",
+          "scope": "Generated AppDoc schema; no independent business source binding in editor Data inventory"
+        },
+        {
+          "kind": "table",
+          "name": "Notify payment-closed loans Output 3",
+          "scope": "Generated AppDoc schema; no independent business source binding in editor Data inventory"
+        },
+        {
+          "kind": "table",
+          "name": "Notify payment-closed loans Output 4",
+          "scope": "Generated AppDoc schema; no independent business source binding in editor Data inventory"
+        },
+        {
+          "kind": "table",
+          "name": "Process for Generate Daily Charges - 1 Process Table",
+          "scope": "Generated AppDoc schema; no independent business source binding in editor Data inventory"
+        },
+        {
+          "kind": "table",
+          "name": "Process for Notification - Charge Received Process Table",
+          "scope": "Generated AppDoc schema; no independent business source binding in editor Data inventory"
+        },
+        {
+          "kind": "table",
+          "name": "Process for Notification - First-Day Charge Process Table",
+          "scope": "Generated AppDoc schema; no independent business source binding in editor Data inventory"
+        },
+        {
+          "kind": "table",
+          "name": "Process for Notification - Loan Closed Process Table",
+          "scope": "Generated AppDoc schema; no independent business source binding in editor Data inventory"
+        },
+        {
+          "kind": "table",
+          "name": "Process for Notification - New Loan Created Process Table",
+          "scope": "Generated AppDoc schema; no independent business source binding in editor Data inventory"
+        },
+        {
+          "kind": "table",
+          "name": "Process for R008 Loan Close Confirmed Process Table",
+          "scope": "Generated AppDoc schema; no independent business source binding in editor Data inventory"
+        },
+        {
+          "kind": "table",
+          "name": "Process for R008 Receive All Confirmed Process Table",
+          "scope": "Generated AppDoc schema; no independent business source binding in editor Data inventory"
+        },
+        {
+          "kind": "table",
+          "name": "Process for R008 Single Full Confirmed Process Table",
+          "scope": "Generated AppDoc schema; no independent business source binding in editor Data inventory"
+        },
+        {
+          "kind": "table",
+          "name": "_Per User Settings",
+          "scope": "Generated AppDoc schema; no independent business source binding in editor Data inventory"
+        }
+      ]
+    },
+    "development-olap": {
+      "verified": {
+        "physical_table_bindings": 19,
+        "system_columns": 19,
+        "physical_columns": 379,
+        "virtual_columns": 151,
+        "refs": 50,
+        "generated_appdoc_tables": 4,
+        "slice_members": 447,
+        "slices": 12,
+        "dashboard_views": 3,
+        "dashboard_members": 15,
+        "view_sources": 63,
+        "action_owners": 88,
+        "assigned_columns": 20,
+        "format_members": 61,
+        "format_rules": 48
+      },
+      "source_bindings": {
+        "Borrowers": "public.olap_borrowers_analytics",
+        "Business Expenses": "public.Business Expenses",
+        "Cash Account Balances": "public.Cash Account Balances",
+        "Cash Accounts": "public.Cash Accounts",
+        "Cash Holder Balances": "public.Cash Holder Balances",
+        "Cash Holders": "public.Cash Holders",
+        "Cash Ledger": "public.Cash Ledger",
+        "Cash Pool Contributions": "public.Cash Pool Contributions",
+        "Charges": "public.olap_charges_analytics",
+        "Daily Analytics": "public.Daily Analytics",
+        "Loan Assessment": "public.Loan Assessment SQL Lab View",
+        "Loans": "public.olap_loans_analytics",
+        "Partners": "public.Partners",
+        "Payment Allocations": "public.Payment Allocations",
+        "Payments": "public.Payments",
+        "Portfolio Summary": "public.olap_portfolio_summary",
+        "Repayments": "public.olap_repayments_analytics",
+        "Settlements": "public.Settlements",
+        "Statistics": "public.Statistics"
+      },
+      "view_sources": {
+        "Analytics Data": "Statistics",
+        "Borrowers": "Borrowers",
+        "Borrowers_Detail": "Borrowers",
+        "Borrowers_Inline": "Borrowers",
+        "Business Expenses_Detail": "Business Expenses",
+        "Business Expenses_Inline": "Business Expenses",
+        "Cash Account Balances_Detail": "Cash Account Balances",
+        "Cash Account Balances_Inline": "Cash Account Balances",
+        "Cash Account Summary": "Cash Account Balances",
+        "Cash Accounts": "Cash Accounts",
+        "Cash Accounts_Detail": "Cash Accounts",
+        "Cash Accounts_Form": "Cash Accounts",
+        "Cash Accounts_Inline": "Cash Accounts",
+        "Cash Holder Balances_Detail": "Cash Holder Balances",
+        "Cash Holder Balances_Inline": "Cash Holder Balances",
+        "Cash Holder Summary": "Cash Holder Balances",
+        "Cash Holders_Detail": "Cash Holders",
+        "Cash Ledger Recent": "Cash Ledger",
+        "Cash Ledger_Detail": "Cash Ledger",
+        "Cash Ledger_Form": "Cash Ledger",
+        "Cash Ledger_Inline": "Cash Ledger",
+        "Cash Pool Contributions_Detail": "Cash Pool Contributions",
+        "Cash Pool Contributions_Form": "Cash Pool Contributions",
+        "Cash Pool Contributions_Inline": "Cash Pool Contributions",
+        "Charges_Detail": "Charges",
+        "Charges_Inline": "Charges",
+        "Daily Analytics - Validation": "Daily Analytics",
+        "Daily Analytics_Detail": "Daily Analytics",
+        "Daily Interest Contribution": "Borrowers with Outstanding Loans",
+        "Daily Outstanding Principle 30D": "Daily Analytics 30 Days",
+        "Daily Profit": "Daily Analytics 7 Days",
+        "Daily Profit Last 30D": "Daily Analytics 30 Days",
+        "KPIs": "Statistics",
+        "Loan Assessment": "Loan Assessment",
+        "Loan Assessment_Detail": "Loan Assessment",
+        "Loan Assessment_Form": "Loan Assessment",
+        "Loan Assessment_Inline": "Loan Assessment",
+        "Loan Distribution": "Borrowers with Outstanding Loans",
+        "Loans": "Loans",
+        "Loans_Detail": "Loans",
+        "Loans_Inline": "Loans",
+        "Monthly Profit": "Daily Analytics 90 Days",
+        "Operations App Shortcut": "Statistics",
+        "Outstanding Principle": "Statistics",
+        "Partners": "Partners",
+        "Partners_Detail": "Partners",
+        "Partners_Form": "Partners",
+        "Payment Allocations_Detail": "Payment Allocations",
+        "Payment Allocations_Inline": "Payment Allocations",
+        "Payments_Detail": "Payments",
+        "Payments_Inline": "Payments",
+        "Profit Contribution 30D": "Profit Contribution 30D",
+        "Projected Monthly Profit Contribution": "Borrowers",
+        "Repayments_Detail": "Repayments",
+        "Repayments_Inline": "Repayments",
+        "Settlements_Detail": "Settlements",
+        "Settlements_Form": "Settlements",
+        "Settlements_Inline": "Settlements",
+        "Statistics_Detail": "Statistics",
+        "Statistics_Form": "Statistics",
+        "Statistics_Inline": "Statistics",
+        "Weekly Profit": "Daily Analytics 30 Days",
+        "olap_portfolio_summary_Detail": "Portfolio Summary"
+      },
+      "explicit_exclusions": [
+        {
+          "kind": "table",
+          "name": "Canonical app execution guard Output",
+          "scope": "Generated AppDoc schema; no independent business source binding in editor Data inventory"
+        },
+        {
+          "kind": "table",
+          "name": "Process for Refresh Daily Analytics Daily - 1 Process Table",
+          "scope": "Generated AppDoc schema; no independent business source binding in editor Data inventory"
+        },
+        {
+          "kind": "table",
+          "name": "Request Recent Analytics Refresh Output",
+          "scope": "Generated AppDoc schema; no independent business source binding in editor Data inventory"
+        },
+        {
+          "kind": "table",
+          "name": "_Per User Settings",
+          "scope": "Generated AppDoc schema; no independent business source binding in editor Data inventory"
+        }
+      ]
+    },
+    "postgresql-production": {
+      "verified": {
+        "view_dependency_edges": 679,
+        "internal_integrity_triggers": 176,
+        "user_trigger_routine_links": 98
+      }
+    },
+    "postgresql-development": {
+      "verified": {
+        "view_dependency_edges": 679,
+        "internal_integrity_triggers": 176,
+        "user_trigger_routine_links": 97
+      }
+    }
+  },
+  "failures": [],
+  "limitations": [
+    "Expression text is not a complete static dependency parser. Dynamic SQL and runtime behavior require separate validation.",
+    "Trigger checks resolve routine symbols, not overload argument types. Exact full signatures and definitions are retained separately.",
+    "Connection aliases were independently read in account source settings; blank username controls do not establish the effective connection role."
+  ]
+}

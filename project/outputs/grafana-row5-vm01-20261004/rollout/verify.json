@@ -1,0 +1,56 @@
+{
+  "phase": "verify",
+  "ready_revision": "mw-grafana-events-00015-qcs",
+  "traffic": [
+    {
+      "percent": 100,
+      "revisionName": "mw-grafana-events-00015-qcs"
+    }
+  ],
+  "scheduler_unchanged": true,
+  "logs": [
+    {
+      "jsonPayload": {
+        "count": 12,
+        "event": "monitoring_exported"
+      },
+      "timestamp": "2026-10-04T16:46:02.638377Z"
+    },
+    {
+      "jsonPayload": {
+        "count": 0,
+        "event": "dispatch_completed"
+      },
+      "timestamp": "2026-10-04T16:46:02.515586Z"
+    },
+    {
+      "jsonPayload": {
+        "count": 12,
+        "event": "monitoring_exported"
+      },
+      "timestamp": "2026-10-04T16:45:02.644214Z"
+    },
+    {
+      "jsonPayload": {
+        "count": 0,
+        "event": "dispatch_completed"
+      },
+      "timestamp": "2026-10-04T16:45:02.538488Z"
+    },
+    {
+      "jsonPayload": {
+        "count": 12,
+        "event": "monitoring_exported"
+      },
+      "timestamp": "2026-10-04T16:44:06.386957Z"
+    },
+    {
+      "jsonPayload": {
+        "count": 0,
+        "event": "dispatch_completed"
+      },
+      "timestamp": "2026-10-04T16:44:03.244350Z"
+    }
+  ],
+  "alerts_created": 0
+}

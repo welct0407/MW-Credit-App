@@ -1,0 +1,30 @@
+{
+  "revision": "mw-grafana-events-00007-4zn",
+  "parentReportedAttemptUtc": "2026-10-03T08:59:44Z",
+  "parentReportedHostDiscovery": "actual event source and grafana.alert.transition schema now available",
+  "parentReportedCreationResult": "unexpected task service error; not success",
+  "results": [
+    {
+      "timestamp": "2026-10-03T08:59:46.477669Z",
+      "method": "events/subscribe",
+      "success": false,
+      "error_code": -32015
+    },
+    {
+      "timestamp": "2026-10-03T08:59:47.820650Z",
+      "method": "events/unsubscribe",
+      "success": false,
+      "error_code": -32015
+    }
+  ],
+  "sourceInterpretation": "With empty callback hosts, callback validation rejects before signing-secret handling, subscription state access/writes, DNS or outbound challenge. Unsubscribe also rejects before its state transaction.",
+  "hostnameAvailable": false,
+  "hostnameEvidenceLimits": [
+    "RPC diagnostic projection excludes callback data.",
+    "Platform request metadata describes inbound MCP traffic, not the outbound callback target.",
+    "Rejected subscription does not persist its callback URL. No secret payload or stored URL was read."
+  ],
+  "taskExistence": "not inferred; parent is checking task state before any retry",
+  "liveChangesThisCheck": false,
+  "retryOrCallbackSentByExecutor": false
+}

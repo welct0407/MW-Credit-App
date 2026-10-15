@@ -1,0 +1,10 @@
+{
+  "verified_at": "2026-09-22T14:01:56.711Z",
+  "collection_id": 2,
+  "collection_name": "Examples",
+  "archived_items": 40,
+  "permanently_deleted": false,
+  "loan_reports_and_models_unchanged": true,
+  "private_backup": "C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r016-20260922/examples-cleanup-before",
+  "rollback": "Restore Examples collection and contents from Metabase Trash; exact before metadata retained privately."
+}

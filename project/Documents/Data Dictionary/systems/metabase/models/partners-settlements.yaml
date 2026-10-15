@@ -1,0 +1,276 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "metabase",
+    "component": "reports.mw-credit.com",
+    "kind": "model",
+    "name": "Partners · settlements source / 321",
+    "scope": "production"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r044-partners/saved.json"
+  },
+  "content": {
+    "key": "settlements",
+    "description": "R044 thin metadata over governed read-only PostgreSQL provider. No financial writes.",
+    "result_metadata": [
+      {
+        "database_type": "text",
+        "lib/deduplicated-name": "settlement_id",
+        "lib/original-name": "settlement_id",
+        "name": "settlement_id",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "settlement_id",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "settlement_id",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "effective_type": "type/Text",
+        "lib/desired-column-alias": "settlement_id",
+        "display_name": "settlement_id",
+        "base_type": "type/Text"
+      },
+      {
+        "database_type": "text",
+        "lib/deduplicated-name": "partner_id",
+        "lib/original-name": "partner_id",
+        "name": "partner_id",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "partner_id",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "partner_id",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "effective_type": "type/Text",
+        "lib/desired-column-alias": "partner_id",
+        "display_name": "partner_id",
+        "base_type": "type/Text"
+      },
+      {
+        "database_type": "text",
+        "lib/deduplicated-name": "partner_name",
+        "lib/original-name": "partner_name",
+        "name": "partner_name",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "partner_name",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "partner_name",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "effective_type": "type/Text",
+        "lib/desired-column-alias": "partner_name",
+        "display_name": "partner_name",
+        "base_type": "type/Text"
+      },
+      {
+        "database_type": "text",
+        "lib/deduplicated-name": "partner_role",
+        "lib/original-name": "partner_role",
+        "name": "partner_role",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "partner_role",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "partner_role",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "effective_type": "type/Text",
+        "lib/desired-column-alias": "partner_role",
+        "display_name": "partner_role",
+        "base_type": "type/Text"
+      },
+      {
+        "database_type": "date",
+        "lib/deduplicated-name": "activity_date",
+        "lib/original-name": "activity_date",
+        "name": "activity_date",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "activity_date",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "activity_date",
+          {
+            "base-type": "type/Date"
+          }
+        ],
+        "effective_type": "type/Date",
+        "lib/desired-column-alias": "activity_date",
+        "display_name": "activity_date",
+        "base_type": "type/Date"
+      },
+      {
+        "database_type": "numeric",
+        "lib/deduplicated-name": "amount",
+        "lib/original-name": "amount",
+        "name": "amount",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "amount",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "amount",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "amount",
+        "display_name": "amount",
+        "base_type": "type/Decimal"
+      },
+      {
+        "database_type": "text",
+        "lib/deduplicated-name": "status",
+        "lib/original-name": "status",
+        "name": "status",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "status",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "status",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "effective_type": "type/Text",
+        "lib/desired-column-alias": "status",
+        "display_name": "status",
+        "base_type": "type/Text"
+      },
+      {
+        "database_type": "numeric",
+        "lib/deduplicated-name": "completed_amount",
+        "lib/original-name": "completed_amount",
+        "name": "completed_amount",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "completed_amount",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "completed_amount",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "completed_amount",
+        "display_name": "completed_amount",
+        "base_type": "type/Decimal"
+      },
+      {
+        "database_type": "numeric",
+        "lib/deduplicated-name": "pending_amount",
+        "lib/original-name": "pending_amount",
+        "name": "pending_amount",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "pending_amount",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "pending_amount",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "pending_amount",
+        "display_name": "pending_amount",
+        "base_type": "type/Decimal"
+      },
+      {
+        "database_type": "numeric",
+        "lib/deduplicated-name": "reserved_amount",
+        "lib/original-name": "reserved_amount",
+        "name": "reserved_amount",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "reserved_amount",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "reserved_amount",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "reserved_amount",
+        "display_name": "reserved_amount",
+        "base_type": "type/Decimal"
+      },
+      {
+        "database_type": "bool",
+        "lib/deduplicated-name": "valid",
+        "lib/original-name": "valid",
+        "name": "valid",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "valid",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "valid",
+          {
+            "base-type": "type/Boolean"
+          }
+        ],
+        "effective_type": "type/Boolean",
+        "lib/desired-column-alias": "valid",
+        "display_name": "valid",
+        "base_type": "type/Boolean"
+      },
+      {
+        "database_type": "text",
+        "lib/deduplicated-name": "date_status",
+        "lib/original-name": "date_status",
+        "name": "date_status",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "date_status",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "date_status",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "effective_type": "type/Text",
+        "lib/desired-column-alias": "date_status",
+        "display_name": "date_status",
+        "base_type": "type/Text"
+      }
+    ],
+    "collection_id": 8,
+    "name": "Partners · settlements source",
+    "type": "model",
+    "dataset_query": {
+      "stages": [
+        {
+          "lib/type": "mbql.stage/native",
+          "native": "SELECT * FROM public.reporting_partner_settlements_v1"
+        }
+      ],
+      "lib/type": "mbql/query",
+      "database": 2
+    },
+    "id": 321,
+    "display": "table",
+    "visualization_settings": {}
+  }
+}

@@ -1,0 +1,58 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.payment_crud_finish_core_v83(p_old \"Payments\", p_new \"Payments\", operation text)"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r052/dictionary-production-closure.json"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "payment_crud_finish_core_v83"
+    "arguments": "p_old \"Payments\", p_new \"Payments\", operation text"
+    "kind": "f"
+    "arguments_with_defaults": "p_old \"Payments\", p_new \"Payments\", operation text"
+    "result": "void"
+    "definition": "CREATE OR REPLACE FUNCTION public.payment_crud_finish_core_v83(p_old \"Payments\", p_new \"Payments\",\
+      \ operation text)\n RETURNS void\n LANGUAGE plpgsql\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\r\n#variable_conflict\
+      \ use_column\r\nDECLARE d date; first_day date; last_day date; previous jsonb; l public.\"Loans\"%ROWTYPE; prior_context\
+      \ text; cleanup_before text:=current_setting('payment_crud.id',true); parents_before text:=current_setting('payment_crud.parents',true);\r\
+      \nBEGIN\r\n IF pg_trigger_depth()=0 AND NOT public.pwa_native_inverse_permitted_v2(p_old.\"Row ID\") THEN RAISE EXCEPTION\
+      \ USING ERRCODE='42501',MESSAGE='Protected correction context required';END IF;\r\n IF operation='UPDATE' THEN\r\n \
+      \ IF EXISTS(SELECT 1 FROM public.\"Repayments\" r JOIN public.\"Loans\" l ON l.\"Row ID\"=r.\"Ref Loans\"\r\n   WHERE\
+      \ r.\"Ref Payment\"=p_new.\"Row ID\" AND l.\"Defaulted\" IS TRUE) THEN\r\n   RAISE EXCEPTION 'Corrected payment has\
+      \ a default dependency; undo default first'; END IF;\r\n  d:=least(p_old.\"Payment Date\",p_new.\"Payment Date\");\r\
+      \n ELSE d:=p_old.\"Payment Date\";\r\n END IF;\r\n prior_context:=current_setting('payment_crud.id',true);\r\n PERFORM\
+      \ set_config('payment_crud.id',p_old.\"Row ID\",true);\r\n FOR previous IN SELECT value FROM jsonb_array_elements(coalesce(nullif(current_setting('payment_crud.parents',true),'')::jsonb->p_old.\"\
+      Row ID\",'[]')) LOOP\r\n  SELECT * INTO l FROM public.\"Loans\" WHERE \"Row ID\"=previous->>'Row ID';\r\n  IF l.\"Ref\
+      \ Closing Payment\" IS NOT NULL AND (l.\"Principal Amount\"::numeric>\r\n    (SELECT coalesce(sum(\"Principal Paid\"\
+      ::numeric),0) FROM public.\"Repayments\" WHERE \"Ref Loans\"=l.\"Row ID\")\r\n    OR EXISTS(SELECT 1 FROM public.\"\
+      Charges\" c WHERE c.\"Ref Loans\"=l.\"Row ID\" AND c.\"Principal Due\"::numeric+c.\"Interest Due\"::numeric>\r\n   \
+      \  (SELECT coalesce(sum(r.\"Principal Paid\"::numeric+r.\"Interest Paid\"::numeric),0) FROM public.\"Repayments\" r\
+      \ WHERE r.\"Ref Charges\"=c.\"Row ID\"))) THEN\r\n   UPDATE public.\"Loans\" SET \"Loan Status\"='ยังไม่ปิดยอด',\"Ref\
+      \ Closing Payment\"=NULL,\"Close Date\"=NULL,\"Closed By\"=NULL\r\n    WHERE \"Row ID\"=l.\"Row ID\";\r\n  ELSIF l.\"\
+      Ref Closing Payment\" IS NOT NULL THEN\r\n   -- If the original closing receipt still closes this loan, retain its actual\r\
+      \n   -- closure date/actor; rebuilding derived rows is not a new closure event.\r\n   IF l.\"Ref Closing Payment\"=previous->>'Ref\
+      \ Closing Payment' AND l.\"Ref Closing Payment\"<>p_old.\"Row ID\" THEN\r\n    UPDATE public.\"Loans\" SET \"Close Date\"\
+      =(previous->>'Close Date')::date,\"Closed By\"=previous->>'Closed By'\r\n     WHERE \"Row ID\"=l.\"Row ID\";\r\n   END\
+      \ IF;\r\n   PERFORM public.create_referral_rebate(l.\"Row ID\");\r\n  END IF;\r\n END LOOP;\r\n PERFORM set_config('payment_crud.parents',(coalesce(nullif(current_setting('payment_crud.parents',true),'')::jsonb,'{}')-p_old.\"\
+      Row ID\")::text,true);\r\n PERFORM set_config('payment_crud.id',coalesce(prior_context,''),true);\r\n PERFORM public.request_business_history(d);\r\
+      \n RETURN;\r\nEXCEPTION WHEN OTHERS THEN\r\n PERFORM set_config('payment_crud.id',coalesce(cleanup_before,''),true);\r\
+      \n PERFORM set_config('payment_crud.parents',coalesce(parents_before,''),true);RAISE;\r\nEND $function$\n"
+    "owner": "postgres"
+    "language": "plpgsql"
+    "volatility": "v"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 0.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": "{postgres=X/postgres,mw_app_prod=X/postgres}"
+    "comment": null
+    "extension": null

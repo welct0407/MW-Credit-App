@@ -1,0 +1,31 @@
+{
+  "database" : "loan_manager_dev",
+  "databaseType" : "PostgreSQL",
+  "exception" : null,
+  "flywayVersion" : "13.6.0",
+  "initialSchemaVersion" : "70",
+  "licenseFailed" : false,
+  "migrations" : [ {
+    "category" : "Versioned",
+    "description" : "retain reimbursement and optional assessment history",
+    "executionTime" : 863,
+    "filepath" : "C:\\GitHub\\AppSheet-Loan-Project-r051\\database\\migrations\\V71__retain_reimbursement_and_optional_assessment_history.sql",
+    "type" : "SQL",
+    "version" : "71"
+  }, {
+    "category" : "Versioned",
+    "description" : "historical source opening adjustments",
+    "executionTime" : 212,
+    "filepath" : "C:\\GitHub\\AppSheet-Loan-Project-r051\\database\\migrations\\V72__historical_source_opening_adjustments.sql",
+    "type" : "SQL",
+    "version" : "72"
+  } ],
+  "migrationsExecuted" : 2,
+  "operation" : "migrate",
+  "schemaName" : "",
+  "success" : true,
+  "targetSchemaVersion" : "72",
+  "timestamp" : "2026-10-06T18:07:09.4152171+07:00",
+  "totalMigrationTime" : 1075,
+  "warnings" : [ ]
+}

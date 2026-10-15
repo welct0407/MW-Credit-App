@@ -1,0 +1,317 @@
+[
+  [
+    "DEV OLTP / R010 2026-09-20",
+    "Cash Statement Context",
+    "SQL / AppSheet contract",
+    "Absent in PROD R009; not promoted",
+    "V27 table. Ref Partner immutable PK/FK Partners; optional Ref Cash Account FK Cash Accounts; Statement Date Bangkok today default; Updated At SQL-maintained. Partner insert seeds row. App UPDATES_ONLY, database-3."
+  ],
+  [
+    "DEV OLTP / R010 2026-09-20",
+    "Cash Statement Context[Ref Partner]",
+    "Key / type / access",
+    "Absent in PROD R009; not promoted",
+    "Ref -> Partners; Key TRUE; Show FALSE; Editable FALSE; Required TRUE. _RowNumber is not key. IsPartOf FALSE."
+  ],
+  [
+    "DEV OLTP / R010 2026-09-20",
+    "Cash Statement Context",
+    "Security filter",
+    "Absent in PROD R009; not promoted",
+    "AND(ISNOTBLANK(USEREMAIL()), IN([Ref Partner], SELECT(Partners[Row ID], LOWER(TRIM([Login Email])) = LOWER(TRIM(USEREMAIL())))))"
+  ],
+  [
+    "DEV OLTP / R010 2026-09-20",
+    "Cash Statement Context[Ref Cash Account]",
+    "Type / validation",
+    "Absent in PROD R009; not promoted",
+    "Ref -> Cash Accounts; visible/editable, optional, label TRUE; IsPartOf FALSE. Valid_If: SELECT(Cash Accounts[Row ID], [Active])"
+  ],
+  [
+    "DEV OLTP / R010 2026-09-20",
+    "Cash Statement Context[Statement Date]",
+    "Type / validation",
+    "Absent in PROD R009; not promoted",
+    "Date; visible/editable/required. Valid_If: AND([_THIS] >= MIN(Cash Account Daily Summary Recent[Statement Date]), [_THIS] <= MAX(Cash Account Daily Summary Recent[Statement Date]))"
+  ],
+  [
+    "DEV OLTP / R010 2026-09-20",
+    "Cash Statement Context[Statement Date]",
+    "Initial value",
+    "Absent in PROD R009; not promoted",
+    "MAX(Cash Account Daily Summary Recent[Statement Date])"
+  ],
+  [
+    "DEV OLTP / R010 2026-09-20",
+    "Cash Statement Context[Updated At]",
+    "Type / access",
+    "Absent in PROD R009; not promoted",
+    "DateTime; hidden/read-only; existing import initial NOW(); SQL trigger is authoritative."
+  ],
+  [
+    "DEV OLTP / R010 2026-09-20",
+    "Cash Account Statement Recent",
+    "SQL / AppSheet contract",
+    "Absent in PROD R009; not promoted",
+    "V27 read-only view; account-side ledger grain; latest 15 Bangkok dates AFTER full-history running sum. READ_ONLY; Row ID Text key; database-3. Stable JSON ledger/direction/account key. No full Cash Ledger loaded."
+  ],
+  [
+    "DEV OLTP / R010 2026-09-20",
+    "Cash Account Statement Recent",
+    "Running balance",
+    "Absent in PROD R009; not promoted",
+    "Initialized opening - captured baseline in + captured baseline out + all account effects, ordered movement date, created timestamp, ledger ID C, direction C. NULL when uninitialized."
+  ],
+  [
+    "DEV OLTP / R010 2026-09-20",
+    "Cash Account Statement Recent[Ref Cash Account]",
+    "Ref relationship",
+    "Absent in PROD R009; not promoted",
+    "Ref -> Cash Accounts; IsPartOf FALSE. Native source/detail navigation. Read-only."
+  ],
+  [
+    "DEV OLTP / R010 2026-09-20",
+    "Cash Account Statement Recent[Ref Borrower]",
+    "Ref relationship",
+    "Absent in PROD R009; not promoted",
+    "Ref -> Borrowers; IsPartOf FALSE. Native source/detail navigation. Read-only."
+  ],
+  [
+    "DEV OLTP / R010 2026-09-20",
+    "Cash Account Statement Recent[Ref Other Cash Account]",
+    "Ref relationship",
+    "Absent in PROD R009; not promoted",
+    "Ref -> Cash Accounts; IsPartOf FALSE. Native source/detail navigation. Read-only."
+  ],
+  [
+    "DEV OLTP / R010 2026-09-20",
+    "Cash Account Statement Recent[Ref Partner]",
+    "Ref relationship",
+    "Absent in PROD R009; not promoted",
+    "Ref -> Partners; IsPartOf FALSE. Native source/detail navigation. Read-only."
+  ],
+  [
+    "DEV OLTP / R010 2026-09-20",
+    "Cash Account Statement Recent[Ref Payment]",
+    "Ref relationship",
+    "Absent in PROD R009; not promoted",
+    "Ref -> Payments; IsPartOf FALSE. Native source/detail navigation. Read-only."
+  ],
+  [
+    "DEV OLTP / R010 2026-09-20",
+    "Cash Account Statement Recent[Ref Loan]",
+    "Ref relationship",
+    "Absent in PROD R009; not promoted",
+    "Ref -> Loans; IsPartOf FALSE. Native source/detail navigation. Read-only."
+  ],
+  [
+    "DEV OLTP / R010 2026-09-20",
+    "Cash Account Statement Recent[Ref Business Expense]",
+    "Ref relationship",
+    "Absent in PROD R009; not promoted",
+    "Ref -> Business Expenses; IsPartOf FALSE. Native source/detail navigation. Read-only."
+  ],
+  [
+    "DEV OLTP / R010 2026-09-20",
+    "Cash Account Statement Recent",
+    "Hidden metadata",
+    "Absent in PROD R009; not promoted",
+    "Row ID, Statement Date, Sort Timestamp, Transaction Type Code, Counterparty Kind, Counterparty Text, Settlement Row ID, Is Initialized, Source Type, Source Key, User Language, _RowNumber."
+  ],
+  [
+    "DEV OLTP / R010 2026-09-20",
+    "Cash Account Statement Recent",
+    "Physical display types",
+    "Absent in PROD R009; not promoted",
+    "Statement Time: Time, Ignore seconds TRUE, label TRUE. Signed Amount and Balance After: Price, zero decimal places, currency ฿. Notes retains LongText. Source metadata remains available in SQL."
+  ],
+  [
+    "DEV OLTP / R010 2026-09-20",
+    "Cash Account Statement Recent[User Language]",
+    "Text virtual column app formula",
+    "Absent in PROD R009; not promoted",
+    "IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login Email])) = LOWER(TRIM(USEREMAIL())))) = \"ไทย\", \"ไทย\", \"English\")"
+  ],
+  [
+    "DEV OLTP / R010 2026-09-20",
+    "Cash Account Statement Recent[Transaction]",
+    "Text virtual column app formula",
+    "Absent in PROD R009; not promoted",
+    "IF([User Language]=\"ไทย\", SWITCH([Transaction Type Code],\"LOAN_PAYMENT\",\"รับชำระเงินกู้\",\"FIRST_DAY_PAYMENT\",\"รับชำระวันแรก\",\"LOAN_DISBURSEMENT\",\"จ่ายเงินกู้\",\"BUSINESS_EXPENSE\",\"ค่าใช้จ่ายธุรกิจ\",\"REFERRAL_REBATE\",\"เงินคืนค่าแนะนำลูกค้า\",\"PARTNER_SETTLEMENT\",\"ชำระให้หุ้นส่วน\",\"ACCOUNT_TRANSFER\",\"โอนระหว่างบัญชี\",\"CASH_TRANSFER\",\"โอนเงิน\",\"EXPENSE_REIMBURSEMENT\",\"คืนค่าใช้จ่าย\",\"OPENING_BALANCE\",\"ยอดยกมา\",\"MANUAL_CORRECTION\",\"ปรับปรุงยอด\",\"รายการอื่น\"), SWITCH([Transaction Type Code],\"LOAN_PAYMENT\",\"Loan Payment\",\"FIRST_DAY_PAYMENT\",\"First-day Payment\",\"LOAN_DISBURSEMENT\",\"Loan Disbursement\",\"BUSINESS_EXPENSE\",\"Business Expense\",\"REFERRAL_REBATE\",\"Referral Rebate\",\"PARTNER_SETTLEMENT\",\"Partner Settlement\",\"ACCOUNT_TRANSFER\",\"Account Transfer\",\"CASH_TRANSFER\",\"Cash Transfer\",\"EXPENSE_REIMBURSEMENT\",\"Expense Reimbursement\",\"OPENING_BALANCE\",\"Opening Balance\",\"MANUAL_CORRECTION\",\"Manual Correction\",\"Other\"))"
+  ],
+  [
+    "DEV OLTP / R010 2026-09-20",
+    "Cash Account Statement Recent[Counterparty]",
+    "Text virtual column app formula",
+    "Absent in PROD R009; not promoted",
+    "SWITCH([Counterparty Kind], \"BORROWER\", IF(AND([User Language] <> \"ไทย\", ISNOTBLANK([Ref Borrower].[Description])), [Ref Borrower].[Description], [Ref Borrower].[Borrower Name]), \"ACCOUNT\", [Ref Other Cash Account].[Account Label], \"PARTNER\", [Ref Partner].[Partner Name], \"ADJUSTMENT\", IF([User Language]=\"ไทย\", \"ปรับปรุงยอด\", \"Adjustment\"), [Counterparty Text])"
+  ],
+  [
+    "DEV OLTP / R010 2026-09-20",
+    "Cash Account Statement Recent[Amount Display]",
+    "Text virtual column app formula",
+    "Absent in PROD R009; not promoted",
+    "CONCATENATE(IF([Signed Amount] > 0, \"+\", \"-\"), TEXT(ABS([Signed Amount])))"
+  ],
+  [
+    "DEV OLTP / R010 2026-09-20",
+    "Cash Account Daily Summary Recent",
+    "SQL / AppSheet contract",
+    "Absent in PROD R009; not promoted",
+    "V27 READ_ONLY view, database-3; 15 dates x Cash Accounts including zero-movement days. Row ID Text key (JSON account/date); Ref Cash Account -> Cash Accounts. Opening/closing NULL when uninitialized."
+  ],
+  [
+    "DEV OLTP / R010 2026-09-20",
+    "Cash Account Daily Summary Recent",
+    "Types / visibility",
+    "Absent in PROD R009; not promoted",
+    "Opening Balance, Money In, Money Out, Closing Balance: visible Price, zero decimals, ฿. Hidden: Row ID, Ref Cash Account, Statement Date, Net Movement (Price), Transaction Count (Number), Is Initialized (Yes/No), _RowNumber."
+  ],
+  [
+    "DEV OLTP / R010 2026-09-20",
+    "Cash Account Daily Summary Recent[Balance Status]",
+    "Text virtual column app formula",
+    "Absent in PROD R009; not promoted",
+    "IF([Is Initialized], \"\", IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login Email])) = LOWER(TRIM(USEREMAIL())))) = \"ไทย\", \"ยังไม่ได้กำหนดยอดตั้งต้น\", \"Balance not initialized\"))"
+  ],
+  [
+    "DEV OLTP / R010 2026-09-20",
+    "Selected Cash Statement",
+    "Read-only slice filter",
+    "Absent in PROD R009; not promoted",
+    "AND([Ref Cash Account] = ANY(Cash Statement Context[Ref Cash Account]), [Statement Date] = ANY(Cash Statement Context[Statement Date]))"
+  ],
+  [
+    "DEV OLTP / R010 2026-09-20",
+    "Selected Cash Statement Summary",
+    "Read-only slice filter",
+    "Absent in PROD R009; not promoted",
+    "AND([Ref Cash Account] = ANY(Cash Statement Context[Ref Cash Account]), [Statement Date] = ANY(Cash Statement Context[Statement Date]))"
+  ],
+  [
+    "DEV OLTP / R010 2026-09-20",
+    "Cash Statement Controls",
+    "View configuration",
+    "Absent in PROD R009; not promoted",
+    "{\"type\":\"Detail\",\"source\":\"Cash Statement Context\",\"position\":\"ref\",\"quickEdit\":[\"Ref Cash Account\",\"Statement Date\"],\"displayMode\":\"Side-by-side\",\"slideshow\":false,\"displayName\":\"IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login Email])) = LOWER(TRIM(USEREMAIL())))) = \\\"ไทย\\\", \\\"ตัวเลือก\\\", \\\"Controls\\\")\"}"
+  ],
+  [
+    "DEV OLTP / R010 2026-09-20",
+    "Cash Statement Summary",
+    "View configuration",
+    "Absent in PROD R009; not promoted",
+    "{\"type\":\"Detail\",\"source\":\"Selected Cash Statement Summary\",\"position\":\"ref\",\"displayMode\":\"Side-by-side\",\"slideshow\":false,\"displayName\":\"IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login Email])) = LOWER(TRIM(USEREMAIL())))) = \\\"ไทย\\\", \\\"สรุปรายวัน\\\", \\\"Daily summary\\\")\"}"
+  ],
+  [
+    "DEV OLTP / R010 2026-09-20",
+    "Cash Statement Transactions",
+    "View configuration",
+    "Absent in PROD R009; not promoted",
+    "{\"type\":\"Table\",\"source\":\"Selected Cash Statement\",\"position\":\"ref\",\"sort\":[\"Statement Date ASC\",\"Sort Timestamp ASC\",\"Row ID ASC\"],\"columns\":[\"Statement Time\",\"Transaction\",\"Counterparty\",\"Amount Display\",\"Balance After\"],\"width\":\"Narrow\",\"quickEdit\":false,\"displayName\":\"IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login Email])) = LOWER(TRIM(USEREMAIL())))) = \\\"ไทย\\\", \\\"รายการ\\\", \\\"Transactions\\\")\"}"
+  ],
+  [
+    "DEV OLTP / R010 2026-09-20",
+    "Cash Statement",
+    "View configuration",
+    "Absent in PROD R009; not promoted",
+    "{\"type\":\"Dashboard\",\"position\":\"menu\",\"entries\":[[\"Cash Statement Controls\",\"Small\"],[\"Cash Statement Summary\",\"Small\"],[\"Cash Statement Transactions\",\"Large\"]],\"mobileTabs\":false,\"interactive\":false,\"displayName\":\"IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login Email])) = LOWER(TRIM(USEREMAIL())))) = \\\"ไทย\\\", \\\"รายการบัญชีเงินสด\\\", \\\"Cash Statement\\\")\"}"
+  ],
+  [
+    "DEV OLTP / R010 2026-09-20",
+    "Cash Statement Context[Ref Cash Account]",
+    "Display name",
+    "Absent in PROD R009; not promoted",
+    "IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login Email])) = LOWER(TRIM(USEREMAIL())))) = \"ไทย\", \"บัญชี\", \"Account\")"
+  ],
+  [
+    "DEV OLTP / R010 2026-09-20",
+    "Cash Statement Context[Statement Date]",
+    "Display name",
+    "Absent in PROD R009; not promoted",
+    "IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login Email])) = LOWER(TRIM(USEREMAIL())))) = \"ไทย\", \"วันที่\", \"Date\")"
+  ],
+  [
+    "DEV OLTP / R010 2026-09-20",
+    "Cash Account Statement Recent[Statement Time]",
+    "Display name",
+    "Absent in PROD R009; not promoted",
+    "IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login Email])) = LOWER(TRIM(USEREMAIL())))) = \"ไทย\", \"เวลา\", \"Time\")"
+  ],
+  [
+    "DEV OLTP / R010 2026-09-20",
+    "Cash Account Statement Recent[Transaction]",
+    "Display name",
+    "Absent in PROD R009; not promoted",
+    "IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login Email])) = LOWER(TRIM(USEREMAIL())))) = \"ไทย\", \"รายการ\", \"Transaction\")"
+  ],
+  [
+    "DEV OLTP / R010 2026-09-20",
+    "Cash Account Statement Recent[Counterparty]",
+    "Display name",
+    "Absent in PROD R009; not promoted",
+    "IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login Email])) = LOWER(TRIM(USEREMAIL())))) = \"ไทย\", \"จาก / ถึง\", \"From / To\")"
+  ],
+  [
+    "DEV OLTP / R010 2026-09-20",
+    "Cash Account Statement Recent[Signed Amount]",
+    "Display name",
+    "Absent in PROD R009; not promoted",
+    "IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login Email])) = LOWER(TRIM(USEREMAIL())))) = \"ไทย\", \"จำนวนเงิน\", \"Amount\")"
+  ],
+  [
+    "DEV OLTP / R010 2026-09-20",
+    "Cash Account Statement Recent[Amount Display]",
+    "Display name",
+    "Absent in PROD R009; not promoted",
+    "IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login Email])) = LOWER(TRIM(USEREMAIL())))) = \"ไทย\", \"จำนวนเงิน\", \"Amount\")"
+  ],
+  [
+    "DEV OLTP / R010 2026-09-20",
+    "Cash Account Statement Recent[Balance After]",
+    "Display name",
+    "Absent in PROD R009; not promoted",
+    "IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login Email])) = LOWER(TRIM(USEREMAIL())))) = \"ไทย\", \"ยอดคงเหลือ\", \"Balance\")"
+  ],
+  [
+    "DEV OLTP / R010 2026-09-20",
+    "Cash Account Daily Summary Recent[Opening Balance]",
+    "Display name",
+    "Absent in PROD R009; not promoted",
+    "IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login Email])) = LOWER(TRIM(USEREMAIL())))) = \"ไทย\", \"ยอดยกมา\", \"Opening\")"
+  ],
+  [
+    "DEV OLTP / R010 2026-09-20",
+    "Cash Account Daily Summary Recent[Money In]",
+    "Display name",
+    "Absent in PROD R009; not promoted",
+    "IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login Email])) = LOWER(TRIM(USEREMAIL())))) = \"ไทย\", \"เข้า\", \"In\")"
+  ],
+  [
+    "DEV OLTP / R010 2026-09-20",
+    "Cash Account Daily Summary Recent[Money Out]",
+    "Display name",
+    "Absent in PROD R009; not promoted",
+    "IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login Email])) = LOWER(TRIM(USEREMAIL())))) = \"ไทย\", \"ออก\", \"Out\")"
+  ],
+  [
+    "DEV OLTP / R010 2026-09-20",
+    "Cash Account Daily Summary Recent[Closing Balance]",
+    "Display name",
+    "Absent in PROD R009; not promoted",
+    "IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login Email])) = LOWER(TRIM(USEREMAIL())))) = \"ไทย\", \"ยอดคงเหลือ\", \"Closing\")"
+  ],
+  [
+    "DEV OLTP / R010 2026-09-20",
+    "Cash Account Daily Summary Recent[Balance Status]",
+    "Display name",
+    "Absent in PROD R009; not promoted",
+    "IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login Email])) = LOWER(TRIM(USEREMAIL())))) = \"ไทย\", \"สถานะ\", \"Status\")"
+  ],
+  [
+    "DEV OLTP / R010 2026-09-20",
+    "SQL V27",
+    "Dependencies / unaffected consumers",
+    "Absent in PROD R009; not promoted",
+    "Internal cash_statement_account_effects uses Cash Ledger and source enrichment. Existing financial posting unchanged. Partners seed trigger adds only neutral context. OLAP definition unchanged by feature; full history remains there. Source views and SQL tests are authoritative exact DDL."
+  ]
+]

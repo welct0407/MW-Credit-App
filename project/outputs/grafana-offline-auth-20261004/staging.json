@@ -1,0 +1,29 @@
+{
+  "source_commit": "f68e1917daf0074a84b4e647cb1b65547ed226f7",
+  "immutable_image": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-monitoring/grafana-mcp-bridge@sha256:662f9606c74118fe906ad3b8814d94402ffe0fb2dd94ec572f3d79d41ebf0ae1",
+  "staged_revision": "mw-grafana-events-00010-qzs",
+  "revision_ready_condition": true,
+  "revision_inactive_at_zero_traffic": true,
+  "staged_traffic_percent": 0,
+  "live_revision": "mw-grafana-events-00009-487",
+  "live_traffic_percent": 100,
+  "runtime_metadata_projection_preserved_during_update": true,
+  "environment_values_not_projected": true,
+  "secret_mount_references_and_versions_preserved_during_update": true,
+  "operational_annotations_preserved_during_update": true,
+  "logging_exclusions_preserved_during_update": true,
+  "local_packaged_tests": {
+    "passed": 57,
+    "failed": 0,
+    "external_network": "none"
+  },
+  "production_dependency_vulnerabilities": 0,
+  "non_root_runtime_uid": 1000,
+  "proxy_or_build_secret_present_in_runtime": false,
+  "existing_grants_extended": false,
+  "native_host_offline_consent_verified": false,
+  "live_endpoint": "https://alerts.mw-credit.com/mcp",
+  "public_staging_route_created": false,
+  "owner_reconnect_ready": false,
+  "next_step": "Parent verifies native host request of offline_access plus prompt=consent; no policy exception may be substituted. Hosted health and actual consent acceptance remain unverified."
+}

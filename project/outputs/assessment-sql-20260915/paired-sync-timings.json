@@ -1,0 +1,42 @@
+[
+  {
+    "phase": "unchanged-control",
+    "ms": 7026
+  },
+  {
+    "phase": "sql-final",
+    "ms": 6606
+  },
+  {
+    "phase": "unchanged-control",
+    "ms": 5682
+  },
+  {
+    "phase": "sql-final",
+    "ms": 8850
+  },
+  {
+    "phase": "unchanged-control",
+    "ms": 5850
+  },
+  {
+    "phase": "sql-final",
+    "ms": 6102
+  },
+  {
+    "phase": "unchanged-control",
+    "ms": 4486
+  },
+  {
+    "phase": "sql-final",
+    "ms": 5825
+  },
+  {
+    "phase": "unchanged-control",
+    "ms": 7208
+  },
+  {
+    "phase": "sql-final",
+    "ms": 6531
+  }
+]

@@ -1,0 +1,18 @@
+{
+  "syntheticOnly": true,
+  "checks": [
+    "unique-key update",
+    "missing-key rejection",
+    "ambiguous-key rejection",
+    "stale-value rejection",
+    "duplicate-cell rejection",
+    "missing-header rejection",
+    "formula-overwrite rejection",
+    "all-sheet values/formulas roundtrip",
+    "source byte preservation",
+    "delta-derived target",
+    "unrelated row preservation",
+    "unrelated formula preservation"
+  ],
+  "passed": true
+}

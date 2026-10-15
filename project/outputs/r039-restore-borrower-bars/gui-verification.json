@@ -1,0 +1,8 @@
+{
+  "at": "2026-09-26T09:37:23.526412+00:00",
+  "browser": "Previously verified Chrome Wel/Metabase Gmail route reused",
+  "passed": true,
+  "observed": "All six chart titles present. Both pies render above two restored amount bars; both lifetime ratio bars remain below. Restored bars visually loaded without errors.",
+  "mobile": "Original R035 card dimensions and display settings reused; no new phone test",
+  "financialScreenshotsCommitted": false
+}

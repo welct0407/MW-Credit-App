@@ -1,0 +1,195 @@
+{
+  "changedRows": [
+    {
+      "sheet": "Column Rules",
+      "row": 1085
+    },
+    {
+      "sheet": "Prod Columns",
+      "row": 299
+    },
+    {
+      "sheet": "Prod Columns",
+      "row": 708
+    },
+    {
+      "sheet": "Prod Columns",
+      "row": 709
+    },
+    {
+      "sheet": "Column Rules",
+      "row": 11044
+    },
+    {
+      "sheet": "Column Rules",
+      "row": 11045
+    },
+    {
+      "sheet": "Column Rules",
+      "row": 11046
+    },
+    {
+      "sheet": "Column Rules",
+      "row": 11047
+    },
+    {
+      "sheet": "Column Rules",
+      "row": 11048
+    },
+    {
+      "sheet": "Column Rules",
+      "row": 11049
+    },
+    {
+      "sheet": "Column Rules",
+      "row": 11050
+    },
+    {
+      "sheet": "Column Rules",
+      "row": 11051
+    },
+    {
+      "sheet": "Column Rules",
+      "row": 11052
+    },
+    {
+      "sheet": "Column Rules",
+      "row": 11053
+    },
+    {
+      "sheet": "Column Rules",
+      "row": 11054
+    },
+    {
+      "sheet": "Column Rules",
+      "row": 11055
+    },
+    {
+      "sheet": "DB Columns",
+      "row": 252
+    },
+    {
+      "sheet": "DB Constraints",
+      "row": 104
+    },
+    {
+      "sheet": "DB Logic",
+      "row": 164
+    },
+    {
+      "sheet": "DB Logic",
+      "row": 165
+    },
+    {
+      "sheet": "DB Logic",
+      "row": 166
+    },
+    {
+      "sheet": "Guide",
+      "row": 3
+    },
+    {
+      "sheet": "Guide",
+      "row": 5
+    },
+    {
+      "sheet": "Guide",
+      "row": 24
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 2770
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 2771
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 2772
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 2773
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 2774
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 2775
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 2776
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 2777
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 2778
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 2779
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 2780
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 2781
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 2782
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 2783
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 2784
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 2785
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 2786
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 2787
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 2788
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 2789
+    },
+    {
+      "sheet": "App Settings",
+      "row": 128
+    },
+    {
+      "sheet": "App Settings",
+      "row": 129
+    },
+    {
+      "sheet": "App Settings",
+      "row": 130
+    }
+  ],
+  "unchangedRowsValuesAndFormulasPreserved": true,
+  "output": "Documents/AppSheet_Data_Dictionary.xlsx",
+  "outputSha256": "dd4f840f8c9211ae0a628997560eab2a5ad785e4bcbe4f2b818bea6dad60d7d4"
+}

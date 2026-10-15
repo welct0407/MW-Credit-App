@@ -1,0 +1,27 @@
+{
+  "checkpoint": "4F",
+  "completed_observed_utc": "2026-10-08T05:58:47Z",
+  "command": ". ./scripts/Enter-Dev.ps1; ./scripts/database/Test-CI.ps1",
+  "exit_code": 0,
+  "scope": "Owned disposable loopback clusters only; no live credentials/DB/Cloud operations",
+  "batches": [
+    "Full migration rebuild, statement regressions and maintained concurrency cases",
+    "Historical opening CRUD upgrade from V19",
+    "Account opening attribution upgrade from V22",
+    "Legacy default charge upgrade from V68",
+    "Legacy default repayment preservation upgrade from V69"
+  ],
+  "clusters_stopped_by_runner": true,
+  "hashes": {
+    "V78": "8ea5009d29bf8c78fadcdaa478680defd3f161ef2a7e22e7999c2a2aa7170c30",
+    "V79": "e81297140973409917286eef35745e49abc2bbb81bfd056c37881757880477fd",
+    "Test_CI": "75af4858e64e77d05d9fc8396b6418db5a0237402a81e9cf768d348670f13526",
+    "Test_Migrations_Windows": "21615d16329a00e6ba01563ceaf516cd0f4c3f6b07ef8a295be212b331a66db4",
+    "Test_Migrations_Linux": "ac4a85ead1a1a41ba6d8359af698373c0ce005c50215262019e76d5d38d72af8"
+  },
+  "reuse_note": "These migration/runner bytes remained unchanged during the run. A subsequent narrow recovery-input validation fix changes application-role-tooling only; its focused retest is separate and does not invalidate this maintained migration/runner evidence.",
+  "limitations": [
+    "Local Windows maintained database verification. GitHub database rebuild also uses Windows; Linux parity prerequisite edit is source-reviewed, not runtime-executed in this checkpoint.",
+    "Does not execute live CLI/hook, IAM grants, Terraform apply, auth transport or AppSheet financial operations"
+  ]
+}

@@ -1,0 +1,237 @@
+[
+  {
+    "source": "outputs/01a05d4b-7374-7fb1-90c5-5238ab08d6ef/borrower-principal-coverage/inspect_dictionary.mjs",
+    "reference": "scripts/reference/01a05d4b-7374-7fb1-90c5-5238ab08d6ef/borrower-principal-coverage/inspect_dictionary.mjs",
+    "sha256": "5116725DB1D07761CA2DEC065BE92A880589FDDFC8B9BD846600BF833DFFB001"
+  },
+  {
+    "source": "outputs/01a05d4b-7374-7fb1-90c5-5238ab08d6ef/borrower-principal-coverage/update_dictionary.mjs",
+    "reference": "scripts/reference/01a05d4b-7374-7fb1-90c5-5238ab08d6ef/borrower-principal-coverage/update_dictionary.mjs",
+    "sha256": "AA3592FEF2E06D86F11EE84704695C4E26145395EFABB2AE6FBB87A751C8EBA9"
+  },
+  {
+    "source": "outputs/01a05d4b-7374-7fb1-90c5-5238ab08d6ef/borrower-principal-coverage/verify_dictionary.mjs",
+    "reference": "scripts/reference/01a05d4b-7374-7fb1-90c5-5238ab08d6ef/borrower-principal-coverage/verify_dictionary.mjs",
+    "sha256": "D98CF6E29F9D14C9C07BA174AE3996060F4BCD09079E3AB72D943291637A142D"
+  },
+  {
+    "source": "outputs/01a05d4b-7374-7fb1-90c5-5238ab08d6ef/pending-collection-reconciliation/inspect_dictionary.mjs",
+    "reference": "scripts/reference/01a05d4b-7374-7fb1-90c5-5238ab08d6ef/pending-collection-reconciliation/inspect_dictionary.mjs",
+    "sha256": "BD19BE1D5C41C0FE33117E03ED73E2FFE73B6ABF14B5AD5BC2ADC0799BA0DF41"
+  },
+  {
+    "source": "outputs/01a05d4b-7374-7fb1-90c5-5238ab08d6ef/pending-collection-reconciliation/update_dictionary.mjs",
+    "reference": "scripts/reference/01a05d4b-7374-7fb1-90c5-5238ab08d6ef/pending-collection-reconciliation/update_dictionary.mjs",
+    "sha256": "EDB0292E62760D25B6FE54C69D7D777055F766A5216D22270E8F1A9083DD0817"
+  },
+  {
+    "source": "outputs/01a05d4b-7374-7fb1-90c5-5238ab08d6ef/pending-collection-reconciliation/verify_dictionary.mjs",
+    "reference": "scripts/reference/01a05d4b-7374-7fb1-90c5-5238ab08d6ef/pending-collection-reconciliation/verify_dictionary.mjs",
+    "sha256": "B2178DE0B79131D17EF9B034C4527410DBFAE8945A2FD3DD81EDF20044561227"
+  },
+  {
+    "source": "outputs/01a066b1-e885-7d52-98f5-34812d9c7c18/daily-collection-messages-2026-09-03/build_and_update.mjs",
+    "reference": "scripts/reference/01a066b1-e885-7d52-98f5-34812d9c7c18/daily-collection-messages-2026-09-03/build_and_update.mjs",
+    "sha256": "C1DE7EF05AF771AF4FC3E8F636F7ADA1E72479398E2797D585DE17A4532E91FA"
+  },
+  {
+    "source": "outputs/01a066b1-e885-7d52-98f5-34812d9c7c18/daily-collection-messages-2026-09-03/inspect_dictionary.mjs",
+    "reference": "scripts/reference/01a066b1-e885-7d52-98f5-34812d9c7c18/daily-collection-messages-2026-09-03/inspect_dictionary.mjs",
+    "sha256": "29551B9B5DC4C2B5CA6AB7FA9AA1CB368A90881A89667C55901D1172340611F2"
+  },
+  {
+    "source": "outputs/01a066b1-e885-7d52-98f5-34812d9c7c18/daily-collection-messages-2026-09-03/inspect_tone_refinement.mjs",
+    "reference": "scripts/reference/01a066b1-e885-7d52-98f5-34812d9c7c18/daily-collection-messages-2026-09-03/inspect_tone_refinement.mjs",
+    "sha256": "5234B3643944518231C1184BBD0DCB1B97B0F845FB42B2501500F74D69A92010"
+  },
+  {
+    "source": "outputs/01a066b1-e885-7d52-98f5-34812d9c7c18/daily-collection-messages-2026-09-03/refine_message_tone.mjs",
+    "reference": "scripts/reference/01a066b1-e885-7d52-98f5-34812d9c7c18/daily-collection-messages-2026-09-03/refine_message_tone.mjs",
+    "sha256": "5DEE446603F501F9F3710A5B0C8816DDC1FDFD197B369E64352A967911C2A8E6"
+  },
+  {
+    "source": "outputs/01a066b1-e885-7d52-98f5-34812d9c7c18/daily-collection-messages-2026-09-03/render_dictionary_before.mjs",
+    "reference": "scripts/reference/01a066b1-e885-7d52-98f5-34812d9c7c18/daily-collection-messages-2026-09-03/render_dictionary_before.mjs",
+    "sha256": "0553A1A4C33B5BE69F8E32553793099A832ED9C1F5BEAEF3E174CB55318E4D10"
+  },
+  {
+    "source": "outputs/01a066b1-e885-7d52-98f5-34812d9c7c18/daily-collection-messages-2026-09-03/standardize_message_structure.mjs",
+    "reference": "scripts/reference/01a066b1-e885-7d52-98f5-34812d9c7c18/daily-collection-messages-2026-09-03/standardize_message_structure.mjs",
+    "sha256": "FC2BBC31032F50E1764A25BAE663F846719E94E7788FFB4D1F6C771C826C904A"
+  },
+  {
+    "source": "outputs/borrower-visibility-2026-09-01/update_dictionary.py",
+    "reference": "scripts/reference/borrower-visibility-2026-09-01/update_dictionary.py",
+    "sha256": "9EB49E1D81CF887A212250EB84A5AD2399FB1F73436AFE938BACCD5A377DF3CC"
+  },
+  {
+    "source": "outputs/charge-generation-flag-20260908/update_dictionary.mjs",
+    "reference": "scripts/reference/charge-generation-flag-20260908/update_dictionary.mjs",
+    "sha256": "51F909472EB8133B9E2594CA6D2C1B30C6551AFFFFAFE8E6F76A01CE9CD9FB44"
+  },
+  {
+    "source": "outputs/daily-loan-analysis-test-2026-08-31/edit_activity_linked_template.mjs",
+    "reference": "scripts/reference/daily-loan-analysis-test-2026-08-31/edit_activity_linked_template.mjs",
+    "sha256": "A4998F2983E61CA8D0E1D42DCAFCB2048B900580A0E40F27B3387AF7C99C5FE0"
+  },
+  {
+    "source": "outputs/daily-loan-analysis-test-2026-08-31/extract_appsheet_xlsx.py",
+    "reference": "scripts/reference/daily-loan-analysis-test-2026-08-31/extract_appsheet_xlsx.py",
+    "sha256": "4CDF3C1859A9424FCBE2259B233CF752690B04C6EDC59C0B96B18AB0CF9EC1FC"
+  },
+  {
+    "source": "outputs/daily-loan-analysis-test-2026-08-31/normalize_template_namespaces.py",
+    "reference": "scripts/reference/daily-loan-analysis-test-2026-08-31/normalize_template_namespaces.py",
+    "sha256": "08F86AFACFD5C8A81F74C89A679AE73882DB37B3EA5A091801FA13F7F725FEBC"
+  },
+  {
+    "source": "outputs/daily-loan-analysis-test-2026-08-31/verify_export.mjs",
+    "reference": "scripts/reference/daily-loan-analysis-test-2026-08-31/verify_export.mjs",
+    "sha256": "29CDE2CF3FF0C9E5DB122A418034A42A55AC4ECEDEF1064F8BDB9B2839BFBBCB"
+  },
+  {
+    "source": "outputs/future-charges-20260908/finalize_plan.mjs",
+    "reference": "scripts/reference/future-charges-20260908/finalize_plan.mjs",
+    "sha256": "6EB6866203A25C6C5B6AA95B1A670620BB0CBC08B9D892BA4DA1735B0167364F"
+  },
+  {
+    "source": "outputs/future-charges-20260908/prepare_plan.mjs",
+    "reference": "scripts/reference/future-charges-20260908/prepare_plan.mjs",
+    "sha256": "5D6740D87633FA7EEF94DFDBEB7ADACBAF552AE70DDFE1C97FCD9D5D90671B46"
+  },
+  {
+    "source": "outputs/future-charges-20260908/update_dictionary.mjs",
+    "reference": "scripts/reference/future-charges-20260908/update_dictionary.mjs",
+    "sha256": "E020759C6726FDFC09A282D3DBD7D70DBB9FD675EB0F37CFD9E210EFB11D6E20"
+  },
+  {
+    "source": "outputs/looker-page8-design-review/extract_design.py",
+    "reference": "scripts/reference/looker-page8-design-review/extract_design.py",
+    "sha256": "58640F2823C0413FB0E101DE719B55ED594C6C3B0B40662BCFEF62DE722A91E6"
+  },
+  {
+    "source": "outputs/olap-daily-installment-2026-09-01/update_dictionary.py",
+    "reference": "scripts/reference/olap-daily-installment-2026-09-01/update_dictionary.py",
+    "sha256": "F5B0ED708535EDD1253A887B7F6B83D2003D6C62F490D19BDD7CA3977E634C6F"
+  },
+  {
+    "source": "outputs/olap-reconciliation-20260907/update_dictionary.mjs",
+    "reference": "scripts/reference/olap-reconciliation-20260907/update_dictionary.mjs",
+    "sha256": "66239E10A57987ADF554BE07C33B43B8CFE3148E775AD3A23496B6D2FA0E7F8C"
+  },
+  {
+    "source": "outputs/oltp-todays-payment-2026-09-04/count_dictionary.mjs",
+    "reference": "scripts/reference/oltp-todays-payment-2026-09-04/count_dictionary.mjs",
+    "sha256": "21CDCA076F74B79282DA44285D4CF94C07C8D80AC1B0CFAD5F3E5554911B68DA"
+  },
+  {
+    "source": "outputs/oltp-todays-payment-2026-09-04/inspect_dictionary.mjs",
+    "reference": "scripts/reference/oltp-todays-payment-2026-09-04/inspect_dictionary.mjs",
+    "sha256": "861064CCD95686776DFAAF5094819567538EA636EBF2C366CFF1CD1006F13B0F"
+  },
+  {
+    "source": "outputs/oltp-todays-payment-2026-09-04/inspect_styles.mjs",
+    "reference": "scripts/reference/oltp-todays-payment-2026-09-04/inspect_styles.mjs",
+    "sha256": "8642A54164729AF417F7A75E98578DB90A0B282BDF371DC7805D74C516BBE1B8"
+  },
+  {
+    "source": "outputs/oltp-todays-payment-2026-09-04/inspect_targets.mjs",
+    "reference": "scripts/reference/oltp-todays-payment-2026-09-04/inspect_targets.mjs",
+    "sha256": "F743766A853C95E6CC77602090C00752383362E528F787EDE358ACA496E94A75"
+  },
+  {
+    "source": "outputs/oltp-todays-payment-2026-09-04/polish_dictionary.mjs",
+    "reference": "scripts/reference/oltp-todays-payment-2026-09-04/polish_dictionary.mjs",
+    "sha256": "C07B2A5273E4C40629028033D8C0B87A16B8F2D1AB04ED7FAA2A892598D16661"
+  },
+  {
+    "source": "outputs/oltp-todays-payment-2026-09-04/update_dictionary.mjs",
+    "reference": "scripts/reference/oltp-todays-payment-2026-09-04/update_dictionary.mjs",
+    "sha256": "3917EBE89872EE916493FE6DD7F9BC3BCBF0B986189073EE787F4CA532BE40C1"
+  },
+  {
+    "source": "outputs/oltp-todays-payment-2026-09-04/verify_dictionary.mjs",
+    "reference": "scripts/reference/oltp-todays-payment-2026-09-04/verify_dictionary.mjs",
+    "sha256": "4635E009A5DB3F13F710C20D82F85768E5963569E4B3B8CF121A5E98801FCE55"
+  },
+  {
+    "source": "outputs/projected-monthly-profit-analysis/inspect_backup.mjs",
+    "reference": "scripts/reference/projected-monthly-profit-analysis/inspect_backup.mjs",
+    "sha256": "9A6778452953D49D23DD16E174ADD88850571CF24B4CFD6491357C6C74B287D0"
+  },
+  {
+    "source": "outputs/projected-monthly-profit-analysis/inspect_dictionary.mjs",
+    "reference": "scripts/reference/projected-monthly-profit-analysis/inspect_dictionary.mjs",
+    "sha256": "D5387F2035C65B0FC1CBCDC8E9DA0D7B04E0F2B4CAB03E584710F19DAC57A33B"
+  },
+  {
+    "source": "outputs/projected-monthly-profit-analysis/inspect_small.mjs",
+    "reference": "scripts/reference/projected-monthly-profit-analysis/inspect_small.mjs",
+    "sha256": "F16F67522FAA2BBCA713BCF48F81307DBCF82F252985B97D67BD2B1B8DC0D74E"
+  },
+  {
+    "source": "outputs/projected-monthly-profit-analysis/render_dictionary.mjs",
+    "reference": "scripts/reference/projected-monthly-profit-analysis/render_dictionary.mjs",
+    "sha256": "379A7EA8C5981E897A916B765E523AAF2917178AAAEE856F3B8589E3C00EB682"
+  },
+  {
+    "source": "outputs/projected-monthly-profit-analysis/update_dictionary.mjs",
+    "reference": "scripts/reference/projected-monthly-profit-analysis/update_dictionary.mjs",
+    "sha256": "FE86D094946991B60C96B7B6508CCB35D7A56795289C399D9E40B706A23E8689"
+  },
+  {
+    "source": "outputs/projected-monthly-profit-analysis/verify_dictionary.mjs",
+    "reference": "scripts/reference/projected-monthly-profit-analysis/verify_dictionary.mjs",
+    "sha256": "D786458ECE33415607CF60CB59FF079AEC431CB60D6670A302C2566684EC986C"
+  },
+  {
+    "source": "outputs/universal-payments-20260905/checkpoint_066.py",
+    "reference": "scripts/reference/universal-payments-20260905/checkpoint_066.py",
+    "sha256": "B00D3B3B2A5CF0FB22B6083175F92727A53A960CE98152C64054657528111F9A"
+  },
+  {
+    "source": "outputs/universal-payments-20260905/finalize_checkpoint065.py",
+    "reference": "scripts/reference/universal-payments-20260905/finalize_checkpoint065.py",
+    "sha256": "28BB737339C195E959A3E12D297F10859C453432139E50C5F7FDE6EE0C660889"
+  },
+  {
+    "source": "outputs/universal-payments-20260905/inspect_dictionary.mjs",
+    "reference": "scripts/reference/universal-payments-20260905/inspect_dictionary.mjs",
+    "sha256": "363A69B4E21C0CC5C5FE4671ADF29576F58867FBC3BBCDA440881C3AD60DD77C"
+  },
+  {
+    "source": "outputs/universal-payments-20260905/reconcile_final_notes.py",
+    "reference": "scripts/reference/universal-payments-20260905/reconcile_final_notes.py",
+    "sha256": "7BF97ED60EDEF6397A5134E20AD91EB64F592696244534A343DA415CD6FAF481"
+  },
+  {
+    "source": "outputs/universal-payments-20260905/update_dictionary.mjs",
+    "reference": "scripts/reference/universal-payments-20260905/update_dictionary.mjs",
+    "sha256": "EBF385E8154C55B152010E01EA095C3496872ABA0B84C97454D420C9155723CA"
+  },
+  {
+    "source": "outputs/universal-payments-20260905/update_overview_checkpoint052.py",
+    "reference": "scripts/reference/universal-payments-20260905/update_overview_checkpoint052.py",
+    "sha256": "0C4E40F11627552C5BC6DEB50D0B8359D63BB4FEB0DDC82C51853CBB3612EBD4"
+  },
+  {
+    "source": "outputs/universal-payments-20260905/verify_dictionary.py",
+    "reference": "scripts/reference/universal-payments-20260905/verify_dictionary.py",
+    "sha256": "D186BA0CD86EAEB4494F8AE1DBA3F2BC91DC27223994E2747F49B283F33C0114"
+  },
+  {
+    "source": "outputs/universal-payments-production-20260906/update_dictionary.mjs",
+    "reference": "scripts/reference/universal-payments-production-20260906/update_dictionary.mjs",
+    "sha256": "095C8FD153A9D54BADECD1D2095892953641C95449560DA99CE758757052D159"
+  },
+  {
+    "source": "outputs/universal-payments-production-20260906/update_overview.py",
+    "reference": "scripts/reference/universal-payments-production-20260906/update_overview.py",
+    "sha256": "5ADF3B260E16FDEC10F24DCBBE0B2AB6638DB5504A55150E9435D490B64B2DBC"
+  },
+  {
+    "source": "outputs/universal-payments-production-20260906/verify_dictionary.py",
+    "reference": "scripts/reference/universal-payments-production-20260906/verify_dictionary.py",
+    "sha256": "00DE6085269B67AA485877E59BC4E1DA8097A68B8ACF2B563E6BE34D158767FC"
+  }
+]

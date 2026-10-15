@@ -1,0 +1,602 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "relation"
+  "name": "public.olap_repayments_analytics"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r053-notifications-jobs/dictionary-production-closure.json"
+  "coverage": "Actual affected PROD89 catalogue after maintained migration and authority restoration; no business rows."
+"content":
+  "definition":
+    "schema": "public"
+    "name": "olap_repayments_analytics"
+    "kind": "v"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "n"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,mw_reviewer_dml=r/postgres,metabase_borrower_reader=r/postgres,mw_app_prod=r/postgres,mw_jobs_owner_prod=r/postgres}"
+    "comment": null
+    "view_definition": |2-
+       WITH ctx AS (
+               SELECT q.d,
+                  date_trunc('month'::text, q.d::timestamp with time zone)::date AS ms,
+                  (date_trunc('month'::text, q.d::timestamp with time zone) + '1 mon -1 days'::interval)::date AS me
+                 FROM ( SELECT olap_reporting_date() AS d) q
+              ), events AS (
+               SELECT c."Contribution Date" AS dt,
+                  sum(
+                      CASE
+                          WHEN c."Transaction Type" = 'Contribution'::text THEN c."Amount"::numeric
+                          ELSE - c."Amount"::numeric
+                      END) AS pool,
+                  sum(
+                      CASE
+                          WHEN c."Transaction Type" = 'Contribution'::text THEN c."Amount"::numeric
+                          ELSE - c."Amount"::numeric
+                      END) FILTER (WHERE p."Partner Role" = 'A'::text) AS a,
+                  sum(
+                      CASE
+                          WHEN c."Transaction Type" = 'Contribution'::text THEN c."Amount"::numeric
+                          ELSE - c."Amount"::numeric
+                      END) FILTER (WHERE p."Partner Role" = 'B'::text) AS b
+                 FROM "Cash Pool Contributions" c
+                   LEFT JOIN "Partners" p ON p."Row ID" = c."Ref Partner"
+                GROUP BY c."Contribution Date"
+              ), running AS MATERIALIZED (
+               SELECT events.dt,
+                  sum(events.pool) OVER w AS pool,
+                  sum(events.a) OVER w AS a,
+                  sum(events.b) OVER w AS b
+                 FROM events
+                WINDOW w AS (ORDER BY events.dt ROWS UNBOUNDED PRECEDING)
+              ), a AS (
+               SELECT r."Row ID",
+                  r."Payment Date",
+                  r."Principal Paid",
+                  r."Interest Paid",
+                  r."Notes",
+                  r."Ref Loans",
+                  r."Ref Charges",
+                  r."Created By",
+                  r."Ref Payment",
+                  r."Ref Payment Allocation",
+                  COALESCE(h.pool, 0::numeric) AS "Pool Total at Payment Date",
+                  COALESCE(h.a, 0::numeric) AS "Partner A Contribution at Payment Date",
+                  COALESCE(h.b, 0::numeric) AS "Partner B Contribution at Payment Date",
+                      CASE
+                          WHEN h.pool > 0::numeric THEN COALESCE(h.a, 0::numeric) / h.pool
+                          ELSE 0::numeric
+                      END AS "Partner A Profit Share",
+                      CASE
+                          WHEN h.pool > 0::numeric THEN COALESCE(h.b, 0::numeric) / h.pool
+                          ELSE 0::numeric
+                      END AS "Partner B Profit Share",
+                      CASE
+                          WHEN COALESCE(r."Principal Paid"::numeric, 0::numeric) <= 0::numeric OR r."Payment Date" > ctx.d THEN 0::numeric
+                          ELSE COALESCE(r."Principal Paid"::numeric, 0::numeric) *
+                          CASE
+                              WHEN r."Payment Date" >= ctx.ms AND r."Payment Date" <= ctx.me THEN (ctx.d - r."Payment Date" + 1)::numeric
+                              ELSE EXTRACT(day FROM ctx.d)
+                          END
+                      END AS "Principal Returned Days MTD",
+                      CASE
+                          WHEN r."Payment Date" < (ctx.d - 29) OR r."Payment Date" > ctx.d THEN 0::numeric
+                          ELSE COALESCE(r."Principal Paid"::numeric, 0::numeric) * (ctx.d - r."Payment Date" + 1)::numeric
+                      END AS "30D Principal Reduction Days",
+                  COALESCE(r."Principal Paid"::numeric, 0::numeric) + COALESCE(r."Interest Paid"::numeric, 0::numeric) AS "Amount Received"
+                 FROM "Repayments" r
+                   CROSS JOIN ctx
+                   LEFT JOIN LATERAL ( SELECT running.dt,
+                          running.pool,
+                          running.a,
+                          running.b
+                         FROM running
+                        WHERE running.dt <= r."Payment Date"
+                        ORDER BY running.dt DESC
+                       LIMIT 1) h ON true
+              ), final AS (
+               SELECT a."Row ID",
+                  a."Payment Date",
+                  a."Principal Paid",
+                  a."Interest Paid",
+                  a."Notes",
+                  a."Ref Loans",
+                  a."Ref Charges",
+                  a."Created By",
+                  a."Ref Payment",
+                  a."Ref Payment Allocation",
+                  a."Pool Total at Payment Date",
+                  a."Partner A Contribution at Payment Date",
+                  a."Partner B Contribution at Payment Date",
+                  a."Partner A Profit Share",
+                  a."Partner B Profit Share",
+                  a."Principal Returned Days MTD",
+                  a."30D Principal Reduction Days",
+                  a."Amount Received",
+                  round(COALESCE(a."Interest Paid"::numeric, 0::numeric) * a."Partner A Profit Share") AS "Partner A Profit",
+                  round(COALESCE(a."Interest Paid"::numeric, 0::numeric) * a."Partner B Profit Share") AS "Partner B Profit"
+                 FROM a
+              )
+       SELECT "Row ID",
+          "Payment Date",
+          "Principal Paid",
+          "Interest Paid",
+          "Notes",
+          "Ref Loans",
+          "Ref Charges",
+          "Created By",
+          "Ref Payment",
+          "Ref Payment Allocation",
+          "Principal Returned Days MTD",
+          round("Pool Total at Payment Date", 0) AS "Pool Total at Payment Date",
+          round("Partner A Contribution at Payment Date", 0) AS "Partner A Contribution at Payment Date",
+          round("Partner B Contribution at Payment Date", 0) AS "Partner B Contribution at Payment Date",
+          round("Partner A Profit Share", 2) AS "Partner A Profit Share",
+          round("Partner B Profit Share", 2) AS "Partner B Profit Share",
+          round("Partner A Profit", 0) AS "Partner A Profit",
+          round("Partner B Profit", 0) AS "Partner B Profit",
+          round("30D Principal Reduction Days", 2) AS "30D Principal Reduction Days",
+          round("Amount Received", 0) AS "Amount Received"
+         FROM final x;
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "columns":
+    "Row ID":
+      "schema": "public"
+      "relation": "olap_repayments_analytics"
+      "name": "Row ID"
+      "ordinal": 1
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Payment Date":
+      "schema": "public"
+      "relation": "olap_repayments_analytics"
+      "name": "Payment Date"
+      "ordinal": 2
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Principal Paid":
+      "schema": "public"
+      "relation": "olap_repayments_analytics"
+      "name": "Principal Paid"
+      "ordinal": 3
+      "data_type": "money"
+      "type_schema": "pg_catalog"
+      "type_name": "money"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Interest Paid":
+      "schema": "public"
+      "relation": "olap_repayments_analytics"
+      "name": "Interest Paid"
+      "ordinal": 4
+      "data_type": "money"
+      "type_schema": "pg_catalog"
+      "type_name": "money"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Notes":
+      "schema": "public"
+      "relation": "olap_repayments_analytics"
+      "name": "Notes"
+      "ordinal": 5
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Ref Loans":
+      "schema": "public"
+      "relation": "olap_repayments_analytics"
+      "name": "Ref Loans"
+      "ordinal": 6
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Ref Charges":
+      "schema": "public"
+      "relation": "olap_repayments_analytics"
+      "name": "Ref Charges"
+      "ordinal": 7
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Created By":
+      "schema": "public"
+      "relation": "olap_repayments_analytics"
+      "name": "Created By"
+      "ordinal": 8
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Ref Payment":
+      "schema": "public"
+      "relation": "olap_repayments_analytics"
+      "name": "Ref Payment"
+      "ordinal": 9
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Ref Payment Allocation":
+      "schema": "public"
+      "relation": "olap_repayments_analytics"
+      "name": "Ref Payment Allocation"
+      "ordinal": 10
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Principal Returned Days MTD":
+      "schema": "public"
+      "relation": "olap_repayments_analytics"
+      "name": "Principal Returned Days MTD"
+      "ordinal": 11
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Pool Total at Payment Date":
+      "schema": "public"
+      "relation": "olap_repayments_analytics"
+      "name": "Pool Total at Payment Date"
+      "ordinal": 12
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Partner A Contribution at Payment Date":
+      "schema": "public"
+      "relation": "olap_repayments_analytics"
+      "name": "Partner A Contribution at Payment Date"
+      "ordinal": 13
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Partner B Contribution at Payment Date":
+      "schema": "public"
+      "relation": "olap_repayments_analytics"
+      "name": "Partner B Contribution at Payment Date"
+      "ordinal": 14
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Partner A Profit Share":
+      "schema": "public"
+      "relation": "olap_repayments_analytics"
+      "name": "Partner A Profit Share"
+      "ordinal": 15
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Partner B Profit Share":
+      "schema": "public"
+      "relation": "olap_repayments_analytics"
+      "name": "Partner B Profit Share"
+      "ordinal": 16
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Partner A Profit":
+      "schema": "public"
+      "relation": "olap_repayments_analytics"
+      "name": "Partner A Profit"
+      "ordinal": 17
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Partner B Profit":
+      "schema": "public"
+      "relation": "olap_repayments_analytics"
+      "name": "Partner B Profit"
+      "ordinal": 18
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "30D Principal Reduction Days":
+      "schema": "public"
+      "relation": "olap_repayments_analytics"
+      "name": "30D Principal Reduction Days"
+      "ordinal": 19
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Amount Received":
+      "schema": "public"
+      "relation": "olap_repayments_analytics"
+      "name": "Amount Received"
+      "ordinal": 20
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+  "constraints": {}
+  "indexes": {}
+  "triggers": {}
+  "policies": {}
+  "dependencies":
+  - "schema": "public"
+    "relation": "olap_repayments_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Pool Contributions"
+    "referenced_column": "Amount"
+  - "schema": "public"
+    "relation": "olap_repayments_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Pool Contributions"
+    "referenced_column": "Contribution Date"
+  - "schema": "public"
+    "relation": "olap_repayments_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Pool Contributions"
+    "referenced_column": "Ref Partner"
+  - "schema": "public"
+    "relation": "olap_repayments_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Pool Contributions"
+    "referenced_column": "Transaction Type"
+  - "schema": "public"
+    "relation": "olap_repayments_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Partners"
+    "referenced_column": "Partner Role"
+  - "schema": "public"
+    "relation": "olap_repayments_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Partners"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "olap_repayments_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Repayments"
+    "referenced_column": "Created By"
+  - "schema": "public"
+    "relation": "olap_repayments_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Repayments"
+    "referenced_column": "Interest Paid"
+  - "schema": "public"
+    "relation": "olap_repayments_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Repayments"
+    "referenced_column": "Notes"
+  - "schema": "public"
+    "relation": "olap_repayments_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Repayments"
+    "referenced_column": "Payment Date"
+  - "schema": "public"
+    "relation": "olap_repayments_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Repayments"
+    "referenced_column": "Principal Paid"
+  - "schema": "public"
+    "relation": "olap_repayments_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Repayments"
+    "referenced_column": "Ref Charges"
+  - "schema": "public"
+    "relation": "olap_repayments_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Repayments"
+    "referenced_column": "Ref Loans"
+  - "schema": "public"
+    "relation": "olap_repayments_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Repayments"
+    "referenced_column": "Ref Payment"
+  - "schema": "public"
+    "relation": "olap_repayments_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Repayments"
+    "referenced_column": "Ref Payment Allocation"
+  - "schema": "public"
+    "relation": "olap_repayments_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Repayments"
+    "referenced_column": "Row ID"
+"evidence":
+  "/content/definition/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"

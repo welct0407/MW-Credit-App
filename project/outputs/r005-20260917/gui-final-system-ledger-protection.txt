@@ -1,0 +1,95 @@
+- banner:
+  - button "Toggle menu":
+  - heading "Loan Business Insights — DEV" [level=6]
+  - button "ซิงค์":
+  - button "ดูสถานะแอป":
+    - button
+  - button "account menu":
+    - generic: W
+- navigation:
+  - button " ภาพรวม":
+    - generic: 
+    - generic: ภาพรวม
+  - button " การวิเคราะห์":
+    - generic: 
+    - generic: การวิเคราะห์
+  - button " ประเมินการปล่อยกู้เพิ่ม":
+    - generic: 
+    - generic: ประเมินการปล่อยกู้เพิ่ม
+  - button " หุ้นส่วน":
+    - generic: 
+    - generic: หุ้นส่วน
+  - button " ผู้กู้":
+    - generic: 
+    - generic: ผู้กู้
+  - button " Business Expenses":
+    - generic: 
+    - generic: Business Expenses
+  - button " Cash Position / สถานะเงินสด":
+    - generic: 
+    - generic: Cash Position / สถานะเงินสด
+  - button " งานสินเชื่อ / Operations App":
+    - generic: 
+    - generic: งานสินเชื่อ / Operations App
+  - button " สินเชื่อ":
+    - generic: 
+    - generic: สินเชื่อ
+  - button " Daily Analytics - Validation":
+    - generic: 
+    - generic: Daily Analytics - Validation
+  - separator
+  - button "เกี่ยวกับ":
+    - generic: เกี่ยวกับ
+  - button "Feedback":
+    - generic: Feedback
+  - separator
+  - button "App Gallery":
+    - generic: App Gallery
+- region "09/18/2026":
+  - heading "breadcrumbs" [level=2]:
+    - navigation "breadcrumbs":
+      - list:
+        - button "Cash Position / สถานะเงินสด": Cash Position / สถานะเงินสด
+        - button "09/18/2026" [disabled]
+  - button "ก่อนหน้า" [disabled]:
+    - generic: 
+  - button "ถัดไป":
+    - generic: 
+  - generic: Movement Date
+  - generic: 9/18/2026
+  - generic: Movement Type
+  - generic: Payment Receipt
+  - generic: Amount
+  - generic: ฿20
+  - generic: Ref To Cash Holder
+  - button "Ref To Cash Holder":
+    - generic: Lisa
+  - button "View Ref (Ref To Cash Holder)":
+    - generic: 
+    - generic: View Ref (Ref To Cash Holder)
+  - generic: Ref Payment
+  - button "Ref Payment":
+    - generic: 9/18/2026
+  - button "View Ref (Ref Payment)":
+    - generic: 
+    - generic: View Ref (Ref Payment)
+  - generic: Ref Business Expense
+  - generic: Entry Origin
+  - generic: System
+  - generic: Source Type
+  - generic: Payment
+  - generic: Source Key
+  - generic: PAYMENT:PNq6xWG7JQKy43bcYepSAg
+  - generic: Created At
+  - generic: 9/18/2026 12:34:02 AM
+  - generic: Created By
+  - button "Created By":
+    - text: [OWNER]
+    - text: "@[OWNER-DOMAIN]"
+  - button "Compose Email (Created By)":
+    - generic: 
+    - generic: Compose Email (Created By)
+  - generic: Updated At
+  - generic: 9/18/2026 12:34:03 AM
+- generic: 
+- text:   

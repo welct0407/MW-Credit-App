@@ -1,0 +1,11 @@
+{
+  "development": {
+    "schema_sha256": "5668472eecbcfc6141750fccd8aa9d6f1562e4221ebe54fe92f3e18cf67a8608",
+    "version": 42
+  },
+  "production": {
+    "schema_sha256": "5668472eecbcfc6141750fccd8aa9d6f1562e4221ebe54fe92f3e18cf67a8608",
+    "version": 41
+  },
+  "affected_dependency_definitions_match": true
+}

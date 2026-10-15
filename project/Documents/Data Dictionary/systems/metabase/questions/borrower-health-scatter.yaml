@@ -1,0 +1,65 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "metabase",
+    "component": "reports.mw-credit.com",
+    "kind": "question",
+    "name": "Payment behaviour vs contribution · automatic categories / 266",
+    "scope": "production"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r028-schedule-health/saved-question-definitions.json"
+  },
+  "content": {
+    "key": "scatter",
+    "id": 266,
+    "name": "Payment behaviour vs contribution · automatic categories",
+    "description": "R028 automatic schedule categories. Payment score unchanged; auto-off plus <80% interest amount OR charge-date coverage, >=7 observed days and >=2 due dates, restricts upper categories. Current 30 completed Bangkok days; no manual confirmations.",
+    "display": "scatter",
+    "dataset_query": {
+      "stages": [
+        {
+          "lib/type": "mbql.stage/native",
+          "native": "SELECT b.\"Description\"||' · '||m.quadrant||CASE WHEN m.arrangement_gate THEN ' · Modified schedule' ELSE '' END AS \"Borrower · category\",m.relative_contribution AS \"Contribution ×\",m.reliability_score AS \"Reliability /100\",m.outstanding_principal AS \"Principal ฿\" FROM public.reporting_borrower_matrix_v3 m JOIN public.reporting_borrower_payment_health_v1 h USING(borrower_id) JOIN public.olap_borrowers_analytics b ON b.\"Row ID\"=m.borrower_id WHERE m.quadrant<>'Unclassified' ORDER BY m.borrower_id"
+        }
+      ],
+      "lib/type": "mbql/query",
+      "database": 2
+    },
+    "visualization_settings": {
+      "graph.show_goal": true,
+      "graph.y_axis.title_text": "Observed payment score /100 (schedule restriction is separate)",
+      "scatter.bubble": "Principal ฿",
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": true,
+      "graph.y_axis.max": 100,
+      "graph.x_axis.title_text": "30-day interest / equal active-borrower share (boundary 1×)",
+      "graph.goal_value": 80,
+      "graph.y_axis.title_enabled": true,
+      "graph.metrics": [
+        "Reliability /100"
+      ],
+      "column_settings": {
+        "[\"name\",\"Reliability /100\"]": {
+          "number_style": "decimal",
+          "decimals": 1,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Contribution ×\"]": {
+          "number_style": "decimal",
+          "decimals": 1,
+          "number_separators": ".,",
+          "compact": false
+        }
+      },
+      "graph.y_axis.auto_range": false,
+      "graph.dimensions": [
+        "Contribution ×",
+        "Borrower · category"
+      ],
+      "graph.y_axis.min": 0
+    }
+  }
+}

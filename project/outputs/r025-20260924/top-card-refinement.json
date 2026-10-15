@@ -1,0 +1,21 @@
+{
+  "at": "2026-09-24T12:12:31.622Z",
+  "baselineCommit": "487cada38dc219c82d85969ac87dc2dccc5a2899",
+  "question": 252,
+  "topRow": [
+    237,
+    238,
+    239,
+    252
+  ],
+  "checks": [
+    "New scalar equals existing today-charge table percentage",
+    "Saved question executes",
+    "Exact requested four-card order",
+    "All other placements unchanged",
+    "Tabs unchanged",
+    "Filters unchanged"
+  ],
+  "peopleQuestionRetained": 236,
+  "databaseChanges": false
+}

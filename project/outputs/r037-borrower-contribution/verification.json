@@ -1,0 +1,38 @@
+{
+  "at": "2026-09-26T03:29:25.983Z",
+  "otherTabsPreserved": true,
+  "parametersPreserved": true,
+  "permissionsPreserved": true,
+  "checks": [
+    {
+      "key": "principal",
+      "rows": 10,
+      "dateMappingAbsent": true,
+      "ms": 166
+    },
+    {
+      "key": "profit",
+      "rows": 10,
+      "dateMappingAbsent": true,
+      "ms": 105
+    },
+    {
+      "key": "rate",
+      "rows": 8,
+      "dateMappingAbsent": true,
+      "ms": 107
+    },
+    {
+      "key": "coverage",
+      "rows": 8,
+      "dateMappingAbsent": true,
+      "ms": 105
+    },
+    {
+      "key": "context",
+      "rows": 1,
+      "dateMappingAbsent": true,
+      "ms": 101
+    }
+  ]
+}

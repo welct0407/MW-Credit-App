@@ -1,0 +1,673 @@
+{
+  "allSheetsRoundtrip": true,
+  "changes": [
+    {
+      "sheet": "Dev Differences",
+      "row": 334,
+      "values": [
+        "OLTP",
+        "Loans.Charge Generation Request",
+        "Type",
+        "Absent",
+        "Text"
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 335,
+      "values": [
+        "OLTP",
+        "Loans.Charge Generation Request",
+        "Virtual",
+        "Absent",
+        "No"
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 336,
+      "values": [
+        "OLTP",
+        "Loans.Charge Generation Request",
+        "Key",
+        "Absent",
+        "No"
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 337,
+      "values": [
+        "OLTP",
+        "Loans.Charge Generation Request",
+        "Label",
+        "Absent",
+        "No"
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 338,
+      "values": [
+        "OLTP",
+        "Loans.Charge Generation Request",
+        "Read-Only",
+        "Absent",
+        "No; action-writable, user editing blocked by Editable_If"
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 339,
+      "values": [
+        "OLTP",
+        "Loans.Charge Generation Request",
+        "Editable_If",
+        "Absent",
+        "=FALSE"
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 340,
+      "values": [
+        "OLTP",
+        "Loans.Charge Generation Request",
+        "Hidden",
+        "Absent",
+        "Yes"
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 341,
+      "values": [
+        "OLTP",
+        "Loans.Charge Generation Request",
+        "Searchable",
+        "Absent",
+        "No"
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 342,
+      "values": [
+        "OLTP",
+        "Loans.Charge Generation Request",
+        "Visible?",
+        "Absent",
+        "ALWAYS"
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 343,
+      "values": [
+        "OLTP",
+        "Loans.Charge Generation Request",
+        "Initial value",
+        "Absent",
+        "Blank"
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 344,
+      "values": [
+        "OLTP",
+        "Loans.Charge Generation Request",
+        "App formula",
+        "Absent",
+        "Blank"
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 345,
+      "values": [
+        "OLTP",
+        "Loans.Charge Generation Request",
+        "Required_If",
+        "Absent",
+        "Blank (nullable)"
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 346,
+      "values": [
+        "OLTP",
+        "Loans.Charge Generation Request",
+        "Reset on edit?",
+        "Absent",
+        "No"
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 347,
+      "values": [
+        "OLTP",
+        "Loans.Charge Generation Request",
+        "System Defined?",
+        "Absent",
+        "No"
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 348,
+      "values": [
+        "OLTP",
+        "Loans.Charge Generation Request",
+        "Fixed definition?",
+        "Absent",
+        "No"
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 349,
+      "values": [
+        "OLTP",
+        "Loans.Charge Generation Request",
+        "Editable Initial Value?",
+        "Absent",
+        "Yes"
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 350,
+      "values": [
+        "OLTP",
+        "Loans.Charge Generation Request",
+        "LocaleName",
+        "Absent",
+        "en-US"
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 351,
+      "values": [
+        "OLTP",
+        "Loans.Charge Generation Request",
+        "Display name",
+        "Absent",
+        "Blank"
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 352,
+      "values": [
+        "OLTP",
+        "Loans.Charge Generation Request",
+        "Description",
+        "Absent",
+        "Blank"
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 353,
+      "values": [
+        "OLTP",
+        "Loans.Charge Generation Request",
+        "Scannable",
+        "Absent",
+        "No"
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 354,
+      "values": [
+        "OLTP",
+        "Loans.Charge Generation Request",
+        "Sensitive data",
+        "Absent",
+        "No"
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 355,
+      "values": [
+        "OLAP",
+        "Loans.Charge Generation Request",
+        "Type",
+        "Absent",
+        "Text"
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 356,
+      "values": [
+        "OLAP",
+        "Loans.Charge Generation Request",
+        "Virtual",
+        "Absent",
+        "No"
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 357,
+      "values": [
+        "OLAP",
+        "Loans.Charge Generation Request",
+        "Key",
+        "Absent",
+        "No"
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 358,
+      "values": [
+        "OLAP",
+        "Loans.Charge Generation Request",
+        "Label",
+        "Absent",
+        "No"
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 359,
+      "values": [
+        "OLAP",
+        "Loans.Charge Generation Request",
+        "Read-Only",
+        "Absent",
+        "Yes"
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 360,
+      "values": [
+        "OLAP",
+        "Loans.Charge Generation Request",
+        "Editable_If",
+        "Absent",
+        "Blank"
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 361,
+      "values": [
+        "OLAP",
+        "Loans.Charge Generation Request",
+        "Hidden",
+        "Absent",
+        "Yes"
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 362,
+      "values": [
+        "OLAP",
+        "Loans.Charge Generation Request",
+        "Searchable",
+        "Absent",
+        "No"
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 363,
+      "values": [
+        "OLAP",
+        "Loans.Charge Generation Request",
+        "Visible?",
+        "Absent",
+        "ALWAYS"
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 364,
+      "values": [
+        "OLAP",
+        "Loans.Charge Generation Request",
+        "Initial value",
+        "Absent",
+        "Blank"
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 365,
+      "values": [
+        "OLAP",
+        "Loans.Charge Generation Request",
+        "App formula",
+        "Absent",
+        "Blank"
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 366,
+      "values": [
+        "OLAP",
+        "Loans.Charge Generation Request",
+        "Required_If",
+        "Absent",
+        "Blank (nullable)"
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 367,
+      "values": [
+        "OLAP",
+        "Loans.Charge Generation Request",
+        "Reset on edit?",
+        "Absent",
+        "No"
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 368,
+      "values": [
+        "OLAP",
+        "Loans.Charge Generation Request",
+        "System Defined?",
+        "Absent",
+        "No"
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 369,
+      "values": [
+        "OLAP",
+        "Loans.Charge Generation Request",
+        "Fixed definition?",
+        "Absent",
+        "No"
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 370,
+      "values": [
+        "OLAP",
+        "Loans.Charge Generation Request",
+        "Editable Initial Value?",
+        "Absent",
+        "Yes"
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 371,
+      "values": [
+        "OLAP",
+        "Loans.Charge Generation Request",
+        "LocaleName",
+        "Absent",
+        "en-US"
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 372,
+      "values": [
+        "OLAP",
+        "Loans.Charge Generation Request",
+        "Display name",
+        "Absent",
+        "Blank"
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 373,
+      "values": [
+        "OLAP",
+        "Loans.Charge Generation Request",
+        "Description",
+        "Absent",
+        "Blank"
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 374,
+      "values": [
+        "OLAP",
+        "Loans.Charge Generation Request",
+        "Scannable",
+        "Absent",
+        "No"
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 375,
+      "values": [
+        "OLAP",
+        "Loans.Charge Generation Request",
+        "Sensitive data",
+        "Absent",
+        "No"
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 376,
+      "values": [
+        "OLAP",
+        "Reporting Loans",
+        "V8 slice columns",
+        "V7 columns",
+        "Charge Generation Request appended; hidden in base table. READ_ONLY, filter and actions retained."
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 377,
+      "values": [
+        "OLAP",
+        "View Ref (Ref Target Loan)",
+        "Visible?",
+        "ADVANCED at V7 checkpoint",
+        "ALWAYS after regeneration; same inline target, condition and no editing permission."
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 378,
+      "values": [
+        "Database",
+        "Loans.Charge Generation Request",
+        "Schema",
+        "Absent",
+        "Nullable text; no default, backfill, key, index or Ref. Dated nonce command owned by OLTP."
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 379,
+      "values": [
+        "OLTP",
+        "Generate Today's Charge",
+        "Do this",
+        "ADD_RECORD_TO Charges",
+        "SET_COLUMN_VALUE Loans; only Charge Generation Request assigned. Existing due filter and hidden prominence retained."
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 380,
+      "values": [
+        "OLTP",
+        "Generate Today's Charge",
+        "Request expression",
+        "Financial component assignments",
+        "=CONCATENATE(TEXT(TODAY(), \"YYYY-MM-DD\"), \"|\", UNIQUEID())"
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 381,
+      "values": [
+        "OLTP",
+        "Generate All Today's Charges",
+        "Routing",
+        "Existing bulk action",
+        "Unchanged per-loan route; SQL now owns calculation through the referenced action."
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 382,
+      "values": [
+        "OLTP",
+        "Generate Daily Charges",
+        "Bot enabled",
+        "Yes in production",
+        "No; replaced by development pg_cron job. Four reviewed owner-only notification bots unchanged."
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 383,
+      "values": [
+        "Database",
+        "loan-daily-charges",
+        "Schedule",
+        "Absent in production",
+        "Active development only; 00:05 Asia/Bangkok. Owner approved nightly development generation."
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 122,
+      "values": [
+        "Database",
+        "Flyway",
+        "Schema version",
+        "V5",
+        "V9; development only"
+      ]
+    },
+    {
+      "sheet": "App Settings",
+      "row": 46,
+      "values": [
+        "development-oltp",
+        "Version",
+        "Saved app version",
+        "1.000039",
+        "V9 current editor/appdoc; rollback both apps 1.000036"
+      ]
+    },
+    {
+      "sheet": "App Settings",
+      "row": 47,
+      "values": [
+        "development-olap",
+        "Version",
+        "Saved app version",
+        "1.000039",
+        "V9 current editor/appdoc; rollback both apps 1.000036"
+      ]
+    },
+    {
+      "sheet": "DB Logic",
+      "row": 48,
+      "values": [
+        "Development function",
+        "public",
+        "generate_loan_charge",
+        "Flyway V8",
+        "Common manual/nightly daily-interest, fixed-date and installment generator. Locks borrower/loan/charges, skips existing loan/date, preserves interval/anchor/accrual/remainder rules. Manual borrower lock uses NOWAIT to avoid inverted lock deadlocks."
+      ]
+    },
+    {
+      "sheet": "DB Logic",
+      "row": 49,
+      "values": [
+        "Development function",
+        "public",
+        "generate_due_charges",
+        "Flyway V8",
+        "Atomic ordered batch using common generator; explicit business date; optional loan list for isolated tests. Returns inserted count."
+      ]
+    },
+    {
+      "sheet": "DB Logic",
+      "row": 50,
+      "values": [
+        "Development function",
+        "public",
+        "charge_generation_request",
+        "Flyway V8",
+        "Validates changed yyyy-mm-dd|nonce against Bangkok today; invokes common generator; failure rolls back token and charge."
+      ]
+    },
+    {
+      "sheet": "DB Logic",
+      "row": 51,
+      "values": [
+        "Development trigger",
+        "Loans",
+        "manual_charge_generation",
+        "Flyway V8",
+        "AFTER INSERT OR UPDATE OF Charge Generation Request, FOR EACH ROW."
+      ]
+    },
+    {
+      "sheet": "DB Logic",
+      "row": 52,
+      "values": [
+        "Development extension",
+        "cron",
+        "pg_cron",
+        "Flyway V9 / Cloud SQL 1.6.7",
+        "Background workers; database loan_manager_prod on development host only; cron timezone Asia/Bangkok, max running jobs 1; session TimeZone remains UTC."
+      ]
+    },
+    {
+      "sheet": "DB Logic",
+      "row": 53,
+      "values": [
+        "Development job",
+        "cron",
+        "loan-daily-charges",
+        "Flyway V9; activation separate",
+        "00:05 Asia/Bangkok calls generate_due_charges for current Bangkok date. Active after successful synthetic scheduler test. Cron metadata is not an AppSheet business table."
+      ]
+    },
+    {
+      "sheet": "Guide",
+      "row": 5,
+      "values": [
+        "Database",
+        "Production V5; development V9",
+        "Core payment, atomic Close Loan and common manual/nightly charge generation in development. Production catalogs unchanged; Dev Differences contains app and additive schema properties."
+      ]
+    },
+    {
+      "sheet": "Guide",
+      "row": 14,
+      "values": [
+        "Development charge generation",
+        "OLTP 1.000039 / OLAP 1.000039; Flyway V9",
+        "Manual and nightly generation use one SQL engine. New hidden nullable Loans request field. Current-GUI and actual scheduler tests pass. Nightly development job enabled; owner accepted phases 4–5 on 15 September 2026; first natural nightly run pending. See outputs/charge-generation-20260915/REPORT.md."
+      ]
+    }
+  ],
+  "ownerAcceptance": "15 September 2026: Looks correct — accept phases 4–5"
+}

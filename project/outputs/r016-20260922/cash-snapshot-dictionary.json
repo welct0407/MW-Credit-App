@@ -1,0 +1,12 @@
+{
+  "edited_sheets": [
+    "Metabase Models",
+    "DB Logic"
+  ],
+  "patch_rows": {
+    "Metabase Models": 34,
+    "DB Logic": 3
+  },
+  "all_other_parts_byte_preserved": true,
+  "sha256": "1b33aebd71f79ef16023d510ceb8276942444b4665045611f12acce5f247b377"
+}

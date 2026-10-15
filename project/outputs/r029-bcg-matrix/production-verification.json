@@ -1,0 +1,15 @@
+{
+  "borrowers": 23,
+  "categories": {
+    "Cash Cow": 8,
+    "Dog": 6,
+    "Star": 4,
+    "Question Mark": 5
+  },
+  "plotted": 23,
+  "unclassified": 0,
+  "modified": 4,
+  "source_field_mismatches": 0,
+  "coordinate_mismatches": 0,
+  "elapsed_ms": 1132.1
+}

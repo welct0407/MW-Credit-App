@@ -1,0 +1,31 @@
+{
+  "at": "2026-09-25T11:31:29.108Z",
+  "dashboard": 3,
+  "tab": 19,
+  "statusOrder": [
+    "Not Paid",
+    "Partially Paid",
+    "Overdue",
+    "Fully Paid"
+  ],
+  "countCards": [
+    242,
+    244,
+    240,
+    246
+  ],
+  "listCards": [
+    243,
+    245,
+    241,
+    247
+  ],
+  "checks": [
+    "Count and borrower-list rows both follow the requested order",
+    "All other dashboard placements, tabs and filters unchanged",
+    "Detail status selector and conditional rules follow the same order",
+    "Detail query unchanged"
+  ],
+  "rollback": "C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r036-collection-status-order",
+  "databaseChanges": false
+}

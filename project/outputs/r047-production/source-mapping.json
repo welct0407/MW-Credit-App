@@ -1,0 +1,291 @@
+{
+  "OLTP": [
+    {
+      "Data Source": "database-2",
+      "Source Path": "Borrowers",
+      "Table name": "Borrowers"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Loans",
+      "Table name": "Loans"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Repayments",
+      "Table name": "Repayments"
+    },
+    {
+      "Data Source": "native",
+      "Source Path": "_Per User Settings",
+      "Table name": "_Per User Settings"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Statistics",
+      "Table name": "Statistics"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Charges",
+      "Table name": "Charges"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Partners",
+      "Table name": "Partners"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Payment Allocations",
+      "Table name": "Payment Allocations"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Payments",
+      "Table name": "Payments"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Business Expenses",
+      "Table name": "Business Expenses"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Loan Form Context",
+      "Table name": "Loan Form Context"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Cash Holders",
+      "Table name": "Cash Holders"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Cash Holder Balances",
+      "Table name": "Cash Holder Balances"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Cash Accounts",
+      "Table name": "Cash Accounts"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Cash Statement Context",
+      "Table name": "Cash Statement Context"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Cash Account Daily Summary Recent",
+      "Table name": "Cash Account Daily Summary Recent"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Cash Account Statement Recent",
+      "Table name": "Cash Account Statement Recent"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Cash Account Balances",
+      "Table name": "Cash Account Balances"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Cash Dashboard",
+      "Table name": "Cash Dashboard"
+    },
+    {
+      "Data Source": "native",
+      "Source Path": "/ProcessStateTables/31ec94c9-9447-4979-af2a-8a6e73293658/2797d3f2-63d9-4a58-923c-e6dea9c25504/State Table",
+      "Table name": "Process for Generate Daily Charges - 1 Process Table"
+    },
+    {
+      "Data Source": "native",
+      "Source Path": "/ProcessStateTables/31ec94c9-9447-4979-af2a-8a6e73293658/2797d3f2-63d9-4a58-923c-e6dea9c25504/StepOutput_Canonical app execution guard",
+      "Table name": "Canonical app execution guard Output"
+    },
+    {
+      "Data Source": "native",
+      "Source Path": "/ProcessStateTables/31ec94c9-9447-4979-af2a-8a6e73293658/2797d3f2-63d9-4a58-923c-e6dea9c25504/StepOutput_Generate Today's Charge",
+      "Table name": "Generate Today's Charge Output"
+    },
+    {
+      "Data Source": "native",
+      "Source Path": "/ProcessStateTables/31ec94c9-9447-4979-af2a-8a6e73293658/13deb41b-ad4a-4555-b062-28973a208d12/State Table",
+      "Table name": "Process for Notification - New Loan Created Process Table"
+    },
+    {
+      "Data Source": "native",
+      "Source Path": "/ProcessStateTables/31ec94c9-9447-4979-af2a-8a6e73293658/13deb41b-ad4a-4555-b062-28973a208d12/StepOutput_First-day receipt exists",
+      "Table name": "First-day receipt exists Output"
+    },
+    {
+      "Data Source": "native",
+      "Source Path": "/ProcessStateTables/31ec94c9-9447-4979-af2a-8a6e73293658/3a499a4e-93c6-43a4-99f2-cfd59756f750/State Table",
+      "Table name": "Process for Notification - Loan Closed Process Table"
+    },
+    {
+      "Data Source": "native",
+      "Source Path": "/ProcessStateTables/31ec94c9-9447-4979-af2a-8a6e73293658/cd523eff-fbae-46b9-bb82-35ab41c1c311/State Table",
+      "Table name": "Process for Notification - Charge Received Process Table"
+    },
+    {
+      "Data Source": "native",
+      "Source Path": "/ProcessStateTables/31ec94c9-9447-4979-af2a-8a6e73293658/cd523eff-fbae-46b9-bb82-35ab41c1c311/StepOutput_Notify payment-closed loans",
+      "Table name": "Notify payment-closed loans Output"
+    },
+    {
+      "Data Source": "native",
+      "Source Path": "/ProcessStateTables/31ec94c9-9447-4979-af2a-8a6e73293658/df292753-2bae-47be-8351-50a94ae1389e/State Table",
+      "Table name": "Process for Notification - First-Day Charge Process Table"
+    },
+    {
+      "Data Source": "native",
+      "Source Path": "/ProcessStateTables/31ec94c9-9447-4979-af2a-8a6e73293658/f1209488-7dc2-4a2b-9ace-84363c4ceb1b/State Table",
+      "Table name": "Process for R008 Receive All Confirmed Process Table"
+    },
+    {
+      "Data Source": "native",
+      "Source Path": "/ProcessStateTables/31ec94c9-9447-4979-af2a-8a6e73293658/f1209488-7dc2-4a2b-9ace-84363c4ceb1b/StepOutput_Notify payment-closed loans",
+      "Table name": "Notify payment-closed loans Output 2"
+    },
+    {
+      "Data Source": "native",
+      "Source Path": "/ProcessStateTables/31ec94c9-9447-4979-af2a-8a6e73293658/d32943f3-d119-4dc2-8a1b-907b109fc50d/State Table",
+      "Table name": "Process for R008 Single Full Confirmed Process Table"
+    },
+    {
+      "Data Source": "native",
+      "Source Path": "/ProcessStateTables/31ec94c9-9447-4979-af2a-8a6e73293658/d32943f3-d119-4dc2-8a1b-907b109fc50d/StepOutput_Notify payment-closed loans",
+      "Table name": "Notify payment-closed loans Output 3"
+    },
+    {
+      "Data Source": "native",
+      "Source Path": "/ProcessStateTables/31ec94c9-9447-4979-af2a-8a6e73293658/7e6cb8b5-147a-46e7-83cd-e1961834e788/State Table",
+      "Table name": "Process for R008 Loan Close Confirmed Process Table"
+    },
+    {
+      "Data Source": "native",
+      "Source Path": "/ProcessStateTables/31ec94c9-9447-4979-af2a-8a6e73293658/7e6cb8b5-147a-46e7-83cd-e1961834e788/StepOutput_Notify payment-closed loans",
+      "Table name": "Notify payment-closed loans Output 4"
+    }
+  ],
+  "OLAP": [
+    {
+      "Data Source": "database-2",
+      "Source Path": "olap_borrowers_analytics",
+      "Table name": "Borrowers"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "olap_loans_analytics",
+      "Table name": "Loans"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "olap_repayments_analytics",
+      "Table name": "Repayments"
+    },
+    {
+      "Data Source": "native",
+      "Source Path": "_Per User Settings",
+      "Table name": "_Per User Settings"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Statistics",
+      "Table name": "Statistics"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "olap_charges_analytics",
+      "Table name": "Charges"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Loan Assessment SQL Lab View",
+      "Table name": "Loan Assessment"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Cash Pool Contributions",
+      "Table name": "Cash Pool Contributions"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Partners",
+      "Table name": "Partners"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Settlements",
+      "Table name": "Settlements"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Daily Analytics",
+      "Table name": "Daily Analytics"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Payment Allocations",
+      "Table name": "Payment Allocations"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Payments",
+      "Table name": "Payments"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Business Expenses",
+      "Table name": "Business Expenses"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Cash Holders",
+      "Table name": "Cash Holders"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Cash Holder Balances",
+      "Table name": "Cash Holder Balances"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Cash Ledger",
+      "Table name": "Cash Ledger"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "olap_portfolio_summary",
+      "Table name": "Portfolio Summary"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Cash Accounts",
+      "Table name": "Cash Accounts"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Cash Account Balances",
+      "Table name": "Cash Account Balances"
+    },
+    {
+      "Data Source": "native",
+      "Source Path": "/ProcessStateTables/8cf0abc9-d044-47cc-abaf-24d9d9c83b7b/0fc5a2a6-e327-47cb-a724-c66e562b9471/State Table",
+      "Table name": "Process for Refresh Daily Analytics Daily - 1 Process Table"
+    },
+    {
+      "Data Source": "native",
+      "Source Path": "/ProcessStateTables/8cf0abc9-d044-47cc-abaf-24d9d9c83b7b/0fc5a2a6-e327-47cb-a724-c66e562b9471/StepOutput_Canonical app execution guard",
+      "Table name": "Canonical app execution guard Output"
+    },
+    {
+      "Data Source": "native",
+      "Source Path": "/ProcessStateTables/8cf0abc9-d044-47cc-abaf-24d9d9c83b7b/0fc5a2a6-e327-47cb-a724-c66e562b9471/StepOutput_Request Recent Analytics Refresh",
+      "Table name": "Request Recent Analytics Refresh Output"
+    }
+  ]
+}

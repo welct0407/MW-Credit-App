@@ -1,0 +1,485 @@
+{
+  "captured_at": "2026-10-06T14:11:33.381694+00:00",
+  "environment": "development",
+  "database": "loan_manager_dev",
+  "version": 73,
+  "scope": "Catalog definitions only, affected R051 routines and relation metadata; no business rows, roles or credentials",
+  "migrations": {
+    "V73__scoped_history_and_coalesced_parent_refresh.sql": "4385572f8495470f5f462cfdfef220e703a754143c356bf77d1628347071655d"
+  },
+  "routines": [
+    {
+      "name": "public.business_history_refresh()",
+      "definition": "CREATE OR REPLACE FUNCTION public.business_history_refresh()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\r\nDECLARE o jsonb:=CASE WHEN TG_OP='INSERT' THEN '{}'::jsonb ELSE to_jsonb(OLD) END;\r\n n jsonb:=CASE WHEN TG_OP='DELETE' THEN '{}'::jsonb ELSE to_jsonb(NEW) END;\r\n fields text[]; date_column text:=TG_ARGV[0]; d date; first_day date; last_day date;\r\nBEGIN\r\n fields:=CASE TG_TABLE_NAME\r\n  WHEN 'Loans' THEN ARRAY['Loan Date','Principal Amount','Loan Status','Close Date','Defaulted','Ref Borrowers']\r\n  WHEN 'Charges' THEN ARRAY['Charge Date','Principal Due','Interest Due','Ref Loans']\r\n  WHEN 'Business Expenses' THEN ARRAY['Expense Date','Amount','Partner A Expense','Partner B Expense']\r\n  WHEN 'Cash Ledger' THEN ARRAY['Movement Date','Amount','Movement Type','Ref From Cash Holder','Ref To Cash Holder','Ref From Cash Account','Ref To Cash Account']\r\n  WHEN 'Cash Pool Contributions' THEN ARRAY['Contribution Date','Amount','Transaction Type','Ref Partner']\r\n  WHEN 'Settlements' THEN ARRAY['Transfer Date','Amount','Status','Ref Partner']\r\n  WHEN 'Repayments' THEN ARRAY['Payment Date','Principal Paid','Interest Paid','Ref Loans','Ref Charges']\r\n  WHEN 'Partners' THEN ARRAY['Partner Role'] END;\r\n IF TG_OP='UPDATE' AND NOT EXISTS(SELECT 1 FROM unnest(fields) k WHERE o->k IS DISTINCT FROM n->k) THEN RETURN NULL; END IF;\r\n d:=least((o->>date_column)::date,(n->>date_column)::date);\r\n IF TG_TABLE_NAME='Loans' AND TG_OP='UPDATE' AND\r\n  (o->'Loan Date',o->'Principal Amount',o->'Ref Borrowers') IS NOT DISTINCT FROM (n->'Loan Date',n->'Principal Amount',n->'Ref Borrowers') THEN\r\n  d:=least((o->>'Close Date')::date,(n->>'Close Date')::date);\r\n END IF;\r\n IF TG_TABLE_NAME='Partners' THEN\r\n  SELECT min(\"Contribution Date\") INTO d FROM public.\"Cash Pool Contributions\" WHERE \"Ref Partner\" IN (o->>'Row ID',n->>'Row ID');\r\n END IF;\r\n IF d IS NULL THEN RETURN NULL; END IF;\r\n IF TG_TABLE_NAME='Cash Ledger' THEN\r\n  PERFORM set_config('business_history.accounts',\r\n   (coalesce(nullif(current_setting('business_history.accounts',true),'')::jsonb,'{}'::jsonb) ||\r\n    coalesce((SELECT jsonb_object_agg(k,true) FROM unnest(ARRAY[o->>'Ref From Cash Account',o->>'Ref To Cash Account',n->>'Ref From Cash Account',n->>'Ref To Cash Account']) k WHERE k IS NOT NULL),'{}'::jsonb))::text,true);\r\n END IF;\r\n PERFORM public.request_business_history(d);\r\n RETURN NULL;\r\nEND $function$\n"
+    },
+    {
+      "name": "public.flush_business_history()",
+      "definition": "CREATE OR REPLACE FUNCTION public.flush_business_history()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\r\nDECLARE d date; first_day date; last_day date; accounts text[];\r\nBEGIN\r\n -- Nested statements contribute dates; only the outer source statement flushes.\r\n IF pg_trigger_depth()>1 THEN RETURN NULL; END IF;\r\n IF TG_LEVEL='STATEMENT' THEN\r\n  PERFORM set_config('business_history.statement_active','off',true);\r\n ELSIF current_setting('business_history.statement_active',true)='on' THEN\r\n  -- An immediate constraint callback still belongs to its unfinished statement.\r\n  RETURN NULL;\r\n END IF;\r\n d:=nullif(current_setting('business_history.from',true),'')::date;\r\n IF d IS NULL THEN RETURN NULL; END IF;\r\n PERFORM set_config('business_history.from','',true);\r\n SELECT coalesce(array_agg(k),ARRAY[]::text[]) INTO accounts FROM jsonb_object_keys(coalesce(nullif(current_setting('business_history.accounts',true),'')::jsonb,'{}'::jsonb)) k;\r\n PERFORM set_config('business_history.accounts','',true);\r\n SELECT min(snapshot_day),max(snapshot_day) INTO first_day,last_day FROM (\r\n  SELECT \"Snapshot Date\" snapshot_day FROM public.\"Daily Analytics\" WHERE \"Snapshot Date\">=d\r\n  UNION ALL SELECT \"Snapshot Date\" FROM public.\"Cash Account Daily Analytics\" WHERE \"Snapshot Date\">=d) snapshots;\r\n IF first_day IS NOT NULL THEN PERFORM public.refresh_daily_analytics_scoped(first_day,last_day,accounts); END IF;\r\n RETURN NULL;\r\nEND $function$\n"
+    },
+    {
+      "name": "public.r051_flush_parents(kind text)",
+      "definition": "CREATE OR REPLACE FUNCTION public.r051_flush_parents(kind text)\n RETURNS void\n LANGUAGE plpgsql\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\r\nDECLARE dirty jsonb:=coalesce(nullif(current_setting('r051_dirty.'||kind,true),'')::jsonb,'{}'::jsonb); k text;\r\nBEGIN\r\n IF dirty='{}'::jsonb THEN RETURN; END IF;\r\n PERFORM set_config('r051_dirty.'||kind,'',true);\r\n FOR k IN SELECT jsonb_object_keys(dirty) ORDER BY 1 LOOP\r\n  CASE kind\r\n   WHEN 'charge' THEN PERFORM public.vc_refresh_charge(k);\r\n   WHEN 'loan' THEN PERFORM public.vc_refresh_loan(k);\r\n   WHEN 'payment' THEN PERFORM public.vc_refresh_payment(k);\r\n   WHEN 'borrower' THEN PERFORM public.vc_refresh_borrower(k);\r\n   ELSE RAISE EXCEPTION 'Unknown parent refresh kind';\r\n  END CASE;\r\n END LOOP;\r\nEND $function$\n"
+    },
+    {
+      "name": "public.r051_parent_dirty()",
+      "definition": "CREATE OR REPLACE FUNCTION public.r051_parent_dirty()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\r\nDECLARE o jsonb:=CASE WHEN TG_OP='INSERT' THEN '{}'::jsonb ELSE to_jsonb(OLD) END;\r\n n jsonb:=CASE WHEN TG_OP='DELETE' THEN '{}'::jsonb ELSE to_jsonb(NEW) END;\r\n borrowers text[]; fields text[];\r\nBEGIN\r\n fields:=CASE TG_TABLE_NAME\r\n WHEN 'Loans' THEN ARRAY['Ref Borrowers','Principal Amount','Loan Status','Auto Charge Enabled','Loan Type','Loan Date','Due Date','Current Daily Interest','Daily Payment Amount']\r\n WHEN 'Repayments' THEN ARRAY['Ref Loans','Ref Charges','Ref Payment','Principal Paid','Interest Paid','Payment Date']\r\n ELSE ARRAY['Ref Payment','Allocated Amount'] END;\r\n IF TG_OP='UPDATE' AND NOT EXISTS(SELECT 1 FROM unnest(fields) k WHERE o->k IS DISTINCT FROM n->k) THEN RETURN NULL; END IF;\r\n IF TG_TABLE_NAME='Repayments' THEN\r\n  PERFORM public.r051_queue_parent('charge',ARRAY[o->>'Ref Charges',n->>'Ref Charges']);\r\n  PERFORM public.r051_queue_parent('loan',ARRAY[o->>'Ref Loans',n->>'Ref Loans']);\r\n END IF;\r\n IF TG_TABLE_NAME IN ('Repayments','Payment Allocations') THEN\r\n  PERFORM public.r051_queue_parent('payment',ARRAY[o->>'Ref Payment',n->>'Ref Payment']);\r\n END IF;\r\n IF TG_TABLE_NAME='Loans' THEN borrowers:=ARRAY[o->>'Ref Borrowers',n->>'Ref Borrowers'];\r\n ELSIF TG_TABLE_NAME='Repayments' THEN\r\n  SELECT array_agg(\"Ref Borrowers\") INTO borrowers FROM public.\"Loans\" WHERE \"Row ID\" IN(o->>'Ref Loans',n->>'Ref Loans');\r\n END IF;\r\n IF borrowers IS NOT NULL THEN PERFORM public.r051_queue_parent('borrower',borrowers); END IF;\r\n RETURN NULL;\r\nEND $function$\n"
+    },
+    {
+      "name": "public.r051_queue_parent(kind text, ids text[])",
+      "definition": "CREATE OR REPLACE FUNCTION public.r051_queue_parent(kind text, ids text[])\n RETURNS void\n LANGUAGE plpgsql\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\r\nBEGIN\r\n PERFORM set_config('r051_dirty.'||kind,\r\n  (coalesce(nullif(current_setting('r051_dirty.'||kind,true),'')::jsonb,'{}'::jsonb)||\r\n   coalesce((SELECT jsonb_object_agg(k,true) FROM unnest(ids) k WHERE k IS NOT NULL),'{}'::jsonb))::text,true);\r\nEND $function$\n"
+    },
+    {
+      "name": "public.refresh_daily_analytics(p_from date, p_to date)",
+      "definition": "CREATE OR REPLACE FUNCTION public.refresh_daily_analytics(p_from date, p_to date)\n RETURNS integer\n LANGUAGE sql\n SET search_path TO 'pg_catalog', 'public'\n SET plan_cache_mode TO 'force_custom_plan'\nAS $function$\r\n SELECT public.refresh_daily_analytics_scoped(p_from,p_to,NULL);\r\n$function$\n"
+    },
+    {
+      "name": "public.refresh_daily_analytics_scoped(p_from date, p_to date, p_accounts text[])",
+      "definition": "CREATE OR REPLACE FUNCTION public.refresh_daily_analytics_scoped(p_from date, p_to date, p_accounts text[])\n RETURNS integer\n LANGUAGE plpgsql\n SET search_path TO 'pg_catalog', 'public'\n SET plan_cache_mode TO 'force_custom_plan'\nAS $function$\r\nDECLARE refreshed_days integer;\r\nBEGIN\r\n IF p_from IS NULL OR p_to IS NULL OR p_from>p_to\r\n    OR p_to>(statement_timestamp() AT TIME ZONE 'Asia/Bangkok')::date THEN\r\n   RAISE EXCEPTION 'Analytics requires a valid date range ending no later than Bangkok today';\r\n END IF;\r\n IF NOT pg_try_advisory_xact_lock(7112026,7) THEN\r\n   RAISE EXCEPTION 'Analytics refresh is busy; sync and retry';\r\n END IF;\r\n -- Missing account snapshots require a full rebuild of account coverage.\r\n IF p_accounts IS NOT NULL AND EXISTS (\r\n  SELECT 1 FROM public.\"Cash Accounts\" a CROSS JOIN generate_series(0,p_to-p_from) d\r\n  WHERE NOT EXISTS(SELECT 1 FROM public.\"Cash Account Daily Analytics\" s\r\n   WHERE s.\"Ref Cash Account\"=a.\"Row ID\" AND s.\"Snapshot Date\"=p_from+d)\r\n ) THEN p_accounts:=NULL; END IF;\r\n -- One statement provides one consistent source snapshot for every requested date.\r\n -- Model 3 corrects partially paid pending charges. Existing gross/net profit semantics\r\n -- remain compatible; new per-role inputs retain the governed rounded allocation rules.\r\n WITH dates AS (\r\n   SELECT p_from+i AS d FROM generate_series(0,p_to-p_from) i\r\n ), contributions AS MATERIALIZED (\r\n   SELECT c.\"Contribution Date\" AS d,p.\"Partner Role\" AS role,\r\n     CASE WHEN c.\"Transaction Type\"='Contribution' THEN c.\"Amount\"::numeric\r\n       ELSE -c.\"Amount\"::numeric END AS net\r\n   FROM public.\"Cash Pool Contributions\" c\r\n   LEFT JOIN public.\"Partners\" p ON p.\"Row ID\"=c.\"Ref Partner\"\r\n ), repayment_days AS MATERIALIZED (\r\n   SELECT \"Payment Date\" AS d,sum(\"Principal Paid\"::numeric) AS principal,\r\n     sum(\"Interest Paid\"::numeric) AS interest,count(*) AS repayments\r\n   FROM public.\"Repayments\" GROUP BY \"Payment Date\"\r\n ), profit_days AS MATERIALIZED (\r\n   SELECT r.d,CASE WHEN c.pool>0 THEN r.interest*coalesce(c.ab,0)/c.pool ELSE 0 END AS profit\r\n   FROM repayment_days r CROSS JOIN LATERAL (\r\n     SELECT sum(net) AS pool,sum(net) FILTER(WHERE role IN ('A','B')) AS ab\r\n     FROM contributions WHERE d<=r.d\r\n   ) c\r\n ), charge_payments AS MATERIALIZED (\r\n   SELECT \"Ref Charges\" charge,\"Payment Date\" d,\r\n    sum(coalesce(\"Principal Paid\"::numeric,0)+coalesce(\"Interest Paid\"::numeric,0)) paid\r\n   FROM public.\"Repayments\" WHERE \"Payment Date\"<=p_to GROUP BY 1,2\r\n ), charge_events AS MATERIALIZED (\r\n   SELECT c.\"Row ID\" charge,c.\"Charge Date\" d,\r\n    coalesce(c.\"Principal Due\"::numeric,0)+coalesce(c.\"Interest Due\"::numeric,0) due,\r\n    coalesce(sum(cp.paid),0) paid\r\n   FROM public.\"Charges\" c LEFT JOIN charge_payments cp\r\n    ON cp.charge=c.\"Row ID\" AND cp.d<=c.\"Charge Date\"\r\n   WHERE p_to-p_from>=3 AND c.\"Charge Date\"<=p_to GROUP BY 1,2,3\r\n   UNION ALL\r\n   SELECT c.\"Row ID\",cp.d,coalesce(c.\"Principal Due\"::numeric,0)+coalesce(c.\"Interest Due\"::numeric,0),cp.paid\r\n   FROM public.\"Charges\" c JOIN charge_payments cp ON cp.charge=c.\"Row ID\" AND cp.d>c.\"Charge Date\"\r\n   WHERE p_to-p_from>=3 AND c.\"Charge Date\"<=p_to\r\n ), charge_positions AS (\r\n   SELECT charge,d,greatest(due-sum(paid) OVER(PARTITION BY charge ORDER BY d ROWS UNBOUNDED PRECEDING),0) pending\r\n   FROM charge_events\r\n ), pending_changes AS (\r\n   SELECT d,pending-coalesce(lag(pending) OVER(PARTITION BY charge ORDER BY d),0) delta FROM charge_positions\r\n ), pending_days AS MATERIALIZED (\r\n   SELECT d,sum(delta) delta FROM pending_changes GROUP BY d\r\n ), expenses AS MATERIALIZED (\r\n   SELECT \"Expense Date\" d,sum(\"Amount\"::numeric) expense FROM public.\"Business Expenses\" GROUP BY 1\r\n ), partner_income AS MATERIALIZED (\r\n   -- Keep the governed per-repayment rounded allocation, but filter its inputs\r\n   -- before aggregation instead of evaluating the all-history running report.\r\n   SELECT dates.d,coalesce(i.pa,0)-coalesce(e.pa,0) pa,coalesce(i.pb,0)-coalesce(e.pb,0) pb\r\n   FROM dates LEFT JOIN (\r\n    SELECT \"Payment Date\" d,sum(\"Partner A Profit\") pa,sum(\"Partner B Profit\") pb\r\n    FROM public.olap_repayments_analytics WHERE \"Payment Date\" BETWEEN p_from AND p_to GROUP BY 1\r\n   ) i USING(d) LEFT JOIN (\r\n    SELECT \"Expense Date\" d,sum(\"Partner A Expense\"::numeric) pa,sum(\"Partner B Expense\"::numeric) pb\r\n    FROM public.\"Business Expenses\" WHERE \"Expense Date\" BETWEEN p_from AND p_to GROUP BY 1\r\n   ) e USING(d)\r\n ), settlements AS MATERIALIZED (\r\n   SELECT s.\"Transfer Date\" d,sum(s.\"Amount\"::numeric) amount,\r\n    coalesce(sum(s.\"Amount\"::numeric) FILTER(WHERE p.\"Partner Role\"='A'),0) pa,\r\n    coalesce(sum(s.\"Amount\"::numeric) FILTER(WHERE p.\"Partner Role\"='B'),0) pb\r\n   FROM public.\"Settlements\" s LEFT JOIN public.\"Partners\" p ON p.\"Row ID\"=s.\"Ref Partner\"\r\n   WHERE s.\"Status\"='Completed' AND s.\"Transfer Date\"<=p_to GROUP BY 1\r\n ), ledger AS MATERIALIZED (\r\n   SELECT \"Movement Date\" d,\"Ref From Cash Account\" from_account,\"Ref To Cash Account\" to_account,\"Amount\" amount\r\n   FROM public.\"Cash Ledger\" WHERE \"Movement Date\"<=p_to\r\n ), account_flows AS MATERIALIZED (\r\n   SELECT account,d,sum(greatest(signed,0)) cash_in,sum(greatest(-signed,0)) cash_out,count(*) n\r\n   FROM ledger CROSS JOIN LATERAL (VALUES (from_account,-amount),(to_account,amount)) v(account,signed)\r\n   WHERE account IS NOT NULL GROUP BY 1,2\r\n ), consolidated_flows AS MATERIALIZED (\r\n   SELECT d,sum(greatest(signed,0)) cash_in,sum(greatest(-signed,0)) cash_out\r\n   FROM (SELECT d,(CASE WHEN to_account IS NOT NULL THEN amount ELSE 0 END)\r\n    -(CASE WHEN from_account IS NOT NULL THEN amount ELSE 0 END) signed FROM ledger) v GROUP BY 1\r\n ), account_seed AS MATERIALIZED (\r\n   SELECT a.\"Row ID\" account,(c.\"Cutover At\" AT TIME ZONE 'Asia/Bangkok')::date available,\r\n    c.\"Opening Balance\"-c.\"Baseline Cash In\"+c.\"Baseline Cash Out\"\r\n     +coalesce(sum(f.cash_in-f.cash_out),0) opening\r\n   FROM public.\"Cash Accounts\" a LEFT JOIN public.r008_cash_account_cutover c ON c.\"Ref Cash Account\"=a.\"Row ID\"\r\n   LEFT JOIN account_flows f ON f.account=a.\"Row ID\" AND f.d<p_from\r\n   WHERE p_accounts IS NULL OR a.\"Row ID\"=ANY(p_accounts)\r\n   GROUP BY a.\"Row ID\",c.\"Cutover At\",c.\"Opening Balance\",c.\"Baseline Cash In\",c.\"Baseline Cash Out\"\r\n ), account_grid AS (\r\n   SELECT a.*,d.d,coalesce(f.cash_in,0) cash_in,coalesce(f.cash_out,0) cash_out,coalesce(f.n,0) n\r\n   FROM account_seed a CROSS JOIN dates d LEFT JOIN account_flows f ON f.account=a.account AND f.d=d.d\r\n ), account_positions AS (\r\n   SELECT *,CASE WHEN d>=available THEN opening+sum(cash_in-cash_out) OVER\r\n    (PARTITION BY account ORDER BY d ROWS UNBOUNDED PRECEDING) END closing FROM account_grid\r\n ), computed_accounts AS MATERIALIZED (\r\n   SELECT jsonb_build_array(account,d)::text AS \"Row ID\",d AS \"Snapshot Date\",account AS \"Ref Cash Account\",statement_timestamp() AT TIME ZONE 'Asia/Bangkok' AS \"Generated At\",3 AS \"Model Version\",\r\n    cash_in AS \"Money In\",cash_out AS \"Money Out\",closing-cash_in+cash_out AS \"Opening Balance\",closing AS \"Closing Balance\",n AS \"Transaction Count\",available AS \"Available From\",\r\n    CASE WHEN available IS NULL THEN 'Opening not initialized' WHEN d<available THEN 'Before known opening' ELSE 'Available' END AS \"Balance Status\"\r\n   FROM account_positions\r\n ), saved_accounts AS (\r\n   INSERT INTO public.\"Cash Account Daily Analytics\"(\"Row ID\",\"Snapshot Date\",\"Ref Cash Account\",\"Generated At\",\"Model Version\",\"Money In\",\"Money Out\",\"Opening Balance\",\"Closing Balance\",\"Transaction Count\",\"Available From\",\"Balance Status\")\r\n   SELECT * FROM computed_accounts\r\n   ON CONFLICT (\"Snapshot Date\",\"Ref Cash Account\") DO UPDATE SET\r\n    \"Generated At\"=EXCLUDED.\"Generated At\",\"Model Version\"=EXCLUDED.\"Model Version\",\r\n    \"Money In\"=EXCLUDED.\"Money In\",\"Money Out\"=EXCLUDED.\"Money Out\",\r\n    \"Opening Balance\"=EXCLUDED.\"Opening Balance\",\"Closing Balance\"=EXCLUDED.\"Closing Balance\",\r\n    \"Transaction Count\"=EXCLUDED.\"Transaction Count\",\"Available From\"=EXCLUDED.\"Available From\",\"Balance Status\"=EXCLUDED.\"Balance Status\"\r\n   WHERE p_accounts IS NULL OR\r\n    (to_jsonb(\"Cash Account Daily Analytics\")-'Generated At') IS DISTINCT FROM (to_jsonb(EXCLUDED)-'Generated At')\r\n   RETURNING *\r\n ), all_accounts AS (\r\n   SELECT * FROM computed_accounts\r\n   UNION ALL\r\n   SELECT \"Row ID\",\"Snapshot Date\",\"Ref Cash Account\",\"Generated At\",\"Model Version\",\"Money In\",\"Money Out\",\"Opening Balance\",\"Closing Balance\",\"Transaction Count\",\"Available From\",\"Balance Status\" FROM public.\"Cash Account Daily Analytics\"\r\n   WHERE p_accounts IS NOT NULL AND NOT (\"Ref Cash Account\"=ANY(p_accounts)) AND \"Snapshot Date\" BETWEEN p_from AND p_to\r\n ), cash_positions AS (\r\n   SELECT \"Snapshot Date\" d,\r\n    CASE WHEN bool_and(\"Closing Balance\" IS NOT NULL) THEN sum(\"Closing Balance\") END closing,\r\n    CASE WHEN bool_and(\"Opening Balance\" IS NOT NULL) THEN sum(\"Opening Balance\") END opening,\r\n    CASE WHEN bool_and(\"Available From\" IS NOT NULL) THEN max(\"Available From\") END available,\r\n    CASE WHEN bool_and(\"Closing Balance\" IS NOT NULL) THEN 'Available'\r\n     WHEN bool_and(\"Available From\" IS NOT NULL) THEN 'Before known opening' ELSE 'Opening not initialized' END status\r\n   FROM all_accounts GROUP BY 1\r\n ), metrics AS (\r\n   SELECT dates.d,l.issued,l.loans,l.issued_eod,l.active,l.borrowers,\r\n     r.principal,r.interest,r.repayments,r.returned_eod,c.pending,p.pool,\r\n     coalesce((SELECT sum(profit) FROM profit_days WHERE d<=dates.d),0)\r\n       -coalesce((SELECT sum(\"Amount\"::numeric) FROM public.\"Settlements\"\r\n          WHERE \"Status\"='Completed' AND \"Transfer Date\"<=dates.d),0) AS unsettled\r\n   FROM dates\r\n   CROSS JOIN LATERAL (\r\n     SELECT coalesce(sum(\"Principal Amount\"::numeric) FILTER(WHERE \"Loan Date\"=dates.d),0) AS issued,\r\n       count(*) FILTER(WHERE \"Loan Date\"=dates.d) AS loans,\r\n       coalesce(sum(\"Principal Amount\"::numeric),0) AS issued_eod,\r\n       count(*) FILTER(WHERE \"Close Date\" IS NULL OR \"Close Date\">dates.d) AS active,\r\n       count(DISTINCT coalesce(\"Ref Borrowers\",'')) FILTER(WHERE \"Close Date\" IS NULL OR \"Close Date\">dates.d) AS borrowers\r\n     FROM public.\"Loans\" WHERE \"Loan Date\"<=dates.d\r\n   ) l\r\n   CROSS JOIN LATERAL (\r\n     SELECT coalesce(sum(principal) FILTER(WHERE d=dates.d),0) AS principal,\r\n       coalesce(sum(interest) FILTER(WHERE d=dates.d),0) AS interest,\r\n       coalesce(sum(repayments) FILTER(WHERE d=dates.d),0) AS repayments,\r\n       coalesce(sum(principal),0) AS returned_eod\r\n     FROM repayment_days WHERE d<=dates.d\r\n   ) r\r\n   CROSS JOIN LATERAL (\r\n    SELECT coalesce(sum(delta),0) pending FROM pending_days WHERE d<=dates.d HAVING p_to-p_from>=3\r\n    UNION ALL\r\n    SELECT coalesce(sum(greatest(coalesce(c.\"Principal Due\"::numeric,0)+coalesce(c.\"Interest Due\"::numeric,0)-coalesce(cp.paid,0),0)),0)\r\n    FROM public.\"Charges\" c LEFT JOIN (SELECT charge,sum(paid) paid FROM charge_payments WHERE d<=dates.d GROUP BY charge) cp\r\n     ON cp.charge=c.\"Row ID\" WHERE c.\"Charge Date\"<=dates.d HAVING p_to-p_from<3\r\n   ) c\r\n   CROSS JOIN LATERAL (SELECT coalesce(sum(net),0) AS pool FROM contributions WHERE d<=dates.d) p\r\n )\r\n INSERT INTO public.\"Daily Analytics\"(\"Row ID\",\"Snapshot Date\",\"Generated At\",\"Model Version\",\r\n   \"Principal Issued\",\"Loans Issued\",\"Principal Returned\",\"Interest Received\",\"Repayments Count\",\r\n   \"Outstanding Principal EOD\",\"Active Loans EOD\",\"Active Borrowers EOD\",\"Pending Charges EOD\",\r\n   \"Total Cash Pool EOD\",\"Available Cash EOD\",\"Unsettled Profit EOD\",\"Business Expenses\",\"Net Profit\",\"Net Unsettled Profit EOD\",\r\n   \"Capital Contributed\",\"Capital Withdrawn\",\"Partner Settlements\",\"Partner A Net Profit\",\"Partner B Net Profit\",\"Partner A Settlements\",\"Partner B Settlements\",\"Cash Money In\",\"Cash Money Out\",\"Cash Opening Balance\",\"Cash Balance EOD\",\"Cash Available From\",\"Cash Balance Status\")\r\n SELECT 'da11:'||metrics.d::text,metrics.d,statement_timestamp() AT TIME ZONE 'Asia/Bangkok',3,\r\n   issued::money,loans::integer,principal::money,interest::money,repayments::integer,\r\n   (issued_eod-returned_eod)::money,active::integer,borrowers::integer,pending::money,\r\n   pool::money,(pool+returned_eod-issued_eod)::money,unsettled::money,\r\n   coalesce((SELECT sum(\"Amount\") FROM public.\"Business Expenses\" WHERE \"Expense Date\"=metrics.d),0::money),\r\n   interest::money-coalesce((SELECT sum(\"Amount\") FROM public.\"Business Expenses\" WHERE \"Expense Date\"=metrics.d),0::money),\r\n   unsettled::money-coalesce((SELECT sum(\"Amount\") FROM public.\"Business Expenses\" WHERE \"Expense Date\"<=metrics.d),0::money)\r\n ,coalesce((SELECT sum(\"Amount\"::numeric) FROM public.\"Cash Pool Contributions\" WHERE \"Contribution Date\"=metrics.d AND \"Transaction Type\"='Contribution'),0)\r\n ,coalesce((SELECT sum(\"Amount\"::numeric) FROM public.\"Cash Pool Contributions\" WHERE \"Contribution Date\"=metrics.d AND \"Transaction Type\" IS DISTINCT FROM 'Contribution'),0)\r\n ,coalesce(s.amount,0),coalesce(pi.pa,0),coalesce(pi.pb,0),coalesce(s.pa,0),coalesce(s.pb,0)\r\n ,coalesce(cf.cash_in,0),coalesce(cf.cash_out,0),cp.opening,cp.closing,cp.available,coalesce(cp.status,'Opening not initialized')\r\n FROM metrics LEFT JOIN settlements s ON s.d=metrics.d LEFT JOIN partner_income pi ON pi.d=metrics.d\r\n LEFT JOIN consolidated_flows cf ON cf.d=metrics.d LEFT JOIN cash_positions cp ON cp.d=metrics.d\r\n ORDER BY metrics.d\r\n ON CONFLICT (\"Snapshot Date\") DO UPDATE SET\r\n   \"Generated At\"=EXCLUDED.\"Generated At\",\"Model Version\"=EXCLUDED.\"Model Version\",\r\n   \"Principal Issued\"=EXCLUDED.\"Principal Issued\",\"Loans Issued\"=EXCLUDED.\"Loans Issued\",\r\n   \"Principal Returned\"=EXCLUDED.\"Principal Returned\",\"Interest Received\"=EXCLUDED.\"Interest Received\",\r\n   \"Repayments Count\"=EXCLUDED.\"Repayments Count\",\"Outstanding Principal EOD\"=EXCLUDED.\"Outstanding Principal EOD\",\r\n   \"Active Loans EOD\"=EXCLUDED.\"Active Loans EOD\",\"Active Borrowers EOD\"=EXCLUDED.\"Active Borrowers EOD\",\r\n   \"Pending Charges EOD\"=EXCLUDED.\"Pending Charges EOD\",\"Total Cash Pool EOD\"=EXCLUDED.\"Total Cash Pool EOD\",\r\n   \"Available Cash EOD\"=EXCLUDED.\"Available Cash EOD\",\"Unsettled Profit EOD\"=EXCLUDED.\"Unsettled Profit EOD\",\r\n   \"Business Expenses\"=EXCLUDED.\"Business Expenses\",\"Net Profit\"=EXCLUDED.\"Net Profit\",\r\n   \"Net Unsettled Profit EOD\"=EXCLUDED.\"Net Unsettled Profit EOD\",\r\n   \"Capital Contributed\"=EXCLUDED.\"Capital Contributed\",\r\n   \"Capital Withdrawn\"=EXCLUDED.\"Capital Withdrawn\",\r\n   \"Partner Settlements\"=EXCLUDED.\"Partner Settlements\",\r\n   \"Partner A Net Profit\"=EXCLUDED.\"Partner A Net Profit\",\r\n   \"Partner B Net Profit\"=EXCLUDED.\"Partner B Net Profit\",\r\n   \"Partner A Settlements\"=EXCLUDED.\"Partner A Settlements\",\r\n   \"Partner B Settlements\"=EXCLUDED.\"Partner B Settlements\",\r\n   \"Cash Money In\"=EXCLUDED.\"Cash Money In\",\r\n   \"Cash Money Out\"=EXCLUDED.\"Cash Money Out\",\r\n   \"Cash Opening Balance\"=EXCLUDED.\"Cash Opening Balance\",\r\n   \"Cash Balance EOD\"=EXCLUDED.\"Cash Balance EOD\",\r\n   \"Cash Available From\"=EXCLUDED.\"Cash Available From\",\r\n   \"Cash Balance Status\"=EXCLUDED.\"Cash Balance Status\"\r\n WHERE p_accounts IS NULL OR\r\n  (to_jsonb(\"Daily Analytics\")-'Generated At') IS DISTINCT FROM (to_jsonb(EXCLUDED)-'Generated At');\r\n GET DIAGNOSTICS refreshed_days=ROW_COUNT;\r\n RETURN refreshed_days;\r\nEND $function$\n"
+    },
+    {
+      "name": "public.vc_borrower_changed()",
+      "definition": "CREATE OR REPLACE FUNCTION public.vc_borrower_changed()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\r\nBEGIN PERFORM public.r051_flush_parents('borrower'); RETURN NULL; END $function$\n"
+    },
+    {
+      "name": "public.vc_payment_changed()",
+      "definition": "CREATE OR REPLACE FUNCTION public.vc_payment_changed()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\r\nBEGIN PERFORM public.r051_flush_parents('payment'); RETURN NULL; END $function$\n"
+    },
+    {
+      "name": "public.vc_repayment_changed()",
+      "definition": "CREATE OR REPLACE FUNCTION public.vc_repayment_changed()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\r\nBEGIN PERFORM public.r051_flush_parents('charge'); PERFORM public.r051_flush_parents('loan'); RETURN NULL; END $function$\n"
+    }
+  ],
+  "relations": [
+    {
+      "name": "public.Loans",
+      "columns": [
+        {
+          "name": "Row ID",
+          "type": "text",
+          "not_null": true,
+          "default": null
+        },
+        {
+          "name": "Loan Date",
+          "type": "date",
+          "not_null": false,
+          "default": null
+        },
+        {
+          "name": "Close Date",
+          "type": "date",
+          "not_null": false,
+          "default": null
+        },
+        {
+          "name": "Principal Amount",
+          "type": "money",
+          "not_null": false,
+          "default": null
+        },
+        {
+          "name": "Due Date",
+          "type": "date",
+          "not_null": false,
+          "default": null
+        },
+        {
+          "name": "Ref Borrowers",
+          "type": "text",
+          "not_null": false,
+          "default": null
+        },
+        {
+          "name": "Loan Arrangement",
+          "type": "text",
+          "not_null": false,
+          "default": null
+        },
+        {
+          "name": "Loan Status",
+          "type": "text",
+          "not_null": false,
+          "default": null
+        },
+        {
+          "name": "Loan Type",
+          "type": "text",
+          "not_null": false,
+          "default": null
+        },
+        {
+          "name": "Current Daily Interest",
+          "type": "money",
+          "not_null": false,
+          "default": null
+        },
+        {
+          "name": "Fixed Interest",
+          "type": "money",
+          "not_null": false,
+          "default": null
+        },
+        {
+          "name": "Transfer Fee",
+          "type": "money",
+          "not_null": false,
+          "default": null
+        },
+        {
+          "name": "Interest Payment Interval",
+          "type": "integer",
+          "not_null": false,
+          "default": null
+        },
+        {
+          "name": "Created By",
+          "type": "text",
+          "not_null": false,
+          "default": null
+        },
+        {
+          "name": "Closed By",
+          "type": "text",
+          "not_null": false,
+          "default": null
+        },
+        {
+          "name": "Defaulted",
+          "type": "boolean",
+          "not_null": false,
+          "default": null
+        },
+        {
+          "name": "Default Loss Amount",
+          "type": "money",
+          "not_null": false,
+          "default": null
+        },
+        {
+          "name": "Daily Payment Amount",
+          "type": "money",
+          "not_null": false,
+          "default": null
+        },
+        {
+          "name": "Auto Charge Enabled",
+          "type": "boolean",
+          "not_null": false,
+          "default": null
+        },
+        {
+          "name": "Interest Schedule Anchor Date",
+          "type": "date",
+          "not_null": false,
+          "default": null
+        },
+        {
+          "name": "Ref Closing Payment",
+          "type": "text",
+          "not_null": false,
+          "default": null
+        },
+        {
+          "name": "Charge Generation Request",
+          "type": "text",
+          "not_null": false,
+          "default": null
+        },
+        {
+          "name": "Total Interest Received",
+          "type": "numeric",
+          "not_null": false,
+          "default": null
+        },
+        {
+          "name": "Total Principal Received",
+          "type": "numeric",
+          "not_null": false,
+          "default": null
+        },
+        {
+          "name": "Outstanding Principal",
+          "type": "numeric",
+          "not_null": false,
+          "default": null
+        },
+        {
+          "name": "Total Amount Received",
+          "type": "numeric",
+          "not_null": false,
+          "default": null
+        },
+        {
+          "name": "Expected Daily Interest Amount",
+          "type": "numeric",
+          "not_null": false,
+          "default": null
+        },
+        {
+          "name": "Ref Disbursed From Cash Account",
+          "type": "text",
+          "not_null": false,
+          "default": null
+        },
+        {
+          "name": "Payment Request Cash Account",
+          "type": "text",
+          "not_null": false,
+          "default": null
+        },
+        {
+          "name": "Payment Request Token",
+          "type": "text",
+          "not_null": false,
+          "default": null
+        },
+        {
+          "name": "Original Daily Interest Rate",
+          "type": "integer",
+          "not_null": false,
+          "default": null
+        }
+      ],
+      "constraints": {
+        "Loans_Payment Request Cash Account_fkey": "FOREIGN KEY (\"Payment Request Cash Account\") REFERENCES \"Cash Accounts\"(\"Row ID\") ON DELETE RESTRICT",
+        "Loans_Ref Closing Payment_fkey": "FOREIGN KEY (\"Ref Closing Payment\") REFERENCES \"Payments\"(\"Row ID\")",
+        "Loans_Ref Disbursed From Cash Account_fkey": "FOREIGN KEY (\"Ref Disbursed From Cash Account\") REFERENCES \"Cash Accounts\"(\"Row ID\") ON DELETE RESTRICT",
+        "Loans_Row ID_not_null": "NOT NULL \"Row ID\"",
+        "Loans_pkey": "PRIMARY KEY (\"Row ID\")",
+        "appsheet_ref_01": "FOREIGN KEY (\"Ref Borrowers\") REFERENCES \"Borrowers\"(\"Row ID\")",
+        "loans_interest_schedule_anchor_date_check": "CHECK (\"Interest Schedule Anchor Date\" IS NULL OR \"Loan Date\" IS NOT NULL AND \"Interest Schedule Anchor Date\" >= \"Loan Date\")",
+        "loans_original_daily_rate_nonnegative": "CHECK (\"Original Daily Interest Rate\" >= 0)",
+        "referral_loan_closed": "TRIGGER DEFERRABLE INITIALLY DEFERRED",
+        "vc_borrower_changed": "TRIGGER DEFERRABLE INITIALLY DEFERRED",
+        "vc_loan_status_changed": "TRIGGER DEFERRABLE INITIALLY DEFERRED",
+        "zzzzzz_business_history_commit": "TRIGGER DEFERRABLE INITIALLY DEFERRED"
+      },
+      "triggers": {
+        "a000_business_history_begin": "CREATE TRIGGER a000_business_history_begin BEFORE INSERT OR DELETE OR UPDATE ON \"Loans\" FOR EACH STATEMENT EXECUTE FUNCTION begin_business_history()",
+        "a000_opening_consistency": "CREATE TRIGGER a000_opening_consistency BEFORE UPDATE ON \"Loans\" FOR EACH ROW EXECUTE FUNCTION guard_opening_included_source()",
+        "a001_parent_dirty": "CREATE TRIGGER a001_parent_dirty AFTER INSERT OR DELETE OR UPDATE ON \"Loans\" FOR EACH ROW EXECUTE FUNCTION r051_parent_dirty()",
+        "a00_business_delete": "CREATE TRIGGER a00_business_delete BEFORE DELETE ON \"Loans\" FOR EACH ROW EXECUTE FUNCTION business_source_delete()",
+        "a0_cash_account": "CREATE TRIGGER a0_cash_account BEFORE INSERT OR UPDATE ON \"Loans\" FOR EACH ROW EXECUTE FUNCTION guard_source_cash_account()",
+        "aa_cash_identity": "CREATE TRIGGER aa_cash_identity BEFORE UPDATE OF \"Row ID\" ON \"Loans\" FOR EACH ROW EXECUTE FUNCTION guard_cash_source_identity()",
+        "aa_cashpool_lock": "CREATE TRIGGER aa_cashpool_lock BEFORE INSERT OR DELETE OR UPDATE ON \"Loans\" FOR EACH STATEMENT EXECUTE FUNCTION loan_cashpool_lock()",
+        "aa_vc_daily_lock": "CREATE TRIGGER aa_vc_daily_lock BEFORE UPDATE ON \"Loans\" FOR EACH ROW EXECUTE FUNCTION vc_lock_daily_parent()",
+        "aa_vc_lock": "CREATE TRIGGER aa_vc_lock BEFORE INSERT OR DELETE OR UPDATE ON \"Loans\" FOR EACH ROW EXECUTE FUNCTION vc_lock_parents()",
+        "ab_loan_consistency": "CREATE TRIGGER ab_loan_consistency BEFORE UPDATE ON \"Loans\" FOR EACH ROW EXECUTE FUNCTION guard_loan_consistency()",
+        "ab_new_loan_cashpool_guard": "CREATE TRIGGER ab_new_loan_cashpool_guard BEFORE INSERT ON \"Loans\" FOR EACH ROW EXECUTE FUNCTION new_loan_cashpool_guard()",
+        "appsheet_blank_refs": "CREATE TRIGGER appsheet_blank_refs BEFORE INSERT OR UPDATE ON \"Loans\" FOR EACH ROW EXECUTE FUNCTION appsheet_normalize_blank_refs('Ref Borrowers')",
+        "closing_payment_guard": "CREATE TRIGGER closing_payment_guard BEFORE INSERT OR UPDATE ON \"Loans\" FOR EACH ROW EXECUTE FUNCTION closing_payment_guard()",
+        "default_loan_transition": "CREATE TRIGGER default_loan_transition BEFORE INSERT OR UPDATE ON \"Loans\" FOR EACH ROW EXECUTE FUNCTION default_loan_transition()",
+        "first_day_charge": "CREATE TRIGGER first_day_charge AFTER INSERT ON \"Loans\" FOR EACH ROW EXECUTE FUNCTION first_day_loan_trigger()",
+        "manual_charge_generation": "CREATE TRIGGER manual_charge_generation AFTER INSERT OR UPDATE OF \"Charge Generation Request\" ON \"Loans\" FOR EACH ROW EXECUTE FUNCTION charge_generation_request()",
+        "mw_agent_capture": "CREATE TRIGGER mw_agent_capture AFTER INSERT OR DELETE OR UPDATE ON \"Loans\" FOR EACH ROW EXECUTE FUNCTION agent_audit.capture_change()",
+        "quick_payment_request": "CREATE TRIGGER quick_payment_request AFTER UPDATE OF \"Payment Request Token\" ON \"Loans\" FOR EACH ROW EXECUTE FUNCTION quick_payment_request()",
+        "referral_loan_closed": "CREATE CONSTRAINT TRIGGER referral_loan_closed AFTER UPDATE ON \"Loans\" DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION referral_loan_closed()",
+        "vc_borrower_changed": "CREATE CONSTRAINT TRIGGER vc_borrower_changed AFTER INSERT OR DELETE OR UPDATE ON \"Loans\" DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION vc_borrower_changed()",
+        "vc_loan_status_changed": "CREATE CONSTRAINT TRIGGER vc_loan_status_changed AFTER UPDATE ON \"Loans\" DEFERRABLE INITIALLY DEFERRED FOR EACH ROW WHEN (old.\"Loan Status\" IS DISTINCT FROM new.\"Loan Status\") EXECUTE FUNCTION vc_loan_status_changed()",
+        "zz_cash_source": "CREATE TRIGGER zz_cash_source AFTER INSERT OR UPDATE OF \"Principal Amount\", \"Loan Date\", \"Ref Disbursed From Cash Account\" ON \"Loans\" FOR EACH ROW EXECUTE FUNCTION cash_source_changed('Loan')",
+        "zz_vc_daily_interest": "CREATE TRIGGER zz_vc_daily_interest BEFORE INSERT OR UPDATE ON \"Loans\" FOR EACH ROW EXECUTE FUNCTION vc_daily_interest_row()",
+        "zz_vc_loan_row": "CREATE TRIGGER zz_vc_loan_row BEFORE INSERT OR UPDATE ON \"Loans\" FOR EACH ROW EXECUTE FUNCTION vc_loan_row()",
+        "zzy_r051_opening": "CREATE TRIGGER zzy_r051_opening AFTER DELETE OR UPDATE ON \"Loans\" FOR EACH ROW EXECUTE FUNCTION r051_restate_opening_source('Loan')",
+        "zzzz_business_history": "CREATE TRIGGER zzzz_business_history AFTER INSERT OR DELETE OR UPDATE ON \"Loans\" FOR EACH ROW EXECUTE FUNCTION business_history_refresh('Loan Date')",
+        "zzzzz_business_history_flush": "CREATE TRIGGER zzzzz_business_history_flush AFTER INSERT OR DELETE OR UPDATE ON \"Loans\" FOR EACH STATEMENT EXECUTE FUNCTION flush_business_history()",
+        "zzzzzz_business_history_commit": "CREATE CONSTRAINT TRIGGER zzzzzz_business_history_commit AFTER INSERT OR DELETE OR UPDATE ON \"Loans\" DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION flush_business_history()"
+      }
+    },
+    {
+      "name": "public.Repayments",
+      "columns": [
+        {
+          "name": "Row ID",
+          "type": "text",
+          "not_null": true,
+          "default": null
+        },
+        {
+          "name": "Payment Date",
+          "type": "date",
+          "not_null": false,
+          "default": null
+        },
+        {
+          "name": "Principal Paid",
+          "type": "money",
+          "not_null": false,
+          "default": null
+        },
+        {
+          "name": "Interest Paid",
+          "type": "money",
+          "not_null": false,
+          "default": null
+        },
+        {
+          "name": "Notes",
+          "type": "text",
+          "not_null": false,
+          "default": null
+        },
+        {
+          "name": "Ref Loans",
+          "type": "text",
+          "not_null": false,
+          "default": null
+        },
+        {
+          "name": "Ref Charges",
+          "type": "text",
+          "not_null": false,
+          "default": null
+        },
+        {
+          "name": "Created By",
+          "type": "text",
+          "not_null": false,
+          "default": null
+        },
+        {
+          "name": "Ref Payment",
+          "type": "text",
+          "not_null": false,
+          "default": null
+        },
+        {
+          "name": "Ref Payment Allocation",
+          "type": "text",
+          "not_null": false,
+          "default": null
+        }
+      ],
+      "constraints": {
+        "Repayments_Row ID_not_null": "NOT NULL \"Row ID\"",
+        "Repayments_pkey": "PRIMARY KEY (\"Row ID\")",
+        "appsheet_ref_02": "FOREIGN KEY (\"Ref Loans\") REFERENCES \"Loans\"(\"Row ID\")",
+        "appsheet_ref_03": "FOREIGN KEY (\"Ref Charges\") REFERENCES \"Charges\"(\"Row ID\")",
+        "appsheet_ref_04": "FOREIGN KEY (\"Ref Payment\") REFERENCES \"Payments\"(\"Row ID\")",
+        "appsheet_ref_05": "FOREIGN KEY (\"Ref Payment Allocation\") REFERENCES \"Payment Allocations\"(\"Row ID\")",
+        "vc_borrower_changed": "TRIGGER DEFERRABLE INITIALLY DEFERRED",
+        "vc_payment_changed": "TRIGGER DEFERRABLE INITIALLY DEFERRED",
+        "vc_repayment_changed": "TRIGGER DEFERRABLE INITIALLY DEFERRED",
+        "zzzzzz_business_history_commit": "TRIGGER DEFERRABLE INITIALLY DEFERRED"
+      },
+      "triggers": {
+        "a000_business_history_begin": "CREATE TRIGGER a000_business_history_begin BEFORE INSERT OR DELETE OR UPDATE ON \"Repayments\" FOR EACH STATEMENT EXECUTE FUNCTION begin_business_history()",
+        "a001_parent_dirty": "CREATE TRIGGER a001_parent_dirty AFTER INSERT OR DELETE OR UPDATE ON \"Repayments\" FOR EACH ROW EXECUTE FUNCTION r051_parent_dirty()",
+        "aa_cashpool_lock": "CREATE TRIGGER aa_cashpool_lock BEFORE INSERT OR DELETE OR UPDATE ON \"Repayments\" FOR EACH STATEMENT EXECUTE FUNCTION loan_cashpool_lock()",
+        "aa_vc_lock": "CREATE TRIGGER aa_vc_lock BEFORE INSERT OR DELETE OR UPDATE ON \"Repayments\" FOR EACH ROW EXECUTE FUNCTION vc_lock_parents()",
+        "aa_vc_payment_lock": "CREATE TRIGGER aa_vc_payment_lock BEFORE INSERT OR DELETE OR UPDATE ON \"Repayments\" FOR EACH ROW EXECUTE FUNCTION vc_lock_payment_parents()",
+        "appsheet_blank_refs": "CREATE TRIGGER appsheet_blank_refs BEFORE INSERT OR UPDATE ON \"Repayments\" FOR EACH ROW EXECUTE FUNCTION appsheet_normalize_blank_refs('Ref Loans', 'Ref Charges', 'Ref Payment', 'Ref Payment Allocation')",
+        "default_posting_guard": "CREATE TRIGGER default_posting_guard BEFORE DELETE OR UPDATE ON \"Repayments\" FOR EACH ROW EXECUTE FUNCTION default_posting_guard()",
+        "lump_sum_child_guard": "CREATE TRIGGER lump_sum_child_guard BEFORE INSERT OR DELETE OR UPDATE ON \"Repayments\" FOR EACH ROW EXECUTE FUNCTION lump_sum_child_guard()",
+        "mw_agent_capture": "CREATE TRIGGER mw_agent_capture AFTER INSERT OR DELETE OR UPDATE ON \"Repayments\" FOR EACH ROW EXECUTE FUNCTION agent_audit.capture_change()",
+        "vc_borrower_changed": "CREATE CONSTRAINT TRIGGER vc_borrower_changed AFTER INSERT OR DELETE OR UPDATE ON \"Repayments\" DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION vc_borrower_changed()",
+        "vc_payment_changed": "CREATE CONSTRAINT TRIGGER vc_payment_changed AFTER INSERT OR DELETE OR UPDATE ON \"Repayments\" DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION vc_payment_changed()",
+        "vc_repayment_changed": "CREATE CONSTRAINT TRIGGER vc_repayment_changed AFTER INSERT OR DELETE OR UPDATE ON \"Repayments\" DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION vc_repayment_changed()",
+        "zzzz_business_history": "CREATE TRIGGER zzzz_business_history AFTER INSERT OR DELETE OR UPDATE ON \"Repayments\" FOR EACH ROW EXECUTE FUNCTION business_history_refresh('Payment Date')",
+        "zzzzz_business_history_flush": "CREATE TRIGGER zzzzz_business_history_flush AFTER INSERT OR DELETE OR UPDATE ON \"Repayments\" FOR EACH STATEMENT EXECUTE FUNCTION flush_business_history()",
+        "zzzzzz_business_history_commit": "CREATE CONSTRAINT TRIGGER zzzzzz_business_history_commit AFTER INSERT OR DELETE OR UPDATE ON \"Repayments\" DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION flush_business_history()"
+      }
+    },
+    {
+      "name": "public.Payment Allocations",
+      "columns": [
+        {
+          "name": "Row ID",
+          "type": "text",
+          "not_null": true,
+          "default": null
+        },
+        {
+          "name": "Charge Date Snapshot",
+          "type": "date",
+          "not_null": false,
+          "default": null
+        },
+        {
+          "name": "Ref Payment",
+          "type": "text",
+          "not_null": false,
+          "default": null
+        },
+        {
+          "name": "Ref Charge",
+          "type": "text",
+          "not_null": false,
+          "default": null
+        },
+        {
+          "name": "Charge Row Number Snapshot",
+          "type": "integer",
+          "not_null": false,
+          "default": null
+        },
+        {
+          "name": "Interest Remaining Snapshot",
+          "type": "money",
+          "not_null": false,
+          "default": null
+        },
+        {
+          "name": "Principal Remaining Snapshot",
+          "type": "money",
+          "not_null": false,
+          "default": null
+        },
+        {
+          "name": "Amount Remaining Snapshot",
+          "type": "money",
+          "not_null": false,
+          "default": null
+        },
+        {
+          "name": "Allocation Order",
+          "type": "integer",
+          "not_null": false,
+          "default": null
+        },
+        {
+          "name": "Allocated Interest",
+          "type": "money",
+          "not_null": false,
+          "default": null
+        },
+        {
+          "name": "Allocated Principal",
+          "type": "money",
+          "not_null": false,
+          "default": null
+        },
+        {
+          "name": "Allocated Amount",
+          "type": "money",
+          "not_null": false,
+          "default": null
+        },
+        {
+          "name": "Created At",
+          "type": "timestamp without time zone",
+          "not_null": false,
+          "default": null
+        }
+      ],
+      "constraints": {
+        "Payment Allocations_Row ID_not_null": "NOT NULL \"Row ID\"",
+        "Payment Allocations_pkey": "PRIMARY KEY (\"Row ID\")",
+        "appsheet_ref_10": "FOREIGN KEY (\"Ref Payment\") REFERENCES \"Payments\"(\"Row ID\")",
+        "appsheet_ref_11": "FOREIGN KEY (\"Ref Charge\") REFERENCES \"Charges\"(\"Row ID\")",
+        "vc_payment_changed": "TRIGGER DEFERRABLE INITIALLY DEFERRED",
+        "zzzzzz_business_history_commit": "TRIGGER DEFERRABLE INITIALLY DEFERRED"
+      },
+      "triggers": {
+        "a000_business_history_begin": "CREATE TRIGGER a000_business_history_begin BEFORE INSERT OR DELETE OR UPDATE ON \"Payment Allocations\" FOR EACH STATEMENT EXECUTE FUNCTION begin_business_history()",
+        "a001_parent_dirty": "CREATE TRIGGER a001_parent_dirty AFTER INSERT OR DELETE OR UPDATE ON \"Payment Allocations\" FOR EACH ROW EXECUTE FUNCTION r051_parent_dirty()",
+        "aa_vc_payment_lock": "CREATE TRIGGER aa_vc_payment_lock BEFORE INSERT OR DELETE OR UPDATE ON \"Payment Allocations\" FOR EACH ROW EXECUTE FUNCTION vc_lock_payment_parents()",
+        "appsheet_blank_refs": "CREATE TRIGGER appsheet_blank_refs BEFORE INSERT OR UPDATE ON \"Payment Allocations\" FOR EACH ROW EXECUTE FUNCTION appsheet_normalize_blank_refs('Ref Payment', 'Ref Charge')",
+        "lump_sum_child_guard": "CREATE TRIGGER lump_sum_child_guard BEFORE INSERT OR DELETE OR UPDATE ON \"Payment Allocations\" FOR EACH ROW EXECUTE FUNCTION lump_sum_child_guard()",
+        "mw_agent_capture": "CREATE TRIGGER mw_agent_capture AFTER INSERT OR DELETE OR UPDATE ON \"Payment Allocations\" FOR EACH ROW EXECUTE FUNCTION agent_audit.capture_change()",
+        "vc_payment_changed": "CREATE CONSTRAINT TRIGGER vc_payment_changed AFTER INSERT OR DELETE OR UPDATE ON \"Payment Allocations\" DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION vc_payment_changed()",
+        "zzzzz_business_history_flush": "CREATE TRIGGER zzzzz_business_history_flush AFTER INSERT OR DELETE OR UPDATE ON \"Payment Allocations\" FOR EACH STATEMENT EXECUTE FUNCTION flush_business_history()",
+        "zzzzzz_business_history_commit": "CREATE CONSTRAINT TRIGGER zzzzzz_business_history_commit AFTER INSERT OR DELETE OR UPDATE ON \"Payment Allocations\" DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION flush_business_history()"
+      }
+    }
+  ]
+}

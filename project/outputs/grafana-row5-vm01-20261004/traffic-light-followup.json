@@ -1,0 +1,31 @@
+{
+  "scope": "Source-only traffic-light correction, no backend deployment or browser write",
+  "parent_style_evidence": {
+    "generation": 33,
+    "resourceVersion": "2106799088514420736",
+    "fresh_spec": "Parent reports unchanged and equal to prior final",
+    "prototype": "panel51 Webhook; panel60 Ingress style matches",
+    "changes": "Only panel121/122 title blank and exact vizConfig clone; displayName Bridge availability/Dispatch completion; queries/data/layout/description unchanged",
+    "apply_state": "Awaiting parent browser application"
+  },
+  "tests": [
+    "Entire classic options/fieldConfig and v2 vizConfig match existing panel51 except two displayName labels",
+    "Traffic light mappings 0red/1green/2orange/3blue/4gray circle and missing white circle preserved",
+    "Only two title/vizConfig changes, all queries and rest of prepared resource unchanged",
+    "Fresh prepared import original-object preservation and idempotence pass"
+  ],
+  "owner_image": {
+    "library_file_id": "libfile_1f467be259a08191baf26ce9c77d776e",
+    "resolved": true,
+    "native_read_metadata": "940x186 PNG,44889bytes; read confirms subscription Unknown cards and healthy retained-failure status",
+    "consumer_local_materialization": "Current Library prepare/helper attempted twice; download failed. No local pixels inspected; no raw download or network/security workaround."
+  },
+  "subscription_read_routes": {
+    "bridge_health": "Read succeeds: owner enabled,pending0,failed0,delivered9,cancelled0,cap100; does not expose expected IDs/expiry/grant deadline",
+    "callable_bridge_tools": "get_bridge_health and get_alert_event only; neither lists subscription membership/authority",
+    "firestore_cli": "Metadata/index/database operations; no supported document read route in fixed adapter",
+    "remaining_input": "Exact owner-verified expected native sub_<64hex> ID(s), at most8 unique, to seed approved monitoring-only control/monitoring.expectedSubscriptionIds via existing owner document route; authoritative grantExpiresAt from ordinary authenticated subscription renewal for legacy records",
+    "must_not_infer": "No expected IDs/count/deadline inferred from healthy health read or zero pending; Unknown retained"
+  },
+  "alerts_created": 0
+}

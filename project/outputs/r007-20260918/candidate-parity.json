@@ -1,0 +1,863 @@
+{
+  "release": "R007",
+  "phase": "candidate",
+  "asOf": "2026-09-18 Asia/Bangkok",
+  "source": "AppSheet Find baseline at saved OLAP 1.000129 versus SQL restored DEV snapshot",
+  "fields": [
+    {
+      "table": "Borrowers",
+      "column": "Return on Active Principal",
+      "type": "Percent",
+      "rows": 64,
+      "mismatches": 0
+    },
+    {
+      "table": "Borrowers",
+      "column": "Profit Last 30 Days",
+      "type": "Price",
+      "rows": 64,
+      "mismatches": 0
+    },
+    {
+      "table": "Borrowers",
+      "column": "Projected Interest Coverage Date",
+      "type": "Date",
+      "rows": 64,
+      "mismatches": 0
+    },
+    {
+      "table": "Borrowers",
+      "column": "Closed Loan Interest Earned",
+      "type": "Price",
+      "rows": 64,
+      "mismatches": 0
+    },
+    {
+      "table": "Borrowers",
+      "column": "Closed Loan Principle",
+      "type": "Price",
+      "rows": 64,
+      "mismatches": 0
+    },
+    {
+      "table": "Borrowers",
+      "column": "Return on Closed Loans",
+      "type": "Percent",
+      "rows": 64,
+      "mismatches": 0
+    },
+    {
+      "table": "Borrowers",
+      "column": "30D Gross Principal Days",
+      "type": "Decimal",
+      "rows": 64,
+      "mismatches": 0
+    },
+    {
+      "table": "Borrowers",
+      "column": "30D Principal Reduction Days",
+      "type": "Decimal",
+      "rows": 64,
+      "mismatches": 0
+    },
+    {
+      "table": "Borrowers",
+      "column": "30D Average Outstanding Principal",
+      "type": "Decimal",
+      "rows": 64,
+      "mismatches": 0
+    },
+    {
+      "table": "Borrowers",
+      "column": "30D Return on Average Principal",
+      "type": "Percent",
+      "rows": 64,
+      "mismatches": 0
+    },
+    {
+      "table": "Borrowers",
+      "column": "Daily Collection Status",
+      "type": "Text",
+      "rows": 64,
+      "mismatches": 0
+    },
+    {
+      "table": "Borrowers",
+      "column": "Todays Amount Due",
+      "type": "Price",
+      "rows": 64,
+      "mismatches": 0
+    },
+    {
+      "table": "Borrowers",
+      "column": "Todays Amount Collected",
+      "type": "Price",
+      "rows": 64,
+      "mismatches": 0
+    },
+    {
+      "table": "Borrowers",
+      "column": "Todays Amount Remaining",
+      "type": "Price",
+      "rows": 64,
+      "mismatches": 0
+    },
+    {
+      "table": "Borrowers",
+      "column": "Portfolio Exposure %",
+      "type": "Percent",
+      "rows": 64,
+      "mismatches": 0
+    },
+    {
+      "table": "Borrowers",
+      "column": "Active Loan Count",
+      "type": "Number",
+      "rows": 64,
+      "mismatches": 0
+    },
+    {
+      "table": "Borrowers",
+      "column": "Oldest Active Loan Age",
+      "type": "Number",
+      "rows": 64,
+      "mismatches": 0
+    },
+    {
+      "table": "Borrowers",
+      "column": "Overdue Amount",
+      "type": "Price",
+      "rows": 64,
+      "mismatches": 0
+    },
+    {
+      "table": "Borrowers",
+      "column": "Overdue Charge Count",
+      "type": "Number",
+      "rows": 64,
+      "mismatches": 0
+    },
+    {
+      "table": "Borrowers",
+      "column": "Historical Charge Count",
+      "type": "Number",
+      "rows": 64,
+      "mismatches": 0
+    },
+    {
+      "table": "Borrowers",
+      "column": "On Time Charge Count",
+      "type": "Number",
+      "rows": 64,
+      "mismatches": 0
+    },
+    {
+      "table": "Borrowers",
+      "column": "Lifetime On Time Rate",
+      "type": "Percent",
+      "rows": 64,
+      "mismatches": 0
+    },
+    {
+      "table": "Borrowers",
+      "column": "Recent 30D Charge Count",
+      "type": "Number",
+      "rows": 64,
+      "mismatches": 0
+    },
+    {
+      "table": "Borrowers",
+      "column": "Recent 30D On Time Count",
+      "type": "Number",
+      "rows": 64,
+      "mismatches": 0
+    },
+    {
+      "table": "Borrowers",
+      "column": "Recent 30D On Time Rate",
+      "type": "Percent",
+      "rows": 64,
+      "mismatches": 0
+    },
+    {
+      "table": "Borrowers",
+      "column": "Lifetime Late Payment Count",
+      "type": "Number",
+      "rows": 64,
+      "mismatches": 0
+    },
+    {
+      "table": "Borrowers",
+      "column": "Recent 30D Late Payment Count",
+      "type": "Number",
+      "rows": 64,
+      "mismatches": 0
+    },
+    {
+      "table": "Borrowers",
+      "column": "Maximum Days Late",
+      "type": "Number",
+      "rows": 64,
+      "mismatches": 0
+    },
+    {
+      "table": "Borrowers",
+      "column": "Last Late Payment Date",
+      "type": "Date",
+      "rows": 64,
+      "mismatches": 0
+    },
+    {
+      "table": "Borrowers",
+      "column": "Largest Successful Loan",
+      "type": "Price",
+      "rows": 64,
+      "mismatches": 0
+    },
+    {
+      "table": "Borrowers",
+      "column": "Average Successful Loan Size",
+      "type": "Price",
+      "rows": 64,
+      "mismatches": 0
+    },
+    {
+      "table": "Borrowers",
+      "column": "Default Count",
+      "type": "Number",
+      "rows": 64,
+      "mismatches": 0
+    },
+    {
+      "table": "Borrowers",
+      "column": "Lifetime Default Loss",
+      "type": "Price",
+      "rows": 64,
+      "mismatches": 0
+    },
+    {
+      "table": "Borrowers",
+      "column": "Portfolio Outstanding Principal",
+      "type": "Price",
+      "rows": 64,
+      "mismatches": 0
+    },
+    {
+      "table": "Borrowers",
+      "column": "Projected Monthly Profit Contribution",
+      "type": "Price",
+      "rows": 64,
+      "mismatches": 0
+    },
+    {
+      "table": "Borrowers",
+      "column": "Matrix Active Borrower Count",
+      "type": "Number",
+      "rows": 64,
+      "mismatches": 0
+    },
+    {
+      "table": "Borrowers",
+      "column": "Matrix Equal Share Benchmark",
+      "type": "Percent",
+      "rows": 64,
+      "mismatches": 0
+    },
+    {
+      "table": "Borrowers",
+      "column": "Matrix Economic Contribution",
+      "type": "Percent",
+      "rows": 64,
+      "mismatches": 0
+    },
+    {
+      "table": "Borrowers",
+      "column": "Matrix Recent Reliability Score",
+      "type": "Number",
+      "rows": 64,
+      "mismatches": 0
+    },
+    {
+      "table": "Borrowers",
+      "column": "Matrix Historical Reliability Score",
+      "type": "Number",
+      "rows": 64,
+      "mismatches": 0
+    },
+    {
+      "table": "Borrowers",
+      "column": "Matrix Delay Severity Score",
+      "type": "Number",
+      "rows": 64,
+      "mismatches": 0
+    },
+    {
+      "table": "Borrowers",
+      "column": "Matrix Current Condition Score",
+      "type": "Number",
+      "rows": 64,
+      "mismatches": 0
+    },
+    {
+      "table": "Borrowers",
+      "column": "Matrix History Sufficient",
+      "type": "Yes/No",
+      "rows": 64,
+      "mismatches": 0
+    },
+    {
+      "table": "Borrowers",
+      "column": "Matrix Stability Score",
+      "type": "Number",
+      "rows": 64,
+      "mismatches": 0
+    },
+    {
+      "table": "Borrowers",
+      "column": "Matrix Quadrant",
+      "type": "Text",
+      "rows": 64,
+      "mismatches": 0
+    },
+    {
+      "table": "Borrowers",
+      "column": "Profit Last 10 Days",
+      "type": "Price",
+      "rows": 64,
+      "mismatches": 0
+    },
+    {
+      "table": "Borrowers",
+      "column": "Matrix Scaled Economic Contribution",
+      "type": "Percent",
+      "rows": 64,
+      "mismatches": 0
+    },
+    {
+      "table": "Borrowers",
+      "column": "Total Referral Rebate Earned",
+      "type": "Price",
+      "rows": 64,
+      "mismatches": 0
+    },
+    {
+      "table": "Loans",
+      "column": "Borrower Total Interest",
+      "type": "Price",
+      "rows": 108,
+      "mismatches": 0
+    },
+    {
+      "table": "Loans",
+      "column": "Expected Interest This Month",
+      "type": "Price",
+      "rows": 108,
+      "mismatches": 0
+    },
+    {
+      "table": "Loans",
+      "column": "Effective Daily Interest Rate",
+      "type": "Percent",
+      "rows": 108,
+      "mismatches": 0
+    },
+    {
+      "table": "Loans",
+      "column": "Principal Recovered by Interest %",
+      "type": "Percent",
+      "rows": 108,
+      "mismatches": 0
+    },
+    {
+      "table": "Loans",
+      "column": "Principal Days MTD",
+      "type": "Number",
+      "rows": 108,
+      "mismatches": 0
+    },
+    {
+      "table": "Loans",
+      "column": "Loan Start Day Index",
+      "type": "Decimal",
+      "rows": 108,
+      "mismatches": 0
+    },
+    {
+      "table": "Loans",
+      "column": "Principal Start Weight",
+      "type": "Decimal",
+      "rows": 108,
+      "mismatches": 0
+    },
+    {
+      "table": "Loans",
+      "column": "Loan End Date",
+      "type": "Date",
+      "rows": 108,
+      "mismatches": 0
+    },
+    {
+      "table": "Loans",
+      "column": "Loan Duration",
+      "type": "Number",
+      "rows": 108,
+      "mismatches": 0
+    },
+    {
+      "table": "Loans",
+      "column": "30D Principal Days",
+      "type": "Decimal",
+      "rows": 108,
+      "mismatches": 0
+    },
+    {
+      "table": "Loans",
+      "column": "Loan Age Days",
+      "type": "Number",
+      "rows": 108,
+      "mismatches": 0
+    },
+    {
+      "table": "Loans",
+      "column": "Loan Age Bucket",
+      "type": "Text",
+      "rows": 108,
+      "mismatches": 0
+    },
+    {
+      "table": "Loans",
+      "column": "Defaulted Flag",
+      "type": "Yes/No",
+      "rows": 108,
+      "mismatches": 0
+    },
+    {
+      "table": "Loans",
+      "column": "Maximum Days Late",
+      "type": "Number",
+      "rows": 108,
+      "mismatches": 0
+    },
+    {
+      "table": "Loans",
+      "column": "Last Interest Charge Date",
+      "type": "Date",
+      "rows": 108,
+      "mismatches": 0
+    },
+    {
+      "table": "Loans",
+      "column": "Accrued Interest Days",
+      "type": "Number",
+      "rows": 108,
+      "mismatches": 0
+    },
+    {
+      "table": "Loans",
+      "column": "Accrued Interest",
+      "type": "Price",
+      "rows": 108,
+      "mismatches": 0
+    },
+    {
+      "table": "Loans",
+      "column": "Daily Installment Base Principal",
+      "type": "Number",
+      "rows": 108,
+      "mismatches": 0
+    },
+    {
+      "table": "Repayments",
+      "column": "Principal Returned Days MTD",
+      "type": "Number",
+      "rows": 741,
+      "mismatches": 0
+    },
+    {
+      "table": "Repayments",
+      "column": "Pool Total at Payment Date",
+      "type": "Price",
+      "rows": 741,
+      "mismatches": 0
+    },
+    {
+      "table": "Repayments",
+      "column": "Partner A Contribution at Payment Date",
+      "type": "Price",
+      "rows": 741,
+      "mismatches": 0
+    },
+    {
+      "table": "Repayments",
+      "column": "Partner B Contribution at Payment Date",
+      "type": "Price",
+      "rows": 741,
+      "mismatches": 0
+    },
+    {
+      "table": "Repayments",
+      "column": "Partner A Profit Share",
+      "type": "Percent",
+      "rows": 741,
+      "mismatches": 0
+    },
+    {
+      "table": "Repayments",
+      "column": "Partner B Profit Share",
+      "type": "Percent",
+      "rows": 741,
+      "mismatches": 0
+    },
+    {
+      "table": "Repayments",
+      "column": "Partner A Profit",
+      "type": "Price",
+      "rows": 741,
+      "mismatches": 0
+    },
+    {
+      "table": "Repayments",
+      "column": "Partner B Profit",
+      "type": "Price",
+      "rows": 741,
+      "mismatches": 0
+    },
+    {
+      "table": "Repayments",
+      "column": "30D Principal Reduction Days",
+      "type": "Decimal",
+      "rows": 741,
+      "mismatches": 0
+    },
+    {
+      "table": "Repayments",
+      "column": "Amount Received",
+      "type": "Price",
+      "rows": 741,
+      "mismatches": 0
+    },
+    {
+      "table": "Statistics",
+      "column": "Total Profit",
+      "type": "Price",
+      "rows": 1,
+      "mismatches": 0
+    },
+    {
+      "table": "Statistics",
+      "column": "Outstanding Principal",
+      "type": "Price",
+      "rows": 1,
+      "mismatches": 0
+    },
+    {
+      "table": "Statistics",
+      "column": "Active Loans",
+      "type": "Number",
+      "rows": 1,
+      "mismatches": 0
+    },
+    {
+      "table": "Statistics",
+      "column": "Today's Profit",
+      "type": "Price",
+      "rows": 1,
+      "mismatches": 0
+    },
+    {
+      "table": "Statistics",
+      "column": "Yesterday's Profit",
+      "type": "Price",
+      "rows": 1,
+      "mismatches": 0
+    },
+    {
+      "table": "Statistics",
+      "column": "Realized Profit MTD",
+      "type": "Price",
+      "rows": 1,
+      "mismatches": 0
+    },
+    {
+      "table": "Statistics",
+      "column": "Projected Monthly Profit",
+      "type": "Price",
+      "rows": 1,
+      "mismatches": 0
+    },
+    {
+      "table": "Statistics",
+      "column": "Pending Payment Amount",
+      "type": "Price",
+      "rows": 1,
+      "mismatches": 0
+    },
+    {
+      "table": "Statistics",
+      "column": "Forecast Remaining Interest",
+      "type": "Price",
+      "rows": 1,
+      "mismatches": 0
+    },
+    {
+      "table": "Statistics",
+      "column": "Today's Outstanding Interest",
+      "type": "Price",
+      "rows": 1,
+      "mismatches": 0
+    },
+    {
+      "table": "Statistics",
+      "column": "Net Principal Days MTD",
+      "type": "Number",
+      "rows": 1,
+      "mismatches": 0
+    },
+    {
+      "table": "Statistics",
+      "column": "Forecast Remaining Principal Days",
+      "type": "Number",
+      "rows": 1,
+      "mismatches": 0
+    },
+    {
+      "table": "Statistics",
+      "column": "Forecast Average Daily Outstanding Principal",
+      "type": "Price",
+      "rows": 1,
+      "mismatches": 0
+    },
+    {
+      "table": "Statistics",
+      "column": "Forecast Monthly Return on ADO",
+      "type": "Percent",
+      "rows": 1,
+      "mismatches": 0
+    },
+    {
+      "table": "Statistics",
+      "column": "Peak Cash Pool 30D",
+      "type": "Price",
+      "rows": 1,
+      "mismatches": 0
+    },
+    {
+      "table": "Statistics",
+      "column": "Peak Cash Pool Date 30D",
+      "type": "Date",
+      "rows": 1,
+      "mismatches": 0
+    },
+    {
+      "table": "Statistics",
+      "column": "Expected Daily Interest",
+      "type": "Price",
+      "rows": 1,
+      "mismatches": 0
+    },
+    {
+      "table": "Statistics",
+      "column": "Total Profit of Outstanding Loans",
+      "type": "Price",
+      "rows": 1,
+      "mismatches": 0
+    },
+    {
+      "table": "Statistics",
+      "column": "Profit Coverage of Outstanding Principal",
+      "type": "Percent",
+      "rows": 1,
+      "mismatches": 0
+    },
+    {
+      "table": "Statistics",
+      "column": "Total Cash Pool",
+      "type": "Price",
+      "rows": 1,
+      "mismatches": 0
+    },
+    {
+      "table": "Statistics",
+      "column": "Total Unsettled Profit",
+      "type": "Price",
+      "rows": 1,
+      "mismatches": 0
+    },
+    {
+      "table": "Statistics",
+      "column": "Expected Loan Account Balance",
+      "type": "Price",
+      "rows": 1,
+      "mismatches": 0
+    },
+    {
+      "table": "Statistics",
+      "column": "Total Outstanding Principal",
+      "type": "Price",
+      "rows": 1,
+      "mismatches": 0
+    },
+    {
+      "table": "Statistics",
+      "column": "Top 3 Borrower Concentration",
+      "type": "Percent",
+      "rows": 1,
+      "mismatches": 0
+    },
+    {
+      "table": "Statistics",
+      "column": "Borrowers Fully Paid Today",
+      "type": "Number",
+      "rows": 1,
+      "mismatches": 0
+    },
+    {
+      "table": "Statistics",
+      "column": "Borrowers Partially Paid Today",
+      "type": "Number",
+      "rows": 1,
+      "mismatches": 0
+    },
+    {
+      "table": "Statistics",
+      "column": "Borrowers with Overdue Payment",
+      "type": "Number",
+      "rows": 1,
+      "mismatches": 0
+    },
+    {
+      "table": "Statistics",
+      "column": "Borrowers Not Paid Today",
+      "type": "Number",
+      "rows": 1,
+      "mismatches": 0
+    },
+    {
+      "table": "Statistics",
+      "column": "Amount Due Today",
+      "type": "Price",
+      "rows": 1,
+      "mismatches": 0
+    },
+    {
+      "table": "Statistics",
+      "column": "Amount Collected Today",
+      "type": "Price",
+      "rows": 1,
+      "mismatches": 0
+    },
+    {
+      "table": "Statistics",
+      "column": "Amount Outstanding Today",
+      "type": "Price",
+      "rows": 1,
+      "mismatches": 0
+    },
+    {
+      "table": "Statistics",
+      "column": "Amount Collection Rate Today",
+      "type": "Number",
+      "rows": 1,
+      "mismatches": 0
+    },
+    {
+      "table": "Statistics",
+      "column": "Total Business Expenses",
+      "type": "Price",
+      "rows": 1,
+      "mismatches": 0
+    },
+    {
+      "table": "Statistics",
+      "column": "Net Profit",
+      "type": "Price",
+      "rows": 1,
+      "mismatches": 0
+    },
+    {
+      "table": "Statistics",
+      "column": "Expenses MTD",
+      "type": "Price",
+      "rows": 1,
+      "mismatches": 0
+    },
+    {
+      "table": "Statistics",
+      "column": "Net Profit MTD",
+      "type": "Price",
+      "rows": 1,
+      "mismatches": 0
+    },
+    {
+      "table": "Statistics",
+      "column": "Net Unsettled Profit",
+      "type": "Price",
+      "rows": 1,
+      "mismatches": 0
+    },
+    {
+      "table": "Statistics",
+      "column": "Net Expected Loan Account Balance",
+      "type": "Price",
+      "rows": 1,
+      "mismatches": 0
+    },
+    {
+      "table": "Statistics",
+      "column": "Income Statement Expenses MTD",
+      "type": "Price",
+      "rows": 1,
+      "mismatches": 0
+    },
+    {
+      "table": "Statistics",
+      "column": "Operating Income MTD",
+      "type": "Price",
+      "rows": 1,
+      "mismatches": 0
+    },
+    {
+      "table": "Charges",
+      "column": "Amount Due",
+      "type": "Price",
+      "rows": 917,
+      "mismatches": 0
+    },
+    {
+      "table": "Charges",
+      "column": "Last Payment Date",
+      "type": "Date",
+      "rows": 917,
+      "mismatches": 0
+    },
+    {
+      "table": "Charges",
+      "column": "First Payment Date",
+      "type": "Date",
+      "rows": 917,
+      "mismatches": 0
+    },
+    {
+      "table": "Charges",
+      "column": "Days Late",
+      "type": "Number",
+      "rows": 917,
+      "mismatches": 0
+    },
+    {
+      "table": "Charges",
+      "column": "Historical On Time",
+      "type": "Yes/No",
+      "rows": 917,
+      "mismatches": 0
+    },
+    {
+      "table": "Charges",
+      "column": "Historical Late",
+      "type": "Yes/No",
+      "rows": 917,
+      "mismatches": 0
+    }
+  ],
+  "mismatches": 0
+}

@@ -1,0 +1,8 @@
+{
+  "navTimes": {
+    "overview": 2.194,
+    "borrowers": 2.242,
+    "analytics": 2.138
+  },
+  "method": "Click until rendered DOM snapshot; one sample; client wall time"
+}

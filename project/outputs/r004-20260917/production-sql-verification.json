@@ -1,0 +1,10 @@
+{
+  "release": "R004-P1",
+  "verifiedUtc": "2026-09-16T17:42:04.8311443Z",
+  "prodVersion": "19",
+  "onlySchemaChange": "create_referral_rebate category literal",
+  "schemaSha256": "4A4BE3E9B4469F53CFB3F90074CD382B5D439047DF3119CCF88B3B94F0777D20",
+  "backlogNoncategoryFingerprintPreserved": true,
+  "migrationsApplied": 1,
+  "executionTimeMs": 180
+}

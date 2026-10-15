@@ -1,0 +1,167 @@
+{
+  "design_status": "not_applied",
+  "source_commit": "acbc0eb1c3544ec14ddf597ab59b614de8c3814d",
+  "observed_date": "2026-09-22",
+  "observed_timezone": "Asia/Bangkok",
+  "observation_method": "Read-only SQLite schema and aggregate row counts; no records exported",
+  "totals": {
+    "files": 6,
+    "present_table_instances": 18,
+    "present_rows": 351,
+    "lazy_tables_absent": 3
+  },
+  "mapping": [
+    {
+      "source_file": "cash-statement-delivery.db",
+      "source_table": "cash_statement_emails",
+      "target_table": "runtime.cash_statement_emails",
+      "present": true,
+      "observed_rows": 0
+    },
+    {
+      "source_file": "cash-statement-delivery.db",
+      "source_table": "cash_statement_sends",
+      "target_table": "runtime.cash_statement_sends",
+      "present": true,
+      "observed_rows": 28
+    },
+    {
+      "source_file": "conversation-notices.db",
+      "source_table": "partner_notices",
+      "target_table": "runtime.partner_notices",
+      "present": true,
+      "observed_rows": 7,
+      "stream": "conversation"
+    },
+    {
+      "source_file": "instagram-ingress.db",
+      "source_table": "messages",
+      "target_table": "runtime.ingress_messages",
+      "present": true,
+      "observed_rows": 21
+    },
+    {
+      "source_file": "instagram-ingress.db",
+      "source_table": "receipts",
+      "target_table": "runtime.ingress_receipts",
+      "present": true,
+      "observed_rows": 128
+    },
+    {
+      "source_file": "partner-conversations.db",
+      "source_table": "conversations",
+      "target_table": "runtime.conversations",
+      "present": true,
+      "observed_rows": 2
+    },
+    {
+      "source_file": "partner-conversations.db",
+      "source_table": "tool_calls",
+      "target_table": "runtime.conversation_tool_calls",
+      "present": true,
+      "observed_rows": 36
+    },
+    {
+      "source_file": "partner-conversations.db",
+      "source_table": "turns",
+      "target_table": "runtime.conversation_turns",
+      "present": true,
+      "observed_rows": 7
+    },
+    {
+      "source_file": "partner-notices.db",
+      "source_table": "partner_notices",
+      "target_table": "runtime.partner_notices",
+      "present": true,
+      "observed_rows": 15,
+      "stream": "receipt"
+    },
+    {
+      "source_file": "receipt-processing.db",
+      "source_table": "conversation_poll_messages",
+      "target_table": "runtime.conversation_poll_messages",
+      "present": true,
+      "observed_rows": 54
+    },
+    {
+      "source_file": "receipt-processing.db",
+      "source_table": "conversation_poll_state",
+      "target_table": "runtime.conversation_poll_state",
+      "present": true,
+      "observed_rows": 11
+    },
+    {
+      "source_file": "receipt-processing.db",
+      "source_table": "partner_review_replies",
+      "target_table": "runtime.partner_review_replies",
+      "present": true,
+      "observed_rows": 2
+    },
+    {
+      "source_file": "receipt-processing.db",
+      "source_table": "partner_reviews",
+      "target_table": "runtime.partner_reviews",
+      "present": true,
+      "observed_rows": 6
+    },
+    {
+      "source_file": "receipt-processing.db",
+      "source_table": "receipt_cursor",
+      "target_table": "runtime.receipt_cursor",
+      "present": true,
+      "observed_rows": 1
+    },
+    {
+      "source_file": "receipt-processing.db",
+      "source_table": "receipt_emails",
+      "target_table": "runtime.receipt_emails",
+      "present": true,
+      "observed_rows": 0
+    },
+    {
+      "source_file": "receipt-processing.db",
+      "source_table": "receipt_jobs",
+      "target_table": "runtime.receipt_jobs",
+      "present": true,
+      "observed_rows": 21
+    },
+    {
+      "source_file": "receipt-processing.db",
+      "source_table": "receipt_keys",
+      "target_table": "runtime.receipt_keys",
+      "present": true,
+      "observed_rows": 8
+    },
+    {
+      "source_file": "receipt-processing.db",
+      "source_table": "receipt_reconsiderations",
+      "target_table": "runtime.receipt_reconsiderations",
+      "present": true,
+      "observed_rows": 4
+    },
+    {
+      "source_file": "partner-conversations.db",
+      "source_table": "conversation_operations",
+      "target_table": "runtime.conversation_operations",
+      "present": false,
+      "observed_rows": 0,
+      "note": "Lazy table defined in source; do not create it in SQLite merely to inventory it."
+    },
+    {
+      "source_file": "partner-conversations.db",
+      "source_table": "conversation_dml",
+      "target_table": "runtime.conversation_dml",
+      "present": false,
+      "observed_rows": 0,
+      "note": "Lazy table defined in source; do not create it in SQLite merely to inventory it."
+    },
+    {
+      "source_file": "partner-conversations.db",
+      "source_table": "conversation_dml_inserts",
+      "target_table": "runtime.conversation_dml_inserts",
+      "present": false,
+      "observed_rows": 0,
+      "note": "Lazy table defined in source; do not create it in SQLite merely to inventory it."
+    }
+  ]
+}

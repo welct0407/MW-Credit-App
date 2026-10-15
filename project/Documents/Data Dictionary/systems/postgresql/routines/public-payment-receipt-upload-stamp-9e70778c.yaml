@@ -1,0 +1,56 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.payment_receipt_upload_stamp()"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r047-production/postgresql-affected-definitions.json"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "payment_receipt_upload_stamp"
+    "arguments": ""
+    "kind": "f"
+    "arguments_with_defaults": ""
+    "result": "trigger"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.payment_receipt_upload_stamp()
+       RETURNS trigger
+       LANGUAGE plpgsql
+       SET search_path TO 'pg_catalog'
+      AS $function$
+      BEGIN
+       NEW."Uploaded Receipt":=nullif(btrim(NEW."Uploaded Receipt"),'');
+       IF NEW."Uploaded Receipt" IS NULL THEN
+        NEW."Uploaded Receipt At":=NULL;
+       ELSIF TG_OP='INSERT' THEN
+        NEW."Uploaded Receipt At":=clock_timestamp() AT TIME ZONE 'Asia/Bangkok';
+       ELSIF NEW."Uploaded Receipt" IS DISTINCT FROM OLD."Uploaded Receipt" THEN
+        NEW."Uploaded Receipt At":=clock_timestamp() AT TIME ZONE 'Asia/Bangkok';
+       ELSE
+        NEW."Uploaded Receipt At":=OLD."Uploaded Receipt At";
+       END IF;
+       RETURN NEW;
+      END $function$
+    "owner": "postgres"
+    "language": "plpgsql"
+    "volatility": "v"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 0.0
+    "settings":
+    - "search_path=pg_catalog"
+    "acl": "{postgres=X/postgres,mw_app_prod=X/postgres}"
+    "comment": null
+    "extension": null
+"evidence":
+  "/content/definition/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"

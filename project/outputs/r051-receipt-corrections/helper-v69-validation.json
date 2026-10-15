@@ -1,0 +1,63 @@
+{
+  "passed": true,
+  "dev_calls": false,
+  "dev_version_unchanged": 69,
+  "expected_checksum": 245428688,
+  "targeted_evidence": "local-fixture-helpers-v69.json",
+  "maintained_entrypoint": "scripts/database/Test-CI.ps1",
+  "maintained_routes": [
+    {
+      "migrations": 69,
+      "pre_migration_target": null,
+      "second_run": 0,
+      "sql": "passed",
+      "concurrency": [
+        "BusinessExpenses",
+        "ExpenseReimbursement",
+        "PaymentCrud",
+        "ReceiptDelete",
+        "InterestReallocation",
+        "CorePayment",
+        "AtomicLoanClose",
+        "ChargeGeneration",
+        "DefaultLoan"
+      ],
+      "checksum_tampering_rejected": true,
+      "logs": "/tmp/r051-migration-test-6mar_mkr"
+    },
+    {
+      "migrations": 50,
+      "pre_migration_target": 19,
+      "second_run": 0,
+      "sql": "passed",
+      "concurrency": [],
+      "checksum_tampering_rejected": true,
+      "logs": "/tmp/r051-migration-test-ni9tkdro"
+    },
+    {
+      "migrations": 1,
+      "pre_migration_target": 68,
+      "second_run": 0,
+      "sql": "passed",
+      "concurrency": [],
+      "checksum_tampering_rejected": true,
+      "logs": "/tmp/r051-migration-test-ntilve7g"
+    }
+  ],
+  "exit_code": 0,
+  "source_sha256": {
+    "scripts/database/R051UiAdditionalFixtures.py": "d1bd2a60ff63c4f713979251e1d48a3d96bb01c87ed1d0e5651ee2ae2ec2f5eb",
+    "scripts/database/ReceiptCorrectionDev.py": "4ee8d2b01dad5d63a73b8d3836c72fe78d7d909c3e06462b762e96196e0df13f",
+    "scripts/database/R051-UiCleanup.sql": "4e8a52d8e5fe29cd88c029b5d102fbd324cffc3a1b24703fff3f358812d075db",
+    "scripts/database/Test-R051UiAdditionalFixtures.py": "4f431d387cdb0fee4af34bc2f5b37f80435131ae26c6a1732ac9167fbb22fa6e",
+    "scripts/database/Test-StatementBatch.sql": "633ba799e1d0ade54de1f400e7bf0274e57a0ebb5462cf837f2ae7ef25f0d950"
+  },
+  "migration_sha256": "c3df8be18e2b8b5dfc69039ef3183c62e34dda749291e7da977809fafbca2296",
+  "original_cleanup_fix": "Delete only the two original reserved accounts’ derived snapshots after their sources and before account deletion; restored-history FK regression now passes.",
+  "limitations": [
+    "Existing original GUI-created IDs require a fresh reviewed inventory before live cleanup; static original cleanup is not complete for the current live batch.",
+    "No live seed or cleanup authorized or performed; six existing batches preserved in local recovery copy, seventh uncreated.",
+    "Read-only GUI acceptance guide is proposed; no new GUI proof or app version is asserted."
+  ],
+  "log_reference": "/tmp/r051-helper69-ci.log"
+}

@@ -1,0 +1,68 @@
+{
+  "release": "R044",
+  "status": "Released",
+  "authorization": "Owner: create a new Partners tab based on the design; AppSheet changes require review. No AppSheet changes included.",
+  "sql_commit": "8cbf7f1935fa6570b71a913d931c4efdc52318f2",
+  "sql_manifest": "frozen-package.json",
+  "sql_before": 46,
+  "sql_after": 47,
+  "development_sql": 47,
+  "report": {
+    "backupDashboard": 21,
+    "models": {
+      "position": 318,
+      "capital": 319,
+      "earnings": 320,
+      "settlements": 321,
+      "daily": 322,
+      "capital_ledger": 323
+    },
+    "cards": {
+      "picker": 324,
+      "capital": 325,
+      "earned": 326,
+      "paid": 327,
+      "pending": 328,
+      "available": 329,
+      "comparison": 330,
+      "share": 331,
+      "bridge": 332,
+      "period-interest": 333,
+      "period-expense": 334,
+      "period-earned": 335,
+      "period-paid": 336,
+      "monthly": 337,
+      "movements": 338,
+      "capital-trend": 339,
+      "queue": 340,
+      "capital-ledger": 341,
+      "settlement-ledger": 342,
+      "context": 343
+    },
+    "tab": 249
+  },
+  "appsheet": {
+    "oltp": "unchanged",
+    "olap": "unchanged",
+    "rcs": []
+  },
+  "checks": [
+    "partner-tests.txt",
+    "database-ci.txt",
+    "production-validate.json",
+    "production-verification.json",
+    "verification.json",
+    "filter-verification.json",
+    "dictionary-validation.txt"
+  ],
+  "report_candidate_correction": "Required card-reference template tags; no SQL change",
+  "recovery": "Dashboard21 plus private pre-change definitions; compatible additive V47 can remain unused; never restore financial data for report rollback",
+  "tag": "R044",
+  "publication": "Final evidence commit; verify upstream and unique tag after push",
+  "limitations": [
+    "No forecast",
+    "Availability is entitlement, not cash liquidity",
+    "Mobile wide tables scroll horizontally; long notes can scroll vertically",
+    "No physical mobile or separate partner-account sign-in repeated"
+  ]
+}

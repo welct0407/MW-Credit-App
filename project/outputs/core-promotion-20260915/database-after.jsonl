@@ -1,0 +1,71 @@
+{"as_of_bangkok" : "2026-09-15T22:55:02.182907", "database" : "loan_manager_prod"}
+{"table" : "Borrowers", "rows" : 29, "fingerprint" : "dc4adea4e788daf0e788bf392b12240e"}
+{"table" : "Calendar", "rows" : 0, "fingerprint" : "d41d8cd98f00b204e9800998ecf8427e"}
+{"table" : "Cash Pool Contributions", "rows" : 7, "fingerprint" : "4a0ea2e2054ebb824db4fc275ede7828"}
+{"table" : "Charges", "rows" : 774, "fingerprint" : "d3869f8542b8ee8d98d2d3c9d5dcfcdf"}
+{"table" : "Daily Analytics", "rows" : 42, "fingerprint" : "0ad53015b83c7f8f34bc71df6438ea07"}
+{"table" : "Loan Assessment", "rows" : 1, "fingerprint" : "e1a92f437dd8ac2f86977479dbf9b221"}
+{"table" : "Loan Assessment SQL Lab", "rows" : 1, "fingerprint" : "188e74cd763b6c1463ecd08f5396fb3a"}
+{"table" : "Loans", "rows" : 65, "fingerprint" : "61dc7075ae67673f7e7bcdcdb2ff6835"}
+{"table" : "Partners", "rows" : 2, "fingerprint" : "b801104305b8ae1edec225721a407831"}
+{"table" : "Payment Allocations", "rows" : 318, "fingerprint" : "ae786fcb6f4600cb026a3dd3aa869aef"}
+{"table" : "Payments", "rows" : 160, "fingerprint" : "db620310b347ffda852873591f858abd"}
+{"table" : "Repayments", "rows" : 691, "fingerprint" : "8ea224f3af57d791537e27ced5109be1"}
+{"table" : "Settlements", "rows" : 2, "fingerprint" : "4e29076692a21ac38ff18c29d0305081"}
+{"table" : "Statistics", "rows" : 1, "fingerprint" : "9a52991180a3e2937c0723e239ab89a3"}
+{"processing" : 0, "errors" : 0, "new_loan_references" : 0, "new_payment_targets" : 0}
+{"analytics_excluding_generated_at" : "9e647a3c9af6bb125206b309c20967d1"}
+{"column" : "Ref Closing Payment", "table" : "Loans", "position" : 22, "type" : "text", "nullable" : "YES", "default" : null}
+{"column" : "Charge Generation Request", "table" : "Loans", "position" : 23, "type" : "text", "nullable" : "YES", "default" : null}
+{"column" : "Ref Target Loan", "table" : "Payments", "position" : 14, "type" : "text", "nullable" : "YES", "default" : null}
+{"constraint" : "Loans_Ref Closing Payment_fkey", "table" : "\"Loans\"", "type" : "f", "validated" : true, "definition" : "FOREIGN KEY (\"Ref Closing Payment\") REFERENCES \"Payments\"(\"Row ID\")"}
+{"constraint" : "Payments_Ref Target Loan_fkey", "table" : "\"Payments\"", "type" : "f", "validated" : true, "definition" : "FOREIGN KEY (\"Ref Target Loan\") REFERENCES \"Loans\"(\"Row ID\")"}
+{"kind" : "function", "schema" : "assessment_lab", "name" : "calculate_row", "hash" : "243c8546b84b4ed398b42df8a2b87e4c", "arguments" : ""}
+{"kind" : "function", "schema" : "assessment_lab", "name" : "fingerprint", "hash" : "423828c243f55bde70d0628006884da6", "arguments" : "j jsonb"}
+{"kind" : "function", "schema" : "assessment_lab", "name" : "forecast", "hash" : "a38d756b83d4198cdfa14bad62fe18cd", "arguments" : "p_loans jsonb, p_charges jsonb, p_amount numeric, p_rate numeric, p_asof date, p_start date, p_end date"}
+{"kind" : "function", "schema" : "assessment_lab", "name" : "inputs", "hash" : "729cb2d39dee95615f5e8a2e439c2390", "arguments" : "p_borrower text"}
+{"kind" : "function", "schema" : "assessment_lab", "name" : "stamp_inputs", "hash" : "1ed5160c3350339839e56d55db81849e", "arguments" : ""}
+{"kind" : "function", "schema" : "public", "name" : "appsheet_normalize_blank_refs", "hash" : "1bbfb91756b3ed8012755308d7bffcfb", "arguments" : ""}
+{"kind" : "function", "schema" : "public", "name" : "charge_generation_request", "hash" : "ee60eef9f7ed33ed149c5ec544f2d0db", "arguments" : ""}
+{"kind" : "function", "schema" : "public", "name" : "close_payment_loans", "hash" : "3f9b6e56666f460735ecb7f0e8f9b44c", "arguments" : "p_id text"}
+{"kind" : "function", "schema" : "public", "name" : "closing_payment_guard", "hash" : "b8571a9321f047ed0803ce9ac2ef1912", "arguments" : ""}
+{"kind" : "function", "schema" : "public", "name" : "create_first_day_charge", "hash" : "ff08c6b87158aacf65b1d55d5a1dbb5b", "arguments" : "p_loan text"}
+{"kind" : "function", "schema" : "public", "name" : "default_loan_transition", "hash" : "46a43912ac92f117bb23d9b0f468fea5", "arguments" : ""}
+{"kind" : "function", "schema" : "public", "name" : "default_posting_guard", "hash" : "31bf84fd2c1050dfe683904280a4fce1", "arguments" : ""}
+{"kind" : "function", "schema" : "public", "name" : "first_day_charge_trigger", "hash" : "9122609484df3ba65a93561842edd5bb", "arguments" : ""}
+{"kind" : "function", "schema" : "public", "name" : "first_day_loan_trigger", "hash" : "8bccb5b98138a148e1e83a3188b51230", "arguments" : ""}
+{"kind" : "function", "schema" : "public", "name" : "first_day_receipt", "hash" : "535abc3837683a734ad3f476c6b23c8e", "arguments" : "p_charge text"}
+{"kind" : "function", "schema" : "public", "name" : "generate_due_charges", "hash" : "8b190edf1ef84dd602f417e30be98b1a", "arguments" : "p_business_date date, p_loans text[]"}
+{"kind" : "function", "schema" : "public", "name" : "generate_loan_charge", "hash" : "e3a82fc80d4fd0ffeb08913169aaff21", "arguments" : "p_loan text, p_business_date date, p_manual_request boolean"}
+{"kind" : "function", "schema" : "public", "name" : "lump_sum_child_guard", "hash" : "dab6513a565faefa540561fe2be892d2", "arguments" : ""}
+{"kind" : "function", "schema" : "public", "name" : "lump_sum_receipt_guard", "hash" : "0a6a22aee8b612d75122797281160dfc", "arguments" : ""}
+{"kind" : "function", "schema" : "public", "name" : "payment_charge_balances", "hash" : "5c8683394a3d5cd9a41a97bb57e25244", "arguments" : "p_id text"}
+{"kind" : "function", "schema" : "public", "name" : "post_loan_default", "hash" : "8479020a91f99460026eb36df08a8793", "arguments" : "p_loan \"Loans\", p_date date, p_actor text"}
+{"kind" : "function", "schema" : "public", "name" : "post_payment", "hash" : "f45b2be08a38ab23d883030f17dd7502", "arguments" : "p_id text"}
+{"kind" : "function", "schema" : "public", "name" : "prepare_loan_close", "hash" : "91236de7155311191e1f9192831a5c45", "arguments" : ""}
+{"kind" : "function", "schema" : "public", "name" : "process_lump_sum", "hash" : "b3f6e893a792513bf839e9e67fcd8f20", "arguments" : ""}
+{"kind" : "trigger", "table" : "Cash Pool Contributions", "name" : "appsheet_blank_refs", "enabled" : "O", "definition" : "CREATE TRIGGER appsheet_blank_refs BEFORE INSERT OR UPDATE ON public.\"Cash Pool Contributions\" FOR EACH ROW EXECUTE FUNCTION appsheet_normalize_blank_refs('Ref Partner')"}
+{"kind" : "trigger", "table" : "Charges", "name" : "appsheet_blank_refs", "enabled" : "O", "definition" : "CREATE TRIGGER appsheet_blank_refs BEFORE INSERT OR UPDATE ON public.\"Charges\" FOR EACH ROW EXECUTE FUNCTION appsheet_normalize_blank_refs('Ref Loans')"}
+{"kind" : "trigger", "table" : "Charges", "name" : "default_posting_guard", "enabled" : "O", "definition" : "CREATE TRIGGER default_posting_guard BEFORE DELETE OR UPDATE ON public.\"Charges\" FOR EACH ROW EXECUTE FUNCTION default_posting_guard()"}
+{"kind" : "trigger", "table" : "Charges", "name" : "first_day_receipt", "enabled" : "O", "definition" : "CREATE TRIGGER first_day_receipt AFTER INSERT ON public.\"Charges\" FOR EACH ROW EXECUTE FUNCTION first_day_charge_trigger()"}
+{"kind" : "trigger", "table" : "Loan Assessment", "name" : "appsheet_blank_refs", "enabled" : "O", "definition" : "CREATE TRIGGER appsheet_blank_refs BEFORE INSERT OR UPDATE ON public.\"Loan Assessment\" FOR EACH ROW EXECUTE FUNCTION appsheet_normalize_blank_refs('Ref Borrower')"}
+{"kind" : "trigger", "table" : "Loan Assessment SQL Lab", "name" : "assessment_calculate", "enabled" : "O", "definition" : "CREATE TRIGGER assessment_calculate BEFORE INSERT OR UPDATE ON public.\"Loan Assessment SQL Lab\" FOR EACH ROW EXECUTE FUNCTION assessment_lab.calculate_row()"}
+{"kind" : "trigger", "table" : "Loan Assessment SQL Lab", "name" : "assessment_stamp", "enabled" : "O", "definition" : "CREATE TRIGGER assessment_stamp BEFORE INSERT OR UPDATE ON public.\"Loan Assessment SQL Lab\" FOR EACH ROW EXECUTE FUNCTION assessment_lab.stamp_inputs()"}
+{"kind" : "trigger", "table" : "Loans", "name" : "appsheet_blank_refs", "enabled" : "O", "definition" : "CREATE TRIGGER appsheet_blank_refs BEFORE INSERT OR UPDATE ON public.\"Loans\" FOR EACH ROW EXECUTE FUNCTION appsheet_normalize_blank_refs('Ref Borrowers')"}
+{"kind" : "trigger", "table" : "Loans", "name" : "closing_payment_guard", "enabled" : "O", "definition" : "CREATE TRIGGER closing_payment_guard BEFORE INSERT OR UPDATE ON public.\"Loans\" FOR EACH ROW EXECUTE FUNCTION closing_payment_guard()"}
+{"kind" : "trigger", "table" : "Loans", "name" : "default_loan_transition", "enabled" : "O", "definition" : "CREATE TRIGGER default_loan_transition BEFORE INSERT OR UPDATE ON public.\"Loans\" FOR EACH ROW EXECUTE FUNCTION default_loan_transition()"}
+{"kind" : "trigger", "table" : "Loans", "name" : "first_day_charge", "enabled" : "O", "definition" : "CREATE TRIGGER first_day_charge AFTER INSERT ON public.\"Loans\" FOR EACH ROW EXECUTE FUNCTION first_day_loan_trigger()"}
+{"kind" : "trigger", "table" : "Loans", "name" : "manual_charge_generation", "enabled" : "O", "definition" : "CREATE TRIGGER manual_charge_generation AFTER INSERT OR UPDATE OF \"Charge Generation Request\" ON public.\"Loans\" FOR EACH ROW EXECUTE FUNCTION charge_generation_request()"}
+{"kind" : "trigger", "table" : "Payment Allocations", "name" : "appsheet_blank_refs", "enabled" : "O", "definition" : "CREATE TRIGGER appsheet_blank_refs BEFORE INSERT OR UPDATE ON public.\"Payment Allocations\" FOR EACH ROW EXECUTE FUNCTION appsheet_normalize_blank_refs('Ref Payment', 'Ref Charge')"}
+{"kind" : "trigger", "table" : "Payment Allocations", "name" : "lump_sum_child_guard", "enabled" : "O", "definition" : "CREATE TRIGGER lump_sum_child_guard BEFORE INSERT OR DELETE OR UPDATE ON public.\"Payment Allocations\" FOR EACH ROW EXECUTE FUNCTION lump_sum_child_guard()"}
+{"kind" : "trigger", "table" : "Payments", "name" : "appsheet_blank_refs", "enabled" : "O", "definition" : "CREATE TRIGGER appsheet_blank_refs BEFORE INSERT OR UPDATE ON public.\"Payments\" FOR EACH ROW EXECUTE FUNCTION appsheet_normalize_blank_refs('Ref Borrower', 'Ref Target Charge')"}
+{"kind" : "trigger", "table" : "Payments", "name" : "close_loan_request", "enabled" : "O", "definition" : "CREATE TRIGGER close_loan_request BEFORE INSERT OR UPDATE ON public.\"Payments\" FOR EACH ROW EXECUTE FUNCTION prepare_loan_close()"}
+{"kind" : "trigger", "table" : "Payments", "name" : "lump_sum_receipt_guard", "enabled" : "O", "definition" : "CREATE TRIGGER lump_sum_receipt_guard BEFORE INSERT OR UPDATE ON public.\"Payments\" FOR EACH ROW EXECUTE FUNCTION lump_sum_receipt_guard()"}
+{"kind" : "trigger", "table" : "Payments", "name" : "payment_delete_guard", "enabled" : "O", "definition" : "CREATE TRIGGER payment_delete_guard BEFORE DELETE ON public.\"Payments\" FOR EACH ROW EXECUTE FUNCTION lump_sum_receipt_guard()"}
+{"kind" : "trigger", "table" : "Payments", "name" : "process_lump_sum", "enabled" : "O", "definition" : "CREATE TRIGGER process_lump_sum AFTER INSERT OR UPDATE ON public.\"Payments\" FOR EACH ROW EXECUTE FUNCTION process_lump_sum()"}
+{"kind" : "trigger", "table" : "Repayments", "name" : "appsheet_blank_refs", "enabled" : "O", "definition" : "CREATE TRIGGER appsheet_blank_refs BEFORE INSERT OR UPDATE ON public.\"Repayments\" FOR EACH ROW EXECUTE FUNCTION appsheet_normalize_blank_refs('Ref Loans', 'Ref Charges', 'Ref Payment', 'Ref Payment Allocation')"}
+{"kind" : "trigger", "table" : "Repayments", "name" : "default_posting_guard", "enabled" : "O", "definition" : "CREATE TRIGGER default_posting_guard BEFORE DELETE OR UPDATE ON public.\"Repayments\" FOR EACH ROW EXECUTE FUNCTION default_posting_guard()"}
+{"kind" : "trigger", "table" : "Repayments", "name" : "lump_sum_child_guard", "enabled" : "O", "definition" : "CREATE TRIGGER lump_sum_child_guard BEFORE INSERT OR DELETE OR UPDATE ON public.\"Repayments\" FOR EACH ROW EXECUTE FUNCTION lump_sum_child_guard()"}
+{"kind" : "trigger", "table" : "Settlements", "name" : "appsheet_blank_refs", "enabled" : "O", "definition" : "CREATE TRIGGER appsheet_blank_refs BEFORE INSERT OR UPDATE ON public.\"Settlements\" FOR EACH ROW EXECUTE FUNCTION appsheet_normalize_blank_refs('Ref Partner')"}
+{"kind" : "index", "table" : "Loans", "name" : "loans_closing_payment_idx", "definition" : "CREATE INDEX loans_closing_payment_idx ON public.\"Loans\" USING btree (\"Ref Closing Payment\") WHERE (\"Ref Closing Payment\" IS NOT NULL)"}
+{"kind" : "index", "table" : "Payments", "name" : "payments_target_loan_idx", "definition" : "CREATE INDEX payments_target_loan_idx ON public.\"Payments\" USING btree (\"Ref Target Loan\") WHERE (\"Ref Target Loan\" IS NOT NULL)"}

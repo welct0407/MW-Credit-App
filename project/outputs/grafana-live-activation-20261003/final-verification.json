@@ -1,0 +1,557 @@
+{
+  "source_commit": "07810034ed31913934eb23427330e988ca8a9add",
+  "operations": [
+    {
+      "at": "2026-10-03T11:53:02.167472+00:00",
+      "arguments": [
+        "scheduler",
+        "jobs",
+        "describe",
+        "mw-grafana-dispatch",
+        "--location=asia-southeast1",
+        "--format=json"
+      ],
+      "exit_code": 0,
+      "result": {
+        "attemptDeadline": "240s",
+        "description": "Paused bridge dispatcher; manual synthetic test awaits parent coordination. Annual safety schedule is not production activation.",
+        "httpTarget": {
+          "body": "e30=",
+          "headers": {
+            "Content-Type": "application/json",
+            "User-Agent": "Google-Cloud-Scheduler"
+          },
+          "httpMethod": "POST",
+          "oidcToken": {
+            "audience": "https://alerts.mw-credit.com/internal/dispatch",
+            "serviceAccountEmail": "mw-grafana-dispatch@clever-oasis-508610-n7.iam.gserviceaccount.com"
+          },
+          "uri": "https://alerts.mw-credit.com/internal/dispatch"
+        },
+        "lastAttemptTime": "2026-10-03T11:52:02.740113Z",
+        "name": "projects/clever-oasis-508610-n7/locations/asia-southeast1/jobs/mw-grafana-dispatch",
+        "retryConfig": {
+          "maxBackoffDuration": "3600s",
+          "maxDoublings": 5,
+          "maxRetryDuration": "0s",
+          "minBackoffDuration": "5s"
+        },
+        "schedule": "* * * * *",
+        "scheduleTime": "2026-10-03T11:53:02.355050Z",
+        "state": "ENABLED",
+        "status": {},
+        "timeZone": "Asia/Singapore",
+        "userUpdateTime": "2026-10-03T11:21:00.438628Z"
+      }
+    },
+    {
+      "at": "2026-10-03T11:53:05.588321+00:00",
+      "arguments": [
+        "run",
+        "revisions",
+        "describe",
+        "mw-grafana-events-00009-487",
+        "--region=asia-southeast1",
+        "--format=json(metadata.name,env_vars.CAPTURE_REJECTED_CALLBACK_HOST,env_vars.CALLBACK_HOSTS,status.imageDigest)"
+      ],
+      "exit_code": 0,
+      "result": {
+        "metadata": {
+          "name": "mw-grafana-events-00009-487"
+        },
+        "status": {
+          "imageDigest": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-monitoring/grafana-mcp-bridge@sha256:e24d97a0f726e9e0eda116cea4bc5392adedc432a5f89db4628ebe1fe4690b3f"
+        }
+      }
+    },
+    {
+      "at": "2026-10-03T11:53:08.848077+00:00",
+      "arguments": [
+        "run",
+        "services",
+        "describe",
+        "mw-grafana-events",
+        "--region=asia-southeast1",
+        "--format=json(metadata.name,status.latestReadyRevisionName,status.traffic,spec.template.spec.serviceAccountName)"
+      ],
+      "exit_code": 0,
+      "result": {
+        "metadata": {
+          "name": "mw-grafana-events"
+        },
+        "spec": {
+          "template": {
+            "spec": {
+              "serviceAccountName": "mw-grafana-events@clever-oasis-508610-n7.iam.gserviceaccount.com"
+            }
+          }
+        },
+        "status": {
+          "latestReadyRevisionName": "mw-grafana-events-00009-487",
+          "traffic": [
+            {
+              "percent": 100,
+              "revisionName": "mw-grafana-events-00009-487"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "at": "2026-10-03T11:53:12.357919+00:00",
+      "arguments": [
+        "meta",
+        "apis",
+        "methods",
+        "call",
+        "--collection=firestore.projects.databases.documents",
+        "--api-version=v1",
+        "--raw",
+        "list",
+        "--parent=projects/clever-oasis-508610-n7/databases/mw-grafana-events/documents",
+        "--collectionId=subscriptions",
+        "--mask_fieldPaths=id,name,filters,active,expiresAt,revision,verifiedAt",
+        "--pageSize=21",
+        "--format=json"
+      ],
+      "exit_code": 0,
+      "result": {
+        "documents": [
+          {
+            "createTime": "2026-10-03T10:00:25.531932Z",
+            "fields": {
+              "active": {
+                "booleanValue": false
+              },
+              "expiresAt": {
+                "integerValue": "1791108024805"
+              },
+              "filters": {
+                "mapValue": {
+                  "fields": {
+                    "alert_names": {
+                      "arrayValue": {
+                        "values": [
+                          {
+                            "stringValue": "MW Grafana Bridge Synthetic Test"
+                          }
+                        ]
+                      }
+                    },
+                    "statuses": {
+                      "arrayValue": {
+                        "values": [
+                          {
+                            "stringValue": "firing"
+                          },
+                          {
+                            "stringValue": "resolved"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              },
+              "id": {
+                "stringValue": "sub_7960fe36af05969212ae938a041bb05c9332cfbde31155272c4cd6a557f423e0"
+              },
+              "name": {
+                "stringValue": "grafana.alert.transition"
+              },
+              "revision": {
+                "integerValue": "2"
+              },
+              "verifiedAt": {
+                "integerValue": "1791021624805"
+              }
+            },
+            "name": "projects/clever-oasis-508610-n7/databases/mw-grafana-events/documents/subscriptions/sub_7960fe36af05969212ae938a041bb05c9332cfbde31155272c4cd6a557f423e0",
+            "updateTime": "2026-10-03T10:10:36.984729Z"
+          },
+          {
+            "createTime": "2026-10-03T11:20:43.757013Z",
+            "fields": {
+              "active": {
+                "booleanValue": true
+              },
+              "expiresAt": {
+                "integerValue": "1791112842798"
+              },
+              "filters": {
+                "mapValue": {
+                  "fields": {
+                    "alert_names": {
+                      "arrayValue": {
+                        "values": [
+                          {
+                            "stringValue": "MW | Cloud SQL CPU sustained high"
+                          },
+                          {
+                            "stringValue": "MW | Cloud SQL connection pressure"
+                          },
+                          {
+                            "stringValue": "MW | Cloud SQL used memory high"
+                          },
+                          {
+                            "stringValue": "MW | Debian VM used memory high"
+                          },
+                          {
+                            "stringValue": "MW | Debian component unhealthy"
+                          },
+                          {
+                            "stringValue": "MW | Metabase Railway memory pressure"
+                          },
+                          {
+                            "stringValue": "MW | Metabase component unhealthy"
+                          },
+                          {
+                            "stringValue": "MW | Metabase scheduled backup unhealthy"
+                          },
+                          {
+                            "stringValue": "MW | OpenAI product status impaired"
+                          },
+                          {
+                            "stringValue": "MW | Webhook external health impaired"
+                          }
+                        ]
+                      }
+                    },
+                    "statuses": {
+                      "arrayValue": {
+                        "values": [
+                          {
+                            "stringValue": "firing"
+                          },
+                          {
+                            "stringValue": "resolved"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              },
+              "id": {
+                "stringValue": "sub_e7a9a42f7b0623f90c274107afd48c2fd156165fc95140a9c087f83f3b75e6fc"
+              },
+              "name": {
+                "stringValue": "grafana.alert.transition"
+              },
+              "revision": {
+                "integerValue": "1"
+              },
+              "verifiedAt": {
+                "integerValue": "1791026442798"
+              }
+            },
+            "name": "projects/clever-oasis-508610-n7/databases/mw-grafana-events/documents/subscriptions/sub_e7a9a42f7b0623f90c274107afd48c2fd156165fc95140a9c087f83f3b75e6fc",
+            "updateTime": "2026-10-03T11:20:43.757013Z"
+          },
+          {
+            "createTime": "2026-10-03T10:41:56.837847Z",
+            "fields": {
+              "active": {
+                "booleanValue": false
+              },
+              "expiresAt": {
+                "integerValue": "1791110516211"
+              },
+              "filters": {
+                "mapValue": {
+                  "fields": {
+                    "alert_names": {
+                      "arrayValue": {
+                        "values": [
+                          {
+                            "stringValue": "MW Grafana Bridge Synthetic Test"
+                          }
+                        ]
+                      }
+                    },
+                    "statuses": {
+                      "arrayValue": {
+                        "values": [
+                          {
+                            "stringValue": "firing"
+                          },
+                          {
+                            "stringValue": "resolved"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              },
+              "id": {
+                "stringValue": "sub_edf9871eca4720006edbe54f7ef51d0cb65bc3b0401b3a42fcb00e3a62165634"
+              },
+              "name": {
+                "stringValue": "grafana.alert.transition"
+              },
+              "revision": {
+                "integerValue": "2"
+              },
+              "verifiedAt": {
+                "integerValue": "1791024116211"
+              }
+            },
+            "name": "projects/clever-oasis-508610-n7/databases/mw-grafana-events/documents/subscriptions/sub_edf9871eca4720006edbe54f7ef51d0cb65bc3b0401b3a42fcb00e3a62165634",
+            "updateTime": "2026-10-03T11:20:46.900608Z"
+          }
+        ]
+      }
+    },
+    {
+      "at": "2026-10-03T11:53:15.613175+00:00",
+      "arguments": [
+        "meta",
+        "apis",
+        "methods",
+        "call",
+        "--collection=firestore.projects.databases.documents",
+        "--api-version=v1",
+        "--raw",
+        "list",
+        "--parent=projects/clever-oasis-508610-n7/databases/mw-grafana-events/documents",
+        "--collectionId=deliveries",
+        "--mask_fieldPaths=id,eventId,state,attempt,leaseUntil,reason",
+        "--pageSize=21",
+        "--format=json"
+      ],
+      "exit_code": 0,
+      "result": {
+        "documents": [
+          {
+            "createTime": "2026-10-03T10:55:20.679975Z",
+            "fields": {
+              "attempt": {
+                "integerValue": "1"
+              },
+              "eventId": {
+                "stringValue": "evt_effa6bb773905446a52783d146ad0f8446e0072c1dd121759d4965d5eadc062b"
+              },
+              "id": {
+                "stringValue": "2ef196e010977b6c4869139066ff2211fcbbeb95b76440384fd7fba9bd9bb3b4"
+              },
+              "leaseUntil": {
+                "integerValue": "0"
+              },
+              "reason": {
+                "stringValue": "http_200"
+              },
+              "state": {
+                "stringValue": "delivered"
+              }
+            },
+            "name": "projects/clever-oasis-508610-n7/databases/mw-grafana-events/documents/deliveries/2ef196e010977b6c4869139066ff2211fcbbeb95b76440384fd7fba9bd9bb3b4",
+            "updateTime": "2026-10-03T11:05:27.671997Z"
+          }
+        ]
+      }
+    },
+    {
+      "at": "2026-10-03T11:53:17.865649+00:00",
+      "arguments": [
+        "logging",
+        "read",
+        "timestamp>=\"2026-10-03T11:50:15.614430+00:00\" AND ((resource.type=\"cloud_scheduler_job\" AND resource.labels.job_id=\"mw-grafana-dispatch\" AND resource.labels.location=\"asia-southeast1\") OR (resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"mw-grafana-events\" AND resource.labels.revision_name=\"mw-grafana-events-00009-487\" AND (jsonPayload.event=\"dispatch_completed\" OR httpRequest.requestUrl=\"https://alerts.mw-credit.com/internal/dispatch\")))",
+        "--limit=30",
+        "--format=json(timestamp,resource.type,jsonPayload.@type,jsonPayload.jobName,jsonPayload.status,jsonPayload.count,jsonPayload.event,httpRequest.status)"
+      ],
+      "exit_code": 0,
+      "result": [
+        {
+          "jsonPayload": {
+            "@type": "type.googleapis.com/google.cloud.scheduler.logging.AttemptStarted",
+            "jobName": "projects/clever-oasis-508610-n7/locations/asia-southeast1/jobs/mw-grafana-dispatch"
+          },
+          "resource": {
+            "type": "cloud_scheduler_job"
+          },
+          "timestamp": "2026-10-03T11:53:07.165492528Z"
+        },
+        {
+          "httpRequest": {
+            "status": 200
+          },
+          "jsonPayload": {
+            "@type": "type.googleapis.com/google.cloud.scheduler.logging.AttemptFinished",
+            "jobName": "projects/clever-oasis-508610-n7/locations/asia-southeast1/jobs/mw-grafana-dispatch"
+          },
+          "resource": {
+            "type": "cloud_scheduler_job"
+          },
+          "timestamp": "2026-10-03T11:53:07.110852417Z"
+        },
+        {
+          "jsonPayload": {
+            "count": 0,
+            "event": "dispatch_completed"
+          },
+          "resource": {
+            "type": "cloud_run_revision"
+          },
+          "timestamp": "2026-10-03T11:53:03.020826Z"
+        },
+        {
+          "httpRequest": {
+            "status": 200
+          },
+          "resource": {
+            "type": "cloud_run_revision"
+          },
+          "timestamp": "2026-10-03T11:53:02.961935Z"
+        },
+        {
+          "jsonPayload": {
+            "@type": "type.googleapis.com/google.cloud.scheduler.logging.AttemptStarted",
+            "jobName": "projects/clever-oasis-508610-n7/locations/asia-southeast1/jobs/mw-grafana-dispatch"
+          },
+          "resource": {
+            "type": "cloud_scheduler_job"
+          },
+          "timestamp": "2026-10-03T11:52:04.618218885Z"
+        },
+        {
+          "httpRequest": {
+            "status": 200
+          },
+          "jsonPayload": {
+            "@type": "type.googleapis.com/google.cloud.scheduler.logging.AttemptFinished",
+            "jobName": "projects/clever-oasis-508610-n7/locations/asia-southeast1/jobs/mw-grafana-dispatch"
+          },
+          "resource": {
+            "type": "cloud_scheduler_job"
+          },
+          "timestamp": "2026-10-03T11:52:04.135134901Z"
+        },
+        {
+          "jsonPayload": {
+            "count": 0,
+            "event": "dispatch_completed"
+          },
+          "resource": {
+            "type": "cloud_run_revision"
+          },
+          "timestamp": "2026-10-03T11:52:02.830120Z"
+        },
+        {
+          "httpRequest": {
+            "status": 200
+          },
+          "resource": {
+            "type": "cloud_run_revision"
+          },
+          "timestamp": "2026-10-03T11:52:02.760093Z"
+        },
+        {
+          "jsonPayload": {
+            "@type": "type.googleapis.com/google.cloud.scheduler.logging.AttemptStarted",
+            "jobName": "projects/clever-oasis-508610-n7/locations/asia-southeast1/jobs/mw-grafana-dispatch"
+          },
+          "resource": {
+            "type": "cloud_scheduler_job"
+          },
+          "timestamp": "2026-10-03T11:51:03.515003281Z"
+        },
+        {
+          "httpRequest": {
+            "status": 200
+          },
+          "jsonPayload": {
+            "@type": "type.googleapis.com/google.cloud.scheduler.logging.AttemptFinished",
+            "jobName": "projects/clever-oasis-508610-n7/locations/asia-southeast1/jobs/mw-grafana-dispatch"
+          },
+          "resource": {
+            "type": "cloud_scheduler_job"
+          },
+          "timestamp": "2026-10-03T11:51:03.477236828Z"
+        },
+        {
+          "jsonPayload": {
+            "count": 0,
+            "event": "dispatch_completed"
+          },
+          "resource": {
+            "type": "cloud_run_revision"
+          },
+          "timestamp": "2026-10-03T11:51:03.192187Z"
+        },
+        {
+          "httpRequest": {
+            "status": 200
+          },
+          "resource": {
+            "type": "cloud_run_revision"
+          },
+          "timestamp": "2026-10-03T11:51:03.140944Z"
+        }
+      ]
+    }
+  ],
+  "cloud_mutations": false,
+  "parent_ui_provenance": {
+    "approval_at": "2026-10-03T11:42:33Z",
+    "live_contact_point": "MW Performance IRM",
+    "verified_at_window": "2026-10-03T11:44:00Z/2026-10-03T11:46:59Z",
+    "used_by_rules": 10,
+    "original_irm_integration": "MW Performance Monitoring",
+    "original_irm_preserved": true,
+    "added_webhook": {
+      "method": "POST",
+      "url": "https://alerts.mw-credit.com/grafana",
+      "hmac_secret_configured": true,
+      "signature_header": "X-Grafana-Alerting-Signature",
+      "timestamp_header": "X-Grafana-Alerting-Timestamp",
+      "disable_resolved": false
+    },
+    "rule_conditions_and_targets_unchanged": true,
+    "deleted_contact_point": {
+      "name": "MW Grafana Bridge Synthetic Test",
+      "deleted_at": "2026-10-03T11:47:48Z",
+      "readback": "Only empty contact point and MW Performance IRM with two integrations remain."
+    },
+    "uninstalled_wrapper": {
+      "id": "plugins_6ac0a359d8b0819199175c9cf34d6661",
+      "ui_uninstall_at": "2026-10-03T11:48:33Z",
+      "ui_readback_at": "2026-10-03T11:48:51Z",
+      "readback": "Install plugin returned; redundant wrapper removed from sidebar. Earlier tool not-installed result was contradicted by UI."
+    },
+    "canonical_cloud_app_retained": true,
+    "canonical_connection_verification": "Parent handles separately; not independently verified by this executor.",
+    "additional_live_contact_point_test": "Earlier browser-blocked attempt made no send. Exact subsequent owner approval preceded ONE second-webhook-only test at 11:54:10 UTC, UI success11:54:25. Independent bounded ingress/event/outbox verification: live-route-test.json."
+  },
+  "verified_filter": {
+    "active_subscription_count": 1,
+    "id": "sub_e7a9a42f7b0623f90c274107afd48c2fd156165fc95140a9c087f83f3b75e6fc",
+    "filters": {
+      "alert_names": [
+        "MW | Cloud SQL CPU sustained high",
+        "MW | Cloud SQL connection pressure",
+        "MW | Cloud SQL used memory high",
+        "MW | Debian VM used memory high",
+        "MW | Debian component unhealthy",
+        "MW | Metabase Railway memory pressure",
+        "MW | Metabase component unhealthy",
+        "MW | Metabase scheduled backup unhealthy",
+        "MW | OpenAI product status impaired",
+        "MW | Webhook external health impaired"
+      ],
+      "statuses": [
+        "firing",
+        "resolved"
+      ]
+    },
+    "inactive_previous_synthetic_subscriptions": 2,
+    "grafana_rule_membership_basis": "Ten names match maintained operating-reference nine base rules plus scheduled backup rule; parent independently verified actual ten Performance 2m rules.",
+    "host_automation_readback": "Native peek verifies Performance Alert Notifications, id6ac0d235a960819184f5ab616a6acf0f, enabled and no-remediation prompt; native peek does not expose filters. Firestore safe projection independently verifies exact ten/status filters."
+  },
+  "pending_delivery_count": 0,
+  "delivery_state_counts": {
+    "delivered": 1
+  },
+  "recent_scheduled_tick_verified": true,
+  "completed_at": "2026-10-03T11:53:17.866385+00:00"
+}

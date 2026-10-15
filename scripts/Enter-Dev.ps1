@@ -9,7 +9,7 @@ if([Environment]::OSVersion.Platform -eq [PlatformID]::Win32NT){
   $env:MW_DB_TOOL_ROOT='C:/Users/ideaadmin/AppData/Local/MWCredit/database-tools'
   if(-not $env:MW_PRIVATE_ROOT){$env:MW_PRIVATE_ROOT='C:/Users/ideaadmin/Documents/ChatGPT'}
 } else {
-  # Tools installed by AppSheet-Loan-Project/scripts/cloud-session-setup.sh.
+  # Tools installed by project/scripts/cloud-session-setup.sh.
   $env:PATH='/workspace/.setup/postgresql-18.6/bin:/workspace/.setup/flyway-13.6.0:'+$env:PATH
   $env:MW_DB_TOOL_ROOT='/workspace/.setup'
   if(-not $env:MW_PRIVATE_ROOT){$env:MW_PRIVATE_ROOT=Join-Path $HOME '.mw-private'}

@@ -1,0 +1,52 @@
+name: Grafana MCP bridge
+on:
+  push:
+    branches: ['**']
+    paths: ['project/scripts/monitoring/grafana-mcp-bridge/**', '.github/workflows/grafana-mcp-bridge.yml']
+  pull_request:
+    paths: ['project/scripts/monitoring/grafana-mcp-bridge/**', '.github/workflows/grafana-mcp-bridge.yml']
+permissions:
+  contents: read
+jobs:
+  offline-security:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: project/scripts/monitoring/grafana-mcp-bridge
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with: { persist-credentials: false }
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with: { node-version: '24' }
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: python3 deploy/test_owner_bootstrap.py
+      - run: python3 deploy/test_cloud_shell_seed.py
+      - run: python3 deploy/test_cloud_shell_google_identity.py
+      - run: npm test
+      - run: npm audit --omit=dev --audit-level=moderate
+      - run: npm run estimate
+      - run: docker build --progress=plain -t mw-grafana-events:ci .
+      - run: docker build --progress=plain -f deploy/bootstrap.Dockerfile -t mw-grafana-bootstrap:ci deploy
+      - name: Verify packaged runtime without external network
+        run: >-
+          docker run --rm --network none
+          --mount type=bind,src="$PWD/test",dst=/app/test,readonly
+          --mount type=bind,src="$PWD/tools",dst=/app/tools,readonly
+          --mount type=bind,src="$PWD/deploy",dst=/app/deploy,readonly
+          mw-grafana-events:ci node --test test/*.test.mjs
+  windows-bootstrap:
+    runs-on: windows-latest
+    timeout-minutes: 5
+    defaults:
+      run:
+        working-directory: project/scripts/monitoring/grafana-mcp-bridge
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with: { persist-credentials: false }
+      - name: Verify Windows CMD launcher and bootstrap guards
+        run: python deploy/test_owner_bootstrap.py
+      - name: Verify standalone Cloud Shell seeding guards offline
+        run: python deploy/test_cloud_shell_seed.py
+      - name: Verify human identity helper offline
+        run: python deploy/test_cloud_shell_google_identity.py

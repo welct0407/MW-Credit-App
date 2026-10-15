@@ -1,0 +1,50 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "metabase",
+    "component": "reports.mw-credit.com",
+    "kind": "question",
+    "name": "371 / Active loan interest earned ฿",
+    "scope": "production"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r050-borrower-lifetime/saved.json"
+  },
+  "content": {
+    "key": "active-interest",
+    "id": 371,
+    "name": "Active loan interest earned ฿",
+    "description": "Borrower lifetime/current loan groups; ignores activity dates. Active return = lifetime active-loan interest / current outstanding principal. Closed totals use only loans whose current status is Closed, including defaulted closures. Interest is gross signed receipts. Coverage date is the existing constant-daily-interest estimate; when already covered it displays the current reporting date, not a historical crossing date.",
+    "display": "scalar",
+    "dataset_query": {
+      "stages": [
+        {
+          "template-tags": [
+            {
+              "display-name": "Borrower",
+              "id": "bp-borrower",
+              "name": "borrower_id",
+              "type": "text"
+            }
+          ],
+          "lib/type": "mbql.stage/native",
+          "native": "WITH chosen AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE borrower_id= [[{{borrower_id}} --]] '__select_borrower__'\n), totals AS (SELECT b.\"Total Outstanding Principal\" principal,b.\"Active Loan Interest Earned\" interest,b.\"Projected Interest Coverage Date\" coverage,\n z.principal closed_principal,z.interest closed_interest FROM chosen c JOIN public.olap_borrowers_analytics b ON b.\"Row ID\"=c.borrower_id\n CROSS JOIN LATERAL (SELECT CASE WHEN count(*)=0 THEN 0 WHEN bool_and(original_principal IS NOT NULL) THEN sum(original_principal) END principal,\n CASE WHEN count(*)=0 THEN 0 WHEN bool_and(interest_received IS NOT NULL) THEN sum(interest_received) END interest\n FROM public.reporting_borrower_loan_facts_v1 l WHERE l.borrower_id=c.borrower_id AND l.loan_status='Closed') z) SELECT interest AS \"Active loan interest earned ฿\" FROM totals"
+        }
+      ],
+      "lib/type": "mbql/query",
+      "database": 2
+    },
+    "visualization_settings": {
+      "scalar.field": "Active loan interest earned ฿",
+      "column_settings": {
+        "[\"name\",\"Active loan interest earned ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,",
+          "compact": false
+        }
+      }
+    }
+  }
+}

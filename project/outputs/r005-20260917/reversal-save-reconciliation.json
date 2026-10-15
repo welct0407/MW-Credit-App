@@ -1,0 +1,27 @@
+{
+  "release": "R005",
+  "batches": [
+    {
+      "file": "dev-olap-reversal-save1-diff.json",
+      "before": "1.000120",
+      "after": "1.000121",
+      "changes": 60
+    },
+    {
+      "file": "dev-olap-reversal-save2-diff.json",
+      "before": "1.000121",
+      "after": "1.000123",
+      "changes": 2
+    }
+  ],
+  "unmapped": 0,
+  "intermediate": "1.000121 had its second assignment incorrectly targeting Status. Saved 1.000123 corrects it to Notes; no test writes used the incorrect action. AppSheet advanced through 1.000122 during the coherent save/reload batch; its separate definition was not captured, so intermediate coverage remains explicitly unverified.",
+  "editorSupplement": {
+    "action": "Delete Settlement",
+    "display": "Delete",
+    "icon": "fas fa-trash-alt",
+    "iconLabel": "trash-alt (Solid)",
+    "exportIcon": "",
+    "verified": "Editor tree and runtime display a trash icon; underlying selection observed in editor before save."
+  }
+}

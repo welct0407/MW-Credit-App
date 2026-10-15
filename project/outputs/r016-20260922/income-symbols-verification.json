@@ -1,0 +1,37 @@
+{
+  "verified_at": "2026-09-22T18:20:51.426Z",
+  "checks": [
+    "Earlier eight pages and all date filters unchanged",
+    "Cash waterfall removed; fourteen business visuals remain",
+    "Every retained question query and filter mapping unchanged",
+    "Separate plus and equals signs between three equally sized cash cards",
+    "Waterfall title maps native Total to Unsettled Profit",
+    "current waterfall total equals Unsettled Profit",
+    "current period-end cash and availability queries execute",
+    "historical waterfall total equals Unsettled Profit",
+    "historical period-end cash and availability queries execute",
+    "Removed question has no dashboard use",
+    "Removed question recoverably archived"
+  ],
+  "check_count": 11,
+  "visuals": 123,
+  "questions": 119,
+  "income_visuals": 14,
+  "private_rollback": "C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r016-20260922/income-symbols-before",
+  "database_changes": false,
+  "calculation_changes": false,
+  "total_label_limitation": "Metabase v0.63.18.1 hardcodes native Total; chart title explicitly maps Total = Unsettled Profit",
+  "cash_equation_note": "Earlier retained profit, advances and reconciliation differences can affect period-end cash; explanatory footnote retained",
+  "prior_financial_tests": "income-verification.json (154 checks; unchanged calculations)",
+  "browser_checks": {
+    "desktop_width": 1024,
+    "mobile_width": 390,
+    "no_mobile_horizontal_overflow": true,
+    "full_scalar_numbers": true,
+    "operators_in_reading_order": true,
+    "footnote_content_height": 51.28125,
+    "footnote_container_height": 64,
+    "custom_date_picker_prior_limitation_unchanged": true
+  },
+  "final_readback_at": "2026-09-22T18:23:39.005Z"
+}

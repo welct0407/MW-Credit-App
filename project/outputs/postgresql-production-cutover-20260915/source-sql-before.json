@@ -1,0 +1,98 @@
+[
+  {
+    "source_differences": 0,
+    "source_rows": 29,
+    "sql_differences": 0,
+    "sql_extra_keys": 0,
+    "sql_rows": 29,
+    "table": "Borrowers"
+  },
+  {
+    "source_differences": 0,
+    "source_rows": 2,
+    "sql_differences": 0,
+    "sql_extra_keys": 0,
+    "sql_rows": 2,
+    "table": "Partners"
+  },
+  {
+    "source_differences": 0,
+    "source_rows": 62,
+    "sql_differences": 0,
+    "sql_extra_keys": 0,
+    "sql_rows": 62,
+    "table": "Loans"
+  },
+  {
+    "source_differences": 0,
+    "source_rows": 1,
+    "sql_differences": 0,
+    "sql_extra_keys": 0,
+    "sql_rows": 1,
+    "table": "Statistics"
+  },
+  {
+    "source_differences": 0,
+    "source_rows": 745,
+    "sql_differences": 0,
+    "sql_extra_keys": 0,
+    "sql_rows": 745,
+    "table": "Charges"
+  },
+  {
+    "source_differences": 0,
+    "source_rows": 1,
+    "sql_differences": 0,
+    "sql_extra_keys": 0,
+    "sql_rows": 1,
+    "table": "Loan Assessment"
+  },
+  {
+    "source_differences": 0,
+    "source_rows": 5,
+    "sql_differences": 0,
+    "sql_extra_keys": 0,
+    "sql_rows": 5,
+    "table": "Cash Pool Contributions"
+  },
+  {
+    "source_differences": 0,
+    "source_rows": 2,
+    "sql_differences": 0,
+    "sql_extra_keys": 0,
+    "sql_rows": 2,
+    "table": "Settlements"
+  },
+  {
+    "source_differences": 3,
+    "source_rows": 42,
+    "sql_differences": 2,
+    "sql_extra_keys": 2,
+    "sql_rows": 41,
+    "table": "Daily Analytics"
+  },
+  {
+    "source_differences": 0,
+    "source_rows": 140,
+    "sql_differences": 0,
+    "sql_extra_keys": 0,
+    "sql_rows": 140,
+    "table": "Payments"
+  },
+  {
+    "source_differences": 0,
+    "source_rows": 263,
+    "sql_differences": 0,
+    "sql_extra_keys": 0,
+    "sql_rows": 263,
+    "table": "Payment Allocations"
+  },
+  {
+    "source_differences": 0,
+    "source_rows": 644,
+    "sql_differences": 0,
+    "sql_extra_keys": 0,
+    "sql_rows": 644,
+    "table": "Repayments"
+  }
+]

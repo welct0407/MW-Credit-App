@@ -1,0 +1,26 @@
+{
+  "release": "R041",
+  "status": "Released",
+  "packageCommit": "67d7f8a",
+  "tag": "R041",
+  "dashboard": 3,
+  "tab": 105,
+  "questions": [
+    290,
+    301,
+    303,
+    305,
+    306,
+    307,
+    308
+  ],
+  "rollbackDashboard": 18,
+  "privateBaseline": "Documents/ChatGPT/AppSheet-Loan-Project/r041-borrower-detail/before.json",
+  "database": "Unchanged",
+  "apps": "Unchanged",
+  "evidence": [
+    "README.md",
+    "saved.json",
+    "verification.json"
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "at": "2026-10-01T17:46:53.046237+00:00",
+  "results": [
+    {
+      "path": "/",
+      "status": 200,
+      "sha256": "1070134427a7b5bcc53fbbbf672ac08d0ab187b72e957c15494e34cc597a3938",
+      "matchesPinnedBuild": true
+    },
+    {
+      "path": "/auth/callback",
+      "status": 200,
+      "sha256": "107708c30dc08008f941797a6274fd3b67c68d390a0b8d40e602110e38943b23",
+      "matchesPinnedBuild": true
+    },
+    {
+      "path": "/assets/app.js",
+      "status": 200,
+      "sha256": "7d6fdb93d58cdcd5ca777aa817d3b358778fcb9b4dc757c9f0e5ff2449720600",
+      "matchesPinnedBuild": true
+    },
+    {
+      "path": "/assets/style.css",
+      "status": 200,
+      "sha256": "7a1647e628312659027058cd17cb985efaf01cd87c2531f187e5ff24d7f4d00d",
+      "matchesPinnedBuild": true
+    },
+    {
+      "path": "/assets/auth-callback.js",
+      "status": 200,
+      "sha256": "2cfc502448319fbec39fd4c4fa3e321f97707d8ba25bc6037e59836174aff26f",
+      "matchesPinnedBuild": true
+    },
+    {
+      "path": "/assets/config.js",
+      "status": 200,
+      "publicConfigurationMatches": true
+    },
+    {
+      "path": "/api/vm01/status",
+      "caller": "anonymous",
+      "status": 401
+    },
+    {
+      "path": "/api/vm01/status",
+      "caller": "malformed-bearer",
+      "status": 401
+    },
+    {
+      "path": "/api/vm01/status",
+      "caller": "spoofed-identity-headers",
+      "status": 401
+    }
+  ],
+  "allowedCallerLiveChecks": "pending: owner browser session and separately approved Cloud credentials",
+  "vmPowerRequestsSubmitted": 0
+}

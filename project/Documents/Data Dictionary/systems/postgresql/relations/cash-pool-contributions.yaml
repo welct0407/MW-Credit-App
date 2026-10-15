@@ -1,0 +1,392 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "relation"
+  "name": "public.Cash Pool Contributions"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r053-notifications-jobs/dictionary-production-closure.json"
+  "coverage": "Actual affected PROD89 catalogue after maintained migration and authority restoration; no business rows."
+  "previous_record":
+    "commit": "dffa437c29a762f5b87a10b14a32063da8df07aa"
+    "path": "Documents/Data Dictionary/systems/postgresql/relations/cash-pool-contributions.yaml"
+    "identity":
+      "system": "postgresql"
+      "component": "unassigned-database"
+      "kind": "relation"
+      "name": "Cash Pool Contributions"
+      "scope": "as-recorded"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "Cash Pool Contributions"
+    "kind": "r"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "d"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,mw_reviewer_dml=arwd/postgres,mw_app_prod=arwd/postgres}"
+    "comment": null
+    "view_definition": null
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "columns":
+    "Row ID":
+      "schema": "public"
+      "relation": "Cash Pool Contributions"
+      "name": "Row ID"
+      "ordinal": 1
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Ref Partner":
+      "schema": "public"
+      "relation": "Cash Pool Contributions"
+      "name": "Ref Partner"
+      "ordinal": 2
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": "{mw_jobs_owner_prod=r/postgres}"
+      "comment": null
+    "Contribution Date":
+      "schema": "public"
+      "relation": "Cash Pool Contributions"
+      "name": "Contribution Date"
+      "ordinal": 3
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{mw_jobs_owner_prod=r/postgres}"
+      "comment": null
+    "Transaction Type":
+      "schema": "public"
+      "relation": "Cash Pool Contributions"
+      "name": "Transaction Type"
+      "ordinal": 4
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": "{mw_jobs_owner_prod=r/postgres}"
+      "comment": null
+    "Amount":
+      "schema": "public"
+      "relation": "Cash Pool Contributions"
+      "name": "Amount"
+      "ordinal": 5
+      "data_type": "money"
+      "type_schema": "pg_catalog"
+      "type_name": "money"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{mw_jobs_owner_prod=r/postgres}"
+      "comment": null
+    "Notes":
+      "schema": "public"
+      "relation": "Cash Pool Contributions"
+      "name": "Notes"
+      "ordinal": 6
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+  "constraints":
+    "Cash Pool Contributions_Row ID_not_null":
+      "schema": "public"
+      "relation": "Cash Pool Contributions"
+      "name": "Cash Pool Contributions_Row ID_not_null"
+      "kind": "n"
+      "definition": "NOT NULL \"Row ID\""
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "Cash Pool Contributions_pkey":
+      "schema": "public"
+      "relation": "Cash Pool Contributions"
+      "name": "Cash Pool Contributions_pkey"
+      "kind": "p"
+      "definition": "PRIMARY KEY (\"Row ID\")"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "appsheet_ref_08":
+      "schema": "public"
+      "relation": "Cash Pool Contributions"
+      "name": "appsheet_ref_08"
+      "kind": "f"
+      "definition": "FOREIGN KEY (\"Ref Partner\") REFERENCES \"Partners\"(\"Row ID\")"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 2
+      "referenced_column_numbers":
+      - 1
+      "referenced_relation": "\"Partners\""
+      "update_action": "a"
+      "delete_action": "a"
+      "match_type": "s"
+      "comment": null
+    "expense_contribution_changed":
+      "schema": "public"
+      "relation": "Cash Pool Contributions"
+      "name": "expense_contribution_changed"
+      "kind": "t"
+      "definition": "TRIGGER DEFERRABLE INITIALLY DEFERRED"
+      "deferrable": true
+      "initially_deferred": true
+      "validated": true
+      "column_numbers": null
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "zzzzzz_business_history_commit":
+      "schema": "public"
+      "relation": "Cash Pool Contributions"
+      "name": "zzzzzz_business_history_commit"
+      "kind": "t"
+      "definition": "TRIGGER DEFERRABLE INITIALLY DEFERRED"
+      "deferrable": true
+      "initially_deferred": true
+      "validated": true
+      "column_numbers": null
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+  "indexes":
+    "Cash Pool Contributions_pkey":
+      "schema": "public"
+      "relation": "Cash Pool Contributions"
+      "name": "Cash Pool Contributions_pkey"
+      "definition": "CREATE UNIQUE INDEX \"Cash Pool Contributions_pkey\" ON public.\"Cash Pool Contributions\" USING btree\
+        \ (\"Row ID\")"
+      "unique": true
+      "primary": true
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 1
+      "total_attribute_count": 1
+      "predicate": null
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
+  "triggers":
+    "RI_ConstraintTrigger_c_16727":
+      "schema": "public"
+      "relation": "Cash Pool Contributions"
+      "name": "RI_ConstraintTrigger_c_16727"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_16727\" AFTER INSERT ON \"Cash Pool Contributions\"\
+        \ FROM \"Partners\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_ins\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_16728":
+      "schema": "public"
+      "relation": "Cash Pool Contributions"
+      "name": "RI_ConstraintTrigger_c_16728"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_16728\" AFTER UPDATE ON \"Cash Pool Contributions\"\
+        \ FROM \"Partners\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "a000_business_history_begin":
+      "schema": "public"
+      "relation": "Cash Pool Contributions"
+      "name": "a000_business_history_begin"
+      "definition": "CREATE TRIGGER a000_business_history_begin BEFORE INSERT OR DELETE OR UPDATE ON \"Cash Pool Contributions\"\
+        \ FOR EACH STATEMENT EXECUTE FUNCTION begin_business_history()"
+      "enabled": "O"
+      "internal": false
+      "routine": "begin_business_history()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "aa_cashpool_lock":
+      "schema": "public"
+      "relation": "Cash Pool Contributions"
+      "name": "aa_cashpool_lock"
+      "definition": "CREATE TRIGGER aa_cashpool_lock BEFORE INSERT OR DELETE OR UPDATE ON \"Cash Pool Contributions\" FOR\
+        \ EACH STATEMENT EXECUTE FUNCTION loan_cashpool_lock()"
+      "enabled": "O"
+      "internal": false
+      "routine": "loan_cashpool_lock()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "appsheet_blank_refs":
+      "schema": "public"
+      "relation": "Cash Pool Contributions"
+      "name": "appsheet_blank_refs"
+      "definition": "CREATE TRIGGER appsheet_blank_refs BEFORE INSERT OR UPDATE ON \"Cash Pool Contributions\" FOR EACH ROW\
+        \ EXECUTE FUNCTION appsheet_normalize_blank_refs('Ref Partner')"
+      "enabled": "O"
+      "internal": false
+      "routine": "appsheet_normalize_blank_refs()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "expense_allocation_lock":
+      "schema": "public"
+      "relation": "Cash Pool Contributions"
+      "name": "expense_allocation_lock"
+      "definition": "CREATE TRIGGER expense_allocation_lock BEFORE INSERT OR DELETE OR UPDATE ON \"Cash Pool Contributions\"\
+        \ FOR EACH STATEMENT EXECUTE FUNCTION expense_allocation_lock()"
+      "enabled": "O"
+      "internal": false
+      "routine": "expense_allocation_lock()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "expense_contribution_changed":
+      "schema": "public"
+      "relation": "Cash Pool Contributions"
+      "name": "expense_contribution_changed"
+      "definition": "CREATE CONSTRAINT TRIGGER expense_contribution_changed AFTER INSERT OR DELETE OR UPDATE ON \"Cash Pool\
+        \ Contributions\" DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION expense_contribution_changed()"
+      "enabled": "O"
+      "internal": false
+      "routine": "expense_contribution_changed()"
+      "deferrable": true
+      "initially_deferred": true
+      "comment": null
+    "mw_agent_capture":
+      "schema": "public"
+      "relation": "Cash Pool Contributions"
+      "name": "mw_agent_capture"
+      "definition": "CREATE TRIGGER mw_agent_capture AFTER INSERT OR DELETE OR UPDATE ON \"Cash Pool Contributions\" FOR EACH\
+        \ ROW EXECUTE FUNCTION agent_audit.capture_change()"
+      "enabled": "O"
+      "internal": false
+      "routine": "agent_audit.capture_change()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "zzzz_business_history":
+      "schema": "public"
+      "relation": "Cash Pool Contributions"
+      "name": "zzzz_business_history"
+      "definition": "CREATE TRIGGER zzzz_business_history AFTER INSERT OR DELETE OR UPDATE ON \"Cash Pool Contributions\"\
+        \ FOR EACH ROW EXECUTE FUNCTION business_history_refresh('Contribution Date')"
+      "enabled": "O"
+      "internal": false
+      "routine": "business_history_refresh()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "zzzzz_business_history_flush":
+      "schema": "public"
+      "relation": "Cash Pool Contributions"
+      "name": "zzzzz_business_history_flush"
+      "definition": "CREATE TRIGGER zzzzz_business_history_flush AFTER INSERT OR DELETE OR UPDATE ON \"Cash Pool Contributions\"\
+        \ FOR EACH STATEMENT EXECUTE FUNCTION flush_business_history()"
+      "enabled": "O"
+      "internal": false
+      "routine": "flush_business_history()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "zzzzzz_business_history_commit":
+      "schema": "public"
+      "relation": "Cash Pool Contributions"
+      "name": "zzzzzz_business_history_commit"
+      "definition": "CREATE CONSTRAINT TRIGGER zzzzzz_business_history_commit AFTER INSERT OR DELETE OR UPDATE ON \"Cash Pool\
+        \ Contributions\" DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION flush_business_history()"
+      "enabled": "O"
+      "internal": false
+      "routine": "flush_business_history()"
+      "deferrable": true
+      "initially_deferred": true
+      "comment": null
+  "policies": {}
+  "dependencies": []
+"evidence":
+  "/content/definition/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"

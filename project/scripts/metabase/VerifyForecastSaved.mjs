@@ -1,0 +1,26 @@
+import assert from 'node:assert/strict';
+import {api} from './ReportingApi.mjs';
+import {read,save} from './ForecastPlanning.mjs';
+const state=read('state'),d=await api('GET','dashboard/3');
+const ps=o=>Object.entries(o).map(([k,v])=>({id:'fp-'+k,type:['kind','scenario'].includes(k)?'string/=':'number/=',value:[v]}));
+async function rows(key,params={}){const p=d.dashcards.find(v=>v.card_id===state.cards[key]&&v.dashboard_tab_id===state.tab);const r=await api('POST',`dashboard/3/dashcard/${p.id}/card/${p.card_id}/query`,{parameters:ps(params)});assert.equal(r.status,'completed',key);return r.data.rows;}
+const checks=[];const check=(ok,label)=>{assert(ok,label);checks.push(label);};const number=v=>Number(String(v).replaceAll(',',''));const close=(a,b)=>Math.abs(a-b)<0.01;
+const actual=(await rows('actual'))[0][0],ri=(await rows('remaining'))[0][0],rp=(await rows('principal'))[0][0],total=(await rows('projected'))[0][0];
+check(close(actual+ri,total),'Actual + remaining = projection');
+check(close((await rows('remaining',{ci:80,rr:0}))[0][0],ri*.8),'Saved interest percentage mapping');
+check(close((await rows('principal',{cp:75,rr:0}))[0][0],rp*.75),'Saved principal percentage mapping');
+check(close((await rows('remaining',{ci:80,rr:0,scenario:'Stress'}))[0][0],ri*.6),'Stress reduction via saved mapping');
+check(close((await rows('actual',{ci:10,scenario:'Stress'}))[0][0],actual),'Actual independent of scenario');
+check((await rows('gap'))[0][0]==='Target not set','Blank target is explicit');
+check((await rows('closing'))[0][0]==='Plan not ready','Blank cash plan is explicit');
+check(close((await rows('drivers')).reduce((n,r)=>n+number(r[2]),0),ri),'Top borrowers plus Others reconcile');
+const types=await rows('types');check(close(types.reduce((n,r)=>n+number(r[1]),0),actual)&&close(types.reduce((n,r)=>n+number(r[2]),0),ri),'Type totals reconcile');
+const weeks=await rows('weekly');check(close(weeks.reduce((n,r)=>n+number(r[1]),0),ri)&&close(weeks.reduce((n,r)=>n+number(r[2]),0),rp),'Weekly raw dues = Schedule receipts');
+const trajectory=await rows('trajectory');check(close(number(trajectory.at(-1)[2]),total),'Cumulative projected endpoint reconciles');
+const plan={lending:0,expenses:0,withdrawals:0,inflows:0,reserve:0};
+const cash=number((await rows('cash',plan))[0][0]),closing=number((await rows('closing',plan))[0][0]);
+check(Math.abs(cash+ri+rp-closing)<=1.5,'Cash bridge excludes MTD double counting (whole-baht cards)');
+check((await rows('closing',{...plan,kind:'Daily Interest'}))[0][0]===(await rows('closing',plan))[0][0],'Funding ignores type filter');
+check(close(number((await rows('shortfall',{...plan,reserve:closing+1000}))[0][0]),1000),'Reserve gap input mapping');
+const roll=(await rows('bridge',{rr:25}));check(close(number(roll[0][1])+number(roll[1][1])+number(roll[2][1]),number(roll[3][1])),'Recovery bridge reconciles');
+save('saved-reconciliation',{passed:true,at:new Date().toISOString(),checks,financialValuesPublished:false});console.log(JSON.stringify({passed:true,checks:checks.length}));

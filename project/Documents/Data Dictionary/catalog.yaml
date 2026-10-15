@@ -1,0 +1,33 @@
+"format": 1
+"systems":
+  "postgresql":
+    "status": "active"
+    "kinds":
+    - "relation"
+    - "recorded-logic"
+    - "routine"
+    - "schema"
+    - "sequence"
+    - "type"
+    - "settings"
+  "metabase":
+    "status": "active"
+    "kinds":
+    - "model"
+    - "question"
+    - "dashboard"
+    - "snippet"
+  "grafana":
+    "status": "active"
+    "kinds":
+    - "dashboard"
+    - "datasource"
+    - "alert-rule"
+    - "recording-rule"
+  "pwa":
+    "status": "active"
+    "kinds":
+    - "application"
+    - "api"
+    - "storage-contract"
+    - "worker-contract"

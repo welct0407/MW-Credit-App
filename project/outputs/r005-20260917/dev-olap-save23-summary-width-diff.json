@@ -1,0 +1,52 @@
+{
+  "release": "R005",
+  "app": "olap",
+  "before": {
+    "file": "dev-olap-save22-held-cash-summary.json",
+    "version": "1.000119"
+  },
+  "after": {
+    "file": "dev-olap-save23-summary-width.json",
+    "version": "1.000120"
+  },
+  "coverage": "All exported properties; omitted export coverage subject to explicit owner-approved limited R005 exception.",
+  "counts": {
+    "before": 24454,
+    "after": 24454,
+    "changes": 2
+  },
+  "changes": [
+    {
+      "id": "R005-OLAP-10d4e392c175",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "App/Version",
+      "operation": "change",
+      "before": {
+        "present": true,
+        "value": "1.000119"
+      },
+      "after": {
+        "present": true,
+        "value": "1.000120"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-30c8f441089e",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "View name/Cash Position/View configuration/ViewEntries/0/ViewSize",
+      "operation": "change",
+      "before": {
+        "present": true,
+        "value": "Small"
+      },
+      "after": {
+        "present": true,
+        "value": "Wide"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    }
+  ]
+}

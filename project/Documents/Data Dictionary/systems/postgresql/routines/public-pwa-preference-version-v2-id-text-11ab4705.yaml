@@ -1,0 +1,36 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.pwa_preference_version_v2(id text)"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r052/dictionary-production-closure.json"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "pwa_preference_version_v2"
+    "arguments": "id text"
+    "kind": "f"
+    "arguments_with_defaults": "id text"
+    "result": "text"
+    "definition": "CREATE OR REPLACE FUNCTION public.pwa_preference_version_v2(id text)\n RETURNS text\n LANGUAGE sql\n STABLE\n\
+      \ SET search_path TO 'pg_catalog', 'public'\nAS $function$\r\n SELECT encode(sha256(convert_to(jsonb_build_object('partnerId',p.\"\
+      Row ID\",'language',p.\"Language Preference\",'context',to_jsonb(c))::text,'UTF8')),'hex') FROM public.\"Partners\"\
+      \ p LEFT JOIN public.\"Cash Statement Context\" c ON c.\"Ref Partner\"=p.\"Row ID\" WHERE p.\"Row ID\"=$1;\r\n$function$\n"
+    "owner": "postgres"
+    "language": "sql"
+    "volatility": "s"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 0.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": "{postgres=X/postgres,mw_app_prod=X/postgres}"
+    "comment": null
+    "extension": null

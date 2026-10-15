@@ -1,0 +1,2334 @@
+{
+  "tabs": [
+    {
+      "id": 4,
+      "dashboard_id": 3,
+      "name": "1 · Overview",
+      "position": 0,
+      "entity_id": "XNUTfCABMppJ6qAOrGoLc",
+      "created_at": "2026-09-22T10:01:48.177376Z",
+      "updated_at": "2026-09-22T10:01:48.177376Z"
+    },
+    {
+      "id": 14,
+      "dashboard_id": 3,
+      "name": "2 · Cash Position",
+      "position": 1,
+      "entity_id": "pPLWf7izBFfdYrpfhzUt4",
+      "created_at": "2026-09-23T08:00:42.687717Z",
+      "updated_at": "2026-09-23T16:04:31.253029Z"
+    },
+    {
+      "id": 16,
+      "dashboard_id": 3,
+      "name": "3 · Income Statement",
+      "position": 2,
+      "entity_id": "8zodFNPMLCr1b4qqtGV5_",
+      "created_at": "2026-09-23T08:00:42.687717Z",
+      "updated_at": "2026-09-23T18:17:39.510824Z"
+    },
+    {
+      "id": 15,
+      "dashboard_id": 3,
+      "name": "4 · Cashflow Statement",
+      "position": 3,
+      "entity_id": "qs0JYiZxE-Poqyh_4pyKv",
+      "created_at": "2026-09-23T08:00:42.687717Z",
+      "updated_at": "2026-09-23T18:17:39.510824Z"
+    },
+    {
+      "id": 6,
+      "dashboard_id": 3,
+      "name": "5 · Borrowers",
+      "position": 4,
+      "entity_id": "8lcXD4OYDrJgkEqOmjKW0",
+      "created_at": "2026-09-22T12:32:45.925957Z",
+      "updated_at": "2026-09-23T18:17:39.510824Z"
+    },
+    {
+      "id": 7,
+      "dashboard_id": 3,
+      "name": "6 · Performance",
+      "position": 5,
+      "entity_id": "G3EtEPY8mporQmPNYt9Ej",
+      "created_at": "2026-09-22T12:32:45.925957Z",
+      "updated_at": "2026-09-23T18:17:39.510824Z"
+    },
+    {
+      "id": 8,
+      "dashboard_id": 3,
+      "name": "7 · Risks",
+      "position": 6,
+      "entity_id": "7cljPwmKjTMUi9DQ431Ah",
+      "created_at": "2026-09-22T12:32:45.925957Z",
+      "updated_at": "2026-09-23T18:17:39.510824Z"
+    },
+    {
+      "id": 9,
+      "dashboard_id": 3,
+      "name": "8 · Daily Collection",
+      "position": 7,
+      "entity_id": "WsLzHCqqajzfGVpou2Nyq",
+      "created_at": "2026-09-22T12:32:45.925957Z",
+      "updated_at": "2026-09-23T18:17:39.510824Z"
+    },
+    {
+      "id": 10,
+      "dashboard_id": 3,
+      "name": "9 · Borrower Insight",
+      "position": 8,
+      "entity_id": "jVJL2DkBQTXKfzw0h0kP6",
+      "created_at": "2026-09-22T12:32:45.925957Z",
+      "updated_at": "2026-09-23T18:17:39.510824Z"
+    },
+    {
+      "id": 11,
+      "dashboard_id": 3,
+      "name": "10 · Forecast & Partners",
+      "position": 9,
+      "entity_id": "HpX0Vj4mHUGAPeopmzU_l",
+      "created_at": "2026-09-22T12:32:45.925957Z",
+      "updated_at": "2026-09-23T18:17:39.510824Z"
+    },
+    {
+      "id": 17,
+      "dashboard_id": 3,
+      "name": "Tab 11",
+      "position": 10,
+      "entity_id": "ekTtfQu8cvMG2Ys54NoPc",
+      "created_at": "2026-09-23T17:25:33.780214Z",
+      "updated_at": "2026-09-23T17:25:33.780214Z"
+    }
+  ],
+  "parameters": [
+    {
+      "id": "performance-date",
+      "name": "Performance date",
+      "slug": "performance_date",
+      "type": "date/all-options",
+      "sectionId": "date"
+    },
+    {
+      "slug": "borrower",
+      "values_query_type": "list",
+      "name": "Borrower",
+      "isMultiSelect": false,
+      "type": "string/=",
+      "sectionId": "string",
+      "values_source_type": "card",
+      "id": "insight-borrower",
+      "values_source_config": {
+        "card_id": 161,
+        "value_field": [
+          "field",
+          "Borrower ID",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "label_field": [
+          "field",
+          "Borrower",
+          {
+            "base-type": "type/Text"
+          }
+        ]
+      }
+    },
+    {
+      "id": "proposed-amount",
+      "name": "Proposed loan",
+      "slug": "proposed_amount",
+      "type": "number/=",
+      "sectionId": "number",
+      "default": [
+        0
+      ],
+      "isMultiSelect": false
+    },
+    {
+      "id": "overview-trend-period",
+      "name": "Portfolio trend period",
+      "slug": "overview_trend_period",
+      "type": "date/all-options",
+      "sectionId": "date",
+      "default": "past30days"
+    },
+    {
+      "id": "review-position",
+      "name": "Position date / period end",
+      "slug": "review_position",
+      "type": "date/all-options",
+      "sectionId": "date",
+      "default": "today"
+    },
+    {
+      "id": "review-position-trend",
+      "name": "Position trend period",
+      "slug": "review_position_trend",
+      "type": "date/all-options",
+      "sectionId": "date",
+      "default": "past30days"
+    },
+    {
+      "id": "review-flow",
+      "name": "Cashflow period",
+      "slug": "review_flow",
+      "type": "date/all-options",
+      "sectionId": "date",
+      "default": "thismonth"
+    },
+    {
+      "slug": "review_account",
+      "values_query_type": "list",
+      "default": [
+        "__ALL__"
+      ],
+      "name": "Account",
+      "isMultiSelect": false,
+      "type": "string/=",
+      "sectionId": "string",
+      "values_source_type": "card",
+      "id": "review-account",
+      "values_source_config": {
+        "card_id": 199,
+        "value_field": [
+          "field",
+          "Scope ID",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "label_field": [
+          "field",
+          "Account",
+          {
+            "base-type": "type/Text"
+          }
+        ]
+      }
+    },
+    {
+      "id": "review-income",
+      "name": "Statement period",
+      "slug": "review_income",
+      "type": "date/all-options",
+      "sectionId": "date",
+      "default": "thismonth"
+    }
+  ],
+  "cards": {
+    "q168": 168,
+    "q169": 169,
+    "q170": 170,
+    "q171": 171,
+    "income-status": 184,
+    "profit-bridge": 204,
+    "expense-category": 178,
+    "expense-detail": 212,
+    "q195": 195,
+    "q192": 192,
+    "q193": 193,
+    "q197": 197,
+    "q194": 194,
+    "flow-status": 198,
+    "movement": 203,
+    "transactions": 196,
+    "accounts": 199,
+    "income-trend": 213,
+    "income-snapshot-status": 214,
+    "flow-trend": 215,
+    "flow-snapshot-status": 216
+  },
+  "questions": [
+    {
+      "id": 168,
+      "key": "q168",
+      "name": "Operating income",
+      "display": "scalar",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH statement AS ({{snippet: Income statement period}}) SELECT \"Operating Income\" FROM statement",
+          "template-tags": {
+            "statement_period": {
+              "id": "r016-statement_period",
+              "name": "statement_period",
+              "display-name": "Statement period",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                82,
+                null
+              ],
+              "widget-type": "date/all-options",
+              "alias": "d.\"Date\""
+            },
+            "#186": {
+              "id": "r016-model-186",
+              "name": "#186",
+              "display-name": "Model 186",
+              "type": "card",
+              "card-id": 186
+            },
+            "snippet: Income statement period": {
+              "id": "r016-snippet-2",
+              "name": "snippet: Income statement period",
+              "display-name": "Income statement period",
+              "type": "snippet",
+              "snippet-id": 2,
+              "snippet-name": "Income statement period"
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "scalar.field": "Operating Income",
+        "column_settings": {
+          "[\"name\",\"Operating Income\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      }
+    },
+    {
+      "id": 169,
+      "key": "q169",
+      "name": "Operating expenses",
+      "display": "scalar",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH statement AS ({{snippet: Income statement period}}) SELECT \"Operating Expenses\" FROM statement",
+          "template-tags": {
+            "statement_period": {
+              "id": "r016-statement_period",
+              "name": "statement_period",
+              "display-name": "Statement period",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                82,
+                null
+              ],
+              "widget-type": "date/all-options",
+              "alias": "d.\"Date\""
+            },
+            "#186": {
+              "id": "r016-model-186",
+              "name": "#186",
+              "display-name": "Model 186",
+              "type": "card",
+              "card-id": 186
+            },
+            "snippet: Income statement period": {
+              "id": "r016-snippet-2",
+              "name": "snippet: Income statement period",
+              "display-name": "Income statement period",
+              "type": "snippet",
+              "snippet-id": 2,
+              "snippet-name": "Income statement period"
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "scalar.field": "Operating Expenses",
+        "column_settings": {
+          "[\"name\",\"Operating Expenses\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      }
+    },
+    {
+      "id": 170,
+      "key": "q170",
+      "name": "Net profit",
+      "display": "scalar",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH statement AS ({{snippet: Income statement period}}) SELECT \"Net Profit\" FROM statement",
+          "template-tags": {
+            "statement_period": {
+              "id": "r016-statement_period",
+              "name": "statement_period",
+              "display-name": "Statement period",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                82,
+                null
+              ],
+              "widget-type": "date/all-options",
+              "alias": "d.\"Date\""
+            },
+            "#186": {
+              "id": "r016-model-186",
+              "name": "#186",
+              "display-name": "Model 186",
+              "type": "card",
+              "card-id": 186
+            },
+            "snippet: Income statement period": {
+              "id": "r016-snippet-2",
+              "name": "snippet: Income statement period",
+              "display-name": "Income statement period",
+              "type": "snippet",
+              "snippet-id": 2,
+              "snippet-name": "Income statement period"
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "scalar.field": "Net Profit",
+        "column_settings": {
+          "[\"name\",\"Net Profit\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      }
+    },
+    {
+      "id": 171,
+      "key": "q171",
+      "name": "Average daily net profit",
+      "display": "scalar",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH statement AS ({{snippet: Income statement period}}) SELECT \"Average Daily Net Profit\" FROM statement",
+          "template-tags": {
+            "statement_period": {
+              "id": "r016-statement_period",
+              "name": "statement_period",
+              "display-name": "Statement period",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                82,
+                null
+              ],
+              "widget-type": "date/all-options",
+              "alias": "d.\"Date\""
+            },
+            "#186": {
+              "id": "r016-model-186",
+              "name": "#186",
+              "display-name": "Model 186",
+              "type": "card",
+              "card-id": 186
+            },
+            "snippet: Income statement period": {
+              "id": "r016-snippet-2",
+              "name": "snippet: Income statement period",
+              "display-name": "Income statement period",
+              "type": "snippet",
+              "snippet-id": 2,
+              "snippet-name": "Income statement period"
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "scalar.field": "Average Daily Net Profit",
+        "column_settings": {
+          "[\"name\",\"Average Daily Net Profit\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      }
+    },
+    {
+      "id": 184,
+      "key": "income-status",
+      "name": "Income period & freshness",
+      "display": "table",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH statement AS ({{snippet: Income statement period}}) SELECT v.detail AS \"Detail\",v.value AS \"Value\" FROM statement s CROSS JOIN LATERAL (VALUES\n (1,'Period',coalesce(to_char(s.\"Period Start\",'YYYY-MM-DD')||' → '||to_char(s.\"Period End\",'YYYY-MM-DD'),'Unavailable')),\n (2,'Source','Live on report refresh'),(3,'Queried at',to_char(s.\"Queried At\",'YYYY-MM-DD HH24:MI')),\n (4,'Status',s.\"Selection Status\")) v(step,detail,value) ORDER BY v.step",
+          "template-tags": {
+            "statement_period": {
+              "id": "r016-statement_period",
+              "name": "statement_period",
+              "display-name": "Statement period",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                82,
+                null
+              ],
+              "widget-type": "date/all-options",
+              "alias": "d.\"Date\""
+            },
+            "#186": {
+              "id": "r016-model-186",
+              "name": "#186",
+              "display-name": "Model 186",
+              "type": "card",
+              "card-id": 186
+            },
+            "snippet: Income statement period": {
+              "id": "r016-snippet-2",
+              "name": "snippet: Income statement period",
+              "display-name": "Income statement period",
+              "type": "snippet",
+              "snippet-id": 2,
+              "snippet-name": "Income statement period"
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "table.pivot": false
+      }
+    },
+    {
+      "id": 204,
+      "key": "profit-bridge",
+      "name": "Income less expenses · Total = Net profit",
+      "display": "waterfall",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH statement AS ({{snippet: Income statement period}}) SELECT v.movement AS \"Movement\",v.amount AS \"Amount\" FROM statement s CROSS JOIN LATERAL (VALUES (1,'Income',s.\"Operating Income\"),(2,'Expenses',s.\"Operating Expenses\")) v(step,movement,amount) ORDER BY v.step",
+          "template-tags": {
+            "statement_period": {
+              "id": "r016-statement_period",
+              "name": "statement_period",
+              "display-name": "Statement period",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                82,
+                null
+              ],
+              "widget-type": "date/all-options",
+              "alias": "d.\"Date\""
+            },
+            "#186": {
+              "id": "r016-model-186",
+              "name": "#186",
+              "display-name": "Model 186",
+              "type": "card",
+              "card-id": 186
+            },
+            "snippet: Income statement period": {
+              "id": "r016-snippet-2",
+              "name": "snippet: Income statement period",
+              "display-name": "Income statement period",
+              "type": "snippet",
+              "snippet-id": 2,
+              "snippet-name": "Income statement period"
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "waterfall.increase_color": "#13855B",
+        "graph.show_values": true,
+        "waterfall.total_color": "#267DCC",
+        "waterfall.decrease_color": "#D1495B",
+        "graph.x_axis.title_enabled": false,
+        "graph.y_axis.title_enabled": false,
+        "graph.metrics": [
+          "Amount"
+        ],
+        "graph.label_value_formatting": "full",
+        "column_settings": {
+          "[\"name\",\"Amount\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        },
+        "graph.dimensions": [
+          "Movement"
+        ],
+        "waterfall.show_total": true
+      }
+    },
+    {
+      "id": 178,
+      "key": "expense-category",
+      "name": "Expenses by category · live period",
+      "display": "row",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH statement AS ({{snippet: Income statement period}}) SELECT e.\"Expense Category\",sum(e.\"Expense Amount\") AS \"Expenses\" FROM statement s JOIN {{#163}} e ON e.\"Expense Date\" BETWEEN s.\"Period Start\" AND s.\"Period End\" WHERE s.\"Continuous Period\" GROUP BY 1 ORDER BY 2 DESC,1",
+          "template-tags": {
+            "statement_period": {
+              "id": "r016-statement_period",
+              "name": "statement_period",
+              "display-name": "Statement period",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                82,
+                null
+              ],
+              "widget-type": "date/all-options",
+              "alias": "d.\"Date\""
+            },
+            "#186": {
+              "id": "r016-model-186",
+              "name": "#186",
+              "display-name": "Model 186",
+              "type": "card",
+              "card-id": 186
+            },
+            "snippet: Income statement period": {
+              "id": "r016-snippet-2",
+              "name": "snippet: Income statement period",
+              "display-name": "Income statement period",
+              "type": "snippet",
+              "snippet-id": 2,
+              "snippet-name": "Income statement period"
+            },
+            "#163": {
+              "id": "r016-model-163",
+              "name": "#163",
+              "display-name": "Model 163",
+              "type": "card",
+              "card-id": 163
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "graph.dimensions": [
+          "Expense Category"
+        ],
+        "graph.metrics": [
+          "Expenses"
+        ],
+        "graph.colors": [
+          "#D1495B"
+        ],
+        "graph.show_values": true,
+        "column_settings": {
+          "[\"name\",\"Expenses\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      }
+    },
+    {
+      "key": "expense-detail",
+      "name": "Expense detail · live period",
+      "display": "table",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH statement AS ({{snippet: Income statement period}}) SELECT e.\"Expense Date\",e.\"Expense Category\",b.\"Payee Name\" AS \"Payee\",h.\"Cash Holder\" AS \"Paid By\",e.\"Expense Amount\" AS \"Expenses\",b.\"Notes\",e.\"Expense ID\" FROM statement s JOIN {{#163}} e ON e.\"Expense Date\" BETWEEN s.\"Period Start\" AND s.\"Period End\" LEFT JOIN public.\"Business Expenses\" b ON b.\"Row ID\"=e.\"Expense ID\" LEFT JOIN (SELECT DISTINCT \"Cash Holder ID\",\"Cash Holder\" FROM public.reporting_cash_accounts) h ON h.\"Cash Holder ID\"=b.\"Ref Paid By Cash Holder\" WHERE s.\"Continuous Period\" ORDER BY e.\"Expense Date\",e.\"Expense ID\"",
+          "template-tags": {
+            "statement_period": {
+              "id": "r016-statement_period",
+              "name": "statement_period",
+              "display-name": "Statement period",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                82,
+                null
+              ],
+              "widget-type": "date/all-options",
+              "alias": "d.\"Date\""
+            },
+            "#186": {
+              "id": "r016-model-186",
+              "name": "#186",
+              "display-name": "Model 186",
+              "type": "card",
+              "card-id": 186
+            },
+            "snippet: Income statement period": {
+              "id": "r016-snippet-2",
+              "name": "snippet: Income statement period",
+              "display-name": "Income statement period",
+              "type": "snippet",
+              "snippet-id": 2,
+              "snippet-name": "Income statement period"
+            },
+            "#163": {
+              "id": "r016-model-163",
+              "name": "#163",
+              "display-name": "Model 163",
+              "type": "card",
+              "card-id": 163
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "table.pivot": false,
+        "column_settings": {
+          "[\"name\",\"Expenses\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        },
+        "table.columns": [
+          {
+            "name": "Expense Date",
+            "enabled": true
+          },
+          {
+            "name": "Expense Category",
+            "enabled": true
+          },
+          {
+            "name": "Payee",
+            "enabled": true
+          },
+          {
+            "name": "Paid By",
+            "enabled": true
+          },
+          {
+            "name": "Expenses",
+            "enabled": true
+          },
+          {
+            "name": "Notes",
+            "enabled": true
+          },
+          {
+            "name": "Expense ID",
+            "enabled": false
+          }
+        ]
+      },
+      "id": 212
+    },
+    {
+      "id": 195,
+      "key": "q195",
+      "name": "Opening cash",
+      "display": "scalar",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH statement AS ({{snippet: Cashflow statement period}}) SELECT \"Opening Balance\",coalesce(to_char(\"Opening Balance\",'FM999,999,999,999,990'),'Unavailable') AS \"Display Balance\" FROM statement",
+          "template-tags": {
+            "cashflow_period": {
+              "id": "r016-cashflow_period",
+              "name": "cashflow_period",
+              "display-name": "Statement period",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                82,
+                null
+              ],
+              "widget-type": "date/all-options",
+              "alias": "d.\"Date\""
+            },
+            "cash_account": {
+              "id": "r016-cash-account",
+              "name": "cash_account",
+              "display-name": "Account",
+              "type": "text",
+              "required": true,
+              "default": "__ALL__"
+            },
+            "snippet: Cashflow statement period": {
+              "id": "r016-snippet-3",
+              "name": "snippet: Cashflow statement period",
+              "display-name": "Cashflow statement period",
+              "type": "snippet",
+              "snippet-id": 3,
+              "snippet-name": "Cashflow statement period"
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "scalar.field": "Display Balance",
+        "column_settings": {
+          "[\"name\",\"Opening Balance\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      }
+    },
+    {
+      "id": 192,
+      "key": "q192",
+      "name": "Money in",
+      "display": "scalar",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH statement AS ({{snippet: Cashflow statement period}}) SELECT \"Money In\" FROM statement",
+          "template-tags": {
+            "cashflow_period": {
+              "id": "r016-cashflow_period",
+              "name": "cashflow_period",
+              "display-name": "Statement period",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                82,
+                null
+              ],
+              "widget-type": "date/all-options",
+              "alias": "d.\"Date\""
+            },
+            "cash_account": {
+              "id": "r016-cash-account",
+              "name": "cash_account",
+              "display-name": "Account",
+              "type": "text",
+              "required": true,
+              "default": "__ALL__"
+            },
+            "snippet: Cashflow statement period": {
+              "id": "r016-snippet-3",
+              "name": "snippet: Cashflow statement period",
+              "display-name": "Cashflow statement period",
+              "type": "snippet",
+              "snippet-id": 3,
+              "snippet-name": "Cashflow statement period"
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "scalar.field": "Money In",
+        "column_settings": {
+          "[\"name\",\"Money In\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      }
+    },
+    {
+      "id": 193,
+      "key": "q193",
+      "name": "Money out",
+      "display": "scalar",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH statement AS ({{snippet: Cashflow statement period}}) SELECT \"Money Out\" FROM statement",
+          "template-tags": {
+            "cashflow_period": {
+              "id": "r016-cashflow_period",
+              "name": "cashflow_period",
+              "display-name": "Statement period",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                82,
+                null
+              ],
+              "widget-type": "date/all-options",
+              "alias": "d.\"Date\""
+            },
+            "cash_account": {
+              "id": "r016-cash-account",
+              "name": "cash_account",
+              "display-name": "Account",
+              "type": "text",
+              "required": true,
+              "default": "__ALL__"
+            },
+            "snippet: Cashflow statement period": {
+              "id": "r016-snippet-3",
+              "name": "snippet: Cashflow statement period",
+              "display-name": "Cashflow statement period",
+              "type": "snippet",
+              "snippet-id": 3,
+              "snippet-name": "Cashflow statement period"
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "scalar.field": "Money Out",
+        "column_settings": {
+          "[\"name\",\"Money Out\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      }
+    },
+    {
+      "id": 197,
+      "key": "q197",
+      "name": "Closing cash",
+      "display": "scalar",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH statement AS ({{snippet: Cashflow statement period}}) SELECT \"Closing Balance\",coalesce(to_char(\"Closing Balance\",'FM999,999,999,999,990'),'Unavailable') AS \"Display Balance\" FROM statement",
+          "template-tags": {
+            "cashflow_period": {
+              "id": "r016-cashflow_period",
+              "name": "cashflow_period",
+              "display-name": "Statement period",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                82,
+                null
+              ],
+              "widget-type": "date/all-options",
+              "alias": "d.\"Date\""
+            },
+            "cash_account": {
+              "id": "r016-cash-account",
+              "name": "cash_account",
+              "display-name": "Account",
+              "type": "text",
+              "required": true,
+              "default": "__ALL__"
+            },
+            "snippet: Cashflow statement period": {
+              "id": "r016-snippet-3",
+              "name": "snippet: Cashflow statement period",
+              "display-name": "Cashflow statement period",
+              "type": "snippet",
+              "snippet-id": 3,
+              "snippet-name": "Cashflow statement period"
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "scalar.field": "Display Balance",
+        "column_settings": {
+          "[\"name\",\"Closing Balance\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      }
+    },
+    {
+      "id": 194,
+      "key": "q194",
+      "name": "Net cash movement",
+      "display": "scalar",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH statement AS ({{snippet: Cashflow statement period}}) SELECT \"Net Movement\" FROM statement",
+          "template-tags": {
+            "cashflow_period": {
+              "id": "r016-cashflow_period",
+              "name": "cashflow_period",
+              "display-name": "Statement period",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                82,
+                null
+              ],
+              "widget-type": "date/all-options",
+              "alias": "d.\"Date\""
+            },
+            "cash_account": {
+              "id": "r016-cash-account",
+              "name": "cash_account",
+              "display-name": "Account",
+              "type": "text",
+              "required": true,
+              "default": "__ALL__"
+            },
+            "snippet: Cashflow statement period": {
+              "id": "r016-snippet-3",
+              "name": "snippet: Cashflow statement period",
+              "display-name": "Cashflow statement period",
+              "type": "snippet",
+              "snippet-id": 3,
+              "snippet-name": "Cashflow statement period"
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "scalar.field": "Net Movement",
+        "column_settings": {
+          "[\"name\",\"Net Movement\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      }
+    },
+    {
+      "id": 198,
+      "key": "flow-status",
+      "name": "Cashflow period & freshness",
+      "display": "table",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH statement AS ({{snippet: Cashflow statement period}}) SELECT v.detail AS \"Detail\",v.value AS \"Value\" FROM statement s CROSS JOIN LATERAL (VALUES\n (1,'Period',coalesce(to_char(s.\"Period Start\",'YYYY-MM-DD')||' → '||to_char(s.\"Period End\",'YYYY-MM-DD'),'Unavailable')),\n (2,'Source','Live on report refresh'),(3,'Queried at',to_char(s.\"Queried At\",'YYYY-MM-DD HH24:MI')),\n (4,'Status',s.\"Statement Status\"),(5,'Account',coalesce(s.\"Account\",'Unavailable')),(6,'Known opening from',coalesce(to_char(s.\"Available From\",'YYYY-MM-DD'),'Unknown'))) v(step,detail,value) ORDER BY v.step",
+          "template-tags": {
+            "cashflow_period": {
+              "id": "r016-cashflow_period",
+              "name": "cashflow_period",
+              "display-name": "Statement period",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                82,
+                null
+              ],
+              "widget-type": "date/all-options",
+              "alias": "d.\"Date\""
+            },
+            "cash_account": {
+              "id": "r016-cash-account",
+              "name": "cash_account",
+              "display-name": "Account",
+              "type": "text",
+              "required": true,
+              "default": "__ALL__"
+            },
+            "snippet: Cashflow statement period": {
+              "id": "r016-snippet-3",
+              "name": "snippet: Cashflow statement period",
+              "display-name": "Cashflow statement period",
+              "type": "snippet",
+              "snippet-id": 3,
+              "snippet-name": "Cashflow statement period"
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "table.pivot": false
+      }
+    },
+    {
+      "id": 203,
+      "key": "movement",
+      "name": "Cash movement by transaction type",
+      "display": "table",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH statement AS ({{snippet: Cashflow statement period}}) SELECT CASE WHEN grouping(t.\"Transaction Type\")=1 THEN 'TOTAL' ELSE t.\"Transaction Type\" END AS \"Transaction Type\",coalesce(sum(t.\"Money In\"),0) AS \"Money In\",coalesce(sum(t.\"Money Out\"),0) AS \"Money Out\",coalesce(sum(t.\"Net Movement\"),0) AS \"Net Movement\" FROM statement s LEFT JOIN LATERAL public.reporting_cash_period_entries(s.\"Period Start\",s.\"Period End\",{{cash_account}}) t ON true WHERE s.\"Continuous Period\" GROUP BY GROUPING SETS ((t.\"Transaction Type\"),()) HAVING bool_or(s.\"Continuous Period\") AND (grouping(t.\"Transaction Type\")=1 OR count(t.\"Entry ID\")>0) ORDER BY grouping(t.\"Transaction Type\"),1",
+          "template-tags": {
+            "cashflow_period": {
+              "id": "r016-cashflow_period",
+              "name": "cashflow_period",
+              "display-name": "Statement period",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                82,
+                null
+              ],
+              "widget-type": "date/all-options",
+              "alias": "d.\"Date\""
+            },
+            "cash_account": {
+              "id": "r016-cash-account",
+              "name": "cash_account",
+              "display-name": "Account",
+              "type": "text",
+              "required": true,
+              "default": "__ALL__"
+            },
+            "snippet: Cashflow statement period": {
+              "id": "r016-snippet-3",
+              "name": "snippet: Cashflow statement period",
+              "display-name": "Cashflow statement period",
+              "type": "snippet",
+              "snippet-id": 3,
+              "snippet-name": "Cashflow statement period"
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "table.pivot": false,
+        "column_settings": {
+          "[\"name\",\"Money In\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Money Out\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Net Movement\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      }
+    },
+    {
+      "id": 196,
+      "key": "transactions",
+      "name": "Transactions · chronological order",
+      "display": "table",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH statement AS ({{snippet: Cashflow statement period}}) SELECT to_char(t.\"Date\",'DD/MM')||' '||to_char(t.\"Posted At\",'HH24:MI') AS \"Date / Time\",t.\"Transaction Type\",t.\"Counterparty\",t.\"Money In\",t.\"Money Out\",t.\"Balance After\",t.\"From Account\",t.\"To Account\",t.\"Notes\" FROM statement s CROSS JOIN LATERAL public.reporting_cash_period_entries(s.\"Period Start\",s.\"Period End\",{{cash_account}}) t WHERE s.\"Continuous Period\" ORDER BY t.\"Date\",t.\"Posted At\",t.\"Ledger ID\" COLLATE \"C\",t.\"Entry ID\" COLLATE \"C\"",
+          "template-tags": {
+            "cashflow_period": {
+              "id": "r016-cashflow_period",
+              "name": "cashflow_period",
+              "display-name": "Statement period",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                82,
+                null
+              ],
+              "widget-type": "date/all-options",
+              "alias": "d.\"Date\""
+            },
+            "cash_account": {
+              "id": "r016-cash-account",
+              "name": "cash_account",
+              "display-name": "Account",
+              "type": "text",
+              "required": true,
+              "default": "__ALL__"
+            },
+            "snippet: Cashflow statement period": {
+              "id": "r016-snippet-3",
+              "name": "snippet: Cashflow statement period",
+              "display-name": "Cashflow statement period",
+              "type": "snippet",
+              "snippet-id": 3,
+              "snippet-name": "Cashflow statement period"
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "table.pivot": false,
+        "table.column_formatting": [
+          {
+            "columns": [
+              "Money In"
+            ],
+            "type": "single",
+            "operator": ">",
+            "value": 0,
+            "color": "#BFE8D2",
+            "highlight_row": false
+          },
+          {
+            "columns": [
+              "Money Out"
+            ],
+            "type": "single",
+            "operator": ">",
+            "value": 0,
+            "color": "#F6CDD4",
+            "highlight_row": false
+          }
+        ],
+        "column_settings": {
+          "[\"name\",\"Money In\"]": {
+            "number_style": "decimal",
+            "currency": "THB",
+            "currency_style": "symbol",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Money Out\"]": {
+            "number_style": "decimal",
+            "currency": "THB",
+            "currency_style": "symbol",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Balance After\"]": {
+            "number_style": "decimal",
+            "currency": "THB",
+            "currency_style": "symbol",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      }
+    },
+    {
+      "id": 199,
+      "key": "accounts",
+      "name": "Cash account selector",
+      "display": "table",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "SELECT id AS \"Scope ID\",label AS \"Account\" FROM public.reporting_cash_scopes ORDER BY id",
+          "template-tags": {}
+        }
+      },
+      "visualization_settings": {}
+    },
+    {
+      "key": "income-trend",
+      "name": "Daily income & expenses · hourly snapshots",
+      "display": "bar",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH selected AS (SELECT d.\"Date\" FROM public.reporting_statement_calendar d WHERE d.\"Date\"<public.olap_reporting_date() [[AND {{statement_period}}]])\n SELECT d.\"Date\",s.\"Income\",s.\"Expenses\",\n s.\"Generated At\" AS \"Generated At\"\n FROM selected d LEFT JOIN {{#205}} s ON s.\"Date\"=d.\"Date\" ORDER BY d.\"Date\"",
+          "template-tags": {
+            "statement_period": {
+              "id": "r016-statement_period",
+              "name": "statement_period",
+              "display-name": "Statement period",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                82,
+                null
+              ],
+              "widget-type": "date/all-options",
+              "alias": "d.\"Date\""
+            },
+            "#205": {
+              "id": "r016-model-205",
+              "name": "#205",
+              "display-name": "Model 205",
+              "type": "card",
+              "card-id": 205
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "graph.dimensions": [
+          "Date"
+        ],
+        "graph.metrics": [
+          "Income",
+          "Expenses"
+        ],
+        "graph.colors": [
+          "#13855B",
+          "#D1495B"
+        ],
+        "graph.show_legend": true,
+        "graph.missing": "none",
+        "graph.y_axis.auto_split": false,
+        "series_settings": {
+          "Income": {
+            "display": "bar",
+            "color": "#13855B"
+          },
+          "Expenses": {
+            "display": "bar",
+            "color": "#D1495B"
+          }
+        },
+        "column_settings": {
+          "[\"name\",\"Income\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Expenses\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      },
+      "id": 213
+    },
+    {
+      "key": "income-snapshot-status",
+      "name": "Profit trend snapshot freshness",
+      "display": "table",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH trend AS (WITH selected AS (SELECT d.\"Date\" FROM public.reporting_statement_calendar d WHERE d.\"Date\"<public.olap_reporting_date() [[AND {{statement_period}}]])\n SELECT d.\"Date\",s.\"Income\",s.\"Expenses\",\n s.\"Generated At\" AS \"Generated At\"\n FROM selected d LEFT JOIN {{#205}} s ON s.\"Date\"=d.\"Date\" ORDER BY d.\"Date\"), totals AS (SELECT count(*) n,count(*) FILTER(WHERE \"Generated At\" IS NULL) missing,min(\"Generated At\") oldest,max(\"Generated At\") latest FROM trend) SELECT v.detail AS \"Detail\",v.value AS \"Value\" FROM totals CROSS JOIN LATERAL (VALUES (1,'Completed dates',n::text),(2,'Missing snapshots',missing::text),(3,'Oldest refresh',coalesce(to_char(oldest,'YYYY-MM-DD HH24:MI'),'Unavailable')),(4,'Latest refresh',coalesce(to_char(latest,'YYYY-MM-DD HH24:MI'),'Unavailable'))) v(step,detail,value) ORDER BY step",
+          "template-tags": {
+            "statement_period": {
+              "id": "r016-statement_period",
+              "name": "statement_period",
+              "display-name": "Statement period",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                82,
+                null
+              ],
+              "widget-type": "date/all-options",
+              "alias": "d.\"Date\""
+            },
+            "#205": {
+              "id": "r016-model-205",
+              "name": "#205",
+              "display-name": "Model 205",
+              "type": "card",
+              "card-id": 205
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "table.pivot": false
+      },
+      "id": 214
+    },
+    {
+      "key": "flow-trend",
+      "name": "Daily cash movement · hourly snapshots",
+      "display": "bar",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH selected AS (SELECT d.\"Date\" FROM public.reporting_statement_calendar d WHERE d.\"Date\"<public.olap_reporting_date() [[AND {{cashflow_period}}]])\n SELECT d.\"Date\",CASE WHEN {{cash_account}}='__ALL__' THEN s.\"Money In\" ELSE a.\"Money In\" END AS \"Money In\",CASE WHEN {{cash_account}}='__ALL__' THEN s.\"Money Out\" ELSE a.\"Money Out\" END AS \"Money Out\",\n CASE WHEN {{cash_account}}='__ALL__' THEN s.\"Generated At\" ELSE a.\"Generated At\" END AS \"Generated At\"\n FROM selected d LEFT JOIN {{#205}} s ON s.\"Date\"=d.\"Date\" LEFT JOIN {{#206}} a ON a.\"Date\"=d.\"Date\" AND a.\"Cash Account ID\"={{cash_account}} ORDER BY d.\"Date\"",
+          "template-tags": {
+            "cashflow_period": {
+              "id": "r016-cashflow_period",
+              "name": "cashflow_period",
+              "display-name": "Statement period",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                82,
+                null
+              ],
+              "widget-type": "date/all-options",
+              "alias": "d.\"Date\""
+            },
+            "#205": {
+              "id": "r016-model-205",
+              "name": "#205",
+              "display-name": "Model 205",
+              "type": "card",
+              "card-id": 205
+            },
+            "cash_account": {
+              "id": "r016-cash-account",
+              "name": "cash_account",
+              "display-name": "Account",
+              "type": "text",
+              "required": true,
+              "default": "__ALL__"
+            },
+            "#206": {
+              "id": "r016-model-206",
+              "name": "#206",
+              "display-name": "Model 206",
+              "type": "card",
+              "card-id": 206
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "graph.dimensions": [
+          "Date"
+        ],
+        "graph.metrics": [
+          "Money In",
+          "Money Out"
+        ],
+        "graph.colors": [
+          "#13855B",
+          "#D1495B"
+        ],
+        "graph.show_legend": true,
+        "graph.missing": "none",
+        "series_settings": {},
+        "column_settings": {
+          "[\"name\",\"Money In\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Money Out\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      },
+      "id": 215
+    },
+    {
+      "key": "flow-snapshot-status",
+      "name": "Cash trend snapshot freshness",
+      "display": "table",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH trend AS (WITH selected AS (SELECT d.\"Date\" FROM public.reporting_statement_calendar d WHERE d.\"Date\"<public.olap_reporting_date() [[AND {{cashflow_period}}]])\n SELECT d.\"Date\",CASE WHEN {{cash_account}}='__ALL__' THEN s.\"Money In\" ELSE a.\"Money In\" END AS \"Money In\",CASE WHEN {{cash_account}}='__ALL__' THEN s.\"Money Out\" ELSE a.\"Money Out\" END AS \"Money Out\",\n CASE WHEN {{cash_account}}='__ALL__' THEN s.\"Generated At\" ELSE a.\"Generated At\" END AS \"Generated At\"\n FROM selected d LEFT JOIN {{#205}} s ON s.\"Date\"=d.\"Date\" LEFT JOIN {{#206}} a ON a.\"Date\"=d.\"Date\" AND a.\"Cash Account ID\"={{cash_account}} ORDER BY d.\"Date\"), totals AS (SELECT count(*) n,count(*) FILTER(WHERE \"Generated At\" IS NULL) missing,min(\"Generated At\") oldest,max(\"Generated At\") latest FROM trend) SELECT v.detail AS \"Detail\",v.value AS \"Value\" FROM totals CROSS JOIN LATERAL (VALUES (1,'Completed dates',n::text),(2,'Missing snapshots',missing::text),(3,'Oldest refresh',coalesce(to_char(oldest,'YYYY-MM-DD HH24:MI'),'Unavailable')),(4,'Latest refresh',coalesce(to_char(latest,'YYYY-MM-DD HH24:MI'),'Unavailable'))) v(step,detail,value) ORDER BY step",
+          "template-tags": {
+            "cashflow_period": {
+              "id": "r016-cashflow_period",
+              "name": "cashflow_period",
+              "display-name": "Statement period",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                82,
+                null
+              ],
+              "widget-type": "date/all-options",
+              "alias": "d.\"Date\""
+            },
+            "#205": {
+              "id": "r016-model-205",
+              "name": "#205",
+              "display-name": "Model 205",
+              "type": "card",
+              "card-id": 205
+            },
+            "cash_account": {
+              "id": "r016-cash-account",
+              "name": "cash_account",
+              "display-name": "Account",
+              "type": "text",
+              "required": true,
+              "default": "__ALL__"
+            },
+            "#206": {
+              "id": "r016-model-206",
+              "name": "#206",
+              "display-name": "Model 206",
+              "type": "card",
+              "card-id": 206
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "table.pivot": false
+      },
+      "id": 216
+    }
+  ],
+  "layout": [
+    {
+      "id": -1,
+      "card_id": null,
+      "dashboard_tab_id": 16,
+      "col": 0,
+      "row": 0,
+      "size_x": 24,
+      "size_y": 1,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "heading",
+          "visualization_settings": {
+            "text": "Income statement · live on refresh"
+          }
+        }
+      }
+    },
+    {
+      "id": -2,
+      "card_id": null,
+      "dashboard_tab_id": 16,
+      "col": 0,
+      "row": 1,
+      "size_x": 24,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "Net profit = interest − expenses. Amounts in baht."
+          }
+        }
+      }
+    },
+    {
+      "id": 501,
+      "card_id": 168,
+      "dashboard_tab_id": 16,
+      "col": 0,
+      "row": 3,
+      "size_x": 8,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "review-income",
+          "card_id": 168,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "statement_period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Income"
+      }
+    },
+    {
+      "id": 502,
+      "card_id": 169,
+      "dashboard_tab_id": 16,
+      "col": 8,
+      "row": 3,
+      "size_x": 8,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "review-income",
+          "card_id": 169,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "statement_period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Expenses"
+      }
+    },
+    {
+      "id": 503,
+      "card_id": 170,
+      "dashboard_tab_id": 16,
+      "col": 16,
+      "row": 3,
+      "size_x": 8,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "review-income",
+          "card_id": 170,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "statement_period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Net profit"
+      }
+    },
+    {
+      "id": 505,
+      "card_id": 184,
+      "dashboard_tab_id": 16,
+      "col": 0,
+      "row": 6,
+      "size_x": 16,
+      "size_y": 6,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "review-income",
+          "card_id": 184,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "statement_period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Period & freshness"
+      }
+    },
+    {
+      "id": 504,
+      "card_id": 171,
+      "dashboard_tab_id": 16,
+      "col": 16,
+      "row": 6,
+      "size_x": 8,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "review-income",
+          "card_id": 171,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "statement_period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Average daily net profit"
+      }
+    },
+    {
+      "id": -3,
+      "card_id": null,
+      "dashboard_tab_id": 16,
+      "col": 0,
+      "row": 12,
+      "size_x": 24,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "Average uses calendar days. Live figures include later corrections."
+          }
+        }
+      }
+    },
+    {
+      "id": 507,
+      "card_id": 204,
+      "dashboard_tab_id": 16,
+      "col": 0,
+      "row": 14,
+      "size_x": 24,
+      "size_y": 6,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "review-income",
+          "card_id": 204,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "statement_period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Income − expenses = net profit"
+      }
+    },
+    {
+      "id": 508,
+      "card_id": 178,
+      "dashboard_tab_id": 16,
+      "col": 0,
+      "row": 20,
+      "size_x": 24,
+      "size_y": 6,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "review-income",
+          "card_id": 178,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "statement_period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Expenses by category"
+      }
+    },
+    {
+      "id": 545,
+      "card_id": 212,
+      "dashboard_tab_id": 16,
+      "col": 0,
+      "row": 26,
+      "size_x": 24,
+      "size_y": 7,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "review-income",
+          "card_id": 212,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "statement_period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Expense detail · live"
+      }
+    },
+    {
+      "id": -4,
+      "card_id": null,
+      "dashboard_tab_id": 16,
+      "col": 0,
+      "row": 33,
+      "size_x": 24,
+      "size_y": 1,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "heading",
+          "visualization_settings": {
+            "text": "Historical daily trend · hourly snapshots"
+          }
+        }
+      }
+    },
+    {
+      "id": -5,
+      "card_id": null,
+      "dashboard_tab_id": 16,
+      "col": 0,
+      "row": 34,
+      "size_x": 24,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "Completed days only. Gaps stay blank; corrections need a refresh."
+          }
+        }
+      }
+    },
+    {
+      "id": 548,
+      "card_id": 213,
+      "dashboard_tab_id": 16,
+      "col": 0,
+      "row": 36,
+      "size_x": 24,
+      "size_y": 7,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "review-income",
+          "card_id": 213,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "statement_period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Daily income & expenses"
+      }
+    },
+    {
+      "id": 549,
+      "card_id": 214,
+      "dashboard_tab_id": 16,
+      "col": 0,
+      "row": 43,
+      "size_x": 24,
+      "size_y": 6,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "review-income",
+          "card_id": 214,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "statement_period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Snapshot coverage & actual refresh times"
+      }
+    },
+    {
+      "id": -6,
+      "card_id": null,
+      "dashboard_tab_id": 15,
+      "col": 0,
+      "row": 0,
+      "size_x": 24,
+      "size_y": 1,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "heading",
+          "visualization_settings": {
+            "text": "Cashflow statement · live on refresh"
+          }
+        }
+      }
+    },
+    {
+      "id": -7,
+      "card_id": null,
+      "dashboard_tab_id": 15,
+      "col": 0,
+      "row": 1,
+      "size_x": 24,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "All accounts nets transfers to zero. Amounts in baht."
+          }
+        }
+      }
+    },
+    {
+      "id": 486,
+      "card_id": 195,
+      "dashboard_tab_id": 15,
+      "col": 0,
+      "row": 3,
+      "size_x": 6,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "review-flow",
+          "card_id": 195,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "cashflow_period"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "review-account",
+          "card_id": 195,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "cash_account"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Opening cash"
+      }
+    },
+    {
+      "id": 487,
+      "card_id": 192,
+      "dashboard_tab_id": 15,
+      "col": 6,
+      "row": 3,
+      "size_x": 6,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "review-flow",
+          "card_id": 192,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "cashflow_period"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "review-account",
+          "card_id": 192,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "cash_account"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Money in"
+      }
+    },
+    {
+      "id": 488,
+      "card_id": 193,
+      "dashboard_tab_id": 15,
+      "col": 12,
+      "row": 3,
+      "size_x": 6,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "review-flow",
+          "card_id": 193,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "cashflow_period"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "review-account",
+          "card_id": 193,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "cash_account"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Money out"
+      }
+    },
+    {
+      "id": 489,
+      "card_id": 197,
+      "dashboard_tab_id": 15,
+      "col": 18,
+      "row": 3,
+      "size_x": 6,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "review-flow",
+          "card_id": 197,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "cashflow_period"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "review-account",
+          "card_id": 197,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "cash_account"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Closing cash"
+      }
+    },
+    {
+      "id": 492,
+      "card_id": 198,
+      "dashboard_tab_id": 15,
+      "col": 0,
+      "row": 6,
+      "size_x": 16,
+      "size_y": 8,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "review-flow",
+          "card_id": 198,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "cashflow_period"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "review-account",
+          "card_id": 198,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "cash_account"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Period, account & freshness"
+      }
+    },
+    {
+      "id": 490,
+      "card_id": 194,
+      "dashboard_tab_id": 15,
+      "col": 16,
+      "row": 6,
+      "size_x": 8,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "review-flow",
+          "card_id": 194,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "cashflow_period"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "review-account",
+          "card_id": 194,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "cash_account"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Net cash movement"
+      }
+    },
+    {
+      "id": -8,
+      "card_id": null,
+      "dashboard_tab_id": 15,
+      "col": 0,
+      "row": 14,
+      "size_x": 24,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "Opening + in − out = closing. Unknown openings are unavailable."
+          }
+        }
+      }
+    },
+    {
+      "id": 494,
+      "card_id": 203,
+      "dashboard_tab_id": 15,
+      "col": 0,
+      "row": 16,
+      "size_x": 24,
+      "size_y": 8,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "review-flow",
+          "card_id": 203,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "cashflow_period"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "review-account",
+          "card_id": 203,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "cash_account"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Cash movement by type · includes total"
+      }
+    },
+    {
+      "id": -9,
+      "card_id": null,
+      "dashboard_tab_id": 15,
+      "col": 0,
+      "row": 24,
+      "size_x": 24,
+      "size_y": 1,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "heading",
+          "visualization_settings": {
+            "text": "Historical daily movement · hourly snapshots"
+          }
+        }
+      }
+    },
+    {
+      "id": -10,
+      "card_id": null,
+      "dashboard_tab_id": 15,
+      "col": 0,
+      "row": 25,
+      "size_x": 24,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "Completed days only. Transfers cancel in All accounts."
+          }
+        }
+      }
+    },
+    {
+      "id": 555,
+      "card_id": 215,
+      "dashboard_tab_id": 15,
+      "col": 0,
+      "row": 27,
+      "size_x": 24,
+      "size_y": 7,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "review-flow",
+          "card_id": 215,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "cashflow_period"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "review-account",
+          "card_id": 215,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "cash_account"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Daily money in & money out"
+      }
+    },
+    {
+      "id": 556,
+      "card_id": 216,
+      "dashboard_tab_id": 15,
+      "col": 0,
+      "row": 34,
+      "size_x": 24,
+      "size_y": 6,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "review-flow",
+          "card_id": 216,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "cashflow_period"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "review-account",
+          "card_id": 216,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "cash_account"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Snapshot coverage & actual refresh times"
+      }
+    },
+    {
+      "id": 497,
+      "card_id": 196,
+      "dashboard_tab_id": 15,
+      "col": 0,
+      "row": 40,
+      "size_x": 24,
+      "size_y": 12,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "review-flow",
+          "card_id": 196,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "cashflow_period"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "review-account",
+          "card_id": 196,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "cash_account"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Transactions · live chronological balances"
+      }
+    },
+    {
+      "id": -11,
+      "card_id": null,
+      "dashboard_tab_id": 15,
+      "col": 0,
+      "row": 52,
+      "size_x": 24,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "Statement date + posting time. Repayments keep their recorded type."
+          }
+        }
+      }
+    }
+  ],
+  "source_policy": "Live statements for every period; separate completed-day snapshot trends",
+  "database_version": 39
+}

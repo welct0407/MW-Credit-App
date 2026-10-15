@@ -1,0 +1,525 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "relation"
+  "name": "public.reporting_cash_account_snapshot"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+  "previous_record":
+    "commit": "dffa437c29a762f5b87a10b14a32063da8df07aa"
+    "path": "Documents/Data Dictionary/systems/postgresql/relations/reporting-cash-account-snapshot.yaml"
+    "identity":
+      "system": "postgresql"
+      "component": "unassigned-database"
+      "kind": "relation"
+      "name": "reporting_cash_account_snapshot"
+      "scope": "as-recorded"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "reporting_cash_account_snapshot"
+    "kind": "v"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "n"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,metabase_borrower_reader=r/postgres,mw_app_prod=r/postgres}"
+    "comment": "R016 stored account/date history. Holder ownership immutable; labels are current. Select one date before summing\
+      \ accounts. Current operational cards use Cash Account Balances. Positive/negative parts are derived, not stored twice."
+    "view_definition": |2-
+       SELECT a."Row ID",
+          a."Snapshot Date",
+          a."Ref Cash Account",
+          a."Generated At",
+          a."Model Version",
+          a."Money In",
+          a."Money Out",
+          a."Opening Balance",
+          a."Closing Balance",
+          a."Transaction Count",
+          a."Available From",
+          a."Balance Status",
+          c."Ref Cash Holder",
+          c."Account Label",
+          h."Holder Name",
+          a."Money In" - a."Money Out" AS "Net Movement",
+              CASE
+                  WHEN a."Closing Balance" IS NOT NULL THEN GREATEST(a."Closing Balance", 0::numeric)
+                  ELSE NULL::numeric
+              END AS "Positive Cash Balance",
+              CASE
+                  WHEN a."Closing Balance" IS NOT NULL THEN GREATEST(- a."Closing Balance", 0::numeric)
+                  ELSE NULL::numeric
+              END AS "Negative Balance Amount",
+          a."Snapshot Date" = olap_reporting_date() AS "Provisional",
+          'Hourly snapshot'::text AS "Freshness Basis"
+         FROM "Cash Account Daily Analytics" a
+           JOIN "Cash Accounts" c ON c."Row ID" = a."Ref Cash Account"
+           JOIN "Cash Holders" h ON h."Row ID" = c."Ref Cash Holder";
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "columns":
+    "Row ID":
+      "schema": "public"
+      "relation": "reporting_cash_account_snapshot"
+      "name": "Row ID"
+      "ordinal": 1
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Snapshot Date":
+      "schema": "public"
+      "relation": "reporting_cash_account_snapshot"
+      "name": "Snapshot Date"
+      "ordinal": 2
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Ref Cash Account":
+      "schema": "public"
+      "relation": "reporting_cash_account_snapshot"
+      "name": "Ref Cash Account"
+      "ordinal": 3
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Generated At":
+      "schema": "public"
+      "relation": "reporting_cash_account_snapshot"
+      "name": "Generated At"
+      "ordinal": 4
+      "data_type": "timestamp without time zone"
+      "type_schema": "pg_catalog"
+      "type_name": "timestamp"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Model Version":
+      "schema": "public"
+      "relation": "reporting_cash_account_snapshot"
+      "name": "Model Version"
+      "ordinal": 5
+      "data_type": "integer"
+      "type_schema": "pg_catalog"
+      "type_name": "int4"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Money In":
+      "schema": "public"
+      "relation": "reporting_cash_account_snapshot"
+      "name": "Money In"
+      "ordinal": 6
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Money Out":
+      "schema": "public"
+      "relation": "reporting_cash_account_snapshot"
+      "name": "Money Out"
+      "ordinal": 7
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Opening Balance":
+      "schema": "public"
+      "relation": "reporting_cash_account_snapshot"
+      "name": "Opening Balance"
+      "ordinal": 8
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Closing Balance":
+      "schema": "public"
+      "relation": "reporting_cash_account_snapshot"
+      "name": "Closing Balance"
+      "ordinal": 9
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Transaction Count":
+      "schema": "public"
+      "relation": "reporting_cash_account_snapshot"
+      "name": "Transaction Count"
+      "ordinal": 10
+      "data_type": "bigint"
+      "type_schema": "pg_catalog"
+      "type_name": "int8"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Available From":
+      "schema": "public"
+      "relation": "reporting_cash_account_snapshot"
+      "name": "Available From"
+      "ordinal": 11
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Balance Status":
+      "schema": "public"
+      "relation": "reporting_cash_account_snapshot"
+      "name": "Balance Status"
+      "ordinal": 12
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Ref Cash Holder":
+      "schema": "public"
+      "relation": "reporting_cash_account_snapshot"
+      "name": "Ref Cash Holder"
+      "ordinal": 13
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Account Label":
+      "schema": "public"
+      "relation": "reporting_cash_account_snapshot"
+      "name": "Account Label"
+      "ordinal": 14
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Holder Name":
+      "schema": "public"
+      "relation": "reporting_cash_account_snapshot"
+      "name": "Holder Name"
+      "ordinal": 15
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Net Movement":
+      "schema": "public"
+      "relation": "reporting_cash_account_snapshot"
+      "name": "Net Movement"
+      "ordinal": 16
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Positive Cash Balance":
+      "schema": "public"
+      "relation": "reporting_cash_account_snapshot"
+      "name": "Positive Cash Balance"
+      "ordinal": 17
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Negative Balance Amount":
+      "schema": "public"
+      "relation": "reporting_cash_account_snapshot"
+      "name": "Negative Balance Amount"
+      "ordinal": 18
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Provisional":
+      "schema": "public"
+      "relation": "reporting_cash_account_snapshot"
+      "name": "Provisional"
+      "ordinal": 19
+      "data_type": "boolean"
+      "type_schema": "pg_catalog"
+      "type_name": "bool"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Freshness Basis":
+      "schema": "public"
+      "relation": "reporting_cash_account_snapshot"
+      "name": "Freshness Basis"
+      "ordinal": 20
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+  "constraints": {}
+  "indexes": {}
+  "triggers": {}
+  "policies": {}
+  "dependencies":
+  - "schema": "public"
+    "relation": "reporting_cash_account_snapshot"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Account Daily Analytics"
+    "referenced_column": "Available From"
+  - "schema": "public"
+    "relation": "reporting_cash_account_snapshot"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Account Daily Analytics"
+    "referenced_column": "Balance Status"
+  - "schema": "public"
+    "relation": "reporting_cash_account_snapshot"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Account Daily Analytics"
+    "referenced_column": "Closing Balance"
+  - "schema": "public"
+    "relation": "reporting_cash_account_snapshot"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Account Daily Analytics"
+    "referenced_column": "Generated At"
+  - "schema": "public"
+    "relation": "reporting_cash_account_snapshot"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Account Daily Analytics"
+    "referenced_column": "Model Version"
+  - "schema": "public"
+    "relation": "reporting_cash_account_snapshot"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Account Daily Analytics"
+    "referenced_column": "Money In"
+  - "schema": "public"
+    "relation": "reporting_cash_account_snapshot"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Account Daily Analytics"
+    "referenced_column": "Money Out"
+  - "schema": "public"
+    "relation": "reporting_cash_account_snapshot"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Account Daily Analytics"
+    "referenced_column": "Opening Balance"
+  - "schema": "public"
+    "relation": "reporting_cash_account_snapshot"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Account Daily Analytics"
+    "referenced_column": "Ref Cash Account"
+  - "schema": "public"
+    "relation": "reporting_cash_account_snapshot"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Account Daily Analytics"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "reporting_cash_account_snapshot"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Account Daily Analytics"
+    "referenced_column": "Snapshot Date"
+  - "schema": "public"
+    "relation": "reporting_cash_account_snapshot"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Account Daily Analytics"
+    "referenced_column": "Transaction Count"
+  - "schema": "public"
+    "relation": "reporting_cash_account_snapshot"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Accounts"
+    "referenced_column": "Account Label"
+  - "schema": "public"
+    "relation": "reporting_cash_account_snapshot"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Accounts"
+    "referenced_column": "Ref Cash Holder"
+  - "schema": "public"
+    "relation": "reporting_cash_account_snapshot"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Accounts"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "reporting_cash_account_snapshot"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Holders"
+    "referenced_column": "Holder Name"
+  - "schema": "public"
+    "relation": "reporting_cash_account_snapshot"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Holders"
+    "referenced_column": "Row ID"
+"evidence":
+  "/content/definition/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"

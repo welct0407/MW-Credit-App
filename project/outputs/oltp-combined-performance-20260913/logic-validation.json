@@ -1,0 +1,25 @@
+{
+  "passed": true,
+  "cases": 10009,
+  "allocationAssertions": 758965,
+  "eligibilityAssertions": 56,
+  "seed": 20260913,
+  "duplicateTupleCounterexample": {
+    "received": 100,
+    "rows": [
+      {
+        "date": "2026-09-12",
+        "row": 1,
+        "remaining": 100
+      },
+      {
+        "date": "2026-09-12",
+        "row": 1,
+        "remaining": 100
+      }
+    ],
+    "oldAllocated": 200,
+    "newAllocated": 200
+  },
+  "scope": "Independent sequential interest-first oracle; valid nonnegative integer-baht balances, comparable dates and unique row-number ordering tuples. Local JavaScript validation, not AppSheet engine execution, live concurrency, blank-value semantics, or performance measurement."
+}

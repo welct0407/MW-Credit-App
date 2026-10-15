@@ -1,0 +1,92 @@
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "reports.mw-credit.com"
+  "kind": "question"
+  "name": "Interest received over time / 302"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r035-borrower-pages/saved-question-definitions.json"
+"content":
+  "key": "d-interest-trend"
+  "id": 302
+  "name": "Interest received over time"
+  "description": "R035 additive borrower pages. Immutable borrower keys; Bangkok dates; current health from V41/V42. Signed\
+    \ receipts. No AppSheet/financial writes."
+  "display": "bar"
+  "type": "question"
+  "dataset_query":
+    "stages":
+    - "template-tags":
+      - "widget-type": "date/all-options"
+        "id": "bp-period"
+        "name": "period"
+        "display-name": "Activity period"
+        "type": "dimension"
+        "dimension":
+        - "field"
+        - "base-type": "type/Date"
+          "lib/uuid": "2cb0df78-0a34-447c-8e5a-9c518b1aca71"
+          "effective-type": "type/Date"
+        - 82
+        "alias": "d.\"Date\""
+      - "display-name": "Borrower"
+        "id": "bp-borrower"
+        "name": "borrower_id"
+        "type": "text"
+      "lib/type": "mbql.stage/native"
+      "native": |-
+        WITH clock AS (SELECT public.olap_reporting_date() today), selected AS (SELECT d."Date" FROM (SELECT generate_series(DATE '1900-01-01',DATE '2199-12-31',interval '1 day')::date "Date") d WHERE [[{{period}} --]] d."Date" BETWEEN (SELECT today-30 FROM clock) AND (SELECT today-1 FROM clock)
+        ), bounds AS (SELECT min("Date") starts,max("Date") ends,count(*) days,count(*)>0 AND count(*)=max("Date")-min("Date")+1 AND max("Date")<=(SELECT today FROM clock) valid FROM selected), chosen AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE borrower_id= [[{{borrower_id}} --]] '__select_borrower__'
+        ), activity AS (SELECT a.* FROM public.reporting_borrower_activity_daily_v1 a JOIN chosen c USING(borrower_id) CROSS JOIN bounds b WHERE b.valid AND a.activity_date BETWEEN b.starts AND b.ends) SELECT CASE WHEN b.days<=60 THEN d."Date" ELSE date_trunc('week',d."Date")::date END AS "Date",CASE WHEN bool_and(a.activity_date IS NULL OR a.interest_received IS NOT NULL) THEN sum(coalesce(a.interest_received,0)) END AS "Interest ฿"
+         FROM selected d CROSS JOIN chosen c CROSS JOIN bounds b LEFT JOIN activity a ON a.activity_date=d."Date" WHERE b.valid GROUP BY 1 ORDER BY 1
+    "lib/type": "mbql/query"
+    "database": 2
+  "visualization_settings":
+    "graph.show_values": false
+    "graph.show_legend": false
+    "graph.missing": "none"
+    "graph.y_axis.auto_split": false
+    "graph.metrics":
+    - "Interest ฿"
+    "graph.label_value_formatting": "compact"
+    "graph.colors":
+    - "#178F8A"
+    - "#7472BE"
+    - "#D6816B"
+    - "#24435A"
+    - "#D4AD60"
+    - "#9CA3AF"
+    "graph.show_dots": false
+    "column_settings":
+      "[\"name\",\"Interest ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+    "graph.dimensions":
+    - "Date"
+    "stackable.stack_type": null
+  "result_metadata":
+  - "name": "Date"
+    "database_type": "date"
+    "base_type": "type/Date"
+    "display_name": "Date"
+    "field_ref":
+    - "field"
+    - "Date"
+    - "base-type": "type/Date"
+  - "name": "Interest ฿"
+    "database_type": "numeric"
+    "base_type": "type/Decimal"
+    "display_name": "Interest ฿"
+    "field_ref":
+    - "field"
+    - "Interest ฿"
+    - "base-type": "type/Decimal"
+"evidence":
+  "/content/display":
+    "reference": "outputs/r042-borrower-payments/README.md"
+    "reason": "R042 saved report definitions and V46 live catalog"
+    "state": "value"

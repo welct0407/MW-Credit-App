@@ -1,0 +1,17 @@
+{
+  "backup_location": "C:\\Users\\MWCredit\\Documents\\ChatGPT\\AppSheet-Loan-Project\\r048-loan-interest-correction\\20260927T175231Z\\production-before.dump",
+  "backup_sha256": "da592729ac7ac1b195e5212638602c742e0371b16875caa690369c14ef1a2f97",
+  "restored_fingerprints_match": true,
+  "targeted_rehearsal_passed": true,
+  "result": {
+    "rate_before": null,
+    "rate_after": 10,
+    "arrangement_note_added": true,
+    "only_row_fields_changed": [
+      "Loan Arrangement",
+      "Original Daily Interest Rate"
+    ],
+    "financial_values_unchanged": true
+  },
+  "scope": "public, assessment_lab, agent_audit"
+}

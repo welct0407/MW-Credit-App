@@ -1,0 +1,782 @@
+{
+  "olap": [
+    {
+      "object": "Column:Borrowers_Schema:Borrower Name",
+      "fields": [
+        "Column name",
+        "Display name"
+      ]
+    },
+    {
+      "object": "Column:Borrowers_Schema:Borrower Name TE",
+      "fields": [
+        "Column name",
+        "App formula"
+      ]
+    },
+    {
+      "object": "Column:Loans_Schema:Borrower Name",
+      "fields": [
+        "Column name"
+      ]
+    },
+    {
+      "object": "Column:Loans_Schema:Loan Key",
+      "fields": [
+        "App formula"
+      ]
+    },
+    {
+      "object": "Column:Loans_Schema:Borrower Name TE",
+      "fields": [
+        "Column name",
+        "App formula"
+      ]
+    },
+    {
+      "object": "Column:Repayments_Schema:Borrower Name",
+      "fields": [
+        "Column name",
+        "App formula"
+      ]
+    },
+    {
+      "object": "Column:Repayments_Schema:Borrower Name TE",
+      "fields": [
+        "Column name",
+        "App formula"
+      ]
+    },
+    {
+      "object": "Column:Charges_Schema:Borrower Name",
+      "fields": [
+        "Column name",
+        "App formula"
+      ]
+    },
+    {
+      "object": "Column:Charges_Schema:Borrower Name TE",
+      "fields": [
+        "Column name",
+        "App formula"
+      ]
+    },
+    {
+      "object": "Slice Name:Borrowers with Outstanding Loans",
+      "fields": [
+        "Slice Columns"
+      ]
+    },
+    {
+      "object": "Slice Name:Profit Contribution 30D",
+      "fields": [
+        "Slice Columns"
+      ]
+    },
+    {
+      "object": "Slice Name:Reporting Loans",
+      "fields": [
+        "Slice Columns"
+      ]
+    },
+    {
+      "object": "Slice Name:Reporting Borrowers",
+      "fields": [
+        "Slice Columns"
+      ]
+    },
+    {
+      "object": "Slice Name:Reporting Charges",
+      "fields": [
+        "Slice Columns"
+      ]
+    },
+    {
+      "object": "Slice Name:Todays Collection Board",
+      "fields": [
+        "Slice Columns"
+      ]
+    },
+    {
+      "object": "View name:Borrowers",
+      "fields": [
+        "View configuration"
+      ]
+    },
+    {
+      "object": "View name:Loans",
+      "fields": [
+        "View configuration"
+      ]
+    },
+    {
+      "object": "View name:Borrowers_Detail",
+      "fields": [
+        "View configuration"
+      ]
+    },
+    {
+      "object": "View name:Charges_Detail",
+      "fields": [
+        "View configuration"
+      ]
+    },
+    {
+      "object": "View name:Loans_Detail",
+      "fields": [
+        "View configuration"
+      ]
+    },
+    {
+      "object": "Rule name:Borrower with outstanding loans",
+      "fields": [
+        "Format these columns and actions"
+      ]
+    }
+  ],
+  "oltp": [
+    {
+      "object": "Table name:Loans",
+      "fields": [
+        "Column Order List"
+      ]
+    },
+    {
+      "object": "Column:Borrowers_Schema:Borrower Name",
+      "fields": [
+        "Column name",
+        "Display name",
+        "Type Qualifier"
+      ]
+    },
+    {
+      "object": "Column:Borrowers_Schema:Borrower Name TE",
+      "fields": [
+        "Column name",
+        "App formula"
+      ]
+    },
+    {
+      "object": "Column:Borrowers_Schema:Borrower Name - Collection",
+      "fields": [
+        "Column name",
+        "App formula"
+      ]
+    },
+    {
+      "object": "Column:Loans_Schema:Borrower Name",
+      "fields": [
+        "Column name"
+      ]
+    },
+    {
+      "object": "Column:Loans_Schema:Loan Key",
+      "fields": [
+        "App formula"
+      ]
+    },
+    {
+      "object": "Column:Loans_Schema:Borrower Name TE",
+      "fields": [
+        "Column name",
+        "App formula"
+      ]
+    },
+    {
+      "object": "Column:Repayments_Schema:Borrower Name",
+      "fields": [
+        "Column name",
+        "App formula"
+      ]
+    },
+    {
+      "object": "Column:Repayments_Schema:Borrower Name TE",
+      "fields": [
+        "Column name",
+        "App formula"
+      ]
+    },
+    {
+      "object": "Column:Charges_Schema:Borrower Name",
+      "fields": [
+        "Column name",
+        "App formula"
+      ]
+    },
+    {
+      "object": "Column:Charges_Schema:Borrower Name TE",
+      "fields": [
+        "Column name",
+        "App formula"
+      ]
+    },
+    {
+      "object": "Column:Process for Create First-Day Charge Process Table_Schema:Borrower Name",
+      "fields": [
+        "Column name"
+      ]
+    },
+    {
+      "object": "Column:Process for Create First-Day Charge Process Table_Schema:Borrower Name TE",
+      "fields": [
+        "Column name"
+      ]
+    },
+    {
+      "object": "Column:Create First-Day Charge Output_Schema:Borrower Name",
+      "fields": [
+        "Column name"
+      ]
+    },
+    {
+      "object": "Column:Create First-Day Charge Output_Schema:Borrower Name TE",
+      "fields": [
+        "Column name"
+      ]
+    },
+    {
+      "object": "Column:Process for Generate Daily Charges - 1 Process Table_Schema:Borrower Name",
+      "fields": [
+        "Column name"
+      ]
+    },
+    {
+      "object": "Column:Process for Generate Daily Charges - 1 Process Table_Schema:Borrower Name TE",
+      "fields": [
+        "Column name"
+      ]
+    },
+    {
+      "object": "Column:Generate Today's Charge Output_Schema:Borrower Name",
+      "fields": [
+        "Column name"
+      ]
+    },
+    {
+      "object": "Column:Generate Today's Charge Output_Schema:Borrower Name TE",
+      "fields": [
+        "Column name"
+      ]
+    },
+    {
+      "object": "Column:Process for Notification - New Loan Created Process Table_Schema:Borrower Name",
+      "fields": [
+        "Column name"
+      ]
+    },
+    {
+      "object": "Column:Process for Notification - New Loan Created Process Table_Schema:Borrower Name TE",
+      "fields": [
+        "Column name"
+      ]
+    },
+    {
+      "object": "Column:Process for Notification - Loan Closed Process Table_Schema:Borrower Name",
+      "fields": [
+        "Column name"
+      ]
+    },
+    {
+      "object": "Column:Process for Notification - Loan Closed Process Table_Schema:Borrower Name TE",
+      "fields": [
+        "Column name"
+      ]
+    },
+    {
+      "object": "Column:Process for Auto Receive First-Day Charge - 1 Process Table_Schema:Borrower Name",
+      "fields": [
+        "Column name"
+      ]
+    },
+    {
+      "object": "Column:Process for Auto Receive First-Day Charge - 1 Process Table_Schema:Borrower Name TE",
+      "fields": [
+        "Column name"
+      ]
+    },
+    {
+      "object": "Column:Receive First-Day Charge Output_Schema:Borrower Name",
+      "fields": [
+        "Column name"
+      ]
+    },
+    {
+      "object": "Column:Receive First-Day Charge Output_Schema:Borrower Name TE",
+      "fields": [
+        "Column name"
+      ]
+    },
+    {
+      "object": "Slice Name:Todays Collection Board",
+      "fields": [
+        "Slice Columns"
+      ]
+    },
+    {
+      "object": "Slice Name:Visible Borrowers",
+      "fields": [
+        "Slice Columns"
+      ]
+    },
+    {
+      "object": "View name:Collection",
+      "fields": [
+        "View configuration"
+      ]
+    },
+    {
+      "object": "View name:Borrowers",
+      "fields": [
+        "View configuration"
+      ]
+    },
+    {
+      "object": "View name:Loans",
+      "fields": [
+        "View configuration"
+      ]
+    },
+    {
+      "object": "View name:Borrowers_Detail",
+      "fields": [
+        "View configuration"
+      ]
+    },
+    {
+      "object": "View name:Borrowers_Form",
+      "fields": [
+        "View configuration"
+      ]
+    },
+    {
+      "object": "View name:Charges_Detail",
+      "fields": [
+        "View configuration"
+      ]
+    },
+    {
+      "object": "View name:Loans_Detail",
+      "fields": [
+        "View configuration"
+      ]
+    },
+    {
+      "object": "View name:Todays Collection Board_Detail",
+      "fields": [
+        "View configuration"
+      ]
+    },
+    {
+      "object": "View name:Visible Borrowers_Detail",
+      "fields": [
+        "View configuration"
+      ]
+    },
+    {
+      "object": "View name:Visible Borrowers_Form",
+      "fields": [
+        "View configuration"
+      ]
+    },
+    {
+      "object": "Rule name:Borrower with outstanding loans",
+      "fields": [
+        "Format these columns and actions"
+      ]
+    },
+    {
+      "object": "Rule name:Borrower Name Collection - Fully Paid",
+      "fields": [
+        "Rule name",
+        "Format these columns and actions"
+      ]
+    },
+    {
+      "object": "Rule name:Borrower Name Collection - Overdue",
+      "fields": [
+        "Rule name",
+        "Format these columns and actions"
+      ]
+    },
+    {
+      "object": "Rule name:Borrower Name Collection - Partially Paid",
+      "fields": [
+        "Rule name",
+        "Format these columns and actions"
+      ]
+    },
+    {
+      "object": "Rule name:Borrower Name Collection - Not Paid",
+      "fields": [
+        "Rule name",
+        "Format these columns and actions"
+      ]
+    }
+  ],
+  "olap-copy": [
+    {
+      "object": "Column:Borrowers_Schema:Borrower Name",
+      "fields": [
+        "Column name",
+        "Display name"
+      ]
+    },
+    {
+      "object": "Column:Borrowers_Schema:Borrower Name TE",
+      "fields": [
+        "Column name",
+        "App formula"
+      ]
+    },
+    {
+      "object": "Column:Loans_Schema:Borrower Name",
+      "fields": [
+        "Column name"
+      ]
+    },
+    {
+      "object": "Column:Loans_Schema:Loan Key",
+      "fields": [
+        "App formula"
+      ]
+    },
+    {
+      "object": "Column:Loans_Schema:Borrower Name TE",
+      "fields": [
+        "Column name",
+        "App formula"
+      ]
+    },
+    {
+      "object": "Column:Repayments_Schema:Borrower Name",
+      "fields": [
+        "Column name",
+        "App formula"
+      ]
+    },
+    {
+      "object": "Column:Repayments_Schema:Borrower Name TE",
+      "fields": [
+        "Column name",
+        "App formula"
+      ]
+    },
+    {
+      "object": "Column:Charges_Schema:Borrower Name",
+      "fields": [
+        "Column name",
+        "App formula"
+      ]
+    },
+    {
+      "object": "Column:Charges_Schema:Borrower Name TE",
+      "fields": [
+        "Column name",
+        "App formula"
+      ]
+    },
+    {
+      "object": "Slice Name:Borrowers with Outstanding Loans",
+      "fields": [
+        "Slice Columns"
+      ]
+    },
+    {
+      "object": "Slice Name:Profit Contribution 30D",
+      "fields": [
+        "Slice Columns"
+      ]
+    },
+    {
+      "object": "Slice Name:Reporting Loans",
+      "fields": [
+        "Slice Columns"
+      ]
+    },
+    {
+      "object": "Slice Name:Reporting Borrowers",
+      "fields": [
+        "Slice Columns"
+      ]
+    },
+    {
+      "object": "Slice Name:Reporting Charges",
+      "fields": [
+        "Slice Columns"
+      ]
+    },
+    {
+      "object": "Slice Name:Todays Collection Board",
+      "fields": [
+        "Slice Columns"
+      ]
+    },
+    {
+      "object": "View name:Borrowers",
+      "fields": [
+        "View configuration"
+      ]
+    },
+    {
+      "object": "View name:Loans",
+      "fields": [
+        "View configuration"
+      ]
+    },
+    {
+      "object": "View name:Borrowers_Detail",
+      "fields": [
+        "View configuration"
+      ]
+    },
+    {
+      "object": "View name:Charges_Detail",
+      "fields": [
+        "View configuration"
+      ]
+    },
+    {
+      "object": "View name:Loans_Detail",
+      "fields": [
+        "View configuration"
+      ]
+    },
+    {
+      "object": "Rule name:Borrower with outstanding loans",
+      "fields": [
+        "Format these columns and actions"
+      ]
+    }
+  ],
+  "oltp-copy": [
+    {
+      "object": "Table name:Loans",
+      "fields": [
+        "Column Order List"
+      ]
+    },
+    {
+      "object": "Column:Borrowers_Schema:Borrower Name",
+      "fields": [
+        "Column name",
+        "Display name",
+        "Type Qualifier"
+      ]
+    },
+    {
+      "object": "Column:Borrowers_Schema:Borrower Name TE",
+      "fields": [
+        "Column name",
+        "App formula"
+      ]
+    },
+    {
+      "object": "Column:Borrowers_Schema:Borrower Name - Collection",
+      "fields": [
+        "Column name",
+        "App formula"
+      ]
+    },
+    {
+      "object": "Column:Loans_Schema:Borrower Name",
+      "fields": [
+        "Column name"
+      ]
+    },
+    {
+      "object": "Column:Loans_Schema:Loan Key",
+      "fields": [
+        "App formula"
+      ]
+    },
+    {
+      "object": "Column:Loans_Schema:Borrower Name TE",
+      "fields": [
+        "Column name",
+        "App formula"
+      ]
+    },
+    {
+      "object": "Column:Repayments_Schema:Borrower Name",
+      "fields": [
+        "Column name",
+        "App formula"
+      ]
+    },
+    {
+      "object": "Column:Repayments_Schema:Borrower Name TE",
+      "fields": [
+        "Column name",
+        "App formula"
+      ]
+    },
+    {
+      "object": "Column:Charges_Schema:Borrower Name",
+      "fields": [
+        "Column name",
+        "App formula"
+      ]
+    },
+    {
+      "object": "Column:Charges_Schema:Borrower Name TE",
+      "fields": [
+        "Column name",
+        "App formula"
+      ]
+    },
+    {
+      "object": "Column:Process for Create First-Day Charge Process Table_Schema:Borrower Name",
+      "fields": [
+        "Column name"
+      ]
+    },
+    {
+      "object": "Column:Process for Create First-Day Charge Process Table_Schema:Borrower Name TE",
+      "fields": [
+        "Column name"
+      ]
+    },
+    {
+      "object": "Column:Create First-Day Charge Output_Schema:Borrower Name",
+      "fields": [
+        "Column name"
+      ]
+    },
+    {
+      "object": "Column:Create First-Day Charge Output_Schema:Borrower Name TE",
+      "fields": [
+        "Column name"
+      ]
+    },
+    {
+      "object": "Column:Process for Auto Receive First-Day Charge - 1 Process Table_Schema:Borrower Name",
+      "fields": [
+        "Column name"
+      ]
+    },
+    {
+      "object": "Column:Process for Auto Receive First-Day Charge - 1 Process Table_Schema:Borrower Name TE",
+      "fields": [
+        "Column name"
+      ]
+    },
+    {
+      "object": "Column:Receive First-Day Charge Output_Schema:Borrower Name",
+      "fields": [
+        "Column name"
+      ]
+    },
+    {
+      "object": "Column:Receive First-Day Charge Output_Schema:Borrower Name TE",
+      "fields": [
+        "Column name"
+      ]
+    },
+    {
+      "object": "Slice Name:Todays Collection Board",
+      "fields": [
+        "Slice Columns"
+      ]
+    },
+    {
+      "object": "Slice Name:Visible Borrowers",
+      "fields": [
+        "Slice Columns"
+      ]
+    },
+    {
+      "object": "View name:Collection",
+      "fields": [
+        "View configuration"
+      ]
+    },
+    {
+      "object": "View name:Borrowers",
+      "fields": [
+        "View configuration"
+      ]
+    },
+    {
+      "object": "View name:Loans",
+      "fields": [
+        "View configuration"
+      ]
+    },
+    {
+      "object": "View name:Borrowers_Detail",
+      "fields": [
+        "View configuration"
+      ]
+    },
+    {
+      "object": "View name:Borrowers_Form",
+      "fields": [
+        "View configuration"
+      ]
+    },
+    {
+      "object": "View name:Charges_Detail",
+      "fields": [
+        "View configuration"
+      ]
+    },
+    {
+      "object": "View name:Loans_Detail",
+      "fields": [
+        "View configuration"
+      ]
+    },
+    {
+      "object": "View name:Todays Collection Board_Detail",
+      "fields": [
+        "View configuration"
+      ]
+    },
+    {
+      "object": "View name:Visible Borrowers_Detail",
+      "fields": [
+        "View configuration"
+      ]
+    },
+    {
+      "object": "View name:Visible Borrowers_Form",
+      "fields": [
+        "View configuration"
+      ]
+    },
+    {
+      "object": "Rule name:Borrower with outstanding loans",
+      "fields": [
+        "Format these columns and actions"
+      ]
+    },
+    {
+      "object": "Rule name:Borrower Name Collection - Fully Paid",
+      "fields": [
+        "Rule name",
+        "Format these columns and actions"
+      ]
+    },
+    {
+      "object": "Rule name:Borrower Name Collection - Overdue",
+      "fields": [
+        "Rule name",
+        "Format these columns and actions"
+      ]
+    },
+    {
+      "object": "Rule name:Borrower Name Collection - Partially Paid",
+      "fields": [
+        "Rule name",
+        "Format these columns and actions"
+      ]
+    },
+    {
+      "object": "Rule name:Borrower Name Collection - Not Paid",
+      "fields": [
+        "Rule name",
+        "Format these columns and actions"
+      ]
+    }
+  ]
+}

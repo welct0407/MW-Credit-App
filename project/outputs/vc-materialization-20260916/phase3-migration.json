@@ -1,0 +1,24 @@
+{
+  "database" : "loan_manager_prod",
+  "databaseType" : "PostgreSQL",
+  "exception" : null,
+  "flywayVersion" : "13.6.0",
+  "initialSchemaVersion" : "12",
+  "licenseFailed" : false,
+  "migrations" : [ {
+    "category" : "Versioned",
+    "description" : "borrower materialized rollups",
+    "executionTime" : 680,
+    "filepath" : "C:\\GitHub\\AppSheet-Loan-Project\\database\\migrations\\V13__borrower_materialized_rollups.sql",
+    "type" : "SQL",
+    "version" : "13"
+  } ],
+  "migrationsExecuted" : 1,
+  "operation" : "migrate",
+  "schemaName" : "",
+  "success" : true,
+  "targetSchemaVersion" : "13",
+  "timestamp" : "2026-09-16T10:18:57.3957324+07:00",
+  "totalMigrationTime" : 680,
+  "warnings" : [ ]
+}

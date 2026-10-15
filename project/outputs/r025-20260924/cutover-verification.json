@@ -1,0 +1,38 @@
+{
+  "at": "2026-09-24T12:21:37.971Z",
+  "tabs": 11,
+  "placements": 184,
+  "canonicalTab": 19,
+  "removedTab": 9,
+  "removedPlacements": 26,
+  "retainedQuestions": [
+    133,
+    134,
+    121,
+    136,
+    128,
+    137,
+    120,
+    131,
+    119,
+    122,
+    123,
+    124,
+    125,
+    126,
+    129,
+    132,
+    135,
+    138
+  ],
+  "checks": [
+    "Exact tab order/name; old tab removed",
+    "All retained placements unchanged",
+    "All retained question queries/settings unchanged",
+    "All filters unchanged",
+    "Old questions remain available",
+    "Four summary queries completed"
+  ],
+  "databaseChanges": false,
+  "browser": "Chrome reload confirms selected 8 · Collection Monitor in eighth position, no old Collection or 8R tab; four summary titles in requested order and Auto Refresh available."
+}

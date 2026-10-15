@@ -1,0 +1,24 @@
+{
+  "database" : "loan_manager_dev",
+  "databaseType" : "PostgreSQL",
+  "exception" : null,
+  "flywayVersion" : "13.6.0",
+  "initialSchemaVersion" : "41",
+  "licenseFailed" : false,
+  "migrations" : [ {
+    "category" : "Versioned",
+    "description" : "automatic schedule categories",
+    "executionTime" : 676,
+    "filepath" : "C:\\GitHub\\AppSheet-Loan-Project\\database\\migrations\\V42__automatic_schedule_categories.sql",
+    "type" : "SQL",
+    "version" : "42"
+  } ],
+  "migrationsExecuted" : 1,
+  "operation" : "migrate",
+  "schemaName" : "",
+  "success" : true,
+  "targetSchemaVersion" : "42",
+  "timestamp" : "2026-09-25T01:20:34.314717+07:00",
+  "totalMigrationTime" : 676,
+  "warnings" : [ ]
+}

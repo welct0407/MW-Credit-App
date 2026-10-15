@@ -1,0 +1,14 @@
+{
+  "date": "2026-09-22",
+  "editor": "current",
+  "versions": {
+    "OLTP": "3.000245",
+    "OLAP": "1.100194"
+  },
+  "deployed": true,
+  "save_disabled": true,
+  "editor_issue_badges": 0,
+  "fresh_preview_loaded": true,
+  "definitions_modified": false,
+  "audit_tables_added_to_apps": false
+}

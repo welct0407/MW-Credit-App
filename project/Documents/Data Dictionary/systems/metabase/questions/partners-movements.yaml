@@ -1,0 +1,174 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "metabase",
+    "component": "reports.mw-credit.com",
+    "kind": "question",
+    "name": "Capital contributions and withdrawals / 338",
+    "scope": "production"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r044-partners/saved.json"
+  },
+  "content": {
+    "key": "movements",
+    "description": "R044 Partners. Capital transactions only. Profit settlements never reduce contributed capital.",
+    "result_metadata": [
+      {
+        "database_type": "date",
+        "semantic_type": null,
+        "lib/deduplicated-name": "Month",
+        "lib/original-name": "Month",
+        "name": "Month",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Month",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Month",
+          {
+            "base-type": "type/Date"
+          }
+        ],
+        "effective_type": "type/Date",
+        "lib/desired-column-alias": "Month",
+        "display_name": "Month",
+        "base_type": "type/Date"
+      },
+      {
+        "database_type": "numeric",
+        "semantic_type": null,
+        "lib/deduplicated-name": "Contributed ฿",
+        "lib/original-name": "Contributed ฿",
+        "name": "Contributed ฿",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Contributed ฿",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Contributed ฿",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "Contributed ฿",
+        "display_name": "Contributed ฿",
+        "base_type": "type/Decimal"
+      },
+      {
+        "database_type": "numeric",
+        "semantic_type": null,
+        "lib/deduplicated-name": "Withdrawn ฿",
+        "lib/original-name": "Withdrawn ฿",
+        "name": "Withdrawn ฿",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Withdrawn ฿",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Withdrawn ฿",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "Withdrawn ฿",
+        "display_name": "Withdrawn ฿",
+        "base_type": "type/Decimal"
+      }
+    ],
+    "collection_id": 5,
+    "name": "Capital contributions and withdrawals",
+    "type": "question",
+    "dataset_query": {
+      "stages": [
+        {
+          "template-tags": [
+            {
+              "widget-type": "string/=",
+              "id": "pt-partner",
+              "name": "partner",
+              "display-name": "Partner",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                {
+                  "base-type": "type/Text",
+                  "lib/uuid": "e817b53a-f788-492f-9f68-6f07ed794af0",
+                  "effective-type": "type/Text"
+                },
+                121
+              ],
+              "alias": "d.partner_id"
+            },
+            {
+              "widget-type": "date/all-options",
+              "id": "pt-period",
+              "name": "period",
+              "display-name": "Partner activity period",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                {
+                  "base-type": "type/Date",
+                  "lib/uuid": "852cf6f1-a90f-42a2-99aa-847d802eb26d",
+                  "effective-type": "type/Date"
+                },
+                82
+              ],
+              "alias": "d.activity_date"
+            },
+            {
+              "type": "card",
+              "id": "r044-model-322",
+              "name": "#322",
+              "display-name": "Partners source 322",
+              "card-id": 322
+            }
+          ],
+          "lib/type": "mbql.stage/native",
+          "native": "SELECT date_trunc('month',activity_date)::date AS \"Month\",CASE WHEN count(*)=0 THEN 0 WHEN bool_and(capital_contributed IS NOT NULL) THEN sum(capital_contributed) END AS \"Contributed ฿\",-(CASE WHEN count(*)=0 THEN 0 WHEN bool_and(capital_withdrawn IS NOT NULL) THEN sum(capital_withdrawn) END) AS \"Withdrawn ฿\" FROM {{#322}} d WHERE true [[AND {{partner}}]] [[AND {{period}}]] GROUP BY 1 ORDER BY 1"
+        }
+      ],
+      "lib/type": "mbql/query",
+      "database": 2
+    },
+    "id": 338,
+    "display": "bar",
+    "visualization_settings": {
+      "graph.show_values": true,
+      "graph.show_legend": true,
+      "graph.missing": "none",
+      "graph.y_axis.auto_split": false,
+      "graph.metrics": [
+        "Contributed ฿",
+        "Withdrawn ฿"
+      ],
+      "graph.label_value_formatting": "full",
+      "graph.colors": [
+        "#178F8A",
+        "#D6816B"
+      ],
+      "column_settings": {
+        "[\"name\",\"Contributed ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Withdrawn ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,",
+          "compact": false
+        }
+      },
+      "graph.dimensions": [
+        "Month"
+      ],
+      "stackable.stack_type": null
+    }
+  }
+}

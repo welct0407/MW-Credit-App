@@ -1,0 +1,107 @@
+[
+  {
+    "phase": "baseline",
+    "ms": 6338,
+    "method": "cross-call upper bound"
+  },
+  {
+    "phase": "baseline",
+    "ms": 4829,
+    "method": "UI sync indicator polling"
+  },
+  {
+    "phase": "baseline",
+    "ms": 7244,
+    "method": "UI sync indicator polling"
+  },
+  {
+    "phase": "baseline",
+    "ms": 5412,
+    "method": "UI sync indicator polling"
+  },
+  {
+    "phase": "baseline",
+    "ms": 5096,
+    "method": "UI sync indicator polling"
+  },
+  {
+    "phase": "baseline",
+    "ms": 6219,
+    "method": "UI sync indicator polling"
+  },
+  {
+    "phase": "sql",
+    "ms": 5026,
+    "method": "UI sync indicator polling"
+  },
+  {
+    "phase": "sql",
+    "ms": 5104,
+    "method": "UI sync indicator polling"
+  },
+  {
+    "phase": "sql",
+    "ms": 7643,
+    "method": "UI sync indicator polling"
+  },
+  {
+    "phase": "sql",
+    "ms": 5127,
+    "method": "UI sync indicator polling"
+  },
+  {
+    "phase": "sql",
+    "ms": 15870,
+    "method": "UI sync indicator polling"
+  },
+  {
+    "phase": "sql-input-3000",
+    "ms": 12844,
+    "method": "UI sync indicator polling"
+  },
+  {
+    "phase": "final-input-4000",
+    "ms": 7683,
+    "method": "UI sync indicator polling"
+  },
+  {
+    "phase": "final-input-1000000",
+    "ms": 6732,
+    "method": "UI sync indicator polling"
+  },
+  {
+    "phase": "final-input-0",
+    "ms": 9067,
+    "method": "UI sync indicator polling"
+  },
+  {
+    "phase": "final-input-2000",
+    "ms": 8461,
+    "method": "UI sync indicator polling"
+  },
+  {
+    "phase": "final",
+    "ms": 7947,
+    "method": "UI sync indicator polling"
+  },
+  {
+    "phase": "final",
+    "ms": 8006,
+    "method": "UI sync indicator polling"
+  },
+  {
+    "phase": "final",
+    "ms": 4834,
+    "method": "UI sync indicator polling"
+  },
+  {
+    "phase": "final",
+    "ms": 21452,
+    "method": "UI sync indicator polling"
+  },
+  {
+    "phase": "final",
+    "ms": 5969,
+    "method": "UI sync indicator polling"
+  }
+]

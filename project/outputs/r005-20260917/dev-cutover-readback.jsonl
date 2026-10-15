@@ -1,0 +1,9 @@
+{"environment" : "development", "as_of" : "2026-09-17T22:46:41.103605+07:00", "version" : 20, "ledger_rows" : 0, "holders" : 3}
+{"cutover_type" : "Business Expense", "rows" : 5}
+{"cutover_type" : "Loan", "rows" : 98}
+{"cutover_type" : "Payment", "rows" : 182}
+{"cutover_type" : "Settlement", "rows" : 2}
+{"legacy_nonnull_receivers" : 0, "legacy_nonnull_payers" : 0, "historical_cash_rows" : 0}
+{"jobname":"loan-daily-charges","schedule":"5 0 * * *","active":false,"database":"loan_manager_prod","command_hash":"d1e47fe9cdab2128893581ce76f42d1a"}
+{"bad_system_source_duplicates" : 0}
+{"holder_count" : 3, "balance_mismatch_count" : 0}

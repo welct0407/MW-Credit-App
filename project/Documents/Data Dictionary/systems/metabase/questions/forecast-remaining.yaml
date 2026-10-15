@@ -1,0 +1,103 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "metabase",
+    "component": "reports.mw-credit.com",
+    "kind": "question",
+    "name": "Remaining interest ฿ / 349",
+    "scope": "production"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r045-forecast-planning/saved.json"
+  },
+  "content": {
+    "id": 349,
+    "key": "remaining",
+    "name": "Remaining interest ฿",
+    "display": "scalar",
+    "dataset_query": {
+      "database": 2,
+      "type": "native",
+      "native": {
+        "query": "WITH args AS (SELECT coalesce([[{{ci}},]]100)::numeric ci,coalesce([[{{cp}},]]100)::numeric cp,coalesce([[{{rr}},]]0)::numeric rr,coalesce([[{{scenario}},]]'Planning')::text scenario,coalesce([[{{kind}},]]'All')::text kind,coalesce([[{{target}},]]NULL)::numeric target), loans AS MATERIALIZED (SELECT l.* FROM {{#344}} l,args a WHERE a.kind='All' OR l.loan_type=a.kind),\n actual AS (SELECT coalesce(sum(interest),0) a,coalesce(bool_or(invalid),false) invalid FROM {{#345}} l,args a WHERE a.kind='All' OR l.loan_type=a.kind),\n sums AS (SELECT coalesce(sum(ui),0) ui,coalesce(sum(up),0) up,coalesce(sum(oi),0) oi,coalesce(sum(op),0) op,coalesce(bool_or(incomplete),false) incomplete FROM loans),\n s AS (SELECT a.*,v.a actual,r.remaining_interest ri,r.remaining_principal rp,NOT (q.incomplete OR v.invalid OR c.invalid_receipts>0 OR c.orphan_charges>0) ready,c.reporting_date,c.calculated_at,c.current_cash,c.cash_status FROM args a CROSS JOIN sums q CROSS JOIN actual v CROSS JOIN {{#347}} c CROSS JOIN LATERAL public.forecast_scenario_v1(q.ui,q.up,q.oi,q.op,a.ci,a.cp,a.rr,a.scenario) r) SELECT CASE WHEN ready THEN ri END AS \"Remaining interest ฿\" FROM s",
+        "template-tags": {
+          "ci": {
+            "id": "fp-ci",
+            "name": "ci",
+            "display-name": "Interest collected %",
+            "type": "number",
+            "default": 100
+          },
+          "cp": {
+            "id": "fp-cp",
+            "name": "cp",
+            "display-name": "Principal collected %",
+            "type": "number",
+            "default": 100
+          },
+          "rr": {
+            "id": "fp-rr",
+            "name": "rr",
+            "display-name": "Overdue recovered %",
+            "type": "number",
+            "default": 0
+          },
+          "scenario": {
+            "id": "fp-scenario",
+            "name": "scenario",
+            "display-name": "Forecast scenario",
+            "type": "text",
+            "default": "Planning"
+          },
+          "kind": {
+            "id": "fp-kind",
+            "name": "kind",
+            "display-name": "Forecast loan type",
+            "type": "text",
+            "default": "All"
+          },
+          "target": {
+            "id": "fp-target",
+            "name": "target",
+            "display-name": "Interest target ฿",
+            "type": "number"
+          },
+          "#344": {
+            "id": "fp-model-344",
+            "name": "#344",
+            "display-name": "Forecast source 344",
+            "type": "card",
+            "card-id": 344
+          },
+          "#345": {
+            "id": "fp-model-345",
+            "name": "#345",
+            "display-name": "Forecast source 345",
+            "type": "card",
+            "card-id": 345
+          },
+          "#347": {
+            "id": "fp-model-347",
+            "name": "#347",
+            "display-name": "Forecast source 347",
+            "type": "card",
+            "card-id": 347
+          }
+        }
+      }
+    },
+    "visualization_settings": {
+      "scalar.field": "Remaining interest ฿",
+      "column_settings": {
+        "[\"name\",\"Remaining interest ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,",
+          "compact": false
+        }
+      }
+    },
+    "description": "R045 Forecast & Planning. Current Bangkok month; posted actuals include partial today. "
+  }
+}

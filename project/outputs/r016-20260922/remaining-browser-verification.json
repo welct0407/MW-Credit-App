@@ -1,0 +1,40 @@
+{
+  "checked_at": "2026-09-22T12:54:33.049Z",
+  "url": "https://reports.mw-credit.com/dashboard/3",
+  "desktop_tabs": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8
+  ],
+  "mobile_viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "mobile_tabs": [
+    3,
+    4,
+    5,
+    6,
+    7,
+    8
+  ],
+  "no_chart_errors_after_saved_layout_reload": true,
+  "no_horizontal_page_overflow": true,
+  "wide_tables_scroll_horizontally": true,
+  "borrower_and_proposal_ui_test": true,
+  "performance_date_ui_test": "Previous 30 days applied",
+  "history_limitation_visible": true,
+  "viewport_reset": true,
+  "exploratory_filters_cleared": true,
+  "physical_phone_acceptance": "Owner review pending for pages 3–8",
+  "final_formatting_check": {
+    "checked_at": "2026-09-22T13:01:04.554Z",
+    "numeric_currency_columns": "Consistent decimal formatting, including Estimated month",
+    "desktop_forecast_rendered": true
+  }
+}

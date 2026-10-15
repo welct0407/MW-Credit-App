@@ -1,0 +1,17 @@
+{
+  "original_parts_preserved": 17,
+  "original_sheets_preserved": 13,
+  "added_sheet": "Metabase Models",
+  "rows": 308,
+  "all_original_worksheet_bytes_unchanged": true,
+  "saved_dictionary_sha256": "37a0abd65ae4a96f524d5967792afb60d603e2bc8100b7df8ae5379aefe40269",
+  "growth_window_update": {
+    "changed_cells": [
+      "Metabase Models!F70",
+      "Metabase Models!F81",
+      "Metabase Models!F82"
+    ],
+    "all_other_xlsx_parts_byte_identical": true,
+    "artifact_tool_render_verified": true
+  }
+}

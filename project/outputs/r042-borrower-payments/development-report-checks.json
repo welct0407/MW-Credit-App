@@ -1,0 +1,35 @@
+{
+  "checks": [
+    {
+      "question": "Interest received over time",
+      "rows": 30,
+      "passed": true
+    },
+    {
+      "question": "Interest received over time",
+      "rows": 30,
+      "passed": true
+    },
+    {
+      "question": "Loan history \u00b7 lifetime",
+      "rows": 8,
+      "passed": true
+    },
+    {
+      "question": "Loan history \u00b7 lifetime",
+      "rows": 6,
+      "passed": true
+    },
+    {
+      "question": "Payments \u00b7 selected payment dates",
+      "rows": 13,
+      "passed": true
+    },
+    {
+      "question": "Payments \u00b7 selected payment dates",
+      "rows": 0,
+      "passed": true
+    }
+  ],
+  "noFinancialRowsPublished": true
+}

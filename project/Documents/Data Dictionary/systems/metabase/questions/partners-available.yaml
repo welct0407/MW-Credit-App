@@ -1,0 +1,93 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "metabase",
+    "component": "reports.mw-credit.com",
+    "kind": "question",
+    "name": "Net available ฿ / 329",
+    "scope": "production"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r044-partners/saved.json"
+  },
+  "content": {
+    "key": "available",
+    "description": "R044 Partners. Current recorded balance; activity period does not apply.",
+    "result_metadata": [
+      {
+        "database_type": "numeric",
+        "semantic_type": null,
+        "lib/deduplicated-name": "Net available ฿",
+        "lib/original-name": "Net available ฿",
+        "name": "Net available ฿",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Net available ฿",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Net available ฿",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "Net available ฿",
+        "display_name": "Net available ฿",
+        "base_type": "type/Decimal"
+      }
+    ],
+    "collection_id": 5,
+    "name": "Net available ฿",
+    "type": "question",
+    "dataset_query": {
+      "stages": [
+        {
+          "template-tags": [
+            {
+              "widget-type": "string/=",
+              "id": "pt-partner",
+              "name": "partner",
+              "display-name": "Partner",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                {
+                  "base-type": "type/Text",
+                  "lib/uuid": "8abf9189-bcc0-45b9-bbf4-96c2aa48a83b",
+                  "effective-type": "type/Text"
+                },
+                121
+              ],
+              "alias": "d.partner_id"
+            },
+            {
+              "type": "card",
+              "id": "r044-model-318",
+              "name": "#318",
+              "display-name": "Partners source 318",
+              "card-id": 318
+            }
+          ],
+          "lib/type": "mbql.stage/native",
+          "native": "SELECT CASE WHEN count(*)=0 THEN 0 WHEN bool_and(available IS NOT NULL) THEN sum(available) END AS \"Net available ฿\" FROM {{#318}} d WHERE true [[AND {{partner}}]]"
+        }
+      ],
+      "lib/type": "mbql/query",
+      "database": 2
+    },
+    "id": 329,
+    "display": "scalar",
+    "visualization_settings": {
+      "scalar.field": "Net available ฿",
+      "column_settings": {
+        "[\"name\",\"Net available ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,",
+          "compact": false
+        }
+      }
+    }
+  }
+}

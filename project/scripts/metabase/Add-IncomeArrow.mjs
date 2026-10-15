@@ -1,0 +1,20 @@
+import './LegacyStatementGuard.mjs';
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+import {api,privateDir,read,write} from './ReportingApi.mjs';
+// Targeted presentation patch: preserve the owner's saved arrangement.
+const d=await api('GET','dashboard/3');
+const target=d.dashcards.find(c=>c.dashboard_tab_id===12&&c.card_id===175);
+assert.equal(target?.col,17);assert.equal(target?.row,12);
+const arrow={id:-1,card_id:null,dashboard_tab_id:12,col:19,row:11,size_x:5,size_y:1,series:[],parameter_mappings:[],visualization_settings:{'card.background':false,virtual_card:{display:'text',visualization_settings:{text:'## ↓','text.align_horizontal':'center','text.align_vertical':'middle'}}}};
+assert.ok(!d.dashcards.some(c=>c.dashboard_tab_id===12&&c.row===11&&c.col+c.size_x>19));
+assert.ok(fs.existsSync(privateDir+'/income-arrow-before/dashboard.json'));
+await api('PUT','dashboard/3/cards',{tabs:d.tabs,cards:[...d.dashcards,arrow]});
+const after=await api('GET','dashboard/3');
+const project=c=>Object.fromEntries(['id','card_id','dashboard_tab_id','col','row','size_x','size_y','parameter_mappings','visualization_settings'].map(k=>[k,c[k]]));
+assert.deepEqual(after.dashcards.filter(c=>d.dashcards.some(old=>old.id===c.id)).map(project).sort((a,b)=>a.id-b.id),d.dashcards.map(project).sort((a,b)=>a.id-b.id));
+assert.deepEqual(after.parameters,d.parameters);
+const saved=after.dashcards.find(c=>!d.dashcards.some(old=>old.id===c.id));assert.equal(saved.visualization_settings.virtual_card.visualization_settings.text,'## ↓');
+const manifest=read('manifest.json');manifest.dashboard.heading_and_note_cards=after.dashcards.filter(c=>!c.card_id).length;write('manifest.json',manifest);
+write('income-arrow.json',{saved_at:new Date().toISOString(),dashboard_id:3,tab_id:12,arrow_placement_id:saved.id,existing_placements_preserved:true,filters_unchanged:true,queries_unchanged:true,private_backup:privateDir+'/income-arrow-before/dashboard.json',baseline_commit:'b17e21a89fe357b637c17b4676252cd67085fa4f'});
+console.log('Arrow saved; all existing placements and filters preserved.');

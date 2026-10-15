@@ -1,0 +1,84 @@
+{
+  "at": "2026-09-25T10:34:20.084Z",
+  "checks": [
+    "All original tabs, placements, saved queries and formatting preserved",
+    "Original filters and collection permissions preserved",
+    "d-principal query complete/no truncation",
+    "d-principal no selection empty",
+    "d-principal query complete/no truncation",
+    "d-principal selected row",
+    "Refined principal matches portfolio",
+    "d-active query complete/no truncation",
+    "d-active no selection empty",
+    "d-active query complete/no truncation",
+    "d-active selected row",
+    "Refined active count matches portfolio",
+    "d-share query complete/no truncation",
+    "d-share no selection empty",
+    "d-share query complete/no truncation",
+    "d-share selected row",
+    "d-health query complete/no truncation",
+    "d-health cleared selection empty",
+    "d-health query complete/no truncation",
+    "d-health selected row loads",
+    "d-issued-count query complete/no truncation",
+    "d-issued-count cleared selection empty",
+    "d-issued-count query complete/no truncation",
+    "d-issued-count selected row loads",
+    "d-scenario query complete/no truncation",
+    "d-scenario cleared selection empty",
+    "d-scenario query complete/no truncation",
+    "d-scenario selected row loads"
+  ],
+  "passed": 28,
+  "timings": [
+    {
+      "key": "d-principal",
+      "ms": 2150
+    },
+    {
+      "key": "d-principal",
+      "ms": 1086
+    },
+    {
+      "key": "d-active",
+      "ms": 1120
+    },
+    {
+      "key": "d-active",
+      "ms": 660
+    },
+    {
+      "key": "d-share",
+      "ms": 1881
+    },
+    {
+      "key": "d-share",
+      "ms": 1183
+    },
+    {
+      "key": "d-health",
+      "ms": 5401
+    },
+    {
+      "key": "d-health",
+      "ms": 17111
+    },
+    {
+      "key": "d-issued-count",
+      "ms": 6059
+    },
+    {
+      "key": "d-issued-count",
+      "ms": 2918
+    },
+    {
+      "key": "d-scenario",
+      "ms": 3152
+    },
+    {
+      "key": "d-scenario",
+      "ms": 2932
+    }
+  ]
+}

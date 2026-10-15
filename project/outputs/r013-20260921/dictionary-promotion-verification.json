@@ -1,0 +1,7 @@
+{
+  "range": "A2877:E2879",
+  "priorValuesOutsideRangePreserved": true,
+  "allFormulasPreserved": true,
+  "promotedRows": 3,
+  "formulaErrorScan": "{\"kind\":\"notice\",\"message\":\"Cell search matched 0 entries.\"}"
+}

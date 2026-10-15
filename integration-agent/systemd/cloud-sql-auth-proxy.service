@@ -1,0 +1,24 @@
+[Unit]
+Description=Cloud SQL Auth Proxy for MW Integration Agent production database
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=mwagent
+Group=mwagent
+ExecStart=/usr/local/bin/cloud-sql-proxy --address 127.0.0.1 --port 5432 --structured-logs clever-oasis-508610-n7:asia-southeast1:appsheet-pg-prod-20260914
+Restart=on-failure
+RestartSec=5s
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+RestrictSUIDSGID=true
+
+[Install]
+WantedBy=multi-user.target

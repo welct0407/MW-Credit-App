@@ -1,0 +1,83 @@
+{
+  "scope": "Development only; current Chrome AppSheet editor and generated app documentation",
+  "versions": {
+    "OLTP": "1.000048",
+    "OLAP": "1.000050"
+  },
+  "rollbackVersions": {
+    "OLTP": "1.000042",
+    "OLAP": "1.000040"
+  },
+  "businessColumnComparison": "OLAP: only Analytics Refresh Request added; existing column formulas, key, labels, permissions, types, defaults and display settings unchanged. Regeneration changed internal Row ID Fixed definition / Editable Initial Value metadata; key remains hidden, read-only, UNIQUEID(PackedUUID).",
+  "olapSlices": "All 12 definitions exactly match pre-change app documentation after removing automatically appended request field from Reporting Statistics.",
+  "calendarReferencesInOlapAppdoc": 0,
+  "newColumns": [
+    {
+      "app": "OLTP",
+      "table": "Statistics",
+      "name": "Analytics Refresh Request",
+      "type": "Text",
+      "virtual": "No",
+      "key": "No",
+      "label": "No",
+      "hidden": "Yes",
+      "readOnly": "Yes",
+      "editableIf": "",
+      "searchable": "No",
+      "initialValue": "",
+      "appFormula": "",
+      "reset": "No",
+      "required": "No"
+    },
+    {
+      "app": "OLAP",
+      "table": "Statistics",
+      "name": "Analytics Refresh Request",
+      "type": "Text",
+      "virtual": "No",
+      "key": "No",
+      "label": "No",
+      "hidden": "Yes",
+      "readOnly": "No",
+      "editableIf": "=FALSE",
+      "searchable": "No",
+      "initialValue": "",
+      "appFormula": "",
+      "reset": "No",
+      "required": "No"
+    }
+  ],
+  "dailyAnalyticsPermission": "READ_ONLY",
+  "removedActions": [
+    "Create Daily Analytics",
+    "Delete Existing Daily Analytics",
+    "Rebuild Daily Analytics - This Date",
+    "Delete Analytics Row"
+  ],
+  "removedViews": [
+    "Calendar Detail View",
+    "Sheet1_Detail",
+    "Daily Analytics_Form"
+  ],
+  "generatedProcessTables": [
+    "Process for Refresh Daily Analytics Daily - 1 Process Table",
+    "Request recent analytics refresh Output"
+  ],
+  "monitoring": {
+    "chargeErrors": [
+      "14bf0a6f-081f-4e49-a5b4-df72510c9c3f",
+      "be3b0ee9-8c35-4225-b135-f993c7df5a62"
+    ],
+    "chargeSuccess": [
+      "34c8f682-7f50-4596-815a-f37877e8d1c5",
+      "5488e18f-68e9-4948-84d1-ebf4ab53879d"
+    ],
+    "analyticsSuccess": "4d5b1577-e607-48c6-9399-a54306e01b3b",
+    "auditHistoryAlerts": "Enabled in both development apps; owner reports no charge error email received. Delivery unverified."
+  },
+  "ownerAcceptance": {
+    "date": "2026-09-16",
+    "response": "Looks correct — accept development changes",
+    "emailDelivery": "unverified"
+  }
+}

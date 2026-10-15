@@ -1,0 +1,8 @@
+Validate Fixed issue H3
+Validate fixed issue H5
+
+Issue H6, ignore Interest Paid validation issue highlighted by you because I expect negative interest represent loan default situation. Validate the fix of Principal Amount, Transfer Fee, and Due Date validation.
+
+M2, M3 - give me suggested formula for identified VCs in the finding to review. Fix the formula in the App after my confirmation.
+M4 - regarding Payment Date, what is the business impact with the current logic? does it cause any bug/issue or just precaution? explain to me, give me options and let me decide what to do next.
+M5 - I've removed Charges view and the Payment Collection slice. Validate the fix.
