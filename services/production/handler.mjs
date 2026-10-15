@@ -27,7 +27,7 @@ export function createProductionFoundationHandler({ config, verifyPrincipal, com
     if (req.url === '/health') return send(200, { status: 'ok', mode: 'foundation' });
     try {
       const principal = await verifyPrincipal(req.headers.authorization);
-      if (!principal.ok) return send(principal.status === 403 ? 403 : 401, { ok: false, code: ['sign_in_required', 'session_invalid', 'access_denied'].includes(principal.code) ? principal.code : 'session_invalid' });
+      if (!principal.ok) return send(principal.status === 403 ? 403 : principal.status === 503 ? 503 : 401, { ok: false, code: ['sign_in_required', 'session_invalid', 'access_denied', 'session_check_unavailable'].includes(principal.code) ? principal.code : 'session_invalid' });
       return send(200, { ok: true, authenticated: true, mode: 'foundation', capabilities: [], businessAccess: false, membershipVerified: false });
     } catch { return send(401, { ok: false, code: 'session_invalid' }); }
   };

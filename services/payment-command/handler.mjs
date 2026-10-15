@@ -2,7 +2,7 @@ import {wakeContext} from '../notifications/postcommit.mjs';
 import { randomUUID } from 'node:crypto';
 import { canonicalCommand } from '../contracts/payment-command.mjs';
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-const codes = new Set(['ok','origin_denied','method_not_allowed','invalid_request','body_too_large','sign_in_required','session_invalid','access_denied','not_found','command_conflict','command_rejected','receipt_unsupported','receipt_unavailable','receipt_conflict','selection_changed','plan_changed','selection_limit_exceeded','business_date_changed','payment_requires_reconciliation','source_changed','metadata_conflict','borrower_name_exists','operation_outcome_unknown','record_conflict','invalid_reference','record_requires_reconciliation','record_outcome_unknown','metadata_outcome_unknown','command_outcome_unknown','command_unavailable']);
+const codes = new Set(['ok','origin_denied','method_not_allowed','invalid_request','body_too_large','sign_in_required','session_invalid','access_denied','not_found','command_conflict','command_rejected','receipt_unsupported','receipt_unavailable','receipt_conflict','selection_changed','plan_changed','selection_limit_exceeded','business_date_changed','payment_requires_reconciliation','source_changed','metadata_conflict','borrower_name_exists','operation_outcome_unknown','record_conflict','invalid_reference','record_requires_reconciliation','record_outcome_unknown','metadata_outcome_unknown','command_outcome_unknown','command_unavailable','session_check_unavailable','body_timeout']);
 const MAX_BODY = 524288;
 codes.add('dataset_changed');
 function route(raw) {
@@ -109,7 +109,7 @@ function buildHandler({ origins, verifyPrincipal, store, completionLogger = () =
     if(target.operation==='health' && req.method==='GET')return send(200,{ok:true});
     let principal;
     try { principal = await verifyPrincipal(req.headers.authorization); } catch { return reject(401, 'session_invalid'); }
-    if (!principal?.ok) return reject(principal?.status === 403 ? 403 : 401, ['sign_in_required','session_invalid','access_denied'].includes(principal?.code) ? principal.code : 'session_invalid');
+    if (!principal?.ok) return reject(principal?.status === 403 ? 403 : principal?.status === 503 ? 503 : 401, ['sign_in_required','session_invalid','access_denied','session_check_unavailable'].includes(principal?.code) ? principal.code : 'session_invalid');
     principal = {...principal, [wakeContext]: {deadline:wakeDeadline, signal:wakeAbort.signal}};
     if (target.invalid) return reject(400, 'invalid_request');
     if (target.operation === 'unknown') return reject(404, 'not_found');
