@@ -14,6 +14,14 @@ The sole Open product release is **R063**. **R062 is Released**; the owner-autho
 
 Use the [release tracker](Release_Tracker.md), including the carried R016 administrative follow-up. Current runtime versions belong in [environment inventory](Environment_Inventory.md). Update this page for actual outstanding work, not completed-release history.
 
+## R063 Wave 1 — Debian agent
+
+- Purpose: bring `main` back to the installed R058 agent tree and fix the Wave 1 review findings. Source only; nothing deployed, so the Debian pin is unchanged.
+- Five R058 modules restored byte-for-byte from the host (`instagram.py`, `partner_conversation.py`, `partner_notice.py`, `statement_delivery.py`, `statement_run.py`); their unit tests were rewritten to the deployed behaviour.
+- Webhook receiver: deleted messages are skipped; a changed retry no longer returns 503; late and future messages are quarantined as `REVIEW` with counts; handler timeout 15 s.
+- Sending and host: Instagram and email failures record detail codes; the Graph refresh token is backed up before rotation; worker units `Want` the proxy instead of `Require` it.
+- Checks: unit suite 370 tests OK (43 skipped); lab suites 48 of 49 pass, the one error is the pre-existing AGT-TEST-02. Deployment waits for Wave 2. Details, owner questions and recovery: [change note](../../integration-agent/Change%20Logs/CHANGE_NOTES_W1_AGENT_2026-10-15.md).
+
 ## R063 read retry after settled commands
 
 Purpose: since R062, choosing EN/ไทย queues and syncs `preference.update`. Its settlement bumps `meta:read-revision`, and the follow-on offline dataset commit bumps `meta:cache-revision`. `read()` retried only once, so a read in flight across both changes threw `Read changed during refresh`. Screens then stayed in error/manual recovery: BorrowerRecord showed "Check current borrower" with an empty record and Payments stayed empty. Owner decision **15 October 2026**: option (b), keep retrying in `read()` (not screen re-reads or skipping preference invalidation).
