@@ -101,33 +101,57 @@ chmod 755 /usr/local/bin/mw-db-ci
 # starts are cloned fresh (with push access) into /home/user/<Repo-Name>.
 # Run `npm ci` in MW-Credit-App when a session needs it.
 #
-# Per-shell profile, evaluated in each session (not frozen into the snapshot):
-# - point this repo's tooling at the MW-Credit-App checkout, whatever its case;
-# - sign gcloud and the Node Google libraries in from GCP_SA_KEY_B64 (or GCP_SA_KEY_JSON), an
-#   environment variable holding a service-account key. The key file is
-#   written per session, outside every repository, readable by root only. The
-#   image presets a placeholder CLOUDSDK_AUTH_ACCESS_TOKEN that gcloud would use
-#   instead of the activated account, so it is cleared when a key is present.
+# Google Cloud sign-in from GCP_SA_KEY_B64 (the service-account key file,
+# base64-encoded on one line; GCP_SA_KEY_JSON with raw JSON is a fallback),
+# an environment variable. The key is written per session, outside every
+# repository, readable by root only, and never frozen into the snapshot. It is
+# also installed as Application Default Credentials for Terraform and the Node
+# Google libraries.
+#
+# The image presets a placeholder CLOUDSDK_AUTH_ACCESS_TOKEN that gcloud uses
+# instead of any signed-in account, and Claude's command runner re-applies it
+# after shell profiles run. So gcloud, bq and gsutil are wrapped (in
+# /root/.local/bin, ahead of /usr/local/bin on PATH) to clear it whenever a key
+# is configured; without a key they behave exactly as before.
+mkdir -p /usr/local/lib
+cat > /usr/local/lib/mw-gcp-auth.sh <<'EOF'
+if [ -n "${GCP_SA_KEY_B64:-}${GCP_SA_KEY_JSON:-}" ]; then
+  unset CLOUDSDK_AUTH_ACCESS_TOKEN
+  mw_key=/root/.config/gcloud/mw-sa-key.json
+  export GOOGLE_APPLICATION_CREDENTIALS="$mw_key"
+  if [ ! -s "$mw_key" ]; then
+    mkdir -p /root/.config/gcloud
+    (umask 077
+     if [ -n "${GCP_SA_KEY_B64:-}" ]; then printf '%s' "$GCP_SA_KEY_B64" | tr -d ' \r\n' | base64 -d
+     else printf '%s' "$GCP_SA_KEY_JSON"; fi > "$mw_key") 2>/dev/null
+    if /opt/google-cloud-sdk/bin/gcloud auth activate-service-account --key-file="$mw_key" --quiet >/dev/null 2>&1; then
+      /opt/google-cloud-sdk/bin/gcloud config set project clever-oasis-508610-n7 --quiet >/dev/null 2>&1
+    else
+      echo "mw-credit: the service-account key was not accepted by gcloud" >&2
+      rm -f "$mw_key"
+    fi
+  fi
+  mw_adc=/root/.config/gcloud/application_default_credentials.json
+  if [ -s "$mw_key" ] && ! cmp -s "$mw_key" "$mw_adc"; then
+    (umask 077; cp "$mw_key" "$mw_adc")
+  fi
+  unset mw_key mw_adc
+fi
+EOF
+mkdir -p /root/.local/bin
+for tool in gcloud bq gsutil; do
+  printf '#!/usr/bin/env bash\n. /usr/local/lib/mw-gcp-auth.sh\nexec /opt/google-cloud-sdk/bin/%s "$@"\n' "$tool" \
+    > "/root/.local/bin/$tool"
+  chmod 755 "/root/.local/bin/$tool"
+done
+
+# Per-shell profile: locate the MW-Credit-App checkout for this repo's tooling
+# (scripts/database_location.py) and prepare the Google sign-in early.
 cat > /etc/profile.d/mw-credit.sh <<'EOF'
 for d in /home/user/MW-Credit-App /home/user/mw-credit-app; do
   if [ -d "$d/.git" ]; then export MW_CREDIT_APP_ROOT="$d"; break; fi
 done
-if [ -n "${GCP_SA_KEY_B64:-}${GCP_SA_KEY_JSON:-}" ]; then
-  unset CLOUDSDK_AUTH_ACCESS_TOKEN
-  export GOOGLE_APPLICATION_CREDENTIALS=/root/.config/gcloud/mw-sa-key.json
-  if [ ! -s "$GOOGLE_APPLICATION_CREDENTIALS" ]; then
-    mkdir -p /root/.config/gcloud
-    # GCP_SA_KEY_B64 (the key file base64-encoded on one line) survives .env
-    # parsing intact; GCP_SA_KEY_JSON (raw JSON) is the fallback.
-    (umask 077
-     if [ -n "${GCP_SA_KEY_B64:-}" ]; then printf '%s' "$GCP_SA_KEY_B64" | tr -d ' \r\n' | base64 -d
-     else printf '%s' "$GCP_SA_KEY_JSON"; fi > "$GOOGLE_APPLICATION_CREDENTIALS") 2>/dev/null
-    gcloud auth activate-service-account --key-file="$GOOGLE_APPLICATION_CREDENTIALS" --quiet >/dev/null 2>&1 \
-      || { echo "mw-credit: the service-account key was not accepted by gcloud" >&2
-           rm -f "$GOOGLE_APPLICATION_CREDENTIALS"; }
-    gcloud config set project clever-oasis-508610-n7 --quiet >/dev/null 2>&1
-  fi
-fi
+. /usr/local/lib/mw-gcp-auth.sh
 EOF
 grep -q 'profile.d/mw-credit.sh' /root/.bashrc 2>/dev/null \
   || echo '. /etc/profile.d/mw-credit.sh' >> /root/.bashrc
