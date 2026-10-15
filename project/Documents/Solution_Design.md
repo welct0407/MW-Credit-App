@@ -23,9 +23,11 @@ Principal, interest, capital, expenses and settlements remain distinct. Do not s
 
 ## Receipts, push and jobs
 
-Receipt originals/manual uploads remain private in the existing GCS bucket. Preserve exact paths, generations and access checks; never guess filenames or revive AppSheet for compatibility.
+Receipt originals/manual uploads remain private in the existing GCS bucket. Preserve exact paths, generations and access checks; never guess filenames or revive AppSheet for compatibility. The PWA downscales photos to about 1600 px JPEG under 1 MiB before upload (server limit unchanged at 5 MiB); API storage I/O runs outside database transactions.
 
-Successful PWA/agent commits wake the notification worker centrally. Persisted event/delivery records allow minute recovery without re-posting payments. Subscriptions are per device with account preferences; iPhone enrollment uses the installed Home Screen app. No always-on database listener.
+Successful PWA/agent commits wake the notification worker centrally, after the response, within about 1.5 s; the minute worker recovers a missed wake. Persisted event/delivery records allow minute recovery without re-posting payments. Subscriptions are per device with account preferences; iPhone enrollment uses the installed Home Screen app. No always-on database listener.
+
+APIs return 401 `session_invalid` only for definite token errors; verifier outages return 503 `session_check_unavailable`, and a stalled request body returns 503 `body_timeout`. Both are retryable and never sign the owner out. Saved (pending) changes survive an involuntary sign-out; voluntary Sign out stays disabled until they sync.
 
 One native scheduler owns each job/environment. Daily charges run at 00:05 and recent analytics hourly, Asia/Bangkok. SQL job keys/locking prevent duplicate work.
 
