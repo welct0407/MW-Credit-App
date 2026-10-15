@@ -67,7 +67,7 @@ function route(raw) {
   } catch { return { invalid: true, operation: 'unknown' }; }
   return { operation: 'unknown' };
 }
-function body(req,raw=false) {
+function body(req,raw=false,timeoutMs=5000) {
   return new Promise((resolve, reject) => {
     const chunks = []; let size = 0, settled = false;
     const cleanup = () => { clearTimeout(timer); req.off('data', data);req.off('end', end);req.off('aborted', abort);req.off('error', abort); };
@@ -75,14 +75,16 @@ function body(req,raw=false) {
     const data = chunk => { const bytes=Buffer.isBuffer(chunk)?chunk:Buffer.from(chunk);size+=bytes.length;if(size>(raw?5242880:MAX_BODY)){finish(Object.assign(new Error(),{bodyCode:'body_too_large'}));req.resume();return}chunks.push(bytes); };
     const end = () => { try { finish(null,raw?Buffer.concat(chunks):JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(Buffer.concat(chunks)))); } catch { finish(new Error()); } };
     const abort = () => finish(new Error());
-    const timer=setTimeout(()=>{finish(new Error());req.resume();},5000);
+    // A slow uplink is retryable: the client keeps the saved request queued on 503 body_timeout.
+    const timer=setTimeout(()=>{finish(Object.assign(new Error(),{bodyCode:'body_timeout'}));req.resume();},timeoutMs);
     req.on('data',data);req.once('end',end);req.once('aborted',abort);req.once('error',abort);
     if(req.aborted)abort();
   });
 }
 /** No listener or runtime auth switch. A test-owned server binds this handler to loopback only. */
-function buildHandler({ origins, verifyPrincipal, store, completionLogger = () => {} }) {
+function buildHandler({ origins, verifyPrincipal, store, completionLogger = () => {}, bodyTimeoutMs = {json:5000,raw:12000} }) {
   const allowedOrigins = Object.freeze([...origins]);
+  const readBody=(req,raw=false)=>body(req,raw,bodyTimeoutMs[raw?'raw':'json']);
   return async (req, res) => {
     const clientDeadline=req.headers['x-mw-wake-deadline'];
     const wakeDeadline = typeof clientDeadline==='string'&&/^\d{13}$/.test(clientDeadline)?Math.min(Date.now()+14000,Number(clientDeadline)-1000):Date.now(), wakeAbort = new AbortController();
@@ -98,6 +100,7 @@ function buildHandler({ origins, verifyPrincipal, store, completionLogger = () =
     res.setHeader('Vary', 'Origin');
     const send = (status, value) => { code = codes.has(value?.code) ? value.code : status < 400 ? 'ok' : 'command_unavailable'; res.statusCode = status; res.end(value === undefined ? undefined : JSON.stringify(value)); };
     const reject = (status, reason) => send(status, { ok: false, code: reason });
+    const rejectBody = error => reject(error.bodyCode === 'body_too_large' ? 413 : error.bodyCode === 'body_timeout' ? 503 : 400, error.bodyCode || 'invalid_request');
     const origin = req.headers.origin, allowed = typeof origin === 'string' && allowedOrigins.includes(origin);
     if (origin !== undefined && !allowed) return reject(403, 'origin_denied');
     if (allowed) { res.setHeader('Access-Control-Allow-Origin', origin); res.setHeader('Access-Control-Expose-Headers', 'X-Request-ID'); }
@@ -122,7 +125,7 @@ function buildHandler({ origins, verifyPrincipal, store, completionLogger = () =
         if(req.method!==(target.options.protocol===3?'POST':'GET'))return reject(405,'method_not_allowed');
         if(target.options.protocol===3){
           if(!/^application\/json(?:\s*;\s*charset=utf-8)?$/i.test(req.headers['content-type']||'')||(req.headers['content-encoding']&&req.headers['content-encoding']!=='identity'))return reject(415,'invalid_request');
-          try{target.options.input=await body(req)}catch(error){return reject(error.bodyCode==='body_too_large'?413:400,error.bodyCode||'invalid_request')}
+          try{target.options.input=await readBody(req)}catch(error){return rejectBody(error)}
           if(req.aborted||res.destroyed)return;
         }
         result=await store.offlineDataset(principal,target.domain,wakeAbort.signal,target.options);
@@ -130,7 +133,7 @@ function buildHandler({ origins, verifyPrincipal, store, completionLogger = () =
       else if(target.operation==='operation_status')result=await store.operationStatus(principal,target.requestId);
       else if(target.operation==='operation_submit'){
         if(!/^application\/json(?:\s*;\s*charset=utf-8)?$/i.test(req.headers['content-type']||'')||(req.headers['content-encoding']&&req.headers['content-encoding']!=='identity'))return reject(415,'invalid_request');
-        let input;try{input=await body(req)}catch(error){return reject(error.bodyCode==='body_too_large'?413:400,error.bodyCode||'invalid_request')}
+        let input;try{input=await readBody(req)}catch(error){return rejectBody(error)}
         if(req.aborted||res.destroyed)return;result=await store.operation(principal,input);
       }else if(target.operation==='loan_options')result=await store.loanOptions(principal);
       else if(target.operation==='loan_close_preview')result=await store.loanClosePreview(principal,target.loanId);
@@ -154,7 +157,7 @@ function buildHandler({ origins, verifyPrincipal, store, completionLogger = () =
       else if(target.operation==='borrower_record'&&req.method==='GET')result=await store.borrowerRecord(principal,target.borrowerId);
       else if(['borrower_create','borrower_record'].includes(target.operation)){
         if(!/^application\/json(?:\s*;\s*charset=utf-8)?$/i.test(req.headers['content-type']||'')||(req.headers['content-encoding']&&req.headers['content-encoding']!=='identity'))return reject(415,'invalid_request');
-        let input;try{input=await body(req)}catch(error){return reject(error.bodyCode==='body_too_large'?413:400,error.bodyCode||'invalid_request')}
+        let input;try{input=await readBody(req)}catch(error){return rejectBody(error)}
         if(req.aborted||res.destroyed)return;
         if(target.operation==='borrower_create'){
           if(!input||Object.keys(input).sort().join(',')!=='fields,id')return reject(400,'invalid_request');
@@ -164,7 +167,7 @@ function buildHandler({ origins, verifyPrincipal, store, completionLogger = () =
       else if (target.operation === 'command_submit') {
         if (!/^application\/json(?:\s*;\s*charset=utf-8)?$/i.test(req.headers['content-type'] || '') || (req.headers['content-encoding'] && req.headers['content-encoding'] !== 'identity')) return reject(415, 'invalid_request');
         let command;
-        try { command = canonicalCommand(await body(req)); } catch (error) { return reject(error.bodyCode === 'body_too_large' ? 413 : 400, error.bodyCode || 'invalid_request'); }
+        try { command = canonicalCommand(await readBody(req)); } catch (error) { return rejectBody(error); }
         if (req.aborted || res.destroyed) return;
         result = await store.submit(principal, command);
       } else if(target.operation==='payment_draft') result=await store.draft(principal,target.borrowerId,target.options);
@@ -172,7 +175,7 @@ function buildHandler({ origins, verifyPrincipal, store, completionLogger = () =
       else if(target.operation==='command_result')result=await store.result(principal,target.requestId);
       else if(['payment_review','payment_auto_assign','payment_select_all','command_metadata'].includes(target.operation)){
         if(!/^application\/json(?:\s*;\s*charset=utf-8)?$/i.test(req.headers['content-type']||'')||(req.headers['content-encoding']&&req.headers['content-encoding']!=='identity'))return reject(415,'invalid_request');
-        let input;try{input=await body(req)}catch(error){return reject(error.bodyCode==='body_too_large'?413:400,error.bodyCode||'invalid_request')}
+        let input;try{input=await readBody(req)}catch(error){return rejectBody(error)}
         if(req.aborted||res.destroyed)return;
         result=target.operation==='payment_auto_assign'?await store.autoAssign(principal,target.borrowerId,input):target.operation==='payment_select_all'?await store.selectAll(principal,target.borrowerId,input):target.operation==='payment_review'?await store.review(principal,target.borrowerId,input):await store.metadata(principal,target.requestId,input);
       }
@@ -181,7 +184,7 @@ function buildHandler({ origins, verifyPrincipal, store, completionLogger = () =
         if(req.method==='POST'){
           mimeType=req.headers['content-type'];
           if(!['image/png','image/jpeg'].includes(mimeType)||(req.headers['content-encoding']&&req.headers['content-encoding']!=='identity'))return reject(415,'invalid_request');
-          try{bytes=await body(req,true)}catch(error){return reject(error.bodyCode==='body_too_large'?413:400,error.bodyCode||'invalid_request')}
+          try{bytes=await readBody(req,true)}catch(error){return rejectBody(error)}
           if(req.aborted||res.destroyed)return;
         }
         result=await store.receipt(principal,{requestId:target.requestId,receiptId:target.receiptId,borrowerId:req.headers['x-borrower-id'],bytes,mimeType});
