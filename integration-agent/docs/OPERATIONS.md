@@ -22,7 +22,7 @@ All Partner notices are Instagram first, email fallback. The former SQLite updat
 | `/etc/mw-integration-agent` | private configuration and secret references | root:mwagent, 0750 |
 | `/var/lib/mw-integration-agent` | service home, Codex runtime, journals, state | mwagent:mwagent, 0750 |
 
-The source checkout is `/opt/mw-integration-agent-src`. Its `origin` uses a repository-scoped read-only GitHub deploy key stored outside Git. Run `sudo scripts/update-from-github.sh` from the checkout for a clean, fast-forward-only update. There is no automatic update timer.
+The source checkout is `/opt/mw-integration-agent-src`, a clone of `welct0407/MW-Credit-App` `main` (this code is its `integration-agent/` directory; cut over 15 October 2026). Its `origin` uses a repository-scoped read-only GitHub deploy key at `/etc/mw-integration-agent/git/github_deploy_key_mw_credit_app` (outside Git). Run `sudo integration-agent/scripts/update-from-github.sh` from the checkout for a clean, fast-forward-only update; install with `pip install /opt/mw-integration-agent-src/integration-agent` in the existing venv. There is no automatic update timer.
 
 The host timezone is `Asia/Bangkok`. Keep the hardware clock in UTC and NTP synchronization active; application requests that need an explicit business timezone continue to use `Asia/Bangkok` rather than relying only on the host default.
 
@@ -32,7 +32,7 @@ Google Cloud Ops Agent 2.71.0 is installed through the VM's existing `goog-ops-a
 
 VM Manager OS inventory uses the active Google OS Config agent. Project feature settings must report the full `OSCONFIG_C` feature set. Instance metadata must retain both `enable-osconfig=TRUE` and `enable-guest-attributes=TRUE`; the latter also publishes the earlier guest-attributes inventory. No custom poll interval is configured, so the agent uses the default inventory cadence. A new or re-applied full-feature setting can take up to two hours to propagate before the OS Config inventory API and Compute Engine OS Info view load successfully.
 
-Normal administration uses ordinary public-key OpenSSH over Tailscale at `100.71.171.91`. From a Claude Code cloud session (no Tailscale), use `mw-debian-ssh` from AppSheet-Loan-Project `scripts/cloud-session-setup.sh`: OpenSSH through an IAP tunnel as instance-level user `codex-cloud` (key in Secret Manager `mw-credit-cloud-operator-ssh-key`, pinned host key), for example `mw-debian-ssh 'cd /opt/mw-integration-agent-src && sudo scripts/update-from-github.sh'`. `tailscaled` is enabled, but Tailscale SSH, subnet routing, exit-node advertising and Tailscale DNS acceptance are off. The worldwide `default-allow-ssh` and `default-allow-rdp` VPC rules are disabled. Recovery SSH uses `allow-ssh-iap-mw-integration-agent`, which permits TCP 22 only from `35.235.240.0/20` and targets the VM's dedicated service account. Keep `sshd` active for both Tailscale and IAP. The existing tailnet retains its owner-managed general access policy; public-key authentication remains an independent SSH authorization boundary.
+Normal administration uses ordinary public-key OpenSSH over Tailscale at `100.71.171.91`. From a Claude Code cloud session (no Tailscale), use `mw-debian-ssh` from `project/scripts/cloud-session-setup.sh`: OpenSSH through an IAP tunnel as instance-level user `codex-cloud` (key in Secret Manager `mw-credit-cloud-operator-ssh-key`, pinned host key), for example `mw-debian-ssh 'cd /opt/mw-integration-agent-src && sudo integration-agent/scripts/update-from-github.sh'`. `tailscaled` is enabled, but Tailscale SSH, subnet routing, exit-node advertising and Tailscale DNS acceptance are off. The worldwide `default-allow-ssh` and `default-allow-rdp` VPC rules are disabled. Recovery SSH uses `allow-ssh-iap-mw-integration-agent`, which permits TCP 22 only from `35.235.240.0/20` and targets the VM's dedicated service account. Keep `sshd` active for both Tailscale and IAP. The existing tailnet retains its owner-managed general access policy; public-key authentication remains an independent SSH authorization boundary.
 
 Do not store credentials in the repository, VM metadata, startup scripts, or systemd unit text.
 
@@ -63,7 +63,7 @@ sudo -u mwagent /opt/mw-integration-agent/.venv/bin/mw-integration-agent \
 sudo -u mwagent /opt/mw-integration-agent/.venv/bin/mw-integration-agent \
   native-api-probe --scope oltp --config /etc/mw-integration-agent/config.json \
   --catalogue /etc/mw-integration-agent/service-catalogue.json
-sudo -u mwagent /opt/mw-integration-agent-src/scripts/test-postgres-access.sh
+sudo -u mwagent /opt/mw-integration-agent-src/integration-agent/scripts/test-postgres-access.sh
 ```
 
 The example config is not installed as the active config. Live ingress uses `receiver_enabled=true`; generic processing, sending and writes remain false. The cash statement schedule and email fallback have separate enabled controls. Receipt summaries require their own `receipt_summary_enabled` switch. `messages` omits message text unless `--include-text` is explicitly supplied.
