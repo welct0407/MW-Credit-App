@@ -5,6 +5,7 @@ The sole Open product release is **R063**. **R062 is Released**; the owner-autho
 | Outstanding work | Owning reference |
 | --- | --- |
 | Integration receiver deployment tooling | Carried unfinished in Open R063; excluded from released R062 settings promotion |
+| PWA read retry after settled commands | Open R063; source pushed, not deployed; [record](#r063-read-retry-after-settled-commands) |
 | Deferred Collection Note concern | Unchanged by released R059; a separate owner-directed correction remains pending |
 | Carried operational credential migration | R055 remains Frozen; paused work is unfinished |
 | Apple push enrollment follow-up | R056 V91 deployed; Lisa retry/closure remains pending |
@@ -15,6 +16,14 @@ The sole Open product release is **R063**. **R062 is Released**; the owner-autho
 | Re-apply document edits from `claude/jolly-shannon-9p9p2c` and `claude/gifted-noether-iszjkc` under `project/Documents/` | `git diff master..<branch> -- Documents \| git apply --directory=project`; their root-file commits merge unchanged |
 
 Use the [release tracker](Release_Tracker.md), including the carried R016 administrative follow-up. Current runtime versions belong in [environment inventory](Environment_Inventory.md). Update this page for actual outstanding work, not completed-release history.
+
+## R063 read retry after settled commands
+
+Purpose: since R062, choosing EN/ไทย queues and syncs `preference.update`. Its settlement bumps `meta:read-revision`, and the follow-on offline dataset commit bumps `meta:cache-revision`. `read()` retried only once, so a read in flight across both changes threw `Read changed during refresh`. Screens then stayed in error/manual recovery: BorrowerRecord showed "Check current borrower" with an empty record and Payments stayed empty. Owner decision **15 October 2026**: option (b), keep retrying in `read()` (not screen re-reads or skipping preference invalidation).
+
+Change: `apps/pwa/src/read-cache.ts` re-fetches while either revision is still changing, pausing 100 ms per attempt (capped at 1 s) and bounded by the read's existing 15 s timeout. A change detected after the cache save also re-fetches instead of failing. At the deadline it still throws `Read changed during refresh`. This covers every settled command, not only preferences. There are no API/SQL/dictionary changes, and the existing `hybrid_read_cache` read-revision guard definition remains accurate. Source `fec09131fc91a7658de54e063fc1dffcdc5f3f83` on branch `claude/gifted-noether-iszjkc`; not deployed.
+
+Checks: the new unit case (four fetches across read- and cache-revision changes) fails on the prior code and passes; root `npm run check` passed typecheck/build and **427/427 units**. The new e2e test `R063 language switch then immediate navigation…` switches language and opens BorrowerRecord with no settle wait, holding the destination read across the settlement and one further revision change. It failed on the prior code with the Thai "Check current borrower" state and passed on desktop and mobile Chromium. `offline-delta-independent` and `back-consumers-independent` gave 112 passed. Pre-existing failures, identical on unmodified main: four `back-consumers` note-migration/latest-note cases (cause not investigated), and Page12/Page7 in `phase5-final-ui-independent`. In Page12/Page7 the fixture aborts the preference sync and leaves EN disabled; the `chooseSettledLanguage` spec helper is not in any pushed branch. In this cloud container, the fixture host had to be added to `NO_PROXY` so Chromium honoured `--host-resolver-rules`. Recovery: revert the source commit; UI-only, no database backup needed.
 
 ## R062 editable settings
 
