@@ -12,7 +12,7 @@ One repository, `welct0407/MW-Credit-App` (the GitHub name and DEV/PROD deploy i
 | root (`apps/`, `services/`, `database/`, `infrastructure/`, `scripts/`, `docs/`, `tests/`) | PWA, API, shared SQL migrations/runners/tests, application infrastructure and tooling |
 | `integration-agent/` | Debian integration runtime and its own service catalogue (former MW-Integration-Agent); see [its AGENTS](integration-agent/AGENTS.md) |
 
-AI Collection is a separate scope with its own instructions/catalogue; compatibility junctions are not runtimes. The old repositories stay untouched until the owner archives them after the Debian host cutover.
+AI Collection is a separate scope with its own instructions/catalogue; compatibility junctions are not runtimes. The old repositories are archived read-only; existing links to them still resolve.
 
 ## Project-wide
 
