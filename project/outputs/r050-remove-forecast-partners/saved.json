@@ -1,0 +1,228 @@
+{
+  "dashboard": 3,
+  "tabs": [
+    {
+      "id": 4,
+      "dashboard_id": 3,
+      "name": "1 · Overview",
+      "position": 0,
+      "entity_id": "XNUTfCABMppJ6qAOrGoLc",
+      "created_at": "2026-09-22T10:01:48.177376Z",
+      "updated_at": "2026-09-22T10:01:48.177376Z"
+    },
+    {
+      "id": 14,
+      "dashboard_id": 3,
+      "name": "2 · Cash Position",
+      "position": 1,
+      "entity_id": "pPLWf7izBFfdYrpfhzUt4",
+      "created_at": "2026-09-23T08:00:42.687717Z",
+      "updated_at": "2026-09-23T16:04:31.253029Z"
+    },
+    {
+      "id": 16,
+      "dashboard_id": 3,
+      "name": "3 · Income Statement",
+      "position": 2,
+      "entity_id": "8zodFNPMLCr1b4qqtGV5_",
+      "created_at": "2026-09-23T08:00:42.687717Z",
+      "updated_at": "2026-09-23T18:17:39.510824Z"
+    },
+    {
+      "id": 15,
+      "dashboard_id": 3,
+      "name": "4 · Cashflow Statement",
+      "position": 3,
+      "entity_id": "qs0JYiZxE-Poqyh_4pyKv",
+      "created_at": "2026-09-23T08:00:42.687717Z",
+      "updated_at": "2026-09-23T18:17:39.510824Z"
+    },
+    {
+      "id": 18,
+      "dashboard_id": 3,
+      "name": "5 · Performance",
+      "position": 4,
+      "entity_id": "Rt-KpcwfxjGRTvoTHNOda",
+      "created_at": "2026-09-23T19:06:46.29572Z",
+      "updated_at": "2026-09-24T10:42:03.352479Z"
+    },
+    {
+      "id": 104,
+      "dashboard_id": 3,
+      "name": "6 · Borrowers",
+      "position": 5,
+      "entity_id": "axmyErpiqSJVut7iwChk0",
+      "created_at": "2026-09-25T10:04:37.03364Z",
+      "updated_at": "2026-09-26T12:41:15.018539Z"
+    },
+    {
+      "id": 31,
+      "dashboard_id": 3,
+      "name": "7 · Borrower Health Review",
+      "position": 6,
+      "entity_id": "KF8iAxuaMJ9i_vvEfnG0Z",
+      "created_at": "2026-09-24T16:28:03.768309Z",
+      "updated_at": "2026-09-26T15:18:44.078815Z"
+    },
+    {
+      "id": 105,
+      "dashboard_id": 3,
+      "name": "8 · Borrower Detail",
+      "position": 7,
+      "entity_id": "hLWPca6nwYbuJ6O6YvfUx",
+      "created_at": "2026-09-25T10:04:37.03364Z",
+      "updated_at": "2026-09-26T15:18:44.078815Z"
+    },
+    {
+      "id": 8,
+      "dashboard_id": 3,
+      "name": "9 · Risks",
+      "position": 8,
+      "entity_id": "7cljPwmKjTMUi9DQ431Ah",
+      "created_at": "2026-09-22T12:32:45.925957Z",
+      "updated_at": "2026-09-26T15:18:44.078815Z"
+    },
+    {
+      "id": 19,
+      "dashboard_id": 3,
+      "name": "10 · Collection Monitor",
+      "position": 9,
+      "entity_id": "HTvmH4G_pettfrl6shBpy",
+      "created_at": "2026-09-24T11:35:18.286275Z",
+      "updated_at": "2026-09-26T15:18:44.078815Z"
+    },
+    {
+      "id": 249,
+      "dashboard_id": 3,
+      "name": "11 · Partners",
+      "position": 10,
+      "entity_id": "nfRoHsD0Xec0mJkhknl0y",
+      "created_at": "2026-09-26T16:40:06.877891Z",
+      "updated_at": "2026-09-29T13:05:21.939292Z"
+    },
+    {
+      "id": 262,
+      "dashboard_id": 3,
+      "name": "12 · Forecast & Planning",
+      "position": 11,
+      "entity_id": "UZW-rsZEr0tyRL1owcEtC",
+      "created_at": "2026-09-26T18:14:06.323904Z",
+      "updated_at": "2026-09-29T13:05:21.939292Z"
+    }
+  ],
+  "parameters": [
+    {
+      "id": "overview-trend-period",
+      "name": "Portfolio trend period"
+    },
+    {
+      "id": "review-position",
+      "name": "Position date / period end"
+    },
+    {
+      "id": "review-position-trend",
+      "name": "Position trend period"
+    },
+    {
+      "id": "review-flow",
+      "name": "Cashflow period"
+    },
+    {
+      "id": "review-account",
+      "name": "Account"
+    },
+    {
+      "id": "review-income",
+      "name": "Statement period"
+    },
+    {
+      "id": "review-performance",
+      "name": "Performance period"
+    },
+    {
+      "id": "collection-detail-borrower",
+      "name": "Detail only · Borrower"
+    },
+    {
+      "id": "collection-detail-status",
+      "name": "Detail only · Status"
+    },
+    {
+      "id": "bp-population",
+      "name": "Borrower population"
+    },
+    {
+      "id": "bp-period",
+      "name": "Portfolio activity dates"
+    },
+    {
+      "id": "bd-period",
+      "name": "Detail activity dates"
+    },
+    {
+      "id": "bd-borrower",
+      "name": "Select borrower"
+    },
+    {
+      "id": "bd-amount",
+      "name": "Scenario · additional principal"
+    },
+    {
+      "id": "pt-partner",
+      "name": "Partner"
+    },
+    {
+      "id": "pt-period",
+      "name": "Partner activity period"
+    },
+    {
+      "id": "pt-status",
+      "name": "Settlement ledger status"
+    },
+    {
+      "id": "fp-ci",
+      "name": "Interest collected %"
+    },
+    {
+      "id": "fp-cp",
+      "name": "Principal collected %"
+    },
+    {
+      "id": "fp-rr",
+      "name": "Overdue recovered %"
+    },
+    {
+      "id": "fp-scenario",
+      "name": "Forecast scenario"
+    },
+    {
+      "id": "fp-kind",
+      "name": "Forecast loan type"
+    },
+    {
+      "id": "fp-target",
+      "name": "Interest target ฿"
+    },
+    {
+      "id": "fp-lending",
+      "name": "Plan: new lending ฿"
+    },
+    {
+      "id": "fp-expenses",
+      "name": "Plan: cash expenses ฿"
+    },
+    {
+      "id": "fp-withdrawals",
+      "name": "Plan: payouts & withdrawals ฿"
+    },
+    {
+      "id": "fp-inflows",
+      "name": "Plan: external inflows ฿"
+    },
+    {
+      "id": "fp-reserve",
+      "name": "Plan: cash reserve ฿"
+    }
+  ],
+  "remainingPlacements": 259
+}

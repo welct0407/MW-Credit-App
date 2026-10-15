@@ -1,0 +1,11 @@
+{
+  "at": "2026-09-23T16:21:14.989Z",
+  "checks": [
+    "Negative opening and closing preserved through deployed period logic",
+    "Unknown opening remains NULL while synthetic movements remain visible",
+    "income-trend: missing stored day retained as NULL gap with no zero fallback",
+    "flow-trend: missing stored day retained as NULL gap with no zero fallback"
+  ],
+  "read_only_synthetic": true,
+  "financial_values_published": false
+}

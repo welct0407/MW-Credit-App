@@ -1,0 +1,21 @@
+{
+  "release": "R017",
+  "status": "Released — report-only",
+  "freeze_at": "2026-09-24T05:20:16.188Z",
+  "tested_commit": "0c79a3ea815fee147c0d280081493538f49b41a7",
+  "scope": "Capital-yield chart on 6R only",
+  "owner_authorization": "Add the original chart if filters/operations are unaffected",
+  "successor_open": "R018",
+  "capture": "Repository package pinned and exact private dashboard/model/permissions before-images captured; no shared DEV mutation or RC",
+  "appsheet": "unchanged",
+  "database": "unchanged; recorded V39 reused, no migration",
+  "checks": "verification.json",
+  "rollback": "README.md",
+  "final_tag": "R017",
+  "card": 232,
+  "placement": 623,
+  "dashboard_placements": 203,
+  "browser": "browser-verification.json",
+  "plan": "plan.json",
+  "prior_release_note": "R016 wider acceptance remains separate; reused reporting dependencies already deployed and verified"
+}

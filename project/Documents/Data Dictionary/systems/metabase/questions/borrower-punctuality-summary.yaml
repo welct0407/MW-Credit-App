@@ -1,0 +1,64 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "metabase",
+    "component": "reports.mw-credit.com",
+    "kind": "question",
+    "name": "Payment punctuality summary · selected due dates / 316",
+    "scope": "production"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r040-borrower-punctuality/saved.json"
+  },
+  "content": {
+    "id": 316,
+    "name": "Payment punctuality summary · selected due dates",
+    "description": "One charge is one obligation. On time means both principal and interest fully covered by its due date. Partial payments are combined. Due dates today/future, zero/accounting obligations and invalid evidence are excluded. A late settlement stays late. Historical timing uses effective payment dates; current outstanding includes today. No eligible history means unavailable, never 100%.",
+    "display": "table",
+    "dataset_query": {
+      "stages": [
+        {
+          "template-tags": [
+            {
+              "widget-type": "date/all-options",
+              "id": "bp-period",
+              "name": "period",
+              "display-name": "Due date range",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                {
+                  "base-type": "type/Date",
+                  "lib/uuid": "8758fb14-6bed-4d1c-a88f-67f4cf3b7e67",
+                  "effective-type": "type/Date"
+                },
+                82
+              ],
+              "alias": "d.\"Date\""
+            },
+            {
+              "display-name": "Borrower",
+              "id": "bp-borrower",
+              "name": "borrower_id",
+              "type": "text"
+            }
+          ],
+          "lib/type": "mbql.stage/native",
+          "native": "WITH clock AS (SELECT public.olap_reporting_date() today), selected AS (SELECT d.\"Date\" FROM (SELECT generate_series(DATE '1900-01-01',DATE '2199-12-31',interval '1 day')::date \"Date\") d WHERE [[{{period}} --]] d.\"Date\" BETWEEN (SELECT today-30 FROM clock) AND (SELECT today-1 FROM clock)\n), bounds AS (SELECT min(\"Date\") starts,max(\"Date\") ends,count(*) days,count(*)>0 AND count(*)=max(\"Date\")-min(\"Date\")+1 AND max(\"Date\")<=(SELECT today FROM clock) valid FROM selected), chosen AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE borrower_id= [[{{borrower_id}} --]] '__select_borrower__'\n), activity AS (SELECT a.* FROM public.reporting_borrower_activity_daily_v1 a JOIN chosen c USING(borrower_id) CROSS JOIN bounds b WHERE b.valid AND a.activity_date BETWEEN b.starts AND b.ends), facts AS (SELECT h.* FROM chosen c JOIN public.reporting_charge_payment_health_v1 h USING(borrower_id) CROSS JOIN bounds b WHERE b.valid AND h.due_date BETWEEN b.starts AND b.ends) SELECT CASE WHEN count(*) FILTER(WHERE history_eligible)>0 THEN count(*) FILTER(WHERE history_eligible AND on_time)::numeric/count(*) FILTER(WHERE history_eligible) END AS \"On-time rate\",count(*) FILTER(WHERE history_eligible) AS \"Assessed obligations\",count(*) FILTER(WHERE history_eligible AND on_time) AS \"Paid on time\",count(*) FILTER(WHERE history_eligible AND NOT on_time AND NOT is_overdue) AS \"Paid late\",count(*) FILTER(WHERE history_eligible AND NOT on_time AND is_overdue) AS \"Still overdue\",count(*) FILTER(WHERE NOT history_eligible OR on_time IS NULL) AS \"Excluded / unavailable\" FROM facts HAVING EXISTS(SELECT 1 FROM chosen CROSS JOIN bounds WHERE valid)"
+        }
+      ],
+      "lib/type": "mbql/query",
+      "database": 2
+    },
+    "visualization_settings": {
+      "table.pivot": false,
+      "column_settings": {
+        "[\"name\",\"On-time rate\"]": {
+          "number_style": "percent",
+          "decimals": 1
+        }
+      }
+    }
+  }
+}

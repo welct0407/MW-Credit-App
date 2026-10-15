@@ -1,0 +1,46 @@
+{
+  "file": "development/appsheet/r051-crud/oltp-table-payments-e339c2af.yaml",
+  "expected_sha256": "07d4b7dc1ee375bc7e36727b1ad3895bb4cf6742a578932a2db7df4d5f29d959",
+  "evidence": "outputs/r051-appsheet-latency/formula-trial.json",
+  "reason": "Saved DEV OLTP200 server-only Posted guards; form logic preserved; exact current AppDoc readback and bounded GUI tests.",
+  "changes": [
+    {
+      "pointer": "/content/version",
+      "expected": {
+        "state": "value",
+        "value": "1.000198"
+      },
+      "target": {
+        "state": "value",
+        "value": "1.000200"
+      }
+    },
+    {
+      "pointer": "/content/properties/column:Eligible Charges",
+      "expected": {
+        "state": "value",
+        "value": {
+          "AppFormula": "IF(IN([Status], LIST(\"Processing\", \"Error\", \"Posted\")), SELECT(Charges[Row ID], AND([Ref Loans].[Ref Borrowers] = [_THISROW].[Ref Borrower], OR([Amount Remaining] > 0, IN([_THISROW].[Row ID], [Related Payment Allocations][Ref Payment])), IFS(IN([_THISROW].[Allocation Method], LIST(\"Single Full\", \"Single Partial\", \"First-day Auto\")), [Row ID] = [_THISROW].[Ref Target Charge], [_THISROW].[Allocation Method] = \"Loan Close\", [Ref Loans] = IF(ISNOTBLANK([_THISROW].[Ref Target Loan]), [_THISROW].[Ref Target Loan], [_THISROW].[Ref Target Charge].[Ref Loans]), IN([_THISROW].[Allocation Method], LIST(\"Receive All\", \"Lump Sum\")), [Charge Date] <= [_THISROW].[Payment Date], [_THISROW].[Allocation Method] = \"Selected Charges\", AND(IN([Row ID], [_THISROW].[Selected Charge IDs]), [Charge Date] <= [_THISROW].[Payment Date]), TRUE, FALSE))), LIST())"
+        }
+      },
+      "target": {
+        "state": "value",
+        "value": {
+          "AppFormula": "IF(AND(CONTEXT(\"Host\") = \"Server\", [Status] = \"Posted\"), LIST(), IF(IN([Status], LIST(\"Processing\", \"Error\", \"Posted\")), SELECT(Charges[Row ID], AND([Ref Loans].[Ref Borrowers] = [_THISROW].[Ref Borrower], OR([Amount Remaining] > 0, IN([_THISROW].[Row ID], [Related Payment Allocations][Ref Payment])), IFS(IN([_THISROW].[Allocation Method], LIST(\"Single Full\", \"Single Partial\", \"First-day Auto\")), [Row ID] = [_THISROW].[Ref Target Charge], [_THISROW].[Allocation Method] = \"Loan Close\", [Ref Loans] = IF(ISNOTBLANK([_THISROW].[Ref Target Loan]), [_THISROW].[Ref Target Loan], [_THISROW].[Ref Target Charge].[Ref Loans]), IN([_THISROW].[Allocation Method], LIST(\"Receive All\", \"Lump Sum\")), [Charge Date] <= [_THISROW].[Payment Date], [_THISROW].[Allocation Method] = \"Selected Charges\", AND(IN([Row ID], [_THISROW].[Selected Charge IDs]), [Charge Date] <= [_THISROW].[Payment Date]), TRUE, FALSE))), LIST()))"
+        }
+      }
+    },
+    {
+      "pointer": "/content/properties/column:Eligible Outstanding",
+      "expected": {
+        "state": "absent"
+      },
+      "target": {
+        "state": "value",
+        "value": {
+          "AppFormula": "IF(AND(CONTEXT(\"Host\") = \"Server\", [Status] = \"Posted\"), 0, SUM([Eligible Charges][Amount Remaining]) + SUM(SELECT(Payment Allocations[Allocated Amount], AND([Ref Payment] = [_THISROW].[Row ID], IN([Ref Charge], [_THISROW].[Eligible Charges])))))"
+        }
+      }
+    }
+  ]
+}

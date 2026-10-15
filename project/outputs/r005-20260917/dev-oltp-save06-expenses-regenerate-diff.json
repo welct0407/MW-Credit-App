@@ -1,0 +1,1958 @@
+{
+  "release": "R005",
+  "app": "oltp",
+  "before": {
+    "file": "dev-oltp-save05-receiver.json",
+    "version": "1.000115"
+  },
+  "after": {
+    "file": "dev-oltp-save06-expenses-regenerate.json",
+    "version": "1.000116"
+  },
+  "coverage": "All exported properties; omitted export coverage subject to explicit owner-approved limited R005 exception.",
+  "counts": {
+    "before": 16359,
+    "after": 16484,
+    "changes": 128
+  },
+  "changes": [
+    {
+      "id": "R005-OLTP-d4718ebc91c2",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Action/Payments/View Ref (Ref Received By Cash Holder)/Visible?",
+      "operation": "change",
+      "before": {
+        "present": true,
+        "value": "ADVANCED"
+      },
+      "after": {
+        "present": true,
+        "value": "ALWAYS"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-10d4e392c175",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "App/Version",
+      "operation": "change",
+      "before": {
+        "present": true,
+        "value": "1.000115"
+      },
+      "after": {
+        "present": true,
+        "value": "1.000116"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-262e05d8fd54",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Business Expenses_Schema/Ref Paid By Cash Holder/Column name",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "Ref Paid By Cash Holder"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-d8ec7bdceb2c",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Business Expenses_Schema/Ref Paid By Cash Holder/Editable Initial Value?",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "Yes"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-9c6de778345a",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Business Expenses_Schema/Ref Paid By Cash Holder/Fixed definition?",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "No"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-10487f1a8d33",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Business Expenses_Schema/Ref Paid By Cash Holder/Formula version",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "0"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-69d973d9b35c",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Business Expenses_Schema/Ref Paid By Cash Holder/Hidden",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "No"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-0a1da2277abd",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Business Expenses_Schema/Ref Paid By Cash Holder/Key",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "No"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-1be9b6462173",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Business Expenses_Schema/Ref Paid By Cash Holder/Label",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "No"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-9ef53bbcaf37",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Business Expenses_Schema/Ref Paid By Cash Holder/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-efbddb2d8c01",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Business Expenses_Schema/Ref Paid By Cash Holder/Part of Key?",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "No"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-aaf968699bea",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Business Expenses_Schema/Ref Paid By Cash Holder/Read-Only",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "No"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-2de3bb1ca1a5",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Business Expenses_Schema/Ref Paid By Cash Holder/Reset on edit?",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "No"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-5fe18719a304",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Business Expenses_Schema/Ref Paid By Cash Holder/Scannable",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "No"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-5d77b5ad889e",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Business Expenses_Schema/Ref Paid By Cash Holder/Searchable",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "Yes"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-d64af1f7a21d",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Business Expenses_Schema/Ref Paid By Cash Holder/Sensitive data",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "No"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-048093181756",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Business Expenses_Schema/Ref Paid By Cash Holder/System Defined?",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "No"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-ef8bfeeabe87",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Business Expenses_Schema/Ref Paid By Cash Holder/Type",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "LongText"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-075fefe259ba",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Business Expenses_Schema/Ref Paid By Cash Holder/Type Qualifier/$shape",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": {
+          "type": "object",
+          "keys": [
+            "Editable_If",
+            "Error_Message_If_Invalid",
+            "IsMulticolumnKey",
+            "LongTextFormatting",
+            "MaxLength",
+            "MinLength",
+            "Required_If",
+            "Reset_If",
+            "Show_If",
+            "Suggested_Values",
+            "Valid_If"
+          ]
+        }
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-8ec6400c4320",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Business Expenses_Schema/Ref Paid By Cash Holder/Type Qualifier/Editable_If",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": null
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-ebac80ad3e51",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Business Expenses_Schema/Ref Paid By Cash Holder/Type Qualifier/Error_Message_If_Invalid",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": null
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-ba5d09c549ae",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Business Expenses_Schema/Ref Paid By Cash Holder/Type Qualifier/IsMulticolumnKey",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-587f57d28415",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Business Expenses_Schema/Ref Paid By Cash Holder/Type Qualifier/LongTextFormatting",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "Plain Text"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-9722cc2e6730",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Business Expenses_Schema/Ref Paid By Cash Holder/Type Qualifier/MaxLength",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": null
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-fc07d34ddb8d",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Business Expenses_Schema/Ref Paid By Cash Holder/Type Qualifier/MinLength",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": null
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-e1426eb6a416",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Business Expenses_Schema/Ref Paid By Cash Holder/Type Qualifier/Required_If",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": null
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-46559ce3fbeb",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Business Expenses_Schema/Ref Paid By Cash Holder/Type Qualifier/Reset_If",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": null
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-d4139e26955f",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Business Expenses_Schema/Ref Paid By Cash Holder/Type Qualifier/Show_If",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": null
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-7f82010f6c90",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Business Expenses_Schema/Ref Paid By Cash Holder/Type Qualifier/Suggested_Values",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": null
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-aa2acb533847",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Business Expenses_Schema/Ref Paid By Cash Holder/Type Qualifier/Valid_If",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": null
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-9a4d65b5627c",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Business Expenses_Schema/Ref Paid By Cash Holder/Virtual?",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "No"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-c4fc607371f9",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Business Expenses_Schema/Ref Paid By Cash Holder/Visible?",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "ALWAYS"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-07cda2cfaa96",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Generate Today's Charge Output_Schema/Accrued Interest Days/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-0624e7e87f38",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Generate Today's Charge Output_Schema/Accrued Interest/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-b1c805ffa713",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Generate Today's Charge Output_Schema/Auto Charge Enabled/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-b2d06f58ea49",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Generate Today's Charge Output_Schema/Borrower Name TE/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-6bb6ef6efecb",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Generate Today's Charge Output_Schema/Borrower Name/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-efd647978fc4",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Generate Today's Charge Output_Schema/Charge Generation Request/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-2c8d278e8a20",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Generate Today's Charge Output_Schema/Close Date/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-04afc464f8bb",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Generate Today's Charge Output_Schema/Closed By/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-73d231666fdf",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Generate Today's Charge Output_Schema/Created By/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-0a2135f2e581",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Generate Today's Charge Output_Schema/Current Daily Interest/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-40d37d8398f5",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Generate Today's Charge Output_Schema/Daily Payment Amount/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-60fbb066b8e4",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Generate Today's Charge Output_Schema/Default Loss Amount/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-239ad7905a1b",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Generate Today's Charge Output_Schema/Defaulted/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-5aae69402ccb",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Generate Today's Charge Output_Schema/Due Date/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-5d00f162a6dc",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Generate Today's Charge Output_Schema/Effective Daily Interest Rate/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-8f380305ad49",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Generate Today's Charge Output_Schema/Expected Daily Interest Amount/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-f833fa342af9",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Generate Today's Charge Output_Schema/Expected Interest This Month/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-06bdba22acd3",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Generate Today's Charge Output_Schema/Fixed Interest/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-5b96fe87cc2b",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Generate Today's Charge Output_Schema/Instance Id/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-bf7f6825c3bf",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Generate Today's Charge Output_Schema/Interest Payment Interval/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-758ae0209d8c",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Generate Today's Charge Output_Schema/Interest Schedule Anchor Date/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-b223e3cd24ff",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Generate Today's Charge Output_Schema/Last Interest Charge Date/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-d73073c285e6",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Generate Today's Charge Output_Schema/Loan Arrangement/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-0f5fdc7eb55c",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Generate Today's Charge Output_Schema/Loan Date/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-42aafeee47c1",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Generate Today's Charge Output_Schema/Loan Duration/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-08e85bcc919b",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Generate Today's Charge Output_Schema/Loan Key/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-27151f750478",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Generate Today's Charge Output_Schema/Loan Status TE/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-b0eba5c015fa",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Generate Today's Charge Output_Schema/Loan Status/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-3c546c03e5a0",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Generate Today's Charge Output_Schema/Loan Type TE/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-009b2fdd0c93",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Generate Today's Charge Output_Schema/Loan Type/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-babe302d2dd6",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Generate Today's Charge Output_Schema/Outstanding Principal/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-f05dfaa4177c",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Generate Today's Charge Output_Schema/Principal Amount/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-3ec267b826e4",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Generate Today's Charge Output_Schema/Principal Days MTD/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-5652d4663701",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Generate Today's Charge Output_Schema/Principal Recovered by Interest %/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-b96c8583d91b",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Generate Today's Charge Output_Schema/Ref Borrowers/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-49d42a529688",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Generate Today's Charge Output_Schema/Ref Closing Payment/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-3087ee0d3946",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Generate Today's Charge Output_Schema/Related Business Expenses/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-a40d2db91f48",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Generate Today's Charge Output_Schema/Related Charges/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-abb40bd41a86",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Generate Today's Charge Output_Schema/Related Payments/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-5e4143fddfb4",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Generate Today's Charge Output_Schema/Related Repayments/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-c88fb454518b",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Generate Today's Charge Output_Schema/Row ID/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-6e5ab9d976ed",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Generate Today's Charge Output_Schema/Statistics Header/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-c36f9b4cd79a",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Generate Today's Charge Output_Schema/Total Amount Received/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-e4b42a4f8d5b",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Generate Today's Charge Output_Schema/Total Interest Received/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-d3fd51d46f69",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Generate Today's Charge Output_Schema/Total Principal Received/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-7eee9608811b",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Generate Today's Charge Output_Schema/Transfer Fee/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-ed71de11bf6e",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Process for Generate Daily Charges - 1 Process Table_Schema/Accrued Interest Days/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-07d514f0c105",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Process for Generate Daily Charges - 1 Process Table_Schema/Accrued Interest/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-c231317a8602",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Process for Generate Daily Charges - 1 Process Table_Schema/Auto Charge Enabled/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-e3dff8db4495",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Process for Generate Daily Charges - 1 Process Table_Schema/Borrower Name TE/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-60a79dcf96cd",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Process for Generate Daily Charges - 1 Process Table_Schema/Borrower Name/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-652745914629",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Process for Generate Daily Charges - 1 Process Table_Schema/Charge Generation Request/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-4ee2d3a7a1a4",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Process for Generate Daily Charges - 1 Process Table_Schema/Close Date/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-5e5cc0680adf",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Process for Generate Daily Charges - 1 Process Table_Schema/Closed By/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-28af935c455a",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Process for Generate Daily Charges - 1 Process Table_Schema/Created By/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-3686bd982673",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Process for Generate Daily Charges - 1 Process Table_Schema/Current Daily Interest/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-cf0985b2bdb4",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Process for Generate Daily Charges - 1 Process Table_Schema/Daily Payment Amount/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-b6fff647f1be",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Process for Generate Daily Charges - 1 Process Table_Schema/Default Loss Amount/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-dd82bd866239",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Process for Generate Daily Charges - 1 Process Table_Schema/Defaulted/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-f5e6836b8c3b",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Process for Generate Daily Charges - 1 Process Table_Schema/Due Date/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-781f21c51d6a",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Process for Generate Daily Charges - 1 Process Table_Schema/Effective Daily Interest Rate/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-28f366ef1dfd",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Process for Generate Daily Charges - 1 Process Table_Schema/Expected Daily Interest Amount/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-87016f5d88ad",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Process for Generate Daily Charges - 1 Process Table_Schema/Expected Interest This Month/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-820b5d4bc4a7",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Process for Generate Daily Charges - 1 Process Table_Schema/Fixed Interest/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-ddd8916fa3d5",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Process for Generate Daily Charges - 1 Process Table_Schema/Generate Today's Charge/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-03fb93c69e70",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Process for Generate Daily Charges - 1 Process Table_Schema/Instance Id/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-a83dcc7a5d3f",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Process for Generate Daily Charges - 1 Process Table_Schema/Interest Payment Interval/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-fe53d29864cd",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Process for Generate Daily Charges - 1 Process Table_Schema/Interest Schedule Anchor Date/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-44a6da5dcbbf",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Process for Generate Daily Charges - 1 Process Table_Schema/Last Interest Charge Date/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-7b5a5e8c6486",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Process for Generate Daily Charges - 1 Process Table_Schema/Loan Arrangement/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-2fd16483285d",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Process for Generate Daily Charges - 1 Process Table_Schema/Loan Date/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-6a7f913cbeb3",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Process for Generate Daily Charges - 1 Process Table_Schema/Loan Duration/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-aa5d8f40967f",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Process for Generate Daily Charges - 1 Process Table_Schema/Loan Key/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-c742b0a00c7c",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Process for Generate Daily Charges - 1 Process Table_Schema/Loan Status TE/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-d5112205d022",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Process for Generate Daily Charges - 1 Process Table_Schema/Loan Status/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-a72e76d4b567",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Process for Generate Daily Charges - 1 Process Table_Schema/Loan Type TE/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-7889e4aa64a0",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Process for Generate Daily Charges - 1 Process Table_Schema/Loan Type/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-91ec2df47683",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Process for Generate Daily Charges - 1 Process Table_Schema/Outstanding Principal/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-749a3e1262b5",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Process for Generate Daily Charges - 1 Process Table_Schema/Principal Amount/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-f39b60e0a919",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Process for Generate Daily Charges - 1 Process Table_Schema/Principal Days MTD/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-bafe2c8a56af",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Process for Generate Daily Charges - 1 Process Table_Schema/Principal Recovered by Interest %/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-2858c603eb9b",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Process for Generate Daily Charges - 1 Process Table_Schema/Ref Borrowers/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-f2176915aabd",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Process for Generate Daily Charges - 1 Process Table_Schema/Ref Closing Payment/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-c581f9b701a6",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Process for Generate Daily Charges - 1 Process Table_Schema/Related Business Expenses/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-5a86f61a5eee",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Process for Generate Daily Charges - 1 Process Table_Schema/Related Charges/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-c5cf4bd1fa8d",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Process for Generate Daily Charges - 1 Process Table_Schema/Related Payments/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-bdf934a9412e",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Process for Generate Daily Charges - 1 Process Table_Schema/Related Repayments/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-7bec7db263ea",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Process for Generate Daily Charges - 1 Process Table_Schema/Row ID/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-9e357e9070d0",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Process for Generate Daily Charges - 1 Process Table_Schema/Statistics Header/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-dbd315188cbe",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Process for Generate Daily Charges - 1 Process Table_Schema/Total Amount Received/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-6c37e999b8b7",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Process for Generate Daily Charges - 1 Process Table_Schema/Total Interest Received/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-baedb96fccc7",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Process for Generate Daily Charges - 1 Process Table_Schema/Total Principal Received/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-04e56f13e3bf",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Process for Generate Daily Charges - 1 Process Table_Schema/Transfer Fee/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-872c93899e6a",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Summary/Data Summary",
+      "operation": "change",
+      "before": {
+        "present": true,
+        "value": "14 Tables\n353 Columns\n2 Slices"
+      },
+      "after": {
+        "present": true,
+        "value": "14 Tables\n354 Columns\n2 Slices"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-63df7688b00a",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Table name/Generate Today's Charge Output/Data locale",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-e536bd3fd8c8",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Table name/Process for Generate Daily Charges - 1 Process Table/Data locale",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    }
+  ]
+}

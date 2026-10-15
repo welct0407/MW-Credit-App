@@ -1,0 +1,124 @@
+{
+  "date": "2026-09-24",
+  "dashboard_id": 3,
+  "before": [
+    {
+      "id": 4,
+      "name": "1 · Overview",
+      "position": 0
+    },
+    {
+      "id": 14,
+      "name": "2 · Cash Position",
+      "position": 1
+    },
+    {
+      "id": 6,
+      "name": "3 · Borrowers",
+      "position": 2
+    },
+    {
+      "id": 7,
+      "name": "4 · Performance",
+      "position": 3
+    },
+    {
+      "id": 8,
+      "name": "5 · Risks",
+      "position": 4
+    },
+    {
+      "id": 9,
+      "name": "6 · Daily Collection",
+      "position": 5
+    },
+    {
+      "id": 10,
+      "name": "7 · Borrower Insight",
+      "position": 6
+    },
+    {
+      "id": 11,
+      "name": "8 · Forecast & Partners",
+      "position": 7
+    },
+    {
+      "id": 16,
+      "name": "9 · Income Statement",
+      "position": 8
+    },
+    {
+      "id": 15,
+      "name": "10 · Cashflow Statement",
+      "position": 9
+    },
+    {
+      "id": 17,
+      "name": "Tab 11",
+      "position": 10
+    }
+  ],
+  "after": [
+    {
+      "id": 4,
+      "name": "1 · Overview",
+      "position": 0
+    },
+    {
+      "id": 14,
+      "name": "2 · Cash Position",
+      "position": 1
+    },
+    {
+      "id": 16,
+      "name": "3 · Income Statement",
+      "position": 2
+    },
+    {
+      "id": 15,
+      "name": "4 · Cashflow Statement",
+      "position": 3
+    },
+    {
+      "id": 6,
+      "name": "5 · Borrowers",
+      "position": 4
+    },
+    {
+      "id": 7,
+      "name": "6 · Performance",
+      "position": 5
+    },
+    {
+      "id": 8,
+      "name": "7 · Risks",
+      "position": 6
+    },
+    {
+      "id": 9,
+      "name": "8 · Daily Collection",
+      "position": 7
+    },
+    {
+      "id": 10,
+      "name": "9 · Borrower Insight",
+      "position": 8
+    },
+    {
+      "id": 11,
+      "name": "10 · Forecast & Partners",
+      "position": 9
+    },
+    {
+      "id": 17,
+      "name": "Tab 11",
+      "position": 10
+    }
+  ],
+  "placements": 181,
+  "parameters": 9,
+  "placements_unchanged": true,
+  "parameters_unchanged": true,
+  "extra_tab_preserved": 17,
+  "rollback": "Private statement-tab-reorder-before-20260924 dashboard metadata"
+}

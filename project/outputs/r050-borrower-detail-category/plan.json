@@ -1,0 +1,44 @@
+{
+  "dashboard": 3,
+  "tab": 105,
+  "removedPlacement": 2167,
+  "retainedQuestion": 295,
+  "shiftLaterRows": -7,
+  "topCardWidths": [
+    5,
+    4,
+    5,
+    4,
+    6
+  ],
+  "newQuestion": {
+    "name": "Borrower category · current BCG matrix",
+    "description": "Current governed V3 BCG Matrix quadrant for the selected borrower. Emoji provides a visual cue while retaining the exact category label. Outside active cohort remains explicit. Ignores Detail activity dates.",
+    "display": "scalar",
+    "dataset_query": {
+      "database": 2,
+      "type": "native",
+      "native": {
+        "query": "WITH chosen AS (SELECT borrower_id FROM public.reporting_borrower_directory_v1 WHERE borrower_id= [[{{borrower_id}} --]] '__select_borrower__'\n) SELECT CASE m.quadrant\n WHEN 'Cash Cow' THEN '🐄 Cash Cow' WHEN 'Dog' THEN '🐕 Dog'\n WHEN 'Star' THEN '⭐ Star' WHEN 'Question Mark' THEN '❓ Question Mark'\n ELSE coalesce(m.quadrant,'Outside active cohort') END AS \"Borrower category\"\n FROM chosen c LEFT JOIN public.reporting_borrower_matrix_v3 m USING(borrower_id)",
+        "template-tags": {
+          "borrower_id": {
+            "id": "bp-borrower",
+            "name": "borrower_id",
+            "display-name": "Borrower",
+            "type": "text"
+          }
+        }
+      }
+    },
+    "visualization_settings": {
+      "scalar.field": "Borrower category"
+    }
+  },
+  "axisTitleRemovedFrom": 369,
+  "axisTitle": {
+    "question": 369,
+    "blankTitle": "nonbreaking space",
+    "enabled": true,
+    "reason": "Metabase scatter ignored title_enabled=false and displayed the dimension name; a blank explicit title preserves seven date labels."
+  }
+}

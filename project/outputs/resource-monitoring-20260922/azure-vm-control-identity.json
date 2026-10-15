@@ -1,0 +1,16 @@
+{
+  "roleAssignmentId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/RG-MWCREDIT/providers/Microsoft.Compute/virtualMachines/VM-01/providers/Microsoft.Authorization/roleAssignments/6e36c951-d8a6-4225-b427-154c21bb7687",
+  "appId": "f8351796-82db-4d90-9c66-d2e925e78068",
+  "actions": [
+    "Microsoft.Compute/virtualMachines/read",
+    "Microsoft.Compute/virtualMachines/instanceView/read",
+    "Microsoft.Compute/virtualMachines/start/action",
+    "Microsoft.Compute/virtualMachines/deallocate/action"
+  ],
+  "credentialStoredOutsideGit": true,
+  "tenant": "9e29c895-606a-420b-acc2-1c24375df4d9",
+  "principalId": "88709332-cff7-443f-a59d-c80c11f30207",
+  "roleDefinitionId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/providers/Microsoft.Authorization/roleDefinitions/eaeb2a2c-c710-4759-8a82-538d1ec79c54",
+  "subscription": "50f792fa-803e-4280-833d-1fe60fef5293",
+  "vm": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/RG-MWCREDIT/providers/Microsoft.Compute/virtualMachines/VM-01"
+}

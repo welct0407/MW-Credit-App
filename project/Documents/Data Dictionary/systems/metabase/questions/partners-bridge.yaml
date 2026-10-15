@@ -1,0 +1,138 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "metabase",
+    "component": "reports.mw-credit.com",
+    "kind": "question",
+    "name": "How net available is calculated / 332",
+    "scope": "production"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r044-partners/saved.json"
+  },
+  "content": {
+    "key": "bridge",
+    "description": "R044 Partners. Net earned and Net available are subtotals, not additional movements. Pending is reserved, not paid.",
+    "result_metadata": [
+      {
+        "database_type": "text",
+        "semantic_type": "type/Title",
+        "lib/deduplicated-name": "Entitlement bridge",
+        "lib/original-name": "Entitlement bridge",
+        "name": "Entitlement bridge",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Entitlement bridge",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Entitlement bridge",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "effective_type": "type/Text",
+        "lib/desired-column-alias": "Entitlement bridge",
+        "display_name": "Entitlement bridge",
+        "base_type": "type/Text"
+      },
+      {
+        "database_type": "numeric",
+        "semantic_type": null,
+        "lib/deduplicated-name": "Amount ฿",
+        "lib/original-name": "Amount ฿",
+        "name": "Amount ฿",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Amount ฿",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Amount ฿",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "Amount ฿",
+        "display_name": "Amount ฿",
+        "base_type": "type/Decimal"
+      }
+    ],
+    "collection_id": 5,
+    "name": "How net available is calculated",
+    "type": "question",
+    "dataset_query": {
+      "stages": [
+        {
+          "template-tags": [
+            {
+              "widget-type": "string/=",
+              "id": "pt-partner",
+              "name": "partner",
+              "display-name": "Partner",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                {
+                  "base-type": "type/Text",
+                  "lib/uuid": "7142cc0b-fe25-4215-bc79-9853d172c8c3",
+                  "effective-type": "type/Text"
+                },
+                121
+              ],
+              "alias": "d.partner_id"
+            },
+            {
+              "type": "card",
+              "id": "r044-model-318",
+              "name": "#318",
+              "display-name": "Partners source 318",
+              "card-id": 318
+            }
+          ],
+          "lib/type": "mbql.stage/native",
+          "native": "WITH totals AS (SELECT CASE WHEN count(*)=0 THEN 0 WHEN bool_and(interest_earned IS NOT NULL) THEN sum(interest_earned) END g,CASE WHEN count(*)=0 THEN 0 WHEN bool_and(expenses IS NOT NULL) THEN sum(expenses) END x,CASE WHEN count(*)=0 THEN 0 WHEN bool_and(net_earned IS NOT NULL) THEN sum(net_earned) END n,CASE WHEN count(*)=0 THEN 0 WHEN bool_and(completed IS NOT NULL) THEN sum(completed) END c,CASE WHEN count(*)=0 THEN 0 WHEN bool_and(pending IS NOT NULL) THEN sum(pending) END p,CASE WHEN count(*)=0 THEN 0 WHEN bool_and(other_reserved IS NOT NULL) THEN sum(other_reserved) END o,CASE WHEN count(*)=0 THEN 0 WHEN bool_and(available IS NOT NULL) THEN sum(available) END a FROM {{#318}} d WHERE true [[AND {{partner}}]])\n SELECT v.label AS \"Entitlement bridge\",v.amount AS \"Amount ฿\" FROM totals t CROSS JOIN LATERAL (VALUES\n (1,'Allocated interest',g),(2,'Less allocated expenses',-x),(3,'Net earned',n),(4,'Less completed payouts',-c),(5,'Less pending reservations',-p),(6,'Less other reservations',-o),(7,'Net available to settle',a)) v(ord,label,amount) WHERE v.ord<>6 OR o<>0 ORDER BY v.ord"
+        }
+      ],
+      "lib/type": "mbql/query",
+      "database": 2
+    },
+    "id": 332,
+    "display": "table",
+    "visualization_settings": {
+      "table.pivot": false,
+      "table.columns": [
+        {
+          "name": "Entitlement bridge",
+          "fieldRef": [
+            "field",
+            "Entitlement bridge",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "enabled": true
+        },
+        {
+          "name": "Amount ฿",
+          "fieldRef": [
+            "field",
+            "Amount ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "enabled": true
+        }
+      ],
+      "column_settings": {
+        "[\"name\",\"Amount ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,",
+          "compact": false
+        }
+      }
+    }
+  }
+}

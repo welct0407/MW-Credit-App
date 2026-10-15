@@ -1,0 +1,2088 @@
+[
+  {
+    "id": "OLTP-R4-001",
+    "app": "OLTP",
+    "object": "Column Borrowers.Related Repayments",
+    "property": "definition",
+    "operation": "add",
+    "before": {
+      "state": "absent"
+    },
+    "dev": {
+      "state": "value",
+      "value": {
+        "App formula": "REF_ROWS(\"Repayments\", \"Borrower Reference TE\")",
+        "Column name": "Related Repayments",
+        "Description": "Repayments entries that reference this entry in the Borrower Reference TE column",
+        "Editable Initial Value?": "Yes",
+        "Fixed definition?": "No",
+        "Formula version": 0,
+        "Hidden": "No",
+        "Key": "No",
+        "Label": "No",
+        "LocaleName": "en-US",
+        "NFC Scannable": "No",
+        "Part of Key?": "No",
+        "Read-Only": "Yes",
+        "Reset on edit?": "No",
+        "Scannable": "No",
+        "Searchable": "Yes",
+        "Sensitive data": "No",
+        "System Defined?": "Yes",
+        "Type": "List",
+        "Type Qualifier": {
+          "Editable_If": null,
+          "ElementType": "Ref",
+          "ElementTypeQualifier": "{\"ReferencedTableName\":\"Repayments\",\"ReferencedRootTableName\":\"Repayments\",\"ReferencedType\":\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\":\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+          "Error_Message_If_Invalid": null,
+          "ItemSeparator": " , ",
+          "Required_If": null,
+          "Reset_If": null,
+          "Show_If": null,
+          "Suggested_Values": null,
+          "Valid_If": null
+        },
+        "Virtual?": "Yes",
+        "Visible?": "ALWAYS"
+      }
+    },
+    "prod": {
+      "state": "value",
+      "value": {
+        "App formula": "REF_ROWS(\"Repayments\", \"Borrower Reference TE\")",
+        "Column name": "Related Repayments",
+        "Description": "Repayments entries that reference this entry in the Borrower Reference TE column",
+        "Editable Initial Value?": "Yes",
+        "Fixed definition?": "No",
+        "Formula version": 0,
+        "Hidden": "No",
+        "Key": "No",
+        "Label": "No",
+        "LocaleName": "en-US",
+        "NFC Scannable": "No",
+        "Part of Key?": "No",
+        "Read-Only": "Yes",
+        "Reset on edit?": "No",
+        "Scannable": "No",
+        "Searchable": "Yes",
+        "Sensitive data": "No",
+        "System Defined?": "Yes",
+        "Type": "List",
+        "Type Qualifier": {
+          "Editable_If": null,
+          "ElementType": "Ref",
+          "ElementTypeQualifier": "{\"ReferencedTableName\":\"Repayments\",\"ReferencedRootTableName\":\"Repayments\",\"ReferencedType\":\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\":\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+          "Error_Message_If_Invalid": null,
+          "ItemSeparator": " , ",
+          "Required_If": null,
+          "Reset_If": null,
+          "Show_If": null,
+          "Suggested_Values": null,
+          "Valid_If": null
+        },
+        "Virtual?": "Yes",
+        "Visible?": "ALWAYS"
+      }
+    },
+    "evidence": "outputs/r008-20260918/r4/AT.json; REPORT.md",
+    "refinementBefore": {
+      "state": "absent"
+    }
+  },
+  {
+    "id": "OLTP-R4-002",
+    "app": "OLTP",
+    "object": "Column Borrowers.Related Charges",
+    "property": "definition",
+    "operation": "add",
+    "before": {
+      "state": "absent"
+    },
+    "dev": {
+      "state": "value",
+      "value": {
+        "App formula": "REF_ROWS(\"Charges\", \"Borrower Reference TE\")",
+        "Column name": "Related Charges",
+        "Description": "Charges entries that reference this entry in the Borrower Reference TE column",
+        "Editable Initial Value?": "Yes",
+        "Fixed definition?": "No",
+        "Formula version": 0,
+        "Hidden": "No",
+        "Key": "No",
+        "Label": "No",
+        "LocaleName": "en-US",
+        "NFC Scannable": "No",
+        "Part of Key?": "No",
+        "Read-Only": "Yes",
+        "Reset on edit?": "No",
+        "Scannable": "No",
+        "Searchable": "Yes",
+        "Sensitive data": "No",
+        "System Defined?": "Yes",
+        "Type": "List",
+        "Type Qualifier": {
+          "Editable_If": null,
+          "ElementType": "Ref",
+          "ElementTypeQualifier": "{\"ReferencedTableName\":\"Charges\",\"ReferencedRootTableName\":\"Charges\",\"ReferencedType\":\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\":\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+          "Error_Message_If_Invalid": null,
+          "ItemSeparator": " , ",
+          "Required_If": null,
+          "Reset_If": null,
+          "Show_If": null,
+          "Suggested_Values": null,
+          "Valid_If": null
+        },
+        "Virtual?": "Yes",
+        "Visible?": "ALWAYS"
+      }
+    },
+    "prod": {
+      "state": "value",
+      "value": {
+        "App formula": "REF_ROWS(\"Charges\", \"Borrower Reference TE\")",
+        "Column name": "Related Charges",
+        "Description": "Charges entries that reference this entry in the Borrower Reference TE column",
+        "Editable Initial Value?": "Yes",
+        "Fixed definition?": "No",
+        "Formula version": 0,
+        "Hidden": "No",
+        "Key": "No",
+        "Label": "No",
+        "LocaleName": "en-US",
+        "NFC Scannable": "No",
+        "Part of Key?": "No",
+        "Read-Only": "Yes",
+        "Reset on edit?": "No",
+        "Scannable": "No",
+        "Searchable": "Yes",
+        "Sensitive data": "No",
+        "System Defined?": "Yes",
+        "Type": "List",
+        "Type Qualifier": {
+          "Editable_If": null,
+          "ElementType": "Ref",
+          "ElementTypeQualifier": "{\"ReferencedTableName\":\"Charges\",\"ReferencedRootTableName\":\"Charges\",\"ReferencedType\":\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\":\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+          "Error_Message_If_Invalid": null,
+          "ItemSeparator": " , ",
+          "Required_If": null,
+          "Reset_If": null,
+          "Show_If": null,
+          "Suggested_Values": null,
+          "Valid_If": null
+        },
+        "Virtual?": "Yes",
+        "Visible?": "ALWAYS"
+      }
+    },
+    "evidence": "outputs/r008-20260918/r4/AT.json; REPORT.md",
+    "refinementBefore": {
+      "state": "absent"
+    }
+  },
+  {
+    "id": "OLTP-R4-003",
+    "app": "OLTP",
+    "object": "Column Repayments.Borrower Reference TE",
+    "property": "definition",
+    "operation": "add",
+    "before": {
+      "state": "absent"
+    },
+    "dev": {
+      "state": "value",
+      "value": {
+        "App formula": "=[Ref Loans].[Ref Borrowers]",
+        "Column name": "Borrower Reference TE",
+        "Display name": "=\"Borrower Name TE\"",
+        "Editable Initial Value?": "Yes",
+        "Fixed definition?": "No",
+        "Formula version": 0,
+        "Hidden": "No",
+        "Key": "No",
+        "Label": "No",
+        "LocaleName": "en-US",
+        "Part of Key?": "No",
+        "Read-Only": "Yes",
+        "Reset on edit?": "No",
+        "Scannable": "No",
+        "Searchable": "Yes",
+        "Sensitive data": "No",
+        "System Defined?": "No",
+        "Type": "Ref",
+        "Type Qualifier": {
+          "Editable_If": null,
+          "Error_Message_If_Invalid": null,
+          "InputMode": "Auto",
+          "IsAPartOf": false,
+          "ReferencedKeyColumn": "Row ID",
+          "ReferencedRootTableName": "Borrowers",
+          "ReferencedTableName": "Borrowers",
+          "ReferencedType": "Text",
+          "RelationshipName": null,
+          "Required_If": null,
+          "Reset_If": null,
+          "Show_If": "=CONTEXT(\"ViewType\") = \"Detail\"",
+          "Suggested_Values": null,
+          "Valid_If": null
+        },
+        "Virtual?": "Yes",
+        "Visible?": "ALWAYS"
+      }
+    },
+    "prod": {
+      "state": "value",
+      "value": {
+        "App formula": "=[Ref Loans].[Ref Borrowers]",
+        "Column name": "Borrower Reference TE",
+        "Display name": "=\"Borrower Name TE\"",
+        "Editable Initial Value?": "Yes",
+        "Fixed definition?": "No",
+        "Formula version": 0,
+        "Hidden": "No",
+        "Key": "No",
+        "Label": "No",
+        "LocaleName": "en-US",
+        "Part of Key?": "No",
+        "Read-Only": "Yes",
+        "Reset on edit?": "No",
+        "Scannable": "No",
+        "Searchable": "Yes",
+        "Sensitive data": "No",
+        "System Defined?": "No",
+        "Type": "Ref",
+        "Type Qualifier": {
+          "Editable_If": null,
+          "Error_Message_If_Invalid": null,
+          "InputMode": "Auto",
+          "IsAPartOf": false,
+          "ReferencedKeyColumn": "Row ID",
+          "ReferencedRootTableName": "Borrowers",
+          "ReferencedTableName": "Borrowers",
+          "ReferencedType": "Text",
+          "RelationshipName": null,
+          "Required_If": null,
+          "Reset_If": null,
+          "Show_If": "=CONTEXT(\"ViewType\") = \"Detail\"",
+          "Suggested_Values": null,
+          "Valid_If": null
+        },
+        "Virtual?": "Yes",
+        "Visible?": "ALWAYS"
+      }
+    },
+    "evidence": "outputs/r008-20260918/r4/AT.json; REPORT.md",
+    "refinementBefore": {
+      "state": "absent"
+    }
+  },
+  {
+    "id": "OLTP-R4-004",
+    "app": "OLTP",
+    "object": "Column Charges.Borrower Reference TE",
+    "property": "definition",
+    "operation": "add",
+    "before": {
+      "state": "absent"
+    },
+    "dev": {
+      "state": "value",
+      "value": {
+        "App formula": "=[Ref Loans].[Ref Borrowers]",
+        "Column name": "Borrower Reference TE",
+        "Display name": "=\"Borrower Name TE\"",
+        "Editable Initial Value?": "Yes",
+        "Fixed definition?": "No",
+        "Formula version": 0,
+        "Hidden": "No",
+        "Key": "No",
+        "Label": "No",
+        "LocaleName": "en-US",
+        "Part of Key?": "No",
+        "Read-Only": "Yes",
+        "Reset on edit?": "No",
+        "Scannable": "No",
+        "Searchable": "Yes",
+        "Sensitive data": "No",
+        "System Defined?": "No",
+        "Type": "Ref",
+        "Type Qualifier": {
+          "Editable_If": null,
+          "Error_Message_If_Invalid": null,
+          "InputMode": "Auto",
+          "IsAPartOf": false,
+          "ReferencedKeyColumn": "Row ID",
+          "ReferencedRootTableName": "Borrowers",
+          "ReferencedTableName": "Borrowers",
+          "ReferencedType": "Text",
+          "RelationshipName": null,
+          "Required_If": null,
+          "Reset_If": null,
+          "Show_If": "=CONTEXT(\"ViewType\") = \"Detail\"",
+          "Suggested_Values": null,
+          "Valid_If": null
+        },
+        "Virtual?": "Yes",
+        "Visible?": "ALWAYS"
+      }
+    },
+    "prod": {
+      "state": "value",
+      "value": {
+        "App formula": "=[Ref Loans].[Ref Borrowers]",
+        "Column name": "Borrower Reference TE",
+        "Display name": "=\"Borrower Name TE\"",
+        "Editable Initial Value?": "Yes",
+        "Fixed definition?": "No",
+        "Formula version": 0,
+        "Hidden": "No",
+        "Key": "No",
+        "Label": "No",
+        "LocaleName": "en-US",
+        "Part of Key?": "No",
+        "Read-Only": "Yes",
+        "Reset on edit?": "No",
+        "Scannable": "No",
+        "Searchable": "Yes",
+        "Sensitive data": "No",
+        "System Defined?": "No",
+        "Type": "Ref",
+        "Type Qualifier": {
+          "Editable_If": null,
+          "Error_Message_If_Invalid": null,
+          "InputMode": "Auto",
+          "IsAPartOf": false,
+          "ReferencedKeyColumn": "Row ID",
+          "ReferencedRootTableName": "Borrowers",
+          "ReferencedTableName": "Borrowers",
+          "ReferencedType": "Text",
+          "RelationshipName": null,
+          "Required_If": null,
+          "Reset_If": null,
+          "Show_If": "=CONTEXT(\"ViewType\") = \"Detail\"",
+          "Suggested_Values": null,
+          "Valid_If": null
+        },
+        "Virtual?": "Yes",
+        "Visible?": "ALWAYS"
+      }
+    },
+    "evidence": "outputs/r008-20260918/r4/AT.json; REPORT.md",
+    "refinementBefore": {
+      "state": "absent"
+    }
+  },
+  {
+    "id": "OLTP-036",
+    "app": "OLTP",
+    "object": "Slice Todays Collection Board",
+    "property": "Slice Columns",
+    "operation": "change",
+    "dev": {
+      "state": "value",
+      "value": "_RowNumber\nRow ID\nBorrower Name\nDescription\nDaily Collection Status - Order\nTodays Amount Due\nTodays Amount Collected\nTodays Amount Remaining\nTodays Collection Charges\nHidden Flag\nRelated Payments\nCommunication Name\nInstagram Username\nAI Collection Enabled\nCity\nWorking Location\nAddress\nRef Referrer\nRelated Business Expenses By Ref Payee Borrower\nRelated Business Expenses By Ref Related Borrower\nBorrower Name TE\nBorrower Reference TE\nRef Preferred Receiving Cash Account\nPayment Request Cash Account\nPayment Request Token\nRelated Repayments\nRelated Charges"
+    },
+    "prod": {
+      "state": "value",
+      "value": "_RowNumber\nRow ID\nBorrower Name\nDescription\nDaily Collection Status - Order\nTodays Amount Due\nTodays Amount Collected\nTodays Amount Remaining\nTodays Collection Charges\nHidden Flag\nRelated Payments\nCommunication Name\nInstagram Username\nAI Collection Enabled\nCity\nWorking Location\nAddress\nRef Referrer\nRelated Business Expenses By Ref Payee Borrower\nRelated Business Expenses By Ref Related Borrower\nBorrower Name TE\nBorrower Reference TE\nRef Preferred Receiving Cash Account\nPayment Request Cash Account\nPayment Request Token\nRelated Repayments\nRelated Charges"
+    },
+    "evidence": "outputs/r008-20260918/r4/AT.json; REPORT.md",
+    "refinementBefore": {
+      "state": "value",
+      "value": "_RowNumber\nRow ID\nBorrower Name\nDescription\nDaily Collection Status - Order\nTodays Amount Due\nTodays Amount Collected\nTodays Amount Remaining\nTodays Collection Charges\nHidden Flag\nRelated Payments\nCommunication Name\nInstagram Username\nAI Collection Enabled\nCity\nWorking Location\nAddress\nRef Referrer\nRelated Business Expenses By Ref Payee Borrower\nRelated Business Expenses By Ref Related Borrower\nBorrower Name TE\nBorrower Reference TE\nRef Preferred Receiving Cash Account\nPayment Request Cash Account\nPayment Request Token"
+    }
+  },
+  {
+    "id": "OLTP-037",
+    "app": "OLTP",
+    "object": "Slice Visible Borrowers",
+    "property": "Slice Columns",
+    "operation": "change",
+    "dev": {
+      "state": "value",
+      "value": "_RowNumber\nRow ID\nBorrower Name\nDescription\nCreation Date\nHidden Flag\nRelated Loans\nTotal Interest Earned\nTotal Amount Loaned\nTotal Number of Loans\nTotal Outstanding Principal\nHeader - Active Loans\nBorrower Name TE\nReturn on Active Principal\nActive Loan Interest Earned\nActive Daily Interest\nProjected Interest Coverage Date\nClosed Loan Interest Earned\nClosed Loan Principle\nHas Closed Loan\nReturn on Closed Loans\nHeader - Closed Loans\nHas Active Loan\nDaily Collection Status\nTodays Collection Charges\nTodays Amount Due\nTodays Amount Collected\nTodays Amount Remaining\nDaily Collection Status - Order\nActive Profit After Principal Coverage\nRelated Payments\nCommunication Name\nInstagram Username\nAI Collection Enabled\nCity\nWorking Location\nAddress\nRef Referrer\nRelated Business Expenses By Ref Payee Borrower\nRelated Business Expenses By Ref Related Borrower\nBorrower Reference TE\nRef Preferred Receiving Cash Account\nPayment Request Cash Account\nPayment Request Token\nRelated Repayments\nRelated Charges"
+    },
+    "prod": {
+      "state": "value",
+      "value": "_RowNumber\nRow ID\nBorrower Name\nDescription\nCreation Date\nHidden Flag\nRelated Loans\nTotal Interest Earned\nTotal Amount Loaned\nTotal Number of Loans\nTotal Outstanding Principal\nHeader - Active Loans\nBorrower Name TE\nReturn on Active Principal\nActive Loan Interest Earned\nActive Daily Interest\nProjected Interest Coverage Date\nClosed Loan Interest Earned\nClosed Loan Principle\nHas Closed Loan\nReturn on Closed Loans\nHeader - Closed Loans\nHas Active Loan\nDaily Collection Status\nTodays Collection Charges\nTodays Amount Due\nTodays Amount Collected\nTodays Amount Remaining\nDaily Collection Status - Order\nActive Profit After Principal Coverage\nRelated Payments\nCommunication Name\nInstagram Username\nAI Collection Enabled\nCity\nWorking Location\nAddress\nRef Referrer\nRelated Business Expenses By Ref Payee Borrower\nRelated Business Expenses By Ref Related Borrower\nBorrower Reference TE\nRef Preferred Receiving Cash Account\nPayment Request Cash Account\nPayment Request Token\nRelated Repayments\nRelated Charges"
+    },
+    "evidence": "outputs/r008-20260918/r4/AT.json; REPORT.md",
+    "refinementBefore": {
+      "state": "value",
+      "value": "_RowNumber\nRow ID\nBorrower Name\nDescription\nCreation Date\nHidden Flag\nRelated Loans\nTotal Interest Earned\nTotal Amount Loaned\nTotal Number of Loans\nTotal Outstanding Principal\nHeader - Active Loans\nBorrower Name TE\nReturn on Active Principal\nActive Loan Interest Earned\nActive Daily Interest\nProjected Interest Coverage Date\nClosed Loan Interest Earned\nClosed Loan Principle\nHas Closed Loan\nReturn on Closed Loans\nHeader - Closed Loans\nHas Active Loan\nDaily Collection Status\nTodays Collection Charges\nTodays Amount Due\nTodays Amount Collected\nTodays Amount Remaining\nDaily Collection Status - Order\nActive Profit After Principal Coverage\nRelated Payments\nCommunication Name\nInstagram Username\nAI Collection Enabled\nCity\nWorking Location\nAddress\nRef Referrer\nRelated Business Expenses By Ref Payee Borrower\nRelated Business Expenses By Ref Related Borrower\nBorrower Reference TE\nRef Preferred Receiving Cash Account\nPayment Request Cash Account\nPayment Request Token"
+    }
+  },
+  {
+    "id": "OLTP-038",
+    "app": "OLTP",
+    "object": "Slice R008 Borrower Commands",
+    "property": "definition",
+    "operation": "add",
+    "dev": {
+      "state": "value",
+      "value": {
+        "Descriptive comment": "R008 update-only confirmation form source; isolates payment commands from default record editing.",
+        "Slice Actions": "**auto**",
+        "Slice Columns": "_RowNumber\nRow ID\nBorrower Name\nDescription\nCreation Date\nHidden Flag\nCommunication Name\nInstagram Username\nAI Collection Enabled\nCity\nWorking Location\nAddress\nTotal Interest Earned\nTotal Amount Loaned\nTotal Number of Loans\nTotal Outstanding Principal\nActive Loan Interest Earned\nActive Daily Interest\nHas Closed Loan\nHas Active Loan\nRef Referrer\nRef Preferred Receiving Cash Account\nPayment Request Cash Account\nPayment Request Token\nRelated Loans\nHeader - Active Loans\nBorrower Name TE\nReturn on Active Principal\nProjected Interest Coverage Date\nClosed Loan Interest Earned\nClosed Loan Principle\nReturn on Closed Loans\nHeader - Closed Loans\nDaily Collection Status\nTodays Collection Charges\nTodays Amount Due\nTodays Amount Collected\nTodays Amount Remaining\nDaily Collection Status - Order\nActive Profit After Principal Coverage\nRelated Payments\nRelated Business Expenses By Ref Payee Borrower\nRelated Business Expenses By Ref Related Borrower\nBorrower Reference TE\nRelated Repayments\nRelated Charges",
+        "Slice Name": "R008 Borrower Commands",
+        "Source Table": "Borrowers",
+        "Update mode": "UPDATES_ONLY",
+        "Visible?": "ALWAYS"
+      }
+    },
+    "prod": {
+      "state": "value",
+      "value": {
+        "Descriptive comment": "R008 update-only confirmation form source; isolates payment commands from default record editing.",
+        "Slice Actions": "**auto**",
+        "Slice Columns": "_RowNumber\nRow ID\nBorrower Name\nDescription\nCreation Date\nHidden Flag\nCommunication Name\nInstagram Username\nAI Collection Enabled\nCity\nWorking Location\nAddress\nTotal Interest Earned\nTotal Amount Loaned\nTotal Number of Loans\nTotal Outstanding Principal\nActive Loan Interest Earned\nActive Daily Interest\nHas Closed Loan\nHas Active Loan\nRef Referrer\nRef Preferred Receiving Cash Account\nPayment Request Cash Account\nPayment Request Token\nRelated Loans\nHeader - Active Loans\nBorrower Name TE\nReturn on Active Principal\nProjected Interest Coverage Date\nClosed Loan Interest Earned\nClosed Loan Principle\nReturn on Closed Loans\nHeader - Closed Loans\nDaily Collection Status\nTodays Collection Charges\nTodays Amount Due\nTodays Amount Collected\nTodays Amount Remaining\nDaily Collection Status - Order\nActive Profit After Principal Coverage\nRelated Payments\nRelated Business Expenses By Ref Payee Borrower\nRelated Business Expenses By Ref Related Borrower\nBorrower Reference TE\nRelated Repayments\nRelated Charges",
+        "Slice Name": "R008 Borrower Commands",
+        "Source Table": "Borrowers",
+        "Update mode": "UPDATES_ONLY",
+        "Visible?": "ALWAYS"
+      }
+    },
+    "evidence": "outputs/r008-20260918/r4/AT.json; REPORT.md",
+    "before": {
+      "state": "absent"
+    },
+    "refinementBefore": {
+      "state": "value",
+      "value": {
+        "Descriptive comment": "R008 update-only confirmation form source; isolates payment commands from default record editing.",
+        "Slice Actions": "**auto**",
+        "Slice Columns": "_RowNumber\nRow ID\nBorrower Name\nDescription\nCreation Date\nHidden Flag\nCommunication Name\nInstagram Username\nAI Collection Enabled\nCity\nWorking Location\nAddress\nTotal Interest Earned\nTotal Amount Loaned\nTotal Number of Loans\nTotal Outstanding Principal\nActive Loan Interest Earned\nActive Daily Interest\nHas Closed Loan\nHas Active Loan\nRef Referrer\nRef Preferred Receiving Cash Account\nPayment Request Cash Account\nPayment Request Token\nRelated Loans\nHeader - Active Loans\nBorrower Name TE\nReturn on Active Principal\nProjected Interest Coverage Date\nClosed Loan Interest Earned\nClosed Loan Principle\nReturn on Closed Loans\nHeader - Closed Loans\nDaily Collection Status\nTodays Collection Charges\nTodays Amount Due\nTodays Amount Collected\nTodays Amount Remaining\nDaily Collection Status - Order\nActive Profit After Principal Coverage\nRelated Payments\nRelated Business Expenses By Ref Payee Borrower\nRelated Business Expenses By Ref Related Borrower\nBorrower Reference TE",
+        "Slice Name": "R008 Borrower Commands",
+        "Source Table": "Borrowers",
+        "Update mode": "UPDATES_ONLY",
+        "Visible?": "ALWAYS"
+      }
+    }
+  },
+  {
+    "id": "OLTP-039",
+    "app": "OLTP",
+    "object": "Slice R008 Charge Commands",
+    "property": "definition",
+    "operation": "add",
+    "dev": {
+      "state": "value",
+      "value": {
+        "Descriptive comment": "R008 update-only confirmation form source; isolates payment commands from default record editing.",
+        "Slice Actions": "**auto**",
+        "Slice Columns": "_RowNumber\nRow ID\nRef Loans\nCharge Date\nInterest Due\nPrincipal Due\nNotes\nPrincipal Paid\nInterest Paid\nTotal Paid\nPrincipal Remaining\nInterest Remaining\nAmount Remaining\nPayment Count\nPayment Status\nPayment Date\nPayment Request Cash Account\nPayment Request Token\nAmount Due\nBorrower Name\nRelated Repayments\nBorrower Name TE\nPayment Status TE\nDays Outstanding\nPayment Received Today\nRelated Payment Allocations\nRelated Payments\nBorrower Reference TE",
+        "Slice Name": "R008 Charge Commands",
+        "Source Table": "Charges",
+        "Update mode": "UPDATES_ONLY",
+        "Visible?": "ALWAYS"
+      }
+    },
+    "prod": {
+      "state": "value",
+      "value": {
+        "Descriptive comment": "R008 update-only confirmation form source; isolates payment commands from default record editing.",
+        "Slice Actions": "**auto**",
+        "Slice Columns": "_RowNumber\nRow ID\nRef Loans\nCharge Date\nInterest Due\nPrincipal Due\nNotes\nPrincipal Paid\nInterest Paid\nTotal Paid\nPrincipal Remaining\nInterest Remaining\nAmount Remaining\nPayment Count\nPayment Status\nPayment Date\nPayment Request Cash Account\nPayment Request Token\nAmount Due\nBorrower Name\nRelated Repayments\nBorrower Name TE\nPayment Status TE\nDays Outstanding\nPayment Received Today\nRelated Payment Allocations\nRelated Payments\nBorrower Reference TE",
+        "Slice Name": "R008 Charge Commands",
+        "Source Table": "Charges",
+        "Update mode": "UPDATES_ONLY",
+        "Visible?": "ALWAYS"
+      }
+    },
+    "evidence": "outputs/r008-20260918/r4/AT.json; REPORT.md",
+    "before": {
+      "state": "absent"
+    },
+    "refinementBefore": {
+      "state": "value",
+      "value": {
+        "Descriptive comment": "R008 update-only confirmation form source; isolates payment commands from default record editing.",
+        "Slice Actions": "**auto**",
+        "Slice Columns": "_RowNumber\nRow ID\nRef Loans\nCharge Date\nInterest Due\nPrincipal Due\nNotes\nPrincipal Paid\nInterest Paid\nTotal Paid\nPrincipal Remaining\nInterest Remaining\nAmount Remaining\nPayment Count\nPayment Status\nPayment Date\nPayment Request Cash Account\nPayment Request Token\nAmount Due\nBorrower Name\nRelated Repayments\nBorrower Name TE\nPayment Status TE\nDays Outstanding\nPayment Received Today\nRelated Payment Allocations\nRelated Payments",
+        "Slice Name": "R008 Charge Commands",
+        "Source Table": "Charges",
+        "Update mode": "UPDATES_ONLY",
+        "Visible?": "ALWAYS"
+      }
+    }
+  },
+  {
+    "id": "OLTP-R4-009",
+    "app": "OLTP",
+    "object": "View Charges_Detail",
+    "property": "View configuration.ColumnOrder",
+    "operation": "reorder",
+    "before": {
+      "state": "value",
+      "value": [
+        "Charge Date",
+        "Borrower Name TE",
+        "Ref Loans",
+        "Payment Status TE",
+        "Amount Due",
+        "Principal Due",
+        "Interest Due",
+        "Notes",
+        "Related Repayments"
+      ]
+    },
+    "dev": {
+      "state": "value",
+      "value": [
+        "Charge Date",
+        "Borrower Reference TE",
+        "Ref Loans",
+        "Payment Status TE",
+        "Amount Due",
+        "Principal Due",
+        "Interest Due",
+        "Notes",
+        "Related Repayments"
+      ]
+    },
+    "prod": {
+      "state": "value",
+      "value": [
+        "Charge Date",
+        "Borrower Reference TE",
+        "Ref Loans",
+        "Payment Status TE",
+        "Amount Due",
+        "Principal Due",
+        "Interest Due",
+        "Notes",
+        "Related Repayments"
+      ]
+    },
+    "evidence": "outputs/r008-20260918/r4/AT.json; REPORT.md",
+    "refinementBefore": {
+      "state": "value",
+      "value": [
+        "Charge Date",
+        "Borrower Name TE",
+        "Ref Loans",
+        "Payment Status TE",
+        "Amount Due",
+        "Principal Due",
+        "Interest Due",
+        "Notes",
+        "Related Repayments"
+      ]
+    }
+  },
+  {
+    "id": "OLTP-R4-010",
+    "app": "OLTP",
+    "object": "View Loans_Detail",
+    "property": "View configuration.ColumnOrder",
+    "operation": "reorder",
+    "before": {
+      "state": "value",
+      "value": [
+        "Loan Date",
+        "Close Date",
+        "Loan Duration",
+        "Principal Amount",
+        "Defaulted",
+        "Default Loss Amount",
+        "Loan Type TE",
+        "Due Date",
+        "Daily Payment Amount",
+        "Fixed Interest",
+        "Current Daily Interest",
+        "Interest Payment Interval",
+        "Interest Schedule Anchor Date",
+        "Borrower Name TE",
+        "Loan Arrangement",
+        "Loan Status TE",
+        "Statistics Header",
+        "Outstanding Principal",
+        "Transfer Fee",
+        "Total Principal Received",
+        "Total Amount Received",
+        "Total Interest Received",
+        "Principal Recovered by Interest %",
+        "Related Charges",
+        "Auto Charge Enabled"
+      ]
+    },
+    "dev": {
+      "state": "value",
+      "value": [
+        "Loan Date",
+        "Close Date",
+        "Loan Duration",
+        "Principal Amount",
+        "Defaulted",
+        "Default Loss Amount",
+        "Loan Type TE",
+        "Due Date",
+        "Daily Payment Amount",
+        "Fixed Interest",
+        "Current Daily Interest",
+        "Interest Payment Interval",
+        "Interest Schedule Anchor Date",
+        "Ref Borrowers",
+        "Loan Arrangement",
+        "Loan Status TE",
+        "Statistics Header",
+        "Outstanding Principal",
+        "Transfer Fee",
+        "Total Principal Received",
+        "Total Amount Received",
+        "Total Interest Received",
+        "Principal Recovered by Interest %",
+        "Related Charges",
+        "Auto Charge Enabled"
+      ]
+    },
+    "prod": {
+      "state": "value",
+      "value": [
+        "Loan Date",
+        "Close Date",
+        "Loan Duration",
+        "Principal Amount",
+        "Defaulted",
+        "Default Loss Amount",
+        "Loan Type TE",
+        "Due Date",
+        "Daily Payment Amount",
+        "Fixed Interest",
+        "Current Daily Interest",
+        "Interest Payment Interval",
+        "Interest Schedule Anchor Date",
+        "Ref Borrowers",
+        "Loan Arrangement",
+        "Loan Status TE",
+        "Statistics Header",
+        "Outstanding Principal",
+        "Transfer Fee",
+        "Total Principal Received",
+        "Total Amount Received",
+        "Total Interest Received",
+        "Principal Recovered by Interest %",
+        "Related Charges",
+        "Auto Charge Enabled"
+      ]
+    },
+    "evidence": "outputs/r008-20260918/r4/AT.json; REPORT.md",
+    "refinementBefore": {
+      "state": "value",
+      "value": [
+        "Loan Date",
+        "Close Date",
+        "Loan Duration",
+        "Principal Amount",
+        "Defaulted",
+        "Default Loss Amount",
+        "Loan Type TE",
+        "Due Date",
+        "Daily Payment Amount",
+        "Fixed Interest",
+        "Current Daily Interest",
+        "Interest Payment Interval",
+        "Interest Schedule Anchor Date",
+        "Borrower Name TE",
+        "Loan Arrangement",
+        "Loan Status TE",
+        "Statistics Header",
+        "Outstanding Principal",
+        "Transfer Fee",
+        "Total Principal Received",
+        "Total Amount Received",
+        "Total Interest Received",
+        "Principal Recovered by Interest %",
+        "Related Charges",
+        "Auto Charge Enabled"
+      ]
+    }
+  },
+  {
+    "id": "OLTP-R4-011",
+    "app": "OLTP",
+    "object": "View Repayments_Detail",
+    "property": "View configuration.ColumnOrder",
+    "operation": "reorder",
+    "before": {
+      "state": "value",
+      "value": [
+        "Payment Date",
+        "Ref Loans",
+        "Amount Received",
+        "Principal Paid",
+        "Interest Paid",
+        "Notes",
+        "Borrower Name TE"
+      ]
+    },
+    "dev": {
+      "state": "value",
+      "value": [
+        "Payment Date",
+        "Ref Loans",
+        "Amount Received",
+        "Principal Paid",
+        "Interest Paid",
+        "Notes",
+        "Borrower Reference TE"
+      ]
+    },
+    "prod": {
+      "state": "value",
+      "value": [
+        "Payment Date",
+        "Ref Loans",
+        "Amount Received",
+        "Principal Paid",
+        "Interest Paid",
+        "Notes",
+        "Borrower Reference TE"
+      ]
+    },
+    "evidence": "outputs/r008-20260918/r4/AT.json; REPORT.md",
+    "refinementBefore": {
+      "state": "value",
+      "value": [
+        "Payment Date",
+        "Ref Loans",
+        "Amount Received",
+        "Principal Paid",
+        "Interest Paid",
+        "Notes",
+        "Borrower Name TE"
+      ]
+    }
+  },
+  {
+    "id": "OLTP-R4-012",
+    "app": "OLTP",
+    "object": "Action Loans.View Ref (Ref Borrowers)",
+    "property": "Attach to column",
+    "operation": "change",
+    "before": {
+      "state": "value",
+      "value": "Borrower Name TE"
+    },
+    "dev": {
+      "state": "value",
+      "value": "Ref Borrowers"
+    },
+    "prod": {
+      "state": "value",
+      "value": "Ref Borrowers"
+    },
+    "evidence": "outputs/r008-20260918/r4/AT.json; REPORT.md",
+    "refinementBefore": {
+      "state": "value",
+      "value": "Borrower Name TE"
+    }
+  },
+  {
+    "id": "OLTP-R4-013",
+    "app": "OLTP",
+    "object": "Action Charges.Open Borrower from Charge",
+    "property": "definition",
+    "operation": "remove",
+    "before": {
+      "state": "value",
+      "value": {
+        "Action icon": "",
+        "Action name": "Open Borrower from Charge",
+        "Action order": 1,
+        "Attach to column": "Borrower Name TE",
+        "Bulk action?": "No",
+        "Disable automatic updates?": "No",
+        "Display name": "เปิดข้อมูลผู้กู้ / Open Borrower",
+        "Do this": "NAVIGATE_APP",
+        "Does this action apply to the whole table?": "No",
+        "For a record of this table": "Charges",
+        "Modifies data?": "No",
+        "Needs confirmation?": "No",
+        "Only if this condition is true": "=ISNOTBLANK([Ref Loans].[Ref Borrowers])",
+        "Prominence": "Display_Inline",
+        "Visible?": "ALWAYS",
+        "With these properties": {
+          "BulkApplicable": false,
+          "ConfirmationMessage": "",
+          "ModifiesData": false,
+          "NavigateTarget": "=LINKTOROW([Ref Loans].[Ref Borrowers], \"Borrowers_Detail\")",
+          "NeedsConfirmation": false,
+          "Prominence": "Display_Inline"
+        }
+      }
+    },
+    "dev": {
+      "state": "absent"
+    },
+    "prod": {
+      "state": "absent"
+    },
+    "evidence": "outputs/r008-20260918/r4/AT.json; REPORT.md",
+    "refinementBefore": {
+      "state": "value",
+      "value": {
+        "Action icon": "",
+        "Action name": "Open Borrower from Charge",
+        "Action order": 1,
+        "Attach to column": "Borrower Name TE",
+        "Bulk action?": "No",
+        "Disable automatic updates?": "No",
+        "Display name": "เปิดข้อมูลผู้กู้ / Open Borrower",
+        "Do this": "NAVIGATE_APP",
+        "Does this action apply to the whole table?": "No",
+        "For a record of this table": "Charges",
+        "Modifies data?": "No",
+        "Needs confirmation?": "No",
+        "Only if this condition is true": "=ISNOTBLANK([Ref Loans].[Ref Borrowers])",
+        "Prominence": "Display_Inline",
+        "Visible?": "ALWAYS",
+        "With these properties": {
+          "BulkApplicable": false,
+          "ConfirmationMessage": "",
+          "ModifiesData": false,
+          "NavigateTarget": "=LINKTOROW([Ref Loans].[Ref Borrowers], \"Borrowers_Detail\")",
+          "NeedsConfirmation": false,
+          "Prominence": "Display_Inline"
+        }
+      }
+    }
+  },
+  {
+    "id": "OLTP-R4-014",
+    "app": "OLTP",
+    "object": "Action Repayments.Open Borrower from Repayment",
+    "property": "definition",
+    "operation": "remove",
+    "before": {
+      "state": "value",
+      "value": {
+        "Action icon": "",
+        "Action name": "Open Borrower from Repayment",
+        "Action order": 1,
+        "Attach to column": "Borrower Name TE",
+        "Bulk action?": "No",
+        "Disable automatic updates?": "No",
+        "Display name": "เปิดข้อมูลผู้กู้ / Open Borrower",
+        "Do this": "NAVIGATE_APP",
+        "Does this action apply to the whole table?": "No",
+        "For a record of this table": "Repayments",
+        "Modifies data?": "No",
+        "Needs confirmation?": "No",
+        "Only if this condition is true": "=ISNOTBLANK([Ref Loans].[Ref Borrowers])",
+        "Prominence": "Display_Inline",
+        "Visible?": "ALWAYS",
+        "With these properties": {
+          "BulkApplicable": false,
+          "ConfirmationMessage": "",
+          "ModifiesData": false,
+          "NavigateTarget": "=LINKTOROW([Ref Loans].[Ref Borrowers], \"Borrowers_Detail\")",
+          "NeedsConfirmation": false,
+          "Prominence": "Display_Inline"
+        }
+      }
+    },
+    "dev": {
+      "state": "absent"
+    },
+    "prod": {
+      "state": "absent"
+    },
+    "evidence": "outputs/r008-20260918/r4/AT.json; REPORT.md",
+    "refinementBefore": {
+      "state": "value",
+      "value": {
+        "Action icon": "",
+        "Action name": "Open Borrower from Repayment",
+        "Action order": 1,
+        "Attach to column": "Borrower Name TE",
+        "Bulk action?": "No",
+        "Disable automatic updates?": "No",
+        "Display name": "เปิดข้อมูลผู้กู้ / Open Borrower",
+        "Do this": "NAVIGATE_APP",
+        "Does this action apply to the whole table?": "No",
+        "For a record of this table": "Repayments",
+        "Modifies data?": "No",
+        "Needs confirmation?": "No",
+        "Only if this condition is true": "=ISNOTBLANK([Ref Loans].[Ref Borrowers])",
+        "Prominence": "Display_Inline",
+        "Visible?": "ALWAYS",
+        "With these properties": {
+          "BulkApplicable": false,
+          "ConfirmationMessage": "",
+          "ModifiesData": false,
+          "NavigateTarget": "=LINKTOROW([Ref Loans].[Ref Borrowers], \"Borrowers_Detail\")",
+          "NeedsConfirmation": false,
+          "Prominence": "Display_Inline"
+        }
+      }
+    }
+  },
+  {
+    "id": "OLTP-R4-015",
+    "app": "OLTP",
+    "object": "Action Charges.View Ref (Borrower Reference TE)",
+    "property": "definition",
+    "operation": "add",
+    "before": {
+      "state": "absent"
+    },
+    "dev": {
+      "state": "value",
+      "value": {
+        "Action icon": "",
+        "Action name": "View Ref (Borrower Reference TE)",
+        "Action order": 1,
+        "Attach to column": "Borrower Reference TE",
+        "Bulk action?": "No",
+        "Disable automatic updates?": "No",
+        "Do this": "NAVIGATE_APP",
+        "Does this action apply to the whole table?": "No",
+        "For a record of this table": "Charges",
+        "Modifies data?": "No",
+        "Needs confirmation?": "No",
+        "Only if this condition is true": "NOT(ISBLANK([Borrower Reference TE]))",
+        "Prominence": "Display_Inline",
+        "Set this column": "Borrower Reference TE",
+        "Visible?": "ADVANCED",
+        "With these properties": {
+          "BulkApplicable": false,
+          "ConfirmationMessage": "",
+          "ModifiesData": false,
+          "NavigateTarget": "CONCATENATE(\"#page=detail&table=Borrowers&row=\", ENCODEURL([Borrower Reference TE]) )",
+          "NeedsConfirmation": false,
+          "Prominence": "Display_Inline"
+        }
+      }
+    },
+    "prod": {
+      "state": "value",
+      "value": {
+        "Action icon": "",
+        "Action name": "View Ref (Borrower Reference TE)",
+        "Action order": 1,
+        "Attach to column": "Borrower Reference TE",
+        "Bulk action?": "No",
+        "Disable automatic updates?": "No",
+        "Do this": "NAVIGATE_APP",
+        "Does this action apply to the whole table?": "No",
+        "For a record of this table": "Charges",
+        "Modifies data?": "No",
+        "Needs confirmation?": "No",
+        "Only if this condition is true": "NOT(ISBLANK([Borrower Reference TE]))",
+        "Prominence": "Display_Inline",
+        "Set this column": "Borrower Reference TE",
+        "Visible?": "ADVANCED",
+        "With these properties": {
+          "BulkApplicable": false,
+          "ConfirmationMessage": "",
+          "ModifiesData": false,
+          "NavigateTarget": "CONCATENATE(\"#page=detail&table=Borrowers&row=\", ENCODEURL([Borrower Reference TE]) )",
+          "NeedsConfirmation": false,
+          "Prominence": "Display_Inline"
+        }
+      }
+    },
+    "evidence": "outputs/r008-20260918/r4/AT.json; REPORT.md",
+    "refinementBefore": {
+      "state": "absent"
+    }
+  },
+  {
+    "id": "OLTP-R4-016",
+    "app": "OLTP",
+    "object": "Action Repayments.View Ref (Borrower Reference TE)",
+    "property": "definition",
+    "operation": "add",
+    "before": {
+      "state": "absent"
+    },
+    "dev": {
+      "state": "value",
+      "value": {
+        "Action icon": "",
+        "Action name": "View Ref (Borrower Reference TE)",
+        "Action order": 1,
+        "Attach to column": "Borrower Reference TE",
+        "Bulk action?": "No",
+        "Disable automatic updates?": "No",
+        "Do this": "NAVIGATE_APP",
+        "Does this action apply to the whole table?": "No",
+        "For a record of this table": "Repayments",
+        "Modifies data?": "No",
+        "Needs confirmation?": "No",
+        "Only if this condition is true": "NOT(ISBLANK([Borrower Reference TE]))",
+        "Prominence": "Display_Inline",
+        "Set this column": "Borrower Reference TE",
+        "Visible?": "ADVANCED",
+        "With these properties": {
+          "BulkApplicable": false,
+          "ConfirmationMessage": "",
+          "ModifiesData": false,
+          "NavigateTarget": "CONCATENATE(\"#page=detail&table=Borrowers&row=\", ENCODEURL([Borrower Reference TE]) )",
+          "NeedsConfirmation": false,
+          "Prominence": "Display_Inline"
+        }
+      }
+    },
+    "prod": {
+      "state": "value",
+      "value": {
+        "Action icon": "",
+        "Action name": "View Ref (Borrower Reference TE)",
+        "Action order": 1,
+        "Attach to column": "Borrower Reference TE",
+        "Bulk action?": "No",
+        "Disable automatic updates?": "No",
+        "Do this": "NAVIGATE_APP",
+        "Does this action apply to the whole table?": "No",
+        "For a record of this table": "Repayments",
+        "Modifies data?": "No",
+        "Needs confirmation?": "No",
+        "Only if this condition is true": "NOT(ISBLANK([Borrower Reference TE]))",
+        "Prominence": "Display_Inline",
+        "Set this column": "Borrower Reference TE",
+        "Visible?": "ADVANCED",
+        "With these properties": {
+          "BulkApplicable": false,
+          "ConfirmationMessage": "",
+          "ModifiesData": false,
+          "NavigateTarget": "CONCATENATE(\"#page=detail&table=Borrowers&row=\", ENCODEURL([Borrower Reference TE]) )",
+          "NeedsConfirmation": false,
+          "Prominence": "Display_Inline"
+        }
+      }
+    },
+    "evidence": "outputs/r008-20260918/r4/AT.json; REPORT.md",
+    "refinementBefore": {
+      "state": "absent"
+    }
+  },
+  {
+    "id": "OLAP-R4-017",
+    "app": "OLAP",
+    "object": "Column Borrowers.Related Repayments",
+    "property": "definition",
+    "operation": "add",
+    "before": {
+      "state": "absent"
+    },
+    "dev": {
+      "state": "value",
+      "value": {
+        "App formula": "REF_ROWS(\"Repayments\", \"Borrower Reference TE\")",
+        "Column name": "Related Repayments",
+        "Description": "Repayments entries that reference this entry in the Borrower Reference TE column",
+        "Editable Initial Value?": "Yes",
+        "Fixed definition?": "No",
+        "Formula version": 0,
+        "Hidden": "No",
+        "Key": "No",
+        "Label": "No",
+        "LocaleName": "en-US",
+        "NFC Scannable": "No",
+        "Part of Key?": "No",
+        "Read-Only": "Yes",
+        "Reset on edit?": "No",
+        "Scannable": "No",
+        "Searchable": "Yes",
+        "Sensitive data": "No",
+        "System Defined?": "Yes",
+        "Type": "List",
+        "Type Qualifier": {
+          "Editable_If": null,
+          "ElementType": "Ref",
+          "ElementTypeQualifier": "{\"ReferencedTableName\":\"Repayments\",\"ReferencedRootTableName\":\"Repayments\",\"ReferencedType\":\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\":\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+          "Error_Message_If_Invalid": null,
+          "ItemSeparator": " , ",
+          "Required_If": null,
+          "Reset_If": null,
+          "Show_If": null,
+          "Suggested_Values": null,
+          "Valid_If": null
+        },
+        "Virtual?": "Yes",
+        "Visible?": "ALWAYS"
+      }
+    },
+    "prod": {
+      "state": "value",
+      "value": {
+        "App formula": "REF_ROWS(\"Repayments\", \"Borrower Reference TE\")",
+        "Column name": "Related Repayments",
+        "Description": "Repayments entries that reference this entry in the Borrower Reference TE column",
+        "Editable Initial Value?": "Yes",
+        "Fixed definition?": "No",
+        "Formula version": 0,
+        "Hidden": "No",
+        "Key": "No",
+        "Label": "No",
+        "LocaleName": "en-US",
+        "NFC Scannable": "No",
+        "Part of Key?": "No",
+        "Read-Only": "Yes",
+        "Reset on edit?": "No",
+        "Scannable": "No",
+        "Searchable": "Yes",
+        "Sensitive data": "No",
+        "System Defined?": "Yes",
+        "Type": "List",
+        "Type Qualifier": {
+          "Editable_If": null,
+          "ElementType": "Ref",
+          "ElementTypeQualifier": "{\"ReferencedTableName\":\"Repayments\",\"ReferencedRootTableName\":\"Repayments\",\"ReferencedType\":\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\":\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+          "Error_Message_If_Invalid": null,
+          "ItemSeparator": " , ",
+          "Required_If": null,
+          "Reset_If": null,
+          "Show_If": null,
+          "Suggested_Values": null,
+          "Valid_If": null
+        },
+        "Virtual?": "Yes",
+        "Visible?": "ALWAYS"
+      }
+    },
+    "evidence": "outputs/r008-20260918/r4/AA.json; REPORT.md",
+    "refinementBefore": {
+      "state": "absent"
+    }
+  },
+  {
+    "id": "OLAP-R4-018",
+    "app": "OLAP",
+    "object": "Column Borrowers.Related Charges By Borrower Reference TE",
+    "property": "definition",
+    "operation": "add",
+    "before": {
+      "state": "absent"
+    },
+    "dev": {
+      "state": "value",
+      "value": {
+        "App formula": "REF_ROWS(\"Charges\", \"Borrower Reference TE\")",
+        "Column name": "Related Charges By Borrower Reference TE",
+        "Description": "Charges entries that reference this entry in the Borrower Reference TE column",
+        "Editable Initial Value?": "Yes",
+        "Fixed definition?": "No",
+        "Formula version": 0,
+        "Hidden": "No",
+        "Key": "No",
+        "Label": "No",
+        "LocaleName": "en-US",
+        "NFC Scannable": "No",
+        "Part of Key?": "No",
+        "Read-Only": "Yes",
+        "Reset on edit?": "No",
+        "Scannable": "No",
+        "Searchable": "Yes",
+        "Sensitive data": "No",
+        "System Defined?": "Yes",
+        "Type": "List",
+        "Type Qualifier": {
+          "Editable_If": null,
+          "ElementType": "Ref",
+          "ElementTypeQualifier": "{\"ReferencedTableName\":\"Charges\",\"ReferencedRootTableName\":\"Charges\",\"ReferencedType\":\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\":\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+          "Error_Message_If_Invalid": null,
+          "ItemSeparator": " , ",
+          "Required_If": null,
+          "Reset_If": null,
+          "Show_If": null,
+          "Suggested_Values": null,
+          "Valid_If": null
+        },
+        "Virtual?": "Yes",
+        "Visible?": "ALWAYS"
+      }
+    },
+    "prod": {
+      "state": "value",
+      "value": {
+        "App formula": "REF_ROWS(\"Charges\", \"Borrower Reference TE\")",
+        "Column name": "Related Charges By Borrower Reference TE",
+        "Description": "Charges entries that reference this entry in the Borrower Reference TE column",
+        "Editable Initial Value?": "Yes",
+        "Fixed definition?": "No",
+        "Formula version": 0,
+        "Hidden": "No",
+        "Key": "No",
+        "Label": "No",
+        "LocaleName": "en-US",
+        "NFC Scannable": "No",
+        "Part of Key?": "No",
+        "Read-Only": "Yes",
+        "Reset on edit?": "No",
+        "Scannable": "No",
+        "Searchable": "Yes",
+        "Sensitive data": "No",
+        "System Defined?": "Yes",
+        "Type": "List",
+        "Type Qualifier": {
+          "Editable_If": null,
+          "ElementType": "Ref",
+          "ElementTypeQualifier": "{\"ReferencedTableName\":\"Charges\",\"ReferencedRootTableName\":\"Charges\",\"ReferencedType\":\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\":\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+          "Error_Message_If_Invalid": null,
+          "ItemSeparator": " , ",
+          "Required_If": null,
+          "Reset_If": null,
+          "Show_If": null,
+          "Suggested_Values": null,
+          "Valid_If": null
+        },
+        "Virtual?": "Yes",
+        "Visible?": "ALWAYS"
+      }
+    },
+    "evidence": "outputs/r008-20260918/r4/AA.json; REPORT.md",
+    "refinementBefore": {
+      "state": "absent"
+    }
+  },
+  {
+    "id": "OLAP-R4-019",
+    "app": "OLAP",
+    "object": "Column Repayments.Borrower Reference TE",
+    "property": "definition",
+    "operation": "add",
+    "before": {
+      "state": "absent"
+    },
+    "dev": {
+      "state": "value",
+      "value": {
+        "App formula": "=[Ref Loans].[Ref Borrowers]",
+        "Column name": "Borrower Reference TE",
+        "Display name": "=\"Borrower Name TE\"",
+        "Editable Initial Value?": "Yes",
+        "Fixed definition?": "No",
+        "Formula version": 0,
+        "Hidden": "No",
+        "Key": "No",
+        "Label": "No",
+        "LocaleName": "en-US",
+        "Part of Key?": "No",
+        "Read-Only": "Yes",
+        "Reset on edit?": "No",
+        "Scannable": "No",
+        "Searchable": "Yes",
+        "Sensitive data": "No",
+        "System Defined?": "No",
+        "Type": "Ref",
+        "Type Qualifier": {
+          "Editable_If": null,
+          "Error_Message_If_Invalid": null,
+          "InputMode": "Auto",
+          "IsAPartOf": false,
+          "ReferencedKeyColumn": "Row ID",
+          "ReferencedRootTableName": "Borrowers",
+          "ReferencedTableName": "Borrowers",
+          "ReferencedType": "Text",
+          "RelationshipName": null,
+          "Required_If": null,
+          "Reset_If": null,
+          "Show_If": "=CONTEXT(\"ViewType\") = \"Detail\"",
+          "Suggested_Values": null,
+          "Valid_If": null
+        },
+        "Virtual?": "Yes",
+        "Visible?": "ALWAYS"
+      }
+    },
+    "prod": {
+      "state": "value",
+      "value": {
+        "App formula": "=[Ref Loans].[Ref Borrowers]",
+        "Column name": "Borrower Reference TE",
+        "Display name": "=\"Borrower Name TE\"",
+        "Editable Initial Value?": "Yes",
+        "Fixed definition?": "No",
+        "Formula version": 0,
+        "Hidden": "No",
+        "Key": "No",
+        "Label": "No",
+        "LocaleName": "en-US",
+        "Part of Key?": "No",
+        "Read-Only": "Yes",
+        "Reset on edit?": "No",
+        "Scannable": "No",
+        "Searchable": "Yes",
+        "Sensitive data": "No",
+        "System Defined?": "No",
+        "Type": "Ref",
+        "Type Qualifier": {
+          "Editable_If": null,
+          "Error_Message_If_Invalid": null,
+          "InputMode": "Auto",
+          "IsAPartOf": false,
+          "ReferencedKeyColumn": "Row ID",
+          "ReferencedRootTableName": "Borrowers",
+          "ReferencedTableName": "Borrowers",
+          "ReferencedType": "Text",
+          "RelationshipName": null,
+          "Required_If": null,
+          "Reset_If": null,
+          "Show_If": "=CONTEXT(\"ViewType\") = \"Detail\"",
+          "Suggested_Values": null,
+          "Valid_If": null
+        },
+        "Virtual?": "Yes",
+        "Visible?": "ALWAYS"
+      }
+    },
+    "evidence": "outputs/r008-20260918/r4/AA.json; REPORT.md",
+    "refinementBefore": {
+      "state": "absent"
+    }
+  },
+  {
+    "id": "OLAP-R4-020",
+    "app": "OLAP",
+    "object": "Column Charges.Borrower Reference TE",
+    "property": "definition",
+    "operation": "add",
+    "before": {
+      "state": "absent"
+    },
+    "dev": {
+      "state": "value",
+      "value": {
+        "App formula": "=[Ref Loans].[Ref Borrowers]",
+        "Column name": "Borrower Reference TE",
+        "Display name": "=\"Borrower Name TE\"",
+        "Editable Initial Value?": "Yes",
+        "Fixed definition?": "No",
+        "Formula version": 0,
+        "Hidden": "No",
+        "Key": "No",
+        "Label": "No",
+        "LocaleName": "en-US",
+        "Part of Key?": "No",
+        "Read-Only": "Yes",
+        "Reset on edit?": "No",
+        "Scannable": "No",
+        "Searchable": "Yes",
+        "Sensitive data": "No",
+        "System Defined?": "No",
+        "Type": "Ref",
+        "Type Qualifier": {
+          "Editable_If": null,
+          "Error_Message_If_Invalid": null,
+          "InputMode": "Auto",
+          "IsAPartOf": false,
+          "ReferencedKeyColumn": "Row ID",
+          "ReferencedRootTableName": "Borrowers",
+          "ReferencedTableName": "Borrowers",
+          "ReferencedType": "Text",
+          "RelationshipName": null,
+          "Required_If": null,
+          "Reset_If": null,
+          "Show_If": "=CONTEXT(\"ViewType\") = \"Detail\"",
+          "Suggested_Values": null,
+          "Valid_If": null
+        },
+        "Virtual?": "Yes",
+        "Visible?": "ALWAYS"
+      }
+    },
+    "prod": {
+      "state": "value",
+      "value": {
+        "App formula": "=[Ref Loans].[Ref Borrowers]",
+        "Column name": "Borrower Reference TE",
+        "Display name": "=\"Borrower Name TE\"",
+        "Editable Initial Value?": "Yes",
+        "Fixed definition?": "No",
+        "Formula version": 0,
+        "Hidden": "No",
+        "Key": "No",
+        "Label": "No",
+        "LocaleName": "en-US",
+        "Part of Key?": "No",
+        "Read-Only": "Yes",
+        "Reset on edit?": "No",
+        "Scannable": "No",
+        "Searchable": "Yes",
+        "Sensitive data": "No",
+        "System Defined?": "No",
+        "Type": "Ref",
+        "Type Qualifier": {
+          "Editable_If": null,
+          "Error_Message_If_Invalid": null,
+          "InputMode": "Auto",
+          "IsAPartOf": false,
+          "ReferencedKeyColumn": "Row ID",
+          "ReferencedRootTableName": "Borrowers",
+          "ReferencedTableName": "Borrowers",
+          "ReferencedType": "Text",
+          "RelationshipName": null,
+          "Required_If": null,
+          "Reset_If": null,
+          "Show_If": "=CONTEXT(\"ViewType\") = \"Detail\"",
+          "Suggested_Values": null,
+          "Valid_If": null
+        },
+        "Virtual?": "Yes",
+        "Visible?": "ALWAYS"
+      }
+    },
+    "evidence": "outputs/r008-20260918/r4/AA.json; REPORT.md",
+    "refinementBefore": {
+      "state": "absent"
+    }
+  },
+  {
+    "id": "OLAP-080",
+    "app": "OLAP",
+    "object": "Slice Borrowers with Outstanding Loans",
+    "property": "Slice Columns",
+    "operation": "change",
+    "dev": {
+      "state": "value",
+      "value": "_RowNumber\nRow ID\nBorrower Name\nDescription\nCreation Date\nRelated Loans\nTotal Interest Earned\nTotal Amount Loaned\nTotal Number of Loans\nTotal Outstanding Principal\nHeader - Active Loans\nBorrower Name TE\nReturn on Active Principal\nProfit Last 30 Days\nProjected Interest Coverage Date\nActive Loan Interest Earned\nActive Daily Interest\nRelated Loan Assessments\nClosed Loan Interest Earned\nClosed Loan Principle\nHas Closed Loan\nReturn on Closed Loans\nHeader - Closed Loans\nHas Active Loan\n30D Gross Principal Days\n30D Principal Reduction Days\n30D Average Outstanding Principal\n30D Return on Average Principal\nDaily Collection Status\nTodays Collection Charges\nTodays Amount Due\nTodays Amount Collected\nTodays Amount Remaining\nPortfolio Exposure %\nActive Loan Count\nOldest Active Loan Age\nOverdue Amount\nOverdue Charge Count\nHistorical Charge Count\nOn Time Charge Count\nLifetime On Time Rate\nRecent 30D Charge Count\nRecent 30D On Time Count\nRecent 30D On Time Rate\nLifetime Late Payment Count\nRecent 30D Late Payment Count\nMaximum Days Late\nLast Late Payment Date\nLargest Successful Loan\nAverage Successful Loan Size\nDefault Count\nLifetime Default Loss\nPortfolio Outstanding Principal\nPortfolio Share Join Key\nHidden Flag\nProjected Monthly Profit Contribution\nMatrix Active Borrower Count\nMatrix Equal Share Benchmark\nMatrix Economic Contribution\nMatrix Recent Reliability Score\nMatrix Historical Reliability Score\nMatrix Delay Severity Score\nMatrix Current Condition Score\nMatrix History Sufficient\nMatrix Stability Score\nMatrix Quadrant\nMatrix Bubble Label\nProfit Last 10 Days\nMatrix Scaled Economic Contribution\nRelated Payments\nCity\nWorking Location\nAddress\nRef Referrer\nRelated Business Expenses By Ref Payee Borrower\nRelated Business Expenses By Ref Related Borrower\nRef Preferred Receiving Cash Account\nPayment Request Cash Account\nPayment Request Token\nRelated Repayments\nRelated Charges By Borrower Reference TE"
+    },
+    "prod": {
+      "state": "value",
+      "value": "_RowNumber\nRow ID\nBorrower Name\nDescription\nCreation Date\nRelated Loans\nTotal Interest Earned\nTotal Amount Loaned\nTotal Number of Loans\nTotal Outstanding Principal\nHeader - Active Loans\nBorrower Name TE\nReturn on Active Principal\nProfit Last 30 Days\nProjected Interest Coverage Date\nActive Loan Interest Earned\nActive Daily Interest\nRelated Loan Assessments\nClosed Loan Interest Earned\nClosed Loan Principle\nHas Closed Loan\nReturn on Closed Loans\nHeader - Closed Loans\nHas Active Loan\n30D Gross Principal Days\n30D Principal Reduction Days\n30D Average Outstanding Principal\n30D Return on Average Principal\nDaily Collection Status\nTodays Collection Charges\nTodays Amount Due\nTodays Amount Collected\nTodays Amount Remaining\nPortfolio Exposure %\nActive Loan Count\nOldest Active Loan Age\nOverdue Amount\nOverdue Charge Count\nHistorical Charge Count\nOn Time Charge Count\nLifetime On Time Rate\nRecent 30D Charge Count\nRecent 30D On Time Count\nRecent 30D On Time Rate\nLifetime Late Payment Count\nRecent 30D Late Payment Count\nMaximum Days Late\nLast Late Payment Date\nLargest Successful Loan\nAverage Successful Loan Size\nDefault Count\nLifetime Default Loss\nPortfolio Outstanding Principal\nPortfolio Share Join Key\nHidden Flag\nProjected Monthly Profit Contribution\nMatrix Active Borrower Count\nMatrix Equal Share Benchmark\nMatrix Economic Contribution\nMatrix Recent Reliability Score\nMatrix Historical Reliability Score\nMatrix Delay Severity Score\nMatrix Current Condition Score\nMatrix History Sufficient\nMatrix Stability Score\nMatrix Quadrant\nMatrix Bubble Label\nProfit Last 10 Days\nMatrix Scaled Economic Contribution\nRelated Payments\nCity\nWorking Location\nAddress\nRef Referrer\nRelated Business Expenses By Ref Payee Borrower\nRelated Business Expenses By Ref Related Borrower\nRef Preferred Receiving Cash Account\nPayment Request Cash Account\nPayment Request Token\nRelated Repayments\nRelated Charges By Borrower Reference TE"
+    },
+    "evidence": "outputs/r008-20260918/r4/AA.json; REPORT.md",
+    "refinementBefore": {
+      "state": "value",
+      "value": "_RowNumber\nRow ID\nBorrower Name\nDescription\nCreation Date\nRelated Loans\nTotal Interest Earned\nTotal Amount Loaned\nTotal Number of Loans\nTotal Outstanding Principal\nHeader - Active Loans\nBorrower Name TE\nReturn on Active Principal\nProfit Last 30 Days\nProjected Interest Coverage Date\nActive Loan Interest Earned\nActive Daily Interest\nRelated Loan Assessments\nClosed Loan Interest Earned\nClosed Loan Principle\nHas Closed Loan\nReturn on Closed Loans\nHeader - Closed Loans\nHas Active Loan\n30D Gross Principal Days\n30D Principal Reduction Days\n30D Average Outstanding Principal\n30D Return on Average Principal\nDaily Collection Status\nTodays Collection Charges\nTodays Amount Due\nTodays Amount Collected\nTodays Amount Remaining\nPortfolio Exposure %\nActive Loan Count\nOldest Active Loan Age\nOverdue Amount\nOverdue Charge Count\nHistorical Charge Count\nOn Time Charge Count\nLifetime On Time Rate\nRecent 30D Charge Count\nRecent 30D On Time Count\nRecent 30D On Time Rate\nLifetime Late Payment Count\nRecent 30D Late Payment Count\nMaximum Days Late\nLast Late Payment Date\nLargest Successful Loan\nAverage Successful Loan Size\nDefault Count\nLifetime Default Loss\nPortfolio Outstanding Principal\nPortfolio Share Join Key\nHidden Flag\nProjected Monthly Profit Contribution\nMatrix Active Borrower Count\nMatrix Equal Share Benchmark\nMatrix Economic Contribution\nMatrix Recent Reliability Score\nMatrix Historical Reliability Score\nMatrix Delay Severity Score\nMatrix Current Condition Score\nMatrix History Sufficient\nMatrix Stability Score\nMatrix Quadrant\nMatrix Bubble Label\nProfit Last 10 Days\nMatrix Scaled Economic Contribution\nRelated Payments\nCity\nWorking Location\nAddress\nRef Referrer\nRelated Business Expenses By Ref Payee Borrower\nRelated Business Expenses By Ref Related Borrower\nRef Preferred Receiving Cash Account\nPayment Request Cash Account\nPayment Request Token"
+    }
+  },
+  {
+    "id": "OLAP-081",
+    "app": "OLAP",
+    "object": "Slice Profit Contribution 30D",
+    "property": "Slice Columns",
+    "operation": "change",
+    "dev": {
+      "state": "value",
+      "value": "_RowNumber\nRow ID\nBorrower Name\nDescription\nCreation Date\nRelated Loans\nTotal Interest Earned\nTotal Amount Loaned\nTotal Number of Loans\nTotal Outstanding Principal\nHeader - Active Loans\nBorrower Name TE\nReturn on Active Principal\nProfit Last 30 Days\nProjected Interest Coverage Date\nActive Loan Interest Earned\nActive Daily Interest\nRelated Loan Assessments\nClosed Loan Interest Earned\nClosed Loan Principle\nHas Closed Loan\nReturn on Closed Loans\nHeader - Closed Loans\nHas Active Loan\n30D Gross Principal Days\n30D Principal Reduction Days\n30D Average Outstanding Principal\n30D Return on Average Principal\nDaily Collection Status\nTodays Collection Charges\nTodays Amount Due\nTodays Amount Collected\nTodays Amount Remaining\nPortfolio Exposure %\nActive Loan Count\nOldest Active Loan Age\nOverdue Amount\nOverdue Charge Count\nHistorical Charge Count\nOn Time Charge Count\nLifetime On Time Rate\nRecent 30D Charge Count\nRecent 30D On Time Count\nRecent 30D On Time Rate\nLifetime Late Payment Count\nRecent 30D Late Payment Count\nMaximum Days Late\nLast Late Payment Date\nLargest Successful Loan\nAverage Successful Loan Size\nDefault Count\nLifetime Default Loss\nPortfolio Outstanding Principal\nPortfolio Share Join Key\nHidden Flag\nProjected Monthly Profit Contribution\nMatrix Active Borrower Count\nMatrix Equal Share Benchmark\nMatrix Economic Contribution\nMatrix Recent Reliability Score\nMatrix Historical Reliability Score\nMatrix Delay Severity Score\nMatrix Current Condition Score\nMatrix History Sufficient\nMatrix Stability Score\nMatrix Quadrant\nMatrix Bubble Label\nProfit Last 10 Days\nMatrix Scaled Economic Contribution\nRelated Payments\nCity\nWorking Location\nAddress\nRef Referrer\nRelated Business Expenses By Ref Payee Borrower\nRelated Business Expenses By Ref Related Borrower\nRef Preferred Receiving Cash Account\nPayment Request Cash Account\nPayment Request Token\nRelated Repayments\nRelated Charges By Borrower Reference TE"
+    },
+    "prod": {
+      "state": "value",
+      "value": "_RowNumber\nRow ID\nBorrower Name\nDescription\nCreation Date\nRelated Loans\nTotal Interest Earned\nTotal Amount Loaned\nTotal Number of Loans\nTotal Outstanding Principal\nHeader - Active Loans\nBorrower Name TE\nReturn on Active Principal\nProfit Last 30 Days\nProjected Interest Coverage Date\nActive Loan Interest Earned\nActive Daily Interest\nRelated Loan Assessments\nClosed Loan Interest Earned\nClosed Loan Principle\nHas Closed Loan\nReturn on Closed Loans\nHeader - Closed Loans\nHas Active Loan\n30D Gross Principal Days\n30D Principal Reduction Days\n30D Average Outstanding Principal\n30D Return on Average Principal\nDaily Collection Status\nTodays Collection Charges\nTodays Amount Due\nTodays Amount Collected\nTodays Amount Remaining\nPortfolio Exposure %\nActive Loan Count\nOldest Active Loan Age\nOverdue Amount\nOverdue Charge Count\nHistorical Charge Count\nOn Time Charge Count\nLifetime On Time Rate\nRecent 30D Charge Count\nRecent 30D On Time Count\nRecent 30D On Time Rate\nLifetime Late Payment Count\nRecent 30D Late Payment Count\nMaximum Days Late\nLast Late Payment Date\nLargest Successful Loan\nAverage Successful Loan Size\nDefault Count\nLifetime Default Loss\nPortfolio Outstanding Principal\nPortfolio Share Join Key\nHidden Flag\nProjected Monthly Profit Contribution\nMatrix Active Borrower Count\nMatrix Equal Share Benchmark\nMatrix Economic Contribution\nMatrix Recent Reliability Score\nMatrix Historical Reliability Score\nMatrix Delay Severity Score\nMatrix Current Condition Score\nMatrix History Sufficient\nMatrix Stability Score\nMatrix Quadrant\nMatrix Bubble Label\nProfit Last 10 Days\nMatrix Scaled Economic Contribution\nRelated Payments\nCity\nWorking Location\nAddress\nRef Referrer\nRelated Business Expenses By Ref Payee Borrower\nRelated Business Expenses By Ref Related Borrower\nRef Preferred Receiving Cash Account\nPayment Request Cash Account\nPayment Request Token\nRelated Repayments\nRelated Charges By Borrower Reference TE"
+    },
+    "evidence": "outputs/r008-20260918/r4/AA.json; REPORT.md",
+    "refinementBefore": {
+      "state": "value",
+      "value": "_RowNumber\nRow ID\nBorrower Name\nDescription\nCreation Date\nRelated Loans\nTotal Interest Earned\nTotal Amount Loaned\nTotal Number of Loans\nTotal Outstanding Principal\nHeader - Active Loans\nBorrower Name TE\nReturn on Active Principal\nProfit Last 30 Days\nProjected Interest Coverage Date\nActive Loan Interest Earned\nActive Daily Interest\nRelated Loan Assessments\nClosed Loan Interest Earned\nClosed Loan Principle\nHas Closed Loan\nReturn on Closed Loans\nHeader - Closed Loans\nHas Active Loan\n30D Gross Principal Days\n30D Principal Reduction Days\n30D Average Outstanding Principal\n30D Return on Average Principal\nDaily Collection Status\nTodays Collection Charges\nTodays Amount Due\nTodays Amount Collected\nTodays Amount Remaining\nPortfolio Exposure %\nActive Loan Count\nOldest Active Loan Age\nOverdue Amount\nOverdue Charge Count\nHistorical Charge Count\nOn Time Charge Count\nLifetime On Time Rate\nRecent 30D Charge Count\nRecent 30D On Time Count\nRecent 30D On Time Rate\nLifetime Late Payment Count\nRecent 30D Late Payment Count\nMaximum Days Late\nLast Late Payment Date\nLargest Successful Loan\nAverage Successful Loan Size\nDefault Count\nLifetime Default Loss\nPortfolio Outstanding Principal\nPortfolio Share Join Key\nHidden Flag\nProjected Monthly Profit Contribution\nMatrix Active Borrower Count\nMatrix Equal Share Benchmark\nMatrix Economic Contribution\nMatrix Recent Reliability Score\nMatrix Historical Reliability Score\nMatrix Delay Severity Score\nMatrix Current Condition Score\nMatrix History Sufficient\nMatrix Stability Score\nMatrix Quadrant\nMatrix Bubble Label\nProfit Last 10 Days\nMatrix Scaled Economic Contribution\nRelated Payments\nCity\nWorking Location\nAddress\nRef Referrer\nRelated Business Expenses By Ref Payee Borrower\nRelated Business Expenses By Ref Related Borrower\nRef Preferred Receiving Cash Account\nPayment Request Cash Account\nPayment Request Token"
+    }
+  },
+  {
+    "id": "OLAP-083",
+    "app": "OLAP",
+    "object": "Slice Reporting Borrowers",
+    "property": "Slice Columns",
+    "operation": "change",
+    "dev": {
+      "state": "value",
+      "value": "_RowNumber\nRow ID\nBorrower Name\nBorrower Name TE\nDescription\nTotal Interest Earned\nTotal Amount Loaned\nTotal Number of Loans\nTotal Outstanding Principal\nDaily Collection Status\nTodays Amount Due\nTodays Amount Collected\nTodays Amount Remaining\n30D Return on Average Principal\nReturn on Active Principal\n30D Average Outstanding Principal\nProfit Last 30 Days\nHas Active Loan\nHas Closed Loan\nOverdue Amount\nOverdue Charge Count\nOldest Active Loan Age\nActive Loan Count\nPortfolio Exposure %\nHistorical Charge Count\nOn Time Charge Count\nLifetime On Time Rate\nRecent 30D Charge Count\nRecent 30D On Time Count\nRecent 30D On Time Rate\nLifetime Late Payment Count\nRecent 30D Late Payment Count\nMaximum Days Late\nLast Late Payment Date\nLargest Successful Loan\nAverage Successful Loan Size\nDefault Count\nLifetime Default Loss\nPortfolio Outstanding Principal\nPortfolio Share Join Key\nHidden Flag\nMatrix Active Borrower Count\nMatrix Equal Share Benchmark\nMatrix Economic Contribution\nMatrix Historical Reliability Score\nMatrix Delay Severity Score\nMatrix Current Condition Score\nMatrix Quadrant\nMatrix Bubble Label\nMatrix Recent Reliability Score\nMatrix History Sufficient\nMatrix Stability Score\nMatrix Scaled Economic Contribution\nRelated Payments\nCity\nWorking Location\nAddress\nRef Referrer\nRelated Business Expenses By Ref Payee Borrower\nRelated Business Expenses By Ref Related Borrower\nRef Preferred Receiving Cash Account\nPayment Request Cash Account\nPayment Request Token\nRelated Repayments\nRelated Charges By Borrower Reference TE"
+    },
+    "prod": {
+      "state": "value",
+      "value": "_RowNumber\nRow ID\nBorrower Name\nBorrower Name TE\nDescription\nTotal Interest Earned\nTotal Amount Loaned\nTotal Number of Loans\nTotal Outstanding Principal\nDaily Collection Status\nTodays Amount Due\nTodays Amount Collected\nTodays Amount Remaining\n30D Return on Average Principal\nReturn on Active Principal\n30D Average Outstanding Principal\nProfit Last 30 Days\nHas Active Loan\nHas Closed Loan\nOverdue Amount\nOverdue Charge Count\nOldest Active Loan Age\nActive Loan Count\nPortfolio Exposure %\nHistorical Charge Count\nOn Time Charge Count\nLifetime On Time Rate\nRecent 30D Charge Count\nRecent 30D On Time Count\nRecent 30D On Time Rate\nLifetime Late Payment Count\nRecent 30D Late Payment Count\nMaximum Days Late\nLast Late Payment Date\nLargest Successful Loan\nAverage Successful Loan Size\nDefault Count\nLifetime Default Loss\nPortfolio Outstanding Principal\nPortfolio Share Join Key\nHidden Flag\nMatrix Active Borrower Count\nMatrix Equal Share Benchmark\nMatrix Economic Contribution\nMatrix Historical Reliability Score\nMatrix Delay Severity Score\nMatrix Current Condition Score\nMatrix Quadrant\nMatrix Bubble Label\nMatrix Recent Reliability Score\nMatrix History Sufficient\nMatrix Stability Score\nMatrix Scaled Economic Contribution\nRelated Payments\nCity\nWorking Location\nAddress\nRef Referrer\nRelated Business Expenses By Ref Payee Borrower\nRelated Business Expenses By Ref Related Borrower\nRef Preferred Receiving Cash Account\nPayment Request Cash Account\nPayment Request Token\nRelated Repayments\nRelated Charges By Borrower Reference TE"
+    },
+    "evidence": "outputs/r008-20260918/r4/AA.json; REPORT.md",
+    "refinementBefore": {
+      "state": "value",
+      "value": "_RowNumber\nRow ID\nBorrower Name\nBorrower Name TE\nDescription\nTotal Interest Earned\nTotal Amount Loaned\nTotal Number of Loans\nTotal Outstanding Principal\nDaily Collection Status\nTodays Amount Due\nTodays Amount Collected\nTodays Amount Remaining\n30D Return on Average Principal\nReturn on Active Principal\n30D Average Outstanding Principal\nProfit Last 30 Days\nHas Active Loan\nHas Closed Loan\nOverdue Amount\nOverdue Charge Count\nOldest Active Loan Age\nActive Loan Count\nPortfolio Exposure %\nHistorical Charge Count\nOn Time Charge Count\nLifetime On Time Rate\nRecent 30D Charge Count\nRecent 30D On Time Count\nRecent 30D On Time Rate\nLifetime Late Payment Count\nRecent 30D Late Payment Count\nMaximum Days Late\nLast Late Payment Date\nLargest Successful Loan\nAverage Successful Loan Size\nDefault Count\nLifetime Default Loss\nPortfolio Outstanding Principal\nPortfolio Share Join Key\nHidden Flag\nMatrix Active Borrower Count\nMatrix Equal Share Benchmark\nMatrix Economic Contribution\nMatrix Historical Reliability Score\nMatrix Delay Severity Score\nMatrix Current Condition Score\nMatrix Quadrant\nMatrix Bubble Label\nMatrix Recent Reliability Score\nMatrix History Sufficient\nMatrix Stability Score\nMatrix Scaled Economic Contribution\nRelated Payments\nCity\nWorking Location\nAddress\nRef Referrer\nRelated Business Expenses By Ref Payee Borrower\nRelated Business Expenses By Ref Related Borrower\nRef Preferred Receiving Cash Account\nPayment Request Cash Account\nPayment Request Token"
+    }
+  },
+  {
+    "id": "OLAP-085",
+    "app": "OLAP",
+    "object": "Slice Todays Collection Board",
+    "property": "Slice Columns",
+    "operation": "change",
+    "dev": {
+      "state": "value",
+      "value": "_RowNumber\nRow ID\nBorrower Name\nDescription\nHidden Flag\nDaily Collection Status\nTodays Collection Charges\nTodays Amount Due\nTodays Amount Collected\nTodays Amount Remaining\nOverdue Amount\nRelated Payments\nCity\nWorking Location\nAddress\nRef Referrer\nRelated Business Expenses By Ref Payee Borrower\nRelated Business Expenses By Ref Related Borrower\nRef Preferred Receiving Cash Account\nPayment Request Cash Account\nPayment Request Token\nRelated Repayments\nRelated Charges By Borrower Reference TE"
+    },
+    "prod": {
+      "state": "value",
+      "value": "_RowNumber\nRow ID\nBorrower Name\nDescription\nHidden Flag\nDaily Collection Status\nTodays Collection Charges\nTodays Amount Due\nTodays Amount Collected\nTodays Amount Remaining\nOverdue Amount\nRelated Payments\nCity\nWorking Location\nAddress\nRef Referrer\nRelated Business Expenses By Ref Payee Borrower\nRelated Business Expenses By Ref Related Borrower\nRef Preferred Receiving Cash Account\nPayment Request Cash Account\nPayment Request Token\nRelated Repayments\nRelated Charges By Borrower Reference TE"
+    },
+    "evidence": "outputs/r008-20260918/r4/AA.json; REPORT.md",
+    "refinementBefore": {
+      "state": "value",
+      "value": "_RowNumber\nRow ID\nBorrower Name\nDescription\nHidden Flag\nDaily Collection Status\nTodays Collection Charges\nTodays Amount Due\nTodays Amount Collected\nTodays Amount Remaining\nOverdue Amount\nRelated Payments\nCity\nWorking Location\nAddress\nRef Referrer\nRelated Business Expenses By Ref Payee Borrower\nRelated Business Expenses By Ref Related Borrower\nRef Preferred Receiving Cash Account\nPayment Request Cash Account\nPayment Request Token"
+    }
+  },
+  {
+    "id": "OLAP-R4-025",
+    "app": "OLAP",
+    "object": "View Charges_Detail",
+    "property": "View configuration.ColumnOrder",
+    "operation": "reorder",
+    "before": {
+      "state": "value",
+      "value": [
+        "Charge Date",
+        "Ref Loans",
+        "Payment Status",
+        "Amount Due",
+        "Principal Due",
+        "Interest Due",
+        "Related Repayments",
+        "Borrower Name TE"
+      ]
+    },
+    "dev": {
+      "state": "value",
+      "value": [
+        "Charge Date",
+        "Ref Loans",
+        "Payment Status",
+        "Amount Due",
+        "Principal Due",
+        "Interest Due",
+        "Related Repayments",
+        "Borrower Reference TE"
+      ]
+    },
+    "prod": {
+      "state": "value",
+      "value": [
+        "Charge Date",
+        "Ref Loans",
+        "Payment Status",
+        "Amount Due",
+        "Principal Due",
+        "Interest Due",
+        "Related Repayments",
+        "Borrower Reference TE"
+      ]
+    },
+    "evidence": "outputs/r008-20260918/r4/AA.json; REPORT.md",
+    "refinementBefore": {
+      "state": "value",
+      "value": [
+        "Charge Date",
+        "Ref Loans",
+        "Payment Status",
+        "Amount Due",
+        "Principal Due",
+        "Interest Due",
+        "Related Repayments",
+        "Borrower Name TE"
+      ]
+    }
+  },
+  {
+    "id": "OLAP-R4-026",
+    "app": "OLAP",
+    "object": "View Loans_Detail",
+    "property": "View configuration.ColumnOrder",
+    "operation": "reorder",
+    "before": {
+      "state": "value",
+      "value": [
+        "Loan Date",
+        "Loan End Date",
+        "Loan Duration",
+        "Principal Amount",
+        "Loan Type TE",
+        "Due Date",
+        "Fixed Interest",
+        "Current Daily Interest",
+        "Interest Payment Interval",
+        "Interest Schedule Anchor Date",
+        "Borrower Name TE",
+        "Loan Arrangement",
+        "Loan Status TE",
+        "Statistics Header",
+        "Outstanding Principal",
+        "Transfer Fee",
+        "Total Principal Received",
+        "Total Amount Received",
+        "Total Interest Received",
+        "Principal Recovered by Interest %",
+        "Related Charges",
+        "Default Loss Amount",
+        "Defaulted Flag"
+      ]
+    },
+    "dev": {
+      "state": "value",
+      "value": [
+        "Loan Date",
+        "Loan End Date",
+        "Loan Duration",
+        "Principal Amount",
+        "Loan Type TE",
+        "Due Date",
+        "Fixed Interest",
+        "Current Daily Interest",
+        "Interest Payment Interval",
+        "Interest Schedule Anchor Date",
+        "Ref Borrowers",
+        "Loan Arrangement",
+        "Loan Status TE",
+        "Statistics Header",
+        "Outstanding Principal",
+        "Transfer Fee",
+        "Total Principal Received",
+        "Total Amount Received",
+        "Total Interest Received",
+        "Principal Recovered by Interest %",
+        "Related Charges",
+        "Default Loss Amount",
+        "Defaulted Flag"
+      ]
+    },
+    "prod": {
+      "state": "value",
+      "value": [
+        "Loan Date",
+        "Loan End Date",
+        "Loan Duration",
+        "Principal Amount",
+        "Loan Type TE",
+        "Due Date",
+        "Fixed Interest",
+        "Current Daily Interest",
+        "Interest Payment Interval",
+        "Interest Schedule Anchor Date",
+        "Ref Borrowers",
+        "Loan Arrangement",
+        "Loan Status TE",
+        "Statistics Header",
+        "Outstanding Principal",
+        "Transfer Fee",
+        "Total Principal Received",
+        "Total Amount Received",
+        "Total Interest Received",
+        "Principal Recovered by Interest %",
+        "Related Charges",
+        "Default Loss Amount",
+        "Defaulted Flag"
+      ]
+    },
+    "evidence": "outputs/r008-20260918/r4/AA.json; REPORT.md",
+    "refinementBefore": {
+      "state": "value",
+      "value": [
+        "Loan Date",
+        "Loan End Date",
+        "Loan Duration",
+        "Principal Amount",
+        "Loan Type TE",
+        "Due Date",
+        "Fixed Interest",
+        "Current Daily Interest",
+        "Interest Payment Interval",
+        "Interest Schedule Anchor Date",
+        "Borrower Name TE",
+        "Loan Arrangement",
+        "Loan Status TE",
+        "Statistics Header",
+        "Outstanding Principal",
+        "Transfer Fee",
+        "Total Principal Received",
+        "Total Amount Received",
+        "Total Interest Received",
+        "Principal Recovered by Interest %",
+        "Related Charges",
+        "Default Loss Amount",
+        "Defaulted Flag"
+      ]
+    }
+  },
+  {
+    "id": "OLAP-R4-027",
+    "app": "OLAP",
+    "object": "View Repayments_Detail",
+    "property": "View configuration.ColumnOrder",
+    "operation": "reorder",
+    "before": {
+      "state": "value",
+      "value": [
+        "Payment Date",
+        "Ref Loans",
+        "Amount Received",
+        "Principal Paid",
+        "Interest Paid",
+        "Header - Profit",
+        "Partner A Profit",
+        "Partner B Profit",
+        "Notes",
+        "Borrower Name TE"
+      ]
+    },
+    "dev": {
+      "state": "value",
+      "value": [
+        "Payment Date",
+        "Ref Loans",
+        "Amount Received",
+        "Principal Paid",
+        "Interest Paid",
+        "Header - Profit",
+        "Partner A Profit",
+        "Partner B Profit",
+        "Notes",
+        "Borrower Reference TE"
+      ]
+    },
+    "prod": {
+      "state": "value",
+      "value": [
+        "Payment Date",
+        "Ref Loans",
+        "Amount Received",
+        "Principal Paid",
+        "Interest Paid",
+        "Header - Profit",
+        "Partner A Profit",
+        "Partner B Profit",
+        "Notes",
+        "Borrower Reference TE"
+      ]
+    },
+    "evidence": "outputs/r008-20260918/r4/AA.json; REPORT.md",
+    "refinementBefore": {
+      "state": "value",
+      "value": [
+        "Payment Date",
+        "Ref Loans",
+        "Amount Received",
+        "Principal Paid",
+        "Interest Paid",
+        "Header - Profit",
+        "Partner A Profit",
+        "Partner B Profit",
+        "Notes",
+        "Borrower Name TE"
+      ]
+    }
+  },
+  {
+    "id": "OLAP-R4-028",
+    "app": "OLAP",
+    "object": "Action Loans.View Ref (Ref Borrowers)",
+    "property": "Attach to column",
+    "operation": "change",
+    "before": {
+      "state": "value",
+      "value": "Borrower Name TE"
+    },
+    "dev": {
+      "state": "value",
+      "value": "Ref Borrowers"
+    },
+    "prod": {
+      "state": "value",
+      "value": "Ref Borrowers"
+    },
+    "evidence": "outputs/r008-20260918/r4/AA.json; REPORT.md",
+    "refinementBefore": {
+      "state": "value",
+      "value": "Borrower Name TE"
+    }
+  },
+  {
+    "id": "OLAP-R4-029",
+    "app": "OLAP",
+    "object": "Action Charges.Open Borrower from Charge",
+    "property": "definition",
+    "operation": "remove",
+    "before": {
+      "state": "value",
+      "value": {
+        "Action icon": "",
+        "Action name": "Open Borrower from Charge",
+        "Action order": 1,
+        "Attach to column": "Borrower Name TE",
+        "Bulk action?": "No",
+        "Disable automatic updates?": "No",
+        "Display name": "เปิดข้อมูลผู้กู้ / Open Borrower",
+        "Do this": "NAVIGATE_APP",
+        "Does this action apply to the whole table?": "No",
+        "For a record of this table": "Charges",
+        "Modifies data?": "No",
+        "Needs confirmation?": "No",
+        "Only if this condition is true": "=ISNOTBLANK([Ref Loans].[Ref Borrowers])",
+        "Prominence": "Display_Inline",
+        "Visible?": "ALWAYS",
+        "With these properties": {
+          "BulkApplicable": false,
+          "ConfirmationMessage": "",
+          "ModifiesData": false,
+          "NavigateTarget": "=LINKTOROW([Ref Loans].[Ref Borrowers], \"Borrowers_Detail\")",
+          "NeedsConfirmation": false,
+          "Prominence": "Display_Inline"
+        }
+      }
+    },
+    "dev": {
+      "state": "absent"
+    },
+    "prod": {
+      "state": "absent"
+    },
+    "evidence": "outputs/r008-20260918/r4/AA.json; REPORT.md",
+    "refinementBefore": {
+      "state": "value",
+      "value": {
+        "Action icon": "",
+        "Action name": "Open Borrower from Charge",
+        "Action order": 1,
+        "Attach to column": "Borrower Name TE",
+        "Bulk action?": "No",
+        "Disable automatic updates?": "No",
+        "Display name": "เปิดข้อมูลผู้กู้ / Open Borrower",
+        "Do this": "NAVIGATE_APP",
+        "Does this action apply to the whole table?": "No",
+        "For a record of this table": "Charges",
+        "Modifies data?": "No",
+        "Needs confirmation?": "No",
+        "Only if this condition is true": "=ISNOTBLANK([Ref Loans].[Ref Borrowers])",
+        "Prominence": "Display_Inline",
+        "Visible?": "ALWAYS",
+        "With these properties": {
+          "BulkApplicable": false,
+          "ConfirmationMessage": "",
+          "ModifiesData": false,
+          "NavigateTarget": "=LINKTOROW([Ref Loans].[Ref Borrowers], \"Borrowers_Detail\")",
+          "NeedsConfirmation": false,
+          "Prominence": "Display_Inline"
+        }
+      }
+    }
+  },
+  {
+    "id": "OLAP-R4-030",
+    "app": "OLAP",
+    "object": "Action Repayments.Open Borrower from Repayment",
+    "property": "definition",
+    "operation": "remove",
+    "before": {
+      "state": "value",
+      "value": {
+        "Action icon": "",
+        "Action name": "Open Borrower from Repayment",
+        "Action order": 1,
+        "Attach to column": "Borrower Name TE",
+        "Bulk action?": "No",
+        "Disable automatic updates?": "No",
+        "Display name": "เปิดข้อมูลผู้กู้ / Open Borrower",
+        "Do this": "NAVIGATE_APP",
+        "Does this action apply to the whole table?": "No",
+        "For a record of this table": "Repayments",
+        "Modifies data?": "No",
+        "Needs confirmation?": "No",
+        "Only if this condition is true": "=ISNOTBLANK([Ref Loans].[Ref Borrowers])",
+        "Prominence": "Display_Inline",
+        "Visible?": "ALWAYS",
+        "With these properties": {
+          "BulkApplicable": false,
+          "ConfirmationMessage": "",
+          "ModifiesData": false,
+          "NavigateTarget": "=LINKTOROW([Ref Loans].[Ref Borrowers], \"Borrowers_Detail\")",
+          "NeedsConfirmation": false,
+          "Prominence": "Display_Inline"
+        }
+      }
+    },
+    "dev": {
+      "state": "absent"
+    },
+    "prod": {
+      "state": "absent"
+    },
+    "evidence": "outputs/r008-20260918/r4/AA.json; REPORT.md",
+    "refinementBefore": {
+      "state": "value",
+      "value": {
+        "Action icon": "",
+        "Action name": "Open Borrower from Repayment",
+        "Action order": 1,
+        "Attach to column": "Borrower Name TE",
+        "Bulk action?": "No",
+        "Disable automatic updates?": "No",
+        "Display name": "เปิดข้อมูลผู้กู้ / Open Borrower",
+        "Do this": "NAVIGATE_APP",
+        "Does this action apply to the whole table?": "No",
+        "For a record of this table": "Repayments",
+        "Modifies data?": "No",
+        "Needs confirmation?": "No",
+        "Only if this condition is true": "=ISNOTBLANK([Ref Loans].[Ref Borrowers])",
+        "Prominence": "Display_Inline",
+        "Visible?": "ALWAYS",
+        "With these properties": {
+          "BulkApplicable": false,
+          "ConfirmationMessage": "",
+          "ModifiesData": false,
+          "NavigateTarget": "=LINKTOROW([Ref Loans].[Ref Borrowers], \"Borrowers_Detail\")",
+          "NeedsConfirmation": false,
+          "Prominence": "Display_Inline"
+        }
+      }
+    }
+  },
+  {
+    "id": "OLAP-R4-031",
+    "app": "OLAP",
+    "object": "Action Charges.View Ref (Borrower Reference TE)",
+    "property": "definition",
+    "operation": "add",
+    "before": {
+      "state": "absent"
+    },
+    "dev": {
+      "state": "value",
+      "value": {
+        "Action icon": "",
+        "Action name": "View Ref (Borrower Reference TE)",
+        "Action order": 1,
+        "Attach to column": "Borrower Reference TE",
+        "Bulk action?": "No",
+        "Disable automatic updates?": "No",
+        "Do this": "NAVIGATE_APP",
+        "Does this action apply to the whole table?": "No",
+        "For a record of this table": "Charges",
+        "Modifies data?": "No",
+        "Needs confirmation?": "No",
+        "Only if this condition is true": "NOT(ISBLANK([Borrower Reference TE]))",
+        "Prominence": "Display_Inline",
+        "Set this column": "Borrower Reference TE",
+        "Visible?": "ADVANCED",
+        "With these properties": {
+          "BulkApplicable": false,
+          "ConfirmationMessage": "",
+          "ModifiesData": false,
+          "NavigateTarget": "CONCATENATE(\"#page=detail&table=Borrowers&row=\", ENCODEURL([Borrower Reference TE]) )",
+          "NeedsConfirmation": false,
+          "Prominence": "Display_Inline"
+        }
+      }
+    },
+    "prod": {
+      "state": "value",
+      "value": {
+        "Action icon": "",
+        "Action name": "View Ref (Borrower Reference TE)",
+        "Action order": 1,
+        "Attach to column": "Borrower Reference TE",
+        "Bulk action?": "No",
+        "Disable automatic updates?": "No",
+        "Do this": "NAVIGATE_APP",
+        "Does this action apply to the whole table?": "No",
+        "For a record of this table": "Charges",
+        "Modifies data?": "No",
+        "Needs confirmation?": "No",
+        "Only if this condition is true": "NOT(ISBLANK([Borrower Reference TE]))",
+        "Prominence": "Display_Inline",
+        "Set this column": "Borrower Reference TE",
+        "Visible?": "ADVANCED",
+        "With these properties": {
+          "BulkApplicable": false,
+          "ConfirmationMessage": "",
+          "ModifiesData": false,
+          "NavigateTarget": "CONCATENATE(\"#page=detail&table=Borrowers&row=\", ENCODEURL([Borrower Reference TE]) )",
+          "NeedsConfirmation": false,
+          "Prominence": "Display_Inline"
+        }
+      }
+    },
+    "evidence": "outputs/r008-20260918/r4/AA.json; REPORT.md",
+    "refinementBefore": {
+      "state": "absent"
+    }
+  },
+  {
+    "id": "OLAP-R4-032",
+    "app": "OLAP",
+    "object": "Action Repayments.View Ref (Borrower Reference TE)",
+    "property": "definition",
+    "operation": "add",
+    "before": {
+      "state": "absent"
+    },
+    "dev": {
+      "state": "value",
+      "value": {
+        "Action icon": "",
+        "Action name": "View Ref (Borrower Reference TE)",
+        "Action order": 1,
+        "Attach to column": "Borrower Reference TE",
+        "Bulk action?": "No",
+        "Disable automatic updates?": "No",
+        "Do this": "NAVIGATE_APP",
+        "Does this action apply to the whole table?": "No",
+        "For a record of this table": "Repayments",
+        "Modifies data?": "No",
+        "Needs confirmation?": "No",
+        "Only if this condition is true": "NOT(ISBLANK([Borrower Reference TE]))",
+        "Prominence": "Display_Inline",
+        "Set this column": "Borrower Reference TE",
+        "Visible?": "ADVANCED",
+        "With these properties": {
+          "BulkApplicable": false,
+          "ConfirmationMessage": "",
+          "ModifiesData": false,
+          "NavigateTarget": "CONCATENATE(\"#page=detail&table=Borrowers&row=\", ENCODEURL([Borrower Reference TE]) )",
+          "NeedsConfirmation": false,
+          "Prominence": "Display_Inline"
+        }
+      }
+    },
+    "prod": {
+      "state": "value",
+      "value": {
+        "Action icon": "",
+        "Action name": "View Ref (Borrower Reference TE)",
+        "Action order": 1,
+        "Attach to column": "Borrower Reference TE",
+        "Bulk action?": "No",
+        "Disable automatic updates?": "No",
+        "Do this": "NAVIGATE_APP",
+        "Does this action apply to the whole table?": "No",
+        "For a record of this table": "Repayments",
+        "Modifies data?": "No",
+        "Needs confirmation?": "No",
+        "Only if this condition is true": "NOT(ISBLANK([Borrower Reference TE]))",
+        "Prominence": "Display_Inline",
+        "Set this column": "Borrower Reference TE",
+        "Visible?": "ADVANCED",
+        "With these properties": {
+          "BulkApplicable": false,
+          "ConfirmationMessage": "",
+          "ModifiesData": false,
+          "NavigateTarget": "CONCATENATE(\"#page=detail&table=Borrowers&row=\", ENCODEURL([Borrower Reference TE]) )",
+          "NeedsConfirmation": false,
+          "Prominence": "Display_Inline"
+        }
+      }
+    },
+    "evidence": "outputs/r008-20260918/r4/AA.json; REPORT.md",
+    "refinementBefore": {
+      "state": "absent"
+    }
+  },
+  {
+    "id": "OLTP-R3-001",
+    "app": "OLTP",
+    "object": "Action Borrowers.Receive All Charges",
+    "property": "Only if this condition is true",
+    "operation": "change",
+    "before": {
+      "state": "value",
+      "value": "=AND(COUNT(SELECT(Charges[Row ID], AND([Ref Loans].[Ref Borrowers] = [_THISROW].[Row ID], [Charge Date] <= TODAY(), [Amount Remaining] > 0))) > 0, COUNT(SELECT(Payments[Row ID], AND([Ref Borrower] = [_THISROW].[Row ID], IN([Status], LIST(\"Processing\", \"Error\"))))) = 0)"
+    },
+    "dev": {
+      "state": "value",
+      "value": "=AND(CONTEXT(\"ViewType\") <> \"Detail\", AND(COUNT(SELECT(Charges[Row ID], AND([Ref Loans].[Ref Borrowers] = [_THISROW].[Row ID], [Charge Date] <= TODAY(), [Amount Remaining] > 0))) > 0, COUNT(SELECT(Payments[Row ID], AND([Ref Borrower] = [_THISROW].[Row ID], IN([Status], LIST(\"Processing\", \"Error\"))))) = 0))"
+    },
+    "prod": {
+      "state": "value",
+      "value": "=AND(CONTEXT(\"ViewType\") <> \"Detail\", AND(COUNT(SELECT(Charges[Row ID], AND([Ref Loans].[Ref Borrowers] = [_THISROW].[Row ID], [Charge Date] <= TODAY(), [Amount Remaining] > 0))) > 0, COUNT(SELECT(Payments[Row ID], AND([Ref Borrower] = [_THISROW].[Row ID], IN([Status], LIST(\"Processing\", \"Error\"))))) = 0))"
+    },
+    "evidence": "outputs/r008-20260918/r4/AT.json; REPORT.md",
+    "refinementBefore": {
+      "state": "value",
+      "value": "=AND(CONTEXT(\"View\") <> \"Todays Collection Board_Detail\", AND(COUNT(SELECT(Charges[Row ID], AND([Ref Loans].[Ref Borrowers] = [_THISROW].[Row ID], [Charge Date] <= TODAY(), [Amount Remaining] > 0))) > 0, COUNT(SELECT(Payments[Row ID], AND([Ref Borrower] = [_THISROW].[Row ID], IN([Status], LIST(\"Processing\", \"Error\"))))) = 0))"
+    }
+  }
+]

@@ -1,0 +1,301 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "relation"
+  "name": "public.Cash Account Daily Summary Recent"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "Cash Account Daily Summary Recent"
+    "kind": "v"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "n"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,mw_reviewer_dml=r/postgres,mw_app_prod=r/postgres}"
+    "comment": null
+    "view_definition": |2-
+       WITH bounds AS (
+               SELECT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok'::text)::date AS today
+              ), days AS (
+               SELECT bounds.today - i.i AS day
+                 FROM bounds
+                   CROSS JOIN generate_series(0, 14) i(i)
+              ), daily AS (
+               SELECT cash_statement_account_effects."Ref Cash Account" AS account,
+                  cash_statement_account_effects."Statement Date" AS day,
+                  sum(GREATEST(cash_statement_account_effects."Signed Amount", 0::numeric)) AS cash_in,
+                  sum(GREATEST(- cash_statement_account_effects."Signed Amount", 0::numeric)) AS cash_out,
+                  count(*) AS n
+                 FROM cash_statement_account_effects
+                GROUP BY cash_statement_account_effects."Ref Cash Account", cash_statement_account_effects."Statement Date"
+              ), grid AS (
+               SELECT a."Row ID" AS account,
+                  d.day,
+                  c."Ref Cash Account" IS NOT NULL AS initialized,
+                  c."Opening Balance" - c."Baseline Cash In" + c."Baseline Cash Out" + COALESCE(( SELECT sum(x.cash_in - x.cash_out) AS sum
+                         FROM daily x
+                        WHERE x.account = a."Row ID" AND x.day < d.day), 0::numeric) AS opening,
+                  COALESCE(t.cash_in, 0::numeric) AS cash_in,
+                  COALESCE(t.cash_out, 0::numeric) AS cash_out,
+                  COALESCE(t.n, 0::bigint) AS n
+                 FROM "Cash Accounts" a
+                   CROSS JOIN days d
+                   LEFT JOIN r008_cash_account_cutover c ON c."Ref Cash Account" = a."Row ID"
+                   LEFT JOIN daily t ON t.account = a."Row ID" AND t.day = d.day
+              )
+       SELECT jsonb_build_array(account, day)::text AS "Row ID",
+          account AS "Ref Cash Account",
+          day AS "Statement Date",
+          opening AS "Opening Balance",
+          cash_in AS "Money In",
+          cash_out AS "Money Out",
+          cash_in - cash_out AS "Net Movement",
+          opening + cash_in - cash_out AS "Closing Balance",
+          n AS "Transaction Count",
+          initialized AS "Is Initialized"
+         FROM grid;
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "columns":
+    "Row ID":
+      "schema": "public"
+      "relation": "Cash Account Daily Summary Recent"
+      "name": "Row ID"
+      "ordinal": 1
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Ref Cash Account":
+      "schema": "public"
+      "relation": "Cash Account Daily Summary Recent"
+      "name": "Ref Cash Account"
+      "ordinal": 2
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Statement Date":
+      "schema": "public"
+      "relation": "Cash Account Daily Summary Recent"
+      "name": "Statement Date"
+      "ordinal": 3
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Opening Balance":
+      "schema": "public"
+      "relation": "Cash Account Daily Summary Recent"
+      "name": "Opening Balance"
+      "ordinal": 4
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Money In":
+      "schema": "public"
+      "relation": "Cash Account Daily Summary Recent"
+      "name": "Money In"
+      "ordinal": 5
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Money Out":
+      "schema": "public"
+      "relation": "Cash Account Daily Summary Recent"
+      "name": "Money Out"
+      "ordinal": 6
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Net Movement":
+      "schema": "public"
+      "relation": "Cash Account Daily Summary Recent"
+      "name": "Net Movement"
+      "ordinal": 7
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Closing Balance":
+      "schema": "public"
+      "relation": "Cash Account Daily Summary Recent"
+      "name": "Closing Balance"
+      "ordinal": 8
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Transaction Count":
+      "schema": "public"
+      "relation": "Cash Account Daily Summary Recent"
+      "name": "Transaction Count"
+      "ordinal": 9
+      "data_type": "bigint"
+      "type_schema": "pg_catalog"
+      "type_name": "int8"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Is Initialized":
+      "schema": "public"
+      "relation": "Cash Account Daily Summary Recent"
+      "name": "Is Initialized"
+      "ordinal": 10
+      "data_type": "boolean"
+      "type_schema": "pg_catalog"
+      "type_name": "bool"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+  "constraints": {}
+  "indexes": {}
+  "triggers": {}
+  "policies": {}
+  "dependencies":
+  - "schema": "public"
+    "relation": "Cash Account Daily Summary Recent"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Accounts"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "Cash Account Daily Summary Recent"
+    "referenced_schema": "public"
+    "referenced_relation": "cash_statement_account_effects"
+    "referenced_column": "Ref Cash Account"
+  - "schema": "public"
+    "relation": "Cash Account Daily Summary Recent"
+    "referenced_schema": "public"
+    "referenced_relation": "cash_statement_account_effects"
+    "referenced_column": "Signed Amount"
+  - "schema": "public"
+    "relation": "Cash Account Daily Summary Recent"
+    "referenced_schema": "public"
+    "referenced_relation": "cash_statement_account_effects"
+    "referenced_column": "Statement Date"
+  - "schema": "public"
+    "relation": "Cash Account Daily Summary Recent"
+    "referenced_schema": "public"
+    "referenced_relation": "r008_cash_account_cutover"
+    "referenced_column": "Baseline Cash In"
+  - "schema": "public"
+    "relation": "Cash Account Daily Summary Recent"
+    "referenced_schema": "public"
+    "referenced_relation": "r008_cash_account_cutover"
+    "referenced_column": "Baseline Cash Out"
+  - "schema": "public"
+    "relation": "Cash Account Daily Summary Recent"
+    "referenced_schema": "public"
+    "referenced_relation": "r008_cash_account_cutover"
+    "referenced_column": "Opening Balance"
+  - "schema": "public"
+    "relation": "Cash Account Daily Summary Recent"
+    "referenced_schema": "public"
+    "referenced_relation": "r008_cash_account_cutover"
+    "referenced_column": "Ref Cash Account"
+"evidence":
+  "/content/definition/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"

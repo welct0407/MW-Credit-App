@@ -1,0 +1,11 @@
+{
+  "allErrorMessages" : "",
+  "database" : "loan_manager_prod",
+  "errorDetails" : null,
+  "flywayVersion" : "13.6.0",
+  "invalidMigrations" : [ ],
+  "operation" : "validate",
+  "validateCount" : 56,
+  "validationSuccessful" : true,
+  "warnings" : [ ]
+}

@@ -1,0 +1,141 @@
+{
+  "version": "1.000006",
+  "rollback": "1.000004",
+  "preBindingVersion": "1.000005",
+  "changed": [
+    {
+      "table": "App",
+      "properties": [
+        "Version"
+      ]
+    },
+    {
+      "table": "Borrowers",
+      "properties": [
+        "Data locale",
+        "Source Path",
+        "Worksheet Name/Qualifier",
+        "Data Source"
+      ]
+    },
+    {
+      "table": "Loans",
+      "properties": [
+        "Data locale",
+        "Source Path",
+        "Worksheet Name/Qualifier",
+        "Data Source"
+      ]
+    },
+    {
+      "table": "Partners",
+      "properties": [
+        "Data locale",
+        "Source Path",
+        "Worksheet Name/Qualifier",
+        "Data Source"
+      ]
+    }
+  ],
+  "unchangedColumns": 374,
+  "appData": [
+    {
+      "table": "Borrowers",
+      "rows": 29,
+      "comparedFields": 2204,
+      "differences": []
+    },
+    {
+      "table": "Loans",
+      "rows": 62,
+      "comparedFields": 3100,
+      "differences": []
+    },
+    {
+      "table": "Partners",
+      "rows": 2,
+      "comparedFields": 38,
+      "differences": []
+    }
+  ],
+  "bindings": [
+    {
+      "table": "Borrowers",
+      "source": "database-2",
+      "path": "Borrowers",
+      "permissions": "READ_ONLY"
+    },
+    {
+      "table": "Loans",
+      "source": "database-2",
+      "path": "Loans",
+      "permissions": "READ_ONLY"
+    },
+    {
+      "table": "Repayments",
+      "source": "google_tables",
+      "path": "Money database",
+      "permissions": "READ_ONLY"
+    },
+    {
+      "table": "Statistics",
+      "source": "database-2",
+      "path": "Statistics",
+      "permissions": "ALL_CHANGES"
+    },
+    {
+      "table": "Charges",
+      "source": "google_tables",
+      "path": "Money database",
+      "permissions": "READ_ONLY"
+    },
+    {
+      "table": "Calendar",
+      "source": "google",
+      "path": "Calendar Help Table",
+      "permissions": "READ_ONLY"
+    },
+    {
+      "table": "Loan Assessment",
+      "source": "google_tables",
+      "path": "Money database",
+      "permissions": "ALL_CHANGES"
+    },
+    {
+      "table": "Cash Pool Contributions",
+      "source": "google_tables",
+      "path": "Money database",
+      "permissions": "ADDS_AND_UPDATES"
+    },
+    {
+      "table": "Partners",
+      "source": "database-2",
+      "path": "Partners",
+      "permissions": "ALL_CHANGES"
+    },
+    {
+      "table": "Settlements",
+      "source": "google_tables",
+      "path": "Money database",
+      "permissions": "ALL_CHANGES"
+    },
+    {
+      "table": "Daily Analytics",
+      "source": "google_tables",
+      "path": "Money database",
+      "permissions": "ALL_CHANGES"
+    },
+    {
+      "table": "Payment Allocations",
+      "source": "google_tables",
+      "path": "Money database",
+      "permissions": "READ_ONLY"
+    },
+    {
+      "table": "Payments",
+      "source": "google_tables",
+      "path": "Money database",
+      "permissions": "READ_ONLY"
+    }
+  ]
+}

@@ -1,0 +1,126 @@
+- banner:
+  - button "Toggle menu":
+  - heading "Loan Business Insights — DEV" [level=6]
+  - textbox "ค้นหา ผู้กู้": LS26
+  - button "Clear search":
+  - button "ซิงค์":
+  - button "ดูสถานะแอป":
+    - button
+  - button "account menu":
+    - generic: W
+- navigation:
+  - button " ภาพรวม":
+    - generic: 
+    - generic: ภาพรวม
+  - button " การวิเคราะห์":
+    - generic: 
+    - generic: การวิเคราะห์
+  - button " ประเมินการปล่อยกู้เพิ่ม":
+    - generic: 
+    - generic: ประเมินการปล่อยกู้เพิ่ม
+  - button " หุ้นส่วน":
+    - generic: 
+    - generic: หุ้นส่วน
+  - button " ผู้กู้":
+    - generic: 
+    - generic: ผู้กู้
+  - button " งานสินเชื่อ / Operations App":
+    - generic: 
+    - generic: งานสินเชื่อ / Operations App
+  - button " สินเชื่อ":
+    - generic: 
+    - generic: สินเชื่อ
+  - button " Calendar Detail View":
+    - generic: 
+    - generic: Calendar Detail View
+  - button " Daily Analytics - Validation":
+    - generic: 
+    - generic: Daily Analytics - Validation
+  - separator
+  - button "เกี่ยวกับ":
+    - generic: เกี่ยวกับ
+  - button "Feedback":
+    - generic: Feedback
+  - separator
+  - button "App Gallery":
+    - generic: App Gallery
+- region "ผู้กู้":
+  - heading "ผู้กู้" [level=2]
+  - button "ตัวกรอง":
+  - button "ขยาย":
+    - generic: 
+  - button "LS26 BENCHMARK SYNTHETIC - Lump-sum Dev benchmark; no contact details ฿1,400 ฿100,000":
+    - generic: LS26 BENCHMARK SYNTHETIC - Lump-sum Dev benchmark; no contact details
+    - generic: 
+    - text: ฿1,400
+    - generic: ฿100,000
+  - button "LS26 CORRECTNESS SYNTHETIC - Lump-sum Dev review; no contact details ฿60 ฿300":
+    - generic: LS26 CORRECTNESS SYNTHETIC - Lump-sum Dev review; no contact details
+    - generic: 
+    - text: ฿60
+    - generic: ฿300
+- tablist:
+  - tab "LS26 CORRECTNESS SYNTHETIC - Lump-sum Dev review; no contact details":
+    - paragraph: LS26 CORRECTNESS SYNTHETIC - Lump-sum Dev review; no contact details
+  - tab "LS26 CORRECTNESS SYNTHETIC-฿100-05/09-0.00%" [selected]:
+    - paragraph: LS26 CORRECTNESS SYNTHETIC-฿100-05/09-0.00%
+    - button "ปิด LS26 CORRECTNESS SYNTHETIC-฿100-05/09-0.00%":
+- tabpanel:
+  - region "LS26 CORRECTNESS SYNTHETIC-฿100-05/09-0.00%":
+    - button "ก่อนหน้า" [disabled]:
+      - generic: 
+    - button "ถัดไป":
+      - generic: 
+    - button "ขยาย":
+      - generic: 
+    - generic: วันที่ให้กู้ / Loan Date
+    - generic: 9/5/2026
+    - generic: วันที่ปิดเงินกู้ / Loan End Date
+    - generic: 9/15/2026
+    - generic: ระยะเวลากู้ / Loan Duration
+    - generic: "11"
+    - generic: เงินต้น / Principal Amount
+    - generic: ฿100
+    - generic: ประเภทเงินกู้ / Loan Type
+    - generic: กำหนดวันชำระ / Fixed Due Date
+    - generic: ดอกเบี้ยคงที่ / Fixed Interest
+    - generic: ฿0
+    - generic: ดอกเบี้ยต่อวันปัจจุบัน / Current Daily Interest
+    - generic: ฿0
+    - generic: รอบชำระดอกเบี้ย (วัน) / Payment Interval (Days)
+    - generic: "1"
+    - generic: ชื่อผู้กู้ / Borrower
+    - generic: LS26 CORRECTNESS SYNTHETIC - Lump-sum Dev review; no contact details
+    - generic: สถานะ / Loan Status
+    - generic: ปิดยอดแล้ว / Closed
+    - generic: 📊 สถิติการกู้ / Statistics
+    - generic: เงินต้นคงเหลือ / Outstanding Principal
+    - generic: ฿0
+    - generic: ค่าธรรมเนียมการโอน / Transfer Fee
+    - generic: ฿0
+    - generic: เงินต้นที่ได้รับคืนทั้งหมด / Total Principal Received
+    - generic: ฿100
+    - generic: ยอดเงินที่ได้รับทั้งหมด / Total Amount Received
+    - generic: ฿110
+    - generic: ดอกเบี้ยที่ได้รับทั้งหมด / Total Interest Received
+    - generic: 
+    - text: ฿10
+    - generic: คืนทุนจากดอกเบี้ย % / Principal Recovered by Interest %
+    - generic: 10%
+    - region "Related Charges":
+      - generic: Related Charges
+      - generic: "1"
+      - separator
+      - button "9/13/2026 ฿110 View Ref (Ref Loans)":
+        - generic: 9/13/2026
+        - generic: 
+        - text: ฿110
+        - button "View Ref (Ref Loans)":
+          - generic: 
+          - generic: View Ref (Ref Loans)
+      - button "ขยาย"
+    - generic: Defaulted Flag
+    - generic: "N"
+- generic: 
+- text:   
+- status: 1Password menu is available. Press down arrow to select.

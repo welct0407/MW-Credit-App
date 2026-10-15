@@ -1,0 +1,231 @@
+{
+  "release": "R053",
+  "sqlVersion": 89,
+  "sourceCommit": "dc4e75de24c99b5217c2895066957862a72e2cbb",
+  "captureSha256": "a2282b41692f0301b67c4310ab4713adef4dbd5de15538ec0fe7922e2d956031",
+  "observedAt": "2026-10-11T19:59:31.963115+00:00",
+  "businessRowsRead": 0,
+  "appsheetDefinitionsChanged": false,
+  "files": [
+    {
+      "file": "systems/postgresql/routines/public-pwa-agent-receipt-status-v1-request-id-uuid-actor-issuer-text-actor-subject-text-f1658485.yaml",
+      "beforeSha256": null,
+      "afterSha256": "0a42e1266fc14935702dfc987034f216ee618b66271a660535979a6c15c3e93e"
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-capture-notification-v1-2ffdc181.yaml",
+      "beforeSha256": "9067791632aef567032a5350311dfc59136982d7c764cec43109815628aa983a",
+      "afterSha256": "94101c1affd2013760d2dd9fadbc090f209b2d4f9d8a72b7df6a81537d0320a7"
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-claim-notifications-v1-p-limit-integer-p-seconds-integer-b6d1b868.yaml",
+      "beforeSha256": "e676ee9607de3bacc739a23c36557f09bdcf66f83eccfb6582db27d94bd73868",
+      "afterSha256": "c3b34e60bef0185fd6880bd75d347f521cc313af5ea67eb684279046747e76cb"
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-job-run-v1-job-text-business-date-date-scope-text-a1abc701.yaml",
+      "beforeSha256": null,
+      "afterSha256": "409b37fb07b3e24c76c7dcc1599e336f9049cbb965f050462df5cbf651d7318d"
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-notify-actor-v1-actor-jsonb-e626a49b.yaml",
+      "beforeSha256": null,
+      "afterSha256": "08ec60b16c54f1d64a63f2c672b3475b3210d2f81515fe97a61af5b656e8c4dd"
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-notify-candidates-v1-batch-limit-integer-93222a95.yaml",
+      "beforeSha256": null,
+      "afterSha256": "f6e9e9d548bdc3d86cfcca478e6c554550d796fdd9242aa9a3c5f6a58d26e6ab"
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-notify-complete-v1-delivery-uuid-generation-bigint-result-class-text-88e95937.yaml",
+      "beforeSha256": null,
+      "afterSha256": "7cc4a9ef40f4c1b7c5d122b78cbcd4c008c504720702ba53b93aab9c246bf6dc"
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-notify-eligible-v1-event-uuid-subscription-uuid-8cc1a59f.yaml",
+      "beforeSha256": null,
+      "afterSha256": "92c250397071a75df922dc8dcbf0b12adbe84469f7bd78c4974f6ce50f8a6b79"
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-notify-enqueue-v1-event-uuid-subscription-uuid-subscription-version-bigint-eligible--6acb7550.yaml",
+      "beforeSha256": null,
+      "afterSha256": "b0f3806fcd359f051b8d47bb4f39d7ceb8e35ae6ebd8e9c3595faa72cc023603"
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-notify-history-v1-actor-jsonb-before-at-timestamp-with-time-zone-before-id-uuid-bf7c0177.yaml",
+      "beforeSha256": null,
+      "afterSha256": "bda8b0ba4c098613f385d820376e2f031c802be2cea516a58c4bd36a474b896b"
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-notify-preference-v1-actor-jsonb-preference-boolean-3120f087.yaml",
+      "beforeSha256": null,
+      "afterSha256": "79e998c4345618e437d4601452907af4cc47afc8baee3c8c2265fcd980b90e15"
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-notify-prepare-send-v1-delivery-uuid-generation-bigint-7a43ba0d.yaml",
+      "beforeSha256": null,
+      "afterSha256": "b7ce0a43a40e3967067a9f538d54affdd92124d70aa79406a862ef67f2fdb81b"
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-notify-revoke-v1-actor-jsonb-id-uuid-0ae5df32.yaml",
+      "beforeSha256": null,
+      "afterSha256": "749d1f6d50da5f948931cc462f635dfd497bf3ee3386819fd14ae3166583ce82"
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-notify-start-send-v1-delivery-uuid-generation-bigint-subscription-version-bigint-cf23cbb7.yaml",
+      "beforeSha256": null,
+      "afterSha256": "9d17f4de8228b6072ac1e8abd0075860799c94b966b5b7aab2f0c200915b3592"
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-notify-status-v1-actor-jsonb-endpoint-digest-text-2296dc27.yaml",
+      "beforeSha256": null,
+      "afterSha256": "4b693bc609fc967d0e606a97bf3bf0c7eef9b24c1afde8b9c984cd61e9a100db"
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-notify-subscribe-v1-actor-jsonb-subscription-jsonb-94312472.yaml",
+      "beforeSha256": null,
+      "afterSha256": "35ffe015bae3b0a62b512b52dd54b7e4a01bf979e5b91809a390b63935254328"
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-notify-target-v1-actor-jsonb-event-uuid-1933b657.yaml",
+      "beforeSha256": null,
+      "afterSha256": "8d2f56c67b5adea89f5dd8cbc4ef55d64c9e20216414229293726dc0be7fbbd7"
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-submit-agent-receipt-v1-canonical-json-text-48231378.yaml",
+      "beforeSha256": null,
+      "afterSha256": "09553cf65bbfeaf7fc0de8f6d20ce67a6f516a6be1367bc398a388aa02d70ad8"
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-worker-guard-v1-capability-text-433cdec4.yaml",
+      "beforeSha256": null,
+      "afterSha256": "3374436cac6a0b80bf45649605aac908114eed70b613b2df2d6d35bb7c7cc181"
+    },
+    {
+      "file": "systems/postgresql/relations/borrowers.yaml",
+      "beforeSha256": "4896bed83a369af6a9f4ff23baa80f0e3d290dbd621b4cca1aa31b6767cc9a0f",
+      "afterSha256": "f2321748a9317d9726bbde3e24f72328c0af4421ece28e2852b4317330c3076c"
+    },
+    {
+      "file": "systems/postgresql/relations/business-expenses.yaml",
+      "beforeSha256": "a5ac313b031430d2225c1b278df04ec09b64485259a496f9972637646f2fae21",
+      "afterSha256": "ed12595c44f4cb0970ac81c08224442142bdc689d812b678e241de38729dbe8f"
+    },
+    {
+      "file": "systems/postgresql/relations/cash-account-daily-analytics.yaml",
+      "beforeSha256": "13d27c070788211d905b5c47f865fd447bcd1d82176b2ba25a3f2197f1fd7053",
+      "afterSha256": "3833fd02dbc29c57e129c63865fa7b5f13299695c5ce4fe18732c04d9441a1b8"
+    },
+    {
+      "file": "systems/postgresql/relations/public-cash-accounts-c8b62b4c.yaml",
+      "beforeSha256": "b52683b10b501252064492b86a258ae52ca4a466ae9915790932fc386277d780",
+      "afterSha256": "540dbad549f0740b9523d59585032d4b51b6d2f5bff4f94cfc2ed395702dda8c"
+    },
+    {
+      "file": "systems/postgresql/relations/cash-ledger.yaml",
+      "beforeSha256": "7a88c643237fa988092c7354df91391437fbb7bd9a58a3d8305e93326d62e8b8",
+      "afterSha256": "c5bd27cef92d7fc1f344d23ca3903ac5c44a948749a5dd22d1e06297aef57a55"
+    },
+    {
+      "file": "systems/postgresql/relations/cash-pool-contributions.yaml",
+      "beforeSha256": "d078a2e1c22ee6db9940ad91c03f42a3de596d34ac0a4807591d00577a91437c",
+      "afterSha256": "0632c69480be4b0c96ea9dea13597552e02057bba9f8a2827b54ca0311e22b02"
+    },
+    {
+      "file": "systems/postgresql/relations/charges.yaml",
+      "beforeSha256": "3d7b1c83d43256c925134d97a0df059a2afb55219045cc9e24f3f278e5f077c8",
+      "afterSha256": "ea71d2ffc453908ad047381cf28d213a74972a216aee17746de2a58d22dc6bb9"
+    },
+    {
+      "file": "systems/postgresql/relations/daily-analytics.yaml",
+      "beforeSha256": "9a6249a29b8f703f9c193d4534133ee7ce1b2c030bd6346831e5953191b59142",
+      "afterSha256": "6560a7b2814c7dccf29b25fcfa1f84f88fe3378a9e50861adaa71615d94b5891"
+    },
+    {
+      "file": "systems/postgresql/relations/loans.yaml",
+      "beforeSha256": "e7fd3aabbc86816206a06bca261388c842f1f1ea1e333566dab2778e0b4d580b",
+      "afterSha256": "e90e4fc1c1cfea72e0cc7cc4abf138bbfd23066af545618f185fcf47004270c9"
+    },
+    {
+      "file": "systems/postgresql/relations/partners.yaml",
+      "beforeSha256": "73e29f4835b4453e25b4cd368d27278091bb19b4ebc47f78a74eb256c9e8ed82",
+      "afterSha256": "fd33a540e0a85150e721a1a1b6f8acd0721956e4f52f3ff6ce65a17b84ca91b2"
+    },
+    {
+      "file": "systems/postgresql/relations/repayments.yaml",
+      "beforeSha256": "95083ea676f511c33ef87e0fe36d526c55f4bf4612b6642a23400694398f061b",
+      "afterSha256": "c162b998da626e567a8c6e5550650352131986d150286b565abea94db024d7f4"
+    },
+    {
+      "file": "systems/postgresql/relations/settlements.yaml",
+      "beforeSha256": "50b0d86f4d2f58025cf1250dd803e84fa0412ed945d94afe6bca0910670d086c",
+      "afterSha256": "92554066159552db6ab80bb4e2e5f5752d67e829bce6a33443334add8ebf4144"
+    },
+    {
+      "file": "systems/postgresql/relations/public-olap-repayments-analytics-c287d369.yaml",
+      "beforeSha256": "3d835617388ea7511fd2e3cfa418eef62157add2f57a25c475292d8967226193",
+      "afterSha256": "a6166760f4bd8789cff780bef8431efe31ff4e6a6d901bd92ed8f0b533400863"
+    },
+    {
+      "file": "systems/postgresql/relations/public-pwa-job-runs-f74e2a04.yaml",
+      "beforeSha256": "cc97034361db20f09d7a7c6b393d389a5886fc9a9abe2c52de859376509fdd4e",
+      "afterSha256": "0a77ab33011ff5fb66fa96c2886d5c18654d85a37453251af6b4da3cefa16753"
+    },
+    {
+      "file": "systems/postgresql/relations/public-pwa-notification-deliveries-1f58adbc.yaml",
+      "beforeSha256": "c289ed8961e40322e7df1f326d16fcbfdcd694cff17c28f85e7333b430ab2d72",
+      "afterSha256": "9dfb2b52ccb070b78b76697c4f0f843643648fdb03c2de935c466c5ee2adfd3e"
+    },
+    {
+      "file": "systems/postgresql/relations/public-pwa-notification-events-d261a229.yaml",
+      "beforeSha256": "1aa683e6cd4f5a6c34b4686ca91b2937d6e177653152f42c7abe37f2761de168",
+      "afterSha256": "2dea3743ddecae2466861fc644ea5abab4ec01380bf9fb80c303263599408421"
+    },
+    {
+      "file": "systems/postgresql/relations/public-pwa-notification-preferences-062546f8.yaml",
+      "beforeSha256": "453a755836e1ee3e8c3580325a191c30ee659aea4d178f77d7544ebe0dfdb419",
+      "afterSha256": "5d3185296ccaa955948c2b24a7850de95a28ef23b28584be77feb59eeff41ec5"
+    },
+    {
+      "file": "systems/postgresql/relations/public-pwa-push-subscriptions-b661bfd3.yaml",
+      "beforeSha256": "944f4ea5fee22b7772bd5527a3103f4a06a14f2e75a1d7a62a97e1e2536b2cc6",
+      "afterSha256": "ff442cdf2e295be149ee5b6d333f2b93e81ae896f7e543745fc6cd72c3f1c1ea"
+    },
+    {
+      "file": "systems/postgresql/relations/public-r008-cash-account-cutover-fa0a2f3b.yaml",
+      "beforeSha256": "cfb47b3ef7d0c239ccdee945d9208bd523722a68b2427cf14d5be04964d4e604",
+      "afterSha256": "fbb079598bd20dda95365a4e300b3403a2bfebc3a683734f54a5d52460a167d0"
+    },
+    {
+      "file": "systems/postgresql/routines/public-generate-due-charges-p-business-date-date-p-loans-text-92bec9db.yaml",
+      "beforeSha256": "252ec49458d65bad6853e95af71db1f047c802d2263ebe5b7f8f9ffa398a11ec",
+      "afterSha256": "d5890a0302882817712526b435899a5541f4f31a7ff8d007508bcd7813dd577d"
+    },
+    {
+      "file": "systems/postgresql/routines/public-generate-loan-charge-p-loan-text-p-business-date-date-p-manual-request-boolean-6438ed0d.yaml",
+      "beforeSha256": "3934f996bf333ca287c9dcfb61beb92744263b470dfa3cb312f7316a25423981",
+      "afterSha256": "0910367eed16f2e3dd3a8c45a294a07ad3ba2c37407ac94d6b39e14b2b03ad18"
+    },
+    {
+      "file": "systems/postgresql/routines/public-refresh-daily-analytics-p-from-date-p-to-date-6b6fed35.yaml",
+      "beforeSha256": "8af67a04abc2a94a6a9e74f248777a07f25c626f1ba07ba704d6624796cfeb12",
+      "afterSha256": "27dc4d309b470baadeea8d872f4abdc61f596fcaba56fec01afde6a95bc15984"
+    },
+    {
+      "file": "systems/postgresql/routines/public-refresh-daily-analytics-scoped-p-from-date-p-to-date-p-accounts-text-f7f4ed76.yaml",
+      "beforeSha256": "367401be07a9bc747c7ebbc29400f9196abc497c58648c7cc555917cc54957ca",
+      "afterSha256": "f757bc942bee8c3602a98db842fb81a8e85fefd6d688bddd6368565a32fe6eb8"
+    },
+    {
+      "file": "systems/postgresql/schemas/public-efa1f375.yaml",
+      "beforeSha256": "0e544881403bebf3d79a0e885501a857b79dec4fca6af211d41c394b6dd4a78d",
+      "afterSha256": "f6c89d1c05c88f6df5152aa18c62c71503c090a28dee3a7345ec2015f03f6e26"
+    },
+    {
+      "file": "systems/postgresql/settingss/r053-production-notification-jobs-and-machine-capability-876a9716.yaml",
+      "beforeSha256": null,
+      "afterSha256": "bace55b963ae576ae64f2e163b28f346f25e713044d98d01ee3bc43e1b86a2e5"
+    }
+  ]
+}

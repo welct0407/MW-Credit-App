@@ -1,0 +1,16 @@
+{
+  "loan_manager_prod": {
+    "path": "C:\\Users\\MWCredit\\Documents\\ChatGPT\\AppSheet-Loan-Project\\r046-receipt-evidence\\loan_manager_prod-before-receipts.dump",
+    "sha256": "d607471c3a7f310826543939b0468b5546ef17e228846ae686de9421aee6cd31",
+    "tables": 26,
+    "archiveListing": "passed",
+    "restoreTest": "passed; prod-restore-tests.json"
+  },
+  "mw_agent": {
+    "path": "C:\\Users\\MWCredit\\Documents\\ChatGPT\\AppSheet-Loan-Project\\r046-receipt-evidence\\mw_agent-before-receipts.dump",
+    "sha256": "942f031581e16e057342efdd067babadba48cd4921442a2a2cb492ea11c7d455",
+    "tables": 30,
+    "archiveListing": "passed",
+    "restoreTest": "passed; prod-restore-tests.json"
+  }
+}

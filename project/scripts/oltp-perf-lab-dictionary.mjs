@@ -1,0 +1,58 @@
+import fs from 'node:fs/promises';
+import {FileBlob, SpreadsheetFile} from '@oai/artifact-tool';
+const root='C:/GitHub/AppSheet-Loan-Project';
+const combined=process.argv.includes('--combined');
+const sqlPoc=process.argv.includes('--sql-poc');
+const sqlTrial=process.argv.includes('--sql-trial');
+const sqlProduction=process.argv.includes('--sql-production');
+const labSheet=sqlProduction?'SQL Production':sqlTrial?'SQL Migration Trial':sqlPoc?'SQL Sync POC':combined?'OLTP Combined Test':'OLTP Performance Lab';
+const out=`${root}/outputs/${sqlProduction?'postgresql-production-cutover-20260915':sqlTrial?'postgresql-migration-trial-20260914':sqlPoc?'cloud-sql-poc-20260914':combined?'oltp-combined-performance-20260913':'oltp-performance-lab-20260912'}`;
+await fs.mkdir(out,{recursive:true});
+const file=`${root}/Documents/AppSheet_Data_Dictionary.xlsx`;
+const wb=await SpreadsheetFile.importXlsx(await FileBlob.load(file));
+const source=wb.worksheets.getItem('Columns');
+const rows=source.getUsedRange().values;
+const match=rows.findIndex(v=>v[0]==='Payments'&&v[2]==='Eligible Charges');
+if(match<0) throw Error('Expected Payments Eligible Charges documentation');
+console.log(JSON.stringify({row:match+1,values:rows[match]}));
+const before=await wb.render({sheetName:'Columns',range:`A${match+1}:H${match+1}`,scale:1,format:'png'});
+await fs.writeFile(`${out}/dictionary-before.png`,new Uint8Array(await before.arrayBuffer()));
+if(!process.argv.includes('--edit')) process.exit(0);
+const baseline=new Map(wb.worksheets.items.filter(s=>s.name!==labSheet).map(s=>[s.name,JSON.stringify(s.getUsedRange().values)]));
+const data=JSON.parse(await fs.readFile(`${out}/lab-config.json`,'utf8'));
+for(const experiment of data.frozenExperiments??[]){
+ for(const [name,stored] of [['Calculated Order','Allocation Order'],['Calculated Amount','Allocated Amount'],['Calculated Interest','Allocated Interest'],['Calculated Principal','Allocated Principal']]){
+  const src=rows.filter(r=>r[0]==='Payment Allocations'&&r[2]===name);
+  if(src.length!==1) throw Error(`Expected one original ${name}`);
+  const original=src[0][7];
+  if(typeof original!=='string'||!original.length)throw Error(`Missing original ${name}`);
+  const definition=experiment.gate?`IF(${experiment.gate}, [${stored}], ${original})`:original;
+  const record=[experiment.id,experiment.version,'Payment Allocations',name,src[0][3],experiment.status,experiment.purpose,definition];
+  const ix=data.definitions.findIndex(r=>r[0]===experiment.id&&r[3]===name);
+  if(ix>=0)data.definitions[ix]=record;else data.definitions.push(record);
+ }
+}
+await fs.writeFile(`${out}/lab-config.json`,JSON.stringify(data,null,2)+'\n');
+const sheet=wb.worksheets.items.find(s=>s.name===labSheet)??wb.worksheets.add(labSheet);
+sheet.getUsedRange().clear({applyTo:'contents'});
+sheet.getRange('A1:H1').values=[['Experiment','App version','Table','Column / setting','Type','Scope / status','Purpose / dependencies','Exact definition']];
+sheet.getRange(`A2:H${data.definitions.length+1}`).values=data.definitions;
+sheet.getRange(`A1:H${data.definitions.length+1}`).format.font={name:'Arial',size:10};
+sheet.getRange('A1:H1').format={fill:'#17365D',font:{name:'Arial',size:10,bold:true,color:'#FFFFFF'},rowHeight:30,wrapText:true};
+sheet.getRange(`A2:H${data.definitions.length+1}`).format.wrapText=true;
+sheet.getRange(`A2:H${data.definitions.length+1}`).format.rowHeight=sqlProduction?70:sqlTrial?55:150;
+for(const [col,width] of [['A',15],['B',15],['C',20],['D',25],['E',15],['F',38],['G',55],['H',100]]) sheet.getRange(`${col}1:${col}${data.definitions.length+1}`).format.columnWidth=width;
+sheet.showGridLines=false; sheet.freezePanes.freezeRows(1);
+wb.recalculate();
+const preview=await wb.render({sheetName:sheet.name,range:'A1:H2',scale:1,format:'png'});
+await fs.writeFile(`${out}/dictionary-after.png`,new Uint8Array(await preview.arrayBuffer()));
+const finalPreview=await wb.render({sheetName:sheet.name,range:`A${Math.max(2,data.definitions.length-3)}:H${data.definitions.length+1}`,scale:1,format:'png'});
+await fs.writeFile(`${out}/dictionary-final-state.png`,new Uint8Array(await finalPreview.arrayBuffer()));
+await (await SpreadsheetFile.exportXlsx(wb)).save(`${out}/AppSheet_Data_Dictionary.xlsx`);
+const check=await SpreadsheetFile.importXlsx(await FileBlob.load(`${out}/AppSheet_Data_Dictionary.xlsx`));
+for(const [name,values] of baseline) if(JSON.stringify(check.worksheets.getItem(name).getUsedRange().values)!==values) throw Error(`Unexpected original sheet changes: ${name}`);
+const normalize=matrix=>matrix.map(row=>row.map(value=>value===''?null:value));
+if(JSON.stringify(normalize(check.worksheets.getItem(sheet.name).getRange(`A2:H${data.definitions.length+1}`).values))!==JSON.stringify(normalize(data.definitions))) throw Error('Lab definitions changed on export');
+await fs.writeFile(`${out}/dictionary-verification.json`,JSON.stringify({unchangedOriginalSheets:[...baseline.keys()],labDefinitionCount:data.definitions.length,verifiedAt:new Date().toISOString()},null,2));
+await fs.copyFile(`${out}/AppSheet_Data_Dictionary.xlsx`,file);
+console.log('Original sheet values preserved; clone definitions verified.');

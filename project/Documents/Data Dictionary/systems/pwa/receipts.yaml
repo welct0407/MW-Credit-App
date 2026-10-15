@@ -1,0 +1,44 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "pwa",
+    "component": "mw-credit",
+    "kind": "storage-contract",
+    "name": "receipts",
+    "scope": "dev-and-prod"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "https://github.com/welct0407/MW-Credit-App/blob/808cdf53225ce627ea41ef4d3666bf97a3c9cbfe/services/agent-receipts/contract.mjs",
+    "coverage": "Source and published deployment reconciliation, 14 October 2026; no new live audit."
+  },
+  "content": {
+    "bucket": "mw-payment-receipts-prod-508610-n7",
+    "agent_object_key": "receipts/{environment}/{UTC YYYY/MM/DD}/{receiptId}/{rawSha256}.{jpg|png|webp}",
+    "agent_archive_evidence": [
+      "receiptId",
+      "objectKey",
+      "generation",
+      "rawSha256",
+      "mimeType",
+      "sizeBytes",
+      "capturedAt"
+    ],
+    "supported_agent_mime_types": [
+      "image/jpeg",
+      "image/png",
+      "image/webp"
+    ],
+    "maximum_agent_size_bytes": 12000000,
+    "ownership": "PWA manual uploads and agent originals use validated, separate conventions; neither guesses a historical filename.",
+    "access": "Authenticated business access before private GCS read; preserve exact existing references and generations.",
+    "contracts": [
+      "services/agent-receipts/contract.mjs",
+      "services/receipts/command-receipts.mjs",
+      "services/receipts/production-native-catalog.mjs",
+      "services/receipts/production-source-receipts.mjs",
+      "services/receipts/production-agent-receipts.mjs"
+    ],
+    "source_base": "https://github.com/welct0407/MW-Credit-App/blob/808cdf53225ce627ea41ef4d3666bf97a3c9cbfe/"
+  }
+}

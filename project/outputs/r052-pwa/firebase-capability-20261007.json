@@ -1,0 +1,10 @@
+{
+  "date": "2026-10-07",
+  "operation": "read-only",
+  "projectId": "clever-oasis-508610-n7",
+  "projectNumber": "737787224638",
+  "firebaseProjectState": "ACTIVE",
+  "webAppCount": 0,
+  "identityToolkitConfigHttpStatus": 404,
+  "limitations": "No auth provider or user enumeration. HTTP404 is an observation, not a confirmed root cause. No live mutation."
+}

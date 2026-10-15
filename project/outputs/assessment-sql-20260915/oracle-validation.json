@@ -1,0 +1,72 @@
+[
+  {
+    "batch": 0,
+    "comparisons": 9180,
+    "days": 1530,
+    "maxDifference": 0,
+    "mismatches": 0
+  },
+  {
+    "batch": 1,
+    "comparisons": 9180,
+    "days": 1530,
+    "maxDifference": 0,
+    "mismatches": 0
+  },
+  {
+    "batch": 2,
+    "comparisons": 9180,
+    "days": 1530,
+    "maxDifference": 5e-12,
+    "mismatches": 0
+  },
+  {
+    "batch": 3,
+    "comparisons": 9180,
+    "days": 1530,
+    "maxDifference": 2e-13,
+    "mismatches": 0
+  },
+  {
+    "batch": 4,
+    "comparisons": 9180,
+    "days": 1530,
+    "maxDifference": 0,
+    "mismatches": 0
+  },
+  {
+    "batch": 5,
+    "comparisons": 9180,
+    "days": 1530,
+    "maxDifference": 2e-13,
+    "mismatches": 0
+  },
+  {
+    "batch": 6,
+    "comparisons": 9180,
+    "days": 1530,
+    "maxDifference": 0,
+    "mismatches": 0
+  },
+  {
+    "batch": 7,
+    "comparisons": 9180,
+    "days": 1530,
+    "maxDifference": 0,
+    "mismatches": 0
+  },
+  {
+    "batch": 8,
+    "comparisons": 9180,
+    "days": 1530,
+    "maxDifference": 0,
+    "mismatches": 0
+  },
+  {
+    "batch": 9,
+    "comparisons": 4590,
+    "days": 765,
+    "maxDifference": 0,
+    "mismatches": 0
+  }
+]

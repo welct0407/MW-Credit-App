@@ -1,0 +1,86 @@
+[
+  {
+    "id": "action_View Ref (Borrower Reference TE)",
+    "properties": {
+      "Action icon": "",
+      "Action name": "View Ref (Borrower Reference TE)",
+      "Action order": 1,
+      "Attach to column": "Borrower Reference TE",
+      "Bulk action?": "No",
+      "Disable automatic updates?": "No",
+      "Do this": "NAVIGATE_APP",
+      "Does this action apply to the whole table?": "No",
+      "For a record of this table": "Borrowers",
+      "Modifies data?": "No",
+      "Needs confirmation?": "No",
+      "Only if this condition is true": "NOT(ISBLANK([Borrower Reference TE]))",
+      "Prominence": "Display_Inline",
+      "Set this column": "Borrower Reference TE",
+      "Visible?": "ALWAYS",
+      "With these properties": {
+        "BulkApplicable": false,
+        "ConfirmationMessage": "",
+        "ModifiesData": false,
+        "NavigateTarget": "CONCATENATE(\"#page=detail&table=Borrowers&row=\", ENCODEURL([Borrower Reference TE]) )",
+        "NeedsConfirmation": false,
+        "Prominence": "Display_Inline"
+      }
+    }
+  },
+  {
+    "id": "action_View Ref (Borrower Reference TE)",
+    "properties": {
+      "Action icon": "",
+      "Action name": "View Ref (Borrower Reference TE)",
+      "Action order": 1,
+      "Attach to column": "Borrower Reference TE",
+      "Bulk action?": "No",
+      "Disable automatic updates?": "No",
+      "Do this": "NAVIGATE_APP",
+      "Does this action apply to the whole table?": "No",
+      "For a record of this table": "Charges",
+      "Modifies data?": "No",
+      "Needs confirmation?": "No",
+      "Only if this condition is true": "NOT(ISBLANK([Borrower Reference TE]))",
+      "Prominence": "Display_Inline",
+      "Set this column": "Borrower Reference TE",
+      "Visible?": "ADVANCED",
+      "With these properties": {
+        "BulkApplicable": false,
+        "ConfirmationMessage": "",
+        "ModifiesData": false,
+        "NavigateTarget": "CONCATENATE(\"#page=detail&table=Borrowers&row=\", ENCODEURL([Borrower Reference TE]) )",
+        "NeedsConfirmation": false,
+        "Prominence": "Display_Inline"
+      }
+    }
+  },
+  {
+    "id": "action_View Ref (Borrower Reference TE)",
+    "properties": {
+      "Action icon": "",
+      "Action name": "View Ref (Borrower Reference TE)",
+      "Action order": 1,
+      "Attach to column": "Borrower Reference TE",
+      "Bulk action?": "No",
+      "Disable automatic updates?": "No",
+      "Do this": "NAVIGATE_APP",
+      "Does this action apply to the whole table?": "No",
+      "For a record of this table": "Repayments",
+      "Modifies data?": "No",
+      "Needs confirmation?": "No",
+      "Only if this condition is true": "NOT(ISBLANK([Borrower Reference TE]))",
+      "Prominence": "Display_Inline",
+      "Set this column": "Borrower Reference TE",
+      "Visible?": "ADVANCED",
+      "With these properties": {
+        "BulkApplicable": false,
+        "ConfirmationMessage": "",
+        "ModifiesData": false,
+        "NavigateTarget": "CONCATENATE(\"#page=detail&table=Borrowers&row=\", ENCODEURL([Borrower Reference TE]) )",
+        "NeedsConfirmation": false,
+        "Prominence": "Display_Inline"
+      }
+    }
+  }
+]

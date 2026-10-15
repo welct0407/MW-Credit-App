@@ -1,0 +1,112 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "metabase",
+    "component": "reports.mw-credit.com",
+    "kind": "question",
+    "name": "Upcoming dues · partial weeks / 357",
+    "scope": "production"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r045-forecast-planning/saved.json"
+  },
+  "content": {
+    "id": 357,
+    "key": "weekly",
+    "name": "Upcoming dues · partial weeks",
+    "display": "bar",
+    "dataset_query": {
+      "database": 2,
+      "type": "native",
+      "native": {
+        "query": "WITH args AS (SELECT coalesce([[{{ci}},]]100)::numeric ci,coalesce([[{{cp}},]]100)::numeric cp,coalesce([[{{rr}},]]0)::numeric rr,coalesce([[{{scenario}},]]'Planning')::text scenario,coalesce([[{{kind}},]]'All')::text kind,coalesce([[{{target}},]]NULL)::numeric target) SELECT date_trunc('week',due_date)::date AS \"Week starting\",sum(interest) AS \"Interest due ฿\",sum(principal) AS \"Principal due ฿\" FROM {{#346}} ev,args a WHERE eligible AND bucket IN ('Today','Future') AND (a.kind='All' OR ev.loan_type=a.kind) GROUP BY 1 ORDER BY 1",
+        "template-tags": {
+          "ci": {
+            "id": "fp-ci",
+            "name": "ci",
+            "display-name": "Interest collected %",
+            "type": "number",
+            "default": 100
+          },
+          "cp": {
+            "id": "fp-cp",
+            "name": "cp",
+            "display-name": "Principal collected %",
+            "type": "number",
+            "default": 100
+          },
+          "rr": {
+            "id": "fp-rr",
+            "name": "rr",
+            "display-name": "Overdue recovered %",
+            "type": "number",
+            "default": 0
+          },
+          "scenario": {
+            "id": "fp-scenario",
+            "name": "scenario",
+            "display-name": "Forecast scenario",
+            "type": "text",
+            "default": "Planning"
+          },
+          "kind": {
+            "id": "fp-kind",
+            "name": "kind",
+            "display-name": "Forecast loan type",
+            "type": "text",
+            "default": "All"
+          },
+          "target": {
+            "id": "fp-target",
+            "name": "target",
+            "display-name": "Interest target ฿",
+            "type": "number"
+          },
+          "#346": {
+            "id": "fp-model-346",
+            "name": "#346",
+            "display-name": "Forecast source 346",
+            "type": "card",
+            "card-id": 346
+          }
+        }
+      }
+    },
+    "visualization_settings": {
+      "graph.dimensions": [
+        "Week starting"
+      ],
+      "graph.metrics": [
+        "Interest due ฿",
+        "Principal due ฿"
+      ],
+      "graph.colors": [
+        "#2563EB",
+        "#178F8A",
+        "#E39B39",
+        "#999999"
+      ],
+      "graph.show_legend": true,
+      "graph.show_values": false,
+      "graph.y_axis.auto_split": false,
+      "graph.missing": "none",
+      "column_settings": {
+        "[\"name\",\"Interest due ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Principal due ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,",
+          "compact": false
+        }
+      },
+      "stackable.stack_type": "stacked"
+    },
+    "description": "R045 Forecast & Planning. Current Bangkok month; posted actuals include partial today. Raw scheduled balances, not scenario-adjusted. Overdue stock excluded."
+  }
+}

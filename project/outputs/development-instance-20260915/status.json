@@ -1,0 +1,22 @@
+{
+  "status": "Development isolation and functional verification complete; owner acceptance pending",
+  "cloneCompleted": "2026-09-15 10:56:24 Asia/Bangkok",
+  "instance": "appsheet-pg-dev-20260915",
+  "dataSource": "database-3",
+  "database": "loan_manager_prod",
+  "apps": [
+    {
+      "name": "LoanInsights PG Trial 20260914",
+      "version": "1.000025",
+      "sqlBindings": 13
+    },
+    {
+      "name": "LoanMgr PG Test 20260914",
+      "version": "1.000011",
+      "sqlBindings": 8
+    }
+  ],
+  "maxConnections": 50,
+  "verification": "verification.json",
+  "productionChangesByThisTask": false
+}

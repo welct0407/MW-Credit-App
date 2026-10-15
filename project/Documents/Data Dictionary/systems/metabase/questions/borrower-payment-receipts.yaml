@@ -1,0 +1,75 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "metabase",
+    "component": "reports.mw-credit.com",
+    "kind": "question",
+    "name": "Payments · selected payment dates / 317",
+    "scope": "production"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r042-borrower-payments/saved.json"
+  },
+  "content": {
+    "id": 317,
+    "name": "Payments · selected payment dates",
+    "display": "table",
+    "description": "Original payment receipts, one row per Payments record, including unposted states. All payment details included by owner request. Amount received and posted amount are separate; repayments below are allocation rows. Reference IDs are resolved to readable names/Loan Keys.",
+    "dataset_query": {
+      "stages": [
+        {
+          "template-tags": [
+            {
+              "widget-type": "date/all-options",
+              "id": "bp-period",
+              "name": "period",
+              "display-name": "Payment dates",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                {
+                  "base-type": "type/Date",
+                  "lib/uuid": "de0efaa5-a4ca-4089-95f1-f7023c65f23b",
+                  "effective-type": "type/Date"
+                },
+                82
+              ],
+              "alias": "d.\"Date\""
+            },
+            {
+              "display-name": "Borrower",
+              "id": "bp-borrower",
+              "name": "borrower_id",
+              "type": "text"
+            }
+          ],
+          "lib/type": "mbql.stage/native",
+          "native": "WITH clock AS (SELECT public.olap_reporting_date() today), selected AS (SELECT d.\"Date\" FROM (SELECT generate_series(DATE '1900-01-01',DATE '2199-12-31',interval '1 day')::date \"Date\") d WHERE [[{{period}} --]] d.\"Date\" BETWEEN (SELECT today-30 FROM clock) AND (SELECT today-1 FROM clock)\n), bounds AS (SELECT min(\"Date\") starts,max(\"Date\") ends,count(*) days,count(*)>0 AND count(*)=max(\"Date\")-min(\"Date\")+1 AND max(\"Date\")<=(SELECT today FROM clock) valid FROM selected), chosen AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE borrower_id= [[{{borrower_id}} --]] '__select_borrower__'\n), activity AS (SELECT a.* FROM public.reporting_borrower_activity_daily_v1 a JOIN chosen c USING(borrower_id) CROSS JOIN bounds b WHERE b.valid AND a.activity_date BETWEEN b.starts AND b.ends) SELECT p.payment_date AS \"Payment date\",p.status AS \"Status\",p.amount_received AS \"Amount received ฿\",p.posted_amount AS \"Posted amount ฿\",p.planned_allocation_amount AS \"Planned allocation ฿\",p.payment_method AS \"Payment method\",p.allocation_method AS \"Allocation method\",p.received_holder AS \"Received by\",p.received_account AS \"Receipt account\",p.bank_reference AS \"Bank reference\",p.notes AS \"Notes\",p.created_by AS \"Created by\",p.created_at AS \"Created at\",p.processed_at AS \"Processed at\",CASE WHEN tl.\"Row ID\" IS NULL THEN NULL ELSE c.borrower_name||'-'||to_char(tl.\"Principal Amount\"::numeric,'FM999,999,999,990.00')||'-'||to_char(tl.\"Loan Date\",'DD/MM')||'-'||to_char(tl.\"Effective Daily Interest Rate\"::numeric*100,'FM999990.00')||'%' END AS \"Target Loan Key\",p.target_charge_date AS \"Target charge due date\",CASE WHEN cl.\"Row ID\" IS NULL THEN NULL ELSE c.borrower_name||'-'||to_char(cl.\"Principal Amount\"::numeric,'FM999,999,999,990.00')||'-'||to_char(cl.\"Loan Date\",'DD/MM')||'-'||to_char(cl.\"Effective Daily Interest Rate\"::numeric*100,'FM999990.00')||'%' END AS \"Target charge Loan Key\" FROM chosen c JOIN public.reporting_borrower_payments_v1 p USING(borrower_id) LEFT JOIN public.olap_loans_analytics tl ON tl.\"Row ID\"=p.target_loan_id LEFT JOIN public.olap_loans_analytics cl ON cl.\"Row ID\"=p.target_charge_loan_id CROSS JOIN bounds b WHERE b.valid AND p.payment_date BETWEEN b.starts AND b.ends ORDER BY p.payment_date DESC,p.created_at DESC NULLS LAST,p.payment_id"
+        }
+      ],
+      "lib/type": "mbql/query",
+      "database": 2
+    },
+    "visualization_settings": {
+      "table.pivot": false,
+      "column_settings": {
+        "[\"name\",\"Amount received ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Posted amount ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Planned allocation ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      }
+    }
+  }
+}

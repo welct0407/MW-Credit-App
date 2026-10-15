@@ -1,0 +1,2 @@
+{"database" : "loan_manager_prod", "timezone" : "UTC", "pg_cron_enabled" : "on", "cron_database" : "loan_manager_prod", "cron_timezone" : "Asia/Bangkok", "cron_max_running_jobs" : "1", "background_workers" : "on", "max_connections" : "50", "extension" : "1.6.7", "migration_version" : 9}
+{"jobid":1,"jobname":"loan-daily-charges","schedule":"5 0 * * *","command":"SELECT public.generate_due_charges((statement_timestamp() AT TIME ZONE 'Asia/Bangkok')::date);","database":"loan_manager_prod","active":true}

@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "database": "loan_manager_dev",
+  "expected_version": 67,
+  "window_reference": "Parent reserved DEV window; root cleared fdedfa28 CI37366812688 attempt2 SUCCESS on 2026-10-05; GUI writes paused",
+  "application_name": "r051-v67-delete-bc267b00b32b4224ba31627b1096b829",
+  "flag_metadata_null_bulk_copy_checks": "passed",
+  "functional_checks": "passed",
+  "linked_reimbursement_checks": "passed",
+  "table_fingerprints_compared": 26,
+  "fingerprints_unchanged": true
+}

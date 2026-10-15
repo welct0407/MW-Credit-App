@@ -1,0 +1,14 @@
+{
+  "role": "metabase_borrower_reader",
+  "applied_at": "2026-09-22T12:17:05.6335707+00:00",
+  "data_changed": false,
+  "backup_reused": "backup-verification.json",
+  "privilege_rollback": "remaining-pages-before/column-grants.csv",
+  "schema_changed": false,
+  "relations": 7,
+  "sql_sha256": "64109C4CC6B0DD2B095047E865FABD946EA6B30E0FC299539E41D33D9FCF1A25",
+  "instance": "appsheet-pg-prod-20260914",
+  "approval": "Owner reply 2026-09-22: Approve the listed read-only grants",
+  "database": "loan_manager_prod",
+  "columns": 73
+}

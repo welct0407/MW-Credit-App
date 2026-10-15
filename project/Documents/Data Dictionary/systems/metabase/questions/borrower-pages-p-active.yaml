@@ -1,0 +1,67 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "metabase",
+    "component": "reports.mw-credit.com",
+    "kind": "question",
+    "name": "Active borrowers / 278",
+    "scope": "production"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r035-borrower-pages/saved-question-definitions.json"
+  },
+  "content": {
+    "key": "p-active",
+    "id": 278,
+    "name": "Active borrowers",
+    "description": "R035 additive borrower pages. Immutable borrower keys; Bangkok dates; current health from V41/V42. Signed receipts. No AppSheet/financial writes.",
+    "display": "scalar",
+    "type": "question",
+    "dataset_query": {
+      "stages": [
+        {
+          "template-tags": [
+            {
+              "type": "text",
+              "id": "bp-population",
+              "name": "population",
+              "display-name": "Population",
+              "default": "All with loan history"
+            }
+          ],
+          "lib/type": "mbql.stage/native",
+          "native": "WITH clock AS (SELECT public.olap_reporting_date() today), cohort AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE loan_count>0 AND ([[{{population}} --]] 'All with loan history'\n='All with loan history' OR [[{{population}} --]] 'All with loan history'\n='Currently active' AND has_active_loan OR [[{{population}} --]] 'All with loan history'\n='Currently inactive' AND NOT has_active_loan)) SELECT count(*) FILTER(WHERE has_active_loan) AS \"Active borrowers\" FROM cohort"
+        }
+      ],
+      "lib/type": "mbql/query",
+      "database": 2
+    },
+    "visualization_settings": {
+      "scalar.field": "Active borrowers",
+      "column_settings": {
+        "[\"name\",\"Active borrowers\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,",
+          "compact": false
+        }
+      }
+    },
+    "result_metadata": [
+      {
+        "name": "Active borrowers",
+        "database_type": "int8",
+        "base_type": "type/BigInteger",
+        "display_name": "Active borrowers",
+        "field_ref": [
+          "field",
+          "Active borrowers",
+          {
+            "base-type": "type/BigInteger"
+          }
+        ]
+      }
+    ]
+  }
+}

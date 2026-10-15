@@ -1,0 +1,60 @@
+{
+  "at": "2026-09-27T12:04:49.374538+00:00",
+  "sourceVersions": {
+    "OLTP": "1.000118",
+    "OLAP": "1.000042"
+  },
+  "rcVersions": {
+    "OLTP": "1.000009",
+    "OLAP": "1.000009"
+  },
+  "copyData": false,
+  "copyFiles": false,
+  "mapping": "source-mapping.json",
+  "productionDatabase": {
+    "instance": "appsheet-pg-prod-20260914",
+    "host": "34.21.174.215",
+    "database": "loan_manager_prod",
+    "version": 52
+  },
+  "guards": {
+    "OLTP": "IN(CONTEXT(\"AppName\"), LIST(\"MW-OLTP-DEV-20260919-578763613\", \"LoanManager-975338008-26-08-07\"))",
+    "OLAP": "IN(CONTEXT(\"AppName\"), LIST(\"MW-OLAP-DEV-20260919-578763613\", \"LoanBusinessInsights-975338008\"))",
+    "placement": "First canonical guard branch before business chain; existing daily-charge and hourly-analytics paths retained; RC names excluded",
+    "runtimeProofReused": "outputs/dev-app-refresh-20260919/verification.json"
+  },
+  "checks": {
+    "bothEditors": "No issues found",
+    "mode": "Deployed",
+    "deploymentChecks": "Definition/data/security/account passed; descriptive/menu/cache advisories only; no editor warnings after deployed",
+    "OLTP": "Production Collection loads; Selected Charges form disabled calculated total, optional receipt picture and cancel verified; Submitted Receipts section and date/residual/Loan Key label visible",
+    "OLAP": "Analytics loads/syncs;19 production business mappings",
+    "financialWrites": false,
+    "forcedNotifications": false,
+    "apiEnabledBoth": true,
+    "keysCreated": false
+  },
+  "branding": {
+    "OLTP": {
+      "theme": "light",
+      "color": "#d81b60",
+      "font": "Rubik",
+      "size": 20,
+      "logo": "Original shared Drive Loan Manager App Logo.png reselected; renders correctly"
+    },
+    "OLAP": {
+      "theme": "light",
+      "color": "#0abab5",
+      "font": "Rubik",
+      "size": 20,
+      "logo": "Original shared Drive Loan Business Insights App Logo.png reselected; renders correctly"
+    }
+  },
+  "receiptStore": "MW Receipt Images PROD",
+  "receiptFolder": "manual-receipts/prod",
+  "companionLinks": "Canonical PROD internal names in both directions",
+  "limitations": [
+    "No new PROD payment or receipt upload written; reuse accepted DEV native upload/financial tests",
+    "Physical phone camera not tested"
+  ]
+}

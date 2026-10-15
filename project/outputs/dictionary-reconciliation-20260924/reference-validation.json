@@ -1,0 +1,952 @@
+[
+  {
+    "role": "oltp",
+    "refs": [
+      [
+        "Borrowers",
+        "Ref Referrer",
+        "Borrowers",
+        "Borrowers",
+        "Row ID"
+      ],
+      [
+        "Borrowers",
+        "Ref Preferred Receiving Cash Account",
+        "Cash Accounts",
+        "Cash Accounts",
+        "Row ID"
+      ],
+      [
+        "Borrowers",
+        "Payment Request Cash Account",
+        "Cash Accounts",
+        "Cash Accounts",
+        "Row ID"
+      ],
+      [
+        "Borrowers",
+        "Borrower Reference TE",
+        "Borrowers",
+        "Borrowers",
+        "Row ID"
+      ],
+      [
+        "Business Expenses",
+        "Ref Payee Borrower",
+        "Borrowers",
+        "Borrowers",
+        "Row ID"
+      ],
+      [
+        "Business Expenses",
+        "Ref Related Borrower",
+        "Borrowers",
+        "Borrowers",
+        "Row ID"
+      ],
+      [
+        "Business Expenses",
+        "Ref Related Loan",
+        "Loans",
+        "Loans",
+        "Row ID"
+      ],
+      [
+        "Business Expenses",
+        "Ref Paid By Cash Holder",
+        "Cash Holders",
+        "Cash Holders",
+        "Row ID"
+      ],
+      [
+        "Business Expenses",
+        "Ref Paid By Cash Account",
+        "Cash Accounts",
+        "Cash Accounts",
+        "Row ID"
+      ],
+      [
+        "Cash Account Balances",
+        "Ref Cash Account",
+        "Cash Accounts",
+        "Cash Accounts",
+        "Row ID"
+      ],
+      [
+        "Cash Account Balances",
+        "Ref Cash Holder",
+        "Cash Holders",
+        "Cash Holders",
+        "Row ID"
+      ],
+      [
+        "Cash Account Daily Summary Recent",
+        "Ref Cash Account",
+        "Cash Accounts",
+        "Cash Accounts",
+        "Row ID"
+      ],
+      [
+        "Cash Account Statement Recent",
+        "Ref Cash Account",
+        "Cash Accounts",
+        "Cash Accounts",
+        "Row ID"
+      ],
+      [
+        "Cash Account Statement Recent",
+        "Ref Borrower",
+        "Borrowers",
+        "Borrowers",
+        "Row ID"
+      ],
+      [
+        "Cash Account Statement Recent",
+        "Ref Other Cash Account",
+        "Cash Accounts",
+        "Cash Accounts",
+        "Row ID"
+      ],
+      [
+        "Cash Account Statement Recent",
+        "Ref Partner",
+        "Partners",
+        "Partners",
+        "Row ID"
+      ],
+      [
+        "Cash Account Statement Recent",
+        "Ref Payment",
+        "Payments",
+        "Payments",
+        "Row ID"
+      ],
+      [
+        "Cash Account Statement Recent",
+        "Ref Loan",
+        "Loans",
+        "Loans",
+        "Row ID"
+      ],
+      [
+        "Cash Account Statement Recent",
+        "Ref Business Expense",
+        "Business Expenses",
+        "Business Expenses",
+        "Row ID"
+      ],
+      [
+        "Cash Accounts",
+        "Ref Cash Holder",
+        "Cash Holders",
+        "Cash Holders",
+        "Row ID"
+      ],
+      [
+        "Cash Holder Balances",
+        "Ref Cash Holder",
+        "Cash Holders",
+        "Cash Holders",
+        "Row ID"
+      ],
+      [
+        "Cash Statement Context",
+        "Ref Partner",
+        "Partners",
+        "Partners",
+        "Row ID"
+      ],
+      [
+        "Cash Statement Context",
+        "Ref Cash Account",
+        "Cash Accounts",
+        "Cash Accounts",
+        "Row ID"
+      ],
+      [
+        "Charges",
+        "Ref Loans",
+        "Loans",
+        "Loans",
+        "Row ID"
+      ],
+      [
+        "Charges",
+        "Payment Request Cash Account",
+        "Cash Accounts",
+        "Cash Accounts",
+        "Row ID"
+      ],
+      [
+        "Charges",
+        "Borrower Reference TE",
+        "Borrowers",
+        "Borrowers",
+        "Row ID"
+      ],
+      [
+        "Generate Today's Charge Output",
+        "Ref Borrowers",
+        "Borrowers",
+        "Borrowers",
+        "Row ID"
+      ],
+      [
+        "Generate Today's Charge Output",
+        "Ref Closing Payment",
+        "Payments",
+        "Payments",
+        "Row ID"
+      ],
+      [
+        "Generate Today's Charge Output",
+        "Ref Disbursed From Cash Account",
+        "Cash Accounts",
+        "Cash Accounts",
+        "Row ID"
+      ],
+      [
+        "Generate Today's Charge Output",
+        "Payment Request Cash Account",
+        "Cash Accounts",
+        "Cash Accounts",
+        "Row ID"
+      ],
+      [
+        "Loans",
+        "Ref Borrowers",
+        "Borrowers",
+        "Borrowers",
+        "Row ID"
+      ],
+      [
+        "Loans",
+        "Ref Closing Payment",
+        "Payments",
+        "Payments",
+        "Row ID"
+      ],
+      [
+        "Loans",
+        "Ref Disbursed From Cash Account",
+        "Cash Accounts",
+        "Cash Accounts",
+        "Row ID"
+      ],
+      [
+        "Loans",
+        "Payment Request Cash Account",
+        "Cash Accounts",
+        "Cash Accounts",
+        "Row ID"
+      ],
+      [
+        "Payment Allocations",
+        "Ref Payment",
+        "Payments",
+        "Payments",
+        "Row ID"
+      ],
+      [
+        "Payment Allocations",
+        "Ref Charge",
+        "Charges",
+        "Charges",
+        "Row ID"
+      ],
+      [
+        "Payments",
+        "Ref Borrower",
+        "Borrowers",
+        "Borrowers",
+        "Row ID"
+      ],
+      [
+        "Payments",
+        "Ref Target Charge",
+        "Charges",
+        "Charges",
+        "Row ID"
+      ],
+      [
+        "Payments",
+        "Ref Target Loan",
+        "Loans",
+        "Loans",
+        "Row ID"
+      ],
+      [
+        "Payments",
+        "Ref Received By Cash Holder",
+        "Cash Holders",
+        "Cash Holders",
+        "Row ID"
+      ],
+      [
+        "Payments",
+        "Ref Received By Cash Account",
+        "Cash Accounts",
+        "Cash Accounts",
+        "Row ID"
+      ],
+      [
+        "Process for Generate Daily Charges - 1 Process Table",
+        "Ref Borrowers",
+        "Borrowers",
+        "Borrowers",
+        "Row ID"
+      ],
+      [
+        "Process for Generate Daily Charges - 1 Process Table",
+        "Ref Closing Payment",
+        "Payments",
+        "Payments",
+        "Row ID"
+      ],
+      [
+        "Process for Generate Daily Charges - 1 Process Table",
+        "Ref Disbursed From Cash Account",
+        "Cash Accounts",
+        "Cash Accounts",
+        "Row ID"
+      ],
+      [
+        "Process for Generate Daily Charges - 1 Process Table",
+        "Payment Request Cash Account",
+        "Cash Accounts",
+        "Cash Accounts",
+        "Row ID"
+      ],
+      [
+        "Process for Generate Daily Charges - 1 Process Table",
+        "Canonical app execution guard",
+        "Canonical app execution guard Output",
+        null,
+        "Instance Id"
+      ],
+      [
+        "Process for Generate Daily Charges - 1 Process Table",
+        "Generate Today's Charge",
+        "Generate Today's Charge Output",
+        null,
+        "Instance Id"
+      ],
+      [
+        "Process for Notification - Charge Received Process Table",
+        "Ref Borrower",
+        "Borrowers",
+        "Borrowers",
+        "Row ID"
+      ],
+      [
+        "Process for Notification - Charge Received Process Table",
+        "Ref Target Charge",
+        "Charges",
+        "Charges",
+        "Row ID"
+      ],
+      [
+        "Process for Notification - Charge Received Process Table",
+        "Ref Target Loan",
+        "Loans",
+        "Loans",
+        "Row ID"
+      ],
+      [
+        "Process for Notification - Charge Received Process Table",
+        "Ref Received By Cash Holder",
+        "Cash Holders",
+        "Cash Holders",
+        "Row ID"
+      ],
+      [
+        "Process for Notification - Charge Received Process Table",
+        "Ref Received By Cash Account",
+        "Cash Accounts",
+        "Cash Accounts",
+        "Row ID"
+      ],
+      [
+        "Process for Notification - Charge Received Process Table",
+        "Notify payment-closed loans",
+        "Notify payment-closed loans Output",
+        null,
+        "Instance Id"
+      ],
+      [
+        "Process for Notification - First-Day Charge Process Table",
+        "Ref Loans",
+        "Loans",
+        "Loans",
+        "Row ID"
+      ],
+      [
+        "Process for Notification - First-Day Charge Process Table",
+        "Payment Request Cash Account",
+        "Cash Accounts",
+        "Cash Accounts",
+        "Row ID"
+      ],
+      [
+        "Process for Notification - First-Day Charge Process Table",
+        "Borrower Reference TE",
+        "Borrowers",
+        "Borrowers",
+        "Row ID"
+      ],
+      [
+        "Process for Notification - Loan Closed Process Table",
+        "Ref Borrowers",
+        "Borrowers",
+        "Borrowers",
+        "Row ID"
+      ],
+      [
+        "Process for Notification - Loan Closed Process Table",
+        "Ref Closing Payment",
+        "Payments",
+        "Payments",
+        "Row ID"
+      ],
+      [
+        "Process for Notification - Loan Closed Process Table",
+        "Ref Disbursed From Cash Account",
+        "Cash Accounts",
+        "Cash Accounts",
+        "Row ID"
+      ],
+      [
+        "Process for Notification - Loan Closed Process Table",
+        "Payment Request Cash Account",
+        "Cash Accounts",
+        "Cash Accounts",
+        "Row ID"
+      ],
+      [
+        "Process for Notification - New Loan Created Process Table",
+        "Ref Borrowers",
+        "Borrowers",
+        "Borrowers",
+        "Row ID"
+      ],
+      [
+        "Process for Notification - New Loan Created Process Table",
+        "Ref Closing Payment",
+        "Payments",
+        "Payments",
+        "Row ID"
+      ],
+      [
+        "Process for Notification - New Loan Created Process Table",
+        "Ref Disbursed From Cash Account",
+        "Cash Accounts",
+        "Cash Accounts",
+        "Row ID"
+      ],
+      [
+        "Process for Notification - New Loan Created Process Table",
+        "Payment Request Cash Account",
+        "Cash Accounts",
+        "Cash Accounts",
+        "Row ID"
+      ],
+      [
+        "Process for Notification - New Loan Created Process Table",
+        "First-day receipt exists",
+        "First-day receipt exists Output",
+        null,
+        "Instance Id"
+      ],
+      [
+        "Process for R008 Loan Close Confirmed Process Table",
+        "Ref Borrowers",
+        "Borrowers",
+        "Borrowers",
+        "Row ID"
+      ],
+      [
+        "Process for R008 Loan Close Confirmed Process Table",
+        "Ref Closing Payment",
+        "Payments",
+        "Payments",
+        "Row ID"
+      ],
+      [
+        "Process for R008 Loan Close Confirmed Process Table",
+        "Ref Disbursed From Cash Account",
+        "Cash Accounts",
+        "Cash Accounts",
+        "Row ID"
+      ],
+      [
+        "Process for R008 Loan Close Confirmed Process Table",
+        "Payment Request Cash Account",
+        "Cash Accounts",
+        "Cash Accounts",
+        "Row ID"
+      ],
+      [
+        "Process for R008 Loan Close Confirmed Process Table",
+        "Notify payment-closed loans",
+        "Notify payment-closed loans Output 4",
+        null,
+        "Instance Id"
+      ],
+      [
+        "Process for R008 Receive All Confirmed Process Table",
+        "Ref Referrer",
+        "Borrowers",
+        "Borrowers",
+        "Row ID"
+      ],
+      [
+        "Process for R008 Receive All Confirmed Process Table",
+        "Ref Preferred Receiving Cash Account",
+        "Cash Accounts",
+        "Cash Accounts",
+        "Row ID"
+      ],
+      [
+        "Process for R008 Receive All Confirmed Process Table",
+        "Payment Request Cash Account",
+        "Cash Accounts",
+        "Cash Accounts",
+        "Row ID"
+      ],
+      [
+        "Process for R008 Receive All Confirmed Process Table",
+        "Borrower Reference TE",
+        "Borrowers",
+        "Borrowers",
+        "Row ID"
+      ],
+      [
+        "Process for R008 Receive All Confirmed Process Table",
+        "Notify payment-closed loans",
+        "Notify payment-closed loans Output 2",
+        null,
+        "Instance Id"
+      ],
+      [
+        "Process for R008 Single Full Confirmed Process Table",
+        "Ref Loans",
+        "Loans",
+        "Loans",
+        "Row ID"
+      ],
+      [
+        "Process for R008 Single Full Confirmed Process Table",
+        "Payment Request Cash Account",
+        "Cash Accounts",
+        "Cash Accounts",
+        "Row ID"
+      ],
+      [
+        "Process for R008 Single Full Confirmed Process Table",
+        "Borrower Reference TE",
+        "Borrowers",
+        "Borrowers",
+        "Row ID"
+      ],
+      [
+        "Process for R008 Single Full Confirmed Process Table",
+        "Notify payment-closed loans",
+        "Notify payment-closed loans Output 3",
+        null,
+        "Instance Id"
+      ],
+      [
+        "Repayments",
+        "Ref Loans",
+        "Loans",
+        "Loans",
+        "Row ID"
+      ],
+      [
+        "Repayments",
+        "Ref Charges",
+        "Charges",
+        "Charges",
+        "Row ID"
+      ],
+      [
+        "Repayments",
+        "Ref Payment",
+        "Payments",
+        "Payments",
+        "Row ID"
+      ],
+      [
+        "Repayments",
+        "Ref Payment Allocation",
+        "Payment Allocations",
+        "Payment Allocations",
+        "Row ID"
+      ],
+      [
+        "Repayments",
+        "Borrower Reference TE",
+        "Borrowers",
+        "Borrowers",
+        "Row ID"
+      ]
+    ],
+    "unresolved": []
+  },
+  {
+    "role": "olap",
+    "refs": [
+      [
+        "Borrowers",
+        "Ref Referrer",
+        "Borrowers",
+        "Borrowers",
+        "Row ID"
+      ],
+      [
+        "Borrowers",
+        "Ref Preferred Receiving Cash Account",
+        "Cash Accounts",
+        "Cash Accounts",
+        "Row ID"
+      ],
+      [
+        "Borrowers",
+        "Payment Request Cash Account",
+        "Cash Accounts",
+        "Cash Accounts",
+        "Row ID"
+      ],
+      [
+        "Business Expenses",
+        "Ref Payee Borrower",
+        "Borrowers",
+        "Borrowers",
+        "Row ID"
+      ],
+      [
+        "Business Expenses",
+        "Ref Related Borrower",
+        "Borrowers",
+        "Borrowers",
+        "Row ID"
+      ],
+      [
+        "Business Expenses",
+        "Ref Related Loan",
+        "Loans",
+        "Loans",
+        "Row ID"
+      ],
+      [
+        "Business Expenses",
+        "Ref Paid By Cash Holder",
+        "Cash Holders",
+        "Cash Holders",
+        "Row ID"
+      ],
+      [
+        "Business Expenses",
+        "Ref Paid By Cash Account",
+        "Cash Accounts",
+        "Cash Accounts",
+        "Row ID"
+      ],
+      [
+        "Cash Account Balances",
+        "Ref Cash Account",
+        "Cash Accounts",
+        "Cash Accounts",
+        "Row ID"
+      ],
+      [
+        "Cash Account Balances",
+        "Ref Cash Holder",
+        "Cash Holders",
+        "Cash Holders",
+        "Row ID"
+      ],
+      [
+        "Cash Accounts",
+        "Ref Cash Holder",
+        "Cash Holders",
+        "Cash Holders",
+        "Row ID"
+      ],
+      [
+        "Cash Holder Balances",
+        "Ref Cash Holder",
+        "Cash Holders",
+        "Cash Holders",
+        "Row ID"
+      ],
+      [
+        "Cash Ledger",
+        "Ref From Cash Holder",
+        "Cash Holders",
+        "Cash Holders",
+        "Row ID"
+      ],
+      [
+        "Cash Ledger",
+        "Ref To Cash Holder",
+        "Cash Holders",
+        "Cash Holders",
+        "Row ID"
+      ],
+      [
+        "Cash Ledger",
+        "Ref Payment",
+        "Payments",
+        "Payments",
+        "Row ID"
+      ],
+      [
+        "Cash Ledger",
+        "Ref Loan",
+        "Loans",
+        "Loans",
+        "Row ID"
+      ],
+      [
+        "Cash Ledger",
+        "Ref Business Expense",
+        "Business Expenses",
+        "Business Expenses",
+        "Row ID"
+      ],
+      [
+        "Cash Ledger",
+        "Ref Settlement",
+        "Settlements",
+        "Settlements",
+        "Row ID"
+      ],
+      [
+        "Cash Ledger",
+        "Ref From Cash Account",
+        "Cash Accounts",
+        "Cash Accounts",
+        "Row ID"
+      ],
+      [
+        "Cash Ledger",
+        "Ref To Cash Account",
+        "Cash Accounts",
+        "Cash Accounts",
+        "Row ID"
+      ],
+      [
+        "Cash Ledger",
+        "Ref Borrower",
+        "Borrowers",
+        "Borrowers",
+        "Row ID"
+      ],
+      [
+        "Cash Pool Contributions",
+        "Ref Partner",
+        "Partners",
+        "Partners",
+        "Row ID"
+      ],
+      [
+        "Charges",
+        "Ref Loans",
+        "Loans",
+        "Loans",
+        "Row ID"
+      ],
+      [
+        "Charges",
+        "Ref Collection Borrower",
+        "Borrowers",
+        "Borrowers",
+        "Row ID"
+      ],
+      [
+        "Charges",
+        "Payment Request Cash Account",
+        "Cash Accounts",
+        "Cash Accounts",
+        "Row ID"
+      ],
+      [
+        "Charges",
+        "Borrower Reference TE",
+        "Borrowers",
+        "Borrowers",
+        "Row ID"
+      ],
+      [
+        "Loan Assessment",
+        "Ref Borrower",
+        "Borrowers",
+        "Borrowers",
+        "Row ID"
+      ],
+      [
+        "Loans",
+        "Ref Borrowers",
+        "Borrowers",
+        "Borrowers",
+        "Row ID"
+      ],
+      [
+        "Loans",
+        "Ref Closing Payment",
+        "Payments",
+        "Payments",
+        "Row ID"
+      ],
+      [
+        "Loans",
+        "Ref Disbursed From Cash Account",
+        "Cash Accounts",
+        "Cash Accounts",
+        "Row ID"
+      ],
+      [
+        "Loans",
+        "Payment Request Cash Account",
+        "Cash Accounts",
+        "Cash Accounts",
+        "Row ID"
+      ],
+      [
+        "Payment Allocations",
+        "Ref Payment",
+        "Payments",
+        "Payments",
+        "Row ID"
+      ],
+      [
+        "Payment Allocations",
+        "Ref Charge",
+        "Charges",
+        "Charges",
+        "Row ID"
+      ],
+      [
+        "Payments",
+        "Ref Borrower",
+        "Borrowers",
+        "Borrowers",
+        "Row ID"
+      ],
+      [
+        "Payments",
+        "Ref Target Charge",
+        "Charges",
+        "Charges",
+        "Row ID"
+      ],
+      [
+        "Payments",
+        "Ref Target Loan",
+        "Loans",
+        "Loans",
+        "Row ID"
+      ],
+      [
+        "Payments",
+        "Ref Received By Cash Holder",
+        "Cash Holders",
+        "Cash Holders",
+        "Row ID"
+      ],
+      [
+        "Payments",
+        "Ref Received By Cash Account",
+        "Cash Accounts",
+        "Cash Accounts",
+        "Row ID"
+      ],
+      [
+        "Process for Refresh Daily Analytics Daily - 1 Process Table",
+        "Portfolio Summary Ref",
+        "Portfolio Summary",
+        "Portfolio Summary",
+        "Row ID"
+      ],
+      [
+        "Process for Refresh Daily Analytics Daily - 1 Process Table",
+        "Canonical app execution guard",
+        "Canonical app execution guard Output",
+        null,
+        "Instance Id"
+      ],
+      [
+        "Process for Refresh Daily Analytics Daily - 1 Process Table",
+        "Request Recent Analytics Refresh",
+        "Request Recent Analytics Refresh Output",
+        null,
+        "Instance Id"
+      ],
+      [
+        "Repayments",
+        "Ref Loans",
+        "Loans",
+        "Loans",
+        "Row ID"
+      ],
+      [
+        "Repayments",
+        "Ref Charges",
+        "Charges",
+        "Charges",
+        "Row ID"
+      ],
+      [
+        "Repayments",
+        "Ref Payment",
+        "Payments",
+        "Payments",
+        "Row ID"
+      ],
+      [
+        "Repayments",
+        "Ref Payment Allocation",
+        "Payment Allocations",
+        "Payment Allocations",
+        "Row ID"
+      ],
+      [
+        "Repayments",
+        "Borrower Reference TE",
+        "Borrowers",
+        "Borrowers",
+        "Row ID"
+      ],
+      [
+        "Request Recent Analytics Refresh Output",
+        "Portfolio Summary Ref",
+        "Portfolio Summary",
+        "Portfolio Summary",
+        "Row ID"
+      ],
+      [
+        "Settlements",
+        "Ref Partner",
+        "Partners",
+        "Partners",
+        "Row ID"
+      ],
+      [
+        "Settlements",
+        "Ref Paid From Cash Account",
+        "Cash Accounts",
+        "Cash Accounts",
+        "Row ID"
+      ],
+      [
+        "Statistics",
+        "Portfolio Summary Ref",
+        "Portfolio Summary",
+        "Portfolio Summary",
+        "Row ID"
+      ]
+    ],
+    "unresolved": []
+  }
+]

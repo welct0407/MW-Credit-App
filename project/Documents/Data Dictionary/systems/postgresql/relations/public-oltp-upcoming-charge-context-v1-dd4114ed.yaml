@@ -1,0 +1,192 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "relation"
+  "name": "public.oltp_upcoming_charge_context_v1"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r048-production/README.md"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "oltp_upcoming_charge_context_v1"
+    "kind": "v"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "n"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,mw_app_prod=r/postgres}"
+    "comment": null
+    "view_definition": |2-
+       WITH ctx AS (
+               SELECT olap_reporting_date() AS t
+              ), counts AS (
+               SELECT COALESCE(sum(oltp_upcoming_charge_coverage_v1."Recorded Only Loans"), 0::bigint)::integer AS manual_loans,
+                  COALESCE(sum(oltp_upcoming_charge_coverage_v1."Review Loans"), 0::bigint)::integer AS review_loans
+                 FROM oltp_upcoming_charge_coverage_v1
+              ), orphans AS (
+               SELECT count(*)::integer AS n
+                 FROM "Charges" c
+                   LEFT JOIN "Loans" l ON l."Row ID" = c."Ref Loans"
+                   LEFT JOIN "Borrowers" b ON b."Row ID" = l."Ref Borrowers"
+                WHERE b."Row ID" IS NULL
+              )
+       SELECT 'upcoming'::text AS "Row ID",
+          ctx.t AS "As Of Date",
+          ctx.t + 1 AS "From Date",
+          ctx.t + 7 AS "Through Date",
+          statement_timestamp() AS "Calculated At",
+          (to_char((ctx.t + 1)::timestamp with time zone, 'DD Mon YYYY'::text) || ' - '::text) || to_char((ctx.t + 7)::timestamp with time zone, 'DD Mon YYYY'::text) AS "Date Range",
+          (
+              CASE
+                  WHEN (counts.review_loans + orphans.n) > 0 THEN 'Partial forecast - source review required. '::text
+                  ELSE ''::text
+              END ||
+              CASE
+                  WHEN counts.manual_loans > 0 THEN 'Auto-off loans use recorded settlement charges only. '::text
+                  ELSE ''::text
+              END) || 'Projected amounts assume scheduled principal is collected on its due date. Sync to refresh.'::text AS "Forecast Note"
+         FROM ctx
+           CROSS JOIN counts
+           CROSS JOIN orphans;
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "columns":
+    "Row ID":
+      "schema": "public"
+      "relation": "oltp_upcoming_charge_context_v1"
+      "name": "Row ID"
+      "ordinal": 1
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "As Of Date":
+      "schema": "public"
+      "relation": "oltp_upcoming_charge_context_v1"
+      "name": "As Of Date"
+      "ordinal": 2
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "From Date":
+      "schema": "public"
+      "relation": "oltp_upcoming_charge_context_v1"
+      "name": "From Date"
+      "ordinal": 3
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Through Date":
+      "schema": "public"
+      "relation": "oltp_upcoming_charge_context_v1"
+      "name": "Through Date"
+      "ordinal": 4
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Calculated At":
+      "schema": "public"
+      "relation": "oltp_upcoming_charge_context_v1"
+      "name": "Calculated At"
+      "ordinal": 5
+      "data_type": "timestamp with time zone"
+      "type_schema": "pg_catalog"
+      "type_name": "timestamptz"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Date Range":
+      "schema": "public"
+      "relation": "oltp_upcoming_charge_context_v1"
+      "name": "Date Range"
+      "ordinal": 6
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Forecast Note":
+      "schema": "public"
+      "relation": "oltp_upcoming_charge_context_v1"
+      "name": "Forecast Note"
+      "ordinal": 7
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+"evidence":
+  "/content/definition/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"

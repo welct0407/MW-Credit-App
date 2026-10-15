@@ -1,0 +1,176 @@
+{
+  "approval": "Parent transcript: user Yessss to enable controls, separate subscription operation-status read, and one stop/start/restart; domain deferred; no power requests from VM executor",
+  "sourceBaseline": "93037f29bbe9f807f01bc167c21bec63b279b737",
+  "deployedSource": "614ea6496bcd796611080e69f8fc78276304bb8a",
+  "vmPowerRequests": 0,
+  "roleDefinitionId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/providers/Microsoft.Authorization/roleDefinitions/a1fdc870-cc0e-5752-af1a-e065691949ad",
+  "roleAssignmentId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/providers/Microsoft.Authorization/roleAssignments/88cf12f8-74dc-59cc-b0e0-fa22cc721bd5",
+  "operationStatusEffectiveRead": "PENDING_APPROVED_REAL_OPERATION",
+  "independentRecovery": "PARENT_MUST_VERIFY_CLOUD_AZURE_OPERATOR_SESSION_BEFORE_POWER_TEST",
+  "before": {
+    "atUtc": "2026-10-02T06:45:29.977146+00:00",
+    "switches": {
+      "VM01_ENABLE_MUTATIONS": "false",
+      "VM01_ENABLE_OPERATION_POLLING": "false"
+    },
+    "allOtherSettingsSha256": "490b9b3ed73abfeb002a14e81fbaed9c2f4b74e6d18d3820fb44f8d90246c27e",
+    "authSha256": "f9ef2eea6b7016c988d1c510434a4aab23cec6ad69fed76f999e5d44273b7170",
+    "loggingSha256": "6b62b15998bd1c306528a4832d5a19ce86da05f0d58f7dd0d916c398fc1637c0",
+    "browserCallbackSha256": "a207e134c40382fbe321ac9dd739c778a539b300df476d72ca91cda0c3a57828",
+    "consentSha256": "6c22624a3dc1e1822b835dd927ad396b8832d575b03973a88dcfa68398d9852a",
+    "baseVmRoleSha256": "678bdc1212be4e37c2eef997d1aeb94ff8635b8ccaf722f59a8008393c17acae",
+    "identity": {
+      "principalId": "a671b605-43e5-4878-b3cb-b7b6bf2ce586",
+      "tenantId": "9e29c895-606a-420b-acc2-1c24375df4d9",
+      "type": "SystemAssigned"
+    },
+    "hostNames": [
+      "vm01-controller-50f792fa.azurewebsites.net"
+    ],
+    "roles": [
+      {
+        "condition": null,
+        "id": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourcegroups/RG-MWCREDIT/providers/Microsoft.Compute/virtualMachines/VM-01/providers/Microsoft.Authorization/roleAssignments/e4c12054-b4fc-552a-a8a8-f2364bf8027a",
+        "principalId": "a671b605-43e5-4878-b3cb-b7b6bf2ce586",
+        "roleDefinitionId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/providers/Microsoft.Authorization/roleDefinitions/637a62eb-6239-5956-958c-c11032293ebe",
+        "scope": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourcegroups/RG-MWCREDIT/providers/Microsoft.Compute/virtualMachines/VM-01"
+      },
+      {
+        "condition": null,
+        "id": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourcegroups/rg-vm01-controller/providers/Microsoft.Storage/storageAccounts/stvm01ctl50f792fa/blobServices/default/containers/function-package/providers/Microsoft.Authorization/roleAssignments/04dec2e6-d1be-54de-b5d3-807f2a53840e",
+        "principalId": "a671b605-43e5-4878-b3cb-b7b6bf2ce586",
+        "roleDefinitionId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/providers/Microsoft.Authorization/roleDefinitions/ba92f5b4-2d11-453d-a403-e96b0029c9fe",
+        "scope": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourcegroups/rg-vm01-controller/providers/Microsoft.Storage/storageAccounts/stvm01ctl50f792fa/blobServices/default/containers/function-package"
+      },
+      {
+        "condition": null,
+        "id": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourcegroups/rg-vm01-controller/providers/Microsoft.Storage/storageAccounts/stvm01ctl50f792fa/providers/Microsoft.Authorization/roleAssignments/9f05c35c-0f0f-5f0c-96fc-d50ec39a98a2",
+        "principalId": "a671b605-43e5-4878-b3cb-b7b6bf2ce586",
+        "roleDefinitionId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/providers/Microsoft.Authorization/roleDefinitions/b7e6dc6d-f1e8-4753-8033-0f276bb0955b",
+        "scope": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourcegroups/rg-vm01-controller/providers/Microsoft.Storage/storageAccounts/stvm01ctl50f792fa"
+      }
+    ],
+    "ledgerSha256": "7a30cccc554904aabc9ffa35de116d634f85dcb88ea3d3eb1fb46eea0eb788a4",
+    "ledger": {
+      "schemaVersion": 1,
+      "generation": 1,
+      "targetResourceId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/RG-MWCREDIT/providers/Microsoft.Compute/virtualMachines/VM-01",
+      "expectedVmId": "0af4bbf5-ce75-43d7-931f-9e8c4a13dfe9",
+      "admissionEnabled": false,
+      "activeRequestId": null,
+      "records": {},
+      "audit": []
+    }
+  },
+  "stage": "ACTIVATED_VERIFIED_NO_POWER_REQUESTS",
+  "roleReadback": {
+    "definition": {
+      "assignableScopes": [
+        "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293"
+      ],
+      "createdBy": "8a83866b-cdcc-4f87-99be-c41e3635c73b",
+      "createdOn": "2026-10-02T06:45:51.2283605Z",
+      "description": "Separately approved Compute asynchronous operation-status read at the fixed subscription; no VM actions.",
+      "permissions": [
+        {
+          "actions": [
+            "Microsoft.Compute/locations/operations/read"
+          ],
+          "dataActions": [],
+          "notActions": [],
+          "notDataActions": []
+        }
+      ],
+      "roleName": "VM01 Operation Status Reader",
+      "type": "CustomRole",
+      "updatedBy": "8a83866b-cdcc-4f87-99be-c41e3635c73b",
+      "updatedOn": "2026-10-02T06:45:51.2283605Z"
+    },
+    "assignment": {
+      "condition": null,
+      "conditionVersion": null,
+      "createdBy": "8a83866b-cdcc-4f87-99be-c41e3635c73b",
+      "createdOn": "2026-10-02T06:45:57.7840531Z",
+      "delegatedManagedIdentityResourceId": null,
+      "description": null,
+      "principalId": "a671b605-43e5-4878-b3cb-b7b6bf2ce586",
+      "principalType": "ServicePrincipal",
+      "roleDefinitionId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/providers/Microsoft.Authorization/roleDefinitions/a1fdc870-cc0e-5752-af1a-e065691949ad",
+      "scope": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293",
+      "updatedBy": "8a83866b-cdcc-4f87-99be-c41e3635c73b",
+      "updatedOn": "2026-10-02T06:45:57.7840531Z"
+    }
+  },
+  "after": {
+    "atUtc": "2026-10-02T06:48:49.344594+00:00",
+    "switches": {
+      "VM01_ENABLE_MUTATIONS": "true",
+      "VM01_ENABLE_OPERATION_POLLING": "true"
+    },
+    "allOtherSettingsSha256": "490b9b3ed73abfeb002a14e81fbaed9c2f4b74e6d18d3820fb44f8d90246c27e",
+    "authSha256": "f9ef2eea6b7016c988d1c510434a4aab23cec6ad69fed76f999e5d44273b7170",
+    "loggingSha256": "6b62b15998bd1c306528a4832d5a19ce86da05f0d58f7dd0d916c398fc1637c0",
+    "browserCallbackSha256": "a207e134c40382fbe321ac9dd739c778a539b300df476d72ca91cda0c3a57828",
+    "consentSha256": "6c22624a3dc1e1822b835dd927ad396b8832d575b03973a88dcfa68398d9852a",
+    "baseVmRoleSha256": "678bdc1212be4e37c2eef997d1aeb94ff8635b8ccaf722f59a8008393c17acae",
+    "identity": {
+      "principalId": "a671b605-43e5-4878-b3cb-b7b6bf2ce586",
+      "tenantId": "9e29c895-606a-420b-acc2-1c24375df4d9",
+      "type": "SystemAssigned"
+    },
+    "hostNames": [
+      "vm01-controller-50f792fa.azurewebsites.net"
+    ],
+    "roles": [
+      {
+        "condition": null,
+        "id": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/providers/Microsoft.Authorization/roleAssignments/88cf12f8-74dc-59cc-b0e0-fa22cc721bd5",
+        "principalId": "a671b605-43e5-4878-b3cb-b7b6bf2ce586",
+        "roleDefinitionId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/providers/Microsoft.Authorization/roleDefinitions/a1fdc870-cc0e-5752-af1a-e065691949ad",
+        "scope": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293"
+      },
+      {
+        "condition": null,
+        "id": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourcegroups/RG-MWCREDIT/providers/Microsoft.Compute/virtualMachines/VM-01/providers/Microsoft.Authorization/roleAssignments/e4c12054-b4fc-552a-a8a8-f2364bf8027a",
+        "principalId": "a671b605-43e5-4878-b3cb-b7b6bf2ce586",
+        "roleDefinitionId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/providers/Microsoft.Authorization/roleDefinitions/637a62eb-6239-5956-958c-c11032293ebe",
+        "scope": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourcegroups/RG-MWCREDIT/providers/Microsoft.Compute/virtualMachines/VM-01"
+      },
+      {
+        "condition": null,
+        "id": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourcegroups/rg-vm01-controller/providers/Microsoft.Storage/storageAccounts/stvm01ctl50f792fa/blobServices/default/containers/function-package/providers/Microsoft.Authorization/roleAssignments/04dec2e6-d1be-54de-b5d3-807f2a53840e",
+        "principalId": "a671b605-43e5-4878-b3cb-b7b6bf2ce586",
+        "roleDefinitionId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/providers/Microsoft.Authorization/roleDefinitions/ba92f5b4-2d11-453d-a403-e96b0029c9fe",
+        "scope": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourcegroups/rg-vm01-controller/providers/Microsoft.Storage/storageAccounts/stvm01ctl50f792fa/blobServices/default/containers/function-package"
+      },
+      {
+        "condition": null,
+        "id": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourcegroups/rg-vm01-controller/providers/Microsoft.Storage/storageAccounts/stvm01ctl50f792fa/providers/Microsoft.Authorization/roleAssignments/9f05c35c-0f0f-5f0c-96fc-d50ec39a98a2",
+        "principalId": "a671b605-43e5-4878-b3cb-b7b6bf2ce586",
+        "roleDefinitionId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/providers/Microsoft.Authorization/roleDefinitions/b7e6dc6d-f1e8-4753-8033-0f276bb0955b",
+        "scope": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourcegroups/rg-vm01-controller/providers/Microsoft.Storage/storageAccounts/stvm01ctl50f792fa"
+      }
+    ],
+    "ledgerSha256": "2a9bb16695f9e854a4a98a13ae3201acbb76b046939b492e9c1dda7b38b822cc",
+    "ledger": {
+      "schemaVersion": 1,
+      "generation": 2,
+      "targetResourceId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/RG-MWCREDIT/providers/Microsoft.Compute/virtualMachines/VM-01",
+      "expectedVmId": "0af4bbf5-ce75-43d7-931f-9e8c4a13dfe9",
+      "admissionEnabled": true,
+      "activeRequestId": null,
+      "records": {},
+      "audit": []
+    }
+  },
+  "preserved": [
+    "allOtherSettingsSha256",
+    "authSha256",
+    "loggingSha256",
+    "browserCallbackSha256",
+    "consentSha256",
+    "baseVmRoleSha256",
+    "identity",
+    "hostNames"
+  ]
+}

@@ -1,0 +1,194 @@
+{
+  "at": "2026-09-25T09:56:20.765580+00:00",
+  "checks": [
+    "directory unique",
+    "loan key parity",
+    "directory current parity",
+    "health active parity",
+    "matrix signed completed-day contribution",
+    "no unattributed source facts",
+    "period parity 1/All with loan history",
+    "period parity 1/Currently active",
+    "period parity 1/Currently inactive",
+    "period parity 30/All with loan history",
+    "period parity 30/Currently active",
+    "period parity 30/Currently inactive",
+    "period parity 90/All with loan history",
+    "period parity 90/Currently active",
+    "period parity 90/Currently inactive",
+    "future rejected",
+    "empty/inverted rejected",
+    "no PUBLIC execute"
+  ],
+  "passed": 18,
+  "query_checks": [
+    {
+      "key": "picker",
+      "rows": 30,
+      "seconds": 0.016
+    },
+    {
+      "key": "p-active",
+      "rows": 1,
+      "seconds": 0.031
+    },
+    {
+      "key": "p-loans",
+      "rows": 1,
+      "seconds": 0.015
+    },
+    {
+      "key": "p-principal",
+      "rows": 1,
+      "seconds": 0.032
+    },
+    {
+      "key": "p-interest",
+      "rows": 1,
+      "seconds": 0.093
+    },
+    {
+      "key": "p-issued",
+      "rows": 1,
+      "seconds": 0.079
+    },
+    {
+      "key": "p-issued-count",
+      "rows": 1,
+      "seconds": 0.093
+    },
+    {
+      "key": "p-status",
+      "rows": 1,
+      "seconds": 0.125
+    },
+    {
+      "key": "p-capital",
+      "rows": 11,
+      "seconds": 0.032
+    },
+    {
+      "key": "p-contribution",
+      "rows": 11,
+      "seconds": 0.093
+    },
+    {
+      "key": "p-trend",
+      "rows": 180,
+      "seconds": 0.11
+    },
+    {
+      "key": "p-first-repeat",
+      "rows": 5,
+      "seconds": 0.109
+    },
+    {
+      "key": "p-comparison",
+      "rows": 30,
+      "seconds": 0.156
+    },
+    {
+      "key": "d-identity",
+      "rows": 1,
+      "seconds": 0.047
+    },
+    {
+      "key": "d-principal",
+      "rows": 1,
+      "seconds": 0.094
+    },
+    {
+      "key": "d-active",
+      "rows": 1,
+      "seconds": 0.094
+    },
+    {
+      "key": "d-overdue",
+      "rows": 1,
+      "seconds": 0.109
+    },
+    {
+      "key": "d-share",
+      "rows": 1,
+      "seconds": 0.141
+    },
+    {
+      "key": "d-health",
+      "rows": 1,
+      "seconds": 0.328
+    },
+    {
+      "key": "d-interest",
+      "rows": 1,
+      "seconds": 0.125
+    },
+    {
+      "key": "d-issued",
+      "rows": 1,
+      "seconds": 0.109
+    },
+    {
+      "key": "d-returned",
+      "rows": 1,
+      "seconds": 0.156
+    },
+    {
+      "key": "d-issued-count",
+      "rows": 1,
+      "seconds": 0.157
+    },
+    {
+      "key": "d-status",
+      "rows": 1,
+      "seconds": 0.156
+    },
+    {
+      "key": "d-principal-trend",
+      "rows": 30,
+      "seconds": 0.109
+    },
+    {
+      "key": "d-interest-trend",
+      "rows": 30,
+      "seconds": 0.125
+    },
+    {
+      "key": "d-active-loans",
+      "rows": 1,
+      "seconds": 0.141
+    },
+    {
+      "key": "d-timing",
+      "rows": 2,
+      "seconds": 0.172
+    },
+    {
+      "key": "d-loan-history",
+      "rows": 3,
+      "seconds": 0.078
+    },
+    {
+      "key": "d-payments",
+      "rows": 25,
+      "seconds": 0.156
+    },
+    {
+      "key": "d-obligations",
+      "rows": 25,
+      "seconds": 0.188
+    },
+    {
+      "key": "d-overdue-list",
+      "rows": 0,
+      "seconds": 0.093
+    },
+    {
+      "key": "d-scenario",
+      "rows": 1,
+      "seconds": 0.125
+    }
+  ],
+  "financial_values_published": false,
+  "financial_fingerprints_unchanged": true,
+  "migration_sha256": "74e8c409b71b7f936658e617b2ecfeca810acf649ba5a5826852e87b4ca5c018"
+}

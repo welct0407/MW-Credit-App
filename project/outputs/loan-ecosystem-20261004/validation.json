@@ -1,0 +1,80 @@
+{
+  "renderer": "Official draw.io viewer in local Chromium; all external requests blocked",
+  "chromium": "151.0.7922.173",
+  "sourceSha256": "52e863cb5f43c17d480e96bac3d8671a8e05406f5e6ab87c6d4a02930373f8ce",
+  "viewerSha256": "32c73b8e42e784d0ace7d59754cbea6c2a78a0f506d390e2a3870546b9242f7c",
+  "pages": [
+    {
+      "page": 1,
+      "name": "01 · Loan business ecosystem",
+      "cells": 127,
+      "vertices": 113,
+      "edges": 12,
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "width": 2400,
+        "height": 1770
+      },
+      "headerBounds": {
+        "x": 47,
+        "y": 29.109375,
+        "width": 254.1875,
+        "height": 52.796875,
+        "top": 29.109375,
+        "right": 301.1875,
+        "bottom": 81.90625,
+        "left": 47
+      },
+      "errors": []
+    },
+    {
+      "page": 2,
+      "name": "02 · Monitoring systems",
+      "cells": 76,
+      "vertices": 68,
+      "edges": 6,
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "width": 2400,
+        "height": 1770
+      },
+      "headerBounds": {
+        "x": 47,
+        "y": 29.109375,
+        "width": 254.1875,
+        "height": 52.796875,
+        "top": 29.109375,
+        "right": 301.1875,
+        "bottom": 81.90625,
+        "left": 47
+      },
+      "errors": []
+    },
+    {
+      "page": 3,
+      "name": "03 · Development systems",
+      "cells": 74,
+      "vertices": 65,
+      "edges": 7,
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "width": 2400,
+        "height": 1770
+      },
+      "headerBounds": {
+        "x": 47,
+        "y": 29.109375,
+        "width": 254.1875,
+        "height": 52.796875,
+        "top": 29.109375,
+        "right": 301.1875,
+        "bottom": 81.90625,
+        "left": 47
+      },
+      "errors": []
+    }
+  ]
+}

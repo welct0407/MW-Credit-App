@@ -1,0 +1,24 @@
+{
+  "database" : "loan_manager_prod",
+  "databaseType" : "PostgreSQL",
+  "exception" : null,
+  "flywayVersion" : "13.6.0",
+  "initialSchemaVersion" : "42",
+  "licenseFailed" : false,
+  "migrations" : [ {
+    "category" : "Versioned",
+    "description" : "borrower matrix display coordinates",
+    "executionTime" : 741,
+    "filepath" : "C:\\GitHub\\r029-pin\\database\\migrations\\V43__borrower_matrix_display_coordinates.sql",
+    "type" : "SQL",
+    "version" : "43"
+  } ],
+  "migrationsExecuted" : 1,
+  "operation" : "migrate",
+  "schemaName" : "",
+  "success" : true,
+  "targetSchemaVersion" : "43",
+  "timestamp" : "2026-09-25T10:42:08.641838+07:00",
+  "totalMigrationTime" : 741,
+  "warnings" : [ ]
+}

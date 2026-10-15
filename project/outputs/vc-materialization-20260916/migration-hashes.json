@@ -1,0 +1,14 @@
+[
+  {
+    "file": "database/migrations/V12__charge_loan_materialized_balances.sql",
+    "sha256": "16634429ba8d860412a758d97863ad94613bad5cbc606bc8df03b5cb48aa8912"
+  },
+  {
+    "file": "database/migrations/V13__borrower_materialized_rollups.sql",
+    "sha256": "778a91a8833ddaa4eb762262d923133c67e7cf9f18c02070151f789fcf81c3e7"
+  },
+  {
+    "file": "database/migrations/V14__payment_materialized_totals.sql",
+    "sha256": "6da5a93cedf4e600778678873136bd8653d879e806f44deff649a738807995a5"
+  }
+]

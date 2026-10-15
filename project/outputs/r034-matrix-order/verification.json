@@ -1,0 +1,105 @@
+{
+  "dashboard": 3,
+  "tab": 31,
+  "iframe": {
+    "id": 1501,
+    "row": 9,
+    "height": 22,
+    "definitionUnchanged": true
+  },
+  "explanation": {
+    "id": 1278,
+    "row": 31,
+    "height": 3
+  },
+  "categoryCards": [
+    840,
+    841,
+    842,
+    843,
+    844,
+    845,
+    846,
+    847
+  ],
+  "categoryRowsShiftedBy": 25,
+  "removedRedundantHeading": 848,
+  "detailTable": {
+    "id": 1279,
+    "row": 56,
+    "definitionUnchanged": true
+  },
+  "otherPlacementsTabsFiltersUnchanged": true,
+  "formattedQuestions": [
+    254,
+    259,
+    261,
+    263,
+    265,
+    267,
+    269,
+    271,
+    272,
+    275
+  ],
+  "moneyFields": {
+    "254": [
+      "Overdue ฿"
+    ],
+    "259": [
+      "Overdue ฿",
+      "Principal ฿",
+      "Interest 30d ฿",
+      "Recorded loss ฿"
+    ],
+    "261": [
+      "Overdue ฿",
+      "Principal ฿",
+      "Interest 30d ฿",
+      "Recorded loss ฿"
+    ],
+    "263": [
+      "Overdue ฿",
+      "Principal ฿",
+      "Interest 30d ฿",
+      "Recorded loss ฿"
+    ],
+    "265": [
+      "Overdue ฿",
+      "Principal ฿",
+      "Interest 30d ฿",
+      "Recorded loss ฿"
+    ],
+    "267": [
+      "Overdue ฿",
+      "Principal ฿",
+      "Interest 30d ฿",
+      "Recorded loss ฿"
+    ],
+    "269": [
+      "Overdue ฿",
+      "Principal ฿",
+      "Interest 30d ฿",
+      "Recorded loss ฿"
+    ],
+    "271": [
+      "Expected interest ฿",
+      "Recorded interest ฿"
+    ],
+    "272": [
+      "Daily interest ฿",
+      "Expected interest ฿",
+      "Recorded interest ฿",
+      "Next interest ฿",
+      "Next principal ฿"
+    ],
+    "275": [
+      "Interest 30d ฿",
+      "Principal ฿"
+    ]
+  },
+  "amountDecimals": 0,
+  "scoresAndRatiosUnchanged": true,
+  "sqlUnchanged": true,
+  "backupDashboard": 9
+}

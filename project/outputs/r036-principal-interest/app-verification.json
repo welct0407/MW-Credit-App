@@ -1,0 +1,44 @@
+{
+  "date": "2026-09-25",
+  "browser": "Chrome work profile; Google and AppSheet account verified",
+  "oltp": {
+    "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
+    "before_version": "1.000085",
+    "saved_version": "1.000086",
+    "mode": "Deployed",
+    "editor_issues": 0,
+    "column": "Loans.Current Daily Interest",
+    "saved_readback_after_reload": {
+      "Valid If": "OR([Loan Type] <> \"ดอกเบี้ยรายวัน\", [Current Daily Interest] > 0, AND([Current Daily Interest] = 0, CONTAINS([Loan Arrangement], \"[Original daily interest:\")))",
+      "Editable_If": "NOT(CONTAINS([Loan Arrangement], \"[Original daily interest:\"))"
+    }
+  },
+  "olap": {
+    "app_id": "9f3422be-bc87-4a5a-a42a-67528ee80393",
+    "saved_version": "1.000033",
+    "changed": false,
+    "mode": "Deployed",
+    "editor_issues": 0
+  },
+  "synthetic_gui": {
+    "loan_id": "R036-DI-L",
+    "original_principal": 1000,
+    "initial_daily_interest": 10,
+    "first_receipt": 210,
+    "interest_paid": 10,
+    "principal_paid": 200,
+    "remaining_principal": 800,
+    "updated_daily_interest": 8,
+    "original_rate": 0.01,
+    "oltp_and_olap_display_verified": true,
+    "oltp_computed_amount_read_only": true,
+    "payoff_receipt": 800,
+    "final_daily_interest": 0,
+    "final_outstanding_principal": 0,
+    "zero_interest_note_edit_saved": true,
+    "closed": true,
+    "fixture_retired": true,
+    "retirement": "Auto charge off, borrower hidden, dedicated synthetic account inactive; ledger retained"
+  },
+  "production_changed": false
+}

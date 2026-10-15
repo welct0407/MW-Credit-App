@@ -1,0 +1,51 @@
+{
+  "capture": {
+    "release": "R053",
+    "database": "loan_manager_prod",
+    "operatorSourceCommit": "dc4e75de24c99b5217c2895066957862a72e2cbb",
+    "startedAt": "2026-10-12T01:45:20.0935017+00:00",
+    "finishedAt": "2026-10-12T01:45:21.6391422+00:00",
+    "captureEnabled": true,
+    "authorityRestored": true,
+    "financialRowsWritten": 0,
+    "before": {
+      "database": "loan_manager_prod",
+      "oid": "22512",
+      "owner": "mw_notify_owner_prod",
+      "proconfig": [
+        "search_path=pg_catalog, public",
+        "application_name=mw_pwa_capture_disabled_v1"
+      ]
+    },
+    "after": {
+      "database": "loan_manager_prod",
+      "oid": "22512",
+      "owner": "mw_notify_owner_prod",
+      "proconfig": [
+        "search_path=pg_catalog, public",
+        "application_name=mw_pwa_capture_enabled_v1"
+      ]
+    },
+    "privateRecoveryReceiptSha256": "62da22df16ca47b8884ae57333ea5f05014cb559b24acc41a43e59ef6f565dcb",
+    "ownerAuthorization": "Owner confirmed actual DEV phone receipt and earlier reviewed R053 production activation authority",
+    "productionTestPushSent": false
+  },
+  "runtimeEvidence": "MW-Credit-App outputs/r053-notifications-jobs/production-notification-runtime-activation.json",
+  "recoveryEvidence": "MW-Credit-App outputs/r053-notifications-jobs/production-notification-recovery-activation.json",
+  "devDeviceReceipt": "Owner confirmed received YES12October",
+  "prodDeviceEnrollment": "Owner confirmed Production Home Screen Notifications enabled PASS",
+  "prodPushReceipt": "not inferred; no arbitrary test send",
+  "dictionaryFiles": [
+    {
+      "file": "Documents/Data Dictionary/systems/postgresql/routines/public-pwa-capture-notification-v1-2ffdc181.yaml",
+      "beforeSha256": "94101c1affd2013760d2dd9fadbc090f209b2d4f9d8a72b7df6a81537d0320a7",
+      "afterSha256": "810524317adf04ac0f77bfccdf0d49c1f0238676aa16b4ed1792697f66a6a01f"
+    },
+    {
+      "file": "Documents/Data Dictionary/systems/postgresql/settingss/r053-production-notification-jobs-and-machine-capability-876a9716.yaml",
+      "beforeSha256": "bace55b963ae576ae64f2e163b28f346f25e713044d98d01ee3bc43e1b86a2e5",
+      "afterSha256": "cb8bb1d46e846132af90565a9a7c20369716f846a3b90bc8e9212b3f66c97628"
+    }
+  ],
+  "authenticatedChangedEntryPoint": "Notifications enable route PASS"
+}

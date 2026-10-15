@@ -1,0 +1,89 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.quick_payment_request()"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "quick_payment_request"
+    "arguments": ""
+    "kind": "f"
+    "arguments_with_defaults": ""
+    "result": "trigger"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.quick_payment_request()
+       RETURNS trigger
+       LANGUAGE plpgsql
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+      DECLARE borrower text; target_charge text; target_loan text; method text; payment_id text;
+       request_date date; amount numeric; token text:=NEW."Payment Request Token"; account_id text:=NEW."Payment Request Cash Account";
+      BEGIN
+       IF nullif(token,'') IS NOT DISTINCT FROM nullif(OLD."Payment Request Token",'') THEN RETURN NULL; END IF;
+       IF token IS NULL OR token !~ '^\d{4}-\d{2}-\d{2}\|[A-Za-z0-9_-]{8,64}(\|[^|[:space:]]{1,254})?$' THEN
+        RAISE EXCEPTION 'Invalid payment request; sync and confirm again'; END IF;
+       request_date:=split_part(token,'|',1)::date;
+       IF request_date IS DISTINCT FROM (statement_timestamp() AT TIME ZONE 'Asia/Bangkok')::date THEN
+        RAISE EXCEPTION 'Payment request is stale; sync and confirm again'; END IF;
+       PERFORM public.cash_account_holder(account_id,true);
+       -- Preserve idempotency for commands already posted under V23.
+       IF EXISTS(SELECT 1 FROM public."Payments" WHERE "Row ID"='r008:'||md5(TG_TABLE_NAME||'|'||length(NEW."Row ID")||':'||NEW."Row ID"||'|'||token) AND "Status"='Posted') THEN RETURN NULL; END IF;
+       payment_id:='r008:'||TG_TABLE_NAME||'|'||length(NEW."Row ID")||':'||NEW."Row ID"||'|'||token;
+       -- A previously processed nonce remains idempotent even after a later request.
+       IF EXISTS(SELECT 1 FROM public."Payments" WHERE "Row ID"=payment_id AND "Status"='Posted') THEN RETURN NULL; END IF;
+       IF TG_TABLE_NAME='Borrowers' THEN borrower:=NEW."Row ID"; method:='Receive All';
+       ELSIF TG_TABLE_NAME='Charges' THEN
+        target_charge:=NEW."Row ID"; method:='Single Full';
+        SELECT "Ref Borrowers" INTO borrower FROM public."Loans" WHERE "Row ID"=NEW."Ref Loans";
+       ELSE borrower:=NEW."Ref Borrowers"; target_loan:=NEW."Row ID"; method:='Loan Close'; END IF;
+       -- A command already owns its source row. Match V8's NOWAIT borrower guard
+       -- to avoid inversion with a receipt owning borrower and waiting on source.
+       BEGIN
+        PERFORM 1 FROM public."Borrowers" WHERE "Row ID"=borrower FOR UPDATE NOWAIT;
+       EXCEPTION WHEN lock_not_available THEN RAISE EXCEPTION 'Borrower is busy; sync and request payment again'; END;
+       IF NOT FOUND THEN RAISE EXCEPTION 'Payment borrower does not exist'; END IF;
+       PERFORM 1 FROM public."Loans" WHERE "Ref Borrowers"=borrower ORDER BY "Row ID" COLLATE "C" FOR UPDATE NOWAIT;
+       PERFORM 1 FROM public."Charges" c JOIN public."Loans" l ON l."Row ID"=c."Ref Loans"
+        WHERE l."Ref Borrowers"=borrower ORDER BY c."Row ID" COLLATE "C" FOR UPDATE OF c NOWAIT;
+       IF method='Loan Close' THEN amount:=1; -- prepare_loan_close replaces this inside the same INSERT.
+       ELSE
+        SELECT sum(c."Principal Due"::numeric+c."Interest Due"::numeric-coalesce(r.paid,0)) INTO amount
+        FROM public."Charges" c JOIN public."Loans" l ON l."Row ID"=c."Ref Loans"
+        LEFT JOIN LATERAL (SELECT sum("Principal Paid"::numeric+"Interest Paid"::numeric) paid FROM public."Repayments" WHERE "Ref Charges"=c."Row ID") r ON true
+        WHERE l."Ref Borrowers"=borrower AND CASE WHEN method='Single Full' THEN c."Row ID"=target_charge ELSE c."Charge Date"<=request_date END;
+        IF amount IS NULL OR amount<=0 THEN RAISE EXCEPTION 'No eligible balance remains; sync before receiving'; END IF;
+       END IF;
+       INSERT INTO public."Payments"("Row ID","Status","Ref Borrower","Payment Date","Payment Method","Allocation Method",
+        "Amount Received","Ref Target Charge","Ref Target Loan","Ref Received By Cash Account","Ref Received By Cash Holder","Created At","Created By","Notes")
+       VALUES(payment_id,'Processing',borrower,request_date,'Bank Transfer',method,amount::money,target_charge,target_loan,
+        account_id,public.cash_account_holder(account_id,true),statement_timestamp() AT TIME ZONE 'Asia/Bangkok',coalesce(nullif(split_part(token,'|',3),''),'R008 AppSheet request'),
+        'Account confirmed in quick payment command');
+       -- Existing INSERT triggers own final-charge preparation, allocation, repayment and posting.
+       RETURN NULL;
+      END $function$
+    "owner": "postgres"
+    "language": "plpgsql"
+    "volatility": "v"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 0.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": "{=X/postgres,postgres=X/postgres,mw_app_prod=X/postgres}"
+    "comment": null
+    "extension": null
+"evidence":
+  "/content/definition/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"

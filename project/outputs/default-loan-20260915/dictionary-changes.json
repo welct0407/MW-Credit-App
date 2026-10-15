@@ -1,0 +1,243 @@
+{
+  "allSheetsRoundtrip": true,
+  "changes": [
+    {
+      "sheet": "Dev Differences",
+      "row": 384,
+      "values": [
+        "OLTP",
+        "Wrapped Action - Default Loan",
+        "Do this",
+        "Six-step COMPOSITE",
+        "SET_COLUMN_VALUE Loans. Confirmation, eligibility and prominence retained. SQL posts all default financial operations atomically."
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 385,
+      "values": [
+        "OLTP",
+        "Wrapped Action - Default Loan",
+        "Defaulted",
+        "Grouped financial steps",
+        "=TRUE"
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 386,
+      "values": [
+        "OLTP",
+        "Wrapped Action - Default Loan",
+        "Close Date",
+        "Grouped financial steps",
+        "=TODAY()"
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 387,
+      "values": [
+        "OLTP",
+        "Wrapped Action - Default Loan",
+        "Closed By",
+        "Grouped financial steps",
+        "=USEREMAIL()"
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 388,
+      "values": [
+        "OLTP",
+        "Wrapped Action - Default Loan",
+        "Loan Status",
+        "Grouped financial steps",
+        "=\"ปิดยอดแล้ว\""
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 389,
+      "values": [
+        "OLTP",
+        "Default - sub-actions",
+        "Only if",
+        "Legacy conditions",
+        "FALSE on all seven legacy Default actions; retained hidden for reference."
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 390,
+      "values": [
+        "OLTP",
+        "Notification - Loan Closed",
+        "Default branch",
+        "Principal returned / interest received wording",
+        "LOOKUP current Loans.Defaulted and Default Loss Amount; default title and principal loss / no cash received body. Owner-only development destination retained."
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 391,
+      "values": [
+        "OLAP",
+        "Loans.Default Loss Amount",
+        "CurrencySymbol / DecimalDigits",
+        "$ / 2",
+        "฿ / 0; read-only Loans and Reporting Loans permissions retained."
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 392,
+      "values": [
+        "Database",
+        "Loans.Defaulted",
+        "Transition",
+        "AppSheet multi-step writes",
+        "V10 BEFORE trigger requires dated actor confirmation; SQL computes loss, writes charge/repayment, closes loan. Repeat is a no-op; recorded default financial state immutable."
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 393,
+      "values": [
+        "Database",
+        "Charges",
+        "Default write-off",
+        "Unpaid rows deleted; partial rows reduced",
+        "Preserve every charge key. Reduce outstanding components to paid values; append JSON audit to existing Notes (original amounts, write-off, date, actor, posting). Paid rows unchanged."
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 394,
+      "values": [
+        "Database",
+        "Repayments",
+        "Default posting",
+        "AppSheet negative interest / positive principal",
+        "One immutable df10: entry: outstanding principal and equal negative interest, zero new cash. No Payment or Allocation generated; prior cash/allocations unchanged."
+      ]
+    },
+    {
+      "sheet": "Dev Differences",
+      "row": 122,
+      "values": [
+        "Database",
+        "Flyway",
+        "Schema version",
+        "V5",
+        "V10; development only"
+      ]
+    },
+    {
+      "sheet": "App Settings",
+      "row": 46,
+      "values": [
+        "development-oltp",
+        "Version",
+        "Saved app version",
+        "1.000042",
+        "V10 current editor/appdoc; rollback both apps 1.000039"
+      ]
+    },
+    {
+      "sheet": "App Settings",
+      "row": 47,
+      "values": [
+        "development-olap",
+        "Version",
+        "Saved app version",
+        "1.000040",
+        "V10 current editor/appdoc; rollback both apps 1.000039"
+      ]
+    },
+    {
+      "sheet": "DB Logic",
+      "row": 54,
+      "values": [
+        "Development function",
+        "public",
+        "post_loan_default",
+        "Flyway V10",
+        "Atomic prototype loss posting from Defaulted transition. Borrower NOWAIT avoids inverted lock deadlocks; ordered charge locks, immutable prior payment entries, audited write-off notes."
+      ]
+    },
+    {
+      "sheet": "DB Logic",
+      "row": 55,
+      "values": [
+        "Development function",
+        "public",
+        "default_loan_transition",
+        "Flyway V10",
+        "BEFORE Loans INSERT/UPDATE; reject initially defaulted inserts; validate confirmation date/actor and eligibility; derive loss and closed status; guard recorded state."
+      ]
+    },
+    {
+      "sheet": "DB Logic",
+      "row": 56,
+      "values": [
+        "Development trigger",
+        "Loans",
+        "default_loan_transition",
+        "Flyway V10",
+        "BEFORE INSERT OR UPDATE, FOR EACH ROW. Existing fields only; no new physical column/table."
+      ]
+    },
+    {
+      "sheet": "DB Logic",
+      "row": 57,
+      "values": [
+        "Development function",
+        "public",
+        "default_posting_guard",
+        "Flyway V10",
+        "Reject UPDATE/DELETE of reserved df10: Charges and Repayments entries."
+      ]
+    },
+    {
+      "sheet": "DB Logic",
+      "row": 58,
+      "values": [
+        "Development trigger",
+        "Charges / Repayments",
+        "default_posting_guard",
+        "Flyway V10",
+        "BEFORE UPDATE OR DELETE, FOR EACH ROW."
+      ]
+    },
+    {
+      "sheet": "DB Logic",
+      "row": 59,
+      "values": [
+        "Development function revision",
+        "public",
+        "first_day_charge_trigger",
+        "Flyway V10",
+        "Exclude both lc7: final charges and df10: default loss charges from first-day receipt processing."
+      ]
+    },
+    {
+      "sheet": "Guide",
+      "row": 5,
+      "values": [
+        "Database",
+        "Production V5; development V10",
+        "Core payments, atomic Close Loan, common generation and atomic Default Loan in development. Production catalogs unchanged; Dev Differences records development behavior."
+      ]
+    },
+    {
+      "sheet": "Guide",
+      "row": 15,
+      "values": [
+        "Development Default Loan",
+        "OLTP 1.000042 / OLAP 1.000040; Flyway V10",
+        "SQL and current-GUI defaults reconcile; owner acceptance pending. Losses 100/90/110/92; no new cash. Retained written-off charge rows can change count-based reports. See outputs/default-loan-20260915/REPORT.md."
+      ]
+    }
+  ]
+}

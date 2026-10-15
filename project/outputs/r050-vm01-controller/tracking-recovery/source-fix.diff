@@ -1,0 +1,446 @@
+--- a/scripts/azure/vm01-controller/src/arm.ts
++++ b/scripts/azure/vm01-controller/src/arm.ts
+@@ -1,5 +1,5 @@
+ import { ManagedIdentityCredential } from '@azure/identity';
+-import type { Action, Arm, ArmOutcome, Configuration, PollOutcome, PowerState, VmObservation } from './types.js';
++import type { Action, Arm, ArmOutcome, Configuration, DispatchReceipt, PollOutcome, PowerState, VerifiedPollOutcome, VmObservation } from './types.js';
+ import { fail } from './errors.js';
+ import { UUID } from './configuration.js';
+ export interface ArmCredential { getToken(scope: string): Promise<{ token: string } | null> }
+@@ -45,13 +45,38 @@
+       const candidate = response.headers.get('Azure-AsyncOperation') ?? response.headers.get('Location');
+       if (candidate) {
+         // Invalid response URLs are discarded; acceptance still requires reconciliation.
+-        try { result.trackingUrl = validatedOperationUrl(candidate, this.config); result.trackingKind = response.headers.has('Azure-AsyncOperation') ? 'async' : 'location'; } catch { /* no raw URL persistence/logging */ }
+-      }
++        try { result.trackingUrl = validatedOperationUrl(candidate, this.config); result.trackingKind = response.headers.has('Azure-AsyncOperation') ? 'async' : 'location'; } catch { result.trackingIssue = 'rejected'; }
++      } else result.trackingIssue = 'missing';
+       result.retryAfter = retryAfter(response.headers.get('Retry-After'));
+     }
+     // Response bodies can contain credential-bearing text; deliberately do not log or return them.
+     await response.body?.cancel();
+     return result;
++  }
++  async pollRequest(receipt: DispatchReceipt): Promise<VerifiedPollOutcome> {
++    if (!this.config.operationPollingEnabled) fail(503, 'operation_polling_disabled');
++    const submitted = Date.parse(receipt.submittedAt), accepted = Date.parse(receipt.acceptedAt);
++    // A request UUID is only a candidate. Never infer completion from the GET status alone.
++    if (!UUID.test(receipt.requestId) || !['start', 'restart', 'deallocate'].includes(receipt.action) || !Number.isFinite(submitted) || !Number.isFinite(accepted) || accepted < submitted || accepted - submitted > 60000 || accepted > this.now() + 5000) fail(503, 'operation_receipt_invalid');
++    const subscription = this.config.resourceId.split('/')[2]!;
++    const url = validatedOperationUrl(`https://management.azure.com/subscriptions/${subscription}/providers/Microsoft.Compute/locations/southeastasia/operations/${receipt.requestId}?api-version=${this.config.apiVersion}`, this.config);
++    const response = await this.request(url, 'GET');
++    if (response.status !== 200) { await response.body?.cancel(); fail(503, response.status === 403 ? 'operation_read_not_authorized' : response.status === 404 ? 'operation_candidate_not_found' : 'operation_status_unavailable'); }
++    const body = await response.json() as Record<string, unknown>;
++    if (!body || typeof body !== 'object' || typeof body.name !== 'string' || body.name.toLowerCase() !== receipt.requestId.toLowerCase() || typeof body.startTime !== 'string' || typeof body.status !== 'string') fail(503, 'operation_candidate_mismatch');
++    const start = Date.parse(body.startTime);
++    if (!Number.isFinite(start) || start < submitted - 5000 || start > accepted + 5000) fail(503, 'operation_candidate_mismatch');
++    // If a provider includes resource identity, it must agree; unknown body text is never retained.
++    for (const field of ['targetResourceId', 'resourceId']) if (body[field] !== undefined && (typeof body[field] !== 'string' || body[field].toLowerCase() !== this.config.resourceId.toLowerCase())) fail(503, 'operation_candidate_mismatch');
++    if (body.action !== undefined && body.action !== receipt.action) fail(503, 'operation_candidate_mismatch');
++    if (body.id !== undefined && body.id !== null && (typeof body.id !== 'string' || body.id.toLowerCase() !== new URL(url).pathname.toLowerCase())) fail(503, 'operation_candidate_mismatch');
++    const terminal = ['Succeeded', 'Failed', 'Canceled'].includes(body.status);
++    if (!terminal && !['InProgress', 'Running', 'Accepted'].includes(body.status)) fail(503, 'invalid_operation_status');
++    const end = typeof body.endTime === 'string' ? Date.parse(body.endTime) : NaN;
++    if (terminal && (!Number.isFinite(end) || end < start || end > this.now() + 5000)) fail(503, 'operation_candidate_mismatch');
++    const error = body.error as { code?: unknown } | undefined;
++    const failureCode = typeof error?.code === 'string' && /^[A-Za-z][A-Za-z0-9_.-]{0,79}$/.test(error.code) ? error.code : undefined;
++    return { name: body.name, startTime: body.startTime, status: terminal ? body.status as PollOutcome['status'] : 'InProgress', retryAfter: retryAfter(response.headers.get('Retry-After')), ...(terminal ? { endTime: body.endTime as string } : {}), ...(failureCode ? { failureCode } : {}) };
+   }
+   async poll(value: string, kind: 'async' | 'location' = 'async'): Promise<PollOutcome> {
+     if (!this.config.operationPollingEnabled) fail(503, 'operation_polling_disabled');
+--- a/scripts/azure/vm01-controller/src/controller.ts
++++ b/scripts/azure/vm01-controller/src/controller.ts
+@@ -1,4 +1,4 @@
+-import type { Action, ActionRequest, Arm, Configuration, Ledger, LedgerSession, Operation, Principal, ResponseData, VmObservation } from './types.js';
++import type { Action, ActionRequest, Arm, Configuration, Ledger, LedgerSession, Operation, PollOutcome, Principal, ResponseData, VmObservation } from './types.js';
+ import { ControllerError, fail } from './errors.js';
+ import { ACCEPTED_TIMEOUT_MS, RETENTION_MS, actionAvailable, digestRequest, isNoop, parseRequest, publicOperation, stateVersion, validateFreshRequest, validateObservation } from './state-machine.js';
+ import { authorize } from './authorization.js';
+@@ -20,15 +20,28 @@
+     const op = session.data.records[id]!;
+     if (op.phase === 'dispatching') { op.phase = 'unknown'; op.reason = 'dispatch_outcome_unknown'; op.updatedAt = this.timestamp(); this.audit(session, op, 'unknown'); await session.save(); return observation; }
+     if (!['accepted', 'accepted_unverified'].includes(op.phase)) return observation;
+-    if (this.config.operationPollingEnabled && op.trackingUrl && !op.armOperationStatus && (!op.nextPollAt || Date.parse(op.nextPollAt) <= this.now())) {
++    const fallback = !op.trackingUrl && op.armStatus === 202 && op.armRequestId && op.armAcceptedAt;
++    if (this.config.operationPollingEnabled && !op.trackingUrl && !fallback && !op.armOperationStatus) {
++      op.phase = 'unknown'; op.reason = 'operation_tracking_unavailable'; op.updatedAt = this.timestamp();
++      this.audit(session, op, 'unknown'); await session.save(); return observation;
++    }
++    if (this.config.operationPollingEnabled && (op.trackingUrl || fallback) && !op.armOperationStatus && (!op.nextPollAt || Date.parse(op.nextPollAt) <= this.now())) {
+       try {
+-        const outcome = await this.arm.poll(op.trackingUrl, op.trackingKind);
++        let outcome: PollOutcome;
++        if (op.trackingUrl) outcome = await this.arm.poll(op.trackingUrl, op.trackingKind);
++        else {
++          const verified = await this.arm.pollRequest({ requestId: op.armRequestId!, action: op.action, submittedAt: op.createdAt, acceptedAt: op.armAcceptedAt! });
++          op.trackingSource = 'request-id'; op.armOperationStartTime = verified.startTime;
++          if (verified.endTime) op.armOperationEndTime = verified.endTime;
++          outcome = verified;
++        }
+         if (outcome.status !== 'InProgress') op.armOperationStatus = outcome.status;
+         if (outcome.failureCode) op.armFailureCode = outcome.failureCode;
+         op.nextPollAt = new Date(this.now() + outcome.retryAfter * 1000).toISOString();
+         delete op.reason;
+       } catch (error) {
+-        op.reason = error instanceof ControllerError && error.code === 'operation_read_not_authorized' ? 'operation_read_not_authorized' : 'operation_poll_unavailable';
++        const allowed = ['operation_read_not_authorized', 'operation_candidate_not_found', 'operation_candidate_mismatch', 'operation_receipt_invalid', 'invalid_operation_status'];
++        op.reason = error instanceof ControllerError && allowed.includes(error.code) ? error.code : 'operation_poll_unavailable';
+         op.nextPollAt = new Date(this.now() + 30000).toISOString();
+       }
+       op.updatedAt = this.timestamp(); await session.save();
+@@ -42,7 +55,7 @@
+       op.phase = 'rejected'; op.reason = op.armOperationStatus === 'Failed' ? 'arm_operation_failed' : 'arm_operation_canceled';
+     } else if (stable && observation.powerState === desired && (op.armOperationStatus === 'Succeeded' || (op.action !== 'restart' && !this.config.operationPollingEnabled))) {
+       op.phase = op.armOperationStatus === 'Succeeded' ? 'completed' : 'desired_state_observed'; delete op.reason;
+-    } else if (!this.config.operationPollingEnabled && this.now() - Date.parse(op.createdAt) > ACCEPTED_TIMEOUT_MS) { op.phase = 'unknown'; op.reason = 'operation_wait_expired'; }
++    } else if ((!this.config.operationPollingEnabled || (fallback && op.reason && op.reason !== 'operation_read_not_authorized')) && this.now() - Date.parse(op.createdAt) > ACCEPTED_TIMEOUT_MS) { op.phase = 'unknown'; op.reason ??= 'operation_wait_expired'; }
+     else return observation;
+     if (op.phase !== 'unknown') session.data.activeRequestId = null;
+     op.updatedAt = this.timestamp(); this.audit(session, op, op.phase); await session.save();
+@@ -99,7 +112,10 @@
+         op.armStatus = result.status;
+         if (result.requestId) op.armRequestId = result.requestId;
+         if (result.status === 202) {
++          op.armAcceptedAt = this.timestamp();
+           op.phase = action === 'restart' ? 'accepted_unverified' : 'accepted';
++          if (result.trackingIssue) op.trackingIssue = result.trackingIssue;
++          if (this.config.operationPollingEnabled && !result.trackingUrl) op.reason = result.trackingIssue === 'rejected' ? 'operation_tracking_url_rejected' : 'operation_tracking_header_missing';
+           if (result.trackingUrl) op.trackingUrl = result.trackingUrl;
+           if (result.trackingKind) op.trackingKind = result.trackingKind;
+           op.nextPollAt = new Date(this.now() + (result.retryAfter ?? 15) * 1000).toISOString();
+--- a/scripts/azure/vm01-controller/src/ledger.ts
++++ b/scripts/azure/vm01-controller/src/ledger.ts
+@@ -44,6 +44,11 @@
+     if (op.nextPollAt && !Number.isFinite(Date.parse(op.nextPollAt))) fail(503, 'invalid_controller_ledger');
+     if (op.armOperationStatus && !['Succeeded', 'Failed', 'Canceled'].includes(op.armOperationStatus)) fail(503, 'invalid_controller_ledger');
+     if (op.trackingKind && !['async', 'location'].includes(op.trackingKind)) fail(503, 'invalid_controller_ledger');
++    if (op.armRequestId !== undefined && (typeof op.armRequestId !== 'string' || !UUID.test(op.armRequestId))) fail(503, 'invalid_controller_ledger');
++    for (const value of [op.armAcceptedAt, op.armOperationStartTime, op.armOperationEndTime]) if (value !== undefined && (typeof value !== 'string' || !Number.isFinite(Date.parse(value)))) fail(503, 'invalid_controller_ledger');
++    if (op.trackingIssue !== undefined && !['missing', 'rejected'].includes(op.trackingIssue)) fail(503, 'invalid_controller_ledger');
++    if (op.trackingSource !== undefined && op.trackingSource !== 'request-id') fail(503, 'invalid_controller_ledger');
++    if (op.recoveryEvidence && (![op.recoveryEvidence.reference, op.recoveryEvidence.approvalReference].every(value => typeof value === 'string' && /^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,127}$/.test(value)) || ![op.recoveryEvidence.deallocateStartedEventId, op.recoveryEvidence.deallocateEventId, op.recoveryEvidence.deallocateCorrelationId, op.recoveryEvidence.recoveryStartedEventId, op.recoveryEvidence.recoveryStartEventId, op.recoveryEvidence.recoveryCorrelationId].every(id => typeof id === 'string' && UUID.test(id)) || ![op.recoveryEvidence.recoveryStartedAt, op.recoveryEvidence.recoveryCompletedAt].every(value => typeof value === 'string' && Number.isFinite(Date.parse(value))))) fail(503, 'invalid_controller_ledger');
+     if (op.armFailureCode && !/^[A-Za-z][A-Za-z0-9_.-]{0,79}$/.test(op.armFailureCode)) fail(503, 'invalid_controller_ledger');
+     if (['dispatching', 'accepted', 'accepted_unverified', 'unknown'].includes(op.phase) && data.activeRequestId !== key) fail(503, 'invalid_controller_ledger');
+   }
+--- a/scripts/azure/vm01-controller/src/types.ts
++++ b/scripts/azure/vm01-controller/src/types.ts
+@@ -21,6 +21,9 @@
+   trackingUrl?: string; nextPollAt?: string; armOperationStatus?: 'Succeeded' | 'Failed' | 'Canceled';
+   approvalReference?: string;
+   trackingKind?: 'async' | 'location'; armFailureCode?: string;
++  armAcceptedAt?: string; trackingIssue?: 'missing' | 'rejected';
++  trackingSource?: 'request-id'; armOperationStartTime?: string; armOperationEndTime?: string;
++  recoveryEvidence?: { reference: string; approvalReference: string; deallocateStartedEventId: string; deallocateEventId: string; deallocateCorrelationId: string; recoveryStartedEventId: string; recoveryStartEventId: string; recoveryCorrelationId: string; recoveryStartedAt: string; recoveryCompletedAt: string };
+ }
+ export interface LedgerData {
+   schemaVersion: 1; generation: number; targetResourceId: string; expectedVmId: string;
+@@ -30,7 +33,9 @@
+ }
+ export interface LedgerSession { data: LedgerData; save(): Promise<void>; assertLease(): Promise<void> }
+ export interface Ledger { transaction<T>(callback: (session: LedgerSession) => Promise<T>): Promise<T> }
+-export interface ArmOutcome { status: number; requestId?: string; trackingUrl?: string; trackingKind?: 'async' | 'location'; retryAfter?: number }
++export interface ArmOutcome { status: number; requestId?: string; trackingUrl?: string; trackingKind?: 'async' | 'location'; retryAfter?: number; trackingIssue?: 'missing' | 'rejected' }
+ export interface PollOutcome { status: 'InProgress' | 'Succeeded' | 'Failed' | 'Canceled'; retryAfter: number; failureCode?: string }
+-export interface Arm { observe(): Promise<VmObservation>; submit(action: Action): Promise<ArmOutcome>; poll(url: string, kind?: 'async' | 'location'): Promise<PollOutcome> }
++export interface DispatchReceipt { requestId: string; action: Action; submittedAt: string; acceptedAt: string }
++export interface VerifiedPollOutcome extends PollOutcome { name: string; startTime: string; endTime?: string }
++export interface Arm { observe(): Promise<VmObservation>; submit(action: Action): Promise<ArmOutcome>; poll(url: string, kind?: 'async' | 'location'): Promise<PollOutcome>; pollRequest(receipt: DispatchReceipt): Promise<VerifiedPollOutcome> }
+ export interface ResponseData { status: number; body: Record<string, unknown>; retryAfter?: number }
+--- /dev/null
++++ b/scripts/azure/vm01-controller/scripts/recovery-evidence.ts
+@@ -0,0 +1,82 @@
++import type { Arm, Configuration, LedgerData, LedgerSession, Operation, VerifiedPollOutcome } from '../src/types.js';
++import type { ArmCredential, Fetch } from '../src/arm.js';
++import { UUID } from '../src/configuration.js';
++import { fail } from '../src/errors.js';
++import { validateObservation } from '../src/state-machine.js';
++
++export interface ActivityEvent {
++  eventDataId: string; eventTimestamp: string; resourceId: string; caller: string; correlationId: string;
++  operationName: { value: string }; status: { value: string };
++}
++export interface RecoveryProof {
++  schemaVersion: 1; requestId: string; targetResourceId: string; expectedVmId: string;
++  armRequestId: string; submittedAt: string; acceptedAt: string; operationStartTime: string; operationEndTime: string;
++  reference: string; recoveryApprovalReference: string;
++  deallocateStarted: ActivityEvent; deallocateSucceeded: ActivityEvent;
++  recoveryStarted: ActivityEvent; recoverySucceeded: ActivityEvent;
++}
++export interface ActivityReader { read(from: string, to: string): Promise<ActivityEvent[]> }
++export class AzureActivityReader implements ActivityReader {
++  constructor(private readonly config: Configuration, private readonly credential: ArmCredential, private readonly fetcher: Fetch = fetch) {}
++  async read(from: string, to: string): Promise<ActivityEvent[]> {
++    const start = Date.parse(from), end = Date.parse(to);
++    if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start || end - start > 4 * 3600000) fail(400, 'invalid_activity_window');
++    const subscription = this.config.resourceId.split('/')[2]!;
++    const url = new URL(`https://management.azure.com/subscriptions/${subscription}/providers/Microsoft.Insights/eventtypes/management/values`);
++    url.searchParams.set('api-version', '2015-04-01');
++    url.searchParams.set('$filter', `eventTimestamp ge '${new Date(start).toISOString()}' and eventTimestamp le '${new Date(end).toISOString()}' and resourceUri eq '${this.config.resourceId}'`);
++    const token = await this.credential.getToken('https://management.azure.com/.default');
++    if (!token) fail(503, 'operator_identity_unavailable');
++    const response = await this.fetcher(url.href, { method: 'GET', headers: { authorization: `Bearer ${token.token}`, accept: 'application/json' }, redirect: 'manual', signal: AbortSignal.timeout(10000) });
++    if (response.status !== 200) { await response.body?.cancel(); fail(503, 'activity_evidence_unavailable'); }
++    const body = await response.json() as { value?: ActivityEvent[]; nextLink?: unknown };
++    // A partial response is insufficient; never follow a provider-supplied nextLink.
++    if (!body || !Array.isArray(body.value) || body.value.length > 1000 || body.nextLink) fail(503, 'activity_evidence_incomplete');
++    return body.value;
++  }
++}
++const reference = (value: unknown): value is string => typeof value === 'string' && /^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,127}$/.test(value);
++function equalEvent(actual: ActivityEvent, expected: ActivityEvent): boolean {
++  return actual.eventDataId === expected.eventDataId && actual.eventTimestamp === expected.eventTimestamp && actual.resourceId?.toLowerCase() === expected.resourceId.toLowerCase() && actual.caller?.toLowerCase() === expected.caller.toLowerCase() && actual.correlationId === expected.correlationId && actual.operationName?.value?.toLowerCase() === expected.operationName.value.toLowerCase() && actual.status?.value === expected.status.value;
++}
++export async function verifyHistoricalDeallocation(config: Configuration, arm: Arm, activity: ActivityReader, op: Operation, proof: RecoveryProof, audit: LedgerData['audit'], now = Date.now()): Promise<VerifiedPollOutcome> {
++  if (!proof || proof.schemaVersion !== 1 || proof.targetResourceId !== config.resourceId || proof.expectedVmId !== config.expectedVmId || proof.requestId !== op.requestId || op.action !== 'deallocate' || op.armStatus !== 202 || !UUID.test(proof.armRequestId) || proof.armRequestId !== op.armRequestId || proof.submittedAt !== op.createdAt || !reference(proof.reference) || !reference(proof.recoveryApprovalReference)) fail(409, 'recovery_receipt_mismatch');
++  // Legacy records use their unique preserved acceptance audit, never mutable updatedAt.
++  const acceptedEvents = audit.filter(event => event.requestId === op.requestId && event.callerOid === op.callerOid && event.event === 'accepted');
++  const acceptedAt = op.armAcceptedAt ?? (acceptedEvents.length === 1 ? acceptedEvents[0]!.at : undefined);
++  if (!acceptedAt || proof.acceptedAt !== acceptedAt) fail(409, 'recovery_receipt_mismatch');
++  const expected = [proof.deallocateStarted, proof.deallocateSucceeded, proof.recoveryStarted, proof.recoverySucceeded];
++  const times = expected.map(event => Date.parse(event?.eventTimestamp));
++  for (let i = 0; i < expected.length; i++) {
++    const event = expected[i]!;
++    if (!event || !UUID.test(event.eventDataId) || !UUID.test(event.correlationId) || event.resourceId !== config.resourceId || typeof event.caller !== 'string' || !event.caller || !Number.isFinite(times[i]) || times[i]! > now || event.operationName?.value !== `Microsoft.Compute/virtualMachines/${i < 2 ? 'deallocate' : 'start'}/action` || event.status?.value !== (i % 2 ? 'Succeeded' : 'Started')) fail(409, 'recovery_activity_mismatch');
++  }
++  if (new Set(expected.map(event => event.eventDataId)).size !== 4 || !UUID.test(proof.deallocateStarted.caller) || proof.deallocateStarted.caller !== proof.deallocateSucceeded.caller || proof.deallocateStarted.correlationId !== proof.deallocateSucceeded.correlationId || proof.recoveryStarted.caller !== proof.recoverySucceeded.caller || proof.recoveryStarted.correlationId !== proof.recoverySucceeded.correlationId || proof.recoveryStarted.correlationId === proof.deallocateStarted.correlationId || !(times[0]! <= times[1]! && times[1]! < times[2]! && times[2]! <= times[3]!)) fail(409, 'recovery_activity_mismatch');
++  const outcome = await arm.pollRequest({ requestId: proof.armRequestId, action: 'deallocate', submittedAt: proof.submittedAt, acceptedAt: proof.acceptedAt });
++  if (outcome.status !== 'Succeeded' || outcome.startTime !== proof.operationStartTime || outcome.endTime !== proof.operationEndTime || Math.abs(times[0]! - Date.parse(outcome.startTime)) > 5000 || Math.abs(times[1]! - Date.parse(outcome.endTime!)) > 10000 || times[2]! <= Date.parse(outcome.endTime!)) fail(409, 'recovery_terminal_evidence_mismatch');
++  const events = await activity.read(new Date(times[0]! - 5000).toISOString(), new Date(times[3]! + 5000).toISOString());
++  for (const event of expected) {
++    const matches = events.filter(candidate => candidate?.eventDataId === event.eventDataId);
++    if (matches.length !== 1 || !equalEvent(matches[0]!, event)) fail(409, 'recovery_activity_mismatch');
++  }
++  const observation = await arm.observe(); validateObservation(observation, config, now);
++  if (observation.provisioningState !== 'Succeeded' || observation.powerState !== 'running') fail(409, 'recovery_running_state_not_observed');
++  return outcome;
++}
++export async function reconcileRecoveredDeallocation(session: LedgerSession, config: Configuration, arm: Arm, activity: ActivityReader, proof: RecoveryProof, generation: number, workersFenced: boolean, now = Date.now()): Promise<void> {
++  if (session.data.generation !== generation) fail(412, 'stale_generation');
++  if (session.data.admissionEnabled || !workersFenced) fail(409, 'worker_fencing_required');
++  if (session.data.activeRequestId !== proof.requestId) fail(409, 'active_operation_mismatch');
++  const op = session.data.records[proof.requestId]!;
++  if (!['accepted', 'accepted_unverified', 'unknown'].includes(op.phase)) fail(409, 'active_operation_mismatch');
++  const outcome = await verifyHistoricalDeallocation(config, arm, activity, op, proof, session.data.audit, now);
++  await session.assertLease();
++  op.armAcceptedAt = proof.acceptedAt; op.armOperationStatus = 'Succeeded';
++  op.trackingSource = 'request-id'; op.armOperationStartTime = outcome.startTime; op.armOperationEndTime = outcome.endTime!;
++  op.phase = 'completed'; op.reason = 'historical_deallocate_completed_then_recovery_start'; op.updatedAt = new Date(now).toISOString();
++  op.recoveryEvidence = { reference: proof.reference, approvalReference: proof.recoveryApprovalReference, deallocateStartedEventId: proof.deallocateStarted.eventDataId, deallocateEventId: proof.deallocateSucceeded.eventDataId, deallocateCorrelationId: proof.deallocateSucceeded.correlationId, recoveryStartedEventId: proof.recoveryStarted.eventDataId, recoveryStartEventId: proof.recoverySucceeded.eventDataId, recoveryCorrelationId: proof.recoverySucceeded.correlationId, recoveryStartedAt: proof.recoveryStarted.eventTimestamp, recoveryCompletedAt: proof.recoverySucceeded.eventTimestamp };
++  session.data.audit.push({ at: op.updatedAt, event: `historical-reconciliation:${proof.reference}`, requestId: op.requestId, callerOid: op.callerOid });
++  session.data.audit = session.data.audit.slice(-1000);
++  session.data.activeRequestId = null; session.data.generation += 1;
++  // Caller saves under the existing lease/ETag. Admission remains disabled.
++}
+--- /dev/null
++++ b/scripts/azure/vm01-controller/scripts/reconcile-recovered-deallocate.ts
+@@ -0,0 +1,41 @@
++import { readFile } from 'node:fs/promises';
++import { createHash } from 'node:crypto';
++import { AzureCliCredential } from '@azure/identity';
++import { BlobServiceClient } from '@azure/storage-blob';
++import { configuration } from '../src/configuration.js';
++import { AzureArm } from '../src/arm.js';
++import { AzureBlobPort, BlobLedger, validateLedger } from '../src/ledger.js';
++import { ControllerError } from '../src/errors.js';
++import { AzureActivityReader, reconcileRecoveredDeallocation, verifyHistoricalDeallocation, type RecoveryProof } from './recovery-evidence.js';
++
++try {
++  const args = process.argv.slice(2);
++  const option = (name: string): string | undefined => { const index = args.indexOf(name); return index === -1 ? undefined : args[index + 1]; };
++  const apply = args.includes('--apply');
++  if (apply === args.includes('--verify-only')) throw new Error('Choose one mode explicitly');
++  const file = option('--proof'), expectedHash = option('--proof-sha256'), generation = Number(option('--expected-generation'));
++  if (!file || !expectedHash || !/^[0-9a-f]{64}$/.test(expectedHash) || !Number.isSafeInteger(generation) || generation < 1) throw new Error('Pinned proof and generation required');
++  const bytes = await readFile(file);
++  if (bytes.length > 32768 || createHash('sha256').update(bytes).digest('hex') !== expectedHash) throw new Error('Proof mismatch');
++  const proof = JSON.parse(bytes.toString('utf8')) as RecoveryProof;
++  const config = configuration(), credential = new AzureCliCredential();
++  const blob = new BlobServiceClient(`https://${config.storageAccount}.blob.core.windows.net`, credential, { retryOptions: { maxTries: 1, tryTimeoutInMs: 10000 } }).getContainerClient(config.ledgerContainer).getBlockBlobClient(config.ledgerBlob);
++  const port = new AzureBlobPort(blob);
++  const arm = new AzureArm(config, credential), activity = new AzureActivityReader(config, credential);
++  if (apply) {
++    if (!args.includes('--approved') || !args.includes('--workers-fenced')) throw new Error('Scoped approval and actual worker fencing required');
++    await new BlobLedger(config, port).transaction(async session => {
++      await reconcileRecoveredDeallocation(session, config, arm, activity, proof, generation, true);
++      await session.save();
++    });
++    process.stdout.write('Historical deallocate reconciled; admission remains disabled. Inspect the preserved receipt before approved resumption.\n');
++  } else {
++    const data = validateLedger(JSON.parse((await port.read()).text), config);
++    if (data.generation !== generation || data.activeRequestId !== proof.requestId) throw new Error('Active receipt changed');
++    await verifyHistoricalDeallocation(config, arm, activity, data.records[proof.requestId]!, proof, data.audit);
++    process.stdout.write('Read-only evidence verification passed. No ledger lease/write, deployment, setting change or power action performed.\n');
++  }
++} catch (error) {
++  process.stderr.write(`Historical recovery failed: ${error instanceof ControllerError ? error.code : 'verification_or_configuration_error'}. Preserve the receipt and do not replay the action.\n`);
++  process.exitCode = 1;
++}
+--- /dev/null
++++ b/scripts/azure/vm01-controller/tests/tracking-recovery.test.mjs
+@@ -0,0 +1,166 @@
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import { AzureArm } from '../dist/src/arm.js';
++import { ControllerError } from '../dist/src/errors.js';
++import { updateAdmission, reconcileOperation } from '../dist/src/administration.js';
++import { AzureActivityReader, reconcileRecoveredDeallocation, verifyHistoricalDeallocation } from '../dist/scripts/recovery-evidence.js';
++import { browser, config, fixture, ids, trackingUrl } from './helpers.mjs';
++
++const credential = { async getToken() { return { token: 'fixture-token' }; } };
++const received = Date.parse('2026-10-02T07:31:01.255Z');
++const receipt = { requestId: '7edd0361-7e12-47d2-ba59-dcedeb216a9b', action: 'deallocate', submittedAt: '2026-10-02T07:31:01.096Z', acceptedAt: '2026-10-02T07:31:01.255Z' };
++const liveShape = { name: receipt.requestId, status: 'Succeeded', startTime: '2026-10-02T07:31:01.1806458+00:00', endTime: '2026-10-02T07:43:04.8662441+00:00' };
++const clock = Date.parse('2026-10-02T08:10:00Z');
++const make = (body = liveShape, status = 200, inspect = () => {}) => new AzureArm({ ...config, operationPollingEnabled: true }, credential, async (url, init) => { inspect(url, init); return new Response(status === 204 ? null : JSON.stringify(body), { status }); }, () => clock);
++
++test('candidate fallback verifies the observed live response format using one fixed GET', async () => {
++  let calls = 0;
++  const result = await make(liveShape, 200, (url, init) => {
++    calls++; assert.equal(url, trackingUrl.replace(ids.operation, receipt.requestId));
++    assert.equal(init.method, 'GET'); assert.equal(init.redirect, 'manual'); assert.equal(init.body, undefined);
++  }).pollRequest(receipt);
++  assert.equal(calls, 1); assert.equal(result.status, 'Succeeded'); assert.equal(result.name, receipt.requestId); assert.equal(result.endTime, liveShape.endTime);
++});
++
++test('fallback rejects missing, wrong, stale or future evidence and inconsistent identity/action', async () => {
++  for (const extra of [
++    { name: ids.operation }, { name: undefined }, { startTime: undefined }, { startTime: 'invalid' },
++    { startTime: '2026-10-02T07:30:00Z' }, { startTime: '2026-10-02T07:32:00Z' },
++    { endTime: undefined }, { endTime: 'invalid' }, { endTime: '2026-10-02T07:30:00Z' },
++    { endTime: '2026-10-02T09:00:00Z' }, { status: undefined }, { status: 'unrecognized' },
++    { targetResourceId: '/wrong' }, { resourceId: '/wrong' }, { action: 'restart' }, { id: '/wrong' }
++  ]) await assert.rejects(make({ ...liveShape, ...extra }).pollRequest(receipt));
++  for (const body of [null, [], {}, { status: 'Succeeded' }]) await assert.rejects(make(body).pollRequest(receipt));
++  for (const status of [202, 204, 302, 403, 404, 500]) await assert.rejects(make({}, status).pollRequest(receipt));
++  let calls = 0;
++  for (const extra of [{ requestId: '../../evil' }, { action: 'delete' }, { submittedAt: 'bad' }, { acceptedAt: '2026-10-02T07:30:00Z' }, { acceptedAt: '2026-10-02T07:35:00Z' }]) {
++    await assert.rejects(make(liveShape, 200, () => calls++).pollRequest({ ...receipt, ...extra }));
++  }
++  assert.equal(calls, 0);
++  const disabled = new AzureArm(config, credential, () => { throw new Error('must not fetch'); });
++  await assert.rejects(disabled.pollRequest(receipt), e => e.code === 'operation_polling_disabled');
++});
++
++test('candidate progress is not terminal and failure text is sanitized', async () => {
++  assert.equal((await make({ ...liveShape, status: 'InProgress', endTime: undefined }).pollRequest(receipt)).status, 'InProgress');
++  const result = await make({ ...liveShape, status: 'Failed', error: { code: 'CapacityUnavailable', message: 'PRIVATE' } }).pollRequest(receipt);
++  assert.equal(result.status, 'Failed'); assert.equal(result.failureCode, 'CapacityUnavailable'); assert.equal(JSON.stringify(result).includes('PRIVATE'), false);
++});
++
++test('missing and rejected response headers persist only safe diagnostic categories', async () => {
++  for (const [headers, issue] of [[{}, 'missing'], [{ 'Azure-AsyncOperation': 'https://evil.invalid/?SECRET=private', Location: trackingUrl }, 'rejected']]) {
++    const arm = new AzureArm(config, credential, async () => new Response(null, { status: 202, headers }));
++    const result = await arm.submit('deallocate');
++    assert.equal(result.trackingIssue, issue); assert.equal(result.trackingUrl, undefined); assert.equal(JSON.stringify(result).includes('SECRET'), false);
++  }
++});
++
++function fallbackFixture() {
++  const f = fixture({ operationPollingEnabled: true });
++  f.arm.outcome = { status: 202, requestId: ids.operation, trackingIssue: 'missing', retryAfter: 15 };
++  f.arm.pollRequest = async value => { f.arm.polls.push(value); return { name: value.requestId, startTime: value.submittedAt, endTime: new Date(f.now()).toISOString(), status: 'Succeeded', retryAfter: 15 }; };
++  return f;
++}
++
++test('fallback completes only after matched terminal evidence and a fresh desired VM state; no replay', async () => {
++  const f = fallbackFixture(), request = f.request();
++  const accepted = await f.controller.action(browser, 'deallocate', request);
++  assert.equal(accepted.body.operation.reason, 'operation_tracking_header_missing');
++  const acceptedAt = f.port.data.records[request.requestId].armAcceptedAt;
++  f.advance(16000);
++  let status = await f.controller.status(browser);
++  assert.equal(status.body.operation.phase, 'accepted'); assert.notEqual(f.port.data.activeRequestId, null);
++  f.observation.powerState = 'deallocated'; status = await f.controller.status(browser, request.requestId);
++  assert.equal(status.body.operation.phase, 'completed'); assert.equal(f.port.data.activeRequestId, null);
++  assert.equal(f.arm.polls.length, 1); assert.equal(f.port.data.records[request.requestId].armAcceptedAt, acceptedAt);
++  await f.controller.action(browser, 'deallocate', request); assert.deepEqual(f.arm.calls, ['deallocate']);
++});
++
++test('fallback mismatch/not-found/malformed evidence preserves latch even at desired state and never repeats POST', async () => {
++  for (const code of ['operation_candidate_mismatch', 'operation_candidate_not_found', 'invalid_operation_status', 'operation_receipt_invalid']) {
++    const f = fallbackFixture(), request = f.request();
++    f.arm.pollRequest = async () => { throw new ControllerError(503, code); };
++    await f.controller.action(browser, 'deallocate', request); f.observation.powerState = 'deallocated'; f.advance(16000);
++    let status = await f.controller.status(browser); assert.equal(status.body.operation.reason, code); assert.equal(status.body.operation.phase, 'accepted');
++    f.advance(16 * 60000); status = await f.controller.status(browser); assert.equal(status.body.operation.phase, 'unknown');
++    assert.notEqual(f.port.data.activeRequestId, null); assert.deepEqual(status.body.actions, { start: false, restart: false, deallocate: false });
++    await f.controller.action(browser, 'deallocate', request); assert.equal(f.arm.calls.length, 1);
++  }
++});
++
++test('missing UUID or immutable legacy acceptance receipt cannot invent a fallback or completion', async () => {
++  for (const legacy of [false, true]) {
++    const f = fallbackFixture(), request = f.request();
++    if (!legacy) delete f.arm.outcome.requestId;
++    await f.controller.action(browser, 'deallocate', request);
++    if (legacy) { const data = f.port.data; delete data.records[request.requestId].armAcceptedAt; f.port.text = JSON.stringify(data); }
++    f.observation.powerState = 'deallocated'; f.advance(16000);
++    const status = await f.controller.status(browser);
++    assert.equal(status.body.operation.phase, 'unknown'); assert.equal(status.body.operation.reason, 'operation_tracking_unavailable');
++    assert.equal(f.arm.polls.length, 0); assert.notEqual(f.port.data.activeRequestId, null);
++  }
++});
++
++async function recoveryFixture() {
++  const f = fallbackFixture(), request = f.request(); await f.controller.action(browser, 'deallocate', request);
++  const op = f.port.data.records[request.requestId], t = Date.parse(op.createdAt), at = offset => new Date(t + offset).toISOString();
++  const event = (n, action, status, offset, caller, correlationId) => ({ eventDataId: `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`, eventTimestamp: at(offset), resourceId: config.resourceId, caller, correlationId, operationName: { value: `Microsoft.Compute/virtualMachines/${action}/action` }, status: { value: status } });
++  const proof = { schemaVersion: 1, requestId: op.requestId, targetResourceId: config.resourceId, expectedVmId: ids.vm, armRequestId: ids.operation, submittedAt: op.createdAt, acceptedAt: op.armAcceptedAt, operationStartTime: at(0), operationEndTime: at(60000), reference: 'incident-reviewed', recoveryApprovalReference: 'owner-recovery-approved',
++    deallocateStarted: event(1, 'deallocate', 'Started', 0, ids.principal, ids.operation), deallocateSucceeded: event(2, 'deallocate', 'Succeeded', 61000, ids.principal, ids.operation), recoveryStarted: event(3, 'start', 'Started', 120000, 'fixture@example.invalid', ids.user), recoverySucceeded: event(4, 'start', 'Succeeded', 180000, 'fixture@example.invalid', ids.user) };
++  const events = structuredClone([proof.deallocateStarted, proof.deallocateSucceeded, proof.recoveryStarted, proof.recoverySucceeded]);
++  const activity = { async read() { return events; } };
++  f.advance(200000); f.arm.pollRequest = async () => ({ name: ids.operation, status: 'Succeeded', startTime: proof.operationStartTime, endTime: proof.operationEndTime, retryAfter: 15 });
++  await f.ledger.transaction(async s => { updateAdmission(s, s.data.generation, false); await s.save(); });
++  const run = (overrides = {}) => f.ledger.transaction(async s => { await reconcileRecoveredDeallocation(s, f.config, f.arm, activity, proof, overrides.generation ?? s.data.generation, overrides.fenced ?? true, f.now()); await s.save(); });
++  return { f, op, proof, events, activity, run };
++}
++
++test('historical success preserves deduplication/audit with current running state and leaves admission closed', async () => {
++  const { f, proof, run } = await recoveryFixture(), before = f.port.data;
++  // Ordinary success still requires deallocated: its guard is unchanged.
++  await assert.rejects(f.ledger.transaction(s => reconcileOperation(s, f.config, f.arm, { generation: s.data.generation, workersFenced: true, requestId: proof.requestId, result: 'succeeded', evidence: 'ordinary' }, f.now())), e => e.code === 'desired_state_not_observed');
++  await run(); const after = f.port.data, op = after.records[proof.requestId];
++  assert.equal(op.phase, 'completed'); assert.equal(op.armOperationStatus, 'Succeeded'); assert.equal(op.reason, 'historical_deallocate_completed_then_recovery_start');
++  assert.equal(op.digest, before.records[proof.requestId].digest); assert.equal(op.createdAt, before.records[proof.requestId].createdAt); assert.deepEqual(after.audit.slice(0, -1), before.audit);
++  assert.equal(after.activeRequestId, null); assert.equal(after.admissionEnabled, false); assert.equal(after.generation, before.generation + 1);
++  assert.equal(op.recoveryEvidence.recoveryStartEventId, proof.recoverySucceeded.eventDataId); assert.deepEqual(f.arm.calls, ['deallocate']);
++  await assert.rejects(run());
++});
++
++test('historical recovery rejects stale generation, unfenced workers, enabled admission, wrong target/action and evidence mismatches without writes', async () => {
++  const cases = [
++    x => { x.proof.targetResourceId = '/wrong'; }, x => { x.proof.expectedVmId = ids.user; }, x => { x.proof.armRequestId = ids.user; },
++    x => { x.proof.acceptedAt = new Date(Date.parse(x.proof.acceptedAt) + 1).toISOString(); }, x => { x.events[1].caller = ids.user; },
++    x => { x.events[1].status.value = 'Failed'; }, x => { x.events[1].resourceId = '/wrong'; }, x => { x.events[1].operationName.value = 'Microsoft.Compute/virtualMachines/start/action'; },
++    x => { x.events.pop(); }, x => { x.events.push(structuredClone(x.events[0])); },
++    x => { x.proof.recoveryStarted.eventTimestamp = x.proof.deallocateStarted.eventTimestamp; },
++    x => { x.f.arm.pollRequest = async () => ({ status: 'InProgress' }); }, x => { x.f.observation.vmId = ids.user; }, x => { x.f.observation.powerState = 'deallocated'; },
++    x => { const data = x.f.port.data; data.records[x.proof.requestId].action = 'restart'; x.f.port.text = JSON.stringify(data); },
++    x => { const data = x.f.port.data; data.admissionEnabled = true; x.f.port.text = JSON.stringify(data); }
++  ];
++  for (const change of cases) { const x = await recoveryFixture(); change(x); const before = x.f.port.text; await assert.rejects(x.run()); assert.equal(x.f.port.text, before); }
++  for (const override of [{ generation: 999 }, { fenced: false }]) { const x = await recoveryFixture(); const before = x.f.port.text; await assert.rejects(x.run(override)); assert.equal(x.f.port.text, before); }
++});
++
++test('historical read-only verification and activity adapter perform bounded fixed-target GETs, reject redirects and pagination', async () => {
++  const x = await recoveryFixture(), before = x.f.port.text;
++  await verifyHistoricalDeallocation(x.f.config, x.f.arm, x.activity, x.f.port.data.records[x.proof.requestId], x.proof, x.f.port.data.audit, x.f.now());
++  assert.equal(x.f.port.text, before);
++  let calls = 0;
++  const fetcher = async (url, init) => { calls++; const parsed = new URL(url); assert.equal(parsed.hostname, 'management.azure.com'); assert.equal(init.method, 'GET'); assert.equal(init.redirect, 'manual'); assert.ok(parsed.searchParams.get('$filter').includes(config.resourceId)); return new Response(JSON.stringify({ value: x.events })); };
++  const reader = new AzureActivityReader(config, credential, fetcher);
++  assert.equal((await reader.read('2026-10-02T07:25:00Z', '2026-10-02T08:02:00Z')).length, 4);
++  await assert.rejects(reader.read('bad', 'bad')); assert.equal(calls, 1);
++  for (const response of [new Response(null, { status: 302 }), new Response(JSON.stringify({ value: [], nextLink: 'https://evil.invalid' })), new Response('{}')]) await assert.rejects(new AzureActivityReader(config, credential, async () => response).read('2026-10-02T07:25:00Z', '2026-10-02T08:02:00Z'));
++});
++
++test('legacy historical recovery uses preserved acceptance audit after a later unknown-state refresh', async () => {
++  const x = await recoveryFixture(); const data = x.f.port.data;
++  delete data.records[x.proof.requestId].armAcceptedAt;
++  data.records[x.proof.requestId].updatedAt = new Date(x.f.now()).toISOString();
++  data.records[x.proof.requestId].phase = 'unknown'; x.f.port.text = JSON.stringify(data);
++  await x.run(); assert.equal(x.f.port.data.records[x.proof.requestId].phase, 'completed');
++  const missing = await recoveryFixture(); const broken = missing.f.port.data;
++  delete broken.records[missing.proof.requestId].armAcceptedAt; broken.audit = broken.audit.filter(event => event.event !== 'accepted'); missing.f.port.text = JSON.stringify(broken);
++  await assert.rejects(missing.run(), error => error.code === 'recovery_receipt_mismatch');
++});

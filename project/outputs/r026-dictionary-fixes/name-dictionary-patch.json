@@ -1,0 +1,30 @@
+{
+  "file": "systems/appsheet/olap/settings/appdoc-app-properties-7f213707.yaml",
+  "expected_sha256": "378b64e854c84274863be7f7fbb51b19502ec6c56df3cd616b4638041a624e3b",
+  "evidence": "outputs/r026-dictionary-fixes/prod-name-correction.json",
+  "reason": "Record owner-authorized exact production name correction and observed saved version; other historical properties not re-audited",
+  "changes": [
+    {
+      "pointer": "/content/definition/Version",
+      "expected": {
+        "state": "value",
+        "value": "1.100200"
+      },
+      "target": {
+        "state": "value",
+        "value": "1.100201"
+      }
+    },
+    {
+      "pointer": "/content/name_correction/version",
+      "expected": {
+        "state": "value",
+        "value": "1.100200"
+      },
+      "target": {
+        "state": "value",
+        "value": "1.100201"
+      }
+    }
+  ]
+}

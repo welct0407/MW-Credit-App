@@ -1,0 +1,213 @@
+{
+  "saved_at": "2026-09-23T06:24:44.526Z",
+  "dashboard_id": 3,
+  "overview_tab_id": 4,
+  "trend_placements": [
+    {
+      "id": 60,
+      "card_id": 64
+    },
+    {
+      "id": 58,
+      "card_id": 62
+    },
+    {
+      "id": 59,
+      "card_id": 63
+    }
+  ],
+  "filter": {
+    "id": "overview-trend-period",
+    "default": "past30days",
+    "field": "Date"
+  },
+  "title_changes": [
+    {
+      "placement": 57,
+      "old": "Interest · past 30 days, THB",
+      "next": "Interest · past 30 days"
+    },
+    {
+      "placement": 56,
+      "old": "Principal outstanding · THB",
+      "next": "Principal outstanding"
+    },
+    {
+      "placement": 58,
+      "old": "Principal outstanding · THB",
+      "next": "Principal outstanding"
+    },
+    {
+      "placement": 59,
+      "old": "Daily gross interest · THB",
+      "next": "Daily gross interest"
+    },
+    {
+      "placement": 69,
+      "old": "Principal issued & returned · THB",
+      "next": "Principal issued & returned"
+    },
+    {
+      "placement": 75,
+      "old": "Liquidity at a glance · THB",
+      "next": "Liquidity at a glance"
+    },
+    {
+      "placement": 77,
+      "old": "Lending mix & capital movement · THB",
+      "next": "Lending mix & capital movement"
+    },
+    {
+      "placement": 74,
+      "old": "Amounts in **THB**. Profit means gross interest before expenses. Principal reference: 120,000. Daily interest goal: 10,000. Dates use Bangkok time.",
+      "next": "Profit means gross interest before expenses. Principal reference: 120,000. Daily interest goal: 10,000. Dates use Bangkok time."
+    },
+    {
+      "placement": 70,
+      "old": "Capital at work · THB",
+      "next": "Capital at work"
+    },
+    {
+      "placement": 71,
+      "old": "Earnings & momentum · gross interest, THB",
+      "next": "Earnings & momentum · gross interest"
+    },
+    {
+      "placement": 286,
+      "old": "This month’s forecast · gross interest, THB",
+      "next": "This month’s forecast · gross interest"
+    },
+    {
+      "placement": 287,
+      "old": "Realized this month · THB",
+      "next": "Realized this month"
+    },
+    {
+      "placement": 289,
+      "old": "Estimated month · THB",
+      "next": "Estimated month"
+    },
+    {
+      "placement": 230,
+      "old": "Principal outstanding · THB",
+      "next": "Principal outstanding"
+    },
+    {
+      "placement": 231,
+      "old": "Lifetime interest · THB",
+      "next": "Lifetime interest"
+    },
+    {
+      "placement": 274,
+      "old": "Lifetime interest · THB",
+      "next": "Lifetime interest"
+    },
+    {
+      "placement": 192,
+      "old": "Principal outstanding · THB",
+      "next": "Principal outstanding"
+    },
+    {
+      "placement": 190,
+      "old": "Borrower portfolio · THB",
+      "next": "Borrower portfolio"
+    },
+    {
+      "placement": 210,
+      "old": "Returns use the governed borrower measures. Bubble size shows outstanding principal; the stability benchmark is 80 and the scaled contribution benchmark is 0.5. All amounts are THB.",
+      "next": "Returns use the governed borrower measures. Bubble size shows outstanding principal; the stability benchmark is 80 and the scaled contribution benchmark is 0.5."
+    },
+    {
+      "placement": 326,
+      "old": "Income statement · selected period · THB",
+      "next": "Income statement · selected period"
+    },
+    {
+      "placement": 358,
+      "old": "Cashflow statement · selected period · THB",
+      "next": "Cashflow statement · selected period"
+    },
+    {
+      "parameter": "proposed-amount",
+      "old": "Proposed loan · THB",
+      "next": "Proposed loan"
+    }
+  ],
+  "question_changes": [
+    {
+      "id": 139,
+      "old": "Current principal · THB",
+      "next": "Current principal"
+    },
+    {
+      "id": 141,
+      "old": "Overdue · THB",
+      "next": "Overdue"
+    },
+    {
+      "id": 158,
+      "old": "Current and proposed exposure · THB",
+      "next": "Current and proposed exposure"
+    },
+    {
+      "id": 148,
+      "old": "Remaining forecast · THB",
+      "next": "Remaining forecast"
+    },
+    {
+      "id": 156,
+      "old": "Borrower forecast detail · THB",
+      "next": "Borrower forecast detail"
+    },
+    {
+      "id": 81,
+      "old": "Lifetime interest · THB",
+      "next": "Lifetime interest"
+    },
+    {
+      "id": 94,
+      "old": "Gross interest · THB",
+      "next": "Gross interest"
+    },
+    {
+      "id": 97,
+      "old": "Principal issued · THB",
+      "next": "Principal issued"
+    },
+    {
+      "id": 111,
+      "old": "Past-due amount · THB",
+      "next": "Past-due amount"
+    },
+    {
+      "id": 123,
+      "old": "Amount due · THB",
+      "next": "Amount due"
+    },
+    {
+      "id": 124,
+      "old": "Collected · THB",
+      "next": "Collected"
+    },
+    {
+      "id": 125,
+      "old": "Outstanding · THB",
+      "next": "Outstanding"
+    }
+  ],
+  "remaining_visible_thb": 0,
+  "visual_count": 130,
+  "tabs": 10,
+  "cash_mapping_unchanged": true,
+  "rollback_dir": "C:\\Users\\MWCredit\\Documents\\ChatGPT\\AppSheet-Loan-Project\\r016-20260922\\overview-trend-before",
+  "verified_at": "2026-09-23T06:26:20.659Z",
+  "trend_dates": {
+    "first": "2026-08-24",
+    "last": "2026-09-22",
+    "count": 30,
+    "bangkok_today": "2026-09-23"
+  },
+  "cash_principal_question_unchanged": true,
+  "trend_query_status": "completed",
+  "title_thb_count": 0
+}

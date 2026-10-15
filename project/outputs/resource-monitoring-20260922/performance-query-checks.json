@@ -1,0 +1,194 @@
+[
+  {
+    "refId": "A",
+    "panel": "Azure VM · CPU",
+    "source": "mw-azure-monitoring",
+    "error": null,
+    "rows": 72,
+    "status": 200
+  },
+  {
+    "refId": "A",
+    "panel": "GCP VM · CPU",
+    "source": "mw-gcp-monitoring",
+    "error": null,
+    "rows": 72,
+    "status": 200
+  },
+  {
+    "refId": "A",
+    "panel": "Cloud SQL · CPU",
+    "source": "mw-gcp-monitoring",
+    "error": null,
+    "rows": 72,
+    "status": 200
+  },
+  {
+    "refId": "A",
+    "panel": "Metabase · CPU cores",
+    "source": "mw-railway-monitoring",
+    "error": null,
+    "rows": 73,
+    "status": 200
+  },
+  {
+    "refId": "A",
+    "panel": "Available memory",
+    "source": "mw-azure-monitoring",
+    "error": null,
+    "rows": 72,
+    "status": 200
+  },
+  {
+    "refId": "A",
+    "panel": "Network transfer per interval",
+    "source": "mw-azure-monitoring",
+    "error": null,
+    "rows": 72,
+    "status": 200
+  },
+  {
+    "refId": "B",
+    "panel": "Network transfer per interval",
+    "source": "mw-azure-monitoring",
+    "error": null,
+    "rows": 72,
+    "status": 200
+  },
+  {
+    "refId": "A",
+    "panel": "OS disk throughput",
+    "source": "mw-azure-monitoring",
+    "error": null,
+    "rows": 72,
+    "status": 200
+  },
+  {
+    "refId": "B",
+    "panel": "OS disk throughput",
+    "source": "mw-azure-monitoring",
+    "error": null,
+    "rows": 72,
+    "status": 200
+  },
+  {
+    "refId": "A",
+    "panel": "Used memory",
+    "source": "mw-gcp-monitoring",
+    "error": null,
+    "rows": 72,
+    "status": 200
+  },
+  {
+    "refId": "A",
+    "panel": "Network throughput",
+    "source": "mw-gcp-monitoring",
+    "error": null,
+    "rows": 72,
+    "status": 200
+  },
+  {
+    "refId": "B",
+    "panel": "Network throughput",
+    "source": "mw-gcp-monitoring",
+    "error": null,
+    "rows": 72,
+    "status": 200
+  },
+  {
+    "refId": "A",
+    "panel": "Disk throughput",
+    "source": "mw-gcp-monitoring",
+    "error": null,
+    "rows": 72,
+    "status": 200
+  },
+  {
+    "refId": "B",
+    "panel": "Disk throughput",
+    "source": "mw-gcp-monitoring",
+    "error": null,
+    "rows": 72,
+    "status": 200
+  },
+  {
+    "refId": "A",
+    "panel": "Memory utilization",
+    "source": "mw-gcp-monitoring",
+    "error": null,
+    "rows": 72,
+    "status": 200
+  },
+  {
+    "refId": "A",
+    "panel": "Storage utilization",
+    "source": "mw-gcp-monitoring",
+    "error": null,
+    "rows": 72,
+    "status": 200
+  },
+  {
+    "refId": "A",
+    "panel": "Database connections · all databases",
+    "source": "mw-gcp-monitoring",
+    "error": null,
+    "rows": 72,
+    "status": 200
+  },
+  {
+    "refId": "B",
+    "panel": "CPU usage · cores",
+    "source": "mw-railway-monitoring",
+    "error": null,
+    "rows": 73,
+    "status": 200
+  },
+  {
+    "refId": "A",
+    "panel": "Memory usage · GB",
+    "source": "mw-railway-monitoring",
+    "error": null,
+    "rows": 73,
+    "status": 200
+  },
+  {
+    "refId": "B",
+    "panel": "Memory usage · GB",
+    "source": "mw-railway-monitoring",
+    "error": null,
+    "rows": 73,
+    "status": 200
+  },
+  {
+    "refId": "A",
+    "panel": "Persistent volume usage · GB",
+    "source": "mw-railway-monitoring",
+    "error": null,
+    "rows": 73,
+    "status": 200
+  },
+  {
+    "refId": "B",
+    "panel": "Persistent volume usage · GB",
+    "source": "mw-railway-monitoring",
+    "error": null,
+    "rows": 73,
+    "status": 200
+  },
+  {
+    "refId": "A",
+    "panel": "Ephemeral disk usage · GB",
+    "source": "mw-railway-monitoring",
+    "error": null,
+    "rows": 0,
+    "status": 200
+  },
+  {
+    "refId": "B",
+    "panel": "Ephemeral disk usage · GB",
+    "source": "mw-railway-monitoring",
+    "error": null,
+    "rows": 0,
+    "status": 200
+  }
+]

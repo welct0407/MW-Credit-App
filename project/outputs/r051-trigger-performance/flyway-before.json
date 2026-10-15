@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "72",
+  "operation": "info",
+  "timestamp": "2026-10-06T21:09:02.9715972+07:00",
+  "scope": "Condensed maintained-runner output; full private evidence retained",
+  "migration_count": 74,
+  "pending": [
+    {
+      "category": "Versioned",
+      "description": "scoped history and coalesced parent refresh",
+      "executionTime": 0,
+      "filepath": "C:\\GitHub\\AppSheet-Loan-Project-r051\\database\\migrations\\V73__scoped_history_and_coalesced_parent_refresh.sql",
+      "installedBy": "",
+      "installedOnUTC": "",
+      "rawVersion": "73",
+      "shouldExecuteExpression": null,
+      "state": "Pending",
+      "type": "SQL",
+      "undoFilepath": "",
+      "undoable": "No",
+      "version": "73"
+    }
+  ],
+  "other_non_success": [
+    {
+      "category": "Versioned",
+      "description": "existing schema",
+      "executionTime": 0,
+      "filepath": "C:\\GitHub\\AppSheet-Loan-Project-r051\\database\\migrations\\V1__existing_schema.sql",
+      "installedBy": "",
+      "installedOnUTC": "",
+      "rawVersion": "1",
+      "shouldExecuteExpression": null,
+      "state": "Ignored (Baseline)",
+      "type": "SQL",
+      "undoFilepath": "",
+      "undoable": "No",
+      "version": "1"
+    }
+  ]
+}

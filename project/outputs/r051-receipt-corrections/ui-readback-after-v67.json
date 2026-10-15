@@ -1,0 +1,220 @@
+{
+  "database": "loan_manager_dev",
+  "version": 67,
+  "snapshot_at": "2026-10-05 20:29:16.481181+00:00",
+  "read_only": true,
+  "loans": [
+    {
+      "Row ID": "SYN-R051-UI-L1",
+      "Ref Borrowers": "SYN-R051-UI-B",
+      "Principal Amount": "100.00",
+      "Outstanding Principal": "100.00",
+      "Loan Status": "ยังไม่ปิดยอด",
+      "Ref Disbursed From Cash Account": "SYN-R051-UI-LISA"
+    },
+    {
+      "Row ID": "SYN-R051-UI-L2",
+      "Ref Borrowers": "SYN-R051-UI-B",
+      "Principal Amount": "100.00",
+      "Outstanding Principal": "80.00",
+      "Loan Status": "ยังไม่ปิดยอด",
+      "Ref Disbursed From Cash Account": "SYN-R051-UI-LISA"
+    }
+  ],
+  "charges": [
+    {
+      "Row ID": "SYN-R051-UI-C0",
+      "Ref Loans": "SYN-R051-UI-L2",
+      "Charge Date": "2026-10-03",
+      "Principal Due": "0.00",
+      "Interest Due": "10.00",
+      "Total Paid": "0",
+      "Amount Remaining": "10.00"
+    },
+    {
+      "Row ID": "SYN-R051-UI-C1",
+      "Ref Loans": "SYN-R051-UI-L1",
+      "Charge Date": "2026-10-04",
+      "Principal Due": "100.00",
+      "Interest Due": "10.00",
+      "Total Paid": "0",
+      "Amount Remaining": "110.00"
+    },
+    {
+      "Row ID": "SYN-R051-UI-C2",
+      "Ref Loans": "SYN-R051-UI-L2",
+      "Charge Date": "2026-10-04",
+      "Principal Due": "100.00",
+      "Interest Due": "10.00",
+      "Total Paid": "30.00",
+      "Amount Remaining": "80.00"
+    }
+  ],
+  "payments": [
+    {
+      "Row ID": "SYN-R051-UI-P1",
+      "Status": "Posted",
+      "Amount Received": "25.00",
+      "Posted Amount": "25.00",
+      "Payment Date": "2026-10-05",
+      "Allocation Method": "Single Partial",
+      "Ref Received By Cash Account": "SYN-R051-UI-LISA",
+      "Ref Received By Cash Holder": "ch:lisa",
+      "Notes": "Synthetic UI correction/delete test | metadata check",
+      "Ref Target Charge": "SYN-R051-UI-C2",
+      "Delete Requested": "false"
+    },
+    {
+      "Row ID": "SYN-R051-UI-P2",
+      "Status": "Posted",
+      "Amount Received": "5.00",
+      "Posted Amount": "5.00",
+      "Payment Date": "2026-10-05",
+      "Allocation Method": "Lump Sum",
+      "Ref Received By Cash Account": "SYN-R051-UI-DAD",
+      "Ref Received By Cash Holder": "ch:dad",
+      "Notes": "Synthetic whole-interest move test",
+      "Ref Target Charge": null,
+      "Delete Requested": "false"
+    }
+  ],
+  "allocations": [
+    {
+      "Row ID": "pc6:14:SYN-R051-UI-P1:SYN-R051-UI-C2",
+      "Ref Payment": "SYN-R051-UI-P1",
+      "Ref Charge": "SYN-R051-UI-C2",
+      "Allocated Principal": "20.00",
+      "Allocated Interest": "5.00",
+      "Charge Date Snapshot": "2026-10-04",
+      "Created At": "2026-10-06 01:38:32.882076"
+    },
+    {
+      "Row ID": "pc6:14:SYN-R051-UI-P2:SYN-R051-UI-C2",
+      "Ref Payment": "SYN-R051-UI-P2",
+      "Ref Charge": "SYN-R051-UI-C2",
+      "Allocated Principal": "0.00",
+      "Allocated Interest": "5.00",
+      "Charge Date Snapshot": "2026-10-04",
+      "Created At": "2026-10-05 23:16:08.600234"
+    }
+  ],
+  "repayments": [
+    {
+      "Row ID": "pc6:14:SYN-R051-UI-P1:SYN-R051-UI-C2",
+      "Ref Payment": "SYN-R051-UI-P1",
+      "Ref Payment Allocation": "pc6:14:SYN-R051-UI-P1:SYN-R051-UI-C2",
+      "Ref Charges": "SYN-R051-UI-C2",
+      "Principal Paid": "20.00",
+      "Interest Paid": "5.00"
+    },
+    {
+      "Row ID": "pc6:14:SYN-R051-UI-P2:SYN-R051-UI-C2",
+      "Ref Payment": "SYN-R051-UI-P2",
+      "Ref Payment Allocation": "pc6:14:SYN-R051-UI-P2:SYN-R051-UI-C2",
+      "Ref Charges": "SYN-R051-UI-C2",
+      "Principal Paid": "0.00",
+      "Interest Paid": "5.00"
+    }
+  ],
+  "cash": [
+    {
+      "Row ID": "cash:EXPENSE:SYN-R051-UI-E",
+      "Source Type": "Business Expense",
+      "Movement Type": "Business Expense",
+      "Amount": "1.00",
+      "Ref From Cash Account": "SYN-R051-UI-LISA",
+      "Ref To Cash Account": null,
+      "Ref Payment": null,
+      "Ref Loan": null,
+      "Ref Business Expense": "SYN-R051-UI-E",
+      "Ref To Cash Holder": null
+    },
+    {
+      "Row ID": "cash:LOAN:SYN-R051-UI-L1",
+      "Source Type": "Loan",
+      "Movement Type": "Loan Disbursement",
+      "Amount": "100.00",
+      "Ref From Cash Account": "SYN-R051-UI-LISA",
+      "Ref To Cash Account": null,
+      "Ref Payment": null,
+      "Ref Loan": "SYN-R051-UI-L1",
+      "Ref Business Expense": null,
+      "Ref To Cash Holder": null
+    },
+    {
+      "Row ID": "cash:LOAN:SYN-R051-UI-L2",
+      "Source Type": "Loan",
+      "Movement Type": "Loan Disbursement",
+      "Amount": "100.00",
+      "Ref From Cash Account": "SYN-R051-UI-LISA",
+      "Ref To Cash Account": null,
+      "Ref Payment": null,
+      "Ref Loan": "SYN-R051-UI-L2",
+      "Ref Business Expense": null,
+      "Ref To Cash Holder": null
+    },
+    {
+      "Row ID": "cash:PAYMENT:SYN-R051-UI-P1",
+      "Source Type": "Payment",
+      "Movement Type": "Payment Receipt",
+      "Amount": "25.00",
+      "Ref From Cash Account": null,
+      "Ref To Cash Account": "SYN-R051-UI-LISA",
+      "Ref Payment": "SYN-R051-UI-P1",
+      "Ref Loan": null,
+      "Ref Business Expense": null,
+      "Ref To Cash Holder": "ch:lisa"
+    },
+    {
+      "Row ID": "cash:PAYMENT:SYN-R051-UI-P2",
+      "Source Type": "Payment",
+      "Movement Type": "Payment Receipt",
+      "Amount": "5.00",
+      "Ref From Cash Account": null,
+      "Ref To Cash Account": "SYN-R051-UI-DAD",
+      "Ref Payment": "SYN-R051-UI-P2",
+      "Ref Loan": null,
+      "Ref Business Expense": null,
+      "Ref To Cash Holder": "ch:dad"
+    }
+  ],
+  "counts": {
+    "loans": 2,
+    "charges": 3,
+    "payments": 2,
+    "allocations": 2,
+    "repayments": 2,
+    "cash": 5
+  },
+  "p1_derived_counts": {
+    "allocations": 1,
+    "repayments": 1,
+    "cash": 1
+  },
+  "fixture_children_missing_payment": {
+    "allocations": [],
+    "repayments": []
+  },
+  "repayments_missing_fixture_allocation": [],
+  "synthetic_account_ledger_net": [
+    {
+      "account": "SYN-R051-UI-DAD",
+      "ledger_net": "5.00",
+      "cash_rows": 1
+    },
+    {
+      "account": "SYN-R051-UI-LISA",
+      "ledger_net": "-176.00",
+      "cash_rows": 4
+    }
+  ],
+  "expense": [
+    {
+      "Row ID": "SYN-R051-UI-E",
+      "Amount": "1.00",
+      "Expense Category": "Other",
+      "Ref Paid By Cash Account": "SYN-R051-UI-LISA",
+      "Ref Paid By Cash Holder": "ch:lisa"
+    }
+  ]
+}

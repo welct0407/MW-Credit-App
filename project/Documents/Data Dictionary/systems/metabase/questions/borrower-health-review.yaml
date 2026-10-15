@@ -1,0 +1,200 @@
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "reports.mw-credit.com"
+  "kind": "question"
+  "name": "Unavailable ratings & default context · all borrowers / 269"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r034-matrix-order/verification.json"
+"content":
+  "key": "review"
+  "id": 269
+  "name": "Unavailable ratings & default context · all borrowers"
+  "description": "R028 automatic schedule categories. Payment score unchanged; auto-off plus <80% interest amount OR charge-date\
+    \ coverage, >=7 observed days and >=2 due dates, restricts upper categories. Current 30 completed Bangkok days; no manual\
+    \ confirmations."
+  "display": "table"
+  "dataset_query":
+    "lib/type": "mbql/query"
+    "stages":
+    - "lib/type": "mbql.stage/native"
+      "native": "SELECT b.\"Row ID\" AS \"Borrower ID\",b.\"Description\" AS \"Borrower\",h.has_active_loan AS \"Active loan\"\
+        ,h.rating_status AS \"Status\",h.data_quality_status AS \"Data quality\",h.default_count AS \"Default count\",h.recorded_default_loss\
+        \ AS \"Recorded loss ฿\",h.overdue_amount AS \"Overdue ฿\",h.reason_text AS \"Reason\" FROM public.reporting_borrower_payment_health_v1\
+        \ h JOIN public.olap_borrowers_analytics b ON b.\"Row ID\"=h.borrower_id WHERE h.rating_status<>'Rated' ORDER BY h.borrower_id"
+    "database": 2
+  "visualization_settings":
+    "table.pivot": false
+    "column_settings":
+      "[\"name\",\"Overdue ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Principal ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Interest 30d ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Recorded loss ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+    "table.columns":
+    - "name": "Borrower"
+      "fieldRef":
+      - "field"
+      - "Borrower"
+      - "base-type": "type/Text"
+      "enabled": true
+    - "name": "Active loan"
+      "fieldRef":
+      - "field"
+      - "Active loan"
+      - "base-type": "type/Boolean"
+      "enabled": true
+    - "name": "Status"
+      "fieldRef":
+      - "field"
+      - "Status"
+      - "base-type": "type/Text"
+      "enabled": true
+    - "name": "Data quality"
+      "fieldRef":
+      - "field"
+      - "Data quality"
+      - "base-type": "type/Text"
+      "enabled": true
+    - "name": "Default count"
+      "fieldRef":
+      - "field"
+      - "Default count"
+      - "base-type": "type/Integer"
+      "enabled": true
+    - "name": "Recorded loss ฿"
+      "fieldRef":
+      - "field"
+      - "Recorded loss ฿"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Overdue ฿"
+      "fieldRef":
+      - "field"
+      - "Overdue ฿"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Reason"
+      "fieldRef":
+      - "field"
+      - "Reason"
+      - "base-type": "type/Text"
+      "enabled": true
+    - "name": "Borrower ID"
+      "fieldRef":
+      - "field"
+      - "Borrower ID"
+      - "base-type": "type/Text"
+      "enabled": false
+  "result_metadata":
+  - "name": "Borrower ID"
+    "display_name": "Borrower ID"
+    "base_type": "type/Text"
+    "effective_type": "type/Text"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Borrower ID"
+    - "base-type": "type/Text"
+  - "name": "Borrower"
+    "display_name": "Borrower"
+    "base_type": "type/Text"
+    "effective_type": "type/Text"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Borrower"
+    - "base-type": "type/Text"
+  - "name": "Active loan"
+    "display_name": "Active loan"
+    "base_type": "type/Boolean"
+    "effective_type": "type/Boolean"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Active loan"
+    - "base-type": "type/Boolean"
+  - "name": "Status"
+    "display_name": "Status"
+    "base_type": "type/Text"
+    "effective_type": "type/Text"
+    "semantic_type": "type/Category"
+    "field_ref":
+    - "field"
+    - "Status"
+    - "base-type": "type/Text"
+  - "name": "Data quality"
+    "display_name": "Data quality"
+    "base_type": "type/Text"
+    "effective_type": "type/Text"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Data quality"
+    - "base-type": "type/Text"
+  - "name": "Default count"
+    "display_name": "Default count"
+    "base_type": "type/Integer"
+    "effective_type": "type/Integer"
+    "semantic_type": "type/Quantity"
+    "field_ref":
+    - "field"
+    - "Default count"
+    - "base-type": "type/Integer"
+  - "name": "Recorded loss ฿"
+    "display_name": "Recorded loss ฿"
+    "base_type": "type/Decimal"
+    "effective_type": "type/Decimal"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Recorded loss ฿"
+    - "base-type": "type/Decimal"
+  - "name": "Overdue ฿"
+    "display_name": "Overdue ฿"
+    "base_type": "type/Decimal"
+    "effective_type": "type/Decimal"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Overdue ฿"
+    - "base-type": "type/Decimal"
+  - "name": "Reason"
+    "display_name": "Reason"
+    "base_type": "type/Text"
+    "effective_type": "type/Text"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Reason"
+    - "base-type": "type/Text"
+"evidence":
+  "/content/dataset_query":
+    "reference": "outputs/r043-borrower-navigation/saved.json"
+    "reason": "R043 canonical borrower navigation, saved definitions and hidden keys"
+    "state": "value"
+  "/content/visualization_settings":
+    "reference": "outputs/r043-borrower-navigation/saved.json"
+    "reason": "R043 canonical borrower navigation, saved definitions and hidden keys"
+    "state": "value"
+  "/content/result_metadata":
+    "reference": "outputs/r043-borrower-navigation/saved.json"
+    "reason": "R043 canonical borrower navigation, saved definitions and hidden keys"
+    "state": "value"

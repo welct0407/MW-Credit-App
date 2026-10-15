@@ -1,0 +1,12 @@
+{
+  "phase": "activate",
+  "ready_revision": "mw-grafana-events-00015-qcs",
+  "traffic": [
+    {
+      "percent": 100,
+      "revisionName": "mw-grafana-events-00015-qcs"
+    }
+  ],
+  "unrelated_service_spec_preserved": true,
+  "alerts_created": 0
+}

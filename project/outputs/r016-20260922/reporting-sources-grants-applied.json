@@ -1,0 +1,88 @@
+{
+  "database": "loan_manager_prod",
+  "applied_at": "2026-09-22T16:03:52.4736652+00:00",
+  "sources": [
+    {
+      "source": "Business Expenses",
+      "kind": "r",
+      "can_select": true,
+      "can_write": false
+    },
+    {
+      "source": "Cash Account Balances",
+      "kind": "v",
+      "can_select": true,
+      "can_write": false
+    },
+    {
+      "source": "Cash Dashboard",
+      "kind": "v",
+      "can_select": true,
+      "can_write": false
+    },
+    {
+      "source": "Daily Analytics",
+      "kind": "r",
+      "can_select": true,
+      "can_write": false
+    },
+    {
+      "source": "Loan Form Context",
+      "kind": "v",
+      "can_select": true,
+      "can_write": false
+    },
+    {
+      "source": "Partners",
+      "kind": "r",
+      "can_select": true,
+      "can_write": false
+    },
+    {
+      "source": "Settlements",
+      "kind": "r",
+      "can_select": true,
+      "can_write": false
+    },
+    {
+      "source": "olap_borrowers_analytics",
+      "kind": "v",
+      "can_select": true,
+      "can_write": false
+    },
+    {
+      "source": "olap_charges_analytics",
+      "kind": "v",
+      "can_select": true,
+      "can_write": false
+    },
+    {
+      "source": "olap_loans_analytics",
+      "kind": "v",
+      "can_select": true,
+      "can_write": false
+    },
+    {
+      "source": "olap_portfolio_summary",
+      "kind": "v",
+      "can_select": true,
+      "can_write": false
+    },
+    {
+      "source": "olap_repayments_analytics",
+      "kind": "v",
+      "can_select": true,
+      "can_write": false
+    }
+  ],
+  "schema_changed": false,
+  "data_changed": false,
+  "role": "metabase_borrower_reader",
+  "instance": "appsheet-pg-prod-20260914",
+  "prior_column_grants_retained": true,
+  "sql_sha256": "0F44BCBE33AC765CC117DFF5EF7C7937CB0800764E875712611F603ABC79EDF1",
+  "future_tables_granted": false,
+  "approval": "Owner directed SELECT access to all existing tables/views used by Metabase instead of column-level security, 22 September 2026.",
+  "backup_reused": "backup-verification.json",
+  "verification_note": "Grant succeeded; multiline JSON readback parser corrected without reapplying grant or overwriting before ACL."
+}

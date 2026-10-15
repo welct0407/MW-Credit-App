@@ -1,0 +1,9 @@
+{
+  "database": "loan_manager_dev",
+  "payment_id": "R046-payment",
+  "receipt_id": "2127c552d36b28f356c8b145a5c38a307a6ec44b5f789f3f88010b6fae391be0",
+  "object_key": "receipts/dev/2026/09/27/2127c552d36b28f356c8b145a5c38a307a6ec44b5f789f3f88010b6fae391be0/82e4d5b000ded5084a77f8931d3116b77f9906f28a82d4027c9c494c520e17b0.png",
+  "raw_sha256": "82e4d5b000ded5084a77f8931d3116b77f9906f28a82d4027c9c494c520e17b0",
+  "result": "applied",
+  "synthetic_only": true
+}

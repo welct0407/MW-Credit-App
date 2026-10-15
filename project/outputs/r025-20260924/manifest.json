@@ -1,0 +1,53 @@
+{
+  "release": "R025",
+  "status": "Released — canonical Collection Monitor",
+  "scope": "Collection Monitor implementation, top-row refinement and canonical replacement",
+  "authorization": "Owner: ok, go ahead with implementation of 8R",
+  "baselineCommit": "f4b8ffd86a73667b0d30c429a7b6d85da6151a5b",
+  "metabase": {
+    "dashboard": 3,
+    "reviewTab": 19,
+    "originalTab": 9,
+    "questions": {
+      "people": 236,
+      "receipts": 237,
+      "remaining": 238,
+      "completion": 239,
+      "overdue-count": 240,
+      "overdue-list": 241,
+      "unpaid-count": 242,
+      "unpaid-list": 243,
+      "partial-count": 244,
+      "partial-list": 245,
+      "paid-count": 246,
+      "paid-list": 247,
+      "detail": 248,
+      "today-charges": 249,
+      "freshness": 250,
+      "unclassified": 251,
+      "today-charge-paid": 252
+    },
+    "originalPlacements": 189,
+    "finalPlacements": 184,
+    "canonicalTab": 19,
+    "removedTab": 9
+  },
+  "unchanged": [
+    "PostgreSQL schema/data",
+    "AppSheet apps",
+    "Source models",
+    "Permissions",
+    "Scheduled jobs",
+    "Notifications"
+  ],
+  "backup": "C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r025-collection-monitor",
+  "verification": "outputs/r025-20260924/verification.json",
+  "finalCutover": true,
+  "scopeFrozen": true,
+  "nextNumberAllocated": true,
+  "finalReleaseTag": "R025",
+  "topRowRefinement": "outputs/r025-20260924/top-card-refinement.json",
+  "cutoverAuthorization": "Owner: it looks good. confirm to tab 8R, and replace tab 8 with 8R.",
+  "freeze": "outputs/r025-20260924/freeze.json",
+  "cutoverVerification": "outputs/r025-20260924/cutover-verification.json"
+}

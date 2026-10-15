@@ -1,0 +1,308 @@
+{
+  "development": {
+    "columns": [
+      {
+        "schema": "public",
+        "relation": "Payments",
+        "name": "IG Receipt ID",
+        "ordinal": 19,
+        "data_type": "text",
+        "type_schema": "pg_catalog",
+        "type_name": "text",
+        "not_null": false,
+        "identity": "",
+        "generated": "",
+        "dimensions": 0,
+        "storage": "x",
+        "compression": "",
+        "default_expression": null,
+        "collation": "\"default\"",
+        "acl": null,
+        "comment": "Service-owned primary asset ID in mw_agent; not an AppSheet Ref"
+      },
+      {
+        "schema": "public",
+        "relation": "Payments",
+        "name": "Receipt Image",
+        "ordinal": 20,
+        "data_type": "text",
+        "type_schema": "pg_catalog",
+        "type_name": "text",
+        "not_null": false,
+        "identity": "",
+        "generated": "",
+        "dimensions": 0,
+        "storage": "x",
+        "compression": "",
+        "default_expression": null,
+        "collation": "\"default\"",
+        "acl": null,
+        "comment": "Bucket-root AppSheet GCS reference: // followed by the immutable object key"
+      },
+      {
+        "schema": "public",
+        "relation": "Payments",
+        "name": "Receipt Received At",
+        "ordinal": 21,
+        "data_type": "timestamp without time zone",
+        "type_schema": "pg_catalog",
+        "type_name": "timestamp",
+        "not_null": false,
+        "identity": "",
+        "generated": "",
+        "dimensions": 0,
+        "storage": "p",
+        "compression": "",
+        "default_expression": null,
+        "collation": null,
+        "acl": null,
+        "comment": "Durable ingress capture in Asia/Bangkok; not bank transfer time"
+      }
+    ],
+    "constraints": [
+      {
+        "schema": "public",
+        "relation": "Payments",
+        "name": "payment_receipt_triplet",
+        "kind": "c",
+        "definition": "CHECK (\"IG Receipt ID\" IS NULL AND \"Receipt Image\" IS NULL AND \"Receipt Received At\" IS NULL OR \"IG Receipt ID\" IS NOT NULL AND \"IG Receipt ID\" ~ '^[0-9a-f]{64}$'::text AND \"Receipt Image\" IS NOT NULL AND \"Receipt Received At\" IS NOT NULL)",
+        "deferrable": false,
+        "initially_deferred": false,
+        "validated": true,
+        "column_numbers": [
+          19,
+          20,
+          21
+        ],
+        "referenced_column_numbers": null,
+        "referenced_relation": null,
+        "update_action": " ",
+        "delete_action": " ",
+        "match_type": " ",
+        "comment": null
+      }
+    ],
+    "triggers": [
+      {
+        "schema": "public",
+        "relation": "Payments",
+        "name": "a00_receipt_evidence",
+        "definition": "CREATE TRIGGER a00_receipt_evidence BEFORE INSERT OR UPDATE ON \"Payments\" FOR EACH ROW EXECUTE FUNCTION guard_payment_receipt_evidence()",
+        "enabled": "O",
+        "internal": false,
+        "routine": "guard_payment_receipt_evidence()",
+        "deferrable": false,
+        "initially_deferred": false,
+        "comment": null
+      }
+    ],
+    "routines": [
+      {
+        "schema": "public",
+        "name": "attach_payment_receipt_evidence",
+        "arguments": "p_payment text, p_receipt text, p_key text, p_captured timestamp with time zone, p_expected jsonb, p_operation uuid, p_code_version text",
+        "kind": "f",
+        "arguments_with_defaults": "p_payment text, p_receipt text, p_key text, p_captured timestamp with time zone, p_expected jsonb, p_operation uuid, p_code_version text",
+        "result": "text",
+        "definition": "CREATE OR REPLACE FUNCTION public.attach_payment_receipt_evidence(p_payment text, p_receipt text, p_key text, p_captured timestamp with time zone, p_expected jsonb, p_operation uuid, p_code_version text)\n RETURNS text\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'pg_catalog'\nAS $function$\nDECLARE before_value public.\"Payments\"%ROWTYPE; after_value public.\"Payments\"%ROWTYPE;\n local_capture timestamp; environment text; fields text[]:=ARRAY['IG Receipt ID','Receipt Image','Receipt Received At'];\nBEGIN\n IF session_user<>'mw_receipt_projector' THEN RAISE EXCEPTION 'Dedicated receipt projector required'; END IF;\n environment:=CASE current_database() WHEN 'loan_manager_dev' THEN 'dev' WHEN 'loan_manager_prod' THEN 'prod' END;\n IF environment IS NULL OR p_receipt IS NULL OR p_receipt !~ '^[0-9a-f]{64}$'\n  OR p_captured IS NULL OR NOT isfinite(p_captured) OR p_expected IS NULL\n  OR p_operation IS NULL OR nullif(p_code_version,'') IS NULL THEN\n  RAISE EXCEPTION 'Invalid receipt projection';\n END IF;\n IF p_key IS NULL OR p_key !~ ('^receipts/'||environment||'/[0-9]{4}/[0-9]{2}/[0-9]{2}/'||p_receipt||'/[0-9a-f]{64}\\.(jpg|png|webp)$') THEN\n  RAISE EXCEPTION 'Invalid receipt object key';\n END IF;\n SELECT * INTO before_value FROM public.\"Payments\" WHERE \"Row ID\"=p_payment FOR UPDATE;\n IF NOT FOUND THEN RAISE EXCEPTION 'Receipt payment missing'; END IF;\n IF (before_value.\"Status\"='Posted'\n  AND before_value.\"Ref Borrower\"=p_expected->>'borrower'\n  AND before_value.\"Amount Received\"::numeric=(p_expected->>'amount')::numeric\n  AND before_value.\"Amount Received\"::numeric=(SELECT coalesce(sum(\"Principal Paid\"::numeric+\"Interest Paid\"::numeric),0) FROM public.\"Repayments\" WHERE \"Ref Payment\"=p_payment)\n  AND before_value.\"Payment Date\"=(p_expected->>'date')::date\n  AND to_char(before_value.\"Created At\",'YYYY-MM-DD HH24:MI')=p_expected->>'clock'\n  AND before_value.\"Bank Reference\"=p_expected->>'reference'\n  AND before_value.\"Ref Received By Cash Account\"=p_expected->>'account') IS NOT TRUE THEN\n  RAISE EXCEPTION 'Receipt payment verification conflict';\n END IF;\n local_capture:=p_captured AT TIME ZONE 'Asia/Bangkok';\n IF (before_value.\"IG Receipt ID\",before_value.\"Receipt Image\",before_value.\"Receipt Received At\")\n  IS NOT DISTINCT FROM (p_receipt,'//'||p_key,local_capture) THEN RETURN 'already_applied'; END IF;\n IF before_value.\"IG Receipt ID\" IS NOT NULL THEN RAISE EXCEPTION 'Receipt primary already assigned'; END IF;\n INSERT INTO agent_audit.commits(operation_id,reviewer_id,reviewer_login,plan_sha256,request_reason,direct_targets,code_version)\n VALUES(p_operation,'receipt-projector','service:receipt-projector',p_receipt,'atomic: attach verified receipt evidence',\n  jsonb_build_array(jsonb_build_object('table','Payments','key',p_payment)),p_code_version);\n UPDATE public.\"Payments\" SET \"IG Receipt ID\"=p_receipt,\"Receipt Image\"='//'||p_key,\"Receipt Received At\"=local_capture\n  WHERE \"Row ID\"=p_payment RETURNING * INTO after_value;\n -- Existing row guards may run; absolutely no other persisted field may change.\n IF to_jsonb(before_value)-fields IS DISTINCT FROM to_jsonb(after_value)-fields THEN\n  RAISE EXCEPTION 'Receipt projection changed business values';\n END IF;\n INSERT INTO agent_audit.row_changes(operation_id,schema_name,table_name,action,row_key,before_row,after_row)\n VALUES(p_operation,'public','Payments','UPDATE',jsonb_build_object('Row ID',p_payment),\n  jsonb_build_object('IG Receipt ID',before_value.\"IG Receipt ID\",'Receipt Image',before_value.\"Receipt Image\",'Receipt Received At',before_value.\"Receipt Received At\"),\n  jsonb_build_object('IG Receipt ID',p_receipt,'Receipt Image','//'||p_key,'Receipt Received At',local_capture));\n RETURN 'applied';\nEND $function$\n",
+        "owner": "postgres",
+        "language": "plpgsql",
+        "volatility": "v",
+        "strict": false,
+        "security_definer": true,
+        "leakproof": false,
+        "parallel": "u",
+        "cost": 100.0,
+        "rows": 0.0,
+        "settings": [
+          "search_path=pg_catalog"
+        ],
+        "acl": "{postgres=X/postgres,mw_receipt_projector=X/postgres}",
+        "comment": null,
+        "extension": null
+      },
+      {
+        "schema": "public",
+        "name": "guard_payment_receipt_evidence",
+        "arguments": "",
+        "kind": "f",
+        "arguments_with_defaults": "",
+        "result": "trigger",
+        "definition": "CREATE OR REPLACE FUNCTION public.guard_payment_receipt_evidence()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path TO 'pg_catalog'\nAS $function$\nDECLARE changed boolean; owner_name name;\nBEGIN\n IF TG_OP='INSERT' THEN\n  changed:=NEW.\"IG Receipt ID\" IS NOT NULL OR NEW.\"Receipt Image\" IS NOT NULL OR NEW.\"Receipt Received At\" IS NOT NULL;\n ELSE\n  changed:=(NEW.\"IG Receipt ID\",NEW.\"Receipt Image\",NEW.\"Receipt Received At\")\n   IS DISTINCT FROM (OLD.\"IG Receipt ID\",OLD.\"Receipt Image\",OLD.\"Receipt Received At\");\n END IF;\n SELECT r.rolname INTO owner_name FROM pg_proc p JOIN pg_roles r ON r.oid=p.proowner\n  WHERE p.oid='public.attach_payment_receipt_evidence(text,text,text,timestamptz,jsonb,uuid,text)'::regprocedure;\n IF changed AND (TG_OP='INSERT' OR current_user IS DISTINCT FROM owner_name) THEN\n  RAISE EXCEPTION 'Receipt evidence is service-owned';\n END IF;\n RETURN NEW;\nEND $function$\n",
+        "owner": "postgres",
+        "language": "plpgsql",
+        "volatility": "v",
+        "strict": false,
+        "security_definer": false,
+        "leakproof": false,
+        "parallel": "u",
+        "cost": 100.0,
+        "rows": 0.0,
+        "settings": [
+          "search_path=pg_catalog"
+        ],
+        "acl": "{postgres=X/postgres}",
+        "comment": null,
+        "extension": null
+      }
+    ],
+    "version": 50,
+    "projector": {
+      "direct_update": false,
+      "execute": true
+    }
+  },
+  "production": {
+    "columns": [
+      {
+        "schema": "public",
+        "relation": "Payments",
+        "name": "IG Receipt ID",
+        "ordinal": 19,
+        "data_type": "text",
+        "type_schema": "pg_catalog",
+        "type_name": "text",
+        "not_null": false,
+        "identity": "",
+        "generated": "",
+        "dimensions": 0,
+        "storage": "x",
+        "compression": "",
+        "default_expression": null,
+        "collation": "\"default\"",
+        "acl": null,
+        "comment": "Service-owned primary asset ID in mw_agent; not an AppSheet Ref"
+      },
+      {
+        "schema": "public",
+        "relation": "Payments",
+        "name": "Receipt Image",
+        "ordinal": 20,
+        "data_type": "text",
+        "type_schema": "pg_catalog",
+        "type_name": "text",
+        "not_null": false,
+        "identity": "",
+        "generated": "",
+        "dimensions": 0,
+        "storage": "x",
+        "compression": "",
+        "default_expression": null,
+        "collation": "\"default\"",
+        "acl": null,
+        "comment": "Bucket-root AppSheet GCS reference: // followed by the immutable object key"
+      },
+      {
+        "schema": "public",
+        "relation": "Payments",
+        "name": "Receipt Received At",
+        "ordinal": 21,
+        "data_type": "timestamp without time zone",
+        "type_schema": "pg_catalog",
+        "type_name": "timestamp",
+        "not_null": false,
+        "identity": "",
+        "generated": "",
+        "dimensions": 0,
+        "storage": "p",
+        "compression": "",
+        "default_expression": null,
+        "collation": null,
+        "acl": null,
+        "comment": "Durable ingress capture in Asia/Bangkok; not bank transfer time"
+      }
+    ],
+    "constraints": [
+      {
+        "schema": "public",
+        "relation": "Payments",
+        "name": "payment_receipt_triplet",
+        "kind": "c",
+        "definition": "CHECK (\"IG Receipt ID\" IS NULL AND \"Receipt Image\" IS NULL AND \"Receipt Received At\" IS NULL OR \"IG Receipt ID\" IS NOT NULL AND \"IG Receipt ID\" ~ '^[0-9a-f]{64}$'::text AND \"Receipt Image\" IS NOT NULL AND \"Receipt Received At\" IS NOT NULL)",
+        "deferrable": false,
+        "initially_deferred": false,
+        "validated": true,
+        "column_numbers": [
+          19,
+          20,
+          21
+        ],
+        "referenced_column_numbers": null,
+        "referenced_relation": null,
+        "update_action": " ",
+        "delete_action": " ",
+        "match_type": " ",
+        "comment": null
+      }
+    ],
+    "triggers": [
+      {
+        "schema": "public",
+        "relation": "Payments",
+        "name": "a00_receipt_evidence",
+        "definition": "CREATE TRIGGER a00_receipt_evidence BEFORE INSERT OR UPDATE ON \"Payments\" FOR EACH ROW EXECUTE FUNCTION guard_payment_receipt_evidence()",
+        "enabled": "O",
+        "internal": false,
+        "routine": "guard_payment_receipt_evidence()",
+        "deferrable": false,
+        "initially_deferred": false,
+        "comment": null
+      }
+    ],
+    "routines": [
+      {
+        "schema": "public",
+        "name": "attach_payment_receipt_evidence",
+        "arguments": "p_payment text, p_receipt text, p_key text, p_captured timestamp with time zone, p_expected jsonb, p_operation uuid, p_code_version text",
+        "kind": "f",
+        "arguments_with_defaults": "p_payment text, p_receipt text, p_key text, p_captured timestamp with time zone, p_expected jsonb, p_operation uuid, p_code_version text",
+        "result": "text",
+        "definition": "CREATE OR REPLACE FUNCTION public.attach_payment_receipt_evidence(p_payment text, p_receipt text, p_key text, p_captured timestamp with time zone, p_expected jsonb, p_operation uuid, p_code_version text)\n RETURNS text\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'pg_catalog'\nAS $function$\nDECLARE before_value public.\"Payments\"%ROWTYPE; after_value public.\"Payments\"%ROWTYPE;\n local_capture timestamp; environment text; fields text[]:=ARRAY['IG Receipt ID','Receipt Image','Receipt Received At'];\nBEGIN\n IF session_user<>'mw_receipt_projector' THEN RAISE EXCEPTION 'Dedicated receipt projector required'; END IF;\n environment:=CASE current_database() WHEN 'loan_manager_dev' THEN 'dev' WHEN 'loan_manager_prod' THEN 'prod' END;\n IF environment IS NULL OR p_receipt IS NULL OR p_receipt !~ '^[0-9a-f]{64}$'\n  OR p_captured IS NULL OR NOT isfinite(p_captured) OR p_expected IS NULL\n  OR p_operation IS NULL OR nullif(p_code_version,'') IS NULL THEN\n  RAISE EXCEPTION 'Invalid receipt projection';\n END IF;\n IF p_key IS NULL OR p_key !~ ('^receipts/'||environment||'/[0-9]{4}/[0-9]{2}/[0-9]{2}/'||p_receipt||'/[0-9a-f]{64}\\.(jpg|png|webp)$') THEN\n  RAISE EXCEPTION 'Invalid receipt object key';\n END IF;\n SELECT * INTO before_value FROM public.\"Payments\" WHERE \"Row ID\"=p_payment FOR UPDATE;\n IF NOT FOUND THEN RAISE EXCEPTION 'Receipt payment missing'; END IF;\n IF (before_value.\"Status\"='Posted'\n  AND before_value.\"Ref Borrower\"=p_expected->>'borrower'\n  AND before_value.\"Amount Received\"::numeric=(p_expected->>'amount')::numeric\n  AND before_value.\"Amount Received\"::numeric=(SELECT coalesce(sum(\"Principal Paid\"::numeric+\"Interest Paid\"::numeric),0) FROM public.\"Repayments\" WHERE \"Ref Payment\"=p_payment)\n  AND before_value.\"Payment Date\"=(p_expected->>'date')::date\n  AND to_char(before_value.\"Created At\",'YYYY-MM-DD HH24:MI')=p_expected->>'clock'\n  AND before_value.\"Bank Reference\"=p_expected->>'reference'\n  AND before_value.\"Ref Received By Cash Account\"=p_expected->>'account') IS NOT TRUE THEN\n  RAISE EXCEPTION 'Receipt payment verification conflict';\n END IF;\n local_capture:=p_captured AT TIME ZONE 'Asia/Bangkok';\n IF (before_value.\"IG Receipt ID\",before_value.\"Receipt Image\",before_value.\"Receipt Received At\")\n  IS NOT DISTINCT FROM (p_receipt,'//'||p_key,local_capture) THEN RETURN 'already_applied'; END IF;\n IF before_value.\"IG Receipt ID\" IS NOT NULL THEN RAISE EXCEPTION 'Receipt primary already assigned'; END IF;\n INSERT INTO agent_audit.commits(operation_id,reviewer_id,reviewer_login,plan_sha256,request_reason,direct_targets,code_version)\n VALUES(p_operation,'receipt-projector','service:receipt-projector',p_receipt,'atomic: attach verified receipt evidence',\n  jsonb_build_array(jsonb_build_object('table','Payments','key',p_payment)),p_code_version);\n UPDATE public.\"Payments\" SET \"IG Receipt ID\"=p_receipt,\"Receipt Image\"='//'||p_key,\"Receipt Received At\"=local_capture\n  WHERE \"Row ID\"=p_payment RETURNING * INTO after_value;\n -- Existing row guards may run; absolutely no other persisted field may change.\n IF to_jsonb(before_value)-fields IS DISTINCT FROM to_jsonb(after_value)-fields THEN\n  RAISE EXCEPTION 'Receipt projection changed business values';\n END IF;\n INSERT INTO agent_audit.row_changes(operation_id,schema_name,table_name,action,row_key,before_row,after_row)\n VALUES(p_operation,'public','Payments','UPDATE',jsonb_build_object('Row ID',p_payment),\n  jsonb_build_object('IG Receipt ID',before_value.\"IG Receipt ID\",'Receipt Image',before_value.\"Receipt Image\",'Receipt Received At',before_value.\"Receipt Received At\"),\n  jsonb_build_object('IG Receipt ID',p_receipt,'Receipt Image','//'||p_key,'Receipt Received At',local_capture));\n RETURN 'applied';\nEND $function$\n",
+        "owner": "postgres",
+        "language": "plpgsql",
+        "volatility": "v",
+        "strict": false,
+        "security_definer": true,
+        "leakproof": false,
+        "parallel": "u",
+        "cost": 100.0,
+        "rows": 0.0,
+        "settings": [
+          "search_path=pg_catalog"
+        ],
+        "acl": "{postgres=X/postgres,mw_receipt_projector=X/postgres}",
+        "comment": null,
+        "extension": null
+      },
+      {
+        "schema": "public",
+        "name": "guard_payment_receipt_evidence",
+        "arguments": "",
+        "kind": "f",
+        "arguments_with_defaults": "",
+        "result": "trigger",
+        "definition": "CREATE OR REPLACE FUNCTION public.guard_payment_receipt_evidence()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path TO 'pg_catalog'\nAS $function$\nDECLARE changed boolean; owner_name name;\nBEGIN\n IF TG_OP='INSERT' THEN\n  changed:=NEW.\"IG Receipt ID\" IS NOT NULL OR NEW.\"Receipt Image\" IS NOT NULL OR NEW.\"Receipt Received At\" IS NOT NULL;\n ELSE\n  changed:=(NEW.\"IG Receipt ID\",NEW.\"Receipt Image\",NEW.\"Receipt Received At\")\n   IS DISTINCT FROM (OLD.\"IG Receipt ID\",OLD.\"Receipt Image\",OLD.\"Receipt Received At\");\n END IF;\n SELECT r.rolname INTO owner_name FROM pg_proc p JOIN pg_roles r ON r.oid=p.proowner\n  WHERE p.oid='public.attach_payment_receipt_evidence(text,text,text,timestamptz,jsonb,uuid,text)'::regprocedure;\n IF changed AND (TG_OP='INSERT' OR current_user IS DISTINCT FROM owner_name) THEN\n  RAISE EXCEPTION 'Receipt evidence is service-owned';\n END IF;\n RETURN NEW;\nEND $function$\n",
+        "owner": "postgres",
+        "language": "plpgsql",
+        "volatility": "v",
+        "strict": false,
+        "security_definer": false,
+        "leakproof": false,
+        "parallel": "u",
+        "cost": 100.0,
+        "rows": 0.0,
+        "settings": [
+          "search_path=pg_catalog"
+        ],
+        "acl": "{postgres=X/postgres}",
+        "comment": null,
+        "extension": null
+      }
+    ],
+    "version": 50,
+    "projector": {
+      "direct_update": false,
+      "execute": true
+    }
+  }
+}

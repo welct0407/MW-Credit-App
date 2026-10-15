@@ -1,0 +1,1054 @@
+[
+  {
+    "name": "reporting_charge_payment_health_v1",
+    "definition": " WITH ctx AS (\n         SELECT olap_reporting_date() AS d,\n            statement_timestamp() AS t\n        ), daily AS (\n         SELECT r.\"Ref Charges\" AS id,\n            r.\"Payment Date\" AS effective_day,\n            sum(r.\"Principal Paid\"::numeric) AS p,\n            sum(r.\"Interest Paid\"::numeric) AS i\n           FROM \"Repayments\" r\n             CROSS JOIN ctx\n          WHERE r.\"Payment Date\" < ctx.d\n          GROUP BY r.\"Ref Charges\", r.\"Payment Date\"\n        ), running AS (\n         SELECT daily.id,\n            daily.effective_day,\n            daily.p,\n            daily.i,\n            sum(daily.p) OVER (PARTITION BY daily.id ORDER BY daily.effective_day) AS cp,\n            sum(daily.i) OVER (PARTITION BY daily.id ORDER BY daily.effective_day) AS ci\n           FROM daily\n        ), covered AS (\n         SELECT r.id,\n            r.effective_day,\n            r.p,\n            r.i,\n            r.cp,\n            r.ci,\n            r.cp >= (c.\"Principal Due\"::numeric - 0.005) AND r.ci >= (c.\"Interest Due\"::numeric - 0.005) AS full_paid\n           FROM running r\n             JOIN \"Charges\" c ON c.\"Row ID\" = r.id\n        ), last_gap AS (\n         SELECT covered.id,\n            max(covered.effective_day) FILTER (WHERE NOT covered.full_paid) AS last_uncovered\n           FROM covered\n          GROUP BY covered.id\n        ), timing AS (\n         SELECT c.id,\n            min(c.effective_day) FILTER (WHERE c.full_paid AND (g.last_uncovered IS NULL OR c.effective_day > g.last_uncovered)) AS settled\n           FROM covered c\n             JOIN last_gap g USING (id)\n          GROUP BY c.id\n        ), payments AS (\n         SELECT r.\"Ref Charges\" AS id,\n            COALESCE(sum(r.\"Principal Paid\"::numeric) FILTER (WHERE r.\"Payment Date\" <= ctx.d), 0::numeric) AS p,\n            COALESCE(sum(r.\"Interest Paid\"::numeric) FILTER (WHERE r.\"Payment Date\" <= ctx.d), 0::numeric) AS i,\n            COALESCE(sum(r.\"Principal Paid\"::numeric) FILTER (WHERE r.\"Payment Date\" <= c.\"Charge Date\" AND r.\"Payment Date\" < ctx.d), 0::numeric) AS on_p,\n            COALESCE(sum(r.\"Interest Paid\"::numeric) FILTER (WHERE r.\"Payment Date\" <= c.\"Charge Date\" AND r.\"Payment Date\" < ctx.d), 0::numeric) AS on_i,\n            bool_or(r.\"Payment Date\" IS NULL OR r.\"Principal Paid\" IS NULL OR r.\"Interest Paid\" IS NULL OR r.\"Ref Loans\" IS DISTINCT FROM c.\"Ref Loans\") AS invalid\n           FROM \"Repayments\" r\n             JOIN \"Charges\" c ON c.\"Row ID\" = r.\"Ref Charges\"\n             CROSS JOIN ctx\n          GROUP BY r.\"Ref Charges\"\n        ), base AS (\n         SELECT c.\"Row ID\" AS charge_id,\n            c.\"Ref Loans\" AS loan_id,\n            l.\"Ref Borrowers\" AS borrower_id,\n            c.\"Charge Date\" AS due_date,\n            c.\"Principal Due\"::numeric AS principal_due,\n            c.\"Interest Due\"::numeric AS interest_due,\n            COALESCE(p.p, 0::numeric) AS principal_paid_current,\n            COALESCE(p.i, 0::numeric) AS interest_paid_current,\n            GREATEST(c.\"Principal Due\"::numeric - COALESCE(p.p, 0::numeric), 0::numeric) AS principal_remaining_current,\n            GREATEST(c.\"Interest Due\"::numeric - COALESCE(p.i, 0::numeric), 0::numeric) AS interest_remaining_current,\n            c.\"Charge Date\" < ctx.d AND c.\"Principal Due\"::numeric >= 0::numeric AND c.\"Interest Due\"::numeric >= 0::numeric AND (c.\"Principal Due\"::numeric + c.\"Interest Due\"::numeric) > 0::numeric AS eligible,\n            COALESCE(p.on_p, 0::numeric) >= (c.\"Principal Due\"::numeric - 0.005) AND COALESCE(p.on_i, 0::numeric) >= (c.\"Interest Due\"::numeric - 0.005) AS on_time_covered,\n            tm.settled,\n            GREATEST(COALESCE(tm.settled, ctx.d) - c.\"Charge Date\", 0) AS late,\n                CASE\n                    WHEN c.\"Charge Date\" IS NULL OR c.\"Principal Due\" IS NULL OR c.\"Interest Due\" IS NULL OR l.\"Row ID\" IS NULL OR b.\"Row ID\" IS NULL OR COALESCE(p.invalid, false) OR (c.\"Principal Due\"::numeric < 0::numeric OR c.\"Interest Due\"::numeric < 0::numeric) AND NOT COALESCE(l.\"Defaulted\", false) THEN 'Invalid source'::text\n                    ELSE 'OK'::text\n                END AS data_quality_status,\n            COALESCE(l.\"Defaulted\", false) AS defaulted,\n            ctx.d AS reporting_date,\n            ctx.t AS calculated_at\n           FROM \"Charges\" c\n             LEFT JOIN \"Loans\" l ON l.\"Row ID\" = c.\"Ref Loans\"\n             LEFT JOIN \"Borrowers\" b ON b.\"Row ID\" = l.\"Ref Borrowers\"\n             LEFT JOIN payments p ON p.id = c.\"Row ID\"\n             LEFT JOIN timing tm ON tm.id = c.\"Row ID\"\n             CROSS JOIN ctx\n        ), facts AS (\n         SELECT base.charge_id,\n            base.loan_id,\n            base.borrower_id,\n            base.due_date,\n            base.principal_due,\n            base.interest_due,\n            base.principal_paid_current,\n            base.interest_paid_current,\n            base.principal_remaining_current,\n            base.interest_remaining_current,\n            base.eligible,\n            base.on_time_covered,\n            base.settled,\n            base.late,\n            base.data_quality_status,\n            base.defaulted,\n            base.reporting_date,\n            base.calculated_at,\n            COALESCE(base.eligible, false) AND base.data_quality_status = 'OK'::text AS history_eligible,\n            base.principal_remaining_current + base.interest_remaining_current AS remaining_current,\n                CASE\n                    WHEN base.data_quality_status <> 'OK'::text THEN 'Invalid source'::text\n                    WHEN base.principal_due < 0::numeric OR base.interest_due < 0::numeric THEN 'Default accounting'::text\n                    WHEN (base.principal_due + base.interest_due) = 0::numeric THEN 'Zero obligation'::text\n                    WHEN base.due_date >= base.reporting_date THEN 'Not matured'::text\n                    ELSE NULL::text\n                END AS exclusion_reason\n           FROM base\n        ), overdue AS (\n         SELECT facts.charge_id,\n            facts.loan_id,\n            facts.borrower_id,\n            facts.due_date,\n            facts.principal_due,\n            facts.interest_due,\n            facts.principal_paid_current,\n            facts.interest_paid_current,\n            facts.principal_remaining_current,\n            facts.interest_remaining_current,\n            facts.eligible,\n            facts.on_time_covered,\n            facts.settled,\n            facts.late,\n            facts.data_quality_status,\n            facts.defaulted,\n            facts.reporting_date,\n            facts.calculated_at,\n            facts.history_eligible,\n            facts.remaining_current,\n            facts.exclusion_reason,\n            facts.history_eligible AND facts.remaining_current > 0.005 AS is_overdue\n           FROM facts\n        )\n SELECT charge_id,\n    loan_id,\n    borrower_id,\n    due_date,\n    principal_due,\n    interest_due,\n    history_eligible,\n    exclusion_reason,\n    data_quality_status,\n    principal_paid_current,\n    interest_paid_current,\n        CASE\n            WHEN data_quality_status = 'OK'::text THEN principal_remaining_current\n            ELSE NULL::numeric\n        END AS principal_remaining_current,\n        CASE\n            WHEN data_quality_status = 'OK'::text THEN interest_remaining_current\n            ELSE NULL::numeric\n        END AS interest_remaining_current,\n        CASE\n            WHEN data_quality_status = 'OK'::text THEN remaining_current\n            ELSE NULL::numeric\n        END AS remaining_current,\n    is_overdue,\n        CASE\n            WHEN data_quality_status <> 'OK'::text THEN NULL::numeric\n            WHEN is_overdue THEN remaining_current\n            ELSE 0::numeric\n        END AS overdue_amount,\n        CASE\n            WHEN is_overdue THEN reporting_date - due_date\n            ELSE NULL::integer\n        END AS current_days_overdue,\n        CASE\n            WHEN history_eligible THEN on_time_covered\n            ELSE NULL::boolean\n        END AS on_time,\n        CASE\n            WHEN history_eligible THEN settled\n            ELSE NULL::date\n        END AS final_settlement_date,\n        CASE\n            WHEN history_eligible THEN late\n            ELSE NULL::integer\n        END AS historical_delay_days,\n        CASE\n            WHEN history_eligible THEN\n            CASE\n                WHEN late = 0 THEN 100\n                WHEN late = 1 THEN 90\n                WHEN late <= 3 THEN 70\n                WHEN late <= 7 THEN 40\n                ELSE 10\n            END\n            ELSE NULL::integer\n        END AS delay_grade,\n    reporting_date,\n    calculated_at,\n    'payment-health-v1'::text AS method_version\n   FROM overdue;",
+    "columns": [
+      {
+        "column_name": "charge_id",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 1
+      },
+      {
+        "column_name": "loan_id",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 2
+      },
+      {
+        "column_name": "borrower_id",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 3
+      },
+      {
+        "column_name": "due_date",
+        "data_type": "date",
+        "udt_name": "date",
+        "is_nullable": "YES",
+        "ordinal_position": 4
+      },
+      {
+        "column_name": "principal_due",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 5
+      },
+      {
+        "column_name": "interest_due",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 6
+      },
+      {
+        "column_name": "history_eligible",
+        "data_type": "boolean",
+        "udt_name": "bool",
+        "is_nullable": "YES",
+        "ordinal_position": 7
+      },
+      {
+        "column_name": "exclusion_reason",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 8
+      },
+      {
+        "column_name": "data_quality_status",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 9
+      },
+      {
+        "column_name": "principal_paid_current",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 10
+      },
+      {
+        "column_name": "interest_paid_current",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 11
+      },
+      {
+        "column_name": "principal_remaining_current",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 12
+      },
+      {
+        "column_name": "interest_remaining_current",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 13
+      },
+      {
+        "column_name": "remaining_current",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 14
+      },
+      {
+        "column_name": "is_overdue",
+        "data_type": "boolean",
+        "udt_name": "bool",
+        "is_nullable": "YES",
+        "ordinal_position": 15
+      },
+      {
+        "column_name": "overdue_amount",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 16
+      },
+      {
+        "column_name": "current_days_overdue",
+        "data_type": "integer",
+        "udt_name": "int4",
+        "is_nullable": "YES",
+        "ordinal_position": 17
+      },
+      {
+        "column_name": "on_time",
+        "data_type": "boolean",
+        "udt_name": "bool",
+        "is_nullable": "YES",
+        "ordinal_position": 18
+      },
+      {
+        "column_name": "final_settlement_date",
+        "data_type": "date",
+        "udt_name": "date",
+        "is_nullable": "YES",
+        "ordinal_position": 19
+      },
+      {
+        "column_name": "historical_delay_days",
+        "data_type": "integer",
+        "udt_name": "int4",
+        "is_nullable": "YES",
+        "ordinal_position": 20
+      },
+      {
+        "column_name": "delay_grade",
+        "data_type": "integer",
+        "udt_name": "int4",
+        "is_nullable": "YES",
+        "ordinal_position": 21
+      },
+      {
+        "column_name": "reporting_date",
+        "data_type": "date",
+        "udt_name": "date",
+        "is_nullable": "YES",
+        "ordinal_position": 22
+      },
+      {
+        "column_name": "calculated_at",
+        "data_type": "timestamp with time zone",
+        "udt_name": "timestamptz",
+        "is_nullable": "YES",
+        "ordinal_position": 23
+      },
+      {
+        "column_name": "method_version",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 24
+      }
+    ]
+  },
+  {
+    "name": "reporting_borrower_payment_health_v1",
+    "definition": " WITH ctx AS (\n         SELECT olap_reporting_date() AS d,\n            statement_timestamp() AS t\n        ), unattributed AS (\n         SELECT (EXISTS ( SELECT 1\n                   FROM \"Repayments\" r\n                     LEFT JOIN \"Charges\" c ON c.\"Row ID\" = r.\"Ref Charges\"\n                  WHERE c.\"Row ID\" IS NULL)) OR (EXISTS ( SELECT 1\n                   FROM reporting_charge_payment_health_v1\n                  WHERE reporting_charge_payment_health_v1.borrower_id IS NULL)) AS bad\n        ), charges AS (\n         SELECT reporting_charge_payment_health_v1.borrower_id,\n            sum(reporting_charge_payment_health_v1.principal_remaining_current) FILTER (WHERE reporting_charge_payment_health_v1.is_overdue) AS overdue_principal,\n            sum(reporting_charge_payment_health_v1.interest_remaining_current) FILTER (WHERE reporting_charge_payment_health_v1.is_overdue) AS overdue_interest,\n            sum(reporting_charge_payment_health_v1.overdue_amount) AS overdue_amount,\n            count(*) FILTER (WHERE reporting_charge_payment_health_v1.is_overdue)::integer AS overdue_charge_count,\n            min(reporting_charge_payment_health_v1.due_date) FILTER (WHERE reporting_charge_payment_health_v1.is_overdue) AS oldest_overdue_date,\n            max(reporting_charge_payment_health_v1.current_days_overdue) AS oldest_unpaid_days,\n            count(*) FILTER (WHERE reporting_charge_payment_health_v1.history_eligible AND reporting_charge_payment_health_v1.due_date >= (reporting_charge_payment_health_v1.reporting_date - 30))::integer AS recent_obligation_count,\n            count(*) FILTER (WHERE reporting_charge_payment_health_v1.history_eligible AND reporting_charge_payment_health_v1.due_date >= (reporting_charge_payment_health_v1.reporting_date - 30) AND reporting_charge_payment_health_v1.on_time)::integer AS recent_on_time_count,\n            count(*) FILTER (WHERE reporting_charge_payment_health_v1.history_eligible AND reporting_charge_payment_health_v1.due_date >= (reporting_charge_payment_health_v1.reporting_date - 180) AND reporting_charge_payment_health_v1.due_date < (reporting_charge_payment_health_v1.reporting_date - 30))::integer AS older_obligation_count,\n            count(*) FILTER (WHERE reporting_charge_payment_health_v1.history_eligible AND reporting_charge_payment_health_v1.due_date >= (reporting_charge_payment_health_v1.reporting_date - 180) AND reporting_charge_payment_health_v1.due_date < (reporting_charge_payment_health_v1.reporting_date - 30) AND reporting_charge_payment_health_v1.on_time)::integer AS older_on_time_count,\n            count(*) FILTER (WHERE reporting_charge_payment_health_v1.history_eligible AND reporting_charge_payment_health_v1.due_date >= (reporting_charge_payment_health_v1.reporting_date - 90))::integer AS severity_obligation_count,\n            avg(reporting_charge_payment_health_v1.delay_grade) FILTER (WHERE reporting_charge_payment_health_v1.history_eligible AND reporting_charge_payment_health_v1.due_date >= (reporting_charge_payment_health_v1.reporting_date - 90)) AS mean_delay_score,\n            min(reporting_charge_payment_health_v1.due_date) FILTER (WHERE reporting_charge_payment_health_v1.history_eligible) AS first_matured_due_date,\n            count(DISTINCT reporting_charge_payment_health_v1.due_date) FILTER (WHERE reporting_charge_payment_health_v1.history_eligible)::integer AS distinct_matured_due_dates,\n            bool_or(reporting_charge_payment_health_v1.data_quality_status <> 'OK'::text) AS invalid\n           FROM reporting_charge_payment_health_v1\n          GROUP BY reporting_charge_payment_health_v1.borrower_id\n        ), defaults AS (\n         SELECT l.\"Ref Borrowers\" AS borrower_id,\n            count(*) FILTER (WHERE l.\"Defaulted\")::integer AS default_count,\n            COALESCE(sum(l.\"Default Loss Amount\"::numeric) FILTER (WHERE l.\"Defaulted\"), 0::numeric) AS recorded_default_loss,\n            bool_or(COALESCE(l.\"Defaulted\", false) AND l.\"Loan Date\" <= ctx.d AND (l.\"Close Date\" IS NULL OR l.\"Close Date\" > ctx.d)) AS active_default,\n            bool_or(COALESCE(l.\"Defaulted\", false) AND l.\"Close Date\" >= (ctx.d - 90) AND l.\"Close Date\" <= ctx.d) AS recent_default,\n            bool_or(l.\"Loan Date\" IS NULL OR l.\"Close Date\" IS NOT NULL AND l.\"Close Date\" < l.\"Loan Date\") AS invalid\n           FROM \"Loans\" l\n             CROSS JOIN ctx\n          GROUP BY l.\"Ref Borrowers\"\n        ), base AS (\n         SELECT b.\"Row ID\" AS borrower_id,\n            COALESCE(b.\"Has Active Loan\", false) AS has_active_loan,\n            COALESCE(b.\"Hidden Flag\", false) AS hidden_flag,\n                CASE\n                    WHEN COALESCE(c.invalid, false) OR u.bad THEN NULL::numeric\n                    ELSE COALESCE(c.overdue_principal, 0::numeric)\n                END AS overdue_principal,\n                CASE\n                    WHEN COALESCE(c.invalid, false) OR u.bad THEN NULL::numeric\n                    ELSE COALESCE(c.overdue_interest, 0::numeric)\n                END AS overdue_interest,\n                CASE\n                    WHEN COALESCE(c.invalid, false) OR u.bad THEN NULL::numeric\n                    ELSE COALESCE(c.overdue_amount, 0::numeric)\n                END AS overdue_amount,\n                CASE\n                    WHEN COALESCE(c.invalid, false) OR u.bad THEN NULL::integer\n                    ELSE COALESCE(c.overdue_charge_count, 0)\n                END AS overdue_charge_count,\n            c.oldest_overdue_date,\n            c.oldest_unpaid_days,\n            COALESCE(c.recent_obligation_count, 0) AS recent_obligation_count,\n            COALESCE(c.recent_on_time_count, 0) AS recent_on_time_count,\n            COALESCE(c.older_obligation_count, 0) AS older_obligation_count,\n            COALESCE(c.older_on_time_count, 0) AS older_on_time_count,\n            COALESCE(c.severity_obligation_count, 0) AS severity_obligation_count,\n            c.first_matured_due_date,\n            COALESCE(c.distinct_matured_due_dates, 0) AS distinct_matured_due_dates,\n            ctx.d - c.first_matured_due_date AS history_span_days,\n            c.recent_on_time_count::numeric / NULLIF(c.recent_obligation_count, 0)::numeric AS recent_on_time_rate,\n            c.older_on_time_count::numeric / NULLIF(c.older_obligation_count, 0)::numeric AS older_on_time_rate,\n                CASE\n                    WHEN COALESCE(l.recent_default, false) THEN 0::numeric\n                    ELSE c.mean_delay_score\n                END AS delay_score,\n                CASE\n                    WHEN COALESCE(l.active_default, false) THEN 0\n                    WHEN c.oldest_unpaid_days IS NULL THEN 100\n                    WHEN c.oldest_unpaid_days = 1 THEN 60\n                    WHEN c.oldest_unpaid_days <= 3 THEN 40\n                    ELSE 20\n                END::numeric AS current_score,\n            COALESCE(l.default_count, 0) AS default_count,\n            COALESCE(l.recorded_default_loss, 0::numeric) AS recorded_default_loss,\n            COALESCE(l.active_default, false) AS active_default,\n            COALESCE(l.recent_default, false) AS recent_default,\n                CASE\n                    WHEN u.bad OR COALESCE(c.invalid, false) OR COALESCE(l.invalid, false) THEN 'Invalid source'::text\n                    WHEN COALESCE(l.default_count, 0) > 0 THEN 'Default history requires review'::text\n                    ELSE 'OK'::text\n                END AS data_quality_status,\n            ctx.d AS reporting_date,\n            ctx.t AS calculated_at\n           FROM \"Borrowers\" b\n             CROSS JOIN ctx\n             CROSS JOIN unattributed u\n             LEFT JOIN charges c ON c.borrower_id = b.\"Row ID\"\n             LEFT JOIN defaults l ON l.borrower_id = b.\"Row ID\"\n        ), components AS (\n         SELECT base.borrower_id,\n            base.has_active_loan,\n            base.hidden_flag,\n            base.overdue_principal,\n            base.overdue_interest,\n            base.overdue_amount,\n            base.overdue_charge_count,\n            base.oldest_overdue_date,\n            base.oldest_unpaid_days,\n            base.recent_obligation_count,\n            base.recent_on_time_count,\n            base.older_obligation_count,\n            base.older_on_time_count,\n            base.severity_obligation_count,\n            base.first_matured_due_date,\n            base.distinct_matured_due_dates,\n            base.history_span_days,\n            base.recent_on_time_rate,\n            base.older_on_time_rate,\n            base.delay_score,\n            base.current_score,\n            base.default_count,\n            base.recorded_default_loss,\n            base.active_default,\n            base.recent_default,\n            base.data_quality_status,\n            base.reporting_date,\n            base.calculated_at,\n            base.recent_obligation_count - base.recent_on_time_count AS recent_late_count,\n            100::numeric * base.recent_on_time_rate AS recent_score,\n            100::numeric * base.older_on_time_rate AS older_score,\n                CASE\n                    WHEN base.recent_on_time_rate IS NULL THEN 0::numeric\n                    ELSE 0.45\n                END +\n                CASE\n                    WHEN base.older_on_time_rate IS NULL THEN 0::numeric\n                    ELSE 0.15\n                END +\n                CASE\n                    WHEN base.delay_score IS NULL THEN 0::numeric\n                    ELSE 0.15\n                END + 0.25 AS weight_total,\n            COALESCE(base.oldest_unpaid_days > 7, false) OR base.active_default OR base.recent_default AS severe_risk_guard,\n                CASE\n                    WHEN base.data_quality_status <> 'OK'::text THEN 'Data review'::text\n                    WHEN base.recent_obligation_count = 0 THEN 'Unclassified'::text\n                    ELSE 'Rated'::text\n                END AS rating_status\n           FROM base\n        ), raw AS (\n         SELECT components.borrower_id,\n            components.has_active_loan,\n            components.hidden_flag,\n            components.overdue_principal,\n            components.overdue_interest,\n            components.overdue_amount,\n            components.overdue_charge_count,\n            components.oldest_overdue_date,\n            components.oldest_unpaid_days,\n            components.recent_obligation_count,\n            components.recent_on_time_count,\n            components.older_obligation_count,\n            components.older_on_time_count,\n            components.severity_obligation_count,\n            components.first_matured_due_date,\n            components.distinct_matured_due_dates,\n            components.history_span_days,\n            components.recent_on_time_rate,\n            components.older_on_time_rate,\n            components.delay_score,\n            components.current_score,\n            components.default_count,\n            components.recorded_default_loss,\n            components.active_default,\n            components.recent_default,\n            components.data_quality_status,\n            components.reporting_date,\n            components.calculated_at,\n            components.recent_late_count,\n            components.recent_score,\n            components.older_score,\n            components.weight_total,\n            components.severe_risk_guard,\n            components.rating_status,\n                CASE\n                    WHEN components.rating_status = 'Rated'::text THEN (COALESCE(components.recent_score * 0.45, 0::numeric) + COALESCE(components.older_score * 0.15, 0::numeric) + COALESCE(components.delay_score * 0.15, 0::numeric) + components.current_score * 0.25) / components.weight_total\n                    ELSE NULL::numeric\n                END AS raw_score\n           FROM components\n        ), scored AS (\n         SELECT raw.borrower_id,\n            raw.has_active_loan,\n            raw.hidden_flag,\n            raw.overdue_principal,\n            raw.overdue_interest,\n            raw.overdue_amount,\n            raw.overdue_charge_count,\n            raw.oldest_overdue_date,\n            raw.oldest_unpaid_days,\n            raw.recent_obligation_count,\n            raw.recent_on_time_count,\n            raw.older_obligation_count,\n            raw.older_on_time_count,\n            raw.severity_obligation_count,\n            raw.first_matured_due_date,\n            raw.distinct_matured_due_dates,\n            raw.history_span_days,\n            raw.recent_on_time_rate,\n            raw.older_on_time_rate,\n            raw.delay_score,\n            raw.current_score,\n            raw.default_count,\n            raw.recorded_default_loss,\n            raw.active_default,\n            raw.recent_default,\n            raw.data_quality_status,\n            raw.reporting_date,\n            raw.calculated_at,\n            raw.recent_late_count,\n            raw.recent_score,\n            raw.older_score,\n            raw.weight_total,\n            raw.severe_risk_guard,\n            raw.rating_status,\n            raw.raw_score,\n                CASE\n                    WHEN raw.severe_risk_guard THEN LEAST(raw.raw_score, 60::numeric)\n                    ELSE raw.raw_score\n                END AS candidate_score,\n                CASE\n                    WHEN raw.rating_status = 'Data review'::text THEN 'Data review'::text\n                    WHEN raw.rating_status = 'Unclassified'::text THEN 'Insufficient history'::text\n                    WHEN raw.distinct_matured_due_dates >= 3 AND raw.history_span_days >= 30 THEN 'Established'::text\n                    ELSE 'Provisional'::text\n                END AS confidence,\n                CASE\n                    WHEN raw.overdue_amount IS NULL THEN 'Data review'::text\n                    WHEN raw.active_default OR raw.recent_default THEN 'Default flagged'::text\n                    WHEN raw.overdue_charge_count > 0 THEN 'Overdue'::text\n                    ELSE 'No current overdue'::text\n                END AS current_health_status,\n                CASE\n                    WHEN raw.data_quality_status <> 'OK'::text THEN 'DATA_REVIEW'::text\n                    WHEN raw.active_default THEN 'ACTIVE_DEFAULT'::text\n                    WHEN raw.recent_default THEN 'RECENT_DEFAULT'::text\n                    WHEN raw.oldest_unpaid_days > 7 THEN 'SEVERE_ARREARS'::text\n                    WHEN raw.overdue_charge_count > 0 THEN 'CURRENT_ARREARS'::text\n                    WHEN raw.recent_obligation_count = 0 THEN 'NO_RECENT_HISTORY'::text\n                    WHEN raw.recent_late_count > 0 THEN 'RECENT_LATE_PAYMENTS'::text\n                    WHEN raw.distinct_matured_due_dates < 3 OR raw.history_span_days < 30 THEN 'PROVISIONAL_HISTORY'::text\n                    ELSE 'NO_CURRENT_ARREARS'::text\n                END AS primary_reason_code\n           FROM raw\n        )\n SELECT borrower_id,\n    has_active_loan,\n    hidden_flag,\n    overdue_principal,\n    overdue_interest,\n    overdue_amount,\n    overdue_charge_count,\n    oldest_overdue_date,\n    oldest_unpaid_days,\n    recent_obligation_count,\n    recent_on_time_count,\n    recent_late_count,\n    recent_on_time_rate,\n    older_obligation_count,\n    older_on_time_count,\n    older_on_time_rate,\n    severity_obligation_count,\n    first_matured_due_date,\n    distinct_matured_due_dates,\n    history_span_days,\n    recent_score,\n    older_score,\n    delay_score,\n    current_score,\n        CASE\n            WHEN recent_score IS NULL THEN 0::numeric\n            ELSE 0.45 / weight_total\n        END AS recent_effective_weight,\n        CASE\n            WHEN older_score IS NULL THEN 0::numeric\n            ELSE 0.15 / weight_total\n        END AS older_effective_weight,\n        CASE\n            WHEN delay_score IS NULL THEN 0::numeric\n            ELSE 0.15 / weight_total\n        END AS delay_effective_weight,\n    0.25 / weight_total AS current_effective_weight,\n    raw_score,\n        CASE\n            WHEN rating_status = 'Rated'::text THEN candidate_score\n            ELSE NULL::numeric\n        END AS reliability_score,\n        CASE\n            WHEN rating_status = 'Rated'::text THEN\n            CASE\n                WHEN candidate_score >= 80::numeric THEN 'High'::text\n                ELSE 'Lower'::text\n            END\n            ELSE NULL::text\n        END AS reliability_band,\n    rating_status,\n    confidence,\n    severe_risk_guard,\n    COALESCE(severe_risk_guard AND raw_score > 60::numeric, false) AS score_cap_applied,\n    active_default,\n    recent_default,\n    default_count,\n    recorded_default_loss,\n    current_health_status,\n    primary_reason_code,\n        CASE primary_reason_code\n            WHEN 'DATA_REVIEW'::text THEN data_quality_status\n            WHEN 'ACTIVE_DEFAULT'::text THEN 'Active default recorded'::text\n            WHEN 'RECENT_DEFAULT'::text THEN 'Default recorded within 90 days'::text\n            WHEN 'SEVERE_ARREARS'::text THEN ('Oldest unpaid obligation is '::text || oldest_unpaid_days) || ' days overdue; severe-risk guard applies'::text\n            WHEN 'CURRENT_ARREARS'::text THEN ('Oldest unpaid obligation is '::text || oldest_unpaid_days) || ' days overdue'::text\n            WHEN 'NO_RECENT_HISTORY'::text THEN 'No eligible obligations in the last 30 completed days'::text\n            WHEN 'RECENT_LATE_PAYMENTS'::text THEN ((recent_late_count || ' of '::text) || recent_obligation_count) || ' recent obligations were not paid on time'::text\n            WHEN 'PROVISIONAL_HISTORY'::text THEN 'Limited payment history; rating is provisional'::text\n            ELSE 'No current overdue; observed recent obligations paid on time'::text\n        END AS reason_text,\n    data_quality_status,\n    reporting_date,\n    calculated_at,\n    'payment-health-v1'::text AS method_version\n   FROM scored;",
+    "columns": [
+      {
+        "column_name": "borrower_id",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 1
+      },
+      {
+        "column_name": "has_active_loan",
+        "data_type": "boolean",
+        "udt_name": "bool",
+        "is_nullable": "YES",
+        "ordinal_position": 2
+      },
+      {
+        "column_name": "hidden_flag",
+        "data_type": "boolean",
+        "udt_name": "bool",
+        "is_nullable": "YES",
+        "ordinal_position": 3
+      },
+      {
+        "column_name": "overdue_principal",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 4
+      },
+      {
+        "column_name": "overdue_interest",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 5
+      },
+      {
+        "column_name": "overdue_amount",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 6
+      },
+      {
+        "column_name": "overdue_charge_count",
+        "data_type": "integer",
+        "udt_name": "int4",
+        "is_nullable": "YES",
+        "ordinal_position": 7
+      },
+      {
+        "column_name": "oldest_overdue_date",
+        "data_type": "date",
+        "udt_name": "date",
+        "is_nullable": "YES",
+        "ordinal_position": 8
+      },
+      {
+        "column_name": "oldest_unpaid_days",
+        "data_type": "integer",
+        "udt_name": "int4",
+        "is_nullable": "YES",
+        "ordinal_position": 9
+      },
+      {
+        "column_name": "recent_obligation_count",
+        "data_type": "integer",
+        "udt_name": "int4",
+        "is_nullable": "YES",
+        "ordinal_position": 10
+      },
+      {
+        "column_name": "recent_on_time_count",
+        "data_type": "integer",
+        "udt_name": "int4",
+        "is_nullable": "YES",
+        "ordinal_position": 11
+      },
+      {
+        "column_name": "recent_late_count",
+        "data_type": "integer",
+        "udt_name": "int4",
+        "is_nullable": "YES",
+        "ordinal_position": 12
+      },
+      {
+        "column_name": "recent_on_time_rate",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 13
+      },
+      {
+        "column_name": "older_obligation_count",
+        "data_type": "integer",
+        "udt_name": "int4",
+        "is_nullable": "YES",
+        "ordinal_position": 14
+      },
+      {
+        "column_name": "older_on_time_count",
+        "data_type": "integer",
+        "udt_name": "int4",
+        "is_nullable": "YES",
+        "ordinal_position": 15
+      },
+      {
+        "column_name": "older_on_time_rate",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 16
+      },
+      {
+        "column_name": "severity_obligation_count",
+        "data_type": "integer",
+        "udt_name": "int4",
+        "is_nullable": "YES",
+        "ordinal_position": 17
+      },
+      {
+        "column_name": "first_matured_due_date",
+        "data_type": "date",
+        "udt_name": "date",
+        "is_nullable": "YES",
+        "ordinal_position": 18
+      },
+      {
+        "column_name": "distinct_matured_due_dates",
+        "data_type": "integer",
+        "udt_name": "int4",
+        "is_nullable": "YES",
+        "ordinal_position": 19
+      },
+      {
+        "column_name": "history_span_days",
+        "data_type": "integer",
+        "udt_name": "int4",
+        "is_nullable": "YES",
+        "ordinal_position": 20
+      },
+      {
+        "column_name": "recent_score",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 21
+      },
+      {
+        "column_name": "older_score",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 22
+      },
+      {
+        "column_name": "delay_score",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 23
+      },
+      {
+        "column_name": "current_score",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 24
+      },
+      {
+        "column_name": "recent_effective_weight",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 25
+      },
+      {
+        "column_name": "older_effective_weight",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 26
+      },
+      {
+        "column_name": "delay_effective_weight",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 27
+      },
+      {
+        "column_name": "current_effective_weight",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 28
+      },
+      {
+        "column_name": "raw_score",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 29
+      },
+      {
+        "column_name": "reliability_score",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 30
+      },
+      {
+        "column_name": "reliability_band",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 31
+      },
+      {
+        "column_name": "rating_status",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 32
+      },
+      {
+        "column_name": "confidence",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 33
+      },
+      {
+        "column_name": "severe_risk_guard",
+        "data_type": "boolean",
+        "udt_name": "bool",
+        "is_nullable": "YES",
+        "ordinal_position": 34
+      },
+      {
+        "column_name": "score_cap_applied",
+        "data_type": "boolean",
+        "udt_name": "bool",
+        "is_nullable": "YES",
+        "ordinal_position": 35
+      },
+      {
+        "column_name": "active_default",
+        "data_type": "boolean",
+        "udt_name": "bool",
+        "is_nullable": "YES",
+        "ordinal_position": 36
+      },
+      {
+        "column_name": "recent_default",
+        "data_type": "boolean",
+        "udt_name": "bool",
+        "is_nullable": "YES",
+        "ordinal_position": 37
+      },
+      {
+        "column_name": "default_count",
+        "data_type": "integer",
+        "udt_name": "int4",
+        "is_nullable": "YES",
+        "ordinal_position": 38
+      },
+      {
+        "column_name": "recorded_default_loss",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 39
+      },
+      {
+        "column_name": "current_health_status",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 40
+      },
+      {
+        "column_name": "primary_reason_code",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 41
+      },
+      {
+        "column_name": "reason_text",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 42
+      },
+      {
+        "column_name": "data_quality_status",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 43
+      },
+      {
+        "column_name": "reporting_date",
+        "data_type": "date",
+        "udt_name": "date",
+        "is_nullable": "YES",
+        "ordinal_position": 44
+      },
+      {
+        "column_name": "calculated_at",
+        "data_type": "timestamp with time zone",
+        "udt_name": "timestamptz",
+        "is_nullable": "YES",
+        "ordinal_position": 45
+      },
+      {
+        "column_name": "method_version",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 46
+      }
+    ]
+  },
+  {
+    "name": "reporting_borrower_matrix_v2",
+    "definition": " WITH income AS (\n         SELECT l.\"Ref Borrowers\" AS borrower_id,\n            sum(r.\"Interest Paid\"::numeric) AS contribution\n           FROM \"Repayments\" r\n             JOIN \"Loans\" l ON l.\"Row ID\" = r.\"Ref Loans\"\n          WHERE r.\"Payment Date\" >= (olap_reporting_date() - 30) AND r.\"Payment Date\" < olap_reporting_date()\n          GROUP BY l.\"Ref Borrowers\"\n        ), cohort AS (\n         SELECT h.borrower_id,\n            h.has_active_loan,\n            h.hidden_flag,\n            h.overdue_principal,\n            h.overdue_interest,\n            h.overdue_amount,\n            h.overdue_charge_count,\n            h.oldest_overdue_date,\n            h.oldest_unpaid_days,\n            h.recent_obligation_count,\n            h.recent_on_time_count,\n            h.recent_late_count,\n            h.recent_on_time_rate,\n            h.older_obligation_count,\n            h.older_on_time_count,\n            h.older_on_time_rate,\n            h.severity_obligation_count,\n            h.first_matured_due_date,\n            h.distinct_matured_due_dates,\n            h.history_span_days,\n            h.recent_score,\n            h.older_score,\n            h.delay_score,\n            h.current_score,\n            h.recent_effective_weight,\n            h.older_effective_weight,\n            h.delay_effective_weight,\n            h.current_effective_weight,\n            h.raw_score,\n            h.reliability_score,\n            h.reliability_band,\n            h.rating_status,\n            h.confidence,\n            h.severe_risk_guard,\n            h.score_cap_applied,\n            h.active_default,\n            h.recent_default,\n            h.default_count,\n            h.recorded_default_loss,\n            h.current_health_status,\n            h.primary_reason_code,\n            h.reason_text,\n            h.data_quality_status,\n            h.reporting_date,\n            h.calculated_at,\n            h.method_version,\n            COALESCE(i.contribution, 0::numeric) AS contribution_30d,\n            b.\"Total Outstanding Principal\" AS outstanding_principal\n           FROM reporting_borrower_payment_health_v1 h\n             JOIN \"Borrowers\" b ON b.\"Row ID\" = h.borrower_id\n             LEFT JOIN income i USING (borrower_id)\n          WHERE h.has_active_loan\n        ), totals AS (\n         SELECT cohort.borrower_id,\n            cohort.has_active_loan,\n            cohort.hidden_flag,\n            cohort.overdue_principal,\n            cohort.overdue_interest,\n            cohort.overdue_amount,\n            cohort.overdue_charge_count,\n            cohort.oldest_overdue_date,\n            cohort.oldest_unpaid_days,\n            cohort.recent_obligation_count,\n            cohort.recent_on_time_count,\n            cohort.recent_late_count,\n            cohort.recent_on_time_rate,\n            cohort.older_obligation_count,\n            cohort.older_on_time_count,\n            cohort.older_on_time_rate,\n            cohort.severity_obligation_count,\n            cohort.first_matured_due_date,\n            cohort.distinct_matured_due_dates,\n            cohort.history_span_days,\n            cohort.recent_score,\n            cohort.older_score,\n            cohort.delay_score,\n            cohort.current_score,\n            cohort.recent_effective_weight,\n            cohort.older_effective_weight,\n            cohort.delay_effective_weight,\n            cohort.current_effective_weight,\n            cohort.raw_score,\n            cohort.reliability_score,\n            cohort.reliability_band,\n            cohort.rating_status,\n            cohort.confidence,\n            cohort.severe_risk_guard,\n            cohort.score_cap_applied,\n            cohort.active_default,\n            cohort.recent_default,\n            cohort.default_count,\n            cohort.recorded_default_loss,\n            cohort.current_health_status,\n            cohort.primary_reason_code,\n            cohort.reason_text,\n            cohort.data_quality_status,\n            cohort.reporting_date,\n            cohort.calculated_at,\n            cohort.method_version,\n            cohort.contribution_30d,\n            cohort.outstanding_principal,\n            count(*) OVER ()::integer AS active_borrower_count,\n            sum(cohort.contribution_30d) OVER () AS portfolio_contribution_30d\n           FROM cohort\n        ), axes AS (\n         SELECT totals.borrower_id,\n            totals.has_active_loan,\n            totals.hidden_flag,\n            totals.overdue_principal,\n            totals.overdue_interest,\n            totals.overdue_amount,\n            totals.overdue_charge_count,\n            totals.oldest_overdue_date,\n            totals.oldest_unpaid_days,\n            totals.recent_obligation_count,\n            totals.recent_on_time_count,\n            totals.recent_late_count,\n            totals.recent_on_time_rate,\n            totals.older_obligation_count,\n            totals.older_on_time_count,\n            totals.older_on_time_rate,\n            totals.severity_obligation_count,\n            totals.first_matured_due_date,\n            totals.distinct_matured_due_dates,\n            totals.history_span_days,\n            totals.recent_score,\n            totals.older_score,\n            totals.delay_score,\n            totals.current_score,\n            totals.recent_effective_weight,\n            totals.older_effective_weight,\n            totals.delay_effective_weight,\n            totals.current_effective_weight,\n            totals.raw_score,\n            totals.reliability_score,\n            totals.reliability_band,\n            totals.rating_status,\n            totals.confidence,\n            totals.severe_risk_guard,\n            totals.score_cap_applied,\n            totals.active_default,\n            totals.recent_default,\n            totals.default_count,\n            totals.recorded_default_loss,\n            totals.current_health_status,\n            totals.primary_reason_code,\n            totals.reason_text,\n            totals.data_quality_status,\n            totals.reporting_date,\n            totals.calculated_at,\n            totals.method_version,\n            totals.contribution_30d,\n            totals.outstanding_principal,\n            totals.active_borrower_count,\n            totals.portfolio_contribution_30d,\n            1.0 / totals.active_borrower_count::numeric AS equal_share,\n                CASE\n                    WHEN totals.portfolio_contribution_30d > 0::numeric THEN totals.contribution_30d / totals.portfolio_contribution_30d\n                    ELSE NULL::numeric\n                END AS contribution_share,\n                CASE\n                    WHEN totals.portfolio_contribution_30d > 0::numeric THEN totals.contribution_30d / totals.portfolio_contribution_30d * totals.active_borrower_count::numeric\n                    ELSE NULL::numeric\n                END AS relative_contribution\n           FROM totals\n        )\n SELECT borrower_id,\n    contribution_30d,\n    active_borrower_count,\n    portfolio_contribution_30d,\n    contribution_share,\n    equal_share,\n    relative_contribution,\n    reliability_score,\n    confidence,\n        CASE\n            WHEN portfolio_contribution_30d <= 0::numeric OR rating_status <> 'Rated'::text THEN 'Unclassified'::text\n            WHEN relative_contribution >= 1::numeric AND reliability_score >= 80::numeric THEN 'Star'::text\n            WHEN reliability_score >= 80::numeric THEN 'Cash Cow'::text\n            WHEN relative_contribution >= 1::numeric THEN 'Question Mark'::text\n            ELSE 'Dog'::text\n        END AS quadrant,\n        CASE\n            WHEN portfolio_contribution_30d <= 0::numeric THEN 'Portfolio contribution is not positive'::text\n            WHEN rating_status <> 'Rated'::text THEN reason_text\n            ELSE 'Contribution boundary 1x; reliability boundary 80'::text\n        END AS classification_reason,\n    outstanding_principal,\n    reporting_date,\n    calculated_at,\n    method_version\n   FROM axes;",
+    "columns": [
+      {
+        "column_name": "borrower_id",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 1
+      },
+      {
+        "column_name": "contribution_30d",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 2
+      },
+      {
+        "column_name": "active_borrower_count",
+        "data_type": "integer",
+        "udt_name": "int4",
+        "is_nullable": "YES",
+        "ordinal_position": 3
+      },
+      {
+        "column_name": "portfolio_contribution_30d",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 4
+      },
+      {
+        "column_name": "contribution_share",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 5
+      },
+      {
+        "column_name": "equal_share",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 6
+      },
+      {
+        "column_name": "relative_contribution",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 7
+      },
+      {
+        "column_name": "reliability_score",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 8
+      },
+      {
+        "column_name": "confidence",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 9
+      },
+      {
+        "column_name": "quadrant",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 10
+      },
+      {
+        "column_name": "classification_reason",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 11
+      },
+      {
+        "column_name": "outstanding_principal",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 12
+      },
+      {
+        "column_name": "reporting_date",
+        "data_type": "date",
+        "udt_name": "date",
+        "is_nullable": "YES",
+        "ordinal_position": 13
+      },
+      {
+        "column_name": "calculated_at",
+        "data_type": "timestamp with time zone",
+        "udt_name": "timestamptz",
+        "is_nullable": "YES",
+        "ordinal_position": 14
+      },
+      {
+        "column_name": "method_version",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 15
+      }
+    ]
+  },
+  {
+    "name": "oltp_borrower_payment_health_v1",
+    "definition": " SELECT borrower_id AS \"Row ID\",\n    borrower_id AS \"Ref Borrower\",\n    has_active_loan AS \"Has Active Loan\",\n    hidden_flag AS \"Hidden Flag\",\n    overdue_principal AS \"Overdue Principal\",\n    overdue_interest AS \"Overdue Interest\",\n    overdue_amount AS \"Overdue Amount\",\n    overdue_charge_count AS \"Overdue Charge Count\",\n    oldest_overdue_date AS \"Oldest Overdue Date\",\n    oldest_unpaid_days AS \"Oldest Unpaid Days\",\n    recent_obligation_count AS \"Recent Obligation Count\",\n    recent_on_time_count AS \"Recent On Time Count\",\n    recent_late_count AS \"Recent Late Count\",\n    recent_on_time_rate AS \"Recent On Time Rate\",\n    older_obligation_count AS \"Older Obligation Count\",\n    older_on_time_count AS \"Older On Time Count\",\n    older_on_time_rate AS \"Older On Time Rate\",\n    severity_obligation_count AS \"Severity Obligation Count\",\n    first_matured_due_date AS \"First Matured Due Date\",\n    distinct_matured_due_dates AS \"Distinct Matured Due Dates\",\n    history_span_days AS \"History Span Days\",\n    recent_score AS \"Recent Score\",\n    older_score AS \"Older Score\",\n    delay_score AS \"Delay Score\",\n    current_score AS \"Current Score\",\n    recent_effective_weight AS \"Recent Effective Weight\",\n    older_effective_weight AS \"Older Effective Weight\",\n    delay_effective_weight AS \"Delay Effective Weight\",\n    current_effective_weight AS \"Current Effective Weight\",\n    raw_score AS \"Raw Score\",\n    reliability_score AS \"Reliability Score\",\n    reliability_band AS \"Reliability Band\",\n    rating_status AS \"Rating Status\",\n    confidence AS \"Confidence\",\n    severe_risk_guard AS \"Severe Risk Guard\",\n    score_cap_applied AS \"Score Cap Applied\",\n    active_default AS \"Active Default\",\n    recent_default AS \"Recent Default\",\n    default_count AS \"Default Count\",\n    recorded_default_loss AS \"Recorded Default Loss\",\n    current_health_status AS \"Current Health Status\",\n    primary_reason_code AS \"Primary Reason Code\",\n    reason_text AS \"Reason\",\n    data_quality_status AS \"Data Quality Status\",\n    reporting_date AS \"Reporting Date\",\n    calculated_at AS \"Calculated At\",\n    method_version AS \"Method Version\"\n   FROM reporting_borrower_payment_health_v1;",
+    "columns": [
+      {
+        "column_name": "Row ID",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 1
+      },
+      {
+        "column_name": "Ref Borrower",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 2
+      },
+      {
+        "column_name": "Has Active Loan",
+        "data_type": "boolean",
+        "udt_name": "bool",
+        "is_nullable": "YES",
+        "ordinal_position": 3
+      },
+      {
+        "column_name": "Hidden Flag",
+        "data_type": "boolean",
+        "udt_name": "bool",
+        "is_nullable": "YES",
+        "ordinal_position": 4
+      },
+      {
+        "column_name": "Overdue Principal",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 5
+      },
+      {
+        "column_name": "Overdue Interest",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 6
+      },
+      {
+        "column_name": "Overdue Amount",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 7
+      },
+      {
+        "column_name": "Overdue Charge Count",
+        "data_type": "integer",
+        "udt_name": "int4",
+        "is_nullable": "YES",
+        "ordinal_position": 8
+      },
+      {
+        "column_name": "Oldest Overdue Date",
+        "data_type": "date",
+        "udt_name": "date",
+        "is_nullable": "YES",
+        "ordinal_position": 9
+      },
+      {
+        "column_name": "Oldest Unpaid Days",
+        "data_type": "integer",
+        "udt_name": "int4",
+        "is_nullable": "YES",
+        "ordinal_position": 10
+      },
+      {
+        "column_name": "Recent Obligation Count",
+        "data_type": "integer",
+        "udt_name": "int4",
+        "is_nullable": "YES",
+        "ordinal_position": 11
+      },
+      {
+        "column_name": "Recent On Time Count",
+        "data_type": "integer",
+        "udt_name": "int4",
+        "is_nullable": "YES",
+        "ordinal_position": 12
+      },
+      {
+        "column_name": "Recent Late Count",
+        "data_type": "integer",
+        "udt_name": "int4",
+        "is_nullable": "YES",
+        "ordinal_position": 13
+      },
+      {
+        "column_name": "Recent On Time Rate",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 14
+      },
+      {
+        "column_name": "Older Obligation Count",
+        "data_type": "integer",
+        "udt_name": "int4",
+        "is_nullable": "YES",
+        "ordinal_position": 15
+      },
+      {
+        "column_name": "Older On Time Count",
+        "data_type": "integer",
+        "udt_name": "int4",
+        "is_nullable": "YES",
+        "ordinal_position": 16
+      },
+      {
+        "column_name": "Older On Time Rate",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 17
+      },
+      {
+        "column_name": "Severity Obligation Count",
+        "data_type": "integer",
+        "udt_name": "int4",
+        "is_nullable": "YES",
+        "ordinal_position": 18
+      },
+      {
+        "column_name": "First Matured Due Date",
+        "data_type": "date",
+        "udt_name": "date",
+        "is_nullable": "YES",
+        "ordinal_position": 19
+      },
+      {
+        "column_name": "Distinct Matured Due Dates",
+        "data_type": "integer",
+        "udt_name": "int4",
+        "is_nullable": "YES",
+        "ordinal_position": 20
+      },
+      {
+        "column_name": "History Span Days",
+        "data_type": "integer",
+        "udt_name": "int4",
+        "is_nullable": "YES",
+        "ordinal_position": 21
+      },
+      {
+        "column_name": "Recent Score",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 22
+      },
+      {
+        "column_name": "Older Score",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 23
+      },
+      {
+        "column_name": "Delay Score",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 24
+      },
+      {
+        "column_name": "Current Score",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 25
+      },
+      {
+        "column_name": "Recent Effective Weight",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 26
+      },
+      {
+        "column_name": "Older Effective Weight",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 27
+      },
+      {
+        "column_name": "Delay Effective Weight",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 28
+      },
+      {
+        "column_name": "Current Effective Weight",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 29
+      },
+      {
+        "column_name": "Raw Score",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 30
+      },
+      {
+        "column_name": "Reliability Score",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 31
+      },
+      {
+        "column_name": "Reliability Band",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 32
+      },
+      {
+        "column_name": "Rating Status",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 33
+      },
+      {
+        "column_name": "Confidence",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 34
+      },
+      {
+        "column_name": "Severe Risk Guard",
+        "data_type": "boolean",
+        "udt_name": "bool",
+        "is_nullable": "YES",
+        "ordinal_position": 35
+      },
+      {
+        "column_name": "Score Cap Applied",
+        "data_type": "boolean",
+        "udt_name": "bool",
+        "is_nullable": "YES",
+        "ordinal_position": 36
+      },
+      {
+        "column_name": "Active Default",
+        "data_type": "boolean",
+        "udt_name": "bool",
+        "is_nullable": "YES",
+        "ordinal_position": 37
+      },
+      {
+        "column_name": "Recent Default",
+        "data_type": "boolean",
+        "udt_name": "bool",
+        "is_nullable": "YES",
+        "ordinal_position": 38
+      },
+      {
+        "column_name": "Default Count",
+        "data_type": "integer",
+        "udt_name": "int4",
+        "is_nullable": "YES",
+        "ordinal_position": 39
+      },
+      {
+        "column_name": "Recorded Default Loss",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 40
+      },
+      {
+        "column_name": "Current Health Status",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 41
+      },
+      {
+        "column_name": "Primary Reason Code",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 42
+      },
+      {
+        "column_name": "Reason",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 43
+      },
+      {
+        "column_name": "Data Quality Status",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 44
+      },
+      {
+        "column_name": "Reporting Date",
+        "data_type": "date",
+        "udt_name": "date",
+        "is_nullable": "YES",
+        "ordinal_position": 45
+      },
+      {
+        "column_name": "Calculated At",
+        "data_type": "timestamp with time zone",
+        "udt_name": "timestamptz",
+        "is_nullable": "YES",
+        "ordinal_position": 46
+      },
+      {
+        "column_name": "Method Version",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 47
+      }
+    ]
+  },
+  {
+    "name": "oltp_charge_payment_health_v1",
+    "definition": " SELECT charge_id AS \"Row ID\",\n    charge_id AS \"Ref Charge\",\n    loan_id AS \"Ref Loans\",\n    borrower_id AS \"Ref Borrower\",\n    due_date AS \"Due Date\",\n    principal_remaining_current AS \"Unpaid Principal\",\n    interest_remaining_current AS \"Unpaid Interest\",\n    overdue_amount AS \"Overdue Amount\",\n    current_days_overdue AS \"Days Overdue\",\n    is_overdue AS \"Is Overdue\",\n    data_quality_status AS \"Data Quality Status\",\n    reporting_date AS \"Reporting Date\",\n    calculated_at AS \"Calculated At\",\n    method_version AS \"Method Version\"\n   FROM reporting_charge_payment_health_v1;",
+    "columns": [
+      {
+        "column_name": "Row ID",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 1
+      },
+      {
+        "column_name": "Ref Charge",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 2
+      },
+      {
+        "column_name": "Ref Loans",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 3
+      },
+      {
+        "column_name": "Ref Borrower",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 4
+      },
+      {
+        "column_name": "Due Date",
+        "data_type": "date",
+        "udt_name": "date",
+        "is_nullable": "YES",
+        "ordinal_position": 5
+      },
+      {
+        "column_name": "Unpaid Principal",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 6
+      },
+      {
+        "column_name": "Unpaid Interest",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 7
+      },
+      {
+        "column_name": "Overdue Amount",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 8
+      },
+      {
+        "column_name": "Days Overdue",
+        "data_type": "integer",
+        "udt_name": "int4",
+        "is_nullable": "YES",
+        "ordinal_position": 9
+      },
+      {
+        "column_name": "Is Overdue",
+        "data_type": "boolean",
+        "udt_name": "bool",
+        "is_nullable": "YES",
+        "ordinal_position": 10
+      },
+      {
+        "column_name": "Data Quality Status",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 11
+      },
+      {
+        "column_name": "Reporting Date",
+        "data_type": "date",
+        "udt_name": "date",
+        "is_nullable": "YES",
+        "ordinal_position": 12
+      },
+      {
+        "column_name": "Calculated At",
+        "data_type": "timestamp with time zone",
+        "udt_name": "timestamptz",
+        "is_nullable": "YES",
+        "ordinal_position": 13
+      },
+      {
+        "column_name": "Method Version",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 14
+      }
+    ]
+  }
+]

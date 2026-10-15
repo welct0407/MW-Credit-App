@@ -1,0 +1,275 @@
+{
+  "status": "Applied: six September 6 keys rescheduled to September 30; twelve September 7-8 unpaid rows deleted with explicit user approval. Six loan flags FALSE, original rates retained. Native six-charge readback total 35000 principal zero. Manual acceptance pending.",
+  "before": [
+    {
+      "key": "5llcSmhmF24a23Q-QU8Hf9",
+      "loan": "Mvlc56nffPBM4PH8NgijrH",
+      "date": "2026-09-06",
+      "principal": 0,
+      "interest": 800,
+      "notes": "300 + ปรับข้ามวัน 500",
+      "observed_total_paid": 0
+    },
+    {
+      "key": "Ir5KHNcZ7Y4oi4y0PA0KOe",
+      "loan": "RhaV2FZVfOzz0mtRh6ZDsT",
+      "date": "2026-09-06",
+      "principal": 0,
+      "interest": 100,
+      "notes": "",
+      "observed_total_paid": 0
+    },
+    {
+      "key": "lkCJUCEkDA4a2S2Q17HlW1",
+      "loan": "1MdqsRQpJ65sO57Yqe5Cyb",
+      "date": "2026-09-06",
+      "principal": 0,
+      "interest": 200,
+      "notes": "",
+      "observed_total_paid": 0
+    },
+    {
+      "key": "Fl2CTnvJtw4OY1I_ZcuW92",
+      "loan": "alIjiCjH5lvAO1zkKNE7ij",
+      "date": "2026-09-06",
+      "principal": 0,
+      "interest": 200,
+      "notes": "",
+      "observed_total_paid": 0
+    },
+    {
+      "key": "MQ6yr7YucR4Pye53sK4if6",
+      "loan": "poQ9YWmlIQ8tYdy7JHykVf",
+      "date": "2026-09-06",
+      "principal": 0,
+      "interest": 200,
+      "notes": "",
+      "observed_total_paid": 0
+    },
+    {
+      "key": "nc7UgHIqa04gupXDAeT3a1",
+      "loan": "SjUS5ge4n5Kby3DIDMOuER",
+      "date": "2026-09-06",
+      "principal": 0,
+      "interest": 100,
+      "notes": "",
+      "observed_total_paid": 0
+    },
+    {
+      "key": "kGX8tN2SS_4VAzDFQBsjk9",
+      "loan": "Mvlc56nffPBM4PH8NgijrH",
+      "date": "2026-09-07",
+      "principal": 0,
+      "interest": 300,
+      "notes": "",
+      "observed_total_paid": 0
+    },
+    {
+      "key": "Iw7jYa4CR34bYn1QHe7Sf8",
+      "loan": "RhaV2FZVfOzz0mtRh6ZDsT",
+      "date": "2026-09-07",
+      "principal": 0,
+      "interest": 100,
+      "notes": "",
+      "observed_total_paid": 0
+    },
+    {
+      "key": "BwY59ShZ0H44AeZPjG3_uf",
+      "loan": "1MdqsRQpJ65sO57Yqe5Cyb",
+      "date": "2026-09-07",
+      "principal": 0,
+      "interest": 200,
+      "notes": "",
+      "observed_total_paid": 0
+    },
+    {
+      "key": "jrje9-dkXi46UDu6tMTKx0",
+      "loan": "alIjiCjH5lvAO1zkKNE7ij",
+      "date": "2026-09-07",
+      "principal": 0,
+      "interest": 200,
+      "notes": "",
+      "observed_total_paid": 0
+    },
+    {
+      "key": "K0rWpVsRVQ4gMnRINFKmw3",
+      "loan": "poQ9YWmlIQ8tYdy7JHykVf",
+      "date": "2026-09-07",
+      "principal": 0,
+      "interest": 200,
+      "notes": "",
+      "observed_total_paid": 0
+    },
+    {
+      "key": "OQ-zsI0P1j4HU_QOawrri3",
+      "loan": "SjUS5ge4n5Kby3DIDMOuER",
+      "date": "2026-09-07",
+      "principal": 0,
+      "interest": 100,
+      "notes": "",
+      "observed_total_paid": 0
+    },
+    {
+      "key": "UM7kyVRBEe4zyUvHBaqgm4",
+      "loan": "Mvlc56nffPBM4PH8NgijrH",
+      "date": "2026-09-08",
+      "principal": 0,
+      "interest": 300,
+      "notes": "",
+      "observed_total_paid": 0
+    },
+    {
+      "key": "J0-xBBcaFN4bERn1Dq5DXc",
+      "loan": "RhaV2FZVfOzz0mtRh6ZDsT",
+      "date": "2026-09-08",
+      "principal": 0,
+      "interest": 100,
+      "notes": "",
+      "observed_total_paid": 0
+    },
+    {
+      "key": "GqWzPjpkLB4Zu-fC3ewBYb",
+      "loan": "1MdqsRQpJ65sO57Yqe5Cyb",
+      "date": "2026-09-08",
+      "principal": 0,
+      "interest": 200,
+      "notes": "",
+      "observed_total_paid": 0
+    },
+    {
+      "key": "g_4mQus8Nb4v2r8NfpkNm4",
+      "loan": "alIjiCjH5lvAO1zkKNE7ij",
+      "date": "2026-09-08",
+      "principal": 0,
+      "interest": 200,
+      "notes": "",
+      "observed_total_paid": 0
+    },
+    {
+      "key": "GwhLjvZf_a41amrK5stqN1",
+      "loan": "poQ9YWmlIQ8tYdy7JHykVf",
+      "date": "2026-09-08",
+      "principal": 0,
+      "interest": 200,
+      "notes": "",
+      "observed_total_paid": 0
+    },
+    {
+      "key": "7MNNAYongX4ymk393vKmrd",
+      "loan": "SjUS5ge4n5Kby3DIDMOuER",
+      "date": "2026-09-08",
+      "principal": 0,
+      "interest": 100,
+      "notes": "",
+      "observed_total_paid": 0
+    }
+  ],
+  "plan": [
+    {
+      "key": "5llcSmhmF24a23Q-QU8Hf9",
+      "loan": "Mvlc56nffPBM4PH8NgijrH",
+      "date": "2026-09-30",
+      "principal": 0,
+      "interest": 9545,
+      "daily_interest": 300,
+      "covered_interest": 7500,
+      "covered_penalty": 2045,
+      "supersedes": [
+        "5llcSmhmF24a23Q-QU8Hf9",
+        "kGX8tN2SS_4VAzDFQBsjk9",
+        "UM7kyVRBEe4zyUvHBaqgm4"
+      ]
+    },
+    {
+      "key": "Ir5KHNcZ7Y4oi4y0PA0KOe",
+      "loan": "RhaV2FZVfOzz0mtRh6ZDsT",
+      "date": "2026-09-30",
+      "principal": 0,
+      "interest": 3182,
+      "daily_interest": 100,
+      "covered_interest": 2500,
+      "covered_penalty": 682,
+      "supersedes": [
+        "Ir5KHNcZ7Y4oi4y0PA0KOe",
+        "Iw7jYa4CR34bYn1QHe7Sf8",
+        "J0-xBBcaFN4bERn1Dq5DXc"
+      ]
+    },
+    {
+      "key": "lkCJUCEkDA4a2S2Q17HlW1",
+      "loan": "1MdqsRQpJ65sO57Yqe5Cyb",
+      "date": "2026-09-30",
+      "principal": 0,
+      "interest": 6364,
+      "daily_interest": 200,
+      "covered_interest": 5000,
+      "covered_penalty": 1364,
+      "supersedes": [
+        "lkCJUCEkDA4a2S2Q17HlW1",
+        "BwY59ShZ0H44AeZPjG3_uf",
+        "GqWzPjpkLB4Zu-fC3ewBYb"
+      ]
+    },
+    {
+      "key": "Fl2CTnvJtw4OY1I_ZcuW92",
+      "loan": "alIjiCjH5lvAO1zkKNE7ij",
+      "date": "2026-09-30",
+      "principal": 0,
+      "interest": 6364,
+      "daily_interest": 200,
+      "covered_interest": 5000,
+      "covered_penalty": 1364,
+      "supersedes": [
+        "Fl2CTnvJtw4OY1I_ZcuW92",
+        "jrje9-dkXi46UDu6tMTKx0",
+        "g_4mQus8Nb4v2r8NfpkNm4"
+      ]
+    },
+    {
+      "key": "MQ6yr7YucR4Pye53sK4if6",
+      "loan": "poQ9YWmlIQ8tYdy7JHykVf",
+      "date": "2026-09-30",
+      "principal": 0,
+      "interest": 6363,
+      "daily_interest": 200,
+      "covered_interest": 5000,
+      "covered_penalty": 1363,
+      "supersedes": [
+        "MQ6yr7YucR4Pye53sK4if6",
+        "K0rWpVsRVQ4gMnRINFKmw3",
+        "GwhLjvZf_a41amrK5stqN1"
+      ]
+    },
+    {
+      "key": "nc7UgHIqa04gupXDAeT3a1",
+      "loan": "SjUS5ge4n5Kby3DIDMOuER",
+      "date": "2026-09-30",
+      "principal": 0,
+      "interest": 3182,
+      "daily_interest": 100,
+      "covered_interest": 2500,
+      "covered_penalty": 682,
+      "supersedes": [
+        "nc7UgHIqa04gupXDAeT3a1",
+        "OQ-zsI0P1j4HU_QOawrri3",
+        "7MNNAYongX4ymk393vKmrd"
+      ]
+    }
+  ],
+  "deleted_keys": [
+    "kGX8tN2SS_4VAzDFQBsjk9",
+    "Iw7jYa4CR34bYn1QHe7Sf8",
+    "BwY59ShZ0H44AeZPjG3_uf",
+    "jrje9-dkXi46UDu6tMTKx0",
+    "K0rWpVsRVQ4gMnRINFKmw3",
+    "OQ-zsI0P1j4HU_QOawrri3",
+    "UM7kyVRBEe4zyUvHBaqgm4",
+    "J0-xBBcaFN4bERn1Dq5DXc",
+    "GqWzPjpkLB4Zu-fC3ewBYb",
+    "g_4mQus8Nb4v2r8NfpkNm4",
+    "GwhLjvZf_a41amrK5stqN1",
+    "7MNNAYongX4ymk393vKmrd"
+  ],
+  "automation_id": "reactivate-oum-auto-charges",
+  "reactivation_bangkok": "2026-09-29T23:55:00+07:00"
+}

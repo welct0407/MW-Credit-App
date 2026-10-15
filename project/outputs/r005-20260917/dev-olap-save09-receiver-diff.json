@@ -1,0 +1,2694 @@
+{
+  "release": "R005",
+  "app": "olap",
+  "before": {
+    "file": "dev-olap-save08-payments-regenerate.json",
+    "version": "1.000105"
+  },
+  "after": {
+    "file": "dev-olap-save09-receiver.json",
+    "version": "1.000106"
+  },
+  "coverage": "All exported properties; omitted export coverage subject to explicit owner-approved limited R005 exception.",
+  "counts": {
+    "before": 23931,
+    "after": 23889,
+    "changes": 174
+  },
+  "changes": [
+    {
+      "id": "R005-OLAP-d5f8d64baaee",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Payments/View Ref (Ref Received By Cash Holder)/Action icon",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": ""
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-a1c45befc144",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Payments/View Ref (Ref Received By Cash Holder)/Action name",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "View Ref (Ref Received By Cash Holder)"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-d630732504fe",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Payments/View Ref (Ref Received By Cash Holder)/Action order",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "1"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-a858d1b6daa1",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Payments/View Ref (Ref Received By Cash Holder)/Attach to column",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "Ref Received By Cash Holder"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-0fa832d06c19",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Payments/View Ref (Ref Received By Cash Holder)/Bulk action?",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "No"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-3cd317510b1d",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Payments/View Ref (Ref Received By Cash Holder)/Disable automatic updates?",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "No"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-0e07dbacd5dd",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Payments/View Ref (Ref Received By Cash Holder)/Do this",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "NAVIGATE_APP"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-354afa3811c2",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Payments/View Ref (Ref Received By Cash Holder)/Does this action apply to the whole table?",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "No"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-a815d67a51e7",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Payments/View Ref (Ref Received By Cash Holder)/For a record of this table",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "Payments"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-62d4355aaddf",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Payments/View Ref (Ref Received By Cash Holder)/Modifies data?",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "No"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-fde1cb869901",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Payments/View Ref (Ref Received By Cash Holder)/Needs confirmation?",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "No"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-19cac177ec8a",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Payments/View Ref (Ref Received By Cash Holder)/Only if this condition is true",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "NOT(ISBLANK([Ref Received By Cash Holder]))"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-7b476913c4f1",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Payments/View Ref (Ref Received By Cash Holder)/Prominence",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "Display_Inline"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-310bf540199f",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Payments/View Ref (Ref Received By Cash Holder)/Set this column",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "Ref Received By Cash Holder"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-d4718ebc91c2",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Payments/View Ref (Ref Received By Cash Holder)/Visible?",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "ADVANCED"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-8a8c1531946b",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Payments/View Ref (Ref Received By Cash Holder)/With these properties/$shape",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": {
+          "type": "object",
+          "keys": [
+            "BulkApplicable",
+            "ConfirmationMessage",
+            "ModifiesData",
+            "NavigateTarget",
+            "NeedsConfirmation",
+            "Prominence"
+          ]
+        }
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-4e68609e36a4",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Payments/View Ref (Ref Received By Cash Holder)/With these properties/BulkApplicable",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-ce7116eb84dd",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Payments/View Ref (Ref Received By Cash Holder)/With these properties/ConfirmationMessage",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": ""
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-b74f8de4fc76",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Payments/View Ref (Ref Received By Cash Holder)/With these properties/ModifiesData",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-85cac11394ed",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Payments/View Ref (Ref Received By Cash Holder)/With these properties/NavigateTarget",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "CONCATENATE(\"#page=detail&table=Cash%20Holders&row=\", ENCODEURL([Ref Received By Cash Holder]) )"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-55695533d6cf",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Payments/View Ref (Ref Received By Cash Holder)/With these properties/NeedsConfirmation",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-c326f13c58ae",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Payments/View Ref (Ref Received By Cash Holder)/With these properties/Prominence",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "Display_Inline"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-10d4e392c175",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "App/Version",
+      "operation": "change",
+      "before": {
+        "present": true,
+        "value": "1.000105"
+      },
+      "after": {
+        "present": true,
+        "value": "1.000106"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-a96b99d86525",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Cash Holders_Schema/Related Payments/App formula",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "REF_ROWS(\"Payments\", \"Ref Received By Cash Holder\")"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-3b60992454b6",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Cash Holders_Schema/Related Payments/Column name",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "Related Payments"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-f1105994a260",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Cash Holders_Schema/Related Payments/Description",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "Payments entries that reference this entry in the Ref Received By Cash Holder column"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-4f7c7fa542af",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Cash Holders_Schema/Related Payments/Editable Initial Value?",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "Yes"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-0924b74b4fcb",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Cash Holders_Schema/Related Payments/Fixed definition?",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "No"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-62e967492859",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Cash Holders_Schema/Related Payments/Formula version",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "0"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-dcdfdcae4b4d",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Cash Holders_Schema/Related Payments/Hidden",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "No"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-562e78f9fecc",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Cash Holders_Schema/Related Payments/Key",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "No"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-9b49f534d32e",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Cash Holders_Schema/Related Payments/Label",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "No"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-520bcec90463",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Cash Holders_Schema/Related Payments/LocaleName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "en-US"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-6dffdde8afd9",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Cash Holders_Schema/Related Payments/NFC Scannable",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "No"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-d1ad0569d828",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Cash Holders_Schema/Related Payments/Part of Key?",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "No"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-4e398f917893",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Cash Holders_Schema/Related Payments/Read-Only",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "Yes"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-03eb4154b1c8",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Cash Holders_Schema/Related Payments/Reset on edit?",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "No"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-257d5d6c8f9c",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Cash Holders_Schema/Related Payments/Scannable",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "No"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-a84d26cc29f5",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Cash Holders_Schema/Related Payments/Searchable",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "Yes"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-66f21f9b6cff",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Cash Holders_Schema/Related Payments/Sensitive data",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "No"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-186844a64373",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Cash Holders_Schema/Related Payments/System Defined?",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "Yes"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-d01698187661",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Cash Holders_Schema/Related Payments/Type",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "List"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-e3fd18c20428",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Cash Holders_Schema/Related Payments/Type Qualifier/$shape",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": {
+          "type": "object",
+          "keys": [
+            "Editable_If",
+            "ElementType",
+            "ElementTypeQualifier",
+            "Error_Message_If_Invalid",
+            "ItemSeparator",
+            "Required_If",
+            "Reset_If",
+            "Show_If",
+            "Suggested_Values",
+            "Valid_If"
+          ]
+        }
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-7a4da3b393fb",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Cash Holders_Schema/Related Payments/Type Qualifier/Editable_If",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": null
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-ea8dcc8902ca",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Cash Holders_Schema/Related Payments/Type Qualifier/ElementType",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "Ref"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-bba2a8abb6b0",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Cash Holders_Schema/Related Payments/Type Qualifier/ElementTypeQualifier",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "{\"ReferencedTableName\":\"Payments\",\"ReferencedRootTableName\":\"Payments\",\"ReferencedType\":\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\":\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-751f841bda9f",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Cash Holders_Schema/Related Payments/Type Qualifier/Error_Message_If_Invalid",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": null
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-07658965b831",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Cash Holders_Schema/Related Payments/Type Qualifier/ItemSeparator",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": " , "
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-a1f5500bcece",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Cash Holders_Schema/Related Payments/Type Qualifier/Required_If",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": null
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-1e31e1d39dd1",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Cash Holders_Schema/Related Payments/Type Qualifier/Reset_If",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": null
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-18b3a786c0ad",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Cash Holders_Schema/Related Payments/Type Qualifier/Show_If",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": null
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-f1c6a2502f75",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Cash Holders_Schema/Related Payments/Type Qualifier/Suggested_Values",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": null
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-54423a8974a9",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Cash Holders_Schema/Related Payments/Type Qualifier/Valid_If",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": null
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-f25db88becf0",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Cash Holders_Schema/Related Payments/Virtual?",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "Yes"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-22cb3e6f7536",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Cash Holders_Schema/Related Payments/Visible?",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "ALWAYS"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-98f61372ecb6",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Payments_Schema/Ref Received By Cash Holder/Display name",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "=\"ผู้รับเงิน / Received By\""
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-5bc485e4dcbc",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Payments_Schema/Ref Received By Cash Holder/Read-Only",
+      "operation": "change",
+      "before": {
+        "present": true,
+        "value": "No"
+      },
+      "after": {
+        "present": true,
+        "value": "Yes"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-a590f99e8333",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Payments_Schema/Ref Received By Cash Holder/Type",
+      "operation": "change",
+      "before": {
+        "present": true,
+        "value": "LongText"
+      },
+      "after": {
+        "present": true,
+        "value": "Ref"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-2d5e97d2c5da",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Payments_Schema/Ref Received By Cash Holder/Type Qualifier/$shape",
+      "operation": "change",
+      "before": {
+        "present": true,
+        "value": {
+          "type": "object",
+          "keys": [
+            "Editable_If",
+            "Error_Message_If_Invalid",
+            "IsMulticolumnKey",
+            "LongTextFormatting",
+            "MaxLength",
+            "MinLength",
+            "Required_If",
+            "Reset_If",
+            "Show_If",
+            "Suggested_Values",
+            "Valid_If"
+          ]
+        }
+      },
+      "after": {
+        "present": true,
+        "value": {
+          "type": "object",
+          "keys": [
+            "Editable_If",
+            "Error_Message_If_Invalid",
+            "InputMode",
+            "IsAPartOf",
+            "ReferencedKeyColumn",
+            "ReferencedRootTableName",
+            "ReferencedTableName",
+            "ReferencedType",
+            "ReferencedTypeQualifier",
+            "RelationshipName",
+            "Required_If",
+            "Reset_If",
+            "Show_If",
+            "Suggested_Values",
+            "Valid_If"
+          ]
+        }
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-1b4b4766a022",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Payments_Schema/Ref Received By Cash Holder/Type Qualifier/InputMode",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "Auto"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-ebe8bc558a6f",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Payments_Schema/Ref Received By Cash Holder/Type Qualifier/IsAPartOf",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-fb89e9ead87f",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Payments_Schema/Ref Received By Cash Holder/Type Qualifier/IsMulticolumnKey",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": false
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-abd6bf10b5e5",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Payments_Schema/Ref Received By Cash Holder/Type Qualifier/LongTextFormatting",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "Plain Text"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-5a11f614b8a2",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Payments_Schema/Ref Received By Cash Holder/Type Qualifier/MaxLength",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": null
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-b8a564eba3ec",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Payments_Schema/Ref Received By Cash Holder/Type Qualifier/MinLength",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": null
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-ba11758384f3",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Payments_Schema/Ref Received By Cash Holder/Type Qualifier/ReferencedKeyColumn",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "Row ID"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-74fef661c954",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Payments_Schema/Ref Received By Cash Holder/Type Qualifier/ReferencedRootTableName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "Cash Holders"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-75cb04e4f307",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Payments_Schema/Ref Received By Cash Holder/Type Qualifier/ReferencedTableName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "Cash Holders"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-89c452e4a550",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Payments_Schema/Ref Received By Cash Holder/Type Qualifier/ReferencedType",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "Text"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-948aa324ae6d",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Payments_Schema/Ref Received By Cash Holder/Type Qualifier/ReferencedTypeQualifier",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-60c8dcb84942",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Payments_Schema/Ref Received By Cash Holder/Type Qualifier/RelationshipName",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": null
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-928bd53825b0",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Process for Refresh Daily Analytics Daily - 1 Process Table_Schema/Active Loans/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-c2b45b87958a",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Process for Refresh Daily Analytics Daily - 1 Process Table_Schema/Amount Collected Today/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-e05d789e6f22",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Process for Refresh Daily Analytics Daily - 1 Process Table_Schema/Amount Collection Rate Today/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-a668b4e350c3",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Process for Refresh Daily Analytics Daily - 1 Process Table_Schema/Amount Due Today/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-f6ebe3fdaf29",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Process for Refresh Daily Analytics Daily - 1 Process Table_Schema/Amount Outstanding Today/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-0231eeecb895",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Process for Refresh Daily Analytics Daily - 1 Process Table_Schema/Analytics Refresh Request/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-73cb25a84f85",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Process for Refresh Daily Analytics Daily - 1 Process Table_Schema/Borrowers Fully Paid Today/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-f370f4da1a75",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Process for Refresh Daily Analytics Daily - 1 Process Table_Schema/Borrowers Not Paid Today/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-182eb36c59aa",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Process for Refresh Daily Analytics Daily - 1 Process Table_Schema/Borrowers Partially Paid Today/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-7a6294565835",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Process for Refresh Daily Analytics Daily - 1 Process Table_Schema/Borrowers with Overdue Payment/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-b48a71a0fb90",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Process for Refresh Daily Analytics Daily - 1 Process Table_Schema/Expected Daily Interest/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-091d56d050a6",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Process for Refresh Daily Analytics Daily - 1 Process Table_Schema/Expected Loan Account Balance/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-b46eeb4ffa6e",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Process for Refresh Daily Analytics Daily - 1 Process Table_Schema/Expenses MTD/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-8d1b6599c906",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Process for Refresh Daily Analytics Daily - 1 Process Table_Schema/Forecast Average Daily Outstanding Principal/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-d4d2f6814939",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Process for Refresh Daily Analytics Daily - 1 Process Table_Schema/Forecast Monthly Return on ADO/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-ce59ee25f379",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Process for Refresh Daily Analytics Daily - 1 Process Table_Schema/Forecast Remaining Interest/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-ab37f756f396",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Process for Refresh Daily Analytics Daily - 1 Process Table_Schema/Forecast Remaining Principal Days/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-426f0a035999",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Process for Refresh Daily Analytics Daily - 1 Process Table_Schema/Header - Cash Pool/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-8edd43c3d72a",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Process for Refresh Daily Analytics Daily - 1 Process Table_Schema/Header - Collection Status/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-b2331baaeabc",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Process for Refresh Daily Analytics Daily - 1 Process Table_Schema/Header - Income Statement MTD/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-71c9fae20276",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Process for Refresh Daily Analytics Daily - 1 Process Table_Schema/Header - Monthly Forecast/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-b7cc9d79f70a",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Process for Refresh Daily Analytics Daily - 1 Process Table_Schema/Header - Outstanding Loans/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-ed846ed20714",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Process for Refresh Daily Analytics Daily - 1 Process Table_Schema/Income Statement Expenses MTD/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-094663f13f30",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Process for Refresh Daily Analytics Daily - 1 Process Table_Schema/Instance Id/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-80c90c04242e",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Process for Refresh Daily Analytics Daily - 1 Process Table_Schema/Net Expected Loan Account Balance/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-dd21c6ca3e99",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Process for Refresh Daily Analytics Daily - 1 Process Table_Schema/Net Principal Days MTD/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-5b7f4e53d83f",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Process for Refresh Daily Analytics Daily - 1 Process Table_Schema/Net Profit MTD/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-76fe62c523cf",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Process for Refresh Daily Analytics Daily - 1 Process Table_Schema/Net Profit/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-3c24fdeedfb0",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Process for Refresh Daily Analytics Daily - 1 Process Table_Schema/Net Unsettled Profit/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-09e77406bccf",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Process for Refresh Daily Analytics Daily - 1 Process Table_Schema/Operating Income MTD/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-c8b0fd247aa6",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Process for Refresh Daily Analytics Daily - 1 Process Table_Schema/Outstanding Principal/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-e5c29b687960",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Process for Refresh Daily Analytics Daily - 1 Process Table_Schema/Peak Cash Pool 30D/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-950663f7f49d",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Process for Refresh Daily Analytics Daily - 1 Process Table_Schema/Peak Cash Pool Date 30D/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-5a44d9aa031e",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Process for Refresh Daily Analytics Daily - 1 Process Table_Schema/Pending Payment Amount/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-c7734ee54606",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Process for Refresh Daily Analytics Daily - 1 Process Table_Schema/Profit Coverage of Outstanding Principal/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-d55a32f8438f",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Process for Refresh Daily Analytics Daily - 1 Process Table_Schema/Projected Monthly Profit/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-08ff25c05f08",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Process for Refresh Daily Analytics Daily - 1 Process Table_Schema/Realized Profit MTD/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-98544c46e3fe",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Process for Refresh Daily Analytics Daily - 1 Process Table_Schema/Request recent analytics refresh/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-9c4065fa456e",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Process for Refresh Daily Analytics Daily - 1 Process Table_Schema/Row ID/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-37706f6e802e",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Process for Refresh Daily Analytics Daily - 1 Process Table_Schema/Statistics ID/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-5d47e9e167ff",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Process for Refresh Daily Analytics Daily - 1 Process Table_Schema/Today's Outstanding Interest/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-c1d05cdaab32",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Process for Refresh Daily Analytics Daily - 1 Process Table_Schema/Today's Profit/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-e615a6728b1c",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Process for Refresh Daily Analytics Daily - 1 Process Table_Schema/Top 3 Borrower Concentration/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-14265a86c69a",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Process for Refresh Daily Analytics Daily - 1 Process Table_Schema/Total Business Expenses/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-6377f15c3104",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Process for Refresh Daily Analytics Daily - 1 Process Table_Schema/Total Cash Pool/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-506d0f3eb274",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Process for Refresh Daily Analytics Daily - 1 Process Table_Schema/Total Outstanding Principal/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-40eb7aed60c0",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Process for Refresh Daily Analytics Daily - 1 Process Table_Schema/Total Profit of Outstanding Loans/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-e7ff0a920bdf",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Process for Refresh Daily Analytics Daily - 1 Process Table_Schema/Total Profit/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-d14c8d6ad2ed",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Process for Refresh Daily Analytics Daily - 1 Process Table_Schema/Total Unsettled Profit/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-c6da1d6ea19a",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Process for Refresh Daily Analytics Daily - 1 Process Table_Schema/Yesterday's Profit/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-c9d905575372",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Request recent analytics refresh Output_Schema/Active Loans/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-fb826124894d",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Request recent analytics refresh Output_Schema/Amount Collected Today/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-d6c344daf77a",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Request recent analytics refresh Output_Schema/Amount Collection Rate Today/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-46af4d16e2dd",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Request recent analytics refresh Output_Schema/Amount Due Today/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-370091f0a6aa",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Request recent analytics refresh Output_Schema/Amount Outstanding Today/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-01e5ebbd139f",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Request recent analytics refresh Output_Schema/Analytics Refresh Request/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-3e6ee4988f98",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Request recent analytics refresh Output_Schema/Borrowers Fully Paid Today/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-9a0fa3c1681a",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Request recent analytics refresh Output_Schema/Borrowers Not Paid Today/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-d238eaa6622b",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Request recent analytics refresh Output_Schema/Borrowers Partially Paid Today/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-5a5a67bdbece",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Request recent analytics refresh Output_Schema/Borrowers with Overdue Payment/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-ac9687d275be",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Request recent analytics refresh Output_Schema/Expected Daily Interest/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-91a15276f8d7",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Request recent analytics refresh Output_Schema/Expected Loan Account Balance/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-0ee4847e2963",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Request recent analytics refresh Output_Schema/Expenses MTD/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-7a3d6b10d779",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Request recent analytics refresh Output_Schema/Forecast Average Daily Outstanding Principal/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-e5de5b053b93",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Request recent analytics refresh Output_Schema/Forecast Monthly Return on ADO/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-051ce30fb679",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Request recent analytics refresh Output_Schema/Forecast Remaining Interest/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-00457c5c0e2c",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Request recent analytics refresh Output_Schema/Forecast Remaining Principal Days/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-9d4628b18940",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Request recent analytics refresh Output_Schema/Header - Cash Pool/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-804612e8c2c6",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Request recent analytics refresh Output_Schema/Header - Collection Status/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-d12275fddaf3",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Request recent analytics refresh Output_Schema/Header - Income Statement MTD/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-e006c8dc502e",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Request recent analytics refresh Output_Schema/Header - Monthly Forecast/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-40aaff0a3cc2",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Request recent analytics refresh Output_Schema/Header - Outstanding Loans/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-bdb00ad9b1ea",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Request recent analytics refresh Output_Schema/Income Statement Expenses MTD/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-829f33138404",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Request recent analytics refresh Output_Schema/Instance Id/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-386ca26dd573",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Request recent analytics refresh Output_Schema/Net Expected Loan Account Balance/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-c5fe5785408c",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Request recent analytics refresh Output_Schema/Net Principal Days MTD/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-a30f1d7960eb",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Request recent analytics refresh Output_Schema/Net Profit MTD/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-a38e84ec66cb",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Request recent analytics refresh Output_Schema/Net Profit/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-b7ce5ebee6a4",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Request recent analytics refresh Output_Schema/Net Unsettled Profit/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-2d913317e43b",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Request recent analytics refresh Output_Schema/Operating Income MTD/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-ac96d48c7211",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Request recent analytics refresh Output_Schema/Outstanding Principal/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-d346858c08e3",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Request recent analytics refresh Output_Schema/Peak Cash Pool 30D/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-cb03405ed769",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Request recent analytics refresh Output_Schema/Peak Cash Pool Date 30D/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-5412add74f16",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Request recent analytics refresh Output_Schema/Pending Payment Amount/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-b183e37833c6",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Request recent analytics refresh Output_Schema/Profit Coverage of Outstanding Principal/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-8c5d6a224794",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Request recent analytics refresh Output_Schema/Projected Monthly Profit/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-32451e11ecbc",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Request recent analytics refresh Output_Schema/Realized Profit MTD/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-965118cd84d8",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Request recent analytics refresh Output_Schema/Row ID/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-23838a598b2a",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Request recent analytics refresh Output_Schema/Statistics ID/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-20e0d90ed823",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Request recent analytics refresh Output_Schema/Today's Outstanding Interest/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-7d9823936a50",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Request recent analytics refresh Output_Schema/Today's Profit/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-3a3bc92122c5",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Request recent analytics refresh Output_Schema/Top 3 Borrower Concentration/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-03a6313d4f61",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Request recent analytics refresh Output_Schema/Total Business Expenses/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-4d5594230ebc",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Request recent analytics refresh Output_Schema/Total Cash Pool/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-6b8b545ab09a",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Request recent analytics refresh Output_Schema/Total Outstanding Principal/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-9969d2dd5ae3",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Request recent analytics refresh Output_Schema/Total Profit of Outstanding Loans/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-ff46753d2e73",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Request recent analytics refresh Output_Schema/Total Profit/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-582bbd735590",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Request recent analytics refresh Output_Schema/Total Unsettled Profit/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-a24db7ffb397",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Request recent analytics refresh Output_Schema/Yesterday's Profit/LocaleName",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-6533d30a8c39",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Summary/Behavior Summary",
+      "operation": "change",
+      "before": {
+        "present": true,
+        "value": "64 Actions\n0 Workflow Rules"
+      },
+      "after": {
+        "present": true,
+        "value": "65 Actions\n0 Workflow Rules"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-872c93899e6a",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Summary/Data Summary",
+      "operation": "change",
+      "before": {
+        "present": true,
+        "value": "18 Tables\n547 Columns\n12 Slices"
+      },
+      "after": {
+        "present": true,
+        "value": "18 Tables\n548 Columns\n12 Slices"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-75eac27f3d6a",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Table name/Process for Refresh Daily Analytics Daily - 1 Process Table/Data locale",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-a92acf287e23",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Table name/Request recent analytics refresh Output/Data locale",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "en-US"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    }
+  ]
+}

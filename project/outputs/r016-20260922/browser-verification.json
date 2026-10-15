@@ -1,0 +1,23 @@
+{
+  "verified_at": "2026-09-22T11:42:46.614Z",
+  "dashboard": 3,
+  "desktop_viewport": {
+    "width": 1024,
+    "height": 848
+  },
+  "mobile_viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "checks": [
+    "Overview capital/earnings cards and all lower charts rendered",
+    "Cash gauge, composition, loan types and both trends rendered",
+    "Cash Previous 30 days filter applied and cleared",
+    "Both tabs stack at 390px without horizontal page overflow",
+    "Notes enlarged and shortened; final text fully visible on phone layout",
+    "Six models visible in partner Reporting Models collection",
+    "Viewport override reset"
+  ],
+  "physical_device_owner_review": "pending for this refinement",
+  "private_saved_configuration": "C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r016-20260922/models-redesign-complete"
+}

@@ -1,0 +1,10 @@
+{
+  "versions": {
+    "oltp": "1.000025",
+    "olap": "1.000031"
+  },
+  "expectedChangesOnly": true,
+  "existingColumnsRefsSlicesPermissionsAndCalculationsUnchanged": true,
+  "viewMembershipOnly": true,
+  "optionalFieldConfigurationVerified": true
+}

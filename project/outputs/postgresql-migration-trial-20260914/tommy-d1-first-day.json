@@ -1,0 +1,45 @@
+{
+  "Allocations": [],
+  "Borrowers": [
+    {
+      "AI Collection Enabled": false,
+      "Address": null,
+      "Borrower Name": "Tommy",
+      "City": "TEST ONLY",
+      "Communication Name": "Tommy",
+      "Creation Date": "2026-09-14",
+      "Description": "Tommy - PostgreSQL lifecycle test",
+      "Hidden Flag": false,
+      "Instagram Username": null,
+      "Row ID": "QeqkhidjbnTQO7RiZHchJ7",
+      "Working Location": "Synthetic migration validation"
+    }
+  ],
+  "Charges": [],
+  "Loans": [
+    {
+      "Auto Charge Enabled": null,
+      "Borrower Name": null,
+      "Close Date": null,
+      "Closed By": "",
+      "Created By": "<test operator>",
+      "Current Daily Interest": "$50.00",
+      "Daily Payment Amount": null,
+      "Default Loss Amount": "$0.00",
+      "Defaulted": false,
+      "Due Date": null,
+      "Fixed Interest": null,
+      "Interest Payment Interval": 1,
+      "Loan Arrangement": "PG-TOMMY-D1 synthetic daily-interest lifecycle",
+      "Loan Date": "2026-09-13",
+      "Loan Status": "ยังไม่ปิดยอด",
+      "Loan Type": "ดอกเบี้ยรายวัน",
+      "Principal Amount": "$1,000.00",
+      "Ref Borrowers": "QeqkhidjbnTQO7RiZHchJ7",
+      "Row ID": "xiDl9eZYwjxGNv3Mg2nkbR",
+      "Transfer Fee": "$10.00"
+    }
+  ],
+  "Payments": [],
+  "Repayments": []
+}

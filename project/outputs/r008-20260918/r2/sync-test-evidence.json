@@ -1,0 +1,20 @@
+{
+  "environment": "development",
+  "host": "34.158.38.171",
+  "appVersion": "1.000178",
+  "businessDate": "2026-09-19",
+  "authorization": "Owner requested reproducing Generate All Today's Charges after canceling their failed browser attempt.",
+  "before": {"chargesToday": 8, "totalCharges": 935, "requestsToday": 0},
+  "after": {"chargesToday": 32, "totalCharges": 959, "requestsToday": 24, "duplicateGeneratedLoanDates": 0},
+  "afterRepeatSync": {"chargesToday": 32, "totalCharges": 959, "requestsToday": 24, "duplicateGeneratedLoanDates": 0},
+  "gui": {"queuedChangesInitially": 24, "queuedChangesFinally": 0, "syncCompletedWithoutError": true, "bulkActionHiddenAfterCompletion": true, "repeatSyncCompletedWithoutError": true},
+  "readOnlySqlBoundaryChecks": [
+    {"utc": "2026-09-18T16:52:59Z", "bangkokDate": "2026-09-18", "utc8Date": "2026-09-19"},
+    {"utc": "2026-09-18T16:59:59Z", "bangkokDate": "2026-09-18", "utc8Date": "2026-09-19"},
+    {"utc": "2026-09-18T17:00:00Z", "bangkokDate": "2026-09-19", "utc8Date": "2026-09-19"}
+  ],
+  "livePreMidnightRetest": false,
+  "backupSha256": "b562e15ac7dbfa57063ae50b3f92559c08e16d37783c7f6a4c730d3326265d4d",
+  "backupRestoredInIsolationWithMatchingSchema": true,
+  "productionChanged": false
+}

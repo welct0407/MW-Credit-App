@@ -1,0 +1,83 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.pwa_payment_correction_text_v2(i jsonb)"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r052/dictionary-production-closure.json"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "pwa_payment_correction_text_v2"
+    "arguments": "i jsonb"
+    "kind": "f"
+    "arguments_with_defaults": "i jsonb"
+    "result": "text"
+    "definition": "CREATE OR REPLACE FUNCTION public.pwa_payment_correction_text_v2(i jsonb)\n RETURNS text\n LANGUAGE plpgsql\n\
+      \ IMMUTABLE\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\r\nDECLARE fields jsonb;keys text[];k text;value\
+      \ text;field_text text:='{';array_text text:='[';line_text text;line jsonb;last_id text;total numeric:=0;amount numeric;counted\
+      \ integer:=0;\r\nBEGIN\r\n IF jsonb_typeof(i) IS DISTINCT FROM 'object' OR ((SELECT array_agg(key ORDER BY key) FROM\
+      \ jsonb_object_keys(i) key) IS DISTINCT FROM ARRAY['fields','kind','receiptMode'] AND NOT(i->>'kind'='pwa-plan' AND\
+      \ (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(i) key)=ARRAY['closePreparationHash','fields','kind','receiptMode']))\
+      \ OR i->>'kind' NOT IN('pwa-plan','legacy-source') OR i->>'receiptMode' NOT IN('preserve','replace','remove') THEN RAISE\
+      \ EXCEPTION 'Invalid correction';END IF;\r\n IF i ? 'closePreparationHash' AND (jsonb_typeof(i->'closePreparationHash')\
+      \ NOT IN('null','string') OR (i->'closePreparationHash'<>'null'::jsonb AND i->>'closePreparationHash'!~'^[a-f0-9]{64}$'))\
+      \ THEN RAISE EXCEPTION 'Invalid close preparation hash';END IF;\r\n fields:=i->'fields';keys:=ARRAY['borrowerId','amountReceived','paymentDate','paymentMethod','cashAccountId','notes','allocationMethod','targetChargeId','targetLoanId']||ARRAY[CASE\
+      \ WHEN i->>'kind'='pwa-plan' THEN 'allocations' ELSE 'selectedChargeIds' END];\r\n IF jsonb_typeof(fields) IS DISTINCT\
+      \ FROM 'object' OR (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(fields) key) IS DISTINCT FROM (SELECT\
+      \ array_agg(key ORDER BY key) FROM unnest(keys) key) THEN RAISE EXCEPTION 'Invalid correction fields';END IF;\r\n FOREACH\
+      \ k IN ARRAY keys[1:9] LOOP\r\n value:=fields->>k;\r\n IF k IN('notes','targetChargeId','targetLoanId') THEN IF jsonb_typeof(fields->k)\
+      \ NOT IN('string','null') THEN RAISE EXCEPTION 'Invalid nullable field';END IF;\r\n ELSE IF jsonb_typeof(fields->k)\
+      \ IS DISTINCT FROM 'string' THEN RAISE EXCEPTION 'Invalid field';END IF;END IF;\r\n IF octet_length(value)>65536 THEN\
+      \ RAISE EXCEPTION 'Field too long';END IF;\r\n IF k IN('borrowerId','cashAccountId','targetChargeId','targetLoanId')\
+      \ AND value IS NOT NULL AND (octet_length(value) NOT BETWEEN 1 AND 256 OR value~'[[:cntrl:]]' OR value<>btrim(value))\
+      \ THEN RAISE EXCEPTION 'Invalid reference';END IF;\r\n field_text:=field_text||CASE WHEN field_text='{' THEN '' ELSE\
+      \ ',' END||to_json(k)::text||':'||coalesce(to_json(value)::text,'null');\r\n END LOOP;\r\n IF fields->>'amountReceived'!~'^[1-9][0-9]*$'\
+      \ OR (fields->>'amountReceived')::numeric>92233720368547758 OR fields->>'paymentDate'!~'^[0-9]{4}-[0-9]{2}-[0-9]{2}$'\
+      \ OR ((fields->>'paymentDate')::date)::text<>fields->>'paymentDate' OR fields->>'paymentMethod' NOT IN('Bank Transfer','Cash','Net-off\
+      \ at Disbursement') OR fields->>'allocationMethod' NOT IN('Single Full','Single Partial','Receive All','Lump Sum','First-day\
+      \ Auto','Loan Close','Selected Charges') THEN RAISE EXCEPTION 'Invalid financial input';END IF;\r\n amount:=(fields->>'amountReceived')::numeric;\r\
+      \n IF i->>'kind'='pwa-plan' THEN\r\n IF fields->>'allocationMethod' NOT IN('Selected Charges','First-day Auto','Loan\
+      \ Close') OR jsonb_typeof(fields->'allocations') IS DISTINCT FROM 'array' OR jsonb_array_length(fields->'allocations')\
+      \ NOT BETWEEN 1 AND 10000 THEN RAISE EXCEPTION 'Invalid plan';END IF;\r\n FOR line IN SELECT element.value FROM jsonb_array_elements(fields->'allocations')\
+      \ AS element LOOP\r\n IF jsonb_typeof(line) IS DISTINCT FROM 'object' OR (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(line)\
+      \ key) IS DISTINCT FROM ARRAY['chargeDate','chargeId','expectedInterestRemaining','expectedPrincipalRemaining','interest','principal']\
+      \ THEN RAISE EXCEPTION 'Invalid plan line';END IF;\r\n value:=line->>'chargeId';IF jsonb_typeof(line->'chargeId') IS\
+      \ DISTINCT FROM 'string' OR octet_length(value) NOT BETWEEN 1 AND 256 OR value~'[[:space:],[:cntrl:]]' OR (last_id IS\
+      \ NOT NULL AND value COLLATE \"C\"<=last_id COLLATE \"C\") THEN RAISE EXCEPTION 'Invalid plan ordering';END IF;last_id:=value;\r\
+      \n line_text:='{';FOREACH k IN ARRAY ARRAY['chargeId','principal','interest','expectedPrincipalRemaining','expectedInterestRemaining','chargeDate']\
+      \ LOOP\r\n IF jsonb_typeof(line->k) IS DISTINCT FROM 'string' THEN RAISE EXCEPTION 'Invalid plan type';END IF;\r\n IF\
+      \ k IN('principal','interest','expectedPrincipalRemaining','expectedInterestRemaining') AND (line->>k!~'^(0|[1-9][0-9]*)$'\
+      \ OR (line->>k)::numeric>92233720368547758) THEN RAISE EXCEPTION 'Invalid plan amount';END IF;\r\n line_text:=line_text||CASE\
+      \ WHEN line_text='{' THEN '' ELSE ',' END||to_json(k)::text||':'||to_json(line->>k)::text;END LOOP;\r\n IF line->>'chargeDate'!~'^[0-9]{4}-[0-9]{2}-[0-9]{2}$'\
+      \ OR ((line->>'chargeDate')::date)::text<>line->>'chargeDate' OR (line->>'principal')::numeric+(line->>'interest')::numeric<=0\
+      \ OR (line->>'principal')::numeric>(line->>'expectedPrincipalRemaining')::numeric OR (line->>'interest')::numeric>(line->>'expectedInterestRemaining')::numeric\
+      \ THEN RAISE EXCEPTION 'Invalid plan line';END IF;\r\n total:=total+(line->>'principal')::numeric+(line->>'interest')::numeric;array_text:=array_text||CASE\
+      \ WHEN array_text='[' THEN '' ELSE ',' END||line_text||'}';END LOOP;\r\n IF total<>amount THEN RAISE EXCEPTION 'Plan\
+      \ sum mismatch';END IF;\r\n field_text:=field_text||',\"allocations\":'||array_text||']}';\r\n ELSE\r\n IF fields->'selectedChargeIds'='null'::jsonb\
+      \ THEN array_text:='null';ELSE\r\n IF jsonb_typeof(fields->'selectedChargeIds') IS DISTINCT FROM 'array' OR jsonb_array_length(fields->'selectedChargeIds')\
+      \ NOT BETWEEN 1 AND 10000 THEN RAISE EXCEPTION 'Invalid selection';END IF;\r\n FOR line IN SELECT element.value FROM\
+      \ jsonb_array_elements(fields->'selectedChargeIds') AS element LOOP\r\n value:=line#>>'{}';IF jsonb_typeof(line) IS\
+      \ DISTINCT FROM 'string' OR octet_length(value) NOT BETWEEN 1 AND 256 OR value~'[[:space:],[:cntrl:]]' OR (last_id IS\
+      \ NOT NULL AND value COLLATE \"C\"<=last_id COLLATE \"C\") THEN RAISE EXCEPTION 'Invalid selection';END IF;last_id:=value;array_text:=array_text||CASE\
+      \ WHEN array_text='[' THEN '' ELSE ',' END||to_json(value)::text;END LOOP;array_text:=array_text||']';END IF;\r\n field_text:=field_text||',\"\
+      selectedChargeIds\":'||array_text||'}';END IF;\r\n RETURN '{\"kind\":'||to_json(i->>'kind')::text||',\"fields\":'||field_text||',\"\
+      receiptMode\":'||to_json(i->>'receiptMode')::text||CASE WHEN i ? 'closePreparationHash' THEN ',\"closePreparationHash\"\
+      :'||coalesce(to_json(i->>'closePreparationHash')::text,'null') ELSE '' END||'}';\r\nEND $function$\n"
+    "owner": "postgres"
+    "language": "plpgsql"
+    "volatility": "i"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 0.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": "{postgres=X/postgres,mw_app_prod=X/postgres}"
+    "comment": null
+    "extension": null

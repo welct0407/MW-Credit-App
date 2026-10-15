@@ -1,0 +1,814 @@
+{
+  "definitions": [
+    [
+      "OLTP trial",
+      "1.000003",
+      "Borrowers",
+      "Data source",
+      "AppSheet database",
+      "DELETED by owner request; historical configuration only",
+      "Shared native copy; source rollback 3.000064; clone rollback 1.000002",
+      "ID=base/GhFoIWUelX4UMyCCNLda80/tables/Iya7C1Iv_z4ZmO0tyMrMme"
+    ],
+    [
+      "OLTP trial",
+      "1.000003",
+      "Loans",
+      "Data source",
+      "AppSheet database",
+      "DELETED by owner request; historical configuration only",
+      "Shared native copy; source rollback 3.000064; clone rollback 1.000002",
+      "ID=base/GhFoIWUelX4UMyCCNLda80/tables/uhIsbxFaUV4P2yCFRPUWoa"
+    ],
+    [
+      "OLTP trial",
+      "1.000003",
+      "Repayments",
+      "Data source",
+      "AppSheet database",
+      "DELETED by owner request; historical configuration only",
+      "Shared native copy; source rollback 3.000064; clone rollback 1.000002",
+      "ID=base/GhFoIWUelX4UMyCCNLda80/tables/TA6YmxJirY4Y2DSpa7aR17"
+    ],
+    [
+      "OLTP trial",
+      "1.000003",
+      "Statistics",
+      "Data source",
+      "AppSheet database",
+      "DELETED by owner request; historical configuration only",
+      "Shared native copy; source rollback 3.000064; clone rollback 1.000002",
+      "ID=base/GhFoIWUelX4UMyCCNLda80/tables/MoJ3e9N4iC4rE7kW9wLSt9"
+    ],
+    [
+      "OLTP trial",
+      "1.000003",
+      "Charges",
+      "Data source",
+      "AppSheet database",
+      "DELETED by owner request; historical configuration only",
+      "Shared native copy; source rollback 3.000064; clone rollback 1.000002",
+      "ID=base/GhFoIWUelX4UMyCCNLda80/tables/3EhKRaJBK64SAsNbtGBQU1"
+    ],
+    [
+      "OLTP trial",
+      "1.000003",
+      "Partners",
+      "Data source",
+      "AppSheet database",
+      "DELETED by owner request; historical configuration only",
+      "Shared native copy; source rollback 3.000064; clone rollback 1.000002",
+      "ID=base/GhFoIWUelX4UMyCCNLda80/tables/cxkDtKcsOZ4vm4kMSHOr66"
+    ],
+    [
+      "OLTP trial",
+      "1.000003",
+      "Payment Allocations",
+      "Data source",
+      "AppSheet database",
+      "DELETED by owner request; historical configuration only",
+      "Shared native copy; source rollback 3.000064; clone rollback 1.000002",
+      "ID=base/GhFoIWUelX4UMyCCNLda80/tables/MFKNswyWeK4HYkVSIutpvb"
+    ],
+    [
+      "OLTP trial",
+      "1.000003",
+      "Payments",
+      "Data source",
+      "AppSheet database",
+      "DELETED by owner request; historical configuration only",
+      "Shared native copy; source rollback 3.000064; clone rollback 1.000002",
+      "ID=base/GhFoIWUelX4UMyCCNLda80/tables/ULg9Cchxjz4oyzeQgeF-59"
+    ],
+    [
+      "OLAP trial",
+      "1.000004",
+      "Borrowers",
+      "Data source / permissions",
+      "AppSheet database",
+      "DELETED by owner request; historical configuration only",
+      "Shared native copy; source rollback 1.100041; clone rollback 1.000002",
+      "Database GhFoIWUelX4UMyCCNLda80; qualifier Borrowers; READ_ONLY"
+    ],
+    [
+      "OLAP trial",
+      "1.000004",
+      "Loans",
+      "Data source / permissions",
+      "AppSheet database",
+      "DELETED by owner request; historical configuration only",
+      "Shared native copy; source rollback 1.100041; clone rollback 1.000002",
+      "Database GhFoIWUelX4UMyCCNLda80; qualifier Loans; READ_ONLY"
+    ],
+    [
+      "OLAP trial",
+      "1.000004",
+      "Repayments",
+      "Data source / permissions",
+      "AppSheet database",
+      "DELETED by owner request; historical configuration only",
+      "Shared native copy; source rollback 1.100041; clone rollback 1.000002",
+      "Database GhFoIWUelX4UMyCCNLda80; qualifier Repayments; READ_ONLY"
+    ],
+    [
+      "OLAP trial",
+      "1.000004",
+      "Statistics",
+      "Data source / permissions",
+      "AppSheet database",
+      "DELETED by owner request; historical configuration only",
+      "Shared native copy; source rollback 1.100041; clone rollback 1.000002",
+      "Database GhFoIWUelX4UMyCCNLda80; qualifier Statistics; ALL_CHANGES"
+    ],
+    [
+      "OLAP trial",
+      "1.000004",
+      "Charges",
+      "Data source / permissions",
+      "AppSheet database",
+      "DELETED by owner request; historical configuration only",
+      "Shared native copy; source rollback 1.100041; clone rollback 1.000002",
+      "Database GhFoIWUelX4UMyCCNLda80; qualifier Charges; READ_ONLY"
+    ],
+    [
+      "OLAP trial",
+      "1.000004",
+      "Loan Assessment",
+      "Data source / permissions",
+      "AppSheet database",
+      "DELETED by owner request; historical configuration only",
+      "Shared native copy; source rollback 1.100041; clone rollback 1.000002",
+      "Database GhFoIWUelX4UMyCCNLda80; qualifier Loan Assessment; ALL_CHANGES"
+    ],
+    [
+      "OLAP trial",
+      "1.000004",
+      "Cash Pool Contributions",
+      "Data source / permissions",
+      "AppSheet database",
+      "DELETED by owner request; historical configuration only",
+      "Shared native copy; source rollback 1.100041; clone rollback 1.000002",
+      "Database GhFoIWUelX4UMyCCNLda80; qualifier Cash Pool Contributions; ADDS_AND_UPDATES"
+    ],
+    [
+      "OLAP trial",
+      "1.000004",
+      "Partners",
+      "Data source / permissions",
+      "AppSheet database",
+      "DELETED by owner request; historical configuration only",
+      "Shared native copy; source rollback 1.100041; clone rollback 1.000002",
+      "Database GhFoIWUelX4UMyCCNLda80; qualifier Partners; ALL_CHANGES"
+    ],
+    [
+      "OLAP trial",
+      "1.000004",
+      "Settlements",
+      "Data source / permissions",
+      "AppSheet database",
+      "DELETED by owner request; historical configuration only",
+      "Shared native copy; source rollback 1.100041; clone rollback 1.000002",
+      "Database GhFoIWUelX4UMyCCNLda80; qualifier Settlements; ALL_CHANGES"
+    ],
+    [
+      "OLAP trial",
+      "1.000004",
+      "Daily Analytics",
+      "Data source / permissions",
+      "AppSheet database",
+      "DELETED by owner request; historical configuration only",
+      "Shared native copy; source rollback 1.100041; clone rollback 1.000002",
+      "Database GhFoIWUelX4UMyCCNLda80; qualifier Daily Analytics; ALL_CHANGES"
+    ],
+    [
+      "OLAP trial",
+      "1.000004",
+      "Payment Allocations",
+      "Data source / permissions",
+      "AppSheet database",
+      "DELETED by owner request; historical configuration only",
+      "Shared native copy; source rollback 1.100041; clone rollback 1.000002",
+      "Database GhFoIWUelX4UMyCCNLda80; qualifier Payment Allocations; READ_ONLY"
+    ],
+    [
+      "OLAP trial",
+      "1.000004",
+      "Payments",
+      "Data source / permissions",
+      "AppSheet database",
+      "DELETED by owner request; historical configuration only",
+      "Shared native copy; source rollback 1.100041; clone rollback 1.000002",
+      "Database GhFoIWUelX4UMyCCNLda80; qualifier Payments; READ_ONLY"
+    ],
+    [
+      "OLAP trial",
+      "1.000004",
+      "Calendar",
+      "Data source",
+      "Google Sheets",
+      "DELETED by owner request; historical configuration only",
+      "Separate source outside shared native database",
+      "Calendar Help Table / Sheet1; READ_ONLY"
+    ],
+    [
+      "OLTP trial",
+      "1.000003",
+      "Automation",
+      "Notification - New Loan Created",
+      "Bot",
+      "DELETED by owner request; historical configuration only",
+      "Prevent notifications or scheduled mutations during migration",
+      "Disabled; production unchanged"
+    ],
+    [
+      "OLTP trial",
+      "1.000003",
+      "Automation",
+      "Notification - Loan Closed",
+      "Bot",
+      "DELETED by owner request; historical configuration only",
+      "Prevent notifications or scheduled mutations during migration",
+      "Disabled; production unchanged"
+    ],
+    [
+      "OLTP trial",
+      "1.000003",
+      "Automation",
+      "Notification - Charge Received",
+      "Bot",
+      "DELETED by owner request; historical configuration only",
+      "Prevent notifications or scheduled mutations during migration",
+      "Disabled; production unchanged"
+    ],
+    [
+      "OLTP trial",
+      "1.000003",
+      "Automation",
+      "Generate Daily Charges",
+      "Bot",
+      "DELETED by owner request; historical configuration only",
+      "Prevent notifications or scheduled mutations during migration",
+      "Disabled; production unchanged"
+    ],
+    [
+      "OLAP trial",
+      "1.000004",
+      "Automation",
+      "Refresh Daily Analytics Daily 2",
+      "Bot",
+      "DELETED by owner request; historical configuration only",
+      "Other two bots already disabled",
+      "All three OLAP bots disabled; production unchanged"
+    ],
+    [
+      "SQL POC cleanup",
+      "Historical",
+      "All three synthetic POC tables",
+      "Backend deleted",
+      "PostgreSQL",
+      "DELETED by owner request",
+      "Existing SQL Sync POC app remains; backend unavailable",
+      "appsheet-pg-test-20260914 deletion confirmed"
+    ],
+    [
+      "Fresh setup",
+      "Not created",
+      "No tables yet",
+      "Instance draft",
+      "PostgreSQL 18",
+      "CREATED; official copy transfer blocked",
+      "Copy original app using documented SQL copy workflow",
+      "34.21.174.215; loan_manager_prod; 13 empty SQL tables; SSL database-2 verified"
+    ],
+    [
+      "Clean restart",
+      "1.000007",
+      "Borrowers",
+      "SQL transfer status",
+      "PostgreSQL table",
+      "COPIED AND VERIFIED; 29 rows",
+      "Trial now reads SQL; all stored fields and related membership verified",
+      "public.\"Borrowers\"; 11 physical columns; exact keys and all fields matched"
+    ],
+    [
+      "Clean restart",
+      "1.000003",
+      "Calendar",
+      "SQL transfer status",
+      "PostgreSQL table",
+      "CREATED; 0 rows; not used by copied app",
+      "Schema types and data correctness not reconciled; preserve for diagnosis",
+      "public.\"Calendar\"; app 494cd013-0d9b-482f-9559-c9d83059de91 still uses original data sources"
+    ],
+    [
+      "Clean restart",
+      "1.000007",
+      "Cash Pool Contributions",
+      "SQL transfer status",
+      "PostgreSQL table",
+      "COPIED AND VERIFIED; 5 rows",
+      "Trial now reads SQL; all stored fields and related membership verified",
+      "public.\"Cash Pool Contributions\"; 6 physical columns; exact keys and all fields matched"
+    ],
+    [
+      "Clean restart",
+      "1.000007",
+      "Charges",
+      "SQL transfer status",
+      "PostgreSQL table",
+      "COPIED AND VERIFIED; 745 rows",
+      "Trial now reads SQL; all stored fields and related membership verified",
+      "public.\"Charges\"; 6 physical columns; exact keys and all fields matched"
+    ],
+    [
+      "Clean restart",
+      "1.000007",
+      "Daily Analytics",
+      "SQL transfer status",
+      "PostgreSQL table",
+      "COPIED AND VERIFIED; 41 rows",
+      "Trial now reads SQL; all stored fields and related membership verified",
+      "public.\"Daily Analytics\"; 16 physical columns; exact keys and all fields matched"
+    ],
+    [
+      "Clean restart",
+      "1.000007",
+      "Loan Assessment",
+      "SQL transfer status",
+      "PostgreSQL table",
+      "COPIED AND VERIFIED; 1 rows",
+      "Trial now reads SQL; all stored fields and related membership verified",
+      "public.\"Loan Assessment\"; 5 physical columns; exact keys and all fields matched"
+    ],
+    [
+      "Clean restart",
+      "1.000007",
+      "Loans",
+      "SQL transfer status",
+      "PostgreSQL table",
+      "COPIED AND VERIFIED; 62 rows",
+      "Trial now reads SQL; all stored fields and related membership verified",
+      "public.\"Loans\"; 20 physical columns; exact keys and all fields matched"
+    ],
+    [
+      "Clean restart",
+      "1.000007",
+      "Partners",
+      "SQL transfer status",
+      "PostgreSQL table",
+      "COPIED AND VERIFIED; 2 rows",
+      "Trial now reads SQL; all stored fields and related membership verified",
+      "public.\"Partners\"; 7 physical columns; exact keys and all fields matched"
+    ],
+    [
+      "Clean restart",
+      "1.000007",
+      "Payment Allocations",
+      "SQL transfer status",
+      "PostgreSQL table",
+      "COPIED AND VERIFIED; 263 rows",
+      "Trial now reads SQL; all stored fields and related membership verified",
+      "public.\"Payment Allocations\"; 13 physical columns; exact keys and all fields matched"
+    ],
+    [
+      "Clean restart",
+      "1.000007",
+      "Payments",
+      "SQL transfer status",
+      "PostgreSQL table",
+      "COPIED AND VERIFIED; 140 rows",
+      "Trial now reads SQL; all stored fields and related membership verified",
+      "public.\"Payments\"; 13 physical columns; exact keys and all fields matched"
+    ],
+    [
+      "Clean restart",
+      "1.000007",
+      "Repayments",
+      "SQL transfer status",
+      "PostgreSQL table",
+      "COPIED AND VERIFIED; 644 rows",
+      "Trial now reads SQL; all stored fields and related membership verified",
+      "public.\"Repayments\"; 10 physical columns; exact keys and all fields matched"
+    ],
+    [
+      "Clean restart",
+      "1.000007",
+      "Settlements",
+      "SQL transfer status",
+      "PostgreSQL table",
+      "COPIED AND VERIFIED; 2 rows",
+      "Trial now reads SQL; all stored fields and related membership verified",
+      "public.\"Settlements\"; 7 physical columns; exact keys and all fields matched"
+    ],
+    [
+      "Clean restart",
+      "1.000004",
+      "Statistics",
+      "SQL transfer status",
+      "PostgreSQL table",
+      "MANUAL COPY PASSED; 1 exact row",
+      "39 Statistics column configurations preserved; eight dashboard metrics match; other tables still original",
+      "database-2; Source Path Statistics; Table=public.Statistics__Statistics"
+    ],
+    [
+      "Clean restart",
+      "1.000003",
+      "Automation",
+      "Refresh Daily Analytics Daily 2",
+      "Bot",
+      "DISABLED in copied app",
+      "Prevent scheduled writes to original sources; rollback 1.000002",
+      "Disabled; Refresh Daily Analytics Daily already disabled"
+    ],
+    [
+      "Statistics manual",
+      "1.000004",
+      "Statistics",
+      "Row ID",
+      "Text / SQL text",
+      "Physical key; exact source key copied",
+      "Not nullable; no SQL default; unchanged app settings",
+      "Key Yes; Initial value UNIQUEID(\"PackedUUID\"); Read-Only Yes; no normalization"
+    ],
+    [
+      "Statistics manual",
+      "1.000004",
+      "Statistics",
+      "Statistics ID",
+      "Text / SQL text",
+      "Physical label; MAIN copied",
+      "Nullable; no SQL default; unchanged app settings",
+      "Label Yes; Read-Only No; one row"
+    ],
+    [
+      "Master switch",
+      "1.000006",
+      "Borrowers",
+      "Source binding",
+      "PostgreSQL table",
+      "READ_ONLY",
+      "Trial only; existing schema, Refs, slices and calculations preserved",
+      "database-2; Source Path Borrowers; Table=public.Borrowers__Borrowers"
+    ],
+    [
+      "Master switch",
+      "1.000006",
+      "Loans",
+      "Source binding",
+      "PostgreSQL table",
+      "READ_ONLY",
+      "Trial only; existing schema, Refs, slices and calculations preserved",
+      "database-2; Source Path Loans; Table=public.Loans__Loans"
+    ],
+    [
+      "Master switch",
+      "1.000006",
+      "Partners",
+      "Source binding",
+      "PostgreSQL table",
+      "ALL_CHANGES",
+      "Trial only; existing schema, Refs, slices and calculations preserved",
+      "database-2; Source Path Partners; Table=public.Partners__Partners"
+    ],
+    [
+      "Master switch",
+      "1.000005",
+      "Trial app",
+      "Cloud API",
+      "Integration",
+      "ENABLED with explicit owner confirmation",
+      "Extraction script uses Find only; access key itself is not read-only",
+      "Key and raw extracts stored outside Git; original app API settings unchanged"
+    ],
+    [
+      "Remaining switch",
+      "1.000007",
+      "Repayments",
+      "Source binding",
+      "PostgreSQL table",
+      "READ_ONLY",
+      "Trial only; schema and formulas unchanged",
+      "database-2; Source Path Repayments; Table=public.Repayments__Repayments"
+    ],
+    [
+      "Remaining switch",
+      "1.000007",
+      "Charges",
+      "Source binding",
+      "PostgreSQL table",
+      "READ_ONLY",
+      "Trial only; schema and formulas unchanged",
+      "database-2; Source Path Charges; Table=public.Charges__Charges"
+    ],
+    [
+      "Remaining switch",
+      "1.000007",
+      "Loan Assessment",
+      "Source binding",
+      "PostgreSQL table",
+      "ALL_CHANGES",
+      "Trial only; schema and formulas unchanged",
+      "database-2; Source Path Loan Assessment; Table=public.Loan Assessment__Loan Assessment"
+    ],
+    [
+      "Remaining switch",
+      "1.000007",
+      "Cash Pool Contributions",
+      "Source binding",
+      "PostgreSQL table",
+      "ADDS_AND_UPDATES",
+      "Trial only; schema and formulas unchanged",
+      "database-2; Source Path Cash Pool Contributions; Table=public.Cash Pool Contributions__Cash Pool Contributions"
+    ],
+    [
+      "Remaining switch",
+      "1.000007",
+      "Settlements",
+      "Source binding",
+      "PostgreSQL table",
+      "ALL_CHANGES",
+      "Trial only; schema and formulas unchanged",
+      "database-2; Source Path Settlements; Table=public.Settlements__Settlements"
+    ],
+    [
+      "Remaining switch",
+      "1.000007",
+      "Daily Analytics",
+      "Source binding",
+      "PostgreSQL table",
+      "ALL_CHANGES",
+      "Trial only; schema and formulas unchanged",
+      "database-2; Source Path Daily Analytics; Table=public.Daily Analytics__Daily Analytics"
+    ],
+    [
+      "Remaining switch",
+      "1.000007",
+      "Payment Allocations",
+      "Source binding",
+      "PostgreSQL table",
+      "READ_ONLY",
+      "Trial only; schema and formulas unchanged",
+      "database-2; Source Path Payment Allocations; Table=public.Payment Allocations__Payment Allocations"
+    ],
+    [
+      "Remaining switch",
+      "1.000007",
+      "Payments",
+      "Source binding",
+      "PostgreSQL table",
+      "READ_ONLY",
+      "Trial only; schema and formulas unchanged",
+      "database-2; Source Path Payments; Table=public.Payments__Payments"
+    ],
+    [
+      "Remaining switch",
+      "1.000007",
+      "Charges / Repayments",
+      "Provider row order",
+      "System metadata",
+      "201 Charges and 144 Repayments row numbers changed",
+      "Business values unchanged; 4 related lists reordered with identical membership",
+      "Never treat _RowNumber or unsorted REF_ROWS order as stable; validate write workflows separately"
+    ],
+    [
+      "SQL foreign keys",
+      "1.000007",
+      "Loans",
+      "Ref Borrowers",
+      "Foreign key",
+      "Validated; future production DB",
+      "Parent Borrowers.Row ID; app Ref unchanged",
+      "appsheet_ref_01: REFERENCES public.Borrowers(Row ID); UPDATE/DELETE NO ACTION; NOT DEFERRABLE; blank Ref text normalized to NULL"
+    ],
+    [
+      "SQL foreign keys",
+      "1.000007",
+      "Repayments",
+      "Ref Loans",
+      "Foreign key",
+      "Validated; future production DB",
+      "Parent Loans.Row ID; app Ref unchanged",
+      "appsheet_ref_02: REFERENCES public.Loans(Row ID); UPDATE/DELETE NO ACTION; NOT DEFERRABLE; blank Ref text normalized to NULL"
+    ],
+    [
+      "SQL foreign keys",
+      "1.000007",
+      "Repayments",
+      "Ref Charges",
+      "Foreign key",
+      "Validated; future production DB",
+      "Parent Charges.Row ID; app Ref unchanged",
+      "appsheet_ref_03: REFERENCES public.Charges(Row ID); UPDATE/DELETE NO ACTION; NOT DEFERRABLE; blank Ref text normalized to NULL"
+    ],
+    [
+      "SQL foreign keys",
+      "1.000007",
+      "Repayments",
+      "Ref Payment",
+      "Foreign key",
+      "Validated; future production DB",
+      "Parent Payments.Row ID; app Ref unchanged",
+      "appsheet_ref_04: REFERENCES public.Payments(Row ID); UPDATE/DELETE NO ACTION; NOT DEFERRABLE; blank Ref text normalized to NULL"
+    ],
+    [
+      "SQL foreign keys",
+      "1.000007",
+      "Repayments",
+      "Ref Payment Allocation",
+      "Foreign key",
+      "Validated; future production DB",
+      "Parent Payment Allocations.Row ID; app Ref unchanged",
+      "appsheet_ref_05: REFERENCES public.Payment Allocations(Row ID); UPDATE/DELETE NO ACTION; NOT DEFERRABLE; blank Ref text normalized to NULL"
+    ],
+    [
+      "SQL foreign keys",
+      "1.000007",
+      "Charges",
+      "Ref Loans",
+      "Foreign key",
+      "Validated; future production DB",
+      "Parent Loans.Row ID; app Ref unchanged",
+      "appsheet_ref_06: REFERENCES public.Loans(Row ID); UPDATE/DELETE NO ACTION; NOT DEFERRABLE; blank Ref text normalized to NULL"
+    ],
+    [
+      "SQL foreign keys",
+      "1.000007",
+      "Loan Assessment",
+      "Ref Borrower",
+      "Foreign key",
+      "Validated; future production DB",
+      "Parent Borrowers.Row ID; app Ref unchanged",
+      "appsheet_ref_07: REFERENCES public.Borrowers(Row ID); UPDATE/DELETE NO ACTION; NOT DEFERRABLE; blank Ref text normalized to NULL"
+    ],
+    [
+      "SQL foreign keys",
+      "1.000007",
+      "Cash Pool Contributions",
+      "Ref Partner",
+      "Foreign key",
+      "Validated; future production DB",
+      "Parent Partners.Row ID; app Ref unchanged",
+      "appsheet_ref_08: REFERENCES public.Partners(Row ID); UPDATE/DELETE NO ACTION; NOT DEFERRABLE; blank Ref text normalized to NULL"
+    ],
+    [
+      "SQL foreign keys",
+      "1.000007",
+      "Settlements",
+      "Ref Partner",
+      "Foreign key",
+      "Validated; future production DB",
+      "Parent Partners.Row ID; app Ref unchanged",
+      "appsheet_ref_09: REFERENCES public.Partners(Row ID); UPDATE/DELETE NO ACTION; NOT DEFERRABLE; blank Ref text normalized to NULL"
+    ],
+    [
+      "SQL foreign keys",
+      "1.000007",
+      "Payment Allocations",
+      "Ref Payment",
+      "Foreign key",
+      "Validated; future production DB",
+      "Parent Payments.Row ID; app Ref unchanged",
+      "appsheet_ref_10: REFERENCES public.Payments(Row ID); UPDATE/DELETE NO ACTION; NOT DEFERRABLE; blank Ref text normalized to NULL"
+    ],
+    [
+      "SQL foreign keys",
+      "1.000007",
+      "Payment Allocations",
+      "Ref Charge",
+      "Foreign key",
+      "Validated; future production DB",
+      "Parent Charges.Row ID; app Ref unchanged",
+      "appsheet_ref_11: REFERENCES public.Charges(Row ID); UPDATE/DELETE NO ACTION; NOT DEFERRABLE; blank Ref text normalized to NULL"
+    ],
+    [
+      "SQL foreign keys",
+      "1.000007",
+      "Payments",
+      "Ref Borrower",
+      "Foreign key",
+      "Validated; future production DB",
+      "Parent Borrowers.Row ID; app Ref unchanged",
+      "appsheet_ref_12: REFERENCES public.Borrowers(Row ID); UPDATE/DELETE NO ACTION; NOT DEFERRABLE; blank Ref text normalized to NULL"
+    ],
+    [
+      "SQL foreign keys",
+      "1.000007",
+      "Payments",
+      "Ref Target Charge",
+      "Foreign key",
+      "Validated; future production DB",
+      "Parent Charges.Row ID; app Ref unchanged",
+      "appsheet_ref_13: REFERENCES public.Charges(Row ID); UPDATE/DELETE NO ACTION; NOT DEFERRABLE; blank Ref text normalized to NULL"
+    ],
+    [
+      "SQL foreign keys",
+      "1.000007",
+      "8 child tables",
+      "appsheet_blank_refs",
+      "BEFORE trigger",
+      "Installed; 1,010 blanks normalized",
+      "Future empty Ref values -> NULL; nonblank values untouched",
+      "public.appsheet_normalize_blank_refs(); BEFORE INSERT OR UPDATE; 13 Ref columns only; no schema columns added"
+    ],
+    [
+      "OLTP SQL validation",
+      "1.000004",
+      "Borrowers",
+      "Data source",
+      "SQL binding",
+      "Copied OLTP; testing in progress",
+      "Original OLTP 3.000064 remains on Money",
+      "database-2; Borrowers"
+    ],
+    [
+      "OLTP SQL validation",
+      "1.000004",
+      "Loans",
+      "Data source",
+      "SQL binding",
+      "Copied OLTP; testing in progress",
+      "Original OLTP 3.000064 remains on Money",
+      "database-2; Loans"
+    ],
+    [
+      "OLTP SQL validation",
+      "1.000004",
+      "Repayments",
+      "Data source",
+      "SQL binding",
+      "Copied OLTP; testing in progress",
+      "Original OLTP 3.000064 remains on Money",
+      "database-2; Repayments"
+    ],
+    [
+      "OLTP SQL validation",
+      "1.000004",
+      "Statistics",
+      "Data source",
+      "SQL binding",
+      "Copied OLTP; testing in progress",
+      "Original OLTP 3.000064 remains on Money",
+      "database-2; Statistics"
+    ],
+    [
+      "OLTP SQL validation",
+      "1.000004",
+      "Charges",
+      "Data source",
+      "SQL binding",
+      "Copied OLTP; testing in progress",
+      "Original OLTP 3.000064 remains on Money",
+      "database-2; Charges"
+    ],
+    [
+      "OLTP SQL validation",
+      "1.000004",
+      "Partners",
+      "Data source",
+      "SQL binding",
+      "Copied OLTP; testing in progress",
+      "Original OLTP 3.000064 remains on Money",
+      "database-2; Partners"
+    ],
+    [
+      "OLTP SQL validation",
+      "1.000004",
+      "Payment Allocations",
+      "Data source",
+      "SQL binding",
+      "Copied OLTP; testing in progress",
+      "Original OLTP 3.000064 remains on Money",
+      "database-2; Payment Allocations"
+    ],
+    [
+      "OLTP SQL validation",
+      "1.000004",
+      "Payments",
+      "Data source",
+      "SQL binding",
+      "Copied OLTP; testing in progress",
+      "Original OLTP 3.000064 remains on Money",
+      "database-2; Payments"
+    ],
+    [
+      "OLTP SQL validation",
+      "OLTP 1.000005; OLAP 1.000007",
+      "Loans",
+      "Borrower Name",
+      "SQL lookup triggers",
+      "Installed; insert and rename verified",
+      "Restores native Lookup on Borrowers.Borrower Name for both app consumers",
+      "BEFORE INSERT OR UPDATE Loans: resolve Borrower Name through Ref Borrowers; AFTER Borrower Name update: propagate to Loans. No added columns."
+    ],
+    [
+      "OLTP SQL validation",
+      "1.000006",
+      "Loans",
+      "Two charge actions",
+      "Display only",
+      "Restored to baseline Hide",
+      "New GUI lifecycle testing complete",
+      "Generate Today's Charge and New Loan Payment - Create First-Day Charge: Hide. All 72 actions match copied baseline."
+    ]
+  ]
+}

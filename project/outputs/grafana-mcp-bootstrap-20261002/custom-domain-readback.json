@@ -1,0 +1,76 @@
+{
+  "observedAtUtc": "2026-10-02T21:57:41.602475+00:00",
+  "domain": "alerts.mw-credit.com",
+  "expectedCname": "ghs.googlehosted.com",
+  "expectedCnameSource": "owner mapping wizard and user-confirmed DNS entry",
+  "dns": {
+    "error": "[Errno -3] Temporary failure in name resolution",
+    "interpretation": "Local resolver unavailable; this does not establish absent or incorrect public DNS. Returned mapping CNAME matches owner-confirmed DNS entry; actual public CNAME/resolution remains unverified."
+  },
+  "http": {
+    "method": "GET",
+    "path": "/health",
+    "curlExit": 0,
+    "httpStatus": "503",
+    "tlsVerifyResult": "0",
+    "body": "unexpected or absent body omitted",
+    "error": "",
+    "pass": false,
+    "interpretation": "HTTP 503 is not the expected health 200. ssl_verify_result=0 alone does not establish ready custom-domain certificate/routing through the environment proxy. Non-bootstrap response body was omitted; origin of the 503 is unconfirmed."
+  },
+  "mapping": {
+    "metadata": {
+      "name": "alerts.mw-credit.com"
+    },
+    "spec": {
+      "routeName": "mw-grafana-events"
+    },
+    "status": {
+      "conditions": [
+        {
+          "lastTransitionTime": "2026-10-02T21:51:33.818035Z",
+          "message": "Waiting for certificate provisioning. You must configure your DNS records for certificate issuance to begin.",
+          "reason": "CertificatePending",
+          "status": "Unknown",
+          "type": "Ready"
+        },
+        {
+          "lastTransitionTime": "2026-10-02T21:52:34.178100Z",
+          "message": "Certificate issuance pending.",
+          "reason": "CertificatePending",
+          "status": "Unknown",
+          "type": "CertificateProvisioned"
+        },
+        {
+          "lastTransitionTime": "2026-10-02T21:51:33.818035Z",
+          "status": "True",
+          "type": "DomainRoutable"
+        },
+        {
+          "lastTransitionTime": "2026-10-02T21:53:55.134191Z",
+          "message": "System will retry after 00:05 from lastTransitionTime for polling interval",
+          "reason": "WaitingForOperation",
+          "severity": "Info",
+          "status": "True",
+          "type": "Retry"
+        }
+      ],
+      "mappedRouteName": "mw-grafana-events",
+      "resourceRecords": [
+        {
+          "name": "alerts",
+          "rrdata": "ghs.googlehosted.com.",
+          "type": "CNAME"
+        }
+      ]
+    }
+  },
+  "project": "clever-oasis-508610-n7",
+  "region": "asia-southeast1",
+  "mappingMatchesService": true,
+  "sensitiveRoutesTested": false,
+  "sensitiveRoutesReason": "Deferred until custom-domain TLS/routing health readiness; no repeated probes.",
+  "sdkObservation": "The beta read command automatically installed the missing gcloud beta component in the retained SDK. No full installation, reset, cloud configuration, DNS, ownership, network or security change was performed.",
+  "cliParserObservation": "Stable run domain-mappings describe rejected --region locally; used the documented beta command for regional metadata read.",
+  "readiness": "CertificatePending"
+}

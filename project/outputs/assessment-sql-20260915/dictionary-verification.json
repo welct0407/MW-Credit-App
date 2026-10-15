@@ -1,0 +1,23 @@
+{
+  "sheet": "OLAP Assessment SQL",
+  "rows": 59,
+  "version": "1.000022",
+  "unchangedSheets": [
+    "README",
+    "Tables",
+    "Columns",
+    "Relationships",
+    "Slices",
+    "Slice Columns",
+    "App Variances",
+    "Change Log",
+    "Payments Clone",
+    "Payments Clone Slices",
+    "OLTP Performance Lab",
+    "OLTP Combined Test",
+    "SQL Sync POC",
+    "SQL Migration Trial",
+    "SQL Production"
+  ],
+  "reimportVerified": true
+}

@@ -1,0 +1,852 @@
+{
+  "dashboard": 3,
+  "tab": 105,
+  "questions": [
+    {
+      "id": 304,
+      "name": "Payment punctuality over time · due month",
+      "description": "One charge is one obligation. On time means both principal and interest fully covered by its due date. Partial payments are combined. Due dates today/future, zero/accounting obligations and invalid evidence are excluded. A late settlement stays late. Historical timing uses effective payment dates; current outstanding includes today. No eligible history means unavailable, never 100%.",
+      "display": "bar",
+      "dataset_query": {
+        "stages": [
+          {
+            "template-tags": [
+              {
+                "widget-type": "date/all-options",
+                "id": "bp-period",
+                "name": "period",
+                "display-name": "Due date range",
+                "type": "dimension",
+                "dimension": [
+                  "field",
+                  {
+                    "base-type": "type/Date",
+                    "lib/uuid": "e0d849c2-3b58-447e-bc85-4fabfa29a57d",
+                    "effective-type": "type/Date"
+                  },
+                  82
+                ],
+                "alias": "d.\"Date\""
+              },
+              {
+                "display-name": "Borrower",
+                "id": "bp-borrower",
+                "name": "borrower_id",
+                "type": "text"
+              }
+            ],
+            "lib/type": "mbql.stage/native",
+            "native": "WITH clock AS (SELECT public.olap_reporting_date() today), selected AS (SELECT d.\"Date\" FROM (SELECT generate_series(DATE '1900-01-01',DATE '2199-12-31',interval '1 day')::date \"Date\") d WHERE [[{{period}} --]] d.\"Date\" BETWEEN (SELECT today-30 FROM clock) AND (SELECT today-1 FROM clock)\n), bounds AS (SELECT min(\"Date\") starts,max(\"Date\") ends,count(*) days,count(*)>0 AND count(*)=max(\"Date\")-min(\"Date\")+1 AND max(\"Date\")<=(SELECT today FROM clock) valid FROM selected), chosen AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE borrower_id= [[{{borrower_id}} --]] '__select_borrower__'\n), activity AS (SELECT a.* FROM public.reporting_borrower_activity_daily_v1 a JOIN chosen c USING(borrower_id) CROSS JOIN bounds b WHERE b.valid AND a.activity_date BETWEEN b.starts AND b.ends), facts AS (SELECT h.* FROM chosen c JOIN public.reporting_charge_payment_health_v1 h USING(borrower_id) CROSS JOIN bounds b WHERE b.valid AND h.due_date BETWEEN b.starts AND b.ends) SELECT date_trunc('month',due_date)::date AS \"Due month\",count(*) FILTER(WHERE history_eligible AND on_time) AS \"Paid on time\",count(*) FILTER(WHERE history_eligible AND NOT on_time AND NOT is_overdue) AS \"Paid late\",count(*) FILTER(WHERE history_eligible AND NOT on_time AND is_overdue) AS \"Still overdue\" FROM facts WHERE history_eligible GROUP BY 1 ORDER BY 1"
+          }
+        ],
+        "lib/type": "mbql/query",
+        "database": 2
+      },
+      "visualization_settings": {
+        "graph.y_axis.title_text": "Obligations",
+        "graph.show_values": false,
+        "graph.show_legend": true,
+        "graph.missing": "none",
+        "graph.y_axis.auto_split": false,
+        "graph.metrics": [
+          "Paid on time",
+          "Paid late",
+          "Still overdue"
+        ],
+        "graph.label_value_formatting": "compact",
+        "graph.colors": [
+          "#2E9D67",
+          "#E6A23C",
+          "#D9534F"
+        ],
+        "graph.show_dots": false,
+        "column_settings": {
+          "[\"name\",\"Paid on time\"]": {
+            "number_style": "decimal",
+            "decimals": 0
+          },
+          "[\"name\",\"Paid late\"]": {
+            "number_style": "decimal",
+            "decimals": 0
+          },
+          "[\"name\",\"Still overdue\"]": {
+            "number_style": "decimal",
+            "decimals": 0
+          }
+        },
+        "graph.dimensions": [
+          "Due month"
+        ],
+        "stackable.stack_type": "stacked"
+      }
+    },
+    {
+      "id": 316,
+      "name": "Payment punctuality summary · selected due dates",
+      "description": "One charge is one obligation. On time means both principal and interest fully covered by its due date. Partial payments are combined. Due dates today/future, zero/accounting obligations and invalid evidence are excluded. A late settlement stays late. Historical timing uses effective payment dates; current outstanding includes today. No eligible history means unavailable, never 100%.",
+      "display": "table",
+      "dataset_query": {
+        "stages": [
+          {
+            "template-tags": [
+              {
+                "widget-type": "date/all-options",
+                "id": "bp-period",
+                "name": "period",
+                "display-name": "Due date range",
+                "type": "dimension",
+                "dimension": [
+                  "field",
+                  {
+                    "base-type": "type/Date",
+                    "lib/uuid": "8758fb14-6bed-4d1c-a88f-67f4cf3b7e67",
+                    "effective-type": "type/Date"
+                  },
+                  82
+                ],
+                "alias": "d.\"Date\""
+              },
+              {
+                "display-name": "Borrower",
+                "id": "bp-borrower",
+                "name": "borrower_id",
+                "type": "text"
+              }
+            ],
+            "lib/type": "mbql.stage/native",
+            "native": "WITH clock AS (SELECT public.olap_reporting_date() today), selected AS (SELECT d.\"Date\" FROM (SELECT generate_series(DATE '1900-01-01',DATE '2199-12-31',interval '1 day')::date \"Date\") d WHERE [[{{period}} --]] d.\"Date\" BETWEEN (SELECT today-30 FROM clock) AND (SELECT today-1 FROM clock)\n), bounds AS (SELECT min(\"Date\") starts,max(\"Date\") ends,count(*) days,count(*)>0 AND count(*)=max(\"Date\")-min(\"Date\")+1 AND max(\"Date\")<=(SELECT today FROM clock) valid FROM selected), chosen AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE borrower_id= [[{{borrower_id}} --]] '__select_borrower__'\n), activity AS (SELECT a.* FROM public.reporting_borrower_activity_daily_v1 a JOIN chosen c USING(borrower_id) CROSS JOIN bounds b WHERE b.valid AND a.activity_date BETWEEN b.starts AND b.ends), facts AS (SELECT h.* FROM chosen c JOIN public.reporting_charge_payment_health_v1 h USING(borrower_id) CROSS JOIN bounds b WHERE b.valid AND h.due_date BETWEEN b.starts AND b.ends) SELECT CASE WHEN count(*) FILTER(WHERE history_eligible)>0 THEN count(*) FILTER(WHERE history_eligible AND on_time)::numeric/count(*) FILTER(WHERE history_eligible) END AS \"On-time rate\",count(*) FILTER(WHERE history_eligible) AS \"Assessed obligations\",count(*) FILTER(WHERE history_eligible AND on_time) AS \"Paid on time\",count(*) FILTER(WHERE history_eligible AND NOT on_time AND NOT is_overdue) AS \"Paid late\",count(*) FILTER(WHERE history_eligible AND NOT on_time AND is_overdue) AS \"Still overdue\",count(*) FILTER(WHERE NOT history_eligible OR on_time IS NULL) AS \"Excluded / unavailable\" FROM facts HAVING EXISTS(SELECT 1 FROM chosen CROSS JOIN bounds WHERE valid)"
+          }
+        ],
+        "lib/type": "mbql/query",
+        "database": 2
+      },
+      "visualization_settings": {
+        "table.pivot": false,
+        "column_settings": {
+          "[\"name\",\"On-time rate\"]": {
+            "number_style": "percent",
+            "decimals": 1
+          }
+        }
+      }
+    }
+  ],
+  "layout": [
+    {
+      "id": 2161,
+      "card_id": null,
+      "dashboard_tab_id": 105,
+      "row": 0,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 3,
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "## Borrower Detail\nSelect one borrower above. Empty selection shows no financial totals. Activity dates affect the period sections only."
+          }
+        }
+      },
+      "series": []
+    },
+    {
+      "id": 2162,
+      "card_id": 290,
+      "dashboard_tab_id": 105,
+      "row": 3,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 4,
+      "parameter_mappings": [
+        {
+          "parameter_id": "bd-borrower",
+          "card_id": 290,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "borrower_id"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {},
+      "series": []
+    },
+    {
+      "id": 2163,
+      "card_id": 291,
+      "dashboard_tab_id": 105,
+      "row": 7,
+      "col": 0,
+      "size_x": 6,
+      "size_y": 3,
+      "parameter_mappings": [
+        {
+          "parameter_id": "bd-borrower",
+          "card_id": 291,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "borrower_id"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {},
+      "series": []
+    },
+    {
+      "id": 2164,
+      "card_id": 292,
+      "dashboard_tab_id": 105,
+      "row": 7,
+      "col": 6,
+      "size_x": 6,
+      "size_y": 3,
+      "parameter_mappings": [
+        {
+          "parameter_id": "bd-borrower",
+          "card_id": 292,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "borrower_id"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {},
+      "series": []
+    },
+    {
+      "id": 2165,
+      "card_id": 293,
+      "dashboard_tab_id": 105,
+      "row": 7,
+      "col": 12,
+      "size_x": 6,
+      "size_y": 3,
+      "parameter_mappings": [
+        {
+          "parameter_id": "bd-borrower",
+          "card_id": 293,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "borrower_id"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {},
+      "series": []
+    },
+    {
+      "id": 2166,
+      "card_id": 294,
+      "dashboard_tab_id": 105,
+      "row": 7,
+      "col": 18,
+      "size_x": 6,
+      "size_y": 3,
+      "parameter_mappings": [
+        {
+          "parameter_id": "bd-borrower",
+          "card_id": 294,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "borrower_id"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {},
+      "series": []
+    },
+    {
+      "id": 2167,
+      "card_id": 295,
+      "dashboard_tab_id": 105,
+      "row": 10,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 7,
+      "parameter_mappings": [
+        {
+          "parameter_id": "bd-borrower",
+          "card_id": 295,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "borrower_id"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {},
+      "series": []
+    },
+    {
+      "id": 2168,
+      "card_id": null,
+      "dashboard_tab_id": 105,
+      "row": 17,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 3,
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "### Activity · selected Bangkok dates\nHealth uses its own governed rolling window. Due today is not overdue; a payment today can cure debt without erasing historical lateness."
+          }
+        }
+      },
+      "series": []
+    },
+    {
+      "id": 2169,
+      "card_id": 296,
+      "dashboard_tab_id": 105,
+      "row": 20,
+      "col": 0,
+      "size_x": 6,
+      "size_y": 3,
+      "parameter_mappings": [
+        {
+          "parameter_id": "bd-period",
+          "card_id": 296,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "period"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "bd-borrower",
+          "card_id": 296,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "borrower_id"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {},
+      "series": []
+    },
+    {
+      "id": 2170,
+      "card_id": 297,
+      "dashboard_tab_id": 105,
+      "row": 20,
+      "col": 6,
+      "size_x": 6,
+      "size_y": 3,
+      "parameter_mappings": [
+        {
+          "parameter_id": "bd-period",
+          "card_id": 297,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "period"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "bd-borrower",
+          "card_id": 297,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "borrower_id"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {},
+      "series": []
+    },
+    {
+      "id": 2171,
+      "card_id": 298,
+      "dashboard_tab_id": 105,
+      "row": 20,
+      "col": 12,
+      "size_x": 6,
+      "size_y": 3,
+      "parameter_mappings": [
+        {
+          "parameter_id": "bd-period",
+          "card_id": 298,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "period"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "bd-borrower",
+          "card_id": 298,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "borrower_id"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {},
+      "series": []
+    },
+    {
+      "id": 2172,
+      "card_id": 299,
+      "dashboard_tab_id": 105,
+      "row": 20,
+      "col": 18,
+      "size_x": 6,
+      "size_y": 3,
+      "parameter_mappings": [
+        {
+          "parameter_id": "bd-period",
+          "card_id": 299,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "period"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "bd-borrower",
+          "card_id": 299,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "borrower_id"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {},
+      "series": []
+    },
+    {
+      "id": 2173,
+      "card_id": 300,
+      "dashboard_tab_id": 105,
+      "row": 23,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 5,
+      "parameter_mappings": [
+        {
+          "parameter_id": "bd-period",
+          "card_id": 300,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "period"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "bd-borrower",
+          "card_id": 300,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "borrower_id"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {},
+      "series": []
+    },
+    {
+      "id": 2174,
+      "card_id": 301,
+      "dashboard_tab_id": 105,
+      "row": 28,
+      "col": 0,
+      "size_x": 12,
+      "size_y": 8,
+      "parameter_mappings": [
+        {
+          "parameter_id": "bd-period",
+          "card_id": 301,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "period"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "bd-borrower",
+          "card_id": 301,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "borrower_id"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {},
+      "series": []
+    },
+    {
+      "id": 2175,
+      "card_id": 302,
+      "dashboard_tab_id": 105,
+      "row": 28,
+      "col": 12,
+      "size_x": 12,
+      "size_y": 8,
+      "parameter_mappings": [
+        {
+          "parameter_id": "bd-period",
+          "card_id": 302,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "period"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "bd-borrower",
+          "card_id": 302,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "borrower_id"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {},
+      "series": []
+    },
+    {
+      "id": 2176,
+      "card_id": 303,
+      "dashboard_tab_id": 105,
+      "row": 36,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 9,
+      "parameter_mappings": [
+        {
+          "parameter_id": "bd-borrower",
+          "card_id": 303,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "borrower_id"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {},
+      "series": []
+    },
+    {
+      "id": 2177,
+      "card_id": 304,
+      "dashboard_tab_id": 105,
+      "row": 49,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 8,
+      "parameter_mappings": [
+        {
+          "parameter_id": "bd-period",
+          "card_id": 304,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "period"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "bd-borrower",
+          "card_id": 304,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "borrower_id"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {},
+      "series": []
+    },
+    {
+      "id": 2178,
+      "card_id": 305,
+      "dashboard_tab_id": 105,
+      "row": 57,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 10,
+      "parameter_mappings": [
+        {
+          "parameter_id": "bd-borrower",
+          "card_id": 305,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "borrower_id"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {},
+      "series": []
+    },
+    {
+      "id": 2179,
+      "card_id": 308,
+      "dashboard_tab_id": 105,
+      "row": 67,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 9,
+      "parameter_mappings": [
+        {
+          "parameter_id": "bd-borrower",
+          "card_id": 308,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "borrower_id"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {},
+      "series": []
+    },
+    {
+      "id": 2180,
+      "card_id": 306,
+      "dashboard_tab_id": 105,
+      "row": 76,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 10,
+      "parameter_mappings": [
+        {
+          "parameter_id": "bd-period",
+          "card_id": 306,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "period"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "bd-borrower",
+          "card_id": 306,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "borrower_id"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {},
+      "series": []
+    },
+    {
+      "id": 2181,
+      "card_id": 307,
+      "dashboard_tab_id": 105,
+      "row": 86,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 10,
+      "parameter_mappings": [
+        {
+          "parameter_id": "bd-period",
+          "card_id": 307,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "period"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "bd-borrower",
+          "card_id": 307,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "borrower_id"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {},
+      "series": []
+    },
+    {
+      "id": 2182,
+      "card_id": null,
+      "dashboard_tab_id": 105,
+      "row": 96,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 3,
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "### Additional lending scenario\nHypothetical additional principal only; no loan is saved and no health score changes. Next-plan amounts above are recorded plans, not additional debt."
+          }
+        }
+      },
+      "series": []
+    },
+    {
+      "id": 2183,
+      "card_id": 309,
+      "dashboard_tab_id": 105,
+      "row": 99,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 5,
+      "parameter_mappings": [
+        {
+          "parameter_id": "bd-borrower",
+          "card_id": 309,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "borrower_id"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "bd-amount",
+          "card_id": 309,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "amount"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {},
+      "series": []
+    },
+    {
+      "id": 2184,
+      "card_id": null,
+      "dashboard_tab_id": 105,
+      "row": 104,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 3,
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "All amounts are baht. Lifetime/current sections ignore activity dates. Allocations are not unique receipts; corrections remain signed. [Borrower Health Review](/dashboard/3?tab=31) explains categories, confidence and automatic schedule restrictions."
+          }
+        }
+      },
+      "series": []
+    },
+    {
+      "id": 3968,
+      "card_id": 316,
+      "dashboard_tab_id": 105,
+      "row": 45,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 4,
+      "parameter_mappings": [
+        {
+          "parameter_id": "bd-period",
+          "card_id": 316,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "period"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "bd-borrower",
+          "card_id": 316,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "borrower_id"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {},
+      "series": []
+    }
+  ]
+}

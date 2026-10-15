@@ -1,0 +1,7 @@
+{
+  "provider": "Codex bundled workspace dependencies",
+  "bundleVersion": "26.909.12148",
+  "artifactToolVersion": "2.8.59",
+  "installation": "Run setup-dependencies.ps1 with the node_modules path returned by load_workspace_dependencies. This is a private bundled package, not a public npm installation.",
+  "python": "Use the bundled Python executable for historical Python scripts; obtain its path with load_workspace_dependencies."
+}

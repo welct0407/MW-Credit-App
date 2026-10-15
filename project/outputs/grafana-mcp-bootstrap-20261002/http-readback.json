@@ -1,0 +1,13 @@
+{
+  "checks": [
+    {
+      "endpoint": "https://mw-grafana-events-pvrgvyg3oq-as.a.run.app/health",
+      "method": "GET",
+      "curlExit": 56,
+      "httpStatus": "000",
+      "body": "",
+      "error": "curl: (56) CONNECT tunnel failed, response 403\n"
+    }
+  ],
+  "allExpectedResponses": false
+}

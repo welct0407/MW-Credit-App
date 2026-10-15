@@ -1,0 +1,47 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.pwa_worker_guard_v1(capability text)"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r053-notifications-jobs/dictionary-production-closure.json"
+  "coverage": "Actual affected PROD89 catalogue after maintained migration and authority restoration; no business rows."
+"content":
+  "definition":
+    "schema": "public"
+    "name": "pwa_worker_guard_v1"
+    "arguments": "capability text"
+    "kind": "f"
+    "arguments_with_defaults": "capability text"
+    "result": "void"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.pwa_worker_guard_v1(capability text)
+       RETURNS void
+       LANGUAGE plpgsql
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+      DECLARE suffix text; expected_owner text; expected_capability text;
+      BEGIN
+       IF current_database() NOT IN ('loan_manager_dev','payment_rehearsal','loan_manager_prod') OR capability NOT IN ('api','dispatch','jobs') OR capability IS NULL THEN RAISE EXCEPTION 'access_denied'; END IF;
+       suffix:=CASE current_database() WHEN 'loan_manager_prod' THEN 'prod' ELSE 'dev' END;
+       expected_owner:=CASE capability WHEN 'jobs' THEN 'mw_jobs_owner_' ELSE 'mw_notify_owner_' END||suffix;
+       expected_capability:=CASE capability WHEN 'jobs' THEN 'mw_jobs_' ELSE 'mw_notify_'||capability||'_' END||suffix;
+       IF current_user<>expected_owner OR NOT pg_has_role(session_user,expected_capability,'USAGE') OR pg_has_role(session_user,expected_owner,'MEMBER') THEN RAISE EXCEPTION 'access_denied'; END IF;
+      END $function$
+    "owner": "mw_notify_owner_prod"
+    "language": "plpgsql"
+    "volatility": "v"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 0.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": "{mw_notify_owner_prod=X/mw_notify_owner_prod,mw_jobs_owner_prod=X/mw_notify_owner_prod}"
+    "comment": "mw-access:governance fixed notification boundary; explicit capability only"
+    "extension": null

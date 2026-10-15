@@ -1,0 +1,57 @@
+{
+  "dashboard": "mw-resource-performance",
+  "scope": "Apply only these row5 layout item coordinates to the current verified export. Preserve panel definitions, queries, styles, metadata, every other item and all non-row5 layout. No filler at the right.",
+  "geometryByPanel": {
+    "120": {
+      "x": 0,
+      "y": 17,
+      "width": 8,
+      "height": 1
+    },
+    "124": {
+      "x": 8,
+      "y": 17,
+      "width": 12,
+      "height": 1
+    },
+    "121": {
+      "x": 0,
+      "y": 18,
+      "width": 2,
+      "height": 3
+    },
+    "122": {
+      "x": 2,
+      "y": 18,
+      "width": 2,
+      "height": 3
+    },
+    "123": {
+      "x": 4,
+      "y": 18,
+      "width": 4,
+      "height": 4
+    },
+    "125": {
+      "x": 8,
+      "y": 18,
+      "width": 4,
+      "height": 4
+    },
+    "126": {
+      "x": 12,
+      "y": 18,
+      "width": 4,
+      "height": 4
+    },
+    "127": {
+      "x": 16,
+      "y": 18,
+      "width": 4,
+      "height": 4
+    }
+  },
+  "cards_end_x": 20,
+  "unused_right_columns": 4,
+  "live_application": "Parent browser worker only; final saved evidence pending"
+}

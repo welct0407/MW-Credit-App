@@ -1,0 +1,58 @@
+{
+  "date": "2026-10-05",
+  "owner_request": "Make the other four tiles the same height as the two traffic lights",
+  "supersedes": "Prior retain-height4 instruction only for panels123/125/126/127",
+  "changes": {
+    "123": {
+      "height_before": 4,
+      "height_after": 3,
+      "width_retained": 4
+    },
+    "125": {
+      "height_before": 4,
+      "height_after": 3,
+      "width_retained": 4
+    },
+    "126": {
+      "height_before": 4,
+      "height_after": 3,
+      "width_retained": 4
+    },
+    "127": {
+      "height_before": 4,
+      "height_after": 3,
+      "width_retained": 4
+    }
+  },
+  "preserved": "x4/8/12/16,y18,headers,lights2x3,other layout,all panel/query/style/metadata values,right blank4units",
+  "checks": [
+    "Classic/v2 all six card heights equal standard light3; other widths remain4",
+    "Exact four height4\u21923 properties only in prepared import; every other value unchanged",
+    "Existing preservation/idempotence/geometry/Unknown/numeric/SGT regressions pass"
+  ],
+  "live_acceptance": "Complete: version36 parent save/reload/render/persisted equality verified",
+  "executor_effects": "Source/tests/docs only; no browser/backend/alert/merge operation",
+  "parent_saved_state": {
+    "height_properties_changed": 4,
+    "only_changed_panels": [
+      123,
+      125,
+      126,
+      127
+    ],
+    "before_height_units": 4,
+    "after_height_units": 3,
+    "all_six_cards_height_px": 106,
+    "wider_card_width_px": 174,
+    "wider_card_width_units": 4,
+    "positions_headers_blank_right": "Unchanged",
+    "final_resource_version_screenshot": "Version36 verified; saved screenshot delivered to owner",
+    "dashboard_version": 36,
+    "saved_at_utc": "2026-10-05T03:58:27Z",
+    "saved_at_sgt": "2026-10-05 11:58:27 Asia/Singapore",
+    "rollback_dashboard_version": 35,
+    "saved_resource_sha256": "6ddeeacbe27acd30fbea85e3b5503082f6cf4b0c1aa032a7dda7ec6cc754bf98",
+    "persisted_export": "Exactly equals proposed resource; only four height4\u21923 changes",
+    "normalization_or_other_property_deltas": 0
+  }
+}

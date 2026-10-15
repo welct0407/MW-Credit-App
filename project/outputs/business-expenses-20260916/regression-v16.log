@@ -1,0 +1,144 @@
+SET
+BEGIN
+CREATE FUNCTION
+CREATE FUNCTION
+INSERT 0 2
+INSERT 0 2
+INSERT 0 3
+INSERT 0 1
+ exp_reject
+------------
+
+(1 row)
+
+INSERT 0 6
+INSERT 0 6
+DO
+INSERT 0 1
+UPDATE 1
+UPDATE 1
+SET CONSTRAINTS
+ exp_assert
+------------
+
+(1 row)
+
+ exp_assert
+------------
+
+(1 row)
+
+ exp_assert
+------------
+
+(1 row)
+
+UPDATE 1
+UPDATE 1
+UPDATE 1
+ exp_assert
+------------
+
+(1 row)
+
+UPDATE 1
+ exp_assert
+------------
+
+(1 row)
+
+SET CONSTRAINTS
+UPDATE 1
+UPDATE 1
+SET CONSTRAINTS
+ exp_assert
+------------
+
+(1 row)
+
+ exp_reject
+------------
+
+(1 row)
+
+ exp_reject
+------------
+
+(1 row)
+
+SET CONSTRAINTS
+UPDATE 1
+UPDATE 1
+SET CONSTRAINTS
+INSERT 0 1
+ exp_assert
+------------
+
+(1 row)
+
+SET CONSTRAINTS
+UPDATE 1
+UPDATE 1
+SET CONSTRAINTS
+ exp_assert
+------------
+
+(1 row)
+
+ exp_reject
+------------
+
+(1 row)
+
+UPDATE 1
+ exp_assert
+------------
+
+(1 row)
+
+DO
+ refresh_daily_analytics
+-------------------------
+                       6
+(1 row)
+
+ exp_assert
+------------
+
+(1 row)
+
+INSERT 0 1
+ exp_reject
+------------
+
+(1 row)
+
+INSERT 0 1
+ exp_reject
+------------
+
+(1 row)
+
+UPDATE 1
+ exp_assert
+------------
+
+(1 row)
+
+               result
+------------------------------------
+ Business expense regression passed
+(1 row)
+
+ROLLBACK
+
+expenseLockFailsPromptly                : True
+concurrentSettlementCannotDoubleReserve : True
+busyMilliseconds                        : 97.7361
+
+firstMigrations           : 16
+secondMigrations          : 0
+baselineRebuildMatch      : False
+checksumTamperingRejected : True
+localPostgres             : 18.6
+flyway                    : 13.6.0

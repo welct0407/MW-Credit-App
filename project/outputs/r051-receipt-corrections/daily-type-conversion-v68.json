@@ -1,0 +1,86 @@
+{
+  "state": "DEV_APPLIED_VALIDATED_ROLLBACK_ACCEPTANCE_PASS_GUI_PENDING",
+  "actual_dev_version": 68,
+  "actual_prod_version": 58,
+  "migration": "database/migrations/V68__daily_type_conversion_uses_original_rate.sql",
+  "migration_sha256": "2e9b4921e1aa6380f5537262a693bc859e591ef4bdd37ad5c95e2018a9b2abae",
+  "scope": "One CREATE OR REPLACE of existing invoker apply_principal_daily_interest; no data backfill/new objects/columns/grants. No live calls.",
+  "basis": [
+    "V53 original_daily_interest_rate already defines a frozen rounded daily percentage for daily, fixed and installment sources.",
+    "V60 principal correction uses remaining outstanding times that frozen percentage. Entering daily applies the same rule."
+  ],
+  "behavior": {
+    "entering_daily": "round(greatest(0, Outstanding Principal) * Original Daily Interest Rate / 100), irrespective of submitted stale current amount",
+    "original_basis": "Keep immutable stored value. If missing, reuse existing previous-term historical derivation only; if still unavailable reject atomically. New replacement terms/submitted percentage do not invent original evidence.",
+    "zero": "Valid frozen0 produces current0; no positive interest charge is expected.",
+    "same_daily": "No type transition/principal change: preserve current amount, including original entry/backlog amount; stale app save cannot reprice it.",
+    "schedule": "Require LoanDate and positive interval only when entering daily with AutoCharge=true. Manual AutoCharge=false does not need an automatic interval. Existing anchor constraint remains.",
+    "history": "Do not rewrite charges, receipts or source cash. Future generation uses existing last-charge/LoanDate accrual clock, not conversion date; changing type is not a retroactive repricing command."
+  },
+  "focused_tests": [
+    "fixed100/original5/paid principal20 converts to daily4 even after FixedInterest edit and stale current999",
+    "installment100/five days/daily payment30 converts at original10",
+    "daily→fixed, principal reduction while fixed, return→daily recomputes on remaining40 at frozen10 =>4",
+    "same-daily stale amount/null original preserves current/original; changed nonnull original rejected",
+    "zero basis accepted; missing original evidence rejects, even if new due terms provided in same save",
+    "automatic missing/null/zero interval or missing date rejects; manual missing interval accepted",
+    "old charge/receipt/cash equality; future generated8I after two days at4 without rewriting older charge",
+    "single and multirow conversion failure preserves source rows",
+    "legacy null stored basis uses previous valid terms and ignores invented submitted99"
+  ],
+  "tests": [
+    "scripts/database/Test-LoanCorrections.sql",
+    "scripts/database/Test-DailyTypeConversion.sql"
+  ],
+  "local_log": "/tmp/r051-type-conversion-local.log",
+  "required_ci_log": "/tmp/r051-type-conversion-ci.log",
+  "applied": true,
+  "remaining": [
+    "Exact publication-head CI for helper/evidence update",
+    "Actual loan form/full-sync and any affected event afterimage proof; other cross-type schedules remain bounded/unverified",
+    "Seventh REIMBURSE seed requires a separate coordinated window; no new seed in this apply"
+  ],
+  "maintained_ci": {
+    "command": "scripts/database/Test-CI.ps1",
+    "exit_code": 0,
+    "routes": [
+      {
+        "migrations": 68,
+        "pre_migration_target": null,
+        "second_run": 0,
+        "sql": "passed",
+        "concurrency": [
+          "BusinessExpenses",
+          "ExpenseReimbursement",
+          "PaymentCrud",
+          "ReceiptDelete",
+          "InterestReallocation",
+          "CorePayment",
+          "AtomicLoanClose",
+          "ChargeGeneration",
+          "DefaultLoan"
+        ],
+        "checksum_tampering_rejected": true,
+        "logs": "/tmp/r051-migration-test-_1gptc9j"
+      },
+      {
+        "migrations": 49,
+        "pre_migration_target": 19,
+        "second_run": 0,
+        "sql": "passed",
+        "concurrency": [],
+        "checksum_tampering_rejected": true,
+        "logs": "/tmp/r051-migration-test-sh_4qxav"
+      }
+    ]
+  },
+  "focused_local_environment": "Private restored V67 with candidate function applied locally; full maintained CI independently rebuilds/migrates through68.",
+  "preserved_migrations": "All tracked V1–67 byte-equal to published HEAD; no applied migration edits",
+  "test_hashes": {
+    "scripts/database/Test-LoanCorrections.sql": "989ea4b469ab697bb6d105aade98aff4d98bfac9523d3f8ac3e12e306b640459",
+    "scripts/database/Test-DailyTypeConversion.sql": "39a28e381613cfb9619cabdf7794eb7f4f68024c6594e2e8b0eca6a9d0db2e64"
+  },
+  "flyway_checksum": -79096429,
+  "actual_acceptance": "dev-daily-conversion-v68.json",
+  "actual_summary": "daily-type-conversion-v68-actual-summary.json"
+}

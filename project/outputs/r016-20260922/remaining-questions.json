@@ -1,0 +1,7306 @@
+[
+  {
+    "key": "b-active",
+    "page": 3,
+    "name": "Active borrowers",
+    "model": "borrowers",
+    "display": "scalar",
+    "settings": {
+      "graph.dimensions": [],
+      "graph.metrics": [
+        "Active borrowers"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Active borrowers": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Active borrowers\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      },
+      "scalar.field": "Active borrowers"
+    },
+    "description": "Page 3. Built from the shared Borrowers model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__69",
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "count"
+            ],
+            {
+              "name": "Active borrowers",
+              "display-name": "Active borrowers"
+            }
+          ]
+        ],
+        "filter": [
+          "=",
+          [
+            "field",
+            "Has Active Loan",
+            {
+              "base-type": "type/Boolean"
+            }
+          ],
+          true
+        ]
+      }
+    }
+  },
+  {
+    "key": "b-principal",
+    "page": 3,
+    "name": "Principal outstanding",
+    "model": "portfolio",
+    "display": "scalar",
+    "settings": {
+      "graph.dimensions": [],
+      "graph.metrics": [
+        "Outstanding Principal"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Outstanding Principal": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Outstanding Principal\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      },
+      "scalar.field": "Outstanding Principal"
+    },
+    "description": "Reuses saved question 48. One-row Portfolio Overview outstanding principal.",
+    "reuse_card_id": 48
+  },
+  {
+    "key": "b-top",
+    "page": 3,
+    "name": "Largest borrower",
+    "model": "portfolio",
+    "display": "scalar",
+    "settings": {
+      "graph.dimensions": [],
+      "graph.metrics": [
+        "Top Borrower"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Top Borrower": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {},
+      "scalar.field": "Top Borrower"
+    },
+    "description": "Reuses saved question 59. Same Portfolio Overview top borrower field.",
+    "reuse_card_id": 59
+  },
+  {
+    "key": "b-interest",
+    "page": 3,
+    "name": "Lifetime interest",
+    "model": "borrowers",
+    "display": "scalar",
+    "settings": {
+      "graph.dimensions": [],
+      "graph.metrics": [
+        "Total Interest Earned"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Total Interest Earned": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Total Interest Earned\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      },
+      "scalar.field": "Total Interest Earned"
+    },
+    "description": "Page 3. Built from the shared Borrowers model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__69",
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "sum",
+              [
+                "field",
+                "Total Interest Earned",
+                {
+                  "base-type": "type/Decimal"
+                }
+              ]
+            ],
+            {
+              "name": "Total Interest Earned",
+              "display-name": "Total Interest Earned"
+            }
+          ]
+        ]
+      }
+    }
+  },
+  {
+    "key": "b-share-principal",
+    "page": 3,
+    "name": "Principal share",
+    "model": "borrowers",
+    "display": "pie",
+    "settings": {
+      "graph.dimensions": [
+        "Borrower"
+      ],
+      "graph.metrics": [
+        "Outstanding Principal"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Outstanding Principal": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Outstanding Principal\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      },
+      "pie.dimension": "Borrower",
+      "pie.metric": "Outstanding Principal",
+      "pie.show_legend": true,
+      "pie.show_total": false,
+      "pie.show_labels": true
+    },
+    "description": "Page 3. Built from the shared Borrowers model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__69",
+        "breakout": [
+          [
+            "field",
+            "Borrower",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        ],
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "sum",
+              [
+                "field",
+                "Outstanding Principal",
+                {
+                  "base-type": "type/Decimal"
+                }
+              ]
+            ],
+            {
+              "name": "Outstanding Principal",
+              "display-name": "Outstanding Principal"
+            }
+          ]
+        ],
+        "order-by": [
+          [
+            "desc",
+            [
+              "aggregation",
+              0
+            ]
+          ]
+        ],
+        "filter": [
+          "or",
+          [
+            "=",
+            [
+              "field",
+              "Hidden",
+              {
+                "base-type": "type/Boolean"
+              }
+            ],
+            false
+          ],
+          [
+            "is-null",
+            [
+              "field",
+              "Hidden",
+              {
+                "base-type": "type/Boolean"
+              }
+            ]
+          ]
+        ]
+      }
+    }
+  },
+  {
+    "key": "b-rank-principal",
+    "page": 3,
+    "name": "Principal by borrower",
+    "model": "borrowers",
+    "display": "row",
+    "settings": {
+      "graph.dimensions": [
+        "Borrower"
+      ],
+      "graph.metrics": [
+        "Outstanding Principal"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Outstanding Principal": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": true,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Outstanding Principal\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      }
+    },
+    "description": "Page 3. Built from the shared Borrowers model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__69",
+        "breakout": [
+          [
+            "field",
+            "Borrower",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        ],
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "sum",
+              [
+                "field",
+                "Outstanding Principal",
+                {
+                  "base-type": "type/Decimal"
+                }
+              ]
+            ],
+            {
+              "name": "Outstanding Principal",
+              "display-name": "Outstanding Principal"
+            }
+          ]
+        ],
+        "order-by": [
+          [
+            "desc",
+            [
+              "aggregation",
+              0
+            ]
+          ]
+        ],
+        "filter": [
+          "or",
+          [
+            "=",
+            [
+              "field",
+              "Hidden",
+              {
+                "base-type": "type/Boolean"
+              }
+            ],
+            false
+          ],
+          [
+            "is-null",
+            [
+              "field",
+              "Hidden",
+              {
+                "base-type": "type/Boolean"
+              }
+            ]
+          ]
+        ]
+      }
+    }
+  },
+  {
+    "key": "b-share-profit",
+    "page": 3,
+    "name": "Interest · past 30 days share",
+    "model": "borrowers",
+    "display": "pie",
+    "settings": {
+      "graph.dimensions": [
+        "Borrower"
+      ],
+      "graph.metrics": [
+        "Profit Last 30 Days"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Profit Last 30 Days": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Profit Last 30 Days\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      },
+      "pie.dimension": "Borrower",
+      "pie.metric": "Profit Last 30 Days",
+      "pie.show_legend": true,
+      "pie.show_total": false,
+      "pie.show_labels": true
+    },
+    "description": "Page 3. Built from the shared Borrowers model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__69",
+        "breakout": [
+          [
+            "field",
+            "Borrower",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        ],
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "sum",
+              [
+                "field",
+                "Profit Last 30 Days",
+                {
+                  "base-type": "type/Decimal"
+                }
+              ]
+            ],
+            {
+              "name": "Profit Last 30 Days",
+              "display-name": "Profit Last 30 Days"
+            }
+          ]
+        ],
+        "order-by": [
+          [
+            "desc",
+            [
+              "aggregation",
+              0
+            ]
+          ]
+        ],
+        "filter": [
+          "or",
+          [
+            "=",
+            [
+              "field",
+              "Hidden",
+              {
+                "base-type": "type/Boolean"
+              }
+            ],
+            false
+          ],
+          [
+            "is-null",
+            [
+              "field",
+              "Hidden",
+              {
+                "base-type": "type/Boolean"
+              }
+            ]
+          ]
+        ]
+      }
+    }
+  },
+  {
+    "key": "b-rank-profit",
+    "page": 3,
+    "name": "Interest · past 30 days by borrower",
+    "model": "borrowers",
+    "display": "row",
+    "settings": {
+      "graph.dimensions": [
+        "Borrower"
+      ],
+      "graph.metrics": [
+        "Profit Last 30 Days"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Profit Last 30 Days": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": true,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Profit Last 30 Days\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      }
+    },
+    "description": "Page 3. Built from the shared Borrowers model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__69",
+        "breakout": [
+          [
+            "field",
+            "Borrower",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        ],
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "sum",
+              [
+                "field",
+                "Profit Last 30 Days",
+                {
+                  "base-type": "type/Decimal"
+                }
+              ]
+            ],
+            {
+              "name": "Profit Last 30 Days",
+              "display-name": "Profit Last 30 Days"
+            }
+          ]
+        ],
+        "order-by": [
+          [
+            "desc",
+            [
+              "aggregation",
+              0
+            ]
+          ]
+        ],
+        "filter": [
+          "or",
+          [
+            "=",
+            [
+              "field",
+              "Hidden",
+              {
+                "base-type": "type/Boolean"
+              }
+            ],
+            false
+          ],
+          [
+            "is-null",
+            [
+              "field",
+              "Hidden",
+              {
+                "base-type": "type/Boolean"
+              }
+            ]
+          ]
+        ]
+      }
+    }
+  },
+  {
+    "key": "b-return",
+    "page": 3,
+    "name": "30-day return on average principal",
+    "model": "borrowers",
+    "display": "row",
+    "settings": {
+      "graph.dimensions": [
+        "Borrower"
+      ],
+      "graph.metrics": [
+        "30D Return on Average Principal"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "30D Return on Average Principal": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": true,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"30D Return on Average Principal\"]": {
+          "number_style": "percent",
+          "decimals": 1,
+          "number_separators": ".,"
+        }
+      }
+    },
+    "description": "Page 3. Built from the shared Borrowers model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__69",
+        "breakout": [
+          [
+            "field",
+            "Borrower",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        ],
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "sum",
+              [
+                "field",
+                "30D Return on Average Principal",
+                {
+                  "base-type": "type/Decimal"
+                }
+              ]
+            ],
+            {
+              "name": "30D Return on Average Principal",
+              "display-name": "30D Return on Average Principal"
+            }
+          ]
+        ],
+        "order-by": [
+          [
+            "desc",
+            [
+              "aggregation",
+              0
+            ]
+          ]
+        ],
+        "filter": [
+          ">",
+          [
+            "field",
+            "Total Number of Loans",
+            {
+              "base-type": "type/Integer"
+            }
+          ],
+          0
+        ]
+      }
+    }
+  },
+  {
+    "key": "b-coverage",
+    "page": 3,
+    "name": "Active principal covered by interest",
+    "model": "borrowers",
+    "display": "row",
+    "settings": {
+      "graph.dimensions": [
+        "Borrower"
+      ],
+      "graph.metrics": [
+        "Return on Active Principal"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Return on Active Principal": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": true,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Return on Active Principal\"]": {
+          "number_style": "percent",
+          "decimals": 1,
+          "number_separators": ".,"
+        }
+      }
+    },
+    "description": "Page 3. Built from the shared Borrowers model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__69",
+        "breakout": [
+          [
+            "field",
+            "Borrower",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        ],
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "sum",
+              [
+                "field",
+                "Return on Active Principal",
+                {
+                  "base-type": "type/Decimal"
+                }
+              ]
+            ],
+            {
+              "name": "Return on Active Principal",
+              "display-name": "Return on Active Principal"
+            }
+          ]
+        ],
+        "order-by": [
+          [
+            "desc",
+            [
+              "aggregation",
+              0
+            ]
+          ]
+        ],
+        "filter": [
+          ">",
+          [
+            "field",
+            "Total Number of Loans",
+            {
+              "base-type": "type/Integer"
+            }
+          ],
+          0
+        ]
+      }
+    }
+  },
+  {
+    "key": "b-lifetime",
+    "page": 3,
+    "name": "Lifetime interest by borrower",
+    "model": "borrowers",
+    "display": "row",
+    "settings": {
+      "graph.dimensions": [
+        "Borrower"
+      ],
+      "graph.metrics": [
+        "Total Interest Earned"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Total Interest Earned": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": true,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Total Interest Earned\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      }
+    },
+    "description": "Page 3. Built from the shared Borrowers model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__69",
+        "breakout": [
+          [
+            "field",
+            "Borrower",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        ],
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "sum",
+              [
+                "field",
+                "Total Interest Earned",
+                {
+                  "base-type": "type/Decimal"
+                }
+              ]
+            ],
+            {
+              "name": "Total Interest Earned",
+              "display-name": "Total Interest Earned"
+            }
+          ]
+        ],
+        "order-by": [
+          [
+            "desc",
+            [
+              "aggregation",
+              0
+            ]
+          ]
+        ],
+        "filter": [
+          ">",
+          [
+            "field",
+            "Total Number of Loans",
+            {
+              "base-type": "type/Integer"
+            }
+          ],
+          0
+        ]
+      }
+    }
+  },
+  {
+    "key": "b-loans",
+    "page": 3,
+    "name": "Loans by borrower",
+    "model": "borrowers",
+    "display": "row",
+    "settings": {
+      "graph.dimensions": [
+        "Borrower"
+      ],
+      "graph.metrics": [
+        "Total Number of Loans"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Total Number of Loans": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": true,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Total Number of Loans\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      }
+    },
+    "description": "Page 3. Built from the shared Borrowers model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__69",
+        "breakout": [
+          [
+            "field",
+            "Borrower",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        ],
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "sum",
+              [
+                "field",
+                "Total Number of Loans",
+                {
+                  "base-type": "type/Integer"
+                }
+              ]
+            ],
+            {
+              "name": "Total Number of Loans",
+              "display-name": "Total Number of Loans"
+            }
+          ]
+        ],
+        "order-by": [
+          [
+            "desc",
+            [
+              "aggregation",
+              0
+            ]
+          ]
+        ],
+        "filter": [
+          ">",
+          [
+            "field",
+            "Total Number of Loans",
+            {
+              "base-type": "type/Integer"
+            }
+          ],
+          0
+        ]
+      }
+    }
+  },
+  {
+    "key": "b-contribution",
+    "page": 3,
+    "name": "Interest contribution over time",
+    "model": "repayments",
+    "display": "bar",
+    "settings": {
+      "graph.dimensions": [
+        "Payment Date",
+        "Borrower"
+      ],
+      "graph.metrics": [
+        "Interest Paid"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Interest Paid": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": true,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Interest Paid\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      },
+      "stackable.stack_type": "stacked"
+    },
+    "description": "Page 3. Built from the shared Repayment Ledger model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__71",
+        "breakout": [
+          [
+            "field",
+            "Payment Date",
+            {
+              "base-type": "type/Date"
+            }
+          ],
+          [
+            "field",
+            "Borrower",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        ],
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "sum",
+              [
+                "field",
+                "Interest Paid",
+                {
+                  "base-type": "type/Decimal"
+                }
+              ]
+            ],
+            {
+              "name": "Interest Paid",
+              "display-name": "Interest Paid"
+            }
+          ]
+        ],
+        "order-by": [
+          [
+            "asc",
+            [
+              "field",
+              "Payment Date",
+              {
+                "base-type": "type/Date"
+              }
+            ]
+          ]
+        ],
+        "filter": [
+          ">",
+          [
+            "field",
+            "Interest Paid",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          0
+        ]
+      }
+    }
+  },
+  {
+    "key": "b-stability",
+    "page": 3,
+    "name": "Borrower value & stability",
+    "model": "borrowers",
+    "display": "scatter",
+    "settings": {
+      "graph.dimensions": [
+        "Matrix Scaled Economic Contribution",
+        "Matrix Label"
+      ],
+      "graph.metrics": [
+        "Matrix Stability Score"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Matrix Label": {
+          "color": "#178F8A"
+        },
+        "Matrix Scaled Economic Contribution": {
+          "color": "#7472BE"
+        },
+        "Matrix Stability Score": {
+          "color": "#D6816B"
+        },
+        "Outstanding Principal": {
+          "color": "#24435A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Matrix Scaled Economic Contribution\"]": {
+          "number_style": "decimal",
+          "decimals": 2
+        },
+        "[\"name\",\"Matrix Stability Score\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Outstanding Principal\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      },
+      "scatter.bubble": "Outstanding Principal",
+      "graph.goal_value": 80,
+      "graph.show_goal": true
+    },
+    "description": "Page 3. Built from the shared Borrowers model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__69",
+        "fields": [
+          [
+            "field",
+            "Matrix Label",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          [
+            "field",
+            "Matrix Scaled Economic Contribution",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          [
+            "field",
+            "Matrix Stability Score",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          [
+            "field",
+            "Outstanding Principal",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        ],
+        "filter": [
+          "=",
+          [
+            "field",
+            "Has Active Loan",
+            {
+              "base-type": "type/Boolean"
+            }
+          ],
+          true
+        ]
+      }
+    }
+  },
+  {
+    "key": "b-capital-profit",
+    "page": 3,
+    "name": "Average capital vs 30-day interest",
+    "model": "borrowers",
+    "display": "scatter",
+    "settings": {
+      "graph.dimensions": [
+        "30D Average Outstanding Principal",
+        "Borrower"
+      ],
+      "graph.metrics": [
+        "Profit Last 30 Days"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Borrower": {
+          "color": "#178F8A"
+        },
+        "30D Average Outstanding Principal": {
+          "color": "#7472BE"
+        },
+        "Profit Last 30 Days": {
+          "color": "#D6816B"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"30D Average Outstanding Principal\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Profit Last 30 Days\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      }
+    },
+    "description": "Page 3. Built from the shared Borrowers model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__69",
+        "fields": [
+          [
+            "field",
+            "Borrower",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          [
+            "field",
+            "30D Average Outstanding Principal",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          [
+            "field",
+            "Profit Last 30 Days",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        ],
+        "filter": [
+          "or",
+          [
+            "=",
+            [
+              "field",
+              "Hidden",
+              {
+                "base-type": "type/Boolean"
+              }
+            ],
+            false
+          ],
+          [
+            "is-null",
+            [
+              "field",
+              "Hidden",
+              {
+                "base-type": "type/Boolean"
+              }
+            ]
+          ]
+        ]
+      }
+    }
+  },
+  {
+    "key": "b-matrix-detail",
+    "page": 3,
+    "name": "Stability score components",
+    "model": "borrowers",
+    "display": "table",
+    "settings": {
+      "graph.dimensions": [],
+      "graph.metrics": [
+        "Borrower",
+        "Matrix Quadrant",
+        "Matrix Stability Score",
+        "Matrix Recent Reliability Score",
+        "Matrix Historical Reliability Score",
+        "Matrix Delay Severity Score",
+        "Matrix Current Condition Score"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Borrower": {
+          "color": "#178F8A"
+        },
+        "Matrix Quadrant": {
+          "color": "#7472BE"
+        },
+        "Matrix Stability Score": {
+          "color": "#D6816B"
+        },
+        "Matrix Recent Reliability Score": {
+          "color": "#24435A"
+        },
+        "Matrix Historical Reliability Score": {
+          "color": "#D4AD60"
+        },
+        "Matrix Delay Severity Score": {
+          "color": "#178F8A"
+        },
+        "Matrix Current Condition Score": {
+          "color": "#7472BE"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": true,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Matrix Stability Score\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Matrix Recent Reliability Score\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Matrix Historical Reliability Score\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Matrix Delay Severity Score\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Matrix Current Condition Score\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      }
+    },
+    "description": "Page 3. Built from the shared Borrowers model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__69",
+        "fields": [
+          [
+            "field",
+            "Borrower",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          [
+            "field",
+            "Matrix Quadrant",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          [
+            "field",
+            "Matrix Stability Score",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          [
+            "field",
+            "Matrix Recent Reliability Score",
+            {
+              "base-type": "type/BigInteger"
+            }
+          ],
+          [
+            "field",
+            "Matrix Historical Reliability Score",
+            {
+              "base-type": "type/BigInteger"
+            }
+          ],
+          [
+            "field",
+            "Matrix Delay Severity Score",
+            {
+              "base-type": "type/Integer"
+            }
+          ],
+          [
+            "field",
+            "Matrix Current Condition Score",
+            {
+              "base-type": "type/Integer"
+            }
+          ]
+        ]
+      }
+    }
+  },
+  {
+    "key": "p-interest",
+    "page": 4,
+    "name": "Gross interest",
+    "model": "repayments",
+    "display": "scalar",
+    "settings": {
+      "graph.dimensions": [],
+      "graph.metrics": [
+        "Interest Paid"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Interest Paid": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Interest Paid\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      },
+      "scalar.field": "Interest Paid"
+    },
+    "description": "Page 4. Built from the shared Repayment Ledger model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__71",
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "sum",
+              [
+                "field",
+                "Interest Paid",
+                {
+                  "base-type": "type/Decimal"
+                }
+              ]
+            ],
+            {
+              "name": "Interest Paid",
+              "display-name": "Interest Paid"
+            }
+          ]
+        ]
+      }
+    },
+    "date_field": "Payment Date"
+  },
+  {
+    "key": "p-growth",
+    "page": 4,
+    "name": "7-day profit growth",
+    "model": "portfolio",
+    "display": "scalar",
+    "settings": {
+      "graph.dimensions": [],
+      "graph.metrics": [
+        "7-Day Profit Growth %"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "7-Day Profit Growth %": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"7-Day Profit Growth %\"]": {
+          "number_style": "percent",
+          "decimals": 1,
+          "number_separators": ".,"
+        }
+      },
+      "scalar.field": "7-Day Profit Growth %"
+    },
+    "description": "Reuses saved question 56. Same completed seven-day growth field.",
+    "reuse_card_id": 56
+  },
+  {
+    "key": "p-count",
+    "page": 4,
+    "name": "Loans issued",
+    "model": "loans",
+    "display": "scalar",
+    "settings": {
+      "graph.dimensions": [],
+      "graph.metrics": [
+        "Loans issued"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Loans issued": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Loans issued\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      },
+      "scalar.field": "Loans issued"
+    },
+    "description": "Page 4. Built from the shared Loan Book model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__70",
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "count"
+            ],
+            {
+              "name": "Loans issued",
+              "display-name": "Loans issued"
+            }
+          ]
+        ]
+      }
+    },
+    "date_field": "Loan Date"
+  },
+  {
+    "key": "p-principal",
+    "page": 4,
+    "name": "Principal issued",
+    "model": "loans",
+    "display": "scalar",
+    "settings": {
+      "graph.dimensions": [],
+      "graph.metrics": [
+        "Principal Amount"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Principal Amount": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Principal Amount\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      },
+      "scalar.field": "Principal Amount"
+    },
+    "description": "Page 4. Built from the shared Loan Book model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__70",
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "sum",
+              [
+                "field",
+                "Principal Amount",
+                {
+                  "base-type": "type/Decimal"
+                }
+              ]
+            ],
+            {
+              "name": "Principal Amount",
+              "display-name": "Principal Amount"
+            }
+          ]
+        ]
+      }
+    },
+    "date_field": "Loan Date"
+  },
+  {
+    "key": "p-daily",
+    "page": 4,
+    "name": "Daily gross interest",
+    "model": "daily",
+    "display": "line",
+    "settings": {
+      "graph.dimensions": [
+        "Date"
+      ],
+      "graph.metrics": [
+        "Profit"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Profit": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Profit\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      }
+    },
+    "description": "Page 4. Built from the shared Daily Performance model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__74",
+        "breakout": [
+          [
+            "field",
+            "Date",
+            {
+              "base-type": "type/Date"
+            }
+          ]
+        ],
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "sum",
+              [
+                "field",
+                "Profit",
+                {
+                  "base-type": "type/Decimal"
+                }
+              ]
+            ],
+            {
+              "name": "Profit",
+              "display-name": "Profit"
+            }
+          ]
+        ],
+        "order-by": [
+          [
+            "asc",
+            [
+              "field",
+              "Date",
+              {
+                "base-type": "type/Date"
+              }
+            ]
+          ]
+        ]
+      }
+    },
+    "date_field": "Date"
+  },
+  {
+    "key": "p-cumulative",
+    "page": 4,
+    "name": "Cumulative gross interest",
+    "model": "daily",
+    "display": "line",
+    "settings": {
+      "graph.dimensions": [
+        "Date"
+      ],
+      "graph.metrics": [
+        "Cumulative Profit"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Cumulative Profit": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Cumulative Profit\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      }
+    },
+    "description": "Page 4. Built from the shared Daily Performance model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__74",
+        "breakout": [
+          [
+            "field",
+            "Date",
+            {
+              "base-type": "type/Date"
+            }
+          ]
+        ],
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "sum",
+              [
+                "field",
+                "Cumulative Profit",
+                {
+                  "base-type": "type/Decimal"
+                }
+              ]
+            ],
+            {
+              "name": "Cumulative Profit",
+              "display-name": "Cumulative Profit"
+            }
+          ]
+        ],
+        "order-by": [
+          [
+            "asc",
+            [
+              "field",
+              "Date",
+              {
+                "base-type": "type/Date"
+              }
+            ]
+          ]
+        ]
+      }
+    },
+    "date_field": "Date"
+  },
+  {
+    "key": "p-yield",
+    "page": 4,
+    "name": "Daily capital yield",
+    "model": "daily",
+    "display": "line",
+    "settings": {
+      "graph.dimensions": [
+        "Date"
+      ],
+      "graph.metrics": [
+        "Daily Capital Yield"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Daily Capital Yield": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Daily Capital Yield\"]": {
+          "number_style": "percent",
+          "decimals": 1,
+          "number_separators": ".,"
+        }
+      }
+    },
+    "description": "Page 4. Built from the shared Daily Performance model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__74",
+        "breakout": [
+          [
+            "field",
+            "Date",
+            {
+              "base-type": "type/Date"
+            }
+          ]
+        ],
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "sum",
+              [
+                "field",
+                "Daily Capital Yield",
+                {
+                  "base-type": "type/Decimal"
+                }
+              ]
+            ],
+            {
+              "name": "Daily Capital Yield",
+              "display-name": "Daily Capital Yield"
+            }
+          ]
+        ],
+        "order-by": [
+          [
+            "asc",
+            [
+              "field",
+              "Date",
+              {
+                "base-type": "type/Date"
+              }
+            ]
+          ]
+        ]
+      }
+    },
+    "date_field": "Date"
+  },
+  {
+    "key": "p-active-loans",
+    "page": 4,
+    "name": "Active loans · past 30 days",
+    "model": "daily",
+    "display": "line",
+    "settings": {
+      "graph.dimensions": [
+        "Date"
+      ],
+      "graph.metrics": [
+        "Active Loans EOD"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Active Loans EOD": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Active Loans EOD\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      }
+    },
+    "description": "Page 4. Built from the shared Daily Performance model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__74",
+        "breakout": [
+          [
+            "field",
+            "Date",
+            {
+              "base-type": "type/Date"
+            }
+          ]
+        ],
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "sum",
+              [
+                "field",
+                "Active Loans EOD",
+                {
+                  "base-type": "type/Integer"
+                }
+              ]
+            ],
+            {
+              "name": "Active Loans EOD",
+              "display-name": "Active Loans EOD"
+            }
+          ]
+        ],
+        "order-by": [
+          [
+            "asc",
+            [
+              "field",
+              "Date",
+              {
+                "base-type": "type/Date"
+              }
+            ]
+          ]
+        ],
+        "filter": [
+          "=",
+          [
+            "field",
+            "In Last 30 Days",
+            {
+              "base-type": "type/Boolean"
+            }
+          ],
+          true
+        ]
+      }
+    },
+    "date_field": "Date"
+  },
+  {
+    "key": "p-active-borrowers",
+    "page": 4,
+    "name": "Active borrowers · past 30 days",
+    "model": "daily",
+    "display": "line",
+    "settings": {
+      "graph.dimensions": [
+        "Date"
+      ],
+      "graph.metrics": [
+        "Active Borrowers EOD"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Active Borrowers EOD": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Active Borrowers EOD\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      }
+    },
+    "description": "Page 4. Built from the shared Daily Performance model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__74",
+        "breakout": [
+          [
+            "field",
+            "Date",
+            {
+              "base-type": "type/Date"
+            }
+          ]
+        ],
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "sum",
+              [
+                "field",
+                "Active Borrowers EOD",
+                {
+                  "base-type": "type/Integer"
+                }
+              ]
+            ],
+            {
+              "name": "Active Borrowers EOD",
+              "display-name": "Active Borrowers EOD"
+            }
+          ]
+        ],
+        "order-by": [
+          [
+            "asc",
+            [
+              "field",
+              "Date",
+              {
+                "base-type": "type/Date"
+              }
+            ]
+          ]
+        ],
+        "filter": [
+          "=",
+          [
+            "field",
+            "In Last 30 Days",
+            {
+              "base-type": "type/Boolean"
+            }
+          ],
+          true
+        ]
+      }
+    },
+    "date_field": "Date"
+  },
+  {
+    "key": "p-issued",
+    "page": 4,
+    "name": "Principal issued over time",
+    "model": "loans",
+    "display": "bar",
+    "settings": {
+      "graph.dimensions": [
+        "Loan Date"
+      ],
+      "graph.metrics": [
+        "Principal Amount"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Principal Amount": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Principal Amount\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      }
+    },
+    "description": "Page 4. Built from the shared Loan Book model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__70",
+        "breakout": [
+          [
+            "field",
+            "Loan Date",
+            {
+              "base-type": "type/Date"
+            }
+          ]
+        ],
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "sum",
+              [
+                "field",
+                "Principal Amount",
+                {
+                  "base-type": "type/Decimal"
+                }
+              ]
+            ],
+            {
+              "name": "Principal Amount",
+              "display-name": "Principal Amount"
+            }
+          ]
+        ],
+        "order-by": [
+          [
+            "asc",
+            [
+              "field",
+              "Loan Date",
+              {
+                "base-type": "type/Date"
+              }
+            ]
+          ]
+        ]
+      }
+    },
+    "date_field": "Loan Date"
+  },
+  {
+    "key": "p-issued-count",
+    "page": 4,
+    "name": "Loans issued over time",
+    "model": "loans",
+    "display": "bar",
+    "settings": {
+      "graph.dimensions": [
+        "Loan Date"
+      ],
+      "graph.metrics": [
+        "Count"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Count": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Count\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      }
+    },
+    "description": "Page 4. Built from the shared Loan Book model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__70",
+        "breakout": [
+          [
+            "field",
+            "Loan Date",
+            {
+              "base-type": "type/Date"
+            }
+          ]
+        ],
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "count"
+            ],
+            {
+              "name": "Count",
+              "display-name": "Count"
+            }
+          ]
+        ],
+        "order-by": [
+          [
+            "asc",
+            [
+              "field",
+              "Loan Date",
+              {
+                "base-type": "type/Date"
+              }
+            ]
+          ]
+        ]
+      }
+    },
+    "date_field": "Loan Date"
+  },
+  {
+    "key": "p-type-profit",
+    "page": 4,
+    "name": "Interest by loan type",
+    "model": "repayments",
+    "display": "row",
+    "settings": {
+      "graph.dimensions": [
+        "Loan Type"
+      ],
+      "graph.metrics": [
+        "Interest Paid"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Interest Paid": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": true,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Interest Paid\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      }
+    },
+    "description": "Page 4. Built from the shared Repayment Ledger model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__71",
+        "breakout": [
+          [
+            "field",
+            "Loan Type",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        ],
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "sum",
+              [
+                "field",
+                "Interest Paid",
+                {
+                  "base-type": "type/Decimal"
+                }
+              ]
+            ],
+            {
+              "name": "Interest Paid",
+              "display-name": "Interest Paid"
+            }
+          ]
+        ],
+        "order-by": [
+          [
+            "desc",
+            [
+              "aggregation",
+              0
+            ]
+          ]
+        ]
+      }
+    },
+    "date_field": "Payment Date"
+  },
+  {
+    "key": "p-average",
+    "page": 4,
+    "name": "Average loan size · weekly",
+    "model": "loans",
+    "display": "bar",
+    "settings": {
+      "graph.dimensions": [
+        "Loan Week"
+      ],
+      "graph.metrics": [
+        "Principal Amount"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Principal Amount": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Principal Amount\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      }
+    },
+    "description": "Page 4. Built from the shared Loan Book model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__70",
+        "breakout": [
+          [
+            "field",
+            "Loan Week",
+            {
+              "base-type": "type/Date"
+            }
+          ]
+        ],
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "avg",
+              [
+                "field",
+                "Principal Amount",
+                {
+                  "base-type": "type/Decimal"
+                }
+              ]
+            ],
+            {
+              "name": "Principal Amount",
+              "display-name": "Principal Amount"
+            }
+          ]
+        ],
+        "order-by": [
+          [
+            "asc",
+            [
+              "field",
+              "Loan Week",
+              {
+                "base-type": "type/Date"
+              }
+            ]
+          ]
+        ]
+      }
+    },
+    "date_field": "Loan Date"
+  },
+  {
+    "key": "p-period",
+    "page": 4,
+    "name": "Period performance · daily",
+    "model": "daily",
+    "display": "table",
+    "settings": {
+      "graph.dimensions": [
+        "Date"
+      ],
+      "graph.metrics": [
+        "Principal Issued",
+        "Principal Returned",
+        "Profit",
+        "Loans Issued"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Principal Issued": {
+          "color": "#178F8A"
+        },
+        "Principal Returned": {
+          "color": "#7472BE"
+        },
+        "Profit": {
+          "color": "#D6816B"
+        },
+        "Loans Issued": {
+          "color": "#24435A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": true,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Principal Issued\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Principal Returned\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Profit\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Loans Issued\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      }
+    },
+    "description": "Page 4. Built from the shared Daily Performance model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__74",
+        "breakout": [
+          [
+            "field",
+            "Date",
+            {
+              "base-type": "type/Date"
+            }
+          ]
+        ],
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "sum",
+              [
+                "field",
+                "Principal Issued",
+                {
+                  "base-type": "type/Decimal"
+                }
+              ]
+            ],
+            {
+              "name": "Principal Issued",
+              "display-name": "Principal Issued"
+            }
+          ],
+          [
+            "aggregation-options",
+            [
+              "sum",
+              [
+                "field",
+                "Principal Returned",
+                {
+                  "base-type": "type/Decimal"
+                }
+              ]
+            ],
+            {
+              "name": "Principal Returned",
+              "display-name": "Principal Returned"
+            }
+          ],
+          [
+            "aggregation-options",
+            [
+              "sum",
+              [
+                "field",
+                "Profit",
+                {
+                  "base-type": "type/Decimal"
+                }
+              ]
+            ],
+            {
+              "name": "Profit",
+              "display-name": "Profit"
+            }
+          ],
+          [
+            "aggregation-options",
+            [
+              "sum",
+              [
+                "field",
+                "Loans Issued",
+                {
+                  "base-type": "type/Integer"
+                }
+              ]
+            ],
+            {
+              "name": "Loans Issued",
+              "display-name": "Loans Issued"
+            }
+          ]
+        ],
+        "order-by": [
+          [
+            "asc",
+            [
+              "field",
+              "Date",
+              {
+                "base-type": "type/Date"
+              }
+            ]
+          ]
+        ]
+      }
+    },
+    "date_field": "Date"
+  },
+  {
+    "key": "r-principal",
+    "page": 5,
+    "name": "Principal outstanding",
+    "model": "portfolio",
+    "display": "scalar",
+    "settings": {
+      "graph.dimensions": [],
+      "graph.metrics": [
+        "Outstanding Principal"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Outstanding Principal": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Outstanding Principal\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      },
+      "scalar.field": "Outstanding Principal"
+    },
+    "description": "Reuses saved question 48. One-row Portfolio Overview outstanding principal.",
+    "reuse_card_id": 48
+  },
+  {
+    "key": "r-interest",
+    "page": 5,
+    "name": "Lifetime interest",
+    "model": "borrowers",
+    "display": "scalar",
+    "settings": {
+      "graph.dimensions": [],
+      "graph.metrics": [
+        "Total Interest Earned"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Total Interest Earned": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Total Interest Earned\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      },
+      "scalar.field": "Total Interest Earned"
+    },
+    "description": "Reuses saved question 81. Same borrower lifetime-interest aggregate.",
+    "reuse_card_id": 81
+  },
+  {
+    "key": "r-top3",
+    "page": 5,
+    "name": "Top three concentration",
+    "model": "portfolio",
+    "display": "scalar",
+    "settings": {
+      "graph.dimensions": [],
+      "graph.metrics": [
+        "Top 3 Borrower Concentration"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Top 3 Borrower Concentration": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Top 3 Borrower Concentration\"]": {
+          "number_style": "percent",
+          "decimals": 1,
+          "number_separators": ".,"
+        }
+      },
+      "scalar.field": "Top 3 Borrower Concentration"
+    },
+    "description": "Page 5. Built from the shared Portfolio Overview model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__73",
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "sum",
+              [
+                "field",
+                "Top 3 Borrower Concentration",
+                {
+                  "base-type": "type/Decimal"
+                }
+              ]
+            ],
+            {
+              "name": "Top 3 Borrower Concentration",
+              "display-name": "Top 3 Borrower Concentration"
+            }
+          ]
+        ]
+      }
+    }
+  },
+  {
+    "key": "r-past-due",
+    "page": 5,
+    "name": "Past-due amount",
+    "model": "charges",
+    "display": "scalar",
+    "settings": {
+      "graph.dimensions": [],
+      "graph.metrics": [
+        "Past Due Amount"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Past Due Amount": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Past Due Amount\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      },
+      "scalar.field": "Past Due Amount"
+    },
+    "description": "Page 5. Built from the shared Charge History model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__75",
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "sum",
+              [
+                "field",
+                "Past Due Amount",
+                {
+                  "base-type": "type/Decimal"
+                }
+              ]
+            ],
+            {
+              "name": "Past Due Amount",
+              "display-name": "Past Due Amount"
+            }
+          ]
+        ]
+      }
+    }
+  },
+  {
+    "key": "r-borrowers",
+    "page": 5,
+    "name": "Principal by borrower",
+    "model": "borrowers",
+    "display": "row",
+    "settings": {
+      "graph.dimensions": [
+        "Borrower"
+      ],
+      "graph.metrics": [
+        "Outstanding Principal"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Outstanding Principal": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": true,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Outstanding Principal\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      }
+    },
+    "description": "Page 5. Built from the shared Borrowers model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__69",
+        "breakout": [
+          [
+            "field",
+            "Borrower",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        ],
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "sum",
+              [
+                "field",
+                "Outstanding Principal",
+                {
+                  "base-type": "type/Decimal"
+                }
+              ]
+            ],
+            {
+              "name": "Outstanding Principal",
+              "display-name": "Outstanding Principal"
+            }
+          ]
+        ],
+        "order-by": [
+          [
+            "desc",
+            [
+              "aggregation",
+              0
+            ]
+          ]
+        ],
+        "filter": [
+          "=",
+          [
+            "field",
+            "Has Active Loan",
+            {
+              "base-type": "type/Boolean"
+            }
+          ],
+          true
+        ]
+      }
+    }
+  },
+  {
+    "key": "r-status",
+    "page": 5,
+    "name": "Loan status",
+    "model": "loans",
+    "display": "pie",
+    "settings": {
+      "graph.dimensions": [
+        "Loan Status"
+      ],
+      "graph.metrics": [
+        "Count"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Count": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Count\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      },
+      "pie.dimension": "Loan Status",
+      "pie.metric": "Count",
+      "pie.show_legend": true,
+      "pie.show_total": false,
+      "pie.show_labels": true
+    },
+    "description": "Page 5. Built from the shared Loan Book model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__70",
+        "breakout": [
+          [
+            "field",
+            "Loan Status",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        ],
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "count"
+            ],
+            {
+              "name": "Count",
+              "display-name": "Count"
+            }
+          ]
+        ],
+        "order-by": [
+          [
+            "desc",
+            [
+              "aggregation",
+              0
+            ]
+          ]
+        ]
+      }
+    }
+  },
+  {
+    "key": "r-age-count",
+    "page": 5,
+    "name": "Active loan count by age",
+    "model": "loans",
+    "display": "row",
+    "settings": {
+      "graph.dimensions": [
+        "Loan Age Bucket"
+      ],
+      "graph.metrics": [
+        "Count"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Count": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": true,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Count\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      }
+    },
+    "description": "Page 5. Built from the shared Loan Book model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__70",
+        "breakout": [
+          [
+            "field",
+            "Loan Age Bucket",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        ],
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "count"
+            ],
+            {
+              "name": "Count",
+              "display-name": "Count"
+            }
+          ]
+        ],
+        "order-by": [
+          [
+            "asc",
+            [
+              "field",
+              "Loan Age Bucket",
+              {
+                "base-type": "type/Text"
+              }
+            ]
+          ]
+        ],
+        "filter": [
+          "=",
+          [
+            "field",
+            "Loan Status",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "Active"
+        ]
+      }
+    }
+  },
+  {
+    "key": "r-age-principal",
+    "page": 5,
+    "name": "Active principal by age",
+    "model": "loans",
+    "display": "row",
+    "settings": {
+      "graph.dimensions": [
+        "Loan Age Bucket"
+      ],
+      "graph.metrics": [
+        "Outstanding Principal"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Outstanding Principal": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": true,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Outstanding Principal\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      }
+    },
+    "description": "Page 5. Built from the shared Loan Book model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__70",
+        "breakout": [
+          [
+            "field",
+            "Loan Age Bucket",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        ],
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "sum",
+              [
+                "field",
+                "Outstanding Principal",
+                {
+                  "base-type": "type/Decimal"
+                }
+              ]
+            ],
+            {
+              "name": "Outstanding Principal",
+              "display-name": "Outstanding Principal"
+            }
+          ]
+        ],
+        "order-by": [
+          [
+            "asc",
+            [
+              "field",
+              "Loan Age Bucket",
+              {
+                "base-type": "type/Text"
+              }
+            ]
+          ]
+        ],
+        "filter": [
+          "=",
+          [
+            "field",
+            "Loan Status",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "Active"
+        ]
+      }
+    }
+  },
+  {
+    "key": "r-matrix",
+    "page": 5,
+    "name": "Borrower risk · excluding largest exposure",
+    "model": "borrowers",
+    "display": "scatter",
+    "settings": {
+      "graph.dimensions": [
+        "Outstanding Principal",
+        "Borrower"
+      ],
+      "graph.metrics": [
+        "Profit Last 30 Days"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Borrower": {
+          "color": "#178F8A"
+        },
+        "Outstanding Principal": {
+          "color": "#7472BE"
+        },
+        "Profit Last 30 Days": {
+          "color": "#D6816B"
+        },
+        "Total Number of Loans": {
+          "color": "#24435A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Outstanding Principal\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Profit Last 30 Days\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Total Number of Loans\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      },
+      "scatter.bubble": "Total Number of Loans"
+    },
+    "description": "Page 5. Built from the shared Borrowers model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__69",
+        "fields": [
+          [
+            "field",
+            "Borrower",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          [
+            "field",
+            "Outstanding Principal",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          [
+            "field",
+            "Profit Last 30 Days",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          [
+            "field",
+            "Total Number of Loans",
+            {
+              "base-type": "type/Integer"
+            }
+          ]
+        ],
+        "filter": [
+          "and",
+          [
+            "=",
+            [
+              "field",
+              "Has Active Loan",
+              {
+                "base-type": "type/Boolean"
+              }
+            ],
+            true
+          ],
+          [
+            ">",
+            [
+              "field",
+              "Principal Rank",
+              {
+                "base-type": "type/BigInteger"
+              }
+            ],
+            1
+          ]
+        ]
+      }
+    }
+  },
+  {
+    "key": "r-default",
+    "page": 5,
+    "name": "Default loss over time",
+    "model": "loans",
+    "display": "bar",
+    "settings": {
+      "graph.dimensions": [
+        "Close Date"
+      ],
+      "graph.metrics": [
+        "Default Loss Amount"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Default Loss Amount": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Default Loss Amount\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      }
+    },
+    "description": "Page 5. Built from the shared Loan Book model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__70",
+        "breakout": [
+          [
+            "field",
+            "Close Date",
+            {
+              "base-type": "type/Date"
+            }
+          ]
+        ],
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "sum",
+              [
+                "field",
+                "Default Loss Amount",
+                {
+                  "base-type": "type/Decimal"
+                }
+              ]
+            ],
+            {
+              "name": "Default Loss Amount",
+              "display-name": "Default Loss Amount"
+            }
+          ]
+        ],
+        "order-by": [
+          [
+            "asc",
+            [
+              "field",
+              "Close Date",
+              {
+                "base-type": "type/Date"
+              }
+            ]
+          ]
+        ],
+        "filter": [
+          "=",
+          [
+            "field",
+            "Defaulted Flag",
+            {
+              "base-type": "type/Boolean"
+            }
+          ],
+          true
+        ]
+      }
+    }
+  },
+  {
+    "key": "r-monitor",
+    "page": 5,
+    "name": "Borrower risk monitor",
+    "model": "borrowers",
+    "display": "table",
+    "settings": {
+      "graph.dimensions": [],
+      "graph.metrics": [
+        "Borrower",
+        "Outstanding Principal",
+        "Portfolio Exposure %",
+        "Overdue Amount",
+        "Oldest Active Loan Age",
+        "Lifetime On Time Rate",
+        "Recent 30D On Time Rate",
+        "Maximum Days Late",
+        "Default Count",
+        "Lifetime Default Loss"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Borrower": {
+          "color": "#178F8A"
+        },
+        "Outstanding Principal": {
+          "color": "#7472BE"
+        },
+        "Portfolio Exposure %": {
+          "color": "#D6816B"
+        },
+        "Overdue Amount": {
+          "color": "#24435A"
+        },
+        "Oldest Active Loan Age": {
+          "color": "#D4AD60"
+        },
+        "Lifetime On Time Rate": {
+          "color": "#178F8A"
+        },
+        "Recent 30D On Time Rate": {
+          "color": "#7472BE"
+        },
+        "Maximum Days Late": {
+          "color": "#D6816B"
+        },
+        "Default Count": {
+          "color": "#24435A"
+        },
+        "Lifetime Default Loss": {
+          "color": "#D4AD60"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": true,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Outstanding Principal\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Portfolio Exposure %\"]": {
+          "number_style": "percent",
+          "decimals": 1,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Overdue Amount\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Oldest Active Loan Age\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Lifetime On Time Rate\"]": {
+          "number_style": "percent",
+          "decimals": 1,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Recent 30D On Time Rate\"]": {
+          "number_style": "percent",
+          "decimals": 1,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Maximum Days Late\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Default Count\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Lifetime Default Loss\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      }
+    },
+    "description": "Page 5. Built from the shared Borrowers model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__69",
+        "fields": [
+          [
+            "field",
+            "Borrower",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          [
+            "field",
+            "Outstanding Principal",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          [
+            "field",
+            "Portfolio Exposure %",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          [
+            "field",
+            "Overdue Amount",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          [
+            "field",
+            "Oldest Active Loan Age",
+            {
+              "base-type": "type/Integer"
+            }
+          ],
+          [
+            "field",
+            "Lifetime On Time Rate",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          [
+            "field",
+            "Recent 30D On Time Rate",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          [
+            "field",
+            "Maximum Days Late",
+            {
+              "base-type": "type/Integer"
+            }
+          ],
+          [
+            "field",
+            "Default Count",
+            {
+              "base-type": "type/BigInteger"
+            }
+          ],
+          [
+            "field",
+            "Lifetime Default Loss",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        ],
+        "filter": [
+          "=",
+          [
+            "field",
+            "Has Active Loan",
+            {
+              "base-type": "type/Boolean"
+            }
+          ],
+          true
+        ]
+      }
+    }
+  },
+  {
+    "key": "c-due-count",
+    "page": 6,
+    "name": "Borrowers due today",
+    "model": "collections",
+    "display": "scalar",
+    "settings": {
+      "graph.dimensions": [],
+      "graph.metrics": [
+        "Borrowers due today"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Borrowers due today": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Borrowers due today\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      },
+      "scalar.field": "Borrowers due today"
+    },
+    "description": "Page 6. Built from the shared Collection Worklist model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__77",
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "count"
+            ],
+            {
+              "name": "Borrowers due today",
+              "display-name": "Borrowers due today"
+            }
+          ]
+        ]
+      }
+    }
+  },
+  {
+    "key": "c-paid-count",
+    "page": 6,
+    "name": "Fully paid",
+    "model": "collections",
+    "display": "scalar",
+    "settings": {
+      "graph.dimensions": [],
+      "graph.metrics": [
+        "Fully paid"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Fully paid": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Fully paid\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      },
+      "scalar.field": "Fully paid"
+    },
+    "description": "Page 6. Built from the shared Collection Worklist model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__77",
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "count"
+            ],
+            {
+              "name": "Fully paid",
+              "display-name": "Fully paid"
+            }
+          ]
+        ],
+        "filter": [
+          "=",
+          [
+            "field",
+            "Daily Collection Status",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "Fully Paid"
+        ]
+      }
+    }
+  },
+  {
+    "key": "c-partial-count",
+    "page": 6,
+    "name": "Partially paid",
+    "model": "collections",
+    "display": "scalar",
+    "settings": {
+      "graph.dimensions": [],
+      "graph.metrics": [
+        "Partially paid"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Partially paid": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Partially paid\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      },
+      "scalar.field": "Partially paid"
+    },
+    "description": "Page 6. Built from the shared Collection Worklist model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__77",
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "count"
+            ],
+            {
+              "name": "Partially paid",
+              "display-name": "Partially paid"
+            }
+          ]
+        ],
+        "filter": [
+          "=",
+          [
+            "field",
+            "Daily Collection Status",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "Partially Paid"
+        ]
+      }
+    }
+  },
+  {
+    "key": "c-unpaid-count",
+    "page": 6,
+    "name": "Not paid / overdue",
+    "model": "collections",
+    "display": "scalar",
+    "settings": {
+      "graph.dimensions": [],
+      "graph.metrics": [
+        "Not paid / overdue"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Not paid / overdue": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Not paid / overdue\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      },
+      "scalar.field": "Not paid / overdue"
+    },
+    "description": "Page 6. Built from the shared Collection Worklist model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__77",
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "count"
+            ],
+            {
+              "name": "Not paid / overdue",
+              "display-name": "Not paid / overdue"
+            }
+          ]
+        ],
+        "filter": [
+          "or",
+          [
+            "=",
+            [
+              "field",
+              "Daily Collection Status",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "Not Paid"
+          ],
+          [
+            "=",
+            [
+              "field",
+              "Daily Collection Status",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "Overdue"
+          ]
+        ]
+      }
+    }
+  },
+  {
+    "key": "c-due",
+    "page": 6,
+    "name": "Amount due",
+    "model": "portfolio",
+    "display": "scalar",
+    "settings": {
+      "graph.dimensions": [],
+      "graph.metrics": [
+        "Amount Due Today"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Amount Due Today": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Amount Due Today\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      },
+      "scalar.field": "Amount Due Today"
+    },
+    "description": "Page 6. Built from the shared Portfolio Overview model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__73",
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "sum",
+              [
+                "field",
+                "Amount Due Today",
+                {
+                  "base-type": "type/Decimal"
+                }
+              ]
+            ],
+            {
+              "name": "Amount Due Today",
+              "display-name": "Amount Due Today"
+            }
+          ]
+        ]
+      }
+    }
+  },
+  {
+    "key": "c-collected",
+    "page": 6,
+    "name": "Collected",
+    "model": "portfolio",
+    "display": "scalar",
+    "settings": {
+      "graph.dimensions": [],
+      "graph.metrics": [
+        "Amount Collected Today"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Amount Collected Today": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Amount Collected Today\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      },
+      "scalar.field": "Amount Collected Today"
+    },
+    "description": "Page 6. Built from the shared Portfolio Overview model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__73",
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "sum",
+              [
+                "field",
+                "Amount Collected Today",
+                {
+                  "base-type": "type/Decimal"
+                }
+              ]
+            ],
+            {
+              "name": "Amount Collected Today",
+              "display-name": "Amount Collected Today"
+            }
+          ]
+        ]
+      }
+    }
+  },
+  {
+    "key": "c-remaining",
+    "page": 6,
+    "name": "Outstanding",
+    "model": "portfolio",
+    "display": "scalar",
+    "settings": {
+      "graph.dimensions": [],
+      "graph.metrics": [
+        "Amount Outstanding Today"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Amount Outstanding Today": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Amount Outstanding Today\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      },
+      "scalar.field": "Amount Outstanding Today"
+    },
+    "description": "Page 6. Built from the shared Portfolio Overview model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__73",
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "sum",
+              [
+                "field",
+                "Amount Outstanding Today",
+                {
+                  "base-type": "type/Decimal"
+                }
+              ]
+            ],
+            {
+              "name": "Amount Outstanding Today",
+              "display-name": "Amount Outstanding Today"
+            }
+          ]
+        ]
+      }
+    }
+  },
+  {
+    "key": "c-rate",
+    "page": 6,
+    "name": "Collection rate",
+    "model": "portfolio",
+    "display": "scalar",
+    "settings": {
+      "graph.dimensions": [],
+      "graph.metrics": [
+        "Amount Collection Rate Today"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Amount Collection Rate Today": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Amount Collection Rate Today\"]": {
+          "number_style": "percent",
+          "decimals": 1,
+          "number_separators": ".,"
+        }
+      },
+      "scalar.field": "Amount Collection Rate Today"
+    },
+    "description": "Page 6. Built from the shared Portfolio Overview model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__73",
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "sum",
+              [
+                "field",
+                "Amount Collection Rate Today",
+                {
+                  "base-type": "type/Decimal"
+                }
+              ]
+            ],
+            {
+              "name": "Amount Collection Rate Today",
+              "display-name": "Amount Collection Rate Today"
+            }
+          ]
+        ]
+      }
+    }
+  },
+  {
+    "key": "c-paid-borrowers",
+    "page": 6,
+    "name": "Fully Paid · borrowers",
+    "model": "collections",
+    "display": "scalar",
+    "settings": {
+      "graph.dimensions": [],
+      "graph.metrics": [
+        "Fully paid"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Fully paid": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Fully paid\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      },
+      "scalar.field": "Fully paid"
+    },
+    "description": "Reuses saved question 120. Summary count is the same Fully Paid worklist population.",
+    "reuse_card_id": 120
+  },
+  {
+    "key": "c-paid-amount",
+    "page": 6,
+    "name": "Fully Paid · receipts today",
+    "model": "collection-summary",
+    "display": "scalar",
+    "settings": {
+      "graph.dimensions": [],
+      "graph.metrics": [
+        "Receipts Today"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Receipts Today": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Receipts Today\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      },
+      "scalar.field": "Receipts Today"
+    },
+    "description": "Page 6. Built from the shared Collection Status Summary model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__162",
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "sum",
+              [
+                "field",
+                "Receipts Today",
+                {
+                  "base-type": "type/Decimal"
+                }
+              ]
+            ],
+            {
+              "name": "Receipts Today",
+              "display-name": "Receipts Today"
+            }
+          ]
+        ],
+        "filter": [
+          "=",
+          [
+            "field",
+            "Collection Status",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "Fully Paid"
+        ]
+      }
+    }
+  },
+  {
+    "key": "c-paid-detail",
+    "page": 6,
+    "name": "Fully Paid · collection worklist",
+    "model": "collections",
+    "display": "table",
+    "settings": {
+      "graph.dimensions": [],
+      "graph.metrics": [
+        "Borrower",
+        "Amount Due",
+        "Amount Collected",
+        "Amount Remaining",
+        "Receipts Today",
+        "Overdue Amount"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Borrower": {
+          "color": "#178F8A"
+        },
+        "Amount Due": {
+          "color": "#7472BE"
+        },
+        "Amount Collected": {
+          "color": "#D6816B"
+        },
+        "Amount Remaining": {
+          "color": "#24435A"
+        },
+        "Receipts Today": {
+          "color": "#D4AD60"
+        },
+        "Overdue Amount": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": true,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Amount Due\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Amount Collected\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Amount Remaining\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Receipts Today\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Overdue Amount\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      }
+    },
+    "description": "Page 6. Built from the shared Collection Worklist model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__77",
+        "fields": [
+          [
+            "field",
+            "Borrower",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          [
+            "field",
+            "Amount Due",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          [
+            "field",
+            "Amount Collected",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          [
+            "field",
+            "Amount Remaining",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          [
+            "field",
+            "Receipts Today",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          [
+            "field",
+            "Overdue Amount",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        ],
+        "filter": [
+          "=",
+          [
+            "field",
+            "Daily Collection Status",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "Fully Paid"
+        ]
+      }
+    }
+  },
+  {
+    "key": "c-partial-borrowers",
+    "page": 6,
+    "name": "Partially Paid · borrowers",
+    "model": "collections",
+    "display": "scalar",
+    "settings": {
+      "graph.dimensions": [],
+      "graph.metrics": [
+        "Partially paid"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Partially paid": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Partially paid\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      },
+      "scalar.field": "Partially paid"
+    },
+    "description": "Reuses saved question 121. Summary count is the same Partially Paid worklist population.",
+    "reuse_card_id": 121
+  },
+  {
+    "key": "c-partial-amount",
+    "page": 6,
+    "name": "Partially Paid · receipts today",
+    "model": "collection-summary",
+    "display": "scalar",
+    "settings": {
+      "graph.dimensions": [],
+      "graph.metrics": [
+        "Receipts Today"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Receipts Today": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Receipts Today\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      },
+      "scalar.field": "Receipts Today"
+    },
+    "description": "Page 6. Built from the shared Collection Status Summary model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__162",
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "sum",
+              [
+                "field",
+                "Receipts Today",
+                {
+                  "base-type": "type/Decimal"
+                }
+              ]
+            ],
+            {
+              "name": "Receipts Today",
+              "display-name": "Receipts Today"
+            }
+          ]
+        ],
+        "filter": [
+          "=",
+          [
+            "field",
+            "Collection Status",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "Partially Paid"
+        ]
+      }
+    }
+  },
+  {
+    "key": "c-partial-detail",
+    "page": 6,
+    "name": "Partially Paid · collection worklist",
+    "model": "collections",
+    "display": "table",
+    "settings": {
+      "graph.dimensions": [],
+      "graph.metrics": [
+        "Borrower",
+        "Amount Due",
+        "Amount Collected",
+        "Amount Remaining",
+        "Receipts Today",
+        "Overdue Amount"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Borrower": {
+          "color": "#178F8A"
+        },
+        "Amount Due": {
+          "color": "#7472BE"
+        },
+        "Amount Collected": {
+          "color": "#D6816B"
+        },
+        "Amount Remaining": {
+          "color": "#24435A"
+        },
+        "Receipts Today": {
+          "color": "#D4AD60"
+        },
+        "Overdue Amount": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": true,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Amount Due\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Amount Collected\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Amount Remaining\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Receipts Today\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Overdue Amount\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      }
+    },
+    "description": "Page 6. Built from the shared Collection Worklist model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__77",
+        "fields": [
+          [
+            "field",
+            "Borrower",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          [
+            "field",
+            "Amount Due",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          [
+            "field",
+            "Amount Collected",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          [
+            "field",
+            "Amount Remaining",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          [
+            "field",
+            "Receipts Today",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          [
+            "field",
+            "Overdue Amount",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        ],
+        "filter": [
+          "=",
+          [
+            "field",
+            "Daily Collection Status",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "Partially Paid"
+        ]
+      }
+    }
+  },
+  {
+    "key": "c-unpaid-borrowers",
+    "page": 6,
+    "name": "Not Paid · borrowers",
+    "model": "collection-summary",
+    "display": "scalar",
+    "settings": {
+      "graph.dimensions": [],
+      "graph.metrics": [
+        "Borrower Count"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Borrower Count": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Borrower Count\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      },
+      "scalar.field": "Borrower Count"
+    },
+    "description": "Page 6. Built from the shared Collection Status Summary model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__162",
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "sum",
+              [
+                "field",
+                "Borrower Count",
+                {
+                  "base-type": "type/BigInteger"
+                }
+              ]
+            ],
+            {
+              "name": "Borrower Count",
+              "display-name": "Borrower Count"
+            }
+          ]
+        ],
+        "filter": [
+          "=",
+          [
+            "field",
+            "Collection Status",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "Not Paid"
+        ]
+      }
+    }
+  },
+  {
+    "key": "c-unpaid-amount",
+    "page": 6,
+    "name": "Not Paid · amount remaining",
+    "model": "collection-summary",
+    "display": "scalar",
+    "settings": {
+      "graph.dimensions": [],
+      "graph.metrics": [
+        "Amount Remaining"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Amount Remaining": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Amount Remaining\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      },
+      "scalar.field": "Amount Remaining"
+    },
+    "description": "Page 6. Built from the shared Collection Status Summary model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__162",
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "sum",
+              [
+                "field",
+                "Amount Remaining",
+                {
+                  "base-type": "type/Decimal"
+                }
+              ]
+            ],
+            {
+              "name": "Amount Remaining",
+              "display-name": "Amount Remaining"
+            }
+          ]
+        ],
+        "filter": [
+          "=",
+          [
+            "field",
+            "Collection Status",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "Not Paid"
+        ]
+      }
+    }
+  },
+  {
+    "key": "c-unpaid-detail",
+    "page": 6,
+    "name": "Not Paid · collection worklist",
+    "model": "collections",
+    "display": "table",
+    "settings": {
+      "graph.dimensions": [],
+      "graph.metrics": [
+        "Borrower",
+        "Amount Due",
+        "Amount Collected",
+        "Amount Remaining",
+        "Receipts Today",
+        "Overdue Amount"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Borrower": {
+          "color": "#178F8A"
+        },
+        "Amount Due": {
+          "color": "#7472BE"
+        },
+        "Amount Collected": {
+          "color": "#D6816B"
+        },
+        "Amount Remaining": {
+          "color": "#24435A"
+        },
+        "Receipts Today": {
+          "color": "#D4AD60"
+        },
+        "Overdue Amount": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": true,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Amount Due\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Amount Collected\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Amount Remaining\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Receipts Today\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Overdue Amount\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      }
+    },
+    "description": "Page 6. Built from the shared Collection Worklist model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__77",
+        "fields": [
+          [
+            "field",
+            "Borrower",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          [
+            "field",
+            "Amount Due",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          [
+            "field",
+            "Amount Collected",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          [
+            "field",
+            "Amount Remaining",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          [
+            "field",
+            "Receipts Today",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          [
+            "field",
+            "Overdue Amount",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        ],
+        "filter": [
+          "=",
+          [
+            "field",
+            "Daily Collection Status",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "Not Paid"
+        ]
+      }
+    }
+  },
+  {
+    "key": "c-overdue-borrowers",
+    "page": 6,
+    "name": "Overdue · borrowers",
+    "model": "collection-summary",
+    "display": "scalar",
+    "settings": {
+      "graph.dimensions": [],
+      "graph.metrics": [
+        "Borrower Count"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Borrower Count": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Borrower Count\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      },
+      "scalar.field": "Borrower Count"
+    },
+    "description": "Page 6. Built from the shared Collection Status Summary model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__162",
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "sum",
+              [
+                "field",
+                "Borrower Count",
+                {
+                  "base-type": "type/BigInteger"
+                }
+              ]
+            ],
+            {
+              "name": "Borrower Count",
+              "display-name": "Borrower Count"
+            }
+          ]
+        ],
+        "filter": [
+          "=",
+          [
+            "field",
+            "Collection Status",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "Overdue"
+        ]
+      }
+    }
+  },
+  {
+    "key": "c-overdue-amount",
+    "page": 6,
+    "name": "Overdue · amount remaining",
+    "model": "collection-summary",
+    "display": "scalar",
+    "settings": {
+      "graph.dimensions": [],
+      "graph.metrics": [
+        "Amount Remaining"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Amount Remaining": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Amount Remaining\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      },
+      "scalar.field": "Amount Remaining"
+    },
+    "description": "Page 6. Built from the shared Collection Status Summary model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__162",
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "sum",
+              [
+                "field",
+                "Amount Remaining",
+                {
+                  "base-type": "type/Decimal"
+                }
+              ]
+            ],
+            {
+              "name": "Amount Remaining",
+              "display-name": "Amount Remaining"
+            }
+          ]
+        ],
+        "filter": [
+          "=",
+          [
+            "field",
+            "Collection Status",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "Overdue"
+        ]
+      }
+    }
+  },
+  {
+    "key": "c-overdue-detail",
+    "page": 6,
+    "name": "Overdue · collection worklist",
+    "model": "collections",
+    "display": "table",
+    "settings": {
+      "graph.dimensions": [],
+      "graph.metrics": [
+        "Borrower",
+        "Amount Due",
+        "Amount Collected",
+        "Amount Remaining",
+        "Receipts Today",
+        "Overdue Amount"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Borrower": {
+          "color": "#178F8A"
+        },
+        "Amount Due": {
+          "color": "#7472BE"
+        },
+        "Amount Collected": {
+          "color": "#D6816B"
+        },
+        "Amount Remaining": {
+          "color": "#24435A"
+        },
+        "Receipts Today": {
+          "color": "#D4AD60"
+        },
+        "Overdue Amount": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": true,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Amount Due\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Amount Collected\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Amount Remaining\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Receipts Today\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Overdue Amount\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      }
+    },
+    "description": "Page 6. Built from the shared Collection Worklist model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__77",
+        "fields": [
+          [
+            "field",
+            "Borrower",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          [
+            "field",
+            "Amount Due",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          [
+            "field",
+            "Amount Collected",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          [
+            "field",
+            "Amount Remaining",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          [
+            "field",
+            "Receipts Today",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          [
+            "field",
+            "Overdue Amount",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        ],
+        "filter": [
+          "=",
+          [
+            "field",
+            "Daily Collection Status",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "Overdue"
+        ]
+      }
+    }
+  },
+  {
+    "key": "i-principal",
+    "page": 7,
+    "name": "Current principal",
+    "model": "borrowers",
+    "display": "scalar",
+    "settings": {
+      "graph.dimensions": [],
+      "graph.metrics": [
+        "Outstanding Principal"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Outstanding Principal": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Outstanding Principal\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      },
+      "scalar.field": "Outstanding Principal"
+    },
+    "description": "Page 7. Built from the shared Borrowers model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__69",
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "sum",
+              [
+                "field",
+                "Outstanding Principal",
+                {
+                  "base-type": "type/Decimal"
+                }
+              ]
+            ],
+            {
+              "name": "Outstanding Principal",
+              "display-name": "Outstanding Principal"
+            }
+          ]
+        ]
+      }
+    },
+    "borrower_field": "Borrower ID"
+  },
+  {
+    "key": "i-active",
+    "page": 7,
+    "name": "Active loans",
+    "model": "borrowers",
+    "display": "scalar",
+    "settings": {
+      "graph.dimensions": [],
+      "graph.metrics": [
+        "Active Loans"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Active Loans": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Active Loans\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      },
+      "scalar.field": "Active Loans"
+    },
+    "description": "Page 7. Built from the shared Borrowers model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__69",
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "sum",
+              [
+                "field",
+                "Active Loans",
+                {
+                  "base-type": "type/BigInteger"
+                }
+              ]
+            ],
+            {
+              "name": "Active Loans",
+              "display-name": "Active Loans"
+            }
+          ]
+        ]
+      }
+    },
+    "borrower_field": "Borrower ID"
+  },
+  {
+    "key": "i-overdue",
+    "page": 7,
+    "name": "Overdue",
+    "model": "borrowers",
+    "display": "scalar",
+    "settings": {
+      "graph.dimensions": [],
+      "graph.metrics": [
+        "Overdue Amount"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Overdue Amount": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Overdue Amount\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      },
+      "scalar.field": "Overdue Amount"
+    },
+    "description": "Page 7. Built from the shared Borrowers model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__69",
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "sum",
+              [
+                "field",
+                "Overdue Amount",
+                {
+                  "base-type": "type/Decimal"
+                }
+              ]
+            ],
+            {
+              "name": "Overdue Amount",
+              "display-name": "Overdue Amount"
+            }
+          ]
+        ]
+      }
+    },
+    "borrower_field": "Borrower ID"
+  },
+  {
+    "key": "i-interest",
+    "page": 7,
+    "name": "Lifetime interest",
+    "model": "borrowers",
+    "display": "scalar",
+    "settings": {
+      "graph.dimensions": [],
+      "graph.metrics": [
+        "Total Interest Earned"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Total Interest Earned": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Total Interest Earned\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      },
+      "scalar.field": "Total Interest Earned"
+    },
+    "description": "Reuses saved question 81. Same borrower lifetime-interest aggregate; borrower filter belongs to placement.",
+    "borrower_field": "Borrower ID",
+    "reuse_card_id": 81
+  },
+  {
+    "key": "i-timing",
+    "page": 7,
+    "name": "Monthly payment behaviour",
+    "model": "charges",
+    "display": "bar",
+    "settings": {
+      "graph.dimensions": [
+        "Charge Month",
+        "Payment Timing"
+      ],
+      "graph.metrics": [
+        "Count"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Count": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": true,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Count\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      },
+      "stackable.stack_type": "stacked"
+    },
+    "description": "Page 7. Built from the shared Charge History model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__75",
+        "breakout": [
+          [
+            "field",
+            "Charge Month",
+            {
+              "base-type": "type/Date"
+            }
+          ],
+          [
+            "field",
+            "Payment Timing",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        ],
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "count"
+            ],
+            {
+              "name": "Count",
+              "display-name": "Count"
+            }
+          ]
+        ],
+        "order-by": [
+          [
+            "asc",
+            [
+              "field",
+              "Charge Month",
+              {
+                "base-type": "type/Date"
+              }
+            ]
+          ]
+        ]
+      }
+    },
+    "borrower_field": "Borrower ID"
+  },
+  {
+    "key": "i-loans",
+    "page": 7,
+    "name": "Borrower loan history",
+    "model": "loans",
+    "display": "table",
+    "settings": {
+      "graph.dimensions": [],
+      "graph.metrics": [
+        "Loan Date",
+        "Loan ID",
+        "Loan Type",
+        "Loan Status",
+        "Principal Amount",
+        "Outstanding Principal",
+        "Current Daily Interest"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Loan Date": {
+          "color": "#178F8A"
+        },
+        "Loan ID": {
+          "color": "#7472BE"
+        },
+        "Loan Type": {
+          "color": "#D6816B"
+        },
+        "Loan Status": {
+          "color": "#24435A"
+        },
+        "Principal Amount": {
+          "color": "#D4AD60"
+        },
+        "Outstanding Principal": {
+          "color": "#178F8A"
+        },
+        "Current Daily Interest": {
+          "color": "#7472BE"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": true,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Principal Amount\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Outstanding Principal\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Current Daily Interest\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      }
+    },
+    "description": "Page 7. Built from the shared Loan Book model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__70",
+        "fields": [
+          [
+            "field",
+            "Loan Date",
+            {
+              "base-type": "type/Date"
+            }
+          ],
+          [
+            "field",
+            "Loan ID",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          [
+            "field",
+            "Loan Type",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          [
+            "field",
+            "Loan Status",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          [
+            "field",
+            "Principal Amount",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          [
+            "field",
+            "Outstanding Principal",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          [
+            "field",
+            "Current Daily Interest",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        ]
+      }
+    },
+    "borrower_field": "Borrower ID"
+  },
+  {
+    "key": "i-assessment",
+    "page": 7,
+    "name": "Credit history & assessment inputs",
+    "model": "borrowers",
+    "display": "table",
+    "settings": {
+      "graph.dimensions": [],
+      "graph.metrics": [
+        "Borrower",
+        "Hidden",
+        "Has Closed Loan",
+        "Has Active Loan",
+        "Default Count",
+        "Lifetime Default Loss",
+        "Largest Successful Loan",
+        "Average Successful Loan Size",
+        "Historical Charge Count",
+        "Matrix History Sufficient",
+        "Matrix Quadrant"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Borrower": {
+          "color": "#178F8A"
+        },
+        "Hidden": {
+          "color": "#7472BE"
+        },
+        "Has Closed Loan": {
+          "color": "#D6816B"
+        },
+        "Has Active Loan": {
+          "color": "#24435A"
+        },
+        "Default Count": {
+          "color": "#D4AD60"
+        },
+        "Lifetime Default Loss": {
+          "color": "#178F8A"
+        },
+        "Largest Successful Loan": {
+          "color": "#7472BE"
+        },
+        "Average Successful Loan Size": {
+          "color": "#D6816B"
+        },
+        "Historical Charge Count": {
+          "color": "#24435A"
+        },
+        "Matrix History Sufficient": {
+          "color": "#D4AD60"
+        },
+        "Matrix Quadrant": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": true,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Default Count\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Lifetime Default Loss\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Largest Successful Loan\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Average Successful Loan Size\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Historical Charge Count\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      }
+    },
+    "description": "Page 7. Built from the shared Borrowers model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__69",
+        "fields": [
+          [
+            "field",
+            "Borrower",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          [
+            "field",
+            "Hidden",
+            {
+              "base-type": "type/Boolean"
+            }
+          ],
+          [
+            "field",
+            "Has Closed Loan",
+            {
+              "base-type": "type/Boolean"
+            }
+          ],
+          [
+            "field",
+            "Has Active Loan",
+            {
+              "base-type": "type/Boolean"
+            }
+          ],
+          [
+            "field",
+            "Default Count",
+            {
+              "base-type": "type/BigInteger"
+            }
+          ],
+          [
+            "field",
+            "Lifetime Default Loss",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          [
+            "field",
+            "Largest Successful Loan",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          [
+            "field",
+            "Average Successful Loan Size",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          [
+            "field",
+            "Historical Charge Count",
+            {
+              "base-type": "type/BigInteger"
+            }
+          ],
+          [
+            "field",
+            "Matrix History Sufficient",
+            {
+              "base-type": "type/Boolean"
+            }
+          ],
+          [
+            "field",
+            "Matrix Quadrant",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        ]
+      }
+    },
+    "borrower_field": "Borrower ID"
+  },
+  {
+    "key": "i-risk",
+    "page": 7,
+    "name": "Borrower risk monitor",
+    "model": "borrowers",
+    "display": "table",
+    "settings": {
+      "graph.dimensions": [],
+      "graph.metrics": [
+        "Borrower",
+        "Outstanding Principal",
+        "Portfolio Exposure %",
+        "Overdue Amount",
+        "Oldest Active Loan Age",
+        "Lifetime On Time Rate",
+        "Recent 30D On Time Rate",
+        "Maximum Days Late",
+        "Default Count",
+        "Lifetime Default Loss"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Borrower": {
+          "color": "#178F8A"
+        },
+        "Outstanding Principal": {
+          "color": "#7472BE"
+        },
+        "Portfolio Exposure %": {
+          "color": "#D6816B"
+        },
+        "Overdue Amount": {
+          "color": "#24435A"
+        },
+        "Oldest Active Loan Age": {
+          "color": "#D4AD60"
+        },
+        "Lifetime On Time Rate": {
+          "color": "#178F8A"
+        },
+        "Recent 30D On Time Rate": {
+          "color": "#7472BE"
+        },
+        "Maximum Days Late": {
+          "color": "#D6816B"
+        },
+        "Default Count": {
+          "color": "#24435A"
+        },
+        "Lifetime Default Loss": {
+          "color": "#D4AD60"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": true,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Outstanding Principal\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Portfolio Exposure %\"]": {
+          "number_style": "percent",
+          "decimals": 1,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Overdue Amount\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Oldest Active Loan Age\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Lifetime On Time Rate\"]": {
+          "number_style": "percent",
+          "decimals": 1,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Recent 30D On Time Rate\"]": {
+          "number_style": "percent",
+          "decimals": 1,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Maximum Days Late\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Default Count\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Lifetime Default Loss\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      }
+    },
+    "description": "Page 7. Built from the shared Borrowers model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__69",
+        "fields": [
+          [
+            "field",
+            "Borrower",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          [
+            "field",
+            "Outstanding Principal",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          [
+            "field",
+            "Portfolio Exposure %",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          [
+            "field",
+            "Overdue Amount",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          [
+            "field",
+            "Oldest Active Loan Age",
+            {
+              "base-type": "type/Integer"
+            }
+          ],
+          [
+            "field",
+            "Lifetime On Time Rate",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          [
+            "field",
+            "Recent 30D On Time Rate",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          [
+            "field",
+            "Maximum Days Late",
+            {
+              "base-type": "type/Integer"
+            }
+          ],
+          [
+            "field",
+            "Default Count",
+            {
+              "base-type": "type/BigInteger"
+            }
+          ],
+          [
+            "field",
+            "Lifetime Default Loss",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        ]
+      }
+    },
+    "borrower_field": "Borrower ID"
+  },
+  {
+    "key": "f-realized",
+    "page": 8,
+    "name": "Realized this month",
+    "model": "portfolio",
+    "display": "scalar",
+    "settings": {
+      "graph.dimensions": [],
+      "graph.metrics": [
+        "Realized Profit MTD"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Realized Profit MTD": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Realized Profit MTD\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      },
+      "scalar.field": "Realized Profit MTD"
+    },
+    "description": "Reuses saved question 51. One-row Portfolio Overview realized MTD profit.",
+    "reuse_card_id": 51
+  },
+  {
+    "key": "f-remaining",
+    "page": 8,
+    "name": "Remaining forecast",
+    "model": "portfolio",
+    "display": "scalar",
+    "settings": {
+      "graph.dimensions": [],
+      "graph.metrics": [
+        "Remaining Forecast Profit"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Remaining Forecast Profit": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Remaining Forecast Profit\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      },
+      "scalar.field": "Remaining Forecast Profit"
+    },
+    "description": "Page 8. Built from the shared Portfolio Overview model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__73",
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "sum",
+              [
+                "field",
+                "Remaining Forecast Profit",
+                {
+                  "base-type": "type/Decimal"
+                }
+              ]
+            ],
+            {
+              "name": "Remaining Forecast Profit",
+              "display-name": "Remaining Forecast Profit"
+            }
+          ]
+        ]
+      }
+    }
+  },
+  {
+    "key": "f-estimate",
+    "page": 8,
+    "name": "Estimated month",
+    "model": "portfolio",
+    "display": "scalar",
+    "settings": {
+      "graph.dimensions": [],
+      "graph.metrics": [
+        "Projected Monthly Profit"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Projected Monthly Profit": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Projected Monthly Profit\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      },
+      "scalar.field": "Projected Monthly Profit"
+    },
+    "description": "Reuses saved question 52. One-row Portfolio Overview projected monthly profit.",
+    "reuse_card_id": 52
+  },
+  {
+    "key": "f-realization",
+    "page": 8,
+    "name": "Forecast realization",
+    "model": "portfolio",
+    "display": "scalar",
+    "settings": {
+      "graph.dimensions": [],
+      "graph.metrics": [
+        "Forecast Realization"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Forecast Realization": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Forecast Realization\"]": {
+          "number_style": "percent",
+          "decimals": 1,
+          "number_separators": ".,"
+        }
+      },
+      "scalar.field": "Forecast Realization"
+    },
+    "description": "Page 8. Built from the shared Portfolio Overview model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__73",
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "sum",
+              [
+                "field",
+                "Forecast Realization",
+                {
+                  "base-type": "type/Decimal"
+                }
+              ]
+            ],
+            {
+              "name": "Forecast Realization",
+              "display-name": "Forecast Realization"
+            }
+          ]
+        ]
+      }
+    }
+  },
+  {
+    "key": "f-progress",
+    "page": 8,
+    "name": "Realized and remaining forecast",
+    "model": "portfolio",
+    "display": "bar",
+    "settings": {
+      "graph.dimensions": [
+        "As Of Date"
+      ],
+      "graph.metrics": [
+        "Realized Profit MTD",
+        "Remaining Forecast Profit"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Realized Profit MTD": {
+          "color": "#178F8A"
+        },
+        "Remaining Forecast Profit": {
+          "color": "#7472BE"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": true,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Realized Profit MTD\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Remaining Forecast Profit\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      },
+      "stackable.stack_type": "stacked"
+    },
+    "description": "Page 8. Built from the shared Portfolio Overview model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__73",
+        "breakout": [
+          [
+            "field",
+            "As Of Date",
+            {
+              "base-type": "type/Date"
+            }
+          ]
+        ],
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "sum",
+              [
+                "field",
+                "Realized Profit MTD",
+                {
+                  "base-type": "type/Decimal"
+                }
+              ]
+            ],
+            {
+              "name": "Realized Profit MTD",
+              "display-name": "Realized Profit MTD"
+            }
+          ],
+          [
+            "aggregation-options",
+            [
+              "sum",
+              [
+                "field",
+                "Remaining Forecast Profit",
+                {
+                  "base-type": "type/Decimal"
+                }
+              ]
+            ],
+            {
+              "name": "Remaining Forecast Profit",
+              "display-name": "Remaining Forecast Profit"
+            }
+          ]
+        ],
+        "order-by": [
+          [
+            "desc",
+            [
+              "aggregation",
+              0
+            ]
+          ]
+        ]
+      }
+    }
+  },
+  {
+    "key": "f-type",
+    "page": 8,
+    "name": "Expected interest by loan type",
+    "model": "loans",
+    "display": "row",
+    "settings": {
+      "graph.dimensions": [
+        "Loan Type"
+      ],
+      "graph.metrics": [
+        "Expected Interest This Month"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Expected Interest This Month": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": true,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Expected Interest This Month\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      }
+    },
+    "description": "Page 8. Built from the shared Loan Book model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__70",
+        "breakout": [
+          [
+            "field",
+            "Loan Type",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        ],
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "sum",
+              [
+                "field",
+                "Expected Interest This Month",
+                {
+                  "base-type": "type/Decimal"
+                }
+              ]
+            ],
+            {
+              "name": "Expected Interest This Month",
+              "display-name": "Expected Interest This Month"
+            }
+          ]
+        ],
+        "order-by": [
+          [
+            "desc",
+            [
+              "aggregation",
+              0
+            ]
+          ]
+        ]
+      }
+    }
+  },
+  {
+    "key": "f-daily-borrower",
+    "page": 8,
+    "name": "Current daily interest by borrower",
+    "model": "loans",
+    "display": "pie",
+    "settings": {
+      "graph.dimensions": [
+        "Borrower"
+      ],
+      "graph.metrics": [
+        "Current Daily Interest"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Current Daily Interest": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Current Daily Interest\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      },
+      "pie.dimension": "Borrower",
+      "pie.metric": "Current Daily Interest",
+      "pie.show_legend": true,
+      "pie.show_total": false,
+      "pie.show_labels": true
+    },
+    "description": "Page 8. Built from the shared Loan Book model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__70",
+        "breakout": [
+          [
+            "field",
+            "Borrower",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        ],
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "sum",
+              [
+                "field",
+                "Current Daily Interest",
+                {
+                  "base-type": "type/Decimal"
+                }
+              ]
+            ],
+            {
+              "name": "Current Daily Interest",
+              "display-name": "Current Daily Interest"
+            }
+          ]
+        ],
+        "order-by": [
+          [
+            "desc",
+            [
+              "aggregation",
+              0
+            ]
+          ]
+        ]
+      }
+    }
+  },
+  {
+    "key": "f-month-borrower",
+    "page": 8,
+    "name": "Expected monthly interest by borrower",
+    "model": "loans",
+    "display": "pie",
+    "settings": {
+      "graph.dimensions": [
+        "Borrower"
+      ],
+      "graph.metrics": [
+        "Expected Interest This Month"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Expected Interest This Month": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Expected Interest This Month\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      },
+      "pie.dimension": "Borrower",
+      "pie.metric": "Expected Interest This Month",
+      "pie.show_legend": true,
+      "pie.show_total": false,
+      "pie.show_labels": true
+    },
+    "description": "Page 8. Built from the shared Loan Book model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__70",
+        "breakout": [
+          [
+            "field",
+            "Borrower",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        ],
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "sum",
+              [
+                "field",
+                "Expected Interest This Month",
+                {
+                  "base-type": "type/Decimal"
+                }
+              ]
+            ],
+            {
+              "name": "Expected Interest This Month",
+              "display-name": "Expected Interest This Month"
+            }
+          ]
+        ],
+        "order-by": [
+          [
+            "desc",
+            [
+              "aggregation",
+              0
+            ]
+          ]
+        ]
+      }
+    }
+  },
+  {
+    "key": "f-partner",
+    "page": 8,
+    "name": "Current partner pool shares",
+    "model": "partners",
+    "display": "pie",
+    "settings": {
+      "graph.dimensions": [
+        "Partner"
+      ],
+      "graph.metrics": [
+        "Current Pool Share"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Current Pool Share": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Current Pool Share\"]": {
+          "number_style": "percent",
+          "decimals": 1,
+          "number_separators": ".,"
+        }
+      },
+      "pie.dimension": "Partner",
+      "pie.metric": "Current Pool Share",
+      "pie.show_legend": true,
+      "pie.show_total": false,
+      "pie.show_labels": true
+    },
+    "description": "Page 8. Built from the shared Partner Outlook model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__76",
+        "breakout": [
+          [
+            "field",
+            "Partner",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        ],
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "sum",
+              [
+                "field",
+                "Current Pool Share",
+                {
+                  "base-type": "type/Decimal"
+                }
+              ]
+            ],
+            {
+              "name": "Current Pool Share",
+              "display-name": "Current Pool Share"
+            }
+          ]
+        ],
+        "order-by": [
+          [
+            "desc",
+            [
+              "aggregation",
+              0
+            ]
+          ]
+        ]
+      }
+    }
+  },
+  {
+    "key": "f-detail",
+    "page": 8,
+    "name": "Borrower forecast detail",
+    "model": "loans",
+    "display": "table",
+    "settings": {
+      "graph.dimensions": [
+        "Borrower"
+      ],
+      "graph.metrics": [
+        "Current Daily Interest",
+        "Expected Interest This Month",
+        "Outstanding Principal"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Current Daily Interest": {
+          "color": "#178F8A"
+        },
+        "Expected Interest This Month": {
+          "color": "#7472BE"
+        },
+        "Outstanding Principal": {
+          "color": "#D6816B"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": true,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Current Daily Interest\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Expected Interest This Month\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Outstanding Principal\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      }
+    },
+    "description": "Page 8. Built from the shared Loan Book model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__70",
+        "breakout": [
+          [
+            "field",
+            "Borrower",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        ],
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "sum",
+              [
+                "field",
+                "Current Daily Interest",
+                {
+                  "base-type": "type/Decimal"
+                }
+              ]
+            ],
+            {
+              "name": "Current Daily Interest",
+              "display-name": "Current Daily Interest"
+            }
+          ],
+          [
+            "aggregation-options",
+            [
+              "sum",
+              [
+                "field",
+                "Expected Interest This Month",
+                {
+                  "base-type": "type/Decimal"
+                }
+              ]
+            ],
+            {
+              "name": "Expected Interest This Month",
+              "display-name": "Expected Interest This Month"
+            }
+          ],
+          [
+            "aggregation-options",
+            [
+              "sum",
+              [
+                "field",
+                "Outstanding Principal",
+                {
+                  "base-type": "type/Decimal"
+                }
+              ]
+            ],
+            {
+              "name": "Outstanding Principal",
+              "display-name": "Outstanding Principal"
+            }
+          ]
+        ],
+        "order-by": [
+          [
+            "desc",
+            [
+              "aggregation",
+              0
+            ]
+          ]
+        ]
+      }
+    }
+  },
+  {
+    "key": "f-interest-trend",
+    "page": 8,
+    "name": "Interest received over time",
+    "model": "repayments",
+    "display": "line",
+    "settings": {
+      "graph.dimensions": [
+        "Payment Date"
+      ],
+      "graph.metrics": [
+        "Interest Paid"
+      ],
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60"
+      ],
+      "series_settings": {
+        "Interest Paid": {
+          "color": "#178F8A"
+        }
+      },
+      "graph.show_dots": false,
+      "graph.show_values": false,
+      "graph.show_legend": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "table.pivot": false,
+      "table.cell_column_widths": null,
+      "column_settings": {
+        "[\"name\",\"Interest Paid\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      }
+    },
+    "description": "Page 8. Built from the shared Repayment Ledger model; gross profit means interest before expenses.",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__71",
+        "breakout": [
+          [
+            "field",
+            "Payment Date",
+            {
+              "base-type": "type/Date"
+            }
+          ]
+        ],
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "sum",
+              [
+                "field",
+                "Interest Paid",
+                {
+                  "base-type": "type/Decimal"
+                }
+              ]
+            ],
+            {
+              "name": "Interest Paid",
+              "display-name": "Interest Paid"
+            }
+          ]
+        ],
+        "order-by": [
+          [
+            "asc",
+            [
+              "field",
+              "Payment Date",
+              {
+                "base-type": "type/Date"
+              }
+            ]
+          ]
+        ]
+      }
+    }
+  }
+]

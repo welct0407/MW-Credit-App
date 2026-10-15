@@ -1,0 +1,44 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.first_day_components_v83(l \"Loans\")"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r052/dictionary-production-closure.json"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "first_day_components_v83"
+    "arguments": "l \"Loans\""
+    "kind": "f"
+    "arguments_with_defaults": "l \"Loans\""
+    "result": "TABLE(principal numeric, interest numeric)"
+    "definition": "CREATE OR REPLACE FUNCTION public.first_day_components_v83(l \"Loans\")\n RETURNS TABLE(principal numeric,\
+      \ interest numeric)\n LANGUAGE plpgsql\n IMMUTABLE\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\r\nDECLARE\
+      \ days integer;\r\nBEGIN\r\n IF NOT coalesce(l.\"Auto Charge Enabled\",false) OR NOT coalesce((\r\n   (l.\"Loan Type\"\
+      ='ดอกเบี้ยรายวัน' AND l.\"Current Daily Interest\"::numeric>0) OR\r\n   (l.\"Loan Type\"='ผ่อนชำระรายวัน' AND l.\"Daily\
+      \ Payment Amount\"::numeric>0)),false) THEN RETURN;END IF;\r\n IF l.\"Loan Date\" IS NULL THEN RAISE EXCEPTION 'First-day\
+      \ charge requires Loan Date';END IF;\r\n principal:=0;\r\n IF l.\"Loan Type\"='ผ่อนชำระรายวัน' THEN\r\n  days:=l.\"\
+      Due Date\"-l.\"Loan Date\"+1;\r\n  IF days IS NULL OR days<=0 OR l.\"Principal Amount\" IS NULL OR l.\"Principal Amount\"\
+      ::numeric<0 THEN\r\n   RAISE EXCEPTION 'Invalid installment principal or inclusive loan term';\r\n  END IF;\r\n  principal:=floor(l.\"\
+      Principal Amount\"::numeric/days)+CASE WHEN mod(l.\"Principal Amount\"::numeric,days)>0 THEN 1 ELSE 0 END;\r\n  interest:=l.\"\
+      Daily Payment Amount\"::numeric-principal+coalesce(l.\"Transfer Fee\"::numeric,0);\r\n ELSE interest:=l.\"Current Daily\
+      \ Interest\"::numeric+coalesce(l.\"Transfer Fee\"::numeric,0);\r\n END IF;\r\n IF interest IS NULL OR interest<0 THEN\
+      \ RAISE EXCEPTION 'Invalid first-day interest component';END IF;\r\n RETURN NEXT;\r\nEND $function$\n"
+    "owner": "postgres"
+    "language": "plpgsql"
+    "volatility": "i"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 1000.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": "{=X/postgres,postgres=X/postgres,mw_app_prod=X/postgres}"
+    "comment": null
+    "extension": null

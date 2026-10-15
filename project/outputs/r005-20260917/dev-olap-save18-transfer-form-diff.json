@@ -1,0 +1,100 @@
+{
+  "release": "R005",
+  "app": "olap",
+  "before": {
+    "file": "dev-olap-save17-form-and-title-fix.json",
+    "version": "1.000114"
+  },
+  "after": {
+    "file": "dev-olap-save18-transfer-form.json",
+    "version": "1.000115"
+  },
+  "coverage": "All exported properties; omitted export coverage subject to explicit owner-approved limited R005 exception.",
+  "counts": {
+    "before": 24450,
+    "after": 24450,
+    "changes": 5
+  },
+  "changes": [
+    {
+      "id": "R005-OLAP-10d4e392c175",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "App/Version",
+      "operation": "change",
+      "before": {
+        "present": true,
+        "value": "1.000114"
+      },
+      "after": {
+        "present": true,
+        "value": "1.000115"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-0ce95ae7f886",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "View name/Cash Ledger_Form/View configuration/ColumnOrder/2",
+      "operation": "change",
+      "before": {
+        "present": true,
+        "value": "Amount"
+      },
+      "after": {
+        "present": true,
+        "value": "Ref From Cash Holder"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-cad1f4b6f059",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "View name/Cash Ledger_Form/View configuration/ColumnOrder/3",
+      "operation": "change",
+      "before": {
+        "present": true,
+        "value": "Ref From Cash Holder"
+      },
+      "after": {
+        "present": true,
+        "value": "Ref To Cash Holder"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-27c657809918",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "View name/Cash Ledger_Form/View configuration/ColumnOrder/4",
+      "operation": "change",
+      "before": {
+        "present": true,
+        "value": "Ref To Cash Holder"
+      },
+      "after": {
+        "present": true,
+        "value": "Amount"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-2693a3690910",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "View name/Cash Ledger_Form/View configuration/FinishView",
+      "operation": "change",
+      "before": {
+        "present": true,
+        "value": "**Automatic**"
+      },
+      "after": {
+        "present": true,
+        "value": "Cash Position"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "checkpoint": "4E",
+  "sourceCommit": "20ad195017a4476ab7655f85b5f7265f15a68699",
+  "verifiedUtc": "2026-10-08T05:09:51Z",
+  "development": {
+    "runId": 37730466738,
+    "status": "completed",
+    "conclusion": "success",
+    "url": "https://github.com/welct0407/MW-Credit-App/actions/runs/37730466738"
+  },
+  "database": {
+    "runId": 37730466768,
+    "status": "completed",
+    "conclusion": "success",
+    "url": "https://github.com/welct0407/MW-Credit-App/actions/runs/37730466768"
+  },
+  "verificationMethod": "GitHub connector fetch_commit_workflow_runs for exact candidate commit",
+  "limits": "GitHub workflows complement the local 22 API and 5 pure named tests; they do not establish live Firebase, writer ACLs, GCS roundtrip, events or deployment. Later evidence-only commits do not change candidate source."
+}

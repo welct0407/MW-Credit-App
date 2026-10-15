@@ -1,0 +1,272 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "relation"
+  "name": "agent_audit.exports"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+  "previous_record":
+    "commit": "dffa437c29a762f5b87a10b14a32063da8df07aa"
+    "path": "Documents/Data Dictionary/systems/postgresql/relations/agent-audit-exports.yaml"
+    "identity":
+      "system": "postgresql"
+      "component": "unassigned-database"
+      "kind": "relation"
+      "name": "agent_audit.exports"
+      "scope": "as-recorded"
+"content":
+  "definition":
+    "schema": "agent_audit"
+    "name": "exports"
+    "kind": "r"
+    "owner": "mw_business_audit_owner"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "d"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{mw_business_audit_owner=arwdDxtm/mw_business_audit_owner,mw_agent_relay=ar/mw_business_audit_owner,mw_agent_auditor=r/mw_business_audit_owner}"
+    "comment": null
+    "view_definition": null
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "columns":
+    "operation_id":
+      "schema": "agent_audit"
+      "relation": "exports"
+      "name": "operation_id"
+      "ordinal": 1
+      "data_type": "uuid"
+      "type_schema": "pg_catalog"
+      "type_name": "uuid"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "central_completion_event_id":
+      "schema": "agent_audit"
+      "relation": "exports"
+      "name": "central_completion_event_id"
+      "ordinal": 2
+      "data_type": "uuid"
+      "type_schema": "pg_catalog"
+      "type_name": "uuid"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "exported_at":
+      "schema": "agent_audit"
+      "relation": "exports"
+      "name": "exported_at"
+      "ordinal": 3
+      "data_type": "timestamp with time zone"
+      "type_schema": "pg_catalog"
+      "type_name": "timestamptz"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": "clock_timestamp()"
+      "collation": null
+      "acl": null
+      "comment": null
+  "constraints":
+    "exports_central_completion_event_id_key":
+      "schema": "agent_audit"
+      "relation": "exports"
+      "name": "exports_central_completion_event_id_key"
+      "kind": "u"
+      "definition": "UNIQUE (central_completion_event_id)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 2
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "exports_central_completion_event_id_not_null":
+      "schema": "agent_audit"
+      "relation": "exports"
+      "name": "exports_central_completion_event_id_not_null"
+      "kind": "n"
+      "definition": "NOT NULL central_completion_event_id"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 2
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "exports_exported_at_not_null":
+      "schema": "agent_audit"
+      "relation": "exports"
+      "name": "exports_exported_at_not_null"
+      "kind": "n"
+      "definition": "NOT NULL exported_at"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 3
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "exports_operation_id_fkey":
+      "schema": "agent_audit"
+      "relation": "exports"
+      "name": "exports_operation_id_fkey"
+      "kind": "f"
+      "definition": "FOREIGN KEY (operation_id) REFERENCES agent_audit.commits(operation_id)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      "referenced_column_numbers":
+      - 1
+      "referenced_relation": "agent_audit.commits"
+      "update_action": "a"
+      "delete_action": "a"
+      "match_type": "s"
+      "comment": null
+    "exports_operation_id_not_null":
+      "schema": "agent_audit"
+      "relation": "exports"
+      "name": "exports_operation_id_not_null"
+      "kind": "n"
+      "definition": "NOT NULL operation_id"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "exports_pkey":
+      "schema": "agent_audit"
+      "relation": "exports"
+      "name": "exports_pkey"
+      "kind": "p"
+      "definition": "PRIMARY KEY (operation_id)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+  "indexes":
+    "exports_central_completion_event_id_key":
+      "schema": "agent_audit"
+      "relation": "exports"
+      "name": "exports_central_completion_event_id_key"
+      "definition": "CREATE UNIQUE INDEX exports_central_completion_event_id_key ON agent_audit.exports USING btree (central_completion_event_id)"
+      "unique": true
+      "primary": false
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 1
+      "total_attribute_count": 1
+      "predicate": null
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
+    "exports_pkey":
+      "schema": "agent_audit"
+      "relation": "exports"
+      "name": "exports_pkey"
+      "definition": "CREATE UNIQUE INDEX exports_pkey ON agent_audit.exports USING btree (operation_id)"
+      "unique": true
+      "primary": true
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 1
+      "total_attribute_count": 1
+      "predicate": null
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
+  "triggers":
+    "RI_ConstraintTrigger_c_19195":
+      "schema": "agent_audit"
+      "relation": "exports"
+      "name": "RI_ConstraintTrigger_c_19195"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_19195\" AFTER INSERT ON agent_audit.exports FROM agent_audit.commits\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_ins\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_19196":
+      "schema": "agent_audit"
+      "relation": "exports"
+      "name": "RI_ConstraintTrigger_c_19196"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_19196\" AFTER UPDATE ON agent_audit.exports FROM agent_audit.commits\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "exports_append_only":
+      "schema": "agent_audit"
+      "relation": "exports"
+      "name": "exports_append_only"
+      "definition": "CREATE TRIGGER exports_append_only BEFORE DELETE OR UPDATE OR TRUNCATE ON agent_audit.exports FOR EACH\
+        \ STATEMENT EXECUTE FUNCTION agent_audit.reject_rewrite()"
+      "enabled": "O"
+      "internal": false
+      "routine": "agent_audit.reject_rewrite()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+  "policies": {}
+  "dependencies": []

@@ -1,0 +1,258 @@
+[
+  {
+    "file": "systems/appsheet/oltp/tables/loans.yaml",
+    "new": false,
+    "before_sha256": "4332feb6fe7456fe74f2979f8cbf8c4f4ebb45fdcd2fff5a7eef99162277502e",
+    "after_sha256": "236e956a1c18c66f761305bf7cc111394d717369bca1b99f9bd50af660c3905e",
+    "changed_pointers": [
+      "/content/columns"
+    ]
+  },
+  {
+    "file": "systems/appsheet/oltp/slices/r008-loan-commands-d83bf86a.yaml",
+    "new": false,
+    "before_sha256": "9aaa06e14f2f88938a7b66560cfb61543896a9fecc8876531dc99a00f677995c",
+    "after_sha256": "26971f678c946317e69dfd906a3b77706a1afee0fb6f161c4f3267d685bc84ba",
+    "changed_pointers": [
+      "/content/definition",
+      "/content/members"
+    ]
+  },
+  {
+    "file": "systems/appsheet/oltp/views/loans-form-aa2ccff8.yaml",
+    "new": false,
+    "before_sha256": "dd27696a0f678701310b3ce137e5c99b343b0caadcbee9c6294fdcf6855e86a8",
+    "after_sha256": "4c347150cbbab694808c3372e2e5709a4af76a28328c62abaca41d25417d9763",
+    "changed_pointers": [
+      "/content/definition",
+      "/content/editor"
+    ]
+  },
+  {
+    "file": "systems/appsheet/oltp/views/loans-detail-c89c42a9.yaml",
+    "new": false,
+    "before_sha256": "8f2c4e451665405b0f30d0b9dfedd3fc45caa6c22f9703f9d5aa507aebdac904",
+    "after_sha256": "38080b5b12207b2265c29018affbc58c03ecdc268256d6b1d9bf870b9253e04a",
+    "changed_pointers": [
+      "/content/definition",
+      "/content/editor"
+    ]
+  },
+  {
+    "file": "systems/appsheet/olap/tables/loans.yaml",
+    "new": false,
+    "before_sha256": "3d2dd698547f3f7b07b0cd90c8ecc544b97e74a87e1fd26f15e69bab285817dc",
+    "after_sha256": "a083808e7a0c60a5ef91ef710584f2543e8b8938971ec8e45087590e762fd035",
+    "changed_pointers": [
+      "/content/columns"
+    ]
+  },
+  {
+    "file": "systems/appsheet/olap/slices/reporting-loans.yaml",
+    "new": false,
+    "before_sha256": "c258cbc4b118d8a8623ac01990b5d35e8eac49b76c12335e01b522df658ab112",
+    "after_sha256": "ed90175a0b6bdec3e52302b13b759f6bb1ab978cf2c0d3779d75499d5c308a1e",
+    "changed_pointers": [
+      "/content/definition",
+      "/content/members"
+    ]
+  },
+  {
+    "file": "systems/appsheet/olap/views/loans-detail-c89c42a9.yaml",
+    "new": false,
+    "before_sha256": "6f21b468ef3660aa6453a6a61904effffe4cfab527e9dca6dd121701abca7095",
+    "after_sha256": "47dec6829b189d9bdcf8ebc7947e2aeec7afc8751861f4eec1e7e37a7a7f4c1f",
+    "changed_pointers": [
+      "/content/definition",
+      "/content/editor"
+    ]
+  },
+  {
+    "file": "systems/postgresql/relations/loans.yaml",
+    "new": false,
+    "before_sha256": "84363eb52fcb9a626c343e6c459a8501fedadbd17ccdc2af17421f3a000e0f0a",
+    "after_sha256": "8aec0641eb92fc7b612f2b792646c38bebf5c3fce332b7d48815d0050bfe2ad1",
+    "changed_pointers": [
+      "/content/columns",
+      "/content/constraints"
+    ]
+  },
+  {
+    "file": "systems/postgresql/relations/public-olap-loans-analytics-2c50c5a3.yaml",
+    "new": false,
+    "before_sha256": "3656a1d7e15192f832f937a7099f0d0baf1e5c698e7e5244f7a52862d13a2c10",
+    "after_sha256": "f1f7f095fa1a880dce5b5cab5c2c2494814061fe716c4632f8ac1a8faa52e41e",
+    "changed_pointers": [
+      "/content/definition",
+      "/content/columns",
+      "/content/dependencies"
+    ]
+  },
+  {
+    "file": "systems/postgresql/relations/reporting-forecast-inputs-v1.yaml",
+    "new": false,
+    "before_sha256": "73e6099793618d9fab99834869d5edcdff2b39693085b735336dc1c16f329022",
+    "after_sha256": "884a3696fda70ca73e4659eca32cc19e47e14bfe7a859f20629fb2a41efeb09f",
+    "changed_pointers": [
+      "/content/definition",
+      "/content/dependencies",
+      "/content/development_definition"
+    ]
+  },
+  {
+    "file": "systems/postgresql/routines/public-apply-principal-daily-interest-r036.yaml",
+    "new": false,
+    "before_sha256": "e7a18fa5203740bedb2d8a1eeb0c57d95634bbf3d03e22fd8ffa1b2763707d3f",
+    "after_sha256": "3e7d61d994bde5d9e367dac7f64fb8eab0efe355a30fffc01a6b2586a74e0629",
+    "changed_pointers": [
+      "/content/definition"
+    ]
+  },
+  {
+    "file": "systems/postgresql/routines/forecast-schedule-v1.yaml",
+    "new": false,
+    "before_sha256": "9f2170c163a142b301ef940df9245ebafaaf593cae877a66e4ca445f2320f27a",
+    "after_sha256": "7f69eb88abc97f6dd650300eebe9db435c529fd456e343621c974b24f6237dab",
+    "changed_pointers": [
+      "/content/definition",
+      "/content/development_definition"
+    ]
+  },
+  {
+    "file": "systems/postgresql/routines/public-original-daily-interest-rate-p-loans-historical-boolean-25d076c5.yaml",
+    "new": true,
+    "before_sha256": null,
+    "after_sha256": "3acca2829d585a039fffe5ed0bd29f4b4f7c9dbd34ae5f7fca80b6c9a2c68e1d",
+    "changed_pointers": []
+  },
+  {
+    "file": "development/appsheet/r048/olap-loan-slice-interest.yaml",
+    "new": false,
+    "before_sha256": "c1adbd3d41e0d5fb371a6f276dd8c96f30c536528a774c516f109c5e24563062",
+    "after_sha256": "f12d3fdcd32434394e67226f2674a18ebdc5b546ca3fd272ce224f288282ef01",
+    "changed_pointers": [
+      "/content/status",
+      "/content/production_delivery"
+    ]
+  },
+  {
+    "file": "development/appsheet/r048/olap-loans-interest.yaml",
+    "new": false,
+    "before_sha256": "a8b36eea2e67d67b1ea5de1356d550d0302825ec24d9f3bde11b48460da400cd",
+    "after_sha256": "a426cb2801f90094b05668945c774ef7b8b9c045a5ea97ef6a9f0e862a29ee43",
+    "changed_pointers": [
+      "/content/status",
+      "/content/production_delivery"
+    ]
+  },
+  {
+    "file": "development/appsheet/r048/olap-loans_detail-interest.yaml",
+    "new": false,
+    "before_sha256": "ee3ab5c68938c1886a0f30fffa9ab2af91745d69141dd3d333b6bfcb47459429",
+    "after_sha256": "7a22fd6fefb82b10a088a3d438399d35b930b29fc3fbf1ed069d9c6b9fd598cd",
+    "changed_pointers": [
+      "/content/status",
+      "/content/production_delivery"
+    ]
+  },
+  {
+    "file": "development/appsheet/r048/oltp-loan-slice-interest.yaml",
+    "new": false,
+    "before_sha256": "570e90b608118a4d2da6684349fe6626f1c82f0a9f9686b384b155ae45b0686b",
+    "after_sha256": "03b0e9a259f45dfa71ef3559a27f73625781046503a85d0b5b777821ef4b0732",
+    "changed_pointers": [
+      "/content/status",
+      "/content/production_delivery"
+    ]
+  },
+  {
+    "file": "development/appsheet/r048/oltp-loans-interest.yaml",
+    "new": false,
+    "before_sha256": "8e0126a247b59d5a6f26687e60dc99123d418f7382a703f460c51f0ad8a54dab",
+    "after_sha256": "4125ff28fa5ee28f8b73df2eb5cca30013cab20617671722f49c2cc97922f9e8",
+    "changed_pointers": [
+      "/content/status",
+      "/content/production_delivery"
+    ]
+  },
+  {
+    "file": "development/appsheet/r048/oltp-loans_detail-interest.yaml",
+    "new": false,
+    "before_sha256": "33cffaa302f4b8600cba0e1ec75a4d9335cba3d641ccda74ac12f3e34d1569db",
+    "after_sha256": "5cf9d0a8ce8cae7a0a6879087e14ec4eda1ea72ee07b0ad5df5721ff905c780f",
+    "changed_pointers": [
+      "/content/status",
+      "/content/production_delivery"
+    ]
+  },
+  {
+    "file": "development/appsheet/r048/oltp-loans_form-interest.yaml",
+    "new": false,
+    "before_sha256": "5ae3e0d9a751ab11793d004c3bd3a3c96a77a4b0a6c754aca1e972538897a387",
+    "after_sha256": "ccdd0da33070db0fd36e7e366bfbe3722d1b201b89719d410f7c41f9c499821b",
+    "changed_pointers": [
+      "/content/status",
+      "/content/production_delivery"
+    ]
+  },
+  {
+    "file": "development/postgresql/r048/apply_principal_daily_interest.yaml",
+    "new": false,
+    "before_sha256": "78005be4ae2e39878e6487b174d6a9838c98c0d9cb75c8c43a6b69b95cd28fb1",
+    "after_sha256": "95a723a61c7301d540b0fb1b424ea4f3d5295d40707cf0c8660220a403f856d7",
+    "changed_pointers": [
+      "/content/status",
+      "/content/production_delivery"
+    ]
+  },
+  {
+    "file": "development/postgresql/r048/forecast_schedule_v1.yaml",
+    "new": false,
+    "before_sha256": "282431f7c256cb41b6afef21910f783ab37ed1cb39287b352ff34d565b688f0a",
+    "after_sha256": "56b395b01acba8a952dba75dacda3b3ec62ef8b11ec29b66a6871e006b446f60",
+    "changed_pointers": [
+      "/content/status",
+      "/content/production_delivery"
+    ]
+  },
+  {
+    "file": "development/postgresql/r048/loans-interest.yaml",
+    "new": false,
+    "before_sha256": "db878a5f4de7016f64e2af072d59f0d82a838df5f4e42ad2b903891d9b694c76",
+    "after_sha256": "c4d77b2fbbc4fd186a9235d8f386ae7fc9fc02201804040a32132ba15a40c321",
+    "changed_pointers": [
+      "/content/status",
+      "/content/production_delivery"
+    ]
+  },
+  {
+    "file": "development/postgresql/r048/olap_loans_analytics-interest.yaml",
+    "new": false,
+    "before_sha256": "1b682582cfb6d80e37172961f7aeda0a2fabbd8b81b38af3249704d88abf3579",
+    "after_sha256": "6ccf13333c6ccc68aa382bcdb6c7c71af91d46a9fbd33e1d2579016d1e97a406",
+    "changed_pointers": [
+      "/content/status",
+      "/content/production_delivery"
+    ]
+  },
+  {
+    "file": "development/postgresql/r048/original_daily_interest_rate.yaml",
+    "new": false,
+    "before_sha256": "5364a6229ea4a233e834c06cb995a82d3fce603e8e5adb37ffabe1d65355745e",
+    "after_sha256": "9149468b9558b43ac3e41f159f54bf874263cfba8394c33df113b0875634511f",
+    "changed_pointers": [
+      "/content/status",
+      "/content/production_delivery"
+    ]
+  },
+  {
+    "file": "development/postgresql/r048/reporting_forecast_inputs_v1-interest.yaml",
+    "new": false,
+    "before_sha256": "51ae7a40a206c7257b103e85ea02cb200a7efe60a2c3312c7880567edbcf7f7e",
+    "after_sha256": "298de5269613ce37f5b481972ea2f492a26a097eefdcc57e297c0baaeb5cd341",
+    "changed_pointers": [
+      "/content/status",
+      "/content/production_delivery"
+    ]
+  }
+]

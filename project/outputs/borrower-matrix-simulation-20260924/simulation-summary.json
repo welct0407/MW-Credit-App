@@ -1,0 +1,458 @@
+{
+  "as_of": "2026-09-24",
+  "active": 22,
+  "all_borrowers": 30,
+  "live_categories": {
+    "Question Mark": 11,
+    "Star": 11
+  },
+  "live_equal_share_values": [
+    0.0
+  ],
+  "correct_equal_share": 0.045454545454545456,
+  "score_range": [
+    18.0,
+    100.0
+  ],
+  "history_sufficient": 10,
+  "current_history_sufficient": 22,
+  "comparisons": {
+    "days10_stability70": {
+      "Dog": 3,
+      "Cash Cow": 8,
+      "Question Mark": 4,
+      "Star": 7
+    },
+    "days10_stability75": {
+      "Dog": 3,
+      "Cash Cow": 8,
+      "Question Mark": 4,
+      "Star": 7
+    },
+    "days10_stability80": {
+      "Dog": 5,
+      "Cash Cow": 6,
+      "Question Mark": 4,
+      "Star": 7
+    },
+    "days10_stability85": {
+      "Dog": 6,
+      "Cash Cow": 5,
+      "Question Mark": 6,
+      "Star": 5
+    },
+    "days10_stability90": {
+      "Dog": 6,
+      "Cash Cow": 5,
+      "Question Mark": 6,
+      "Star": 5
+    },
+    "days30_stability70": {
+      "Dog": 4,
+      "Cash Cow": 10,
+      "Star": 5,
+      "Question Mark": 3
+    },
+    "days30_stability75": {
+      "Dog": 4,
+      "Cash Cow": 10,
+      "Star": 5,
+      "Question Mark": 3
+    },
+    "days30_stability80": {
+      "Dog": 5,
+      "Cash Cow": 9,
+      "Star": 4,
+      "Question Mark": 4
+    },
+    "days30_stability85": {
+      "Dog": 8,
+      "Cash Cow": 6,
+      "Star": 4,
+      "Question Mark": 4
+    },
+    "days30_stability90": {
+      "Dog": 8,
+      "Cash Cow": 6,
+      "Star": 4,
+      "Question Mark": 4
+    },
+    "days60_stability70": {
+      "Dog": 6,
+      "Cash Cow": 11,
+      "Star": 4,
+      "Question Mark": 1
+    },
+    "days60_stability75": {
+      "Dog": 6,
+      "Cash Cow": 11,
+      "Star": 4,
+      "Question Mark": 1
+    },
+    "days60_stability80": {
+      "Dog": 8,
+      "Cash Cow": 9,
+      "Star": 4,
+      "Question Mark": 1
+    },
+    "days60_stability85": {
+      "Dog": 10,
+      "Cash Cow": 7,
+      "Star": 3,
+      "Question Mark": 2
+    },
+    "days60_stability90": {
+      "Dog": 10,
+      "Cash Cow": 7,
+      "Star": 3,
+      "Question Mark": 2
+    }
+  },
+  "source_counts": {
+    "olap_borrowers_analytics": 30,
+    "Loans": 79,
+    "Charges": 1056,
+    "Repayments": 888,
+    "Payments": 277
+  },
+  "checks": {
+    "charge_amounts_nonnegative": false,
+    "negative_repayments": 3,
+    "defaulted_loans": 2,
+    "zero_due_charges": 2
+  },
+  "revised": {
+    "same_windows": {
+      "Star": 4,
+      "Cash Cow": 9,
+      "Question Mark": 4,
+      "Dog": 5,
+      "Unclassified": 0
+    },
+    "nonoverlapping_history": {
+      "Star": 4,
+      "Cash Cow": 9,
+      "Question Mark": 4,
+      "Dog": 5,
+      "Unclassified": 0
+    },
+    "borrower_day_weighted": {
+      "Star": 4,
+      "Cash Cow": 10,
+      "Question Mark": 4,
+      "Dog": 4,
+      "Unclassified": 0
+    },
+    "mature": {
+      "Star": 2,
+      "Cash Cow": 3,
+      "Question Mark": 2,
+      "Dog": 3,
+      "Unclassified": 0
+    },
+    "provisional": {
+      "Star": 2,
+      "Cash Cow": 6,
+      "Question Mark": 2,
+      "Dog": 2,
+      "Unclassified": 0
+    },
+    "overrides_changing_category": 0,
+    "movements": {
+      "Question Mark -> Dog": 3,
+      "Question Mark -> Cash Cow": 5,
+      "Star -> Dog": 2,
+      "Star -> Cash Cow": 4,
+      "Star -> Star": 3,
+      "Question Mark -> Star": 1,
+      "Question Mark -> Question Mark": 2,
+      "Star -> Question Mark": 2
+    },
+    "sensitivity": {
+      "70": {
+        "Star": 5,
+        "Cash Cow": 10,
+        "Question Mark": 3,
+        "Dog": 4,
+        "Unclassified": 0
+      },
+      "75": {
+        "Star": 5,
+        "Cash Cow": 10,
+        "Question Mark": 3,
+        "Dog": 4,
+        "Unclassified": 0
+      },
+      "80": {
+        "Star": 4,
+        "Cash Cow": 9,
+        "Question Mark": 4,
+        "Dog": 5,
+        "Unclassified": 0
+      },
+      "85": {
+        "Star": 4,
+        "Cash Cow": 6,
+        "Question Mark": 4,
+        "Dog": 8,
+        "Unclassified": 0
+      },
+      "90": {
+        "Star": 4,
+        "Cash Cow": 6,
+        "Question Mark": 4,
+        "Dog": 8,
+        "Unclassified": 0
+      }
+    },
+    "separate_sensitivity": {
+      "70": {
+        "Star": 5,
+        "Cash Cow": 10,
+        "Question Mark": 3,
+        "Dog": 4,
+        "Unclassified": 0
+      },
+      "75": {
+        "Star": 5,
+        "Cash Cow": 10,
+        "Question Mark": 3,
+        "Dog": 4,
+        "Unclassified": 0
+      },
+      "80": {
+        "Star": 4,
+        "Cash Cow": 9,
+        "Question Mark": 4,
+        "Dog": 5,
+        "Unclassified": 0
+      },
+      "85": {
+        "Star": 4,
+        "Cash Cow": 8,
+        "Question Mark": 4,
+        "Dog": 6,
+        "Unclassified": 0
+      },
+      "90": {
+        "Star": 4,
+        "Cash Cow": 6,
+        "Question Mark": 4,
+        "Dog": 8,
+        "Unclassified": 0
+      }
+    }
+  },
+  "recommended": {
+    "counts": {
+      "Star": 5,
+      "Cash Cow": 10,
+      "Question Mark": 3,
+      "Dog": 4,
+      "Unclassified": 0
+    },
+    "established": {
+      "Star": 2,
+      "Cash Cow": 3,
+      "Question Mark": 2,
+      "Dog": 3,
+      "Unclassified": 0
+    },
+    "provisional": {
+      "Star": 3,
+      "Cash Cow": 7,
+      "Question Mark": 1,
+      "Dog": 1,
+      "Unclassified": 0
+    },
+    "changed_from_live": 18,
+    "threshold_sensitivity": {
+      "70": {
+        "Star": 6,
+        "Cash Cow": 11,
+        "Question Mark": 2,
+        "Dog": 3,
+        "Unclassified": 0
+      },
+      "75": {
+        "Star": 5,
+        "Cash Cow": 11,
+        "Question Mark": 3,
+        "Dog": 3,
+        "Unclassified": 0
+      },
+      "80": {
+        "Star": 5,
+        "Cash Cow": 10,
+        "Question Mark": 3,
+        "Dog": 4,
+        "Unclassified": 0
+      },
+      "85": {
+        "Star": 4,
+        "Cash Cow": 9,
+        "Question Mark": 4,
+        "Dog": 5,
+        "Unclassified": 0
+      },
+      "90": {
+        "Star": 4,
+        "Cash Cow": 7,
+        "Question Mark": 4,
+        "Dog": 7,
+        "Unclassified": 0
+      }
+    },
+    "value_sensitivity": {
+      "0.8": {
+        "Star": 8,
+        "Cash Cow": 7,
+        "Question Mark": 3,
+        "Dog": 4,
+        "Unclassified": 0
+      },
+      "1.0": {
+        "Star": 5,
+        "Cash Cow": 10,
+        "Question Mark": 3,
+        "Dog": 4,
+        "Unclassified": 0
+      },
+      "1.2": {
+        "Star": 3,
+        "Cash Cow": 12,
+        "Question Mark": 1,
+        "Dog": 6,
+        "Unclassified": 0
+      }
+    },
+    "window_sensitivity": {
+      "10": {
+        "Star": 8,
+        "Cash Cow": 7,
+        "Question Mark": 3,
+        "Dog": 4,
+        "Unclassified": 0
+      },
+      "30": {
+        "Star": 5,
+        "Cash Cow": 10,
+        "Question Mark": 3,
+        "Dog": 4,
+        "Unclassified": 0
+      },
+      "60": {
+        "Star": 4,
+        "Cash Cow": 11,
+        "Question Mark": 1,
+        "Dog": 6,
+        "Unclassified": 0
+      }
+    },
+    "near_reliability_boundary": 3,
+    "near_value_boundary": 2
+  },
+  "quality": {
+    "timeliness_differences_mature_positive_charges": 0,
+    "active_borrowers_with_prior_defaults": 0,
+    "negative_components_only_zero_cash_loss": false,
+    "due_date_range": [
+      "2026-08-05",
+      "2026-12-03"
+    ],
+    "oldest_active_history_days": 50,
+    "proposed_vs_live_active_count": true,
+    "shares_sum": 1.0,
+    "due_today_pending_borrowers": 3,
+    "negative_repayment_context": {
+      "total": 3,
+      "linked_to_defaulted_loans": 2,
+      "other_signed_adjustments": 1
+    }
+  },
+  "validation": {
+    "read_only_snapshot": true,
+    "repeatable_read_snapshot": true,
+    "unique_borrower_keys": true,
+    "categories_partition_active_cohort": true,
+    "economic_shares_sum_one": true,
+    "scores_in_range": true,
+    "raw_ledger_principal_matches_all_loans": true,
+    "raw_ledger_remaining_matches_all_charges": true,
+    "all_repayments_have_charge": true,
+    "repayment_loan_and_charge_loan_agree": true,
+    "live_category_reproduction": true,
+    "today_unpaid_is_not_late": true,
+    "high_reliability_no_severe_current_arrears": true,
+    "provisional_counts_reconcile": true
+  },
+  "restated_historical_checks": [
+    {
+      "asof": "2026-09-03",
+      "active_count": 18,
+      "distribution": {
+        "Star": 4,
+        "Cash Cow": 8,
+        "Question Mark": 0,
+        "Dog": 2,
+        "Unclassified": 4
+      },
+      "next7days_equal_borrower_on_time": {
+        "high": {
+          "borrowers": 12,
+          "rate": 0.8985615079365079
+        },
+        "low": {
+          "borrowers": 2,
+          "rate": 0.42857142857142855
+        }
+      }
+    },
+    {
+      "asof": "2026-09-10",
+      "active_count": 21,
+      "distribution": {
+        "Star": 4,
+        "Cash Cow": 14,
+        "Question Mark": 0,
+        "Dog": 3,
+        "Unclassified": 0
+      },
+      "next7days_equal_borrower_on_time": {
+        "high": {
+          "borrowers": 17,
+          "rate": 0.8339480588615537
+        },
+        "low": {
+          "borrowers": 3,
+          "rate": 0.2857142857142857
+        }
+      }
+    },
+    {
+      "asof": "2026-09-17",
+      "active_count": 23,
+      "distribution": {
+        "Star": 5,
+        "Cash Cow": 13,
+        "Question Mark": 1,
+        "Dog": 4,
+        "Unclassified": 0
+      },
+      "next7days_equal_borrower_on_time": {
+        "high": {
+          "borrowers": 15,
+          "rate": 0.7146886446886447
+        },
+        "low": {
+          "borrowers": 5,
+          "rate": 0.3142857142857143
+        }
+      }
+    }
+  ],
+  "snapshot_sha256": "c8aafd919184a19cf0205ac7e12cd468c07fd7f1e17699dd417334ab42ece74a",
+  "captured_at": "2026-09-24 13:00:12.570162+00:00",
+  "database_read_only": "on",
+  "migration": 39
+}

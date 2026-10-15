@@ -1,0 +1,171 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "metabase",
+    "component": "reports.mw-credit.com",
+    "kind": "question",
+    "name": "Net contributed capital over time / 339",
+    "scope": "production"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r044-partners/saved.json"
+  },
+  "content": {
+    "key": "capital-trend",
+    "description": "R044 Partners. Daily end balance includes capital before the selected period. Reconstructed from current records; no forecast.",
+    "result_metadata": [
+      {
+        "database_type": "date",
+        "semantic_type": null,
+        "lib/deduplicated-name": "Date",
+        "lib/original-name": "Date",
+        "name": "Date",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Date",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Date",
+          {
+            "base-type": "type/Date"
+          }
+        ],
+        "effective_type": "type/Date",
+        "lib/desired-column-alias": "Date",
+        "display_name": "Date",
+        "base_type": "type/Date"
+      },
+      {
+        "database_type": "text",
+        "semantic_type": null,
+        "lib/deduplicated-name": "Partner",
+        "lib/original-name": "Partner",
+        "name": "Partner",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Partner",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Partner",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "effective_type": "type/Text",
+        "lib/desired-column-alias": "Partner",
+        "display_name": "Partner",
+        "base_type": "type/Text"
+      },
+      {
+        "database_type": "numeric",
+        "semantic_type": null,
+        "lib/deduplicated-name": "Net capital ฿",
+        "lib/original-name": "Net capital ฿",
+        "name": "Net capital ฿",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Net capital ฿",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Net capital ฿",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "Net capital ฿",
+        "display_name": "Net capital ฿",
+        "base_type": "type/Decimal"
+      }
+    ],
+    "collection_id": 5,
+    "name": "Net contributed capital over time",
+    "type": "question",
+    "dataset_query": {
+      "stages": [
+        {
+          "template-tags": [
+            {
+              "widget-type": "string/=",
+              "id": "pt-partner",
+              "name": "partner",
+              "display-name": "Partner",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                {
+                  "base-type": "type/Text",
+                  "lib/uuid": "73924a30-5433-4029-bdf0-ab6305dae426",
+                  "effective-type": "type/Text"
+                },
+                121
+              ],
+              "alias": "d.partner_id"
+            },
+            {
+              "widget-type": "date/all-options",
+              "id": "pt-period",
+              "name": "period",
+              "display-name": "Partner activity period",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                {
+                  "base-type": "type/Date",
+                  "lib/uuid": "67307ff8-eda1-4901-a85c-6b54e5a45498",
+                  "effective-type": "type/Date"
+                },
+                82
+              ],
+              "alias": "d.activity_date"
+            },
+            {
+              "type": "card",
+              "id": "r044-model-322",
+              "name": "#322",
+              "display-name": "Partners source 322",
+              "card-id": 322
+            }
+          ],
+          "lib/type": "mbql.stage/native",
+          "native": "SELECT activity_date AS \"Date\",partner_name AS \"Partner\",capital_eod AS \"Net capital ฿\" FROM {{#322}} d WHERE true [[AND {{partner}}]] [[AND {{period}}]] ORDER BY activity_date,partner_id"
+        }
+      ],
+      "lib/type": "mbql/query",
+      "database": 2
+    },
+    "id": 339,
+    "display": "line",
+    "visualization_settings": {
+      "graph.show_values": false,
+      "graph.show_legend": true,
+      "graph.missing": "none",
+      "graph.y_axis.auto_split": false,
+      "graph.metrics": [
+        "Net capital ฿"
+      ],
+      "graph.label_value_formatting": "full",
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#D4AD60"
+      ],
+      "graph.show_dots": false,
+      "column_settings": {
+        "[\"name\",\"Net capital ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,",
+          "compact": false
+        }
+      },
+      "graph.dimensions": [
+        "Date",
+        "Partner"
+      ],
+      "stackable.stack_type": null
+    }
+  }
+}

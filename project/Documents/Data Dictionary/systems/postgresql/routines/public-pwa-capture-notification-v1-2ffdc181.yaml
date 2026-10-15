@@ -1,0 +1,68 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.pwa_capture_notification_v1()"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r053-notifications-jobs/production-notification-activation.json"
+  "coverage": "Actual maintained PROD capture toggle after verified DEV phone receipt; unchanged OID/owner/search_path and\
+    \ exact temporary authority restoration. No financial writes or PROD test send."
+"content":
+  "definition":
+    "schema": "public"
+    "name": "pwa_capture_notification_v1"
+    "arguments": ""
+    "kind": "f"
+    "arguments_with_defaults": ""
+    "result": "trigger"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.pwa_capture_notification_v1()
+       RETURNS trigger
+       LANGUAGE plpgsql
+       SECURITY DEFINER
+       SET search_path TO 'pg_catalog', 'public'
+       SET application_name TO 'mw_pwa_capture_enabled_v1'
+      AS $function$
+      DECLARE kind text; actor_email text; actor_id text; matches bigint; version text;
+      BEGIN
+       IF NOT EXISTS (
+        SELECT 1 FROM pg_catalog.pg_proc
+        WHERE oid='public.pwa_capture_notification_v1()'::pg_catalog.regprocedure
+        AND 'application_name=mw_pwa_capture_enabled_v1'=ANY(proconfig)
+       ) THEN RETURN NEW; END IF;
+       IF TG_TABLE_NAME='Payments' THEN
+        IF NEW."Status" IS DISTINCT FROM 'Posted' OR (TG_OP='UPDATE' AND OLD."Status"='Posted') THEN RETURN NEW; END IF;
+        kind:='payment.posted';actor_email:=nullif(lower(btrim(NEW."Created By")),'');version:='posted';
+       ELSE
+        IF TG_OP='INSERT' THEN kind:='loan.created';actor_email:=nullif(lower(btrim(NEW."Created By")),'');version:='created';
+        ELSIF NEW."Loan Status"='ปิดยอดแล้ว' AND OLD."Loan Status" IS DISTINCT FROM 'ปิดยอดแล้ว' AND NEW."Ref Closing Payment" IS NULL THEN
+         kind:='loan.closed';actor_email:=nullif(lower(btrim(NEW."Closed By")),'');
+         -- The source UPDATE already holds the loan row lock, serializing close occurrences.
+         SELECT 'closed:'||(count(*)+1)::text INTO version FROM public.pwa_notification_events WHERE source_kind='loan' AND source_id=NEW."Row ID" AND event_type='loan.closed';
+        ELSE RETURN NEW; END IF;
+       END IF;
+       SELECT count(*),min("Row ID") INTO matches,actor_id FROM public."Partners" WHERE lower(btrim("Login Email"))=actor_email;
+       IF matches<>1 THEN actor_id:=NULL; END IF;
+       INSERT INTO public.pwa_notification_events(dedupe_key,event_type,source_kind,source_id,source_version,actor_partner_id,actor_login_email)
+       VALUES(kind||':'||NEW."Row ID"||':'||version,kind,CASE WHEN TG_TABLE_NAME='Payments' THEN 'payment' ELSE 'loan' END,NEW."Row ID",version,actor_id,actor_email)
+       ON CONFLICT(dedupe_key) DO NOTHING;
+       RETURN NEW;
+      END $function$
+    "owner": "mw_notify_owner_prod"
+    "language": "plpgsql"
+    "volatility": "v"
+    "strict": false
+    "security_definer": true
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 0.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    - "application_name=mw_pwa_capture_enabled_v1"
+    "acl": "{mw_notify_owner_prod=X/mw_notify_owner_prod}"
+    "comment": "mw-access:governance fixed notification boundary; explicit capability only"
+    "extension": null

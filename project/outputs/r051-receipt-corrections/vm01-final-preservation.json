@@ -1,0 +1,162 @@
+{
+  "checked_at": "2026-10-06T12:35:20.797085+00:00",
+  "database": "loan_manager_dev",
+  "version": 72,
+  "backup_sha256": "7bfe8889a3393a4ef79ad4a7a13e1ed16c4c9ef0be5c05583d370cd2ff82cf5c",
+  "sources": {
+    "agent_audit.commits": {
+      "baseline_nonfixture_rows": 1,
+      "final_nonfixture_rows": 1,
+      "equal": true,
+      "fixture_residue": 0
+    },
+    "agent_audit.exports": {
+      "baseline_nonfixture_rows": 0,
+      "final_nonfixture_rows": 0,
+      "equal": true,
+      "fixture_residue": 0
+    },
+    "agent_audit.row_changes": {
+      "baseline_nonfixture_rows": 1,
+      "final_nonfixture_rows": 1,
+      "equal": true,
+      "fixture_residue": 0
+    },
+    "public.Borrowers": {
+      "baseline_nonfixture_rows": 35,
+      "final_nonfixture_rows": 35,
+      "equal": true,
+      "fixture_residue": 0
+    },
+    "public.Business Expenses": {
+      "baseline_nonfixture_rows": 5,
+      "final_nonfixture_rows": 5,
+      "equal": true,
+      "fixture_residue": 0
+    },
+    "public.Calendar": {
+      "baseline_nonfixture_rows": 0,
+      "final_nonfixture_rows": 0,
+      "equal": true,
+      "fixture_residue": 0
+    },
+    "public.Cash Accounts": {
+      "baseline_nonfixture_rows": 10,
+      "final_nonfixture_rows": 10,
+      "equal": true,
+      "fixture_residue": 0
+    },
+    "public.Cash Holders": {
+      "baseline_nonfixture_rows": 3,
+      "final_nonfixture_rows": 3,
+      "equal": true,
+      "fixture_residue": 0
+    },
+    "public.Cash Ledger": {
+      "baseline_nonfixture_rows": 74,
+      "final_nonfixture_rows": 74,
+      "equal": true,
+      "fixture_residue": 0
+    },
+    "public.Cash Pool Contributions": {
+      "baseline_nonfixture_rows": 8,
+      "final_nonfixture_rows": 8,
+      "equal": true,
+      "fixture_residue": 0
+    },
+    "public.Cash Statement Context": {
+      "baseline_nonfixture_rows": 3,
+      "final_nonfixture_rows": 3,
+      "equal": true,
+      "fixture_residue": 0
+    },
+    "public.Charges": {
+      "baseline_nonfixture_rows": 1342,
+      "final_nonfixture_rows": 1342,
+      "equal": true,
+      "fixture_residue": 0
+    },
+    "public.Loan Assessment": {
+      "baseline_nonfixture_rows": 1,
+      "final_nonfixture_rows": 1,
+      "equal": true,
+      "fixture_residue": 0
+    },
+    "public.Loan Assessment SQL Lab": {
+      "baseline_nonfixture_rows": 1,
+      "final_nonfixture_rows": 1,
+      "equal": true,
+      "fixture_residue": 0
+    },
+    "public.Loans": {
+      "baseline_nonfixture_rows": 79,
+      "final_nonfixture_rows": 79,
+      "equal": true,
+      "fixture_residue": 0
+    },
+    "public.Partners": {
+      "baseline_nonfixture_rows": 3,
+      "final_nonfixture_rows": 3,
+      "equal": true,
+      "fixture_residue": 0
+    },
+    "public.Payment Allocations": {
+      "baseline_nonfixture_rows": 445,
+      "final_nonfixture_rows": 445,
+      "equal": true,
+      "fixture_residue": 0
+    },
+    "public.Payments": {
+      "baseline_nonfixture_rows": 241,
+      "final_nonfixture_rows": 241,
+      "equal": true,
+      "fixture_residue": 0
+    },
+    "public.Repayments": {
+      "baseline_nonfixture_rows": 825,
+      "final_nonfixture_rows": 825,
+      "equal": true,
+      "fixture_residue": 0
+    },
+    "public.Settlements": {
+      "baseline_nonfixture_rows": 4,
+      "final_nonfixture_rows": 4,
+      "equal": true,
+      "fixture_residue": 0
+    },
+    "public.r005_cash_cutover_sources": {
+      "baseline_nonfixture_rows": 270,
+      "final_nonfixture_rows": 270,
+      "equal": true,
+      "fixture_residue": 0
+    },
+    "public.r008_cash_account_cutover": {
+      "baseline_nonfixture_rows": 4,
+      "final_nonfixture_rows": 4,
+      "equal": true,
+      "fixture_residue": 0
+    }
+  },
+  "all_nonfixture_sources_equal": true,
+  "fixture_residue": 0,
+  "nonowner_delivery_addresses": 0,
+  "derived_analytics": {
+    "public.Cash Account Daily Analytics": {
+      "baseline_rows": 385,
+      "final_rows": 335,
+      "comparison": "Recomputed after synthetic source cleanup; not a raw equality claim"
+    },
+    "public.Daily Analytics": {
+      "baseline_rows": 67,
+      "final_rows": 67,
+      "comparison": "Recomputed after synthetic source cleanup; not a raw equality claim"
+    },
+    "public.Statistics": {
+      "baseline_rows": 1,
+      "final_rows": 1,
+      "comparison": "Recomputed after synthetic source cleanup; not a raw equality claim"
+    }
+  },
+  "private_difference_file": "C:\\Users\\MWCredit\\Documents\\ChatGPT\\AppSheet-Loan-Project\\r051-receipt-corrections\\vm01-final-source-differences.json",
+  "restore_stopped": true
+}

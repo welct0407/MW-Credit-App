@@ -1,0 +1,54 @@
+{
+  "release": "R002",
+  "date": "2026-09-16",
+  "environment": "production OLTP",
+  "devReferenceVersion": "1.000109",
+  "initialCorrectionRollbackVersion": "3.000135",
+  "devParityRollbackVersion": "3.000147",
+  "correctedVersion": "3.000155",
+  "rootCauses": [
+    "Production Todays Collection Board_Detail retained _RowNumber as a Header column, and deletion of Borrower Name - Collection left three unresolved configuration warnings that were not rechecked after the deletion save.",
+    "The intermediate name-color repair moved the four original Borrower Name Collection rules from Todays Amount Remaining to Borrower Name TE, removing the remaining-amount colors, while the four Collection Borrower TE rules still targeted only Borrower Reference TE."
+  ],
+  "changes": [
+    "Removed _RowNumber from Todays Collection Board_Detail Header columns.",
+    "Persisted removal of Borrower Name - Collection from Visible Borrowers and the deleted-field rule dependencies.",
+    "Restored all four Borrower Name Collection status rules to Todays Amount Remaining only.",
+    "Restored all four Collection Borrower TE status rules to Borrower Name TE and Borrower Reference TE.",
+    "Preserved the exact Dev conditions and green, red, purple and orange text colors."
+  ],
+  "ruleReadback": {
+    "Borrower Name Collection - Fully Paid": {"targets": ["Todays Amount Remaining"], "condition": "[Daily Collection Status] = \"Fully Paid\"", "color": "green"},
+    "Borrower Name Collection - Not Paid": {"targets": ["Todays Amount Remaining"], "condition": "[Daily Collection Status] = \"Not Paid\"", "color": "red"},
+    "Borrower Name Collection - Overdue": {"targets": ["Todays Amount Remaining"], "condition": "[Daily Collection Status] = \"Overdue\"", "color": "purple"},
+    "Borrower Name Collection - Partially Paid": {"targets": ["Todays Amount Remaining"], "condition": "[Daily Collection Status] = \"Partially Paid\"", "color": "orange"},
+    "Collection Borrower TE - Fully Paid": {"targets": ["Borrower Name TE", "Borrower Reference TE"], "color": "green"},
+    "Collection Borrower TE - Not Paid": {"targets": ["Borrower Name TE", "Borrower Reference TE"], "color": "red"},
+    "Collection Borrower TE - Overdue": {"targets": ["Borrower Name TE", "Borrower Reference TE"], "color": "purple"},
+    "Collection Borrower TE - Partially Paid": {"targets": ["Borrower Name TE", "Borrower Reference TE"], "color": "orange"}
+  },
+  "verification": {
+    "editorIssues": "No visible warning, error or invalid indicator",
+    "ruleComparison": "All eight production targets, conditions and colors matched Dev after reload",
+    "liveStyles": [
+      "Puifai Partially Paid name and THB 2,000 remaining amount: orange rgb(218, 122, 0)",
+      "Gift Overdue name and THB 1,080 remaining amount: purple rgb(124, 0, 255)",
+      "Bell Overdue name and THB 4,970 remaining amount: purple rgb(124, 0, 255)",
+      "Jame Fully Paid name: green rgb(0, 177, 31)"
+    ],
+    "notPaidLiveSample": "Unavailable because no current production row had Not Paid status; saved red definition verified",
+    "collectionRow": "Puifai row opened Todays Collection Board_Detail",
+    "standaloneRowNumber": "Absent",
+    "borrowerNavigation": "Colored Borrower Reference TE opened the matching Puifai Borrowers_Detail",
+    "financialWrite": false,
+    "paymentActionExecuted": false
+  },
+  "unaffected": [
+    "PostgreSQL and Flyway V18",
+    "OLAP 1.100106",
+    "Looker Studio",
+    "bots and notification destinations",
+    "physical columns",
+    "financial records"
+  ]
+}

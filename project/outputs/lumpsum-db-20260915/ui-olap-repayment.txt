@@ -1,0 +1,95 @@
+- banner:
+  - button "Toggle menu":
+  - heading "Loan Business Insights — DEV" [level=6]
+  - textbox "ค้นหา ผู้กู้": LS26
+  - button "Clear search":
+  - button "ซิงค์":
+  - button "ดูสถานะแอป":
+    - button
+  - button "account menu":
+    - generic: W
+- navigation:
+  - button " ภาพรวม":
+    - generic: 
+    - generic: ภาพรวม
+  - button " การวิเคราะห์":
+    - generic: 
+    - generic: การวิเคราะห์
+  - button " ประเมินการปล่อยกู้เพิ่ม":
+    - generic: 
+    - generic: ประเมินการปล่อยกู้เพิ่ม
+  - button " หุ้นส่วน":
+    - generic: 
+    - generic: หุ้นส่วน
+  - button " ผู้กู้":
+    - generic: 
+    - generic: ผู้กู้
+  - button " งานสินเชื่อ / Operations App":
+    - generic: 
+    - generic: งานสินเชื่อ / Operations App
+  - button " สินเชื่อ":
+    - generic: 
+    - generic: สินเชื่อ
+  - button " Calendar Detail View":
+    - generic: 
+    - generic: Calendar Detail View
+  - button " Daily Analytics - Validation":
+    - generic: 
+    - generic: Daily Analytics - Validation
+  - separator
+  - button "เกี่ยวกับ":
+    - generic: เกี่ยวกับ
+  - button "Feedback":
+    - generic: Feedback
+  - separator
+  - button "App Gallery":
+    - generic: App Gallery
+- region "ผู้กู้":
+  - heading "ผู้กู้" [level=2]
+  - button "ตัวกรอง":
+  - button "ขยาย":
+    - generic: 
+  - button "LS26 BENCHMARK SYNTHETIC - Lump-sum Dev benchmark; no contact details ฿1,400 ฿100,000":
+    - generic: LS26 BENCHMARK SYNTHETIC - Lump-sum Dev benchmark; no contact details
+    - generic: 
+    - text: ฿1,400
+    - generic: ฿100,000
+  - button "LS26 CORRECTNESS SYNTHETIC - Lump-sum Dev review; no contact details ฿60 ฿300":
+    - generic: LS26 CORRECTNESS SYNTHETIC - Lump-sum Dev review; no contact details
+    - generic: 
+    - text: ฿60
+    - generic: ฿300
+- tablist:
+  - tab "LS26 CORRECTNESS SYNTHETIC - Lump-sum Dev review; no contact details":
+    - paragraph: LS26 CORRECTNESS SYNTHETIC - Lump-sum Dev review; no contact details
+  - tab "LS26 CORRECTNESS SYNTHETIC-฿100-05/09-0.00%":
+    - paragraph: LS26 CORRECTNESS SYNTHETIC-฿100-05/09-0.00%
+  - tab "09/13/2026":
+    - paragraph: 09/13/2026
+  - tab "09/15/2026" [selected]:
+    - paragraph: 09/15/2026
+    - button "ปิด 09/15/2026":
+- tabpanel:
+  - region "09/15/2026":
+    - button "ขยาย":
+      - generic: 
+    - generic: วันที่ชำระ / Payment Date
+    - generic: 9/15/2026
+    - generic: Ref Loans
+    - generic: LS26 CORRECTNESS SYNTHETIC-฿100-05/09-0.00%
+    - generic: จำนวนเงินที่ได้รับ / Amount Received
+    - generic: ฿110
+    - generic: เงินต้นที่ชำระ / Principal Paid
+    - generic: ฿100
+    - generic: ดอกเบี้ยที่ชำระ / Interest Paid
+    - generic: $10.00
+    - generic: 💰 การแบ่งกำไร
+    - generic: กำไร Tommy
+    - generic: ฿6
+    - generic: กำไร Lisa
+    - generic: ฿4
+    - generic: หมายเหตุ / Notes
+    - generic: LS26-CHECK-210
+- generic: 
+- text:   
+- status: 1Password menu is available. Press down arrow to select.

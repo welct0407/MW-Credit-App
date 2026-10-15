@@ -1,0 +1,109 @@
+
+> vm01-controller@0.1.0 test
+> npm run build && node --test tests/*.test.mjs
+
+
+> vm01-controller@0.1.0 build
+> tsc && node scripts/build-web.mjs
+
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.0
+npm notice To update run: npm install -g npm@12.2.0
+npm notice
+✔ administration requires matching generation, disabled admission, exact operation and worker fencing (6.517826ms)
+✔ unresolved operation blocks admission and stale generation cannot enable it (1.134983ms)
+✔ operation URL validation blocks SSRF, redirects, other subscriptions/regions and arbitrary endpoints (3.350632ms)
+✔ ARM POST is sent once with no body, fixed target and manual redirects (3.02471ms)
+✔ invalid Azure response URL is not persisted or followed (0.467889ms)
+✔ optional poll verifies URL again and never follows redirects (1.337391ms)
+✔ poll handles terminal status, safe failure codes, Location 204 and forbidden reads (5.33574ms)
+✔ VM observation requires valid instance view and maps unsupported power states to unknown (1.853815ms)
+✔ ledger schema rejects lost active records, incompatible target and corrupted fields (0.914462ms)
+✔ ETag/lease fencing rejects a conflicting ledger write (2.365083ms)
+✔ configuration has no default credential fallback and rejects wrong tenant/VM or partial cloud identity (0.876925ms)
+✔ cryptographic bearer validation rejects unsigned, wrong audience/issuer and expired tokens (26.491543ms)
+✔ cookie/Function key/principal headers cannot replace a bearer token (0.562693ms)
+✔ browser uses exact object identity, delegated scope and SPA client (15.753406ms)
+✔ application caller requires explicit app identity and route role (20.104577ms)
+✔ foreign origins, form posts, GET actions and extra target fields never reach ARM (8.097381ms)
+✔ JSON body size is bounded even without content-length (2.426869ms)
+✔ authorized originless application uses JSON and same-origin browser succeeds (5.306643ms)
+✔ errors and receipts omit raw tokens, ARM error text and private operation URLs (3.220569ms)
+✔ browser confirmation cancellation, same-origin auth bridge and saved-request behavior (5307.054345ms)
+✔ HTML Unicode-sets validation agrees with the API and blocks compound references before POST (3636.016452ms)
+✔ 400 pre-dispatch error remains actionable after immediate refresh and reload (2692.491867ms)
+✔ accepted deallocation shows power off separately from pending receipt; saved check and reload never POST (1960.391747ms)
+✔ HTTP 401 after dispatch and during status reads preserves pending ID across reload without replay (1764.969787ms)
+✔ HTTP 403 after dispatch and during status reads preserves pending ID across reload without replay (1768.943027ms)
+✔ HTTP 409 after dispatch and during status reads preserves pending ID across reload without replay (1593.317033ms)
+✔ transport timeout after acceptance preserves request and visible uncertainty across refresh/reload (1827.023045ms)
+✔ missing or mismatched receipt never clears an uncertain request or offers power retry (1759.72108ms)
+✔ new browser context uses active ledger status without needing the lost tab or saved request (2925.908989ms)
+✔ existing 15-minute polling limit explains pause and retains the request (1967.832187ms)
+✔ restart acceptance does not become success from running, and blocks a new operation (11.881579ms)
+✔ duplicates survive restart, stale request state and changed current power state (1.40906ms)
+✔ concurrent identical submissions produce one dispatch, and same ID can retrieve its receipt (1.042859ms)
+✔ concurrent different operations cannot dispatch together (3.569388ms)
+✔ write failure before dispatch leaves no ARM effect (1.117727ms)
+✔ crash after persisted intent never replays a POST (0.882562ms)
+✔ result persistence failure retains dispatching intent and converts to unknown without replay (1.657646ms)
+✔ lease loss after persisted intent prevents dispatch and preserves the latch (0.736063ms)
+✔ unknown server/redirect responses retain serialization; definitive rejection releases it (3.326975ms)
+✔ synchronous success is recorded and duplicate does not repeat it (1.054034ms)
+✔ different request IDs from the same snapshot cannot issue two restarts after synchronous success (0.899614ms)
+✔ start and deallocate can report observed desired state without claiming restart success (0.642704ms)
+✔ stable already-satisfied actions are persisted no-ops (0.263865ms)
+✔ dangerous actions require fresh explicit work confirmation (0.309647ms)
+✔ target replacement and unknown/provisioning states disable mutation (1.534082ms)
+✔ expired request and stale state are rejected before dispatch, even after records were pruned (0.367709ms)
+✔ missing/corrupt storage and runtime/admission switches fail closed (0.964545ms)
+✔ operation receipt is private to initiating identity (2.023679ms)
+✔ polling disabled means no poll and restart remains latched (0.95579ms)
+✔ approved optional polling requires terminal success plus desired state (1.216433ms)
+✔ 403 polling pauses commands and later resumes the same operation without another POST (1.234267ms)
+✔ terminal polling refreshes VM observation before clearing restart serialization (0.602122ms)
+✔ terminal failed/canceled operation retains details and releases serialization (1.29282ms)
+✔ approval reference boundaries reject invalid confirmations before ledger access or ARM dispatch (1.538632ms)
+﹣ real Functions host keeps static routes separate from the status API (2.343038ms) # SKIP
+✔ source infrastructure defaults are inert and preserve the exact base permission boundary (22.11294ms)
+✔ compiled infrastructure switches initialize the runtime correctly for all boolean combinations (8.683204ms)
+✔ approval manifest preserves source defaults and records the separately approved activation scope (3.10366ms)
+▶ browser status diagnostics identify the failure stage and recover without exposing response details
+  ✔ empty401 (1360.184448ms)
+  ✔ empty403 (1177.296934ms)
+  ✔ HTML502 (859.006998ms)
+  ✔ JSON401 (777.179243ms)
+  ✔ JSON403 (1396.30164ms)
+  ✔ JSON503 (1183.685823ms)
+  ✔ ledger503 (652.687877ms)
+  ✔ untrustedError (722.359712ms)
+  ✔ malformed200 (610.022368ms)
+  ✔ null200 (770.57506ms)
+  ✔ tokenFailure (567.662779ms)
+  ✔ transportFailure (524.676623ms)
+✔ browser status diagnostics identify the failure stage and recover without exposing response details (11962.266802ms)
+✔ candidate fallback verifies the observed live response format using one fixed GET (6.935899ms)
+✔ fallback rejects missing, wrong, stale or future evidence and inconsistent identity/action (20.534186ms)
+✔ candidate progress is not terminal and failure text is sanitized (1.236494ms)
+✔ missing and rejected response headers persist only safe diagnostic categories (1.560279ms)
+✔ fallback completes only after matched terminal evidence and a fresh desired VM state; no replay (7.349827ms)
+✔ fallback mismatch/not-found/malformed evidence preserves latch even at desired state and never repeats POST (16.124115ms)
+✔ missing UUID or immutable legacy acceptance receipt cannot invent a fallback or completion (1.317853ms)
+✔ historical success preserves deduplication/audit with current running state and leaves admission closed (3.751068ms)
+✔ historical recovery rejects stale generation, unfenced workers, enabled admission, wrong target/action and evidence mismatches without writes (11.314454ms)
+✔ historical read-only verification and activity adapter perform bounded fixed-target GETs, reject redirects and pagination (3.207064ms)
+✔ legacy historical recovery uses preserved acceptance audit after a later unknown-state refresh (1.977201ms)
+ℹ tests 82
+ℹ suites 0
+ℹ pass 81
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 1
+ℹ todo 0
+ℹ duration_ms 29121.586327
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.0
+npm notice To update run: npm install -g npm@12.2.0
+npm notice

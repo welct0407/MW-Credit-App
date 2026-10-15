@@ -1,0 +1,11 @@
+{
+  "oltpToOlap": {
+    "heading": "Loan Business Insights — DEV",
+    "appName": "LoanInsightsPGTrial20260914-578763613"
+  },
+  "olapToOltp": {
+    "heading": "Loan Manager — DEV",
+    "url": "https://www.appsheet.com/start/65faacd8-2b0d-43bf-9e0a-58eb915dcf9b?platform=desktop#appName=LoanMgrPGTest20260914-578763613"
+  },
+  "method": "Current desktop shortcut buttons; 15 September 2026"
+}

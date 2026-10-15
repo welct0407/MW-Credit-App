@@ -1,0 +1,10 @@
+{
+  "command": "pwsh -NoProfile -File scripts/database/Test-CI.ps1",
+  "exit_code": 0,
+  "migration_sha256": "4385572f8495470f5f462cfdfef220e703a754143c356bf77d1628347071655d",
+  "full_history_reference_parity": true,
+  "synthetic_material_parity_tables_per_case": 25,
+  "cases": 6,
+  "private_log": "C:\\Users\\MWCredit\\Documents\\ChatGPT\\AppSheet-Loan-Project\\r051-trigger-performance\\20261006T134110Z\\ci-candidate-4.log",
+  "coverage": "Full migration chain, repeated migration no-op, checksum rejection, statement and financial regressions, nine concurrency suites, historical upgrades at V19/V22/V68/V69"
+}

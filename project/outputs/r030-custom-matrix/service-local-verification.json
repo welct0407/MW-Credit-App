@@ -1,0 +1,18 @@
+{
+  "missing": {
+    "status": 401
+  },
+  "wrong": {
+    "status": 401
+  },
+  "valid": {
+    "status": 200,
+    "rows": 23,
+    "categories": {
+      "Star": 4,
+      "Question Mark": 5,
+      "Cash Cow": 8,
+      "Dog": 6
+    }
+  }
+}

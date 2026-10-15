@@ -1,0 +1,10 @@
+"format": 1
+"items":
+- "id": "SOURCE-VS-LIVE"
+  "status": "informational"
+  "detail": "PWA contracts and changed SQL bodies reconciled against pinned native source and published deployment evidence.\
+    \ No new live metadata audit; retained per-object capture provenance remains explicit."
+- "id": "REPORTING-COVERAGE"
+  "status": "deferred"
+  "detail": "Metabase/Grafana dictionary coverage is bounded; owning current dashboard and Terraform source definitions remain\
+    \ authoritative. This task does not recapture every external dashboard."

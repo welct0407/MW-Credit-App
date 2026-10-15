@@ -1,0 +1,471 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "metabase",
+    "component": "reports.mw-credit.com",
+    "kind": "model",
+    "name": "Forecast · loans source / 344",
+    "scope": "production"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r045-forecast-planning/saved.json"
+  },
+  "content": {
+    "key": "loans",
+    "id": 344,
+    "name": "Forecast · loans source",
+    "dataset_query": {
+      "stages": [
+        {
+          "lib/type": "mbql.stage/native",
+          "native": "SELECT * FROM public.reporting_forecast_loans_v1"
+        }
+      ],
+      "lib/type": "mbql/query",
+      "database": 2
+    },
+    "result_metadata": [
+      {
+        "database_type": "text",
+        "lib/deduplicated-name": "loan_id",
+        "lib/original-name": "loan_id",
+        "name": "loan_id",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "loan_id",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "loan_id",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "effective_type": "type/Text",
+        "lib/desired-column-alias": "loan_id",
+        "display_name": "loan_id",
+        "base_type": "type/Text"
+      },
+      {
+        "database_type": "text",
+        "lib/deduplicated-name": "borrower_id",
+        "lib/original-name": "borrower_id",
+        "name": "borrower_id",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "borrower_id",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "borrower_id",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "effective_type": "type/Text",
+        "lib/desired-column-alias": "borrower_id",
+        "display_name": "borrower_id",
+        "base_type": "type/Text"
+      },
+      {
+        "database_type": "text",
+        "lib/deduplicated-name": "borrower",
+        "lib/original-name": "borrower",
+        "name": "borrower",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "borrower",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "borrower",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "effective_type": "type/Text",
+        "lib/desired-column-alias": "borrower",
+        "display_name": "borrower",
+        "base_type": "type/Text"
+      },
+      {
+        "database_type": "text",
+        "lib/deduplicated-name": "loan_type",
+        "lib/original-name": "loan_type",
+        "name": "loan_type",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "loan_type",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "loan_type",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "effective_type": "type/Text",
+        "lib/desired-column-alias": "loan_type",
+        "display_name": "loan_type",
+        "base_type": "type/Text"
+      },
+      {
+        "database_type": "text",
+        "lib/deduplicated-name": "loan_status",
+        "lib/original-name": "loan_status",
+        "name": "loan_status",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "loan_status",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "loan_status",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "effective_type": "type/Text",
+        "lib/desired-column-alias": "loan_status",
+        "display_name": "loan_status",
+        "base_type": "type/Text"
+      },
+      {
+        "database_type": "bool",
+        "lib/deduplicated-name": "defaulted",
+        "lib/original-name": "defaulted",
+        "name": "defaulted",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "defaulted",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "defaulted",
+          {
+            "base-type": "type/Boolean"
+          }
+        ],
+        "effective_type": "type/Boolean",
+        "lib/desired-column-alias": "defaulted",
+        "display_name": "defaulted",
+        "base_type": "type/Boolean"
+      },
+      {
+        "database_type": "numeric",
+        "lib/deduplicated-name": "outstanding_principal",
+        "lib/original-name": "outstanding_principal",
+        "name": "outstanding_principal",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "outstanding_principal",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "outstanding_principal",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "outstanding_principal",
+        "display_name": "outstanding_principal",
+        "base_type": "type/Decimal"
+      },
+      {
+        "database_type": "date",
+        "lib/deduplicated-name": "reporting_date",
+        "lib/original-name": "reporting_date",
+        "name": "reporting_date",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "reporting_date",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "reporting_date",
+          {
+            "base-type": "type/Date"
+          }
+        ],
+        "effective_type": "type/Date",
+        "lib/desired-column-alias": "reporting_date",
+        "display_name": "reporting_date",
+        "base_type": "type/Date"
+      },
+      {
+        "database_type": "date",
+        "lib/deduplicated-name": "month_end",
+        "lib/original-name": "month_end",
+        "name": "month_end",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "month_end",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "month_end",
+          {
+            "base-type": "type/Date"
+          }
+        ],
+        "effective_type": "type/Date",
+        "lib/desired-column-alias": "month_end",
+        "display_name": "month_end",
+        "base_type": "type/Date"
+      },
+      {
+        "database_type": "numeric",
+        "lib/deduplicated-name": "ui",
+        "lib/original-name": "ui",
+        "name": "ui",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "ui",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "ui",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "ui",
+        "display_name": "ui",
+        "base_type": "type/Decimal"
+      },
+      {
+        "database_type": "numeric",
+        "lib/deduplicated-name": "up",
+        "lib/original-name": "up",
+        "name": "up",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "up",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "up",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "up",
+        "display_name": "up",
+        "base_type": "type/Decimal"
+      },
+      {
+        "database_type": "numeric",
+        "lib/deduplicated-name": "oi",
+        "lib/original-name": "oi",
+        "name": "oi",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "oi",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "oi",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "oi",
+        "display_name": "oi",
+        "base_type": "type/Decimal"
+      },
+      {
+        "database_type": "numeric",
+        "lib/deduplicated-name": "op",
+        "lib/original-name": "op",
+        "name": "op",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "op",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "op",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "op",
+        "display_name": "op",
+        "base_type": "type/Decimal"
+      },
+      {
+        "database_type": "numeric",
+        "lib/deduplicated-name": "xi",
+        "lib/original-name": "xi",
+        "name": "xi",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "xi",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "xi",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "xi",
+        "display_name": "xi",
+        "base_type": "type/Decimal"
+      },
+      {
+        "database_type": "numeric",
+        "lib/deduplicated-name": "xp",
+        "lib/original-name": "xp",
+        "name": "xp",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "xp",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "xp",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "xp",
+        "display_name": "xp",
+        "base_type": "type/Decimal"
+      },
+      {
+        "database_type": "numeric",
+        "lib/deduplicated-name": "recorded_interest",
+        "lib/original-name": "recorded_interest",
+        "name": "recorded_interest",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "recorded_interest",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "recorded_interest",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "recorded_interest",
+        "display_name": "recorded_interest",
+        "base_type": "type/Decimal"
+      },
+      {
+        "database_type": "numeric",
+        "lib/deduplicated-name": "simulated_interest",
+        "lib/original-name": "simulated_interest",
+        "name": "simulated_interest",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "simulated_interest",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "simulated_interest",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "simulated_interest",
+        "display_name": "simulated_interest",
+        "base_type": "type/Decimal"
+      },
+      {
+        "database_type": "numeric",
+        "lib/deduplicated-name": "actual_interest",
+        "lib/original-name": "actual_interest",
+        "name": "actual_interest",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "actual_interest",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "actual_interest",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "actual_interest",
+        "display_name": "actual_interest",
+        "base_type": "type/Decimal"
+      },
+      {
+        "database_type": "date",
+        "lib/deduplicated-name": "next_due",
+        "lib/original-name": "next_due",
+        "name": "next_due",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "next_due",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "next_due",
+          {
+            "base-type": "type/Date"
+          }
+        ],
+        "effective_type": "type/Date",
+        "lib/desired-column-alias": "next_due",
+        "display_name": "next_due",
+        "base_type": "type/Date"
+      },
+      {
+        "database_type": "bool",
+        "lib/deduplicated-name": "incomplete",
+        "lib/original-name": "incomplete",
+        "name": "incomplete",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "incomplete",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "incomplete",
+          {
+            "base-type": "type/Boolean"
+          }
+        ],
+        "effective_type": "type/Boolean",
+        "lib/desired-column-alias": "incomplete",
+        "display_name": "incomplete",
+        "base_type": "type/Boolean"
+      },
+      {
+        "database_type": "text",
+        "lib/deduplicated-name": "issues",
+        "lib/original-name": "issues",
+        "name": "issues",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "issues",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "issues",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "effective_type": "type/Text",
+        "lib/desired-column-alias": "issues",
+        "display_name": "issues",
+        "base_type": "type/Text"
+      },
+      {
+        "database_type": "text",
+        "lib/deduplicated-name": "arrangement_status",
+        "lib/original-name": "arrangement_status",
+        "name": "arrangement_status",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "arrangement_status",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "arrangement_status",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "effective_type": "type/Text",
+        "lib/desired-column-alias": "arrangement_status",
+        "display_name": "arrangement_status",
+        "base_type": "type/Text"
+      }
+    ]
+  }
+}

@@ -1,0 +1,53 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.pwa_notify_complete_v1(delivery uuid, generation bigint, result_class text)"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r053-notifications-jobs/dictionary-production-closure.json"
+  "coverage": "Actual affected PROD89 catalogue after maintained migration and authority restoration; no business rows."
+"content":
+  "definition":
+    "schema": "public"
+    "name": "pwa_notify_complete_v1"
+    "arguments": "delivery uuid, generation bigint, result_class text"
+    "kind": "f"
+    "arguments_with_defaults": "delivery uuid, generation bigint, result_class text"
+    "result": "text"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.pwa_notify_complete_v1(delivery uuid, generation bigint, result_class text)
+       RETURNS text
+       LANGUAGE plpgsql
+       SECURITY DEFINER
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+      DECLARE d public.pwa_notification_deliveries; outcome text;
+      BEGIN
+       PERFORM public.pwa_worker_guard_v1('dispatch');
+       IF result_class IS NULL OR result_class NOT IN ('accepted','expired','throttled','unavailable','network','rejected','ineligible','deferred') THEN RAISE EXCEPTION 'invalid_provider_result'; END IF;
+       SELECT * INTO d FROM public.pwa_notification_deliveries WHERE delivery_id=delivery AND lease_generation=generation AND state='leased' AND lease_expires_at>clock_timestamp() FOR UPDATE;
+       IF NOT FOUND THEN RETURN 'fenced'; END IF;
+       IF (result_class IN ('ineligible','deferred') AND d.send_started_at IS NOT NULL) OR (result_class NOT IN ('ineligible','deferred') AND d.send_started_at IS NULL) THEN RAISE EXCEPTION 'invalid_provider_result'; END IF;
+       outcome:=CASE WHEN result_class='accepted' THEN 'sent' WHEN result_class='ineligible' THEN 'cancelled' WHEN result_class='network' THEN 'uncertain' WHEN result_class IN ('expired','rejected') OR d.attempts>=8 THEN 'dead' ELSE 'retry' END;
+       UPDATE public.pwa_notification_deliveries SET state=outcome,lease_expires_at=NULL,provider_result=CASE result_class WHEN 'deferred' THEN 'unavailable' ELSE result_class END,
+       next_attempt_at=clock_timestamp()+make_interval(secs=>least(3600,30*power(2,d.attempts)::integer)),completed_at=CASE WHEN outcome IN ('sent','cancelled','dead') THEN clock_timestamp() ELSE NULL END WHERE delivery_id=delivery;
+       IF result_class='expired' THEN UPDATE public.pwa_push_subscriptions SET enabled=false,version=version+1 WHERE subscription_id=d.subscription_id AND version=d.subscription_version; END IF;
+       RETURN outcome;
+      END $function$
+    "owner": "mw_notify_owner_prod"
+    "language": "plpgsql"
+    "volatility": "v"
+    "strict": false
+    "security_definer": true
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 0.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": "{mw_notify_owner_prod=X/mw_notify_owner_prod,mw_notify_dispatch_prod=X/mw_notify_owner_prod}"
+    "comment": "mw-access:governance fixed notification boundary; explicit capability only"
+    "extension": null

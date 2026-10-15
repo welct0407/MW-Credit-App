@@ -1,0 +1,3 @@
+2
+{"jobid":1,"jobname":"loan-daily-charges","schedule":"5 0 * * *","command":"SELECT public.generate_due_charges((statement_timestamp() AT TIME ZONE 'Asia/Bangkok')::date);","database":"loan_manager_prod","active":false}
+{"jobid":2,"jobname":"loan-charge-generation-test","schedule":"* * * * *","command":"SELECT public.generate_due_charges((statement_timestamp() AT TIME ZONE 'Asia/Bangkok')::date,ARRAY['CG8GUI-Cron-L']);","database":"loan_manager_prod","active":true}

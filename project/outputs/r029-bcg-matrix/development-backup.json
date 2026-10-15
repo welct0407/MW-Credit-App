@@ -1,0 +1,15 @@
+{
+  "environment": "development",
+  "database": "loan_manager_dev",
+  "instance": "appsheet-pg-prod-20260914",
+  "at": "20260925T033727Z",
+  "backup_file": "C:\\Users\\MWCredit\\Documents\\ChatGPT\\AppSheet-Loan-Project\\r029-bcg-matrix\\development-20260925T033727Z\\before.dump",
+  "backup_sha256": "07bca9ba7b13897ef8c450ecbb39f62c08a48b5274f52816d234a9810a26bcf9",
+  "baseline_version": 42,
+  "table_count": 26,
+  "restore_fingerprints_match": true,
+  "candidate_already_present": false,
+  "candidate_rehearsed": true,
+  "scope": "public, assessment_lab, agent_audit; instance roles/settings/cron remain external",
+  "financial_values_published": false
+}

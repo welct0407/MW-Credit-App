@@ -1,0 +1,14 @@
+{
+  "role": "mw_chart_reader",
+  "database": "loan_manager_prod",
+  "rows": 23,
+  "read_only_default": true,
+  "no_public_relation_dml": true,
+  "grants": [
+    "SELECT reporting_borrower_matrix_plot_v1",
+    "SELECT (Row ID, Description) olap_borrowers_analytics"
+  ],
+  "schema_changed": false,
+  "financial_writes": false,
+  "flyway_version": 43
+}

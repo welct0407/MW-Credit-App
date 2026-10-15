@@ -1,0 +1,10 @@
+{
+  "at": "2026-09-24T10:15:58.090Z",
+  "browser": "Chrome Wel",
+  "checks": [
+    "One 6 · Performance tab in sixth position, ID18",
+    "No 6R or old tab7",
+    "Performance period filter present; five metrics render",
+    "Adjacent tab order preserved"
+  ]
+}

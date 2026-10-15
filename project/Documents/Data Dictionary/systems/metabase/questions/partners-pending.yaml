@@ -1,0 +1,93 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "metabase",
+    "component": "reports.mw-credit.com",
+    "kind": "question",
+    "name": "Pending settlements ฿ / 328",
+    "scope": "production"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r044-partners/saved.json"
+  },
+  "content": {
+    "key": "pending",
+    "description": "R044 Partners. Current recorded balance; activity period does not apply.",
+    "result_metadata": [
+      {
+        "database_type": "numeric",
+        "semantic_type": null,
+        "lib/deduplicated-name": "Pending settlements ฿",
+        "lib/original-name": "Pending settlements ฿",
+        "name": "Pending settlements ฿",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Pending settlements ฿",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Pending settlements ฿",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "Pending settlements ฿",
+        "display_name": "Pending settlements ฿",
+        "base_type": "type/Decimal"
+      }
+    ],
+    "collection_id": 5,
+    "name": "Pending settlements ฿",
+    "type": "question",
+    "dataset_query": {
+      "stages": [
+        {
+          "template-tags": [
+            {
+              "widget-type": "string/=",
+              "id": "pt-partner",
+              "name": "partner",
+              "display-name": "Partner",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                {
+                  "base-type": "type/Text",
+                  "lib/uuid": "21a84612-427a-4310-bdf7-0e9eacc4a341",
+                  "effective-type": "type/Text"
+                },
+                121
+              ],
+              "alias": "d.partner_id"
+            },
+            {
+              "type": "card",
+              "id": "r044-model-318",
+              "name": "#318",
+              "display-name": "Partners source 318",
+              "card-id": 318
+            }
+          ],
+          "lib/type": "mbql.stage/native",
+          "native": "SELECT CASE WHEN count(*)=0 THEN 0 WHEN bool_and(pending IS NOT NULL) THEN sum(pending) END AS \"Pending settlements ฿\" FROM {{#318}} d WHERE true [[AND {{partner}}]]"
+        }
+      ],
+      "lib/type": "mbql/query",
+      "database": 2
+    },
+    "id": 328,
+    "display": "scalar",
+    "visualization_settings": {
+      "scalar.field": "Pending settlements ฿",
+      "column_settings": {
+        "[\"name\",\"Pending settlements ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,",
+          "compact": false
+        }
+      }
+    }
+  }
+}

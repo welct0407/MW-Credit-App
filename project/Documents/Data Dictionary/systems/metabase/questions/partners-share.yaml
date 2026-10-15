@@ -1,0 +1,154 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "metabase",
+    "component": "reports.mw-credit.com",
+    "kind": "question",
+    "name": "Capital share · full pool / 331",
+    "scope": "production"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r044-partners/saved.json"
+  },
+  "content": {
+    "key": "share",
+    "description": "R044 Partners. Current individual net capital / full economic pool, calculated before filtering.",
+    "result_metadata": [
+      {
+        "database_type": "text",
+        "semantic_type": null,
+        "lib/deduplicated-name": "Partner",
+        "lib/original-name": "Partner",
+        "name": "Partner",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Partner",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Partner",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "effective_type": "type/Text",
+        "lib/desired-column-alias": "Partner",
+        "display_name": "Partner",
+        "base_type": "type/Text"
+      },
+      {
+        "database_type": "numeric",
+        "semantic_type": "type/Share",
+        "lib/deduplicated-name": "Capital share %",
+        "lib/original-name": "Capital share %",
+        "name": "Capital share %",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Capital share %",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Capital share %",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "Capital share %",
+        "display_name": "Capital share %",
+        "base_type": "type/Decimal"
+      },
+      {
+        "database_type": "numeric",
+        "semantic_type": null,
+        "lib/deduplicated-name": "Net capital ฿",
+        "lib/original-name": "Net capital ฿",
+        "name": "Net capital ฿",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Net capital ฿",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Net capital ฿",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "Net capital ฿",
+        "display_name": "Net capital ฿",
+        "base_type": "type/Decimal"
+      }
+    ],
+    "collection_id": 5,
+    "name": "Capital share · full pool",
+    "type": "question",
+    "dataset_query": {
+      "stages": [
+        {
+          "template-tags": [
+            {
+              "widget-type": "string/=",
+              "id": "pt-partner",
+              "name": "partner",
+              "display-name": "Partner",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                {
+                  "base-type": "type/Text",
+                  "lib/uuid": "eab63de4-b09a-46ae-b8df-44a4aa95b4e8",
+                  "effective-type": "type/Text"
+                },
+                121
+              ],
+              "alias": "d.partner_id"
+            },
+            {
+              "type": "card",
+              "id": "r044-model-318",
+              "name": "#318",
+              "display-name": "Partners source 318",
+              "card-id": 318
+            }
+          ],
+          "lib/type": "mbql.stage/native",
+          "native": "SELECT partner_name AS \"Partner\",capital_share AS \"Capital share %\",net_capital AS \"Net capital ฿\" FROM {{#318}} d WHERE true [[AND {{partner}}]] ORDER BY partner_role,d.partner_id"
+        }
+      ],
+      "lib/type": "mbql/query",
+      "database": 2
+    },
+    "id": 331,
+    "display": "row",
+    "visualization_settings": {
+      "graph.show_values": true,
+      "graph.show_legend": false,
+      "graph.missing": "none",
+      "graph.y_axis.max": 1,
+      "graph.y_axis.auto_split": false,
+      "graph.metrics": [
+        "Capital share %"
+      ],
+      "graph.label_value_formatting": "full",
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#D4AD60"
+      ],
+      "column_settings": {
+        "[\"name\",\"Capital share %\"]": {
+          "number_style": "percent",
+          "decimals": 2,
+          "number_separators": ".,",
+          "compact": false
+        }
+      },
+      "graph.dimensions": [
+        "Partner"
+      ],
+      "stackable.stack_type": null,
+      "graph.y_axis.min": 0
+    }
+  }
+}

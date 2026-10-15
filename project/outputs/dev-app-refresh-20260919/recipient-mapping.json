@@ -1,0 +1,35 @@
+{
+  "sourceApp": "93844270-6aa5-420b-a960-bcdf08abd357",
+  "sourceVersion": "3.000228",
+  "developmentApp": "500b27b6-884a-41e8-a9ec-df801b0110ad",
+  "property": "ToList",
+  "developmentExpression": "LIST(\"welct0407@mw-credit.com\")",
+  "groups": [
+    {
+      "tasks": ["Task for Send App Notification", "Notify first-day receipt Task - 1", "Task for Send App Notification 2", "Send closure summary Task - 1"],
+      "productionExpression": "SELECT( Partners[Email], AND(ISNOTBLANK([Email]), [Email] <> [_THISROW].[Created By]))"
+    },
+    {
+      "tasks": ["Send App Notification Task - 1"],
+      "productionExpression": "SELECT( Partners[Email], AND(ISNOTBLANK([Email]), [Email] <> [_THISROW].[Closed By]))"
+    },
+    {
+      "tasks": ["Task for Notify first-day charge receipt"],
+      "productionExpression": "SELECT(Partners[Email], AND(ISNOTBLANK([Email]), [Email] <> [_THISROW].[Ref Loans].[Created By]))"
+    },
+    {
+      "tasks": ["Notify exact posted receipt Task - 1", "Send closure summary Task - 2"],
+      "productionExpression": "SELECT( Partners[Email], AND(ISNOTBLANK([Email]), [Email] <> LOOKUP(CONCATENATE(\"r008:Borrowers|\", LEN([Row ID]), \":\", [Row ID], \"|\", [Payment Request Token]), \"Payments\", \"Row ID\", \"Created By\")))"
+    },
+    {
+      "tasks": ["Notify exact posted receipt Task - 2", "Send closure summary Task - 3"],
+      "productionExpression": "SELECT( Partners[Email], AND(ISNOTBLANK([Email]), [Email] <> LOOKUP(CONCATENATE(\"r008:Charges|\", LEN([Row ID]), \":\", [Row ID], \"|\", [Payment Request Token]), \"Payments\", \"Row ID\", \"Created By\")))"
+    },
+    {
+      "tasks": ["Notify exact posted receipt Task - 3", "Send closure summary Task - 4"],
+      "productionExpression": "SELECT( Partners[Email], AND(ISNOTBLANK([Email]), [Email] <> LOOKUP(CONCATENATE(\"r008:Loans|\", LEN([Row ID]), \":\", [Row ID], \"|\", [Payment Request Token]), \"Payments\", \"Row ID\", \"Created By\")))"
+    }
+  ],
+  "developmentVersion": "1.000010",
+  "status": "All twelve saved task overrides independently read back. Channels, content, deep links and event conditions preserved. Synthetic owner-only scheduled push dispatch verified separately; device receipt not observed."
+}

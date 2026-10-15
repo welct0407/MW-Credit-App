@@ -1,0 +1,73 @@
+{
+  "release": "R011",
+  "date": "2026-09-20",
+  "scope": "DEV AppSheet system-text localization",
+  "lookup": {
+    "signedInIdentity": "USEREMAIL()",
+    "table": "Partners",
+    "keyColumn": "Login Email",
+    "preferenceColumn": "Language Preference",
+    "englishValue": "English",
+    "thaiValue": "ไทย",
+    "expressionTemplate": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"<AppSheet English label>\", \"<Thai localization>\")",
+    "fallback": "Thai"
+  },
+  "apps": {
+    "OLTP": {
+      "appId": "500b27b6-884a-41e8-a9ec-df801b0110ad",
+      "internalName": "MW-OLTP-DEV-20260919-578763613",
+      "beforeVersion": "1.000058",
+      "afterVersion": "1.000059",
+      "localizationRows": 116,
+      "expressionModeRows": 116,
+      "formulaMismatches": 0,
+      "saved": true,
+      "deployed": true,
+      "editorDiagnostics": "green"
+    },
+    "OLAP": {
+      "appId": "9f3422be-bc87-4a5a-a42a-67528ee80393",
+      "internalName": "MW-OLAP-DEV-20260919-578763613",
+      "beforeVersion": "1.000017",
+      "afterVersion": "1.000018",
+      "localizationRows": 116,
+      "expressionModeRows": 116,
+      "formulaMismatches": 0,
+      "copiedFrom": "OLTP localization copy/paste",
+      "saved": true,
+      "deployed": true,
+      "editorDiagnostics": "green"
+    }
+  },
+  "completedThaiTranslationLabels": [
+    "Share",
+    "All",
+    "Duplicate key warning",
+    "Close app warning",
+    "Starting up",
+    "Logout confirmation",
+    "Feedback prompts",
+    "Draw",
+    "Choose from Existing",
+    "NFC messages",
+    "Send change log",
+    "Reset local changes",
+    "Discard local changes",
+    "Go to details",
+    "From current location",
+    "Add new option",
+    "Reset Dashboard",
+    "Return to split view",
+    "Place pin",
+    "blank",
+    "Insert Current Location",
+    "Get driving directions"
+  ],
+  "runtimeObservation": "The current signed-in runtime displayed the launch text in English after save.",
+  "limitations": [
+    "Separate Tommy and Lisa sign-in sessions were not impersonated in the editor.",
+    "Verification establishes the saved expression set and current-user evaluation, not a two-device or offline language-switch test."
+  ],
+  "productionChanged": false,
+  "notificationsSent": false
+}

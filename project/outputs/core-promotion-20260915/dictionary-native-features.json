@@ -1,0 +1,18 @@
+{
+  "sheetCount": 12,
+  "sheetNamesOrderPreserved": true,
+  "nativeFeaturesPreserved": [
+    "f",
+    "mergeCell",
+    "dataValidation",
+    "conditionalFormatting",
+    "tablePart",
+    "drawing",
+    "hyperlink",
+    "pane",
+    "sheetProtection",
+    "autoFilter"
+  ],
+  "chartPivotExternalPartsPreserved": true,
+  "scope": "Native XML feature definitions compared, not just counts; workbook contents separately round-tripped with Artifact Tool."
+}

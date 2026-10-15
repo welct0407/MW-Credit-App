@@ -1,0 +1,10 @@
+{
+  "checked_literal_references": {
+    "production-olap": 119,
+    "development-olap": 119
+  },
+  "findings": [],
+  "limitations": [
+    "No template rendering or complex expression execution. Workbook styling is outside data-dictionary scope."
+  ]
+}

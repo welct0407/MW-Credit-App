@@ -1,0 +1,17 @@
+{
+  "object_counts": {
+    "production-oltp": 116,
+    "development-oltp": 116,
+    "production-olap": 103,
+    "development-olap": 103
+  },
+  "captured_properties": {
+    "production-oltp": 12656,
+    "development-oltp": 12679,
+    "production-olap": 11728,
+    "development-olap": 11751
+  },
+  "excluded_property_leaves": 12,
+  "failures": [],
+  "scope": "Exact non-redacted captured editor properties; redacted leaf pointers are explicitly excluded in coverage. Uncaptured properties are not implied verified."
+}

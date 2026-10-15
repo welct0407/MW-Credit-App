@@ -1,0 +1,313 @@
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "reports.mw-credit.com"
+  "kind": "question"
+  "name": "Borrower payment health · all borrowers / 267"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r034-matrix-order/verification.json"
+"content":
+  "key": "health"
+  "id": 267
+  "name": "Borrower payment health · all borrowers"
+  "description": "R028 automatic schedule categories. Payment score unchanged; auto-off plus <80% interest amount OR charge-date\
+    \ coverage, >=7 observed days and >=2 due dates, restricts upper categories. Current 30 completed Bangkok days; no manual\
+    \ confirmations."
+  "display": "table"
+  "dataset_query":
+    "lib/type": "mbql/query"
+    "stages":
+    - "lib/type": "mbql.stage/native"
+      "native": "SELECT b.\"Row ID\" AS \"Borrower ID\",b.\"Description\" AS \"Borrower\",h.has_active_loan AS \"Active loan\"\
+        ,h.current_health_status AS \"Current health\",h.overdue_amount AS \"Overdue ฿\",h.overdue_charge_count AS \"Overdue\
+        \ charges\",h.oldest_unpaid_days AS \"Oldest days\",h.rating_status AS \"Rating status\",h.reliability_score AS \"\
+        Reliability /100\",h.confidence AS \"Confidence\",coalesce(m.quadrant,'Outside active cohort') AS \"Category\",coalesce(m.arrangement_status,'Outside\
+        \ active cohort') AS \"Schedule\",m.classification_reason AS \"Category reason\",h.reason_text AS \"Payment reason\"\
+        \ FROM public.reporting_borrower_payment_health_v1 h JOIN public.olap_borrowers_analytics b ON b.\"Row ID\"=h.borrower_id\
+        \ LEFT JOIN public.reporting_borrower_matrix_v3 m USING(borrower_id) ORDER BY h.overdue_amount DESC NULLS FIRST,h.oldest_unpaid_days\
+        \ DESC NULLS LAST,h.borrower_id"
+    "database": 2
+  "visualization_settings":
+    "table.pivot": false
+    "table.column_formatting":
+    - "columns":
+      - "Current health"
+      "type": "single"
+      "operator": "="
+      "value": "Default flagged"
+      "color": "#FBE7E5"
+      "highlight_row": true
+    - "columns":
+      - "Oldest days"
+      "type": "single"
+      "operator": ">"
+      "value": 7
+      "color": "#FBE7E5"
+      "highlight_row": true
+    - "columns":
+      - "Current health"
+      "type": "single"
+      "operator": "="
+      "value": "Overdue"
+      "color": "#FFF2D6"
+      "highlight_row": true
+    - "columns":
+      - "Rating status"
+      "type": "single"
+      "operator": "="
+      "value": "Data review"
+      "color": "#ECEFF1"
+      "highlight_row": true
+    "column_settings":
+      "[\"name\",\"Overdue ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Principal ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Interest 30d ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Recorded loss ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Reliability /100\"]":
+        "number_style": "decimal"
+        "decimals": 1
+        "number_separators": ".,"
+        "compact": false
+    "table.columns":
+    - "name": "Borrower"
+      "fieldRef":
+      - "field"
+      - "Borrower"
+      - "base-type": "type/Text"
+      "enabled": true
+    - "name": "Active loan"
+      "fieldRef":
+      - "field"
+      - "Active loan"
+      - "base-type": "type/Boolean"
+      "enabled": true
+    - "name": "Current health"
+      "fieldRef":
+      - "field"
+      - "Current health"
+      - "base-type": "type/Text"
+      "enabled": true
+    - "name": "Overdue ฿"
+      "fieldRef":
+      - "field"
+      - "Overdue ฿"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Overdue charges"
+      "fieldRef":
+      - "field"
+      - "Overdue charges"
+      - "base-type": "type/Integer"
+      "enabled": true
+    - "name": "Oldest days"
+      "fieldRef":
+      - "field"
+      - "Oldest days"
+      - "base-type": "type/Integer"
+      "enabled": true
+    - "name": "Rating status"
+      "fieldRef":
+      - "field"
+      - "Rating status"
+      - "base-type": "type/Text"
+      "enabled": true
+    - "name": "Reliability /100"
+      "fieldRef":
+      - "field"
+      - "Reliability /100"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Confidence"
+      "fieldRef":
+      - "field"
+      - "Confidence"
+      - "base-type": "type/Text"
+      "enabled": true
+    - "name": "Category"
+      "fieldRef":
+      - "field"
+      - "Category"
+      - "base-type": "type/Text"
+      "enabled": true
+    - "name": "Schedule"
+      "fieldRef":
+      - "field"
+      - "Schedule"
+      - "base-type": "type/Text"
+      "enabled": true
+    - "name": "Category reason"
+      "fieldRef":
+      - "field"
+      - "Category reason"
+      - "base-type": "type/Text"
+      "enabled": true
+    - "name": "Payment reason"
+      "fieldRef":
+      - "field"
+      - "Payment reason"
+      - "base-type": "type/Text"
+      "enabled": true
+    - "name": "Borrower ID"
+      "fieldRef":
+      - "field"
+      - "Borrower ID"
+      - "base-type": "type/Text"
+      "enabled": false
+  "result_metadata":
+  - "name": "Borrower ID"
+    "display_name": "Borrower ID"
+    "base_type": "type/Text"
+    "effective_type": "type/Text"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Borrower ID"
+    - "base-type": "type/Text"
+  - "name": "Borrower"
+    "display_name": "Borrower"
+    "base_type": "type/Text"
+    "effective_type": "type/Text"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Borrower"
+    - "base-type": "type/Text"
+  - "name": "Active loan"
+    "display_name": "Active loan"
+    "base_type": "type/Boolean"
+    "effective_type": "type/Boolean"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Active loan"
+    - "base-type": "type/Boolean"
+  - "name": "Current health"
+    "display_name": "Current health"
+    "base_type": "type/Text"
+    "effective_type": "type/Text"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Current health"
+    - "base-type": "type/Text"
+  - "name": "Overdue ฿"
+    "display_name": "Overdue ฿"
+    "base_type": "type/Decimal"
+    "effective_type": "type/Decimal"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Overdue ฿"
+    - "base-type": "type/Decimal"
+  - "name": "Overdue charges"
+    "display_name": "Overdue charges"
+    "base_type": "type/Integer"
+    "effective_type": "type/Integer"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Overdue charges"
+    - "base-type": "type/Integer"
+  - "name": "Oldest days"
+    "display_name": "Oldest days"
+    "base_type": "type/Integer"
+    "effective_type": "type/Integer"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Oldest days"
+    - "base-type": "type/Integer"
+  - "name": "Rating status"
+    "display_name": "Rating status"
+    "base_type": "type/Text"
+    "effective_type": "type/Text"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Rating status"
+    - "base-type": "type/Text"
+  - "name": "Reliability /100"
+    "display_name": "Reliability /100"
+    "base_type": "type/Decimal"
+    "effective_type": "type/Decimal"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Reliability /100"
+    - "base-type": "type/Decimal"
+  - "name": "Confidence"
+    "display_name": "Confidence"
+    "base_type": "type/Text"
+    "effective_type": "type/Text"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Confidence"
+    - "base-type": "type/Text"
+  - "name": "Category"
+    "display_name": "Category"
+    "base_type": "type/Text"
+    "effective_type": "type/Text"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Category"
+    - "base-type": "type/Text"
+  - "name": "Schedule"
+    "display_name": "Schedule"
+    "base_type": "type/Text"
+    "effective_type": "type/Text"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Schedule"
+    - "base-type": "type/Text"
+  - "name": "Category reason"
+    "display_name": "Category reason"
+    "base_type": "type/Text"
+    "effective_type": "type/Text"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Category reason"
+    - "base-type": "type/Text"
+  - "name": "Payment reason"
+    "display_name": "Payment reason"
+    "base_type": "type/Text"
+    "effective_type": "type/Text"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Payment reason"
+    - "base-type": "type/Text"
+"evidence":
+  "/content/dataset_query":
+    "reference": "outputs/r043-borrower-navigation/saved.json"
+    "reason": "R043 canonical borrower navigation, saved definitions and hidden keys"
+    "state": "value"
+  "/content/visualization_settings":
+    "reference": "outputs/r043-borrower-navigation/saved.json"
+    "reason": "R043 canonical borrower navigation, saved definitions and hidden keys"
+    "state": "value"
+  "/content/result_metadata":
+    "reference": "outputs/r043-borrower-navigation/saved.json"
+    "reason": "R043 canonical borrower navigation, saved definitions and hidden keys"
+    "state": "value"

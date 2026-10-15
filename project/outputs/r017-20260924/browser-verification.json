@@ -1,0 +1,11 @@
+{
+  "at": "2026-09-24T05:22:22.471Z",
+  "browser": "Owner-requested personal Chrome profile",
+  "checks": [
+    "Desktop capital-yield chart renders beside weekly average loan size",
+    "Percentage axis and signed negative value visible",
+    "390px chart stacks below weekly average; title and percent labels fit",
+    "Normal viewport restored"
+  ],
+  "financial_values_published": false
+}

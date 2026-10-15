@@ -1,0 +1,12 @@
+**/.tmp/
+/collection-agent/
+/mw-ai-collection/
+
+# Installed dependencies and generated Python caches are local only.
+node_modules/
+__pycache__/
+*.pyc
+
+# Regenerated locally for ChatGPT uploads; the YAML dictionary is authoritative.
+/Documents/Data_Dictionary_ChatGPT.md
+/Documents/Data_Dictionary_ChatGPT.md.lock

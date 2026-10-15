@@ -1,0 +1,126 @@
+{
+  "code_version": "817c9b47a574227874cbfb407aaa08794cb50dac",
+  "archive_cutoff": "2026-09-27T05:43:10.226553+00:00",
+  "changed_config_keys": [
+    "code_version"
+  ],
+  "other_services_unchanged": true,
+  "installed_python_files_verified": 47,
+  "credential_mode": "0640",
+  "projector_connectivity": {
+    "database": "loan_manager_prod",
+    "role": "mw_receipt_projector",
+    "direct_update": false,
+    "execute": true
+  },
+  "units": {
+    "mw-conversation-poll": {
+      "timer": {
+        "Result": "success",
+        "ActiveState": "active",
+        "SubState": "waiting"
+      },
+      "service": {
+        "Result": "success",
+        "ExecMainStatus": "0",
+        "ActiveState": "inactive",
+        "SubState": "dead"
+      }
+    },
+    "mw-receipt-summary": {
+      "timer": {
+        "Result": "success",
+        "ActiveState": "active",
+        "SubState": "waiting"
+      },
+      "service": {
+        "Result": "success",
+        "ExecMainStatus": "0",
+        "ActiveState": "inactive",
+        "SubState": "dead"
+      }
+    },
+    "mw-cash-statement": {
+      "timer": {
+        "Result": "success",
+        "ActiveState": "active",
+        "SubState": "waiting"
+      },
+      "service": {
+        "Result": "success",
+        "ExecMainStatus": "0",
+        "ActiveState": "inactive",
+        "SubState": "dead"
+      }
+    },
+    "mw-cash-statement-email-retry": {
+      "timer": {
+        "Result": "success",
+        "ActiveState": "active",
+        "SubState": "waiting"
+      },
+      "service": {
+        "Result": "success",
+        "ExecMainStatus": "0",
+        "ActiveState": "inactive",
+        "SubState": "dead"
+      }
+    },
+    "mw-partner-conversation": {
+      "timer": {
+        "Result": "success",
+        "ActiveState": "active",
+        "SubState": "waiting"
+      },
+      "service": {
+        "Result": "success",
+        "ExecMainStatus": "0",
+        "ActiveState": "inactive",
+        "SubState": "dead"
+      }
+    },
+    "mw-audit-relay": {
+      "timer": {
+        "Result": "success",
+        "ActiveState": "active",
+        "SubState": "waiting"
+      },
+      "service": {
+        "Result": "success",
+        "ExecMainStatus": "0",
+        "ActiveState": "inactive",
+        "SubState": "dead"
+      }
+    },
+    "mw-resource-health": {
+      "timer": {
+        "Result": "success",
+        "ActiveState": "active",
+        "SubState": "waiting"
+      },
+      "service": {
+        "Result": "success",
+        "ExecMainStatus": "0",
+        "ActiveState": "inactive",
+        "SubState": "dead"
+      }
+    }
+  },
+  "rollback": {
+    "source_commit": "837b49301288aaeb93d7fc46fa9c5185dc74514e",
+    "resume_timers": [
+      "mw-conversation-poll.timer",
+      "mw-receipt-summary.timer",
+      "mw-cash-statement.timer",
+      "mw-cash-statement-email-retry.timer",
+      "mw-partner-conversation.timer"
+    ],
+    "package_copy_verified": true,
+    "package_files": 95,
+    "frozen_at": "2026-09-27T05:50:23.331426+00:00",
+    "installed_commit": "817c9b47a574227874cbfb407aaa08794cb50dac",
+    "activation_cutoff": "2026-09-27T05:43:10.226553+00:00",
+    "probe_generation": "1790487790144188",
+    "activated_commit": "817c9b47a574227874cbfb407aaa08794cb50dac"
+  }
+}

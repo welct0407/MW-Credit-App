@@ -1,0 +1,969 @@
+{
+  "release": "R005",
+  "app": "olap",
+  "before": {
+    "file": "dev-olap-reversal-before.json",
+    "version": "1.000120"
+  },
+  "after": {
+    "file": "dev-olap-reversal-save1.json",
+    "version": "1.000121"
+  },
+  "coverage": "All exported properties; omitted export coverage subject to explicit owner-approved limited R005 exception.",
+  "counts": {
+    "before": 24454,
+    "after": 24471,
+    "changes": 60
+  },
+  "changes": [
+    {
+      "id": "R005-OLAP-59be2985bbb3",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Settlements/Delete Settlement/Action icon",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": ""
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-a77ad9fd975d",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Settlements/Delete Settlement/Action name",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "Delete Settlement"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-5ad616aded49",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Settlements/Delete Settlement/Action order",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "1"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-861bc0c5376d",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Settlements/Delete Settlement/Attach to column",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "Status"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-6c4c893b44b2",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Settlements/Delete Settlement/Bulk action?",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "Yes"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-ad6a32345dc5",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Settlements/Delete Settlement/Confirmation Message",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "\"Delete this settlement and reverse its cash and settlement totals? The record will be retained in history.\""
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-09d775179fcb",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Settlements/Delete Settlement/Disable automatic updates?",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "No"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-520837d5fe2a",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Settlements/Delete Settlement/Display name",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "\"Delete\""
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-54a114ddbe37",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Settlements/Delete Settlement/Do this",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "SET_COLUMN_VALUE"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-a4a94f097473",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Settlements/Delete Settlement/Does this action apply to the whole table?",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "No"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-08428e2302f0",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Settlements/Delete Settlement/For a record of this table",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "Settlements"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-026dd166b8f8",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Settlements/Delete Settlement/Modifies data?",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "Yes"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-d2b2beb8e7b0",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Settlements/Delete Settlement/Needs confirmation?",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "Yes"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-ee5d3049224e",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Settlements/Delete Settlement/Only if this condition is true",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "=[Status] <> \"Cancelled\""
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-ad3fc85b43f4",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Settlements/Delete Settlement/Prominence",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "Display_Prominently"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-898dc2d7bfc3",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Settlements/Delete Settlement/Set this column",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "Status"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-bccb6397e412",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Settlements/Delete Settlement/To this value",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "=\"Cancelled\""
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-813b5b2a4224",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Settlements/Delete Settlement/Visible?",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "ALWAYS"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-4f0da9c723c2",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Settlements/Delete Settlement/With these properties/$shape",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": {
+          "type": "object",
+          "keys": [
+            "Assignments",
+            "BulkApplicable",
+            "ColumnToEdit",
+            "ConfirmationMessage",
+            "InputParametersUsed",
+            "ModifiesData",
+            "NeedsConfirmation",
+            "NewColumnValue",
+            "Prominence"
+          ]
+        }
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-e5e125af5a9f",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Settlements/Delete Settlement/With these properties/Assignments/$shape",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": {
+          "type": "array",
+          "length": 2
+        }
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-36a9ed6594ad",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Settlements/Delete Settlement/With these properties/Assignments/0/$shape",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": {
+          "type": "object",
+          "keys": [
+            "ColumnToEdit",
+            "NewColumnValue"
+          ]
+        }
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-9f68b79e0cb6",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Settlements/Delete Settlement/With these properties/Assignments/0/ColumnToEdit",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "Status"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-64a5943c088c",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Settlements/Delete Settlement/With these properties/Assignments/0/NewColumnValue",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "=\"Cancelled\""
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-b810b7702b32",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Settlements/Delete Settlement/With these properties/Assignments/1/$shape",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": {
+          "type": "object",
+          "keys": [
+            "ColumnToEdit",
+            "NewColumnValue"
+          ]
+        }
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-9a8ee0a70f08",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Settlements/Delete Settlement/With these properties/Assignments/1/ColumnToEdit",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "Status"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-a3ba1de7b4a4",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Settlements/Delete Settlement/With these properties/Assignments/1/NewColumnValue",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "=CONCATENATE([Notes], \" | Deleted settlement by \", USEREMAIL(), \" at \", TEXT(NOW()))"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-82649c389bf6",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Settlements/Delete Settlement/With these properties/BulkApplicable",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": true
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-e14e0ee558a7",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Settlements/Delete Settlement/With these properties/ColumnToEdit",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "Status"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-a8f05cbe44ec",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Settlements/Delete Settlement/With these properties/ConfirmationMessage",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "\"Delete this settlement and reverse its cash and settlement totals? The record will be retained in history.\""
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-1442686ac8e1",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Settlements/Delete Settlement/With these properties/InputParametersUsed",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": null
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-642e4cfff3cd",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Settlements/Delete Settlement/With these properties/ModifiesData",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": true
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-ca27c638fdea",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Settlements/Delete Settlement/With these properties/NeedsConfirmation",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": true
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-8bec1cdde3b2",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Settlements/Delete Settlement/With these properties/NewColumnValue",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "=\"Cancelled\""
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-0fce5236551d",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Settlements/Delete Settlement/With these properties/Prominence",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "Display_Prominently"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-7a35a6f42de8",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Settlements/Delete/Action icon",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": ""
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-0f6a57585736",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Settlements/Delete/Action name",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "Delete"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-c5699646c026",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Settlements/Delete/Action order",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "1"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-4d61d5e4e864",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Settlements/Delete/Bulk action?",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "Yes"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-86b6d52b3c2c",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Settlements/Delete/Disable automatic updates?",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "No"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-88217be648a4",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Settlements/Delete/Do this",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "DELETE_RECORD"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-e39a5e866e07",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Settlements/Delete/Does this action apply to the whole table?",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "No"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-567bca56637f",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Settlements/Delete/For a record of this table",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "Settlements"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-830b75cdc659",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Settlements/Delete/Modifies data?",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "Yes"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-b8adf5f6faa0",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Settlements/Delete/Needs confirmation?",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "Yes"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-c3aa8b80704d",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Settlements/Delete/Prominence",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "Display_Prominently"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-e2f75878f645",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Settlements/Delete/Visible?",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "ADVANCED"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-61ba55d5c0cc",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Settlements/Delete/With these properties/$shape",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": {
+          "type": "object",
+          "keys": [
+            "BulkApplicable",
+            "ConfirmationMessage",
+            "InputParametersUsed",
+            "ModifiesData",
+            "NeedsConfirmation",
+            "Prominence"
+          ]
+        }
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-92aa0b241355",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Settlements/Delete/With these properties/BulkApplicable",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": true
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-62fc9494f06f",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Settlements/Delete/With these properties/ConfirmationMessage",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": ""
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-b827300cd4a0",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Settlements/Delete/With these properties/InputParametersUsed",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": null
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-adc0e4bc3a88",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Settlements/Delete/With these properties/ModifiesData",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": true
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-84512b19e145",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Settlements/Delete/With these properties/NeedsConfirmation",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": true
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-36ea834904b5",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Settlements/Delete/With these properties/Prominence",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "Display_Prominently"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-10d4e392c175",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "App/Version",
+      "operation": "change",
+      "before": {
+        "present": true,
+        "value": "1.000120"
+      },
+      "after": {
+        "present": true,
+        "value": "1.000121"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-41ea7cd0182c",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Partners_Schema/Total Settlement Created/App formula",
+      "operation": "change",
+      "before": {
+        "present": true,
+        "value": "=SUM( [Related Settlements][Amount] )"
+      },
+      "after": {
+        "present": true,
+        "value": "=SUM(SELECT(Settlements[Amount], AND([Ref Partner] = [_THISROW].[Row ID], [Status] <> \"Cancelled\")))"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-b09d8e1ebf47",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Settlements_Schema/Status/Type Qualifier/EnumValues/$shape",
+      "operation": "change",
+      "before": {
+        "present": true,
+        "value": {
+          "type": "array",
+          "length": 2
+        }
+      },
+      "after": {
+        "present": true,
+        "value": {
+          "type": "array",
+          "length": 3
+        }
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-b8af66d9be79",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Settlements_Schema/Status/Type Qualifier/EnumValues/2",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "Cancelled"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-e8d02e40a58e",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Settlements_Schema/Status/Type Qualifier/Valid_If",
+      "operation": "change",
+      "before": {
+        "present": true,
+        "value": null
+      },
+      "after": {
+        "present": true,
+        "value": "=IF([Status] = \"Cancelled\", LIST(\"Cancelled\"), LIST(\"Pending\", \"Completed\"))"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-eacd9689d52a",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Table name/Settlements/Are updates allowed?",
+      "operation": "change",
+      "before": {
+        "present": true,
+        "value": "ALL_CHANGES"
+      },
+      "after": {
+        "present": true,
+        "value": "ADDS_AND_UPDATES"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-d87e2ffb8379",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Table name/Settlements/Security filter",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "=[Status] <> \"Cancelled\""
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    }
+  ]
+}

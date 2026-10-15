@@ -1,0 +1,50 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.guard_pwa_explicit_payment_v6()"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r052/dictionary-production-closure.json"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "guard_pwa_explicit_payment_v6"
+    "arguments": ""
+    "kind": "f"
+    "arguments_with_defaults": ""
+    "result": "trigger"
+    "definition": "CREATE OR REPLACE FUNCTION public.guard_pwa_explicit_payment_v6()\n RETURNS trigger\n LANGUAGE plpgsql\n\
+      \ SET search_path TO 'pg_catalog', 'public'\nAS $function$\r\nDECLARE provenance jsonb;c jsonb;ids text[];\r\nBEGIN\r\
+      \n provenance:=public.pwa_effective_payment_plan_v2(NEW.\"Row ID\");IF provenance IS NULL THEN RETURN NEW;END IF;\r\n\
+      \ c:=provenance->'plan';SELECT array_agg(value->>'chargeId' ORDER BY (value->>'chargeId') COLLATE \"C\") INTO ids FROM\
+      \ jsonb_array_elements(c->'allocations');\r\n IF TG_OP='INSERT' AND (current_database() NOT IN ('loan_manager_dev','payment_rehearsal','loan_manager_prod')\
+      \ OR current_user<>CASE current_database() WHEN 'loan_manager_prod' THEN 'mw_app_prod_journal_owner' ELSE 'mw_app_dev_journal_owner'\
+      \ END) THEN RAISE EXCEPTION USING ERRCODE='42501',MESSAGE='Explicit command receipt must originate in governed submit';END\
+      \ IF;\r\n IF NEW.\"Ref Borrower\" IS DISTINCT FROM c->>'borrowerId' OR NEW.\"Amount Received\"::numeric IS DISTINCT\
+      \ FROM (c->>'amountReceived')::numeric OR NEW.\"Allocation Method\" IS DISTINCT FROM c->>'allocationMethod'\r\n  OR\
+      \ NEW.\"Ref Target Charge\" IS DISTINCT FROM c->>'targetChargeId' OR NEW.\"Ref Target Loan\" IS DISTINCT FROM c->>'targetLoanId'\r\
+      \n  OR NEW.\"Created By\" IS DISTINCT FROM provenance->>'sourceCreatedBy'\r\n  OR (c->>'allocationMethod'='Selected\
+      \ Charges' AND public.selected_charge_ids(NEW.\"Selected Charge IDs\") IS DISTINCT FROM ids)\r\n  OR (c->>'allocationMethod'<>'Selected\
+      \ Charges' AND NEW.\"Selected Charge IDs\" IS NOT NULL) THEN RAISE EXCEPTION 'Immutable explicit allocation scope';END\
+      \ IF;\r\n IF TG_OP='INSERT' AND (NEW.\"Status\" IS DISTINCT FROM 'Processing' OR NEW.\"Payment Date\" IS DISTINCT FROM\
+      \ (c->>'paymentDate')::date OR NEW.\"Payment Method\" IS DISTINCT FROM c->>'paymentMethod' OR (NEW.\"Ref Received By\
+      \ Cash Account\" IS DISTINCT FROM c->>'cashAccountId' AND NOT(c->>'allocationMethod'='First-day Auto' AND NEW.\"Ref\
+      \ Received By Cash Account\" IS NULL))) THEN RAISE EXCEPTION 'Explicit command input mismatch';END IF;\r\n RETURN NEW;\r\
+      \nEND $function$\n"
+    "owner": "postgres"
+    "language": "plpgsql"
+    "volatility": "v"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 0.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": "{postgres=X/postgres,mw_app_prod=X/postgres}"
+    "comment": null
+    "extension": null

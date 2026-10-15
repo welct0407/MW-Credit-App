@@ -1,0 +1,308 @@
+{
+  "release": "R009",
+  "capturedAt": "2026-09-19T14:34:07.522Z",
+  "rcVersions": {
+    "OLTP": "1.000006",
+    "OLAP": "1.000006"
+  },
+  "tables": {
+    "OLTP": [
+      {
+        "table": "Borrowers",
+        "source": "database-2",
+        "path": "Borrowers"
+      },
+      {
+        "table": "Loans",
+        "source": "database-2",
+        "path": "Loans"
+      },
+      {
+        "table": "Repayments",
+        "source": "database-2",
+        "path": "Repayments"
+      },
+      {
+        "table": "_Per User Settings",
+        "source": "native",
+        "path": "_Per User Settings"
+      },
+      {
+        "table": "Statistics",
+        "source": "database-2",
+        "path": "Statistics"
+      },
+      {
+        "table": "Charges",
+        "source": "database-2",
+        "path": "Charges"
+      },
+      {
+        "table": "Partners",
+        "source": "database-2",
+        "path": "Partners"
+      },
+      {
+        "table": "Payment Allocations",
+        "source": "database-2",
+        "path": "Payment Allocations"
+      },
+      {
+        "table": "Payments",
+        "source": "database-2",
+        "path": "Payments"
+      },
+      {
+        "table": "Business Expenses",
+        "source": "database-2",
+        "path": "Business Expenses"
+      },
+      {
+        "table": "Loan Form Context",
+        "source": "database-2",
+        "path": "Loan Form Context"
+      },
+      {
+        "table": "Cash Holders",
+        "source": "database-2",
+        "path": "Cash Holders"
+      },
+      {
+        "table": "Cash Holder Balances",
+        "source": "database-2",
+        "path": "Cash Holder Balances"
+      },
+      {
+        "table": "Cash Accounts",
+        "source": "database-2",
+        "path": "Cash Accounts"
+      },
+      {
+        "table": "Process for Generate Daily Charges - 1 Process Table",
+        "source": "native",
+        "path": "/ProcessStateTables/b21a5069-4897-4937-a62c-993563fcf572/f2ddef83-37e2-4e52-a714-a5fcadb350a8/State Table"
+      },
+      {
+        "table": "Canonical app execution guard Output",
+        "source": "native",
+        "path": "/ProcessStateTables/b21a5069-4897-4937-a62c-993563fcf572/f2ddef83-37e2-4e52-a714-a5fcadb350a8/StepOutput_Canonical app execution guard"
+      },
+      {
+        "table": "Generate Today's Charge Output",
+        "source": "native",
+        "path": "/ProcessStateTables/b21a5069-4897-4937-a62c-993563fcf572/f2ddef83-37e2-4e52-a714-a5fcadb350a8/StepOutput_Generate Today's Charge"
+      },
+      {
+        "table": "Process for Notification - New Loan Created Process Table",
+        "source": "native",
+        "path": "/ProcessStateTables/b21a5069-4897-4937-a62c-993563fcf572/63ee9ff1-6537-4feb-93b7-0cf58b53cf3d/State Table"
+      },
+      {
+        "table": "First-day receipt exists Output",
+        "source": "native",
+        "path": "/ProcessStateTables/b21a5069-4897-4937-a62c-993563fcf572/63ee9ff1-6537-4feb-93b7-0cf58b53cf3d/StepOutput_First-day receipt exists"
+      },
+      {
+        "table": "Process for Notification - Loan Closed Process Table",
+        "source": "native",
+        "path": "/ProcessStateTables/b21a5069-4897-4937-a62c-993563fcf572/353585e2-2f78-4538-a1e8-b461bea5f245/State Table"
+      },
+      {
+        "table": "Process for Notification - Charge Received Process Table",
+        "source": "native",
+        "path": "/ProcessStateTables/b21a5069-4897-4937-a62c-993563fcf572/c39fec47-3028-4225-9e4b-118e553a69d8/State Table"
+      },
+      {
+        "table": "Notify payment-closed loans Output",
+        "source": "native",
+        "path": "/ProcessStateTables/b21a5069-4897-4937-a62c-993563fcf572/c39fec47-3028-4225-9e4b-118e553a69d8/StepOutput_Notify payment-closed loans"
+      },
+      {
+        "table": "Process for Notification - First-Day Charge Process Table",
+        "source": "native",
+        "path": "/ProcessStateTables/b21a5069-4897-4937-a62c-993563fcf572/97bf3191-da92-4cc3-b092-8fa20373c446/State Table"
+      },
+      {
+        "table": "Process for R008 Receive All Confirmed Process Table",
+        "source": "native",
+        "path": "/ProcessStateTables/b21a5069-4897-4937-a62c-993563fcf572/c05ac67f-16cc-4273-afc4-0918b7655c3e/State Table"
+      },
+      {
+        "table": "Notify payment-closed loans Output 2",
+        "source": "native",
+        "path": "/ProcessStateTables/b21a5069-4897-4937-a62c-993563fcf572/c05ac67f-16cc-4273-afc4-0918b7655c3e/StepOutput_Notify payment-closed loans"
+      },
+      {
+        "table": "Process for R008 Single Full Confirmed Process Table",
+        "source": "native",
+        "path": "/ProcessStateTables/b21a5069-4897-4937-a62c-993563fcf572/a69eae23-2d68-4a6c-bdc1-766eab21377a/State Table"
+      },
+      {
+        "table": "Notify payment-closed loans Output 3",
+        "source": "native",
+        "path": "/ProcessStateTables/b21a5069-4897-4937-a62c-993563fcf572/a69eae23-2d68-4a6c-bdc1-766eab21377a/StepOutput_Notify payment-closed loans"
+      },
+      {
+        "table": "Process for R008 Loan Close Confirmed Process Table",
+        "source": "native",
+        "path": "/ProcessStateTables/b21a5069-4897-4937-a62c-993563fcf572/6e002ed1-ddd3-4a52-8855-21ab8c3a286b/State Table"
+      },
+      {
+        "table": "Notify payment-closed loans Output 4",
+        "source": "native",
+        "path": "/ProcessStateTables/b21a5069-4897-4937-a62c-993563fcf572/6e002ed1-ddd3-4a52-8855-21ab8c3a286b/StepOutput_Notify payment-closed loans"
+      }
+    ],
+    "OLAP": [
+      {
+        "table": "Borrowers",
+        "source": "database-2",
+        "path": "olap_borrowers_analytics"
+      },
+      {
+        "table": "Loans",
+        "source": "database-2",
+        "path": "olap_loans_analytics"
+      },
+      {
+        "table": "Repayments",
+        "source": "database-2",
+        "path": "olap_repayments_analytics"
+      },
+      {
+        "table": "_Per User Settings",
+        "source": "native",
+        "path": "_Per User Settings"
+      },
+      {
+        "table": "Statistics",
+        "source": "database-2",
+        "path": "Statistics"
+      },
+      {
+        "table": "Charges",
+        "source": "database-2",
+        "path": "olap_charges_analytics"
+      },
+      {
+        "table": "Loan Assessment",
+        "source": "database-2",
+        "path": "Loan Assessment SQL Lab View"
+      },
+      {
+        "table": "Cash Pool Contributions",
+        "source": "database-2",
+        "path": "Cash Pool Contributions"
+      },
+      {
+        "table": "Partners",
+        "source": "database-2",
+        "path": "Partners"
+      },
+      {
+        "table": "Settlements",
+        "source": "database-2",
+        "path": "Settlements"
+      },
+      {
+        "table": "Daily Analytics",
+        "source": "database-2",
+        "path": "Daily Analytics"
+      },
+      {
+        "table": "Payment Allocations",
+        "source": "database-2",
+        "path": "Payment Allocations"
+      },
+      {
+        "table": "Payments",
+        "source": "database-2",
+        "path": "Payments"
+      },
+      {
+        "table": "Business Expenses",
+        "source": "database-2",
+        "path": "Business Expenses"
+      },
+      {
+        "table": "Cash Holders",
+        "source": "database-2",
+        "path": "Cash Holders"
+      },
+      {
+        "table": "Cash Holder Balances",
+        "source": "database-2",
+        "path": "Cash Holder Balances"
+      },
+      {
+        "table": "Cash Ledger",
+        "source": "database-2",
+        "path": "Cash Ledger"
+      },
+      {
+        "table": "Portfolio Summary",
+        "source": "database-2",
+        "path": "olap_portfolio_summary"
+      },
+      {
+        "table": "Cash Accounts",
+        "source": "database-2",
+        "path": "Cash Accounts"
+      },
+      {
+        "table": "Cash Account Balances",
+        "source": "database-2",
+        "path": "Cash Account Balances"
+      },
+      {
+        "table": "Process for Refresh Daily Analytics Daily - 1 Process Table",
+        "source": "native",
+        "path": "/ProcessStateTables/5fce331d-68d5-49b8-923f-01dc1b524c9f/72f7fb24-0097-4cd6-9477-1e291d5d9bf7/State Table"
+      },
+      {
+        "table": "Canonical app execution guard Output",
+        "source": "native",
+        "path": "/ProcessStateTables/5fce331d-68d5-49b8-923f-01dc1b524c9f/72f7fb24-0097-4cd6-9477-1e291d5d9bf7/StepOutput_Canonical app execution guard"
+      },
+      {
+        "table": "Request Recent Analytics Refresh Output",
+        "source": "native",
+        "path": "/ProcessStateTables/5fce331d-68d5-49b8-923f-01dc1b524c9f/72f7fb24-0097-4cd6-9477-1e291d5d9bf7/StepOutput_Request Recent Analytics Refresh"
+      }
+    ]
+  },
+  "sqlSource": "database-2",
+  "host": "34.21.174.215",
+  "instance": "appsheet-pg-prod-20260914",
+  "database": "loan_manager_prod",
+  "nativeSources": "App-local user settings and process state; RC UUIDs verified",
+  "themes": {
+    "OLTP": "#d81b60",
+    "OLAP": "#0abab5"
+  },
+  "mode": "Deployed",
+  "access": "Owner only; 0 shared users in each RC",
+  "diagnostics": "Both No issues found",
+  "recipientSubstitution": "None: shared R009 expressions use PROD Partner data",
+  "guard": "Canonical DEV/PROD names only; RC names excluded; first-process branch and per-row filter retained",
+  "runtimeReference": "outputs/dev-app-refresh-20260919/verification.json",
+  "productionValidation": {
+    "versions": {
+      "OLTP": "3.000231",
+      "OLAP": "1.100181"
+    },
+    "allSqlSources": "database-2 in final saved documentation",
+    "nativeSources": "Retained app-local process/user settings",
+    "themes": {
+      "OLTP": "#d81b60",
+      "OLAP": "#0abab5"
+    },
+    "companionNavigation": "Both runtime actions resolve corresponding canonical PROD internal names",
+    "guardExpressions": {
+      "OLTP": "IN(CONTEXT(\"AppName\"), LIST(\"MW-OLTP-DEV-20260919-578763613\", \"LoanManager-975338008-26-08-07\"))",
+      "OLAP": "IN(CONTEXT(\"AppName\"), LIST(\"MW-OLAP-DEV-20260919-578763613\", \"LoanBusinessInsights-975338008\"))"
+    },
+    "diagnostics": "Both No issues found",
+    "deployed": true
+  }
+}

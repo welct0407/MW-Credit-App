@@ -1,0 +1,24 @@
+{
+  "date": "2026-09-24",
+  "dashboard_id": 3,
+  "tab_id": 16,
+  "question_id": 212,
+  "columns": [
+    "Expense Date",
+    "Expense Category",
+    "Payee",
+    "Paid By",
+    "Expenses",
+    "Notes",
+    "Expense ID"
+  ],
+  "hidden_columns": [
+    "Expense ID"
+  ],
+  "matched_rows": 6,
+  "old_rows": 6,
+  "all_existing_financial_values_preserved": true,
+  "source": "Existing Business Expenses and reporting_cash_accounts",
+  "dashboard_unchanged": true,
+  "rollback": "Private expense-detail-enrichment-before-20260924 card/dashboard definitions"
+}

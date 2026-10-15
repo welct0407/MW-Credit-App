@@ -1,0 +1,11 @@
+{
+  "at": "2026-09-24T10:13:54.376Z",
+  "checks": [
+    "Canonical tab18 named 6 · Performance in sixth position; old tab7 absent",
+    "All remaining placements/settings/queries preserved",
+    "Only unused old Performance date filter removed",
+    "Old saved questions retained for other consumers and rollback"
+  ],
+  "tabs": 11,
+  "placements": 189
+}

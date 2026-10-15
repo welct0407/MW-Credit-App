@@ -1,0 +1,32 @@
+{
+  "release": "R048",
+  "date": "2026-09-27",
+  "environment": "DEV",
+  "oltpAppId": "500b27b6-884a-41e8-a9ec-df801b0110ad",
+  "oltpBefore": "1.000118",
+  "oltpAfter": "1.000124",
+  "olapAppId": "9f3422be-bc87-4a5a-a42a-67528ee80393",
+  "olapUnchanged": "1.000042",
+  "productionChanged": false,
+  "databaseWrites": false,
+  "filter": "AND(\n  [Status] = \"Posted\",\n  OR(ISNOTBLANK([Receipt Image]), ISNOTBLANK([Uploaded Receipt])),\n  COUNT(\n    INTERSECT(\n      SELECT([Related Payment Allocations][Ref Charge], [Allocated Amount] > 0),\n      [Ref Borrower].[Todays Collection Charges]\n    )\n  ) > 0\n)",
+  "imageLabel": {
+    "column": "Payments.Receipt Preview",
+    "before": false,
+    "after": true
+  },
+  "checks": {
+    "bothEditorsNoIssues": true,
+    "collectionSyntheticCharges": 1,
+    "collectionSyntheticReceipts": 2,
+    "bothPreviewImagesRendered": true,
+    "cardOpensReadOnlyDetail": true,
+    "controlledNonmatchingScopeHidesReceipts": true,
+    "dynamicScopeRestored": true
+  },
+  "limitations": [
+    "Negative GUI check used a temporary nonmatching scope operand, not a new financial fixture.",
+    "No new multi-charge or agent-only financial fixture was created."
+  ],
+  "rollback": "Restore targeted filter/image-label values or restorable DEV1.000118 after checking intervening changes."
+}
