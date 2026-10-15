@@ -103,6 +103,28 @@ exec runuser -u postgres -- env HOME=/tmp \\
 EOF
 chmod 755 /usr/local/bin/mw-db-ci
 
+# SSH to the Debian integration host (vm-mw-credit-agent) through IAP: for
+# MW-Integration-Agent deploys (`sudo scripts/update-from-github.sh` in
+# /opt/mw-integration-agent-src) and administration. Uses the instance-level
+# `codex-cloud` key from Secret Manager and the pinned host key (same as
+# MW-Credit-App scripts/database/debian-host-key.pub).
+cat > /usr/local/bin/mw-debian-ssh <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+dir="${MW_PRIVATE_ROOT:-$HOME/.mw-private}/ssh"
+mkdir -p "$dir"; chmod 700 "$dir"
+if [ ! -s "$dir/codex-cloud" ]; then
+  (umask 077; gcloud secrets versions access 1 --secret=mw-credit-cloud-operator-ssh-key \
+     --project=clever-oasis-508610-n7 > "$dir/codex-cloud")
+fi
+echo 'vm-mw-credit-agent ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAID4J/lXUyG77dsIwR0MNsrXD11/qdaajYMLz7w26CI8i' > "$dir/known_hosts"
+exec ssh -o User=codex-cloud -o IdentityFile="$dir/codex-cloud" -o IdentitiesOnly=yes \
+  -o UserKnownHostsFile="$dir/known_hosts" -o StrictHostKeyChecking=yes \
+  -o ProxyCommand="gcloud compute start-iap-tunnel vm-mw-credit-agent 22 --listen-on-stdin --zone=asia-southeast1-a --project=clever-oasis-508610-n7 --verbosity=error" \
+  vm-mw-credit-agent "$@"
+EOF
+chmod 755 /usr/local/bin/mw-debian-ssh
+
 # Repositories are not cloned here: this script's result is snapshotted and
 # reused for about a week, while the repositories selected when a session
 # starts are cloned fresh (with push access) into /home/user/<Repo-Name>.
