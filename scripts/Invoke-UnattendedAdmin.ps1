@@ -53,7 +53,10 @@ try {
   # No CLI login, credential files or refresh tokens are consulted.
   $imds = 'http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=' +
     [uri]::EscapeDataString($metadata.audience) + '&client_id=' + [uri]::EscapeDataString($metadata.azure_client_id)
-  try { $azure = Invoke-RestMethod $imds -Headers @{Metadata='true'} -NoProxy -TimeoutSec 15 }
+  # -NoProxy exists only in PowerShell 6+; VM-01 runs Windows PowerShell 5.1.
+  $imdsOptions = @{ Headers = @{Metadata='true'}; TimeoutSec = 15 }
+  if ($PSVersionTable.PSVersion.Major -ge 6) { $imdsOptions.NoProxy = $true }
+  try { $azure = Invoke-RestMethod $imds @imdsOptions }
   catch { throw 'Dedicated managed identity unavailable; unattended authentication fails closed.' }
   $claims = Read-JwtClaims $azure.access_token
   if ($claims.tid -ne $metadata.azure_tenant_id -or $claims.oid -ne $metadata.azure_principal_id -or

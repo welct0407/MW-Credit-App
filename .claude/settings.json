@@ -4,5 +4,30 @@
       "mcp__claude-code-remote__add_repo",
       "mcp__claude-code-remote__register_repo_root"
     ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/scripts/azure-cloud-session.sh\" --session-start",
+            "timeout": 60
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/scripts/azure-cloud-session.sh\" --refresh",
+            "timeout": 60
+          }
+        ]
+      }
+    ]
   }
 }

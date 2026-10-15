@@ -50,6 +50,15 @@ resource "azurerm_role_assignment" "backup_operator" {
   principal_id         = azurerm_user_assigned_identity.operator.principal_id
   principal_type       = "ServicePrincipal"
 }
+# Off-Azure trust: the Linux cloud executor (codex-cloud, key-based) signs in
+# as this identity with a Google ID token; see scripts/azure-cloud-session.sh.
+resource "azurerm_federated_identity_credential" "cloud_executor" {
+  name                      = "codex-cloud-google"
+  user_assigned_identity_id = azurerm_user_assigned_identity.operator.id
+  issuer                    = "https://accounts.google.com"
+  subject                   = "101264312607096935907" # codex-cloud@clever-oasis-508610-n7 unique ID
+  audience                  = ["api://AzureADTokenExchange"]
+}
 resource "google_service_account" "operator" {
   project      = local.project
   account_id   = "mw-credit-unattended-admin"
