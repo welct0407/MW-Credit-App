@@ -2,8 +2,40 @@ import {commandOriginAllowed} from './environment';
 import type {CommandAccess} from './SelectedCharges';
 import type {PendingSync} from './owner-offline';
 
-export type SavedSyncResult={kind:'queued'|'synced'|'blocked';data?:any;status?:number};
+export type SavedSyncResult={kind:'queued'|'synced'|'blocked';data?:any;status?:number;code?:string};
 export type SavedSyncSummary={remaining:number;blocked:number;synced:number;reason?:'offline'|'authorization'|'connection'|'waiting'|'attention'};
+/** Stable reason codes are retained for unknown server rejections; never display arbitrary server text. */
+export function savedRejectionMessage(result:{code?:string;data?:any},thai:boolean):string{
+ const code=result.code??result.data?.originalOutcome?.code??result.data?.code??'request_rejected';
+ const messages:Record<string,[string,string]>={
+  dependency_conflict:['Related records still depend on this record.','ยังมีรายการอื่นอ้างอิงข้อมูลนี้'],
+  record_requires_reconciliation:['Financial records require reconciliation.','ต้องกระทบยอดข้อมูลทางการเงิน'],
+  payment_requires_reconciliation:['Payment balances require reconciliation.','ต้องกระทบยอดการรับชำระ'],
+  source_conflict:['The record changed since it was opened.','ข้อมูลเปลี่ยนหลังจากเปิดรายการ'],
+  source_changed:['The source data changed.','ข้อมูลต้นทางเปลี่ยนแล้ว'],
+  record_conflict:['The record conflicts with current data.','รายการขัดแย้งกับข้อมูลปัจจุบัน'],
+  command_conflict:['This request reference is already used for different details.','รหัสคำขอนี้ถูกใช้กับรายละเอียดอื่นแล้ว'],
+  not_found:['The record no longer exists.','ไม่พบรายการนี้แล้ว'],
+  invalid_reference:['A related record is missing or invalid.','รายการอ้างอิงหายไปหรือไม่ถูกต้อง'],
+  invalid_request:['The submitted details are invalid.','รายละเอียดที่ส่งไม่ถูกต้อง'],
+  borrower_name_exists:['A borrower with this name already exists.','มีผู้กู้ชื่อนี้แล้ว'],
+  account_unavailable:['The selected account is unavailable.','บัญชีที่เลือกไม่สามารถใช้งานได้'],
+  selection_changed:['The selected charges changed.','ยอดเรียกเก็บที่เลือกเปลี่ยนแล้ว'],
+  plan_changed:['The payment allocation changed.','การจัดสรรยอดรับชำระเปลี่ยนแล้ว'],
+  business_date_changed:['The business date changed.','วันที่ทำรายการเปลี่ยนแล้ว'],
+  receipt_conflict:['The receipt conflicts with the saved request.','หลักฐานขัดแย้งกับคำขอที่บันทึก'],
+  receipt_unsupported:['The receipt format is not supported.','ไม่รองรับรูปแบบหลักฐานนี้'],
+  body_too_large:['The submitted data is too large.','ข้อมูลที่ส่งมีขนาดใหญ่เกินไป'],
+  unsupported_saved_request:['The saved request format is invalid or unsupported.','รูปแบบคำขอที่บันทึกไม่ถูกต้องหรือไม่รองรับ'],
+  saved_receipt_invalid:['The saved receipt is invalid.','หลักฐานที่บันทึกไม่ถูกต้อง'],
+  saved_note_invalid:['The saved note change is invalid.','การแก้ไขหมายเหตุที่บันทึกไม่ถูกต้อง'],
+  previous_note_not_applied:['The preceding note change was not applied.','การแก้ไขหมายเหตุก่อนหน้าไม่สำเร็จ'],
+  current_note_unavailable:['The current note record no longer exists.','ไม่พบข้อมูลหมายเหตุปัจจุบันแล้ว'],
+ };
+ const reason=messages[code]?.[thai?1:0]??(thai?'คำขอนี้ไม่สามารถดำเนินการได้':'This request could not be applied.');
+ const reference=typeof code==='string'&&/^[a-z][a-z0-9_]{0,79}$/.test(code)?' ('+code+')':'';
+ return (thai?'ไม่สำเร็จ: ':'Could not apply: ')+reason+reference;
+}
 const inFlight=new Map<string,Promise<SavedSyncResult>>();
 const uuid=/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/;
 const outcome=(scopeName:string,requestId:string,result:SavedSyncResult)=>{
@@ -34,9 +66,10 @@ async function syncOne(access:CommandAccess,requestId:string,exclusive=false):Pr
  const repository=access.offline;
  if(!repository||!navigator.onLine||!allowedOrigin(access)||!await repository.syncAuthorized())return {kind:'queued'};
  const owner=crypto.randomUUID(),row=await repository.claimPending(requestId,owner,exclusive);
- if(!row){const existing=await repository.pending(requestId);return existing?.sync?.state==='blocked'?{kind:'blocked',data:existing.sync.outcome}:{kind:'queued'}}
+ if(!row){const existing=await repository.pending(requestId);return existing?.sync?.state==='blocked'?{kind:'blocked',data:existing.sync.outcome,code:existing.sync.code}:{kind:'queued'}}
  let attempted=row.sync?.attempted??true;
  const settle=async(result:SavedSyncResult,code?:string)=>{
+  if(code)result={...result,code};
   const sync:PendingSync|null=result.kind==='synced'?null:{state:result.kind==='blocked'?'blocked':'queued',attempted,...(code?{code}:{}),...(result.data?{outcome:result.data}:{})};
   await repository.settlePending(requestId,owner,sync);
   if(result.kind!=='queued')outcome(repository.scopeName,requestId,result);
