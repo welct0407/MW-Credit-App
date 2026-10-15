@@ -269,7 +269,12 @@ if(process.argv[1]&&path.resolve(process.argv[1])===path.resolve(import.meta.fil
  if(options['--check'])console.log(JSON.stringify({dryRun:true,site:plan.site,fileCount:Object.keys(plan.files).length,sourceCommit:plan.sourceCommit,publicVersion:plan.publicVersion}));
  else{
   if(!options['--approval-reference']||!options['--output']||!path.isAbsolute(options['--output']))throw Error('Owner approval and absolute private output required');
-  const privateRoot=path.resolve('C:/Users/ideaadmin/Documents/ChatGPT/MW-Credit-App');
+  // VM-01 keeps its established private root; Linux cloud sessions use MW_PRIVATE_ROOT
+  // (default ~/.mw-private) and also copy each receipt to the operator private bucket,
+  // because the session filesystem is ephemeral.
+  const windows=process.platform==='win32';
+  const privateRoot=windows?path.resolve('C:/Users/ideaadmin/Documents/ChatGPT/MW-Credit-App'):path.resolve(process.env.MW_PRIVATE_ROOT||path.join(process.env.HOME??'/root','.mw-private'),'MW-Credit-App');
+  const persistReceipt=()=>{if(windows)return;const r=spawnSync('gcloud',['storage','cp',output,'gs://mw-credit-operator-private-737787224638/promotion-receipts/'+path.basename(output),'--quiet'],{stdio:['ignore','ignore','pipe']});if(r.status!==0)throw Error('Private receipt bucket copy failed; keep the local receipt and retry the copy');};
   const output=path.resolve(options['--output']),relative=path.relative(privateRoot,output);
   if(!relative||relative.startsWith('..')||path.isAbsolute(relative))throw Error('Hosting receipt must remain in the private project root');
   for(let cursor=path.dirname(output);;cursor=path.dirname(cursor)){const state=await lstat(cursor);if(state.isSymbolicLink())throw Error('Private output reparse boundary rejected');if(cursor===privateRoot)break;}
@@ -279,10 +284,10 @@ if(process.argv[1]&&path.resolve(process.argv[1])===path.resolve(import.meta.fil
   if(current){const impersonationToken=process.env.GOOGLE_IMPERSONATION_SOURCE_TOKEN;delete process.env.GOOGLE_IMPERSONATION_SOURCE_TOKEN;await verifyAppOnlyOperator({token,impersonationToken,...(settings?{release:'R062'}:{})});if(settings)await verifySettingsLivePackage(inputs,{token});else if(frontend)await verifyFrontendOnlyLivePackage(inputs);else await verifyAppOnlyLivePackage(inputs,{token});}else await verifyOperatorCredential({token});
   const request=async(url,method,body,raw=false)=>{if(!['firebasehosting.googleapis.com','upload-firebasehosting.googleapis.com'].includes(new URL(url).hostname))throw Error('Unexpected Hosting API host');const response=await fetch(url,{method,redirect:'error',headers:{Authorization:'Bearer '+token,'x-goog-user-project':'clever-oasis-508610-n7','Content-Type':raw?'application/octet-stream':'application/json'},...(method==='GET'?{}:{body:raw?body:JSON.stringify(body)})});if(!response.ok)throw Error('Hosting API failed with status '+response.status);const text=await response.text();return text?JSON.parse(text):{};};
   const packageSha256=current?sha(await readFile(options['--inputs'])):undefined;
-  if(current)await writeFile(output,JSON.stringify({schemaVersion:1,status:'pending-reconciliation',sourceCommit:plan.sourceCommit,packageSha256,site:plan.site,approvalReference:options['--approval-reference'],instruction:'Do not retry. Reconcile the live Hosting release before recovery.'},null,2),{flag:'wx'});
+  if(current){await writeFile(output,JSON.stringify({schemaVersion:1,status:'pending-reconciliation',sourceCommit:plan.sourceCommit,packageSha256,site:plan.site,approvalReference:options['--approval-reference'],instruction:'Do not retry. Reconcile the live Hosting release before recovery.'},null,2),{flag:'wx'});persistReceipt();}
   const result=await executeBusinessHosting(plan,{request,approvalReference:options['--approval-reference']});
   if(current){result.packageSha256=packageSha256;result.status='applied';}
   console.log(JSON.stringify(result)); // Retain actual release identity even if local receipt persistence fails.
-  try{await writeFile(options['--output'],JSON.stringify(result,null,2),{flag:current?'w':'wx'});}catch{throw Error('Hosting release applied; private receipt write failed. Preserve the emitted release identity and inspect live state before retrying.');}
+  try{await writeFile(options['--output'],JSON.stringify(result,null,2),{flag:current?'w':'wx'});persistReceipt();}catch{throw Error('Hosting release applied; private receipt write failed. Preserve the emitted release identity and inspect live state before retrying.');}
  }
 }

@@ -4,9 +4,16 @@ ORIGIN = 'https://monitor.mw-credit.com'
 PROJECT = 'clever-oasis-508610-n7'
 SECRET = 'mw-grafana-provisioning-token'
 ROOT = pathlib.Path(__file__).resolve().parents[2]
-PRIVATE = pathlib.Path('C:/Users/ideaadmin/Documents/ChatGPT')
-GCLOUD = 'C:/Program Files (x86)/Google/Cloud SDK/google-cloud-sdk/bin/gcloud.cmd'
-TF = 'C:/Users/ideaadmin/AppData/Local/MWCredit/tools/terraform/terraform.exe'
+# Windows VM-01 keeps its established paths; Linux cloud sessions use the tools on
+# PATH and the external private root from MW_PRIVATE_ROOT (default ~/.mw-private).
+if os.name == 'nt':
+    PRIVATE = pathlib.Path(os.environ.get('MW_PRIVATE_ROOT', 'C:/Users/ideaadmin/Documents/ChatGPT'))
+    GCLOUD = 'C:/Program Files (x86)/Google/Cloud SDK/google-cloud-sdk/bin/gcloud.cmd'
+    TF = 'C:/Users/ideaadmin/AppData/Local/MWCredit/tools/terraform/terraform.exe'
+else:
+    PRIVATE = pathlib.Path(os.environ.get('MW_PRIVATE_ROOT', pathlib.Path.home() / '.mw-private'))
+    GCLOUD = 'gcloud'
+    TF = 'terraform'
 
 def private_path(value):
     p = pathlib.Path(value).resolve()

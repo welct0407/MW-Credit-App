@@ -2,7 +2,7 @@
 
 Owner-approved R055 code-only adoption. Provider pins: Terraform1.16.5, Grafana4.45.2; the checked lock file is part of delivery. No live resource UID is inferred from mocks or dated exports. The checked baseline maps own two observed folders and two dashboards; builtin GrafanaCloud resources are excluded.
 
-Use `scripts/grafana/manage.py` with the installed Python. `--private-dir` must be under `C:/Users/ideaadmin/Documents/ChatGPT`. Authentication is either the explicit bootstrap token file outside Git or `--secret-version N`, which reads only `mw-grafana-provisioning-token` in project `clever-oasis-508610-n7` into memory. Reuse the owner-created dedicated account; do not create a second identity. Gcloud's existing human session authorizes Secret Manager/backend operations; it is not Grafana authentication. Both HTTP clients refuse redirects before forwarding credentials.
+Use `scripts/grafana/manage.py` with the installed Python. `--private-dir` must be under the external private root `MW_PRIVATE_ROOT` (Windows default `C:/Users/ideaadmin/Documents/ChatGPT`; Linux cloud sessions default `~/.mw-private`). Plans read the committed `baseline.auto.tfvars.json`; the required private `-var-file` may be empty. Authentication is either the explicit bootstrap token file outside Git or `--secret-version N`, which reads only `mw-grafana-provisioning-token` in project `clever-oasis-508610-n7` into memory. Reuse the owner-created dedicated account; do not create a second identity. Gcloud's existing human session authorizes Secret Manager/backend operations; it is not Grafana authentication. Both HTTP clients refuse redirects before forwarding credentials.
 
 Example read-only inventory:
 
