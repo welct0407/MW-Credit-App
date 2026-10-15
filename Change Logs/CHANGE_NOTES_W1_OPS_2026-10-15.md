@@ -27,6 +27,8 @@ Wave 1 operations work for the independent review: remove borrower-data evidence
 | Edited readers and writers | `node --check` on the edited `.mjs` files; `py_compile` on `Verify-TransferredMigrations.py`; `node --test tests/unit/source-receipts-independent.test.mjs` | Passed (3 of 3) |
 | Dictionary tests | `python3 -m unittest test_dictionary` in `project/scripts/dictionary` | 12 of 12 passed |
 | Secret versions | `gcloud secrets versions list <secret> --format="value(name,state)"` for both secrets | One enabled version each (names and states only) |
+| Tunnel script, once | `MW_PRIVATE_ROOT=<empty scratch dir> MW_DB_TUNNEL_PORT=15433 bash scripts/database/cloud-db-tunnel.sh` (fresh root so the `versions access latest` line runs) | `tunnel ready on 127.0.0.1:15433`, exit 0; key written with mode 600; tunnel closed and scratch key deleted afterwards |
+| CI, one run | `ci.yml` `workflow_dispatch` on `claude/review-w1-ops` at `31e34fb` (run 252, id 38802004190) | Evidence guard, `npm run check`, `build:live-dev`, `npm audit` passed. `test:e2e`: 437 passed, 11 skipped, 2 failed, so Terraform steps were skipped (ALL-CI-09). Both failures are unrelated to this branch: `phase5-final-ui-independent` P6 T9 (mobile) also fails on `main` run 251 (desktop); `payment-command` G06 (mobile, Thai region locator) passed on `main` run 251 and on desktop here, and this branch changes only its screenshot path two lines later. Treated as pre-existing / flaky (ALL-CI-01) |
 
 Pre-existing broken links, left as found: `Environment_Inventory.md` (2 anchors), `Release_Tracker.md` (1 anchor), `project/Documents/README.md` (`Data_Dictionary_ChatGPT.md`), `project/scripts/metabase/README.md` (1 anchor), and 10 in `project/outputs` READMEs (`borrower-matrix-simulation-20260924`, `dictionary-reconciliation-20260924`, `grafana-row5-vm01-20261004`, `loan-ecosystem-20261004` SVGs, `r036-principal-interest`). These match review ALL-DOC-01..03.
 
@@ -34,10 +36,9 @@ Pre-existing broken links, left as found: `Environment_Inventory.md` (2 anchors)
 
 | Check | Reason |
 | --- | --- |
-| Tunnel script | The testing agent runs it. Command: `bash scripts/database/cloud-db-tunnel.sh` (port `MW_DB_TUNNEL_PORT`, default 15432). It starts a background `ssh -f` tunnel. Close it with `pkill -f "127.0.0.1:15432:127.0.0.1:5432"` (use the port in use) |
-| Playwright e2e run, integration suites | Not needed for a path-only change; specs parse and typecheck. The edited integration tests need a database and were only syntax-checked |
+| Integration suites | The edited integration tests need a database and were only syntax-checked; e2e ran in CI (row above) |
 | `Test-CI.ps1` | No SQL, migration or runner change |
-| CI run of the new step | Not pushed |
+| Terraform checks in CI | Skipped by the workflow after the e2e failure (ALL-CI-09); no Terraform change on this branch |
 
 ## Recovery
 
