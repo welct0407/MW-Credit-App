@@ -103,8 +103,8 @@ chmod 755 /usr/local/bin/mw-db-ci
 #
 # Per-shell profile, evaluated in each session (not frozen into the snapshot):
 # - point this repo's tooling at the MW-Credit-App checkout, whatever its case;
-# - sign gcloud and the Node Google libraries in from GCP_SA_KEY_JSON, an
-#   environment variable holding a DEV service-account key. The key file is
+# - sign gcloud and the Node Google libraries in from GCP_SA_KEY_B64 (or GCP_SA_KEY_JSON), an
+#   environment variable holding a service-account key. The key file is
 #   written per session, outside every repository, readable by root only. The
 #   image presets a placeholder CLOUDSDK_AUTH_ACCESS_TOKEN that gcloud would use
 #   instead of the activated account, so it is cleared when a key is present.
@@ -112,14 +112,18 @@ cat > /etc/profile.d/mw-credit.sh <<'EOF'
 for d in /home/user/MW-Credit-App /home/user/mw-credit-app; do
   if [ -d "$d/.git" ]; then export MW_CREDIT_APP_ROOT="$d"; break; fi
 done
-if [ -n "${GCP_SA_KEY_JSON:-}" ]; then
+if [ -n "${GCP_SA_KEY_B64:-}${GCP_SA_KEY_JSON:-}" ]; then
   unset CLOUDSDK_AUTH_ACCESS_TOKEN
   export GOOGLE_APPLICATION_CREDENTIALS=/root/.config/gcloud/mw-sa-key.json
   if [ ! -s "$GOOGLE_APPLICATION_CREDENTIALS" ]; then
     mkdir -p /root/.config/gcloud
-    (umask 077; printf '%s' "$GCP_SA_KEY_JSON" > "$GOOGLE_APPLICATION_CREDENTIALS")
+    # GCP_SA_KEY_B64 (the key file base64-encoded on one line) survives .env
+    # parsing intact; GCP_SA_KEY_JSON (raw JSON) is the fallback.
+    (umask 077
+     if [ -n "${GCP_SA_KEY_B64:-}" ]; then printf '%s' "$GCP_SA_KEY_B64" | tr -d ' \r\n' | base64 -d
+     else printf '%s' "$GCP_SA_KEY_JSON"; fi > "$GOOGLE_APPLICATION_CREDENTIALS") 2>/dev/null
     gcloud auth activate-service-account --key-file="$GOOGLE_APPLICATION_CREDENTIALS" --quiet >/dev/null 2>&1 \
-      || { echo "mw-credit: GCP_SA_KEY_JSON was not accepted by gcloud" >&2
+      || { echo "mw-credit: the service-account key was not accepted by gcloud" >&2
            rm -f "$GOOGLE_APPLICATION_CREDENTIALS"; }
     gcloud config set project clever-oasis-508610-n7 --quiet >/dev/null 2>&1
   fi
