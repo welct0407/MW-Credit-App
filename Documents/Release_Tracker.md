@@ -14,11 +14,12 @@ All new features/fixes use the sole Open release. Freeze only at authorized prom
 
 | Release | Status | Remaining action / owning record |
 | --- | --- | --- |
-| R063 | Open | Carries unfinished integration deployment tooling: reload the active webhook receiver and verify readiness before workers resume. Excluded from frozen R062 settings promotion. |
-| R062 | Frozen — 15 October 2026 09:59 Bangkok | Owner-authorized settings promotion; [existing record](Development_Changes.md#r062-editable-settings). Tested source `327aa25d58867d280d148aee3991cf386c4be244`, runtime `ee079ed25a1a05c352dd5d2cd7b00c2d772d1aac`, frontend `ed835cd018f7219e54e8320362c84fa707a260cd`; approved private `builds/r062-production/promotion-package.json` pins the separate PROD artifacts. DEV V92/API/Hosting verified; all three required CI runs passed. PROD backup/restore verified; guarded SQL, command and Hosting promotion remain pending. |
+| R063 | Open | Carries unfinished integration deployment tooling: reload the active webhook receiver and verify readiness before workers resume. Excluded from released R062 settings promotion. |
 | R056 | Frozen; V91 deployed | Lisa enrollment retry/closure; [record](../outputs/r056-apple-push/README.md) |
 | R055 | Frozen; monitoring delivered | Carried credential work unfinished; [record](../outputs/r055-grafana/continuation.md) |
 | R016 | Owner-accepted reporting; administrative follow-up | Migration-key retirement evidence/final tag unresolved; do not reopen product development |
+
+R062 editable settings is Released, DEV/PROD V92, command API and Hosting verified15October2026 10:02:59Bangkok; [record](Development_Changes.md#r062-production-promotion). R063 is Open; next R064.
 
 R061 directLoanDelete/sharedsubmitted-action frontend is Released: app/artifact `1e0dd73ae856ef55fdcdd6fc1e8097d5d9335817`, tool `5e8237917a5f54c59d281fedccd0651d4fe59194`, PRODHostingadaa39161d4af455 verified15October2026 03:27:42Bangkok; [existing record](Development_Changes.md#r061-prod-frontend-record-preparation). R063 is Open; next R064.
 

@@ -353,10 +353,12 @@
       \ is yesterday if saved date expired. SQL-created context default remains current Asia/Bangkok day, distinct from PWA\
       \ fallback. Invalid newly selected date/account defaults are rejected locally before queueing; unchanged existing aged/inactive\
       \ values remain preserved."
-    "delivery": "R062Open exactcandidate327aa25 publishedPR9; focused Settings4/4 and8unique desktop/mobile browsercases0skip\
-      \ passed, canonical completedfamilies with segmentrecovery (initialrunnerexit1). AppCI38646759254 passed56s; database\
-      \ runner-guards passed, database rebuildCI still pending. DEVschemaV91/V92pending after transactional owner-permission\
-      \ rollback; maintenance+release-manifest approval pending, noDEVorPRODapply claim."
+    "delivery": "R062 Released. Tested source327aa25 passed Settings4/4, 8 unique desktop/mobile cases (zero skips), app CI38646759254\
+      \ and DB CI38646752123/38646759300. DEV V92, command00027-8sb and Hosting8b12e5b06d79592a verified. PROD V92 applied\
+      \ 15 October 2026 10:00:28 Bangkok from tooling successor6c3e4fab; validation93 and authority restoration passed. Existing\
+      \ Borrower/Partner contents match backup. PROD command00009-qf9 (Ready100%) and Hosting45b1899bbd18ba3e/release1792033365993000\
+      \ verified15October2026 10:02:59Bangkok: exactbindings, artifactbytes/no-store, health200, unauthpreferences401; reader/notify/jobs\
+      \ unchanged, no authenticated business-write claim; R063 Open, next R064."
     "sources":
     - "https://github.com/welct0407/MW-Credit-App/blob/327aa25d58867d280d148aee3991cf386c4be244/apps/pwa/src/BorrowerRecord.tsx"
     - "https://github.com/welct0407/MW-Credit-App/blob/327aa25d58867d280d148aee3991cf386c4be244/apps/pwa/src/ManagementForm.tsx"
@@ -664,8 +666,8 @@
       \ pending."
     "state": "value"
   "/content/editable_settings/delivery":
-    "reference": "https://github.com/welct0407/MW-Credit-App/actions/runs/38646759254"
-    "reason": "Record passed applicationCI separately from pending database-rebuild workflows and DEVapproval."
+    "reference": "Documents/Development_Changes.md#r062-production-promotion"
+    "reason": "Record verified R062 production delivery."
     "state": "value"
   "/content/editable_settings/sources":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/327aa25d58867d280d148aee3991cf386c4be244/apps/pwa/src/preference-save.ts"

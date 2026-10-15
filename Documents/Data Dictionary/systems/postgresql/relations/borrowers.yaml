@@ -178,7 +178,7 @@
       "dimensions": 0
       "storage": "p"
       "compression": ""
-      "default_expression": null
+      "default_expression": "true"
       "collation": null
       "acl": null
       "comment": null
@@ -905,15 +905,6 @@
       "comment": null
   "policies": {}
   "dependencies": []
-  "candidate_v92":
-    "migration": "V92__editable_application_settings.sql"
-    "migration_sha256": "7bedc0566acd1765db4b1eda60285d5ecf588ea9d43734637a88cc2b6bc08fd1"
-    "column": "AI Collection Enabled"
-    "default_expression": "true"
-    "existing_rows": "Unchanged true/false/null; no backfill."
-    "status": "Exactsource327aa25 V92candidate: restricted Settings4/4 and affected canonical families/tail passed after obsolete-test\
-      \ correction; initial fullrunner exited1, not claimed exit0. DEV migrate rolled back toV91/V92pending; private maintenance+manifest\
-      \ creation approval pending. DeployedPRODdefinition/default remains above (PRODV91)."
 "evidence":
   "/content/definition/acl":
     "reference": "outputs/r052/dictionary-production-closure.json"
@@ -956,10 +947,12 @@
     "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
     "observedAt": "2026-10-11T14:01:43.131793+00:00"
   "/content/candidate_v92":
-    "reference": "https://github.com/welct0407/MW-Credit-App/blob/327aa25d58867d280d148aee3991cf386c4be244/database/migrations/V92__editable_application_settings.sql"
-    "reason": "Record exactV92candidate in existingproductionobject without claiming deployedPRODschema changed."
-    "state": "value"
-  "/content/candidate_v92/status":
-    "reference": "https://github.com/welct0407/MW-Credit-App/blob/327aa25d58867d280d148aee3991cf386c4be244/database/migrations/V92__editable_application_settings.sql"
-    "reason": "Pin exacttestedV92candidate while preserving actualDEVrollback/PRODV91 and originalcanonical failure limits."
+    "reference": "Documents/Development_Changes.md#r062-production-promotion; PROD V92 applied 2026-10-15 10:00:28 Bangkok\
+      \ from 6c3e4fab6025d29d3fbbe4dc6106896a8dc47270; validation93 and authority restoration passed."
+    "reason": "Promote exact V92 definitions after verified PROD migration; existing Borrower/Partner fingerprints unchanged."
+    "state": "absent"
+  "/content/columns/AI Collection Enabled":
+    "reference": "Documents/Development_Changes.md#r062-production-promotion; PROD V92 applied 2026-10-15 10:00:28 Bangkok\
+      \ from 6c3e4fab6025d29d3fbbe4dc6106896a8dc47270; validation93 and authority restoration passed."
+    "reason": "Promote exact V92 definitions after verified PROD migration; existing Borrower/Partner fingerprints unchanged."
     "state": "value"

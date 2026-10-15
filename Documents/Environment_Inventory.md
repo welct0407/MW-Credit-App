@@ -1,13 +1,13 @@
 # Current environment inventory
 
-Updated 15 October 2026 from existing deployment evidence and bounded R062 DEV verification. PROD R062 promotion is in progress; prepared artifacts are not listed as deployed. This document lists current bindings and latest verified state; no unrelated live audit was performed.
+Updated 15 October 2026 from existing deployment evidence and bounded R062 DEV verification. PROD R062 settings delivery was verified at 10:02:59 Bangkok. This document lists current bindings and latest verified state; no unrelated live audit was performed.
 
 | Component | DEV | PROD |
 | --- | --- | --- |
 | Origin | https://dev-lm.mw-credit.com | https://lm.mw-credit.com |
 | Firebase Hosting site | mw-credit-app-dev-737787224638 | mw-credit-prod-737787224638 |
 | Business database | loan_manager_dev | loan_manager_prod |
-| Flyway | V92; 93 migrations validated, role reconciliation clean and temporary authority restored | V91 |
+| Flyway | V92; 93 migrations validated, role reconciliation clean and temporary authority restored | V92; 93 migrations validated, temporary authority restored |
 | Cloud Run workers | mw-credit-app-notify-dev / mw-credit-app-jobs-dev | mw-credit-app-notify-prod / mw-credit-app-jobs-prod |
 | Worker time zone | Asia/Bangkok | Asia/Bangkok |
 
@@ -22,9 +22,9 @@ Private receipts: `gs://mw-payment-receipts-prod-508610-n7`. Agent originals and
 | DEV frontend | source `ed835cd018f7219e54e8320362c84fa707a260cd`, Hosting `8b12e5b06d79592a`, release `1792032726068000`, marker `a5781725520d742d303d325a`, entry `index-BMDLDRQr.js`; bounded verification 15 October 2026 09:52:19 Bangkok; [R062 record](Development_Changes.md#r062-editable-settings) |
 | DEV reader | `mw-credit-app-read-dev-00020-m9t`, Ready and 100% traffic; digest `sha256:60c9f6c7cfe701264a5add48de2934fa18db8b418652e5622b054a2a40eb0958`, source `2ef73db`; DEV database/IAM/origins preserved; [R058 record](Development_Changes.md#r058-borrower-upcoming-batch) |
 | DEV command | `mw-credit-app-command-dev-00027-8sb`, digest `sha256:ec92f1dd7cdb0285626ddb99f81a3e6dc7a6ee30aee61a88df1d66beff9a1494`, source `ee079ed25a1a05c352dd5d2cd7b00c2d772d1aac`; health 200 and unauthenticated management/preferences 401 verified, no authenticated business-smoke claim; [R062 record](Development_Changes.md#r062-editable-settings) |
-| PROD frontend | exactapp/artifactsource `1e0dd73ae856ef55fdcdd6fc1e8097d5d9335817`, runner `5e8237917a5f54c59d281fedccd0651d4fe59194`, Hosting `adaa39161d4af455`, release `1792009650237000`, marker `cd0da0e995b4de1213255354`, entry `index-B982MByc.js`; verified15October2026 03:27:42Bangkok, API/SQL/workers unchanged; [R061 record](Development_Changes.md#r061-prod-frontend-record-preparation) |
+| PROD frontend | source `ed835cd018f7219e54e8320362c84fa707a260cd`, Hosting `45b1899bbd18ba3e`, release `1792033365993000`, marker `2217c9bbe74a92226b093c9c`, entry `index-h1RmjkW0.js`; exact-byte/no-store verification 15 October 2026 10:02:59 Bangkok; [R062 record](Development_Changes.md#r062-production-promotion) |
 | PROD reader | preserved Ready100% `00005-v9z`, image SHA256 `105e815709717c381f3f6b85e9279aa5e30f2b601405b3d7c184ca1114ed1933`, source7aecf695; [R059 record](Development_Changes.md#r059-pwa-production-preparation) |
-| PROD command | `mw-credit-app-command-prod-00008-qb7`, Ready100%; source `a2f683eb74f3c3c5dc027520642a07a07f4c1558`, image SHA256 `327e4b2023ab19b59f4df5af38e382039c65168373e6a74db185c544bd5eff58`; exactPRODbindings/health/auth-gate verified15October2026 00:19:59Bangkok checkpoint; [R060 record](Development_Changes.md#r060-production-offline-dataset-recovery) |
+| PROD command | `mw-credit-app-command-prod-00009-qf9`, Ready/100% traffic; source `ee079ed25a1a05c352dd5d2cd7b00c2d772d1aac`, digest `3191a0ec6d212f744d60dbe933181343b1f2ef6359b6bd987424350a699b9a89`; exact PROD bindings, health200 and unauthenticated preferences401 verified; [R062 record](Development_Changes.md#r062-production-promotion) |
 | PROD notify / jobs | preserved revisions `00003-bj4` / `00003-q4h`, digests `b4f528bc8ac48008ed0951e227089d3d0802a7a6c2dbaa826ada5e021e156aea` / `11c149f746bceefc0b4c5d81dfce0295cdca533fa36d63c101f9971f3f643d56`; [R059 record](Development_Changes.md#r059-pwa-production-preparation) |
 | Debian | vm-mw-credit-agent, R058 deployed `a8cf94999aee33e9762614241b31904a967b7cac`, catalogue 27, verified 14 October 2026 at 14:53 Bangkok; webhook receiver reloaded at 18:43 Bangkok to repair inbound commands, public verification/authentication checks passed; genuine 18:50 review command captured and acknowledgment accepted by Instagram; [deployment and recovery record](https://github.com/welct0407/MW-Integration-Agent/blob/codex/pwa-documentation-cleanup/Change%20Logs/CHANGE_NOTES_RECEIPT_NOTIFICATION_ISOLATION_2026-10-02.md#r058-promotion-status) |
 | Grafana | Performance41, Cost15, PWA Platform2; [monitoring record](../outputs/r055-grafana/continuation.md) |
