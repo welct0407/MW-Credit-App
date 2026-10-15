@@ -13,6 +13,7 @@ FLYWAY_SHA256=7c94a0d27025b9d18d414c90efeb0ac6c3d3cdade82ab41471b3c1c31781331e
 POSTGRES_MAJOR=18
 TERRAFORM_VERSION=1.16.5
 PWSH_VERSION=7.5.4        # Path pinned by Test-MigrationsCloud.py
+PSYCOPG_VERSION=3.3.6
 SETUP=/workspace/.setup   # Path expected by scripts/database/Test-MigrationsCloud.py
 WORK=/home/user
 
@@ -58,6 +59,12 @@ if [ ! -x "$SETUP/flyway-$FLYWAY_VERSION/flyway" ]; then
   tar -xzf "$tmp/flyway.tgz" -C "$SETUP"
 fi
 ln -sfn "$SETUP/flyway-$FLYWAY_VERSION/flyway" /usr/local/bin/flyway
+
+# Python PostgreSQL driver for MW-Credit-App database scripts (Linux counterpart
+# of VM-01's AppSheetLoanTools/python-deps).
+if [ ! -d "$SETUP/python-deps/psycopg" ]; then
+  python3 -m pip install -q --disable-pip-version-check --target "$SETUP/python-deps" "psycopg[binary]==$PSYCOPG_VERSION"
+fi
 
 # Terraform (pinned to infrastructure required_version).
 if ! terraform version 2>/dev/null | grep -q "v$TERRAFORM_VERSION"; then
