@@ -21,8 +21,20 @@ class InstagramAPIError(ConfigurationError):
         category = 'WINDOW_EXPIRED' if window_expired else 'REJECTED' if self.definite_rejection else 'UNKNOWN'
         super().__init__(f'Instagram {category} (HTTP {status}, code {code}, subcode {subcode})')
 
+    @property
+    def detail_code(self):
+        """Durable journal detail: IG_WINDOW_EXPIRED, IG_REJECTED_<graph code> or IG_UNKNOWN_HTTP<status>."""
+        if self.window_expired:
+            return 'IG_WINDOW_EXPIRED'
+        if self.definite_rejection:
+            return 'IG_REJECTED_' + (str(self.code) if self.code is not None else f'HTTP{self.status}')
+        return f'IG_UNKNOWN_HTTP{self.status}'
+
     @classmethod
     def from_http(cls, error, *, message_send):
+        """HTTP 4xx is a definite provider rejection (InstagramRejected); 5xx stays uncertain."""
+        if 400 <= error.code < 500:
+            cls = InstagramRejected
         code = subcode = None
         explicit = False
         try:
@@ -40,6 +52,10 @@ class InstagramAPIError(ConfigurationError):
             pass
         return cls(error.code, code, subcode, window_expired=(
             message_send and 400 <= error.code < 500 and code == 10 and subcode == 2534022 and explicit))
+
+
+class InstagramRejected(InstagramAPIError):
+    """The provider definitely did not accept the request (HTTP 4xx, Graph error code retained)."""
 
 
 class Instagram:

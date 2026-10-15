@@ -8,7 +8,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from mw_integration_agent.config import ConfigurationError
-from mw_integration_agent.instagram import Instagram, InstagramAPIError
+from mw_integration_agent.instagram import Instagram, InstagramAPIError, InstagramRejected
 from mw_integration_agent.journal import IngressJournal
 from mw_integration_agent.webhook import extract_messages, verify_signature
 
@@ -43,12 +43,20 @@ class InstagramTransportTests(unittest.TestCase):
     def test_definite_rejection_is_4xx_only_and_oversized_bodies_keep_status(self):
         rejected = InstagramAPIError.from_http(http_error(403, {"error": {"code": 190}}), message_send=True)
         self.assertTrue(rejected.definite_rejection)
-        self.assertEqual(rejected.code, 190)
+        self.assertIsInstance(rejected, InstagramRejected)  # AGT-SEND-01: distinct definite class
+        self.assertEqual((rejected.code, rejected.detail_code), (190, "IG_REJECTED_190"))
         unknown = InstagramAPIError.from_http(http_error(503, {"error": {"code": 2}}), message_send=True)
         self.assertFalse(unknown.definite_rejection)
+        self.assertNotIsInstance(unknown, InstagramRejected)
+        self.assertEqual(unknown.detail_code, "IG_UNKNOWN_HTTP503")
         self.assertIn("UNKNOWN", str(unknown))
         huge = InstagramAPIError.from_http(http_error(400, b"x" * 70000), message_send=True)
         self.assertEqual((huge.status, huge.code, huge.window_expired), (400, None, False))
+        self.assertIsInstance(huge, InstagramRejected)
+        self.assertEqual(huge.detail_code, "IG_REJECTED_HTTP400")
+        window = InstagramAPIError.from_http(http_error(400, WINDOW), message_send=True)
+        self.assertIsInstance(window, InstagramRejected)
+        self.assertEqual((window.window_expired, window.detail_code), (True, "IG_WINDOW_EXPIRED"))
 
     def test_request_maps_http_errors_and_other_failures(self):
         import urllib.request

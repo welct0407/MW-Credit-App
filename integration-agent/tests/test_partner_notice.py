@@ -5,7 +5,7 @@ from pathlib import Path
 from mw_integration_agent.partner_notice import NoticeJournal,receipt_notice
 from mw_integration_agent.config import ConfigurationError
 from mw_integration_agent.graph_email import EmailRejected
-from mw_integration_agent.instagram import InstagramAPIError
+from mw_integration_agent.instagram import InstagramAPIError, InstagramRejected
 
 
 def window_expired():
@@ -66,6 +66,23 @@ class NoticeTests(unittest.TestCase):
         self.assertEqual(len(self.sent),1);self.assertEqual(self.mail,[])
         self.assertEqual((self.notice()['ig_status'],self.notice()['email_status']),('REJECTED','PENDING'))
 
+    def test_instagram_failures_record_detail_codes(self):
+        # AGT-SEND-01: the reason survives in the journal, with the Graph code for definite rejections.
+        for error,status,detail in [(InstagramRejected(400,100),'REJECTED','IG_REJECTED_100'),
+                                    (InstagramRejected(403),'REJECTED','IG_REJECTED_HTTP403'),
+                                    (InstagramAPIError(503,2),'UNKNOWN','IG_UNKNOWN_HTTP503'),
+                                    (window_expired(),'WINDOW_EXPIRED','IG_WINDOW_EXPIRED'),
+                                    (TimeoutError(),'UNKNOWN','IG_UNKNOWN_TimeoutError')]:
+            with self.subTest(detail=detail):
+                self.sent.clear();self.mail.clear()
+                self.j.db.execute('DELETE FROM partner_notices');self.j.db.commit()
+                self.j.reserve('event',self.rows[0],'subject','body')
+                self.provider(error)
+                self.dispatch();self.dispatch()
+                self.assertEqual(len(self.sent),1)
+                self.assertEqual((self.notice()['ig_status'],self.notice()['detail']),(status,detail))
+                self.assertEqual(len(self.mail),1 if status=='WINDOW_EXPIRED' else 0)
+
     def test_unknown_ig_does_not_replay_or_fall_back_after_restart(self):
         def uncertain(*args,**kwargs):self.sent.append('uncertain');raise TimeoutError()
         self.api.request=uncertain
@@ -79,7 +96,8 @@ class NoticeTests(unittest.TestCase):
         self.mailer.send=uncertain
         self.dispatch();self.dispatch()
         self.assertEqual(len(self.mail),1);self.assertEqual(self.sent,[])
-        self.assertEqual(self.notice()['email_status'],'UNKNOWN')
+        # AGT-SEND-02: the uncertain outcome keeps its reason.
+        self.assertEqual((self.notice()['email_status'],self.notice()['detail']),('UNKNOWN','EMAIL_UNKNOWN_TimeoutError'))
 
     def test_email_requires_provider_window_evidence(self):
         self.rows[0]['enabled']=False

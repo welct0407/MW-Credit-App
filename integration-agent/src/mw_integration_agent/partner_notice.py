@@ -120,10 +120,11 @@ class NoticeJournal:
                     if not response.get('message_id'):raise ConfigurationError('IG_OUTCOME_UNKNOWN')
                 except InstagramAPIError as exc:
                     status='WINDOW_EXPIRED' if exc.window_expired else 'REJECTED' if exc.definite_rejection else 'UNKNOWN'
-                    with self.db:self.db.execute('UPDATE partner_notices SET ig_status=?,detail=? WHERE id=?',(status,str(exc),item['id']))
+                    with self.db:self.db.execute('UPDATE partner_notices SET ig_status=?,detail=? WHERE id=?',(status,exc.detail_code,item['id']))
                     if status!='WINDOW_EXPIRED':return
-                except Exception:
-                    # The durable UNKNOWN intent blocks both replay and fallback.
+                except Exception as exc:
+                    # The durable UNKNOWN intent blocks both replay and fallback; keep the reason.
+                    with self.db:self.db.execute('UPDATE partner_notices SET detail=? WHERE id=?',('IG_UNKNOWN_'+type(exc).__name__,item['id']))
                     return
                 else:
                     with self.db:self.db.execute("UPDATE partner_notices SET ig_status='ACCEPTED',message_id=? WHERE id=?",(str(response['message_id']),item['id']))
@@ -144,8 +145,9 @@ class NoticeJournal:
                 '<p>'+html.escape(fallback_body).replace('\n','<br>')+'</p>',[],item['id'])
         except EmailRejected:
             with self.db:self.db.execute("UPDATE partner_notices SET email_status='REJECTED',retry_after=? WHERE id=?",(time.time()+300,item['id']))
-        except Exception:
-            pass
+        except Exception as exc:
+            # The claim already holds email_status='UNKNOWN'; record why so the owner can reconcile.
+            with self.db:self.db.execute('UPDATE partner_notices SET detail=? WHERE id=?',('EMAIL_UNKNOWN_'+type(exc).__name__,item['id']))
         else:
             with self.db:self.db.execute("UPDATE partner_notices SET email_status='SENT' WHERE id=?",(item['id'],))
 
