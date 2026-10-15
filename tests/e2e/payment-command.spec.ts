@@ -4,6 +4,7 @@ function preparedWire(value:any){const{data,...metadata}=value;return{...metadat
 import {test,expect} from '@playwright/test';
 import {spawn,type ChildProcess} from 'node:child_process';
 import sharp from 'sharp';
+import {randomBytes} from 'node:crypto';
 let server:ChildProcess;let base:string;let serverLog="";
 test.beforeAll(async({},info)=>{
  const port=5800+info.workerIndex;base=`http://127.0.0.1:${port}`;
@@ -221,3 +222,21 @@ test('Full app preparation keeps current page usable with header progress then o
  await context.setOffline(true);await page.getByRole('button',{name:'Collection',exact:true}).click();await expect(page.locator('.collection-tile-main')).toContainText('Prepared unvisited collection');await page.locator('.collection-tile-main').click();await expect(page.getByRole('region',{name:'Collection charge details'}).getByRole('button',{name:'Prepared unvisited collection',exact:true})).toBeVisible();
 });
 
+test('G07 receipt downscale shows a preparing state and keeps review disabled until the prepared file is attached',async({page})=>{
+ const uploads:{type:string;width:number|undefined}[]=[];
+ await page.addInitScript(()=>{const original=window.createImageBitmap.bind(window);(window as any).createImageBitmap=async(...args:any[])=>{await new Promise<void>(resolve=>{(window as any).__releaseBitmap=resolve});return (original as any)(...args)}});
+ await page.route('https://mw-credit-app-command-dev-test.run.app/**',async r=>{
+  const path=new URL(r.request().url()).pathname;if(path.includes('payment-drafts'))return replyDraft(r);
+  if(path.includes('/receipts/')&&r.request().method()==='POST'){const body=r.request().postDataBuffer()!;uploads.push({type:r.request().headers()['content-type'],width:(await sharp(body).metadata()).width});return r.fulfill({json:{ok:true,receipt:{receiptId:path.split('/').at(-1)}}})}
+  await r.fulfill({json:{ok:true,kind:'unresolved',safeToUseNewRequestId:false}});
+ });
+ await setup(page);await page.locator('.collection-tile-main').first().click();await page.getByRole('button',{name:'Receive selected charges',exact:true}).click();await page.getByRole('combobox',{name:/^Receiving account(?: \*)?$/}).selectOption('synthetic-account');await page.getByRole('textbox',{name:/^Amount received(?: \*)?$/}).fill('110');await page.locator('.payment-allocation-row input[type=checkbox]').first().check();
+ const review=page.getByRole('button',{name:'Review payment',exact:true});await expect(review).toBeEnabled();
+ const noise=randomBytes(1700*1275*3);
+ const photo=await sharp(noise,{raw:{width:1700,height:1275,channels:3}}).png().toBuffer();
+ await page.locator('input[type=file]').setInputFiles({name:'synthetic-photo.png',mimeType:'image/png',buffer:photo});
+ await expect(page.getByText('Preparing receipt…',{exact:true})).toBeVisible();await expect(review).toBeDisabled();expect(uploads).toHaveLength(0);
+ await expect.poll(()=>page.evaluate(()=>typeof (window as any).__releaseBitmap)).toBe('function');await page.evaluate(()=>(window as any).__releaseBitmap());
+ await expect.poll(()=>uploads.length).toBe(1);await expect(review).toBeEnabled();await expect(page.getByText('Preparing receipt…',{exact:true})).toHaveCount(0);
+ expect(uploads[0]).toEqual({type:'image/jpeg',width:1600});
+});
