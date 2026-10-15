@@ -2,8 +2,10 @@ name: Development checks
 on:
   push:
     branches: [main]
+    paths-ignore: ['project/**', 'integration-agent/**', 'Change Logs/**', '**.md']
   pull_request:
     types: [opened, synchronize, reopened, labeled]
+    paths-ignore: ['project/**', 'integration-agent/**', 'Change Logs/**', '**.md']
   workflow_dispatch:
 permissions:
   contents: read
