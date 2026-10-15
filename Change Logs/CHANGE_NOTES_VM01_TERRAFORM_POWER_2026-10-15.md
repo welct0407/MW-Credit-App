@@ -25,3 +25,13 @@
 **Remaining.** Start VM-01 with `scripts/azure-cloud-session.sh terraform -chdir=infrastructure/ecosystem-azure-metadata apply -invoke=action.azapi_resource_action.vm01_start`. The Phase 4 runner and controller retirement are still open.
 
 **Recovery.** Remove the federated credential (Terraform) and revert the commit.
+
+## Automatic Azure sign-in in the cloud environment
+
+**Purpose.** Owner request: Azure works in the cloud environment the way GCP does, without a wrapper.
+
+**Scope.** `.claude/settings.json` gains a SessionStart hook (exports `ARM_*` OIDC settings via `CLAUDE_ENV_FILE`) and a Bash PreToolUse hook (renews the token file when it is over 45 minutes old). `scripts/azure-cloud-session.sh` gains `--session-start`/`--refresh` modes and now uses `ARM_OIDC_TOKEN_FILE_PATH` (`~/.config/mw-azure/oidc-token`, mode 600, outside the repository). Both hooks do nothing outside `CLAUDE_CODE_REMOTE` sessions or for other GCP accounts, and never block a session. The unattended-admin README and `CLAUDE.md` are updated.
+
+**Checks.** Simulated session start: exit 0, seven `ARM_*` exports, no output when not remote. Plain `terraform plan -refresh-only` with those exports and the wrapper path both report `vm01_power_state = "VM deallocated"`. A 50-minute-old token file is renewed. `bash -n` passes and the JSON parses.
+
+**Recovery.** Revert the commit; remove `~/.config/mw-azure`.
