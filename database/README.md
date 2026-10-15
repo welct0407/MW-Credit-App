@@ -6,6 +6,10 @@ DEV and PROD use separate business databases on one shared instance. Verify the 
 
 Use existing Secret Manager/unattended access procedures. Keep credentials/backups outside Git. New tables/columns and production changes require scoped owner authorization; reuse existing explicit approval. Never clean/repair, alter applied checksums or create competing history.
 
+## Linux cloud sessions
+
+Claude Code cloud sessions cannot reach Cloud SQL directly (HTTPS-only egress; authorized networks admit only the VM-01 workstation). On Linux, `Get-DbEnvironment` opens `scripts/database/cloud-db-tunnel.sh`: IAP SSH as `codex-cloud` to `vm-mw-credit-agent` (instance-level key; private key in Secret Manager `mw-credit-cloud-operator-ssh-key`, committed pinned host key), then the host's loopback Cloud SQL Auth Proxy. Runners keep the same instance, database and `postgres` user, with the password from `mw-credit-ops-cloudsql-postgres-admin` in a private 0600 file and `sslmode=disable` on the local hop only (the proxy encrypts to Cloud SQL). Ad hoc access may use IAM database user `codex-cloud@clever-oasis-508610-n7.iam` (member of `postgres`) with `gcloud sql generate-login-token` as the password through the same tunnel. Run migrations as `postgres` so object ownership is unchanged.
+
 ## Each change
 
 For changes to migrations or database tests/runners, run `pwsh -NoProfile -File scripts/database/Test-CI.ps1` before publication, in addition to affected feature tests. This is the same entry point used by GitHub Actions and rebuilds an empty disposable database through the latest migration. Keep older fixtures compatible with new required fields: `Test-CashAccountFixtures.sql` supplies synthetic accounts, and each source insert explicitly selects its account. Do not weaken production guards or top up a live balance to repair CI. Branch/PR builds remain enabled; release tags reuse the tested commit without a duplicate workflow run.

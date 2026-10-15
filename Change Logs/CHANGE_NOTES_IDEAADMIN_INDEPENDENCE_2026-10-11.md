@@ -109,3 +109,12 @@ Owner scope: make Terraform and its runners work from the Claude Code cloud envi
 - Activation variables (`<stack>.activation.tfvars`, non-secret) were lost with the old profile. `dev`, `production-state-bootstrap` and `production` were reconstructed from live state until each plan showed no changes, and are kept at `gs://<state bucket>/activation/` (runner `-PublishActivation`); the runner fetches them when the private copy is missing.
 
 Checks from a Linux cloud session with the Owner service account, read-only: `init` and `plan` show **no changes** for bootstrap, dev, dev-dns, ecosystem-shared/bridge/debian/dns/tunnels/tailnet, network-operator-secrets, grafana-access, grafana (runner and `manage.py`), production-state-bootstrap production-dns and production (runner re-fetched its activation from the bucket). Grafana runner unit tests pass. In the PROD activation, `foundation_image` is a placeholder (earliest PROD registry digest): it is required but unused while business runtime is enabled, so it cannot affect the plan; the base/override image split is likewise plan-equivalent. No apply, import or state change. Recovery: revert this commit; the published activation objects are additive and can be deleted.
+
+## Linux cloud-session database access — 15 October 2026
+
+Owner-authorized (15 October 2026): DEV and PROD database access from the cloud environment without VM-01.
+
+- Live changes: instance metadata `ssh-keys` on `vm-mw-credit-agent` gained `codex-cloud` (existing `welct0407` entries preserved; a project-wide copy that `gcloud compute ssh` added was removed, restoring the original three project keys); new Secret Manager secret `mw-credit-cloud-operator-ssh-key` v1; new IAM database user `codex-cloud@clever-oasis-508610-n7.iam` with `cloudsqlsuperuser`, then `GRANT postgres TO` it using the existing `mw-credit-ops-cloudsql-postgres-admin` credential. No authorized network, firewall, proxy or schema change.
+- Source: `scripts/database/cloud-db-tunnel.sh`, pinned `debian-host-key.pub`; `Common.ps1` Linux route (tunnel, Secret Manager password file, `/workspace/.setup` tools, Linux Flyway/psql paths); `Invoke-Flyway.ps1` honours a target `sslmode`.
+- Checks: guarded `Invoke-Flyway.ps1 validate` succeeds for development and production (93 validated each, V92); IAM user reads both databases; `scripts/database` runner-guard tests 17/17; PowerShell parse checks.
+- Recovery: remove the `codex-cloud` metadata line, `REVOKE postgres FROM` and delete the IAM database user, delete the SSH secret; revert this commit.
