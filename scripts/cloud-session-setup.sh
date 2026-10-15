@@ -14,6 +14,8 @@ POSTGRES_MAJOR=18
 TERRAFORM_VERSION=1.16.5
 PWSH_VERSION=7.5.4        # Path pinned by Test-MigrationsCloud.py
 PSYCOPG_VERSION=3.3.6
+PYYAML_VERSION=6.0.2      # AppSheet-Loan-Project scripts/dictionary/requirements.txt
+PLAYWRIGHT_VERSION=1.63.0 # MW-Credit-App package-lock @playwright/test
 SETUP=/workspace/.setup   # Path expected by scripts/database/Test-MigrationsCloud.py
 WORK=/home/user
 
@@ -66,6 +68,13 @@ if [ ! -d "$SETUP/python-deps/psycopg" ]; then
   python3 -m pip install -q --disable-pip-version-check --target "$SETUP/python-deps" "psycopg[binary]==$PSYCOPG_VERSION"
 fi
 
+# Pinned PyYAML for the Data Dictionary helper, at the default package path
+# scripts/dictionary/runtime.py reads (the image's system PyYAML is older).
+DICTIONARY_DEPS=/root/Documents/ChatGPT/AppSheet-Loan-Project/tools/dictionary-python
+if ! PYTHONPATH="$DICTIONARY_DEPS" python3 -c "import yaml,sys; sys.exit(yaml.__version__!='$PYYAML_VERSION')" 2>/dev/null; then
+  python3 -m pip install -q --disable-pip-version-check --upgrade --target "$DICTIONARY_DEPS" "PyYAML==$PYYAML_VERSION"
+fi
+
 # Terraform (pinned to infrastructure required_version).
 if ! terraform version 2>/dev/null | grep -q "v$TERRAFORM_VERSION"; then
   curl -fsSL -o "$tmp/terraform.zip" \
@@ -88,6 +97,11 @@ done
 ln -sfn "$SETUP/powershell-$PWSH_VERSION/pwsh" /root/.local/bin/pwsh
 export PATH="/root/.local/bin:$PATH"
 hash -r
+
+# Chromium build matching MW-Credit-App's pinned Playwright, beside the image's
+# own (older) build in PLAYWRIGHT_BROWSERS_PATH, so `npx playwright test` runs.
+# Already-installed builds are skipped, so re-running is cheap.
+PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers npx -y "playwright@$PLAYWRIGHT_VERSION" install chromium >/dev/null
 
 # PostgreSQL refuses to run as root, so database checks run as the postgres
 # user; let that user read the tools.
