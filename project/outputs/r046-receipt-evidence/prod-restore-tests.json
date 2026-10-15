@@ -1,0 +1,15 @@
+{
+  "centralBackupRestored": true,
+  "noLiveEffects": true,
+  "lab": "C:\\Users\\MWCredit\\AppData\\Local\\AppSheetLoanTools\\receipt-evidence-lab-470c0be4aa72439880dfcfa1ffc34d5d",
+  "centralTests": {
+    "central_migrations": 4,
+    "second_migrate": "no-op",
+    "postgres_capture": "passed",
+    "immutable_source_locator": "passed",
+    "state_audit": "passed",
+    "terminal_original_retained": "passed"
+  },
+  "privateBackupRestore": "passed",
+  "restoredVersion": "48"
+}

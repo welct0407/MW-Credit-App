@@ -1,0 +1,131 @@
+{
+  "state": "ACCOUNT_SELECTION_WITH_READONLY_PREVIEW_CANDIDATE; explicit old-holder SQL payload locally verified, saved AppSheet proof pending",
+  "basis": "Applied DEV V66/V67 and actual rollback acceptance; latest GUI baseline must retain saved authorization/default/holder clauses",
+  "Business Expenses": {
+    "Ref Paid By Cash Account": {
+      "Valid_If": "IF(IN([Row ID], Business Expenses[Row ID]), SELECT(Cash Accounts[Row ID], OR([Active], [Row ID] = LOOKUP([_THISROW].[Row ID], \"Business Expenses\", \"Row ID\", \"Ref Paid By Cash Account\"))), SELECT(Cash Accounts[Row ID], AND([Active], [Ref Cash Holder] = [_THISROW].[Ref Paid By Cash Holder])))",
+      "initial_value": "UNCHANGED: preserve current saved account default and Reset on edit No. Prior159 baseline was ANY(SELECT(Cash Accounts[Row ID], AND([Active], [Default Account], [Ref Cash Holder] = [_THISROW].[Ref Paid By Cash Holder]))); parent must compare current saved value, not infer current from old export.",
+      "Editable_If_status": "Backend gate passed; still proposed until saved authorization/default/holder clauses and actual form behavior are reconciled.",
+      "Editable_If_predicate_after_verified_V66": "OR(ISBLANK([Source Type]), [Source Type] = \"Manual\")",
+      "Editable_If_predicate": "OR(ISBLANK([Source Type]), [Source Type] = \"Manual\")",
+      "composition": "Retain independent current access predicates. Existing rows can choose eligible active accounts across holders; preserve any legitimate holder authorization by applying the same eligibility to account owners. Do not infer all-holder authorization from source eligibility. New rows retain holder-filtered account/default workflow.",
+      "Description_candidate": "IF(AND(IN([Row ID], Business Expenses[Row ID]), OR(ISBLANK([Source Type]), [Source Type] = \"Manual\"), ISNOTBLANK([Ref Paid By Cash Account])), CONCATENATE(\"ผู้จ่ายหลังบันทึก / Payer after saving: \", [Ref Paid By Cash Account].[Ref Cash Holder].[Holder Name]), \"บัญชีผู้จ่าย / Paid from account\")"
+    },
+    "Ref Paid By Cash Holder": {
+      "Editable_If_predicate": "AND(NOT(IN([Row ID], Business Expenses[Row ID])), OR(ISBLANK([Source Type]), [Source Type] = \"Manual\"))",
+      "Initial value": "BLANK; preserve original no-formula setting",
+      "Reset on edit": "No",
+      "App formula": "BLANK",
+      "Valid_If": "UNCHANGED current saved holder eligibility/access rule; inspect before applying account-owner eligibility. No forced all-holders widening.",
+      "existing_row": "Stored holder remains locked and may display the old value until full sync. Account description previews the selected account owner; SQL derives and stores the owner when account changes, even when submitted holder contains the old value.",
+      "new_row": "Manual holder selection and current account default/filter remain unchanged.",
+      "composition": "AND independent current role/access predicates; preserve any current narrower new-row holder eligibility."
+    },
+    "gate": "Restore runnable baseline, inspect holder/access predicates, save candidate then verify server validation and RunnableYes. Pre-save No issues is insufficient. No DB/schema/virtual-column change.",
+    "recommendation": "Prefer one account selection with read-only payer preview. This avoids a second manual selection and preserves existing new-row payer/default UX without adding holder computation. Manual payer/account alternative is retained only for comparison, not simultaneous application.",
+    "local_payload_proof": "local-additional-fixtures-v67.json: UPDATE account=Lisa AND holder=oldTommy derives Lisa for unlinked expense and updates exactly one cash key. With linked reimbursement, same payload rejects and complete expense/cash tables remain unchanged. All26 fingerprints unchanged after rollback.",
+    "tests": [
+      "Saved server diagnostics and RunnableYes; reload holder Initial blank/ResetNo/AppFormula blank and unchanged account default. Confirm Account Description expression displays selected owner in actual form.",
+      "Existing unlinked manual expense: choose another-holder account; preview shows new owner while stored holder may remain old. Save/full sync; SQL must show matching account/derived holder and same single cash key. Reverse, then no-op.",
+      "New Add: select holder, verify prior default/filter unchanged, save/full sync and verify matching source/cash. Capture generated ID for cleanup.",
+      "Linked reimbursement: same-Tommy account allowed; other-holder/nonpositive source rejects atomically with original expense/reimbursement/cash preserved. After unlink/relink removes dependency, cross-holder correction succeeds.",
+      "Persisted inactive account stays available; new inactive choice excluded. Preserve blank-account metadata/RequiredIf, system/referral restrictions and actual holder/account authorization.",
+      "Inspect actual expense Edit bot/event usage. If it consumes the submitted holder, verify audit/notification body uses the corrected payer; SQL normalization/full-sync proof does not prove AppSheet event afterimage. Do not send to borrowers. If a real consumer uses stale holder, use the explicit manual payer plus matching-account alternative and retest; do not add bot infrastructure speculatively."
+    ],
+    "limits": "Description is read-only form presentation, not stored payer computation or transaction authorization. Actual connector submission, description recomputation and post-sync display require GUI proof. V66/cutover/inactive/source/permission guards remain final. AppSheet request/event afterimage may retain the submitted old holder before full sync. Any expense bot/template consuming payer needs targeted body/audit proof; use the manual two-step alternative if this causes an actual inconsistency.",
+    "failed_candidate_evidence": "expense-form-cycle-failure.json",
+    "primary_sources": [
+      {
+        "url": "https://support.google.com/appsheet/answer/10106509?hl=en",
+        "supports": "Description accepts an expression shown in Form views. Initial/AppFormula compute field values; this candidate adds neither to holder. Actual form update behavior requires GUI testing."
+      }
+    ]
+  },
+  "Loans": {
+    "Ref Disbursed From Cash Account": {
+      "Editable_If_predicate": "NOT([Defaulted])",
+      "Valid_If": "SELECT(Cash Accounts[Row ID], OR(AND([Active], [Ref Cash Holder] = \"ch:lisa\"), [Row ID] = [_THISROW].[Ref Disbursed From Cash Account]))",
+      "initial_value": "Retain current Lisa default for new rows; Reset on edit stays false"
+    },
+    "Ref Borrowers": {
+      "form": "Include existing Ref Borrowers column in Loans_Form for Edit; keep contextual Add prefill and Ref/IsAPartOf",
+      "Editable_If_predicate": "OR(NOT(IN([Row ID], Loans[Row ID])), AND(NOT([Defaulted]), COUNT(SELECT(Repayments[Row ID], [Ref Loans] = [_THISROW].[Row ID])) = 0, COUNT(SELECT(Business Expenses[Row ID], AND([Ref Related Loan] = [_THISROW].[Row ID], ISNOTBLANK([Ref Related Borrower])))) = 0))",
+      "Valid_If_base": "Borrowers[Row ID]",
+      "access": "Retain any current narrower borrower authorization/selection clauses"
+    },
+    "tests": [
+      "unpaid loan borrower A→B updates borrower totals/history, loan key stable",
+      "existing receipt or borrower-bound independent expense blocks move",
+      "Lisa accountA→B moves same disbursement cash key and account totals",
+      "Dad account/inactive newly selected account rejected",
+      "cutover source correction rejected; closed/default ownership rules remain"
+    ]
+  },
+  "notes": [
+    "These are eligibility/form proposals, not complete server authorization or dependency proof",
+    "Preserve existing current access predicates, new-row default behavior and field type metadata",
+    "No unrestricted derived/source identity fields; no relationship removal",
+    "OLAP analytics remain readonly with OLTP navigation"
+  ],
+  "Settlements": {
+    "Ref Paid From Cash Account": {
+      "Editable_If_predicate": "OR(NOT(IN([Row ID], Settlements[Row ID])), IN([Status], LIST(\"Pending\", \"Completed\")))",
+      "Valid_If": "SELECT(Cash Accounts[Row ID], OR(AND([Active], [Ref Cash Holder] = \"ch:lisa\"), [Row ID] = [_THISROW].[Ref Paid From Cash Account]))",
+      "initial_value": "Keep existing Lisa default on new rows; do not reset account on normal edits",
+      "Required_If_status": "HOLD existing saved rule: read-only DEV65 preflight found3 Completed rows,2 blank-account rows, both included in historical opening. Do not make all Completed rows newly require an account; preserve metadata edits and existing completion checks. See settlement-account-preflight.json."
+    },
+    "ownership": "Keep Complete/Reverse/Cancel and existing access/status constraints; no Dad settlement payer",
+    "tests": [
+      "Use exact PARTNER-A-LISA and PARTNER-A-LISA2 synthetic accounts",
+      "Pending→Completed then amount/date/account correction keeps one original settlement cash key",
+      "Account-only correction conserves total cash while account balances change",
+      "Reverse/Cancel removes owned cash; Complete restores it once",
+      "New inactive/non-Lisa account, insufficient net entitlement and included-opening edits reject atomically"
+    ],
+    "gate": "Positive flow requires actual partner net availability; no manufactured funding"
+  },
+  "manual_payer_alternative_not_selected": {
+    "Ref Paid By Cash Account": {
+      "Editable_If_predicate": "OR(ISBLANK([Source Type]), [Source Type] = \"Manual\")",
+      "Valid_If": "SELECT(Cash Accounts[Row ID], AND([Ref Cash Holder] = [_THISROW].[Ref Paid By Cash Holder], OR([Active], AND(IN([_THISROW].[Row ID], Business Expenses[Row ID]), [Row ID] = LOOKUP([_THISROW].[Row ID], \"Business Expenses\", \"Row ID\", \"Ref Paid By Cash Account\")))))",
+      "initial_value": "UNCHANGED current saved new-row account default; Reset on edit No. No account→holder Initial/App formula added.",
+      "description_candidate": "เลือกผู้จ่ายก่อน แล้วเลือกบัญชีของผู้จ่ายเดียวกัน / Select the payer first, then an account belonging to that payer.",
+      "composition": "AND with any independent current role/access condition; replace only obsolete new-row-only restriction. Preserve existing Required_If and narrower legitimate account authorization. Account holder match wraps both active and persisted-inactive branches."
+    },
+    "Ref Paid By Cash Holder": {
+      "Editable_If_predicate": "OR(ISBLANK([Source Type]), [Source Type] = \"Manual\")",
+      "Initial value": "BLANK: preserve original no-formula setting",
+      "Reset on edit": "No",
+      "App formula": "BLANK",
+      "Valid_If": "UNCHANGED current saved holder eligibility/access rule. Inspect current rule; do not replace with all holders or widen a legitimate role restriction.",
+      "existing_row": "User changes payer first, then selects its matching account. No automatic holder derivation/reset is promised. The old account becomes invalid if it belongs to the previous payer.",
+      "new_row": "Preserve current manual payer selection and existing account Initial/default behavior.",
+      "composition": "AND source eligibility with independent current role/access predicates; remove only obsolete existing-row lock."
+    },
+    "gate": "Restore a runnable baseline first. Validate expressions, save, then verify server schema validation and RunnableYes before opening runtime. Pre-save No issues alone is insufficient. No live database change or schema regeneration required.",
+    "formula_validation": "Candidate references only existing OLTP Business Expenses and Cash Accounts. Holder has no Initial/App expression dependency on account; account validation/default can depend on manually selected holder. Actual saved server compilation and form behavior remain required.",
+    "server_limits": "V66 preserves positive/Tommy-paid linked reimbursement invariant. Same-Tommy account changes remain valid; linked cross-holder/nonpositive change rejects atomically. After relink/delete removes that dependency, otherwise eligible cross-holder correction is supported. Existing cutover, inactive account, source and permission constraints remain. No Cash Ledger reference or new cap.",
+    "tests": [
+      "Save candidate and verify server diagnostics/RunnableYes, reload saved properties; retain original holder Initial blank/ResetNo/AppFormula blank and account default/ResetNo.",
+      "Existing unlinked manual expense: select new payer, verify old differently owned account is excluded/invalid until choosing matching active account. Save/full sync then SQL proves both holder/account and one original cash key updated. Reverse and no-op preserve consistency.",
+      "New manual expense: select payer, verify existing account default/filter, change payer and select matching account; save/full sync and exact source/cash readback. Capture generated key for cleanup.",
+      "Persisted inactive account is allowed only while selected payer still owns it; new inactive choices excluded. Existing blank-account metadata and Required_If behavior preserved. Attempt mismatched holder/account must not commit inconsistent fields.",
+      "Linked REIMBURSE: Tommy1→Tommy2 allowed; Tommy→Lisa or nonpositive amount rejects with original expense/reimbursement/cash preserved. Relink or delete reimbursement then cross-holder correction succeeds. Verify actual app permissions; no duplicate/outbound borrower sends."
+    ],
+    "failed_candidate_evidence": "expense-form-cycle-failure.json",
+    "primary_sources": [
+      {
+        "url": "https://support.google.com/appsheet/answer/10106509?hl=en",
+        "supports": "Initial expressions recompute until user supplies a value; Reset on edit reapplies initial value on editing. Does not prove cycle acceptance."
+      },
+      {
+        "url": "https://support.google.com/appsheet/answer/10106437?hl=en",
+        "supports": "Initial values remain overridable; App formulas are computed/read-only. Existing-row resets require the separate Reset property."
+      },
+      {
+        "url": "https://support.google.com/appsheet/answer/10107954?hl=en",
+        "supports": "Editable_If prevents manual input, not initial-value computation."
+      }
+    ]
+  }
+}

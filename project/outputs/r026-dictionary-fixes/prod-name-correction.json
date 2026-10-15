@@ -1,0 +1,17 @@
+{
+  "date": "2026-09-25",
+  "authorization": "Owner explicitly requested correction of PROD OLAP name",
+  "appId": "e74dd368-654f-44d7-bccf-83cf361d1cdb",
+  "internalName": "LoanBusinessInsights-975338008",
+  "beforeVersion": "1.100198",
+  "afterVersion": "1.100201",
+  "beforeShortName": "MW-OLAP-R026-RC1",
+  "afterShortName": "Loan Business Insights",
+  "method": "Direct Settings > Information > Short Name correction; no App Upgrade",
+  "intermediate": "Saves 1.100199 and 1.100200 did not persist the rename; Enter on Short Name before Save persisted 1.100201",
+  "observedDefaultFolder": "/appsheet/data/LoanBusinessInsights-975338008",
+  "folderChanged": false,
+  "editorDiagnostics": "No issues found",
+  "verification": "Saved editor Short Name/header Loan Business Insights at 1.100201 with No issues found; independent refreshed My Apps inventory shows Loan Business Insights, Deployed",
+  "scope": "Only name correction; no access, data, schedules, schema or source changes"
+}

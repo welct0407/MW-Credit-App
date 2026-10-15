@@ -1,0 +1,958 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "relation"
+  "name": "public.Borrowers"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r053-notifications-jobs/dictionary-production-closure.json"
+  "coverage": "Actual affected PROD89 catalogue after maintained migration and authority restoration; no business rows."
+  "previous_record":
+    "commit": "dffa437c29a762f5b87a10b14a32063da8df07aa"
+    "path": "Documents/Data Dictionary/systems/postgresql/relations/borrowers.yaml"
+    "identity":
+      "system": "postgresql"
+      "component": "unassigned-database"
+      "kind": "relation"
+      "name": "Borrowers"
+      "scope": "as-recorded"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "Borrowers"
+    "kind": "r"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "d"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,mw_reviewer_dml=arwd/postgres,mw_app_prod=arwd/postgres}"
+    "comment": null
+    "view_definition": null
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "columns":
+    "Row ID":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "Row ID"
+      "ordinal": 1
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\",mw_jobs_owner_prod=rw/postgres}"
+      "comment": null
+    "Borrower Name":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "Borrower Name"
+      "ordinal": 2
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
+      "comment": null
+    "Description":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "Description"
+      "ordinal": 3
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
+      "comment": null
+    "Creation Date":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "Creation Date"
+      "ordinal": 4
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
+      "comment": null
+    "Hidden Flag":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "Hidden Flag"
+      "ordinal": 5
+      "data_type": "boolean"
+      "type_schema": "pg_catalog"
+      "type_name": "bool"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
+      "comment": null
+    "Communication Name":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "Communication Name"
+      "ordinal": 6
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Instagram Username":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "Instagram Username"
+      "ordinal": 7
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "AI Collection Enabled":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "AI Collection Enabled"
+      "ordinal": 8
+      "data_type": "boolean"
+      "type_schema": "pg_catalog"
+      "type_name": "bool"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": "true"
+      "collation": null
+      "acl": null
+      "comment": null
+    "City":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "City"
+      "ordinal": 9
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Working Location":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "Working Location"
+      "ordinal": 10
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Address":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "Address"
+      "ordinal": 11
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Total Interest Earned":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "Total Interest Earned"
+      "ordinal": 12
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
+      "comment": null
+    "Total Amount Loaned":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "Total Amount Loaned"
+      "ordinal": 13
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Total Number of Loans":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "Total Number of Loans"
+      "ordinal": 14
+      "data_type": "integer"
+      "type_schema": "pg_catalog"
+      "type_name": "int4"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Total Outstanding Principal":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "Total Outstanding Principal"
+      "ordinal": 15
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
+      "comment": null
+    "Active Loan Interest Earned":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "Active Loan Interest Earned"
+      "ordinal": 16
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Active Daily Interest":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "Active Daily Interest"
+      "ordinal": 17
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Has Closed Loan":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "Has Closed Loan"
+      "ordinal": 18
+      "data_type": "boolean"
+      "type_schema": "pg_catalog"
+      "type_name": "bool"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Has Active Loan":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "Has Active Loan"
+      "ordinal": 19
+      "data_type": "boolean"
+      "type_schema": "pg_catalog"
+      "type_name": "bool"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
+      "comment": null
+    "Ref Referrer":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "Ref Referrer"
+      "ordinal": 20
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Ref Preferred Receiving Cash Account":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "Ref Preferred Receiving Cash Account"
+      "ordinal": 21
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Payment Request Cash Account":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "Payment Request Cash Account"
+      "ordinal": 22
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Payment Request Token":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "Payment Request Token"
+      "ordinal": 23
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Borrower Note":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "Borrower Note"
+      "ordinal": 24
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
+      "comment": "Optional persistent borrower note, edited in OLTP collection detail. Informational only; does not change\
+        \ payment terms or balances."
+  "constraints":
+    "Borrowers_Payment Request Cash Account_fkey":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "Borrowers_Payment Request Cash Account_fkey"
+      "kind": "f"
+      "definition": "FOREIGN KEY (\"Payment Request Cash Account\") REFERENCES \"Cash Accounts\"(\"Row ID\") ON DELETE RESTRICT"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 22
+      "referenced_column_numbers":
+      - 1
+      "referenced_relation": "\"Cash Accounts\""
+      "update_action": "a"
+      "delete_action": "r"
+      "match_type": "s"
+      "comment": null
+    "Borrowers_Ref Preferred Receiving Cash Account_fkey":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "Borrowers_Ref Preferred Receiving Cash Account_fkey"
+      "kind": "f"
+      "definition": "FOREIGN KEY (\"Ref Preferred Receiving Cash Account\") REFERENCES \"Cash Accounts\"(\"Row ID\") ON DELETE\
+        \ RESTRICT"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 21
+      "referenced_column_numbers":
+      - 1
+      "referenced_relation": "\"Cash Accounts\""
+      "update_action": "a"
+      "delete_action": "r"
+      "match_type": "s"
+      "comment": null
+    "Borrowers_Ref Referrer_fkey":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "Borrowers_Ref Referrer_fkey"
+      "kind": "f"
+      "definition": "FOREIGN KEY (\"Ref Referrer\") REFERENCES \"Borrowers\"(\"Row ID\")"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 20
+      "referenced_column_numbers":
+      - 1
+      "referenced_relation": "\"Borrowers\""
+      "update_action": "a"
+      "delete_action": "a"
+      "match_type": "s"
+      "comment": null
+    "Borrowers_Row ID_not_null":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "Borrowers_Row ID_not_null"
+      "kind": "n"
+      "definition": "NOT NULL \"Row ID\""
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "Borrowers_pkey":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "Borrowers_pkey"
+      "kind": "p"
+      "definition": "PRIMARY KEY (\"Row ID\")"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "borrower_not_own_referrer":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "borrower_not_own_referrer"
+      "kind": "c"
+      "definition": "CHECK (\"Ref Referrer\" IS DISTINCT FROM \"Row ID\")"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 20
+      - 1
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+  "indexes":
+    "Borrowers_pkey":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "Borrowers_pkey"
+      "definition": "CREATE UNIQUE INDEX \"Borrowers_pkey\" ON public.\"Borrowers\" USING btree (\"Row ID\")"
+      "unique": true
+      "primary": true
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 1
+      "total_attribute_count": 1
+      "predicate": null
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
+    "borrowers_referrer_idx":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "borrowers_referrer_idx"
+      "definition": "CREATE INDEX borrowers_referrer_idx ON public.\"Borrowers\" USING btree (\"Ref Referrer\")"
+      "unique": false
+      "primary": false
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 1
+      "total_attribute_count": 1
+      "predicate": null
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
+  "triggers":
+    "RI_ConstraintTrigger_a_16690":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "RI_ConstraintTrigger_a_16690"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_16690\" AFTER DELETE ON \"Borrowers\" FROM \"Loans\"\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_del\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_del\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_16691":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "RI_ConstraintTrigger_a_16691"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_16691\" AFTER UPDATE ON \"Borrowers\" FROM \"Loans\"\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_16745":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "RI_ConstraintTrigger_a_16745"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_16745\" AFTER DELETE ON \"Borrowers\" FROM \"Payments\"\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_del\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_del\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_16746":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "RI_ConstraintTrigger_a_16746"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_16746\" AFTER UPDATE ON \"Borrowers\" FROM \"Payments\"\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_17028":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "RI_ConstraintTrigger_a_17028"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17028\" AFTER DELETE ON \"Borrowers\" FROM \"Borrowers\"\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_del\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_del\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_17029":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "RI_ConstraintTrigger_a_17029"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17029\" AFTER UPDATE ON \"Borrowers\" FROM \"Borrowers\"\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_17064":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "RI_ConstraintTrigger_a_17064"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17064\" AFTER DELETE ON \"Borrowers\" FROM \"Business\
+        \ Expenses\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_del\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_del\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_17065":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "RI_ConstraintTrigger_a_17065"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17065\" AFTER UPDATE ON \"Borrowers\" FROM \"Business\
+        \ Expenses\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_17069":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "RI_ConstraintTrigger_a_17069"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17069\" AFTER DELETE ON \"Borrowers\" FROM \"Business\
+        \ Expenses\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_del\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_del\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_17070":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "RI_ConstraintTrigger_a_17070"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17070\" AFTER UPDATE ON \"Borrowers\" FROM \"Business\
+        \ Expenses\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_21407":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "RI_ConstraintTrigger_a_21407"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_21407\" AFTER DELETE ON \"Borrowers\" FROM \"Loan\
+        \ Assessment\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_setnull_del\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_setnull_del\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_21408":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "RI_ConstraintTrigger_a_21408"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_21408\" AFTER UPDATE ON \"Borrowers\" FROM \"Loan\
+        \ Assessment\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_21412":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "RI_ConstraintTrigger_a_21412"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_21412\" AFTER DELETE ON \"Borrowers\" FROM \"Loan\
+        \ Assessment SQL Lab\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_setnull_del\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_setnull_del\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_21413":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "RI_ConstraintTrigger_a_21413"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_21413\" AFTER UPDATE ON \"Borrowers\" FROM \"Loan\
+        \ Assessment SQL Lab\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_17030":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "RI_ConstraintTrigger_c_17030"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_17030\" AFTER INSERT ON \"Borrowers\" FROM \"Borrowers\"\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_ins\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_17031":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "RI_ConstraintTrigger_c_17031"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_17031\" AFTER UPDATE ON \"Borrowers\" FROM \"Borrowers\"\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_17345":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "RI_ConstraintTrigger_c_17345"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_17345\" AFTER INSERT ON \"Borrowers\" FROM \"Cash\
+        \ Accounts\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_ins\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_17346":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "RI_ConstraintTrigger_c_17346"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_17346\" AFTER UPDATE ON \"Borrowers\" FROM \"Cash\
+        \ Accounts\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_17350":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "RI_ConstraintTrigger_c_17350"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_17350\" AFTER INSERT ON \"Borrowers\" FROM \"Cash\
+        \ Accounts\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_ins\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_17351":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "RI_ConstraintTrigger_c_17351"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_17351\" AFTER UPDATE ON \"Borrowers\" FROM \"Cash\
+        \ Accounts\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "appsheet_referrer_blank":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "appsheet_referrer_blank"
+      "definition": "CREATE TRIGGER appsheet_referrer_blank BEFORE INSERT OR UPDATE ON \"Borrowers\" FOR EACH ROW EXECUTE\
+        \ FUNCTION appsheet_normalize_blank_refs('Ref Referrer')"
+      "enabled": "O"
+      "internal": false
+      "routine": "appsheet_normalize_blank_refs()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "mw_agent_capture":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "mw_agent_capture"
+      "definition": "CREATE TRIGGER mw_agent_capture AFTER INSERT OR DELETE OR UPDATE ON \"Borrowers\" FOR EACH ROW EXECUTE\
+        \ FUNCTION agent_audit.capture_change()"
+      "enabled": "O"
+      "internal": false
+      "routine": "agent_audit.capture_change()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "quick_payment_request":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "quick_payment_request"
+      "definition": "CREATE TRIGGER quick_payment_request AFTER UPDATE OF \"Payment Request Token\" ON \"Borrowers\" FOR EACH\
+        \ ROW EXECUTE FUNCTION quick_payment_request()"
+      "enabled": "O"
+      "internal": false
+      "routine": "quick_payment_request()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "zz_vc_borrower_row":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "zz_vc_borrower_row"
+      "definition": "CREATE TRIGGER zz_vc_borrower_row BEFORE INSERT OR UPDATE ON \"Borrowers\" FOR EACH ROW EXECUTE FUNCTION\
+        \ vc_borrower_row()"
+      "enabled": "O"
+      "internal": false
+      "routine": "vc_borrower_row()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+  "policies": {}
+  "dependencies": []
+"evidence":
+  "/content/definition/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"
+  "/content/columns/Borrower Name/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"
+  "/content/columns/Borrower Note/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"
+  "/content/columns/Creation Date/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"
+  "/content/columns/Description/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"
+  "/content/columns/Has Active Loan/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"
+  "/content/columns/Hidden Flag/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"
+  "/content/columns/Row ID/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"
+  "/content/columns/Total Interest Earned/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"
+  "/content/columns/Total Outstanding Principal/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"
+  "/content/candidate_v92":
+    "reference": "Documents/Development_Changes.md#r062-production-promotion; PROD V92 applied 2026-10-15 10:00:28 Bangkok\
+      \ from 6c3e4fab6025d29d3fbbe4dc6106896a8dc47270; validation93 and authority restoration passed."
+    "reason": "Promote exact V92 definitions after verified PROD migration; existing Borrower/Partner fingerprints unchanged."
+    "state": "absent"
+  "/content/columns/AI Collection Enabled":
+    "reference": "Documents/Development_Changes.md#r062-production-promotion; PROD V92 applied 2026-10-15 10:00:28 Bangkok\
+      \ from 6c3e4fab6025d29d3fbbe4dc6106896a8dc47270; validation93 and authority restoration passed."
+    "reason": "Promote exact V92 definitions after verified PROD migration; existing Borrower/Partner fingerprints unchanged."
+    "state": "value"

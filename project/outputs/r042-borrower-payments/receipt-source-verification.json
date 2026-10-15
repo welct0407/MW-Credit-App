@@ -1,0 +1,14 @@
+{
+  "development": {
+    "receiptCount": 234,
+    "oneRowPerReceipt": true,
+    "allSourceFieldsMatch": true,
+    "version": 46
+  },
+  "production": {
+    "receiptCount": 303,
+    "oneRowPerReceipt": true,
+    "allSourceFieldsMatch": true,
+    "version": 46
+  }
+}

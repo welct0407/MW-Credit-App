@@ -1,0 +1,22 @@
+{
+  "allSheetsValueRoundtrip": true,
+  "affectedSheets": {
+    "Prod Tables": 6,
+    "App Settings": 74,
+    "Prod Columns": 66,
+    "Column Rules": 2072,
+    "Prod Relationships": 12,
+    "Prod Slices": 2,
+    "Slice Columns": 47,
+    "DB Columns": 33,
+    "DB Constraints": 34,
+    "DB Logic": 35,
+    "Dev Differences": 1,
+    "Guide": 1
+  },
+  "versions": {
+    "oltp": "3.000172",
+    "olap": "1.100122",
+    "sql": "21"
+  }
+}

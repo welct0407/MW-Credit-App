@@ -1,0 +1,197 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "relation"
+  "name": "public.reporting_expenses"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "reporting_expenses"
+    "kind": "v"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "n"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,metabase_borrower_reader=r/postgres,mw_app_prod=r/postgres}"
+    "comment": "R016: database-owned Income Statement source. Live Bangkok dates; original model grain and financial semantics\
+      \ preserved."
+    "view_definition": |2-
+       SELECT "Row ID" AS "Expense ID",
+          "Expense Date",
+          "Expense Category",
+          "Amount"::numeric AS "Expense Amount",
+          - "Amount"::numeric AS "Statement Expense",
+          date_trunc('month'::text, "Expense Date"::timestamp with time zone)::date AS "Expense Month",
+          "Expense Date" >= date_trunc('month'::text, (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok'::text))::date AND "Expense Date" <= (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok'::text)::date AS "In Current Month"
+         FROM "Business Expenses"
+        WHERE "Expense Date" <= (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok'::text)::date;
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "columns":
+    "Expense ID":
+      "schema": "public"
+      "relation": "reporting_expenses"
+      "name": "Expense ID"
+      "ordinal": 1
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Expense Date":
+      "schema": "public"
+      "relation": "reporting_expenses"
+      "name": "Expense Date"
+      "ordinal": 2
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Expense Category":
+      "schema": "public"
+      "relation": "reporting_expenses"
+      "name": "Expense Category"
+      "ordinal": 3
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Expense Amount":
+      "schema": "public"
+      "relation": "reporting_expenses"
+      "name": "Expense Amount"
+      "ordinal": 4
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Statement Expense":
+      "schema": "public"
+      "relation": "reporting_expenses"
+      "name": "Statement Expense"
+      "ordinal": 5
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Expense Month":
+      "schema": "public"
+      "relation": "reporting_expenses"
+      "name": "Expense Month"
+      "ordinal": 6
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "In Current Month":
+      "schema": "public"
+      "relation": "reporting_expenses"
+      "name": "In Current Month"
+      "ordinal": 7
+      "data_type": "boolean"
+      "type_schema": "pg_catalog"
+      "type_name": "bool"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+  "constraints": {}
+  "indexes": {}
+  "triggers": {}
+  "policies": {}
+  "dependencies":
+  - "schema": "public"
+    "relation": "reporting_expenses"
+    "referenced_schema": "public"
+    "referenced_relation": "Business Expenses"
+    "referenced_column": "Amount"
+  - "schema": "public"
+    "relation": "reporting_expenses"
+    "referenced_schema": "public"
+    "referenced_relation": "Business Expenses"
+    "referenced_column": "Expense Category"
+  - "schema": "public"
+    "relation": "reporting_expenses"
+    "referenced_schema": "public"
+    "referenced_relation": "Business Expenses"
+    "referenced_column": "Expense Date"
+  - "schema": "public"
+    "relation": "reporting_expenses"
+    "referenced_schema": "public"
+    "referenced_relation": "Business Expenses"
+    "referenced_column": "Row ID"
+"evidence":
+  "/content/definition/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"

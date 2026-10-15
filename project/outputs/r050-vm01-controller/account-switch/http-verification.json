@@ -1,0 +1,50 @@
+{
+  "atUtc": "2026-10-02T00:57:12.936399+00:00",
+  "results": [
+    {
+      "path": "/",
+      "status": 200,
+      "matchesUnchangedPinnedBuild": true,
+      "sha256": "1070134427a7b5bcc53fbbbf672ac08d0ab187b72e957c15494e34cc597a3938"
+    },
+    {
+      "path": "/auth/callback",
+      "status": 200,
+      "matchesUnchangedPinnedBuild": true,
+      "sha256": "107708c30dc08008f941797a6274fd3b67c68d390a0b8d40e602110e38943b23"
+    },
+    {
+      "path": "/assets/app.js",
+      "status": 200,
+      "matchesUnchangedPinnedBuild": true,
+      "sha256": "7d6fdb93d58cdcd5ca777aa817d3b358778fcb9b4dc757c9f0e5ff2449720600"
+    },
+    {
+      "path": "/assets/style.css",
+      "status": 200,
+      "matchesUnchangedPinnedBuild": true,
+      "sha256": "7a1647e628312659027058cd17cb985efaf01cd87c2531f187e5ff24d7f4d00d"
+    },
+    {
+      "path": "/assets/auth-callback.js",
+      "status": 200,
+      "matchesUnchangedPinnedBuild": true,
+      "sha256": "2cfc502448319fbec39fd4c4fa3e321f97707d8ba25bc6037e59836174aff26f"
+    },
+    {
+      "path": "/assets/config.js",
+      "status": 200,
+      "unchangedPublicConfiguration": true
+    },
+    {
+      "path": "/api/vm01/status",
+      "caller": "anonymous",
+      "status": 401
+    }
+  ],
+  "replacementAuthenticatedStatus": "PENDING_NOT_TESTED",
+  "formerUserAuthenticatedTokenRejection": "PENDING_NOT_TESTED",
+  "applicationHealthBehindEasyAuth": "NOT_PROVEN",
+  "vmPowerRequests": 0,
+  "limitations": "Public routes and anonymous401 prove only these behaviors; no user token obtained or accepted API status demonstrated."
+}

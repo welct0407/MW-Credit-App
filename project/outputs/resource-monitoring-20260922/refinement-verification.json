@@ -1,0 +1,46 @@
+{
+  "dns": {
+    "target": "olivecrab1199.grafana.net",
+    "type": "CNAME",
+    "proxied": false,
+    "grafanaInstanceUrl": "https://monitor.mw-credit.com",
+    "authenticatedBrowserVerified": true,
+    "name": "monitor.mw-credit.com"
+  },
+  "timezone": "Asia/Singapore",
+  "rollback": {
+    "privateUiBaselines": [
+      "performance-before-refinement-v2.json",
+      "cost-before-refinement-v2.json"
+    ],
+    "priorDomain": "https://olivecrab1199.grafana.net",
+    "gitBaseline": "c843fb46badf48ef21fd201a2ffa5261072b5574"
+  },
+  "gcpBilling": {
+    "exportTableCount": 0,
+    "monitoringReaderPresent": true,
+    "location": "US",
+    "exportWriterPresent": true,
+    "detailedExportEnabled": true,
+    "dataset": "mw_cloud_billing",
+    "project": "clever-oasis-508610-n7"
+  },
+  "checkedAt": "2026-09-22T12:44:28.3691901Z",
+  "limits": {
+    "railwayMetabase": {
+      "cpuCores": 2,
+      "memoryGB": 2
+    },
+    "cloudSqlConnections": 200,
+    "azureOsDiskBaselineMBps": 100,
+    "railwayLimitsUseLiveSeries": true,
+    "cloudSqlStorageAutoResize": true,
+    "railwayPostgres": {
+      "memoryGB": 0.5,
+      "cpuCores": 1,
+      "volumeMB": 5000
+    },
+    "cloudSqlStorageGB": 10
+  },
+  "homeDashboard": "mw-resource-performance (work user)"
+}

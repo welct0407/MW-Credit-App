@@ -1,0 +1,9 @@
+{
+  "checkedAt": "2026-09-15T15:18:08.0359459+07:00",
+  "backup": "C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/lumpsum-promotion-20260915/production-before.dump",
+  "sha256": "ea880e8558eb06e3d8236cc1b5797218b87a97e9edd591bcac41cc957b498b18",
+  "bytes": 132556,
+  "restorePassed": true,
+  "businessTablesMatched": 14,
+  "schemaMatchesV1": true
+}

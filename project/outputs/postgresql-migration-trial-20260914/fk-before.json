@@ -1,0 +1,138 @@
+[
+  {
+    "constraints": [
+      {
+        "definition": "NOT NULL \"Row ID\"",
+        "name": "Borrowers_Row ID_not_null",
+        "table": "\"Borrowers\""
+      },
+      {
+        "definition": "PRIMARY KEY (\"Row ID\")",
+        "name": "Borrowers_pkey",
+        "table": "\"Borrowers\""
+      },
+      {
+        "definition": "NOT NULL \"Row ID\"",
+        "name": "Loans_Row ID_not_null",
+        "table": "\"Loans\""
+      },
+      {
+        "definition": "PRIMARY KEY (\"Row ID\")",
+        "name": "Loans_pkey",
+        "table": "\"Loans\""
+      },
+      {
+        "definition": "NOT NULL \"Row ID\"",
+        "name": "Repayments_Row ID_not_null",
+        "table": "\"Repayments\""
+      },
+      {
+        "definition": "PRIMARY KEY (\"Row ID\")",
+        "name": "Repayments_pkey",
+        "table": "\"Repayments\""
+      },
+      {
+        "definition": "NOT NULL \"Row ID\"",
+        "name": "Statistics_Row ID_not_null",
+        "table": "\"Statistics\""
+      },
+      {
+        "definition": "PRIMARY KEY (\"Row ID\")",
+        "name": "Statistics_pkey",
+        "table": "\"Statistics\""
+      },
+      {
+        "definition": "NOT NULL \"Row ID\"",
+        "name": "Charges_Row ID_not_null",
+        "table": "\"Charges\""
+      },
+      {
+        "definition": "PRIMARY KEY (\"Row ID\")",
+        "name": "Charges_pkey",
+        "table": "\"Charges\""
+      },
+      {
+        "definition": "NOT NULL \"Date\"",
+        "name": "Calendar_Date_not_null",
+        "table": "\"Calendar\""
+      },
+      {
+        "definition": "PRIMARY KEY (\"Date\")",
+        "name": "Calendar_pkey",
+        "table": "\"Calendar\""
+      },
+      {
+        "definition": "NOT NULL \"Row ID\"",
+        "name": "Loan Assessment_Row ID_not_null",
+        "table": "\"Loan Assessment\""
+      },
+      {
+        "definition": "PRIMARY KEY (\"Row ID\")",
+        "name": "Loan Assessment_pkey",
+        "table": "\"Loan Assessment\""
+      },
+      {
+        "definition": "NOT NULL \"Row ID\"",
+        "name": "Cash Pool Contributions_Row ID_not_null",
+        "table": "\"Cash Pool Contributions\""
+      },
+      {
+        "definition": "PRIMARY KEY (\"Row ID\")",
+        "name": "Cash Pool Contributions_pkey",
+        "table": "\"Cash Pool Contributions\""
+      },
+      {
+        "definition": "NOT NULL \"Row ID\"",
+        "name": "Partners_Row ID_not_null",
+        "table": "\"Partners\""
+      },
+      {
+        "definition": "PRIMARY KEY (\"Row ID\")",
+        "name": "Partners_pkey",
+        "table": "\"Partners\""
+      },
+      {
+        "definition": "NOT NULL \"Row ID\"",
+        "name": "Settlements_Row ID_not_null",
+        "table": "\"Settlements\""
+      },
+      {
+        "definition": "PRIMARY KEY (\"Row ID\")",
+        "name": "Settlements_pkey",
+        "table": "\"Settlements\""
+      },
+      {
+        "definition": "NOT NULL \"Row ID\"",
+        "name": "Daily Analytics_Row ID_not_null",
+        "table": "\"Daily Analytics\""
+      },
+      {
+        "definition": "PRIMARY KEY (\"Row ID\")",
+        "name": "Daily Analytics_pkey",
+        "table": "\"Daily Analytics\""
+      },
+      {
+        "definition": "NOT NULL \"Row ID\"",
+        "name": "Payment Allocations_Row ID_not_null",
+        "table": "\"Payment Allocations\""
+      },
+      {
+        "definition": "PRIMARY KEY (\"Row ID\")",
+        "name": "Payment Allocations_pkey",
+        "table": "\"Payment Allocations\""
+      },
+      {
+        "definition": "NOT NULL \"Row ID\"",
+        "name": "Payments_Row ID_not_null",
+        "table": "\"Payments\""
+      },
+      {
+        "definition": "PRIMARY KEY (\"Row ID\")",
+        "name": "Payments_pkey",
+        "table": "\"Payments\""
+      }
+    ],
+    "database": "loan_manager_prod",
+    "triggers": 0
+  }
+]

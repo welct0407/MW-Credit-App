@@ -1,0 +1,256 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "metabase",
+    "component": "reports.mw-credit.com",
+    "kind": "model",
+    "name": "Partners · earnings source / 320",
+    "scope": "production"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r044-partners/saved.json"
+  },
+  "content": {
+    "key": "earnings",
+    "description": "R044 thin metadata over governed read-only PostgreSQL provider. No financial writes.",
+    "result_metadata": [
+      {
+        "database_type": "text",
+        "lib/deduplicated-name": "event_type",
+        "lib/original-name": "event_type",
+        "name": "event_type",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "event_type",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "event_type",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "effective_type": "type/Text",
+        "lib/desired-column-alias": "event_type",
+        "display_name": "event_type",
+        "base_type": "type/Text"
+      },
+      {
+        "database_type": "text",
+        "lib/deduplicated-name": "event_id",
+        "lib/original-name": "event_id",
+        "name": "event_id",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "event_id",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "event_id",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "effective_type": "type/Text",
+        "lib/desired-column-alias": "event_id",
+        "display_name": "event_id",
+        "base_type": "type/Text"
+      },
+      {
+        "database_type": "date",
+        "lib/deduplicated-name": "activity_date",
+        "lib/original-name": "activity_date",
+        "name": "activity_date",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "activity_date",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "activity_date",
+          {
+            "base-type": "type/Date"
+          }
+        ],
+        "effective_type": "type/Date",
+        "lib/desired-column-alias": "activity_date",
+        "display_name": "activity_date",
+        "base_type": "type/Date"
+      },
+      {
+        "database_type": "text",
+        "lib/deduplicated-name": "role",
+        "lib/original-name": "role",
+        "name": "role",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "role",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "role",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "effective_type": "type/Text",
+        "lib/desired-column-alias": "role",
+        "display_name": "role",
+        "base_type": "type/Text"
+      },
+      {
+        "database_type": "numeric",
+        "lib/deduplicated-name": "allocated_interest",
+        "lib/original-name": "allocated_interest",
+        "name": "allocated_interest",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "allocated_interest",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "allocated_interest",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "allocated_interest",
+        "display_name": "allocated_interest",
+        "base_type": "type/Decimal"
+      },
+      {
+        "database_type": "numeric",
+        "lib/deduplicated-name": "allocated_expense",
+        "lib/original-name": "allocated_expense",
+        "name": "allocated_expense",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "allocated_expense",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "allocated_expense",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "allocated_expense",
+        "display_name": "allocated_expense",
+        "base_type": "type/Decimal"
+      },
+      {
+        "database_type": "bool",
+        "lib/deduplicated-name": "amount_known",
+        "lib/original-name": "amount_known",
+        "name": "amount_known",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "amount_known",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "amount_known",
+          {
+            "base-type": "type/Boolean"
+          }
+        ],
+        "effective_type": "type/Boolean",
+        "lib/desired-column-alias": "amount_known",
+        "display_name": "amount_known",
+        "base_type": "type/Boolean"
+      },
+      {
+        "database_type": "text",
+        "lib/deduplicated-name": "partner_id",
+        "lib/original-name": "partner_id",
+        "name": "partner_id",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "partner_id",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "partner_id",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "effective_type": "type/Text",
+        "lib/desired-column-alias": "partner_id",
+        "display_name": "partner_id",
+        "base_type": "type/Text"
+      },
+      {
+        "database_type": "text",
+        "lib/deduplicated-name": "partner_name",
+        "lib/original-name": "partner_name",
+        "name": "partner_name",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "partner_name",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "partner_name",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "effective_type": "type/Text",
+        "lib/desired-column-alias": "partner_name",
+        "display_name": "partner_name",
+        "base_type": "type/Text"
+      },
+      {
+        "database_type": "numeric",
+        "lib/deduplicated-name": "net_earned",
+        "lib/original-name": "net_earned",
+        "name": "net_earned",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "net_earned",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "net_earned",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "net_earned",
+        "display_name": "net_earned",
+        "base_type": "type/Decimal"
+      },
+      {
+        "database_type": "bool",
+        "lib/deduplicated-name": "valid",
+        "lib/original-name": "valid",
+        "name": "valid",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "valid",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "valid",
+          {
+            "base-type": "type/Boolean"
+          }
+        ],
+        "effective_type": "type/Boolean",
+        "lib/desired-column-alias": "valid",
+        "display_name": "valid",
+        "base_type": "type/Boolean"
+      }
+    ],
+    "collection_id": 8,
+    "name": "Partners · earnings source",
+    "type": "model",
+    "dataset_query": {
+      "stages": [
+        {
+          "lib/type": "mbql.stage/native",
+          "native": "SELECT * FROM public.reporting_partner_earnings_v1"
+        }
+      ],
+      "lib/type": "mbql/query",
+      "database": 2
+    },
+    "id": 320,
+    "display": "table",
+    "visualization_settings": {}
+  }
+}

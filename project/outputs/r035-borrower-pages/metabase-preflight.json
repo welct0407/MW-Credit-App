@@ -1,0 +1,170 @@
+{
+  "at": "2026-09-25T10:04:18.395Z",
+  "checks": [
+    {
+      "key": "picker",
+      "rows": 30,
+      "duration": 474
+    },
+    {
+      "key": "p-active",
+      "rows": 1,
+      "duration": 132
+    },
+    {
+      "key": "p-loans",
+      "rows": 1,
+      "duration": 71
+    },
+    {
+      "key": "p-principal",
+      "rows": 1,
+      "duration": 66
+    },
+    {
+      "key": "p-interest",
+      "rows": 1,
+      "duration": 277
+    },
+    {
+      "key": "p-issued",
+      "rows": 1,
+      "duration": 169
+    },
+    {
+      "key": "p-issued-count",
+      "rows": 1,
+      "duration": 155
+    },
+    {
+      "key": "p-status",
+      "rows": 1,
+      "duration": 303
+    },
+    {
+      "key": "p-capital",
+      "rows": 11,
+      "duration": 85
+    },
+    {
+      "key": "p-contribution",
+      "rows": 11,
+      "duration": 165
+    },
+    {
+      "key": "p-trend",
+      "rows": 180,
+      "duration": 203
+    },
+    {
+      "key": "p-first-repeat",
+      "rows": 5,
+      "duration": 185
+    },
+    {
+      "key": "p-comparison",
+      "rows": 30,
+      "duration": 323
+    },
+    {
+      "key": "d-identity",
+      "rows": 0,
+      "duration": 69
+    },
+    {
+      "key": "d-principal",
+      "rows": 0,
+      "duration": 101
+    },
+    {
+      "key": "d-active",
+      "rows": 0,
+      "duration": 104
+    },
+    {
+      "key": "d-overdue",
+      "rows": 0,
+      "duration": 105
+    },
+    {
+      "key": "d-share",
+      "rows": 0,
+      "duration": 141
+    },
+    {
+      "key": "d-health",
+      "rows": 0,
+      "duration": 390
+    },
+    {
+      "key": "d-interest",
+      "rows": 0,
+      "duration": 105
+    },
+    {
+      "key": "d-issued",
+      "rows": 0,
+      "duration": 205
+    },
+    {
+      "key": "d-returned",
+      "rows": 0,
+      "duration": 83
+    },
+    {
+      "key": "d-issued-count",
+      "rows": 0,
+      "duration": 85
+    },
+    {
+      "key": "d-status",
+      "rows": 0,
+      "duration": 96
+    },
+    {
+      "key": "d-principal-trend",
+      "rows": 0,
+      "duration": 86
+    },
+    {
+      "key": "d-interest-trend",
+      "rows": 0,
+      "duration": 81
+    },
+    {
+      "key": "d-active-loans",
+      "rows": 0,
+      "duration": 80
+    },
+    {
+      "key": "d-timing",
+      "rows": 0,
+      "duration": 110
+    },
+    {
+      "key": "d-loan-history",
+      "rows": 0,
+      "duration": 83
+    },
+    {
+      "key": "d-payments",
+      "rows": 0,
+      "duration": 122
+    },
+    {
+      "key": "d-obligations",
+      "rows": 0,
+      "duration": 122
+    },
+    {
+      "key": "d-overdue-list",
+      "rows": 0,
+      "duration": 74
+    },
+    {
+      "key": "d-scenario",
+      "rows": 0,
+      "duration": 111
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
+  "baseline_version": "1.000200",
+  "first_candidate_version": "1.000202",
+  "complete_candidate_version": "1.000204",
+  "saved_appdoc_readback_exact": true,
+  "unchanged": "List type, Ref element metadata, existing column identifiers, labels, visibility, inline views and payment write source",
+  "properties": {
+    "Related Repayments": {
+      "before": "REF_ROWS(\"Repayments\", \"Ref Payment\")",
+      "candidate": "SPLIT(LOOKUP([_THISROW].[Row ID], \"oltp_payment_related_ids_v1\", \"Row ID\", \"Repayment IDs\"), \" , \") - LIST(\"\")"
+    },
+    "Related Payment Allocations": {
+      "before": "REF_ROWS(\"Payment Allocations\", \"Ref Payment\")",
+      "candidate": "SPLIT(LOOKUP([_THISROW].[Row ID], \"oltp_payment_related_ids_v1\", \"Row ID\", \"Allocation IDs\"), \" , \") - LIST(\"\")"
+    },
+    "Related Loans": {
+      "before": "REF_ROWS(\"Loans\", \"Ref Closing Payment\")",
+      "candidate": "SPLIT(LOOKUP([_THISROW].[Row ID], \"oltp_payment_related_ids_v1\", \"Row ID\", \"Closing Loan IDs\"), \" , \") - LIST(\"\")"
+    },
+    "Visible Allocations": {
+      "before": "SELECT([Related Payment Allocations][Row ID], [Allocated Amount] > 0)",
+      "candidate": "SPLIT(LOOKUP([_THISROW].[Row ID], \"oltp_payment_related_ids_v1\", \"Row ID\", \"Visible Allocation IDs\"), \" , \") - LIST(\"\")"
+    }
+  },
+  "helper": {
+    "name": "oltp_payment_related_ids_v1",
+    "source": "database-3",
+    "source_path": "oltp_payment_related_ids_v1",
+    "updates": "READ_ONLY",
+    "key": "Row ID",
+    "key_type": "Text",
+    "transport_type": "LongText",
+    "columns": [
+      "Row ID",
+      "Repayment IDs",
+      "Allocation IDs",
+      "Closing Loan IDs",
+      "Visible Allocation IDs"
+    ],
+    "generated_detail_view_position": "ref",
+    "user_navigation_view_added": false,
+    "stored_list_columns_added": false,
+    "maintenance_triggers_added": false,
+    "generated_warning_resolution": "Classified Visible Allocation IDs as sensitive, consistent with generated classifications for Repayment IDs and Allocation IDs; no warning suppression. Row ID Text replaces the initially inferred LongText/_RowNumber key."
+  },
+  "final_version": "1.000206",
+  "disposition": "Original four formulas restored in205; helper binding and generated view removed in206",
+  "final_appdoc_readback_originals_exact": true,
+  "final_appdoc_helper_mentions": 0
+}

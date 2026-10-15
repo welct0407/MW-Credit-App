@@ -1,0 +1,162 @@
+{
+  "source": "Current AppSheet Performance Analyzer; success rows; non-preview only",
+  "rows": [
+    {
+      "version": "baseline198",
+      "operation": "add",
+      "utc": "2026-10-06T15:41:17Z",
+      "seconds": 7.062
+    },
+    {
+      "version": "baseline198",
+      "operation": "sync",
+      "utc": "2026-10-06T15:41:24Z",
+      "seconds": 3.396
+    },
+    {
+      "version": "baseline198",
+      "operation": "sync",
+      "utc": "2026-10-06T15:41:32Z",
+      "seconds": 3.034
+    },
+    {
+      "version": "baseline198",
+      "operation": "edit",
+      "utc": "2026-10-06T15:42:00Z",
+      "seconds": 4.212
+    },
+    {
+      "version": "baseline198",
+      "operation": "sync",
+      "utc": "2026-10-06T15:42:05Z",
+      "seconds": 3.093
+    },
+    {
+      "version": "baseline198",
+      "operation": "edit",
+      "utc": "2026-10-06T15:42:38Z",
+      "seconds": 3.633
+    },
+    {
+      "version": "baseline198",
+      "operation": "sync",
+      "utc": "2026-10-06T15:42:43Z",
+      "seconds": 4.955
+    },
+    {
+      "version": "baseline198",
+      "operation": "edit",
+      "utc": "2026-10-06T15:43:13Z",
+      "seconds": 2.976
+    },
+    {
+      "version": "baseline198",
+      "operation": "sync",
+      "utc": "2026-10-06T15:43:17Z",
+      "seconds": 5.126
+    },
+    {
+      "version": "partial199",
+      "operation": "sync",
+      "utc": "2026-10-06T15:44:02Z",
+      "seconds": 2.571
+    },
+    {
+      "version": "partial199",
+      "operation": "edit",
+      "utc": "2026-10-06T15:44:54Z",
+      "seconds": 5.81
+    },
+    {
+      "version": "partial199",
+      "operation": "sync",
+      "utc": "2026-10-06T15:45:00Z",
+      "seconds": 3.63
+    },
+    {
+      "version": "partial199",
+      "operation": "edit",
+      "utc": "2026-10-06T15:45:23Z",
+      "seconds": 4.288
+    },
+    {
+      "version": "partial199",
+      "operation": "sync",
+      "utc": "2026-10-06T15:45:28Z",
+      "seconds": 3.534
+    },
+    {
+      "version": "partial199",
+      "operation": "edit",
+      "utc": "2026-10-06T15:45:52Z",
+      "seconds": 3.42
+    },
+    {
+      "version": "partial199",
+      "operation": "sync",
+      "utc": "2026-10-06T15:45:56Z",
+      "seconds": 3.149
+    },
+    {
+      "version": "partial199",
+      "operation": "sync",
+      "utc": "2026-10-06T15:46:28Z",
+      "seconds": 3.589
+    },
+    {
+      "version": "candidate200",
+      "operation": "sync",
+      "utc": "2026-10-06T15:50:11Z",
+      "seconds": 4.162
+    },
+    {
+      "version": "candidate200",
+      "operation": "edit",
+      "utc": "2026-10-06T15:50:58Z",
+      "seconds": 2.93
+    },
+    {
+      "version": "candidate200",
+      "operation": "sync",
+      "utc": "2026-10-06T15:51:01Z",
+      "seconds": 3.326
+    },
+    {
+      "version": "candidate200",
+      "operation": "edit",
+      "utc": "2026-10-06T15:51:25Z",
+      "seconds": 2.694
+    },
+    {
+      "version": "candidate200",
+      "operation": "sync",
+      "utc": "2026-10-06T15:51:29Z",
+      "seconds": 4.086
+    },
+    {
+      "version": "candidate200",
+      "operation": "edit",
+      "utc": "2026-10-06T15:51:56Z",
+      "seconds": 2.513
+    },
+    {
+      "version": "candidate200",
+      "operation": "sync",
+      "utc": "2026-10-06T15:51:59Z",
+      "seconds": 3.617
+    },
+    {
+      "version": "candidate200",
+      "operation": "add",
+      "utc": "2026-10-06T15:52:36Z",
+      "seconds": 3.55
+    },
+    {
+      "version": "candidate200",
+      "operation": "sync",
+      "utc": "2026-10-06T15:52:40Z",
+      "seconds": 3.094
+    }
+  ],
+  "interpretation": "Three matched alternating amount edits per version on the same synthetic receipt. Small sequential sample, not randomized; no statistical significance or general sync improvement claimed. Single-add observations exploratory. Preview syncs excluded."
+}

@@ -1,0 +1,126 @@
+{
+  "metric_definition": {
+    "refId": "A",
+    "datasource": {
+      "type": "yesoreyeram-infinity-datasource",
+      "uid": "mw-azure-monitoring"
+    },
+    "type": "json",
+    "source": "url",
+    "parser": "jq-backend",
+    "format": "table",
+    "url": "https://management.azure.com/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/RG-MWCREDIT/providers/Microsoft.Compute/virtualMachines/VM-01/providers/microsoft.insights/metricDefinitions?api-version=2018-01-01",
+    "url_options": {
+      "method": "GET"
+    },
+    "root_selector": "[.value[]?|select(.name.value==\"VmAvailabilityMetric\")|{Name:.name.value,Grains:(.metricAvailabilities|tostring),Aggregations:(.supportedAggregationTypes|tostring)}]",
+    "columns": [
+      {
+        "text": "Name",
+        "selector": "Name",
+        "type": "string"
+      },
+      {
+        "text": "Grains",
+        "selector": "Grains",
+        "type": "string"
+      },
+      {
+        "text": "Aggregations",
+        "selector": "Aggregations",
+        "type": "string"
+      }
+    ]
+  },
+  "availability_sample": {
+    "refId": "A",
+    "datasource": {
+      "type": "yesoreyeram-infinity-datasource",
+      "uid": "mw-azure-monitoring"
+    },
+    "type": "json",
+    "source": "url",
+    "parser": "jq-backend",
+    "format": "table",
+    "url": "https://management.azure.com/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/RG-MWCREDIT/providers/Microsoft.Compute/virtualMachines/VM-01/providers/microsoft.insights/metrics?api-version=2023-10-01&metricnames=VmAvailabilityMetric&timespan=2026-10-01T15:28:01Z/2026-10-04T15:28:01Z&interval=PT1M&aggregation=Average&AutoAdjustTimegrain=false",
+    "url_options": {
+      "method": "GET"
+    },
+    "root_selector": ". as $response | [.value[]? as $metric | $metric.timeseries[]? as $series | $series.data[]? | {Time:.timeStamp,Value:.average,Interval:$response.interval,Metric:$metric.name.value,Context:($series.metadatavalues // [] | tostring)}]",
+    "columns": [
+      {
+        "text": "Time",
+        "selector": "Time",
+        "type": "timestamp"
+      },
+      {
+        "text": "Value",
+        "selector": "Value",
+        "type": "number"
+      },
+      {
+        "text": "Interval",
+        "selector": "Interval",
+        "type": "string"
+      },
+      {
+        "text": "Metric",
+        "selector": "Metric",
+        "type": "string"
+      },
+      {
+        "text": "Context",
+        "selector": "Context",
+        "type": "string"
+      }
+    ]
+  },
+  "activity_history": {
+    "refId": "A",
+    "datasource": {
+      "type": "yesoreyeram-infinity-datasource",
+      "uid": "mw-azure-monitoring"
+    },
+    "type": "json",
+    "source": "url",
+    "parser": "jq-backend",
+    "format": "table",
+    "url": "https://management.azure.com/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/providers/Microsoft.Insights/eventtypes/management/values?api-version=2015-04-01&$filter=eventTimestamp%20ge%20%272026-07-07T15%3A28%3A01Z%27%20and%20eventTimestamp%20le%20%272026-10-04T15%3A28%3A01Z%27%20and%20resourceUri%20eq%20%27%2Fsubscriptions%2F50f792fa-803e-4280-833d-1fe60fef5293%2FresourceGroups%2FRG-MWCREDIT%2Fproviders%2FMicrosoft.Compute%2FvirtualMachines%2FVM-01%27&$select=eventTimestamp,operationName,status,correlationId,eventDataId,resourceId",
+    "url_options": {
+      "method": "GET"
+    },
+    "root_selector": "if .nextLink then error(\"Activity log paginated; save pages privately before deriving history\") else [.value[]?|select(((.operationName.value // \"\")|ascii_downcase|test(\"/virtualmachines/(start|poweroff|deallocate|restart)/action$\")))|{Time:.eventTimestamp,Operation:.operationName.value,Status:.status.value,Correlation:.correlationId,Event:.eventDataId,Resource:.resourceId}] end",
+    "columns": [
+      {
+        "text": "Time",
+        "selector": "Time",
+        "type": "timestamp"
+      },
+      {
+        "text": "Operation",
+        "selector": "Operation",
+        "type": "string"
+      },
+      {
+        "text": "Status",
+        "selector": "Status",
+        "type": "string"
+      },
+      {
+        "text": "Correlation",
+        "selector": "Correlation",
+        "type": "string"
+      },
+      {
+        "text": "Event",
+        "selector": "Event",
+        "type": "string"
+      },
+      {
+        "text": "Resource",
+        "selector": "Resource",
+        "type": "string"
+      }
+    ]
+  }
+}

@@ -1,0 +1,29 @@
+Browser tab: 23, Title: "My Apps - AppSheet", URL: "https://www.appsheet.com/home/apps".
+0 AXWebArea My Apps - AppSheet, URL: appsheet.com/home/apps
+	1 container my-apps
+		9 container Copy app close
+			10 container modal-title--clone-modal--0
+				11 heading Copy app, Value: 5
+					12 text Copy app
+				13 button close
+			14 container
+				15 text App name
+				16 text field (settable) Description: App name, Value: LoanInsights PG Trial 20260914
+				17 text Category
+				18 pop up button Category
+				19 text Save app to
+				20 pop up button Save app to
+				21 checkbox (settable, integer) Description: Make a copy of the data for the new app, Value: 1
+				22 text Make a copy of the data for the new app
+				23 checkbox (settable, integer) Description: Make a copy of file data (eg: images) for the new app, Value: 1
+				24 text Make a copy of file data (eg: images) for the new app
+			25 button Copy app
+		2 list
+			3 (disabled) Choose a datasource...
+			4 google
+			5 google-2
+			6 database-1
+			7 (selected) database-2
+			8 AppSheet database
+
+The focused UI element is 20 pop up button Save app to

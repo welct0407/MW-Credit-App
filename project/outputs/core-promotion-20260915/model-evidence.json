@@ -1,0 +1,404 @@
+{
+  "captured": "2026-09-15",
+  "source": "Saved production appdoc and current editor, Chrome",
+  "versions": {
+    "OLTP": "3.000094",
+    "OLAP": "1.100062"
+  },
+  "rollback": {
+    "OLTP": "3.000080",
+    "OLAP": "1.100056"
+  },
+  "columns": [
+    {
+      "app": "OLTP",
+      "table": "Loans",
+      "properties": {
+        "Column name": "Ref Closing Payment",
+        "Editable Initial Value?": "Yes",
+        "Fixed definition?": "No",
+        "Formula version": "0",
+        "Hidden": "No",
+        "Key": "No",
+        "Label": "No",
+        "LocaleName": "en-US",
+        "Part of Key?": "No",
+        "Read-Only": "Yes",
+        "Reset on edit?": "No",
+        "Scannable": "No",
+        "Searchable": "Yes",
+        "Sensitive data": "No",
+        "System Defined?": "No",
+        "Virtual?": "No",
+        "Visible?": "ALWAYS",
+        "Type": "Ref",
+        "Display name": "=\"รายการรับชำระที่ปิดยอด / Closing Payment\"",
+        "Type Qualifier": "{\"ReferencedTableName\":\"Payments\",\"ReferencedRootTableName\":\"Payments\",\"ReferencedType\":\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\":\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+      }
+    },
+    {
+      "app": "OLTP",
+      "table": "Loans",
+      "properties": {
+        "Column name": "Charge Generation Request",
+        "Editable Initial Value?": "Yes",
+        "Fixed definition?": "No",
+        "Formula version": "0",
+        "Hidden": "Yes",
+        "Key": "No",
+        "Label": "No",
+        "LocaleName": "en-US",
+        "Part of Key?": "No",
+        "Read-Only": "No",
+        "Reset on edit?": "No",
+        "Scannable": "No",
+        "Searchable": "No",
+        "Sensitive data": "No",
+        "System Defined?": "No",
+        "Virtual?": "No",
+        "Visible?": "ALWAYS",
+        "Type": "Text",
+        "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":\"=FALSE\",\"Reset_If\":null,\"Suggested_Values\":null}"
+      }
+    },
+    {
+      "app": "OLTP",
+      "table": "Payments",
+      "properties": {
+        "Column name": "Ref Target Loan",
+        "Editable Initial Value?": "Yes",
+        "Fixed definition?": "No",
+        "Formula version": "0",
+        "Hidden": "No",
+        "Key": "No",
+        "Label": "No",
+        "LocaleName": "en-US",
+        "Part of Key?": "No",
+        "Read-Only": "No",
+        "Reset on edit?": "No",
+        "Scannable": "No",
+        "Searchable": "Yes",
+        "Sensitive data": "No",
+        "System Defined?": "No",
+        "Virtual?": "No",
+        "Visible?": "ALWAYS",
+        "Type": "Ref",
+        "Display name": "=\"เงินกู้ที่ปิดยอด / Closing Loan\"",
+        "Type Qualifier": "{\"ReferencedTableName\":\"Loans\",\"ReferencedRootTableName\":\"Loans\",\"ReferencedType\":\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\":\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":\"=FALSE\",\"Reset_If\":null,\"Suggested_Values\":null}"
+      }
+    },
+    {
+      "app": "OLTP",
+      "table": "Loans",
+      "properties": {
+        "Column name": "Related Payments",
+        "Editable Initial Value?": "Yes",
+        "Fixed definition?": "No",
+        "Formula version": "0",
+        "Hidden": "No",
+        "Key": "No",
+        "Label": "No",
+        "LocaleName": "en-US",
+        "Part of Key?": "No",
+        "Read-Only": "Yes",
+        "Reset on edit?": "No",
+        "Scannable": "No",
+        "Searchable": "Yes",
+        "Sensitive data": "No",
+        "System Defined?": "Yes",
+        "Virtual?": "Yes",
+        "Visible?": "ALWAYS",
+        "Type": "List",
+        "App formula": "REF_ROWS(\"Payments\", \"Ref Target Loan\")",
+        "Description": "Payments entries that reference this entry in the Ref Target Loan column",
+        "NFC Scannable": "No",
+        "Type Qualifier": "{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":\"{\\\"ReferencedTableName\\\":\\\"Payments\\\",\\\"ReferencedRootTableName\\\":\\\"Payments\\\",\\\"ReferencedType\\\":\\\"Text\\\",\\\"ReferencedTypeQualifier\\\":\\\"{\\\\\\\"MaxLength\\\\\\\":null,\\\\\\\"MinLength\\\\\\\":null,\\\\\\\"LongTextFormatting\\\\\\\":\\\\\\\"Plain Text\\\\\\\",\\\\\\\"IsMulticolumnKey\\\\\\\":false,\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\"Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\",\\\"ReferencedKeyColumn\\\":\\\"Row ID\\\",\\\"IsAPartOf\\\":false,\\\"RelationshipName\\\":null,\\\"InputMode\\\":\\\"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"ItemSeparator\":\" , \",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+      }
+    },
+    {
+      "app": "OLTP",
+      "table": "Payments",
+      "properties": {
+        "Column name": "Related Loans",
+        "Editable Initial Value?": "Yes",
+        "Fixed definition?": "No",
+        "Formula version": "0",
+        "Hidden": "No",
+        "Key": "No",
+        "Label": "No",
+        "LocaleName": "en-US",
+        "Part of Key?": "No",
+        "Read-Only": "Yes",
+        "Reset on edit?": "No",
+        "Scannable": "No",
+        "Searchable": "Yes",
+        "Sensitive data": "No",
+        "System Defined?": "Yes",
+        "Virtual?": "Yes",
+        "Visible?": "ALWAYS",
+        "Type": "List",
+        "App formula": "REF_ROWS(\"Loans\", \"Ref Closing Payment\")",
+        "Description": "Loans entries that reference this entry in the Ref Closing Payment column",
+        "NFC Scannable": "No",
+        "Type Qualifier": "{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":\"{\\\"ReferencedTableName\\\":\\\"Loans\\\",\\\"ReferencedRootTableName\\\":\\\"Loans\\\",\\\"ReferencedType\\\":\\\"Text\\\",\\\"ReferencedTypeQualifier\\\":\\\"{\\\\\\\"MaxLength\\\\\\\":null,\\\\\\\"MinLength\\\\\\\":null,\\\\\\\"LongTextFormatting\\\\\\\":\\\\\\\"Plain Text\\\\\\\",\\\\\\\"IsMulticolumnKey\\\\\\\":false,\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\"Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\",\\\"ReferencedKeyColumn\\\":\\\"Row ID\\\",\\\"IsAPartOf\\\":false,\\\"RelationshipName\\\":null,\\\"InputMode\\\":\\\"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"ItemSeparator\":\" , \",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+      }
+    },
+    {
+      "app": "OLAP",
+      "table": "Loans",
+      "properties": {
+        "Column name": "Ref Closing Payment",
+        "Editable Initial Value?": "Yes",
+        "Fixed definition?": "No",
+        "Formula version": "0",
+        "Hidden": "No",
+        "Key": "No",
+        "Label": "No",
+        "LocaleName": "en-US",
+        "Part of Key?": "No",
+        "Read-Only": "Yes",
+        "Reset on edit?": "No",
+        "Scannable": "No",
+        "Searchable": "Yes",
+        "Sensitive data": "No",
+        "System Defined?": "No",
+        "Virtual?": "No",
+        "Visible?": "ALWAYS",
+        "Type": "Ref",
+        "Display name": "=\"รายการรับชำระที่ปิดยอด / Closing Payment\"",
+        "Type Qualifier": "{\"ReferencedTableName\":\"Payments\",\"ReferencedRootTableName\":\"Payments\",\"ReferencedType\":\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\":\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+      }
+    },
+    {
+      "app": "OLAP",
+      "table": "Loans",
+      "properties": {
+        "Column name": "Charge Generation Request",
+        "Editable Initial Value?": "Yes",
+        "Fixed definition?": "No",
+        "Formula version": "0",
+        "Hidden": "Yes",
+        "Key": "No",
+        "Label": "No",
+        "LocaleName": "en-US",
+        "Part of Key?": "No",
+        "Read-Only": "Yes",
+        "Reset on edit?": "No",
+        "Scannable": "No",
+        "Searchable": "No",
+        "Sensitive data": "No",
+        "System Defined?": "No",
+        "Virtual?": "No",
+        "Visible?": "ALWAYS",
+        "Type": "Text",
+        "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+      }
+    },
+    {
+      "app": "OLAP",
+      "table": "Payments",
+      "properties": {
+        "Column name": "Ref Target Loan",
+        "Editable Initial Value?": "Yes",
+        "Fixed definition?": "No",
+        "Formula version": "0",
+        "Hidden": "No",
+        "Key": "No",
+        "Label": "No",
+        "LocaleName": "en-US",
+        "Part of Key?": "No",
+        "Read-Only": "Yes",
+        "Reset on edit?": "No",
+        "Scannable": "No",
+        "Searchable": "Yes",
+        "Sensitive data": "No",
+        "System Defined?": "No",
+        "Virtual?": "No",
+        "Visible?": "ALWAYS",
+        "Type": "Ref",
+        "Display name": "=\"เงินกู้ที่ปิดยอด / Closing Loan\"",
+        "Type Qualifier": "{\"ReferencedTableName\":\"Loans\",\"ReferencedRootTableName\":\"Loans\",\"ReferencedType\":\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\":\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+      }
+    },
+    {
+      "app": "OLAP",
+      "table": "Loans",
+      "properties": {
+        "Column name": "Related Payments",
+        "Editable Initial Value?": "Yes",
+        "Fixed definition?": "No",
+        "Formula version": "0",
+        "Hidden": "No",
+        "Key": "No",
+        "Label": "No",
+        "LocaleName": "en-US",
+        "Part of Key?": "No",
+        "Read-Only": "Yes",
+        "Reset on edit?": "No",
+        "Scannable": "No",
+        "Searchable": "Yes",
+        "Sensitive data": "No",
+        "System Defined?": "Yes",
+        "Virtual?": "Yes",
+        "Visible?": "ALWAYS",
+        "Type": "List",
+        "App formula": "REF_ROWS(\"Payments\", \"Ref Target Loan\")",
+        "Description": "Payments entries that reference this entry in the Ref Target Loan column",
+        "NFC Scannable": "No",
+        "Type Qualifier": "{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":\"{\\\"ReferencedTableName\\\":\\\"Payments\\\",\\\"ReferencedRootTableName\\\":\\\"Payments\\\",\\\"ReferencedType\\\":\\\"Text\\\",\\\"ReferencedTypeQualifier\\\":\\\"{\\\\\\\"MaxLength\\\\\\\":null,\\\\\\\"MinLength\\\\\\\":null,\\\\\\\"LongTextFormatting\\\\\\\":\\\\\\\"Plain Text\\\\\\\",\\\\\\\"IsMulticolumnKey\\\\\\\":false,\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\"Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\",\\\"ReferencedKeyColumn\\\":\\\"Row ID\\\",\\\"IsAPartOf\\\":false,\\\"RelationshipName\\\":null,\\\"InputMode\\\":\\\"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"ItemSeparator\":\" , \",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+      }
+    },
+    {
+      "app": "OLAP",
+      "table": "Payments",
+      "properties": {
+        "Column name": "Related Loans",
+        "Editable Initial Value?": "Yes",
+        "Fixed definition?": "No",
+        "Formula version": "0",
+        "Hidden": "No",
+        "Key": "No",
+        "Label": "No",
+        "LocaleName": "en-US",
+        "Part of Key?": "No",
+        "Read-Only": "Yes",
+        "Reset on edit?": "No",
+        "Scannable": "No",
+        "Searchable": "Yes",
+        "Sensitive data": "No",
+        "System Defined?": "Yes",
+        "Virtual?": "Yes",
+        "Visible?": "ALWAYS",
+        "Type": "List",
+        "App formula": "REF_ROWS(\"Loans\", \"Ref Closing Payment\")",
+        "Description": "Loans entries that reference this entry in the Ref Closing Payment column",
+        "NFC Scannable": "No",
+        "Type Qualifier": "{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":\"{\\\"ReferencedTableName\\\":\\\"Loans\\\",\\\"ReferencedRootTableName\\\":\\\"Loans\\\",\\\"ReferencedType\\\":\\\"Text\\\",\\\"ReferencedTypeQualifier\\\":\\\"{\\\\\\\"MaxLength\\\\\\\":null,\\\\\\\"MinLength\\\\\\\":null,\\\\\\\"LongTextFormatting\\\\\\\":\\\\\\\"Plain Text\\\\\\\",\\\\\\\"IsMulticolumnKey\\\\\\\":false,\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\"Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\",\\\"ReferencedKeyColumn\\\":\\\"Row ID\\\",\\\"IsAPartOf\\\":false,\\\"RelationshipName\\\":null,\\\"InputMode\\\":\\\"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"ItemSeparator\":\" , \",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+      }
+    }
+  ],
+  "rules": [
+    {
+      "app": "OLTP",
+      "table": "Payments",
+      "column": "Row ID",
+      "property": "Editable Initial Value?",
+      "value": "Yes"
+    },
+    {
+      "app": "OLTP",
+      "table": "Payments",
+      "column": "Row ID",
+      "property": "Fixed definition?",
+      "value": "No"
+    },
+    {
+      "app": "OLAP",
+      "table": "Payments",
+      "column": "Row ID",
+      "property": "Editable Initial Value?",
+      "value": "Yes"
+    },
+    {
+      "app": "OLAP",
+      "table": "Payments",
+      "column": "Row ID",
+      "property": "Fixed definition?",
+      "value": "No"
+    },
+    {
+      "app": "OLTP",
+      "table": "Payments",
+      "column": "Amount Received",
+      "property": "Type Qualifier.Valid_If",
+      "value": "=OR(IN([Row ID], Payments[Row ID]), AND([Allocation Method] = \"Loan Close\", ISNOTBLANK([Ref Target Loan]), [Ref Target Loan].[Ref Borrowers] = [Ref Borrower], [_THIS] > 0, [_THIS] = ROUND([_THIS])), AND([_THIS] > 0, [_THIS] = ROUND([_THIS]), [_THIS] <= [Eligible Outstanding], IF(IN([Allocation Method], LIST(\"Single Full\", \"Receive All\", \"First-day Auto\", \"Loan Close\")), [_THIS] = [Eligible Outstanding], TRUE)))"
+    },
+    {
+      "app": "OLTP",
+      "table": "Payments",
+      "column": "Ref Target Charge",
+      "property": "Type Qualifier.Required_If",
+      "value": "=OR(IN([Allocation Method], LIST(\"Single Full\", \"Single Partial\", \"First-day Auto\")), AND([Allocation Method] = \"Loan Close\", ISBLANK([Ref Target Loan])))"
+    },
+    {
+      "app": "OLAP",
+      "table": "Loans",
+      "column": "Default Loss Amount",
+      "property": "Type Qualifier.CurrencySymbol",
+      "value": "฿"
+    },
+    {
+      "app": "OLAP",
+      "table": "Loans",
+      "column": "Default Loss Amount",
+      "property": "Type Qualifier.DecimalDigits",
+      "value": "0"
+    }
+  ],
+  "tablesRemoved": [
+    "Process for Create First-Day Charge Process Table",
+    "Create First-Day Charge Output",
+    "Process for Generate Daily Charges - 1 Process Table",
+    "Generate Today's Charge Output",
+    "Process for Auto Receive First-Day Charge - 1 Process Table",
+    "Receive First-Day Charge Output",
+    "Process for Payments - Process Receipt - 1 Process Table",
+    "Payment - Process Receipt Output"
+  ],
+  "tablesAdded": [
+    [
+      "OLTP",
+      "v3.000094",
+      "First-day receipt exists Output",
+      "native",
+      "/ProcessStateTables/93844270-6aa5-420b-a960-bcdf08abd357/d339e871-f887-4acc-9f8a-15ec8358798b/StepOutput_First-day receipt exists",
+      "First-day receipt exists Output_Schema",
+      "READ_ONLY",
+      "AppSheet internal process metadata"
+    ],
+    [
+      "OLTP",
+      "v3.000094",
+      "Notify payment-closed loans Output",
+      "native",
+      "/ProcessStateTables/93844270-6aa5-420b-a960-bcdf08abd357/d93019b5-64f3-4a8f-840f-44cc8566a206/StepOutput_Notify payment-closed loans",
+      "Notify payment-closed loans Output_Schema",
+      "READ_ONLY",
+      "AppSheet internal process metadata"
+    ],
+    [
+      "OLTP",
+      "v3.000094",
+      "Process for Notification - First-Day Charge Process Table",
+      "native",
+      "/ProcessStateTables/93844270-6aa5-420b-a960-bcdf08abd357/60128599-b96a-4e31-b611-7a8940567cec/State Table",
+      "Process for Notification - First-Day Charge Process Table_Schema",
+      "READ_ONLY",
+      "AppSheet internal process metadata"
+    ]
+  ],
+  "slice": {
+    "app": "OLAP",
+    "name": "Reporting Loans",
+    "source": "Loans",
+    "permission": "READ_ONLY",
+    "filter": "",
+    "actions": "**auto**",
+    "appendedColumns": [
+      "Ref Closing Payment",
+      "Charge Generation Request",
+      "Related Payments"
+    ]
+  },
+  "comparison": {
+    "businessTablesBindingsPermissionsUnchanged": true,
+    "existingViewsUnchanged": true,
+    "removedBusinessColumns": 0,
+    "removedSlices": 0,
+    "otherBusinessColumnPropertiesUnchanged": true,
+    "paymentKey": "Row ID remains hidden Text key, Read-Only Yes, UNIQUEID(\"PackedUUID\"), no reset",
+    "changedOperationalActions": 16,
+    "newGeneratedRefActions": 2,
+    "olapExistingActionsUnchanged": true
+  }
+}

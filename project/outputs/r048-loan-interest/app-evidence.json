@@ -1,0 +1,80 @@
+{
+  "date": "2026-09-27",
+  "environment": "DEV",
+  "oltp": {
+    "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
+    "before": "1.000125",
+    "after": "1.000128",
+    "issues": 0,
+    "columns": 51
+  },
+  "olap": {
+    "app_id": "9f3422be-bc87-4a5a-a42a-67528ee80393",
+    "before": "1.000042",
+    "after": "1.000045",
+    "issues": 0,
+    "columns": 61
+  },
+  "original_rate": {
+    "type": "Number",
+    "show": true,
+    "editable": false,
+    "reset_on_edit": false,
+    "app_formula": "",
+    "display_name": "\"อัตราดอกเบี้ยรายวันเดิม (%) / Original Daily Interest (%)\"",
+    "initial_value_oltp": "IF([Principal Amount] > 0, IFS(AND([Loan Type] = \"ดอกเบี้ยรายวัน\", ISNOTBLANK([Current Daily Interest])), ROUND(100.0 * [Current Daily Interest] / [Principal Amount]), AND([Loan Type] = \"กำหนดวันชำระ\", ISNOTBLANK([Fixed Interest]), ISNOTBLANK([Loan Date]), ISNOTBLANK([Due Date]), [Due Date] >= [Loan Date]), ROUND(100.0 * [Fixed Interest] / (TOTALHOURS([Due Date] - [Loan Date]) / 24 + 1) / [Principal Amount]), AND([Loan Type] = \"ผ่อนชำระรายวัน\", ISNOTBLANK([Daily Payment Amount]), ISNOTBLANK([Loan Date]), ISNOTBLANK([Due Date]), [Due Date] >= [Loan Date]), ROUND(100.0 * (([Daily Payment Amount] * (TOTALHOURS([Due Date] - [Loan Date]) / 24 + 1)) - [Principal Amount]) / (TOTALHOURS([Due Date] - [Loan Date]) / 24 + 1) / [Principal Amount])), NUMBER(\"\"))",
+    "initial_value_olap": ""
+  },
+  "loan_key": {
+    "oltp": "CONCATENATE([Borrower Name TE], \"-\", TEXT([Principal Amount]), \"-\", TEXT([Loan Date], \"DD/MM\"), \"-\", IF(ISBLANK([Original Daily Interest Rate]), \"Unavailable\", CONCATENATE([Original Daily Interest Rate], \"%\")))",
+    "olap": "CONCATENATE([Borrower Name], \"-\", TEXT([Principal Amount]), \"-\", TEXT([Loan Date], \"DD/MM\"), \"-\", IF(ISBLANK([Original Daily Interest Rate]), \"Unavailable\", CONCATENATE([Original Daily Interest Rate], \"%\")))"
+  },
+  "current_daily_interest": {
+    "editable_if": "NOT(IN([Row ID], Loans[Row ID]))",
+    "valid_if": "OR([Loan Type] <> \"ดอกเบี้ยรายวัน\", [Current Daily Interest] > 0, AND([Current Daily Interest] = 0, IN([Row ID], Loans[Row ID]), ISNOTBLANK([Original Daily Interest Rate])))"
+  },
+  "slices": {
+    "oltp": " [level=6]\n  - text: Columns to include in the slice\n  - generic: \n  - textbox \"search\":\n    - /placeholder: Search..\n  - generic: Move 0 Items\n  - generic: _RowNumber\n  - generic: Move 0 Items\n  - generic \"Key columns cannot be deleted\": Row IDKey\n  - generic: Move 0 Items\n  - generic: Loan Date\n  - generic: Move 0 Items\n  - generic: Close Date\n  - generic: Move 0 Items\n  - generic: Principal Amount\n  - generic: Move 0 Items\n  - generic: Due Date\n  - generic: Move 0 Items\n  - generic: Ref Borrowers\n  - generic: Move 0 Items\n  - generic: Loan Arrangement\n  - generic: Move 0 Items\n  - generic: Loan Status\n  - generic: Move 0 Items\n  - generic: Loan Type\n  - generic: Move 0 Items\n  - generic: Current Daily Interest\n  - generic: Move 0 Items\n  - generic: Fixed Interest\n  - generic: Move 0 Items\n  - generic: Transfer Fee\n  - generic: Move 0 Items\n  - generic: Interest Payment Interval\n  - generic: Move 0 Items\n  - generic: Created By\n  - generic: Move 0 Items\n  - generic: Closed By\n  - generic: Move 0 Items\n  - generic: Defaulted\n  - generic: Move 0 Items\n  - generic: Default Loss Amount\n  - generic: Move 0 Items\n  - generic: Daily Payment Amount\n  - generic: Move 0 Items\n  - generic: Auto Charge Enabled\n  - generic: Move 0 Items\n  - generic: Interest Schedule Anchor Date\n  - generic: Move 0 Items\n  - generic: Ref Closing Payment\n  - generic: Move 0 Items\n  - generic: Charge Generation Request\n  - generic: Move 0 Items\n  - generic: Total Interest Received\n  - generic: Move 0 Items\n  - generic: Total Principal Received\n  - generic: Move 0 Items\n  - generic: Outstanding Principal\n  - generic: Move 0 Items\n  - generic: Total Amount Received\n  - generic: Move 0 Items\n  - generic: Expected Daily Interest Amount\n  - generic: Move 0 Items\n  - generic: Ref Disbursed From Cash Account\n  - generic: Move 0 Items\n  - generic: Payment Request Cash Account\n  - generic: Move 0 Items\n  - generic: Payment Request Token\n  - generic: Move 0 Items\n  - generic: Related Repayments\n  - generic: Move 0 Items\n  - generic: Statistics Header\n  - generic: Move 0 Items\n  - generic: Related Charges\n  - generic: Move 0 Items\n  - generic: Loan Key\n  - generic: Move 0 Items\n  - generic: Expected Interest This Month\n  - generic: Move 0 Items\n  - generic: Effective Daily Interest Rate\n  - generic: Move 0 Items\n  - generic: Principal Recovered by Interest %\n  - generic: Move 0 Items\n  - generic: Principal Days MTD\n  - generic: Move 0 Items\n  - generic: Borrower Name TE\n  - generic: Move 0 Items\n  - generic: Loan Status TE\n  - generic: Move 0 Items\n  - generic: Loan Type TE\n  - generic: Move 0 Items\n  - generic: Loan Duration\n  - generic: Move 0 Items\n  - generic: Last Interest Charge Date\n  - generic: Move 0 Items\n  - generic: Accrued Interest Days\n  - generic: Move 0 Items\n  - generic: Accrued Interest\n  - generic: Move 0 Items\n  - generic: Borrower Name\n  - generic: Move 0 Items\n  - generic: Related Payments\n  - generic: Move 0 Items\n  - generic: Related Business Expenses\n  - generic: Move 0 Items\n  - generic: Related Cash Account Statement Recents\n  - generic: Move 0 Items\n  - generic: Original Daily Interest Rate\n",
+    "olap": " [level=6]\n  - text: Columns to include in the slice\n  - button \"Add\":\n    - generic: Add\n  - generic: \n  - textbox \"search\":\n    - /placeholder: Search..\n  - generic: Move 0 Items\n  - generic: _RowNumber\n  - generic: Move 0 Items\n  - generic \"Key columns cannot be deleted\": Row IDKey\n  - generic: Move 0 Items\n  - generic: Loan Date\n  - generic: Move 0 Items\n  - generic: Close Date\n  - generic: Move 0 Items\n  - generic: Principal Amount\n  - generic: Move 0 Items\n  - generic: Due Date\n  - generic: Move 0 Items\n  - generic: Ref Borrowers\n  - generic: Move 0 Items\n  - generic: Total Interest Received\n  - generic: Move 0 Items\n  - generic: Total Principal Received\n  - generic: Move 0 Items\n  - generic: Outstanding Principal\n  - generic: Move 0 Items\n  - generic: Total Amount Received\n  - generic: Move 0 Items\n  - generic: Loan Status TE\n  - generic: Move 0 Items\n  - generic: Loan Age Bucket\n  - generic: Move 0 Items\n  - generic: Loan Type TE\n  - generic: Move 0 Items\n  - generic: Loan Status\n  - generic: Move 0 Items\n  - generic: Loan Type\n  - generic: Move 0 Items\n  - generic: Current Daily Interest\n  - generic: Move 0 Items\n  - generic: Fixed Interest\n  - generic: Move 0 Items\n  - generic: Transfer Fee\n  - generic: Move 0 Items\n  - generic: Interest Payment Interval\n  - generic: Move 0 Items\n  - generic: Principal Recovered by Interest %\n  - generic: Move 0 Items\n  - generic: Expected Interest This Month\n  - generic: Move 0 Items\n  - generic: Effective Daily Interest Rate\n  - generic: Move 0 Items\n  - generic: Default Loss Amount\n  - generic: Move 0 Items\n  - generic: Defaulted Flag\n  - generic: Move 0 Items\n  - generic: Borrower Name\n  - generic: Move 0 Items\n  - generic: Borrower Name TE\n  - generic: Move 0 Items\n  - generic: Loan Duration\n  - generic: Move 0 Items\n  - generic: Defaulted\n  - generic: Move 0 Items\n  - generic: Maximum Days Late\n  - generic: Move 0 Items\n  - generic: Daily Payment Amount\n  - generic: Move 0 Items\n  - generic: Expected Daily Interest Amount\n  - generic: Move 0 Items\n  - generic: Auto Charge Enabled\n  - generic: Move 0 Items\n  - generic: Interest Schedule Anchor Date\n  - generic: Move 0 Items\n  - generic: Ref Closing Payment\n  - generic: Move 0 Items\n  - generic: Related Payments\n  - generic: Move 0 Items\n  - generic: Charge Generation Request\n  - generic: Move 0 Items\n  - generic: Related Business Expenses\n  - generic: Move 0 Items\n  - generic: Related Cash Ledgers\n  - generic: Move 0 Items\n  - generic: Ref Disbursed From Cash Account\n  - generic: Move 0 Items\n  - generic: Payment Request Cash Account\n  - generic: Move 0 Items\n  - generic: Payment Request Token\n  - generic: Move 0 Items\n  - generic: Original Daily Interest Rate\n"
+  },
+  "gui_tests": {
+    "daily_creation": {
+      "principal": 1000,
+      "daily": 5,
+      "rate": 1
+    },
+    "fixed_preview": {
+      "inclusive_days": 10,
+      "fixed_interest": 150,
+      "rate": 2
+    },
+    "installment_preview": {
+      "inclusive_days": 10,
+      "daily_payment": 115,
+      "rate": 2
+    },
+    "partial_receipt": {
+      "amount": 205,
+      "principal_received": 200,
+      "outstanding": 800,
+      "daily": 8,
+      "rate": 1
+    },
+    "payoff": {
+      "amount": 800,
+      "outstanding": 0,
+      "daily": 0,
+      "rate": 1
+    },
+    "both_apps_detail_verified": true,
+    "oltp_edit_rate_and_daily_disabled": true,
+    "fixture_retired": {
+      "auto_charge": false,
+      "borrower_hidden": true,
+      "cash_account_active": false,
+      "posted_payments": 2,
+      "total_received": 1005,
+      "audit_records_retained": true
+    }
+  }
+}

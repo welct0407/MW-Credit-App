@@ -1,0 +1,51 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.r051_parent_dirty()"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r051-production/README.md"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "r051_parent_dirty"
+    "arguments": ""
+    "kind": "f"
+    "arguments_with_defaults": ""
+    "result": "trigger"
+    "definition": "CREATE OR REPLACE FUNCTION public.r051_parent_dirty()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path\
+      \ TO 'pg_catalog', 'public'\nAS $function$\r\nDECLARE o jsonb:=CASE WHEN TG_OP='INSERT' THEN '{}'::jsonb ELSE to_jsonb(OLD)\
+      \ END;\r\n n jsonb:=CASE WHEN TG_OP='DELETE' THEN '{}'::jsonb ELSE to_jsonb(NEW) END;\r\n borrowers text[]; fields text[];\r\
+      \nBEGIN\r\n fields:=CASE TG_TABLE_NAME\r\n WHEN 'Loans' THEN ARRAY['Ref Borrowers','Principal Amount','Loan Status','Auto\
+      \ Charge Enabled','Loan Type','Loan Date','Due Date','Current Daily Interest','Daily Payment Amount']\r\n WHEN 'Repayments'\
+      \ THEN ARRAY['Ref Loans','Ref Charges','Ref Payment','Principal Paid','Interest Paid','Payment Date']\r\n ELSE ARRAY['Ref\
+      \ Payment','Allocated Amount'] END;\r\n IF TG_OP='UPDATE' AND NOT EXISTS(SELECT 1 FROM unnest(fields) k WHERE o->k IS\
+      \ DISTINCT FROM n->k) THEN RETURN NULL; END IF;\r\n IF TG_TABLE_NAME='Repayments' THEN\r\n  PERFORM public.r051_queue_parent('charge',ARRAY[o->>'Ref\
+      \ Charges',n->>'Ref Charges']);\r\n  PERFORM public.r051_queue_parent('loan',ARRAY[o->>'Ref Loans',n->>'Ref Loans']);\r\
+      \n END IF;\r\n IF TG_TABLE_NAME IN ('Repayments','Payment Allocations') THEN\r\n  PERFORM public.r051_queue_parent('payment',ARRAY[o->>'Ref\
+      \ Payment',n->>'Ref Payment']);\r\n END IF;\r\n IF TG_TABLE_NAME='Loans' THEN borrowers:=ARRAY[o->>'Ref Borrowers',n->>'Ref\
+      \ Borrowers'];\r\n ELSIF TG_TABLE_NAME='Repayments' THEN\r\n  SELECT array_agg(\"Ref Borrowers\") INTO borrowers FROM\
+      \ public.\"Loans\" WHERE \"Row ID\" IN(o->>'Ref Loans',n->>'Ref Loans');\r\n END IF;\r\n IF borrowers IS NOT NULL THEN\
+      \ PERFORM public.r051_queue_parent('borrower',borrowers); END IF;\r\n RETURN NULL;\r\nEND $function$\n"
+    "owner": "postgres"
+    "language": "plpgsql"
+    "volatility": "v"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 0.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": "{=X/postgres,postgres=X/postgres,mw_app_prod=X/postgres}"
+    "comment": null
+    "extension": null
+"evidence":
+  "/content/definition/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"

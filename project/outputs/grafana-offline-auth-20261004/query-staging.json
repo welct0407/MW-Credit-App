@@ -1,0 +1,18 @@
+{
+  "source_commit": "6408218b2ccabd0d59fd2feef2924fbe4c31700f",
+  "immutable_image": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-monitoring/grafana-mcp-bridge@sha256:e5780398eee6fb4876578d473ca16490cd3292e808b1c670c218a8b9adcd90be",
+  "staged_revision": "mw-grafana-events-00011-cpv",
+  "staged_ready": true,
+  "staged_traffic_percent": 0,
+  "live_revision": "mw-grafana-events-00009-487",
+  "live_traffic_percent": 100,
+  "runtime_metadata_projection_preserved": true,
+  "environment_values_not_projected": true,
+  "operational_annotations_preserved": true,
+  "logging_exclusions_preserved": true,
+  "existing_secret_mounts_preserved": true,
+  "existing_grants_extended": false,
+  "native_host_offline_consent_verified": false,
+  "external_endpoint": "https://alerts.mw-credit.com/mcp",
+  "owner_reconnect_ready": false
+}

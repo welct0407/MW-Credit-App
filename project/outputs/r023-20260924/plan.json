@@ -1,0 +1,216 @@
+{
+  "tabs": [
+    {
+      "id": 4,
+      "name": "1 · Overview",
+      "position": 0
+    },
+    {
+      "id": 14,
+      "name": "2 · Cash Position",
+      "position": 1
+    },
+    {
+      "id": 16,
+      "name": "3 · Income Statement",
+      "position": 2
+    },
+    {
+      "id": 15,
+      "name": "4 · Cashflow Statement",
+      "position": 3
+    },
+    {
+      "id": 6,
+      "name": "5 · Borrowers",
+      "position": 4
+    },
+    {
+      "id": 18,
+      "name": "6 · Performance",
+      "position": 5
+    },
+    {
+      "id": 8,
+      "name": "7 · Risks",
+      "position": 6
+    },
+    {
+      "id": 9,
+      "name": "8 · Daily Collection",
+      "position": 7
+    },
+    {
+      "id": 10,
+      "name": "9 · Borrower Insight",
+      "position": 8
+    },
+    {
+      "id": 11,
+      "name": "10 · Forecast & Partners",
+      "position": 9
+    },
+    {
+      "id": 17,
+      "name": "Tab 11",
+      "position": 10
+    }
+  ],
+  "parameters": [
+    {
+      "slug": "borrower",
+      "values_query_type": "list",
+      "name": "Borrower",
+      "isMultiSelect": false,
+      "type": "string/=",
+      "sectionId": "string",
+      "values_source_type": "card",
+      "id": "insight-borrower",
+      "values_source_config": {
+        "card_id": 161,
+        "value_field": [
+          "field",
+          "Borrower ID",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "label_field": [
+          "field",
+          "Borrower",
+          {
+            "base-type": "type/Text"
+          }
+        ]
+      }
+    },
+    {
+      "id": "proposed-amount",
+      "name": "Proposed loan",
+      "slug": "proposed_amount",
+      "type": "number/=",
+      "sectionId": "number",
+      "default": [
+        0
+      ],
+      "isMultiSelect": false
+    },
+    {
+      "id": "overview-trend-period",
+      "name": "Portfolio trend period",
+      "slug": "overview_trend_period",
+      "type": "date/all-options",
+      "sectionId": "date",
+      "default": "past30days"
+    },
+    {
+      "id": "review-position",
+      "name": "Position date / period end",
+      "slug": "review_position",
+      "type": "date/all-options",
+      "sectionId": "date",
+      "default": "today"
+    },
+    {
+      "id": "review-position-trend",
+      "name": "Position trend period",
+      "slug": "review_position_trend",
+      "type": "date/all-options",
+      "sectionId": "date",
+      "default": "past30days"
+    },
+    {
+      "id": "review-flow",
+      "name": "Cashflow period",
+      "slug": "review_flow",
+      "type": "date/all-options",
+      "sectionId": "date",
+      "default": "thismonth"
+    },
+    {
+      "slug": "review_account",
+      "values_query_type": "list",
+      "default": [
+        "__ALL__"
+      ],
+      "name": "Account",
+      "isMultiSelect": false,
+      "type": "string/=",
+      "sectionId": "string",
+      "values_source_type": "card",
+      "id": "review-account",
+      "values_source_config": {
+        "card_id": 199,
+        "value_field": [
+          "field",
+          "Scope ID",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "label_field": [
+          "field",
+          "Account",
+          {
+            "base-type": "type/Text"
+          }
+        ]
+      }
+    },
+    {
+      "id": "review-income",
+      "name": "Statement period",
+      "slug": "review_income",
+      "type": "date/all-options",
+      "sectionId": "date",
+      "default": "thismonth"
+    },
+    {
+      "id": "review-performance",
+      "name": "Performance period",
+      "slug": "review_performance",
+      "type": "date/all-options",
+      "sectionId": "date",
+      "default": "past30days"
+    }
+  ],
+  "removed_tab": 7,
+  "canonical_tab": 18,
+  "removed_placements": [
+    218,
+    219,
+    220,
+    221,
+    222,
+    223,
+    224,
+    225,
+    226,
+    227,
+    228,
+    211,
+    212,
+    214,
+    215,
+    216,
+    217,
+    361
+  ],
+  "retained_questions": [
+    99,
+    103,
+    104,
+    100,
+    105,
+    106,
+    101,
+    102,
+    107,
+    94,
+    96,
+    97,
+    98,
+    56
+  ],
+  "placements": 189
+}

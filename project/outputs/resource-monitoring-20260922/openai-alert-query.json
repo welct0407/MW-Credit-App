@@ -1,0 +1,29 @@
+{
+  "hide": false,
+  "datasource": {
+    "type": "yesoreyeram-infinity-datasource",
+    "uid": "cfz10a9eaokjkd"
+  },
+  "url": "https://status.openai.com/proxy/status.openai.com",
+  "type": "json",
+  "parser": "jq-backend",
+  "source": "url",
+  "format": "table",
+  "columns": [
+    {
+      "text": "component",
+      "type": "string",
+      "selector": "component"
+    },
+    {
+      "text": "value",
+      "type": "number",
+      "selector": "value"
+    }
+  ],
+  "refId": "A",
+  "root_selector": "# The current OpenAI website's public summary includes groups and active incidents.\n# Emit one stable alert label per product; incident text is dashboard-only metadata.\ndef sgt: try (sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601 | . + 28800 | strftime(\"%Y-%m-%d %H:%M SGT\")) catch \"Time unavailable\";\ndef text: if type == \"string\" then . else \"\" end;\n.summary as $s |\n[\"ChatGPT\", \"Codex\"][] as $product |\n([$s.structure.items[]?.group? | select(.name == $product)] | first) as $group |\n[$group.components[]? | select(.hidden != true) | .component_id] as $ids |\n[$s.affected_components[]? | select(.component_id as $id | $ids | index($id))] as $affected |\n[$s.ongoing_incidents[]? | select(.status != \"resolved\" and .status != \"closed\") |\n select(any(.affected_components[]?; .component_id as $id | $ids | index($id)))] as $incidents |\n(($s.id == \"01JMDK9XYNY6RXSED6SDWW50WY\") and ($s.name == \"OpenAI\") and\n (($s.affected_components | type) == \"array\") and (($s.ongoing_incidents | type) == \"array\") and\n ($ids | length) > 0 and\n (all($s.ongoing_incidents[]?; (.affected_components | type) == \"array\" and (.affected_components | length) > 0)) and\n (all($affected[]; .status == \"operational\" or .status == \"degraded_performance\" or .status == \"partial_outage\" or .status == \"full_outage\" or .status == \"major_outage\" or .status == \"under_maintenance\"))) as $valid |\n(if $valid != true then 4\n elif any($affected[]; .status == \"full_outage\" or .status == \"major_outage\") then 0\n elif any($affected[]; .status != \"operational\") or ($incidents | length) > 0 then 2\n else 1 end) as $status |\n(if $status == 4 then \"Unknown\" elif $status == 0 then \"Down\" elif $status == 2 then \"Degraded\" else \"Healthy\" end) as $state |\n($incidents | sort_by(.published_at) | reverse) as $ordered |\n{component:($product | ascii_downcase), status:$status, value:(if $status == 0 or $status == 2 then 1 else 0 end),\n details:($product + \" — \" + $state + \"\\n\" +\n   (if $status == 4 then \"Current provider status unavailable or response format changed.\"\n    elif ($ordered | length) > 0 then\n      ([$ordered[] | (.updates | sort_by(.published_at) | last) as $update |\n        .name + \"\\nStatus: \" + (.status | text) +\n        \"\\nUpdated: \" + (($update.published_at // .published_at) | sgt) +\n        \"\\n\" + (($update.message_string // $update.message.markdown // \"No explanation published yet.\") | text) +\n        \"\\nhttps://status.openai.com/incidents/\" + .id] | join(\"\\n\\n\"))\n    elif $status != 1 then \"Affected components: \" + ([$affected[] | .component_id as $id | $group.components[] | select(.component_id == $id) | .name] | join(\", \")) + \". No incident explanation published yet.\"\n    else \"No active incident reported.\" end) +\n   \"\\nChecked: \" + (now + 28800 | strftime(\"%Y-%m-%d %H:%M SGT\"))),\n url:(if ($ordered | length) > 0 then \"https://status.openai.com/incidents/\" + $ordered[0].id else \"https://status.openai.com/\" end)}\n | {component,value}",
+  "url_options": {
+    "method": "GET"
+  }
+}

@@ -1,0 +1,78 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.undo_loan_default(p \"Loans\")"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r051-production/README.md"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "undo_loan_default"
+    "arguments": "p \"Loans\""
+    "kind": "f"
+    "arguments_with_defaults": "p \"Loans\""
+    "result": "void"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.undo_loan_default(p "Loans")
+       RETURNS void
+       LANGUAGE plpgsql
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+      #variable_conflict use_column
+      DECLARE posting text:='df10:'||length(p."Row ID")||':'||p."Row ID";
+       c record; evidence jsonb; prefix text; prior text:=current_setting('business_crud.default',true);
+      BEGIN
+       IF pg_trigger_depth()=0 THEN RAISE EXCEPTION 'Undo default through Loans.Defaulted'; END IF;
+       PERFORM 1 FROM public."Borrowers" WHERE "Row ID"=p."Ref Borrowers" FOR UPDATE NOWAIT;
+       PERFORM 1 FROM public."Charges" WHERE "Ref Loans"=p."Row ID" ORDER BY "Row ID" COLLATE "C" FOR UPDATE NOWAIT;
+       IF NOT EXISTS(SELECT 1 FROM public."Repayments" r JOIN public."Charges" c ON c."Row ID"=r."Ref Charges"
+         WHERE r."Row ID"=posting AND c."Row ID"=posting AND r."Ref Loans"=p."Row ID" AND c."Ref Loans"=p."Row ID"
+          AND r."Ref Payment" IS NULL AND r."Principal Paid"=p."Default Loss Amount" AND r."Interest Paid"=(-p."Default Loss Amount"::numeric)::money
+          AND c."Principal Due"=p."Default Loss Amount" AND c."Interest Due"=(-p."Default Loss Amount"::numeric)::money) THEN
+        RAISE EXCEPTION 'Default loss posting no longer matches; reconcile its components before undo'; END IF;
+       PERFORM set_config('business_crud.default',p."Row ID",true);
+       DELETE FROM public."Repayments" WHERE "Row ID"=posting;
+       DELETE FROM public."Charges" WHERE "Row ID"=posting;
+       FOR c IN SELECT * FROM public."Charges" WHERE "Ref Loans"=p."Row ID" LOOP
+        IF coalesce(c."Notes",'') NOT LIKE '%Default write-off %' THEN
+         IF c."Principal Due"::numeric+c."Interest Due"::numeric>0 AND
+          c."Principal Due"::numeric=(SELECT coalesce(sum("Principal Paid"::numeric),0) FROM public."Repayments" WHERE "Ref Charges"=c."Row ID") AND
+          c."Interest Due"::numeric=(SELECT coalesce(sum("Interest Paid"::numeric),0) FROM public."Repayments" WHERE "Ref Charges"=c."Row ID") THEN CONTINUE; END IF;
+         RAISE EXCEPTION 'Default charge has no original component evidence; reconcile before undo';
+        END IF;
+        prefix:=substring(c."Notes" from '(?s)^(.*)Default write-off \{[^\n]*\}$');
+        BEGIN evidence:=substring(c."Notes" from 'Default write-off (\{[^\n]*\})$')::jsonb;
+        EXCEPTION WHEN OTHERS THEN RAISE EXCEPTION 'Default charge evidence is malformed; reconcile before undo'; END;
+        IF evidence IS NULL OR evidence->>'posting' IS DISTINCT FROM posting OR
+         c."Principal Due"::numeric IS DISTINCT FROM (evidence->>'original_principal')::numeric-(evidence->>'written_off_principal')::numeric OR
+         c."Interest Due"::numeric IS DISTINCT FROM (evidence->>'original_interest')::numeric-(evidence->>'written_off_interest')::numeric THEN
+         RAISE EXCEPTION 'Default charge changed since write-off; reconcile before undo'; END IF;
+        UPDATE public."Charges" SET "Principal Due"=(evidence->>'original_principal')::numeric::money,
+         "Interest Due"=(evidence->>'original_interest')::numeric::money,"Notes"=nullif(regexp_replace(prefix,E'\n$',''),'')
+         WHERE "Row ID"=c."Row ID";
+       END LOOP;
+       PERFORM set_config('business_crud.default',coalesce(prior,''),true);
+      END $function$
+    "owner": "postgres"
+    "language": "plpgsql"
+    "volatility": "v"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 0.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": "{=X/postgres,postgres=X/postgres,mw_app_prod=X/postgres}"
+    "comment": null
+    "extension": null
+"evidence":
+  "/content/definition/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"

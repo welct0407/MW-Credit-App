@@ -1,0 +1,93 @@
+{
+  "passed": true,
+  "tables": [
+    {
+      "table": "Borrowers",
+      "rows": 29,
+      "fields": 2204,
+      "differences": 0,
+      "orderChanges": 8,
+      "rowNumberChanges": 0
+    },
+    {
+      "table": "Cash Pool Contributions",
+      "rows": 5,
+      "fields": 40,
+      "differences": 0,
+      "orderChanges": 0,
+      "rowNumberChanges": 0
+    },
+    {
+      "table": "Charges",
+      "rows": 745,
+      "fields": 19370,
+      "differences": 0,
+      "orderChanges": 1,
+      "rowNumberChanges": 0
+    },
+    {
+      "table": "Daily Analytics",
+      "rows": 41,
+      "fields": 902,
+      "differences": 0,
+      "orderChanges": 0,
+      "rowNumberChanges": 0
+    },
+    {
+      "table": "Loan Assessment",
+      "rows": 1,
+      "fields": 21,
+      "differences": 0,
+      "orderChanges": 0,
+      "rowNumberChanges": 0
+    },
+    {
+      "table": "Loans",
+      "rows": 62,
+      "fields": 3100,
+      "differences": 0,
+      "orderChanges": 29,
+      "rowNumberChanges": 0
+    },
+    {
+      "table": "Partners",
+      "rows": 2,
+      "fields": 38,
+      "differences": 0,
+      "orderChanges": 0,
+      "rowNumberChanges": 0
+    },
+    {
+      "table": "Payment Allocations",
+      "rows": 263,
+      "fields": 3682,
+      "differences": 0,
+      "orderChanges": 0,
+      "rowNumberChanges": 0
+    },
+    {
+      "table": "Payments",
+      "rows": 140,
+      "fields": 2100,
+      "differences": 0,
+      "orderChanges": 0,
+      "rowNumberChanges": 122
+    },
+    {
+      "table": "Repayments",
+      "rows": 644,
+      "fields": 14812,
+      "differences": 0,
+      "orderChanges": 0,
+      "rowNumberChanges": 644
+    },
+    {
+      "table": "Settlements",
+      "rows": 2,
+      "fields": 14,
+      "differences": 0,
+      "orderChanges": 0,
+      "rowNumberChanges": 0
+    }
+  ]
+}

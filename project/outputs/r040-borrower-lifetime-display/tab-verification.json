@@ -1,0 +1,14 @@
+{
+  "passed": true,
+  "dashboard": 3,
+  "tabs": 12,
+  "placements": 237,
+  "oldPlacementsRemoved": 21,
+  "oldQuestionsRetained": 16,
+  "portfolioPlacementsPreserved": true,
+  "detailPlacementsPreserved": true,
+  "allOtherPlacementsAndMappingsPreserved": true,
+  "parametersPreserved": true,
+  "comparisonQueryPassed": true,
+  "backupDashboard": 16
+}

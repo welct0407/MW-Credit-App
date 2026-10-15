@@ -1,0 +1,143 @@
+{
+  "app_id": "d4bccac6-bc9d-4ba5-ad7d-200d9ba476ba",
+  "version": "1.000009",
+  "database": "loan_manager_prod",
+  "instance": "appsheet-pg-prod-20260914",
+  "host": "34.21.174.215",
+  "tables": [
+    {
+      "Table name": "Borrowers",
+      "Source Path": "Borrowers",
+      "Data Source": "database-2",
+      "Store for image and file capture": "_Default"
+    },
+    {
+      "Table name": "Loans",
+      "Source Path": "Loans",
+      "Data Source": "database-2",
+      "Store for image and file capture": "_Default"
+    },
+    {
+      "Table name": "Repayments",
+      "Source Path": "Repayments",
+      "Data Source": "database-2",
+      "Store for image and file capture": "_Default"
+    },
+    {
+      "Table name": "Statistics",
+      "Source Path": "Statistics",
+      "Data Source": "database-2",
+      "Store for image and file capture": "_Default"
+    },
+    {
+      "Table name": "Charges",
+      "Source Path": "Charges",
+      "Data Source": "database-2",
+      "Store for image and file capture": "_Default"
+    },
+    {
+      "Table name": "Partners",
+      "Source Path": "Partners",
+      "Data Source": "database-2",
+      "Store for image and file capture": "_Default"
+    },
+    {
+      "Table name": "Payment Allocations",
+      "Source Path": "Payment Allocations",
+      "Data Source": "database-2",
+      "Store for image and file capture": "_Default"
+    },
+    {
+      "Table name": "Payments",
+      "Source Path": "Payments",
+      "Data Source": "database-2",
+      "Store for image and file capture": "MW Receipt Images PROD"
+    },
+    {
+      "Table name": "Business Expenses",
+      "Source Path": "Business Expenses",
+      "Data Source": "database-2",
+      "Store for image and file capture": "_Default"
+    },
+    {
+      "Table name": "Loan Form Context",
+      "Source Path": "Loan Form Context",
+      "Data Source": "database-2",
+      "Store for image and file capture": "_Default"
+    },
+    {
+      "Table name": "Cash Holders",
+      "Source Path": "Cash Holders",
+      "Data Source": "database-2",
+      "Store for image and file capture": "_Default"
+    },
+    {
+      "Table name": "Cash Holder Balances",
+      "Source Path": "Cash Holder Balances",
+      "Data Source": "database-2",
+      "Store for image and file capture": "_Default"
+    },
+    {
+      "Table name": "Cash Accounts",
+      "Source Path": "Cash Accounts",
+      "Data Source": "database-2",
+      "Store for image and file capture": "_Default"
+    },
+    {
+      "Table name": "Cash Statement Context",
+      "Source Path": "Cash Statement Context",
+      "Data Source": "database-2",
+      "Store for image and file capture": "_Default"
+    },
+    {
+      "Table name": "Cash Account Daily Summary Recent",
+      "Source Path": "Cash Account Daily Summary Recent",
+      "Data Source": "database-2",
+      "Store for image and file capture": "_Default"
+    },
+    {
+      "Table name": "Cash Account Statement Recent",
+      "Source Path": "Cash Account Statement Recent",
+      "Data Source": "database-2",
+      "Store for image and file capture": "_Default"
+    },
+    {
+      "Table name": "Cash Account Balances",
+      "Source Path": "Cash Account Balances",
+      "Data Source": "database-2",
+      "Store for image and file capture": "_Default"
+    },
+    {
+      "Table name": "Cash Dashboard",
+      "Source Path": "Cash Dashboard",
+      "Data Source": "database-2",
+      "Store for image and file capture": "_Default"
+    },
+    {
+      "Table name": "Upcoming Charge Forecast",
+      "Source Path": "oltp_upcoming_charge_events_v1",
+      "Data Source": "database-2",
+      "Store for image and file capture": "_Default"
+    },
+    {
+      "Table name": "Upcoming Charge Coverage",
+      "Source Path": "oltp_upcoming_charge_coverage_v1",
+      "Data Source": "database-2",
+      "Store for image and file capture": "_Default"
+    },
+    {
+      "Table name": "Upcoming Charge Context",
+      "Source Path": "oltp_upcoming_charge_context_v1",
+      "Data Source": "database-2",
+      "Store for image and file capture": "_Default"
+    },
+    {
+      "Table name": "Upcoming Charge Summary",
+      "Source Path": "oltp_upcoming_charge_summary_v1",
+      "Data Source": "database-2",
+      "Store for image and file capture": "_Default"
+    }
+  ],
+  "receipt_folder": "manual-receipts/prod",
+  "companion": "LoanBusinessInsights-975338008"
+}

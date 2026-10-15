@@ -1,0 +1,26 @@
+{
+  "cards": {
+    "q168": 168,
+    "q169": 169,
+    "q170": 170,
+    "q171": 171,
+    "income-status": 184,
+    "profit-bridge": 204,
+    "expense-category": 178,
+    "expense-detail": 212,
+    "q195": 195,
+    "q192": 192,
+    "q193": 193,
+    "q197": 197,
+    "q194": 194,
+    "flow-status": 198,
+    "movement": 203,
+    "transactions": 196,
+    "accounts": 199,
+    "income-trend": 213,
+    "income-snapshot-status": 214,
+    "flow-trend": 215,
+    "flow-snapshot-status": 216
+  },
+  "baseline_commit": "cf243e138cd85701cd8e156626e88a65174d604e"
+}

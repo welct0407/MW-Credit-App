@@ -1,0 +1,91 @@
+{
+  "status": "All four phases measured; seven samples each",
+  "date": "2026-09-16",
+  "environment": "development",
+  "appId": "65faacd8-2b0d-43bf-9e0a-58eb915dcf9b",
+  "version": "1.000048",
+  "method": "Chrome current desktop runtime, explicit Sync click to button enabled; wall-clock includes browser control and polling overhead; initial sync excluded",
+  "baselineMs": [
+    5332,
+    5293,
+    4207,
+    4409,
+    4404,
+    5573,
+    6079
+  ],
+  "baselineMedianMs": 5293,
+  "phases": [
+    {
+      "phase": 1,
+      "oltpVersion": "1.000052",
+      "olapVersion": "1.000056",
+      "warmupMs": 6669,
+      "samplesMs": [
+        5511,
+        4130,
+        3847,
+        5741,
+        4897,
+        9825,
+        4925
+      ],
+      "medianMs": 4925,
+      "improvementFromBaselinePercent": 6.952579
+    },
+    {
+      "phase": 2,
+      "oltpVersion": "1.000054",
+      "olapVersion": "1.000056",
+      "warmupMs": 5521,
+      "samplesMs": [
+        5165,
+        3989,
+        5422,
+        6731,
+        6180,
+        3797,
+        7644
+      ],
+      "medianMs": 5422,
+      "improvementFromBaselinePercent": -2.43718,
+      "improvementFromPreviousPhasePercent": -10.09137
+    },
+    {
+      "phase": 3,
+      "oltpVersion": "1.000059",
+      "olapVersion": "1.000061",
+      "warmupMs": 4759,
+      "samplesMs": [
+        5724,
+        5953,
+        4525,
+        4787,
+        5107,
+        3937,
+        5140
+      ],
+      "medianMs": 5107,
+      "improvementFromBaselinePercent": 3.514075,
+      "improvementFromPreviousPhasePercent": 5.809664
+    },
+    {
+      "phase": 4,
+      "oltpVersion": "1.000061",
+      "olapVersion": "1.000063",
+      "warmupMs": 5541,
+      "samplesMs": [
+        6195,
+        4470,
+        5734,
+        4130,
+        6112,
+        4534,
+        4819
+      ],
+      "medianMs": 4819,
+      "improvementFromBaselinePercent": 8.955224,
+      "improvementFromPreviousPhasePercent": 5.639318
+    }
+  ]
+}

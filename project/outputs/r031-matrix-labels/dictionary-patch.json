@@ -1,0 +1,62 @@
+{
+  "file": "systems/metabase/dashboards/loan-reports.yaml",
+  "expected_sha256": "d108160e1946ade935e5a7bee7ef4b549cff18a837388176196b7a49790486f8",
+  "evidence": "outputs/r031-matrix-labels/verification.json",
+  "reason": "R031 static chart presentation verified",
+  "changes": [
+    {
+      "pointer": "/content/borrower_health_review/custom_matrix",
+      "expected": {
+        "state": "value",
+        "value": {
+          "placement_id": 1501,
+          "display": "iframe",
+          "host": "https://charts.mw-credit.com",
+          "fragment": "key=<private bearer secret; intentionally excluded>",
+          "row": 54,
+          "col": 0,
+          "size_x": 24,
+          "size_y": 22,
+          "later_tab_rows_shifted_by": 22,
+          "original_question_retained": 274,
+          "refresh_seconds": 60,
+          "source": "public.reporting_borrower_matrix_plot_v1",
+          "authentication": "Bearer shared secret; accessible to authorized readers of dashboard 3",
+          "dashboard_filters_inherited": false,
+          "service": "mw-report-charts.service",
+          "reference": "outputs/r030-custom-matrix/README.md"
+        }
+      },
+      "target": {
+        "state": "value",
+        "value": {
+          "placement_id": 1501,
+          "display": "iframe",
+          "host": "https://charts.mw-credit.com",
+          "fragment": "key=<private bearer secret; intentionally excluded>",
+          "row": 54,
+          "col": 0,
+          "size_x": 24,
+          "size_y": 22,
+          "later_tab_rows_shifted_by": 22,
+          "original_question_retained": 274,
+          "refresh_seconds": 60,
+          "source": "public.reporting_borrower_matrix_plot_v1",
+          "authentication": "Bearer shared secret; accessible to authorized readers of dashboard 3",
+          "dashboard_filters_inherited": false,
+          "service": "mw-report-charts.service",
+          "reference": "outputs/r030-custom-matrix/README.md",
+          "presentation": {
+            "release": "R031",
+            "quadrant_markers": "Muted grey star/question/cow/dog SVG symbols; category totals above plot",
+            "names": "Local above/below labels, no connector lines; small collision-avoidance offsets",
+            "dot_radius": 5.5,
+            "variable_size_metric": null,
+            "sql_coordinates": "Unchanged",
+            "mobile": "Boundary-constrained names placed first; internal Metabase card scrolling remains"
+          }
+        }
+      }
+    }
+  ]
+}

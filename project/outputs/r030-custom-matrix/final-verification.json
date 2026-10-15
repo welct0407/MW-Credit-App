@@ -1,0 +1,38 @@
+{
+  "checked_at": "2026-09-25T05:01:14.977Z",
+  "rows": 23,
+  "all_fields_equal": true,
+  "source_database": 2,
+  "service": "mw-report-charts",
+  "deployed_hashes_match_pin": true,
+  "active_services": [
+    "mw-report-charts",
+    "cloud-sql-auth-proxy",
+    "mw-cloudflared-instagram"
+  ],
+  "memory_bytes": 37580800,
+  "cloudflare_routes": {
+    "hooks.mw-credit.com": "http://127.0.0.1:8000",
+    "charts.mw-credit.com": "http://127.0.0.1:8011"
+  },
+  "browser": {
+    "live_iframe": true,
+    "dots": 23,
+    "names": 23,
+    "desktop_quadrants": "489 x 286 each",
+    "mobile_quadrants": "153 x 306 each",
+    "tooltip_name_px": 25,
+    "tooltip_single_category": true,
+    "search_highlight": true,
+    "names_toggle": true,
+    "manual_refresh": true,
+    "mobile_limit": "Metabase mobile iframe card scrolls internally"
+  },
+  "config_permissions": "0640 root:mwcharts",
+  "installed_packages": [
+    "gunicorn==23.0.0",
+    "packaging==26.3",
+    "psycopg==3.2.10",
+    "psycopg-binary==3.2.10"
+  ]
+}

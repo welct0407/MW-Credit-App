@@ -1,0 +1,279 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "relation"
+  "name": "public.Cash Statement Context"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "Cash Statement Context"
+    "kind": "r"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "d"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,mw_reviewer_dml=r/postgres,mw_app_prod=arwd/postgres}"
+    "comment": "R010 UI state only. AppSheet UPDATES_ONLY; signed-in Partner security filter; only account/date editable.\
+      \ No financial posting."
+    "view_definition": null
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "columns":
+    "Ref Partner":
+      "schema": "public"
+      "relation": "Cash Statement Context"
+      "name": "Ref Partner"
+      "ordinal": 1
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Ref Cash Account":
+      "schema": "public"
+      "relation": "Cash Statement Context"
+      "name": "Ref Cash Account"
+      "ordinal": 2
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Statement Date":
+      "schema": "public"
+      "relation": "Cash Statement Context"
+      "name": "Statement Date"
+      "ordinal": 3
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": "((CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok'::text))::date"
+      "collation": null
+      "acl": null
+      "comment": null
+    "Updated At":
+      "schema": "public"
+      "relation": "Cash Statement Context"
+      "name": "Updated At"
+      "ordinal": 4
+      "data_type": "timestamp without time zone"
+      "type_schema": "pg_catalog"
+      "type_name": "timestamp"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": "(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok'::text)"
+      "collation": null
+      "acl": null
+      "comment": null
+  "constraints":
+    "Cash Statement Context_Ref Cash Account_fkey":
+      "schema": "public"
+      "relation": "Cash Statement Context"
+      "name": "Cash Statement Context_Ref Cash Account_fkey"
+      "kind": "f"
+      "definition": "FOREIGN KEY (\"Ref Cash Account\") REFERENCES \"Cash Accounts\"(\"Row ID\") ON DELETE SET NULL"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 2
+      "referenced_column_numbers":
+      - 1
+      "referenced_relation": "\"Cash Accounts\""
+      "update_action": "a"
+      "delete_action": "n"
+      "match_type": "s"
+      "comment": null
+    "Cash Statement Context_Ref Partner_fkey":
+      "schema": "public"
+      "relation": "Cash Statement Context"
+      "name": "Cash Statement Context_Ref Partner_fkey"
+      "kind": "f"
+      "definition": "FOREIGN KEY (\"Ref Partner\") REFERENCES \"Partners\"(\"Row ID\") ON DELETE CASCADE"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      "referenced_column_numbers":
+      - 1
+      "referenced_relation": "\"Partners\""
+      "update_action": "a"
+      "delete_action": "c"
+      "match_type": "s"
+      "comment": null
+    "Cash Statement Context_Ref Partner_not_null":
+      "schema": "public"
+      "relation": "Cash Statement Context"
+      "name": "Cash Statement Context_Ref Partner_not_null"
+      "kind": "n"
+      "definition": "NOT NULL \"Ref Partner\""
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "Cash Statement Context_Updated At_not_null":
+      "schema": "public"
+      "relation": "Cash Statement Context"
+      "name": "Cash Statement Context_Updated At_not_null"
+      "kind": "n"
+      "definition": "NOT NULL \"Updated At\""
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 4
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "Cash Statement Context_pkey":
+      "schema": "public"
+      "relation": "Cash Statement Context"
+      "name": "Cash Statement Context_pkey"
+      "kind": "p"
+      "definition": "PRIMARY KEY (\"Ref Partner\")"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+  "indexes":
+    "Cash Statement Context_pkey":
+      "schema": "public"
+      "relation": "Cash Statement Context"
+      "name": "Cash Statement Context_pkey"
+      "definition": "CREATE UNIQUE INDEX \"Cash Statement Context_pkey\" ON public.\"Cash Statement Context\" USING btree\
+        \ (\"Ref Partner\")"
+      "unique": true
+      "primary": true
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 1
+      "total_attribute_count": 1
+      "predicate": null
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
+  "triggers":
+    "RI_ConstraintTrigger_c_17542":
+      "schema": "public"
+      "relation": "Cash Statement Context"
+      "name": "RI_ConstraintTrigger_c_17542"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_17542\" AFTER INSERT ON \"Cash Statement Context\"\
+        \ FROM \"Partners\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_ins\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_17543":
+      "schema": "public"
+      "relation": "Cash Statement Context"
+      "name": "RI_ConstraintTrigger_c_17543"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_17543\" AFTER UPDATE ON \"Cash Statement Context\"\
+        \ FROM \"Partners\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_17547":
+      "schema": "public"
+      "relation": "Cash Statement Context"
+      "name": "RI_ConstraintTrigger_c_17547"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_17547\" AFTER INSERT ON \"Cash Statement Context\"\
+        \ FROM \"Cash Accounts\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_ins\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_17548":
+      "schema": "public"
+      "relation": "Cash Statement Context"
+      "name": "RI_ConstraintTrigger_c_17548"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_17548\" AFTER UPDATE ON \"Cash Statement Context\"\
+        \ FROM \"Cash Accounts\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "guard_cash_statement_context":
+      "schema": "public"
+      "relation": "Cash Statement Context"
+      "name": "guard_cash_statement_context"
+      "definition": "CREATE TRIGGER guard_cash_statement_context BEFORE INSERT OR UPDATE ON \"Cash Statement Context\" FOR\
+        \ EACH ROW EXECUTE FUNCTION guard_cash_statement_context()"
+      "enabled": "O"
+      "internal": false
+      "routine": "guard_cash_statement_context()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+  "policies": {}
+  "dependencies": []
+"evidence":
+  "/content/definition/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"

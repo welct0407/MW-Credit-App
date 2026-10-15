@@ -1,0 +1,37 @@
+{
+  "name": "projects/clever-oasis-508610-n7/uptimeCheckConfigs/mw-webhook-external-health-ySLl0784KgI",
+  "displayName": "MW webhook external health",
+  "monitoredResource": {
+    "type": "uptime_url",
+    "labels": {
+      "host": "hooks.mw-credit.com",
+      "project_id": "clever-oasis-508610-n7"
+    }
+  },
+  "httpCheck": {
+    "useSsl": true,
+    "path": "/health",
+    "port": 443,
+    "validateSsl": true,
+    "requestMethod": "GET",
+    "acceptedResponseStatusCodes": [
+      {
+        "statusValue": 200
+      }
+    ]
+  },
+  "period": "300s",
+  "timeout": "10s",
+  "contentMatchers": [
+    {
+      "content": "mw-instagram-webhook",
+      "matcher": "CONTAINS_STRING"
+    }
+  ],
+  "selectedRegions": [
+    "ASIA_PACIFIC",
+    "EUROPE",
+    "USA_OREGON"
+  ],
+  "checkerType": "STATIC_IP_CHECKERS"
+}

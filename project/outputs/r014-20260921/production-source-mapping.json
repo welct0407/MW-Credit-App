@@ -1,0 +1,219 @@
+{
+  "release": "R014",
+  "observedAt": "2026-09-21",
+  "method": "Current editor saved-state table-header readbacks, all 37 candidate sources; affected PROD source checks after App Upgrade",
+  "target": {
+    "instance": "appsheet-pg-prod-20260914",
+    "host": "34.21.174.215",
+    "database": "loan_manager_prod",
+    "schema": "public",
+    "connection": "database-2"
+  },
+  "apps": {
+    "OLTP": {
+      "rc": {
+        "id": "7de4438a-90b9-47f8-a6db-6c62b995c5c1",
+        "internalName": "MW-OLTP-R014-RC1-578763613",
+        "number": 1,
+        "version": "1.000007",
+        "state": "frozen",
+        "createdAt": "2026-09-21",
+        "frozenAt": "2026-09-21",
+        "mode": "Deployed",
+        "containmentEvidence": "outputs/r014-20260921/production-report.md",
+        "sourceEligibilityEvidence": "outputs/r014-20260921/production-report.md"
+      },
+      "mappings": [
+        {
+          "table": "Borrowers",
+          "source": "Borrowers"
+        },
+        {
+          "table": "Business Expenses",
+          "source": "Business Expenses"
+        },
+        {
+          "table": "Cash Account Balances",
+          "source": "Cash Account Balances"
+        },
+        {
+          "table": "Cash Account Daily Summary Recent",
+          "source": "Cash Account Daily Summary Recent"
+        },
+        {
+          "table": "Cash Account Statement Recent",
+          "source": "Cash Account Statement Recent"
+        },
+        {
+          "table": "Cash Accounts",
+          "source": "Cash Accounts"
+        },
+        {
+          "table": "Cash Dashboard",
+          "source": "Cash Dashboard"
+        },
+        {
+          "table": "Cash Holder Balances",
+          "source": "Cash Holder Balances"
+        },
+        {
+          "table": "Cash Holders",
+          "source": "Cash Holders"
+        },
+        {
+          "table": "Cash Statement Context",
+          "source": "Cash Statement Context"
+        },
+        {
+          "table": "Charges",
+          "source": "Charges"
+        },
+        {
+          "table": "Loan Form Context",
+          "source": "Loan Form Context"
+        },
+        {
+          "table": "Loans",
+          "source": "Loans"
+        },
+        {
+          "table": "Partners",
+          "source": "Partners"
+        },
+        {
+          "table": "Payment Allocations",
+          "source": "Payment Allocations"
+        },
+        {
+          "table": "Payments",
+          "source": "Payments"
+        },
+        {
+          "table": "Repayments",
+          "source": "Repayments"
+        },
+        {
+          "table": "Statistics",
+          "source": "Statistics"
+        }
+      ]
+    },
+    "OLAP": {
+      "rc": {
+        "id": "4936b576-e35a-4b24-b258-51e89f5a2e57",
+        "internalName": "MW-OLAP-R014-RC1-578763613",
+        "number": 1,
+        "version": "1.000006",
+        "state": "frozen",
+        "createdAt": "2026-09-21",
+        "frozenAt": "2026-09-21",
+        "mode": "Deployed",
+        "containmentEvidence": "outputs/r014-20260921/production-report.md",
+        "sourceEligibilityEvidence": "outputs/r014-20260921/production-report.md"
+      },
+      "mappings": [
+        {
+          "table": "Borrowers",
+          "source": "olap_borrowers_analytics"
+        },
+        {
+          "table": "Business Expenses",
+          "source": "Business Expenses"
+        },
+        {
+          "table": "Cash Account Balances",
+          "source": "Cash Account Balances"
+        },
+        {
+          "table": "Cash Accounts",
+          "source": "Cash Accounts"
+        },
+        {
+          "table": "Cash Holder Balances",
+          "source": "Cash Holder Balances"
+        },
+        {
+          "table": "Cash Holders",
+          "source": "Cash Holders"
+        },
+        {
+          "table": "Cash Ledger",
+          "source": "Cash Ledger"
+        },
+        {
+          "table": "Cash Pool Contributions",
+          "source": "Cash Pool Contributions"
+        },
+        {
+          "table": "Charges",
+          "source": "olap_charges_analytics"
+        },
+        {
+          "table": "Daily Analytics",
+          "source": "Daily Analytics"
+        },
+        {
+          "table": "Loan Assessment",
+          "source": "Loan Assessment SQL Lab View"
+        },
+        {
+          "table": "Loans",
+          "source": "olap_loans_analytics"
+        },
+        {
+          "table": "Partners",
+          "source": "Partners"
+        },
+        {
+          "table": "Payment Allocations",
+          "source": "Payment Allocations"
+        },
+        {
+          "table": "Payments",
+          "source": "Payments"
+        },
+        {
+          "table": "Portfolio Summary",
+          "source": "olap_portfolio_summary"
+        },
+        {
+          "table": "Repayments",
+          "source": "olap_repayments_analytics"
+        },
+        {
+          "table": "Settlements",
+          "source": "Settlements"
+        },
+        {
+          "table": "Statistics",
+          "source": "Statistics"
+        }
+      ]
+    }
+  },
+  "substitutions": {
+    "OLTP": {
+      "displayName": "Loan Manager ผู้จัดการสินเชื่อ",
+      "theme": "light",
+      "primaryColor": "#d81b60",
+      "companion": "LoanBusinessInsights-975338008",
+      "folder": "/appsheet/data/LoanManager-975338008-26-08-07",
+      "apiEnabled": true
+    },
+    "OLAP": {
+      "displayName": "Loan Business Insights",
+      "theme": "light",
+      "primaryColor": "#0abab5",
+      "companion": "LoanManager-975338008-26-08-07",
+      "folder": "/appsheet/data/LoanBusinessInsights-975338008",
+      "apiEnabled": true
+    }
+  },
+  "coverage": {
+    "logos": "Existing corresponding PROD image URLs reused; no file/data copy",
+    "recipients": "Shared R009 expressions and PROD Partner contacts retained",
+    "scheduled": "Canonical DEV/PROD allowlists; RC names excluded",
+    "external": "Reviewed agent update and existing API keys verified",
+    "templates": "Unchanged existing assets retained; no new template or Looker contract"
+  }
+}

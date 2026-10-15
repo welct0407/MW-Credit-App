@@ -1,0 +1,49 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.pwa_notify_history_v1(actor jsonb, before_at timestamp with time zone, before_id uuid)"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r053-notifications-jobs/dictionary-production-closure.json"
+  "coverage": "Actual affected PROD89 catalogue after maintained migration and authority restoration; no business rows."
+"content":
+  "definition":
+    "schema": "public"
+    "name": "pwa_notify_history_v1"
+    "arguments": "actor jsonb, before_at timestamp with time zone, before_id uuid"
+    "kind": "f"
+    "arguments_with_defaults": "actor jsonb, before_at timestamp with time zone, before_id uuid"
+    "result": "TABLE(\"eventId\" uuid, type text, \"occurredAt\" text, state text)"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.pwa_notify_history_v1(actor jsonb, before_at timestamp with time zone, before_id uuid)
+       RETURNS TABLE("eventId" uuid, type text, "occurredAt" text, state text)
+       LANGUAGE plpgsql
+       SECURITY DEFINER
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+      DECLARE partner text:=public.pwa_notify_actor_v1(actor);
+      BEGIN
+       IF (before_at IS NULL)<>(before_id IS NULL) OR (before_at IS NOT NULL AND NOT isfinite(before_at)) THEN RAISE EXCEPTION 'invalid_request'; END IF;
+       RETURN QUERY SELECT e.event_id,e.event_type,to_char(e.occurred_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"'),
+       CASE WHEN bool_or(d.state='sent') THEN 'sent' WHEN bool_or(d.state='uncertain') THEN 'uncertain' ELSE min(d.state) END
+       FROM public.pwa_notification_deliveries d JOIN public.pwa_notification_events e USING(event_id)
+       WHERE d.recipient_partner_id=partner AND (before_at IS NULL OR (e.occurred_at,e.event_id)<(before_at,before_id))
+       GROUP BY e.event_id ORDER BY e.occurred_at DESC,e.event_id DESC LIMIT 26;
+      END $function$
+    "owner": "mw_notify_owner_prod"
+    "language": "plpgsql"
+    "volatility": "v"
+    "strict": false
+    "security_definer": true
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 1000.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": "{mw_notify_owner_prod=X/mw_notify_owner_prod,mw_notify_api_prod=X/mw_notify_owner_prod}"
+    "comment": "mw-access:governance fixed notification boundary; explicit capability only"
+    "extension": null

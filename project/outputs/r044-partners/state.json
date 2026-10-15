@@ -1,0 +1,34 @@
+{
+  "backupDashboard": 21,
+  "models": {
+    "position": 318,
+    "capital": 319,
+    "earnings": 320,
+    "settlements": 321,
+    "daily": 322,
+    "capital_ledger": 323
+  },
+  "cards": {
+    "picker": 324,
+    "capital": 325,
+    "earned": 326,
+    "paid": 327,
+    "pending": 328,
+    "available": 329,
+    "comparison": 330,
+    "share": 331,
+    "bridge": 332,
+    "period-interest": 333,
+    "period-expense": 334,
+    "period-earned": 335,
+    "period-paid": 336,
+    "monthly": 337,
+    "movements": 338,
+    "capital-trend": 339,
+    "queue": 340,
+    "capital-ledger": 341,
+    "settlement-ledger": 342,
+    "context": 343
+  },
+  "tab": 249
+}

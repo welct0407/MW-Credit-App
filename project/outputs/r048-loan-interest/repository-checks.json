@@ -1,0 +1,10 @@
+{
+  "dictionary_documents": 1336,
+  "dictionary_errors": 0,
+  "recorded_unrelated_dictionary_limitations": 3,
+  "python_ast": "passed",
+  "powershell_fixture_parser": "passed",
+  "migration_hash_matches_tested": "passed",
+  "git_diff_check": "passed with cr-at-eol; preserves already-applied V53 CRLF bytes",
+  "secret_marker_scan": "passed for 43 intended staged paths"
+}

@@ -1,0 +1,716 @@
+{
+  "sourceCommit": "e02501786af5f8a9ca7073c08244eb6afc4e08af",
+  "subscriptionId": "50f792fa-803e-4280-833d-1fe60fef5293",
+  "tenantId": "9e29c895-606a-420b-acc2-1c24375df4d9",
+  "ownerObjectId": "8a83866b-cdcc-4f87-99be-c41e3635c73b",
+  "vmResourceId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/RG-MWCREDIT/providers/Microsoft.Compute/virtualMachines/VM-01",
+  "vmId": "0af4bbf5-ce75-43d7-931f-9e8c4a13dfe9",
+  "apps": {
+    "api": {
+      "id": "9b337a81-538c-4205-a800-59c95e8cec3b",
+      "appId": "f8fc0efe-38ac-489a-b2b4-98d1afc9505b",
+      "displayName": "VM01 Controller API",
+      "ownerObjectIds": [
+        "8a83866b-cdcc-4f87-99be-c41e3635c73b"
+      ],
+      "servicePrincipalObjectId": "334488ef-db87-49e1-af98-27b0b2f31dc2",
+      "configuration": {
+        "signInAudience": "AzureADMyOrg",
+        "identifierUris": [
+          "api://f8fc0efe-38ac-489a-b2b4-98d1afc9505b"
+        ],
+        "api": {
+          "acceptMappedClaims": null,
+          "knownClientApplications": [],
+          "oauth2PermissionScopes": [
+            {
+              "adminConsentDescription": "Read status and request approved start, restart or deallocate actions for VM-01.",
+              "adminConsentDisplayName": "Control VM-01",
+              "id": "9cfcdcce-c2e1-56aa-85d0-d110832af85f",
+              "isEnabled": true,
+              "type": "Admin",
+              "userConsentDescription": null,
+              "userConsentDisplayName": null,
+              "value": "vm01.control"
+            }
+          ],
+          "preAuthorizedApplications": [],
+          "requestedAccessTokenVersion": 2
+        },
+        "appRoles": [
+          {
+            "allowedMemberTypes": [
+              "Application"
+            ],
+            "description": "Controller-only VM01.Deallocate permission for fixed VM-01.",
+            "displayName": "VM01.Deallocate",
+            "id": "323e6f09-e4f3-5354-995e-b3cdb10714ac",
+            "isEnabled": true,
+            "origin": "Application",
+            "value": "VM01.Deallocate"
+          },
+          {
+            "allowedMemberTypes": [
+              "Application"
+            ],
+            "description": "Controller-only VM01.Restart permission for fixed VM-01.",
+            "displayName": "VM01.Restart",
+            "id": "7b92f550-4d8d-5b68-b6b6-f07603ef084d",
+            "isEnabled": true,
+            "origin": "Application",
+            "value": "VM01.Restart"
+          },
+          {
+            "allowedMemberTypes": [
+              "Application"
+            ],
+            "description": "Controller-only VM01.Start permission for fixed VM-01.",
+            "displayName": "VM01.Start",
+            "id": "eddc3409-69d5-58fc-9b5e-6c110f8fb037",
+            "isEnabled": true,
+            "origin": "Application",
+            "value": "VM01.Start"
+          },
+          {
+            "allowedMemberTypes": [
+              "Application"
+            ],
+            "description": "Controller-only VM01.Status permission for fixed VM-01.",
+            "displayName": "VM01.Status",
+            "id": "88290620-afa0-5398-8d49-e7edcebba80c",
+            "isEnabled": true,
+            "origin": "Application",
+            "value": "VM01.Status"
+          }
+        ],
+        "optionalClaims": {
+          "accessToken": [
+            {
+              "additionalProperties": [],
+              "essential": false,
+              "name": "idtyp",
+              "source": null
+            }
+          ],
+          "idToken": [],
+          "saml2Token": []
+        },
+        "requiredResourceAccess": [],
+        "spa": {
+          "redirectUris": []
+        },
+        "web": {
+          "homePageUrl": null,
+          "implicitGrantSettings": {
+            "enableAccessTokenIssuance": false,
+            "enableIdTokenIssuance": false
+          },
+          "logoutUrl": null,
+          "redirectUriSettings": [],
+          "redirectUris": []
+        }
+      }
+    },
+    "browser": {
+      "id": "9469618c-7d6f-40f8-accf-726475815193",
+      "appId": "c74d7869-7313-459e-93b2-50beb860812f",
+      "displayName": "VM01 Controller Browser",
+      "ownerObjectIds": [
+        "8a83866b-cdcc-4f87-99be-c41e3635c73b"
+      ],
+      "servicePrincipalObjectId": "065bf299-b083-422e-916b-a94c3f13429c",
+      "configuration": {
+        "signInAudience": "AzureADMyOrg",
+        "identifierUris": [],
+        "api": {
+          "acceptMappedClaims": null,
+          "knownClientApplications": [],
+          "oauth2PermissionScopes": [],
+          "preAuthorizedApplications": [],
+          "requestedAccessTokenVersion": null
+        },
+        "appRoles": [],
+        "optionalClaims": null,
+        "requiredResourceAccess": [
+          {
+            "resourceAccess": [
+              {
+                "id": "9cfcdcce-c2e1-56aa-85d0-d110832af85f",
+                "type": "Scope"
+              }
+            ],
+            "resourceAppId": "f8fc0efe-38ac-489a-b2b4-98d1afc9505b"
+          }
+        ],
+        "spa": {
+          "redirectUris": [
+            "https://vm01-controller-50f792fa.azurewebsites.net/auth/callback"
+          ]
+        },
+        "web": {
+          "homePageUrl": null,
+          "implicitGrantSettings": {
+            "enableAccessTokenIssuance": false,
+            "enableIdTokenIssuance": false
+          },
+          "logoutUrl": null,
+          "redirectUriSettings": [],
+          "redirectUris": []
+        }
+      }
+    },
+    "cloud": {
+      "id": "a7f9baed-fc3c-4514-bfe8-e4436f73b202",
+      "appId": "af64b0c6-261c-45a0-b653-a71d382edb92",
+      "displayName": "VM01 Controller Codex Cloud",
+      "ownerObjectIds": [
+        "8a83866b-cdcc-4f87-99be-c41e3635c73b"
+      ],
+      "servicePrincipalObjectId": "d01d70be-d205-4ac9-a7fc-a18dd48e0633",
+      "configuration": {
+        "signInAudience": "AzureADMyOrg",
+        "identifierUris": [],
+        "api": {
+          "acceptMappedClaims": null,
+          "knownClientApplications": [],
+          "oauth2PermissionScopes": [],
+          "preAuthorizedApplications": [],
+          "requestedAccessTokenVersion": null
+        },
+        "appRoles": [],
+        "optionalClaims": null,
+        "requiredResourceAccess": [
+          {
+            "resourceAccess": [
+              {
+                "id": "88290620-afa0-5398-8d49-e7edcebba80c",
+                "type": "Role"
+              },
+              {
+                "id": "eddc3409-69d5-58fc-9b5e-6c110f8fb037",
+                "type": "Role"
+              },
+              {
+                "id": "7b92f550-4d8d-5b68-b6b6-f07603ef084d",
+                "type": "Role"
+              },
+              {
+                "id": "323e6f09-e4f3-5354-995e-b3cdb10714ac",
+                "type": "Role"
+              }
+            ],
+            "resourceAppId": "f8fc0efe-38ac-489a-b2b4-98d1afc9505b"
+          }
+        ],
+        "spa": {
+          "redirectUris": []
+        },
+        "web": {
+          "homePageUrl": null,
+          "implicitGrantSettings": {
+            "enableAccessTokenIssuance": false,
+            "enableIdTokenIssuance": false
+          },
+          "logoutUrl": null,
+          "redirectUriSettings": [],
+          "redirectUris": []
+        }
+      }
+    }
+  },
+  "checks": {
+    "contextVerifiedAt": "2026-10-01T17:50:18.982643+00:00",
+    "disabledConfigurationVerifiedAt": "2026-10-01T17:50:24.103158+00:00",
+    "cloudAzureAssignments": [],
+    "allControllerCredentialsAbsent": true,
+    "allControllerFederationAbsent": true,
+    "vmPowerRequestsSubmitted": 0,
+    "windowsSecurityChanges": 0,
+    "completedAt": "2026-10-01T17:50:34.300923+00:00"
+  },
+  "delegatedConsent": {
+    "id": "mfJbBoOwLkKRa6lMPxNCnO-IRDOH2-FJr5gnsLLzHcJrhoOKzM2HT5m-xB42Ncc7",
+    "clientId": "065bf299-b083-422e-916b-a94c3f13429c",
+    "consentType": "Principal",
+    "principalId": "8a83866b-cdcc-4f87-99be-c41e3635c73b",
+    "resourceId": "334488ef-db87-49e1-af98-27b0b2f31dc2",
+    "scope": "vm01.control"
+  },
+  "cloudAppRoleAssignments": [
+    {
+      "id": "vnAd0AXSyUqn_KGN1I4GM3fKBTkDduVMlYtGBN4tKtU",
+      "principalId": "d01d70be-d205-4ac9-a7fc-a18dd48e0633",
+      "resourceId": "334488ef-db87-49e1-af98-27b0b2f31dc2",
+      "appRoleId": "eddc3409-69d5-58fc-9b5e-6c110f8fb037"
+    },
+    {
+      "id": "vnAd0AXSyUqn_KGN1I4GM0o-3Kcx68ZKs6utjt5XgIY",
+      "principalId": "d01d70be-d205-4ac9-a7fc-a18dd48e0633",
+      "resourceId": "334488ef-db87-49e1-af98-27b0b2f31dc2",
+      "appRoleId": "323e6f09-e4f3-5354-995e-b3cdb10714ac"
+    },
+    {
+      "id": "vnAd0AXSyUqn_KGN1I4GM-R7tPjzdLxDg_tekFdBflE",
+      "principalId": "d01d70be-d205-4ac9-a7fc-a18dd48e0633",
+      "resourceId": "334488ef-db87-49e1-af98-27b0b2f31dc2",
+      "appRoleId": "88290620-afa0-5398-8d49-e7edcebba80c"
+    },
+    {
+      "id": "vnAd0AXSyUqn_KGN1I4GM0ZW_HX_P0hGmIeKghCVA4E",
+      "principalId": "d01d70be-d205-4ac9-a7fc-a18dd48e0633",
+      "resourceId": "334488ef-db87-49e1-af98-27b0b2f31dc2",
+      "appRoleId": "7b92f550-4d8d-5b68-b6b6-f07603ef084d"
+    }
+  ],
+  "scopeId": "9cfcdcce-c2e1-56aa-85d0-d110832af85f",
+  "appRoleIds": {
+    "VM01.Status": "88290620-afa0-5398-8d49-e7edcebba80c",
+    "VM01.Start": "eddc3409-69d5-58fc-9b5e-6c110f8fb037",
+    "VM01.Restart": "7b92f550-4d8d-5b68-b6b6-f07603ef084d",
+    "VM01.Deallocate": "323e6f09-e4f3-5354-995e-b3cdb10714ac"
+  },
+  "controllerResourceGroupId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/rg-vm01-controller",
+  "deploymentParameters": {
+    "location": "southeastasia",
+    "functionAppName": "vm01-controller-50f792fa",
+    "storageAccountName": "stvm01ctl50f792fa",
+    "apiClientId": "f8fc0efe-38ac-489a-b2b4-98d1afc9505b",
+    "browserClientId": "c74d7869-7313-459e-93b2-50beb860812f",
+    "browserUserObjectIds": [
+      "8a83866b-cdcc-4f87-99be-c41e3635c73b"
+    ],
+    "expectedVmId": "0af4bbf5-ce75-43d7-931f-9e8c4a13dfe9",
+    "cloudClientId": "af64b0c6-261c-45a0-b653-a71d382edb92",
+    "cloudPrincipalId": "d01d70be-d205-4ac9-a7fc-a18dd48e0633",
+    "enableMutations": false,
+    "enableOperationPolling": false,
+    "attachVmRole": false,
+    "maximumInstanceCount": 40,
+    "httpConcurrency": 4
+  },
+  "provisioningStage": "BOOTSTRAP_COMPLETE_COMMANDS_DISABLED_AUTHENTICATED_ACCEPTANCE_PENDING",
+  "deploymentName": "vm01-bootstrap-e025017",
+  "package": {
+    "path": "vm01-controller-e025017.zip (deployment artifact retained outside Git)",
+    "sha256": "aaedfe3d24e2dedfac5338b7ab03b4e9c7a6961267d068e0b7a51c43f22b180f",
+    "bytes": 15874625,
+    "entries": 9746,
+    "manifest": {
+      "repository": "welct0407/AppSheet-Loan-Project",
+      "sourceCommit": "e02501786af5f8a9ca7073c08244eb6afc4e08af",
+      "sourcePath": "scripts/azure/vm01-controller",
+      "sourceBlobsVerified": 28,
+      "packageLockSha256": "1206c44acaf98831b66edfb63fd5e14095787815ac1146e5c713dd7270a199db",
+      "nodeVersion": "24.19.0",
+      "npmVersion": "11.6.1",
+      "build": "tsc; build-web.mjs; package.mjs; locked production npm ci --omit=dev --ignore-scripts",
+      "commandsEnabled": false
+    }
+  },
+  "configurationDelta": {
+    "reason": "ARM string(false) produced False; pinned configuration parser accepts only lowercase false/true",
+    "VM01_ENABLE_MUTATIONS": "false",
+    "VM01_ENABLE_OPERATION_POLLING": "false"
+  },
+  "function": {
+    "resourceId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/rg-vm01-controller/providers/Microsoft.Web/sites/vm01-controller-50f792fa",
+    "origin": "https://vm01-controller-50f792fa.azurewebsites.net",
+    "principalId": "a671b605-43e5-4878-b3cb-b7b6bf2ce586",
+    "configuration": {
+      "deployment": {
+        "storage": {
+          "authentication": {
+            "storageAccountConnectionStringName": null,
+            "type": "SystemAssignedIdentity",
+            "userAssignedIdentityResourceId": null
+          },
+          "type": "blobContainer",
+          "value": "https://stvm01ctl50f792fa.blob.core.windows.net/function-package"
+        }
+      },
+      "runtime": {
+        "name": "node",
+        "version": "24"
+      },
+      "scaleAndConcurrency": {
+        "alwaysReady": [],
+        "instanceMemoryMB": 512,
+        "maximumInstanceCount": 40,
+        "triggers": {
+          "http": {
+            "perInstanceConcurrency": 4
+          }
+        }
+      },
+      "siteUpdateStrategy": {
+        "type": "Recreate"
+      }
+    },
+    "httpsOnly": true
+  },
+  "storage": {
+    "resourceId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/rg-vm01-controller/providers/Microsoft.Storage/storageAccounts/stvm01ctl50f792fa",
+    "name": "stvm01ctl50f792fa",
+    "sharedKeyAccess": false,
+    "publicBlobAccess": false
+  },
+  "easyAuth": {
+    "clearInboundClaimsMapping": "false",
+    "globalValidation": {
+      "excludedPaths": [
+        "/",
+        "/auth/callback",
+        "/assets/app.js",
+        "/assets/style.css",
+        "/assets/config.js",
+        "/assets/auth-callback.js"
+      ],
+      "requireAuthentication": true,
+      "unauthenticatedClientAction": "Return401"
+    },
+    "httpSettings": {
+      "forwardProxy": {
+        "convention": "NoProxy"
+      },
+      "requireHttps": true,
+      "routes": {
+        "apiPrefix": "/.auth"
+      }
+    },
+    "identityProviders": {
+      "apple": {
+        "enabled": true,
+        "login": {},
+        "registration": {}
+      },
+      "azureActiveDirectory": {
+        "enabled": true,
+        "login": {
+          "disableWWWAuthenticate": false
+        },
+        "registration": {
+          "clientId": "f8fc0efe-38ac-489a-b2b4-98d1afc9505b",
+          "openIdIssuer": "https://login.microsoftonline.com/9e29c895-606a-420b-acc2-1c24375df4d9/v2.0"
+        },
+        "validation": {
+          "allowedAudiences": [
+            "f8fc0efe-38ac-489a-b2b4-98d1afc9505b"
+          ],
+          "defaultAuthorizationPolicy": {
+            "allowedApplications": [
+              "c74d7869-7313-459e-93b2-50beb860812f",
+              "af64b0c6-261c-45a0-b653-a71d382edb92"
+            ],
+            "allowedPrincipals": {
+              "identities": [
+                "8a83866b-cdcc-4f87-99be-c41e3635c73b",
+                "d01d70be-d205-4ac9-a7fc-a18dd48e0633"
+              ]
+            }
+          },
+          "jwtClaimChecks": {}
+        }
+      },
+      "facebook": {
+        "enabled": true,
+        "login": {},
+        "registration": {}
+      },
+      "gitHub": {
+        "enabled": true,
+        "login": {},
+        "registration": {}
+      },
+      "google": {
+        "enabled": true,
+        "login": {},
+        "registration": {},
+        "validation": {}
+      },
+      "legacyMicrosoftAccount": {
+        "enabled": true,
+        "login": {},
+        "registration": {},
+        "validation": {}
+      },
+      "twitter": {
+        "enabled": true,
+        "registration": {}
+      }
+    },
+    "login": {
+      "cookieExpiration": {
+        "convention": "FixedTime",
+        "timeToExpiration": "08:00:00"
+      },
+      "nonce": {
+        "nonceExpirationInterval": "00:05:00",
+        "validateNonce": true
+      },
+      "preserveUrlFragmentsForLogins": false,
+      "routes": {},
+      "tokenStore": {
+        "azureBlobStorage": {},
+        "enabled": false,
+        "fileSystem": {},
+        "tokenRefreshExtensionHours": 72.0
+      }
+    },
+    "platform": {
+      "enabled": true,
+      "runtimeVersion": "~1"
+    },
+    "prmConfig": {
+      "disableMetadata": false,
+      "hideAuthorizationServers": false,
+      "resourceInfo": {
+        "documentationUri": {},
+        "name": {},
+        "policyUri": {},
+        "tosUri": {}
+      }
+    }
+  },
+  "publicEnvironment": {
+    "VM01_TENANT_ID": "9e29c895-606a-420b-acc2-1c24375df4d9",
+    "VM01_RESOURCE_ID": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/RG-MWCREDIT/providers/Microsoft.Compute/virtualMachines/VM-01",
+    "VM01_EXPECTED_VM_ID": "0af4bbf5-ce75-43d7-931f-9e8c4a13dfe9",
+    "VM01_ORIGIN": "https://vm01-controller-50f792fa.azurewebsites.net",
+    "VM01_API_CLIENT_ID": "f8fc0efe-38ac-489a-b2b4-98d1afc9505b",
+    "VM01_BROWSER_CLIENT_ID": "c74d7869-7313-459e-93b2-50beb860812f",
+    "VM01_BROWSER_USER_IDS": "8a83866b-cdcc-4f87-99be-c41e3635c73b",
+    "VM01_CLOUD_CLIENT_ID": "af64b0c6-261c-45a0-b653-a71d382edb92",
+    "VM01_CLOUD_PRINCIPAL_ID": "d01d70be-d205-4ac9-a7fc-a18dd48e0633",
+    "VM01_STORAGE_ACCOUNT": "stvm01ctl50f792fa",
+    "VM01_ENABLE_MUTATIONS": "false",
+    "VM01_ENABLE_OPERATION_POLLING": "false"
+  },
+  "operatorLedgerRole": {
+    "id": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/rg-vm01-controller/providers/Microsoft.Storage/storageAccounts/stvm01ctl50f792fa/blobServices/default/containers/vm01-controller/providers/Microsoft.Authorization/roleAssignments/61be35ad-3fed-58cc-98d2-8cc963f799e2",
+    "scope": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/rg-vm01-controller/providers/Microsoft.Storage/storageAccounts/stvm01ctl50f792fa/blobServices/default/containers/vm01-controller",
+    "principalId": "8a83866b-cdcc-4f87-99be-c41e3635c73b",
+    "roleDefinitionId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/providers/Microsoft.Authorization/roleDefinitions/ba92f5b4-2d11-453d-a403-e96b0029c9fe"
+  },
+  "codeDeployment": {
+    "id": "a3b2fec5-75bc-4d86-ac41-c9b195fb44d5",
+    "status": 4,
+    "complete": true,
+    "active": true,
+    "received_time": "2026-10-01T17:44:33.076272Z",
+    "end_time": "2026-10-01T17:45:37.0096701Z",
+    "deployer": "az_cli",
+    "method": "Azure CLI 2.90.0 Flex /api/publish, Entra authentication; host-key health helper replaced with deployment-status read"
+  },
+  "ledger": {
+    "schemaVersion": 1,
+    "generation": 1,
+    "targetResourceId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/RG-MWCREDIT/providers/Microsoft.Compute/virtualMachines/VM-01",
+    "expectedVmId": "0af4bbf5-ce75-43d7-931f-9e8c4a13dfe9",
+    "admissionEnabled": false,
+    "activeRequestId": null,
+    "records": {},
+    "audit": []
+  },
+  "httpVerification": {
+    "at": "2026-10-01T17:46:53.046237+00:00",
+    "results": [
+      {
+        "path": "/",
+        "status": 200,
+        "sha256": "1070134427a7b5bcc53fbbbf672ac08d0ab187b72e957c15494e34cc597a3938",
+        "matchesPinnedBuild": true
+      },
+      {
+        "path": "/auth/callback",
+        "status": 200,
+        "sha256": "107708c30dc08008f941797a6274fd3b67c68d390a0b8d40e602110e38943b23",
+        "matchesPinnedBuild": true
+      },
+      {
+        "path": "/assets/app.js",
+        "status": 200,
+        "sha256": "7d6fdb93d58cdcd5ca777aa817d3b358778fcb9b4dc757c9f0e5ff2449720600",
+        "matchesPinnedBuild": true
+      },
+      {
+        "path": "/assets/style.css",
+        "status": 200,
+        "sha256": "7a1647e628312659027058cd17cb985efaf01cd87c2531f187e5ff24d7f4d00d",
+        "matchesPinnedBuild": true
+      },
+      {
+        "path": "/assets/auth-callback.js",
+        "status": 200,
+        "sha256": "2cfc502448319fbec39fd4c4fa3e321f97707d8ba25bc6037e59836174aff26f",
+        "matchesPinnedBuild": true
+      },
+      {
+        "path": "/assets/config.js",
+        "status": 200,
+        "publicConfigurationMatches": true
+      },
+      {
+        "path": "/api/vm01/status",
+        "caller": "anonymous",
+        "status": 401
+      },
+      {
+        "path": "/api/vm01/status",
+        "caller": "malformed-bearer",
+        "status": 401
+      },
+      {
+        "path": "/api/vm01/status",
+        "caller": "spoofed-identity-headers",
+        "status": 401
+      }
+    ],
+    "allowedCallerLiveChecks": "pending: owner browser session and separately approved Cloud credentials",
+    "vmPowerRequestsSubmitted": 0
+  },
+  "vmRoleDeploymentName": "vm01-controller-base-role-e025017",
+  "functionRoleAssignments": [
+    {
+      "id": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourcegroups/rg-vm01-controller/providers/Microsoft.Storage/storageAccounts/stvm01ctl50f792fa/providers/Microsoft.Authorization/roleAssignments/9f05c35c-0f0f-5f0c-96fc-d50ec39a98a2",
+      "scope": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourcegroups/rg-vm01-controller/providers/Microsoft.Storage/storageAccounts/stvm01ctl50f792fa",
+      "principalId": "a671b605-43e5-4878-b3cb-b7b6bf2ce586",
+      "roleDefinitionId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/providers/Microsoft.Authorization/roleDefinitions/b7e6dc6d-f1e8-4753-8033-0f276bb0955b",
+      "roleDefinitionName": "Storage Blob Data Owner"
+    },
+    {
+      "id": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourcegroups/rg-vm01-controller/providers/Microsoft.Storage/storageAccounts/stvm01ctl50f792fa/blobServices/default/containers/function-package/providers/Microsoft.Authorization/roleAssignments/04dec2e6-d1be-54de-b5d3-807f2a53840e",
+      "scope": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourcegroups/rg-vm01-controller/providers/Microsoft.Storage/storageAccounts/stvm01ctl50f792fa/blobServices/default/containers/function-package",
+      "principalId": "a671b605-43e5-4878-b3cb-b7b6bf2ce586",
+      "roleDefinitionId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/providers/Microsoft.Authorization/roleDefinitions/ba92f5b4-2d11-453d-a403-e96b0029c9fe",
+      "roleDefinitionName": "Storage Blob Data Contributor"
+    },
+    {
+      "id": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourcegroups/RG-MWCREDIT/providers/Microsoft.Compute/virtualMachines/VM-01/providers/Microsoft.Authorization/roleAssignments/e4c12054-b4fc-552a-a8a8-f2364bf8027a",
+      "scope": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourcegroups/RG-MWCREDIT/providers/Microsoft.Compute/virtualMachines/VM-01",
+      "principalId": "a671b605-43e5-4878-b3cb-b7b6bf2ce586",
+      "roleDefinitionId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/providers/Microsoft.Authorization/roleDefinitions/637a62eb-6239-5956-958c-c11032293ebe",
+      "roleDefinitionName": null
+    }
+  ],
+  "vmRole": {
+    "id": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/providers/Microsoft.Authorization/roleDefinitions/637a62eb-6239-5956-958c-c11032293ebe",
+    "name": "VM01 Power Controller",
+    "assignableScopes": [
+      "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/RG-MWCREDIT"
+    ],
+    "permissions": [
+      {
+        "actions": [
+          "Microsoft.Compute/virtualMachines/read",
+          "Microsoft.Compute/virtualMachines/instanceView/read",
+          "Microsoft.Compute/virtualMachines/start/action",
+          "Microsoft.Compute/virtualMachines/restart/action",
+          "Microsoft.Compute/virtualMachines/deallocate/action"
+        ],
+        "dataActions": [],
+        "notActions": [],
+        "notDataActions": []
+      }
+    ]
+  },
+  "existingGrafanaRoleReadback": {
+    "id": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/providers/Microsoft.Authorization/roleDefinitions/eaeb2a2c-c710-4759-8a82-538d1ec79c54",
+    "roleName": "MW Grafana VM-01 Power Control",
+    "permissions": [
+      {
+        "actions": [
+          "Microsoft.Compute/virtualMachines/read",
+          "Microsoft.Compute/virtualMachines/instanceView/read",
+          "Microsoft.Compute/virtualMachines/start/action",
+          "Microsoft.Compute/virtualMachines/deallocate/action"
+        ],
+        "condition": null,
+        "conditionVersion": null,
+        "dataActions": [],
+        "notActions": [],
+        "notDataActions": []
+      }
+    ],
+    "assignableScopes": [
+      "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/RG-MWCREDIT"
+    ]
+  },
+  "preservedVmReadback": {
+    "vm": {
+      "dataDisks": [],
+      "id": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/RG-MWCREDIT/providers/Microsoft.Compute/virtualMachines/VM-01",
+      "location": "southeastasia",
+      "nics": [
+        {
+          "deleteOption": "Detach",
+          "id": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/rg-mwcredit/providers/Microsoft.Network/networkInterfaces/vm-01366",
+          "resourceGroup": "rg-mwcredit"
+        }
+      ],
+      "osDisk": {
+        "caching": "ReadWrite",
+        "createOption": "FromImage",
+        "diskSizeGB": 127,
+        "managedDisk": {
+          "id": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/RG-MWCREDIT/providers/Microsoft.Compute/disks/vm01-osdisk-20260912-091515",
+          "resourceGroup": "RG-MWCREDIT",
+          "storageAccountType": "StandardSSD_LRS"
+        },
+        "name": "vm01-osdisk-20260912-091515",
+        "osType": "Windows"
+      },
+      "size": "Standard_D4as_v4",
+      "vmId": "0af4bbf5-ce75-43d7-931f-9e8c4a13dfe9",
+      "zones": [
+        "1"
+      ]
+    },
+    "disk": {
+      "id": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/RG-MWCREDIT/providers/Microsoft.Compute/disks/vm01-osdisk-20260912-091515",
+      "size": 127,
+      "sku": "StandardSSD_LRS"
+    },
+    "nic": {
+      "id": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/rg-mwcredit/providers/Microsoft.Network/networkInterfaces/vm-01366",
+      "ipConfigurations": [
+        {
+          "privateIPAddress": "192.168.128.4",
+          "privateIPAllocationMethod": "Dynamic",
+          "publicIPAddress": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/rg-mwcredit/providers/Microsoft.Network/publicIPAddresses/vm01-ip"
+        }
+      ]
+    },
+    "publicIP": {
+      "allocation": "Static",
+      "id": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/rg-mwcredit/providers/Microsoft.Network/publicIPAddresses/vm01-ip",
+      "ipAddress": "20.198.200.25",
+      "sku": "Standard"
+    }
+  },
+  "budget": {
+    "planningUsdMonthly": 2,
+    "hardCap": false,
+    "remainingFreeGrantVerified": false,
+    "hostStorageOverheadMeasured": false
+  },
+  "remainingGates": [
+    "Owner browser authenticated status check using the existing browser session (no browser control tool available here).",
+    "Cloud credential/federation decision and saved Cloud environment configuration, then allowed and denied application-caller status tests.",
+    "Separate approval for any operation-status permission and polling.",
+    "Separate activation approval for runtime mutations and ledger admission.",
+    "Separate exact timing/count/action approval for live VM power tests."
+  ],
+  "infrastructureDeploymentState": "Succeeded",
+  "vmRoleDeploymentState": "Succeeded",
+  "approval": {
+    "source": "direct user message in this execution thread",
+    "text": "I approve the prepared bootstrap provisioning plan and its US$2/month planning budget, with VM commands disabled.",
+    "scope": "disabled bootstrap only; reserved gates unchanged"
+  },
+  "sourceArmSha256": "346fc8989173b96bb8e3bcf225d9adc90bd4ef18679d362b152e207bd5f7527b",
+  "handoff": {
+    "repositoryEvidence": "Included in the Git tree containing this file; publication verification is reported in the task response.",
+    "sourceRepairDeploymentPerformed": false,
+    "sourceTemplateCorrection": "Explicit lowercase true/false branches replace string(bool); live settings already remain false."
+  }
+}

@@ -1,0 +1,289 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "metabase",
+    "component": "reports.mw-credit.com",
+    "kind": "question",
+    "name": "Capital transaction ledger / 341",
+    "scope": "production"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r044-partners/saved.json"
+  },
+  "content": {
+    "key": "capital-ledger",
+    "description": "R044 Partners. Same-date transactions share the date-end balance; reference order is not intraday chronology.",
+    "result_metadata": [
+      {
+        "database_type": "date",
+        "semantic_type": null,
+        "lib/deduplicated-name": "Date",
+        "lib/original-name": "Date",
+        "name": "Date",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Date",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Date",
+          {
+            "base-type": "type/Date"
+          }
+        ],
+        "effective_type": "type/Date",
+        "lib/desired-column-alias": "Date",
+        "display_name": "Date",
+        "base_type": "type/Date"
+      },
+      {
+        "database_type": "text",
+        "semantic_type": null,
+        "lib/deduplicated-name": "Partner",
+        "lib/original-name": "Partner",
+        "name": "Partner",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Partner",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Partner",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "effective_type": "type/Text",
+        "lib/desired-column-alias": "Partner",
+        "display_name": "Partner",
+        "base_type": "type/Text"
+      },
+      {
+        "database_type": "text",
+        "semantic_type": "type/Category",
+        "lib/deduplicated-name": "Type",
+        "lib/original-name": "Type",
+        "name": "Type",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Type",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Type",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "effective_type": "type/Text",
+        "lib/desired-column-alias": "Type",
+        "display_name": "Type",
+        "base_type": "type/Text"
+      },
+      {
+        "database_type": "numeric",
+        "semantic_type": null,
+        "lib/deduplicated-name": "Movement ฿",
+        "lib/original-name": "Movement ฿",
+        "name": "Movement ฿",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Movement ฿",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Movement ฿",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "Movement ฿",
+        "display_name": "Movement ฿",
+        "base_type": "type/Decimal"
+      },
+      {
+        "database_type": "numeric",
+        "semantic_type": null,
+        "lib/deduplicated-name": "Capital at date end ฿",
+        "lib/original-name": "Capital at date end ฿",
+        "name": "Capital at date end ฿",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Capital at date end ฿",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Capital at date end ฿",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "Capital at date end ฿",
+        "display_name": "Capital at date end ฿",
+        "base_type": "type/Decimal"
+      },
+      {
+        "database_type": "text",
+        "semantic_type": null,
+        "lib/deduplicated-name": "Capital reference",
+        "lib/original-name": "Capital reference",
+        "name": "Capital reference",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Capital reference",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Capital reference",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "effective_type": "type/Text",
+        "lib/desired-column-alias": "Capital reference",
+        "display_name": "Capital reference",
+        "base_type": "type/Text"
+      }
+    ],
+    "collection_id": 5,
+    "name": "Capital transaction ledger",
+    "type": "question",
+    "dataset_query": {
+      "stages": [
+        {
+          "template-tags": [
+            {
+              "widget-type": "string/=",
+              "id": "pt-partner",
+              "name": "partner",
+              "display-name": "Partner",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                {
+                  "base-type": "type/Text",
+                  "lib/uuid": "610b2d71-57b0-4b57-96d6-c463801623d0",
+                  "effective-type": "type/Text"
+                },
+                121
+              ],
+              "alias": "d.partner_id"
+            },
+            {
+              "widget-type": "date/all-options",
+              "id": "pt-period",
+              "name": "period",
+              "display-name": "Partner activity period",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                {
+                  "base-type": "type/Date",
+                  "lib/uuid": "aecb9c8e-3ba6-4620-917b-4edd1b7e9c11",
+                  "effective-type": "type/Date"
+                },
+                82
+              ],
+              "alias": "d.activity_date"
+            },
+            {
+              "type": "card",
+              "id": "r044-model-323",
+              "name": "#323",
+              "display-name": "Partners source 323",
+              "card-id": 323
+            }
+          ],
+          "lib/type": "mbql.stage/native",
+          "native": "SELECT activity_date AS \"Date\",partner_name AS \"Partner\",transaction_type AS \"Type\",net_movement AS \"Movement ฿\",date_end_capital AS \"Capital at date end ฿\",capital_id AS \"Capital reference\" FROM {{#323}} d WHERE true [[AND {{partner}}]] [[AND {{period}}]] AND activity_date<=public.olap_reporting_date() ORDER BY activity_date DESC,capital_id"
+        }
+      ],
+      "lib/type": "mbql/query",
+      "database": 2
+    },
+    "id": 341,
+    "display": "table",
+    "visualization_settings": {
+      "table.pivot": false,
+      "table.columns": [
+        {
+          "name": "Date",
+          "fieldRef": [
+            "field",
+            "Date",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "enabled": true
+        },
+        {
+          "name": "Partner",
+          "fieldRef": [
+            "field",
+            "Partner",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "enabled": true
+        },
+        {
+          "name": "Type",
+          "fieldRef": [
+            "field",
+            "Type",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "enabled": true
+        },
+        {
+          "name": "Movement ฿",
+          "fieldRef": [
+            "field",
+            "Movement ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "enabled": true
+        },
+        {
+          "name": "Capital at date end ฿",
+          "fieldRef": [
+            "field",
+            "Capital at date end ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "enabled": true
+        },
+        {
+          "name": "Capital reference",
+          "fieldRef": [
+            "field",
+            "Capital reference",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "enabled": true
+        }
+      ],
+      "column_settings": {
+        "[\"name\",\"Movement ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Capital at date end ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,",
+          "compact": false
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "backupDashboard": 22,
+  "models": {
+    "loans": 344,
+    "actuals": 345,
+    "events": 346,
+    "context": 347
+  },
+  "cards": {
+    "actual": 348,
+    "remaining": 349,
+    "projected": 350,
+    "gap": 351,
+    "principal": 352,
+    "context": 353,
+    "bridge": 354,
+    "scenarios": 355,
+    "trajectory": 356,
+    "weekly": 357,
+    "drivers": 358,
+    "types": 359,
+    "watchlist": 360,
+    "detail": 361,
+    "obligations": 362,
+    "coverage": 363,
+    "funding-context": 364,
+    "cash": 365,
+    "closing": 366,
+    "shortfall": 367,
+    "cash-bridge": 368
+  },
+  "tab": 262
+}

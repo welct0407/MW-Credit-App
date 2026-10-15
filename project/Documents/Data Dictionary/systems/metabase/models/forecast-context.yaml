@@ -1,0 +1,151 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "metabase",
+    "component": "reports.mw-credit.com",
+    "kind": "model",
+    "name": "Forecast · context source / 347",
+    "scope": "production"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r045-forecast-planning/saved.json"
+  },
+  "content": {
+    "key": "context",
+    "id": 347,
+    "name": "Forecast · context source",
+    "dataset_query": {
+      "stages": [
+        {
+          "lib/type": "mbql.stage/native",
+          "native": "SELECT * FROM public.reporting_forecast_context_v1"
+        }
+      ],
+      "lib/type": "mbql/query",
+      "database": 2
+    },
+    "result_metadata": [
+      {
+        "database_type": "date",
+        "lib/deduplicated-name": "reporting_date",
+        "lib/original-name": "reporting_date",
+        "name": "reporting_date",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "reporting_date",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "reporting_date",
+          {
+            "base-type": "type/Date"
+          }
+        ],
+        "effective_type": "type/Date",
+        "lib/desired-column-alias": "reporting_date",
+        "display_name": "reporting_date",
+        "base_type": "type/Date"
+      },
+      {
+        "database_type": "timestamptz",
+        "lib/deduplicated-name": "calculated_at",
+        "lib/original-name": "calculated_at",
+        "name": "calculated_at",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "calculated_at",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "calculated_at",
+          {
+            "base-type": "type/DateTimeWithLocalTZ"
+          }
+        ],
+        "effective_type": "type/DateTimeWithLocalTZ",
+        "lib/desired-column-alias": "calculated_at",
+        "display_name": "calculated_at",
+        "base_type": "type/DateTimeWithLocalTZ"
+      },
+      {
+        "database_type": "numeric",
+        "lib/deduplicated-name": "current_cash",
+        "lib/original-name": "current_cash",
+        "name": "current_cash",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "current_cash",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "current_cash",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "current_cash",
+        "display_name": "current_cash",
+        "base_type": "type/Decimal"
+      },
+      {
+        "database_type": "text",
+        "lib/deduplicated-name": "cash_status",
+        "lib/original-name": "cash_status",
+        "name": "cash_status",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "cash_status",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "cash_status",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "effective_type": "type/Text",
+        "lib/desired-column-alias": "cash_status",
+        "display_name": "cash_status",
+        "base_type": "type/Text"
+      },
+      {
+        "database_type": "int8",
+        "lib/deduplicated-name": "invalid_receipts",
+        "lib/original-name": "invalid_receipts",
+        "name": "invalid_receipts",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "invalid_receipts",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "invalid_receipts",
+          {
+            "base-type": "type/BigInteger"
+          }
+        ],
+        "effective_type": "type/BigInteger",
+        "lib/desired-column-alias": "invalid_receipts",
+        "display_name": "invalid_receipts",
+        "base_type": "type/BigInteger"
+      },
+      {
+        "database_type": "int8",
+        "lib/deduplicated-name": "orphan_charges",
+        "lib/original-name": "orphan_charges",
+        "name": "orphan_charges",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "orphan_charges",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "orphan_charges",
+          {
+            "base-type": "type/BigInteger"
+          }
+        ],
+        "effective_type": "type/BigInteger",
+        "lib/desired-column-alias": "orphan_charges",
+        "display_name": "orphan_charges",
+        "base_type": "type/BigInteger"
+      }
+    ]
+  }
+}

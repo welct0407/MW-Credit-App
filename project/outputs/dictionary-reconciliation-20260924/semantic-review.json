@@ -1,0 +1,272 @@
+{
+  "routine_body_differences": [
+    {
+      "routine": [
+        "agent_audit",
+        "begin_operation",
+        "p_operation_id uuid, p_reviewer_id text, p_reviewer_login text, p_plan_sha256 text, p_request_reason text, p_direct_targets jsonb, p_code_version text"
+      ],
+      "definition_equal_ignoring_CR": true
+    },
+    {
+      "routine": [
+        "agent_audit",
+        "capture_change",
+        ""
+      ],
+      "definition_equal_ignoring_CR": true
+    },
+    {
+      "routine": [
+        "agent_audit",
+        "reject_rewrite",
+        ""
+      ],
+      "definition_equal_ignoring_CR": true
+    },
+    {
+      "routine": [
+        "public",
+        "analytics_history_start",
+        ""
+      ],
+      "definition_equal_ignoring_CR": true
+    },
+    {
+      "routine": [
+        "public",
+        "analytics_refresh_request",
+        ""
+      ],
+      "definition_equal_ignoring_CR": true
+    },
+    {
+      "routine": [
+        "public",
+        "refresh_daily_analytics",
+        "p_from date, p_to date"
+      ],
+      "definition_equal_ignoring_CR": true
+    }
+  ],
+  "selected_workflow_symbol_edges": {
+    "production": [
+      {
+        "source": "public.quick_payment_request",
+        "target": "public.Payments",
+        "kind": "relation",
+        "matching_source_signatures": [
+          ""
+        ],
+        "target_exists": true
+      },
+      {
+        "source": "public.process_lump_sum",
+        "target": "public.post_payment",
+        "kind": "routine",
+        "matching_source_signatures": [
+          ""
+        ],
+        "target_exists": true
+      },
+      {
+        "source": "public.post_payment",
+        "target": "public.payment_charge_balances",
+        "kind": "routine",
+        "matching_source_signatures": [
+          "p_id text"
+        ],
+        "target_exists": true
+      },
+      {
+        "source": "public.post_payment",
+        "target": "public.close_payment_loans",
+        "kind": "routine",
+        "matching_source_signatures": [
+          "p_id text"
+        ],
+        "target_exists": true
+      },
+      {
+        "source": "public.analytics_refresh_request",
+        "target": "public.refresh_daily_analytics",
+        "kind": "routine",
+        "matching_source_signatures": [
+          ""
+        ],
+        "target_exists": true
+      },
+      {
+        "source": "public.analytics_refresh_request",
+        "target": "public.olap_reporting_date",
+        "kind": "routine",
+        "matching_source_signatures": [
+          ""
+        ],
+        "target_exists": true
+      },
+      {
+        "source": "public.cash_source_changed",
+        "target": "public.sync_cash_ledger",
+        "kind": "routine",
+        "matching_source_signatures": [
+          ""
+        ],
+        "target_exists": true
+      },
+      {
+        "source": "public.charge_generation_request",
+        "target": "public.generate_loan_charge",
+        "kind": "routine",
+        "matching_source_signatures": [
+          ""
+        ],
+        "target_exists": true
+      },
+      {
+        "source": "public.first_day_loan_trigger",
+        "target": "public.create_first_day_charge",
+        "kind": "routine",
+        "matching_source_signatures": [
+          ""
+        ],
+        "target_exists": true
+      },
+      {
+        "source": "assessment_lab.calculate_row",
+        "target": "assessment_lab.inputs",
+        "kind": "routine",
+        "matching_source_signatures": [
+          ""
+        ],
+        "target_exists": true
+      },
+      {
+        "source": "assessment_lab.calculate_row",
+        "target": "assessment_lab.forecast",
+        "kind": "routine",
+        "matching_source_signatures": [
+          ""
+        ],
+        "target_exists": true
+      }
+    ],
+    "development": [
+      {
+        "source": "public.quick_payment_request",
+        "target": "public.Payments",
+        "kind": "relation",
+        "matching_source_signatures": [
+          ""
+        ],
+        "target_exists": true
+      },
+      {
+        "source": "public.process_lump_sum",
+        "target": "public.post_payment",
+        "kind": "routine",
+        "matching_source_signatures": [
+          ""
+        ],
+        "target_exists": true
+      },
+      {
+        "source": "public.post_payment",
+        "target": "public.payment_charge_balances",
+        "kind": "routine",
+        "matching_source_signatures": [
+          "p_id text"
+        ],
+        "target_exists": true
+      },
+      {
+        "source": "public.post_payment",
+        "target": "public.close_payment_loans",
+        "kind": "routine",
+        "matching_source_signatures": [
+          "p_id text"
+        ],
+        "target_exists": true
+      },
+      {
+        "source": "public.analytics_refresh_request",
+        "target": "public.refresh_daily_analytics",
+        "kind": "routine",
+        "matching_source_signatures": [
+          ""
+        ],
+        "target_exists": true
+      },
+      {
+        "source": "public.analytics_refresh_request",
+        "target": "public.olap_reporting_date",
+        "kind": "routine",
+        "matching_source_signatures": [
+          ""
+        ],
+        "target_exists": true
+      },
+      {
+        "source": "public.cash_source_changed",
+        "target": "public.sync_cash_ledger",
+        "kind": "routine",
+        "matching_source_signatures": [
+          ""
+        ],
+        "target_exists": true
+      },
+      {
+        "source": "public.charge_generation_request",
+        "target": "public.generate_loan_charge",
+        "kind": "routine",
+        "matching_source_signatures": [
+          ""
+        ],
+        "target_exists": true
+      },
+      {
+        "source": "public.first_day_loan_trigger",
+        "target": "public.create_first_day_charge",
+        "kind": "routine",
+        "matching_source_signatures": [
+          ""
+        ],
+        "target_exists": true
+      },
+      {
+        "source": "assessment_lab.calculate_row",
+        "target": "assessment_lab.inputs",
+        "kind": "routine",
+        "matching_source_signatures": [
+          ""
+        ],
+        "target_exists": true
+      },
+      {
+        "source": "assessment_lab.calculate_row",
+        "target": "assessment_lab.forecast",
+        "kind": "routine",
+        "matching_source_signatures": [
+          ""
+        ],
+        "target_exists": true
+      }
+    ]
+  },
+  "editor_control_parity": {
+    "oltp": {
+      "views_and_named_tasks_compared": 73,
+      "changed_controls_or_choices": []
+    },
+    "olap": {
+      "views_and_named_tasks_compared": 67,
+      "changed_controls_or_choices": []
+    }
+  },
+  "failures": [],
+  "limits": [
+    "Symbol presence establishes saved textual lineage only, not runtime execution or overload resolution.",
+    "No financial rows, mutations, notifications or exports executed.",
+    "CR-insensitive comparison only classifies differences; exact stored definitions are unchanged."
+  ]
+}

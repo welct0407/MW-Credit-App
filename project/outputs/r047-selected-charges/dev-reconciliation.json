@@ -1,0 +1,56 @@
+{
+  "environment": "development",
+  "mode": "verify",
+  "payments": [
+    [
+      "gT5LsghHbQpeAAZvL98jKt",
+      "Posted",
+      "650.00",
+      "Selected Charges",
+      "R047-SC-B , R047-SC-C , R047-SC-D"
+    ],
+    [
+      "R047-SC-PART",
+      "Posted",
+      "50.00",
+      "Single Partial",
+      null
+    ]
+  ],
+  "charges": [
+    [
+      "R047-SC-A",
+      "400.00",
+      "รอชำระ"
+    ],
+    [
+      "R047-SC-B",
+      "0.00",
+      "ชำระแล้ว"
+    ],
+    [
+      "R047-SC-C",
+      "0.00",
+      "ชำระแล้ว"
+    ],
+    [
+      "R047-SC-D",
+      "0.00",
+      "ชำระแล้ว"
+    ],
+    [
+      "R047-SC-F",
+      "30.00",
+      "รอชำระ"
+    ]
+  ],
+  "selected_receipt_reconciliation": [
+    [
+      "gT5LsghHbQpeAAZvL98jKt",
+      3,
+      "650.00",
+      1,
+      "650.00"
+    ]
+  ]
+}

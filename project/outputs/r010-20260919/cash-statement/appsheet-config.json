@@ -1,0 +1,153 @@
+{
+  "release": "R010",
+  "date": "2026-09-20",
+  "status": "DEV implemented; owner review pending",
+  "devOLTP": {
+    "id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
+    "version": "1.000052",
+    "baseline": "1.000038",
+    "mode": "Deployed",
+    "diagnostics": "No issues found"
+  },
+  "devOLAP": {
+    "id": "9f3422be-bc87-4a5a-a42a-67528ee80393",
+    "version": "1.000017",
+    "changedByThisTask": false,
+    "diagnostics": "No issues found",
+    "note": "Newer than recorded 1.000015; preserve current owner work and reconcile scope before RC capture."
+  },
+  "source": "database-3",
+  "sqlVersion": 27,
+  "formulas": {
+    "securityFilter": "AND(ISNOTBLANK(USEREMAIL()), IN([Ref Partner], SELECT(Partners[Row ID], LOWER(TRIM([Login Email])) = LOWER(TRIM(USEREMAIL())))))",
+    "selectedSlice": "AND([Ref Cash Account] = ANY(Cash Statement Context[Ref Cash Account]), [Statement Date] = ANY(Cash Statement Context[Statement Date]))",
+    "accountValidIf": "SELECT(Cash Accounts[Row ID], [Active])",
+    "dateInitial": "MAX(Cash Account Daily Summary Recent[Statement Date])",
+    "dateValidIf": "AND([_THIS] >= MIN(Cash Account Daily Summary Recent[Statement Date]), [_THIS] <= MAX(Cash Account Daily Summary Recent[Statement Date]))",
+    "userLanguage": "IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login Email])) = LOWER(TRIM(USEREMAIL())))) = \"ไทย\", \"ไทย\", \"English\")",
+    "transaction": "IF([User Language]=\"ไทย\", SWITCH([Transaction Type Code],\"LOAN_PAYMENT\",\"รับชำระเงินกู้\",\"FIRST_DAY_PAYMENT\",\"รับชำระวันแรก\",\"LOAN_DISBURSEMENT\",\"จ่ายเงินกู้\",\"BUSINESS_EXPENSE\",\"ค่าใช้จ่ายธุรกิจ\",\"REFERRAL_REBATE\",\"เงินคืนค่าแนะนำลูกค้า\",\"PARTNER_SETTLEMENT\",\"ชำระให้หุ้นส่วน\",\"ACCOUNT_TRANSFER\",\"โอนระหว่างบัญชี\",\"CASH_TRANSFER\",\"โอนเงิน\",\"EXPENSE_REIMBURSEMENT\",\"คืนค่าใช้จ่าย\",\"OPENING_BALANCE\",\"ยอดยกมา\",\"MANUAL_CORRECTION\",\"ปรับปรุงยอด\",\"รายการอื่น\"), SWITCH([Transaction Type Code],\"LOAN_PAYMENT\",\"Loan Payment\",\"FIRST_DAY_PAYMENT\",\"First-day Payment\",\"LOAN_DISBURSEMENT\",\"Loan Disbursement\",\"BUSINESS_EXPENSE\",\"Business Expense\",\"REFERRAL_REBATE\",\"Referral Rebate\",\"PARTNER_SETTLEMENT\",\"Partner Settlement\",\"ACCOUNT_TRANSFER\",\"Account Transfer\",\"CASH_TRANSFER\",\"Cash Transfer\",\"EXPENSE_REIMBURSEMENT\",\"Expense Reimbursement\",\"OPENING_BALANCE\",\"Opening Balance\",\"MANUAL_CORRECTION\",\"Manual Correction\",\"Other\"))",
+    "counterparty": "SWITCH([Counterparty Kind], \"BORROWER\", IF(AND([User Language] <> \"ไทย\", ISNOTBLANK([Ref Borrower].[Description])), [Ref Borrower].[Description], [Ref Borrower].[Borrower Name]), \"ACCOUNT\", [Ref Other Cash Account].[Account Label], \"PARTNER\", [Ref Partner].[Partner Name], \"ADJUSTMENT\", IF([User Language]=\"ไทย\", \"ปรับปรุงยอด\", \"Adjustment\"), [Counterparty Text])",
+    "amountDisplay": "CONCATENATE(IF([Signed Amount] > 0, \"+\", \"-\"), TEXT(ABS([Signed Amount])))",
+    "balanceStatus": "IF([Is Initialized], \"\", IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login Email])) = LOWER(TRIM(USEREMAIL())))) = \"ไทย\", \"ยังไม่ได้กำหนดยอดตั้งต้น\", \"Balance not initialized\"))"
+  },
+  "codes": [
+    [
+      "LOAN_PAYMENT",
+      "Loan Payment",
+      "รับชำระเงินกู้"
+    ],
+    [
+      "FIRST_DAY_PAYMENT",
+      "First-day Payment",
+      "รับชำระวันแรก"
+    ],
+    [
+      "LOAN_DISBURSEMENT",
+      "Loan Disbursement",
+      "จ่ายเงินกู้"
+    ],
+    [
+      "BUSINESS_EXPENSE",
+      "Business Expense",
+      "ค่าใช้จ่ายธุรกิจ"
+    ],
+    [
+      "REFERRAL_REBATE",
+      "Referral Rebate",
+      "เงินคืนค่าแนะนำลูกค้า"
+    ],
+    [
+      "PARTNER_SETTLEMENT",
+      "Partner Settlement",
+      "ชำระให้หุ้นส่วน"
+    ],
+    [
+      "ACCOUNT_TRANSFER",
+      "Account Transfer",
+      "โอนระหว่างบัญชี"
+    ],
+    [
+      "CASH_TRANSFER",
+      "Cash Transfer",
+      "โอนเงิน"
+    ],
+    [
+      "EXPENSE_REIMBURSEMENT",
+      "Expense Reimbursement",
+      "คืนค่าใช้จ่าย"
+    ],
+    [
+      "OPENING_BALANCE",
+      "Opening Balance",
+      "ยอดยกมา"
+    ],
+    [
+      "MANUAL_CORRECTION",
+      "Manual Correction",
+      "ปรับปรุงยอด"
+    ]
+  ],
+  "views": {
+    "Cash Statement Controls": {
+      "type": "Detail",
+      "source": "Cash Statement Context",
+      "position": "ref",
+      "quickEdit": [
+        "Ref Cash Account",
+        "Statement Date"
+      ],
+      "displayMode": "Side-by-side",
+      "slideshow": false,
+      "displayName": "IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login Email])) = LOWER(TRIM(USEREMAIL())))) = \"ไทย\", \"ตัวเลือก\", \"Controls\")"
+    },
+    "Cash Statement Summary": {
+      "type": "Detail",
+      "source": "Selected Cash Statement Summary",
+      "position": "ref",
+      "displayMode": "Side-by-side",
+      "slideshow": false,
+      "displayName": "IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login Email])) = LOWER(TRIM(USEREMAIL())))) = \"ไทย\", \"สรุปรายวัน\", \"Daily summary\")"
+    },
+    "Cash Statement Transactions": {
+      "type": "Table",
+      "source": "Selected Cash Statement",
+      "position": "ref",
+      "sort": [
+        "Statement Date ASC",
+        "Sort Timestamp ASC",
+        "Row ID ASC"
+      ],
+      "columns": [
+        "Statement Time",
+        "Transaction",
+        "Counterparty",
+        "Amount Display",
+        "Balance After"
+      ],
+      "width": "Narrow",
+      "quickEdit": false,
+      "displayName": "IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login Email])) = LOWER(TRIM(USEREMAIL())))) = \"ไทย\", \"รายการ\", \"Transactions\")"
+    },
+    "Cash Statement": {
+      "type": "Dashboard",
+      "position": "menu",
+      "entries": [
+        [
+          "Cash Statement Controls",
+          "Small"
+        ],
+        [
+          "Cash Statement Summary",
+          "Small"
+        ],
+        [
+          "Cash Statement Transactions",
+          "Large"
+        ]
+      ],
+      "mobileTabs": false,
+      "interactive": false,
+      "displayName": "IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login Email])) = LOWER(TRIM(USEREMAIL())))) = \"ไทย\", \"รายการบัญชีเงินสด\", \"Cash Statement\")"
+    }
+  }
+}

@@ -1,0 +1,332 @@
+[
+  {
+    "path": "collection-agent/agent/__init__.py",
+    "lines": 1,
+    "sha256": "2a2ab2305b9df449334e806543a81b09202275d1bad1e4c97a3340c8988d5c22"
+  },
+  {
+    "path": "collection-agent/agent/__main__.py",
+    "lines": 102,
+    "sha256": "b917de46f60311d472ad9c0409c3b596f7af4cfccd1ab87776750786a0b826b9"
+  },
+  {
+    "path": "collection-agent/agent/ai_job.py",
+    "lines": 39,
+    "sha256": "0fb17f26f3c4d45af70729352b27c034e6f74473ca28876d0fc50465befe7887"
+  },
+  {
+    "path": "collection-agent/agent/bridge.py",
+    "lines": 35,
+    "sha256": "7f354cbd0dc688adf418c74c7ce1636c579e8aef9b9bbab1fde410021452d112"
+  },
+  {
+    "path": "collection-agent/agent/chat_relevance.py",
+    "lines": 14,
+    "sha256": "5e4a261d1368df22fc4c69226bc9f6030e1cfb79c7c4327b7aa0b287120e34b9"
+  },
+  {
+    "path": "collection-agent/agent/config.py",
+    "lines": 30,
+    "sha256": "624211e3750b022155d260ddab2c98f753e895e0ea9f02923580e4ce56345a75"
+  },
+  {
+    "path": "collection-agent/agent/coordination.py",
+    "lines": 43,
+    "sha256": "a08f497b5ade238b4120c9b4e8223ee1b3b75851283619d2b11b233e2b1dc875"
+  },
+  {
+    "path": "collection-agent/agent/cutover.py",
+    "lines": 16,
+    "sha256": "4242b25b48136b24a0f87a4b80995fe02277266bef4357a3840eaf067bc9f149"
+  },
+  {
+    "path": "collection-agent/agent/direct_review.py",
+    "lines": 24,
+    "sha256": "68bfe8b1d17ebd6dfee5e2a4ae3a37c2d91f34b77e08d7f3cd2780aa65aeb8c4"
+  },
+  {
+    "path": "collection-agent/agent/dispatch.py",
+    "lines": 49,
+    "sha256": "1db4b186a13d0208e1beaba2cf9bca4444a047895a76899346864fe16a7635a6"
+  },
+  {
+    "path": "collection-agent/agent/event_worker.py",
+    "lines": 275,
+    "sha256": "b5480a77d5983d99cd7743062ab9c5046b1fd4409d64055837f6bec7234581e7"
+  },
+  {
+    "path": "collection-agent/agent/history.py",
+    "lines": 51,
+    "sha256": "43e034f4580d670428752cef9e027df331e206a581a31829819ff5821900ab72"
+  },
+  {
+    "path": "collection-agent/agent/inbox.py",
+    "lines": 26,
+    "sha256": "79f064dabacb0d0c79ba0dd727c91fd560f5475f67fc6c1cc320e122a0c338a2"
+  },
+  {
+    "path": "collection-agent/agent/instagram.py",
+    "lines": 129,
+    "sha256": "3a9fcb8fc7252b423a9d8f3dea7750c9c97fe2426db10485d9af250567382bbc"
+  },
+  {
+    "path": "collection-agent/agent/media.py",
+    "lines": 49,
+    "sha256": "eae7d1f2050ef3534de7e0fa21863a43738308a0b3868bb6df4827a77d35f303"
+  },
+  {
+    "path": "collection-agent/agent/opslog.py",
+    "lines": 11,
+    "sha256": "301b1563c67bff37932ce94a5f8a50507d9d23ac48a3902db1dd27f66535d446"
+  },
+  {
+    "path": "collection-agent/agent/portfolio.py",
+    "lines": 60,
+    "sha256": "e2ccf4dd458c9769a88db02c3d2de804d3b8fda6103f07f26c5b05f6b80b2595"
+  },
+  {
+    "path": "collection-agent/agent/reply.py",
+    "lines": 50,
+    "sha256": "ad08f1f120e49149300a97808c9fb01c7f95e6abc73471aac36ead3c27ebf126"
+  },
+  {
+    "path": "collection-agent/agent/review.py",
+    "lines": 33,
+    "sha256": "c33a7eba6d81e8e3c7f39b87b56710499b5fe74ab007959e19893f7eb0116f94"
+  },
+  {
+    "path": "collection-agent/agent/review_details.py",
+    "lines": 40,
+    "sha256": "ac67c20ec003ead6fb249c67d206ef52464f17f3f5cc6cd154c08ffe2f8ff213"
+  },
+  {
+    "path": "collection-agent/agent/review_language.py",
+    "lines": 34,
+    "sha256": "3f45dcd27bb47ed309c870f6d15c04535d0aa8c9bcf54ec39de335b633495fe2"
+  },
+  {
+    "path": "collection-agent/agent/reviewer_handoff.py",
+    "lines": 49,
+    "sha256": "d8379e700b2775938d2cd228938cfa43f1a123a65dc2922138f2d43155a4bc94"
+  },
+  {
+    "path": "collection-agent/agent/reviewers.py",
+    "lines": 35,
+    "sha256": "120595cd0472d020cdbafa529c0f1643b9719576c5152f95001d16f59db54843"
+  },
+  {
+    "path": "collection-agent/agent/routing.py",
+    "lines": 113,
+    "sha256": "4193e8b0991b37ebcbf488e38f91ea7ca511993a84d8b80d230fedf2555cd17a"
+  },
+  {
+    "path": "collection-agent/agent/store.py",
+    "lines": 117,
+    "sha256": "824187c0abf46966e14d291b1c8fe2548f14a9e41572e7e312a0564307ca0196"
+  },
+  {
+    "path": "collection-agent/agent/webhook.py",
+    "lines": 76,
+    "sha256": "3922468254804924d1db3d80a11d6840f7ffde95fdca9b282661e2e9e3891dee"
+  },
+  {
+    "path": "mw-ai-collection/src/api_actions.mjs",
+    "lines": 73,
+    "sha256": "20310556e402dbc9d2e0a8c9f6079a7fc314e70d56da74bc16872b6da8b48280"
+  },
+  {
+    "path": "mw-ai-collection/src/api_connection.mjs",
+    "lines": 6,
+    "sha256": "e9cd27c61e937b94b15cb891b0612d5b86b7bdbc3c2e618cb7be79ac78973f25"
+  },
+  {
+    "path": "mw-ai-collection/src/api_dispatch.mjs",
+    "lines": 14,
+    "sha256": "4955b16a632699fe21f31db998ddcb602c59db5f8f911e6bcc911221d706401b"
+  },
+  {
+    "path": "mw-ai-collection/src/api_read_runner.mjs",
+    "lines": 34,
+    "sha256": "f4ffe601ff3bb42681eaf0631d8a1f893a8a5a0448360dc0c55abdf75d1fc4d2"
+  },
+  {
+    "path": "mw-ai-collection/src/api_workflow.mjs",
+    "lines": 20,
+    "sha256": "18955a947b371fdba75316f5f4505321cbc967994c1bd0bb054dbbccc613dd83"
+  },
+  {
+    "path": "mw-ai-collection/src/api_write_runner.mjs",
+    "lines": 28,
+    "sha256": "d280810ef2dcb31c9b006bf46263cab481d31c27e1f515258f1e0be254b42060"
+  },
+  {
+    "path": "mw-ai-collection/src/appsheet_api.mjs",
+    "lines": 146,
+    "sha256": "ef2a253ff299230ebdcd3c9cc1ffe8d862313617bb56d41e7eed17e45f0a8e60"
+  },
+  {
+    "path": "mw-ai-collection/src/appsheet_source.mjs",
+    "lines": 4,
+    "sha256": "1fc21f67c49a92b42a01f05be23878121ca708b043f14240aa2971022cb8158b"
+  },
+  {
+    "path": "mw-ai-collection/src/batch_engine.mjs",
+    "lines": 121,
+    "sha256": "4f46c2f906a9de3744cc59bdcbeb2ec3eb346e2f47f2700d2a40a9dacdbcb1ce"
+  },
+  {
+    "path": "mw-ai-collection/src/batch_runner.mjs",
+    "lines": 26,
+    "sha256": "acaddb96114db5caaf1d8d8ac4503ee5482aef91defcefb93f4af6e885c1d5a8"
+  },
+  {
+    "path": "mw-ai-collection/src/collection_runner.mjs",
+    "lines": 24,
+    "sha256": "865ff6775d0a130f5fda7f49e4d6821d14f34f1efbe218e5f02afe0f5d15dab0"
+  },
+  {
+    "path": "mw-ai-collection/src/collection_settings.mjs",
+    "lines": 42,
+    "sha256": "2074cf225aa67084f75d25837ea0ccd40b42eac734a9187dbc1fe0cd0f2aa88e"
+  },
+  {
+    "path": "mw-ai-collection/src/cycle_brief.mjs",
+    "lines": 45,
+    "sha256": "46d4d4db0e084b40666aa7b8348eb61f8cab13d9bc0e3515bea47843092876a8"
+  },
+  {
+    "path": "mw-ai-collection/src/event_actions.mjs",
+    "lines": 103,
+    "sha256": "7a3e622bbe2aebfb6a151f131231d33e138230a596e70f5b3b64167de860cbc5"
+  },
+  {
+    "path": "mw-ai-collection/src/exception_engine.mjs",
+    "lines": 68,
+    "sha256": "0abb73fb845af54bfc0f50687828d5091debf10dceddd5cca4bf8a9dbbeee8a0"
+  },
+  {
+    "path": "mw-ai-collection/src/exception_runner.mjs",
+    "lines": 20,
+    "sha256": "1c7a9af6ea076ba4cf43c5d41889e3805f7f2867537d53dc2aaddc72ab9d93cf"
+  },
+  {
+    "path": "mw-ai-collection/src/instagram_bridge.mjs",
+    "lines": 17,
+    "sha256": "2ce2c9a0889afe1c8a0e9a6cc52e392bc12e122a2ee4796fdf7dddff75ccd9a2"
+  },
+  {
+    "path": "mw-ai-collection/src/instagram_dispatch.mjs",
+    "lines": 51,
+    "sha256": "834de8bd7dfd5e2e31297c4dc4b645e2e8b1621864e93e3f621c8c72e21a800a"
+  },
+  {
+    "path": "mw-ai-collection/src/instagram_evidence.mjs",
+    "lines": 51,
+    "sha256": "61ed21b2e676677485d91bdbf062ddbb8c250bec1a7ca24fcdad7bd92f46aafb"
+  },
+  {
+    "path": "mw-ai-collection/src/instagram_state.mjs",
+    "lines": 28,
+    "sha256": "b2a82b0c1dae44937f597b5d6a26c1192a1f1f455557c9ac79f64351b33ad639"
+  },
+  {
+    "path": "mw-ai-collection/src/ledger.mjs",
+    "lines": 78,
+    "sha256": "30ceba8aa1e9a91bdc4e0cff48b4e00d6b060136306ae04d3cfd88b757e7f580"
+  },
+  {
+    "path": "mw-ai-collection/src/master_engine.mjs",
+    "lines": 171,
+    "sha256": "d83be7a6fffc24896e0bcfee5963a965c7be5c97e3373ef3da80fe2ef49c7f99"
+  },
+  {
+    "path": "mw-ai-collection/src/master_runner.mjs",
+    "lines": 18,
+    "sha256": "07574240b8e3db700cbe7bb8351a5183ec3d7839f810e723e8b47406936250ee"
+  },
+  {
+    "path": "mw-ai-collection/src/message_template.mjs",
+    "lines": 27,
+    "sha256": "1d6b2ba8fbf0ccd25a93d8d4eb5dcac21e0e054b6650738d45f9b1184987783e"
+  },
+  {
+    "path": "mw-ai-collection/src/payment_account.mjs",
+    "lines": 10,
+    "sha256": "be297a8d5cedffa90841619ea209ae7777ffbe853dafa0d03d649bd035ce2a52"
+  },
+  {
+    "path": "mw-ai-collection/src/receipt_engine.mjs",
+    "lines": 223,
+    "sha256": "e0cae99b2ecfa96078164799a3202aa911f73357905c19c4fdb8643ab7ef4dc3"
+  },
+  {
+    "path": "mw-ai-collection/src/receipt_runner.mjs",
+    "lines": 27,
+    "sha256": "47aa16c7aa289d37305da5f9249c15d927e1558e490376fde68e143830f22e81"
+  },
+  {
+    "path": "mw-ai-collection/src/reminder_engine.mjs",
+    "lines": 132,
+    "sha256": "0b4fafc4efd61c1d140d247786f2737e58a2167a8b92c812ded7f63c51d4b573"
+  },
+  {
+    "path": "mw-ai-collection/src/reminder_runner.mjs",
+    "lines": 22,
+    "sha256": "794b619166d5eeaf16d054804a411640edde93cc96c26f82a827fb0da036a62e"
+  },
+  {
+    "path": "mw-ai-collection/src/review_resend.mjs",
+    "lines": 63,
+    "sha256": "890288eaa91a9e57c58896cc4fedec08c1e0bd0d68638bee1e3f3ab099558c15"
+  },
+  {
+    "path": "mw-ai-collection/src/reviewers.mjs",
+    "lines": 15,
+    "sha256": "095e09a6d05e4e3daa3480d339ad1328e48afdb5e158d9d2c315d5b65b01de81"
+  },
+  {
+    "path": "mw-ai-collection/src/runtime_lock.mjs",
+    "lines": 21,
+    "sha256": "856d7fba78a22ba0dee1379ffd994a9b382ffec8038b7daa358e2cb560c62d8d"
+  },
+  {
+    "path": "mw-ai-collection/src/scoped_config.mjs",
+    "lines": 22,
+    "sha256": "7d32fc706a63d34849b315c231b0984609d56e06b3f6ae0fe0d7d3930b878770"
+  },
+  {
+    "path": "collection-agent/install-event-worker.ps1",
+    "lines": 15,
+    "sha256": "db43067e4ea667f66c06bd464efe393ce404a1e3297347f147db8ae2aa003052"
+  },
+  {
+    "path": "collection-agent/install-runtime.ps1",
+    "lines": 20,
+    "sha256": "28bef40c29fc0a98bc0da61342352e8dba24a3516ad72029174a41db0d94099c"
+  },
+  {
+    "path": "collection-agent/install-startup.ps1",
+    "lines": 13,
+    "sha256": "07c2b1c7fd888dec732bb8011c83cc750783967a647ac732eeb1241dc92e5f3b"
+  },
+  {
+    "path": "collection-agent/install-tunnel-service.ps1",
+    "lines": 20,
+    "sha256": "cc7124aa7c832d230220cdbca1e7d3b83c2d101b5269723c00b286c8f110eca2"
+  },
+  {
+    "path": "collection-agent/run-worker.ps1",
+    "lines": 6,
+    "sha256": "4c93189b225e429436a925361615018fb35ee9d50577ba7ae4f4d07f2becb302"
+  },
+  {
+    "path": "collection-agent/verify-event-worker.ps1",
+    "lines": 19,
+    "sha256": "608e99125d978586be27d84187c9c2cb18fda461d9601fb3040a9c735b922d19"
+  },
+  {
+    "path": "collection-agent/verify-runtime.ps1",
+    "lines": 18,
+    "sha256": "2104eca28dba755884c1586bf871dc01cd14c650d4719c30a0e00502705f1d62"
+  }
+]

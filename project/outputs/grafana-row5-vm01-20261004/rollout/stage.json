@@ -1,0 +1,15 @@
+{
+  "phase": "stage",
+  "source": "ae4cb9031e679e302cd1296ed727c47d6c07968c",
+  "image": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-monitoring/grafana-mcp-bridge@sha256:9ba9b0f222c7f75e7302cdc7162873060c0c71488696766f11422306f22758fe",
+  "staged_revision": "mw-grafana-events-00015-qcs",
+  "revision_ready": true,
+  "traffic": [
+    {
+      "percent": 100,
+      "revisionName": "mw-grafana-events-00014-s6x"
+    }
+  ],
+  "unrelated_service_spec_preserved": true,
+  "alerts_created": 0
+}

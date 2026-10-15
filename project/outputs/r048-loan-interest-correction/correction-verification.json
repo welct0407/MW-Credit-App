@@ -1,0 +1,22 @@
+{
+  "environment": "production",
+  "instance": "appsheet-pg-prod-20260914",
+  "database": "loan_manager_prod",
+  "history": 53,
+  "backup_sha256": "da592729ac7ac1b195e5212638602c742e0371b16875caa690369c14ef1a2f97",
+  "restored_backup_verified": true,
+  "rehearsed": true,
+  "owner_confirmed": true,
+  "result": {
+    "rate_before": null,
+    "rate_after": 10,
+    "arrangement_note_added": true,
+    "only_row_fields_changed": [
+      "Loan Arrangement",
+      "Original Daily Interest Rate"
+    ],
+    "financial_values_unchanged": true
+  },
+  "loans_missing_rate": 0,
+  "app_versions_unchanged": true
+}

@@ -1,0 +1,88 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "metabase",
+    "component": "reports.mw-credit.com",
+    "kind": "model",
+    "name": "Borrower pages · picker / 277",
+    "scope": "production"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r035-borrower-pages/saved-question-definitions.json"
+  },
+  "content": {
+    "key": "picker",
+    "id": 277,
+    "name": "Borrower pages · picker",
+    "description": "R035 additive borrower pages. Immutable borrower keys; Bangkok dates; current health from V41/V42. Signed receipts. No AppSheet/financial writes.",
+    "display": "table",
+    "type": "model",
+    "dataset_query": {
+      "stages": [
+        {
+          "lib/type": "mbql.stage/native",
+          "native": "SELECT borrower_id AS \"Borrower ID\",borrower_label AS \"Borrower\" FROM public.reporting_borrower_directory_v1 ORDER BY borrower_label,borrower_id"
+        }
+      ],
+      "lib/type": "mbql/query",
+      "database": 2
+    },
+    "visualization_settings": {
+      "table.pivot": false,
+      "table.columns": [
+        {
+          "name": "Borrower ID",
+          "fieldRef": [
+            "field",
+            "Borrower ID",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "enabled": true
+        },
+        {
+          "name": "Borrower",
+          "fieldRef": [
+            "field",
+            "Borrower",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "enabled": true
+        }
+      ],
+      "column_settings": {}
+    },
+    "result_metadata": [
+      {
+        "name": "Borrower ID",
+        "database_type": "text",
+        "base_type": "type/Text",
+        "display_name": "Borrower ID",
+        "field_ref": [
+          "field",
+          "Borrower ID",
+          {
+            "base-type": "type/Text"
+          }
+        ]
+      },
+      {
+        "name": "Borrower",
+        "database_type": "text",
+        "base_type": "type/Text",
+        "display_name": "Borrower",
+        "field_ref": [
+          "field",
+          "Borrower",
+          {
+            "base-type": "type/Text"
+          }
+        ]
+      }
+    ]
+  }
+}

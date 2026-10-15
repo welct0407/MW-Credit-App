@@ -1,0 +1,10 @@
+[Unit]
+Description=Retry definitely unsent cash statement fallback email
+
+[Timer]
+OnBootSec=5min
+OnUnitInactiveSec=5min
+Unit=mw-cash-statement-email-retry.service
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,11 @@
+{
+  "at": "2026-09-24T09:48:37.200Z",
+  "browser": "Chrome Wel",
+  "viewport": "Existing desktop",
+  "checks": [
+    "Five metrics in one row",
+    "Short labels readable without truncation",
+    "Net deployed number and cohort return percentage render",
+    "Existing section and charts preserved"
+  ]
+}

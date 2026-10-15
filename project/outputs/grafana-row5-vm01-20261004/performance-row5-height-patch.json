@@ -1,0 +1,11 @@
+{
+  "dashboard": "mw-resource-performance",
+  "scope": "Only height4\u21923 on panels123/125/126/127 in the current verified row5 layout. Preserve widths/positions/all other layout, panels, queries, styles and metadata. Parent browser applies; never reapply an older whole import.",
+  "heightByPanel": {
+    "123": 3,
+    "125": 3,
+    "126": 3,
+    "127": 3
+  },
+  "live_application": "Completed and parent-verified at dashboard history version36; patch retained as evidence, do not replay over current resource"
+}

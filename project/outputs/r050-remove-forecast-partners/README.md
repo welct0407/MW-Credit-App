@@ -1,0 +1,7 @@
+# R050 — retire legacy Forecast & Partners tab
+
+29 September 2026. The owner asked to remove the old **11 · Forecast & Partners** tab from Metabase Loan Reports dashboard3. This tab was ID11, position10, with 15 placements. Its saved questions remain available, including the nine questions used only by that tab; no questions or data were deleted.
+
+After removal, dashboard3 has **12 tabs and 259 placements**. Existing **Partners** (ID249) is now **11 · Partners** and **Forecast & Planning** (ID262) is now **12 · Forecast & Planning**. Their IDs, content and links remain the same. All 259 other placements and all 28 dashboard parameters compared equal to the pre-change state. No tab11-only parameters existed. The [saved navigation](saved.json) and [verification](verification.json) record the result. Chrome Wel showed the renumbered tabs and loaded Partners; a screenshot is retained privately.
+
+Before editing, a restorable copy of the affected report was created as dashboard **26**, and the complete pre-change dashboard definition was retained privately under `r050-remove-forecast-partners`. To recover, compare current dashboard3 against this change, then restore tab11 and its placements from that baseline, preserving any later edits. The saved questions need no restoration. No AppSheet, PostgreSQL, financial records, notifications or other reports were changed. R050 remains Open.

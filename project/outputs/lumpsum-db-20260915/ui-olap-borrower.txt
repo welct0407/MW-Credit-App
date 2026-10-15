@@ -1,0 +1,114 @@
+- banner:
+  - button "Toggle menu":
+  - heading "Loan Business Insights — DEV" [level=6]
+  - textbox "ค้นหา ผู้กู้": LS26
+  - button "Clear search":
+  - button "ซิงค์":
+  - button "ดูสถานะแอป":
+    - button
+  - button "account menu":
+    - generic: W
+- navigation:
+  - button " ภาพรวม":
+    - generic: 
+    - generic: ภาพรวม
+  - button " การวิเคราะห์":
+    - generic: 
+    - generic: การวิเคราะห์
+  - button " ประเมินการปล่อยกู้เพิ่ม":
+    - generic: 
+    - generic: ประเมินการปล่อยกู้เพิ่ม
+  - button " หุ้นส่วน":
+    - generic: 
+    - generic: หุ้นส่วน
+  - button " ผู้กู้":
+    - generic: 
+    - generic: ผู้กู้
+  - button " งานสินเชื่อ / Operations App":
+    - generic: 
+    - generic: งานสินเชื่อ / Operations App
+  - button " สินเชื่อ":
+    - generic: 
+    - generic: สินเชื่อ
+  - button " Calendar Detail View":
+    - generic: 
+    - generic: Calendar Detail View
+  - button " Daily Analytics - Validation":
+    - generic: 
+    - generic: Daily Analytics - Validation
+  - separator
+  - button "เกี่ยวกับ":
+    - generic: เกี่ยวกับ
+  - button "Feedback":
+    - generic: Feedback
+  - separator
+  - button "App Gallery":
+    - generic: App Gallery
+- region "ผู้กู้":
+  - heading "ผู้กู้" [level=2]
+  - button "ตัวกรอง":
+  - button "ขยาย":
+    - generic: 
+  - button "LS26 BENCHMARK SYNTHETIC - Lump-sum Dev benchmark; no contact details ฿1,400 ฿100,000":
+    - generic: LS26 BENCHMARK SYNTHETIC - Lump-sum Dev benchmark; no contact details
+    - generic: 
+    - text: ฿1,400
+    - generic: ฿100,000
+  - button "LS26 CORRECTNESS SYNTHETIC - Lump-sum Dev review; no contact details ฿60 ฿300" [active]:
+    - generic: LS26 CORRECTNESS SYNTHETIC - Lump-sum Dev review; no contact details
+    - generic: 
+    - text: ฿60
+    - generic: ฿300
+- region "LS26 CORRECTNESS SYNTHETIC - Lump-sum Dev review; no contact details":
+  - heading "LS26 CORRECTNESS SYNTHETIC - Lump-sum Dev review; no contact details" [level=2]
+  - button "ก่อนหน้า":
+    - generic: 
+  - button "ถัดไป" [disabled]:
+    - generic: 
+  - button "ขยาย":
+    - generic: 
+  - button "ปิด":
+  - generic: Borrower Name - Thai
+  - generic: LS26 CORRECTNESS SYNTHETIC
+  - generic: English Name
+  - generic: Lump-sum Dev review; no contact details
+  - generic: วันที่สร้างข้อมูล / Creation Date
+  - generic: 9/15/2026
+  - generic: ยอดเงินกู้สะสม / Total Amount Loaned
+  - generic: ฿300
+  - generic: ดอกเบี้ยที่ได้รับทั้งหมด / Total Profit Earned
+  - generic: 
+  - text: ฿60
+  - generic: จำนวนเงินกู้ทั้งหมด / Total Number of Loans
+  - generic: "2"
+  - generic: ──── เงินกู้ที่ยังไม่ปิด / Active Loans ────
+  - generic: เงินต้นคงเหลือ / Total Outstanding Principal
+  - generic: ฿0
+  - generic: ดอกเบี้ยเงินกู้ที่ยังไม่ปิด / Active Loan Interest Earned
+  - generic: 
+  - text: ฿50
+  - generic: ผลตอบแทนเงินต้น / Return on Active Principal
+  - generic: 0%
+  - generic: วันที่ดอกเบี้ยครอบคลุมเงินต้น / Projected Interest Coverage Date
+  - generic: ──── เงินกู้ที่ปิดแล้ว / Closed Loans ────
+  - generic: เงินต้นของเงินกู้ที่ปิดแล้ว / Closed Loan Principle
+  - generic: ฿300
+  - generic: ดอกเบี้ยที่ได้รับจากเงินกู้ที่ปิดแล้ว / Closed Loan Interest Earned
+  - generic: 
+  - text: ฿10
+  - generic: ผลตอบแทนจากเงินกู้ที่ปิดแล้ว / Return on Closed Loans
+  - generic: 3%
+  - region "💰 สินเชื่อที่เกี่ยวข้อง":
+    - generic: 💰 สินเชื่อที่เกี่ยวข้อง
+    - generic: "2"
+    - separator
+    - generic: ปิดยอดแล้ว / Closed
+    - button "LS26 CORRECTNESS SYNTHETIC-฿100-05/09-0.00% 10% ฿10":
+      - generic: LS26 CORRECTNESS SYNTHETIC-฿100-05/09-0.00%
+      - generic: 10%
+      - generic: 
+      - text: ฿10
+    - button "ขยาย"
+- generic: 
+- text:   
+- status: 1Password menu is available. Press down arrow to select.

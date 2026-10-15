@@ -1,0 +1,106 @@
+[
+  {
+    "name": "Net principal deployed · live",
+    "description": "Selected-period principal issued minus principal repayments received from all loans, including older cohorts. Positive means net lending; negative means net capital recovery. Uses Loan Date for issuance and Payment Date for returns. Live on refresh; Bangkok dates, future excluded. Not cash balance or profit. No transactions = 0; no eligible dates/unknown inputs = unavailable.",
+    "display": "scalar",
+    "dataset_query": {
+      "database": 2,
+      "type": "native",
+      "native": {
+        "query": "WITH clock AS (SELECT public.olap_reporting_date() today),\n available AS (SELECT min(\"Date\") starts FROM public.reporting_statement_calendar),\n selected AS (\n SELECT d.\"Date\" FROM (SELECT generate_series(DATE '1900-01-01',DATE '2199-12-31',INTERVAL '1 day')::date AS \"Date\") d\n WHERE [[{{performance_period}} --]] d.\"Date\" BETWEEN (SELECT starts FROM available) AND (SELECT today FROM clock)\n ), bounds AS (SELECT min(\"Date\") starts,max(\"Date\") ends,count(*) days,\n count(*)>0 AND count(*)=max(\"Date\")-min(\"Date\")+1 continuous FROM selected),\n live_days AS (SELECT d.\"Date\" FROM selected d CROSS JOIN bounds b CROSS JOIN clock c WHERE b.continuous AND d.\"Date\"<=c.today),\n history_days AS (SELECT d.\"Date\" FROM selected d CROSS JOIN bounds b CROSS JOIN clock c WHERE b.continuous AND d.\"Date\"<c.today), issued AS (SELECT s.\"Principal Amount\" amount FROM {{#70}} s JOIN live_days d ON s.\"Loan Date\"=d.\"Date\"),\nreturned AS (SELECT s.\"Principal Paid\" amount FROM {{#71}} s JOIN live_days d ON s.\"Payment Date\"=d.\"Date\")\nSELECT CASE WHEN EXISTS(SELECT 1 FROM live_days)\n AND NOT EXISTS(SELECT 1 FROM issued WHERE amount IS NULL) AND NOT EXISTS(SELECT 1 FROM returned WHERE amount IS NULL)\n THEN (SELECT coalesce(sum(amount),0) FROM issued)-(SELECT coalesce(sum(amount),0) FROM returned) END AS \"Net principal deployed\"",
+        "template-tags": {
+          "performance_period": {
+            "id": "r021-period",
+            "name": "performance_period",
+            "display-name": "Performance period",
+            "type": "dimension",
+            "dimension": [
+              "field",
+              82,
+              null
+            ],
+            "widget-type": "date/all-options",
+            "alias": "d.\"Date\""
+          },
+          "#70": {
+            "id": "r021-model-70",
+            "name": "#70",
+            "display-name": "Model 70",
+            "type": "card",
+            "card-id": 70
+          },
+          "#71": {
+            "id": "r021-model-71",
+            "name": "#71",
+            "display-name": "Model 71",
+            "type": "card",
+            "card-id": 71
+          }
+        }
+      }
+    },
+    "visualization_settings": {
+      "scalar.field": "Net principal deployed",
+      "column_settings": {
+        "[\"name\",\"Net principal deployed\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,",
+          "compact": false
+        }
+      }
+    }
+  },
+  {
+    "name": "Loan-cohort return · live",
+    "description": "Interest received within the selected period from loans issued in that same period, divided by their original principal counted once. Ratio of totals, not average of weekly percentages. Same contract as weekly chart 233. Gross interest, not net profit; unpaid loans retained; zero denominator/unknown inputs = unavailable. Live on refresh, includes today when selected. Recent loans have less time to earn interest.",
+    "display": "scalar",
+    "dataset_query": {
+      "database": 2,
+      "type": "native",
+      "native": {
+        "query": "WITH clock AS (SELECT public.olap_reporting_date() today),\n available AS (SELECT min(\"Date\") starts FROM public.reporting_statement_calendar),\n selected AS (\n SELECT d.\"Date\" FROM (SELECT generate_series(DATE '1900-01-01',DATE '2199-12-31',INTERVAL '1 day')::date AS \"Date\") d\n WHERE [[{{performance_period}} --]] d.\"Date\" BETWEEN (SELECT starts FROM available) AND (SELECT today FROM clock)\n ), bounds AS (SELECT min(\"Date\") starts,max(\"Date\") ends,count(*) days,\n count(*)>0 AND count(*)=max(\"Date\")-min(\"Date\")+1 continuous FROM selected),\n live_days AS (SELECT d.\"Date\" FROM selected d CROSS JOIN bounds b CROSS JOIN clock c WHERE b.continuous AND d.\"Date\"<=c.today),\n history_days AS (SELECT d.\"Date\" FROM selected d CROSS JOIN bounds b CROSS JOIN clock c WHERE b.continuous AND d.\"Date\"<c.today)\n, issued AS (\n SELECT l.\"Loan ID\",l.\"Loan Date\",l.\"Principal Amount\"\n FROM {{#70}} l JOIN live_days d ON l.\"Loan Date\"=d.\"Date\"\n), received AS (\n SELECT p.\"Loan ID\",count(*) payments,count(p.\"Interest Paid\") known_interest,sum(p.\"Interest Paid\") interest\n FROM {{#71}} p JOIN issued l ON l.\"Loan ID\"=p.\"Loan ID\"\n JOIN live_days d ON p.\"Payment Date\"=d.\"Date\"\n GROUP BY p.\"Loan ID\"\n), per_loan AS (\n SELECT l.*,CASE WHEN p.payments IS NULL THEN 0 WHEN p.payments=p.known_interest THEN p.interest END interest\n FROM issued l LEFT JOIN received p ON p.\"Loan ID\"=l.\"Loan ID\"\n)\nSELECT CASE WHEN count(interest)=count(*) AND count(\"Principal Amount\")=count(*)\n THEN sum(interest)/nullif(sum(\"Principal Amount\"),0) END AS \"Loan-cohort return\" FROM per_loan",
+        "template-tags": {
+          "performance_period": {
+            "id": "r021-period",
+            "name": "performance_period",
+            "display-name": "Performance period",
+            "type": "dimension",
+            "dimension": [
+              "field",
+              82,
+              null
+            ],
+            "widget-type": "date/all-options",
+            "alias": "d.\"Date\""
+          },
+          "#70": {
+            "id": "r021-model-70",
+            "name": "#70",
+            "display-name": "Model 70",
+            "type": "card",
+            "card-id": 70
+          },
+          "#71": {
+            "id": "r021-model-71",
+            "name": "#71",
+            "display-name": "Model 71",
+            "type": "card",
+            "card-id": 71
+          }
+        }
+      }
+    },
+    "visualization_settings": {
+      "scalar.field": "Loan-cohort return",
+      "column_settings": {
+        "[\"name\",\"Loan-cohort return\"]": {
+          "number_style": "percent",
+          "decimals": 2,
+          "number_separators": ".,",
+          "compact": false
+        }
+      }
+    }
+  }
+]

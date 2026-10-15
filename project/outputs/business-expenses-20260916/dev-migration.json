@@ -1,0 +1,24 @@
+{
+  "database" : "loan_manager_prod",
+  "databaseType" : "PostgreSQL",
+  "exception" : null,
+  "flywayVersion" : "13.6.0",
+  "initialSchemaVersion" : "14",
+  "licenseFailed" : false,
+  "migrations" : [ {
+    "category" : "Versioned",
+    "description" : "business expenses and referrals",
+    "executionTime" : 459,
+    "filepath" : "C:\\GitHub\\AppSheet-Loan-Project\\database\\migrations\\V15__business_expenses_and_referrals.sql",
+    "type" : "SQL",
+    "version" : "15"
+  } ],
+  "migrationsExecuted" : 1,
+  "operation" : "migrate",
+  "schemaName" : "",
+  "success" : true,
+  "targetSchemaVersion" : "15",
+  "timestamp" : "2026-09-16T12:31:04.3671829+07:00",
+  "totalMigrationTime" : 459,
+  "warnings" : [ ]
+}

@@ -1,0 +1,26 @@
+{
+  "date": "2026-09-24",
+  "dashboard_id": 3,
+  "tab_id": 16,
+  "question_ids": [
+    178,
+    213,
+    214
+  ],
+  "trend_columns": [
+    "Date",
+    "Income",
+    "Expenses",
+    "Generated At"
+  ],
+  "trend_rows": 54,
+  "category_display": "row",
+  "trend_display": "bar",
+  "trend_metrics": [
+    "Income",
+    "Expenses"
+  ],
+  "split_y_axis": false,
+  "dashboard_placements": 181,
+  "rollback": "Private income-chart-refinement-before-20260924 card/dashboard definitions"
+}

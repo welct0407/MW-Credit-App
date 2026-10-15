@@ -1,0 +1,3783 @@
+{
+  "version": "1.000150",
+  "owner_baseline": "1.000146",
+  "baseline_git": "df87f27aeca0f3e61316f0cb5460e1bf391becfa",
+  "capture_counts": {
+    "slice": 12,
+    "view": 73,
+    "format-rule": 60,
+    "action": 108,
+    "table": 38,
+    "column": 873
+  },
+  "objects": {
+    "slice:Borrower Upcoming 5 Dates": {
+      "release": "R048",
+      "status": "DEV implemented; owner review and PROD promotion pending",
+      "target": "oltp",
+      "definition_evidence": "outputs/r048-upcoming-charges/summary-refinement.json",
+      "after": {
+        "state": "value",
+        "value": {
+          "definition": {
+            "Slice Name": "Borrower Upcoming 5 Dates",
+            "Slice Columns": [
+              "_RowNumber",
+              "Row ID",
+              "Ref Borrower",
+              "Ref Loan",
+              "Due Date",
+              "Principal Remaining",
+              "Interest Remaining",
+              "Amount Remaining",
+              "Basis",
+              "As Of Date",
+              "Horizon End",
+              "Calculated At",
+              "Within 7 Days",
+              "Borrower Due Date Rank",
+              "Basis Display"
+            ],
+            "Row filter condition": "=AND([Borrower Due Date Rank] >= 1, [Borrower Due Date Rank] <= 5, [Due Date] <= [Horizon End], [As Of Date] = LOOKUP(\"upcoming\", \"Upcoming Charge Context\", \"Row ID\", \"As Of Date\"))",
+            "Update mode": "READ_ONLY",
+            "Source Table": "Upcoming Charge Forecast",
+            "Visible?": "ALWAYS",
+            "Slice Actions": [
+              "**auto**"
+            ]
+          },
+          "members": [
+            {
+              "Ordinal": 1,
+              "Column": "_RowNumber"
+            },
+            {
+              "Ordinal": 2,
+              "Column": "Row ID"
+            },
+            {
+              "Ordinal": 3,
+              "Column": "Ref Borrower"
+            },
+            {
+              "Ordinal": 4,
+              "Column": "Ref Loan"
+            },
+            {
+              "Ordinal": 5,
+              "Column": "Due Date"
+            },
+            {
+              "Ordinal": 6,
+              "Column": "Principal Remaining"
+            },
+            {
+              "Ordinal": 7,
+              "Column": "Interest Remaining"
+            },
+            {
+              "Ordinal": 8,
+              "Column": "Amount Remaining"
+            },
+            {
+              "Ordinal": 9,
+              "Column": "Basis"
+            },
+            {
+              "Ordinal": 10,
+              "Column": "As Of Date"
+            },
+            {
+              "Ordinal": 11,
+              "Column": "Horizon End"
+            },
+            {
+              "Ordinal": 12,
+              "Column": "Calculated At"
+            },
+            {
+              "Ordinal": 13,
+              "Column": "Within 7 Days"
+            },
+            {
+              "Ordinal": 14,
+              "Column": "Borrower Due Date Rank"
+            },
+            {
+              "Ordinal": 15,
+              "Column": "Basis Display"
+            }
+          ]
+        }
+      },
+      "before": {
+        "state": "absent"
+      },
+      "scope_note": "Existing slice changes are appended forecast members only; filters, update modes and actions preserved.",
+      "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
+      "version": "1.000150"
+    },
+    "slice:R008 Borrower Commands": {
+      "release": "R048",
+      "status": "DEV implemented; owner review and PROD promotion pending",
+      "target": "oltp",
+      "definition_evidence": "outputs/r048-upcoming-charges/summary-refinement.json",
+      "after": {
+        "state": "value",
+        "value": {
+          "definition": {
+            "Slice Name": "R008 Borrower Commands",
+            "Slice Columns": [
+              "_RowNumber",
+              "Row ID",
+              "Borrower Name",
+              "Description",
+              "Creation Date",
+              "Hidden Flag",
+              "Communication Name",
+              "Instagram Username",
+              "AI Collection Enabled",
+              "City",
+              "Working Location",
+              "Address",
+              "Total Interest Earned",
+              "Total Amount Loaned",
+              "Total Number of Loans",
+              "Total Outstanding Principal",
+              "Active Loan Interest Earned",
+              "Active Daily Interest",
+              "Has Closed Loan",
+              "Has Active Loan",
+              "Ref Referrer",
+              "Ref Preferred Receiving Cash Account",
+              "Payment Request Cash Account",
+              "Payment Request Token",
+              "Related Loans",
+              "Header - Active Loans",
+              "Borrower Name TE",
+              "Return on Active Principal",
+              "Projected Interest Coverage Date",
+              "Closed Loan Interest Earned",
+              "Closed Loan Principle",
+              "Return on Closed Loans",
+              "Header - Closed Loans",
+              "Daily Collection Status",
+              "Todays Collection Charges",
+              "Todays Amount Due",
+              "Todays Amount Collected",
+              "Todays Amount Remaining",
+              "Daily Collection Status - Order",
+              "Active Profit After Principal Coverage",
+              "Related Payments",
+              "Related Business Expenses By Ref Payee Borrower",
+              "Related Business Expenses By Ref Related Borrower",
+              "Borrower Reference TE",
+              "Related Charges",
+              "Related Repayments",
+              "Related Cash Account Statement Recents",
+              "Borrower Note",
+              "Borrower Activity Group",
+              "Submitted Receipts",
+              "Related Upcoming Charge Forecasts",
+              "Upcoming Charges",
+              "Upcoming Charge Note",
+              "Upcoming Charges Summary",
+              "Related Upcoming Charge Summarys"
+            ],
+            "Update mode": "UPDATES_ONLY",
+            "Source Table": "Borrowers",
+            "Visible?": "ALWAYS",
+            "Slice Actions": [
+              "**auto**"
+            ]
+          },
+          "members": [
+            {
+              "Ordinal": 1,
+              "Column": "_RowNumber"
+            },
+            {
+              "Ordinal": 2,
+              "Column": "Row ID"
+            },
+            {
+              "Ordinal": 3,
+              "Column": "Borrower Name"
+            },
+            {
+              "Ordinal": 4,
+              "Column": "Description"
+            },
+            {
+              "Ordinal": 5,
+              "Column": "Creation Date"
+            },
+            {
+              "Ordinal": 6,
+              "Column": "Hidden Flag"
+            },
+            {
+              "Ordinal": 7,
+              "Column": "Communication Name"
+            },
+            {
+              "Ordinal": 8,
+              "Column": "Instagram Username"
+            },
+            {
+              "Ordinal": 9,
+              "Column": "AI Collection Enabled"
+            },
+            {
+              "Ordinal": 10,
+              "Column": "City"
+            },
+            {
+              "Ordinal": 11,
+              "Column": "Working Location"
+            },
+            {
+              "Ordinal": 12,
+              "Column": "Address"
+            },
+            {
+              "Ordinal": 13,
+              "Column": "Total Interest Earned"
+            },
+            {
+              "Ordinal": 14,
+              "Column": "Total Amount Loaned"
+            },
+            {
+              "Ordinal": 15,
+              "Column": "Total Number of Loans"
+            },
+            {
+              "Ordinal": 16,
+              "Column": "Total Outstanding Principal"
+            },
+            {
+              "Ordinal": 17,
+              "Column": "Active Loan Interest Earned"
+            },
+            {
+              "Ordinal": 18,
+              "Column": "Active Daily Interest"
+            },
+            {
+              "Ordinal": 19,
+              "Column": "Has Closed Loan"
+            },
+            {
+              "Ordinal": 20,
+              "Column": "Has Active Loan"
+            },
+            {
+              "Ordinal": 21,
+              "Column": "Ref Referrer"
+            },
+            {
+              "Ordinal": 22,
+              "Column": "Ref Preferred Receiving Cash Account"
+            },
+            {
+              "Ordinal": 23,
+              "Column": "Payment Request Cash Account"
+            },
+            {
+              "Ordinal": 24,
+              "Column": "Payment Request Token"
+            },
+            {
+              "Ordinal": 25,
+              "Column": "Related Loans"
+            },
+            {
+              "Ordinal": 26,
+              "Column": "Header - Active Loans"
+            },
+            {
+              "Ordinal": 27,
+              "Column": "Borrower Name TE"
+            },
+            {
+              "Ordinal": 28,
+              "Column": "Return on Active Principal"
+            },
+            {
+              "Ordinal": 29,
+              "Column": "Projected Interest Coverage Date"
+            },
+            {
+              "Ordinal": 30,
+              "Column": "Closed Loan Interest Earned"
+            },
+            {
+              "Ordinal": 31,
+              "Column": "Closed Loan Principle"
+            },
+            {
+              "Ordinal": 32,
+              "Column": "Return on Closed Loans"
+            },
+            {
+              "Ordinal": 33,
+              "Column": "Header - Closed Loans"
+            },
+            {
+              "Ordinal": 34,
+              "Column": "Daily Collection Status"
+            },
+            {
+              "Ordinal": 35,
+              "Column": "Todays Collection Charges"
+            },
+            {
+              "Ordinal": 36,
+              "Column": "Todays Amount Due"
+            },
+            {
+              "Ordinal": 37,
+              "Column": "Todays Amount Collected"
+            },
+            {
+              "Ordinal": 38,
+              "Column": "Todays Amount Remaining"
+            },
+            {
+              "Ordinal": 39,
+              "Column": "Daily Collection Status - Order"
+            },
+            {
+              "Ordinal": 40,
+              "Column": "Active Profit After Principal Coverage"
+            },
+            {
+              "Ordinal": 41,
+              "Column": "Related Payments"
+            },
+            {
+              "Ordinal": 42,
+              "Column": "Related Business Expenses By Ref Payee Borrower"
+            },
+            {
+              "Ordinal": 43,
+              "Column": "Related Business Expenses By Ref Related Borrower"
+            },
+            {
+              "Ordinal": 44,
+              "Column": "Borrower Reference TE"
+            },
+            {
+              "Ordinal": 45,
+              "Column": "Related Charges"
+            },
+            {
+              "Ordinal": 46,
+              "Column": "Related Repayments"
+            },
+            {
+              "Ordinal": 47,
+              "Column": "Related Cash Account Statement Recents"
+            },
+            {
+              "Ordinal": 48,
+              "Column": "Borrower Note"
+            },
+            {
+              "Ordinal": 49,
+              "Column": "Borrower Activity Group"
+            },
+            {
+              "Ordinal": 50,
+              "Column": "Submitted Receipts"
+            },
+            {
+              "Ordinal": 51,
+              "Column": "Related Upcoming Charge Forecasts"
+            },
+            {
+              "Ordinal": 52,
+              "Column": "Upcoming Charges"
+            },
+            {
+              "Ordinal": 53,
+              "Column": "Upcoming Charge Note"
+            },
+            {
+              "Ordinal": 54,
+              "Column": "Upcoming Charges Summary"
+            },
+            {
+              "Ordinal": 55,
+              "Column": "Related Upcoming Charge Summarys"
+            }
+          ]
+        }
+      },
+      "before": {
+        "state": "value",
+        "value": {
+          "Slice Columns": [
+            "_RowNumber",
+            "Row ID",
+            "Borrower Name",
+            "Description",
+            "Creation Date",
+            "Hidden Flag",
+            "Communication Name",
+            "Instagram Username",
+            "AI Collection Enabled",
+            "City",
+            "Working Location",
+            "Address",
+            "Total Interest Earned",
+            "Total Amount Loaned",
+            "Total Number of Loans",
+            "Total Outstanding Principal",
+            "Active Loan Interest Earned",
+            "Active Daily Interest",
+            "Has Closed Loan",
+            "Has Active Loan",
+            "Ref Referrer",
+            "Ref Preferred Receiving Cash Account",
+            "Payment Request Cash Account",
+            "Payment Request Token",
+            "Related Loans",
+            "Header - Active Loans",
+            "Borrower Name TE",
+            "Return on Active Principal",
+            "Projected Interest Coverage Date",
+            "Closed Loan Interest Earned",
+            "Closed Loan Principle",
+            "Return on Closed Loans",
+            "Header - Closed Loans",
+            "Daily Collection Status",
+            "Todays Collection Charges",
+            "Todays Amount Due",
+            "Todays Amount Collected",
+            "Todays Amount Remaining",
+            "Daily Collection Status - Order",
+            "Active Profit After Principal Coverage",
+            "Related Payments",
+            "Related Business Expenses By Ref Payee Borrower",
+            "Related Business Expenses By Ref Related Borrower",
+            "Borrower Reference TE",
+            "Related Charges",
+            "Related Repayments",
+            "Related Cash Account Statement Recents",
+            "Borrower Note",
+            "Borrower Activity Group",
+            "Submitted Receipts"
+          ]
+        }
+      },
+      "scope_note": "Existing slice changes are appended forecast members only; filters, update modes and actions preserved.",
+      "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
+      "version": "1.000150"
+    },
+    "slice:R008 Loan Commands": {
+      "release": "R048",
+      "status": "DEV implemented; owner review and PROD promotion pending",
+      "target": "oltp",
+      "definition_evidence": "outputs/r048-upcoming-charges/summary-refinement.json",
+      "after": {
+        "state": "value",
+        "value": {
+          "definition": {
+            "Slice Name": "R008 Loan Commands",
+            "Slice Columns": [
+              "_RowNumber",
+              "Row ID",
+              "Loan Date",
+              "Close Date",
+              "Principal Amount",
+              "Due Date",
+              "Ref Borrowers",
+              "Loan Arrangement",
+              "Loan Status",
+              "Loan Type",
+              "Current Daily Interest",
+              "Fixed Interest",
+              "Transfer Fee",
+              "Interest Payment Interval",
+              "Created By",
+              "Closed By",
+              "Defaulted",
+              "Default Loss Amount",
+              "Daily Payment Amount",
+              "Auto Charge Enabled",
+              "Interest Schedule Anchor Date",
+              "Ref Closing Payment",
+              "Charge Generation Request",
+              "Total Interest Received",
+              "Total Principal Received",
+              "Outstanding Principal",
+              "Total Amount Received",
+              "Expected Daily Interest Amount",
+              "Ref Disbursed From Cash Account",
+              "Payment Request Cash Account",
+              "Payment Request Token",
+              "Related Repayments",
+              "Statistics Header",
+              "Related Charges",
+              "Loan Key",
+              "Expected Interest This Month",
+              "Effective Daily Interest Rate",
+              "Principal Recovered by Interest %",
+              "Principal Days MTD",
+              "Borrower Name TE",
+              "Loan Status TE",
+              "Loan Type TE",
+              "Loan Duration",
+              "Last Interest Charge Date",
+              "Accrued Interest Days",
+              "Accrued Interest",
+              "Borrower Name",
+              "Related Payments",
+              "Related Business Expenses",
+              "Related Cash Account Statement Recents",
+              "Original Daily Interest Rate",
+              "Related Upcoming Charge Forecasts"
+            ],
+            "Update mode": "UPDATES_ONLY",
+            "Source Table": "Loans",
+            "Visible?": "ALWAYS",
+            "Slice Actions": [
+              "**auto**"
+            ]
+          },
+          "members": [
+            {
+              "Ordinal": 1,
+              "Column": "_RowNumber"
+            },
+            {
+              "Ordinal": 2,
+              "Column": "Row ID"
+            },
+            {
+              "Ordinal": 3,
+              "Column": "Loan Date"
+            },
+            {
+              "Ordinal": 4,
+              "Column": "Close Date"
+            },
+            {
+              "Ordinal": 5,
+              "Column": "Principal Amount"
+            },
+            {
+              "Ordinal": 6,
+              "Column": "Due Date"
+            },
+            {
+              "Ordinal": 7,
+              "Column": "Ref Borrowers"
+            },
+            {
+              "Ordinal": 8,
+              "Column": "Loan Arrangement"
+            },
+            {
+              "Ordinal": 9,
+              "Column": "Loan Status"
+            },
+            {
+              "Ordinal": 10,
+              "Column": "Loan Type"
+            },
+            {
+              "Ordinal": 11,
+              "Column": "Current Daily Interest"
+            },
+            {
+              "Ordinal": 12,
+              "Column": "Fixed Interest"
+            },
+            {
+              "Ordinal": 13,
+              "Column": "Transfer Fee"
+            },
+            {
+              "Ordinal": 14,
+              "Column": "Interest Payment Interval"
+            },
+            {
+              "Ordinal": 15,
+              "Column": "Created By"
+            },
+            {
+              "Ordinal": 16,
+              "Column": "Closed By"
+            },
+            {
+              "Ordinal": 17,
+              "Column": "Defaulted"
+            },
+            {
+              "Ordinal": 18,
+              "Column": "Default Loss Amount"
+            },
+            {
+              "Ordinal": 19,
+              "Column": "Daily Payment Amount"
+            },
+            {
+              "Ordinal": 20,
+              "Column": "Auto Charge Enabled"
+            },
+            {
+              "Ordinal": 21,
+              "Column": "Interest Schedule Anchor Date"
+            },
+            {
+              "Ordinal": 22,
+              "Column": "Ref Closing Payment"
+            },
+            {
+              "Ordinal": 23,
+              "Column": "Charge Generation Request"
+            },
+            {
+              "Ordinal": 24,
+              "Column": "Total Interest Received"
+            },
+            {
+              "Ordinal": 25,
+              "Column": "Total Principal Received"
+            },
+            {
+              "Ordinal": 26,
+              "Column": "Outstanding Principal"
+            },
+            {
+              "Ordinal": 27,
+              "Column": "Total Amount Received"
+            },
+            {
+              "Ordinal": 28,
+              "Column": "Expected Daily Interest Amount"
+            },
+            {
+              "Ordinal": 29,
+              "Column": "Ref Disbursed From Cash Account"
+            },
+            {
+              "Ordinal": 30,
+              "Column": "Payment Request Cash Account"
+            },
+            {
+              "Ordinal": 31,
+              "Column": "Payment Request Token"
+            },
+            {
+              "Ordinal": 32,
+              "Column": "Related Repayments"
+            },
+            {
+              "Ordinal": 33,
+              "Column": "Statistics Header"
+            },
+            {
+              "Ordinal": 34,
+              "Column": "Related Charges"
+            },
+            {
+              "Ordinal": 35,
+              "Column": "Loan Key"
+            },
+            {
+              "Ordinal": 36,
+              "Column": "Expected Interest This Month"
+            },
+            {
+              "Ordinal": 37,
+              "Column": "Effective Daily Interest Rate"
+            },
+            {
+              "Ordinal": 38,
+              "Column": "Principal Recovered by Interest %"
+            },
+            {
+              "Ordinal": 39,
+              "Column": "Principal Days MTD"
+            },
+            {
+              "Ordinal": 40,
+              "Column": "Borrower Name TE"
+            },
+            {
+              "Ordinal": 41,
+              "Column": "Loan Status TE"
+            },
+            {
+              "Ordinal": 42,
+              "Column": "Loan Type TE"
+            },
+            {
+              "Ordinal": 43,
+              "Column": "Loan Duration"
+            },
+            {
+              "Ordinal": 44,
+              "Column": "Last Interest Charge Date"
+            },
+            {
+              "Ordinal": 45,
+              "Column": "Accrued Interest Days"
+            },
+            {
+              "Ordinal": 46,
+              "Column": "Accrued Interest"
+            },
+            {
+              "Ordinal": 47,
+              "Column": "Borrower Name"
+            },
+            {
+              "Ordinal": 48,
+              "Column": "Related Payments"
+            },
+            {
+              "Ordinal": 49,
+              "Column": "Related Business Expenses"
+            },
+            {
+              "Ordinal": 50,
+              "Column": "Related Cash Account Statement Recents"
+            },
+            {
+              "Ordinal": 51,
+              "Column": "Original Daily Interest Rate"
+            },
+            {
+              "Ordinal": 52,
+              "Column": "Related Upcoming Charge Forecasts"
+            }
+          ]
+        }
+      },
+      "before": {
+        "state": "value",
+        "value": {
+          "Slice Columns": [
+            "_RowNumber",
+            "Row ID",
+            "Loan Date",
+            "Close Date",
+            "Principal Amount",
+            "Due Date",
+            "Ref Borrowers",
+            "Loan Arrangement",
+            "Loan Status",
+            "Loan Type",
+            "Current Daily Interest",
+            "Fixed Interest",
+            "Transfer Fee",
+            "Interest Payment Interval",
+            "Created By",
+            "Closed By",
+            "Defaulted",
+            "Default Loss Amount",
+            "Daily Payment Amount",
+            "Auto Charge Enabled",
+            "Interest Schedule Anchor Date",
+            "Ref Closing Payment",
+            "Charge Generation Request",
+            "Total Interest Received",
+            "Total Principal Received",
+            "Outstanding Principal",
+            "Total Amount Received",
+            "Expected Daily Interest Amount",
+            "Ref Disbursed From Cash Account",
+            "Payment Request Cash Account",
+            "Payment Request Token",
+            "Related Repayments",
+            "Statistics Header",
+            "Related Charges",
+            "Loan Key",
+            "Expected Interest This Month",
+            "Effective Daily Interest Rate",
+            "Principal Recovered by Interest %",
+            "Principal Days MTD",
+            "Borrower Name TE",
+            "Loan Status TE",
+            "Loan Type TE",
+            "Loan Duration",
+            "Last Interest Charge Date",
+            "Accrued Interest Days",
+            "Accrued Interest",
+            "Borrower Name",
+            "Related Payments",
+            "Related Business Expenses",
+            "Related Cash Account Statement Recents",
+            "Original Daily Interest Rate"
+          ]
+        }
+      },
+      "scope_note": "Existing slice changes are appended forecast members only; filters, update modes and actions preserved.",
+      "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
+      "version": "1.000150"
+    },
+    "slice:Todays Collection Board": {
+      "release": "R048",
+      "status": "DEV implemented; owner review and PROD promotion pending",
+      "target": "oltp",
+      "definition_evidence": "outputs/r048-upcoming-charges/summary-refinement.json",
+      "after": {
+        "state": "value",
+        "value": {
+          "definition": {
+            "Slice Name": "Todays Collection Board",
+            "Slice Columns": [
+              "_RowNumber",
+              "Row ID",
+              "Borrower Name",
+              "Description",
+              "Daily Collection Status - Order",
+              "Todays Amount Due",
+              "Todays Amount Collected",
+              "Todays Amount Remaining",
+              "Todays Collection Charges",
+              "Hidden Flag",
+              "Related Payments",
+              "Communication Name",
+              "Instagram Username",
+              "AI Collection Enabled",
+              "City",
+              "Working Location",
+              "Address",
+              "Ref Referrer",
+              "Related Business Expenses By Ref Payee Borrower",
+              "Related Business Expenses By Ref Related Borrower",
+              "Borrower Name TE",
+              "Borrower Reference TE",
+              "Ref Preferred Receiving Cash Account",
+              "Payment Request Cash Account",
+              "Payment Request Token",
+              "Related Charges",
+              "Related Repayments",
+              "Related Cash Account Statement Recents",
+              "Borrower Note",
+              "Submitted Receipts",
+              "Related Upcoming Charge Forecasts",
+              "Upcoming Charges",
+              "Upcoming Charge Note",
+              "Related Upcoming Charge Summarys",
+              "Upcoming Charges Summary"
+            ],
+            "Row filter condition": "=ISNOTBLANK([Daily Collection Status])",
+            "Update mode": "UPDATES_ONLY",
+            "Source Table": "Borrowers",
+            "Visible?": "ALWAYS",
+            "Slice Actions": [
+              "**auto**"
+            ]
+          },
+          "members": [
+            {
+              "Ordinal": 1,
+              "Column": "_RowNumber"
+            },
+            {
+              "Ordinal": 2,
+              "Column": "Row ID"
+            },
+            {
+              "Ordinal": 3,
+              "Column": "Borrower Name"
+            },
+            {
+              "Ordinal": 4,
+              "Column": "Description"
+            },
+            {
+              "Ordinal": 5,
+              "Column": "Daily Collection Status - Order"
+            },
+            {
+              "Ordinal": 6,
+              "Column": "Todays Amount Due"
+            },
+            {
+              "Ordinal": 7,
+              "Column": "Todays Amount Collected"
+            },
+            {
+              "Ordinal": 8,
+              "Column": "Todays Amount Remaining"
+            },
+            {
+              "Ordinal": 9,
+              "Column": "Todays Collection Charges"
+            },
+            {
+              "Ordinal": 10,
+              "Column": "Hidden Flag"
+            },
+            {
+              "Ordinal": 11,
+              "Column": "Related Payments"
+            },
+            {
+              "Ordinal": 12,
+              "Column": "Communication Name"
+            },
+            {
+              "Ordinal": 13,
+              "Column": "Instagram Username"
+            },
+            {
+              "Ordinal": 14,
+              "Column": "AI Collection Enabled"
+            },
+            {
+              "Ordinal": 15,
+              "Column": "City"
+            },
+            {
+              "Ordinal": 16,
+              "Column": "Working Location"
+            },
+            {
+              "Ordinal": 17,
+              "Column": "Address"
+            },
+            {
+              "Ordinal": 18,
+              "Column": "Ref Referrer"
+            },
+            {
+              "Ordinal": 19,
+              "Column": "Related Business Expenses By Ref Payee Borrower"
+            },
+            {
+              "Ordinal": 20,
+              "Column": "Related Business Expenses By Ref Related Borrower"
+            },
+            {
+              "Ordinal": 21,
+              "Column": "Borrower Name TE"
+            },
+            {
+              "Ordinal": 22,
+              "Column": "Borrower Reference TE"
+            },
+            {
+              "Ordinal": 23,
+              "Column": "Ref Preferred Receiving Cash Account"
+            },
+            {
+              "Ordinal": 24,
+              "Column": "Payment Request Cash Account"
+            },
+            {
+              "Ordinal": 25,
+              "Column": "Payment Request Token"
+            },
+            {
+              "Ordinal": 26,
+              "Column": "Related Charges"
+            },
+            {
+              "Ordinal": 27,
+              "Column": "Related Repayments"
+            },
+            {
+              "Ordinal": 28,
+              "Column": "Related Cash Account Statement Recents"
+            },
+            {
+              "Ordinal": 29,
+              "Column": "Borrower Note"
+            },
+            {
+              "Ordinal": 30,
+              "Column": "Submitted Receipts"
+            },
+            {
+              "Ordinal": 31,
+              "Column": "Related Upcoming Charge Forecasts"
+            },
+            {
+              "Ordinal": 32,
+              "Column": "Upcoming Charges"
+            },
+            {
+              "Ordinal": 33,
+              "Column": "Upcoming Charge Note"
+            },
+            {
+              "Ordinal": 34,
+              "Column": "Related Upcoming Charge Summarys"
+            },
+            {
+              "Ordinal": 35,
+              "Column": "Upcoming Charges Summary"
+            }
+          ]
+        }
+      },
+      "before": {
+        "state": "value",
+        "value": {
+          "Slice Columns": [
+            "_RowNumber",
+            "Row ID",
+            "Borrower Name",
+            "Description",
+            "Daily Collection Status - Order",
+            "Todays Amount Due",
+            "Todays Amount Collected",
+            "Todays Amount Remaining",
+            "Todays Collection Charges",
+            "Hidden Flag",
+            "Related Payments",
+            "Communication Name",
+            "Instagram Username",
+            "AI Collection Enabled",
+            "City",
+            "Working Location",
+            "Address",
+            "Ref Referrer",
+            "Related Business Expenses By Ref Payee Borrower",
+            "Related Business Expenses By Ref Related Borrower",
+            "Borrower Name TE",
+            "Borrower Reference TE",
+            "Ref Preferred Receiving Cash Account",
+            "Payment Request Cash Account",
+            "Payment Request Token",
+            "Related Charges",
+            "Related Repayments",
+            "Related Cash Account Statement Recents",
+            "Borrower Note",
+            "Submitted Receipts"
+          ]
+        }
+      },
+      "scope_note": "Existing slice changes are appended forecast members only; filters, update modes and actions preserved.",
+      "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
+      "version": "1.000150"
+    },
+    "slice:Upcoming Charges 7 Days": {
+      "release": "R048",
+      "status": "DEV implemented; owner review and PROD promotion pending",
+      "target": "oltp",
+      "definition_evidence": "outputs/r048-upcoming-charges/summary-refinement.json",
+      "after": {
+        "state": "value",
+        "value": {
+          "definition": {
+            "Slice Name": "Upcoming Charges 7 Days",
+            "Slice Columns": [
+              "_RowNumber",
+              "Row ID",
+              "Ref Borrower",
+              "Ref Loan",
+              "Due Date",
+              "Principal Remaining",
+              "Interest Remaining",
+              "Amount Remaining",
+              "Basis",
+              "As Of Date",
+              "Horizon End",
+              "Calculated At",
+              "Within 7 Days",
+              "Borrower Due Date Rank",
+              "Basis Display"
+            ],
+            "Row filter condition": "=AND([Within 7 Days], [As Of Date] = LOOKUP(\"upcoming\", \"Upcoming Charge Context\", \"Row ID\", \"As Of Date\"))",
+            "Update mode": "READ_ONLY",
+            "Source Table": "Upcoming Charge Forecast",
+            "Visible?": "ALWAYS",
+            "Slice Actions": [
+              "**auto**"
+            ]
+          },
+          "members": [
+            {
+              "Ordinal": 1,
+              "Column": "_RowNumber"
+            },
+            {
+              "Ordinal": 2,
+              "Column": "Row ID"
+            },
+            {
+              "Ordinal": 3,
+              "Column": "Ref Borrower"
+            },
+            {
+              "Ordinal": 4,
+              "Column": "Ref Loan"
+            },
+            {
+              "Ordinal": 5,
+              "Column": "Due Date"
+            },
+            {
+              "Ordinal": 6,
+              "Column": "Principal Remaining"
+            },
+            {
+              "Ordinal": 7,
+              "Column": "Interest Remaining"
+            },
+            {
+              "Ordinal": 8,
+              "Column": "Amount Remaining"
+            },
+            {
+              "Ordinal": 9,
+              "Column": "Basis"
+            },
+            {
+              "Ordinal": 10,
+              "Column": "As Of Date"
+            },
+            {
+              "Ordinal": 11,
+              "Column": "Horizon End"
+            },
+            {
+              "Ordinal": 12,
+              "Column": "Calculated At"
+            },
+            {
+              "Ordinal": 13,
+              "Column": "Within 7 Days"
+            },
+            {
+              "Ordinal": 14,
+              "Column": "Borrower Due Date Rank"
+            },
+            {
+              "Ordinal": 15,
+              "Column": "Basis Display"
+            }
+          ]
+        }
+      },
+      "before": {
+        "state": "absent"
+      },
+      "scope_note": "Existing slice changes are appended forecast members only; filters, update modes and actions preserved.",
+      "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
+      "version": "1.000150"
+    },
+    "slice:Visible Borrowers": {
+      "release": "R048",
+      "status": "DEV implemented; owner review and PROD promotion pending",
+      "target": "oltp",
+      "definition_evidence": "outputs/r048-upcoming-charges/summary-refinement.json",
+      "after": {
+        "state": "value",
+        "value": {
+          "definition": {
+            "Slice Name": "Visible Borrowers",
+            "Slice Columns": [
+              "_RowNumber",
+              "Row ID",
+              "Borrower Name",
+              "Description",
+              "Creation Date",
+              "Hidden Flag",
+              "Related Loans",
+              "Total Interest Earned",
+              "Total Amount Loaned",
+              "Total Number of Loans",
+              "Total Outstanding Principal",
+              "Header - Active Loans",
+              "Borrower Name TE",
+              "Return on Active Principal",
+              "Active Loan Interest Earned",
+              "Active Daily Interest",
+              "Projected Interest Coverage Date",
+              "Closed Loan Interest Earned",
+              "Closed Loan Principle",
+              "Has Closed Loan",
+              "Return on Closed Loans",
+              "Header - Closed Loans",
+              "Has Active Loan",
+              "Daily Collection Status",
+              "Todays Collection Charges",
+              "Todays Amount Due",
+              "Todays Amount Collected",
+              "Todays Amount Remaining",
+              "Daily Collection Status - Order",
+              "Active Profit After Principal Coverage",
+              "Related Payments",
+              "Communication Name",
+              "Instagram Username",
+              "AI Collection Enabled",
+              "City",
+              "Working Location",
+              "Address",
+              "Ref Referrer",
+              "Related Business Expenses By Ref Payee Borrower",
+              "Related Business Expenses By Ref Related Borrower",
+              "Borrower Reference TE",
+              "Ref Preferred Receiving Cash Account",
+              "Payment Request Cash Account",
+              "Payment Request Token",
+              "Related Charges",
+              "Related Repayments",
+              "Related Cash Account Statement Recents",
+              "Borrower Note",
+              "Borrower Activity Group",
+              "Submitted Receipts",
+              "Related Upcoming Charge Forecasts",
+              "Upcoming Charges",
+              "Upcoming Charge Note",
+              "Upcoming Charges Summary",
+              "Related Upcoming Charge Summarys"
+            ],
+            "Row filter condition": "=NOT([Hidden Flag])",
+            "Update mode": "ALL_CHANGES",
+            "Source Table": "Borrowers",
+            "Visible?": "ALWAYS",
+            "Slice Actions": [
+              "**auto**"
+            ],
+            "Descriptive comment": "Primary OLTP borrower-list slice. Excludes rows where [Hidden Flag] is TRUE; base-table relationships, loans, collections, and calculations remain unchanged."
+          },
+          "members": [
+            {
+              "Ordinal": 1,
+              "Column": "_RowNumber"
+            },
+            {
+              "Ordinal": 2,
+              "Column": "Row ID"
+            },
+            {
+              "Ordinal": 3,
+              "Column": "Borrower Name"
+            },
+            {
+              "Ordinal": 4,
+              "Column": "Description"
+            },
+            {
+              "Ordinal": 5,
+              "Column": "Creation Date"
+            },
+            {
+              "Ordinal": 6,
+              "Column": "Hidden Flag"
+            },
+            {
+              "Ordinal": 7,
+              "Column": "Related Loans"
+            },
+            {
+              "Ordinal": 8,
+              "Column": "Total Interest Earned"
+            },
+            {
+              "Ordinal": 9,
+              "Column": "Total Amount Loaned"
+            },
+            {
+              "Ordinal": 10,
+              "Column": "Total Number of Loans"
+            },
+            {
+              "Ordinal": 11,
+              "Column": "Total Outstanding Principal"
+            },
+            {
+              "Ordinal": 12,
+              "Column": "Header - Active Loans"
+            },
+            {
+              "Ordinal": 13,
+              "Column": "Borrower Name TE"
+            },
+            {
+              "Ordinal": 14,
+              "Column": "Return on Active Principal"
+            },
+            {
+              "Ordinal": 15,
+              "Column": "Active Loan Interest Earned"
+            },
+            {
+              "Ordinal": 16,
+              "Column": "Active Daily Interest"
+            },
+            {
+              "Ordinal": 17,
+              "Column": "Projected Interest Coverage Date"
+            },
+            {
+              "Ordinal": 18,
+              "Column": "Closed Loan Interest Earned"
+            },
+            {
+              "Ordinal": 19,
+              "Column": "Closed Loan Principle"
+            },
+            {
+              "Ordinal": 20,
+              "Column": "Has Closed Loan"
+            },
+            {
+              "Ordinal": 21,
+              "Column": "Return on Closed Loans"
+            },
+            {
+              "Ordinal": 22,
+              "Column": "Header - Closed Loans"
+            },
+            {
+              "Ordinal": 23,
+              "Column": "Has Active Loan"
+            },
+            {
+              "Ordinal": 24,
+              "Column": "Daily Collection Status"
+            },
+            {
+              "Ordinal": 25,
+              "Column": "Todays Collection Charges"
+            },
+            {
+              "Ordinal": 26,
+              "Column": "Todays Amount Due"
+            },
+            {
+              "Ordinal": 27,
+              "Column": "Todays Amount Collected"
+            },
+            {
+              "Ordinal": 28,
+              "Column": "Todays Amount Remaining"
+            },
+            {
+              "Ordinal": 29,
+              "Column": "Daily Collection Status - Order"
+            },
+            {
+              "Ordinal": 30,
+              "Column": "Active Profit After Principal Coverage"
+            },
+            {
+              "Ordinal": 31,
+              "Column": "Related Payments"
+            },
+            {
+              "Ordinal": 32,
+              "Column": "Communication Name"
+            },
+            {
+              "Ordinal": 33,
+              "Column": "Instagram Username"
+            },
+            {
+              "Ordinal": 34,
+              "Column": "AI Collection Enabled"
+            },
+            {
+              "Ordinal": 35,
+              "Column": "City"
+            },
+            {
+              "Ordinal": 36,
+              "Column": "Working Location"
+            },
+            {
+              "Ordinal": 37,
+              "Column": "Address"
+            },
+            {
+              "Ordinal": 38,
+              "Column": "Ref Referrer"
+            },
+            {
+              "Ordinal": 39,
+              "Column": "Related Business Expenses By Ref Payee Borrower"
+            },
+            {
+              "Ordinal": 40,
+              "Column": "Related Business Expenses By Ref Related Borrower"
+            },
+            {
+              "Ordinal": 41,
+              "Column": "Borrower Reference TE"
+            },
+            {
+              "Ordinal": 42,
+              "Column": "Ref Preferred Receiving Cash Account"
+            },
+            {
+              "Ordinal": 43,
+              "Column": "Payment Request Cash Account"
+            },
+            {
+              "Ordinal": 44,
+              "Column": "Payment Request Token"
+            },
+            {
+              "Ordinal": 45,
+              "Column": "Related Charges"
+            },
+            {
+              "Ordinal": 46,
+              "Column": "Related Repayments"
+            },
+            {
+              "Ordinal": 47,
+              "Column": "Related Cash Account Statement Recents"
+            },
+            {
+              "Ordinal": 48,
+              "Column": "Borrower Note"
+            },
+            {
+              "Ordinal": 49,
+              "Column": "Borrower Activity Group"
+            },
+            {
+              "Ordinal": 50,
+              "Column": "Submitted Receipts"
+            },
+            {
+              "Ordinal": 51,
+              "Column": "Related Upcoming Charge Forecasts"
+            },
+            {
+              "Ordinal": 52,
+              "Column": "Upcoming Charges"
+            },
+            {
+              "Ordinal": 53,
+              "Column": "Upcoming Charge Note"
+            },
+            {
+              "Ordinal": 54,
+              "Column": "Upcoming Charges Summary"
+            },
+            {
+              "Ordinal": 55,
+              "Column": "Related Upcoming Charge Summarys"
+            }
+          ]
+        }
+      },
+      "before": {
+        "state": "value",
+        "value": {
+          "Slice Columns": [
+            "_RowNumber",
+            "Row ID",
+            "Borrower Name",
+            "Description",
+            "Creation Date",
+            "Hidden Flag",
+            "Related Loans",
+            "Total Interest Earned",
+            "Total Amount Loaned",
+            "Total Number of Loans",
+            "Total Outstanding Principal",
+            "Header - Active Loans",
+            "Borrower Name TE",
+            "Return on Active Principal",
+            "Active Loan Interest Earned",
+            "Active Daily Interest",
+            "Projected Interest Coverage Date",
+            "Closed Loan Interest Earned",
+            "Closed Loan Principle",
+            "Has Closed Loan",
+            "Return on Closed Loans",
+            "Header - Closed Loans",
+            "Has Active Loan",
+            "Daily Collection Status",
+            "Todays Collection Charges",
+            "Todays Amount Due",
+            "Todays Amount Collected",
+            "Todays Amount Remaining",
+            "Daily Collection Status - Order",
+            "Active Profit After Principal Coverage",
+            "Related Payments",
+            "Communication Name",
+            "Instagram Username",
+            "AI Collection Enabled",
+            "City",
+            "Working Location",
+            "Address",
+            "Ref Referrer",
+            "Related Business Expenses By Ref Payee Borrower",
+            "Related Business Expenses By Ref Related Borrower",
+            "Borrower Reference TE",
+            "Ref Preferred Receiving Cash Account",
+            "Payment Request Cash Account",
+            "Payment Request Token",
+            "Related Charges",
+            "Related Repayments",
+            "Related Cash Account Statement Recents",
+            "Borrower Note",
+            "Borrower Activity Group",
+            "Submitted Receipts"
+          ]
+        }
+      },
+      "scope_note": "Existing slice changes are appended forecast members only; filters, update modes and actions preserved.",
+      "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
+      "version": "1.000150"
+    },
+    "table:Borrowers": {
+      "release": "R048",
+      "status": "DEV implemented; owner review and PROD promotion pending",
+      "target": "oltp",
+      "definition_evidence": "outputs/r048-upcoming-charges/summary-refinement.json",
+      "column_changes": {
+        "Related Upcoming Charge Forecasts": {
+          "before": {
+            "state": "absent"
+          },
+          "after": {
+            "state": "value",
+            "value": {
+              "inventory": {
+                "App": "OLTP",
+                "Table": "Borrowers",
+                "Column": "Related Upcoming Charge Forecasts",
+                "Type": "List",
+                "Virtual": "Yes",
+                "Key": "No",
+                "Label": "No",
+                "Read-only": "Yes",
+                "Hidden": "Yes"
+              },
+              "rules": {
+                "Column name": "Related Upcoming Charge Forecasts",
+                "Visible?": "ALWAYS",
+                "Description": "Upcoming Charge Forecast entries that reference this entry in the Ref Borrower column",
+                "Type": "List",
+                "Type Qualifier": "{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":\"{\\\"ReferencedTableName\\\":\\\"Upcoming Charge Forecast\\\",\\\"ReferencedRootTableName\\\":\\\"Upcoming Charge Forecast\\\",\\\"ReferencedType\\\":\\\"Text\\\",\\\"ReferencedTypeQualifier\\\":\\\"{\\\\\\\"MaxLength\\\\\\\":null,\\\\\\\"MinLength\\\\\\\":null,\\\\\\\"LongTextFormatting\\\\\\\":\\\\\\\"Plain Text\\\\\\\",\\\\\\\"IsMulticolumnKey\\\\\\\":false,\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\"Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\",\\\"ReferencedKeyColumn\\\":\\\"Row ID\\\",\\\"IsAPartOf\\\":false,\\\"RelationshipName\\\":null,\\\"InputMode\\\":\\\"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"ItemSeparator\":\" , \",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+                "App formula": "REF_ROWS(\"Upcoming Charge Forecast\", \"Ref Borrower\")",
+                "Read-Only": "Yes",
+                "Hidden": "Yes",
+                "Label": "No",
+                "Formula version": "0",
+                "Reset on edit?": "No",
+                "System Defined?": "Yes",
+                "Key": "No",
+                "Part of Key?": "No",
+                "Fixed definition?": "No",
+                "Editable Initial Value?": "Yes",
+                "Virtual?": "Yes",
+                "LocaleName": "en-US",
+                "Searchable": "No",
+                "Scannable": "No",
+                "NFC Scannable": "No",
+                "Sensitive data": "No"
+              }
+            }
+          }
+        },
+        "Upcoming Charges": {
+          "before": {
+            "state": "absent"
+          },
+          "after": {
+            "state": "value",
+            "value": {
+              "inventory": {
+                "App": "OLTP",
+                "Table": "Borrowers",
+                "Column": "Upcoming Charges",
+                "Type": "List",
+                "Virtual": "Yes",
+                "Key": "No",
+                "Label": "No",
+                "Read-only": "Yes",
+                "Hidden": "No"
+              },
+              "rules": {
+                "Column name": "Upcoming Charges",
+                "Visible?": "ALWAYS",
+                "Display name": "=\"รายละเอียดเรียกเก็บล่วงหน้า / Upcoming Charges Details\"",
+                "Type": "List",
+                "Type Qualifier": "{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":\"{\\\"ReferencedTableName\\\":\\\"Borrower Upcoming 5 Dates\\\",\\\"ReferencedRootTableName\\\":\\\"Upcoming Charge Forecast\\\",\\\"ReferencedType\\\":\\\"Text\\\",\\\"ReferencedTypeQualifier\\\":\\\"{\\\\\\\"MaxLength\\\\\\\":null,\\\\\\\"MinLength\\\\\\\":null,\\\\\\\"LongTextFormatting\\\\\\\":\\\\\\\"Plain Text\\\\\\\",\\\\\\\"IsMulticolumnKey\\\\\\\":false,\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\"Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\",\\\"ReferencedKeyColumn\\\":\\\"Row ID\\\",\\\"IsAPartOf\\\":false,\\\"RelationshipName\\\":null,\\\"InputMode\\\":\\\"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"ItemSeparator\":\" , \",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+                "App formula": "=REF_ROWS(\"Borrower Upcoming 5 Dates\", \"Ref Borrower\")",
+                "Read-Only": "Yes",
+                "Hidden": "No",
+                "Label": "No",
+                "Formula version": "0",
+                "Reset on edit?": "No",
+                "System Defined?": "No",
+                "Key": "No",
+                "Part of Key?": "No",
+                "Fixed definition?": "No",
+                "Editable Initial Value?": "Yes",
+                "Virtual?": "Yes",
+                "LocaleName": "en-US",
+                "Searchable": "Yes",
+                "Scannable": "No",
+                "Sensitive data": "No"
+              }
+            }
+          }
+        },
+        "Upcoming Charge Note": {
+          "before": {
+            "state": "absent"
+          },
+          "after": {
+            "state": "value",
+            "value": {
+              "inventory": {
+                "App": "OLTP",
+                "Table": "Borrowers",
+                "Column": "Upcoming Charge Note",
+                "Type": "LongText",
+                "Virtual": "Yes",
+                "Key": "No",
+                "Label": "No",
+                "Read-only": "Yes",
+                "Hidden": "No"
+              },
+              "rules": {
+                "Column name": "Upcoming Charge Note",
+                "Visible?": "ALWAYS",
+                "Display name": "=\"ข้อควรตรวจสอบ / Issues\"",
+                "Type": "LongText",
+                "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+                "App formula": "=IF(LOOKUP([_THISROW].[Row ID], \"Upcoming Charge Coverage\", \"Row ID\", \"As Of Date\") <> LOOKUP(\"upcoming\", \"Upcoming Charge Context\", \"Row ID\", \"As Of Date\"), \"วันที่ข้อมูลไม่ตรงกัน กรุณาซิงค์อีกครั้ง / Forecast dates differ. Sync again.\", IF(LOOKUP([_THISROW].[Row ID], \"Upcoming Charge Coverage\", \"Row ID\", \"Review Loans\") > 0, \"ข้อมูลตารางชำระไม่ครบถ้วนหรือสถานะสินเชื่อต้องตรวจสอบ / Schedule data is incomplete or loan status needs review.\", \"\"))",
+                "Read-Only": "Yes",
+                "Hidden": "No",
+                "Label": "No",
+                "Formula version": "0",
+                "Reset on edit?": "No",
+                "System Defined?": "No",
+                "Key": "No",
+                "Part of Key?": "No",
+                "Fixed definition?": "No",
+                "Editable Initial Value?": "Yes",
+                "Virtual?": "Yes",
+                "LocaleName": "en-US",
+                "Searchable": "Yes",
+                "Scannable": "No",
+                "Sensitive data": "No"
+              }
+            }
+          }
+        },
+        "Upcoming Charges Summary": {
+          "before": {
+            "state": "absent"
+          },
+          "after": {
+            "state": "value",
+            "value": {
+              "inventory": {
+                "App": "OLTP",
+                "Table": "Borrowers",
+                "Column": "Upcoming Charges Summary",
+                "Type": "List",
+                "Virtual": "Yes",
+                "Key": "No",
+                "Label": "No",
+                "Read-only": "Yes",
+                "Hidden": "No"
+              },
+              "rules": {
+                "Column name": "Upcoming Charges Summary",
+                "Visible?": "ALWAYS",
+                "Display name": "=\"สรุปเรียกเก็บล่วงหน้า / Upcoming Charges Summary\"",
+                "Type": "List",
+                "Type Qualifier": "{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":\"{\\\"ReferencedTableName\\\":\\\"Borrower Upcoming Summary\\\",\\\"ReferencedRootTableName\\\":\\\"Upcoming Charge Summary\\\",\\\"ReferencedType\\\":\\\"Text\\\",\\\"ReferencedTypeQualifier\\\":\\\"{\\\\\\\"MaxLength\\\\\\\":null,\\\\\\\"MinLength\\\\\\\":null,\\\\\\\"LongTextFormatting\\\\\\\":\\\\\\\"Plain Text\\\\\\\",\\\\\\\"IsMulticolumnKey\\\\\\\":false,\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\"Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\",\\\"ReferencedKeyColumn\\\":\\\"Row ID\\\",\\\"IsAPartOf\\\":false,\\\"RelationshipName\\\":null,\\\"InputMode\\\":\\\"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"ItemSeparator\":\" , \",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+                "App formula": "=REF_ROWS(\"Borrower Upcoming Summary\", \"Ref Borrower\")",
+                "Read-Only": "Yes",
+                "Hidden": "No",
+                "Label": "No",
+                "Formula version": "0",
+                "Reset on edit?": "No",
+                "System Defined?": "No",
+                "Key": "No",
+                "Part of Key?": "No",
+                "Fixed definition?": "No",
+                "Editable Initial Value?": "Yes",
+                "Virtual?": "Yes",
+                "LocaleName": "en-US",
+                "Searchable": "Yes",
+                "Scannable": "No",
+                "Sensitive data": "No"
+              }
+            }
+          }
+        },
+        "Related Upcoming Charge Summarys": {
+          "before": {
+            "state": "absent"
+          },
+          "after": {
+            "state": "value",
+            "value": {
+              "inventory": {
+                "App": "OLTP",
+                "Table": "Borrowers",
+                "Column": "Related Upcoming Charge Summarys",
+                "Type": "List",
+                "Virtual": "Yes",
+                "Key": "No",
+                "Label": "No",
+                "Read-only": "Yes",
+                "Hidden": "Yes"
+              },
+              "rules": {
+                "Column name": "Related Upcoming Charge Summarys",
+                "Visible?": "ALWAYS",
+                "Description": "Upcoming Charge Summary entries that reference this entry in the Ref Borrower column",
+                "Type": "List",
+                "Type Qualifier": "{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":\"{\\\"ReferencedTableName\\\":\\\"Upcoming Charge Summary\\\",\\\"ReferencedRootTableName\\\":\\\"Upcoming Charge Summary\\\",\\\"ReferencedType\\\":\\\"Text\\\",\\\"ReferencedTypeQualifier\\\":\\\"{\\\\\\\"MaxLength\\\\\\\":null,\\\\\\\"MinLength\\\\\\\":null,\\\\\\\"LongTextFormatting\\\\\\\":\\\\\\\"Plain Text\\\\\\\",\\\\\\\"IsMulticolumnKey\\\\\\\":false,\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\"Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\",\\\"ReferencedKeyColumn\\\":\\\"Row ID\\\",\\\"IsAPartOf\\\":false,\\\"RelationshipName\\\":null,\\\"InputMode\\\":\\\"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"ItemSeparator\":\" , \",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+                "App formula": "REF_ROWS(\"Upcoming Charge Summary\", \"Ref Borrower\")",
+                "Read-Only": "Yes",
+                "Hidden": "Yes",
+                "Label": "No",
+                "Formula version": "0",
+                "Reset on edit?": "No",
+                "System Defined?": "Yes",
+                "Key": "No",
+                "Part of Key?": "No",
+                "Fixed definition?": "No",
+                "Editable Initial Value?": "Yes",
+                "Virtual?": "Yes",
+                "LocaleName": "en-US",
+                "Searchable": "No",
+                "Scannable": "No",
+                "NFC Scannable": "No",
+                "Sensitive data": "No"
+              }
+            }
+          }
+        }
+      },
+      "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
+      "version": "1.000150"
+    },
+    "table:Loans": {
+      "release": "R048",
+      "status": "DEV implemented; owner review and PROD promotion pending",
+      "target": "oltp",
+      "definition_evidence": "outputs/r048-upcoming-charges/summary-refinement.json",
+      "column_changes": {
+        "Related Upcoming Charge Forecasts": {
+          "before": {
+            "state": "absent"
+          },
+          "after": {
+            "state": "value",
+            "value": {
+              "inventory": {
+                "App": "OLTP",
+                "Table": "Loans",
+                "Column": "Related Upcoming Charge Forecasts",
+                "Type": "List",
+                "Virtual": "Yes",
+                "Key": "No",
+                "Label": "No",
+                "Read-only": "Yes",
+                "Hidden": "Yes"
+              },
+              "rules": {
+                "Column name": "Related Upcoming Charge Forecasts",
+                "Visible?": "ALWAYS",
+                "Description": "Upcoming Charge Forecast entries that reference this entry in the Ref Loan column",
+                "Type": "List",
+                "Type Qualifier": "{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":\"{\\\"ReferencedTableName\\\":\\\"Upcoming Charge Forecast\\\",\\\"ReferencedRootTableName\\\":\\\"Upcoming Charge Forecast\\\",\\\"ReferencedType\\\":\\\"Text\\\",\\\"ReferencedTypeQualifier\\\":\\\"{\\\\\\\"MaxLength\\\\\\\":null,\\\\\\\"MinLength\\\\\\\":null,\\\\\\\"LongTextFormatting\\\\\\\":\\\\\\\"Plain Text\\\\\\\",\\\\\\\"IsMulticolumnKey\\\\\\\":false,\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\"Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\",\\\"ReferencedKeyColumn\\\":\\\"Row ID\\\",\\\"IsAPartOf\\\":false,\\\"RelationshipName\\\":null,\\\"InputMode\\\":\\\"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"ItemSeparator\":\" , \",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+                "App formula": "REF_ROWS(\"Upcoming Charge Forecast\", \"Ref Loan\")",
+                "Read-Only": "Yes",
+                "Hidden": "Yes",
+                "Label": "No",
+                "Formula version": "0",
+                "Reset on edit?": "No",
+                "System Defined?": "Yes",
+                "Key": "No",
+                "Part of Key?": "No",
+                "Fixed definition?": "No",
+                "Editable Initial Value?": "Yes",
+                "Virtual?": "Yes",
+                "LocaleName": "en-US",
+                "Searchable": "No",
+                "Scannable": "No",
+                "NFC Scannable": "No",
+                "Sensitive data": "No"
+              }
+            }
+          }
+        }
+      },
+      "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
+      "version": "1.000150"
+    },
+    "table:Upcoming Charge Context": {
+      "release": "R048",
+      "status": "DEV implemented; owner review and PROD promotion pending",
+      "target": "oltp",
+      "definition_evidence": "outputs/r048-upcoming-charges/summary-refinement.json",
+      "before": {
+        "state": "absent"
+      },
+      "after": {
+        "state": "value",
+        "value": {
+          "source_app": "OLTP",
+          "source_table": "Upcoming Charge Context",
+          "binding": {
+            "Table name": "Upcoming Charge Context",
+            "Visible?": "ALWAYS",
+            "Shared?": "Yes",
+            "Data locale": "en-US",
+            "Schema": "Upcoming Charge Context_Schema",
+            "Are updates allowed?": "READ_ONLY",
+            "Source Path": "oltp_upcoming_charge_context_v1",
+            "Data Source": "database-3",
+            "Store for image and file capture": "_Default",
+            "Column Order List": [
+              "_RowNumber"
+            ],
+            "Partitioned across many files/sources?": "No",
+            "Partitioned across many worksheets?": "No"
+          },
+          "schema": {
+            "Schema Name": "Upcoming Charge Context_Schema",
+            "Visible?": "ALWAYS"
+          },
+          "columns": {
+            "_RowNumber": {
+              "inventory": {
+                "App": "OLTP",
+                "Table": "Upcoming Charge Context",
+                "Column": "_RowNumber",
+                "Type": "Number",
+                "Virtual": "No",
+                "Key": "No",
+                "Label": "No",
+                "Read-only": "Yes",
+                "Hidden": "Yes"
+              },
+              "rules": {
+                "Column name": "_RowNumber",
+                "Visible?": "ALWAYS",
+                "Description": "Number of this row",
+                "Type": "Number",
+                "Type Qualifier": "{\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+                "Read-Only": "Yes",
+                "Hidden": "Yes",
+                "Label": "No",
+                "Formula version": "0",
+                "Reset on edit?": "No",
+                "System Defined?": "Yes",
+                "Key": "No",
+                "Part of Key?": "No",
+                "Fixed definition?": "Yes",
+                "Editable Initial Value?": "Yes",
+                "Virtual?": "No",
+                "LocaleName": "en-US",
+                "Searchable": "No",
+                "Scannable": "No",
+                "Sensitive data": "No"
+              }
+            },
+            "Row ID": {
+              "inventory": {
+                "App": "OLTP",
+                "Table": "Upcoming Charge Context",
+                "Column": "Row ID",
+                "Type": "Text",
+                "Virtual": "No",
+                "Key": "Yes",
+                "Label": "No",
+                "Read-only": "Yes",
+                "Hidden": "Yes"
+              },
+              "rules": {
+                "Column name": "Row ID",
+                "Visible?": "ALWAYS",
+                "Type": "Text",
+                "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+                "Read-Only": "Yes",
+                "Hidden": "Yes",
+                "Label": "No",
+                "Formula version": "0",
+                "Reset on edit?": "No",
+                "System Defined?": "No",
+                "Key": "Yes",
+                "Part of Key?": "Yes",
+                "Fixed definition?": "No",
+                "Editable Initial Value?": "Yes",
+                "Virtual?": "No",
+                "LocaleName": "en-US",
+                "Searchable": "No",
+                "Scannable": "No",
+                "Sensitive data": "No"
+              }
+            },
+            "As Of Date": {
+              "inventory": {
+                "App": "OLTP",
+                "Table": "Upcoming Charge Context",
+                "Column": "As Of Date",
+                "Type": "Date",
+                "Virtual": "No",
+                "Key": "No",
+                "Label": "No",
+                "Read-only": "Yes",
+                "Hidden": "No"
+              },
+              "rules": {
+                "Column name": "As Of Date",
+                "Visible?": "ALWAYS",
+                "Type": "Date",
+                "Type Qualifier": "{\"UseLongDateFormat\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+                "Read-Only": "Yes",
+                "Hidden": "No",
+                "Label": "No",
+                "Formula version": "0",
+                "Reset on edit?": "No",
+                "Initial value": "TODAY()",
+                "System Defined?": "No",
+                "Key": "No",
+                "Part of Key?": "No",
+                "Fixed definition?": "No",
+                "Editable Initial Value?": "Yes",
+                "Virtual?": "No",
+                "LocaleName": "en-US",
+                "Searchable": "Yes",
+                "Scannable": "No",
+                "Sensitive data": "No"
+              }
+            },
+            "From Date": {
+              "inventory": {
+                "App": "OLTP",
+                "Table": "Upcoming Charge Context",
+                "Column": "From Date",
+                "Type": "Date",
+                "Virtual": "No",
+                "Key": "No",
+                "Label": "No",
+                "Read-only": "Yes",
+                "Hidden": "No"
+              },
+              "rules": {
+                "Column name": "From Date",
+                "Visible?": "ALWAYS",
+                "Type": "Date",
+                "Type Qualifier": "{\"UseLongDateFormat\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+                "Read-Only": "Yes",
+                "Hidden": "No",
+                "Label": "No",
+                "Formula version": "0",
+                "Reset on edit?": "No",
+                "Initial value": "TODAY()",
+                "System Defined?": "No",
+                "Key": "No",
+                "Part of Key?": "No",
+                "Fixed definition?": "No",
+                "Editable Initial Value?": "Yes",
+                "Virtual?": "No",
+                "LocaleName": "en-US",
+                "Searchable": "Yes",
+                "Scannable": "No",
+                "Sensitive data": "No"
+              }
+            },
+            "Through Date": {
+              "inventory": {
+                "App": "OLTP",
+                "Table": "Upcoming Charge Context",
+                "Column": "Through Date",
+                "Type": "Date",
+                "Virtual": "No",
+                "Key": "No",
+                "Label": "No",
+                "Read-only": "Yes",
+                "Hidden": "No"
+              },
+              "rules": {
+                "Column name": "Through Date",
+                "Visible?": "ALWAYS",
+                "Type": "Date",
+                "Type Qualifier": "{\"UseLongDateFormat\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+                "Read-Only": "Yes",
+                "Hidden": "No",
+                "Label": "No",
+                "Formula version": "0",
+                "Reset on edit?": "No",
+                "Initial value": "TODAY()",
+                "System Defined?": "No",
+                "Key": "No",
+                "Part of Key?": "No",
+                "Fixed definition?": "No",
+                "Editable Initial Value?": "Yes",
+                "Virtual?": "No",
+                "LocaleName": "en-US",
+                "Searchable": "Yes",
+                "Scannable": "No",
+                "Sensitive data": "No"
+              }
+            },
+            "Calculated At": {
+              "inventory": {
+                "App": "OLTP",
+                "Table": "Upcoming Charge Context",
+                "Column": "Calculated At",
+                "Type": "DateTime",
+                "Virtual": "No",
+                "Key": "No",
+                "Label": "No",
+                "Read-only": "Yes",
+                "Hidden": "No"
+              },
+              "rules": {
+                "Column name": "Calculated At",
+                "Visible?": "ALWAYS",
+                "Display name": "=\"คำนวณเมื่อ (UTC) / Calculated At (UTC)\"",
+                "Type": "DateTime",
+                "Type Qualifier": "{\"MinValue\":null,\"MaxValue\":null,\"UseLongDateFormat\":false,\"IgnoreSeconds\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+                "Read-Only": "Yes",
+                "Hidden": "No",
+                "Label": "No",
+                "Formula version": "0",
+                "Reset on edit?": "No",
+                "Initial value": "NOW()",
+                "System Defined?": "No",
+                "Key": "No",
+                "Part of Key?": "No",
+                "Fixed definition?": "No",
+                "Editable Initial Value?": "Yes",
+                "Virtual?": "No",
+                "LocaleName": "en-US",
+                "Searchable": "Yes",
+                "Scannable": "No",
+                "Sensitive data": "No"
+              }
+            },
+            "Date Range": {
+              "inventory": {
+                "App": "OLTP",
+                "Table": "Upcoming Charge Context",
+                "Column": "Date Range",
+                "Type": "LongText",
+                "Virtual": "No",
+                "Key": "No",
+                "Label": "Yes",
+                "Read-only": "Yes",
+                "Hidden": "No"
+              },
+              "rules": {
+                "Column name": "Date Range",
+                "Visible?": "ALWAYS",
+                "Display name": "=\"ช่วงวันที่ / Date Range\"",
+                "Type": "LongText",
+                "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+                "Read-Only": "Yes",
+                "Hidden": "No",
+                "Label": "Yes",
+                "Formula version": "0",
+                "Reset on edit?": "No",
+                "System Defined?": "No",
+                "Key": "No",
+                "Part of Key?": "No",
+                "Fixed definition?": "No",
+                "Editable Initial Value?": "Yes",
+                "Virtual?": "No",
+                "LocaleName": "en-US",
+                "Searchable": "Yes",
+                "Scannable": "No",
+                "Sensitive data": "No"
+              }
+            },
+            "Forecast Note": {
+              "inventory": {
+                "App": "OLTP",
+                "Table": "Upcoming Charge Context",
+                "Column": "Forecast Note",
+                "Type": "LongText",
+                "Virtual": "No",
+                "Key": "No",
+                "Label": "No",
+                "Read-only": "Yes",
+                "Hidden": "No"
+              },
+              "rules": {
+                "Column name": "Forecast Note",
+                "Visible?": "ALWAYS",
+                "Type": "LongText",
+                "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+                "Read-Only": "Yes",
+                "Hidden": "No",
+                "Label": "No",
+                "Formula version": "0",
+                "Reset on edit?": "No",
+                "System Defined?": "No",
+                "Key": "No",
+                "Part of Key?": "No",
+                "Fixed definition?": "No",
+                "Editable Initial Value?": "Yes",
+                "Virtual?": "No",
+                "LocaleName": "en-US",
+                "Searchable": "Yes",
+                "Scannable": "No",
+                "Sensitive data": "No"
+              }
+            },
+            "Forecast Status": {
+              "inventory": {
+                "App": "OLTP",
+                "Table": "Upcoming Charge Context",
+                "Column": "Forecast Status",
+                "Type": "LongText",
+                "Virtual": "Yes",
+                "Key": "No",
+                "Label": "No",
+                "Read-only": "Yes",
+                "Hidden": "No"
+              },
+              "rules": {
+                "Column name": "Forecast Status",
+                "Visible?": "ALWAYS",
+                "Display name": "=\"ข้อควรตรวจสอบ / Issues\"",
+                "Type": "LongText",
+                "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+                "App formula": "=IF(OR(COUNT(SELECT(Upcoming Charge Forecast[Row ID], [As Of Date] <> [_THISROW].[As Of Date])) > 0, COUNT(SELECT(Upcoming Charge Coverage[Row ID], [As Of Date] <> [_THISROW].[As Of Date])) > 0), \"วันที่ข้อมูลไม่ตรงกัน กรุณาซิงค์ก่อนใช้ยอดรวม / Forecast dates differ. Sync before using these totals.\", IF(STARTSWITH([Forecast Note], \"Partial forecast\"), \"ข้อมูลพยากรณ์ไม่ครบถ้วน กรุณาตรวจสอบข้อมูลสินเชื่อและรายการเรียกเก็บ / Partial forecast: review loan and charge source data.\", \"\"))",
+                "Read-Only": "Yes",
+                "Hidden": "No",
+                "Label": "No",
+                "Formula version": "0",
+                "Reset on edit?": "No",
+                "System Defined?": "No",
+                "Key": "No",
+                "Part of Key?": "No",
+                "Fixed definition?": "No",
+                "Editable Initial Value?": "Yes",
+                "Virtual?": "Yes",
+                "LocaleName": "en-US",
+                "Searchable": "Yes",
+                "Scannable": "No",
+                "Sensitive data": "No"
+              }
+            }
+          }
+        }
+      },
+      "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
+      "version": "1.000150"
+    },
+    "table:Upcoming Charge Coverage": {
+      "release": "R048",
+      "status": "DEV implemented; owner review and PROD promotion pending",
+      "target": "oltp",
+      "definition_evidence": "outputs/r048-upcoming-charges/summary-refinement.json",
+      "before": {
+        "state": "absent"
+      },
+      "after": {
+        "state": "value",
+        "value": {
+          "source_app": "OLTP",
+          "source_table": "Upcoming Charge Coverage",
+          "binding": {
+            "Table name": "Upcoming Charge Coverage",
+            "Visible?": "ALWAYS",
+            "Shared?": "Yes",
+            "Data locale": "en-US",
+            "Schema": "Upcoming Charge Coverage_Schema",
+            "Are updates allowed?": "READ_ONLY",
+            "Source Path": "oltp_upcoming_charge_coverage_v1",
+            "Data Source": "database-3",
+            "Store for image and file capture": "_Default",
+            "Column Order List": [
+              "_RowNumber"
+            ],
+            "Partitioned across many files/sources?": "No",
+            "Partitioned across many worksheets?": "No"
+          },
+          "schema": {
+            "Schema Name": "Upcoming Charge Coverage_Schema",
+            "Visible?": "ALWAYS"
+          },
+          "columns": {
+            "_RowNumber": {
+              "inventory": {
+                "App": "OLTP",
+                "Table": "Upcoming Charge Coverage",
+                "Column": "_RowNumber",
+                "Type": "Number",
+                "Virtual": "No",
+                "Key": "No",
+                "Label": "No",
+                "Read-only": "Yes",
+                "Hidden": "Yes"
+              },
+              "rules": {
+                "Column name": "_RowNumber",
+                "Visible?": "ALWAYS",
+                "Description": "Number of this row",
+                "Type": "Number",
+                "Type Qualifier": "{\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+                "Read-Only": "Yes",
+                "Hidden": "Yes",
+                "Label": "No",
+                "Formula version": "0",
+                "Reset on edit?": "No",
+                "System Defined?": "Yes",
+                "Key": "No",
+                "Part of Key?": "No",
+                "Fixed definition?": "Yes",
+                "Editable Initial Value?": "Yes",
+                "Virtual?": "No",
+                "LocaleName": "en-US",
+                "Searchable": "No",
+                "Scannable": "No",
+                "Sensitive data": "No"
+              }
+            },
+            "Row ID": {
+              "inventory": {
+                "App": "OLTP",
+                "Table": "Upcoming Charge Coverage",
+                "Column": "Row ID",
+                "Type": "Text",
+                "Virtual": "No",
+                "Key": "Yes",
+                "Label": "No",
+                "Read-only": "Yes",
+                "Hidden": "Yes"
+              },
+              "rules": {
+                "Column name": "Row ID",
+                "Visible?": "ALWAYS",
+                "Type": "Text",
+                "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+                "Read-Only": "Yes",
+                "Hidden": "Yes",
+                "Label": "No",
+                "Formula version": "0",
+                "Reset on edit?": "No",
+                "System Defined?": "No",
+                "Key": "Yes",
+                "Part of Key?": "Yes",
+                "Fixed definition?": "No",
+                "Editable Initial Value?": "Yes",
+                "Virtual?": "No",
+                "LocaleName": "en-US",
+                "Searchable": "No",
+                "Scannable": "No",
+                "Sensitive data": "No"
+              }
+            },
+            "Ref Borrower": {
+              "inventory": {
+                "App": "OLTP",
+                "Table": "Upcoming Charge Coverage",
+                "Column": "Ref Borrower",
+                "Type": "Text",
+                "Virtual": "No",
+                "Key": "No",
+                "Label": "No",
+                "Read-only": "Yes",
+                "Hidden": "No"
+              },
+              "rules": {
+                "Column name": "Ref Borrower",
+                "Visible?": "ALWAYS",
+                "Type": "Text",
+                "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+                "Read-Only": "Yes",
+                "Hidden": "No",
+                "Label": "No",
+                "Formula version": "0",
+                "Reset on edit?": "No",
+                "System Defined?": "No",
+                "Key": "No",
+                "Part of Key?": "No",
+                "Fixed definition?": "No",
+                "Editable Initial Value?": "Yes",
+                "Virtual?": "No",
+                "LocaleName": "en-US",
+                "Searchable": "Yes",
+                "Scannable": "No",
+                "Sensitive data": "No"
+              }
+            },
+            "As Of Date": {
+              "inventory": {
+                "App": "OLTP",
+                "Table": "Upcoming Charge Coverage",
+                "Column": "As Of Date",
+                "Type": "Date",
+                "Virtual": "No",
+                "Key": "No",
+                "Label": "No",
+                "Read-only": "Yes",
+                "Hidden": "No"
+              },
+              "rules": {
+                "Column name": "As Of Date",
+                "Visible?": "ALWAYS",
+                "Type": "Date",
+                "Type Qualifier": "{\"UseLongDateFormat\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+                "Read-Only": "Yes",
+                "Hidden": "No",
+                "Label": "No",
+                "Formula version": "0",
+                "Reset on edit?": "No",
+                "Initial value": "TODAY()",
+                "System Defined?": "No",
+                "Key": "No",
+                "Part of Key?": "No",
+                "Fixed definition?": "No",
+                "Editable Initial Value?": "Yes",
+                "Virtual?": "No",
+                "LocaleName": "en-US",
+                "Searchable": "Yes",
+                "Scannable": "No",
+                "Sensitive data": "No"
+              }
+            },
+            "Horizon End": {
+              "inventory": {
+                "App": "OLTP",
+                "Table": "Upcoming Charge Coverage",
+                "Column": "Horizon End",
+                "Type": "Date",
+                "Virtual": "No",
+                "Key": "No",
+                "Label": "No",
+                "Read-only": "Yes",
+                "Hidden": "No"
+              },
+              "rules": {
+                "Column name": "Horizon End",
+                "Visible?": "ALWAYS",
+                "Type": "Date",
+                "Type Qualifier": "{\"UseLongDateFormat\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+                "Read-Only": "Yes",
+                "Hidden": "No",
+                "Label": "No",
+                "Formula version": "0",
+                "Reset on edit?": "No",
+                "Initial value": "TODAY()",
+                "System Defined?": "No",
+                "Key": "No",
+                "Part of Key?": "No",
+                "Fixed definition?": "No",
+                "Editable Initial Value?": "Yes",
+                "Virtual?": "No",
+                "LocaleName": "en-US",
+                "Searchable": "Yes",
+                "Scannable": "No",
+                "Sensitive data": "No"
+              }
+            },
+            "Calculated At": {
+              "inventory": {
+                "App": "OLTP",
+                "Table": "Upcoming Charge Coverage",
+                "Column": "Calculated At",
+                "Type": "DateTime",
+                "Virtual": "No",
+                "Key": "No",
+                "Label": "No",
+                "Read-only": "Yes",
+                "Hidden": "No"
+              },
+              "rules": {
+                "Column name": "Calculated At",
+                "Visible?": "ALWAYS",
+                "Type": "DateTime",
+                "Type Qualifier": "{\"MinValue\":null,\"MaxValue\":null,\"UseLongDateFormat\":false,\"IgnoreSeconds\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+                "Read-Only": "Yes",
+                "Hidden": "No",
+                "Label": "No",
+                "Formula version": "0",
+                "Reset on edit?": "No",
+                "Initial value": "NOW()",
+                "System Defined?": "No",
+                "Key": "No",
+                "Part of Key?": "No",
+                "Fixed definition?": "No",
+                "Editable Initial Value?": "Yes",
+                "Virtual?": "No",
+                "LocaleName": "en-US",
+                "Searchable": "Yes",
+                "Scannable": "No",
+                "Sensitive data": "No"
+              }
+            },
+            "Displayed Dates": {
+              "inventory": {
+                "App": "OLTP",
+                "Table": "Upcoming Charge Coverage",
+                "Column": "Displayed Dates",
+                "Type": "Number",
+                "Virtual": "No",
+                "Key": "No",
+                "Label": "No",
+                "Read-only": "Yes",
+                "Hidden": "No"
+              },
+              "rules": {
+                "Column name": "Displayed Dates",
+                "Visible?": "ALWAYS",
+                "Type": "Number",
+                "Type Qualifier": "{\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+                "Read-Only": "Yes",
+                "Hidden": "No",
+                "Label": "No",
+                "Formula version": "0",
+                "Reset on edit?": "No",
+                "System Defined?": "No",
+                "Key": "No",
+                "Part of Key?": "No",
+                "Fixed definition?": "No",
+                "Editable Initial Value?": "Yes",
+                "Virtual?": "No",
+                "LocaleName": "en-US",
+                "Searchable": "No",
+                "Scannable": "No",
+                "Sensitive data": "No"
+              }
+            },
+            "Recorded Only Loans": {
+              "inventory": {
+                "App": "OLTP",
+                "Table": "Upcoming Charge Coverage",
+                "Column": "Recorded Only Loans",
+                "Type": "Number",
+                "Virtual": "No",
+                "Key": "No",
+                "Label": "No",
+                "Read-only": "Yes",
+                "Hidden": "No"
+              },
+              "rules": {
+                "Column name": "Recorded Only Loans",
+                "Visible?": "ALWAYS",
+                "Type": "Number",
+                "Type Qualifier": "{\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+                "Read-Only": "Yes",
+                "Hidden": "No",
+                "Label": "No",
+                "Formula version": "0",
+                "Reset on edit?": "No",
+                "System Defined?": "No",
+                "Key": "No",
+                "Part of Key?": "No",
+                "Fixed definition?": "No",
+                "Editable Initial Value?": "Yes",
+                "Virtual?": "No",
+                "LocaleName": "en-US",
+                "Searchable": "No",
+                "Scannable": "No",
+                "Sensitive data": "No"
+              }
+            },
+            "Review Loans": {
+              "inventory": {
+                "App": "OLTP",
+                "Table": "Upcoming Charge Coverage",
+                "Column": "Review Loans",
+                "Type": "Number",
+                "Virtual": "No",
+                "Key": "No",
+                "Label": "No",
+                "Read-only": "Yes",
+                "Hidden": "No"
+              },
+              "rules": {
+                "Column name": "Review Loans",
+                "Visible?": "ALWAYS",
+                "Type": "Number",
+                "Type Qualifier": "{\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+                "Read-Only": "Yes",
+                "Hidden": "No",
+                "Label": "No",
+                "Formula version": "0",
+                "Reset on edit?": "No",
+                "System Defined?": "No",
+                "Key": "No",
+                "Part of Key?": "No",
+                "Fixed definition?": "No",
+                "Editable Initial Value?": "Yes",
+                "Virtual?": "No",
+                "LocaleName": "en-US",
+                "Searchable": "No",
+                "Scannable": "No",
+                "Sensitive data": "No"
+              }
+            },
+            "Coverage Note": {
+              "inventory": {
+                "App": "OLTP",
+                "Table": "Upcoming Charge Coverage",
+                "Column": "Coverage Note",
+                "Type": "LongText",
+                "Virtual": "No",
+                "Key": "No",
+                "Label": "Yes",
+                "Read-only": "Yes",
+                "Hidden": "No"
+              },
+              "rules": {
+                "Column name": "Coverage Note",
+                "Visible?": "ALWAYS",
+                "Type": "LongText",
+                "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+                "Read-Only": "Yes",
+                "Hidden": "No",
+                "Label": "Yes",
+                "Formula version": "0",
+                "Reset on edit?": "No",
+                "System Defined?": "No",
+                "Key": "No",
+                "Part of Key?": "No",
+                "Fixed definition?": "No",
+                "Editable Initial Value?": "Yes",
+                "Virtual?": "No",
+                "LocaleName": "en-US",
+                "Searchable": "Yes",
+                "Scannable": "No",
+                "Sensitive data": "No"
+              }
+            }
+          }
+        }
+      },
+      "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
+      "version": "1.000150"
+    },
+    "table:Upcoming Charge Forecast": {
+      "release": "R048",
+      "status": "DEV implemented; owner review and PROD promotion pending",
+      "target": "oltp",
+      "definition_evidence": "outputs/r048-upcoming-charges/summary-refinement.json",
+      "before": {
+        "state": "absent"
+      },
+      "after": {
+        "state": "value",
+        "value": {
+          "source_app": "OLTP",
+          "source_table": "Upcoming Charge Forecast",
+          "binding": {
+            "Table name": "Upcoming Charge Forecast",
+            "Visible?": "ALWAYS",
+            "Shared?": "Yes",
+            "Data locale": "en-US",
+            "Schema": "Upcoming Charge Forecast_Schema",
+            "Are updates allowed?": "READ_ONLY",
+            "Source Path": "oltp_upcoming_charge_events_v1",
+            "Data Source": "database-3",
+            "Store for image and file capture": "_Default",
+            "Column Order List": [
+              "_RowNumber"
+            ],
+            "Partitioned across many files/sources?": "No",
+            "Partitioned across many worksheets?": "No"
+          },
+          "schema": {
+            "Schema Name": "Upcoming Charge Forecast_Schema",
+            "Visible?": "ALWAYS"
+          },
+          "columns": {
+            "_RowNumber": {
+              "inventory": {
+                "App": "OLTP",
+                "Table": "Upcoming Charge Forecast",
+                "Column": "_RowNumber",
+                "Type": "Number",
+                "Virtual": "No",
+                "Key": "No",
+                "Label": "No",
+                "Read-only": "Yes",
+                "Hidden": "Yes"
+              },
+              "rules": {
+                "Column name": "_RowNumber",
+                "Visible?": "ALWAYS",
+                "Description": "Number of this row",
+                "Type": "Number",
+                "Type Qualifier": "{\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+                "Read-Only": "Yes",
+                "Hidden": "Yes",
+                "Label": "No",
+                "Formula version": "0",
+                "Reset on edit?": "No",
+                "System Defined?": "Yes",
+                "Key": "No",
+                "Part of Key?": "No",
+                "Fixed definition?": "Yes",
+                "Editable Initial Value?": "Yes",
+                "Virtual?": "No",
+                "LocaleName": "en-US",
+                "Searchable": "No",
+                "Scannable": "No",
+                "Sensitive data": "No"
+              }
+            },
+            "Row ID": {
+              "inventory": {
+                "App": "OLTP",
+                "Table": "Upcoming Charge Forecast",
+                "Column": "Row ID",
+                "Type": "Text",
+                "Virtual": "No",
+                "Key": "Yes",
+                "Label": "No",
+                "Read-only": "Yes",
+                "Hidden": "Yes"
+              },
+              "rules": {
+                "Column name": "Row ID",
+                "Visible?": "ALWAYS",
+                "Type": "Text",
+                "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+                "Read-Only": "Yes",
+                "Hidden": "Yes",
+                "Label": "No",
+                "Formula version": "0",
+                "Reset on edit?": "No",
+                "System Defined?": "No",
+                "Key": "Yes",
+                "Part of Key?": "Yes",
+                "Fixed definition?": "No",
+                "Editable Initial Value?": "Yes",
+                "Virtual?": "No",
+                "LocaleName": "en-US",
+                "Searchable": "No",
+                "Scannable": "No",
+                "Sensitive data": "No"
+              }
+            },
+            "Ref Borrower": {
+              "inventory": {
+                "App": "OLTP",
+                "Table": "Upcoming Charge Forecast",
+                "Column": "Ref Borrower",
+                "Type": "Ref",
+                "Virtual": "No",
+                "Key": "No",
+                "Label": "No",
+                "Read-only": "Yes",
+                "Hidden": "No"
+              },
+              "rules": {
+                "Column name": "Ref Borrower",
+                "Visible?": "ALWAYS",
+                "Display name": "=\"ผู้กู้ / Borrower\"",
+                "Type": "Ref",
+                "Type Qualifier": "{\"ReferencedTableName\":\"Borrowers\",\"ReferencedRootTableName\":\"Borrowers\",\"ReferencedType\":\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\":\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+                "Read-Only": "Yes",
+                "Hidden": "No",
+                "Label": "No",
+                "Formula version": "0",
+                "Reset on edit?": "No",
+                "System Defined?": "No",
+                "Key": "No",
+                "Part of Key?": "No",
+                "Fixed definition?": "No",
+                "Editable Initial Value?": "Yes",
+                "Virtual?": "No",
+                "LocaleName": "en-US",
+                "Searchable": "Yes",
+                "Scannable": "No",
+                "Sensitive data": "No"
+              },
+              "relationship": {
+                "ReferencedTableName": "Borrowers",
+                "ReferencedRootTableName": "Borrowers",
+                "ReferencedType": "Text",
+                "ReferencedTypeQualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+                "ReferencedKeyColumn": "Row ID",
+                "IsAPartOf": false
+              }
+            },
+            "Ref Loan": {
+              "inventory": {
+                "App": "OLTP",
+                "Table": "Upcoming Charge Forecast",
+                "Column": "Ref Loan",
+                "Type": "Ref",
+                "Virtual": "No",
+                "Key": "No",
+                "Label": "Yes",
+                "Read-only": "Yes",
+                "Hidden": "No"
+              },
+              "rules": {
+                "Column name": "Ref Loan",
+                "Visible?": "ALWAYS",
+                "Display name": "=\"สินเชื่อ / Loan\"",
+                "Type": "Ref",
+                "Type Qualifier": "{\"ReferencedTableName\":\"Loans\",\"ReferencedRootTableName\":\"Loans\",\"ReferencedType\":\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\":\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+                "Read-Only": "Yes",
+                "Hidden": "No",
+                "Label": "Yes",
+                "Formula version": "0",
+                "Reset on edit?": "No",
+                "System Defined?": "No",
+                "Key": "No",
+                "Part of Key?": "No",
+                "Fixed definition?": "No",
+                "Editable Initial Value?": "Yes",
+                "Virtual?": "No",
+                "LocaleName": "en-US",
+                "Searchable": "Yes",
+                "Scannable": "No",
+                "Sensitive data": "No"
+              },
+              "relationship": {
+                "ReferencedTableName": "Loans",
+                "ReferencedRootTableName": "Loans",
+                "ReferencedType": "Text",
+                "ReferencedTypeQualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+                "ReferencedKeyColumn": "Row ID",
+                "IsAPartOf": false
+              }
+            },
+            "Due Date": {
+              "inventory": {
+                "App": "OLTP",
+                "Table": "Upcoming Charge Forecast",
+                "Column": "Due Date",
+                "Type": "Date",
+                "Virtual": "No",
+                "Key": "No",
+                "Label": "No",
+                "Read-only": "Yes",
+                "Hidden": "No"
+              },
+              "rules": {
+                "Column name": "Due Date",
+                "Visible?": "ALWAYS",
+                "Display name": "=\"วันครบกำหนด / Due Date\"",
+                "Type": "Date",
+                "Type Qualifier": "{\"UseLongDateFormat\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+                "Read-Only": "Yes",
+                "Hidden": "No",
+                "Label": "No",
+                "Formula version": "0",
+                "Reset on edit?": "No",
+                "Initial value": "TODAY()",
+                "System Defined?": "No",
+                "Key": "No",
+                "Part of Key?": "No",
+                "Fixed definition?": "No",
+                "Editable Initial Value?": "Yes",
+                "Virtual?": "No",
+                "LocaleName": "en-US",
+                "Searchable": "Yes",
+                "Scannable": "No",
+                "Sensitive data": "No"
+              }
+            },
+            "Principal Remaining": {
+              "inventory": {
+                "App": "OLTP",
+                "Table": "Upcoming Charge Forecast",
+                "Column": "Principal Remaining",
+                "Type": "Price",
+                "Virtual": "No",
+                "Key": "No",
+                "Label": "No",
+                "Read-only": "Yes",
+                "Hidden": "No"
+              },
+              "rules": {
+                "Column name": "Principal Remaining",
+                "Visible?": "ALWAYS",
+                "Display name": "=\"เงินต้นคงเหลือ / Principal Remaining\"",
+                "Type": "Price",
+                "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\":0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+                "Read-Only": "Yes",
+                "Hidden": "No",
+                "Label": "No",
+                "Formula version": "0",
+                "Reset on edit?": "No",
+                "System Defined?": "No",
+                "Key": "No",
+                "Part of Key?": "No",
+                "Fixed definition?": "No",
+                "Editable Initial Value?": "Yes",
+                "Virtual?": "No",
+                "LocaleName": "en-US",
+                "Searchable": "No",
+                "Scannable": "No",
+                "Sensitive data": "No"
+              }
+            },
+            "Interest Remaining": {
+              "inventory": {
+                "App": "OLTP",
+                "Table": "Upcoming Charge Forecast",
+                "Column": "Interest Remaining",
+                "Type": "Price",
+                "Virtual": "No",
+                "Key": "No",
+                "Label": "No",
+                "Read-only": "Yes",
+                "Hidden": "No"
+              },
+              "rules": {
+                "Column name": "Interest Remaining",
+                "Visible?": "ALWAYS",
+                "Display name": "=\"ดอกเบี้ยคงเหลือ / Interest Remaining\"",
+                "Type": "Price",
+                "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\":0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+                "Read-Only": "Yes",
+                "Hidden": "No",
+                "Label": "No",
+                "Formula version": "0",
+                "Reset on edit?": "No",
+                "System Defined?": "No",
+                "Key": "No",
+                "Part of Key?": "No",
+                "Fixed definition?": "No",
+                "Editable Initial Value?": "Yes",
+                "Virtual?": "No",
+                "LocaleName": "en-US",
+                "Searchable": "No",
+                "Scannable": "No",
+                "Sensitive data": "No"
+              }
+            },
+            "Amount Remaining": {
+              "inventory": {
+                "App": "OLTP",
+                "Table": "Upcoming Charge Forecast",
+                "Column": "Amount Remaining",
+                "Type": "Price",
+                "Virtual": "No",
+                "Key": "No",
+                "Label": "No",
+                "Read-only": "Yes",
+                "Hidden": "No"
+              },
+              "rules": {
+                "Column name": "Amount Remaining",
+                "Visible?": "ALWAYS",
+                "Display name": "=\"ยอดคงเหลือ / Amount Remaining\"",
+                "Type": "Price",
+                "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\":0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+                "Read-Only": "Yes",
+                "Hidden": "No",
+                "Label": "No",
+                "Formula version": "0",
+                "Reset on edit?": "No",
+                "System Defined?": "No",
+                "Key": "No",
+                "Part of Key?": "No",
+                "Fixed definition?": "No",
+                "Editable Initial Value?": "Yes",
+                "Virtual?": "No",
+                "LocaleName": "en-US",
+                "Searchable": "No",
+                "Scannable": "No",
+                "Sensitive data": "No"
+              }
+            },
+            "Basis": {
+              "inventory": {
+                "App": "OLTP",
+                "Table": "Upcoming Charge Forecast",
+                "Column": "Basis",
+                "Type": "Text",
+                "Virtual": "No",
+                "Key": "No",
+                "Label": "No",
+                "Read-only": "Yes",
+                "Hidden": "Yes"
+              },
+              "rules": {
+                "Column name": "Basis",
+                "Visible?": "ALWAYS",
+                "Type": "Text",
+                "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+                "Read-Only": "Yes",
+                "Hidden": "Yes",
+                "Label": "No",
+                "Formula version": "0",
+                "Reset on edit?": "No",
+                "System Defined?": "No",
+                "Key": "No",
+                "Part of Key?": "No",
+                "Fixed definition?": "No",
+                "Editable Initial Value?": "Yes",
+                "Virtual?": "No",
+                "LocaleName": "en-US",
+                "Searchable": "No",
+                "Scannable": "No",
+                "Sensitive data": "No"
+              }
+            },
+            "As Of Date": {
+              "inventory": {
+                "App": "OLTP",
+                "Table": "Upcoming Charge Forecast",
+                "Column": "As Of Date",
+                "Type": "Date",
+                "Virtual": "No",
+                "Key": "No",
+                "Label": "No",
+                "Read-only": "Yes",
+                "Hidden": "No"
+              },
+              "rules": {
+                "Column name": "As Of Date",
+                "Visible?": "ALWAYS",
+                "Display name": "=\"ข้อมูล ณ วันที่ / As Of Date\"",
+                "Type": "Date",
+                "Type Qualifier": "{\"UseLongDateFormat\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+                "Read-Only": "Yes",
+                "Hidden": "No",
+                "Label": "No",
+                "Formula version": "0",
+                "Reset on edit?": "No",
+                "Initial value": "TODAY()",
+                "System Defined?": "No",
+                "Key": "No",
+                "Part of Key?": "No",
+                "Fixed definition?": "No",
+                "Editable Initial Value?": "Yes",
+                "Virtual?": "No",
+                "LocaleName": "en-US",
+                "Searchable": "Yes",
+                "Scannable": "No",
+                "Sensitive data": "No"
+              }
+            },
+            "Horizon End": {
+              "inventory": {
+                "App": "OLTP",
+                "Table": "Upcoming Charge Forecast",
+                "Column": "Horizon End",
+                "Type": "Date",
+                "Virtual": "No",
+                "Key": "No",
+                "Label": "No",
+                "Read-only": "Yes",
+                "Hidden": "Yes"
+              },
+              "rules": {
+                "Column name": "Horizon End",
+                "Visible?": "ALWAYS",
+                "Type": "Date",
+                "Type Qualifier": "{\"UseLongDateFormat\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+                "Read-Only": "Yes",
+                "Hidden": "Yes",
+                "Label": "No",
+                "Formula version": "0",
+                "Reset on edit?": "No",
+                "Initial value": "TODAY()",
+                "System Defined?": "No",
+                "Key": "No",
+                "Part of Key?": "No",
+                "Fixed definition?": "No",
+                "Editable Initial Value?": "Yes",
+                "Virtual?": "No",
+                "LocaleName": "en-US",
+                "Searchable": "No",
+                "Scannable": "No",
+                "Sensitive data": "No"
+              }
+            },
+            "Calculated At": {
+              "inventory": {
+                "App": "OLTP",
+                "Table": "Upcoming Charge Forecast",
+                "Column": "Calculated At",
+                "Type": "DateTime",
+                "Virtual": "No",
+                "Key": "No",
+                "Label": "No",
+                "Read-only": "Yes",
+                "Hidden": "Yes"
+              },
+              "rules": {
+                "Column name": "Calculated At",
+                "Visible?": "ALWAYS",
+                "Type": "DateTime",
+                "Type Qualifier": "{\"MinValue\":null,\"MaxValue\":null,\"UseLongDateFormat\":false,\"IgnoreSeconds\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+                "Read-Only": "Yes",
+                "Hidden": "Yes",
+                "Label": "No",
+                "Formula version": "0",
+                "Reset on edit?": "No",
+                "Initial value": "NOW()",
+                "System Defined?": "No",
+                "Key": "No",
+                "Part of Key?": "No",
+                "Fixed definition?": "No",
+                "Editable Initial Value?": "Yes",
+                "Virtual?": "No",
+                "LocaleName": "en-US",
+                "Searchable": "No",
+                "Scannable": "No",
+                "Sensitive data": "No"
+              }
+            },
+            "Within 7 Days": {
+              "inventory": {
+                "App": "OLTP",
+                "Table": "Upcoming Charge Forecast",
+                "Column": "Within 7 Days",
+                "Type": "Yes/No",
+                "Virtual": "No",
+                "Key": "No",
+                "Label": "No",
+                "Read-only": "Yes",
+                "Hidden": "Yes"
+              },
+              "rules": {
+                "Column name": "Within 7 Days",
+                "Visible?": "ALWAYS",
+                "Type": "Yes/No",
+                "Type Qualifier": "{\"YesLabel\":\"\",\"NoLabel\":\"\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+                "Read-Only": "Yes",
+                "Hidden": "Yes",
+                "Label": "No",
+                "Formula version": "0",
+                "Reset on edit?": "No",
+                "System Defined?": "No",
+                "Key": "No",
+                "Part of Key?": "No",
+                "Fixed definition?": "No",
+                "Editable Initial Value?": "Yes",
+                "Virtual?": "No",
+                "LocaleName": "en-US",
+                "Searchable": "No",
+                "Scannable": "No",
+                "Sensitive data": "No"
+              }
+            },
+            "Borrower Due Date Rank": {
+              "inventory": {
+                "App": "OLTP",
+                "Table": "Upcoming Charge Forecast",
+                "Column": "Borrower Due Date Rank",
+                "Type": "Number",
+                "Virtual": "No",
+                "Key": "No",
+                "Label": "No",
+                "Read-only": "Yes",
+                "Hidden": "Yes"
+              },
+              "rules": {
+                "Column name": "Borrower Due Date Rank",
+                "Visible?": "ALWAYS",
+                "Type": "Number",
+                "Type Qualifier": "{\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+                "Read-Only": "Yes",
+                "Hidden": "Yes",
+                "Label": "No",
+                "Formula version": "0",
+                "Reset on edit?": "No",
+                "System Defined?": "No",
+                "Key": "No",
+                "Part of Key?": "No",
+                "Fixed definition?": "No",
+                "Editable Initial Value?": "Yes",
+                "Virtual?": "No",
+                "LocaleName": "en-US",
+                "Searchable": "No",
+                "Scannable": "No",
+                "Sensitive data": "No"
+              }
+            },
+            "Basis Display": {
+              "inventory": {
+                "App": "OLTP",
+                "Table": "Upcoming Charge Forecast",
+                "Column": "Basis Display",
+                "Type": "Text",
+                "Virtual": "Yes",
+                "Key": "No",
+                "Label": "No",
+                "Read-only": "Yes",
+                "Hidden": "No"
+              },
+              "rules": {
+                "Column name": "Basis Display",
+                "Visible?": "ALWAYS",
+                "Display name": "=\"ที่มาของรายการ / Basis\"",
+                "Type": "Text",
+                "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+                "App formula": "=SWITCH([Basis], \"Recorded\", \"บันทึกแล้ว / Recorded\", \"Recorded settlement\", \"รายการชำระที่บันทึกแล้ว / Recorded settlement\", \"Recorded - review status\", \"บันทึกแล้ว - ตรวจสอบสถานะ / Recorded - review status\", \"Projected\", \"คาดการณ์ / Projected\", [Basis])",
+                "Read-Only": "Yes",
+                "Hidden": "No",
+                "Label": "No",
+                "Formula version": "0",
+                "Reset on edit?": "No",
+                "System Defined?": "No",
+                "Key": "No",
+                "Part of Key?": "No",
+                "Fixed definition?": "No",
+                "Editable Initial Value?": "Yes",
+                "Virtual?": "Yes",
+                "LocaleName": "en-US",
+                "Searchable": "Yes",
+                "Scannable": "No",
+                "Sensitive data": "No"
+              }
+            }
+          }
+        }
+      },
+      "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
+      "version": "1.000150"
+    },
+    "view:Borrower Upcoming Charges_Inline": {
+      "release": "R048",
+      "status": "DEV implemented; owner review and PROD promotion pending",
+      "target": "oltp",
+      "definition_evidence": "outputs/r048-upcoming-charges/summary-refinement.json",
+      "before": {
+        "state": "absent"
+      },
+      "after": {
+        "state": "value",
+        "value": {
+          "definition": {
+            "View name": "Borrower Upcoming Charges_Inline",
+            "Created by": "App owner",
+            "View type": "table",
+            "Position": "ref",
+            "View configuration": "{\"ColumnWidth\":\"Narrow\",\"EnableQuickEdit\":false,\"ColumnOrder\":[\"Amount Remaining\",\"Ref Loan\",\"Basis Display\"],\"GroupBy\":[{\"Column\":\"Due Date\",\"Order\":\"Ascending\"}],\"GroupAggregate\":\"SUM :: Amount Remaining\",\"SortBy\":[{\"Column\":\"Ref Loan\",\"Order\":\"Ascending\"}],\"PrimarySortColumn\":null,\"IsPrimarySortDescending\":false,\"Events\":[{\"EventType\":\"Row Selected\",\"EventAction\":\"**auto**\"}],\"Icon\":\"fa-list-ul\",\"IconRunnerUps\":null,\"MenuOrder\":1}",
+            "Visible?": "ALWAYS",
+            "Icon": "",
+            "Menu order": "1"
+          },
+          "editor_observed": {
+            "For this data": "Borrower Upcoming 5 Dates"
+          }
+        }
+      },
+      "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
+      "version": "1.000150"
+    },
+    "view:oltp_upcoming_charge_context_v1_Detail": {
+      "release": "R048",
+      "status": "DEV implemented; owner review and PROD promotion pending",
+      "target": "oltp",
+      "definition_evidence": "outputs/r048-upcoming-charges/summary-refinement.json",
+      "before": {
+        "state": "absent"
+      },
+      "after": {
+        "state": "value",
+        "value": {
+          "definition": {
+            "View name": "oltp_upcoming_charge_context_v1_Detail",
+            "Created by": "System",
+            "View type": "detail",
+            "ActionType": "Automatic",
+            "Position": "ref",
+            "View configuration": "{\"MainSlideshowImageColumn\":\"**auto**\",\"DetailContentColumn\":\"**none**\",\"HeaderColumns\":[],\"QuickEditColumns\":[],\"ColumnOrder\":[],\"ImageStyle\":\"Fill\",\"Layout\":null,\"UseCardLayout\":false,\"DisplayMode\":\"Automatic\",\"MaxNestedRows\":5,\"SlideshowMode\":true,\"DesktopSplitMode\":\"Split view\",\"UseDesktopMultiColumn\":true,\"SortBy\":[],\"PrimarySortColumn\":null,\"IsPrimarySortDescending\":false,\"Events\":[],\"Icon\":\"fa-indent\",\"IconRunnerUps\":null,\"MenuOrder\":1}",
+            "Visible?": "ALWAYS",
+            "Icon": "",
+            "Menu order": "1"
+          }
+        }
+      },
+      "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
+      "version": "1.000150"
+    },
+    "view:oltp_upcoming_charge_coverage_v1_Detail": {
+      "release": "R048",
+      "status": "DEV implemented; owner review and PROD promotion pending",
+      "target": "oltp",
+      "definition_evidence": "outputs/r048-upcoming-charges/summary-refinement.json",
+      "before": {
+        "state": "absent"
+      },
+      "after": {
+        "state": "value",
+        "value": {
+          "definition": {
+            "View name": "oltp_upcoming_charge_coverage_v1_Detail",
+            "Created by": "System",
+            "View type": "detail",
+            "ActionType": "Automatic",
+            "Position": "ref",
+            "View configuration": "{\"MainSlideshowImageColumn\":\"**auto**\",\"DetailContentColumn\":\"**none**\",\"HeaderColumns\":[],\"QuickEditColumns\":[],\"ColumnOrder\":[],\"ImageStyle\":\"Fill\",\"Layout\":null,\"UseCardLayout\":false,\"DisplayMode\":\"Automatic\",\"MaxNestedRows\":5,\"SlideshowMode\":true,\"DesktopSplitMode\":\"Split view\",\"UseDesktopMultiColumn\":true,\"SortBy\":[],\"PrimarySortColumn\":null,\"IsPrimarySortDescending\":false,\"Events\":[],\"Icon\":\"fa-indent\",\"IconRunnerUps\":null,\"MenuOrder\":1}",
+            "Visible?": "ALWAYS",
+            "Icon": "",
+            "Menu order": "1"
+          }
+        }
+      },
+      "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
+      "version": "1.000150"
+    },
+    "view:oltp_upcoming_charge_events_v1_Detail": {
+      "release": "R048",
+      "status": "DEV implemented; owner review and PROD promotion pending",
+      "target": "oltp",
+      "definition_evidence": "outputs/r048-upcoming-charges/summary-refinement.json",
+      "before": {
+        "state": "absent"
+      },
+      "after": {
+        "state": "value",
+        "value": {
+          "definition": {
+            "View name": "oltp_upcoming_charge_events_v1_Detail",
+            "Created by": "System",
+            "View type": "detail",
+            "ActionType": "Automatic",
+            "Position": "ref",
+            "View configuration": "{\"MainSlideshowImageColumn\":\"**auto**\",\"DetailContentColumn\":\"**none**\",\"HeaderColumns\":[],\"QuickEditColumns\":[],\"ColumnOrder\":[],\"ImageStyle\":\"Fill\",\"Layout\":null,\"UseCardLayout\":false,\"DisplayMode\":\"Automatic\",\"MaxNestedRows\":5,\"SlideshowMode\":true,\"DesktopSplitMode\":\"Split view\",\"UseDesktopMultiColumn\":true,\"SortBy\":[],\"PrimarySortColumn\":null,\"IsPrimarySortDescending\":false,\"Events\":[],\"Icon\":\"fa-indent\",\"IconRunnerUps\":null,\"MenuOrder\":1}",
+            "Visible?": "ALWAYS",
+            "Icon": "",
+            "Menu order": "1"
+          }
+        }
+      },
+      "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
+      "version": "1.000150"
+    },
+    "view:Todays Collection Board_Detail": {
+      "release": "R048",
+      "status": "DEV implemented; owner review and PROD promotion pending",
+      "target": "oltp",
+      "definition_evidence": "outputs/r048-upcoming-charges/summary-refinement.json",
+      "before": {
+        "state": "value",
+        "value": {
+          "ColumnOrder": [
+            "Daily Collection Status - Order",
+            "Borrower Reference TE",
+            "Todays Amount Due",
+            "Todays Amount Collected",
+            "Todays Amount Remaining",
+            "Borrower Note",
+            "Submitted Receipts",
+            "Todays Collection Charges"
+          ]
+        }
+      },
+      "after": {
+        "state": "value",
+        "value": {
+          "definition": {
+            "View name": "Todays Collection Board_Detail",
+            "Created by": "System",
+            "View type": "detail",
+            "ActionType": "Automatic",
+            "Position": "ref",
+            "View configuration": "{\"MainSlideshowImageColumn\":\"**auto**\",\"DetailContentColumn\":\"**none**\",\"HeaderColumns\":[],\"QuickEditColumns\":[\"Borrower Note\"],\"ColumnOrder\":[\"Daily Collection Status - Order\",\"Borrower Reference TE\",\"Todays Amount Due\",\"Todays Amount Collected\",\"Todays Amount Remaining\",\"Borrower Note\",\"Todays Collection Charges\",\"Upcoming Charges Summary\",\"Upcoming Charges\",\"Upcoming Charge Note\",\"Submitted Receipts\"],\"ImageStyle\":\"Fill\",\"Layout\":null,\"UseCardLayout\":false,\"DisplayMode\":\"Automatic\",\"MaxNestedRows\":30,\"SlideshowMode\":false,\"DesktopSplitMode\":\"Split view\",\"UseDesktopMultiColumn\":true,\"SortBy\":[],\"PrimarySortColumn\":null,\"IsPrimarySortDescending\":false,\"Events\":[],\"Icon\":\"fa-indent\",\"IconRunnerUps\":null,\"MenuOrder\":1}",
+            "Visible?": "ALWAYS",
+            "Icon": "",
+            "Menu order": "1"
+          },
+          "editor_observed": {
+            "For this data": "Todays Collection Board"
+          }
+        }
+      },
+      "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
+      "version": "1.000150"
+    },
+    "view:Upcoming Charge Forecast_Inline": {
+      "release": "R048",
+      "status": "DEV implemented; owner review and PROD promotion pending",
+      "target": "oltp",
+      "definition_evidence": "outputs/r048-upcoming-charges/summary-refinement.json",
+      "before": {
+        "state": "absent"
+      },
+      "after": {
+        "state": "value",
+        "value": {
+          "definition": {
+            "View name": "Upcoming Charge Forecast_Inline",
+            "Created by": "System",
+            "View type": "table",
+            "Position": "ref",
+            "View configuration": "{\"ColumnWidth\":\"Default\",\"EnableQuickEdit\":false,\"ColumnOrder\":[],\"GroupBy\":[],\"GroupAggregate\":\"NONE\",\"SortBy\":[],\"PrimarySortColumn\":null,\"IsPrimarySortDescending\":false,\"Events\":[{\"EventType\":\"Row Selected\",\"EventAction\":\"**auto**\"}],\"Icon\":\"fa-table\",\"IconRunnerUps\":null,\"MenuOrder\":1}",
+            "Visible?": "ALWAYS",
+            "Icon": "",
+            "Menu order": "1"
+          }
+        }
+      },
+      "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
+      "version": "1.000150"
+    },
+    "view:Upcoming Charges by Day": {
+      "release": "R048",
+      "status": "DEV implemented; owner review and PROD promotion pending",
+      "target": "oltp",
+      "definition_evidence": "outputs/r048-upcoming-charges/summary-refinement.json",
+      "before": {
+        "state": "absent"
+      },
+      "after": {
+        "state": "value",
+        "value": {
+          "definition": {
+            "View name": "Upcoming Charges by Day",
+            "Created by": "App owner",
+            "View type": "table",
+            "Position": "ref",
+            "View configuration": "{\"ColumnWidth\":\"Default\",\"EnableQuickEdit\":false,\"ColumnOrder\":[\"Amount Remaining\",\"Ref Loan\",\"Basis Display\"],\"GroupBy\":[{\"Column\":\"Due Date\",\"Order\":\"Ascending\"},{\"Column\":\"Ref Borrower\",\"Order\":\"Ascending\"}],\"GroupAggregate\":\"SUM :: Amount Remaining\",\"SortBy\":[{\"Column\":\"Ref Borrower\",\"Order\":\"Ascending\"},{\"Column\":\"Ref Loan\",\"Order\":\"Ascending\"}],\"PrimarySortColumn\":null,\"IsPrimarySortDescending\":false,\"Events\":[{\"EventType\":\"Row Selected\",\"EventAction\":\"**auto**\"}],\"Icon\":\"fa-list-ul\",\"IconRunnerUps\":null,\"MenuOrder\":1}",
+            "Visible?": "ALWAYS",
+            "Icon": "",
+            "Menu order": "1"
+          },
+          "editor_observed": {
+            "For this data": "Upcoming Charges 7 Days",
+            "Display name": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Upcoming Charges\", \"รายการเรียกเก็บล่วงหน้า\")"
+          }
+        }
+      },
+      "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
+      "version": "1.000150"
+    },
+    "view:Upcoming Charges Context": {
+      "release": "R048",
+      "status": "DEV implemented; owner review and PROD promotion pending",
+      "target": "oltp",
+      "definition_evidence": "outputs/r048-upcoming-charges/summary-refinement.json",
+      "before": {
+        "state": "absent"
+      },
+      "after": {
+        "state": "value",
+        "value": {
+          "definition": {
+            "View name": "Upcoming Charges Context",
+            "Created by": "App owner",
+            "View type": "detail",
+            "ActionType": "Automatic",
+            "Position": "ref",
+            "View configuration": "{\"MainSlideshowImageColumn\":\"**auto**\",\"DetailContentColumn\":\"**none**\",\"HeaderColumns\":[],\"QuickEditColumns\":[],\"ColumnOrder\":[\"Date Range\",\"Calculated At\",\"Forecast Status\"],\"ImageStyle\":\"Fill\",\"Layout\":null,\"UseCardLayout\":false,\"DisplayMode\":\"Automatic\",\"MaxNestedRows\":5,\"SlideshowMode\":false,\"DesktopSplitMode\":\"Split view\",\"UseDesktopMultiColumn\":false,\"SortBy\":[],\"PrimarySortColumn\":null,\"IsPrimarySortDescending\":false,\"Events\":[],\"Icon\":\"fa-list-ul\",\"IconRunnerUps\":null,\"MenuOrder\":1}",
+            "Visible?": "ALWAYS",
+            "Icon": "",
+            "Menu order": "1"
+          },
+          "editor_observed": {
+            "For this data": "Upcoming Charge Context"
+          }
+        }
+      },
+      "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
+      "version": "1.000150"
+    },
+    "view:Upcoming Charges": {
+      "release": "R048",
+      "status": "DEV implemented; owner review and PROD promotion pending",
+      "target": "oltp",
+      "definition_evidence": "outputs/r048-upcoming-charges/summary-refinement.json",
+      "before": {
+        "state": "absent"
+      },
+      "after": {
+        "state": "value",
+        "value": {
+          "definition": {
+            "View name": "Upcoming Charges",
+            "Created by": "App owner",
+            "View type": "dashboard",
+            "Position": "menu",
+            "View configuration": "{\"ViewEntries\":[{\"ViewName\":\"Upcoming Charges by Day\",\"ViewSize\":\"Large\"}],\"InteractiveMode\":false,\"ShowTabs\":false,\"Events\":[],\"Icon\":\"far fa-calendar-alt\",\"IconRunnerUps\":null,\"MenuOrder\":1}",
+            "Visible?": "ALWAYS",
+            "Icon": "",
+            "Menu order": "1"
+          },
+          "editor_observed": {
+            "For this data": null,
+            "Display name": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Upcoming Charges\", \"รายการเรียกเก็บล่วงหน้า\")"
+          }
+        }
+      },
+      "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
+      "version": "1.000150"
+    },
+    "table:Upcoming Charge Summary": {
+      "release": "R048",
+      "status": "DEV implemented; owner review and PROD promotion pending",
+      "target": "oltp",
+      "definition_evidence": "outputs/r048-upcoming-charges/summary-refinement.json",
+      "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
+      "version": "1.000150",
+      "before": {
+        "state": "absent"
+      },
+      "after": {
+        "state": "value",
+        "value": {
+          "source_app": "OLTP",
+          "source_table": "Upcoming Charge Summary",
+          "binding": {
+            "Table name": "Upcoming Charge Summary",
+            "Visible?": "ALWAYS",
+            "Shared?": "Yes",
+            "Data locale": "en-US",
+            "Schema": "Upcoming Charge Summary_Schema",
+            "Are updates allowed?": "READ_ONLY",
+            "Source Path": "oltp_upcoming_charge_summary_v1",
+            "Data Source": "database-3",
+            "Store for image and file capture": "_Default",
+            "Column Order List": [
+              "_RowNumber"
+            ],
+            "Partitioned across many files/sources?": "No",
+            "Partitioned across many worksheets?": "No"
+          },
+          "schema": {
+            "Schema Name": "Upcoming Charge Summary_Schema",
+            "Visible?": "ALWAYS"
+          },
+          "columns": {
+            "_RowNumber": {
+              "inventory": {
+                "App": "OLTP",
+                "Table": "Upcoming Charge Summary",
+                "Column": "_RowNumber",
+                "Type": "Number",
+                "Virtual": "No",
+                "Key": "No",
+                "Label": "No",
+                "Read-only": "Yes",
+                "Hidden": "Yes"
+              },
+              "rules": {
+                "Column name": "_RowNumber",
+                "Visible?": "ALWAYS",
+                "Description": "Number of this row",
+                "Type": "Number",
+                "Type Qualifier": "{\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+                "Read-Only": "Yes",
+                "Hidden": "Yes",
+                "Label": "No",
+                "Formula version": "0",
+                "Reset on edit?": "No",
+                "System Defined?": "Yes",
+                "Key": "No",
+                "Part of Key?": "No",
+                "Fixed definition?": "Yes",
+                "Editable Initial Value?": "Yes",
+                "Virtual?": "No",
+                "LocaleName": "en-US",
+                "Searchable": "No",
+                "Scannable": "No",
+                "Sensitive data": "No"
+              }
+            },
+            "Row ID": {
+              "inventory": {
+                "App": "OLTP",
+                "Table": "Upcoming Charge Summary",
+                "Column": "Row ID",
+                "Type": "Text",
+                "Virtual": "No",
+                "Key": "Yes",
+                "Label": "No",
+                "Read-only": "Yes",
+                "Hidden": "Yes"
+              },
+              "rules": {
+                "Column name": "Row ID",
+                "Visible?": "ALWAYS",
+                "Type": "Text",
+                "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+                "Read-Only": "Yes",
+                "Hidden": "Yes",
+                "Label": "No",
+                "Formula version": "0",
+                "Reset on edit?": "No",
+                "System Defined?": "No",
+                "Key": "Yes",
+                "Part of Key?": "Yes",
+                "Fixed definition?": "No",
+                "Editable Initial Value?": "Yes",
+                "Virtual?": "No",
+                "LocaleName": "en-US",
+                "Searchable": "No",
+                "Scannable": "No",
+                "Sensitive data": "No"
+              }
+            },
+            "Ref Borrower": {
+              "inventory": {
+                "App": "OLTP",
+                "Table": "Upcoming Charge Summary",
+                "Column": "Ref Borrower",
+                "Type": "Ref",
+                "Virtual": "No",
+                "Key": "No",
+                "Label": "No",
+                "Read-only": "Yes",
+                "Hidden": "Yes"
+              },
+              "rules": {
+                "Column name": "Ref Borrower",
+                "Visible?": "ALWAYS",
+                "Type": "Ref",
+                "Type Qualifier": "{\"ReferencedTableName\":\"Borrowers\",\"ReferencedRootTableName\":\"Borrowers\",\"ReferencedType\":\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\":\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+                "Read-Only": "Yes",
+                "Hidden": "Yes",
+                "Label": "No",
+                "Formula version": "0",
+                "Reset on edit?": "No",
+                "System Defined?": "No",
+                "Key": "No",
+                "Part of Key?": "No",
+                "Fixed definition?": "No",
+                "Editable Initial Value?": "Yes",
+                "Virtual?": "No",
+                "LocaleName": "en-US",
+                "Searchable": "No",
+                "Scannable": "No",
+                "Sensitive data": "No"
+              },
+              "relationship": {
+                "ReferencedTableName": "Borrowers",
+                "ReferencedRootTableName": "Borrowers",
+                "ReferencedType": "Text",
+                "ReferencedTypeQualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+                "ReferencedKeyColumn": "Row ID",
+                "IsAPartOf": false
+              }
+            },
+            "Due Date": {
+              "inventory": {
+                "App": "OLTP",
+                "Table": "Upcoming Charge Summary",
+                "Column": "Due Date",
+                "Type": "Date",
+                "Virtual": "No",
+                "Key": "No",
+                "Label": "Yes",
+                "Read-only": "Yes",
+                "Hidden": "No"
+              },
+              "rules": {
+                "Column name": "Due Date",
+                "Visible?": "ALWAYS",
+                "Display name": "=\"วันที่ / Date\"",
+                "Type": "Date",
+                "Type Qualifier": "{\"UseLongDateFormat\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+                "Read-Only": "Yes",
+                "Hidden": "No",
+                "Label": "Yes",
+                "Formula version": "0",
+                "Reset on edit?": "No",
+                "Initial value": "TODAY()",
+                "System Defined?": "No",
+                "Key": "No",
+                "Part of Key?": "No",
+                "Fixed definition?": "No",
+                "Editable Initial Value?": "Yes",
+                "Virtual?": "No",
+                "LocaleName": "en-US",
+                "Searchable": "Yes",
+                "Scannable": "No",
+                "Sensitive data": "No"
+              }
+            },
+            "Total Charge": {
+              "inventory": {
+                "App": "OLTP",
+                "Table": "Upcoming Charge Summary",
+                "Column": "Total Charge",
+                "Type": "Price",
+                "Virtual": "No",
+                "Key": "No",
+                "Label": "No",
+                "Read-only": "Yes",
+                "Hidden": "No"
+              },
+              "rules": {
+                "Column name": "Total Charge",
+                "Visible?": "ALWAYS",
+                "Display name": "=\"ยอดเรียกเก็บรวม / Total Charge\"",
+                "Type": "Price",
+                "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\":0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+                "Read-Only": "Yes",
+                "Hidden": "No",
+                "Label": "No",
+                "Formula version": "0",
+                "Reset on edit?": "No",
+                "System Defined?": "No",
+                "Key": "No",
+                "Part of Key?": "No",
+                "Fixed definition?": "No",
+                "Editable Initial Value?": "Yes",
+                "Virtual?": "No",
+                "LocaleName": "en-US",
+                "Searchable": "No",
+                "Scannable": "No",
+                "Sensitive data": "No"
+              }
+            },
+            "As Of Date": {
+              "inventory": {
+                "App": "OLTP",
+                "Table": "Upcoming Charge Summary",
+                "Column": "As Of Date",
+                "Type": "Date",
+                "Virtual": "No",
+                "Key": "No",
+                "Label": "No",
+                "Read-only": "Yes",
+                "Hidden": "Yes"
+              },
+              "rules": {
+                "Column name": "As Of Date",
+                "Visible?": "ALWAYS",
+                "Type": "Date",
+                "Type Qualifier": "{\"UseLongDateFormat\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+                "Read-Only": "Yes",
+                "Hidden": "Yes",
+                "Label": "No",
+                "Formula version": "0",
+                "Reset on edit?": "No",
+                "Initial value": "TODAY()",
+                "System Defined?": "No",
+                "Key": "No",
+                "Part of Key?": "No",
+                "Fixed definition?": "No",
+                "Editable Initial Value?": "Yes",
+                "Virtual?": "No",
+                "LocaleName": "en-US",
+                "Searchable": "No",
+                "Scannable": "No",
+                "Sensitive data": "No"
+              }
+            }
+          }
+        }
+      }
+    },
+    "slice:Borrower Upcoming Summary": {
+      "release": "R048",
+      "status": "DEV implemented; owner review and PROD promotion pending",
+      "target": "oltp",
+      "definition_evidence": "outputs/r048-upcoming-charges/summary-refinement.json",
+      "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
+      "version": "1.000150",
+      "before": {
+        "state": "absent"
+      },
+      "after": {
+        "state": "value",
+        "value": {
+          "definition": {
+            "Slice Name": "Borrower Upcoming Summary",
+            "Slice Columns": [
+              "_RowNumber",
+              "Row ID",
+              "Ref Borrower",
+              "Due Date",
+              "Total Charge",
+              "As Of Date"
+            ],
+            "Row filter condition": "=[As Of Date] = LOOKUP(\"upcoming\", \"Upcoming Charge Context\", \"Row ID\", \"As Of Date\")",
+            "Update mode": "READ_ONLY",
+            "Source Table": "Upcoming Charge Summary",
+            "Visible?": "ALWAYS",
+            "Slice Actions": [
+              "**auto**"
+            ]
+          },
+          "members": [
+            {
+              "Ordinal": 1,
+              "Column": "_RowNumber"
+            },
+            {
+              "Ordinal": 2,
+              "Column": "Row ID"
+            },
+            {
+              "Ordinal": 3,
+              "Column": "Ref Borrower"
+            },
+            {
+              "Ordinal": 4,
+              "Column": "Due Date"
+            },
+            {
+              "Ordinal": 5,
+              "Column": "Total Charge"
+            },
+            {
+              "Ordinal": 6,
+              "Column": "As Of Date"
+            }
+          ]
+        }
+      }
+    },
+    "view:Upcoming Charge Summary_Inline": {
+      "release": "R048",
+      "status": "DEV implemented; owner review and PROD promotion pending",
+      "target": "oltp",
+      "definition_evidence": "outputs/r048-upcoming-charges/summary-refinement.json",
+      "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
+      "version": "1.000150",
+      "before": {
+        "state": "absent"
+      },
+      "after": {
+        "state": "value",
+        "value": {
+          "definition": {
+            "View name": "Upcoming Charge Summary_Inline",
+            "Created by": "System",
+            "View type": "table",
+            "Position": "ref",
+            "View configuration": "{\"ColumnWidth\":\"Default\",\"EnableQuickEdit\":false,\"ColumnOrder\":[\"Due Date\",\"Total Charge\"],\"GroupBy\":[],\"GroupAggregate\":\"NONE\",\"SortBy\":[{\"Column\":\"Due Date\",\"Order\":\"Ascending\"}],\"PrimarySortColumn\":null,\"IsPrimarySortDescending\":false,\"Events\":[{\"EventType\":\"Row Selected\",\"EventAction\":\"**auto**\"}],\"Icon\":\"fa-table\",\"IconRunnerUps\":null,\"MenuOrder\":1}",
+            "Visible?": "ALWAYS",
+            "Icon": "",
+            "Menu order": "1"
+          }
+        }
+      }
+    },
+    "view:oltp_upcoming_charge_summary_v1_Detail": {
+      "release": "R048",
+      "status": "DEV implemented; owner review and PROD promotion pending",
+      "target": "oltp",
+      "definition_evidence": "outputs/r048-upcoming-charges/summary-refinement.json",
+      "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
+      "version": "1.000150",
+      "before": {
+        "state": "absent"
+      },
+      "after": {
+        "state": "value",
+        "value": {
+          "definition": {
+            "View name": "oltp_upcoming_charge_summary_v1_Detail",
+            "Created by": "System",
+            "View type": "detail",
+            "ActionType": "Automatic",
+            "Position": "ref",
+            "View configuration": "{\"MainSlideshowImageColumn\":\"**auto**\",\"DetailContentColumn\":\"**none**\",\"HeaderColumns\":[],\"QuickEditColumns\":[],\"ColumnOrder\":[],\"ImageStyle\":\"Fill\",\"Layout\":null,\"UseCardLayout\":false,\"DisplayMode\":\"Automatic\",\"MaxNestedRows\":5,\"SlideshowMode\":true,\"DesktopSplitMode\":\"Split view\",\"UseDesktopMultiColumn\":true,\"SortBy\":[],\"PrimarySortColumn\":null,\"IsPrimarySortDescending\":false,\"Events\":[],\"Icon\":\"fa-indent\",\"IconRunnerUps\":null,\"MenuOrder\":1}",
+            "Visible?": "ALWAYS",
+            "Icon": "",
+            "Menu order": "1"
+          }
+        }
+      }
+    }
+  },
+  "verification": {
+    "editors": "Both DEV editors No issues found",
+    "sql": "Full CI passed; 18 upcoming assertions; DEV Flyway V55 validated; 100 summary rows and zero mismatches/duplicate keys",
+    "gui": "Current desktop DEV: Upcoming Charges only, no context panel; Collection today then summary then details. Multi-loan case has 5 summary dates matching 10 detail events and all daily totals. Bilingual headers and whole baht confirmed.",
+    "owner_cosmetics": "Portfolio ColumnWidth Default preserved from1.000146",
+    "production_changed": false
+  }
+}

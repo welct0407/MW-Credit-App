@@ -1,0 +1,36 @@
+{
+  "verified_at": "2026-09-22T16:58:42.7105135+00:00",
+  "financial_values_published": false,
+  "environment": "development",
+  "checks": [
+    {
+      "name": "Account balances match existing dated OLTP statement",
+      "passed": true
+    },
+    {
+      "name": "Current cash agrees with governed Cash Dashboard",
+      "passed": true
+    },
+    {
+      "name": "Account/date keys unique",
+      "passed": true
+    },
+    {
+      "name": "Cash/date keys unique",
+      "passed": true
+    },
+    {
+      "name": "Pre-opening custody unavailable",
+      "passed": true
+    },
+    {
+      "name": "All dated account rows reconcile to daily custody",
+      "passed": true
+    },
+    {
+      "name": "No financial source missing dates",
+      "passed": true
+    }
+  ],
+  "database": "loan_manager_dev"
+}

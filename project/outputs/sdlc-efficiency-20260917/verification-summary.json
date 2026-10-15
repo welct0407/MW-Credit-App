@@ -1,0 +1,11 @@
+{
+  "scope": "governance/tooling only",
+  "protectedSectionsUnchanged": true,
+  "localLinksChecked": 31,
+  "beforeWords": 5348,
+  "afterWords": 3873,
+  "deltaTests": 8,
+  "dictionaryChecks": 12,
+  "syntheticWorkbookVisualReview": "before and after inspected; target changed, layout preserved",
+  "liveEnvironmentChanges": false
+}

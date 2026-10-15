@@ -1,0 +1,10 @@
+{
+  "at": "2026-09-25T10:48:34.053025+00:00",
+  "environment": "development",
+  "passed": true,
+  "business_fields_compared": 11,
+  "empty_selection_verified": true,
+  "queried_at_excluded": "Display uses statement_timestamp, which legitimately differs between queries",
+  "method": "Independent payment-health, matrix and schedule queries compared with final Detail output in one read-only repeatable-read transaction",
+  "financial_values_published": false
+}

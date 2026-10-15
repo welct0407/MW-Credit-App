@@ -1,0 +1,11 @@
+[
+  {
+    "actual_interest": 8040,
+    "actual_rows": 28,
+    "duplicate_loan_dates": 0,
+    "expected_interest": 8040,
+    "expected_rows": 28,
+    "missing_or_wrong": 0,
+    "unexpected_or_wrong": 0
+  }
+]

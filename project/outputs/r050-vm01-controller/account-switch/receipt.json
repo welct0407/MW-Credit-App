@@ -1,0 +1,584 @@
+{
+  "schemaVersion": 1,
+  "status": "INDEPENDENT_CONFIGURATION_AND_PRESERVATION_VERIFIED",
+  "approvedAtContext": "User: Yes approve to switch account, after scope explicitly described replacement controller access, old controller access removal, existing Azure roles preserved and power controls disabled",
+  "tenantId": "9e29c895-606a-420b-acc2-1c24375df4d9",
+  "subscriptionId": "50f792fa-803e-4280-833d-1fe60fef5293",
+  "targetIdentity": {
+    "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#users(id,userPrincipalName,displayName,mail,accountEnabled,userType)/$entity",
+    "accountEnabled": true,
+    "displayName": "MW Credit",
+    "id": "fa56579a-7b3a-493a-9eb1-d36671a60b32",
+    "mail": "welct0407@mw-credit.com",
+    "userPrincipalName": "mwcredit@idea.100-5.com",
+    "userType": "Member"
+  },
+  "formerControllerBrowserPrincipalId": "8a83866b-cdcc-4f87-99be-c41e3635c73b",
+  "writes": [
+    {
+      "atUtc": "2026-10-02T00:55:30.189397+00:00",
+      "label": "approved exact replacement Principal consent"
+    },
+    {
+      "atUtc": "2026-10-02T00:55:41.613953+00:00",
+      "label": "approved browser runtime allowlist replacement"
+    },
+    {
+      "atUtc": "2026-10-02T00:55:48.139090+00:00",
+      "label": "approved Easy Auth owner-only principal replacement"
+    },
+    {
+      "atUtc": "2026-10-02T00:55:54.336473+00:00",
+      "label": "approved exact former browser consent removal"
+    }
+  ],
+  "newDelegatedConsent": {
+    "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#oauth2PermissionGrants/$entity",
+    "clientId": "065bf299-b083-422e-916b-a94c3f13429c",
+    "consentType": "Principal",
+    "id": "mfJbBoOwLkKRa6lMPxNCnO-IRDOH2-FJr5gnsLLzHcKaV1b6Ons6SZ6x02Zxpgsy",
+    "principalId": "fa56579a-7b3a-493a-9eb1-d36671a60b32",
+    "resourceId": "334488ef-db87-49e1-af98-27b0b2f31dc2",
+    "scope": "vm01.control"
+  },
+  "retiredDelegatedConsent": {
+    "clientId": "065bf299-b083-422e-916b-a94c3f13429c",
+    "consentType": "Principal",
+    "id": "mfJbBoOwLkKRa6lMPxNCnO-IRDOH2-FJr5gnsLLzHcJrhoOKzM2HT5m-xB42Ncc7",
+    "principalId": "8a83866b-cdcc-4f87-99be-c41e3635c73b",
+    "resourceId": "334488ef-db87-49e1-af98-27b0b2f31dc2",
+    "scope": "vm01.control"
+  },
+  "allowlistsReadbackVerifiedAtUtc": "2026-10-02T00:55:51.579653+00:00",
+  "independentReadbackAtUtc": "2026-10-02T00:56:16.612272+00:00",
+  "before": {
+    "settings": {
+      "VM01_TENANT_ID": "9e29c895-606a-420b-acc2-1c24375df4d9",
+      "VM01_RESOURCE_ID": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/RG-MWCREDIT/providers/Microsoft.Compute/virtualMachines/VM-01",
+      "VM01_EXPECTED_VM_ID": "0af4bbf5-ce75-43d7-931f-9e8c4a13dfe9",
+      "VM01_ORIGIN": "https://vm01-controller-50f792fa.azurewebsites.net",
+      "VM01_API_CLIENT_ID": "f8fc0efe-38ac-489a-b2b4-98d1afc9505b",
+      "VM01_BROWSER_CLIENT_ID": "c74d7869-7313-459e-93b2-50beb860812f",
+      "VM01_BROWSER_USER_IDS": "8a83866b-cdcc-4f87-99be-c41e3635c73b",
+      "VM01_CLOUD_CLIENT_ID": "af64b0c6-261c-45a0-b653-a71d382edb92",
+      "VM01_CLOUD_PRINCIPAL_ID": "d01d70be-d205-4ac9-a7fc-a18dd48e0633",
+      "VM01_STORAGE_ACCOUNT": "stvm01ctl50f792fa",
+      "VM01_ENABLE_MUTATIONS": "false",
+      "VM01_ENABLE_OPERATION_POLLING": "false"
+    },
+    "auth": {
+      "clearInboundClaimsMapping": "false",
+      "globalValidation": {
+        "excludedPaths": [
+          "/",
+          "/auth/callback",
+          "/assets/app.js",
+          "/assets/style.css",
+          "/assets/config.js",
+          "/assets/auth-callback.js"
+        ],
+        "requireAuthentication": true,
+        "unauthenticatedClientAction": "Return401"
+      },
+      "httpSettings": {
+        "forwardProxy": {
+          "convention": "NoProxy"
+        },
+        "requireHttps": true,
+        "routes": {
+          "apiPrefix": "/.auth"
+        }
+      },
+      "identityProviders": {
+        "apple": {
+          "enabled": true,
+          "login": {},
+          "registration": {}
+        },
+        "azureActiveDirectory": {
+          "enabled": true,
+          "login": {
+            "disableWWWAuthenticate": false
+          },
+          "registration": {
+            "clientId": "f8fc0efe-38ac-489a-b2b4-98d1afc9505b",
+            "openIdIssuer": "https://login.microsoftonline.com/9e29c895-606a-420b-acc2-1c24375df4d9/v2.0"
+          },
+          "validation": {
+            "allowedAudiences": [
+              "f8fc0efe-38ac-489a-b2b4-98d1afc9505b"
+            ],
+            "defaultAuthorizationPolicy": {
+              "allowedApplications": [
+                "c74d7869-7313-459e-93b2-50beb860812f",
+                "af64b0c6-261c-45a0-b653-a71d382edb92"
+              ],
+              "allowedPrincipals": {
+                "identities": [
+                  "8a83866b-cdcc-4f87-99be-c41e3635c73b",
+                  "d01d70be-d205-4ac9-a7fc-a18dd48e0633"
+                ]
+              }
+            },
+            "jwtClaimChecks": {}
+          }
+        },
+        "facebook": {
+          "enabled": true,
+          "login": {},
+          "registration": {}
+        },
+        "gitHub": {
+          "enabled": true,
+          "login": {},
+          "registration": {}
+        },
+        "google": {
+          "enabled": true,
+          "login": {},
+          "registration": {},
+          "validation": {}
+        },
+        "legacyMicrosoftAccount": {
+          "enabled": true,
+          "login": {},
+          "registration": {},
+          "validation": {}
+        },
+        "twitter": {
+          "enabled": true,
+          "registration": {}
+        }
+      },
+      "login": {
+        "cookieExpiration": {
+          "convention": "FixedTime",
+          "timeToExpiration": "08:00:00"
+        },
+        "nonce": {
+          "nonceExpirationInterval": "00:05:00",
+          "validateNonce": true
+        },
+        "preserveUrlFragmentsForLogins": false,
+        "routes": {},
+        "tokenStore": {
+          "azureBlobStorage": {},
+          "enabled": false,
+          "fileSystem": {},
+          "tokenRefreshExtensionHours": 72.0
+        }
+      },
+      "platform": {
+        "enabled": true,
+        "runtimeVersion": "~1"
+      },
+      "prmConfig": {
+        "disableMetadata": false,
+        "hideAuthorizationServers": false,
+        "resourceInfo": {
+          "documentationUri": {},
+          "name": {},
+          "policyUri": {},
+          "tosUri": {}
+        }
+      }
+    },
+    "consent": [
+      {
+        "clientId": "065bf299-b083-422e-916b-a94c3f13429c",
+        "consentType": "Principal",
+        "id": "mfJbBoOwLkKRa6lMPxNCnO-IRDOH2-FJr5gnsLLzHcJrhoOKzM2HT5m-xB42Ncc7",
+        "principalId": "8a83866b-cdcc-4f87-99be-c41e3635c73b",
+        "resourceId": "334488ef-db87-49e1-af98-27b0b2f31dc2",
+        "scope": "vm01.control"
+      }
+    ],
+    "cloudRoles": [
+      {
+        "appRoleId": "eddc3409-69d5-58fc-9b5e-6c110f8fb037",
+        "id": "vnAd0AXSyUqn_KGN1I4GM3fKBTkDduVMlYtGBN4tKtU",
+        "principalId": "d01d70be-d205-4ac9-a7fc-a18dd48e0633",
+        "resourceId": "334488ef-db87-49e1-af98-27b0b2f31dc2"
+      },
+      {
+        "appRoleId": "323e6f09-e4f3-5354-995e-b3cdb10714ac",
+        "id": "vnAd0AXSyUqn_KGN1I4GM0o-3Kcx68ZKs6utjt5XgIY",
+        "principalId": "d01d70be-d205-4ac9-a7fc-a18dd48e0633",
+        "resourceId": "334488ef-db87-49e1-af98-27b0b2f31dc2"
+      },
+      {
+        "appRoleId": "88290620-afa0-5398-8d49-e7edcebba80c",
+        "id": "vnAd0AXSyUqn_KGN1I4GM-R7tPjzdLxDg_tekFdBflE",
+        "principalId": "d01d70be-d205-4ac9-a7fc-a18dd48e0633",
+        "resourceId": "334488ef-db87-49e1-af98-27b0b2f31dc2"
+      },
+      {
+        "appRoleId": "7b92f550-4d8d-5b68-b6b6-f07603ef084d",
+        "id": "vnAd0AXSyUqn_KGN1I4GM0ZW_HX_P0hGmIeKghCVA4E",
+        "principalId": "d01d70be-d205-4ac9-a7fc-a18dd48e0633",
+        "resourceId": "334488ef-db87-49e1-af98-27b0b2f31dc2"
+      }
+    ],
+    "azureRoles": [
+      {
+        "condition": null,
+        "id": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/RG-MWCREDIT/providers/Microsoft.Compute/virtualMachines/VM-01/providers/Microsoft.Authorization/roleAssignments/fc32abef-0386-4b3d-b092-6f1ae6676697",
+        "principalId": "fa56579a-7b3a-493a-9eb1-d36671a60b32",
+        "roleDefinitionId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/providers/Microsoft.Authorization/roleDefinitions/1c0163c0-47e6-4577-8991-ea5c82e286e4",
+        "scope": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/RG-MWCREDIT/providers/Microsoft.Compute/virtualMachines/VM-01"
+      },
+      {
+        "condition": null,
+        "id": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourcegroups/rg-vm01-controller/providers/Microsoft.Storage/storageAccounts/stvm01ctl50f792fa/providers/Microsoft.Authorization/roleAssignments/9f05c35c-0f0f-5f0c-96fc-d50ec39a98a2",
+        "principalId": "a671b605-43e5-4878-b3cb-b7b6bf2ce586",
+        "roleDefinitionId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/providers/Microsoft.Authorization/roleDefinitions/b7e6dc6d-f1e8-4753-8033-0f276bb0955b",
+        "scope": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourcegroups/rg-vm01-controller/providers/Microsoft.Storage/storageAccounts/stvm01ctl50f792fa"
+      },
+      {
+        "condition": null,
+        "id": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourcegroups/rg-vm01-controller/providers/Microsoft.Storage/storageAccounts/stvm01ctl50f792fa/blobServices/default/containers/function-package/providers/Microsoft.Authorization/roleAssignments/04dec2e6-d1be-54de-b5d3-807f2a53840e",
+        "principalId": "a671b605-43e5-4878-b3cb-b7b6bf2ce586",
+        "roleDefinitionId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/providers/Microsoft.Authorization/roleDefinitions/ba92f5b4-2d11-453d-a403-e96b0029c9fe",
+        "scope": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourcegroups/rg-vm01-controller/providers/Microsoft.Storage/storageAccounts/stvm01ctl50f792fa/blobServices/default/containers/function-package"
+      },
+      {
+        "condition": null,
+        "id": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/rg-vm01-controller/providers/Microsoft.Storage/storageAccounts/stvm01ctl50f792fa/blobServices/default/containers/vm01-controller/providers/Microsoft.Authorization/roleAssignments/61be35ad-3fed-58cc-98d2-8cc963f799e2",
+        "principalId": "8a83866b-cdcc-4f87-99be-c41e3635c73b",
+        "roleDefinitionId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/providers/Microsoft.Authorization/roleDefinitions/ba92f5b4-2d11-453d-a403-e96b0029c9fe",
+        "scope": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/rg-vm01-controller/providers/Microsoft.Storage/storageAccounts/stvm01ctl50f792fa/blobServices/default/containers/vm01-controller"
+      },
+      {
+        "condition": null,
+        "id": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourcegroups/RG-MWCREDIT/providers/Microsoft.Compute/virtualMachines/VM-01/providers/Microsoft.Authorization/roleAssignments/e4c12054-b4fc-552a-a8a8-f2364bf8027a",
+        "principalId": "a671b605-43e5-4878-b3cb-b7b6bf2ce586",
+        "roleDefinitionId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/providers/Microsoft.Authorization/roleDefinitions/637a62eb-6239-5956-958c-c11032293ebe",
+        "scope": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourcegroups/RG-MWCREDIT/providers/Microsoft.Compute/virtualMachines/VM-01"
+      },
+      {
+        "condition": null,
+        "id": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/providers/Microsoft.Authorization/roleAssignments/8fd55ed4-9478-4c2f-b9bc-8a545479cc05",
+        "principalId": "8a83866b-cdcc-4f87-99be-c41e3635c73b",
+        "roleDefinitionId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/providers/Microsoft.Authorization/roleDefinitions/8e3af657-a8ff-443c-a75c-2fe8c4bcb635",
+        "scope": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293"
+      },
+      {
+        "condition": null,
+        "id": "/providers/Microsoft.Authorization/roleAssignments/706bbefb-403b-4bee-9139-ccafd4d6b46d",
+        "principalId": "8a83866b-cdcc-4f87-99be-c41e3635c73b",
+        "roleDefinitionId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/providers/Microsoft.Authorization/roleDefinitions/18d7d88d-d35e-4fb5-a5c3-7773c20a72d9",
+        "scope": "/"
+      }
+    ],
+    "site": {
+      "id": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/rg-vm01-controller/providers/Microsoft.Web/sites/vm01-controller-50f792fa",
+      "identity": {
+        "principalId": "a671b605-43e5-4878-b3cb-b7b6bf2ce586",
+        "tenantId": "9e29c895-606a-420b-acc2-1c24375df4d9",
+        "type": "SystemAssigned"
+      },
+      "defaultHostName": "vm01-controller-50f792fa.azurewebsites.net",
+      "hostNames": [
+        "vm01-controller-50f792fa.azurewebsites.net"
+      ]
+    },
+    "browserApplication": {
+      "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#applications(id,appId,spa)/$entity",
+      "appId": "c74d7869-7313-459e-93b2-50beb860812f",
+      "id": "9469618c-7d6f-40f8-accf-726475815193",
+      "spa": {
+        "redirectUris": [
+          "https://vm01-controller-50f792fa.azurewebsites.net/auth/callback"
+        ]
+      }
+    },
+    "ledger": {
+      "schemaVersion": 1,
+      "generation": 1,
+      "targetResourceId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/RG-MWCREDIT/providers/Microsoft.Compute/virtualMachines/VM-01",
+      "expectedVmId": "0af4bbf5-ce75-43d7-931f-9e8c4a13dfe9",
+      "admissionEnabled": false,
+      "activeRequestId": null,
+      "records": {},
+      "audit": []
+    },
+    "ledgerSha256": "7a30cccc554904aabc9ffa35de116d634f85dcb88ea3d3eb1fb46eea0eb788a4"
+  },
+  "after": {
+    "settings": {
+      "VM01_TENANT_ID": "9e29c895-606a-420b-acc2-1c24375df4d9",
+      "VM01_RESOURCE_ID": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/RG-MWCREDIT/providers/Microsoft.Compute/virtualMachines/VM-01",
+      "VM01_EXPECTED_VM_ID": "0af4bbf5-ce75-43d7-931f-9e8c4a13dfe9",
+      "VM01_ORIGIN": "https://vm01-controller-50f792fa.azurewebsites.net",
+      "VM01_API_CLIENT_ID": "f8fc0efe-38ac-489a-b2b4-98d1afc9505b",
+      "VM01_BROWSER_CLIENT_ID": "c74d7869-7313-459e-93b2-50beb860812f",
+      "VM01_BROWSER_USER_IDS": "fa56579a-7b3a-493a-9eb1-d36671a60b32",
+      "VM01_CLOUD_CLIENT_ID": "af64b0c6-261c-45a0-b653-a71d382edb92",
+      "VM01_CLOUD_PRINCIPAL_ID": "d01d70be-d205-4ac9-a7fc-a18dd48e0633",
+      "VM01_STORAGE_ACCOUNT": "stvm01ctl50f792fa",
+      "VM01_ENABLE_MUTATIONS": "false",
+      "VM01_ENABLE_OPERATION_POLLING": "false"
+    },
+    "auth": {
+      "clearInboundClaimsMapping": "false",
+      "globalValidation": {
+        "excludedPaths": [
+          "/",
+          "/auth/callback",
+          "/assets/app.js",
+          "/assets/style.css",
+          "/assets/config.js",
+          "/assets/auth-callback.js"
+        ],
+        "requireAuthentication": true,
+        "unauthenticatedClientAction": "Return401"
+      },
+      "httpSettings": {
+        "forwardProxy": {
+          "convention": "NoProxy"
+        },
+        "requireHttps": true,
+        "routes": {
+          "apiPrefix": "/.auth"
+        }
+      },
+      "identityProviders": {
+        "apple": {
+          "enabled": true,
+          "login": {},
+          "registration": {}
+        },
+        "azureActiveDirectory": {
+          "enabled": true,
+          "login": {
+            "disableWWWAuthenticate": false
+          },
+          "registration": {
+            "clientId": "f8fc0efe-38ac-489a-b2b4-98d1afc9505b",
+            "openIdIssuer": "https://login.microsoftonline.com/9e29c895-606a-420b-acc2-1c24375df4d9/v2.0"
+          },
+          "validation": {
+            "allowedAudiences": [
+              "f8fc0efe-38ac-489a-b2b4-98d1afc9505b"
+            ],
+            "defaultAuthorizationPolicy": {
+              "allowedApplications": [
+                "c74d7869-7313-459e-93b2-50beb860812f",
+                "af64b0c6-261c-45a0-b653-a71d382edb92"
+              ],
+              "allowedPrincipals": {
+                "identities": [
+                  "fa56579a-7b3a-493a-9eb1-d36671a60b32",
+                  "d01d70be-d205-4ac9-a7fc-a18dd48e0633"
+                ]
+              }
+            },
+            "jwtClaimChecks": {}
+          }
+        },
+        "facebook": {
+          "enabled": true,
+          "login": {},
+          "registration": {}
+        },
+        "gitHub": {
+          "enabled": true,
+          "login": {},
+          "registration": {}
+        },
+        "google": {
+          "enabled": true,
+          "login": {},
+          "registration": {},
+          "validation": {}
+        },
+        "legacyMicrosoftAccount": {
+          "enabled": true,
+          "login": {},
+          "registration": {},
+          "validation": {}
+        },
+        "twitter": {
+          "enabled": true,
+          "registration": {}
+        }
+      },
+      "login": {
+        "cookieExpiration": {
+          "convention": "FixedTime",
+          "timeToExpiration": "08:00:00"
+        },
+        "nonce": {
+          "nonceExpirationInterval": "00:05:00",
+          "validateNonce": true
+        },
+        "preserveUrlFragmentsForLogins": false,
+        "routes": {},
+        "tokenStore": {
+          "azureBlobStorage": {},
+          "enabled": false,
+          "fileSystem": {},
+          "tokenRefreshExtensionHours": 72.0
+        }
+      },
+      "platform": {
+        "enabled": true,
+        "runtimeVersion": "~1"
+      },
+      "prmConfig": {
+        "disableMetadata": false,
+        "hideAuthorizationServers": false,
+        "resourceInfo": {
+          "documentationUri": {},
+          "name": {},
+          "policyUri": {},
+          "tosUri": {}
+        }
+      }
+    },
+    "consent": [
+      {
+        "clientId": "065bf299-b083-422e-916b-a94c3f13429c",
+        "consentType": "Principal",
+        "id": "mfJbBoOwLkKRa6lMPxNCnO-IRDOH2-FJr5gnsLLzHcKaV1b6Ons6SZ6x02Zxpgsy",
+        "principalId": "fa56579a-7b3a-493a-9eb1-d36671a60b32",
+        "resourceId": "334488ef-db87-49e1-af98-27b0b2f31dc2",
+        "scope": "vm01.control"
+      }
+    ],
+    "cloudRoles": [
+      {
+        "appRoleId": "eddc3409-69d5-58fc-9b5e-6c110f8fb037",
+        "id": "vnAd0AXSyUqn_KGN1I4GM3fKBTkDduVMlYtGBN4tKtU",
+        "principalId": "d01d70be-d205-4ac9-a7fc-a18dd48e0633",
+        "resourceId": "334488ef-db87-49e1-af98-27b0b2f31dc2"
+      },
+      {
+        "appRoleId": "323e6f09-e4f3-5354-995e-b3cdb10714ac",
+        "id": "vnAd0AXSyUqn_KGN1I4GM0o-3Kcx68ZKs6utjt5XgIY",
+        "principalId": "d01d70be-d205-4ac9-a7fc-a18dd48e0633",
+        "resourceId": "334488ef-db87-49e1-af98-27b0b2f31dc2"
+      },
+      {
+        "appRoleId": "88290620-afa0-5398-8d49-e7edcebba80c",
+        "id": "vnAd0AXSyUqn_KGN1I4GM-R7tPjzdLxDg_tekFdBflE",
+        "principalId": "d01d70be-d205-4ac9-a7fc-a18dd48e0633",
+        "resourceId": "334488ef-db87-49e1-af98-27b0b2f31dc2"
+      },
+      {
+        "appRoleId": "7b92f550-4d8d-5b68-b6b6-f07603ef084d",
+        "id": "vnAd0AXSyUqn_KGN1I4GM0ZW_HX_P0hGmIeKghCVA4E",
+        "principalId": "d01d70be-d205-4ac9-a7fc-a18dd48e0633",
+        "resourceId": "334488ef-db87-49e1-af98-27b0b2f31dc2"
+      }
+    ],
+    "azureRoles": [
+      {
+        "condition": null,
+        "id": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/RG-MWCREDIT/providers/Microsoft.Compute/virtualMachines/VM-01/providers/Microsoft.Authorization/roleAssignments/fc32abef-0386-4b3d-b092-6f1ae6676697",
+        "principalId": "fa56579a-7b3a-493a-9eb1-d36671a60b32",
+        "roleDefinitionId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/providers/Microsoft.Authorization/roleDefinitions/1c0163c0-47e6-4577-8991-ea5c82e286e4",
+        "scope": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/RG-MWCREDIT/providers/Microsoft.Compute/virtualMachines/VM-01"
+      },
+      {
+        "condition": null,
+        "id": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourcegroups/rg-vm01-controller/providers/Microsoft.Storage/storageAccounts/stvm01ctl50f792fa/providers/Microsoft.Authorization/roleAssignments/9f05c35c-0f0f-5f0c-96fc-d50ec39a98a2",
+        "principalId": "a671b605-43e5-4878-b3cb-b7b6bf2ce586",
+        "roleDefinitionId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/providers/Microsoft.Authorization/roleDefinitions/b7e6dc6d-f1e8-4753-8033-0f276bb0955b",
+        "scope": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourcegroups/rg-vm01-controller/providers/Microsoft.Storage/storageAccounts/stvm01ctl50f792fa"
+      },
+      {
+        "condition": null,
+        "id": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourcegroups/rg-vm01-controller/providers/Microsoft.Storage/storageAccounts/stvm01ctl50f792fa/blobServices/default/containers/function-package/providers/Microsoft.Authorization/roleAssignments/04dec2e6-d1be-54de-b5d3-807f2a53840e",
+        "principalId": "a671b605-43e5-4878-b3cb-b7b6bf2ce586",
+        "roleDefinitionId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/providers/Microsoft.Authorization/roleDefinitions/ba92f5b4-2d11-453d-a403-e96b0029c9fe",
+        "scope": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourcegroups/rg-vm01-controller/providers/Microsoft.Storage/storageAccounts/stvm01ctl50f792fa/blobServices/default/containers/function-package"
+      },
+      {
+        "condition": null,
+        "id": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/rg-vm01-controller/providers/Microsoft.Storage/storageAccounts/stvm01ctl50f792fa/blobServices/default/containers/vm01-controller/providers/Microsoft.Authorization/roleAssignments/61be35ad-3fed-58cc-98d2-8cc963f799e2",
+        "principalId": "8a83866b-cdcc-4f87-99be-c41e3635c73b",
+        "roleDefinitionId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/providers/Microsoft.Authorization/roleDefinitions/ba92f5b4-2d11-453d-a403-e96b0029c9fe",
+        "scope": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/rg-vm01-controller/providers/Microsoft.Storage/storageAccounts/stvm01ctl50f792fa/blobServices/default/containers/vm01-controller"
+      },
+      {
+        "condition": null,
+        "id": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourcegroups/RG-MWCREDIT/providers/Microsoft.Compute/virtualMachines/VM-01/providers/Microsoft.Authorization/roleAssignments/e4c12054-b4fc-552a-a8a8-f2364bf8027a",
+        "principalId": "a671b605-43e5-4878-b3cb-b7b6bf2ce586",
+        "roleDefinitionId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/providers/Microsoft.Authorization/roleDefinitions/637a62eb-6239-5956-958c-c11032293ebe",
+        "scope": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourcegroups/RG-MWCREDIT/providers/Microsoft.Compute/virtualMachines/VM-01"
+      },
+      {
+        "condition": null,
+        "id": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/providers/Microsoft.Authorization/roleAssignments/8fd55ed4-9478-4c2f-b9bc-8a545479cc05",
+        "principalId": "8a83866b-cdcc-4f87-99be-c41e3635c73b",
+        "roleDefinitionId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/providers/Microsoft.Authorization/roleDefinitions/8e3af657-a8ff-443c-a75c-2fe8c4bcb635",
+        "scope": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293"
+      },
+      {
+        "condition": null,
+        "id": "/providers/Microsoft.Authorization/roleAssignments/706bbefb-403b-4bee-9139-ccafd4d6b46d",
+        "principalId": "8a83866b-cdcc-4f87-99be-c41e3635c73b",
+        "roleDefinitionId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/providers/Microsoft.Authorization/roleDefinitions/18d7d88d-d35e-4fb5-a5c3-7773c20a72d9",
+        "scope": "/"
+      }
+    ],
+    "site": {
+      "id": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/rg-vm01-controller/providers/Microsoft.Web/sites/vm01-controller-50f792fa",
+      "identity": {
+        "principalId": "a671b605-43e5-4878-b3cb-b7b6bf2ce586",
+        "tenantId": "9e29c895-606a-420b-acc2-1c24375df4d9",
+        "type": "SystemAssigned"
+      },
+      "defaultHostName": "vm01-controller-50f792fa.azurewebsites.net",
+      "hostNames": [
+        "vm01-controller-50f792fa.azurewebsites.net"
+      ]
+    },
+    "browserApplication": {
+      "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#applications(id,appId,spa)/$entity",
+      "appId": "c74d7869-7313-459e-93b2-50beb860812f",
+      "id": "9469618c-7d6f-40f8-accf-726475815193",
+      "spa": {
+        "redirectUris": [
+          "https://vm01-controller-50f792fa.azurewebsites.net/auth/callback"
+        ]
+      }
+    },
+    "ledger": {
+      "schemaVersion": 1,
+      "generation": 1,
+      "targetResourceId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/RG-MWCREDIT/providers/Microsoft.Compute/virtualMachines/VM-01",
+      "expectedVmId": "0af4bbf5-ce75-43d7-931f-9e8c4a13dfe9",
+      "admissionEnabled": false,
+      "activeRequestId": null,
+      "records": {},
+      "audit": []
+    },
+    "ledgerSha256": "7a30cccc554904aabc9ffa35de116d634f85dcb88ea3d3eb1fb46eea0eb788a4"
+  },
+  "preservationVerified": [
+    "existing Azure RBAC assignments",
+    "Cloud API role assignments",
+    "managed identity principal",
+    "all other public VM01 settings",
+    "all other Easy Auth properties",
+    "browser SPA callback",
+    "hostname",
+    "ledger byte hash"
+  ],
+  "userAuthenticatedStatus": "PENDING_NOT_TESTED",
+  "formerUserAuthenticatedTokenRejection": "PENDING_NOT_TESTED",
+  "screenshotAcceptance": "Signed-in account with red Connection or sign-in failed. Actions are disabled. Incomplete authenticated API acceptance; no status success proven.",
+  "vmPowerRequests": 0,
+  "codeDeploymentPerformed": false,
+  "domainChangesPerformed": false,
+  "credentialOrAzureRoleChangesPerformed": false,
+  "advisor": "Astra Extra High; retire old exact consent after successful configuration readback even if interactive acceptance is pending; do not restore owner access or widen permissions automatically",
+  "references": [
+    "https://learn.microsoft.com/en-us/graph/api/oauth2permissiongrant-post?view=graph-rest-1.0",
+    "https://learn.microsoft.com/en-us/graph/api/oauth2permissiongrant-delete?view=graph-rest-1.0",
+    "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/update-auth-settings-v-2?view=rest-appservice-2025-03-01"
+  ],
+  "revocationLimit": "Deleting delegated consent prevents new tokens for that grant; existing tokens may remain valid until expiry. Both current allowlists exclude former user; actual former-user authenticated token rejection remains untested."
+}

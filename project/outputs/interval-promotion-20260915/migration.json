@@ -1,0 +1,26 @@
+{
+  "database": "loan_manager_prod",
+  "databaseType": "PostgreSQL",
+  "exception": null,
+  "flywayVersion": "13.6.0",
+  "initialSchemaVersion": "4",
+  "licenseFailed": false,
+  "migrations": [
+    {
+      "category": "Versioned",
+      "description": "interest schedule anchor",
+      "executionTime": 189,
+      "filepath": "C:\\GitHub\\AppSheet-Loan-Project\\database\\migrations\\V5__interest_schedule_anchor.sql",
+      "type": "SQL",
+      "version": "5"
+    }
+  ],
+  "migrationsExecuted": 1,
+  "operation": "migrate",
+  "schemaName": "",
+  "success": true,
+  "targetSchemaVersion": "5",
+  "timestamp": "2026-09-15T17:16:08.5467454+07:00",
+  "totalMigrationTime": 189,
+  "warnings": []
+}

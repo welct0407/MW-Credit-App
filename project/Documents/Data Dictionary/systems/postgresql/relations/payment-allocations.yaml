@@ -1,0 +1,601 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "relation"
+  "name": "public.Payment Allocations"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r051-production/README.md"
+  "coverage": "catalog metadata"
+  "previous_record":
+    "commit": "dffa437c29a762f5b87a10b14a32063da8df07aa"
+    "path": "Documents/Data Dictionary/systems/postgresql/relations/payment-allocations.yaml"
+    "identity":
+      "system": "postgresql"
+      "component": "unassigned-database"
+      "kind": "relation"
+      "name": "Payment Allocations"
+      "scope": "as-recorded"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "Payment Allocations"
+    "kind": "r"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "d"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,mw_reviewer_dml=arw/postgres,mw_app_prod=arwd/postgres}"
+    "comment": null
+    "view_definition": null
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "columns":
+    "Row ID":
+      "schema": "public"
+      "relation": "Payment Allocations"
+      "name": "Row ID"
+      "ordinal": 1
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Charge Date Snapshot":
+      "schema": "public"
+      "relation": "Payment Allocations"
+      "name": "Charge Date Snapshot"
+      "ordinal": 2
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Ref Payment":
+      "schema": "public"
+      "relation": "Payment Allocations"
+      "name": "Ref Payment"
+      "ordinal": 3
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Ref Charge":
+      "schema": "public"
+      "relation": "Payment Allocations"
+      "name": "Ref Charge"
+      "ordinal": 4
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Charge Row Number Snapshot":
+      "schema": "public"
+      "relation": "Payment Allocations"
+      "name": "Charge Row Number Snapshot"
+      "ordinal": 5
+      "data_type": "integer"
+      "type_schema": "pg_catalog"
+      "type_name": "int4"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Interest Remaining Snapshot":
+      "schema": "public"
+      "relation": "Payment Allocations"
+      "name": "Interest Remaining Snapshot"
+      "ordinal": 6
+      "data_type": "money"
+      "type_schema": "pg_catalog"
+      "type_name": "money"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Principal Remaining Snapshot":
+      "schema": "public"
+      "relation": "Payment Allocations"
+      "name": "Principal Remaining Snapshot"
+      "ordinal": 7
+      "data_type": "money"
+      "type_schema": "pg_catalog"
+      "type_name": "money"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Amount Remaining Snapshot":
+      "schema": "public"
+      "relation": "Payment Allocations"
+      "name": "Amount Remaining Snapshot"
+      "ordinal": 8
+      "data_type": "money"
+      "type_schema": "pg_catalog"
+      "type_name": "money"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Allocation Order":
+      "schema": "public"
+      "relation": "Payment Allocations"
+      "name": "Allocation Order"
+      "ordinal": 9
+      "data_type": "integer"
+      "type_schema": "pg_catalog"
+      "type_name": "int4"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Allocated Interest":
+      "schema": "public"
+      "relation": "Payment Allocations"
+      "name": "Allocated Interest"
+      "ordinal": 10
+      "data_type": "money"
+      "type_schema": "pg_catalog"
+      "type_name": "money"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Allocated Principal":
+      "schema": "public"
+      "relation": "Payment Allocations"
+      "name": "Allocated Principal"
+      "ordinal": 11
+      "data_type": "money"
+      "type_schema": "pg_catalog"
+      "type_name": "money"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Allocated Amount":
+      "schema": "public"
+      "relation": "Payment Allocations"
+      "name": "Allocated Amount"
+      "ordinal": 12
+      "data_type": "money"
+      "type_schema": "pg_catalog"
+      "type_name": "money"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Created At":
+      "schema": "public"
+      "relation": "Payment Allocations"
+      "name": "Created At"
+      "ordinal": 13
+      "data_type": "timestamp without time zone"
+      "type_schema": "pg_catalog"
+      "type_name": "timestamp"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+  "constraints":
+    "Payment Allocations_Row ID_not_null":
+      "schema": "public"
+      "relation": "Payment Allocations"
+      "name": "Payment Allocations_Row ID_not_null"
+      "kind": "n"
+      "definition": "NOT NULL \"Row ID\""
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "Payment Allocations_pkey":
+      "schema": "public"
+      "relation": "Payment Allocations"
+      "name": "Payment Allocations_pkey"
+      "kind": "p"
+      "definition": "PRIMARY KEY (\"Row ID\")"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "appsheet_ref_10":
+      "schema": "public"
+      "relation": "Payment Allocations"
+      "name": "appsheet_ref_10"
+      "kind": "f"
+      "definition": "FOREIGN KEY (\"Ref Payment\") REFERENCES \"Payments\"(\"Row ID\")"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 3
+      "referenced_column_numbers":
+      - 1
+      "referenced_relation": "\"Payments\""
+      "update_action": "a"
+      "delete_action": "a"
+      "match_type": "s"
+      "comment": null
+    "appsheet_ref_11":
+      "schema": "public"
+      "relation": "Payment Allocations"
+      "name": "appsheet_ref_11"
+      "kind": "f"
+      "definition": "FOREIGN KEY (\"Ref Charge\") REFERENCES \"Charges\"(\"Row ID\")"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 4
+      "referenced_column_numbers":
+      - 1
+      "referenced_relation": "\"Charges\""
+      "update_action": "a"
+      "delete_action": "a"
+      "match_type": "s"
+      "comment": null
+    "vc_payment_changed":
+      "schema": "public"
+      "relation": "Payment Allocations"
+      "name": "vc_payment_changed"
+      "kind": "t"
+      "definition": "TRIGGER DEFERRABLE INITIALLY DEFERRED"
+      "deferrable": true
+      "initially_deferred": true
+      "validated": true
+      "column_numbers": null
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "zzzzzz_business_history_commit":
+      "schema": "public"
+      "relation": "Payment Allocations"
+      "name": "zzzzzz_business_history_commit"
+      "kind": "t"
+      "definition": "TRIGGER DEFERRABLE INITIALLY DEFERRED"
+      "deferrable": true
+      "initially_deferred": true
+      "validated": true
+      "column_numbers": null
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+  "indexes":
+    "Payment Allocations_pkey":
+      "schema": "public"
+      "relation": "Payment Allocations"
+      "name": "Payment Allocations_pkey"
+      "definition": "CREATE UNIQUE INDEX \"Payment Allocations_pkey\" ON public.\"Payment Allocations\" USING btree (\"Row\
+        \ ID\")"
+      "unique": true
+      "primary": true
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 1
+      "total_attribute_count": 1
+      "predicate": null
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
+    "allocations_payment_idx":
+      "schema": "public"
+      "relation": "Payment Allocations"
+      "name": "allocations_payment_idx"
+      "definition": "CREATE INDEX allocations_payment_idx ON public.\"Payment Allocations\" USING btree (\"Ref Payment\")"
+      "unique": false
+      "primary": false
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 1
+      "total_attribute_count": 1
+      "predicate": null
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
+  "triggers":
+    "RI_ConstraintTrigger_a_16710":
+      "schema": "public"
+      "relation": "Payment Allocations"
+      "name": "RI_ConstraintTrigger_a_16710"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_16710\" AFTER DELETE ON \"Payment Allocations\" FROM\
+        \ \"Repayments\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_del\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_del\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_16711":
+      "schema": "public"
+      "relation": "Payment Allocations"
+      "name": "RI_ConstraintTrigger_a_16711"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_16711\" AFTER UPDATE ON \"Payment Allocations\" FROM\
+        \ \"Repayments\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_16737":
+      "schema": "public"
+      "relation": "Payment Allocations"
+      "name": "RI_ConstraintTrigger_c_16737"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_16737\" AFTER INSERT ON \"Payment Allocations\" FROM\
+        \ \"Payments\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_ins\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_16738":
+      "schema": "public"
+      "relation": "Payment Allocations"
+      "name": "RI_ConstraintTrigger_c_16738"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_16738\" AFTER UPDATE ON \"Payment Allocations\" FROM\
+        \ \"Payments\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_16742":
+      "schema": "public"
+      "relation": "Payment Allocations"
+      "name": "RI_ConstraintTrigger_c_16742"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_16742\" AFTER INSERT ON \"Payment Allocations\" FROM\
+        \ \"Charges\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_ins\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_16743":
+      "schema": "public"
+      "relation": "Payment Allocations"
+      "name": "RI_ConstraintTrigger_c_16743"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_16743\" AFTER UPDATE ON \"Payment Allocations\" FROM\
+        \ \"Charges\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "a000_business_history_begin":
+      "schema": "public"
+      "relation": "Payment Allocations"
+      "name": "a000_business_history_begin"
+      "definition": "CREATE TRIGGER a000_business_history_begin BEFORE INSERT OR DELETE OR UPDATE ON \"Payment Allocations\"\
+        \ FOR EACH STATEMENT EXECUTE FUNCTION begin_business_history()"
+      "enabled": "O"
+      "internal": false
+      "routine": "begin_business_history()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "a001_parent_dirty":
+      "schema": "public"
+      "relation": "Payment Allocations"
+      "name": "a001_parent_dirty"
+      "definition": "CREATE TRIGGER a001_parent_dirty AFTER INSERT OR DELETE OR UPDATE ON \"Payment Allocations\" FOR EACH\
+        \ ROW EXECUTE FUNCTION r051_parent_dirty()"
+      "enabled": "O"
+      "internal": false
+      "routine": "r051_parent_dirty()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "aa_vc_payment_lock":
+      "schema": "public"
+      "relation": "Payment Allocations"
+      "name": "aa_vc_payment_lock"
+      "definition": "CREATE TRIGGER aa_vc_payment_lock BEFORE INSERT OR DELETE OR UPDATE ON \"Payment Allocations\" FOR EACH\
+        \ ROW EXECUTE FUNCTION vc_lock_payment_parents()"
+      "enabled": "O"
+      "internal": false
+      "routine": "vc_lock_payment_parents()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "appsheet_blank_refs":
+      "schema": "public"
+      "relation": "Payment Allocations"
+      "name": "appsheet_blank_refs"
+      "definition": "CREATE TRIGGER appsheet_blank_refs BEFORE INSERT OR UPDATE ON \"Payment Allocations\" FOR EACH ROW EXECUTE\
+        \ FUNCTION appsheet_normalize_blank_refs('Ref Payment', 'Ref Charge')"
+      "enabled": "O"
+      "internal": false
+      "routine": "appsheet_normalize_blank_refs()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "lump_sum_child_guard":
+      "schema": "public"
+      "relation": "Payment Allocations"
+      "name": "lump_sum_child_guard"
+      "definition": "CREATE TRIGGER lump_sum_child_guard BEFORE INSERT OR DELETE OR UPDATE ON \"Payment Allocations\" FOR\
+        \ EACH ROW EXECUTE FUNCTION lump_sum_child_guard()"
+      "enabled": "O"
+      "internal": false
+      "routine": "lump_sum_child_guard()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "mw_agent_capture":
+      "schema": "public"
+      "relation": "Payment Allocations"
+      "name": "mw_agent_capture"
+      "definition": "CREATE TRIGGER mw_agent_capture AFTER INSERT OR DELETE OR UPDATE ON \"Payment Allocations\" FOR EACH\
+        \ ROW EXECUTE FUNCTION agent_audit.capture_change()"
+      "enabled": "O"
+      "internal": false
+      "routine": "agent_audit.capture_change()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "vc_payment_changed":
+      "schema": "public"
+      "relation": "Payment Allocations"
+      "name": "vc_payment_changed"
+      "definition": "CREATE CONSTRAINT TRIGGER vc_payment_changed AFTER INSERT OR DELETE OR UPDATE ON \"Payment Allocations\"\
+        \ DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION vc_payment_changed()"
+      "enabled": "O"
+      "internal": false
+      "routine": "vc_payment_changed()"
+      "deferrable": true
+      "initially_deferred": true
+      "comment": null
+    "zzzzz_business_history_flush":
+      "schema": "public"
+      "relation": "Payment Allocations"
+      "name": "zzzzz_business_history_flush"
+      "definition": "CREATE TRIGGER zzzzz_business_history_flush AFTER INSERT OR DELETE OR UPDATE ON \"Payment Allocations\"\
+        \ FOR EACH STATEMENT EXECUTE FUNCTION flush_business_history()"
+      "enabled": "O"
+      "internal": false
+      "routine": "flush_business_history()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "zzzzzz_business_history_commit":
+      "schema": "public"
+      "relation": "Payment Allocations"
+      "name": "zzzzzz_business_history_commit"
+      "definition": "CREATE CONSTRAINT TRIGGER zzzzzz_business_history_commit AFTER INSERT OR DELETE OR UPDATE ON \"Payment\
+        \ Allocations\" DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION flush_business_history()"
+      "enabled": "O"
+      "internal": false
+      "routine": "flush_business_history()"
+      "deferrable": true
+      "initially_deferred": true
+      "comment": null
+  "policies": {}
+  "dependencies": []
+"evidence":
+  "/content/definition/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"

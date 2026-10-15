@@ -1,0 +1,105 @@
+{
+  "release": "R005",
+  "app": "olap",
+  "before": {
+    "file": "dev-olap-save21-transfer-entry.json",
+    "version": "1.000118"
+  },
+  "after": {
+    "file": "dev-olap-save22-held-cash-summary.json",
+    "version": "1.000119"
+  },
+  "coverage": "All exported properties; omitted export coverage subject to explicit owner-approved limited R005 exception.",
+  "counts": {
+    "before": 24453,
+    "after": 24454,
+    "changes": 5
+  },
+  "changes": [
+    {
+      "id": "R005-OLAP-10d4e392c175",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "App/Version",
+      "operation": "change",
+      "before": {
+        "present": true,
+        "value": "1.000118"
+      },
+      "after": {
+        "present": true,
+        "value": "1.000119"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-6c4f0e1fbd09",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "View name/Cash Holder Summary/View configuration/ColumnOrder/$shape",
+      "operation": "change",
+      "before": {
+        "present": true,
+        "value": {
+          "type": "array",
+          "length": 3
+        }
+      },
+      "after": {
+        "present": true,
+        "value": {
+          "type": "array",
+          "length": 4
+        }
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-a2f3aaadb3e4",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "View name/Cash Holder Summary/View configuration/ColumnOrder/1",
+      "operation": "change",
+      "before": {
+        "present": true,
+        "value": "Current Balance"
+      },
+      "after": {
+        "present": true,
+        "value": "Business Cash Held"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-5413148f7a64",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "View name/Cash Holder Summary/View configuration/ColumnOrder/2",
+      "operation": "change",
+      "before": {
+        "present": true,
+        "value": "Reimbursement / Advance Due"
+      },
+      "after": {
+        "present": true,
+        "value": "Current Balance"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-e0b402893238",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "View name/Cash Holder Summary/View configuration/ColumnOrder/3",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "Reimbursement / Advance Due"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.pwa_claim_notifications_v1(p_limit integer, p_seconds integer)"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r053-notifications-jobs/dictionary-production-closure.json"
+  "coverage": "Actual affected PROD89 catalogue after maintained migration and authority restoration; no business rows."
+"content":
+  "definition":
+    "schema": "public"
+    "name": "pwa_claim_notifications_v1"
+    "arguments": "p_limit integer, p_seconds integer"
+    "kind": "f"
+    "arguments_with_defaults": "p_limit integer, p_seconds integer"
+    "result": "SETOF pwa_notification_deliveries"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.pwa_claim_notifications_v1(p_limit integer, p_seconds integer)
+       RETURNS SETOF pwa_notification_deliveries
+       LANGUAGE plpgsql
+       SECURITY DEFINER
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+      BEGIN
+       PERFORM public.pwa_worker_guard_v1('dispatch');
+       IF p_limit IS NULL OR p_seconds IS NULL OR p_limit NOT BETWEEN 1 AND 50 OR p_seconds NOT BETWEEN 5 AND 120 THEN RAISE EXCEPTION 'Invalid claim bounds'; END IF;
+       UPDATE public.pwa_notification_deliveries SET state=CASE WHEN send_started_at IS NULL AND attempts<8 THEN 'retry' ELSE 'uncertain' END,lease_expires_at=NULL,provider_result='lease_expired'
+       WHERE state='leased' AND lease_expires_at<=clock_timestamp();
+       RETURN QUERY WITH due AS (
+       SELECT delivery_id FROM public.pwa_notification_deliveries WHERE state IN ('pending','retry') AND attempts<8 AND next_attempt_at<=clock_timestamp()
+       ORDER BY next_attempt_at,delivery_id FOR UPDATE SKIP LOCKED LIMIT p_limit)
+       UPDATE public.pwa_notification_deliveries d SET state='leased',lease_generation=d.lease_generation+1,
+       lease_expires_at=clock_timestamp()+make_interval(secs=>p_seconds),send_started_at=NULL,attempts=d.attempts+1
+       FROM due WHERE d.delivery_id=due.delivery_id RETURNING d.*;
+      END $function$
+    "owner": "mw_notify_owner_prod"
+    "language": "plpgsql"
+    "volatility": "v"
+    "strict": false
+    "security_definer": true
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 1000.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": "{mw_notify_owner_prod=X/mw_notify_owner_prod,mw_notify_dispatch_prod=X/mw_notify_owner_prod}"
+    "comment": "mw-access:governance fixed notification boundary; explicit capability only"
+    "extension": null

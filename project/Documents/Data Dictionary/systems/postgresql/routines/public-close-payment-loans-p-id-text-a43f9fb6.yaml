@@ -1,0 +1,61 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.close_payment_loans(p_id text)"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r051-production/README.md"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "close_payment_loans"
+    "arguments": "p_id text"
+    "kind": "f"
+    "arguments_with_defaults": "p_id text"
+    "result": "void"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.close_payment_loans(p_id text)
+       RETURNS void
+       LANGUAGE plpgsql
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+      BEGIN
+        UPDATE public."Loans" l SET "Loan Status"='ปิดยอดแล้ว',
+          "Close Date"=CASE WHEN coalesce(nullif(current_setting('payment_crud.parents',true),'')::jsonb,'{}') ? p_id
+            THEN p."Payment Date" ELSE (statement_timestamp() AT TIME ZONE 'Asia/Bangkok')::date END,
+          "Closed By"=p."Created By", "Ref Closing Payment"=p."Row ID"
+        FROM public."Payments" p
+        WHERE p."Row ID"=p_id AND l."Loan Status"='ยังไม่ปิดยอด'
+          AND l."Row ID" IN (SELECT r."Ref Loans" FROM public."Repayments" r WHERE r."Ref Payment"=p_id)
+          AND l."Principal Amount"::numeric <=
+            (SELECT coalesce(sum(r."Principal Paid"::numeric),0) FROM public."Repayments" r WHERE r."Ref Loans"=l."Row ID")
+          AND NOT EXISTS (
+            SELECT 1 FROM public."Charges" c WHERE c."Ref Loans"=l."Row ID"
+            AND (c."Principal Due" IS NULL OR c."Interest Due" IS NULL OR
+              c."Principal Due"::numeric+c."Interest Due"::numeric >
+                (SELECT coalesce(sum(r."Principal Paid"::numeric+r."Interest Paid"::numeric),0)
+                 FROM public."Repayments" r WHERE r."Ref Charges"=c."Row ID")));
+      END $function$
+    "owner": "postgres"
+    "language": "plpgsql"
+    "volatility": "v"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 0.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": "{=X/postgres,postgres=X/postgres,mw_app_prod=X/postgres}"
+    "comment": null
+    "extension": null
+"evidence":
+  "/content/definition/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"

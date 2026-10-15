@@ -1,0 +1,8 @@
+{"id": "3JXxkOiLCRzwCBEZoMRCQ9", "kind": "synthetic_loan", "gross": 6600.00, "status": "ปิดยอดแล้ว", "charges": 1, "principal": 10000.00, "auto_charge": true, "referrer_present": true}
+{"kind": "net_analytics", "dates": 43, "mismatches": 1, "oldest_refresh": "2026-09-16T13:39:25.803599"}
+{"kind": "rounding_diagnostic", "role": "A", "exact": 124708.80000000000000000000000000, "row_whole": 124713, "two_decimals": 124708.80, "percent_whole": 124708.8000}
+{"kind": "rounding_diagnostic", "role": "B", "exact": 167369.2000000000000000000000, "row_whole": 167365, "two_decimals": 167369.20, "percent_whole": 167369.2000}
+{"a": 696.00, "b": 464.00, "kind": "expense_summary", "count": 2, "amount": 1160.00, "referrals": 1}
+{"a": 300.00, "b": 200.00, "id": "11450377", "date": "2026-09-16", "kind": "synthetic_expense", "amount": 500.00, "source": "Manual", "a_share": 0.60000000000000000000, "b_share": 0.40000000000000000000, "allocation": "Expense Date Contribution Ratio", "created_at": "2026-09-16T13:23:04"}
+{"net": 124017.00, "kind": "partner_reconciliation", "role": "A", "gross": 124713.00, "settlements": 30960.00}
+{"net": 166901.00, "kind": "partner_reconciliation", "role": "B", "gross": 167365.00, "settlements": 84510.00}

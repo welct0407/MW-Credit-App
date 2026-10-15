@@ -1,0 +1,60 @@
+{"kind": "db_column", "name": "Ref Referrer", "type": "text", "table": "Borrowers", "default": null, "nullable": "YES", "position": 20}
+{"kind": "db_column", "name": "Row ID", "type": "text", "table": "Business Expenses", "default": null, "nullable": "NO", "position": 1}
+{"kind": "db_column", "name": "Expense Date", "type": "date", "table": "Business Expenses", "default": null, "nullable": "NO", "position": 2}
+{"kind": "db_column", "name": "Expense Category", "type": "text", "table": "Business Expenses", "default": null, "nullable": "NO", "position": 3}
+{"kind": "db_column", "name": "Amount", "type": "money", "table": "Business Expenses", "default": null, "nullable": "NO", "position": 4}
+{"kind": "db_column", "name": "Payee Name", "type": "text", "table": "Business Expenses", "default": null, "nullable": "YES", "position": 5}
+{"kind": "db_column", "name": "Ref Payee Borrower", "type": "text", "table": "Business Expenses", "default": null, "nullable": "YES", "position": 6}
+{"kind": "db_column", "name": "Ref Related Borrower", "type": "text", "table": "Business Expenses", "default": null, "nullable": "YES", "position": 7}
+{"kind": "db_column", "name": "Ref Related Loan", "type": "text", "table": "Business Expenses", "default": null, "nullable": "YES", "position": 8}
+{"kind": "db_column", "name": "Notes", "type": "text", "table": "Business Expenses", "default": null, "nullable": "YES", "position": 9}
+{"kind": "db_column", "name": "Source Type", "type": "text", "table": "Business Expenses", "default": "'Manual'::text", "nullable": "NO", "position": 10}
+{"kind": "db_column", "name": "Source Key", "type": "text", "table": "Business Expenses", "default": null, "nullable": "YES", "position": 11}
+{"kind": "db_column", "name": "Gross Profit Basis", "type": "money", "table": "Business Expenses", "default": null, "nullable": "YES", "position": 12}
+{"kind": "db_column", "name": "Allocation Basis", "type": "text", "table": "Business Expenses", "default": null, "nullable": "NO", "position": 13}
+{"kind": "db_column", "name": "Partner A Share", "type": "numeric", "table": "Business Expenses", "default": null, "nullable": "NO", "position": 14}
+{"kind": "db_column", "name": "Partner B Share", "type": "numeric", "table": "Business Expenses", "default": null, "nullable": "NO", "position": 15}
+{"kind": "db_column", "name": "Partner A Expense", "type": "money", "table": "Business Expenses", "default": null, "nullable": "NO", "position": 16}
+{"kind": "db_column", "name": "Partner B Expense", "type": "money", "table": "Business Expenses", "default": null, "nullable": "NO", "position": 17}
+{"kind": "db_column", "name": "Rule Version", "type": "text", "table": "Business Expenses", "default": null, "nullable": "YES", "position": 18}
+{"kind": "db_column", "name": "Created At", "type": "timestamp without time zone", "table": "Business Expenses", "default": "(statement_timestamp() AT TIME ZONE 'Asia/Bangkok'::text)", "nullable": "NO", "position": 19}
+{"kind": "db_column", "name": "Created By", "type": "text", "table": "Business Expenses", "default": "'SQL'::text", "nullable": "NO", "position": 20}
+{"kind": "db_column", "name": "Business Expenses", "type": "money", "table": "Daily Analytics", "default": null, "nullable": "YES", "position": 17}
+{"kind": "db_column", "name": "Net Profit", "type": "money", "table": "Daily Analytics", "default": null, "nullable": "YES", "position": 18}
+{"kind": "db_column", "name": "Net Unsettled Profit EOD", "type": "money", "table": "Daily Analytics", "default": null, "nullable": "YES", "position": 19}
+{"kind": "db_constraint", "name": "Borrowers_Ref Referrer_fkey", "type": "f", "table": "\"Borrowers\"", "validated": true, "definition": "FOREIGN KEY (\"Ref Referrer\") REFERENCES \"Borrowers\"(\"Row ID\")"}
+{"kind": "db_constraint", "name": "borrower_not_own_referrer", "type": "c", "table": "\"Borrowers\"", "validated": true, "definition": "CHECK ((\"Ref Referrer\" IS DISTINCT FROM \"Row ID\"))"}
+{"kind": "db_constraint", "name": "Business Expenses_Expense Category_check", "type": "c", "table": "\"Business Expenses\"", "validated": true, "definition": "CHECK ((btrim(\"Expense Category\") <> ''::text))"}
+{"kind": "db_constraint", "name": "Business Expenses_Amount_check", "type": "c", "table": "\"Business Expenses\"", "validated": true, "definition": "CHECK ((((\"Amount\")::numeric <> (0)::numeric) AND ((\"Amount\")::numeric = round((\"Amount\")::numeric))))"}
+{"kind": "db_constraint", "name": "Business Expenses_Source Type_check", "type": "c", "table": "\"Business Expenses\"", "validated": true, "definition": "CHECK ((\"Source Type\" = ANY (ARRAY['Manual'::text, 'Referral Rebate'::text])))"}
+{"kind": "db_constraint", "name": "Business Expenses_check", "type": "c", "table": "\"Business Expenses\"", "validated": true, "definition": "CHECK (((\"Partner A Expense\" + \"Partner B Expense\") = \"Amount\"))"}
+{"kind": "db_constraint", "name": "Business Expenses_check1", "type": "c", "table": "\"Business Expenses\"", "validated": true, "definition": "CHECK (((\"Partner A Share\" + \"Partner B Share\") = (1)::numeric))"}
+{"kind": "db_constraint", "name": "Business Expenses_check2", "type": "c", "table": "\"Business Expenses\"", "validated": true, "definition": "CHECK (((\"Source Type\" <> 'Referral Rebate'::text) OR (((\"Amount\")::numeric > (0)::numeric) AND (\"Ref Related Loan\" IS NOT NULL) AND (\"Ref Related Borrower\" IS NOT NULL) AND (\"Ref Payee Borrower\" IS NOT NULL) AND (\"Source Key\" = ('REFERRAL_REBATE:'::text || \"Ref Related Loan\")) AND (\"Rule Version\" = 'REFERRAL_REBATE_V1'::text))))"}
+{"kind": "db_constraint", "name": "Business Expenses_Row ID_not_null", "type": "n", "table": "\"Business Expenses\"", "validated": true, "definition": "NOT NULL \"Row ID\""}
+{"kind": "db_constraint", "name": "Business Expenses_Expense Date_not_null", "type": "n", "table": "\"Business Expenses\"", "validated": true, "definition": "NOT NULL \"Expense Date\""}
+{"kind": "db_constraint", "name": "Business Expenses_Expense Category_not_null", "type": "n", "table": "\"Business Expenses\"", "validated": true, "definition": "NOT NULL \"Expense Category\""}
+{"kind": "db_constraint", "name": "Business Expenses_Amount_not_null", "type": "n", "table": "\"Business Expenses\"", "validated": true, "definition": "NOT NULL \"Amount\""}
+{"kind": "db_constraint", "name": "Business Expenses_Source Type_not_null", "type": "n", "table": "\"Business Expenses\"", "validated": true, "definition": "NOT NULL \"Source Type\""}
+{"kind": "db_constraint", "name": "Business Expenses_Allocation Basis_not_null", "type": "n", "table": "\"Business Expenses\"", "validated": true, "definition": "NOT NULL \"Allocation Basis\""}
+{"kind": "db_constraint", "name": "Business Expenses_Partner A Share_not_null", "type": "n", "table": "\"Business Expenses\"", "validated": true, "definition": "NOT NULL \"Partner A Share\""}
+{"kind": "db_constraint", "name": "Business Expenses_Partner B Share_not_null", "type": "n", "table": "\"Business Expenses\"", "validated": true, "definition": "NOT NULL \"Partner B Share\""}
+{"kind": "db_constraint", "name": "Business Expenses_Partner A Expense_not_null", "type": "n", "table": "\"Business Expenses\"", "validated": true, "definition": "NOT NULL \"Partner A Expense\""}
+{"kind": "db_constraint", "name": "Business Expenses_Partner B Expense_not_null", "type": "n", "table": "\"Business Expenses\"", "validated": true, "definition": "NOT NULL \"Partner B Expense\""}
+{"kind": "db_constraint", "name": "Business Expenses_Created At_not_null", "type": "n", "table": "\"Business Expenses\"", "validated": true, "definition": "NOT NULL \"Created At\""}
+{"kind": "db_constraint", "name": "Business Expenses_Created By_not_null", "type": "n", "table": "\"Business Expenses\"", "validated": true, "definition": "NOT NULL \"Created By\""}
+{"kind": "db_constraint", "name": "Business Expenses_pkey", "type": "p", "table": "\"Business Expenses\"", "validated": true, "definition": "PRIMARY KEY (\"Row ID\")"}
+{"kind": "db_constraint", "name": "Business Expenses_Ref Payee Borrower_fkey", "type": "f", "table": "\"Business Expenses\"", "validated": true, "definition": "FOREIGN KEY (\"Ref Payee Borrower\") REFERENCES \"Borrowers\"(\"Row ID\")"}
+{"kind": "db_constraint", "name": "Business Expenses_Ref Related Borrower_fkey", "type": "f", "table": "\"Business Expenses\"", "validated": true, "definition": "FOREIGN KEY (\"Ref Related Borrower\") REFERENCES \"Borrowers\"(\"Row ID\")"}
+{"kind": "db_constraint", "name": "Business Expenses_Ref Related Loan_fkey", "type": "f", "table": "\"Business Expenses\"", "validated": true, "definition": "FOREIGN KEY (\"Ref Related Loan\") REFERENCES \"Loans\"(\"Row ID\")"}
+{"kind": "db_index", "name": "borrowers_referrer_idx", "table": "Borrowers", "definition": "CREATE INDEX borrowers_referrer_idx ON public.\"Borrowers\" USING btree (\"Ref Referrer\")"}
+{"kind": "db_index", "name": "Business Expenses_pkey", "table": "Business Expenses", "definition": "CREATE UNIQUE INDEX \"Business Expenses_pkey\" ON public.\"Business Expenses\" USING btree (\"Row ID\")"}
+{"kind": "db_index", "name": "business_expense_source_unique", "table": "Business Expenses", "definition": "CREATE UNIQUE INDEX business_expense_source_unique ON public.\"Business Expenses\" USING btree (\"Source Key\") WHERE (NULLIF(btrim(\"Source Key\"), ''::text) IS NOT NULL)"}
+{"kind": "db_index", "name": "business_expense_date_idx", "table": "Business Expenses", "definition": "CREATE INDEX business_expense_date_idx ON public.\"Business Expenses\" USING btree (\"Expense Date\")"}
+{"kind": "db_index", "name": "business_expense_loan_idx", "table": "Business Expenses", "definition": "CREATE INDEX business_expense_loan_idx ON public.\"Business Expenses\" USING btree (\"Ref Related Loan\")"}
+{"kind": "db_index", "name": "business_expense_payee_idx", "table": "Business Expenses", "definition": "CREATE INDEX business_expense_payee_idx ON public.\"Business Expenses\" USING btree (\"Ref Payee Borrower\")"}
+{"kind": "net_analytics", "dates": 43, "mismatches": 0, "oldest_refresh": "2026-09-16T16:20:32.940684"}
+{"kind": "rounding_diagnostic", "role": "A", "exact": 65442.60000000000000000000000000, "row_whole": 65447, "two_decimals": 65442.60, "percent_whole": 65442.6000}
+{"kind": "rounding_diagnostic", "role": "B", "exact": 127858.4000000000000000000000, "row_whole": 127854, "two_decimals": 127858.40, "percent_whole": 127858.4000}
+{"a": null, "b": null, "kind": "expense_summary", "count": 0, "amount": null, "referrals": 0}
+{"net": 65447, "kind": "partner_reconciliation", "role": "A", "gross": 65447, "settlements": 30960.00}
+{"net": 127854, "kind": "partner_reconciliation", "role": "B", "gross": 127854, "settlements": 84510.00}

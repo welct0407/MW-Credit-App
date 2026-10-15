@@ -1,0 +1,21 @@
+{
+  "at": "2026-09-25T10:52:36.2206507Z",
+  "browser": "Chrome Wel; owner-confirmed Gmail profile and Metabase account verified",
+  "dashboard": 3,
+  "checks": [
+    "Portfolio desktop summary, rankings, trends and comparison rendered",
+    "Comparison name click opened Detail with borrower ID and plain ISO date range",
+    "Portfolio at 390x844 rendered with zero chart errors after settled reload",
+    "Detail picker search worked at phone width",
+    "Clearing borrower produced 20 No results cards with zero chart errors",
+    "Final selected Detail rendered current cards, authoritative health table and scenario with zero chart errors",
+    "Final health table visually verified after column metadata and narrow-source correction",
+    "Viewport override reset; dashboard retained for owner"
+  ],
+  "screenshots_published": false,
+  "privacy": "Borrower screenshots and raw runtime diagnostics remain outside Git",
+  "limitations": [
+    "Wide evidence tables scroll horizontally on phones",
+    "Heavy simultaneous refreshes can queue; historical timings and refinements are in README.md"
+  ]
+}

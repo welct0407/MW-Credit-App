@@ -1,0 +1,65 @@
+{
+  "baseline": "1.000152",
+  "version": "1.000157",
+  "runnable": true,
+  "html_dom_equal": true,
+  "changed_objects": [
+    {
+      "kind": "action",
+      "name": "Upcoming Charge Summary.Open Upcoming Charge Details"
+    },
+    {
+      "kind": "action",
+      "name": "Upcoming Charge Summary.View Ref (Ref Borrower)"
+    },
+    {
+      "kind": "slice",
+      "name": "Borrower Upcoming Summary"
+    },
+    {
+      "kind": "slice",
+      "name": "Upcoming Summary 7 Days"
+    },
+    {
+      "kind": "table",
+      "name": "Upcoming Charge Summary"
+    },
+    {
+      "kind": "view",
+      "name": "Borrower Upcoming Summary_Inline"
+    },
+    {
+      "kind": "view",
+      "name": "Todays Collection Board_Detail"
+    },
+    {
+      "kind": "view",
+      "name": "Upcoming Charge Details"
+    },
+    {
+      "kind": "view",
+      "name": "Upcoming Charge Summary_Inline"
+    },
+    {
+      "kind": "view",
+      "name": "Upcoming Charges"
+    },
+    {
+      "kind": "view",
+      "name": "Upcoming Summary 7 Days_Detail"
+    },
+    {
+      "kind": "view",
+      "name": "Visible Borrowers_Detail"
+    }
+  ],
+  "unrelated_objects_unchanged": true,
+  "counts": {
+    "slice": 13,
+    "view": 76,
+    "format-rule": 60,
+    "action": 110,
+    "table": 38,
+    "column": 873
+  }
+}

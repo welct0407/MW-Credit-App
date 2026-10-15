@@ -1,0 +1,890 @@
+[
+  {
+    "uid": "mw-dots-availability",
+    "title": "MW | Dots bridge availability",
+    "folderUID": "REPLACE_WITH_VERIFIED_FOLDER_UID",
+    "ruleGroup": "Performance 2m",
+    "condition": "C",
+    "for": "2m",
+    "isPaused": true,
+    "noDataState": "Alerting",
+    "execErrState": "Alerting",
+    "labels": {
+      "monitoring_path": "grafana_dots_bridge",
+      "severity": "urgent"
+    },
+    "annotations": {
+      "summary": "MW | Dots bridge availability; independent IRM route. Do not replay deliveries or change subscriptions automatically."
+    },
+    "notification_settings": {
+      "receiver": "MW Bridge IRM",
+      "group_by": [
+        "grafana_folder",
+        "alertname",
+        "component"
+      ]
+    },
+    "data": [
+      {
+        "refId": "A",
+        "relativeTimeRange": {
+          "from": 600,
+          "to": 0
+        },
+        "datasourceUid": "mw-gcp-monitoring",
+        "model": {
+          "refId": "A",
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "mw-gcp-monitoring"
+          },
+          "type": "json",
+          "source": "url",
+          "parser": "jq-backend",
+          "format": "table",
+          "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fgrafana_bridge%22%20AND%20resource.type%20%3D%20%22generic_task%22%20AND%20resource.labels.task_id%20%3D%20%22mw-grafana-events%22%20AND%20metric.labels.field%20%3D%20%22availability%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+          "url_options": {
+            "method": "GET"
+          },
+          "root_selector": "if .nextPageToken then error(\"Truncated observation\") else [.timeSeries[]?.points[]?]|sort_by(.interval.endTime)|last as $p | (try ($p.interval.endTime|sub(\"[.][0-9]+Z$\";\"Z\")|fromdateiso8601) catch null) as $t | (try ($p.value.int64Value|tonumber) catch null) as $v | {component:\"availability\",value:(if $t==null or now-$t>360 or $t-now>120 or $v==null then 1 elif ($v==0 or $v==4) then 1 else 0 end)} end",
+          "columns": [
+            {
+              "text": "component",
+              "selector": "component",
+              "type": "string"
+            },
+            {
+              "text": "value",
+              "selector": "value",
+              "type": "number"
+            }
+          ]
+        }
+      },
+      {
+        "refId": "B",
+        "relativeTimeRange": {
+          "from": 0,
+          "to": 0
+        },
+        "datasourceUid": "__expr__",
+        "model": {
+          "refId": "B",
+          "type": "reduce",
+          "expression": "A",
+          "reducer": "last",
+          "settings": {
+            "mode": "strict"
+          }
+        }
+      },
+      {
+        "refId": "C",
+        "relativeTimeRange": {
+          "from": 0,
+          "to": 0
+        },
+        "datasourceUid": "__expr__",
+        "model": {
+          "refId": "C",
+          "type": "threshold",
+          "expression": "B",
+          "conditions": [
+            {
+              "evaluator": {
+                "type": "gt",
+                "params": [
+                  0
+                ]
+              },
+              "operator": {
+                "type": "and"
+              },
+              "reducer": {
+                "type": "last"
+              },
+              "type": "query"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "uid": "mw-dots-dispatch",
+    "title": "MW | Dots bridge dispatch overdue",
+    "folderUID": "REPLACE_WITH_VERIFIED_FOLDER_UID",
+    "ruleGroup": "Performance 2m",
+    "condition": "C",
+    "for": "2m",
+    "isPaused": true,
+    "noDataState": "Alerting",
+    "execErrState": "Alerting",
+    "labels": {
+      "monitoring_path": "grafana_dots_bridge",
+      "severity": "urgent"
+    },
+    "annotations": {
+      "summary": "MW | Dots bridge dispatch overdue; independent IRM route. Do not replay deliveries or change subscriptions automatically."
+    },
+    "notification_settings": {
+      "receiver": "MW Bridge IRM",
+      "group_by": [
+        "grafana_folder",
+        "alertname",
+        "component"
+      ]
+    },
+    "data": [
+      {
+        "refId": "A",
+        "relativeTimeRange": {
+          "from": 600,
+          "to": 0
+        },
+        "datasourceUid": "mw-gcp-monitoring",
+        "model": {
+          "refId": "A",
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "mw-gcp-monitoring"
+          },
+          "type": "json",
+          "source": "url",
+          "parser": "jq-backend",
+          "format": "table",
+          "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fgrafana_bridge%22%20AND%20resource.type%20%3D%20%22generic_task%22%20AND%20resource.labels.task_id%20%3D%20%22mw-grafana-events%22%20AND%20metric.labels.field%20%3D%20%22last_dispatch_completed_at%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+          "url_options": {
+            "method": "GET"
+          },
+          "root_selector": "if .nextPageToken then error(\"Truncated observation\") else [.timeSeries[]?.points[]?]|sort_by(.interval.endTime)|last as $p | (try ($p.interval.endTime|sub(\"[.][0-9]+Z$\";\"Z\")|fromdateiso8601) catch null) as $t | (try ($p.value.int64Value|tonumber) catch null) as $v | {component:\"dispatch\",value:(if $t==null or now-$t>360 or $t-now>120 or $v==null then 1 elif ($v>0 and now-$v>300) then 1 else 0 end)} end",
+          "columns": [
+            {
+              "text": "component",
+              "selector": "component",
+              "type": "string"
+            },
+            {
+              "text": "value",
+              "selector": "value",
+              "type": "number"
+            }
+          ]
+        }
+      },
+      {
+        "refId": "B",
+        "relativeTimeRange": {
+          "from": 0,
+          "to": 0
+        },
+        "datasourceUid": "__expr__",
+        "model": {
+          "refId": "B",
+          "type": "reduce",
+          "expression": "A",
+          "reducer": "last",
+          "settings": {
+            "mode": "strict"
+          }
+        }
+      },
+      {
+        "refId": "C",
+        "relativeTimeRange": {
+          "from": 0,
+          "to": 0
+        },
+        "datasourceUid": "__expr__",
+        "model": {
+          "refId": "C",
+          "type": "threshold",
+          "expression": "B",
+          "conditions": [
+            {
+              "evaluator": {
+                "type": "gt",
+                "params": [
+                  0
+                ]
+              },
+              "operator": {
+                "type": "and"
+              },
+              "reducer": {
+                "type": "last"
+              },
+              "type": "query"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "uid": "mw-dots-outbox-warning",
+    "title": "MW | Dots bridge outbox oldest warning",
+    "folderUID": "REPLACE_WITH_VERIFIED_FOLDER_UID",
+    "ruleGroup": "Performance 2m",
+    "condition": "C",
+    "for": "5m",
+    "isPaused": true,
+    "noDataState": "KeepLast",
+    "execErrState": "KeepLast",
+    "labels": {
+      "monitoring_path": "grafana_dots_bridge",
+      "severity": "warning"
+    },
+    "annotations": {
+      "summary": "MW | Dots bridge outbox oldest warning; independent IRM route. Do not replay deliveries or change subscriptions automatically."
+    },
+    "notification_settings": {
+      "receiver": "MW Bridge IRM",
+      "group_by": [
+        "grafana_folder",
+        "alertname",
+        "component"
+      ]
+    },
+    "data": [
+      {
+        "refId": "A",
+        "relativeTimeRange": {
+          "from": 600,
+          "to": 0
+        },
+        "datasourceUid": "mw-gcp-monitoring",
+        "model": {
+          "refId": "A",
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "mw-gcp-monitoring"
+          },
+          "type": "json",
+          "source": "url",
+          "parser": "jq-backend",
+          "format": "table",
+          "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fgrafana_bridge%22%20AND%20resource.type%20%3D%20%22generic_task%22%20AND%20resource.labels.task_id%20%3D%20%22mw-grafana-events%22%20AND%20metric.labels.field%20%3D%20%22oldest_pending_seconds%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+          "url_options": {
+            "method": "GET"
+          },
+          "root_selector": "if .nextPageToken then error(\"Truncated observation\") else [.timeSeries[]?.points[]?]|sort_by(.interval.endTime)|last as $p | (try ($p.interval.endTime|sub(\"[.][0-9]+Z$\";\"Z\")|fromdateiso8601) catch null) as $t | (try ($p.value.int64Value|tonumber) catch null) as $v | {component:\"outbox-warning\",value:(if $t==null or now-$t>360 or $t-now>120 or $v==null then 0 elif ($v>300) then 1 else 0 end)} end",
+          "columns": [
+            {
+              "text": "component",
+              "selector": "component",
+              "type": "string"
+            },
+            {
+              "text": "value",
+              "selector": "value",
+              "type": "number"
+            }
+          ]
+        }
+      },
+      {
+        "refId": "B",
+        "relativeTimeRange": {
+          "from": 0,
+          "to": 0
+        },
+        "datasourceUid": "__expr__",
+        "model": {
+          "refId": "B",
+          "type": "reduce",
+          "expression": "A",
+          "reducer": "last",
+          "settings": {
+            "mode": "strict"
+          }
+        }
+      },
+      {
+        "refId": "C",
+        "relativeTimeRange": {
+          "from": 0,
+          "to": 0
+        },
+        "datasourceUid": "__expr__",
+        "model": {
+          "refId": "C",
+          "type": "threshold",
+          "expression": "B",
+          "conditions": [
+            {
+              "evaluator": {
+                "type": "gt",
+                "params": [
+                  0
+                ]
+              },
+              "operator": {
+                "type": "and"
+              },
+              "reducer": {
+                "type": "last"
+              },
+              "type": "query"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "uid": "mw-dots-outbox-urgent",
+    "title": "MW | Dots bridge outbox oldest urgent",
+    "folderUID": "REPLACE_WITH_VERIFIED_FOLDER_UID",
+    "ruleGroup": "Performance 2m",
+    "condition": "C",
+    "for": "2m",
+    "isPaused": true,
+    "noDataState": "KeepLast",
+    "execErrState": "KeepLast",
+    "labels": {
+      "monitoring_path": "grafana_dots_bridge",
+      "severity": "urgent"
+    },
+    "annotations": {
+      "summary": "MW | Dots bridge outbox oldest urgent; independent IRM route. Do not replay deliveries or change subscriptions automatically."
+    },
+    "notification_settings": {
+      "receiver": "MW Bridge IRM",
+      "group_by": [
+        "grafana_folder",
+        "alertname",
+        "component"
+      ]
+    },
+    "data": [
+      {
+        "refId": "A",
+        "relativeTimeRange": {
+          "from": 600,
+          "to": 0
+        },
+        "datasourceUid": "mw-gcp-monitoring",
+        "model": {
+          "refId": "A",
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "mw-gcp-monitoring"
+          },
+          "type": "json",
+          "source": "url",
+          "parser": "jq-backend",
+          "format": "table",
+          "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fgrafana_bridge%22%20AND%20resource.type%20%3D%20%22generic_task%22%20AND%20resource.labels.task_id%20%3D%20%22mw-grafana-events%22%20AND%20metric.labels.field%20%3D%20%22oldest_pending_seconds%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+          "url_options": {
+            "method": "GET"
+          },
+          "root_selector": "if .nextPageToken then error(\"Truncated observation\") else [.timeSeries[]?.points[]?]|sort_by(.interval.endTime)|last as $p | (try ($p.interval.endTime|sub(\"[.][0-9]+Z$\";\"Z\")|fromdateiso8601) catch null) as $t | (try ($p.value.int64Value|tonumber) catch null) as $v | {component:\"outbox-urgent\",value:(if $t==null or now-$t>360 or $t-now>120 or $v==null then 0 elif ($v>900) then 1 else 0 end)} end",
+          "columns": [
+            {
+              "text": "component",
+              "selector": "component",
+              "type": "string"
+            },
+            {
+              "text": "value",
+              "selector": "value",
+              "type": "number"
+            }
+          ]
+        }
+      },
+      {
+        "refId": "B",
+        "relativeTimeRange": {
+          "from": 0,
+          "to": 0
+        },
+        "datasourceUid": "__expr__",
+        "model": {
+          "refId": "B",
+          "type": "reduce",
+          "expression": "A",
+          "reducer": "last",
+          "settings": {
+            "mode": "strict"
+          }
+        }
+      },
+      {
+        "refId": "C",
+        "relativeTimeRange": {
+          "from": 0,
+          "to": 0
+        },
+        "datasourceUid": "__expr__",
+        "model": {
+          "refId": "C",
+          "type": "threshold",
+          "expression": "B",
+          "conditions": [
+            {
+              "evaluator": {
+                "type": "gt",
+                "params": [
+                  0
+                ]
+              },
+              "operator": {
+                "type": "and"
+              },
+              "reducer": {
+                "type": "last"
+              },
+              "type": "query"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "uid": "mw-dots-subscription",
+    "title": "MW | Dots expected subscription missing",
+    "folderUID": "REPLACE_WITH_VERIFIED_FOLDER_UID",
+    "ruleGroup": "Performance 2m",
+    "condition": "C",
+    "for": "5m",
+    "isPaused": true,
+    "noDataState": "KeepLast",
+    "execErrState": "KeepLast",
+    "labels": {
+      "monitoring_path": "grafana_dots_bridge",
+      "severity": "urgent"
+    },
+    "annotations": {
+      "summary": "MW | Dots expected subscription missing; independent IRM route. Do not replay deliveries or change subscriptions automatically."
+    },
+    "notification_settings": {
+      "receiver": "MW Bridge IRM",
+      "group_by": [
+        "grafana_folder",
+        "alertname",
+        "component"
+      ]
+    },
+    "data": [
+      {
+        "refId": "A",
+        "relativeTimeRange": {
+          "from": 600,
+          "to": 0
+        },
+        "datasourceUid": "mw-gcp-monitoring",
+        "model": {
+          "refId": "A",
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "mw-gcp-monitoring"
+          },
+          "type": "json",
+          "source": "url",
+          "parser": "jq-backend",
+          "format": "table",
+          "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fgrafana_bridge%22%20AND%20resource.type%20%3D%20%22generic_task%22%20AND%20resource.labels.task_id%20%3D%20%22mw-grafana-events%22%20AND%20metric.labels.field%20%3D%20%22subscription%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+          "url_options": {
+            "method": "GET"
+          },
+          "root_selector": "if .nextPageToken then error(\"Truncated observation\") else [.timeSeries[]?.points[]?]|sort_by(.interval.endTime)|last as $p | (try ($p.interval.endTime|sub(\"[.][0-9]+Z$\";\"Z\")|fromdateiso8601) catch null) as $t | (try ($p.value.int64Value|tonumber) catch null) as $v | {component:\"subscription\",value:(if $t==null or now-$t>360 or $t-now>120 or $v==null then 0 elif ($v==0) then 1 else 0 end)} end",
+          "columns": [
+            {
+              "text": "component",
+              "selector": "component",
+              "type": "string"
+            },
+            {
+              "text": "value",
+              "selector": "value",
+              "type": "number"
+            }
+          ]
+        }
+      },
+      {
+        "refId": "B",
+        "relativeTimeRange": {
+          "from": 0,
+          "to": 0
+        },
+        "datasourceUid": "__expr__",
+        "model": {
+          "refId": "B",
+          "type": "reduce",
+          "expression": "A",
+          "reducer": "last",
+          "settings": {
+            "mode": "strict"
+          }
+        }
+      },
+      {
+        "refId": "C",
+        "relativeTimeRange": {
+          "from": 0,
+          "to": 0
+        },
+        "datasourceUid": "__expr__",
+        "model": {
+          "refId": "C",
+          "type": "threshold",
+          "expression": "B",
+          "conditions": [
+            {
+              "evaluator": {
+                "type": "gt",
+                "params": [
+                  0
+                ]
+              },
+              "operator": {
+                "type": "and"
+              },
+              "reducer": {
+                "type": "last"
+              },
+              "type": "query"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "uid": "mw-dots-renewal",
+    "title": "MW | Dots renewal not advancing",
+    "folderUID": "REPLACE_WITH_VERIFIED_FOLDER_UID",
+    "ruleGroup": "Performance 2m",
+    "condition": "C",
+    "for": "5m",
+    "isPaused": true,
+    "noDataState": "KeepLast",
+    "execErrState": "KeepLast",
+    "labels": {
+      "monitoring_path": "grafana_dots_bridge",
+      "severity": "warning"
+    },
+    "annotations": {
+      "summary": "MW | Dots renewal not advancing; independent IRM route. Do not replay deliveries or change subscriptions automatically."
+    },
+    "notification_settings": {
+      "receiver": "MW Bridge IRM",
+      "group_by": [
+        "grafana_folder",
+        "alertname",
+        "component"
+      ]
+    },
+    "data": [
+      {
+        "refId": "A",
+        "relativeTimeRange": {
+          "from": 600,
+          "to": 0
+        },
+        "datasourceUid": "mw-gcp-monitoring",
+        "model": {
+          "refId": "A",
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "mw-gcp-monitoring"
+          },
+          "type": "json",
+          "source": "url",
+          "parser": "jq-backend",
+          "format": "table",
+          "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fgrafana_bridge%22%20AND%20resource.type%20%3D%20%22generic_task%22%20AND%20resource.labels.task_id%20%3D%20%22mw-grafana-events%22%20AND%20metric.labels.field%20%3D%20%22renewal%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+          "url_options": {
+            "method": "GET"
+          },
+          "root_selector": "if .nextPageToken then error(\"Truncated observation\") else [.timeSeries[]?.points[]?]|sort_by(.interval.endTime)|last as $p | (try ($p.interval.endTime|sub(\"[.][0-9]+Z$\";\"Z\")|fromdateiso8601) catch null) as $t | (try ($p.value.int64Value|tonumber) catch null) as $v | {component:\"renewal\",value:(if $t==null or now-$t>360 or $t-now>120 or $v==null then 0 elif ($v==0 or $v==2) then 1 else 0 end)} end",
+          "columns": [
+            {
+              "text": "component",
+              "selector": "component",
+              "type": "string"
+            },
+            {
+              "text": "value",
+              "selector": "value",
+              "type": "number"
+            }
+          ]
+        }
+      },
+      {
+        "refId": "B",
+        "relativeTimeRange": {
+          "from": 0,
+          "to": 0
+        },
+        "datasourceUid": "__expr__",
+        "model": {
+          "refId": "B",
+          "type": "reduce",
+          "expression": "A",
+          "reducer": "last",
+          "settings": {
+            "mode": "strict"
+          }
+        }
+      },
+      {
+        "refId": "C",
+        "relativeTimeRange": {
+          "from": 0,
+          "to": 0
+        },
+        "datasourceUid": "__expr__",
+        "model": {
+          "refId": "C",
+          "type": "threshold",
+          "expression": "B",
+          "conditions": [
+            {
+              "evaluator": {
+                "type": "gt",
+                "params": [
+                  0
+                ]
+              },
+              "operator": {
+                "type": "and"
+              },
+              "reducer": {
+                "type": "last"
+              },
+              "type": "query"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "uid": "mw-dots-delivery",
+    "title": "MW | Dots delivery continuity failure",
+    "folderUID": "REPLACE_WITH_VERIFIED_FOLDER_UID",
+    "ruleGroup": "Performance 2m",
+    "condition": "C",
+    "for": "5m",
+    "isPaused": true,
+    "noDataState": "KeepLast",
+    "execErrState": "KeepLast",
+    "labels": {
+      "monitoring_path": "grafana_dots_bridge",
+      "severity": "urgent"
+    },
+    "annotations": {
+      "summary": "MW | Dots delivery continuity failure; independent IRM route. Do not replay deliveries or change subscriptions automatically."
+    },
+    "notification_settings": {
+      "receiver": "MW Bridge IRM",
+      "group_by": [
+        "grafana_folder",
+        "alertname",
+        "component"
+      ]
+    },
+    "data": [
+      {
+        "refId": "A",
+        "relativeTimeRange": {
+          "from": 600,
+          "to": 0
+        },
+        "datasourceUid": "mw-gcp-monitoring",
+        "model": {
+          "refId": "A",
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "mw-gcp-monitoring"
+          },
+          "type": "json",
+          "source": "url",
+          "parser": "jq-backend",
+          "format": "table",
+          "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fgrafana_bridge%22%20AND%20resource.type%20%3D%20%22generic_task%22%20AND%20resource.labels.task_id%20%3D%20%22mw-grafana-events%22%20AND%20metric.labels.field%20%3D%20%22continuity%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+          "url_options": {
+            "method": "GET"
+          },
+          "root_selector": "if .nextPageToken then error(\"Truncated observation\") else [.timeSeries[]?.points[]?]|sort_by(.interval.endTime)|last as $p | (try ($p.interval.endTime|sub(\"[.][0-9]+Z$\";\"Z\")|fromdateiso8601) catch null) as $t | (try ($p.value.int64Value|tonumber) catch null) as $v | {component:\"delivery\",value:(if $t==null or now-$t>360 or $t-now>120 or $v==null then 0 elif ($v==0) then 1 else 0 end)} end",
+          "columns": [
+            {
+              "text": "component",
+              "selector": "component",
+              "type": "string"
+            },
+            {
+              "text": "value",
+              "selector": "value",
+              "type": "number"
+            }
+          ]
+        }
+      },
+      {
+        "refId": "B",
+        "relativeTimeRange": {
+          "from": 0,
+          "to": 0
+        },
+        "datasourceUid": "__expr__",
+        "model": {
+          "refId": "B",
+          "type": "reduce",
+          "expression": "A",
+          "reducer": "last",
+          "settings": {
+            "mode": "strict"
+          }
+        }
+      },
+      {
+        "refId": "C",
+        "relativeTimeRange": {
+          "from": 0,
+          "to": 0
+        },
+        "datasourceUid": "__expr__",
+        "model": {
+          "refId": "C",
+          "type": "threshold",
+          "expression": "B",
+          "conditions": [
+            {
+              "evaluator": {
+                "type": "gt",
+                "params": [
+                  0
+                ]
+              },
+              "operator": {
+                "type": "and"
+              },
+              "reducer": {
+                "type": "last"
+              },
+              "type": "query"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "uid": "mw-dots-inspection",
+    "title": "MW | Dots bridge telemetry unavailable",
+    "folderUID": "REPLACE_WITH_VERIFIED_FOLDER_UID",
+    "ruleGroup": "Performance 2m",
+    "condition": "C",
+    "for": "2m",
+    "isPaused": true,
+    "noDataState": "Alerting",
+    "execErrState": "Alerting",
+    "labels": {
+      "monitoring_path": "grafana_dots_bridge",
+      "severity": "urgent"
+    },
+    "annotations": {
+      "summary": "MW | Dots bridge telemetry unavailable; independent IRM route. Do not replay deliveries or change subscriptions automatically."
+    },
+    "notification_settings": {
+      "receiver": "MW Bridge IRM",
+      "group_by": [
+        "grafana_folder",
+        "alertname",
+        "component"
+      ]
+    },
+    "data": [
+      {
+        "refId": "A",
+        "relativeTimeRange": {
+          "from": 600,
+          "to": 0
+        },
+        "datasourceUid": "mw-gcp-monitoring",
+        "model": {
+          "refId": "A",
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "mw-gcp-monitoring"
+          },
+          "type": "json",
+          "source": "url",
+          "parser": "jq-backend",
+          "format": "table",
+          "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fgrafana_bridge%22%20AND%20resource.type%20%3D%20%22generic_task%22%20AND%20resource.labels.task_id%20%3D%20%22mw-grafana-events%22%20AND%20metric.labels.field%20%3D%20%22inspection_failed%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+          "url_options": {
+            "method": "GET"
+          },
+          "root_selector": "if .nextPageToken then error(\"Truncated observation\") else [.timeSeries[]?.points[]?]|sort_by(.interval.endTime)|last as $p | (try ($p.interval.endTime|sub(\"[.][0-9]+Z$\";\"Z\")|fromdateiso8601) catch null) as $t | (try ($p.value.int64Value|tonumber) catch null) as $v | {component:\"inspection\",value:(if $t==null or now-$t>360 or $t-now>120 or $v==null then 1 elif ($v==1) then 1 else 0 end)} end",
+          "columns": [
+            {
+              "text": "component",
+              "selector": "component",
+              "type": "string"
+            },
+            {
+              "text": "value",
+              "selector": "value",
+              "type": "number"
+            }
+          ]
+        }
+      },
+      {
+        "refId": "B",
+        "relativeTimeRange": {
+          "from": 0,
+          "to": 0
+        },
+        "datasourceUid": "__expr__",
+        "model": {
+          "refId": "B",
+          "type": "reduce",
+          "expression": "A",
+          "reducer": "last",
+          "settings": {
+            "mode": "strict"
+          }
+        }
+      },
+      {
+        "refId": "C",
+        "relativeTimeRange": {
+          "from": 0,
+          "to": 0
+        },
+        "datasourceUid": "__expr__",
+        "model": {
+          "refId": "C",
+          "type": "threshold",
+          "expression": "B",
+          "conditions": [
+            {
+              "evaluator": {
+                "type": "gt",
+                "params": [
+                  0
+                ]
+              },
+              "operator": {
+                "type": "and"
+              },
+              "reducer": {
+                "type": "last"
+              },
+              "type": "query"
+            }
+          ]
+        }
+      }
+    ]
+  }
+]

@@ -1,0 +1,39 @@
+{
+  "at": "2026-10-06T15:57:27.212152+00:00",
+  "version": 73,
+  "checksum": 1165230041,
+  "unchanged_tables": {
+    "agent_audit.commits": true,
+    "agent_audit.exports": true,
+    "agent_audit.row_changes": true,
+    "public.Borrowers": true,
+    "public.Business Expenses": true,
+    "public.Calendar": true,
+    "public.Cash Accounts": true,
+    "public.Cash Holders": true,
+    "public.Cash Ledger": true,
+    "public.Cash Pool Contributions": true,
+    "public.Cash Statement Context": true,
+    "public.Charges": true,
+    "public.Loan Assessment": true,
+    "public.Loan Assessment SQL Lab": true,
+    "public.Loans": true,
+    "public.Partners": true,
+    "public.Payment Allocations": true,
+    "public.Payments": true,
+    "public.Repayments": true,
+    "public.Settlements": true,
+    "public.flyway_schema_history": true,
+    "public.r005_cash_cutover_sources": true,
+    "public.r008_cash_account_cutover": true
+  },
+  "all_equal": true,
+  "derived_tables_excluded": [
+    "public.Cash Account Daily Analytics",
+    "public.Daily Analytics",
+    "public.Statistics"
+  ],
+  "nonowner_delivery_addresses": 0,
+  "owner_actor_mapping_count": 1,
+  "migration_sha256": "4385572f8495470f5f462cfdfef220e703a754143c356bf77d1628347071655d"
+}

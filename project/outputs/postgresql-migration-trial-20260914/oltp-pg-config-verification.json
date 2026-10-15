@@ -1,0 +1,66 @@
+{
+  "appName": "LoanMgr PG Test 20260914",
+  "appId": "65faacd8-2b0d-43bf-9e0a-58eb915dcf9b",
+  "originalAppId": "93844270-6aa5-420b-a960-bcdf08abd357",
+  "originalVersion": "3.000064",
+  "copyBaseline": "1.000002",
+  "isolatedBotsVersion": "1.000003",
+  "sqlBindingsVersion": "1.000004",
+  "unchangedRenderedColumns": 196,
+  "sources": [
+    {
+      "table": "Borrowers",
+      "source": "database-2",
+      "path": "Borrowers"
+    },
+    {
+      "table": "Loans",
+      "source": "database-2",
+      "path": "Loans"
+    },
+    {
+      "table": "Repayments",
+      "source": "database-2",
+      "path": "Repayments"
+    },
+    {
+      "table": "Statistics",
+      "source": "database-2",
+      "path": "Statistics"
+    },
+    {
+      "table": "Charges",
+      "source": "database-2",
+      "path": "Charges"
+    },
+    {
+      "table": "Partners",
+      "source": "database-2",
+      "path": "Partners"
+    },
+    {
+      "table": "Payment Allocations",
+      "source": "database-2",
+      "path": "Payment Allocations"
+    },
+    {
+      "table": "Payments",
+      "source": "database-2",
+      "path": "Payments"
+    }
+  ],
+  "disabledBots": [
+    "Generate Daily Charges",
+    "Notification - New Loan Created",
+    "Notification - Loan Closed",
+    "Notification - Charge Received"
+  ],
+  "retainedBots": [
+    "Create First-Day Charge",
+    "Auto Receive First-Day Charge",
+    "Payments - Process Receipt"
+  ],
+  "status": "Core functional scenarios passed; owner acceptance and final cutover refresh pending",
+  "finalVersion": "1.000006",
+  "actionsRestored": 72
+}

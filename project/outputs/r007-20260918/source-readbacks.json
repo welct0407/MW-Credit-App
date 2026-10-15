@@ -1,0 +1,32 @@
+[
+  {
+    "table": "Charges",
+    "sourceId": "Table=public.olap\\_charges\\_analytics__olap\\_charges\\_analytics",
+    "dataSource": "database-3",
+    "capturedUtc": "2026-09-18T10:57:05.232Z"
+  },
+  {
+    "table": "Repayments",
+    "sourceId": "Table=public.olap\\_repayments\\_analytics__olap\\_repayments\\_analytics",
+    "dataSource": "database-3",
+    "capturedUtc": "2026-09-18T10:57:24.431Z"
+  },
+  {
+    "table": "Loans",
+    "sourceId": "Table=public.olap\\_loans\\_analytics__olap\\_loans\\_analytics",
+    "dataSource": "database-3",
+    "capturedUtc": "2026-09-18T10:58:15.125Z"
+  },
+  {
+    "table": "Borrowers",
+    "sourceId": "Table=public.olap\\_borrowers\\_analytics__olap\\_borrowers\\_analytics",
+    "dataSource": "database-3",
+    "capturedUtc": "2026-09-18T10:59:05.986Z"
+  },
+  {
+    "table": "Portfolio Summary",
+    "sourceId": "Table=public.olap\\_portfolio\\_summary__olap\\_portfolio\\_summary",
+    "dataSource": "database-3",
+    "capturedUtc": "2026-09-18T10:59:35.753Z"
+  }
+]

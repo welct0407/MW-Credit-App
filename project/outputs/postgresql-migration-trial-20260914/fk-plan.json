@@ -1,0 +1,87 @@
+{
+  "databaseRole": "Future production database; copied OLAP app currently used for testing",
+  "appVersion": "1.000007",
+  "refs": [
+    {
+      "table": "Loans",
+      "column": "Ref Borrowers",
+      "target": "Borrowers",
+      "name": "appsheet_ref_01"
+    },
+    {
+      "table": "Repayments",
+      "column": "Ref Loans",
+      "target": "Loans",
+      "name": "appsheet_ref_02"
+    },
+    {
+      "table": "Repayments",
+      "column": "Ref Charges",
+      "target": "Charges",
+      "name": "appsheet_ref_03"
+    },
+    {
+      "table": "Repayments",
+      "column": "Ref Payment",
+      "target": "Payments",
+      "name": "appsheet_ref_04"
+    },
+    {
+      "table": "Repayments",
+      "column": "Ref Payment Allocation",
+      "target": "Payment Allocations",
+      "name": "appsheet_ref_05"
+    },
+    {
+      "table": "Charges",
+      "column": "Ref Loans",
+      "target": "Loans",
+      "name": "appsheet_ref_06"
+    },
+    {
+      "table": "Loan Assessment",
+      "column": "Ref Borrower",
+      "target": "Borrowers",
+      "name": "appsheet_ref_07"
+    },
+    {
+      "table": "Cash Pool Contributions",
+      "column": "Ref Partner",
+      "target": "Partners",
+      "name": "appsheet_ref_08"
+    },
+    {
+      "table": "Settlements",
+      "column": "Ref Partner",
+      "target": "Partners",
+      "name": "appsheet_ref_09"
+    },
+    {
+      "table": "Payment Allocations",
+      "column": "Ref Payment",
+      "target": "Payments",
+      "name": "appsheet_ref_10"
+    },
+    {
+      "table": "Payment Allocations",
+      "column": "Ref Charge",
+      "target": "Charges",
+      "name": "appsheet_ref_11"
+    },
+    {
+      "table": "Payments",
+      "column": "Ref Borrower",
+      "target": "Borrowers",
+      "name": "appsheet_ref_12"
+    },
+    {
+      "table": "Payments",
+      "column": "Ref Target Charge",
+      "target": "Charges",
+      "name": "appsheet_ref_13"
+    }
+  ],
+  "blankNormalization": "Empty text references become SQL NULL on existing rows and future inserts/updates; nonblank values and keys are unchanged.",
+  "deletePolicy": "NO ACTION; no cascades",
+  "deferrable": false
+}

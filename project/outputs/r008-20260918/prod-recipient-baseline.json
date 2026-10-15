@@ -1,0 +1,1 @@
+[{"task":"Send App Notification","to":"SELECT( Partners[Email], AND(ISNOTBLANK([Email]), [Email] <> [_THISROW].[Created By]))"},{"task":"Send closure summary","to":"SELECT( Partners[Email], AND(ISNOTBLANK([Email]), [Email] <> [_THISROW].[Created By]))"}]

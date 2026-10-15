@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 2,
+  "recordedAtUtc": "2026-10-01T18:38:52.815023+00:00",
+  "status": "SOURCE_REPAIR_VALIDATED_BOOTSTRAP_DEPLOYED_COMMANDS_DISABLED",
+  "baselineCommit": "d351991d1a1c0895d4abc8f0f4ba4fa55fa7a4e5",
+  "repairParentCommit": "e02501786af5f8a9ca7073c08244eb6afc4e08af",
+  "branch": "feat/vm01-controller-source",
+  "toolchain": {
+    "node": "v24.19.0",
+    "npm": "11.6.1",
+    "bicep": "0.47.16",
+    "browser": "Windows Edge154.0.4258.48; fresh Playwright fixture with chromiumSandbox=true"
+  },
+  "checks": {
+    "npmTest": {
+      "total": 46,
+      "passed": 46,
+      "failed": 0,
+      "output": "tests.log"
+    },
+    "allBooleanSwitchCombinations": "PASS (4 combinations, 2 switches, compiled ARM and real parser)",
+    "strictTypeScript": "PASS",
+    "offlineBicepCompilation": "PASS_ZERO_DIAGNOSTICS",
+    "npmBuild": "PASS",
+    "npmPackage": "PASS",
+    "sourcePackageIntegrity": "PASS",
+    "sourcePackageJavascriptSyntax": "PASS",
+    "moduleAndEvidenceJsonParsing": "PASS",
+    "localDocumentationLinks": "PASS",
+    "gitDiffWhitespace": "PASS",
+    "sanitizedReceipt": "PASS (public identifiers/configuration only)"
+  },
+  "source": {
+    "fileCount": 43,
+    "treeSha256": "aa1bd84735094d8892d20c9868aae04f8af125bb823f408d93915cd1e8ae3783",
+    "algorithm": "SHA256 of sorted module-relative path + NUL + file SHA256 + LF, excluding node_modules and dist"
+  },
+  "hashes": {
+    "packageLockSha256": "1206c44acaf98831b66edfb63fd5e14095787815ac1146e5c713dd7270a199db",
+    "compiledMainArmSha256": "76c6a286fed1efb2644a66f4570932ca2097360e092dfc6aa788fbd83c231bcf",
+    "testOutputSha256": "0b326dcf9934f077e0c8bd8648dc4147d6743557f90949c31c957313fe95d9a9"
+  },
+  "package": {
+    "stagedFiles": 20,
+    "productionDependenciesInstalledInStaging": false,
+    "repairDeploymentZipCreated": false,
+    "repairDeployed": false
+  },
+  "bootstrap": {
+    "deployedSourceCommit": "e02501786af5f8a9ca7073c08244eb6afc4e08af",
+    "deployedZipSha256": "aaedfe3d24e2dedfac5338b7ab03b4e9c7a6961267d068e0b7a51c43f22b180f",
+    "deployedMainArmSha256": "346fc8989173b96bb8e3bcf225d9adc90bd4ef18679d362b152e207bd5f7527b",
+    "receipt": "bootstrap/provisioning-receipt.json",
+    "commandsEnabled": false,
+    "ledgerAdmissionEnabled": false,
+    "operationPollingEnabled": false,
+    "allowedCallerAuthenticatedAcceptance": "PENDING"
+  },
+  "liveWritesPerformedDuringSourceRepair": false,
+  "liveBootstrapWrites": "Separately approved and recorded in bootstrap/write-journal.jsonl",
+  "browserReadiness": "Supported live browser-control tools unavailable; no alternate live browser automation used",
+  "remotePublication": "Existing draft PR2; exact remote commit and branch verified in task response; no merge/redeploy",
+  "cost": {
+    "planningBudgetUsdMonthlyApproved": 2,
+    "hardSpendingCap": false,
+    "remainingGrantVerified": false,
+    "actualHostStorageOverheadMeasured": false
+  },
+  "documentLinksChecked": 39,
+  "changedJsonFilesParsed": 9
+}

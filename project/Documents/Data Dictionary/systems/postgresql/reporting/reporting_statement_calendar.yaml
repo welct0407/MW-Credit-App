@@ -1,0 +1,87 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "relation"
+  "name": "public.reporting_statement_calendar"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+  "previous_record":
+    "commit": "dffa437c29a762f5b87a10b14a32063da8df07aa"
+    "path": "Documents/Data Dictionary/systems/postgresql/reporting/reporting_statement_calendar.yaml"
+    "identity":
+      "system": "postgresql"
+      "component": "appsheet-pg-prod-20260914"
+      "kind": "relation"
+      "name": "public.reporting_statement_calendar"
+      "scope": "development-and-production"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "reporting_statement_calendar"
+    "kind": "v"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "n"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,metabase_borrower_reader=r/postgres,mw_app_prod=r/postgres}"
+    "comment": null
+    "view_definition": |2-
+       SELECT generate_series(date_trunc('month'::text, LEAST(( SELECT min(reporting_income_events."Date") AS min
+                 FROM reporting_income_events), ( SELECT min("Cash Ledger"."Movement Date") AS min
+                 FROM "Cash Ledger"), ( SELECT min(reporting_cash_scopes.available) AS min
+                 FROM reporting_cash_scopes), olap_reporting_date())::timestamp with time zone)::date::timestamp with time zone, olap_reporting_date()::timestamp with time zone, '1 day'::interval)::date AS "Date";
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "columns":
+    "Date":
+      "schema": "public"
+      "relation": "reporting_statement_calendar"
+      "name": "Date"
+      "ordinal": 1
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+  "constraints": {}
+  "indexes": {}
+  "triggers": {}
+  "policies": {}
+  "dependencies":
+  - "schema": "public"
+    "relation": "reporting_statement_calendar"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Ledger"
+    "referenced_column": "Movement Date"
+  - "schema": "public"
+    "relation": "reporting_statement_calendar"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_cash_scopes"
+    "referenced_column": "available"
+  - "schema": "public"
+    "relation": "reporting_statement_calendar"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_income_events"
+    "referenced_column": "Date"
+"evidence":
+  "/content/definition/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"

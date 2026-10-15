@@ -1,0 +1,132 @@
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "reports.mw-credit.com"
+  "kind": "question"
+  "name": "Repayment allocations · selected payment dates / 306"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r035-borrower-pages/saved-question-definitions.json"
+"content":
+  "key": "d-payments"
+  "id": 306
+  "name": "Repayment allocations · selected payment dates"
+  "description": "R035 additive borrower pages. Immutable borrower keys; Bangkok dates; current health from V41/V42. Signed\
+    \ receipts. No AppSheet/financial writes."
+  "display": "table"
+  "type": "question"
+  "dataset_query":
+    "stages":
+    - "template-tags":
+      - "widget-type": "date/all-options"
+        "id": "bp-period"
+        "name": "period"
+        "display-name": "Activity period"
+        "type": "dimension"
+        "dimension":
+        - "field"
+        - "base-type": "type/Date"
+          "lib/uuid": "d06d262f-dde6-407b-a0be-d26a22192387"
+          "effective-type": "type/Date"
+        - 82
+        "alias": "d.\"Date\""
+      - "name": "borrower_id"
+        "display-name": "Borrower"
+        "id": "bp-borrower"
+        "type": "text"
+      "lib/type": "mbql.stage/native"
+      "native": |-
+        WITH clock AS (SELECT public.olap_reporting_date() today), selected AS (SELECT d."Date" FROM (SELECT generate_series(DATE '1900-01-01',DATE '2199-12-31',interval '1 day')::date "Date") d WHERE [[{{period}} --]] d."Date" BETWEEN (SELECT today-30 FROM clock) AND (SELECT today-1 FROM clock)
+        ), bounds AS (SELECT min("Date") starts,max("Date") ends,count(*) days,count(*)>0 AND count(*)=max("Date")-min("Date")+1 AND max("Date")<=(SELECT today FROM clock) valid FROM selected), chosen AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE borrower_id= [[{{borrower_id}} --]] '__select_borrower__'
+        ), activity AS (SELECT a.* FROM public.reporting_borrower_activity_daily_v1 a JOIN chosen c USING(borrower_id) CROSS JOIN bounds b WHERE b.valid AND a.activity_date BETWEEN b.starts AND b.ends) SELECT r."Payment Date" AS "Payment date",CASE WHEN k."Row ID" IS NULL THEN 'Loan key unavailable' ELSE coalesce(c.borrower_name,'Unknown borrower')||'-'||to_char(k."Principal Amount"::numeric,'FM999,999,999,990.00')||'-'||to_char(k."Loan Date",'DD/MM')||'-'||coalesce(to_char(k."Effective Daily Interest Rate"::numeric*100,'FM999990.00')||'%','Unavailable') END AS "Loan Key",r."Principal Paid"::numeric AS "Principal ฿",r."Interest Paid"::numeric AS "Interest ฿" FROM chosen c JOIN public.reporting_borrower_loan_facts_v1 l USING(borrower_id) LEFT JOIN public.olap_loans_analytics k ON k."Row ID"=l.loan_id JOIN public.olap_repayments_analytics r ON r."Ref Loans"=l.loan_id CROSS JOIN bounds b WHERE b.valid AND r."Payment Date" BETWEEN b.starts AND b.ends ORDER BY r."Payment Date" DESC,r."Row ID"
+    "lib/type": "mbql/query"
+    "database": 2
+  "visualization_settings":
+    "table.pivot": false
+    "table.columns":
+    - "name": "Payment date"
+      "fieldRef":
+      - "field"
+      - "Payment date"
+      - "base-type": "type/Text"
+      "enabled": true
+    - "name": "Loan Key"
+      "fieldRef":
+      - "field"
+      - "Loan Key"
+      - "base-type": "type/Text"
+      "enabled": true
+    - "name": "Principal ฿"
+      "fieldRef":
+      - "field"
+      - "Principal ฿"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Interest ฿"
+      "fieldRef":
+      - "field"
+      - "Interest ฿"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    "column_settings":
+      "[\"name\",\"Principal ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Interest ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+  "result_metadata":
+  - "name": "Payment date"
+    "database_type": "date"
+    "base_type": "type/Date"
+    "display_name": "Payment date"
+    "field_ref":
+    - "field"
+    - "Payment date"
+    - "base-type": "type/Date"
+  - "name": "Loan ID"
+    "database_type": "text"
+    "base_type": "type/Text"
+    "display_name": "Loan ID"
+    "field_ref":
+    - "field"
+    - "Loan ID"
+    - "base-type": "type/Text"
+  - "name": "Repayment ID"
+    "database_type": "text"
+    "base_type": "type/Text"
+    "display_name": "Repayment ID"
+    "field_ref":
+    - "field"
+    - "Repayment ID"
+    - "base-type": "type/Text"
+  - "name": "Principal ฿"
+    "database_type": "numeric"
+    "base_type": "type/Decimal"
+    "display_name": "Principal ฿"
+    "field_ref":
+    - "field"
+    - "Principal ฿"
+    - "base-type": "type/Decimal"
+  - "name": "Interest ฿"
+    "database_type": "numeric"
+    "base_type": "type/Decimal"
+    "display_name": "Interest ฿"
+    "field_ref":
+    - "field"
+    - "Interest ฿"
+    - "base-type": "type/Decimal"
+"evidence":
+  "/content/dataset_query":
+    "reference": "outputs/r041-borrower-detail/saved.json"
+    "reason": "R041 verified Detail presentation"
+    "state": "value"
+  "/content/visualization_settings":
+    "reference": "outputs/r041-borrower-detail/saved.json"
+    "reason": "R041 verified Detail presentation"
+    "state": "value"

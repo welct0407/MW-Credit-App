@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Borrower portfolio · custom matrix</title><link rel="stylesheet" href="/chart.css"><script src="/chart.js" defer></script></head>
+<body><main>
+<header><div><p class="eyebrow">BORROWER PORTFOLIO · CUSTOM VIEW</p><h1>Payment health × contribution</h1><p class="subtitle">Same categories. Every borrower identified.</p></div><button id="refresh" type="button">↻ Refresh</button></header>
+<div class="toolbar"><label class="search">Find a borrower <input id="search" type="search" placeholder="Search name…" autocomplete="off"></label><label><input id="labels" type="checkbox" checked> Show names</label><span id="status" role="status">Connecting…</span></div>
+<div id="error" role="alert" hidden></div>
+<div id="legend" class="legend" aria-label="Category totals"></div>
+<div id="plot" aria-label="Borrower matrix with four equal quadrants"><svg id="matrix" role="group" aria-label="Payment health and contribution matrix"></svg><div id="tooltip" role="tooltip" hidden></div></div>
+<footer><span>← Stronger payment health <b>│</b> Lower / modified →</span><span>↑ Higher contribution · midpoint = 1× equal share</span></footer>
+  <p class="note">Names sit beside their dots; close names alternate above and below. All dots have the same size. Modified schedules use category placement. Click a name to open Borrower Detail. Hover, focus or tap a dot for payment-health details.</p>
+<details id="unplotted" hidden><summary></summary><ul></ul></details>
+</main></body></html>

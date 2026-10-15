@@ -1,0 +1,40 @@
+{
+  "appVersion": "1.000007",
+  "interface": "new desktop",
+  "explicitSync": true,
+  "visibleError": false,
+  "metrics": [
+    {
+      "metric": "Total Profit",
+      "match": true
+    },
+    {
+      "metric": "Daily Interest",
+      "match": true
+    },
+    {
+      "metric": "Realized Profit MTD",
+      "match": true
+    },
+    {
+      "metric": "Forecast Remaining Interest",
+      "match": true
+    },
+    {
+      "metric": "Projected Monthly Profit",
+      "match": true
+    },
+    {
+      "metric": "Forecast Monthly Return on ADO",
+      "match": true
+    },
+    {
+      "metric": "Peak Cash Pool 30D",
+      "match": true
+    },
+    {
+      "metric": "Peak Cash Pool Date 30D",
+      "match": true
+    }
+  ]
+}

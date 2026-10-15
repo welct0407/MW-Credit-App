@@ -1,0 +1,164 @@
+{
+  "verified_at": "2026-09-23T05:25:38.627Z",
+  "baseline_commit": "90a0c472fcc083bc2f74aaf41d3238f7e29c3062",
+  "reviewed_active_cards": 155,
+  "reviewed_dashboard_questions": 126,
+  "archived_duplicates": [
+    {
+      "key": "b-principal",
+      "retired": 79,
+      "canonical": 48,
+      "reason": "One-row Portfolio Overview outstanding principal"
+    },
+    {
+      "key": "r-principal",
+      "retired": 108,
+      "canonical": 48,
+      "reason": "One-row Portfolio Overview outstanding principal"
+    },
+    {
+      "key": "b-top",
+      "retired": 80,
+      "canonical": 59,
+      "reason": "Same Portfolio Overview top borrower field"
+    },
+    {
+      "key": "p-growth",
+      "retired": 95,
+      "canonical": 56,
+      "reason": "Same completed seven-day growth field"
+    },
+    {
+      "key": "r-interest",
+      "retired": 109,
+      "canonical": 81,
+      "reason": "Same borrower lifetime-interest aggregate"
+    },
+    {
+      "key": "i-interest",
+      "retired": 142,
+      "canonical": 81,
+      "reason": "Same borrower lifetime-interest aggregate; borrower filter belongs to placement"
+    },
+    {
+      "key": "f-realized",
+      "retired": 147,
+      "canonical": 51,
+      "reason": "One-row Portfolio Overview realized MTD profit"
+    },
+    {
+      "key": "f-estimate",
+      "retired": 149,
+      "canonical": 52,
+      "reason": "One-row Portfolio Overview projected monthly profit"
+    },
+    {
+      "key": "c-paid-borrowers",
+      "retired": 127,
+      "canonical": 120,
+      "fieldRename": {
+        "Borrower Count": "Fully paid"
+      },
+      "model": "collections",
+      "reason": "Summary count is the same Fully Paid worklist population"
+    },
+    {
+      "key": "c-partial-borrowers",
+      "retired": 130,
+      "canonical": 121,
+      "fieldRename": {
+        "Borrower Count": "Partially paid"
+      },
+      "model": "collections",
+      "reason": "Summary count is the same Partially Paid worklist population"
+    }
+  ],
+  "questions_after": 116,
+  "visual_placements": 130,
+  "rebound_placements": 10,
+  "result_and_filter_cases": 12,
+  "canonical_queries_unchanged": true,
+  "layout_titles_formatting_and_parameters_preserved": true,
+  "borrower_filter_cases": [
+    "unfiltered",
+    "selected existing borrower",
+    "no matching borrower"
+  ],
+  "private_rollback": "question-reuse-before",
+  "retained_variants": [
+    {
+      "ids": [
+        54,
+        68
+      ],
+      "reason": "Number versus gauge presentation"
+    },
+    {
+      "ids": [
+        63,
+        98
+      ],
+      "reason": "Area versus line presentation; page-specific date filtering"
+    },
+    {
+      "ids": [
+        82,
+        83,
+        84,
+        85
+      ],
+      "reason": "Share pie versus ranked bars"
+    },
+    {
+      "ids": [
+        83,
+        112
+      ],
+      "reason": "Visible-borrower versus active-borrower population"
+    },
+    {
+      "ids": [
+        118,
+        146
+      ],
+      "reason": "Active-borrower portfolio versus selected-borrower risk view"
+    },
+    {
+      "ids": [
+        58,
+        81,
+        94
+      ],
+      "reason": "Portfolio total, borrower aggregate and date-filterable repayment interest have different source/filter and empty-result contracts"
+    },
+    {
+      "ids": [
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46
+      ],
+      "reason": "Separate POC views explicitly exclude hidden borrowers and have distinct grouping/limits"
+    }
+  ],
+  "final_active_cards": 145,
+  "remaining_equivalent_same_display_groups": [],
+  "active_dashboards": [
+    2,
+    3
+  ],
+  "retired_question_snippet_dependencies": [],
+  "browser_verification": {
+    "pages": [
+      "Performance",
+      "Daily Collection",
+      "Borrower Insight"
+    ],
+    "query_error_state": false,
+    "repeated_collection_counts_rendered": true,
+    "returned_to": "Overview"
+  }
+}

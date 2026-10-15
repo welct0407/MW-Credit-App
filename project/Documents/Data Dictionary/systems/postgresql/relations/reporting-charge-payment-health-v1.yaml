@@ -1,0 +1,737 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "relation"
+  "name": "public.reporting_charge_payment_health_v1"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r027-payment-health/dictionary-catalog.json"
+  "coverage": "Exact scoped catalog metadata"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "reporting_charge_payment_health_v1"
+    "kind": "v"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "n"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,metabase_borrower_reader=r/postgres,mw_app_prod=r/postgres}"
+    "comment": "R027: signed component balances; restated effective-date history; no closed-status override."
+    "view_definition": |2-
+       WITH ctx AS (
+               SELECT olap_reporting_date() AS d,
+                  statement_timestamp() AS t
+              ), daily AS (
+               SELECT r."Ref Charges" AS id,
+                  r."Payment Date" AS effective_day,
+                  sum(r."Principal Paid"::numeric) AS p,
+                  sum(r."Interest Paid"::numeric) AS i
+                 FROM "Repayments" r
+                   CROSS JOIN ctx
+                WHERE r."Payment Date" < ctx.d
+                GROUP BY r."Ref Charges", r."Payment Date"
+              ), running AS (
+               SELECT daily.id,
+                  daily.effective_day,
+                  daily.p,
+                  daily.i,
+                  sum(daily.p) OVER (PARTITION BY daily.id ORDER BY daily.effective_day) AS cp,
+                  sum(daily.i) OVER (PARTITION BY daily.id ORDER BY daily.effective_day) AS ci
+                 FROM daily
+              ), covered AS (
+               SELECT r.id,
+                  r.effective_day,
+                  r.p,
+                  r.i,
+                  r.cp,
+                  r.ci,
+                  r.cp >= (c."Principal Due"::numeric - 0.005) AND r.ci >= (c."Interest Due"::numeric - 0.005) AS full_paid
+                 FROM running r
+                   JOIN "Charges" c ON c."Row ID" = r.id
+              ), last_gap AS (
+               SELECT covered.id,
+                  max(covered.effective_day) FILTER (WHERE NOT covered.full_paid) AS last_uncovered
+                 FROM covered
+                GROUP BY covered.id
+              ), timing AS (
+               SELECT c.id,
+                  min(c.effective_day) FILTER (WHERE c.full_paid AND (g.last_uncovered IS NULL OR c.effective_day > g.last_uncovered)) AS settled
+                 FROM covered c
+                   JOIN last_gap g USING (id)
+                GROUP BY c.id
+              ), payments AS (
+               SELECT r."Ref Charges" AS id,
+                  COALESCE(sum(r."Principal Paid"::numeric) FILTER (WHERE r."Payment Date" <= ctx.d), 0::numeric) AS p,
+                  COALESCE(sum(r."Interest Paid"::numeric) FILTER (WHERE r."Payment Date" <= ctx.d), 0::numeric) AS i,
+                  COALESCE(sum(r."Principal Paid"::numeric) FILTER (WHERE r."Payment Date" <= c."Charge Date" AND r."Payment Date" < ctx.d), 0::numeric) AS on_p,
+                  COALESCE(sum(r."Interest Paid"::numeric) FILTER (WHERE r."Payment Date" <= c."Charge Date" AND r."Payment Date" < ctx.d), 0::numeric) AS on_i,
+                  bool_or(r."Payment Date" IS NULL OR r."Principal Paid" IS NULL OR r."Interest Paid" IS NULL OR r."Ref Loans" IS DISTINCT FROM c."Ref Loans") AS invalid
+                 FROM "Repayments" r
+                   JOIN "Charges" c ON c."Row ID" = r."Ref Charges"
+                   CROSS JOIN ctx
+                GROUP BY r."Ref Charges"
+              ), base AS (
+               SELECT c."Row ID" AS charge_id,
+                  c."Ref Loans" AS loan_id,
+                  l."Ref Borrowers" AS borrower_id,
+                  c."Charge Date" AS due_date,
+                  c."Principal Due"::numeric AS principal_due,
+                  c."Interest Due"::numeric AS interest_due,
+                  COALESCE(p.p, 0::numeric) AS principal_paid_current,
+                  COALESCE(p.i, 0::numeric) AS interest_paid_current,
+                  GREATEST(c."Principal Due"::numeric - COALESCE(p.p, 0::numeric), 0::numeric) AS principal_remaining_current,
+                  GREATEST(c."Interest Due"::numeric - COALESCE(p.i, 0::numeric), 0::numeric) AS interest_remaining_current,
+                  c."Charge Date" < ctx.d AND c."Principal Due"::numeric >= 0::numeric AND c."Interest Due"::numeric >= 0::numeric AND (c."Principal Due"::numeric + c."Interest Due"::numeric) > 0::numeric AS eligible,
+                  COALESCE(p.on_p, 0::numeric) >= (c."Principal Due"::numeric - 0.005) AND COALESCE(p.on_i, 0::numeric) >= (c."Interest Due"::numeric - 0.005) AS on_time_covered,
+                  tm.settled,
+                  GREATEST(COALESCE(tm.settled, ctx.d) - c."Charge Date", 0) AS late,
+                      CASE
+                          WHEN c."Charge Date" IS NULL OR c."Principal Due" IS NULL OR c."Interest Due" IS NULL OR l."Row ID" IS NULL OR b."Row ID" IS NULL OR COALESCE(p.invalid, false) OR (c."Principal Due"::numeric < 0::numeric OR c."Interest Due"::numeric < 0::numeric) AND NOT COALESCE(l."Defaulted", false) THEN 'Invalid source'::text
+                          ELSE 'OK'::text
+                      END AS data_quality_status,
+                  COALESCE(l."Defaulted", false) AS defaulted,
+                  ctx.d AS reporting_date,
+                  ctx.t AS calculated_at
+                 FROM "Charges" c
+                   LEFT JOIN "Loans" l ON l."Row ID" = c."Ref Loans"
+                   LEFT JOIN "Borrowers" b ON b."Row ID" = l."Ref Borrowers"
+                   LEFT JOIN payments p ON p.id = c."Row ID"
+                   LEFT JOIN timing tm ON tm.id = c."Row ID"
+                   CROSS JOIN ctx
+              ), facts AS (
+               SELECT base.charge_id,
+                  base.loan_id,
+                  base.borrower_id,
+                  base.due_date,
+                  base.principal_due,
+                  base.interest_due,
+                  base.principal_paid_current,
+                  base.interest_paid_current,
+                  base.principal_remaining_current,
+                  base.interest_remaining_current,
+                  base.eligible,
+                  base.on_time_covered,
+                  base.settled,
+                  base.late,
+                  base.data_quality_status,
+                  base.defaulted,
+                  base.reporting_date,
+                  base.calculated_at,
+                  COALESCE(base.eligible, false) AND base.data_quality_status = 'OK'::text AS history_eligible,
+                  base.principal_remaining_current + base.interest_remaining_current AS remaining_current,
+                      CASE
+                          WHEN base.data_quality_status <> 'OK'::text THEN 'Invalid source'::text
+                          WHEN base.principal_due < 0::numeric OR base.interest_due < 0::numeric THEN 'Default accounting'::text
+                          WHEN (base.principal_due + base.interest_due) = 0::numeric THEN 'Zero obligation'::text
+                          WHEN base.due_date >= base.reporting_date THEN 'Not matured'::text
+                          ELSE NULL::text
+                      END AS exclusion_reason
+                 FROM base
+              ), overdue AS (
+               SELECT facts.charge_id,
+                  facts.loan_id,
+                  facts.borrower_id,
+                  facts.due_date,
+                  facts.principal_due,
+                  facts.interest_due,
+                  facts.principal_paid_current,
+                  facts.interest_paid_current,
+                  facts.principal_remaining_current,
+                  facts.interest_remaining_current,
+                  facts.eligible,
+                  facts.on_time_covered,
+                  facts.settled,
+                  facts.late,
+                  facts.data_quality_status,
+                  facts.defaulted,
+                  facts.reporting_date,
+                  facts.calculated_at,
+                  facts.history_eligible,
+                  facts.remaining_current,
+                  facts.exclusion_reason,
+                  facts.history_eligible AND facts.remaining_current > 0.005 AS is_overdue
+                 FROM facts
+              )
+       SELECT charge_id,
+          loan_id,
+          borrower_id,
+          due_date,
+          principal_due,
+          interest_due,
+          history_eligible,
+          exclusion_reason,
+          data_quality_status,
+          principal_paid_current,
+          interest_paid_current,
+              CASE
+                  WHEN data_quality_status = 'OK'::text THEN principal_remaining_current
+                  ELSE NULL::numeric
+              END AS principal_remaining_current,
+              CASE
+                  WHEN data_quality_status = 'OK'::text THEN interest_remaining_current
+                  ELSE NULL::numeric
+              END AS interest_remaining_current,
+              CASE
+                  WHEN data_quality_status = 'OK'::text THEN remaining_current
+                  ELSE NULL::numeric
+              END AS remaining_current,
+          is_overdue,
+              CASE
+                  WHEN data_quality_status <> 'OK'::text THEN NULL::numeric
+                  WHEN is_overdue THEN remaining_current
+                  ELSE 0::numeric
+              END AS overdue_amount,
+              CASE
+                  WHEN is_overdue THEN reporting_date - due_date
+                  ELSE NULL::integer
+              END AS current_days_overdue,
+              CASE
+                  WHEN history_eligible THEN on_time_covered
+                  ELSE NULL::boolean
+              END AS on_time,
+              CASE
+                  WHEN history_eligible THEN settled
+                  ELSE NULL::date
+              END AS final_settlement_date,
+              CASE
+                  WHEN history_eligible THEN late
+                  ELSE NULL::integer
+              END AS historical_delay_days,
+              CASE
+                  WHEN history_eligible THEN
+                  CASE
+                      WHEN late = 0 THEN 100
+                      WHEN late = 1 THEN 90
+                      WHEN late <= 3 THEN 70
+                      WHEN late <= 7 THEN 40
+                      ELSE 10
+                  END
+                  ELSE NULL::integer
+              END AS delay_grade,
+          reporting_date,
+          calculated_at,
+          'payment-health-v1'::text AS method_version
+         FROM overdue;
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "columns":
+    "charge_id":
+      "schema": "public"
+      "relation": "reporting_charge_payment_health_v1"
+      "name": "charge_id"
+      "ordinal": 1
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "loan_id":
+      "schema": "public"
+      "relation": "reporting_charge_payment_health_v1"
+      "name": "loan_id"
+      "ordinal": 2
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "borrower_id":
+      "schema": "public"
+      "relation": "reporting_charge_payment_health_v1"
+      "name": "borrower_id"
+      "ordinal": 3
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "due_date":
+      "schema": "public"
+      "relation": "reporting_charge_payment_health_v1"
+      "name": "due_date"
+      "ordinal": 4
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "principal_due":
+      "schema": "public"
+      "relation": "reporting_charge_payment_health_v1"
+      "name": "principal_due"
+      "ordinal": 5
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "interest_due":
+      "schema": "public"
+      "relation": "reporting_charge_payment_health_v1"
+      "name": "interest_due"
+      "ordinal": 6
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "history_eligible":
+      "schema": "public"
+      "relation": "reporting_charge_payment_health_v1"
+      "name": "history_eligible"
+      "ordinal": 7
+      "data_type": "boolean"
+      "type_schema": "pg_catalog"
+      "type_name": "bool"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "exclusion_reason":
+      "schema": "public"
+      "relation": "reporting_charge_payment_health_v1"
+      "name": "exclusion_reason"
+      "ordinal": 8
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "data_quality_status":
+      "schema": "public"
+      "relation": "reporting_charge_payment_health_v1"
+      "name": "data_quality_status"
+      "ordinal": 9
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "principal_paid_current":
+      "schema": "public"
+      "relation": "reporting_charge_payment_health_v1"
+      "name": "principal_paid_current"
+      "ordinal": 10
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "interest_paid_current":
+      "schema": "public"
+      "relation": "reporting_charge_payment_health_v1"
+      "name": "interest_paid_current"
+      "ordinal": 11
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "principal_remaining_current":
+      "schema": "public"
+      "relation": "reporting_charge_payment_health_v1"
+      "name": "principal_remaining_current"
+      "ordinal": 12
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "interest_remaining_current":
+      "schema": "public"
+      "relation": "reporting_charge_payment_health_v1"
+      "name": "interest_remaining_current"
+      "ordinal": 13
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "remaining_current":
+      "schema": "public"
+      "relation": "reporting_charge_payment_health_v1"
+      "name": "remaining_current"
+      "ordinal": 14
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "is_overdue":
+      "schema": "public"
+      "relation": "reporting_charge_payment_health_v1"
+      "name": "is_overdue"
+      "ordinal": 15
+      "data_type": "boolean"
+      "type_schema": "pg_catalog"
+      "type_name": "bool"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "overdue_amount":
+      "schema": "public"
+      "relation": "reporting_charge_payment_health_v1"
+      "name": "overdue_amount"
+      "ordinal": 16
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "current_days_overdue":
+      "schema": "public"
+      "relation": "reporting_charge_payment_health_v1"
+      "name": "current_days_overdue"
+      "ordinal": 17
+      "data_type": "integer"
+      "type_schema": "pg_catalog"
+      "type_name": "int4"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "on_time":
+      "schema": "public"
+      "relation": "reporting_charge_payment_health_v1"
+      "name": "on_time"
+      "ordinal": 18
+      "data_type": "boolean"
+      "type_schema": "pg_catalog"
+      "type_name": "bool"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "final_settlement_date":
+      "schema": "public"
+      "relation": "reporting_charge_payment_health_v1"
+      "name": "final_settlement_date"
+      "ordinal": 19
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "historical_delay_days":
+      "schema": "public"
+      "relation": "reporting_charge_payment_health_v1"
+      "name": "historical_delay_days"
+      "ordinal": 20
+      "data_type": "integer"
+      "type_schema": "pg_catalog"
+      "type_name": "int4"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "delay_grade":
+      "schema": "public"
+      "relation": "reporting_charge_payment_health_v1"
+      "name": "delay_grade"
+      "ordinal": 21
+      "data_type": "integer"
+      "type_schema": "pg_catalog"
+      "type_name": "int4"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "reporting_date":
+      "schema": "public"
+      "relation": "reporting_charge_payment_health_v1"
+      "name": "reporting_date"
+      "ordinal": 22
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "calculated_at":
+      "schema": "public"
+      "relation": "reporting_charge_payment_health_v1"
+      "name": "calculated_at"
+      "ordinal": 23
+      "data_type": "timestamp with time zone"
+      "type_schema": "pg_catalog"
+      "type_name": "timestamptz"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "method_version":
+      "schema": "public"
+      "relation": "reporting_charge_payment_health_v1"
+      "name": "method_version"
+      "ordinal": 24
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+  "constraints": {}
+  "indexes": {}
+  "triggers": {}
+  "policies": {}
+  "dependencies":
+  - "schema": "public"
+    "relation": "reporting_charge_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Borrowers"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "reporting_charge_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Charges"
+    "referenced_column": "Charge Date"
+  - "schema": "public"
+    "relation": "reporting_charge_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Charges"
+    "referenced_column": "Interest Due"
+  - "schema": "public"
+    "relation": "reporting_charge_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Charges"
+    "referenced_column": "Principal Due"
+  - "schema": "public"
+    "relation": "reporting_charge_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Charges"
+    "referenced_column": "Ref Loans"
+  - "schema": "public"
+    "relation": "reporting_charge_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Charges"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "reporting_charge_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Loans"
+    "referenced_column": "Defaulted"
+  - "schema": "public"
+    "relation": "reporting_charge_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Loans"
+    "referenced_column": "Ref Borrowers"
+  - "schema": "public"
+    "relation": "reporting_charge_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Loans"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "reporting_charge_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Repayments"
+    "referenced_column": "Interest Paid"
+  - "schema": "public"
+    "relation": "reporting_charge_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Repayments"
+    "referenced_column": "Payment Date"
+  - "schema": "public"
+    "relation": "reporting_charge_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Repayments"
+    "referenced_column": "Principal Paid"
+  - "schema": "public"
+    "relation": "reporting_charge_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Repayments"
+    "referenced_column": "Ref Charges"
+  - "schema": "public"
+    "relation": "reporting_charge_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Repayments"
+    "referenced_column": "Ref Loans"
+"evidence":
+  "/content/definition/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"

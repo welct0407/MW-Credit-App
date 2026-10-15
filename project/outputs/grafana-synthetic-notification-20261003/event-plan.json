@@ -1,0 +1,11 @@
+{
+  "eventId": "evt_4325352f7ccdb56e80e294981e9fc3f55d3b108f4bebb069c22c6772c4f2eb7c",
+  "source": "olivecrab1199",
+  "alertName": "MW Grafana Bridge Synthetic Test",
+  "status": "firing",
+  "startsAt": "2026-10-03T10:00:26.000Z",
+  "sent": false,
+  "ingested": false,
+  "deliveryReconciled": false,
+  "reason": "execution path blocked before any live ingest or dispatch; identity reserved for exactly one approved notification"
+}

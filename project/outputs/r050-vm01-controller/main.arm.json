@@ -1,0 +1,448 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.47.16.16243",
+      "templateHash": "8518182519752059667"
+    }
+  },
+  "parameters": {
+    "location": {
+      "type": "string",
+      "defaultValue": "southeastasia",
+      "allowedValues": [
+        "southeastasia"
+      ]
+    },
+    "functionAppName": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 60
+    },
+    "storageAccountName": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 24
+    },
+    "apiClientId": {
+      "type": "string"
+    },
+    "browserClientId": {
+      "type": "string"
+    },
+    "browserUserObjectIds": {
+      "type": "array"
+    },
+    "expectedVmId": {
+      "type": "string"
+    },
+    "cloudClientId": {
+      "type": "string",
+      "defaultValue": ""
+    },
+    "cloudPrincipalId": {
+      "type": "string",
+      "defaultValue": ""
+    },
+    "enableMutations": {
+      "type": "bool",
+      "defaultValue": false,
+      "metadata": {
+        "description": "Disabled until separate runtime activation approval and ledger admission enablement."
+      }
+    },
+    "enableOperationPolling": {
+      "type": "bool",
+      "defaultValue": false,
+      "metadata": {
+        "description": "Disabled until a separately reviewed operation-read assignment has been approved and verified."
+      }
+    },
+    "attachVmRole": {
+      "type": "bool",
+      "defaultValue": false,
+      "metadata": {
+        "description": "Attach VM RBAC only after authentication/status-only verification."
+      }
+    },
+    "maximumInstanceCount": {
+      "type": "int",
+      "defaultValue": 40,
+      "minValue": 40,
+      "maxValue": 1000
+    },
+    "httpConcurrency": {
+      "type": "int",
+      "defaultValue": 4,
+      "minValue": 1,
+      "maxValue": 32
+    }
+  },
+  "variables": {
+    "tenantId": "9e29c895-606a-420b-acc2-1c24375df4d9",
+    "vmResourceId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/RG-MWCREDIT/providers/Microsoft.Compute/virtualMachines/VM-01",
+    "tags": {
+      "owner": "AppSheet-Loan-Project",
+      "purpose": "vm01-controller",
+      "release": "R050"
+    },
+    "deploymentContainerName": "function-package",
+    "blobOwnerRoleId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b7e6dc6d-f1e8-4753-8033-0f276bb0955b')]",
+    "blobContributorRoleId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "apiVersion": "2023-05-01",
+      "name": "[parameters('storageAccountName')]",
+      "location": "[parameters('location')]",
+      "tags": "[variables('tags')]",
+      "kind": "StorageV2",
+      "sku": {
+        "name": "Standard_LRS"
+      },
+      "properties": {
+        "accessTier": "Hot",
+        "allowBlobPublicAccess": false,
+        "allowSharedKeyAccess": false,
+        "minimumTlsVersion": "TLS1_2",
+        "supportsHttpsTrafficOnly": true,
+        "publicNetworkAccess": "Enabled"
+      }
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts/blobServices",
+      "apiVersion": "2023-05-01",
+      "name": "[format('{0}/{1}', parameters('storageAccountName'), 'default')]",
+      "properties": {
+        "deleteRetentionPolicy": {
+          "enabled": true,
+          "days": 7
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+      "apiVersion": "2023-05-01",
+      "name": "[format('{0}/{1}/{2}', parameters('storageAccountName'), 'default', variables('deploymentContainerName'))]",
+      "properties": {
+        "publicAccess": "None"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts/blobServices', parameters('storageAccountName'), 'default')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+      "apiVersion": "2023-05-01",
+      "name": "[format('{0}/{1}/{2}', parameters('storageAccountName'), 'default', 'vm01-controller')]",
+      "properties": {
+        "publicAccess": "None"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts/blobServices', parameters('storageAccountName'), 'default')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Web/serverfarms",
+      "apiVersion": "2024-04-01",
+      "name": "[format('{0}-plan', parameters('functionAppName'))]",
+      "location": "[parameters('location')]",
+      "tags": "[variables('tags')]",
+      "sku": {
+        "name": "FC1",
+        "tier": "FlexConsumption"
+      },
+      "properties": {
+        "reserved": true
+      }
+    },
+    {
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2024-04-01",
+      "name": "[parameters('functionAppName')]",
+      "location": "[parameters('location')]",
+      "tags": "[variables('tags')]",
+      "kind": "functionapp,linux",
+      "identity": {
+        "type": "SystemAssigned"
+      },
+      "properties": {
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', format('{0}-plan', parameters('functionAppName')))]",
+        "httpsOnly": true,
+        "publicNetworkAccess": "Enabled",
+        "functionAppConfig": {
+          "runtime": {
+            "name": "node",
+            "version": "24"
+          },
+          "deployment": {
+            "storage": {
+              "type": "blobContainer",
+              "value": "[format('{0}{1}', reference(resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName')), '2023-05-01').primaryEndpoints.blob, variables('deploymentContainerName'))]",
+              "authentication": {
+                "type": "SystemAssignedIdentity"
+              }
+            }
+          },
+          "scaleAndConcurrency": {
+            "instanceMemoryMB": 512,
+            "maximumInstanceCount": "[parameters('maximumInstanceCount')]",
+            "alwaysReady": [],
+            "triggers": {
+              "http": {
+                "perInstanceConcurrency": "[parameters('httpConcurrency')]"
+              }
+            }
+          }
+        },
+        "siteConfig": {
+          "minTlsVersion": "1.2",
+          "scmMinTlsVersion": "1.2",
+          "ftpsState": "Disabled",
+          "remoteDebuggingEnabled": false
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', format('{0}-plan', parameters('functionAppName')))]",
+        "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Web/sites/config",
+      "apiVersion": "2024-04-01",
+      "name": "[format('{0}/{1}', parameters('functionAppName'), 'appsettings')]",
+      "properties": {
+        "AzureWebJobsStorage__credential": "managedidentity",
+        "AzureWebJobsStorage__blobServiceUri": "[reference(resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName')), '2023-05-01').primaryEndpoints.blob]",
+        "VM01_TENANT_ID": "[variables('tenantId')]",
+        "VM01_RESOURCE_ID": "[variables('vmResourceId')]",
+        "VM01_EXPECTED_VM_ID": "[parameters('expectedVmId')]",
+        "VM01_ORIGIN": "[format('https://{0}', reference(resourceId('Microsoft.Web/sites', parameters('functionAppName')), '2024-04-01').defaultHostName)]",
+        "VM01_API_CLIENT_ID": "[parameters('apiClientId')]",
+        "VM01_BROWSER_CLIENT_ID": "[parameters('browserClientId')]",
+        "VM01_BROWSER_USER_IDS": "[join(parameters('browserUserObjectIds'), ',')]",
+        "VM01_CLOUD_CLIENT_ID": "[parameters('cloudClientId')]",
+        "VM01_CLOUD_PRINCIPAL_ID": "[parameters('cloudPrincipalId')]",
+        "VM01_STORAGE_ACCOUNT": "[parameters('storageAccountName')]",
+        "VM01_ENABLE_MUTATIONS": "[if(parameters('enableMutations'), 'true', 'false')]",
+        "VM01_ENABLE_OPERATION_POLLING": "[if(parameters('enableOperationPolling'), 'true', 'false')]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', parameters('functionAppName'))]",
+        "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Web/sites/config",
+      "apiVersion": "2022-09-01",
+      "name": "[format('{0}/{1}', parameters('functionAppName'), 'authsettingsV2')]",
+      "properties": {
+        "platform": {
+          "enabled": true,
+          "runtimeVersion": "~1"
+        },
+        "globalValidation": {
+          "requireAuthentication": true,
+          "unauthenticatedClientAction": "Return401",
+          "excludedPaths": [
+            "/",
+            "/auth/callback",
+            "/assets/app.js",
+            "/assets/style.css",
+            "/assets/config.js",
+            "/assets/auth-callback.js"
+          ]
+        },
+        "httpSettings": {
+          "requireHttps": true
+        },
+        "login": {
+          "tokenStore": {
+            "enabled": false
+          }
+        },
+        "identityProviders": {
+          "azureActiveDirectory": {
+            "enabled": true,
+            "registration": {
+              "clientId": "[parameters('apiClientId')]",
+              "openIdIssuer": "[format('{0}{1}/v2.0', environment().authentication.loginEndpoint, variables('tenantId'))]"
+            },
+            "validation": {
+              "allowedAudiences": [
+                "[parameters('apiClientId')]"
+              ],
+              "defaultAuthorizationPolicy": {
+                "allowedApplications": "[if(empty(parameters('cloudClientId')), createArray(parameters('browserClientId')), createArray(parameters('browserClientId'), parameters('cloudClientId')))]",
+                "allowedPrincipals": {
+                  "identities": "[if(empty(parameters('cloudPrincipalId')), parameters('browserUserObjectIds'), concat(parameters('browserUserObjectIds'), createArray(parameters('cloudPrincipalId'))))]"
+                }
+              }
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', parameters('functionAppName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "scope": "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]",
+      "name": "[guid(resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName')), resourceId('Microsoft.Web/sites', parameters('functionAppName')), variables('blobOwnerRoleId'))]",
+      "properties": {
+        "principalId": "[reference(resourceId('Microsoft.Web/sites', parameters('functionAppName')), '2024-04-01', 'full').identity.principalId]",
+        "principalType": "ServicePrincipal",
+        "roleDefinitionId": "[variables('blobOwnerRoleId')]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', parameters('functionAppName'))]",
+        "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "scope": "[resourceId('Microsoft.Storage/storageAccounts/blobServices/containers', parameters('storageAccountName'), 'default', variables('deploymentContainerName'))]",
+      "name": "[guid(resourceId('Microsoft.Storage/storageAccounts/blobServices/containers', parameters('storageAccountName'), 'default', variables('deploymentContainerName')), resourceId('Microsoft.Web/sites', parameters('functionAppName')), variables('blobContributorRoleId'))]",
+      "properties": {
+        "principalId": "[reference(resourceId('Microsoft.Web/sites', parameters('functionAppName')), '2024-04-01', 'full').identity.principalId]",
+        "principalType": "ServicePrincipal",
+        "roleDefinitionId": "[variables('blobContributorRoleId')]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts/blobServices/containers', parameters('storageAccountName'), 'default', variables('deploymentContainerName'))]",
+        "[resourceId('Microsoft.Web/sites', parameters('functionAppName'))]"
+      ]
+    },
+    {
+      "condition": "[parameters('attachVmRole')]",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "vm01-power-role",
+      "subscriptionId": "50f792fa-803e-4280-833d-1fe60fef5293",
+      "resourceGroup": "RG-MWCREDIT",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "principalId": {
+            "value": "[reference(resourceId('Microsoft.Web/sites', parameters('functionAppName')), '2024-04-01', 'full').identity.principalId]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.47.16.16243",
+              "templateHash": "17348561336486223063"
+            }
+          },
+          "parameters": {
+            "principalId": {
+              "type": "string",
+              "metadata": {
+                "description": "Function system-assigned identity, supplied only after approved provisioning."
+              }
+            }
+          },
+          "variables": {
+            "vmName": "VM-01",
+            "vmResourceId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/RG-MWCREDIT/providers/Microsoft.Compute/virtualMachines/VM-01"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Authorization/roleDefinitions",
+              "apiVersion": "2022-04-01",
+              "name": "[guid(variables('vmResourceId'), 'vm01-controller-five-actions-v1')]",
+              "properties": {
+                "roleName": "VM01 Power Controller",
+                "description": "Read and start, restart or deallocate VM-01 only when assigned at its exact resource.",
+                "type": "CustomRole",
+                "assignableScopes": [
+                  "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/RG-MWCREDIT"
+                ],
+                "permissions": [
+                  {
+                    "actions": [
+                      "Microsoft.Compute/virtualMachines/read",
+                      "Microsoft.Compute/virtualMachines/instanceView/read",
+                      "Microsoft.Compute/virtualMachines/start/action",
+                      "Microsoft.Compute/virtualMachines/restart/action",
+                      "Microsoft.Compute/virtualMachines/deallocate/action"
+                    ],
+                    "notActions": [],
+                    "dataActions": [],
+                    "notDataActions": []
+                  }
+                ]
+              }
+            },
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "scope": "[resourceId('Microsoft.Compute/virtualMachines', variables('vmName'))]",
+              "name": "[guid(variables('vmResourceId'), parameters('principalId'), resourceId('Microsoft.Authorization/roleDefinitions', guid(variables('vmResourceId'), 'vm01-controller-five-actions-v1')))]",
+              "properties": {
+                "principalId": "[parameters('principalId')]",
+                "principalType": "ServicePrincipal",
+                "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', guid(variables('vmResourceId'), 'vm01-controller-five-actions-v1'))]"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Authorization/roleDefinitions', guid(variables('vmResourceId'), 'vm01-controller-five-actions-v1'))]"
+              ]
+            }
+          ],
+          "outputs": {
+            "roleDefinitionId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.Authorization/roleDefinitions', guid(variables('vmResourceId'), 'vm01-controller-five-actions-v1'))]"
+            },
+            "assignmentScope": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.Compute/virtualMachines', variables('vmName'))]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites/config', parameters('functionAppName'), 'authsettingsV2')]",
+        "[resourceId('Microsoft.Web/sites/config', parameters('functionAppName'), 'appsettings')]",
+        "[resourceId('Microsoft.Web/sites', parameters('functionAppName'))]"
+      ]
+    }
+  ],
+  "outputs": {
+    "controllerOrigin": {
+      "type": "string",
+      "value": "[format('https://{0}', reference(resourceId('Microsoft.Web/sites', parameters('functionAppName')), '2024-04-01').defaultHostName)]"
+    },
+    "managedIdentityPrincipalId": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Web/sites', parameters('functionAppName')), '2024-04-01', 'full').identity.principalId]"
+    },
+    "hostStorageScope": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]"
+    },
+    "deploymentStorageScope": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.Storage/storageAccounts/blobServices/containers', parameters('storageAccountName'), 'default', variables('deploymentContainerName'))]"
+    },
+    "vmRoleAttached": {
+      "type": "bool",
+      "value": "[parameters('attachVmRole')]"
+    }
+  }
+}

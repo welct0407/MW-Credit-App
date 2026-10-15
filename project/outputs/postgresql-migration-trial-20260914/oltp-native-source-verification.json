@@ -1,0 +1,34 @@
+[
+  {
+    "name": "Borrowers",
+    "source": "text ID=base/GhFoIWUelX4UMyCCNLda80/tables/Iya7C1Iv_z4ZmO0tyMrMme"
+  },
+  {
+    "name": "Loans",
+    "source": "text ID=base/GhFoIWUelX4UMyCCNLda80/tables/uhIsbxFaUV4P2yCFRPUWoa"
+  },
+  {
+    "name": "Repayments",
+    "source": "text ID=base/GhFoIWUelX4UMyCCNLda80/tables/TA6YmxJirY4Y2DSpa7aR17"
+  },
+  {
+    "name": "Statistics",
+    "source": "text ID=base/GhFoIWUelX4UMyCCNLda80/tables/MoJ3e9N4iC4rE7kW9wLSt9"
+  },
+  {
+    "name": "Charges",
+    "source": "text ID=base/GhFoIWUelX4UMyCCNLda80/tables/3EhKRaJBK64SAsNbtGBQU1"
+  },
+  {
+    "name": "Partners",
+    "source": "text ID=base/GhFoIWUelX4UMyCCNLda80/tables/cxkDtKcsOZ4vm4kMSHOr66"
+  },
+  {
+    "name": "Payment Allocations",
+    "source": "text ID=base/GhFoIWUelX4UMyCCNLda80/tables/MFKNswyWeK4HYkVSIutpvb"
+  },
+  {
+    "name": "Payments",
+    "source": "text ID=base/GhFoIWUelX4UMyCCNLda80/tables/ULg9Cchxjz4oyzeQgeF-59"
+  }
+]

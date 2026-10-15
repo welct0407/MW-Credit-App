@@ -1,0 +1,10 @@
+{
+  "name": "mw-public-fx",
+  "uid": "efz19dcu6cwzka",
+  "type": "yesoreyeram-infinity-datasource",
+  "access": "proxy",
+  "jsonData": {
+    "auth_method": "none",
+    "allowedHosts": ["https://api.frankfurter.dev"]
+  }
+}

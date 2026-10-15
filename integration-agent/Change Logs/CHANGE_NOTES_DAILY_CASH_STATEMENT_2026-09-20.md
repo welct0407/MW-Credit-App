@@ -1,0 +1,71 @@
+# Daily cash movement statement — 20 September 2026
+
+## Final output consolidation
+
+Starting clean Git commit `1532d2ad204fe876ec962e2925e2412347f5fb82`. After accepting the current output, the owner requested removal of scripts for older output versions. The runtime now supports only completed 00:00–00:00 Bangkok calendar-day statements in the final logo-only design, with whole-baht values, HH:MM posting times, pink structure, green inflows, red outflows and Partner-master language selection.
+
+Removed the temporary `--review-thai` / incomplete-day preview flags, preview rendering branch, isolated review snapshot/key logic, related test, sample option and preview image. Catalogue revision 6 closes that temporary service path. Historical change-log text, private snapshots and durable send journals remain as audit evidence; they are data/evidence, not callable old output scripts. No message, data write or schedule is part of this cleanup. Verification and Debian deployment are in progress.
+
+**Cleanup completed and deployed** at commit `f8b9896`. All **22 tests passed on Debian**, including both renderer tests. A read-only current-format preparation reused the completed 19 September calendar-day snapshot and reconciled four accounts, 19 transaction rows and eight language images. The installed CLI exposes only `--date` and `--send`; repository/runtime searches find no temporary review or preview flags. Current Partner master data reported one English and one Thai enabled recipient during preparation; no images were sent. Sending, processing, writes and daily briefing remain false, and no schedule exists. Rollback package/config: `/var/lib/mw-integration-agent/rollback/cash-statement-20260920T232417`.
+
+## Logo-only branding, movement colors and Thai 20 September review
+
+Starting clean Git commit `3a60eef9fbad31ed665981d6b48affa8d7c5e83d`. Owner requested removal of repeated M&W Credit header/footer text (retain logo), original green incoming/red outgoing amounts while keeping pink layout accents, and the next review for 20 September in Thai. Rendering and review CLI now implement this; Partner master language is never edited.
+
+At request time Bangkok was 20 September 23:11, so this run must be a visibly labeled preview through its captured cutoff. It cannot claim a completed 20 September day. Explicit dated Thai review requires exactly one enabled Partner, retains normal eligibility/identity/window controls, and uses isolated snapshot storage/send keys. A retry reuses its frozen cutoff; normal finalized statements remain separate. Catalogue revision 5 records this narrow exception. Scheduling remains off. Deployment, visual verification and delivery are in progress.
+
+Installed runtime checkpoint `1dce43a`; rollback package/config is `/var/lib/mw-integration-agent/rollback/cash-statement-20260920T231407` (previous installed implementation `b52febf`, evidence checkout `3a60eef`). All **23 Debian tests passed**, including explicit current-day preview/future rejection; Windows passed 21 with two Debian-only renderer checks skipped. The actual review snapshot covers **20 September 00:00 through 23:14:15.761195 Bangkok**. Four closing balances independently reconcile to direct Cash Ledger totals; 23 transaction rows are within the captured period. Eight private images were rendered, and synthetic normal/Thai-preview layouts were visually verified for logo-only branding, green/red amounts, date interval and visible incomplete-day label. Partner language data was not edited.
+
+**Completed and sent for review:** four Thai account images were accepted by Meta for the currently enabled Partner. The journal retains 12 accepted sends across all three authorized rounds and no unknown outcomes. Sending, processing, writes and daily briefing flags read back false. Scheduling remains off. This Thai override is explicit per run; ordinary delivery continues using the Partner's saved preference. Owner acceptance remains pending.
+
+## Owner refinement — calendar day and M&W Credit branding
+
+Starting clean Git commit `5fd7f5b4773c71d30e80327bf05d6febddff3a30`; live VM checkout matches. The owner revised the reporting window to a full Bangkok calendar day, 00:00 inclusive through next midnight exclusive, retaining posting-time basis. Display all amounts without decimals, transaction times as HH:MM, organization name **M&W Credit**, no footer date, and primary color **#D81B60** with coordinated pink shades. These instructions supersede the historical 06:00 design below.
+
+Updated period selection, rendering, CLI help, catalogue revision 4, sample fixtures, existing boundary/render tests and current documentation. Preserve exact Decimal accounting; round display only to whole baht (half up). Calendar-day snapshots have a separate directory and full-period send keys, preserving the earlier accepted report and its journal. Scheduling remains off. Verification, revised previews and deployment are in progress.
+
+The owner then supplied the M&W Credit logo and requested a persistent Debian copy. Retrieved the exact PNG through the signed-in Drive browser (connector returned not found), verified its dimensions/hash, and bundled the unchanged original in the Python package. Header rendering scales a local copy; it never downloads at runtime. Provenance lives in `src/mw_integration_agent/assets/README.md`.
+
+Calendar-day checkpoint `95b7aa1` is installed: all 22 Debian tests passed; four account balances and 19 transaction rows independently reconciled for 19 September 00:00 through 20 September 00:00 Bangkok. Eight private English/Thai images were generated. Delivery is held until the logo is included and visually verified. Refinement rollback package/config: `/var/lib/mw-integration-agent/rollback/cash-statement-20260920T230003` (prior installed implementation `89994d4`, checkout/evidence baseline `5fd7f5b`).
+
+**Refinement completed:** logo/runtime checkpoint `b52febf` is installed. All 22 Debian tests passed, and the installed package's PNG SHA-256 matches the owner-supplied original (`5808ee79d5b6e843c8ed648e8507678ea349297d1cc687a97021c5d396dd2a8d`). Final English/Thai images were visually reviewed: midnight interval, whole-baht summary/table values, HH:MM times, exact M&W Credit branding/logo, no footer date, and pink theme all verified. Updated synthetic previews are published under `outputs/cash-statement-sample/`.
+
+The revised full-day statements were then sent once to the one currently opted-in Partner in English: **four new images accepted by Meta**, for 19 September 00:00 through 20 September 00:00 Bangkok. The journal now retains eight accepted sends (four historical 06:00-period images plus four revised calendar-day images), with no unknown send. Controls read back sending/processing/writes/daily briefing all false. Scheduling remains off; owner acceptance remains pending. No financial or AppSheet data/configuration change occurred.
+
+## Scope and authority
+
+Owner requested a daily picture statement for every bank/cash account, an R010-style summary, opening balance, transactions with running balances, and closing balance; send to all Partners with IG Integration Enabled, using each Partner's master Language Preference. Owner explicitly chose posting timestamps for the 06:00–06:00 Bangkok cutoff. Manual generation/delivery is in scope. Scheduling awaits owner satisfaction.
+
+Starting clean Git commit: `fcedf4b9959cf9115d9b8c24ac96e314e5d5441a`. No AppSheet definition, financial row, production schema, or Windows runtime change.
+
+## Implementation
+
+Fixed read-only R010 view query under repeatable-read transaction; immutable opening-minus-baseline offsets; Decimal arithmetic; exact start-inclusive/end-exclusive period; all accounts including inactive/no activity; no invented zero for uninitialized accounts. Effective dates remain visible for backdated entries. Current ledger corrections can restate historical postings; snapshots freeze once prepared rather than pretending to be immutable bank history.
+
+Deterministic PNG renderer in English and Thai with Garuda and RAQM shaping, masked account suffix, summary and full running-balance table. Long statements use numbered pages with brought/carried balances. Financial images and source snapshots stay private under runtime state, never Git or a public URL.
+
+Partner authentication requires current explicit opt-in, supported language, unique master username, live official API conversation/profile binding and a signed-ingress 24-hour window. Fresh controls/master checks surround upload/dispatch. Durable intent is committed before send, and unknown outcomes never automatically replay. No inbound processing, financial writes, email fallback, or schedule is enabled.
+
+Changed modules: cash_statement, statement_image, statement_delivery, statement_run, CLI/config/catalogue; pinned Pillow/tzdata dependencies; preflight/deployment/sample scripts; tests and operating documentation.
+
+## Checks and status
+
+Read-only VM preflight confirmed `vm-mw-credit-agent`, correct proxy instance, `loan_manager_prod` / `mw_integration_agent`, actual source fields, four accounts with four initialization records, and one opted-in Partner with English preference. No row contents printed.
+
+Implementation checkpoint `64b01ad` was published and installed. All 20 logic/transport tests passed on Windows and Debian. Private production preparation generated four account statements for 19 September 06:00 through 20 September 06:00 Bangkok. Visual review caught missing Latin glyphs in the original Thai-only font before any delivery. Changed to Garuda, added Latin/Thai glyph guards and Debian pagination/font regression tests; numeric date formatting avoids untranslated month names and a missing arrow glyph. Garuda samples were visually checked in both languages; final rerender/live reconciliation and delivery remain in progress. No schedule installed.
+
+Pre-installation rollback directory: `/var/lib/mw-integration-agent/rollback/cash-statement-20260920T224152`. It contains the prior installed package, protected config/catalogue and dependency inventory. Its source-commit file identifies the new checked-out source; the original installed baseline was `fcedf4b`.
+
+## Completed manual delivery
+
+Runtime code `89994d4` is installed on Debian. All **22 tests passed on Debian**, including both actual renderer tests; Windows passed 20 logic tests with the two Debian renderer tests explicitly skipped. Final English and Thai synthetic PNGs were visually inspected; required Latin/Thai glyph checks pass, and the numeric date interval renders correctly. Synthetic review images are under `outputs/cash-statement-sample/`.
+
+The frozen production period is **2026-09-19 06:00 through 2026-09-20 06:00 Asia/Bangkok**. Read-only verification independently reconciled all **four account closing balances against direct Cash Ledger totals plus the R008 baseline**, verified all **20 transaction rows** fall inside the posting-time interval, and checked eight English/Thai image files. No financial amounts or personal rows were published.
+
+The explicit manual run found one currently enabled Partner, language English, verified the live conversation/profile and messaging window, uploaded the four images directly to Meta, and received **four accepted message IDs**. No public media hosting was needed. `sending_enabled` was restored to false in the wrapper's `finally` block. Delivery IDs, financial images and snapshots remain in private VM state. API acceptance is not proof of human reading.
+
+**Implemented, deployed and manually sent for owner review.** Owner satisfaction/acceptance remains pending. **Scheduling remains off**; no timer, automatic reply, financial write or email fallback was enabled. Thai output was visually tested, but no Thai Partner delivery was attempted because the only currently enabled Partner selected English. Future changed/backdated source records can restate the operational ledger; the sent snapshot remains frozen.
+
+## Rollback
+
+Revert this source change normally, reinstall the prior package, and restore the backed-up catalogue/configuration. The deployment script preserves affected installed Python code, dependency inventory and private config/catalogue before installation. Never replace an active delivery journal with an older copy or erase accepted/unknown send records. No database rollback is needed because reporting performs SELECT only. Existing ingress remains independent.

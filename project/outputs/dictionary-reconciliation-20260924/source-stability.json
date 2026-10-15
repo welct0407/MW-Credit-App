@@ -1,0 +1,56 @@
+{
+  "production-oltp": {
+    "equal": true,
+    "tables": 1093,
+    "comparison": "All ordered table records and exact typed property values",
+    "final_evidence_saved_utc": "2026-09-24T12:23:12.676544+00:00"
+  },
+  "production-olap": {
+    "equal": true,
+    "tables": 930,
+    "comparison": "All ordered table records and exact typed property values",
+    "final_evidence_saved_utc": "2026-09-24T12:23:27.744142+00:00"
+  },
+  "development-oltp": {
+    "equal": true,
+    "tables": 1093,
+    "comparison": "All ordered table records and exact typed property values",
+    "final_evidence_saved_utc": "2026-09-24T12:23:49.194958+00:00"
+  },
+  "development-olap": {
+    "equal": true,
+    "tables": 930,
+    "comparison": "All ordered table records and exact typed property values",
+    "final_evidence_saved_utc": "2026-09-24T12:24:08.986595+00:00"
+  },
+  "postgresql-production": {
+    "equal": true,
+    "initial_capture_utc": "2026-09-24T11:00:53.956252+00:00",
+    "final_capture_utc": "2026-09-24T12:35:39.985351+00:00",
+    "initial_metadata_sha256": "ae3509b4e03a6e3c22dd8d2599569cdac116323a00c61bd50e3a3ff393fa7df2",
+    "final_metadata_sha256": "fcc05d9a85f3be387744cec000af716bebc7e61a5711d4e6724b8624003386cc",
+    "comparison": "All original sections unchanged; added role/replication sections captured at final time",
+    "added_sections": [
+      "publications",
+      "relevant_roles",
+      "role_dependencies",
+      "role_memberships",
+      "subscriptions"
+    ]
+  },
+  "postgresql-development": {
+    "equal": true,
+    "initial_capture_utc": "2026-09-24T11:00:52.568581+00:00",
+    "final_capture_utc": "2026-09-24T12:35:39.632483+00:00",
+    "initial_metadata_sha256": "63f0433be5c97ad2fc573230b3625e674178fc27d03851e34aeee112eaa7e0d3",
+    "final_metadata_sha256": "6c2e1310e68cf9ae3e788813702572259783e8787250d0aef0f826260e1ad260",
+    "comparison": "All original sections unchanged; added role/replication sections captured at final time",
+    "added_sections": [
+      "publications",
+      "relevant_roles",
+      "role_dependencies",
+      "role_memberships",
+      "subscriptions"
+    ]
+  }
+}

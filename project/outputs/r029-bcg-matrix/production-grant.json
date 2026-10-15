@@ -1,0 +1,6 @@
+{
+  "role": "metabase_borrower_reader",
+  "view": "public.reporting_borrower_matrix_plot_v1",
+  "select": true,
+  "write_privileges": false
+}

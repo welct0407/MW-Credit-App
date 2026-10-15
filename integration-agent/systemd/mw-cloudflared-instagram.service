@@ -1,0 +1,24 @@
+[Unit]
+Description=Cloudflare tunnel for MW Instagram webhook
+After=network-online.target mw-instagram-webhook.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=mwagent
+Group=mwagent
+ExecStart=/usr/local/bin/cloudflared tunnel --no-autoupdate run --token-file /etc/mw-integration-agent/secrets/cloudflare-token.txt
+Restart=on-failure
+RestartSec=10s
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+
+[Install]
+WantedBy=multi-user.target

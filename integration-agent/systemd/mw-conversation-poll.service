@@ -1,0 +1,19 @@
+[Unit]
+Description=M&W Credit official Instagram conversation API intake
+After=network-online.target cloud-sql-auth-proxy.service
+Requires=cloud-sql-auth-proxy.service
+
+[Service]
+Type=oneshot
+User=mwagent
+Group=mwagent
+UMask=0077
+Environment=HOME=/var/lib/mw-integration-agent
+ExecStart=/opt/mw-integration-agent/.venv/bin/mw-integration-agent conversation-poll --config /etc/mw-integration-agent/config.json --catalogue /etc/mw-integration-agent/service-catalogue.json
+TimeoutStartSec=4min
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/mw-integration-agent
+

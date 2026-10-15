@@ -1,0 +1,45 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.pwa_payment_head_v2(id text)"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r052/dictionary-production-closure.json"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "pwa_payment_head_v2"
+    "arguments": "id text"
+    "kind": "f"
+    "arguments_with_defaults": "id text"
+    "result": "uuid"
+    "definition": "CREATE OR REPLACE FUNCTION public.pwa_payment_head_v2(id text)\n RETURNS uuid\n LANGUAGE plpgsql\n STABLE\n\
+      \ SET search_path TO 'pg_catalog', 'public'\nAS $function$\r\nDECLARE head uuid;candidate uuid;total integer;\r\nBEGIN\r\
+      \n SELECT request_id INTO head FROM public.pwa_payment_commands WHERE contract_version=1 AND outcome='posted' AND payment_id=$1;\r\
+      \n IF head IS NULL THEN SELECT request_id INTO head FROM public.pwa_payment_commands WHERE contract_version=2 AND outcome='applied'\
+      \ AND result_json->>'paymentId'=$1 AND canonical_json::jsonb#>>'{command,operation}' IN('loan.create','loan.close','charge.create');END\
+      \ IF;\r\n LOOP\r\n SELECT count(*) INTO total FROM public.pwa_payment_commands WHERE contract_version=2 AND outcome='applied'\
+      \ AND canonical_json::jsonb#>>'{command,operation}'='payment.correct' AND canonical_json::jsonb#>>'{command,targetId}'=$1\
+      \ AND canonical_json::jsonb#>>'{command,predecessorRequestId}' IS NOT DISTINCT FROM head::text;\r\n IF total=0 THEN\
+      \ EXIT;END IF;IF total<>1 THEN RAISE EXCEPTION 'Invalid correction lineage';END IF;\r\n SELECT request_id INTO candidate\
+      \ FROM public.pwa_payment_commands WHERE contract_version=2 AND outcome='applied' AND canonical_json::jsonb#>>'{command,operation}'='payment.correct'\
+      \ AND canonical_json::jsonb#>>'{command,targetId}'=$1 AND canonical_json::jsonb#>>'{command,predecessorRequestId}' IS\
+      \ NOT DISTINCT FROM head::text;\r\n IF candidate=head THEN RAISE EXCEPTION 'Invalid correction lineage';END IF;head:=candidate;\r\
+      \n END LOOP;RETURN head;\r\nEND $function$\n"
+    "owner": "postgres"
+    "language": "plpgsql"
+    "volatility": "s"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 0.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": "{postgres=X/postgres,mw_app_prod=X/postgres}"
+    "comment": null
+    "extension": null

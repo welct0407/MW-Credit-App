@@ -1,0 +1,34 @@
+[
+  {
+    "panel": "Azure · daily resource detail (USD)",
+    "status": 200,
+    "refId": "A",
+    "source": "mw-azure-monitoring",
+    "error": null,
+    "rows": 98
+  },
+  {
+    "panel": "Azure · daily resource detail (USD)",
+    "status": 200,
+    "refId": "B",
+    "source": "mw-azure-monitoring",
+    "error": null,
+    "rows": 12
+  },
+  {
+    "panel": "GCP · daily resource detail",
+    "status": 200,
+    "refId": "A",
+    "source": "mw-gcp-monitoring",
+    "error": null,
+    "rows": 1
+  },
+  {
+    "panel": "Railway · billing period and accrued usage",
+    "status": 200,
+    "refId": "A",
+    "source": "mw-railway-monitoring",
+    "error": null,
+    "rows": 1
+  }
+]

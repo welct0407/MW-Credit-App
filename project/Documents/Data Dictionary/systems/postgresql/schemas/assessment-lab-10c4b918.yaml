@@ -1,0 +1,18 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "schema"
+  "name": "assessment_lab"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r052/dictionary-production-closure.json"
+  "coverage": "Actual bounded PROD87 catalogue after grouped migration and temporary authority restoration; no business-row\
+    \ capture."
+"content":
+  "definition":
+    "name": "assessment_lab"
+    "owner": "postgres"
+    "acl": "{postgres=UC/postgres,mw_app_prod_journal_owner=U/postgres}"
+    "comment": null

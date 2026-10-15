@@ -1,0 +1,11 @@
+[Unit]
+Description=Run the daily cash statement at 00:15 Asia/Bangkok
+
+[Timer]
+OnCalendar=*-*-* 00:15:00 Asia/Bangkok
+Persistent=true
+AccuracySec=1min
+Unit=mw-cash-statement.service
+
+[Install]
+WantedBy=timers.target

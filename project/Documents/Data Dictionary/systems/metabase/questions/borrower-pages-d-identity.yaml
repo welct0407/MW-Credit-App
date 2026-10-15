@@ -1,0 +1,138 @@
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "reports.mw-credit.com"
+  "kind": "question"
+  "name": "Selected borrower · current position / 290"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r035-borrower-pages/saved-question-definitions.json"
+"content":
+  "key": "d-identity"
+  "id": 290
+  "name": "Selected borrower · current position"
+  "description": "R035 additive borrower pages. Immutable borrower keys; Bangkok dates; current health from V41/V42. Signed\
+    \ receipts. No AppSheet/financial writes."
+  "display": "table"
+  "type": "question"
+  "dataset_query":
+    "stages":
+    - "template-tags":
+      - "name": "borrower_id"
+        "display-name": "Borrower"
+        "id": "bp-borrower"
+        "type": "text"
+      "lib/type": "mbql.stage/native"
+      "native": |-
+        WITH clock AS (SELECT public.olap_reporting_date() today), chosen AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE borrower_id= [[{{borrower_id}} --]] '__select_borrower__'
+        ) SELECT borrower_label AS "Borrower",CASE WHEN has_active_loan THEN 'Active' ELSE 'Inactive' END AS "Status",CASE WHEN hidden_flag THEN 'Hidden in operational app' ELSE 'Visible' END AS "Operational visibility",first_loan_date AS "First loan",reporting_date AS "As of" FROM chosen
+    "lib/type": "mbql/query"
+    "database": 2
+  "visualization_settings": {}
+  "result_metadata":
+  - "database_type": "text"
+    "semantic_type": null
+    "lib/deduplicated-name": "Borrower"
+    "lib/original-name": "Borrower"
+    "name": "Borrower"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Borrower"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Borrower"
+    - "base-type": "type/Text"
+    "effective_type": "type/Text"
+    "lib/desired-column-alias": "Borrower"
+    "display_name": "Borrower"
+    "base_type": "type/Text"
+  - "database_type": "text"
+    "semantic_type": null
+    "lib/deduplicated-name": "Borrower ID"
+    "lib/original-name": "Borrower ID"
+    "name": "Borrower ID"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Borrower ID"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Borrower ID"
+    - "base-type": "type/Text"
+    "effective_type": "type/Text"
+    "lib/desired-column-alias": "Borrower ID"
+    "display_name": "Borrower ID"
+    "base_type": "type/Text"
+  - "database_type": "text"
+    "semantic_type": "type/Category"
+    "lib/deduplicated-name": "Status"
+    "lib/original-name": "Status"
+    "name": "Status"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Status"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Status"
+    - "base-type": "type/Text"
+    "effective_type": "type/Text"
+    "lib/desired-column-alias": "Status"
+    "display_name": "Status"
+    "base_type": "type/Text"
+  - "database_type": "text"
+    "semantic_type": null
+    "lib/deduplicated-name": "Operational visibility"
+    "lib/original-name": "Operational visibility"
+    "name": "Operational visibility"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Operational visibility"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Operational visibility"
+    - "base-type": "type/Text"
+    "effective_type": "type/Text"
+    "lib/desired-column-alias": "Operational visibility"
+    "display_name": "Operational visibility"
+    "base_type": "type/Text"
+  - "database_type": "date"
+    "semantic_type": null
+    "lib/deduplicated-name": "First loan"
+    "lib/original-name": "First loan"
+    "name": "First loan"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "First loan"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "First loan"
+    - "base-type": "type/Date"
+    "effective_type": "type/Date"
+    "lib/desired-column-alias": "First loan"
+    "display_name": "First loan"
+    "base_type": "type/Date"
+  - "database_type": "date"
+    "semantic_type": null
+    "lib/deduplicated-name": "As of"
+    "lib/original-name": "As of"
+    "name": "As of"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "As of"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "As of"
+    - "base-type": "type/Date"
+    "effective_type": "type/Date"
+    "lib/desired-column-alias": "As of"
+    "display_name": "As of"
+    "base_type": "type/Date"
+"evidence":
+  "/content/result_metadata":
+    "reference": "outputs/r035-borrower-pages/README.md"
+    "reason": "R035 additive borrower pages; exact saved definitions and V44 metadata"
+    "state": "value"
+  "/content/dataset_query":
+    "reference": "outputs/r041-borrower-detail/saved.json"
+    "reason": "R041 verified Detail presentation"
+    "state": "value"

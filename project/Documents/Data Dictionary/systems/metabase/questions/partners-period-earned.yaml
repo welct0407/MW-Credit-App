@@ -1,0 +1,110 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "metabase",
+    "component": "reports.mw-credit.com",
+    "kind": "question",
+    "name": "Net earned ฿ / 335",
+    "scope": "production"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r044-partners/saved.json"
+  },
+  "content": {
+    "key": "period-earned",
+    "description": "R044 Partners. Selected actual event dates.",
+    "result_metadata": [
+      {
+        "database_type": "numeric",
+        "semantic_type": null,
+        "lib/deduplicated-name": "Net earned ฿",
+        "lib/original-name": "Net earned ฿",
+        "name": "Net earned ฿",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Net earned ฿",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Net earned ฿",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "Net earned ฿",
+        "display_name": "Net earned ฿",
+        "base_type": "type/Decimal"
+      }
+    ],
+    "collection_id": 5,
+    "name": "Net earned ฿",
+    "type": "question",
+    "dataset_query": {
+      "stages": [
+        {
+          "template-tags": [
+            {
+              "widget-type": "string/=",
+              "id": "pt-partner",
+              "name": "partner",
+              "display-name": "Partner",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                {
+                  "base-type": "type/Text",
+                  "lib/uuid": "cd9aa291-bfe5-45dc-a6c2-67ae3b43e3f4",
+                  "effective-type": "type/Text"
+                },
+                121
+              ],
+              "alias": "d.partner_id"
+            },
+            {
+              "widget-type": "date/all-options",
+              "id": "pt-period",
+              "name": "period",
+              "display-name": "Partner activity period",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                {
+                  "base-type": "type/Date",
+                  "lib/uuid": "f0f80943-4bb2-4d95-be50-1f846d15a4ab",
+                  "effective-type": "type/Date"
+                },
+                82
+              ],
+              "alias": "d.activity_date"
+            },
+            {
+              "type": "card",
+              "id": "r044-model-322",
+              "name": "#322",
+              "display-name": "Partners source 322",
+              "card-id": 322
+            }
+          ],
+          "lib/type": "mbql.stage/native",
+          "native": "SELECT CASE WHEN count(*)=0 THEN 0 WHEN bool_and(net_earned IS NOT NULL) THEN sum(net_earned) END AS \"Net earned ฿\" FROM {{#322}} d WHERE true [[AND {{partner}}]] [[AND {{period}}]]"
+        }
+      ],
+      "lib/type": "mbql/query",
+      "database": 2
+    },
+    "id": 335,
+    "display": "scalar",
+    "visualization_settings": {
+      "scalar.field": "Net earned ฿",
+      "column_settings": {
+        "[\"name\",\"Net earned ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,",
+          "compact": false
+        }
+      }
+    }
+  }
+}

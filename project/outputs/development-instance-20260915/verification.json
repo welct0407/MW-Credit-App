@@ -1,0 +1,157 @@
+{
+  "date": "2026-09-15",
+  "instance": "appsheet-pg-dev-20260915",
+  "database": "loan_manager_prod",
+  "dataSource": "database-3",
+  "publicIp": "34.158.38.171",
+  "bindingsVerified": true,
+  "syncVerified": true,
+  "apps": [
+    {
+      "name": "LoanInsights PG Trial 20260914",
+      "kind": "OLAP",
+      "version": "1.000025",
+      "tables": [
+        {
+          "name": "Borrowers",
+          "path": "Borrowers"
+        },
+        {
+          "name": "Loans",
+          "path": "Loans"
+        },
+        {
+          "name": "Repayments",
+          "path": "Repayments"
+        },
+        {
+          "name": "Statistics",
+          "path": "Statistics"
+        },
+        {
+          "name": "Charges",
+          "path": "Charges"
+        },
+        {
+          "name": "Calendar",
+          "path": "OLAP Calendar SQL Lab"
+        },
+        {
+          "name": "Loan Assessment",
+          "path": "Loan Assessment SQL Lab View"
+        },
+        {
+          "name": "Cash Pool Contributions",
+          "path": "Cash Pool Contributions"
+        },
+        {
+          "name": "Partners",
+          "path": "Partners"
+        },
+        {
+          "name": "Settlements",
+          "path": "Settlements"
+        },
+        {
+          "name": "Daily Analytics",
+          "path": "Daily Analytics"
+        },
+        {
+          "name": "Payment Allocations",
+          "path": "Payment Allocations"
+        },
+        {
+          "name": "Payments",
+          "path": "Payments"
+        }
+      ]
+    },
+    {
+      "name": "LoanMgr PG Test 20260914",
+      "kind": "OLTP",
+      "version": "1.000011",
+      "tables": [
+        {
+          "name": "Borrowers",
+          "path": "Borrowers"
+        },
+        {
+          "name": "Loans",
+          "path": "Loans"
+        },
+        {
+          "name": "Repayments",
+          "path": "Repayments"
+        },
+        {
+          "name": "Statistics",
+          "path": "Statistics"
+        },
+        {
+          "name": "Charges",
+          "path": "Charges"
+        },
+        {
+          "name": "Partners",
+          "path": "Partners"
+        },
+        {
+          "name": "Payment Allocations",
+          "path": "Payment Allocations"
+        },
+        {
+          "name": "Payments",
+          "path": "Payments"
+        }
+      ]
+    }
+  ],
+  "checks": {
+    "tables": 14,
+    "views": 2,
+    "functions": 6,
+    "applicationTriggers": 10,
+    "foreignKeys": 13,
+    "orphanReferences": 0,
+    "invalidIndexes": 0,
+    "unvalidatedConstraints": 0,
+    "normalizationTestsPassed": 8,
+    "foreignKeyRejectionTestsPassed": 13,
+    "functionsMatchProduction": true,
+    "triggersMatchProduction": true,
+    "productionDataComparison": {
+      "identicalTables": 13,
+      "differentTables": [
+        "Daily Analytics"
+      ],
+      "dailyAnalyticsRowCountBoth": 42,
+      "comparison": "Current production versus clone baseline, not clone-time source snapshot"
+    },
+    "assessment": {
+      "originalAmount": 2000,
+      "testAmount": 3000,
+      "testDate": "2026-10-12",
+      "restoredAmount": 2000,
+      "restoredDate": "2026-10-06",
+      "sqlTransactionRolledBack": true,
+      "appWriteAndReadbackPassed": true
+    },
+    "connectionLimit": {
+      "before": 25,
+      "after": 50,
+      "initialSync53300": true,
+      "postRestartSyncPassed": true,
+      "machineUnchanged": true,
+      "costConfigurationUnchanged": true
+    },
+    "configurationComparison": "Only version, SQL source, omitted table locale metadata and test-to-test navigation targets changed; column locale/formulas/keys/Refs/permissions/slices/views unchanged",
+    "crossAppNavigationBothDirectionsPassed": true,
+    "all13NonAssessmentLabTablesUnchangedAfterTests": true
+  },
+  "limitations": [
+    "Daily Analytics contents differ from current production; no exact clone-time snapshot comparison available.",
+    "Short functional and concurrent sync verification, not sustained load or complete loan lifecycle retest.",
+    "Development still uses the small shared-core machine; higher connection limit does not guarantee adequate memory for heavy concurrency.",
+    "Owner manual acceptance pending."
+  ]
+}

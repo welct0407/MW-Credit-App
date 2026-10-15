@@ -1,0 +1,7 @@
+{
+  "olap_borrowers_analytics": ["Row ID", "Description", "Hidden Flag", "Creation Date", "Has Active Loan", "Active Loan Count", "Total Outstanding Principal", "Overdue Amount", "Daily Collection Status", "Historical Charge Count", "Recent 30D Charge Count", "Recent 30D On Time Count", "On Time Charge Count", "Lifetime Default Loss", "Default Count", "Profit Last 30 Days", "Profit Last 10 Days", "Matrix Active Borrower Count", "Matrix Equal Share Benchmark", "Matrix Economic Contribution", "Matrix Recent Reliability Score", "Matrix Historical Reliability Score", "Matrix Delay Severity Score", "Matrix Current Condition Score", "Matrix History Sufficient", "Matrix Stability Score", "Matrix Quadrant", "Matrix Scaled Economic Contribution"],
+  "Loans": ["Row ID", "Ref Borrowers", "Loan Date", "Close Date", "Due Date", "Loan Type", "Loan Status", "Principal Amount", "Outstanding Principal", "Defaulted", "Default Loss Amount"],
+  "Charges": ["Row ID", "Ref Loans", "Charge Date", "Principal Due", "Interest Due", "Principal Paid", "Interest Paid", "Total Paid", "Amount Remaining", "Payment Status", "Payment Date"],
+  "Repayments": ["Row ID", "Ref Loans", "Ref Charges", "Payment Date", "Principal Paid", "Interest Paid", "Ref Payment", "Ref Payment Allocation"],
+  "Payments": ["Row ID", "Status", "Ref Borrower", "Amount Received", "Payment Date", "Created At", "Processed At", "Posted Amount", "Allocation Method", "Ref Target Loan", "Ref Target Charge"]
+}

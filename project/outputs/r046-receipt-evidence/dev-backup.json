@@ -1,0 +1,8 @@
+{
+  "archiveListing": "passed",
+  "database": "loan_manager_dev",
+  "restoreTest": "passed: central-and-restore-tests.json",
+  "instance": "appsheet-pg-prod-20260914",
+  "path": "C:\\Users\\MWCredit\\Documents\\ChatGPT\\AppSheet-Loan-Project\\r046-receipt-evidence\\dev-before-v49.dump",
+  "sha256": "278F229CB492ED4073ED448CFBF8CC97348A9C4A66FF5BD6BB64812D5BC88555"
+}

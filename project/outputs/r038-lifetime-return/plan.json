@@ -1,0 +1,92 @@
+{
+  "modelSql": "-- R037. Borrower grain; completed Bangkok days for lifetime yield and rolling interest.\n-- Exposure uses end-of-day principal. Receipt-day reductions apply that day.\nWITH clock AS (SELECT public.olap_reporting_date() today),\nloans AS MATERIALIZED (SELECT * FROM public.reporting_borrower_loan_facts_v1),\npayments AS MATERIALIZED (\n SELECT \"Ref Loans\" loan_id,\"Payment Date\" paid_on,\"Principal Paid\"::numeric principal,\n \"Interest Paid\"::numeric interest FROM public.olap_repayments_analytics\n),\nreceipt_totals AS (\n SELECT l.borrower_id,\n sum(p.interest) FILTER(WHERE p.paid_on<c.today) lifetime_interest,\n sum(p.interest) FILTER(WHERE p.paid_on<=c.today) lifetime_interest_current,\n sum(p.interest) FILTER(WHERE p.paid_on BETWEEN c.today-30 AND c.today-1) interest_30d,\n sum(p.interest) FILTER(WHERE l.is_active AND p.paid_on<=c.today) active_interest,\n count(*) FILTER(WHERE p.paid_on IS NULL OR p.interest IS NULL OR p.principal IS NULL\n OR p.paid_on<l.loan_date) invalid_receipts\n FROM loans l JOIN payments p USING(loan_id) CROSS JOIN clock c GROUP BY l.borrower_id\n),\nlent AS (\n SELECT borrower_id,sum(original_principal) FILTER(WHERE loan_date<=c.today) total_principal,\n bool_or(loan_date IS NULL OR original_principal IS NULL OR original_principal<0) invalid_lending\n FROM loans CROSS JOIN clock c GROUP BY borrower_id\n),\n-- A compact event sweep, not a borrower x calendar Cartesian product.\nevents AS (\n SELECT l.loan_id,l.loan_date event_date,0::numeric reduction FROM loans l\n UNION ALL\n SELECT p.loan_id,p.paid_on,sum(p.principal) FROM payments p JOIN loans l USING(loan_id)\n CROSS JOIN clock c WHERE p.paid_on>=l.loan_date AND p.paid_on<c.today\n GROUP BY p.loan_id,p.paid_on\n),\ndaily_events AS (SELECT loan_id,event_date,sum(reduction) reduction FROM events GROUP BY 1,2),\nsegments AS (\n SELECT l.*,e.event_date,\n least(coalesce(lead(e.event_date) OVER(PARTITION BY l.loan_id ORDER BY e.event_date),c.today),\n c.today,coalesce(l.close_date+1,c.today)) segment_end,\n l.original_principal-sum(e.reduction) OVER(PARTITION BY l.loan_id ORDER BY e.event_date) balance\n FROM daily_events e JOIN loans l USING(loan_id) CROSS JOIN clock c\n),\nexposure AS (\n SELECT borrower_id,\n sum(greatest(balance,0)*greatest(segment_end-event_date,0)) principal_days,\n bool_or(loan_date IS NULL OR original_principal IS NULL OR original_principal<0 OR is_active IS NULL\n OR (NOT is_active AND close_date IS NULL) OR coalesce(close_date<loan_date,false)) invalid_loans\n FROM segments GROUP BY borrower_id\n)\nSELECT d.borrower_id AS \"Borrower ID\",d.borrower_label AS \"Borrower\",\n d.has_active_loan AS \"Has active loan\",d.outstanding_principal AS \"Principal outstanding\",\n CASE WHEN coalesce(r.invalid_receipts,0)=0 THEN coalesce(r.interest_30d,0) END AS \"Interest 30D\",\n CASE WHEN coalesce(r.invalid_receipts,0)=0 THEN coalesce(r.lifetime_interest,0) END AS \"Lifetime interest\",\n CASE WHEN NOT e.invalid_loans AND coalesce(r.invalid_receipts,0)=0 THEN e.principal_days END AS \"Principal days\",\n CASE WHEN NOT e.invalid_loans AND coalesce(r.invalid_receipts,0)=0 AND e.principal_days>0\n THEN coalesce(r.lifetime_interest,0)/e.principal_days END AS \"Achieved daily rate\",\n CASE WHEN coalesce(r.invalid_receipts,0)=0 AND d.outstanding_principal>0\n THEN coalesce(r.active_interest,0)/d.outstanding_principal END AS \"Principal coverage\",\n CASE WHEN coalesce(r.invalid_receipts,0)=0 THEN coalesce(r.active_interest,0) END AS \"Active loan interest\",\n CASE WHEN e.invalid_loans OR coalesce(r.invalid_receipts,0)>0 THEN 'Incomplete history'\n WHEN coalesce(e.principal_days,0)<=0 THEN 'No positive completed principal-days' ELSE 'Available' END AS \"Rate status\",\n c.today-1 AS \"Lifetime through\",c.today-30 AS \"30D start\",c.today-1 AS \"30D end\",c.today AS \"Current as of\",\n CASE WHEN NOT lent.invalid_lending THEN coalesce(lent.total_principal,0) END AS \"Total principal lent\",\n CASE WHEN coalesce(r.invalid_receipts,0)=0 THEN coalesce(r.lifetime_interest_current,0) END AS \"Lifetime interest received\",\n CASE WHEN NOT lent.invalid_lending AND coalesce(r.invalid_receipts,0)=0 AND lent.total_principal>0\n THEN coalesce(r.lifetime_interest_current,0)/lent.total_principal END AS \"Lifetime interest return\"\nFROM public.reporting_borrower_directory_v1 d JOIN exposure e ON e.borrower_id=d.borrower_id\nLEFT JOIN receipt_totals r ON r.borrower_id=d.borrower_id JOIN lent ON lent.borrower_id=d.borrower_id CROSS JOIN clock c\nWHERE d.loan_count>0\n",
+  "questions": [
+    {
+      "key": "coverage",
+      "name": "Lifetime Interest Return on Principal Lent · top 8",
+      "display": "row",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH cohort AS (SELECT * FROM {{#310}} m WHERE ([[{{population}} --]] 'All with loan history'\n='All with loan history' OR [[{{population}} --]] 'All with loan history'\n='Currently active' AND \"Has active loan\" OR [[{{population}} --]] 'All with loan history'\n='Currently inactive' AND NOT \"Has active loan\")) SELECT \"Borrower\",\"Lifetime interest return\",\"Borrower ID\",\"Lifetime interest received\",\"Total principal lent\" FROM cohort WHERE \"Lifetime interest return\" IS NOT NULL ORDER BY \"Lifetime interest return\" DESC,\"Borrower ID\" LIMIT 8",
+          "template-tags": {
+            "population": {
+              "id": "r037-pop",
+              "name": "population",
+              "display-name": "Population",
+              "type": "text",
+              "default": "All with loan history"
+            },
+            "#310": {
+              "id": "r037-model",
+              "name": "#310",
+              "display-name": "Borrower lifetime economics",
+              "type": "card",
+              "card-id": 310
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "graph.dimensions": [
+          "Borrower"
+        ],
+        "graph.metrics": [
+          "Lifetime interest return"
+        ],
+        "graph.colors": [
+          "#178F8A"
+        ],
+        "graph.show_values": true,
+        "graph.show_legend": false,
+        "graph.x_axis.title_enabled": true,
+        "graph.x_axis.title_text": "Lifetime interest / total principal lent · %",
+        "graph.show_goal": true,
+        "graph.goal_value": 1,
+        "graph.goal_label": "100% interest earned",
+        "stackable.stack_type": null,
+        "column_settings": {
+          "[\"name\",\"Lifetime interest return\"]": {
+            "number_style": "percent",
+            "decimals": 1,
+            "number_separators": ".,"
+          }
+        }
+      },
+      "description": "R037. Overall borrower economics; population filter applies, activity date slicer does not. Lifetime rate uses completed Bangkok days and end-of-day outstanding principal. Gross interest before expenses. See chart context and handover."
+    },
+    {
+      "key": "context",
+      "name": "Overall charts · dates and data availability",
+      "display": "table",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH cohort AS (SELECT * FROM {{#310}} m WHERE ([[{{population}} --]] 'All with loan history'\n='All with loan history' OR [[{{population}} --]] 'All with loan history'\n='Currently active' AND \"Has active loan\" OR [[{{population}} --]] 'All with loan history'\n='Currently inactive' AND NOT \"Has active loan\")) SELECT max(\"Lifetime through\") AS \"Lifetime rate through\",max(\"30D start\") AS \"Profit starts\",max(\"30D end\") AS \"Profit ends\",max(\"Current as of\") AS \"Principal as of\",count(*) FILTER(WHERE \"Achieved daily rate\" IS NULL) AS \"Borrowers without daily rate\",count(*) FILTER(WHERE \"Lifetime interest return\" IS NULL) AS \"Borrowers without lifetime return\",CASE WHEN count(*) FILTER(WHERE \"Interest 30D\" IS NULL)>0 THEN 'Profit pie unavailable: incomplete receipts' WHEN count(*) FILTER(WHERE \"Interest 30D\">0)=0 THEN 'No positive 30-day interest' ELSE 'Positive borrower contributions only; negative adjustments excluded' END AS \"Profit pie status\",coalesce(sum(\"Interest 30D\") FILTER(WHERE \"Interest 30D\"<0),0) AS \"Excluded negative interest ฿\",CASE WHEN count(*) FILTER(WHERE \"Principal outstanding\"<0 OR \"Principal outstanding\" IS NULL)>0 THEN 'Principal pie unavailable: negative or incomplete balances' ELSE 'Principal pie available' END AS \"Principal pie status\" FROM cohort",
+          "template-tags": {
+            "population": {
+              "id": "r037-pop",
+              "name": "population",
+              "display-name": "Population",
+              "type": "text",
+              "default": "All with loan history"
+            },
+            "#310": {
+              "id": "r037-model",
+              "name": "#310",
+              "display-name": "Borrower lifetime economics",
+              "type": "card",
+              "card-id": 310
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "table.pivot": false
+      },
+      "description": "R037. Overall borrower economics; population filter applies, activity date slicer does not. Lifetime rate uses completed Bangkok days and end-of-day outstanding principal. Gross interest before expenses. See chart context and handover."
+    }
+  ]
+}

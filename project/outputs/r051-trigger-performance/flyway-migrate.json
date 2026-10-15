@@ -1,0 +1,24 @@
+{
+  "database" : "loan_manager_dev",
+  "databaseType" : "PostgreSQL",
+  "exception" : null,
+  "flywayVersion" : "13.6.0",
+  "initialSchemaVersion" : "72",
+  "licenseFailed" : false,
+  "migrations" : [ {
+    "category" : "Versioned",
+    "description" : "scoped history and coalesced parent refresh",
+    "executionTime" : 788,
+    "filepath" : "C:\\GitHub\\AppSheet-Loan-Project-r051\\database\\migrations\\V73__scoped_history_and_coalesced_parent_refresh.sql",
+    "type" : "SQL",
+    "version" : "73"
+  } ],
+  "migrationsExecuted" : 1,
+  "operation" : "migrate",
+  "schemaName" : "",
+  "success" : true,
+  "targetSchemaVersion" : "73",
+  "timestamp" : "2026-10-06T21:11:03.0808525+07:00",
+  "totalMigrationTime" : 788,
+  "warnings" : [ ]
+}

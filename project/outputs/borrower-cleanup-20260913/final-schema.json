@@ -1,0 +1,1411 @@
+{
+  "versions": {
+    "oltp": "3.000064",
+    "olap": "1.100041"
+  },
+  "removed": [
+    "Telephone",
+    "Instagram Conversation URL",
+    "Instagram Verified At",
+    "Late Penalty Enabled",
+    "Receiving Bank Account",
+    "Effective Receiving Bank Account",
+    "Collection Setup Issues",
+    "Collection Account Number"
+  ],
+  "checks": {
+    "addressesImported": 7,
+    "addressesReloadVerified": 7,
+    "oltpFormRequiredCity": true,
+    "oltpFormRequiredCommunicationName": true,
+    "olapRequiredCity": true,
+    "olapRequiredCommunicationName": true,
+    "oltpFormDefaultY": true,
+    "oltpAddressDetail": true,
+    "olapAddressDetail": true,
+    "olapReadOnly": true
+  },
+  "apps": {
+    "oltp": {
+      "columns": [
+        {
+          "name": "_RowNumber",
+          "virtual": false,
+          "formula": "",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "Row ID",
+          "virtual": false,
+          "formula": "",
+          "initial": "UNIQUEID(\"PackedUUID\")",
+          "display": ""
+        },
+        {
+          "name": "Borrower Name",
+          "virtual": false,
+          "formula": "",
+          "initial": "",
+          "display": "=\"Borrower Name - Thai\""
+        },
+        {
+          "name": "Description",
+          "virtual": false,
+          "formula": "",
+          "initial": "",
+          "display": "=\"English Name\""
+        },
+        {
+          "name": "Creation Date",
+          "virtual": false,
+          "formula": "",
+          "initial": "=TODAY()",
+          "display": "=\"วันที่สร้างข้อมูล / Creation Date\""
+        },
+        {
+          "name": "Hidden Flag",
+          "virtual": false,
+          "formula": "",
+          "initial": "=FALSE",
+          "display": "=\"ซ่อนจากรายชื่อผู้กู้ / Hide from Borrowers List\""
+        },
+        {
+          "name": "Communication Name",
+          "virtual": false,
+          "formula": "",
+          "initial": "",
+          "display": "=\"ชื่อที่ใช้เรียก / Communication Name\""
+        },
+        {
+          "name": "Instagram Username",
+          "virtual": false,
+          "formula": "",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "AI Collection Enabled",
+          "virtual": false,
+          "formula": "",
+          "initial": "=TRUE",
+          "display": ""
+        },
+        {
+          "name": "City",
+          "virtual": false,
+          "formula": "",
+          "initial": "",
+          "display": "=\"เมือง / City\""
+        },
+        {
+          "name": "Working Location",
+          "virtual": false,
+          "formula": "",
+          "initial": "",
+          "display": "=\"สถานที่ทำงาน / Working Location\""
+        },
+        {
+          "name": "Address",
+          "virtual": false,
+          "formula": "",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "Related Loans",
+          "virtual": true,
+          "formula": "=REF_ROWS(\"Loans\", \"Ref Borrowers\")",
+          "initial": "",
+          "display": "=💰 สินเชื่อที่เกี่ยวข้อง"
+        },
+        {
+          "name": "Total Interest Earned",
+          "virtual": true,
+          "formula": "=SUM([Related Loans][Total Interest Received])",
+          "initial": "",
+          "display": "=\"ดอกเบี้ยที่ได้รับทั้งหมด / Total Profit Earned\""
+        },
+        {
+          "name": "Total Amount Loaned",
+          "virtual": true,
+          "formula": "=SUM([Related Loans][Principal Amount])",
+          "initial": "",
+          "display": "=\"ยอดเงินกู้สะสม / Total Amount Loaned\""
+        },
+        {
+          "name": "Total Number of Loans",
+          "virtual": true,
+          "formula": "=COUNT([Related Loans])",
+          "initial": "",
+          "display": "=\"จำนวนเงินกู้ทั้งหมด / Total Number of Loans\""
+        },
+        {
+          "name": "Total Outstanding Principal",
+          "virtual": true,
+          "formula": "=SUM([Related Loans][Outstanding Principal])",
+          "initial": "",
+          "display": "=\"เงินต้นคงเหลือ / Total Outstanding Principal\""
+        },
+        {
+          "name": "Header - Active Loans",
+          "virtual": true,
+          "formula": "=\"──── เงินกู้ที่ยังไม่ปิด / Active Loans ────\"",
+          "initial": "",
+          "display": "=\" \""
+        },
+        {
+          "name": "Borrower Name TE",
+          "virtual": true,
+          "formula": "=CONCATENATE([Borrower Name], \" - \", [Description])",
+          "initial": "",
+          "display": "=ชื่อผู้กู้"
+        },
+        {
+          "name": "Return on Active Principal",
+          "virtual": true,
+          "formula": "=IF([Total Outstanding Principal] > 0, [Active Loan Interest Earned] / [Total Outstanding Principal], 0)",
+          "initial": "",
+          "display": "=\"ผลตอบแทนเงินต้น / Return on Active Principal\""
+        },
+        {
+          "name": "Active Loan Interest Earned",
+          "virtual": true,
+          "formula": "=SUM(\n  SELECT(\n    Loans[Total Interest Received],\n    AND([Ref Borrowers] = [_THISROW].[Row ID], [Loan Status] = \"ยังไม่ปิดยอด\")\n  )\n)",
+          "initial": "",
+          "display": "=\"ดอกเบี้ยเงินกู้ที่ยังไม่ปิด / Active Loan Interest Earned\""
+        },
+        {
+          "name": "Active Daily Interest",
+          "virtual": true,
+          "formula": "=SUM(SELECT(Loans[Expected Daily Interest Amount], [Ref Borrowers] = [_THISROW].[Row ID]))",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "Projected Interest Coverage Date",
+          "virtual": true,
+          "formula": "=IFS(\n  [Total Outstanding Principal] <= 0,\n  \"\",\n  [Active Loan Interest Earned] >= [Total Outstanding Principal],\n  TODAY(),\n  [Active Daily Interest] > 0,\n  TODAY()\n    + CEILING(\n      ( [Total Outstanding Principal] - [Active Loan Interest Earned] )\n        / [Active Daily Interest]\n    ),\n  TRUE,\n  \"\"\n)",
+          "initial": "",
+          "display": "=\"วันที่ดอกเบี้ยครอบคลุมเงินต้น / Projected Interest Coverage Date\""
+        },
+        {
+          "name": "Closed Loan Interest Earned",
+          "virtual": true,
+          "formula": "=[Total Interest Earned] - [Active Loan Interest Earned]",
+          "initial": "",
+          "display": "=\"ดอกเบี้ยที่ได้รับจากเงินกู้ที่ปิดแล้ว / Closed Loan Interest Earned\""
+        },
+        {
+          "name": "Closed Loan Principle",
+          "virtual": true,
+          "formula": "=[Total Amount Loaned] - [Total Outstanding Principal]",
+          "initial": "",
+          "display": "=\"เงินต้นของเงินกู้ที่ปิดแล้ว / Closed Loan Principle\""
+        },
+        {
+          "name": "Has Closed Loan",
+          "virtual": true,
+          "formula": "=COUNT(SELECT([Related Loans][Row ID], [Loan Status] = \"ปิดยอดแล้ว\")) > 0",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "Return on Closed Loans",
+          "virtual": true,
+          "formula": "=IF(\n  AND([Has Closed Loan], [Closed Loan Principle] > 0),\n  [Closed Loan Interest Earned] / [Closed Loan Principle],\n  0\n)",
+          "initial": "",
+          "display": "=\"ผลตอบแทนจากเงินกู้ที่ปิดแล้ว / Return on Closed Loans\""
+        },
+        {
+          "name": "Header - Closed Loans",
+          "virtual": true,
+          "formula": "=\"──── เงินกู้ที่ปิดแล้ว / Closed Loans ────\"",
+          "initial": "",
+          "display": "=\" \""
+        },
+        {
+          "name": "Has Active Loan",
+          "virtual": true,
+          "formula": "=COUNT(SELECT([Related Loans][Row ID], [Loan Status] = \"ยังไม่ปิดยอด\")) > 0",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "Daily Collection Status",
+          "virtual": true,
+          "formula": "=IFS(\n  COUNT([Todays Collection Charges]) = 0, \"\",\n  COUNT(\n    SELECT(\n      Charges[Row ID],\n      AND(\n        IN([Row ID], [_THISROW].[Todays Collection Charges]),\n        [Charge Date] < TODAY(),\n        [Payment Status] <> \"ชำระแล้ว\"\n      )\n    )\n  ) > 0, \"Overdue\",\n  AND(\n    NOT(IN(\"รอชำระ\", [Todays Collection Charges][Payment Status])),\n    NOT(IN(\"ชำระบางส่วน\", [Todays Collection Charges][Payment Status]))\n  ), \"Fully Paid\",\n  OR(\n    IN(\"ชำระบางส่วน\", [Todays Collection Charges][Payment Status]),\n    AND(\n      IN(\"ชำระแล้ว\", [Todays Collection Charges][Payment Status]),\n      IN(\"รอชำระ\", [Todays Collection Charges][Payment Status])\n    )\n  ), \"Partially Paid\",\n  TRUE, \"Not Paid\"\n)",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "Todays Collection Charges",
+          "virtual": true,
+          "formula": "=SELECT(Charges[Row ID], AND([Ref Loans].[Ref Borrowers] = [_THISROW].[Row ID], OR(AND([Payment Status] <> \"ชำระแล้ว\", [Charge Date] <= TODAY()), AND([Payment Status] = \"ชำระแล้ว\", [Payment Date] = TODAY()), IN(TODAY(), [Related Repayments][Payment Date]))))",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "Todays Amount Due",
+          "virtual": true,
+          "formula": "=SUM(SELECT([Todays Collection Charges][Amount Due], [Charge Date] <= TODAY()))",
+          "initial": "",
+          "display": "=\"ยอดที่ต้องชำระวันนี้ / Todays Amount Due\""
+        },
+        {
+          "name": "Todays Amount Collected",
+          "virtual": true,
+          "formula": "=SUM([Todays Collection Charges][Payment Received Today])",
+          "initial": "",
+          "display": "=\"ยอดที่เก็บได้วันนี้ / Todays Amount Collected\""
+        },
+        {
+          "name": "Todays Amount Remaining",
+          "virtual": true,
+          "formula": "=SUM(SELECT([Todays Collection Charges][Amount Remaining], [Charge Date] <= TODAY()))",
+          "initial": "",
+          "display": "=\"ยอดคงเหลือวันนี้ / Todays Amount Remaining\""
+        },
+        {
+          "name": "Daily Collection Status - Order",
+          "virtual": true,
+          "formula": "=SWITCH(\n  [Daily Collection Status],\n  \"Not Paid\",\n  \"1 - ยังไม่ชำระ Not Paid\",\n  \"Partially Paid\",\n  \"2 - ชำระบางส่วน Partially Paid\",\n  \"Overdue\",\n  \"3 - เกินกำหนด Overdue\",\n  \"Fully Paid\",\n  \"4 - ชำระครบ Fully Paid\",\n  \"\"\n)",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "Borrower Name - Collection",
+          "virtual": true,
+          "formula": "=CONCATENATE([Borrower Name], \" - \", [Description])",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "Active Profit After Principal Coverage",
+          "virtual": true,
+          "formula": "=[Active Loan Interest Earned] - [Total Outstanding Principal]",
+          "initial": "",
+          "display": "=\"กำไรหลังครอบคลุมเงินต้น / Profit After Principal Coverage\""
+        },
+        {
+          "name": "Related Payments",
+          "virtual": true,
+          "formula": "REF_ROWS(\"Payments\", \"Ref Borrower\")",
+          "initial": "",
+          "display": ""
+        }
+      ],
+      "slices": [
+        {
+          "name": "Todays Collection Board",
+          "filter": "=ISNOTBLANK([Daily Collection Status])",
+          "mode": "READ_ONLY",
+          "columns": [
+            "_RowNumber",
+            "Row ID",
+            "Borrower Name",
+            "Description",
+            "Daily Collection Status - Order",
+            "Todays Amount Due",
+            "Todays Amount Collected",
+            "Todays Amount Remaining",
+            "Todays Collection Charges",
+            "Borrower Name - Collection",
+            "Hidden Flag",
+            "Related Payments",
+            "Communication Name",
+            "Instagram Username",
+            "AI Collection Enabled",
+            "City",
+            "Working Location",
+            "Address"
+          ]
+        },
+        {
+          "name": "Visible Borrowers",
+          "filter": "=NOT([Hidden Flag])",
+          "mode": "ALL_CHANGES",
+          "columns": [
+            "_RowNumber",
+            "Row ID",
+            "Borrower Name",
+            "Description",
+            "Creation Date",
+            "Hidden Flag",
+            "Related Loans",
+            "Total Interest Earned",
+            "Total Amount Loaned",
+            "Total Number of Loans",
+            "Total Outstanding Principal",
+            "Header - Active Loans",
+            "Borrower Name TE",
+            "Return on Active Principal",
+            "Active Loan Interest Earned",
+            "Active Daily Interest",
+            "Projected Interest Coverage Date",
+            "Closed Loan Interest Earned",
+            "Closed Loan Principle",
+            "Has Closed Loan",
+            "Return on Closed Loans",
+            "Header - Closed Loans",
+            "Has Active Loan",
+            "Daily Collection Status",
+            "Todays Collection Charges",
+            "Todays Amount Due",
+            "Todays Amount Collected",
+            "Todays Amount Remaining",
+            "Daily Collection Status - Order",
+            "Borrower Name - Collection",
+            "Active Profit After Principal Coverage",
+            "Related Payments",
+            "Communication Name",
+            "Instagram Username",
+            "AI Collection Enabled",
+            "City",
+            "Working Location",
+            "Address"
+          ]
+        }
+      ],
+      "views": [
+        {
+          "name": "Borrowers_Detail",
+          "config": {
+            "MainSlideshowImageColumn": "**auto**",
+            "DetailContentColumn": "**none**",
+            "HeaderColumns": [],
+            "QuickEditColumns": [],
+            "ColumnOrder": [
+              "Borrower Name",
+              "Description",
+              "Creation Date",
+              "Total Amount Loaned",
+              "Total Interest Earned",
+              "Total Number of Loans",
+              "Header - Active Loans",
+              "Total Outstanding Principal",
+              "Active Loan Interest Earned",
+              "Return on Active Principal",
+              "Projected Interest Coverage Date",
+              "Header - Closed Loans",
+              "Closed Loan Principle",
+              "Closed Loan Interest Earned",
+              "Return on Closed Loans",
+              "Related Loans",
+              "Communication Name",
+              "Instagram Username",
+              "AI Collection Enabled",
+              "City",
+              "Working Location",
+              "Address"
+            ],
+            "ImageStyle": "Fill",
+            "Layout": null,
+            "UseCardLayout": false,
+            "DisplayMode": "Automatic",
+            "MaxNestedRows": 20,
+            "SlideshowMode": true,
+            "DesktopSplitMode": "Split view",
+            "UseDesktopMultiColumn": true,
+            "SortBy": [],
+            "PrimarySortColumn": null,
+            "IsPrimarySortDescending": false,
+            "Events": [],
+            "Icon": "fa-indent",
+            "IconRunnerUps": null,
+            "MenuOrder": 1
+          }
+        },
+        {
+          "name": "Borrowers_Form",
+          "config": {
+            "ColumnOrder": [
+              "Borrower Name",
+              "Description",
+              "Creation Date",
+              "Hidden Flag",
+              "Communication Name",
+              "Instagram Username",
+              "AI Collection Enabled",
+              "City",
+              "Working Location",
+              "Address"
+            ],
+            "AutoSave": false,
+            "AutoReopen": false,
+            "FinishView": "**Automatic**",
+            "RowKey": "",
+            "FormStyle": "Automatic",
+            "PageStyle": "Automatic",
+            "FormFooterStyle": "Bottom",
+            "MaxNestedRows": 5,
+            "AudioInput": false,
+            "Events": [
+              {
+                "EventType": "Form Saved",
+                "EventAction": "**auto**"
+              }
+            ],
+            "Icon": "fa-edit",
+            "IconRunnerUps": null,
+            "MenuOrder": 1
+          }
+        },
+        {
+          "name": "Todays Collection Board_Detail",
+          "config": {
+            "MainSlideshowImageColumn": "**auto**",
+            "DetailContentColumn": "**none**",
+            "HeaderColumns": [],
+            "QuickEditColumns": [],
+            "ColumnOrder": [
+              "Daily Collection Status - Order",
+              "Borrower Name - Collection",
+              "Todays Amount Due",
+              "Todays Amount Collected",
+              "Todays Amount Remaining",
+              "Todays Collection Charges"
+            ],
+            "ImageStyle": "Fill",
+            "Layout": null,
+            "UseCardLayout": false,
+            "DisplayMode": "Automatic",
+            "MaxNestedRows": 30,
+            "SlideshowMode": true,
+            "DesktopSplitMode": "Split view",
+            "UseDesktopMultiColumn": true,
+            "SortBy": [],
+            "PrimarySortColumn": null,
+            "IsPrimarySortDescending": false,
+            "Events": [],
+            "Icon": "fa-indent",
+            "IconRunnerUps": null,
+            "MenuOrder": 1
+          }
+        },
+        {
+          "name": "Visible Borrowers_Detail",
+          "config": {
+            "MainSlideshowImageColumn": "**auto**",
+            "DetailContentColumn": "**none**",
+            "HeaderColumns": [],
+            "QuickEditColumns": [],
+            "ColumnOrder": [
+              "Borrower Name TE",
+              "Creation Date",
+              "Total Interest Earned",
+              "Total Amount Loaned",
+              "Total Number of Loans",
+              "Header - Active Loans",
+              "Total Outstanding Principal",
+              "Active Loan Interest Earned",
+              "Active Profit After Principal Coverage",
+              "Return on Active Principal",
+              "Projected Interest Coverage Date",
+              "Header - Closed Loans",
+              "Closed Loan Principle",
+              "Closed Loan Interest Earned",
+              "Return on Closed Loans",
+              "Related Loans",
+              "Communication Name",
+              "Instagram Username",
+              "AI Collection Enabled",
+              "City",
+              "Working Location",
+              "Address"
+            ],
+            "ImageStyle": "Fill",
+            "Layout": null,
+            "UseCardLayout": false,
+            "DisplayMode": "Automatic",
+            "MaxNestedRows": 20,
+            "SlideshowMode": true,
+            "DesktopSplitMode": "Split view",
+            "UseDesktopMultiColumn": true,
+            "SortBy": [],
+            "PrimarySortColumn": null,
+            "IsPrimarySortDescending": false,
+            "Events": [],
+            "Icon": "fa-indent",
+            "IconRunnerUps": null,
+            "MenuOrder": 1
+          }
+        },
+        {
+          "name": "Visible Borrowers_Form",
+          "config": {
+            "ColumnOrder": [
+              "Borrower Name",
+              "Creation Date",
+              "Description",
+              "Communication Name",
+              "Instagram Username",
+              "AI Collection Enabled",
+              "City",
+              "Working Location",
+              "Address"
+            ],
+            "AutoSave": false,
+            "AutoReopen": false,
+            "FinishView": "**Automatic**",
+            "RowKey": "",
+            "FormStyle": "Automatic",
+            "PageStyle": "Automatic",
+            "FormFooterStyle": "Bottom",
+            "MaxNestedRows": 5,
+            "AudioInput": false,
+            "Events": [
+              {
+                "EventType": "Form Saved",
+                "EventAction": "**auto**"
+              }
+            ],
+            "Icon": "fa-edit",
+            "IconRunnerUps": null,
+            "MenuOrder": 1
+          }
+        }
+      ]
+    },
+    "olap": {
+      "columns": [
+        {
+          "name": "_RowNumber",
+          "virtual": false,
+          "formula": "",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "Row ID",
+          "virtual": false,
+          "formula": "",
+          "initial": "UNIQUEID(\"PackedUUID\")",
+          "display": ""
+        },
+        {
+          "name": "Borrower Name",
+          "virtual": false,
+          "formula": "",
+          "initial": "",
+          "display": "=\"Borrower Name - Thai\""
+        },
+        {
+          "name": "Description",
+          "virtual": false,
+          "formula": "",
+          "initial": "",
+          "display": "=\"English Name\""
+        },
+        {
+          "name": "Creation Date",
+          "virtual": false,
+          "formula": "",
+          "initial": "=TODAY()",
+          "display": "=\"วันที่สร้างข้อมูล / Creation Date\""
+        },
+        {
+          "name": "Hidden Flag",
+          "virtual": false,
+          "formula": "",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "Communication Name",
+          "virtual": false,
+          "formula": "",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "Instagram Username",
+          "virtual": false,
+          "formula": "",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "AI Collection Enabled",
+          "virtual": false,
+          "formula": "",
+          "initial": "=TRUE",
+          "display": ""
+        },
+        {
+          "name": "City",
+          "virtual": false,
+          "formula": "",
+          "initial": "",
+          "display": "=\"เมือง / City\""
+        },
+        {
+          "name": "Working Location",
+          "virtual": false,
+          "formula": "",
+          "initial": "",
+          "display": "=\"สถานที่ทำงาน / Working Location\""
+        },
+        {
+          "name": "Address",
+          "virtual": false,
+          "formula": "",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "Related Loans",
+          "virtual": true,
+          "formula": "=REF_ROWS(\"Loans\", \"Ref Borrowers\")",
+          "initial": "",
+          "display": "=💰 สินเชื่อที่เกี่ยวข้อง"
+        },
+        {
+          "name": "Total Interest Earned",
+          "virtual": true,
+          "formula": "=SUM([Related Loans][Total Interest Received])",
+          "initial": "",
+          "display": "=\"ดอกเบี้ยที่ได้รับทั้งหมด / Total Profit Earned\""
+        },
+        {
+          "name": "Total Amount Loaned",
+          "virtual": true,
+          "formula": "=SUM([Related Loans][Principal Amount])",
+          "initial": "",
+          "display": "=\"ยอดเงินกู้สะสม / Total Amount Loaned\""
+        },
+        {
+          "name": "Total Number of Loans",
+          "virtual": true,
+          "formula": "=COUNT([Related Loans])",
+          "initial": "",
+          "display": "=\"จำนวนเงินกู้ทั้งหมด / Total Number of Loans\""
+        },
+        {
+          "name": "Total Outstanding Principal",
+          "virtual": true,
+          "formula": "=SUM([Related Loans][Outstanding Principal])",
+          "initial": "",
+          "display": "=\"เงินต้นคงเหลือ / Total Outstanding Principal\""
+        },
+        {
+          "name": "Header - Active Loans",
+          "virtual": true,
+          "formula": "=\"──── เงินกู้ที่ยังไม่ปิด / Active Loans ────\"",
+          "initial": "",
+          "display": "=\" \""
+        },
+        {
+          "name": "Borrower Name TE",
+          "virtual": true,
+          "formula": "=CONCATENATE([Borrower Name], \" - \", [Description])",
+          "initial": "",
+          "display": "=ชื่อผู้กู้"
+        },
+        {
+          "name": "Return on Active Principal",
+          "virtual": true,
+          "formula": "=IF([Total Outstanding Principal] > 0, [Active Loan Interest Earned] / [Total Outstanding Principal], 0)",
+          "initial": "",
+          "display": "=\"ผลตอบแทนเงินต้น / Return on Active Principal\""
+        },
+        {
+          "name": "Profit Last 30 Days",
+          "virtual": true,
+          "formula": "=SUM(\n  SELECT(\n    Repayments[Interest Paid],\n    AND(\n      [Ref Loans].[Ref Borrowers] = [_THISROW].[Row ID],\n      [Payment Date] >= TODAY() - 29,\n      [Payment Date] <= TODAY(),\n      [Interest Paid] > 0\n    )\n  )\n)",
+          "initial": "",
+          "display": "=\"กำไร 30 วันล่าสุด / Profit Last 30 Days\""
+        },
+        {
+          "name": "Active Loan Interest Earned",
+          "virtual": true,
+          "formula": "=SUM(\n  SELECT(\n    Loans[Total Interest Received],\n    AND([Ref Borrowers] = [_THISROW].[Row ID], [Loan Status] = \"ยังไม่ปิดยอด\")\n  )\n)",
+          "initial": "",
+          "display": "=\"ดอกเบี้ยเงินกู้ที่ยังไม่ปิด / Active Loan Interest Earned\""
+        },
+        {
+          "name": "Active Daily Interest",
+          "virtual": true,
+          "formula": "=SUM(\n  SELECT(\n    Loans[Expected Daily Interest Amount],\n    [Ref Borrowers] = [_THISROW].[Row ID]\n  )\n)",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "Projected Interest Coverage Date",
+          "virtual": true,
+          "formula": "=IFS(\n  [Total Outstanding Principal] <= 0,\n  \"\",\n  [Active Loan Interest Earned] >= [Total Outstanding Principal],\n  TODAY(),\n  [Active Daily Interest] > 0,\n  TODAY()\n    + CEILING(\n      ( [Total Outstanding Principal] - [Active Loan Interest Earned] )\n        / [Active Daily Interest]\n    ),\n  TRUE,\n  \"\"\n)",
+          "initial": "",
+          "display": "=\"วันที่ดอกเบี้ยครอบคลุมเงินต้น / Projected Interest Coverage Date\""
+        },
+        {
+          "name": "Related Loan Assessments",
+          "virtual": true,
+          "formula": "REF_ROWS(\"Loan Assessment\", \"Ref Borrower\")",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "Related Calendars",
+          "virtual": true,
+          "formula": "REF_ROWS(\"Calendar\", \"Assessment Borrower\")",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "Closed Loan Interest Earned",
+          "virtual": true,
+          "formula": "=[Total Interest Earned] - [Active Loan Interest Earned]",
+          "initial": "",
+          "display": "=\"ดอกเบี้ยที่ได้รับจากเงินกู้ที่ปิดแล้ว / Closed Loan Interest Earned\""
+        },
+        {
+          "name": "Closed Loan Principle",
+          "virtual": true,
+          "formula": "=[Total Amount Loaned] - [Total Outstanding Principal]",
+          "initial": "",
+          "display": "=\"เงินต้นของเงินกู้ที่ปิดแล้ว / Closed Loan Principle\""
+        },
+        {
+          "name": "Has Closed Loan",
+          "virtual": true,
+          "formula": "=COUNT(SELECT([Related Loans][Row ID], [Loan Status] = \"ปิดยอดแล้ว\")) > 0",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "Return on Closed Loans",
+          "virtual": true,
+          "formula": "=IF(\n  AND([Has Closed Loan], [Closed Loan Principle] > 0),\n  [Closed Loan Interest Earned] / [Closed Loan Principle],\n  0\n)",
+          "initial": "",
+          "display": "=\"ผลตอบแทนจากเงินกู้ที่ปิดแล้ว / Return on Closed Loans\""
+        },
+        {
+          "name": "Header - Closed Loans",
+          "virtual": true,
+          "formula": "=\"──── เงินกู้ที่ปิดแล้ว / Closed Loans ────\"",
+          "initial": "",
+          "display": "=\" \""
+        },
+        {
+          "name": "Has Active Loan",
+          "virtual": true,
+          "formula": "=COUNT(SELECT([Related Loans][Row ID], [Loan Status] = \"ยังไม่ปิดยอด\")) > 0",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "30D Gross Principal Days",
+          "virtual": true,
+          "formula": "=SUM(\n  SELECT(\n    Loans[30D Principal Days],\n    [Ref Borrowers] = [_THISROW].[Row ID]\n  )\n)",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "30D Principal Reduction Days",
+          "virtual": true,
+          "formula": "=SUM(\n  SELECT(\n    Repayments[30D Principal Reduction Days],\n    [Ref Loans].[Ref Borrowers] = [_THISROW].[Row ID]\n  )\n)",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "30D Average Outstanding Principal",
+          "virtual": true,
+          "formula": "=( [30D Gross Principal Days] - [30D Principal Reduction Days] ) / 30",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "30D Return on Average Principal",
+          "virtual": true,
+          "formula": "=IF(\n  [30D Average Outstanding Principal] > 0,\n  [Profit Last 30 Days] / [30D Average Outstanding Principal],\n  0\n)",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "Daily Collection Status",
+          "virtual": true,
+          "formula": "=IFS( COUNT([Todays Collection Charges]) = 0, \"\", COUNT( SELECT( Charges[Row ID], AND( IN([Row ID], [_THISROW].[Todays Collection Charges]), [Charge Date] < TODAY(), [Payment Status] <> \"ชำระแล้ว\" ) ) ) > 0, \"Overdue\", AND( NOT(IN(\"รอชำระ\", [Todays Collection Charges][Payment Status])), NOT(IN(\"ชำระบางส่วน\", [Todays Collection Charges][Payment Status])) ), \"Fully Paid\", OR( IN(\"ชำระบางส่วน\", [Todays Collection Charges][Payment Status]), AND( IN(\"ชำระแล้ว\", [Todays Collection Charges][Payment Status]), IN(\"รอชำระ\", [Todays Collection Charges][Payment Status]) ) ), \"Partially Paid\", TRUE, \"Not Paid\")",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "Todays Collection Charges",
+          "virtual": true,
+          "formula": "=SELECT(Charges[Row ID], AND([Ref Loans].[Ref Borrowers] = [_THISROW].[Row ID], OR(AND([Payment Status] <> \"ชำระแล้ว\", [Charge Date] <= TODAY()), AND([Payment Status] = \"ชำระแล้ว\", [Payment Date] = TODAY()), IN(TODAY(), [Related Repayments][Payment Date]))))",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "Todays Amount Due",
+          "virtual": true,
+          "formula": "=SUM(SELECT([Todays Collection Charges][Amount Due], [Charge Date] <= TODAY()))",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "Todays Amount Collected",
+          "virtual": true,
+          "formula": "=SUM(SELECT(Repayments[Amount Received], AND(IN([Ref Charges], [_THISROW].[Todays Collection Charges]), [Payment Date] = TODAY())))",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "Todays Amount Remaining",
+          "virtual": true,
+          "formula": "=SUM(SELECT([Todays Collection Charges][Amount Remaining], [Charge Date] <= TODAY()))",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "Portfolio Exposure %",
+          "virtual": true,
+          "formula": "=IF(\n  SUM(Borrowers[Total Outstanding Principal]) = 0,\n  0,\n  [Total Outstanding Principal] / SUM(Borrowers[Total Outstanding Principal])\n)",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "Active Loan Count",
+          "virtual": true,
+          "formula": "=COUNT(\n  SELECT(\n    Loans[Row ID],\n    AND([Ref Borrowers] = [_THISROW].[Row ID], [Loan Status] = \"ยังไม่ปิดยอด\")\n  )\n)",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "Oldest Active Loan Age",
+          "virtual": true,
+          "formula": "=MAX(\n  SELECT(\n    Loans[Loan Age Days],\n    AND([Ref Borrowers] = [_THISROW].[Row ID], [Loan Status] = \"ยังไม่ปิดยอด\")\n  )\n)",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "Overdue Amount",
+          "virtual": true,
+          "formula": "=SUM(\n  SELECT(\n    Charges[Amount Remaining],\n    AND(\n      [Ref Loans].[Ref Borrowers] = [_THISROW].[Row ID],\n      [Charge Date] < TODAY(),\n      [Payment Status] <> \"ชำระแล้ว\"\n    )\n  )\n)",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "Overdue Charge Count",
+          "virtual": true,
+          "formula": "=COUNT(\n  SELECT(\n    Charges[Row ID],\n    AND(\n      [Ref Loans].[Ref Borrowers] = [_THISROW].[Row ID],\n      [Charge Date] < TODAY(),\n      [Payment Status] <> \"ชำระแล้ว\"\n    )\n  )\n)",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "Historical Charge Count",
+          "virtual": true,
+          "formula": "=COUNT(SELECT(Charges[Row ID], AND([Ref Loans].[Ref Borrowers] = [_THISROW].[Row ID], [Charge Date] < TODAY())))",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "On Time Charge Count",
+          "virtual": true,
+          "formula": "=COUNT(SELECT(Charges[Row ID], AND([Ref Loans].[Ref Borrowers] = [_THISROW].[Row ID], [Historical On Time] = TRUE)))",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "Lifetime On Time Rate",
+          "virtual": true,
+          "formula": "=IF([Historical Charge Count] = 0, 0, [On Time Charge Count] / [Historical Charge Count])",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "Recent 30D Charge Count",
+          "virtual": true,
+          "formula": "=COUNT(SELECT(Charges[Row ID], AND([Ref Loans].[Ref Borrowers] = [_THISROW].[Row ID], [Charge Date] >= TODAY() - 30, [Charge Date] < TODAY())))",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "Recent 30D On Time Count",
+          "virtual": true,
+          "formula": "=COUNT(SELECT(Charges[Row ID], AND([Ref Loans].[Ref Borrowers] = [_THISROW].[Row ID], [Charge Date] >= TODAY() - 30, [Charge Date] < TODAY(), [Historical On Time] = TRUE)))",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "Recent 30D On Time Rate",
+          "virtual": true,
+          "formula": "=IF([Recent 30D Charge Count] = 0, 0, [Recent 30D On Time Count] / [Recent 30D Charge Count])",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "Lifetime Late Payment Count",
+          "virtual": true,
+          "formula": "=COUNT(SELECT(Charges[Row ID], AND([Ref Loans].[Ref Borrowers] = [_THISROW].[Row ID], [Historical Late] = TRUE)))",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "Recent 30D Late Payment Count",
+          "virtual": true,
+          "formula": "=COUNT(SELECT(Charges[Row ID], AND([Ref Loans].[Ref Borrowers] = [_THISROW].[Row ID], [Charge Date] >= TODAY() - 30, [Charge Date] < TODAY(), [Historical Late] = TRUE)))",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "Maximum Days Late",
+          "virtual": true,
+          "formula": "=MAX(LIST(0) + SELECT(Charges[Days Late], [Ref Loans].[Ref Borrowers] = [_THISROW].[Row ID]))",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "Last Late Payment Date",
+          "virtual": true,
+          "formula": "=MAX(SELECT(Charges[Charge Date], AND([Ref Loans].[Ref Borrowers] = [_THISROW].[Row ID], [Days Late] > 0)))",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "Largest Successful Loan",
+          "virtual": true,
+          "formula": "=MAX(LIST(0) + SELECT(Loans[Principal Amount], AND([Ref Borrowers] = [_THISROW].[Row ID], [Loan Status] = \"ปิดยอดแล้ว\", [Defaulted] = FALSE)))",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "Average Successful Loan Size",
+          "virtual": true,
+          "formula": "=IF(COUNT(SELECT(Loans[Row ID], AND([Ref Borrowers] = [_THISROW].[Row ID], [Loan Status] = \"ปิดยอดแล้ว\", [Defaulted] = FALSE))) = 0, 0, AVERAGE(SELECT(Loans[Principal Amount], AND([Ref Borrowers] = [_THISROW].[Row ID], [Loan Status] = \"ปิดยอดแล้ว\", [Defaulted] = FALSE))))",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "Default Count",
+          "virtual": true,
+          "formula": "=COUNT(SELECT(Loans[Row ID], AND([Ref Borrowers] = [_THISROW].[Row ID], [Defaulted] = TRUE)))",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "Lifetime Default Loss",
+          "virtual": true,
+          "formula": "=SUM(SELECT(Loans[Default Loss Amount], AND([Ref Borrowers] = [_THISROW].[Row ID], [Defaulted] = TRUE)))",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "Portfolio Outstanding Principal",
+          "virtual": true,
+          "formula": "=SUM(Loans[Outstanding Principal])",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "Portfolio Share Join Key",
+          "virtual": true,
+          "formula": "=\"Portfolio\"",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "Projected Monthly Profit Contribution",
+          "virtual": true,
+          "formula": "=SUM(SELECT(Repayments[Interest Paid], AND([Ref Loans].[Ref Borrowers] = [_THISROW].[Row ID], MONTH([Payment Date]) = MONTH(TODAY()), YEAR([Payment Date]) = YEAR(TODAY())))) + SUM(SELECT(Charges[Interest Remaining], AND([Ref Loans].[Ref Borrowers] = [_THISROW].[Row ID], [Charge Date] <= TODAY()))) + SUM(SELECT(Loans[Expected Interest This Month], [Ref Borrowers] = [_THISROW].[Row ID]))",
+          "initial": "",
+          "display": "=\"ส่วนแบ่งกำไรคาดการณ์สิ้นเดือน / Projected Monthly Profit Contribution\""
+        },
+        {
+          "name": "Matrix Active Borrower Count",
+          "virtual": true,
+          "formula": "=COUNT(SELECT(Borrowers[Row ID], [Has Active Loan] = TRUE))",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "Matrix Equal Share Benchmark",
+          "virtual": true,
+          "formula": "=IF([Matrix Active Borrower Count] > 0, 1 / [Matrix Active Borrower Count], \"\")",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "Matrix Economic Contribution",
+          "virtual": true,
+          "formula": "=IF(\n  SUM(SELECT(Borrowers[Profit Last 10 Days], [Has Active Loan] = TRUE)) > 0,\n  [Profit Last 10 Days]\n    / SUM(SELECT(Borrowers[Profit Last 10 Days], [Has Active Loan] = TRUE)),\n  \"\"\n)",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "Matrix Recent Reliability Score",
+          "virtual": true,
+          "formula": "=IF([Recent 30D Charge Count] = 0, \"\", 100 * [Recent 30D On Time Count] / [Recent 30D Charge Count])",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "Matrix Historical Reliability Score",
+          "virtual": true,
+          "formula": "=IF(COUNT(SELECT(Charges[Row ID], AND([Ref Loans].[Ref Borrowers] = [_THISROW].[Row ID], [Charge Date] >= TODAY() - 180, [Charge Date] < TODAY()))) = 0, \"\", 100 * COUNT(SELECT(Charges[Row ID], AND([Ref Loans].[Ref Borrowers] = [_THISROW].[Row ID], [Charge Date] >= TODAY() - 180, [Charge Date] < TODAY(), [Historical On Time] = TRUE))) / COUNT(SELECT(Charges[Row ID], AND([Ref Loans].[Ref Borrowers] = [_THISROW].[Row ID], [Charge Date] >= TODAY() - 180, [Charge Date] < TODAY()))))",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "Matrix Delay Severity Score",
+          "virtual": true,
+          "formula": "=IF(COUNT(SELECT(Charges[Row ID], AND([Ref Loans].[Ref Borrowers] = [_THISROW].[Row ID], [Charge Date] >= TODAY() - 90, [Charge Date] < TODAY()))) = 0, \"\", IFS(COUNT(SELECT(Charges[Row ID], AND([Ref Loans].[Ref Borrowers] = [_THISROW].[Row ID], [Charge Date] >= TODAY() - 90, [Charge Date] < TODAY(), [Ref Loans].[Defaulted] = TRUE))) > 0, 0, MAX(LIST(0) + SELECT(Charges[Days Late], AND([Ref Loans].[Ref Borrowers] = [_THISROW].[Row ID], [Charge Date] >= TODAY() - 90, [Charge Date] < TODAY()))) = 0, 100, MAX(LIST(0) + SELECT(Charges[Days Late], AND([Ref Loans].[Ref Borrowers] = [_THISROW].[Row ID], [Charge Date] >= TODAY() - 90, [Charge Date] < TODAY()))) <= 1, 90, MAX(LIST(0) + SELECT(Charges[Days Late], AND([Ref Loans].[Ref Borrowers] = [_THISROW].[Row ID], [Charge Date] >= TODAY() - 90, [Charge Date] < TODAY()))) <= 3, 70, MAX(LIST(0) + SELECT(Charges[Days Late], AND([Ref Loans].[Ref Borrowers] = [_THISROW].[Row ID], [Charge Date] >= TODAY() - 90, [Charge Date] < TODAY()))) <= 7, 40, TRUE, 10))",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "Matrix Current Condition Score",
+          "virtual": true,
+          "formula": "=IFS(COUNT(SELECT(Loans[Row ID], AND([Ref Borrowers] = [_THISROW].[Row ID], [Defaulted] = TRUE, [Outstanding Principal] > 0))) > 0, 0, COUNT(SELECT(Charges[Row ID], AND([Ref Loans].[Ref Borrowers] = [_THISROW].[Row ID], [Charge Date] < TODAY(), [Amount Remaining] > 0, [Days Late] > 3))) > 0, 20, COUNT(SELECT(Charges[Row ID], AND([Ref Loans].[Ref Borrowers] = [_THISROW].[Row ID], [Charge Date] < TODAY(), [Amount Remaining] > 0, [Days Late] >= 2))) > 0, 40, COUNT(SELECT(Charges[Row ID], AND([Ref Loans].[Ref Borrowers] = [_THISROW].[Row ID], [Charge Date] < TODAY(), [Amount Remaining] > 0, [Days Late] >= 1))) > 0, 60, COUNT(SELECT(Charges[Row ID], AND([Ref Loans].[Ref Borrowers] = [_THISROW].[Row ID], [Charge Date] = TODAY(), [Amount Remaining] > 0, [Total Paid] > 0))) > 0, 75, COUNT(SELECT(Charges[Row ID], AND([Ref Loans].[Ref Borrowers] = [_THISROW].[Row ID], [Charge Date] = TODAY(), [Amount Remaining] > 0))) > 0, 90, TRUE, 100)",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "Matrix History Sufficient",
+          "virtual": true,
+          "formula": "=FLOOR(\n  TOTALHOURS(\n    TODAY()\n      - MIN(\n        SELECT(\n          Charges[Charge Date],\n          AND(\n            [Ref Loans].[Ref Borrowers] = [_THISROW].[Row ID],\n            [Charge Date] < TODAY()\n          )\n        )\n      )\n  )\n    / 24\n) >= 3",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "Matrix Stability Score",
+          "virtual": true,
+          "formula": "=ROUND(\n  10\n    * (\n    IF(\n      ISNOTBLANK([Matrix Recent Reliability Score]),\n      [Matrix Recent Reliability Score] * 0.45,\n      0\n    )\n      + IF(\n        ISNOTBLANK([Matrix Historical Reliability Score]),\n        [Matrix Historical Reliability Score] * 0.20,\n        0\n      )\n      + IF(\n        ISNOTBLANK([Matrix Delay Severity Score]),\n        [Matrix Delay Severity Score] * 0.20,\n        0\n      )\n      + [Matrix Current Condition Score] * 0.15\n    )\n    / (\n    IF(ISNOTBLANK([Matrix Recent Reliability Score]), 0.45, 0)\n      + IF(ISNOTBLANK([Matrix Historical Reliability Score]), 0.20, 0)\n      + IF(ISNOTBLANK([Matrix Delay Severity Score]), 0.20, 0)\n      + 0.15\n    )\n)\n/ 10",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "Matrix Quadrant",
+          "virtual": true,
+          "formula": "=IFS(\n  [Has Active Loan] = FALSE,\n  \"\",\n  OR(\n    ISBLANK([Matrix Economic Contribution]),\n    ISBLANK([Matrix Scaled Economic Contribution])\n  ),\n  \"Unclassified\",\n  [Matrix History Sufficient] = FALSE,\n  \"Provisional - insufficient history\",\n  AND(\n    [Matrix Economic Contribution] >= [Matrix Equal Share Benchmark],\n    [Matrix Scaled Economic Contribution] >= 0.5\n  ),\n  \"Star\",\n  AND(\n    [Matrix Economic Contribution] < [Matrix Equal Share Benchmark],\n    [Matrix Scaled Economic Contribution] >= 0.5\n  ),\n  \"Cash Cow\",\n  AND(\n    [Matrix Economic Contribution] >= [Matrix Equal Share Benchmark],\n    [Matrix Scaled Economic Contribution] < 0.5\n  ),\n  \"Question Mark\",\n  TRUE,\n  \"Dog\"\n)",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "Matrix Bubble Label",
+          "virtual": true,
+          "formula": "=CONCATENATE([Description], \" - \" , [Matrix Quadrant])",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "Profit Last 10 Days",
+          "virtual": true,
+          "formula": "=SUM(\n  SELECT(\n    Repayments[Interest Paid],\n    AND(\n      [Ref Loans].[Ref Borrowers] = [_THISROW].[Row ID],\n      [Payment Date] >= TODAY() - 10,\n      [Payment Date] < TODAY(),\n      [Interest Paid] > 0\n    )\n  )\n)",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "Matrix Scaled Economic Contribution",
+          "virtual": true,
+          "formula": "=MIN(LIST(DECIMAL(1), (DECIMAL([Matrix Economic Contribution]) * [Matrix Active Borrower Count]) / 2))",
+          "initial": "",
+          "display": ""
+        },
+        {
+          "name": "Related Payments",
+          "virtual": true,
+          "formula": "REF_ROWS(\"Payments\", \"Ref Borrower\")",
+          "initial": "",
+          "display": ""
+        }
+      ],
+      "slices": [
+        {
+          "name": "Borrowers with Outstanding Loans",
+          "filter": "=[Total Outstanding Principal] > 0",
+          "mode": "READ_ONLY",
+          "columns": [
+            "_RowNumber",
+            "Row ID",
+            "Borrower Name",
+            "Description",
+            "Creation Date",
+            "Related Loans",
+            "Total Interest Earned",
+            "Total Amount Loaned",
+            "Total Number of Loans",
+            "Total Outstanding Principal",
+            "Header - Active Loans",
+            "Borrower Name TE",
+            "Return on Active Principal",
+            "Profit Last 30 Days",
+            "Projected Interest Coverage Date",
+            "Active Loan Interest Earned",
+            "Active Daily Interest",
+            "Related Loan Assessments",
+            "Related Calendars",
+            "Closed Loan Interest Earned",
+            "Closed Loan Principle",
+            "Has Closed Loan",
+            "Return on Closed Loans",
+            "Header - Closed Loans",
+            "Has Active Loan",
+            "30D Gross Principal Days",
+            "30D Principal Reduction Days",
+            "30D Average Outstanding Principal",
+            "30D Return on Average Principal",
+            "Daily Collection Status",
+            "Todays Collection Charges",
+            "Todays Amount Due",
+            "Todays Amount Collected",
+            "Todays Amount Remaining",
+            "Portfolio Exposure %",
+            "Active Loan Count",
+            "Oldest Active Loan Age",
+            "Overdue Amount",
+            "Overdue Charge Count",
+            "Historical Charge Count",
+            "On Time Charge Count",
+            "Lifetime On Time Rate",
+            "Recent 30D Charge Count",
+            "Recent 30D On Time Count",
+            "Recent 30D On Time Rate",
+            "Lifetime Late Payment Count",
+            "Recent 30D Late Payment Count",
+            "Maximum Days Late",
+            "Last Late Payment Date",
+            "Largest Successful Loan",
+            "Average Successful Loan Size",
+            "Default Count",
+            "Lifetime Default Loss",
+            "Portfolio Outstanding Principal",
+            "Portfolio Share Join Key",
+            "Hidden Flag",
+            "Projected Monthly Profit Contribution",
+            "Matrix Active Borrower Count",
+            "Matrix Equal Share Benchmark",
+            "Matrix Economic Contribution",
+            "Matrix Recent Reliability Score",
+            "Matrix Historical Reliability Score",
+            "Matrix Delay Severity Score",
+            "Matrix Current Condition Score",
+            "Matrix History Sufficient",
+            "Matrix Stability Score",
+            "Matrix Quadrant",
+            "Matrix Bubble Label",
+            "Profit Last 10 Days",
+            "Matrix Scaled Economic Contribution",
+            "Related Payments",
+            "City",
+            "Working Location",
+            "Address"
+          ]
+        },
+        {
+          "name": "Profit Contribution 30D",
+          "filter": "=[Profit Last 30 Days] > 0",
+          "mode": "READ_ONLY",
+          "columns": [
+            "_RowNumber",
+            "Row ID",
+            "Borrower Name",
+            "Description",
+            "Creation Date",
+            "Related Loans",
+            "Total Interest Earned",
+            "Total Amount Loaned",
+            "Total Number of Loans",
+            "Total Outstanding Principal",
+            "Header - Active Loans",
+            "Borrower Name TE",
+            "Return on Active Principal",
+            "Profit Last 30 Days",
+            "Projected Interest Coverage Date",
+            "Active Loan Interest Earned",
+            "Active Daily Interest",
+            "Related Loan Assessments",
+            "Related Calendars",
+            "Closed Loan Interest Earned",
+            "Closed Loan Principle",
+            "Has Closed Loan",
+            "Return on Closed Loans",
+            "Header - Closed Loans",
+            "Has Active Loan",
+            "30D Gross Principal Days",
+            "30D Principal Reduction Days",
+            "30D Average Outstanding Principal",
+            "30D Return on Average Principal",
+            "Daily Collection Status",
+            "Todays Collection Charges",
+            "Todays Amount Due",
+            "Todays Amount Collected",
+            "Todays Amount Remaining",
+            "Portfolio Exposure %",
+            "Active Loan Count",
+            "Oldest Active Loan Age",
+            "Overdue Amount",
+            "Overdue Charge Count",
+            "Historical Charge Count",
+            "On Time Charge Count",
+            "Lifetime On Time Rate",
+            "Recent 30D Charge Count",
+            "Recent 30D On Time Count",
+            "Recent 30D On Time Rate",
+            "Lifetime Late Payment Count",
+            "Recent 30D Late Payment Count",
+            "Maximum Days Late",
+            "Last Late Payment Date",
+            "Largest Successful Loan",
+            "Average Successful Loan Size",
+            "Default Count",
+            "Lifetime Default Loss",
+            "Portfolio Outstanding Principal",
+            "Portfolio Share Join Key",
+            "Hidden Flag",
+            "Projected Monthly Profit Contribution",
+            "Matrix Active Borrower Count",
+            "Matrix Equal Share Benchmark",
+            "Matrix Economic Contribution",
+            "Matrix Recent Reliability Score",
+            "Matrix Historical Reliability Score",
+            "Matrix Delay Severity Score",
+            "Matrix Current Condition Score",
+            "Matrix History Sufficient",
+            "Matrix Stability Score",
+            "Matrix Quadrant",
+            "Matrix Bubble Label",
+            "Profit Last 10 Days",
+            "Matrix Scaled Economic Contribution",
+            "Related Payments",
+            "City",
+            "Working Location",
+            "Address"
+          ]
+        },
+        {
+          "name": "Reporting Borrowers",
+          "filter": "",
+          "mode": "READ_ONLY",
+          "columns": [
+            "_RowNumber",
+            "Row ID",
+            "Borrower Name",
+            "Borrower Name TE",
+            "Description",
+            "Total Interest Earned",
+            "Total Amount Loaned",
+            "Total Number of Loans",
+            "Total Outstanding Principal",
+            "Daily Collection Status",
+            "Todays Amount Due",
+            "Todays Amount Collected",
+            "Todays Amount Remaining",
+            "30D Return on Average Principal",
+            "Return on Active Principal",
+            "30D Average Outstanding Principal",
+            "Profit Last 30 Days",
+            "Has Active Loan",
+            "Has Closed Loan",
+            "Overdue Amount",
+            "Overdue Charge Count",
+            "Oldest Active Loan Age",
+            "Active Loan Count",
+            "Portfolio Exposure %",
+            "Historical Charge Count",
+            "On Time Charge Count",
+            "Lifetime On Time Rate",
+            "Recent 30D Charge Count",
+            "Recent 30D On Time Count",
+            "Recent 30D On Time Rate",
+            "Lifetime Late Payment Count",
+            "Recent 30D Late Payment Count",
+            "Maximum Days Late",
+            "Last Late Payment Date",
+            "Largest Successful Loan",
+            "Average Successful Loan Size",
+            "Default Count",
+            "Lifetime Default Loss",
+            "Portfolio Outstanding Principal",
+            "Portfolio Share Join Key",
+            "Hidden Flag",
+            "Matrix Active Borrower Count",
+            "Matrix Equal Share Benchmark",
+            "Matrix Economic Contribution",
+            "Matrix Historical Reliability Score",
+            "Matrix Delay Severity Score",
+            "Matrix Current Condition Score",
+            "Matrix Quadrant",
+            "Matrix Bubble Label",
+            "Matrix Recent Reliability Score",
+            "Matrix History Sufficient",
+            "Matrix Stability Score",
+            "Matrix Scaled Economic Contribution",
+            "Related Payments",
+            "City",
+            "Working Location",
+            "Address"
+          ]
+        },
+        {
+          "name": "Todays Collection Board",
+          "filter": "=ISNOTBLANK([Daily Collection Status])",
+          "mode": "READ_ONLY",
+          "columns": [
+            "_RowNumber",
+            "Row ID",
+            "Borrower Name",
+            "Description",
+            "Hidden Flag",
+            "Daily Collection Status",
+            "Todays Collection Charges",
+            "Todays Amount Due",
+            "Todays Amount Collected",
+            "Todays Amount Remaining",
+            "Overdue Amount",
+            "Related Payments",
+            "City",
+            "Working Location",
+            "Address"
+          ]
+        }
+      ],
+      "views": [
+        {
+          "name": "Borrowers_Detail",
+          "config": {
+            "MainSlideshowImageColumn": "**auto**",
+            "DetailContentColumn": "**none**",
+            "HeaderColumns": [],
+            "QuickEditColumns": [],
+            "ColumnOrder": [
+              "Borrower Name",
+              "Description",
+              "Creation Date",
+              "Total Amount Loaned",
+              "Total Interest Earned",
+              "Total Number of Loans",
+              "Header - Active Loans",
+              "Total Outstanding Principal",
+              "Active Loan Interest Earned",
+              "Return on Active Principal",
+              "Projected Interest Coverage Date",
+              "Header - Closed Loans",
+              "Closed Loan Principle",
+              "Closed Loan Interest Earned",
+              "Return on Closed Loans",
+              "Related Loans",
+              "City",
+              "Working Location",
+              "Address"
+            ],
+            "ImageStyle": "Fill",
+            "Layout": null,
+            "UseCardLayout": false,
+            "DisplayMode": "Automatic",
+            "MaxNestedRows": 20,
+            "SlideshowMode": true,
+            "DesktopSplitMode": "Split view",
+            "UseDesktopMultiColumn": true,
+            "SortBy": [],
+            "PrimarySortColumn": null,
+            "IsPrimarySortDescending": false,
+            "Events": [],
+            "Icon": "fa-indent",
+            "IconRunnerUps": null,
+            "MenuOrder": 1
+          }
+        }
+      ]
+    }
+  }
+}

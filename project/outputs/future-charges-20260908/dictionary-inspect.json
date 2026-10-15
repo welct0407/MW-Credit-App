@@ -1,0 +1,496 @@
+[
+  {
+    "row": 37,
+    "values": [
+      "Borrowers",
+      33,
+      "Todays Collection Charges",
+      "VC / List",
+      "OLTP + OLAP",
+      "-",
+      "Derived date, time-window, age, or delinquency measure.",
+      "SELECT( Charges[Row ID], AND( [Ref Loans].[Ref Borrowers] = [_THISROW].[Row ID], OR( AND( [Payment Status] <> \"ชำระแล้ว\", [Charge Date] <= TODAY() ), AND( [Payment Status] = \"ชำระแล้ว\", [Payment Date] = TODAY() ) ) ))"
+    ]
+  },
+  {
+    "row": 38,
+    "values": [
+      "Borrowers",
+      34,
+      "Todays Amount Due",
+      "VC / Price",
+      "OLTP + OLAP",
+      "-",
+      "Derived date, time-window, age, or delinquency measure.",
+      "SUM([Todays Collection Charges][Amount Due])"
+    ]
+  },
+  {
+    "row": 39,
+    "values": [
+      "Borrowers",
+      35,
+      "Todays Amount Collected",
+      "VC / Price",
+      "OLTP + OLAP",
+      "Intentional formula variance",
+      "OLTP uses payments dated today; OLAP retains the cumulative paid amount.",
+      "OLTP: SUM([Todays Collection Charges][Payment Received Today]); OLAP: SUM([Todays Collection Charges][Total Paid])"
+    ]
+  },
+  {
+    "row": 40,
+    "values": [
+      "Borrowers",
+      36,
+      "Todays Amount Remaining",
+      "VC / Price",
+      "OLTP + OLAP",
+      "-",
+      "Derived date, time-window, age, or delinquency measure.",
+      "SUM([Todays Collection Charges][Amount Remaining])"
+    ]
+  },
+  {
+    "row": 65,
+    "values": [
+      "Borrowers",
+      61,
+      "Projected Monthly Profit Contribution",
+      "VC / Price",
+      "OLAP only",
+      "Show; 0 decimals; bilingual display name",
+      "Borrower-grain contribution that mirrors Statistics[Projected Monthly Profit] for pie-chart attribution across the full Borrowers population.",
+      "SUM(SELECT(Repayments[Interest Paid], AND([Ref Loans].[Ref Borrowers] = [_THISROW].[Row ID], MONTH([Payment Date]) = MONTH(TODAY()), YEAR([Payment Date]) = YEAR(TODAY())))) + SUM(SELECT(Charges[Interest Remaining], [Ref Loans].[Ref Borrowers] = [_THISROW].[Row ID])) + SUM(SELECT(Loans[Expected Interest This Month], [Ref Borrowers] = [_THISROW].[Row ID]))"
+    ]
+  },
+  {
+    "row": 66,
+    "values": [
+      "Calendar",
+      1,
+      "_RowNumber",
+      "Physical / Number",
+      "OLAP only",
+      "-",
+      "System-generated source-row ordinal; not a stable business key.",
+      "Stored source column"
+    ]
+  },
+  {
+    "row": 67,
+    "values": [
+      "Calendar",
+      2,
+      "Date",
+      "Physical / Date",
+      "OLAP only",
+      "Key, Label, Required",
+      "Stores the source date for Date.",
+      "Stored source column"
+    ]
+  },
+  {
+    "row": 68,
+    "values": [
+      "Calendar",
+      3,
+      "Assessment Proposed Amount",
+      "VC / Price",
+      "OLAP only",
+      "-",
+      "Derived financial aggregate or balance for operational or analytical use.",
+      "LOOKUP( \"MAIN\", \"Loan Assessment\", \"Assessment ID\", \"Proposed Loan Amount\")"
+    ]
+  },
+  {
+    "row": 69,
+    "values": [
+      "Calendar",
+      4,
+      "Assessment Borrower",
+      "VC / Ref",
+      "OLAP only",
+      "-",
+      "Reference key that links this row to the configured parent table.",
+      "LOOKUP(\"MAIN\", \"Loan Assessment\", \"Assessment ID\", \"Ref Borrower\")"
+    ]
+  },
+  {
+    "row": 70,
+    "values": [
+      "Calendar",
+      5,
+      "Assessment Minimum Rate",
+      "VC / Percent",
+      "OLAP only",
+      "-",
+      "Derived ratio or performance measure calculated from governed source values.",
+      "LOOKUP(\"MAIN\", \"Loan Assessment\", \"Assessment ID\", \"Minimum Daily Profit Rate\")"
+    ]
+  },
+  {
+    "row": 71,
+    "values": [
+      "Calendar",
+      6,
+      "Projected Outstanding Principal",
+      "VC / Price",
+      "OLAP only",
+      "-",
+      "Projected selected-borrower principal. Daily-installment balances start from current Outstanding Principal, subtract only contract principal after the latest posted Charge through the candidate date/Due Date, and do not go below zero.",
+      "SUM(\n  SELECT(\n    Loans[Outstanding Principal],\n    AND(\n      [Ref Borrowers] = [_THISROW].[Assessment Borrower],\n      [Loan Status] = \"ยังไม่ปิดยอด\",\n      OR(\n        [Loan Type] = \"ดอกเบี้ยรายวัน\",\n        AND([Loan Type] = \"กำหนดวันชำระ\", [Due Date] > [_THISROW].[Date])\n      )\n    )\n  )\n)\n+ MAX(\n  LIST(\n    [Assessment Installment Future Principal Due] * 0,\n    SUM(\n      SELECT(\n        Loans[Outstanding Principal],\n        AND(\n          [Ref Borrowers] = [_THISROW].[Assessment Borrower],\n          [Loan Status] = \"ยังไม่ปิดยอด\",\n          [Loan Type] = \"ผ่อนชำระรายวัน\",\n          [Loan Date] <= [_THISROW].[Date]\n        )\n      )\n    )\n    - SUM(\n      SELECT(\n        Calendar[Assessment Installment Future Principal Due],\n        [Date] <= [_THISROW].[Date]\n      )\n    )\n  )\n)"
+    ]
+  },
+  {
+    "row": 72,
+    "values": [
+      "Calendar",
+      7,
+      "Projected Interest",
+      "VC / Price",
+      "OLAP only",
+      "-",
+      "Actual selected-borrower interest received plus future daily-interest, fixed-date, and uncharged daily-installment interest. Daily-installment Transfer Fee is not projected again.",
+      "SUM(\n  SELECT(\n    Loans[Total Interest Received],\n    AND(\n      [Ref Borrowers] = [_THISROW].[Assessment Borrower],\n      [Loan Status] = \"ยังไม่ปิดยอด\"\n    )\n  )\n)\n+ (\n  SUM(\n    SELECT(\n      Loans[Current Daily Interest],\n      AND(\n        [Ref Borrowers] = [_THISROW].[Assessment Borrower],\n        [Loan Status] = \"ยังไม่ปิดยอด\",\n        [Loan Type] = \"ดอกเบี้ยรายวัน\"\n      )\n    )\n  )\n  * IF([Date] > TODAY(), TOTALHOURS([Date] - TODAY()) / 24, 0)\n)\n+ SUM(\n  SELECT(\n    Loans[Fixed Interest],\n    AND(\n      [Ref Borrowers] = [_THISROW].[Assessment Borrower],\n      [Loan Status] = \"ยังไม่ปิดยอด\",\n      [Loan Type] = \"กำหนดวันชำระ\",\n      [Due Date] > TODAY(),\n      [Due Date] <= [_THISROW].[Date]\n    )\n  )\n)\n+ SUM(\n  SELECT(\n    Calendar[Assessment Installment Future Interest Due],\n    [Date] <= [_THISROW].[Date]\n  )\n)"
+    ]
+  },
+  {
+    "row": 73,
+    "values": [
+      "Calendar",
+      8,
+      "Candidate Day Index",
+      "VC / Decimal",
+      "OLAP only",
+      "-",
+      "Derived date, time-window, age, or delinquency measure.",
+      "TOTALHOURS( [Date] - DATE(\"01/01/2000\")) / 24"
+    ]
+  },
+  {
+    "row": 74,
+    "values": [
+      "Calendar",
+      9,
+      "Assessment Principal Base",
+      "VC / Price",
+      "OLAP only",
+      "-",
+      "Principal base used by Minimum Required Profit; daily-installment exposure follows the declining contract balance.",
+      "SUM(\n  SELECT(\n    Loans[Principal Amount],\n    AND(\n      [Ref Borrowers] = [_THISROW].[Assessment Borrower],\n      [Loan Status] = \"ยังไม่ปิดยอด\",\n      OR(\n        [Loan Type] = \"ดอกเบี้ยรายวัน\",\n        AND([Loan Type] = \"กำหนดวันชำระ\", [Due Date] > [_THISROW].[Date])\n      )\n    )\n  )\n)\n+ [Assessment Installment Contract Outstanding]"
+    ]
+  },
+  {
+    "row": 75,
+    "values": [
+      "Calendar",
+      10,
+      "Assessment Principal Start Weight",
+      "VC / Decimal",
+      "OLAP only",
+      "-",
+      "Principal-day start weight used by Minimum Required Profit; algebraically preserves cumulative declining daily-installment principal-days.",
+      "SUM(\n  SELECT(\n    Loans[Principal Start Weight],\n    AND(\n      [Ref Borrowers] = [_THISROW].[Assessment Borrower],\n      [Loan Status] = \"ยังไม่ปิดยอด\",\n      OR(\n        [Loan Type] = \"ดอกเบี้ยรายวัน\",\n        AND([Loan Type] = \"กำหนดวันชำระ\", [Due Date] > [_THISROW].[Date])\n      )\n    )\n  )\n)\n+ (([Candidate Day Index] + 1) * [Assessment Installment Contract Outstanding])\n- SUM(\n  SELECT(\n    Calendar[Assessment Installment Contract Outstanding],\n    [Date] <= [_THISROW].[Date]\n  )\n)"
+    ]
+  },
+  {
+    "row": 76,
+    "values": [
+      "Calendar",
+      11,
+      "Minimum Required Profit",
+      "VC / Price",
+      "OLAP only",
+      "-",
+      "Derived financial aggregate or balance for operational or analytical use.",
+      "[Assessment Minimum Rate]* (( ( [Candidate Day Index] + 1 ) * [Assessment Principal Base] )- [Assessment Principal Start Weight])"
+    ]
+  },
+  {
+    "row": 77,
+    "values": [
+      "Calendar",
+      12,
+      "Required Coverage",
+      "VC / Price",
+      "OLAP only",
+      "-",
+      "Derived ratio or performance measure calculated from governed source values.",
+      "[Projected Outstanding Principal]+[Assessment Proposed Amount]+[Minimum Required Profit]"
+    ]
+  },
+  {
+    "row": 78,
+    "values": [
+      "Calendar",
+      13,
+      "Coverage Margin",
+      "VC / Price",
+      "OLAP only",
+      "-",
+      "Derived ratio or performance measure calculated from governed source values.",
+      "[Projected Interest] - [Required Coverage]"
+    ]
+  },
+  {
+    "row": 79,
+    "values": [
+      "Calendar",
+      14,
+      "Eligible",
+      "VC / Yes/No",
+      "OLAP only",
+      "-",
+      "Derived business-state or risk indicator.",
+      "AND([Date] >= TODAY(), [Projected Interest] >= [Required Coverage])"
+    ]
+  },
+  {
+    "row": 80,
+    "values": [
+      "Calendar",
+      15,
+      "Year",
+      "VC / Number",
+      "OLAP only",
+      "-",
+      "Derived date, time-window, age, or delinquency measure.",
+      "YEAR([Date])"
+    ]
+  },
+  {
+    "row": 81,
+    "values": [
+      "Calendar",
+      16,
+      "Month",
+      "VC / Number",
+      "OLAP only",
+      "-",
+      "Derived date, time-window, age, or delinquency measure.",
+      "MONTH([Date])"
+    ]
+  },
+  {
+    "row": 82,
+    "values": [
+      "Calendar",
+      17,
+      "Month Name",
+      "VC / Text",
+      "OLAP only",
+      "-",
+      "Derived date, time-window, age, or delinquency measure.",
+      "TEXT([Date], \"MMMM\")"
+    ]
+  },
+  {
+    "row": 83,
+    "values": [
+      "Calendar",
+      18,
+      "Year Month",
+      "VC / Text",
+      "OLAP only",
+      "-",
+      "Derived date, time-window, age, or delinquency measure.",
+      "TEXT([Date], \"YYYY-MM\")"
+    ]
+  },
+  {
+    "row": 84,
+    "values": [
+      "Calendar",
+      19,
+      "Week",
+      "VC / Number",
+      "OLAP only",
+      "-",
+      "Derived date, time-window, age, or delinquency measure.",
+      "WEEKNUM([Date])"
+    ]
+  },
+  {
+    "row": 85,
+    "values": [
+      "Calendar",
+      20,
+      "Year Week",
+      "VC / Text",
+      "OLAP only",
+      "-",
+      "Derived date, time-window, age, or delinquency measure.",
+      "CONCATENATE(YEAR([Date]), \"-W\", RIGHT(\"0\" & WEEKNUM([Date]), 2))"
+    ]
+  },
+  {
+    "row": 86,
+    "values": [
+      "Calendar",
+      21,
+      "Week Start",
+      "VC / Date",
+      "OLAP only",
+      "-",
+      "Derived date, time-window, age, or delinquency measure.",
+      "[Date] - MOD(WEEKDAY([Date]) + 5, 7)"
+    ]
+  },
+  {
+    "row": 87,
+    "values": [
+      "Calendar",
+      22,
+      "Quarter",
+      "VC / Text",
+      "OLAP only",
+      "-",
+      "Derived AppSheet value used by the app workflow, presentation, or reporting model.",
+      "CONCATENATE( \"Q\", CEILING(MONTH([Date]) / 3))"
+    ]
+  },
+  {
+    "row": 88,
+    "values": [
+      "Calendar",
+      23,
+      "Day of Week",
+      "VC / Text",
+      "OLAP only",
+      "-",
+      "Derived date, time-window, age, or delinquency measure.",
+      "TEXT([Date], \"dddd\")"
+    ]
+  },
+  {
+    "row": 89,
+    "values": [
+      "Calendar",
+      24,
+      "Day of Month",
+      "VC / Number",
+      "OLAP only",
+      "-",
+      "Derived date, time-window, age, or delinquency measure.",
+      "DAY([Date])"
+    ]
+  },
+  {
+    "row": 90,
+    "values": [
+      "Calendar",
+      25,
+      "Assessment Installment Contract Principal Due",
+      "VC / Price",
+      "OLAP only",
+      "Hidden; whole baht",
+      "Whole-baht scheduled principal for the candidate Calendar date; FLOOR base plus one baht on the earliest remainder days.",
+      "SUM(\n  SELECT(\n    Loans[Daily Installment Base Principal],\n    AND(\n      [Ref Borrowers] = [_THISROW].[Assessment Borrower],\n      [Loan Status] = \"ยังไม่ปิดยอด\",\n      [Loan Type] = \"ผ่อนชำระรายวัน\",\n      [Loan Date] <= [_THISROW].[Date],\n      [Due Date] >= [_THISROW].[Date],\n      [Due Date] >= [Loan Date],\n      [Daily Payment Amount] > 0\n    )\n  )\n)\n+ COUNT(\n  SELECT(\n    Loans[Row ID],\n    AND(\n      [Ref Borrowers] = [_THISROW].[Assessment Borrower],\n      [Loan Status] = \"ยังไม่ปิดยอด\",\n      [Loan Type] = \"ผ่อนชำระรายวัน\",\n      [Loan Date] <= [_THISROW].[Date],\n      [Due Date] >= [_THISROW].[Date],\n      [Due Date] >= [Loan Date],\n      [Daily Payment Amount] > 0,\n      (TOTALHOURS([_THISROW].[Date] - [Loan Date]) / 24 + 1)\n      <= MOD(\n        [Principal Amount],\n        (TOTALHOURS([Due Date] - [Loan Date]) / 24 + 1)\n      )\n    )\n  )\n)"
+    ]
+  },
+  {
+    "row": 91,
+    "values": [
+      "Calendar",
+      26,
+      "Assessment Installment Future Principal Due",
+      "VC / Price",
+      "OLAP only",
+      "Hidden; whole baht",
+      "Whole-baht scheduled principal after each loan's latest posted Charge through its Due Date.",
+      "SUM(\n  SELECT(\n    Loans[Daily Installment Base Principal],\n    AND(\n      [Ref Borrowers] = [_THISROW].[Assessment Borrower],\n      [Loan Status] = \"ยังไม่ปิดยอด\",\n      [Loan Type] = \"ผ่อนชำระรายวัน\",\n      [Loan Date] <= [_THISROW].[Date],\n      [Due Date] >= [_THISROW].[Date],\n      [Due Date] >= [Loan Date],\n      [Daily Payment Amount] > 0,\n      [_THISROW].[Date] > IF(\n        ISNOTBLANK(MAX([Related Charges][Charge Date])),\n        MAX([Related Charges][Charge Date]),\n        [Loan Date] - 1\n      )\n    )\n  )\n)\n+ COUNT(\n  SELECT(\n    Loans[Row ID],\n    AND(\n      [Ref Borrowers] = [_THISROW].[Assessment Borrower],\n      [Loan Status] = \"ยังไม่ปิดยอด\",\n      [Loan Type] = \"ผ่อนชำระรายวัน\",\n      [Loan Date] <= [_THISROW].[Date],\n      [Due Date] >= [_THISROW].[Date],\n      [Due Date] >= [Loan Date],\n      [Daily Payment Amount] > 0,\n      [_THISROW].[Date] > IF(\n        ISNOTBLANK(MAX([Related Charges][Charge Date])),\n        MAX([Related Charges][Charge Date]),\n        [Loan Date] - 1\n      ),\n      (TOTALHOURS([_THISROW].[Date] - [Loan Date]) / 24 + 1)\n      <= MOD(\n        [Principal Amount],\n        (TOTALHOURS([Due Date] - [Loan Date]) / 24 + 1)\n      )\n    )\n  )\n)"
+    ]
+  },
+  {
+    "row": 92,
+    "values": [
+      "Calendar",
+      27,
+      "Assessment Installment Future Interest Due",
+      "VC / Price",
+      "OLAP only",
+      "Hidden; whole baht",
+      "Scheduled daily-installment payment after the latest Charge minus future scheduled principal; Transfer Fee excluded.",
+      "SUM(\n  SELECT(\n    Loans[Daily Payment Amount],\n    AND(\n      [Ref Borrowers] = [_THISROW].[Assessment Borrower],\n      [Loan Status] = \"ยังไม่ปิดยอด\",\n      [Loan Type] = \"ผ่อนชำระรายวัน\",\n      [Loan Date] <= [_THISROW].[Date],\n      [Due Date] >= [_THISROW].[Date],\n      [Due Date] >= [Loan Date],\n      [Daily Payment Amount] > 0,\n      [_THISROW].[Date] > IF(\n        ISNOTBLANK(MAX([Related Charges][Charge Date])),\n        MAX([Related Charges][Charge Date]),\n        [Loan Date] - 1\n      )\n    )\n  )\n)\n- [Assessment Installment Future Principal Due]"
+    ]
+  },
+  {
+    "row": 93,
+    "values": [
+      "Calendar",
+      28,
+      "Assessment Installment Contract Outstanding",
+      "VC / Price",
+      "OLAP only",
+      "Hidden; whole baht",
+      "Nonnegative deterministic daily-installment contract balance after cumulative scheduled principal through the Calendar date.",
+      "MAX(\n  LIST(\n    [Assessment Installment Contract Principal Due] * 0,\n    SUM(\n      SELECT(\n        Loans[Principal Amount],\n        AND(\n          [Ref Borrowers] = [_THISROW].[Assessment Borrower],\n          [Loan Status] = \"ยังไม่ปิดยอด\",\n          [Loan Type] = \"ผ่อนชำระรายวัน\",\n          [Loan Date] <= [_THISROW].[Date],\n          [Due Date] >= [Loan Date],\n          [Daily Payment Amount] > 0\n        )\n      )\n    )\n    - SUM(\n      SELECT(\n        Calendar[Assessment Installment Contract Principal Due],\n        [Date] <= [_THISROW].[Date]\n      )\n    )\n  )\n)"
+    ]
+  },
+  {
+    "row": 205,
+    "values": [
+      "Loans",
+      30,
+      "Expected Interest This Month",
+      "VC / Price",
+      "OLTP + OLAP",
+      "-",
+      "Open-loan current-month interest forecast. Daily-installment interest covers only uncharged contract days after the latest posted Charge through the earlier of Due Date and month-end.",
+      "IF([Loan Status] = \"ปิดยอดแล้ว\", 0, IFS([Loan Type] = \"ดอกเบี้ยรายวัน\", MAX(LIST([Current Daily Interest] * 0, [Accrued Interest])) + ([Current Daily Interest] * (DAY(EOMONTH(TODAY(), 0)) - DAY(TODAY()))), [Loan Type] = \"กำหนดวันชำระ\", IF(AND([Due Date] > TODAY(), MONTH([Due Date]) = MONTH(TODAY()), YEAR([Due Date]) = YEAR(TODAY())), [Fixed Interest], 0), [Loan Type] = \"ผ่อนชำระรายวัน\", IF(AND(ISNOTBLANK(MAX([Related Charges][Charge Date])), IF([Due Date] < EOMONTH(TODAY(), 0), [Due Date], EOMONTH(TODAY(), 0)) > MAX([Related Charges][Charge Date])), ([Daily Payment Amount] * IF(IF([Due Date] < EOMONTH(TODAY(), 0), [Due Date], EOMONTH(TODAY(), 0)) > MAX([Related Charges][Charge Date]), TOTALHOURS(IF([Due Date] < EOMONTH(TODAY(), 0), [Due Date], EOMONTH(TODAY(), 0)) - MAX([Related Charges][Charge Date])) / 24, 0)) - (FLOOR([Principal Amount] / (TOTALHOURS([Due Date] - [Loan Date]) / 24 + 1)) * IF(IF([Due Date] < EOMONTH(TODAY(), 0), [Due Date], EOMONTH(TODAY(), 0)) > MAX([Related Charges][Charge Date]), TOTALHOURS(IF([Due Date] < EOMONTH(TODAY(), 0), [Due Date], EOMONTH(TODAY(), 0)) - MAX([Related Charges][Charge Date])) / 24, 0) + IF((IF((TOTALHOURS(IF([Due Date] < EOMONTH(TODAY(), 0), [Due Date], EOMONTH(TODAY(), 0)) - [Loan Date]) / 24 + 1) < MOD([Principal Amount], (TOTALHOURS([Due Date] - [Loan Date]) / 24 + 1)), (TOTALHOURS(IF([Due Date] < EOMONTH(TODAY(), 0), [Due Date], EOMONTH(TODAY(), 0)) - [Loan Date]) / 24 + 1), MOD([Principal Amount], (TOTALHOURS([Due Date] - [Loan Date]) / 24 + 1))) - (TOTALHOURS(MAX([Related Charges][Charge Date]) - [Loan Date]) / 24 + 2) + 1) > 0, (IF((TOTALHOURS(IF([Due Date] < EOMONTH(TODAY(), 0), [Due Date], EOMONTH(TODAY(), 0)) - [Loan Date]) / 24 + 1) < MOD([Principal Amount], (TOTALHOURS([Due Date] - [Loan Date]) / 24 + 1)), (TOTALHOURS(IF([Due Date] < EOMONTH(TODAY(), 0), [Due Date], EOMONTH(TODAY(), 0)) - [Loan Date]) / 24 + 1), MOD([Principal Amount], (TOTALHOURS([Due Date] - [Loan Date]) / 24 + 1))) - (TOTALHOURS(MAX([Related Charges][Charge Date]) - [Loan Date]) / 24 + 2) + 1), 0)), 0), TRUE, 0))"
+    ]
+  },
+  {
+    "row": 221,
+    "values": [
+      "Loans",
+      46,
+      "Last Interest Charge Date",
+      "VC / Date",
+      "OLTP + OLAP",
+      "Searchable",
+      "Latest related Charge Date; the lower boundary for calculating uncharged daily-interest accrual.",
+      "MAX([Related Charges][Charge Date])"
+    ]
+  },
+  {
+    "row": 222,
+    "values": [
+      "Loans",
+      47,
+      "Accrued Interest Days",
+      "VC / Number",
+      "OLTP + OLAP",
+      "-",
+      "Elapsed accrual days since Last Interest Charge Date, or since Loan Date when no interest charge exists.",
+      "IF( ISBLANK([Last Interest Charge Date]), TOTALHOURS(TODAY() - [Loan Date])/24, TOTALHOURS(TODAY() - [Last Interest Charge Date])/24)"
+    ]
+  },
+  {
+    "row": 284,
+    "values": [
+      "Statistics",
+      11,
+      "Pending Payment Amount",
+      "VC / Price",
+      "OLTP + OLAP",
+      "-",
+      "Broad sum of all Charges[Amount Remaining] across dates and references; currently reconciles to Collection only while source referential integrity and population scope remain aligned.",
+      "SUM(Charges[Amount Remaining])"
+    ]
+  },
+  {
+    "row": 286,
+    "values": [
+      "Statistics",
+      13,
+      "Today's Outstanding Interest",
+      "VC / Price",
+      "OLTP + OLAP",
+      "-",
+      "Remaining interest across all open Charges without a Charge Date filter; may include prior-period arrears.",
+      "SUM(Charges[Interest Remaining])"
+    ]
+  }
+]

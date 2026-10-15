@@ -1,0 +1,12 @@
+{
+    "loan_manager_prod":  {
+                              "path":  "C:\\Users\\MWCredit\\Documents\\ChatGPT\\AppSheet-Loan-Project\\flyway\\receipt-backfill-b40269a0c99c41ba8e533636e434852c\\loan_manager_prod.dump",
+                              "sha256":  "53B233ED25F0316AC7A89BA09EB0C48A181398CE0AB34F901280A072B07A04CA",
+                              "restore":  "passed"
+                          },
+    "mw_agent":  {
+                     "path":  "C:\\Users\\MWCredit\\Documents\\ChatGPT\\AppSheet-Loan-Project\\flyway\\receipt-backfill-b40269a0c99c41ba8e533636e434852c\\mw_agent.dump",
+                     "sha256":  "9F255E6B75330A71ECD12D4A1E400EF8437D2F12FCD3BC00E046FA07BAB29BE3",
+                     "restore":  "passed"
+                 }
+}

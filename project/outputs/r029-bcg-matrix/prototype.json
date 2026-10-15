@@ -1,0 +1,65 @@
+{
+  "id": 273,
+  "sql": "SELECT * FROM (VALUES (0::numeric,NULL::numeric,NULL::numeric,NULL::numeric,NULL::numeric,NULL::numeric,50::numeric),(100::numeric,NULL::numeric,NULL::numeric,NULL::numeric,NULL::numeric,NULL::numeric,50::numeric),(49.999999::numeric,NULL::numeric,NULL::numeric,NULL::numeric,NULL::numeric,0::numeric,NULL::numeric),(50.000001::numeric,NULL::numeric,NULL::numeric,NULL::numeric,NULL::numeric,100::numeric,NULL::numeric),(24.999999::numeric,NULL::numeric,NULL::numeric,NULL::numeric,NULL::numeric,NULL::numeric,NULL::numeric),(25::numeric,67::numeric,NULL::numeric,NULL::numeric,NULL::numeric,NULL::numeric,NULL::numeric),(25.000001::numeric,NULL::numeric,NULL::numeric,NULL::numeric,NULL::numeric,NULL::numeric,NULL::numeric),(29.999999::numeric,NULL::numeric,NULL::numeric,NULL::numeric,NULL::numeric,NULL::numeric,NULL::numeric),(30::numeric,75::numeric,NULL::numeric,NULL::numeric,NULL::numeric,NULL::numeric,NULL::numeric),(30.000001::numeric,NULL::numeric,NULL::numeric,NULL::numeric,NULL::numeric,NULL::numeric,NULL::numeric),(62.499999::numeric,NULL::numeric,NULL::numeric,NULL::numeric,NULL::numeric,NULL::numeric,NULL::numeric),(62.5::numeric,NULL::numeric,66.7::numeric,NULL::numeric,NULL::numeric,NULL::numeric,NULL::numeric),(62.500001::numeric,NULL::numeric,NULL::numeric,NULL::numeric,NULL::numeric,NULL::numeric,NULL::numeric),(74.999999::numeric,NULL::numeric,NULL::numeric,NULL::numeric,NULL::numeric,NULL::numeric,NULL::numeric),(75::numeric,NULL::numeric,81::numeric,NULL::numeric,NULL::numeric,NULL::numeric,NULL::numeric),(75.000001::numeric,NULL::numeric,NULL::numeric,NULL::numeric,NULL::numeric,NULL::numeric,NULL::numeric),(24.999999::numeric,NULL::numeric,NULL::numeric,NULL::numeric,NULL::numeric,NULL::numeric,NULL::numeric),(25::numeric,NULL::numeric,NULL::numeric,33.3::numeric,NULL::numeric,NULL::numeric,NULL::numeric),(25.000001::numeric,NULL::numeric,NULL::numeric,NULL::numeric,NULL::numeric,NULL::numeric,NULL::numeric),(74.999999::numeric,NULL::numeric,NULL::numeric,NULL::numeric,NULL::numeric,NULL::numeric,NULL::numeric),(75::numeric,NULL::numeric,NULL::numeric,NULL::numeric,40::numeric,NULL::numeric,NULL::numeric),(75.000001::numeric,NULL::numeric,NULL::numeric,NULL::numeric,NULL::numeric,NULL::numeric,NULL::numeric)) t(\"Display X\",\"Star\",\"Question Mark\",\"Cash Cow\",\"Dog\",\"Health boundary\",\"Contribution boundary\") ORDER BY 1",
+  "settings": {
+    "graph.dimensions": [
+      "Display X"
+    ],
+    "graph.metrics": [
+      "Star",
+      "Question Mark",
+      "Cash Cow",
+      "Dog",
+      "Health boundary",
+      "Contribution boundary"
+    ],
+    "graph.x_axis.scale": "linear",
+    "graph.y_axis.auto_range": false,
+    "graph.y_axis.min": 0,
+    "graph.y_axis.max": 100,
+    "graph.y_axis.auto_split": false,
+    "graph.show_legend": true,
+    "graph.x_axis.axis_enabled": true,
+    "graph.y_axis.axis_enabled": true,
+    "line.marker_enabled": true,
+    "line.missing": "none",
+    "series_settings": {
+      "Star": {
+        "color": "#287A51",
+        "line.marker_enabled": true,
+        "line.missing": "none",
+        "axis": "left"
+      },
+      "Question Mark": {
+        "color": "#AE7917",
+        "line.marker_enabled": true,
+        "line.missing": "none",
+        "axis": "left"
+      },
+      "Cash Cow": {
+        "color": "#3672AD",
+        "line.marker_enabled": true,
+        "line.missing": "none",
+        "axis": "left"
+      },
+      "Dog": {
+        "color": "#A65161",
+        "line.marker_enabled": true,
+        "line.missing": "none",
+        "axis": "left"
+      },
+      "Health boundary": {
+        "color": "#8492A6",
+        "line.marker_enabled": false,
+        "line.missing": "interpolate",
+        "axis": "left"
+      },
+      "Contribution boundary": {
+        "color": "#8492A6",
+        "line.marker_enabled": false,
+        "line.missing": "interpolate",
+        "axis": "left"
+      }
+    }
+  }
+}

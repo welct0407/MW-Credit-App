@@ -1,0 +1,18 @@
+[Unit]
+Description=Validate the disabled MW Integration Agent scaffold
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=mwagent
+Group=mwagent
+ExecStart=/opt/mw-integration-agent/.venv/bin/mw-integration-agent check --config /etc/mw-integration-agent/config.json --catalogue /etc/mw-integration-agent/service-catalogue.json
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/mw-integration-agent
+
+[Install]
+WantedBy=multi-user.target

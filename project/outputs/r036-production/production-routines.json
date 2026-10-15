@@ -1,0 +1,58 @@
+[
+  {
+    "schema": "public",
+    "name": "apply_principal_daily_interest",
+    "arguments": "p \"Loans\", previous \"Loans\"",
+    "arguments_with_defaults": "p \"Loans\", previous \"Loans\"",
+    "result": "\"Loans\"",
+    "definition": "CREATE OR REPLACE FUNCTION public.apply_principal_daily_interest(p \"Loans\", previous \"Loans\")\n RETURNS \"Loans\"\n LANGUAGE plpgsql\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\nDECLARE basis numeric[]; old_basis numeric[]; candidate numeric; n bigint;\n source text; previous_balance numeric;\n principal_changed boolean; note text;\nBEGIN\n IF p.\"Loan Type\" IS DISTINCT FROM 'ดอกเบี้ยรายวัน' THEN RETURN p; END IF;\n principal_changed:=previous.\"Row ID\" IS NOT NULL AND\n  p.\"Total Principal Received\" IS DISTINCT FROM previous.\"Total Principal Received\";\n old_basis:=public.daily_interest_basis(previous.\"Loan Arrangement\");\n basis:=public.daily_interest_basis(p.\"Loan Arrangement\");\n IF old_basis IS NOT NULL THEN\n  -- A stale app save must not remove/rebase the rate or restore an old daily amount.\n  IF basis IS NOT NULL AND basis IS DISTINCT FROM old_basis THEN\n   RAISE EXCEPTION 'Original daily interest basis cannot be changed by a loan edit';\n  END IF;\n  basis:=old_basis;\n ELSIF previous.\"Row ID\" IS NOT NULL AND NOT principal_changed THEN\n  -- Existing loans are untouched until a future posted principal change.\n  RETURN p;\n END IF;\n\n IF basis IS NULL THEN\n  IF previous.\"Row ID\" IS NULL THEN\n   IF p.\"Principal Amount\"::numeric<=0 OR p.\"Current Daily Interest\"::numeric<=0\n    OR p.\"Principal Amount\" IS NULL OR p.\"Current Daily Interest\" IS NULL THEN RETURN p; END IF;\n   basis:=ARRAY[p.\"Current Daily Interest\"::numeric,p.\"Principal Amount\"::numeric];\n   source:='Initial loan entry';\n  ELSE\n   -- Owner-approved reconstruction: the first-day charge contains daily interest\n   -- plus the recorded transfer fee. Require one positive, zero-principal charge.\n   SELECT count(*),min(c.\"Interest Due\"::numeric-coalesce(previous.\"Transfer Fee\"::numeric,0))\n    INTO n,candidate FROM public.\"Charges\" c\n    WHERE c.\"Ref Loans\"=p.\"Row ID\" AND c.\"Charge Date\"=previous.\"Loan Date\"\n     AND coalesce(c.\"Principal Due\"::numeric,0)=0;\n   IF n=1 AND candidate>0 AND previous.\"Principal Amount\"::numeric>0 THEN\n    basis:=ARRAY[candidate,previous.\"Principal Amount\"::numeric];\n    source:='Original first-day charge less recorded transfer fee';\n   ELSE\n    -- A first-day charge may be absent when automatic generation was off.\n    -- Retain the rate implied by the amount and principal immediately before\n    -- this principal change; never divide by the already reduced balance.\n    previous_balance:=previous.\"Outstanding Principal\";\n    IF previous_balance>0 AND previous.\"Current Daily Interest\"::numeric>0 THEN\n     basis:=ARRAY[previous.\"Current Daily Interest\"::numeric,previous_balance];\n     source:='Daily amount / outstanding principal immediately before automatic adjustment';\n    ELSIF coalesce(previous.\"Current Daily Interest\"::numeric,0)=0 THEN\n     -- Existing zero/blank-interest setups have no positive rate to preserve.\n     RETURN p;\n    ELSE\n     RAISE EXCEPTION 'Cannot establish daily interest basis; review original charges and loan arrangement';\n    END IF;\n   END IF;\n  END IF;\n END IF;\n\n IF public.daily_interest_basis(p.\"Loan Arrangement\") IS NULL THEN\n  note:=public.daily_interest_basis_note(basis);\n  p.\"Loan Arrangement\":=coalesce(p.\"Loan Arrangement\",'')\n   ||CASE WHEN coalesce(p.\"Loan Arrangement\",'')='' THEN '' ELSE E'\\n' END||note\n   ||CASE WHEN source IS NULL THEN '' ELSE ' Basis: '||source||'.' END;\n END IF;\n -- Preserve the original input at its original balance; adjusted amounts use\n -- whole baht, matching the existing payment engine and AppSheet price display.\n p.\"Current Daily Interest\":=(CASE WHEN p.\"Outstanding Principal\"=basis[2] THEN basis[1]\n  ELSE round(basis[1]*greatest(0,p.\"Outstanding Principal\")/basis[2],0) END)::money;\n RETURN p;\nEND $function$\n",
+    "language": "plpgsql",
+    "volatility": "v",
+    "security_definer": false,
+    "settings": [
+      "search_path=pg_catalog, public"
+    ]
+  },
+  {
+    "schema": "public",
+    "name": "daily_interest_basis",
+    "arguments": "p_arrangement text",
+    "arguments_with_defaults": "p_arrangement text",
+    "result": "numeric[]",
+    "definition": "CREATE OR REPLACE FUNCTION public.daily_interest_basis(p_arrangement text)\n RETURNS numeric[]\n LANGUAGE plpgsql\n IMMUTABLE\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\nDECLARE m text[]; matches integer:=0; result numeric[];\nBEGIN\n FOR m IN SELECT regexp_matches(coalesce(p_arrangement,''),\n  '\\[Original daily interest: ([0-9]+(?:\\.[0-9]+)?) baht/day on ([0-9]+(?:\\.[0-9]+)?) baht principal\\]','g')\n LOOP\n  matches:=matches+1; result:=ARRAY[m[1]::numeric,m[2]::numeric];\n END LOOP;\n IF matches>1 OR (matches=1 AND (result[1]<=0 OR result[2]<=0)) THEN\n  RAISE EXCEPTION 'Daily interest basis is invalid; review the loan arrangement';\n END IF;\n IF matches=0 AND strpos(coalesce(p_arrangement,''),'[Original daily interest:')>0 THEN\n  RAISE EXCEPTION 'Daily interest basis is malformed; review the loan arrangement';\n END IF;\n RETURN result;\nEND $function$\n",
+    "language": "plpgsql",
+    "volatility": "i",
+    "security_definer": false,
+    "settings": [
+      "search_path=pg_catalog, public"
+    ]
+  },
+  {
+    "schema": "public",
+    "name": "daily_interest_basis_note",
+    "arguments": "p_basis numeric[]",
+    "arguments_with_defaults": "p_basis numeric[]",
+    "result": "text",
+    "definition": "CREATE OR REPLACE FUNCTION public.daily_interest_basis_note(p_basis numeric[])\n RETURNS text\n LANGUAGE sql\n IMMUTABLE\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\n SELECT '[Original daily interest: '||p_basis[1]::text||' baht/day on '||p_basis[2]::text||' baht principal]'\n  ||' Original rate: '||round(100*p_basis[1]/p_basis[2],8)::text\n  ||'% per day. Daily interest automatically follows remaining principal; retain this note.';\n$function$\n",
+    "language": "sql",
+    "volatility": "i",
+    "security_definer": false,
+    "settings": [
+      "search_path=pg_catalog, public"
+    ]
+  },
+  {
+    "schema": "public",
+    "name": "vc_loan_row",
+    "arguments": "",
+    "arguments_with_defaults": "",
+    "result": "trigger",
+    "definition": "CREATE OR REPLACE FUNCTION public.vc_loan_row()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\nBEGIN\n SELECT coalesce(sum(\"Interest Paid\"::numeric),0),coalesce(sum(\"Principal Paid\"::numeric),0),\n  coalesce(sum(coalesce(\"Principal Paid\"::numeric,0)+coalesce(\"Interest Paid\"::numeric,0)),0)\n INTO NEW.\"Total Interest Received\",NEW.\"Total Principal Received\",NEW.\"Total Amount Received\"\n FROM public.\"Repayments\" WHERE \"Ref Loans\"=NEW.\"Row ID\";\n NEW.\"Outstanding Principal\":=coalesce(NEW.\"Principal Amount\"::numeric,0)-NEW.\"Total Principal Received\";\n NEW:=public.apply_principal_daily_interest(NEW,CASE WHEN TG_OP='UPDATE' THEN OLD ELSE NULL::public.\"Loans\" END);\n -- zz_vc_daily_interest precedes this trigger. Refresh its result after adjusting\n -- principal/daily amount so downstream borrower rollups read the same state.\n NEW.\"Expected Daily Interest Amount\":=public.vc_daily_interest(NEW);\n RETURN NEW;\nEND $function$\n",
+    "language": "plpgsql",
+    "volatility": "v",
+    "security_definer": false,
+    "settings": [
+      "search_path=pg_catalog, public"
+    ]
+  }
+]

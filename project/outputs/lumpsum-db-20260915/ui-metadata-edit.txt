@@ -1,0 +1,183 @@
+- banner:
+  - button "Toggle menu":
+  - heading "Loan Manager — DEV" [level=6]
+  - textbox "ค้นหา รับชำระ": LS26-CHECK-210
+  - button "Clear search":
+  - status: ซิงค์เสร็จสิ้น
+  - button "ซิงค์":
+  - button "ดูสถานะแอป":
+    - button
+  - button "account menu":
+    - generic: W
+- navigation:
+  - button " ภาพรวม":
+    - generic: 
+    - generic: ภาพรวม
+  - button " เก็บเงินวันนี้":
+    - generic: 
+    - generic: เก็บเงินวันนี้
+  - button " รับชำระ":
+    - generic: 
+    - generic: รับชำระ
+  - button " ผู้กู้":
+    - generic: 
+    - generic: ผู้กู้
+  - button " สินเชื่อ":
+    - generic: 
+    - generic: สินเชื่อ
+  - button " รายงาน / Reporting App":
+    - generic: 
+    - generic: รายงาน / Reporting App
+  - separator
+  - button "เกี่ยวกับ":
+    - generic: เกี่ยวกับ
+  - button "Feedback":
+    - generic: Feedback
+  - separator
+  - button "App Gallery":
+    - generic: App Gallery
+- region "รับชำระ":
+  - heading "รับชำระ" [level=2]
+  - button "เพิ่ม":
+    - generic: 
+    - generic "เพิ่ม"
+  - separator
+  - button "ตัวกรอง":
+  - button "เลือกรายการ":
+  - button "ขยาย":
+    - generic: 
+  - generic: LS26 CORRECTNESS SYNTHETIC - Lump-sum Dev review; no contact details
+  - generic: ฿210
+  - button "9/15/2026 Posted ฿210 แก้ไข":
+    - generic: 9/15/2026
+    - generic: Posted
+    - generic: ฿210
+    - button "แก้ไข":
+      - generic: 
+      - generic: แก้ไข
+- region "09/15/2026":
+  - heading "09/15/2026" [level=2]
+  - button "แก้ไข" [active]:
+    - generic: 
+    - generic "แก้ไข"
+  - separator
+  - button "ขยาย":
+    - generic: 
+  - button "ปิด":
+  - button "ตรวจสอบการปิดยอด / Recheck Loan Closure":
+    - generic: 
+    - generic: ตรวจสอบการปิดยอด / Recheck Loan Closure
+    - generic: ตรวจสอบการปิดยอด / Recheck Loan Closure
+  - generic: Payment Date
+  - generic: 9/15/2026
+  - generic: Status
+  - generic: Posted
+  - generic: Ref Borrower
+  - button "Ref Borrower":
+    - generic: LS26 CORRECTNESS SYNTHETIC - Lump-sum Dev review; no contact details
+  - button "View Ref (Ref Borrower)":
+    - generic: 
+    - generic: View Ref (Ref Borrower)
+  - generic: Amount Received
+  - generic: ฿210
+  - generic: Payment Method
+  - generic: Bank Transfer
+  - generic: Allocation Method
+  - generic: Lump Sum
+  - generic: Bank Reference
+  - generic: LS26 metadata retry check
+  - generic: Notes
+  - generic: LS26-CHECK-210
+  - generic: Created By
+  - button "Created By":
+    - text: <redacted-user>
+    - text: "<redacted-domain>"
+  - button "Compose Email (Created By)":
+    - generic: 
+    - generic: Compose Email (Created By)
+  - generic: Created At
+  - generic: 9/15/2026 2:24:23 PM
+  - generic: Processed At
+  - generic: 9/15/2026 2:24:44 PM
+  - region "Related Repayments":
+    - generic: Related Repayments
+    - generic: "2"
+    - separator
+    - button "9/15/2026 ฿100":
+      - generic: 9/15/2026
+      - generic: ฿100
+    - button "9/15/2026 ฿110":
+      - generic: 9/15/2026
+      - generic: ฿110
+    - button "ขยาย"
+  - generic: Planned Allocation Amount
+  - generic: ฿210
+  - generic: Posted Amount
+  - generic: ฿210
+  - generic: Allocation Difference
+  - generic: ฿0
+  - generic: Posting Difference
+  - generic: ฿0
+  - region "รายการจัดสรร / Allocations":
+    - generic: รายการจัดสรร / Allocations
+    - generic: "2"
+    - separator
+    - button "Allocation Order"
+    - button "Resize column"
+    - button "Charge Date Snapshot"
+    - button "Resize column"
+    - button "Ref Payment"
+    - button "Resize column"
+    - button "Ref Charge"
+    - button "Resize column"
+    - button "Charge Row Number Snapshot"
+    - button "Resize column"
+    - button "Interest Remaining Snapshot"
+    - button "Resize column"
+    - button "Principal Remaining Snapshot"
+    - button "Resize column"
+    - button "Amount Remaining Snapshot"
+    - button "Resize column"
+    - button "Allocated Interest"
+    - button "Resize column"
+    - button "Allocated Principal"
+    - button "Resize column"
+    - button "Allocated Amount"
+    - button "Resize column"
+    - button "Created At"
+    - button "Resize column"
+    - button "Related Repayments"
+    - button "1 9/14/2026 9/15/2026 9/14/2026 -1 ฿0 ฿100 ฿100 ฿0 ฿100 ฿100 9/15/2026 2:24:44 PM Related Repayments (1) ":
+      - generic: "1"
+      - generic: 9/14/2026
+      - generic: 9/15/2026
+      - generic: 9/14/2026
+      - generic: "-1"
+      - generic: ฿0
+      - generic: ฿100
+      - generic: ฿100
+      - generic: ฿0
+      - generic: ฿100
+      - generic: ฿100
+      - generic: 9/15/2026 2:24:44 PM
+      - generic: Related Repayments (1)
+      - generic: 
+    - button "2 9/13/2026 9/15/2026 9/13/2026 -2 ฿10 ฿100 ฿110 ฿10 ฿100 ฿110 9/15/2026 2:24:44 PM Related Repayments (1) ":
+      - generic: "2"
+      - generic: 9/13/2026
+      - generic: 9/15/2026
+      - generic: 9/13/2026
+      - generic: "-2"
+      - generic: ฿10
+      - generic: ฿100
+      - generic: ฿110
+      - generic: ฿10
+      - generic: ฿100
+      - generic: ฿110
+      - generic: 9/15/2026 2:24:44 PM
+      - generic: Related Repayments (1)
+      - generic: 
+    - button "ขยาย"
+- generic: 
+- text:   
+- status: 1Password menu is available. Press down arrow to select.

@@ -1,0 +1,60 @@
+{
+  "application_volume_instance": "a5acf57b-dc84-4b7d-b787-bbbeb9935f04",
+  "restored_counts": {
+    "api_keys": 1,
+    "dashboards": 3,
+    "questions": 67
+  },
+  "final_backup": {
+    "sha256": "0077E480B2A81E243EB77E0D99D456C9E7BCE1E5B1F9489A4D155C11D3F486CF",
+    "file": "application-pages-1-2-complete.dump",
+    "bytes": 1057635
+  },
+  "region": "asia-southeast1-eqsg3a",
+  "final_questions": 68,
+  "memory": {
+    "active_process_bytes": 1321586688,
+    "note": "Brief post-startup/load sample, not a soak test",
+    "oom_events": 0,
+    "reclaimable_cache_bytes": 596529152,
+    "java_heap_mb": 768,
+    "oom_kills": 0
+  },
+  "verified_at": "2026-09-22T10:46:34.3669158+00:00",
+  "deployments": {
+    "pg": {
+      "regions": {
+        "asia-southeast1-eqsg3a": {
+          "numReplicas": 1
+        }
+      },
+      "id": "b0b47336-bdb2-4783-8387-ca908eb9e55c",
+      "status": "SUCCESS",
+      "limits": {
+        "containers": {
+          "cpu": 1,
+          "memoryBytes": 500000000
+        }
+      }
+    },
+    "mb": {
+      "regions": {
+        "asia-southeast1-eqsg3a": {
+          "numReplicas": 1
+        }
+      },
+      "id": "96f63773-c11c-4c7d-b729-9e005899899d",
+      "status": "SUCCESS",
+      "limits": {
+        "containers": {
+          "cpu": 2,
+          "memoryBytes": 2000000000
+        }
+      }
+    }
+  },
+  "migration_api_key_retained": true,
+  "old_volume_deleted": "a8df590c-a19f-47c8-a9ba-b49876f8fd61",
+  "application_volume": "efc35075-261e-4d4f-b91f-f10ff0c06228",
+  "before_region_backup_restored": true
+}

@@ -1,0 +1,651 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "scope": "production"
+  "kind": "relation"
+  "name": "public.reporting_borrower_loan_facts_v1"
+"verification":
+  "status": "documented"
+  "source": "outputs/r035-borrower-pages/dictionary-catalog.json"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "reporting_borrower_loan_facts_v1"
+    "kind": "v"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "n"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,metabase_borrower_reader=r/postgres,mw_app_prod=r/postgres}"
+    "comment": null
+    "view_definition": |2-
+       WITH ranked AS (
+               SELECT l."Row ID",
+                  l."Loan Date",
+                  l."Close Date",
+                  l."Principal Amount",
+                  l."Due Date",
+                  l."Ref Borrowers",
+                  l."Loan Arrangement",
+                  l."Loan Status",
+                  l."Loan Type",
+                  l."Current Daily Interest",
+                  l."Fixed Interest",
+                  l."Transfer Fee",
+                  l."Interest Payment Interval",
+                  l."Created By",
+                  l."Closed By",
+                  l."Defaulted",
+                  l."Default Loss Amount",
+                  l."Daily Payment Amount",
+                  l."Auto Charge Enabled",
+                  l."Interest Schedule Anchor Date",
+                  l."Ref Closing Payment",
+                  l."Charge Generation Request",
+                  l."Total Interest Received",
+                  l."Total Principal Received",
+                  l."Outstanding Principal",
+                  l."Total Amount Received",
+                  l."Expected Daily Interest Amount",
+                  l."Borrower Total Interest",
+                  l."Expected Interest This Month",
+                  l."Effective Daily Interest Rate",
+                  l."Principal Recovered by Interest %",
+                  l."Principal Days MTD",
+                  l."Loan Start Day Index",
+                  l."Principal Start Weight",
+                  l."Loan End Date",
+                  l."Loan Duration",
+                  l."30D Principal Days",
+                  l."Loan Age Days",
+                  l."Loan Age Bucket",
+                  l."Defaulted Flag",
+                  l."Maximum Days Late",
+                  l."Last Interest Charge Date",
+                  l."Accrued Interest Days",
+                  l."Accrued Interest",
+                  l."Daily Installment Base Principal",
+                  l."Ref Disbursed From Cash Account",
+                  l."Payment Request Cash Account",
+                  l."Payment Request Token",
+                  row_number() OVER (PARTITION BY l."Ref Borrowers" ORDER BY l."Loan Date", l."Row ID") AS loan_sequence,
+                  bool_or(l."Loan Date" IS NULL) OVER (PARTITION BY l."Ref Borrowers") AS incomplete_dates
+                 FROM olap_loans_analytics l
+              )
+       SELECT "Row ID" AS loan_id,
+          "Ref Borrowers" AS borrower_id,
+          "Loan Date" AS loan_date,
+          "Close Date" AS close_date,
+          "Due Date" AS due_date,
+          "Principal Amount"::numeric AS original_principal,
+          "Outstanding Principal" AS outstanding_principal,
+          "Total Principal Received" AS principal_received,
+          "Total Interest Received" AS interest_received,
+          "Loan Status" = 'ยังไม่ปิดยอด'::text AS is_active,
+              CASE "Loan Status"
+                  WHEN 'ยังไม่ปิดยอด'::text THEN 'Active'::text
+                  WHEN 'ปิดยอดแล้ว'::text THEN 'Closed'::text
+                  ELSE "Loan Status"
+              END AS loan_status,
+              CASE "Loan Type"
+                  WHEN 'กำหนดวันชำระ'::text THEN 'Fixed Due Date'::text
+                  WHEN 'ดอกเบี้ยรายวัน'::text THEN 'Daily Interest'::text
+                  WHEN 'ผ่อนชำระรายวัน'::text THEN 'Daily Installment'::text
+                  ELSE 'Unknown'::text
+              END AS loan_type,
+          "Current Daily Interest"::numeric AS daily_interest,
+          "Defaulted Flag" AS defaulted,
+          "Default Loss Amount"::numeric AS default_loss,
+              CASE
+                  WHEN incomplete_dates THEN 'Unavailable'::text
+                  WHEN loan_sequence = 1 THEN 'First loan'::text
+                  ELSE 'Repeat loan'::text
+              END AS borrowing_type
+         FROM ranked;
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "columns":
+    "loan_id":
+      "schema": "public"
+      "relation": "reporting_borrower_loan_facts_v1"
+      "name": "loan_id"
+      "ordinal": 1
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "borrower_id":
+      "schema": "public"
+      "relation": "reporting_borrower_loan_facts_v1"
+      "name": "borrower_id"
+      "ordinal": 2
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "loan_date":
+      "schema": "public"
+      "relation": "reporting_borrower_loan_facts_v1"
+      "name": "loan_date"
+      "ordinal": 3
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "close_date":
+      "schema": "public"
+      "relation": "reporting_borrower_loan_facts_v1"
+      "name": "close_date"
+      "ordinal": 4
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "due_date":
+      "schema": "public"
+      "relation": "reporting_borrower_loan_facts_v1"
+      "name": "due_date"
+      "ordinal": 5
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "original_principal":
+      "schema": "public"
+      "relation": "reporting_borrower_loan_facts_v1"
+      "name": "original_principal"
+      "ordinal": 6
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "outstanding_principal":
+      "schema": "public"
+      "relation": "reporting_borrower_loan_facts_v1"
+      "name": "outstanding_principal"
+      "ordinal": 7
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "principal_received":
+      "schema": "public"
+      "relation": "reporting_borrower_loan_facts_v1"
+      "name": "principal_received"
+      "ordinal": 8
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "interest_received":
+      "schema": "public"
+      "relation": "reporting_borrower_loan_facts_v1"
+      "name": "interest_received"
+      "ordinal": 9
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "is_active":
+      "schema": "public"
+      "relation": "reporting_borrower_loan_facts_v1"
+      "name": "is_active"
+      "ordinal": 10
+      "data_type": "boolean"
+      "type_schema": "pg_catalog"
+      "type_name": "bool"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "loan_status":
+      "schema": "public"
+      "relation": "reporting_borrower_loan_facts_v1"
+      "name": "loan_status"
+      "ordinal": 11
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "loan_type":
+      "schema": "public"
+      "relation": "reporting_borrower_loan_facts_v1"
+      "name": "loan_type"
+      "ordinal": 12
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "daily_interest":
+      "schema": "public"
+      "relation": "reporting_borrower_loan_facts_v1"
+      "name": "daily_interest"
+      "ordinal": 13
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "defaulted":
+      "schema": "public"
+      "relation": "reporting_borrower_loan_facts_v1"
+      "name": "defaulted"
+      "ordinal": 14
+      "data_type": "boolean"
+      "type_schema": "pg_catalog"
+      "type_name": "bool"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "default_loss":
+      "schema": "public"
+      "relation": "reporting_borrower_loan_facts_v1"
+      "name": "default_loss"
+      "ordinal": 15
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "borrowing_type":
+      "schema": "public"
+      "relation": "reporting_borrower_loan_facts_v1"
+      "name": "borrowing_type"
+      "ordinal": 16
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+  "constraints": {}
+  "indexes": {}
+  "triggers": {}
+  "policies": {}
+  "dependencies":
+  - "schema": "public"
+    "relation": "reporting_borrower_loan_facts_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "30D Principal Days"
+  - "schema": "public"
+    "relation": "reporting_borrower_loan_facts_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Accrued Interest"
+  - "schema": "public"
+    "relation": "reporting_borrower_loan_facts_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Accrued Interest Days"
+  - "schema": "public"
+    "relation": "reporting_borrower_loan_facts_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Auto Charge Enabled"
+  - "schema": "public"
+    "relation": "reporting_borrower_loan_facts_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Borrower Total Interest"
+  - "schema": "public"
+    "relation": "reporting_borrower_loan_facts_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Charge Generation Request"
+  - "schema": "public"
+    "relation": "reporting_borrower_loan_facts_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Close Date"
+  - "schema": "public"
+    "relation": "reporting_borrower_loan_facts_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Closed By"
+  - "schema": "public"
+    "relation": "reporting_borrower_loan_facts_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Created By"
+  - "schema": "public"
+    "relation": "reporting_borrower_loan_facts_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Current Daily Interest"
+  - "schema": "public"
+    "relation": "reporting_borrower_loan_facts_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Daily Installment Base Principal"
+  - "schema": "public"
+    "relation": "reporting_borrower_loan_facts_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Daily Payment Amount"
+  - "schema": "public"
+    "relation": "reporting_borrower_loan_facts_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Default Loss Amount"
+  - "schema": "public"
+    "relation": "reporting_borrower_loan_facts_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Defaulted"
+  - "schema": "public"
+    "relation": "reporting_borrower_loan_facts_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Defaulted Flag"
+  - "schema": "public"
+    "relation": "reporting_borrower_loan_facts_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Due Date"
+  - "schema": "public"
+    "relation": "reporting_borrower_loan_facts_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Effective Daily Interest Rate"
+  - "schema": "public"
+    "relation": "reporting_borrower_loan_facts_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Expected Daily Interest Amount"
+  - "schema": "public"
+    "relation": "reporting_borrower_loan_facts_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Expected Interest This Month"
+  - "schema": "public"
+    "relation": "reporting_borrower_loan_facts_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Fixed Interest"
+  - "schema": "public"
+    "relation": "reporting_borrower_loan_facts_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Interest Payment Interval"
+  - "schema": "public"
+    "relation": "reporting_borrower_loan_facts_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Interest Schedule Anchor Date"
+  - "schema": "public"
+    "relation": "reporting_borrower_loan_facts_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Last Interest Charge Date"
+  - "schema": "public"
+    "relation": "reporting_borrower_loan_facts_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Loan Age Bucket"
+  - "schema": "public"
+    "relation": "reporting_borrower_loan_facts_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Loan Age Days"
+  - "schema": "public"
+    "relation": "reporting_borrower_loan_facts_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Loan Arrangement"
+  - "schema": "public"
+    "relation": "reporting_borrower_loan_facts_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Loan Date"
+  - "schema": "public"
+    "relation": "reporting_borrower_loan_facts_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Loan Duration"
+  - "schema": "public"
+    "relation": "reporting_borrower_loan_facts_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Loan End Date"
+  - "schema": "public"
+    "relation": "reporting_borrower_loan_facts_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Loan Start Day Index"
+  - "schema": "public"
+    "relation": "reporting_borrower_loan_facts_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Loan Status"
+  - "schema": "public"
+    "relation": "reporting_borrower_loan_facts_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Loan Type"
+  - "schema": "public"
+    "relation": "reporting_borrower_loan_facts_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Maximum Days Late"
+  - "schema": "public"
+    "relation": "reporting_borrower_loan_facts_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Outstanding Principal"
+  - "schema": "public"
+    "relation": "reporting_borrower_loan_facts_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Payment Request Cash Account"
+  - "schema": "public"
+    "relation": "reporting_borrower_loan_facts_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Payment Request Token"
+  - "schema": "public"
+    "relation": "reporting_borrower_loan_facts_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Principal Amount"
+  - "schema": "public"
+    "relation": "reporting_borrower_loan_facts_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Principal Days MTD"
+  - "schema": "public"
+    "relation": "reporting_borrower_loan_facts_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Principal Recovered by Interest %"
+  - "schema": "public"
+    "relation": "reporting_borrower_loan_facts_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Principal Start Weight"
+  - "schema": "public"
+    "relation": "reporting_borrower_loan_facts_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Ref Borrowers"
+  - "schema": "public"
+    "relation": "reporting_borrower_loan_facts_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Ref Closing Payment"
+  - "schema": "public"
+    "relation": "reporting_borrower_loan_facts_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Ref Disbursed From Cash Account"
+  - "schema": "public"
+    "relation": "reporting_borrower_loan_facts_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "reporting_borrower_loan_facts_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Total Amount Received"
+  - "schema": "public"
+    "relation": "reporting_borrower_loan_facts_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Total Interest Received"
+  - "schema": "public"
+    "relation": "reporting_borrower_loan_facts_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Total Principal Received"
+  - "schema": "public"
+    "relation": "reporting_borrower_loan_facts_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Transfer Fee"
+"evidence":
+  "/content/definition/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"

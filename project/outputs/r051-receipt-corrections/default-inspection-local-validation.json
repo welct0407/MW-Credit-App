@@ -1,0 +1,92 @@
+{
+  "passed": true,
+  "scope": "Isolated localhost V69 copy only; no DEV transport or writes",
+  "correct_actor_fields": [
+    "Loans.Closed By",
+    "original Charges.Notes restoration JSON.actor",
+    "Repayments.Created By"
+  ],
+  "loss_charge_note": "Generic zero-cash description, not an actor field",
+  "observer_visibility": "Auto-enabled intermediate state invisible; observer saw open/autoFalse before commit and defaulted/autoFalse afterward",
+  "default_undo_exact_sources_and_cash": true,
+  "setup_undo_full_transaction_rollback_all26_equal": true,
+  "undo_all_nonanalytics_tables_equal": true,
+  "undo_analytics_timestamp_only_row_counts": {
+    "Daily Analytics": 2,
+    "Cash Account Daily Analytics": 54
+  },
+  "plain_default_parent_and_children_delete_rejected_unchanged": true,
+  "nondefault_unpaid_child_first_delete_passed": true,
+  "legacy_risk": {
+    "allocation_count": 0,
+    "old_ui_condition_would_allow": true,
+    "proposed_default_condition_would_block": true,
+    "legacy_repayment_deletion_committed": true,
+    "later_parent_and_protected_child_deletions_rejected": true,
+    "earlier_committed_delete_survives_failure": true,
+    "defaulted_outstanding_after_child_delete": 10.0,
+    "later_undo_does_not_restore_deleted_legacy_row": true,
+    "outstanding_before_default": 90,
+    "default_loss": 90,
+    "deleted_legacy_principal": 10,
+    "outstanding_after_later_undo": 100,
+    "residual_boundary": "V69 still permits direct deletion of an independent legacy repayment while defaulted. Proposed Loan Delete visibility prevents this normal cascade entry point; it is not a database authorization/integrity fix for arbitrary direct child deletion."
+  },
+  "actual_appsheet_request_order": "Not observed; this simulates independently committed requests",
+  "temporary_database_removed": true,
+  "original_local_database_all26_unchanged": true,
+  "date_utc": "2026-10-06",
+  "starting_commit": "4f36c61c",
+  "migration_version": 69,
+  "migration_checksum": 245428688,
+  "source_sha256": {
+    "scripts/database/Test-DefaultInspection.sql": "c282bce1a2ad7884bea86355f467bc57986e956a05d8f74cdef8801a954235ea",
+    "scripts/database/Test-DefaultInspectionLocal.py": "e8cdc1f432b74c016893f690e28ad504179dc738f19ad1eb77809e8f24114ce0",
+    "scripts/database/Test-StatementBatch.sql": "ea7e4f6f68d28ff438aba292048f7f24fab09794608f6a30ff4e918704aad93b"
+  },
+  "focused_sql": {
+    "passed": true,
+    "exit_code": 0,
+    "private_log": "/tmp/r051-default-inspection-sql.log"
+  },
+  "maintained_ci": {
+    "command": "pwsh -NoProfile -File scripts/database/Test-CI.ps1",
+    "exit_code": 0,
+    "private_log": "/tmp/r051-default-inspection-ci.log",
+    "routes": [
+      {
+        "from": "empty",
+        "to": 69,
+        "migrations_executed": 69,
+        "sql": "passed",
+        "concurrency_suites": 9,
+        "log_directory": "/tmp/r051-migration-test-q4bc20ro"
+      },
+      {
+        "from": 19,
+        "to": 69,
+        "migrations_executed": 50,
+        "sql": "passed",
+        "log_directory": "/tmp/r051-migration-test-ljhm139k"
+      },
+      {
+        "from": 68,
+        "to": 69,
+        "migrations_executed": 1,
+        "sql": "passed",
+        "log_directory": "/tmp/r051-migration-test-sjt09yzc"
+      }
+    ],
+    "repeat_noop_and_checksum_rejection": "passed on all three routes",
+    "coverage_boundary": "Test-DefaultInspection.sql is included in Test-StatementBatch.sql. Separate-request Python proof was executed separately locally, not by Windows CI."
+  },
+  "local_python": {
+    "command": "/workspace/MW-Integration-Agent/.venv/bin/python scripts/database/Test-DefaultInspectionLocal.py --port 55469 --data-directory /workspace/r051-dev-recovery-bptrxi2l/data --output /tmp/r051-default-inspection-maintained.json",
+    "exit_code": 0,
+    "private_log": "/tmp/r051-default-inspection-maintained.log",
+    "recovery_reference": "Private verified V68 recovery clone r051-dev-recovery-bptrxi2l, migrated locally to V69; retained dump SHA174ed66a0e61946e37541889e4b03954ac165810df54f867e67b0f3663ce0c2d. No remote reads or writes in this task.",
+    "local_server_stopped": true
+  },
+  "canonical_validator": "Test-DefaultInspectionLocal.py:validate_defaulted; pure assertion function with no transport or mutations. Replaces the erroneous actor-in-generated-charge-note assertion in the historical private runner; that live runner remains retired and was not replayed.",
+  "publication_and_gui": "Local-validation checkpoint. Remote results for the exact published revision: https://github.com/welct0407/AppSheet-Loan-Project/pull/15/checks . Proposed GUI predicate remains unapplied; GUI acceptance pending."
+}

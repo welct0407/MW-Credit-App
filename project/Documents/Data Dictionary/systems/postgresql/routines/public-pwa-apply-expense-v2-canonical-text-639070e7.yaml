@@ -1,0 +1,71 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.pwa_apply_expense_v2(canonical text)"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r052/dictionary-production-closure.json"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "pwa_apply_expense_v2"
+    "arguments": "canonical text"
+    "kind": "f"
+    "arguments_with_defaults": "canonical text"
+    "result": "jsonb"
+    "definition": "CREATE OR REPLACE FUNCTION public.pwa_apply_expense_v2(canonical text)\n RETURNS jsonb\n LANGUAGE plpgsql\n\
+      \ SET search_path TO 'pg_catalog', 'public'\nAS $function$\r\nDECLARE e jsonb:=canonical::jsonb;c jsonb:=e->'command';i\
+      \ jsonb:=c->'inputs';a jsonb:=e->'actor';op text:=c->>'operation';target text:=c->>'targetId';old public.\"Business\
+      \ Expenses\"%ROWTYPE;holder text;message text;categories text[]:=ARRAY['Collection Cost / ค่าใช้จ่ายติดตามหนี้','Transportation\
+      \ / ค่าเดินทาง','Bank / Transfer Fee / ค่าธรรมเนียมธนาคารและโอนเงิน','Software / Subscription / ค่าซอฟต์แวร์และสมาชิก','Other\
+      \ / อื่น ๆ','Referral Rebate / เงินคืนค่าแนะนำลูกค้า'];\r\nBEGIN\r\n IF (current_database() NOT IN ('loan_manager_dev','payment_rehearsal','loan_manager_prod')\
+      \ OR current_user<>CASE current_database() WHEN 'loan_manager_prod' THEN 'mw_app_prod_journal_owner' ELSE 'mw_app_dev_journal_owner'\
+      \ END) THEN RAISE EXCEPTION USING ERRCODE='42501',MESSAGE='Governed operation required';END IF;\r\n PERFORM pg_advisory_xact_lock(hashtextextended('expense:'||target,0));\r\
+      \n SELECT * INTO old FROM public.\"Business Expenses\" WHERE \"Row ID\"=target FOR UPDATE;\r\n IF op='expense.create'\
+      \ THEN IF FOUND THEN RAISE EXCEPTION USING ERRCODE='P5B01';END IF;\r\n ELSE IF NOT FOUND THEN RAISE EXCEPTION USING\
+      \ ERRCODE='P5B02';END IF;IF public.pwa_expense_version_v2(target) IS DISTINCT FROM c->>'expectedVersion' THEN RAISE\
+      \ EXCEPTION USING ERRCODE='P5B01';END IF;IF old.\"Source Type\" IS DISTINCT FROM 'Manual' THEN RAISE EXCEPTION USING\
+      \ ERRCODE='P5B05';END IF;END IF;\r\n IF op<>'expense.delete' THEN\r\n IF (op='expense.create' OR i->>'category' IS DISTINCT\
+      \ FROM old.\"Expense Category\") AND NOT (i->>'category'=ANY(categories)) THEN RAISE EXCEPTION USING ERRCODE='P5B06';END\
+      \ IF;\r\n IF (i->>'amount')::numeric<0 AND nullif(btrim(i->>'notes'),'') IS NULL THEN RAISE EXCEPTION USING ERRCODE='P5B06';END\
+      \ IF;\r\n IF i->>'relatedBorrowerId' IS NOT NULL AND NOT EXISTS(SELECT 1 FROM public.\"Borrowers\" WHERE \"Row ID\"\
+      =i->>'relatedBorrowerId') THEN RAISE EXCEPTION USING ERRCODE='P5B04';END IF;\r\n IF i->>'relatedLoanId' IS NOT NULL\
+      \ AND NOT EXISTS(SELECT 1 FROM public.\"Loans\" WHERE \"Row ID\"=i->>'relatedLoanId' AND (i->>'relatedBorrowerId' IS\
+      \ NULL OR \"Ref Borrowers\"=i->>'relatedBorrowerId')) THEN RAISE EXCEPTION USING ERRCODE='P5B04';END IF;\r\n IF op='expense.update'\
+      \ AND i->>'paidByAccountId' IS NOT DISTINCT FROM old.\"Ref Paid By Cash Account\" THEN holder:=old.\"Ref Paid By Cash\
+      \ Holder\";\r\n ELSIF i->>'paidByAccountId' IS NOT NULL THEN\r\n SELECT ca.\"Ref Cash Holder\" INTO holder FROM public.\"\
+      Cash Accounts\" ca JOIN public.\"Cash Holders\" h ON h.\"Row ID\"=ca.\"Ref Cash Holder\" WHERE ca.\"Row ID\"=i->>'paidByAccountId'\
+      \ AND ca.\"Active\" IS TRUE AND h.\"Active\" IS TRUE AND h.\"Row ID\" IN('ch:dad','ch:lisa','ch:tommy');IF NOT FOUND\
+      \ THEN RAISE EXCEPTION USING ERRCODE='P5B07';END IF;\r\n END IF;\r\n IF op='expense.create' AND (i->>'amount')::numeric>0\
+      \ AND holder IS NULL THEN RAISE EXCEPTION USING ERRCODE='P5B07';END IF;\r\n END IF;\r\n BEGIN\r\n IF op='expense.create'\
+      \ THEN INSERT INTO public.\"Business Expenses\"(\"Row ID\",\"Expense Date\",\"Expense Category\",\"Amount\",\"Payee\
+      \ Name\",\"Ref Related Borrower\",\"Ref Related Loan\",\"Notes\",\"Ref Paid By Cash Account\",\"Ref Paid By Cash Holder\"\
+      ,\"Source Type\",\"Created By\") VALUES(target,(i->>'expenseDate')::date,i->>'category',(i->>'amount')::numeric::money,i->>'payeeName',i->>'relatedBorrowerId',i->>'relatedLoanId',i->>'notes',i->>'paidByAccountId',holder,'Manual',a->>'loginEmail');\r\
+      \n ELSIF op='expense.update' THEN UPDATE public.\"Business Expenses\" SET \"Expense Date\"=(i->>'expenseDate')::date,\"\
+      Expense Category\"=i->>'category',\"Amount\"=(i->>'amount')::numeric::money,\"Payee Name\"=i->>'payeeName',\"Ref Related\
+      \ Borrower\"=i->>'relatedBorrowerId',\"Ref Related Loan\"=i->>'relatedLoanId',\"Notes\"=i->>'notes',\"Ref Paid By Cash\
+      \ Account\"=i->>'paidByAccountId',\"Ref Paid By Cash Holder\"=holder WHERE \"Row ID\"=target;\r\n ELSE DELETE FROM public.\"\
+      Business Expenses\" WHERE \"Row ID\"=target;END IF;\r\n EXCEPTION WHEN foreign_key_violation THEN RAISE EXCEPTION USING\
+      \ ERRCODE='P5B05';WHEN SQLSTATE 'P0001' THEN GET STACKED DIAGNOSTICS message=MESSAGE_TEXT;\r\n IF message='Correct linked\
+      \ reimbursement before changing expense away from a positive Tommy-paid expense' THEN RAISE EXCEPTION USING ERRCODE='P5B05';ELSIF\
+      \ message='Related loan does not belong to related borrower' THEN RAISE EXCEPTION USING ERRCODE='P5B04';ELSIF message\
+      \ IN('Expense allocation requires a positive A/B contribution pool on its allocation date','A negative manual adjustment\
+      \ requires an explanatory note') THEN RAISE EXCEPTION USING ERRCODE='P5B06';ELSE RAISE;END IF;END;\r\n RETURN jsonb_build_object('operation',op,'targetType','expense','targetId',target,'paymentId',NULL,'plan',NULL,'predecessorRequestId',NULL,'sourceCreatedBy',NULL);\r\
+      \nEND $function$\n"
+    "owner": "postgres"
+    "language": "plpgsql"
+    "volatility": "v"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 0.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": "{postgres=X/postgres,mw_app_prod_journal_owner=X/postgres,mw_app_prod=X/postgres}"
+    "comment": null
+    "extension": null

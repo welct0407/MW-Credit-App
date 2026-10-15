@@ -1,0 +1,18 @@
+{
+  "release": "R027",
+  "frozen_at": "2026-09-24T23:26:05.388567+07:00",
+  "scope": [
+    "V41 additive payment-health views",
+    "17 new Metabase questions and parallel review tab",
+    "Already delivered GCP currency formatting bd6be13"
+  ],
+  "tested_commit": "4df2918",
+  "sql_sha256": "ba279e88630d2be886d61a4bbcddeeaee478b7a6c35275403e855373b388962e",
+  "report_script_sha256": "fc3f4dae9d97226ceaf878fbb3fc4eefed5e398810c97d8b5b477d1291d1032e",
+  "dev_oltp_cleanup_version": "1.000085",
+  "production_apps": "Unchanged; no RC/App Upgrade",
+  "ci": "database-ci-final.txt",
+  "query_preflight": "promotion-preflight.json",
+  "production_backup": "production-backup.json",
+  "successor": "R028 Open"
+}

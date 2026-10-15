@@ -1,0 +1,269 @@
+{
+  "parent_test_sent_at": "2026-10-03T11:54:10Z",
+  "parent_success_ui_at": "2026-10-03T11:54:25Z",
+  "parent_test_scope": "Second Webhook integration only; MW Grafana Bridge Live Route Check deliberately outside ten production filters. Earlier browser-blocked attempt made no send; new exact owner approval preceded this single send.",
+  "operations": [
+    {
+      "at": "2026-10-03T11:59:20.906673+00:00",
+      "arguments": [
+        "run",
+        "services",
+        "describe",
+        "mw-grafana-events",
+        "--region=asia-southeast1",
+        "--flatten=spec.template.spec.containers[].env[]",
+        "--format=table(spec.template.spec.containers.env.name,spec.template.spec.containers.env.value)"
+      ],
+      "result": {
+        "safe_environment_only": {
+          "CALLBACK_HOSTS": "connectors.api.openai.com",
+          "CAPTURE_REJECTED_CALLBACK_HOST": "false"
+        }
+      }
+    },
+    {
+      "at": "2026-10-03T11:59:23.789075+00:00",
+      "arguments": [
+        "meta",
+        "apis",
+        "methods",
+        "call",
+        "--collection=firestore.projects.databases.documents",
+        "--api-version=v1",
+        "--raw",
+        "list",
+        "--parent=projects/clever-oasis-508610-n7/databases/mw-grafana-events/documents",
+        "--collectionId=events",
+        "--mask_fieldPaths=id,timestamp,data.alert_name,data.status,data.summary,createdAt",
+        "--pageSize=21",
+        "--format=json"
+      ],
+      "result": {
+        "documents": [
+          {
+            "createTime": "2026-10-03T11:54:15.592548Z",
+            "fields": {
+              "createdAt": {
+                "integerValue": "1791028455388"
+              },
+              "data": {
+                "mapValue": {
+                  "fields": {
+                    "alert_name": {
+                      "stringValue": "MW Grafana Bridge Live Route Check"
+                    },
+                    "status": {
+                      "stringValue": "firing"
+                    },
+                    "summary": {
+                      "stringValue": "Synthetic live webhook configuration check; no real incident."
+                    }
+                  }
+                }
+              },
+              "id": {
+                "stringValue": "evt_369400614f17d796e79e04796b2942839227f1d29ab96ec5a3cd6d2ab2b34d69"
+              },
+              "timestamp": {
+                "stringValue": "2026-10-03T11:54:15.222Z"
+              }
+            },
+            "name": "projects/clever-oasis-508610-n7/databases/mw-grafana-events/documents/events/evt_369400614f17d796e79e04796b2942839227f1d29ab96ec5a3cd6d2ab2b34d69",
+            "updateTime": "2026-10-03T11:54:15.592548Z"
+          },
+          {
+            "createTime": "2026-10-03T10:55:20.679975Z",
+            "fields": {
+              "createdAt": {
+                "integerValue": "1791024920462"
+              },
+              "data": {
+                "mapValue": {
+                  "fields": {
+                    "alert_name": {
+                      "stringValue": "MW Grafana Bridge Synthetic Test"
+                    },
+                    "status": {
+                      "stringValue": "firing"
+                    },
+                    "summary": {
+                      "stringValue": "Controlled Grafana-to-Dots notification test; no real incident."
+                    }
+                  }
+                }
+              },
+              "id": {
+                "stringValue": "evt_effa6bb773905446a52783d146ad0f8446e0072c1dd121759d4965d5eadc062b"
+              },
+              "timestamp": {
+                "stringValue": "2026-10-03T10:55:20.394Z"
+              }
+            },
+            "name": "projects/clever-oasis-508610-n7/databases/mw-grafana-events/documents/events/evt_effa6bb773905446a52783d146ad0f8446e0072c1dd121759d4965d5eadc062b",
+            "updateTime": "2026-10-03T10:55:20.679975Z"
+          }
+        ]
+      }
+    },
+    {
+      "at": "2026-10-03T11:59:26.560771+00:00",
+      "arguments": [
+        "meta",
+        "apis",
+        "methods",
+        "call",
+        "--collection=firestore.projects.databases.documents",
+        "--api-version=v1",
+        "--raw",
+        "list",
+        "--parent=projects/clever-oasis-508610-n7/databases/mw-grafana-events/documents",
+        "--collectionId=deliveries",
+        "--mask_fieldPaths=id,eventId,state,attempt,reason",
+        "--pageSize=21",
+        "--format=json"
+      ],
+      "result": {
+        "documents": [
+          {
+            "createTime": "2026-10-03T10:55:20.679975Z",
+            "fields": {
+              "attempt": {
+                "integerValue": "1"
+              },
+              "eventId": {
+                "stringValue": "evt_effa6bb773905446a52783d146ad0f8446e0072c1dd121759d4965d5eadc062b"
+              },
+              "id": {
+                "stringValue": "2ef196e010977b6c4869139066ff2211fcbbeb95b76440384fd7fba9bd9bb3b4"
+              },
+              "reason": {
+                "stringValue": "http_200"
+              },
+              "state": {
+                "stringValue": "delivered"
+              }
+            },
+            "name": "projects/clever-oasis-508610-n7/databases/mw-grafana-events/documents/deliveries/2ef196e010977b6c4869139066ff2211fcbbeb95b76440384fd7fba9bd9bb3b4",
+            "updateTime": "2026-10-03T11:05:27.671997Z"
+          }
+        ]
+      }
+    },
+    {
+      "at": "2026-10-03T11:59:28.866527+00:00",
+      "arguments": [
+        "logging",
+        "read",
+        "timestamp>=\"2026-10-03T11:54:00Z\" AND timestamp<=\"2026-10-03T12:10:00Z\" AND resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"mw-grafana-events\" AND (jsonPayload.event=\"grafana_accepted\" OR jsonPayload.event=\"dispatch_completed\" OR httpRequest.requestUrl=\"https://alerts.mw-credit.com/grafana\" OR httpRequest.requestUrl=\"https://alerts.mw-credit.com/internal/dispatch\")",
+        "--limit=40",
+        "--format=json(timestamp,jsonPayload.event,jsonPayload.count,httpRequest.status,httpRequest.requestUrl)"
+      ],
+      "result": [
+        {
+          "jsonPayload": {
+            "count": 0,
+            "event": "dispatch_completed"
+          },
+          "timestamp": "2026-10-03T11:59:02.541980Z"
+        },
+        {
+          "httpRequest": {
+            "requestUrl": "https://alerts.mw-credit.com/internal/dispatch",
+            "status": 200
+          },
+          "timestamp": "2026-10-03T11:59:02.489896Z"
+        },
+        {
+          "jsonPayload": {
+            "count": 0,
+            "event": "dispatch_completed"
+          },
+          "timestamp": "2026-10-03T11:58:02.528756Z"
+        },
+        {
+          "httpRequest": {
+            "requestUrl": "https://alerts.mw-credit.com/internal/dispatch",
+            "status": 200
+          },
+          "timestamp": "2026-10-03T11:58:02.468191Z"
+        },
+        {
+          "jsonPayload": {
+            "count": 0,
+            "event": "dispatch_completed"
+          },
+          "timestamp": "2026-10-03T11:57:02.581198Z"
+        },
+        {
+          "httpRequest": {
+            "requestUrl": "https://alerts.mw-credit.com/internal/dispatch",
+            "status": 200
+          },
+          "timestamp": "2026-10-03T11:57:02.528745Z"
+        },
+        {
+          "jsonPayload": {
+            "count": 0,
+            "event": "dispatch_completed"
+          },
+          "timestamp": "2026-10-03T11:56:03.016897Z"
+        },
+        {
+          "httpRequest": {
+            "requestUrl": "https://alerts.mw-credit.com/internal/dispatch",
+            "status": 200
+          },
+          "timestamp": "2026-10-03T11:56:02.949778Z"
+        },
+        {
+          "jsonPayload": {
+            "count": 0,
+            "event": "dispatch_completed"
+          },
+          "timestamp": "2026-10-03T11:55:03.094205Z"
+        },
+        {
+          "httpRequest": {
+            "requestUrl": "https://alerts.mw-credit.com/internal/dispatch",
+            "status": 200
+          },
+          "timestamp": "2026-10-03T11:55:03.057643Z"
+        },
+        {
+          "jsonPayload": {
+            "count": 1,
+            "event": "grafana_accepted"
+          },
+          "timestamp": "2026-10-03T11:54:15.600146Z"
+        },
+        {
+          "httpRequest": {
+            "requestUrl": "https://alerts.mw-credit.com/grafana",
+            "status": 202
+          },
+          "timestamp": "2026-10-03T11:54:15.381775Z"
+        },
+        {
+          "jsonPayload": {
+            "count": 0,
+            "event": "dispatch_completed"
+          },
+          "timestamp": "2026-10-03T11:54:03.210540Z"
+        },
+        {
+          "httpRequest": {
+            "requestUrl": "https://alerts.mw-credit.com/internal/dispatch",
+            "status": 200
+          },
+          "timestamp": "2026-10-03T11:54:03.153948Z"
+        }
+      ]
+    }
+  ],
+  "matching_synthetic_events": 1,
+  "matching_production_outbox": 0,
+  "pending_deliveries": 0,
+  "bounded_ingress_202_verified": true,
+  "natural_empty_dispatch_verified": true,
+  "no_executor_send_or_manual_run": true
+}

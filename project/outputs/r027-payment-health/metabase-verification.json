@@ -1,0 +1,92 @@
+{
+  "at": "2026-09-24T16:40:38.234Z",
+  "checks": [
+    {
+      "key": "active",
+      "rows": 1,
+      "completed": true
+    },
+    {
+      "key": "overdue",
+      "rows": 1,
+      "completed": true
+    },
+    {
+      "key": "provisional",
+      "rows": 1,
+      "completed": true
+    },
+    {
+      "key": "unclassified",
+      "rows": 1,
+      "completed": true
+    },
+    {
+      "key": "freshness",
+      "rows": 1,
+      "completed": true
+    },
+    {
+      "key": "cow-count",
+      "rows": 1,
+      "completed": true
+    },
+    {
+      "key": "cow",
+      "rows": 11,
+      "completed": true
+    },
+    {
+      "key": "star-count",
+      "rows": 1,
+      "completed": true
+    },
+    {
+      "key": "star",
+      "rows": 5,
+      "completed": true
+    },
+    {
+      "key": "dog-count",
+      "rows": 1,
+      "completed": true
+    },
+    {
+      "key": "dog",
+      "rows": 4,
+      "completed": true
+    },
+    {
+      "key": "question-count",
+      "rows": 1,
+      "completed": true
+    },
+    {
+      "key": "question",
+      "rows": 3,
+      "completed": true
+    },
+    {
+      "key": "scatter",
+      "rows": 23,
+      "completed": true
+    },
+    {
+      "key": "health",
+      "rows": 30,
+      "completed": true
+    },
+    {
+      "key": "components",
+      "rows": 23,
+      "completed": true
+    },
+    {
+      "key": "review",
+      "rows": 3,
+      "completed": true
+    }
+  ],
+  "original_placements_unchanged": true,
+  "original_parameters_unchanged": true
+}

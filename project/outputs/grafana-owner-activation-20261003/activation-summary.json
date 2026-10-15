@@ -1,0 +1,29 @@
+{
+  "authorization": "user-approved owner-only authentication/private-connection stage at 2026-10-03 06:26 UTC, delegated by parent",
+  "runtimeTemplateSpecDiff": "OWNER_ENABLED false -> true only; all other template spec fields identical",
+  "servingRevision": "mw-grafana-events-00003-rdr",
+  "trafficPercent": 100,
+  "ownerPins": "existing exact subject/email verified privately; subject redacted",
+  "callbackHosts": [],
+  "eventSubscriptions": "deny-all configuration; no subscription attempted",
+  "scheduler": "mw-grafana-dispatch absent",
+  "grafanaChanges": false,
+  "imageChanged": false,
+  "fiveSecretVersions": "1 only; no payload access",
+  "ownerDisabledRollback": "mw-grafana-events-00002-nrg retained Ready",
+  "organizationLoggingEvidence": {
+    "source": "parent supplied verified human-owner CLI configuration read; not independently repeated by this agent",
+    "organization": "594773370606",
+    "directParent": true,
+    "folderAncestors": false,
+    "sinkCount": 3,
+    "onlyIncludeChildrenSink": "org-level-logsink-594773370606",
+    "aggregatedFilter": "Cloud Audit activity/system event/data access/access transparency; excludes ordinary run.googleapis.com requests",
+    "otherSinks": "_Default/_Required organization-only",
+    "projectOauthRequestExclusion": "previously verified unchanged"
+  },
+  "GoogleConsent": "pending owner completion through host",
+  "OAuthGrantOrTokenCreated": false,
+  "eventDelivery": "inactive",
+  "release": "R050 Open"
+}

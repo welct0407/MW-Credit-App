@@ -1,0 +1,14 @@
+{
+  "passed": true,
+  "loan_count": 80,
+  "incomplete_count": 0,
+  "issues": [
+    [
+      "Manual schedule: only recorded obligations forecast",
+      20
+    ]
+  ],
+  "all_source_table_fingerprints_unchanged": true,
+  "candidate_rolled_back": true,
+  "source_backup_sha256": "fda331c8f4c57ead067b2b2f43a01545c30132f22a63c01667b9d86a19d36fe3"
+}

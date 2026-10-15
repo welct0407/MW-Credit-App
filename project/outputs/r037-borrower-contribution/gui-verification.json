@@ -1,0 +1,10 @@
+{
+  "at": "2026-09-26T03:33:23.793056+00:00",
+  "account": "Owner-confirmed Chrome Wel; Metabase settings displayed welct0407@gmail.com",
+  "desktop": "1120x718 default viewport; two pies and two bars render; percentage labels and coverage100% line visible; no chart errors",
+  "mobile": "390x844 override; native cards stack; both final8-row bars individually rendered without Other aggregation; wide context tables and long text scroll",
+  "viewportReset": true,
+  "physicalMobileTest": false,
+  "screenshotsPublishedToGit": false,
+  "refinement": "Native row chart automatically sums overflow categories on short mobile cards. Queries limited to top8 to avoid invalid summed ratios. Full borrower model remains available."
+}

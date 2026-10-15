@@ -1,0 +1,66 @@
+{
+  "state": "V68_APPLIED_DEV_CONVERSION_ACCEPTANCE_PASS_GUI_PENDING",
+  "test": "scripts/database/Test-LoanCorrections.sql",
+  "test_sha256": "989ea4b469ab697bb6d105aade98aff4d98bfac9523d3f8ac3e12e306b640459",
+  "local_result": "passed",
+  "maintained_route": "Test-StatementBatch.sql via Test-CI.ps1; V68 full maintained pass",
+  "source_mutation_scope": "Private restored V67, rollback-contained. Synthetic funding and account fixtures are local test setup only. No DEV source changes.",
+  "positive_cases": [
+    "daily principal200→150 after principal30 paid: outstanding120/current12/original10; exact disbursement key retained",
+    "loan date and Lisa→Lisa2 account edit moves same cash key/date/amount",
+    "interval2/anchor change excludes off-cycle date, generates36 interest on eligible day without resetting accrual",
+    "fixed interest30→45/due date change generates future500P+45I; prior booked7I unchanged",
+    "unpaid borrower reassignment succeeds after independent borrower-bound expense removed"
+  ],
+  "guards": [
+    "principal90 below booked100 rejects; principal20 below paid30 rejects",
+    "original daily percentage change rejects",
+    "borrower move with receipt or borrower-bound expense rejects",
+    "anchor before Loan Date rejects",
+    "included-opening amount/date/account guards are separately exercised by existing Test-OpeningIncludedCrud.sql seeded route",
+    "single SQL parent borrower delete rejects and preserves all three loans"
+  ],
+  "preservation": [
+    "previous booked charges byte-equal",
+    "receipt source byte-equal",
+    "exact disbursement key unchanged across principal/date/account correction"
+  ],
+  "type_conversion": {
+    "historical_dev67_gap": "Fixed→daily could retain NULL daily amount; superseded by applied68.",
+    "backend": "V68 derives current amount from frozen original/outstanding; fixed/installment/roundtrip/zero/missing cases pass actual rollback DEV acceptance.",
+    "candidate_applied": true,
+    "evidence": "daily-type-conversion-v68-actual-summary.json",
+    "recommendation": "No blanket existing-type lock. Preserve existing editability with original-basis/automatic-schedule validation; actual GUI acceptance and other cross-type schedules remain unproven."
+  },
+  "Test_CI_routes": [
+    {
+      "migrations": 68,
+      "pre_migration_target": null,
+      "second_run": 0,
+      "sql": "passed",
+      "concurrency": [
+        "BusinessExpenses",
+        "ExpenseReimbursement",
+        "PaymentCrud",
+        "ReceiptDelete",
+        "InterestReallocation",
+        "CorePayment",
+        "AtomicLoanClose",
+        "ChargeGeneration",
+        "DefaultLoan"
+      ],
+      "checksum_tampering_rejected": true,
+      "logs": "/tmp/r051-migration-test-_1gptc9j"
+    },
+    {
+      "migrations": 49,
+      "pre_migration_target": 19,
+      "second_run": 0,
+      "sql": "passed",
+      "concurrency": [],
+      "checksum_tampering_rejected": true,
+      "logs": "/tmp/r051-migration-test-sh_4qxav"
+    }
+  ],
+  "separate_local_reproduction": "local-borrower-cascade.json; not part of Windows CI"
+}

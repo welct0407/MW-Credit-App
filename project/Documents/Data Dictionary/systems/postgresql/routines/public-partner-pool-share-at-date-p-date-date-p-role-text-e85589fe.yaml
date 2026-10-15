@@ -1,0 +1,58 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.partner_pool_share_at_date(p_date date, p_role text)"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "partner_pool_share_at_date"
+    "arguments": "p_date date, p_role text"
+    "kind": "f"
+    "arguments_with_defaults": "p_date date, p_role text"
+    "result": "numeric"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.partner_pool_share_at_date(p_date date, p_role text)
+       RETURNS numeric
+       LANGUAGE plpgsql
+       STABLE
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+      DECLARE pool numeric; a numeric; b numeric; unknown_count integer;
+      BEGIN
+       SELECT sum(n),coalesce(sum(n) FILTER(WHERE role='A'),0),coalesce(sum(n) FILTER(WHERE role='B'),0),
+         count(*) FILTER(WHERE role IS NULL OR role NOT IN ('A','B'))
+       INTO pool,a,b,unknown_count FROM (
+       SELECT CASE WHEN c."Transaction Type"='Contribution' THEN c."Amount"::numeric ELSE -c."Amount"::numeric END n,
+       p."Partner Role" role FROM public."Cash Pool Contributions" c
+       LEFT JOIN public."Partners" p ON p."Row ID"=c."Ref Partner" WHERE c."Contribution Date"<=p_date) s;
+       IF p_date IS NULL OR coalesce(pool,0)<=0 OR unknown_count>0 OR a<0 OR b<0 OR p_role NOT IN ('A','B') THEN
+         RAISE EXCEPTION 'Expense allocation requires a positive A/B contribution pool on its allocation date';
+       END IF;
+       RETURN CASE WHEN p_role='A' THEN a/pool ELSE 1-a/pool END;
+      END $function$
+    "owner": "postgres"
+    "language": "plpgsql"
+    "volatility": "s"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 0.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": "{=X/postgres,postgres=X/postgres,mw_app_prod=X/postgres}"
+    "comment": null
+    "extension": null
+"evidence":
+  "/content/definition/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"

@@ -1,0 +1,228 @@
+{
+  "release": "R005",
+  "app": "olap",
+  "before": {
+    "file": "dev-olap-save19-ledger-actions.json",
+    "version": "1.000116"
+  },
+  "after": {
+    "file": "dev-olap-save20-baht.json",
+    "version": "1.000117"
+  },
+  "coverage": "All exported properties; omitted export coverage subject to explicit owner-approved limited R005 exception.",
+  "counts": {
+    "before": 24452,
+    "after": 24452,
+    "changes": 13
+  },
+  "changes": [
+    {
+      "id": "R005-OLAP-10d4e392c175",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "App/Version",
+      "operation": "change",
+      "before": {
+        "present": true,
+        "value": "1.000116"
+      },
+      "after": {
+        "present": true,
+        "value": "1.000117"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-3e2f8310aa54",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Cash Holder Balances_Schema/Business Cash Held/Type Qualifier/CurrencySymbol",
+      "operation": "change",
+      "before": {
+        "present": true,
+        "value": "$"
+      },
+      "after": {
+        "present": true,
+        "value": "฿"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-54f0c37c90a1",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Cash Holder Balances_Schema/Business Cash Held/Type Qualifier/DecimalDigits",
+      "operation": "change",
+      "before": {
+        "present": true,
+        "value": 2
+      },
+      "after": {
+        "present": true,
+        "value": 0
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-a42ce81cc2af",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Cash Holder Balances_Schema/Cash In/Type Qualifier/CurrencySymbol",
+      "operation": "change",
+      "before": {
+        "present": true,
+        "value": "$"
+      },
+      "after": {
+        "present": true,
+        "value": "฿"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-fdf85dcb4b5e",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Cash Holder Balances_Schema/Cash In/Type Qualifier/DecimalDigits",
+      "operation": "change",
+      "before": {
+        "present": true,
+        "value": 2
+      },
+      "after": {
+        "present": true,
+        "value": 0
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-5dacc04a882c",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Cash Holder Balances_Schema/Cash Out/Type Qualifier/CurrencySymbol",
+      "operation": "change",
+      "before": {
+        "present": true,
+        "value": "$"
+      },
+      "after": {
+        "present": true,
+        "value": "฿"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-788c21ef8b93",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Cash Holder Balances_Schema/Cash Out/Type Qualifier/DecimalDigits",
+      "operation": "change",
+      "before": {
+        "present": true,
+        "value": 2
+      },
+      "after": {
+        "present": true,
+        "value": 0
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-b16daf3d1e69",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Cash Holder Balances_Schema/Current Balance/Type Qualifier/CurrencySymbol",
+      "operation": "change",
+      "before": {
+        "present": true,
+        "value": "$"
+      },
+      "after": {
+        "present": true,
+        "value": "฿"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-b9383011c107",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Cash Holder Balances_Schema/Current Balance/Type Qualifier/DecimalDigits",
+      "operation": "change",
+      "before": {
+        "present": true,
+        "value": 2
+      },
+      "after": {
+        "present": true,
+        "value": 0
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-18e64a8a7dac",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Cash Holder Balances_Schema/Reimbursement / Advance Due/Type Qualifier/CurrencySymbol",
+      "operation": "change",
+      "before": {
+        "present": true,
+        "value": "$"
+      },
+      "after": {
+        "present": true,
+        "value": "฿"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-0fdc5b7aa3f3",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Cash Holder Balances_Schema/Reimbursement / Advance Due/Type Qualifier/DecimalDigits",
+      "operation": "change",
+      "before": {
+        "present": true,
+        "value": 2
+      },
+      "after": {
+        "present": true,
+        "value": 0
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-79d94fd920e8",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Cash Ledger_Schema/Amount/Type Qualifier/CurrencySymbol",
+      "operation": "change",
+      "before": {
+        "present": true,
+        "value": "$"
+      },
+      "after": {
+        "present": true,
+        "value": "฿"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-9dff605fb149",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Cash Ledger_Schema/Amount/Type Qualifier/DecimalDigits",
+      "operation": "change",
+      "before": {
+        "present": true,
+        "value": 2
+      },
+      "after": {
+        "present": true,
+        "value": 0
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    }
+  ]
+}

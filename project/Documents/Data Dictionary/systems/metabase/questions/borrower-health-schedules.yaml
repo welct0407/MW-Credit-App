@@ -1,0 +1,234 @@
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "reports.mw-credit.com"
+  "kind": "question"
+  "name": "Automatic schedule assessment · active borrowers / 271"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r034-matrix-order/verification.json"
+"content":
+  "key": "schedules"
+  "id": 271
+  "name": "Automatic schedule assessment · active borrowers"
+  "description": "R028 automatic schedule assessment. Counterfactual current setup, not extra debt. No manual inputs. Current\
+    \ completed-day window; unsupported sources explicitly unassessed."
+  "display": "table"
+  "dataset_query":
+    "lib/type": "mbql/query"
+    "stages":
+    - "lib/type": "mbql.stage/native"
+      "native": "SELECT b.\"Row ID\" AS \"Borrower ID\",b.\"Description\" AS \"Borrower\",s.arrangement_status AS \"Schedule\"\
+        ,s.modified_schedule_loan_count AS \"Restricted loans\",s.active_loan_count AS \"Active loans\",s.expected_interest_30d\
+        \ AS \"Expected interest ฿\",s.recorded_interest_30d AS \"Recorded interest ฿\",s.interest_coverage_30d AS \"Interest\
+        \ coverage\",s.interest_date_coverage_30d AS \"Date coverage\",m.payment_only_quadrant AS \"Payment-only category\"\
+        ,m.quadrant AS \"Category\" FROM public.reporting_borrower_schedule_health_v1 s JOIN public.reporting_borrower_matrix_v3\
+        \ m USING(borrower_id) JOIN public.olap_borrowers_analytics b ON b.\"Row ID\"=s.borrower_id ORDER BY s.arrangement_gate\
+        \ DESC,b.\"Description\""
+    "database": 2
+  "visualization_settings":
+    "table.pivot": false
+    "table.column_formatting":
+    - "columns":
+      - "Restricted loans"
+      "type": "single"
+      "operator": ">"
+      "value": 0
+      "color": "#FFF2D6"
+      "highlight_row": true
+    "column_settings":
+      "[\"name\",\"Expected interest ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+      "[\"name\",\"Recorded interest ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+      "[\"name\",\"Interest coverage\"]":
+        "number_style": "percent"
+        "decimals": 1
+      "[\"name\",\"Date coverage\"]":
+        "number_style": "percent"
+        "decimals": 1
+    "table.columns":
+    - "name": "Borrower"
+      "fieldRef":
+      - "field"
+      - "Borrower"
+      - "base-type": "type/Text"
+      "enabled": true
+    - "name": "Schedule"
+      "fieldRef":
+      - "field"
+      - "Schedule"
+      - "base-type": "type/Text"
+      "enabled": true
+    - "name": "Restricted loans"
+      "fieldRef":
+      - "field"
+      - "Restricted loans"
+      - "base-type": "type/Integer"
+      "enabled": true
+    - "name": "Active loans"
+      "fieldRef":
+      - "field"
+      - "Active loans"
+      - "base-type": "type/Integer"
+      "enabled": true
+    - "name": "Expected interest ฿"
+      "fieldRef":
+      - "field"
+      - "Expected interest ฿"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Recorded interest ฿"
+      "fieldRef":
+      - "field"
+      - "Recorded interest ฿"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Interest coverage"
+      "fieldRef":
+      - "field"
+      - "Interest coverage"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Date coverage"
+      "fieldRef":
+      - "field"
+      - "Date coverage"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Payment-only category"
+      "fieldRef":
+      - "field"
+      - "Payment-only category"
+      - "base-type": "type/Text"
+      "enabled": true
+    - "name": "Category"
+      "fieldRef":
+      - "field"
+      - "Category"
+      - "base-type": "type/Text"
+      "enabled": true
+    - "name": "Borrower ID"
+      "fieldRef":
+      - "field"
+      - "Borrower ID"
+      - "base-type": "type/Text"
+      "enabled": false
+  "result_metadata":
+  - "name": "Borrower ID"
+    "display_name": "Borrower ID"
+    "base_type": "type/Text"
+    "effective_type": "type/Text"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Borrower ID"
+    - "base-type": "type/Text"
+  - "name": "Borrower"
+    "display_name": "Borrower"
+    "base_type": "type/Text"
+    "effective_type": "type/Text"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Borrower"
+    - "base-type": "type/Text"
+  - "name": "Schedule"
+    "display_name": "Schedule"
+    "base_type": "type/Text"
+    "effective_type": "type/Text"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Schedule"
+    - "base-type": "type/Text"
+  - "name": "Restricted loans"
+    "display_name": "Restricted loans"
+    "base_type": "type/Integer"
+    "effective_type": "type/Integer"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Restricted loans"
+    - "base-type": "type/Integer"
+  - "name": "Active loans"
+    "display_name": "Active loans"
+    "base_type": "type/Integer"
+    "effective_type": "type/Integer"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Active loans"
+    - "base-type": "type/Integer"
+  - "name": "Expected interest ฿"
+    "display_name": "Expected interest ฿"
+    "base_type": "type/Decimal"
+    "effective_type": "type/Decimal"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Expected interest ฿"
+    - "base-type": "type/Decimal"
+  - "name": "Recorded interest ฿"
+    "display_name": "Recorded interest ฿"
+    "base_type": "type/Decimal"
+    "effective_type": "type/Decimal"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Recorded interest ฿"
+    - "base-type": "type/Decimal"
+  - "name": "Interest coverage"
+    "display_name": "Interest coverage"
+    "base_type": "type/Decimal"
+    "effective_type": "type/Decimal"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Interest coverage"
+    - "base-type": "type/Decimal"
+  - "name": "Date coverage"
+    "display_name": "Date coverage"
+    "base_type": "type/Decimal"
+    "effective_type": "type/Decimal"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Date coverage"
+    - "base-type": "type/Decimal"
+  - "name": "Payment-only category"
+    "display_name": "Payment-only category"
+    "base_type": "type/Text"
+    "effective_type": "type/Text"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Payment-only category"
+    - "base-type": "type/Text"
+  - "name": "Category"
+    "display_name": "Category"
+    "base_type": "type/Text"
+    "effective_type": "type/Text"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Category"
+    - "base-type": "type/Text"
+"evidence":
+  "/content/dataset_query":
+    "reference": "outputs/r043-borrower-navigation/saved.json"
+    "reason": "R043 canonical borrower navigation, saved definitions and hidden keys"
+    "state": "value"
+  "/content/visualization_settings":
+    "reference": "outputs/r043-borrower-navigation/saved.json"
+    "reason": "R043 canonical borrower navigation, saved definitions and hidden keys"
+    "state": "value"
+  "/content/result_metadata":
+    "reference": "outputs/r043-borrower-navigation/saved.json"
+    "reason": "R043 canonical borrower navigation, saved definitions and hidden keys"
+    "state": "value"

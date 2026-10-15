@@ -1,0 +1,39 @@
+{
+  "content": {
+    "id": 276,
+    "display": "scalar",
+    "visualization_settings": {},
+    "monitoring": {
+      "access": "Non-admin; collection9 read; other report and ad hoc native query denied",
+      "group_id": 6,
+      "probe": "Uncached saved question query; exactly [[1]]",
+      "api_key_id": 4,
+      "grafana_panel": 82
+    },
+    "name": "Reporting connection health",
+    "collection_id": 9,
+    "description": "Fixed SELECT 1 only, no business rows; uncached monitoring probe.",
+    "dataset_query": {
+      "stages": [
+        {
+          "lib/type": "mbql.stage/native",
+          "native": "SELECT 1 AS healthy"
+        }
+      ],
+      "lib/type": "mbql/query",
+      "database": 2
+    }
+  },
+  "verification": {
+    "status": "documented",
+    "source": "Change Logs/CHANGE_NOTES_R035_2026-09-25.md"
+  },
+  "format": 1,
+  "identity": {
+    "scope": "production",
+    "system": "metabase",
+    "component": "reports.mw-credit.com",
+    "name": "Reporting connection health / 276",
+    "kind": "question"
+  }
+}

@@ -1,0 +1,33 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { Workbook, SpreadsheetFile } from '@oai/artifact-tool';
+
+// Supply private data separately. Never embed borrower records in tracked code.
+const [inputPath, outputDir] = process.argv.slice(2);
+if (!inputPath || !outputDir) throw new Error('Usage: node scripts/build-borrower-location-directory.mjs <private-json> <private-output-dir>');
+const { rows, notes = [] } = JSON.parse(await fs.readFile(inputPath, 'utf8'));
+if (!rows?.length || rows.some(r => r.length !== 4 || r.some(v => typeof v !== 'string'))) throw new Error('Expected four text fields per borrower');
+if (new Set(rows.map(r => r[0])).size !== rows.length) throw new Error('Duplicate Thai borrower names require reconciliation');
+const wb = Workbook.create();
+const sheet = wb.worksheets.add('Borrowers');
+const end = rows.length + 1;
+sheet.getRange(`A1:D${end}`).values = [['ชื่อ (ไทย) / Name (Thai)', 'Name (English)', 'เมือง / City', 'สถานที่ทำงาน / Working location'], ...rows];
+sheet.getRange(`A1:D${end}`).format.font = {name:'Arial', size:11, color:'#000000'};
+sheet.getRange(`A1:D${end}`).format.rowHeight = 25;
+sheet.getRange(`A1:D${end}`).format.verticalAlignment = 'center';
+for (const [column, width] of [['A',210],['B',155],['C',185],['D',305]]) sheet.getRange(`${column}1:${column}${end}`).format.columnWidthPx = width;
+sheet.getRange('A1:D1').format.fill = '#EEEEEE';
+sheet.getRange('A1:D1').format.font.bold = true;
+sheet.getRange('A1:D1').format.rowHeight = 32;
+sheet.freezePanes.freezeRows(1);
+const table = sheet.tables.add(`A1:D${end}`, true, 'BorrowerLocations');
+table.style = 'TableStyleLight1';
+table.showFilterButton = true;
+for (const note of notes) wb.notes.add({id:`Borrowers:${note.cell}`,target:{cell:{sheetName:sheet.name,sheetId:sheet.sheetId,address:note.cell}},authorId:'User',createdAt:'',body:{plainText:note.text}});
+wb.recalculate();
+if (sheet.getRange(`A2:D${end}`).values.length !== rows.length) throw new Error('Row-count verification failed');
+await fs.mkdir(outputDir, {recursive:true});
+await (await SpreadsheetFile.exportXlsx(wb)).save(path.join(outputDir,'Borrower_Locations.xlsx'));
+const preview = await wb.render({sheetName:'Borrowers',range:`A1:D${end}`,scale:1,format:'png'});
+await fs.writeFile(path.join(outputDir,'preview.png'), new Uint8Array(await preview.arrayBuffer()));
+console.log(JSON.stringify({borrowers:rows.length,columns:4,output:path.join(outputDir,'Borrower_Locations.xlsx')}));

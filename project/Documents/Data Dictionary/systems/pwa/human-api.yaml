@@ -1,0 +1,270 @@
+"format": 1
+"identity":
+  "system": "pwa"
+  "component": "mw-credit"
+  "kind": "api"
+  "name": "human-api"
+  "scope": "dev-and-prod"
+"verification":
+  "status": "documented"
+  "source": "https://github.com/welct0407/MW-Credit-App/blob/808cdf53225ce627ea41ef4d3666bf97a3c9cbfe/services/api/dev-read-handler.mjs"
+  "coverage": "Source and published deployment reconciliation, 14 October 2026; no new live audit."
+"content":
+  "read_routes":
+  - "GET /api/session"
+  - "GET /api/borrowers"
+  - "GET /api/collection"
+  - "GET /api/borrowers/:id/upcoming"
+  - "GET /api/borrowers/:id/upcoming/:dueDate"
+  "command_service_read_routes":
+  - "GET /api/loan-records"
+  - "GET /api/payment-records"
+  - "GET /api/cash-statements"
+  - "GET /api/management/cash-position"
+  - "GET /api/management/analytics-overview"
+  - "GET /api/management/analytics-chart"
+  - "GET /api/offline-dataset?domain=records|collection|cash|management (DEV and PROD)"
+  - "GET /api/notifications/offline-dataset (DEV and PROD)"
+  - "POST /api/offline-dataset?domain=records|collection|cash|management&protocol=3 (DEV/PROD read-only)"
+  - "POST /api/notifications/offline-dataset?protocol=3 (DEV/PROD read-only)"
+  "management_resources":
+  - "cash-accounts"
+  - "cash-holders"
+  - "partners"
+  - "contributions"
+  - "settlements"
+  - "cash-movements"
+  - "assessments"
+  - "openings"
+  - "analytics-validation"
+  "contracts":
+  - "services/api/dev-read-handler.mjs"
+  - "services/payment-command/handler.mjs"
+  - "services/contracts/payment-command.mjs"
+  - "services/contracts/payment-correction.mjs"
+  - "services/contracts/operation-command.mjs"
+  "coverage": "Named route families and owning contracts, not an exhaustive OpenAPI schema. Exact methods, fields and validation\
+    \ remain in the linked source."
+  "guards":
+  - "Firebase identity and business membership"
+  - "environment/origin validation"
+  - "SQL capability boundary"
+  - "idempotency and unknown-outcome reconciliation"
+  "source_base": "https://github.com/welct0407/MW-Credit-App/blob/808cdf53225ce627ea41ef4d3666bf97a3c9cbfe/"
+  "borrower_upcoming":
+    "summary_query":
+      "businessDate": "required YYYY-MM-DD matching current Asia/Bangkok business date"
+    "date_query":
+      "businessDate": "required YYYY-MM-DD matching current Asia/Bangkok business date"
+      "limit": "optional; default 25"
+      "cursor": "optional; bound to borrower, business date and due date"
+    "access": "Fresh Firebase principal, Partner oltp.read capability and visible borrower (Hidden Flag IS NOT TRUE); independent\
+      \ of current Collection membership"
+    "result": "Up to five upcoming dates ascending; selected-date detail ordered by loanId then event id using C collation"
+    "source_rules": "Existing forecast SQL, horizon, freshness, review flags and calculations; no migration or grant change"
+    "routes_source": "https://github.com/welct0407/MW-Credit-App/blob/68e8a39e63e44123dcbab3f819c72d711e2a3240/services/api/dev-read-handler.mjs"
+    "forecast_source": "https://github.com/welct0407/MW-Credit-App/blob/68e8a39e63e44123dcbab3f819c72d711e2a3240/services/api/upcoming-read-contract.mjs"
+  "paged_ordering":
+    "collection":
+      "order": "Existing status rank, then COALESCE(raw borrower name, empty string) ASC under C collation, then stable id\
+        \ ASC; displayed description is not a sort key"
+      "cursor": "v3; bound to kind, businessDate, rank, raw name, id and search query hash; old or mismatched cursors rejected"
+      "source": "https://github.com/welct0407/MW-Credit-App/blob/2ef73db0f91769f1566cd83d91467390080c36ab/services/api/collection-read-contract.mjs"
+    "loan_related":
+      "routes":
+      - "GET /api/loan-records/:id/charges"
+      - "GET /api/loan-records/:id/payments"
+      "order": "Charge Date or Payment Date DESC NULLS LAST, stable id ASC under C collation"
+      "cursor": "v2; bound to loanId, kind, date (nullable) and id; old or cross-loan/kind cursors rejected"
+      "source": "https://github.com/welct0407/MW-Credit-App/blob/2ef73db0f91769f1566cd83d91467390080c36ab/services/business/loan-related.mjs"
+    "financial_scope": "Query ordering/cursors only; existing membership, source relationships, balances, capabilities and\
+      \ financial calculations preserved; no migration or grant change."
+  "offline_dataset":
+    "routes":
+    - "GET /api/offline-dataset?domain=records"
+    - "GET /api/offline-dataset?domain=collection"
+    - "GET /api/offline-dataset?domain=cash"
+    - "GET /api/offline-dataset?domain=management"
+    - "GET /api/notifications/offline-dataset"
+    "guard": "Existing environment-specific authenticated issuer/membership/capabilities and fixed target guards apply in\
+      \ DEV and PROD. Production recipient endpoint requires existing notifications-enabled composition; deployment verified."
+    "transaction": "Each chunk uses ordinary authenticated read-only repeatable-read checks and existing projections/providers;\
+      \ one shared bulk connection reservation preserves foreground capacity. No transaction snapshot is exported between\
+      \ HTTP requests."
+    "result": "Main schemaVersion 2 includes domain/generation/startedAt/asOf/businessDate, patches, nextCursor, complete,\
+      \ phase progress and chunksCompleted. Notification schemaVersion 2 has recipient page progress but no chunksCompleted.\
+      \ Complete requires traversal end and null nextCursor. Legacy omission returns complete schemaVersion 1."
+    "data_contract": "No tables/columns/migrations/grants or financial calculation changes; no arbitrary SQL input or raw\
+      \ storage access."
+    "sources":
+    - "https://github.com/welct0407/MW-Credit-App/blob/6a3cf8cde2710a45b0368bc7f177f21bdab2693c/services/business/offline-dataset-delta.mjs"
+    - "https://github.com/welct0407/MW-Credit-App/blob/6a3cf8cde2710a45b0368bc7f177f21bdab2693c/services/api/offline-dataset-delta.mjs"
+    - "https://github.com/welct0407/MW-Credit-App/blob/6a3cf8cde2710a45b0368bc7f177f21bdab2693c/services/business/offline-dataset-chunks.mjs"
+    - "https://github.com/welct0407/MW-Credit-App/blob/6a3cf8cde2710a45b0368bc7f177f21bdab2693c/services/payment-command/handler.mjs"
+    - "https://github.com/welct0407/MW-Credit-App/blob/6a3cf8cde2710a45b0368bc7f177f21bdab2693c/services/payment-command/store.mjs"
+    - "https://github.com/welct0407/MW-Credit-App/blob/6a3cf8cde2710a45b0368bc7f177f21bdab2693c/services/notifications/handler.mjs"
+    - "https://github.com/welct0407/MW-Credit-App/blob/6a3cf8cde2710a45b0368bc7f177f21bdab2693c/services/notifications/store.mjs"
+    "protocol": "Omitted protocol retains legacy schemaVersion 1 GET; protocol=2 GET with optional cursor retains bounded\
+      \ full preparation. protocol=3 uses read-only POST with JSON cursor/need/sourceVersion body on both dataset routes;\
+      \ initial complete bundles then refresh through content manifests. Explicit protocol=1 and malformed/duplicate query/body\
+      \ fields rejected."
+    "cursor": "Canonical traversal cursor validates actor issuer/subject/partner, domain, business day, startedAt/generation,\
+      \ phase/state and done count. Day change or age over 24h yields dataset_changed; no owner/domain traversal reuse."
+    "bounds": "Main protocol2 GET responses pack at most8 logical pages with elapsed750ms/512KiB checks between pages, not\
+      \ hard single-query limits. Notification protocol2 keeps<=25 history rows/page. Protocol3 deterministic caps are defined\
+      \ separately in delta_bounds."
+    "delta_request": "cursor null or canonical base64url max32768; need unique SHA256 content hashes max2048; sourceVersion\
+      \ null or SHA256. Main schemaVersion3 returns ref patches and values only for requested hashes; unchanged sourceVersion\
+      \ can return unchanged complete checkpoint with no DTO work. Notifications sourceVersion=null and scan recipient manifests\
+      \ every sweep."
+    "delta_bounds": "Main protocol3 logical-page caps: records8/collection2/cash4/management1; 512KiB between-page boundary,\
+      \ no elapsed cutoff so manifest/need replay is deterministic. Initial protocol2 remains max8pages/750ms/512KiB between\
+      \ pages. Notifications retain <=25history rows per page."
+    "delta_consistency": "Raw-table content/xmin fingerprints scoped actor/domain/day; deletes/direct other-user changes included.\
+      \ Main start/end source gate rejects changed traversal with dataset_changed. Canonical value hashing normalizes Date\
+      \ to JSON ISO and ignores asOf metadata. No CDC/retained server snapshot, no universal point-in-time guarantee."
+    "production_sources":
+    - "https://github.com/welct0407/MW-Credit-App/blob/b77a1ef3d58c488a2113b97948aefe83945e84ec/services/production/business-runtime.mjs"
+    - "https://github.com/welct0407/MW-Credit-App/blob/b77a1ef3d58c488a2113b97948aefe83945e84ec/services/payment-command/handler.mjs"
+    "production_incident": "R060 Released15October2026 at00:19:59Bangkok verification checkpoint. Confirmed priorproduction-business403-before-SQL\
+      \ denial corrected by only removing mode-specific veto; ownerTesting/principalAllowed/transactioncapability guards retained.\
+      \ Source a2f683eb74f3c3c5dc027520642a07a07f4c1558 deployed to DEVcommand00026-7lj and PRODcommand00008-qb7 Ready100%;\
+      \ CI404units and3focused cases passed. Live exactenvironment/health/auth-gate verified, no authenticated PROD dataset\
+      \ success/full-traversal claim (bounded natural logs had no events). R059 smoke had not tested signed-in dataset content;\
+      \ dashboard/preferences200 did not imply broader dashboard failure."
+    "recovery_source": "https://github.com/welct0407/MW-Credit-App/blob/a2f683eb74f3c3c5dc027520642a07a07f4c1558/services/payment-command/store.mjs"
+  "settings_contract":
+    "borrower_ai": "Owner-selected new borrower AI Collection Enabled default true. Existing true/false/null values and old\
+      \ canonical replay are preserved; omission by legacy inputs does not overwrite existing flags."
+    "partner_flags": "Editable Instagram collection flag remains nullable/off by unchanged default; AI Reviewer defaults false.\
+      \ Existing authorized role/capability checks remain."
+    "partner_email": "Delivery Email accepts any valid address and starts blank on new partner; Login Email retains authentication\
+      \ identity semantics and is not rebound by delivery-email edits."
+    "language": "Sidebar language changes immediately and persists through the existing preference operation. Language-only\
+      \ save preserves unchanged aged statement date/inactive account. Synced saved language restores at offline startup,\
+      \ not only a pending preference; session switch resets busy state."
+    "cash_views": "Date/account filter edits are temporary until Save as defaults. Restore valid saved account/date; PWA fallback\
+      \ is yesterday if saved date expired. SQL-created context default remains current Asia/Bangkok day, distinct from PWA\
+      \ fallback. Invalid newly selected date/account defaults are rejected locally before queueing; unchanged existing aged/inactive\
+      \ values remain preserved."
+    "delivery": "R062 Released. Tested source327aa25 passed Settings4/4, 8 unique desktop/mobile cases (zero skips), app CI38646759254\
+      \ and DB CI38646752123/38646759300. DEV V92, command00027-8sb and Hosting8b12e5b06d79592a verified. PROD V92 applied\
+      \ 15 October 2026 10:00:28 Bangkok from tooling successor6c3e4fab; validation93 and authority restoration passed. Existing\
+      \ Borrower/Partner contents match backup. PROD command00009-qf9 (Ready100%) and Hosting45b1899bbd18ba3e/release1792033365993000\
+      \ verified15October2026 10:02:59Bangkok: exactbindings, artifactbytes/no-store, health200, unauthpreferences401; reader/notify/jobs\
+      \ unchanged, no authenticated business-write claim; R063 Open, next R064."
+    "sources":
+    - "https://github.com/welct0407/MW-Credit-App/blob/327aa25d58867d280d148aee3991cf386c4be244/services/business/borrowers.mjs"
+    - "https://github.com/welct0407/MW-Credit-App/blob/327aa25d58867d280d148aee3991cf386c4be244/services/contracts/management-command.mjs"
+    - "https://github.com/welct0407/MW-Credit-App/blob/327aa25d58867d280d148aee3991cf386c4be244/database/migrations/V92__editable_application_settings.sql"
+"evidence":
+  "/content/read_routes":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/68e8a39e63e44123dcbab3f819c72d711e2a3240/services/api/dev-read-handler.mjs"
+    "reason": "R058 selected Borrower Upcoming Charges; immutable implemented source, focused verification; no deployment\
+      \ or SQL change"
+    "state": "value"
+  "/content/borrower_upcoming":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/68e8a39e63e44123dcbab3f819c72d711e2a3240/services/api/dev-read-handler.mjs"
+    "reason": "R058 selected Borrower Upcoming Charges; immutable implemented source, focused verification; no deployment\
+      \ or SQL change"
+    "state": "value"
+  "/content/paged_ordering":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/2ef73db0f91769f1566cd83d91467390080c36ab/services/api/collection-read-contract.mjs"
+    "reason": "Phase-5 note/amount/ordering feedback verified with focused browser and actual restricted disposable PostgreSQL\
+      \ tests plus canonical Test-CI"
+    "state": "value"
+  "/content/paged_ordering/loan_related/routes":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/2ef73db0f91769f1566cd83d91467390080c36ab/services/payment-command/handler.mjs"
+    "reason": "Exact source path and loan-related route reconciliation"
+    "state": "value"
+  "/content/offline_dataset":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/f261edcd51995795f250699f1ee91fb0d0c95a54/services/business/offline-dataset.mjs"
+    "reason": "Full-app DEV offline preparation via existing bulk read DTOs/recipient contracts, persistent bundles and current-page\
+      \ refresh state; note autosave unchanged"
+    "state": "value"
+  "/content/command_service_read_routes":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/7aecf695789fee3ca3b1fd1f2bece4c4a4bc8ba6/services/production/business-runtime.mjs"
+    "reason": "Reconcile owner-authorized R059 verified DEV-first/PROD release; preserve test and live-smoke limits."
+    "state": "value"
+  "/content/offline_dataset/protocol":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/6a3cf8cde2710a45b0368bc7f177f21bdab2693c/services/business/offline-dataset-delta.mjs"
+    "reason": "Incremental content-only refresh after full preparation; canonical restricted SQL and browser checks protect\
+      \ pending edits and actor/recipient boundaries"
+    "state": "value"
+  "/content/offline_dataset/transaction":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/374fe98ed21ab233f068dd337d7cbaef0eb24788/services/business/offline-dataset-chunks.mjs"
+    "reason": "Resumable bounded protocol-2 preparation fixes measured DEV timeouts while retaining legacy compatibility and\
+      \ existing DTO/authorization contracts"
+    "state": "value"
+  "/content/offline_dataset/result":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/374fe98ed21ab233f068dd337d7cbaef0eb24788/services/notifications/store.mjs"
+    "reason": "Differentiate main packed phase traversal from recipient notification page protocol exactly"
+    "state": "value"
+  "/content/offline_dataset/cursor":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/374fe98ed21ab233f068dd337d7cbaef0eb24788/services/business/offline-dataset-chunks.mjs"
+    "reason": "Resumable bounded protocol-2 preparation fixes measured DEV timeouts while retaining legacy compatibility and\
+      \ existing DTO/authorization contracts"
+    "state": "value"
+  "/content/offline_dataset/bounds":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/6a3cf8cde2710a45b0368bc7f177f21bdab2693c/services/notifications/handler.mjs"
+    "reason": "Exact incremental DEV deployment and protocol3 read-only route registration, preserving protocol2 limits distinctly"
+    "state": "value"
+  "/content/offline_dataset/sources":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/6a3cf8cde2710a45b0368bc7f177f21bdab2693c/services/business/offline-dataset-delta.mjs"
+    "reason": "Incremental content-only refresh after full preparation; canonical restricted SQL and browser checks protect\
+      \ pending edits and actor/recipient boundaries"
+    "state": "value"
+  "/content/offline_dataset/delta_request":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/6a3cf8cde2710a45b0368bc7f177f21bdab2693c/services/business/offline-dataset-delta.mjs"
+    "reason": "Incremental content-only refresh after full preparation; canonical restricted SQL and browser checks protect\
+      \ pending edits and actor/recipient boundaries"
+    "state": "value"
+  "/content/offline_dataset/delta_bounds":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/6a3cf8cde2710a45b0368bc7f177f21bdab2693c/services/business/offline-dataset-delta.mjs"
+    "reason": "Incremental content-only refresh after full preparation; canonical restricted SQL and browser checks protect\
+      \ pending edits and actor/recipient boundaries"
+    "state": "value"
+  "/content/offline_dataset/delta_consistency":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/6a3cf8cde2710a45b0368bc7f177f21bdab2693c/services/business/offline-dataset-delta.mjs"
+    "reason": "Incremental content-only refresh after full preparation; canonical restricted SQL and browser checks protect\
+      \ pending edits and actor/recipient boundaries"
+    "state": "value"
+  "/content/offline_dataset/guard":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/7aecf695789fee3ca3b1fd1f2bece4c4a4bc8ba6/services/production/business-runtime.mjs"
+    "reason": "Reconcile owner-authorized R059 verified DEV-first/PROD release; preserve test and live-smoke limits."
+    "state": "value"
+  "/content/offline_dataset/production_sources":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/b77a1ef3d58c488a2113b97948aefe83945e84ec/apps/pwa/src/read-cache.ts"
+    "reason": "Pin corrected frozen R059 candidate after cache/draft restoration remediation; finalCI/artifacts/deployment\
+      \ pending."
+    "state": "value"
+  "/content/offline_dataset/production_incident":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/a2f683eb74f3c3c5dc027520642a07a07f4c1558/services/payment-command/store.mjs"
+    "reason": "Reconcile approved verifiedR060 command-only recovery with explicit authenticated-smoke limitation."
+    "state": "value"
+  "/content/offline_dataset/recovery_source":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/a2f683eb74f3c3c5dc027520642a07a07f4c1558/services/payment-command/store.mjs"
+    "reason": "Pin scopedR060 production-factory offline denial correction; no live delivery or release claim."
+    "state": "value"
+  "/content/settings_contract":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/327aa25d58867d280d148aee3991cf386c4be244/apps/pwa/src/preference-save.ts"
+    "reason": "Document owner-reviewed R062settings behavior while exact SQL/source/check/delivery pins remain pending."
+    "state": "value"
+  "/content/settings_contract/language":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/327aa25d58867d280d148aee3991cf386c4be244/apps/pwa/src/preference-save.ts"
+    "reason": "Include finalreview requirements for offline savedlanguage and beforequeue changedcashdefault validation; fixes/checks\
+      \ pending."
+    "state": "value"
+  "/content/settings_contract/cash_views":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/327aa25d58867d280d148aee3991cf386c4be244/apps/pwa/src/preference-save.ts"
+    "reason": "Include finalreview requirements for offline savedlanguage and beforequeue changedcashdefault validation; fixes/checks\
+      \ pending."
+    "state": "value"
+  "/content/settings_contract/delivery":
+    "reference": "Documents/Development_Changes.md#r062-production-promotion"
+    "reason": "Record verified R062 production delivery."
+    "state": "value"
+  "/content/settings_contract/sources":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/327aa25d58867d280d148aee3991cf386c4be244/apps/pwa/src/preference-save.ts"
+    "reason": "Pin testedR062settings source and factual pendingDEVmaintenance/manifest approval."
+    "state": "value"

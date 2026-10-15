@@ -1,0 +1,167 @@
+{
+  "verified_at": "2026-09-22T12:38:20.306Z",
+  "checks": [
+    {
+      "check": "b-active source reconciliation",
+      "passed": true
+    },
+    {
+      "check": "b-interest source reconciliation",
+      "passed": true
+    },
+    {
+      "check": "p-count source reconciliation",
+      "passed": true
+    },
+    {
+      "check": "p-principal source reconciliation",
+      "passed": true
+    },
+    {
+      "check": "r-past-due source reconciliation",
+      "passed": true
+    },
+    {
+      "check": "r-top3 source reconciliation",
+      "passed": true
+    },
+    {
+      "check": "c-due-count source reconciliation",
+      "passed": true
+    },
+    {
+      "check": "c-paid-count source reconciliation",
+      "passed": true
+    },
+    {
+      "check": "c-partial-count source reconciliation",
+      "passed": true
+    },
+    {
+      "check": "c-unpaid-count source reconciliation",
+      "passed": true
+    },
+    {
+      "check": "f-remaining source reconciliation",
+      "passed": true
+    },
+    {
+      "check": "f-realization source reconciliation",
+      "passed": true
+    },
+    {
+      "check": "Collection Fully Paid amount",
+      "passed": true
+    },
+    {
+      "check": "Collection Partially Paid amount",
+      "passed": true
+    },
+    {
+      "check": "Collection Not Paid amount",
+      "passed": true
+    },
+    {
+      "check": "Collection Overdue amount",
+      "passed": true
+    },
+    {
+      "check": "borrower-performance unique non-null grain",
+      "rows": 29,
+      "passed": true
+    },
+    {
+      "check": "borrowers unique non-null grain",
+      "rows": 30,
+      "passed": true
+    },
+    {
+      "check": "portfolio unique non-null grain",
+      "rows": 1,
+      "passed": true
+    },
+    {
+      "check": "repayments unique non-null grain",
+      "rows": 852,
+      "passed": true
+    },
+    {
+      "check": "loans unique non-null grain",
+      "rows": 77,
+      "passed": true
+    },
+    {
+      "check": "daily unique non-null grain",
+      "rows": 49,
+      "passed": true
+    },
+    {
+      "check": "charges unique non-null grain",
+      "rows": 1003,
+      "passed": true
+    },
+    {
+      "check": "partners unique non-null grain",
+      "rows": 2,
+      "passed": true
+    },
+    {
+      "check": "collections unique non-null grain",
+      "rows": 17,
+      "passed": true
+    },
+    {
+      "check": "collection-summary unique non-null grain",
+      "rows": 4,
+      "passed": true
+    },
+    {
+      "check": "80 new visuals use models without chart SQL, joins or business expressions",
+      "passed": true
+    },
+    {
+      "check": "Borrower 1, scenario 0",
+      "passed": true
+    },
+    {
+      "check": "Borrower 1, scenario 1000",
+      "passed": true
+    },
+    {
+      "check": "Borrower 1, scenario 20000",
+      "passed": true
+    },
+    {
+      "check": "Borrower 2, scenario 0",
+      "passed": true
+    },
+    {
+      "check": "Borrower 2, scenario 1000",
+      "passed": true
+    },
+    {
+      "check": "Borrower 2, scenario 20000",
+      "passed": true
+    },
+    {
+      "check": "Scenario uses selected immutable key; 0, 1000, 20000 and negative boundary validated",
+      "passed": true
+    },
+    {
+      "check": "Performance loan-date filter",
+      "passed": true
+    },
+    {
+      "check": "Performance payment-date filter",
+      "passed": true
+    },
+    {
+      "check": "First two layouts unchanged; eight tabs; 109 visuals; partner collection permissions retained",
+      "passed": true
+    }
+  ],
+  "models": 10,
+  "model_questions": 80,
+  "shared_snippet_scenario_questions": 3,
+  "database_changes": "Only approved 73 SELECT column grants; no schema or data writes"
+}

@@ -1,0 +1,112 @@
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "reports.mw-credit.com"
+  "kind": "question"
+  "name": "Interest received over time · top 5 + Others / 287"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r035-borrower-pages/saved-question-definitions.json"
+"content":
+  "key": "p-trend"
+  "id": 287
+  "name": "Interest received over time · top 5 + Others"
+  "description": "R035 additive borrower pages. Immutable borrower keys; Bangkok dates; current health from V41/V42. Signed\
+    \ receipts. No AppSheet/financial writes."
+  "display": "line"
+  "type": "question"
+  "dataset_query":
+    "lib/type": "mbql/query"
+    "stages":
+    - "lib/type": "mbql.stage/native"
+      "template-tags":
+      - "dimension":
+        - "field"
+        - "lib/uuid": "deae73d8-35e9-41aa-800b-8f44e1990b40"
+          "base-type": "type/Date"
+          "effective-type": "type/Date"
+        - 82
+        "widget-type": "date/all-options"
+        "id": "bp-period"
+        "name": "period"
+        "display-name": "Activity period"
+        "type": "dimension"
+        "alias": "d.\"Date\""
+      - "display-name": "Population"
+        "type": "text"
+        "id": "bp-population"
+        "name": "population"
+        "default": "All with loan history"
+      "native": |-
+        WITH clock AS (SELECT public.olap_reporting_date() today), selected AS (SELECT d."Date" FROM (SELECT generate_series(DATE '1900-01-01',DATE '2199-12-31',interval '1 day')::date "Date") d WHERE [[{{period}} --]] d."Date" BETWEEN (SELECT today-30 FROM clock) AND (SELECT today-1 FROM clock)
+        ), bounds AS (SELECT min("Date") starts,max("Date") ends,count(*) days,count(*)>0 AND count(*)=max("Date")-min("Date")+1 AND max("Date")<=(SELECT today FROM clock) valid FROM selected), cohort AS (SELECT p.* FROM bounds b CROSS JOIN LATERAL public.reporting_borrower_period_v1(b.starts,b.ends,[[{{population}} --]] 'All with loan history'
+        ) p WHERE b.valid), series AS (SELECT borrower_id,CASE WHEN interest_rank<=5 THEN borrower_label ELSE 'Others' END label FROM cohort), grid AS (SELECT s.borrower_id,s.label,d."Date" FROM series s CROSS JOIN selected d CROSS JOIN bounds b WHERE b.valid)
+         SELECT CASE WHEN b.days<=60 THEN g."Date" ELSE date_trunc('week',g."Date")::date END AS "Date",g.label AS "Borrower",CASE WHEN g.label<>'Others' THEN min(g.borrower_id) END AS "Borrower ID",
+         CASE WHEN bool_and(a.activity_date IS NULL OR a.interest_received IS NOT NULL) THEN sum(coalesce(a.interest_received,0)) END AS "Interest ฿"
+         FROM grid g CROSS JOIN bounds b LEFT JOIN public.reporting_borrower_activity_daily_v1 a ON a.borrower_id=g.borrower_id AND a.activity_date=g."Date" GROUP BY 1,2 ORDER BY 1,2
+    "database": 2
+  "visualization_settings":
+    "graph.show_values": false
+    "graph.show_legend": true
+    "graph.missing": "none"
+    "graph.y_axis.auto_split": false
+    "graph.metrics":
+    - "Interest ฿"
+    "graph.label_value_formatting": "compact"
+    "graph.colors":
+    - "#178F8A"
+    - "#7472BE"
+    - "#D6816B"
+    - "#24435A"
+    - "#D4AD60"
+    - "#9CA3AF"
+    "graph.show_dots": false
+    "column_settings":
+      "[\"name\",\"Interest ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+    "graph.dimensions":
+    - "Date"
+    - "Borrower"
+    "stackable.stack_type": null
+  "result_metadata":
+  - "name": "Date"
+    "display_name": "Date"
+    "base_type": "type/Date"
+    "field_ref":
+    - "field"
+    - "Date"
+    - "base-type": "type/Date"
+  - "name": "Borrower"
+    "display_name": "Borrower"
+    "base_type": "type/Text"
+    "field_ref":
+    - "field"
+    - "Borrower"
+    - "base-type": "type/Text"
+  - "name": "Borrower ID"
+    "display_name": "Borrower ID"
+    "base_type": "type/Text"
+    "field_ref":
+    - "field"
+    - "Borrower ID"
+    - "base-type": "type/Text"
+  - "name": "Interest ฿"
+    "display_name": "Interest ฿"
+    "base_type": "type/Decimal"
+    "field_ref":
+    - "field"
+    - "Interest ฿"
+    - "base-type": "type/Decimal"
+"evidence":
+  "/content/dataset_query":
+    "reference": "outputs/r043-borrower-navigation/saved.json"
+    "reason": "R043 canonical borrower navigation, saved definitions and hidden keys"
+    "state": "value"
+  "/content/result_metadata":
+    "reference": "outputs/r043-borrower-navigation/saved.json"
+    "reason": "R043 canonical borrower navigation, saved definitions and hidden keys"
+    "state": "value"
