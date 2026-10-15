@@ -71,7 +71,7 @@ async function read<T>(access:Access,path:string,options:Options<T>,format:'json
   return value;
  }).catch(()=>null):Promise.resolve(null);
  const done=navigator.onLine&&!access.offlineOnly&&!localCursor?beginRequest():()=>{};
- const timer=setTimeout(()=>controller.abort(),localCursor?65000:15000);
+ const deadline=Date.now()+(localCursor?65000:15000),timer=setTimeout(()=>controller.abort(),deadline-Date.now());
  try{
   if(!navigator.onLine||access.offlineOnly)throw Error('Offline');
   if(localCursor){
@@ -83,7 +83,11 @@ async function read<T>(access:Access,path:string,options:Options<T>,format:'json
   // Capture the mutation revision before dispatch. An applied write makes
   // this response obsolete even when its HTTP request completes successfully.
   let revision=cacheAllowed?await currentRevision():undefined;
-  for(let attempt=0;attempt<2;attempt++){
+  // A settled command bumps the read revision and the follow-on dataset commit
+  // bumps the cache revision. Keep re-reading while either is still changing,
+  // with a short growing pause, until the read's own timeout.
+  for(let attempt=0;;attempt++){
+   if(attempt>0){const pause=Math.min(100*attempt,1000);if(Date.now()+pause>=deadline)throw Error('Read changed during refresh');await new Promise(resolve=>setTimeout(resolve,pause))}
    requireCurrent();const token=await access.token();requireCurrent();
    const response=await fetch(url.href,{method:'GET',headers:{Authorization:'Bearer '+token,'X-MW-Wake-Deadline':String(Date.now()+15000)},signal:controller.signal,cache:'no-store',credentials:'omit',redirect:'error'});
    requireCurrent();
@@ -93,7 +97,7 @@ async function read<T>(access:Access,path:string,options:Options<T>,format:'json
     const current=await currentRevision();requireCurrent();
     if(current===null){denied=true;settled=true;throw Error('Read owner scope revoked')}
     const cacheCurrent=cacheAllowed?await currentCacheRevision():null;
-    if(current!==undefined&&current!==revision||cacheCurrent!==cacheRevision){revision=current;cacheRevision=cacheCurrent;cached=null;if(attempt===0)continue;throw Error('Read changed during refresh')}
+    if(current!==undefined&&current!==revision||cacheCurrent!==cacheRevision){revision=current;cacheRevision=cacheCurrent;cached=null;continue}
    }
    if(response.status>=500||response.status===429){httpFailure={response,data,revision,cacheRevision,scoped:cacheAllowed};throw Error('Read temporarily unavailable');}
    if(response.ok&&cacheAllowed&&revision!=null&&cacheable(data)){
@@ -101,11 +105,11 @@ async function read<T>(access:Access,path:string,options:Options<T>,format:'json
      if(!await repository!.syncAuthorized())await repository!.authorize();
      await repository!.saveCachedResponse(key,{data,format,contentType:response.headers.get('Content-Type')??(format==='json'?'application/json':'application/octet-stream')},revision,cacheRevision);
     }catch{/* Unavailable local storage must not block an authenticated online read. */}
-    requireCurrent();const current=await currentRevision();if(current!==undefined&&current!==revision||cacheAllowed&&await currentCacheRevision()!==cacheRevision)throw Error('Read changed during refresh');
+    requireCurrent();const current=await currentRevision(),cacheCurrent=cacheAllowed?await currentCacheRevision():cacheRevision;requireCurrent();
+    if(current!==undefined&&current!==revision||cacheCurrent!==cacheRevision){revision=current;cacheRevision=cacheCurrent;cached=null;continue}
    }else if(cacheAllowed&&response.status===404)await repository!.remove('cache',key).catch(()=>{});
    settled=true;reportFailure(!response.ok);return {response,data,fromCache:false};
   }
-  throw Error('Read changed during refresh');
  }catch(error){
   if(!denied&&!options.signal?.aborted)reportFailure(true);
   const fallback=cached??await cachedRead.catch(()=>null);

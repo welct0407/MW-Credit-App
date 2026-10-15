@@ -225,6 +225,22 @@ test('Page12 compact borrower metrics inline summary and exclusive lazy history 
  for(const language of ['EN','ไทย']as const){await chooseLanguagePreservingForm(page,language);expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);await page.screenshot({path:'outputs/r052-phase5-completion/page12-history-'+info.project.name+'-'+(language==='EN'?'en':'th')+'.png',fullPage:true})}await chooseLanguagePreservingForm(page,'EN');await page.getByRole('button',{name:'Back to borrower summary',exact:true}).click();await expect(summary).toContainText(full.name);await expect(rows).toHaveCount(10);expect(s.posts).toHaveLength(0);
  }finally{await context.close()}
 });
+test('R063 language switch then immediate navigation renders the destination while revisions keep changing',async()=>{
+ const{context,page,s}=await launch();try{
+  let current=structuredClone(preferenceA),arrived:()=>void=()=>{};const writes:any[]=[],reads:number[]=[],gates:(()=>void)[]=[],firstRead=new Promise<void>(done=>arrived=done);
+  const record={id:borrower.id,version:v,name:borrower.borrowerDisplayName,description:'',createdDate:'2026-10-09',hidden:false,note:'Synthetic race note',aiCollectionEnabled:false,details:{}};
+  await context.route('https://'+fixtureCommandHost+'/api/preferences',r=>r.fulfill({json:current}));await context.route('https://'+fixtureCommandHost+'/api/operations/**',r=>r.fulfill({json:{kind:'unresolved'}}));
+  // The preference command settles only once the destination read is in flight.
+  await context.route('https://'+fixtureCommandHost+'/api/operations',async r=>{const command=r.request().postDataJSON();writes.push(command);await firstRead;current={...current,item:{...current.item,...command.inputs,version:v2}};return r.fulfill({json:{kind:'recorded',originalOutcome:{status:'applied'}}})});
+  await context.route('https://'+fixtureCommandHost+'/api/borrower-records/C-borrower',async r=>{const count=reads.push(Date.now());if(count===1)arrived();if(count<=2)await new Promise<void>(done=>gates.push(done));return r.fulfill({json:{ok:true,item:record,asOf:Date.now(),businessDate:'2026-10-09'}})});
+  // No settle wait between the language switch and navigation.
+  await chooseLanguage(page,'ไทย');await page.locator('.borrower-tile-main').first().click();
+  // Read 1 returns after the settled command bumped the read revision; read 2 returns after a further revision change.
+  await expect.poll(async()=>(await repo(page,'pending')).length).toBe(0);expect(writes.map(w=>w.operation)).toEqual(['preference.update']);gates.shift()!();
+  await expect.poll(()=>reads.length).toBe(2);await page.evaluate(()=>(window as any).__syntheticRepo({issuer:'https://securetoken.google.com/clever-oasis-508610-n7',uid:'synthetic-phase5-final-owner'}).invalidateReads());gates.shift()!();
+  await expect(page.locator('main')).toContainText('Synthetic race note');await expect(page.locator('main')).toContainText(borrower.borrowerDisplayName);expect(reads.length).toBeGreaterThanOrEqual(3);await expect(page.locator('html')).toHaveAttribute('lang','th');expect(s.posts).toEqual([]);
+ }finally{await context.close()}
+});
 
 // Phase6 final checkpoint: synthetic HTTP, actual Firebase SDK/static worker/IndexedDB.
 const managementLabelsC=['Partners','Cash Position','Cash Accounts','Cash Holders','Contributions','Settlements','Cash Movements','Loan Assessments','Analytics'];
