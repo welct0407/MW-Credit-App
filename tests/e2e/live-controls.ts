@@ -1,4 +1,4 @@
-import {expect,type Page} from '@playwright/test';
+import {expect,type BrowserContext,type Page} from '@playwright/test';
 export async function chooseLanguage(page:Page, language:'EN'|'ไทย') {
  await expect(page.locator('.live-body')).toBeVisible();
  const mobile=page.viewportSize()!.width<=1050;
@@ -34,4 +34,14 @@ export async function signOutPreservingActiveChild(page:Page) {
  if(viewport.width<=1050)await page.setViewportSize({...viewport,width:1440});
  try {await signOut(page);}
  finally {if(viewport.width<=1050)await page.setViewportSize(viewport);}
+}
+
+// R062 language choices persist through GET /api/preferences and a
+// preference.update command. Harnesses without that API model the preference
+// service here; other operation POSTs fall through to the harness's own routes.
+export async function routeSyntheticPreferences(target:Page|BrowserContext,origin='https://mw-credit-app-command-dev-test.run.app'){
+ const writes:any[]=[];let item:any={id:'synthetic-preference-partner',version:'0'.repeat(63)+'1',language:'English',statementAccountId:null,statementDate:null};
+ await target.route(origin+'/api/preferences',r=>r.fulfill({json:{ok:true,item,accounts:[],dates:[]}}));
+ await target.route(origin+'/api/operations',r=>{const command=r.request().method()==='POST'?r.request().postDataJSON():null;if(command?.operation!=='preference.update')return r.fallback();writes.push(command);item={...item,...command.inputs,version:(writes.length+1).toString(16).padStart(64,'0')};return r.fulfill({json:{kind:'recorded',originalOutcome:{status:'applied'}}})});
+ return writes;
 }

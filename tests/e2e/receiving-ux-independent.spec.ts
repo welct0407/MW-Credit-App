@@ -1,5 +1,5 @@
 import {test,expect,type Page} from '@playwright/test';
-import {chooseLanguage,chooseLanguagePreservingForm} from './live-controls';
+import {chooseLanguage,chooseLanguagePreservingForm,routeSyntheticPreferences} from './live-controls';
 import {spawn,type ChildProcess} from 'node:child_process';
 import {mkdirSync,writeFileSync} from 'node:fs';
 let server:ChildProcess,base:string;
@@ -27,7 +27,7 @@ async function setup(page:Page,holdChildren=false){
   if(path.endsWith('/result'))return r.fulfill({status:503,contentType:'application/json',body:'{"ok":false}'});
   return r.fulfill({contentType:'application/json',body:'{"ok":true,"kind":"unresolved","safeToUseNewRequestId":false}'});
  });
- await page.route('https://mw-credit-app-command-dev-test.run.app/api/dashboard',r=>r.fulfill({contentType:'application/json',body:JSON.stringify({collection:{notPaid:0,partiallyPaid:0,overdue:0,fullyPaid:0},forecast:{},portfolio:{},incomeMtd:{},businessCashHeld:[]})}));await page.goto(base);await expect(page.getByRole('button',{name:/Google/})).toBeVisible();await page.getByRole('button',{name:/Google/}).click();await chooseLanguage(page,'EN');await page.getByRole('button',{name:'Collection',exact:true}).click();await page.locator('.collection-tile-main').first().click();await expect(page.getByRole('button',{name:'Receive selected charges',exact:true})).toBeVisible();return state;
+ await routeSyntheticPreferences(page);await page.route('https://mw-credit-app-command-dev-test.run.app/api/dashboard',r=>r.fulfill({contentType:'application/json',body:JSON.stringify({collection:{notPaid:0,partiallyPaid:0,overdue:0,fullyPaid:0},forecast:{},portfolio:{},incomeMtd:{},businessCashHeld:[]})}));await page.goto(base);await expect(page.getByRole('button',{name:/Google/})).toBeVisible();await page.getByRole('button',{name:/Google/}).click();await chooseLanguage(page,'EN');await page.getByRole('button',{name:'Collection',exact:true}).click();await page.locator('.collection-tile-main').first().click();await expect(page.getByRole('button',{name:'Receive selected charges',exact:true})).toBeVisible();return state;
 }
 async function openReceiving(page:Page){await page.getByRole('button',{name:'Receive selected charges',exact:true}).click();await expect(page.getByRole('textbox',{name:/^Amount\ received(?: \*)?$/})).toBeVisible();const account=page.getByRole('combobox',{name:/^Receiving account(?: \*)?$/});if(!await account.inputValue())await account.selectOption('ux-A')}
 async function savedRepo(page:Page){return page.evaluate(async()=>{const {ownerOfflineRepository}=await import('/apps/pwa/src/owner-offline.ts');return ownerOfflineRepository({issuer:'https://securetoken.google.com/clever-oasis-508610-n7',uid:'receiving-ux-owner'}).list('draft')})}
