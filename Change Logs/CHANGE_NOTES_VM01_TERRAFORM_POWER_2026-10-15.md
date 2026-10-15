@@ -18,6 +18,8 @@
 
 **Checks.** `terraform fmt`/`validate` pass with the committed lockfile, and `bash -n` passes. The wrapper mints a token with the expected issuer, audience and subject. Entra token exchange before apply returns AADSTS70025 (no federated credential yet), which confirms reachability and the target.
 
+**Wrapper fix.** VM-01 has only Windows PowerShell 5.1. There, `Invoke-UnattendedAdmin.ps1` failed closed with "Dedicated managed identity unavailable" because `Invoke-RestMethod -NoProxy` exists only in PowerShell 6+. A direct IMDS request on VM-01 succeeded. The wrapper now passes `-NoProxy` only on 6+. `scripts/tests/Test-UnattendedAdmin.ps1` passes.
+
 **Remaining.** One owner-run apply of `unattended-admin` from VM-01 (`Invoke-UnattendedAdmin.ps1`). Then verify one exchange from a cloud session.
 
 **Recovery.** Remove the federated credential (Terraform) and revert the commit.
