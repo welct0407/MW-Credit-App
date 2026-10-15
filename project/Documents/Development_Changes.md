@@ -9,6 +9,12 @@ The sole Open product release is **R063**. **R062 is Released**; the owner-autho
 | Carried operational credential migration | R055 remains Frozen; paused work is unfinished |
 | Apple push enrollment follow-up | R056 V91 deployed; Lisa retry/closure remains pending |
 | Owner license action | AppSheet technical retirement complete; license revocation unconfirmed |
+| Repository merge follow-ups (15 October 2026) | [Change note](../../Change%20Logs/CHANGE_NOTES_REPOSITORY_MERGE_2026-10-15.md) |
+| Debian source-checkout cutover to `integration-agent/` in this repository | Owner-authorized, Agent F; the host still pulls the old `MW-Integration-Agent` `origin/main` |
+| Archive `AppSheet-Loan-Project` and `MW-Integration-Agent` read-only | After the Debian cutover, by the owner |
+| Claude cloud environment | Select only this repository and use the updated [setup script](../scripts/cloud-session-setup.sh) |
+| Optional `ci.yml` path filtering for `project/**` / `integration-agent/**` | Not done; it may be a required check |
+| Re-apply document edits from `claude/jolly-shannon-9p9p2c` and `claude/gifted-noether-iszjkc` under `project/Documents/` | `git diff master..<branch> -- Documents \| git apply --directory=project`; their root-file commits merge unchanged |
 
 Use the [release tracker](Release_Tracker.md), including the carried R016 administrative follow-up. Current runtime versions belong in [environment inventory](Environment_Inventory.md). Update this page for actual outstanding work, not completed-release history.
 
@@ -222,6 +228,8 @@ Source inspected **14 October 2026**. This policy changes no product workflow or
 | App `ci.yml` | Main pushes/manual dispatch run broad checks including E2E; PR E2E executes only on the `ci:checkpoint` label event, not later synchronize events with the label still present. Other listed PR steps run even for docs. |
 | `database.yml` | Path-filtered, but push and PR events can duplicate checks and database documentation paths also trigger it. |
 | `deploy-dev.yml` | Manual main-only original API deployment; repeats checks and does not publish Hosting. It is not the complete PWA release route. |
+| `agent-tests.yml` | Integration agent tests (formerly the agent repository's `ci.yml`); path-filtered to `integration-agent/**`. |
+| `grafana-mcp-bridge.yml` | Path-filtered to `project/scripts/monitoring/...`. |
 | Integration shared deployment helper | Receiver lifecycle/readiness correction is source tooling for R059; the existing R058 receiver was repaired by restart on 14 October at 18:43 Bangkok. No new runtime package was deployed for this repair. |
 | Legacy foundation/business/R053 validators | Retain historical full-browser/manual-dispatch receipt requirements; they do not implement general proportional check selection. |
 

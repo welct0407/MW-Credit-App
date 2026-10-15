@@ -1,22 +1,24 @@
 # Development workflow and execution ownership
 
-Owner revision: **14 October 2026**. Use the current capable workspace and established access. Do not create a handoff merely to follow an old host preference. [AGENTS](../../AGENTS.md) owns authority/data protections; [PWA policy](PWA_Orchestration.md) owns checks; [Release Workflow](Release_Workflow.md) owns promotion.
+Owner revision: **14 October 2026**. Use the current capable workspace and established access. Do not create a handoff merely to follow an old host preference. [AGENTS](../../../AGENTS.md) owns authority/data protections; [PWA policy](PWA_Orchestration.md) owns checks; [Release Workflow](Release_Workflow.md) owns promotion.
 
-## Repository and instruction ownership
+## Directory and instruction ownership
 
-| Repository | Owns |
+One repository, `welct0407/MW-Credit-App`, holds everything below with full history. The GitHub name and deploy identity are unchanged.
+
+| Directory | Owns |
 | --- | --- |
-| AppSheet-Loan-Project | Overall project management, current business references/dictionary and releases; remaining non-database implementation stays until a separately authorized move |
-| MW-Credit-App | PWA/API, application infrastructure, shared loan SQL migrations/runners/tests and promotion tooling |
-| MW-Integration-Agent | Debian integration code, service catalogue, systemd units and internal mw_agent state/migrations |
-| Daily-Use | General-purpose work with no more specific owner |
-| MW-AI-Collection | Separate scope governed by its own AGENTS and default-deny catalogue; junctions here are compatibility paths |
+| `project/` (former AppSheet-Loan-Project) | Overall project management, current business references/dictionary and releases; project scripts and sanitized evidence |
+| root (`apps/`, `services/`, `database/`, `infrastructure/`, `scripts/`, `docs/`, `tests/`) | PWA/API, application infrastructure, shared loan SQL migrations/runners/tests and promotion tooling |
+| `integration-agent/` (former MW-Integration-Agent) | Debian integration code, service catalogue, systemd units and internal mw_agent state/migrations |
+| Daily-Use (outside this repository) | General-purpose work with no more specific owner |
+| MW-AI-Collection (outside this repository) | Separate scope governed by its own AGENTS and default-deny catalogue; junctions here are compatibility paths |
 
-Keep current primary folder and repositories separate. Choose by component, not active checkout. Read the owning instructions/catalogue only when working on that component. Confirm branch, commit and dirty state; preserve unrelated edits and use an existing suitable isolated checkout when needed. Worktrees do not isolate shared databases.
+Choose by component directory, not active checkout. Read the owning instructions/catalogue only when working on that component. Confirm branch, commit and dirty state; preserve unrelated edits and use an existing suitable isolated checkout when needed. Worktrees do not isolate shared databases.
 
-MW-Credit-App is the sole source owner of shared migrations, runners, tests and database CI. Use its [canonical database procedure](https://github.com/welct0407/MW-Credit-App/blob/codex/r057-infrastructure-adoption/database/README.md) and exact tested migration commit/manifest. Preserve existing Flyway histories and immutable migrations. Retained tooling here locates that checkout through `scripts/database_location.py` or `scripts/database-location.mjs`; set `MW_CREDIT_APP_ROOT` when it is not adjacent. There is no second migration set here. Remaining implementation-code moves are deferred; this ownership does not authorize moving credentials, data, services or repositories.
+The root `database/` is the sole source owner of shared migrations, runners, tests and database CI. Use its [canonical database procedure](../../../database/README.md) and exact tested migration commit/manifest. Preserve existing Flyway histories and immutable migrations. Project tooling in `project/scripts/` locates the root through `database_location.py` or `database-location.mjs`; the default is the repository root, and `MW_CREDIT_APP_ROOT` is only an override. There is no second migration set. This ownership does not authorize moving credentials, data or services.
 
-Windows roots currently use C:/GitHub; a Cloud task has its own checkout. A Claude Code cloud environment provisions pinned tools and optional gcloud sign-in (`GCP_SA_KEY_B64`) through its setup script; select all three repositories when starting a session so they are cloned with push access, maintained as [scripts/cloud-session-setup.sh](../../scripts/cloud-session-setup.sh). Do not assume a Windows path, historical account profile or an old cloud environment ID exists elsewhere. The [environment inventory](../Environment_Inventory.md) owns actual service identities; verify the affected target before live action.
+Windows roots currently use C:/GitHub; a Cloud task has its own checkout. A Claude Code cloud environment provisions pinned tools and optional gcloud sign-in (`GCP_SA_KEY_B64`) through its setup script, maintained as [project/scripts/cloud-session-setup.sh](../../scripts/cloud-session-setup.sh); select only this repository when starting a session. Do not assume a Windows path, historical account profile or an old cloud environment ID exists elsewhere. The [environment inventory](../Environment_Inventory.md) owns actual service identities; verify the affected target before live action.
 
 ## Responsibilities and routing
 
@@ -27,11 +29,11 @@ Windows roots currently use C:/GitHub; a Cloud task has its own checkout. A Clau
 | VM-01 | Windows/local tool and account-bound access requirements; preserve its existing work and sign-in stores |
 | Debian | Persistent integration, chart and collector runtime; a controlled deployment target, not a duplicate development worker |
 
-Use the approved Secret Manager/unattended identity route before requesting human CLI sign-in or credential files. Current operator configuration is owned by MW-Credit-App's infrastructure/unattended-admin and scripts/Invoke-UnattendedAdmin.ps1. Its supported host/scope matters; do not assume every executor has equivalent rights. Keep any API exception bounded and reconcile Terraform afterward. Browser/manual fallback must not expand scope or bypass platform confirmations.
+Use the approved Secret Manager/unattended identity route before requesting human CLI sign-in or credential files. Current operator configuration is owned by the root infrastructure/unattended-admin and scripts/Invoke-UnattendedAdmin.ps1. Its supported host/scope matters; do not assume every executor has equivalent rights. Keep any API exception bounded and reconcile Terraform afterward. Browser/manual fallback must not expand scope or bypass platform confirmations.
 
 ## Development, review, promotion and rollback
 
-- Implement in the owning repository against the affected DEV or disposable path. No new live environment or copy for every change.
+- Implement in the owning directory against the affected DEV or disposable path. No new live environment or copy for every change.
 - Automatically use the [six-agent PWA process](PWA_Orchestration.md#six-agent-development-process) and [model mapping](Model_Work_Mapping.md) for product development, without another delegation request. Assign bounded work in waves, preserve one writer per surface, and use proportional checks with reusable results. Documentation-only/read-only tasks may use fewer roles; honor explicit personal-execution requests.
 - Treat the owner's instruction to move/deploy/promote the scoped work to production as its approval, including required tested SQL migrations and technical delivery records. Do not ask again per phase, migration or record. Promote only the tested source/artifact/configuration; Hosting, Cloud Run, worker package and SQL are separate components, so change only those required.
 - Preserve current native scheduler ownership and environment isolation. Do not disable existing business operation merely for a source/doc edit.
@@ -66,7 +68,7 @@ Update existing documents by default. Optional new documents, including addition
 
 Required technical records for an authorized DEV or PROD deployment/migration are an explicit exception: create or update the minimal promotion package/checklist, tested SQL manifest, backup/recovery metadata, maintenance-permission/restoration record, isolation preflight, deployment receipt and required verification/cleanup evidence without separate approval. The deployment/migration instruction already approves these necessary records, including private tool-generated JSON files and their containing backup directories. Preserve private-storage and validation requirements; do not pause an authorized migration merely because its runner must create a record.
 
-For an optional new document outside that exception, prepare the proposed path/title, purpose and content in chat or an existing record, then request approval before creation. Continue independent authorized work while waiting. Updating an existing generated dictionary snapshot is permitted; a new dictionary export copy still needs approval. Keep rules in Rules and ongoing facts in Documents. Production scope, safeguards and when to ask about a real scope expansion are defined in [AGENTS](../../AGENTS.md#authority-data-and-recovery).
+For an optional new document outside that exception, prepare the proposed path/title, purpose and content in chat or an existing record, then request approval before creation. Continue independent authorized work while waiting. Updating an existing generated dictionary snapshot is permitted; a new dictionary export copy still needs approval. Keep rules in Rules and ongoing facts in Documents. Production scope, safeguards and when to ask about a real scope expansion are defined in [AGENTS](../../../AGENTS.md#authority-data-and-recovery).
 
 ## Debian runtime and deployment boundaries
 
@@ -74,9 +76,9 @@ The recorded target is vm-mw-credit-agent, Debian, project clever-oasis-508610-n
 
 | Component | Owning reference |
 | --- | --- |
-| Integration source/package/configuration/journals | [Operations](https://github.com/welct0407/MW-Integration-Agent/blob/main/docs/OPERATIONS.md), [service catalogue](https://github.com/welct0407/MW-Integration-Agent/blob/main/SERVICE_CATALOGUE.md) |
-| Journal/database recovery | [PostgreSQL operations](https://github.com/welct0407/MW-Integration-Agent/blob/main/docs/POSTGRESQL_OPERATIONS.md) |
-| Tunnel and SQL proxy | Integration systemd/configuration and MW-Credit-App Terraform ownership |
+| Integration source/package/configuration/journals | [Operations](../../../integration-agent/docs/OPERATIONS.md), [service catalogue](../../../integration-agent/SERVICE_CATALOGUE.md) |
+| Journal/database recovery | [PostgreSQL operations](../../../integration-agent/docs/POSTGRESQL_OPERATIONS.md) |
+| Tunnel and SQL proxy | Integration systemd/configuration and root Terraform ownership |
 | Charts and monitoring collector | [Monitoring](../Resource_Monitoring.md) and affected maintained scripts |
 
 Private service config remains under /etc; mutable integration state under /var/lib/mw-integration-agent; installed package/source under /opt. Use the existing strict-host SSH/IAP/Tailscale route documented for the current executor. Never disable host checks, add public SSH ingress or expand IAM to bypass an access failure.
@@ -90,12 +92,12 @@ Use native API/SQL routes. AppSheet APIs, API-key retrieval, app IDs and app edi
 - Verify project/instance/database and intended role; distinguish DEV, PROD restricted reader, administrator and mw_agent. Use bounded reads and avoid returning personal/financial data.
 - Before authorized PROD writes, establish the applicable verified restorable backup, intended records/affected counts and recovery. Use tested transaction/concurrency/idempotency safeguards.
 - Reconcile unknown outcomes before retries. Never replay uncertain payments or sends. Preserve financial/integrity triggers and later transactions. Supported ordinary source CRUD remains valid under its implemented semantics.
-- Use Secret Manager references and workload identities; never expose secret payloads. Private plans/state/backups/exports stay outside repositories. Preserve existing app-managed sign-in stores.
-- Scoped data corrections do not require a PWA deployment ceremony. Schema/functions still use immutable migrations in MW-Credit-App.
+- Use Secret Manager references and workload identities; never expose secret payloads. Private plans/state/backups/exports stay outside the repository. Preserve existing app-managed sign-in stores.
+- Scoped data corrections do not require a PWA deployment ceremony. Schema/functions still use immutable migrations in the root `database/`.
 
 ## Handoff and fallback contract
 
-Handoff only when another executor is actually needed. Pass outcome, repository/branch/paths, target identity, existing authority, pins/recovery, passed checks and next action in a short note. Share secret references, never values. The receiver inspects new evidence rather than repeating the sender's whole audit.
+Handoff only when another executor is actually needed. Pass outcome, branch/paths, target identity, existing authority, pins/recovery, passed checks and next action in a short note. Share secret references, never values. The receiver inspects new evidence rather than repeating the sender's whole audit.
 
 If access is unavailable, identify the exact restriction and continue independent work. Use available tools first; leave only the unsupported step to the owner. Do not create another credential, host or service merely to get around a failed route.
 

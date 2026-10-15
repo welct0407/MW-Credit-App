@@ -7,7 +7,7 @@ Production PWA, native APIs, notification/job workers, shared SQL migrations and
 - [Database procedure](database/README.md)
 - [Read service](docs/Development_Read_Service.md)
 - [Branding](docs/Branding.md)
-- [Project references](https://github.com/welct0407/AppSheet-Loan-Project/blob/master/Documents/README.md)
+- [Project references](project/Documents/README.md)
 
 Operational and management workflows run in the PWA. Native APIs also serve the Debian integration agent. AppSheet is retired. Preserve current SQL and private receipt compatibility identifiers.
 

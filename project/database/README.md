@@ -1,3 +1,3 @@
 # Shared database source
 
-Run SQL operations from [MW-Credit-App/database](https://github.com/welct0407/MW-Credit-App/blob/codex/r057-infrastructure-adoption/database/README.md). This repository owns project management, not another database package. See [ownership](../Documents/Rules/Development_Workflow.md#repository-and-instruction-ownership). No live database change is authorized by documentation edits.
+Run SQL operations from the root [database/](../../database/README.md). `project/` owns project management, not another database package. See [ownership](../Documents/Rules/Development_Workflow.md#directory-and-instruction-ownership). No live database change is authorized by documentation edits.

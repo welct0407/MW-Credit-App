@@ -28,7 +28,7 @@ Pin runtime/build/dependency/configuration inputs and, for test reuse, tests/fix
 
 ## Promotion
 
-The owner's instruction to move/deploy/promote the requested work to production is the production approval, including the required tested schema migrations. Record that instruction once and proceed; do not ask for another approval for a migration, deployment phase or necessary record. Ask only about a genuinely unclear scope or material action outside it, under [AGENTS](../../AGENTS.md#authority-data-and-recovery).
+The owner's instruction to move/deploy/promote the requested work to production is the production approval, including the required tested schema migrations. Record that instruction once and proceed; do not ask for another approval for a migration, deployment phase or necessary record. Ask only about a genuinely unclear scope or material action outside it, under [AGENTS](../../../AGENTS.md#authority-data-and-recovery).
 
 Reuse the existing release record based on the [compact promotion template](../../scripts/releases/templates/promotion-checklist.md). If a required record/manifest is missing, create it as part of the already-authorized delivery. This includes private promotion packages, tested SQL manifests, backups and recovery metadata, standard temporary maintenance-permission/restoration records, isolation preflights, deployment receipts and required verification/cleanup evidence. Keep private material outside Git, use the guarded runners and fill applicable evidence only; no duplicate gate sheet or separate file-creation question.
 

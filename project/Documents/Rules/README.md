@@ -1,6 +1,6 @@
 # Standing rules and procedures
 
-These documents prescribe how work must be performed. Follow them together with [AGENTS.md](../../AGENTS.md) until deliberately revised under owner direction. They are stable instructions, not a development journal. Keep release progress, current deployments, implementation facts and test results in the [evolving project documents](../README.md) or their owning evidence records.
+These documents prescribe how work must be performed. Follow them together with [AGENTS.md](../../../AGENTS.md) until deliberately revised under owner direction. They are stable instructions, not a development journal. Keep release progress, current deployments, implementation facts and test results in the [evolving project documents](../README.md) or their owning evidence records.
 
 Every development batch must keep the entire evolving-document set current through the [required maintenance step](Development_Workflow.md#required-documentation-maintenance). Update affected existing documents. Optional new documents need explicit owner approval; required technical deployment/migration records are covered by the instruction to perform that work and need no second approval.
 
@@ -8,7 +8,7 @@ Every development batch must keep the entire evolving-document set current throu
 | --- | --- |
 | Automatic six-agent development, checks and evidence reuse | [PWA orchestration](PWA_Orchestration.md) |
 | Agent roles, models and reasoning settings | [Model mapping](Model_Work_Mapping.md) |
-| Repository ownership, execution routes and data boundaries | [Development workflow](Development_Workflow.md) |
+| Directory ownership, execution routes and data boundaries | [Development workflow](Development_Workflow.md) |
 | Release freeze, promotion and publication | [Release workflow](Release_Workflow.md) |
 | Failed deployment, rollback and hotfix | [Release recovery](Release_Recovery_Runbook.md) |
 | DEV setup and recipient isolation | [Development preparation](Development_Environment_Preparation.md) |

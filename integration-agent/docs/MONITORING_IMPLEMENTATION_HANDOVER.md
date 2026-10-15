@@ -1,6 +1,6 @@
 # Payment process monitoring — implementation handover
 
-**Implementation completed in the subsequent owner-authorized monitoring task, 25 September 2026.** Existing collector activated; eight Performance visuals and existing Debian IRM alert saved/verified. See [implementation evidence](https://github.com/welct0407/AppSheet-Loan-Project/blob/master/outputs/receipt-monitoring-20260925/README.md) and [visual guide](https://github.com/welct0407/AppSheet-Loan-Project/blob/master/Documents/Resource_Monitoring_Dashboard_Guide.md). The original handover and dated pre-implementation observations below are retained as historical context. No worker code/business policy changed in the implementation task.
+**Implementation completed in the subsequent owner-authorized monitoring task, 25 September 2026.** Existing collector activated; eight Performance visuals and existing Debian IRM alert saved/verified. See [implementation evidence](../../project/outputs/receipt-monitoring-20260925/README.md) and [visual guide](../../project/Documents/Resource_Monitoring_Dashboard_Guide.md). The original handover and dated pre-implementation observations below are retained as historical context. No worker code/business policy changed in the implementation task.
 
 Original handover direction, 25 September 2026: this task reviews/fixes the receipt worker and prepares this handover. A subsequent model/task will configure Grafana. **No Grafana rule, dashboard, collector installation or metric activation was performed by this task.** See the reliability change log for the worker deployment result.
 
@@ -22,7 +22,7 @@ Business policies remain: ordinary payment automatic; overpayment requires a sig
 | Collector | `/opt/mw-resource-monitoring/debian-health.py` |
 | Collector units | `mw-resource-health.service` / `.timer`, every two minutes |
 | Worker environment | `/opt/mw-integration-agent/.venv`; config `/etc/mw-integration-agent/config.json` |
-| Collector source | `C:\GitHub\AppSheet-Loan-Project\scripts\monitoring\debian-health.py` |
+| Collector source | `project/scripts/monitoring/debian-health.py` |
 | Current Debian alert | UID `afz3o5cmmfabkb`, `MW | Debian component unhealthy` |
 | Alert group / folder | `Performance 2m` / `f9w88d` |
 | IRM route | Contact `MW Performance IRM`; integration `MW Performance Monitoring`; escalation `MW owner mobile push` |
@@ -35,7 +35,7 @@ The existing alert was read without saving changes. Baseline UI version history:
 
 `mw_integration_agent.receipt_health.inspect(config)` is a read-only journal query returning only numeric values. It does not call Instagram, AppSheet, Codex, or messaging. It runs on the existing worker identity, using the existing `mw_agent` journal database. No schema/grant change is needed. `assess(...)` contains deterministic tests.
 
-The maintained collector file in the AppSheet repository contains a **prepared but undeployed patch**: combine receipt service/timer health with `inspect()` status; inspection failure becomes Down; excessive receipt runtime becomes Degraded after ten minutes; export a same-sample snapshot as `custom.googleapis.com/mw_resource_monitoring/receipt_pipeline`, label `field`, INT64 GAUGE. Existing health metric component `receipts` receives the combined state. All other source/service behavior stays unchanged. Deploy only after the installed worker contains `receipt_health` and the owner's monitoring task is underway. The patch has not been verified against live GCP export.
+The maintained collector file in `project/` contains a **prepared but undeployed patch**: combine receipt service/timer health with `inspect()` status; inspection failure becomes Down; excessive receipt runtime becomes Degraded after ten minutes; export a same-sample snapshot as `custom.googleapis.com/mw_resource_monitoring/receipt_pipeline`, label `field`, INT64 GAUGE. Existing health metric component `receipts` receives the combined state. All other source/service behavior stays unchanged. Deploy only after the installed worker contains `receipt_health` and the owner's monitoring task is underway. The patch has not been verified against live GCP export.
 
 Status values: 0 Down, 1 Healthy, 2 Degraded, 3 Paused, 4 Unknown. If paused or inspection fails, missing queue values must display Unavailable, **never zero**. Counts are a current snapshot, not selected-period totals. The completed count is retained journal POSTED records, not money received today.
 

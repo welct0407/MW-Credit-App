@@ -1,6 +1,6 @@
 # MW Integration Agent
 
-Linux-native foundation for MW Credit integrations on a Debian 13 Google Compute Engine VM.
+Linux-native foundation for MW Credit integrations on a Debian 13 Google Compute Engine VM. This directory is the former MW-Integration-Agent repository, now part of MW-Credit-App; project-wide rules are in the root [AGENTS.md](../AGENTS.md).
 
 Status: **daily cash statements, receipt review and Partner conversations active on Debian; conversations resumed by the owner on 22 September 2026 at 02:17 Bangkok**. The Debian receiver is live through `https://hooks.mw-credit.com/instagram`. PostgreSQL uses a dedicated loopback role restricted to business-table SELECT and temporary objects. The statement runs at 00:15 Asia/Bangkok with Partner-master Instagram routing and Microsoft Graph email fallback. Receipt review/payment processing and persistent Partner conversations have separate activation switches; see their operating guides and deployment logs. Codex selects native semantic API calls from the authenticated capability catalogue; receipt payments use the shared receipt command API. New ordinary receipts can post automatically under the owner-authorized policy; other actions retain reviewer/manual handling. Lisa-forwarded receipts use verified three-member group identity. See [receipt policy](docs/PARTNER_REVIEW.md). Reviewer-only structured database DML is active from 22 September 2026 at 11:48 Bangkok under its own switch; see [Reviewer DML](docs/REVIEWER_DML.md) for activation evidence and boundaries. The existing Windows Partner Operations worker and webhooks remain stopped.
 
@@ -28,7 +28,7 @@ Proposed next architecture: [PostgreSQL state, generic audit and reviewer DELETE
 - VM Manager inventory: Google OS Config agent enabled with guest attributes publishing Debian OS details on the default inventory cadence
 - Administrative overlay: Tailscale 1.102.4 with ordinary public-key OpenSSH; the VM is not an exit node or subnet router
 - Cloud SQL transport: Auth Proxy 2.25.4 on `127.0.0.1:5432`; dedicated read-only PostgreSQL credentials are installed
-- GitHub transport: repository-scoped read-only deploy key; updates are manual, clean-checkout, and fast-forward-only
+- GitHub transport: repository-scoped read-only deploy key; updates are manual, clean-checkout, and fast-forward-only. Until the owner-authorized cutover the Debian source checkout still tracks the archived `MW-Integration-Agent` repository, not `integration-agent/` here
 
 ## Local verification
 

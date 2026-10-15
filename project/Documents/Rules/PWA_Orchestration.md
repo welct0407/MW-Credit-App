@@ -65,7 +65,7 @@ A skipped test is not a pass. A green badge does not prove that required steps e
 
 Follow the [release workflow](Release_Workflow.md#promotion) using its single compact record. “Move to production” is approval to promote the requested scope, including required tested migrations and technical records; do not request a second approval for either. Reuse actual test/recovery evidence, promote the tested artifact, check the affected deployed behavior and update changed facts. Production payment/push/job execution is not implicit in a UI deployment.
 
-No retired app editor, copy, upgrade, branding or source-parity check applies. No database backup for UI-only work. New tables/columns, financial integrity, authentication/access, migration backup and scoped production authority retain the protections in [AGENTS](../../AGENTS.md).
+No retired app editor, copy, upgrade, branding or source-parity check applies. No database backup for UI-only work. New tables/columns, financial integrity, authentication/access, migration backup and scoped production authority retain the protections in [AGENTS](../../../AGENTS.md).
 
 ## Current automation and follow-up
 

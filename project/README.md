@@ -2,7 +2,7 @@
 
 MW Credit is a small loan-management and financial-operations system used by two people, including its owner. It brings daily collection work, borrower and loan management, receipts, cash operations and analytics into a mobile and desktop progressive web app (PWA).
 
-This repository, **AppSheet-Loan-Project**, is the project's coordination and documentation home. Application code, shared database migrations and integration services have separate owning repositories.
+This directory, `project/`, is the former **AppSheet-Loan-Project** repository, now part of the single [MW-Credit-App](../README.md) repository (full history kept). It is the project's coordination and documentation home; application code, shared database migrations and integration services live in the root and in `integration-agent/`.
 
 **Status as of 15 October 2026:** the native PWA is operating in production; **R062 is Released** and **R063 is Open**. This overview summarizes published delivery records, rather than a new live verification. The [release tracker](Documents/Release_Tracker.md) owns current release status, and the [environment inventory](Documents/Environment_Inventory.md) owns verified deployed versions.
 
@@ -14,7 +14,7 @@ This repository, **AppSheet-Loan-Project**, is the project's coordination and do
 
 The project evolved from an AppSheet-based loan-management solution into a native PWA backed by the existing PostgreSQL financial engine. The transition retained financial records, calculation behavior, receipt storage and compatibility identifiers while moving user interaction, API access, notifications and scheduled work to native services.
 
-AppSheet's **technical retirement is complete** under R057. It is no longer an application, API or scheduler dependency. The repository keeps its historical name; that name does not indicate an active AppSheet runtime. Owner-side license revocation remains a separate unconfirmed action. See the [retirement record](outputs/r057-appsheet-retirement/README.md).
+AppSheet's **technical retirement is complete** under R057. It is no longer an application, API or scheduler dependency. The old project name is historical; that name does not indicate an active AppSheet runtime. Owner-side license revocation remains a separate unconfirmed action. See the [retirement record](outputs/r057-appsheet-retirement/README.md).
 
 Development favors simple, reversible changes and short delivery cycles appropriate to a two-person operation. Existing financial integrity, authorization, audit history and recovery behavior remain central to the design.
 
@@ -35,15 +35,15 @@ Offline support combines prepared, owner-scoped read data with contextual form d
 
 DEV and PROD use separate business databases and service identities on a shared Cloud SQL instance. Delivery isolation and one scheduler owner per job/environment prevent test activity or duplicate workers from affecting normal operation. The [solution design](Documents/Solution_Design.md) explains component behavior; the [data model](Documents/PWA_Data_Model_Overview.md) and [Data Dictionary](Documents/Data%20Dictionary/README.md) hold the detailed contracts.
 
-## Repository ownership
+## Directory ownership
 
-| Repository | Responsibility |
+| Directory | Responsibility |
 | --- | --- |
-| **AppSheet-Loan-Project** — this repository | Project background, business references, dictionary, standing rules, release coordination and evidence |
-| [MW-Credit-App](https://github.com/welct0407/MW-Credit-App) | PWA, APIs, shared SQL migrations and tests, application infrastructure and delivery tooling |
-| [MW-Integration-Agent](https://github.com/welct0407/MW-Integration-Agent) | Debian integration runtime, service catalogue and deployment operations |
+| `project/` — this directory | Project background, business references, dictionary, standing rules, release coordination and evidence |
+| [root](../README.md) | PWA, APIs, shared SQL migrations and tests, application infrastructure and delivery tooling |
+| [integration-agent/](../integration-agent/README.md) | Debian integration runtime, service catalogue and deployment operations |
 
-AI Collection has its own repository instructions and service catalogue. Compatibility paths here are not additional runtime owners. Make implementation changes in the owning repository and follow its instructions; this repository is not a standalone application checkout.
+AI Collection has its own instructions and service catalogue. Compatibility paths here are not additional runtime owners. Make implementation changes in the owning directory and follow its instructions.
 
 ## Development roadmap so far
 
@@ -78,7 +78,7 @@ New scope and changing priorities belong in [Development Changes](Documents/Deve
 
 ## Working on the project
 
-Start with [AGENTS.md](AGENTS.md), then the affected component and current release record. PWA development automatically follows the [six-agent process](Documents/Rules/PWA_Orchestration.md#six-agent-development-process), covering architecture, implementation, testing, documentation/delivery, UX and infrastructure. Documentation-only tasks use the roles that help.
+Start with [AGENTS.md](../AGENTS.md), then the affected component and current release record. PWA development automatically follows the [six-agent process](Documents/Rules/PWA_Orchestration.md#six-agent-development-process), covering architecture, implementation, testing, documentation/delivery, UX and infrastructure. Documentation-only tasks use the roles that help.
 
 Documentation has two sets:
 

@@ -1,6 +1,6 @@
 # Project tooling
 
-This repository owns project coordination, dictionary/release helpers and retained service tooling. Shared SQL runners/migrations are in MW-Credit-App; use its database/README.md. Set MW_CREDIT_APP_ROOT when the app checkout is not adjacent.
+This directory owns project coordination, dictionary/release helpers and retained service tooling. Shared SQL runners/migrations are in the repository root; use [database/README.md](../../database/README.md). `MW_CREDIT_APP_ROOT` is only an override; the default is the repository root.
 
 ## Runtime
 
@@ -12,7 +12,7 @@ Use supported pinned tools from the owning project. A routine task needs no rein
 
 - [Dictionary helper](dictionary/README.md): find/read/guarded update/index/validate.
 - [Export Data Dictionary.cmd](Export%20Data%20Dictionary.cmd): local ignored Markdown export, no upload.
-- [cloud-session-setup.sh](cloud-session-setup.sh): Claude Code cloud environment setup script (pinned Node/PowerShell/Flyway/PostgreSQL/Terraform, the Chromium build for MW-Credit-App's pinned Playwright and the dictionary's PyYAML; per-shell `MW_CREDIT_APP_ROOT` and optional `GCP_SA_KEY_B64` sign-in). Paste into the environment's Setup script; `mw-db-ci` then runs MW-Credit-App's database CI as the unprivileged `postgres` user.
+- [cloud-session-setup.sh](cloud-session-setup.sh): Claude Code cloud environment setup script (pinned Node/PowerShell/Flyway/PostgreSQL/Terraform, the Chromium build for the root's pinned Playwright and the dictionary's PyYAML; per-shell `MW_CREDIT_APP_ROOT` and optional `GCP_SA_KEY_B64` sign-in). Paste into the environment's Setup script; `mw-db-ci` then runs the root database CI as the unprivileged `postgres` user.
 - [Release helper](releases/README.md): one compact promotion record, with only affected document links.
 - Monitoring/Metabase tools follow their own runbooks. Prefer current Terraform/API routes; old one-off scripts are not operational instructions.
 
@@ -22,7 +22,7 @@ Generated sanitized evidence belongs in outputs/. sources/ is read-only. Preserv
 
 Use GCP Secret Manager and established workload/unattended identities first. Consult the owning infrastructure/access runbook before requesting a local password file or new credential. Never print secret payloads or commit secrets, state/plans, private exports or backups, even in ignored folders.
 
-Temporary project exports belong in the current user's established private directory outside every repository. Preserve originals until consumer verification; never regenerate a lost recovery key. Leave application-managed sign-in stores in place. Record real recovery coverage when credentials change; folder existence is not backup proof.
+Temporary project exports belong in the current user's established private directory outside the repository. Preserve originals until consumer verification; never regenerate a lost recovery key. Leave application-managed sign-in stores in place. Record real recovery coverage when credentials change; folder existence is not backup proof.
 
 ## Recovery
 

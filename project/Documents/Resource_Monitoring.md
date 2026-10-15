@@ -4,7 +4,7 @@ Native API probes and the Grafana event bridge are deployed. The collector uses 
 
 The [Grafana MCP Events bridge](Grafana_MCP_Events_Bridge.md) owns authenticated subscriptions and durable retries. Existing IRM/mobile routing remains in place. Use its current runbook and adopted Terraform source for changes.
 
-Receipt monitoring activated 25 September: the [implementation handover](https://github.com/welct0407/MW-Integration-Agent/blob/main/docs/MONITORING_IMPLEMENTATION_HANDOVER.md) is implemented in the existing collector, eight Payment processing visuals and existing Debian IRM rule. See [implementation evidence](../outputs/receipt-monitoring-20260925/README.md).
+Receipt monitoring activated 25 September: the [implementation handover](../../integration-agent/docs/MONITORING_IMPLEMENTATION_HANDOVER.md) is implemented in the existing collector, eight Payment processing visuals and existing Debian IRM rule. See [implementation evidence](../outputs/receipt-monitoring-20260925/README.md).
 
 For an explanation of every visual on both pages, see the maintained [Dashboard visual guide](Resource_Monitoring_Dashboard_Guide.md). Update that guide with every dashboard change; this document owns operational setup/access/recovery details.
 
@@ -151,7 +151,7 @@ Saved rule `afz3o5cmmfabkb` keeps Performance 2m, four-minute pending, Last >0 a
 
 Rollback: restore `/opt/mw-resource-monitoring/debian-health.before-receipts-20260925T152923Z.py` to the collector path, retaining mwagent permissions. Restore Performance generation 25 from Grafana history or the private pre-change export under `C:\Users\MWCredit\Documents\ChatGPT\AppSheet-Loan-Project\resource-monitoring\performance-before-receipts-20260925.json`. Restore the Debian rule's previous version/selector and KeepLast policies only if intentionally reverting this monitoring. Preserve worker configuration, journals and financial records. See implementation evidence for hashes and tests.
 
-Worker revision22 (25 September) adds direct-reply hold dismissal and acknowledgement delivery health using the same fields/collector. No monitoring redeployment or new alert required. Current review/hold behavior: [receipt review policy](https://github.com/welct0407/MW-Integration-Agent/blob/main/docs/PARTNER_REVIEW.md#rejecting-held-receipts--revision-22).
+Worker revision22 (25 September) adds direct-reply hold dismissal and acknowledgement delivery health using the same fields/collector. No monitoring redeployment or new alert required. Current review/hold behavior: [receipt review policy](../../integration-agent/docs/PARTNER_REVIEW.md#rejecting-held-receipts--revision-22).
 
 ## Receipt processing versus optional notification health — 2 October 2026
 

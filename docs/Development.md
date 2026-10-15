@@ -1,6 +1,6 @@
 # Development and delivery
 
-MW-Credit-App owns PWA/API/shared SQL/infrastructure. AppSheet-Loan-Project owns release coordination and current business references. MW-Integration-Agent owns Debian runtime. AppSheet is retired.
+The root owns PWA/API/shared SQL/infrastructure, `project/` owns release coordination and current business references, and `integration-agent/` owns the Debian runtime. AppSheet is retired.
 
 ## Setup
 
@@ -16,7 +16,7 @@ Use the owning infrastructure root's README/wrapper. Remote state already exists
 
 ## Delivery process and validation
 
-Follow [PWA policy](https://github.com/welct0407/AppSheet-Loan-Project/blob/master/Documents/PWA_Orchestration.md). Select affected unit/contract/SQL/browser checks during implementation; run one broad checkpoint when scope warrants it and reuse that result for promotion. Required workflows remain in force.
+Follow [PWA policy](../project/Documents/Rules/PWA_Orchestration.md). Select affected unit/contract/SQL/browser checks during implementation; run one broad checkpoint when scope warrants it and reuse that result for promotion. Required workflows remain in force.
 
 Current automation is not a complete implementation of proportional test selection: CI runs check/build/audit on its configured events; browser checks depend on event/checkpoint label. Database workflow paths also match database documentation. The original manual DEV deployment workflow covers its configured API; maintained release tooling owns full package/Hosting delivery. Do not bypass validators or claim this documentation changed workflows.
 
