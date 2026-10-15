@@ -97,3 +97,16 @@ output "operator_metadata" {
     google_service_account = google_service_account.operator.email
   }
 }
+# The Linux cloud executor (key-based codex-cloud, project Owner) acts as this
+# operator for operator-pinned delivery such as scripts/promotion/
+# deploy-business-hosting.mjs. Applied first with gcloud on 15 October 2026
+# because this root needs VM-01's Azure identity; the import adopts it.
+import {
+  to = google_service_account_iam_member.cloud_executor_token_creator
+  id = "projects/clever-oasis-508610-n7/serviceAccounts/mw-credit-unattended-admin@clever-oasis-508610-n7.iam.gserviceaccount.com roles/iam.serviceAccountTokenCreator serviceAccount:codex-cloud@clever-oasis-508610-n7.iam.gserviceaccount.com"
+}
+resource "google_service_account_iam_member" "cloud_executor_token_creator" {
+  service_account_id = google_service_account.operator.name
+  role               = "roles/iam.serviceAccountTokenCreator"
+  member             = "serviceAccount:codex-cloud@clever-oasis-508610-n7.iam.gserviceaccount.com"
+}

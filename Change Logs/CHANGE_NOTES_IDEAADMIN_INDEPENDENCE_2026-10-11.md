@@ -118,3 +118,9 @@ Owner-authorized (15 October 2026): DEV and PROD database access from the cloud 
 - Source: `scripts/database/cloud-db-tunnel.sh`, pinned `debian-host-key.pub`; `Common.ps1` Linux route (tunnel, Secret Manager password file, `/workspace/.setup` tools, Linux Flyway/psql paths); `Invoke-Flyway.ps1` honours a target `sslmode`.
 - Checks: guarded `Invoke-Flyway.ps1 validate` succeeds for development and production (93 validated each, V92); IAM user reads both databases; `scripts/database` runner-guard tests 17/17; PowerShell parse checks.
 - Recovery: remove the `codex-cloud` metadata line, `REVOKE postgres FROM` and delete the IAM database user, delete the SSH secret; revert this commit.
+
+## Linux cloud-session backups and Hosting operator — 15 October 2026 (in progress)
+
+- Live: Terraform (`ecosystem-shared`) created private bucket `mw-credit-operator-private-737787224638` (uniform access, public access prevention enforced, versioning, no auto-expiry) for backups and promotion receipts; follow-up plan no changes. `codex-cloud` received `roles/iam.serviceAccountTokenCreator` on `mw-credit-unattended-admin` with gcloud (owning `unattended-admin` root needs VM-01's Azure identity; an `import` block adopts it there). Impersonated access token and signed `/promotion/r062` ID token verified.
+- Source: `Backup-ProductionPromotion.py` gains a Linux route (tunnel, Secret Manager credential, cluster system-identifier check, isolated restore as `postgres` OS user, upload to `prod-backups/`); Windows route unchanged.
+- Open: `postgres` deliberately cannot read the five worker-owned notification/job tables (R053 closed owner baseline), so a full backup needs either the release maintenance wrapper or a dedicated read-only backup identity (owner decision pending). End-to-end Linux backup not yet verified. Hosting script private-root port pending.
