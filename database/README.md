@@ -2,7 +2,7 @@
 
 MW-Credit-App owns migrations, database runners/tests and CI. AppSheet-Loan-Project owns release coordination. Current consumers are native PWA/API/workers, Debian integration and governed reporting. AppSheet editor, RC and parity steps are retired.
 
-DEV and PROD use separate business databases on one shared instance. Verify the full target tuple and affected consumers. Latest verified deployed version is V91; choose new versions from the actual migration directory and pending work, never from a stale document.
+DEV and PROD use separate business databases on one shared instance. Verify the full target tuple and affected consumers. Latest verified deployed version is V92 in DEV and PROD (R062, 15 October 2026); choose new versions from the actual migration directory and pending work, never from a stale document.
 
 Use existing Secret Manager/unattended access procedures. Keep credentials/backups outside Git. New tables/columns and production changes require scoped owner authorization; reuse existing explicit approval. Never clean/repair, alter applied checksums or create competing history.
 
