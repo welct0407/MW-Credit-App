@@ -1,4 +1,4 @@
-param([string]$BackupDirectory='', [string]$Environments='C:/GitHub/AppSheet-Loan-Project/database/environments.json',
+param([string]$BackupDirectory='', [string]$Environments=([IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../database/environments.json'))),
  [string]$PgBin="$env:LOCALAPPDATA/AppSheetLoanTools/postgresql-18.6-3/pgsql/bin")
 $ErrorActionPreference='Stop'
 $target=(Get-Content -LiteralPath $Environments -Raw | ConvertFrom-Json).production

@@ -10,3 +10,7 @@ gha-creds-*.json
 test-results
 playwright-report
 dist-live-dev
+project
+integration-agent
+outputs
+Change Logs

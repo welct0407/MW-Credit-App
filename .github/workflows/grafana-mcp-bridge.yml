@@ -2,9 +2,9 @@ name: Grafana MCP bridge
 on:
   push:
     branches: ['**']
-    paths: ['scripts/monitoring/grafana-mcp-bridge/**', '.github/workflows/grafana-mcp-bridge.yml']
+    paths: ['project/scripts/monitoring/grafana-mcp-bridge/**', '.github/workflows/grafana-mcp-bridge.yml']
   pull_request:
-    paths: ['scripts/monitoring/grafana-mcp-bridge/**', '.github/workflows/grafana-mcp-bridge.yml']
+    paths: ['project/scripts/monitoring/grafana-mcp-bridge/**', '.github/workflows/grafana-mcp-bridge.yml']
 permissions:
   contents: read
 jobs:
@@ -13,7 +13,7 @@ jobs:
     timeout-minutes: 10
     defaults:
       run:
-        working-directory: scripts/monitoring/grafana-mcp-bridge
+        working-directory: project/scripts/monitoring/grafana-mcp-bridge
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with: { persist-credentials: false }
@@ -40,7 +40,7 @@ jobs:
     timeout-minutes: 5
     defaults:
       run:
-        working-directory: scripts/monitoring/grafana-mcp-bridge
+        working-directory: project/scripts/monitoring/grafana-mcp-bridge
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with: { persist-credentials: false }

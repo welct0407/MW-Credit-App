@@ -3,7 +3,10 @@
 # Paste this file's contents into the environment's Setup script (environment
 # menu > Edit). It runs as root on Ubuntu 24.04 when the environment cache is
 # built (its result is snapshotted for later sessions), and is
-# safe to re-run. Versions follow MW-Credit-App's pins: .nvmrc,
+# safe to re-run. It serves the single MW-Credit-App repository, checked out at
+# /home/user/MW-Credit-App: the PWA/API, SQL and infrastructure at the root,
+# project management under project/ and the Debian integration runtime under
+# integration-agent/. Versions follow the repository's pins: .nvmrc,
 # database/toolchain.json and infrastructure required_version.
 set -euo pipefail
 
@@ -14,8 +17,8 @@ POSTGRES_MAJOR=18
 TERRAFORM_VERSION=1.16.5
 PWSH_VERSION=7.5.4        # Path pinned by Test-MigrationsCloud.py
 PSYCOPG_VERSION=3.3.6
-PYYAML_VERSION=6.0.2      # AppSheet-Loan-Project scripts/dictionary/requirements.txt
-PLAYWRIGHT_VERSION=1.63.0 # MW-Credit-App package-lock @playwright/test
+PYYAML_VERSION=6.0.2      # project/scripts/dictionary/requirements.txt
+PLAYWRIGHT_VERSION=1.63.0 # package-lock.json @playwright/test
 SETUP=/workspace/.setup   # Path expected by scripts/database/Test-MigrationsCloud.py
 WORK=/home/user
 
@@ -62,14 +65,14 @@ if [ ! -x "$SETUP/flyway-$FLYWAY_VERSION/flyway" ]; then
 fi
 ln -sfn "$SETUP/flyway-$FLYWAY_VERSION/flyway" /usr/local/bin/flyway
 
-# Python PostgreSQL driver for MW-Credit-App database scripts (Linux counterpart
+# Python PostgreSQL driver for the repository's database scripts (Linux counterpart
 # of VM-01's AppSheetLoanTools/python-deps).
 if [ ! -d "$SETUP/python-deps/psycopg" ]; then
   python3 -m pip install -q --disable-pip-version-check --target "$SETUP/python-deps" "psycopg[binary]==$PSYCOPG_VERSION"
 fi
 
 # Pinned PyYAML for the Data Dictionary helper, at the default package path
-# scripts/dictionary/runtime.py reads (the image's system PyYAML is older).
+# project/scripts/dictionary/runtime.py reads (the image's system PyYAML is older).
 DICTIONARY_DEPS=/root/Documents/ChatGPT/AppSheet-Loan-Project/tools/dictionary-python
 if ! PYTHONPATH="$DICTIONARY_DEPS" python3 -c "import yaml,sys; sys.exit(yaml.__version__!='$PYYAML_VERSION')" 2>/dev/null; then
   python3 -m pip install -q --disable-pip-version-check --upgrade --target "$DICTIONARY_DEPS" "PyYAML==$PYYAML_VERSION"
@@ -82,7 +85,7 @@ if ! terraform version 2>/dev/null | grep -q "v$TERRAFORM_VERSION"; then
   unzip -oq "$tmp/terraform.zip" terraform -d /usr/local/bin
 fi
 
-# Node pinned by MW-Credit-App/.nvmrc, installed beside the system Node.
+# Node pinned by the repository's .nvmrc, installed beside the system Node.
 if [ ! -x "$SETUP/node-v$NODE_VERSION-linux-x64/bin/node" ]; then
   curl -fsSL -o "$tmp/node.tar.xz" \
     "https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION-linux-x64.tar.xz"
@@ -98,7 +101,7 @@ ln -sfn "$SETUP/powershell-$PWSH_VERSION/pwsh" /root/.local/bin/pwsh
 export PATH="/root/.local/bin:$PATH"
 hash -r
 
-# Chromium build matching MW-Credit-App's pinned Playwright, beside the image's
+# Chromium build matching the repository's pinned Playwright, beside the image's
 # own (older) build in PLAYWRIGHT_BROWSERS_PATH, so `npx playwright test` runs.
 # Already-installed builds are skipped, so re-running is cheap.
 PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers npx -y "playwright@$PLAYWRIGHT_VERSION" install chromium >/dev/null
@@ -108,7 +111,7 @@ PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers npx -y "playwright@$PLAYWRIGHT_VERSION
 chmod -R a+rX "$SETUP"
 cat > /usr/local/bin/mw-db-ci <<EOF
 #!/usr/bin/env bash
-# Run MW-Credit-App's database CI (scripts/database/Test-CI.ps1) as postgres.
+# Run the repository's database CI (scripts/database/Test-CI.ps1) as postgres.
 set -euo pipefail
 cd "\${1:-\${MW_CREDIT_APP_ROOT:-$WORK/MW-Credit-App}}"
 exec runuser -u postgres -- env HOME=/tmp \\
@@ -118,10 +121,10 @@ EOF
 chmod 755 /usr/local/bin/mw-db-ci
 
 # SSH to the Debian integration host (vm-mw-credit-agent) through IAP: for
-# MW-Integration-Agent deploys (`sudo scripts/update-from-github.sh` in
+# integration-agent/ deploys (`sudo scripts/update-from-github.sh` in
 # /opt/mw-integration-agent-src) and administration. Uses the instance-level
 # `codex-cloud` key from Secret Manager and the pinned host key (same as
-# MW-Credit-App scripts/database/debian-host-key.pub).
+# scripts/database/debian-host-key.pub).
 cat > /usr/local/bin/mw-debian-ssh <<'EOF'
 #!/usr/bin/env bash
 set -euo pipefail
@@ -139,10 +142,10 @@ exec ssh -o User=codex-cloud -o IdentityFile="$dir/codex-cloud" -o IdentitiesOnl
 EOF
 chmod 755 /usr/local/bin/mw-debian-ssh
 
-# Repositories are not cloned here: this script's result is snapshotted and
-# reused for about a week, while the repositories selected when a session
-# starts are cloned fresh (with push access) into /home/user/<Repo-Name>.
-# Run `npm ci` in MW-Credit-App when a session needs it.
+# The repository is not cloned here: this script's result is snapshotted and
+# reused for about a week, while the repository selected when a session starts
+# is cloned fresh (with push access) into /home/user/MW-Credit-App.
+# Run `npm ci` at the repository root when a session needs it.
 #
 # Google Cloud sign-in from GCP_SA_KEY_B64 (the service-account key file,
 # base64-encoded on one line; GCP_SA_KEY_JSON with raw JSON is a fallback),
@@ -188,8 +191,8 @@ for tool in gcloud bq gsutil; do
   chmod 755 "/root/.local/bin/$tool"
 done
 
-# Per-shell profile: locate the MW-Credit-App checkout for this repo's tooling
-# (scripts/database_location.py) and prepare the Google sign-in early.
+# Per-shell profile: locate the repository root for its tooling
+# (project/scripts/database_location.py) and prepare the Google sign-in early.
 cat > /etc/profile.d/mw-credit.sh <<'EOF'
 for d in /home/user/MW-Credit-App /home/user/mw-credit-app; do
   if [ -d "$d/.git" ]; then export MW_CREDIT_APP_ROOT="$d"; break; fi
