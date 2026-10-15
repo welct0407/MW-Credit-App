@@ -733,16 +733,16 @@ Owner decisions needed before the waves start are listed with Needs = owner deci
 | 49 | ALL-MON-01 | overall | S3 | confirmed | risk | M | none | W1 | No alert covers the PWA APIs, the workers or the database's storage and backups |
 | 50 | ALL-PRIV-02 | overall | S3 | confirmed (text); hypothesis (images) | risk | M | owner decision | W1 | Text scan is clean, but images and workbooks are unscanned |
 | 51 | APP-ARCH-01 | app | S3 | confirmed | arch | M | none | W3 | Capability behaviour (`read` vs `command`, `receipt.*`, second partner) is first exercised in PROD. A capabili |
-| 52 | APP-TEST-03 | app | S3 | confirmed | risk | M | none | W3 | Money-reading SQL (cash, management financial, position) has no unit or Linux-run test. Regressions show up on |
-| 53 | DB-ACCESS-02 | db | S3 | confirmed | risk | M | owner decision | W3 | The request-id journal, payload-hash check and successor index are enforced only by the Node path. Any process |
-| 54 | DB-ACCESS-07 | db | S3 | confirmed (config), likely (exposure) | risk | M | infra change | W3 | Password roles (`postgres`, `mw_agent_*`, `mw_reviewer_dml`, `metabase_borrower_reader`) are reachable from th |
-| 55 | DB-BACKUP-04 | db | S3 | confirmed | risk | M | owner decision | W3 | Loss of VM-01 (or its Azure subscription) blocks every PROD schema change and the restore rehearsal until a ne |
-| 56 | DB-CI-01 | db | S3 | confirmed | risk | M | none | W3 | A cloud session's `mw-db-ci` pass does not prove the RPC, access or upgrade behaviour; those proofs run only o |
-| 57 | DB-CI-02 | db | S3 | confirmed | risk | M | none | W3 | Lump-sum posting (V2/V3), interest-schedule anchor (V5/V84), the rollup chain (V12–V14) and partner reporting  |
-| 58 | DB-CI-05 | db | S3 | confirmed | risk | M | none | W3 | Grant drift (DB-ACCESS-01 shows one) is invisible to CI. |
-| 59 | DB-SCHEMA-01 | db | S3 | confirmed | arch | M | none | W4 | The current body of the main command RPC exists only in a live database; reviewers must replay 22 string edits |
-| 60 | ALL-ARCH-01 | overall | S3 | confirmed | arch | L | infra change | W3 | DEV and PROD run different command compositions |
-| 61 | APP-OFFLINE-03 | app | S3 | confirmed | risk | About 0.5 s of DB CPU per minute per open tab today across four domains, on the shared `db-f1-micro` that also serves PROD. Cost is linear in row count and grows with every table added. | Cheap change detector: compare `pg_stat_ | W4 |  |
+| 52 | APP-OFFLINE-03 | app | S3 | confirmed | risk | M | schema change | W4 |  |
+| 53 | APP-TEST-03 | app | S3 | confirmed | risk | M | none | W3 | Money-reading SQL (cash, management financial, position) has no unit or Linux-run test. Regressions show up on |
+| 54 | DB-ACCESS-02 | db | S3 | confirmed | risk | M | owner decision | W3 | The request-id journal, payload-hash check and successor index are enforced only by the Node path. Any process |
+| 55 | DB-ACCESS-07 | db | S3 | confirmed (config), likely (exposure) | risk | M | infra change | W3 | Password roles (`postgres`, `mw_agent_*`, `mw_reviewer_dml`, `metabase_borrower_reader`) are reachable from th |
+| 56 | DB-BACKUP-04 | db | S3 | confirmed | risk | M | owner decision | W3 | Loss of VM-01 (or its Azure subscription) blocks every PROD schema change and the restore rehearsal until a ne |
+| 57 | DB-CI-01 | db | S3 | confirmed | risk | M | none | W3 | A cloud session's `mw-db-ci` pass does not prove the RPC, access or upgrade behaviour; those proofs run only o |
+| 58 | DB-CI-02 | db | S3 | confirmed | risk | M | none | W3 | Lump-sum posting (V2/V3), interest-schedule anchor (V5/V84), the rollup chain (V12–V14) and partner reporting  |
+| 59 | DB-CI-05 | db | S3 | confirmed | risk | M | none | W3 | Grant drift (DB-ACCESS-01 shows one) is invisible to CI. |
+| 60 | DB-SCHEMA-01 | db | S3 | confirmed | arch | M | none | W4 | The current body of the main command RPC exists only in a live database; reviewers must replay 22 string edits |
+| 61 | ALL-ARCH-01 | overall | S3 | confirmed | arch | L | infra change | W3 | DEV and PROD run different command compositions |
 | 62 | DB-PAY-03 | db | S3 | confirmed | risk | — | owner decision | W4 | Totals cannot be corrupted by direct writes, but status fields and source rows can, without a journal row. |
 | 63 | AGT-DEPLOY-05 | agent | S3 | likely | risk | S | none | W2 | Per-file copy into site-packages creates hybrid installs |
 | 64 | AGT-HOST-04 | agent | S3 | likely | risk | S | none | W1 | `Requires=cloud-sql-auth-proxy.service` stops workers mid-run when the proxy restarts |
@@ -765,7 +765,7 @@ Owner decisions needed before the waves start are listed with Needs = owner deci
 | 81 | ALL-ARCH-02 | overall | S3 | likely | arch | M | owner decision | W3 | The agent writes PROD financial tables directly, outside the command API |
 | 82 | ALL-ARCH-03 | overall | S3 | likely | arch | M | infra change | W3 | Three database authentication styles and three secret stores |
 | 83 | APP-PAY-04 | app | S3 | likely | risk | M | none | W1 | Two concurrent receipt operations take the whole pool; other requests wait up to 5 s, then return 503. Likely  |
-| 84 | DB-ACCESS-06 | db | S3 | likely | arch |  | '@clever-oasis-508610-n7.iam'`; `pwa_nat | W3 |  |
+| 84 | DB-ACCESS-06 | db | S3 | likely | arch | M | none | W3 |  |
 | 85 | ALL-MON-03 | overall | S3 | hypothesis | risk | S | owner decision | W3 | Metabase on Railway is outside every control in this repository |
 | 86 | AGT-DEPLOY-06 | agent | S4 | confirmed | std | S | none | W2 | Package version never changes |
 | 87 | AGT-DOC-01 | agent | S4 | confirmed | doc | S | none | W6 | Catalogue source pin is two releases old |
@@ -859,28 +859,28 @@ Owner decisions needed before the waves start are listed with Needs = owner deci
 | 175 | DB-DOC-04 | db | S4 | confirmed | doc | S | none | W6 | Payments trigger list: no drift found; overview is silent |
 | 176 | DB-DOC-05 | db | S4 | confirmed | doc | S | none | W6 | `database/OWNERSHIP.md` still describes three repositories |
 | 177 | DB-LOCK-02 | db | S4 | confirmed | arch | S | schema change | W4 | Dead state machine columns; nothing wrong today. |
-| 178 | DB-PERF-04 | db | S4 | confirmed | std | S | infra change | W4 | No per-query telemetry when a slow endpoint is reported. |
-| 179 | DB-SCHEMA-04 | db | S4 | confirmed | std | S | none | W4 | `money` formatting depends on `lc_monetary`; arithmetic needs explicit `::numeric` casts everywhere. Existing  |
-| 180 | DB-SCHEMA-07 | db | S4 | confirmed | std | S | none | W4 | The only Linux Flyway runner cannot migrate anything newer than V58; it is dead code that reads as a supported |
-| 181 | AGT-DOC-04 | agent | S4 | confirmed | doc | M | none | W6 | `docs/POSTGRESQL_OPERATIONS.md` treats AppSheet as the live API |
-| 182 | AGT-QUALITY-01 | agent | S4 | confirmed | std | M | none | W3 | Duplicated helpers and broad excepts |
-| 183 | ALL-CI-04 | overall | S4 | confirmed | std | M | none | W3 | No lint, format or type check outside the PWA (proportionate toolchain proposal) |
-| 184 | ALL-CI-07 | overall | S4 | confirmed | std | M | none | W3 | Promotion tooling grows a branch per release |
-| 185 | ALL-DOC-04 | overall | S4 | confirmed | doc | M | owner decision | W6 | Reading load before a routine change |
-| 186 | ALL-DOC-05 | overall | S4 | confirmed | doc | M | none | W6 | Same pins repeated across documents and dictionary files |
-| 187 | ALL-DOC-06 | overall | S4 | confirmed | doc | M | owner decision | W6 | `Development_Changes.md` is titled "Open" but keeps all released history |
-| 188 | ALL-DOC-09 | overall | S4 | confirmed | doc | M | owner decision | W6 | `project/outputs` retention: within the letter of the rule, 155 MB in practice |
-| 189 | ALL-DOC-10 | overall | S4 | confirmed | doc | M | owner decision | W6 | Monitoring documents are larger than the PWA documents |
-| 190 | ALL-STD-02 | overall | S4 | confirmed | std | M | none | W3 | Project id, number and service URLs are hard-coded |
-| 191 | ALL-STD-03 | overall | S4 | confirmed | std | M | none | W3 | Four error-code vocabularies with no catalogue |
-| 192 | APP-ARCH-03 | app | S4 | confirmed | std | M | none | W3 | Fixes and timeout policy drift between services. |
-| 193 | APP-QUALITY-01 | app | S4 | confirmed | std | M | none | W3 | Review and diff quality suffer; type errors in services surface only at runtime or in tests. |
-| 194 | DB-AGENTDB-04 | db | S4 | confirmed | std | — | none | W4 | Sound defaults; no finding. Recorded for the access inventory. |
-| 195 | DB-LOCK-03 | db | S4 | confirmed | std | Per-database scope confirmed; 32-bit `hashtext` collisions only serialize unrelated requests. Two code bases must stay byte-identical on key derivation. | Add one SQL function `pwa_lock_key_v1(ki | W4 |  |
-| 196 | DB-PAY-01 | db | S4 | confirmed | std | — | none | W4 | Guard holds. Seven definitions make the history hard to read (DB-SCHEMA-01). |
-| 197 | DB-PAY-02 | db | S4 | confirmed | std | — | none | W4 | No defect found by static read; the probe could not reach these guards without a larger fixture. |
-| 198 | DB-PERF-02 | db | S4 | confirmed | std | — | none | W4 | No performance defect at current scale. |
-| 199 | DB-SCHEMA-05 | db | S4 | confirmed | std | Dynamic view DDL hides the final column list from the file; a data choice (which partner reviews) lives in an immutable migration. | Keep (immutable). For new work, write fu | W4 |  |
+| 178 | DB-LOCK-03 | db | S4 | confirmed | std | S | none | W4 |  |
+| 179 | DB-PERF-04 | db | S4 | confirmed | std | S | infra change | W4 | No per-query telemetry when a slow endpoint is reported. |
+| 180 | DB-SCHEMA-04 | db | S4 | confirmed | std | S | none | W4 | `money` formatting depends on `lc_monetary`; arithmetic needs explicit `::numeric` casts everywhere. Existing  |
+| 181 | DB-SCHEMA-05 | db | S4 | confirmed | std | S | none | W4 |  |
+| 182 | DB-SCHEMA-07 | db | S4 | confirmed | std | S | none | W4 | The only Linux Flyway runner cannot migrate anything newer than V58; it is dead code that reads as a supported |
+| 183 | AGT-DOC-04 | agent | S4 | confirmed | doc | M | none | W6 | `docs/POSTGRESQL_OPERATIONS.md` treats AppSheet as the live API |
+| 184 | AGT-QUALITY-01 | agent | S4 | confirmed | std | M | none | W3 | Duplicated helpers and broad excepts |
+| 185 | ALL-CI-04 | overall | S4 | confirmed | std | M | none | W3 | No lint, format or type check outside the PWA (proportionate toolchain proposal) |
+| 186 | ALL-CI-07 | overall | S4 | confirmed | std | M | none | W3 | Promotion tooling grows a branch per release |
+| 187 | ALL-DOC-04 | overall | S4 | confirmed | doc | M | owner decision | W6 | Reading load before a routine change |
+| 188 | ALL-DOC-05 | overall | S4 | confirmed | doc | M | none | W6 | Same pins repeated across documents and dictionary files |
+| 189 | ALL-DOC-06 | overall | S4 | confirmed | doc | M | owner decision | W6 | `Development_Changes.md` is titled "Open" but keeps all released history |
+| 190 | ALL-DOC-09 | overall | S4 | confirmed | doc | M | owner decision | W6 | `project/outputs` retention: within the letter of the rule, 155 MB in practice |
+| 191 | ALL-DOC-10 | overall | S4 | confirmed | doc | M | owner decision | W6 | Monitoring documents are larger than the PWA documents |
+| 192 | ALL-STD-02 | overall | S4 | confirmed | std | M | none | W3 | Project id, number and service URLs are hard-coded |
+| 193 | ALL-STD-03 | overall | S4 | confirmed | std | M | none | W3 | Four error-code vocabularies with no catalogue |
+| 194 | APP-ARCH-03 | app | S4 | confirmed | std | M | none | W3 | Fixes and timeout policy drift between services. |
+| 195 | APP-QUALITY-01 | app | S4 | confirmed | std | M | none | W3 | Review and diff quality suffer; type errors in services surface only at runtime or in tests. |
+| 196 | DB-AGENTDB-04 | db | S4 | confirmed | std | — | none | W4 | Sound defaults; no finding. Recorded for the access inventory. |
+| 197 | DB-PAY-01 | db | S4 | confirmed | std | — | none | W4 | Guard holds. Seven definitions make the history hard to read (DB-SCHEMA-01). |
+| 198 | DB-PAY-02 | db | S4 | confirmed | std | — | none | W4 | No defect found by static read; the probe could not reach these guards without a larger fixture. |
+| 199 | DB-PERF-02 | db | S4 | confirmed | std | — | none | W4 | No performance defect at current scale. |
 | 200 | DB-SCHEMA-08 | db | S4 | confirmed | std | — | none | W4 | Expand/contract is being followed. |
 | 201 | AGT-DOC-08 | agent | S4 | likely | doc | S | none | W6 | README says the PostgreSQL design is not deployed |
 | 202 | AGT-HOST-02 | agent | S4 | likely (directory modes not readable wit | risk | S | owner decision | W3 | Credentials are plaintext files; the Graph refresh token is writable by four units |
