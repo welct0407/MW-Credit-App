@@ -19,6 +19,7 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
+      - run: node scripts/check-binary-evidence.mjs
       - run: npm run check
       - run: npm run build:live-dev
       - run: npm audit --omit=dev --audit-level=moderate
