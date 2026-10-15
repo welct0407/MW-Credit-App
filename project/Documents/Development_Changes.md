@@ -11,7 +11,6 @@ The sole Open product release is **R063**. **R062 is Released**; the owner-autho
 | Apple push enrollment follow-up | R056 V91 deployed; Lisa retry/closure remains pending |
 | Owner license action | AppSheet technical retirement complete; license revocation unconfirmed |
 | Repository merge follow-ups (15 October 2026) | [Change note](../../Change%20Logs/CHANGE_NOTES_REPOSITORY_MERGE_2026-10-15.md) |
-| Claude cloud environment | Select only this repository and use the updated [setup script](../scripts/cloud-session-setup.sh) |
 | Optional `ci.yml` path filtering for `project/**` / `integration-agent/**` | Not done; it may be a required check |
 
 Use the [release tracker](Release_Tracker.md), including the carried R016 administrative follow-up. Current runtime versions belong in [environment inventory](Environment_Inventory.md). Update this page for actual outstanding work, not completed-release history.
