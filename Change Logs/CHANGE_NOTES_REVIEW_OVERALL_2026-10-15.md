@@ -733,7 +733,7 @@ Owner decisions needed before the waves start are listed with Needs = owner deci
 | 49 | ALL-MON-01 | overall | S3 | confirmed | risk | M | none | W1 | No alert covers the PWA APIs, the workers or the database's storage and backups |
 | 50 | ALL-PRIV-02 | overall | S3 | confirmed (text); hypothesis (images) | risk | M | owner decision | W1 | Text scan is clean, but images and workbooks are unscanned |
 | 51 | APP-ARCH-01 | app | S3 | confirmed | arch | M | none | W3 | Capability behaviour (`read` vs `command`, `receipt.*`, second partner) is first exercised in PROD. A capabili |
-| 52 | APP-OFFLINE-03 | app | S3 | confirmed | risk | M | schema change | W4 |  |
+| 52 | APP-OFFLINE-03 | app | S3 | confirmed | risk | M | schema change | W4 | xmin` per row). The PWA polls every domain every 60 s while visible, plus on focus/online (`offline-dataset.ts |
 | 53 | APP-TEST-03 | app | S3 | confirmed | risk | M | none | W3 | Money-reading SQL (cash, management financial, position) has no unit or Linux-run test. Regressions show up on |
 | 54 | DB-ACCESS-02 | db | S3 | confirmed | risk | M | owner decision | W3 | The request-id journal, payload-hash check and successor index are enforced only by the Node path. Any process |
 | 55 | DB-ACCESS-07 | db | S3 | confirmed (config), likely (exposure) | risk | M | infra change | W3 | Password roles (`postgres`, `mw_agent_*`, `mw_reviewer_dml`, `metabase_borrower_reader`) are reachable from th |
@@ -765,7 +765,7 @@ Owner decisions needed before the waves start are listed with Needs = owner deci
 | 81 | ALL-ARCH-02 | overall | S3 | likely | arch | M | owner decision | W3 | The agent writes PROD financial tables directly, outside the command API |
 | 82 | ALL-ARCH-03 | overall | S3 | likely | arch | M | infra change | W3 | Three database authentication styles and three secret stores |
 | 83 | APP-PAY-04 | app | S3 | likely | risk | M | none | W1 | Two concurrent receipt operations take the whole pool; other requests wait up to 5 s, then return 503. Likely  |
-| 84 | DB-ACCESS-06 | db | S3 | likely | arch | M | none | W3 |  |
+| 84 | DB-ACCESS-06 | db | S3 | likely | arch | M | none | W3 | env |
 | 85 | ALL-MON-03 | overall | S3 | hypothesis | risk | S | owner decision | W3 | Metabase on Railway is outside every control in this repository |
 | 86 | AGT-DEPLOY-06 | agent | S4 | confirmed | std | S | none | W2 | Package version never changes |
 | 87 | AGT-DOC-01 | agent | S4 | confirmed | doc | S | none | W6 | Catalogue source pin is two releases old |
@@ -859,10 +859,10 @@ Owner decisions needed before the waves start are listed with Needs = owner deci
 | 175 | DB-DOC-04 | db | S4 | confirmed | doc | S | none | W6 | Payments trigger list: no drift found; overview is silent |
 | 176 | DB-DOC-05 | db | S4 | confirmed | doc | S | none | W6 | `database/OWNERSHIP.md` still describes three repositories |
 | 177 | DB-LOCK-02 | db | S4 | confirmed | arch | S | schema change | W4 | Dead state machine columns; nothing wrong today. |
-| 178 | DB-LOCK-03 | db | S4 | confirmed | std | S | none | W4 |  |
+| 178 | DB-LOCK-03 | db | S4 | confirmed | std | S | none | W4 | target,0)` (`V83:141-857`, `V85:37-382`, `V90:135`); `pg_locks` shows the database OID (Checks executed). `pay |
 | 179 | DB-PERF-04 | db | S4 | confirmed | std | S | infra change | W4 | No per-query telemetry when a slow endpoint is reported. |
 | 180 | DB-SCHEMA-04 | db | S4 | confirmed | std | S | none | W4 | `money` formatting depends on `lc_monetary`; arithmetic needs explicit `::numeric` casts everywhere. Existing  |
-| 181 | DB-SCHEMA-05 | db | S4 | confirmed | std | S | none | W4 |  |
+| 181 | DB-SCHEMA-05 | db | S4 | confirmed | std | S | none | W4 | definition`; `V32:9` `UPDATE public."Partners" SET "AI Reviewer" = true …` selects a business row inside schem |
 | 182 | DB-SCHEMA-07 | db | S4 | confirmed | std | S | none | W4 | The only Linux Flyway runner cannot migrate anything newer than V58; it is dead code that reads as a supported |
 | 183 | AGT-DOC-04 | agent | S4 | confirmed | doc | M | none | W6 | `docs/POSTGRESQL_OPERATIONS.md` treats AppSheet as the live API |
 | 184 | AGT-QUALITY-01 | agent | S4 | confirmed | std | M | none | W3 | Duplicated helpers and broad excepts |
