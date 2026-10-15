@@ -11,7 +11,7 @@ const auth=`let listener;export const browserLocalPersistence='local',inMemoryPe
 const identity={issuer:'https://securetoken.google.com/clever-oasis-508610-n7',uid:'synthetic'},id='44444444-4444-4444-8444-444444444444';
 const pendingRows=(page:Page)=>page.evaluate(async(identity:{issuer:string;uid:string})=>{const {ownerOfflineRepository}=await import('/apps/pwa/src/owner-offline.ts');return ownerOfflineRepository(identity).list('pending')},identity);
 const seedPending=(page:Page)=>page.evaluate(async({identity,id}:{identity:{issuer:string;uid:string};id:string})=>{const {ownerOfflineRepository}=await import('/apps/pwa/src/owner-offline.ts');const repo=ownerOfflineRepository(identity);await repo.authorize();await repo.savePending(id,{domain:'borrower',command:{requestId:id,operation:'borrower.update',targetId:'synthetic-target',expectedVersion:'a'.repeat(64),predecessorRequestId:null,receiptId:null,inputs:{note:'unsynced'}}})},{identity,id});
-async function account(page:Page){if(page.viewportSize()!.width<=1050)await page.getByRole('button',{name:/^(Open navigation|เปิดเมนู)$/}).click()}
+async function account(page:Page){if(page.viewportSize()!.width<=1050&&await page.locator('dialog[open]').count()===0)await page.getByRole('button',{name:/^(Open navigation|เปิดเมนู)$/}).click()}
 async function closeAccount(page:Page){if(page.viewportSize()!.width<=1050)await page.getByRole('button',{name:/^(Close menu|ปิดเมนู)$/}).click()}
 type Routes={posts:string[];statusGets:number;status:number;applied:boolean};
 async function setup(page:Page):Promise<Routes>{
@@ -40,8 +40,9 @@ test('sign-out is blocked with sync and review affordances until the saved reque
  await expect(page.getByRole('button',{name:'Review saved changes',exact:true}).filter({visible:true})).toBeVisible();
  expect(await page.evaluate(()=>(window as any).signouts??0)).toBe(0);expect(await pendingRows(page)).toHaveLength(1);
  // Offline: the affordance reports that it is waiting for a connection instead of staying silent.
- await context.setOffline(true);await syncSaved.click();await expect(page.getByText('Waiting for a connection. Saved changes remain on this device.',{exact:true}).filter({visible:true})).toBeVisible();await context.setOffline(false);
- await syncSaved.click();
+ // Going offline re-renders the shell (mobile closes the drawer); reopen the account area before using the affordance.
+ await context.setOffline(true);await account(page);await syncSaved.click();await expect(page.getByText('Waiting for a connection. Saved changes remain on this device.',{exact:true}).filter({visible:true})).toBeVisible();await context.setOffline(false);
+ await account(page);await syncSaved.click();
  // The row cannot be applied (503) so it stays queued and the saved-changes screen opens with its reason.
  await expect(page.getByRole('region',{name:'Saved unsynced changes'})).toBeVisible();await expect.poll(()=>routes.posts.length).toBeGreaterThan(0);expect(routes.statusGets).toBeGreaterThan(0);
  expect(await pendingRows(page)).toHaveLength(1);expect(await page.evaluate(()=>(window as any).signouts??0)).toBe(0);
