@@ -2,11 +2,44 @@ from __future__ import annotations
 
 import json
 import re
+import urllib.error
 import urllib.parse
 import urllib.request
 from typing import Any
 
 from .config import ConfigurationError, load_secret
+
+
+class InstagramAPIError(ConfigurationError):
+    """Sanitized provider rejection; raw response/message is never retained."""
+    def __init__(self, status, code=None, subcode=None, *, window_expired=False):
+        self.status = status
+        self.code = code
+        self.subcode = subcode
+        self.window_expired = window_expired
+        self.definite_rejection = 400 <= status < 500
+        category = 'WINDOW_EXPIRED' if window_expired else 'REJECTED' if self.definite_rejection else 'UNKNOWN'
+        super().__init__(f'Instagram {category} (HTTP {status}, code {code}, subcode {subcode})')
+
+    @classmethod
+    def from_http(cls, error, *, message_send):
+        code = subcode = None
+        explicit = False
+        try:
+            raw = error.read(65537)
+            if len(raw)>65536:
+                return cls(error.code)
+            payload = json.loads(raw)
+            detail = payload.get('error') if isinstance(payload, dict) else None
+            if isinstance(detail, dict):
+                code = detail.get('code') if type(detail.get('code')) is int else None
+                subcode = detail.get('error_subcode') if type(detail.get('error_subcode')) is int else None
+                message = detail.get('message')
+                explicit = isinstance(message, str) and message.strip().rstrip('.').casefold() == 'this message is sent outside of allowed window'
+        except (ValueError, OSError, TypeError):
+            pass
+        return cls(error.code, code, subcode, window_expired=(
+            message_send and 400 <= error.code < 500 and code == 10 and subcode == 2534022 and explicit))
 
 
 class Instagram:
@@ -34,8 +67,10 @@ class Instagram:
         try:
             with urllib.request.urlopen(request, timeout=20) as response:
                 return json.load(response)
-        except Exception as exc:
-            raise ConfigurationError("Instagram API request failed") from exc
+        except urllib.error.HTTPError as exc:
+            raise InstagramAPIError.from_http(exc, message_send=(body is not None and path == self.config['instagram_account_id'] + '/messages')) from None
+        except Exception:
+            raise ConfigurationError("Instagram API request failed") from None
 
     def probe(self) -> dict[str, Any]:
         account = self.request(self.config["instagram_account_id"], {"fields": "id,username"})

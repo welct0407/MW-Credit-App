@@ -38,18 +38,35 @@ class EmailFallbackTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             path=Path(directory)/'journal.db'
             payload={'recipient':'partner@example.com','language':'English','subject':'s','body':'b','attachments':[]}
+            key=json.dumps(['s','e','partner','email-fallback-v1'])
             journal=DeliveryJournal(path)
-            self.assertEqual(journal.reserve_email('key','partner',payload),(True,'EMAIL_UNKNOWN'))
-            journal.mark_email('key','EMAIL_REJECTED',attempts=1,retry_after=0,detail='definitely unsent')
+            self.assertEqual(journal.reserve_email(key,'partner',payload),(True,'EMAIL_UNKNOWN'))
+            journal.mark_email(key,'EMAIL_REJECTED',attempts=1,retry_after=0,detail='definitely unsent')
+            # R058: a rejected email is retried only with durable provider window-expiry evidence.
+            self.assertEqual(journal.due_emails(now=1),[])
+            self.assertFalse(journal.begin_email_retry(key,2))
+            with journal.db:
+                journal.db.execute('INSERT INTO cash_statement_sends VALUES (?,?,?,?,?,?,NULL,0)',
+                                   (json.dumps(['s','e','partner','a',1]),'123','English','h','asset','WINDOW_EXPIRED'))
             journal.close()
             journal=DeliveryJournal(path)
             due=journal.due_emails(now=1)
             self.assertEqual(len(due),1)
             self.assertEqual(due[0]['attempts'],1)
-            self.assertTrue(journal.begin_email_retry('key',2))
-            self.assertFalse(journal.begin_email_retry('key',2))
-            journal.mark_email('key','EMAIL_UNKNOWN',detail='uncertain')
+            self.assertTrue(journal.begin_email_retry(key,2))
+            self.assertFalse(journal.begin_email_retry(key,2))
+            journal.mark_email(key,'EMAIL_UNKNOWN',detail='uncertain')
             self.assertEqual(journal.due_emails(now=999),[])
+            journal.close()
+
+    def test_send_email_once_refuses_without_provider_window_rejection(self):
+        from mw_integration_agent.statement_run import send_email_once
+        with tempfile.TemporaryDirectory() as directory:
+            journal=DeliveryJournal(Path(directory)/'journal.db')
+            key=json.dumps(['s','e','partner','email-fallback-v1'])
+            with self.assertRaisesRegex(ConfigurationError,'EMAIL_REQUIRES_PROVIDER_WINDOW_REJECTION'):
+                send_email_once(journal,key,{'id':'partner'},{},{})
+            self.assertIsNone(journal.email_status(key))
             journal.close()
 
     def test_enabled_schedule_requires_email_configuration(self):
