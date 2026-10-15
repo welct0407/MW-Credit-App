@@ -14,7 +14,7 @@ All new features/fixes use the sole Open release. Freeze only at authorized prom
 
 | Release | Status | Remaining action / owning record |
 | --- | --- | --- |
-| R063 | Open | Carries unfinished integration deployment tooling: reload the active webhook receiver and verify readiness before workers resume. Excluded from released R062 settings promotion. |
+| R063 | Open | Carries unfinished integration deployment tooling: reload the active webhook receiver and verify readiness before workers resume. Excluded from released R062 settings promotion. Also carries the unpromoted PWA read-retry fix for language switch then immediate navigation; [record](Development_Changes.md#r063-read-retry-after-settled-commands). |
 | R056 | Frozen; V91 deployed | Lisa enrollment retry/closure; [record](../outputs/r056-apple-push/README.md) |
 | R055 | Frozen; monitoring delivered | Carried credential work unfinished; [record](../outputs/r055-grafana/continuation.md) |
 | R016 | Owner-accepted reporting; administrative follow-up | Migration-key retirement evidence/final tag unresolved; do not reopen product development |
