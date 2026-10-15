@@ -123,39 +123,67 @@ Scratch files (not evidence, under the 1 MB rule): `/tmp/claude-0/-home-user-MW-
 
 ### DOC (documentation)
 
-Merged by the orchestrator from Agent D — Delivery and Documentation (Claude Sonnet 5.5, medium effort), who verified each claim at the cited line on commit 0995868.
+Merged by the orchestrator from Agent D — Delivery and Documentation (documentation focus-group orchestrator, Claude Fable 5.1, medium effort), who verified each claim at the cited line on commit 0995868.
 
-#### DB-DOC-01 Dictionary says latest migration V91; database README says V92
-- **Type**: doc  **Severity**: S4  **Confidence**: confirmed  **Effort**: S  **Needs**: none
-- **Evidence**: `project/Documents/Data Dictionary/README.md:18` ("Latest verified deployment is V91"); `project/Documents/Data Dictionary/systems/postgresql/README.md:3` ("latest verified migration is V91"); `database/README.md:5` ("Latest verified deployed version is V92 in DEV and PROD (R062 ...)"). `ls database/migrations | tail` ends at `V92__editable_application_settings.sql`. `index.json` has no version text.
-- **Impact**: Two of three statements are wrong the day R062 shipped. A reader could pick V92 as the next number from the dictionary. `database/README.md:5` already says to choose versions from the directory.
-- **Recommendation**: Delete the version sentence from both dictionary READMEs and link to `database/README.md`. One owner for the number, no copies to update.
+#### DB-DOC-01 Two dictionary READMEs say V91 while the database README says V92
+- **Type**: doc
+- **Severity**: S4
+- **Confidence**: confirmed
+- **Evidence**: `project/Documents/Data Dictionary/README.md:18` "Latest verified deployment is V91"; `project/Documents/Data Dictionary/systems/postgresql/README.md:3` "latest verified migration is V91"; `database/README.md:5` "Latest verified deployed version is V92 in DEV and PROD (R062, 15 October 2026)". `ls database/migrations | tail` ends at `V92__editable_application_settings.sql`; scratch cluster `select max(version) from flyway_schema_history` = 92. `index.json` carries no version string (grep `"V9x"` returns nothing).
+- **Impact**: Three places hold one number; two were already wrong the day R062 shipped. A reader of the dictionary may treat V92 as unapplied.
+- **Recommendation**: Delete the version sentence from both dictionary READMEs and link to `database/README.md#...` instead. One owner for the number.
+- **Effort**: S
+- **Needs**: none
 
-#### DB-DOC-02 `settings/` and misspelled `settingss/` both exist and are both indexed
-- **Type**: doc  **Severity**: S4  **Confidence**: confirmed  **Effort**: S  **Needs**: none
-- **Evidence**: `ls "project/Documents/Data Dictionary/systems/postgresql/"` gives `relations reporting routines schemas sequences settings settingss`. `settings/` holds `database-metadata-7f28de9a.yaml`, `mw-chart-reader.yaml`. `settingss/` holds `r052-production-application-capability-f1b06e1f.yaml`, `r053-production-notification-jobs-and-machine-capability-876a9716.yaml`. `index.json:11124,11134` point at `settings/`; `index.json:11144,11154` point at `settingss/`; both use `"kind": "settings"`. `catalog.yaml:12` lists only the kind `settings` (no directory name). `systems/postgresql/README.md:8` documents both names ("`settings/`, `settingss/`"). Three evidence files mention the misspelling: `project/outputs/r052/dictionary-production-closure.json`, `project/outputs/r053-notifications-jobs/dictionary-production-closure.json`, `.../production-notification-activation.json`.
-- **Impact**: The typo has been made official in the README. A newcomer cannot tell what differs between the folders; the split is only by release (R052/R053 versus older).
-- **Recommendation**: `git mv` the two R052/R053 files into `settings/`, change the two `file` paths in `index.json` and the README line, then run the dictionary validator. Leave the old evidence JSON as history. If any helper script builds paths from `index.json`, it needs no change because the `file` field is the only reference.
+#### DB-DOC-02 `settings/` and misspelled `settingss/` both exist, both indexed, typo documented as official
+- **Type**: doc
+- **Severity**: S4
+- **Confidence**: confirmed
+- **Evidence**: `ls "project/Documents/Data Dictionary/systems/postgresql/"` → `relations reporting routines schemas sequences settings settingss`. `settings/`: `database-metadata-7f28de9a.yaml`, `mw-chart-reader.yaml`. `settingss/`: `r052-production-application-capability-f1b06e1f.yaml`, `r053-production-notification-jobs-and-machine-capability-876a9716.yaml`. `index.json:11124,11134` → `settings/`; `index.json:11144,11154` → `settingss/`; all four are `"kind": "settings"`. `catalog.yaml:12` lists the kind `settings` only. `systems/postgresql/README.md:8` documents both: "`settings/`, `settingss/`: bounded application capability/configuration records." Repo-wide grep for `settingss` outside outputs hits only that README; helper scripts resolve files through the index `file` field (`project/scripts/dictionary/close_r053_production.py:33` fetches by kind and title).
+- **Impact**: A newcomer cannot tell what distinguishes the two folders (nothing but release date). The README has normalised the typo.
+- **Recommendation**: `git mv` the two R052/R053 files into `settings/`, update the two `file` values in `index.json` and the README line, run the dictionary validator. Leave historical evidence JSON untouched.
+- **Effort**: S
+- **Needs**: none
 
-#### DB-DOC-03 `pwa_submit_operation_v2` entry does reflect V92; provenance fields are mixed
-- **Type**: doc  **Severity**: S4  **Confidence**: confirmed  **Effort**: S  **Needs**: none
-- **Evidence**: V92 patches the function with seven `EXECUTE replace(definition, ...)` blocks (`database/migrations/V92__editable_application_settings.sql`, e.g. lines 13-34) that add the optional `aiCollectionEnabled` input to `borrower.create` and `borrower.update`. The dictionary entry `.../routines/public-pwa-submit-operation-v2-canonical-json-text-cc36a6de.yaml` already contains it (`aiCollectionEnabled` appears 5 times, including the `INSERT ... "AI Collection Enabled"` and `UPDATE ... "AI Collection Enabled"=CASE WHEN i?'aiCollectionEnabled'` text near lines 168-176). `index.json:10618` lists it as `documented`. So no V92 gap. Remaining blemishes in the same file: lines 190-193 keep an evidence key `/content/candidate_v92` with `"state": "absent"` (a leftover from the promotion workflow); `verification.source` (line 10-12) still cites `outputs/r052/dictionary-production-closure.json` while the content is V92-era; the definition is one 27 KB escaped string with `\r\n`, no summary.
-- **Impact**: None operationally. The entry is current. It cannot tell a reader which migrations built it. Migrations that name the function: V83 (3 mentions), V84 (4), V85 (17), V87 (2), V92 (6).
-- **Recommendation**: Remove the dead `candidate_v92` key. Set `verification.source` to the R062 record. Add a one-line "patched in V83, V84, V85, V87, V92 (in-place `pg_get_functiondef` replacement)" note field. This also answers the plan's "22 times patched" concern with a verifiable list rather than a count I could not reproduce (the five files above hold 32 mentions).
+#### DB-DOC-03 `pwa_submit_operation_v2` entry is current for V92; its provenance fields are not
+- **Type**: doc
+- **Severity**: S4
+- **Confidence**: confirmed
+- **Evidence**: `database/migrations/V92__editable_application_settings.sql:13,26` patch the function with `pg_get_functiondef` + `replace()` (6 `aiCollectionEnabled` mentions). The dictionary file `systems/postgresql/routines/public-pwa-submit-operation-v2-canonical-json-text-cc36a6de.yaml` contains `aiCollectionEnabled` 5 times, so the V92 change is documented (`index.json:10614`). Provenance in the same file: line 10 `"source": "outputs/r052/dictionary-production-closure.json"` (R052-era) and lines 190-198 keep a `/content/candidate_v92` evidence block with `"state": "absent"`. Patch count reproduced: `grep -c "pg_get_functiondef('public.pwa_submit_operation_v2"` gives V84: 2, V85: 17, V92: 3 = 22 in-place patches after the V83:39 `CREATE FUNCTION`; V87:5 only lists it in a grant manifest.
+- **Impact**: None operationally. The entry cannot tell a reader which migrations shaped the body, and the 22-patch history lives only in migration files.
+- **Recommendation**: Remove the dead `candidate_v92` block, set `verification.source` to the R062 record, add one line "created V83; patched in place in V84 (2), V85 (17), V92 (3)". Pair with the schema-hygiene recommendation (DB item 4) for a generated current-definition snapshot.
+- **Effort**: S
+- **Needs**: none
 
-#### DB-DOC-04 Payments trigger list: no drift found; overview is silent
-- **Type**: doc  **Severity**: S4  **Confidence**: confirmed  **Effort**: S  **Needs**: none
-- **Evidence**: `project/Documents/PWA_Data_Model_Overview.md` (82 lines, 2,556 words) never uses the word "trigger" (`grep -n -i trigger` returns nothing), so it cannot disagree with the database. Live list from the scratch cluster: `select count(*), string_agg(tgname,',' order by tgname) from pg_trigger where tgrelid='public."Payments"'::regclass and not tgisinternal` gave 25 triggers: `a000_business_history_begin, a000_opening_consistency, a000_payment_delete_request, a000_pwa_explicit_plan, a00_payment_crud, a00_receipt_evidence, a01_receipt_upload_stamp, a0_cash_account, a1_selected_charge_scope, aa_cash_holder, aa_cash_identity, appsheet_blank_refs, close_loan_request, lump_sum_receipt_guard, mw_agent_capture, payment_delete_guard, process_lump_sum, zz_cash_source, zz_pwa_notification_payment, zz_vc_payment_row, zzy_r051_opening, zzz_payment_crud, zzzz_payment_delete_requested, zzzzz_business_history_flush, zzzzzz_business_history_commit`. `relations/payments.yaml` contains all 25 (each name grepped, none missing). `grep CREATE TRIGGER ... ON public."Payments"` in migrations finds 20 of them; the other five (`mw_agent_capture`, `zz_cash_source`, `a000_business_history_begin`, `zzzzz_business_history_flush`, `zzzzzz_business_history_commit`) are not created by a plain `CREATE TRIGGER ... ON public."Payments"` line (generated or attached by helper functions).
-- **Impact**: Only the ordering is undocumented. Trigger firing order is alphabetical, so the `a000_`/`zz...` prefixes are load-bearing. Nobody reading the overview learns that a Payments write fires 25 triggers in a fixed order.
-- **Recommendation**: Add two sentences to the Payments section of the overview: "Payments carries 25 triggers whose names set their order (alphabetical); see `relations/payments.yaml`. Never reorder or rename them." No per-trigger table (it would drift).
+#### DB-DOC-04 Payments trigger list has no drift; the data-model overview never mentions triggers
+- **Type**: doc
+- **Severity**: S4
+- **Confidence**: confirmed
+- **Evidence**: Scratch cluster at V92: `select count(*), string_agg(tgname,',' order by tgname) from pg_trigger where tgrelid='public."Payments"'::regclass and not tgisinternal` → 25: `a000_business_history_begin, a000_opening_consistency, a000_payment_delete_request, a000_pwa_explicit_plan, a00_payment_crud, a00_receipt_evidence, a01_receipt_upload_stamp, a0_cash_account, a1_selected_charge_scope, aa_cash_holder, aa_cash_identity, appsheet_blank_refs, close_loan_request, lump_sum_receipt_guard, mw_agent_capture, payment_delete_guard, process_lump_sum, zz_cash_source, zz_pwa_notification_payment, zz_vc_payment_row, zzy_r051_opening, zzz_payment_crud, zzzz_payment_delete_requested, zzzzz_business_history_flush, zzzzzz_business_history_commit`. All 25 names occur in `systems/postgresql/relations/payments.yaml` (each grepped, ≥3 hits). Plain `CREATE TRIGGER … ON "Payments"` lines in migrations cover 20; `mw_agent_capture` (V33:106), `a000_business_history_begin` and `zzzzz_business_history_flush` (V63:120,124) and the commit trigger are created through `EXECUTE format(...)` loops, `zz_cash_source` spans lines (V23:435). `grep -n -i trigger project/Documents/PWA_Data_Model_Overview.md` returns nothing (2,556 words).
+- **Impact**: The dictionary is correct. The one fact a developer needs before touching Payments (25 triggers, alphabetical firing order encoded in the `a000_`/`zz…` prefixes) is in no prose document.
+- **Recommendation**: Add two sentences to the Payments part of `PWA_Data_Model_Overview.md`: trigger count, name-ordered firing, pointer to `relations/payments.yaml`, "do not rename". No per-trigger table.
+- **Effort**: S
+- **Needs**: none
 
-#### DB-DOC-05 `database/OWNERSHIP.md` still describes three repositories
-- **Type**: doc  **Severity**: S4  **Confidence**: confirmed  **Effort**: S  **Needs**: none
-- **Evidence**: `database/OWNERSHIP.md:3` ("MW-Credit-App owns migrations ... AppSheet-Loan-Project owns project coordination ... MW-Integration-Agent owns the separate agent runtime"); last line: "Remaining implementation-code moves are separate owner-directed work." Root `AGENTS.md` (layout table) says all three are now directories of one repository; `Change Logs/CHANGE_NOTES_REPOSITORY_MERGE_2026-10-15.md` records the merge. The environment variables it names do exist: `MW_CREDIT_APP_ROOT` in `scripts/database/Common.ps1`, `scripts/Enter-Dev.ps1`, `project/scripts/database_location.py`; `MW_DB_TOOL_ROOT` in `project/scripts/README.md` and `Development_Workflow.md`. `database/README.md` and `AGENTS.md` do not link to OWNERSHIP.md (only two old change notes and `project/outputs/r052-pwa/checkpoint-2a-design.md:63` do).
-- **Impact**: Reads as if a code move is still pending. The only still-useful content is the two env-var sentences.
-- **Recommendation**: Move those two sentences into `database/README.md` and delete `OWNERSHIP.md`. Old change notes that cite it stay valid through Git history.
+#### DB-DOC-05 `database/OWNERSHIP.md` describes three repositories that are now one
+- **Type**: doc
+- **Severity**: S4
+- **Confidence**: confirmed
+- **Evidence**: `database/OWNERSHIP.md:3` "MW-Credit-App owns migrations … AppSheet-Loan-Project owns project coordination … MW-Integration-Agent owns the separate agent runtime"; `:9` "Remaining implementation-code moves are separate owner-directed work." Root `AGENTS.md` layout table and `Change Logs/CHANGE_NOTES_REPOSITORY_MERGE_2026-10-15.md` record the merge. Only `Change Logs/CHANGE_NOTES_DATABASE_OWNERSHIP_2026-10-07.md:9` and `project/outputs/r052-pwa/checkpoint-2a-design.md:63` link to it; `database/README.md` and `AGENTS.md` do not. The two env-var facts it holds (`MW_CREDIT_APP_ROOT`, `MW_DB_TOOL_ROOT`) are real: `scripts/database/Common.ps1`, `project/scripts/database_location.py`, `project/scripts/README.md`.
+- **Impact**: Reads as if a code move is still pending.
+- **Recommendation**: Move the env-var sentence into `database/README.md`; delete `OWNERSHIP.md`.
+- **Effort**: S
+- **Needs**: none
 
----
+#### DB-DOC-06 Pre-merge "three repositories" wording survives in three current references
+- **Type**: doc
+- **Severity**: S4
+- **Confidence**: confirmed
+- **Evidence**: `project/Documents/Solution_Design.md:34` "This repository owns coordination/business references; MW-Credit-App owns PWA/API/SQL/infrastructure; MW-Integration-Agent owns Debian." `project/Documents/Data Dictionary/systems/postgresql/README.md:3` "MW-Credit-App owns immutable migrations …". `project/Documents/Rules/VM01_Local_Storage.md:27` "From AppSheet-Loan-Project:" introducing the cleanup helper. All three are on the evolving-document or rules list; the merge note is dated the same day as this review.
+- **Impact**: Solution Design is the architecture reference; its ownership paragraph is wrong on the first read after the merge.
+- **Recommendation**: Replace each with directory wording (`root`, `project/`, `integration-agent/`) matching the AGENTS.md layout table; one commit.
+- **Effort**: S
+- **Needs**: none
 
 ## Summary
 
@@ -164,8 +192,8 @@ Merged by the orchestrator from Agent D — Delivery and Documentation (Claude S
 | S1 | 0 |
 | S2 | 2 |
 | S3 | 19 |
-| S4 | 23 |
-| Total | 44 |
+| S4 | 24 |
+| Total | 45 |
 
 Confidence: 34 confirmed, 3 likely (DB-ACCESS-01 DEV-confirmed/PROD unread, DB-ACCESS-06, DB-LOCK-01), 2 mixed (DB-ACCESS-07 and DB-PERF-01: fact confirmed, cause/exposure likely), 0 hypothesis.
 
