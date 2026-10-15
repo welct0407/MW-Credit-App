@@ -8,7 +8,7 @@ Read [AGENTS.md](../AGENTS.md) first, then only the reference needed for the tas
 
 ## 2. Evolving project documents — Documents
 
-Keeping this entire set current is a required part of each development batch under the [documentation maintenance step](Rules/Development_Workflow.md#required-documentation-maintenance). Review coverage of the full index and update every affected existing reference before completion; unchanged facts need no cosmetic edits. Update each fact in its owning document; Git retains superseded versions. No new document may be created without explicit owner approval, including a new log, report, release record or export copy.
+Keeping this entire set current is a required part of each development batch under the [documentation maintenance step](Rules/Development_Workflow.md#required-documentation-maintenance). Review coverage of the full index and update every affected existing reference before completion; unchanged facts need no cosmetic edits. Update each fact in its owning document; Git retains superseded versions. Optional new documents need explicit owner approval. Required technical records for an authorized deployment/migration, including release manifests and recovery/deployment receipts, need no separate approval.
 
 | Current information | Reference |
 | --- | --- |

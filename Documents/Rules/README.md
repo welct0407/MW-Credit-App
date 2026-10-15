@@ -2,7 +2,7 @@
 
 These documents prescribe how work must be performed. Follow them together with [AGENTS.md](../../AGENTS.md) until deliberately revised under owner direction. They are stable instructions, not a development journal. Keep release progress, current deployments, implementation facts and test results in the [evolving project documents](../README.md) or their owning evidence records.
 
-Every development batch must keep the entire evolving-document set current through the [required maintenance step](Development_Workflow.md#required-documentation-maintenance). Update affected existing documents; create no new document without explicit owner approval.
+Every development batch must keep the entire evolving-document set current through the [required maintenance step](Development_Workflow.md#required-documentation-maintenance). Update affected existing documents. Optional new documents need explicit owner approval; required technical deployment/migration records are covered by the instruction to perform that work and need no second approval.
 
 | Rule or procedure | Reference |
 | --- | --- |

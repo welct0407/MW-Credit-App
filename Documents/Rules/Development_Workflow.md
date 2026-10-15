@@ -33,10 +33,10 @@ Use the approved Secret Manager/unattended identity route before requesting huma
 
 - Implement in the owning repository against the affected DEV or disposable path. No new live environment or copy for every change.
 - Automatically use the [six-agent PWA process](PWA_Orchestration.md#six-agent-development-process) and [model mapping](Model_Work_Mapping.md) for product development, without another delegation request. Assign bounded work in waves, preserve one writer per surface, and use proportional checks with reusable results. Documentation-only/read-only tasks may use fewer roles; honor explicit personal-execution requests.
-- Promote only the tested source/artifact/configuration under existing scoped authority. Hosting, Cloud Run, worker package and SQL are separate components; change only those required.
+- Treat the owner's instruction to move/deploy/promote the scoped work to production as its approval, including required tested SQL migrations and technical delivery records. Do not ask again per phase, migration or record. Promote only the tested source/artifact/configuration; Hosting, Cloud Run, worker package and SQL are separate components, so change only those required.
 - Preserve current native scheduler ownership and environment isolation. Do not disable existing business operation merely for a source/doc edit.
 - Recover with pinned native artifacts and the [recovery runbook](Release_Recovery_Runbook.md). A rollback does not reverse accepted payments or messages.
-- Complete the required documentation maintenance step below before closing the batch. Reuse existing records; creating a new document requires explicit owner approval.
+- Complete the required documentation maintenance step below before closing the batch. Reuse existing records; optional new documents require approval, while required deployment/migration records are covered by the authorized task.
 
 ## Required documentation maintenance
 
@@ -61,9 +61,11 @@ Agent D owns this maintenance step for the six-agent process, obtaining facts fr
 
 ### New documents require owner approval
 
-Update existing documents by default. Do not create a new document in any repository, folder, format or external destination without explicit owner approval for that document. This includes change logs, plans, handoffs, reports, checklists, release records/manifests, dictionary document files and new export copies. A template, tool, development request, delegated assignment or release/publication approval is not document-creation approval. An explicit owner request to create the particular document is sufficient; do not ask again when that approval already exists.
+Update existing documents by default. Optional new documents, including additional logs, plans, handoffs, reports, dictionary document files and export copies, require explicit owner approval. An explicit owner request to create a particular document is sufficient; do not ask again when that approval already exists.
 
-If no existing document can hold required information, prepare the proposed path/title, purpose and content in chat or an existing record, then request approval before creating it. Continue independent authorized work while waiting. If a validator requires a missing document/manifest, leave that dependent step pending; never bypass the validator or claim completion. Updating an existing generated snapshot is permitted; a missing snapshot or differently named copy requires creation approval. Keep rules in Rules and ongoing facts in Documents.
+Required technical records for an authorized DEV or PROD deployment/migration are an explicit exception: create or update the minimal promotion package/checklist, tested SQL manifest, backup/recovery metadata, maintenance-permission/restoration record, isolation preflight, deployment receipt and required verification/cleanup evidence without separate approval. The deployment/migration instruction already approves these necessary records, including private tool-generated JSON files and their containing backup directories. Preserve private-storage and validation requirements; do not pause an authorized migration merely because its runner must create a record.
+
+For an optional new document outside that exception, prepare the proposed path/title, purpose and content in chat or an existing record, then request approval before creation. Continue independent authorized work while waiting. Updating an existing generated dictionary snapshot is permitted; a new dictionary export copy still needs approval. Keep rules in Rules and ongoing facts in Documents. Production scope, safeguards and when to ask about a real scope expansion are defined in [AGENTS](../../AGENTS.md#authority-data-and-recovery).
 
 ## Debian runtime and deployment boundaries
 

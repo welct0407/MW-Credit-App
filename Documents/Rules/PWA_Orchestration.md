@@ -21,7 +21,7 @@ Exact models/efforts live only in [Model Work Mapping](Model_Work_Mapping.md). N
 1. The orchestrator reads current scope, release and affected instructions, then assigns A the design/test approach, E the affected user flows and F the infrastructure impact. Keep established design decisions; each review can be short.
 2. B implements the agreed batch. D handles independent tooling/records/delivery preparation. F owns infrastructure changes when in scope; E supplies actionable UX findings. Give every mutable path/object one writer.
 3. C verifies the completed behavior and B/F fix relevant failures. E checks changed UX where applicable. Reuse valid test evidence; role participation does not require six duplicate test runs or six approval documents.
-4. D completes the [required documentation maintenance](Development_Workflow.md#required-documentation-maintenance), updating every affected evolving document; C checks consistency with implementation/evidence. The orchestrator confirms coverage and closes the existing record/publication. Promotion still requires the existing scoped authority and release procedure. No agent creates a new document without explicit owner approval.
+4. D completes the [required documentation maintenance](Development_Workflow.md#required-documentation-maintenance), updating every affected evolving document; C checks consistency with implementation/evidence. The orchestrator confirms coverage and closes the existing record/publication. The owner's production instruction supplies scoped promotion approval, including required migrations and technical records. Optional new documents still need explicit approval.
 
 Use supported sub-agents in the current conversation, not new user-owned chats or messages to outside agents. Run roles in dependency order and in waves within the available worker limit; six roles need not run simultaneously. Reuse workers for corrections. If a required agent/model is unavailable, disclose the exact limitation once, use an available supported setting or cover that role directly, and record the fallback without claiming an agent ran. Do not stall authorized work or request the same standing delegation approval again.
 
@@ -31,7 +31,7 @@ Use supported sub-agents in the current conversation, not new user-owned chats o
 2. Implement related changes together. Use the smallest useful checks during iteration; fix defects directly without status-only handoff loops.
 3. Run the selected acceptance checks once on the completed batch. Preserve unaffected passes after corrections.
 4. When authorized, deploy only changed components from verified artifacts and perform one bounded deployed smoke.
-5. Update every affected evolving document, verify consistency, record results/limitations in an existing record and publish once. No extra owner checkpoint is needed for existing-document updates; creating any new document requires explicit owner approval.
+5. Update every affected evolving document, verify consistency, record results/limitations and publish once. No extra owner checkpoint is needed for existing-document updates or required records of an authorized deployment/migration; optional new documents require explicit owner approval.
 
 Use the existing change log or continuation note for longer handoffs; no separate batch template is required.
 
@@ -63,7 +63,7 @@ A skipped test is not a pass. A green badge does not prove that required steps e
 
 ## Minimal production promotion
 
-Follow the [release workflow](Release_Workflow.md#promotion) using its single existing compact record. Reuse scoped authorization and actual test/recovery evidence, promote the tested artifact, check the affected deployed behavior and update changed facts. Production payment/push/job execution is not implicit in a UI deployment.
+Follow the [release workflow](Release_Workflow.md#promotion) using its single compact record. “Move to production” is approval to promote the requested scope, including required tested migrations and technical records; do not request a second approval for either. Reuse actual test/recovery evidence, promote the tested artifact, check the affected deployed behavior and update changed facts. Production payment/push/job execution is not implicit in a UI deployment.
 
 No retired app editor, copy, upgrade, branding or source-parity check applies. No database backup for UI-only work. New tables/columns, financial integrity, authentication/access, migration backup and scoped production authority retain the protections in [AGENTS](../../AGENTS.md).
 
@@ -73,7 +73,7 @@ Current CI/runner limitations and implementation follow-up are maintained in [De
 
 ## Records and communication
 
-Use existing change/development records and the existing release record/runner manifest. Complete the full evolving-document coverage check in [Development Workflow](Development_Workflow.md#required-documentation-maintenance), updating every affected reference before completion. Unchanged facts need no cosmetic edits. New documents, including logs, manifests and continuation files, require explicit owner approval; templates and tools do not grant it. Delete obsolete documents; Git retains history. Do not duplicate hash lists.
+Use existing change/development records and reuse release records/runner manifests. Complete the full evolving-document coverage check in [Development Workflow](Development_Workflow.md#required-documentation-maintenance), updating every affected reference before completion. Unchanged facts need no cosmetic edits. Create missing technical delivery records under the authorized deployment/migration; do not ask again for their creation. Optional new documents still require explicit owner approval. Delete obsolete documents; Git retains history. Do not duplicate hash lists.
 
 A handoff normally fits within 300 words: outcome, scope/paths and starting baseline, authority, pins/results, recovery and next action. Review evidence without repeating its checks. Prefer bounded searches, batched reads and meaningful progress updates over unchanged polling. Stop affected workers when the owner stops the task. Routine token/time measurement is optional, never a delivery gate.
 

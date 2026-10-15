@@ -6,7 +6,7 @@ Use the [current Open release](../../Documents/Release_Tracker.md#current-develo
 
 The [compact promotion template](templates/promotion-checklist.md) is the sole promotion record. Reuse an existing release copy; do not regenerate over evidence or add parallel design/batch/checklist files.
 
-Creating any new record or machine-readable manifest requires explicit owner approval for that document. The command below creates a document: run it only after that approval. A template, release number or deployment approval does not grant creation authority. If no record exists, prepare its proposed path, purpose and content in chat or an existing record first; do not bypass required delivery validation while approval is pending.
+The owner's deployment/migration instruction authorizes its required technical records. Reuse existing records; if the required promotion checklist or machine-readable manifest is missing, create it without a second approval using the command below or the owning runner. This also covers necessary private backup/recovery, maintenance/restoration, preflight, deployment and verification receipts. Optional new documents still need approval; do not bypass delivery validation.
 
 `node scripts/releases/checklist.mjs Rnnn outputs/<release>/promotion-checklist.md [affected Documents/path ...]`
 
