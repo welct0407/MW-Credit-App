@@ -12,6 +12,7 @@ Keeping this entire set current is a required part of each development batch und
 
 | Current information | Reference |
 | --- | --- |
+| Project background, overview and roadmap | [Repository README](../README.md) — living entry point at the repository root |
 | Current operation and outstanding work | [Development changes](Development_Changes.md) |
 | Open release and release transitions | [Release tracker](Release_Tracker.md) |
 | Architecture and business behavior | [Solution design](Solution_Design.md), [PWA data model](PWA_Data_Model_Overview.md) |

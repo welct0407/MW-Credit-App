@@ -44,6 +44,7 @@ Documentation is part of development completion, not an optional later task. At 
 
 | Evolving reference | Keep current as development progresses |
 | --- | --- |
+| [Project README](../../README.md) | Project background, capability overview and roadmap milestones; update material changes without duplicating detailed release/runtime records |
 | [Development Changes](../Development_Changes.md) | Current operation, active scope, remaining work, limitations and delivery-tooling status |
 | [Release Tracker](../Release_Tracker.md) | Open/Frozen/Released state, numbering and pending release actions; change state only at the authorized transition |
 | [Solution Design](../Solution_Design.md) | Implemented architecture, component ownership and business meaning |
