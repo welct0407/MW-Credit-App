@@ -9,3 +9,15 @@
 **Remaining.** The first live invoke needs an Azure login with start/deallocate rights, run from a host other than VM-01 when starting it. The Phase 4 runner, serialization/reconciliation and controller retirement are not done.
 
 **Recovery.** Revert the commit. The actions hold no state.
+
+## Cloud-session Azure access
+
+**Purpose.** Owner choice: let the Claude Code cloud environment authenticate to Azure as the existing `mw-credit-unattended-admin` identity (same roles), keyless, instead of storing an Azure secret.
+
+**Scope.** `infrastructure/unattended-admin/main.tf` adds `azurerm_federated_identity_credential.cloud_executor`, which trusts Google ID tokens for `codex-cloud` (subject `101264312607096935907`, audience `api://AzureADTokenExchange`). The new `scripts/azure-cloud-session.sh` mints the token and runs a command with OIDC `ARM_*` variables. The root README and environment inventory are updated.
+
+**Checks.** `terraform fmt`/`validate` pass with the committed lockfile, and `bash -n` passes. The wrapper mints a token with the expected issuer, audience and subject. Entra token exchange before apply returns AADSTS70025 (no federated credential yet), which confirms reachability and the target.
+
+**Remaining.** One owner-run apply of `unattended-admin` from VM-01 (`Invoke-UnattendedAdmin.ps1`). Then verify one exchange from a cloud session.
+
+**Recovery.** Remove the federated credential (Terraform) and revert the commit.
