@@ -24,7 +24,8 @@ foreach($proofTarget in @(85,86)){
 Write-Host "Independent pure production transaction contract: $proofCount cases passed. No connection, mutation or credential read."
 
 $proof89=$proofPreflight.Clone();$proof89.baselineVersion=89
-$proof90=@(Assert-ProductionTransactionPackage -MigrationRoot $proofRoot -Manifest $proofAllManifest -BaselineVersion 89 -TargetVersion 90 -Preflight ([pscustomobject]$proof89) -Now $proofNow)
+$proof90Manifest=@($proofAllManifest | Where-Object {$_.name -match '^V([0-9]+)__' -and [int]$Matches[1] -le 90})
+$proof90=@(Assert-ProductionTransactionPackage -MigrationRoot $proofRoot -Manifest $proof90Manifest -BaselineVersion 89 -TargetVersion 90 -Preflight ([pscustomobject]$proof89) -Now $proofNow)
 if(($proof90 -join '|') -ne '-group=true|-mixed=false|-executeInTransaction=true'){throw 'V90 transaction flags missing'}
 $proofV90=@($proofAllManifest | Where-Object name -match '^V90__')[0]
 foreach($case in @(
@@ -39,3 +40,20 @@ foreach($case in @(
  if(-not $rejected){throw 'Unknown baseline or pending scope accepted'}
 }
 Write-Host 'Exact V89-to-V90: 6 additional cases passed.'
+
+$proof91=$proofPreflight.Clone();$proof91.baselineVersion=91
+$proof92=@(Assert-ProductionTransactionPackage -MigrationRoot $proofRoot -Manifest $proofAllManifest -BaselineVersion 91 -TargetVersion 92 -Preflight ([pscustomobject]$proof91) -Now $proofNow)
+if(($proof92 -join '|') -ne '-group=true|-mixed=false|-executeInTransaction=true'){throw 'V92 transaction flags missing'}
+$proofV92=@($proofAllManifest | Where-Object name -match '^V92__')[0]
+foreach($case in @(
+ @{baseline=90;target=92;manifest=$proofAllManifest},
+ @{baseline=91;target=93;manifest=$proofAllManifest},
+ @{baseline=91;target=92;manifest=@($proofAllManifest)+@($proofV92)},
+ @{baseline=91;target=92;manifest=@($proofAllManifest | Where-Object name -notmatch '^V92__')},
+ @{baseline=91;target=92;manifest=@($proofAllManifest)+@(@{name='V93__unexpected.sql'})}
+)){
+ $rejected=$false
+ try{Assert-ProductionTransactionPackage -MigrationRoot $proofRoot -Manifest $case.manifest -BaselineVersion $case.baseline -TargetVersion $case.target -Preflight ([pscustomobject]$proof91) -Now $proofNow | Out-Null}catch{$rejected=$true}
+ if(-not $rejected){throw 'R062 wrong baseline, duplicate, missing or additional pending migration accepted'}
+}
+Write-Host 'Exact V91-to-V92: 6 additional cases passed. No connection or mutation.'
