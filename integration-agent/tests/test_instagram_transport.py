@@ -95,6 +95,41 @@ class InstagramTransportTests(unittest.TestCase):
         self.assertEqual(messages[0]["text"], "hello")
         self.assertAlmostEqual(messages[0]["timestamp"], now, places=3)
 
+    def test_deleted_messages_are_skipped_and_counted(self):
+        now = time.time()
+        event = {"sender": {"id": "456"}, "recipient": {"id": "123"}, "timestamp": now * 1000}
+        payload = {"object": "instagram", "entry": [{"id": "123", "messaging": [
+            dict(event, message={"mid": "m1", "text": "hello"}),
+            dict(event, message={"mid": "m1", "is_deleted": True}),
+            dict(event, message={"mid": "m2", "is_deleted": True}),
+        ]}]}
+        stats = {}
+        messages = extract_messages(payload, "123", now + 1, stats=stats)
+        self.assertEqual([m["message_id"] for m in messages], ["m1"])
+        self.assertEqual(stats, {"deleted": 2, "late": 0, "future": 0})
+
+    def test_late_and_future_messages_are_quarantined_not_dropped(self):
+        now = 1_800_000_000.0
+        def event(mid, stamp):
+            return {"sender": {"id": "456"}, "recipient": {"id": "123"}, "timestamp": stamp * 1000,
+                    "message": {"mid": mid, "text": "synthetic"}}
+        payload = {"object": "instagram", "entry": [{"id": "123", "messaging": [
+            event("fresh", now - 86400), event("late", now - 86401), event("future", now + 1)]}]}
+        stats = {}
+        messages = extract_messages(payload, "123", now, stats=stats)
+        self.assertEqual({m["message_id"]: m["quarantine"] for m in messages}, {"fresh": "", "late": "LATE", "future": "FUTURE"})
+        self.assertEqual(stats, {"deleted": 0, "late": 1, "future": 1})
+        with tempfile.TemporaryDirectory() as directory:
+            journal = IngressJournal(Path(directory) / "ingress.db")
+            # The SQLite journal has no work table: quarantined messages are counted, not stored.
+            self.assertEqual(journal.capture("payload", messages, stats=stats), (True, 1))
+            self.assertEqual([m["message_id"] for m in journal.latest()], ["fresh"])
+            journal.close()
+
+    def test_receiver_handler_has_socket_timeout(self):
+        from mw_integration_agent.server import handler
+        self.assertEqual(handler("/nonexistent/config.json").timeout, 15)
+
     def test_journal_deduplicates_receipts_and_messages(self):
         with tempfile.TemporaryDirectory() as directory:
             journal = IngressJournal(Path(directory) / "ingress.db")

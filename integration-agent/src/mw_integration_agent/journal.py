@@ -39,9 +39,12 @@ class IngressJournal:
             self.db.execute("ALTER TABLE messages ADD COLUMN reply_to TEXT NOT NULL DEFAULT ''")
             self.db.commit()
 
-    def capture(self, payload_sha256: str, messages: list[dict[str, Any]]) -> tuple[bool, int]:
+    def capture(self, payload_sha256: str, messages: list[dict[str, Any]], stats: dict[str, int] | None = None) -> tuple[bool, int]:
+        """``stats`` are the extraction counts (deleted/late/future) for the audit event.
+        Messages carrying a ``quarantine`` reason are held as REVIEW work on PostgreSQL;
+        the SQLite journal has no work table, so they are counted and not stored."""
         if is_postgres(self.db):
-            return self._capture_postgres(payload_sha256, messages)
+            return self._capture_postgres(payload_sha256, messages, stats)
         with self.db:
             cursor = self.db.execute(
                 "INSERT OR IGNORE INTO receipts VALUES (?, ?, ?)",
@@ -49,6 +52,8 @@ class IngressJournal:
             )
             inserted = 0
             for message in messages:
+                if message.get('quarantine'):
+                    continue
                 inserted += self.db.execute(
                     "INSERT OR IGNORE INTO messages (message_id,sender_id,event_timestamp,text,captured_at,status,attachments,reply_to) "
                     "VALUES (?, ?, ?, ?, ?, 'CAPTURED_NO_PROCESSING', ?, ?)",
@@ -57,17 +62,16 @@ class IngressJournal:
                 ).rowcount
         return bool(cursor.rowcount), inserted
 
-    def _capture_postgres(self, payload_sha256, messages):
+    def _capture_postgres(self, payload_sha256, messages, stats=None):
         from datetime import datetime, timezone
         from .audit import begin, event
-        from .config import ConfigurationError
         config = self.db.config
         cutoff = datetime.fromisoformat(config['state_cutover_at']).timestamp()
         with self.db:
             conn = self.db.conn
             receipt = conn.execute('INSERT INTO runtime.ingress_receipts VALUES (%s,%s,%s) ON CONFLICT DO NOTHING',
                                    (payload_sha256,time.time(),len(messages))).rowcount
-            inserted = 0
+            inserted = quarantined = mismatched = 0
             for message in messages:
                 values = (message['message_id'], message['sender_id'], message['timestamp'], message['text'],
                           json.dumps(message.get('attachments',[])), message.get('reply_to',''))
@@ -79,14 +83,21 @@ class IngressJournal:
                         FROM runtime.ingress_messages WHERE message_id=%s''',(values[0],)).fetchone()
                     # Attachment URLs can legitimately be refreshed by Meta. Identity,
                     # text, timestamp and reply correlation may never change on retry.
+                    # A mismatch quarantines still-pending work for review and is counted;
+                    # it must not fail the whole delivery (Meta would retry it forever).
                     if not old or tuple(old[:4])+tuple(old[5:]) != values[:4]+values[5:]:
-                        raise ConfigurationError('INGRESS_DUPLICATE_CONTENT_MISMATCH')
+                        mismatched += 1
+                        conn.execute("UPDATE runtime.ingress_work SET state='REVIEW',updated_at=clock_timestamp() "
+                                     "WHERE message_id=%s AND state='PENDING'",(values[0],))
                 else:
+                    state = 'REVIEW' if values[2] < cutoff or message.get('quarantine') else 'PENDING'
+                    quarantined += state == 'REVIEW'
                     conn.execute('INSERT INTO runtime.ingress_work(message_id,state,eligible_at) VALUES (%s,%s,%s)',
-                        (values[0], 'REVIEW' if values[2] < cutoff else 'PENDING',datetime.now(timezone.utc)))
+                        (values[0], state, datetime.now(timezone.utc)))
                 inserted += n
             op = begin(conn,config,'ingress',payload_sha256,plan={'payload_sha256':payload_sha256,'message_count':len(messages)})
-            event(conn,op,'ingress_accepted' if receipt else 'ingress_duplicate',{'inserted':inserted},state='COMPLETED')
+            event(conn,op,'ingress_accepted' if receipt else 'ingress_duplicate',
+                  {'inserted':inserted,'quarantined':quarantined,'content_mismatch':mismatched,**(stats or {})},state='COMPLETED')
         return bool(receipt), inserted
 
     def latest(self, limit: int = 10) -> list[dict[str, Any]]:
