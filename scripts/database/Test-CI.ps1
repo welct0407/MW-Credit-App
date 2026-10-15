@@ -49,6 +49,8 @@ if($LASTEXITCODE){throw 'Phase 5 populated journal and operation integration che
 if($LASTEXITCODE){throw 'Phase 5 populated anchor compatibility checks failed'}
 & "$PSScriptRoot/../../tests/integration/Run-Phase5.ps1" -ManagementOnly
 if($LASTEXITCODE){throw 'Phase 6 management integration checks failed'}
+& "$PSScriptRoot/../../tests/integration/Run-Phase5.ps1" -SettingsOnly
+if($LASTEXITCODE){throw 'V92 editable settings integration checks failed'}
 
 # R053 covers request-driven push, V89 agent RPCs and true three-owner restoration.
 & "$PSScriptRoot/../../tests/integration/Run-Phase8.ps1" -R053

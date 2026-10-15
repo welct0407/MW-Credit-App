@@ -32,7 +32,7 @@ test('V90 prepares only journal authority and restores the exact closed tuple af
  await assert.rejects(restoreR053Maintenance(c,config,bad,{apply:true}),/Invalid R053/);
 });
 test('V90 refuses changed or failed history and broad maintenance before writes',async()=>{
- for(const options of [{version:87},{version:90},{failed:1}]){const c=fixture(options);await assert.rejects(prepareR053Maintenance(c,config,{conversationOnly:true,apply:true}),/V89 maintenance baseline/);assert(!c.statements.includes('BEGIN'));}
+ for(const options of [{version:87},{version:90},{failed:1}]){const c=fixture(options);await assert.rejects(prepareR053Maintenance(c,config,{conversationOnly:true,apply:true}),/Exact successful journal maintenance baseline required/);assert(!c.statements.includes('BEGIN'));}
  for(const options of [{},{includeAgentReceipts:true},{conversationOnly:true,includeAgentReceipts:true}]){const c=fixture();await assert.rejects(prepareR053Maintenance(c,config,{...options,apply:true}),/journal-only|exclusive/);assert(!c.statements.includes('BEGIN'));}
  const c=fixture();await assert.rejects(prepareR053Maintenance(c,{...config,productionAuthorization:{...config.productionAuthorization,targetVersion:91}},{conversationOnly:true}),/guarded PROD/);assert.equal(c.statements.length,0);
 });

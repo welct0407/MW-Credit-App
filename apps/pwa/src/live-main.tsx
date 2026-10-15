@@ -1,3 +1,4 @@
+import {usePreferenceSave} from './preference-save';
 import {Icon} from './Icon';
 import {useMenuDrawer} from './menu-drawer';
 import {startOfflinePreparation,subscribeOfflinePreparation,getOfflinePreparation} from './offline-dataset';
@@ -360,7 +361,10 @@ function App() {
     return <nav className={location === 'mobile-bottom' ? 'live-bottom-nav' : 'live-vertical-nav'} aria-label={t('Workspace navigation', 'เมนูพื้นที่ทำงาน')}>{routes.map(route => <React.Fragment key={route.id}><button aria-label={t(route.en, route.th)} title={t(route.en, route.th)} aria-expanded={route.id==='management'?managementExpanded:undefined} aria-current={view === route.id&&route.id!=='management' ? 'page' : undefined} onClick={() => {if(route.id==='management'){setManagementExpanded(value=>!value);if(!managementExpanded&&location==='desktop')changeView('management')}else {collapseTabletNavigation();changeView(route.id)}}}><span className="live-nav-icon" aria-hidden="true"><Icon name={route.icon}/></span><span className="live-nav-label">{t(route.en, route.th)}{route.id==='management'&&<Icon className="nav-disclosure-icon" name={managementExpanded?'up':'down'}/>}</span></button>{route.id==='management'&&managementExpanded&&managementViews.map(item=><button className="management-nav-item" key={item.id} aria-label={t(item.en,item.th)} title={t(item.en,item.th)} aria-current={view==='management'&&managementSection===item.id?'page':undefined} onClick={()=>{collapseTabletNavigation();setManagementSection(item.id);changeView('management')}}><span className="live-nav-icon" aria-hidden="true"><Icon name={item.icon}/></span><span className="live-nav-label">{t(item.en,item.th)}</span></button>)}</React.Fragment>)}</nav>;
   };
   const chooseLanguage = (value: boolean, compact: boolean) => {
-    languageRevision.current++;setThai(value); document.documentElement.lang = value ? 'th' : 'en';
+    if(preferenceSave.blocked)return;
+    if(value===thai){if(compact){setLanguageChoices(false);languageToggle.current?.focus({preventScroll:true})}return;}
+    const previous=thai,revision=++languageRevision.current,repository=commandAccess?.offline,owner=currentUser.current;setThai(value); document.documentElement.lang = value ? 'th' : 'en';
+    if(commandAccess)void preferenceSave.save({language:value?'ไทย':'English'}).catch(()=>{if(languageRevision.current!==revision||offlineRepositoryRef.current!==repository||currentUser.current!==owner)return;setThai(previous);document.documentElement.lang=previous?'th':'en'});
     if (compact) { setLanguageChoices(false); languageToggle.current?.focus({ preventScroll: true }); }
   };
   function closeSearch() { finishSearchNavigation(); requestAnimationFrame(() => searchToggle.current?.focus()); }
@@ -393,7 +397,7 @@ function App() {
     {status==='ready'&&user&&<WaitingToSyncButton repository={offlineRepository} thai={thai} compact={compact} onClick={()=>menuDrawer.close(()=>setSavedPayments(true))}/>}
     {status==='ready'&&user&&import.meta.env.VITE_NOTIFICATIONS==='enabled'&&<button className="secondary-button" aria-label={t('Notifications','การแจ้งเตือน')} title={t('Notifications','การแจ้งเตือน')} aria-current={view==='notifications'?'page':undefined} onClick={()=>changeView('notifications')}>{compact?<Icon name="notifications"/>:t('Notifications','การแจ้งเตือน')}</button>}
     {compact && <button ref={languageToggle} className="secondary-button live-account-icon" aria-label={t('Language', 'ภาษา')} title={t('Language', 'ภาษา')} aria-expanded={languageChoices} aria-controls="live-language-choices" onClick={() => setLanguageChoices(value => !value)}><Icon name="language"/></button>}
-    {(!compact || languageChoices) && <div ref={compact ? languagePanel : undefined} id={compact ? 'live-language-choices' : undefined} className="language" aria-label={t('Language', 'ภาษา')} role="group" onKeyDown={event => { if (compact && event.key === 'Escape') { event.preventDefault(); setLanguageChoices(false); languageToggle.current?.focus({ preventScroll: true }); } }}><button onClick={() => chooseLanguage(false, compact)} aria-pressed={!thai}>EN</button><button onClick={() => chooseLanguage(true, compact)} aria-pressed={thai}>ไทย</button></div>}
+    {preferenceSave.message&&<p role="status">{preferenceSave.message}</p>}{(!compact || languageChoices) && <div ref={compact ? languagePanel : undefined} id={compact ? 'live-language-choices' : undefined} className="language" aria-label={t('Language', 'ภาษา')} role="group" onKeyDown={event => { if (compact && event.key === 'Escape') { event.preventDefault(); setLanguageChoices(false); languageToggle.current?.focus({ preventScroll: true }); } }}><button disabled={preferenceSave.blocked} onClick={() => chooseLanguage(false, compact)} aria-pressed={!thai}>EN</button><button disabled={preferenceSave.blocked} onClick={() => chooseLanguage(true, compact)} aria-pressed={thai}>ไทย</button></div>}
     {pwa.canonical && <div className="live-pwa-controls">
       {pwa.canInstall && !pwa.standalone && <button className="secondary-button" aria-label={t('Install app', 'ติดตั้งแอป')} title={t('Install app', 'ติดตั้งแอป')} onClick={() => void pwa.install()}>{compact ? <Icon name="install"/> : t('Install app', 'ติดตั้งแอป')}</button>}
       {!pwa.canInstall && !pwa.standalone && <details><summary aria-label={t('Installation help', 'วิธีติดตั้ง')} title={t('Installation help', 'วิธีติดตั้ง')}>{compact ? <Icon name="details"/> : t('Installation help', 'วิธีติดตั้ง')}</summary><p>{t('Use your browser menu to install or Add to Home Screen, if supported.', 'หากเบราว์เซอร์รองรับ ให้ใช้เมนูเพื่อติดตั้งหรือเพิ่มไปยังหน้าจอหลัก')}</p></details>}
@@ -428,6 +432,8 @@ function App() {
     }finally{clearTimeout(timer)}})();
     preparingSync.current={repository,task};try{await task}finally{if(preparingSync.current?.task===task)preparingSync.current=null}
   }
+  const preferenceSave=usePreferenceSave(commandAccess,thai);
+  useEffect(()=>{const language=preferenceSave.pending?.command?.inputs?.language;if(language){languageRevision.current++;setThai(language==='ไทย');document.documentElement.lang=language==='ไทย'?'th':'en'}},[preferenceSave.pending]);
   const latestCommandAccess=useRef(commandAccess);latestCommandAccess.current=commandAccess;
   useEffect(()=>{
     if(!liveOfflineEnabled||status!=='ready'||pwa.startup!=='ready'||!commandAccess?.offline)return;
@@ -435,7 +441,29 @@ function App() {
     return startSavedRequestSync({...initial,prepareSync:()=>{const current=latestCommandAccess.current;if(!current||current.offline!==initial.offline)throw Error('Session unavailable');return current.prepareSync?.()??Promise.resolve()},token:()=>{const current=latestCommandAccess.current;if(!current||current.offline!==initial.offline)throw Error('Session unavailable');return current.token()},authFailure:code=>{const current=latestCommandAccess.current;if(current&&current.offline===initial.offline)current.authFailure(code)}});
   },[user?.uid,offlineRepository,status,pwa.startup]);
   useEffect(()=>{setNotificationPayment(null)},[user?.uid]);
-  useEffect(()=>{if(!user){preferenceOwner.current=null;return;}if(status!=='ready'||!commandAccess?.ownerTesting||!navigator.onLine)return;const applyPreference=preferenceOwner.current!==user.uid;preferenceOwner.current=user.uid;let active=true;const revision=languageRevision.current,done=beginRequest(),controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);void(async()=>{try{const response=await fetch(commandAccess.origin+'/api/preferences',{headers:{Authorization:'Bearer '+await commandAccess.token()},signal:controller.signal,cache:'no-store',credentials:'omit',redirect:'error'});if(!active)return;if(response.status===401||response.status===403){commandAccess.authFailure(response.status);return;}if(!response.ok)return;const value=(await response.json()).item?.language;if(!active)return;if(liveOfflineEnabled)await commandAccess.offline?.authorize();if(active&&applyPreference&&revision===languageRevision.current&&['English','ไทย'].includes(value)){setThai(value==='ไทย');document.documentElement.lang=value==='ไทย'?'th':'en';}}catch{}finally{clearTimeout(timer);done()}})();return()=>{active=false;controller.abort()}},[user,status,authRevision]);
+  useEffect(()=>{
+    if(!user){preferenceOwner.current=null;return;}
+    if(status!=='ready'||!commandAccess?.ownerTesting)return;
+    const applyPreference=preferenceOwner.current!==user.uid;preferenceOwner.current=user.uid;
+    let active=true;const revision=languageRevision.current,done=beginRequest(),controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);
+    const current=()=>active&&currentUser.current===user&&offlineRepositoryRef.current===commandAccess.offline&&revision===languageRevision.current;
+    const pendingLanguage=async()=>{const rows=await commandAccess.offline?.list('pending');return rows?.find(row=>row.value.command?.operation==='preference.update')?.value.command.inputs.language};
+    const apply=(language:string|undefined)=>{if(current()&&applyPreference&&['English','ไทย'].includes(language??'')){setThai(language==='ไทย');document.documentElement.lang=language==='ไทย'?'th':'en'}};
+    void(async()=>{try{
+      const saved=await commandAccess.offline?.snapshot<{language:string}>('preference-language');
+      const queued=await pendingLanguage();
+      if(await commandAccess.offline?.authorized())apply(queued??saved?.value.language);
+      const {response,data,fromCache}=await readCachedJson<any>(commandAccess,'/api/preferences',{signal:controller.signal});
+      if(!active||!response.ok)return;
+      // Pending selection may predate this effect or arrive during the read.
+      const latestQueued=await pendingLanguage();
+      const value=latestQueued??(fromCache&&saved?saved.value.language:data.item?.language);
+      if(current()&&!latestQueued&&!fromCache&&['English','ไทย'].includes(value))await commandAccess.offline?.saveSnapshot('preference-language',{charges:[],language:value});
+      if(active&&liveOfflineEnabled&&!fromCache)await commandAccess.offline?.authorize();
+      apply(value);
+    }catch{}finally{clearTimeout(timer);done()}})();
+    return()=>{active=false;controller.abort()};
+  },[user,status,authRevision]);
   return <div className="app-shell live-shell" data-preview-theme={applicationEnvironment} data-pull-phase={refreshPull?.phase} style={{'--workspace-pull':(refreshPull?.distance??0)+'px'} as React.CSSProperties}><div className="workspace">
     <div className="workspace-pull-feedback" role="status" aria-live="polite" aria-atomic="true">{refreshPull&&refreshPull.phase!=='settling'&&<span className={'workspace-pull-cue'+(refreshPull.armed?' armed':'')}><Icon name={refreshPull.phase==='refreshing'||refreshPull.armed?'refresh':'down'}/><span>{refreshPull.phase==='refreshing'?t('Refreshing…','กำลังรีเฟรช…'):refreshPull.armed?t('Release to refresh','ปล่อยเพื่อรีเฟรช'):t('Pull to refresh','ดึงลงเพื่อรีเฟรช')}</span></span>}</div>
     <header ref={topbar} className="topbar">
