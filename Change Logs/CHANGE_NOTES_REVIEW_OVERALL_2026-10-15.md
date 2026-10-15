@@ -733,7 +733,7 @@ Owner decisions needed before the waves start are listed with Needs = owner deci
 | 49 | ALL-MON-01 | overall | S3 | confirmed | risk | M | none | W1 | No alert covers the PWA APIs, the workers or the database's storage and backups |
 | 50 | ALL-PRIV-02 | overall | S3 | confirmed (text); hypothesis (images) | risk | M | owner decision | W1 | Text scan is clean, but images and workbooks are unscanned |
 | 51 | APP-ARCH-01 | app | S3 | confirmed | arch | M | none | W3 | Capability behaviour (`read` vs `command`, `receipt.*`, second partner) is first exercised in PROD. A capabili |
-| 52 | APP-OFFLINE-03 | app | S3 | confirmed | risk | M | schema change | W4 | xmin` per row). The PWA polls every domain every 60 s while visible, plus on focus/online (`offline-dataset.ts |
+| 52 | APP-OFFLINE-03 | app | S3 | confirmed | risk | M | schema change | W4 | Every offline-dataset poll recomputes a source fingerprint on the server; cheap change detector recommended |
 | 53 | APP-TEST-03 | app | S3 | confirmed | risk | M | none | W3 | Money-reading SQL (cash, management financial, position) has no unit or Linux-run test. Regressions show up on |
 | 54 | DB-ACCESS-02 | db | S3 | confirmed | risk | M | owner decision | W3 | The request-id journal, payload-hash check and successor index are enforced only by the Node path. Any process |
 | 55 | DB-ACCESS-07 | db | S3 | confirmed (config), likely (exposure) | risk | M | infra change | W3 | Password roles (`postgres`, `mw_agent_*`, `mw_reviewer_dml`, `metabase_borrower_reader`) are reachable from th |
@@ -765,7 +765,7 @@ Owner decisions needed before the waves start are listed with Needs = owner deci
 | 81 | ALL-ARCH-02 | overall | S3 | likely | arch | M | owner decision | W3 | The agent writes PROD financial tables directly, outside the command API |
 | 82 | ALL-ARCH-03 | overall | S3 | likely | arch | M | infra change | W3 | Three database authentication styles and three secret stores |
 | 83 | APP-PAY-04 | app | S3 | likely | risk | M | none | W1 | Two concurrent receipt operations take the whole pool; other requests wait up to 5 s, then return 503. Likely  |
-| 84 | DB-ACCESS-06 | db | S3 | likely | arch | M | none | W3 | env |
+| 84 | DB-ACCESS-06 | db | S3 | likely | arch | M | none | W3 | SQL guards hard-code IAM principal names, database names and owner role names per environment |
 | 85 | ALL-MON-03 | overall | S3 | hypothesis | risk | S | owner decision | W3 | Metabase on Railway is outside every control in this repository |
 | 86 | AGT-DEPLOY-06 | agent | S4 | confirmed | std | S | none | W2 | Package version never changes |
 | 87 | AGT-DOC-01 | agent | S4 | confirmed | doc | S | none | W6 | Catalogue source pin is two releases old |
