@@ -1,0 +1,40 @@
+{
+  "allSchemasEmpty" : false,
+  "database" : "loan_manager_prod",
+  "exception" : null,
+  "flywayVersion" : "13.6.0",
+  "licenseFailed" : false,
+  "migrations" : [ {
+    "category" : "Versioned",
+    "description" : "existing schema",
+    "executionTime" : 0,
+    "filepath" : "C:\\GitHub\\AppSheet-Loan-Project\\database\\migrations\\V1__existing_schema.sql",
+    "installedBy" : "",
+    "installedOnUTC" : "",
+    "rawVersion" : "1",
+    "shouldExecuteExpression" : null,
+    "state" : "Ignored (Baseline)",
+    "type" : "SQL",
+    "undoFilepath" : "",
+    "undoable" : "No",
+    "version" : "1"
+  }, {
+    "category" : "",
+    "description" : "Verified existing PostgreSQL schema",
+    "executionTime" : 0,
+    "filepath" : "",
+    "installedBy" : "postgres",
+    "installedOnUTC" : "2026-09-15T04:58:50.108267Z",
+    "rawVersion" : "1",
+    "shouldExecuteExpression" : null,
+    "state" : "Baseline",
+    "type" : "BASELINE",
+    "undoFilepath" : "",
+    "undoable" : "No",
+    "version" : "1"
+  } ],
+  "operation" : "info",
+  "schemaName" : "",
+  "schemaVersion" : "1",
+  "timestamp" : "2026-09-15T12:08:02.4084328+07:00"
+}

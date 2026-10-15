@@ -1,0 +1,403 @@
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "reports.mw-credit.com"
+  "kind": "question"
+  "name": "Borrower comparison · click a name for Detail / 289"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r035-borrower-pages/saved-question-definitions.json"
+"content":
+  "key": "p-comparison"
+  "id": 289
+  "name": "Borrower comparison · click a name for Detail"
+  "description": "R035 additive borrower pages. Immutable borrower keys; Bangkok dates; current health from V41/V42. Signed\
+    \ receipts. No AppSheet/financial writes."
+  "display": "table"
+  "type": "question"
+  "dataset_query":
+    "stages":
+    - "template-tags":
+      - "widget-type": "date/all-options"
+        "id": "bp-period"
+        "name": "period"
+        "display-name": "Activity period"
+        "type": "dimension"
+        "dimension":
+        - "field"
+        - "base-type": "type/Date"
+          "lib/uuid": "3f7c95cd-c161-4723-91e7-4204997273fe"
+          "effective-type": "type/Date"
+        - 82
+        "alias": "d.\"Date\""
+      - "type": "text"
+        "id": "bp-population"
+        "name": "population"
+        "display-name": "Population"
+        "default": "All with loan history"
+      "lib/type": "mbql.stage/native"
+      "native": |-
+        WITH clock AS (SELECT public.olap_reporting_date() today), selected AS (SELECT d."Date" FROM (SELECT generate_series(DATE '1900-01-01',DATE '2199-12-31',interval '1 day')::date "Date") d WHERE [[{{period}} --]] d."Date" BETWEEN (SELECT today-30 FROM clock) AND (SELECT today-1 FROM clock)
+        ), bounds AS (SELECT min("Date") starts,max("Date") ends,count(*) days,count(*)>0 AND count(*)=max("Date")-min("Date")+1 AND max("Date")<=(SELECT today FROM clock) valid FROM selected), cohort AS (SELECT p.* FROM bounds b CROSS JOIN LATERAL public.reporting_borrower_period_v1(b.starts,b.ends,[[{{population}} --]] 'All with loan history'
+        ) p WHERE b.valid) SELECT c.borrower_label AS "Borrower",c.active_loans AS "Active loans",c.outstanding_principal AS "Principal ฿",c.principal_share AS "Principal share",c.interest_received AS "Interest ฿",c.principal_issued AS "Principal issued ฿",c.loans_issued AS "Loans issued",coalesce(h.current_health_status,'Unavailable') AS "Current health",c.principal_returned AS "Principal returned ฿",c.loan_count AS "Lifetime loans",c.last_payment_date AS "Last payment",c.borrower_id AS "Borrower ID",b.starts::text AS "Period start",b.ends::text AS "Period end" FROM cohort c LEFT JOIN public.reporting_borrower_payment_health_v1 h USING(borrower_id) CROSS JOIN bounds b ORDER BY c.principal_rank
+    "lib/type": "mbql/query"
+    "database": 2
+  "visualization_settings":
+    "table.pivot": false
+    "table.columns":
+    - "name": "Borrower"
+      "fieldRef":
+      - "field"
+      - "Borrower"
+      - "base-type": "type/Text"
+      "enabled": true
+    - "name": "Active loans"
+      "fieldRef":
+      - "field"
+      - "Active loans"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Principal ฿"
+      "fieldRef":
+      - "field"
+      - "Principal ฿"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Principal share"
+      "fieldRef":
+      - "field"
+      - "Principal share"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Interest ฿"
+      "fieldRef":
+      - "field"
+      - "Interest ฿"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Principal issued ฿"
+      "fieldRef":
+      - "field"
+      - "Principal issued ฿"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Loans issued"
+      "fieldRef":
+      - "field"
+      - "Loans issued"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Current health"
+      "fieldRef":
+      - "field"
+      - "Current health"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Principal returned ฿"
+      "fieldRef":
+      - "field"
+      - "Principal returned ฿"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Lifetime loans"
+      "fieldRef":
+      - "field"
+      - "Lifetime loans"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Last payment"
+      "fieldRef":
+      - "field"
+      - "Last payment"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Borrower ID"
+      "fieldRef":
+      - "field"
+      - "Borrower ID"
+      - "base-type": "type/Text"
+      "enabled": false
+    - "name": "Period start"
+      "fieldRef":
+      - "field"
+      - "Period start"
+      - "base-type": "type/Text"
+      "enabled": false
+    - "name": "Period end"
+      "fieldRef":
+      - "field"
+      - "Period end"
+      - "base-type": "type/Text"
+      "enabled": false
+    "column_settings":
+      "[\"name\",\"Active loans\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Principal ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Principal share\"]":
+        "number_style": "percent"
+        "decimals": 1
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Interest ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Principal issued ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Loans issued\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Principal returned ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Lifetime loans\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+  "result_metadata":
+  - "database_type": "text"
+    "semantic_type": null
+    "lib/deduplicated-name": "Borrower"
+    "lib/original-name": "Borrower"
+    "name": "Borrower"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Borrower"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Borrower"
+    - "base-type": "type/Text"
+    "effective_type": "type/Text"
+    "lib/desired-column-alias": "Borrower"
+    "display_name": "Borrower"
+    "base_type": "type/Text"
+  - "database_type": "int8"
+    "semantic_type": null
+    "lib/deduplicated-name": "Active loans"
+    "lib/original-name": "Active loans"
+    "name": "Active loans"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Active loans"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Active loans"
+    - "base-type": "type/BigInteger"
+    "effective_type": "type/BigInteger"
+    "lib/desired-column-alias": "Active loans"
+    "display_name": "Active loans"
+    "base_type": "type/BigInteger"
+  - "database_type": "numeric"
+    "semantic_type": null
+    "lib/deduplicated-name": "Principal ฿"
+    "lib/original-name": "Principal ฿"
+    "name": "Principal ฿"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Principal ฿"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Principal ฿"
+    - "base-type": "type/Decimal"
+    "effective_type": "type/Decimal"
+    "lib/desired-column-alias": "Principal ฿"
+    "display_name": "Principal ฿"
+    "base_type": "type/Decimal"
+  - "database_type": "numeric"
+    "semantic_type": "type/Share"
+    "lib/deduplicated-name": "Principal share"
+    "lib/original-name": "Principal share"
+    "name": "Principal share"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Principal share"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Principal share"
+    - "base-type": "type/Decimal"
+    "effective_type": "type/Decimal"
+    "lib/desired-column-alias": "Principal share"
+    "display_name": "Principal share"
+    "base_type": "type/Decimal"
+  - "database_type": "numeric"
+    "semantic_type": null
+    "lib/deduplicated-name": "Interest ฿"
+    "lib/original-name": "Interest ฿"
+    "name": "Interest ฿"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Interest ฿"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Interest ฿"
+    - "base-type": "type/Decimal"
+    "effective_type": "type/Decimal"
+    "lib/desired-column-alias": "Interest ฿"
+    "display_name": "Interest ฿"
+    "base_type": "type/Decimal"
+  - "database_type": "numeric"
+    "semantic_type": null
+    "lib/deduplicated-name": "Principal issued ฿"
+    "lib/original-name": "Principal issued ฿"
+    "name": "Principal issued ฿"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Principal issued ฿"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Principal issued ฿"
+    - "base-type": "type/Decimal"
+    "effective_type": "type/Decimal"
+    "lib/desired-column-alias": "Principal issued ฿"
+    "display_name": "Principal issued ฿"
+    "base_type": "type/Decimal"
+  - "database_type": "int8"
+    "semantic_type": null
+    "lib/deduplicated-name": "Loans issued"
+    "lib/original-name": "Loans issued"
+    "name": "Loans issued"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Loans issued"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Loans issued"
+    - "base-type": "type/BigInteger"
+    "effective_type": "type/BigInteger"
+    "lib/desired-column-alias": "Loans issued"
+    "display_name": "Loans issued"
+    "base_type": "type/BigInteger"
+  - "database_type": "text"
+    "semantic_type": null
+    "lib/deduplicated-name": "Current health"
+    "lib/original-name": "Current health"
+    "name": "Current health"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Current health"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Current health"
+    - "base-type": "type/Text"
+    "effective_type": "type/Text"
+    "lib/desired-column-alias": "Current health"
+    "display_name": "Current health"
+    "base_type": "type/Text"
+  - "database_type": "numeric"
+    "semantic_type": null
+    "lib/deduplicated-name": "Principal returned ฿"
+    "lib/original-name": "Principal returned ฿"
+    "name": "Principal returned ฿"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Principal returned ฿"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Principal returned ฿"
+    - "base-type": "type/Decimal"
+    "effective_type": "type/Decimal"
+    "lib/desired-column-alias": "Principal returned ฿"
+    "display_name": "Principal returned ฿"
+    "base_type": "type/Decimal"
+  - "database_type": "int8"
+    "semantic_type": null
+    "lib/deduplicated-name": "Lifetime loans"
+    "lib/original-name": "Lifetime loans"
+    "name": "Lifetime loans"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Lifetime loans"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Lifetime loans"
+    - "base-type": "type/BigInteger"
+    "effective_type": "type/BigInteger"
+    "lib/desired-column-alias": "Lifetime loans"
+    "display_name": "Lifetime loans"
+    "base_type": "type/BigInteger"
+  - "database_type": "date"
+    "semantic_type": null
+    "lib/deduplicated-name": "Last payment"
+    "lib/original-name": "Last payment"
+    "name": "Last payment"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Last payment"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Last payment"
+    - "base-type": "type/Date"
+    "effective_type": "type/Date"
+    "lib/desired-column-alias": "Last payment"
+    "display_name": "Last payment"
+    "base_type": "type/Date"
+  - "database_type": "text"
+    "semantic_type": null
+    "lib/deduplicated-name": "Borrower ID"
+    "lib/original-name": "Borrower ID"
+    "name": "Borrower ID"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Borrower ID"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Borrower ID"
+    - "base-type": "type/Text"
+    "effective_type": "type/Text"
+    "lib/desired-column-alias": "Borrower ID"
+    "display_name": "Borrower ID"
+    "base_type": "type/Text"
+  - "database_type": "text"
+    "semantic_type": null
+    "lib/deduplicated-name": "Period start"
+    "lib/original-name": "Period start"
+    "name": "Period start"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Period start"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Period start"
+    - "base-type": "type/Text"
+    "effective_type": "type/Text"
+    "lib/desired-column-alias": "Period start"
+    "display_name": "Period start"
+    "base_type": "type/Text"
+  - "database_type": "text"
+    "semantic_type": null
+    "lib/deduplicated-name": "Period end"
+    "lib/original-name": "Period end"
+    "name": "Period end"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Period end"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Period end"
+    - "base-type": "type/Text"
+    "effective_type": "type/Text"
+    "lib/desired-column-alias": "Period end"
+    "display_name": "Period end"
+    "base_type": "type/Text"
+"evidence":
+  "/content/result_metadata":
+    "reference": "outputs/r035-borrower-pages/README.md"
+    "reason": "R035 additive borrower pages; exact saved definitions and V44 metadata"
+    "state": "value"

@@ -1,0 +1,96 @@
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "reports.mw-credit.com"
+  "kind": "question"
+  "name": "Borrowers Outstanding Principal Contribution / 311"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r037-borrower-contribution/saved.json"
+"content":
+  "key": "principal"
+  "id": 311
+  "name": "Borrowers Outstanding Principal Contribution"
+  "description": "R037. Overall borrower economics; population filter applies, activity date slicer does not. Lifetime rate\
+    \ uses completed Bangkok days and end-of-day outstanding principal. Gross interest before expenses. See chart context\
+    \ and handover."
+  "type": "question"
+  "display": "pie"
+  "dataset_query":
+    "stages":
+    - "template-tags":
+      - "type": "text"
+        "id": "r037-pop"
+        "name": "population"
+        "display-name": "Population"
+        "default": "All with loan history"
+      - "type": "card"
+        "id": "r037-model"
+        "name": "#310"
+        "display-name": "Borrower lifetime economics"
+        "card-id": 310
+      "lib/type": "mbql.stage/native"
+      "native": |-
+        WITH cohort AS (SELECT * FROM {{#310}} m WHERE ([[{{population}} --]] 'All with loan history'
+        ='All with loan history' OR [[{{population}} --]] 'All with loan history'
+        ='Currently active' AND "Has active loan" OR [[{{population}} --]] 'All with loan history'
+        ='Currently inactive' AND NOT "Has active loan")), ranked AS (SELECT *,row_number() OVER(ORDER BY "Principal outstanding" DESC,"Borrower ID") rank FROM cohort WHERE "Principal outstanding">0 AND NOT EXISTS(SELECT 1 FROM cohort WHERE "Principal outstanding" IS NULL OR "Principal outstanding"<0)), grouped AS (SELECT CASE WHEN rank<=9 THEN "Borrower" ELSE 'Others' END label,CASE WHEN rank<=9 THEN "Borrower ID" END id,sum("Principal outstanding") amount,min(rank) rank FROM ranked GROUP BY 1,2) SELECT label AS "Borrower",amount AS "Amount ฿",id AS "Borrower ID" FROM grouped ORDER BY rank
+    "lib/type": "mbql/query"
+    "database": 2
+  "visualization_settings":
+    "pie.slice_threshold": 0
+    "pie.percent_visibility": "inside"
+    "pie.dimension": "Borrower"
+    "pie.show_labels": false
+    "graph.colors":
+    - "#3B82F6"
+    - "#A855F7"
+    - "#D97706"
+    - "#14B8A6"
+    - "#EC4899"
+    - "#6366F1"
+    - "#84A348"
+    - "#9259A3"
+    - "#2A7585"
+    - "#C5CBD9"
+    "pie.metric": "Amount ฿"
+    "pie.show_legend": true
+    "pie.decimal_places": 1
+    "pie.show_total": false
+    "column_settings":
+      "[\"name\",\"Amount ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+    "version": 2
+  "result_metadata":
+  - "name": "Borrower"
+    "database_type": "text"
+    "base_type": "type/Text"
+    "display_name": "Borrower"
+    "field_ref":
+    - "field"
+    - "Borrower"
+    - "base-type": "type/Text"
+  - "name": "Amount ฿"
+    "database_type": "numeric"
+    "base_type": "type/Decimal"
+    "display_name": "Amount ฿"
+    "field_ref":
+    - "field"
+    - "Amount ฿"
+    - "base-type": "type/Decimal"
+  - "name": "Borrower ID"
+    "database_type": "text"
+    "base_type": "type/Text"
+    "display_name": "Borrower ID"
+    "field_ref":
+    - "field"
+    - "Borrower ID"
+    - "base-type": "type/Text"
+"evidence":
+  "/content/visualization_settings":
+    "reference": "outputs/r037-borrower-contribution/saved.json"
+    "reason": "R037 final saved chart definitions including responsive ratio safety"
+    "state": "value"

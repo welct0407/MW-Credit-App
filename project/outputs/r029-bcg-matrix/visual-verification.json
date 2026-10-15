@@ -1,0 +1,60 @@
+{
+  "date": "2026-09-25",
+  "browser": "Chrome Gmail profile; Metabase menu verified welct0407@gmail.com",
+  "dashboard": 3,
+  "tab": 31,
+  "question": 274,
+  "desktop": {
+    "horizontal_line": [
+      43,
+      318.75,
+      743.4,
+      318.75
+    ],
+    "vertical_line": [
+      393.2,
+      625.5,
+      393.2,
+      12
+    ],
+    "midpoint_error_css_px": 0
+  },
+  "mobile": {
+    "viewport": [
+      390,
+      844
+    ],
+    "horizontal_line": [
+      18,
+      112.3438,
+      305.3906,
+      112.3438
+    ],
+    "vertical_line": [
+      161.6953,
+      212.6875,
+      161.6953,
+      12
+    ],
+    "midpoint_error_css_px": 5e-05,
+    "rendered_borrower_markers": {
+      "Star": 4,
+      "Question Mark": 5,
+      "Cash Cow": 8,
+      "Dog": 6
+    }
+  },
+  "checks": [
+    "Centered cross: four equal rectangular plotting regions",
+    "Explicit top/bottom-left/right labels; shorter mobile labels saved",
+    "Actual borrower point interaction includes original payment score, contribution, schedule, principal, confidence and date",
+    "Companion list contains all23 current active borrowers",
+    "Viewport reset after mobile test"
+  ],
+  "limitations": [
+    "Native chart adapts aspect ratio to available space rather than guaranteeing a square",
+    "Native tooltips also include display-position values; original payment score is separately labeled",
+    "Near-identical points may overlap; complete list remains available"
+  ],
+  "screenshots_published": false
+}

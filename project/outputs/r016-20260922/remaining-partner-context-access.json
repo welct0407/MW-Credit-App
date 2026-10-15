@@ -1,0 +1,38 @@
+[
+  {
+    "relation": "Loan Form Context",
+    "column_name": "Row ID",
+    "data_type": "text",
+    "allowed": false
+  },
+  {
+    "relation": "Loan Form Context",
+    "column_name": "Contributed Capital",
+    "data_type": "money",
+    "allowed": false
+  },
+  {
+    "relation": "Loan Form Context",
+    "column_name": "Outstanding Principal",
+    "data_type": "money",
+    "allowed": false
+  },
+  {
+    "relation": "Loan Form Context",
+    "column_name": "Available Cashpool",
+    "data_type": "money",
+    "allowed": false
+  },
+  {
+    "relation": "Loan Form Context",
+    "column_name": "Partner A Profit Share",
+    "data_type": "numeric",
+    "allowed": false
+  },
+  {
+    "relation": "Loan Form Context",
+    "column_name": "Partner B Profit Share",
+    "data_type": "numeric",
+    "allowed": false
+  }
+]

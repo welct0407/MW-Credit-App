@@ -1,0 +1,403 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "relation"
+  "name": "public.flyway_schema_history"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "flyway_schema_history"
+    "kind": "r"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "d"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,mw_reviewer_dml=r/postgres}"
+    "comment": null
+    "view_definition": null
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "columns":
+    "installed_rank":
+      "schema": "public"
+      "relation": "flyway_schema_history"
+      "name": "installed_rank"
+      "ordinal": 1
+      "data_type": "integer"
+      "type_schema": "pg_catalog"
+      "type_name": "int4"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "version":
+      "schema": "public"
+      "relation": "flyway_schema_history"
+      "name": "version"
+      "ordinal": 2
+      "data_type": "character varying(50)"
+      "type_schema": "pg_catalog"
+      "type_name": "varchar"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "description":
+      "schema": "public"
+      "relation": "flyway_schema_history"
+      "name": "description"
+      "ordinal": 3
+      "data_type": "character varying(200)"
+      "type_schema": "pg_catalog"
+      "type_name": "varchar"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "type":
+      "schema": "public"
+      "relation": "flyway_schema_history"
+      "name": "type"
+      "ordinal": 4
+      "data_type": "character varying(20)"
+      "type_schema": "pg_catalog"
+      "type_name": "varchar"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "script":
+      "schema": "public"
+      "relation": "flyway_schema_history"
+      "name": "script"
+      "ordinal": 5
+      "data_type": "character varying(1000)"
+      "type_schema": "pg_catalog"
+      "type_name": "varchar"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "checksum":
+      "schema": "public"
+      "relation": "flyway_schema_history"
+      "name": "checksum"
+      "ordinal": 6
+      "data_type": "integer"
+      "type_schema": "pg_catalog"
+      "type_name": "int4"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "installed_by":
+      "schema": "public"
+      "relation": "flyway_schema_history"
+      "name": "installed_by"
+      "ordinal": 7
+      "data_type": "character varying(100)"
+      "type_schema": "pg_catalog"
+      "type_name": "varchar"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "installed_on":
+      "schema": "public"
+      "relation": "flyway_schema_history"
+      "name": "installed_on"
+      "ordinal": 8
+      "data_type": "timestamp without time zone"
+      "type_schema": "pg_catalog"
+      "type_name": "timestamp"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": "now()"
+      "collation": null
+      "acl": null
+      "comment": null
+    "execution_time":
+      "schema": "public"
+      "relation": "flyway_schema_history"
+      "name": "execution_time"
+      "ordinal": 9
+      "data_type": "integer"
+      "type_schema": "pg_catalog"
+      "type_name": "int4"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "success":
+      "schema": "public"
+      "relation": "flyway_schema_history"
+      "name": "success"
+      "ordinal": 10
+      "data_type": "boolean"
+      "type_schema": "pg_catalog"
+      "type_name": "bool"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+  "constraints":
+    "flyway_schema_history_description_not_null":
+      "schema": "public"
+      "relation": "flyway_schema_history"
+      "name": "flyway_schema_history_description_not_null"
+      "kind": "n"
+      "definition": "NOT NULL description"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 3
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "flyway_schema_history_execution_time_not_null":
+      "schema": "public"
+      "relation": "flyway_schema_history"
+      "name": "flyway_schema_history_execution_time_not_null"
+      "kind": "n"
+      "definition": "NOT NULL execution_time"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 9
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "flyway_schema_history_installed_by_not_null":
+      "schema": "public"
+      "relation": "flyway_schema_history"
+      "name": "flyway_schema_history_installed_by_not_null"
+      "kind": "n"
+      "definition": "NOT NULL installed_by"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 7
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "flyway_schema_history_installed_on_not_null":
+      "schema": "public"
+      "relation": "flyway_schema_history"
+      "name": "flyway_schema_history_installed_on_not_null"
+      "kind": "n"
+      "definition": "NOT NULL installed_on"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 8
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "flyway_schema_history_installed_rank_not_null":
+      "schema": "public"
+      "relation": "flyway_schema_history"
+      "name": "flyway_schema_history_installed_rank_not_null"
+      "kind": "n"
+      "definition": "NOT NULL installed_rank"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "flyway_schema_history_pk":
+      "schema": "public"
+      "relation": "flyway_schema_history"
+      "name": "flyway_schema_history_pk"
+      "kind": "p"
+      "definition": "PRIMARY KEY (installed_rank)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "flyway_schema_history_script_not_null":
+      "schema": "public"
+      "relation": "flyway_schema_history"
+      "name": "flyway_schema_history_script_not_null"
+      "kind": "n"
+      "definition": "NOT NULL script"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 5
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "flyway_schema_history_success_not_null":
+      "schema": "public"
+      "relation": "flyway_schema_history"
+      "name": "flyway_schema_history_success_not_null"
+      "kind": "n"
+      "definition": "NOT NULL success"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 10
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "flyway_schema_history_type_not_null":
+      "schema": "public"
+      "relation": "flyway_schema_history"
+      "name": "flyway_schema_history_type_not_null"
+      "kind": "n"
+      "definition": "NOT NULL type"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 4
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+  "indexes":
+    "flyway_schema_history_pk":
+      "schema": "public"
+      "relation": "flyway_schema_history"
+      "name": "flyway_schema_history_pk"
+      "definition": "CREATE UNIQUE INDEX flyway_schema_history_pk ON public.flyway_schema_history USING btree (installed_rank)"
+      "unique": true
+      "primary": true
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 1
+      "total_attribute_count": 1
+      "predicate": null
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
+    "flyway_schema_history_s_idx":
+      "schema": "public"
+      "relation": "flyway_schema_history"
+      "name": "flyway_schema_history_s_idx"
+      "definition": "CREATE INDEX flyway_schema_history_s_idx ON public.flyway_schema_history USING btree (success)"
+      "unique": false
+      "primary": false
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 1
+      "total_attribute_count": 1
+      "predicate": null
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
+  "triggers": {}
+  "policies": {}
+  "dependencies": []

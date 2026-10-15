@@ -1,0 +1,31 @@
+[Unit]
+Description=MW read-only borrower matrix
+After=network-online.target cloud-sql-auth-proxy.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=mwcharts
+Group=mwcharts
+WorkingDirectory=/opt/mw-report-charts
+Environment=MW_CHART_CONFIG=/etc/mw-report-charts/config.json
+ExecStart=/opt/mw-report-charts/.venv/bin/gunicorn --bind 127.0.0.1:8011 --workers 1 --threads 4 --timeout 30 --limit-request-line 2048 --limit-request-fields 32 --limit-request-field_size 2048 app:create_app()
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+UMask=0077
+MemoryMax=180M
+CPUQuota=30%
+TasksMax=24
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,45 @@
+{
+  "release": "R046",
+  "scopeFrozenAt": "2026-09-27T05:35:58.976663+00:00",
+  "agentCommit": "70277de90ba77c08a6fc525a844c14c4bc26e648",
+  "businessMigrations": {
+    "V49__payment_receipt_evidence.sql": "b1763fc285347ce7d407ae43ea5c88ca48eae898a24470a30dbdf3462786e738",
+    "V50__receipt_appsheet_root_path.sql": "072ab6cbbe0bdaa15f1cb410b7274c50eb2f52e2a87aafd2dbc992ae170e6888"
+  },
+  "devApps": {
+    "date": "2026-09-27T05:35:58.976663+00:00",
+    "syntheticPayment": "R046-payment",
+    "oltp": {
+      "appId": "500b27b6-884a-41e8-a9ec-df801b0110ad",
+      "version": "1.000095",
+      "rollback": "1.000092",
+      "diagnostics": "No issues found",
+      "imageDimensions": [
+        720,
+        960
+      ],
+      "expandedImage": "passed",
+      "editFormEvidenceControls": "absent",
+      "offlineContent": false
+    },
+    "olap": {
+      "appId": "9f3422be-bc87-4a5a-a42a-67528ee80393",
+      "version": "1.000035",
+      "rollback": "1.000033",
+      "diagnostics": "No issues found",
+      "receiptFieldsHidden": true,
+      "offlineContent": false
+    },
+    "productionAppsChanged": false
+  },
+  "productionAuthorization": "Owner: you may make the changes to prod such as debian vm and SQL DB. only appsheet will be in dev because i have another feature to be added",
+  "appPromotion": "not authorized; pending integrated owner review",
+  "successor": "R047",
+  "businessCommit": "576755ae55f89c6418e0944773196ac4e7ece892",
+  "agentCandidateCorrections": [
+    "837b49301288aaeb93d7fc46fa9c5185dc74514e",
+    "817c9b47a574227874cbfb407aaa08794cb50dac"
+  ],
+  "finalAgentCommit": "817c9b47a574227874cbfb407aaa08794cb50dac",
+  "flywayManifest": "flyway-manifest.json"
+}

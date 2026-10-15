@@ -1,0 +1,71 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "assessment_lab.forecast(p_loans jsonb, p_charges jsonb, p_amount numeric, p_rate numeric, p_asof date, p_start\
+    \ date, p_end date)"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "assessment_lab"
+    "name": "forecast"
+    "arguments": "p_loans jsonb, p_charges jsonb, p_amount numeric, p_rate numeric, p_asof date, p_start date, p_end date"
+    "kind": "f"
+    "arguments_with_defaults": "p_loans jsonb, p_charges jsonb, p_amount numeric, p_rate numeric, p_asof date, p_start date,\
+      \ p_end date"
+    "result": "TABLE(day date, principal numeric, interest numeric, minimum_profit numeric, coverage numeric, margin numeric,\
+      \ contract_outstanding numeric)"
+    "definition": "CREATE OR REPLACE FUNCTION assessment_lab.forecast(p_loans jsonb, p_charges jsonb, p_amount numeric, p_rate\
+      \ numeric, p_asof date, p_start date, p_end date)\n RETURNS TABLE(day date, principal numeric, interest numeric, minimum_profit\
+      \ numeric, coverage numeric, margin numeric, contract_outstanding numeric)\n LANGUAGE sql\n IMMUTABLE\nAS $function$\r\
+      \nWITH loans AS MATERIALIZED (\r\n SELECT * FROM jsonb_to_recordset(p_loans) AS l(id text,kind text,auto boolean,start_date\
+      \ date,due_date date,principal numeric,outstanding numeric,received_interest numeric,daily_interest numeric,fixed_interest\
+      \ numeric,daily_payment numeric,last_charge date)\r\n), charges AS MATERIALIZED (\r\n SELECT * FROM jsonb_to_recordset(p_charges)\
+      \ AS c(loan_id text,charge_date date,principal_due numeric,principal_remaining numeric,amount_remaining numeric)\r\n\
+      ), days AS (SELECT p_start+g AS d FROM generate_series(0,p_end-p_start)g),\r\ndaily AS (\r\n SELECT d,\r\n COALESCE((SELECT\
+      \ sum(outstanding) FROM loans WHERE (auto AND kind='ดอกเบี้ยรายวัน' AND daily_interest<>0) OR (auto AND kind='กำหนดวันชำระ'\
+      \ AND due_date>d)),0) AS revolving_out,\r\n COALESCE((SELECT sum(principal) FROM loans WHERE (auto AND kind='ดอกเบี้ยรายวัน'\
+      \ AND daily_interest<>0) OR (auto AND kind='กำหนดวันชำระ' AND due_date>d)),0) AS revolving_base,\r\n COALESCE((SELECT\
+      \ sum(principal*(start_date-date '2000-01-01')) FROM loans WHERE (auto AND kind='ดอกเบี้ยรายวัน' AND daily_interest<>0)\
+      \ OR (auto AND kind='กำหนดวันชำระ' AND due_date>d)),0) AS revolving_weight,\r\n COALESCE((SELECT sum(outstanding) FROM\
+      \ loans WHERE start_date<=d AND (kind='ผ่อนชำระรายวัน' OR NOT auto OR (kind='ดอกเบี้ยรายวัน' AND daily_interest=0))),0)\
+      \ AS installment_out,\r\n COALESCE((SELECT sum(principal) FROM loans WHERE start_date<=d AND ((kind='ผ่อนชำระรายวัน'\
+      \ AND auto AND due_date>=start_date AND daily_payment>0) OR NOT auto OR (kind='ดอกเบี้ยรายวัน' AND daily_interest=0))),0)\
+      \ AS installment_base,\r\n COALESCE((SELECT sum(floor(principal/(due_date-start_date+1))+CASE WHEN d-start_date+1<=mod(principal,(due_date-start_date+1)::numeric)\
+      \ THEN 1 ELSE 0 END) FROM loans WHERE kind='ผ่อนชำระรายวัน' AND auto AND due_date>=start_date AND daily_payment>0 AND\
+      \ d BETWEEN start_date AND due_date),0)\r\n +COALESCE((SELECT sum(c.principal_due) FROM charges c JOIN loans l ON l.id=c.loan_id\
+      \ WHERE c.charge_date=d AND (NOT auto OR (kind='ดอกเบี้ยรายวัน' AND daily_interest=0))),0) AS contract_due,\r\n COALESCE((SELECT\
+      \ sum(floor(principal/(due_date-start_date+1))+CASE WHEN d-start_date+1<=mod(principal,(due_date-start_date+1)::numeric)\
+      \ THEN 1 ELSE 0 END) FROM loans WHERE kind='ผ่อนชำระรายวัน' AND auto AND due_date>=start_date AND daily_payment>0 AND\
+      \ d BETWEEN start_date AND due_date AND d>COALESCE(last_charge,start_date-1)),0)\r\n +COALESCE((SELECT sum(c.principal_remaining)\
+      \ FROM charges c JOIN loans l ON l.id=c.loan_id WHERE c.charge_date=d AND d>p_asof AND (NOT auto OR (kind='ดอกเบี้ยรายวัน'\
+      \ AND daily_interest=0))),0) AS future_principal,\r\n COALESCE((SELECT sum(daily_payment) FROM loans WHERE kind='ผ่อนชำระรายวัน'\
+      \ AND auto AND due_date>=start_date AND daily_payment>0 AND d BETWEEN start_date AND due_date AND d>COALESCE(last_charge,start_date-1)),0)\r\
+      \n +COALESCE((SELECT sum(c.amount_remaining) FROM charges c JOIN loans l ON l.id=c.loan_id WHERE c.charge_date=d AND\
+      \ d>p_asof AND (NOT auto OR (kind='ดอกเบี้ยรายวัน' AND daily_interest=0))),0) AS future_total,\r\n COALESCE((SELECT\
+      \ sum(received_interest) FROM loans),0)\r\n + COALESCE((SELECT sum(daily_interest) FROM loans WHERE auto AND kind='ดอกเบี้ยรายวัน'),0)*greatest(d-p_asof,0)\r\
+      \n + COALESCE((SELECT sum(fixed_interest) FROM loans WHERE auto AND kind='กำหนดวันชำระ' AND due_date>p_asof AND due_date<=d),0)\
+      \ AS noninstallment_interest\r\n FROM days\r\n), accumulated AS (\r\n SELECT *,sum(future_principal) OVER(ORDER BY d)\
+      \ fp,sum(future_total-future_principal) OVER(ORDER BY d) fi,\r\n greatest(0,installment_base-sum(contract_due) OVER(ORDER\
+      \ BY d)) co FROM daily\r\n), results AS (\r\n SELECT d,revolving_out+greatest(0,installment_out-fp) pr,\r\n noninstallment_interest+fi\
+      \ intr,\r\n p_rate*((d-date '2000-01-01'+1)*revolving_base-revolving_weight+sum(co) OVER(ORDER BY d)) profit,co FROM\
+      \ accumulated\r\n)\r\nSELECT d,pr,intr,profit,pr+p_amount+profit,intr-pr-p_amount-profit,co FROM results ORDER BY d\r\
+      \n$function$\n"
+    "owner": "postgres"
+    "language": "sql"
+    "volatility": "i"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 1000.0
+    "settings": null
+    "acl": null
+    "comment": null
+    "extension": null

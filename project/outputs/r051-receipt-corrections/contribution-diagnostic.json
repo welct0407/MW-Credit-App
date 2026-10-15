@@ -1,0 +1,298 @@
+{
+  "version": 63,
+  "window_reference": "Parent exclusive DEV diagnostic window 2026-10-05; browser paused; root delegated after local rehearsal",
+  "script_sha256": "d71b67bfcc1f0034a7a8c63272f85da9acac7b372802d5315d897c70667d02c1",
+  "private_reference": "r051-contribution-diagnostic-3asc24et",
+  "measurements": {
+    "fresh": [
+      {
+        "mode": "auto",
+        "triggers": [
+          {
+            "Time": 0.171,
+            "Calls": 1,
+            "Relation": "Cash Pool Contributions",
+            "Trigger Name": "RI_ConstraintTrigger_c_18297",
+            "Constraint Name": "appsheet_ref_08"
+          },
+          {
+            "Time": 0.038,
+            "Calls": 1,
+            "Relation": "Cash Pool Contributions",
+            "Trigger Name": "a000_business_history_begin"
+          },
+          {
+            "Time": 0.009,
+            "Calls": 1,
+            "Relation": "Cash Pool Contributions",
+            "Trigger Name": "aa_cashpool_lock"
+          },
+          {
+            "Time": 0.03,
+            "Calls": 1,
+            "Relation": "Cash Pool Contributions",
+            "Trigger Name": "appsheet_blank_refs"
+          },
+          {
+            "Time": 0.006,
+            "Calls": 1,
+            "Relation": "Cash Pool Contributions",
+            "Trigger Name": "expense_allocation_lock"
+          },
+          {
+            "Time": 2.537,
+            "Calls": 1,
+            "Relation": "Cash Pool Contributions",
+            "Trigger Name": "expense_contribution_changed",
+            "Constraint Name": "expense_contribution_changed"
+          },
+          {
+            "Time": 0.012,
+            "Calls": 1,
+            "Relation": "Cash Pool Contributions",
+            "Trigger Name": "mw_agent_capture"
+          },
+          {
+            "Time": 0.089,
+            "Calls": 1,
+            "Relation": "Cash Pool Contributions",
+            "Trigger Name": "zzzz_business_history"
+          },
+          {
+            "Time": 1531.862,
+            "Calls": 1,
+            "Relation": "Cash Pool Contributions",
+            "Trigger Name": "zzzzz_business_history_flush"
+          },
+          {
+            "Time": 0.044,
+            "Calls": 1,
+            "Relation": "Cash Pool Contributions",
+            "Trigger Name": "zzzzzz_business_history_commit",
+            "Constraint Name": "zzzzzz_business_history_commit"
+          }
+        ],
+        "elapsed_ms": 1543.218,
+        "planning_ms": 0.017,
+        "execution_ms": 1534.894
+      },
+      {
+        "mode": "force_generic_plan",
+        "triggers": [
+          {
+            "Time": 0.07,
+            "Calls": 1,
+            "Relation": "Cash Pool Contributions",
+            "Trigger Name": "RI_ConstraintTrigger_c_18297",
+            "Constraint Name": "appsheet_ref_08"
+          },
+          {
+            "Time": 0.047,
+            "Calls": 1,
+            "Relation": "Cash Pool Contributions",
+            "Trigger Name": "a000_business_history_begin"
+          },
+          {
+            "Time": 0.011,
+            "Calls": 1,
+            "Relation": "Cash Pool Contributions",
+            "Trigger Name": "aa_cashpool_lock"
+          },
+          {
+            "Time": 0.056,
+            "Calls": 1,
+            "Relation": "Cash Pool Contributions",
+            "Trigger Name": "appsheet_blank_refs"
+          },
+          {
+            "Time": 0.007,
+            "Calls": 1,
+            "Relation": "Cash Pool Contributions",
+            "Trigger Name": "expense_allocation_lock"
+          },
+          {
+            "Time": 2.544,
+            "Calls": 1,
+            "Relation": "Cash Pool Contributions",
+            "Trigger Name": "expense_contribution_changed",
+            "Constraint Name": "expense_contribution_changed"
+          },
+          {
+            "Time": 0.016,
+            "Calls": 1,
+            "Relation": "Cash Pool Contributions",
+            "Trigger Name": "mw_agent_capture"
+          },
+          {
+            "Time": 0.094,
+            "Calls": 1,
+            "Relation": "Cash Pool Contributions",
+            "Trigger Name": "zzzz_business_history"
+          },
+          {
+            "Time": 1986.235,
+            "Calls": 1,
+            "Relation": "Cash Pool Contributions",
+            "Trigger Name": "zzzzz_business_history_flush"
+          },
+          {
+            "Time": 0.014,
+            "Calls": 1,
+            "Relation": "Cash Pool Contributions",
+            "Trigger Name": "zzzzzz_business_history_commit",
+            "Constraint Name": "zzzzzz_business_history_commit"
+          }
+        ],
+        "elapsed_ms": 1989.563,
+        "planning_ms": 0.025,
+        "execution_ms": 1989.234
+      }
+    ],
+    "late": [
+      {
+        "mode": "auto",
+        "triggers": [
+          {
+            "Time": 0.137,
+            "Calls": 1,
+            "Relation": "Cash Pool Contributions",
+            "Trigger Name": "RI_ConstraintTrigger_c_18297",
+            "Constraint Name": "appsheet_ref_08"
+          },
+          {
+            "Time": 0.056,
+            "Calls": 1,
+            "Relation": "Cash Pool Contributions",
+            "Trigger Name": "a000_business_history_begin"
+          },
+          {
+            "Time": 0.015,
+            "Calls": 1,
+            "Relation": "Cash Pool Contributions",
+            "Trigger Name": "aa_cashpool_lock"
+          },
+          {
+            "Time": 0.041,
+            "Calls": 1,
+            "Relation": "Cash Pool Contributions",
+            "Trigger Name": "appsheet_blank_refs"
+          },
+          {
+            "Time": 0.01,
+            "Calls": 1,
+            "Relation": "Cash Pool Contributions",
+            "Trigger Name": "expense_allocation_lock"
+          },
+          {
+            "Time": 3.337,
+            "Calls": 1,
+            "Relation": "Cash Pool Contributions",
+            "Trigger Name": "expense_contribution_changed",
+            "Constraint Name": "expense_contribution_changed"
+          },
+          {
+            "Time": 0.019,
+            "Calls": 1,
+            "Relation": "Cash Pool Contributions",
+            "Trigger Name": "mw_agent_capture"
+          },
+          {
+            "Time": 0.141,
+            "Calls": 1,
+            "Relation": "Cash Pool Contributions",
+            "Trigger Name": "zzzz_business_history"
+          },
+          {
+            "Time": 1555.839,
+            "Calls": 1,
+            "Relation": "Cash Pool Contributions",
+            "Trigger Name": "zzzzz_business_history_flush"
+          },
+          {
+            "Time": 0.014,
+            "Calls": 1,
+            "Relation": "Cash Pool Contributions",
+            "Trigger Name": "zzzzzz_business_history_commit",
+            "Constraint Name": "zzzzzz_business_history_commit"
+          }
+        ],
+        "elapsed_ms": 1562.472,
+        "planning_ms": 0.054,
+        "execution_ms": 1559.761
+      },
+      {
+        "mode": "force_generic_plan",
+        "triggers": [
+          {
+            "Time": 0.053,
+            "Calls": 1,
+            "Relation": "Cash Pool Contributions",
+            "Trigger Name": "RI_ConstraintTrigger_c_18297",
+            "Constraint Name": "appsheet_ref_08"
+          },
+          {
+            "Time": 0.041,
+            "Calls": 1,
+            "Relation": "Cash Pool Contributions",
+            "Trigger Name": "a000_business_history_begin"
+          },
+          {
+            "Time": 0.009,
+            "Calls": 1,
+            "Relation": "Cash Pool Contributions",
+            "Trigger Name": "aa_cashpool_lock"
+          },
+          {
+            "Time": 0.032,
+            "Calls": 1,
+            "Relation": "Cash Pool Contributions",
+            "Trigger Name": "appsheet_blank_refs"
+          },
+          {
+            "Time": 0.006,
+            "Calls": 1,
+            "Relation": "Cash Pool Contributions",
+            "Trigger Name": "expense_allocation_lock"
+          },
+          {
+            "Time": 1.618,
+            "Calls": 1,
+            "Relation": "Cash Pool Contributions",
+            "Trigger Name": "expense_contribution_changed",
+            "Constraint Name": "expense_contribution_changed"
+          },
+          {
+            "Time": 0.009,
+            "Calls": 1,
+            "Relation": "Cash Pool Contributions",
+            "Trigger Name": "mw_agent_capture"
+          },
+          {
+            "Time": 0.076,
+            "Calls": 1,
+            "Relation": "Cash Pool Contributions",
+            "Trigger Name": "zzzz_business_history"
+          },
+          {
+            "Time": 16183.65,
+            "Calls": 1,
+            "Relation": "Cash Pool Contributions",
+            "Trigger Name": "zzzzz_business_history_flush"
+          },
+          {
+            "Time": 0.014,
+            "Calls": 1,
+            "Relation": "Cash Pool Contributions",
+            "Trigger Name": "zzzzzz_business_history_commit",
+            "Constraint Name": "zzzzzz_business_history_commit"
+          }
+        ],
+        "elapsed_ms": 16190.393,
+        "planning_ms": 0.02,
+        "execution_ms": 16185.641
+      }
+    ]
+  },
+  "remaining_owned_sessions": [],
+  "all_26_table_fingerprints_unchanged": true
+}

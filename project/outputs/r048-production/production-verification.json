@@ -1,0 +1,45 @@
+{
+  "date": "2026-09-29T06:44:30.591Z",
+  "OLTP": {
+    "id": "93844270-6aa5-420b-a960-bcdf08abd357",
+    "version": "3.000260",
+    "mode": "Deployed",
+    "editor": "No issues found",
+    "sqlSources": 22,
+    "devSources": 0,
+    "upcoming": "Seven future date groups with whole-baht sums; nested borrower grouping",
+    "collection": "Today charges then Upcoming Charges Summary (Date/Total Charge), then Upcoming Charges Details; selected borrower five future dates; no ordinary forecast note",
+    "logo": "Correct pink shared Loan Manager logo renders after RC deletion and PROD reload",
+    "receiptStore": "MW Receipt Images PROD",
+    "receiptFolder": "manual-receipts/prod",
+    "companion": "LoanBusinessInsights-975338008",
+    "apiEnabled": true
+  },
+  "OLAP": {
+    "version": "1.100208",
+    "decision": "Unchanged",
+    "mode": "Deployed",
+    "editor": "No issues found",
+    "loadSync": "Passed"
+  },
+  "scheduledGuard": {
+    "expression": "IN(CONTEXT(\"AppName\"), LIST(\"MW-OLTP-DEV-20260919-578763613\", \"LoanManager-975338008-26-08-07\"))",
+    "prodAllowed": true,
+    "rcExcluded": true,
+    "botEnabled": true,
+    "priorRuntimeProof": "outputs/dev-app-refresh-20260919/verification.json"
+  },
+  "financialTestWrites": false,
+  "forcedNotifications": false,
+  "sql": {
+    "version": 55,
+    "four_view_definitions_match_tested_DEV": true,
+    "validation": "production-validate.json"
+  },
+  "rcCleanup": {
+    "deleted_id": "d4bccac6-bc9d-4ba5-ad7d-200d9ba476ba",
+    "internal_name": "MW-OLTP-R048-RC1-578763613",
+    "definition_only": true,
+    "verified": "Exact row opened to confirm UUID; deleted; only canonical PROD and DEV app rows remain. Shared logo renders after PROD reload."
+  }
+}

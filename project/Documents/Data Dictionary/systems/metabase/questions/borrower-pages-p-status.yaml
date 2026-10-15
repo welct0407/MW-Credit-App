@@ -1,0 +1,127 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "metabase",
+    "component": "reports.mw-credit.com",
+    "kind": "question",
+    "name": "Period, population & source / 284",
+    "scope": "production"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r035-borrower-pages/saved-question-definitions.json"
+  },
+  "content": {
+    "key": "p-status",
+    "id": 284,
+    "name": "Period, population & source",
+    "description": "R035 additive borrower pages. Immutable borrower keys; Bangkok dates; current health from V41/V42. Signed receipts. No AppSheet/financial writes.",
+    "display": "table",
+    "type": "question",
+    "dataset_query": {
+      "stages": [
+        {
+          "template-tags": [
+            {
+              "widget-type": "date/all-options",
+              "id": "bp-period",
+              "name": "period",
+              "display-name": "Activity period",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                {
+                  "base-type": "type/Date",
+                  "lib/uuid": "39d0b06e-f44e-4f0e-af8f-5d7ec3288070",
+                  "effective-type": "type/Date"
+                },
+                82
+              ],
+              "alias": "d.\"Date\""
+            },
+            {
+              "type": "text",
+              "id": "bp-population",
+              "name": "population",
+              "display-name": "Population",
+              "default": "All with loan history"
+            }
+          ],
+          "lib/type": "mbql.stage/native",
+          "native": "WITH clock AS (SELECT public.olap_reporting_date() today), selected AS (SELECT d.\"Date\" FROM (SELECT generate_series(DATE '1900-01-01',DATE '2199-12-31',interval '1 day')::date \"Date\") d WHERE [[{{period}} --]] d.\"Date\" BETWEEN (SELECT today-30 FROM clock) AND (SELECT today-1 FROM clock)\n), bounds AS (SELECT min(\"Date\") starts,max(\"Date\") ends,count(*) days,count(*)>0 AND count(*)=max(\"Date\")-min(\"Date\")+1 AND max(\"Date\")<=(SELECT today FROM clock) valid FROM selected), cohort AS (SELECT p.* FROM bounds b CROSS JOIN LATERAL public.reporting_borrower_period_v1(b.starts,b.ends,[[{{population}} --]] 'All with loan history'\n) p WHERE b.valid) SELECT (SELECT starts::text||' → '||ends::text FROM bounds) AS \"Activity dates\",[[{{population}} --]] 'All with loan history'\n AS \"Population\",(SELECT today FROM clock) AS \"Current as of\",to_char(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok','YYYY-MM-DD HH24:MI') AS \"Queried at\",\n CASE WHEN NOT (SELECT valid FROM bounds) THEN 'Choose one continuous range ending today or earlier' WHEN EXISTS(SELECT 1 FROM public.reporting_borrower_activity_daily_v1 WHERE borrower_id IS NULL OR invalid_events>0) OR EXISTS(SELECT 1 FROM cohort WHERE invalid_fact_count>0) THEN 'Incomplete source facts · inspect data' WHEN (SELECT ends FROM bounds)=(SELECT today FROM clock) THEN 'Today provisional · live on refresh' ELSE 'Live on refresh · completed activity dates' END AS \"Status\""
+        }
+      ],
+      "lib/type": "mbql/query",
+      "database": 2
+    },
+    "visualization_settings": {},
+    "result_metadata": [
+      {
+        "name": "Activity dates",
+        "database_type": "text",
+        "base_type": "type/Text",
+        "display_name": "Activity dates",
+        "field_ref": [
+          "field",
+          "Activity dates",
+          {
+            "base-type": "type/Text"
+          }
+        ]
+      },
+      {
+        "name": "Population",
+        "database_type": "varchar",
+        "base_type": "type/Text",
+        "display_name": "Population",
+        "field_ref": [
+          "field",
+          "Population",
+          {
+            "base-type": "type/Text"
+          }
+        ]
+      },
+      {
+        "name": "Current as of",
+        "database_type": "date",
+        "base_type": "type/Date",
+        "display_name": "Current as of",
+        "field_ref": [
+          "field",
+          "Current as of",
+          {
+            "base-type": "type/Date"
+          }
+        ]
+      },
+      {
+        "name": "Queried at",
+        "database_type": "text",
+        "base_type": "type/Text",
+        "display_name": "Queried at",
+        "field_ref": [
+          "field",
+          "Queried at",
+          {
+            "base-type": "type/Text"
+          }
+        ]
+      },
+      {
+        "name": "Status",
+        "database_type": "text",
+        "base_type": "type/Text",
+        "display_name": "Status",
+        "semantic_type": "type/Category",
+        "field_ref": [
+          "field",
+          "Status",
+          {
+            "base-type": "type/Text"
+          }
+        ]
+      }
+    ]
+  }
+}

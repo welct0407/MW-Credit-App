@@ -1,0 +1,12 @@
+{
+  "at": "2026-09-24T12:20:58.195Z",
+  "release": "R025",
+  "successor": "R026",
+  "commit": "3a5c93e4d24a728c54e9ea9e72204bc7227421c1",
+  "authorization": "Owner accepted 8R and requested replacement of tab 8",
+  "backup": "C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r025-collection-monitor/pre-cutover-dashboard.json",
+  "sha256": "09d4d5f8e6cfd57b727760ae939857729d405e04e8958c77cc3b32d136decf4a",
+  "scope": "Promote tab19 to 8 · Collection Monitor; remove tab9 placements; preserve all saved questions, remaining cards and filters",
+  "apps": "Unchanged",
+  "database": "Unchanged"
+}

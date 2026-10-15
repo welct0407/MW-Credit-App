@@ -1,0 +1,30 @@
+{
+  "at": "2026-09-25T10:49:37.993Z",
+  "checks": [
+    {
+      "kind": "active",
+      "status": "completed",
+      "rows": 1,
+      "wallMs": 982,
+      "runningMs": 887,
+      "cached": false
+    },
+    {
+      "kind": "inactive",
+      "status": "completed",
+      "rows": 1,
+      "wallMs": 583,
+      "runningMs": 428,
+      "cached": false
+    },
+    {
+      "kind": "empty",
+      "status": "completed",
+      "rows": 0,
+      "wallMs": 372,
+      "runningMs": 279,
+      "cached": false
+    }
+  ],
+  "passed": true
+}

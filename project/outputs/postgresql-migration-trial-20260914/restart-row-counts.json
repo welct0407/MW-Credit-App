@@ -1,0 +1,60 @@
+{
+  "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+  "database": "loan_manager_prod",
+  "publicIp": "34.21.174.215",
+  "tables": [
+    {
+      "table": "Borrowers",
+      "rows": 0
+    },
+    {
+      "table": "Calendar",
+      "rows": 0
+    },
+    {
+      "table": "Cash Pool Contributions",
+      "rows": 0
+    },
+    {
+      "table": "Charges",
+      "rows": 0
+    },
+    {
+      "table": "Daily Analytics",
+      "rows": 0
+    },
+    {
+      "table": "Loan Assessment",
+      "rows": 0
+    },
+    {
+      "table": "Loans",
+      "rows": 0
+    },
+    {
+      "table": "Partners",
+      "rows": 0
+    },
+    {
+      "table": "Payment Allocations",
+      "rows": 0
+    },
+    {
+      "table": "Payments",
+      "rows": 0
+    },
+    {
+      "table": "Repayments",
+      "rows": 0
+    },
+    {
+      "table": "Settlements",
+      "rows": 0
+    },
+    {
+      "table": "Statistics",
+      "rows": 0
+    }
+  ],
+  "result": "Incomplete transfer observed after copy UI finished; root cause unverified"
+}

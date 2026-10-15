@@ -1,0 +1,67 @@
+[
+  {
+    "table": "Borrowers",
+    "rows": 50,
+    "unchanged": true
+  },
+  {
+    "table": "Calendar",
+    "rows": 0,
+    "unchanged": true
+  },
+  {
+    "table": "Cash Pool Contributions",
+    "rows": 5,
+    "unchanged": true
+  },
+  {
+    "table": "Charges",
+    "rows": 818,
+    "unchanged": true
+  },
+  {
+    "table": "Loan Assessment",
+    "rows": 1,
+    "unchanged": true
+  },
+  {
+    "table": "Loan Assessment SQL Lab",
+    "rows": 1,
+    "unchanged": true
+  },
+  {
+    "table": "Loans",
+    "rows": 92,
+    "unchanged": true
+  },
+  {
+    "table": "Partners",
+    "rows": 2,
+    "unchanged": true
+  },
+  {
+    "table": "Payment Allocations",
+    "rows": 368,
+    "unchanged": true
+  },
+  {
+    "table": "Payments",
+    "rows": 178,
+    "unchanged": true
+  },
+  {
+    "table": "Repayments",
+    "rows": 720,
+    "unchanged": true
+  },
+  {
+    "table": "Settlements",
+    "rows": 2,
+    "unchanged": true
+  },
+  {
+    "table": "Statistics",
+    "rows": 1,
+    "unchanged": true
+  }
+]

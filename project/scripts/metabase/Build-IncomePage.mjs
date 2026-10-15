@@ -1,0 +1,23 @@
+import {read,write} from './ReportingApi.mjs';
+const models=read('models.json'),specs=[];
+const C={income:'#13855B',expense:'#D1495B',balance:'#267DCC',neutral:'#24435A'};
+const F=(m,n)=>['field',n,{'base-type':models[m].columns.find(c=>c.name===n)?.base_type??'type/Decimal'}];
+const sum=(m,f)=>['aggregation-options',['sum',F(m,f)],{name:f,'display-name':f}];
+function settings(dims,metrics){return {'graph.dimensions':dims,'graph.metrics':metrics,'graph.colors':[C.income,C.expense,C.balance],'graph.show_values':true,'graph.show_legend':metrics.length>1,'graph.show_dots':false,'graph.x_axis.title_enabled':false,'graph.y_axis.title_enabled':false,'graph.label_value_formatting':'full',column_settings:Object.fromEntries(metrics.map(f=>[JSON.stringify(['name',f]),{number_style:'decimal',decimals:0,number_separators:'.,',compact:false}]))};}
+function native(key,name,display,select,dims,metrics,extra={}){specs.push({key,name,display,native_select:select,description:'Selected-period result from the shared Income statement period snippet and Daily Income Ledger. Existing FIFO allocation is centralized; no financial write.',settings:{...settings(dims,metrics),...extra}});}
+function model(key,name,m,display,query,dims=[],metrics=[],extra={},date_field){specs.push({key,name,model:m,display,dataset_query:{database:2,type:'query',query:{'source-table':'card__'+models[m].id,...query}},description:date_field?'Selected-period detail from shared reporting models. THB; Bangkok dates.':'Current cash position from the governed Cash Dashboard/Cash Account Balances. Independent of the statement period.',settings:{...settings(dims,metrics),...extra},...(date_field?{date_field}:{})});}
+function scalar(key,title,field,color,current=false){const extra={'scalar.field':field};if(current)model(key,title,'income-statement','scalar',{fields:[F('income-statement',field)]},[],[field],extra);else native(key,title,'scalar',`SELECT "${field}" FROM statement`,[],[field],extra);}
+scalar('income','Operating income','Operating Income',C.income);
+scalar('expenses','Operating expenses','Operating Expenses',C.expense);
+scalar('profit','Net profit','Net Profit',C.income);
+scalar('margin','Average daily net profit','Average Daily Net Profit',C.income);
+native('bridge','Income waterfall · Total = Unsettled Profit','waterfall',`SELECT v.movement AS "Movement",v.amount AS "Amount" FROM statement s CROSS JOIN LATERAL (VALUES (1,'1 · Income',s."Operating Income"),(2,'2 · Expenses',s."Operating Expenses"),(3,'3 · Tommy draw',s."Tommy Draw"),(4,'4 · Lisa draw',s."Lisa Draw")) v(step,movement,amount) ORDER BY step`,['Movement'],['Amount'],{'waterfall.increase_color':C.income,'waterfall.decrease_color':C.expense,'waterfall.total_color':C.balance,'waterfall.show_total':true});
+scalar('tommy','Tommy draw','Tommy Draw',C.expense);scalar('lisa','Lisa draw','Lisa Draw',C.expense);scalar('retained','Unsettled profit','Unsettled Profit',C.balance);
+model('expense-category','Where expenses went · selected period','expenses','row',{breakout:[F('expenses','Expense Category')],aggregation:[sum('expenses','Expense Amount')],'order-by':[['desc',['aggregation',0]]]},['Expense Category'],['Expense Amount'],{'graph.colors':[C.expense]},'Expense Date');
+scalar('cash-pool','Cash pool remaining','Cash Pool Remaining',C.balance);
+scalar('cash-held','Business cash held*','Business Cash Held',C.balance);
+native('holders','Who holds the business cash? · period end','row','SELECT a."Cash Holder ID",a."Cash Holder",CASE WHEN bool_and(a."Current Balance" IS NOT NULL) THEN sum(a."Business Cash Held") END AS "Business Cash Held" FROM statement s JOIN {{model:cash-account-daily}} a ON a."Date"=s."Period End" GROUP BY 1,2 ORDER BY 3 DESC',['Cash Holder'],['Business Cash Held'],{'graph.colors':[C.balance]});
+native('accounts','Cash by account · period end','table','SELECT a."Cash Holder",a."Account",a."Current Balance",a."Business Cash Held",a."Advance Due",a."Balance Status" FROM statement s JOIN {{model:cash-account-daily}} a ON a."Date"=s."Period End" ORDER BY 1,2',[],['Current Balance','Business Cash Held','Advance Due'],{'table.pivot':false});
+native('period','Statement period & cash availability','table','SELECT "Period Start","Period End","Cash Available From","Selection Status","Cash Status" FROM statement',[],[]);
+for(const q of specs.filter(q=>q.display==='scalar'))for(const format of Object.values(q.settings.column_settings))Object.assign(format,{number_style:'currency',currency:'THB',currency_style:'symbol'});
+write('income-questions.json',specs);console.log(`Built ${specs.length} income-page questions with one shared date-period snippet.`);

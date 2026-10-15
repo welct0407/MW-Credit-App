@@ -1,0 +1,185 @@
+{
+  "dashboard_id": 3,
+  "url": "https://reports.mw-credit.com/dashboard/3",
+  "source_id": 2,
+  "collection_id": 5,
+  "tabs": [
+    {
+      "id": 4,
+      "dashboard_id": 3,
+      "name": "1 · Overview",
+      "position": 0,
+      "entity_id": "XNUTfCABMppJ6qAOrGoLc",
+      "created_at": "2026-09-22T10:01:48.177376Z",
+      "updated_at": "2026-09-22T10:01:48.177376Z"
+    },
+    {
+      "id": 5,
+      "dashboard_id": 3,
+      "name": "2 · Cash Analysis",
+      "position": 1,
+      "entity_id": "SBU_laq40VCDEtMPGXRdY",
+      "created_at": "2026-09-22T10:01:48.177376Z",
+      "updated_at": "2026-09-22T10:01:48.177376Z"
+    }
+  ],
+  "cards": {
+    "cash-pool": {
+      "id": 47,
+      "name": "Total Cash Pool",
+      "rows": 1,
+      "date_field": 104,
+      "model": "portfolio"
+    },
+    "principal": {
+      "id": 48,
+      "name": "Outstanding Principal",
+      "rows": 1,
+      "date_field": 104,
+      "model": "portfolio"
+    },
+    "available": {
+      "id": 49,
+      "name": "Available Cash",
+      "rows": 1,
+      "date_field": 104,
+      "model": "portfolio"
+    },
+    "daily-interest": {
+      "id": 50,
+      "name": "Expected Daily Interest",
+      "rows": 1,
+      "date_field": 104,
+      "model": "portfolio"
+    },
+    "mtd": {
+      "id": 51,
+      "name": "Realized Profit MTD",
+      "rows": 1,
+      "date_field": 104,
+      "model": "portfolio"
+    },
+    "projected": {
+      "id": 52,
+      "name": "Projected Monthly Profit",
+      "rows": 1,
+      "date_field": 104,
+      "model": "portfolio"
+    },
+    "account-balance": {
+      "id": 53,
+      "name": "Loan Account Balance",
+      "rows": 1,
+      "date_field": 104,
+      "model": "portfolio"
+    },
+    "utilization": {
+      "id": 54,
+      "name": "Cash Pool Utilization",
+      "rows": 1,
+      "date_field": 104,
+      "model": "portfolio"
+    },
+    "utilization-gauge": {
+      "id": 68,
+      "name": "Cash Pool Utilization · Gauge",
+      "rows": 1,
+      "date_field": 104,
+      "model": "portfolio"
+    },
+    "active-loans": {
+      "id": 55,
+      "name": "Active Loans",
+      "rows": 1,
+      "date_field": 0,
+      "model": "portfolio"
+    },
+    "growth": {
+      "id": 56,
+      "name": "7-Day Profit Growth %",
+      "rows": 1,
+      "date_field": 0,
+      "model": "portfolio"
+    },
+    "profit-30": {
+      "id": 57,
+      "name": "Profit in Past 30 Days",
+      "rows": 1,
+      "date_field": 0,
+      "model": "portfolio"
+    },
+    "interest-paid": {
+      "id": 58,
+      "name": "Interest Paid",
+      "rows": 1,
+      "date_field": 0,
+      "model": "portfolio"
+    },
+    "top-borrower": {
+      "id": 59,
+      "name": "Top Borrower",
+      "rows": 1,
+      "date_field": 0,
+      "model": "portfolio"
+    },
+    "borrower-principal": {
+      "id": 60,
+      "name": "Outstanding Principal by Borrower",
+      "rows": 5,
+      "date_field": 0,
+      "model": "borrower-performance"
+    },
+    "borrower-profit": {
+      "id": 61,
+      "name": "30 Days Profit by Borrower",
+      "rows": 5,
+      "date_field": 0,
+      "model": "borrower-performance"
+    },
+    "daily-principal": {
+      "id": 62,
+      "name": "Daily Outstanding Principal",
+      "rows": 49,
+      "date_field": 82,
+      "model": "daily"
+    },
+    "daily-profit": {
+      "id": 63,
+      "name": "Daily Profit",
+      "rows": 49,
+      "date_field": 82,
+      "model": "daily"
+    },
+    "daily-overdue": {
+      "id": 64,
+      "name": "Daily Overdue Charges (Excluding Today)",
+      "rows": 48,
+      "date_field": 82,
+      "model": "daily"
+    },
+    "composition": {
+      "id": 65,
+      "name": "Loan Account Balance Composition",
+      "rows": 1,
+      "date_field": 104,
+      "model": "portfolio"
+    },
+    "loan-type": {
+      "id": 66,
+      "name": "Outstanding Principal by Loan Type",
+      "rows": 3,
+      "date_field": 95,
+      "model": "loans"
+    },
+    "principal-flows": {
+      "id": 67,
+      "name": "Principal Issued vs Principal Returned",
+      "rows": 49,
+      "date_field": 82,
+      "model": "daily"
+    }
+  },
+  "visual_count": 26,
+  "heading_note_count": 9,
+  "verified_at": "2026-09-22T11:42:43.837Z"
+}

@@ -1,0 +1,332 @@
+[
+  {
+    "file": "systems/appsheet/oltp/slices/borrower-upcoming-5-dates-f8855ce4.yaml",
+    "new": true,
+    "before_sha256": null,
+    "after_sha256": "30681fd1a657fde27c4300bfb4a77789a817c9e46d561279ec28e46f3603bcb6"
+  },
+  {
+    "file": "development/appsheet/r048-upcoming-charges/slice-borrower-upcoming-5-dates-904ab4e3.yaml",
+    "new": false,
+    "before_sha256": "80e2ede5ca080a79651044e56895309e367876e75ed8f84694eec54a09e7bec9",
+    "after_sha256": "c07e2856ddd9bbceaa24f19b19492a79cc9017b48990919296786baeae8f9d38"
+  },
+  {
+    "file": "systems/appsheet/oltp/slices/borrower-upcoming-summary-2dc3a8e2.yaml",
+    "new": true,
+    "before_sha256": null,
+    "after_sha256": "092f3a3a5d0e08bf687b79a3b54bbaab00e06e4e532a839ad2ad8148a04ab40e"
+  },
+  {
+    "file": "development/appsheet/r048-upcoming-charges/slice-borrower-upcoming-summary-8fbc2160.yaml",
+    "new": false,
+    "before_sha256": "ae7585c2e0c33d0b10cbda76467bd5bcd5d753bb4ca22724e9396cde6e934b33",
+    "after_sha256": "79144b253d67f45c94d24c0827372b12f23ed55f6af3ae7da1f5af94794b734f"
+  },
+  {
+    "file": "systems/appsheet/oltp/slices/r008-borrower-commands-f824807a.yaml",
+    "new": false,
+    "before_sha256": "7759c7344b3594f7b34c8db2c2cccfb8ec6d2458b7cca63f09c15bf31e935af2",
+    "after_sha256": "6e86602bd079f61483b433865d1a0ce5880b6a7420426ec50348d691804e5057"
+  },
+  {
+    "file": "development/appsheet/r048-upcoming-charges/slice-r008-borrower-commands-c12162fa.yaml",
+    "new": false,
+    "before_sha256": "16d2aef3e9c90792c8880609524da5f2ceeffe369a3284e696ff5c9f97c1c368",
+    "after_sha256": "b1a3d346b3d014ebdf1fdf4daa10a5f7b929f6b874b314758e4d9e8f5e4ef66e"
+  },
+  {
+    "file": "systems/appsheet/oltp/slices/r008-loan-commands-d83bf86a.yaml",
+    "new": false,
+    "before_sha256": "26971f678c946317e69dfd906a3b77706a1afee0fb6f161c4f3267d685bc84ba",
+    "after_sha256": "5471362e040f2634eeb71568b5cf0eac556b72486317e5c054034ee1496ff976"
+  },
+  {
+    "file": "development/appsheet/r048-upcoming-charges/slice-r008-loan-commands-64b7d81a.yaml",
+    "new": false,
+    "before_sha256": "106b8ce6f279d387b2f6d854492aae30abac05b0995a8fafd7dd963dc0014708",
+    "after_sha256": "63be397e0692396707242bece663908549b3f6acc99ee0941bef32346aca7b78"
+  },
+  {
+    "file": "systems/appsheet/oltp/slices/todays-collection-board.yaml",
+    "new": false,
+    "before_sha256": "53c71aa0347a8a6e96fbc65e3c5e26cbab80449394b4082abee1bb62f8a0080e",
+    "after_sha256": "aa3a0ad0d3a2f3f0128d00bb648c69d5ca46427cce1d3c95bb010ceddc7679a3"
+  },
+  {
+    "file": "development/appsheet/r048-upcoming-charges/slice-todays-collection-board-693c7376.yaml",
+    "new": false,
+    "before_sha256": "5a60c79832cc9de9ce02c85f8908979d90459778e0acb5d80f2f61607e5a8cd1",
+    "after_sha256": "d83f06c8d046e081b0995521f1ed0477135623363138168c8c319971a07056b5"
+  },
+  {
+    "file": "systems/appsheet/oltp/slices/upcoming-charges-7-days-e81b436c.yaml",
+    "new": true,
+    "before_sha256": null,
+    "after_sha256": "70600143e1ba1484f06cbfc5ae8fd6e210ed79626fe40f452fa2612b74ee404f"
+  },
+  {
+    "file": "development/appsheet/r048-upcoming-charges/slice-upcoming-charges-7-days-c4a4d703.yaml",
+    "new": false,
+    "before_sha256": "af78cea3e5f87e19c9af23dc83c6c8315fc7f06d0a5692556a7b320e4eb25720",
+    "after_sha256": "71fc94190ffc44939f7e494bf9169f109b67c7f56a13a921f9f2d8c324b2175f"
+  },
+  {
+    "file": "systems/appsheet/oltp/slices/visible-borrowers.yaml",
+    "new": false,
+    "before_sha256": "ed854d74cb263e3796a8bd1e65a4602dc2e15f8bbbd7d8dbfc58074cbfd7f1f1",
+    "after_sha256": "c29edaf85d844b8f529c4caac08fffa21f80afadb3aee252945027a484181ed3"
+  },
+  {
+    "file": "development/appsheet/r048-upcoming-charges/slice-visible-borrowers-55030ae0.yaml",
+    "new": false,
+    "before_sha256": "32ad30f3520ef225dc8c6660c2ed6ed616446d2d87a326ee362695f99036f011",
+    "after_sha256": "42739483e2ee44682b0bb50d67494323f0fc564df177310aa080150a652ccb93"
+  },
+  {
+    "file": "systems/appsheet/oltp/tables/borrowers.yaml",
+    "new": false,
+    "before_sha256": "93d0c94c31cb5f89407b2c7fcc01d84838a106d5c828805b7a06d21a72fb8931",
+    "after_sha256": "e9794fb4818704d64d629ec98c80e7f3f6816ec7b32f8f6a05dfc980a70b8984"
+  },
+  {
+    "file": "development/appsheet/r048-upcoming-charges/table-borrowers-e30df5aa.yaml",
+    "new": false,
+    "before_sha256": "fb78b04e8afd6a8fb14e43faa94fef3282e894b7e77cf055a5ad501b299e2f1a",
+    "after_sha256": "e936305b1417ee1951310d0a6676d98e07d2879d6deb62c46da87e145e966cff"
+  },
+  {
+    "file": "systems/appsheet/oltp/tables/loans.yaml",
+    "new": false,
+    "before_sha256": "236e956a1c18c66f761305bf7cc111394d717369bca1b99f9bd50af660c3905e",
+    "after_sha256": "527a3a76329a0153069ccde2995f28f2f4e5815a48b33457e2d9e267ed0c24e3"
+  },
+  {
+    "file": "development/appsheet/r048-upcoming-charges/table-loans-3a109e68.yaml",
+    "new": false,
+    "before_sha256": "18ffc0e912dbaea392f3b89cb31a9ce7c3dd27e4f1e79f8e11f7e93ab4959544",
+    "after_sha256": "cbc0d72a548fa69012c62f918403cb36321c1b2412d0d07ce6e6a2a325038f19"
+  },
+  {
+    "file": "systems/appsheet/oltp/tables/upcoming-charge-context-7aabb7b5.yaml",
+    "new": true,
+    "before_sha256": null,
+    "after_sha256": "f598ead320d12ba803904b281ae8d3b8a756b7a3a9fefdf3798e20aebf0e3ffd"
+  },
+  {
+    "file": "development/appsheet/r048-upcoming-charges/table-upcoming-charge-context-0aebc541.yaml",
+    "new": false,
+    "before_sha256": "9b4e92add933e1abe60cefd55d98673e48d1e73c2f14f7b207bd49c318067e45",
+    "after_sha256": "757ebc2c3f663ba9e1c0527e36c169da8b3395859bd3a92c1c65300b163b78a2"
+  },
+  {
+    "file": "systems/appsheet/oltp/tables/upcoming-charge-coverage-0fad4549.yaml",
+    "new": true,
+    "before_sha256": null,
+    "after_sha256": "6a806e968add602b0978f37132b639c7452391b704162a568f930eac6bc6b030"
+  },
+  {
+    "file": "development/appsheet/r048-upcoming-charges/table-upcoming-charge-coverage-303d1d24.yaml",
+    "new": false,
+    "before_sha256": "1227a360b5c126b7ad4f1d9e114bc17dd743cf476406a78d218fae277f95bb3d",
+    "after_sha256": "9df794acec51ce3ab03372550d17e0704bcbf9673bea3d49eb41ca85ceb6412d"
+  },
+  {
+    "file": "systems/appsheet/oltp/tables/upcoming-charge-forecast-0a305802.yaml",
+    "new": true,
+    "before_sha256": null,
+    "after_sha256": "d060bf61fff74f3bf0f6575f942852bb2b585e43c0091e957dc3768cc29e75fe"
+  },
+  {
+    "file": "development/appsheet/r048-upcoming-charges/table-upcoming-charge-forecast-6cc4ac60.yaml",
+    "new": false,
+    "before_sha256": "cc84ef05589dada2fcb4f9d696df8982cfe922f8a896fd51a84e10156bd3ef96",
+    "after_sha256": "ace72cbad9e34a7ea07f896e444e980d369c300595bb376127fc7893bcc0f3f1"
+  },
+  {
+    "file": "systems/appsheet/oltp/tables/upcoming-charge-summary-e285ac6b.yaml",
+    "new": true,
+    "before_sha256": null,
+    "after_sha256": "41380acd93af9c6397e159b21c213e3aa8b60ebe81dd2ca2ef8549873ff464d4"
+  },
+  {
+    "file": "development/appsheet/r048-upcoming-charges/table-upcoming-charge-summary-6d4334ce.yaml",
+    "new": false,
+    "before_sha256": "0b1587cf960ccbe18274957984816bf3cdea9015c97a8707d9d170654f108c44",
+    "after_sha256": "5f14b49597e3595fb6d00293d0008ce71efc89f80011a0664f95eac37de6c9ce"
+  },
+  {
+    "file": "systems/appsheet/oltp/views/borrower-upcoming-charges-inline-82c31093.yaml",
+    "new": true,
+    "before_sha256": null,
+    "after_sha256": "53f7400ddb80a632c24a3126c048ea3d2253f863c4d074f34b6109aa83171bd6"
+  },
+  {
+    "file": "development/appsheet/r048-upcoming-charges/view-borrower-upcoming-charges-inline-04ab3b97.yaml",
+    "new": false,
+    "before_sha256": "9cf4e72762c16b8de70e36169345076c565d5bc337b581f1c5184751046ab784",
+    "after_sha256": "96875f322187e82443a4b06c1ae1488c9b4861141a8c84e5d7801e8035766cbc"
+  },
+  {
+    "file": "systems/appsheet/oltp/views/oltp-upcoming-charge-context-v1-detail-360155c6.yaml",
+    "new": true,
+    "before_sha256": null,
+    "after_sha256": "3a8b05d7f7bbfc8d1e3292754631295d47e8ca8a0072e430988af4dd36554d7d"
+  },
+  {
+    "file": "development/appsheet/r048-upcoming-charges/view-oltp-upcoming-charge-context-v1-detail-591fb23d.yaml",
+    "new": false,
+    "before_sha256": "d6ce8bc6409414ded7fc25ef69e55d109f1eed7812930422e2b884a351e66ed7",
+    "after_sha256": "070ec85491c2f344e15e7c07f8a908c49578e326c2e0ed41b641c63ae922b927"
+  },
+  {
+    "file": "systems/appsheet/oltp/views/oltp-upcoming-charge-coverage-v1-detail-0b2489c9.yaml",
+    "new": true,
+    "before_sha256": null,
+    "after_sha256": "918a7b0785082b5b1d7ebcb791dcec2fce16728f9ee26c4b1181eb199c81a3a5"
+  },
+  {
+    "file": "development/appsheet/r048-upcoming-charges/view-oltp-upcoming-charge-coverage-v1-detail-b1745ddb.yaml",
+    "new": false,
+    "before_sha256": "f9a6e5d8ffba7f0c5477ee4c5e29f1ade2f85d0b5f5e9c0cce1a5a932c61540c",
+    "after_sha256": "0e38861201d3fc63a4e07c4d6642ad3ceea9a2144aa68c6507d6c551bd013308"
+  },
+  {
+    "file": "systems/appsheet/oltp/views/oltp-upcoming-charge-events-v1-detail-e64072e5.yaml",
+    "new": true,
+    "before_sha256": null,
+    "after_sha256": "e403c7411685b76e04c91dd9a960418103816fe645973773b8ee85f7dac66dcd"
+  },
+  {
+    "file": "development/appsheet/r048-upcoming-charges/view-oltp-upcoming-charge-events-v1-detail-2d5a32d6.yaml",
+    "new": false,
+    "before_sha256": "3a7130308b210419252d89d62646e6367996b70af75aac33189cafb882a5cda8",
+    "after_sha256": "29a006667c159d82fe9a78a4ef7a2259ca5f72f44e0021dc1481288998802067"
+  },
+  {
+    "file": "systems/appsheet/oltp/views/oltp-upcoming-charge-summary-v1-detail-a6b54b20.yaml",
+    "new": true,
+    "before_sha256": null,
+    "after_sha256": "14abcb34096b4f43a34574aaf80d95d63f77c8d757f6ffe565d8331a72d5e039"
+  },
+  {
+    "file": "development/appsheet/r048-upcoming-charges/view-oltp-upcoming-charge-summary-v1-detail-2c578ef0.yaml",
+    "new": false,
+    "before_sha256": "ecd30390ce3d813e898ca0b13db0cbc31935c397c6d152c6f3e985026f382835",
+    "after_sha256": "34c4688fc7c7b1ad0e447bab23b16ea0fe1a60afa5b3bc53f56ece209b0b83d0"
+  },
+  {
+    "file": "systems/appsheet/oltp/views/todays-collection-board-detail-df449327.yaml",
+    "new": false,
+    "before_sha256": "66ef6ff2dfc4c736cc1add9d17403e801169f9fbb5c342ae08e02b3c7e8a97be",
+    "after_sha256": "272f420dcaab6ff5dbf1ce9c09e37e9aad49fb8bc0ca5c066325462cfcac3a4e"
+  },
+  {
+    "file": "development/appsheet/r048-upcoming-charges/view-todays-collection-board-detail-7f235450.yaml",
+    "new": false,
+    "before_sha256": "78cca2939577513d215eb6b4fd984c3f3edc3fbf36559cd8cb78a692eac0efb8",
+    "after_sha256": "45f8b5e0e8ed845ba410bff325f18bad233d844a5d6e4f669824eed75bf595a3"
+  },
+  {
+    "file": "systems/appsheet/oltp/views/upcoming-charge-forecast-inline-d12686fb.yaml",
+    "new": true,
+    "before_sha256": null,
+    "after_sha256": "e352cd807760b6bd4a17790233a592e19f7173290a6f49ff4a533ea747cfcf15"
+  },
+  {
+    "file": "development/appsheet/r048-upcoming-charges/view-upcoming-charge-forecast-inline-ee28556b.yaml",
+    "new": false,
+    "before_sha256": "a230b5d9f63d16f91e83f90af8c70fcbad7994758d6bb67f43d8cfc06051facd",
+    "after_sha256": "16046a796438653e671f7b2bd67bc8fe1af0d550376d9cad61258f92d398e075"
+  },
+  {
+    "file": "systems/appsheet/oltp/views/upcoming-charge-summary-inline-3a6d96d6.yaml",
+    "new": true,
+    "before_sha256": null,
+    "after_sha256": "c309deecd0d3fd5e5f5a9d84a24495c302bf81a834bfddda02c3650acc4c5d4e"
+  },
+  {
+    "file": "development/appsheet/r048-upcoming-charges/view-upcoming-charge-summary-inline-45e421ba.yaml",
+    "new": false,
+    "before_sha256": "934411829e9d4872c08f0ba73c15a681c2013989373cc6d64a9f415347a6e6c8",
+    "after_sha256": "596b7c3bcd647dc04478481a0858a8ad4ddf061b80c67b8332c165aae6e3f48c"
+  },
+  {
+    "file": "development/appsheet/r048-upcoming-charges/view-upcoming-charges-by-day-4db854c1.yaml",
+    "new": false,
+    "before_sha256": "e33370bae8e6052ba191b3c2bed4df32e59f777d2172d90e559569a2e99b5cda",
+    "after_sha256": "c6776116f559a04641070edcb8102309b2d21b8b431fd1890deada8a4c423142"
+  },
+  {
+    "file": "systems/appsheet/oltp/views/upcoming-charges-context-de47ee61.yaml",
+    "new": true,
+    "before_sha256": null,
+    "after_sha256": "c8dea566084c2e123aec194b434ff05b01ee819b4155fe9e6d93f8aa625a901e"
+  },
+  {
+    "file": "development/appsheet/r048-upcoming-charges/view-upcoming-charges-context-79cb7d33.yaml",
+    "new": false,
+    "before_sha256": "4237e453e5f3a19819fca087aac59cfe5463dfc78871215ea4c3055ee7a0f9e4",
+    "after_sha256": "a91eab60dae747032de5ff3749a78e8313ada4d515872cc911e2e67a74382fbd"
+  },
+  {
+    "file": "systems/appsheet/oltp/views/upcoming-charges-a2fb237d.yaml",
+    "new": true,
+    "before_sha256": null,
+    "after_sha256": "df94e4b04186c6b3b13ef18ced0e0595b413ef1b2438539466107891a745f17c"
+  },
+  {
+    "file": "development/appsheet/r048-upcoming-charges/view-upcoming-charges-ed15bce3.yaml",
+    "new": false,
+    "before_sha256": "5285085601f396a0006c358e33dcc9b90a5ba5a568245a6f1532091953a02434",
+    "after_sha256": "c89bbb1e3e60961a037c7ceb385ea08f96f146b4ee3da29648148ba20367c148"
+  },
+  {
+    "file": "systems/postgresql/relations/public-oltp-upcoming-charge-context-v1-dd4114ed.yaml",
+    "new": true,
+    "before_sha256": null,
+    "after_sha256": "e62b1b377220f7587149afe23a9eb25db2799c0aaf0d7f161326d6ce6ca0b046"
+  },
+  {
+    "file": "development/postgresql/r048-upcoming-charges/relation-public-oltp-upcoming-charge-context-v1-0675188d.yaml",
+    "new": false,
+    "before_sha256": "dea14687d9ea4bebcdb3b345e46ca1633ded9ba710e5978a3088abab58190a1a",
+    "after_sha256": "de07662114af785a5b965dec3c2cd4994658288db7c058afbdef0cdb748aa5e0"
+  },
+  {
+    "file": "systems/postgresql/relations/public-oltp-upcoming-charge-coverage-v1-bfb6a146.yaml",
+    "new": true,
+    "before_sha256": null,
+    "after_sha256": "e5cd2da38c00c71dfd29c7cba1d15c519560fcfc189286bba7e6e40d8235897c"
+  },
+  {
+    "file": "development/postgresql/r048-upcoming-charges/relation-public-oltp-upcoming-charge-coverage-v1-4b1dcdb4.yaml",
+    "new": false,
+    "before_sha256": "db8055d0b19067d31d56050f8b98ce5bec59b58bce76fbb6c39777cc8deb88b6",
+    "after_sha256": "accec227817220e84bca20f8e2ca636b86827ac02248783643b767cfae2a57df"
+  },
+  {
+    "file": "systems/postgresql/relations/public-oltp-upcoming-charge-events-v1-b5624f56.yaml",
+    "new": true,
+    "before_sha256": null,
+    "after_sha256": "e65b14e158123e806aaa903909ccdc14c25fca61fac84109faf75bb0adbf3ea4"
+  },
+  {
+    "file": "development/postgresql/r048-upcoming-charges/relation-public-oltp-upcoming-charge-events-v1-3dcea65f.yaml",
+    "new": false,
+    "before_sha256": "3babb226cbad9c9ed46564a3fb6f40965b454177ce24cd24c5baf3bfc5d7b0d9",
+    "after_sha256": "868746edee9e02c6099a09bfc9038f2f2d6e03ad1aa36d824c0731f010fcf48e"
+  },
+  {
+    "file": "systems/postgresql/relations/public-oltp-upcoming-charge-summary-v1-890a15fa.yaml",
+    "new": true,
+    "before_sha256": null,
+    "after_sha256": "fb75a57462eb55418d2b5c02fb923882dbe05f01fac63c7fd83bdb51381e7731"
+  },
+  {
+    "file": "development/postgresql/r048-upcoming-charges/relation-public-oltp-upcoming-charge-summary-v1-9bf35f56.yaml",
+    "new": false,
+    "before_sha256": "a46c1747114fb17be8ea4a2bee4a42ba4d7d95fa14fb7db14f9ebb95c060f346",
+    "after_sha256": "d6aa020dbfc461380e46f649e36e2f61c104995957ea38dd3e9d855233dcabc5"
+  }
+]

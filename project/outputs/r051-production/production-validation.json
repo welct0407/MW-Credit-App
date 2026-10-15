@@ -1,0 +1,271 @@
+{
+  "checkedAt": "2026-10-06T19:42:03.487Z",
+  "versions": {
+    "OLTP": "3.000270",
+    "OLAP": "1.100212"
+  },
+  "editorIssues": {
+    "OLTP": 0,
+    "OLAP": 0
+  },
+  "mode": "Deployed",
+  "loadSync": "Passed in standalone current GUI",
+  "changedEntryPoints": [
+    "OLTP Payments",
+    "OLAP Loan Assessment"
+  ],
+  "logoAppearance": "Both original logos visibly loaded; matching pink/teal themes",
+  "scheduledGuard": "Both canonical PROD names allowed; RC1 and RC2 names excluded",
+  "operationalFinancialTestWrites": 0,
+  "forcedNotifications": 0,
+  "OLTP": [
+    {
+      "Data Source": "database-2",
+      "Source Path": "Borrowers",
+      "Store for image and file capture": "_Default",
+      "Table name": "Borrowers"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Loans",
+      "Store for image and file capture": "_Default",
+      "Table name": "Loans"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Repayments",
+      "Store for image and file capture": "_Default",
+      "Table name": "Repayments"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Statistics",
+      "Store for image and file capture": "_Default",
+      "Table name": "Statistics"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Charges",
+      "Store for image and file capture": "_Default",
+      "Table name": "Charges"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Partners",
+      "Store for image and file capture": "_Default",
+      "Table name": "Partners"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Payment Allocations",
+      "Store for image and file capture": "_Default",
+      "Table name": "Payment Allocations"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Payments",
+      "Store for image and file capture": "MW Receipt Images PROD",
+      "Table name": "Payments"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Business Expenses",
+      "Store for image and file capture": "_Default",
+      "Table name": "Business Expenses"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Loan Form Context",
+      "Store for image and file capture": "_Default",
+      "Table name": "Loan Form Context"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Cash Holders",
+      "Store for image and file capture": "_Default",
+      "Table name": "Cash Holders"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Cash Holder Balances",
+      "Store for image and file capture": "_Default",
+      "Table name": "Cash Holder Balances"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Cash Accounts",
+      "Store for image and file capture": "_Default",
+      "Table name": "Cash Accounts"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Cash Statement Context",
+      "Store for image and file capture": "_Default",
+      "Table name": "Cash Statement Context"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Cash Account Daily Summary Recent",
+      "Store for image and file capture": "_Default",
+      "Table name": "Cash Account Daily Summary Recent"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Cash Account Statement Recent",
+      "Store for image and file capture": "_Default",
+      "Table name": "Cash Account Statement Recent"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Cash Account Balances",
+      "Store for image and file capture": "_Default",
+      "Table name": "Cash Account Balances"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Cash Dashboard",
+      "Store for image and file capture": "_Default",
+      "Table name": "Cash Dashboard"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "oltp_upcoming_charge_events_v1",
+      "Store for image and file capture": "_Default",
+      "Table name": "Upcoming Charge Forecast"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "oltp_upcoming_charge_coverage_v1",
+      "Store for image and file capture": "_Default",
+      "Table name": "Upcoming Charge Coverage"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "oltp_upcoming_charge_context_v1",
+      "Store for image and file capture": "_Default",
+      "Table name": "Upcoming Charge Context"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "oltp_upcoming_charge_summary_v2",
+      "Store for image and file capture": "_Default",
+      "Table name": "Upcoming Charge Summary"
+    }
+  ],
+  "OLAP": [
+    {
+      "Data Source": "database-2",
+      "Source Path": "olap_borrowers_analytics",
+      "Store for image and file capture": "_Default",
+      "Table name": "Borrowers"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "olap_loans_analytics",
+      "Store for image and file capture": "_Default",
+      "Table name": "Loans"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "olap_repayments_analytics",
+      "Store for image and file capture": "_Default",
+      "Table name": "Repayments"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Statistics",
+      "Store for image and file capture": "_Default",
+      "Table name": "Statistics"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "olap_charges_analytics",
+      "Store for image and file capture": "_Default",
+      "Table name": "Charges"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Loan Assessment SQL Lab View",
+      "Store for image and file capture": "_Default",
+      "Table name": "Loan Assessment"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Cash Pool Contributions",
+      "Store for image and file capture": "_Default",
+      "Table name": "Cash Pool Contributions"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Partners",
+      "Store for image and file capture": "_Default",
+      "Table name": "Partners"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Settlements",
+      "Store for image and file capture": "_Default",
+      "Table name": "Settlements"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Daily Analytics",
+      "Store for image and file capture": "_Default",
+      "Table name": "Daily Analytics"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Payment Allocations",
+      "Store for image and file capture": "_Default",
+      "Table name": "Payment Allocations"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Payments",
+      "Store for image and file capture": "MW Receipt Images PROD",
+      "Table name": "Payments"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Business Expenses",
+      "Store for image and file capture": "_Default",
+      "Table name": "Business Expenses"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Cash Holders",
+      "Store for image and file capture": "_Default",
+      "Table name": "Cash Holders"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Cash Holder Balances",
+      "Store for image and file capture": "_Default",
+      "Table name": "Cash Holder Balances"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Cash Ledger",
+      "Store for image and file capture": "_Default",
+      "Table name": "Cash Ledger"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "olap_portfolio_summary",
+      "Store for image and file capture": "_Default",
+      "Table name": "Portfolio Summary"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Cash Accounts",
+      "Store for image and file capture": "_Default",
+      "Table name": "Cash Accounts"
+    },
+    {
+      "Data Source": "database-2",
+      "Source Path": "Cash Account Balances",
+      "Store for image and file capture": "_Default",
+      "Table name": "Cash Account Balances"
+    }
+  ]
+}

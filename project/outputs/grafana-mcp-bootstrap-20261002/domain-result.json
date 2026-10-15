@@ -1,0 +1,20 @@
+{
+  "identity": "codex-cloud@clever-oasis-508610-n7.iam.gserviceaccount.com",
+  "project": "clever-oasis-508610-n7",
+  "projectNumber": "737787224638",
+  "command": "gcloud domains list-user-verified",
+  "service": "appengine.googleapis.com",
+  "appEngineApiEnabled": true,
+  "enableOperation": "operations/acat.p2-737787224638-efe3f780-fdbb-4895-ad9e-a3a22b57d8de",
+  "ownershipReadExit": 0,
+  "verifiedDomains": [],
+  "eligibleForMwCreditDomainMapping": false,
+  "mappingAttempted": false,
+  "dnsResourceRecordsGenerated": false,
+  "appEngineApplicationCreated": false,
+  "domainOwnershipDelegated": false,
+  "accessGrantedDuringStep": false,
+  "cloudflareChanged": false,
+  "httpChecksRemainedPaused": true,
+  "nextActor": "Existing human project owner after independently verifying Search Console ownership"
+}

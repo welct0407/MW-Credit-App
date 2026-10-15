@@ -1,0 +1,29 @@
+{
+  "development": {
+    "database": "loan_manager_dev",
+    "host": "34.21.174.215",
+    "instance": "appsheet-pg-prod-20260914",
+    "version": 43,
+    "source_view_hashes": {
+      "olap_borrowers_analytics": "29b0d7cd822699cedb44d65c77509a5928066ef463d4d8d14d79a8989dac7e41",
+      "reporting_borrower_matrix_v2": "464e1f5e9d3358d2926745f61917c1fb266874bb2c1441799434ac9960eb1914",
+      "reporting_borrower_matrix_v3": "366d480c4f85813efe5c6aa3190d923b2918f43c5ef1e57617c673c29c7c6709",
+      "reporting_borrower_payment_health_v1": "7832cb9aac20851d80ba3a28560e4fe8eb1260ef44c98b086ba8cfb11117a72b",
+      "reporting_borrower_schedule_health_v1": "b641d1ecbc3c83480b0cd72c145ae9743988436bc11db54ef547a2ae2ef0cc06"
+    }
+  },
+  "production": {
+    "database": "loan_manager_prod",
+    "host": "34.21.174.215",
+    "instance": "appsheet-pg-prod-20260914",
+    "version": 42,
+    "source_view_hashes": {
+      "olap_borrowers_analytics": "29b0d7cd822699cedb44d65c77509a5928066ef463d4d8d14d79a8989dac7e41",
+      "reporting_borrower_matrix_v2": "464e1f5e9d3358d2926745f61917c1fb266874bb2c1441799434ac9960eb1914",
+      "reporting_borrower_matrix_v3": "366d480c4f85813efe5c6aa3190d923b2918f43c5ef1e57617c673c29c7c6709",
+      "reporting_borrower_payment_health_v1": "7832cb9aac20851d80ba3a28560e4fe8eb1260ef44c98b086ba8cfb11117a72b",
+      "reporting_borrower_schedule_health_v1": "b641d1ecbc3c83480b0cd72c145ae9743988436bc11db54ef547a2ae2ef0cc06"
+    }
+  },
+  "scope": "New dependent reporting view only; existing definitions match DEV/PROD; no AppSheet-bound source replaced."
+}

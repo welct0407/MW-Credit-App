@@ -1,0 +1,50 @@
+{
+  "at": "2026-09-25T11:26:09.637Z",
+  "dashboard": 3,
+  "tab": 19,
+  "questions": [
+    240,
+    241,
+    242,
+    243,
+    244,
+    245,
+    246,
+    247,
+    248
+  ],
+  "lanes": [
+    {
+      "status": "Overdue",
+      "title": "🟣 Overdue",
+      "color": "#6941C6",
+      "pale": "#EDE9FE"
+    },
+    {
+      "status": "Not Paid",
+      "title": "🔴 Not paid",
+      "color": "#B42318",
+      "pale": "#FEE4E2"
+    },
+    {
+      "status": "Partially Paid",
+      "title": "🟠 Partially paid",
+      "color": "#B54708",
+      "pale": "#FFF1D6"
+    },
+    {
+      "status": "Fully Paid",
+      "title": "🟢 Fully paid",
+      "color": "#067647",
+      "pale": "#ECFDF3"
+    }
+  ],
+  "checks": [
+    "Nine owned question definitions read back with expected colors and titles",
+    "All nine queries unchanged",
+    "All dashboard tabs, filters and placements unchanged",
+    "Four detail-table statuses use matching row colors"
+  ],
+  "rollback": "C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r036-collection-status-colors",
+  "databaseChanges": false
+}

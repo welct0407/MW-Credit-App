@@ -1,0 +1,534 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "relation"
+  "name": "public.reporting_forecast_inputs_v1"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r045-forecast-planning/dictionary-catalog.json"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "reporting_forecast_inputs_v1"
+    "kind": "v"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "n"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,metabase_borrower_reader=r/postgres,mw_app_prod=r/postgres}"
+    "comment": null
+    "view_definition": |2-
+       SELECT existing.loan_id,
+          existing.borrower_id,
+          existing.borrower,
+          existing.loan_type,
+          existing.loan_status,
+          existing.defaulted,
+          existing.outstanding_principal,
+          existing.reporting_date,
+          existing.month_end,
+          existing.loan || jsonb_build_object('original_rate', l."Original Daily Interest Rate") AS loan,
+          existing.charges
+         FROM ( WITH ctx AS (
+                       SELECT olap_reporting_date() AS t
+                      ), repayments AS (
+                       SELECT "Repayments"."Ref Loans" AS loan_id,
+                          COALESCE(sum("Repayments"."Principal Paid"::numeric) FILTER (WHERE "Repayments"."Payment Date" <= ctx_1.t), 0::numeric) AS principal,
+                          bool_or("Repayments"."Payment Date" IS NULL OR "Repayments"."Principal Paid" IS NULL OR "Repayments"."Interest Paid" IS NULL OR "Repayments"."Payment Date" > ctx_1.t) AS invalid
+                         FROM "Repayments"
+                           CROSS JOIN ctx ctx_1
+                        GROUP BY "Repayments"."Ref Loans"
+                      ), paid AS (
+                       SELECT r_1."Ref Charges" AS charge_id,
+                          sum(r_1."Principal Paid"::numeric) FILTER (WHERE r_1."Payment Date" <= ctx_1.t) AS p,
+                          sum(r_1."Interest Paid"::numeric) FILTER (WHERE r_1."Payment Date" <= ctx_1.t) AS i,
+                          bool_or(r_1."Payment Date" IS NULL OR r_1."Principal Paid" IS NULL OR r_1."Interest Paid" IS NULL OR r_1."Ref Loans" IS DISTINCT FROM c_1."Ref Loans") AS invalid
+                         FROM "Repayments" r_1
+                           LEFT JOIN "Charges" c_1 ON c_1."Row ID" = r_1."Ref Charges"
+                           CROSS JOIN ctx ctx_1
+                        GROUP BY r_1."Ref Charges"
+                      ), charges AS (
+                       SELECT c_1."Ref Loans" AS loan_id,
+                          jsonb_agg(jsonb_build_object('id', c_1."Row ID", 'date', c_1."Charge Date", 'pdue', c_1."Principal Due"::numeric, 'idue', c_1."Interest Due"::numeric, 'ppaid', COALESCE(p.p, 0::numeric), 'ipaid', COALESCE(p.i, 0::numeric), 'invalid', COALESCE(p.invalid, false) OR c_1."Charge Date" IS NULL OR c_1."Principal Due" IS NULL OR c_1."Interest Due" IS NULL)) AS charges
+                         FROM "Charges" c_1
+                           LEFT JOIN paid p ON p.charge_id = c_1."Row ID"
+                        GROUP BY c_1."Ref Loans"
+                      )
+               SELECT l_1."Row ID" AS loan_id,
+                  l_1."Ref Borrowers" AS borrower_id,
+                  COALESCE(NULLIF(b."Description", ''::text), b."Borrower Name", l_1."Ref Borrowers", 'Unmapped'::text) AS borrower,
+                      CASE l_1."Loan Type"
+                          WHEN 'ดอกเบี้ยรายวัน'::text THEN 'Daily Interest'::text
+                          WHEN 'กำหนดวันชำระ'::text THEN 'Fixed Due Date'::text
+                          WHEN 'ผ่อนชำระรายวัน'::text THEN 'Daily Installment'::text
+                          ELSE 'Unknown'::text
+                      END AS loan_type,
+                  l_1."Loan Status" AS loan_status,
+                  COALESCE(l_1."Defaulted", false) AS defaulted,
+                  l_1."Principal Amount"::numeric - COALESCE(r.principal, 0::numeric) AS outstanding_principal,
+                  ctx.t AS reporting_date,
+                  (date_trunc('month'::text, ctx.t::timestamp with time zone) + '1 mon -1 days'::interval)::date AS month_end,
+                  jsonb_build_object('status', l_1."Loan Status", 'defaulted', COALESCE(l_1."Defaulted", false), 'start', l_1."Loan Date", 'close', l_1."Close Date", 'balance', l_1."Principal Amount"::numeric - COALESCE(r.principal, 0::numeric), 'daily', l_1."Current Daily Interest"::numeric, 'auto', l_1."Auto Charge Enabled", 'interval', l_1."Interest Payment Interval", 'anchor', l_1."Interest Schedule Anchor Date", 'type', l_1."Loan Type", 'due', l_1."Due Date", 'arrangement', l_1."Loan Arrangement", 'original', l_1."Principal Amount"::numeric, 'payment', l_1."Daily Payment Amount"::numeric, 'fixed', l_1."Fixed Interest"::numeric, 'invalid', l_1."Loan Date" IS NULL OR l_1."Principal Amount" IS NULL OR b."Row ID" IS NULL OR COALESCE(r.invalid, false)) AS loan,
+                  COALESCE(c.charges, '[]'::jsonb) AS charges
+                 FROM "Loans" l_1
+                   LEFT JOIN "Borrowers" b ON b."Row ID" = l_1."Ref Borrowers"
+                   LEFT JOIN repayments r ON r.loan_id = l_1."Row ID"
+                   LEFT JOIN charges c ON c.loan_id = l_1."Row ID"
+                   CROSS JOIN ctx) existing
+           JOIN "Loans" l ON l."Row ID" = existing.loan_id;
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "development_definition":
+    "schema": "public"
+    "name": "reporting_forecast_inputs_v1"
+    "kind": "v"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "n"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,metabase_borrower_reader=r/postgres}"
+    "comment": null
+    "view_definition": |2-
+       SELECT existing.loan_id,
+          existing.borrower_id,
+          existing.borrower,
+          existing.loan_type,
+          existing.loan_status,
+          existing.defaulted,
+          existing.outstanding_principal,
+          existing.reporting_date,
+          existing.month_end,
+          existing.loan || jsonb_build_object('original_rate', l."Original Daily Interest Rate") AS loan,
+          existing.charges
+         FROM ( WITH ctx AS (
+                       SELECT olap_reporting_date() AS t
+                      ), repayments AS (
+                       SELECT "Repayments"."Ref Loans" AS loan_id,
+                          COALESCE(sum("Repayments"."Principal Paid"::numeric) FILTER (WHERE "Repayments"."Payment Date" <= ctx_1.t), 0::numeric) AS principal,
+                          bool_or("Repayments"."Payment Date" IS NULL OR "Repayments"."Principal Paid" IS NULL OR "Repayments"."Interest Paid" IS NULL OR "Repayments"."Payment Date" > ctx_1.t) AS invalid
+                         FROM "Repayments"
+                           CROSS JOIN ctx ctx_1
+                        GROUP BY "Repayments"."Ref Loans"
+                      ), paid AS (
+                       SELECT r_1."Ref Charges" AS charge_id,
+                          sum(r_1."Principal Paid"::numeric) FILTER (WHERE r_1."Payment Date" <= ctx_1.t) AS p,
+                          sum(r_1."Interest Paid"::numeric) FILTER (WHERE r_1."Payment Date" <= ctx_1.t) AS i,
+                          bool_or(r_1."Payment Date" IS NULL OR r_1."Principal Paid" IS NULL OR r_1."Interest Paid" IS NULL OR r_1."Ref Loans" IS DISTINCT FROM c_1."Ref Loans") AS invalid
+                         FROM "Repayments" r_1
+                           LEFT JOIN "Charges" c_1 ON c_1."Row ID" = r_1."Ref Charges"
+                           CROSS JOIN ctx ctx_1
+                        GROUP BY r_1."Ref Charges"
+                      ), charges AS (
+                       SELECT c_1."Ref Loans" AS loan_id,
+                          jsonb_agg(jsonb_build_object('id', c_1."Row ID", 'date', c_1."Charge Date", 'pdue', c_1."Principal Due"::numeric, 'idue', c_1."Interest Due"::numeric, 'ppaid', COALESCE(p.p, 0::numeric), 'ipaid', COALESCE(p.i, 0::numeric), 'invalid', COALESCE(p.invalid, false) OR c_1."Charge Date" IS NULL OR c_1."Principal Due" IS NULL OR c_1."Interest Due" IS NULL)) AS charges
+                         FROM "Charges" c_1
+                           LEFT JOIN paid p ON p.charge_id = c_1."Row ID"
+                        GROUP BY c_1."Ref Loans"
+                      )
+               SELECT l_1."Row ID" AS loan_id,
+                  l_1."Ref Borrowers" AS borrower_id,
+                  COALESCE(NULLIF(b."Description", ''::text), b."Borrower Name", l_1."Ref Borrowers", 'Unmapped'::text) AS borrower,
+                      CASE l_1."Loan Type"
+                          WHEN 'ดอกเบี้ยรายวัน'::text THEN 'Daily Interest'::text
+                          WHEN 'กำหนดวันชำระ'::text THEN 'Fixed Due Date'::text
+                          WHEN 'ผ่อนชำระรายวัน'::text THEN 'Daily Installment'::text
+                          ELSE 'Unknown'::text
+                      END AS loan_type,
+                  l_1."Loan Status" AS loan_status,
+                  COALESCE(l_1."Defaulted", false) AS defaulted,
+                  l_1."Principal Amount"::numeric - COALESCE(r.principal, 0::numeric) AS outstanding_principal,
+                  ctx.t AS reporting_date,
+                  (date_trunc('month'::text, ctx.t::timestamp with time zone) + '1 mon -1 days'::interval)::date AS month_end,
+                  jsonb_build_object('status', l_1."Loan Status", 'defaulted', COALESCE(l_1."Defaulted", false), 'start', l_1."Loan Date", 'close', l_1."Close Date", 'balance', l_1."Principal Amount"::numeric - COALESCE(r.principal, 0::numeric), 'daily', l_1."Current Daily Interest"::numeric, 'auto', l_1."Auto Charge Enabled", 'interval', l_1."Interest Payment Interval", 'anchor', l_1."Interest Schedule Anchor Date", 'type', l_1."Loan Type", 'due', l_1."Due Date", 'arrangement', l_1."Loan Arrangement", 'original', l_1."Principal Amount"::numeric, 'payment', l_1."Daily Payment Amount"::numeric, 'fixed', l_1."Fixed Interest"::numeric, 'invalid', l_1."Loan Date" IS NULL OR l_1."Principal Amount" IS NULL OR b."Row ID" IS NULL OR COALESCE(r.invalid, false)) AS loan,
+                  COALESCE(c.charges, '[]'::jsonb) AS charges
+                 FROM "Loans" l_1
+                   LEFT JOIN "Borrowers" b ON b."Row ID" = l_1."Ref Borrowers"
+                   LEFT JOIN repayments r ON r.loan_id = l_1."Row ID"
+                   LEFT JOIN charges c ON c.loan_id = l_1."Row ID"
+                   CROSS JOIN ctx) existing
+           JOIN "Loans" l ON l."Row ID" = existing.loan_id;
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "columns":
+    "loan_id":
+      "schema": "public"
+      "relation": "reporting_forecast_inputs_v1"
+      "name": "loan_id"
+      "ordinal": 1
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "borrower_id":
+      "schema": "public"
+      "relation": "reporting_forecast_inputs_v1"
+      "name": "borrower_id"
+      "ordinal": 2
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "borrower":
+      "schema": "public"
+      "relation": "reporting_forecast_inputs_v1"
+      "name": "borrower"
+      "ordinal": 3
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "loan_type":
+      "schema": "public"
+      "relation": "reporting_forecast_inputs_v1"
+      "name": "loan_type"
+      "ordinal": 4
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "loan_status":
+      "schema": "public"
+      "relation": "reporting_forecast_inputs_v1"
+      "name": "loan_status"
+      "ordinal": 5
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "defaulted":
+      "schema": "public"
+      "relation": "reporting_forecast_inputs_v1"
+      "name": "defaulted"
+      "ordinal": 6
+      "data_type": "boolean"
+      "type_schema": "pg_catalog"
+      "type_name": "bool"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "outstanding_principal":
+      "schema": "public"
+      "relation": "reporting_forecast_inputs_v1"
+      "name": "outstanding_principal"
+      "ordinal": 7
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "reporting_date":
+      "schema": "public"
+      "relation": "reporting_forecast_inputs_v1"
+      "name": "reporting_date"
+      "ordinal": 8
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "month_end":
+      "schema": "public"
+      "relation": "reporting_forecast_inputs_v1"
+      "name": "month_end"
+      "ordinal": 9
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "loan":
+      "schema": "public"
+      "relation": "reporting_forecast_inputs_v1"
+      "name": "loan"
+      "ordinal": 10
+      "data_type": "jsonb"
+      "type_schema": "pg_catalog"
+      "type_name": "jsonb"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "charges":
+      "schema": "public"
+      "relation": "reporting_forecast_inputs_v1"
+      "name": "charges"
+      "ordinal": 11
+      "data_type": "jsonb"
+      "type_schema": "pg_catalog"
+      "type_name": "jsonb"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+  "constraints": {}
+  "indexes": {}
+  "triggers": {}
+  "policies": {}
+  "dependencies":
+  - "schema": "public"
+    "relation": "reporting_forecast_inputs_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Borrowers"
+    "referenced_column": "Borrower Name"
+  - "schema": "public"
+    "relation": "reporting_forecast_inputs_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Borrowers"
+    "referenced_column": "Description"
+  - "schema": "public"
+    "relation": "reporting_forecast_inputs_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Borrowers"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "reporting_forecast_inputs_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Charges"
+    "referenced_column": "Charge Date"
+  - "schema": "public"
+    "relation": "reporting_forecast_inputs_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Charges"
+    "referenced_column": "Interest Due"
+  - "schema": "public"
+    "relation": "reporting_forecast_inputs_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Charges"
+    "referenced_column": "Principal Due"
+  - "schema": "public"
+    "relation": "reporting_forecast_inputs_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Charges"
+    "referenced_column": "Ref Loans"
+  - "schema": "public"
+    "relation": "reporting_forecast_inputs_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Charges"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "reporting_forecast_inputs_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Loans"
+    "referenced_column": "Auto Charge Enabled"
+  - "schema": "public"
+    "relation": "reporting_forecast_inputs_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Loans"
+    "referenced_column": "Close Date"
+  - "schema": "public"
+    "relation": "reporting_forecast_inputs_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Loans"
+    "referenced_column": "Current Daily Interest"
+  - "schema": "public"
+    "relation": "reporting_forecast_inputs_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Loans"
+    "referenced_column": "Daily Payment Amount"
+  - "schema": "public"
+    "relation": "reporting_forecast_inputs_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Loans"
+    "referenced_column": "Defaulted"
+  - "schema": "public"
+    "relation": "reporting_forecast_inputs_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Loans"
+    "referenced_column": "Due Date"
+  - "schema": "public"
+    "relation": "reporting_forecast_inputs_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Loans"
+    "referenced_column": "Fixed Interest"
+  - "schema": "public"
+    "relation": "reporting_forecast_inputs_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Loans"
+    "referenced_column": "Interest Payment Interval"
+  - "schema": "public"
+    "relation": "reporting_forecast_inputs_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Loans"
+    "referenced_column": "Interest Schedule Anchor Date"
+  - "schema": "public"
+    "relation": "reporting_forecast_inputs_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Loans"
+    "referenced_column": "Loan Arrangement"
+  - "schema": "public"
+    "relation": "reporting_forecast_inputs_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Loans"
+    "referenced_column": "Loan Date"
+  - "schema": "public"
+    "relation": "reporting_forecast_inputs_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Loans"
+    "referenced_column": "Loan Status"
+  - "schema": "public"
+    "relation": "reporting_forecast_inputs_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Loans"
+    "referenced_column": "Loan Type"
+  - "schema": "public"
+    "relation": "reporting_forecast_inputs_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Loans"
+    "referenced_column": "Original Daily Interest Rate"
+  - "schema": "public"
+    "relation": "reporting_forecast_inputs_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Loans"
+    "referenced_column": "Principal Amount"
+  - "schema": "public"
+    "relation": "reporting_forecast_inputs_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Loans"
+    "referenced_column": "Ref Borrowers"
+  - "schema": "public"
+    "relation": "reporting_forecast_inputs_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Loans"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "reporting_forecast_inputs_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Repayments"
+    "referenced_column": "Interest Paid"
+  - "schema": "public"
+    "relation": "reporting_forecast_inputs_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Repayments"
+    "referenced_column": "Payment Date"
+  - "schema": "public"
+    "relation": "reporting_forecast_inputs_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Repayments"
+    "referenced_column": "Principal Paid"
+  - "schema": "public"
+    "relation": "reporting_forecast_inputs_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Repayments"
+    "referenced_column": "Ref Charges"
+  - "schema": "public"
+    "relation": "reporting_forecast_inputs_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Repayments"
+    "referenced_column": "Ref Loans"
+"evidence":
+  "/content/definition":
+    "reference": "outputs/r048-loan-interest-production/postgresql-affected-definitions.json"
+    "reason": "Owner-authorized R048 manual PROD cutover; targeted saved-state closure"
+    "state": "value"
+  "/content/dependencies":
+    "reference": "outputs/r048-loan-interest-production/postgresql-affected-definitions.json"
+    "reason": "Owner-authorized R048 manual PROD cutover; targeted saved-state closure"
+    "state": "value"
+  "/content/development_definition":
+    "reference": "outputs/r048-loan-interest-production/postgresql-affected-definitions.json"
+    "reason": "Owner-authorized R048 manual PROD cutover; targeted saved-state closure"
+    "state": "value"
+  "/content/definition/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"

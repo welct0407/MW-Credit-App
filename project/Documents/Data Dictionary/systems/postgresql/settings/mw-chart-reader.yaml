@@ -1,0 +1,33 @@
+format: 1
+identity:
+  system: postgresql
+  component: appsheet-pg-prod-20260914/loan_manager_prod
+  kind: settings
+  name: mw_chart_reader
+  scope: production
+verification:
+  status: documented
+  source: outputs/r030-custom-matrix/database-access.json
+content:
+  login: true
+  superuser: false
+  createdb: false
+  createrole: false
+  replication: false
+  bypassrls: false
+  inherit: false
+  connection_limit: 2
+  database: loan_manager_prod
+  database_settings:
+    default_transaction_read_only: 'on'
+    statement_timeout: 12s
+    idle_in_transaction_session_timeout: 15s
+  grants:
+  - CONNECT ON DATABASE loan_manager_prod
+  - USAGE ON SCHEMA public
+  - SELECT ON public.reporting_borrower_matrix_plot_v1
+  - SELECT ("Row ID", "Description") ON public.olap_borrowers_analytics
+  effective_public_relation_dml: false
+  password: Private external configuration; not recorded
+  management: Role/grant deployment prerequisite; no Flyway schema change
+  consumer: mw-report-charts.service on vm-mw-credit-agent

@@ -1,0 +1,30 @@
+{
+  "at": "2026-09-25T04:49:07.575298+00:00",
+  "backend_tests": 9,
+  "passed": true,
+  "javascript_syntax": true,
+  "synthetic_browser": {
+    "points": 23,
+    "names": 23,
+    "mobile_quadrants": [
+      {
+        "width": 167.5,
+        "height": 306
+      },
+      {
+        "width": 167.5,
+        "height": 306
+      },
+      {
+        "width": 167.5,
+        "height": 306
+      },
+      {
+        "width": 167.5,
+        "height": 306
+      }
+    ],
+    "tooltip_large_name_single_category": true
+  },
+  "production_data_in_evidence": false
+}

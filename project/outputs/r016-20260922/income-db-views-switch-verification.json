@@ -1,0 +1,38 @@
+{
+  "verified_at": "2026-09-22T16:39:15.380Z",
+  "checks": [
+    {
+      "model": "expenses",
+      "thin_view_query": true,
+      "field_metadata_preserved": true
+    },
+    {
+      "model": "cash-accounts",
+      "thin_view_query": true,
+      "field_metadata_preserved": true
+    },
+    {
+      "model": "income-monthly",
+      "thin_view_query": true,
+      "field_metadata_preserved": true
+    },
+    {
+      "model": "income-statement",
+      "thin_view_query": true,
+      "field_metadata_preserved": true
+    },
+    {
+      "model": "settlements",
+      "thin_view_query": true,
+      "field_metadata_preserved": true
+    },
+    {
+      "model": "income-daily",
+      "thin_view_query": true,
+      "field_metadata_preserved": true
+    }
+  ],
+  "all_nine_page_layouts_and_filters_preserved": true,
+  "partner_permissions_preserved": true,
+  "source_database": "loan_manager_prod"
+}

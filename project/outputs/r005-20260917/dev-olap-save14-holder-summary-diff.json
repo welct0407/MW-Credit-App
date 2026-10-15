@@ -1,0 +1,527 @@
+{
+  "release": "R005",
+  "app": "olap",
+  "before": {
+    "file": "dev-olap-save13-ledger-permissions.json",
+    "version": "1.000110"
+  },
+  "after": {
+    "file": "dev-olap-save14-holder-summary.json",
+    "version": "1.000111"
+  },
+  "coverage": "All exported properties; omitted export coverage subject to explicit owner-approved limited R005 exception.",
+  "counts": {
+    "before": 24358,
+    "after": 24387,
+    "changes": 31
+  },
+  "changes": [
+    {
+      "id": "R005-OLAP-10d4e392c175",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "App/Version",
+      "operation": "change",
+      "before": {
+        "present": true,
+        "value": "1.000110"
+      },
+      "after": {
+        "present": true,
+        "value": "1.000111"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-56b9654efdb5",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Summary/UX Summary",
+      "operation": "change",
+      "before": {
+        "present": true,
+        "value": "55 Views\n48 Format Rules"
+      },
+      "after": {
+        "present": true,
+        "value": "56 Views\n48 Format Rules"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-b01b4122e435",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "View name/Cash Holder Summary/Created by",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "App owner"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-15cf71fc4b94",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "View name/Cash Holder Summary/Icon",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": ""
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-1a3a354faa5c",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "View name/Cash Holder Summary/Menu order",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "1"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-4396a8f3eff5",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "View name/Cash Holder Summary/Position",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "ref"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-8a45ca00e06d",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "View name/Cash Holder Summary/View configuration/$shape",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": {
+          "type": "object",
+          "keys": [
+            "ColumnOrder",
+            "ColumnWidth",
+            "EnableQuickEdit",
+            "Events",
+            "GroupAggregate",
+            "GroupBy",
+            "Icon",
+            "IconRunnerUps",
+            "IsPrimarySortDescending",
+            "MenuOrder",
+            "PrimarySortColumn",
+            "SortBy"
+          ]
+        }
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-6c4f0e1fbd09",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "View name/Cash Holder Summary/View configuration/ColumnOrder/$shape",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": {
+          "type": "array",
+          "length": 3
+        }
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-997d6e734eb3",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "View name/Cash Holder Summary/View configuration/ColumnOrder/0",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "Holder Name"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-a2f3aaadb3e4",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "View name/Cash Holder Summary/View configuration/ColumnOrder/1",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "Current Balance"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-5413148f7a64",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "View name/Cash Holder Summary/View configuration/ColumnOrder/2",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "Reimbursement / Advance Due"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-78a67e8e8179",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "View name/Cash Holder Summary/View configuration/ColumnWidth",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "Default"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-e858e853272b",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "View name/Cash Holder Summary/View configuration/EnableQuickEdit",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-c6be133ce168",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "View name/Cash Holder Summary/View configuration/Events/$shape",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": {
+          "type": "array",
+          "length": 1
+        }
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-69e4437225f7",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "View name/Cash Holder Summary/View configuration/Events/0/$shape",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": {
+          "type": "object",
+          "keys": [
+            "EventAction",
+            "EventType"
+          ]
+        }
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-5ef603750ea8",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "View name/Cash Holder Summary/View configuration/Events/0/EventAction",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "**auto**"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-94c772c91fba",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "View name/Cash Holder Summary/View configuration/Events/0/EventType",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "Row Selected"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-35259c4a455f",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "View name/Cash Holder Summary/View configuration/GroupAggregate",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "NONE"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-fe2bd39c7f17",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "View name/Cash Holder Summary/View configuration/GroupBy/$shape",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": {
+          "type": "array",
+          "length": 0
+        }
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-d316ee801fd5",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "View name/Cash Holder Summary/View configuration/Icon",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "fa-list-ul"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-a61a18a860ed",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "View name/Cash Holder Summary/View configuration/IconRunnerUps",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": null
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-6987c97d2a6a",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "View name/Cash Holder Summary/View configuration/IsPrimarySortDescending",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-0afd75651816",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "View name/Cash Holder Summary/View configuration/MenuOrder",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": 1
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-8b9ae0b426c6",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "View name/Cash Holder Summary/View configuration/PrimarySortColumn",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": null
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-6089279ebf23",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "View name/Cash Holder Summary/View configuration/SortBy/$shape",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": {
+          "type": "array",
+          "length": 1
+        }
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-9e29de5fb492",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "View name/Cash Holder Summary/View configuration/SortBy/0/$shape",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": {
+          "type": "object",
+          "keys": [
+            "Column",
+            "Order"
+          ]
+        }
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-8be810a55b8d",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "View name/Cash Holder Summary/View configuration/SortBy/0/Column",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "Holder Name"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-b4355f1671d5",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "View name/Cash Holder Summary/View configuration/SortBy/0/Order",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "Ascending"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-ded860d5ec6e",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "View name/Cash Holder Summary/View name",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "Cash Holder Summary"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-cbd4b2133c38",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "View name/Cash Holder Summary/View type",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "table"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-a3fa29d18770",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "View name/Cash Holder Summary/Visible?",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "ALWAYS"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    }
+  ]
+}

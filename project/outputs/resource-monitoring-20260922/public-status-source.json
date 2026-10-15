@@ -1,0 +1,12 @@
+{
+  "access": "proxy",
+  "type": "yesoreyeram-infinity-datasource",
+  "name": "mw-public-status",
+  "jsonData": {
+    "allowedHosts": [
+      "https://status.openai.com"
+    ],
+    "auth_method": "none"
+  },
+  "uid": "cfz10a9eaokjkd"
+}

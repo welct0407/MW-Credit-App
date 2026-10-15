@@ -1,0 +1,227 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "metabase",
+    "component": "reports.mw-credit.com",
+    "kind": "question",
+    "name": "Loan forecast detail / 361",
+    "scope": "production"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r045-forecast-planning/saved.json"
+  },
+  "content": {
+    "id": 361,
+    "key": "detail",
+    "name": "Loan forecast detail",
+    "display": "table",
+    "dataset_query": {
+      "database": 2,
+      "type": "native",
+      "native": {
+        "query": "WITH args AS (SELECT coalesce([[{{ci}},]]100)::numeric ci,coalesce([[{{cp}},]]100)::numeric cp,coalesce([[{{rr}},]]0)::numeric rr,coalesce([[{{scenario}},]]'Planning')::text scenario,coalesce([[{{kind}},]]'All')::text kind,coalesce([[{{target}},]]NULL)::numeric target), loans AS MATERIALIZED (SELECT l.* FROM {{#344}} l,args a WHERE a.kind='All' OR l.loan_type=a.kind),\n actual AS (SELECT coalesce(sum(interest),0) a,coalesce(bool_or(invalid),false) invalid FROM {{#345}} l,args a WHERE a.kind='All' OR l.loan_type=a.kind),\n sums AS (SELECT coalesce(sum(ui),0) ui,coalesce(sum(up),0) up,coalesce(sum(oi),0) oi,coalesce(sum(op),0) op,coalesce(bool_or(incomplete),false) incomplete FROM loans),\n s AS (SELECT a.*,v.a actual,r.remaining_interest ri,r.remaining_principal rp,NOT (q.incomplete OR v.invalid OR c.invalid_receipts>0 OR c.orphan_charges>0) ready,c.reporting_date,c.calculated_at,c.current_cash,c.cash_status FROM args a CROSS JOIN sums q CROSS JOIN actual v CROSS JOIN {{#347}} c CROSS JOIN LATERAL public.forecast_scenario_v1(q.ui,q.up,q.oi,q.op,a.ci,a.cp,a.rr,a.scenario) r) SELECT borrower AS \"Borrower\",borrower_id AS \"Borrower ID\",loan_id AS \"Loan reference\",loan_type AS \"Loan type\",outstanding_principal AS \"Principal outstanding ฿\",next_due AS \"Next due\",ui AS \"Today / future interest ฿\",up AS \"Today / future principal ฿\",oi AS \"Overdue interest ฿\",op AS \"Overdue principal ฿\",xi+xp AS \"Recovery only ฿\",recorded_interest AS \"Recorded interest ฿\",simulated_interest AS \"Simulated interest ฿\",f.remaining_interest AS \"Scenario interest ฿\",f.remaining_principal AS \"Scenario principal ฿\",arrangement_status AS \"Schedule\",coalesce(issues,'Covered') AS \"Coverage\" FROM loans CROSS JOIN args a CROSS JOIN LATERAL public.forecast_scenario_v1(ui,up,oi,op,ci,cp,rr,scenario) f ORDER BY ui DESC,borrower,loan_id",
+        "template-tags": {
+          "ci": {
+            "id": "fp-ci",
+            "name": "ci",
+            "display-name": "Interest collected %",
+            "type": "number",
+            "default": 100
+          },
+          "cp": {
+            "id": "fp-cp",
+            "name": "cp",
+            "display-name": "Principal collected %",
+            "type": "number",
+            "default": 100
+          },
+          "rr": {
+            "id": "fp-rr",
+            "name": "rr",
+            "display-name": "Overdue recovered %",
+            "type": "number",
+            "default": 0
+          },
+          "scenario": {
+            "id": "fp-scenario",
+            "name": "scenario",
+            "display-name": "Forecast scenario",
+            "type": "text",
+            "default": "Planning"
+          },
+          "kind": {
+            "id": "fp-kind",
+            "name": "kind",
+            "display-name": "Forecast loan type",
+            "type": "text",
+            "default": "All"
+          },
+          "target": {
+            "id": "fp-target",
+            "name": "target",
+            "display-name": "Interest target ฿",
+            "type": "number"
+          },
+          "#344": {
+            "id": "fp-model-344",
+            "name": "#344",
+            "display-name": "Forecast source 344",
+            "type": "card",
+            "card-id": 344
+          },
+          "#345": {
+            "id": "fp-model-345",
+            "name": "#345",
+            "display-name": "Forecast source 345",
+            "type": "card",
+            "card-id": 345
+          },
+          "#347": {
+            "id": "fp-model-347",
+            "name": "#347",
+            "display-name": "Forecast source 347",
+            "type": "card",
+            "card-id": 347
+          }
+        }
+      }
+    },
+    "visualization_settings": {
+      "table.pivot": false,
+      "table.columns": [
+        {
+          "name": "Borrower",
+          "enabled": true
+        },
+        {
+          "name": "Borrower ID",
+          "enabled": false
+        },
+        {
+          "name": "Loan reference",
+          "enabled": true
+        },
+        {
+          "name": "Loan type",
+          "enabled": true
+        },
+        {
+          "name": "Principal outstanding ฿",
+          "enabled": true
+        },
+        {
+          "name": "Next due",
+          "enabled": true
+        },
+        {
+          "name": "Today / future interest ฿",
+          "enabled": true
+        },
+        {
+          "name": "Today / future principal ฿",
+          "enabled": true
+        },
+        {
+          "name": "Overdue interest ฿",
+          "enabled": true
+        },
+        {
+          "name": "Overdue principal ฿",
+          "enabled": true
+        },
+        {
+          "name": "Recovery only ฿",
+          "enabled": true
+        },
+        {
+          "name": "Recorded interest ฿",
+          "enabled": true
+        },
+        {
+          "name": "Simulated interest ฿",
+          "enabled": true
+        },
+        {
+          "name": "Scenario interest ฿",
+          "enabled": true
+        },
+        {
+          "name": "Scenario principal ฿",
+          "enabled": true
+        },
+        {
+          "name": "Schedule",
+          "enabled": true
+        },
+        {
+          "name": "Coverage",
+          "enabled": true
+        }
+      ],
+      "column_settings": {
+        "[\"name\",\"Principal outstanding ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Today / future interest ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Today / future principal ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Overdue interest ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Overdue principal ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Recovery only ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Recorded interest ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Simulated interest ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Scenario interest ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Scenario principal ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,",
+          "compact": false
+        }
+      }
+    },
+    "description": "R045 Forecast & Planning. Current Bangkok month; posted actuals include partial today. "
+  }
+}

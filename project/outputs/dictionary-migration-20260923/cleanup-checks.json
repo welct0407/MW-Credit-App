@@ -1,0 +1,21 @@
+{
+  "baseline_commit": "faa51d22bfe73a9b79a1bf4569dac6efa23fc6bc",
+  "validation": {
+    "documents": 182,
+    "errors": [],
+    "reconciliation": "deferred by owner",
+    "recorded_limitations": 4,
+    "resolved_items": 2,
+    "informational_items": 1
+  },
+  "unchanged_imported_documents": 181,
+  "deleted_documents": 3,
+  "only_expected_setting_value_changed": true,
+  "original_migration_evidence_unchanged": true,
+  "synthetic_tests_passed": 13,
+  "live_access": false,
+  "local_links": {
+    "checked": 44,
+    "errors": []
+  }
+}

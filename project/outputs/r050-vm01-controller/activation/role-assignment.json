@@ -1,0 +1,7 @@
+{
+  "properties": {
+    "roleDefinitionId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/providers/Microsoft.Authorization/roleDefinitions/a1fdc870-cc0e-5752-af1a-e065691949ad",
+    "principalId": "a671b605-43e5-4878-b3cb-b7b6bf2ce586",
+    "principalType": "ServicePrincipal"
+  }
+}

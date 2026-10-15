@@ -1,0 +1,69 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.lump_sum_child_guard()"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r051-production/README.md"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "lump_sum_child_guard"
+    "arguments": ""
+    "kind": "f"
+    "arguments_with_defaults": ""
+    "result": "trigger"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.lump_sum_child_guard()
+       RETURNS trigger
+       LANGUAGE plpgsql
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+      DECLARE payment_id text; borrower_id text; moving jsonb;
+      BEGIN
+       IF TG_OP='UPDATE' AND public.payment_reallocation_permitted(TG_TABLE_NAME,to_jsonb(OLD),to_jsonb(NEW)) THEN RETURN NEW; END IF;
+       IF TG_OP='DELETE' AND pg_trigger_depth()>=2 AND OLD."Ref Payment"=nullif(current_setting('payment_crud.id',true),'') THEN RETURN OLD; END IF;
+       IF TG_TABLE_NAME='Payment Allocations' THEN
+        IF TG_OP='UPDATE' AND NEW."Ref Charge" IS DISTINCT FROM OLD."Ref Charge" THEN
+         NEW:=public.move_payment_interest(OLD,NEW); RETURN NEW;
+        END IF;
+       END IF;
+       IF TG_OP='UPDATE' AND TG_TABLE_NAME='Repayments' AND pg_trigger_depth()>=2 THEN
+        moving:=nullif(current_setting('payment_crud.move',true),'')::jsonb;
+        IF OLD."Row ID"=moving->>'repayment' AND NEW."Ref Charges"=moving->>'target'
+         AND (to_jsonb(OLD)-'Ref Charges')=(to_jsonb(NEW)-'Ref Charges') THEN RETURN NEW; END IF;
+       END IF;
+       IF TG_OP<>'INSERT' AND (starts_with(OLD."Row ID",'ls2:') OR starts_with(OLD."Row ID",'pc6:')) THEN
+        RAISE EXCEPTION 'Database-posted allocation/repayment is immutable; edit its Payments source'; END IF;
+       IF TG_OP='DELETE' THEN RETURN OLD; END IF;
+       payment_id:=NEW."Ref Payment";
+       SELECT "Ref Borrower" INTO borrower_id FROM public."Payments" WHERE "Row ID"=payment_id;
+       PERFORM 1 FROM public."Borrowers" WHERE "Row ID"=borrower_id FOR UPDATE;
+       IF EXISTS(SELECT 1 FROM public."Payments" WHERE "Row ID"=payment_id AND "Status"='Posted') THEN
+        IF TG_OP='INSERT' OR NEW IS DISTINCT FROM OLD THEN RAISE EXCEPTION 'Cannot change results of a posted payment'; END IF;
+       END IF;
+       RETURN NEW;
+      END $function$
+    "owner": "postgres"
+    "language": "plpgsql"
+    "volatility": "v"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 0.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": "{=X/postgres,postgres=X/postgres,mw_app_prod=X/postgres}"
+    "comment": null
+    "extension": null
+"evidence":
+  "/content/definition/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"

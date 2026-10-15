@@ -1,0 +1,42 @@
+{
+  "status": "offline_design_checks_passed",
+  "date": "2026-09-22",
+  "source_commit": "acbc0eb1c3544ec14ddf597ab59b614de8c3814d",
+  "production_rows_exported": false,
+  "postgresql_sql_executed": false,
+  "postgresql_parser_validation": false,
+  "live_changes_performed": false,
+  "checks": {
+    "mapping_counts": {
+      "files": 6,
+      "present_table_instances": 18,
+      "present_rows": 351,
+      "lazy_tables_absent": 3
+    },
+    "compatibility_target_tables": 20,
+    "source_table_instances_compared": 21,
+    "source_column_coverage": "Exact column set after explicit added stream/ingress fields; empty SQLite surrogate used only for compatibility shape, not PostgreSQL correctness",
+    "proposed_total_tables": 32,
+    "guarded_sql_files": 5,
+    "dollar_quote_balance": true,
+    "local_links": "passed",
+    "no_destructive_drop_or_password_literals": true
+  },
+  "pending": [
+    "PostgreSQL 18 DDL execution and Cloud SQL privilege tests",
+    "Runtime implementation and T01-T16 evidence",
+    "Production migration and verification"
+  ],
+  "files_sha256": {
+    "ddl/00_instance_bootstrap.proposed.sql": "48fc513d621537bfa08297367faf7b6511759bb3c5f54a15ca3381ce08448f1b",
+    "ddl/01_audit_and_control.proposed.sql": "9370e5792f83fc3d3065376e8807249cba5f3505c04a33ab1032de81589903f4",
+    "ddl/02_runtime_compatibility.proposed.sql": "caa825a690896935d9be6162631179a11d4010598d73590481a69d7b3f6a16f2",
+    "ddl/03_business_outbox.proposed.sql": "9d4436c7ff3a71ce8eb6e322495f5ddbc0566c5628fee09e658729669bdda6be",
+    "ddl/04_business_privileges.proposed.sql": "0d14218c799be205232724e9705e91fb6ca13a42f00c6db8d359741891b5cb8e",
+    "GOVERNANCE.md": "eda25d1a31c84dc720992f235580a5a33086c988ea13f2c4ea34f4107262a254",
+    "HANDOVER.md": "e8f28a483f33db75bfb5dfa2d662faf537552bc68671c55bb445f98e5937df07",
+    "SCHEMA.md": "55d92e7a9e7cf8a2248fe6d759184ddf3b84a795a9e4ee8c56da650dece74453",
+    "sqlite-mapping.json": "919407c53bf107774186d0183f203c752bf6402cafb984478db9e037e9075ee8"
+  },
+  "file_digest_convention": "SHA-256 of UTF-8 text with CRLF normalized to LF; excludes this evidence file to avoid self-reference."
+}

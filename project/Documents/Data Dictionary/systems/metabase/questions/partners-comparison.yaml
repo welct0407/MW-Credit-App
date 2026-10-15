@@ -1,0 +1,468 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "metabase",
+    "component": "reports.mw-credit.com",
+    "kind": "question",
+    "name": "Partner positions · current / 330",
+    "scope": "production"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r044-partners/saved.json"
+  },
+  "content": {
+    "key": "comparison",
+    "description": "R044 Partners. Full-pool denominator is preserved when filtering. Net available is after expenses and all non-Cancelled reservations, not cash liquidity.",
+    "result_metadata": [
+      {
+        "database_type": "text",
+        "semantic_type": null,
+        "lib/deduplicated-name": "Partner",
+        "lib/original-name": "Partner",
+        "name": "Partner",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Partner",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Partner",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "effective_type": "type/Text",
+        "lib/desired-column-alias": "Partner",
+        "display_name": "Partner",
+        "base_type": "type/Text"
+      },
+      {
+        "database_type": "numeric",
+        "semantic_type": null,
+        "lib/deduplicated-name": "Net capital ฿",
+        "lib/original-name": "Net capital ฿",
+        "name": "Net capital ฿",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Net capital ฿",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Net capital ฿",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "Net capital ฿",
+        "display_name": "Net capital ฿",
+        "base_type": "type/Decimal"
+      },
+      {
+        "database_type": "numeric",
+        "semantic_type": "type/Share",
+        "lib/deduplicated-name": "Capital share %",
+        "lib/original-name": "Capital share %",
+        "name": "Capital share %",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Capital share %",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Capital share %",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "Capital share %",
+        "display_name": "Capital share %",
+        "base_type": "type/Decimal"
+      },
+      {
+        "database_type": "numeric",
+        "semantic_type": null,
+        "lib/deduplicated-name": "Allocated interest ฿",
+        "lib/original-name": "Allocated interest ฿",
+        "name": "Allocated interest ฿",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Allocated interest ฿",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Allocated interest ฿",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "Allocated interest ฿",
+        "display_name": "Allocated interest ฿",
+        "base_type": "type/Decimal"
+      },
+      {
+        "database_type": "numeric",
+        "semantic_type": null,
+        "lib/deduplicated-name": "Allocated expenses ฿",
+        "lib/original-name": "Allocated expenses ฿",
+        "name": "Allocated expenses ฿",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Allocated expenses ฿",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Allocated expenses ฿",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "Allocated expenses ฿",
+        "display_name": "Allocated expenses ฿",
+        "base_type": "type/Decimal"
+      },
+      {
+        "database_type": "numeric",
+        "semantic_type": null,
+        "lib/deduplicated-name": "Net earned ฿",
+        "lib/original-name": "Net earned ฿",
+        "name": "Net earned ฿",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Net earned ฿",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Net earned ฿",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "Net earned ฿",
+        "display_name": "Net earned ฿",
+        "base_type": "type/Decimal"
+      },
+      {
+        "database_type": "numeric",
+        "semantic_type": null,
+        "lib/deduplicated-name": "Paid ฿",
+        "lib/original-name": "Paid ฿",
+        "name": "Paid ฿",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Paid ฿",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Paid ฿",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "Paid ฿",
+        "display_name": "Paid ฿",
+        "base_type": "type/Decimal"
+      },
+      {
+        "database_type": "numeric",
+        "semantic_type": null,
+        "lib/deduplicated-name": "Pending ฿",
+        "lib/original-name": "Pending ฿",
+        "name": "Pending ฿",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Pending ฿",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Pending ฿",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "Pending ฿",
+        "display_name": "Pending ฿",
+        "base_type": "type/Decimal"
+      },
+      {
+        "database_type": "numeric",
+        "semantic_type": null,
+        "lib/deduplicated-name": "Net available ฿",
+        "lib/original-name": "Net available ฿",
+        "name": "Net available ฿",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Net available ฿",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Net available ฿",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "Net available ฿",
+        "display_name": "Net available ฿",
+        "base_type": "type/Decimal"
+      },
+      {
+        "database_type": "text",
+        "semantic_type": "type/Category",
+        "lib/deduplicated-name": "Status",
+        "lib/original-name": "Status",
+        "name": "Status",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Status",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Status",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "effective_type": "type/Text",
+        "lib/desired-column-alias": "Status",
+        "display_name": "Status",
+        "base_type": "type/Text"
+      },
+      {
+        "database_type": "text",
+        "semantic_type": null,
+        "lib/deduplicated-name": "Partner ID",
+        "lib/original-name": "Partner ID",
+        "name": "Partner ID",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Partner ID",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Partner ID",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "effective_type": "type/Text",
+        "lib/desired-column-alias": "Partner ID",
+        "display_name": "Partner ID",
+        "base_type": "type/Text"
+      }
+    ],
+    "collection_id": 5,
+    "name": "Partner positions · current",
+    "type": "question",
+    "dataset_query": {
+      "stages": [
+        {
+          "template-tags": [
+            {
+              "widget-type": "string/=",
+              "id": "pt-partner",
+              "name": "partner",
+              "display-name": "Partner",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                {
+                  "base-type": "type/Text",
+                  "lib/uuid": "abba2d34-af20-46a7-9c3e-88e7cbfc4025",
+                  "effective-type": "type/Text"
+                },
+                121
+              ],
+              "alias": "d.partner_id"
+            },
+            {
+              "type": "card",
+              "id": "r044-model-318",
+              "name": "#318",
+              "display-name": "Partners source 318",
+              "card-id": 318
+            }
+          ],
+          "lib/type": "mbql.stage/native",
+          "native": "SELECT d.partner_name AS \"Partner\",net_capital AS \"Net capital ฿\",capital_share AS \"Capital share %\",interest_earned AS \"Allocated interest ฿\",expenses AS \"Allocated expenses ฿\",net_earned AS \"Net earned ฿\",completed AS \"Paid ฿\",pending AS \"Pending ฿\",available AS \"Net available ฿\",quality_status AS \"Status\",d.partner_id AS \"Partner ID\" FROM {{#318}} d WHERE true [[AND {{partner}}]] ORDER BY partner_role,d.partner_id"
+        }
+      ],
+      "lib/type": "mbql/query",
+      "database": 2
+    },
+    "id": 330,
+    "display": "table",
+    "visualization_settings": {
+      "table.pivot": false,
+      "table.columns": [
+        {
+          "name": "Partner",
+          "fieldRef": [
+            "field",
+            "Partner",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "enabled": true
+        },
+        {
+          "name": "Net capital ฿",
+          "fieldRef": [
+            "field",
+            "Net capital ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "enabled": true
+        },
+        {
+          "name": "Capital share %",
+          "fieldRef": [
+            "field",
+            "Capital share %",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "enabled": true
+        },
+        {
+          "name": "Allocated interest ฿",
+          "fieldRef": [
+            "field",
+            "Allocated interest ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "enabled": true
+        },
+        {
+          "name": "Allocated expenses ฿",
+          "fieldRef": [
+            "field",
+            "Allocated expenses ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "enabled": true
+        },
+        {
+          "name": "Net earned ฿",
+          "fieldRef": [
+            "field",
+            "Net earned ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "enabled": true
+        },
+        {
+          "name": "Paid ฿",
+          "fieldRef": [
+            "field",
+            "Paid ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "enabled": true
+        },
+        {
+          "name": "Pending ฿",
+          "fieldRef": [
+            "field",
+            "Pending ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "enabled": true
+        },
+        {
+          "name": "Net available ฿",
+          "fieldRef": [
+            "field",
+            "Net available ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "enabled": true
+        },
+        {
+          "name": "Status",
+          "fieldRef": [
+            "field",
+            "Status",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "enabled": true
+        },
+        {
+          "name": "Partner ID",
+          "fieldRef": [
+            "field",
+            "Partner ID",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "enabled": false
+        }
+      ],
+      "column_settings": {
+        "[\"name\",\"Net capital ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Capital share %\"]": {
+          "number_style": "percent",
+          "decimals": 2,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Allocated interest ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Allocated expenses ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Net earned ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Paid ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Pending ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Net available ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,",
+          "compact": false
+        }
+      }
+    }
+  }
+}

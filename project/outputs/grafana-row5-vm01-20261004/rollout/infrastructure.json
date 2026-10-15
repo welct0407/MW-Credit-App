@@ -1,0 +1,28 @@
+{
+  "phase": "infrastructure",
+  "metric_writer_added": true,
+  "unrelated_iam_preserved": true,
+  "matching_index": [
+    {
+      "density": "SPARSE_ALL",
+      "fields": [
+        {
+          "fieldPath": "state",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "ASCENDING"
+        }
+      ],
+      "name": "projects/clever-oasis-508610-n7/databases/mw-grafana-events/collectionGroups/deliveries/indexes/CICAgOi39IkK",
+      "queryScope": "COLLECTION",
+      "state": "CREATING"
+    }
+  ],
+  "alerts_created": 0
+}

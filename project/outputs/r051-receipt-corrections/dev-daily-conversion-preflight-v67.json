@@ -1,0 +1,128 @@
+{
+  "database": "loan_manager_dev",
+  "instance": "appsheet-pg-prod-20260914",
+  "host": "34.21.174.215",
+  "version": 67,
+  "checksum": 1721477385,
+  "read_only": true,
+  "snapshot_at": "2026-10-05 22:14:06.167820+00:00",
+  "edge_counts": {
+    "null_original_basis": 7,
+    "negative_original_basis": 0,
+    "zero_original_basis": 0,
+    "existing_daily_null_current": 0,
+    "existing_daily_negative_current": 0,
+    "nondaily_basis_unavailable": 6,
+    "nondaily_automatic_missing_schedule": 1
+  },
+  "fixture_fingerprints": {
+    "agent_audit.commits": [
+      0,
+      "d41d8cd98f00b204e9800998ecf8427e"
+    ],
+    "agent_audit.exports": [
+      0,
+      "d41d8cd98f00b204e9800998ecf8427e"
+    ],
+    "agent_audit.row_changes": [
+      0,
+      "d41d8cd98f00b204e9800998ecf8427e"
+    ],
+    "public.Borrowers": [
+      7,
+      "f2372d3b4f47406430ea77244de64a1d"
+    ],
+    "public.Business Expenses": [
+      1,
+      "9f259bb1418d7dd61a375071f113ce02"
+    ],
+    "public.Calendar": [
+      0,
+      "d41d8cd98f00b204e9800998ecf8427e"
+    ],
+    "public.Cash Account Daily Analytics": [
+      47,
+      "e5e6e9747c362fa977230f48fd7bd89e"
+    ],
+    "public.Cash Accounts": [
+      16,
+      "a07d425f8fa4c17f38e575e2ca3ec915"
+    ],
+    "public.Cash Holders": [
+      0,
+      "d41d8cd98f00b204e9800998ecf8427e"
+    ],
+    "public.Cash Ledger": [
+      14,
+      "46030e9d1735ac0031efc3abd08065e9"
+    ],
+    "public.Cash Pool Contributions": [
+      0,
+      "d41d8cd98f00b204e9800998ecf8427e"
+    ],
+    "public.Cash Statement Context": [
+      1,
+      "af8e43a51ab059c67b74ebddc76395ea"
+    ],
+    "public.Charges": [
+      9,
+      "52c038de7b6a5c820dd38c28bc453917"
+    ],
+    "public.Daily Analytics": [
+      0,
+      "d41d8cd98f00b204e9800998ecf8427e"
+    ],
+    "public.Loan Assessment": [
+      0,
+      "d41d8cd98f00b204e9800998ecf8427e"
+    ],
+    "public.Loan Assessment SQL Lab": [
+      0,
+      "d41d8cd98f00b204e9800998ecf8427e"
+    ],
+    "public.Loans": [
+      7,
+      "b94d0b2f2ef4d906b4e0d9588890f032"
+    ],
+    "public.Partners": [
+      1,
+      "0c920e1af676b4ae241cf0550d6d0527"
+    ],
+    "public.Payment Allocations": [
+      6,
+      "d3f21e2372dd8e0ea47d8ddf76bea724"
+    ],
+    "public.Payments": [
+      6,
+      "93e8e96fbe0d20259cff6b7bffa21b35"
+    ],
+    "public.Repayments": [
+      7,
+      "338e3da803ed58f1e08e180e221f6112"
+    ],
+    "public.Settlements": [
+      0,
+      "d41d8cd98f00b204e9800998ecf8427e"
+    ],
+    "public.Statistics": [
+      0,
+      "d41d8cd98f00b204e9800998ecf8427e"
+    ],
+    "public.flyway_schema_history": [
+      0,
+      "d41d8cd98f00b204e9800998ecf8427e"
+    ],
+    "public.r005_cash_cutover_sources": [
+      0,
+      "d41d8cd98f00b204e9800998ecf8427e"
+    ],
+    "public.r008_cash_account_cutover": [
+      0,
+      "d41d8cd98f00b204e9800998ecf8427e"
+    ]
+  },
+  "all_tables_compared": 26,
+  "policy": "No backfill or repair; counts describe pre-existing cases only. Missing-basis conversion rejects; existing same-daily values remain unchanged.",
+  "other_owned_sessions": 0,
+  "reimbursement_fixture_created": false
+}

@@ -1,0 +1,65 @@
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "reports.mw-credit.com"
+  "kind": "question"
+  "name": "Current principal ฿ / 291"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r035-borrower-pages/saved-question-definitions.json"
+"content":
+  "key": "d-principal"
+  "id": 291
+  "name": "Current principal ฿"
+  "description": "R035 additive borrower pages. Immutable borrower keys; Bangkok dates; current health from V41/V42. Signed\
+    \ receipts. No AppSheet/financial writes."
+  "display": "scalar"
+  "type": "question"
+  "dataset_query":
+    "stages":
+    - "template-tags":
+      - "display-name": "Borrower"
+        "id": "bp-borrower"
+        "name": "borrower_id"
+        "type": "text"
+      "lib/type": "mbql.stage/native"
+      "native": "WITH clock AS (SELECT public.olap_reporting_date() today), chosen AS (SELECT * FROM public.reporting_borrower_directory_v1\
+        \ WHERE borrower_id= [[{{borrower_id}} --]] '__select_borrower__'\n) SELECT c.outstanding_principal AS \"Current principal\
+        \ ฿\" FROM chosen c  "
+    "lib/type": "mbql/query"
+    "database": 2
+  "visualization_settings":
+    "scalar.field": "Current principal ฿"
+    "column_settings":
+      "[\"name\",\"Current principal ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+  "result_metadata":
+  - "database_type": "numeric"
+    "semantic_type": null
+    "lib/deduplicated-name": "Current principal ฿"
+    "lib/original-name": "Current principal ฿"
+    "name": "Current principal ฿"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Current principal ฿"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Current principal ฿"
+    - "base-type": "type/Decimal"
+    "effective_type": "type/Decimal"
+    "lib/desired-column-alias": "Current principal ฿"
+    "display_name": "Current principal ฿"
+    "base_type": "type/Decimal"
+"evidence":
+  "/content/result_metadata":
+    "reference": "outputs/r035-borrower-pages/README.md"
+    "reason": "R035 additive borrower pages; exact saved definitions and V44 metadata"
+    "state": "value"
+  "/content/dataset_query":
+    "reference": "outputs/r035-borrower-pages/README.md"
+    "reason": "R035 additive borrower pages; exact saved definitions and V44 metadata"
+    "state": "value"

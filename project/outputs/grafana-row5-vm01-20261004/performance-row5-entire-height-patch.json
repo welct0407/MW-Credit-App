@@ -1,0 +1,25 @@
+{
+  "dashboard_uid": "mw-resource-performance",
+  "scope": "Current live resource only; change heights of six cards, preserve all other properties",
+  "previous_dashboard_version": 36,
+  "panels": {
+    "121": {
+      "height": 4
+    },
+    "122": {
+      "height": 4
+    },
+    "123": {
+      "height": 4
+    },
+    "125": {
+      "height": 4
+    },
+    "126": {
+      "height": 4
+    },
+    "127": {
+      "height": 4
+    }
+  }
+}

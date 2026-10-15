@@ -1,0 +1,35 @@
+{
+  "queryScope": "Cloud Run stdout only, fixed service, 2026-10-03T07:46Z through 07:55Z, event request_failed, status 500; projected timestamp/revision/event/status only",
+  "records": [
+    {
+      "timestamp": "2026-10-03T07:47:19.691494Z",
+      "revision": "mw-grafana-events-00003-rdr",
+      "event": "request_failed",
+      "status": 500
+    },
+    {
+      "timestamp": "2026-10-03T07:49:15.898816Z",
+      "revision": "mw-grafana-events-00003-rdr",
+      "event": "request_failed",
+      "status": 500
+    }
+  ],
+  "freshSyntheticInitiation": {
+    "authorization": 303,
+    "interactionStart": 302,
+    "destinationHost": "accounts.google.com",
+    "normalTls": true,
+    "GoogleRedirectFollowed": false
+  },
+  "exactProductionException": "unknown; original logger emitted only request_failed/status",
+  "focusedTests": {
+    "passed": 19,
+    "failed": 0,
+    "files": [
+      "oauth.test.mjs",
+      "app.test.mjs",
+      "security.test.mjs"
+    ]
+  },
+  "authenticationFixed": false
+}

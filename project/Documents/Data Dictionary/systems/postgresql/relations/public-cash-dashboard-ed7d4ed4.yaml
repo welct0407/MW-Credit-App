@@ -1,0 +1,347 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "relation"
+  "name": "public.Cash Dashboard"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "Cash Dashboard"
+    "kind": "v"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "n"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,mw_reviewer_dml=r/postgres,metabase_borrower_reader=r/postgres,mw_app_prod=r/postgres}"
+    "comment": "R014 read-only Bangkok MTD: signed income/expenses, completed per-partner FIFO withdrawals from inception,\
+      \ net unsettled profit, available contributed capital and positive initialized account custody. Role A=Tommy, B=Lisa.\
+      \ Unknown account openings keep business cash unavailable. No base-data writes."
+    "view_definition": |2-
+       WITH ctx AS (
+               SELECT q.d,
+                  date_trunc('month'::text, q.d::timestamp with time zone)::date AS ms
+                 FROM ( SELECT olap_reporting_date() AS d) q
+              ), profit AS (
+               SELECT COALESCE(sum(r."Interest Paid"::numeric) FILTER (WHERE r."Payment Date" >= ctx.ms), 0::numeric) AS income,
+                  COALESCE(sum(r."Partner A Profit") FILTER (WHERE r."Payment Date" < ctx.ms), 0::numeric) AS prior_a,
+                  COALESCE(sum(r."Partner B Profit") FILTER (WHERE r."Payment Date" < ctx.ms), 0::numeric) AS prior_b,
+                  COALESCE(sum(r."Partner A Profit") FILTER (WHERE r."Payment Date" >= ctx.ms), 0::numeric) AS month_a,
+                  COALESCE(sum(r."Partner B Profit") FILTER (WHERE r."Payment Date" >= ctx.ms), 0::numeric) AS month_b
+                 FROM olap_repayments_analytics r
+                   CROSS JOIN ctx
+                WHERE r."Payment Date" <= ctx.d
+              ), expense AS (
+               SELECT COALESCE(sum(e."Amount"::numeric) FILTER (WHERE e."Expense Date" >= ctx.ms), 0::numeric) AS amount,
+                  COALESCE(sum(e."Partner A Expense"::numeric) FILTER (WHERE e."Expense Date" < ctx.ms), 0::numeric) AS prior_a,
+                  COALESCE(sum(e."Partner B Expense"::numeric) FILTER (WHERE e."Expense Date" < ctx.ms), 0::numeric) AS prior_b,
+                  COALESCE(sum(e."Partner A Expense"::numeric) FILTER (WHERE e."Expense Date" >= ctx.ms), 0::numeric) AS month_a,
+                  COALESCE(sum(e."Partner B Expense"::numeric) FILTER (WHERE e."Expense Date" >= ctx.ms), 0::numeric) AS month_b
+                 FROM "Business Expenses" e
+                   CROSS JOIN ctx
+                WHERE e."Expense Date" <= ctx.d
+              ), settled AS (
+               SELECT COALESCE(sum(s."Amount"::numeric) FILTER (WHERE p."Partner Role" = 'A'::text), 0::numeric) AS a,
+                  COALESCE(sum(s."Amount"::numeric) FILTER (WHERE p."Partner Role" = 'B'::text), 0::numeric) AS b
+                 FROM "Settlements" s
+                   JOIN "Partners" p ON p."Row ID" = s."Ref Partner"
+                   CROSS JOIN ctx
+                WHERE s."Status" = 'Completed'::text AND s."Transfer Date" <= ctx.d
+              ), allocated AS (
+               SELECT profit.income,
+                  expense.amount,
+                  fifo_current_month_settled(profit.prior_a - expense.prior_a, profit.month_a - expense.month_a, settled.a) AS a,
+                  fifo_current_month_settled(profit.prior_b - expense.prior_b, profit.month_b - expense.month_b, settled.b) AS b
+                 FROM profit
+                   CROSS JOIN expense
+                   CROSS JOIN settled
+              ), cash AS (
+               SELECT
+                      CASE
+                          WHEN bool_and("Cash Account Balances"."Initialized") THEN sum("Cash Account Balances"."Business Cash Held")
+                          ELSE NULL::numeric
+                      END AS held
+                 FROM "Cash Account Balances"
+              )
+       SELECT 'cash-dashboard'::text AS "Row ID",
+          allocated.income AS "Operating Income MTD",
+          - allocated.amount AS "Expenses MTD",
+          allocated.income - allocated.amount AS "Net Profit MTD",
+          - allocated.a AS "Tommy Withdrawn MTD",
+          - allocated.b AS "Lisa Withdrawn MTD",
+          allocated.income - allocated.amount - allocated.a - allocated.b AS "Unsettled Profit MTD",
+          pool."Available Cashpool"::numeric AS "Cash Pool Remaining",
+          cash.held AS "Business Cash Held"
+         FROM allocated
+           CROSS JOIN "Loan Form Context" pool
+           CROSS JOIN cash;
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "columns":
+    "Row ID":
+      "schema": "public"
+      "relation": "Cash Dashboard"
+      "name": "Row ID"
+      "ordinal": 1
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Operating Income MTD":
+      "schema": "public"
+      "relation": "Cash Dashboard"
+      "name": "Operating Income MTD"
+      "ordinal": 2
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Expenses MTD":
+      "schema": "public"
+      "relation": "Cash Dashboard"
+      "name": "Expenses MTD"
+      "ordinal": 3
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Net Profit MTD":
+      "schema": "public"
+      "relation": "Cash Dashboard"
+      "name": "Net Profit MTD"
+      "ordinal": 4
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Tommy Withdrawn MTD":
+      "schema": "public"
+      "relation": "Cash Dashboard"
+      "name": "Tommy Withdrawn MTD"
+      "ordinal": 5
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Lisa Withdrawn MTD":
+      "schema": "public"
+      "relation": "Cash Dashboard"
+      "name": "Lisa Withdrawn MTD"
+      "ordinal": 6
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Unsettled Profit MTD":
+      "schema": "public"
+      "relation": "Cash Dashboard"
+      "name": "Unsettled Profit MTD"
+      "ordinal": 7
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Cash Pool Remaining":
+      "schema": "public"
+      "relation": "Cash Dashboard"
+      "name": "Cash Pool Remaining"
+      "ordinal": 8
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Business Cash Held":
+      "schema": "public"
+      "relation": "Cash Dashboard"
+      "name": "Business Cash Held"
+      "ordinal": 9
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+  "constraints": {}
+  "indexes": {}
+  "triggers": {}
+  "policies": {}
+  "dependencies":
+  - "schema": "public"
+    "relation": "Cash Dashboard"
+    "referenced_schema": "public"
+    "referenced_relation": "Business Expenses"
+    "referenced_column": "Amount"
+  - "schema": "public"
+    "relation": "Cash Dashboard"
+    "referenced_schema": "public"
+    "referenced_relation": "Business Expenses"
+    "referenced_column": "Expense Date"
+  - "schema": "public"
+    "relation": "Cash Dashboard"
+    "referenced_schema": "public"
+    "referenced_relation": "Business Expenses"
+    "referenced_column": "Partner A Expense"
+  - "schema": "public"
+    "relation": "Cash Dashboard"
+    "referenced_schema": "public"
+    "referenced_relation": "Business Expenses"
+    "referenced_column": "Partner B Expense"
+  - "schema": "public"
+    "relation": "Cash Dashboard"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Account Balances"
+    "referenced_column": "Business Cash Held"
+  - "schema": "public"
+    "relation": "Cash Dashboard"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Account Balances"
+    "referenced_column": "Initialized"
+  - "schema": "public"
+    "relation": "Cash Dashboard"
+    "referenced_schema": "public"
+    "referenced_relation": "Loan Form Context"
+    "referenced_column": "Available Cashpool"
+  - "schema": "public"
+    "relation": "Cash Dashboard"
+    "referenced_schema": "public"
+    "referenced_relation": "Partners"
+    "referenced_column": "Partner Role"
+  - "schema": "public"
+    "relation": "Cash Dashboard"
+    "referenced_schema": "public"
+    "referenced_relation": "Partners"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "Cash Dashboard"
+    "referenced_schema": "public"
+    "referenced_relation": "Settlements"
+    "referenced_column": "Amount"
+  - "schema": "public"
+    "relation": "Cash Dashboard"
+    "referenced_schema": "public"
+    "referenced_relation": "Settlements"
+    "referenced_column": "Ref Partner"
+  - "schema": "public"
+    "relation": "Cash Dashboard"
+    "referenced_schema": "public"
+    "referenced_relation": "Settlements"
+    "referenced_column": "Status"
+  - "schema": "public"
+    "relation": "Cash Dashboard"
+    "referenced_schema": "public"
+    "referenced_relation": "Settlements"
+    "referenced_column": "Transfer Date"
+  - "schema": "public"
+    "relation": "Cash Dashboard"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Interest Paid"
+  - "schema": "public"
+    "relation": "Cash Dashboard"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Partner A Profit"
+  - "schema": "public"
+    "relation": "Cash Dashboard"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Partner B Profit"
+  - "schema": "public"
+    "relation": "Cash Dashboard"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Payment Date"
+"evidence":
+  "/content/definition/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"

@@ -1,0 +1,31 @@
+{
+  "release": "R037",
+  "status": "Released",
+  "handoffRecordedAt": "2026-09-26T03:23:17.115594+00:00",
+  "implementationCommit": "563f222",
+  "successor": "R038",
+  "dashboard": 3,
+  "tab": 104,
+  "appsheet": "unchanged",
+  "sql": "unchanged V45",
+  "authorization": "Owner requested chart refinement and selected lifetime rate",
+  "deviation": "Pre-publication handoff script failed a Windows text-encoding assertion; shell continued to scoped report publication. Tracker handoff repaired afterward, without redeployment.",
+  "model": 310,
+  "questions": [
+    311,
+    312,
+    313,
+    314,
+    315
+  ],
+  "rollbackDashboard": 11,
+  "finalTag": "R037",
+  "tests": [
+    "data-verification.json",
+    "verification.json",
+    "filter-verification.json",
+    "gui-verification.json",
+    "dictionary-validation.txt"
+  ],
+  "candidateCorrections": "UTF-8 labels; top8 mobile ratio safety; percentage-only pie labels and readable note. Captured in final saved.json."
+}

@@ -1,0 +1,4145 @@
+{
+  "questions": [
+    {
+      "id": 259,
+      "name": "Cash Cow · active borrowers",
+      "display": "table",
+      "dataset_query": {
+        "lib/type": "mbql/query",
+        "stages": [
+          {
+            "lib/type": "mbql.stage/native",
+            "native": "SELECT b.\"Row ID\" AS \"Borrower ID\",b.\"Description\" AS \"Borrower\",m.reliability_score AS \"Score\",m.relative_contribution AS \"Value ×\",m.confidence AS \"History\",m.arrangement_status AS \"Schedule\",h.overdue_amount AS \"Overdue ฿\" FROM public.reporting_borrower_matrix_v3 m JOIN public.reporting_borrower_payment_health_v1 h USING(borrower_id) JOIN public.olap_borrowers_analytics b ON b.\"Row ID\"=m.borrower_id WHERE m.quadrant='Cash Cow' ORDER BY m.contribution_30d DESC,m.borrower_id"
+          }
+        ],
+        "database": 2
+      },
+      "visualization_settings": {
+        "table.pivot": false,
+        "table.column_formatting": [
+          {
+            "columns": [
+              "Score"
+            ],
+            "type": "single",
+            "operator": ">=",
+            "value": 0,
+            "color": "#E0F2ED",
+            "highlight_row": true
+          }
+        ],
+        "column_settings": {
+          "[\"name\",\"Overdue ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Principal ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Interest 30d ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Recorded loss ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Score\"]": {
+            "number_style": "decimal",
+            "decimals": 1,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Value ×\"]": {
+            "number_style": "decimal",
+            "decimals": 2,
+            "number_separators": ".,",
+            "compact": false
+          }
+        },
+        "table.columns": [
+          {
+            "name": "Borrower",
+            "fieldRef": [
+              "field",
+              "Borrower",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Score",
+            "fieldRef": [
+              "field",
+              "Score",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Value ×",
+            "fieldRef": [
+              "field",
+              "Value ×",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "History",
+            "fieldRef": [
+              "field",
+              "History",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Schedule",
+            "fieldRef": [
+              "field",
+              "Schedule",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Overdue ฿",
+            "fieldRef": [
+              "field",
+              "Overdue ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Borrower ID",
+            "fieldRef": [
+              "field",
+              "Borrower ID",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": false
+          }
+        ]
+      },
+      "result_metadata": [
+        {
+          "name": "Borrower ID",
+          "display_name": "Borrower ID",
+          "base_type": "type/Text",
+          "effective_type": "type/Text",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Borrower ID",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        },
+        {
+          "name": "Borrower",
+          "display_name": "Borrower",
+          "base_type": "type/Text",
+          "effective_type": "type/Text",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Borrower",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        },
+        {
+          "name": "Score",
+          "display_name": "Score",
+          "base_type": "type/Decimal",
+          "effective_type": "type/Decimal",
+          "semantic_type": "type/Score",
+          "field_ref": [
+            "field",
+            "Score",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        },
+        {
+          "name": "Value ×",
+          "display_name": "Value ×",
+          "base_type": "type/Decimal",
+          "effective_type": "type/Decimal",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Value ×",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        },
+        {
+          "name": "History",
+          "display_name": "History",
+          "base_type": "type/Text",
+          "effective_type": "type/Text",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "History",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        },
+        {
+          "name": "Schedule",
+          "display_name": "Schedule",
+          "base_type": "type/Text",
+          "effective_type": "type/Text",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Schedule",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        },
+        {
+          "name": "Overdue ฿",
+          "display_name": "Overdue ฿",
+          "base_type": "type/Decimal",
+          "effective_type": "type/Decimal",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Overdue ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 261,
+      "name": "Star · active borrowers",
+      "display": "table",
+      "dataset_query": {
+        "lib/type": "mbql/query",
+        "stages": [
+          {
+            "lib/type": "mbql.stage/native",
+            "native": "SELECT b.\"Row ID\" AS \"Borrower ID\",b.\"Description\" AS \"Borrower\",m.reliability_score AS \"Score\",m.relative_contribution AS \"Value ×\",m.confidence AS \"History\",m.arrangement_status AS \"Schedule\",h.overdue_amount AS \"Overdue ฿\" FROM public.reporting_borrower_matrix_v3 m JOIN public.reporting_borrower_payment_health_v1 h USING(borrower_id) JOIN public.olap_borrowers_analytics b ON b.\"Row ID\"=m.borrower_id WHERE m.quadrant='Star' ORDER BY m.contribution_30d DESC,m.borrower_id"
+          }
+        ],
+        "database": 2
+      },
+      "visualization_settings": {
+        "table.pivot": false,
+        "table.column_formatting": [
+          {
+            "columns": [
+              "Score"
+            ],
+            "type": "single",
+            "operator": ">=",
+            "value": 0,
+            "color": "#E4EFFA",
+            "highlight_row": true
+          }
+        ],
+        "column_settings": {
+          "[\"name\",\"Overdue ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Principal ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Interest 30d ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Recorded loss ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Score\"]": {
+            "number_style": "decimal",
+            "decimals": 1,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Value ×\"]": {
+            "number_style": "decimal",
+            "decimals": 2,
+            "number_separators": ".,",
+            "compact": false
+          }
+        },
+        "table.columns": [
+          {
+            "name": "Borrower",
+            "fieldRef": [
+              "field",
+              "Borrower",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Score",
+            "fieldRef": [
+              "field",
+              "Score",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Value ×",
+            "fieldRef": [
+              "field",
+              "Value ×",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "History",
+            "fieldRef": [
+              "field",
+              "History",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Schedule",
+            "fieldRef": [
+              "field",
+              "Schedule",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Overdue ฿",
+            "fieldRef": [
+              "field",
+              "Overdue ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Borrower ID",
+            "fieldRef": [
+              "field",
+              "Borrower ID",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": false
+          }
+        ]
+      },
+      "result_metadata": [
+        {
+          "name": "Borrower ID",
+          "display_name": "Borrower ID",
+          "base_type": "type/Text",
+          "effective_type": "type/Text",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Borrower ID",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        },
+        {
+          "name": "Borrower",
+          "display_name": "Borrower",
+          "base_type": "type/Text",
+          "effective_type": "type/Text",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Borrower",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        },
+        {
+          "name": "Score",
+          "display_name": "Score",
+          "base_type": "type/Decimal",
+          "effective_type": "type/Decimal",
+          "semantic_type": "type/Score",
+          "field_ref": [
+            "field",
+            "Score",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        },
+        {
+          "name": "Value ×",
+          "display_name": "Value ×",
+          "base_type": "type/Decimal",
+          "effective_type": "type/Decimal",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Value ×",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        },
+        {
+          "name": "History",
+          "display_name": "History",
+          "base_type": "type/Text",
+          "effective_type": "type/Text",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "History",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        },
+        {
+          "name": "Schedule",
+          "display_name": "Schedule",
+          "base_type": "type/Text",
+          "effective_type": "type/Text",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Schedule",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        },
+        {
+          "name": "Overdue ฿",
+          "display_name": "Overdue ฿",
+          "base_type": "type/Decimal",
+          "effective_type": "type/Decimal",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Overdue ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 263,
+      "name": "Dog · active borrowers",
+      "display": "table",
+      "dataset_query": {
+        "lib/type": "mbql/query",
+        "stages": [
+          {
+            "lib/type": "mbql.stage/native",
+            "native": "SELECT b.\"Row ID\" AS \"Borrower ID\",b.\"Description\" AS \"Borrower\",m.reliability_score AS \"Score\",m.relative_contribution AS \"Value ×\",m.confidence AS \"History\",m.arrangement_status AS \"Schedule\",h.overdue_amount AS \"Overdue ฿\" FROM public.reporting_borrower_matrix_v3 m JOIN public.reporting_borrower_payment_health_v1 h USING(borrower_id) JOIN public.olap_borrowers_analytics b ON b.\"Row ID\"=m.borrower_id WHERE m.quadrant='Dog' ORDER BY m.contribution_30d DESC,m.borrower_id"
+          }
+        ],
+        "database": 2
+      },
+      "visualization_settings": {
+        "table.pivot": false,
+        "table.column_formatting": [
+          {
+            "columns": [
+              "Score"
+            ],
+            "type": "single",
+            "operator": ">=",
+            "value": 0,
+            "color": "#FBE7E5",
+            "highlight_row": true
+          }
+        ],
+        "column_settings": {
+          "[\"name\",\"Overdue ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Principal ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Interest 30d ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Recorded loss ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Score\"]": {
+            "number_style": "decimal",
+            "decimals": 1,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Value ×\"]": {
+            "number_style": "decimal",
+            "decimals": 2,
+            "number_separators": ".,",
+            "compact": false
+          }
+        },
+        "table.columns": [
+          {
+            "name": "Borrower",
+            "fieldRef": [
+              "field",
+              "Borrower",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Score",
+            "fieldRef": [
+              "field",
+              "Score",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Value ×",
+            "fieldRef": [
+              "field",
+              "Value ×",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "History",
+            "fieldRef": [
+              "field",
+              "History",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Schedule",
+            "fieldRef": [
+              "field",
+              "Schedule",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Overdue ฿",
+            "fieldRef": [
+              "field",
+              "Overdue ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Borrower ID",
+            "fieldRef": [
+              "field",
+              "Borrower ID",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": false
+          }
+        ]
+      },
+      "result_metadata": [
+        {
+          "name": "Borrower ID",
+          "display_name": "Borrower ID",
+          "base_type": "type/Text",
+          "effective_type": "type/Text",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Borrower ID",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        },
+        {
+          "name": "Borrower",
+          "display_name": "Borrower",
+          "base_type": "type/Text",
+          "effective_type": "type/Text",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Borrower",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        },
+        {
+          "name": "Score",
+          "display_name": "Score",
+          "base_type": "type/Decimal",
+          "effective_type": "type/Decimal",
+          "semantic_type": "type/Score",
+          "field_ref": [
+            "field",
+            "Score",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        },
+        {
+          "name": "Value ×",
+          "display_name": "Value ×",
+          "base_type": "type/Decimal",
+          "effective_type": "type/Decimal",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Value ×",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        },
+        {
+          "name": "History",
+          "display_name": "History",
+          "base_type": "type/Text",
+          "effective_type": "type/Text",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "History",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        },
+        {
+          "name": "Schedule",
+          "display_name": "Schedule",
+          "base_type": "type/Text",
+          "effective_type": "type/Text",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Schedule",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        },
+        {
+          "name": "Overdue ฿",
+          "display_name": "Overdue ฿",
+          "base_type": "type/Decimal",
+          "effective_type": "type/Decimal",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Overdue ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 265,
+      "name": "Question Mark · active borrowers",
+      "display": "table",
+      "dataset_query": {
+        "lib/type": "mbql/query",
+        "stages": [
+          {
+            "lib/type": "mbql.stage/native",
+            "native": "SELECT b.\"Row ID\" AS \"Borrower ID\",b.\"Description\" AS \"Borrower\",m.reliability_score AS \"Score\",m.relative_contribution AS \"Value ×\",m.confidence AS \"History\",m.arrangement_status AS \"Schedule\",h.overdue_amount AS \"Overdue ฿\" FROM public.reporting_borrower_matrix_v3 m JOIN public.reporting_borrower_payment_health_v1 h USING(borrower_id) JOIN public.olap_borrowers_analytics b ON b.\"Row ID\"=m.borrower_id WHERE m.quadrant='Question Mark' ORDER BY m.contribution_30d DESC,m.borrower_id"
+          }
+        ],
+        "database": 2
+      },
+      "visualization_settings": {
+        "table.pivot": false,
+        "table.column_formatting": [
+          {
+            "columns": [
+              "Score"
+            ],
+            "type": "single",
+            "operator": ">=",
+            "value": 0,
+            "color": "#FFF2D6",
+            "highlight_row": true
+          }
+        ],
+        "column_settings": {
+          "[\"name\",\"Overdue ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Principal ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Interest 30d ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Recorded loss ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Score\"]": {
+            "number_style": "decimal",
+            "decimals": 1,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Value ×\"]": {
+            "number_style": "decimal",
+            "decimals": 2,
+            "number_separators": ".,",
+            "compact": false
+          }
+        },
+        "table.columns": [
+          {
+            "name": "Borrower",
+            "fieldRef": [
+              "field",
+              "Borrower",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Score",
+            "fieldRef": [
+              "field",
+              "Score",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Value ×",
+            "fieldRef": [
+              "field",
+              "Value ×",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "History",
+            "fieldRef": [
+              "field",
+              "History",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Schedule",
+            "fieldRef": [
+              "field",
+              "Schedule",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Overdue ฿",
+            "fieldRef": [
+              "field",
+              "Overdue ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Borrower ID",
+            "fieldRef": [
+              "field",
+              "Borrower ID",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": false
+          }
+        ]
+      },
+      "result_metadata": [
+        {
+          "name": "Borrower ID",
+          "display_name": "Borrower ID",
+          "base_type": "type/Text",
+          "effective_type": "type/Text",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Borrower ID",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        },
+        {
+          "name": "Borrower",
+          "display_name": "Borrower",
+          "base_type": "type/Text",
+          "effective_type": "type/Text",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Borrower",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        },
+        {
+          "name": "Score",
+          "display_name": "Score",
+          "base_type": "type/Decimal",
+          "effective_type": "type/Decimal",
+          "semantic_type": "type/Score",
+          "field_ref": [
+            "field",
+            "Score",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        },
+        {
+          "name": "Value ×",
+          "display_name": "Value ×",
+          "base_type": "type/Decimal",
+          "effective_type": "type/Decimal",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Value ×",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        },
+        {
+          "name": "History",
+          "display_name": "History",
+          "base_type": "type/Text",
+          "effective_type": "type/Text",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "History",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        },
+        {
+          "name": "Schedule",
+          "display_name": "Schedule",
+          "base_type": "type/Text",
+          "effective_type": "type/Text",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Schedule",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        },
+        {
+          "name": "Overdue ฿",
+          "display_name": "Overdue ฿",
+          "base_type": "type/Decimal",
+          "effective_type": "type/Decimal",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Overdue ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 267,
+      "name": "Borrower payment health · all borrowers",
+      "display": "table",
+      "dataset_query": {
+        "lib/type": "mbql/query",
+        "stages": [
+          {
+            "lib/type": "mbql.stage/native",
+            "native": "SELECT b.\"Row ID\" AS \"Borrower ID\",b.\"Description\" AS \"Borrower\",h.has_active_loan AS \"Active loan\",h.current_health_status AS \"Current health\",h.overdue_amount AS \"Overdue ฿\",h.overdue_charge_count AS \"Overdue charges\",h.oldest_unpaid_days AS \"Oldest days\",h.rating_status AS \"Rating status\",h.reliability_score AS \"Reliability /100\",h.confidence AS \"Confidence\",coalesce(m.quadrant,'Outside active cohort') AS \"Category\",coalesce(m.arrangement_status,'Outside active cohort') AS \"Schedule\",m.classification_reason AS \"Category reason\",h.reason_text AS \"Payment reason\" FROM public.reporting_borrower_payment_health_v1 h JOIN public.olap_borrowers_analytics b ON b.\"Row ID\"=h.borrower_id LEFT JOIN public.reporting_borrower_matrix_v3 m USING(borrower_id) ORDER BY h.overdue_amount DESC NULLS FIRST,h.oldest_unpaid_days DESC NULLS LAST,h.borrower_id"
+          }
+        ],
+        "database": 2
+      },
+      "visualization_settings": {
+        "table.pivot": false,
+        "table.column_formatting": [
+          {
+            "columns": [
+              "Current health"
+            ],
+            "type": "single",
+            "operator": "=",
+            "value": "Default flagged",
+            "color": "#FBE7E5",
+            "highlight_row": true
+          },
+          {
+            "columns": [
+              "Oldest days"
+            ],
+            "type": "single",
+            "operator": ">",
+            "value": 7,
+            "color": "#FBE7E5",
+            "highlight_row": true
+          },
+          {
+            "columns": [
+              "Current health"
+            ],
+            "type": "single",
+            "operator": "=",
+            "value": "Overdue",
+            "color": "#FFF2D6",
+            "highlight_row": true
+          },
+          {
+            "columns": [
+              "Rating status"
+            ],
+            "type": "single",
+            "operator": "=",
+            "value": "Data review",
+            "color": "#ECEFF1",
+            "highlight_row": true
+          }
+        ],
+        "column_settings": {
+          "[\"name\",\"Overdue ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Principal ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Interest 30d ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Recorded loss ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Reliability /100\"]": {
+            "number_style": "decimal",
+            "decimals": 1,
+            "number_separators": ".,",
+            "compact": false
+          }
+        },
+        "table.columns": [
+          {
+            "name": "Borrower",
+            "fieldRef": [
+              "field",
+              "Borrower",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Active loan",
+            "fieldRef": [
+              "field",
+              "Active loan",
+              {
+                "base-type": "type/Boolean"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Current health",
+            "fieldRef": [
+              "field",
+              "Current health",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Overdue ฿",
+            "fieldRef": [
+              "field",
+              "Overdue ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Overdue charges",
+            "fieldRef": [
+              "field",
+              "Overdue charges",
+              {
+                "base-type": "type/Integer"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Oldest days",
+            "fieldRef": [
+              "field",
+              "Oldest days",
+              {
+                "base-type": "type/Integer"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Rating status",
+            "fieldRef": [
+              "field",
+              "Rating status",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Reliability /100",
+            "fieldRef": [
+              "field",
+              "Reliability /100",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Confidence",
+            "fieldRef": [
+              "field",
+              "Confidence",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Category",
+            "fieldRef": [
+              "field",
+              "Category",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Schedule",
+            "fieldRef": [
+              "field",
+              "Schedule",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Category reason",
+            "fieldRef": [
+              "field",
+              "Category reason",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Payment reason",
+            "fieldRef": [
+              "field",
+              "Payment reason",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Borrower ID",
+            "fieldRef": [
+              "field",
+              "Borrower ID",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": false
+          }
+        ]
+      },
+      "result_metadata": [
+        {
+          "name": "Borrower ID",
+          "display_name": "Borrower ID",
+          "base_type": "type/Text",
+          "effective_type": "type/Text",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Borrower ID",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        },
+        {
+          "name": "Borrower",
+          "display_name": "Borrower",
+          "base_type": "type/Text",
+          "effective_type": "type/Text",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Borrower",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        },
+        {
+          "name": "Active loan",
+          "display_name": "Active loan",
+          "base_type": "type/Boolean",
+          "effective_type": "type/Boolean",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Active loan",
+            {
+              "base-type": "type/Boolean"
+            }
+          ]
+        },
+        {
+          "name": "Current health",
+          "display_name": "Current health",
+          "base_type": "type/Text",
+          "effective_type": "type/Text",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Current health",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        },
+        {
+          "name": "Overdue ฿",
+          "display_name": "Overdue ฿",
+          "base_type": "type/Decimal",
+          "effective_type": "type/Decimal",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Overdue ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        },
+        {
+          "name": "Overdue charges",
+          "display_name": "Overdue charges",
+          "base_type": "type/Integer",
+          "effective_type": "type/Integer",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Overdue charges",
+            {
+              "base-type": "type/Integer"
+            }
+          ]
+        },
+        {
+          "name": "Oldest days",
+          "display_name": "Oldest days",
+          "base_type": "type/Integer",
+          "effective_type": "type/Integer",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Oldest days",
+            {
+              "base-type": "type/Integer"
+            }
+          ]
+        },
+        {
+          "name": "Rating status",
+          "display_name": "Rating status",
+          "base_type": "type/Text",
+          "effective_type": "type/Text",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Rating status",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        },
+        {
+          "name": "Reliability /100",
+          "display_name": "Reliability /100",
+          "base_type": "type/Decimal",
+          "effective_type": "type/Decimal",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Reliability /100",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        },
+        {
+          "name": "Confidence",
+          "display_name": "Confidence",
+          "base_type": "type/Text",
+          "effective_type": "type/Text",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Confidence",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        },
+        {
+          "name": "Category",
+          "display_name": "Category",
+          "base_type": "type/Text",
+          "effective_type": "type/Text",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Category",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        },
+        {
+          "name": "Schedule",
+          "display_name": "Schedule",
+          "base_type": "type/Text",
+          "effective_type": "type/Text",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Schedule",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        },
+        {
+          "name": "Category reason",
+          "display_name": "Category reason",
+          "base_type": "type/Text",
+          "effective_type": "type/Text",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Category reason",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        },
+        {
+          "name": "Payment reason",
+          "display_name": "Payment reason",
+          "base_type": "type/Text",
+          "effective_type": "type/Text",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Payment reason",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 268,
+      "name": "Reliability components & effective weights · active borrowers",
+      "display": "table",
+      "dataset_query": {
+        "lib/type": "mbql/query",
+        "stages": [
+          {
+            "lib/type": "mbql.stage/native",
+            "native": "SELECT b.\"Row ID\" AS \"Borrower ID\",b.\"Description\" AS \"Borrower\",h.rating_status AS \"Status\",h.reliability_score AS \"Final /100\",h.raw_score AS \"Raw /100\",h.recent_score AS \"Recent /100\",h.recent_effective_weight AS \"Recent weight\",h.older_score AS \"Older /100\",h.older_effective_weight AS \"Older weight\",h.delay_score AS \"Delay /100\",h.delay_effective_weight AS \"Delay weight\",h.current_score AS \"Current /100\",h.current_effective_weight AS \"Current weight\",h.score_cap_applied AS \"Cap applied\",h.recent_on_time_count AS \"Recent on time\",h.recent_obligation_count AS \"Recent observations\",h.history_span_days AS \"History days\",h.confidence AS \"Confidence\" FROM public.reporting_borrower_matrix_v3 m JOIN public.reporting_borrower_payment_health_v1 h USING(borrower_id) JOIN public.olap_borrowers_analytics b ON b.\"Row ID\"=m.borrower_id ORDER BY h.reliability_score ASC NULLS FIRST,h.borrower_id"
+          }
+        ],
+        "database": 2
+      },
+      "visualization_settings": {
+        "table.pivot": false,
+        "column_settings": {
+          "[\"name\",\"Older weight\"]": {
+            "number_style": "percent",
+            "decimals": 1
+          },
+          "[\"name\",\"Delay /100\"]": {
+            "number_style": "decimal",
+            "decimals": 1,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Delay weight\"]": {
+            "number_style": "percent",
+            "decimals": 1
+          },
+          "[\"name\",\"Current weight\"]": {
+            "number_style": "percent",
+            "decimals": 1
+          },
+          "[\"name\",\"Recent weight\"]": {
+            "number_style": "percent",
+            "decimals": 1
+          },
+          "[\"name\",\"Older /100\"]": {
+            "number_style": "decimal",
+            "decimals": 1,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Recent /100\"]": {
+            "number_style": "decimal",
+            "decimals": 1,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Current /100\"]": {
+            "number_style": "decimal",
+            "decimals": 1,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Final /100\"]": {
+            "number_style": "decimal",
+            "decimals": 1,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Raw /100\"]": {
+            "number_style": "decimal",
+            "decimals": 1,
+            "number_separators": ".,",
+            "compact": false
+          }
+        },
+        "table.columns": [
+          {
+            "name": "Borrower",
+            "fieldRef": [
+              "field",
+              "Borrower",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Status",
+            "fieldRef": [
+              "field",
+              "Status",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Final /100",
+            "fieldRef": [
+              "field",
+              "Final /100",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Raw /100",
+            "fieldRef": [
+              "field",
+              "Raw /100",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Recent /100",
+            "fieldRef": [
+              "field",
+              "Recent /100",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Recent weight",
+            "fieldRef": [
+              "field",
+              "Recent weight",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Older /100",
+            "fieldRef": [
+              "field",
+              "Older /100",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Older weight",
+            "fieldRef": [
+              "field",
+              "Older weight",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Delay /100",
+            "fieldRef": [
+              "field",
+              "Delay /100",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Delay weight",
+            "fieldRef": [
+              "field",
+              "Delay weight",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Current /100",
+            "fieldRef": [
+              "field",
+              "Current /100",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Current weight",
+            "fieldRef": [
+              "field",
+              "Current weight",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Cap applied",
+            "fieldRef": [
+              "field",
+              "Cap applied",
+              {
+                "base-type": "type/Boolean"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Recent on time",
+            "fieldRef": [
+              "field",
+              "Recent on time",
+              {
+                "base-type": "type/Integer"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Recent observations",
+            "fieldRef": [
+              "field",
+              "Recent observations",
+              {
+                "base-type": "type/Integer"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "History days",
+            "fieldRef": [
+              "field",
+              "History days",
+              {
+                "base-type": "type/Integer"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Confidence",
+            "fieldRef": [
+              "field",
+              "Confidence",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Borrower ID",
+            "fieldRef": [
+              "field",
+              "Borrower ID",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": false
+          }
+        ]
+      },
+      "result_metadata": [
+        {
+          "name": "Borrower ID",
+          "display_name": "Borrower ID",
+          "base_type": "type/Text",
+          "effective_type": "type/Text",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Borrower ID",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        },
+        {
+          "name": "Borrower",
+          "display_name": "Borrower",
+          "base_type": "type/Text",
+          "effective_type": "type/Text",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Borrower",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        },
+        {
+          "name": "Status",
+          "display_name": "Status",
+          "base_type": "type/Text",
+          "effective_type": "type/Text",
+          "semantic_type": "type/Category",
+          "field_ref": [
+            "field",
+            "Status",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        },
+        {
+          "name": "Final /100",
+          "display_name": "Final /100",
+          "base_type": "type/Decimal",
+          "effective_type": "type/Decimal",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Final /100",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        },
+        {
+          "name": "Raw /100",
+          "display_name": "Raw /100",
+          "base_type": "type/Decimal",
+          "effective_type": "type/Decimal",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Raw /100",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        },
+        {
+          "name": "Recent /100",
+          "display_name": "Recent /100",
+          "base_type": "type/Decimal",
+          "effective_type": "type/Decimal",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Recent /100",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        },
+        {
+          "name": "Recent weight",
+          "display_name": "Recent weight",
+          "base_type": "type/Decimal",
+          "effective_type": "type/Decimal",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Recent weight",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        },
+        {
+          "name": "Older /100",
+          "display_name": "Older /100",
+          "base_type": "type/Decimal",
+          "effective_type": "type/Decimal",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Older /100",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        },
+        {
+          "name": "Older weight",
+          "display_name": "Older weight",
+          "base_type": "type/Decimal",
+          "effective_type": "type/Decimal",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Older weight",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        },
+        {
+          "name": "Delay /100",
+          "display_name": "Delay /100",
+          "base_type": "type/Decimal",
+          "effective_type": "type/Decimal",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Delay /100",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        },
+        {
+          "name": "Delay weight",
+          "display_name": "Delay weight",
+          "base_type": "type/Decimal",
+          "effective_type": "type/Decimal",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Delay weight",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        },
+        {
+          "name": "Current /100",
+          "display_name": "Current /100",
+          "base_type": "type/Decimal",
+          "effective_type": "type/Decimal",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Current /100",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        },
+        {
+          "name": "Current weight",
+          "display_name": "Current weight",
+          "base_type": "type/Decimal",
+          "effective_type": "type/Decimal",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Current weight",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        },
+        {
+          "name": "Cap applied",
+          "display_name": "Cap applied",
+          "base_type": "type/Boolean",
+          "effective_type": "type/Boolean",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Cap applied",
+            {
+              "base-type": "type/Boolean"
+            }
+          ]
+        },
+        {
+          "name": "Recent on time",
+          "display_name": "Recent on time",
+          "base_type": "type/Integer",
+          "effective_type": "type/Integer",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Recent on time",
+            {
+              "base-type": "type/Integer"
+            }
+          ]
+        },
+        {
+          "name": "Recent observations",
+          "display_name": "Recent observations",
+          "base_type": "type/Integer",
+          "effective_type": "type/Integer",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Recent observations",
+            {
+              "base-type": "type/Integer"
+            }
+          ]
+        },
+        {
+          "name": "History days",
+          "display_name": "History days",
+          "base_type": "type/Integer",
+          "effective_type": "type/Integer",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "History days",
+            {
+              "base-type": "type/Integer"
+            }
+          ]
+        },
+        {
+          "name": "Confidence",
+          "display_name": "Confidence",
+          "base_type": "type/Text",
+          "effective_type": "type/Text",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Confidence",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 269,
+      "name": "Unavailable ratings & default context · all borrowers",
+      "display": "table",
+      "dataset_query": {
+        "lib/type": "mbql/query",
+        "stages": [
+          {
+            "lib/type": "mbql.stage/native",
+            "native": "SELECT b.\"Row ID\" AS \"Borrower ID\",b.\"Description\" AS \"Borrower\",h.has_active_loan AS \"Active loan\",h.rating_status AS \"Status\",h.data_quality_status AS \"Data quality\",h.default_count AS \"Default count\",h.recorded_default_loss AS \"Recorded loss ฿\",h.overdue_amount AS \"Overdue ฿\",h.reason_text AS \"Reason\" FROM public.reporting_borrower_payment_health_v1 h JOIN public.olap_borrowers_analytics b ON b.\"Row ID\"=h.borrower_id WHERE h.rating_status<>'Rated' ORDER BY h.borrower_id"
+          }
+        ],
+        "database": 2
+      },
+      "visualization_settings": {
+        "table.pivot": false,
+        "column_settings": {
+          "[\"name\",\"Overdue ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Principal ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Interest 30d ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Recorded loss ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        },
+        "table.columns": [
+          {
+            "name": "Borrower",
+            "fieldRef": [
+              "field",
+              "Borrower",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Active loan",
+            "fieldRef": [
+              "field",
+              "Active loan",
+              {
+                "base-type": "type/Boolean"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Status",
+            "fieldRef": [
+              "field",
+              "Status",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Data quality",
+            "fieldRef": [
+              "field",
+              "Data quality",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Default count",
+            "fieldRef": [
+              "field",
+              "Default count",
+              {
+                "base-type": "type/Integer"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Recorded loss ฿",
+            "fieldRef": [
+              "field",
+              "Recorded loss ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Overdue ฿",
+            "fieldRef": [
+              "field",
+              "Overdue ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Reason",
+            "fieldRef": [
+              "field",
+              "Reason",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Borrower ID",
+            "fieldRef": [
+              "field",
+              "Borrower ID",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": false
+          }
+        ]
+      },
+      "result_metadata": [
+        {
+          "name": "Borrower ID",
+          "display_name": "Borrower ID",
+          "base_type": "type/Text",
+          "effective_type": "type/Text",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Borrower ID",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        },
+        {
+          "name": "Borrower",
+          "display_name": "Borrower",
+          "base_type": "type/Text",
+          "effective_type": "type/Text",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Borrower",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        },
+        {
+          "name": "Active loan",
+          "display_name": "Active loan",
+          "base_type": "type/Boolean",
+          "effective_type": "type/Boolean",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Active loan",
+            {
+              "base-type": "type/Boolean"
+            }
+          ]
+        },
+        {
+          "name": "Status",
+          "display_name": "Status",
+          "base_type": "type/Text",
+          "effective_type": "type/Text",
+          "semantic_type": "type/Category",
+          "field_ref": [
+            "field",
+            "Status",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        },
+        {
+          "name": "Data quality",
+          "display_name": "Data quality",
+          "base_type": "type/Text",
+          "effective_type": "type/Text",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Data quality",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        },
+        {
+          "name": "Default count",
+          "display_name": "Default count",
+          "base_type": "type/Integer",
+          "effective_type": "type/Integer",
+          "semantic_type": "type/Quantity",
+          "field_ref": [
+            "field",
+            "Default count",
+            {
+              "base-type": "type/Integer"
+            }
+          ]
+        },
+        {
+          "name": "Recorded loss ฿",
+          "display_name": "Recorded loss ฿",
+          "base_type": "type/Decimal",
+          "effective_type": "type/Decimal",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Recorded loss ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        },
+        {
+          "name": "Overdue ฿",
+          "display_name": "Overdue ฿",
+          "base_type": "type/Decimal",
+          "effective_type": "type/Decimal",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Overdue ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        },
+        {
+          "name": "Reason",
+          "display_name": "Reason",
+          "base_type": "type/Text",
+          "effective_type": "type/Text",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Reason",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 271,
+      "name": "Automatic schedule assessment · active borrowers",
+      "display": "table",
+      "dataset_query": {
+        "lib/type": "mbql/query",
+        "stages": [
+          {
+            "lib/type": "mbql.stage/native",
+            "native": "SELECT b.\"Row ID\" AS \"Borrower ID\",b.\"Description\" AS \"Borrower\",s.arrangement_status AS \"Schedule\",s.modified_schedule_loan_count AS \"Restricted loans\",s.active_loan_count AS \"Active loans\",s.expected_interest_30d AS \"Expected interest ฿\",s.recorded_interest_30d AS \"Recorded interest ฿\",s.interest_coverage_30d AS \"Interest coverage\",s.interest_date_coverage_30d AS \"Date coverage\",m.payment_only_quadrant AS \"Payment-only category\",m.quadrant AS \"Category\" FROM public.reporting_borrower_schedule_health_v1 s JOIN public.reporting_borrower_matrix_v3 m USING(borrower_id) JOIN public.olap_borrowers_analytics b ON b.\"Row ID\"=s.borrower_id ORDER BY s.arrangement_gate DESC,b.\"Description\""
+          }
+        ],
+        "database": 2
+      },
+      "visualization_settings": {
+        "table.pivot": false,
+        "table.column_formatting": [
+          {
+            "columns": [
+              "Restricted loans"
+            ],
+            "type": "single",
+            "operator": ">",
+            "value": 0,
+            "color": "#FFF2D6",
+            "highlight_row": true
+          }
+        ],
+        "column_settings": {
+          "[\"name\",\"Expected interest ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,"
+          },
+          "[\"name\",\"Recorded interest ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,"
+          },
+          "[\"name\",\"Interest coverage\"]": {
+            "number_style": "percent",
+            "decimals": 1
+          },
+          "[\"name\",\"Date coverage\"]": {
+            "number_style": "percent",
+            "decimals": 1
+          }
+        },
+        "table.columns": [
+          {
+            "name": "Borrower",
+            "fieldRef": [
+              "field",
+              "Borrower",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Schedule",
+            "fieldRef": [
+              "field",
+              "Schedule",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Restricted loans",
+            "fieldRef": [
+              "field",
+              "Restricted loans",
+              {
+                "base-type": "type/Integer"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Active loans",
+            "fieldRef": [
+              "field",
+              "Active loans",
+              {
+                "base-type": "type/Integer"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Expected interest ฿",
+            "fieldRef": [
+              "field",
+              "Expected interest ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Recorded interest ฿",
+            "fieldRef": [
+              "field",
+              "Recorded interest ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Interest coverage",
+            "fieldRef": [
+              "field",
+              "Interest coverage",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Date coverage",
+            "fieldRef": [
+              "field",
+              "Date coverage",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Payment-only category",
+            "fieldRef": [
+              "field",
+              "Payment-only category",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Category",
+            "fieldRef": [
+              "field",
+              "Category",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Borrower ID",
+            "fieldRef": [
+              "field",
+              "Borrower ID",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": false
+          }
+        ]
+      },
+      "result_metadata": [
+        {
+          "name": "Borrower ID",
+          "display_name": "Borrower ID",
+          "base_type": "type/Text",
+          "effective_type": "type/Text",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Borrower ID",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        },
+        {
+          "name": "Borrower",
+          "display_name": "Borrower",
+          "base_type": "type/Text",
+          "effective_type": "type/Text",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Borrower",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        },
+        {
+          "name": "Schedule",
+          "display_name": "Schedule",
+          "base_type": "type/Text",
+          "effective_type": "type/Text",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Schedule",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        },
+        {
+          "name": "Restricted loans",
+          "display_name": "Restricted loans",
+          "base_type": "type/Integer",
+          "effective_type": "type/Integer",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Restricted loans",
+            {
+              "base-type": "type/Integer"
+            }
+          ]
+        },
+        {
+          "name": "Active loans",
+          "display_name": "Active loans",
+          "base_type": "type/Integer",
+          "effective_type": "type/Integer",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Active loans",
+            {
+              "base-type": "type/Integer"
+            }
+          ]
+        },
+        {
+          "name": "Expected interest ฿",
+          "display_name": "Expected interest ฿",
+          "base_type": "type/Decimal",
+          "effective_type": "type/Decimal",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Expected interest ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        },
+        {
+          "name": "Recorded interest ฿",
+          "display_name": "Recorded interest ฿",
+          "base_type": "type/Decimal",
+          "effective_type": "type/Decimal",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Recorded interest ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        },
+        {
+          "name": "Interest coverage",
+          "display_name": "Interest coverage",
+          "base_type": "type/Decimal",
+          "effective_type": "type/Decimal",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Interest coverage",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        },
+        {
+          "name": "Date coverage",
+          "display_name": "Date coverage",
+          "base_type": "type/Decimal",
+          "effective_type": "type/Decimal",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Date coverage",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        },
+        {
+          "name": "Payment-only category",
+          "display_name": "Payment-only category",
+          "base_type": "type/Text",
+          "effective_type": "type/Text",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Payment-only category",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        },
+        {
+          "name": "Category",
+          "display_name": "Category",
+          "base_type": "type/Text",
+          "effective_type": "type/Text",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Category",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 272,
+      "name": "Modified schedules · loan and next-plan detail",
+      "display": "table",
+      "dataset_query": {
+        "lib/type": "mbql/query",
+        "stages": [
+          {
+            "lib/type": "mbql.stage/native",
+            "native": "SELECT b.\"Row ID\" AS \"Borrower ID\",b.\"Description\" AS \"Borrower\",s.start_date AS \"Loan date\",s.payment_interval AS \"Normal interval days\",s.daily_interest AS \"Daily interest ฿\",s.comparison_start AS \"Compared from\",s.expected_interest_30d AS \"Expected interest ฿\",s.recorded_interest_30d AS \"Recorded interest ฿\",s.expected_due_dates_30d AS \"Expected dates\",s.recorded_interest_dates_30d AS \"Recorded dates\",s.schedule_reason AS \"Rule reason\",s.next_plan_due_date AS \"Next plan due\",s.next_plan_interest AS \"Next interest ฿\",s.next_plan_principal AS \"Next principal ฿\" FROM public.reporting_loan_schedule_health_v1 s JOIN public.olap_borrowers_analytics b ON b.\"Row ID\"=s.borrower_id WHERE s.modified_schedule ORDER BY b.\"Description\",s.start_date,s.loan_id"
+          }
+        ],
+        "database": 2
+      },
+      "visualization_settings": {
+        "table.pivot": false,
+        "table.column_formatting": [
+          {
+            "columns": [
+              "Current health"
+            ],
+            "type": "single",
+            "operator": "=",
+            "value": "Default flagged",
+            "color": "#FBE7E5",
+            "highlight_row": true
+          },
+          {
+            "columns": [
+              "Oldest days"
+            ],
+            "type": "single",
+            "operator": ">",
+            "value": 7,
+            "color": "#FBE7E5",
+            "highlight_row": true
+          },
+          {
+            "columns": [
+              "Current health"
+            ],
+            "type": "single",
+            "operator": "=",
+            "value": "Overdue",
+            "color": "#FFF2D6",
+            "highlight_row": true
+          },
+          {
+            "columns": [
+              "Rating status"
+            ],
+            "type": "single",
+            "operator": "=",
+            "value": "Data review",
+            "color": "#ECEFF1",
+            "highlight_row": true
+          }
+        ],
+        "column_settings": {
+          "[\"name\",\"Daily interest ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,"
+          },
+          "[\"name\",\"Expected interest ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,"
+          },
+          "[\"name\",\"Recorded interest ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,"
+          },
+          "[\"name\",\"Next interest ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,"
+          },
+          "[\"name\",\"Next principal ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,"
+          }
+        },
+        "table.columns": [
+          {
+            "name": "Borrower",
+            "fieldRef": [
+              "field",
+              "Borrower",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Loan date",
+            "fieldRef": [
+              "field",
+              "Loan date",
+              {
+                "base-type": "type/Date"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Normal interval days",
+            "fieldRef": [
+              "field",
+              "Normal interval days",
+              {
+                "base-type": "type/Integer"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Daily interest ฿",
+            "fieldRef": [
+              "field",
+              "Daily interest ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Compared from",
+            "fieldRef": [
+              "field",
+              "Compared from",
+              {
+                "base-type": "type/Date"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Expected interest ฿",
+            "fieldRef": [
+              "field",
+              "Expected interest ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Recorded interest ฿",
+            "fieldRef": [
+              "field",
+              "Recorded interest ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Expected dates",
+            "fieldRef": [
+              "field",
+              "Expected dates",
+              {
+                "base-type": "type/Integer"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Recorded dates",
+            "fieldRef": [
+              "field",
+              "Recorded dates",
+              {
+                "base-type": "type/Integer"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Rule reason",
+            "fieldRef": [
+              "field",
+              "Rule reason",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Next plan due",
+            "fieldRef": [
+              "field",
+              "Next plan due",
+              {
+                "base-type": "type/Date"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Next interest ฿",
+            "fieldRef": [
+              "field",
+              "Next interest ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Next principal ฿",
+            "fieldRef": [
+              "field",
+              "Next principal ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Borrower ID",
+            "fieldRef": [
+              "field",
+              "Borrower ID",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": false
+          }
+        ]
+      },
+      "result_metadata": [
+        {
+          "name": "Borrower ID",
+          "display_name": "Borrower ID",
+          "base_type": "type/Text",
+          "effective_type": "type/Text",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Borrower ID",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        },
+        {
+          "name": "Borrower",
+          "display_name": "Borrower",
+          "base_type": "type/Text",
+          "effective_type": "type/Text",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Borrower",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        },
+        {
+          "name": "Loan date",
+          "display_name": "Loan date",
+          "base_type": "type/Date",
+          "effective_type": "type/Date",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Loan date",
+            {
+              "base-type": "type/Date"
+            }
+          ]
+        },
+        {
+          "name": "Normal interval days",
+          "display_name": "Normal interval days",
+          "base_type": "type/Integer",
+          "effective_type": "type/Integer",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Normal interval days",
+            {
+              "base-type": "type/Integer"
+            }
+          ]
+        },
+        {
+          "name": "Daily interest ฿",
+          "display_name": "Daily interest ฿",
+          "base_type": "type/Decimal",
+          "effective_type": "type/Decimal",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Daily interest ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        },
+        {
+          "name": "Compared from",
+          "display_name": "Compared from",
+          "base_type": "type/Date",
+          "effective_type": "type/Date",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Compared from",
+            {
+              "base-type": "type/Date"
+            }
+          ]
+        },
+        {
+          "name": "Expected interest ฿",
+          "display_name": "Expected interest ฿",
+          "base_type": "type/Decimal",
+          "effective_type": "type/Decimal",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Expected interest ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        },
+        {
+          "name": "Recorded interest ฿",
+          "display_name": "Recorded interest ฿",
+          "base_type": "type/Decimal",
+          "effective_type": "type/Decimal",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Recorded interest ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        },
+        {
+          "name": "Expected dates",
+          "display_name": "Expected dates",
+          "base_type": "type/Integer",
+          "effective_type": "type/Integer",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Expected dates",
+            {
+              "base-type": "type/Integer"
+            }
+          ]
+        },
+        {
+          "name": "Recorded dates",
+          "display_name": "Recorded dates",
+          "base_type": "type/Integer",
+          "effective_type": "type/Integer",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Recorded dates",
+            {
+              "base-type": "type/Integer"
+            }
+          ]
+        },
+        {
+          "name": "Rule reason",
+          "display_name": "Rule reason",
+          "base_type": "type/Text",
+          "effective_type": "type/Text",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Rule reason",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        },
+        {
+          "name": "Next plan due",
+          "display_name": "Next plan due",
+          "base_type": "type/Date",
+          "effective_type": "type/Date",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Next plan due",
+            {
+              "base-type": "type/Date"
+            }
+          ]
+        },
+        {
+          "name": "Next interest ฿",
+          "display_name": "Next interest ฿",
+          "base_type": "type/Decimal",
+          "effective_type": "type/Decimal",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Next interest ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        },
+        {
+          "name": "Next principal ฿",
+          "display_name": "Next principal ฿",
+          "base_type": "type/Decimal",
+          "effective_type": "type/Decimal",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Next principal ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 275,
+      "name": "Matrix borrowers · scores, schedule and contribution",
+      "display": "table",
+      "dataset_query": {
+        "lib/type": "mbql/query",
+        "stages": [
+          {
+            "lib/type": "mbql.stage/native",
+            "native": "SELECT b.\"Row ID\" AS \"Borrower ID\",b.\"Description\" AS \"Borrower\",p.quadrant AS \"Category\",p.reliability_score AS \"Payment score /100\",p.arrangement_status AS \"Schedule\",p.relative_contribution AS \"Contribution ×\",p.contribution_30d AS \"Interest 30d ฿\",p.outstanding_principal AS \"Principal ฿\",p.confidence AS \"History\",p.plot_status AS \"Plot status\",p.position_basis AS \"Position basis\",p.classification_reason AS \"Category reason\",p.reporting_date AS \"As of\" FROM public.reporting_borrower_matrix_plot_v1 p JOIN public.olap_borrowers_analytics b ON b.\"Row ID\"=p.borrower_id ORDER BY CASE p.quadrant WHEN 'Star' THEN 1 WHEN 'Question Mark' THEN 2 WHEN 'Cash Cow' THEN 3 WHEN 'Dog' THEN 4 ELSE 5 END,b.\"Description\",p.borrower_id"
+          }
+        ],
+        "database": 2
+      },
+      "visualization_settings": {
+        "table.pivot": false,
+        "column_settings": {
+          "[\"name\",\"Payment score /100\"]": {
+            "number_style": "decimal",
+            "decimals": 1,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Contribution ×\"]": {
+            "number_style": "decimal",
+            "decimals": 2,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Interest 30d ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Principal ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        },
+        "table.columns": [
+          {
+            "name": "Borrower",
+            "fieldRef": [
+              "field",
+              "Borrower",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Category",
+            "fieldRef": [
+              "field",
+              "Category",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Payment score /100",
+            "fieldRef": [
+              "field",
+              "Payment score /100",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Schedule",
+            "fieldRef": [
+              "field",
+              "Schedule",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Contribution ×",
+            "fieldRef": [
+              "field",
+              "Contribution ×",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Interest 30d ฿",
+            "fieldRef": [
+              "field",
+              "Interest 30d ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Principal ฿",
+            "fieldRef": [
+              "field",
+              "Principal ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "History",
+            "fieldRef": [
+              "field",
+              "History",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Plot status",
+            "fieldRef": [
+              "field",
+              "Plot status",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Position basis",
+            "fieldRef": [
+              "field",
+              "Position basis",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Category reason",
+            "fieldRef": [
+              "field",
+              "Category reason",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "As of",
+            "fieldRef": [
+              "field",
+              "As of",
+              {
+                "base-type": "type/Date"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Borrower ID",
+            "fieldRef": [
+              "field",
+              "Borrower ID",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": false
+          }
+        ]
+      },
+      "result_metadata": [
+        {
+          "name": "Borrower ID",
+          "display_name": "Borrower ID",
+          "base_type": "type/Text",
+          "effective_type": "type/Text",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Borrower ID",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        },
+        {
+          "name": "Borrower",
+          "display_name": "Borrower",
+          "base_type": "type/Text",
+          "effective_type": "type/Text",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Borrower",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        },
+        {
+          "name": "Category",
+          "display_name": "Category",
+          "base_type": "type/Text",
+          "effective_type": "type/Text",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Category",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        },
+        {
+          "name": "Payment score /100",
+          "display_name": "Payment score /100",
+          "base_type": "type/Decimal",
+          "effective_type": "type/Decimal",
+          "semantic_type": "type/Score",
+          "field_ref": [
+            "field",
+            "Payment score /100",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        },
+        {
+          "name": "Schedule",
+          "display_name": "Schedule",
+          "base_type": "type/Text",
+          "effective_type": "type/Text",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Schedule",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        },
+        {
+          "name": "Contribution ×",
+          "display_name": "Contribution ×",
+          "base_type": "type/Decimal",
+          "effective_type": "type/Decimal",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Contribution ×",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        },
+        {
+          "name": "Interest 30d ฿",
+          "display_name": "Interest 30d ฿",
+          "base_type": "type/Decimal",
+          "effective_type": "type/Decimal",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Interest 30d ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        },
+        {
+          "name": "Principal ฿",
+          "display_name": "Principal ฿",
+          "base_type": "type/Decimal",
+          "effective_type": "type/Decimal",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Principal ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        },
+        {
+          "name": "History",
+          "display_name": "History",
+          "base_type": "type/Text",
+          "effective_type": "type/Text",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "History",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        },
+        {
+          "name": "Plot status",
+          "display_name": "Plot status",
+          "base_type": "type/Text",
+          "effective_type": "type/Text",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Plot status",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        },
+        {
+          "name": "Position basis",
+          "display_name": "Position basis",
+          "base_type": "type/Text",
+          "effective_type": "type/Text",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Position basis",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        },
+        {
+          "name": "Category reason",
+          "display_name": "Category reason",
+          "base_type": "type/Text",
+          "effective_type": "type/Text",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "Category reason",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        },
+        {
+          "name": "As of",
+          "display_name": "As of",
+          "base_type": "type/Date",
+          "effective_type": "type/Date",
+          "semantic_type": null,
+          "field_ref": [
+            "field",
+            "As of",
+            {
+              "base-type": "type/Date"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 287,
+      "name": "Interest received over time · top 5 + Others",
+      "display": "line",
+      "dataset_query": {
+        "lib/type": "mbql/query",
+        "stages": [
+          {
+            "lib/type": "mbql.stage/native",
+            "template-tags": [
+              {
+                "dimension": [
+                  "field",
+                  {
+                    "lib/uuid": "deae73d8-35e9-41aa-800b-8f44e1990b40",
+                    "base-type": "type/Date",
+                    "effective-type": "type/Date"
+                  },
+                  82
+                ],
+                "widget-type": "date/all-options",
+                "id": "bp-period",
+                "name": "period",
+                "display-name": "Activity period",
+                "type": "dimension",
+                "alias": "d.\"Date\""
+              },
+              {
+                "display-name": "Population",
+                "type": "text",
+                "id": "bp-population",
+                "name": "population",
+                "default": "All with loan history"
+              }
+            ],
+            "native": "WITH clock AS (SELECT public.olap_reporting_date() today), selected AS (SELECT d.\"Date\" FROM (SELECT generate_series(DATE '1900-01-01',DATE '2199-12-31',interval '1 day')::date \"Date\") d WHERE [[{{period}} --]] d.\"Date\" BETWEEN (SELECT today-30 FROM clock) AND (SELECT today-1 FROM clock)\n), bounds AS (SELECT min(\"Date\") starts,max(\"Date\") ends,count(*) days,count(*)>0 AND count(*)=max(\"Date\")-min(\"Date\")+1 AND max(\"Date\")<=(SELECT today FROM clock) valid FROM selected), cohort AS (SELECT p.* FROM bounds b CROSS JOIN LATERAL public.reporting_borrower_period_v1(b.starts,b.ends,[[{{population}} --]] 'All with loan history'\n) p WHERE b.valid), series AS (SELECT borrower_id,CASE WHEN interest_rank<=5 THEN borrower_label ELSE 'Others' END label FROM cohort), grid AS (SELECT s.borrower_id,s.label,d.\"Date\" FROM series s CROSS JOIN selected d CROSS JOIN bounds b WHERE b.valid)\n SELECT CASE WHEN b.days<=60 THEN g.\"Date\" ELSE date_trunc('week',g.\"Date\")::date END AS \"Date\",g.label AS \"Borrower\",CASE WHEN g.label<>'Others' THEN min(g.borrower_id) END AS \"Borrower ID\",\n CASE WHEN bool_and(a.activity_date IS NULL OR a.interest_received IS NOT NULL) THEN sum(coalesce(a.interest_received,0)) END AS \"Interest ฿\"\n FROM grid g CROSS JOIN bounds b LEFT JOIN public.reporting_borrower_activity_daily_v1 a ON a.borrower_id=g.borrower_id AND a.activity_date=g.\"Date\" GROUP BY 1,2 ORDER BY 1,2"
+          }
+        ],
+        "database": 2
+      },
+      "visualization_settings": {
+        "graph.show_values": false,
+        "graph.show_legend": true,
+        "graph.missing": "none",
+        "graph.y_axis.auto_split": false,
+        "graph.metrics": [
+          "Interest ฿"
+        ],
+        "graph.label_value_formatting": "compact",
+        "graph.colors": [
+          "#178F8A",
+          "#7472BE",
+          "#D6816B",
+          "#24435A",
+          "#D4AD60",
+          "#9CA3AF"
+        ],
+        "graph.show_dots": false,
+        "column_settings": {
+          "[\"name\",\"Interest ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        },
+        "graph.dimensions": [
+          "Date",
+          "Borrower"
+        ],
+        "stackable.stack_type": null
+      },
+      "result_metadata": [
+        {
+          "name": "Date",
+          "display_name": "Date",
+          "base_type": "type/Date",
+          "field_ref": [
+            "field",
+            "Date",
+            {
+              "base-type": "type/Date"
+            }
+          ]
+        },
+        {
+          "name": "Borrower",
+          "display_name": "Borrower",
+          "base_type": "type/Text",
+          "field_ref": [
+            "field",
+            "Borrower",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        },
+        {
+          "name": "Borrower ID",
+          "display_name": "Borrower ID",
+          "base_type": "type/Text",
+          "field_ref": [
+            "field",
+            "Borrower ID",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        },
+        {
+          "name": "Interest ฿",
+          "display_name": "Interest ฿",
+          "base_type": "type/Decimal",
+          "field_ref": [
+            "field",
+            "Interest ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "tabs": [
+    {
+      "id": 4,
+      "dashboard_id": 3,
+      "name": "1 · Overview",
+      "position": 0,
+      "entity_id": "XNUTfCABMppJ6qAOrGoLc",
+      "created_at": "2026-09-22T10:01:48.177376Z",
+      "updated_at": "2026-09-22T10:01:48.177376Z"
+    },
+    {
+      "id": 14,
+      "dashboard_id": 3,
+      "name": "2 · Cash Position",
+      "position": 1,
+      "entity_id": "pPLWf7izBFfdYrpfhzUt4",
+      "created_at": "2026-09-23T08:00:42.687717Z",
+      "updated_at": "2026-09-23T16:04:31.253029Z"
+    },
+    {
+      "id": 16,
+      "dashboard_id": 3,
+      "name": "3 · Income Statement",
+      "position": 2,
+      "entity_id": "8zodFNPMLCr1b4qqtGV5_",
+      "created_at": "2026-09-23T08:00:42.687717Z",
+      "updated_at": "2026-09-23T18:17:39.510824Z"
+    },
+    {
+      "id": 15,
+      "dashboard_id": 3,
+      "name": "4 · Cashflow Statement",
+      "position": 3,
+      "entity_id": "qs0JYiZxE-Poqyh_4pyKv",
+      "created_at": "2026-09-23T08:00:42.687717Z",
+      "updated_at": "2026-09-23T18:17:39.510824Z"
+    },
+    {
+      "id": 18,
+      "dashboard_id": 3,
+      "name": "5 · Performance",
+      "position": 4,
+      "entity_id": "Rt-KpcwfxjGRTvoTHNOda",
+      "created_at": "2026-09-23T19:06:46.29572Z",
+      "updated_at": "2026-09-24T10:42:03.352479Z"
+    },
+    {
+      "id": 104,
+      "dashboard_id": 3,
+      "name": "6 · Borrowers",
+      "position": 5,
+      "entity_id": "axmyErpiqSJVut7iwChk0",
+      "created_at": "2026-09-25T10:04:37.03364Z",
+      "updated_at": "2026-09-26T12:41:15.018539Z"
+    },
+    {
+      "id": 31,
+      "dashboard_id": 3,
+      "name": "7 · Borrower Health Review",
+      "position": 6,
+      "entity_id": "KF8iAxuaMJ9i_vvEfnG0Z",
+      "created_at": "2026-09-24T16:28:03.768309Z",
+      "updated_at": "2026-09-26T15:18:44.078815Z"
+    },
+    {
+      "id": 105,
+      "dashboard_id": 3,
+      "name": "8 · Borrower Detail",
+      "position": 7,
+      "entity_id": "hLWPca6nwYbuJ6O6YvfUx",
+      "created_at": "2026-09-25T10:04:37.03364Z",
+      "updated_at": "2026-09-26T15:18:44.078815Z"
+    },
+    {
+      "id": 8,
+      "dashboard_id": 3,
+      "name": "9 · Risks",
+      "position": 8,
+      "entity_id": "7cljPwmKjTMUi9DQ431Ah",
+      "created_at": "2026-09-22T12:32:45.925957Z",
+      "updated_at": "2026-09-26T15:18:44.078815Z"
+    },
+    {
+      "id": 19,
+      "dashboard_id": 3,
+      "name": "10 · Collection Monitor",
+      "position": 9,
+      "entity_id": "HTvmH4G_pettfrl6shBpy",
+      "created_at": "2026-09-24T11:35:18.286275Z",
+      "updated_at": "2026-09-26T15:18:44.078815Z"
+    },
+    {
+      "id": 11,
+      "dashboard_id": 3,
+      "name": "11 · Forecast & Partners",
+      "position": 10,
+      "entity_id": "HpX0Vj4mHUGAPeopmzU_l",
+      "created_at": "2026-09-22T12:32:45.925957Z",
+      "updated_at": "2026-09-26T15:18:44.078815Z"
+    }
+  ],
+  "parameters": [
+    {
+      "id": "overview-trend-period",
+      "name": "Portfolio trend period",
+      "slug": "overview_trend_period",
+      "type": "date/all-options",
+      "sectionId": "date",
+      "default": "past30days"
+    },
+    {
+      "id": "review-position",
+      "name": "Position date / period end",
+      "slug": "review_position",
+      "type": "date/all-options",
+      "sectionId": "date",
+      "default": "today"
+    },
+    {
+      "id": "review-position-trend",
+      "name": "Position trend period",
+      "slug": "review_position_trend",
+      "type": "date/all-options",
+      "sectionId": "date",
+      "default": "past30days"
+    },
+    {
+      "id": "review-flow",
+      "name": "Cashflow period",
+      "slug": "review_flow",
+      "type": "date/all-options",
+      "sectionId": "date",
+      "default": "thismonth"
+    },
+    {
+      "slug": "review_account",
+      "values_query_type": "list",
+      "default": [
+        "__ALL__"
+      ],
+      "name": "Account",
+      "isMultiSelect": false,
+      "type": "string/=",
+      "sectionId": "string",
+      "values_source_type": "card",
+      "id": "review-account",
+      "values_source_config": {
+        "card_id": 199,
+        "value_field": [
+          "field",
+          "Scope ID",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "label_field": [
+          "field",
+          "Account",
+          {
+            "base-type": "type/Text"
+          }
+        ]
+      }
+    },
+    {
+      "id": "review-income",
+      "name": "Statement period",
+      "slug": "review_income",
+      "type": "date/all-options",
+      "sectionId": "date",
+      "default": "thismonth"
+    },
+    {
+      "id": "review-performance",
+      "name": "Performance period",
+      "slug": "review_performance",
+      "type": "date/all-options",
+      "sectionId": "date",
+      "default": "past30days"
+    },
+    {
+      "slug": "collection_detail_borrower",
+      "values_query_type": "list",
+      "name": "Detail only · Borrower",
+      "isMultiSelect": false,
+      "type": "string/=",
+      "sectionId": "string",
+      "values_source_type": "card",
+      "id": "collection-detail-borrower",
+      "values_source_config": {
+        "card_id": 77,
+        "value_field": [
+          "field",
+          "Borrower ID",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "label_field": [
+          "field",
+          "Borrower",
+          {
+            "base-type": "type/Text"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "collection_detail_status",
+      "values_query_type": "list",
+      "name": "Detail only · Status",
+      "isMultiSelect": true,
+      "type": "string/=",
+      "sectionId": "string",
+      "values_source_type": "static-list",
+      "id": "collection-detail-status",
+      "values_source_config": {
+        "values": [
+          "Not Paid",
+          "Partially Paid",
+          "Overdue",
+          "Fully Paid"
+        ]
+      }
+    },
+    {
+      "slug": "bp_population",
+      "values_query_type": "list",
+      "default": [
+        "All with loan history"
+      ],
+      "name": "Borrower population",
+      "isMultiSelect": false,
+      "type": "string/=",
+      "sectionId": "string",
+      "values_source_type": "static-list",
+      "id": "bp-population",
+      "values_source_config": {
+        "values": [
+          "All with loan history",
+          "Currently active",
+          "Currently inactive"
+        ]
+      }
+    },
+    {
+      "id": "bp-period",
+      "name": "Portfolio activity dates",
+      "slug": "bp_activity",
+      "type": "date/all-options",
+      "sectionId": "date",
+      "default": "past30days"
+    },
+    {
+      "id": "bd-period",
+      "name": "Detail activity dates",
+      "slug": "bd_activity",
+      "type": "date/all-options",
+      "sectionId": "date",
+      "default": "past30days"
+    },
+    {
+      "slug": "bd_borrower",
+      "values_query_type": "list",
+      "name": "Select borrower",
+      "isMultiSelect": false,
+      "type": "string/=",
+      "sectionId": "string",
+      "values_source_type": "card",
+      "id": "bd-borrower",
+      "values_source_config": {
+        "card_id": 277,
+        "value_field": [
+          "field",
+          "Borrower ID",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "label_field": [
+          "field",
+          "Borrower",
+          {
+            "base-type": "type/Text"
+          }
+        ]
+      }
+    },
+    {
+      "id": "bd-amount",
+      "name": "Scenario · additional principal",
+      "slug": "bd_amount",
+      "type": "number/=",
+      "sectionId": "number",
+      "default": [
+        0
+      ],
+      "isMultiSelect": false
+    }
+  ],
+  "links": [
+    {
+      "id": 638,
+      "card_id": 243,
+      "dashboard_tab_id": 19,
+      "visualization_settings": {
+        "column_settings": {
+          "[\"name\",\"Borrower\"]": {
+            "click_behavior": {
+              "type": "link",
+              "linkType": "url",
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/3?tab=105&bd_borrower={{Borrower ID}}&bd_activity=past30days"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": 645,
+      "card_id": 248,
+      "dashboard_tab_id": 19,
+      "visualization_settings": {
+        "column_settings": {
+          "[\"name\",\"Borrower\"]": {
+            "click_behavior": {
+              "type": "link",
+              "linkType": "url",
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/3?tab=105&bd_borrower={{Borrower ID}}&bd_activity=past30days"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": 642,
+      "card_id": 247,
+      "dashboard_tab_id": 19,
+      "visualization_settings": {
+        "column_settings": {
+          "[\"name\",\"Borrower\"]": {
+            "click_behavior": {
+              "type": "link",
+              "linkType": "url",
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/3?tab=105&bd_borrower={{Borrower ID}}&bd_activity=past30days"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": 640,
+      "card_id": 245,
+      "dashboard_tab_id": 19,
+      "visualization_settings": {
+        "column_settings": {
+          "[\"name\",\"Borrower\"]": {
+            "click_behavior": {
+              "type": "link",
+              "linkType": "url",
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/3?tab=105&bd_borrower={{Borrower ID}}&bd_activity=past30days"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": 636,
+      "card_id": 241,
+      "dashboard_tab_id": 19,
+      "visualization_settings": {
+        "column_settings": {
+          "[\"name\",\"Borrower\"]": {
+            "click_behavior": {
+              "type": "link",
+              "linkType": "url",
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/3?tab=105&bd_borrower={{Borrower ID}}&bd_activity=past30days"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": 854,
+      "card_id": 268,
+      "dashboard_tab_id": 31,
+      "visualization_settings": {
+        "column_settings": {
+          "[\"name\",\"Borrower\"]": {
+            "click_behavior": {
+              "type": "link",
+              "linkType": "url",
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/3?tab=105&bd_borrower={{Borrower ID}}&bd_activity=past30days"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": 841,
+      "card_id": 259,
+      "dashboard_tab_id": 31,
+      "visualization_settings": {
+        "column_settings": {
+          "[\"name\",\"Borrower\"]": {
+            "click_behavior": {
+              "type": "link",
+              "linkType": "url",
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/3?tab=105&bd_borrower={{Borrower ID}}&bd_activity=past30days"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": 843,
+      "card_id": 261,
+      "dashboard_tab_id": 31,
+      "visualization_settings": {
+        "column_settings": {
+          "[\"name\",\"Borrower\"]": {
+            "click_behavior": {
+              "type": "link",
+              "linkType": "url",
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/3?tab=105&bd_borrower={{Borrower ID}}&bd_activity=past30days"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": 847,
+      "card_id": 265,
+      "dashboard_tab_id": 31,
+      "visualization_settings": {
+        "column_settings": {
+          "[\"name\",\"Borrower\"]": {
+            "click_behavior": {
+              "type": "link",
+              "linkType": "url",
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/3?tab=105&bd_borrower={{Borrower ID}}&bd_activity=past30days"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": 852,
+      "card_id": 269,
+      "dashboard_tab_id": 31,
+      "visualization_settings": {
+        "column_settings": {
+          "[\"name\",\"Borrower\"]": {
+            "click_behavior": {
+              "type": "link",
+              "linkType": "url",
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/3?tab=105&bd_borrower={{Borrower ID}}&bd_activity=past30days"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": 851,
+      "card_id": 267,
+      "dashboard_tab_id": 31,
+      "visualization_settings": {
+        "column_settings": {
+          "[\"name\",\"Borrower\"]": {
+            "click_behavior": {
+              "type": "link",
+              "linkType": "url",
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/3?tab=105&bd_borrower={{Borrower ID}}&bd_activity=past30days"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": 845,
+      "card_id": 263,
+      "dashboard_tab_id": 31,
+      "visualization_settings": {
+        "column_settings": {
+          "[\"name\",\"Borrower\"]": {
+            "click_behavior": {
+              "type": "link",
+              "linkType": "url",
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/3?tab=105&bd_borrower={{Borrower ID}}&bd_activity=past30days"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": 1065,
+      "card_id": 271,
+      "dashboard_tab_id": 31,
+      "visualization_settings": {
+        "column_settings": {
+          "[\"name\",\"Borrower\"]": {
+            "click_behavior": {
+              "type": "link",
+              "linkType": "url",
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/3?tab=105&bd_borrower={{Borrower ID}}&bd_activity=past30days"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": 1066,
+      "card_id": 272,
+      "dashboard_tab_id": 31,
+      "visualization_settings": {
+        "column_settings": {
+          "[\"name\",\"Borrower\"]": {
+            "click_behavior": {
+              "type": "link",
+              "linkType": "url",
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/3?tab=105&bd_borrower={{Borrower ID}}&bd_activity=past30days"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": 1279,
+      "card_id": 275,
+      "dashboard_tab_id": 31,
+      "visualization_settings": {
+        "column_settings": {
+          "[\"name\",\"Borrower\"]": {
+            "click_behavior": {
+              "type": "link",
+              "linkType": "url",
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/3?tab=105&bd_borrower={{Borrower ID}}&bd_activity=past30days"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": 2156,
+      "card_id": 287,
+      "dashboard_tab_id": 104,
+      "visualization_settings": {
+        "click_behavior": {
+          "type": "link",
+          "linkType": "url",
+          "linkTemplate": "https://reports.mw-credit.com/dashboard/3?tab=105&bd_borrower={{Borrower ID}}&bd_activity=past30days"
+        }
+      }
+    },
+    {
+      "id": 2159,
+      "card_id": 289,
+      "dashboard_tab_id": 104,
+      "visualization_settings": {
+        "column_settings": {
+          "[\"name\",\"Borrower\"]": {
+            "click_behavior": {
+              "type": "link",
+              "linkType": "url",
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/3?tab=105&bd_borrower={{Borrower ID}}&bd_activity={{Period start}}~{{Period end}}"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": 2439,
+      "card_id": 313,
+      "dashboard_tab_id": 104,
+      "visualization_settings": {
+        "click_behavior": {
+          "type": "link",
+          "linkType": "url",
+          "linkTemplate": "https://reports.mw-credit.com/dashboard/3?tab=105&bd_borrower={{Borrower ID}}&bd_activity=past30days"
+        }
+      }
+    },
+    {
+      "id": 2438,
+      "card_id": 312,
+      "dashboard_tab_id": 104,
+      "visualization_settings": {
+        "click_behavior": {
+          "type": "link",
+          "linkType": "url",
+          "linkTemplate": "https://reports.mw-credit.com/dashboard/3?tab=105&bd_borrower={{Borrower ID}}&bd_activity=past30days"
+        }
+      }
+    },
+    {
+      "id": 2437,
+      "card_id": 311,
+      "dashboard_tab_id": 104,
+      "visualization_settings": {
+        "click_behavior": {
+          "type": "link",
+          "linkType": "url",
+          "linkTemplate": "https://reports.mw-credit.com/dashboard/3?tab=105&bd_borrower={{Borrower ID}}&bd_activity=past30days"
+        }
+      }
+    },
+    {
+      "id": 2440,
+      "card_id": 314,
+      "dashboard_tab_id": 104,
+      "visualization_settings": {
+        "click_behavior": {
+          "type": "link",
+          "linkType": "url",
+          "linkTemplate": "https://reports.mw-credit.com/dashboard/3?tab=105&bd_borrower={{Borrower ID}}&bd_activity=past30days"
+        }
+      }
+    },
+    {
+      "id": 2955,
+      "card_id": 285,
+      "dashboard_tab_id": 104,
+      "visualization_settings": {
+        "click_behavior": {
+          "type": "link",
+          "linkType": "url",
+          "linkTemplate": "https://reports.mw-credit.com/dashboard/3?tab=105&bd_borrower={{Borrower ID}}&bd_activity=past30days"
+        }
+      }
+    },
+    {
+      "id": 2956,
+      "card_id": 286,
+      "dashboard_tab_id": 104,
+      "visualization_settings": {
+        "click_behavior": {
+          "type": "link",
+          "linkType": "url",
+          "linkTemplate": "https://reports.mw-credit.com/dashboard/3?tab=105&bd_borrower={{Borrower ID}}&bd_activity=past30days"
+        }
+      }
+    }
+  ]
+}

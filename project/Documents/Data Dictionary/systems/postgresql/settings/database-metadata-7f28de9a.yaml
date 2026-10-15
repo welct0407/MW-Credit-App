@@ -1,0 +1,67 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "settings"
+  "name": "Database metadata"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "Stable captured structural metadata only; current migration/jobs/capability ownership is in native PWA and\
+    \ scoped PostgreSQL settings records."
+"content":
+  "sections":
+    "extensions":
+    - "name": "plpgsql"
+      "version": "1.0"
+      "schema": "pg_catalog"
+      "owner": "cloudsqladmin"
+      "relocatable": false
+    "default_privileges":
+    - "role": "mw_business_audit_owner"
+      "schema": null
+      "kind": "f"
+      "acl": "{mw_business_audit_owner=X/mw_business_audit_owner}"
+    - "role": "postgres"
+      "schema": "public"
+      "kind": "r"
+      "acl": "{mw_integration_agent=r/postgres}"
+    "database":
+    - "name": "loan_manager_prod"
+      "owner": "cloudsqlsuperuser"
+      "encoding": "UTF8"
+      "collation": "en_US.UTF8"
+      "ctype": "en_US.UTF8"
+      "connection_limit": -1
+      "acl": "{=Tc/cloudsqlsuperuser,cloudsqlsuperuser=CTc/cloudsqlsuperuser,mw_integration_agent=Tc/cloudsqlsuperuser,mw_reviewer_dml=c/cloudsqlsuperuser,metabase_borrower_reader=c/cloudsqlsuperuser}"
+    "database_role_settings":
+    - "database": "ALL"
+      "role": "metabase_borrower_reader"
+      "settings":
+      - "default_transaction_read_only=on"
+      - "statement_timeout=30s"
+      - "idle_in_transaction_session_timeout=30s"
+      - "search_path=pg_catalog, public"
+    - "database": "ALL"
+      "role": "mw_integration_agent"
+      "settings":
+      - "default_transaction_read_only=on"
+      - "statement_timeout=30s"
+    - "database": "ALL"
+      "role": "mw_reviewer_dml"
+      "settings":
+      - "default_transaction_read_only=on"
+      - "statement_timeout=15s"
+    "publications": []
+    "subscriptions": []
+    "event_triggers": []
+    "rules": []
+    "foreign_tables": []
+    "aggregates": []
+    "unattached_constraints": []
+"evidence":
+  "/content/sections":
+    "reference": "outputs/r026-dictionary-fixes/database-settings-observations.json"
+    "reason": "V40 verified catalog readback; exact remaining settings and DEV differences."
+    "state": "value"

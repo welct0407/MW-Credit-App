@@ -1,0 +1,14 @@
+Activation verification — 2026-10-02 UTC
+Live baseline/current-state readbacks: PASS.
+Role definition: exactly Microsoft.Compute/locations/operations/read; empty notActions/dataActions/notDataActions.
+Assignment: fixed subscription scope, fixed controller managed identity; all prior assignments unchanged.
+Five-action VM role definition: unchanged SHA256.
+Runtime settings: only VM01_ENABLE_OPERATION_POLLING and VM01_ENABLE_MUTATIONS changed false to true.
+Ledger: only admission false->true and generation1->2; no active request/records/audit.
+Auth, consent, browser callback, hostname, identity, logging and other settings: unchanged.
+Maintained infrastructure tests updated to the explicit approved scope/counts.
+Initial run: 2 passed,1 missing-file failure because partial checkout lacked published main.arm.json.
+Restored existing compiled artifact from commit93037f29, blob07afb34d58b38334569ebac8a1ee9dec5cf28f58; no template change.
+Rerun: node --test tests/infrastructure.test.mjs — tests3, pass3, fail0, skipped0, duration779.1135ms.
+No runtime source change; previous focused23 checks/strict compile/bundle/real-host retest reused.
+No effective operation poll or power action performed by this VM executor.

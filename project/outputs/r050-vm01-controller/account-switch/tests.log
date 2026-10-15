@@ -1,0 +1,11 @@
+Γ£ö source infrastructure defaults are inert and preserve the exact base permission boundary (18.1752ms)
+Γ£ö compiled infrastructure switches initialize the runtime correctly for all boolean combinations (6.3457ms)
+Γ£ö approval manifest and templates agree on discovered target, names and unresolved approvals (16.279ms)
+Γä╣ tests 3
+Γä╣ suites 0
+Γä╣ pass 3
+Γä╣ fail 0
+Γä╣ cancelled 0
+Γä╣ skipped 0
+Γä╣ todo 0
+Γä╣ duration_ms 810.809

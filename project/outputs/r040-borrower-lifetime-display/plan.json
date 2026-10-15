@@ -1,0 +1,17 @@
+{
+  "dashboard": 3,
+  "tab": 104,
+  "questions": [
+    313,
+    289
+  ],
+  "model": 310,
+  "columns": [
+    "Lifetime daily rate",
+    "Lifetime interest return"
+  ],
+  "decimalPlaces": 1,
+  "defaultRows": 30,
+  "periodAndPopulationMappingsPreserved": true,
+  "startingCommit": "82677ce27768648561f7872f7aab699d5cfe0ffc"
+}

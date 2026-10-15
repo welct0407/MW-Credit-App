@@ -1,0 +1,84 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.apply_principal_daily_interest(p \"Loans\", previous \"Loans\")"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r051-production/README.md"
+  "coverage": "Exact production catalog metadata after validated V45"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "apply_principal_daily_interest"
+    "arguments": "p \"Loans\", previous \"Loans\""
+    "kind": "f"
+    "arguments_with_defaults": "p \"Loans\", previous \"Loans\""
+    "result": "\"Loans\""
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.apply_principal_daily_interest(p "Loans", previous "Loans")
+       RETURNS "Loans"
+       LANGUAGE plpgsql
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+      DECLARE principal_changed boolean; entering_daily boolean;
+      BEGIN
+       IF previous."Row ID" IS NULL THEN
+        -- SQL calculates the authoritative value, including for clients without the new field.
+        p."Original Daily Interest Rate":=public.original_daily_interest_rate(p,false);
+        RETURN p;
+       END IF;
+       IF previous."Original Daily Interest Rate" IS NOT NULL THEN
+        IF p."Original Daily Interest Rate" IS NOT NULL AND
+           p."Original Daily Interest Rate" IS DISTINCT FROM previous."Original Daily Interest Rate" THEN
+         RAISE EXCEPTION 'Original daily interest rate is read-only';
+        END IF;
+        p."Original Daily Interest Rate":=previous."Original Daily Interest Rate";
+       ELSE
+        p."Original Daily Interest Rate":=public.original_daily_interest_rate(previous,true);
+       END IF;
+       IF p."Loan Type" IS DISTINCT FROM 'ดอกเบี้ยรายวัน' THEN RETURN p; END IF;
+       principal_changed:=p."Total Principal Received" IS DISTINCT FROM previous."Total Principal Received" OR p."Principal Amount" IS DISTINCT FROM previous."Principal Amount";
+       entering_daily:=previous."Loan Type" IS DISTINCT FROM 'ดอกเบี้ยรายวัน';
+       IF entering_daily AND coalesce(p."Auto Charge Enabled",false) AND (p."Loan Date" IS NULL OR NOT coalesce(p."Interest Payment Interval">=1,false)) THEN
+        RAISE EXCEPTION 'Automatic daily conversion requires a loan date and positive interest payment interval';
+       END IF;
+       IF principal_changed OR entering_daily THEN
+        IF p."Original Daily Interest Rate" IS NULL THEN
+         IF entering_daily THEN
+          RAISE EXCEPTION 'Original daily interest rate unavailable; review original loan terms before daily conversion';
+         END IF;
+         RAISE EXCEPTION 'Original daily interest rate unavailable; review original loan terms before principal repayment';
+        END IF;
+        p."Current Daily Interest":=round(greatest(0,p."Outstanding Principal")*p."Original Daily Interest Rate"/100.0)::money;
+       ELSE
+        -- Preserve entry/backlog amount until a principal change; stale app saves cannot undo adjustment.
+        p."Current Daily Interest":=previous."Current Daily Interest";
+       END IF;
+       RETURN p;
+      END $function$
+    "owner": "postgres"
+    "language": "plpgsql"
+    "volatility": "v"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 0.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": "{=X/postgres,postgres=X/postgres,mw_app_prod=X/postgres}"
+    "comment": null
+    "extension": null
+"evidence":
+  "/content/definition":
+    "reference": "outputs/r048-loan-interest-production/postgresql-affected-definitions.json"
+    "reason": "Owner-authorized R048 manual PROD cutover; targeted saved-state closure"
+    "state": "value"
+  "/content/definition/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"

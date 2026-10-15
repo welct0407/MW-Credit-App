@@ -1,0 +1,70 @@
+{
+  "release": "R045",
+  "status": "Released",
+  "authorization": "Owner authorized new Forecast & Planning tab based on accepted design; hold any AppSheet changes for review. No AppSheet changes included.",
+  "sql_commit": "7837c23e3577c9cbf8ed3d61b18d32934c4a05fd",
+  "sql_manifest": "frozen-package.json",
+  "sql_before": 47,
+  "sql_after": 48,
+  "development_sql": 48,
+  "report": {
+    "backupDashboard": 22,
+    "models": {
+      "loans": 344,
+      "actuals": 345,
+      "events": 346,
+      "context": 347
+    },
+    "cards": {
+      "actual": 348,
+      "remaining": 349,
+      "projected": 350,
+      "gap": 351,
+      "principal": 352,
+      "context": 353,
+      "bridge": 354,
+      "scenarios": 355,
+      "trajectory": 356,
+      "weekly": 357,
+      "drivers": 358,
+      "types": 359,
+      "watchlist": 360,
+      "detail": 361,
+      "obligations": 362,
+      "coverage": 363,
+      "funding-context": 364,
+      "cash": 365,
+      "closing": 366,
+      "shortfall": 367,
+      "cash-bridge": 368
+    },
+    "tab": 262
+  },
+  "appsheet": {
+    "oltp": "unchanged",
+    "olap": "unchanged",
+    "rcs": []
+  },
+  "checks": [
+    "forecast-tests.txt",
+    "database-ci.txt",
+    "development-queries.json",
+    "production-validation.json",
+    "verification-production.json",
+    "verification.json",
+    "saved-reconciliation.json",
+    "dictionary-validation.txt",
+    "browser-verification.json"
+  ],
+  "report_candidate_correction": "Explicit missing-value labels, dashed future lines and horizontal borrower bars; immutable SQL unchanged",
+  "recovery": "Dashboard22 and private pre-change definitions; compatible additive V48 can remain unused; never restore financial data for report rollback",
+  "tag": "R045",
+  "publication": "Final evidence commit; verify upstream and unique tag after push",
+  "limitations": [
+    "Current Bangkok month only; existing loan book",
+    "Scenarios are assumptions, not calibrated payment probabilities",
+    "Manual schedules include recorded future obligations only",
+    "Cash plan requires five explicit inputs; new lending adds no forecast income",
+    "390px viewport displays scaled desktop; wide tables scroll; no physical mobile test"
+  ]
+}

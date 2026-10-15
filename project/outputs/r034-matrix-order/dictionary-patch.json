@@ -1,0 +1,192 @@
+{
+  "file": "systems/metabase/dashboards/loan-reports.yaml",
+  "expected_sha256": "23029b798922d2a7c1e33412d9e5e8fb9d0af5daca7dc893686997344f1af0da",
+  "evidence": "outputs/r034-matrix-order/verification.json",
+  "reason": "Owner requested custom chart above category tables and whole-baht financial display",
+  "changes": [
+    {
+      "pointer": "/content/borrower_health_review",
+      "expected": {
+        "state": "value",
+        "value": {
+          "tab_id": 31,
+          "release": "R033",
+          "sources": [
+            "payment-health-v1",
+            "schedule-health-v1",
+            "borrower-matrix-v3",
+            "borrower-matrix-plot-v1"
+          ],
+          "questions": {
+            "active": 253,
+            "overdue": 254,
+            "provisional": 255,
+            "unclassified": 256,
+            "freshness": 257,
+            "cow-count": 258,
+            "cow": 259,
+            "star-count": 260,
+            "star": 261,
+            "dog-count": 262,
+            "dog": 263,
+            "question-count": 264,
+            "question": 265,
+            "health": 267,
+            "components": 268,
+            "review": 269,
+            "modified": 270,
+            "schedules": 271,
+            "schedule-loans": 272,
+            "matrix": 274,
+            "matrix-details": 275
+          },
+          "original_borrowers_tab_id": 6,
+          "original_retained": true,
+          "definition_reference": "outputs/r029-bcg-matrix/metabase-saved.json",
+          "filters": "Current cohort/health; existing dashboard filters do not apply",
+          "automatic_rule": "Auto-off and interest amount OR interest-date coverage <80%, >=7 days and >=2 dates; no manual intervention",
+          "retained_original_scatter_id": 266,
+          "matrix_display": "Custom iframe1501 is the accepted plot; native question274 remains saved but is no longer placed on tab31. Native category labels removed.",
+          "custom_matrix": {
+            "placement_id": 1501,
+            "display": "iframe",
+            "host": "https://charts.mw-credit.com",
+            "fragment": "key=<private bearer secret; intentionally excluded>",
+            "row": 31,
+            "col": 0,
+            "size_x": 24,
+            "size_y": 22,
+            "later_tab_rows_shifted_by": 2,
+            "original_question_retained": 274,
+            "refresh_seconds": 60,
+            "source": "public.reporting_borrower_matrix_plot_v1",
+            "authentication": "Bearer shared secret; accessible to authorized readers of dashboard 3",
+            "dashboard_filters_inherited": false,
+            "service": "mw-report-charts.service",
+            "reference": "outputs/r030-custom-matrix/README.md",
+            "presentation": {
+              "release": "R031",
+              "quadrant_markers": "Muted grey star/question/cow/dog SVG symbols; category totals above plot",
+              "names": "Local above/below labels, no connector lines; small collision-avoidance offsets",
+              "dot_radius": 5.5,
+              "variable_size_metric": null,
+              "sql_coordinates": "Unchanged",
+              "mobile": "Boundary-constrained names placed first; internal Metabase card scrolling remains"
+            },
+            "accepted_as_replacement": true,
+            "native_plot_displayed": false,
+            "cutover_reference": "outputs/r033-matrix-cutover/verification.json"
+          }
+        }
+      },
+      "target": {
+        "state": "value",
+        "value": {
+          "tab_id": 31,
+          "release": "R034",
+          "sources": [
+            "payment-health-v1",
+            "schedule-health-v1",
+            "borrower-matrix-v3",
+            "borrower-matrix-plot-v1"
+          ],
+          "questions": {
+            "active": 253,
+            "overdue": 254,
+            "provisional": 255,
+            "unclassified": 256,
+            "freshness": 257,
+            "cow-count": 258,
+            "cow": 259,
+            "star-count": 260,
+            "star": 261,
+            "dog-count": 262,
+            "dog": 263,
+            "question-count": 264,
+            "question": 265,
+            "health": 267,
+            "components": 268,
+            "review": 269,
+            "modified": 270,
+            "schedules": 271,
+            "schedule-loans": 272,
+            "matrix": 274,
+            "matrix-details": 275
+          },
+          "original_borrowers_tab_id": 6,
+          "original_retained": true,
+          "definition_reference": "outputs/r029-bcg-matrix/metabase-saved.json",
+          "filters": "Current cohort/health; existing dashboard filters do not apply",
+          "automatic_rule": "Auto-off and interest amount OR interest-date coverage <80%, >=7 days and >=2 dates; no manual intervention",
+          "retained_original_scatter_id": 266,
+          "matrix_display": "Custom iframe1501 is the accepted plot; native question274 remains saved but is no longer placed on tab31. Native category labels removed.",
+          "custom_matrix": {
+            "placement_id": 1501,
+            "display": "iframe",
+            "host": "https://charts.mw-credit.com",
+            "fragment": "key=<private bearer secret; intentionally excluded>",
+            "row": 9,
+            "col": 0,
+            "size_x": 24,
+            "size_y": 22,
+            "original_question_retained": 274,
+            "refresh_seconds": 60,
+            "source": "public.reporting_borrower_matrix_plot_v1",
+            "authentication": "Bearer shared secret; accessible to authorized readers of dashboard 3",
+            "dashboard_filters_inherited": false,
+            "service": "mw-report-charts.service",
+            "reference": "outputs/r030-custom-matrix/README.md",
+            "presentation": {
+              "release": "R031",
+              "quadrant_markers": "Muted grey star/question/cow/dog SVG symbols; category totals above plot",
+              "names": "Local above/below labels, no connector lines; small collision-avoidance offsets",
+              "dot_radius": 5.5,
+              "variable_size_metric": null,
+              "sql_coordinates": "Unchanged",
+              "mobile": "Boundary-constrained names placed first; internal Metabase card scrolling remains"
+            },
+            "accepted_as_replacement": true,
+            "native_plot_displayed": false,
+            "cutover_reference": "outputs/r033-matrix-cutover/verification.json",
+            "layout": {
+              "intro_end_row": 9,
+              "chart_row": 9,
+              "chart_height": 22,
+              "explanation_row": 31,
+              "explanation_height": 3,
+              "category_count_rows": [
+                34,
+                44
+              ],
+              "category_table_rows": [
+                36,
+                46
+              ],
+              "detail_table_row": 56,
+              "redundant_heading_removed": 848,
+              "reference": "outputs/r034-matrix-order/verification.json"
+            },
+            "financial_display": {
+              "amounts": "0 decimal places, whole baht",
+              "scope": "Only ฿ fields in tab 31 saved questions and chart tooltip",
+              "scores_ratios_coverage": "Unchanged",
+              "question_ids": [
+                254,
+                259,
+                261,
+                263,
+                265,
+                267,
+                269,
+                271,
+                272,
+                275
+              ],
+              "reference": "outputs/r034-matrix-order/verification.json"
+            }
+          }
+        }
+      }
+    }
+  ]
+}

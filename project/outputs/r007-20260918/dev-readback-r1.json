@@ -1,0 +1,4168 @@
+{
+  "release": "R007",
+  "revision": 1,
+  "candidateHash": "b5729594af3bfbef799cc5e33567fcb75b90de4346bfe20e96cf5f46a2905197",
+  "environment": "dev",
+  "items": [
+    {
+      "id": "OLAP-001",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "olap_borrowers_analytics"
+      }
+    },
+    {
+      "id": "OLAP-002",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "olap_loans_analytics"
+      }
+    },
+    {
+      "id": "OLAP-003",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "olap_repayments_analytics"
+      }
+    },
+    {
+      "id": "OLAP-004",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "olap_charges_analytics"
+      }
+    },
+    {
+      "id": "OLAP-005",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "Yes"
+      }
+    },
+    {
+      "id": "OLAP-006",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "Yes"
+      }
+    },
+    {
+      "id": "OLAP-007",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "Yes"
+      }
+    },
+    {
+      "id": "OLAP-008",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "Yes"
+      }
+    },
+    {
+      "id": "OLAP-009",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "Yes"
+      }
+    },
+    {
+      "id": "OLAP-010",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "Yes"
+      }
+    },
+    {
+      "id": "OLAP-011",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "Yes"
+      }
+    },
+    {
+      "id": "OLAP-012",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "Yes"
+      }
+    },
+    {
+      "id": "OLAP-013",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "Yes"
+      }
+    },
+    {
+      "id": "OLAP-014",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "Yes"
+      }
+    },
+    {
+      "id": "OLAP-015",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-016",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-017",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-018",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-019",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-020",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-021",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-022",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-023",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-024",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-025",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-026",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-027",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-028",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-029",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-030",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-031",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-032",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-033",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-034",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-035",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-036",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-037",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "=[Related Charges]"
+      }
+    },
+    {
+      "id": "OLAP-038",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-039",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-040",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-041",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-042",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-043",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-044",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-045",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-046",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-047",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-048",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-049",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-050",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-051",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-052",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-053",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-054",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-055",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-056",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-057",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-058",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-059",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-060",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-061",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-062",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-063",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-064",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-065",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-066",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-067",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-068",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-069",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-070",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-071",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-072",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-073",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-074",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-075",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-076",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-077",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-078",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-079",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-080",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-081",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-082",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-083",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-084",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-085",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-086",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-087",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-088",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-089",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-090",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-091",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-092",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-093",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-094",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-095",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-096",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-097",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-098",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-099",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-100",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-101",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-102",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-103",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-104",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-105",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-106",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-107",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-108",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-109",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-110",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-111",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-112",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "Yes"
+      }
+    },
+    {
+      "id": "OLAP-113",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "Yes"
+      }
+    },
+    {
+      "id": "OLAP-114",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "Yes"
+      }
+    },
+    {
+      "id": "OLAP-115",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-116",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-117",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-118",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-119",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-120",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-121",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-122",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-123",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-124",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-125",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-126",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-127",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-128",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-129",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-130",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-131",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-132",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-133",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-134",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-135",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-136",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-137",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-138",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-139",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-140",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-141",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-142",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-143",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-144",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-145",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-146",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-147",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-148",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-149",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-150",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-151",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-152",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "Yes"
+      }
+    },
+    {
+      "id": "OLAP-153",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "Yes"
+      }
+    },
+    {
+      "id": "OLAP-154",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "Yes"
+      }
+    },
+    {
+      "id": "OLAP-155",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "Yes"
+      }
+    },
+    {
+      "id": "OLAP-156",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "Yes"
+      }
+    },
+    {
+      "id": "OLAP-157",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "Yes"
+      }
+    },
+    {
+      "id": "OLAP-158",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "Yes"
+      }
+    },
+    {
+      "id": "OLAP-159",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "Yes"
+      }
+    },
+    {
+      "id": "OLAP-160",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-161",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-162",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-163",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-164",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-165",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-166",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-167",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-168",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-169",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-170",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-171",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-172",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-173",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-174",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-175",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-176",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-177",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-178",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-179",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-180",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "=[Portfolio Summary Ref].[Total Profit]"
+      }
+    },
+    {
+      "id": "OLAP-181",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "=[Portfolio Summary Ref].[Outstanding Principal]"
+      }
+    },
+    {
+      "id": "OLAP-182",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "=[Portfolio Summary Ref].[Active Loans]"
+      }
+    },
+    {
+      "id": "OLAP-183",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "=[Portfolio Summary Ref].[Today's Profit]"
+      }
+    },
+    {
+      "id": "OLAP-184",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "=[Portfolio Summary Ref].[Yesterday's Profit]"
+      }
+    },
+    {
+      "id": "OLAP-185",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "=[Portfolio Summary Ref].[Realized Profit MTD]"
+      }
+    },
+    {
+      "id": "OLAP-186",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "=[Portfolio Summary Ref].[Projected Monthly Profit]"
+      }
+    },
+    {
+      "id": "OLAP-187",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "=[Portfolio Summary Ref].[Pending Payment Amount]"
+      }
+    },
+    {
+      "id": "OLAP-188",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "=[Portfolio Summary Ref].[Forecast Remaining Interest]"
+      }
+    },
+    {
+      "id": "OLAP-189",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "=[Portfolio Summary Ref].[Today's Outstanding Interest]"
+      }
+    },
+    {
+      "id": "OLAP-190",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "=[Portfolio Summary Ref].[Net Principal Days MTD]"
+      }
+    },
+    {
+      "id": "OLAP-191",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "=[Portfolio Summary Ref].[Forecast Remaining Principal Days]"
+      }
+    },
+    {
+      "id": "OLAP-192",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "=[Portfolio Summary Ref].[Forecast Average Daily Outstanding Principal]"
+      }
+    },
+    {
+      "id": "OLAP-193",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "=[Portfolio Summary Ref].[Forecast Monthly Return on ADO]"
+      }
+    },
+    {
+      "id": "OLAP-194",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "=[Portfolio Summary Ref].[Peak Cash Pool 30D]"
+      }
+    },
+    {
+      "id": "OLAP-195",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "=[Portfolio Summary Ref].[Peak Cash Pool Date 30D]"
+      }
+    },
+    {
+      "id": "OLAP-196",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "=[Portfolio Summary Ref].[Expected Daily Interest]"
+      }
+    },
+    {
+      "id": "OLAP-197",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "=[Portfolio Summary Ref].[Total Profit of Outstanding Loans]"
+      }
+    },
+    {
+      "id": "OLAP-198",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "=[Portfolio Summary Ref].[Profit Coverage of Outstanding Principal]"
+      }
+    },
+    {
+      "id": "OLAP-199",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "=[Portfolio Summary Ref].[Total Cash Pool]"
+      }
+    },
+    {
+      "id": "OLAP-200",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "=[Portfolio Summary Ref].[Total Unsettled Profit]"
+      }
+    },
+    {
+      "id": "OLAP-201",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "=[Portfolio Summary Ref].[Expected Loan Account Balance]"
+      }
+    },
+    {
+      "id": "OLAP-202",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "=[Portfolio Summary Ref].[Total Outstanding Principal]"
+      }
+    },
+    {
+      "id": "OLAP-203",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "=[Portfolio Summary Ref].[Top 3 Borrower Concentration]"
+      }
+    },
+    {
+      "id": "OLAP-204",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "=[Portfolio Summary Ref].[Borrowers Fully Paid Today]"
+      }
+    },
+    {
+      "id": "OLAP-205",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "=[Portfolio Summary Ref].[Borrowers Partially Paid Today]"
+      }
+    },
+    {
+      "id": "OLAP-206",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "=[Portfolio Summary Ref].[Borrowers with Overdue Payment]"
+      }
+    },
+    {
+      "id": "OLAP-207",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "=[Portfolio Summary Ref].[Borrowers Not Paid Today]"
+      }
+    },
+    {
+      "id": "OLAP-208",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "=[Portfolio Summary Ref].[Amount Due Today]"
+      }
+    },
+    {
+      "id": "OLAP-209",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "=[Portfolio Summary Ref].[Amount Collected Today]"
+      }
+    },
+    {
+      "id": "OLAP-210",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "=[Portfolio Summary Ref].[Amount Outstanding Today]"
+      }
+    },
+    {
+      "id": "OLAP-211",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "=[Portfolio Summary Ref].[Amount Collection Rate Today]"
+      }
+    },
+    {
+      "id": "OLAP-212",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "=[Portfolio Summary Ref].[Total Business Expenses]"
+      }
+    },
+    {
+      "id": "OLAP-213",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "=[Portfolio Summary Ref].[Net Profit]"
+      }
+    },
+    {
+      "id": "OLAP-214",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "=[Portfolio Summary Ref].[Expenses MTD]"
+      }
+    },
+    {
+      "id": "OLAP-215",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "=[Portfolio Summary Ref].[Net Profit MTD]"
+      }
+    },
+    {
+      "id": "OLAP-216",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "=[Portfolio Summary Ref].[Net Unsettled Profit]"
+      }
+    },
+    {
+      "id": "OLAP-217",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "=[Portfolio Summary Ref].[Net Expected Loan Account Balance]"
+      }
+    },
+    {
+      "id": "OLAP-218",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "=[Portfolio Summary Ref].[Income Statement Expenses MTD]"
+      }
+    },
+    {
+      "id": "OLAP-219",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "=[Portfolio Summary Ref].[Operating Income MTD]"
+      }
+    },
+    {
+      "id": "OLAP-220",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "Yes"
+      }
+    },
+    {
+      "id": "OLAP-221",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "Yes"
+      }
+    },
+    {
+      "id": "OLAP-222",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "Yes"
+      }
+    },
+    {
+      "id": "OLAP-223",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "Yes"
+      }
+    },
+    {
+      "id": "OLAP-224",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "Yes"
+      }
+    },
+    {
+      "id": "OLAP-225",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-226",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-227",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-228",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-229",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-230",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-231",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-232",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-233",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-234",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-235",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "absent"
+      }
+    },
+    {
+      "id": "OLAP-236",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": "No"
+      }
+    },
+    {
+      "id": "OLAP-237",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": {
+          "Table name": "Portfolio Summary",
+          "Visible?": "ALWAYS",
+          "Shared?": "Yes",
+          "Data locale": "en-US",
+          "Schema": "Portfolio Summary_Schema",
+          "Are updates allowed?": "READ_ONLY",
+          "Source Path": "olap_portfolio_summary",
+          "Data Source": "database-3",
+          "Store for image and file capture": "_Default",
+          "Column Order List": "_RowNumber",
+          "Partitioned across many files/sources?": "No",
+          "Partitioned across many worksheets?": "No"
+        }
+      }
+    },
+    {
+      "id": "OLAP-238",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": {
+          "Column name": "Related Charges",
+          "Visible?": "ALWAYS",
+          "Description": "Charges entries that reference this entry in the Ref Collection Borrower column",
+          "Type": "List",
+          "Type Qualifier": "{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":\"{\\\"ReferencedTableName\\\":\\\"Charges\\\",\\\"ReferencedRootTableName\\\":\\\"Charges\\\",\\\"ReferencedType\\\":\\\"Text\\\",\\\"ReferencedTypeQualifier\\\":\\\"{\\\\\\\"MaxLength\\\\\\\":null,\\\\\\\"MinLength\\\\\\\":null,\\\\\\\"LongTextFormatting\\\\\\\":\\\\\\\"Plain Text\\\\\\\",\\\\\\\"IsMulticolumnKey\\\\\\\":false,\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\"Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\",\\\"ReferencedKeyColumn\\\":\\\"Row ID\\\",\\\"IsAPartOf\\\":false,\\\"RelationshipName\\\":null,\\\"InputMode\\\":\\\"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"ItemSeparator\":\" , \",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+          "App formula": "REF_ROWS(\"Charges\", \"Ref Collection Borrower\")",
+          "Read-Only": "Yes",
+          "Hidden": "Yes",
+          "Label": "No",
+          "Formula version": "0",
+          "Reset on edit?": "No",
+          "System Defined?": "Yes",
+          "Key": "No",
+          "Part of Key?": "No",
+          "Fixed definition?": "No",
+          "Editable Initial Value?": "Yes",
+          "Virtual?": "Yes",
+          "LocaleName": "en-US",
+          "Searchable": "No",
+          "Scannable": "No",
+          "NFC Scannable": "No",
+          "Sensitive data": "No"
+        }
+      }
+    },
+    {
+      "id": "OLAP-239",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": {
+          "Column name": "Portfolio Summary Ref",
+          "Visible?": "ALWAYS",
+          "Type": "Ref",
+          "Type Qualifier": "{\"ReferencedTableName\":\"Portfolio Summary\",\"ReferencedRootTableName\":\"Portfolio Summary\",\"ReferencedType\":\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\":\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+          "App formula": "=[Row ID]",
+          "Read-Only": "Yes",
+          "Hidden": "Yes",
+          "Label": "No",
+          "Formula version": "0",
+          "Reset on edit?": "No",
+          "System Defined?": "No",
+          "Key": "No",
+          "Part of Key?": "No",
+          "Fixed definition?": "No",
+          "Editable Initial Value?": "Yes",
+          "Virtual?": "Yes",
+          "LocaleName": "en-US",
+          "Searchable": "No",
+          "Scannable": "No",
+          "Sensitive data": "No"
+        }
+      }
+    },
+    {
+      "id": "OLAP-240",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": {
+          "Column name": "Ref Collection Borrower",
+          "Visible?": "ALWAYS",
+          "Type": "Ref",
+          "Type Qualifier": "{\"ReferencedTableName\":\"Borrowers\",\"ReferencedRootTableName\":\"Borrowers\",\"ReferencedType\":\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\":\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+          "Read-Only": "Yes",
+          "Hidden": "Yes",
+          "Label": "No",
+          "Formula version": "0",
+          "Reset on edit?": "No",
+          "System Defined?": "No",
+          "Key": "No",
+          "Part of Key?": "No",
+          "Fixed definition?": "No",
+          "Editable Initial Value?": "Yes",
+          "Virtual?": "No",
+          "LocaleName": "en-US",
+          "Searchable": "No",
+          "Scannable": "No",
+          "Sensitive data": "No"
+        }
+      }
+    },
+    {
+      "id": "OLAP-241",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": {
+          "Column name": "_RowNumber",
+          "Visible?": "ALWAYS",
+          "Description": "Number of this row",
+          "Type": "Number",
+          "Type Qualifier": "{\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+          "Read-Only": "Yes",
+          "Hidden": "Yes",
+          "Label": "No",
+          "Formula version": "0",
+          "Reset on edit?": "No",
+          "System Defined?": "Yes",
+          "Key": "No",
+          "Part of Key?": "No",
+          "Fixed definition?": "Yes",
+          "Editable Initial Value?": "Yes",
+          "Virtual?": "No",
+          "LocaleName": "en-US",
+          "Searchable": "No",
+          "Scannable": "No",
+          "Sensitive data": "No"
+        }
+      }
+    },
+    {
+      "id": "OLAP-242",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": {
+          "Column name": "Row ID",
+          "Visible?": "ALWAYS",
+          "Type": "Text",
+          "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+          "Read-Only": "Yes",
+          "Hidden": "No",
+          "Label": "No",
+          "Formula version": "0",
+          "Reset on edit?": "No",
+          "System Defined?": "No",
+          "Key": "Yes",
+          "Part of Key?": "Yes",
+          "Fixed definition?": "No",
+          "Editable Initial Value?": "Yes",
+          "Virtual?": "No",
+          "LocaleName": "en-US",
+          "Searchable": "Yes",
+          "Scannable": "No",
+          "Sensitive data": "No"
+        }
+      }
+    },
+    {
+      "id": "OLAP-243",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": {
+          "Column name": "Statistics ID",
+          "Visible?": "ALWAYS",
+          "Type": "Text",
+          "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+          "Read-Only": "Yes",
+          "Hidden": "No",
+          "Label": "Yes",
+          "Formula version": "0",
+          "Reset on edit?": "No",
+          "System Defined?": "No",
+          "Key": "No",
+          "Part of Key?": "No",
+          "Fixed definition?": "No",
+          "Editable Initial Value?": "Yes",
+          "Virtual?": "No",
+          "LocaleName": "en-US",
+          "Searchable": "Yes",
+          "Scannable": "No",
+          "Sensitive data": "No"
+        }
+      }
+    },
+    {
+      "id": "OLAP-244",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": {
+          "Column name": "Total Profit",
+          "Visible?": "ALWAYS",
+          "Type": "Price",
+          "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\":0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+          "Read-Only": "Yes",
+          "Hidden": "Yes",
+          "Label": "No",
+          "Formula version": "0",
+          "Reset on edit?": "No",
+          "System Defined?": "No",
+          "Key": "No",
+          "Part of Key?": "No",
+          "Fixed definition?": "No",
+          "Editable Initial Value?": "Yes",
+          "Virtual?": "No",
+          "LocaleName": "en-US",
+          "Searchable": "No",
+          "Scannable": "No",
+          "Sensitive data": "No"
+        }
+      }
+    },
+    {
+      "id": "OLAP-245",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": {
+          "Column name": "Outstanding Principal",
+          "Visible?": "ALWAYS",
+          "Type": "Price",
+          "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\":0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+          "Read-Only": "Yes",
+          "Hidden": "Yes",
+          "Label": "No",
+          "Formula version": "0",
+          "Reset on edit?": "No",
+          "System Defined?": "No",
+          "Key": "No",
+          "Part of Key?": "No",
+          "Fixed definition?": "No",
+          "Editable Initial Value?": "Yes",
+          "Virtual?": "No",
+          "LocaleName": "en-US",
+          "Searchable": "No",
+          "Scannable": "No",
+          "Sensitive data": "No"
+        }
+      }
+    },
+    {
+      "id": "OLAP-246",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": {
+          "Column name": "Active Loans",
+          "Visible?": "ALWAYS",
+          "Type": "Number",
+          "Type Qualifier": "{\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+          "Read-Only": "Yes",
+          "Hidden": "Yes",
+          "Label": "No",
+          "Formula version": "0",
+          "Reset on edit?": "No",
+          "System Defined?": "No",
+          "Key": "No",
+          "Part of Key?": "No",
+          "Fixed definition?": "No",
+          "Editable Initial Value?": "Yes",
+          "Virtual?": "No",
+          "LocaleName": "en-US",
+          "Searchable": "No",
+          "Scannable": "No",
+          "Sensitive data": "No"
+        }
+      }
+    },
+    {
+      "id": "OLAP-247",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": {
+          "Column name": "Today's Profit",
+          "Visible?": "ALWAYS",
+          "Type": "Price",
+          "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\":0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+          "Read-Only": "Yes",
+          "Hidden": "Yes",
+          "Label": "No",
+          "Formula version": "0",
+          "Reset on edit?": "No",
+          "System Defined?": "No",
+          "Key": "No",
+          "Part of Key?": "No",
+          "Fixed definition?": "No",
+          "Editable Initial Value?": "Yes",
+          "Virtual?": "No",
+          "LocaleName": "en-US",
+          "Searchable": "No",
+          "Scannable": "No",
+          "Sensitive data": "No"
+        }
+      }
+    },
+    {
+      "id": "OLAP-248",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": {
+          "Column name": "Yesterday's Profit",
+          "Visible?": "ALWAYS",
+          "Type": "Price",
+          "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\":0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+          "Read-Only": "Yes",
+          "Hidden": "Yes",
+          "Label": "No",
+          "Formula version": "0",
+          "Reset on edit?": "No",
+          "System Defined?": "No",
+          "Key": "No",
+          "Part of Key?": "No",
+          "Fixed definition?": "No",
+          "Editable Initial Value?": "Yes",
+          "Virtual?": "No",
+          "LocaleName": "en-US",
+          "Searchable": "No",
+          "Scannable": "No",
+          "Sensitive data": "No"
+        }
+      }
+    },
+    {
+      "id": "OLAP-249",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": {
+          "Column name": "Realized Profit MTD",
+          "Visible?": "ALWAYS",
+          "Type": "Price",
+          "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\":0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+          "Read-Only": "Yes",
+          "Hidden": "Yes",
+          "Label": "No",
+          "Formula version": "0",
+          "Reset on edit?": "No",
+          "System Defined?": "No",
+          "Key": "No",
+          "Part of Key?": "No",
+          "Fixed definition?": "No",
+          "Editable Initial Value?": "Yes",
+          "Virtual?": "No",
+          "LocaleName": "en-US",
+          "Searchable": "No",
+          "Scannable": "No",
+          "Sensitive data": "No"
+        }
+      }
+    },
+    {
+      "id": "OLAP-250",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": {
+          "Column name": "Projected Monthly Profit",
+          "Visible?": "ALWAYS",
+          "Type": "Price",
+          "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\":0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+          "Read-Only": "Yes",
+          "Hidden": "Yes",
+          "Label": "No",
+          "Formula version": "0",
+          "Reset on edit?": "No",
+          "System Defined?": "No",
+          "Key": "No",
+          "Part of Key?": "No",
+          "Fixed definition?": "No",
+          "Editable Initial Value?": "Yes",
+          "Virtual?": "No",
+          "LocaleName": "en-US",
+          "Searchable": "No",
+          "Scannable": "No",
+          "Sensitive data": "No"
+        }
+      }
+    },
+    {
+      "id": "OLAP-251",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": {
+          "Column name": "Pending Payment Amount",
+          "Visible?": "ALWAYS",
+          "Type": "Price",
+          "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\":0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+          "Read-Only": "Yes",
+          "Hidden": "Yes",
+          "Label": "No",
+          "Formula version": "0",
+          "Reset on edit?": "No",
+          "System Defined?": "No",
+          "Key": "No",
+          "Part of Key?": "No",
+          "Fixed definition?": "No",
+          "Editable Initial Value?": "Yes",
+          "Virtual?": "No",
+          "LocaleName": "en-US",
+          "Searchable": "No",
+          "Scannable": "No",
+          "Sensitive data": "No"
+        }
+      }
+    },
+    {
+      "id": "OLAP-252",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": {
+          "Column name": "Forecast Remaining Interest",
+          "Visible?": "ALWAYS",
+          "Type": "Price",
+          "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\":0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+          "Read-Only": "Yes",
+          "Hidden": "Yes",
+          "Label": "No",
+          "Formula version": "0",
+          "Reset on edit?": "No",
+          "System Defined?": "No",
+          "Key": "No",
+          "Part of Key?": "No",
+          "Fixed definition?": "No",
+          "Editable Initial Value?": "Yes",
+          "Virtual?": "No",
+          "LocaleName": "en-US",
+          "Searchable": "No",
+          "Scannable": "No",
+          "Sensitive data": "No"
+        }
+      }
+    },
+    {
+      "id": "OLAP-253",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": {
+          "Column name": "Today's Outstanding Interest",
+          "Visible?": "ALWAYS",
+          "Type": "Price",
+          "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\":0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+          "Read-Only": "Yes",
+          "Hidden": "Yes",
+          "Label": "No",
+          "Formula version": "0",
+          "Reset on edit?": "No",
+          "System Defined?": "No",
+          "Key": "No",
+          "Part of Key?": "No",
+          "Fixed definition?": "No",
+          "Editable Initial Value?": "Yes",
+          "Virtual?": "No",
+          "LocaleName": "en-US",
+          "Searchable": "No",
+          "Scannable": "No",
+          "Sensitive data": "No"
+        }
+      }
+    },
+    {
+      "id": "OLAP-254",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": {
+          "Column name": "Net Principal Days MTD",
+          "Visible?": "ALWAYS",
+          "Type": "Number",
+          "Type Qualifier": "{\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+          "Read-Only": "Yes",
+          "Hidden": "Yes",
+          "Label": "No",
+          "Formula version": "0",
+          "Reset on edit?": "No",
+          "System Defined?": "No",
+          "Key": "No",
+          "Part of Key?": "No",
+          "Fixed definition?": "No",
+          "Editable Initial Value?": "Yes",
+          "Virtual?": "No",
+          "LocaleName": "en-US",
+          "Searchable": "No",
+          "Scannable": "No",
+          "Sensitive data": "No"
+        }
+      }
+    },
+    {
+      "id": "OLAP-255",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": {
+          "Column name": "Forecast Remaining Principal Days",
+          "Visible?": "ALWAYS",
+          "Type": "Number",
+          "Type Qualifier": "{\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+          "Read-Only": "Yes",
+          "Hidden": "Yes",
+          "Label": "No",
+          "Formula version": "0",
+          "Reset on edit?": "No",
+          "System Defined?": "No",
+          "Key": "No",
+          "Part of Key?": "No",
+          "Fixed definition?": "No",
+          "Editable Initial Value?": "Yes",
+          "Virtual?": "No",
+          "LocaleName": "en-US",
+          "Searchable": "No",
+          "Scannable": "No",
+          "Sensitive data": "No"
+        }
+      }
+    },
+    {
+      "id": "OLAP-256",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": {
+          "Column name": "Forecast Average Daily Outstanding Principal",
+          "Visible?": "ALWAYS",
+          "Type": "Price",
+          "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\":0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+          "Read-Only": "Yes",
+          "Hidden": "Yes",
+          "Label": "No",
+          "Formula version": "0",
+          "Reset on edit?": "No",
+          "System Defined?": "No",
+          "Key": "No",
+          "Part of Key?": "No",
+          "Fixed definition?": "No",
+          "Editable Initial Value?": "Yes",
+          "Virtual?": "No",
+          "LocaleName": "en-US",
+          "Searchable": "No",
+          "Scannable": "No",
+          "Sensitive data": "No"
+        }
+      }
+    },
+    {
+      "id": "OLAP-257",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": {
+          "Column name": "Forecast Monthly Return on ADO",
+          "Visible?": "ALWAYS",
+          "Type": "Percent",
+          "Type Qualifier": "{\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\":0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+          "Read-Only": "Yes",
+          "Hidden": "Yes",
+          "Label": "No",
+          "Formula version": "0",
+          "Reset on edit?": "No",
+          "System Defined?": "No",
+          "Key": "No",
+          "Part of Key?": "No",
+          "Fixed definition?": "No",
+          "Editable Initial Value?": "Yes",
+          "Virtual?": "No",
+          "LocaleName": "en-US",
+          "Searchable": "No",
+          "Scannable": "No",
+          "Sensitive data": "No"
+        }
+      }
+    },
+    {
+      "id": "OLAP-258",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": {
+          "Column name": "Peak Cash Pool 30D",
+          "Visible?": "ALWAYS",
+          "Type": "Price",
+          "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\":0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+          "Read-Only": "Yes",
+          "Hidden": "Yes",
+          "Label": "No",
+          "Formula version": "0",
+          "Reset on edit?": "No",
+          "System Defined?": "No",
+          "Key": "No",
+          "Part of Key?": "No",
+          "Fixed definition?": "No",
+          "Editable Initial Value?": "Yes",
+          "Virtual?": "No",
+          "LocaleName": "en-US",
+          "Searchable": "No",
+          "Scannable": "No",
+          "Sensitive data": "No"
+        }
+      }
+    },
+    {
+      "id": "OLAP-259",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": {
+          "Column name": "Peak Cash Pool Date 30D",
+          "Visible?": "ALWAYS",
+          "Type": "Date",
+          "Type Qualifier": "{\"UseLongDateFormat\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+          "Read-Only": "Yes",
+          "Hidden": "Yes",
+          "Label": "No",
+          "Formula version": "0",
+          "Reset on edit?": "No",
+          "Initial value": "TODAY()",
+          "System Defined?": "No",
+          "Key": "No",
+          "Part of Key?": "No",
+          "Fixed definition?": "No",
+          "Editable Initial Value?": "Yes",
+          "Virtual?": "No",
+          "LocaleName": "en-US",
+          "Searchable": "No",
+          "Scannable": "No",
+          "Sensitive data": "No"
+        }
+      }
+    },
+    {
+      "id": "OLAP-260",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": {
+          "Column name": "Expected Daily Interest",
+          "Visible?": "ALWAYS",
+          "Type": "Price",
+          "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\":0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+          "Read-Only": "Yes",
+          "Hidden": "Yes",
+          "Label": "No",
+          "Formula version": "0",
+          "Reset on edit?": "No",
+          "System Defined?": "No",
+          "Key": "No",
+          "Part of Key?": "No",
+          "Fixed definition?": "No",
+          "Editable Initial Value?": "Yes",
+          "Virtual?": "No",
+          "LocaleName": "en-US",
+          "Searchable": "No",
+          "Scannable": "No",
+          "Sensitive data": "No"
+        }
+      }
+    },
+    {
+      "id": "OLAP-261",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": {
+          "Column name": "Total Profit of Outstanding Loans",
+          "Visible?": "ALWAYS",
+          "Type": "Price",
+          "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\":0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+          "Read-Only": "Yes",
+          "Hidden": "Yes",
+          "Label": "No",
+          "Formula version": "0",
+          "Reset on edit?": "No",
+          "System Defined?": "No",
+          "Key": "No",
+          "Part of Key?": "No",
+          "Fixed definition?": "No",
+          "Editable Initial Value?": "Yes",
+          "Virtual?": "No",
+          "LocaleName": "en-US",
+          "Searchable": "No",
+          "Scannable": "No",
+          "Sensitive data": "No"
+        }
+      }
+    },
+    {
+      "id": "OLAP-262",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": {
+          "Column name": "Profit Coverage of Outstanding Principal",
+          "Visible?": "ALWAYS",
+          "Type": "Percent",
+          "Type Qualifier": "{\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\":0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+          "Read-Only": "Yes",
+          "Hidden": "Yes",
+          "Label": "No",
+          "Formula version": "0",
+          "Reset on edit?": "No",
+          "System Defined?": "No",
+          "Key": "No",
+          "Part of Key?": "No",
+          "Fixed definition?": "No",
+          "Editable Initial Value?": "Yes",
+          "Virtual?": "No",
+          "LocaleName": "en-US",
+          "Searchable": "No",
+          "Scannable": "No",
+          "Sensitive data": "No"
+        }
+      }
+    },
+    {
+      "id": "OLAP-263",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": {
+          "Column name": "Total Cash Pool",
+          "Visible?": "ALWAYS",
+          "Type": "Price",
+          "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\":0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+          "Read-Only": "Yes",
+          "Hidden": "Yes",
+          "Label": "No",
+          "Formula version": "0",
+          "Reset on edit?": "No",
+          "System Defined?": "No",
+          "Key": "No",
+          "Part of Key?": "No",
+          "Fixed definition?": "No",
+          "Editable Initial Value?": "Yes",
+          "Virtual?": "No",
+          "LocaleName": "en-US",
+          "Searchable": "No",
+          "Scannable": "No",
+          "Sensitive data": "No"
+        }
+      }
+    },
+    {
+      "id": "OLAP-264",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": {
+          "Column name": "Total Unsettled Profit",
+          "Visible?": "ALWAYS",
+          "Type": "Price",
+          "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\":0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+          "Read-Only": "Yes",
+          "Hidden": "Yes",
+          "Label": "No",
+          "Formula version": "0",
+          "Reset on edit?": "No",
+          "System Defined?": "No",
+          "Key": "No",
+          "Part of Key?": "No",
+          "Fixed definition?": "No",
+          "Editable Initial Value?": "Yes",
+          "Virtual?": "No",
+          "LocaleName": "en-US",
+          "Searchable": "No",
+          "Scannable": "No",
+          "Sensitive data": "No"
+        }
+      }
+    },
+    {
+      "id": "OLAP-265",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": {
+          "Column name": "Expected Loan Account Balance",
+          "Visible?": "ALWAYS",
+          "Type": "Price",
+          "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\":0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+          "Read-Only": "Yes",
+          "Hidden": "Yes",
+          "Label": "No",
+          "Formula version": "0",
+          "Reset on edit?": "No",
+          "System Defined?": "No",
+          "Key": "No",
+          "Part of Key?": "No",
+          "Fixed definition?": "No",
+          "Editable Initial Value?": "Yes",
+          "Virtual?": "No",
+          "LocaleName": "en-US",
+          "Searchable": "No",
+          "Scannable": "No",
+          "Sensitive data": "No"
+        }
+      }
+    },
+    {
+      "id": "OLAP-266",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": {
+          "Column name": "Total Outstanding Principal",
+          "Visible?": "ALWAYS",
+          "Type": "Price",
+          "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\":0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+          "Read-Only": "Yes",
+          "Hidden": "Yes",
+          "Label": "No",
+          "Formula version": "0",
+          "Reset on edit?": "No",
+          "System Defined?": "No",
+          "Key": "No",
+          "Part of Key?": "No",
+          "Fixed definition?": "No",
+          "Editable Initial Value?": "Yes",
+          "Virtual?": "No",
+          "LocaleName": "en-US",
+          "Searchable": "No",
+          "Scannable": "No",
+          "Sensitive data": "No"
+        }
+      }
+    },
+    {
+      "id": "OLAP-267",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": {
+          "Column name": "Top 3 Borrower Concentration",
+          "Visible?": "ALWAYS",
+          "Type": "Percent",
+          "Type Qualifier": "{\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\":2,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+          "Read-Only": "Yes",
+          "Hidden": "Yes",
+          "Label": "No",
+          "Formula version": "0",
+          "Reset on edit?": "No",
+          "System Defined?": "No",
+          "Key": "No",
+          "Part of Key?": "No",
+          "Fixed definition?": "No",
+          "Editable Initial Value?": "Yes",
+          "Virtual?": "No",
+          "LocaleName": "en-US",
+          "Searchable": "No",
+          "Scannable": "No",
+          "Sensitive data": "No"
+        }
+      }
+    },
+    {
+      "id": "OLAP-268",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": {
+          "Column name": "Borrowers Fully Paid Today",
+          "Visible?": "ALWAYS",
+          "Type": "Number",
+          "Type Qualifier": "{\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+          "Read-Only": "Yes",
+          "Hidden": "Yes",
+          "Label": "No",
+          "Formula version": "0",
+          "Reset on edit?": "No",
+          "System Defined?": "No",
+          "Key": "No",
+          "Part of Key?": "No",
+          "Fixed definition?": "No",
+          "Editable Initial Value?": "Yes",
+          "Virtual?": "No",
+          "LocaleName": "en-US",
+          "Searchable": "No",
+          "Scannable": "No",
+          "Sensitive data": "No"
+        }
+      }
+    },
+    {
+      "id": "OLAP-269",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": {
+          "Column name": "Borrowers Partially Paid Today",
+          "Visible?": "ALWAYS",
+          "Type": "Number",
+          "Type Qualifier": "{\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+          "Read-Only": "Yes",
+          "Hidden": "Yes",
+          "Label": "No",
+          "Formula version": "0",
+          "Reset on edit?": "No",
+          "System Defined?": "No",
+          "Key": "No",
+          "Part of Key?": "No",
+          "Fixed definition?": "No",
+          "Editable Initial Value?": "Yes",
+          "Virtual?": "No",
+          "LocaleName": "en-US",
+          "Searchable": "No",
+          "Scannable": "No",
+          "Sensitive data": "No"
+        }
+      }
+    },
+    {
+      "id": "OLAP-270",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": {
+          "Column name": "Borrowers with Overdue Payment",
+          "Visible?": "ALWAYS",
+          "Type": "Number",
+          "Type Qualifier": "{\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+          "Read-Only": "Yes",
+          "Hidden": "Yes",
+          "Label": "No",
+          "Formula version": "0",
+          "Reset on edit?": "No",
+          "System Defined?": "No",
+          "Key": "No",
+          "Part of Key?": "No",
+          "Fixed definition?": "No",
+          "Editable Initial Value?": "Yes",
+          "Virtual?": "No",
+          "LocaleName": "en-US",
+          "Searchable": "No",
+          "Scannable": "No",
+          "Sensitive data": "No"
+        }
+      }
+    },
+    {
+      "id": "OLAP-271",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": {
+          "Column name": "Borrowers Not Paid Today",
+          "Visible?": "ALWAYS",
+          "Type": "Number",
+          "Type Qualifier": "{\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+          "Read-Only": "Yes",
+          "Hidden": "Yes",
+          "Label": "No",
+          "Formula version": "0",
+          "Reset on edit?": "No",
+          "System Defined?": "No",
+          "Key": "No",
+          "Part of Key?": "No",
+          "Fixed definition?": "No",
+          "Editable Initial Value?": "Yes",
+          "Virtual?": "No",
+          "LocaleName": "en-US",
+          "Searchable": "No",
+          "Scannable": "No",
+          "Sensitive data": "No"
+        }
+      }
+    },
+    {
+      "id": "OLAP-272",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": {
+          "Column name": "Amount Due Today",
+          "Visible?": "ALWAYS",
+          "Type": "Price",
+          "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\":0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+          "Read-Only": "Yes",
+          "Hidden": "Yes",
+          "Label": "No",
+          "Formula version": "0",
+          "Reset on edit?": "No",
+          "System Defined?": "No",
+          "Key": "No",
+          "Part of Key?": "No",
+          "Fixed definition?": "No",
+          "Editable Initial Value?": "Yes",
+          "Virtual?": "No",
+          "LocaleName": "en-US",
+          "Searchable": "No",
+          "Scannable": "No",
+          "Sensitive data": "No"
+        }
+      }
+    },
+    {
+      "id": "OLAP-273",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": {
+          "Column name": "Amount Collected Today",
+          "Visible?": "ALWAYS",
+          "Type": "Price",
+          "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\":0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+          "Read-Only": "Yes",
+          "Hidden": "Yes",
+          "Label": "No",
+          "Formula version": "0",
+          "Reset on edit?": "No",
+          "System Defined?": "No",
+          "Key": "No",
+          "Part of Key?": "No",
+          "Fixed definition?": "No",
+          "Editable Initial Value?": "Yes",
+          "Virtual?": "No",
+          "LocaleName": "en-US",
+          "Searchable": "No",
+          "Scannable": "No",
+          "Sensitive data": "No"
+        }
+      }
+    },
+    {
+      "id": "OLAP-274",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": {
+          "Column name": "Amount Outstanding Today",
+          "Visible?": "ALWAYS",
+          "Type": "Price",
+          "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\":0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+          "Read-Only": "Yes",
+          "Hidden": "Yes",
+          "Label": "No",
+          "Formula version": "0",
+          "Reset on edit?": "No",
+          "System Defined?": "No",
+          "Key": "No",
+          "Part of Key?": "No",
+          "Fixed definition?": "No",
+          "Editable Initial Value?": "Yes",
+          "Virtual?": "No",
+          "LocaleName": "en-US",
+          "Searchable": "No",
+          "Scannable": "No",
+          "Sensitive data": "No"
+        }
+      }
+    },
+    {
+      "id": "OLAP-275",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": {
+          "Column name": "Amount Collection Rate Today",
+          "Visible?": "ALWAYS",
+          "Type": "Number",
+          "Type Qualifier": "{\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+          "Read-Only": "Yes",
+          "Hidden": "Yes",
+          "Label": "No",
+          "Formula version": "0",
+          "Reset on edit?": "No",
+          "System Defined?": "No",
+          "Key": "No",
+          "Part of Key?": "No",
+          "Fixed definition?": "No",
+          "Editable Initial Value?": "Yes",
+          "Virtual?": "No",
+          "LocaleName": "en-US",
+          "Searchable": "No",
+          "Scannable": "No",
+          "Sensitive data": "No"
+        }
+      }
+    },
+    {
+      "id": "OLAP-276",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": {
+          "Column name": "Total Business Expenses",
+          "Visible?": "ALWAYS",
+          "Type": "Price",
+          "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\":0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+          "Read-Only": "Yes",
+          "Hidden": "Yes",
+          "Label": "No",
+          "Formula version": "0",
+          "Reset on edit?": "No",
+          "System Defined?": "No",
+          "Key": "No",
+          "Part of Key?": "No",
+          "Fixed definition?": "No",
+          "Editable Initial Value?": "Yes",
+          "Virtual?": "No",
+          "LocaleName": "en-US",
+          "Searchable": "No",
+          "Scannable": "No",
+          "Sensitive data": "No"
+        }
+      }
+    },
+    {
+      "id": "OLAP-277",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": {
+          "Column name": "Net Profit",
+          "Visible?": "ALWAYS",
+          "Type": "Price",
+          "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\":0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+          "Read-Only": "Yes",
+          "Hidden": "Yes",
+          "Label": "No",
+          "Formula version": "0",
+          "Reset on edit?": "No",
+          "System Defined?": "No",
+          "Key": "No",
+          "Part of Key?": "No",
+          "Fixed definition?": "No",
+          "Editable Initial Value?": "Yes",
+          "Virtual?": "No",
+          "LocaleName": "en-US",
+          "Searchable": "No",
+          "Scannable": "No",
+          "Sensitive data": "No"
+        }
+      }
+    },
+    {
+      "id": "OLAP-278",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": {
+          "Column name": "Expenses MTD",
+          "Visible?": "ALWAYS",
+          "Type": "Price",
+          "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\":0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+          "Read-Only": "Yes",
+          "Hidden": "Yes",
+          "Label": "No",
+          "Formula version": "0",
+          "Reset on edit?": "No",
+          "System Defined?": "No",
+          "Key": "No",
+          "Part of Key?": "No",
+          "Fixed definition?": "No",
+          "Editable Initial Value?": "Yes",
+          "Virtual?": "No",
+          "LocaleName": "en-US",
+          "Searchable": "No",
+          "Scannable": "No",
+          "Sensitive data": "No"
+        }
+      }
+    },
+    {
+      "id": "OLAP-279",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": {
+          "Column name": "Net Profit MTD",
+          "Visible?": "ALWAYS",
+          "Type": "Price",
+          "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\":0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+          "Read-Only": "Yes",
+          "Hidden": "Yes",
+          "Label": "No",
+          "Formula version": "0",
+          "Reset on edit?": "No",
+          "System Defined?": "No",
+          "Key": "No",
+          "Part of Key?": "No",
+          "Fixed definition?": "No",
+          "Editable Initial Value?": "Yes",
+          "Virtual?": "No",
+          "LocaleName": "en-US",
+          "Searchable": "No",
+          "Scannable": "No",
+          "Sensitive data": "No"
+        }
+      }
+    },
+    {
+      "id": "OLAP-280",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": {
+          "Column name": "Net Unsettled Profit",
+          "Visible?": "ALWAYS",
+          "Type": "Price",
+          "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\":0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+          "Read-Only": "Yes",
+          "Hidden": "Yes",
+          "Label": "No",
+          "Formula version": "0",
+          "Reset on edit?": "No",
+          "System Defined?": "No",
+          "Key": "No",
+          "Part of Key?": "No",
+          "Fixed definition?": "No",
+          "Editable Initial Value?": "Yes",
+          "Virtual?": "No",
+          "LocaleName": "en-US",
+          "Searchable": "No",
+          "Scannable": "No",
+          "Sensitive data": "No"
+        }
+      }
+    },
+    {
+      "id": "OLAP-281",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": {
+          "Column name": "Net Expected Loan Account Balance",
+          "Visible?": "ALWAYS",
+          "Type": "Price",
+          "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\":0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+          "Read-Only": "Yes",
+          "Hidden": "Yes",
+          "Label": "No",
+          "Formula version": "0",
+          "Reset on edit?": "No",
+          "System Defined?": "No",
+          "Key": "No",
+          "Part of Key?": "No",
+          "Fixed definition?": "No",
+          "Editable Initial Value?": "Yes",
+          "Virtual?": "No",
+          "LocaleName": "en-US",
+          "Searchable": "No",
+          "Scannable": "No",
+          "Sensitive data": "No"
+        }
+      }
+    },
+    {
+      "id": "OLAP-282",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": {
+          "Column name": "Income Statement Expenses MTD",
+          "Visible?": "ALWAYS",
+          "Type": "Price",
+          "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\":0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+          "Read-Only": "Yes",
+          "Hidden": "Yes",
+          "Label": "No",
+          "Formula version": "0",
+          "Reset on edit?": "No",
+          "System Defined?": "No",
+          "Key": "No",
+          "Part of Key?": "No",
+          "Fixed definition?": "No",
+          "Editable Initial Value?": "Yes",
+          "Virtual?": "No",
+          "LocaleName": "en-US",
+          "Searchable": "No",
+          "Scannable": "No",
+          "Sensitive data": "No"
+        }
+      }
+    },
+    {
+      "id": "OLAP-283",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": {
+          "Column name": "Operating Income MTD",
+          "Visible?": "ALWAYS",
+          "Type": "Price",
+          "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\":0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+          "Read-Only": "Yes",
+          "Hidden": "Yes",
+          "Label": "No",
+          "Formula version": "0",
+          "Reset on edit?": "No",
+          "System Defined?": "No",
+          "Key": "No",
+          "Part of Key?": "No",
+          "Fixed definition?": "No",
+          "Editable Initial Value?": "Yes",
+          "Virtual?": "No",
+          "LocaleName": "en-US",
+          "Searchable": "No",
+          "Scannable": "No",
+          "Sensitive data": "No"
+        }
+      }
+    },
+    {
+      "id": "OLAP-284",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": {
+          "Column name": "Related Statistics",
+          "Visible?": "ALWAYS",
+          "Description": "Statistics entries that reference this entry in the Portfolio Summary Ref column",
+          "Type": "List",
+          "Type Qualifier": "{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":\"{\\\"ReferencedTableName\\\":\\\"Statistics\\\",\\\"ReferencedRootTableName\\\":\\\"Statistics\\\",\\\"ReferencedType\\\":\\\"Text\\\",\\\"ReferencedTypeQualifier\\\":\\\"{\\\\\\\"MaxLength\\\\\\\":null,\\\\\\\"MinLength\\\\\\\":null,\\\\\\\"LongTextFormatting\\\\\\\":\\\\\\\"Plain Text\\\\\\\",\\\\\\\"IsMulticolumnKey\\\\\\\":false,\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\"Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\",\\\"ReferencedKeyColumn\\\":\\\"Row ID\\\",\\\"IsAPartOf\\\":false,\\\"RelationshipName\\\":null,\\\"InputMode\\\":\\\"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"ItemSeparator\":\" , \",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+          "App formula": "REF_ROWS(\"Statistics\", \"Portfolio Summary Ref\")",
+          "Read-Only": "Yes",
+          "Hidden": "No",
+          "Label": "No",
+          "Formula version": "0",
+          "Reset on edit?": "No",
+          "System Defined?": "Yes",
+          "Key": "No",
+          "Part of Key?": "No",
+          "Fixed definition?": "No",
+          "Editable Initial Value?": "Yes",
+          "Virtual?": "Yes",
+          "LocaleName": "en-US",
+          "Searchable": "Yes",
+          "Scannable": "No",
+          "NFC Scannable": "No",
+          "Sensitive data": "No"
+        }
+      }
+    },
+    {
+      "id": "OLAP-285",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": {
+          "Column name": "Portfolio Summary Ref",
+          "Visible?": "ALWAYS",
+          "Type": "Ref",
+          "Type Qualifier": "{\"ReferencedTableName\":\"Portfolio Summary\",\"ReferencedRootTableName\":\"Portfolio Summary\",\"ReferencedType\":\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\":\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+          "Read-Only": "No",
+          "Hidden": "No",
+          "Label": "No",
+          "Formula version": "0",
+          "Reset on edit?": "No",
+          "System Defined?": "No",
+          "Key": "No",
+          "Part of Key?": "No",
+          "Fixed definition?": "Yes",
+          "Editable Initial Value?": "Yes",
+          "Virtual?": "No",
+          "Searchable": "Yes",
+          "Scannable": "No",
+          "Sensitive data": "No"
+        }
+      }
+    },
+    {
+      "id": "OLAP-286",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": {
+          "Column name": "Portfolio Summary Ref",
+          "Visible?": "ALWAYS",
+          "Type": "Ref",
+          "Type Qualifier": "{\"ReferencedTableName\":\"Portfolio Summary\",\"ReferencedRootTableName\":\"Portfolio Summary\",\"ReferencedType\":\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\":\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}",
+          "Read-Only": "No",
+          "Hidden": "No",
+          "Label": "No",
+          "Formula version": "0",
+          "Reset on edit?": "No",
+          "System Defined?": "No",
+          "Key": "No",
+          "Part of Key?": "No",
+          "Fixed definition?": "Yes",
+          "Editable Initial Value?": "Yes",
+          "Virtual?": "No",
+          "Searchable": "Yes",
+          "Scannable": "No",
+          "Sensitive data": "No"
+        }
+      }
+    },
+    {
+      "id": "OLAP-287",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": {
+          "View name": "olap_portfolio_summary_Detail",
+          "Created by": "System",
+          "View type": "detail",
+          "ActionType": "Automatic",
+          "Position": "ref",
+          "View configuration": "{\"MainSlideshowImageColumn\":\"**auto**\",\"DetailContentColumn\":\"**none**\",\"HeaderColumns\":[],\"QuickEditColumns\":[],\"ColumnOrder\":[],\"ImageStyle\":\"Fill\",\"Layout\":null,\"UseCardLayout\":false,\"DisplayMode\":\"Automatic\",\"MaxNestedRows\":5,\"SlideshowMode\":true,\"DesktopSplitMode\":\"Split view\",\"UseDesktopMultiColumn\":true,\"SortBy\":[],\"PrimarySortColumn\":null,\"IsPrimarySortDescending\":false,\"Events\":[],\"Icon\":\"fa-indent\",\"IconRunnerUps\":null,\"MenuOrder\":1}",
+          "Visible?": "ALWAYS",
+          "Icon": "",
+          "Menu order": "1"
+        }
+      }
+    },
+    {
+      "id": "OLAP-288",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:41:29.120Z",
+      "evidence": "Private dev-olap-final-appdoc.json, independent saved documentation",
+      "observed": {
+        "state": "value",
+        "value": {
+          "View name": "Statistics_Inline",
+          "Created by": "System",
+          "View type": "table",
+          "Position": "ref",
+          "View configuration": "{\"ColumnWidth\":\"Default\",\"EnableQuickEdit\":false,\"ColumnOrder\":[],\"GroupBy\":[],\"GroupAggregate\":\"NONE\",\"SortBy\":[],\"PrimarySortColumn\":null,\"IsPrimarySortDescending\":false,\"Events\":[{\"EventType\":\"Row Selected\",\"EventAction\":\"**auto**\"}],\"Icon\":\"fa-table\",\"IconRunnerUps\":null,\"MenuOrder\":1}",
+          "Visible?": "ALWAYS",
+          "Icon": "",
+          "Menu order": "1"
+        }
+      }
+    },
+    {
+      "id": "OLAP-SOURCE-Charges",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:57:05.232Z",
+      "evidence": "source-readbacks.json",
+      "observed": {
+        "state": "value",
+        "value": "Table=public.olap\\_charges\\_analytics__olap\\_charges\\_analytics"
+      }
+    },
+    {
+      "id": "OLAP-SOURCE-Repayments",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:57:24.431Z",
+      "evidence": "source-readbacks.json",
+      "observed": {
+        "state": "value",
+        "value": "Table=public.olap\\_repayments\\_analytics__olap\\_repayments\\_analytics"
+      }
+    },
+    {
+      "id": "OLAP-SOURCE-Loans",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:58:15.125Z",
+      "evidence": "source-readbacks.json",
+      "observed": {
+        "state": "value",
+        "value": "Table=public.olap\\_loans\\_analytics__olap\\_loans\\_analytics"
+      }
+    },
+    {
+      "id": "OLAP-SOURCE-Borrowers",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:59:05.986Z",
+      "evidence": "source-readbacks.json",
+      "observed": {
+        "state": "value",
+        "value": "Table=public.olap\\_borrowers\\_analytics__olap\\_borrowers\\_analytics"
+      }
+    },
+    {
+      "id": "OLAP-SOURCE-Portfolio-Summary",
+      "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
+      "version": "1.000142",
+      "observedAt": "2026-09-18T10:59:35.753Z",
+      "evidence": "source-readbacks.json",
+      "observed": {
+        "state": "value",
+        "value": "Table=public.olap\\_portfolio\\_summary__olap\\_portfolio\\_summary"
+      }
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.cash_account_holder(p_account text, p_active boolean)"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "cash_account_holder"
+    "arguments": "p_account text, p_active boolean"
+    "kind": "f"
+    "arguments_with_defaults": "p_account text, p_active boolean DEFAULT true"
+    "result": "text"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.cash_account_holder(p_account text, p_active boolean DEFAULT true)
+       RETURNS text
+       LANGUAGE plpgsql
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+      DECLARE holder text;
+      BEGIN
+       SELECT a."Ref Cash Holder" INTO holder FROM public."Cash Accounts" a
+       JOIN public."Cash Holders" h ON h."Row ID"=a."Ref Cash Holder"
+       WHERE a."Row ID"=p_account AND (NOT p_active OR (a."Active" AND h."Active")) FOR SHARE OF a,h;
+       IF NOT FOUND THEN RAISE EXCEPTION 'A valid active cash account is required'; END IF;
+       RETURN holder;
+      END $function$
+    "owner": "postgres"
+    "language": "plpgsql"
+    "volatility": "v"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 0.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": "{=X/postgres,postgres=X/postgres,mw_app_prod=X/postgres}"
+    "comment": null
+    "extension": null
+"evidence":
+  "/content/definition/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"

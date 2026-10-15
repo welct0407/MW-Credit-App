@@ -1,0 +1,20 @@
+{
+  "unchangedOriginalSheets": [
+    "README",
+    "Tables",
+    "Columns",
+    "Relationships",
+    "Slices",
+    "Slice Columns",
+    "App Variances",
+    "Change Log",
+    "Payments Clone",
+    "Payments Clone Slices",
+    "OLTP Performance Lab",
+    "OLTP Combined Test",
+    "SQL Sync POC",
+    "SQL Migration Trial"
+  ],
+  "labDefinitionCount": 28,
+  "verifiedAt": "2026-09-14T17:26:41.171Z"
+}

@@ -1,0 +1,306 @@
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "reports.mw-credit.com"
+  "kind": "question"
+  "name": "Modified schedules · loan and next-plan detail / 272"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r034-matrix-order/verification.json"
+"content":
+  "key": "schedule-loans"
+  "id": 272
+  "name": "Modified schedules · loan and next-plan detail"
+  "description": "R028 automatic schedule assessment. Counterfactual current setup, not extra debt. No manual inputs. Current\
+    \ completed-day window; unsupported sources explicitly unassessed."
+  "display": "table"
+  "dataset_query":
+    "lib/type": "mbql/query"
+    "stages":
+    - "lib/type": "mbql.stage/native"
+      "native": "SELECT b.\"Row ID\" AS \"Borrower ID\",b.\"Description\" AS \"Borrower\",s.start_date AS \"Loan date\",s.payment_interval\
+        \ AS \"Normal interval days\",s.daily_interest AS \"Daily interest ฿\",s.comparison_start AS \"Compared from\",s.expected_interest_30d\
+        \ AS \"Expected interest ฿\",s.recorded_interest_30d AS \"Recorded interest ฿\",s.expected_due_dates_30d AS \"Expected\
+        \ dates\",s.recorded_interest_dates_30d AS \"Recorded dates\",s.schedule_reason AS \"Rule reason\",s.next_plan_due_date\
+        \ AS \"Next plan due\",s.next_plan_interest AS \"Next interest ฿\",s.next_plan_principal AS \"Next principal ฿\" FROM\
+        \ public.reporting_loan_schedule_health_v1 s JOIN public.olap_borrowers_analytics b ON b.\"Row ID\"=s.borrower_id\
+        \ WHERE s.modified_schedule ORDER BY b.\"Description\",s.start_date,s.loan_id"
+    "database": 2
+  "visualization_settings":
+    "table.pivot": false
+    "table.column_formatting":
+    - "columns":
+      - "Current health"
+      "type": "single"
+      "operator": "="
+      "value": "Default flagged"
+      "color": "#FBE7E5"
+      "highlight_row": true
+    - "columns":
+      - "Oldest days"
+      "type": "single"
+      "operator": ">"
+      "value": 7
+      "color": "#FBE7E5"
+      "highlight_row": true
+    - "columns":
+      - "Current health"
+      "type": "single"
+      "operator": "="
+      "value": "Overdue"
+      "color": "#FFF2D6"
+      "highlight_row": true
+    - "columns":
+      - "Rating status"
+      "type": "single"
+      "operator": "="
+      "value": "Data review"
+      "color": "#ECEFF1"
+      "highlight_row": true
+    "column_settings":
+      "[\"name\",\"Daily interest ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+      "[\"name\",\"Expected interest ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+      "[\"name\",\"Recorded interest ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+      "[\"name\",\"Next interest ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+      "[\"name\",\"Next principal ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+    "table.columns":
+    - "name": "Borrower"
+      "fieldRef":
+      - "field"
+      - "Borrower"
+      - "base-type": "type/Text"
+      "enabled": true
+    - "name": "Loan date"
+      "fieldRef":
+      - "field"
+      - "Loan date"
+      - "base-type": "type/Date"
+      "enabled": true
+    - "name": "Normal interval days"
+      "fieldRef":
+      - "field"
+      - "Normal interval days"
+      - "base-type": "type/Integer"
+      "enabled": true
+    - "name": "Daily interest ฿"
+      "fieldRef":
+      - "field"
+      - "Daily interest ฿"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Compared from"
+      "fieldRef":
+      - "field"
+      - "Compared from"
+      - "base-type": "type/Date"
+      "enabled": true
+    - "name": "Expected interest ฿"
+      "fieldRef":
+      - "field"
+      - "Expected interest ฿"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Recorded interest ฿"
+      "fieldRef":
+      - "field"
+      - "Recorded interest ฿"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Expected dates"
+      "fieldRef":
+      - "field"
+      - "Expected dates"
+      - "base-type": "type/Integer"
+      "enabled": true
+    - "name": "Recorded dates"
+      "fieldRef":
+      - "field"
+      - "Recorded dates"
+      - "base-type": "type/Integer"
+      "enabled": true
+    - "name": "Rule reason"
+      "fieldRef":
+      - "field"
+      - "Rule reason"
+      - "base-type": "type/Text"
+      "enabled": true
+    - "name": "Next plan due"
+      "fieldRef":
+      - "field"
+      - "Next plan due"
+      - "base-type": "type/Date"
+      "enabled": true
+    - "name": "Next interest ฿"
+      "fieldRef":
+      - "field"
+      - "Next interest ฿"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Next principal ฿"
+      "fieldRef":
+      - "field"
+      - "Next principal ฿"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Borrower ID"
+      "fieldRef":
+      - "field"
+      - "Borrower ID"
+      - "base-type": "type/Text"
+      "enabled": false
+  "result_metadata":
+  - "name": "Borrower ID"
+    "display_name": "Borrower ID"
+    "base_type": "type/Text"
+    "effective_type": "type/Text"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Borrower ID"
+    - "base-type": "type/Text"
+  - "name": "Borrower"
+    "display_name": "Borrower"
+    "base_type": "type/Text"
+    "effective_type": "type/Text"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Borrower"
+    - "base-type": "type/Text"
+  - "name": "Loan date"
+    "display_name": "Loan date"
+    "base_type": "type/Date"
+    "effective_type": "type/Date"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Loan date"
+    - "base-type": "type/Date"
+  - "name": "Normal interval days"
+    "display_name": "Normal interval days"
+    "base_type": "type/Integer"
+    "effective_type": "type/Integer"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Normal interval days"
+    - "base-type": "type/Integer"
+  - "name": "Daily interest ฿"
+    "display_name": "Daily interest ฿"
+    "base_type": "type/Decimal"
+    "effective_type": "type/Decimal"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Daily interest ฿"
+    - "base-type": "type/Decimal"
+  - "name": "Compared from"
+    "display_name": "Compared from"
+    "base_type": "type/Date"
+    "effective_type": "type/Date"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Compared from"
+    - "base-type": "type/Date"
+  - "name": "Expected interest ฿"
+    "display_name": "Expected interest ฿"
+    "base_type": "type/Decimal"
+    "effective_type": "type/Decimal"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Expected interest ฿"
+    - "base-type": "type/Decimal"
+  - "name": "Recorded interest ฿"
+    "display_name": "Recorded interest ฿"
+    "base_type": "type/Decimal"
+    "effective_type": "type/Decimal"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Recorded interest ฿"
+    - "base-type": "type/Decimal"
+  - "name": "Expected dates"
+    "display_name": "Expected dates"
+    "base_type": "type/Integer"
+    "effective_type": "type/Integer"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Expected dates"
+    - "base-type": "type/Integer"
+  - "name": "Recorded dates"
+    "display_name": "Recorded dates"
+    "base_type": "type/Integer"
+    "effective_type": "type/Integer"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Recorded dates"
+    - "base-type": "type/Integer"
+  - "name": "Rule reason"
+    "display_name": "Rule reason"
+    "base_type": "type/Text"
+    "effective_type": "type/Text"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Rule reason"
+    - "base-type": "type/Text"
+  - "name": "Next plan due"
+    "display_name": "Next plan due"
+    "base_type": "type/Date"
+    "effective_type": "type/Date"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Next plan due"
+    - "base-type": "type/Date"
+  - "name": "Next interest ฿"
+    "display_name": "Next interest ฿"
+    "base_type": "type/Decimal"
+    "effective_type": "type/Decimal"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Next interest ฿"
+    - "base-type": "type/Decimal"
+  - "name": "Next principal ฿"
+    "display_name": "Next principal ฿"
+    "base_type": "type/Decimal"
+    "effective_type": "type/Decimal"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Next principal ฿"
+    - "base-type": "type/Decimal"
+"evidence":
+  "/content/dataset_query":
+    "reference": "outputs/r043-borrower-navigation/saved.json"
+    "reason": "R043 canonical borrower navigation, saved definitions and hidden keys"
+    "state": "value"
+  "/content/visualization_settings":
+    "reference": "outputs/r043-borrower-navigation/saved.json"
+    "reason": "R043 canonical borrower navigation, saved definitions and hidden keys"
+    "state": "value"
+  "/content/result_metadata":
+    "reference": "outputs/r043-borrower-navigation/saved.json"
+    "reason": "R043 canonical borrower navigation, saved definitions and hidden keys"
+    "state": "value"

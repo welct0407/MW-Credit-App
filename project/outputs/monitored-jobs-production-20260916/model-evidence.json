@@ -1,0 +1,13 @@
+{
+  "environment": "production",
+  "databaseVersion": "V11",
+  "oltpVersion": "3.000098",
+  "olapVersion": "1.100081",
+  "rollback": {"databaseVersion": "V10", "oltpVersion": "3.000094", "olapVersion": "1.100062"},
+  "statisticsColumns": 40,
+  "calendarBinding": "removed",
+  "dailyAnalyticsPermission": "READ_ONLY",
+  "chargeSchedule": "AppSheet daily 00:05 Asia/Bangkok",
+  "analyticsSchedule": "AppSheet hourly minute 0 Asia/Bangkok",
+  "pgCronActive": false
+}

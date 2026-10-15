@@ -1,0 +1,67 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.vc_lock_parents()"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "vc_lock_parents"
+    "arguments": ""
+    "kind": "f"
+    "arguments_with_defaults": ""
+    "result": "trigger"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.vc_lock_parents()
+       RETURNS trigger
+       LANGUAGE plpgsql
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+      DECLARE oldj jsonb:=CASE WHEN TG_OP<>'INSERT' THEN to_jsonb(OLD) ELSE '{}'::jsonb END;
+       newj jsonb:=CASE WHEN TG_OP<>'DELETE' THEN to_jsonb(NEW) ELSE '{}'::jsonb END;
+       b text;
+      BEGIN
+       IF TG_TABLE_NAME='Loans' AND TG_OP='UPDATE' AND
+        ROW(oldj->'Ref Borrowers',oldj->'Principal Amount',oldj->'Loan Status') IS NOT DISTINCT FROM
+        ROW(newj->'Ref Borrowers',newj->'Principal Amount',newj->'Loan Status') THEN RETURN NEW; END IF;
+       FOR b IN
+        SELECT DISTINCT borrower FROM (
+         SELECT oldj->>'Ref Borrowers' borrower WHERE TG_TABLE_NAME='Loans'
+         UNION ALL SELECT newj->>'Ref Borrowers' WHERE TG_TABLE_NAME='Loans'
+         UNION ALL SELECT l."Ref Borrowers" FROM public."Loans" l WHERE l."Row ID" IN (oldj->>'Ref Loans',newj->>'Ref Loans')
+         UNION ALL SELECT l."Ref Borrowers" FROM public."Charges" c JOIN public."Loans" l ON l."Row ID"=c."Ref Loans"
+          WHERE c."Row ID" IN (oldj->>'Ref Charges',newj->>'Ref Charges')
+        ) q WHERE borrower IS NOT NULL ORDER BY borrower
+       LOOP
+        BEGIN
+         PERFORM 1 FROM public."Borrowers" WHERE "Row ID"=b FOR UPDATE NOWAIT;
+        EXCEPTION WHEN lock_not_available THEN RAISE EXCEPTION 'Borrower is busy; sync and retry'; END;
+       END LOOP;
+       IF TG_OP='DELETE' THEN RETURN OLD; END IF;
+       RETURN NEW;
+      END $function$
+    "owner": "postgres"
+    "language": "plpgsql"
+    "volatility": "v"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 0.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": "{=X/postgres,postgres=X/postgres,mw_app_prod=X/postgres}"
+    "comment": null
+    "extension": null
+"evidence":
+  "/content/definition/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"

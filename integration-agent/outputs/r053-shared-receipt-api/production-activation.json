@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "release": "R053",
+  "environment": "prod",
+  "project": "clever-oasis-508610-n7",
+  "instance": "vm-mw-credit-agent",
+  "previousCommit": "0aaedf13db519ae1ef3d4d114a936dc0edaf4e97",
+  "deployedCommit": "35c7d9e831a49d3e27d0b544728a7efb77a42928",
+  "phase": "activated",
+  "cutoff": "2026-10-11T20:03:29.6477163+00:00",
+  "configurationReadback": true,
+  "apiEnabled": true,
+  "catalogueEnabled": true,
+  "timers": {
+    "mw-conversation-poll.timer": "active",
+    "mw-receipt-summary.timer": "active",
+    "mw-cash-statement.timer": "active",
+    "mw-cash-statement-email-retry.timer": "active",
+    "mw-partner-conversation.timer": "active",
+    "mw-audit-relay.timer": "active"
+  },
+  "workloadOidcStatusProbe": "passed: exact unresolved response for unused UUID",
+  "paymentPostPerformed": false,
+  "journalReplayPerformed": false,
+  "applicationDependencyChanges": false,
+  "buildPrerequisite": "setuptools==75.8.0",
+  "backupMetadataSha256": "600667a20130375b26bf38d17ddaf72c01231bfe83268b1f0fbd9e886fff1467",
+  "stagedHelperRemoved": true,
+  "temporarySshAccessRemoved": true,
+  "remaining": [
+    "First natural eligible receipt payment",
+    "Central Web Push device verification and activation"
+  ]
+}

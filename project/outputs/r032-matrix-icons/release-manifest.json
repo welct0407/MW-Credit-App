@@ -1,0 +1,22 @@
+{
+  "release": "R032",
+  "status": "Released",
+  "implementation_commit": "a82f753d4ec3c05a47f098c2dcffda5d345aee51",
+  "frozen_at": "2026-09-25T08:07:31.604642+00:00",
+  "files": {
+    "scripts/metabase/chart_service/chart.js": "141f79aaa103f9d93773ae549761e60b54b20ec78e7a2c7fcb86e14956a03d20"
+  },
+  "scope": "Two icon shapes only; Apps, SQL V43, API, authentication and Metabase definition unchanged",
+  "rollback": "/opt/mw-report-charts/recovery-r032/chart.js; verified R031 hash07a442541a6a5fc19816497724eee3212b9468d49cb6e9cf52578d734fe03170",
+  "final_tag": "R032",
+  "verification": {
+    "at": "2026-09-25T08:08:48.723406+00:00",
+    "syntax": "passed",
+    "deployed_hash_matches_pin": true,
+    "service": "active",
+    "browser": "Live chart visually verified: frontal horned cow with muzzle/spots; seated floppy-ear dog with curved tail",
+    "cow_shapes": 7,
+    "dog_shapes": 4
+  },
+  "rc_apps": []
+}

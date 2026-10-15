@@ -1,0 +1,13 @@
+{
+  "mode": "apply",
+  "release": "R000",
+  "candidateHash": "2872c3225e1588cf48a7248bfa993a0abc54a52d63f6755ebe8c2723aaa55b5f",
+  "inputSha256": "d27bcccf3869b1d7fda2d7ba6dacaef41ff6bf716472666e8954eac5c80cb19d",
+  "cells": [
+    {
+      "identity": "[\"Column Rules\",1,4]",
+      "sourceItem": "APP-001"
+    }
+  ],
+  "allSheetsValuesFormulasRoundtrip": true
+}

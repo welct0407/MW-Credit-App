@@ -1,0 +1,2 @@
+# Installed outside the repository and bundled runtime; see README.md.
+PyYAML==6.0.2

@@ -1,0 +1,33 @@
+{
+  "environment": "production",
+  "at": "2026-09-26T16:39:46.490712+00:00",
+  "checks": [
+    "position key",
+    "net earned matches independent settlement guard",
+    "capital and full-pool shares",
+    "all-status reservation parity",
+    "entitlement arithmetic",
+    "settlement key coverage",
+    "capital ledger key coverage",
+    "earnings grain",
+    "daily grain",
+    "no future daily actuals",
+    "independent period parity 0",
+    "independent period parity 30",
+    "independent period parity 90",
+    "independent period parity 365",
+    "cumulative capital before filter"
+  ],
+  "passed": true,
+  "existing_schema_unchanged": true,
+  "read_only_grants": [
+    "reporting_partner_capital_v1",
+    "reporting_partner_earnings_v1",
+    "reporting_partner_settlements_v1",
+    "reporting_partner_position_v1",
+    "reporting_partner_daily_v1",
+    "reporting_partner_capital_ledger_v1"
+  ],
+  "seconds": 1.0,
+  "financial_values_published": false
+}

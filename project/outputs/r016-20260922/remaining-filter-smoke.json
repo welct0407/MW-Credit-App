@@ -1,0 +1,37 @@
+[
+  {
+    "key": "i-principal",
+    "rows": 1,
+    "completed": true
+  },
+  {
+    "key": "i-loans",
+    "rows": 6,
+    "completed": true
+  },
+  {
+    "key": "i-timing",
+    "rows": 2,
+    "completed": true
+  },
+  {
+    "key": "i-risk",
+    "rows": 1,
+    "completed": true
+  },
+  {
+    "key": "i-exposure",
+    "rows": 1,
+    "completed": true
+  },
+  {
+    "key": "i-current-share",
+    "rows": 2,
+    "completed": true
+  },
+  {
+    "key": "i-proposed-share",
+    "rows": 2,
+    "completed": true
+  }
+]

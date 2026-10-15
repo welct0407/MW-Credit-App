@@ -1,0 +1,10 @@
+{
+  "at": "2026-09-25T10:53:21.790Z",
+  "checks": [
+    "All original tabs, placements, saved queries and formatting preserved",
+    "Original filters and collection permissions preserved"
+  ],
+  "passed": true,
+  "original_tabs": 12,
+  "original_placements": 212
+}

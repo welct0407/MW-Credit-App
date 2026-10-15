@@ -1,0 +1,5722 @@
+{
+  "dashboard": 3,
+  "tab": 249,
+  "tabs": [
+    {
+      "id": 4,
+      "dashboard_id": 3,
+      "name": "1 · Overview",
+      "position": 0,
+      "entity_id": "XNUTfCABMppJ6qAOrGoLc",
+      "created_at": "2026-09-22T10:01:48.177376Z",
+      "updated_at": "2026-09-22T10:01:48.177376Z"
+    },
+    {
+      "id": 14,
+      "dashboard_id": 3,
+      "name": "2 · Cash Position",
+      "position": 1,
+      "entity_id": "pPLWf7izBFfdYrpfhzUt4",
+      "created_at": "2026-09-23T08:00:42.687717Z",
+      "updated_at": "2026-09-23T16:04:31.253029Z"
+    },
+    {
+      "id": 16,
+      "dashboard_id": 3,
+      "name": "3 · Income Statement",
+      "position": 2,
+      "entity_id": "8zodFNPMLCr1b4qqtGV5_",
+      "created_at": "2026-09-23T08:00:42.687717Z",
+      "updated_at": "2026-09-23T18:17:39.510824Z"
+    },
+    {
+      "id": 15,
+      "dashboard_id": 3,
+      "name": "4 · Cashflow Statement",
+      "position": 3,
+      "entity_id": "qs0JYiZxE-Poqyh_4pyKv",
+      "created_at": "2026-09-23T08:00:42.687717Z",
+      "updated_at": "2026-09-23T18:17:39.510824Z"
+    },
+    {
+      "id": 18,
+      "dashboard_id": 3,
+      "name": "5 · Performance",
+      "position": 4,
+      "entity_id": "Rt-KpcwfxjGRTvoTHNOda",
+      "created_at": "2026-09-23T19:06:46.29572Z",
+      "updated_at": "2026-09-24T10:42:03.352479Z"
+    },
+    {
+      "id": 104,
+      "dashboard_id": 3,
+      "name": "6 · Borrowers",
+      "position": 5,
+      "entity_id": "axmyErpiqSJVut7iwChk0",
+      "created_at": "2026-09-25T10:04:37.03364Z",
+      "updated_at": "2026-09-26T12:41:15.018539Z"
+    },
+    {
+      "id": 31,
+      "dashboard_id": 3,
+      "name": "7 · Borrower Health Review",
+      "position": 6,
+      "entity_id": "KF8iAxuaMJ9i_vvEfnG0Z",
+      "created_at": "2026-09-24T16:28:03.768309Z",
+      "updated_at": "2026-09-26T15:18:44.078815Z"
+    },
+    {
+      "id": 105,
+      "dashboard_id": 3,
+      "name": "8 · Borrower Detail",
+      "position": 7,
+      "entity_id": "hLWPca6nwYbuJ6O6YvfUx",
+      "created_at": "2026-09-25T10:04:37.03364Z",
+      "updated_at": "2026-09-26T15:18:44.078815Z"
+    },
+    {
+      "id": 8,
+      "dashboard_id": 3,
+      "name": "9 · Risks",
+      "position": 8,
+      "entity_id": "7cljPwmKjTMUi9DQ431Ah",
+      "created_at": "2026-09-22T12:32:45.925957Z",
+      "updated_at": "2026-09-26T15:18:44.078815Z"
+    },
+    {
+      "id": 19,
+      "dashboard_id": 3,
+      "name": "10 · Collection Monitor",
+      "position": 9,
+      "entity_id": "HTvmH4G_pettfrl6shBpy",
+      "created_at": "2026-09-24T11:35:18.286275Z",
+      "updated_at": "2026-09-26T15:18:44.078815Z"
+    },
+    {
+      "id": 11,
+      "dashboard_id": 3,
+      "name": "11 · Forecast & Partners",
+      "position": 10,
+      "entity_id": "HpX0Vj4mHUGAPeopmzU_l",
+      "created_at": "2026-09-22T12:32:45.925957Z",
+      "updated_at": "2026-09-26T15:18:44.078815Z"
+    },
+    {
+      "id": 249,
+      "dashboard_id": 3,
+      "name": "12 · Partners",
+      "position": 11,
+      "entity_id": "nfRoHsD0Xec0mJkhknl0y",
+      "created_at": "2026-09-26T16:40:06.877891Z",
+      "updated_at": "2026-09-26T16:40:06.877891Z"
+    }
+  ],
+  "questions": [
+    {
+      "key": "picker",
+      "description": "R044 Partners. ",
+      "result_metadata": [
+        {
+          "database_type": "text",
+          "semantic_type": null,
+          "lib/deduplicated-name": "Partner ID",
+          "lib/original-name": "Partner ID",
+          "name": "Partner ID",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Partner ID",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Partner ID",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "effective_type": "type/Text",
+          "lib/desired-column-alias": "Partner ID",
+          "display_name": "Partner ID",
+          "base_type": "type/Text"
+        },
+        {
+          "database_type": "text",
+          "semantic_type": null,
+          "lib/deduplicated-name": "Partner",
+          "lib/original-name": "Partner",
+          "name": "Partner",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Partner",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Partner",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "effective_type": "type/Text",
+          "lib/desired-column-alias": "Partner",
+          "display_name": "Partner",
+          "base_type": "type/Text"
+        }
+      ],
+      "collection_id": 8,
+      "name": "Partners · selection list",
+      "type": "question",
+      "dataset_query": {
+        "stages": [
+          {
+            "template-tags": [
+              {
+                "type": "card",
+                "id": "r044-model-318",
+                "name": "#318",
+                "display-name": "Partners source 318",
+                "card-id": 318
+              }
+            ],
+            "lib/type": "mbql.stage/native",
+            "native": "SELECT d.partner_id AS \"Partner ID\",d.partner_name AS \"Partner\" FROM {{#318}} d ORDER BY d.partner_role,d.partner_id"
+          }
+        ],
+        "lib/type": "mbql/query",
+        "database": 2
+      },
+      "id": 324,
+      "display": "table",
+      "visualization_settings": {
+        "table.pivot": false,
+        "table.columns": [
+          {
+            "name": "Partner ID",
+            "fieldRef": [
+              "field",
+              "Partner ID",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": false
+          },
+          {
+            "name": "Partner",
+            "fieldRef": [
+              "field",
+              "Partner",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          }
+        ],
+        "column_settings": {}
+      }
+    },
+    {
+      "key": "capital",
+      "description": "R044 Partners. Current recorded balance; activity period does not apply.",
+      "result_metadata": [
+        {
+          "database_type": "numeric",
+          "semantic_type": null,
+          "lib/deduplicated-name": "Net capital ฿",
+          "lib/original-name": "Net capital ฿",
+          "name": "Net capital ฿",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Net capital ฿",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Net capital ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "Net capital ฿",
+          "display_name": "Net capital ฿",
+          "base_type": "type/Decimal"
+        }
+      ],
+      "collection_id": 5,
+      "name": "Net capital ฿",
+      "type": "question",
+      "dataset_query": {
+        "stages": [
+          {
+            "template-tags": [
+              {
+                "widget-type": "string/=",
+                "id": "pt-partner",
+                "name": "partner",
+                "display-name": "Partner",
+                "type": "dimension",
+                "dimension": [
+                  "field",
+                  {
+                    "base-type": "type/Text",
+                    "lib/uuid": "999b079e-b6da-4596-8a85-1962e367bc84",
+                    "effective-type": "type/Text"
+                  },
+                  121
+                ],
+                "alias": "d.partner_id"
+              },
+              {
+                "type": "card",
+                "id": "r044-model-318",
+                "name": "#318",
+                "display-name": "Partners source 318",
+                "card-id": 318
+              }
+            ],
+            "lib/type": "mbql.stage/native",
+            "native": "SELECT CASE WHEN count(*)=0 THEN 0 WHEN bool_and(net_capital IS NOT NULL) THEN sum(net_capital) END AS \"Net capital ฿\" FROM {{#318}} d WHERE true [[AND {{partner}}]]"
+          }
+        ],
+        "lib/type": "mbql/query",
+        "database": 2
+      },
+      "id": 325,
+      "display": "scalar",
+      "visualization_settings": {
+        "scalar.field": "Net capital ฿",
+        "column_settings": {
+          "[\"name\",\"Net capital ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      }
+    },
+    {
+      "key": "earned",
+      "description": "R044 Partners. Current recorded balance; activity period does not apply.",
+      "result_metadata": [
+        {
+          "database_type": "numeric",
+          "semantic_type": null,
+          "lib/deduplicated-name": "Net earned to date ฿",
+          "lib/original-name": "Net earned to date ฿",
+          "name": "Net earned to date ฿",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Net earned to date ฿",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Net earned to date ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "Net earned to date ฿",
+          "display_name": "Net earned to date ฿",
+          "base_type": "type/Decimal"
+        }
+      ],
+      "collection_id": 5,
+      "name": "Net earned to date ฿",
+      "type": "question",
+      "dataset_query": {
+        "stages": [
+          {
+            "template-tags": [
+              {
+                "widget-type": "string/=",
+                "id": "pt-partner",
+                "name": "partner",
+                "display-name": "Partner",
+                "type": "dimension",
+                "dimension": [
+                  "field",
+                  {
+                    "base-type": "type/Text",
+                    "lib/uuid": "f51911bc-997e-408a-9f36-37a8b59b22a2",
+                    "effective-type": "type/Text"
+                  },
+                  121
+                ],
+                "alias": "d.partner_id"
+              },
+              {
+                "type": "card",
+                "id": "r044-model-318",
+                "name": "#318",
+                "display-name": "Partners source 318",
+                "card-id": 318
+              }
+            ],
+            "lib/type": "mbql.stage/native",
+            "native": "SELECT CASE WHEN count(*)=0 THEN 0 WHEN bool_and(net_earned IS NOT NULL) THEN sum(net_earned) END AS \"Net earned to date ฿\" FROM {{#318}} d WHERE true [[AND {{partner}}]]"
+          }
+        ],
+        "lib/type": "mbql/query",
+        "database": 2
+      },
+      "id": 326,
+      "display": "scalar",
+      "visualization_settings": {
+        "scalar.field": "Net earned to date ฿",
+        "column_settings": {
+          "[\"name\",\"Net earned to date ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      }
+    },
+    {
+      "key": "paid",
+      "description": "R044 Partners. Current recorded balance; activity period does not apply.",
+      "result_metadata": [
+        {
+          "database_type": "numeric",
+          "semantic_type": null,
+          "lib/deduplicated-name": "Completed payouts ฿",
+          "lib/original-name": "Completed payouts ฿",
+          "name": "Completed payouts ฿",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Completed payouts ฿",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Completed payouts ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "Completed payouts ฿",
+          "display_name": "Completed payouts ฿",
+          "base_type": "type/Decimal"
+        }
+      ],
+      "collection_id": 5,
+      "name": "Completed payouts ฿",
+      "type": "question",
+      "dataset_query": {
+        "stages": [
+          {
+            "template-tags": [
+              {
+                "widget-type": "string/=",
+                "id": "pt-partner",
+                "name": "partner",
+                "display-name": "Partner",
+                "type": "dimension",
+                "dimension": [
+                  "field",
+                  {
+                    "base-type": "type/Text",
+                    "lib/uuid": "c08e3bd2-3d9b-4e22-8796-9f3943518c8c",
+                    "effective-type": "type/Text"
+                  },
+                  121
+                ],
+                "alias": "d.partner_id"
+              },
+              {
+                "type": "card",
+                "id": "r044-model-318",
+                "name": "#318",
+                "display-name": "Partners source 318",
+                "card-id": 318
+              }
+            ],
+            "lib/type": "mbql.stage/native",
+            "native": "SELECT CASE WHEN count(*)=0 THEN 0 WHEN bool_and(completed IS NOT NULL) THEN sum(completed) END AS \"Completed payouts ฿\" FROM {{#318}} d WHERE true [[AND {{partner}}]]"
+          }
+        ],
+        "lib/type": "mbql/query",
+        "database": 2
+      },
+      "id": 327,
+      "display": "scalar",
+      "visualization_settings": {
+        "scalar.field": "Completed payouts ฿",
+        "column_settings": {
+          "[\"name\",\"Completed payouts ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      }
+    },
+    {
+      "key": "pending",
+      "description": "R044 Partners. Current recorded balance; activity period does not apply.",
+      "result_metadata": [
+        {
+          "database_type": "numeric",
+          "semantic_type": null,
+          "lib/deduplicated-name": "Pending settlements ฿",
+          "lib/original-name": "Pending settlements ฿",
+          "name": "Pending settlements ฿",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Pending settlements ฿",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Pending settlements ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "Pending settlements ฿",
+          "display_name": "Pending settlements ฿",
+          "base_type": "type/Decimal"
+        }
+      ],
+      "collection_id": 5,
+      "name": "Pending settlements ฿",
+      "type": "question",
+      "dataset_query": {
+        "stages": [
+          {
+            "template-tags": [
+              {
+                "widget-type": "string/=",
+                "id": "pt-partner",
+                "name": "partner",
+                "display-name": "Partner",
+                "type": "dimension",
+                "dimension": [
+                  "field",
+                  {
+                    "base-type": "type/Text",
+                    "lib/uuid": "21a84612-427a-4310-bdf7-0e9eacc4a341",
+                    "effective-type": "type/Text"
+                  },
+                  121
+                ],
+                "alias": "d.partner_id"
+              },
+              {
+                "type": "card",
+                "id": "r044-model-318",
+                "name": "#318",
+                "display-name": "Partners source 318",
+                "card-id": 318
+              }
+            ],
+            "lib/type": "mbql.stage/native",
+            "native": "SELECT CASE WHEN count(*)=0 THEN 0 WHEN bool_and(pending IS NOT NULL) THEN sum(pending) END AS \"Pending settlements ฿\" FROM {{#318}} d WHERE true [[AND {{partner}}]]"
+          }
+        ],
+        "lib/type": "mbql/query",
+        "database": 2
+      },
+      "id": 328,
+      "display": "scalar",
+      "visualization_settings": {
+        "scalar.field": "Pending settlements ฿",
+        "column_settings": {
+          "[\"name\",\"Pending settlements ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      }
+    },
+    {
+      "key": "available",
+      "description": "R044 Partners. Current recorded balance; activity period does not apply.",
+      "result_metadata": [
+        {
+          "database_type": "numeric",
+          "semantic_type": null,
+          "lib/deduplicated-name": "Net available ฿",
+          "lib/original-name": "Net available ฿",
+          "name": "Net available ฿",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Net available ฿",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Net available ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "Net available ฿",
+          "display_name": "Net available ฿",
+          "base_type": "type/Decimal"
+        }
+      ],
+      "collection_id": 5,
+      "name": "Net available ฿",
+      "type": "question",
+      "dataset_query": {
+        "stages": [
+          {
+            "template-tags": [
+              {
+                "widget-type": "string/=",
+                "id": "pt-partner",
+                "name": "partner",
+                "display-name": "Partner",
+                "type": "dimension",
+                "dimension": [
+                  "field",
+                  {
+                    "base-type": "type/Text",
+                    "lib/uuid": "8abf9189-bcc0-45b9-bbf4-96c2aa48a83b",
+                    "effective-type": "type/Text"
+                  },
+                  121
+                ],
+                "alias": "d.partner_id"
+              },
+              {
+                "type": "card",
+                "id": "r044-model-318",
+                "name": "#318",
+                "display-name": "Partners source 318",
+                "card-id": 318
+              }
+            ],
+            "lib/type": "mbql.stage/native",
+            "native": "SELECT CASE WHEN count(*)=0 THEN 0 WHEN bool_and(available IS NOT NULL) THEN sum(available) END AS \"Net available ฿\" FROM {{#318}} d WHERE true [[AND {{partner}}]]"
+          }
+        ],
+        "lib/type": "mbql/query",
+        "database": 2
+      },
+      "id": 329,
+      "display": "scalar",
+      "visualization_settings": {
+        "scalar.field": "Net available ฿",
+        "column_settings": {
+          "[\"name\",\"Net available ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      }
+    },
+    {
+      "key": "comparison",
+      "description": "R044 Partners. Full-pool denominator is preserved when filtering. Net available is after expenses and all non-Cancelled reservations, not cash liquidity.",
+      "result_metadata": [
+        {
+          "database_type": "text",
+          "semantic_type": null,
+          "lib/deduplicated-name": "Partner",
+          "lib/original-name": "Partner",
+          "name": "Partner",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Partner",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Partner",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "effective_type": "type/Text",
+          "lib/desired-column-alias": "Partner",
+          "display_name": "Partner",
+          "base_type": "type/Text"
+        },
+        {
+          "database_type": "numeric",
+          "semantic_type": null,
+          "lib/deduplicated-name": "Net capital ฿",
+          "lib/original-name": "Net capital ฿",
+          "name": "Net capital ฿",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Net capital ฿",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Net capital ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "Net capital ฿",
+          "display_name": "Net capital ฿",
+          "base_type": "type/Decimal"
+        },
+        {
+          "database_type": "numeric",
+          "semantic_type": "type/Share",
+          "lib/deduplicated-name": "Capital share %",
+          "lib/original-name": "Capital share %",
+          "name": "Capital share %",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Capital share %",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Capital share %",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "Capital share %",
+          "display_name": "Capital share %",
+          "base_type": "type/Decimal"
+        },
+        {
+          "database_type": "numeric",
+          "semantic_type": null,
+          "lib/deduplicated-name": "Allocated interest ฿",
+          "lib/original-name": "Allocated interest ฿",
+          "name": "Allocated interest ฿",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Allocated interest ฿",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Allocated interest ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "Allocated interest ฿",
+          "display_name": "Allocated interest ฿",
+          "base_type": "type/Decimal"
+        },
+        {
+          "database_type": "numeric",
+          "semantic_type": null,
+          "lib/deduplicated-name": "Allocated expenses ฿",
+          "lib/original-name": "Allocated expenses ฿",
+          "name": "Allocated expenses ฿",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Allocated expenses ฿",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Allocated expenses ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "Allocated expenses ฿",
+          "display_name": "Allocated expenses ฿",
+          "base_type": "type/Decimal"
+        },
+        {
+          "database_type": "numeric",
+          "semantic_type": null,
+          "lib/deduplicated-name": "Net earned ฿",
+          "lib/original-name": "Net earned ฿",
+          "name": "Net earned ฿",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Net earned ฿",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Net earned ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "Net earned ฿",
+          "display_name": "Net earned ฿",
+          "base_type": "type/Decimal"
+        },
+        {
+          "database_type": "numeric",
+          "semantic_type": null,
+          "lib/deduplicated-name": "Paid ฿",
+          "lib/original-name": "Paid ฿",
+          "name": "Paid ฿",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Paid ฿",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Paid ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "Paid ฿",
+          "display_name": "Paid ฿",
+          "base_type": "type/Decimal"
+        },
+        {
+          "database_type": "numeric",
+          "semantic_type": null,
+          "lib/deduplicated-name": "Pending ฿",
+          "lib/original-name": "Pending ฿",
+          "name": "Pending ฿",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Pending ฿",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Pending ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "Pending ฿",
+          "display_name": "Pending ฿",
+          "base_type": "type/Decimal"
+        },
+        {
+          "database_type": "numeric",
+          "semantic_type": null,
+          "lib/deduplicated-name": "Net available ฿",
+          "lib/original-name": "Net available ฿",
+          "name": "Net available ฿",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Net available ฿",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Net available ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "Net available ฿",
+          "display_name": "Net available ฿",
+          "base_type": "type/Decimal"
+        },
+        {
+          "database_type": "text",
+          "semantic_type": "type/Category",
+          "lib/deduplicated-name": "Status",
+          "lib/original-name": "Status",
+          "name": "Status",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Status",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Status",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "effective_type": "type/Text",
+          "lib/desired-column-alias": "Status",
+          "display_name": "Status",
+          "base_type": "type/Text"
+        },
+        {
+          "database_type": "text",
+          "semantic_type": null,
+          "lib/deduplicated-name": "Partner ID",
+          "lib/original-name": "Partner ID",
+          "name": "Partner ID",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Partner ID",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Partner ID",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "effective_type": "type/Text",
+          "lib/desired-column-alias": "Partner ID",
+          "display_name": "Partner ID",
+          "base_type": "type/Text"
+        }
+      ],
+      "collection_id": 5,
+      "name": "Partner positions · current",
+      "type": "question",
+      "dataset_query": {
+        "stages": [
+          {
+            "template-tags": [
+              {
+                "widget-type": "string/=",
+                "id": "pt-partner",
+                "name": "partner",
+                "display-name": "Partner",
+                "type": "dimension",
+                "dimension": [
+                  "field",
+                  {
+                    "base-type": "type/Text",
+                    "lib/uuid": "abba2d34-af20-46a7-9c3e-88e7cbfc4025",
+                    "effective-type": "type/Text"
+                  },
+                  121
+                ],
+                "alias": "d.partner_id"
+              },
+              {
+                "type": "card",
+                "id": "r044-model-318",
+                "name": "#318",
+                "display-name": "Partners source 318",
+                "card-id": 318
+              }
+            ],
+            "lib/type": "mbql.stage/native",
+            "native": "SELECT d.partner_name AS \"Partner\",net_capital AS \"Net capital ฿\",capital_share AS \"Capital share %\",interest_earned AS \"Allocated interest ฿\",expenses AS \"Allocated expenses ฿\",net_earned AS \"Net earned ฿\",completed AS \"Paid ฿\",pending AS \"Pending ฿\",available AS \"Net available ฿\",quality_status AS \"Status\",d.partner_id AS \"Partner ID\" FROM {{#318}} d WHERE true [[AND {{partner}}]] ORDER BY partner_role,d.partner_id"
+          }
+        ],
+        "lib/type": "mbql/query",
+        "database": 2
+      },
+      "id": 330,
+      "display": "table",
+      "visualization_settings": {
+        "table.pivot": false,
+        "table.columns": [
+          {
+            "name": "Partner",
+            "fieldRef": [
+              "field",
+              "Partner",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Net capital ฿",
+            "fieldRef": [
+              "field",
+              "Net capital ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Capital share %",
+            "fieldRef": [
+              "field",
+              "Capital share %",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Allocated interest ฿",
+            "fieldRef": [
+              "field",
+              "Allocated interest ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Allocated expenses ฿",
+            "fieldRef": [
+              "field",
+              "Allocated expenses ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Net earned ฿",
+            "fieldRef": [
+              "field",
+              "Net earned ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Paid ฿",
+            "fieldRef": [
+              "field",
+              "Paid ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Pending ฿",
+            "fieldRef": [
+              "field",
+              "Pending ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Net available ฿",
+            "fieldRef": [
+              "field",
+              "Net available ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Status",
+            "fieldRef": [
+              "field",
+              "Status",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Partner ID",
+            "fieldRef": [
+              "field",
+              "Partner ID",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": false
+          }
+        ],
+        "column_settings": {
+          "[\"name\",\"Net capital ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Capital share %\"]": {
+            "number_style": "percent",
+            "decimals": 2,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Allocated interest ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Allocated expenses ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Net earned ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Paid ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Pending ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Net available ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      }
+    },
+    {
+      "key": "share",
+      "description": "R044 Partners. Current individual net capital / full economic pool, calculated before filtering.",
+      "result_metadata": [
+        {
+          "database_type": "text",
+          "semantic_type": null,
+          "lib/deduplicated-name": "Partner",
+          "lib/original-name": "Partner",
+          "name": "Partner",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Partner",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Partner",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "effective_type": "type/Text",
+          "lib/desired-column-alias": "Partner",
+          "display_name": "Partner",
+          "base_type": "type/Text"
+        },
+        {
+          "database_type": "numeric",
+          "semantic_type": "type/Share",
+          "lib/deduplicated-name": "Capital share %",
+          "lib/original-name": "Capital share %",
+          "name": "Capital share %",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Capital share %",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Capital share %",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "Capital share %",
+          "display_name": "Capital share %",
+          "base_type": "type/Decimal"
+        },
+        {
+          "database_type": "numeric",
+          "semantic_type": null,
+          "lib/deduplicated-name": "Net capital ฿",
+          "lib/original-name": "Net capital ฿",
+          "name": "Net capital ฿",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Net capital ฿",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Net capital ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "Net capital ฿",
+          "display_name": "Net capital ฿",
+          "base_type": "type/Decimal"
+        }
+      ],
+      "collection_id": 5,
+      "name": "Capital share · full pool",
+      "type": "question",
+      "dataset_query": {
+        "stages": [
+          {
+            "template-tags": [
+              {
+                "widget-type": "string/=",
+                "id": "pt-partner",
+                "name": "partner",
+                "display-name": "Partner",
+                "type": "dimension",
+                "dimension": [
+                  "field",
+                  {
+                    "base-type": "type/Text",
+                    "lib/uuid": "eab63de4-b09a-46ae-b8df-44a4aa95b4e8",
+                    "effective-type": "type/Text"
+                  },
+                  121
+                ],
+                "alias": "d.partner_id"
+              },
+              {
+                "type": "card",
+                "id": "r044-model-318",
+                "name": "#318",
+                "display-name": "Partners source 318",
+                "card-id": 318
+              }
+            ],
+            "lib/type": "mbql.stage/native",
+            "native": "SELECT partner_name AS \"Partner\",capital_share AS \"Capital share %\",net_capital AS \"Net capital ฿\" FROM {{#318}} d WHERE true [[AND {{partner}}]] ORDER BY partner_role,d.partner_id"
+          }
+        ],
+        "lib/type": "mbql/query",
+        "database": 2
+      },
+      "id": 331,
+      "display": "row",
+      "visualization_settings": {
+        "graph.show_values": true,
+        "graph.show_legend": false,
+        "graph.missing": "none",
+        "graph.y_axis.max": 1,
+        "graph.y_axis.auto_split": false,
+        "graph.metrics": [
+          "Capital share %"
+        ],
+        "graph.label_value_formatting": "full",
+        "graph.colors": [
+          "#178F8A",
+          "#7472BE",
+          "#D6816B",
+          "#D4AD60"
+        ],
+        "column_settings": {
+          "[\"name\",\"Capital share %\"]": {
+            "number_style": "percent",
+            "decimals": 2,
+            "number_separators": ".,",
+            "compact": false
+          }
+        },
+        "graph.dimensions": [
+          "Partner"
+        ],
+        "stackable.stack_type": null,
+        "graph.y_axis.min": 0
+      }
+    },
+    {
+      "key": "bridge",
+      "description": "R044 Partners. Net earned and Net available are subtotals, not additional movements. Pending is reserved, not paid.",
+      "result_metadata": [
+        {
+          "database_type": "text",
+          "semantic_type": "type/Title",
+          "lib/deduplicated-name": "Entitlement bridge",
+          "lib/original-name": "Entitlement bridge",
+          "name": "Entitlement bridge",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Entitlement bridge",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Entitlement bridge",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "effective_type": "type/Text",
+          "lib/desired-column-alias": "Entitlement bridge",
+          "display_name": "Entitlement bridge",
+          "base_type": "type/Text"
+        },
+        {
+          "database_type": "numeric",
+          "semantic_type": null,
+          "lib/deduplicated-name": "Amount ฿",
+          "lib/original-name": "Amount ฿",
+          "name": "Amount ฿",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Amount ฿",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Amount ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "Amount ฿",
+          "display_name": "Amount ฿",
+          "base_type": "type/Decimal"
+        }
+      ],
+      "collection_id": 5,
+      "name": "How net available is calculated",
+      "type": "question",
+      "dataset_query": {
+        "stages": [
+          {
+            "template-tags": [
+              {
+                "widget-type": "string/=",
+                "id": "pt-partner",
+                "name": "partner",
+                "display-name": "Partner",
+                "type": "dimension",
+                "dimension": [
+                  "field",
+                  {
+                    "base-type": "type/Text",
+                    "lib/uuid": "7142cc0b-fe25-4215-bc79-9853d172c8c3",
+                    "effective-type": "type/Text"
+                  },
+                  121
+                ],
+                "alias": "d.partner_id"
+              },
+              {
+                "type": "card",
+                "id": "r044-model-318",
+                "name": "#318",
+                "display-name": "Partners source 318",
+                "card-id": 318
+              }
+            ],
+            "lib/type": "mbql.stage/native",
+            "native": "WITH totals AS (SELECT CASE WHEN count(*)=0 THEN 0 WHEN bool_and(interest_earned IS NOT NULL) THEN sum(interest_earned) END g,CASE WHEN count(*)=0 THEN 0 WHEN bool_and(expenses IS NOT NULL) THEN sum(expenses) END x,CASE WHEN count(*)=0 THEN 0 WHEN bool_and(net_earned IS NOT NULL) THEN sum(net_earned) END n,CASE WHEN count(*)=0 THEN 0 WHEN bool_and(completed IS NOT NULL) THEN sum(completed) END c,CASE WHEN count(*)=0 THEN 0 WHEN bool_and(pending IS NOT NULL) THEN sum(pending) END p,CASE WHEN count(*)=0 THEN 0 WHEN bool_and(other_reserved IS NOT NULL) THEN sum(other_reserved) END o,CASE WHEN count(*)=0 THEN 0 WHEN bool_and(available IS NOT NULL) THEN sum(available) END a FROM {{#318}} d WHERE true [[AND {{partner}}]])\n SELECT v.label AS \"Entitlement bridge\",v.amount AS \"Amount ฿\" FROM totals t CROSS JOIN LATERAL (VALUES\n (1,'Allocated interest',g),(2,'Less allocated expenses',-x),(3,'Net earned',n),(4,'Less completed payouts',-c),(5,'Less pending reservations',-p),(6,'Less other reservations',-o),(7,'Net available to settle',a)) v(ord,label,amount) WHERE v.ord<>6 OR o<>0 ORDER BY v.ord"
+          }
+        ],
+        "lib/type": "mbql/query",
+        "database": 2
+      },
+      "id": 332,
+      "display": "table",
+      "visualization_settings": {
+        "table.pivot": false,
+        "table.columns": [
+          {
+            "name": "Entitlement bridge",
+            "fieldRef": [
+              "field",
+              "Entitlement bridge",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Amount ฿",
+            "fieldRef": [
+              "field",
+              "Amount ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          }
+        ],
+        "column_settings": {
+          "[\"name\",\"Amount ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      }
+    },
+    {
+      "key": "period-interest",
+      "description": "R044 Partners. Selected actual event dates.",
+      "result_metadata": [
+        {
+          "database_type": "numeric",
+          "semantic_type": null,
+          "lib/deduplicated-name": "Allocated interest ฿",
+          "lib/original-name": "Allocated interest ฿",
+          "name": "Allocated interest ฿",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Allocated interest ฿",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Allocated interest ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "Allocated interest ฿",
+          "display_name": "Allocated interest ฿",
+          "base_type": "type/Decimal"
+        }
+      ],
+      "collection_id": 5,
+      "name": "Allocated interest ฿",
+      "type": "question",
+      "dataset_query": {
+        "stages": [
+          {
+            "template-tags": [
+              {
+                "widget-type": "string/=",
+                "id": "pt-partner",
+                "name": "partner",
+                "display-name": "Partner",
+                "type": "dimension",
+                "dimension": [
+                  "field",
+                  {
+                    "base-type": "type/Text",
+                    "lib/uuid": "2425fc1f-68b4-46ff-8120-c4e75c414a04",
+                    "effective-type": "type/Text"
+                  },
+                  121
+                ],
+                "alias": "d.partner_id"
+              },
+              {
+                "widget-type": "date/all-options",
+                "id": "pt-period",
+                "name": "period",
+                "display-name": "Partner activity period",
+                "type": "dimension",
+                "dimension": [
+                  "field",
+                  {
+                    "base-type": "type/Date",
+                    "lib/uuid": "69256fbc-3458-4abb-93a0-d7113975cd0d",
+                    "effective-type": "type/Date"
+                  },
+                  82
+                ],
+                "alias": "d.activity_date"
+              },
+              {
+                "type": "card",
+                "id": "r044-model-322",
+                "name": "#322",
+                "display-name": "Partners source 322",
+                "card-id": 322
+              }
+            ],
+            "lib/type": "mbql.stage/native",
+            "native": "SELECT CASE WHEN count(*)=0 THEN 0 WHEN bool_and(allocated_interest IS NOT NULL) THEN sum(allocated_interest) END AS \"Allocated interest ฿\" FROM {{#322}} d WHERE true [[AND {{partner}}]] [[AND {{period}}]]"
+          }
+        ],
+        "lib/type": "mbql/query",
+        "database": 2
+      },
+      "id": 333,
+      "display": "scalar",
+      "visualization_settings": {
+        "scalar.field": "Allocated interest ฿",
+        "column_settings": {
+          "[\"name\",\"Allocated interest ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      }
+    },
+    {
+      "key": "period-expense",
+      "description": "R044 Partners. Selected actual event dates.",
+      "result_metadata": [
+        {
+          "database_type": "numeric",
+          "semantic_type": null,
+          "lib/deduplicated-name": "Allocated expenses ฿",
+          "lib/original-name": "Allocated expenses ฿",
+          "name": "Allocated expenses ฿",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Allocated expenses ฿",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Allocated expenses ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "Allocated expenses ฿",
+          "display_name": "Allocated expenses ฿",
+          "base_type": "type/Decimal"
+        }
+      ],
+      "collection_id": 5,
+      "name": "Allocated expenses ฿",
+      "type": "question",
+      "dataset_query": {
+        "stages": [
+          {
+            "template-tags": [
+              {
+                "widget-type": "string/=",
+                "id": "pt-partner",
+                "name": "partner",
+                "display-name": "Partner",
+                "type": "dimension",
+                "dimension": [
+                  "field",
+                  {
+                    "base-type": "type/Text",
+                    "lib/uuid": "b0373ce7-1261-4944-b489-d5ed10e85afd",
+                    "effective-type": "type/Text"
+                  },
+                  121
+                ],
+                "alias": "d.partner_id"
+              },
+              {
+                "widget-type": "date/all-options",
+                "id": "pt-period",
+                "name": "period",
+                "display-name": "Partner activity period",
+                "type": "dimension",
+                "dimension": [
+                  "field",
+                  {
+                    "base-type": "type/Date",
+                    "lib/uuid": "64f3ff01-2913-46f5-9a17-ffeef717df22",
+                    "effective-type": "type/Date"
+                  },
+                  82
+                ],
+                "alias": "d.activity_date"
+              },
+              {
+                "type": "card",
+                "id": "r044-model-322",
+                "name": "#322",
+                "display-name": "Partners source 322",
+                "card-id": 322
+              }
+            ],
+            "lib/type": "mbql.stage/native",
+            "native": "SELECT CASE WHEN count(*)=0 THEN 0 WHEN bool_and(allocated_expense IS NOT NULL) THEN sum(allocated_expense) END AS \"Allocated expenses ฿\" FROM {{#322}} d WHERE true [[AND {{partner}}]] [[AND {{period}}]]"
+          }
+        ],
+        "lib/type": "mbql/query",
+        "database": 2
+      },
+      "id": 334,
+      "display": "scalar",
+      "visualization_settings": {
+        "scalar.field": "Allocated expenses ฿",
+        "column_settings": {
+          "[\"name\",\"Allocated expenses ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      }
+    },
+    {
+      "key": "period-earned",
+      "description": "R044 Partners. Selected actual event dates.",
+      "result_metadata": [
+        {
+          "database_type": "numeric",
+          "semantic_type": null,
+          "lib/deduplicated-name": "Net earned ฿",
+          "lib/original-name": "Net earned ฿",
+          "name": "Net earned ฿",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Net earned ฿",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Net earned ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "Net earned ฿",
+          "display_name": "Net earned ฿",
+          "base_type": "type/Decimal"
+        }
+      ],
+      "collection_id": 5,
+      "name": "Net earned ฿",
+      "type": "question",
+      "dataset_query": {
+        "stages": [
+          {
+            "template-tags": [
+              {
+                "widget-type": "string/=",
+                "id": "pt-partner",
+                "name": "partner",
+                "display-name": "Partner",
+                "type": "dimension",
+                "dimension": [
+                  "field",
+                  {
+                    "base-type": "type/Text",
+                    "lib/uuid": "cd9aa291-bfe5-45dc-a6c2-67ae3b43e3f4",
+                    "effective-type": "type/Text"
+                  },
+                  121
+                ],
+                "alias": "d.partner_id"
+              },
+              {
+                "widget-type": "date/all-options",
+                "id": "pt-period",
+                "name": "period",
+                "display-name": "Partner activity period",
+                "type": "dimension",
+                "dimension": [
+                  "field",
+                  {
+                    "base-type": "type/Date",
+                    "lib/uuid": "f0f80943-4bb2-4d95-be50-1f846d15a4ab",
+                    "effective-type": "type/Date"
+                  },
+                  82
+                ],
+                "alias": "d.activity_date"
+              },
+              {
+                "type": "card",
+                "id": "r044-model-322",
+                "name": "#322",
+                "display-name": "Partners source 322",
+                "card-id": 322
+              }
+            ],
+            "lib/type": "mbql.stage/native",
+            "native": "SELECT CASE WHEN count(*)=0 THEN 0 WHEN bool_and(net_earned IS NOT NULL) THEN sum(net_earned) END AS \"Net earned ฿\" FROM {{#322}} d WHERE true [[AND {{partner}}]] [[AND {{period}}]]"
+          }
+        ],
+        "lib/type": "mbql/query",
+        "database": 2
+      },
+      "id": 335,
+      "display": "scalar",
+      "visualization_settings": {
+        "scalar.field": "Net earned ฿",
+        "column_settings": {
+          "[\"name\",\"Net earned ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      }
+    },
+    {
+      "key": "period-paid",
+      "description": "R044 Partners. Selected actual event dates.",
+      "result_metadata": [
+        {
+          "database_type": "numeric",
+          "semantic_type": null,
+          "lib/deduplicated-name": "Payouts in period ฿",
+          "lib/original-name": "Payouts in period ฿",
+          "name": "Payouts in period ฿",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Payouts in period ฿",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Payouts in period ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "Payouts in period ฿",
+          "display_name": "Payouts in period ฿",
+          "base_type": "type/Decimal"
+        }
+      ],
+      "collection_id": 5,
+      "name": "Payouts in period ฿",
+      "type": "question",
+      "dataset_query": {
+        "stages": [
+          {
+            "template-tags": [
+              {
+                "widget-type": "string/=",
+                "id": "pt-partner",
+                "name": "partner",
+                "display-name": "Partner",
+                "type": "dimension",
+                "dimension": [
+                  "field",
+                  {
+                    "base-type": "type/Text",
+                    "lib/uuid": "fba761e7-570c-464f-ac79-1b07c7209dd7",
+                    "effective-type": "type/Text"
+                  },
+                  121
+                ],
+                "alias": "d.partner_id"
+              },
+              {
+                "widget-type": "date/all-options",
+                "id": "pt-period",
+                "name": "period",
+                "display-name": "Partner activity period",
+                "type": "dimension",
+                "dimension": [
+                  "field",
+                  {
+                    "base-type": "type/Date",
+                    "lib/uuid": "8191e890-74de-47a0-9522-f363b29ffc54",
+                    "effective-type": "type/Date"
+                  },
+                  82
+                ],
+                "alias": "d.activity_date"
+              },
+              {
+                "type": "card",
+                "id": "r044-model-322",
+                "name": "#322",
+                "display-name": "Partners source 322",
+                "card-id": 322
+              }
+            ],
+            "lib/type": "mbql.stage/native",
+            "native": "SELECT CASE WHEN count(*)=0 THEN 0 WHEN bool_and(completed_payouts IS NOT NULL) THEN sum(completed_payouts) END AS \"Payouts in period ฿\" FROM {{#322}} d WHERE true [[AND {{partner}}]] [[AND {{period}}]]"
+          }
+        ],
+        "lib/type": "mbql/query",
+        "database": 2
+      },
+      "id": 336,
+      "display": "scalar",
+      "visualization_settings": {
+        "scalar.field": "Payouts in period ฿",
+        "column_settings": {
+          "[\"name\",\"Payouts in period ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      }
+    },
+    {
+      "key": "monthly",
+      "description": "R044 Partners. Selected dates only; boundary months can be partial. Payouts use Transfer Date and can consume earlier profit; not FIFO profit-month attribution.",
+      "result_metadata": [
+        {
+          "database_type": "date",
+          "semantic_type": null,
+          "lib/deduplicated-name": "Month",
+          "lib/original-name": "Month",
+          "name": "Month",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Month",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Month",
+            {
+              "base-type": "type/Date"
+            }
+          ],
+          "effective_type": "type/Date",
+          "lib/desired-column-alias": "Month",
+          "display_name": "Month",
+          "base_type": "type/Date"
+        },
+        {
+          "database_type": "numeric",
+          "semantic_type": null,
+          "lib/deduplicated-name": "Net earned ฿",
+          "lib/original-name": "Net earned ฿",
+          "name": "Net earned ฿",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Net earned ฿",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Net earned ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "Net earned ฿",
+          "display_name": "Net earned ฿",
+          "base_type": "type/Decimal"
+        },
+        {
+          "database_type": "numeric",
+          "semantic_type": null,
+          "lib/deduplicated-name": "Completed payouts ฿",
+          "lib/original-name": "Completed payouts ฿",
+          "name": "Completed payouts ฿",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Completed payouts ฿",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Completed payouts ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "Completed payouts ฿",
+          "display_name": "Completed payouts ฿",
+          "base_type": "type/Decimal"
+        }
+      ],
+      "collection_id": 5,
+      "name": "Monthly net earned versus paid",
+      "type": "question",
+      "dataset_query": {
+        "stages": [
+          {
+            "template-tags": [
+              {
+                "widget-type": "string/=",
+                "id": "pt-partner",
+                "name": "partner",
+                "display-name": "Partner",
+                "type": "dimension",
+                "dimension": [
+                  "field",
+                  {
+                    "base-type": "type/Text",
+                    "lib/uuid": "87363adb-07ff-414e-87e4-bdb0b0d5136b",
+                    "effective-type": "type/Text"
+                  },
+                  121
+                ],
+                "alias": "d.partner_id"
+              },
+              {
+                "widget-type": "date/all-options",
+                "id": "pt-period",
+                "name": "period",
+                "display-name": "Partner activity period",
+                "type": "dimension",
+                "dimension": [
+                  "field",
+                  {
+                    "base-type": "type/Date",
+                    "lib/uuid": "1d787e4f-29ac-4122-86af-bb137bb32d05",
+                    "effective-type": "type/Date"
+                  },
+                  82
+                ],
+                "alias": "d.activity_date"
+              },
+              {
+                "type": "card",
+                "id": "r044-model-322",
+                "name": "#322",
+                "display-name": "Partners source 322",
+                "card-id": 322
+              }
+            ],
+            "lib/type": "mbql.stage/native",
+            "native": "SELECT date_trunc('month',activity_date)::date AS \"Month\",CASE WHEN count(*)=0 THEN 0 WHEN bool_and(net_earned IS NOT NULL) THEN sum(net_earned) END AS \"Net earned ฿\",CASE WHEN count(*)=0 THEN 0 WHEN bool_and(completed_payouts IS NOT NULL) THEN sum(completed_payouts) END AS \"Completed payouts ฿\" FROM {{#322}} d WHERE true [[AND {{partner}}]] [[AND {{period}}]] GROUP BY 1 ORDER BY 1"
+          }
+        ],
+        "lib/type": "mbql/query",
+        "database": 2
+      },
+      "id": 337,
+      "display": "bar",
+      "visualization_settings": {
+        "graph.show_values": true,
+        "graph.show_legend": true,
+        "graph.missing": "none",
+        "graph.y_axis.auto_split": false,
+        "graph.metrics": [
+          "Net earned ฿",
+          "Completed payouts ฿"
+        ],
+        "graph.label_value_formatting": "full",
+        "graph.colors": [
+          "#178F8A",
+          "#7472BE",
+          "#D6816B",
+          "#D4AD60"
+        ],
+        "column_settings": {
+          "[\"name\",\"Net earned ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Completed payouts ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        },
+        "graph.dimensions": [
+          "Month"
+        ],
+        "stackable.stack_type": null
+      }
+    },
+    {
+      "key": "movements",
+      "description": "R044 Partners. Capital transactions only. Profit settlements never reduce contributed capital.",
+      "result_metadata": [
+        {
+          "database_type": "date",
+          "semantic_type": null,
+          "lib/deduplicated-name": "Month",
+          "lib/original-name": "Month",
+          "name": "Month",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Month",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Month",
+            {
+              "base-type": "type/Date"
+            }
+          ],
+          "effective_type": "type/Date",
+          "lib/desired-column-alias": "Month",
+          "display_name": "Month",
+          "base_type": "type/Date"
+        },
+        {
+          "database_type": "numeric",
+          "semantic_type": null,
+          "lib/deduplicated-name": "Contributed ฿",
+          "lib/original-name": "Contributed ฿",
+          "name": "Contributed ฿",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Contributed ฿",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Contributed ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "Contributed ฿",
+          "display_name": "Contributed ฿",
+          "base_type": "type/Decimal"
+        },
+        {
+          "database_type": "numeric",
+          "semantic_type": null,
+          "lib/deduplicated-name": "Withdrawn ฿",
+          "lib/original-name": "Withdrawn ฿",
+          "name": "Withdrawn ฿",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Withdrawn ฿",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Withdrawn ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "Withdrawn ฿",
+          "display_name": "Withdrawn ฿",
+          "base_type": "type/Decimal"
+        }
+      ],
+      "collection_id": 5,
+      "name": "Capital contributions and withdrawals",
+      "type": "question",
+      "dataset_query": {
+        "stages": [
+          {
+            "template-tags": [
+              {
+                "widget-type": "string/=",
+                "id": "pt-partner",
+                "name": "partner",
+                "display-name": "Partner",
+                "type": "dimension",
+                "dimension": [
+                  "field",
+                  {
+                    "base-type": "type/Text",
+                    "lib/uuid": "e817b53a-f788-492f-9f68-6f07ed794af0",
+                    "effective-type": "type/Text"
+                  },
+                  121
+                ],
+                "alias": "d.partner_id"
+              },
+              {
+                "widget-type": "date/all-options",
+                "id": "pt-period",
+                "name": "period",
+                "display-name": "Partner activity period",
+                "type": "dimension",
+                "dimension": [
+                  "field",
+                  {
+                    "base-type": "type/Date",
+                    "lib/uuid": "852cf6f1-a90f-42a2-99aa-847d802eb26d",
+                    "effective-type": "type/Date"
+                  },
+                  82
+                ],
+                "alias": "d.activity_date"
+              },
+              {
+                "type": "card",
+                "id": "r044-model-322",
+                "name": "#322",
+                "display-name": "Partners source 322",
+                "card-id": 322
+              }
+            ],
+            "lib/type": "mbql.stage/native",
+            "native": "SELECT date_trunc('month',activity_date)::date AS \"Month\",CASE WHEN count(*)=0 THEN 0 WHEN bool_and(capital_contributed IS NOT NULL) THEN sum(capital_contributed) END AS \"Contributed ฿\",-(CASE WHEN count(*)=0 THEN 0 WHEN bool_and(capital_withdrawn IS NOT NULL) THEN sum(capital_withdrawn) END) AS \"Withdrawn ฿\" FROM {{#322}} d WHERE true [[AND {{partner}}]] [[AND {{period}}]] GROUP BY 1 ORDER BY 1"
+          }
+        ],
+        "lib/type": "mbql/query",
+        "database": 2
+      },
+      "id": 338,
+      "display": "bar",
+      "visualization_settings": {
+        "graph.show_values": true,
+        "graph.show_legend": true,
+        "graph.missing": "none",
+        "graph.y_axis.auto_split": false,
+        "graph.metrics": [
+          "Contributed ฿",
+          "Withdrawn ฿"
+        ],
+        "graph.label_value_formatting": "full",
+        "graph.colors": [
+          "#178F8A",
+          "#D6816B"
+        ],
+        "column_settings": {
+          "[\"name\",\"Contributed ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Withdrawn ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        },
+        "graph.dimensions": [
+          "Month"
+        ],
+        "stackable.stack_type": null
+      }
+    },
+    {
+      "key": "capital-trend",
+      "description": "R044 Partners. Daily end balance includes capital before the selected period. Reconstructed from current records; no forecast.",
+      "result_metadata": [
+        {
+          "database_type": "date",
+          "semantic_type": null,
+          "lib/deduplicated-name": "Date",
+          "lib/original-name": "Date",
+          "name": "Date",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Date",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Date",
+            {
+              "base-type": "type/Date"
+            }
+          ],
+          "effective_type": "type/Date",
+          "lib/desired-column-alias": "Date",
+          "display_name": "Date",
+          "base_type": "type/Date"
+        },
+        {
+          "database_type": "text",
+          "semantic_type": null,
+          "lib/deduplicated-name": "Partner",
+          "lib/original-name": "Partner",
+          "name": "Partner",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Partner",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Partner",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "effective_type": "type/Text",
+          "lib/desired-column-alias": "Partner",
+          "display_name": "Partner",
+          "base_type": "type/Text"
+        },
+        {
+          "database_type": "numeric",
+          "semantic_type": null,
+          "lib/deduplicated-name": "Net capital ฿",
+          "lib/original-name": "Net capital ฿",
+          "name": "Net capital ฿",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Net capital ฿",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Net capital ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "Net capital ฿",
+          "display_name": "Net capital ฿",
+          "base_type": "type/Decimal"
+        }
+      ],
+      "collection_id": 5,
+      "name": "Net contributed capital over time",
+      "type": "question",
+      "dataset_query": {
+        "stages": [
+          {
+            "template-tags": [
+              {
+                "widget-type": "string/=",
+                "id": "pt-partner",
+                "name": "partner",
+                "display-name": "Partner",
+                "type": "dimension",
+                "dimension": [
+                  "field",
+                  {
+                    "base-type": "type/Text",
+                    "lib/uuid": "73924a30-5433-4029-bdf0-ab6305dae426",
+                    "effective-type": "type/Text"
+                  },
+                  121
+                ],
+                "alias": "d.partner_id"
+              },
+              {
+                "widget-type": "date/all-options",
+                "id": "pt-period",
+                "name": "period",
+                "display-name": "Partner activity period",
+                "type": "dimension",
+                "dimension": [
+                  "field",
+                  {
+                    "base-type": "type/Date",
+                    "lib/uuid": "67307ff8-eda1-4901-a85c-6b54e5a45498",
+                    "effective-type": "type/Date"
+                  },
+                  82
+                ],
+                "alias": "d.activity_date"
+              },
+              {
+                "type": "card",
+                "id": "r044-model-322",
+                "name": "#322",
+                "display-name": "Partners source 322",
+                "card-id": 322
+              }
+            ],
+            "lib/type": "mbql.stage/native",
+            "native": "SELECT activity_date AS \"Date\",partner_name AS \"Partner\",capital_eod AS \"Net capital ฿\" FROM {{#322}} d WHERE true [[AND {{partner}}]] [[AND {{period}}]] ORDER BY activity_date,partner_id"
+          }
+        ],
+        "lib/type": "mbql/query",
+        "database": 2
+      },
+      "id": 339,
+      "display": "line",
+      "visualization_settings": {
+        "graph.show_values": false,
+        "graph.show_legend": true,
+        "graph.missing": "none",
+        "graph.y_axis.auto_split": false,
+        "graph.metrics": [
+          "Net capital ฿"
+        ],
+        "graph.label_value_formatting": "full",
+        "graph.colors": [
+          "#178F8A",
+          "#7472BE",
+          "#D6816B",
+          "#D4AD60"
+        ],
+        "graph.show_dots": false,
+        "column_settings": {
+          "[\"name\",\"Net capital ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        },
+        "graph.dimensions": [
+          "Date",
+          "Partner"
+        ],
+        "stackable.stack_type": null
+      }
+    },
+    {
+      "key": "queue",
+      "description": "R044 Partners. Current pending reservations, including future/undated transfer dates. Activity period does not apply. This date is not creation time.",
+      "result_metadata": [
+        {
+          "database_type": "text",
+          "semantic_type": null,
+          "lib/deduplicated-name": "Partner",
+          "lib/original-name": "Partner",
+          "name": "Partner",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Partner",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Partner",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "effective_type": "type/Text",
+          "lib/desired-column-alias": "Partner",
+          "display_name": "Partner",
+          "base_type": "type/Text"
+        },
+        {
+          "database_type": "numeric",
+          "semantic_type": null,
+          "lib/deduplicated-name": "Amount ฿",
+          "lib/original-name": "Amount ฿",
+          "name": "Amount ฿",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Amount ฿",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Amount ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "Amount ฿",
+          "display_name": "Amount ฿",
+          "base_type": "type/Decimal"
+        },
+        {
+          "database_type": "date",
+          "semantic_type": null,
+          "lib/deduplicated-name": "Recorded transfer date",
+          "lib/original-name": "Recorded transfer date",
+          "name": "Recorded transfer date",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Recorded transfer date",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Recorded transfer date",
+            {
+              "base-type": "type/Date"
+            }
+          ],
+          "effective_type": "type/Date",
+          "lib/desired-column-alias": "Recorded transfer date",
+          "display_name": "Recorded transfer date",
+          "base_type": "type/Date"
+        },
+        {
+          "database_type": "text",
+          "semantic_type": null,
+          "lib/deduplicated-name": "Date status",
+          "lib/original-name": "Date status",
+          "name": "Date status",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Date status",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Date status",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "effective_type": "type/Text",
+          "lib/desired-column-alias": "Date status",
+          "display_name": "Date status",
+          "base_type": "type/Text"
+        },
+        {
+          "database_type": "text",
+          "semantic_type": null,
+          "lib/deduplicated-name": "Settlement reference",
+          "lib/original-name": "Settlement reference",
+          "name": "Settlement reference",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Settlement reference",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Settlement reference",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "effective_type": "type/Text",
+          "lib/desired-column-alias": "Settlement reference",
+          "display_name": "Settlement reference",
+          "base_type": "type/Text"
+        }
+      ],
+      "collection_id": 5,
+      "name": "Pending settlements · all dates",
+      "type": "question",
+      "dataset_query": {
+        "stages": [
+          {
+            "template-tags": [
+              {
+                "widget-type": "string/=",
+                "id": "pt-partner",
+                "name": "partner",
+                "display-name": "Partner",
+                "type": "dimension",
+                "dimension": [
+                  "field",
+                  {
+                    "base-type": "type/Text",
+                    "lib/uuid": "b8b84aca-f244-4f83-a8e1-e228fc5fa240",
+                    "effective-type": "type/Text"
+                  },
+                  121
+                ],
+                "alias": "d.partner_id"
+              },
+              {
+                "type": "card",
+                "id": "r044-model-321",
+                "name": "#321",
+                "display-name": "Partners source 321",
+                "card-id": 321
+              }
+            ],
+            "lib/type": "mbql.stage/native",
+            "native": "SELECT partner_name AS \"Partner\",amount AS \"Amount ฿\",activity_date AS \"Recorded transfer date\",date_status AS \"Date status\",settlement_id AS \"Settlement reference\" FROM {{#321}} d WHERE true [[AND {{partner}}]] AND status='Pending' ORDER BY activity_date NULLS LAST,settlement_id"
+          }
+        ],
+        "lib/type": "mbql/query",
+        "database": 2
+      },
+      "id": 340,
+      "display": "table",
+      "visualization_settings": {
+        "table.pivot": false,
+        "table.columns": [
+          {
+            "name": "Partner",
+            "fieldRef": [
+              "field",
+              "Partner",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Amount ฿",
+            "fieldRef": [
+              "field",
+              "Amount ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Recorded transfer date",
+            "fieldRef": [
+              "field",
+              "Recorded transfer date",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Date status",
+            "fieldRef": [
+              "field",
+              "Date status",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Settlement reference",
+            "fieldRef": [
+              "field",
+              "Settlement reference",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          }
+        ],
+        "column_settings": {
+          "[\"name\",\"Amount ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      }
+    },
+    {
+      "key": "capital-ledger",
+      "description": "R044 Partners. Same-date transactions share the date-end balance; reference order is not intraday chronology.",
+      "result_metadata": [
+        {
+          "database_type": "date",
+          "semantic_type": null,
+          "lib/deduplicated-name": "Date",
+          "lib/original-name": "Date",
+          "name": "Date",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Date",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Date",
+            {
+              "base-type": "type/Date"
+            }
+          ],
+          "effective_type": "type/Date",
+          "lib/desired-column-alias": "Date",
+          "display_name": "Date",
+          "base_type": "type/Date"
+        },
+        {
+          "database_type": "text",
+          "semantic_type": null,
+          "lib/deduplicated-name": "Partner",
+          "lib/original-name": "Partner",
+          "name": "Partner",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Partner",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Partner",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "effective_type": "type/Text",
+          "lib/desired-column-alias": "Partner",
+          "display_name": "Partner",
+          "base_type": "type/Text"
+        },
+        {
+          "database_type": "text",
+          "semantic_type": "type/Category",
+          "lib/deduplicated-name": "Type",
+          "lib/original-name": "Type",
+          "name": "Type",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Type",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Type",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "effective_type": "type/Text",
+          "lib/desired-column-alias": "Type",
+          "display_name": "Type",
+          "base_type": "type/Text"
+        },
+        {
+          "database_type": "numeric",
+          "semantic_type": null,
+          "lib/deduplicated-name": "Movement ฿",
+          "lib/original-name": "Movement ฿",
+          "name": "Movement ฿",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Movement ฿",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Movement ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "Movement ฿",
+          "display_name": "Movement ฿",
+          "base_type": "type/Decimal"
+        },
+        {
+          "database_type": "numeric",
+          "semantic_type": null,
+          "lib/deduplicated-name": "Capital at date end ฿",
+          "lib/original-name": "Capital at date end ฿",
+          "name": "Capital at date end ฿",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Capital at date end ฿",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Capital at date end ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "Capital at date end ฿",
+          "display_name": "Capital at date end ฿",
+          "base_type": "type/Decimal"
+        },
+        {
+          "database_type": "text",
+          "semantic_type": null,
+          "lib/deduplicated-name": "Capital reference",
+          "lib/original-name": "Capital reference",
+          "name": "Capital reference",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Capital reference",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Capital reference",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "effective_type": "type/Text",
+          "lib/desired-column-alias": "Capital reference",
+          "display_name": "Capital reference",
+          "base_type": "type/Text"
+        }
+      ],
+      "collection_id": 5,
+      "name": "Capital transaction ledger",
+      "type": "question",
+      "dataset_query": {
+        "stages": [
+          {
+            "template-tags": [
+              {
+                "widget-type": "string/=",
+                "id": "pt-partner",
+                "name": "partner",
+                "display-name": "Partner",
+                "type": "dimension",
+                "dimension": [
+                  "field",
+                  {
+                    "base-type": "type/Text",
+                    "lib/uuid": "610b2d71-57b0-4b57-96d6-c463801623d0",
+                    "effective-type": "type/Text"
+                  },
+                  121
+                ],
+                "alias": "d.partner_id"
+              },
+              {
+                "widget-type": "date/all-options",
+                "id": "pt-period",
+                "name": "period",
+                "display-name": "Partner activity period",
+                "type": "dimension",
+                "dimension": [
+                  "field",
+                  {
+                    "base-type": "type/Date",
+                    "lib/uuid": "aecb9c8e-3ba6-4620-917b-4edd1b7e9c11",
+                    "effective-type": "type/Date"
+                  },
+                  82
+                ],
+                "alias": "d.activity_date"
+              },
+              {
+                "type": "card",
+                "id": "r044-model-323",
+                "name": "#323",
+                "display-name": "Partners source 323",
+                "card-id": 323
+              }
+            ],
+            "lib/type": "mbql.stage/native",
+            "native": "SELECT activity_date AS \"Date\",partner_name AS \"Partner\",transaction_type AS \"Type\",net_movement AS \"Movement ฿\",date_end_capital AS \"Capital at date end ฿\",capital_id AS \"Capital reference\" FROM {{#323}} d WHERE true [[AND {{partner}}]] [[AND {{period}}]] AND activity_date<=public.olap_reporting_date() ORDER BY activity_date DESC,capital_id"
+          }
+        ],
+        "lib/type": "mbql/query",
+        "database": 2
+      },
+      "id": 341,
+      "display": "table",
+      "visualization_settings": {
+        "table.pivot": false,
+        "table.columns": [
+          {
+            "name": "Date",
+            "fieldRef": [
+              "field",
+              "Date",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Partner",
+            "fieldRef": [
+              "field",
+              "Partner",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Type",
+            "fieldRef": [
+              "field",
+              "Type",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Movement ฿",
+            "fieldRef": [
+              "field",
+              "Movement ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Capital at date end ฿",
+            "fieldRef": [
+              "field",
+              "Capital at date end ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Capital reference",
+            "fieldRef": [
+              "field",
+              "Capital reference",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          }
+        ],
+        "column_settings": {
+          "[\"name\",\"Movement ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Capital at date end ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      }
+    },
+    {
+      "key": "settlement-ledger",
+      "description": "R044 Partners. Cancelled audit amounts are not effective payments. Status filter applies to this ledger only; undated Pending remains in the queue above.",
+      "result_metadata": [
+        {
+          "database_type": "date",
+          "semantic_type": null,
+          "lib/deduplicated-name": "Transfer date",
+          "lib/original-name": "Transfer date",
+          "name": "Transfer date",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Transfer date",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Transfer date",
+            {
+              "base-type": "type/Date"
+            }
+          ],
+          "effective_type": "type/Date",
+          "lib/desired-column-alias": "Transfer date",
+          "display_name": "Transfer date",
+          "base_type": "type/Date"
+        },
+        {
+          "database_type": "text",
+          "semantic_type": null,
+          "lib/deduplicated-name": "Partner",
+          "lib/original-name": "Partner",
+          "name": "Partner",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Partner",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Partner",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "effective_type": "type/Text",
+          "lib/desired-column-alias": "Partner",
+          "display_name": "Partner",
+          "base_type": "type/Text"
+        },
+        {
+          "database_type": "numeric",
+          "semantic_type": null,
+          "lib/deduplicated-name": "Recorded amount ฿",
+          "lib/original-name": "Recorded amount ฿",
+          "name": "Recorded amount ฿",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Recorded amount ฿",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Recorded amount ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "Recorded amount ฿",
+          "display_name": "Recorded amount ฿",
+          "base_type": "type/Decimal"
+        },
+        {
+          "database_type": "text",
+          "semantic_type": "type/Category",
+          "lib/deduplicated-name": "Status",
+          "lib/original-name": "Status",
+          "name": "Status",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Status",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Status",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "effective_type": "type/Text",
+          "lib/desired-column-alias": "Status",
+          "display_name": "Status",
+          "base_type": "type/Text"
+        },
+        {
+          "database_type": "numeric",
+          "semantic_type": null,
+          "lib/deduplicated-name": "Effective paid ฿",
+          "lib/original-name": "Effective paid ฿",
+          "name": "Effective paid ฿",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Effective paid ฿",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Effective paid ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "Effective paid ฿",
+          "display_name": "Effective paid ฿",
+          "base_type": "type/Decimal"
+        },
+        {
+          "database_type": "numeric",
+          "semantic_type": null,
+          "lib/deduplicated-name": "Pending ฿",
+          "lib/original-name": "Pending ฿",
+          "name": "Pending ฿",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Pending ฿",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Pending ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "Pending ฿",
+          "display_name": "Pending ฿",
+          "base_type": "type/Decimal"
+        },
+        {
+          "database_type": "text",
+          "semantic_type": null,
+          "lib/deduplicated-name": "Settlement reference",
+          "lib/original-name": "Settlement reference",
+          "name": "Settlement reference",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Settlement reference",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Settlement reference",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "effective_type": "type/Text",
+          "lib/desired-column-alias": "Settlement reference",
+          "display_name": "Settlement reference",
+          "base_type": "type/Text"
+        }
+      ],
+      "collection_id": 5,
+      "name": "Settlement transaction ledger",
+      "type": "question",
+      "dataset_query": {
+        "stages": [
+          {
+            "template-tags": [
+              {
+                "widget-type": "string/=",
+                "id": "pt-partner",
+                "name": "partner",
+                "display-name": "Partner",
+                "type": "dimension",
+                "dimension": [
+                  "field",
+                  {
+                    "base-type": "type/Text",
+                    "lib/uuid": "20fa9f69-4185-4443-b4dd-3d4800090482",
+                    "effective-type": "type/Text"
+                  },
+                  121
+                ],
+                "alias": "d.partner_id"
+              },
+              {
+                "widget-type": "date/all-options",
+                "id": "pt-period",
+                "name": "period",
+                "display-name": "Partner activity period",
+                "type": "dimension",
+                "dimension": [
+                  "field",
+                  {
+                    "base-type": "type/Date",
+                    "lib/uuid": "726b6b77-783b-43fd-a8fa-6c9f5c702fcc",
+                    "effective-type": "type/Date"
+                  },
+                  82
+                ],
+                "alias": "d.activity_date"
+              },
+              {
+                "display-name": "Settlement ledger status",
+                "id": "pt-status",
+                "name": "status",
+                "type": "text"
+              },
+              {
+                "type": "card",
+                "id": "r044-model-321",
+                "name": "#321",
+                "display-name": "Partners source 321",
+                "card-id": 321
+              }
+            ],
+            "lib/type": "mbql.stage/native",
+            "native": "SELECT activity_date AS \"Transfer date\",partner_name AS \"Partner\",amount AS \"Recorded amount ฿\",status AS \"Status\",completed_amount AS \"Effective paid ฿\",pending_amount AS \"Pending ฿\",settlement_id AS \"Settlement reference\" FROM {{#321}} d WHERE true [[AND {{partner}}]] [[AND {{period}}]] AND activity_date<=public.olap_reporting_date() [[AND d.status={{status}}]] ORDER BY activity_date DESC,settlement_id"
+          }
+        ],
+        "lib/type": "mbql/query",
+        "database": 2
+      },
+      "id": 342,
+      "display": "table",
+      "visualization_settings": {
+        "table.pivot": false,
+        "table.columns": [
+          {
+            "name": "Transfer date",
+            "fieldRef": [
+              "field",
+              "Transfer date",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Partner",
+            "fieldRef": [
+              "field",
+              "Partner",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Recorded amount ฿",
+            "fieldRef": [
+              "field",
+              "Recorded amount ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Status",
+            "fieldRef": [
+              "field",
+              "Status",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Effective paid ฿",
+            "fieldRef": [
+              "field",
+              "Effective paid ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Pending ฿",
+            "fieldRef": [
+              "field",
+              "Pending ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Settlement reference",
+            "fieldRef": [
+              "field",
+              "Settlement reference",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          }
+        ],
+        "column_settings": {
+          "[\"name\",\"Recorded amount ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Effective paid ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Pending ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      }
+    },
+    {
+      "key": "context",
+      "description": "R044 Partners. Rounding difference = allocated A+B interest minus gross interest. Does not alter entitlement. Query time is not transaction sync time.",
+      "result_metadata": [
+        {
+          "database_type": "text",
+          "semantic_type": "type/Category",
+          "lib/deduplicated-name": "Status",
+          "lib/original-name": "Status",
+          "name": "Status",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Status",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Status",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "effective_type": "type/Text",
+          "lib/desired-column-alias": "Status",
+          "display_name": "Status",
+          "base_type": "type/Text"
+        },
+        {
+          "database_type": "timestamp",
+          "semantic_type": null,
+          "lib/deduplicated-name": "Queried at · Bangkok",
+          "lib/original-name": "Queried at · Bangkok",
+          "name": "Queried at · Bangkok",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Queried at · Bangkok",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Queried at · Bangkok",
+            {
+              "base-type": "type/DateTime"
+            }
+          ],
+          "effective_type": "type/DateTime",
+          "lib/desired-column-alias": "Queried at · Bangkok",
+          "display_name": "Queried at · Bangkok",
+          "base_type": "type/DateTime"
+        },
+        {
+          "database_type": "int8",
+          "semantic_type": "type/Source",
+          "lib/deduplicated-name": "Source exceptions",
+          "lib/original-name": "Source exceptions",
+          "name": "Source exceptions",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Source exceptions",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Source exceptions",
+            {
+              "base-type": "type/BigInteger"
+            }
+          ],
+          "effective_type": "type/BigInteger",
+          "lib/desired-column-alias": "Source exceptions",
+          "display_name": "Source exceptions",
+          "base_type": "type/BigInteger"
+        },
+        {
+          "database_type": "int8",
+          "semantic_type": null,
+          "lib/deduplicated-name": "Undated pending",
+          "lib/original-name": "Undated pending",
+          "name": "Undated pending",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Undated pending",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Undated pending",
+            {
+              "base-type": "type/BigInteger"
+            }
+          ],
+          "effective_type": "type/BigInteger",
+          "lib/desired-column-alias": "Undated pending",
+          "display_name": "Undated pending",
+          "base_type": "type/BigInteger"
+        },
+        {
+          "database_type": "numeric",
+          "semantic_type": null,
+          "lib/deduplicated-name": "Allocation rounding difference ฿",
+          "lib/original-name": "Allocation rounding difference ฿",
+          "name": "Allocation rounding difference ฿",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Allocation rounding difference ฿",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Allocation rounding difference ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "Allocation rounding difference ฿",
+          "display_name": "Allocation rounding difference ฿",
+          "base_type": "type/Decimal"
+        }
+      ],
+      "collection_id": 5,
+      "name": "Source and balance checks",
+      "type": "question",
+      "dataset_query": {
+        "stages": [
+          {
+            "template-tags": [
+              {
+                "widget-type": "string/=",
+                "id": "pt-partner",
+                "name": "partner",
+                "display-name": "Partner",
+                "type": "dimension",
+                "dimension": [
+                  "field",
+                  {
+                    "base-type": "type/Text",
+                    "lib/uuid": "f7469a48-dec2-4225-9394-7f28fe8352c7",
+                    "effective-type": "type/Text"
+                  },
+                  121
+                ],
+                "alias": "d.partner_id"
+              },
+              {
+                "type": "card",
+                "id": "r044-model-318",
+                "name": "#318",
+                "display-name": "Partners source 318",
+                "card-id": 318
+              }
+            ],
+            "lib/type": "mbql.stage/native",
+            "native": "SELECT CASE WHEN bool_and(ready) THEN 'Ready · live on refresh' ELSE 'Needs review' END AS \"Status\",max(queried_at) AS \"Queried at · Bangkok\",max(capital_exceptions+earnings_exceptions+settlement_exceptions) AS \"Source exceptions\",max(undated_pending) AS \"Undated pending\",max(allocation_residual) AS \"Allocation rounding difference ฿\" FROM {{#318}} d WHERE true [[AND {{partner}}]]"
+          }
+        ],
+        "lib/type": "mbql/query",
+        "database": 2
+      },
+      "id": 343,
+      "display": "table",
+      "visualization_settings": {
+        "table.pivot": false,
+        "table.columns": [
+          {
+            "name": "Status",
+            "fieldRef": [
+              "field",
+              "Status",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Queried at · Bangkok",
+            "fieldRef": [
+              "field",
+              "Queried at · Bangkok",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Source exceptions",
+            "fieldRef": [
+              "field",
+              "Source exceptions",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Undated pending",
+            "fieldRef": [
+              "field",
+              "Undated pending",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Allocation rounding difference ฿",
+            "fieldRef": [
+              "field",
+              "Allocation rounding difference ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          }
+        ],
+        "column_settings": {
+          "[\"name\",\"Allocation rounding difference ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 2,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      }
+    }
+  ],
+  "models": [
+    {
+      "key": "position",
+      "description": "R044 thin metadata over governed read-only PostgreSQL provider. No financial writes.",
+      "result_metadata": [
+        {
+          "database_type": "text",
+          "lib/deduplicated-name": "partner_id",
+          "lib/original-name": "partner_id",
+          "name": "partner_id",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "partner_id",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "partner_id",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "effective_type": "type/Text",
+          "lib/desired-column-alias": "partner_id",
+          "display_name": "partner_id",
+          "base_type": "type/Text"
+        },
+        {
+          "database_type": "text",
+          "lib/deduplicated-name": "partner_name",
+          "lib/original-name": "partner_name",
+          "name": "partner_name",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "partner_name",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "partner_name",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "effective_type": "type/Text",
+          "lib/desired-column-alias": "partner_name",
+          "display_name": "partner_name",
+          "base_type": "type/Text"
+        },
+        {
+          "database_type": "text",
+          "lib/deduplicated-name": "partner_role",
+          "lib/original-name": "partner_role",
+          "name": "partner_role",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "partner_role",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "partner_role",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "effective_type": "type/Text",
+          "lib/desired-column-alias": "partner_role",
+          "display_name": "partner_role",
+          "base_type": "type/Text"
+        },
+        {
+          "database_type": "int8",
+          "lib/deduplicated-name": "role_count",
+          "lib/original-name": "role_count",
+          "name": "role_count",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "role_count",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "role_count",
+            {
+              "base-type": "type/BigInteger"
+            }
+          ],
+          "effective_type": "type/BigInteger",
+          "lib/desired-column-alias": "role_count",
+          "display_name": "role_count",
+          "base_type": "type/BigInteger"
+        },
+        {
+          "database_type": "numeric",
+          "lib/deduplicated-name": "net_capital",
+          "lib/original-name": "net_capital",
+          "name": "net_capital",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "net_capital",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "net_capital",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "net_capital",
+          "display_name": "net_capital",
+          "base_type": "type/Decimal"
+        },
+        {
+          "database_type": "numeric",
+          "lib/deduplicated-name": "interest_earned",
+          "lib/original-name": "interest_earned",
+          "name": "interest_earned",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "interest_earned",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "interest_earned",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "interest_earned",
+          "display_name": "interest_earned",
+          "base_type": "type/Decimal"
+        },
+        {
+          "database_type": "numeric",
+          "lib/deduplicated-name": "expenses",
+          "lib/original-name": "expenses",
+          "name": "expenses",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "expenses",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "expenses",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "expenses",
+          "display_name": "expenses",
+          "base_type": "type/Decimal"
+        },
+        {
+          "database_type": "numeric",
+          "lib/deduplicated-name": "completed",
+          "lib/original-name": "completed",
+          "name": "completed",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "completed",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "completed",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "completed",
+          "display_name": "completed",
+          "base_type": "type/Decimal"
+        },
+        {
+          "database_type": "numeric",
+          "lib/deduplicated-name": "pending",
+          "lib/original-name": "pending",
+          "name": "pending",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "pending",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "pending",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "pending",
+          "display_name": "pending",
+          "base_type": "type/Decimal"
+        },
+        {
+          "database_type": "numeric",
+          "lib/deduplicated-name": "reserved",
+          "lib/original-name": "reserved",
+          "name": "reserved",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "reserved",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "reserved",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "reserved",
+          "display_name": "reserved",
+          "base_type": "type/Decimal"
+        },
+        {
+          "database_type": "int8",
+          "lib/deduplicated-name": "pending_count",
+          "lib/original-name": "pending_count",
+          "name": "pending_count",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "pending_count",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "pending_count",
+            {
+              "base-type": "type/BigInteger"
+            }
+          ],
+          "effective_type": "type/BigInteger",
+          "lib/desired-column-alias": "pending_count",
+          "display_name": "pending_count",
+          "base_type": "type/BigInteger"
+        },
+        {
+          "database_type": "int8",
+          "lib/deduplicated-name": "capital_exceptions",
+          "lib/original-name": "capital_exceptions",
+          "name": "capital_exceptions",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "capital_exceptions",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "capital_exceptions",
+            {
+              "base-type": "type/BigInteger"
+            }
+          ],
+          "effective_type": "type/BigInteger",
+          "lib/desired-column-alias": "capital_exceptions",
+          "display_name": "capital_exceptions",
+          "base_type": "type/BigInteger"
+        },
+        {
+          "database_type": "int8",
+          "lib/deduplicated-name": "earnings_exceptions",
+          "lib/original-name": "earnings_exceptions",
+          "name": "earnings_exceptions",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "earnings_exceptions",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "earnings_exceptions",
+            {
+              "base-type": "type/BigInteger"
+            }
+          ],
+          "effective_type": "type/BigInteger",
+          "lib/desired-column-alias": "earnings_exceptions",
+          "display_name": "earnings_exceptions",
+          "base_type": "type/BigInteger"
+        },
+        {
+          "database_type": "int8",
+          "lib/deduplicated-name": "settlement_exceptions",
+          "lib/original-name": "settlement_exceptions",
+          "name": "settlement_exceptions",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "settlement_exceptions",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "settlement_exceptions",
+            {
+              "base-type": "type/BigInteger"
+            }
+          ],
+          "effective_type": "type/BigInteger",
+          "lib/desired-column-alias": "settlement_exceptions",
+          "display_name": "settlement_exceptions",
+          "base_type": "type/BigInteger"
+        },
+        {
+          "database_type": "int8",
+          "lib/deduplicated-name": "undated_pending",
+          "lib/original-name": "undated_pending",
+          "name": "undated_pending",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "undated_pending",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "undated_pending",
+            {
+              "base-type": "type/BigInteger"
+            }
+          ],
+          "effective_type": "type/BigInteger",
+          "lib/desired-column-alias": "undated_pending",
+          "display_name": "undated_pending",
+          "base_type": "type/BigInteger"
+        },
+        {
+          "database_type": "numeric",
+          "lib/deduplicated-name": "pool",
+          "lib/original-name": "pool",
+          "name": "pool",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "pool",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "pool",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "pool",
+          "display_name": "pool",
+          "base_type": "type/Decimal"
+        },
+        {
+          "database_type": "numeric",
+          "lib/deduplicated-name": "allocation_residual",
+          "lib/original-name": "allocation_residual",
+          "name": "allocation_residual",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "allocation_residual",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "allocation_residual",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "allocation_residual",
+          "display_name": "allocation_residual",
+          "base_type": "type/Decimal"
+        },
+        {
+          "database_type": "numeric",
+          "lib/deduplicated-name": "net_earned",
+          "lib/original-name": "net_earned",
+          "name": "net_earned",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "net_earned",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "net_earned",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "net_earned",
+          "display_name": "net_earned",
+          "base_type": "type/Decimal"
+        },
+        {
+          "database_type": "numeric",
+          "lib/deduplicated-name": "capital_share",
+          "lib/original-name": "capital_share",
+          "name": "capital_share",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "capital_share",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "capital_share",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "capital_share",
+          "display_name": "capital_share",
+          "base_type": "type/Decimal"
+        },
+        {
+          "database_type": "bool",
+          "lib/deduplicated-name": "ready",
+          "lib/original-name": "ready",
+          "name": "ready",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "ready",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "ready",
+            {
+              "base-type": "type/Boolean"
+            }
+          ],
+          "effective_type": "type/Boolean",
+          "lib/desired-column-alias": "ready",
+          "display_name": "ready",
+          "base_type": "type/Boolean"
+        },
+        {
+          "database_type": "numeric",
+          "lib/deduplicated-name": "unpaid",
+          "lib/original-name": "unpaid",
+          "name": "unpaid",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "unpaid",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "unpaid",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "unpaid",
+          "display_name": "unpaid",
+          "base_type": "type/Decimal"
+        },
+        {
+          "database_type": "numeric",
+          "lib/deduplicated-name": "available",
+          "lib/original-name": "available",
+          "name": "available",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "available",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "available",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "available",
+          "display_name": "available",
+          "base_type": "type/Decimal"
+        },
+        {
+          "database_type": "numeric",
+          "lib/deduplicated-name": "other_reserved",
+          "lib/original-name": "other_reserved",
+          "name": "other_reserved",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "other_reserved",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "other_reserved",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "other_reserved",
+          "display_name": "other_reserved",
+          "base_type": "type/Decimal"
+        },
+        {
+          "database_type": "text",
+          "lib/deduplicated-name": "quality_status",
+          "lib/original-name": "quality_status",
+          "name": "quality_status",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "quality_status",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "quality_status",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "effective_type": "type/Text",
+          "lib/desired-column-alias": "quality_status",
+          "display_name": "quality_status",
+          "base_type": "type/Text"
+        },
+        {
+          "database_type": "timestamp",
+          "lib/deduplicated-name": "queried_at",
+          "lib/original-name": "queried_at",
+          "name": "queried_at",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "queried_at",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "queried_at",
+            {
+              "base-type": "type/DateTime"
+            }
+          ],
+          "effective_type": "type/DateTime",
+          "lib/desired-column-alias": "queried_at",
+          "display_name": "queried_at",
+          "base_type": "type/DateTime"
+        }
+      ],
+      "collection_id": 8,
+      "name": "Partners · position source",
+      "type": "model",
+      "dataset_query": {
+        "stages": [
+          {
+            "lib/type": "mbql.stage/native",
+            "native": "SELECT * FROM public.reporting_partner_position_v1"
+          }
+        ],
+        "lib/type": "mbql/query",
+        "database": 2
+      },
+      "id": 318,
+      "display": "table",
+      "visualization_settings": {}
+    },
+    {
+      "key": "capital",
+      "description": "R044 thin metadata over governed read-only PostgreSQL provider. No financial writes.",
+      "result_metadata": [
+        {
+          "database_type": "text",
+          "lib/deduplicated-name": "capital_id",
+          "lib/original-name": "capital_id",
+          "name": "capital_id",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "capital_id",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "capital_id",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "effective_type": "type/Text",
+          "lib/desired-column-alias": "capital_id",
+          "display_name": "capital_id",
+          "base_type": "type/Text"
+        },
+        {
+          "database_type": "text",
+          "lib/deduplicated-name": "partner_id",
+          "lib/original-name": "partner_id",
+          "name": "partner_id",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "partner_id",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "partner_id",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "effective_type": "type/Text",
+          "lib/desired-column-alias": "partner_id",
+          "display_name": "partner_id",
+          "base_type": "type/Text"
+        },
+        {
+          "database_type": "text",
+          "lib/deduplicated-name": "partner_name",
+          "lib/original-name": "partner_name",
+          "name": "partner_name",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "partner_name",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "partner_name",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "effective_type": "type/Text",
+          "lib/desired-column-alias": "partner_name",
+          "display_name": "partner_name",
+          "base_type": "type/Text"
+        },
+        {
+          "database_type": "text",
+          "lib/deduplicated-name": "partner_role",
+          "lib/original-name": "partner_role",
+          "name": "partner_role",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "partner_role",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "partner_role",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "effective_type": "type/Text",
+          "lib/desired-column-alias": "partner_role",
+          "display_name": "partner_role",
+          "base_type": "type/Text"
+        },
+        {
+          "database_type": "date",
+          "lib/deduplicated-name": "activity_date",
+          "lib/original-name": "activity_date",
+          "name": "activity_date",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "activity_date",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "activity_date",
+            {
+              "base-type": "type/Date"
+            }
+          ],
+          "effective_type": "type/Date",
+          "lib/desired-column-alias": "activity_date",
+          "display_name": "activity_date",
+          "base_type": "type/Date"
+        },
+        {
+          "database_type": "text",
+          "lib/deduplicated-name": "transaction_type",
+          "lib/original-name": "transaction_type",
+          "name": "transaction_type",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "transaction_type",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "transaction_type",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "effective_type": "type/Text",
+          "lib/desired-column-alias": "transaction_type",
+          "display_name": "transaction_type",
+          "base_type": "type/Text"
+        },
+        {
+          "database_type": "numeric",
+          "lib/deduplicated-name": "amount",
+          "lib/original-name": "amount",
+          "name": "amount",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "amount",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "amount",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "amount",
+          "display_name": "amount",
+          "base_type": "type/Decimal"
+        },
+        {
+          "database_type": "numeric",
+          "lib/deduplicated-name": "net_movement",
+          "lib/original-name": "net_movement",
+          "name": "net_movement",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "net_movement",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "net_movement",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "net_movement",
+          "display_name": "net_movement",
+          "base_type": "type/Decimal"
+        },
+        {
+          "database_type": "bool",
+          "lib/deduplicated-name": "valid",
+          "lib/original-name": "valid",
+          "name": "valid",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "valid",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "valid",
+            {
+              "base-type": "type/Boolean"
+            }
+          ],
+          "effective_type": "type/Boolean",
+          "lib/desired-column-alias": "valid",
+          "display_name": "valid",
+          "base_type": "type/Boolean"
+        }
+      ],
+      "collection_id": 8,
+      "name": "Partners · capital source",
+      "type": "model",
+      "dataset_query": {
+        "stages": [
+          {
+            "lib/type": "mbql.stage/native",
+            "native": "SELECT * FROM public.reporting_partner_capital_v1"
+          }
+        ],
+        "lib/type": "mbql/query",
+        "database": 2
+      },
+      "id": 319,
+      "display": "table",
+      "visualization_settings": {}
+    },
+    {
+      "key": "earnings",
+      "description": "R044 thin metadata over governed read-only PostgreSQL provider. No financial writes.",
+      "result_metadata": [
+        {
+          "database_type": "text",
+          "lib/deduplicated-name": "event_type",
+          "lib/original-name": "event_type",
+          "name": "event_type",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "event_type",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "event_type",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "effective_type": "type/Text",
+          "lib/desired-column-alias": "event_type",
+          "display_name": "event_type",
+          "base_type": "type/Text"
+        },
+        {
+          "database_type": "text",
+          "lib/deduplicated-name": "event_id",
+          "lib/original-name": "event_id",
+          "name": "event_id",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "event_id",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "event_id",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "effective_type": "type/Text",
+          "lib/desired-column-alias": "event_id",
+          "display_name": "event_id",
+          "base_type": "type/Text"
+        },
+        {
+          "database_type": "date",
+          "lib/deduplicated-name": "activity_date",
+          "lib/original-name": "activity_date",
+          "name": "activity_date",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "activity_date",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "activity_date",
+            {
+              "base-type": "type/Date"
+            }
+          ],
+          "effective_type": "type/Date",
+          "lib/desired-column-alias": "activity_date",
+          "display_name": "activity_date",
+          "base_type": "type/Date"
+        },
+        {
+          "database_type": "text",
+          "lib/deduplicated-name": "role",
+          "lib/original-name": "role",
+          "name": "role",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "role",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "role",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "effective_type": "type/Text",
+          "lib/desired-column-alias": "role",
+          "display_name": "role",
+          "base_type": "type/Text"
+        },
+        {
+          "database_type": "numeric",
+          "lib/deduplicated-name": "allocated_interest",
+          "lib/original-name": "allocated_interest",
+          "name": "allocated_interest",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "allocated_interest",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "allocated_interest",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "allocated_interest",
+          "display_name": "allocated_interest",
+          "base_type": "type/Decimal"
+        },
+        {
+          "database_type": "numeric",
+          "lib/deduplicated-name": "allocated_expense",
+          "lib/original-name": "allocated_expense",
+          "name": "allocated_expense",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "allocated_expense",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "allocated_expense",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "allocated_expense",
+          "display_name": "allocated_expense",
+          "base_type": "type/Decimal"
+        },
+        {
+          "database_type": "bool",
+          "lib/deduplicated-name": "amount_known",
+          "lib/original-name": "amount_known",
+          "name": "amount_known",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "amount_known",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "amount_known",
+            {
+              "base-type": "type/Boolean"
+            }
+          ],
+          "effective_type": "type/Boolean",
+          "lib/desired-column-alias": "amount_known",
+          "display_name": "amount_known",
+          "base_type": "type/Boolean"
+        },
+        {
+          "database_type": "text",
+          "lib/deduplicated-name": "partner_id",
+          "lib/original-name": "partner_id",
+          "name": "partner_id",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "partner_id",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "partner_id",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "effective_type": "type/Text",
+          "lib/desired-column-alias": "partner_id",
+          "display_name": "partner_id",
+          "base_type": "type/Text"
+        },
+        {
+          "database_type": "text",
+          "lib/deduplicated-name": "partner_name",
+          "lib/original-name": "partner_name",
+          "name": "partner_name",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "partner_name",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "partner_name",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "effective_type": "type/Text",
+          "lib/desired-column-alias": "partner_name",
+          "display_name": "partner_name",
+          "base_type": "type/Text"
+        },
+        {
+          "database_type": "numeric",
+          "lib/deduplicated-name": "net_earned",
+          "lib/original-name": "net_earned",
+          "name": "net_earned",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "net_earned",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "net_earned",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "net_earned",
+          "display_name": "net_earned",
+          "base_type": "type/Decimal"
+        },
+        {
+          "database_type": "bool",
+          "lib/deduplicated-name": "valid",
+          "lib/original-name": "valid",
+          "name": "valid",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "valid",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "valid",
+            {
+              "base-type": "type/Boolean"
+            }
+          ],
+          "effective_type": "type/Boolean",
+          "lib/desired-column-alias": "valid",
+          "display_name": "valid",
+          "base_type": "type/Boolean"
+        }
+      ],
+      "collection_id": 8,
+      "name": "Partners · earnings source",
+      "type": "model",
+      "dataset_query": {
+        "stages": [
+          {
+            "lib/type": "mbql.stage/native",
+            "native": "SELECT * FROM public.reporting_partner_earnings_v1"
+          }
+        ],
+        "lib/type": "mbql/query",
+        "database": 2
+      },
+      "id": 320,
+      "display": "table",
+      "visualization_settings": {}
+    },
+    {
+      "key": "settlements",
+      "description": "R044 thin metadata over governed read-only PostgreSQL provider. No financial writes.",
+      "result_metadata": [
+        {
+          "database_type": "text",
+          "lib/deduplicated-name": "settlement_id",
+          "lib/original-name": "settlement_id",
+          "name": "settlement_id",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "settlement_id",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "settlement_id",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "effective_type": "type/Text",
+          "lib/desired-column-alias": "settlement_id",
+          "display_name": "settlement_id",
+          "base_type": "type/Text"
+        },
+        {
+          "database_type": "text",
+          "lib/deduplicated-name": "partner_id",
+          "lib/original-name": "partner_id",
+          "name": "partner_id",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "partner_id",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "partner_id",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "effective_type": "type/Text",
+          "lib/desired-column-alias": "partner_id",
+          "display_name": "partner_id",
+          "base_type": "type/Text"
+        },
+        {
+          "database_type": "text",
+          "lib/deduplicated-name": "partner_name",
+          "lib/original-name": "partner_name",
+          "name": "partner_name",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "partner_name",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "partner_name",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "effective_type": "type/Text",
+          "lib/desired-column-alias": "partner_name",
+          "display_name": "partner_name",
+          "base_type": "type/Text"
+        },
+        {
+          "database_type": "text",
+          "lib/deduplicated-name": "partner_role",
+          "lib/original-name": "partner_role",
+          "name": "partner_role",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "partner_role",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "partner_role",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "effective_type": "type/Text",
+          "lib/desired-column-alias": "partner_role",
+          "display_name": "partner_role",
+          "base_type": "type/Text"
+        },
+        {
+          "database_type": "date",
+          "lib/deduplicated-name": "activity_date",
+          "lib/original-name": "activity_date",
+          "name": "activity_date",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "activity_date",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "activity_date",
+            {
+              "base-type": "type/Date"
+            }
+          ],
+          "effective_type": "type/Date",
+          "lib/desired-column-alias": "activity_date",
+          "display_name": "activity_date",
+          "base_type": "type/Date"
+        },
+        {
+          "database_type": "numeric",
+          "lib/deduplicated-name": "amount",
+          "lib/original-name": "amount",
+          "name": "amount",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "amount",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "amount",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "amount",
+          "display_name": "amount",
+          "base_type": "type/Decimal"
+        },
+        {
+          "database_type": "text",
+          "lib/deduplicated-name": "status",
+          "lib/original-name": "status",
+          "name": "status",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "status",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "status",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "effective_type": "type/Text",
+          "lib/desired-column-alias": "status",
+          "display_name": "status",
+          "base_type": "type/Text"
+        },
+        {
+          "database_type": "numeric",
+          "lib/deduplicated-name": "completed_amount",
+          "lib/original-name": "completed_amount",
+          "name": "completed_amount",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "completed_amount",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "completed_amount",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "completed_amount",
+          "display_name": "completed_amount",
+          "base_type": "type/Decimal"
+        },
+        {
+          "database_type": "numeric",
+          "lib/deduplicated-name": "pending_amount",
+          "lib/original-name": "pending_amount",
+          "name": "pending_amount",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "pending_amount",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "pending_amount",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "pending_amount",
+          "display_name": "pending_amount",
+          "base_type": "type/Decimal"
+        },
+        {
+          "database_type": "numeric",
+          "lib/deduplicated-name": "reserved_amount",
+          "lib/original-name": "reserved_amount",
+          "name": "reserved_amount",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "reserved_amount",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "reserved_amount",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "reserved_amount",
+          "display_name": "reserved_amount",
+          "base_type": "type/Decimal"
+        },
+        {
+          "database_type": "bool",
+          "lib/deduplicated-name": "valid",
+          "lib/original-name": "valid",
+          "name": "valid",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "valid",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "valid",
+            {
+              "base-type": "type/Boolean"
+            }
+          ],
+          "effective_type": "type/Boolean",
+          "lib/desired-column-alias": "valid",
+          "display_name": "valid",
+          "base_type": "type/Boolean"
+        },
+        {
+          "database_type": "text",
+          "lib/deduplicated-name": "date_status",
+          "lib/original-name": "date_status",
+          "name": "date_status",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "date_status",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "date_status",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "effective_type": "type/Text",
+          "lib/desired-column-alias": "date_status",
+          "display_name": "date_status",
+          "base_type": "type/Text"
+        }
+      ],
+      "collection_id": 8,
+      "name": "Partners · settlements source",
+      "type": "model",
+      "dataset_query": {
+        "stages": [
+          {
+            "lib/type": "mbql.stage/native",
+            "native": "SELECT * FROM public.reporting_partner_settlements_v1"
+          }
+        ],
+        "lib/type": "mbql/query",
+        "database": 2
+      },
+      "id": 321,
+      "display": "table",
+      "visualization_settings": {}
+    },
+    {
+      "key": "daily",
+      "description": "R044 thin metadata over governed read-only PostgreSQL provider. No financial writes.",
+      "result_metadata": [
+        {
+          "database_type": "text",
+          "lib/deduplicated-name": "partner_id",
+          "lib/original-name": "partner_id",
+          "name": "partner_id",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "partner_id",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "partner_id",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "effective_type": "type/Text",
+          "lib/desired-column-alias": "partner_id",
+          "display_name": "partner_id",
+          "base_type": "type/Text"
+        },
+        {
+          "database_type": "text",
+          "lib/deduplicated-name": "partner_name",
+          "lib/original-name": "partner_name",
+          "name": "partner_name",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "partner_name",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "partner_name",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "effective_type": "type/Text",
+          "lib/desired-column-alias": "partner_name",
+          "display_name": "partner_name",
+          "base_type": "type/Text"
+        },
+        {
+          "database_type": "date",
+          "lib/deduplicated-name": "activity_date",
+          "lib/original-name": "activity_date",
+          "name": "activity_date",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "activity_date",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "activity_date",
+            {
+              "base-type": "type/Date"
+            }
+          ],
+          "effective_type": "type/Date",
+          "lib/desired-column-alias": "activity_date",
+          "display_name": "activity_date",
+          "base_type": "type/Date"
+        },
+        {
+          "database_type": "bool",
+          "lib/deduplicated-name": "ready",
+          "lib/original-name": "ready",
+          "name": "ready",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "ready",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "ready",
+            {
+              "base-type": "type/Boolean"
+            }
+          ],
+          "effective_type": "type/Boolean",
+          "lib/desired-column-alias": "ready",
+          "display_name": "ready",
+          "base_type": "type/Boolean"
+        },
+        {
+          "database_type": "int8",
+          "lib/deduplicated-name": "capital_exceptions",
+          "lib/original-name": "capital_exceptions",
+          "name": "capital_exceptions",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "capital_exceptions",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "capital_exceptions",
+            {
+              "base-type": "type/BigInteger"
+            }
+          ],
+          "effective_type": "type/BigInteger",
+          "lib/desired-column-alias": "capital_exceptions",
+          "display_name": "capital_exceptions",
+          "base_type": "type/BigInteger"
+        },
+        {
+          "database_type": "int8",
+          "lib/deduplicated-name": "earnings_exceptions",
+          "lib/original-name": "earnings_exceptions",
+          "name": "earnings_exceptions",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "earnings_exceptions",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "earnings_exceptions",
+            {
+              "base-type": "type/BigInteger"
+            }
+          ],
+          "effective_type": "type/BigInteger",
+          "lib/desired-column-alias": "earnings_exceptions",
+          "display_name": "earnings_exceptions",
+          "base_type": "type/BigInteger"
+        },
+        {
+          "database_type": "int8",
+          "lib/deduplicated-name": "settlement_exceptions",
+          "lib/original-name": "settlement_exceptions",
+          "name": "settlement_exceptions",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "settlement_exceptions",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "settlement_exceptions",
+            {
+              "base-type": "type/BigInteger"
+            }
+          ],
+          "effective_type": "type/BigInteger",
+          "lib/desired-column-alias": "settlement_exceptions",
+          "display_name": "settlement_exceptions",
+          "base_type": "type/BigInteger"
+        },
+        {
+          "database_type": "numeric",
+          "lib/deduplicated-name": "allocated_interest",
+          "lib/original-name": "allocated_interest",
+          "name": "allocated_interest",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "allocated_interest",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "allocated_interest",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "allocated_interest",
+          "display_name": "allocated_interest",
+          "base_type": "type/Decimal"
+        },
+        {
+          "database_type": "numeric",
+          "lib/deduplicated-name": "allocated_expense",
+          "lib/original-name": "allocated_expense",
+          "name": "allocated_expense",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "allocated_expense",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "allocated_expense",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "allocated_expense",
+          "display_name": "allocated_expense",
+          "base_type": "type/Decimal"
+        },
+        {
+          "database_type": "numeric",
+          "lib/deduplicated-name": "completed_payouts",
+          "lib/original-name": "completed_payouts",
+          "name": "completed_payouts",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "completed_payouts",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "completed_payouts",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "completed_payouts",
+          "display_name": "completed_payouts",
+          "base_type": "type/Decimal"
+        },
+        {
+          "database_type": "numeric",
+          "lib/deduplicated-name": "capital_contributed",
+          "lib/original-name": "capital_contributed",
+          "name": "capital_contributed",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "capital_contributed",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "capital_contributed",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "capital_contributed",
+          "display_name": "capital_contributed",
+          "base_type": "type/Decimal"
+        },
+        {
+          "database_type": "numeric",
+          "lib/deduplicated-name": "capital_withdrawn",
+          "lib/original-name": "capital_withdrawn",
+          "name": "capital_withdrawn",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "capital_withdrawn",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "capital_withdrawn",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "capital_withdrawn",
+          "display_name": "capital_withdrawn",
+          "base_type": "type/Decimal"
+        },
+        {
+          "database_type": "numeric",
+          "lib/deduplicated-name": "capital_movement",
+          "lib/original-name": "capital_movement",
+          "name": "capital_movement",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "capital_movement",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "capital_movement",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "capital_movement",
+          "display_name": "capital_movement",
+          "base_type": "type/Decimal"
+        },
+        {
+          "database_type": "numeric",
+          "lib/deduplicated-name": "net_earned",
+          "lib/original-name": "net_earned",
+          "name": "net_earned",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "net_earned",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "net_earned",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "net_earned",
+          "display_name": "net_earned",
+          "base_type": "type/Decimal"
+        },
+        {
+          "database_type": "numeric",
+          "lib/deduplicated-name": "capital_eod",
+          "lib/original-name": "capital_eod",
+          "name": "capital_eod",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "capital_eod",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "capital_eod",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "capital_eod",
+          "display_name": "capital_eod",
+          "base_type": "type/Decimal"
+        }
+      ],
+      "collection_id": 8,
+      "name": "Partners · daily source",
+      "type": "model",
+      "dataset_query": {
+        "stages": [
+          {
+            "lib/type": "mbql.stage/native",
+            "native": "SELECT * FROM public.reporting_partner_daily_v1"
+          }
+        ],
+        "lib/type": "mbql/query",
+        "database": 2
+      },
+      "id": 322,
+      "display": "table",
+      "visualization_settings": {}
+    },
+    {
+      "key": "capital_ledger",
+      "description": "R044 thin metadata over governed read-only PostgreSQL provider. No financial writes.",
+      "result_metadata": [
+        {
+          "database_type": "text",
+          "lib/deduplicated-name": "capital_id",
+          "lib/original-name": "capital_id",
+          "name": "capital_id",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "capital_id",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "capital_id",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "effective_type": "type/Text",
+          "lib/desired-column-alias": "capital_id",
+          "display_name": "capital_id",
+          "base_type": "type/Text"
+        },
+        {
+          "database_type": "text",
+          "lib/deduplicated-name": "partner_id",
+          "lib/original-name": "partner_id",
+          "name": "partner_id",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "partner_id",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "partner_id",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "effective_type": "type/Text",
+          "lib/desired-column-alias": "partner_id",
+          "display_name": "partner_id",
+          "base_type": "type/Text"
+        },
+        {
+          "database_type": "text",
+          "lib/deduplicated-name": "partner_name",
+          "lib/original-name": "partner_name",
+          "name": "partner_name",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "partner_name",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "partner_name",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "effective_type": "type/Text",
+          "lib/desired-column-alias": "partner_name",
+          "display_name": "partner_name",
+          "base_type": "type/Text"
+        },
+        {
+          "database_type": "text",
+          "lib/deduplicated-name": "partner_role",
+          "lib/original-name": "partner_role",
+          "name": "partner_role",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "partner_role",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "partner_role",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "effective_type": "type/Text",
+          "lib/desired-column-alias": "partner_role",
+          "display_name": "partner_role",
+          "base_type": "type/Text"
+        },
+        {
+          "database_type": "date",
+          "lib/deduplicated-name": "activity_date",
+          "lib/original-name": "activity_date",
+          "name": "activity_date",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "activity_date",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "activity_date",
+            {
+              "base-type": "type/Date"
+            }
+          ],
+          "effective_type": "type/Date",
+          "lib/desired-column-alias": "activity_date",
+          "display_name": "activity_date",
+          "base_type": "type/Date"
+        },
+        {
+          "database_type": "text",
+          "lib/deduplicated-name": "transaction_type",
+          "lib/original-name": "transaction_type",
+          "name": "transaction_type",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "transaction_type",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "transaction_type",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "effective_type": "type/Text",
+          "lib/desired-column-alias": "transaction_type",
+          "display_name": "transaction_type",
+          "base_type": "type/Text"
+        },
+        {
+          "database_type": "numeric",
+          "lib/deduplicated-name": "amount",
+          "lib/original-name": "amount",
+          "name": "amount",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "amount",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "amount",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "amount",
+          "display_name": "amount",
+          "base_type": "type/Decimal"
+        },
+        {
+          "database_type": "numeric",
+          "lib/deduplicated-name": "net_movement",
+          "lib/original-name": "net_movement",
+          "name": "net_movement",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "net_movement",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "net_movement",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "net_movement",
+          "display_name": "net_movement",
+          "base_type": "type/Decimal"
+        },
+        {
+          "database_type": "bool",
+          "lib/deduplicated-name": "valid",
+          "lib/original-name": "valid",
+          "name": "valid",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "valid",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "valid",
+            {
+              "base-type": "type/Boolean"
+            }
+          ],
+          "effective_type": "type/Boolean",
+          "lib/desired-column-alias": "valid",
+          "display_name": "valid",
+          "base_type": "type/Boolean"
+        },
+        {
+          "database_type": "numeric",
+          "lib/deduplicated-name": "date_end_capital",
+          "lib/original-name": "date_end_capital",
+          "name": "date_end_capital",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "date_end_capital",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "date_end_capital",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "date_end_capital",
+          "display_name": "date_end_capital",
+          "base_type": "type/Decimal"
+        }
+      ],
+      "collection_id": 8,
+      "name": "Partners · capital ledger source",
+      "type": "model",
+      "dataset_query": {
+        "stages": [
+          {
+            "lib/type": "mbql.stage/native",
+            "native": "SELECT * FROM public.reporting_partner_capital_ledger_v1"
+          }
+        ],
+        "lib/type": "mbql/query",
+        "database": 2
+      },
+      "id": 323,
+      "display": "table",
+      "visualization_settings": {}
+    }
+  ],
+  "parameters": [
+    {
+      "slug": "pt_partner",
+      "values_query_type": "list",
+      "name": "Partner",
+      "isMultiSelect": true,
+      "type": "string/=",
+      "sectionId": "string",
+      "values_source_type": "card",
+      "id": "pt-partner",
+      "values_source_config": {
+        "card_id": 324,
+        "value_field": [
+          "field",
+          "Partner ID",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "label_field": [
+          "field",
+          "Partner",
+          {
+            "base-type": "type/Text"
+          }
+        ]
+      }
+    },
+    {
+      "id": "pt-period",
+      "name": "Partner activity period",
+      "slug": "pt_activity",
+      "type": "date/all-options",
+      "sectionId": "date",
+      "default": "thismonth"
+    },
+    {
+      "slug": "pt_settlement_status",
+      "values_query_type": "list",
+      "name": "Settlement ledger status",
+      "isMultiSelect": false,
+      "type": "string/=",
+      "sectionId": "string",
+      "values_source_type": "static-list",
+      "id": "pt-status",
+      "values_source_config": {
+        "values": [
+          "Pending",
+          "Completed",
+          "Cancelled"
+        ]
+      }
+    }
+  ],
+  "layout": [
+    {
+      "id": 4908,
+      "card_id": null,
+      "dashboard_tab_id": 249,
+      "row": 0,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "## Partners\nCurrent capital, earned profit and settlements. All amounts are baht; current balances stay current when activity dates change."
+          }
+        }
+      }
+    },
+    {
+      "id": 4909,
+      "card_id": 325,
+      "dashboard_tab_id": 249,
+      "row": 3,
+      "col": 0,
+      "size_x": 8,
+      "size_y": 4,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "pt-partner",
+          "card_id": 325,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "partner"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {}
+    },
+    {
+      "id": 4910,
+      "card_id": 326,
+      "dashboard_tab_id": 249,
+      "row": 3,
+      "col": 8,
+      "size_x": 8,
+      "size_y": 4,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "pt-partner",
+          "card_id": 326,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "partner"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {}
+    },
+    {
+      "id": 4911,
+      "card_id": 327,
+      "dashboard_tab_id": 249,
+      "row": 3,
+      "col": 16,
+      "size_x": 8,
+      "size_y": 4,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "pt-partner",
+          "card_id": 327,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "partner"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {}
+    },
+    {
+      "id": 4912,
+      "card_id": 328,
+      "dashboard_tab_id": 249,
+      "row": 7,
+      "col": 0,
+      "size_x": 12,
+      "size_y": 4,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "pt-partner",
+          "card_id": 328,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "partner"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {}
+    },
+    {
+      "id": 4913,
+      "card_id": 329,
+      "dashboard_tab_id": 249,
+      "row": 7,
+      "col": 12,
+      "size_x": 12,
+      "size_y": 4,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "pt-partner",
+          "card_id": 329,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "partner"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {}
+    },
+    {
+      "id": 4914,
+      "card_id": 330,
+      "dashboard_tab_id": 249,
+      "row": 11,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 7,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "pt-partner",
+          "card_id": 330,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "partner"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {}
+    },
+    {
+      "id": 4915,
+      "card_id": 331,
+      "dashboard_tab_id": 249,
+      "row": 18,
+      "col": 0,
+      "size_x": 12,
+      "size_y": 9,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "pt-partner",
+          "card_id": 331,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "partner"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {}
+    },
+    {
+      "id": 4916,
+      "card_id": 332,
+      "dashboard_tab_id": 249,
+      "row": 18,
+      "col": 12,
+      "size_x": 12,
+      "size_y": 9,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "pt-partner",
+          "card_id": 332,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "partner"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {}
+    },
+    {
+      "id": 4917,
+      "card_id": null,
+      "dashboard_tab_id": 249,
+      "row": 27,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "### Actual activity · selected dates\nNet earnings are after allocated expenses. Payouts use transfer dates and may include profit earned earlier. Partial months show only selected dates."
+          }
+        }
+      }
+    },
+    {
+      "id": 4918,
+      "card_id": 333,
+      "dashboard_tab_id": 249,
+      "row": 30,
+      "col": 0,
+      "size_x": 6,
+      "size_y": 4,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "pt-partner",
+          "card_id": 333,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "partner"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "pt-period",
+          "card_id": 333,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {}
+    },
+    {
+      "id": 4919,
+      "card_id": 334,
+      "dashboard_tab_id": 249,
+      "row": 30,
+      "col": 6,
+      "size_x": 6,
+      "size_y": 4,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "pt-partner",
+          "card_id": 334,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "partner"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "pt-period",
+          "card_id": 334,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {}
+    },
+    {
+      "id": 4920,
+      "card_id": 335,
+      "dashboard_tab_id": 249,
+      "row": 30,
+      "col": 12,
+      "size_x": 6,
+      "size_y": 4,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "pt-partner",
+          "card_id": 335,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "partner"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "pt-period",
+          "card_id": 335,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {}
+    },
+    {
+      "id": 4921,
+      "card_id": 336,
+      "dashboard_tab_id": 249,
+      "row": 30,
+      "col": 18,
+      "size_x": 6,
+      "size_y": 4,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "pt-partner",
+          "card_id": 336,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "partner"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "pt-period",
+          "card_id": 336,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {}
+    },
+    {
+      "id": 4922,
+      "card_id": 337,
+      "dashboard_tab_id": 249,
+      "row": 34,
+      "col": 0,
+      "size_x": 12,
+      "size_y": 9,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "pt-partner",
+          "card_id": 337,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "partner"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "pt-period",
+          "card_id": 337,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {}
+    },
+    {
+      "id": 4923,
+      "card_id": 338,
+      "dashboard_tab_id": 249,
+      "row": 34,
+      "col": 12,
+      "size_x": 12,
+      "size_y": 9,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "pt-partner",
+          "card_id": 338,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "partner"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "pt-period",
+          "card_id": 338,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {}
+    },
+    {
+      "id": 4924,
+      "card_id": 339,
+      "dashboard_tab_id": 249,
+      "row": 43,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 10,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "pt-partner",
+          "card_id": 339,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "partner"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "pt-period",
+          "card_id": 339,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {}
+    },
+    {
+      "id": 4925,
+      "card_id": null,
+      "dashboard_tab_id": 249,
+      "row": 53,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "### Pending settlements · current\nAll pending reservations are shown, including future or missing transfer dates. A blank table means there are no pending settlements; the activity period does not apply."
+          }
+        }
+      }
+    },
+    {
+      "id": 4926,
+      "card_id": 340,
+      "dashboard_tab_id": 249,
+      "row": 56,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 6,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "pt-partner",
+          "card_id": 340,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "partner"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {}
+    },
+    {
+      "id": 4927,
+      "card_id": null,
+      "dashboard_tab_id": 249,
+      "row": 62,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "### Transaction detail · selected dates\nCapital withdrawals and profit payouts are separate. The status filter affects the settlement ledger only. Cancelled entries remain visible as history."
+          }
+        }
+      }
+    },
+    {
+      "id": 4928,
+      "card_id": 341,
+      "dashboard_tab_id": 249,
+      "row": 65,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 9,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "pt-partner",
+          "card_id": 341,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "partner"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "pt-period",
+          "card_id": 341,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {}
+    },
+    {
+      "id": 4929,
+      "card_id": 342,
+      "dashboard_tab_id": 249,
+      "row": 74,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 9,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "pt-partner",
+          "card_id": 342,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "partner"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "pt-period",
+          "card_id": 342,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "period"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "pt-status",
+          "card_id": 342,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "status"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {}
+    },
+    {
+      "id": 4930,
+      "card_id": 343,
+      "dashboard_tab_id": 249,
+      "row": 83,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 5,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "pt-partner",
+          "card_id": 343,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "partner"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {}
+    },
+    {
+      "id": 4931,
+      "card_id": null,
+      "dashboard_tab_id": 249,
+      "row": 88,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "Net available is an entitlement after reservations, not cash on hand. Current totals use all recorded balances; past activity is restated by corrections. [Cash Position](/dashboard/3?tab=14) shows liquidity. Complete settlements in OLAP."
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "alerts": [
+    {
+      "status": "firing",
+      "fingerprint": "mw-grafana-bridge-synthetic-20261003T100026Z-one-notification",
+      "labels": {
+        "alertname": "MW Grafana Bridge Synthetic Test",
+        "component": "synthetic-test"
+      },
+      "annotations": {
+        "summary": "SYNTHETIC TEST ONLY: one approved Grafana bridge notification; no business or private data."
+      },
+      "startsAt": "2026-10-03T10:00:26Z"
+    }
+  ]
+}

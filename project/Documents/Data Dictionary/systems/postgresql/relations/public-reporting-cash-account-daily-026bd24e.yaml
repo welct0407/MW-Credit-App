@@ -1,0 +1,397 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "relation"
+  "name": "public.reporting_cash_account_daily"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "reporting_cash_account_daily"
+    "kind": "v"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "n"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,metabase_borrower_reader=r/postgres,mw_app_prod=r/postgres}"
+    "comment": "R016 cash by account at Bangkok period end using immutable opening-minus-baseline and dated ledger effects.\
+      \ Unavailable before the account cutover. Later corrections restate history; account ownership is immutable."
+    "view_definition": |2-
+       WITH days AS (
+               SELECT reporting_income_daily."Date"
+                 FROM reporting_income_daily
+              ), flows AS (
+               SELECT "Cash Ledger"."Ref To Cash Account" AS account,
+                  "Cash Ledger"."Movement Date" AS d,
+                  "Cash Ledger"."Amount" AS amount
+                 FROM "Cash Ledger"
+                WHERE "Cash Ledger"."Ref To Cash Account" IS NOT NULL
+              UNION ALL
+               SELECT "Cash Ledger"."Ref From Cash Account",
+                  "Cash Ledger"."Movement Date",
+                  - "Cash Ledger"."Amount"
+                 FROM "Cash Ledger"
+                WHERE "Cash Ledger"."Ref From Cash Account" IS NOT NULL
+              ), daily AS (
+               SELECT flows.account,
+                  flows.d,
+                  sum(flows.amount) AS amount
+                 FROM flows
+                GROUP BY flows.account, flows.d
+              ), positions AS (
+               SELECT d."Date",
+                  a."Row ID" AS account,
+                  a."Ref Cash Holder" AS holder,
+                  h."Holder Name",
+                  a."Account Label",
+                  (c."Cutover At" AT TIME ZONE 'Asia/Bangkok'::text)::date AS available_from,
+                      CASE
+                          WHEN d."Date" >= (c."Cutover At" AT TIME ZONE 'Asia/Bangkok'::text)::date THEN c."Opening Balance" - c."Baseline Cash In" + c."Baseline Cash Out" + COALESCE(( SELECT sum(f.amount) AS sum
+                             FROM daily f
+                            WHERE f.account = a."Row ID" AND f.d <= d."Date"), 0::numeric)
+                          ELSE NULL::numeric
+                      END AS balance
+                 FROM days d
+                   CROSS JOIN "Cash Accounts" a
+                   JOIN "Cash Holders" h ON h."Row ID" = a."Ref Cash Holder"
+                   LEFT JOIN r008_cash_account_cutover c ON c."Ref Cash Account" = a."Row ID"
+              )
+       SELECT jsonb_build_array(account, "Date")::text AS "Position ID",
+          "Date",
+          account AS "Cash Account ID",
+          holder AS "Cash Holder ID",
+          "Holder Name" AS "Cash Holder",
+          "Account Label" AS "Account",
+          balance AS "Current Balance",
+              CASE
+                  WHEN balance IS NOT NULL THEN GREATEST(balance, 0::numeric)
+                  ELSE NULL::numeric
+              END AS "Business Cash Held",
+              CASE
+                  WHEN balance IS NOT NULL THEN GREATEST(- balance, 0::numeric)
+                  ELSE NULL::numeric
+              END AS "Advance Due",
+          available_from AS "Available From",
+              CASE
+                  WHEN balance IS NOT NULL THEN 'Available'::text
+                  ELSE 'Before opening baseline or opening missing'::text
+              END AS "Balance Status",
+              CASE
+                  WHEN bool_and(balance IS NOT NULL) OVER (PARTITION BY "Date", holder) THEN GREATEST(balance, 0::numeric)
+                  ELSE NULL::numeric
+              END AS "Holder Cash Component"
+         FROM positions;
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "columns":
+    "Position ID":
+      "schema": "public"
+      "relation": "reporting_cash_account_daily"
+      "name": "Position ID"
+      "ordinal": 1
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Date":
+      "schema": "public"
+      "relation": "reporting_cash_account_daily"
+      "name": "Date"
+      "ordinal": 2
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Cash Account ID":
+      "schema": "public"
+      "relation": "reporting_cash_account_daily"
+      "name": "Cash Account ID"
+      "ordinal": 3
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Cash Holder ID":
+      "schema": "public"
+      "relation": "reporting_cash_account_daily"
+      "name": "Cash Holder ID"
+      "ordinal": 4
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Cash Holder":
+      "schema": "public"
+      "relation": "reporting_cash_account_daily"
+      "name": "Cash Holder"
+      "ordinal": 5
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Account":
+      "schema": "public"
+      "relation": "reporting_cash_account_daily"
+      "name": "Account"
+      "ordinal": 6
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Current Balance":
+      "schema": "public"
+      "relation": "reporting_cash_account_daily"
+      "name": "Current Balance"
+      "ordinal": 7
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Business Cash Held":
+      "schema": "public"
+      "relation": "reporting_cash_account_daily"
+      "name": "Business Cash Held"
+      "ordinal": 8
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Advance Due":
+      "schema": "public"
+      "relation": "reporting_cash_account_daily"
+      "name": "Advance Due"
+      "ordinal": 9
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Available From":
+      "schema": "public"
+      "relation": "reporting_cash_account_daily"
+      "name": "Available From"
+      "ordinal": 10
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Balance Status":
+      "schema": "public"
+      "relation": "reporting_cash_account_daily"
+      "name": "Balance Status"
+      "ordinal": 11
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Holder Cash Component":
+      "schema": "public"
+      "relation": "reporting_cash_account_daily"
+      "name": "Holder Cash Component"
+      "ordinal": 12
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+  "constraints": {}
+  "indexes": {}
+  "triggers": {}
+  "policies": {}
+  "dependencies":
+  - "schema": "public"
+    "relation": "reporting_cash_account_daily"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Accounts"
+    "referenced_column": "Account Label"
+  - "schema": "public"
+    "relation": "reporting_cash_account_daily"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Accounts"
+    "referenced_column": "Ref Cash Holder"
+  - "schema": "public"
+    "relation": "reporting_cash_account_daily"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Accounts"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "reporting_cash_account_daily"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Holders"
+    "referenced_column": "Holder Name"
+  - "schema": "public"
+    "relation": "reporting_cash_account_daily"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Holders"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "reporting_cash_account_daily"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Ledger"
+    "referenced_column": "Amount"
+  - "schema": "public"
+    "relation": "reporting_cash_account_daily"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Ledger"
+    "referenced_column": "Movement Date"
+  - "schema": "public"
+    "relation": "reporting_cash_account_daily"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Ledger"
+    "referenced_column": "Ref From Cash Account"
+  - "schema": "public"
+    "relation": "reporting_cash_account_daily"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Ledger"
+    "referenced_column": "Ref To Cash Account"
+  - "schema": "public"
+    "relation": "reporting_cash_account_daily"
+    "referenced_schema": "public"
+    "referenced_relation": "r008_cash_account_cutover"
+    "referenced_column": "Baseline Cash In"
+  - "schema": "public"
+    "relation": "reporting_cash_account_daily"
+    "referenced_schema": "public"
+    "referenced_relation": "r008_cash_account_cutover"
+    "referenced_column": "Baseline Cash Out"
+  - "schema": "public"
+    "relation": "reporting_cash_account_daily"
+    "referenced_schema": "public"
+    "referenced_relation": "r008_cash_account_cutover"
+    "referenced_column": "Cutover At"
+  - "schema": "public"
+    "relation": "reporting_cash_account_daily"
+    "referenced_schema": "public"
+    "referenced_relation": "r008_cash_account_cutover"
+    "referenced_column": "Opening Balance"
+  - "schema": "public"
+    "relation": "reporting_cash_account_daily"
+    "referenced_schema": "public"
+    "referenced_relation": "r008_cash_account_cutover"
+    "referenced_column": "Ref Cash Account"
+  - "schema": "public"
+    "relation": "reporting_cash_account_daily"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_income_daily"
+    "referenced_column": "Date"
+"evidence":
+  "/content/definition/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"

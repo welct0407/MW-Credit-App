@@ -1,0 +1,14 @@
+{
+  "measured_at": "2026-09-22T17:21:15.933Z",
+  "checks": [
+    {
+      "view": "reporting_cash_account_daily",
+      "execution_ms": 36.285
+    },
+    {
+      "view": "reporting_cash_daily",
+      "execution_ms": 24.773
+    }
+  ],
+  "note": "Single-run database execution diagnostics, not dashboard latency or a billing benchmark."
+}

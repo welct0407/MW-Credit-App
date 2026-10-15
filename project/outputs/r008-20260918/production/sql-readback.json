@@ -1,0 +1,43 @@
+{
+  "release": "R008",
+  "environment": "production",
+  "observed_at": "2026-09-19T04:09:02.893226+07:00",
+  "flyway_version": 24,
+  "cash_accounts": [
+    {
+      "row_id": "1cc9637f-6fc6-419b-abd0-6e3777a57279",
+      "holder": "ch:dad",
+      "label": "Dad TTB",
+      "bank": "TTB",
+      "default": true,
+      "active": true,
+      "sort": 10
+    },
+    {
+      "row_id": "7d587fc5-483b-4bd8-9bd7-facf5baab2b3",
+      "holder": "ch:lisa",
+      "label": "Lisa",
+      "bank": "Unspecified",
+      "default": true,
+      "active": true,
+      "sort": 10
+    },
+    {
+      "row_id": "3be18209-078c-4a68-a50b-199f4340894d",
+      "holder": "ch:dad",
+      "label": "Dad SCB",
+      "bank": "SCB",
+      "default": false,
+      "active": true,
+      "sort": 20
+    }
+  ],
+  "account_count": 3,
+  "active_default_count": 2,
+  "holders_without_one_active_default": 0,
+  "ledger_rows": 22,
+  "holder_account_mismatches": 0,
+  "synthetic_r008_accounts": 0,
+  "uninitialized_account_balances": 3,
+  "initialized_account_balances": 0
+}

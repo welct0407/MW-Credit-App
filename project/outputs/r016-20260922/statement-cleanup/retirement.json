@@ -1,0 +1,183 @@
+{
+  "at": "2026-09-23T16:10:24.907Z",
+  "retired": [
+    {
+      "id": 180,
+      "name": "Business cash held*",
+      "type": "question"
+    },
+    {
+      "id": 187,
+      "name": "Cash Accounts by Date",
+      "type": "model"
+    },
+    {
+      "id": 183,
+      "name": "Cash by account · period end",
+      "type": "question"
+    },
+    {
+      "id": 191,
+      "name": "Cashflow Daily Balances",
+      "type": "model"
+    },
+    {
+      "id": 190,
+      "name": "Cashflow Transactions",
+      "type": "model"
+    },
+    {
+      "id": 179,
+      "name": "Cash pool remaining",
+      "type": "question"
+    },
+    {
+      "id": 188,
+      "name": "Cash Position by Date",
+      "type": "model"
+    },
+    {
+      "id": 201,
+      "name": "Cash position reconciliation · position date",
+      "type": "question"
+    },
+    {
+      "id": 166,
+      "name": "Income Statement",
+      "type": "model"
+    },
+    {
+      "id": 172,
+      "name": "Income waterfall · Total = Unsettled Profit",
+      "type": "question"
+    },
+    {
+      "id": 174,
+      "name": "Lisa draw",
+      "type": "question"
+    },
+    {
+      "id": 53,
+      "name": "Loan Account Balance",
+      "type": "question"
+    },
+    {
+      "id": 65,
+      "name": "Loan Account Balance Composition",
+      "type": "question"
+    },
+    {
+      "id": 165,
+      "name": "Monthly Income",
+      "type": "model"
+    },
+    {
+      "id": 66,
+      "name": "Outstanding Principal by Loan Type",
+      "type": "question"
+    },
+    {
+      "id": 200,
+      "name": "Partner advances · position date",
+      "type": "question"
+    },
+    {
+      "id": 67,
+      "name": "Principal Issued vs Principal Returned",
+      "type": "question"
+    },
+    {
+      "id": 185,
+      "name": "Settlement Ledger",
+      "type": "model"
+    },
+    {
+      "id": 173,
+      "name": "Tommy draw",
+      "type": "question"
+    },
+    {
+      "id": 175,
+      "name": "Unsettled profit",
+      "type": "question"
+    },
+    {
+      "id": 182,
+      "name": "Who holds the business cash? · period end",
+      "type": "question"
+    }
+  ],
+  "retained_models": [
+    {
+      "id": 206,
+      "name": "Account Cash Snapshots"
+    },
+    {
+      "id": 72,
+      "name": "Borrower Performance"
+    },
+    {
+      "id": 69,
+      "name": "Borrowers"
+    },
+    {
+      "id": 163,
+      "name": "Business Expenses"
+    },
+    {
+      "id": 164,
+      "name": "Cash Account Positions"
+    },
+    {
+      "id": 75,
+      "name": "Charge History"
+    },
+    {
+      "id": 162,
+      "name": "Collection Status Summary"
+    },
+    {
+      "id": 77,
+      "name": "Collection Worklist"
+    },
+    {
+      "id": 205,
+      "name": "Daily Cash Snapshots"
+    },
+    {
+      "id": 74,
+      "name": "Daily Performance"
+    },
+    {
+      "id": 186,
+      "name": "Income Events"
+    },
+    {
+      "id": 70,
+      "name": "Loan Book"
+    },
+    {
+      "id": 76,
+      "name": "Partner Outlook"
+    },
+    {
+      "id": 73,
+      "name": "Portfolio Overview"
+    },
+    {
+      "id": 71,
+      "name": "Repayment Ledger"
+    }
+  ],
+  "external_roots_checked": [
+    "all dashboards",
+    "parameter value sources",
+    "card references",
+    "snippet references",
+    "alerts",
+    "subscriptions"
+  ],
+  "applied": true,
+  "active_models": 15,
+  "active_model_fields": 228
+}

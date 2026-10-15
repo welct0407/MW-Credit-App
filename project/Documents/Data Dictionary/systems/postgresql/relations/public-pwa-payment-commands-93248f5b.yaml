@@ -1,0 +1,829 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "relation"
+  "name": "public.pwa_payment_commands"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r052/dictionary-production-closure.json"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "pwa_payment_commands"
+    "kind": "r"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "d"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,mw_app_prod_journal_owner=ar/postgres,mw_app_prod=r/postgres}"
+    "comment": null
+    "view_definition": null
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "columns":
+    "request_id":
+      "schema": "public"
+      "relation": "pwa_payment_commands"
+      "name": "request_id"
+      "ordinal": 1
+      "data_type": "uuid"
+      "type_schema": "pg_catalog"
+      "type_name": "uuid"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "contract_version":
+      "schema": "public"
+      "relation": "pwa_payment_commands"
+      "name": "contract_version"
+      "ordinal": 2
+      "data_type": "smallint"
+      "type_schema": "pg_catalog"
+      "type_name": "int2"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "actor_issuer":
+      "schema": "public"
+      "relation": "pwa_payment_commands"
+      "name": "actor_issuer"
+      "ordinal": 3
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "actor_subject":
+      "schema": "public"
+      "relation": "pwa_payment_commands"
+      "name": "actor_subject"
+      "ordinal": 4
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "actor_partner_id":
+      "schema": "public"
+      "relation": "pwa_payment_commands"
+      "name": "actor_partner_id"
+      "ordinal": 5
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "actor_login_email":
+      "schema": "public"
+      "relation": "pwa_payment_commands"
+      "name": "actor_login_email"
+      "ordinal": 6
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "canonical_json":
+      "schema": "public"
+      "relation": "pwa_payment_commands"
+      "name": "canonical_json"
+      "ordinal": 7
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "payload_sha256":
+      "schema": "public"
+      "relation": "pwa_payment_commands"
+      "name": "payload_sha256"
+      "ordinal": 8
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "outcome":
+      "schema": "public"
+      "relation": "pwa_payment_commands"
+      "name": "outcome"
+      "ordinal": 9
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "payment_id":
+      "schema": "public"
+      "relation": "pwa_payment_commands"
+      "name": "payment_id"
+      "ordinal": 10
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "rejection_code":
+      "schema": "public"
+      "relation": "pwa_payment_commands"
+      "name": "rejection_code"
+      "ordinal": 11
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "recorded_at":
+      "schema": "public"
+      "relation": "pwa_payment_commands"
+      "name": "recorded_at"
+      "ordinal": 12
+      "data_type": "timestamp with time zone"
+      "type_schema": "pg_catalog"
+      "type_name": "timestamptz"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": "transaction_timestamp()"
+      "collation": null
+      "acl": null
+      "comment": null
+    "result_json":
+      "schema": "public"
+      "relation": "pwa_payment_commands"
+      "name": "result_json"
+      "ordinal": 13
+      "data_type": "jsonb"
+      "type_schema": "pg_catalog"
+      "type_name": "jsonb"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+  "constraints":
+    "pwa_contract_versions":
+      "schema": "public"
+      "relation": "pwa_payment_commands"
+      "name": "pwa_contract_versions"
+      "kind": "c"
+      "definition": "CHECK (contract_version = ANY (ARRAY[1, 2]))"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 2
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_payment_commands_actor_issuer_check":
+      "schema": "public"
+      "relation": "pwa_payment_commands"
+      "name": "pwa_payment_commands_actor_issuer_check"
+      "kind": "c"
+      "definition": "CHECK (octet_length(actor_issuer) >= 1 AND octet_length(actor_issuer) <= 1024)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 3
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_payment_commands_actor_issuer_not_null":
+      "schema": "public"
+      "relation": "pwa_payment_commands"
+      "name": "pwa_payment_commands_actor_issuer_not_null"
+      "kind": "n"
+      "definition": "NOT NULL actor_issuer"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 3
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_payment_commands_actor_login_email_check":
+      "schema": "public"
+      "relation": "pwa_payment_commands"
+      "name": "pwa_payment_commands_actor_login_email_check"
+      "kind": "c"
+      "definition": "CHECK (octet_length(actor_login_email) >= 1 AND octet_length(actor_login_email) <= 320)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 6
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_payment_commands_actor_login_email_not_null":
+      "schema": "public"
+      "relation": "pwa_payment_commands"
+      "name": "pwa_payment_commands_actor_login_email_not_null"
+      "kind": "n"
+      "definition": "NOT NULL actor_login_email"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 6
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_payment_commands_actor_partner_id_check":
+      "schema": "public"
+      "relation": "pwa_payment_commands"
+      "name": "pwa_payment_commands_actor_partner_id_check"
+      "kind": "c"
+      "definition": "CHECK (octet_length(actor_partner_id) >= 1 AND octet_length(actor_partner_id) <= 256)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 5
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_payment_commands_actor_partner_id_not_null":
+      "schema": "public"
+      "relation": "pwa_payment_commands"
+      "name": "pwa_payment_commands_actor_partner_id_not_null"
+      "kind": "n"
+      "definition": "NOT NULL actor_partner_id"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 5
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_payment_commands_actor_subject_check":
+      "schema": "public"
+      "relation": "pwa_payment_commands"
+      "name": "pwa_payment_commands_actor_subject_check"
+      "kind": "c"
+      "definition": "CHECK (octet_length(actor_subject) >= 1 AND octet_length(actor_subject) <= 128)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 4
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_payment_commands_actor_subject_not_null":
+      "schema": "public"
+      "relation": "pwa_payment_commands"
+      "name": "pwa_payment_commands_actor_subject_not_null"
+      "kind": "n"
+      "definition": "NOT NULL actor_subject"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 4
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_payment_commands_canonical_json_check":
+      "schema": "public"
+      "relation": "pwa_payment_commands"
+      "name": "pwa_payment_commands_canonical_json_check"
+      "kind": "c"
+      "definition": "CHECK (octet_length(canonical_json) <= 524288)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 7
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_payment_commands_canonical_json_not_null":
+      "schema": "public"
+      "relation": "pwa_payment_commands"
+      "name": "pwa_payment_commands_canonical_json_not_null"
+      "kind": "n"
+      "definition": "NOT NULL canonical_json"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 7
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_payment_commands_check1":
+      "schema": "public"
+      "relation": "pwa_payment_commands"
+      "name": "pwa_payment_commands_check1"
+      "kind": "c"
+      "definition": "CHECK (payload_sha256 = encode(sha256(convert_to(canonical_json, 'UTF8'::name)), 'hex'::text))"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 8
+      - 7
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_payment_commands_contract_version_not_null":
+      "schema": "public"
+      "relation": "pwa_payment_commands"
+      "name": "pwa_payment_commands_contract_version_not_null"
+      "kind": "n"
+      "definition": "NOT NULL contract_version"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 2
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_payment_commands_outcome_not_null":
+      "schema": "public"
+      "relation": "pwa_payment_commands"
+      "name": "pwa_payment_commands_outcome_not_null"
+      "kind": "n"
+      "definition": "NOT NULL outcome"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 9
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_payment_commands_payload_sha256_check":
+      "schema": "public"
+      "relation": "pwa_payment_commands"
+      "name": "pwa_payment_commands_payload_sha256_check"
+      "kind": "c"
+      "definition": "CHECK (payload_sha256 ~ '^[0-9a-f]{64}$'::text)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 8
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_payment_commands_payload_sha256_not_null":
+      "schema": "public"
+      "relation": "pwa_payment_commands"
+      "name": "pwa_payment_commands_payload_sha256_not_null"
+      "kind": "n"
+      "definition": "NOT NULL payload_sha256"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 8
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_payment_commands_payment_id_key":
+      "schema": "public"
+      "relation": "pwa_payment_commands"
+      "name": "pwa_payment_commands_payment_id_key"
+      "kind": "u"
+      "definition": "UNIQUE (payment_id)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 10
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_payment_commands_pkey":
+      "schema": "public"
+      "relation": "pwa_payment_commands"
+      "name": "pwa_payment_commands_pkey"
+      "kind": "p"
+      "definition": "PRIMARY KEY (request_id)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_payment_commands_recorded_at_not_null":
+      "schema": "public"
+      "relation": "pwa_payment_commands"
+      "name": "pwa_payment_commands_recorded_at_not_null"
+      "kind": "n"
+      "definition": "NOT NULL recorded_at"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 12
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_payment_commands_request_id_check":
+      "schema": "public"
+      "relation": "pwa_payment_commands"
+      "name": "pwa_payment_commands_request_id_check"
+      "kind": "c"
+      "definition": "CHECK (request_id::text ~ '^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'::text)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_payment_commands_request_id_not_null":
+      "schema": "public"
+      "relation": "pwa_payment_commands"
+      "name": "pwa_payment_commands_request_id_not_null"
+      "kind": "n"
+      "definition": "NOT NULL request_id"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_versioned_envelope":
+      "schema": "public"
+      "relation": "pwa_payment_commands"
+      "name": "pwa_versioned_envelope"
+      "kind": "c"
+      "definition": |-
+        CHECK ((jsonb_typeof(canonical_json::jsonb) = 'object'::text AND (canonical_json::jsonb ->> 'contractVersion'::text) = contract_version::text AND
+        CASE
+            WHEN contract_version = 1 THEN canonical_json::jsonb #>> '{command,requestId}'::text[]
+            ELSE canonical_json::jsonb ->> 'requestId'::text
+        END = request_id::text AND (canonical_json::jsonb #>> '{actor,issuer}'::text[]) = actor_issuer AND (canonical_json::jsonb #>> '{actor,subject}'::text[]) = actor_subject AND (canonical_json::jsonb #>> '{actor,partnerId}'::text[]) = actor_partner_id AND (canonical_json::jsonb #>> '{actor,loginEmail}'::text[]) = actor_login_email) IS TRUE)
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 7
+      - 2
+      - 1
+      - 3
+      - 4
+      - 5
+      - 6
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_versioned_outcome":
+      "schema": "public"
+      "relation": "pwa_payment_commands"
+      "name": "pwa_versioned_outcome"
+      "kind": "c"
+      "definition": "CHECK ((contract_version = 1 AND result_json IS NULL AND (outcome = 'posted'::text AND payment_id = ('pwa:'::text\
+        \ || request_id::text) AND rejection_code IS NULL OR outcome = 'rejected'::text AND payment_id IS NULL AND (rejection_code\
+        \ = ANY (ARRAY['invalid_date'::text, 'borrower_unavailable'::text, 'account_unavailable'::text, 'selection_unavailable'::text])))\
+        \ OR contract_version = 2 AND payment_id IS NULL AND (outcome = 'applied'::text AND rejection_code IS NULL AND jsonb_typeof(result_json)\
+        \ = 'object'::text AND octet_length(result_json::text) <= 524288 AND result_json ?& ARRAY['operation'::text, 'targetType'::text,\
+        \ 'targetId'::text, 'paymentId'::text, 'plan'::text, 'predecessorRequestId'::text] AND (result_json - ARRAY['operation'::text,\
+        \ 'targetType'::text, 'targetId'::text, 'paymentId'::text, 'plan'::text, 'predecessorRequestId'::text, 'sourceCreatedBy'::text])\
+        \ = '{}'::jsonb AND (NOT result_json ? 'sourceCreatedBy'::text OR (jsonb_typeof(result_json -> 'sourceCreatedBy'::text)\
+        \ = ANY (ARRAY['string'::text, 'null'::text]))) AND (result_json ->> 'operation'::text) = (canonical_json::jsonb #>>\
+        \ '{command,operation}'::text[]) AND (result_json ->> 'targetType'::text) = (canonical_json::jsonb #>> '{command,targetType}'::text[])\
+        \ AND (result_json ->> 'targetId'::text) = (canonical_json::jsonb #>> '{command,targetId}'::text[]) OR outcome = 'rejected'::text\
+        \ AND result_json IS NULL AND (rejection_code = ANY (ARRAY['source_conflict'::text, 'not_found'::text, 'invalid_reference'::text,\
+        \ 'borrower_name_exists'::text, 'dependency_conflict'::text, 'insufficient_funds'::text, 'plan_changed'::text, 'invalid_date'::text,\
+        \ 'account_unavailable'::text, 'record_requires_reconciliation'::text])))) IS TRUE)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 2
+      - 13
+      - 9
+      - 10
+      - 1
+      - 11
+      - 7
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+  "indexes":
+    "pwa_operation_actor_v2":
+      "schema": "public"
+      "relation": "pwa_payment_commands"
+      "name": "pwa_operation_actor_v2"
+      "definition": "CREATE INDEX pwa_operation_actor_v2 ON public.pwa_payment_commands USING btree (actor_issuer, actor_subject,\
+        \ recorded_at, request_id) WHERE (contract_version = 2)"
+      "unique": false
+      "primary": false
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 4
+      "total_attribute_count": 4
+      "predicate": "(contract_version = 2)"
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
+    "pwa_operation_receipt_v2":
+      "schema": "public"
+      "relation": "pwa_payment_commands"
+      "name": "pwa_operation_receipt_v2"
+      "definition": "CREATE UNIQUE INDEX pwa_operation_receipt_v2 ON public.pwa_payment_commands USING btree (((result_json\
+        \ ->> 'paymentId'::text))) WHERE ((contract_version = 2) AND (outcome = 'applied'::text) AND (((canonical_json)::jsonb\
+        \ #>> '{command,operation}'::text[]) = ANY (ARRAY['loan.create'::text, 'loan.close'::text, 'charge.create'::text])))"
+      "unique": true
+      "primary": false
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 1
+      "total_attribute_count": 1
+      "predicate": "((contract_version = 2) AND (outcome = 'applied'::text) AND (((canonical_json)::jsonb #>> '{command,operation}'::text[])\
+        \ = ANY (ARRAY['loan.create'::text, 'loan.close'::text, 'charge.create'::text])))"
+      "expressions": "(result_json ->> 'paymentId'::text)"
+      "options": null
+      "access_method": "btree"
+      "comment": null
+    "pwa_operation_successor_v2":
+      "schema": "public"
+      "relation": "pwa_payment_commands"
+      "name": "pwa_operation_successor_v2"
+      "definition": "CREATE UNIQUE INDEX pwa_operation_successor_v2 ON public.pwa_payment_commands USING btree ((((canonical_json)::jsonb\
+        \ #>> '{command,targetId}'::text[])), COALESCE(((canonical_json)::jsonb #>> '{command,predecessorRequestId}'::text[]),\
+        \ ''::text)) WHERE ((contract_version = 2) AND (outcome = 'applied'::text) AND (((canonical_json)::jsonb #>> '{command,operation}'::text[])\
+        \ = 'payment.correct'::text))"
+      "unique": true
+      "primary": false
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 2
+      "total_attribute_count": 2
+      "predicate": "((contract_version = 2) AND (outcome = 'applied'::text) AND (((canonical_json)::jsonb #>> '{command,operation}'::text[])\
+        \ = 'payment.correct'::text))"
+      "expressions": "((canonical_json)::jsonb #>> '{command,targetId}'::text[]), COALESCE(((canonical_json)::jsonb #>> '{command,predecessorRequestId}'::text[]),\
+        \ ''::text)"
+      "options": null
+      "access_method": "btree"
+      "comment": null
+    "pwa_operation_target_v2":
+      "schema": "public"
+      "relation": "pwa_payment_commands"
+      "name": "pwa_operation_target_v2"
+      "definition": "CREATE INDEX pwa_operation_target_v2 ON public.pwa_payment_commands USING btree ((((canonical_json)::jsonb\
+        \ #>> '{command,operation}'::text[])), (((canonical_json)::jsonb #>> '{command,targetType}'::text[])), (((canonical_json)::jsonb\
+        \ #>> '{command,targetId}'::text[])), recorded_at, request_id) WHERE (contract_version = 2)"
+      "unique": false
+      "primary": false
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 5
+      "total_attribute_count": 5
+      "predicate": "(contract_version = 2)"
+      "expressions": "((canonical_json)::jsonb #>> '{command,operation}'::text[]), ((canonical_json)::jsonb #>> '{command,targetType}'::text[]),\
+        \ ((canonical_json)::jsonb #>> '{command,targetId}'::text[])"
+      "options": null
+      "access_method": "btree"
+      "comment": null
+    "pwa_payment_commands_payment_id_key":
+      "schema": "public"
+      "relation": "pwa_payment_commands"
+      "name": "pwa_payment_commands_payment_id_key"
+      "definition": "CREATE UNIQUE INDEX pwa_payment_commands_payment_id_key ON public.pwa_payment_commands USING btree (payment_id)"
+      "unique": true
+      "primary": false
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 1
+      "total_attribute_count": 1
+      "predicate": null
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
+    "pwa_payment_commands_pkey":
+      "schema": "public"
+      "relation": "pwa_payment_commands"
+      "name": "pwa_payment_commands_pkey"
+      "definition": "CREATE UNIQUE INDEX pwa_payment_commands_pkey ON public.pwa_payment_commands USING btree (request_id)"
+      "unique": true
+      "primary": true
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 1
+      "total_attribute_count": 1
+      "predicate": null
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
+  "triggers":
+    "pwa_payment_commands_no_mutation":
+      "schema": "public"
+      "relation": "pwa_payment_commands"
+      "name": "pwa_payment_commands_no_mutation"
+      "definition": "CREATE TRIGGER pwa_payment_commands_no_mutation BEFORE DELETE OR UPDATE ON pwa_payment_commands FOR EACH\
+        \ ROW EXECUTE FUNCTION guard_pwa_payment_commands_immutable()"
+      "enabled": "O"
+      "internal": false
+      "routine": "guard_pwa_payment_commands_immutable()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "pwa_payment_commands_no_truncate":
+      "schema": "public"
+      "relation": "pwa_payment_commands"
+      "name": "pwa_payment_commands_no_truncate"
+      "definition": "CREATE TRIGGER pwa_payment_commands_no_truncate BEFORE TRUNCATE ON pwa_payment_commands FOR EACH STATEMENT\
+        \ EXECUTE FUNCTION guard_pwa_payment_commands_immutable()"
+      "enabled": "O"
+      "internal": false
+      "routine": "guard_pwa_payment_commands_immutable()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+  "policies": {}
+  "dependencies": []

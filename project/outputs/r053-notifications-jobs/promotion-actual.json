@@ -1,0 +1,161 @@
+{
+  "release": "R053",
+  "status": "Released with owner-accepted deferred natural-business checks",
+  "releaseStatus": "Released",
+  "runtimeSourceCommit": "1bc08f3e171d043a5a3ca01335d3746113c68cb2",
+  "operatorSourceCommit": "5fca4e476c010f6a90e5e18f72881577ed467c7b",
+  "agentCommit": "e9fd149914a3fa49f036c1eec75a8d4dc8a07c00",
+  "database": {
+    "dev": 90,
+    "prod": 90,
+    "groupedPending": [
+      90
+    ],
+    "authorityRestored": true
+  },
+  "ci": {
+    "applicationRun": 38202842623,
+    "applicationConclusion": "success",
+    "databaseRun": 38201112557,
+    "databaseConclusion": "success",
+    "databaseSourceCommit": "1bc08f3e171d043a5a3ca01335d3746113c68cb2",
+    "agentRun": 38200988357,
+    "agentConclusion": "success",
+    "browserPassed": 271,
+    "browserSkipped": 9,
+    "agentPassed": 312,
+    "agentPrerequisiteSkips": 42,
+    "reuse": "Runtime/build and SQL/database/integration inputs unchanged at promotion5fca; original failure receipts retained"
+  },
+  "hosting": {
+    "schemaVersion": 1,
+    "sourceCommit": "5fca4e476c010f6a90e5e18f72881577ed467c7b",
+    "site": "mw-credit-prod-737787224638",
+    "version": "sites/mw-credit-prod-737787224638/versions/9dd049f29f6d77d6",
+    "release": "sites/mw-credit-prod-737787224638/releases/1791779076726000",
+    "publicVersion": "81100bc605443cbb098fdfcc",
+    "fileCount": 14,
+    "cacheControl": "no-store",
+    "approvalReference": "Owner 12 October 2026: proceed CI and deployment then promote production"
+  },
+  "runtime": {
+    "reader": "00004-htx",
+    "command": "00005-p4s",
+    "jobs": "00003-q4h",
+    "notify": "00002-cth",
+    "imageDigest": "sha256:77254376cd3b07bf01b21b1df219c433550ddbdf38f77e6f8d9aede86441678d",
+    "jobsImageDigest": "sha256:11c149f746bceefc0b4c5d81dfce0295cdca533fa36d63c101f9971f3f643d56",
+    "jobsSourceCommit": "959b1181715547729e11588ba1bfdac10a8a9f20",
+    "imageDigestScope": "reader/command77254376; notify42534b and jobs11c149 preserved",
+    "notifyImageDigest": "sha256:42534b790ebccd73448d5bc56490a959586ea5494604583443b630705a0c7778"
+  },
+  "appsheet": {
+    "oltp": "3.000275",
+    "olap": "1.100215",
+    "chargesBotEnabled": false,
+    "analyticsBotEnabled": false,
+    "savedZeroIssuesDeployed": true
+  },
+  "jobs": {
+    "dailyChargesSchedule": "ENABLED",
+    "analyticsSchedule": "ENABLED",
+    "timeZone": "Asia/Bangkok",
+    "naturalExecutionVerified": false,
+    "firstObservation": {
+      "analytics": "HTTP400 on natural scheduled requests; narrow runtime/header diagnosis active",
+      "charges": "not yet due/no attempt",
+      "evidence": "MW-Credit-App outputs/r053-notifications-jobs/production-jobs-first-observation.json"
+    },
+    "pendingCorrection": {
+      "sourceCommit": "959b1181715547729e11588ba1bfdac10a8a9f20",
+      "scope": "RFC3339 offset validation and fixed diagnostics",
+      "focusedTests": "9/9 passed",
+      "imageDeployment": "applied jobs-only11c149/00003-q4h",
+      "nextNaturalInvocation": "Natural corrected analytics passed; first due charges remains unobserved"
+    },
+    "naturalAnalytics": {
+      "status": "PASS: bounded actual natural execution",
+      "revision": "mw-credit-app-jobs-prod-00003-q4h",
+      "httpStatus": 200,
+      "httpAt": "2026-10-12T02:00:04.265768Z",
+      "structuredCompletedAt": "2026-10-12T02:00:09.419068Z",
+      "requestId": "recent-analytics|2026-10-12|hour:09",
+      "forced": false,
+      "financialRowsAudited": false
+    }
+  },
+  "notifications": {
+    "enrollmentApiEnabled": true,
+    "workerEnabled": true,
+    "captureEnabled": true,
+    "dispatchEnabled": true,
+    "recoverySchedule": "ENABLED",
+    "deviceAcceptance": "DEV actual receipt PASS; PROD Home Screen notification enrollment/authenticated enable route PASS",
+    "activationEvidence": "MW-Credit-App outputs/r053-notifications-jobs/production-notification-runtime-activation.json",
+    "captureEvidence": "MW-Credit-App outputs/r053-notifications-jobs/production-capture-activation-evidence.json",
+    "productionEnrollment": "owner confirmed Notifications enabled"
+  },
+  "agent": {
+    "sharedReceiptApiEnabled": true,
+    "cutoff": "2026-10-11T20:03:29.6477163+00:00",
+    "previouslyActiveTimersResumed": 6,
+    "readOnlyOidcStatusProbe": "passed",
+    "financialPostTested": false,
+    "remainingAppSheetDependenciesPreserved": true,
+    "nativeConversationApiEnabled": true,
+    "catalogueRevision": 27,
+    "remainingOperationalAppSheetDependencies": false,
+    "monitoringException": "Owner deferred collector/Grafana AppSheet probes; accepted temporary failure",
+    "nativeReadOnlyProbe": "Two scopes plus unused UUID receipt status passed",
+    "cutoffsAndReceiptRoutePreserved": true
+  },
+  "verificationPending": [],
+  "rollback": "Fresh protected DEV89/PROD89/mw_agent dumps and isolated restores; captured Hosting baseline and native-agent package/config pointer. Reviewed recovery only; preserve original cutoffs and later writes.",
+  "retainedArtifacts": {
+    "purpose": "Protected recovery and owner-accepted deferred natural-business follow-up",
+    "reviewDate": "2026-10-19",
+    "disposableDatabaseClusters": "removed"
+  },
+  "agentEvidencePublicationCommit": "a4b347d5e799c846267d1c90151fbfc5752076a6",
+  "devNotificationProof": {
+    "registrationUi": "owner confirmed enabled",
+    "activeOwnerAppleSubscriptions": 1,
+    "providerAcceptance": "verified",
+    "deliveryState": "sent",
+    "attempts": 1,
+    "completedAt": "2026-10-12T01:32:22.828Z",
+    "deviceReceipt": "owner confirmed received YES",
+    "captureEnabled": false,
+    "recoverySchedulerState": "PAUSED",
+    "financialRowsWritten": 0,
+    "evidence": "MW-Credit-App outputs/r053-notifications-jobs/dev-owner-notification-provider-proof.json",
+    "deviceGate": "PASS"
+  },
+  "scopeException": {
+    "ownerDate": "2026-10-12",
+    "releaseStillFrozen": false,
+    "successorStillOpen": "R054",
+    "scope": "Native operational agent/API/app retirement applied; historical AppSheet assets and deferred monitoring retained",
+    "monitoring": "Explicitly deferred; temporary failure accepted and not an R053 API/app blocker",
+    "newMigration": "Function-only V90 applied; DEV/PROD validate90"
+  },
+  "initialR053SourcePins": {
+    "runtimeSourceCommit": "673223d504bb4c20b408fe97d05f8e8523f8d4f2",
+    "operatorSourceCommit": "dc4e75de24c99b5217c2895066957862a72e2cbb",
+    "agentCommit": "35c7d9e831a49d3e27d0b544728a7efb77a42928"
+  },
+  "nativeRetirementEvidence": "MW-Credit-App outputs/r053-appsheet-retirement/deployment-evidence.json",
+  "ownerAcceptedDeferredChecks": [
+    "First natural charges execution",
+    "First genuine shared-agent payment"
+  ],
+  "ownerClosure": {
+    "date": "2026-10-12",
+    "instruction": "ok. close R053. then we will make some UI fine-tuning in R054",
+    "acceptance": "Owner accepted closure on 12 October 2026; first natural charges and first genuine shared-agent payment remain unobserved and explicitly deferred, not claimed tested.",
+    "successor": "R054",
+    "successorScope": "UI fine-tuning; individual changes not yet specified"
+  },
+  "finalEvidenceTag": "R053",
+  "appEvidencePublicationCommit": "5e360d1566af29b3878aef567ccd33a1adc56a4d"
+}

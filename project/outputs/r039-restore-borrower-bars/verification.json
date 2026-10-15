@@ -1,0 +1,20 @@
+{
+  "passed": true,
+  "sixChartsPresent": true,
+  "existingCardsPreserved": true,
+  "otherTabsAndFiltersPreserved": true,
+  "checks": [
+    {
+      "id": 285,
+      "rows": 11,
+      "definitionUnchanged": true,
+      "originalMappingsAndDrillThroughRestored": true
+    },
+    {
+      "id": 286,
+      "rows": 11,
+      "definitionUnchanged": true,
+      "originalMappingsAndDrillThroughRestored": true
+    }
+  ]
+}

@@ -1,0 +1,585 @@
+{
+  "DB Columns": [
+    [
+      "agent_audit.commits",
+      "operation_id",
+      1,
+      "uuid",
+      "NO",
+      null
+    ],
+    [
+      "agent_audit.commits",
+      "database_txid",
+      2,
+      "xid8",
+      "NO",
+      "pg_current_xact_id()"
+    ],
+    [
+      "agent_audit.commits",
+      "database_name",
+      3,
+      "name",
+      "NO",
+      "current_database()"
+    ],
+    [
+      "agent_audit.commits",
+      "reviewer_id",
+      4,
+      "text",
+      "NO",
+      null
+    ],
+    [
+      "agent_audit.commits",
+      "reviewer_login",
+      5,
+      "text",
+      "NO",
+      null
+    ],
+    [
+      "agent_audit.commits",
+      "plan_sha256",
+      6,
+      "text",
+      "NO",
+      null
+    ],
+    [
+      "agent_audit.commits",
+      "request_reason",
+      7,
+      "text",
+      "NO",
+      null
+    ],
+    [
+      "agent_audit.commits",
+      "direct_targets",
+      8,
+      "jsonb",
+      "NO",
+      null
+    ],
+    [
+      "agent_audit.commits",
+      "code_version",
+      9,
+      "text",
+      "NO",
+      null
+    ],
+    [
+      "agent_audit.commits",
+      "recorded_in_transaction_at",
+      10,
+      "timestamp with time zone",
+      "NO",
+      "clock_timestamp()"
+    ],
+    [
+      "agent_audit.commits",
+      "database_session_role",
+      11,
+      "name",
+      "NO",
+      "SESSION_USER"
+    ],
+    [
+      "agent_audit.exports",
+      "operation_id",
+      1,
+      "uuid",
+      "NO",
+      null
+    ],
+    [
+      "agent_audit.exports",
+      "central_completion_event_id",
+      2,
+      "uuid",
+      "NO",
+      null
+    ],
+    [
+      "agent_audit.exports",
+      "exported_at",
+      3,
+      "timestamp with time zone",
+      "NO",
+      "clock_timestamp()"
+    ],
+    [
+      "agent_audit.row_changes",
+      "change_id",
+      1,
+      "bigint",
+      "NO",
+      null
+    ],
+    [
+      "agent_audit.row_changes",
+      "operation_id",
+      2,
+      "uuid",
+      "NO",
+      null
+    ],
+    [
+      "agent_audit.row_changes",
+      "database_txid",
+      3,
+      "xid8",
+      "NO",
+      "pg_current_xact_id()"
+    ],
+    [
+      "agent_audit.row_changes",
+      "schema_name",
+      4,
+      "name",
+      "NO",
+      null
+    ],
+    [
+      "agent_audit.row_changes",
+      "table_name",
+      5,
+      "name",
+      "NO",
+      null
+    ],
+    [
+      "agent_audit.row_changes",
+      "action",
+      6,
+      "text",
+      "NO",
+      null
+    ],
+    [
+      "agent_audit.row_changes",
+      "row_key",
+      7,
+      "jsonb",
+      "NO",
+      null
+    ],
+    [
+      "agent_audit.row_changes",
+      "before_row",
+      8,
+      "jsonb",
+      "YES",
+      null
+    ],
+    [
+      "agent_audit.row_changes",
+      "after_row",
+      9,
+      "jsonb",
+      "YES",
+      null
+    ],
+    [
+      "agent_audit.row_changes",
+      "observed_at",
+      10,
+      "timestamp with time zone",
+      "NO",
+      "clock_timestamp()"
+    ]
+  ],
+  "DB Constraints": [
+    [
+      "agent_audit.commits",
+      "commits_code_version_not_null",
+      "n",
+      true,
+      "NOT NULL code_version"
+    ],
+    [
+      "agent_audit.commits",
+      "commits_database_name_not_null",
+      "n",
+      true,
+      "NOT NULL database_name"
+    ],
+    [
+      "agent_audit.commits",
+      "commits_database_session_role_not_null",
+      "n",
+      true,
+      "NOT NULL database_session_role"
+    ],
+    [
+      "agent_audit.commits",
+      "commits_database_txid_key",
+      "u",
+      true,
+      "UNIQUE (database_txid)"
+    ],
+    [
+      "agent_audit.commits",
+      "commits_database_txid_not_null",
+      "n",
+      true,
+      "NOT NULL database_txid"
+    ],
+    [
+      "agent_audit.commits",
+      "commits_direct_targets_check",
+      "c",
+      true,
+      "CHECK ((jsonb_typeof(direct_targets) = 'array'::text))"
+    ],
+    [
+      "agent_audit.commits",
+      "commits_direct_targets_not_null",
+      "n",
+      true,
+      "NOT NULL direct_targets"
+    ],
+    [
+      "agent_audit.commits",
+      "commits_operation_id_database_txid_key",
+      "u",
+      true,
+      "UNIQUE (operation_id, database_txid)"
+    ],
+    [
+      "agent_audit.commits",
+      "commits_operation_id_not_null",
+      "n",
+      true,
+      "NOT NULL operation_id"
+    ],
+    [
+      "agent_audit.commits",
+      "commits_pkey",
+      "p",
+      true,
+      "PRIMARY KEY (operation_id)"
+    ],
+    [
+      "agent_audit.commits",
+      "commits_plan_sha256_check",
+      "c",
+      true,
+      "CHECK ((plan_sha256 ~ '^[0-9a-f]{64}$'::text))"
+    ],
+    [
+      "agent_audit.commits",
+      "commits_plan_sha256_not_null",
+      "n",
+      true,
+      "NOT NULL plan_sha256"
+    ],
+    [
+      "agent_audit.commits",
+      "commits_recorded_in_transaction_at_not_null",
+      "n",
+      true,
+      "NOT NULL recorded_in_transaction_at"
+    ],
+    [
+      "agent_audit.commits",
+      "commits_request_reason_check",
+      "c",
+      true,
+      "CHECK ((btrim(request_reason) <> ''::text))"
+    ],
+    [
+      "agent_audit.commits",
+      "commits_request_reason_not_null",
+      "n",
+      true,
+      "NOT NULL request_reason"
+    ],
+    [
+      "agent_audit.commits",
+      "commits_reviewer_id_check",
+      "c",
+      true,
+      "CHECK ((btrim(reviewer_id) <> ''::text))"
+    ],
+    [
+      "agent_audit.commits",
+      "commits_reviewer_id_not_null",
+      "n",
+      true,
+      "NOT NULL reviewer_id"
+    ],
+    [
+      "agent_audit.commits",
+      "commits_reviewer_login_check",
+      "c",
+      true,
+      "CHECK ((btrim(reviewer_login) <> ''::text))"
+    ],
+    [
+      "agent_audit.commits",
+      "commits_reviewer_login_not_null",
+      "n",
+      true,
+      "NOT NULL reviewer_login"
+    ],
+    [
+      "agent_audit.exports",
+      "exports_central_completion_event_id_key",
+      "u",
+      true,
+      "UNIQUE (central_completion_event_id)"
+    ],
+    [
+      "agent_audit.exports",
+      "exports_central_completion_event_id_not_null",
+      "n",
+      true,
+      "NOT NULL central_completion_event_id"
+    ],
+    [
+      "agent_audit.exports",
+      "exports_exported_at_not_null",
+      "n",
+      true,
+      "NOT NULL exported_at"
+    ],
+    [
+      "agent_audit.exports",
+      "exports_operation_id_fkey",
+      "f",
+      true,
+      "FOREIGN KEY (operation_id) REFERENCES agent_audit.commits(operation_id)"
+    ],
+    [
+      "agent_audit.exports",
+      "exports_operation_id_not_null",
+      "n",
+      true,
+      "NOT NULL operation_id"
+    ],
+    [
+      "agent_audit.exports",
+      "exports_pkey",
+      "p",
+      true,
+      "PRIMARY KEY (operation_id)"
+    ],
+    [
+      "agent_audit.row_changes",
+      "row_changes_action_check",
+      "c",
+      true,
+      "CHECK ((action = ANY (ARRAY['INSERT'::text, 'UPDATE'::text, 'DELETE'::text])))"
+    ],
+    [
+      "agent_audit.row_changes",
+      "row_changes_action_not_null",
+      "n",
+      true,
+      "NOT NULL action"
+    ],
+    [
+      "agent_audit.row_changes",
+      "row_changes_change_id_not_null",
+      "n",
+      true,
+      "NOT NULL change_id"
+    ],
+    [
+      "agent_audit.row_changes",
+      "row_changes_check",
+      "c",
+      true,
+      "CHECK ((((action = 'INSERT'::text) AND (before_row IS NULL) AND (after_row IS NOT NULL)) OR ((action = 'UPDATE'::text) AND (before_row IS NOT NULL) AND (after_row IS NOT NULL)) OR ((action = 'DELETE'::text) AND (before_row IS NOT NULL) AND (after_row IS NULL))))"
+    ],
+    [
+      "agent_audit.row_changes",
+      "row_changes_database_txid_not_null",
+      "n",
+      true,
+      "NOT NULL database_txid"
+    ],
+    [
+      "agent_audit.row_changes",
+      "row_changes_observed_at_not_null",
+      "n",
+      true,
+      "NOT NULL observed_at"
+    ],
+    [
+      "agent_audit.row_changes",
+      "row_changes_operation_id_database_txid_fkey",
+      "f",
+      true,
+      "FOREIGN KEY (operation_id, database_txid) REFERENCES agent_audit.commits(operation_id, database_txid)"
+    ],
+    [
+      "agent_audit.row_changes",
+      "row_changes_operation_id_not_null",
+      "n",
+      true,
+      "NOT NULL operation_id"
+    ],
+    [
+      "agent_audit.row_changes",
+      "row_changes_pkey",
+      "p",
+      true,
+      "PRIMARY KEY (change_id)"
+    ],
+    [
+      "agent_audit.row_changes",
+      "row_changes_row_key_check",
+      "c",
+      true,
+      "CHECK ((jsonb_typeof(row_key) = 'object'::text))"
+    ],
+    [
+      "agent_audit.row_changes",
+      "row_changes_row_key_not_null",
+      "n",
+      true,
+      "NOT NULL row_key"
+    ],
+    [
+      "agent_audit.row_changes",
+      "row_changes_schema_name_not_null",
+      "n",
+      true,
+      "NOT NULL schema_name"
+    ],
+    [
+      "agent_audit.row_changes",
+      "row_changes_table_name_not_null",
+      "n",
+      true,
+      "NOT NULL table_name"
+    ]
+  ],
+  "DB Logic": [
+    [
+      "PROD and DEV trigger",
+      "agent_audit.commits",
+      "commits_append_only",
+      "R015 / V33",
+      "CREATE TRIGGER commits_append_only BEFORE DELETE OR UPDATE OR TRUNCATE ON agent_audit.commits FOR EACH STATEMENT EXECUTE FUNCTION agent_audit.reject_rewrite()"
+    ],
+    [
+      "PROD and DEV trigger",
+      "agent_audit.exports",
+      "exports_append_only",
+      "R015 / V33",
+      "CREATE TRIGGER exports_append_only BEFORE DELETE OR UPDATE OR TRUNCATE ON agent_audit.exports FOR EACH STATEMENT EXECUTE FUNCTION agent_audit.reject_rewrite()"
+    ],
+    [
+      "PROD and DEV trigger",
+      "agent_audit.row_changes",
+      "row_changes_append_only",
+      "R015 / V33",
+      "CREATE TRIGGER row_changes_append_only BEFORE DELETE OR UPDATE OR TRUNCATE ON agent_audit.row_changes FOR EACH STATEMENT EXECUTE FUNCTION agent_audit.reject_rewrite()"
+    ],
+    [
+      "PROD and DEV trigger",
+      "public.Borrowers",
+      "mw_agent_capture",
+      "R015 / V33",
+      "CREATE TRIGGER mw_agent_capture AFTER INSERT OR DELETE OR UPDATE ON public.\"Borrowers\" FOR EACH ROW EXECUTE FUNCTION agent_audit.capture_change()"
+    ],
+    [
+      "PROD and DEV trigger",
+      "public.Business Expenses",
+      "mw_agent_capture",
+      "R015 / V33",
+      "CREATE TRIGGER mw_agent_capture AFTER INSERT OR DELETE OR UPDATE ON public.\"Business Expenses\" FOR EACH ROW EXECUTE FUNCTION agent_audit.capture_change()"
+    ],
+    [
+      "PROD and DEV trigger",
+      "public.Cash Ledger",
+      "mw_agent_capture",
+      "R015 / V33",
+      "CREATE TRIGGER mw_agent_capture AFTER INSERT OR DELETE OR UPDATE ON public.\"Cash Ledger\" FOR EACH ROW EXECUTE FUNCTION agent_audit.capture_change()"
+    ],
+    [
+      "PROD and DEV trigger",
+      "public.Cash Pool Contributions",
+      "mw_agent_capture",
+      "R015 / V33",
+      "CREATE TRIGGER mw_agent_capture AFTER INSERT OR DELETE OR UPDATE ON public.\"Cash Pool Contributions\" FOR EACH ROW EXECUTE FUNCTION agent_audit.capture_change()"
+    ],
+    [
+      "PROD and DEV trigger",
+      "public.Charges",
+      "mw_agent_capture",
+      "R015 / V33",
+      "CREATE TRIGGER mw_agent_capture AFTER INSERT OR DELETE OR UPDATE ON public.\"Charges\" FOR EACH ROW EXECUTE FUNCTION agent_audit.capture_change()"
+    ],
+    [
+      "PROD and DEV trigger",
+      "public.Loans",
+      "mw_agent_capture",
+      "R015 / V33",
+      "CREATE TRIGGER mw_agent_capture AFTER INSERT OR DELETE OR UPDATE ON public.\"Loans\" FOR EACH ROW EXECUTE FUNCTION agent_audit.capture_change()"
+    ],
+    [
+      "PROD and DEV trigger",
+      "public.Payment Allocations",
+      "mw_agent_capture",
+      "R015 / V33",
+      "CREATE TRIGGER mw_agent_capture AFTER INSERT OR DELETE OR UPDATE ON public.\"Payment Allocations\" FOR EACH ROW EXECUTE FUNCTION agent_audit.capture_change()"
+    ],
+    [
+      "PROD and DEV trigger",
+      "public.Payments",
+      "mw_agent_capture",
+      "R015 / V33",
+      "CREATE TRIGGER mw_agent_capture AFTER INSERT OR DELETE OR UPDATE ON public.\"Payments\" FOR EACH ROW EXECUTE FUNCTION agent_audit.capture_change()"
+    ],
+    [
+      "PROD and DEV trigger",
+      "public.Repayments",
+      "mw_agent_capture",
+      "R015 / V33",
+      "CREATE TRIGGER mw_agent_capture AFTER INSERT OR DELETE OR UPDATE ON public.\"Repayments\" FOR EACH ROW EXECUTE FUNCTION agent_audit.capture_change()"
+    ],
+    [
+      "PROD and DEV trigger",
+      "public.Settlements",
+      "mw_agent_capture",
+      "R015 / V33",
+      "CREATE TRIGGER mw_agent_capture AFTER INSERT OR DELETE OR UPDATE ON public.\"Settlements\" FOR EACH ROW EXECUTE FUNCTION agent_audit.capture_change()"
+    ],
+    [
+      "PROD and DEV function",
+      "agent_audit",
+      "begin_operation",
+      "R015 / V33 SHA256 33bc2a13d4291803777b455bb2f7e515b2d250e9ccad716605f1b1707d1a98e1",
+      "CREATE OR REPLACE FUNCTION agent_audit.begin_operation(p_operation_id uuid, p_reviewer_id text, p_reviewer_login text, p_plan_sha256 text, p_request_reason text, p_direct_targets jsonb, p_code_version text)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'pg_catalog'\nAS $function$\nBEGIN\n IF session_user<>'mw_reviewer_dml' THEN RAISE EXCEPTION 'Dedicated reviewer connection required'; END IF;\n IF nullif(current_setting('mw_agent.operation_id',true),'') IS NOT NULL THEN\n  RAISE EXCEPTION 'Only one operation per transaction';\n END IF;\n INSERT INTO agent_audit.commits(operation_id,reviewer_id,reviewer_login,plan_sha256,request_reason,direct_targets,code_version)\n VALUES(p_operation_id,p_reviewer_id,p_reviewer_login,p_plan_sha256,p_request_reason,p_direct_targets,p_code_version);\n PERFORM set_config('mw_agent.operation_id',p_operation_id::text,true);\nEND $function$\n"
+    ],
+    [
+      "PROD and DEV function",
+      "agent_audit",
+      "capture_change",
+      "R015 / V33 SHA256 1b13399e49f1197594ef077eed26ba310a2b3d419b48abef9950fa524ad4b729",
+      "CREATE OR REPLACE FUNCTION agent_audit.capture_change()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'pg_catalog'\nAS $function$\nDECLARE operation uuid; old_value jsonb; new_value jsonb; key_value jsonb;\nBEGIN\n -- AppSheet/shared database identities are not relabelled as agent DML.\n -- API calls have central host audits, with the attribution limits in SCHEMA.md.\n IF session_user<>'mw_reviewer_dml' THEN RETURN NULL; END IF;\n operation:=nullif(current_setting('mw_agent.operation_id',true),'')::uuid;\n IF operation IS NULL OR NOT EXISTS (\n    SELECT 1 FROM agent_audit.commits c\n    WHERE c.operation_id=operation AND c.database_txid=pg_current_xact_id()\n      AND c.database_session_role=session_user) THEN\n  RAISE EXCEPTION 'Reviewer DML requires its transaction audit marker';\n END IF;\n IF TG_OP<>'INSERT' THEN old_value:=to_jsonb(OLD); END IF;\n IF TG_OP<>'DELETE' THEN new_value:=to_jsonb(NEW); END IF;\n key_value:=coalesce(new_value,old_value)->'Row ID';\n IF key_value IS NULL OR key_value='null'::jsonb THEN RAISE EXCEPTION 'Audited table key unavailable'; END IF;\n INSERT INTO agent_audit.row_changes(operation_id,schema_name,table_name,action,row_key,before_row,after_row)\n VALUES(operation,TG_TABLE_SCHEMA,TG_TABLE_NAME,TG_OP,jsonb_build_object('Row ID',key_value),old_value,new_value);\n RETURN NULL;\nEND $function$\n"
+    ],
+    [
+      "PROD and DEV function",
+      "agent_audit",
+      "reject_rewrite",
+      "R015 / V33 SHA256 c523e1b8c3e8b38644aade4a1189d2758db5ef338c2cbd6153c4d7d6d1257220",
+      "CREATE OR REPLACE FUNCTION agent_audit.reject_rewrite()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path TO 'pg_catalog'\nAS $function$\nBEGIN RAISE EXCEPTION 'Append-only transaction audit'; END $function$\n"
+    ],
+    [
+      "Internal database",
+      "mw_agent",
+      "Agent state and audit",
+      "R015; excluded from AppSheet",
+      "Separate database on appsheet-pg-prod-20260914. Central immutable V1-V3 in MW-Integration-Agent/database/migrations. 29 audit/runtime/migration tables plus deployment history. Model tools cannot issue DDL; worker cannot rewrite audit."
+    ]
+  ]
+}

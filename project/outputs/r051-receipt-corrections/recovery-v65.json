@@ -1,0 +1,11 @@
+{
+  "database": "loan_manager_dev",
+  "instance": "appsheet-pg-prod-20260914",
+  "host": "34.21.174.215",
+  "baseline_version": 65,
+  "sha256": "56200ffa454bd54294d84fc78683420332ab21310a0de29b5fb37a32112d5e55",
+  "table_count": 26,
+  "restored_fingerprints_match": true,
+  "private_artifact_reference": "r051-dev-recovery-msk4ned4",
+  "scope": "public,assessment_lab,agent_audit; roles and instance configuration excluded"
+}

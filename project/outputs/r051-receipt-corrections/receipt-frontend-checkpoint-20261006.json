@@ -1,0 +1,96 @@
+{
+  "provenance": "Coordinator supplied verified browser-worker evidence; source reviewed locally. No browser action by this executor.",
+  "verified_at_utc": "2026-10-06T08:50:30Z",
+  "OLTP": "1.000183",
+  "OLAP": "1.000053",
+  "database": "V70/checksum124258995; fresh read-only preflight at08:28:32 UTC linked separately",
+  "editor": "No issues found; Save and Undo disabled",
+  "runtime": "Actual full sync passed at183; Correction Guidance visible after Status in retained P2 detail and first in Edit form; optional Notes description visible.",
+  "versions": {
+    "179": "PAY_NOTES saved",
+    "180": "Show field saved",
+    "181": "Failed List/EnumList comparison; superseded",
+    "182": "Comparison corrected; actual full sync and bounded amount-form tests passed",
+    "183": "Guidance integrated into views; saved and actual sync/visibility passed"
+  },
+  "notes": {
+    "Invalid value error": "",
+    "Description": "หมายเหตุเพิ่มเติม (ไม่บังคับ) / Optional note.",
+    "ValidIf": "TRUE",
+    "RequiredIf": "FALSE"
+  },
+  "amount_valid_if": "OR(AND(IN([Row ID], Payments[Row ID]), [Ref Borrower] = LOOKUP([Row ID], \"Payments\", \"Row ID\", \"Ref Borrower\"), [_THIS] = LOOKUP([Row ID], \"Payments\", \"Row ID\", \"Amount Received\"), [Payment Date] = LOOKUP([Row ID], \"Payments\", \"Row ID\", \"Payment Date\"), [Allocation Method] = LOOKUP([Row ID], \"Payments\", \"Row ID\", \"Allocation Method\"), [Ref Target Charge] = LOOKUP([Row ID], \"Payments\", \"Row ID\", \"Ref Target Charge\"), [Ref Target Loan] = LOOKUP([Row ID], \"Payments\", \"Row ID\", \"Ref Target Loan\"), TEXT([Selected Charge IDs]) = TEXT(LOOKUP([Row ID], \"Payments\", \"Row ID\", \"Selected Charge IDs\"))), AND(ISNOTBLANK([_THIS]), [_THIS] > 0, [_THIS] = ROUND([_THIS]), OR(AND(NOT(IN([Row ID], Payments[Row ID])), [Allocation Method] = \"Loan Close\", ISNOTBLANK([Ref Target Loan]), [Ref Target Loan].[Ref Borrowers] = [Ref Borrower]), AND([_THIS] <= [Eligible Outstanding], IF(IN([Allocation Method], LIST(\"Single Full\", \"Receive All\", \"First-day Auto\", \"Loan Close\", \"Selected Charges\")), [_THIS] = [Eligible Outstanding], TRUE)))))",
+  "correction_guidance": {
+    "table": "Payments",
+    "name": "Correction Guidance",
+    "storage": "app-only",
+    "Type": "Show",
+    "Category": "Text",
+    "Show": true,
+    "Editable": false,
+    "DisplayName": "การแก้ไข / Corrections",
+    "AppFormula": "IFS([Status] = \"Processing\", \"รายการนี้กำลังประมวลผล กรุณารอและซิงค์ก่อนแก้ไขหรือลบ อย่าส่งซ้ำ / This receipt is processing. Wait and sync before editing or deleting. Do not submit again.\", [Status] = \"Error\", \"ตรวจวันที่ ผู้กู้ ยอดเงิน และรายการที่รับชำระ แล้วซิงค์ ใช้ Retry สำหรับคำขอเดิมที่ยังไม่สำเร็จ / Review the date, borrower, amount and targets, then sync. Use Retry for an unchanged failed request.\", TRUE, \"กรอกเงินบาทเต็มจำนวนมากกว่า 0 ภายในยอดที่รับได้ วิธีชำระเต็มต้องเท่ากับยอดนั้น แก้ไขรายการลูกที่ใบรับชำระต้นทาง บันทึกและซิงค์ก่อนใช้ลบรายการรับชำระ / Enter positive whole baht within the eligible balance; full methods require that balance. Correct generated rows through this receipt. Save and sync before Delete receipt.\")",
+    "Content": "IFS([Status] = \"Processing\", \"รายการนี้กำลังประมวลผล กรุณารอและซิงค์ก่อนแก้ไขหรือลบ อย่าส่งซ้ำ / This receipt is processing. Wait and sync before editing or deleting. Do not submit again.\", [Status] = \"Error\", \"ตรวจวันที่ ผู้กู้ ยอดเงิน และรายการที่รับชำระ แล้วซิงค์ ใช้ Retry สำหรับคำขอเดิมที่ยังไม่สำเร็จ / Review the date, borrower, amount and targets, then sync. Use Retry for an unchanged failed request.\", TRUE, \"กรอกเงินบาทเต็มจำนวนมากกว่า 0 ภายในยอดที่รับได้ วิธีชำระเต็มต้องเท่ากับยอดนั้น แก้ไขรายการลูกที่ใบรับชำระต้นทาง บันทึกและซิงค์ก่อนใช้ลบรายการรับชำระ / Enter positive whole baht within the eligible balance; full methods require that balance. Correct generated rows through this receipt. Save and sync before Delete receipt.\")"
+  },
+  "views": {
+    "Payments_Detail": "Insert Correction Guidance after Status; preserve prior order/settings",
+    "Payments_Form": "Prepend Correction Guidance; preserve prior order/settings",
+    "Receive Selected Charges_Form": "Prepend Correction Guidance; preserve prior order/settings"
+  },
+  "tests": {
+    "record": "SYN-R051-UI-P2",
+    "persisted_status": "Posted",
+    "persisted_amount": 5,
+    "eligible_capacity": 229,
+    "invalid_with_bilingual_error": [
+      0,
+      -1,
+      0.5,
+      230
+    ],
+    "valid_without_error": [
+      229,
+      5
+    ],
+    "exit": "Cancel/Discard; returned Posted5",
+    "submissions": 0,
+    "scope": "Form validation and visibility only; no financial save/posting test"
+  },
+  "source_review": {
+    "metadata_fields": [
+      "Ref Borrower",
+      "Amount Received",
+      "Payment Date",
+      "Allocation Method",
+      "Ref Target Charge",
+      "Ref Target Loan",
+      "Selected Charge IDs"
+    ],
+    "basis": "V59 payment_inputs lines4-8 / payment_crud_prepare line17; exact-full modes lines476-477; V51 payment_charge_balances lines51-75",
+    "capacity_crosscheck": "P2 recorded charge remainders10+110+104 plus own5 allocation =229. Original5 may pass metadata exemption;229 exercises the changed-amount branch.",
+    "limits": [
+      "AppSheet blank comparisons and TEXT(EnumList) equivalence to SQL null-safe raw-value equality need targeted tests, including changed selections.",
+      "Exact saved Eligible Charges/Outstanding expressions were not supplied in this checkpoint; P2 proves only the tested scope, not all methods or changed-target add-back.",
+      "New Loan Close branch allows any positive integer for a new row with matching borrower/target loan; SQL computes its final prepared amount. Generic initiation and prerequisites remain pending.",
+      "Amount expression alone does not enforce the method whitelist, date, target, component, default, opening or account constraints; preserve independent controls and test their coverage.",
+      "Metadata exemption skips allocation teardown, not separate V60 account/holder checks or Processing posting behavior."
+    ]
+  },
+  "pending": [
+    "New Loan Close generic initiation and contextual command acceptance",
+    "Full-method equality, prepared Loan Close and Selected Charges cases",
+    "Blank/list-change and metadata-only cases",
+    "Remaining frontend guard groups and broader GUI acceptance",
+    "Fresh exact cleanup inventory and coordinated cleanup"
+  ],
+  "group_status": {
+    "PAY_NOTES": "Saved; optional-note text visible. No new note submission.",
+    "PAY_AMOUNT": "Saved; bounded retained Lump Sum form cases passed; broader coverage pending.",
+    "PAY_PROCESSING": "Guidance saved; Processing/Error runtime-state coverage and action guards pending.",
+    "GENERATED_CHILD": "General receipt source guidance saved; child-control/navigation coverage pending.",
+    "other_groups": "Pending; this checkpoint claims no other completed group."
+  },
+  "live_database_writes": false,
+  "fixture_cleanup": false,
+  "release_complete": false
+}

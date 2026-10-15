@@ -1,0 +1,42 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.post_payment(p_id text)"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r052/dictionary-production-closure.json"
+  "coverage": "Actual bounded PROD87 catalogue after grouped migration and temporary authority restoration; no business-row\
+    \ capture."
+"content":
+  "definition":
+    "schema": "public"
+    "name": "post_payment"
+    "arguments": "p_id text"
+    "kind": "f"
+    "arguments_with_defaults": "p_id text"
+    "result": "void"
+    "definition": "CREATE OR REPLACE FUNCTION public.post_payment(p_id text)\n RETURNS void\n LANGUAGE plpgsql\n SET search_path\
+      \ TO 'pg_catalog', 'public'\nAS $function$BEGIN\r\n IF public.pwa_effective_payment_plan_v2(p_id) IS NOT NULL THEN PERFORM\
+      \ public.post_payment_explicit_v6(p_id);\r\n ELSE PERFORM public.post_payment_legacy_v59(p_id);END IF;\r\nEND $function$\n"
+    "owner": "postgres"
+    "language": "plpgsql"
+    "volatility": "v"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 0.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": "{=X/postgres,postgres=X/postgres,mw_app_prod=X/postgres}"
+    "comment": null
+    "extension": null
+"evidence":
+  "/content/definition":
+    "reference": "outputs/r047-production/postgresql-affected-definitions.json"
+    "reason": "R046/R047 promotion; saved production object readback"
+    "state": "value"

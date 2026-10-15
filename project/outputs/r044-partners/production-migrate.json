@@ -1,0 +1,24 @@
+{
+  "database" : "loan_manager_prod",
+  "databaseType" : "PostgreSQL",
+  "exception" : null,
+  "flywayVersion" : "13.6.0",
+  "initialSchemaVersion" : "46",
+  "licenseFailed" : false,
+  "migrations" : [ {
+    "category" : "Versioned",
+    "description" : "partner reporting",
+    "executionTime" : 538,
+    "filepath" : "C:\\Users\\MWCredit\\.codex\\worktrees\\r044\\AppSheet-Loan-Project\\database\\migrations\\V47__partner_reporting.sql",
+    "type" : "SQL",
+    "version" : "47"
+  } ],
+  "migrationsExecuted" : 1,
+  "operation" : "migrate",
+  "schemaName" : "",
+  "success" : true,
+  "targetSchemaVersion" : "47",
+  "timestamp" : "2026-09-26T23:39:31.2671324+07:00",
+  "totalMigrationTime" : 538,
+  "warnings" : [ ]
+}

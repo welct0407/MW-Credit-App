@@ -1,0 +1,10 @@
+{
+  "development": {
+    "receiptRows": 234,
+    "uniqueReceiptGrain": true,
+    "sourceFieldParity": true
+  },
+  "existingPublicRelationsMatchProdBaseline": true,
+  "newViewOnly": true,
+  "existingPublicRoutinesMatchAfterLineEndingNormalization": true
+}

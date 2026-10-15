@@ -1,0 +1,16 @@
+{
+  "at": "2026-09-24 16:27:45.374529+00:00",
+  "database": "loan_manager_prod",
+  "role": "metabase_borrower_reader",
+  "before": {
+    "reporting_charge_payment_health_v1": false,
+    "reporting_borrower_payment_health_v1": false,
+    "reporting_borrower_matrix_v2": false
+  },
+  "select_only": {
+    "reporting_charge_payment_health_v1": true,
+    "reporting_borrower_payment_health_v1": true,
+    "reporting_borrower_matrix_v2": true
+  },
+  "scope": "Three named reporting views only; no future-table or adapter grants"
+}

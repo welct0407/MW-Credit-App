@@ -1,0 +1,106 @@
+{
+  "at": "2026-09-24T18:32:35.590Z",
+  "checks": [
+    {
+      "key": "active",
+      "id": 253,
+      "rows": 1
+    },
+    {
+      "key": "overdue",
+      "id": 254,
+      "rows": 1
+    },
+    {
+      "key": "provisional",
+      "id": 255,
+      "rows": 1
+    },
+    {
+      "key": "unclassified",
+      "id": 256,
+      "rows": 1
+    },
+    {
+      "key": "freshness",
+      "id": 257,
+      "rows": 1
+    },
+    {
+      "key": "cow-count",
+      "id": 258,
+      "rows": 1
+    },
+    {
+      "key": "cow",
+      "id": 259,
+      "rows": 8
+    },
+    {
+      "key": "star-count",
+      "id": 260,
+      "rows": 1
+    },
+    {
+      "key": "star",
+      "id": 261,
+      "rows": 4
+    },
+    {
+      "key": "dog-count",
+      "id": 262,
+      "rows": 1
+    },
+    {
+      "key": "dog",
+      "id": 263,
+      "rows": 6
+    },
+    {
+      "key": "question-count",
+      "id": 264,
+      "rows": 1
+    },
+    {
+      "key": "question",
+      "id": 265,
+      "rows": 5
+    },
+    {
+      "key": "scatter",
+      "id": 266,
+      "rows": 23
+    },
+    {
+      "key": "health",
+      "id": 267,
+      "rows": 30
+    },
+    {
+      "key": "components",
+      "id": 268,
+      "rows": 23
+    },
+    {
+      "key": "review",
+      "id": 269,
+      "rows": 3
+    },
+    {
+      "key": "modified",
+      "id": 270,
+      "rows": 1
+    },
+    {
+      "key": "schedules",
+      "id": 271,
+      "rows": 23
+    },
+    {
+      "key": "schedule-loans",
+      "id": 272,
+      "rows": 19
+    }
+  ],
+  "other_tabs_unchanged": true
+}

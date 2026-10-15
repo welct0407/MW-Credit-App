@@ -1,0 +1,21 @@
+{
+  "changedCells": [
+    {
+      "sheet": "Columns",
+      "row": 215,
+      "col": 6
+    },
+    {
+      "sheet": "Columns",
+      "row": 215,
+      "col": 7
+    },
+    {
+      "sheet": "Columns",
+      "row": 215,
+      "col": 8
+    }
+  ],
+  "closedLoanCalculationUnchanged": true,
+  "otherSheetValuesUnchanged": true
+}

@@ -1,0 +1,203 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "metabase",
+    "component": "reports.mw-credit.com",
+    "kind": "question",
+    "name": "Additional lending · hypothetical only / 309",
+    "scope": "production"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r035-borrower-pages/saved-question-definitions.json"
+  },
+  "content": {
+    "key": "d-scenario",
+    "id": 309,
+    "name": "Additional lending · hypothetical only",
+    "description": "R035 additive borrower pages. Immutable borrower keys; Bangkok dates; current health from V41/V42. Signed receipts. No AppSheet/financial writes.",
+    "display": "table",
+    "type": "question",
+    "dataset_query": {
+      "stages": [
+        {
+          "template-tags": [
+            {
+              "display-name": "Borrower",
+              "id": "bp-borrower",
+              "name": "borrower_id",
+              "type": "text"
+            },
+            {
+              "type": "number",
+              "id": "bp-amount",
+              "name": "amount",
+              "display-name": "Additional principal",
+              "default": 0
+            }
+          ],
+          "lib/type": "mbql.stage/native",
+          "native": "WITH clock AS (SELECT public.olap_reporting_date() today), chosen AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE borrower_id= [[{{borrower_id}} --]] '__select_borrower__'\n), input AS (SELECT [[{{amount}} --]] 0\n AS amount), total AS (SELECT CASE WHEN bool_and(outstanding_principal IS NOT NULL) THEN sum(outstanding_principal) END principal FROM public.reporting_borrower_directory_v1 WHERE loan_count>0)\n SELECT CASE WHEN i.amount<0 OR i.amount::text IN ('NaN','Infinity','-Infinity') THEN 'Enter a nonnegative finite amount' ELSE 'Scenario only · no loan saved' END AS \"Status\",c.outstanding_principal AS \"Current principal ฿\",CASE WHEN i.amount>=0 AND i.amount::text NOT IN ('NaN','Infinity','-Infinity') THEN c.outstanding_principal+i.amount END AS \"Proposed principal ฿\",CASE WHEN t.principal>0 THEN c.outstanding_principal/t.principal END AS \"Current share\",CASE WHEN i.amount>=0 AND i.amount::text NOT IN ('NaN','Infinity','-Infinity') AND t.principal+i.amount>0 THEN (c.outstanding_principal+i.amount)/(t.principal+i.amount) END AS \"Proposed share\" FROM chosen c CROSS JOIN input i CROSS JOIN total t"
+        }
+      ],
+      "lib/type": "mbql/query",
+      "database": 2
+    },
+    "visualization_settings": {
+      "table.pivot": false,
+      "table.columns": [
+        {
+          "name": "Status",
+          "fieldRef": [
+            "field",
+            "Status",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "enabled": true
+        },
+        {
+          "name": "Current principal ฿",
+          "fieldRef": [
+            "field",
+            "Current principal ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "enabled": true
+        },
+        {
+          "name": "Proposed principal ฿",
+          "fieldRef": [
+            "field",
+            "Proposed principal ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "enabled": true
+        },
+        {
+          "name": "Current share",
+          "fieldRef": [
+            "field",
+            "Current share",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "enabled": true
+        },
+        {
+          "name": "Proposed share",
+          "fieldRef": [
+            "field",
+            "Proposed share",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "enabled": true
+        }
+      ],
+      "column_settings": {
+        "[\"name\",\"Current principal ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Proposed principal ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Current share\"]": {
+          "number_style": "percent",
+          "decimals": 1,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Proposed share\"]": {
+          "number_style": "percent",
+          "decimals": 1,
+          "number_separators": ".,",
+          "compact": false
+        }
+      }
+    },
+    "result_metadata": [
+      {
+        "name": "Status",
+        "database_type": "text",
+        "base_type": "type/Text",
+        "display_name": "Status",
+        "semantic_type": "type/Category",
+        "field_ref": [
+          "field",
+          "Status",
+          {
+            "base-type": "type/Text"
+          }
+        ]
+      },
+      {
+        "name": "Current principal ฿",
+        "database_type": "numeric",
+        "base_type": "type/Decimal",
+        "display_name": "Current principal ฿",
+        "field_ref": [
+          "field",
+          "Current principal ฿",
+          {
+            "base-type": "type/Decimal"
+          }
+        ]
+      },
+      {
+        "name": "Proposed principal ฿",
+        "database_type": "numeric",
+        "base_type": "type/Decimal",
+        "display_name": "Proposed principal ฿",
+        "field_ref": [
+          "field",
+          "Proposed principal ฿",
+          {
+            "base-type": "type/Decimal"
+          }
+        ]
+      },
+      {
+        "name": "Current share",
+        "database_type": "numeric",
+        "base_type": "type/Decimal",
+        "display_name": "Current share",
+        "semantic_type": "type/Share",
+        "field_ref": [
+          "field",
+          "Current share",
+          {
+            "base-type": "type/Decimal"
+          }
+        ]
+      },
+      {
+        "name": "Proposed share",
+        "database_type": "numeric",
+        "base_type": "type/Decimal",
+        "display_name": "Proposed share",
+        "semantic_type": "type/Share",
+        "field_ref": [
+          "field",
+          "Proposed share",
+          {
+            "base-type": "type/Decimal"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "changedSheets": [
+    "App Settings",
+    "Dev Differences",
+    "DB Logic",
+    "Guide"
+  ],
+  "unchangedSheets": [
+    "Prod Tables",
+    "Prod Columns",
+    "Column Rules",
+    "Prod Relationships",
+    "Prod Slices",
+    "Slice Columns",
+    "DB Columns",
+    "DB Constraints"
+  ],
+  "allSheetsRoundtrip": true,
+  "rowsAdded": {
+    "Dev Differences": 15,
+    "DB Logic": 7,
+    "Guide": 1
+  }
+}

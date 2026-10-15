@@ -1,0 +1,29 @@
+{
+  "capturedDate": "2026-09-15",
+  "schemaSha256": "0edda94ee69bbcfe1e2b8bf5bad16f7dbbd46af7289a9700bff280b49ea20d38",
+  "schemaMatchesBaseline": {
+    "production": true,
+    "development": true
+  },
+  "versions": {
+    "production-oltp": "3.000070",
+    "production-olap": "1.100046",
+    "development-oltp": "1.000011",
+    "development-olap": "1.000025"
+  },
+  "worksheetRows": {
+    "Guide": 8,
+    "Prod Tables": 36,
+    "Prod Columns": 555,
+    "Column Rules": 8769,
+    "Prod Relationships": 24,
+    "Prod Slices": 14,
+    "Slice Columns": 440,
+    "DB Columns": 164,
+    "DB Constraints": 41,
+    "DB Logic": 16,
+    "Dev Differences": 113,
+    "App Settings": 44
+  },
+  "roundtrip": true
+}

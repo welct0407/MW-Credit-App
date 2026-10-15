@@ -1,0 +1,1227 @@
+{
+  "release": "R008",
+  "revision": 2,
+  "candidateHash": "5afdba00fb474c0fc89076cdb79c42c7bfbbadab58d755a17b3d406baffde56e",
+  "environment": "dev",
+  "complete": true,
+  "results": [
+    {
+      "id": "OLTP-001",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/table_Borrowers_Schema_col21. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-002",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/table_Borrowers_Schema_col22. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-003",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/table_Borrowers_Schema_col23. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-004",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/table_Loans_Schema_col28. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-005",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/table_Loans_Schema_col29. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-006",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/table_Loans_Schema_col30. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-007",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/table_Charges_Schema_col16. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-008",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/table_Charges_Schema_col17. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-009",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/table_Payments_Schema_col17. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-010",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/table_Payments_Schema_col17. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-011",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/table_Payments_Schema_col17. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-012",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/table_Payments_Schema_col17. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-013",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/table_Payments_Schema_col17. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-014",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/table_Payments_Schema_col17. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-015",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/table_Payments_Schema_col18. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-016",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/table_Business Expenses_Schema_col21. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-017",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/table_Business Expenses_Schema_col22. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-018",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/table_Cash Holders_Schema_col9. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-019",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/table_Cash Accounts_Schema_col0. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-020",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/table_Cash Accounts_Schema_col1. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-021",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/table_Cash Accounts_Schema_col2. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-022",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/table_Cash Accounts_Schema_col3. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-023",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/table_Cash Accounts_Schema_col4. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-024",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/table_Cash Accounts_Schema_col5. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-025",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/table_Cash Accounts_Schema_col6. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-026",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/table_Cash Accounts_Schema_col7. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-027",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/table_Cash Accounts_Schema_col8. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-028",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/table_Cash Accounts_Schema_col9. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-029",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/table_Cash Accounts_Schema_col10. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-030",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/table_Cash Accounts_Schema_col11. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-031",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/table_Cash Accounts_Schema_col12. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-032",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/table_Cash Accounts_Schema_col13. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-033",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/table_Cash Accounts_Schema_col14. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-034",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/table_Cash Accounts_Schema_col15. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-035",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/table_Cash Accounts_Schema_col16. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-036",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/slice_Todays Collection Board. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-037",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/slice_Visible Borrowers. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-038",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/slice_R008 Borrower Commands. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-039",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/slice_R008 Charge Commands. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-040",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/slice_R008 Loan Commands. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-041",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/viewBorrowers_Form. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-042",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/viewCash Accounts_Detail. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-043",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/viewCash Accounts_Inline. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-044",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/viewLoans_Form. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-045",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/viewPayments_Form. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-046",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/viewR008 Close Loan. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-047",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/viewR008 Receive All. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-048",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/viewR008 Receive Full. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-049",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/viewVisible Borrowers_Form. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-050",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/action_Receive Payment. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-051",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/action_Receive Payment. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-052",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/action_Receive Payment. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-053",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/action_Receive Payment. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-054",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/action_Receive Payment. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-055",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/action_Receive Payment. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-056",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/action_Wrapped Action - Close Loan. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-057",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/action_Wrapped Action - Close Loan. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-058",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/action_Wrapped Action - Close Loan. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-059",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/action_Wrapped Action - Close Loan. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-060",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/action_Wrapped Action - Close Loan. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-061",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/action_Wrapped Action - Close Loan. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-062",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/action_Receive All Charges. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-063",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/action_Receive All Charges. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-064",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/action_Receive All Charges. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-065",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/action_Receive All Charges. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-066",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/action_Receive All Charges. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-067",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/action_Receive All Charges. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-068",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/action_Receive All Charges. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-069",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/action_View Ref (Ref Preferred Receiving Cash Account). Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-070",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/action_View Ref (Ref Disbursed From Cash Account). Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-071",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/action_View Ref (Payment Request Cash Account). Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-072",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/action_View Ref (Ref Received By Cash Account). Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-073",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/action_View Ref (Payment Request Cash Account). Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-074",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/action_View Ref (Payment Request Cash Account). Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-075",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/action_View Ref (Ref Paid By Cash Account). Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-076",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLTP/table_Cash Accounts. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-001",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/table_Borrowers_Schema_col69. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-002",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/table_Borrowers_Schema_col70. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-003",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/table_Borrowers_Schema_col71. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-004",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/table_Loans_Schema_col46. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-005",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/table_Loans_Schema_col47. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-006",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/table_Loans_Schema_col48. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-007",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/table_Charges_Schema_col23. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-008",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/table_Charges_Schema_col24. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-009",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/table_Settlements_Schema_col8. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-010",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/table_Payments_Schema_col18. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-011",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/table_Business Expenses_Schema_col22. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-012",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/table_Cash Holders_Schema_col11. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-013",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/table_Cash Holders_Schema_col12. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-014",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/table_Cash Ledger_Schema_col2. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-015",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/table_Cash Ledger_Schema_col3. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-016",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/table_Cash Ledger_Schema_col4. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-017",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/table_Cash Ledger_Schema_col5. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-018",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/table_Cash Ledger_Schema_col5. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-019",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/table_Cash Ledger_Schema_col6. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-020",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/table_Cash Ledger_Schema_col6. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-021",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/table_Cash Ledger_Schema_col9. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-022",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/table_Cash Ledger_Schema_col18. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-023",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/table_Cash Ledger_Schema_col19. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-024",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/table_Cash Accounts_Schema_col0. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-025",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/table_Cash Accounts_Schema_col1. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-026",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/table_Cash Accounts_Schema_col2. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-027",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/table_Cash Accounts_Schema_col3. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-028",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/table_Cash Accounts_Schema_col4. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-029",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/table_Cash Accounts_Schema_col5. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-030",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/table_Cash Accounts_Schema_col6. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-031",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/table_Cash Accounts_Schema_col7. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-032",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/table_Cash Accounts_Schema_col8. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-033",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/table_Cash Accounts_Schema_col9. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-034",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/table_Cash Accounts_Schema_col10. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-035",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/table_Cash Accounts_Schema_col11. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-036",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/table_Cash Accounts_Schema_col12. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-037",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/table_Cash Accounts_Schema_col13. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-038",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/table_Cash Accounts_Schema_col14. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-039",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/table_Cash Accounts_Schema_col15. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-040",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/table_Cash Accounts_Schema_col16. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-041",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/table_Cash Accounts_Schema_col17. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-042",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/table_Cash Accounts_Schema_col18. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-043",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/table_Cash Accounts_Schema_col19. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-044",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/table_Cash Accounts_Schema_col20. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-045",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/table_Cash Account Balances_Schema_col0. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-046",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/table_Cash Account Balances_Schema_col1. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-047",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/table_Cash Account Balances_Schema_col2. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-048",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/table_Cash Account Balances_Schema_col3. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-049",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/table_Cash Account Balances_Schema_col4. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-050",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/table_Cash Account Balances_Schema_col5. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-051",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/table_Cash Account Balances_Schema_col6. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-052",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/table_Cash Account Balances_Schema_col7. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-053",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/table_Cash Account Balances_Schema_col8. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-054",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/table_Cash Account Balances_Schema_col9. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-055",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/table_Cash Account Balances_Schema_col10. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-056",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/table_Cash Account Balances_Schema_col11. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-057",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/viewCash Accounts. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-058",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/viewCash Position. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-059",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/viewCash Account Balances_Detail. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-060",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/viewCash Account Balances_Inline. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-061",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/viewCash Account Summary. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-062",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/viewCash Accounts_Detail. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-063",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/viewCash Accounts_Form. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-064",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/viewCash Accounts_Inline. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-065",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/viewCash Ledger_Form. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-066",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/action_Complete Transfer. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-067",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/action_View Ref (Ref Paid By Cash Account). Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-068",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/action_View Ref (Ref Received By Cash Account). Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-069",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/action_View Ref (Ref Paid From Cash Account). Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-070",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/action_View Ref (Ref From Cash Account). Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-071",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/action_View Ref (Ref To Cash Account). Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-072",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/action_View Ref (Ref Preferred Receiving Cash Account). Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-073",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/action_View Ref (Payment Request Cash Account). Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-074",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/action_View Ref (Ref Disbursed From Cash Account). Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-075",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/action_View Ref (Payment Request Cash Account). Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-076",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/action_View Ref (Payment Request Cash Account). Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-077",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/action_View Ref (Ref Cash Account). Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-078",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/table_Cash Accounts. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-079",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/table_Cash Account Balances. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-080",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/slice_Borrowers with Outstanding Loans. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-081",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/slice_Profit Contribution 30D. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-082",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/slice_Reporting Loans. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-083",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/slice_Reporting Borrowers. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-084",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/slice_Reporting Charges. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLAP-085",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-appdoc-readback.json: OLAP/slice_Todays Collection Board. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000169",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-077",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/REPORT.md: saved current-editor view bindings observed 2026-09-18. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-078",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/REPORT.md: saved current-editor view bindings observed 2026-09-18. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-079",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/REPORT.md: saved current-editor view bindings observed 2026-09-18. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-080",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-bots-readback.json; outputs/r008-20260918/REPORT.md: successful enabled bot monitor runs. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-081",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-bots-readback.json; outputs/r008-20260918/REPORT.md: successful enabled bot monitor runs. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "OLTP-082",
+      "status": "Verified",
+      "evidence": "REUSED unchanged item: outputs/r008-20260918/dev-bots-readback.json; outputs/r008-20260918/REPORT.md: successful enabled bot monitor runs. Six date expressions are the entire revision-2 edit scope; original observation date/version retained.",
+      "version": "1.000176",
+      "observedAt": "2026-09-18T15:59:22.600Z"
+    },
+    {
+      "id": "R008-SYNC-001",
+      "status": "Verified",
+      "evidence": "outputs/r008-20260918/r2/saved-sync-repair.json",
+      "version": "1.000178",
+      "observedAt": "2026-09-18T17:09:00Z"
+    },
+    {
+      "id": "R008-SYNC-002",
+      "status": "Verified",
+      "evidence": "outputs/r008-20260918/r2/saved-sync-repair.json",
+      "version": "1.000178",
+      "observedAt": "2026-09-18T17:09:00Z"
+    },
+    {
+      "id": "R008-SYNC-003",
+      "status": "Verified",
+      "evidence": "outputs/r008-20260918/r2/saved-sync-repair.json",
+      "version": "1.000178",
+      "observedAt": "2026-09-18T17:09:00Z"
+    },
+    {
+      "id": "R008-SYNC-004",
+      "status": "Verified",
+      "evidence": "outputs/r008-20260918/r2/saved-sync-repair.json",
+      "version": "1.000178",
+      "observedAt": "2026-09-18T17:09:00Z"
+    },
+    {
+      "id": "R008-SYNC-005",
+      "status": "Verified",
+      "evidence": "outputs/r008-20260918/r2/saved-sync-repair.json",
+      "version": "1.000178",
+      "observedAt": "2026-09-18T17:09:00Z"
+    },
+    {
+      "id": "R008-SYNC-006",
+      "status": "Verified",
+      "evidence": "outputs/r008-20260918/r2/saved-sync-repair.json",
+      "version": "1.000178",
+      "observedAt": "2026-09-18T17:09:00Z"
+    },
+    {
+      "id": "R008-SYNC-007",
+      "status": "Verified",
+      "evidence": "outputs/r008-20260918/r2/saved-sync-repair.json",
+      "version": "1.000178",
+      "observedAt": "2026-09-18T17:09:00Z"
+    }
+  ]
+}

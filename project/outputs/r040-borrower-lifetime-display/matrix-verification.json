@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "rows": 30,
+  "activeRows": 23,
+  "matrixRows": 23,
+  "governedCategoryParity": true,
+  "inactiveOutsideCohort": true,
+  "activityDateInvariant": true,
+  "populationFilterPreserved": true,
+  "layoutAndDrillPreserved": true,
+  "backupDashboard": 15
+}

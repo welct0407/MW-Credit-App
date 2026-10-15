@@ -1,0 +1,144 @@
+--- a/scripts/azure/vm01-controller/web/app.ts
++++ b/scripts/azure/vm01-controller/web/app.ts
+@@ -1,4 +1,5 @@
+ import { PublicClientApplication, BrowserCacheLocation, type AccountInfo } from '@azure/msal-browser';
++import { StatusCheckError, responseData, statusException, statusFailure } from './diagnostics.js';
+ type Action = 'start' | 'restart' | 'deallocate';
+ interface PublicConfig { tenantId: string; browserClientId: string; apiClientId: string; origin: string }
+ interface Status { observation?: { powerState: string; provisioningState: string; observedAt: string }; stateVersion?: string; actions?: Record<Action, boolean>; operation?: { phase: string; requestId: string; action: Action; reason?: string }; error?: string }
+@@ -18,8 +19,12 @@
+   catch { return (await msal.acquireTokenPopup({ account, scopes: [scope] })).accessToken; }
+ }
+ async function api(path: string, body?: unknown): Promise<{ status: number; data: Status }> {
+-  const response = await fetch(path, { method: body ? 'POST' : 'GET', credentials: 'omit', redirect: 'error', headers: { authorization: `Bearer ${await token()}`, ...(body ? { 'content-type': 'application/json' } : {}) }, ...(body ? { body: JSON.stringify(body) } : {}) });
+-  return { status: response.status, data: await response.json() as Status };
++  let accessToken: string;
++  try { accessToken = await token(); } catch { throw new StatusCheckError('token'); }
++  let response: Response;
++  try { response = await fetch(path, { method: body ? 'POST' : 'GET', credentials: 'omit', redirect: 'error', headers: { authorization: `Bearer ${accessToken}`, ...(body ? { 'content-type': 'application/json' } : {}) }, ...(body ? { body: JSON.stringify(body) } : {}) }); }
++  catch { throw new StatusCheckError('transport'); }
++  return { status: response.status, data: await responseData(response) as Status };
+ }
+ function render(data: Status): void {
+   snapshot = data; disable();
+@@ -41,10 +46,11 @@
+     const result = await api(`/api/vm01/status${id ? `?requestId=${encodeURIComponent(id)}` : ''}`);
+     element('retry').hidden = !pending;
+     if (result.status === 404 && pending) { message('The pending request has no stored receipt. Use its saved request to retry; do not create another action.'); disable(); return; }
++    if (result.status >= 400 || result.data.error) { snapshot = undefined; disable(); element('power').textContent = 'Unknown'; message(statusFailure(result.status, result.data.error)); return; }
+     render(result.data);
+     if (result.data.operation && ['completed', 'noop', 'desired_state_observed', 'rejected'].includes(result.data.operation.phase)) { sessionStorage.removeItem(pendingKey); element('retry').hidden = true; waitingSince = 0; render(result.data); }
+     message(result.data.error ? 'Status is unavailable. Actions are disabled.' : result.data.operation?.phase === 'accepted_unverified' ? 'Restart was accepted. Completion needs operation-status verification or administrator reconciliation.' : '');
+-  } catch { disable(); message('Connection or sign-in failed. Actions are disabled.'); }
++  } catch (error) { snapshot = undefined; disable(); element('power').textContent = 'Unknown'; message(statusException(error)); }
+   finally { schedule(); }
+ }
+ async function confirm(action: Action): Promise<{ workSaved: true; admissionHeld: true; approvalReference: string } | undefined> {
+--- a/scripts/azure/vm01-controller/web/diagnostics.ts
++++ b/scripts/azure/vm01-controller/web/diagnostics.ts
+@@ -0,0 +1,24 @@
++export class StatusCheckError extends Error {
++  constructor(public readonly stage: 'token' | 'transport' | 'response', public readonly status?: number) { super(stage); }
++}
++
++export async function responseData(response: Response): Promise<Record<string, unknown>> {
++  let data: unknown;
++  try { data = await response.json(); } catch { throw new StatusCheckError('response', response.status); }
++  if (!data || typeof data !== 'object' || Array.isArray(data)) throw new StatusCheckError('response', response.status);
++  return data as Record<string, unknown>;
++}
++
++const publicErrors = new Set(['bearer_token_required', 'invalid_access_token', 'caller_not_allowed', 'browser_not_allowed', 'application_not_allowed', 'operation_not_allowed', 'foreign_origin', 'unexpected_host', 'route_not_found', 'method_not_allowed', 'invalid_query', 'vm_observation_unavailable', 'controller_ledger_unavailable', 'controller_unavailable']);
++export function statusFailure(status: number, code: unknown): string {
++  const detail = typeof code === 'string' && publicErrors.has(code) ? `; ${code}` : '';
++  return `Status request failed (HTTP ${status}${detail}). Actions are disabled.`;
++}
++export function statusException(error: unknown): string {
++  if (error instanceof StatusCheckError) {
++    if (error.stage === 'token') return 'Access token acquisition failed. Sign in again. Actions are disabled.';
++    if (error.stage === 'transport') return 'Status request could not complete. Actions are disabled.';
++    return `Status response was empty or invalid (HTTP ${error.status}). Actions are disabled.`;
++  }
++  return 'Status check failed. Actions are disabled.';
++}
+--- a/scripts/azure/vm01-controller/tests/status-diagnostics.test.mjs
++++ b/scripts/azure/vm01-controller/tests/status-diagnostics.test.mjs
+@@ -0,0 +1,67 @@
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import { createServer } from 'node:http';
++import { readFile } from 'node:fs/promises';
++import { build } from 'esbuild';
++import { chromium } from 'playwright-core';
++
++const stub = `export const BrowserCacheLocation={MemoryStorage:'memory'};export class PublicClientApplication{async initialize(){}async loginPopup(){return{account:{username:'fixture@example.invalid'}}}async acquireTokenSilent(){if(globalThis.fixtureTokenFailure)throw new Error('private fixture detail');return{accessToken:'fixture-only'}}async acquireTokenPopup(){throw new Error('private fixture detail')}async logoutPopup(){}}`;
++const bundle = await build({ entryPoints: ['web/app.ts'], bundle: true, write: false, format: 'esm', target: 'es2023', plugins: [{ name: 'fixture-msal', setup(builder) { builder.onResolve({ filter: /^@azure\/msal-browser$/ }, () => ({ path: 'fixture-msal', namespace: 'fixture' })); builder.onLoad({ filter: /.*/, namespace: 'fixture' }, () => ({ contents: stub, loader: 'js' })); } }] });
++const disabled = { start: false, restart: false, deallocate: false };
++const valid = { observation: { powerState: 'running', provisioningState: 'Succeeded', observedAt: new Date().toISOString() }, stateVersion: 'fixture', actions: disabled };
++
++test('browser status diagnostics identify the failure stage and recover without exposing response details', async t => {
++  let origin;
++  const server = createServer(async (request, response) => {
++    const path = new URL(request.url, origin).pathname;
++    if (path === '/assets/app.js') { response.setHeader('content-type', 'text/javascript'); response.end(bundle.outputFiles[0].text); }
++    else if (path === '/assets/config.js') { response.setHeader('content-type', 'text/javascript'); response.end(`window.VM01_CONFIGURATION=${JSON.stringify({ tenantId: 'fixture', browserClientId: 'fixture', apiClientId: 'fixture', origin })};`); }
++    else if (path === '/assets/style.css') { response.setHeader('content-type', 'text/css'); response.end(await readFile('web/style.css')); }
++    else { response.setHeader('content-type', 'text/html'); response.end(await readFile('web/index.html')); }
++  });
++  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve)); origin = `http://127.0.0.1:${server.address().port}`;
++  let browser;
++  try {
++    const windows = process.platform === 'win32';
++    browser = await chromium.launch({ executablePath: process.env.VM01_TEST_CHROMIUM ?? '/usr/bin/chromium', headless: true, chromiumSandbox: windows, args: windows ? [] : ['--no-sandbox', '--disable-dev-shm-usage'] });
++    const cases = [
++      { name: 'empty401', status: 401, body: '', expected: /empty or invalid \(HTTP 401\)/ },
++      { name: 'empty403', status: 403, body: '', expected: /empty or invalid \(HTTP 403\)/ },
++      { name: 'HTML502', status: 502, body: '<html>private fixture detail</html>', expected: /empty or invalid \(HTTP 502\)/ },
++      { name: 'JSON401', status: 401, body: JSON.stringify({ error: 'invalid_access_token' }), expected: /HTTP 401; invalid_access_token/ },
++      { name: 'JSON403', status: 403, body: JSON.stringify({ error: 'browser_not_allowed', actions: { start: true } }), expected: /HTTP 403; browser_not_allowed/ },
++      { name: 'JSON503', status: 503, body: JSON.stringify({ error: 'vm_observation_unavailable' }), expected: /HTTP 503; vm_observation_unavailable/ },
++      { name: 'ledger503', status: 503, body: JSON.stringify({ error: 'controller_ledger_unavailable' }), expected: /HTTP 503; controller_ledger_unavailable/ },
++      { name: 'untrustedError', status: 503, body: JSON.stringify({ error: 'private fixture detail' }), expected: /HTTP 503\)/ },
++      { name: 'malformed200', status: 200, body: '{', expected: /empty or invalid \(HTTP 200\)/ },
++      { name: 'null200', status: 200, body: 'null', expected: /empty or invalid \(HTTP 200\)/ },
++      { name: 'tokenFailure', tokenFailure: true, expected: /Access token acquisition failed/ },
++      { name: 'transportFailure', transportFailure: true, expected: /Status request could not complete/ }
++    ];
++    for (const item of cases) await t.test(item.name, async () => {
++      const page = await browser.newPage();
++      let recovered = false; let requests = 0; let posts = 0;
++      await page.addInitScript(fail => { globalThis.fixtureTokenFailure = fail; }, Boolean(item.tokenFailure));
++      await page.route('**/*', async route => {
++        if (!route.request().url().startsWith(origin)) return route.abort();
++        if (!route.request().url().includes('/api/')) return route.continue();
++        requests++; if (route.request().method() !== 'GET') posts++;
++        if (item.transportFailure && !recovered) return route.abort();
++        return route.fulfill({ status: recovered ? 200 : item.status, contentType: 'application/json', body: recovered ? JSON.stringify(valid) : item.body });
++      });
++      try {
++        await page.goto(origin); await page.locator('#sign-in').click();
++        await page.waitForFunction(() => document.querySelector('#message').textContent.includes('Actions are disabled'));
++        assert.match(await page.locator('#message').textContent(), item.expected);
++        assert.doesNotMatch(await page.locator('#message').textContent(), /private fixture detail/);
++        assert.equal(await page.locator('#power').textContent(), 'Unknown');
++        assert.equal(await page.locator('[data-action]:enabled').count(), 0);
++        assert.equal(requests, item.tokenFailure ? 0 : 1); assert.equal(posts, 0);
++        recovered = true; await page.evaluate(() => { globalThis.fixtureTokenFailure = false; });
++        await page.locator('#refresh').click(); await page.waitForFunction(() => document.querySelector('#power').textContent === 'running');
++        assert.equal(await page.locator('#message').textContent(), '');
++        assert.equal(await page.locator('[data-action]:enabled').count(), 0); assert.equal(posts, 0);
++      } finally { await page.close(); }
++    });
++  } finally { try { await browser?.close(); } finally { await new Promise(resolve => server.close(resolve)); } }
++});
+--- a/scripts/azure/vm01-controller/README.md
++++ b/scripts/azure/vm01-controller/README.md
+@@ -5,6 +5,8 @@
+ Current browser access is assigned to **MW Credit** (`mwcredit@idea.100-5.com`, object ID `fa56579a-7b3a-493a-9eb1-d36671a60b32`) after the approved 2 October 2026 (UTC) four-change switch. The former owner is removed from both controller allowlists and its dedicated controller consent is retired; its Azure/directory roles are unchanged. [Account-switch readback and remaining acceptance](../../../outputs/r050-vm01-controller/account-switch/README.md). Authenticated replacement status and former-user token denial are pending.
+ 
+ The base managed-identity role has exactly five VM actions assigned only at VM-01. Asynchronous restart acceptance is **not completion**. Without separately approved operation-status read access, the controller retains a serialization latch and requires administrator reconciliation. Optional server-side polling is implemented and disabled by default.
++
++The source now distinguishes access-token acquisition, incomplete transport, invalid/empty HTTP responses and known JSON controller errors during status checks. HTTP failures show the status and only allowlisted public error codes; raw response bodies and authentication details are never displayed. Failed checks clear the usable snapshot, show Unknown and keep actions disabled. [2 October diagnosis, fixture tests and deployment limit](../../../outputs/r050-vm01-controller/status-diagnosis/README.md). This diagnostic change has not been deployed; authenticated live status remains unverified.
+ 
+ - [Design and decisions](docs/design.md)
+ - [Operations, activation and recovery](docs/operations.md)

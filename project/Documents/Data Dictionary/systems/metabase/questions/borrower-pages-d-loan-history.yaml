@@ -1,0 +1,352 @@
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "reports.mw-credit.com"
+  "kind": "question"
+  "name": "Loan history · lifetime / 305"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r035-borrower-pages/saved-question-definitions.json"
+"content":
+  "key": "d-loan-history"
+  "id": 305
+  "name": "Loan history · lifetime"
+  "description": "Lifetime signed interest received / original loan principal. Gross interest before expenses. <100% red;\
+    \ 100–200% inclusive orange; >200% green. Invalid/nonpositive original principal gives no percentage/color. Ignores activity\
+    \ dates."
+  "display": "table"
+  "type": "question"
+  "dataset_query":
+    "stages":
+    - "template-tags":
+      - "display-name": "Borrower"
+        "id": "bp-borrower"
+        "name": "borrower_id"
+        "type": "text"
+      "lib/type": "mbql.stage/native"
+      "native": |-
+        WITH clock AS (SELECT public.olap_reporting_date() today), chosen AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE borrower_id= [[{{borrower_id}} --]] '__select_borrower__'
+        ) SELECT CASE WHEN k."Row ID" IS NULL THEN 'Loan key unavailable' ELSE coalesce(c.borrower_name,'Unknown borrower')||'-'||to_char(k."Principal Amount"::numeric,'FM999,999,999,990.00')||'-'||to_char(k."Loan Date",'DD/MM')||'-'||coalesce(to_char(k."Effective Daily Interest Rate"::numeric*100,'FM999990.00')||'%','Unavailable') END AS "Loan Key",l.loan_date AS "Loan date",l.loan_type AS "Loan type",l.loan_status AS "Status",l.original_principal AS "Original principal ฿",l.outstanding_principal AS "Current principal ฿",l.principal_received AS "Principal received ฿",l.interest_received AS "Interest received ฿",CASE WHEN l.original_principal>0 THEN l.interest_received/l.original_principal END AS "Profit / original principal",l.close_date AS "Close date",l.defaulted AS "Defaulted",l.default_loss AS "Recorded loss ฿" FROM chosen c JOIN public.reporting_borrower_loan_facts_v1 l USING(borrower_id) LEFT JOIN public.olap_loans_analytics k ON k."Row ID"=l.loan_id ORDER BY l.is_active DESC,l.loan_date DESC,l.loan_id
+    "lib/type": "mbql/query"
+    "database": 2
+  "visualization_settings":
+    "table.pivot": false
+    "table.columns":
+    - "name": "Loan Key"
+      "fieldRef":
+      - "field"
+      - "Loan Key"
+      - "base-type": "type/Text"
+      "enabled": true
+    - "name": "Loan date"
+      "fieldRef":
+      - "field"
+      - "Loan date"
+      - "base-type": "type/Text"
+      "enabled": true
+    - "name": "Loan type"
+      "fieldRef":
+      - "field"
+      - "Loan type"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Status"
+      "fieldRef":
+      - "field"
+      - "Status"
+      - "base-type": "type/Text"
+      "enabled": true
+    - "name": "Original principal ฿"
+      "fieldRef":
+      - "field"
+      - "Original principal ฿"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Current principal ฿"
+      "fieldRef":
+      - "field"
+      - "Current principal ฿"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Principal received ฿"
+      "fieldRef":
+      - "field"
+      - "Principal received ฿"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Interest received ฿"
+      "fieldRef":
+      - "field"
+      - "Interest received ฿"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Profit / original principal"
+      "fieldRef":
+      - "field"
+      - "Profit / original principal"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Close date"
+      "fieldRef":
+      - "field"
+      - "Close date"
+      - "base-type": "type/Text"
+      "enabled": true
+    - "name": "Defaulted"
+      "fieldRef":
+      - "field"
+      - "Defaulted"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Recorded loss ฿"
+      "fieldRef":
+      - "field"
+      - "Recorded loss ฿"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    "table.column_formatting":
+    - "columns":
+      - "Profit / original principal"
+      "type": "single"
+      "operator": "<"
+      "value": 1
+      "color": "#E57373"
+      "highlight_row": false
+    - "columns":
+      - "Profit / original principal"
+      "type": "single"
+      "operator": "<="
+      "value": 2
+      "color": "#F0AD4E"
+      "highlight_row": false
+    - "columns":
+      - "Profit / original principal"
+      "type": "single"
+      "operator": ">"
+      "value": 2
+      "color": "#66BB6A"
+      "highlight_row": false
+    "column_settings":
+      "[\"name\",\"Original principal ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Current principal ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Principal received ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Interest received ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Recorded loss ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Profit / original principal\"]":
+        "number_style": "percent"
+        "decimals": 1
+  "result_metadata":
+  - "database_type": "text"
+    "semantic_type": null
+    "lib/deduplicated-name": "Loan ID"
+    "lib/original-name": "Loan ID"
+    "name": "Loan ID"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Loan ID"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Loan ID"
+    - "base-type": "type/Text"
+    "effective_type": "type/Text"
+    "lib/desired-column-alias": "Loan ID"
+    "display_name": "Loan ID"
+    "base_type": "type/Text"
+  - "database_type": "date"
+    "semantic_type": null
+    "lib/deduplicated-name": "Loan date"
+    "lib/original-name": "Loan date"
+    "name": "Loan date"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Loan date"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Loan date"
+    - "base-type": "type/Date"
+    "effective_type": "type/Date"
+    "lib/desired-column-alias": "Loan date"
+    "display_name": "Loan date"
+    "base_type": "type/Date"
+  - "database_type": "text"
+    "semantic_type": null
+    "lib/deduplicated-name": "Loan type"
+    "lib/original-name": "Loan type"
+    "name": "Loan type"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Loan type"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Loan type"
+    - "base-type": "type/Text"
+    "effective_type": "type/Text"
+    "lib/desired-column-alias": "Loan type"
+    "display_name": "Loan type"
+    "base_type": "type/Text"
+  - "database_type": "text"
+    "semantic_type": "type/Category"
+    "lib/deduplicated-name": "Status"
+    "lib/original-name": "Status"
+    "name": "Status"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Status"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Status"
+    - "base-type": "type/Text"
+    "effective_type": "type/Text"
+    "lib/desired-column-alias": "Status"
+    "display_name": "Status"
+    "base_type": "type/Text"
+  - "database_type": "numeric"
+    "semantic_type": null
+    "lib/deduplicated-name": "Original principal ฿"
+    "lib/original-name": "Original principal ฿"
+    "name": "Original principal ฿"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Original principal ฿"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Original principal ฿"
+    - "base-type": "type/Decimal"
+    "effective_type": "type/Decimal"
+    "lib/desired-column-alias": "Original principal ฿"
+    "display_name": "Original principal ฿"
+    "base_type": "type/Decimal"
+  - "database_type": "numeric"
+    "semantic_type": null
+    "lib/deduplicated-name": "Current principal ฿"
+    "lib/original-name": "Current principal ฿"
+    "name": "Current principal ฿"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Current principal ฿"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Current principal ฿"
+    - "base-type": "type/Decimal"
+    "effective_type": "type/Decimal"
+    "lib/desired-column-alias": "Current principal ฿"
+    "display_name": "Current principal ฿"
+    "base_type": "type/Decimal"
+  - "database_type": "numeric"
+    "semantic_type": null
+    "lib/deduplicated-name": "Principal received ฿"
+    "lib/original-name": "Principal received ฿"
+    "name": "Principal received ฿"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Principal received ฿"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Principal received ฿"
+    - "base-type": "type/Decimal"
+    "effective_type": "type/Decimal"
+    "lib/desired-column-alias": "Principal received ฿"
+    "display_name": "Principal received ฿"
+    "base_type": "type/Decimal"
+  - "database_type": "numeric"
+    "semantic_type": null
+    "lib/deduplicated-name": "Interest received ฿"
+    "lib/original-name": "Interest received ฿"
+    "name": "Interest received ฿"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Interest received ฿"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Interest received ฿"
+    - "base-type": "type/Decimal"
+    "effective_type": "type/Decimal"
+    "lib/desired-column-alias": "Interest received ฿"
+    "display_name": "Interest received ฿"
+    "base_type": "type/Decimal"
+  - "database_type": "date"
+    "semantic_type": null
+    "lib/deduplicated-name": "Close date"
+    "lib/original-name": "Close date"
+    "name": "Close date"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Close date"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Close date"
+    - "base-type": "type/Date"
+    "effective_type": "type/Date"
+    "lib/desired-column-alias": "Close date"
+    "display_name": "Close date"
+    "base_type": "type/Date"
+  - "database_type": "bool"
+    "semantic_type": null
+    "lib/deduplicated-name": "Defaulted"
+    "lib/original-name": "Defaulted"
+    "name": "Defaulted"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Defaulted"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Defaulted"
+    - "base-type": "type/Boolean"
+    "effective_type": "type/Boolean"
+    "lib/desired-column-alias": "Defaulted"
+    "display_name": "Defaulted"
+    "base_type": "type/Boolean"
+  - "database_type": "numeric"
+    "semantic_type": null
+    "lib/deduplicated-name": "Recorded loss ฿"
+    "lib/original-name": "Recorded loss ฿"
+    "name": "Recorded loss ฿"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Recorded loss ฿"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Recorded loss ฿"
+    - "base-type": "type/Decimal"
+    "effective_type": "type/Decimal"
+    "lib/desired-column-alias": "Recorded loss ฿"
+    "display_name": "Recorded loss ฿"
+    "base_type": "type/Decimal"
+"evidence":
+  "/content/result_metadata":
+    "reference": "outputs/r035-borrower-pages/README.md"
+    "reason": "R035 additive borrower pages; exact saved definitions and V44 metadata"
+    "state": "value"
+  "/content/dataset_query":
+    "reference": "outputs/r042-borrower-payments/README.md"
+    "reason": "R042 saved report definitions and V46 live catalog"
+    "state": "value"
+  "/content/visualization_settings":
+    "reference": "outputs/r042-borrower-payments/README.md"
+    "reason": "R042 saved report definitions and V46 live catalog"
+    "state": "value"
+  "/content/description":
+    "reference": "outputs/r042-borrower-payments/README.md"
+    "reason": "R042 saved report definitions and V46 live catalog"
+    "state": "value"

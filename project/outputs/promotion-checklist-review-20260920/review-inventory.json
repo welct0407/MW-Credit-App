@@ -1,0 +1,239 @@
+{
+  "draft": true,
+  "sourceCommit": "34106853212e382c9aedf8c5120f8cb6a9d6851e",
+  "activities": 24,
+  "documents": 21,
+  "activityIds": [
+    "P01",
+    "P10",
+    "P06",
+    "P08",
+    "P04",
+    "P13",
+    "P14",
+    "P22",
+    "P25",
+    "P18",
+    "P28",
+    "P29",
+    "P30",
+    "P33",
+    "P37",
+    "P39",
+    "P41",
+    "P38",
+    "P45",
+    "P46",
+    "P48",
+    "P49",
+    "P50",
+    "P51"
+  ],
+  "documentIds": [
+    "DOC-001",
+    "DOC-002",
+    "DOC-003",
+    "DOC-004",
+    "DOC-005",
+    "DOC-006",
+    "DOC-007",
+    "DOC-008",
+    "DOC-009",
+    "DOC-010",
+    "DOC-011",
+    "DOC-012",
+    "DOC-013",
+    "DOC-014",
+    "DOC-015",
+    "DOC-016",
+    "DOC-017",
+    "DOC-018",
+    "DOC-019",
+    "DOC-020",
+    "DOC-021"
+  ],
+  "consolidation": [
+    {
+      "id": "P01",
+      "replaces": [
+        "P01",
+        "P02",
+        "P03",
+        "P12"
+      ]
+    },
+    {
+      "id": "P10",
+      "replaces": [
+        "P10",
+        "P11"
+      ]
+    },
+    {
+      "id": "P06",
+      "replaces": [
+        "P06",
+        "P07"
+      ]
+    },
+    {
+      "id": "P08",
+      "replaces": [
+        "P08",
+        "P09"
+      ]
+    },
+    {
+      "id": "P04",
+      "replaces": [
+        "P04",
+        "P05",
+        "P15"
+      ]
+    },
+    {
+      "id": "P13",
+      "replaces": [
+        "P13",
+        "P20",
+        "P21",
+        "P35"
+      ]
+    },
+    {
+      "id": "P14",
+      "replaces": [
+        "P14",
+        "P16",
+        "P17",
+        "P19"
+      ]
+    },
+    {
+      "id": "P22",
+      "replaces": [
+        "P22",
+        "P23",
+        "P24"
+      ]
+    },
+    {
+      "id": "P25",
+      "replaces": [
+        "P25"
+      ]
+    },
+    {
+      "id": "P18",
+      "replaces": [
+        "P18",
+        "P26",
+        "P27"
+      ]
+    },
+    {
+      "id": "P28",
+      "replaces": [
+        "P28"
+      ]
+    },
+    {
+      "id": "P29",
+      "replaces": [
+        "P29"
+      ]
+    },
+    {
+      "id": "P30",
+      "replaces": [
+        "P30",
+        "P31",
+        "P32"
+      ]
+    },
+    {
+      "id": "P33",
+      "replaces": [
+        "P33",
+        "P34",
+        "P36"
+      ]
+    },
+    {
+      "id": "P37",
+      "replaces": [
+        "P37"
+      ]
+    },
+    {
+      "id": "P39",
+      "replaces": [
+        "P39",
+        "P40",
+        "P42",
+        "P43",
+        "P44"
+      ]
+    },
+    {
+      "id": "P41",
+      "replaces": [
+        "P41"
+      ]
+    },
+    {
+      "id": "P38",
+      "replaces": [
+        "P38"
+      ]
+    },
+    {
+      "id": "P45",
+      "replaces": [
+        "P45"
+      ]
+    },
+    {
+      "id": "P46",
+      "replaces": [
+        "P46",
+        "P47"
+      ]
+    },
+    {
+      "id": "P48",
+      "replaces": [
+        "P48"
+      ]
+    },
+    {
+      "id": "P49",
+      "replaces": [
+        "P49"
+      ]
+    },
+    {
+      "id": "P50",
+      "replaces": [
+        "P50"
+      ]
+    },
+    {
+      "id": "P51",
+      "replaces": [
+        "P51",
+        "P52",
+        "P53",
+        "P54",
+        "P55",
+        "P56",
+        "P57"
+      ]
+    }
+  ],
+  "wordCounts": {
+    "oldActivityText": 1587,
+    "newActivityText": 693
+  },
+  "approach": "Reuse unchanged evidence; conditional setup/SQL/external/recovery only. Documents applicability retained."
+}

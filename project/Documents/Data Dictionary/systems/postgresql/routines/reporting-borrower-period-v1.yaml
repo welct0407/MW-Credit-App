@@ -1,0 +1,77 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "scope": "production"
+  "kind": "routine"
+  "name": "public.reporting_borrower_period_v1(p_start date, p_end date, p_population text)"
+"verification":
+  "status": "documented"
+  "source": "outputs/r035-borrower-pages/dictionary-catalog.json"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "reporting_borrower_period_v1"
+    "arguments": "p_start date, p_end date, p_population text"
+    "kind": "f"
+    "arguments_with_defaults": "p_start date, p_end date, p_population text DEFAULT 'All with loan history'::text"
+    "result": "TABLE(borrower_id text, borrower_label text, hidden_flag boolean, has_active_loan boolean, active_loans bigint,\
+      \ loan_count bigint, first_loan_date date, last_payment_date date, outstanding_principal numeric, lifetime_interest\
+      \ numeric, principal_issued numeric, principal_returned numeric, interest_received numeric, loans_issued bigint, first_loans\
+      \ bigint, repeat_loans bigint, unclassified_loans bigint, principal_share numeric, interest_share numeric, principal_rank\
+      \ bigint, interest_rank bigint, invalid_fact_count bigint, reporting_date date, calculated_at timestamp with time zone)"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.reporting_borrower_period_v1(p_start date, p_end date, p_population text DEFAULT 'All with loan history'::text)
+       RETURNS TABLE(borrower_id text, borrower_label text, hidden_flag boolean, has_active_loan boolean, active_loans bigint, loan_count bigint, first_loan_date date, last_payment_date date, outstanding_principal numeric, lifetime_interest numeric, principal_issued numeric, principal_returned numeric, interest_received numeric, loans_issued bigint, first_loans bigint, repeat_loans bigint, unclassified_loans bigint, principal_share numeric, interest_share numeric, principal_rank bigint, interest_rank bigint, invalid_fact_count bigint, reporting_date date, calculated_at timestamp with time zone)
+       LANGUAGE sql
+       STABLE
+      AS $function$
+       WITH cohort AS (
+       SELECT d.* FROM public.reporting_borrower_directory_v1 d WHERE d.loan_count>0
+       AND (p_population='All with loan history' OR p_population='Currently active' AND d.has_active_loan
+       OR p_population='Currently inactive' AND NOT d.has_active_loan)
+       AND p_start IS NOT NULL AND p_end>=p_start AND p_end<=public.olap_reporting_date()
+       ), activity AS (
+       SELECT a.borrower_id,
+       CASE WHEN bool_and(a.principal_issued IS NOT NULL) THEN sum(a.principal_issued) END principal_issued,
+       CASE WHEN bool_and(a.principal_returned IS NOT NULL) THEN sum(a.principal_returned) END principal_returned,
+       CASE WHEN bool_and(a.interest_received IS NOT NULL) THEN sum(a.interest_received) END interest_received,
+       sum(a.loans_issued)::bigint loans_issued,sum(a.first_loans)::bigint first_loans,sum(a.repeat_loans)::bigint repeat_loans,
+       sum(a.unclassified_loans)::bigint unclassified_loans
+       FROM public.reporting_borrower_activity_daily_v1 a WHERE a.activity_date BETWEEN p_start AND p_end GROUP BY a.borrower_id
+       ), combined AS (
+       SELECT d.*,CASE WHEN a.borrower_id IS NULL THEN 0 ELSE a.principal_issued END principal_issued,
+       CASE WHEN a.borrower_id IS NULL THEN 0 ELSE a.principal_returned END principal_returned,
+       CASE WHEN a.borrower_id IS NULL THEN 0 ELSE a.interest_received END interest_received,
+       coalesce(a.loans_issued,0) loans_issued,coalesce(a.first_loans,0) first_loans,coalesce(a.repeat_loans,0) repeat_loans,
+       coalesce(a.unclassified_loans,0) unclassified_loans FROM cohort d LEFT JOIN activity a USING(borrower_id)
+       ), totals AS (
+       SELECT c.*,CASE WHEN bool_and(c.outstanding_principal IS NOT NULL) OVER() THEN sum(c.outstanding_principal) OVER() END total_principal,
+       CASE WHEN bool_and(c.interest_received IS NOT NULL) OVER() THEN sum(c.interest_received) OVER() END total_interest FROM combined c
+       )
+       SELECT t.borrower_id,t.borrower_label,t.hidden_flag,t.has_active_loan,t.active_loans,t.loan_count,t.first_loan_date,t.last_payment_date,
+       t.outstanding_principal,t.lifetime_interest,t.principal_issued,t.principal_returned,t.interest_received,t.loans_issued,t.first_loans,t.repeat_loans,
+       t.unclassified_loans,CASE WHEN t.total_principal>0 THEN t.outstanding_principal/t.total_principal END,
+       CASE WHEN t.total_interest>0 THEN t.interest_received/t.total_interest END,
+       row_number() OVER(ORDER BY t.outstanding_principal DESC NULLS LAST,t.borrower_id),
+       row_number() OVER(ORDER BY t.interest_received DESC NULLS LAST,t.borrower_id),t.invalid_fact_count,t.reporting_date,t.calculated_at FROM totals t
+      $function$
+    "owner": "postgres"
+    "language": "sql"
+    "volatility": "s"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 1000.0
+    "settings": null
+    "acl": "{postgres=X/postgres,metabase_borrower_reader=X/postgres,mw_app_prod=X/postgres}"
+    "comment": "Read-only borrower period facts: explicit Bangkok dates, current cohort, signed receipts, immutable keys.\
+      \ Current positions do not reconstruct past balances. No AppSheet binding."
+    "extension": null
+"evidence":
+  "/content/definition/acl":
+    "reference": "outputs/r052/dictionary-production-closure.json"
+    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
+    "observedAt": "2026-10-11T14:01:43.131793+00:00"

@@ -1,0 +1,56 @@
+{
+  "performance": {
+    "backup_bytes": 416059,
+    "backup_sha256": "f6210bfc0964aef5ec5316f6376475243b856410fbbff997ad207c91bd33fa3b",
+    "uid": "mw-resource-performance",
+    "generation": 31,
+    "resourceVersion": "2103829545580806144",
+    "exported_by": "parent authenticated Dots browser",
+    "export_window_utc": "2026-10-04 15:42\u201315:43",
+    "original_elements": 61,
+    "patched_elements": 69,
+    "new_elements": [
+      "panel-120",
+      "panel-121",
+      "panel-122",
+      "panel-123",
+      "panel-124",
+      "panel-125",
+      "panel-126",
+      "panel-127"
+    ],
+    "patch_bytes": 477085,
+    "patch_sha256": "97342e057a7fb1dda57fec0b9002c694358b903575192bde7cf244dba1caf9a8",
+    "exact_preservation_test": "PASS after removing only added elements/items",
+    "live_save": "Latest entire-row height refinement: version37,2026-10-05T04:03:56Z,parent verified; rollback36",
+    "folder_annotation_present": false,
+    "live_acceptance_evidence": "row5-entire-height-followup.json (latest); row5-height-followup.json version36 and row5-sizing-followup.json version35 (historical)",
+    "traffic_light_followup": "Owner requested panels121/122 match exact current panel51 style; scoped patch prepared against parent verified unchanged generation33; browser application pending",
+    "sizing_followup": "2026-10-05: live save/reload/render/persisted export verified; exact11 geometry changes, all non-layout spec properties preserved vs editor baseline",
+    "latest_saved_resource_sha256": "941679bd211ee322c4f1c6686066ce1359c7fb8e02b58bbe97a0ab39c0b8ab91",
+    "latest_dashboard_version": 37,
+    "latest_saved_at_utc": "2026-10-05T04:03:56Z",
+    "height_followup": "2026-10-05: live version36 verified, only four height4\u21923 changes; zero normalization/other-property deltas",
+    "entire_height_followup": "2026-10-05: live version37 verified, only six height3\u21924 changes; zero normalization/other-property deltas. Renewal horizontal labels remain small at1180px viewport; formatting proposal awaiting owner"
+  },
+  "cost": {
+    "backup_bytes": 138044,
+    "backup_sha256": "8b0fab4da69ab299721c9f0e08536889ada847dfdb50d63a4fd50e9bb20b314a",
+    "uid": "mw-resource-cost",
+    "generation": 13,
+    "resourceVersion": "2103530374456836096",
+    "exported_by": "parent authenticated Dots browser",
+    "export_window_utc": "2026-10-04 15:42\u201315:43",
+    "original_elements": 23,
+    "patched_elements": 24,
+    "new_elements": [
+      "panel-110"
+    ],
+    "patch_bytes": 145529,
+    "patch_sha256": "524c0481d5680f92f9d7908519daadd6c8e73027421f2aab3145acb9fb875a61",
+    "exact_preservation_test": "PASS after removing only added elements/items",
+    "live_save": "Parent corrected plain selectors, saved and visually verified chart; same UID/folder/timezone",
+    "folder_annotation_present": false,
+    "final_full_object_verification": "Denied twice; final Cost object equality not established"
+  }
+}

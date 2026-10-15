@@ -1,0 +1,20 @@
+{
+  "at": "20260927T113059Z",
+  "environment": "production",
+  "instance": "appsheet-pg-prod-20260914",
+  "database": "loan_manager_prod",
+  "baseline_version": 50,
+  "backup_file": "C:\\Users\\MWCredit\\Documents\\ChatGPT\\AppSheet-Loan-Project\\r047-production\\20260927T113059Z\\production-before.dump",
+  "backup_sha256": "4804ac4f3b62f37b9f90e19afbc3cdde82dc0b04f0ddcbd25c300eef08c6c478",
+  "restored_fingerprints_match": true,
+  "migrations_rehearsed": [
+    51,
+    52
+  ],
+  "all_existing_rows_unchanged": true,
+  "migration_sha256": {
+    "V51__selected_charge_receiving.sql": "9a0fd8fe55410e48fd231c830d297c2481aa98a2c25ee3147cbf96d953f46086",
+    "V52__manual_payment_receipt_upload.sql": "9f2235b3993ee1ba7cb2d4705d59d2bdea4f0027023fb1f3397d82621702de90"
+  },
+  "scope": "public, assessment_lab, agent_audit; instance settings/roles external"
+}

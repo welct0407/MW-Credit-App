@@ -1,0 +1,51 @@
+{"at": "2026-10-01T17:23:44.545380+00:00", "event": "intent", "label": "api app create", "detail": null}
+{"at": "2026-10-01T17:23:45.700311+00:00", "event": "response_received", "label": "api app create", "detail": null}
+{"at": "2026-10-01T17:23:46.555789+00:00", "event": "intent", "label": "api owner assignment", "detail": null}
+{"at": "2026-10-01T17:23:47.646218+00:00", "event": "response_received", "label": "api owner assignment", "detail": null}
+{"at": "2026-10-01T17:23:49.479729+00:00", "event": "intent", "label": "api service principal create", "detail": null}
+{"at": "2026-10-01T17:23:50.715707+00:00", "event": "response_received", "label": "api service principal create", "detail": null}
+{"at": "2026-10-01T17:23:50.717355+00:00", "event": "intent", "label": "API identifier URI", "detail": null}
+{"at": "2026-10-01T17:23:51.958519+00:00", "event": "response_received", "label": "API identifier URI", "detail": null}
+{"at": "2026-10-01T17:23:52.800129+00:00", "event": "intent", "label": "browser app create", "detail": null}
+{"at": "2026-10-01T17:23:54.000557+00:00", "event": "response_received", "label": "browser app create", "detail": null}
+{"at": "2026-10-01T17:23:54.824450+00:00", "event": "intent", "label": "browser owner assignment", "detail": null}
+{"at": "2026-10-01T17:23:56.195404+00:00", "event": "response_received", "label": "browser owner assignment", "detail": null}
+{"at": "2026-10-01T17:23:57.829826+00:00", "event": "intent", "label": "browser service principal create", "detail": null}
+{"at": "2026-10-01T17:23:58.926091+00:00", "event": "response_received", "label": "browser service principal create", "detail": null}
+{"at": "2026-10-01T17:23:59.909986+00:00", "event": "intent", "label": "cloud app create", "detail": null}
+{"at": "2026-10-01T17:24:00.969519+00:00", "event": "response_received", "label": "cloud app create", "detail": null}
+{"at": "2026-10-01T17:24:01.820680+00:00", "event": "intent", "label": "cloud owner assignment", "detail": null}
+{"at": "2026-10-01T17:24:02.755951+00:00", "event": "response_received", "label": "cloud owner assignment", "detail": null}
+{"at": "2026-10-01T17:24:04.416876+00:00", "event": "intent", "label": "cloud service principal create", "detail": null}
+{"at": "2026-10-01T17:24:05.536318+00:00", "event": "response_received", "label": "cloud service principal create", "detail": null}
+{"at": "2026-10-01T17:24:06.344756+00:00", "event": "intent", "label": "owner-only browser delegated consent", "detail": null}
+{"at": "2026-10-01T17:24:07.305565+00:00", "event": "response_received", "label": "owner-only browser delegated consent", "detail": null}
+{"at": "2026-10-01T17:24:08.138707+00:00", "event": "intent", "label": "cloud controller role VM01.Status", "detail": null}
+{"at": "2026-10-01T17:24:09.051100+00:00", "event": "response_received", "label": "cloud controller role VM01.Status", "detail": null}
+{"at": "2026-10-01T17:24:09.052010+00:00", "event": "intent", "label": "cloud controller role VM01.Start", "detail": null}
+{"at": "2026-10-01T17:24:09.992858+00:00", "event": "response_received", "label": "cloud controller role VM01.Start", "detail": null}
+{"at": "2026-10-01T17:24:09.993808+00:00", "event": "intent", "label": "cloud controller role VM01.Restart", "detail": null}
+{"at": "2026-10-01T17:24:10.929631+00:00", "event": "response_received", "label": "cloud controller role VM01.Restart", "detail": null}
+{"at": "2026-10-01T17:24:10.930462+00:00", "event": "intent", "label": "cloud controller role VM01.Deallocate", "detail": null}
+{"at": "2026-10-01T17:24:11.850522+00:00", "event": "response_received", "label": "cloud controller role VM01.Deallocate", "detail": null}
+{"at": "2026-10-01T17:25:27.971809+00:00", "event": "intent", "label": "approved Microsoft.App registration", "detail": null}
+{"at": "2026-10-01T17:25:29.454293+00:00", "event": "response_received", "label": "approved Microsoft.App registration", "detail": null}
+{"at": "2026-10-01T17:25:30.675173+00:00", "event": "intent", "label": "approved controller RG create", "detail": null}
+{"at": "2026-10-01T17:25:33.003921+00:00", "event": "response_received", "label": "approved controller RG create", "detail": null}
+{"at": "2026-10-01T17:30:39.192469+00:00", "event": "intent", "label": "approved disabled controller infrastructure deployment", "detail": null}
+{"at": "2026-10-01T17:30:43.195655+00:00", "event": "response_received", "label": "approved disabled controller infrastructure deployment", "detail": null}
+{"at": "2026-10-01T17:40:44.321295+00:00", "event": "stage_stopped", "label": "preparation", "detail": ""}
+{"at": "2026-10-01T17:42:03.535638+00:00", "event": "stage_stopped", "label": "preparation", "detail": ""}
+{"at": "2026-10-01T17:42:58.852409+00:00", "event": "intent", "label": "normalize approved disabled switches to source-required lowercase", "detail": null}
+{"at": "2026-10-01T17:43:04.928406+00:00", "event": "response_received", "label": "normalize approved disabled switches to source-required lowercase", "detail": null}
+{"at": "2026-10-01T17:43:11.745786+00:00", "event": "intent", "label": "approved exact browser SPA callback", "detail": null}
+{"at": "2026-10-01T17:43:12.873868+00:00", "event": "response_received", "label": "approved exact browser SPA callback", "detail": null}
+{"at": "2026-10-01T17:43:15.115096+00:00", "event": "intent", "label": "approved exact-container operator ledger role", "detail": null}
+{"at": "2026-10-01T17:43:19.258609+00:00", "event": "response_received", "label": "approved exact-container operator ledger role", "detail": null}
+{"at": "2026-10-01T17:44:26.305775+00:00", "event": "intent", "label": "approved exact pinned disabled package publish", "detail": {"sha256": "aaedfe3d24e2dedfac5338b7ab03b4e9c7a6961267d068e0b7a51c43f22b180f", "sourceCommit": "e02501786af5f8a9ca7073c08244eb6afc4e08af"}}
+{"at": "2026-10-01T17:45:37.001771+00:00", "event": "response_received", "label": "approved exact pinned disabled package publish", "detail": {"id": "a3b2fec5-75bc-4d86-ac41-c9b195fb44d5", "status": 4, "complete": true, "active": true, "received_time": "2026-10-01T17:44:33.076272Z", "end_time": "2026-10-01T17:45:37.0096701Z", "deployer": "az_cli", "method": "Azure CLI 2.90.0 Flex /api/publish, Entra authentication; host-key health helper replaced with deployment-status read"}}
+{"at": "2026-10-01T17:46:08.570204+00:00", "event": "intent", "label": "approved disabled ledger bootstrap", "detail": null}
+{"at": "2026-10-01T17:46:14.690216+00:00", "event": "response_received", "label": "approved disabled ledger bootstrap", "detail": "Ledger bootstrapped with admission disabled."}
+{"at": "2026-10-01T17:47:18.725855+00:00", "event": "intent", "label": "approved VM-only five-action role deployment", "detail": null}
+{"at": "2026-10-01T17:47:20.981341+00:00", "event": "response_received", "label": "approved VM-only five-action role deployment", "detail": null}
+{"at": "2026-10-01T17:49:19.085860+00:00", "event": "stage_stopped", "label": "final-check", "detail": "'diskSizeGb'"}

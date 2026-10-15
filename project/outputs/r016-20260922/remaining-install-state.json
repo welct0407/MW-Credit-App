@@ -1,0 +1,431 @@
+{
+  "cards": {
+    "b-active": {
+      "id": 78,
+      "page": 3,
+      "rows": 1
+    },
+    "b-principal": {
+      "id": 48,
+      "page": 3,
+      "rows": 1,
+      "reused": true
+    },
+    "b-top": {
+      "id": 59,
+      "page": 3,
+      "rows": 1,
+      "reused": true
+    },
+    "b-interest": {
+      "id": 81,
+      "page": 3,
+      "rows": 1
+    },
+    "b-share-principal": {
+      "id": 82,
+      "page": 3,
+      "rows": 29
+    },
+    "b-rank-principal": {
+      "id": 83,
+      "page": 3,
+      "rows": 29
+    },
+    "b-share-profit": {
+      "id": 84,
+      "page": 3,
+      "rows": 29
+    },
+    "b-rank-profit": {
+      "id": 85,
+      "page": 3,
+      "rows": 29
+    },
+    "b-return": {
+      "id": 86,
+      "page": 3,
+      "rows": 30
+    },
+    "b-coverage": {
+      "id": 87,
+      "page": 3,
+      "rows": 30
+    },
+    "b-lifetime": {
+      "id": 88,
+      "page": 3,
+      "rows": 30
+    },
+    "b-loans": {
+      "id": 89,
+      "page": 3,
+      "rows": 30
+    },
+    "b-contribution": {
+      "id": 90,
+      "page": 3,
+      "rows": 474
+    },
+    "b-stability": {
+      "id": 91,
+      "page": 3,
+      "rows": 21
+    },
+    "b-capital-profit": {
+      "id": 92,
+      "page": 3,
+      "rows": 29
+    },
+    "b-matrix-detail": {
+      "id": 93,
+      "page": 3,
+      "rows": 30
+    },
+    "p-interest": {
+      "id": 94,
+      "page": 4,
+      "rows": 1
+    },
+    "p-growth": {
+      "id": 56,
+      "page": 4,
+      "rows": 1,
+      "reused": true
+    },
+    "p-count": {
+      "id": 96,
+      "page": 4,
+      "rows": 1
+    },
+    "p-principal": {
+      "id": 97,
+      "page": 4,
+      "rows": 1
+    },
+    "p-daily": {
+      "id": 98,
+      "page": 4,
+      "rows": 49
+    },
+    "p-cumulative": {
+      "id": 99,
+      "page": 4,
+      "rows": 49
+    },
+    "p-yield": {
+      "id": 100,
+      "page": 4,
+      "rows": 49
+    },
+    "p-active-loans": {
+      "id": 101,
+      "page": 4,
+      "rows": 30
+    },
+    "p-active-borrowers": {
+      "id": 102,
+      "page": 4,
+      "rows": 30
+    },
+    "p-issued": {
+      "id": 103,
+      "page": 4,
+      "rows": 35
+    },
+    "p-issued-count": {
+      "id": 104,
+      "page": 4,
+      "rows": 35
+    },
+    "p-type-profit": {
+      "id": 105,
+      "page": 4,
+      "rows": 3
+    },
+    "p-average": {
+      "id": 106,
+      "page": 4,
+      "rows": 8
+    },
+    "p-period": {
+      "id": 107,
+      "page": 4,
+      "rows": 49
+    },
+    "r-principal": {
+      "id": 48,
+      "page": 5,
+      "rows": 1,
+      "reused": true
+    },
+    "r-interest": {
+      "id": 81,
+      "page": 5,
+      "rows": 1,
+      "reused": true
+    },
+    "r-top3": {
+      "id": 110,
+      "page": 5,
+      "rows": 1
+    },
+    "r-past-due": {
+      "id": 111,
+      "page": 5,
+      "rows": 1
+    },
+    "r-borrowers": {
+      "id": 112,
+      "page": 5,
+      "rows": 21
+    },
+    "r-status": {
+      "id": 113,
+      "page": 5,
+      "rows": 2
+    },
+    "r-age-count": {
+      "id": 114,
+      "page": 5,
+      "rows": 4
+    },
+    "r-age-principal": {
+      "id": 115,
+      "page": 5,
+      "rows": 4
+    },
+    "r-matrix": {
+      "id": 116,
+      "page": 5,
+      "rows": 20
+    },
+    "r-default": {
+      "id": 117,
+      "page": 5,
+      "rows": 2
+    },
+    "r-monitor": {
+      "id": 118,
+      "page": 5,
+      "rows": 21
+    },
+    "c-due-count": {
+      "id": 119,
+      "page": 6,
+      "rows": 1
+    },
+    "c-paid-count": {
+      "id": 120,
+      "page": 6,
+      "rows": 1
+    },
+    "c-partial-count": {
+      "id": 121,
+      "page": 6,
+      "rows": 1
+    },
+    "c-unpaid-count": {
+      "id": 122,
+      "page": 6,
+      "rows": 1
+    },
+    "c-due": {
+      "id": 123,
+      "page": 6,
+      "rows": 1
+    },
+    "c-collected": {
+      "id": 124,
+      "page": 6,
+      "rows": 1
+    },
+    "c-remaining": {
+      "id": 125,
+      "page": 6,
+      "rows": 1
+    },
+    "c-rate": {
+      "id": 126,
+      "page": 6,
+      "rows": 1
+    },
+    "c-paid-borrowers": {
+      "id": 120,
+      "page": 6,
+      "rows": 1,
+      "reused": true
+    },
+    "c-paid-amount": {
+      "id": 128,
+      "page": 6,
+      "rows": 1
+    },
+    "c-paid-detail": {
+      "id": 129,
+      "page": 6,
+      "rows": 9
+    },
+    "c-partial-borrowers": {
+      "id": 121,
+      "page": 6,
+      "rows": 1,
+      "reused": true
+    },
+    "c-partial-amount": {
+      "id": 131,
+      "page": 6,
+      "rows": 1
+    },
+    "c-partial-detail": {
+      "id": 132,
+      "page": 6,
+      "rows": 0
+    },
+    "c-unpaid-borrowers": {
+      "id": 133,
+      "page": 6,
+      "rows": 1
+    },
+    "c-unpaid-amount": {
+      "id": 134,
+      "page": 6,
+      "rows": 1
+    },
+    "c-unpaid-detail": {
+      "id": 135,
+      "page": 6,
+      "rows": 1
+    },
+    "c-overdue-borrowers": {
+      "id": 136,
+      "page": 6,
+      "rows": 1
+    },
+    "c-overdue-amount": {
+      "id": 137,
+      "page": 6,
+      "rows": 1
+    },
+    "c-overdue-detail": {
+      "id": 138,
+      "page": 6,
+      "rows": 7
+    },
+    "i-principal": {
+      "id": 139,
+      "page": 7,
+      "rows": 1
+    },
+    "i-active": {
+      "id": 140,
+      "page": 7,
+      "rows": 1
+    },
+    "i-overdue": {
+      "id": 141,
+      "page": 7,
+      "rows": 1
+    },
+    "i-interest": {
+      "id": 81,
+      "page": 7,
+      "rows": 1,
+      "reused": true
+    },
+    "i-timing": {
+      "id": 143,
+      "page": 7,
+      "rows": 7
+    },
+    "i-loans": {
+      "id": 144,
+      "page": 7,
+      "rows": 77
+    },
+    "i-assessment": {
+      "id": 145,
+      "page": 7,
+      "rows": 30
+    },
+    "i-risk": {
+      "id": 146,
+      "page": 7,
+      "rows": 30
+    },
+    "f-realized": {
+      "id": 51,
+      "page": 8,
+      "rows": 1,
+      "reused": true
+    },
+    "f-remaining": {
+      "id": 148,
+      "page": 8,
+      "rows": 1
+    },
+    "f-estimate": {
+      "id": 52,
+      "page": 8,
+      "rows": 1,
+      "reused": true
+    },
+    "f-realization": {
+      "id": 150,
+      "page": 8,
+      "rows": 1
+    },
+    "f-progress": {
+      "id": 151,
+      "page": 8,
+      "rows": 1
+    },
+    "f-type": {
+      "id": 152,
+      "page": 8,
+      "rows": 3
+    },
+    "f-daily-borrower": {
+      "id": 153,
+      "page": 8,
+      "rows": 30
+    },
+    "f-month-borrower": {
+      "id": 154,
+      "page": 8,
+      "rows": 30
+    },
+    "f-partner": {
+      "id": 155,
+      "page": 8,
+      "rows": 2
+    },
+    "f-detail": {
+      "id": 156,
+      "page": 8,
+      "rows": 30
+    },
+    "f-interest-trend": {
+      "id": 157,
+      "page": 8,
+      "rows": 49
+    },
+    "i-exposure": {
+      "id": 158,
+      "page": 7,
+      "scenario": true
+    },
+    "i-current-share": {
+      "id": 159,
+      "page": 7,
+      "scenario": true
+    },
+    "i-proposed-share": {
+      "id": 160,
+      "page": 7,
+      "scenario": true
+    }
+  },
+  "snippet_id": 1,
+  "borrower_selector_id": 161
+}

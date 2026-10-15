@@ -1,0 +1,24 @@
+{"receipt" : "FLUOWaHAHM1ykz8piFm8Kg", "borrower" : "LS26-BENCH", "note" : "LS26-BASE-01", "status" : "Posted", "amount" : 100.00, "allocations" : 6, "allocated" : 100.00, "repayments" : 1, "posted" : 100.00}
+{"receipt" : "Z7x26J45k4EnGC9KT7Atpr", "borrower" : "LS26-BENCH", "note" : "LS26-BASE-02", "status" : "Posted", "amount" : 100.00, "allocations" : 6, "allocated" : 100.00, "repayments" : 1, "posted" : 100.00}
+{"receipt" : "McUe8UIOLFNOnVax9Olnvw", "borrower" : "LS26-BENCH", "note" : "LS26-BASE-03", "status" : "Posted", "amount" : 100.00, "allocations" : 6, "allocated" : 100.00, "repayments" : 1, "posted" : 100.00}
+{"receipt" : "qBupwr5Ecw95Ujct6Dfjvz", "borrower" : "LS26-BENCH", "note" : "LS26-BASE-04", "status" : "Posted", "amount" : 100.00, "allocations" : 6, "allocated" : 100.00, "repayments" : 1, "posted" : 100.00}
+{"receipt" : "dqOuC7zMgRqgEMcs6Gxw4Z", "borrower" : "LS26-BENCH", "note" : "LS26-BASE-05", "status" : "Posted", "amount" : 100.00, "allocations" : 6, "allocated" : 100.00, "repayments" : 1, "posted" : 100.00}
+{"receipt" : "ZlsFfrzE1ONi1fvl7zyQYK", "borrower" : "LS26-BENCH", "note" : "LS26-SQL-01", "status" : "Posted", "amount" : 100.00, "allocations" : 1, "allocated" : 100.00, "repayments" : 1, "posted" : 100.00}
+{"receipt" : "kSfmlLnCDAseruEuVqH8FQ", "borrower" : "LS26-BENCH", "note" : "LS26-SQL-02", "status" : "Posted", "amount" : 100.00, "allocations" : 1, "allocated" : 100.00, "repayments" : 1, "posted" : 100.00}
+{"receipt" : "jjiK7TZiQM3nWkCtcLIy8b", "borrower" : "LS26-BENCH", "note" : "LS26-SQL-03", "status" : "Posted", "amount" : 100.00, "allocations" : 1, "allocated" : 100.00, "repayments" : 1, "posted" : 100.00}
+{"receipt" : "8PLWpTV0cPVT4cGy1jEFai", "borrower" : "LS26-BENCH", "note" : "LS26-SQL-04", "status" : "Posted", "amount" : 100.00, "allocations" : 1, "allocated" : 100.00, "repayments" : 1, "posted" : 100.00}
+{"receipt" : "QkyMO9VGg41JHA4yWVYgAr", "borrower" : "LS26-BENCH", "note" : "LS26-FINAL-01", "status" : "Posted", "amount" : 100.00, "allocations" : 1, "allocated" : 100.00, "repayments" : 1, "posted" : 100.00}
+{"receipt" : "HTH5e7XzPFVcFCar1IUrlH", "borrower" : "LS26-BENCH", "note" : "LS26-FINAL-02", "status" : "Posted", "amount" : 100.00, "allocations" : 1, "allocated" : 100.00, "repayments" : 1, "posted" : 100.00}
+{"charge" : "LS26-A", "interest_remaining" : 10.00, "principal_remaining" : 100.00}
+{"charge" : "LS26-B", "interest_remaining" : 20.00, "principal_remaining" : 100.00}
+{"charge" : "LS26-B0", "interest_remaining" : 98900.00, "principal_remaining" : 100000.00}
+{"charge" : "LS26-B1", "interest_remaining" : 100.00, "principal_remaining" : 0.00}
+{"charge" : "LS26-B2", "interest_remaining" : 100.00, "principal_remaining" : 0.00}
+{"charge" : "LS26-B3", "interest_remaining" : 100.00, "principal_remaining" : 0.00}
+{"charge" : "LS26-B4", "interest_remaining" : 100.00, "principal_remaining" : 0.00}
+{"charge" : "LS26-B5", "interest_remaining" : 100.00, "principal_remaining" : 0.00}
+{"charge" : "LS26-C", "interest_remaining" : 30.00, "principal_remaining" : 100.00}
+{"charge" : "LS26-F", "interest_remaining" : 50.00, "principal_remaining" : 0.00}
+{"loan" : "LS26-LB", "status" : "ยังไม่ปิดยอด", "close_date" : null}
+{"loan" : "LS26-L1", "status" : "ยังไม่ปิดยอด", "close_date" : null}
+{"loan" : "LS26-L2", "status" : "ยังไม่ปิดยอด", "close_date" : null}

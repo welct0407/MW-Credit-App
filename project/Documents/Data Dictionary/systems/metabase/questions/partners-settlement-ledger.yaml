@@ -1,0 +1,333 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "metabase",
+    "component": "reports.mw-credit.com",
+    "kind": "question",
+    "name": "Settlement transaction ledger / 342",
+    "scope": "production"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r044-partners/saved.json"
+  },
+  "content": {
+    "key": "settlement-ledger",
+    "description": "R044 Partners. Cancelled audit amounts are not effective payments. Status filter applies to this ledger only; undated Pending remains in the queue above.",
+    "result_metadata": [
+      {
+        "database_type": "date",
+        "semantic_type": null,
+        "lib/deduplicated-name": "Transfer date",
+        "lib/original-name": "Transfer date",
+        "name": "Transfer date",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Transfer date",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Transfer date",
+          {
+            "base-type": "type/Date"
+          }
+        ],
+        "effective_type": "type/Date",
+        "lib/desired-column-alias": "Transfer date",
+        "display_name": "Transfer date",
+        "base_type": "type/Date"
+      },
+      {
+        "database_type": "text",
+        "semantic_type": null,
+        "lib/deduplicated-name": "Partner",
+        "lib/original-name": "Partner",
+        "name": "Partner",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Partner",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Partner",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "effective_type": "type/Text",
+        "lib/desired-column-alias": "Partner",
+        "display_name": "Partner",
+        "base_type": "type/Text"
+      },
+      {
+        "database_type": "numeric",
+        "semantic_type": null,
+        "lib/deduplicated-name": "Recorded amount ฿",
+        "lib/original-name": "Recorded amount ฿",
+        "name": "Recorded amount ฿",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Recorded amount ฿",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Recorded amount ฿",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "Recorded amount ฿",
+        "display_name": "Recorded amount ฿",
+        "base_type": "type/Decimal"
+      },
+      {
+        "database_type": "text",
+        "semantic_type": "type/Category",
+        "lib/deduplicated-name": "Status",
+        "lib/original-name": "Status",
+        "name": "Status",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Status",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Status",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "effective_type": "type/Text",
+        "lib/desired-column-alias": "Status",
+        "display_name": "Status",
+        "base_type": "type/Text"
+      },
+      {
+        "database_type": "numeric",
+        "semantic_type": null,
+        "lib/deduplicated-name": "Effective paid ฿",
+        "lib/original-name": "Effective paid ฿",
+        "name": "Effective paid ฿",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Effective paid ฿",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Effective paid ฿",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "Effective paid ฿",
+        "display_name": "Effective paid ฿",
+        "base_type": "type/Decimal"
+      },
+      {
+        "database_type": "numeric",
+        "semantic_type": null,
+        "lib/deduplicated-name": "Pending ฿",
+        "lib/original-name": "Pending ฿",
+        "name": "Pending ฿",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Pending ฿",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Pending ฿",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "Pending ฿",
+        "display_name": "Pending ฿",
+        "base_type": "type/Decimal"
+      },
+      {
+        "database_type": "text",
+        "semantic_type": null,
+        "lib/deduplicated-name": "Settlement reference",
+        "lib/original-name": "Settlement reference",
+        "name": "Settlement reference",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Settlement reference",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Settlement reference",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "effective_type": "type/Text",
+        "lib/desired-column-alias": "Settlement reference",
+        "display_name": "Settlement reference",
+        "base_type": "type/Text"
+      }
+    ],
+    "collection_id": 5,
+    "name": "Settlement transaction ledger",
+    "type": "question",
+    "dataset_query": {
+      "stages": [
+        {
+          "template-tags": [
+            {
+              "widget-type": "string/=",
+              "id": "pt-partner",
+              "name": "partner",
+              "display-name": "Partner",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                {
+                  "base-type": "type/Text",
+                  "lib/uuid": "20fa9f69-4185-4443-b4dd-3d4800090482",
+                  "effective-type": "type/Text"
+                },
+                121
+              ],
+              "alias": "d.partner_id"
+            },
+            {
+              "widget-type": "date/all-options",
+              "id": "pt-period",
+              "name": "period",
+              "display-name": "Partner activity period",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                {
+                  "base-type": "type/Date",
+                  "lib/uuid": "726b6b77-783b-43fd-a8fa-6c9f5c702fcc",
+                  "effective-type": "type/Date"
+                },
+                82
+              ],
+              "alias": "d.activity_date"
+            },
+            {
+              "display-name": "Settlement ledger status",
+              "id": "pt-status",
+              "name": "status",
+              "type": "text"
+            },
+            {
+              "type": "card",
+              "id": "r044-model-321",
+              "name": "#321",
+              "display-name": "Partners source 321",
+              "card-id": 321
+            }
+          ],
+          "lib/type": "mbql.stage/native",
+          "native": "SELECT activity_date AS \"Transfer date\",partner_name AS \"Partner\",amount AS \"Recorded amount ฿\",status AS \"Status\",completed_amount AS \"Effective paid ฿\",pending_amount AS \"Pending ฿\",settlement_id AS \"Settlement reference\" FROM {{#321}} d WHERE true [[AND {{partner}}]] [[AND {{period}}]] AND activity_date<=public.olap_reporting_date() [[AND d.status={{status}}]] ORDER BY activity_date DESC,settlement_id"
+        }
+      ],
+      "lib/type": "mbql/query",
+      "database": 2
+    },
+    "id": 342,
+    "display": "table",
+    "visualization_settings": {
+      "table.pivot": false,
+      "table.columns": [
+        {
+          "name": "Transfer date",
+          "fieldRef": [
+            "field",
+            "Transfer date",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "enabled": true
+        },
+        {
+          "name": "Partner",
+          "fieldRef": [
+            "field",
+            "Partner",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "enabled": true
+        },
+        {
+          "name": "Recorded amount ฿",
+          "fieldRef": [
+            "field",
+            "Recorded amount ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "enabled": true
+        },
+        {
+          "name": "Status",
+          "fieldRef": [
+            "field",
+            "Status",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "enabled": true
+        },
+        {
+          "name": "Effective paid ฿",
+          "fieldRef": [
+            "field",
+            "Effective paid ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "enabled": true
+        },
+        {
+          "name": "Pending ฿",
+          "fieldRef": [
+            "field",
+            "Pending ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "enabled": true
+        },
+        {
+          "name": "Settlement reference",
+          "fieldRef": [
+            "field",
+            "Settlement reference",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "enabled": true
+        }
+      ],
+      "column_settings": {
+        "[\"name\",\"Recorded amount ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Effective paid ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Pending ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,",
+          "compact": false
+        }
+      }
+    }
+  }
+}

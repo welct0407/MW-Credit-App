@@ -73,7 +73,7 @@ export async function reconcileCapturedNative(input,{readMedia,decodeImage=decod
 }
 
 const appRoot=fileURLToPath(new URL('../../',import.meta.url));
-const projectRoot=resolve(appRoot,'../AppSheet-Loan-Project');
+const projectRoot=resolve(appRoot,'project');
 const inside=(root,path)=>{const rel=relative(root,path);return rel===''||(rel!=='..'&&!rel.startsWith('..'+sep)&&!isAbsolute(rel));};
 async function canonicalBlockedRoot(root){
   const absolute=resolve(root);let ancestor=absolute;

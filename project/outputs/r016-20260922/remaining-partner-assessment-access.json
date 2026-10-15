@@ -1,0 +1,392 @@
+[
+  {
+    "relation": "Loan Assessment",
+    "column_name": "Row ID",
+    "data_type": "text",
+    "allowed": false
+  },
+  {
+    "relation": "Loan Assessment",
+    "column_name": "Assessment ID",
+    "data_type": "text",
+    "allowed": false
+  },
+  {
+    "relation": "Loan Assessment",
+    "column_name": "Ref Borrower",
+    "data_type": "text",
+    "allowed": false
+  },
+  {
+    "relation": "Loan Assessment",
+    "column_name": "Proposed Loan Amount",
+    "data_type": "money",
+    "allowed": false
+  },
+  {
+    "relation": "Loan Assessment",
+    "column_name": "Minimum Daily Profit Rate",
+    "data_type": "real",
+    "allowed": false
+  },
+  {
+    "relation": "Loan Assessment SQL Lab",
+    "column_name": "Row ID",
+    "data_type": "text",
+    "allowed": false
+  },
+  {
+    "relation": "Loan Assessment SQL Lab",
+    "column_name": "Assessment ID",
+    "data_type": "text",
+    "allowed": false
+  },
+  {
+    "relation": "Loan Assessment SQL Lab",
+    "column_name": "Ref Borrower",
+    "data_type": "text",
+    "allowed": false
+  },
+  {
+    "relation": "Loan Assessment SQL Lab",
+    "column_name": "Proposed Loan Amount",
+    "data_type": "money",
+    "allowed": false
+  },
+  {
+    "relation": "Loan Assessment SQL Lab",
+    "column_name": "Minimum Daily Profit Rate",
+    "data_type": "real",
+    "allowed": false
+  },
+  {
+    "relation": "Loan Assessment SQL Lab",
+    "column_name": "SQL Current Principal",
+    "data_type": "numeric",
+    "allowed": false
+  },
+  {
+    "relation": "Loan Assessment SQL Lab",
+    "column_name": "SQL Interest Received",
+    "data_type": "numeric",
+    "allowed": false
+  },
+  {
+    "relation": "Loan Assessment SQL Lab",
+    "column_name": "SQL Eligible Date",
+    "data_type": "date",
+    "allowed": false
+  },
+  {
+    "relation": "Loan Assessment SQL Lab",
+    "column_name": "SQL Eligible Interest",
+    "data_type": "numeric",
+    "allowed": false
+  },
+  {
+    "relation": "Loan Assessment SQL Lab",
+    "column_name": "SQL Eligible Principal",
+    "data_type": "numeric",
+    "allowed": false
+  },
+  {
+    "relation": "Loan Assessment SQL Lab",
+    "column_name": "SQL Eligible Profit",
+    "data_type": "numeric",
+    "allowed": false
+  },
+  {
+    "relation": "Loan Assessment SQL Lab",
+    "column_name": "SQL Eligible Coverage",
+    "data_type": "numeric",
+    "allowed": false
+  },
+  {
+    "relation": "Loan Assessment SQL Lab",
+    "column_name": "SQL Eligible Margin",
+    "data_type": "numeric",
+    "allowed": false
+  },
+  {
+    "relation": "Loan Assessment SQL Lab",
+    "column_name": "SQL Current Margin",
+    "data_type": "numeric",
+    "allowed": false
+  },
+  {
+    "relation": "Loan Assessment SQL Lab",
+    "column_name": "SQL Calculated At",
+    "data_type": "timestamp without time zone",
+    "allowed": false
+  },
+  {
+    "relation": "Loan Assessment SQL Lab",
+    "column_name": "SQL As Of",
+    "data_type": "date",
+    "allowed": false
+  },
+  {
+    "relation": "Loan Assessment SQL Lab",
+    "column_name": "SQL Forecast Start",
+    "data_type": "date",
+    "allowed": false
+  },
+  {
+    "relation": "Loan Assessment SQL Lab",
+    "column_name": "SQL Forecast End",
+    "data_type": "date",
+    "allowed": false
+  },
+  {
+    "relation": "Loan Assessment SQL Lab",
+    "column_name": "SQL Refresh Token",
+    "data_type": "text",
+    "allowed": false
+  },
+  {
+    "relation": "Loan Assessment SQL Lab",
+    "column_name": "SQL Source Fingerprint",
+    "data_type": "text",
+    "allowed": false
+  },
+  {
+    "relation": "Loan Assessment SQL Lab",
+    "column_name": "SQL Input Borrower",
+    "data_type": "text",
+    "allowed": false
+  },
+  {
+    "relation": "Loan Assessment SQL Lab",
+    "column_name": "SQL Input Amount",
+    "data_type": "numeric",
+    "allowed": false
+  },
+  {
+    "relation": "Loan Assessment SQL Lab",
+    "column_name": "SQL Input Rate",
+    "data_type": "numeric",
+    "allowed": false
+  },
+  {
+    "relation": "Loan Assessment SQL Lab View",
+    "column_name": "Row ID",
+    "data_type": "text",
+    "allowed": false
+  },
+  {
+    "relation": "Loan Assessment SQL Lab View",
+    "column_name": "Assessment ID",
+    "data_type": "text",
+    "allowed": false
+  },
+  {
+    "relation": "Loan Assessment SQL Lab View",
+    "column_name": "Ref Borrower",
+    "data_type": "text",
+    "allowed": false
+  },
+  {
+    "relation": "Loan Assessment SQL Lab View",
+    "column_name": "Proposed Loan Amount",
+    "data_type": "money",
+    "allowed": false
+  },
+  {
+    "relation": "Loan Assessment SQL Lab View",
+    "column_name": "Minimum Daily Profit Rate",
+    "data_type": "real",
+    "allowed": false
+  },
+  {
+    "relation": "Loan Assessment SQL Lab View",
+    "column_name": "SQL Current Principal",
+    "data_type": "numeric",
+    "allowed": false
+  },
+  {
+    "relation": "Loan Assessment SQL Lab View",
+    "column_name": "SQL Interest Received",
+    "data_type": "numeric",
+    "allowed": false
+  },
+  {
+    "relation": "Loan Assessment SQL Lab View",
+    "column_name": "SQL Eligible Date",
+    "data_type": "date",
+    "allowed": false
+  },
+  {
+    "relation": "Loan Assessment SQL Lab View",
+    "column_name": "SQL Eligible Interest",
+    "data_type": "numeric",
+    "allowed": false
+  },
+  {
+    "relation": "Loan Assessment SQL Lab View",
+    "column_name": "SQL Eligible Principal",
+    "data_type": "numeric",
+    "allowed": false
+  },
+  {
+    "relation": "Loan Assessment SQL Lab View",
+    "column_name": "SQL Eligible Profit",
+    "data_type": "numeric",
+    "allowed": false
+  },
+  {
+    "relation": "Loan Assessment SQL Lab View",
+    "column_name": "SQL Eligible Coverage",
+    "data_type": "numeric",
+    "allowed": false
+  },
+  {
+    "relation": "Loan Assessment SQL Lab View",
+    "column_name": "SQL Eligible Margin",
+    "data_type": "numeric",
+    "allowed": false
+  },
+  {
+    "relation": "Loan Assessment SQL Lab View",
+    "column_name": "SQL Current Margin",
+    "data_type": "numeric",
+    "allowed": false
+  },
+  {
+    "relation": "Loan Assessment SQL Lab View",
+    "column_name": "SQL Calculated At",
+    "data_type": "timestamp without time zone",
+    "allowed": false
+  },
+  {
+    "relation": "Loan Assessment SQL Lab View",
+    "column_name": "SQL As Of",
+    "data_type": "date",
+    "allowed": false
+  },
+  {
+    "relation": "Loan Assessment SQL Lab View",
+    "column_name": "SQL Forecast Start",
+    "data_type": "date",
+    "allowed": false
+  },
+  {
+    "relation": "Loan Assessment SQL Lab View",
+    "column_name": "SQL Forecast End",
+    "data_type": "date",
+    "allowed": false
+  },
+  {
+    "relation": "Loan Assessment SQL Lab View",
+    "column_name": "SQL Refresh Token",
+    "data_type": "text",
+    "allowed": false
+  },
+  {
+    "relation": "Loan Assessment SQL Lab View",
+    "column_name": "SQL Source Fingerprint",
+    "data_type": "text",
+    "allowed": false
+  },
+  {
+    "relation": "Loan Assessment SQL Lab View",
+    "column_name": "SQL Input Borrower",
+    "data_type": "text",
+    "allowed": false
+  },
+  {
+    "relation": "Loan Assessment SQL Lab View",
+    "column_name": "SQL Input Amount",
+    "data_type": "numeric",
+    "allowed": false
+  },
+  {
+    "relation": "Loan Assessment SQL Lab View",
+    "column_name": "SQL Input Rate",
+    "data_type": "numeric",
+    "allowed": false
+  },
+  {
+    "relation": "Loan Assessment SQL Lab View",
+    "column_name": "SQL Source Current",
+    "data_type": "boolean",
+    "allowed": false
+  },
+  {
+    "relation": "Loan Assessment SQL Lab_pkey",
+    "column_name": "Row ID",
+    "data_type": "text",
+    "allowed": false
+  },
+  {
+    "relation": "Loan Assessment_pkey",
+    "column_name": "Row ID",
+    "data_type": "text",
+    "allowed": false
+  },
+  {
+    "relation": "Partners",
+    "column_name": "Row ID",
+    "data_type": "text",
+    "allowed": false
+  },
+  {
+    "relation": "Partners",
+    "column_name": "Partner Name",
+    "data_type": "text",
+    "allowed": false
+  },
+  {
+    "relation": "Partners",
+    "column_name": "Partner Role",
+    "data_type": "text",
+    "allowed": false
+  },
+  {
+    "relation": "Partners",
+    "column_name": "Email",
+    "data_type": "text",
+    "allowed": false
+  },
+  {
+    "relation": "Partners",
+    "column_name": "Instagram Username",
+    "data_type": "text",
+    "allowed": false
+  },
+  {
+    "relation": "Partners",
+    "column_name": "Language Preference",
+    "data_type": "text",
+    "allowed": false
+  },
+  {
+    "relation": "Partners",
+    "column_name": "IG Integration Enabled",
+    "data_type": "boolean",
+    "allowed": false
+  },
+  {
+    "relation": "Partners",
+    "column_name": "Login Email",
+    "data_type": "text",
+    "allowed": false
+  },
+  {
+    "relation": "Partners",
+    "column_name": "AI Reviewer",
+    "data_type": "boolean",
+    "allowed": false
+  },
+  {
+    "relation": "Partners_pkey",
+    "column_name": "Row ID",
+    "data_type": "text",
+    "allowed": false
+  },
+  {
+    "relation": "partners_login_email_unique",
+    "column_name": "lower",
+    "data_type": "text",
+    "allowed": false
+  }
+]

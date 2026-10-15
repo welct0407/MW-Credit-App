@@ -1,0 +1,66 @@
+{
+  "release": "R005",
+  "app": "olap",
+  "before": {
+    "file": "dev-olap-save18-transfer-form.json",
+    "version": "1.000115"
+  },
+  "after": {
+    "file": "dev-olap-save19-ledger-actions.json",
+    "version": "1.000116"
+  },
+  "coverage": "All exported properties; omitted export coverage subject to explicit owner-approved limited R005 exception.",
+  "counts": {
+    "before": 24450,
+    "after": 24452,
+    "changes": 3
+  },
+  "changes": [
+    {
+      "id": "R005-OLAP-800799f7c996",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Cash Ledger/Add/Display name",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "\"Record Cash Transfer\""
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-40d7f3704943",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Cash Ledger/Edit/Only if this condition is true",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "=AND([Entry Origin] = \"Manual\", IN([Movement Type], LIST(\"Cash Handover\", \"Expense Reimbursement\")))"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-10d4e392c175",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "App/Version",
+      "operation": "change",
+      "before": {
+        "present": true,
+        "value": "1.000115"
+      },
+      "after": {
+        "present": true,
+        "value": "1.000116"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    }
+  ]
+}

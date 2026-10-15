@@ -1,0 +1,8 @@
+{
+  "database": "loan_manager_dev",
+  "flyway": "33",
+  "capture_triggers": 10,
+  "restricted_privileges_verified": true,
+  "app_definitions_changed": false,
+  "ci": "Test-CI.ps1 passed all core/loan-close/charge/default concurrency and analytical regressions"
+}

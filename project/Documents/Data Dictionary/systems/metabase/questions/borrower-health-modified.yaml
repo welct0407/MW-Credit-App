@@ -1,0 +1,37 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "metabase",
+    "component": "reports.mw-credit.com",
+    "kind": "question",
+    "name": "Modified plans / 270",
+    "scope": "production"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r028-schedule-health/saved-question-definitions.json"
+  },
+  "content": {
+    "key": "modified",
+    "id": 270,
+    "name": "Modified plans",
+    "description": "R028 automatic schedule assessment. Counterfactual current setup, not extra debt. No manual inputs. Current completed-day window; unsupported sources explicitly unassessed.",
+    "display": "scalar",
+    "dataset_query": {
+      "stages": [
+        {
+          "lib/type": "mbql.stage/native",
+          "native": "SELECT count(*) AS \"Borrowers\" FROM public.reporting_borrower_matrix_v3 WHERE arrangement_gate"
+        }
+      ],
+      "lib/type": "mbql/query",
+      "database": 2
+    },
+    "visualization_settings": {
+      "scalar.field": "Borrowers",
+      "graph.colors": [
+        "#D6816B"
+      ]
+    }
+  }
+}

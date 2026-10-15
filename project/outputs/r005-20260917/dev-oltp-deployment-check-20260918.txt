@@ -1,0 +1,132 @@
+- banner:
+  - banner:
+    - button "AppSheet logo":
+    - generic "Rename":
+      - textbox "App Name": Loan Manager — DEV
+    - button "Switch to the legacy editor":
+    - button "Help":
+    - button "My Apps":
+    - button "share":
+    - generic "Undo Ctrl + Z":
+      - button "Undo" [disabled]:
+    - generic "Redo Ctrl + Y":
+      - button "Redo" [disabled]:
+    - generic "Warnings found in your app":
+      - button:
+    - generic "Save Ctrl + S":
+      - button "Save" [disabled]:
+        - generic: SAVE
+      - button "Open save menu" [disabled]:
+    - button "Account":
+      - generic: w
+    - button "More":
+- main:
+  - generic:  
+  - button "Deploy app":
+  - separator
+  - button "Data":
+  - button "App":
+  - button "Actions":
+  - button "Automation":
+    - generic: smart_toy
+  - button "Chat apps":
+    - generic: chat
+  - separator
+  - button "Intelligence":
+    - generic: lightbulb_outline
+  - button "Security":
+    - generic: security
+  - button "Settings":
+    - generic: settings
+  - button "Manage":
+  - button "Learn":
+    - generic: school
+  - navigation:
+    - heading "Manage" [level=3]
+    - tree:
+      - treeitem "Deploy":
+        - generic: Deploy
+    - tree:
+      - treeitem "Versions":
+        - generic: Versions
+    - tree:
+      - treeitem "Monitor":
+        - generic: Monitor
+    - tree:
+      - treeitem "Collaborate & Publish":
+        - generic: Collaborate & Publish
+  - paragraph: Deploy
+  - heading "Deployment Check" [level=3]
+  - heading "You should run and pass this check before you use the app in a non-prototype setting" [level=4]
+  - heading "Loan Manager — DEV appears ready to deploy!" [level=3]:
+    - text: Loan Manager — DEV appears
+    - strong: ready to deploy!
+  - paragraph: Please do address any warnings raised or suggestions indicated.
+  - button "Move app to deployed state":
+    - generic: Move app to deployed state
+  - button "Continue editing"
+  - heading "Definition" [level=4]
+  - heading "App definition warnings and errors" [level=5]
+  - generic: PASSED
+  - heading "App definition errors" [level=5]
+  - generic: PASSED
+  - heading "Data matches expected structure" [level=5]
+  - generic: PASSED
+  - heading "App description" [level=5]
+  - generic: WARNING
+  - generic: Please specify an industry for your app
+  - link "More info":
+    - /url: /support/errormessages#WARNING_APP_DESCR_INCOMPLETE
+  - generic: Please specify a function for your app
+  - link "More info":
+    - /url: /support/errormessages#WARNING_APP_DESCR_INCOMPLETE
+  - heading "User Interface" [level=4]
+  - heading "Use custom launch icon" [level=5]
+  - generic: WARNING
+  - generic: Custom app icon not assigned
+  - link "More info":
+    - /url: /support/errormessages#ERROR_APP_ICON_INCOMPLETE
+  - heading "Standard menu design" [level=5]
+  - generic: PASSED
+  - heading "Security" [level=4]
+  - heading "User signin" [level=5]
+  - generic: PASSED
+  - heading "Allowed updates" [level=5]
+  - generic: PASSED
+  - heading "Performance" [level=4]
+  - heading "Content caching on the mobile device" [level=5]
+  - generic: PASSED
+  - heading "Data caching on server" [level=5]
+  - generic: WARNING
+  - generic: The app has read-only data that would benefit from server-side data caching
+  - link "More info":
+    - /url: /support/errormessages#WARNING_SERVER_CACHING
+  - heading "Launching the app when offline" [level=5]
+  - generic: PASSED
+  - heading "Account" [level=4]
+  - heading "Account status" [level=5]
+  - generic: PASSED
+  - heading "Branded Apps" [level=3]
+  - heading "You can convert your app into a custom branded mobile app in the iTunes and Google Play stores" [level=4]
+  - heading "Plan requirements" [level=3]
+  - heading "Understand why this app requires a specific subscription plan" [level=4]
+  - heading "Broadcast Notifications" [level=3]
+  - heading "Broadcast notifications to your users" [level=4]
+  - button "Pause app":
+    - text: Pause app
+  - button "Switch to recovery mode":
+    - text: Switch to recovery mode
+  - button "Open right panel":
+    - generic: 
+  - button "Mobile":
+    - generic: stay_primary_portrait
+  - button "Tablet":
+    - generic: tablet
+  - button "Desktop":
+    - generic: Computer
+  - checkbox "Edit" [checked]
+  - generic: Edit
+  - button "info-closed":
+  - link "open_in_new":
+    - /url: /start/65faacd8-2b0d-43bf-9e0a-58eb915dcf9b?platform=desktop
+    - generic: open_in_new

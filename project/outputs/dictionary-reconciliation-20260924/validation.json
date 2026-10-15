@@ -1,0 +1,373 @@
+{
+  "checked_utc": "2026-09-24T13:12:31.869029+00:00",
+  "checks": [
+    {
+      "command": [
+        "python",
+        "scripts/dictionary/appdoc_capture.py",
+        "C:\\Users\\MWCredit\\Documents\\ChatGPT\\AppSheet-Loan-Project\\dictionary-reconciliation-20260924"
+      ],
+      "exit_code": 0,
+      "stdout": "{\"target\": \"development-olap\", \"html_dom_equal\": true, \"counts\": {\"slice\": 12, \"view\": 66, \"format-rule\": 48, \"action\": 88, \"table\": 23, \"column\": 668}, \"version\": \"1.000031\"}\n{\"target\": \"development-oltp\", \"html_dom_equal\": true, \"counts\": {\"slice\": 8, \"view\": 61, \"format-rule\": 60, \"action\": 104, \"table\": 34, \"column\": 790}, \"version\": \"1.000075\"}\n{\"target\": \"production-olap\", \"html_dom_equal\": true, \"counts\": {\"slice\": 12, \"view\": 66, \"format-rule\": 48, \"action\": 88, \"table\": 23, \"column\": 668}, \"version\": \"1.100195\"}\n{\"target\": \"production-oltp\", \"html_dom_equal\": true, \"counts\": {\"slice\": 8, \"view\": 61, \"format-rule\": 60, \"action\": 104, \"table\": 34, \"column\": 790}, \"version\": \"3.000246\"}",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "python",
+        "scripts/dictionary/verify_reconciliation.py",
+        "outputs/dictionary-reconciliation-20260924"
+      ],
+      "exit_code": 0,
+      "stdout": "{\"checked_utc\": \"2026-09-24T13:09:44.486040+00:00\", \"source_object_counts\": {\"production-oltp\": 268, \"production-olap\": 238, \"development-oltp\": 268, \"development-olap\": 238, \"postgresql-production\": 156, \"postgresql-development\": 144}, \"exact_properties_verified\": {\"production-oltp\": 18496, \"development-oltp\": 18514, \"production-olap\": 16375, \"development-olap\": 16394, \"postgresql-production\": 28507, \"postgresql-development\": 27692}, \"failures\": [], \"scope\": \"All captured AppDoc and SQL catalog properties; remaining UI/semantic/stability checks are separately tracked.\"}",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "python",
+        "scripts/dictionary/reconcile_editor.py",
+        "C:\\Users\\MWCredit\\Documents\\ChatGPT\\AppSheet-Loan-Project\\dictionary-reconciliation-20260924",
+        "outputs/dictionary-reconciliation-20260924",
+        "--verify"
+      ],
+      "exit_code": 0,
+      "stdout": "{\"object_counts\": {\"production-oltp\": 116, \"development-oltp\": 116, \"production-olap\": 103, \"development-olap\": 103}, \"captured_properties\": {\"production-oltp\": 12656, \"development-oltp\": 12679, \"production-olap\": 11728, \"development-olap\": 11751}, \"excluded_property_leaves\": 12, \"failures\": [], \"scope\": \"Exact non-redacted captured editor properties; redacted leaf pointers are explicitly excluded in coverage. Uncaptured properties are not implied verified.\"}",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "python",
+        "scripts/dictionary/validate_dependencies.py",
+        "outputs/dictionary-reconciliation-20260924"
+      ],
+      "exit_code": 0,
+      "stdout": "{\"targets\": {\"production-oltp\": {\"physical_table_bindings\": 18, \"system_columns\": 18, \"physical_columns\": 229, \"virtual_columns\": 125, \"refs\": 84, \"generated_appdoc_tables\": 16, \"slice_members\": 251, \"slices\": 8, \"view_sources\": 59, \"dashboard_views\": 2, \"dashboard_members\": 6, \"action_owners\": 104, \"assigned_columns\": 90, \"referenced_actions\": 9, \"grouped_actions\": 5, \"format_members\": 86, \"format_rules\": 60}, \"production-olap\": {\"physical_table_bindings\": 19, \"system_columns\": 19, \"physical_columns\": 379, \"virtual_columns\": 151, \"refs\": 50, \"generated_appdoc_tables\": 4, \"slice_members\": 447, \"slices\": 12, \"dashboard_views\": 3, \"dashboard_members\": 15, \"view_sources\": 63, \"action_owners\": 88, \"assigned_columns\": 20, \"format_members\": 61, \"format_rules\": 48}, \"development-oltp\": {\"physical_table_bindings\": 18, \"system_columns\": 18, \"physical_columns\": 229, \"virtual_columns\": 125, \"refs\": 84, \"generated_appdoc_tables\": 16, \"slice_members\": 251, \"slices\": 8, \"view_sources\": 59, \"dashboard_views\": 2, \"dashboard_members\": 6, \"action_owners\": 104, \"assigned_columns\": 90, \"referenced_actions\": 9, \"grouped_actions\": 5, \"format_members\": 86, \"format_rules\": 60}, \"development-olap\": {\"physical_table_bindings\": 19, \"system_columns\": 19, \"physical_columns\": 379, \"virtual_columns\": 151, \"refs\": 50, \"generated_appdoc_tables\": 4, \"slice_members\": 447, \"slices\": 12, \"dashboard_views\": 3, \"dashboard_members\": 15, \"view_sources\": 63, \"action_owners\": 88, \"assigned_columns\": 20, \"format_members\": 61, \"format_rules\": 48}, \"postgresql-production\": {\"view_dependency_edges\": 679, \"internal_integrity_triggers\": 176, \"user_trigger_routine_links\": 98}, \"postgresql-development\": {\"view_dependency_edges\": 679, \"internal_integrity_triggers\": 176, \"user_trigger_routine_links\": 97}}, \"failures\": []}",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "python",
+        "scripts/dictionary/review_semantics.py",
+        "outputs/dictionary-reconciliation-20260924"
+      ],
+      "exit_code": 0,
+      "stdout": "{\"routine_body_differences\": [{\"routine\": [\"agent_audit\", \"begin_operation\", \"p_operation_id uuid, p_reviewer_id text, p_reviewer_login text, p_plan_sha256 text, p_request_reason text, p_direct_targets jsonb, p_code_version text\"], \"definition_equal_ignoring_CR\": true}, {\"routine\": [\"agent_audit\", \"capture_change\", \"\"], \"definition_equal_ignoring_CR\": true}, {\"routine\": [\"agent_audit\", \"reject_rewrite\", \"\"], \"definition_equal_ignoring_CR\": true}, {\"routine\": [\"public\", \"analytics_history_start\", \"\"], \"definition_equal_ignoring_CR\": true}, {\"routine\": [\"public\", \"analytics_refresh_request\", \"\"], \"definition_equal_ignoring_CR\": true}, {\"routine\": [\"public\", \"refresh_daily_analytics\", \"p_from date, p_to date\"], \"definition_equal_ignoring_CR\": true}], \"control_parity\": {\"oltp\": {\"views_and_named_tasks_compared\": 73, \"changed_controls_or_choices\": []}, \"olap\": {\"views_and_named_tasks_compared\": 67, \"changed_controls_or_choices\": []}}, \"failures\": []}",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "python",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "scripts/dictionary",
+        "-p",
+        "test_*.py"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ".....................................\n----------------------------------------------------------------------\nRan 37 tests in 1.563s\n\nOK"
+    },
+    {
+      "command": [
+        "python",
+        "scripts/dictionary/dictionary.py",
+        "validate"
+      ],
+      "exit_code": 0,
+      "stdout": "{\n  \"documents\": 1152,\n  \"errors\": [],\n  \"reconciliation\": \"See per-object verification and unresolved.yaml; structural validation does not establish live completeness\",\n  \"recorded_limitations\": 3,\n  \"resolved_items\": 4,\n  \"informational_items\": 3\n}",
+      "stderr": ""
+    },
+    {
+      "check": "Exact template source-to-YAML readback",
+      "exit_code": 0
+    },
+    {
+      "check": "Published metadata privacy patterns",
+      "exit_code": 0,
+      "issues": [],
+      "limit": "Pattern screening complements reviewed metadata extraction; it is not a universal secret detector."
+    },
+    {
+      "check": "Coverage complete within declared scope",
+      "exit_code": 0,
+      "facets": 1752,
+      "excluded_property_leaves": 12
+    },
+    {
+      "check": "Affected Markdown local links",
+      "exit_code": 0,
+      "files": 9,
+      "broken_links": []
+    },
+    {
+      "check": "Published SQL captures match complete private final captures after LF normalization",
+      "exit_code": 0
+    },
+    {
+      "check": "git diff --check",
+      "exit_code": 0
+    },
+    {
+      "check": "Frozen workbook SHA-256",
+      "exit_code": 0,
+      "sha256": "1b33aebd71f79ef16023d510ceb8276942444b4665045611f12acce5f247b377"
+    },
+    {
+      "check": "Publication preflight: staged paths and exact artifact bytes",
+      "exit_code": 0,
+      "staged_files": 1102,
+      "reviewed_intended_paths_only": true,
+      "artifact_hashes_matching_staged_blobs": 26,
+      "unrelated_work_excluded": true
+    }
+  ],
+  "source_targets": {
+    "production-oltp": {
+      "identity": "93844270-6aa5-420b-a960-bcdf08abd357",
+      "version_or_hash": "3.000246",
+      "counts": {
+        "slice": 8,
+        "view": 61,
+        "format-rule": 60,
+        "action": 104,
+        "table": 34,
+        "column": 790
+      },
+      "settings": {
+        "Short Name": "Loan Manager ผู้จัดการสินเชื่อ",
+        "Short Description": "This app assists users in managing the loans.",
+        "Version": "3.000246",
+        "Default app folder": "/appsheet/data/LoanManager-975338008-26-08-07",
+        "Runnable?": "Yes",
+        "Deployable?": "Yes",
+        "Personal use only?": "No"
+      },
+      "html_sha256": "0ccad6b341747e2c22d6341d63b8752eee4320cca60f0bee6f9f3a48233ce796",
+      "acquisition": {
+        "method": "Saved AppDoc complete rendered HTML and DOM table extraction; independent HTML parser",
+        "source_url": "https://www.appsheet.com/template/appdoc?appId=93844270-6aa5-420b-a960-bcdf08abd357",
+        "captured_utc": "2026-09-24T10:45:30.617Z"
+      }
+    },
+    "production-olap": {
+      "identity": "e74dd368-654f-44d7-bccf-83cf361d1cdb",
+      "version_or_hash": "1.100195",
+      "counts": {
+        "slice": 12,
+        "view": 66,
+        "format-rule": 48,
+        "action": 88,
+        "table": 23,
+        "column": 668
+      },
+      "settings": {
+        "Short Name": "Loan Business Insights",
+        "Short Description": "This app assists users in managing the loans.",
+        "Version": "1.100195",
+        "Default app folder": "/appsheet/data/LoanBusinessInsights-975338008",
+        "Runnable?": "Yes",
+        "Deployable?": "Yes",
+        "Personal use only?": "No"
+      },
+      "html_sha256": "839cb89ceb258af606ebcd84b67c6ff7bdccee47ed347da8fcdd50e53aa5f937",
+      "acquisition": {
+        "method": "Saved AppDoc complete rendered HTML and DOM table extraction; independent HTML parser",
+        "source_url": "https://www.appsheet.com/template/appdoc?appId=e74dd368-654f-44d7-bccf-83cf361d1cdb",
+        "captured_utc": "2026-09-24T10:45:52.858Z"
+      }
+    },
+    "development-oltp": {
+      "identity": "500b27b6-884a-41e8-a9ec-df801b0110ad",
+      "version_or_hash": "1.000075",
+      "counts": {
+        "slice": 8,
+        "view": 61,
+        "format-rule": 60,
+        "action": 104,
+        "table": 34,
+        "column": 790
+      },
+      "settings": {
+        "Short Name": "MW-OLTP-DEV-20260919",
+        "Short Description": "This app assists users in managing the loans.",
+        "Version": "1.000075",
+        "Default app folder": "/appsheet/data/MW-OLTP-DEV-20260919-578763613",
+        "Runnable?": "Yes",
+        "Deployable?": "Yes",
+        "Personal use only?": "No"
+      },
+      "html_sha256": "27793d6e02a6835341a7381bdc1f12374460f2658e1f334ad4ab93c180accaec",
+      "acquisition": {
+        "method": "Saved AppDoc complete rendered HTML and DOM table extraction; independent HTML parser",
+        "source_url": "https://www.appsheet.com/template/appdoc?appId=500b27b6-884a-41e8-a9ec-df801b0110ad",
+        "captured_utc": "2026-09-24T10:46:35.415Z"
+      }
+    },
+    "development-olap": {
+      "identity": "9f3422be-bc87-4a5a-a42a-67528ee80393",
+      "version_or_hash": "1.000031",
+      "counts": {
+        "slice": 12,
+        "view": 66,
+        "format-rule": 48,
+        "action": 88,
+        "table": 23,
+        "column": 668
+      },
+      "settings": {
+        "Short Name": "MW-OLAP-DEV-20260919",
+        "Short Description": "This app assists users in managing the loans.",
+        "Version": "1.000031",
+        "Default app folder": "/appsheet/data/MW-OLAP-DEV-20260919-578763613",
+        "Runnable?": "Yes",
+        "Deployable?": "Yes",
+        "Personal use only?": "No"
+      },
+      "html_sha256": "c593af499bc56bf93ae2975c06d5c85b7b608232b0e4d0c8a57db86863be506f",
+      "acquisition": {
+        "method": "Saved AppDoc complete rendered HTML and DOM table extraction; independent HTML parser",
+        "source_url": "https://www.appsheet.com/template/appdoc?appId=9f3422be-bc87-4a5a-a42a-67528ee80393",
+        "captured_utc": "2026-09-24T10:46:47.192Z"
+      }
+    },
+    "postgresql-production": {
+      "identity": {
+        "instance": "appsheet-pg-prod-20260914",
+        "host": "34.21.174.215",
+        "port": 5432,
+        "database": "loan_manager_prod"
+      },
+      "version_or_hash": "fcc05d9a85f3be387744cec000af716bebc7e61a5711d4e6724b8624003386cc",
+      "counts": {
+        "schemas": 4,
+        "relations": 58,
+        "columns": 845,
+        "constraints": 228,
+        "indexes": 60,
+        "routines": 90,
+        "triggers": 274,
+        "sequences": 3,
+        "types": 0,
+        "policies": 2,
+        "extensions": 2,
+        "default_privileges": 2,
+        "database": 1,
+        "database_role_settings": 3,
+        "role_dependencies": 10,
+        "relevant_roles": 15,
+        "role_memberships": 9,
+        "publications": 0,
+        "subscriptions": 0,
+        "event_triggers": 0,
+        "rules": 0,
+        "flyway": 39,
+        "foreign_tables": 0,
+        "aggregates": 0,
+        "view_dependencies": 679,
+        "jobs": 1
+      },
+      "captured_utc": "2026-09-24T12:35:39.985351+00:00",
+      "metadata_sha256": "fcc05d9a85f3be387744cec000af716bebc7e61a5711d4e6724b8624003386cc",
+      "acquisition": {
+        "method": "Reviewed PostgreSQL catalogs in SSL read-only repeatable-read transaction",
+        "source_location": {
+          "instance": "appsheet-pg-prod-20260914",
+          "host": "34.21.174.215",
+          "port": 5432,
+          "database": "loan_manager_prod"
+        },
+        "captured_utc": "2026-09-24T12:35:39.985351+00:00"
+      }
+    },
+    "postgresql-development": {
+      "identity": {
+        "instance": "appsheet-pg-prod-20260914",
+        "host": "34.21.174.215",
+        "port": 5432,
+        "database": "loan_manager_dev"
+      },
+      "version_or_hash": "6c2e1310e68cf9ae3e788813702572259783e8787250d0aef0f826260e1ad260",
+      "counts": {
+        "schemas": 3,
+        "relations": 56,
+        "columns": 826,
+        "constraints": 216,
+        "indexes": 57,
+        "routines": 83,
+        "triggers": 273,
+        "sequences": 1,
+        "types": 0,
+        "policies": 0,
+        "extensions": 1,
+        "default_privileges": 1,
+        "database": 1,
+        "database_role_settings": 3,
+        "role_dependencies": 8,
+        "relevant_roles": 14,
+        "role_memberships": 9,
+        "publications": 0,
+        "subscriptions": 0,
+        "event_triggers": 0,
+        "rules": 0,
+        "flyway": 39,
+        "foreign_tables": 0,
+        "aggregates": 0,
+        "view_dependencies": 679,
+        "jobs": 0
+      },
+      "captured_utc": "2026-09-24T12:35:39.632483+00:00",
+      "metadata_sha256": "6c2e1310e68cf9ae3e788813702572259783e8787250d0aef0f826260e1ad260",
+      "acquisition": {
+        "method": "Reviewed PostgreSQL catalogs in SSL read-only repeatable-read transaction",
+        "source_location": {
+          "instance": "appsheet-pg-prod-20260914",
+          "host": "34.21.174.215",
+          "port": 5432,
+          "database": "loan_manager_dev"
+        },
+        "captured_utc": "2026-09-24T12:35:39.632483+00:00"
+      }
+    }
+  },
+  "status": "pass",
+  "artifact_sha256": {
+    "baseline-validation.json": "d75384948b78207bacc68446ee28117f2557922e2ee010a21fdc53adbb97f2bd",
+    "cloud-instance-identity.json": "8c711d7040a9dc678879e8287fc4360c7cae406c14c613a0e588e4326b273a55",
+    "continuation.md": "5f241bc1b6280b3dabce5515ff92de7296f43c26a6aded0a528be3a122389852",
+    "coverage.json": "8bd7ed65c5f2ce93552d4fcfbf3cdcfffbe489d7d3e6af15d9427eb257fd5b2b",
+    "dependency-validation.json": "033bb409a96186774fd67f3aa8aaaa0bb0b7668d4c480fa0cc87dfd57907fd4a",
+    "development-flyway-validation.json": "9648c0b5af7c6795f1472f16934e093f6aa481cfde4c7578ea80cc7bba7b62e9",
+    "development-olap-observations.json": "bc7e8e301c65033ab35fbe442321fa6afb84900956a2ffe142d8883db56820bb",
+    "development-oltp-observations.json": "10a3200eff0740d519ad32be805b92cd014600c70d6bc9a0b8f7cb4082c7ad19",
+    "development-postgresql-observations.json": "56810b54e0331fa845c00e59083f082b7b560dc3e167f2f08a47582757ec5ca1",
+    "editor-observations.json": "42ad480fd879138a387303559e12fdf417080c427cba8f1ef13571767e585cec",
+    "editor-validation.json": "f7fcf7b0dd089ccd30761def5f1a4725e59fff7a2bb7aa65e34d4746539cf66a",
+    "exact-value-validation.json": "b0d577dc5000820cb17068cc2f233af562b2aadda7ff48b4cc669497aebae5c7",
+    "export-template-observations.json": "51b92371ae66640406eb128f2d8ca935a24a4edb4945218e088c1d3184fad162",
+    "final-editor-status.json": "6a086068601b4f91e1f8c42883295fb2c505f1591a92f5b458ead2cdb1c7574f",
+    "findings.md": "f81116627c147ecd38baabd3efd7838c994cb6a38d835310b040d594de7f9405",
+    "plan.json": "1b0ea5264688a0e0edfd82167533b148e33637e54ff1769fe093a0c154212690",
+    "production-flyway-validation.json": "50068c20215aef7fa313674f566965556fde5400da14f5d2af2216cc0a748f2c",
+    "production-olap-observations.json": "fd05e2ec62cc676a1d83ab4c206590873d056cec7930a0cfc3e55ed9a627898a",
+    "production-oltp-observations.json": "0a830461cdd704d1fe8a66c97a13744ff2b2fe28b5f376e027b1a57464514208",
+    "production-postgresql-observations.json": "e6525f871948284b66190bf68bf3692f60ace5cc1cf8bdf2e42c993479559e59",
+    "README.md": "fcf91e8a91c89e1391e9efb4df461e410e8afb8b50fc13d3b9cf0c24cb4a4c5a",
+    "reference-validation.json": "cff9e54eafd6f8fb6c2f87bd8de835a6ac73bd3bf06248972f8a2d71891810bf",
+    "semantic-review.json": "891de73c0ebfa49ea26259d5ede0bbff8543ce25317d1d77eec86b59da577187",
+    "source-connections.json": "7bc2cd7f661719d8b8d1c9e0b1f154d3bc18ae855f47579a5761a645877b7320",
+    "source-stability.json": "b2b228e29659b58139d6ec199c5b2c2eb8d5210cb037d755531b1f63ea2952f4",
+    "template-validation.json": "c69fa8192631df731daefe99bbb4caa5e189b5b391d1b9716a7024478dcf906b"
+  },
+  "hash_note": "Hashes cover finalized UTF-8 LF artifacts in this run directory, excluding this self-referential report. Metadata fingerprints separately hash decoded catalog sections.",
+  "live_validation_evidence": [
+    "production-flyway-validation.json",
+    "development-flyway-validation.json",
+    "source-stability.json",
+    "final-editor-status.json"
+  ],
+  "limits": [
+    "No live behavior, financial writes, notifications or export rendering.",
+    "Private literals and system/runtime scope exclusions are explicit in coverage and README."
+  ]
+}

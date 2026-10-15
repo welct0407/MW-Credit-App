@@ -1,0 +1,20 @@
+[Unit]
+Description=M&W Credit incoming receipt validation and Partner email summaries
+After=network-online.target cloud-sql-auth-proxy.service mw-instagram-webhook.service
+Wants=network-online.target
+Requires=cloud-sql-auth-proxy.service
+
+[Service]
+Type=oneshot
+User=mwagent
+Group=mwagent
+UMask=0077
+Environment=HOME=/var/lib/mw-integration-agent
+WorkingDirectory=/var/lib/mw-integration-agent
+ExecStart=/opt/mw-integration-agent/.venv/bin/mw-integration-agent receipt-cycle --config /etc/mw-integration-agent/config.json --catalogue /etc/mw-integration-agent/service-catalogue.json
+TimeoutStartSec=40min
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/mw-integration-agent /etc/mw-integration-agent/secrets/outlook-email-oauth.json

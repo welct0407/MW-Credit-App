@@ -1,0 +1,18 @@
+PASS existing browser confirmation cancellation, same-origin auth bridge and saved-request behavior
+PASS status diagnostics: empty401
+PASS status diagnostics: empty403
+PASS status diagnostics: HTML502
+PASS status diagnostics: JSON401
+PASS status diagnostics: JSON403
+PASS status diagnostics: JSON503
+PASS status diagnostics: ledger503
+PASS status diagnostics: untrustedError
+PASS status diagnostics: malformed200
+PASS status diagnostics: null200
+PASS status diagnostics: tokenFailure
+PASS status diagnostics: transportFailure
+PASS aggregate status diagnostics with recovery on valid200
+Node test runner: tests14, pass14, fail0, cancelled0, skipped0
+Strict TypeScript: passed
+Browser build: passed
+Recorded summary of execution output, 2 October 2026 UTC. Synthetic fixtures only.

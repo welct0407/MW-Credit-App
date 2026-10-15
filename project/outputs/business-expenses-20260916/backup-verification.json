@@ -1,0 +1,7 @@
+{
+  "businessTablesRestored": 14,
+  "allFingerprintsMatch": true,
+  "normalizedSchemaMatches": true,
+  "backupSha256": "0B8ADF4FCA75DEDA910D5C2D617F5E412799AD7EC0B7D265FA3CF0573FD0CC1A",
+  "scope": "public and assessment_lab; Cloud SQL cron extension/settings excluded"
+}

@@ -1,0 +1,15 @@
+{
+  "date": "2026-09-25",
+  "dashboard": 3,
+  "tab": 31,
+  "method": "Live Chrome accessibility and screenshots after reload",
+  "result": "pass",
+  "observations": [
+    "Summary titles and currency readable after layout refinement",
+    "Category counts match SQL: 4 Star, 8 Cash Cow, 5 Question Mark, 6 Dog",
+    "Automatic schedule assessment shows four restricted borrowers first",
+    "Loan and next-plan detail available; all 20 queries execute",
+    "No query error panels observed"
+  ],
+  "privacy": "No borrower rows or screenshots included in this evidence"
+}

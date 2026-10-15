@@ -1,0 +1,190 @@
+{
+  "dashboard": "mw-resource-performance",
+  "verified_parent_generation": 33,
+  "verified_parent_resourceVersion": "2106799088514420736",
+  "scope": "Only panels121/122 title and vizConfig; keep current queries/data/layout/description/metadata and all other panels unchanged.",
+  "panelChanges": {
+    "121": {
+      "title": "",
+      "vizConfig": {
+        "kind": "VizConfig",
+        "group": "stat",
+        "version": "13.3.0-35970853322",
+        "spec": {
+          "options": {
+            "colorMode": "value",
+            "graphMode": "none",
+            "justifyMode": "center",
+            "legend": {
+              "calcs": [
+                "lastNotNull",
+                "max"
+              ],
+              "displayMode": "table",
+              "placement": "bottom"
+            },
+            "orientation": "vertical",
+            "percentChangeColorMode": "standard",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showPercentChange": false,
+            "text": {
+              "titleSize": 12,
+              "valueSize": 36
+            },
+            "textMode": "value_and_name",
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            },
+            "wideLayout": true
+          },
+          "fieldConfig": {
+            "defaults": {
+              "displayName": "Bridge availability",
+              "unit": "none",
+              "decimals": 2,
+              "mappings": [
+                {
+                  "type": "value",
+                  "options": {
+                    "0": {
+                      "text": "🔴",
+                      "color": "red"
+                    },
+                    "1": {
+                      "text": "🟢",
+                      "color": "green"
+                    },
+                    "2": {
+                      "text": "🟠",
+                      "color": "orange"
+                    },
+                    "3": {
+                      "text": "🔵",
+                      "color": "blue"
+                    },
+                    "4": {
+                      "text": "⚪",
+                      "color": "gray"
+                    }
+                  }
+                }
+              ],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "value": 0,
+                    "color": "gray"
+                  }
+                ]
+              },
+              "color": {
+                "mode": "thresholds"
+              },
+              "noValue": "⚪"
+            },
+            "overrides": []
+          }
+        }
+      }
+    },
+    "122": {
+      "title": "",
+      "vizConfig": {
+        "kind": "VizConfig",
+        "group": "stat",
+        "version": "13.3.0-35970853322",
+        "spec": {
+          "options": {
+            "colorMode": "value",
+            "graphMode": "none",
+            "justifyMode": "center",
+            "legend": {
+              "calcs": [
+                "lastNotNull",
+                "max"
+              ],
+              "displayMode": "table",
+              "placement": "bottom"
+            },
+            "orientation": "vertical",
+            "percentChangeColorMode": "standard",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showPercentChange": false,
+            "text": {
+              "titleSize": 12,
+              "valueSize": 36
+            },
+            "textMode": "value_and_name",
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            },
+            "wideLayout": true
+          },
+          "fieldConfig": {
+            "defaults": {
+              "displayName": "Dispatch completion",
+              "unit": "none",
+              "decimals": 2,
+              "mappings": [
+                {
+                  "type": "value",
+                  "options": {
+                    "0": {
+                      "text": "🔴",
+                      "color": "red"
+                    },
+                    "1": {
+                      "text": "🟢",
+                      "color": "green"
+                    },
+                    "2": {
+                      "text": "🟠",
+                      "color": "orange"
+                    },
+                    "3": {
+                      "text": "🔵",
+                      "color": "blue"
+                    },
+                    "4": {
+                      "text": "⚪",
+                      "color": "gray"
+                    }
+                  }
+                }
+              ],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "value": 0,
+                    "color": "gray"
+                  }
+                ]
+              },
+              "color": {
+                "mode": "thresholds"
+              },
+              "noValue": "⚪"
+            },
+            "overrides": []
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "checkedAt": "2026-09-22T12:16:21.5616729Z",
+  "uiChecks": [
+    "All four performance sections rendered with provider data",
+    "Azure displayed total reconciled to both resource-group query results",
+    "GCP null totals display No data; export status visible",
+    "Railway accrued usage and billing period rendered",
+    "Performance/Cost navigation present"
+  ],
+  "dashboards": [
+    {
+      "panels": 24,
+      "folderUid": "mw-resource-monitoring",
+      "version": 2,
+      "url": "/d/mw-resource-performance/mw-resources-c2b7-performance",
+      "uid": "mw-resource-performance"
+    },
+    {
+      "panels": 16,
+      "folderUid": "mw-resource-monitoring",
+      "version": 2,
+      "url": "/d/mw-resource-cost/mw-resources-c2b7-cost",
+      "uid": "mw-resource-cost"
+    }
+  ],
+  "gcpBilling": "Export enabled; first records pending"
+}

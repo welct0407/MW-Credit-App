@@ -1,0 +1,24 @@
+{
+  "database" : "loan_manager_prod",
+  "databaseType" : "PostgreSQL",
+  "exception" : null,
+  "flywayVersion" : "13.6.0",
+  "initialSchemaVersion" : "20",
+  "licenseFailed" : false,
+  "migrations" : [ {
+    "category" : "Versioned",
+    "description" : "settlement delete reversal",
+    "executionTime" : 108,
+    "filepath" : "C:\\GitHub\\AppSheet-Loan-Project\\database\\migrations\\V21__settlement_delete_reversal.sql",
+    "type" : "SQL",
+    "version" : "21"
+  } ],
+  "migrationsExecuted" : 1,
+  "operation" : "migrate",
+  "schemaName" : "",
+  "success" : true,
+  "targetSchemaVersion" : "21",
+  "timestamp" : "2026-09-18T09:03:59.5363273+07:00",
+  "totalMigrationTime" : 108,
+  "warnings" : [ ]
+}

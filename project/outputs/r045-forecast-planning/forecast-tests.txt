@@ -1,0 +1,143 @@
+BEGIN
+CREATE FUNCTION
+SELECT 1
+ check_forecast
+----------------
+
+(1 row)
+
+ check_forecast
+----------------
+
+(1 row)
+
+ check_forecast
+----------------
+
+(1 row)
+
+ check_forecast
+----------------
+
+(1 row)
+
+ check_forecast
+----------------
+
+(1 row)
+
+ check_forecast
+----------------
+
+(1 row)
+
+ check_forecast
+----------------
+
+(1 row)
+
+ check_forecast
+----------------
+
+(1 row)
+
+ check_forecast
+----------------
+
+(1 row)
+
+ check_forecast
+----------------
+
+(1 row)
+
+ check_forecast
+----------------
+
+(1 row)
+
+ check_forecast
+----------------
+
+(1 row)
+
+ check_forecast
+----------------
+
+(1 row)
+
+ check_forecast
+----------------
+
+(1 row)
+
+ check_forecast
+----------------
+
+(1 row)
+
+ check_forecast
+----------------
+
+(1 row)
+
+ check_forecast
+----------------
+
+(1 row)
+
+ check_forecast
+----------------
+
+(1 row)
+
+ check_forecast
+----------------
+
+(1 row)
+
+ check_forecast
+----------------
+
+(1 row)
+
+ check_forecast
+----------------
+
+(1 row)
+
+ check_forecast
+----------------
+
+(1 row)
+
+ check_forecast
+----------------
+
+(1 row)
+
+ check_forecast
+----------------
+
+(1 row)
+
+ check_forecast
+----------------
+
+(1 row)
+
+DO
+ check_forecast
+----------------
+
+(1 row)
+
+ROLLBACK
+Forecast synthetic checks passed
+
+firstMigrations           : 48
+secondMigrations          : 0
+baselineRebuildMatch      : False
+checksumTamperingRejected : True
+localPostgres             : 18.6
+flyway                    : 13.6.0

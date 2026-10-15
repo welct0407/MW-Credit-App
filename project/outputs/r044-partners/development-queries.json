@@ -1,0 +1,125 @@
+{
+  "queries": [
+    {
+      "key": "picker",
+      "passed": true,
+      "rowCount": 2,
+      "seconds": 0.109
+    },
+    {
+      "key": "capital",
+      "passed": true,
+      "rowCount": 1,
+      "seconds": 0.063
+    },
+    {
+      "key": "earned",
+      "passed": true,
+      "rowCount": 1,
+      "seconds": 0.062
+    },
+    {
+      "key": "paid",
+      "passed": true,
+      "rowCount": 1,
+      "seconds": 0.047
+    },
+    {
+      "key": "pending",
+      "passed": true,
+      "rowCount": 1,
+      "seconds": 0.047
+    },
+    {
+      "key": "available",
+      "passed": true,
+      "rowCount": 1,
+      "seconds": 0.078
+    },
+    {
+      "key": "comparison",
+      "passed": true,
+      "rowCount": 2,
+      "seconds": 0.047
+    },
+    {
+      "key": "share",
+      "passed": true,
+      "rowCount": 2,
+      "seconds": 0.047
+    },
+    {
+      "key": "bridge",
+      "passed": true,
+      "rowCount": 6,
+      "seconds": 0.063
+    },
+    {
+      "key": "period-interest",
+      "passed": true,
+      "rowCount": 1,
+      "seconds": 0.093
+    },
+    {
+      "key": "period-expense",
+      "passed": true,
+      "rowCount": 1,
+      "seconds": 0.078
+    },
+    {
+      "key": "period-earned",
+      "passed": true,
+      "rowCount": 1,
+      "seconds": 0.063
+    },
+    {
+      "key": "period-paid",
+      "passed": true,
+      "rowCount": 1,
+      "seconds": 0.078
+    },
+    {
+      "key": "monthly",
+      "passed": true,
+      "rowCount": 2,
+      "seconds": 0.094
+    },
+    {
+      "key": "movements",
+      "passed": true,
+      "rowCount": 2,
+      "seconds": 0.062
+    },
+    {
+      "key": "capital-trend",
+      "passed": true,
+      "rowCount": 114,
+      "seconds": 0.063
+    },
+    {
+      "key": "queue",
+      "passed": true,
+      "rowCount": 0,
+      "seconds": 0.015
+    },
+    {
+      "key": "capital-ledger",
+      "passed": true,
+      "rowCount": 7,
+      "seconds": 0.0
+    },
+    {
+      "key": "settlement-ledger",
+      "passed": true,
+      "rowCount": 3,
+      "seconds": 0.0
+    },
+    {
+      "key": "context",
+      "passed": true,
+      "rowCount": 1,
+      "seconds": 0.063
+    }
+  ],
+  "passed": true
+}

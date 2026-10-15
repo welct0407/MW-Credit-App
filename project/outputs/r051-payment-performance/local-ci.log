@@ -1,0 +1,3755 @@
+SET
+BEGIN
+INSERT 0 2
+CREATE FUNCTION
+CREATE FUNCTION
+INSERT 0 2
+INSERT 0 1
+INSERT 0 1
+ reject
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+INSERT 0 3
+INSERT 0 5
+ reject
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+INSERT 0 1
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+UPDATE 1
+ post_payment
+--------------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+SAVEPOINT
+UPDATE 1
+ assert
+--------
+
+(1 row)
+
+ROLLBACK
+SAVEPOINT
+DELETE 1
+ assert
+--------
+
+(1 row)
+
+ROLLBACK
+ reject
+--------
+
+(1 row)
+
+INSERT 0 1
+ assert
+--------
+
+(1 row)
+
+INSERT 0 1
+ assert
+--------
+
+(1 row)
+
+INSERT 0 1
+ assert
+--------
+
+(1 row)
+
+INSERT 0 1
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+INSERT 0 4
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ create_first_day_charge
+-------------------------
+
+(1 row)
+
+ first_day_receipt
+-------------------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+INSERT 0 1
+ assert
+--------
+
+(1 row)
+
+             result
+---------------------------------
+ Core payment regressions passed
+(1 row)
+
+ROLLBACK
+BEGIN
+INSERT 0 2
+CREATE FUNCTION
+CREATE FUNCTION
+INSERT 0 2
+INSERT 0 1
+INSERT 0 1
+INSERT 0 11
+UPDATE 1
+INSERT 0 6
+INSERT 0 1
+INSERT 0 1
+UPDATE 11
+DO
+ close_assert
+--------------
+
+(1 row)
+
+ close_assert
+--------------
+
+(1 row)
+
+ close_assert
+--------------
+
+(1 row)
+
+ close_assert
+--------------
+
+(1 row)
+
+ close_assert
+--------------
+
+(1 row)
+
+ close_assert
+--------------
+
+(1 row)
+
+ close_assert
+--------------
+
+(1 row)
+
+ close_assert
+--------------
+
+(1 row)
+
+ close_assert
+--------------
+
+(1 row)
+
+ close_assert
+--------------
+
+(1 row)
+
+ close_assert
+--------------
+
+(1 row)
+
+UPDATE 1
+ close_assert
+--------------
+
+(1 row)
+
+ close_reject
+--------------
+
+(1 row)
+
+ close_reject
+--------------
+
+(1 row)
+
+ close_reject
+--------------
+
+(1 row)
+
+ close_reject
+--------------
+
+(1 row)
+
+ close_reject
+--------------
+
+(1 row)
+
+ close_reject
+--------------
+
+(1 row)
+
+ close_assert
+--------------
+
+(1 row)
+
+CREATE FUNCTION
+CREATE TRIGGER
+ close_reject
+--------------
+
+(1 row)
+
+ close_assert
+--------------
+
+(1 row)
+
+ close_assert
+--------------
+
+(1 row)
+
+SAVEPOINT
+SELECT 1
+UPDATE 1
+SET CONSTRAINTS
+ close_assert
+--------------
+
+(1 row)
+
+ close_assert
+--------------
+
+(1 row)
+
+ close_assert
+--------------
+
+(1 row)
+
+ close_assert
+--------------
+
+(1 row)
+
+UPDATE 1
+DELETE 1
+DELETE 1
+ close_assert
+--------------
+
+(1 row)
+
+ROLLBACK
+                result
+--------------------------------------
+ Atomic Loan Close regressions passed
+(1 row)
+
+ROLLBACK
+BEGIN
+INSERT 0 2
+CREATE FUNCTION
+CREATE FUNCTION
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 11
+INSERT 0 7
+INSERT 0 1
+UPDATE 10
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+UPDATE 1
+UPDATE 1
+UPDATE 1
+ assert
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+                   result
+---------------------------------------------
+ Common charge generation regressions passed
+(1 row)
+
+ROLLBACK
+BEGIN
+INSERT 0 2
+CREATE FUNCTION
+CREATE FUNCTION
+SET
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 5
+INSERT 0 5
+INSERT 0 1
+INSERT 0 1
+UPDATE 4
+ reject
+--------
+
+(1 row)
+
+UPDATE 1
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+UPDATE 1
+ assert
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ set_config
+------------
+ DF10-1
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ set_config
+------------
+
+(1 row)
+
+UPDATE 1
+ assert
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+SAVEPOINT
+UPDATE 1
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+UPDATE 2
+DELETE 1
+ assert
+--------
+
+(1 row)
+
+ROLLBACK
+ reject
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+UPDATE 1
+UPDATE 1
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+INSERT 0 1
+INSERT 0 2
+INSERT 0 1
+UPDATE 1
+UPDATE 1
+ reject
+--------
+
+(1 row)
+
+UPDATE 1
+SET CONSTRAINTS
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+UPDATE 1
+UPDATE 1
+ assert
+--------
+
+(1 row)
+
+                 result
+----------------------------------------
+ Atomic Default Loan regressions passed
+(1 row)
+
+ROLLBACK
+SET
+BEGIN
+INSERT 0 2
+CREATE FUNCTION
+INSERT 0 1
+INSERT 0 3
+INSERT 0 4
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+ check_ok
+----------
+
+(1 row)
+
+ check_ok
+----------
+
+(1 row)
+
+ check_ok
+----------
+
+(1 row)
+
+ check_ok
+----------
+
+(1 row)
+
+INSERT 0 1
+ check_ok
+----------
+
+(1 row)
+
+SELECT 3
+UPDATE 1
+ check_ok
+----------
+
+(1 row)
+
+DO
+ check_ok
+----------
+
+(1 row)
+
+CREATE FUNCTION
+CREATE TRIGGER
+DO
+ check_ok
+----------
+
+(1 row)
+
+DROP TRIGGER
+UPDATE 1
+ check_ok
+----------
+
+(1 row)
+
+ check_ok
+----------
+
+(1 row)
+
+               ?column?
+--------------------------------------
+ Analytics refresh regressions passed
+(1 row)
+
+ROLLBACK
+BEGIN
+SET
+CREATE FUNCTION
+INSERT 0 2
+SET
+INSERT 0 2
+SET
+SET
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+ refresh_daily_analytics
+-------------------------
+                       6
+(1 row)
+
+ assert_snapshot
+-----------------
+
+(1 row)
+
+ assert_snapshot
+-----------------
+
+(1 row)
+
+ assert_snapshot
+-----------------
+
+(1 row)
+
+ assert_snapshot
+-----------------
+
+(1 row)
+
+SELECT 12
+ refresh_daily_analytics
+-------------------------
+                       2
+(1 row)
+
+ assert_snapshot
+-----------------
+
+(1 row)
+
+INSERT 0 1
+ refresh_daily_analytics
+-------------------------
+                       4
+(1 row)
+
+ assert_snapshot
+-----------------
+
+(1 row)
+
+ assert_snapshot
+-----------------
+
+(1 row)
+
+SELECT 12
+CREATE FUNCTION
+CREATE TRIGGER
+DO
+ assert_snapshot
+-----------------
+
+(1 row)
+
+DROP TRIGGER
+INSERT 0 1
+INSERT 0 1
+ assert_snapshot
+-----------------
+
+(1 row)
+
+ assert_snapshot
+-----------------
+
+(1 row)
+
+DO
+                 ?column?
+------------------------------------------
+ Unified daily cash snapshot tests passed
+(1 row)
+
+ROLLBACK
+DO
+                                            ?column?
+------------------------------------------------------------------------------------------------
+ Focused statements: period/detail parity, equation, transfers, income and future guards passed
+(1 row)
+
+BEGIN
+INSERT 0 2
+CREATE FUNCTION
+INSERT 0 5
+INSERT 0 1
+INSERT 0 1
+INSERT 0 5
+INSERT 0 11
+INSERT 0 9
+SET CONSTRAINTS
+ ph_assert
+-----------
+
+(1 row)
+
+ ph_assert
+-----------
+
+(1 row)
+
+ ph_assert
+-----------
+
+(1 row)
+
+ ph_assert
+-----------
+
+(1 row)
+
+ ph_assert
+-----------
+
+(1 row)
+
+ ph_assert
+-----------
+
+(1 row)
+
+ ph_assert
+-----------
+
+(1 row)
+
+ ph_assert
+-----------
+
+(1 row)
+
+ ph_assert
+-----------
+
+(1 row)
+
+ ph_assert
+-----------
+
+(1 row)
+
+ ph_assert
+-----------
+
+(1 row)
+
+INSERT 0 1
+ ph_assert
+-----------
+
+(1 row)
+
+SET CONSTRAINTS
+UPDATE 1
+UPDATE 1
+SET CONSTRAINTS
+ ph_assert
+-----------
+
+(1 row)
+
+ ph_assert
+-----------
+
+(1 row)
+
+ ph_assert
+-----------
+
+(1 row)
+
+ ph_assert
+-----------
+
+(1 row)
+
+ ph_assert
+-----------
+
+(1 row)
+
+ ph_assert
+-----------
+
+(1 row)
+
+ ph_assert
+-----------
+
+(1 row)
+
+ ph_assert
+-----------
+
+(1 row)
+
+ ph_assert
+-----------
+
+(1 row)
+
+CREATE FUNCTION
+ ph_assert
+-----------
+
+(1 row)
+
+ROLLBACK
+                      result
+---------------------------------------------------
+ Payment health: 22 SQL behavior assertions passed
+(1 row)
+
+BEGIN
+INSERT 0 2
+CREATE FUNCTION
+INSERT 0 4
+INSERT 0 1
+INSERT 0 1
+INSERT 0 4
+INSERT 0 20
+INSERT 0 20
+INSERT 0 40
+UPDATE 1
+INSERT 0 5
+INSERT 0 1
+INSERT 0 1
+SET CONSTRAINTS
+ sh_assert
+-----------
+
+(1 row)
+
+ sh_assert
+-----------
+
+(1 row)
+
+ sh_assert
+-----------
+
+(1 row)
+
+ sh_assert
+-----------
+
+(1 row)
+
+ sh_assert
+-----------
+
+(1 row)
+
+ sh_assert
+-----------
+
+(1 row)
+
+ sh_assert
+-----------
+
+(1 row)
+
+ sh_assert
+-----------
+
+(1 row)
+
+ sh_assert
+-----------
+
+(1 row)
+
+UPDATE 1
+ sh_assert
+-----------
+
+(1 row)
+
+UPDATE 1
+ sh_assert
+-----------
+
+(1 row)
+
+ROLLBACK
+BEGIN
+INSERT 0 2
+CREATE FUNCTION
+INSERT 0 3
+INSERT 0 1
+INSERT 0 1
+INSERT 0 4
+INSERT 0 3
+INSERT 0 6
+SET CONSTRAINTS
+SELECT 2
+ bp_assert
+-----------
+
+(1 row)
+
+ bp_assert
+-----------
+
+(1 row)
+
+ bp_assert
+-----------
+
+(1 row)
+
+ bp_assert
+-----------
+
+(1 row)
+
+ bp_assert
+-----------
+
+(1 row)
+
+ bp_assert
+-----------
+
+(1 row)
+
+ bp_assert
+-----------
+
+(1 row)
+
+ bp_assert
+-----------
+
+(1 row)
+
+ bp_assert
+-----------
+
+(1 row)
+
+ bp_assert
+-----------
+
+(1 row)
+
+ bp_assert
+-----------
+
+(1 row)
+
+ bp_assert
+-----------
+
+(1 row)
+
+ bp_assert
+-----------
+
+(1 row)
+
+ bp_assert
+-----------
+
+(1 row)
+
+ bp_assert
+-----------
+
+(1 row)
+
+ bp_assert
+-----------
+
+(1 row)
+
+ bp_assert
+-----------
+
+(1 row)
+
+ROLLBACK
+BEGIN
+INSERT 0 2
+CREATE FUNCTION
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 3
+SET CONSTRAINTS
+ di_assert
+-----------
+
+(1 row)
+
+UPDATE 2
+INSERT 0 1
+INSERT 0 1
+ di_assert
+-----------
+
+(1 row)
+
+ di_assert
+-----------
+
+(1 row)
+
+UPDATE 1
+ di_assert
+-----------
+
+(1 row)
+
+INSERT 0 1
+ di_assert
+-----------
+
+(1 row)
+
+INSERT 0 1
+ di_assert
+-----------
+
+(1 row)
+
+UPDATE 1
+ di_assert
+-----------
+
+(1 row)
+
+INSERT 0 1
+ di_assert
+-----------
+
+(1 row)
+
+  generate_loan_charge
+-------------------------
+ cg8:6:DI45-L:2026-10-06
+(1 row)
+
+ di_assert
+-----------
+
+(1 row)
+
+ di_assert
+-----------
+
+(1 row)
+
+INSERT 0 2
+ di_assert
+-----------
+
+(1 row)
+
+INSERT 0 1
+ di_assert
+-----------
+
+(1 row)
+
+INSERT 0 2
+ di_assert
+-----------
+
+(1 row)
+
+ di_assert
+-----------
+
+(1 row)
+
+DO
+                     result
+-------------------------------------------------
+ R036 principal daily interest regression passed
+(1 row)
+
+ROLLBACK
+BEGIN
+INSERT 0 2
+CREATE FUNCTION
+DO
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 2
+ rate_assert
+-------------
+
+(1 row)
+
+                   result
+--------------------------------------------
+ R048 original daily rate regression passed
+(1 row)
+
+ROLLBACK
+BEGIN
+CREATE FUNCTION
+SELECT 1
+ check_forecast
+----------------
+
+(1 row)
+
+ check_forecast
+----------------
+
+(1 row)
+
+ check_forecast
+----------------
+
+(1 row)
+
+ check_forecast
+----------------
+
+(1 row)
+
+ check_forecast
+----------------
+
+(1 row)
+
+ check_forecast
+----------------
+
+(1 row)
+
+ check_forecast
+----------------
+
+(1 row)
+
+ check_forecast
+----------------
+
+(1 row)
+
+ check_forecast
+----------------
+
+(1 row)
+
+ check_forecast
+----------------
+
+(1 row)
+
+ check_forecast
+----------------
+
+(1 row)
+
+ check_forecast
+----------------
+
+(1 row)
+
+ check_forecast
+----------------
+
+(1 row)
+
+ check_forecast
+----------------
+
+(1 row)
+
+ check_forecast
+----------------
+
+(1 row)
+
+ check_forecast
+----------------
+
+(1 row)
+
+ check_forecast
+----------------
+
+(1 row)
+
+ check_forecast
+----------------
+
+(1 row)
+
+ check_forecast
+----------------
+
+(1 row)
+
+ check_forecast
+----------------
+
+(1 row)
+
+ check_forecast
+----------------
+
+(1 row)
+
+ check_forecast
+----------------
+
+(1 row)
+
+ check_forecast
+----------------
+
+(1 row)
+
+ check_forecast
+----------------
+
+(1 row)
+
+ check_forecast
+----------------
+
+(1 row)
+
+ check_forecast
+----------------
+
+(1 row)
+
+ check_forecast
+----------------
+
+(1 row)
+
+DO
+ check_forecast
+----------------
+
+(1 row)
+
+ROLLBACK
+Forecast synthetic checks passed
+BEGIN
+INSERT 0 2
+CREATE FUNCTION
+CREATE FUNCTION
+INSERT 0 2
+INSERT 0 1
+INSERT 0 1
+INSERT 0 3
+INSERT 0 7
+INSERT 0 1
+CREATE FUNCTION
+ reject
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+CREATE FUNCTION
+CREATE TRIGGER
+ reject
+--------
+
+(1 row)
+
+DROP TRIGGER
+ assert
+--------
+
+(1 row)
+
+ receive
+---------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ post_payment
+--------------
+
+(1 row)
+
+UPDATE 1
+ assert
+--------
+
+(1 row)
+
+SET CONSTRAINTS
+SELECT 1
+SELECT 1
+SELECT 1
+UPDATE 1
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+UPDATE 1
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+SELECT 8
+ reject
+--------
+
+(1 row)
+
+SELECT 8
+ assert
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ receive
+---------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+               result
+-------------------------------------
+ Selected Charges regressions passed
+(1 row)
+
+ROLLBACK
+BEGIN
+INSERT 0 2
+CREATE FUNCTION
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+ assert
+--------
+
+(1 row)
+
+SELECT 1
+SELECT 3
+UPDATE 1
+SELECT 1
+UPDATE 1
+ assert
+--------
+
+(1 row)
+
+UPDATE 1
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+DO
+ROLLBACK
+BEGIN
+INSERT 0 2
+CREATE FUNCTION
+INSERT 0 3
+INSERT 0 1
+INSERT 0 1
+INSERT 0 2
+INSERT 0 9
+INSERT 0 4
+ check_upcoming
+----------------
+
+(1 row)
+
+ check_upcoming
+----------------
+
+(1 row)
+
+ check_upcoming
+----------------
+
+(1 row)
+
+ check_upcoming
+----------------
+
+(1 row)
+
+ check_upcoming
+----------------
+
+(1 row)
+
+ check_upcoming
+----------------
+
+(1 row)
+
+ check_upcoming
+----------------
+
+(1 row)
+
+ check_upcoming
+----------------
+
+(1 row)
+
+ check_upcoming
+----------------
+
+(1 row)
+
+ check_upcoming
+----------------
+
+(1 row)
+
+ check_upcoming
+----------------
+
+(1 row)
+
+ check_upcoming
+----------------
+
+(1 row)
+
+ check_upcoming
+----------------
+
+(1 row)
+
+INSERT 0 1
+ check_upcoming
+----------------
+
+(1 row)
+
+INSERT 0 1
+ check_upcoming
+----------------
+
+(1 row)
+
+ check_upcoming
+----------------
+
+(1 row)
+
+ check_upcoming
+----------------
+
+(1 row)
+
+ check_upcoming
+----------------
+
+(1 row)
+
+INSERT 0 1
+INSERT 0 2
+ check_upcoming
+----------------
+
+(1 row)
+
+ check_upcoming
+----------------
+
+(1 row)
+
+ check_upcoming
+----------------
+
+(1 row)
+
+ check_upcoming
+----------------
+
+(1 row)
+
+ check_upcoming
+----------------
+
+(1 row)
+
+ROLLBACK
+Upcoming charge adapter integration checks passed
+BEGIN
+INSERT 0 2
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+ reject
+--------
+
+(1 row)
+
+INSERT 0 2
+INSERT 0 1
+INSERT 0 1
+INSERT 0 4
+INSERT 0 9
+INSERT 0 1
+INSERT 0 1
+SET CONSTRAINTS
+SELECT 1
+SELECT 4
+DO
+DO
+              set_config
+--------------------------------------
+ 00000000-0057-4000-8000-000000000001
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ set_config
+------------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+DO
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+
+
+
+(4 rows)
+
+ reject
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+DO
+                  result
+------------------------------------------
+ Interest reallocation regressions passed
+(1 row)
+
+ROLLBACK
+BEGIN
+INSERT 0 2
+ refresh_daily_analytics
+-------------------------
+                      11
+(1 row)
+
+CREATE FUNCTION
+CREATE FUNCTION
+INSERT 0 3
+UPDATE 1
+INSERT 0 2
+INSERT 0 2
+INSERT 0 2
+INSERT 0 3
+INSERT 0 1
+SET CONSTRAINTS
+CREATE FUNCTION
+ assert_history
+----------------
+
+(1 row)
+
+SELECT 1
+UPDATE 1
+ assert
+--------
+
+(1 row)
+
+UPDATE 1
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+UPDATE 1
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+UPDATE 1
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+UPDATE 1
+ assert_history
+----------------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+SELECT 1
+UPDATE 1
+ assert
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+DELETE 1
+DELETE 0
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+SET CONSTRAINTS
+INSERT 0 1
+INSERT 0 1
+SET CONSTRAINTS
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+SAVEPOINT
+UPDATE 1
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ROLLBACK
+ assert_history
+----------------
+
+(1 row)
+
+SELECT 1
+UPDATE 1
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+DELETE 1
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert_history
+----------------
+
+(1 row)
+
+INSERT 0 1
+INSERT 0 1
+UPDATE 2
+ assert
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert_history
+----------------
+
+(1 row)
+
+CREATE FUNCTION
+CREATE TRIGGER
+ reject
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+DROP TRIGGER
+DO
+ reject
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ set_config
+------------
+ CRUD59-M1
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ set_config
+------------
+
+(1 row)
+
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+SET CONSTRAINTS
+ assert
+--------
+
+(1 row)
+
+UPDATE 1
+ assert
+--------
+
+(1 row)
+
+INSERT 0 1
+UPDATE 1
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+DELETE 1
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+UPDATE 1
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert_history
+----------------
+
+(1 row)
+
+                result
+--------------------------------------
+ Payment CRUD functional cases passed
+(1 row)
+
+ROLLBACK
+BEGIN
+SET
+INSERT 0 2
+CREATE FUNCTION
+CREATE FUNCTION
+INSERT 0 1
+INSERT 0 1
+INSERT 0 3
+UPDATE 1
+INSERT 0 2
+INSERT 0 2
+INSERT 0 1
+INSERT 0 2
+SET CONSTRAINTS
+ refresh_daily_analytics
+-------------------------
+                       3
+(1 row)
+
+SELECT 1
+SELECT 1
+ del65_reject
+--------------
+
+(1 row)
+
+ del65_reject
+--------------
+
+(1 row)
+
+ del65_reject
+--------------
+
+(1 row)
+
+ del65_reject
+--------------
+
+(1 row)
+
+ del65_reject
+--------------
+
+(1 row)
+
+UPDATE 1
+UPDATE 1
+ del65_assert
+--------------
+
+(1 row)
+
+SELECT 1
+ del65_assert
+--------------
+
+(1 row)
+
+ del65_assert
+--------------
+
+(1 row)
+
+ del65_assert
+--------------
+
+(1 row)
+
+ del65_assert
+--------------
+
+(1 row)
+
+ del65_assert
+--------------
+
+(1 row)
+
+UPDATE 0
+ del65_assert
+--------------
+
+(1 row)
+
+ del65_assert
+--------------
+
+(1 row)
+
+UPDATE 1
+ del65_assert
+--------------
+
+(1 row)
+
+ del65_assert
+--------------
+
+(1 row)
+
+UPDATE 1
+UPDATE 1
+ del65_reject
+--------------
+
+(1 row)
+
+ del65_assert
+--------------
+
+(1 row)
+
+UPDATE 1
+UPDATE 1
+INSERT 0 1
+INSERT 0 1
+CREATE FUNCTION
+CREATE TRIGGER
+ del65_reject
+--------------
+
+(1 row)
+
+ del65_assert
+--------------
+
+(1 row)
+
+ del65_assert
+--------------
+
+(1 row)
+
+DROP TRIGGER
+SET CONSTRAINTS
+UPDATE 2
+ del65_assert
+--------------
+
+(1 row)
+
+SET CONSTRAINTS
+ del65_assert
+--------------
+
+(1 row)
+
+SELECT 1
+ refresh_daily_analytics
+-------------------------
+                       3
+(1 row)
+
+ del65_assert
+--------------
+
+(1 row)
+
+                          result
+----------------------------------------------------------
+ AppSheet receipt delete request functional checks passed
+(1 row)
+
+ROLLBACK
+BEGIN
+SET
+SET
+DO
+INSERT 0 2
+CREATE FUNCTION
+CREATE FUNCTION
+INSERT 0 2
+INSERT 0 2
+INSERT 0 2
+INSERT 0 2
+INSERT 0 2
+INSERT 0 1
+SET CONSTRAINTS
+SELECT 1
+UPDATE 1
+ assert
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+DELETE 1
+INSERT 0 1
+ reject
+--------
+
+(1 row)
+
+ refresh_daily_analytics
+-------------------------
+                       3
+(1 row)
+
+SAVEPOINT
+SELECT 1
+UPDATE 1
+ assert
+--------
+
+(1 row)
+
+ROLLBACK
+UPDATE 1
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+UPDATE 1
+ assert
+--------
+
+(1 row)
+
+DELETE 1
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+INSERT 0 1
+UPDATE 1
+ assert
+--------
+
+(1 row)
+
+DELETE 1
+ reject
+--------
+
+(1 row)
+
+INSERT 0 1
+UPDATE 1
+UPDATE 1
+ assert
+--------
+
+(1 row)
+
+UPDATE 1
+ assert
+--------
+
+(1 row)
+
+UPDATE 1
+DELETE 1
+ assert
+--------
+
+(1 row)
+
+INSERT 0 1
+SAVEPOINT
+SELECT 1
+UPDATE 2
+ assert
+--------
+
+(1 row)
+
+ROLLBACK
+UPDATE 1
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+DELETE 1
+DELETE 1
+ assert
+--------
+
+(1 row)
+
+INSERT 0 1
+UPDATE 1
+DELETE 1
+UPDATE 1
+DELETE 1
+INSERT 0 1
+DELETE 1
+INSERT 0 1
+UPDATE 1
+DELETE 1
+INSERT 0 1
+UPDATE 1
+DELETE 1
+ assert
+--------
+
+(1 row)
+
+INSERT 0 2
+INSERT 0 3
+INSERT 0 1
+INSERT 0 1
+UPDATE 2
+UPDATE 1
+UPDATE 1
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+INSERT 0 1
+DELETE 1
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+UPDATE 1
+ assert
+--------
+
+(1 row)
+
+SAVEPOINT
+SET
+ refresh_daily_analytics
+-------------------------
+                       2
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ROLLBACK
+           result
+-----------------------------
+ Business source CRUD passed
+(1 row)
+
+ROLLBACK
+BEGIN
+SET
+INSERT 0 2
+CREATE FUNCTION
+CREATE FUNCTION
+ history_parity
+----------------
+
+(1 row)
+
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 2
+INSERT 0 4
+INSERT 0 3
+SET CONSTRAINTS
+ history_parity
+----------------
+
+(1 row)
+
+UPDATE 1
+UPDATE 1
+ history_parity
+----------------
+
+(1 row)
+
+UPDATE 1
+ history_parity
+----------------
+
+(1 row)
+
+DO
+                   result
+---------------------------------------------
+ Historical aggregate full-row parity passed
+(1 row)
+
+ROLLBACK
+BEGIN
+SET
+INSERT 0 2
+INSERT 0 2
+INSERT 0 2
+INSERT 0 2
+INSERT 0 2
+SET CONSTRAINTS
+SELECT 1
+SELECT 1
+INSERT 0 1
+CREATE FUNCTION
+DO
+ refresh_daily_analytics
+-------------------------
+                       2
+(1 row)
+
+SELECT 10
+UPDATE 1
+DO
+ reject_reimbursement
+----------------------
+
+(1 row)
+
+ reject_reimbursement
+----------------------
+
+(1 row)
+
+ reject_reimbursement
+----------------------
+
+(1 row)
+
+UPDATE 1
+DO
+UPDATE 1
+UPDATE 1
+ reject_reimbursement
+----------------------
+
+(1 row)
+
+ reject_reimbursement
+----------------------
+
+(1 row)
+
+DELETE 1
+UPDATE 1
+ reject_reimbursement
+----------------------
+
+(1 row)
+
+DELETE 1
+SET CONSTRAINTS
+                 result
+-----------------------------------------
+ Linked reimbursement consistency passed
+(1 row)
+
+ROLLBACK
+BEGIN
+SET
+INSERT 0 2
+CREATE FUNCTION
+CREATE FUNCTION
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+SET CONSTRAINTS
+ALTER TABLE
+ALTER TABLE
+ flag67_reject
+---------------
+
+(1 row)
+
+CREATE FUNCTION
+SELECT 1
+ALTER TABLE
+ALTER TABLE
+ flag67_assert
+---------------
+
+(1 row)
+
+ flag67_assert
+---------------
+
+(1 row)
+
+ flag67_assert
+---------------
+
+(1 row)
+
+ flag67_assert
+---------------
+
+(1 row)
+
+ flag67_assert
+---------------
+
+(1 row)
+
+ flag67_assert
+---------------
+
+(1 row)
+
+ flag67_reject
+---------------
+
+(1 row)
+
+ flag67_reject
+---------------
+
+(1 row)
+
+ flag67_reject
+---------------
+
+(1 row)
+
+ flag67_assert
+---------------
+
+(1 row)
+
+SAVEPOINT
+ROLLBACK
+psql:scripts/database/Test-ReceiptDeleteFlagMetadata.sql:56: ERROR:  new row for relation "Payments" violates check constraint "payment_delete_requested_present"
+DETAIL:  Failing row contains (FLAG67-COPY2, Processing, FLAG67-B, $1.00, null, Single Partial, null, null, null, 2026-10-06, null, null, FLAG67-C, null, 0, 0, ch:dad, CI-DAD, null, null, null, null, null, null, null).
+CONTEXT:  COPY Payments, line 2: "FLAG67-COPY2,FLAG67-B,today,1,Single Partial,Processing,FLAG67-C,CI-DAD,\N"
+ flag67_assert
+---------------
+
+(1 row)
+
+ flag67_assert
+---------------
+
+(1 row)
+
+ flag67_reject
+---------------
+
+(1 row)
+
+ flag67_reject
+---------------
+
+(1 row)
+
+UPDATE 1
+ flag67_assert
+---------------
+
+(1 row)
+
+UPDATE 1
+ flag67_assert
+---------------
+
+(1 row)
+
+                   result
+--------------------------------------------
+ Receipt flag metadata and integrity passed
+(1 row)
+
+ROLLBACK
+BEGIN
+SET
+INSERT 0 2
+CREATE FUNCTION
+CREATE FUNCTION
+INSERT 0 1
+INSERT 0 2
+INSERT 0 1
+INSERT 0 1
+INSERT 0 3
+INSERT 0 2
+INSERT 0 1
+SET CONSTRAINTS
+SELECT 2
+SELECT 1
+SELECT 1
+UPDATE 1
+ loan_assert
+-------------
+
+(1 row)
+
+ loan_assert
+-------------
+
+(1 row)
+
+ loan_reject
+-------------
+
+(1 row)
+
+ loan_reject
+-------------
+
+(1 row)
+
+ loan_reject
+-------------
+
+(1 row)
+
+ loan_reject
+-------------
+
+(1 row)
+
+UPDATE 1
+ loan_assert
+-------------
+
+(1 row)
+
+ loan_assert
+-------------
+
+(1 row)
+
+ loan_assert
+-------------
+
+(1 row)
+
+UPDATE 1
+ loan_assert
+-------------
+
+(1 row)
+
+ loan_assert
+-------------
+
+(1 row)
+
+ loan_reject
+-------------
+
+(1 row)
+
+UPDATE 1
+ loan_assert
+-------------
+
+(1 row)
+
+ loan_assert
+-------------
+
+(1 row)
+
+ loan_assert
+-------------
+
+(1 row)
+
+ loan_assert
+-------------
+
+(1 row)
+
+ loan_assert
+-------------
+
+(1 row)
+
+INSERT 0 1
+ loan_reject
+-------------
+
+(1 row)
+
+DELETE 1
+UPDATE 1
+ loan_assert
+-------------
+
+(1 row)
+
+UPDATE 1
+ loan_assert
+-------------
+
+(1 row)
+
+ loan_assert
+-------------
+
+(1 row)
+
+ loan_reject
+-------------
+
+(1 row)
+
+ loan_assert
+-------------
+
+(1 row)
+
+                            result
+---------------------------------------------------------------
+ Loan correction positives, guards and daily conversion passed
+(1 row)
+
+ROLLBACK
+BEGIN
+SET
+INSERT 0 2
+CREATE FUNCTION
+CREATE FUNCTION
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 4
+INSERT 0 1
+INSERT 0 1
+INSERT 0 2
+INSERT 0 1
+INSERT 0 1
+SET CONSTRAINTS
+SELECT 2
+SELECT 2
+SELECT 8
+UPDATE 1
+UPDATE 1
+ type_assert
+-------------
+
+(1 row)
+
+UPDATE 1
+ type_assert
+-------------
+
+(1 row)
+
+UPDATE 1
+ type_assert
+-------------
+
+(1 row)
+
+ type_assert
+-------------
+
+(1 row)
+
+UPDATE 1
+ type_assert
+-------------
+
+(1 row)
+
+ type_reject
+-------------
+
+(1 row)
+
+ type_assert
+-------------
+
+(1 row)
+
+ type_assert
+-------------
+
+(1 row)
+
+ type_assert
+-------------
+
+(1 row)
+
+UPDATE 1
+UPDATE 1
+ type_assert
+-------------
+
+(1 row)
+
+UPDATE 1
+ type_assert
+-------------
+
+(1 row)
+
+SELECT 2
+ type_reject
+-------------
+
+(1 row)
+
+ type_reject
+-------------
+
+(1 row)
+
+ type_reject
+-------------
+
+(1 row)
+
+ type_reject
+-------------
+
+(1 row)
+
+ type_reject
+-------------
+
+(1 row)
+
+ type_reject
+-------------
+
+(1 row)
+
+ type_assert
+-------------
+
+(1 row)
+
+UPDATE 1
+ type_assert
+-------------
+
+(1 row)
+
+UPDATE 1
+DO
+UPDATE 1
+ type_assert
+-------------
+
+(1 row)
+
+ type_assert
+-------------
+
+(1 row)
+
+ type_assert
+-------------
+
+(1 row)
+
+                   result
+--------------------------------------------
+ Daily type conversion focused cases passed
+(1 row)
+
+ROLLBACK
+BEGIN
+SET
+INSERT 0 1
+INSERT 0 1
+INSERT 0 2
+INSERT 0 1
+INSERT 0 2
+INSERT 0 3
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+SET CONSTRAINTS
+DO
+DELETE 2
+DELETE 1
+DELETE 1
+DELETE 3
+DELETE 2
+DELETE 1
+DELETE 0
+DELETE 2
+SET CONSTRAINTS
+DO
+ROLLBACK
+BEGIN
+SET
+INSERT 0 2
+CREATE FUNCTION
+CREATE FUNCTION
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+SET CONSTRAINTS
+SELECT 1
+SELECT 1
+SELECT 1
+ inspect_reject
+----------------
+
+(1 row)
+
+ inspect_assert
+----------------
+
+(1 row)
+
+UPDATE 1
+UPDATE 1
+UPDATE 1
+ inspect_assert
+----------------
+
+(1 row)
+
+ inspect_assert
+----------------
+
+(1 row)
+
+ inspect_assert
+----------------
+
+(1 row)
+
+ inspect_assert
+----------------
+
+(1 row)
+
+ inspect_reject
+----------------
+
+(1 row)
+
+ inspect_reject
+----------------
+
+(1 row)
+
+ inspect_reject
+----------------
+
+(1 row)
+
+UPDATE 1
+ inspect_assert
+----------------
+
+(1 row)
+
+ inspect_assert
+----------------
+
+(1 row)
+
+ inspect_assert
+----------------
+
+(1 row)
+
+DELETE 1
+ inspect_assert
+----------------
+
+(1 row)
+
+                         result
+--------------------------------------------------------
+ Default inspection actor and source transitions passed
+(1 row)
+
+ROLLBACK
+BEGIN
+SET
+INSERT 0 2
+CREATE FUNCTION
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 2
+INSERT 0 2
+INSERT 0 4
+SET CONSTRAINTS
+SELECT 1
+SELECT 1
+SELECT 4
+SELECT 2
+UPDATE 1
+UPDATE 1
+UPDATE 1
+DO
+SELECT 1
+ dr_reject
+-----------
+
+(1 row)
+
+ dr_reject
+-----------
+
+(1 row)
+
+ dr_reject
+-----------
+
+(1 row)
+
+ dr_reject
+-----------
+
+(1 row)
+
+ dr_reject
+-----------
+
+(1 row)
+
+ dr_reject
+-----------
+
+(1 row)
+
+ dr_reject
+-----------
+
+(1 row)
+
+ dr_reject
+-----------
+
+(1 row)
+
+ dr_reject
+-----------
+
+(1 row)
+
+ dr_reject
+-----------
+
+(1 row)
+
+DO
+UPDATE 1
+DO
+UPDATE 1
+UPDATE 1
+DO
+DELETE 3
+DELETE 1
+DELETE 1
+ROLLBACK
+                      result
+---------------------------------------------------
+ Default repayment guard and post-Undo CRUD passed
+(1 row)
+
+BEGIN
+SET
+INSERT 0 2
+INSERT 0 2
+INSERT 0 2
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+SELECT 1
+SELECT 2
+DELETE 1
+DELETE 0
+SET CONSTRAINTS
+DO
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+SELECT 2
+DELETE 1
+SET CONSTRAINTS
+DO
+                               result
+--------------------------------------------------------------------
+ R051 retained reimbursement and optional assessment history passed
+(1 row)
+
+ROLLBACK
+BEGIN
+SET
+INSERT 0 2
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 10
+ refresh_daily_analytics
+-------------------------
+                      11
+(1 row)
+
+SET CONSTRAINTS
+SET CONSTRAINTS
+SELECT 47
+INSERT 0 1
+SET CONSTRAINTS
+DO
+SET CONSTRAINTS
+SAVEPOINT
+UPDATE 1
+ROLLBACK
+UPDATE 1
+SET CONSTRAINTS
+DO
+SELECT 33
+ refresh_daily_analytics
+-------------------------
+                      11
+(1 row)
+
+DO
+SELECT 11
+SELECT 11
+ refresh_daily_analytics_scoped
+--------------------------------
+                              0
+(1 row)
+
+DO
+DELETE 1
+DO
+ROLLBACK
+
+expenseLockFailsPromptly concurrentSettlementCannotDoubleReserve busyMilliseconds
+------------------------ --------------------------------------- ----------------
+                    True                                    True           103.28
+
+ refresh_daily_analytics
+-------------------------
+                      11
+(1 row)
+
+ assert_history
+----------------
+
+(1 row)
+
+
+
+INSERT 0 0
+BEGIN
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+ reject
+--------
+
+(1 row)
+
+INSERT 0 2
+INSERT 0 1
+INSERT 0 1
+INSERT 0 4
+INSERT 0 9
+INSERT 0 1
+INSERT 0 1
+SET CONSTRAINTS
+SELECT 1
+SELECT 4
+COMMIT
+DO
+DO
+DO
+DO
+DO
+CREATE ROLE
+SET
+DROP ROLE
+DROP TABLE
+
+INSERT 0 0
+INSERT 0 2
+INSERT 0 1
+INSERT 0 1
+INSERT 0 2
+INSERT 0 2
+INSERT 0 1
+UPDATE 0
+DO
+                                                                           112.84
+DO
+
+INSERT 0 0
+SET
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+UPDATE 1
+DO
+
+INSERT 0 0
+SET
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+UPDATE 1
+SET
+UPDATE 1
+DO
+                                                                            95.40
+INSERT 0 0
+SET
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+UPDATE 1
+SET
+UPDATE 1
+DO
+                                                                           103.34
+SET
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+UPDATE 1
+SET
+UPDATE 1
+DO
+SET
+UPDATE 1
+DO
+DELETE 1
+
+SET
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+UPDATE 1
+SET
+UPDATE 1
+DO
+UPDATE 1
+DO
+DO
+UPDATE 1
+DO
+SET
+UPDATE 1
+DO
+DELETE 1
+DO
+
+
+SET
+INSERT 0 2
+INSERT 0 2
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 2
+BEGIN
+INSERT 0 2
+UPDATE 2
+SELECT 5
+CREATE FUNCTION
+UPDATE 1
+DO
+UPDATE 1
+DO
+UPDATE 1
+DO
+DELETE 1
+DO
+UPDATE 1
+DO
+UPDATE 1
+DO
+DELETE 1
+DO
+UPDATE 1
+DO
+UPDATE 1
+DO
+UPDATE 1
+DO
+UPDATE 1
+DO
+DELETE 1
+DO
+SET CONSTRAINTS
+DO
+                   result
+--------------------------------------------
+ Historical opening CRUD restatement passed
+(1 row)
+
+ROLLBACK
+
+SET
+INSERT 0 2
+INSERT 0 2
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+BEGIN
+SET
+INSERT 0 2
+ initialize_cash_accounts
+--------------------------
+
+(1 row)
+
+ initialize_cash_accounts
+--------------------------
+
+(1 row)
+
+SELECT 2
+CREATE FUNCTION
+ assert_cash | assert_cash
+-------------+-------------
+             |
+(1 row)
+
+UPDATE 1
+ assert_cash
+-------------
+
+(1 row)
+
+UPDATE 1
+ assert_cash
+-------------
+
+(1 row)
+
+DELETE 1
+ assert_cash
+-------------
+
+(1 row)
+
+UPDATE 1
+ assert_cash
+-------------
+
+(1 row)
+
+UPDATE 1
+ assert_cash
+-------------
+
+(1 row)
+
+UPDATE 1
+ assert_cash | assert_cash
+-------------+-------------
+             |
+(1 row)
+
+UPDATE 1
+ assert_cash
+-------------
+
+(1 row)
+
+UPDATE 1
+ assert_cash
+-------------
+
+(1 row)
+
+DELETE 1
+ assert_cash | assert_cash
+-------------+-------------
+             |
+(1 row)
+
+ refresh_daily_analytics
+-------------------------
+                       1
+(1 row)
+
+SET CONSTRAINTS
+DO
+                    result
+-----------------------------------------------
+ Pre-account opening source corrections passed
+(1 row)
+
+ROLLBACK
+
+INSERT 0 2
+SET
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 2
+INSERT 0 1
+UPDATE 1
+UPDATE 1
+UPDATE 1
+BEGIN
+SET
+DO
+UPDATE 1
+SET CONSTRAINTS
+DO
+ROLLBACK
+                result
+---------------------------------------
+ V68 to V69 legacy default undo passed
+(1 row)
+
+
+INSERT 0 2
+SET
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+UPDATE 1
+UPDATE 1
+UPDATE 1
+BEGIN
+SET
+SELECT 1
+DO
+UPDATE 1
+SET CONSTRAINTS
+DO
+UPDATE 1
+DELETE 1
+ROLLBACK
+                          result
+----------------------------------------------------------
+ V69 to V70 existing legacy repayment preservation passed
+(1 row)

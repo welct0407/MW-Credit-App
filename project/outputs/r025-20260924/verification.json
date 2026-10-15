@@ -1,0 +1,115 @@
+{
+  "at": "2026-09-24T11:46:12.549Z",
+  "checks": [
+    "All 189 original placements, layouts and mappings unchanged",
+    "New tab immediately follows original collection",
+    "Original tab names/order and original parameters preserved",
+    "Collection permission graph unchanged",
+    "All five shared models unchanged",
+    "All original embedded saved question queries and formatting unchanged",
+    "All 16 saved dashboard questions complete without truncation",
+    "Worklist grain is unique immutable borrower ID",
+    "No unexpected non-null collection statuses",
+    "People total matches worklist",
+    "Receipts total matches worklist",
+    "Remaining total matches worklist without double-counting overdue",
+    "People percentage is weighted count ratio",
+    "Overdue: count and table agree",
+    "Overdue: exact names/IDs/receipts/remaining",
+    "Not Paid: count and table agree",
+    "Not Paid: exact names/IDs/receipts/remaining",
+    "Partially Paid: count and table agree",
+    "Partially Paid: exact names/IDs/receipts/remaining",
+    "Fully Paid: count and table agree",
+    "Fully Paid: exact names/IDs/receipts/remaining",
+    "Four lanes partition source without overlap",
+    "Detail has full board population",
+    "Unclassified count is zero",
+    "Only detail receives the new filters",
+    "Detail only · Borrower: actual dashboard mapping filters precisely",
+    "Detail only · Status: actual dashboard mapping filters precisely",
+    "No-match borrower filter returns empty, not all borrowers",
+    "Current rows independently reconcile to governed PostgreSQL views",
+    "Observed overdue payer remains overdue",
+    "Today-charge summary preserves separate population",
+    "Live view contains expected status precedence",
+    "Synthetic null/partial/multi-loan/overdue/paid statuses",
+    "Bangkok midnight boundary controlled fixture",
+    "Empty board people: honest zero/null",
+    "Empty board receipts: honest zero/null",
+    "Empty board remaining: honest zero/null",
+    "Empty board completion: honest zero/null"
+  ],
+  "passed": 38,
+  "queryTimings": [
+    {
+      "key": "people",
+      "ms": 199
+    },
+    {
+      "key": "receipts",
+      "ms": 223
+    },
+    {
+      "key": "remaining",
+      "ms": 194
+    },
+    {
+      "key": "completion",
+      "ms": 198
+    },
+    {
+      "key": "overdue-count",
+      "ms": 188
+    },
+    {
+      "key": "overdue-list",
+      "ms": 226
+    },
+    {
+      "key": "unpaid-count",
+      "ms": 194
+    },
+    {
+      "key": "unpaid-list",
+      "ms": 210
+    },
+    {
+      "key": "partial-count",
+      "ms": 210
+    },
+    {
+      "key": "partial-list",
+      "ms": 235
+    },
+    {
+      "key": "paid-count",
+      "ms": 193
+    },
+    {
+      "key": "paid-list",
+      "ms": 220
+    },
+    {
+      "key": "detail",
+      "ms": 235
+    },
+    {
+      "key": "today-charges",
+      "ms": 310
+    },
+    {
+      "key": "freshness",
+      "ms": 329
+    },
+    {
+      "key": "unclassified",
+      "ms": 209
+    }
+  ],
+  "totalSequentialQueryMs": 3573,
+  "originalPlacements": 189,
+  "newPlacements": 21,
+  "tabs": 12,
+  "financialValuesPublished": false
+}

@@ -1,0 +1,174 @@
+{
+  "oltp": {
+    "columns": 38,
+    "virtual": 26,
+    "formulaChanges": [],
+    "slices": [
+      {
+        "name": "Todays Collection Board",
+        "filter": "=ISNOTBLANK([Daily Collection Status])",
+        "mode": "READ_ONLY",
+        "columns": "_RowNumberRow IDBorrower NameDescriptionDaily Collection Status - OrderTodays Amount DueTodays Amount CollectedTodays Amount RemainingTodays Collection ChargesBorrower Name - CollectionHidden FlagRelated PaymentsCommunication NameInstagram UsernameAI Collection EnabledCityWorking LocationAddress"
+      },
+      {
+        "name": "Visible Borrowers",
+        "filter": "=NOT([Hidden Flag])",
+        "mode": "ALL_CHANGES",
+        "columns": "_RowNumberRow IDBorrower NameDescriptionCreation DateHidden FlagRelated LoansTotal Interest EarnedTotal Amount LoanedTotal Number of LoansTotal Outstanding PrincipalHeader - Active LoansBorrower Name TEReturn on Active PrincipalActive Loan Interest EarnedActive Daily InterestProjected Interest Coverage DateClosed Loan Interest EarnedClosed Loan PrincipleHas Closed LoanReturn on Closed LoansHeader - Closed LoansHas Active LoanDaily Collection StatusTodays Collection ChargesTodays Amount DueTodays Amount CollectedTodays Amount RemainingDaily Collection Status - OrderBorrower Name - CollectionActive Profit After Principal CoverageRelated PaymentsCommunication NameInstagram UsernameAI Collection EnabledCityWorking LocationAddress"
+      }
+    ],
+    "views": [
+      {
+        "name": "Borrowers_Detail",
+        "columns": [
+          "Borrower Name",
+          "Description",
+          "Creation Date",
+          "Total Amount Loaned",
+          "Total Interest Earned",
+          "Total Number of Loans",
+          "Header - Active Loans",
+          "Total Outstanding Principal",
+          "Active Loan Interest Earned",
+          "Return on Active Principal",
+          "Projected Interest Coverage Date",
+          "Header - Closed Loans",
+          "Closed Loan Principle",
+          "Closed Loan Interest Earned",
+          "Return on Closed Loans",
+          "Related Loans",
+          "Communication Name",
+          "Instagram Username",
+          "AI Collection Enabled",
+          "City",
+          "Working Location",
+          "Address"
+        ]
+      },
+      {
+        "name": "Borrowers_Form",
+        "columns": [
+          "Borrower Name",
+          "Description",
+          "Creation Date",
+          "Hidden Flag",
+          "Communication Name",
+          "Instagram Username",
+          "AI Collection Enabled",
+          "City",
+          "Working Location",
+          "Address"
+        ]
+      },
+      {
+        "name": "Todays Collection Board_Detail",
+        "columns": [
+          "Daily Collection Status - Order",
+          "Borrower Name - Collection",
+          "Todays Amount Due",
+          "Todays Amount Collected",
+          "Todays Amount Remaining",
+          "Todays Collection Charges"
+        ]
+      },
+      {
+        "name": "Visible Borrowers_Detail",
+        "columns": [
+          "Borrower Name TE",
+          "Creation Date",
+          "Total Interest Earned",
+          "Total Amount Loaned",
+          "Total Number of Loans",
+          "Header - Active Loans",
+          "Total Outstanding Principal",
+          "Active Loan Interest Earned",
+          "Active Profit After Principal Coverage",
+          "Return on Active Principal",
+          "Projected Interest Coverage Date",
+          "Header - Closed Loans",
+          "Closed Loan Principle",
+          "Closed Loan Interest Earned",
+          "Return on Closed Loans",
+          "Related Loans",
+          "Communication Name",
+          "Instagram Username",
+          "AI Collection Enabled",
+          "City",
+          "Working Location",
+          "Address"
+        ]
+      },
+      {
+        "name": "Visible Borrowers_Form",
+        "columns": [
+          "Borrower Name",
+          "Creation Date",
+          "Description",
+          "Communication Name",
+          "Instagram Username",
+          "AI Collection Enabled",
+          "City",
+          "Working Location",
+          "Address"
+        ]
+      }
+    ]
+  },
+  "olap": {
+    "columns": 77,
+    "virtual": 65,
+    "formulaChanges": [],
+    "slices": [
+      {
+        "name": "Borrowers with Outstanding Loans",
+        "filter": "=[Total Outstanding Principal] > 0",
+        "mode": "READ_ONLY",
+        "columns": "_RowNumberRow IDBorrower NameDescriptionCreation DateRelated LoansTotal Interest EarnedTotal Amount LoanedTotal Number of LoansTotal Outstanding PrincipalHeader - Active LoansBorrower Name TEReturn on Active PrincipalProfit Last 30 DaysProjected Interest Coverage DateActive Loan Interest EarnedActive Daily InterestRelated Loan AssessmentsRelated CalendarsClosed Loan Interest EarnedClosed Loan PrincipleHas Closed LoanReturn on Closed LoansHeader - Closed LoansHas Active Loan30D Gross Principal Days30D Principal Reduction Days30D Average Outstanding Principal30D Return on Average PrincipalDaily Collection StatusTodays Collection ChargesTodays Amount DueTodays Amount CollectedTodays Amount RemainingPortfolio Exposure %Active Loan CountOldest Active Loan AgeOverdue AmountOverdue Charge CountHistorical Charge CountOn Time Charge CountLifetime On Time RateRecent 30D Charge CountRecent 30D On Time CountRecent 30D On Time RateLifetime Late Payment CountRecent 30D Late Payment CountMaximum Days LateLast Late Payment DateLargest Successful LoanAverage Successful Loan SizeDefault CountLifetime Default LossPortfolio Outstanding PrincipalPortfolio Share Join KeyHidden FlagProjected Monthly Profit ContributionMatrix Active Borrower CountMatrix Equal Share BenchmarkMatrix Economic ContributionMatrix Recent Reliability ScoreMatrix Historical Reliability ScoreMatrix Delay Severity ScoreMatrix Current Condition ScoreMatrix History SufficientMatrix Stability ScoreMatrix QuadrantMatrix Bubble LabelProfit Last 10 DaysMatrix Scaled Economic ContributionRelated PaymentsCityWorking LocationAddress"
+      },
+      {
+        "name": "Profit Contribution 30D",
+        "filter": "=[Profit Last 30 Days] > 0",
+        "mode": "READ_ONLY",
+        "columns": "_RowNumberRow IDBorrower NameDescriptionCreation DateRelated LoansTotal Interest EarnedTotal Amount LoanedTotal Number of LoansTotal Outstanding PrincipalHeader - Active LoansBorrower Name TEReturn on Active PrincipalProfit Last 30 DaysProjected Interest Coverage DateActive Loan Interest EarnedActive Daily InterestRelated Loan AssessmentsRelated CalendarsClosed Loan Interest EarnedClosed Loan PrincipleHas Closed LoanReturn on Closed LoansHeader - Closed LoansHas Active Loan30D Gross Principal Days30D Principal Reduction Days30D Average Outstanding Principal30D Return on Average PrincipalDaily Collection StatusTodays Collection ChargesTodays Amount DueTodays Amount CollectedTodays Amount RemainingPortfolio Exposure %Active Loan CountOldest Active Loan AgeOverdue AmountOverdue Charge CountHistorical Charge CountOn Time Charge CountLifetime On Time RateRecent 30D Charge CountRecent 30D On Time CountRecent 30D On Time RateLifetime Late Payment CountRecent 30D Late Payment CountMaximum Days LateLast Late Payment DateLargest Successful LoanAverage Successful Loan SizeDefault CountLifetime Default LossPortfolio Outstanding PrincipalPortfolio Share Join KeyHidden FlagProjected Monthly Profit ContributionMatrix Active Borrower CountMatrix Equal Share BenchmarkMatrix Economic ContributionMatrix Recent Reliability ScoreMatrix Historical Reliability ScoreMatrix Delay Severity ScoreMatrix Current Condition ScoreMatrix History SufficientMatrix Stability ScoreMatrix QuadrantMatrix Bubble LabelProfit Last 10 DaysMatrix Scaled Economic ContributionRelated PaymentsCityWorking LocationAddress"
+      },
+      {
+        "name": "Reporting Borrowers",
+        "filter": null,
+        "mode": "READ_ONLY",
+        "columns": "_RowNumberRow IDBorrower NameBorrower Name TEDescriptionTotal Interest EarnedTotal Amount LoanedTotal Number of LoansTotal Outstanding PrincipalDaily Collection StatusTodays Amount DueTodays Amount CollectedTodays Amount Remaining30D Return on Average PrincipalReturn on Active Principal30D Average Outstanding PrincipalProfit Last 30 DaysHas Active LoanHas Closed LoanOverdue AmountOverdue Charge CountOldest Active Loan AgeActive Loan CountPortfolio Exposure %Historical Charge CountOn Time Charge CountLifetime On Time RateRecent 30D Charge CountRecent 30D On Time CountRecent 30D On Time RateLifetime Late Payment CountRecent 30D Late Payment CountMaximum Days LateLast Late Payment DateLargest Successful LoanAverage Successful Loan SizeDefault CountLifetime Default LossPortfolio Outstanding PrincipalPortfolio Share Join KeyHidden FlagMatrix Active Borrower CountMatrix Equal Share BenchmarkMatrix Economic ContributionMatrix Historical Reliability ScoreMatrix Delay Severity ScoreMatrix Current Condition ScoreMatrix QuadrantMatrix Bubble LabelMatrix Recent Reliability ScoreMatrix History SufficientMatrix Stability ScoreMatrix Scaled Economic ContributionRelated PaymentsCityWorking LocationAddress"
+      },
+      {
+        "name": "Todays Collection Board",
+        "filter": "=ISNOTBLANK([Daily Collection Status])",
+        "mode": "READ_ONLY",
+        "columns": "_RowNumberRow IDBorrower NameDescriptionHidden FlagDaily Collection StatusTodays Collection ChargesTodays Amount DueTodays Amount CollectedTodays Amount RemainingOverdue AmountRelated PaymentsCityWorking LocationAddress"
+      }
+    ],
+    "views": [
+      {
+        "name": "Borrowers_Detail",
+        "columns": [
+          "Borrower Name",
+          "Description",
+          "Creation Date",
+          "Total Amount Loaned",
+          "Total Interest Earned",
+          "Total Number of Loans",
+          "Header - Active Loans",
+          "Total Outstanding Principal",
+          "Active Loan Interest Earned",
+          "Return on Active Principal",
+          "Projected Interest Coverage Date",
+          "Header - Closed Loans",
+          "Closed Loan Principle",
+          "Closed Loan Interest Earned",
+          "Return on Closed Loans",
+          "Related Loans",
+          "City",
+          "Working Location",
+          "Address"
+        ]
+      }
+    ]
+  }
+}

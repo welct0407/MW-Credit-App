@@ -1,0 +1,93 @@
+{
+  "updated": [
+    {
+      "file": "systems/appsheet/oltp/tables/loans.yaml",
+      "before_sha256": "5e45bbce1226965a080f4ae56f4807ffb10805ffc75a657730029b4c3962a303",
+      "after_sha256": "670e32aadb85d52dfc9a7978af1cd0d86ac74308bf2ebe4f2b7c69d6528a02a9"
+    },
+    {
+      "file": "systems/appsheet/oltp/tables/borrowers.yaml",
+      "before_sha256": "7e032a24d08a10575d8b202c26f8ffbb90f01f121795017d04dd9ec079e2b67e",
+      "after_sha256": "c6f0501fa652f80c224d789d5d62c1e8a418b02a86b255ac688be6ce4800ad37"
+    },
+    {
+      "file": "systems/appsheet/oltp/tables/business-expenses.yaml",
+      "before_sha256": "e1c8e3dce8590d0d354cba25660ac37580558b89e53c3c7f6a8ac9ea23ccd118",
+      "after_sha256": "443189529737eda083b47d39734e962233ee5ee90daebc93261771af955c69ed"
+    },
+    {
+      "file": "systems/appsheet/oltp/tables/payments.yaml",
+      "before_sha256": "a98d5d939e243626c00626ea4b54def626239831c42fee0c1c625f9e02a2576c",
+      "after_sha256": "1e7cd50309f9c87d5f661e751e7ac4b2960a3064296624468b3aa8c2d9a692f9"
+    },
+    {
+      "file": "systems/appsheet/oltp/tables/statistics.yaml",
+      "before_sha256": "1398adc49dddf896ac38fe7ed0557231f9ac1b884c80591c893b5c6c6f85c253",
+      "after_sha256": "99e311f00af48cffd98f2bf4958344e84a52c05cc2f78fb9efd55116ae459c9c"
+    },
+    {
+      "file": "systems/appsheet/oltp/views/borrowers-fa2504ea.yaml",
+      "before_sha256": "3f0d2f267f462c0c6aca955fecca0f0fc1a101f68b216dfd9877a62937fa6a2f",
+      "after_sha256": "49ed00e0aa6e219059568c9a449716157864d0b69520511dec1e7f0db1d9cd92"
+    },
+    {
+      "file": "systems/appsheet/oltp/views/business-expenses-8e58bff2.yaml",
+      "before_sha256": "e33a497104aa2e715fc759abebb940111d4589695e8298fc3f47469b46076100",
+      "after_sha256": "09b831c3398875b1d25a7baa16f2776065194d465ad05a214894e78a060dba48"
+    },
+    {
+      "file": "systems/appsheet/oltp/views/collection-7b790708.yaml",
+      "before_sha256": "c35d6fbd978e1705a6d05c3e7b0a8eb6caeb8d72873f326ec4ff6ba4c0bd6fa6",
+      "after_sha256": "b002a0724e5ab03d6a7529b13176070200d4836520ae11a2365493266f29afde"
+    },
+    {
+      "file": "systems/appsheet/oltp/views/dashboard-67b69646.yaml",
+      "before_sha256": "c3f9e3581e8952be0f1045e1fcd8a4f4d24adc84cca8b256e4b3bab28a46257f",
+      "after_sha256": "edb31c42b73178beaaec55cc071469de6f6b4ec9f45706f256fac8a358d93012"
+    },
+    {
+      "file": "systems/appsheet/oltp/views/loans-b991de5d.yaml",
+      "before_sha256": "0f6b384e62f6c218c5f4eb078dbc8eef7c9df1061e45d8aea885148eee1a2056",
+      "after_sha256": "8adb3c8fe0d8504396bad1c7fe8ec1b63982d967ffd8bc20c4c2623b04d40756"
+    },
+    {
+      "file": "systems/appsheet/oltp/views/payments-632e1c58.yaml",
+      "before_sha256": "489bd96d07e3d581d259ee7688fab12882bb01537e3591f8d3d1351787582b37",
+      "after_sha256": "ada8f9628d26b3364e7910b05d5c47307ab7ca74eac7f35cf2ccfbfef61f1966"
+    },
+    {
+      "file": "systems/appsheet/oltp/views/reporting-app-shortcut-9d4550f1.yaml",
+      "before_sha256": "6f5e0402cbe45763d320760c8e67dbd9d22678d7e24076148ef11bc752646ff3",
+      "after_sha256": "6255a499dd4edba5c1be2d37e10a03f67582e13faa9acb299fb876c44f5a4cb7"
+    },
+    {
+      "file": "systems/appsheet/oltp/tables/charges.yaml",
+      "before_sha256": "2711b363e60c4df0cdcbc05a584cbcfecbb48c1cb0f21804ecd088df2f72c34a",
+      "after_sha256": "1ac7945ab45dd4e2390aa4dc5c6b1b9fabcb0bbc7dfad80e06a80ce1282712d9"
+    },
+    {
+      "file": "systems/postgresql/routines/public-vc-loan-row-a2a255a0.yaml",
+      "before_sha256": "3ec1cb7f5622b8744d6a817e9d6c63860f7cc2ba590f8ebe256a2396a8ebbf63",
+      "after_sha256": "87c8e7b80abed8b9887af66ea936bfc24e28a436100173823b541a80ae0ce1fe"
+    }
+  ],
+  "newRoutines": 3,
+  "closedDevelopmentDeltas": [
+    "development\\appsheet\\r036\\loans.yaml",
+    "development\\appsheet\\r036\\table-borrowers-labels.yaml",
+    "development\\appsheet\\r036\\table-business-expenses-labels.yaml",
+    "development\\appsheet\\r036\\table-payments-labels.yaml",
+    "development\\appsheet\\r036\\table-statistics-labels.yaml",
+    "development\\appsheet\\r036\\view-borrowers.yaml",
+    "development\\appsheet\\r036\\view-business-expenses.yaml",
+    "development\\appsheet\\r036\\view-collection.yaml",
+    "development\\appsheet\\r036\\view-dashboard.yaml",
+    "development\\appsheet\\r036\\view-loans.yaml",
+    "development\\appsheet\\r036\\view-payments.yaml",
+    "development\\appsheet\\r036\\view-reporting-app-shortcut.yaml",
+    "development\\postgresql\\r036\\apply_principal_daily_interest.yaml",
+    "development\\postgresql\\r036\\daily_interest_basis.yaml",
+    "development\\postgresql\\r036\\daily_interest_basis_note.yaml",
+    "development\\postgresql\\r036\\vc_loan_row.yaml"
+  ]
+}

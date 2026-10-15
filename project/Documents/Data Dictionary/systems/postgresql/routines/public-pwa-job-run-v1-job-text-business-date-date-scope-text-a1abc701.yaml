@@ -1,0 +1,55 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.pwa_job_run_v1(job text, business_date date, scope text)"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r053-notifications-jobs/dictionary-production-closure.json"
+  "coverage": "Actual affected PROD89 catalogue after maintained migration and authority restoration; no business rows."
+"content":
+  "definition":
+    "schema": "public"
+    "name": "pwa_job_run_v1"
+    "arguments": "job text, business_date date, scope text"
+    "kind": "f"
+    "arguments_with_defaults": "job text, business_date date, scope text"
+    "result": "jsonb"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.pwa_job_run_v1(job text, business_date date, scope text)
+       RETURNS jsonb
+       LANGUAGE plpgsql
+       SECURITY DEFINER
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+      DECLARE boundary timestamp:=clock_timestamp() AT TIME ZONE 'Asia/Bangkok'; r public.pwa_job_runs; affected bigint;
+      BEGIN
+       PERFORM public.pwa_worker_guard_v1('jobs');
+       IF job IS NULL OR job NOT IN ('daily-charges','recent-analytics') OR business_date IS NULL OR NOT isfinite(business_date) OR scope IS NULL
+       OR (job='daily-charges' AND scope<>'daily') OR (job='recent-analytics' AND scope !~ '^hour:(0[0-9]|1[0-9]|2[0-3])$') THEN RAISE EXCEPTION 'invalid_job'; END IF;
+       IF business_date<>boundary::date OR (job='recent-analytics' AND scope<>'hour:'||to_char(boundary,'HH24')) THEN RAISE EXCEPTION 'job_boundary_changed'; END IF;
+       INSERT INTO public.pwa_job_runs(job_name,business_date,scope_key,state) VALUES(job,$2,scope,'pending') ON CONFLICT DO NOTHING;
+       SELECT * INTO STRICT r FROM public.pwa_job_runs j WHERE j.job_name=job AND j.business_date=$2 AND j.scope_key=scope FOR UPDATE;
+       IF r.state='completed' THEN RETURN jsonb_build_object('enabled',true,'state','completed','replayed',true,'resultCount',r.result_count); END IF;
+       IF r.state NOT IN ('pending','failed') THEN RAISE EXCEPTION 'job_requires_reconciliation'; END IF;
+       UPDATE public.pwa_job_runs SET state='leased',lease_generation=lease_generation+1,lease_expires_at=clock_timestamp()+interval '120 seconds',started_at=clock_timestamp() WHERE run_id=r.run_id;
+       IF job='daily-charges' THEN affected:=public.generate_due_charges($2); ELSE affected:=public.refresh_daily_analytics($2-1,$2); END IF;
+       UPDATE public.pwa_job_runs SET state='completed',lease_expires_at=NULL,completed_at=clock_timestamp(),checkpoint=$2::text||'|'||scope,result_count=affected WHERE run_id=r.run_id;
+       RETURN jsonb_build_object('enabled',true,'state','completed','replayed',false,'resultCount',affected);
+      END $function$
+    "owner": "mw_jobs_owner_prod"
+    "language": "plpgsql"
+    "volatility": "v"
+    "strict": false
+    "security_definer": true
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 0.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": "{mw_jobs_owner_prod=X/mw_jobs_owner_prod,mw_jobs_prod=X/mw_jobs_owner_prod}"
+    "comment": "mw-access:governance fixed atomic scheduled jobs; explicit capability only"
+    "extension": null

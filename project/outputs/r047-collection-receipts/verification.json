@@ -1,0 +1,20 @@
+{
+  "release": "R047",
+  "status": "DEV complete; owner review pending",
+  "oltp": {"app_id":"500b27b6-884a-41e8-a9ec-df801b0110ad","before":"1.000095","after":"1.000098","editor_issues":0},
+  "olap": {"app_id":"9f3422be-bc87-4a5a-a42a-67528ee80393","observed_version":"1.000036","changed_by_this_task":false,"editor_issues":0},
+  "gui_checks": {
+    "collection_borrower_receipt_thumbnail": "passed, existing synthetic R046 fixture",
+    "receipt_time_and_amount": "passed",
+    "canonical_payment_detail_navigation": "passed",
+    "full_size_image": "passed",
+    "borrower_without_images_hides_section": "passed",
+    "payment_form_has_no_receipt_controls": "passed, cancelled without save",
+    "descending_sort": "saved configuration verified; only one synthetic image present"
+  },
+  "slice_filter_readback":"AND([Status] = \"Posted\", ISNOTBLANK([Receipt Image]))",
+  "slice_update_mode":"READ_ONLY",
+  "sql_changes":false,
+  "financial_writes":false,
+  "production_app_changes":false
+}

@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "release": "R013",
+  "status": "released",
+  "prerequisites": [
+    "R011"
+  ],
+  "scope": [
+    "Receipt transfer time in existing Payment Date and Created At, propagated to existing ledger timestamp",
+    "Hours/minutes display retained; no columns, backfill or automatic payment creation"
+  ],
+  "apps": {
+    "OLTP": {
+      "disposition": "unchanged",
+      "devVersion": "1.000064",
+      "rollbackDevVersion": "1.000062",
+      "prodVersion": "3.000240"
+    },
+    "OLAP": {
+      "disposition": "unchanged",
+      "devVersion": "1.000021",
+      "prodVersion": "1.100189"
+    }
+  },
+  "database": {
+    "devVersion": "30",
+    "prodVersion": "30",
+    "migration": "database/migrations/V30__payment_receipt_transaction_time.sql",
+    "sha256": "3c43d430c0e06ab0554f62cd77d8ab087d512293ceac28f9955eb4ff2f9b424f",
+    "testedCommit": "aad17b642f38583f4dbaed8d9bfcfca2e482779d",
+    "flywayManifest": "outputs/r013-20260921/flyway-manifest.json",
+    "migratedAtBangkok": "2026-09-21T13:15:13.7062833+07:00",
+    "executionMs": 199,
+    "validationCount": 31,
+    "backup": {
+      "path": "C:\\Users\\MWCredit\\Documents\\ChatGPT\\AppSheet-Loan-Project\\r010-20260919\\r013-production-before-20260921-131013.dump",
+      "sha256": "58D9E1BA0DAB2FF1419C4D3411073CE10CD8FBECB7D4CE817124481B38FC2B0D",
+      "verification": "isolated restore, normalized schema comparison, and V30 rehearsal passed"
+    }
+  },
+  "agent": {
+    "repository": "MW-Integration-Agent",
+    "implementationCommit": "0e953464728b53db5e72b4f191578856a8381ada",
+    "paymentWritesEnabled": false
+  },
+  "authorization": "Owner authorized production promotion of the R013 database change only and explicitly excluded app promotion; app changes move to R014.",
+  "git": {
+    "testedCommit": "aad17b642f38583f4dbaed8d9bfcfca2e482779d",
+    "finalTag": "R013"
+  },
+  "records": {
+    "tests": "outputs/r013-20260921/test-results.md",
+    "productionReport": "outputs/r013-20260921/production/REPORT.md",
+    "promotionChecklist": "outputs/r013-20260921/promotion-checklist.md",
+    "dictionaryVerification": "outputs/r013-20260921/dictionary-promotion-verification.json",
+    "log": "Change Logs/CHANGE_NOTES_R013_2026-09-21.md"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "at": "2026-09-26T03:20:43.853165+00:00",
+  "passed": true,
+  "borrowers_checked": 30,
+  "synthetic_exposure_cases": 4,
+  "method": "Independent per-day expansion in one read-only repeatable-read PROD transaction; model event sweep and receipt totals reconciled",
+  "financial_values_published": false
+}

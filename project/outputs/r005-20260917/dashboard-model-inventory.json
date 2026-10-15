@@ -1,0 +1,62 @@
+[
+  {
+    "object": "OLTP / Cash Holder Balances",
+    "property": "Availability and ownership",
+    "value": "Existing V20 SQL view added READ_ONLY on database-3. One row per holder. OLAP Cash Holder Summary still consumes the same view. Cash Ledger entry remains OLAP only."
+  },
+  {
+    "object": "OLTP / Cash Holder Balances / Ref Cash Holder",
+    "property": "Column definition",
+    "value": "Type Ref; Key Yes; Label No; Hidden Yes; Read-Only Yes. Ref Cash Holders.Row ID; IsPartOf false. Exact remaining properties in dashboard-saved-definitions.json."
+  },
+  {
+    "object": "OLTP / Cash Holder Balances / Holder Name",
+    "property": "Column definition",
+    "value": "Type Text; Key No; Label Yes; Hidden No; Read-Only Yes.  Exact remaining properties in dashboard-saved-definitions.json."
+  },
+  {
+    "object": "OLTP / Cash Holder Balances / Cash In",
+    "property": "Column definition",
+    "value": "Type Price; Key No; Label No; Hidden No; Read-Only Yes. Currency ฿; DecimalDigits 0; thousands separator true. Exact remaining properties in dashboard-saved-definitions.json."
+  },
+  {
+    "object": "OLTP / Cash Holder Balances / Cash Out",
+    "property": "Column definition",
+    "value": "Type Price; Key No; Label No; Hidden No; Read-Only Yes. Currency ฿; DecimalDigits 0; thousands separator true. Exact remaining properties in dashboard-saved-definitions.json."
+  },
+  {
+    "object": "OLTP / Cash Holder Balances / Current Balance",
+    "property": "Column definition",
+    "value": "Type Price; Key No; Label No; Hidden No; Read-Only Yes. Currency ฿; DecimalDigits 0; thousands separator true. Exact remaining properties in dashboard-saved-definitions.json."
+  },
+  {
+    "object": "OLTP / Cash Holder Balances / Business Cash Held",
+    "property": "Column definition",
+    "value": "Type Price; Key No; Label No; Hidden No; Read-Only Yes. Currency ฿; DecimalDigits 0; thousands separator true. Exact remaining properties in dashboard-saved-definitions.json."
+  },
+  {
+    "object": "OLTP / Cash Holder Balances / Reimbursement / Advance Due",
+    "property": "Column definition",
+    "value": "Type Price; Key No; Label No; Hidden No; Read-Only Yes. Currency ฿; DecimalDigits 0; thousands separator true. Exact remaining properties in dashboard-saved-definitions.json."
+  },
+  {
+    "object": "OLTP / Cash Holders / Related Cash Holder Balances",
+    "property": "Generated virtual column",
+    "value": "List Ref Cash Holder Balances.Ref Cash Holder; REF_ROWS(\"Cash Holder Balances\", \"Ref Cash Holder\"); read-only, visible, not key/label. Generated inline/detail views are read-only."
+  },
+  {
+    "object": "OLTP / Borrowers / Todays Amount Due",
+    "property": "App formula",
+    "value": "=[Todays Amount Collected] + [Todays Amount Remaining]"
+  },
+  {
+    "object": "OLTP / Statistics / Total Cash Pool",
+    "property": "Virtual column",
+    "value": "Price, ฿, zero decimals, read-only, visible. ANY(Loan Form Context[Contributed Capital]). One-row SQL limit lookup; no ledger aggregation."
+  },
+  {
+    "object": "OLTP / Business Cash Held",
+    "property": "Slice",
+    "value": "Source Cash Holder Balances; [Business Cash Held] <> 0; READ_ONLY; all eight imported columns; **auto** actions. Exact membership in dashboard-delta.json."
+  }
+]

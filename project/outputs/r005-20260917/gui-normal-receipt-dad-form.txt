@@ -1,0 +1,192 @@
+- banner:
+  - button:
+  - heading [level=6]: Loan Manager — DEV
+  - textbox:
+    - /placeholder: ค้นหา สินเชื่อ
+    - text: R005
+  - button:
+  - button:
+  - button:
+    - button
+  - button:
+    - generic: W
+- navigation:
+  - button:
+    - generic: 
+  - button:
+    - generic: 
+  - button:
+    - generic: 
+  - button:
+    - generic: 
+  - button:
+    - generic: 
+  - button:
+    - generic: 
+  - button:
+    - generic: 
+  - separator
+  - button:
+  - button:
+  - separator
+  - button:
+- region:
+  - heading [level=2]: สินเชื่อ
+  - button:
+  - button:
+  - button:
+    - generic: 
+  - tree:
+    - treeitem [selected]:
+      - generic: ทั้งหมด / All
+    - treeitem:
+      - generic: ปิดยอดแล้ว / Closed
+      - generic: ฿1,000
+    - treeitem:
+      - generic: ยังไม่ปิดยอด / Active
+      - generic: ฿1,000
+  - generic: R005 GUI SYNTHETIC BORROWER - R005 GUI SYNTHETIC BORROWER
+  - generic: ฿2,000
+  - button:
+    - generic: R005 GUI SYNTHETIC BORROWER-฿1,000-18/09-3.00%
+    - generic: 4%
+    - generic: 
+    - text: ฿35
+  - button:
+    - generic: R005 GUI SYNTHETIC BORROWER-฿1,000-17/09-3.00%
+    - generic: 3%
+    - generic: 
+    - text: ฿30
+    - button:
+      - generic: 
+      - generic: ปิดยอดเงินกู้ / Close Loan
+- region:
+  - heading [level=2]: R005 GUI SYNTHETIC BORROWER-฿1,000-17/09-3.00%
+  - button:
+    - generic: 
+  - button:
+    - generic: 
+  - button:
+    - generic: 
+    - generic: บันทึกหนี้สูญ / Default Loan
+  - separator
+  - button:
+    - generic: 
+  - button [disabled]:
+    - generic: 
+  - button:
+    - generic: 
+  - button:
+  - generic: วันที่ให้กู้ / Loan Date
+  - generic: 9/17/2026
+  - generic: เงินต้น / Principal Amount
+  - generic: ฿1,000
+  - generic: ประเภทเงินกู้ / Loan Type
+  - generic: ดอกเบี้ยรายวัน / Daily Interest
+  - generic: ดอกเบี้ยต่อวันปัจจุบัน / Current Daily Interest
+  - generic: ฿30
+  - generic: รอบการชำระ (วัน) / Payment Interval (Days)
+  - generic: "1"
+  - generic: วันที่เริ่มรอบดอกเบี้ย / Interest Schedule Anchor Date
+  - generic: ชื่อผู้กู้ / Borrower
+  - button:
+    - generic: R005 GUI SYNTHETIC BORROWER - R005 GUI SYNTHETIC BORROWER
+  - button:
+    - generic: 
+    - generic: View Ref (Ref Borrowers)
+  - generic: ข้อตกลงการกู้ยืม / Loan Arrangement
+  - generic: R005 GUI synthetic direct receipt and default test; no real lending
+  - generic: สถานะ / Loan Status
+  - generic: ยังไม่ปิดยอด / Active
+  - generic: 📊 สถิติการกู้ / Statistics
+  - generic: เงินต้นคงเหลือ / Outstanding Principal
+  - generic: ฿1,000
+  - generic: ค่าธรรมเนียมการโอน / Transfer Fee
+  - generic: ฿0
+  - generic: เงินต้นที่ได้รับคืนทั้งหมด / Total Principal Received
+  - generic: ฿0
+  - generic: ยอดเงินที่ได้รับทั้งหมด / Total Amount Received
+  - generic: ฿30
+  - generic: ดอกเบี้ยที่ได้รับทั้งหมด / Total Interest Received
+  - generic: 
+  - text: ฿30
+  - generic: คืนทุนจากดอกเบี้ย % / Principal Recovered by Interest %
+  - generic: 3%
+  - region:
+    - generic: Related Charges
+    - generic: "2"
+    - separator
+    - button:
+      - generic: 9/18/2026
+      - generic: ฿0
+      - generic: 
+      - text: ฿30
+      - button:
+        - generic: 
+        - generic: รับชำระบางส่วน
+      - button:
+        - generic: 
+        - generic: รับชำระ
+    - button:
+      - generic: 9/17/2026
+      - generic: ฿30
+      - generic: 
+      - text: ฿0
+    - button: ขยาย
+  - generic: Auto Charge Enabled
+  - generic: "Y"
+- text:    
+- region "Payments Form":
+  - button "ปิด":
+  - heading "Payments Form" [level=2]
+  - button "ยกเลิก":
+    - generic: ยกเลิก
+  - button "บันทึก":
+    - generic: บันทึก
+  - generic: Ref Borrower
+  - combobox:
+    - generic "R005 GUI SYNTHETIC BORROWER - R005 GUI SYNTHETIC BORROWER":
+      - textbox "Ref Borrower":
+        - /placeholder: ""
+        - text: R005 GUI SYNTHETIC BORROWER - R005 GUI SYNTHETIC BORROWER
+      - button "เปิด":
+        - img "เปิด"
+  - generic: Payment Date
+  - textbox "Payment Date": 2026-09-18
+  - generic: 
+  - generic: Ref Target Charge 
+  - combobox:
+    - generic "9/18/2026":
+      - textbox "Ref Target Charge":
+        - /placeholder: ""
+        - text: 9/18/2026
+      - button "เปิด":
+        - img "เปิด"
+  - generic: "ยอดคงเหลือที่ชำระได้ / Current eligible outstanding: ฿ 30"
+  - generic: ฿
+  - 'spinbutton "ยอดคงเหลือที่ชำระได้ / Current eligible outstanding: ฿ 30"': "10"
+  - button "Decrease value":
+    - generic: 
+  - button "Increase value":
+    - generic: 
+  - generic: ผู้รับเงิน / Received By 
+  - combobox:
+    - generic "Dad":
+      - textbox "ผู้รับเงิน / Received By":
+        - /placeholder: ""
+        - text: Dad
+      - button "เปิด":
+        - img "เปิด"
+  - generic: Payment Method
+  - combobox:
+    - generic "Bank Transfer":
+      - textbox "Payment Method":
+        - /placeholder: ""
+        - text: Bank Transfer
+      - button "เปิด":
+        - img "เปิด"
+  - generic: Bank Reference
+  - textbox "Bank Reference"
+  - generic: Notes
+  - textbox "Notes" [active]: R005 GUI synthetic normal receipt Dad default; no real payment
+- status

@@ -1,0 +1,27 @@
+{
+  "date": "2026-09-19",
+  "scope": "Apps-only DEV refresh; PROD and database definitions/data not refreshed",
+  "status": "Complete; applied, runtime verified, and prior Prototype apps deleted with explicit owner approval",
+  "apps": [
+    {"role": "DEV OLTP", "id": "500b27b6-884a-41e8-a9ec-df801b0110ad", "internalName": "MW-OLTP-DEV-20260919-578763613", "version": "1.000010", "sourceVersion": "3.000228", "mode": "Deployed", "editorIssues": 0, "primaryColor": "#e8710a", "businessSources": 13},
+    {"role": "DEV OLAP", "id": "9f3422be-bc87-4a5a-a42a-67528ee80393", "internalName": "MW-OLAP-DEV-20260919-578763613", "version": "1.000013", "sourceVersion": "1.100178", "mode": "Deployed", "editorIssues": 0, "primaryColor": "#1e88e5", "businessSources": 19}
+  ],
+  "sourceBinding": {"name": "database-3", "host": "34.158.38.171", "database": "loan_manager_prod", "ssl": "Require SSL", "verification": "Account Sources UI and individual saved business-table appdoc bindings"},
+  "guards": {
+    "OLTP": "IN(CONTEXT(\"AppName\"), LIST(\"MW-OLTP-DEV-20260919-578763613\", \"LoanManager-975338008-26-08-07\"))",
+    "OLAP": "IN(CONTEXT(\"AppName\"), LIST(\"MW-OLAP-DEV-20260919-578763613\", \"LoanBusinessInsights-975338008\"))",
+    "placement": "First process branch before side effects; per-row filters also retain original filter AND guard",
+    "sourceProductionModified": false
+  },
+  "scheduledProof": {
+    "scheduledAtUtc": "2026-09-19T09:50:00Z",
+    "allowed": {"runId": "75796e8f-85ca-4158-b132-40754a6d7d03", "status": "Complete", "guardResult": "Y", "completedAtUtc": "2026-09-19T09:50:08Z", "notificationTaskRecorded": true, "recipient": "welct0407@mw-credit.com"},
+    "excluded": {"appId": "89069cd6-e064-4e05-a649-cd3b4fb53130", "internalName": "MW-GUARD-VERIFY-20260919-578763613", "runId": "0a22ac05-0131-4968-8583-71348485648a", "status": "Complete", "guardResult": "N", "completedAtUtc": "2026-09-19T09:50:07Z", "notificationTaskRecorded": false},
+    "cleanup": "Temporary diagnostic bot removed; disposable app deleted and absence verified; backing data retained",
+    "deviceReceiptObserved": false
+  },
+  "naturalHourlyAnalytics": {"runId": "fc217ece-4789-43d2-a75f-32a28d80f1da", "status": "Complete", "completedAtUtc": "2026-09-19T10:00:06Z", "steps": ["Input", "Canonical app execution guard", "Request Recent Analytics Refresh", "returnStep"]},
+  "guiChecks": ["Load and sync", "Companion navigation in both directions", "Synthetic closed-loan detail and borrower Ref in both apps", "OLTP borrower form opened then cancelled", "OLAP operational details read-only", "Assessment entry loads with retained stale-state notice"],
+  "oldAppCleanup": {"deleted": [{"name": "Loan Business Insights — DEV", "id": "494cd013-0d9b-482f-9559-c9d83059de91"}, {"name": "Loan Manager — DEV", "id": "65faacd8-2b0d-43bf-9e0a-58eb915dcf9b"}], "ownerApproval": true, "verifiedFinalInventoryCount": 4, "backingDatabaseOrFilesDeleted": false, "recoveryLimitation": "Original DEV definition export was not verified before owner-authorized deletion; AppSheet states deleted apps are inaccessible."},
+  "limitations": ["Original DEV definition export was not verified before owner-authorized deletion", "Disabled export not executed", "Nightly charge schedule not forced", "Push device receipt not independently observed"]
+}
