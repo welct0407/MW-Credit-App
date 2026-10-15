@@ -31,8 +31,10 @@ Each behaviour change has a focused test that failed on the old code and passes 
 | Local e2e (24 specs, desktop and mobile Chromium) | Playwright, runnable specs only | `340 passed, 5 skipped, 1 failed`. The failure was a mobile drawer timing issue in the new sign-out spec. Fixed in `1b65876`; re-run twice on both projects, 12/12 |
 | CI run 253 on `652da9f` | `workflow_dispatch` | 438 passed, 11 skipped, 9 failed. 8 regressions, all fixed in the fix round. P6 T9 also fails on `main` run 251 |
 | Old-code confirmations (Agent C) | Each focused test above run against `a029880` source | Each failed on the old code and passes now |
-| CI run (fix round) | TBD | TBD |
-| DEV deploy and smoke | TBD | TBD |
+| Independent re-test after fix round (Agent C) | `npm run check`; 24 runnable specs, both projects; key-fetch and 12-token allowlist probes against real firebase-admin 14.5.0 | `tests 459, pass 459`; `341 passed, 5 skipped`, 0 failed; key-fetch outage gives 503 `session_check_unavailable`; all 12 bad tokens give 401 |
+| CI run 254 on `1b65876` (fix round) | `ci.yml` `workflow_dispatch`, run id 38812793799 | Success: every step passed, including `test:e2e` (canonical-server specs included) and the Terraform `fmt`/`init`/`validate` steps |
+| DEV deploy | Cloud Build `938d2cfc-f0e1-4c54-abc0-95d865da490e` (`cloudbuild-command.yaml`, smoke step passed) from clean `9c5a95f` (docs-only diff from tested `1b65876`); `Invoke-Terraform.ps1 -Stack dev` saved plan (0 add, 2 change image-only, 0 destroy), apply, `-PublishActivation`; `node scripts/deploy-hosting.mjs --live-dev` | Image `api@sha256:abe733302ac10be410511254e9b7b81649b1fc3bcb03b10d320972092aaa1b5e`; command `mw-credit-app-command-dev-00028-8tf` and read `mw-credit-app-read-dev-00021-cdz` Ready, 100% traffic; Hosting version `6dafe1d0cf4926ac`, release `1792102167263000`, build `3a744a3681827bdb023b51c2`, entry `index-B-W-6qX6.js`; activation publish matched |
+| DEV bounded smoke (unauthenticated) | `/health` both services; command `/api/preferences`, `/api/offline-dataset`, `/api/management/cash-position` and read `/api/borrowers` without and with an invalid token; `OPTIONS` from `dev-lm` and a foreign origin; `build-version.json`, entry, `index.html`, `sw.js`; Cloud Logging errors since deploy | 200 / 200; 401 `sign_in_required` and 401 `session_invalid`; 204 with DEV origin, 403 foreign; new build and entry served, `sw.js` new version `no-store`; no ERROR entries |
 
 ## Not run
 
@@ -68,4 +70,6 @@ Git baseline `a029880`; revert the wave commits. UI and API only, no database ch
   - W1-UX-EXPIRED-01: mention that saved changes are kept.
   - W1-UX-AUTH-01: outage wording.
 - Minor: the notifications handler does not guard a null principal. `cpu_idle=true` on DEV/PROD command may delay the background wake; minute recovery covers it.
+- Re-test leftovers (Agent C, low): on a device where IndexedDB cannot open, sign-out fails closed every time and only clearing site data exits (`live-main.tsx` ~:341); allow sign-out after an explicit confirmation when storage cannot open. On the read-only denied screen, "Remove saved change" is still shown for removable rows but the remove call fails silently (`OfflinePayments.tsx`).
+- Authenticated DEV check by the owner on a device: offline queue through a session expiry, sign-out guard, receipt downscale, and a payment write.
 - PROD promotion with R063.
