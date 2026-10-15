@@ -11,6 +11,18 @@ node scripts/promotion/manifest.mjs --manifest PATH --artifact-root CURRENT_ROOT
 node --test tests/unit/phase3-promotion-manifest.test.mjs
 ```
 
+## Linux cloud sessions
+
+`deploy-business-hosting.mjs` runs unchanged from a Claude Code cloud session. The cloud account `codex-cloud` holds Token Creator on the pinned operator `mw-credit-unattended-admin`, so supply the operator token and the impersonation source token from gcloud:
+
+```bash
+GOOGLE_OAUTH_ACCESS_TOKEN=$(gcloud auth print-access-token --impersonate-service-account=mw-credit-unattended-admin@clever-oasis-508610-n7.iam.gserviceaccount.com) \
+GOOGLE_IMPERSONATION_SOURCE_TOKEN=$(gcloud auth print-access-token) \
+node scripts/promotion/deploy-business-hosting.mjs --apply --inputs ABSOLUTE_PRIVATE_PACKAGE --approval-reference '...' --output ~/.mw-private/MW-Credit-App/RECEIPT.json
+```
+
+The private root is `MW_PRIVATE_ROOT/MW-Credit-App` (default `~/.mw-private`); each receipt write is also copied to `gs://mw-credit-operator-private-737787224638/promotion-receipts/`. Keep packages there too, since the session disk is discarded.
+
 ## R061 frontend-only promotion
 
 `deploy-business-hosting.mjs` also accepts the separate `schemaVersion: 3`, `release: R061`, `environment: prod`, `scope: frontend-only`, `status: prepared` package. It forbids runtime build/plan/SQL/applied fields and preserves the existing API/SQL baseline. Source must descend from the deployed frontend baseline, with only allowed frontend/test changes; separately pinned delivery-tool changes are limited to the runner and its unit tests with passing focused checks.
