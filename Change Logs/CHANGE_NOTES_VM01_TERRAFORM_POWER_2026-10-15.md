@@ -20,6 +20,8 @@
 
 **Wrapper fix.** VM-01 has only Windows PowerShell 5.1. There, `Invoke-UnattendedAdmin.ps1` failed closed with "Dedicated managed identity unavailable" because `Invoke-RestMethod -NoProxy` exists only in PowerShell 6+. A direct IMDS request on VM-01 succeeded. The wrapper now passes `-NoProxy` only on 6+. `scripts/tests/Test-UnattendedAdmin.ps1` passes.
 
-**Remaining.** One owner-run apply of `unattended-admin` from VM-01 (`Invoke-UnattendedAdmin.ps1`). Then verify one exchange from a cloud session.
+**Outcome.** The owner applied `unattended-admin` from VM-01 (Windows PowerShell 5.1, wrapper `e2c5ce7`): 1 imported (`cloud_executor_token_creator`), 1 added (`cloud_executor`), 0 changed or destroyed. Terraform 1.16.5 was missing from the documented `AppData/Local/MWCredit/tools/terraform` path on VM-01, so it was reinstalled there from the official zip (SHA-256 checked). From the cloud session, the Entra token exchange then succeeded. `plan -invoke` showed only the deallocate action, and on the owner's instruction `apply -invoke=action.azapi_resource_action.vm01_deallocate` completed. A refresh-only plan reports `vm01_power_state = "VM deallocated"`.
+
+**Remaining.** Start VM-01 with `scripts/azure-cloud-session.sh terraform -chdir=infrastructure/ecosystem-azure-metadata apply -invoke=action.azapi_resource_action.vm01_start`. The Phase 4 runner and controller retirement are still open.
 
 **Recovery.** Remove the federated credential (Terraform) and revert the commit.
