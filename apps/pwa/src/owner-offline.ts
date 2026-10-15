@@ -159,6 +159,8 @@ export function ownerOfflineRepository(identity:{issuer:string;uid:string},envir
    }store.put({key:'meta:note-queue-v1',kind:'meta',value:true,savedAt:Date.now()});done()}});changed();
   },
   remove,
+  /** True once a purge advanced this namespace past the epoch this instance captured; writes need a fresh instance. */
+  revoked(){return !validInstance()},
   /** keepPending (involuntary 401/403): snapshots, drafts, caches, datasets, media, lease and meta go; unsynced pending:* rows (with their inline receipt images) stay for the same UID to sync later. */
   async purge(options?:{keepPending?:boolean}){try{const prefix='mw-credit.loan-delete:'+encodeURIComponent(name)+':';for(let i=sessionStorage.length-1;i>=0;i--){const key=sessionStorage.key(i);if(key?.startsWith(prefix))sessionStorage.removeItem(key)}}catch{}namespaceEpochs.set(name,(namespaceEpochs.get(name)??0)+1);await transaction<void>('readwrite',(store,done)=>{
    const epoch={key:'meta:epoch',kind:'meta',value:crypto.randomUUID(),savedAt:Date.now()};
