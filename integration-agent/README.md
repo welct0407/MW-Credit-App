@@ -20,7 +20,7 @@ Proposed next architecture: [PostgreSQL state, generic audit and reviewer DELETE
 - System timezone: `Asia/Bangkok` (`UTC+07:00`), synchronized by NTP
 - Backups: regional Compute Engine snapshot policy `default-schedule-1`, attached and verified after VM creation
 - Network: static regional external IPv4 `136.85.96.197` (`vm-mw-credit-agent-ip`) retained without public SSH/RDP; normal administration uses Tailscale `100.71.171.91`, with targeted IAP SSH as recovery
-- Installed source: `/opt/mw-integration-agent-src`
+- Installed source: `/opt/mw-integration-agent-src` (clone of `welct0407/MW-Credit-App` `main`; this code is under `integration-agent/`)
 - Installed application: `/opt/mw-integration-agent`
 - Service account: `mwagent` with a non-login shell
 - GCP identity: `mw-integration-agent@clever-oasis-508610-n7.iam.gserviceaccount.com`; Cloud SQL Client is conditionally limited to the production instance, with project-level Monitoring Metric Writer and Logs Writer for Ops Agent telemetry
@@ -28,7 +28,7 @@ Proposed next architecture: [PostgreSQL state, generic audit and reviewer DELETE
 - VM Manager inventory: Google OS Config agent enabled with guest attributes publishing Debian OS details on the default inventory cadence
 - Administrative overlay: Tailscale 1.102.4 with ordinary public-key OpenSSH; the VM is not an exit node or subnet router
 - Cloud SQL transport: Auth Proxy 2.25.4 on `127.0.0.1:5432`; dedicated read-only PostgreSQL credentials are installed
-- GitHub transport: repository-scoped read-only deploy key; updates are manual, clean-checkout, and fast-forward-only. Until the owner-authorized cutover the Debian source checkout still tracks the archived `MW-Integration-Agent` repository, not `integration-agent/` here
+- GitHub transport: repository-scoped read-only deploy key for `MW-Credit-App`; updates are manual, clean-checkout, and fast-forward-only. The Debian source checkout was cut over to this repository on 15 October 2026
 
 ## Local verification
 
@@ -36,7 +36,7 @@ Proposed next architecture: [PostgreSQL state, generic audit and reviewer DELETE
 python3 -m venv .venv
 . .venv/bin/activate
 python -m pip install --upgrade pip
-python -m pip install -e .
+python -m pip install ./integration-agent
 python -m unittest discover -s tests -v
 mw-integration-agent check --config config.example.json
 ```
