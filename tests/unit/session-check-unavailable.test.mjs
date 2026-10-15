@@ -11,6 +11,8 @@ import {createProductionFoundationHandler} from '../../services/production/handl
 import {notificationHandler} from '../../services/notifications/handler.mjs';
 // APP-AUTH-01: only definite Firebase token/user errors are 401 session_invalid; a verifier outage is 503 session_check_unavailable.
 const invalid={ok:false,status:401,code:'session_invalid'},unavailable={ok:false,status:503,code:'session_check_unavailable'};
+// auth/argument-error is definite only with the library's own token-validation message (see session-check-key-fetch.test.mjs for the key-fetch outage).
+const definiteError=code=>Object.assign(Error(code==='auth/argument-error'?'Firebase ID token has invalid signature.':'secret'),{code});
 const outages=[Error('ECONNRESET'),Object.assign(Error('secret'),{code:'app/network-error'}),Object.assign(Error('secret'),{code:'app/network-timeout'}),Object.assign(Error('secret'),{code:'auth/internal-error'}),Object.assign(Error('secret'),{code:'auth/invalid-credential'}),'string-throw',undefined];
 const factories={
  business:fn=>createBusinessPrincipalVerifier(fn),
@@ -19,11 +21,11 @@ const factories={
  command:fn=>createCommandPrincipalVerifier({verifyIdToken:fn,ownerUid:'owner'}),
 };
 test('sessionCheckFailure classifies by Firebase error code only',()=>{
- for(const code of definiteTokenErrorCodes)assert.deepEqual(sessionCheckFailure(Object.assign(Error('secret'),{code})),invalid,code);
+ for(const code of definiteTokenErrorCodes)assert.deepEqual(sessionCheckFailure(definiteError(code)),invalid,code);
  for(const error of outages)assert.deepEqual(sessionCheckFailure(error),unavailable,String(error));
 });
 for(const [name,factory] of Object.entries(factories))test(name+' verifier: definite token errors 401, every other throw 503',async()=>{
- for(const code of definiteTokenErrorCodes)assert.deepEqual(await factory(async()=>{throw Object.assign(Error('secret'),{code})})('Bearer synthetic'),invalid,name+' '+code);
+ for(const code of definiteTokenErrorCodes)assert.deepEqual(await factory(async()=>{throw definiteError(code)})('Bearer synthetic'),invalid,name+' '+code);
  for(const error of outages)assert.deepEqual(await factory(async()=>{throw error})('Bearer synthetic'),unavailable,name+' '+String(error));
 });
 async function serve(handler){const server=createServer((req,res)=>void handler(req,res));await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));return {origin:'http://127.0.0.1:'+server.address().port,close:()=>new Promise(resolve=>server.close(resolve))};}
