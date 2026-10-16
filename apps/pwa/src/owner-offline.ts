@@ -27,7 +27,8 @@ async function sweepOtherOwners(environment:ApplicationEnvironment,current:strin
  }
 }
 const namespaceEpochs=new Map<string,number>();
-export type PendingSync={state:'queued'|'syncing'|'blocked';code?:string;outcome?:any;attempted?:boolean;leaseOwner?:string;leaseUntil?:number;exclusive?:boolean};
+/** deferred: the row waited past its first send (saved offline, or re-queued after a failed/busy attempt); only such rows announce mw-offline-synced (SYNC-UX-R01). */
+export type PendingSync={state:'queued'|'syncing'|'blocked';code?:string;outcome?:any;attempted?:boolean;leaseOwner?:string;leaseUntil?:number;exclusive?:boolean;deferred?:boolean};
 type Saved<T>={key:string;kind:'snapshot'|'draft'|'pending'|'lease'|'cache'|'dataset'|'dataset-media';savedAt:number;value:T;sync?:PendingSync;identity?:string};
 export type CachedResponse={data:any;contentType:string;format:'json'|'blob';savedAt:number;revision:number};
 const changed=()=>window.dispatchEvent(new Event('mw-offline-saved'));
@@ -86,7 +87,7 @@ export function ownerOfflineRepository(identity:{issuer:string;uid:string},envir
    const req=store.get(kind+':'+id);req.onsuccess=()=>{
     const existing=req.result as Saved<unknown>|undefined;
     if(kind==='pending'&&existing){if((existing.identity??JSON.stringify(existing.value))!==identity){fail(Error('Saved request is immutable'));return;}done();return;}
-    const put=()=>{store.put({key:kind+':'+id,kind,savedAt,value,...(kind==='pending'?{identity,sync:{state:'queued',attempted:false}}:{})});done()};
+    const put=()=>{store.put({key:kind+':'+id,kind,savedAt,value,...(kind==='pending'?{identity,sync:{state:'queued',attempted:false,deferred:!navigator.onLine}}:{})});done()};
     if(kind!=='draft'&&kind!=='snapshot'){put();return;}
     const others=store.getAll(kindRange(kind));others.onsuccess=()=>{
      const rows=(others.result as Saved<unknown>[]).filter(row=>row.key!==kind+':'+id);
@@ -159,7 +160,7 @@ export function ownerOfflineRepository(identity:{issuer:string;uid:string},envir
    return transaction<boolean>('readonly',(store,done)=>{const epoch=store.get('meta:epoch');epoch.onsuccess=()=>{if(!validInstance()||(epoch.result?.value??'initial')!==expected){done(false);return;}const lease=store.get('lease:owner');lease.onsuccess=()=>done(!!lease.result&&Date.now()-lease.result.value.verifiedAt<expiry)}});
   },
   async claimPending(id:string,owner:string,exclusive=false){
-   const claimed=await transaction<Saved<any>|null>('readwrite',(store,done)=>{const request=store.get('pending:'+id);request.onsuccess=()=>{const row=request.result as Saved<any>|undefined;if(!row||row.sync?.state==='blocked'||((row.sync?.leaseUntil??0)>Date.now()&&!(exclusive&&row.sync?.exclusive))){done(null);return;}row.sync={state:'syncing',attempted:row.sync?.attempted??true,leaseOwner:owner,leaseUntil:Date.now()+90000,exclusive};store.put(row);done(row)}});if(claimed)changed();return claimed;
+   const claimed=await transaction<Saved<any>|null>('readwrite',(store,done)=>{const request=store.get('pending:'+id);request.onsuccess=()=>{const row=request.result as Saved<any>|undefined;if(!row||row.sync?.state==='blocked'||((row.sync?.leaseUntil??0)>Date.now()&&!(exclusive&&row.sync?.exclusive))){done(null);return;}row.sync={state:'syncing',attempted:row.sync?.attempted??true,leaseOwner:owner,leaseUntil:Date.now()+90000,exclusive,deferred:row.sync?.deferred===true};store.put(row);done(row)}});if(claimed)changed();return claimed;
   },
   async markPendingDispatched(id:string,owner:string){
    return transaction<boolean>('readwrite',(store,done)=>{const request=store.get('pending:'+id);request.onsuccess=()=>{const row=request.result as Saved<any>|undefined;if(row?.sync?.leaseOwner!==owner){done(false);return;}row.sync={...row.sync,attempted:true};store.put(row);done(true)}});
@@ -167,7 +168,7 @@ export function ownerOfflineRepository(identity:{issuer:string;uid:string},envir
   async coalescePendingNote(oldId:string,newId:string,value:any){
    const identity=await pendingIdentity(value);
    const replaced=await transaction<boolean>('readwrite',(store,done)=>{const request=store.get('pending:'+oldId);request.onsuccess=()=>{const row=request.result as Saved<any>|undefined;if(!row||row.sync?.attempted!==false||(row.sync?.leaseUntil??0)>Date.now()||row.value?.command?.operation!=='borrower.update'||value?.command?.operation!=='borrower.update'||row.value.command.targetId!==value.command.targetId||value.command.requestId!==newId||newId===oldId){done(false);return;}
-    const before={...row.value.command.inputs,note:null},after={...value.command.inputs,note:null};if(JSON.stringify(before)!==JSON.stringify(after)||row.value.command.expectedVersion!==value.command.expectedVersion){done(false);return;}const existing=store.get('pending:'+newId);existing.onsuccess=()=>{if(existing.result){done(false);return;}const nextValue=row.value.notePredecessor?{...value,notePredecessor:row.value.notePredecessor}:value;store.delete(row.key);store.put({key:'pending:'+newId,kind:'pending',savedAt:Date.now(),value:nextValue,identity:row.value.notePredecessor?JSON.stringify(nextValue):identity,sync:{state:'queued',attempted:false}});done(true)}}});
+    const before={...row.value.command.inputs,note:null},after={...value.command.inputs,note:null};if(JSON.stringify(before)!==JSON.stringify(after)||row.value.command.expectedVersion!==value.command.expectedVersion){done(false);return;}const existing=store.get('pending:'+newId);existing.onsuccess=()=>{if(existing.result){done(false);return;}const nextValue=row.value.notePredecessor?{...value,notePredecessor:row.value.notePredecessor}:value;store.delete(row.key);store.put({key:'pending:'+newId,kind:'pending',savedAt:Date.now(),value:nextValue,identity:row.value.notePredecessor?JSON.stringify(nextValue):identity,sync:{state:'queued',attempted:false,deferred:row.sync?.deferred===true||!navigator.onLine}});done(true)}}});
    if(replaced){changed();window.dispatchEvent(new Event('mw-offline-queued'));}return replaced;
   },
   async bindPendingNote(id:string,owner:string,command:any){
@@ -176,7 +177,7 @@ export function ownerOfflineRepository(identity:{issuer:string;uid:string},envir
     const value={...row.value,command};delete value.notePredecessor;store.put({...row,value,identity:JSON.stringify(value)});done(true)}});
   },
   async settlePending(id:string,owner:string,sync:PendingSync|null){
-   await transaction<void>('readwrite',(store,done)=>{const request=store.get('pending:'+id);request.onsuccess=()=>{const row=request.result as Saved<any>|undefined;if(row?.sync?.leaseOwner===owner){if(sync===null){store.delete(row.key);bumpReadRevision(store)}else store.put({...row,sync});}done()}});changed();if(sync===null){window.dispatchEvent(new CustomEvent('mw-offline-synced',{detail:{id}}));readsInvalidated()}
+   let deferred=false;await transaction<void>('readwrite',(store,done)=>{const request=store.get('pending:'+id);request.onsuccess=()=>{const row=request.result as Saved<any>|undefined;if(row?.sync?.leaseOwner===owner){deferred=row.sync.deferred===true;if(sync===null){store.delete(row.key);bumpReadRevision(store)}else store.put({...row,sync:{...sync,deferred:true}});}done()}});changed();if(sync===null){if(deferred)window.dispatchEvent(new CustomEvent('mw-offline-synced',{detail:{id}}));readsInvalidated()}
   },
   async migrateSavedNotes(){
    await transaction<void>('readwrite',(store,done)=>{const marker=store.get('meta:note-queue-v1');marker.onsuccess=()=>{if(marker.result){done();return;}const drafts=store.getAll(kindRange('draft'));drafts.onsuccess=()=>{const pendingRows=store.getAll(kindRange('pending'));pendingRows.onsuccess=()=>{for(const row of drafts.result as Saved<any>[]){const draft=row.value?.draft;if(row.kind!=='draft'||draft?.kind!=='collection-note'||typeof draft.id!=='string'||typeof draft.text!=='string'||!draft.record||!/^[a-f0-9]{64}$/.test(draft.record.version??''))continue;
@@ -185,7 +186,7 @@ export function ownerOfflineRepository(identity:{issuer:string;uid:string},envir
     if(draft.text===(draft.record.note??'')){store.delete(row.key);continue;}
     const inputs=Object.fromEntries(fields.map(key=>[key,key==='note'?draft.text:draft.record[key]]));
     const duplicate=(pendingRows.result as Saved<any>[]).some(other=>other.value?.command?.operation==='borrower.update'&&other.value.command.targetId===draft.id&&other.value.command.expectedVersion===draft.record.version&&JSON.stringify(other.value.command.inputs)===JSON.stringify(inputs));
-    if(!duplicate){const requestId=crypto.randomUUID(),value={domain:'borrower',borrowerLabel:row.value.label,command:{requestId,operation:'borrower.update',targetId:draft.id,expectedVersion:draft.record.version,predecessorRequestId:null,inputs,receiptId:null}};store.put({key:'pending:'+requestId,kind:'pending',savedAt:row.savedAt,value,identity:JSON.stringify(value),sync:{state:'queued',attempted:false}});}store.delete(row.key);
+    if(!duplicate){const requestId=crypto.randomUUID(),value={domain:'borrower',borrowerLabel:row.value.label,command:{requestId,operation:'borrower.update',targetId:draft.id,expectedVersion:draft.record.version,predecessorRequestId:null,inputs,receiptId:null}};store.put({key:'pending:'+requestId,kind:'pending',savedAt:row.savedAt,value,identity:JSON.stringify(value),sync:{state:'queued',attempted:false,deferred:!navigator.onLine}});}store.delete(row.key);
    }store.put({key:'meta:note-queue-v1',kind:'meta',value:true,savedAt:Date.now()});done()}}}});changed();
   },
   remove,

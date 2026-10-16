@@ -28,7 +28,7 @@ async function setup(page:any,empty=false){
 // Use the actual desktop account control without cancelling the retained child form.
 async function openSavedPayments(page:any){
  const viewport=page.viewportSize()!;if(viewport.width<=1050)await page.setViewportSize({...viewport,width:1440});
- await page.getByRole('button',{name:/^Waiting to sync/}).filter({visible:true}).first().click();
+ await page.getByRole('button',{name:/^(?:Waiting to sync|All synced)/}).filter({visible:true}).first().click();
  if(viewport.width<=1050)await page.setViewportSize(viewport);
 }
 function replyDraft(route:any){

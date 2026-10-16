@@ -24,11 +24,11 @@ function usePendingEntry(repository:OwnerOfflineRepository|null):Snapshot{
  return useSyncExternalStore(subscribe,snapshot);
 }
 export const usePendingCount=(repository:OwnerOfflineRepository|null):number=>usePendingEntry(repository).count;
-/** SYNC-UX-07: the entry stays (it opens the saved-changes screen) but reads as a
- * neutral "All synced" with no badge when nothing is waiting. The badge needs the
+/** SYNC-UX-07/R02: the entry stays (it opens the saved-changes screen) but is named
+ * "All synced" with no badge when nothing is waiting. The badge needs the
  * owner lease; the sign-out guard (usePendingCount) does not. */
 export function WaitingToSyncButton({repository,thai,compact=false,onClick}:{repository:OwnerOfflineRepository|null;thai:boolean;compact?:boolean;onClick:()=>void}){
  const entry=usePendingEntry(repository),count=entry.authorized?entry.count:0,title=thai?'รอซิงค์':'Waiting to sync',synced=thai?'ซิงค์ครบแล้ว':'All synced';
- const label=count>0?(thai?title+' มีรายการที่บันทึก '+count+' รายการ':title+', '+count+' saved changes'):title;
- return <button type="button" className={'secondary-button waiting-sync-button'+(count>0?'':' all-synced')} aria-label={label} title={count>0?label:synced} onClick={onClick}>{compact?<Icon name="waiting"/>:count>0?title:synced}{count>0&&<span className="waiting-sync-badge" aria-hidden="true">{count}</span>}</button>;
+ const label=count>0?(thai?title+' มีรายการที่บันทึก '+count+' รายการ':title+', '+count+' saved '+(count===1?'change':'changes')):synced;
+ return <button type="button" className={'secondary-button waiting-sync-button'+(count>0?'':' all-synced')} aria-label={label} title={label} onClick={onClick}>{compact?<Icon name="waiting"/>:count>0?title:synced}{count>0&&<span className="waiting-sync-badge" aria-hidden="true">{count}</span>}</button>;
 }
