@@ -7,7 +7,7 @@ PROXY = 'cloud-sql-auth-proxy.service'
 OAUTH = '/etc/mw-integration-agent/secrets/outlook-email-oauth.json'
 RECEIVER = 'mw-instagram-webhook'
 WORKERS = {'mw-receipt-summary', 'mw-audit-relay', 'mw-cash-statement', 'mw-cash-statement-email-retry',
-           'mw-partner-conversation', 'mw-conversation-poll', RECEIVER}
+           'mw-partner-conversation', 'mw-conversation-poll', 'mw-audit-retention', RECEIVER}
 
 
 def parse(path):

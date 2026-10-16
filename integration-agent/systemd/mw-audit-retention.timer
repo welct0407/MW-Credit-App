@@ -1,0 +1,11 @@
+[Unit]
+Description=Run agent audit retention daily at 03:40 Asia/Bangkok
+
+[Timer]
+OnCalendar=*-*-* 03:40:00 Asia/Bangkok
+Persistent=true
+AccuracySec=1min
+Unit=mw-audit-retention.service
+
+[Install]
+WantedBy=timers.target
