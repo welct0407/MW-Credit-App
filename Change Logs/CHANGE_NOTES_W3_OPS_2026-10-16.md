@@ -54,6 +54,8 @@ Wave 3 operations work for the independent review, on branch `claude/review-w3-o
 | Check | Result |
 | --- | --- |
 | `mw-db-ci` (all four groups, Linux) | Pass, 489 s |
+| GitHub CI on `03a027f`: Development checks run 38870234577 (manual dispatch, the one CI run) | Pass: check, e2e shards 1–3, terraform (fmt, 20 roots validated, tests) and the aggregate `Development checks result`; the Biome `lint` job reported findings and failed as designed (non-blocking) |
+| GitHub CI on `03a027f`: Database migrations run 38870209133 (push) | Pass: guards and the four Linux rebuild groups (migrations, receiving, phase5, phase8) |
 | Migration routes | 5 routes pass |
 | Node tests for database-backed suites | 196 of 196 pass |
 | Independent tester on the database changes | Pass |
