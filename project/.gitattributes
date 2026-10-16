@@ -8,6 +8,5 @@ outputs/r014-20260921/flyway-release.json -text
 # Keep the dictionary's text and migration hashes stable across Windows checkouts.
 "/Documents/Data Dictionary/**" text eol=lf
 /scripts/dictionary/** text eol=lf
-/outputs/dictionary-migration-20260923/** text eol=lf
 /outputs/dictionary-reconciliation-20260924/** text eol=lf
 "/scripts/Export Data Dictionary.cmd" text eol=crlf

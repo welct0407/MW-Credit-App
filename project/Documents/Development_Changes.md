@@ -10,6 +10,7 @@ The sole Open product release is **R063**. **R062 is Released**; the owner-autho
 | Carried operational credential migration | R055 remains Frozen; paused work is unfinished |
 | Apple push enrollment follow-up | R056 V91 deployed; Lisa retry/closure remains pending |
 | Owner license action | AppSheet technical retirement complete; license revocation unconfirmed |
+| Grafana revamp: alert coverage for PWA APIs, workers, Cloud SQL disk and backups | Pending future release (review ALL-MON-01); no alert rules applied in R063 |
 | Repository merge follow-ups (15 October 2026) | [Change note](../../Change%20Logs/CHANGE_NOTES_REPOSITORY_MERGE_2026-10-15.md) |
 
 Use the [release tracker](Release_Tracker.md), including the carried R016 administrative follow-up. Current runtime versions belong in [environment inventory](Environment_Inventory.md). Update this page for actual outstanding work, not completed-release history.
@@ -20,6 +21,14 @@ Use the [release tracker](Release_Tracker.md), including the carried R016 admini
 - Firebase outages and key-fetch failures return 503 `session_check_unavailable`; stalled bodies return 503 `body_timeout`; receipts are downscaled in the PWA (APP-AUTH-01, APP-PAY-01).
 - The post-commit wake follows the response; receipt storage I/O runs outside database transactions; naive receipt timestamps are read as text (APP-PAY-02, APP-PAY-04 W1 part, APP-DATE-01).
 - Source pushed on `claude/review-w1-app`; DEV deploy and PROD promotion pending. Record: [W1 app change note](../../Change%20Logs/CHANGE_NOTES_W1_APP_2026-10-15.md).
+
+## R063 Wave 1 — operations and evidence privacy
+
+- Removed the three borrower-data evidence folders from the branch tip (history is not purged) and pruned about 1,900 unreferenced or retired evidence files from `project/outputs`, `outputs/` and `integration-agent/outputs`; still-referenced root `outputs/` items moved under `project/outputs` with their references updated.
+- E2E and integration browser captures now write to ignored `test-results/`; a new `ci.yml` step (`scripts/check-binary-evidence.mjs`) rejects tracked PNG/XLSX outside `tests/`, `apps/` and a reviewed allowlist.
+- The tunnel, runner and cloud-session setup scripts read secret version `latest` instead of `1`.
+- Grafana alert coverage is recorded as a pending future-release item above; no alert rules were applied.
+- Record: [W1 operations change note](../../Change%20Logs/CHANGE_NOTES_W1_OPS_2026-10-15.md). UI/tooling only; no deployment or database change.
 
 ## R063 read retry after settled commands
 

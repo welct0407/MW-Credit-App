@@ -50,7 +50,7 @@ test('G06 bounded list preserves notes, total, scroll and bilingual review at 32
  await page.getByRole('button',{name:'Review payment',exact:true}).click();await expect(page.locator('.selected-payment')).toContainText('Synthetic preserved notes');await expect(page.locator('.selected-payment')).toContainText('฿330');
  await page.getByRole('button',{name:'Edit',exact:true}).click();await chooseLanguagePreservingForm(page,'ไทย');await expect(page.getByRole('region',{name:'จัดสรรการรับชำระ'})).toBeVisible();
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
- await page.screenshot({path:'outputs/r052-payment-command-api/ui-'+info.project.name+'-'+width+'-th.png',fullPage:true});
+ await page.screenshot({path:'test-results/r052-payment-command-api/ui-'+info.project.name+'-'+width+'-th.png',fullPage:true});
  await page.unroute('https://mw-credit-app-command-dev-test.run.app/**');
  }
 });
