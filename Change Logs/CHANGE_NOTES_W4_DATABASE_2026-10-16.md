@@ -119,7 +119,7 @@ Owner instruction, 16 October 2026 (Bangkok): "Go ahead to execute all the steps
 
 The PROD runtime (image `8611c23d…`) and Hosting (`2b6c25c065f1a45a`) followed (Development Changes). Dictionary: the PROD-scope values now match this readback.
 
-### (b) `mw_agent` 7-day retention: in progress
+### (b) `mw_agent` 7-day retention: done
 
 - Backup done: `pg_dump` SHA256 `baf28e2d7457553f2bd9d87514b825dbb7771b023c4782802699b4372185d92e`, full isolated restore passed, stored under `prod-backups/prod-promotion-83914936e38c459ba539e53e44f2cd1f/`; Cloud SQL backups `1792165191960` and `1792165979631` (taken before the instance patch).
 - Dry run (`audit-retention`, cutoff 7 days, database 1,834 MB): 226,464 trees, 682,425 operations eligible, events 1,475,012, states 682,425, job runs 225,943, about 835 MB of rows; 1,242 old trees kept as protected; plan 153 s.
@@ -136,7 +136,9 @@ The PROD runtime (image `8611c23d…`) and Hosting (`2b6c25c065f1a45a`) followed
   - `mw_agent` went from 1,877 MB to 435 MB. Triggers are enabled, schema head is 5 and the retention membership is intact; the sync-fix session re-verified before repoint.
   - Together with the earlier batch runs (about 12.5k operations), the whole 682,595-operation export is now deleted. 14 heartbeat runs written to the old instance after the final backup were accepted as lost by the move (sync-fix session).
 - Image nulling has 0 eligible rows.
-- Pending: the agent deploy and enabling the daily timer. The create-only bucket binding `agent_audit_archive_create` is applied (15:58:47Z, targeted apply, 1 added).
+- Agent deploy, 17 October 02:48 Bangkok (after the sync-fix session's "done"), on the Debian host from `/opt/mw-integration-agent-src`. `update-from-github.sh` moved it from `300aeb5` to `bf0da1cf4683c29670e196717b1637b67bc88049`. `deploy-runtime.py` ran dry-run (ancestor, no unit change, six timers to pause), then freeze, install and activate. Backup: `/var/lib/mw-integration-agent/rollback/runtime-20261016T194821570175Z`, metadata SHA-256 `413cc53a…de52f`. `/ready` 200 with the pin; all six timers resumed.
+- Daily retention enabled. Connection file `/etc/mw-integration-agent/secrets/audit-retention-connection.json` (IAM listener 5433, no password; root:mwagent 0640); work directory `/var/lib/mw-integration-agent/audit-retention` (mwagent 0700). `mw-audit-retention.service` and `.timer` are installed from the checkout. A dry run as `mwagent` planned 5,245 operations in 1.7 s. The first unit run (02:49 Bangkok) exported to `agent-audit-archive/2026-10/91cb46fe-fe84-4aaf-b03b-401b38ec32ce/` and deleted 5,245 operations, 9,992 events, 5,245 states and 2,008 job runs through `audit.purge_routine_trees()` in 18 s (longest batch 0.38 s). Timer enabled, next run 03:40 Bangkok. Eight `mw-*` timers, no failed units, no lock errors.
+- The create-only bucket binding `agent_audit_archive_create` is applied (15:58:47Z, targeted apply, 1 added).
 
 ### (c) Cloud SQL: done, changed from the plan
 
@@ -160,7 +162,6 @@ Patch 15:42:54 to 15:49:21Z: tier `db-g1-small`, IAM flag, `max_connections` 50,
 
 ## Remaining work
 
-- The agent deploy, then enable the daily timer.
 - `scripts/backup-agent-database.py` hard-codes Windows binaries and a fixed dump name; add platform binaries and `--dump-name` before it is reused on Linux.
 - Contract migration for the `pwa_job_runs` lease columns (DB-LOCK-02).
 - Move the SQL bodies to `pwa_lock_key_v1` in the next migration that touches `pwa_submit_operation_v2` for a functional reason (needs journal-owner authority).
