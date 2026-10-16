@@ -9,7 +9,7 @@ import { createBusinessPrincipalVerifier } from '../../services/production/busin
 const env = { APP_ENV:'prod', FOUNDATION_MODE:'foundation', FOUNDATION_ROLE:'reader', AUTH_MODE:'firebase',
   APPLICATION_PROJECT_ID:'clever-oasis-508610-n7', APPLICATION_PROJECT_NUMBER:'737787224638', FIREBASE_PROJECT_ID:'clever-oasis-508610-n7',
   RUNTIME_SERVICE_ACCOUNT:'mw-credit-app-read-prod@clever-oasis-508610-n7.iam.gserviceaccount.com',
-  DATA_PROJECT_ID:'clever-oasis-508610-n7', DB_NAME:'loan_manager_prod', INSTANCE_CONNECTION_NAME:'clever-oasis-508610-n7:asia-southeast1:appsheet-pg-prod-20260914',
+  DATA_PROJECT_ID:'clever-oasis-508610-n7', DB_NAME:'loan_manager_prod', INSTANCE_CONNECTION_NAME:'clever-oasis-508610-n7:asia-southeast1:mw-credit-pg-20261017',
   OWNER_IDENTITY_MODE:'uid-pinned', PROD_OWNER_FIREBASE_UID:'synthetic-owner',
   OWNER_IDENTITY_SECRET_VERSION:'projects/clever-oasis-508610-n7/secrets/mw-credit-app-prod-owner-identity/versions/1',
   HOSTING_SITE_ID:'synthetic-prod-site', ALLOWED_WEB_ORIGINS:'["https://lm.mw-credit.com"]' };
@@ -39,7 +39,7 @@ test('production configuration requires shared default project and rejects wrong
   assert.throws(() => loadProductionFoundationConfig({...env,OWNER_IDENTITY_SECRET_VERSION:'projects/other-project/secrets/mw-credit-app-prod-owner-identity/versions/1'}));
   // Shared instance allowlist: the 2026-10-17 successor is accepted, anything else is not.
   assert.equal(loadProductionFoundationConfig({...env,INSTANCE_CONNECTION_NAME:'clever-oasis-508610-n7:asia-southeast1:mw-credit-pg-20261017'}).serviceRole,'reader');
-  for(const name of ['clever-oasis-508610-n7:asia-southeast1:mw-credit-pg-20261018','other:asia-southeast1:mw-credit-pg-20261017','clever-oasis-508610-n7:us-central1:mw-credit-pg-20261017',''])assert.throws(()=>loadProductionFoundationConfig({...env,INSTANCE_CONNECTION_NAME:name}),name);
+  for(const name of ['clever-oasis-508610-n7:asia-southeast1:appsheet-pg-prod-20260914','clever-oasis-508610-n7:asia-southeast1:mw-credit-pg-20261018','other:asia-southeast1:mw-credit-pg-20261017','clever-oasis-508610-n7:us-central1:mw-credit-pg-20261017',''])assert.throws(()=>loadProductionFoundationConfig({...env,INSTANCE_CONNECTION_NAME:name}),name);
   assert.equal(loadProductionFoundationConfig({...env,FOUNDATION_ROLE:'command',RUNTIME_SERVICE_ACCOUNT:'mw-credit-app-command-prod@clever-oasis-508610-n7.iam.gserviceaccount.com'}).serviceRole,'command');
   assert.equal(config.readinessEnabled,false);
 });
