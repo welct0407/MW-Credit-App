@@ -2,7 +2,8 @@ name: Development checks
 # One workflow, five stages. A small `changes` job classifies the event so a
 # documentation-only pull request still posts the `Development checks result`
 # status (this is what branch protection can require) without running the
-# expensive stages. Main pushes and manual dispatch run everything.
+# expensive stages. Main pushes are classified by the pushed commit range;
+# manual dispatch, a first push and an unreadable range run everything.
 on:
   push:
     branches: [main]
@@ -34,13 +35,21 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
+          PUSH_BEFORE: ${{ github.event.before }}
+          PUSH_AFTER: ${{ github.sha }}
         run: |
           set -euo pipefail
-          if [ "${{ github.event_name }}" != "pull_request" ]; then
-            echo "app=true" >> "$GITHUB_OUTPUT"; echo "e2e=true" >> "$GITHUB_OUTPUT"; echo "terraform=true" >> "$GITHUB_OUTPUT"
-            echo "Non-PR event: run every stage"; exit 0
-          fi
-          gh api --paginate "repos/${{ github.repository }}/pulls/${PR_NUMBER}/files" --jq '.[].filename' > changed.txt
+          everything() { echo "app=true" >> "$GITHUB_OUTPUT"; echo "e2e=true" >> "$GITHUB_OUTPUT"; echo "terraform=true" >> "$GITHUB_OUTPUT"; echo "$1: run every stage"; exit 0; }
+          case "${{ github.event_name }}" in
+            pull_request)
+              gh api --paginate "repos/${{ github.repository }}/pulls/${PR_NUMBER}/files" --jq '.[].filename' > changed.txt ;;
+            push)
+              # A zero "before" is a branch creation; a compare that fails is a
+              # force update or an unreadable range. Both run every stage.
+              case "$PUSH_BEFORE" in ''|0000000000000000000000000000000000000000) everything "First push";; esac
+              if ! gh api --paginate "repos/${{ github.repository }}/compare/${PUSH_BEFORE}...${PUSH_AFTER}?per_page=100" --jq '.files[].filename' > changed.txt; then everything "Unreadable push range"; fi ;;
+            *) everything "${{ github.event_name }}" ;;
+          esac
           # Documentation, project records and the integration agent have their own checks.
           grep -Ev '^(project/|integration-agent/|Change Logs/)|\.md$' changed.txt > app.txt || true
           app=false; e2e=false; terraform=false
