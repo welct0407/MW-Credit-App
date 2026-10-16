@@ -42,7 +42,7 @@ Branch `claude/sync-phase1` (head 9420c85): server 81541c7, PWA 1f63b9d, then:
 - PROD (from 9420c85, Agent F): image sha256:88b4dbad1b33d3cd4819fd6023b35075360e3576ece7dad952500b3f2abe791d (`keep-r064-sync-runtime`, build 11fdb610); saved plan 875ca808... 0/4/0 applied 16:54:52 to 16:55:28Z (23:54 to 23:55 Bangkok), activation 01bc8130... published, re-plan No changes. Revisions read-00008-xp4, command-00012-67j, notify-00006-rnq, jobs-00006-rzs, Ready 100%; command max instances 2, startup CPU boost on reader and command, command pool 4. Hosting 7664add62c41bce6, release 1792169838042000, 16:56:51 to 16:57:25Z, marker 9151ce0bb3ab28cb380618b6, entry `/assets/index-CnmFQCHp.js`. The first `--apply` (16:56:27Z) was refused by the runner's live verification before any change (package source-object field order); fixed, `--check` re-passed, second apply succeeded. Package d7752d4f..., receipt 58ff0539... (private folder and operator bucket; the runner's `promotion-receipts/hosting-receipt.json` copy now holds this receipt, the Wave 4 one stays in `promotion-packages/r064/`).
 - PROD smoke (16:57:36Z on): health 200; unauthenticated session and offline-dataset 401; PROD origin 204, foreign/DEV origin 403; 15 of 15 files byte-identical; CSP PROD-only; `X-Frame-Options: DENY`; logs 0 errors and 0 5xx; notify 200 on the new revision; no agent 503s.
 - PROD rollback pins: image 8611c23d... (read-00007-tgd, command-00011-j4n, notify-00005-p8k, jobs-00005-fnc) via `production.activation.before.tfvars`; Hosting 2b6c25c065f1a45a (release 1792166200421000).
-- Not done: authenticated PROD path (the owner's next normal sign-in is the proof; no PROD test identity) and a physical-device check.
+- Authenticated PROD check: done by the owner on 17 October 2026 after the SSD move (app and a Metabase dashboard read normally). No separate physical-device matrix.
 
 ## Rollout and compatibility
 
@@ -54,7 +54,7 @@ App: redeploy the previous pins (PROD and DEV pins are listed under Checks), or 
 
 ## Outcome
 
-DEV and PROD deployed from 9420c85 and smoke-passed; no migration. Authenticated PROD proof is the owner's next normal sign-in. R064 closure and tag belong to the Wave 4 session.
+DEV and PROD deployed from 9420c85 and smoke-passed; no migration. Owner's authenticated PROD check passed on 17 October 2026 (see Checks). R064 closure and tag belong to the Wave 4 session.
 
 ## R065 pending-flash fix
 
@@ -91,3 +91,5 @@ Owner instructions: "plan the SSD move tomorrow after R064 is stable", then "onc
 - Checks: `loan_manager_prod` and `loan_manager_dev` identical old vs new (row counts, money-table md5s, roles, memberships, schema/table/function ACLs and definitions, extensions, system identifier, Flyway 93); `max_connections` 200, no `cron.*`, `pg_stat_statements` in `monitoring`; users list identical (19). `mw_agent` identical except 14 `native-api-probe` heartbeat runs that `mw-resource-health.timer` (not in the freeze list) wrote to the old instance after the backup (19:15:18 to 19:28:23; timer stopped 19:29:20): loss accepted, monitoring only. After the repoint: all touched Terraform roots (`ecosystem-shared`, `ecosystem-debian`, `unattended-admin`, `dev`, `production`) re-plan to no changes; PROD notify ticks and command agent reads 200; Debian first runs all succeeded and the host monitor is green; a Metabase query reports the new server start time.
 - Recovery: the old instance is untouched and unused; services accept both names. Before new writes, repoint back (Cloud Run env, Debian units from `/root/*.pre-ssd`, Railway variable). After new writes: freeze, back up the new instance, restore into the old one, repoint.
 - Open: keep the old instance running unused for 24 h, then stop it (reminder 17 October 20:00 UTC); deleting it, removing the old-only bindings, narrowing the IAM conditions and dropping the old name from `identity.mjs` need a separate owner go. Cloud Monitoring showed one connection each to old `loan_manager_prod` and `mw_agent` in the 19:44 sample only (likely draining old Cloud Run revisions; client not identified). Lesson: a database freeze also stops `mw-resource-health.timer`.
+
+Owner check, 17 October 2026 (Bangkok, after the cutover): the PWA and a Metabase dashboard read normally on the new instance. This is the authenticated PROD proof for R064, R065, R066 and the SSD move.
