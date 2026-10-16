@@ -13,7 +13,7 @@ samples=[]
 for i in range(31):
     start=time.perf_counter()
     with state.transaction(c) as db:
-        assert db.execute('SELECT current_database(),session_user').fetchone()==('mw_agent','mw_agent_worker')
+        assert db.execute('SELECT current_database(),current_user').fetchone()==('mw_agent','mw_agent_worker')
         assert db.execute('SELECT count(*) FROM runtime.conversations').fetchone()[0]>0
     if i:samples.append(1000*(time.perf_counter()-start))
 with state.transaction(c) as db:

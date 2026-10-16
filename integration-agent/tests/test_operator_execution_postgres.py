@@ -31,7 +31,7 @@ class DurableOperatorPostgres(unittest.TestCase):
         def prepare():
             try:return oe.prepare(config,request)['prepared']
             except ConfigurationError:return False
-        with patch.object(state,'parameters',params),patch.object(oe,'business',business),patch.object(outbox,'business',business),patch.object(rh,'business',business),patch.object(rh,'parameters',params):
+        with patch.object(state,'parameters',params),patch.object(oe,'business',business),patch.object(outbox,'business',business),patch.object(rh,'business',business):
             with ThreadPoolExecutor(max_workers=2) as executor:
                 self.assertEqual(sorted(executor.map(lambda _:prepare(),range(2))),[False,True])
             with psycopg.connect(**base,dbname='mw_agent') as c:

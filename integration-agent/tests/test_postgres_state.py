@@ -1,7 +1,11 @@
 """Integration tests require an explicitly named private disposable lab manifest."""
+import contextlib
+import importlib.util
+import io
 import json
 import os
 from pathlib import Path
+import tempfile
 import time
 import unittest
 import uuid
@@ -114,6 +118,26 @@ class AdapterUnitTests(unittest.TestCase):
             self.assertEqual((len(conn.statements), connect.call_count), (1, 1))  # the pooled connection keeps its role
         with self.assertRaisesRegex(ConfigurationError, 'UNAPPROVED_AGENT_DATABASE'):
             state.parameters(dict(config, agent_database_port=5433))
+
+    def test_assume_role_accepts_only_agent_roles_and_failed_set_role_closes(self):
+        class Conn:
+            closed = False
+            def __init__(self): self.statements = []
+            def execute(self, sql): self.statements.append(sql)
+            def close(self): self.closed = True
+        conn = Conn()
+        self.assertIs(state.assume_role(conn, None), conn)
+        state.assume_role(conn, 'mw_integration_agent')
+        self.assertEqual(conn.statements, ['SET ROLE mw_integration_agent'])
+        for role in ('postgres', 'mw_agent_owner', 'mw_agent_worker; RESET ROLE'):
+            with self.subTest(role=role), self.assertRaisesRegex(ConfigurationError, 'UNAPPROVED_SESSION_ROLE'):
+                state.assume_role(conn, role)
+        refused = Conn()
+        refused.execute = lambda sql: (_ for _ in ()).throw(psycopg.errors.InsufficientPrivilege('no membership'))
+        config = dict(self.CONFIG, agent_database_auth='iam', database_iam_user='mw-integration-agent@clever-oasis-508610-n7.iam')
+        with patch('psycopg.connect', return_value=refused), self.assertRaises(psycopg.errors.InsufficientPrivilege):
+            state.open_connection(config, 'relay', options='-c statement_timeout=5000')
+        self.assertTrue(refused.closed)
 
 
 @unittest.skipUnless(os.environ.get('MW_AGENT_LAB_MANIFEST'),'isolated PostgreSQL 18 lab required')
@@ -333,3 +357,88 @@ class PostgreSQLStateTests(unittest.TestCase):
             with self.assertRaisesRegex(ConfigurationError,'unavailable'):
                 with audit.activity(self.config,'synthetic-provider',effect=True):called=True
         self.assertFalse(called)
+
+
+@unittest.skipUnless(os.environ.get('MW_AGENT_LAB_MANIFEST'),'isolated PostgreSQL 18 lab required')
+class IamLoginLabTests(unittest.TestCase):
+    """ALL-ARCH-03 in the lab: a NOINHERIT login holding mw_agent_worker, mw_agent_relay and
+    mw_integration_agent WITH INHERIT FALSE, SET TRUE (the live IAM user's shape; trust auth stands
+    in for the proxy's auto-iam-authn listener). Every path must SET ROLE before its first query."""
+    LOGIN='mw_iam_lab_login'
+
+    @classmethod
+    def setUpClass(cls):
+        lab=json.loads(Path(os.environ['MW_AGENT_LAB_MANIFEST']).read_text(encoding='utf-8-sig'))
+        if lab['host']!='127.0.0.1' or lab['port']==5432 or 'agent-state-lab-' not in lab['root']:
+            raise RuntimeError('Refusing a non-laboratory target')
+        cls.port=lab['port']
+        cls.admin=dict(host=lab['host'],port=lab['port'],user='postgres',autocommit=True)
+        with psycopg.connect(**cls.admin,dbname='postgres') as c:
+            assert Path(c.execute('SHOW data_directory').fetchone()[0]).resolve()==(Path(lab['root'])/'data').resolve()
+            for role,attributes in (('mw_integration_agent','NOLOGIN NOINHERIT'),(cls.LOGIN,'LOGIN NOINHERIT')):
+                if not c.execute('SELECT 1 FROM pg_roles WHERE rolname=%s',(role,)).fetchone():
+                    c.execute('CREATE ROLE '+role+' '+attributes)
+            c.execute('GRANT mw_agent_worker,mw_agent_relay,mw_integration_agent TO '+cls.LOGIN+' WITH INHERIT FALSE, SET TRUE')
+            c.execute('GRANT CONNECT ON DATABASE mw_agent,loan_manager_prod TO '+cls.LOGIN)
+        generation=str(uuid.uuid4())
+        with psycopg.connect(**cls.admin,dbname='mw_agent') as c:
+            c.execute('''INSERT INTO runtime.service_control(service_name,backend,active_generation,processing_enabled)
+                VALUES ('agent','postgres',%s,true) ON CONFLICT(service_name) DO UPDATE SET active_generation=EXCLUDED.active_generation,processing_enabled=true''',(generation,))
+        cls.config={'state_backend':'postgres','state_generation':generation,'state_cutover_at':'2026-01-01T00:00:00+00:00',
+                    'agent_database_auth':'iam','database_auth':'iam','database_iam_user':cls.LOGIN,
+                    'agent_database_host':'127.0.0.1','agent_database_port':5432,'agent_database_name':'mw_agent',
+                    'database_host':'127.0.0.1','database_port':5432,'database_name':'loan_manager_prod',
+                    'database_user':'mw_integration_agent','audit_environment':'test','code_version':'synthetic-tests'}
+        from mw_integration_agent import config as agent_config, outbox
+        # The lab cluster stands in for the proxy's IAM listener (5433 in production).
+        cls.patches=[patch.object(module,'iam_port',return_value=cls.port) for module in (state,outbox,agent_config)]
+        for item in cls.patches:
+            item.start()
+
+    @classmethod
+    def tearDownClass(cls):
+        for item in cls.patches:
+            item.stop()
+
+    def test_bare_login_is_denied_and_set_role_grants_the_worker(self):
+        with psycopg.connect(**dict(self.admin,user=self.LOGIN),dbname='mw_agent') as bare:
+            with self.assertRaises(psycopg.errors.InsufficientPrivilege):
+                bare.execute('SELECT count(*) FROM runtime.job_runs')
+        with state.open_connection(self.config) as conn:
+            self.assertEqual(conn.execute('SELECT session_user,current_user').fetchone(),(self.LOGIN,'mw_agent_worker'))
+            conn.execute('SELECT count(*) FROM runtime.job_runs').fetchone()
+
+    def test_relay_health_inspects_as_worker_and_relay(self):
+        from mw_integration_agent import relay_health
+        snapshot=relay_health.inspect(self.config)
+        self.assertEqual(snapshot['inspection_failed'],0)
+
+    def test_notice_acknowledgement_cli_runs_as_worker(self):
+        spec=importlib.util.spec_from_file_location('notice_ack_iam',Path(__file__).parents[1]/'scripts/acknowledge-receipt-notices.py')
+        ack=importlib.util.module_from_spec(spec);spec.loader.exec_module(ack)
+        key=audit.digest(str(uuid.uuid4()));review=audit.digest(str(uuid.uuid4()))
+        with psycopg.connect(**self.admin,dbname='mw_agent') as c:
+            c.execute("INSERT INTO runtime.partner_reviews(id,job_id,proposal,state,created_at,expires_at,payment_id) VALUES (%s,%s,'{}','POSTED',1,2,'synthetic-payment')",(review,key))
+            c.execute("INSERT INTO runtime.partner_notices(stream,id,event_key,partner_id,partner,subject,body,ig_status,email_status,attempts,detail) VALUES ('receipt',%s,%s,'synthetic','{}','synthetic','synthetic','UNAVAILABLE','REJECTED',3,'IG_ROUTE_OR_WINDOW_UNAVAILABLE')",(key,'review-result:'+review+':POSTED'))
+        with tempfile.TemporaryDirectory() as d:
+            config=Path(d)/'config.json';plan=Path(d)/'plan.json'
+            config.write_text(json.dumps(self.config))
+            def run(*args):
+                out=io.StringIO()
+                with patch('sys.argv',['acknowledge-receipt-notices.py',*args,'--config',str(config)]),contextlib.redirect_stdout(out):
+                    ack.main()
+                return json.loads(out.getvalue())
+            observed=run('inspect','--notice-id',key)
+            self.assertEqual(observed[0]['notice_id'],key)
+            plan.write_text(json.dumps(observed))
+            result=run('acknowledge','--plan-file',str(plan),'--operator','synthetic-operator',
+                       '--reason','synthetic lab test','--authorization','synthetic lab request')
+        self.assertEqual(result[0]['resolution'],'ACKNOWLEDGED_UNDELIVERED')
+        with psycopg.connect(**self.admin,dbname='mw_agent') as c:
+            self.assertEqual(c.execute('SELECT count(*) FROM audit.events WHERE operation_id=%s',(result[0]['operation_id'],)).fetchone()[0],1)
+
+    def test_host_monitor_probe_sets_both_roles(self):
+        spec=importlib.util.spec_from_file_location('debian_health_iam',Path(__file__).parents[2]/'project/scripts/monitoring/debian-health.py')
+        health=importlib.util.module_from_spec(spec);spec.loader.exec_module(health)
+        status,sample=health.database_probe(self.config)
+        self.assertEqual((status,sample[0]['status']),(1,1))
