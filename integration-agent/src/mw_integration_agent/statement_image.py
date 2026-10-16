@@ -111,7 +111,7 @@ def render(report, account, language, directory, font_path='/usr/share/fonts/tru
         height = table_top+sum(row_heights)+130
         image = Image.new('RGB',(1200,height),'#fff7fa')
         draw = ImageDraw.Draw(image)
-        def text(x,y,t,size=24,color='#452432',align='left'):
+        def text(x,y,t,size=24,color='#452432',align='left',draw=draw):
             draw.text((x,y),str(t),font=fonts[size],fill=color,anchor='ra' if align=='right' else 'la',spacing=6)
         draw.rectangle((0,0,1200,16),fill='#D81B60')
         image.paste(logo,(44,34),logo)

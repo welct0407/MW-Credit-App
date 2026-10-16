@@ -11,8 +11,13 @@ import sqlite3
 import threading
 import time
 
-from .config import ConfigurationError, load_secret
+from .config import PASSWORD_PORT, ConfigurationError, auth_mode, iam_port, load_secret
 
+# Session limits live here, not in role settings: after SET ROLE (IAM mode) role-level
+# settings do not apply, and startup options override them anyway (AGT-STATE-04).
+STATEMENT_TIMEOUT_MS = 15000
+LOCK_TIMEOUT_MS = 3000
+IDLE_IN_TRANSACTION_TIMEOUT_MS = 30000
 
 TABLES = {
     'instagram-ingress.db': {'receipts': 'ingress_receipts', 'messages': 'ingress_messages', 'ingress_work': 'ingress_work'},
@@ -33,17 +38,31 @@ def enabled(config):
     return bool(config and config.get('state_backend') == 'postgres')
 
 
+def session_role(config, role):
+    """The role a fresh connection must SET ROLE to, or None when the login role is the role itself."""
+    if role not in ('worker', 'relay'):
+        raise ConfigurationError('UNAPPROVED_STATE_ROLE')
+    return 'mw_agent_' + role if auth_mode(config, 'agent_database_') == 'iam' else None
+
+
 def parameters(config, role='worker'):
+    mode = auth_mode(config, 'agent_database_')
     if (config.get('agent_database_host') not in ('127.0.0.1','::1') or
-        config.get('agent_database_port') != 5432 or config.get('agent_database_name') != 'mw_agent'):
+        config.get('agent_database_port') != PASSWORD_PORT or config.get('agent_database_name') != 'mw_agent'):
         raise ConfigurationError('UNAPPROVED_AGENT_DATABASE')
-    user = 'mw_agent_' + role
     if role not in ('worker','relay'):
         raise ConfigurationError('UNAPPROVED_STATE_ROLE')
-    return dict(host=config['agent_database_host'], port=5432, dbname='mw_agent', user=user,
-        password=load_secret(config, 'agent_database_' + role + '_password_file'), connect_timeout=10,
-        autocommit=True, application_name='mw-agent-state-' + role,
-        options='-c statement_timeout=30000 -c lock_timeout=5000')
+    options = (f'-c statement_timeout={STATEMENT_TIMEOUT_MS} -c lock_timeout={LOCK_TIMEOUT_MS}'
+               f' -c idle_in_transaction_session_timeout={IDLE_IN_TRANSACTION_TIMEOUT_MS}')
+    value = dict(host=config['agent_database_host'], port=PASSWORD_PORT, dbname='mw_agent', connect_timeout=10,
+        autocommit=True, application_name='mw-agent-state-' + role, options=options)
+    if mode == 'iam':
+        # The proxy's auto-iam-authn listener supplies the credential; the login is the VM
+        # service account's IAM user and the caller runs SET ROLE mw_agent_<role> (ALL-ARCH-03).
+        value.update(port=iam_port(config), user=config['database_iam_user'])
+    else:
+        value.update(user='mw_agent_' + role, password=load_secret(config, 'agent_database_' + role + '_password_file'))
+    return value
 
 
 class Pool:
@@ -71,6 +90,9 @@ class Pool:
         try:
             if conn is None or conn.closed or conn.broken:
                 conn = psycopg.connect(**parameters(self.config, self.role))
+                role = session_role(self.config, self.role)
+                if role:
+                    conn.execute('SET ROLE ' + role)
             yield conn
         finally:
             with self.condition:
@@ -97,9 +119,11 @@ def fence(conn, config):
 
 
 @contextmanager
-def transaction(config, role='worker'):
+def transaction(config, role='worker', readonly=False):
     with pool(config, role).connection() as conn:
         with conn.transaction():
+            if readonly:
+                conn.execute('SET TRANSACTION READ ONLY')
             fence(conn, config)
             yield conn
 
@@ -173,10 +197,10 @@ def dialect(query, mapping, stream=None):
 class PostgresJournal:
     postgres = True
 
-    def __init__(self, config, filename):
+    def __init__(self, config, filename, readonly=False):
         if filename not in TABLES:
             raise ConfigurationError('UNKNOWN_STATE_JOURNAL')
-        self.config, self.filename = config, filename
+        self.config, self.filename, self.readonly = config, filename, readonly
         self.mapping = TABLES[filename]
         self.stream = {'partner-notices.db':'receipt','conversation-notices.db':'conversation'}.get(filename)
         self.conn, self._context = None, None
@@ -184,7 +208,7 @@ class PostgresJournal:
     def __enter__(self):
         if self.conn is not None:
             raise ConfigurationError('NESTED_JOURNAL_TRANSACTION')
-        self._context = transaction(self.config)
+        self._context = transaction(self.config, readonly=self.readonly)
         self.conn = self._context.__enter__()
         return self
 
@@ -196,16 +220,20 @@ class PostgresJournal:
     def execute(self, query, params=()):
         import psycopg
         sql = dialect(query, self.mapping, self.stream)
+        select = query.lstrip().upper().startswith('SELECT')
+        if self.readonly and not select:
+            raise ConfigurationError('STATE_READONLY_JOURNAL')
         def run(conn):
             result = Result(conn.execute(sql, params))
-            if not query.lstrip().upper().startswith('SELECT'):
+            # A statement that changed nothing leaves no audit trace (AGT-STATE-01).
+            if not select and result.rowcount != 0:
                 from .audit import state_change
                 state_change(conn, self.config, self.filename, query, params, result.rowcount)
             return result
         try:
             if self.conn is not None:
                 return run(self.conn)
-            with transaction(self.config) as conn:
+            with transaction(self.config, readonly=self.readonly) as conn:
                 return run(conn)
         except psycopg.IntegrityError as exc:
             # Preserve the domain duplicate handling, with the failed transaction
@@ -227,7 +255,7 @@ class PostgresJournal:
 
 def connect(path, config=None, readonly=False):
     if enabled(config):
-        return PostgresJournal(config, Path(path).name)
+        return PostgresJournal(config, Path(path).name, readonly=readonly)
     if config and config.get('state_backend', 'sqlite') != 'sqlite':
         raise ConfigurationError('UNKNOWN_STATE_BACKEND')
     db = sqlite3.connect(Path(path).resolve().as_uri()+'?mode=ro', uri=True) if readonly else sqlite3.connect(path, timeout=30)

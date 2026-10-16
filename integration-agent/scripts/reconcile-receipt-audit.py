@@ -5,7 +5,6 @@ Only missing intents with immutable asset/link and exact V50 metadata effects pa
 """
 import argparse
 import json
-import uuid
 from pathlib import Path
 
 from mw_integration_agent import audit, receipt_audit

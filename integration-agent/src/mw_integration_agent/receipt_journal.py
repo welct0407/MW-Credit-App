@@ -2,7 +2,7 @@
 import hashlib
 import json
 import sqlite3
-from .state import connect as state_connect, enabled as state_enabled, is_postgres
+from .state import connect as state_connect, is_postgres
 import time
 
 

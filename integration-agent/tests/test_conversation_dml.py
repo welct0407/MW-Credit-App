@@ -1,4 +1,3 @@
-import copy
 import json
 import os
 import tempfile
@@ -41,6 +40,19 @@ class Boundaries(unittest.TestCase):
         with self.assertRaises(ConfigurationError): dml.parse_plan(json.dumps([step()]*2))
         with self.assertRaises(ConfigurationError): dml.parse_plan('[{"action":"UPDATE","action":"INSERT"}]')
 
+    def test_delete_steps_are_refused_before_any_database_call(self):
+        # Reviewer DELETE retired (16 October 2026): the plan parser refuses it and the catalogue no longer offers it.
+        with self.assertRaisesRegex(ConfigurationError, '^REVIEWER_DELETE_RETIRED$'):
+            dml.parse_plan(json.dumps([step(action='DELETE', values={}, expected_after={})]))
+        bridge = type('Bridge', (), {'authorize': lambda s: {'reviewer_dml_enabled': True, 'reviewer_dml_cutoff': '2026-01-01T00:00:00+00:00',
+                                                            '_conversation_event_timestamp': 2000000000, '_conversation_captured_at': 2000000000},
+                                     'partner_id': 'p1'})()
+        with patch.object(dml, 'require_reviewer', return_value='a@example.com'), \
+             patch('psycopg.connect', side_effect=AssertionError('no connection for the resource list')):
+            catalogue = dml.catalogue(bridge, '')
+        self.assertEqual(catalogue['actions'], ['INSERT', 'UPDATE'])
+        self.assertIn('DELETE is retired', catalogue['limits'])
+
     def test_literal_sql_text_is_a_value(self):
         value="'; DROP TABLE public.\"Loans\"; --"
         self.assertEqual(dml.parse_plan(json.dumps([step(values={'City':value})]))[0]['values']['City'],value)
@@ -50,6 +62,31 @@ class Boundaries(unittest.TestCase):
         with patch('mw_integration_agent.conversation_write.require_reviewer',side_effect=ConfigurationError('CURRENT_AI_REVIEWER_REQUIRED')):
             with self.assertRaisesRegex(ConfigurationError,'CURRENT_AI_REVIEWER_REQUIRED'):
                 api_action(bridge,{})
+
+    def test_dev_target_connects_to_dev_database_with_dev_role(self):
+        # ALL-ARCH-02: the environment picks the database/role pair; a mismatched pair is refused.
+        class Conn:
+            def __enter__(self): return self
+            def __exit__(self, *_): return False
+            def execute(self, *_): return self
+            def rollback(self): return None
+        with tempfile.TemporaryDirectory() as secrets:
+            Path(secrets, 'dml.txt').write_text('synthetic')
+            base = dict(database_host='127.0.0.1', database_port=5432, secrets_directory=secrets,
+                        database_dml_password_file=str(Path(secrets) / 'dml.txt'))
+            with patch('psycopg.connect', return_value=Conn()) as connect:
+                with dml.connect(dict(base, database_name='loan_manager_dev', database_dml_user='mw_reviewer_dml_dev')):
+                    pass
+                self.assertEqual((connect.call_args.kwargs['dbname'], connect.call_args.kwargs['user']), ('loan_manager_dev', 'mw_reviewer_dml_dev'))
+                with dml.connect(dict(base, database_name='loan_manager_prod', database_dml_user='mw_reviewer_dml')):
+                    pass
+                self.assertEqual((connect.call_args.kwargs['dbname'], connect.call_args.kwargs['user']), ('loan_manager_prod', 'mw_reviewer_dml'))
+                for change in ({'database_name': 'loan_manager_dev', 'database_dml_user': 'mw_reviewer_dml'},
+                               {'database_name': 'loan_manager_prod', 'database_dml_user': 'mw_reviewer_dml_dev'},
+                               {'database_name': 'loan_manager_test', 'database_dml_user': 'mw_reviewer_dml'}):
+                    with self.subTest(change=change), self.assertRaisesRegex(ConfigurationError, 'UNAPPROVED_DML_DATABASE'):
+                        with dml.connect(dict(base, **change)):
+                            pass
 
     def test_dml_disabled_old_message_and_revoked_reviewer(self):
         config={'reviewer_dml_enabled':False}

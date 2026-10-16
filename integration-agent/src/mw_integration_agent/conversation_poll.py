@@ -6,7 +6,7 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-from .config import ConfigurationError, load_json
+from .config import ConfigurationError, cutoff_ts, load_json
 from .instagram import Instagram
 from .receipt_journal import ReceiptJournal
 from .receipt_rules import username
@@ -78,9 +78,9 @@ def pages(api,path,query):
 
 def scan(config,api,master,journal,now=None,day=None):
     now=time.time() if now is None else now
-    cutoff=datetime.fromisoformat(config['conversation_poll_cutoff']).timestamp()
+    cutoff=cutoff_ts(config,'conversation_poll_cutoff')
     if day:
-        from .receipt_rules import BANGKOK
+        from .business_time import BANGKOK
         if day!=datetime.fromtimestamp(now,BANGKOK).date().isoformat():raise ConfigurationError('BACKFILL_TODAY_ONLY')
         cutoff=datetime.fromisoformat(day+'T00:00:00+07:00').timestamp()
     db=journal.db
@@ -140,7 +140,7 @@ def capture_conversation(config,api,master,db,conversation,enabled,cutoff,now,da
             if not valid and config.get('receipt_forwarding_enabled') is True:
                 from .receipt_identity import forwarded_borrower
                 from .receipt_rules import ReceiptInvalid
-                forward_cutoff=datetime.fromisoformat(config['receipt_forwarding_cutoff']).timestamp()
+                forward_cutoff=cutoff_ts(config,'receipt_forwarding_cutoff')
                 if ts>=forward_cutoff:
                     try:
                         matched=forwarded_borrower(config,master,participants,sender)

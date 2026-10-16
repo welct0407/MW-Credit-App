@@ -1,4 +1,3 @@
-import json
 import tempfile
 import time
 import unittest
@@ -85,10 +84,10 @@ class HoldReplyTests(unittest.TestCase):
         ingress.capture('batch',[{'message_id':'in','sender_id':'123','timestamp':time.time()-1,'text':'reject','reply_to':'out'}]);ingress.close()
         live={'partners':[self.p],'reviewer_ids':['p'],'borrowers':[],'accounts':[]}
         with patch('mw_integration_agent.review_cycle.masters',return_value=live),patch.object(NoticeJournal,'dispatch'), \
-             patch('mw_integration_agent.review_cycle.add_payment') as add,patch('mw_integration_agent.hold_reply.queue_result',side_effect=RuntimeError('crash')):
+             patch('mw_integration_agent.review_cycle.add_payment',create=True) as add,patch('mw_integration_agent.hold_reply.queue_result',side_effect=RuntimeError('crash')):
             self.assertTrue(cycle(self.config,self.j,lambda *_:self.identity)['failures'])
             self.assertEqual(self.job()['status'],'REJECTED');add.assert_not_called()
         with patch('mw_integration_agent.review_cycle.masters',return_value=live),patch.object(NoticeJournal,'dispatch') as dispatch, \
-             patch('mw_integration_agent.review_cycle.add_payment') as add:
+             patch('mw_integration_agent.review_cycle.add_payment',create=True) as add:
             self.assertFalse(cycle(self.config,self.j,lambda *_:self.identity)['failures'])
             self.assertEqual(len(self.n.due()),1);self.assertEqual(dispatch.call_count,1);add.assert_not_called()

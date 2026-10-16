@@ -5,8 +5,7 @@ import tempfile
 import sys
 import time
 import uuid
-import hashlib
-from datetime import datetime, timezone
+from datetime import datetime, UTC
 import unittest
 from unittest.mock import patch
 
@@ -32,8 +31,9 @@ class Conversations(unittest.TestCase):
             url=getattr(request,'full_url',str(request))
             self.assertNotIn('appsheet.com',url,'Native workflow attempted retired AppSheet HTTP')
             raise AssertionError('Unmocked external HTTP in native conversation fixture')
-        http_tripwire=patch('urllib.request.urlopen',side_effect=no_http)
-        http_tripwire.start();self.addCleanup(http_tripwire.stop)
+        for target in ('urllib.request.urlopen','urllib.request.OpenerDirector.open'):
+            http_tripwire=patch(target,side_effect=no_http)
+            http_tripwire.start();self.addCleanup(http_tripwire.stop)
         reviewer_patch = patch('mw_integration_agent.conversation_write.require_reviewer', return_value='actor@example.com')
         reviewer_patch.start(); self.addCleanup(reviewer_patch.stop)
         self.temp = tempfile.TemporaryDirectory()
@@ -303,6 +303,23 @@ class Conversations(unittest.TestCase):
                 dispatch_action(config,'oltp','Borrowers','Add',{'Row ID':'raw'},'actor@example.com')
             self.assertEqual(send.call_count,1)
 
+    def test_native_delete_has_its_own_switch(self):
+        # The native command-API Delete is gated by native_delete_enabled only; the retired SQL switch plays no part.
+        request={'version':1,'actorPartnerId':'actor','kind':'operation','command':{'requestId':'synthetic-delete'}}
+        with patch('mw_integration_agent.conversation_api.call',return_value=(200,{})) as send:
+            for config in ({'conversation_writes_enabled':True,'state_backend':'postgres'},
+                           {'conversation_writes_enabled':True,'state_backend':'postgres','native_delete_enabled':False},
+                           {'conversation_writes_enabled':True,'state_backend':'sqlite','native_delete_enabled':True}):
+                with self.subTest(config=config),self.assertRaisesRegex(ConfigurationError,'^NATIVE_DELETE_DISABLED$'):
+                    dispatch_action(config,'oltp','Borrowers','Delete',{'nativeRequest':request},'actor@example.com')
+            send.assert_not_called()
+            enabled={'conversation_writes_enabled':True,'state_backend':'postgres','native_delete_enabled':True}
+            dispatch_action(enabled,'oltp','Borrowers','Delete',{'nativeRequest':request},'actor@example.com')
+            self.assertEqual(send.call_args.args,(enabled,'commands',request))
+        from mw_integration_agent import conversation_dml
+        with self.assertRaisesRegex(ConfigurationError,'^REVIEWER_DELETE_RETIRED$'):
+            conversation_dml.parse_plan(json.dumps([{'action':'DELETE','table':'Borrowers','row_id':'b1','values':{},'expected_after':{},'observation':'o'}]))
+
     def test_finish_needs_current_evidence_and_stops_tools(self):
         args = {'status': 'VERIFIED', 'message': 'Current answer', 'observations': []}
         with self.assertRaises(ConfigurationError):
@@ -349,7 +366,7 @@ class Conversations(unittest.TestCase):
     def test_worker_cutoff_receipt_ownership_and_once_only_reply_after_restart(self):
         from mw_integration_agent.partner_conversation import run
         now=time.time()
-        self.config['partner_conversation_cutoff']=datetime.fromtimestamp(now-10,timezone.utc).isoformat()
+        self.config['partner_conversation_cutoff']=datetime.fromtimestamp(now-10,UTC).isoformat()
         ingress=IngressJournal(self.root/'instagram-ingress.db')
         ingress.capture('synthetic-batch',[
             {'message_id':'old','sender_id':'999','timestamp':now-20,'text':'old'},
