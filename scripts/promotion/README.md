@@ -23,7 +23,9 @@ node scripts/promotion/deploy-business-hosting.mjs --apply --inputs ABSOLUTE_PRI
 
 The private root is `MW_PRIVATE_ROOT/MW-Credit-App` (default `~/.mw-private`); each receipt write is also copied to `gs://mw-credit-operator-private-737787224638/promotion-receipts/`. Keep packages there too, since the session disk is discarded.
 
-## R065 Hosting-only promotion on the R064 runtime
+## R065 and R066 Hosting-only promotions on the R064 runtime
+
+R066 uses the same contract with `schemaVersion: 8`, `release: R066` and baseline R065 `74ad26b` (the source must descend from it); the runtime, SQL and production Terraform inputs are still compared with R064 `9420c85`.
 
 `deploy-business-hosting.mjs` accepts `schemaVersion: 7`, `release: R065`, `scope: frontend-only`, `status: prepared`. The source must descend from the R064 release `9420c85` and change none of `services`, `database`, `Dockerfile`, `.dockerignore`, `.gcloudignore`, the Cloud Build files, `package.json`, `package-lock.json`, `infrastructure/production` or `infrastructure/modules`; the package carries no `build`, `plan`, `applied` or `activation`, pins verified V93 with no migration, the four unchanged R064 services (`runtime.services`) and the Hosting rollback. CI is gated as for R064 (`full`, `check`, `database`, each an input-equivalent ancestor or the delivery-tool commit). Apply re-reads the three runs and requires the live services to still run the pinned images and revisions. (R064, `schemaVersion: 6`, used the same CI gate with an applied four-image runtime.)
 

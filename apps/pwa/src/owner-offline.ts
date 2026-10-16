@@ -131,6 +131,9 @@ export function ownerOfflineRepository(identity:{issuer:string;uid:string},envir
    }}}});
   },
   async readDatasetMedia(key:string){return cacheTransaction<CachedResponse|null>('readonly',null,(store,done)=>{const request=store.get('dataset-media:'+key);request.onsuccess=()=>{const row=request.result;if(!row){done(null);return;}const current=store.get('meta:read-revision');current.onsuccess=()=>done({data:row.value,format:'blob',contentType:row.value.type,savedAt:row.savedAt,revision:current.result?.value??0})}})},
+  /** Keys of every stored receipt (without the kind prefix); blobs are not loaded. */
+  async listDatasetMediaKeys(){return cacheTransaction<string[]>('readonly',[],(store,done)=>{const request=store.getAllKeys(kindRange('dataset-media'));request.onsuccess=()=>done((request.result as string[]).map(key=>key.slice('dataset-media:'.length)))})},
+  async removeDatasetMedia(key:string){return cacheTransaction<void>('readwrite',undefined,(store,done)=>{store.delete('dataset-media:'+key);done()})},
   async saveDatasetMedia(key:string,value:Blob,revision:number){
    if(!(value instanceof Blob)||!['image/png','image/jpeg','image/webp'].includes(value.type))throw Error('Invalid offline receipt');
    return cacheTransaction<boolean>('readwrite',false,(store,done)=>{const current=store.get('meta:read-revision');current.onsuccess=()=>{if((current.result?.value??0)!==revision){done(false);return;}store.put({key:'dataset-media:'+key,kind:'dataset-media',savedAt:Date.now(),revision,value});done(true)}});

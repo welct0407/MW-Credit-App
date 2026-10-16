@@ -1,5 +1,5 @@
 import {beginRequest} from './request-activity';
-import {readOfflineDataset,isOfflineDatasetCursor,refreshOfflineDataset,routeDomain} from './offline-dataset';
+import {readOfflineDataset,isOfflineDatasetCursor,refreshOfflineDataset,routeDomain,receiptMediaCandidates} from './offline-dataset';
 import {commandOriginAllowed} from './environment';
 import type {OwnerOfflineRepository,CachedResponse} from './owner-offline';
 
@@ -60,7 +60,7 @@ async function read<T>(access:Access,path:string,options:Options<T>,format:'json
  const currentRevision=async()=>{try{return await repository!.readRevision()}catch{cacheAllowed=false;return undefined}};
  const localCursor=format==='json'&&isOfflineDatasetCursor(url.href);
  const cachedRead=cacheAllowed?repository!.readCachedResponse(key).catch(()=>null).then(async value=>{
-  if(!value&&format==='blob')value=await repository!.readDatasetMedia(key).catch(()=>null);
+  if(!value&&format==='blob')for(const candidate of receiptMediaCandidates(url)){value=await repository!.readDatasetMedia(candidate).catch(()=>null);if(value)break}
   if(!value&&format==='json'){
    const data=await readOfflineDataset(access,url.href).catch(()=>null),revision=await currentRevision();
    if(data!==null&&revision!=null)value={data,format:'json',contentType:'application/json',savedAt:Date.now(),revision};
