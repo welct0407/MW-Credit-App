@@ -4,7 +4,7 @@
 
 Wave 4 app work for the independent review, on branch `claude/review-w4-app` from `main` 2b02f94 (head 80c57f4). It covers the Node and PWA side of DB-LOCK-01, DB-LOCK-03 and APP-OFFLINE-03. No schema change in this branch; the shared migration V93 is in the [database note](CHANGE_NOTES_W4_DATABASE_2026-10-16.md). No deployment and no PROD change. The other 21 W4 finding codes are recorded there.
 
-**Deployment dependency.** `services/business/borrowers.mjs` now calls `public.pwa_lock_key_v1`, which V93 creates. Do not deploy this API to an environment before V93 is applied there. V93 is applied in DEV (16 October 2026) and this branch is deployed there (see "DEV migration record"). The branch is stacked on the database branch (`claude/review-w4-db`; merges 4153098 and 984d978), so it carries V93 and the tooling; merge the database branch first. PROD: V93 must be applied before the PROD API and Hosting promotion.
+**Deployment dependency.** `services/business/borrowers.mjs` now calls `public.pwa_lock_key_v1`, which V93 creates. Do not deploy this API to an environment before V93 is applied there. V93 is applied in DEV (16 October 2026) and this branch is deployed there (see "DEV migration record"). The branch is stacked on the database branch (`claude/review-w4-db`; merges 4153098 and 984d978), so it carries V93 and the tooling; merge the database branch first. In PROD, V93 was applied before the API and Hosting promotion (see "PROD execution record").
 
 ## Changes
 
@@ -35,7 +35,7 @@ Results from the working sessions; the orchestrator re-confirms on the final com
 | --- | --- |
 | Authenticated business write in the DEV smoke | Not done; smoke is unauthenticated plus log review |
 | iPhone Pro Max Home Screen check of the busy text in Thai (heading wrap, stable Retry button) | Device check; the layout reuses existing paragraph patterns |
-| Any PROD step | Not authorized |
+| Authenticated PROD write | No PROD test identity; the owner's next normal sign-in |
 
 ## DEV migration record
 
@@ -48,9 +48,16 @@ The V93 migration is recorded in the database note (done 16 October 2026). DEV a
 - Rollback: previous image `api@sha256:a86ce85d...` (`keep-dev-20261016-a86ce85d`; revisions read-00024-wqc, command-00031-fcg, notify-00004-8w7, jobs-00004-qkd) through the private pre-W4 activation file, then plan, apply and publish; Hosting `955fa49b579be5f9` (release `1792139161502000`).
 - No authenticated business write was made.
 
-## Prepared for a later go
+## PROD execution record (16 October 2026)
 
-Deploy order: V93 in the target database, then the API images, then Hosting. PROD: apply V93 first (request (a) in the database note: drift check, backup, authority window, migrate, validate, restore), then promote the same tested API image and Hosting build with the usual freeze, pinned package and one bounded smoke. The PROD API calls `pwa_lock_key_v1`, so promoting it before V93 would break borrower create and rename. No other prepared step.
+Owner instruction, 16 October 2026 (Bangkok): "Go ahead to execute all the steps until wave 4 is fully done." V93 was applied in PROD first (22:16 Bangkok; database note). The promotion then followed from `claude/r064-promotion` `355f3a3` (parent runtime source `7c11863`), pinned and reused from existing CI:
+
+- Checks reused: App CI 38926352236 on `355f3a3` (check, three e2e shards, terraform; non-blocking lint failed as for R063); database CI 38915135945 at `984d978`; `npm run check` 520 of 520; Hosting runner tests 23 of 23.
+- Runtime: Cloud Build `cccc03e6-99fb-49fb-86e0-e5b061ca1938` (`cloudbuild-business.yaml`), digest `api@sha256:8611c23de05e2d488a1ba8eeb5479527c438f57fd5257259e6d82f16715044c8`, tag `keep-r064-runtime`. `infrastructure/production` plan 0 add, 4 change (image only), 0 destroy, applied 15:23:45 to 15:24:23Z, re-plan no changes. Revisions read-00007-tgd, command-00011-j4n, notify-00005-p8k, jobs-00005-fnc, Ready 100%.
+- Hosting: version `2b6c25c065f1a45a`, release `1792166200421000` (15:56:13 to 15:56:47Z), marker `1a84bcdb5c851abf9dec4139`, entry `/assets/index-ClaA5ewz.js`, 15 files; package and receipt in `~/.mw-private/MW-Credit-App/promotion/r064/` and the private bucket.
+- Smoke: API and Hosting checks passed (details in Development Changes, R064 production promotion); no `pwa_lock_key_v1` errors. The notify worker's connection drops at 15:46Z and 15:55Z coincide with the two instance restarts and recovered. Pre-existing 503s on the agent's `/internal/agent/query` and `/internal/agent/catalogue` calls also occurred on R063.
+- Rollback baseline: all four services on `86d172de…` (`keep-r063-runtime`), Hosting `8154effa824f58e9` / release `1792149184194000`.
+- Not done: authenticated PROD path (the owner's next normal sign-in is the proof); physical device. R064 is Frozen and not Released; the sync correction comes from another session.
 
 ## Recovery
 
@@ -64,6 +71,6 @@ Deploy order: V93 in the target database, then the API images, then Hosting. PRO
 
 ## Remaining work
 
-- PROD promotion after V93 in PROD. One authenticated check by the owner on the next normal sign-in is the only proof of the busy-retry path in PROD; no PROD test identity.
+- One authenticated check by the owner on the next normal sign-in is the only proof of the busy-retry path in PROD; no PROD test identity.
 - SQL bodies still use the inline lock expression; adopting `pwa_lock_key_v1` there is a later migration.
 - SQL `lower()` and JavaScript `toLowerCase()` can differ for non-ASCII case mappings in the borrower-name key (pre-existing, unchanged).

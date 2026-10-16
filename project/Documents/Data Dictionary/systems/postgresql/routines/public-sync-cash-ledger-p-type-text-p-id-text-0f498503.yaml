@@ -81,28 +81,28 @@
   "/content/definition/acl":
     "reference": "Change Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md"
     "reason": "DB-ACCESS-08: V93 makes the ledger projection a definer function owned by the ledger owner, search_path pinned,\
-      \ the four row locks removed (the AFTER ROW trigger already holds the source row lock); source-derived for PROD; the\
-      \ DEV readback of 16 October 2026 matches the shape (owner mw_ledger_owner_dev, SECURITY DEFINER, mw_app_dev SELECT\
-      \ only, journal and ledger owners write)"
+      \ the four row locks removed (the AFTER ROW trigger already holds the source row lock); PROD readback of 16 October\
+      \ 2026 confirms the owner (mw_ledger_owner_prod) and SECURITY DEFINER; the EXECUTE ACL is the migration value (not read\
+      \ back)"
     "state": "value"
   "/content/definition/definition":
     "reference": "Change Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md"
     "reason": "DB-ACCESS-08: V93 makes the ledger projection a definer function owned by the ledger owner, search_path pinned,\
-      \ the four row locks removed (the AFTER ROW trigger already holds the source row lock); source-derived for PROD; the\
-      \ DEV readback of 16 October 2026 matches the shape (owner mw_ledger_owner_dev, SECURITY DEFINER, mw_app_dev SELECT\
-      \ only, journal and ledger owners write)"
+      \ the four row locks removed (the AFTER ROW trigger already holds the source row lock); PROD readback of 16 October\
+      \ 2026 confirms the owner (mw_ledger_owner_prod) and SECURITY DEFINER; the EXECUTE ACL is the migration value (not read\
+      \ back)"
     "state": "value"
   "/content/definition/owner":
     "reference": "Change Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md"
     "reason": "DB-ACCESS-08: V93 makes the ledger projection a definer function owned by the ledger owner, search_path pinned,\
-      \ the four row locks removed (the AFTER ROW trigger already holds the source row lock); source-derived for PROD; the\
-      \ DEV readback of 16 October 2026 matches the shape (owner mw_ledger_owner_dev, SECURITY DEFINER, mw_app_dev SELECT\
-      \ only, journal and ledger owners write)"
+      \ the four row locks removed (the AFTER ROW trigger already holds the source row lock); PROD readback of 16 October\
+      \ 2026 confirms the owner (mw_ledger_owner_prod) and SECURITY DEFINER; the EXECUTE ACL is the migration value (not read\
+      \ back)"
     "state": "value"
   "/content/definition/security_definer":
     "reference": "Change Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md"
     "reason": "DB-ACCESS-08: V93 makes the ledger projection a definer function owned by the ledger owner, search_path pinned,\
-      \ the four row locks removed (the AFTER ROW trigger already holds the source row lock); source-derived for PROD; the\
-      \ DEV readback of 16 October 2026 matches the shape (owner mw_ledger_owner_dev, SECURITY DEFINER, mw_app_dev SELECT\
-      \ only, journal and ledger owners write)"
+      \ the four row locks removed (the AFTER ROW trigger already holds the source row lock); PROD readback of 16 October\
+      \ 2026 confirms the owner (mw_ledger_owner_prod) and SECURITY DEFINER; the EXECUTE ACL is the migration value (not read\
+      \ back)"
     "state": "value"

@@ -8,7 +8,7 @@
 "verification":
   "status": "documented"
   "source": "database/migrations/V93__review_wave4_hygiene.sql"
-  "coverage": "V93 migration source (R064 Wave 4); verified in DEV on 16 October 2026, not yet applied in PROD"
+  "coverage": "V93 migration source (R064 Wave 4); verified in DEV and PROD on 16 October 2026"
 "content":
   "definition":
     "schema": "public"
