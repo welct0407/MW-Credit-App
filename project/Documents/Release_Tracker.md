@@ -4,8 +4,8 @@
 
 | Item | Current value |
 | --- | --- |
-| New product work | **R064 — Open** |
-| Next unused number | **R065**, only opened when authorized R064 promotion starts |
+| New product work | **R065 — Open** |
+| Next unused number | **R066**, only opened when authorized R065 promotion starts |
 | Current runtime baseline | [Environment inventory](Environment_Inventory.md) |
 
 All new features/fixes use the sole Open release. Freeze only at authorized promotion start, pin the package, then publish the next Open number in the same update. Frozen corrections stay with their release; new features use the successor. Do not reserve a second Open release or reuse a number. Documentation/governance changes do not allocate releases.
@@ -14,7 +14,8 @@ All new features/fixes use the sole Open release. Freeze only at authorized prom
 
 | Release | Status | Remaining action / owning record |
 | --- | --- | --- |
-| R064 | Open | New product work. Carries nothing from R063. |
+| R065 | Open | New product work. Carries nothing from R064. |
+| R064 | Frozen 16 October 2026 21:49 Bangkok | Wave 4 promotion in progress (owner, 17 October 2026: "Go ahead to execute all the steps until wave 4 is fully done"). Package: SQL `claude/review-w4-db` `9eee10e56974f04c464c70b1a815f70be9809c6c`, manifest SHA256 `033b10fc…bea9c`, V93 `d4e7e547…7013`; runtime/frontend `claude/review-w4-app` `7c1186369ca5e5ec6c03f1126a163588a4e5d023` (runtime inputs of `ba0a9d7`); `mw_agent` 7-day retention, agent V5 and the Cloud SQL flag change. [Record](Development_Changes.md#r064-wave-4) |
 | R056 | Frozen; V91 deployed | Lisa enrollment retry/closure; [record](../outputs/r056-apple-push/README.md) |
 | R055 | Frozen; monitoring delivered | Carried credential work unfinished; [record](../outputs/r055-grafana/continuation.md) |
 | R016 | Owner-accepted reporting; administrative follow-up | Migration-key retirement evidence/final tag unresolved; do not reopen product development |
