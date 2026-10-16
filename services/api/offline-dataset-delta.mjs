@@ -11,10 +11,10 @@ export function canonicalDeltaValue(value){
 }
 export const deltaValueHash=value=>digest(canonicalDeltaValue(value));
 export function readDeltaRequest(input){
- if(!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).some(key=>!['cursor','need','sourceVersion'].includes(key)))throw Error('invalid_request');
- const {cursor=null,need=[],sourceVersion=null}=input;
- if(cursor!==null&&(typeof cursor!=='string'||cursor.length>32768||!/^[A-Za-z0-9_-]+$/.test(cursor))||sourceVersion!==null&&(typeof sourceVersion!=='string'||!hashPattern.test(sourceVersion))||!Array.isArray(need)||need.length>2048||need.some(hash=>typeof hash!=='string'||!hashPattern.test(hash))||new Set(need).size!==need.length)throw Error('invalid_request');
- return {cursor,need,sourceVersion};
+ if(!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).some(key=>!['cursor','need','sourceVersion','acceptChanged'].includes(key)))throw Error('invalid_request');
+ const {cursor=null,need=[],sourceVersion=null,acceptChanged=false}=input;
+ if(cursor!==null&&(typeof cursor!=='string'||cursor.length>32768||!/^[A-Za-z0-9_-]+$/.test(cursor))||sourceVersion!==null&&(typeof sourceVersion!=='string'||!hashPattern.test(sourceVersion))||!Array.isArray(need)||need.length>2048||need.some(hash=>typeof hash!=='string'||!hashPattern.test(hash))||new Set(need).size!==need.length||typeof acceptChanged!=='boolean')throw Error('invalid_request');
+ return {cursor,need,sourceVersion,acceptChanged};
 }
 /** No retained server snapshot: repeat the same deterministic provider page to
  * retrieve only the content hashes missing from the owner's durable cache. */

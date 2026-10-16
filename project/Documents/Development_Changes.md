@@ -13,7 +13,7 @@
 | Grafana revamp: alert coverage for PWA APIs, workers, Cloud SQL disk and backups; every ALL-MON item (including ALL-MON-03 checks) is a line of this entry | Pending future release (review ALL-MON-01); no alert rules applied in R063 |
 | R064 Wave 4 database (V93) | Applied and verified in DEV and PROD on 16 October 2026; [PROD record](#r064-production-promotion) |
 | `mw_agent` maintenance (DB-PERF-01) | 7-day purge in progress from a cloud session (owner, 16 October); `VACUUM FULL` postponed to the SSD move; agent migration V5 (retention role and purge function) and the agent deploy pending in this session; [record](#r064-production-promotion) |
-| SSD for the shared instance | Needs a new instance (separate later owner decision); `VACUUM FULL` of `mw_agent` waits for it |
+| SSD for the shared instance | Needs a new instance; the move to `mw-credit-pg-20261017` is planned for 17 October 2026 after R064 is stable (owner decision); `VACUUM FULL` of `mw_agent` waits for it |
 | Cloud SQL flags (DB-PERF-03) | Done 16 October 2026 with the tier change; `max_connections` stays 200 (owner, supersedes the planned 50); [record](#r064-production-promotion) |
 | Lease columns of `pwa_job_runs` (DB-LOCK-02) | Not dropped; a later contract migration |
 | SQL adoption of `pwa_lock_key_v1` (DB-LOCK-03) | Deferred to the next migration that touches `pwa_submit_operation_v2` (needs journal-owner authority); Node already uses it |
@@ -22,6 +22,10 @@
 | Repository merge follow-ups (15 October 2026) | [Change note](../../Change%20Logs/CHANGE_NOTES_REPOSITORY_MERGE_2026-10-15.md) |
 
 Use the [release tracker](Release_Tracker.md), including the carried R016 administrative follow-up. Current runtime versions belong in [environment inventory](Environment_Inventory.md). Update this page for actual outstanding work, not completed-release history.
+
+## R064 local dataset sync fix and shared Cloud SQL
+
+[Change note](../../Change%20Logs/CHANGE_NOTES_R064_SYNC_2026-10-16.md). App-only correction on `claude/sync-phase1` (81541c7, 1f63b9d), stacked on Wave 4; one R064 promotion, no migration. The offline dataset walk keeps progress across the user's own writes, commits a torn walk (`acceptChanged`) instead of restarting, packs more records per response, throttles focus checks to 60 s per domain and serves `offline:` cursors locally; header shows "Updated HH:MM" and "All synced". Command pool 4 connections, PROD command max instances 2 (on deploy). Agent C verified; DEV and PROD deployed from 9420c85 (smoke passed).
 
 ## R064 production promotion
 
@@ -39,7 +43,7 @@ Owner instruction, 16 October 2026 (Bangkok): "Go ahead to execute all the steps
 - **Pre-existing, not caused by Wave 4.** Integration-agent calls to command `/internal/agent/query` (15:26Z) and `/internal/agent/catalogue` (15:34Z) returned 503 after about 10 s; the same happened on R063 at 14:09Z.
 - **Rollback.** Runtime: put the R063 pins back in the PROD activation file (all four services on `86d172de…`, tag `keep-r063-runtime`; revisions read-00006-9dl, command-00010-4s8, notify-00004-q8t, jobs-00004-p9t; previous activation SHA256 `a5858b98…`, copy `production.activation.before.tfvars` in the private package folder), then plan, review and apply `infrastructure/production`. Hosting: new release of version `8154effa824f58e9` (release `1792149184194000`). Database: forward fix; V93 is additive except the ledger revokes, which a forward migration can re-grant; restore of dump `09b4c124…` or Cloud SQL backup `1792163475892` only under separate authorization. Instance: tier and flags by patch; revert `owned.tf` and re-apply.
 - **Not done.** No authenticated PROD path (the owner's next normal sign-in is the proof; no PROD test identity). No physical-device check. R064 is not Released and no tag is set.
-- **Sync correction (R064).** <!-- PLACEHOLDER: the sync-fix session (claude/sync-phase1) adds its R064 deployment section here. Do not mark R064 Released until it is done. -->
+- **Sync correction (R064).** PROD promoted from `9420c85` under the owner's one-promotion instruction ("Approve all four, go with one R064 promotion ... don't wait for Saturday. i want it asap."); app-only, no migration. Image `88b4dbad1b33...` (`keep-r064-sync-runtime`, build `11fdb610`); saved plan `875ca808...` 0/4/0 (image x4, command max instances 2, CPU boost) applied 16:54:52 to 16:55:28Z, re-plan No changes; revisions read-00008-xp4, command-00012-67j, notify-00006-rnq, jobs-00006-rzs, Ready 100%. Hosting `7664add62c41bce6` (release 1792169838042000, 16:56:51 to 16:57:25Z, entry `/assets/index-CnmFQCHp.js`); the first `--apply` was refused by the runner's live verification before any change (package source-object field order), fixed, `--check` re-passed, second apply succeeded. Smoke: health 200, unauthenticated session/offline-dataset 401, PROD origin 204, foreign/DEV origin 403, 15 of 15 files byte-identical, PROD-only CSP, `X-Frame-Options: DENY`, logs 0 errors and 0 5xx, notify 200 on the new revision, no agent 503s. Rollback: image `8611c23d...` via `production.activation.before.tfvars`, Hosting `2b6c25c065f1a45a`. Not done: authenticated PROD path (the owner's next normal sign-in is the proof) and a physical-device check. R064 is closed and tagged by the Wave 4 session.
 
 ## R064 Wave 4
 

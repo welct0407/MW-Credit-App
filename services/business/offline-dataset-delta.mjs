@@ -23,7 +23,12 @@ export async function readOfflineDatasetDelta(client,actor,domain,input){
  // Stable page counts make manifest/content replay deterministic while avoiding
  // a separate HTTP round trip for every small record page. Costlier analytics
  // remain one page; the existing byte boundary still applies between pages.
- const chunk=await readOfflineDatasetChunk(client,actor,domain,cursor?.inner??null,{deterministicPages:{records:8,collection:2,cash:4,management:1}[domain]});
- if(chunk.complete&&cursor&&await readOfflineSourceVersion(client,actor,domain,stamp.businessDate)!==sourceVersion)throw Error('dataset_changed');
+ const chunk=await readOfflineDatasetChunk(client,actor,domain,cursor?.inner??null,{deterministicPages:{records:32,collection:2,cash:4,management:1}[domain]});
+ if(chunk.complete&&cursor&&await readOfflineSourceVersion(client,actor,domain,stamp.businessDate)!==sourceVersion){
+  // R064: a client declaring acceptChanged keeps the walked ("torn") bundle with
+  // no source version and rechecks; older clients still receive 409 and re-walk.
+  if(!request.acceptChanged)throw Error('dataset_changed');
+  return encodeDeltaChunk({...chunk,sourceVersion:null,changed:true,nextCursor:null},request.need);
+ }
  return encodeDeltaChunk({...chunk,sourceVersion,nextCursor:chunk.nextCursor?wrapDeltaCursor(chunk.nextCursor,sourceVersion):null},request.need);
 }

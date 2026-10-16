@@ -57,7 +57,7 @@ run "contained_runtime_has_only_auth_authority" {
     error_message = "Federation must require exact repository/owner/main/production context."
   }
   assert {
-    condition     = alltrue([for service in google_cloud_run_v2_service.foundation : service.template[0].scaling[0].max_instance_count == 1 && service.template[0].containers[0].args == tolist(["services/production/server.mjs"])])
+    condition     = alltrue([for role, service in google_cloud_run_v2_service.foundation : service.template[0].scaling[0].max_instance_count == (role == "command" ? 2 : 1) && service.template[0].containers[0].args == tolist(["services/production/server.mjs"])])
     error_message = "Only bounded contained entrypoints may be proposed."
   }
   assert {
@@ -90,7 +90,7 @@ run "business_prerequisites_do_not_activate_runtime" {
     error_message = "Only two IAM database users and four SQL connection bindings are proposed."
   }
   assert {
-    condition     = alltrue([for service in google_cloud_run_v2_service.foundation : service.template[0].containers[0].args == tolist(["services/production/server.mjs"]) && service.template[0].scaling[0].max_instance_count == 1])
+    condition     = alltrue([for role, service in google_cloud_run_v2_service.foundation : service.template[0].containers[0].args == tolist(["services/production/server.mjs"]) && service.template[0].scaling[0].max_instance_count == (role == "command" ? 2 : 1)])
     error_message = "SQL prerequisites must not activate business entrypoints or resize services."
   }
 }
@@ -147,7 +147,7 @@ run "business_candidate_has_exact_bounded_receipt_authority" {
     error_message = "Policy belongs to both runtimes; catalog and receipt grants belong only to command."
   }
   assert {
-    condition     = alltrue([for service in google_cloud_run_v2_service.foundation : service.template[0].containers[0].args == tolist(["services/production/business-server.mjs"]) && service.template[0].containers[0].image == var.business_image && service.template[0].scaling[0].max_instance_count == 1 && service.template[0].max_instance_request_concurrency == 5])
+    condition     = alltrue([for role, service in google_cloud_run_v2_service.foundation : service.template[0].containers[0].args == tolist(["services/production/business-server.mjs"]) && service.template[0].containers[0].image == var.business_image && service.template[0].scaling[0].max_instance_count == (role == "command" ? 2 : 1) && service.template[0].max_instance_request_concurrency == 5])
     error_message = "Business candidate must use its exact image/entrypoint with unchanged bounded runtime sizing."
   }
   assert {

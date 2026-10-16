@@ -6,7 +6,7 @@ test.beforeAll(async({},info)=>{const port=6100+info.workerIndex;base=`http://12
 test.afterAll(()=>server?.kill());test.setTimeout(60000);
 async function openSavedPayments(page:any){
  const viewport=page.viewportSize()!;if(viewport.width<=1050)await page.setViewportSize({...viewport,width:1440});
- await page.getByRole('button',{name:/^Waiting to sync/}).filter({visible:true}).first().click();
+ await page.getByRole('button',{name:/^(?:Waiting to sync|All synced)/}).filter({visible:true}).first().click();
  if(viewport.width<=1050)await page.setViewportSize(viewport);
 }
 const auth=`let listener;const user={uid:'phase4-owner',getIdToken:async()=>'synthetic-bearer'};export const browserLocalPersistence='local',inMemoryPersistence='memory',browserPopupRedirectResolver={};export function initializeAuth(){return {}};export function onAuthStateChanged(a,fn){listener=fn;fn(localStorage.getItem('mock-owner')?user:null);return()=>{}};export class GoogleAuthProvider{setCustomParameters(){}};export async function signInWithPopup(){localStorage.setItem('mock-owner','1');listener(user)};export async function signOut(){localStorage.removeItem('mock-owner');listener(null)};`;

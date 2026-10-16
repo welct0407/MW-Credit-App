@@ -75,7 +75,11 @@ async function read<T>(access:Access,path:string,options:Options<T>,format:'json
  try{
   if(!navigator.onLine||access.offlineOnly)throw Error('Offline');
   if(localCursor){
-   await cachedRead;requireCurrent();
+   // SYNC-UX-05: a later page is served from the complete local bundle at once;
+   // the coordinator rechecks that domain in the background (throttled). Only a
+   // missing bundle waits, and that wait ends as soon as the domain's sync fails.
+   const saved=await cachedRead;requireCurrent();
+   if(saved&&saved.format==='json'){window.dispatchEvent(new CustomEvent('mw-offline-prepare',{detail:{domain:routeDomain(url.pathname),background:true}}));settled=true;reportFailure(false);return {response:new Response(null,{status:200}),data:structuredClone(saved.data) as T,fromCache:true}}
    const refreshed=await refreshOfflineDataset(access,url.href);requireCurrent();
    if(refreshed===null)throw Error('Offline page is no longer available; refresh the first page');
    settled=true;reportFailure(false);return {response:new Response(null,{status:200}),data:refreshed as T,fromCache:true};

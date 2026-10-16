@@ -31,21 +31,32 @@ const text=value=>value===null||value===undefined?null:typeof value==='string'&&
 const object=(value,keys)=>{if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).sort().join(',')!==[...keys].sort().join(','))throw Error('invalid_request');return value};
 const page=(key,read,path)=>async(c,a,stamp,state)=>{const value=await read(c,text(state),a,stamp);if(value.collectionError)throw Error(value.collectionError);return result([append(key,value.items,path)],value.nextCursor??null)};
 
-async function idRows(c,table,after,limit=16){if(after!==null&&after!==undefined&&!validBorrowerId(after))throw Error('invalid_request');return(await c.query(`SELECT "Row ID" id FROM public."${table}" WHERE ($1::text IS NULL OR "Row ID" COLLATE "C">$1 COLLATE "C") ORDER BY "Row ID" COLLATE "C" LIMIT $2`,[after??null,limit+1])).rows;}
-function details(key,table,read,limit=16){return async(c,a,stamp,state)=>{
+// R064 Phase 1 packing: larger deterministic pages reduce HTTP round trips; the
+// byte boundary between pages still bounds each response.
+async function idRows(c,table,after,limit=64){if(after!==null&&after!==undefined&&!validBorrowerId(after))throw Error('invalid_request');return(await c.query(`SELECT "Row ID" id FROM public."${table}" WHERE ($1::text IS NULL OR "Row ID" COLLATE "C">$1 COLLATE "C") ORDER BY "Row ID" COLLATE "C" LIMIT $2`,[after??null,limit+1])).rows;}
+function details(key,table,read,limit=64){return async(c,a,stamp,state)=>{
  const rows=await idRows(c,table,text(state),limit),batch=bulkReadClient(c),values=await Promise.all(rows.slice(0,limit).map(row=>read(batch,row.id)));
  // Orphaned legacy records may be absent from the owning joined detail read.
  // Retain its unavailable result without poisoning unrelated source records.
  const items=values.filter(Boolean).map(item=>({...item,...stamp,...(key==='payments'?{receiptReference:item.receiptReference?'attached':null}:{})}));
  return result([append(key,items)],rows.length>limit?rows[limit-1].id:null);
  }}
-/** One parent and one existing API page per request; never drain a relation. */
-function parents(table,read){return async(c,a,stamp,input)=>{
- const state=input??{after:null,current:null,cursor:null};if(!state||typeof state!=='object'||Array.isArray(state)||Object.keys(state).some(key=>!['after','current','cursor'].includes(key)))throw Error('invalid_request');
- let id=state.current;if(id!==null&&!validBorrowerId(id))throw Error('invalid_request');
- if(!id){id=(await idRows(c,table,text(state.after),1))[0]?.id;if(!id)return result([])}
- const value=await read(c,id,text(state.cursor),a,stamp);
- return result(value.patches,value.cursor?{after:state.after,current:id,cursor:value.cursor}:{after:id,current:null,cursor:null});
+/** Up to `perPage` parents, each with one existing API page, per request; never
+ * drain a relation. A parent whose page continues keeps the page to itself. */
+function parents(table,read,perPage=8){return async(c,a,stamp,input)=>{
+ let state=input??{after:null,current:null,cursor:null};if(!state||typeof state!=='object'||Array.isArray(state)||Object.keys(state).some(key=>!['after','current','cursor'].includes(key)))throw Error('invalid_request');
+ if(state.current!==null&&!validBorrowerId(state.current))throw Error('invalid_request');
+ const patches=[];let count=0;
+ while(count<perPage){
+  const ids=state.current?[state.current]:(await idRows(c,table,text(state.after),perPage-count)).slice(0,perPage-count).map(row=>row.id);
+  if(!ids.length)return result(patches);
+  for(const id of ids){
+   const value=await read(c,id,text(state.cursor),a,stamp);patches.push(...value.patches);count++;
+   if(value.cursor)return result(patches,{after:state.after,current:id,cursor:value.cursor});
+   state={after:id,current:null,cursor:null};
+  }
+ }
+ return result(patches,state);
  }}
 const relation=kind=>parents('Loans',async(c,id,cursor)=>{const value=await readLoanRelated(c,id,kind,{limit:100,cursor});return {patches:[append('loanRelated',value?.items??[],[id,kind])],cursor:value?.nextCursor}});
 const draft=scope=>parents('Borrowers',async(c,id,cursor,a,stamp)=>{
@@ -56,7 +67,7 @@ const draft=scope=>parents('Borrowers',async(c,id,cursor,a,stamp)=>{
 });
 
 const recordPhases=[
- details('borrowers','Borrowers',readBorrowerRecord),details('loans','Loans',readLoanRecord),details('charges','Charges',readChargeRecord),details('payments','Payments',readPaymentRecord,8),details('expenses','Business Expenses',readExpenseRecord),
+ details('borrowers','Borrowers',readBorrowerRecord),details('loans','Loans',readLoanRecord),details('charges','Charges',readChargeRecord),details('payments','Payments',readPaymentRecord,32),details('expenses','Business Expenses',readExpenseRecord),
  async(c,a,stamp,state)=>{const rows=(await c.query(`SELECT "Row ID" id,"Borrower Name" name,coalesce("Borrower Name",'')||' - '||coalesce("Description",'') AS "borrowerDisplayName","Description" description,"Total Interest Earned"::text AS "totalProfitEarned","Creation Date"::text AS "createdDate","Has Active Loan" AS "hasActiveLoan","Total Outstanding Principal"::text AS "outstandingPrincipal","Borrower Note" note FROM public."Borrowers" WHERE "Hidden Flag" IS NOT TRUE AND ($1::text IS NULL OR "Row ID" COLLATE "C">$1 COLLATE "C") ORDER BY "Row ID" COLLATE "C" LIMIT 129`,[text(state)])).rows;return result([append('borrowerList',rows.slice(0,128))],rows.length>128?rows[127].id:null)},
  async(c,a,stamp,state)=>{const rows=(await c.query(`SELECT ${loanColumns} FROM public."Loans" l JOIN public."Borrowers" b ON b."Row ID"=l."Ref Borrowers" WHERE b."Hidden Flag" IS NOT TRUE AND ($1::text IS NULL OR l."Row ID" COLLATE "C">$1 COLLATE "C") ORDER BY l."Row ID" COLLATE "C" LIMIT 129`,[text(state)])).rows;return result([append('borrowerLoans',rows.slice(0,128).map(row=>projectLoan(row,row.borrowerId)))],rows.length>128?rows[127].id:null)},
  page('loanList',(c,cursor)=>readRecordList(c,'loans',{limit:100,cursor})),relation('charges'),relation('payments'),draft('due'),draft('future'),draft('all'),
@@ -135,18 +146,26 @@ for(const metric of ['distribution','profit30','dailyInterest','projected','dail
 
 /** Bounded resumable traversal. Every request retains the ordinary transaction,
  * owner checks, per-item versions and provider calculations. */
-export async function readOfflineDatasetChunk(client,actor,domain,cursor=null,{singlePage=false,deterministicPages=null}={}){
+/** One need request may name at most this many content hashes (api/offline-dataset-delta.mjs);
+ * a response therefore never carries more values than that. */
+export const MAX_CHUNK_VALUES=2048;
+const patchValues=patches=>patches.reduce((sum,patch)=>sum+(patch.mode==='append'?patch.value.length:1),0);
+export async function readOfflineDatasetChunk(client,actor,domain,cursor=null,{singlePage=false,deterministicPages=null,maxValues=MAX_CHUNK_VALUES}={}){
  const phases={records:recordPhases,collection:collectionPhases,cash:cashPhases,management:managementPhases}[domain];if(!phases)throw Error('invalid_request');
  const stamp=(await client.query(`SELECT to_char(CURRENT_TIMESTAMP AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "asOf",(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date::text AS "businessDate"`)).rows[0];
  const traversal=readTraversalCursor(cursor,{actor,domain,...stamp,phases:phases.length});
- let next=traversal,bytes=0;const patches=[],started=performance.now();
+ let next=traversal,bytes=0,values=0;const patches=[],started=performance.now();
  // Pack small pages to avoid hundreds of HTTP round trips. Check budgets only
  // between authoritative pages; a page is never truncated or partially applied.
+ // A page that would push the response past the value budget is left for the
+ // next request (same cursor, same page: replay stays deterministic), so one
+ // need request can always fetch everything a response references.
  for(let count=0;count<(deterministicPages??(singlePage?1:8));count++){
-  const value=await phases[next.phase](client,actor,stamp,next.state);
-  patches.push(...value.patches);bytes+=Buffer.byteLength(JSON.stringify(value.patches));
+  const value=await phases[next.phase](client,actor,stamp,next.state),pageValues=patchValues(value.patches);
+  if(count>0&&values+pageValues>maxValues)break;
+  patches.push(...value.patches);bytes+=Buffer.byteLength(JSON.stringify(value.patches));values+=pageValues;
   next={...next,phase:next.phase+(value.state===null?1:0),state:value.state,done:next.done+1};
-  if(next.phase===phases.length||(!deterministicPages&&performance.now()-started>=750)||bytes>=524288)break;
+  if(next.phase===phases.length||(!deterministicPages&&performance.now()-started>=750)||bytes>=524288||values>=maxValues)break;
  }
  const complete=next.phase===phases.length;
  return {schemaVersion:2,domain,generation:traversal.generation,startedAt:traversal.startedAt,...stamp,patches,nextCursor:complete?null:encodeTraversalCursor(next),complete,progress:{completed:next.phase,total:phases.length},chunksCompleted:next.done};

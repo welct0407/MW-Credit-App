@@ -25,7 +25,11 @@ test('active delta progress excludes retained bundles and long poll focus overla
  await start(page);await page.clock.runFor(1000);await expect.poll(()=>held).toBe(1);expect((await state(page)).state).toBe('ready');expect((await state(page)).syncActive).toBe(true);expect((await state(page)).progress).toBeLessThan(100);
  for(let step=0;step<4;step++){await page.clock.runFor(18000);await page.evaluate(()=>window.dispatchEvent(new Event('focus')));expect(held).toBe(step+1);release();await page.clock.runFor(1000);if(step<3){await expect.poll(()=>held).toBe(step+2);expect((await state(page)).progress).toBeGreaterThan(0);expect((await state(page)).progress).toBeLessThan(100)}}
  await page.clock.runFor(2000);await settled(page);expect((await state(page)).syncActive).toBe(false);expect((await state(page)).progress).toBe(100);expect(calls).toEqual(['records:start','collection:start','cash:start','management:start','notifications:start','records:1','records:2','records:3']);
- await page.evaluate(()=>window.dispatchEvent(new Event('focus')));await page.clock.runFor(1000);await expect.poll(()=>held).toBe(5);expect((await state(page)).syncActive).toBe(true);expect((await state(page)).progress).toBeLessThan(100);await context.setOffline(true);expect((await state(page)).syncActive).toBe(false);expect(await page.evaluate(async()=>(await(window as any).__syncRepo.readDataset('records')).complete)).toBe(true);release();await page.clock.runFor(1000);expect((await state(page)).syncActive).toBe(false);
+ // R064: a focus/visibility/online burst within 60 s of a completed check sends no new checks.
+ for(let burst=0;burst<3;burst++){await page.evaluate(()=>{window.dispatchEvent(new Event('focus'));document.dispatchEvent(new Event('visibilitychange'));window.dispatchEvent(new Event('online'))});await page.clock.runFor(1000)}
+ // Records completed seconds ago and is not rechecked; the other domains (checked 76 s earlier) may be.
+ expect(held).toBe(4);expect(calls.filter(call=>call.startsWith('records:'))).toHaveLength(4);await page.clock.runFor(2000);await settled(page);
+ await page.clock.runFor(60000);await page.evaluate(()=>window.dispatchEvent(new Event('focus')));await page.clock.runFor(1000);await expect.poll(()=>held).toBe(5);expect((await state(page)).syncActive).toBe(true);expect((await state(page)).progress).toBeLessThan(100);await context.setOffline(true);expect((await state(page)).syncActive).toBe(false);expect(await page.evaluate(async()=>(await(window as any).__syncRepo.readDataset('records')).complete)).toBe(true);release();await page.clock.runFor(1000);expect((await state(page)).syncActive).toBe(false);
  await context.setOffline(false);await page.clock.runFor(1000);await expect.poll(()=>held).toBe(6);for(let step=0;step<4;step++){release();await page.clock.runFor(1000);if(step<3)await expect.poll(()=>held).toBe(7+step)}await page.clock.runFor(2000);await settled(page);expect((await state(page)).syncActive).toBe(false);expect((await state(page)).progress).toBe(100);
 });
 
@@ -49,7 +53,7 @@ test('delta reuses complete data, transfers only edits and derived changes, poll
  await page.clock.runFor(2000);await settled(page);const before=calls.length;
  await page.evaluate(()=>Object.defineProperty(document,'visibilityState',{configurable:true,value:'hidden'}));await page.clock.fastForward(5*60*1000);await page.clock.runFor(1000);expect(calls).toHaveLength(before);
  await page.evaluate(()=>{Object.defineProperty(document,'visibilityState',{configurable:true,value:'visible'});document.dispatchEvent(new Event('visibilitychange'))});await page.clock.runFor(2000);await settled(page);expect(calls.length).toBeGreaterThan(before);
- const beforeReconnect=calls.length;await context.setOffline(true);await context.setOffline(false);await page.clock.runFor(2000);await settled(page);expect(calls.length).toBeGreaterThan(beforeReconnect);
+ const beforeReconnect=calls.length;await page.clock.runFor(60000);await context.setOffline(true);await context.setOffline(false);await page.clock.runFor(2000);await settled(page);expect(calls.length).toBeGreaterThan(beforeReconnect);
 });
 
 test('interrupted delta retains old complete bundle and resumes durable cursor after reload',async({page})=>{
@@ -79,7 +83,7 @@ test('mounted charge changes quietly, keeps editing source and shows remote dele
  await page.route('**/api/**',async route=>{const url=new URL(route.request().url());if(url.pathname==='/api/charge-records/late-charge')return route.fulfill({json:{item:charge}});const domain=url.searchParams.get('domain')??'notifications',body=route.request().postDataJSON();if(domain!=='records')return route.fulfill({json:{...bundle(domain,[],oldVersion),schemaVersion:3,unchanged:true,values:{}}});return route.fulfill({json:encodeDeltaChunk(bundle(domain,patches({charges:current?[current]:[],payments:[]})),body.need)})});
  await page.evaluate(()=>(window as any).selectBackCase('prepared-charge'));await expect(page.locator('main')).toContainText('Original note');await start(page);await expect(page.locator('main')).toContainText('Other owner note');await settled(page);
  await page.getByRole('button',{name:'Edit charge',exact:true}).click();const note=page.getByRole('textbox',{name:'Notes',exact:true});await note.fill('Unsaved typed note');current=null;
- await page.evaluate(()=>window.dispatchEvent(new Event('online')));await expect.poll(()=>page.evaluate(async()=>(await(window as any).__syncRepo.readDataset('records')).data.charges.length)).toBe(0);await expect(note).toHaveValue('Unsaved typed note');
+ await page.evaluate(()=>window.dispatchEvent(new Event('mw-offline-prepare')));await expect.poll(()=>page.evaluate(async()=>(await(window as any).__syncRepo.readDataset('records')).data.charges.length)).toBe(0);await expect(note).toHaveValue('Unsaved typed note');
  await expect.poll(()=>page.evaluate(async()=>(await(window as any).__syncRepo.list('draft')).length)).toBe(1);const drafts=await page.evaluate(()=>(window as any).__syncRepo.list('draft'));expect(drafts[0].value.draft.source.version).toBe(newVersion);
  await page.getByRole('button',{name:'Back to charge details',exact:true}).first().click();await page.evaluate(()=>{const w=window as any;window.dispatchEvent(new CustomEvent('mw-offline-dataset-ready',{detail:{scopeName:w.__syncRepo.scopeName,domain:'records',changed:true}}))});await expect(page.getByRole('alert')).toContainText('Charge unavailable.');await expect(page.getByRole('button',{name:'Edit charge',exact:true})).toHaveCount(0);
 });
@@ -94,4 +98,76 @@ test('authenticated reads remain available with a missing or expired offline lea
   expect(result).toEqual({name:'Authenticated online',fromCache:false});
  }
  expect(requests).toBe(2);
+});
+
+test('a settled own write mid-traversal keeps the cursor and schedules one trailing recheck',async({page})=>{
+ await fixture(page,'delta-own-write');const calls:string[]=[];let release:(()=>void)|null=null,walked=false;
+ await page.route('**/api/**',async route=>{const url=new URL(route.request().url()),domain=url.searchParams.get('domain')??'notifications',body=route.request().postDataJSON();calls.push(domain+':'+(body.cursor??'start')+(body.need?.length?'+need':''));
+  expect(body.acceptChanged).toBe(true);
+  if(domain==='records'&&!(walked&&body.sourceVersion===newVersion)){const step=body.cursor?Number(body.cursor):0;if(step===1)await new Promise<void>(resolve=>{release=resolve});if(step===3)walked=true;return route.fulfill({json:encodeDeltaChunk({...bundle(domain,step===3?[{key:'dashboard',mode:'replace',value:{total:'77'}}]:[],newVersion,step<3?String(step+1):null),progress:{completed:step+1,total:4}},body.need)})}
+  return route.fulfill({json:{...bundle(domain,[],domain==='records'?newVersion:oldVersion),schemaVersion:3,unchanged:true,values:{}}});
+ });
+ await start(page);await expect.poll(()=>!!release).toBe(true);
+ expect(await page.evaluate(async()=>(await(window as any).__syncRepo.readDatasetProgress('records'))?.nextCursor)).toBe('1');
+ const id='90000000-0000-4000-8000-000000000002';
+ await page.evaluate(async id=>{const repo=(window as any).__syncRepo;await repo.savePending(id,{domain:'borrower',command:{requestId:id,operation:'borrower.update',targetId:'edited',inputs:{}}});await repo.claimPending(id,'own-write');await repo.settlePending(id,'own-write',null)},id);
+ expect(await page.evaluate(async()=>(await(window as any).__syncRepo.readDatasetProgress('records'))?.nextCursor)).toBe('1');
+ release!();await settled(page);await expect.poll(()=>calls.filter(call=>call==='records:start').length).toBe(2);await settled(page);
+ const records=calls.filter(call=>call.startsWith('records:'));
+ expect(records).toEqual(['records:start','records:1','records:2','records:3','records:3+need','records:start']);
+ expect(calls.filter(call=>call==='collection:start')).toHaveLength(2);
+ const saved=await page.evaluate(async()=>(await(window as any).__syncRepo.readDataset('records')));expect(saved.sourceVersion).toBe(newVersion);expect(saved.data.dashboard.total).toBe('77');expect((await state(page)).updateFailed).toBe(false);
+});
+
+test('an offline page cursor is served from the complete local bundle while a traversal is active',async({page})=>{
+ const rows=Array.from({length:30},(_,i)=>({id:'row-'+String(i).padStart(2,'0'),name:'Borrower '+i,hasActiveLoan:true,createdDate:'2026-01-01'}));
+ await fixture(page,'delta-fast-page',{borrowerList:rows,payments:[]});let held=0;
+ await page.route('**/api/**',async route=>{const url=new URL(route.request().url()),domain=url.searchParams.get('domain')??'notifications';if(domain==='records'){held++;await new Promise(()=>{});return}return route.fulfill({json:{...bundle(domain,[],oldVersion),schemaVersion:3,unchanged:true,values:{}}})});
+ await start(page);await expect.poll(()=>held).toBe(1);
+ const result=await page.evaluate(async asOf=>{const w=window as any,cursor='offline:'+encodeURIComponent(JSON.stringify({scope:'/api/borrowers?limit=25',asOf,offset:25,anchor:'row-24'}));const started=performance.now();const value=await w.__cacheTest.readCachedJson(w.__syncAccess,'/api/borrowers?limit=25&cursor='+encodeURIComponent(cursor));return {elapsed:performance.now()-started,ids:value.data.items.map((row:any)=>row.id),fromCache:value.fromCache}},asOf);
+ expect(result.fromCache).toBe(true);expect(result.ids).toEqual(rows.slice(25).map(row=>row.id));expect(result.elapsed).toBeLessThan(1000);expect(held).toBe(1);
+ await page.evaluate(()=>(window as any).__stopPreparation());
+});
+
+test('a missing bundle page read fails as soon as the domain sync fails instead of waiting',async({page})=>{
+ await fixture(page,'delta-fast-fail',initial,false);
+ await page.route('**/api/**',route=>route.fulfill({status:503,json:{code:'command_unavailable'}}));
+ await start(page);
+ const result=await page.evaluate(async()=>{const w=window as any,cursor='offline:'+encodeURIComponent(JSON.stringify({scope:'/api/borrowers?limit=25',asOf:'x',offset:25,anchor:'none'}));const started=performance.now();try{await w.__cacheTest.readCachedJson(w.__syncAccess,'/api/borrowers?limit=25&cursor='+encodeURIComponent(cursor));return {elapsed:performance.now()-started,ok:true}}catch(error){return {elapsed:performance.now()-started,ok:false,message:String(error)}}});
+ expect(result.ok).toBe(false);expect(result.elapsed).toBeLessThan(10000);
+});
+
+test('legacy 409 no longer marks the domain failed, a legacy 400 drops acceptChanged, and a torn completion commits then rechecks once',async({page})=>{
+ await fixture(page,'delta-torn');const bodies:any[]=[];let mode:'legacy-400'|'legacy-409'|'torn'='legacy-400';
+ await page.route('**/api/**',async route=>{const url=new URL(route.request().url()),domain=url.searchParams.get('domain')??'notifications',body=route.request().postDataJSON();
+  if(domain!=='records')return route.fulfill({json:{...bundle(domain,[],oldVersion),schemaVersion:3,unchanged:true,values:{}}});
+  bodies.push({mode,...body});
+  if(mode==='legacy-400'){if(body.acceptChanged!==undefined)return route.fulfill({status:400,json:{error:'invalid_request',code:'invalid_request'}});mode='legacy-409'}
+  if(mode==='legacy-409')return route.fulfill({status:409,json:{error:'dataset_changed',code:'dataset_changed'}});
+  if(body.sourceVersion===newVersion)return route.fulfill({json:{...bundle(domain,[],newVersion),schemaVersion:3,unchanged:true,values:{}}});
+  const torn=body.sourceVersion===oldVersion;
+  return route.fulfill({json:{...encodeDeltaChunk(bundle(domain,[{key:'dashboard',mode:'replace',value:{total:torn?'42':'43'}}],torn?null:newVersion),body.need),...(torn?{changed:true}:{})}});
+ });
+ await start(page);await settled(page);
+ expect(bodies.map(body=>body.mode)).toEqual(['legacy-400','legacy-400','legacy-409']);expect(bodies[0].acceptChanged).toBe(true);expect(bodies[1].acceptChanged).toBeUndefined();
+ expect((await state(page)).updateFailed).toBe(false);expect((await state(page)).state).toBe('ready');
+ expect(await page.evaluate(async()=>(await(window as any).__syncRepo.readDataset('records')).sourceVersion)).toBe(oldVersion);
+ mode='torn';await page.evaluate(()=>window.dispatchEvent(new Event('mw-offline-prepare')));
+ await expect.poll(()=>page.evaluate(async()=>(await(window as any).__syncRepo.readDataset('records')).data.dashboard?.total)).toBe('42');
+ await expect.poll(()=>page.evaluate(async()=>(await(window as any).__syncRepo.readDataset('records')).sourceVersion)).toBe(newVersion);await settled(page);
+ const torn=bodies.filter(body=>body.mode==='torn'&&!body.need.length);expect(torn.map(body=>body.sourceVersion)).toEqual([oldVersion,null]);
+ expect(await page.evaluate(async()=>(await(window as any).__syncRepo.readDataset('records')).data.dashboard.total)).toBe('43');expect((await state(page)).updateFailed).toBe(false);
+ await page.waitForTimeout(1500);expect(bodies.filter(body=>body.mode==='torn'&&!body.need.length)).toHaveLength(2);
+});
+
+test('a manifest referencing more than 2048 missing values is fetched in need batches of at most 2048',async({page})=>{
+ await fixture(page,'delta-need-batches');const rows=Array.from({length:2600},(_,i)=>({id:'big-'+String(i).padStart(4,'0'),note:'n'+i}));const needs:number[]=[];
+ await page.route('**/api/**',async route=>{const url=new URL(route.request().url()),domain=url.searchParams.get('domain')??'notifications',body=route.request().postDataJSON();
+  if(domain!=='records')return route.fulfill({json:{...bundle(domain,[],oldVersion),schemaVersion:3,unchanged:true,values:{}}});
+  if(body.need.length){needs.push(body.need.length);if(body.need.length>2048)return route.fulfill({status:400,json:{error:'invalid_request',code:'invalid_request'}})}
+  return route.fulfill({json:encodeDeltaChunk(bundle(domain,[{key:'borrowers',mode:'append',value:rows}]),body.need)});
+ });
+ await start(page);await settled(page);
+ expect(needs).toEqual([2048,552]);expect((await state(page)).updateFailed).toBe(false);
+ const saved=await page.evaluate(async()=>(await(window as any).__syncRepo.readDataset('records')));expect(saved.sourceVersion).toBe(newVersion);expect(saved.data.borrowers).toHaveLength(2600);
 });

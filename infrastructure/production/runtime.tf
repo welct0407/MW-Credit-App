@@ -97,15 +97,18 @@ resource "google_cloud_run_v2_service" "foundation" {
     max_instance_request_concurrency = 5
     scaling {
       min_instance_count = 0
-      max_instance_count = 1
+      # R064: the command service also serves offline dataset walks; a second
+      # instance keeps a long walk from blocking writes. The reader stays at one.
+      max_instance_count = each.key == "command" ? 2 : 1
     }
     containers {
       image   = lookup(var.runtime_image_overrides, each.key, var.business_runtime_authorized ? var.business_image : var.foundation_image)
       command = ["node"]
       args    = [var.business_runtime_authorized ? "services/production/business-server.mjs" : "services/production/server.mjs"]
       resources {
-        limits   = { cpu = "1", memory = "512Mi" }
-        cpu_idle = true
+        limits            = { cpu = "1", memory = "512Mi" }
+        cpu_idle          = true
+        startup_cpu_boost = true
       }
       dynamic "env" {
         for_each = merge({

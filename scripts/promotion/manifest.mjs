@@ -4,6 +4,7 @@ import path from 'node:path';
 import {createHash} from 'node:crypto';
 import {pathToFileURL} from 'node:url';
 import {validateBusinessDraft,validateBusinessCandidate,validateBusinessPreparation} from './business-candidate.mjs';
+import {isSharedInstanceConnection} from '../../services/lib/identity.mjs';
 
 const DATA_PROJECT = 'clever-oasis-508610-n7';
 const DATA_NUMBER = '737787224638';
@@ -59,7 +60,7 @@ function checkTarget(target,complete,phase='foundation') {
   if(present(app) && (!/^[a-z][a-z0-9-]{4,28}[a-z0-9]$/.test(app) || (shared ? app!==DATA_PROJECT : app===DATA_PROJECT || /(?:^|-)dev(?:-|$)/.test(app)))) fail('Wrong production application project');
   const number=at(target,'applicationProject.number');
   if(present(number) && (!/^[1-9][0-9]{5,19}$/.test(number) || (shared ? number!==DATA_NUMBER : number===DATA_NUMBER))) fail('Wrong application project number');
-  const pins={'dataProject.id':DATA_PROJECT,'dataProject.number':DATA_NUMBER,region:'asia-southeast1','database.connectionName':DATA_PROJECT+':asia-southeast1:appsheet-pg-prod-20260914','database.host':'34.21.174.215','database.name':'loan_manager_prod','storage.bucket':'mw-payment-receipts-prod-508610-n7','hosting.canonicalOrigin':'https://lm.mw-credit.com','artifactRepository.region':'asia-southeast1','artifactRepository.name':shared?'mw-credit-app-prod':'mw-credit-app'};
+  const pins={'dataProject.id':DATA_PROJECT,'dataProject.number':DATA_NUMBER,region:'asia-southeast1','database.connectionName':isSharedInstanceConnection(at(target,'database.connectionName'))?at(target,'database.connectionName'):DATA_PROJECT+':asia-southeast1:appsheet-pg-prod-20260914','database.host':'34.21.174.215','database.name':'loan_manager_prod','storage.bucket':'mw-payment-receipts-prod-508610-n7','hosting.canonicalOrigin':'https://lm.mw-credit.com','artifactRepository.region':'asia-southeast1','artifactRepository.name':shared?'mw-credit-app-prod':'mw-credit-app'};
   for(const [key,value] of Object.entries(pins)) if(present(at(target,key))) equal(at(target,key),value,key);
   if(shared && at(target,'auth.tenant')!==undefined && at(target,'auth.tenant')!==null) fail('Shared default auth requires null tenant');
   else if(at(target,'auth.tenant')!==undefined && at(target,'auth.tenant')!==null) fail('Separate-project foundation requires no tenant');

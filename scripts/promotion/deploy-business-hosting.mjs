@@ -10,6 +10,7 @@ import {gzipSync} from 'node:zlib';
 import {validateR053Candidate} from './r053-candidate.mjs';
 import {validateBusinessApplyReceipts} from './business-candidate.mjs';
 import {verifyOperatorCredential} from '../production/deploy-foundation-hosting.mjs';
+import {INSTANCE_NAMES,isSharedInstanceConnection} from '../../services/lib/identity.mjs';
 
 const project='clever-oasis-508610-n7',prodSite='mw-credit-prod-737787224638';
 const admin=`mw-credit-unattended-admin@${project}.iam.gserviceaccount.com`;
@@ -17,6 +18,8 @@ const sha=value=>createHash('sha256').update(value).digest('hex');
 const imagePattern=new RegExp(`^asia-southeast1-docker\\.pkg\\.dev/${project}/mw-credit-app-prod/api@sha256:[a-f0-9]{64}$`);
 const requireValue=(ok,message)=>{if(!ok)throw Error('App-only promotion: '+message);};
 const exact=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+// The shared instance may be either allowlisted name (services/lib/identity.mjs); the manifest's own value is then the binding pin.
+const sharedTarget=target=>isSharedInstanceConnection(target?.connectionName)?target.connectionName:'';
 function sourceGit(root,args){const r=spawnSync('git',['-C',root,...args],{encoding:'utf8',maxBuffer:4*1024*1024});requireValue(r.status===0,'source verification failed');return args[0]==='show'?r.stdout:r.stdout.trim();}
 
 /** Separate current app-only contract; historical migration packages stay immutable. */
@@ -29,7 +32,7 @@ export async function appOnlyHostingPlan(m,{requireApplied=true}={}){
  requireValue(sourceGit(m.repoRoot,['diff','--name-only',m.sourceCommit,'--','apps','services','public','scripts/production','package.json','package-lock.json','vite.config.ts','Dockerfile'])==='','working runtime source drift');
  if(m.deliveryToolSource){requireValue(/^[a-f0-9]{40}$/.test(m.deliveryToolSource)&&sourceGit(m.repoRoot,['rev-parse','HEAD'])===m.deliveryToolSource,'delivery tool source mismatch');const changed=sourceGit(m.repoRoot,['diff','--name-only',m.sourceCommit,m.deliveryToolSource]).split('\n').filter(Boolean);requireValue(changed.every(p=>['scripts/promotion/deploy-business-hosting.mjs','tests/unit/business-hosting-delivery.test.mjs'].includes(p))&&m.deliveryToolChecks?.command==='node --test tests/unit/business-hosting-delivery.test.mjs'&&m.deliveryToolChecks.exitCode===0,'unverified delivery-only correction');requireValue(sourceGit(m.repoRoot,['diff','--name-only',m.deliveryToolSource,'--','scripts/promotion'])==='','delivery tool working drift');}
  else requireValue(sourceGit(m.repoRoot,['diff','--name-only',m.sourceCommit,'--','scripts/promotion'])==='','delivery tool source drift');
- requireValue(exact(m.target,{projectId:project,projectNumber:'737787224638',region:'asia-southeast1',site:prodSite,database:'loan_manager_prod',connectionName:project+':asia-southeast1:appsheet-pg-prod-20260914',canonicalOrigin:'https://lm.mw-credit.com'}),'wrong production target');
+ requireValue(exact(m.target,{projectId:project,projectNumber:'737787224638',region:'asia-southeast1',site:prodSite,database:'loan_manager_prod',connectionName:sharedTarget(m.target),canonicalOrigin:'https://lm.mw-credit.com'}),'wrong production target');
  requireValue(exact(m.sql,{baselineVersion:91,targetVersion:91,migrations:[]}),'app-only V91 requires no migration');
  validateR053ApplicationReceipt(m.applicationCi,m.sourceCommit);
  requireValue(m.applicationCi.run.conclusion==='success','successful full application CI required');
@@ -98,7 +101,7 @@ export async function frontendOnlyHostingPlan(m){
  requireValue(m?.schemaVersion===3&&m.release==='R061'&&m.environment==='prod'&&m.scope==='frontend-only'&&m.status==='prepared','wrong frontend-only package kind');
  requireValue(!m.build&&!m.plan&&!m.sql&&!m.applied,'frontend-only package must not apply runtime or SQL changes');
  validateFrontendSource(m);
- requireValue(exact(m.target,{projectId:project,projectNumber:'737787224638',region:'asia-southeast1',site:prodSite,database:'loan_manager_prod',connectionName:project+':asia-southeast1:appsheet-pg-prod-20260914',canonicalOrigin:'https://lm.mw-credit.com'}),'wrong production target');
+ requireValue(exact(m.target,{projectId:project,projectNumber:'737787224638',region:'asia-southeast1',site:prodSite,database:'loan_manager_prod',connectionName:sharedTarget(m.target),canonicalOrigin:'https://lm.mw-credit.com'}),'wrong production target');
  validateFrontendCi(m.applicationCi,m.sourceCommit);
  const focused=m.focusedBrowser,e=focused?.evidence;
  requireValue(focused?.sourceCommit===m.sourceCommit&&focused.passed===12&&focused.failed===0&&focused.skipped===0&&Array.isArray(focused.commands)&&focused.commands.length===3&&focused.commands.every(command=>typeof command==='string'&&command.startsWith('npx playwright test tests/e2e/')),'explicit focused browser evidence required');
@@ -149,7 +152,7 @@ export function validateSettingsDatabaseCi(receipt,source){
 export async function settingsHostingPlan(m,{requireApplied=true,git=sourceGit}={}){
  requireValue(m?.schemaVersion===4&&m.release==='R062'&&m.environment==='prod'&&m.scope==='command-sql-frontend'&&['prepared','applied'].includes(m.status),'wrong R062 package kind');
  requireValue(!requireApplied||m.status==='applied','R062 runtime/SQL apply readback required');validateSettingsSource(m,git);
- requireValue(exact(m.target,{projectId:project,projectNumber:'737787224638',region:'asia-southeast1',site:prodSite,database:'loan_manager_prod',connectionName:project+':asia-southeast1:appsheet-pg-prod-20260914',canonicalOrigin:'https://lm.mw-credit.com'}),'wrong R062 production target');
+ requireValue(exact(m.target,{projectId:project,projectNumber:'737787224638',region:'asia-southeast1',site:prodSite,database:'loan_manager_prod',connectionName:sharedTarget(m.target),canonicalOrigin:'https://lm.mw-credit.com'}),'wrong R062 production target');
  validateFrontendCi(m.applicationCi,m.sourceCommit);
  const focused=m.focusedBrowser,e=focused?.evidence;
  requireValue(focused?.sourceCommit===m.sourceCommit&&Number.isSafeInteger(focused.passed)&&focused.passed>0&&focused.failed===0&&focused.skipped===0&&Array.isArray(focused.commands)&&focused.commands.length>0&&focused.commands.every(c=>typeof c==='string'&&c.startsWith('npx playwright test tests/e2e/')),'R062 executed focused browser evidence required');
@@ -168,7 +171,7 @@ export async function settingsHostingPlan(m,{requireApplied=true,git=sourceGit}=
  const recovery=m.rollback;requireValue(/^sites\/mw-credit-prod-737787224638\/versions\/[A-Za-z0-9_-]+$/.test(recovery?.hostingVersion??'')&&/^sites\/mw-credit-prod-737787224638\/releases\/[A-Za-z0-9_-]+$/.test(recovery?.hostingRelease??''),'R062 Hosting recovery pins required');
  for(const role of ['read','command','notify','jobs'])requireValue(imagePattern.test(recovery?.services?.[role]?.image??'')&&new RegExp('^mw-credit-app-'+role+'-prod-[0-9]+-[a-z0-9]+$').test(recovery.services[role].revision??''),'R062 service recovery pins required');
  if(m.status==='applied'){
-  const a=sql.applied;requireValue(a?.environment==='production'&&a.database==='loan_manager_prod'&&a.instance==='appsheet-pg-prod-20260914'&&a.sourceCommit===m.sourceCommit&&a.baselineVersion===91&&a.targetVersion===92&&a.migrationSha256===sql.migrations[0].sha256&&a.validationSuccessful===true&&a.migrationsExecuted===1&&typeof a.verifiedAt==='string'&&a.verifiedAt.endsWith('Z')&&Number.isFinite(Date.parse(a.verifiedAt)),'R062 actual SQL apply/validation required');
+  const a=sql.applied;requireValue(a?.environment==='production'&&a.database==='loan_manager_prod'&&INSTANCE_NAMES.includes(a.instance)&&a.sourceCommit===m.sourceCommit&&a.baselineVersion===91&&a.targetVersion===92&&a.migrationSha256===sql.migrations[0].sha256&&a.validationSuccessful===true&&a.migrationsExecuted===1&&typeof a.verifiedAt==='string'&&a.verifiedAt.endsWith('Z')&&Number.isFinite(Date.parse(a.verifiedAt)),'R062 actual SQL apply/validation required');
   const maintenance=await settingsProof(a.maintenanceRecord);
   requireValue(['authority-restored','authority-already-restored'].includes(a.restorationMode)&&maintenance.restoration?.mode===a.restorationMode&&maintenance.restoredAt&&maintenance.result?.restoreState?.context?.database==='loan_manager_prod'&&maintenance.result.restoreState.version===3,'R062 actual journal authority restoration required');
   requireValue(m.applied?.sourceCommit===m.sourceCommit&&m.applied.planSha256===m.plan.sha256&&m.applied.database==='loan_manager_prod'&&m.applied.sqlVersion===92,'R062 applied source/plan mismatch');
@@ -222,7 +225,7 @@ export async function runtimeHostingPlan(m,{requireApplied=true,git=sourceGit}={
  requireValue(m?.schemaVersion===5&&m.release==='R063'&&m.environment==='prod'&&m.scope==='runtime-workers-frontend'&&['prepared','applied'].includes(m.status),'wrong R063 package kind');
  requireValue(!requireApplied||m.status==='applied','R063 runtime apply/readback required');
  validateRuntimeSource(m,git);
- requireValue(exact(m.target,{projectId:project,projectNumber:'737787224638',region:'asia-southeast1',site:prodSite,database:'loan_manager_prod',connectionName:project+':asia-southeast1:appsheet-pg-prod-20260914',canonicalOrigin:'https://lm.mw-credit.com'}),'wrong production target');
+ requireValue(exact(m.target,{projectId:project,projectNumber:'737787224638',region:'asia-southeast1',site:prodSite,database:'loan_manager_prod',connectionName:sharedTarget(m.target),canonicalOrigin:'https://lm.mw-credit.com'}),'wrong production target');
  requireValue(m.sql?.baselineVersion===92&&m.sql.targetVersion===92&&exact(m.sql.migrations,[])&&m.sql.verified?.database==='loan_manager_prod'&&m.sql.verified.latestVersion==='92'&&m.sql.verified.allSuccessful===true,'R063 requires verified V92 with no migration');
  validateRuntimeCi(m.applicationCi,m,git);
  requireValue(m.build?.sourceCommit===m.sourceCommit&&m.build.status==='SUCCESS'&&imagePattern.test(m.build.image??'')&&typeof m.build.id==='string'&&m.build.id.length>0,'R063 PROD image provenance required');
@@ -250,8 +253,11 @@ export async function verifyRuntimeLivePackage(m,{token,request=fetch,readGithub
 }
 
 // R064 (Wave 4): one image for reader/command/notify/jobs after the separately applied and
-// verified V93; image-only plan (the R063 caller subjects stay as they are).
+// verified V93; image-only plan (the R063 caller subjects stay as they are). The R064 sync
+// correction adds only the reviewed command scaling and read/command startup CPU boost.
 const waveBaseline='37f62121e9b04a163ebfa014e3240841b46d9a96';
+const waveImageActions=['read.image','command.image','notify.image','jobs.image'];
+const waveSyncActions=[...waveImageActions,'command.maxInstances','read.startupCpuBoost','command.startupCpuBoost'];
 const waveMigration='database/migrations/V93__review_wave4_hygiene.sql';
 export function validateWaveSource(m,git=sourceGit){
  requireValue(/^[a-f0-9]{40}$/.test(m.sourceCommit??'')&&m.artifactSourceCommit===m.sourceCommit&&m.sourceBaseline===waveBaseline,'exact R064 source/baseline required');
@@ -287,7 +293,7 @@ export async function waveHostingPlan(m,{requireApplied=true,git=sourceGit}={}){
  requireValue(m.sql?.baselineVersion===93&&m.sql.targetVersion===93&&exact(m.sql.migrations,[])&&v?.database==='loan_manager_prod'&&v.latestVersion==='93'&&v.allSuccessful===true&&typeof v.verifiedAt==='string'&&v.verifiedAt.endsWith('Z')&&Number.isFinite(Date.parse(v.verifiedAt)),'R064 requires verified V93 with no further migration');
  validateWaveCi(m.applicationCi,m,git);
  requireValue(m.build?.sourceCommit===m.sourceCommit&&m.build.status==='SUCCESS'&&imagePattern.test(m.build.image??'')&&typeof m.build.id==='string'&&m.build.id.length>0,'R064 PROD image provenance required');
- requireValue(/^[a-f0-9]{64}$/.test(m.plan?.sha256??'')&&path.isAbsolute(m.plan.path??'')&&exact(m.plan.counts,{add:0,change:4,destroy:0})&&exact(m.plan.actions,['read.image','command.image','notify.image','jobs.image']),'R064 reviewed four-image plan required');
+ requireValue(/^[a-f0-9]{64}$/.test(m.plan?.sha256??'')&&path.isAbsolute(m.plan.path??'')&&exact(m.plan.counts,{add:0,change:4,destroy:0})&&(exact(m.plan.actions,waveImageActions)||exact(m.plan.actions,waveSyncActions)),'R064 reviewed four-image plan required');
  const recovery=m.rollback;
  requireValue(/^sites\/mw-credit-prod-737787224638\/versions\/[A-Za-z0-9_-]+$/.test(recovery?.hostingVersion??'')&&/^sites\/mw-credit-prod-737787224638\/releases\/[0-9]+$/.test(recovery?.hostingRelease??''),'Hosting recovery pins required');
  for(const role of runtimeRoles)requireValue(imagePattern.test(recovery?.services?.[role]?.image??'')&&new RegExp('^mw-credit-app-'+role+'-prod-[0-9]+-[a-z0-9]+$').test(recovery.services[role].revision??''),'service recovery pin required');

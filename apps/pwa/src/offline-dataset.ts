@@ -3,8 +3,9 @@ import type {OwnerOfflineRepository} from './owner-offline';
 
 type Access={origin:string;offline?:OwnerOfflineRepository;offlineOnly?:boolean;token:()=>Promise<string>;authFailure:(status:number)=>void};
 const domains=['records','collection','cash','management','notifications'] as const;
-export type OfflinePreparation={state:'idle'|'preparing'|'ready'|'incomplete';completed:number;total:number;progress:number;chunks:number;syncActive:boolean;updating:boolean;updateFailed:boolean;lastChecked:number|null};
-const idle:OfflinePreparation={state:'idle',completed:0,total:domains.length,progress:0,chunks:0,syncActive:false,updating:false,updateFailed:false,lastChecked:null};
+/** foreground: a screen is waiting on this sync (SYNC-UX-02 shows progress only then or before the first complete download). */
+export type OfflinePreparation={state:'idle'|'preparing'|'ready'|'incomplete';completed:number;total:number;progress:number;chunks:number;syncActive:boolean;updating:boolean;updateFailed:boolean;lastChecked:number|null;foreground:boolean};
+const idle:OfflinePreparation={state:'idle',completed:0,total:domains.length,progress:0,chunks:0,syncActive:false,updating:false,updateFailed:false,lastChecked:null,foreground:false};
 const states=new Map<string,OfflinePreparation>(),listeners=new Set<()=>void>();
 export const getOfflinePreparation=(scopeName?:string)=>scopeName?states.get(scopeName)??idle:idle;
 export const subscribeOfflinePreparation=(listener:()=>void)=>{listeners.add(listener);return()=>{listeners.delete(listener)}};
@@ -27,12 +28,23 @@ async function indexDataset(bundle:any){
 /** One bounded request at a time. Foreground navigation pauses the next chunk;
  * it does not throw away a request which the server is already processing. */
 export const DATASET_POLL_MS=5*60*1000;
+/** R064: focus/visibility/online/background triggers recheck a domain only after this age; manual sync bypasses it. */
+export const DATASET_RECHECK_MIN_MS=60*1000;
+const REQUEST_TIMEOUT_MS=25000;
+/** services/api/offline-dataset-delta.mjs rejects a need list longer than this. */
+const NEED_BATCH=2048;
 export function startOfflinePreparation(access:Access,_options:{readOrigin?:string}={}){
  const repository=access.offline;if(!repository)return()=>{};const repo=repository;
  let stopped=false,running=false,initialized=false,initializing=false,queue:string[]=[],media:string[]=[],requestedDomain:string|null=null,paused=false,timer:ReturnType<typeof setTimeout>|undefined,retryTimer:ReturnType<typeof setTimeout>|undefined,retryAttempts=0,controller:AbortController|null=null,activeTask:string|null=null;
  let lastChecked:number|null=null,recheck=false;
+ const recheckDomains=new Set<string>(),domainChecked=new Map<string,number>();
+ // Servers before R064 reject the acceptChanged request field; remember per path.
+ const legacyPaths=new Set<string>();
+ // In-memory partial between chunks: the durable progress row still carries every
+ // chunk for crash resume, but the growing partial is not re-read and re-cloned.
+ const partials=new Map<string,{partial:any,bundle:any}>();
  const cycleDomains=new Set<string>(),cycleDone=new Set<string>();
- const beginCycle=(targets:readonly string[]=domains)=>{cycleDomains.clear();cycleDone.clear();fractions.clear();chunkCounts.clear();changedRetries.clear();for(const domain of targets)cycleDomains.add(domain)};
+ const beginCycle=(targets:readonly string[]=domains)=>{cycleDomains.clear();cycleDone.clear();fractions.clear();chunkCounts.clear();for(const domain of targets)cycleDomains.add(domain)};
  const valueIndexes=new Map<string,{base:string|null,values:Record<string,any>}>();
  const completed=new Set<string>(),failed=new Set<string>(),fractions=new Map<string,number>(),chunkCounts=new Map<string,number>(),changedRetries=new Map<string,number>(),mediaVersion=new Map<string,number>(),preferred=new Set<string>();
  const mediaKeys=(records:any)=>(records?.data?.payments??[]).flatMap((row:any)=>[...(row.receiptReference?['manual']:[]),...(row.agentReceiptPresent?['agent']:[])].map(source=>{const path='/api/payment-records/'+encodeURIComponent(row.id)+'/receipt?source='+source;mediaVersion.set(path,Date.parse(source==='manual'?row.receiptAt:row.agentReceiptAt));if(source===(row.receiptReference?'manual':'agent'))preferred.add(path);return path}));
@@ -46,11 +58,16 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
   return Math.max(0,Math.min(complete?100:99,value));
  };
  const syncActive=()=>navigator.onLine&&!access.offlineOnly&&!paused&&document.visibilityState!=='hidden'&&(running||queue.length>0&&(activitySnapshot()===0||!!requestedDomain));
- const status=()=>publish(repo.scopeName,{state:domains.every(domain=>completed.has(domain))&&media.every(path=>completed.has(path))?'ready':paused?'incomplete':queue.length||running?'preparing':'incomplete',completed:completed.size,total:domains.length+media.length,progress:progress(),syncActive:!!syncActive(),updating:domains.every(domain=>completed.has(domain))&&!!syncActive(),updateFailed:domains.every(domain=>completed.has(domain))&&failed.size>0,lastChecked,chunks:[...chunkCounts.values()].reduce((sum,count)=>sum+count,0)});
+ const status=()=>publish(repo.scopeName,{state:domains.every(domain=>completed.has(domain))&&media.every(path=>completed.has(path))?'ready':paused?'incomplete':queue.length||running?'preparing':'incomplete',completed:completed.size,total:domains.length+media.length,progress:progress(),syncActive:!!syncActive(),updating:domains.every(domain=>completed.has(domain))&&!!syncActive(),updateFailed:domains.every(domain=>completed.has(domain))&&failed.size>0,lastChecked,foreground:requestedDomain!==null,chunks:[...chunkCounts.values()].reduce((sum,count)=>sum+count,0)});
+ const ready=(domain:string,changed:boolean)=>window.dispatchEvent(new CustomEvent('mw-offline-dataset-ready',{detail:{scopeName:repo.scopeName,domain,changed}}));
+ const failedEvent=(domain:string)=>window.dispatchEvent(new CustomEvent('mw-offline-dataset-failed',{detail:{scopeName:repo.scopeName,domain}}));
+ const stale=(domain:string)=>Date.now()-(domainChecked.get(domain)??0)>=DATASET_RECHECK_MIN_MS;
  const retryLater=()=>{if(stopped||retryTimer||retryAttempts>=3||!navigator.onLine||paused)return;const delay=[5000,15000,30000][retryAttempts++];retryTimer=setTimeout(()=>{retryTimer=undefined;resume()},delay)};
  const enqueue=(task:string,first=false)=>{if(queue.includes(task))return;first?queue.unshift(task):queue.push(task)};
  const schedule=()=>{if(stopped||timer)return;timer=setTimeout(()=>{timer=undefined;void pump()},200)};
  const addMedia=()=>{if(domains.every(domain=>completed.has(domain)))for(const path of media)if(!completed.has(path)&&!failed.has(path))enqueue(path)};
+ const forget=async(task:string)=>{partials.delete(task);await repo.discardDatasetProgress(task)};
+ const giveUp=(task:string)=>{if(task===requestedDomain)failedEvent(task)};
  async function initialize(){if(initializing)return;initializing=true;try{
   if(!await repo.syncAuthorized()){paused=true;status();return}
   beginCycle();
@@ -69,32 +86,44 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
   if(!initialized){await initialize();return}
   if(!navigator.onLine||access.offlineOnly){paused=true;status();return}
   if((activitySnapshot()>0||document.visibilityState==='hidden')&&!requestedDomain){status();return;}
-  if(!await repo.syncAuthorized()){paused=true;status();return}if(stopped||running)return;paused=false;
+  if(!await repo.syncAuthorized()){paused=true;if(requestedDomain)failedEvent(requestedDomain);status();return}if(stopped||running)return;paused=false;
   addMedia();if(!queue.length){status();return}
   const task=queue.shift()!,isMedia=task.startsWith('/api/');running=true;activeTask=task;controller=new AbortController();const flight=controller;status();
-  const timeout=setTimeout(()=>flight.abort(),25000);
+  let timeout=setTimeout(()=>flight.abort(),REQUEST_TIMEOUT_MS);
+  let softGiveUp=false;
   try{
-   const revision=await repo.readRevision();if(revision===null||stopped)throw Error();
-   const partial=isMedia?null:await repo.readDatasetProgress(task),bundle=isMedia?null:await repo.readDataset(task);
+   let revision=await repo.readRevision();if(revision===null||stopped)throw Error();
+   // A read revision bump (own settled write) between or during chunks re-pins
+   // the partial to the current revision and schedules one trailing recheck;
+   // it never restarts the walk.
+   const refreshRevision=async()=>{const current=await repo.readRevision();if(current===null||stopped)throw Error();if(current!==revision){revision=current;recheck=true}};
+   const memo=isMedia?undefined:partials.get(task);
+   const partial=isMedia?null:memo?memo.partial:await repo.readDatasetProgress(task);
+   let bundle=isMedia?null:memo?memo.bundle:await repo.readDataset(task);
    const base=partial?.base??datasetBase(bundle),delta=!!bundle?.complete;
-   if(partial&&(partial.base??null)!==datasetBase(bundle)){await repo.discardDatasetProgress(task);enqueue(task);return}
+   if(partial&&(partial.base??null)!==datasetBase(bundle)){await forget(task);enqueue(task);return}
    const path=isMedia?task:task==='notifications'?'/api/notifications/offline-dataset':'/api/offline-dataset?domain='+task,url=new URL(path,access.origin);if(!isMedia){url.searchParams.set('protocol',delta?'3':'2');if(!delta&&partial?.nextCursor)url.searchParams.set('cursor',partial.nextCursor);}
    if(isMedia){const saved=await repo.readDatasetMedia('blob:'+url.href);if(saved&&saved.savedAt>=(mediaVersion.get(task)??Infinity)){if(preferred.has(task)){const alias=new URL(url);alias.searchParams.set('source','preferred');if(!await repo.saveDatasetMedia('blob:'+alias.href,saved.data,revision))throw Error()}completed.add(task);return}}
    const token=await access.token();if(stopped||flight.signal.aborted)throw Error();
-   const fetchSegment=(need:string[]=[])=>fetch(url,{method:delta?'POST':'GET',...(!delta?{}:{body:JSON.stringify({cursor:partial?.nextCursor??null,need,sourceVersion:bundle?.sourceVersion??null})}),signal:flight.signal,headers:{Authorization:'Bearer '+token,...(!delta?{}:{'Content-Type':'application/json'})},credentials:'omit',cache:'no-store',redirect:'error'});
+   const legacy=legacyPaths.has(url.pathname);
+   const fetchSegment=(need:string[]=[])=>fetch(url,{method:delta?'POST':'GET',...(!delta?{}:{body:JSON.stringify({cursor:partial?.nextCursor??null,need,sourceVersion:bundle?.sourceVersion??null,...(legacy?{}:{acceptChanged:true})})}),signal:flight.signal,headers:{Authorization:'Bearer '+token,...(!delta?{}:{'Content-Type':'application/json'})},credentials:'omit',cache:'no-store',redirect:'error'});
+   // Legacy 409: the final chunk is lost, so the walk restarts once; a repeat is
+   // not a failure (saved data stays available, the next check walks again).
+   const changedOnServer=async()=>{await forget(task);fractions.delete(task);chunkCounts.delete(task);const retries=changedRetries.get(task)??0;if(retries<1){changedRetries.set(task,retries+1);enqueue(task);return}softGiveUp=true;cycleDone.add(task);if(bundle?.complete)ready(task,false);else giveUp(task)};
    let response=await fetchSegment();
    if(response.status===401||response.status===403){access.authFailure(response.status);paused=true;throw Error()}
-   if(response.status===409&&!isMedia){const error=await response.json();if(error.code==='dataset_changed'){await repo.discardDatasetProgress(task);fractions.delete(task);chunkCounts.delete(task);const retries=changedRetries.get(task)??0;if(retries<1){changedRetries.set(task,retries+1);enqueue(task);return}}throw Error()}
+   if(response.status===400&&delta&&!legacy){const error=await response.json().catch(()=>({}));if(error?.code==='invalid_request'){legacyPaths.add(url.pathname);enqueue(task,true);return}throw Error()}
+   if(response.status===409&&!isMedia){const error=await response.json().catch(()=>({}));if(error?.code==='dataset_changed'){await changedOnServer();return}throw Error()}
    if(!response.ok)throw Error();let value=isMedia?await response.blob():await response.json();
    if(stopped||flight.signal.aborted||!await repo.syncAuthorized())throw Error();
-   if(await repo.readRevision()!==revision){if(!isMedia){await repo.discardDatasetProgress(task);fractions.delete(task)}enqueue(task);return}
+   await refreshRevision();
    let full=value;
    if(!isMedia&&value.schemaVersion===3){
     if(value.unchanged){
      if(value.domain!==task||!value.complete||value.nextCursor!==null||!bundle?.complete||partial||value.sourceVersion!==bundle.sourceVersion)throw Error('Invalid unchanged checkpoint');
      if(!await repo.saveDataset(task,{...bundle,cacheStale:false},revision,null,base,!!bundle.cacheStale))throw Error('Dataset changed during check');
-     completed.add(task);cycleDone.add(task);failed.delete(task);
-     window.dispatchEvent(new CustomEvent('mw-offline-dataset-ready',{detail:{scopeName:repo.scopeName,domain:task,changed:false}}));return;
+     completed.add(task);cycleDone.add(task);failed.delete(task);changedRetries.delete(task);domainChecked.set(task,Date.now());
+     ready(task,false);return;
     }
     const indexed=valueIndexes.get(task);
     const values=indexed?.base===datasetBase(bundle)?indexed.values:await indexDataset(bundle);
@@ -105,14 +134,21 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
     const missing=[...new Set<string>(refs.filter((ref:string)=>!(ref in values)))];
     if(missing.length){
      const manifest=JSON.stringify(value.patches),generation=value.generation;
-     response=await fetchSegment(missing);
-     if(response.status===401||response.status===403){access.authFailure(response.status);paused=true;throw Error()}
-     if(response.status===409){await repo.discardDatasetProgress(task);const retries=changedRetries.get(task)??0;if(retries<1){changedRetries.set(task,retries+1);enqueue(task);return}throw Error('Dataset changed during check')}
-     if(!response.ok)throw Error();value=await response.json();
-     if(partial&&value.generation!==generation||JSON.stringify(value.patches)!==manifest)throw Error('Delta manifest changed');
-     for(const [hash,item] of Object.entries(value.values??{})){if(await valueHash(item)!==hash)throw Error('Invalid delta content');values[hash]=item}
+     // Content re-requests are extra round trips, each with its own timeout. The
+     // server caps one need list at NEED_BATCH hashes; batch as defence in depth.
+     for(let offset=0;offset<missing.length;offset+=NEED_BATCH){
+      clearTimeout(timeout);timeout=setTimeout(()=>flight.abort(),REQUEST_TIMEOUT_MS);
+      response=await fetchSegment(missing.slice(offset,offset+NEED_BATCH));
+      if(response.status===401||response.status===403){access.authFailure(response.status);paused=true;throw Error()}
+      if(response.status===409){await changedOnServer();return}
+      if(!response.ok)throw Error();const batch=await response.json();
+      if(partial&&batch.generation!==generation||JSON.stringify(batch.patches)!==manifest)throw Error('Delta manifest changed');
+      for(const [hash,item] of Object.entries(batch.values??{})){if(await valueHash(item)!==hash)throw Error('Invalid delta content');values[hash]=item}
+      value=batch;
+     }
     }
-    if(stopped||flight.signal.aborted||!await repo.syncAuthorized()||await repo.readRevision()!==revision)throw Error('Stale delta response');
+    if(stopped||flight.signal.aborted||!await repo.syncAuthorized())throw Error('Stale delta response');
+    await refreshRevision();
     const contentValues:Record<string,any>={...partial?.contentValues};
     const patches=value.patches.map((patch:any)=>{
      if(!Array.isArray(patch.refs)||patch.refs.some((ref:string)=>!(ref in values))||patch.mode!=='append'&&patch.refs.length!==1)throw Error('Missing delta content');
@@ -121,28 +157,42 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
     });
     value={...value,patches,contentValues};
    }else if(!isMedia&&(delta||value.schemaVersion!==2))throw Error('Unsupported dataset protocol');
+   // R064 torn commit: the server finished the walk but its source changed under
+   // it. Keep the bundle without a source version and recheck (bounded).
+   const torn=!isMedia&&value.complete===true&&value.changed===true;
    if(!isMedia){
     if(value.domain!==task||typeof value.generation!=='string'||!Array.isArray(value.patches)||typeof value.complete!=='boolean'||value.complete!==(value.nextCursor===null)||partial&&partial.generation!==value.generation)throw Error('Invalid dataset segment');
-    const data=structuredClone(partial?.data??{});
+    // The memoized partial was already handed to IndexedDB by value; mutating it
+    // in place is safe. A durable partial read back is cloned once.
+    const data=memo?partial?.data??{}:structuredClone(partial?.data??{});
     for(const patch of value.patches){const path=[patch?.key,...(patch?.path??[])];if(!patch||!Array.isArray(patch.path??[])||path.some(key=>typeof key!=='string'||['__proto__','prototype','constructor'].includes(key)))throw Error('Invalid dataset patch');
      let target=data;for(const key of path.slice(0,-1)){if(Array.isArray(target)&&(!/^(0|[1-9][0-9]*)$/.test(key)||Number(key)>=target.length))throw Error();if(target[key]===undefined)target[key]={};if(!target[key]||typeof target[key]!=='object')throw Error();target=target[key]}const key=path.at(-1)!;if(Array.isArray(target)&&(!/^(0|[1-9][0-9]*)$/.test(key)||Number(key)>=target.length))throw Error();
      if(patch.mode==='append'){if(!Array.isArray(patch.value)||target[key]!==undefined&&!Array.isArray(target[key]))throw Error();target[key]=[...(target[key]??[]),...patch.value]}
      else if(patch.mode==='merge'){if(!patch.value||Array.isArray(patch.value)||typeof patch.value!=='object')throw Error();target[key]={...target[key],...patch.value}}
      else if(patch.mode==='replace')target[key]=patch.value;else throw Error();
     }
-    full={schemaVersion:1,protocolVersion:value.schemaVersion,base,sourceVersion:value.sourceVersion,contentValues:value.contentValues,domain:task,businessDate:value.businessDate,asOf:value.asOf,startedAt:partial?.startedAt??value.startedAt??value.asOf,generation:value.generation,complete:value.complete,data,chunks:(partial?.chunks??0)+1,nextCursor:value.nextCursor,progress:value.progress};
-    if(!value.complete){if(!value.nextCursor||value.nextCursor===partial?.nextCursor||!await repo.saveDatasetProgress(task,full,revision,partial?.nextCursor??null))throw Error();chunkCounts.set(task,full.chunks);if(value.progress?.total>0)fractions.set(task,Math.min(.99,value.progress.completed/value.progress.total));enqueue(task,task===requestedDomain);return}
+    full={schemaVersion:1,protocolVersion:value.schemaVersion,base,sourceVersion:torn?null:value.sourceVersion,contentValues:value.contentValues,domain:task,businessDate:value.businessDate,asOf:value.asOf,startedAt:partial?.startedAt??value.startedAt??value.asOf,generation:value.generation,complete:value.complete,data,chunks:(partial?.chunks??0)+1,nextCursor:value.nextCursor,progress:value.progress};
+    if(!value.complete){if(!value.nextCursor||value.nextCursor===partial?.nextCursor||!await repo.saveDatasetProgress(task,full,revision,partial?.nextCursor??null))throw Error();partials.set(task,{partial:full,bundle});chunkCounts.set(task,full.chunks);if(value.progress?.total>0)fractions.set(task,Math.min(.99,value.progress.completed/value.progress.total));enqueue(task,task===requestedDomain);return}
+    // Commit against the durable bundle, not a memoized copy of it.
+    if(memo){bundle=await repo.readDataset(task);if((partial.base??null)!==datasetBase(bundle))throw Error('Dataset base changed')}
    }
    const dataChanged=!isMedia&&JSON.stringify(canonicalValue(bundle?.data))!==JSON.stringify(canonicalValue(full.data));
-   const saved=isMedia?await repo.saveDatasetMedia('blob:'+url.href,value,revision):await repo.saveDataset(task,full,revision,partial?.nextCursor??null,base,dataChanged||!!bundle?.cacheStale);if(!saved)throw Error();if(!isMedia&&full.chunks)chunkCounts.set(task,full.chunks);
+   const saved=isMedia?await repo.saveDatasetMedia('blob:'+url.href,value,revision):await repo.saveDataset(task,full,revision,partial?.nextCursor??null,base,dataChanged||!!bundle?.cacheStale);if(!saved)throw Error();partials.delete(task);if(!isMedia&&full.chunks)chunkCounts.set(task,full.chunks);
    if(isMedia&&preferred.has(task)){const alias=new URL(url);alias.searchParams.set('source','preferred');if(!await repo.saveDatasetMedia('blob:'+alias.href,value,revision))throw Error()}
    if(stopped)return;completed.add(task);cycleDone.add(task);queue=queue.filter(queued=>queued!==task);failed.delete(task);if(task==='records'){const oldVersions=new Map(mediaVersion);preferred.clear();mediaVersion.clear();media=mediaKeys(full);for(const path of media)if(oldVersions.get(path)!==mediaVersion.get(path)){completed.delete(path);failed.delete(path)}}
-   if(!isMedia)window.dispatchEvent(new CustomEvent('mw-offline-dataset-ready',{detail:{scopeName:repo.scopeName,domain:task,changed:dataChanged}}));
-  }catch{if(!stopped){if(!navigator.onLine||flight.signal.aborted&&flight.signal.reason==='offline'){enqueue(task);paused=!navigator.onLine||!!access.offlineOnly}else failed.add(task)}}finally{
-   clearTimeout(timeout);running=false;activeTask=null;controller=null;if(!queue.includes(task)||failed.has(task)){if(task===requestedDomain)requestedDomain=null}if(!stopped){addMedia();if(!queue.length&&recheck){recheck=false;beginCycle();for(const domain of domains)enqueue(domain)}if(!queue.length&&!failed.size&&domains.every(domain=>completed.has(domain)))lastChecked=Date.now();status();if(queue.length&&!paused)schedule();else if(failed.size)retryLater()}
+   if(!isMedia){
+    domainChecked.set(task,Date.now());
+    if(torn){const retries=changedRetries.get(task)??0;if(retries<2){changedRetries.set(task,retries+1);recheckDomains.add(task)}}else changedRetries.delete(task);
+    ready(task,dataChanged);
+   }
+  }catch{if(!stopped){partials.delete(task);if(!navigator.onLine||flight.signal.aborted&&flight.signal.reason==='offline'){enqueue(task);paused=!navigator.onLine||!!access.offlineOnly}else{failed.add(task);if(!isMedia)giveUp(task)}}}finally{
+   clearTimeout(timeout);running=false;activeTask=null;controller=null;if(!queue.includes(task)||failed.has(task)||softGiveUp){if(task===requestedDomain)requestedDomain=null}if(!stopped){addMedia();if(!queue.length&&(recheck||recheckDomains.size)){const targets=recheck?domains:[...recheckDomains];recheck=false;recheckDomains.clear();beginCycle(targets);for(const domain of targets)enqueue(domain)}if(!queue.length&&!failed.size&&domains.every(domain=>completed.has(domain)))lastChecked=Date.now();status();if(queue.length&&!paused)schedule();else if(failed.size)retryLater()}
   }
  }
- const request=(event?:Event)=>{if(stopped)return;retryAttempts=0;if(retryTimer){clearTimeout(retryTimer);retryTimer=undefined;}const detail=(event as CustomEvent|undefined)?.detail;const priority=domains.includes(detail?.domain)?detail.domain:undefined;
+ const request=(event?:Event)=>{if(stopped)return;const detail=(event as CustomEvent|undefined)?.detail;const priority=domains.includes(detail?.domain)?detail.domain:undefined;
+  // A background prepare (a page served from the local bundle) is throttled like focus.
+  if(detail?.background&&priority&&completed.has(priority)&&!failed.has(priority)&&!stale(priority))return;
+  retryAttempts=0;if(retryTimer){clearTimeout(retryTimer);retryTimer=undefined;}
   if(detail?.foreground)requestedDomain=priority;
   if(event?.type==='mw-read-invalidated'){if(running||queue.length)recheck=true;else{beginCycle();for(const domain of domains)enqueue(domain)}failed.clear()}
   else if(!running&&!queue.length&&event?.type==='mw-offline-prepare'&&!failed.size){beginCycle(priority?[priority]:domains);for(const domain of cycleDomains)enqueue(domain)}
@@ -150,10 +200,10 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
   if(priority){cycleDomains.add(priority);cycleDone.delete(priority);fractions.delete(priority);queue=queue.filter(task=>task!==priority);enqueue(priority,true)}
   changedRetries.clear();paused=false;status();schedule();
  };
- const check=()=>{if(stopped||document.visibilityState==='hidden'||!navigator.onLine||access.offlineOnly)return;if(!running&&!queue.length&&!failed.size){beginCycle();for(const domain of domains)enqueue(domain)}resume()};
+ const check=()=>{if(stopped||document.visibilityState==='hidden'||!navigator.onLine||access.offlineOnly)return;if(!running&&!queue.length&&!failed.size){const targets=domains.filter(stale);if(targets.length){beginCycle(targets);for(const domain of targets)enqueue(domain)}}resume()};
  const visible=()=>{if(document.visibilityState!=='hidden')check();status()};
  // APP-OFFLINE-03: background poll every 5 minutes; focus, visibility, online and own-write
- // invalidation (mw-read-invalidated) still refresh immediately.
+ // invalidation (mw-read-invalidated) still refresh, the first three at most once a minute.
  const poll=setInterval(check,DATASET_POLL_MS);
  const resume=()=>{if(stopped)return;for(const task of failed)enqueue(task);failed.clear();for(const domain of domains)if(!completed.has(domain)&&domain!==activeTask)enqueue(domain);paused=false;status();schedule()};
  const offline=()=>{paused=true;controller?.abort('offline');status()};
@@ -164,10 +214,11 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
 }
 
 export const routeDomain=(route:string)=>route.startsWith('/api/management')?'management':route.startsWith('/api/cash-')||route==='/api/preferences'?'cash':route.startsWith('/api/notifications')?'notifications':route.startsWith('/api/collection')||route.includes('/upcoming')||route.includes('/collection-receipts')?'collection':'records';
+/** Waits for the domain's next completed check; rejects as soon as that check fails (SYNC-UX-05). */
 export async function refreshOfflineDataset(access:Access,path:string):Promise<any|null>{
  const repo=access.offline;if(!repo||!navigator.onLine||access.offlineOnly)return readOfflineDataset(access,path);
  const domain=routeDomain(parsed(path,access.origin).pathname);
- await new Promise<void>((resolve,reject)=>{const cleanup=()=>{clearTimeout(timer);window.removeEventListener('mw-offline-dataset-ready',ready)};const ready=(event:Event)=>{const detail=(event as CustomEvent).detail;if(detail?.scopeName===repo.scopeName&&detail.domain===domain){cleanup();resolve()}};const timer=setTimeout(()=>{cleanup();reject(Error('Offline preparation incomplete'))},65000);window.addEventListener('mw-offline-dataset-ready',ready);window.dispatchEvent(new CustomEvent('mw-offline-prepare',{detail:{domain,foreground:true}}));});
+ await new Promise<void>((resolve,reject)=>{const cleanup=()=>{clearTimeout(timer);window.removeEventListener('mw-offline-dataset-ready',ready);window.removeEventListener('mw-offline-dataset-failed',failed)};const matches=(event:Event)=>{const detail=(event as CustomEvent).detail;return detail?.scopeName===repo.scopeName&&detail.domain===domain};const ready=(event:Event)=>{if(matches(event)){cleanup();resolve()}};const failed=(event:Event)=>{if(matches(event)){cleanup();reject(Error('Offline preparation failed'))}};const timer=setTimeout(()=>{cleanup();reject(Error('Offline preparation incomplete'))},65000);window.addEventListener('mw-offline-dataset-ready',ready);window.addEventListener('mw-offline-dataset-failed',failed);window.dispatchEvent(new CustomEvent('mw-offline-prepare',{detail:{domain,foreground:true}}));});
  return readOfflineDataset(access,path);
 }
 function parsed(path:string,origin=location.origin){return new URL(path,origin)}
