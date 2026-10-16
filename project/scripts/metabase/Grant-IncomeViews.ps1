@@ -1,6 +1,6 @@
 param([Parameter(Mandatory)][string]$ApprovalReference)
 . "$PSScriptRoot/../database/Common.ps1"
-$target=Get-DbEnvironment production
+$target=Get-DbEnvironment production -Admin
 $out="$DbRepoRoot/outputs/r016-20260922"
 $plan=Get-Content "$out/income-db-views-plan.json" -Raw|ConvertFrom-Json
 if(Test-Path "$out/income-db-views-grants.json"){throw 'Grant evidence exists; inspect instead of replaying'}

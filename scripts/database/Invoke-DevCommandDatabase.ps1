@@ -11,7 +11,7 @@ param(
 $ErrorActionPreference='Stop'
 . "$PSScriptRoot/../Enter-Dev.ps1"
 . "$PSScriptRoot/Common.ps1"
-$target=Get-DbEnvironment development
+$target=Get-DbEnvironment development -Admin
 $head=(& git -C $DbRepoRoot rev-parse HEAD).Trim()
 if($LASTEXITCODE -or $head -ne $ExpectedCommit){throw 'Checkout is not the reviewed candidate commit'}
 $state=& git -C $DbRepoRoot status --porcelain

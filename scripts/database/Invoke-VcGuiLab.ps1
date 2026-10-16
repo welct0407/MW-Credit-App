@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param([ValidateSet('seed','verify','close')][string]$Mode='verify')
 . "$PSScriptRoot/Common.ps1"
-$target=Get-DbEnvironment development
+$target=Get-DbEnvironment development -Admin
 if($target.host -ne '34.158.38.171'){throw 'Reviewed development host required'}
 $sql=@'
 SELECT "Row ID","Loan Status","Total Principal Received","Total Interest Received","Outstanding Principal","Expected Daily Interest Amount" FROM "Loans" WHERE "Row ID" LIKE 'VCGUI14-%' ORDER BY "Row ID";

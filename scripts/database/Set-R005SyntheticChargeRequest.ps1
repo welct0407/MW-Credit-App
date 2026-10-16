@@ -3,7 +3,7 @@ param([switch]$PrepareDefault)
 # Test-fixture DML only: request the existing daily-charge processor for one
 # explicitly labeled R005 DEV loan. No schema change or ordinary record writes.
 . "$PSScriptRoot/Common.ps1"
-$target=Get-DbEnvironment 'development'
+$target=Get-DbEnvironment 'development' -Admin
 if($target.host -ne '34.158.38.171'){throw 'Reviewed DEV host required'}
 $prior=@{};foreach($name in @('PGPASSWORD','PGSSLMODE','PGOPTIONS','PGCONNECT_TIMEOUT')){$prior[$name]=[Environment]::GetEnvironmentVariable($name,'Process')}
 try{

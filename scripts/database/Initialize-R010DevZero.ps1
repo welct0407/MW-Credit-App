@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param([switch]$Apply)
 . "$PSScriptRoot/Common.ps1"
-$target=Get-DbEnvironment 'development'
+$target=Get-DbEnvironment 'development' -Admin
 if($target.host -ne '34.158.38.171' -or $target.instance -ne 'appsheet-pg-dev-20260915'){throw 'Reviewed DEV host/instance required'}
 if(-not $Apply){throw 'Requires explicit -Apply; owner authorization is recorded in R010 log. Do not replay after success.'}
 $saved=@{};foreach($name in @('PGPASSWORD','PGSSLMODE','PGCONNECT_TIMEOUT')){$saved[$name]=[Environment]::GetEnvironmentVariable($name,'Process')}

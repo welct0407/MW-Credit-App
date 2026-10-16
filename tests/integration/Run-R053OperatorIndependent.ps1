@@ -16,15 +16,14 @@ $names=@('PHASE8_AGENT_RECEIPTS','PHASE8_TEST_DISPOSABLE','PHASE8_TEST_HOST','PH
 Get-ChildItem Env:FLYWAY_* -ErrorAction SilentlyContinue | ForEach-Object {$names+=$_.Name}
 foreach($name in $names){$saved[$name]=[Environment]::GetEnvironmentVariable($name);[Environment]::SetEnvironmentVariable($name,$null)}
 try {
- & (Join-Path $pgBin 'initdb.exe') -D $data -U $bootstrapUser --auth=trust --encoding=UTF8 --locale=C | Out-Null
+ & (Get-PgTool initdb) -D $data -U $bootstrapUser --auth=trust --encoding=UTF8 --locale=C | Out-Null
  if($LASTEXITCODE){throw 'Disposable initdb failed'}
- $process=Start-Process -FilePath (Join-Path $pgBin 'pg_ctl.exe') -ArgumentList @('-D',('"'+$data+'"'),'-l',('"'+(Join-Path $fixtureRoot 'postgres.log')+'"'),'-o',('"-h 127.0.0.1 -p '+$fixturePort+'"'),'-w','start') -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $fixtureRoot 'start.out') -RedirectStandardError (Join-Path $fixtureRoot 'start.err')
- $process.WaitForExit();if($process.ExitCode){throw 'Disposable PostgreSQL start failed'};$started=$true
- if($BindingOnly){'CREATE ROLE postgres LOGIN NOSUPERUSER CREATEROLE;' | & (Join-Path $pgBin 'psql.exe') -X -q -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $fixturePort -U $bootstrapUser -d postgres;if($LASTEXITCODE){throw 'Binding operator creation failed'}}
- & (Join-Path $pgBin 'createdb.exe') -h 127.0.0.1 -p $fixturePort -U $bootstrapUser -O postgres $database
+ Start-PgServer $data (Join-Path $fixtureRoot 'postgres.log') $fixturePort $fixtureRoot;$started=$true
+ if($BindingOnly){'CREATE ROLE postgres LOGIN NOSUPERUSER CREATEROLE;' | & (Get-PgTool psql) -X -q -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $fixturePort -U $bootstrapUser -d postgres;if($LASTEXITCODE){throw 'Binding operator creation failed'}}
+ & (Get-PgTool createdb) -h 127.0.0.1 -p $fixturePort -U $bootstrapUser -O postgres $database
  if($LASTEXITCODE){throw 'Disposable database creation failed'}
  foreach($file in @('Test-AgentAuditPrerequisites.sql','Test-AppRolePrerequisites.sql')){
-  & (Join-Path $pgBin 'psql.exe') -X -q -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $fixturePort -U $bootstrapUser -d $database -f "$PSScriptRoot/../../scripts/database/$file"
+  & (Get-PgTool psql) -X -q -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $fixturePort -U $bootstrapUser -d $database -f "$PSScriptRoot/../../scripts/database/$file"
   if($LASTEXITCODE){throw 'Disposable prerequisites failed'}
  }
  if(-not $BindingOnly){
@@ -36,13 +35,13 @@ try {
   & (Get-FlywayPath) '-outputType=json' '-target=87' migrate | Out-File (Join-Path $fixtureRoot 'migration86.json')
   if($LASTEXITCODE){Get-Content (Join-Path $fixtureRoot 'migration86.json');throw 'V86 fixture migration failed'}
  } finally {Pop-Location}
- & (Join-Path $pgBin 'psql.exe') -X -q -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $fixturePort -U postgres -d $database -f "$PSScriptRoot/phase8-identity-fixture.sql"
+ & (Get-PgTool psql) -X -q -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $fixturePort -U postgres -d $database -f "$PSScriptRoot/phase8-identity-fixture.sql"
  if($LASTEXITCODE){throw 'Synthetic identity setup failed'}
  if($Production){
   $database='loan_manager_prod'
-  & (Join-Path $pgBin 'createdb.exe') -h 127.0.0.1 -p $fixturePort -U postgres $database
+  & (Get-PgTool createdb) -h 127.0.0.1 -p $fixturePort -U postgres $database
   if($LASTEXITCODE){throw 'Production fixture database creation failed'}
-  'GRANT mw_app_prod TO mw_app_prod_journal_owner WITH INHERIT TRUE, SET FALSE, ADMIN FALSE;' | & (Join-Path $pgBin 'psql.exe') -X -q -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $fixturePort -U postgres -d $database
+  'GRANT mw_app_prod TO mw_app_prod_journal_owner WITH INHERIT TRUE, SET FALSE, ADMIN FALSE;' | & (Get-PgTool psql) -X -q -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $fixturePort -U postgres -d $database
   if($LASTEXITCODE){throw 'Production fixture owner membership failed'}
   $env:FLYWAY_URL="jdbc:postgresql://127.0.0.1:$fixturePort/$database"
   Push-Location $DbRepoRoot
@@ -62,9 +61,9 @@ try {
  if($LASTEXITCODE){throw 'Phase8 identity tests failed'}
 } finally {
  foreach($name in (@($names)+@('FLYWAY_URL','FLYWAY_USER','FLYWAY_CONFIG_FILES')|Select-Object -Unique)){[Environment]::SetEnvironmentVariable($name,$saved[$name])}
- if($started){& (Join-Path $pgBin 'pg_ctl.exe') -D $data -m fast -w stop | Out-Null;if($LASTEXITCODE){throw "Owned database stop failed; retained $fixtureRoot"}}
+ if($started){& (Get-PgTool pg_ctl) -D $data -m fast -w stop | Out-Null;if($LASTEXITCODE){throw "Owned database stop failed; retained $fixtureRoot"}}
  $resolved=[IO.Path]::GetFullPath($fixtureRoot);$temp=[IO.Path]::GetFullPath([IO.Path]::GetTempPath())
- if((Split-Path $resolved -Parent).TrimEnd('\') -ne $temp.TrimEnd('\') -or (Split-Path $resolved -Leaf) -ne ('mw-phase8-'+$token)){throw 'Cleanup containment failed'}
+ if((Split-Path $resolved -Parent).TrimEnd([IO.Path]::DirectorySeparatorChar) -ne $temp.TrimEnd([IO.Path]::DirectorySeparatorChar) -or (Split-Path $resolved -Leaf) -ne ('mw-phase8-'+$token)){throw 'Cleanup containment failed'}
  if((Get-Item -LiteralPath $resolved -Force).Attributes -band [IO.FileAttributes]::ReparsePoint){throw 'Cleanup root link refused'}
  $ancestor=Split-Path $resolved -Parent
  while($ancestor){if((Get-Item -LiteralPath $ancestor -Force).Attributes -band [IO.FileAttributes]::ReparsePoint){throw 'Cleanup ancestor link refused'};$next=Split-Path $ancestor -Parent;if($next -eq $ancestor){break};$ancestor=$next}

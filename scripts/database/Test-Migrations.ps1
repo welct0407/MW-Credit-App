@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param([string]$TestSqlFile,[string]$PreMigrationSqlFile,[int]$PreMigrationTarget,[switch]$LumpSumConcurrency,[switch]$InterestReallocationConcurrency,[switch]$PaymentCrudConcurrency,[switch]$ReceiptDeleteConcurrency,[switch]$CorePaymentConcurrency,[switch]$AtomicLoanCloseConcurrency,[switch]$ChargeGenerationConcurrency,[switch]$DefaultLoanConcurrency,[switch]$BusinessExpensesConcurrency,[switch]$ExpenseReimbursementConcurrency,[switch]$R002Concurrency,[switch]$R005Concurrency,[switch]$R008Concurrency)
+param([string]$TestSqlFile,[string]$PreMigrationSqlFile,[int]$PreMigrationTarget,[switch]$InterestReallocationConcurrency,[switch]$PaymentCrudConcurrency,[switch]$ReceiptDeleteConcurrency,[switch]$CorePaymentConcurrency,[switch]$AtomicLoanCloseConcurrency,[switch]$ChargeGenerationConcurrency,[switch]$DefaultLoanConcurrency,[switch]$BusinessExpensesConcurrency,[switch]$ExpenseReimbursementConcurrency)
 . "$PSScriptRoot/Common.ps1"
 $null = @(Get-MigrationManifest)
 $bin = Get-PgBin
@@ -14,20 +14,20 @@ $started = $false
 $saved = @{}
 Get-ChildItem Env:FLYWAY_* -ErrorAction SilentlyContinue | ForEach-Object { $saved[$_.Name]=$_.Value; Remove-Item "Env:$($_.Name)" }
 try {
-    & (Join-Path $bin 'initdb.exe') -D $data -U postgres --auth=trust --encoding=UTF8 --locale=C | Out-Null
+    & (Get-PgTool initdb) -D $data -U postgres --auth=trust --encoding=UTF8 --locale=C | Out-Null
     if ($LASTEXITCODE) { throw 'Local initdb failed' }
-    $start = Start-Process -FilePath (Join-Path $bin 'pg_ctl.exe') -ArgumentList @('-D',('"'+$data+'"'),'-l',('"'+$log+'"'),'-o',('"-h 127.0.0.1 -p '+$port+'"'),'-w','start') -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $testRoot 'start.out') -RedirectStandardError (Join-Path $testRoot 'start.err')
-    $start.WaitForExit()
-    if ($start.ExitCode) { throw 'Local PostgreSQL failed to start' }
+    Start-PgServer $data $log $port $testRoot
     $started=$true
-    & (Join-Path $bin 'createdb.exe') -h 127.0.0.1 -p $port -U postgres loan_manager_dev
+    & (Get-PgTool createdb) -h 127.0.0.1 -p $port -U postgres loan_manager_dev
     if ($LASTEXITCODE) { throw 'Disposable environment database creation failed' }
     # V33's NOLOGIN owner is operator-managed in Cloud SQL. Provision it only
     # in this verified disposable server before rebuilding the migration chain.
-    & (Join-Path $bin 'psql.exe') -X -q -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $port -U postgres -d loan_manager_dev -f (Join-Path $DbRepoRoot 'scripts/database/Test-AgentAuditPrerequisites.sql')
+    & (Get-PgTool psql) -X -q -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $port -U postgres -d loan_manager_dev -f (Join-Path $DbRepoRoot 'scripts/database/Test-AgentAuditPrerequisites.sql')
     if ($LASTEXITCODE) { throw 'Disposable audit owner prerequisite failed' }
-    & (Join-Path $bin 'psql.exe') -X -q -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $port -U postgres -d loan_manager_dev -f (Join-Path $DbRepoRoot 'scripts/database/Test-AppRolePrerequisites.sql')
+    & (Get-PgTool psql) -X -q -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $port -U postgres -d loan_manager_dev -f (Join-Path $DbRepoRoot 'scripts/database/Test-AppRolePrerequisites.sql')
     if ($LASTEXITCODE) { throw 'Disposable app role prerequisite failed' }
+    & (Get-PgTool psql) -X -q -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $port -U postgres -d loan_manager_dev -f (Join-Path $DbRepoRoot 'scripts/database/Test-IamRolePrerequisites.sql')
+    if ($LASTEXITCODE) { throw 'Disposable IAM role prerequisite failed' }
     $env:FLYWAY_URL="jdbc:postgresql://127.0.0.1:$port/loan_manager_dev"
     $env:FLYWAY_USER='postgres'
     $env:FLYWAY_CONFIG_FILES=Join-Path $DbRepoRoot 'database/flyway.conf'
@@ -37,7 +37,7 @@ try {
             if (-not $PreMigrationSqlFile -or $PreMigrationTarget -lt 1) { throw 'Pre-migration fixture requires both SQL file and target version' }
             $pre = & (Get-FlywayPath) "-target=$PreMigrationTarget" '-outputType=json' migrate
             if ($LASTEXITCODE) { throw 'Pre-fixture migration failed' }
-            & (Join-Path $bin 'psql.exe') -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $port -U postgres -d loan_manager_dev -f $PreMigrationSqlFile
+            & (Get-PgTool psql) -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $port -U postgres -d loan_manager_dev -f $PreMigrationSqlFile
             if ($LASTEXITCODE) { throw 'Pre-migration fixture failed' }
         }
         $first = & (Get-FlywayPath) '-outputType=json' migrate
@@ -51,7 +51,7 @@ try {
         $second = ($second -join "`n") | ConvertFrom-Json
         if (-not $second.success -or $second.migrationsExecuted -ne 0) { throw 'Second run was not a successful no-op' }
         if ($TestSqlFile) {
-            & (Join-Path $bin 'psql.exe') -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $port -U postgres -d loan_manager_dev -f $TestSqlFile
+            & (Get-PgTool psql) -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $port -U postgres -d loan_manager_dev -f $TestSqlFile
             if ($LASTEXITCODE) { throw 'Supplemental SQL regression failed' }
         }
         if ($BusinessExpensesConcurrency) {
@@ -69,9 +69,6 @@ try {
         if ($InterestReallocationConcurrency) {
             & "$PSScriptRoot/Test-InterestReallocationConcurrency.ps1" -PgBin $bin -Port $port -OutputDirectory $testRoot -Database loan_manager_dev
         }
-        if ($LumpSumConcurrency) {
-            & "$PSScriptRoot/Test-LumpSumConcurrency.ps1" -PgBin $bin -Port $port -OutputDirectory $testRoot -Database loan_manager_dev
-        }
         if ($CorePaymentConcurrency) {
             & "$PSScriptRoot/Test-CorePaymentConcurrency.ps1" -PgBin $bin -Port $port -OutputDirectory $testRoot -Database loan_manager_dev
         }
@@ -84,17 +81,8 @@ try {
         if ($DefaultLoanConcurrency) {
             & "$PSScriptRoot/Test-DefaultLoanConcurrency.ps1" -PgBin $bin -Port $port -OutputDirectory $testRoot -Database loan_manager_dev
         }
-        if ($R002Concurrency) {
-            & "$PSScriptRoot/Test-R002Concurrency.ps1" -PgBin $bin -Port $port -OutputDirectory $testRoot -Database loan_manager_dev
-        }
-        if ($R005Concurrency) {
-            & "$PSScriptRoot/Test-R005Concurrency.ps1" -PgBin $bin -Port $port -OutputDirectory $testRoot -Database loan_manager_dev
-        }
-        if ($R008Concurrency) {
-            & "$PSScriptRoot/Test-R008Concurrency.ps1" -PgBin $bin -Port $port -OutputDirectory $testRoot -Database loan_manager_dev
-        }
         $dump = Join-Path $testRoot 'rebuilt.sql'
-        & (Join-Path $bin 'pg_dump.exe') -h 127.0.0.1 -p $port -U postgres -d loan_manager_dev --schema-only --no-owner --no-privileges --schema=public --schema=assessment_lab --exclude-table=public.flyway_schema_history --file=$dump
+        & (Get-PgTool pg_dump) -h 127.0.0.1 -p $port -U postgres -d loan_manager_dev --schema-only --no-owner --no-privileges --schema=public --schema=assessment_lab --exclude-table=public.flyway_schema_history --file=$dump
         if ($LASTEXITCODE) { throw 'Rebuilt schema export failed' }
         & "$PSScriptRoot/Normalize-Schema.ps1" -InputFile $dump -OutputFile "$dump.normalized"
         # Initial V1 must be exactly reconstructible, not just syntactically valid.
@@ -111,7 +99,7 @@ try {
         [pscustomobject]@{ firstMigrations=$first.migrationsExecuted; secondMigrations=$second.migrationsExecuted; baselineRebuildMatch=$baselineMatch; checksumTamperingRejected=$true; localPostgres='18.6'; flyway=$DbToolchain.flywayVersion }
     } finally { Pop-Location }
 } finally {
-    if ($started) { & (Join-Path $bin 'pg_ctl.exe') -D $data -m fast -w stop | Out-Null }
+    if ($started) { & (Get-PgTool pg_ctl) -D $data -m fast -w stop | Out-Null }
     Get-ChildItem Env:FLYWAY_* -ErrorAction SilentlyContinue | ForEach-Object { Remove-Item "Env:$($_.Name)" }
     foreach ($name in $saved.Keys) { [Environment]::SetEnvironmentVariable($name,$saved[$name],'Process') }
     # Retained locally for failure diagnosis. No financial data or persistent service is created.

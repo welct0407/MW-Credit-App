@@ -21,6 +21,18 @@ For database changes retain a verified restorable backup and exact migration man
 
 An application/package rollback does not undo SQL, financial transactions, sent notifications or external effects. Keep integrity triggers and one scheduler owner per job/environment.
 
+## Restore-from-backup rehearsal
+
+Rehearsed once on 16 October 2026 (R063 W3, DB-BACKUP-01) to prove the automated backups restore. Repeat only when the owner asks.
+
+Procedure:
+1. Pick the latest automated backup of `appsheet-pg-prod-20260914` (`gcloud sql backups list`). Create a throwaway instance (`db-f1-micro`, no authorized networks, no public access) and restore that backup into it (`gcloud sql backups restore`).
+2. Compare without moving row data out: `gcloud sql export csv ... --query` on the clone and on the source, exporting only counts (`flyway_schema_history` rows with versions and checksums, and one `count(*)` per table) to a private bucket path. Four exports of about 20 s each.
+3. Cloud SQL export needs the two Cloud SQL service agents to write the bucket. A bucket-level grant was needed (an object-prefix condition fails the export pre-check). Remove both grants afterwards.
+4. Delete the clone and the exported CSVs. Soft-deleted CSV copies remain for 7 days under the bucket policy.
+
+Result (backup `1792065600000`, 15 October 2026): create 670 s, restore 470 s, delete 142 s. `flyway_schema_history` is identical in both databases (92 rows, V92, same checksums). DEV table counts are equal (32 of 32). PROD has 10 small positive differences (for example Charges +13, `pwa_job_runs` +19); they are writes made after the backup. Cleanup: clone, CSVs and temporary grants removed. No borrower data left the instance.
+
 ## Hotfix
 
 Reproduce the defect against the production baseline in an isolated checkout/DEV path, fix and run affected checks, then follow the short [promotion workflow](Release_Workflow.md). Preserve later DEV work and integrate the fix back. Frozen-release corrections keep that release number; new hotfix scope uses the sole Open release.

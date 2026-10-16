@@ -1,12 +1,19 @@
 name: Database migrations
 # Push-only trigger: a branch push and its pull request share the head commit,
 # so one run serves both (the check appears on the PR). Release tags reuse the
-# tested commit; avoid duplicate tag runs.
+# tested commit; avoid duplicate tag runs. Service changes run the integration
+# groups too (APP-TEST-02): they exercise services/** against real SQL.
 on:
   push:
     branches: ['**']
-    paths: ['database/**', 'scripts/database/**', 'tests/integration/**', 'scripts/rehearsal/Run-ApplicationRoleOperatorProof.ps1', '.github/workflows/database.yml', 'scripts/analysis/**', 'scripts/dictionary/capture_postgresql.py', 'project/outputs/database-transfer-20261007/source-manifest.json']
+    paths: ['database/**', 'scripts/database/**', 'tests/integration/**', 'services/**', 'scripts/rehearsal/**', 'package-lock.json', '.github/workflows/database.yml', 'scripts/analysis/**', 'scripts/dictionary/capture_postgresql.py', 'project/outputs/database-transfer-20261007/source-manifest.json']
   workflow_dispatch:
+    inputs:
+      runner:
+        description: Runner for the rebuild groups (Windows reproduces the VM-01 route)
+        type: choice
+        options: [ubuntu-latest, windows-latest]
+        default: ubuntu-latest
 permissions:
   contents: read
 concurrency:
@@ -45,8 +52,9 @@ jobs:
 
   rebuild:
     # The four groups of scripts/database/Test-CI.ps1 each own disposable
-    # clusters, so they run as parallel jobs instead of one 9 minute sequence.
-    runs-on: windows-latest
+    # clusters, so they run as parallel jobs. Linux by default (DB-CI-01);
+    # a manual dispatch can select windows-latest.
+    runs-on: ${{ inputs.runner || 'ubuntu-latest' }}
     timeout-minutes: 20
     strategy:
       fail-fast: false
@@ -59,16 +67,34 @@ jobs:
           persist-credentials: false
       - name: Keep the toolchain outside the checkout
         shell: pwsh
-        run: '"MW_DB_TOOL_ROOT=$env:RUNNER_TEMP\db-tools" >> $env:GITHUB_ENV'
+        run: '"MW_DB_TOOL_ROOT=$(Join-Path $env:RUNNER_TEMP db-tools)" >> $env:GITHUB_ENV'
       - name: Cache pinned Flyway and PostgreSQL tools
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: ${{ env.MW_DB_TOOL_ROOT }}
-          key: db-tools-windows-${{ hashFiles('database/toolchain.json', 'scripts/database/Install-Tools.ps1', 'scripts/database/Common.ps1') }}
-      - name: Install pinned tools outside checkout
+          key: db-tools-${{ runner.os }}-${{ hashFiles('database/toolchain.json', 'scripts/database/Install-Tools.ps1', 'scripts/database/Common.ps1') }}
+      - name: Install pinned tools outside checkout (Windows)
+        if: runner.os == 'Windows'
         shell: pwsh
         run: ./scripts/database/Install-Tools.ps1
-      - uses: actions/setup-node@v4
+      - name: Install PostgreSQL 18 (PGDG) and pinned Flyway (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          set -euo pipefail
+          sudo apt-get install -y -q postgresql-common
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -y -q postgresql-18
+          echo "MW_PG_BIN=/usr/lib/postgresql/18/bin" >> "$GITHUB_ENV"
+          version=$(jq -r .flywayVersion database/toolchain.json)
+          if [ ! -x "$MW_DB_TOOL_ROOT/flyway-$version/flyway" ]; then
+            mkdir -p "$MW_DB_TOOL_ROOT"
+            curl -fsSL -o "$RUNNER_TEMP/flyway.tar.gz" "$(jq -r .linux.url database/toolchain.json)"
+            echo "$(jq -r .linux.sha256 database/toolchain.json)  $RUNNER_TEMP/flyway.tar.gz" | sha256sum -c -
+            tar -xzf "$RUNNER_TEMP/flyway.tar.gz" -C "$MW_DB_TOOL_ROOT"
+          fi
+          "$MW_DB_TOOL_ROOT/flyway-$version/flyway" -v | grep -q "Flyway.*$version"
+          /usr/lib/postgresql/18/bin/pg_ctl --version
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version-file: .nvmrc
           cache: npm
@@ -77,3 +103,6 @@ jobs:
       - name: Rebuild and validate disposable database
         shell: pwsh
         run: ./scripts/database/Test-CI.ps1 -Group ${{ matrix.group }}
+      - name: Tests leave tracked files unchanged
+        shell: bash
+        run: git diff --exit-code --stat && test -z "$(git status --porcelain)"

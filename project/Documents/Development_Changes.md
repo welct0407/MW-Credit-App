@@ -9,7 +9,7 @@ The sole Open product release is **R063**. **R062 is Released**; the owner-autho
 | Carried operational credential migration | R055 remains Frozen; paused work is unfinished |
 | Apple push enrollment follow-up | R056 V91 deployed; Lisa retry/closure remains pending |
 | Owner license action | AppSheet technical retirement complete; license revocation unconfirmed |
-| Grafana revamp: alert coverage for PWA APIs, workers, Cloud SQL disk and backups | Pending future release (review ALL-MON-01); no alert rules applied in R063 |
+| Grafana revamp: alert coverage for PWA APIs, workers, Cloud SQL disk and backups; every ALL-MON item (including ALL-MON-03 checks) is a line of this entry | Pending future release (review ALL-MON-01); no alert rules applied in R063 |
 | Repository merge follow-ups (15 October 2026) | [Change note](../../Change%20Logs/CHANGE_NOTES_REPOSITORY_MERGE_2026-10-15.md) |
 
 Use the [release tracker](Release_Tracker.md), including the carried R016 administrative follow-up. Current runtime versions belong in [environment inventory](Environment_Inventory.md). Update this page for actual outstanding work, not completed-release history.
@@ -47,6 +47,15 @@ Use the [release tracker](Release_Tracker.md), including the carried R016 admini
 - The tunnel, runner and cloud-session setup scripts read secret version `latest` instead of `1`.
 - Grafana alert coverage is recorded as a pending future-release item above; no alert rules were applied.
 - Record: [W1 operations change note](../../Change%20Logs/CHANGE_NOTES_W1_OPS_2026-10-15.md). UI/tooling only; no deployment or database change.
+
+## R063 Wave 3
+
+Three branches, merged separately; details in each change note: [PWA and API](../../Change%20Logs/CHANGE_NOTES_W3_APP_2026-10-16.md), [operations](../../Change%20Logs/CHANGE_NOTES_W3_OPS_2026-10-16.md), [agent](../../integration-agent/Change%20Logs/CHANGE_NOTES_W3_AGENT_2026-10-16.md).
+
+- App branch (`claude/review-w3-app`): DEV reader and command run `business-server.mjs` with DEV configuration (ALL-ARCH-01); the foundation DEV API, `deploy-dev.yml`, `verify-dev.mjs` and the `start` script are removed (ALL-ARCH-05); APP items for security headers (CSP), offline retention, payment request budget and worker caller pinning. DEV deployed from the final app tree `fbd1260` (Hosting `955fa49b579be5f9`, image `d35ff75e`); PROD untouched.
+- Operations branch (`claude/review-w3-ops`): Linux database CI (`mw-db-ci`), dead tests removed and the grant-matrix test added, read identity `codex-cloud-read`, second PROD migration path through `Invoke-CloudFlyway.py`, `verify-ca` TLS, CI hardening, Biome and ruff (non-blocking), Terraform imports and cleanup policies, firewall and key hygiene, Azure hooks replaced by on-demand wrappers, restore-from-backup rehearsal. DEV database grants changed; PROD database untouched.
+- Agent branch (`claude/review-w3-agent`, pushed at `78de50e`): quality, test, state, send and webhook fixes. Host changes are prepared, not applied; the Debian pin is unchanged. Merge it before or with the operations branch (the new `lab` CI job needs it).
+- Pending: W4 starts with DB-ACCESS-08 (owner, 16 October 2026): make `sync_cash_ledger()` `SECURITY DEFINER` so no caller needs DELETE on `"Cash Ledger"`, then revoke direct ledger writes and assert it in the grant-matrix test ([backlog](../../Change%20Logs/CHANGE_NOTES_REVIEW_OVERALL_2026-10-15.md#backlog)). ALL-ARCH-04 (no instance change until W4 moves receipt images out of the agent database). Grafana revamp entry above also holds the ALL-MON lines; ALL-MON-03 Metabase/Railway checks and the ALL-COST-01 GCP budget are owner-performed and pending ([inventory](Environment_Inventory.md)).
 
 ## R063 read retry after settled commands
 
@@ -273,8 +282,7 @@ Source inspected **14 October 2026**. This policy changes no product workflow or
 | Tool | Actual constraint |
 | --- | --- |
 | App `ci.yml` | Since 16 October 2026 a `changes` job routes each run: PRs run typecheck/unit/build when app files change, Terraform validation when `infrastructure/**` changes, and the full Playwright suite (three parallel shards, one CI retry with trace, artifacts kept 7 days) when the PWA, specs, Playwright/Vite config or lockfile change. Main pushes are classified the same way from the pushed commit range (a first push or an unreadable range runs everything); manual dispatch runs every stage. Documentation-only PRs and merges post the `Development checks result` status without running stages; that status is required on `main` since 16 October 2026. The `ci:checkpoint` label is retired. |
-| `database.yml` | Push-only trigger (one run per head commit, visible on the PR); `guards` on Linux, then the four `Test-CI.ps1` groups as parallel Windows jobs with the Flyway/PostgreSQL toolchain cached. Database documentation paths still trigger it. |
-| `deploy-dev.yml` | Manual main-only original API deployment; repeats checks and does not publish Hosting. It is not the complete PWA release route. |
+| `database.yml` | Push-only trigger (one run per head commit, visible on the PR); `guards` on Linux, then the four `Test-CI.ps1` groups as parallel jobs on ubuntu-latest (manual dispatch can choose windows-latest). Triggered also by `services/**`, `tests/integration/**` and `scripts/rehearsal/**`. |
 | `agent-tests.yml` | Integration agent tests (formerly the agent repository's `ci.yml`); path-filtered to `integration-agent/**`. |
 | `grafana-mcp-bridge.yml` | Path-filtered to `project/scripts/monitoring/...`. |
 | Integration shared deployment helper | Receiver lifecycle/readiness correction is source tooling for R059; the existing R058 receiver was repaired by restart on 14 October at 18:43 Bangkok. No new runtime package was deployed for this repair. |

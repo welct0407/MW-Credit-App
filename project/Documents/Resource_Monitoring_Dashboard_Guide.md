@@ -84,7 +84,7 @@ Debian collects every two minutes. Reports older than **six minutes** become Unk
 
 | ID | Tile | Check and interpretation |
 |---|---|---|
-| 51 | 🔗 Webhook | GCP checks `https://hooks.mw-credit.com/health` every five minutes from Singapore, Belgium and Oregon. Valid HTTPS, HTTP 200 and the expected receiver response are required. All three fresh results pass → Healthy; mixed pass/fail → Degraded; all fail → Down. Fewer than three recent results → Unknown, with a 12-minute freshness allowance. This tests public reachability without submitting a business webhook. |
+| 51 | 🔗 Webhook | GCP checks `https://hooks.mw-credit.com/instagram` every five minutes from Singapore, Belgium and Oregon. Valid HTTPS, HTTP 403 and the receiver's `Forbidden` answer to an unsigned GET are required. All three fresh results pass → Healthy; mixed pass/fail → Degraded; all fail → Down. Fewer than three recent results → Unknown, with a 12-minute freshness allowance. This tests public reachability without submitting a business webhook. |
 | 52 | ☁ Tunnel | Debian's Cloudflare tunnel process and HA connection count. Active process with at least four connections → Healthy; one to three → Degraded; zero or inactive process → Down. Missing connection metrics → Unknown. This complements the external Webhook check. |
 | 53 | 🛡 Tailscale | Debian reports Tailscale Running and its own node Online, with no health warnings. Warnings → Degraded; not Running/Online → Down. This is **node health**, not a connection test from another Tailscale device. |
 | 60 | 📥 Ingress | Local receiver `/health` returns the expected response on Debian. Disabled receiver flag → Paused. It checks the local HTTP receiver, not public routing or successful processing of a real message. |

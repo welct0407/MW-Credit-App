@@ -1,7 +1,7 @@
 param([Parameter(Mandatory)][string]$ApprovalReference)
 $ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot '../database/Common.ps1')
-$target=Get-DbEnvironment production
+$target=Get-DbEnvironment production -Admin
 $out=Join-Path $DbRepoRoot 'outputs/r016-20260922'
 if(Test-Path "$out/remaining-grants-applied.json"){throw 'This approved grant batch was already applied. Verify instead of overwriting its rollback evidence.'}
 $private='C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r016-20260922'

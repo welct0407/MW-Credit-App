@@ -80,6 +80,32 @@ resource "google_artifact_registry_repository" "application" {
   location      = var.region
   repository_id = "mw-credit-app-prod"
   format        = "DOCKER"
+  # R063 W3 ALL-INFRA-06: keep the 20 newest versions and any `keep*` tag
+  # (deployed/pinned digests carry keep-<release>); delete the rest after 30 days.
+  cleanup_policy_dry_run = false
+  cleanup_policies {
+    id     = "keep-recent"
+    action = "KEEP"
+    most_recent_versions {
+      keep_count = 20
+    }
+  }
+  cleanup_policies {
+    id     = "keep-tagged"
+    action = "KEEP"
+    condition {
+      tag_state    = "TAGGED"
+      tag_prefixes = ["keep"]
+    }
+  }
+  cleanup_policies {
+    id     = "delete-old"
+    action = "DELETE"
+    condition {
+      tag_state  = "ANY"
+      older_than = "2592000s"
+    }
+  }
   lifecycle { prevent_destroy = true }
 }
 
