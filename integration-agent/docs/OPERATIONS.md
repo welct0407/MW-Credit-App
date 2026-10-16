@@ -22,7 +22,31 @@ All Partner notices are Instagram first, email fallback. The former SQLite updat
 | `/etc/mw-integration-agent` | private configuration and secret references | root:mwagent, 0750 |
 | `/var/lib/mw-integration-agent` | service home, Codex runtime, journals, state | mwagent:mwagent, 0750 |
 
-The source checkout is `/opt/mw-integration-agent-src`, a clone of `welct0407/MW-Credit-App` `main` (this code is its `integration-agent/` directory; cut over 15 October 2026). Its `origin` uses a repository-scoped read-only GitHub deploy key at `/etc/mw-integration-agent/git/github_deploy_key_mw_credit_app` (outside Git). Run `sudo integration-agent/scripts/update-from-github.sh` from the checkout for a clean, fast-forward-only update; install with `pip install /opt/mw-integration-agent-src/integration-agent` in the existing venv. There is no automatic update timer.
+The source checkout is `/opt/mw-integration-agent-src`, a clone of `welct0407/MW-Credit-App` `main` (this code is its `integration-agent/` directory; cut over 15 October 2026). Its `origin` uses a repository-scoped read-only GitHub deploy key at `/etc/mw-integration-agent/git/github_deploy_key_mw_credit_app` (outside Git). Run `sudo integration-agent/scripts/update-from-github.sh` from the checkout for a clean, fast-forward-only update on `main`; it only moves the checkout and installs nothing. Install and activate through the deploy helper below. There is no automatic update timer.
+
+## Deploying a reviewed commit
+
+Code-only deploys use one route, `integration-agent/scripts/deploy-runtime.py`, run as root from the checkout. The retired `update-reviewed-runtime.sh` and a manual `pip install` are not used. The deploy needs an owner go for the exact commit. Config switches, cutoffs and catalogue entries are preserved; only `code_version` changes to the pinned commit.
+
+Before running it, the commit must be in the checkout and the checkout HEAD must equal it (`update-from-github.sh` is fast-forward-only on `main`, so merge to `main` first). The live and repository catalogues must have the same `revision`, service names and `implemented` flags, or the helper refuses. Activation runs a native read-only probe and needs an unused UUID (`--probe-request-id`).
+
+```bash
+sudo python3 integration-agent/scripts/deploy-runtime.py dry-run  --commit <sha>
+sudo python3 integration-agent/scripts/deploy-runtime.py freeze   --commit <sha>
+sudo python3 integration-agent/scripts/deploy-runtime.py install  --commit <sha>
+sudo python3 integration-agent/scripts/deploy-runtime.py activate --commit <sha> --probe-request-id <unused-uuid>
+sudo python3 integration-agent/scripts/deploy-runtime.py rollback --commit <sha>
+```
+
+- `dry-run` writes nothing. It compares the checkout, installed package, units and live `code_version` with the commit and prints the plan.
+- `freeze` stops the worker timers, waits for running workers, and backs up config, catalogue, package and units to `/var/lib/mw-integration-agent/rollback/runtime-<stamp>` (pointer `runtime-current`). It records the receiver InvocationID and whether the old `code_version` is an ancestor. Ancestry reads `unknown-object` until a deploy has set `code_version` to a monorepo commit.
+- `install` runs `pip install --no-deps` from the checkout, deletes installed `.py` files absent from source, checks that the installed names and hashes equal source, installs changed unit files, runs `daemon-reload`, and creates the Graph token `.bak` file if missing.
+- `activate` runs the probe, writes the pinned `code_version`, restarts `mw-instagram-webhook`, and waits up to 30 s for `/ready` to report that commit from a new InvocationID. Only then does it start the paused timers.
+- If activation fails, it rolls back automatically (package, config, units, receiver restart) and leaves the timers stopped. `rollback` restores the backup on request and resumes timers only after verification.
+
+The deploy also installs the repository copy of `project/scripts/monitoring/debian-health.py` to `/opt/mw-resource-monitoring`. The helper does not do this. `mw-report-charts` and `mw-resource-health` units live outside `integration-agent/systemd/`.
+
+The receiver serves `/ready` on the loopback port: 200 with `ready: true` and `code_version` when the config, catalogue, secrets and state checks pass and the running process still matches the configured `code_version` and installed package hash (`current`). Tunnelled requests (`Cf-Ray`/`Cf-Connecting-Ip`) get 404 until the tunnel path is restricted. `mw-integration-agent receiver-ready --config … [--wait 30]` runs the same check; the unit calls it after start as a non-fatal gate. A handler exception writes one `ingress_error` JSON line to stderr. `debian-health.py` sets `webhook_local` from `/ready` and prints `webhook_code_version`.
 
 The host timezone is `Asia/Bangkok`. Keep the hardware clock in UTC and NTP synchronization active; application requests that need an explicit business timezone continue to use `Asia/Bangkok` rather than relying only on the host default.
 
@@ -55,6 +79,7 @@ systemctl is-active google-osconfig-agent.service
 systemctl is-active tailscaled.service
 tailscale status
 curl --fail http://127.0.0.1:8000/health
+curl --fail http://127.0.0.1:8000/ready
 sudo -u mwagent /opt/mw-integration-agent/.venv/bin/mw-integration-agent \
   instagram-probe --config /etc/mw-integration-agent/config.json \
   --catalogue /etc/mw-integration-agent/service-catalogue.json
@@ -90,7 +115,7 @@ journalctl -u mw-cash-statement.service -u mw-cash-statement-email-retry.service
 
 The Graph OAuth JSON is `/etc/mw-integration-agent/secrets/outlook-email-oauth.json`, mode 0600 and owned by `mwagent` because Microsoft can rotate its refresh token. It is the only mutable secret. Back it up outside Git and never print it. The installed sender must verify as `welctcodex@outlook.com`.
 
-Before each rotation the agent copies the current file to `outlook-email-oauth.json.bak` (same directory, 0600) and only then rewrites the original in place, so an interrupted write leaves the previous refresh token recoverable. The four email-capable units list that path as an optional `ReadWritePaths=` entry (`-` prefix), which systemd can only bind when the file exists; create it once as root, then reload units:
+Before each rotation the agent copies the current file to `outlook-email-oauth.json.bak` (same directory, 0600) and only then rewrites the original in place, so an interrupted write leaves the previous refresh token recoverable. The four email-capable units list that path as an optional `ReadWritePaths=` entry (`-` prefix), which systemd can only bind when the file exists. The deploy helper creates it when missing and reloads units; to do it by hand, as root:
 
 ```bash
 install -o mwagent -g mwagent -m 0600 /dev/null /etc/mw-integration-agent/secrets/outlook-email-oauth.json.bak
