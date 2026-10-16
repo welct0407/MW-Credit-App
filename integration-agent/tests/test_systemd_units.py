@@ -5,8 +5,9 @@ from pathlib import Path
 UNITS = Path(__file__).resolve().parents[1] / 'systemd'
 PROXY = 'cloud-sql-auth-proxy.service'
 OAUTH = '/etc/mw-integration-agent/secrets/outlook-email-oauth.json'
+RECEIVER = 'mw-instagram-webhook'
 WORKERS = {'mw-receipt-summary', 'mw-audit-relay', 'mw-cash-statement', 'mw-cash-statement-email-retry',
-           'mw-partner-conversation', 'mw-conversation-poll'}
+           'mw-partner-conversation', 'mw-conversation-poll', RECEIVER}
 
 
 def parse(path):
@@ -54,6 +55,22 @@ class UnitFileTests(unittest.TestCase):
         for name in sorted(rotating):
             with self.subTest(unit=name):
                 self.assertIn('-' + OAUTH + '.bak', words(self.units[name]['Service'], 'ReadWritePaths'))
+
+    def test_receiver_waits_for_proxy_and_readiness_without_requiring_them(self):
+        # AGT-R063-03: ordered after the proxy, private umask/HOME, and a non-fatal readiness gate on start.
+        unit, service = self.units[RECEIVER]['Unit'], self.units[RECEIVER]['Service']
+        self.assertEqual(words(unit, 'After'), ['network-online.target', PROXY])
+        self.assertEqual(words(unit, 'Wants'), ['network-online.target', PROXY])
+        self.assertNotIn(PROXY, words(unit, 'Requires') + words(unit, 'BindsTo'))
+        self.assertEqual(unit.get('StartLimitIntervalSec'), ['300'])
+        self.assertEqual(unit.get('StartLimitBurst'), ['5'])
+        self.assertEqual(service.get('UMask'), ['0077'])
+        self.assertEqual(service.get('Environment'), ['HOME=/var/lib/mw-integration-agent'])
+        self.assertEqual(service.get('ExecStartPost'), ['-/opt/mw-integration-agent/.venv/bin/mw-integration-agent receiver-ready '
+                                                        '--config /etc/mw-integration-agent/config.json --wait 30'])
+        self.assertEqual(service.get('TimeoutStartSec'), ['45s'])
+        self.assertEqual(service.get('Restart'), ['on-failure'])
+        self.assertEqual(service.get('RestartSec'), ['5s'])
 
 
 if __name__ == '__main__':

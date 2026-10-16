@@ -8,7 +8,7 @@ from . import __version__
 from .config import ConfigurationError, load_json, validate_catalogue, validate_config
 from .instagram import Instagram
 from .journal import IngressJournal
-from .server import serve
+from .server import poll_ready, serve
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -39,6 +39,9 @@ def build_parser() -> argparse.ArgumentParser:
     webhook = sub.add_parser("serve-webhook", help="run receipt-only signed Instagram ingress")
     webhook.add_argument("--config", required=True)
     webhook.add_argument("--catalogue", required=True)
+    ready = sub.add_parser("receiver-ready", help="wait until the local receiver reports ready")
+    ready.add_argument("--config", required=True)
+    ready.add_argument("--wait", type=float, default=0, help="seconds to keep polling once per second")
     messages = sub.add_parser("messages", help="show captured Instagram messages")
     messages.add_argument("--config", required=True)
     messages.add_argument("--limit", type=int, default=10)
@@ -78,7 +81,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main() -> int:
     args = build_parser().parse_args()
-    if args.command in ('serve-webhook','status','check'):
+    if args.command in ('serve-webhook','receiver-ready','status','check'):
         return execute(args)
     from .audit import job
     try:
@@ -158,8 +161,16 @@ def execute(args) -> int:
             validate_catalogue(catalogue)
             if not catalogue["services"]["signed_webhook_ingress"]["enabled"]:
                 raise ConfigurationError("signed_webhook_ingress is disabled")
-            serve(args.config)
+            serve(args.config, args.catalogue)
             return 0
+        if args.command == "receiver-ready":
+            try:
+                config = load_json(args.config)
+                ready, body = poll_ready(config["listen_host"], config["listen_port"], args.wait)
+            except (ConfigurationError, KeyError, TypeError):
+                ready, body = False, {"ready": False, "failed": ["config"]}
+            print(json.dumps(body))
+            return 0 if ready else 1
         if args.command == "messages":
             config = load_json(args.config)
             validate_config(config)

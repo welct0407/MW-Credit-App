@@ -1,14 +1,21 @@
 [Unit]
 Description=MW Integration Agent signed Instagram webhook receiver
-After=network-online.target
-Wants=network-online.target
+After=network-online.target cloud-sql-auth-proxy.service
+Wants=network-online.target cloud-sql-auth-proxy.service
+StartLimitIntervalSec=300
+StartLimitBurst=5
 
 [Service]
 Type=simple
 User=mwagent
 Group=mwagent
+UMask=0077
+Environment=HOME=/var/lib/mw-integration-agent
 WorkingDirectory=/var/lib/mw-integration-agent
 ExecStart=/opt/mw-integration-agent/.venv/bin/mw-integration-agent serve-webhook --config /etc/mw-integration-agent/config.json --catalogue /etc/mw-integration-agent/service-catalogue.json
+# Non-fatal gate: "active" waits until /ready or 30 s; a long proxy outage cannot reach the start limit.
+ExecStartPost=-/opt/mw-integration-agent/.venv/bin/mw-integration-agent receiver-ready --config /etc/mw-integration-agent/config.json --wait 30
+TimeoutStartSec=45s
 Restart=on-failure
 RestartSec=5s
 NoNewPrivileges=true

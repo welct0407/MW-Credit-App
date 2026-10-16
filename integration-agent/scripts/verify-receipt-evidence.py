@@ -1,5 +1,5 @@
 """Read-only post-deployment receipt checks. Emits configuration keys/counts, no records/secrets."""
-import hashlib,json,os,subprocess
+import importlib.util,json,os,subprocess
 from pathlib import Path
 assert os.geteuid()==0 and os.uname().nodename=='vm-mw-credit-agent'
 root=Path('/etc/mw-integration-agent')
@@ -23,9 +23,11 @@ assert all(states[u]['timer']['ActiveState']=='active' for u in units)
 assert all(states[u]['service'].get('Result')=='success' and states[u]['service'].get('ExecMainStatus')=='0' for u in units)
 python='/opt/mw-integration-agent/.venv/bin/python'
 installed=Path(subprocess.check_output([python,'-c','import mw_integration_agent; print(next(iter(mw_integration_agent.__path__)))'],text=True).strip())
-source=Path('/opt/mw-integration-agent-src/src/mw_integration_agent')
-files=list(source.rglob('*.py'))
-assert all(hashlib.sha256(f.read_bytes()).digest()==hashlib.sha256((installed/f.relative_to(source)).read_bytes()).digest() for f in files)
+source=Path('/opt/mw-integration-agent-src/integration-agent/src/mw_integration_agent')
+spec=importlib.util.spec_from_file_location('engine',Path(__file__).with_name('deploy-shared-receipt-api.py'))
+engine=importlib.util.module_from_spec(spec);spec.loader.exec_module(engine)
+files=engine.pyfiles(source);assert files
+assert engine.compare_tree(source,installed)==([],[],[]),'Installed code differs from source'
 secret=root/'secrets/receipt-projector-password.txt';assert secret.stat().st_mode & 0o777==0o640
 probe=r'''
 import json,psycopg

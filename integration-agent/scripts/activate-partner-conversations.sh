@@ -4,7 +4,7 @@ set -eu
 test "$(id -u)" -eq 0
 test -n "${1:-}"
 test -d "$1"
-repo=/opt/mw-integration-agent-src
+repo=/opt/mw-integration-agent-src/integration-agent
 cp -a /etc/mw-integration-agent/config.json "$1/config.before-conversations.json"
 install -o root -g root -m 0644 "$repo/systemd/mw-partner-conversation.service" /etc/systemd/system/
 install -o root -g root -m 0644 "$repo/systemd/mw-partner-conversation.timer" /etc/systemd/system/

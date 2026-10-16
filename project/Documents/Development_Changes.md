@@ -4,7 +4,7 @@ The sole Open product release is **R063**. **R062 is Released**; the owner-autho
 
 | Outstanding work | Owning reference |
 | --- | --- |
-| Integration receiver deployment tooling | Carried unfinished in Open R063; excluded from released R062 settings promotion |
+| Integration receiver deployment tooling | Open R063; source ready on branch (Wave 2), deploy pending owner go; excluded from released R062 settings promotion |
 | PWA read retry after settled commands | Open R063; source pushed, not deployed; [record](#r063-read-retry-after-settled-commands) |
 | Deferred Collection Note concern | Unchanged by released R059; a separate owner-directed correction remains pending |
 | Carried operational credential migration | R055 remains Frozen; paused work is unfinished |
@@ -23,6 +23,16 @@ Use the [release tracker](Release_Tracker.md), including the carried R016 admini
 - Sending and host: Instagram and email failures record detail codes; the Graph refresh token is backed up before rotation; worker units `Want` the proxy instead of `Require` it.
 - Owner decisions (16 October 2026): health reporting counts open REVIEW ingress rows (`ingress_review_open`, exported by the existing collector once deployed; dashboard card and alert deferred to the Grafana revamp); a changed retry of a consumed message stays audit-only; future-dated messages get a 60 s clock tolerance.
 - Checks: unit suite 373 tests OK (44 skipped); lab suites 48 of 49 pass, the one error is the pre-existing AGT-TEST-02; `test_postgres_state` rerun after the owner decisions, 16 OK. Deployment waits for Wave 2. Details and recovery: [change note](../../integration-agent/Change%20Logs/CHANGE_NOTES_W1_AGENT_2026-10-15.md).
+
+## R063 Wave 2 — Debian agent deployment
+
+- Purpose: receiver readiness and a safe restart-and-wait deploy route. Source only; nothing deployed, so the Debian pin is unchanged.
+- Receiver: new `/ready` endpoint and `receiver-ready` command report config, catalogue, secrets, state and running-version checks with `code_version`; handler errors write one `ingress_error` stderr line; the unit wants the proxy, sets `UMask=0077` and runs a non-fatal readiness gate after start. Tunnelled requests get 404 on `/ready` until the tunnel path is restricted in Wave 3.
+- Deploy: `scripts/deploy-runtime.py` (freeze, install, activate, rollback, dry-run) verifies installed files against source, installs changed units, restarts the receiver, waits for `/ready` with the pinned commit, then resumes timers; failure rolls back automatically. `update-reviewed-runtime.sh` is retired; other deploy scripts use the monorepo paths.
+- Host monitor: `webhook_local` now comes from `/ready`. No Grafana or alert change.
+- Host facts: installed tree equals `main` `58929d7` (recorded in the [inventory](Environment_Inventory.md)); the checkout was unshallowed on 16 October 2026, HEAD unchanged.
+- Checks: unit suite 409 tests OK (44 skipped); host monitor 31 OK; lab suites 49 of 50 pass, the one error is the pre-existing AGT-TEST-02; read-only helper dry run on the host passed. Package commit `a141e06`.
+- Deploy of Waves 1 and 2 waits for the owner go and for the commit to be on the host clone. Details, checks and recovery: [change note](../../integration-agent/Change%20Logs/CHANGE_NOTES_W2_AGENT_DEPLOYMENT_2026-10-16.md).
 
 ## R063 Wave 1 — PWA and API fixes
 

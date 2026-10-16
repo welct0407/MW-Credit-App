@@ -152,7 +152,7 @@ class InstagramTransportTests(unittest.TestCase):
 
     def test_receiver_handler_has_socket_timeout(self):
         from mw_integration_agent.server import handler
-        self.assertEqual(handler("/nonexistent/config.json").timeout, 15)
+        self.assertEqual(handler("/nonexistent/config.json", "/nonexistent/service-catalogue.json").timeout, 15)
 
     def test_journal_deduplicates_receipts_and_messages(self):
         with tempfile.TemporaryDirectory() as directory:
