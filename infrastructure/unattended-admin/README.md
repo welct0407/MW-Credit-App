@@ -36,14 +36,14 @@ Routine cloud-session database reads use `codex-cloud-read@clever-oasis-508610-n
 
 The read user's database access is set in SQL, not Terraform: membership of `pg_read_all_data` (instance-wide) and `CONNECT` on `loan_manager_dev`, `loan_manager_prod` and `mw_agent`. Sign in with `gcloud sql generate-login-token --impersonate-service-account=codex-cloud-read@clever-oasis-508610-n7.iam.gserviceaccount.com`. Admin membership stays on `codex-cloud@…iam` for the guarded runner only.
 
-`codex-cloud` signs in with one user-managed key, held in the cloud environment as `GCP_SA_KEY_B64`. The current key is `37df51c6…`, created 15 October 2026. Rotate it every 90 days; the next rotation is due **13 January 2027**. To rotate:
+`codex-cloud` signs in with one user-managed key, held in the cloud environment as `GCP_SA_KEY_B64`. The current key is `37df51c6…`, created 15 October 2026. The key has no technical expiry (Google shows 31 December 9999). Rotate it every 2 years (owner decision, 16 October 2026); the next rotation is due **15 October 2028**. To rotate:
 1. The owner creates a new key on a trusted machine (`gcloud iam service-accounts keys create … --iam-account=codex-cloud@clever-oasis-508610-n7.iam.gserviceaccount.com`).
 2. Replace `GCP_SA_KEY_B64` in the environment, then delete the local key file.
 3. Start a new session and check that the credential's `private_key_id` equals the new key ID (print only the ID) and that `gcloud auth list` works.
 4. Run `gcloud iam service-accounts keys disable <old id>`.
 5. After 7 days with no use in the audit logs, run `keys delete` on the old key.
 
-Record each rotation in the change log. The older key `f6729ca0…` was disabled on 16 October 2026. Its last use was on 4 October from another machine, and deleting it is pending owner confirmation.
+Record each rotation in the change log. The older key `f6729ca0…` was disabled and then deleted on 16 October 2026 (owner decision).
 
 ## Recovery and boundaries
 
