@@ -1,0 +1,56 @@
+name: Release tag
+# Creates the final annotated Rnnn evidence tag for a verified release
+# (Release_Workflow.md "Close once"). Manual only. It never moves or deletes
+# a tag: an existing tag name is refused, and the target must be a commit on
+# main.
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to create, for example R063
+        required: true
+        type: string
+      commit:
+        description: Full 40-character SHA of the deployed main commit
+        required: true
+        type: string
+      message:
+        description: Tag message (release pins and verification time)
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-tag
+  cancel-in-progress: false
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+      - name: Validate and create the annotated tag
+        env:
+          TAG: ${{ inputs.tag }}
+          COMMIT: ${{ inputs.commit }}
+          MESSAGE: ${{ inputs.message }}
+        run: |
+          set -euo pipefail
+          [[ "$TAG" =~ ^R[0-9]{3}$ ]] || { echo "::error::Tag must look like R063"; exit 1; }
+          [[ "$COMMIT" =~ ^[0-9a-f]{40}$ ]] || { echo "::error::Commit must be a full 40-character SHA"; exit 1; }
+          [[ -n "${MESSAGE//[[:space:]]/}" ]] || { echo "::error::Tag message is empty"; exit 1; }
+          if git ls-remote --exit-code --tags origin "refs/tags/$TAG" >/dev/null; then
+            echo "::error::Tag $TAG already exists; tags are never moved"; exit 1
+          fi
+          git cat-file -e "$COMMIT^{commit}" || { echo "::error::Commit $COMMIT not found"; exit 1; }
+          git merge-base --is-ancestor "$COMMIT" origin/main || { echo "::error::Commit $COMMIT is not on main"; exit 1; }
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "$TAG" "$COMMIT" -m "$MESSAGE"
+          git push origin "refs/tags/$TAG"
+          echo "Created $TAG at $COMMIT"
