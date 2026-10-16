@@ -8,7 +8,7 @@ AppSheet is the preferred operational API for Find/Add/Edit/Delete. Codex choose
 
 SQL is a fallback: `api_gap:` requires a verified missing app/field/action capability; `atomic:` must explain the required transaction guarantee. SQL metadata and full canonical before-images support this fallback. Fixed reporting and authorization queries are separately authorized read-only database services. They are not model SQL tools.
 
-Approved DELETE is supported. Every deleted key, including dependent children, must be an explicit step, children first. A plan has at most 10 direct steps, 1,000 captured row effects and 10 MiB of captured images. Unexpected cascades roll back. AppSheet Delete is routed to SQL when delete triggers/cascades require atomic effect verification. Existing financial immutability, reference and cash-ledger guards continue to apply; approval does not bypass them. No DDL, arbitrary SQL, code, permissions or trigger settings are model-accessible.
+Reviewer database DELETE is retired (16 October 2026): the plan parser refuses DELETE steps and the role holds DELETE only on Cash Ledger for the `cash_source_changed` trigger. A plan has at most 10 direct steps, 1,000 captured row effects and 10 MiB of captured images. Unexpected cascades roll back. Existing financial immutability, reference and cash-ledger guards continue to apply; approval does not bypass them. No DDL, arbitrary SQL, code, permissions or trigger settings are model-accessible.
 
 `audit.operations` stores immutable intent; `audit.events` stores append-only events. Mutable status, queue ownership and journals live in `runtime`. All host/provider calls and journal mutations are recorded; sensitive image bytes, credentials and hidden reasoning are excluded. API audit coverage is observed before/after, not a claim of atomic capture of every API automation. SQL `agent_audit` triggers capture actual before/after rows and a commit marker in the business transaction. The relay copies events idempotently then acknowledges the source marker. It never uses a sequence high-water mark as a commit boundary.
 
@@ -29,11 +29,11 @@ The five worker timers, receiver and relay use at most eight central connections
 
 ## Audit retention (design only)
 
-Status: not installed and not run against production `mw_agent`. R063 W3 recorded the design only. The bucket is a proposal for the owner to confirm.
+Status: not installed and not run against production `mw_agent`. R063 W3 recorded the design only. The owner confirmed the export target on 16 October 2026: bucket `mw-credit-operator-private-737787224638`, prefix `agent-audit-archive/`. The job is still to be written.
 
 A monthly job (`mw-audit-retention.timer`, to be written) would run as the owner role `mw_agent_owner` through the established admin route:
 
-1. Export rows older than 12 months from `audit.events`, `audit.operations` and `runtime.job_runs` with `COPY (SELECT ... WHERE occurred_at < now() - interval '12 months') TO STDOUT`, gzip, upload to `gs://<agent-backup-bucket>/audit-retention/<yyyy-mm>/` and verify the object SHA-256.
+1. Export rows older than 12 months from `audit.events`, `audit.operations` and `runtime.job_runs` with `COPY (SELECT ... WHERE occurred_at < now() - interval '12 months') TO STDOUT`, gzip, upload to `gs://mw-credit-operator-private-737787224638/agent-audit-archive/<yyyy-mm>/` and verify the object SHA-256.
 2. Only then, in one transaction, `ALTER TABLE ... DISABLE TRIGGER` on the append-only triggers, `DELETE` the exported rows (children first), re-enable the triggers, then `VACUUM (ANALYZE)`.
 3. Write one `audit.operations` row (action `CONFIG`) with row counts and object names.
 

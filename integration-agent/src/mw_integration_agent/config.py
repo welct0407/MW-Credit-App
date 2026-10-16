@@ -144,8 +144,10 @@ def validate_config(config: dict[str, Any]) -> None:
     for flag in ('partner_conversations_enabled', 'conversation_writes_enabled', 'reviewer_dml_enabled', 'reviewer_delete_enabled'):
         if type(config.get(flag, False)) is not bool:
             raise ConfigurationError(flag + ' must be boolean')
-    if config.get('reviewer_delete_enabled') and (config.get('state_backend')!='postgres' or not config.get('reviewer_dml_enabled')):
-        raise ConfigurationError('DELETE requires PostgreSQL audit and reviewer DML')
+    # Reviewer DELETE is retired (owner decision, 16 October 2026): the role no longer holds DELETE
+    # on the source tables and the DML transport accepts no DELETE step. Fail closed on a stale switch.
+    if config.get('reviewer_delete_enabled', False) is not False:
+        raise ConfigurationError('reviewer DELETE is retired; reviewer_delete_enabled must be false or absent')
     if config.get('conversation_writes_enabled') and not config.get('partner_conversations_enabled'):
         raise ConfigurationError('conversation writes require conversations')
     if config.get('partner_conversations_enabled'):

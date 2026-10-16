@@ -15,9 +15,10 @@ Fix the R063 Wave 3 agent findings in code and tests, bring the agent documents 
 - **AGT-TEST-02** (`tests/test_postgres_dml_audit.py`): the privilege test opens `READ WRITE` first, so it proves the privilege and not the read-only default.
 - **AGT-TEST-03** (new `tests/test_codex_conversation.py`, `test_state_migration.py`, `test_state_migration_postgres.py`, `test_statement_snapshot.py`, `test_receipt_reconsider.py`, `test_receipt_master.py`, `test_http.py`, `test_operator_scripts.py`): the previously untested modules now have tests.
 - **AGT-TEST-05** (`tests/test_service_catalogue.py` new): asserts that the Markdown table and the JSON catalogue list the same services and the same enabled state.
-- **AGT-STATE-01** (`state.py`; `docs/POSTGRESQL_OPERATIONS.md`): no `state_change` audit rows when the statement changed zero rows. Retention is a monthly job design only (GCS export, then delete rows older than 12 months as the owner role). It is not installed and was not run against production `mw_agent`. The bucket is a proposal.
+- **AGT-STATE-01** (`state.py`; `docs/POSTGRESQL_OPERATIONS.md`): no `state_change` audit rows when the statement changed zero rows. Retention is a monthly job design only (GCS export, then delete rows older than 12 months as the owner role). It is not installed and was not run against production `mw_agent`. Export target confirmed by the owner: `gs://mw-credit-operator-private-737787224638/agent-audit-archive/`.
+- **Reviewer DELETE retired** (owner decision, 16 October; `config.py`, `conversation_dml.py`, `conversation_tools.py`, `partner_conversation.py`, `scripts/configure-reviewer-dml.py`, `database/setup/business-grants.sql`; `SERVICE_CATALOGUE.md`, `docs/REVIEWER_DML.md`, `docs/POSTGRESQL_OPERATIONS.md`): `reviewer_delete_enabled` is retired and a configured `true` is refused (`reviewer DELETE is retired; reviewer_delete_enabled must be false or absent`); the plan parser refuses any DELETE step with `REVIEWER_DELETE_RETIRED` before a connection; the catalogue lists only INSERT/UPDATE; the provisioning script and grants file grant no DELETE on the eight source tables (Cash Ledger keeps DELETE for the `cash_source_changed` trigger). Tests: `test_config.test_reviewer_delete_is_retired`, `test_conversation_dml.test_delete_steps_are_refused_before_any_database_call`, `test_operator_scripts` grant list, lab `test_postgres_dml_audit.test_delete_plan_is_refused_before_any_connection_and_role_has_no_delete` (also asserts the lab role has no DELETE on the eight tables). The native API Delete in `conversation_write.py` shares the retired switch and is therefore unavailable too (see Open questions). `service-catalogue.json` has no text fields, so only the Markdown row changed; revision 27 is unchanged.
 - **AGT-STATE-02** (`state.py`): a `readonly` journal rejects non-SELECT statements and uses `SET TRANSACTION READ ONLY`.
-- **AGT-STATE-03**: skipped, see Open questions.
+- **AGT-STATE-03**: no change; the owner accepted the current reply scan as is and folded the adapter change into W4.
 - **AGT-STATE-04** (`state.py`): connection timeouts are 15 s statement, 3 s lock, 30 s idle-in-transaction, set from `state.parameters`.
 - **AGT-SEND-03** (`receipt_api.py`, `review_cycle.py`, `audit.py`; `docs/PARTNER_REVIEW.md`): token fetch failure, HTTP 401 and HTTP 403 are "not sent". The review returns to APPROVED, `payment_id` is cleared, the same `requestId` is reused, the audit operation is FAILED and `detail` is untouched. The linked receipt job's `retry_after` holds the next attempt 15 minutes later, so a persistent 401/403 retries every 15 minutes, not every cycle. Everything later stays UNKNOWN.
 - **AGT-WEBHOOK-03**: done with Variant 1 (owner decision, 16 October). `infrastructure/ecosystem-tunnels/owned.tf`: the `hooks.mw-credit.com` ingress rule has `path = "^/instagram$"`. The ops branch first re-pointed the uptime check to `/instagram` (403, `Forbidden`).
@@ -28,14 +29,22 @@ Fix the R063 Wave 3 agent findings in code and tests, bring the agent documents 
 - **ALL-ARCH-02** (`config.py`, `conversation_dml.py`, `outbox.py`, `cash_statement.py`, `config.example.json`, `scripts/configure-reviewer-dml.py`; `docs/REVIEWER_DML.md`): `database_name` is configurable and the DEV pair is `loan_manager_dev` with `mw_reviewer_dml_dev`. The DEV role is not created. The DEV target is unusable until a W4 migration relaxes the V33 `session_user` checks.
 - **ALL-ARCH-03** (host side; `config.py`, `state.py`, `outbox.py`, `cash_statement.py`, `systemd/cloud-sql-auth-proxy.service.d/iam-listener.conf` new; `docs/POSTGRESQL_OPERATIONS.md`, `docs/OPERATIONS.md`): new keys `database_auth`, `agent_database_auth` (`password` or `iam`), `database_iam_user`, `iam_database_port` (5433). With `iam` each connection runs `SET ROLE`. `mw_reviewer_dml` and `mw_receipt_projector` keep password files on 5432 until W4. Defaults are `password`, so production behaviour is unchanged.
 - **ALL-STD-01/03** (Python side): date and time handling goes through `business_time.py`; request-id derivation goes through `http.uuid_from_sha256` with the old salts, pinned by `tests/test_http.py`.
-- **Docs**: `docs/OPERATIONS.md` (prepared host change, log access route, restore rehearsal section), `docs/POSTGRESQL_OPERATIONS.md`, `docs/PARTNER_REVIEW.md`, `docs/REVIEWER_DML.md` and the five docs named under AGT-QUALITY-05. `SERVICE_CATALOGUE.md` and `service-catalogue.json` are unchanged because no service fact changed.
+- **Docs**: `docs/OPERATIONS.md` (prepared host change, log access route, restore rehearsal section), `docs/POSTGRESQL_OPERATIONS.md`, `docs/PARTNER_REVIEW.md`, `docs/REVIEWER_DML.md` and the five docs named under AGT-QUALITY-05. `SERVICE_CATALOGUE.md` rows `reviewer_database_dml` and `operational_data_api` record the DELETE retirement; `service-catalogue.json` is unchanged.
+
+## Owner decisions (16 October 2026)
+
+- **AGT-WEBHOOK-03**: Variant 1 applied (tunnel path `^/instagram$`, uptime check re-pointed to GET `/instagram` expecting 403); see Live changes applied.
+- **Reviewer DELETE retired**: ops executed the PROD `REVOKE DELETE` from `mw_reviewer_dml` on the eight source tables (Borrowers, Business Expenses, Cash Pool Contributions, Charges, Loans, Payments, Repayments, Settlements); DELETE on Cash Ledger is kept only for the `cash_source_changed` trigger; DEV has no DELETE at all. Code, catalogue and docs changed as listed above.
+- **AGT-STATE-03**: accepted as is; the adapter change is W4 work.
+- **ALL-ARCH-03**: `mw_reviewer_dml` and `mw_receipt_projector` keep their password files until W4 (accepted).
+- **AGT-STATE-01 retention**: export bucket `mw-credit-operator-private-737787224638`, prefix `agent-audit-archive/`; the job is still to be written.
 
 ## Checks
 
 | Check | Result |
 | --- | --- |
-| Unit suite (`python -m unittest discover -s tests`) | 455 tests OK, 49 skipped (baseline 409 OK, 44 skipped) |
-| Lab suites on PostgreSQL 18 via `tests/lab/setup.sh` | 61 tests OK |
+| Unit suite (`python -m unittest discover -s tests`) | 458 tests OK, 50 skipped after the DELETE retirement (baseline 409 OK, 44 skipped) |
+| Lab suites on PostgreSQL 18 via `tests/lab/setup.sh` | 63 tests OK after the DELETE retirement (grants file without the source-table DELETE) |
 | `ruff check integration-agent` | clean |
 | `tests.test_service_catalogue` after doc edits | 1 test OK |
 | Markdown relative-link check of edited docs | 9 files, 0 broken links or anchors |
@@ -108,7 +117,7 @@ Host commands run on the VM `mw-integration-agent` through `mw-debian-ssh '<comm
 
 4. **AGT-WEBHOOK-03 tunnel path**: applied on 16 October with Variant 1; see Live changes applied. Rollback: set `path = null`, plan and apply, then restore the uptime check to `/health`, 200, `mw-instagram-webhook` (ops root `infrastructure/ecosystem-debian`).
 
-5. **DB-ACCESS-01 PROD** (reviewer DELETE): the owner decided REVOKE DELETE only, with no NOLOGIN (16 October). The ops branch runs it; see the ops note.
+5. **DB-ACCESS-01 PROD** (reviewer DELETE): executed by ops on 16 October (REVOKE DELETE on the eight source tables, no NOLOGIN); see the ops note. With the next agent deploy, remove `reviewer_delete_enabled` from `/etc/mw-integration-agent/config.json` before `mw-integration-agent check`: the new package refuses a configured `true`.
 
 ## Recovery
 
@@ -116,14 +125,12 @@ Host commands run on the VM `mw-integration-agent` through `mw-debian-ssh '<comm
 
 ## Open questions
 
-1. **AGT-STATE-03.** A bounded reply scan would make hold replies older than the window unreachable, and a 7-day window is not authorized. A safe variant (a processed high-water mark) needs the state adapter to expose `partner_review_replies` and `partner_notices` to the ingress journal. That is a W4 adapter change.
-2. **Reviewer DELETE in PROD.** DB-ACCESS-01 revokes DELETE for `mw_reviewer_dml`. Decide before the PROD go whether to retire `reviewer_delete_enabled` and the DELETE catalogue entries.
-3. **Audit retention bucket.** The GCS bucket for the monthly export is a proposal; the owner confirms it before the job is written.
+1. **Native API Delete.** `conversation_write.py` gates the API `Delete` action on the same retired `reviewer_delete_enabled` switch, so API deletions are now unavailable as well. Decide whether API Delete gets its own switch (not added without authorization) or stays retired; the `operational_data_api` catalogue row says "currently unavailable" until then.
 
 ## Remaining work
 
-- Owner go for the agent deploy, then host steps 1 to 3 above and the next package install.
-- W4 migration for the `session_user` checks (DEV reviewer DML, receipt projector on IAM). The owner accepted on 16 October that `mw_reviewer_dml` and `mw_receipt_projector` keep their two password files until then.
-- State adapter change for AGT-STATE-03.
-- Write and install the audit retention job after the bucket is confirmed.
+- Owner go for the agent deploy, then host steps 1 to 3 and 5 above and the next package install.
+- W4 migration for the `session_user` checks (DEV reviewer DML, receipt projector on IAM); `mw_reviewer_dml` and `mw_receipt_projector` keep their two password files until then.
+- W4 state adapter change for AGT-STATE-03 (processed high-water mark over `partner_review_replies`/`partner_notices`).
+- Write and install the audit retention job against `gs://mw-credit-operator-private-737787224638/agent-audit-archive/`.
 - Narrow the Graph refresh-token write path when `graph_email.py` is next touched (AGT-HOST-02).

@@ -116,8 +116,8 @@ def writable_fields(bridge, table, columns):
 def catalogue(bridge, table):
     config, _ = authorize(bridge)
     if not table:
-        return {'tables': list(TABLES), 'actions': ['INSERT', 'UPDATE', 'DELETE'],
-                'limits': 'API first. SQL fallback reason must start api_gap: or atomic:. One atomic transaction per turn, at most 10 exact-key rows. DELETE requires empty values/expected_after; every deleted child key must also be an explicitly planned DELETE step, ordered child before parent. No DDL, SQL expressions, settings, functions or trigger bypass. Existing database guards remain authoritative.'}
+        return {'tables': list(TABLES), 'actions': ['INSERT', 'UPDATE'],
+                'limits': 'API first. SQL fallback reason must start api_gap: or atomic:. One atomic transaction per turn, at most 10 exact-key rows. Database DELETE is retired; deletions are not available. No DDL, SQL expressions, settings, functions or trigger bypass. Existing database guards remain authoritative.'}
     with connect(config) as conn:
         columns = metadata(conn, table)
         constraints = conn.execute('''SELECT conname AS name, pg_get_constraintdef(oid) AS definition
@@ -188,7 +188,10 @@ def parse_plan(raw):
     for step in plan:
         if not isinstance(step,dict) or set(step)!={'action','table','row_id','values','expected_after','observation'}:
             raise ConfigurationError('DML_STEP_FIELDS_INVALID')
-        if step['action'] not in ('INSERT','UPDATE','DELETE') or step['table'] not in TABLES:
+        if step['action']=='DELETE':
+            # Retired 16 October 2026: the role holds no DELETE on the source tables; refused before any connection.
+            raise ConfigurationError('REVIEWER_DELETE_RETIRED')
+        if step['action'] not in ('INSERT','UPDATE') or step['table'] not in TABLES:
             raise ConfigurationError('DML_ACTION_OR_TABLE_DENIED')
         if not isinstance(step['row_id'],str) or not step['row_id'] or len(step['row_id'])>200:
             raise ConfigurationError('DML_EXACT_KEY_REQUIRED')
@@ -196,10 +199,7 @@ def parse_plan(raw):
         if key in seen: raise ConfigurationError('DML_DUPLICATE_TARGET')
         seen.add(key)
         scalar_map(step['values']); scalar_map(step['expected_after'])
-        if step['action']=='DELETE':
-            if step['values'] or step['expected_after']:
-                raise ConfigurationError('DELETE_REQUIRES_EMPTY_VALUES_AND_FINAL_STATE')
-        elif not step['values'] or 'Row ID' in step['values'] or 'Row ID' in step['expected_after']:
+        if not step['values'] or 'Row ID' in step['values'] or 'Row ID' in step['expected_after']:
             raise ConfigurationError('DML_KEY_IMMUTABLE')
     return plan
 
@@ -214,8 +214,6 @@ def transaction(bridge, args):
         raise ConfigurationError('DML_AUDIT_REASON_REQUIRED')
     plan=parse_plan(args['steps_json'])
     central = is_postgres(bridge.store.db)
-    if any(s['action']=='DELETE' for s in plan) and (not central or not config.get('reviewer_delete_enabled')):
-        raise ConfigurationError('REVIEWER_DELETE_DISABLED')
     if central:
         require_fallback(bridge, plan, reason)
     from .conversation_write import journal as api_journal

@@ -66,6 +66,17 @@ class ConfigurationTests(unittest.TestCase):
                 config=load_json(ROOT/'config.example.json');config[field]=value
                 with self.assertRaises(ConfigurationError):validate_config(config)
 
+    def test_reviewer_delete_is_retired(self):
+        # Owner decision, 16 October 2026: a configured reviewer_delete_enabled=true fails closed.
+        config = load_json(ROOT / 'config.example.json')
+        self.assertNotIn('reviewer_delete_enabled', config)
+        validate_config(dict(config, reviewer_delete_enabled=False))
+        with self.assertRaisesRegex(ConfigurationError, 'retired'):
+            validate_config(dict(config, reviewer_delete_enabled=True))
+        for value in ('false', 1):
+            with self.subTest(value=value), self.assertRaisesRegex(ConfigurationError, 'must be boolean'):
+                validate_config(dict(config, reviewer_delete_enabled=value))
+
     def test_python_floor_matches_runtime(self):
         # AGT-QUALITY-02: Debian 13, CI and AGENTS.md all run 3.13; the floor and the ruff target say so.
         import tomllib

@@ -35,7 +35,7 @@ class TransactionAudit(unittest.TestCase):
     def setUp(self):
         self.key='audit-test-'+uuid.uuid4().hex
         self.config={'state_backend':'postgres','state_generation':self.generation,'audit_environment':'test','code_version':'synthetic',
-            'reviewer_dml_enabled':True,'reviewer_delete_enabled':True,'reviewer_dml_cutoff':'2026-01-01T00:00:00+00:00',
+            'reviewer_dml_enabled':True,'reviewer_dml_cutoff':'2026-01-01T00:00:00+00:00',
             '_conversation_event_timestamp':2000000000,'_conversation_captured_at':2000000000,
             'agent_database_host':'127.0.0.1','agent_database_port':self.lab['port'],'agent_database_name':'mw_agent',
             'database_name':'loan_manager_prod'}
@@ -66,17 +66,30 @@ class TransactionAudit(unittest.TestCase):
         return dml.transaction(self.bridge,{'steps_json':json.dumps(plan),'instruction_quote':self.bridge.instruction,
             'reason':'atomic: bind exact before-image and approved effect set to this transaction'})
 
-    def test_delete_captures_before_image_and_relay_is_idempotent(self):
-        result=self.execute('DELETE')
+    def test_update_captures_before_image_and_relay_is_idempotent(self):
+        result=self.execute()
         self.assertEqual(result['state'],'VERIFIED')
         op=audit.stable('reviewer_dml:'+result['operation'])
         with psycopg.connect(**self.base,dbname='loan_manager_prod') as c:
             rows=c.execute('SELECT action,before_row,after_row FROM agent_audit.row_changes WHERE operation_id=%s',(op,)).fetchall()
-            self.assertEqual(len(rows),1);self.assertEqual(rows[0][0],'DELETE');self.assertEqual(rows[0][1]['City'],'Old city');self.assertIsNone(rows[0][2])
+            self.assertEqual(len(rows),1);self.assertEqual(rows[0][0],'UPDATE');self.assertEqual((rows[0][1]['City'],rows[0][2]['City']),('Old city','New city'))
         outbox.relay(self.config);outbox.relay(self.config)
         with psycopg.connect(**self.base,dbname='mw_agent') as c:
             self.assertEqual(c.execute("SELECT count(*) FROM audit.events WHERE operation_id=%s AND event_kind='row_changed'",(op,)).fetchone()[0],1)
             self.assertEqual(c.execute('SELECT state FROM runtime.operation_state WHERE operation_id=%s',(op,)).fetchone()[0],'VERIFIED')
+
+    def test_delete_plan_is_refused_before_any_connection_and_role_has_no_delete(self):
+        # Reviewer DELETE retired (16 October 2026): refused by the parser, and the lab role mirrors PROD (no DELETE on source tables).
+        observation=dml.read(self.bridge,'Borrowers',{'Row ID':self.key})['observation']
+        plan=[{'action':'DELETE','table':'Borrowers','row_id':self.key,'values':{},'expected_after':{},'observation':observation}]
+        with patch.object(dml,'connect',side_effect=AssertionError('connected for a retired DELETE')):
+            with self.assertRaisesRegex(ConfigurationError,'REVIEWER_DELETE_RETIRED'):
+                dml.transaction(self.bridge,{'steps_json':json.dumps(plan),'instruction_quote':self.bridge.instruction,'reason':'atomic: retired delete'})
+        self.assertIsNone(self.store.db.execute('SELECT 1 FROM conversation_dml WHERE message_id=?',(self.key,)).fetchone())
+        with psycopg.connect(**self.base,dbname='loan_manager_prod') as c:
+            self.assertEqual(c.execute('''SELECT bool_or(has_table_privilege('mw_reviewer_dml',format('public.%%I',t),'DELETE'))
+                FROM unnest(%s::text[]) t''',(['Borrowers','Loans','Charges','Repayments','Payments','Business Expenses','Settlements','Cash Pool Contributions'],)).fetchone()[0],False)
+            self.assertTrue(c.execute('''SELECT has_table_privilege('mw_reviewer_dml','public."Cash Ledger"','DELETE')''').fetchone()[0])
 
     def test_unapproved_trigger_delete_rolls_back_all_rows(self):
         from psycopg import sql
@@ -84,13 +97,16 @@ class TransactionAudit(unittest.TestCase):
         name='synthetic_delete_'+uuid.uuid4().hex
         with psycopg.connect(**self.base,dbname='loan_manager_prod') as c:
             c.execute('INSERT INTO public."Borrowers" ("Row ID","Borrower Name") VALUES (%s,%s)',(child,'Synthetic dependent'))
-            c.execute(sql.SQL('CREATE FUNCTION public.{}() RETURNS trigger LANGUAGE plpgsql AS {}').format(
+            # SECURITY DEFINER: the reviewer role itself holds no DELETE any more, so an invoker trigger
+            # would fail on privilege (42501) before the cascade check; the definer form exercises the check.
+            c.execute(sql.SQL('CREATE FUNCTION public.{}() RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER AS {}').format(
                 sql.Identifier(name),sql.Literal('BEGIN IF OLD."Row ID"='+sql.Literal(self.key).as_string(c)+' THEN DELETE FROM public."Borrowers" WHERE "Row ID"='+sql.Literal(child).as_string(c)+'; END IF; RETURN NULL; END;')))
-            c.execute(sql.SQL('CREATE TRIGGER {} AFTER DELETE ON public."Borrowers" FOR EACH ROW EXECUTE FUNCTION public.{}()').format(sql.Identifier(name),sql.Identifier(name)))
+            c.execute(sql.SQL('CREATE TRIGGER {} AFTER UPDATE ON public."Borrowers" FOR EACH ROW EXECUTE FUNCTION public.{}()').format(sql.Identifier(name),sql.Identifier(name)))
         try:
-            with self.assertRaisesRegex(ConfigurationError,'UNAPPROVED_CASCADE_ROLLBACK'):self.execute('DELETE')
+            with self.assertRaisesRegex(ConfigurationError,'UNAPPROVED_CASCADE_ROLLBACK'):self.execute()
             with psycopg.connect(**self.base,dbname='loan_manager_prod') as c:
                 self.assertEqual(c.execute('SELECT count(*) FROM public."Borrowers" WHERE "Row ID"=ANY(%s)',([self.key,child],)).fetchone()[0],2)
+                self.assertEqual(c.execute('SELECT "City" FROM public."Borrowers" WHERE "Row ID"=%s',(self.key,)).fetchone()[0],'Old city')
         finally:
             with psycopg.connect(**self.base,dbname='loan_manager_prod') as c:
                 c.execute(sql.SQL('DROP TRIGGER {} ON public."Borrowers"').format(sql.Identifier(name)))

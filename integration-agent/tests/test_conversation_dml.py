@@ -40,6 +40,19 @@ class Boundaries(unittest.TestCase):
         with self.assertRaises(ConfigurationError): dml.parse_plan(json.dumps([step()]*2))
         with self.assertRaises(ConfigurationError): dml.parse_plan('[{"action":"UPDATE","action":"INSERT"}]')
 
+    def test_delete_steps_are_refused_before_any_database_call(self):
+        # Reviewer DELETE retired (16 October 2026): the plan parser refuses it and the catalogue no longer offers it.
+        with self.assertRaisesRegex(ConfigurationError, '^REVIEWER_DELETE_RETIRED$'):
+            dml.parse_plan(json.dumps([step(action='DELETE', values={}, expected_after={})]))
+        bridge = type('Bridge', (), {'authorize': lambda s: {'reviewer_dml_enabled': True, 'reviewer_dml_cutoff': '2026-01-01T00:00:00+00:00',
+                                                            '_conversation_event_timestamp': 2000000000, '_conversation_captured_at': 2000000000},
+                                     'partner_id': 'p1'})()
+        with patch.object(dml, 'require_reviewer', return_value='a@example.com'), \
+             patch('psycopg.connect', side_effect=AssertionError('no connection for the resource list')):
+            catalogue = dml.catalogue(bridge, '')
+        self.assertEqual(catalogue['actions'], ['INSERT', 'UPDATE'])
+        self.assertIn('DELETE is retired', catalogue['limits'])
+
     def test_literal_sql_text_is_a_value(self):
         value="'; DROP TABLE public.\"Loans\"; --"
         self.assertEqual(dml.parse_plan(json.dumps([step(values={'City':value})]))[0]['values']['City'],value)

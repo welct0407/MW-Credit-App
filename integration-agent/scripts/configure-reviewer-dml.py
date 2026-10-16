@@ -34,8 +34,10 @@ def configure(conn, password, role='mw_reviewer_dml'):
     conn.execute(sql.SQL('GRANT SELECT ON ALL TABLES IN SCHEMA public TO {}').format(name))
     conn.execute(sql.SQL('GRANT INSERT, UPDATE ON {} TO {}').format(
         sql.SQL(',').join(sql.Identifier('public', t) for t in TABLES), name))
-    # Existing invoker-rights posting triggers insert allocations; source cash
-    # synchronization may delete system entries, guarded by trigger depth.
+    # Existing invoker-rights posting triggers insert allocations. Reviewer DELETE is retired
+    # (16 October 2026): no DELETE on the source tables. The one DELETE grant that remains is
+    # on "Cash Ledger", because the security-invoker trigger cash_source_changed deletes
+    # ledger rows when the reviewer INSERTs/UPDATEs a source row (guarded by trigger depth).
     # Neither resource/action is exposed as a model mutation tool.
     conn.execute(sql.SQL('GRANT INSERT, UPDATE ON public."Payment Allocations" TO {}').format(name))
     conn.execute(sql.SQL('GRANT DELETE ON public."Cash Ledger" TO {}').format(name))
