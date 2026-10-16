@@ -37,8 +37,9 @@ resource "google_cloud_run_v2_service" "read_api" {
       command = ["node"]
       args    = ["services/production/business-server.mjs"]
       resources {
-        limits   = { cpu = "1", memory = "512Mi" }
-        cpu_idle = true
+        limits            = { cpu = "1", memory = "512Mi" }
+        cpu_idle          = true
+        startup_cpu_boost = true
       }
       dynamic "env" {
         for_each = merge(local.business_env, {

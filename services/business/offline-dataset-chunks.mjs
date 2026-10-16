@@ -31,21 +31,32 @@ const text=value=>value===null||value===undefined?null:typeof value==='string'&&
 const object=(value,keys)=>{if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).sort().join(',')!==[...keys].sort().join(','))throw Error('invalid_request');return value};
 const page=(key,read,path)=>async(c,a,stamp,state)=>{const value=await read(c,text(state),a,stamp);if(value.collectionError)throw Error(value.collectionError);return result([append(key,value.items,path)],value.nextCursor??null)};
 
-async function idRows(c,table,after,limit=16){if(after!==null&&after!==undefined&&!validBorrowerId(after))throw Error('invalid_request');return(await c.query(`SELECT "Row ID" id FROM public."${table}" WHERE ($1::text IS NULL OR "Row ID" COLLATE "C">$1 COLLATE "C") ORDER BY "Row ID" COLLATE "C" LIMIT $2`,[after??null,limit+1])).rows;}
-function details(key,table,read,limit=16){return async(c,a,stamp,state)=>{
+// R064 Phase 1 packing: larger deterministic pages reduce HTTP round trips; the
+// byte boundary between pages still bounds each response.
+async function idRows(c,table,after,limit=64){if(after!==null&&after!==undefined&&!validBorrowerId(after))throw Error('invalid_request');return(await c.query(`SELECT "Row ID" id FROM public."${table}" WHERE ($1::text IS NULL OR "Row ID" COLLATE "C">$1 COLLATE "C") ORDER BY "Row ID" COLLATE "C" LIMIT $2`,[after??null,limit+1])).rows;}
+function details(key,table,read,limit=64){return async(c,a,stamp,state)=>{
  const rows=await idRows(c,table,text(state),limit),batch=bulkReadClient(c),values=await Promise.all(rows.slice(0,limit).map(row=>read(batch,row.id)));
  // Orphaned legacy records may be absent from the owning joined detail read.
  // Retain its unavailable result without poisoning unrelated source records.
  const items=values.filter(Boolean).map(item=>({...item,...stamp,...(key==='payments'?{receiptReference:item.receiptReference?'attached':null}:{})}));
  return result([append(key,items)],rows.length>limit?rows[limit-1].id:null);
  }}
-/** One parent and one existing API page per request; never drain a relation. */
-function parents(table,read){return async(c,a,stamp,input)=>{
- const state=input??{after:null,current:null,cursor:null};if(!state||typeof state!=='object'||Array.isArray(state)||Object.keys(state).some(key=>!['after','current','cursor'].includes(key)))throw Error('invalid_request');
- let id=state.current;if(id!==null&&!validBorrowerId(id))throw Error('invalid_request');
- if(!id){id=(await idRows(c,table,text(state.after),1))[0]?.id;if(!id)return result([])}
- const value=await read(c,id,text(state.cursor),a,stamp);
- return result(value.patches,value.cursor?{after:state.after,current:id,cursor:value.cursor}:{after:id,current:null,cursor:null});
+/** Up to `perPage` parents, each with one existing API page, per request; never
+ * drain a relation. A parent whose page continues keeps the page to itself. */
+function parents(table,read,perPage=8){return async(c,a,stamp,input)=>{
+ let state=input??{after:null,current:null,cursor:null};if(!state||typeof state!=='object'||Array.isArray(state)||Object.keys(state).some(key=>!['after','current','cursor'].includes(key)))throw Error('invalid_request');
+ if(state.current!==null&&!validBorrowerId(state.current))throw Error('invalid_request');
+ const patches=[];let count=0;
+ while(count<perPage){
+  const ids=state.current?[state.current]:(await idRows(c,table,text(state.after),perPage-count)).slice(0,perPage-count).map(row=>row.id);
+  if(!ids.length)return result(patches);
+  for(const id of ids){
+   const value=await read(c,id,text(state.cursor),a,stamp);patches.push(...value.patches);count++;
+   if(value.cursor)return result(patches,{after:state.after,current:id,cursor:value.cursor});
+   state={after:id,current:null,cursor:null};
+  }
+ }
+ return result(patches,state);
  }}
 const relation=kind=>parents('Loans',async(c,id,cursor)=>{const value=await readLoanRelated(c,id,kind,{limit:100,cursor});return {patches:[append('loanRelated',value?.items??[],[id,kind])],cursor:value?.nextCursor}});
 const draft=scope=>parents('Borrowers',async(c,id,cursor,a,stamp)=>{
@@ -56,7 +67,7 @@ const draft=scope=>parents('Borrowers',async(c,id,cursor,a,stamp)=>{
 });
 
 const recordPhases=[
- details('borrowers','Borrowers',readBorrowerRecord),details('loans','Loans',readLoanRecord),details('charges','Charges',readChargeRecord),details('payments','Payments',readPaymentRecord,8),details('expenses','Business Expenses',readExpenseRecord),
+ details('borrowers','Borrowers',readBorrowerRecord),details('loans','Loans',readLoanRecord),details('charges','Charges',readChargeRecord),details('payments','Payments',readPaymentRecord,32),details('expenses','Business Expenses',readExpenseRecord),
  async(c,a,stamp,state)=>{const rows=(await c.query(`SELECT "Row ID" id,"Borrower Name" name,coalesce("Borrower Name",'')||' - '||coalesce("Description",'') AS "borrowerDisplayName","Description" description,"Total Interest Earned"::text AS "totalProfitEarned","Creation Date"::text AS "createdDate","Has Active Loan" AS "hasActiveLoan","Total Outstanding Principal"::text AS "outstandingPrincipal","Borrower Note" note FROM public."Borrowers" WHERE "Hidden Flag" IS NOT TRUE AND ($1::text IS NULL OR "Row ID" COLLATE "C">$1 COLLATE "C") ORDER BY "Row ID" COLLATE "C" LIMIT 129`,[text(state)])).rows;return result([append('borrowerList',rows.slice(0,128))],rows.length>128?rows[127].id:null)},
  async(c,a,stamp,state)=>{const rows=(await c.query(`SELECT ${loanColumns} FROM public."Loans" l JOIN public."Borrowers" b ON b."Row ID"=l."Ref Borrowers" WHERE b."Hidden Flag" IS NOT TRUE AND ($1::text IS NULL OR l."Row ID" COLLATE "C">$1 COLLATE "C") ORDER BY l."Row ID" COLLATE "C" LIMIT 129`,[text(state)])).rows;return result([append('borrowerLoans',rows.slice(0,128).map(row=>projectLoan(row,row.borrowerId)))],rows.length>128?rows[127].id:null)},
  page('loanList',(c,cursor)=>readRecordList(c,'loans',{limit:100,cursor})),relation('charges'),relation('payments'),draft('due'),draft('future'),draft('all'),
