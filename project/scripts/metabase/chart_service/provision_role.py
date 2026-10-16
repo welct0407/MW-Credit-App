@@ -15,7 +15,7 @@ out=repo/'outputs/r030-custom-matrix'
 backup=json.loads((out/'production-backup.json').read_text())
 assert backup['restore_fingerprints_match'] and hashlib.sha256(Path(backup['backup_file']).read_bytes()).hexdigest()==backup['backup_sha256']
 target=json.loads((DATABASE_REPO_ROOT / 'database/environments.json').read_text())['production']
-assert (target['instance'],target['host'],target['database'])==('appsheet-pg-prod-20260914','34.21.174.215','loan_manager_prod')
+assert (target['instance'],target['host'],target['database'])==('mw-credit-pg-20261017','136.85.127.134','loan_manager_prod')
 credential=private/'service-config.json'
 if credential.exists(): raise RuntimeError('Private configuration already exists; inspect state before retry')
 password=secrets.token_urlsafe(32); key=secrets.token_urlsafe(32)
@@ -24,7 +24,7 @@ config={'secret_sha256':hashlib.sha256(key.encode()).hexdigest(),'database':{'ho
 credential.write_text(json.dumps(config,indent=2))
 (private/'chart-key.txt').write_text(key)
 with psycopg.connect(host=target['host'],port=5432,dbname=target['database'],user=target['user'],password=Path(target['passwordFile']).read_text().strip(),sslmode='require') as c:
-    assert c.execute('select current_database(),host(inet_server_addr())').fetchone()==('loan_manager_prod','34.21.174.215')
+    assert c.execute('select current_database(),host(inet_server_addr())').fetchone()==('loan_manager_prod','136.85.127.134')
     assert not c.execute("select 1 from pg_roles where rolname='mw_chart_reader'").fetchone()
     c.execute(sql.SQL('CREATE ROLE mw_chart_reader LOGIN PASSWORD {} NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS NOINHERIT CONNECTION LIMIT 2').format(sql.Literal(password)))
     c.execute('GRANT CONNECT ON DATABASE loan_manager_prod TO mw_chart_reader')

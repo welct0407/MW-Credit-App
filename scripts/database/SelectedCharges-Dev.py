@@ -9,10 +9,10 @@ parser.add_argument('mode', choices=['seed', 'verify', 'retire', 'metadata'])
 args = parser.parse_args()
 repo = Path(__file__).resolve().parents[2]
 target = json.loads((repo / 'database/environments.json').read_text())['development']
-assert (target['instance'], target['host'], target['database']) == ('appsheet-pg-prod-20260914', '34.21.174.215', 'loan_manager_dev')
+assert (target['instance'], target['host'], target['database']) == ('mw-credit-pg-20261017', '136.85.127.134', 'loan_manager_dev')
 with psycopg.connect(host=target['host'], port=target['port'], dbname=target['database'], user=target['user'],
                      password=Path(target['passwordFile']).read_text().strip(), sslmode='require', connect_timeout=15) as c:
-    assert c.execute('SELECT current_database(),host(inet_server_addr())').fetchone() == ('loan_manager_dev', '34.21.174.215')
+    assert c.execute('SELECT current_database(),host(inet_server_addr())').fetchone() == ('loan_manager_dev', '136.85.127.134')
     assert c.execute('SELECT max(version::integer) FROM public.flyway_schema_history WHERE success').fetchone()[0] == 51
     if args.mode == 'metadata':
         c.execute('SET TRANSACTION READ ONLY')

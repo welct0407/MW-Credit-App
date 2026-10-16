@@ -26,7 +26,7 @@ An application/package rollback does not undo SQL, financial transactions, sent 
 Rehearsed once on 16 October 2026 (R063 W3, DB-BACKUP-01) to prove the automated backups restore. Repeat only when the owner asks.
 
 Procedure:
-1. Pick the latest automated backup of `appsheet-pg-prod-20260914` (`gcloud sql backups list`). Create a throwaway instance (`db-f1-micro`, no authorized networks, no public access) and restore that backup into it (`gcloud sql backups restore`).
+1. Pick the latest automated backup of `mw-credit-pg-20261017` (`gcloud sql backups list`). Create a throwaway instance (`db-f1-micro`, no authorized networks, no public access) and restore that backup into it (`gcloud sql backups restore`).
 2. Compare without moving row data out: `gcloud sql export csv ... --query` on the clone and on the source, exporting only counts (`flyway_schema_history` rows with versions and checksums, and one `count(*)` per table) to a private bucket path. Four exports of about 20 s each.
 3. Cloud SQL export needs the two Cloud SQL service agents to write the bucket. A bucket-level grant was needed (an object-prefix condition fails the export pre-check). Remove both grants afterwards.
 4. Delete the clone and the exported CSVs. Soft-deleted CSV copies remain for 7 days under the bucket policy.

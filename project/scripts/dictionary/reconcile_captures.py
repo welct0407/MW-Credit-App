@@ -129,7 +129,7 @@ def plan(private,output):
                 for lookup in (name,name.removeprefix('public.')):
                     candidate=existing.get((system,'unassigned-database',kind,lookup))
                     if candidate and not lookup.startswith('DEV '):known=candidate;break
-                if not known:known=existing.get((system,'appsheet-pg-prod-20260914',kind,name))
+                if not known:known=existing.get((system,'mw-credit-pg-20261017',kind,name))
             directory={'table':'tables','slice':'slices','view':'views','action':'actions','format-rule':'format-rules',
               'routine':'routines','relation':'relations','schema':'schemas','sequence':'sequences','type':'types','settings':'settings'}[kind]
             base=ROOT/'systems'/system/(component if system=='appsheet' else '')/directory

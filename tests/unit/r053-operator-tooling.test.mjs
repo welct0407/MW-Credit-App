@@ -27,7 +27,7 @@ const loopback={database:'loan_manager_dev',creators:['test_operator'],execution
 function settingsOperatorFixture({version=91,failed=0}={}){
  const binding=r053Environment('loan_manager_prod'),statements=[],members=[...binding.owners,binding.journalOwner].map(role=>({role,member:'postgres',grantor:'cloudsqladmin',admin_option:false,inherit_option:false,set_option:false}));let acl=[];
  return{statements,members,get acl(){return acl},async query(sql,args){statements.push(sql);
-  if(sql.startsWith('SELECT current_database()'))return{rows:[{database:'loan_manager_prod',operator:'postgres',host:'34.21.174.215',port:5432,rolsuper:false,rolcreaterole:true,rolbypassrls:false,schemaGrantor:'schema_owner',schema_set:true,schema_create:true}]};
+  if(sql.startsWith('SELECT current_database()'))return{rows:[{database:'loan_manager_prod',operator:'postgres',host:'136.85.127.134',port:5432,rolsuper:false,rolcreaterole:true,rolbypassrls:false,schemaGrantor:'schema_owner',schema_set:true,schema_create:true}]};
   if(sql.includes('flyway_schema_history'))return{rows:[{version,failed}]};
   if(sql.startsWith('SELECT rolname'))return{rows:binding.roles.map(rolname=>({rolname,rolcanlogin:false,rolinherit:false,rolsuper:false,rolcreatedb:false,rolcreaterole:false,rolreplication:false,rolbypassrls:false}))};
   if(sql.startsWith('SELECT rolcanlogin'))return{rows:[{rolcanlogin:false,rolsuper:false,rolcreatedb:false,rolcreaterole:false,rolreplication:false,rolbypassrls:false}]};
@@ -79,7 +79,7 @@ test('PROD mapping is closed and live CLI refuses missing approval/backup before
 });
 
 // Generic owner authority (A-design §9.3): tunnel route, closed provisioning, explicit owner list, exact restoration.
-function ownerFixture({host='34.21.174.215',operator='postgres',grantor='cloudsqladmin',database='loan_manager_dev',owners=['mw_ledger_owner_dev'],exists=true}={}){
+function ownerFixture({host='136.85.127.134',operator='postgres',grantor='cloudsqladmin',database='loan_manager_dev',owners=['mw_ledger_owner_dev'],exists=true}={}){
  const statements=[];const members=exists?owners.map(role=>({role,member:operator,grantor,admin_option:false,inherit_option:false,set_option:false})):[];let acl=[];
  return{statements,members,get acl(){return acl},async query(sql,args){statements.push(sql);
   if(sql.startsWith('SELECT current_database()'))return{rows:[{database,operator,host,port:5432,rolsuper:false,rolcreaterole:true,rolbypassrls:false,schemaGrantor:'pg_database_owner',schema_set:true,schema_create:true}]};

@@ -53,7 +53,7 @@ test('delta reuses complete data, transfers only edits and derived changes, poll
  await page.clock.runFor(2000);await settled(page);const before=calls.length;
  await page.evaluate(()=>Object.defineProperty(document,'visibilityState',{configurable:true,value:'hidden'}));await page.clock.runFor(3*30*1000);expect(calls).toHaveLength(before);
  await page.evaluate(()=>{Object.defineProperty(document,'visibilityState',{configurable:true,value:'visible'});document.dispatchEvent(new Event('visibilitychange'))});await page.clock.runFor(2000);await settled(page);expect(calls.length).toBeGreaterThan(before);
- // No poll while offline; reconnecting rechecks domains older than 60 s.
+ // No poll while offline; reconnecting rechecks domains older than 10 s.
  await context.setOffline(true);const beforeReconnect=calls.length;await page.clock.runFor(60000);expect(calls).toHaveLength(beforeReconnect);await context.setOffline(false);await page.clock.runFor(2000);await settled(page);expect(calls.length).toBeGreaterThan(beforeReconnect);
 });
 

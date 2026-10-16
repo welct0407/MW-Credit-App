@@ -26,7 +26,7 @@ async function context(c,config,{backupPreparation=false,ownerAuthority=false}={
  if(x.database!==config.database||x.operator!==config.creators[0]||x.rolsuper||!x.rolcreaterole||x.rolbypassrls||!x.schema_set||!x.schema_create)throw Error('True nonsuperuser exact schema operator required');
  let mode,grantor;
  if(x.host==='127.0.0.1'&&config.executionMode==='owned-loopback'){mode='explicit';grantor=x.operator;}
- else if(x.database===binding.manifestDatabase&&x.host==='34.21.174.215'&&x.port===5432&&x.operator==='postgres'&&cloudsqlModes(binding.environment).includes(config.executionMode)){mode='implicit-cloudsql';grantor='cloudsqladmin';}
+ else if(x.database===binding.manifestDatabase&&x.host==='136.85.127.134'&&x.port===5432&&x.operator==='postgres'&&cloudsqlModes(binding.environment).includes(config.executionMode)){mode='implicit-cloudsql';grantor='cloudsqladmin';}
  // Owner-approved 17 October 2026: through the Debian host's Auth Proxy the server sees a socket, so
  // inet_server_addr()/port() are NULL. Only the tunnel route accepts that, and only with the exact
  // database, session_user postgres and the Cloud SQL service role present (the tunnel script pins

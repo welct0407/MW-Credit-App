@@ -123,7 +123,7 @@ resource "google_cloud_run_v2_service" "foundation" {
           RUNTIME_SERVICE_ACCOUNT       = google_service_account.application[each.key].email
           DATA_PROJECT_ID               = "clever-oasis-508610-n7"
           DB_NAME                       = "loan_manager_prod"
-          INSTANCE_CONNECTION_NAME      = "clever-oasis-508610-n7:asia-southeast1:appsheet-pg-prod-20260914"
+          INSTANCE_CONNECTION_NAME      = "clever-oasis-508610-n7:asia-southeast1:mw-credit-pg-20261017"
           HOSTING_SITE_ID               = var.hosting_site_id
           ALLOWED_WEB_ORIGINS           = jsonencode(["https://lm.mw-credit.com", "https://${var.hosting_site_id}.web.app"])
           OWNER_IDENTITY_SECRET_VERSION = "projects/${var.application_project_id}/secrets/mw-credit-app-prod-owner-identity/versions/${var.owner_secret_version == null ? "UNBOUND" : var.owner_secret_version}"
@@ -205,5 +205,5 @@ resource "google_cloud_run_v2_service" "foundation" {
       }
     }
   }
-  depends_on = [google_project_iam_member.runtime_auth, google_secret_manager_secret_iam_member.runtime_owner, google_project_iam_member.business_sql, google_sql_user.business_runtime, google_secret_manager_secret_iam_member.business_policy, google_secret_manager_secret_iam_member.business_catalog, google_storage_bucket_iam_member.business_receipt, google_secret_manager_secret_iam_member.command_agent_receipt_policy, google_secret_manager_secret_iam_member.command_agent_conversation_policy]
+  depends_on = [google_project_iam_member.runtime_auth, google_secret_manager_secret_iam_member.runtime_owner, google_project_iam_member.business_sql, google_sql_user.business_runtime_ssd, google_secret_manager_secret_iam_member.business_policy, google_secret_manager_secret_iam_member.business_catalog, google_storage_bucket_iam_member.business_receipt, google_secret_manager_secret_iam_member.command_agent_receipt_policy, google_secret_manager_secret_iam_member.command_agent_conversation_policy]
 }

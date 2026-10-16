@@ -49,7 +49,7 @@ resource "google_project_iam_member" "read_sql" {
   member   = "serviceAccount:${google_service_account.read_runtime.email}"
 }
 
-resource "google_sql_user" "read_runtime" {
+resource "google_sql_user" "read_runtime_ssd" {
   instance        = local.instance
   name            = trimsuffix(google_service_account.read_runtime.email, ".gserviceaccount.com")
   type            = "CLOUD_IAM_SERVICE_ACCOUNT"

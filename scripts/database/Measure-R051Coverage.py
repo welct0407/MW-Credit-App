@@ -14,7 +14,7 @@ path = out/(args.environment+'-query-experiment.json')
 assert not path.exists(), 'Preserve earlier measurements'
 target = json.loads((root/'database/environments.json').read_text())[args.environment]
 assert (target['instance'], target['host'], target['database']) == (
-    'appsheet-pg-prod-20260914', '34.21.174.215',
+    'mw-credit-pg-20261017', '136.85.127.134',
     'loan_manager_prod' if args.environment == 'production' else 'loan_manager_dev')
 candidate = (out/'coverage-candidate.sql').read_text(encoding='utf-8').strip().rstrip(';')
 queries = {'baseline': 'SELECT * FROM public.oltp_upcoming_charge_coverage_v1', 'candidate': candidate}

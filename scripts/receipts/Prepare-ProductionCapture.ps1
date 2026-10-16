@@ -10,7 +10,7 @@ $captureFull=[IO.Path]::GetFullPath($CaptureDirectory)
 if([IO.Path]::GetDirectoryName($captureFull) -ne [IO.Path]::GetFullPath($captureRoot) -or [IO.Path]::GetFileName($captureFull) -notmatch '^[a-f0-9-]{36}$' -or ((Get-Item -LiteralPath $CaptureDirectory).Attributes -band [IO.FileAttributes]::ReparsePoint)){throw 'Owned browser capture boundary rejected'}
 if($SnapshotFile -notmatch '^production-receipt-references(?:-[a-z0-9]+)?\.json$'){throw 'Exact private snapshot name rejected'}
 $snapshot=Get-Content -LiteralPath (Join-Path $PrivateDirectory $SnapshotFile) -Raw | ConvertFrom-Json
-if($snapshot.database -ne 'loan_manager_prod' -or $snapshot.instanceConnectionName -ne 'clever-oasis-508610-n7:asia-southeast1:appsheet-pg-prod-20260914' -or $snapshot.host -ne '34.21.174.215' -or $snapshot.table -ne 'Payments' -or $snapshot.column -ne 'Uploaded Receipt' -or -not $snapshot.readOnly -or $RowIndex -lt 0 -or $RowIndex -ge $snapshot.rows.Count){throw 'Exact PROD SQL snapshot required'}
+if($snapshot.database -ne 'loan_manager_prod' -or $snapshot.instanceConnectionName -ne 'clever-oasis-508610-n7:asia-southeast1:mw-credit-pg-20261017' -or $snapshot.host -ne '136.85.127.134' -or $snapshot.table -ne 'Payments' -or $snapshot.column -ne 'Uploaded Receipt' -or -not $snapshot.readOnly -or $RowIndex -lt 0 -or $RowIndex -ge $snapshot.rows.Count){throw 'Exact PROD SQL snapshot required'}
 $row=$snapshot.rows[$RowIndex]
 $manifestPath=Join-Path $CaptureDirectory 'manifest.json'
 $manifest=Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json

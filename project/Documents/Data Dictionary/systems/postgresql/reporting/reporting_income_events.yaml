@@ -14,7 +14,7 @@
     "path": "Documents/Data Dictionary/systems/postgresql/reporting/reporting_income_events.yaml"
     "identity":
       "system": "postgresql"
-      "component": "appsheet-pg-prod-20260914"
+      "component": "mw-credit-pg-20261017"
       "kind": "relation"
       "name": "public.reporting_income_events"
       "scope": "development-and-production"

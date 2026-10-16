@@ -36,7 +36,7 @@ If the Instagram route is unavailable or Instagram explicitly rejects the send b
 
 ## Validation and recovery
 
-Source: project `clever-oasis-508610-n7`, instance `appsheet-pg-prod-20260914`, proxy `127.0.0.1:5432`, database `loan_manager_prod`, role `mw_integration_agent`. Fixed SELECT only, repeatable-read snapshot. R010 V27 remains owned by AppSheet-Loan-Project; no schema/app/model change.
+Source: project `clever-oasis-508610-n7`, instance `mw-credit-pg-20261017`, proxy `127.0.0.1:5432`, database `loan_manager_prod`, role `mw_integration_agent`. Fixed SELECT only, repeatable-read snapshot. R010 V27 remains owned by AppSheet-Loan-Project; no schema/app/model change.
 
 Run `python -m unittest discover -s tests -v`, `python scripts/render-statement-sample.py`, and `python scripts/generate-business-process.py`; review the statement samples and process diagram. Coverage includes cutoff, reversals, zero activity, uninitialized balances, opt-out/duplicate identity/language, profile mismatch, window margin, unknown/restart, duplicate delivery, email reservation/retry and configuration gates. Live results are in the change log.
 

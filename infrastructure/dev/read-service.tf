@@ -44,7 +44,7 @@ resource "google_cloud_run_v2_service" "read_api" {
       dynamic "env" {
         for_each = merge(local.business_env, {
           FOUNDATION_ROLE         = "reader"
-          DB_USER                 = google_sql_user.read_runtime.name
+          DB_USER                 = google_sql_user.read_runtime_ssd.name
           RUNTIME_SERVICE_ACCOUNT = google_service_account.read_runtime.email
         })
         content {

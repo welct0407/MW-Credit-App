@@ -16,7 +16,7 @@ from psycopg import sql
 from mw_integration_agent.config import DATABASES, DML_ROLES
 from mw_integration_agent.conversation_dml import TABLES
 
-INSTANCE = 'appsheet-pg-prod-20260914'
+INSTANCE = 'mw-credit-pg-20261017'
 
 
 def configure(conn, password, role='mw_reviewer_dml'):

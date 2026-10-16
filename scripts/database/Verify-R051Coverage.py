@@ -16,7 +16,7 @@ assert backup['restored_fingerprints_match']
 assert hashlib.sha256(Path(backup['backup_file']).read_bytes()).hexdigest()==backup['backup_sha256']
 original=json.loads((Path(backup['backup_file']).parent/'fingerprints.json').read_text())
 t=json.loads((root/'database/environments.json').read_text())['development']
-assert (t['instance'],t['host'],t['database'])==('appsheet-pg-prod-20260914','34.21.174.215','loan_manager_dev')
+assert (t['instance'],t['host'],t['database'])==('mw-credit-pg-20261017','136.85.127.134','loan_manager_dev')
 with psycopg.connect(host=t['host'],port=t['port'],dbname=t['database'],user=t['user'],
         password=Path(t['passwordFile']).read_text().strip(),sslmode='require',connect_timeout=15) as c:
     c.execute('BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY')

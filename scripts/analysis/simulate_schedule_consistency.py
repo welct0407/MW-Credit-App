@@ -28,7 +28,7 @@ def capture():
     from psycopg.rows import dict_row
     target = json.loads((REPO / 'database/environments.json').read_text())['production']
     assert (target['instance'], target['host'], target['database']) == (
-        'appsheet-pg-prod-20260914', '34.21.174.215', 'loan_manager_prod')
+        'mw-credit-pg-20261017', '136.85.127.134', 'loan_manager_prod')
     with psycopg.connect(host=target['host'], dbname=target['database'], user=target['user'],
                         password=Path(target['passwordFile']).read_text().strip(), sslmode='require',
                         row_factory=dict_row,

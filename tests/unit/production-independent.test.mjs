@@ -8,7 +8,7 @@ import {createBusinessPrincipalVerifier} from '../../services/production/busines
 const base={APP_ENV:'prod',FOUNDATION_MODE:'foundation',FOUNDATION_ROLE:'reader',AUTH_MODE:'firebase',
  APPLICATION_PROJECT_ID:'clever-oasis-508610-n7',APPLICATION_PROJECT_NUMBER:'737787224638',FIREBASE_PROJECT_ID:'clever-oasis-508610-n7',
  RUNTIME_SERVICE_ACCOUNT:'mw-credit-app-read-prod@clever-oasis-508610-n7.iam.gserviceaccount.com',
- DATA_PROJECT_ID:'clever-oasis-508610-n7',DB_NAME:'loan_manager_prod',INSTANCE_CONNECTION_NAME:'clever-oasis-508610-n7:asia-southeast1:appsheet-pg-prod-20260914',
+ DATA_PROJECT_ID:'clever-oasis-508610-n7',DB_NAME:'loan_manager_prod',INSTANCE_CONNECTION_NAME:'clever-oasis-508610-n7:asia-southeast1:mw-credit-pg-20261017',
  OWNER_IDENTITY_MODE:'uid-pinned',PROD_OWNER_FIREBASE_UID:'same-uid-across-projects',
  OWNER_IDENTITY_SECRET_VERSION:'projects/clever-oasis-508610-n7/secrets/mw-credit-app-prod-owner-identity/versions/2',
  HOSTING_SITE_ID:'synthetic-independent-prod',ALLOWED_WEB_ORIGINS:'["https://lm.mw-credit.com","https://synthetic-independent-prod.web.app"]'};

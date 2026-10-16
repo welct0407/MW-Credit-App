@@ -170,8 +170,8 @@ resource "google_project_iam_member" "codex_cloud_vm_lookup" {
 # instance-wide pg_read_all_data membership (granted in SQL, see README).
 # Admin membership stays on codex-cloud@…iam for the guarded runner only.
 locals {
-  cloud_sql_instance  = "appsheet-pg-prod-20260914"
-  cloud_sql_condition = "resource.name == 'projects/${local.project}/instances/${local.cloud_sql_instance}' && resource.service == 'sqladmin.googleapis.com'"
+  cloud_sql_instance_ssd = "mw-credit-pg-20261017"
+  cloud_sql_condition    = "resource.name == 'projects/${local.project}/instances/${local.cloud_sql_instance_ssd}' && resource.service == 'sqladmin.googleapis.com'"
 }
 resource "google_service_account" "cloud_read" {
   project      = local.project
@@ -184,6 +184,8 @@ resource "google_project_iam_member" "cloud_read_sql" {
   project  = local.project
   role     = each.value
   member   = "serviceAccount:${google_service_account.cloud_read.email}"
+  # A condition change replaces the binding; create the new one first.
+  lifecycle { create_before_destroy = true }
   condition {
     title       = "shared-cloud-sql-only"
     description = "Only the shared Cloud SQL instance"
@@ -195,9 +197,22 @@ resource "google_service_account_iam_member" "cloud_read_token_creator" {
   role               = "roles/iam.serviceAccountTokenCreator"
   member             = "serviceAccount:codex-cloud@clever-oasis-508610-n7.iam.gserviceaccount.com"
 }
-resource "google_sql_user" "cloud_read" {
+# SSD move: the restore carries this user to the new instance. Forget the old
+# instance's user (left in place for rollback) and adopt the restored one.
+# Plan only after the restore: an import of a missing user fails.
+removed {
+  from = google_sql_user.cloud_read
+  lifecycle {
+    destroy = false
+  }
+}
+import {
+  to = google_sql_user.cloud_read_ssd
+  id = "${local.project}/${local.cloud_sql_instance_ssd}/codex-cloud-read@${local.project}.iam"
+}
+resource "google_sql_user" "cloud_read_ssd" {
   project         = local.project
-  instance        = local.cloud_sql_instance
+  instance        = local.cloud_sql_instance_ssd
   name            = trimsuffix(google_service_account.cloud_read.email, ".gserviceaccount.com")
   type            = "CLOUD_IAM_SERVICE_ACCOUNT"
   deletion_policy = "ABANDON"

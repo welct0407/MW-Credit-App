@@ -29,13 +29,13 @@ if(environment==='production'){
  if(!opts['--approval-reference']?.trim()||! /^[a-f0-9]{40}$/.test(opts['--source-commit']??'')||!opts['--backup-proof'])throw Error('Explicit production approval, source pin and private backup proof required');
  const backupPath=external(opts['--backup-proof']),backup=JSON.parse(fs.readFileSync(backupPath,'utf8')),backupRoot=path.dirname(backupPath);
  const cleanup=JSON.parse(fs.readFileSync(external(path.join(backupRoot,'cleanup.json')),'utf8'));
- if(backup.database!==database||backup.baselineVersion!==baselineVersion||backup.host!=='34.21.174.215'||backup.instance!=='appsheet-pg-prod-20260914'||backup.restore!=='passed'||backup.archiveListing!=='passed'||backup.restoredFingerprintsMatch!==true||cleanup.stopped!==true||cleanup.ownedRestoreRemoved!==true||! /^[a-f0-9]{64}$/.test(backup.dumpSha256??''))throw Error('Verified exact requested PROD baseline backup and isolated restore required');
+ if(backup.database!==database||backup.baselineVersion!==baselineVersion||backup.host!=='136.85.127.134'||backup.instance!=='mw-credit-pg-20261017'||backup.restore!=='passed'||backup.archiveListing!=='passed'||backup.restoredFingerprintsMatch!==true||cleanup.stopped!==true||cleanup.ownedRestoreRemoved!==true||! /^[a-f0-9]{64}$/.test(backup.dumpSha256??''))throw Error('Verified exact requested PROD baseline backup and isolated restore required');
  const dumpHash=createHash('sha256');for await(const chunk of fs.createReadStream(external(path.join(backupRoot,'loan_manager_prod.dump'))))dumpHash.update(chunk);
  if(dumpHash.digest('hex')!==backup.dumpSha256)throw Error('Recovery dump changed');
  productionAuthorization={approvalReference:opts['--approval-reference'],sourceCommit:opts['--source-commit'],backupSha256:backup.dumpSha256,baselineVersion};
 }else if(opts['--approval-reference']||opts['--source-commit']||opts['--backup-proof']||opts['--baseline-version'])throw Error('Production arguments require --environment production');
 const t=JSON.parse(fs.readFileSync(path.join(repo,'database/environments.json'),'utf8').replace(/^\uFEFF/,''))[environment];
-if(t?.instance!=='appsheet-pg-prod-20260914'||t.host!=='34.21.174.215'||t.port!==5432||t.database!==database||t.user!=='postgres')throw Error(environment+' configuration mismatch');
+if(t?.instance!=='mw-credit-pg-20261017'||t.host!=='136.85.127.134'||t.port!==5432||t.database!==database||t.user!=='postgres')throw Error(environment+' configuration mismatch');
 // Client tuple: direct TLS on VM-01; the IAP tunnel to the Debian host's Auth Proxy on Linux. The tooling
 // still requires the server-side identity (instance address/port, database, session_user postgres).
 let client,credentials,executionMode;

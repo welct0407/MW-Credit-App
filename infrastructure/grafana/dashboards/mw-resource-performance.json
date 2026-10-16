@@ -427,7 +427,7 @@
             "root_selector": "if .nextPageToken then error(\"Metric response truncated; shorten the time range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime, value:((.value.doubleValue // .value.int64Value) | tonumber)}] | sort_by(.time) | .[] end",
             "source": "url",
             "type": "json",
-            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22cloudsql.googleapis.com%2Fdatabase%2Fcpu%2Futilization%22%20AND%20resource.labels.database_id%20%3D%20%22clever-oasis-508610-n7%3Aappsheet-pg-prod-20260914%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=$__customInterval(2d,300s,14d,3600s,86400s)&aggregation.perSeriesAligner=ALIGN_MEAN&pageSize=100000",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22cloudsql.googleapis.com%2Fdatabase%2Fcpu%2Futilization%22%20AND%20resource.labels.database_id%20%3D%20%22clever-oasis-508610-n7%3Amw-credit-pg-20261017%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=$__customInterval(2d,300s,14d,3600s,86400s)&aggregation.perSeriesAligner=ALIGN_MEAN&pageSize=100000",
             "url_options": {
               "method": "GET"
             }
@@ -831,7 +831,7 @@
             "root_selector": "if .nextPageToken then error(\"Metric response truncated; shorten the time range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime, value:((.value.doubleValue // .value.int64Value) | tonumber)}] | sort_by(.time) | .[] end",
             "source": "url",
             "type": "json",
-            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22cloudsql.googleapis.com%2Fdatabase%2Fmemory%2Fcomponents%22%20AND%20resource.labels.database_id%20%3D%20%22clever-oasis-508610-n7%3Aappsheet-pg-prod-20260914%22%20AND%20metric.labels.component%20%3D%20%22Usage%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=$__customInterval(2d,300s,14d,3600s,86400s)&aggregation.perSeriesAligner=ALIGN_MEAN&pageSize=100000",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22cloudsql.googleapis.com%2Fdatabase%2Fmemory%2Fcomponents%22%20AND%20resource.labels.database_id%20%3D%20%22clever-oasis-508610-n7%3Amw-credit-pg-20261017%22%20AND%20metric.labels.component%20%3D%20%22Usage%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=$__customInterval(2d,300s,14d,3600s,86400s)&aggregation.perSeriesAligner=ALIGN_MEAN&pageSize=100000",
             "url_options": {
               "method": "GET"
             }
@@ -3753,7 +3753,7 @@
             "root_selector": "if .nextPageToken then error(\"Metric response truncated; shorten the time range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime, value:((.value.doubleValue // .value.int64Value) | tonumber)}] | sort_by(.time) | .[] end",
             "source": "url",
             "type": "json",
-            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22cloudsql.googleapis.com%2Fdatabase%2Fpostgresql%2Fnum_backends%22%20AND%20resource.labels.database_id%20%3D%20%22clever-oasis-508610-n7%3Aappsheet-pg-prod-20260914%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=$__customInterval(2d,300s,14d,3600s,86400s)&aggregation.perSeriesAligner=ALIGN_MEAN&pageSize=100000&aggregation.crossSeriesReducer=REDUCE_SUM",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22cloudsql.googleapis.com%2Fdatabase%2Fpostgresql%2Fnum_backends%22%20AND%20resource.labels.database_id%20%3D%20%22clever-oasis-508610-n7%3Amw-credit-pg-20261017%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=$__customInterval(2d,300s,14d,3600s,86400s)&aggregation.perSeriesAligner=ALIGN_MEAN&pageSize=100000&aggregation.crossSeriesReducer=REDUCE_SUM",
             "url_options": {
               "method": "GET"
             }
@@ -5964,7 +5964,7 @@
           "type": "yesoreyeram-infinity-datasource",
           "uid": "mw-gcp-monitoring"
         },
-        "description": "PostgreSQL server uptime for shared PROD and DEV Cloud SQL instance appsheet-pg-prod-20260914. Read through the existing least-privilege reporting connection to loan_manager_prod and Cloud SQL Auth Proxy. Elapsed seconds since pg_postmaster_start_time(), resetting on server restart or failover; not Cloud SQL allocation age or an availability percentage. Existing Debian collector cadence is 120 seconds after completion. Fresh successful status and uptime must share a timestamp; older than 6 minutes, more than 2 minutes future, missing, invalid or failed observations are Unknown. Errors remain visible. Display floors to whole minutes as days, hours and minutes; raw seconds retained internally. No extrapolation.",
+        "description": "PostgreSQL server uptime for shared PROD and DEV Cloud SQL instance mw-credit-pg-20261017. Read through the existing least-privilege reporting connection to loan_manager_prod and Cloud SQL Auth Proxy. Elapsed seconds since pg_postmaster_start_time(), resetting on server restart or failover; not Cloud SQL allocation age or an availability percentage. Existing Debian collector cadence is 120 seconds after completion. Fresh successful status and uptime must share a timestamp; older than 6 minutes, more than 2 minutes future, missing, invalid or failed observations are Unknown. Errors remain visible. Display floors to whole minutes as days, hours and minutes; raw seconds retained internally. No extrapolation.",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -8547,7 +8547,7 @@
           "y": 70
         },
         "id": 134,
-        "title": "GCP \u00b7 Cloud SQL \u00b7 appsheet-pg-prod-20260914",
+        "title": "GCP \u00b7 Cloud SQL \u00b7 mw-credit-pg-20261017",
         "type": "row"
       },
       {
@@ -8675,7 +8675,7 @@
             "root_selector": "if .nextPageToken then error(\"Metric response truncated; shorten the time range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime, value:((.value.doubleValue // .value.int64Value) | tonumber)}] | sort_by(.time) | .[] end",
             "source": "url",
             "type": "json",
-            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22cloudsql.googleapis.com%2Fdatabase%2Fcpu%2Futilization%22%20AND%20resource.labels.database_id%20%3D%20%22clever-oasis-508610-n7%3Aappsheet-pg-prod-20260914%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=$__customInterval(2d,300s,14d,3600s,86400s)&aggregation.perSeriesAligner=ALIGN_MEAN&pageSize=100000",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22cloudsql.googleapis.com%2Fdatabase%2Fcpu%2Futilization%22%20AND%20resource.labels.database_id%20%3D%20%22clever-oasis-508610-n7%3Amw-credit-pg-20261017%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=$__customInterval(2d,300s,14d,3600s,86400s)&aggregation.perSeriesAligner=ALIGN_MEAN&pageSize=100000",
             "url_options": {
               "method": "GET"
             }
@@ -8853,7 +8853,7 @@
             "root_selector": "if .nextPageToken then error(\"Metric response truncated; shorten the time range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime, value:((.value.doubleValue // .value.int64Value) | tonumber)}] | sort_by(.time) | .[] end",
             "source": "url",
             "type": "json",
-            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22cloudsql.googleapis.com%2Fdatabase%2Fmemory%2Fcomponents%22%20AND%20resource.labels.database_id%20%3D%20%22clever-oasis-508610-n7%3Aappsheet-pg-prod-20260914%22%20AND%20metric.labels.component%20%3D%20%22Usage%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=$__customInterval(2d,300s,14d,3600s,86400s)&aggregation.perSeriesAligner=ALIGN_MEAN&pageSize=100000",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22cloudsql.googleapis.com%2Fdatabase%2Fmemory%2Fcomponents%22%20AND%20resource.labels.database_id%20%3D%20%22clever-oasis-508610-n7%3Amw-credit-pg-20261017%22%20AND%20metric.labels.component%20%3D%20%22Usage%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=$__customInterval(2d,300s,14d,3600s,86400s)&aggregation.perSeriesAligner=ALIGN_MEAN&pageSize=100000",
             "url_options": {
               "method": "GET"
             }
@@ -8881,7 +8881,7 @@
             "root_selector": "if .nextPageToken then error(\"Metric response truncated; shorten the time range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime, value:((.value.doubleValue // .value.int64Value) | tonumber)}] | sort_by(.time) | .[] end",
             "source": "url",
             "type": "json",
-            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22cloudsql.googleapis.com%2Fdatabase%2Fmemory%2Fcomponents%22%20AND%20resource.labels.database_id%20%3D%20%22clever-oasis-508610-n7%3Aappsheet-pg-prod-20260914%22%20AND%20metric.labels.component%20%3D%20%22Cache%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=$__customInterval(2d,300s,14d,3600s,86400s)&aggregation.perSeriesAligner=ALIGN_MEAN&pageSize=100000",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22cloudsql.googleapis.com%2Fdatabase%2Fmemory%2Fcomponents%22%20AND%20resource.labels.database_id%20%3D%20%22clever-oasis-508610-n7%3Amw-credit-pg-20261017%22%20AND%20metric.labels.component%20%3D%20%22Cache%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=$__customInterval(2d,300s,14d,3600s,86400s)&aggregation.perSeriesAligner=ALIGN_MEAN&pageSize=100000",
             "url_options": {
               "method": "GET"
             }
@@ -8909,7 +8909,7 @@
             "root_selector": "if .nextPageToken then error(\"Metric response truncated; shorten the time range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime, value:((.value.doubleValue // .value.int64Value) | tonumber)}] | sort_by(.time) | .[] end",
             "source": "url",
             "type": "json",
-            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22cloudsql.googleapis.com%2Fdatabase%2Fmemory%2Fcomponents%22%20AND%20resource.labels.database_id%20%3D%20%22clever-oasis-508610-n7%3Aappsheet-pg-prod-20260914%22%20AND%20metric.labels.component%20%3D%20%22Free%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=$__customInterval(2d,300s,14d,3600s,86400s)&aggregation.perSeriesAligner=ALIGN_MEAN&pageSize=100000",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22cloudsql.googleapis.com%2Fdatabase%2Fmemory%2Fcomponents%22%20AND%20resource.labels.database_id%20%3D%20%22clever-oasis-508610-n7%3Amw-credit-pg-20261017%22%20AND%20metric.labels.component%20%3D%20%22Free%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=$__customInterval(2d,300s,14d,3600s,86400s)&aggregation.perSeriesAligner=ALIGN_MEAN&pageSize=100000",
             "url_options": {
               "method": "GET"
             }
@@ -9043,7 +9043,7 @@
             "root_selector": "if .nextPageToken then error(\"Metric response truncated; shorten the time range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime, value:((.value.doubleValue // .value.int64Value) | tonumber)}] | sort_by(.time) | .[] end",
             "source": "url",
             "type": "json",
-            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22cloudsql.googleapis.com%2Fdatabase%2Fdisk%2Futilization%22%20AND%20resource.labels.database_id%20%3D%20%22clever-oasis-508610-n7%3Aappsheet-pg-prod-20260914%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=$__customInterval(2d,300s,14d,3600s,86400s)&aggregation.perSeriesAligner=ALIGN_MEAN&pageSize=100000",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22cloudsql.googleapis.com%2Fdatabase%2Fdisk%2Futilization%22%20AND%20resource.labels.database_id%20%3D%20%22clever-oasis-508610-n7%3Amw-credit-pg-20261017%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=$__customInterval(2d,300s,14d,3600s,86400s)&aggregation.perSeriesAligner=ALIGN_MEAN&pageSize=100000",
             "url_options": {
               "method": "GET"
             }
@@ -9175,7 +9175,7 @@
             "root_selector": "if .nextPageToken then error(\"Metric response truncated; shorten the time range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime, value:((.value.doubleValue // .value.int64Value) | tonumber)}] | sort_by(.time) | .[] end",
             "source": "url",
             "type": "json",
-            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22cloudsql.googleapis.com%2Fdatabase%2Fpostgresql%2Fnum_backends%22%20AND%20resource.labels.database_id%20%3D%20%22clever-oasis-508610-n7%3Aappsheet-pg-prod-20260914%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=$__customInterval(2d,300s,14d,3600s,86400s)&aggregation.perSeriesAligner=ALIGN_MEAN&pageSize=100000&aggregation.crossSeriesReducer=REDUCE_SUM",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22cloudsql.googleapis.com%2Fdatabase%2Fpostgresql%2Fnum_backends%22%20AND%20resource.labels.database_id%20%3D%20%22clever-oasis-508610-n7%3Amw-credit-pg-20261017%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=$__customInterval(2d,300s,14d,3600s,86400s)&aggregation.perSeriesAligner=ALIGN_MEAN&pageSize=100000&aggregation.crossSeriesReducer=REDUCE_SUM",
             "url_options": {
               "method": "GET"
             }

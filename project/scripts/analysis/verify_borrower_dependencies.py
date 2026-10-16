@@ -15,7 +15,7 @@ names=['olap_borrowers_analytics','olap_loans_analytics','olap_repayments_analyt
 results={}
 for env,t in json.loads((DATABASE_REPO_ROOT / 'database/environments.json').read_text()).items():
     if env not in ['development','production']:continue
-    assert (t['instance'],t['host'],t['database'])==('appsheet-pg-prod-20260914','34.21.174.215','loan_manager_dev' if env=='development' else 'loan_manager_prod')
+    assert (t['instance'],t['host'],t['database'])==('mw-credit-pg-20261017','136.85.127.134','loan_manager_dev' if env=='development' else 'loan_manager_prod')
     with psycopg.connect(host=t['host'],port=t['port'],dbname=t['database'],user=t['user'],password=Path(t['passwordFile']).read_text().strip(),sslmode='require') as c:
         c.execute('BEGIN READ ONLY')
         defs=c.execute('SELECT viewname,definition FROM pg_views WHERE schemaname=\'public\' AND viewname=ANY(%s) ORDER BY viewname',(names,)).fetchall()

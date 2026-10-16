@@ -295,15 +295,44 @@ resource "google_project_iam_member" "debian_sql_instance_user" {
   project = "clever-oasis-508610-n7"
   role    = "roles/cloudsql.instanceUser"
   member  = "serviceAccount:mw-integration-agent@clever-oasis-508610-n7.iam.gserviceaccount.com"
+  # A condition change replaces the binding; create_before_destroy keeps
+  # login working meanwhile.
+  lifecycle { create_before_destroy = true }
   condition {
     title       = "prod-cloud-sql-only"
     description = "Permit IAM database login only to the shared Cloud SQL instance"
-    expression  = "resource.name == 'projects/clever-oasis-508610-n7/instances/appsheet-pg-prod-20260914' && resource.service == 'sqladmin.googleapis.com'"
+    expression  = "resource.name == 'projects/clever-oasis-508610-n7/instances/mw-credit-pg-20261017' && resource.service == 'sqladmin.googleapis.com'"
   }
 }
-resource "google_sql_user" "debian_agent" {
+# Auth Proxy Cloud SQL Client access to the shared instance only.
+resource "google_project_iam_member" "debian_sql_client" {
+  project = "clever-oasis-508610-n7"
+  role    = "roles/cloudsql.client"
+  member  = "serviceAccount:mw-integration-agent@clever-oasis-508610-n7.iam.gserviceaccount.com"
+  # A condition change replaces the binding; create the new one first.
+  lifecycle { create_before_destroy = true }
+  condition {
+    title       = "shared-cloud-sql-instances"
+    description = "Permit Auth Proxy connections only to the shared Cloud SQL instance"
+    expression  = "resource.name == 'projects/clever-oasis-508610-n7/instances/mw-credit-pg-20261017' && resource.service == 'sqladmin.googleapis.com'"
+  }
+}
+# SSD move: the restore carries this user to the new instance. Forget the old
+# instance's user (left in place for rollback) and adopt the restored one.
+# Plan only after the restore: an import of a missing user fails.
+removed {
+  from = google_sql_user.debian_agent
+  lifecycle {
+    destroy = false
+  }
+}
+import {
+  to = google_sql_user.debian_agent_ssd
+  id = "clever-oasis-508610-n7/mw-credit-pg-20261017/mw-integration-agent@clever-oasis-508610-n7.iam"
+}
+resource "google_sql_user" "debian_agent_ssd" {
   project         = "clever-oasis-508610-n7"
-  instance        = "appsheet-pg-prod-20260914"
+  instance        = "mw-credit-pg-20261017"
   name            = "mw-integration-agent@clever-oasis-508610-n7.iam"
   type            = "CLOUD_IAM_SERVICE_ACCOUNT"
   deletion_policy = "ABANDON"
