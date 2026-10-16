@@ -25,7 +25,7 @@
       AS $function$
       BEGIN
        IF TG_OP='DELETE' THEN
-        IF NOT pg_try_advisory_xact_lock(hashtextextended('cash-account:'||OLD."Ref Cash Holder",0)) THEN RAISE EXCEPTION 'Cash accounts are busy; sync and retry'; END IF;
+        IF NOT pg_try_advisory_xact_lock(public.pwa_lock_key_v1('cash-account',OLD."Ref Cash Holder")) THEN RAISE EXCEPTION 'Cash accounts are busy; sync and retry'; END IF;
         IF OLD."Default Account" AND EXISTS(SELECT 1 FROM public."Cash Accounts" WHERE "Ref Cash Holder"=OLD."Ref Cash Holder" AND "Active" AND "Row ID"<>OLD."Row ID") THEN
          RAISE EXCEPTION 'Choose a replacement default account before deletion'; END IF;
         RETURN OLD; -- References and opening balances still protect used accounts.
@@ -35,7 +35,7 @@
         RAISE EXCEPTION 'Cash account identity, holder and creation time are immutable';
        END IF;
        -- Try-lock serializes default changes without waiting behind a transfer holding an account.
-       IF NOT pg_try_advisory_xact_lock(hashtextextended('cash-account:'||NEW."Ref Cash Holder",0)) THEN
+       IF NOT pg_try_advisory_xact_lock(public.pwa_lock_key_v1('cash-account',NEW."Ref Cash Holder")) THEN
         RAISE EXCEPTION 'Cash accounts are busy; sync and retry';
        END IF;
        IF NOT NEW."Active" AND NEW."Default Account" THEN
@@ -75,3 +75,9 @@
     "reference": "outputs/r052/dictionary-production-closure.json"
     "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
     "observedAt": "2026-10-11T14:01:43.131793+00:00"
+  "/content/definition/definition":
+    "reference": "Change Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md"
+    "reason": "DB-LOCK-03: V94 replaces the inline advisory key hashtextextended(kind||':'||target,0) with public.pwa_lock_key_v1(kind,target)\
+      \ (bit-identical key; owner, security mode, search_path, ACL and comment unchanged). Applied in DEV on 17 October 2026\
+      \ (loan_manager_dev, V94); PROD is still V93, so this PROD-scope value is source-derived until the PROD migration."
+    "state": "value"

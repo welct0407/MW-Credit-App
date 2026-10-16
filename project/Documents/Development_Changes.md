@@ -15,15 +15,17 @@
 | `mw_agent` maintenance (DB-PERF-01) | Done 17 October. Agent V5 is in PROD. The 7-day purge ran inside the SSD move freeze (`--rewrite`, 232 s; `mw_agent` from 1,877 MB to 435 MB). Agent `bf0da1c` is deployed and `mw-audit-retention.timer` is enabled daily at 03:40 Bangkok; [record](#r064-production-promotion) |
 | SSD for the shared instance | Done 17 October 2026 (Bangkok): DEV, PROD, the Debian agent, Grafana and Metabase run on `mw-credit-pg-20261017` (PD_SSD); the old instance stays unused for 24 h, then stopped; deleting it needs a separate owner go; [record](../../Change%20Logs/CHANGE_NOTES_R064_SYNC_2026-10-16.md#shared-cloud-sql-move-to-ssd-17-october-2026) |
 | Cloud SQL flags (DB-PERF-03) | Done 16 October 2026 with the tier change; `max_connections` stays 200 (owner, supersedes the planned 50); [record](#r064-production-promotion) |
-| Lease columns of `pwa_job_runs` (DB-LOCK-02) | Not dropped; a later contract migration |
-| SQL adoption of `pwa_lock_key_v1` (DB-LOCK-03) | Deferred to the next migration that touches `pwa_submit_operation_v2` (needs journal-owner authority); Node already uses it |
+| Lease columns of `pwa_job_runs` (DB-LOCK-02) | Done in V94 (DEV, 17 October 2026); PROD pending owner instruction |
+| SQL adoption of `pwa_lock_key_v1` (DB-LOCK-03) | Done in V94 (DEV, 17 October 2026); PROD pending owner instruction |
 | Agent migration V5 (indexes on `runtime.operation_state(last_event_id)` and `runtime.job_runs(operation_id)`) | Recommended, not written |
-| `backup-agent-database.py` on Linux | Hard-codes Windows binaries and a fixed dump name; needs a `--dump-name` and platform binaries before it is reusable |
+| `backup-agent-database.py` on Linux | Done (`4ed32a2`) |
 | Repository merge follow-ups (15 October 2026) | [Change note](../../Change%20Logs/CHANGE_NOTES_REPOSITORY_MERGE_2026-10-15.md) |
 
 Use the [release tracker](Release_Tracker.md), including the carried R016 administrative follow-up. Current runtime versions belong in [environment inventory](Environment_Inventory.md). Update this page for actual outstanding work, not completed-release history.
 
 ## R064 local dataset sync fix and shared Cloud SQL
+
+R068 W4 follow-ups (open; V94 applied in DEV on 17 October 2026, PROD still V93; 30 s and on-focus dataset refresh `905eb82`; agent backup script on Linux `4ed32a2`; nothing frozen or deployed to PROD): see the [W4 follow-ups section](../../Change%20Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md#w4-follow-ups-17-october-2026) of the database note.
 
 R067 tidy-ups after the old instance deletion (runtime accepts only the new instance name, IAM conditions narrowed; Released 17 October 2026, R068 Open, PROD verified): see the [R067 section](../../Change%20Logs/CHANGE_NOTES_R064_SYNC_2026-10-16.md#r067-tidy-ups-after-the-old-instance-deletion) of the same note.
 

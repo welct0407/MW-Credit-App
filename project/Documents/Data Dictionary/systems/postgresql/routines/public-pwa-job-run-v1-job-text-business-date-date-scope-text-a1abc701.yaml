@@ -24,7 +24,7 @@
        SECURITY DEFINER
        SET search_path TO 'pg_catalog', 'public'
       AS $function$
-      DECLARE boundary timestamp:=clock_timestamp() AT TIME ZONE 'Asia/Bangkok'; r public.pwa_job_runs; affected bigint;
+      DECLARE boundary timestamp:=clock_timestamp() AT TIME ZONE 'Asia/Bangkok'; r public.pwa_job_runs; affected bigint; started timestamptz;
       BEGIN
        PERFORM public.pwa_worker_guard_v1('jobs');
        IF job IS NULL OR job NOT IN ('daily-charges','recent-analytics') OR business_date IS NULL OR NOT isfinite(business_date) OR scope IS NULL
@@ -33,10 +33,10 @@
        INSERT INTO public.pwa_job_runs(job_name,business_date,scope_key,state) VALUES(job,$2,scope,'pending') ON CONFLICT DO NOTHING;
        SELECT * INTO STRICT r FROM public.pwa_job_runs j WHERE j.job_name=job AND j.business_date=$2 AND j.scope_key=scope FOR UPDATE;
        IF r.state='completed' THEN RETURN jsonb_build_object('enabled',true,'state','completed','replayed',true,'resultCount',r.result_count); END IF;
-       IF r.state NOT IN ('pending','failed') THEN RAISE EXCEPTION 'job_requires_reconciliation'; END IF;
-       UPDATE public.pwa_job_runs SET state='leased',lease_generation=lease_generation+1,lease_expires_at=clock_timestamp()+interval '120 seconds',started_at=clock_timestamp() WHERE run_id=r.run_id;
+       IF r.state<>'pending' THEN RAISE EXCEPTION 'job_requires_reconciliation'; END IF;
+       started:=clock_timestamp();
        IF job='daily-charges' THEN affected:=public.generate_due_charges($2); ELSE affected:=public.refresh_daily_analytics($2-1,$2); END IF;
-       UPDATE public.pwa_job_runs SET state='completed',lease_expires_at=NULL,completed_at=clock_timestamp(),checkpoint=$2::text||'|'||scope,result_count=affected WHERE run_id=r.run_id;
+       UPDATE public.pwa_job_runs SET state='completed',started_at=started,completed_at=clock_timestamp(),checkpoint=$2::text||'|'||scope,result_count=affected WHERE run_id=r.run_id;
        RETURN jsonb_build_object('enabled',true,'state','completed','replayed',false,'resultCount',affected);
       END $function$
     "owner": "mw_jobs_owner_prod"
@@ -53,3 +53,11 @@
     "acl": "{mw_jobs_owner_prod=X/mw_jobs_owner_prod,mw_jobs_prod=X/mw_jobs_owner_prod}"
     "comment": "mw-access:governance fixed atomic scheduled jobs; explicit capability only"
     "extension": null
+"evidence":
+  "/content/definition/definition":
+    "reference": "Change Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md"
+    "reason": "DB-LOCK-02: V94 retires the lease state; a run is pending until its single completing UPDATE commits (pending\
+      \ -> completed, atomic, no leased step), a failure rolls the INSERT back with the financial work, replay of a completed\
+      \ row is unchanged, return shape unchanged. Applied in DEV on 17 October 2026 (loan_manager_dev, V94); PROD is still\
+      \ V93, so this PROD-scope value is source-derived until the PROD migration."
+    "state": "value"

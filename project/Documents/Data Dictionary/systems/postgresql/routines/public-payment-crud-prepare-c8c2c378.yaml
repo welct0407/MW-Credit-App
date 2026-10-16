@@ -21,8 +21,10 @@
     "definition": "CREATE OR REPLACE FUNCTION public.payment_crud_prepare()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path\
       \ TO 'pg_catalog', 'public'\nAS $function$\r\nBEGIN\r\n IF TG_OP='UPDATE' AND NEW.\"Row ID\" IS DISTINCT FROM OLD.\"\
       Row ID\" THEN RAISE EXCEPTION 'Payment key cannot be changed';END IF;\r\n IF TG_OP='UPDATE' AND public.payment_inputs(NEW)\
-      \ IS NOT DISTINCT FROM public.payment_inputs(OLD) THEN RETURN NEW;END IF;\r\n RETURN public.payment_crud_prepare_core_v83(OLD,CASE\
-      \ WHEN TG_OP='UPDATE' THEN NEW ELSE OLD END,TG_OP);\r\nEND $function$\n"
+      \ IS NOT DISTINCT FROM public.payment_inputs(OLD) THEN RETURN NEW;END IF;\r\n IF NOT has_function_privilege(current_user,'public.payment_crud_prepare_core_v83(public.\"\
+      Payments\",public.\"Payments\",text)','EXECUTE') THEN\r\n  RAISE EXCEPTION USING ERRCODE='42501',MESSAGE='Payment input\
+      \ corrections require the native payment command';END IF;\r\n RETURN public.payment_crud_prepare_core_v83(OLD,CASE WHEN\
+      \ TG_OP='UPDATE' THEN NEW ELSE OLD END,TG_OP);\r\nEND $function$\n"
     "owner": "postgres"
     "language": "plpgsql"
     "volatility": "v"
@@ -39,3 +41,11 @@
       \ Historical opening/default dependencies fail without changes; prepared Loan Close charges are retained for explicit\
       \ correction."
     "extension": null
+"evidence":
+  "/content/definition/definition":
+    "reference": "Change Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md"
+    "reason": "R067 owner decision (V94): a payment-input correction by a role that cannot execute the correction core (reviewer\
+      \ DML roles) fails closed with SQLSTATE 42501 and the named reason 'Payment input corrections require the native payment\
+      \ command'; nothing is written, no grant changes, metadata-only updates still pass. Applied in DEV on 17 October 2026\
+      \ (loan_manager_dev, V94); PROD is still V93, so this PROD-scope value is source-derived until the PROD migration."
+    "state": "value"

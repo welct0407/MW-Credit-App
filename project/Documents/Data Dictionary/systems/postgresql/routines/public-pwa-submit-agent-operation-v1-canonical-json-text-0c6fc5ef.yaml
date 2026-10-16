@@ -157,7 +157,7 @@
           OR public.pwa_payment_head_v2(target)::text IS DISTINCT FROM predecessor THEN RAISE EXCEPTION USING ERRCODE='P5B01';END IF;
          UPDATE public."Payments" SET "Created At"=(i->>'createdAt')::timestamp WHERE "Row ID"=target;
         ELSE
-         PERFORM pg_advisory_xact_lock(hashtextextended('allocation:'||target,0));
+         PERFORM pg_advisory_xact_lock(public.pwa_lock_key_v1('allocation',target));
          SELECT * INTO allocation FROM public."Payment Allocations" WHERE "Row ID"=target;
          IF op='allocation.create' AND FOUND THEN RAISE EXCEPTION USING ERRCODE='P5B01';END IF;
          IF op<>'allocation.create' AND NOT FOUND THEN RAISE EXCEPTION USING ERRCODE='P5B02';END IF;
@@ -188,3 +188,10 @@
     "arguments": "canonical_json text"
     "acl": "{mw_app_prod_journal_owner=X/mw_app_prod_journal_owner,\"\\\"mw-credit-app-command-prod@clever-oasis-508610-n7.iam\\\
       \"=X/mw_app_prod_journal_owner\"}"
+"evidence":
+  "/content/definition/definition":
+    "reference": "Change Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md"
+    "reason": "DB-LOCK-03: V94 replaces the inline advisory key hashtextextended(kind||':'||target,0) with public.pwa_lock_key_v1(kind,target)\
+      \ (bit-identical key; owner, security mode, search_path, ACL and comment unchanged). Applied in DEV on 17 October 2026\
+      \ (loan_manager_dev, V94); PROD is still V93, so this PROD-scope value is source-derived until the PROD migration."
+    "state": "value"

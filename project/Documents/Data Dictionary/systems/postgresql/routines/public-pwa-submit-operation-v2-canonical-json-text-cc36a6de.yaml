@@ -150,12 +150,12 @@
     \ split_part(op,'.',1)='expense' THEN result_value:=public.pwa_apply_expense_v2($1);ELSIF split_part(op,'.',1)='payment'\
     \ THEN result_value:=public.pwa_apply_payment_v2($1);ELSIF op='loan.create' THEN result_value:=public.pwa_apply_loan_create_v2($1);ELSIF\
     \ op='loan.close' THEN result_value:=public.pwa_apply_loan_close_v2($1);ELSIF split_part(op,'.',1)='loan' THEN result_value:=public.pwa_apply_loan_source_v2($1);ELSIF\
-    \ split_part(op,'.',1)='charge' THEN result_value:=public.pwa_apply_charge_v2($1);ELSE\r\n PERFORM pg_advisory_xact_lock(hashtextextended('borrower:'||target,0));\r\
+    \ split_part(op,'.',1)='charge' THEN result_value:=public.pwa_apply_charge_v2($1);ELSE\r\n PERFORM pg_advisory_xact_lock(public.pwa_lock_key_v1('borrower',target));\r\
     \n PERFORM 1 FROM public.\"Borrowers\" WHERE \"Row ID\"=target FOR UPDATE;\r\n source_version:=public.pwa_borrower_version_v2(target);\r\
     \n IF op='borrower.create' AND source_version IS NOT NULL THEN RAISE EXCEPTION USING ERRCODE='P5B01';END IF;\r\n IF op<>'borrower.create'\
     \ AND source_version IS NULL THEN RAISE EXCEPTION USING ERRCODE='P5B02';END IF;\r\n IF op<>'borrower.create' AND source_version\
     \ IS DISTINCT FROM expected THEN RAISE EXCEPTION USING ERRCODE='P5B01';END IF;\r\n IF op<>'borrower.delete' THEN\r\n \
-    \ IF nullif(btrim(i->>'name'),'') IS NOT NULL THEN\r\n   PERFORM pg_advisory_xact_lock(hashtextextended('borrower-name:'||lower(btrim(i->>'name')),0));\r\
+    \ IF nullif(btrim(i->>'name'),'') IS NOT NULL THEN\r\n   PERFORM pg_advisory_xact_lock(public.pwa_lock_key_v1('borrower-name',lower(btrim(i->>'name'))));\r\
     \n   IF EXISTS(SELECT 1 FROM public.\"Borrowers\" WHERE \"Row ID\"<>target AND lower(btrim(\"Borrower Name\"))=lower(btrim(i->>'name')))\
     \ THEN RAISE EXCEPTION USING ERRCODE='P5B03';END IF;\r\n  END IF;\r\n  IF i->>'referrerId'=target OR (i->>'referrerId'\
     \ IS NOT NULL AND NOT EXISTS(SELECT 1 FROM public.\"Borrowers\" WHERE \"Row ID\"=i->>'referrerId')) THEN RAISE EXCEPTION\
@@ -193,7 +193,8 @@
     "reason": "Promote exact V92 definitions after verified PROD migration; existing Borrower/Partner fingerprints unchanged."
     "state": "absent"
   "/content/definition":
-    "reference": "Documents/Development_Changes.md#r062-production-promotion; PROD V92 applied 2026-10-15 10:00:28 Bangkok\
-      \ from 6c3e4fab6025d29d3fbbe4dc6106896a8dc47270; validation93 and authority restoration passed."
-    "reason": "Promote exact V92 definitions after verified PROD migration; existing Borrower/Partner fingerprints unchanged."
+    "reference": "Change Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md"
+    "reason": "DB-LOCK-03: V94 replaces the inline advisory key hashtextextended(kind||':'||target,0) with public.pwa_lock_key_v1(kind,target)\
+      \ (bit-identical key; owner, security mode, search_path, ACL and comment unchanged). Applied in DEV on 17 October 2026\
+      \ (loan_manager_dev, V94); PROD is still V93, so this PROD-scope value is source-derived until the PROD migration."
     "state": "value"

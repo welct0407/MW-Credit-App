@@ -15,7 +15,7 @@
     \ text;constraint_name text;\r\nBEGIN\r\n IF (current_database() NOT IN ('loan_manager_dev','payment_rehearsal','loan_manager_prod')\
     \ OR current_user<>CASE current_database() WHEN 'loan_manager_prod' THEN 'mw_app_prod_journal_owner' ELSE 'mw_app_dev_journal_owner'\
     \ END) THEN RAISE EXCEPTION USING ERRCODE='42501';END IF;\r\n PERFORM public.pwa_management_input_text_v2(op,i);\r\n PERFORM\
-    \ pg_advisory_xact_lock(hashtextextended('management:'||kind||':'||target,0));\r\n IF kind='cash-holder' THEN SELECT to_jsonb(t)\
+    \ pg_advisory_xact_lock(public.pwa_lock_key_v1('management:'||kind,target));\r\n IF kind='cash-holder' THEN SELECT to_jsonb(t)\
     \ INTO snapshot FROM public.\"Cash Holders\" t WHERE t.\"Row ID\"=target FOR UPDATE;\r\n ELSIF kind='cash-account' THEN\
     \ SELECT to_jsonb(t) INTO snapshot FROM public.\"Cash Accounts\" t WHERE t.\"Row ID\"=target FOR UPDATE;\r\n ELSIF kind='partner'\
     \ THEN SELECT to_jsonb(t) INTO snapshot FROM public.\"Partners\" t WHERE t.\"Row ID\"=target FOR UPDATE;\r\n ELSE RAISE\
@@ -60,7 +60,8 @@
     "reason": "Promote exact V92 definitions after verified PROD migration; existing Borrower/Partner fingerprints unchanged."
     "state": "absent"
   "/content/definition":
-    "reference": "Documents/Development_Changes.md#r062-production-promotion; PROD V92 applied 2026-10-15 10:00:28 Bangkok\
-      \ from 6c3e4fab6025d29d3fbbe4dc6106896a8dc47270; validation93 and authority restoration passed."
-    "reason": "Promote exact V92 definitions after verified PROD migration; existing Borrower/Partner fingerprints unchanged."
+    "reference": "Change Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md"
+    "reason": "DB-LOCK-03: V94 replaces the inline advisory key hashtextextended(kind||':'||target,0) with public.pwa_lock_key_v1(kind,target)\
+      \ (bit-identical key; owner, security mode, search_path, ACL and comment unchanged). Applied in DEV on 17 October 2026\
+      \ (loan_manager_dev, V94); PROD is still V93, so this PROD-scope value is source-derived until the PROD migration."
     "state": "value"
