@@ -1,6 +1,6 @@
 # Open development changes
 
-**R064 is Released** (Wave 4 and the sync correction verified in PROD on 16 October 2026 23:57 Bangkok; annotated tag `R064` on `9420c85`; agent follow-up below) and **R065 is Open**. **R063 is Released** (PROD verified 16 October 2026 18:15 Bangkok; [record](#r063-production-promotion)); R062 is Released. The integration receiver deployment tooling carried by R063 is deployed on the Debian host since 16 October 2026. Current runtime pins and recovery evidence belong in the environment inventory and owning records.
+**R064 is Released** (Wave 4 and the sync correction verified in PROD on 16 October 2026 23:57 Bangkok; annotated tag `R064` on `9420c85`; agent follow-up below). **R065 is Released** (pending-flash fix, PROD Hosting 17 October 2026 00:29 Bangkok; tag `R065` on `74ad26b`) and **R066 is Open**. **R063 is Released** (PROD verified 16 October 2026 18:15 Bangkok; [record](#r063-production-promotion)); R062 is Released. The integration receiver deployment tooling carried by R063 is deployed on the Debian host since 16 October 2026. Current runtime pins and recovery evidence belong in the environment inventory and owning records.
 
 | Outstanding work | Owning reference |
 | --- | --- |
