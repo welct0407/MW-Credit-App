@@ -171,3 +171,40 @@ test('a manifest referencing more than 2048 missing values is fetched in need ba
  expect(needs).toEqual([2048,552]);expect((await state(page)).updateFailed).toBe(false);
  const saved=await page.evaluate(async()=>(await(window as any).__syncRepo.readDataset('records')));expect(saved.sourceVersion).toBe(newVersion);expect(saved.data.borrowers).toHaveLength(2600);
 });
+
+// R066: one stored blob per receipt, a 30-day offline window, older receipts online only.
+const day=(offset:number,from=Date.now())=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Bangkok',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(from+offset*86400000));
+const receiptRow=(id:string,paymentDate:string)=>({id,borrowerId:'borrower',paymentDate,amountReceived:'10',receiptReference:'attached',receiptAt:paymentDate+'T01:00:00.000Z',agentReceiptPresent:false,allocations:[],repayments:[],cashMovements:[]});
+const png=Buffer.from('89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c4890000000d4944415478da6364f8cfc000000301010018dd8db00000000049454e44ae426082','hex');
+const mediaKeyOf=(id:string,source='manual')=>'blob:http://127.0.0.1:4173/api/payment-records/'+id+'/receipt?source='+source;
+const mediaKeys=(page:Page)=>page.evaluate(()=>(window as any).__syncRepo.listDatasetMediaKeys());
+test('receipts are stored once, only within the 30-day window, legacy alias copies are removed and readiness ignores older receipts',async({page,context})=>{
+ const recent=receiptRow('recent',day(-1)),old=receiptRow('old',day(-40)),older=receiptRow('older',day(-45));
+ await fixture(page,'delta-receipts',{...initial,payments:[recent,old,older]});const receipts:string[]=[];
+ await page.route('**/api/**',async route=>{const url=new URL(route.request().url());if(url.pathname.endsWith('/receipt')){receipts.push(url.pathname.split('/')[3]+'?'+url.searchParams.get('source'));return route.fulfill({body:png,contentType:'image/png'})}const record=/^\/api\/payment-records\/([^/]+)$/.exec(url.pathname);if(record)return route.fulfill({json:{item:[recent,old,older].find(row=>row.id===record[1])??null}});const domain=url.searchParams.get('domain')??'notifications';return route.fulfill({json:{...bundle(domain,[],oldVersion),schemaVersion:3,unchanged:true,values:{}}})});
+ // Legacy state: a second `preferred` copy of the recent receipt and a stored receipt of the old payment.
+ await page.evaluate(async({alias,oldKey})=>{const repo=(window as any).__syncRepo,revision=await repo.readRevision();await repo.saveDatasetMedia(alias,new Blob([new Uint8Array(8)],{type:'image/png'}),revision);await repo.saveDatasetMedia(oldKey,new Blob([new Uint8Array(8)],{type:'image/png'}),revision)},{alias:mediaKeyOf('recent','preferred'),oldKey:mediaKeyOf('old')});
+ await start(page);await settled(page);
+ expect((await state(page)).progress).toBe(100);expect(receipts).toEqual(['recent?manual']);
+ expect((await mediaKeys(page)).sort()).toEqual([mediaKeyOf('recent')]);
+ // The preferred alias and the older receipt still resolve online; offline only the recent one is served, from the single stored blob.
+ const online=await page.evaluate(async()=>{const w=window as any;const a=await w.__cacheTest.readCachedBlob(w.__syncAccess,'/api/payment-records/old/receipt?source=preferred');return {ok:a.response.ok,fromCache:a.fromCache,size:a.data.size}});
+ expect(online.ok).toBe(true);expect(receipts).toContain('old?preferred');expect((await mediaKeys(page)).sort()).toEqual([mediaKeyOf('recent')]);
+ await context.setOffline(true);
+ const offline=await page.evaluate(async()=>{const w=window as any;const recent=await w.__cacheTest.readCachedBlob(w.__syncAccess,'/api/payment-records/recent/receipt?source=preferred');let oldError=null;try{await w.__cacheTest.readCachedBlob(w.__syncAccess,'/api/payment-records/old/receipt?source=manual')}catch(error){oldError=String(error)}return {recentFromCache:recent.fromCache,recentSize:recent.data.size,oldError}});
+ expect(offline.recentFromCache).toBe(true);expect(offline.recentSize).toBe(png.length);expect(offline.oldError).not.toBeNull();
+ // Offline UI: the recent receipt renders; a never-fetched older one explains why it is missing instead of a broken image
+ // (`old` was just viewed online, so the ordinary evictable response cache may still show it — unchanged behaviour).
+ await page.evaluate(()=>{(window as any).__paymentId='recent';(window as any).selectBackCase('prepared-payment')});await expect(page.getByRole('img',{name:'Verified receipt evidence'})).toBeVisible();
+ await page.evaluate(()=>(window as any).selectBackCase(null));await page.evaluate(()=>{(window as any).__paymentId='older';(window as any).selectBackCase('prepared-payment')});await expect(page.getByRole('alert')).toContainText('Receipt not saved offline (older than 30 days)');
+ await context.setOffline(false);await page.evaluate(()=>(window as any).selectBackCase(null));await page.evaluate(()=>(window as any).selectBackCase('prepared-payment'));await expect(page.getByRole('img',{name:'Verified receipt evidence'})).toBeVisible();
+});
+test('a stored receipt is deleted once its payment ages out of the 30-day window',async({page})=>{
+ const now=Date.parse('2026-10-16T03:00:00.000Z'),edge=receiptRow('edge',day(-29,now));
+ await fixture(page,'delta-receipt-aging',{...initial,payments:[edge]});await page.clock.install({time:now});
+ await page.route('**/api/**',async route=>{const url=new URL(route.request().url());if(url.pathname.endsWith('/receipt'))return route.fulfill({body:png,contentType:'image/png'});const domain=url.searchParams.get('domain')??'notifications';return route.fulfill({json:{...bundle(domain,[],oldVersion),schemaVersion:3,unchanged:true,values:{}}})});
+ await start(page);await page.clock.runFor(3000);await settled(page);expect(await mediaKeys(page)).toEqual([mediaKeyOf('edge')]);expect((await state(page)).progress).toBe(100);
+ // Two days later (the owner lease is re-verified as a live session would), a manual check moves the window.
+ await page.clock.fastForward(2*86400000);await page.evaluate(async()=>{await (window as any).__syncRepo.authorize();window.dispatchEvent(new Event('mw-offline-prepare'))});await page.clock.runFor(3000);await settled(page);
+ expect(await mediaKeys(page)).toEqual([]);expect((await state(page)).progress).toBe(100);expect((await state(page)).state).toBe('ready');
+});

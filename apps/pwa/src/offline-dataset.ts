@@ -33,6 +33,18 @@ export const DATASET_RECHECK_MIN_MS=60*1000;
 const REQUEST_TIMEOUT_MS=25000;
 /** services/api/offline-dataset-delta.mjs rejects a need list longer than this. */
 const NEED_BATCH=2048;
+/** R066: receipts are kept offline for payments whose payment date (the date the
+ * user sees on the payment) is within the last 30 days; a receipt time stands in
+ * when a row has no payment date. Older receipts load online on demand only. */
+export const RECEIPT_OFFLINE_DAYS=30;
+const bangkokDay=(at:number)=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Bangkok',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(at));
+export const receiptWindowStart=(now=Date.now())=>bangkokDay(now-RECEIPT_OFFLINE_DAYS*24*60*60*1000);
+export function receiptRetainedOffline(row:any,now=Date.now()){
+ const day=typeof row?.paymentDate==='string'&&row.paymentDate?row.paymentDate.slice(0,10):typeof (row?.receiptAt??row?.agentReceiptAt)==='string'?String(row.receiptAt??row.agentReceiptAt).slice(0,10):null;
+ return !!day&&day>=receiptWindowStart(now);
+}
+/** The one stored receipt for a payment; the `preferred` alias resolves to it at read time (read-cache.ts). */
+export const receiptMediaCandidates=(url:URL)=>url.searchParams.get('source')!=='preferred'?['blob:'+url.href]:['manual','agent'].map(source=>{const alias=new URL(url);alias.searchParams.set('source',source);return 'blob:'+alias.href});
 export function startOfflinePreparation(access:Access,_options:{readOrigin?:string}={}){
  const repository=access.offline;if(!repository)return()=>{};const repo=repository;
  let stopped=false,running=false,initialized=false,initializing=false,queue:string[]=[],media:string[]=[],requestedDomain:string|null=null,paused=false,timer:ReturnType<typeof setTimeout>|undefined,retryTimer:ReturnType<typeof setTimeout>|undefined,retryAttempts=0,controller:AbortController|null=null,activeTask:string|null=null;
@@ -46,8 +58,11 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
  const cycleDomains=new Set<string>(),cycleDone=new Set<string>();
  const beginCycle=(targets:readonly string[]=domains)=>{cycleDomains.clear();cycleDone.clear();fractions.clear();chunkCounts.clear();for(const domain of targets)cycleDomains.add(domain)};
  const valueIndexes=new Map<string,{base:string|null,values:Record<string,any>}>();
- const completed=new Set<string>(),failed=new Set<string>(),fractions=new Map<string,number>(),chunkCounts=new Map<string,number>(),changedRetries=new Map<string,number>(),mediaVersion=new Map<string,number>(),preferred=new Set<string>();
- const mediaKeys=(records:any)=>(records?.data?.payments??[]).flatMap((row:any)=>[...(row.receiptReference?['manual']:[]),...(row.agentReceiptPresent?['agent']:[])].map(source=>{const path='/api/payment-records/'+encodeURIComponent(row.id)+'/receipt?source='+source;mediaVersion.set(path,Date.parse(source==='manual'?row.receiptAt:row.agentReceiptAt));if(source===(row.receiptReference?'manual':'agent'))preferred.add(path);return path}));
+ const completed=new Set<string>(),failed=new Set<string>(),fractions=new Map<string,number>(),chunkCounts=new Map<string,number>(),changedRetries=new Map<string,number>(),mediaVersion=new Map<string,number>();
+ const mediaKeys=(records:any)=>(records?.data?.payments??[]).filter((row:any)=>receiptRetainedOffline(row)).flatMap((row:any)=>[...(row.receiptReference?['manual']:[]),...(row.agentReceiptPresent?['agent']:[])].map(source=>{const path='/api/payment-records/'+encodeURIComponent(row.id)+'/receipt?source='+source;mediaVersion.set(path,Date.parse(source==='manual'?row.receiptAt:row.agentReceiptAt));return path}));
+ // Stored receipts outside the current window (aged out, deleted payments, legacy
+ // `preferred` alias copies) are removed; only one blob per receipt is kept.
+ const pruneMedia=async()=>{const keep=new Set(media.map(path=>'blob:'+new URL(path,access.origin).href));for(const key of await repo.listDatasetMediaKeys())if(!keep.has(key))await repo.removeDatasetMedia(key)};
  // Cache availability and this sweep's completed work are independent.
  const progress=()=>{
   const discovered=!cycleDomains.has('records')||cycleDone.has('records');
@@ -67,12 +82,14 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
  const schedule=()=>{if(stopped||timer)return;timer=setTimeout(()=>{timer=undefined;void pump()},200)};
  const addMedia=()=>{if(domains.every(domain=>completed.has(domain)))for(const path of media)if(!completed.has(path)&&!failed.has(path))enqueue(path)};
  const forget=async(task:string)=>{partials.delete(task);await repo.discardDatasetProgress(task)};
+ // The receipt window moves with time: recompute it whenever the records check completes.
+ const refreshMedia=async(records:any)=>{const oldVersions=new Map(mediaVersion);mediaVersion.clear();media=mediaKeys(records);for(const path of media)if(oldVersions.get(path)!==mediaVersion.get(path)){completed.delete(path);failed.delete(path)}await pruneMedia()};
  const giveUp=(task:string)=>{if(task===requestedDomain)failedEvent(task)};
  async function initialize(){if(initializing)return;initializing=true;try{
   if(!await repo.syncAuthorized()){paused=true;status();return}
   beginCycle();
   for(const domain of domains){const [bundle,partial]=await Promise.all([repo.readDataset(domain),repo.readDatasetProgress(domain)]);if(stopped)return;
-   if(bundle?.complete){completed.add(domain);if(domain==='records')media=mediaKeys(bundle)}
+   if(bundle?.complete){completed.add(domain);if(domain==='records'){mediaVersion.clear();media=mediaKeys(bundle);await pruneMedia()}}
    if(partial&&bundle?.complete&&partial.protocolVersion!==3)await repo.discardDatasetProgress(domain);
    if(partial?.chunks)chunkCounts.set(domain,partial.chunks);
    if(partial?.progress?.total>0)fractions.set(domain,Math.min(.99,partial.progress.completed/partial.progress.total));
@@ -103,7 +120,7 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
    const base=partial?.base??datasetBase(bundle),delta=!!bundle?.complete;
    if(partial&&(partial.base??null)!==datasetBase(bundle)){await forget(task);enqueue(task);return}
    const path=isMedia?task:task==='notifications'?'/api/notifications/offline-dataset':'/api/offline-dataset?domain='+task,url=new URL(path,access.origin);if(!isMedia){url.searchParams.set('protocol',delta?'3':'2');if(!delta&&partial?.nextCursor)url.searchParams.set('cursor',partial.nextCursor);}
-   if(isMedia){const saved=await repo.readDatasetMedia('blob:'+url.href);if(saved&&saved.savedAt>=(mediaVersion.get(task)??Infinity)){if(preferred.has(task)){const alias=new URL(url);alias.searchParams.set('source','preferred');if(!await repo.saveDatasetMedia('blob:'+alias.href,saved.data,revision))throw Error()}completed.add(task);return}}
+   if(isMedia){const saved=await repo.readDatasetMedia('blob:'+url.href);if(saved&&saved.savedAt>=(mediaVersion.get(task)??Infinity)){completed.add(task);return}}
    const token=await access.token();if(stopped||flight.signal.aborted)throw Error();
    const legacy=legacyPaths.has(url.pathname);
    const fetchSegment=(need:string[]=[])=>fetch(url,{method:delta?'POST':'GET',...(!delta?{}:{body:JSON.stringify({cursor:partial?.nextCursor??null,need,sourceVersion:bundle?.sourceVersion??null,...(legacy?{}:{acceptChanged:true})})}),signal:flight.signal,headers:{Authorization:'Bearer '+token,...(!delta?{}:{'Content-Type':'application/json'})},credentials:'omit',cache:'no-store',redirect:'error'});
@@ -123,6 +140,7 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
      if(value.domain!==task||!value.complete||value.nextCursor!==null||!bundle?.complete||partial||value.sourceVersion!==bundle.sourceVersion)throw Error('Invalid unchanged checkpoint');
      if(!await repo.saveDataset(task,{...bundle,cacheStale:false},revision,null,base,!!bundle.cacheStale))throw Error('Dataset changed during check');
      completed.add(task);cycleDone.add(task);failed.delete(task);changedRetries.delete(task);domainChecked.set(task,Date.now());
+     if(task==='records')await refreshMedia(bundle);
      ready(task,false);return;
     }
     const indexed=valueIndexes.get(task);
@@ -178,8 +196,7 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
    }
    const dataChanged=!isMedia&&JSON.stringify(canonicalValue(bundle?.data))!==JSON.stringify(canonicalValue(full.data));
    const saved=isMedia?await repo.saveDatasetMedia('blob:'+url.href,value,revision):await repo.saveDataset(task,full,revision,partial?.nextCursor??null,base,dataChanged||!!bundle?.cacheStale);if(!saved)throw Error();partials.delete(task);if(!isMedia&&full.chunks)chunkCounts.set(task,full.chunks);
-   if(isMedia&&preferred.has(task)){const alias=new URL(url);alias.searchParams.set('source','preferred');if(!await repo.saveDatasetMedia('blob:'+alias.href,value,revision))throw Error()}
-   if(stopped)return;completed.add(task);cycleDone.add(task);queue=queue.filter(queued=>queued!==task);failed.delete(task);if(task==='records'){const oldVersions=new Map(mediaVersion);preferred.clear();mediaVersion.clear();media=mediaKeys(full);for(const path of media)if(oldVersions.get(path)!==mediaVersion.get(path)){completed.delete(path);failed.delete(path)}}
+   if(stopped)return;completed.add(task);cycleDone.add(task);queue=queue.filter(queued=>queued!==task);failed.delete(task);if(task==='records')await refreshMedia(full);
    if(!isMedia){
     domainChecked.set(task,Date.now());
     if(torn){const retries=changedRetries.get(task)??0;if(retries<2){changedRetries.set(task,retries+1);recheckDomains.add(task)}}else changedRetries.delete(task);
