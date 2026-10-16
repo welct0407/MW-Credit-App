@@ -108,7 +108,7 @@ jobs:
             tests.test_conversation_dml tests.test_notice_acknowledgement \
             tests.test_operator_audit_postgres tests.test_operator_execution_postgres \
             tests.test_receipt_audit_postgres tests.test_state_migration_postgres \
-            tests.test_statement_snapshot
+            tests.test_audit_retention_postgres tests.test_statement_snapshot
       - name: Stop the lab cluster
         if: always()
         run: |
