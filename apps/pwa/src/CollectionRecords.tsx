@@ -104,7 +104,7 @@ export function CollectionRecords({ thai, request, cancel, onStatus, refreshToke
       stops.push(subscribeOfflineDataset<UpcomingSummary>(commandAccess,base+'/upcoming',value=>{setUpcoming(value);previews.current={borrowerId:selected.id,businessDate:value.businessDate,asOf:value.asOf,receivedAt:performance.now(),items:value.previews??[]}}));
       if(upcomingDetail){const next=upcomingCursors.current[upcomingPage-1];stops.push(subscribeOfflineDataset<UpcomingDetail>(commandAccess,base+'/upcoming/'+encodeURIComponent(upcomingDetail.dueDate)+'?limit=25'+(next?'&cursor='+encodeURIComponent(next):''),setUpcomingDetail))}
     }
-    return()=>stops.forEach(stop=>stop());
+    return()=>stops.forEach(stop=>{stop()});
   },[commandAccess?.offline,query,page,chargePage,selected?.id,busy,paymentOpen,pendingPayment,upcomingDetail?.dueDate,upcomingPage]);
   async function fetchUpcoming(row: Summary, day: string, current: number,onUnavailable?:()=>void) {
     previews.current = null; setUpcoming(null); setUpcomingError(null);

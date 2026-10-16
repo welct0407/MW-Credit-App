@@ -1,6 +1,7 @@
 import {Icon} from './Icon';
 import {useContextRefresh} from './context-refresh';
-import React,{useEffect,useRef,useState} from 'react';
+import type React from 'react';
+import {useEffect,useRef,useState} from 'react';
 import {displayTimestamp} from './display-date';
 import type {CommandAccess} from './SelectedCharges';
 import {syncSavedRequest,syncSavedRequests,savedRejectionMessage} from './offline-sync';

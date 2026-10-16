@@ -21,9 +21,9 @@ const failureEpochs=new Map<string,number>();
 export const subscribeCachedReadFailure=(listener:()=>void)=>{listeners.add(listener);return()=>{listeners.delete(listener)}};
 export const hasCachedReadFailure=(scopeName?:string)=>scopeName?[...failures].some(key=>key.startsWith(scopeName+'|')):failures.size>0;
 export const hasReadRefreshFailure=(scopeName?:string)=>scopeName?[...refreshFailures].some(key=>key.startsWith(scopeName+'|')):refreshFailures.size>0;
-export function clearCachedReadFailures(scopeName?:string){if(scopeName)failureEpochs.set(scopeName,(failureEpochs.get(scopeName)??0)+1);else for(const [scope,epoch] of failureEpochs)failureEpochs.set(scope,epoch+1);let changed=false;for(const entries of [failures,refreshFailures])for(const key of entries)if(!scopeName||key.startsWith(scopeName+'|')){entries.delete(key);changed=true}if(changed)listeners.forEach(listener=>listener())}
-function refreshFailure(key:string,value:boolean){const before=refreshFailures.has(key);if(value)refreshFailures.add(key);else refreshFailures.delete(key);if(before!==value)listeners.forEach(listener=>listener())}
-function failure(key:string,value:boolean){const before=failures.has(key);if(value)failures.add(key);else failures.delete(key);if(before!==value)listeners.forEach(listener=>listener())}
+export function clearCachedReadFailures(scopeName?:string){if(scopeName)failureEpochs.set(scopeName,(failureEpochs.get(scopeName)??0)+1);else for(const [scope,epoch] of failureEpochs)failureEpochs.set(scope,epoch+1);let changed=false;for(const entries of [failures,refreshFailures])for(const key of entries)if(!scopeName||key.startsWith(scopeName+'|')){entries.delete(key);changed=true}if(changed)listeners.forEach(listener=>{listener()})}
+function refreshFailure(key:string,value:boolean){const before=refreshFailures.has(key);if(value)refreshFailures.add(key);else refreshFailures.delete(key);if(before!==value)listeners.forEach(listener=>{listener()})}
+function failure(key:string,value:boolean){const before=failures.has(key);if(value)failures.add(key);else failures.delete(key);if(before!==value)listeners.forEach(listener=>{listener()})}
 function allowed(access:Access,url:URL,format:'json'|'blob'){
  const repository=access.offline;if(!repository||url.username||url.password||url.hash)return false;
  if(repository.environment==='synthetic'){if(url.origin!==location.origin)return false}

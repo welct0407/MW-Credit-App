@@ -79,13 +79,12 @@ jobs:
         run: git diff --exit-code --stat && test -z "$(git status --porcelain)"
 
   lint:
-    # ALL-CI-04: Biome lint (rules in biome.json). Non-blocking until the
-    # remaining diagnostics are cleared; the result job ignores its outcome.
+    # ALL-CI-04: Biome lint (rules in biome.json). Blocking on errors;
+    # warnings are reported as annotations and do not fail the job.
     needs: changes
     if: needs.changes.outputs.app == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    continue-on-error: true
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with: { persist-credentials: false }
@@ -182,7 +181,6 @@ jobs:
   result:
     # Single status for branch protection: fails when any selected stage failed
     # or was cancelled, passes when stages were skipped as not applicable.
-    # The lint stage is listed but not gated while it is non-blocking.
     name: Development checks result
     needs: [changes, check, lint, terraform, e2e]
     if: ${{ always() }}
@@ -191,6 +189,6 @@ jobs:
     steps:
       - run: |
           echo "changes=${{ needs.changes.result }} check=${{ needs.check.result }} lint=${{ needs.lint.result }} terraform=${{ needs.terraform.result }} e2e=${{ needs.e2e.result }}"
-          case "${{ needs.changes.result }} ${{ needs.check.result }} ${{ needs.terraform.result }} ${{ needs.e2e.result }}" in
+          case "${{ needs.changes.result }} ${{ needs.check.result }} ${{ needs.lint.result }} ${{ needs.terraform.result }} ${{ needs.e2e.result }}" in
             *failure*|*cancelled*) echo 'A selected stage failed'; exit 1 ;;
           esac

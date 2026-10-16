@@ -1,7 +1,8 @@
 import {useAppUpdateBlock} from './app-update-safety';
 import {Icon} from './Icon';
 import {HeaderBack} from './HeaderBack';
-import React,{useEffect,useRef,useState} from 'react';
+import type React from 'react';
+import {useEffect,useRef,useState} from 'react';
 import type {CommandAccess} from './SelectedCharges';
 import {syncSavedRequest,savedRejectionMessage} from './offline-sync';
 /** Confirmation durably queues one immutable request; synchronization owns transport. */
