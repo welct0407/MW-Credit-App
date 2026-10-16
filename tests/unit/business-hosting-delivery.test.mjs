@@ -5,7 +5,7 @@ import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {spawnSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
-import {executeBusinessHosting,appOnlyHostingPlan,verifyAppOnlyOperator,validateFrontendSource,validateFrontendCi,frontendOnlyHostingPlan,verifyFrontendOnlyLivePackage,validateSettingsSource,settingsHostingPlan,verifySettingsLivePackage} from '../../scripts/promotion/deploy-business-hosting.mjs';
+import {executeBusinessHosting,appOnlyHostingPlan,verifyAppOnlyOperator,validateFrontendSource,validateFrontendCi,frontendOnlyHostingPlan,verifyFrontendOnlyLivePackage,validateSettingsSource,settingsHostingPlan,verifySettingsLivePackage,runtimeHostingPlan,validateRuntimeSource,validateRuntimeCi,verifyRuntimeLivePackage} from '../../scripts/promotion/deploy-business-hosting.mjs';
 const site='mw-credit-prod-737787224638',version=`sites/${site}/versions/abc123`,release=`sites/${site}/releases/xyz123`;
 const plan=()=>({site,files:{'/index.html':'a'.repeat(64)},contents:new Map([['a'.repeat(64),Buffer.from('compressed')]]),headers:[],sourceCommit:'b'.repeat(40),publicVersion:'marker'});
 function transport({target=version,hash='a'.repeat(64),upload='https://upload-firebasehosting.googleapis.com/upload/'+version+'/files',failFinalize=false}={}){const calls=[];return {calls,request:async(url,method,body)=>{calls.push({url,method,body});if(url.endsWith('/versions'))return {name:target};if(url.endsWith(':populateFiles'))return {uploadRequiredHashes:[hash],uploadUrl:upload};if(method==='PATCH'){if(failFinalize)throw Error('Finalize failed');return {name:version,status:'FINALIZED'};}if(url.includes('/releases?'))return {name:release,version:{name:version}};return {};}};}
@@ -134,4 +134,73 @@ test('R062 live verification checks actual command build, all service identities
  const run=async(rows,ci=m.applicationCi)=>{let calls=0;await verifySettingsLivePackage(m,{token:'synthetic',request:async()=>({ok:true,json:async()=>rows[calls++]}),readGithub:async args=>{const receipt=args[1].includes('/124')?m.sql.checks:ci;return args[1].includes('/jobs?')?{jobs:receipt.jobs}:receipt.run}});assert.equal(calls,5)};await run(responses());
  for(const mutate of[rows=>rows[0].source.storageSource={...m.build.storageSource,generation:'other'},rows=>rows[2].template.serviceAccount='other',rows=>rows[1].template.containers[0].env[0].value='loan_manager_dev',rows=>rows[3].trafficStatuses[0].percent=99]){const rows=structuredClone(responses());mutate(rows);await assert.rejects(run(rows))}
  const bad=structuredClone(m.applicationCi);bad.jobs[0].steps[0].conclusion='skipped';await assert.rejects(run(responses(),bad),/missing executed/);
+});
+
+// R063: one image on all four services, V92 unchanged, reused input-equivalent CI.
+const runtimeBaseline='2f63e3d1f907549cf1ccbd6cd4feb5f73310b6e1';
+function runtimeGit({source,tool=source,changed={},delivery='',dirty='',untracked='',migration=''}={}){
+ return (_root,args)=>{
+  if(args[0]==='rev-parse')return args[1]==='HEAD'?tool:args[1];
+  if(args[0]==='merge-base')return args[1];
+  if(args[0]==='ls-files')return untracked;
+  if(args[0]==='diff'){
+   if(args[2]===runtimeBaseline&&args[3]===source)return migration;
+   if(args[2]===source&&args[3]===tool&&!args.includes('--'))return delivery;
+   if(args[3]===source)return changed[args[2]]??'';
+   return dirty;
+  }
+  throw Error('Unexpected synthetic Git command '+args);
+ };
+}
+function runtimeReceipt(kind,head){
+ const jobs={full:['check','e2e (shard 1 of 3)','e2e (shard 2 of 3)','e2e (shard 3 of 3)','terraform','lint'],check:['check','lint'],database:['guards','rebuild (migrations)','rebuild (phase5)','rebuild (phase8)','rebuild (receiving)']}[kind];
+ return {run:{id:{full:11,check:12,database:13}[kind],repository:{full_name:'welct0407/MW-Credit-App'},path:kind==='database'?'.github/workflows/database.yml':'.github/workflows/ci.yml',head_sha:head,event:'push',status:'completed',conclusion:'success'},jobs:jobs.map(name=>({name,conclusion:name==='lint'?'failure':'success'}))};
+}
+async function runtimePackage(t){
+ const root=await mkdtemp(path.join(tmpdir(),'mw-r063-unit-'));t.after(()=>rm(root,{recursive:true,force:true}));
+ const artifact=path.join(root,'frontend');await mkdir(path.join(artifact,'assets'),{recursive:true});const project='clever-oasis-508610-n7',version='c'.repeat(24),entry='/assets/test.js';
+ const config={schemaVersion:1,environment:'prod',canonicalOrigin:'https://lm.mw-credit.com',notificationsEnabled:true,firebase:{projectId:project,authDomain:project+'.firebaseapp.com',apiKey:'AIza'+'x'.repeat(35),appId:'1:737787224638:web:abc123'},readerOrigin:'https://mw-credit-app-read-prod-pvrgvyg3oq-as.a.run.app',commandOrigin:'https://mw-credit-app-command-prod-pvrgvyg3oq-as.a.run.app'};
+ const content={'index.html':`<script type="module" src="${entry}"></script>`,'production-public-config.json':JSON.stringify(config),'build-mode.json':JSON.stringify({schemaVersion:1,mode:'live-prod'}),'build-version.json':JSON.stringify({schemaVersion:1,version,entry}),'sw.js':`const VERSION = '${version}';\nconst PREFIX = 'mw-credit-prod-public-';\nconst APP_ASSETS = ["${entry}"];`,'manifest.webmanifest':'{}','assets/test.js':JSON.stringify(config)};
+ const files=[];for(const [name,value]of Object.entries(content)){await writeFile(path.join(artifact,name),value);files.push({path:name,sha256:createHash('sha256').update(value).digest('hex')});}
+ const planPath=path.join(root,'production.tfplan');await writeFile(planPath,'plan');
+ const old=role=>`asia-southeast1-docker.pkg.dev/${project}/mw-credit-app-prod/api@sha256:`+role[0].repeat(64).replace(/[^a-f0-9]/g,'d');
+ const image=`asia-southeast1-docker.pkg.dev/${project}/mw-credit-app-prod/api@sha256:`+'e'.repeat(64),source='1'.repeat(40),tool='2'.repeat(40),ci='3'.repeat(40);
+ const roles=['read','command','notify','jobs'];
+ return {root,image,source,tool,ci,m:{schemaVersion:5,release:'R063',environment:'prod',scope:'runtime-workers-frontend',status:'applied',sourceCommit:source,artifactSourceCommit:source,sourceBaseline:runtimeBaseline,deliveryToolSource:tool,deliveryToolChecks:{command:'node --test tests/unit/business-hosting-delivery.test.mjs',exitCode:0},repoRoot:root,artifactRoot:artifact,
+  target:{projectId:project,projectNumber:'737787224638',region:'asia-southeast1',site,database:'loan_manager_prod',connectionName:project+':asia-southeast1:appsheet-pg-prod-20260914',canonicalOrigin:'https://lm.mw-credit.com'},
+  sql:{baselineVersion:92,targetVersion:92,migrations:[],verified:{database:'loan_manager_prod',latestVersion:'92',allSuccessful:true}},
+  applicationCi:{full:runtimeReceipt('full',ci),check:runtimeReceipt('check',ci),database:runtimeReceipt('database',ci)},
+  build:{id:'build-1',sourceCommit:source,status:'SUCCESS',image,storageSource:{bucket:'b',object:'o',generation:'1'}},
+  plan:{sha256:createHash('sha256').update('plan').digest('hex'),path:planPath,counts:{add:0,change:4,destroy:0},actions:['read.image','command.image','notify.image','jobs.image','notify.callerSubjects','jobs.callerSubjects']},
+  rollback:{hostingVersion:`sites/${site}/versions/old123`,hostingRelease:`sites/${site}/releases/1792033365993000`,services:Object.fromEntries(roles.map(role=>[role,{image:old(role),revision:`mw-credit-app-${role}-prod-00001-old`}]))},
+  applied:{sourceCommit:source,planSha256:createHash('sha256').update('plan').digest('hex'),database:'loan_manager_prod',sqlVersion:92,services:Object.fromEntries(roles.map(role=>[role,{image,revision:`mw-credit-app-${role}-prod-00002-new`,ready:true,trafficPercent:100}]))},
+  frontend:{publicVersion:version,entry,files}}};
+}
+test('R063 runtime package validates and rejects plan, SQL, CI, readback and artifact tampering',async t=>{
+ const {m,source,tool}=await runtimePackage(t),git=runtimeGit({source,tool});
+ const plan=await runtimeHostingPlan(m,{git});assert.equal(plan.site,site);assert.equal(plan.rollback.hostingRelease,m.rollback.hostingRelease);
+ assert.ok(plan.headers.some(rule=>rule.glob==='**'&&/frame-ancestors 'none'/.test(rule.headers['Content-Security-Policy'])&&rule.headers['X-Frame-Options']==='DENY'));
+ for(const [mutate,pattern] of [[x=>x.plan.counts.destroy=1,/four-service plan/],[x=>x.plan.actions.pop(),/four-service plan/],[x=>x.sql.targetVersion=93,/V92/],[x=>x.sql.verified.allSuccessful=false,/V92/],[x=>x.applicationCi.full.jobs.splice(1,1),/missing executed e2e/],[x=>x.applicationCi.database.run.conclusion='failure',/database CI/],[x=>x.applicationCi.check.run.path='.github/workflows/database.yml',/check CI/],[x=>x.applied.services.jobs.revision=x.rollback.services.jobs.revision,/readback/],[x=>x.applied.services.notify.image=x.rollback.services.notify.image,/readback/],[x=>x.target.database='loan_manager_dev',/target/],[x=>x.frontend.files[0].sha256='d'.repeat(64),/artifact/],[x=>x.release='R062',/package kind/]]){const candidate=structuredClone(m);mutate(candidate);await assert.rejects(runtimeHostingPlan(candidate,{git}),pattern);}
+ const prepared={...structuredClone(m),status:'prepared'};await assert.rejects(runtimeHostingPlan(prepared,{git}),/apply\/readback/);assert.equal((await runtimeHostingPlan(prepared,{git,requireApplied:false})).site,site);
+});
+test('R063 source and reused CI must be input-equivalent; delivery correction cannot smuggle runtime',async t=>{
+ const {m,source,tool,ci}=await runtimePackage(t);
+ assert.doesNotThrow(()=>validateRuntimeSource(m,runtimeGit({source,tool,delivery:'scripts/promotion/deploy-business-hosting.mjs\nproject/Documents/Release_Tracker.md'})));
+ assert.throws(()=>validateRuntimeSource(m,runtimeGit({source,tool,delivery:'services/production/business-server.mjs'})),/delivery correction/);
+ assert.throws(()=>validateRuntimeSource(m,runtimeGit({source,tool,migration:'database/migrations/V93__x.sql'})),/no migration/);
+ assert.throws(()=>validateRuntimeSource(m,runtimeGit({source,tool,dirty:'services/production/business-server.mjs'})),/working input/);
+ assert.throws(()=>validateRuntimeSource(m,runtimeGit({source,tool,untracked:'services/new.mjs'})),/untracked/);
+ assert.throws(()=>validateRuntimeSource({...m,sourceBaseline:source},runtimeGit({source,tool})),/baseline/);
+ assert.deepEqual(Object.keys(validateRuntimeCi(m.applicationCi,m,runtimeGit({source,tool}))),['full','check','database']);
+ assert.throws(()=>validateRuntimeCi(m.applicationCi,m,runtimeGit({source,tool,changed:{[ci]:'apps/pwa/src/live-main.tsx'}})),/not input-equivalent/);
+});
+test('R063 live verification re-reads CI and requires caller subjects on both workers',async t=>{
+ const {m,source,tool,image}=await runtimePackage(t),git=runtimeGit({source,tool});
+ const project='clever-oasis-508610-n7';
+ const service=(role,subjects=true)=>({name:`projects/${project}/locations/asia-southeast1/services/mw-credit-app-${role}-prod`,latestReadyRevision:'x/'+m.applied.services[role].revision,terminalCondition:{state:'CONDITION_SUCCEEDED'},trafficStatuses:[{percent:100,revision:m.applied.services[role].revision}],template:{serviceAccount:`mw-credit-app-${role}-prod@${project}.iam.gserviceaccount.com`,containers:[{image,env:[{name:'DB_NAME',value:'loan_manager_prod'},{name:'INSTANCE_CONNECTION_NAME',value:m.target.connectionName},{name:'DB_USER',value:`mw-credit-app-${role}-prod@${project}.iam`},...(role==='command'?[{name:'PWA_NOTIFICATIONS',value:'enabled'}]:[]),...(subjects&&['notify','jobs'].includes(role)?[{name:'WORKER_CALLER_SUBJECTS_JSON',value:JSON.stringify({'a@b':'114454898477847610024'})}]:[])]}]}});
+ const make=(subjects=true)=>async url=>({ok:true,json:async()=>url.includes('cloudbuild')?{status:'SUCCESS',results:{images:[{name:`asia-southeast1-docker.pkg.dev/${project}/mw-credit-app-prod/api:build-1`,digest:'sha256:'+'e'.repeat(64)}]},source:{storageSource:m.build.storageSource}}:service(url.split('/services/mw-credit-app-')[1].replace('-prod',''),subjects)});
+ const readGithub=args=>{const id=Number(args[1].split('/runs/')[1].split('/')[0]),kind={11:'full',12:'check',13:'database'}[id],r=m.applicationCi[kind];return args[1].includes('/jobs')?{jobs:r.jobs}:r.run;};
+ await verifyRuntimeLivePackage(m,{token:'t',request:make(),readGithub,git});
+ await assert.rejects(verifyRuntimeLivePackage(m,{token:'t',request:make(false),readGithub,git}),/caller subjects/);
+ await assert.rejects(verifyRuntimeLivePackage(m,{token:'t',request:make(),readGithub:args=>{const r=readGithub(args);return args[1].includes('/jobs')?{jobs:r.jobs.filter(j=>j.name!=='terraform')}:r;},git}),/terraform/);
 });
