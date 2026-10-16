@@ -147,7 +147,7 @@ class Host:
         if args[0] == 'git' and args[-2:] == ('status', '--porcelain'):
             return ''
         if args[:2] == ('systemctl', 'show') and 'InvocationID' in args:
-            return 'inv-%d' % self.invocation
+            return f'inv-{self.invocation}'
         if args[:2] == ('systemctl', 'show'):
             return self.timers.get(args[2], 'active' if args[2] == deploy.RECEIVER else 'inactive')
         raise AssertionError(args)

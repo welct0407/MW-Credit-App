@@ -16,7 +16,7 @@ from pathlib import Path
 from PIL import Image, ImageOps
 
 from .config import ConfigurationError
-from .graph_email import NoRedirect
+from .http import RedirectDenied, opener as http_opener
 from .audit import audited
 
 SCHEMA = {'type':'object','additionalProperties':False,'properties':{
@@ -76,7 +76,7 @@ def download_original(url):
     if not allowed_url(url):
         raise ConfigurationError('RECEIPT_URL_NOT_APPROVED')
     try:
-        opener=urllib.request.build_opener(NoRedirect)
+        opener=http_opener()
         for _ in range(4):
             if not allowed_url(url):
                 raise ConfigurationError('RECEIPT_URL_NOT_APPROVED')
@@ -87,10 +87,9 @@ def download_original(url):
                 if len(data)>12_000_000:
                     raise ConfigurationError('RECEIPT_IMAGE_TOO_LARGE')
                 return data
-            except urllib.error.HTTPError as exc:
-                if exc.code not in (301,302,303,307,308):
-                    raise
-                url=urllib.parse.urljoin(url,exc.headers.get('Location',''))
+            except RedirectDenied as exc:
+                # Every hop is re-checked against the CDN allowlist before it is fetched.
+                url=exc.location
         raise ConfigurationError('RECEIPT_REDIRECT_LIMIT')
     except ConfigurationError:
         raise

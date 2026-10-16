@@ -5,10 +5,9 @@ durable before dispatch; a lost commit acknowledgement is never retried.
 """
 import hashlib
 import json
-from datetime import datetime
 from contextlib import contextmanager
 
-from .config import ConfigurationError, load_secret
+from .config import DML_ROLES, ConfigurationError, aware_cutoff, environment, load_secret
 from .conversation_reviewer import require_reviewer
 from .conversation_schema import ACTOR_FIELDS, PROTECTED_FIELDS, writable
 from .state import is_postgres
@@ -42,7 +41,7 @@ def authorize(bridge):
     if config.get('reviewer_dml_enabled') is not True:
         raise ConfigurationError('REVIEWER_DML_DISABLED')
     try:
-        cutoff=datetime.fromisoformat(config['reviewer_dml_cutoff'])
+        cutoff=aware_cutoff(config,'reviewer_dml_cutoff')
         if any(float(config[k]) < cutoff.timestamp() for k in
                ('_conversation_event_timestamp','_conversation_captured_at')):
             raise ValueError()
@@ -55,15 +54,20 @@ def authorize(bridge):
 def connect(config, write=False):
     import psycopg
     from psycopg.rows import dict_row
-    # Fixed production endpoint and a separate credential. Never accept a DSN,
+    # Fixed loopback endpoint, the environment's business database and its dedicated
+    # reviewer role with a separate password credential (the V33 audit functions pin
+    # session_user, so this role stays on the password listener). Never accept a DSN,
     # SQL expression, connection option or role name from inbound content.
+    try:
+        role = DML_ROLES[environment(config)]
+    except ConfigurationError:
+        raise ConfigurationError('UNAPPROVED_DML_DATABASE') from None
     if (config.get('database_host') not in ('127.0.0.1', '::1')
             or config.get('database_port') != 5432
-            or config.get('database_name') != 'loan_manager_prod'
-            or config.get('database_dml_user') != 'mw_reviewer_dml'):
+            or config.get('database_dml_user') != role):
         raise ConfigurationError('UNAPPROVED_DML_DATABASE')
     with psycopg.connect(host=config['database_host'], port=5432,
-            dbname='loan_manager_prod', user='mw_reviewer_dml',
+            dbname=config['database_name'], user=role,
             password=load_secret(config, 'database_dml_password_file'),
             connect_timeout=10, autocommit=True, application_name='mw-reviewer-dml',
             options='-c default_transaction_read_only=on', row_factory=dict_row) as conn:

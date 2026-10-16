@@ -24,7 +24,7 @@ class NativeDefaultsIndependent(unittest.TestCase):
             calls = []
             class Client:
                 def __init__(self, config, scope): self.scope = scope
-                def query(self, table, columns, predicate, limit):
+                def query(self, table, columns, predicate, limit, calls=calls, rows=rows):
                     calls.append((self.scope, table, predicate, limit))
                     return rows
             with self.assertRaisesRegex(ConfigurationError, '^NATIVE_DEFAULT_UNAVAILABLE$'):

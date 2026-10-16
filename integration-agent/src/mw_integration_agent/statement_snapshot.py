@@ -1,5 +1,5 @@
 """Immutable PostgreSQL copies of exact statement snapshot text."""
-from datetime import datetime, timezone
+from datetime import datetime, UTC
 import hashlib
 import json
 from decimal import Decimal
@@ -30,6 +30,6 @@ def freeze(conn, key, text, source_file, frozen_at):
 def save(config,key,text,source_file):
     if not enabled(config):return
     with transaction(config) as c:
-        freeze(c,key,text,source_file,datetime.now(timezone.utc))
+        freeze(c,key,text,source_file,datetime.now(UTC))
         op=audit.begin(c,config,'statement_snapshot',key,plan={'payload_sha256':hashlib.sha256(text.encode()).hexdigest()})
         audit.event(c,op,'snapshot_frozen',state='COMPLETED',key='frozen')

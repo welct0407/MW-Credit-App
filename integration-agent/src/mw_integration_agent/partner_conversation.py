@@ -1,6 +1,5 @@
 """Signed partner messages -> isolated durable Codex turns -> durable partner replies."""
 import json
-import sqlite3
 from .state import connect as state_connect, enabled as state_enabled
 import time
 from datetime import datetime
@@ -8,7 +7,7 @@ from pathlib import Path
 
 from .cash_statement import partners
 from .codex_conversation import CodexConversation
-from .config import ConfigurationError, load_json, validate_config, validate_catalogue
+from .config import ConfigurationError, cutoff_ts, load_controls
 from .conversation_store import ConversationStore, binding_key
 from .conversation_tools import ConversationTools, TOOLS
 from .partner_notice import NoticeJournal
@@ -107,10 +106,7 @@ The host delivers finish.message. Text outside finish is not sent. After finish,
 
 
 def controls(config_path, catalogue_path):
-    config = load_json(config_path)
-    validate_config(config)
-    catalogue = load_json(catalogue_path)
-    validate_catalogue(catalogue)
+    config, catalogue = load_controls(config_path, catalogue_path)
     required = ['persistent_codex_conversation', 'partner_authentication', 'operational_data_read',
                 'database_connectivity', 'signed_webhook_ingress', 'instagram_delivery']
     if config.get('conversation_writes_enabled'):
@@ -207,7 +203,7 @@ def run(config_path, catalogue_path):
         notices = NoticeJournal(root / 'conversation-notices.db', config=config)
         try:
             store.recover()
-            cutoff = datetime.fromisoformat(config['partner_conversation_cutoff']).timestamp()
+            cutoff = cutoff_ts(config, 'partner_conversation_cutoff')
             ingress = state_connect(root/'instagram-ingress.db',config,readonly=True)
             pass  # row format supplied by state adapter
             try:

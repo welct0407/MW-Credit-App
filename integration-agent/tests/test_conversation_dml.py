@@ -1,4 +1,3 @@
-import copy
 import json
 import os
 import tempfile
@@ -50,6 +49,31 @@ class Boundaries(unittest.TestCase):
         with patch('mw_integration_agent.conversation_write.require_reviewer',side_effect=ConfigurationError('CURRENT_AI_REVIEWER_REQUIRED')):
             with self.assertRaisesRegex(ConfigurationError,'CURRENT_AI_REVIEWER_REQUIRED'):
                 api_action(bridge,{})
+
+    def test_dev_target_connects_to_dev_database_with_dev_role(self):
+        # ALL-ARCH-02: the environment picks the database/role pair; a mismatched pair is refused.
+        class Conn:
+            def __enter__(self): return self
+            def __exit__(self, *_): return False
+            def execute(self, *_): return self
+            def rollback(self): return None
+        with tempfile.TemporaryDirectory() as secrets:
+            Path(secrets, 'dml.txt').write_text('synthetic')
+            base = dict(database_host='127.0.0.1', database_port=5432, secrets_directory=secrets,
+                        database_dml_password_file=str(Path(secrets) / 'dml.txt'))
+            with patch('psycopg.connect', return_value=Conn()) as connect:
+                with dml.connect(dict(base, database_name='loan_manager_dev', database_dml_user='mw_reviewer_dml_dev')):
+                    pass
+                self.assertEqual((connect.call_args.kwargs['dbname'], connect.call_args.kwargs['user']), ('loan_manager_dev', 'mw_reviewer_dml_dev'))
+                with dml.connect(dict(base, database_name='loan_manager_prod', database_dml_user='mw_reviewer_dml')):
+                    pass
+                self.assertEqual((connect.call_args.kwargs['dbname'], connect.call_args.kwargs['user']), ('loan_manager_prod', 'mw_reviewer_dml'))
+                for change in ({'database_name': 'loan_manager_dev', 'database_dml_user': 'mw_reviewer_dml'},
+                               {'database_name': 'loan_manager_prod', 'database_dml_user': 'mw_reviewer_dml_dev'},
+                               {'database_name': 'loan_manager_test', 'database_dml_user': 'mw_reviewer_dml'}):
+                    with self.subTest(change=change), self.assertRaisesRegex(ConfigurationError, 'UNAPPROVED_DML_DATABASE'):
+                        with dml.connect(dict(base, **change)):
+                            pass
 
     def test_dml_disabled_old_message_and_revoked_reviewer(self):
         config={'reviewer_dml_enabled':False}

@@ -2,7 +2,6 @@
 import hashlib
 import json
 from datetime import datetime
-from .config import ConfigurationError
 from .receipt_identity import receipt_borrower
 from .receipt_rules import BANGKOK,match_account,ReceiptInvalid
 

@@ -34,7 +34,7 @@ config=dict(state_directory=str(root/'state'),state_backend='postgres',state_gen
     agent_database_host='127.0.0.1',agent_database_port=a.port,agent_database_name='mw_agent',audit_environment='test',
     receipt_environment='dev',receipt_bucket='mw-payment-receipts-prod-508610-n7',instagram_account_id='123',code_version='synthetic')
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'tests'))
-from test_receipt_archive import Storage
+from test_receipt_archive import Storage  # noqa: E402  (test fixture resolved through the path above)
 with patch.object(state,'parameters',side_effect=lambda config,role='worker':dict(admin,dbname='mw_agent',user='mw_agent_'+role,autocommit=True)):
     journal=ReceiptJournal(root/'receipt-processing.db',config=config)
     key=hashlib.sha256(b'postgres-synthetic:0').hexdigest()

@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import json
 import re
+from datetime import datetime
 from pathlib import Path, PurePosixPath
 from typing import Any
+from uuid import UUID
 
 
 BOOLEAN_FLAGS = (
@@ -16,6 +18,20 @@ BOOLEAN_FLAGS = (
     "receiver_enabled",
     "database_enabled",
 )
+
+# Business database per environment and the reviewer DML role that may write to it
+# (ALL-ARCH-02). The DEV role is not created until a later migration relaxes the
+# session_user checks in V33; the DEV target is configurable but stays unusable.
+DATABASES = {'prod': 'loan_manager_prod', 'dev': 'loan_manager_dev'}
+DML_ROLES = {'prod': 'mw_reviewer_dml', 'dev': 'mw_reviewer_dml_dev'}
+# Cloud SQL Auth Proxy listeners (ALL-ARCH-03): database_port/agent_database_port stay
+# on the password listener (5432) for the roles that keep password files (reviewer
+# DML, receipt projector); the IAM roles (worker, relay, integration agent) use the
+# auto-iam-authn listener on iam_database_port (5433 only).
+PASSWORD_PORT = 5432
+IAM_PORT = 5433
+AUTH_MODES = ('password', 'iam')
+IAM_USER = r'[a-z][a-z0-9-]*@clever-oasis-508610-n7\.iam'
 
 
 class ConfigurationError(ValueError):
@@ -33,6 +49,54 @@ def load_json(path: str | Path) -> dict[str, Any]:
     return value
 
 
+def aware_cutoff(config: dict[str, Any], key: str, message: str | None = None) -> datetime:
+    """The configured ISO cutoff as a timezone-aware datetime; naive or missing values fail closed."""
+    try:
+        value = datetime.fromisoformat(config[key])
+        if value.tzinfo is None:
+            raise ValueError()
+    except (KeyError, TypeError, ValueError):
+        raise ConfigurationError(message or key + ' must include timezone') from None
+    return value
+
+
+def cutoff_ts(config: dict[str, Any], key: str) -> float:
+    """POSIX timestamp of a configured cutoff, for comparison with journal timestamps."""
+    return aware_cutoff(config, key).timestamp()
+
+
+def environment(config: dict[str, Any]) -> str:
+    """'prod' or 'dev' from database_name; any other name is not an approved target."""
+    for name, database in DATABASES.items():
+        if config.get('database_name') == database:
+            return name
+    raise ConfigurationError('database_name must identify an approved business database')
+
+
+def auth_mode(config: dict[str, Any], prefix: str) -> str:
+    """'password' (default) or 'iam' for the connection family named by prefix ('database_' or 'agent_database_')."""
+    mode = config.get(prefix + 'auth', 'password')
+    if mode not in AUTH_MODES:
+        raise ConfigurationError(prefix + 'auth must be password or iam')
+    return mode
+
+
+def iam_port(config: dict[str, Any]) -> int:
+    """Local port of the proxy's auto-iam-authn listener; only the fixed second listener is approved."""
+    if config.get('iam_database_port', IAM_PORT) != IAM_PORT:
+        raise ConfigurationError(f'iam_database_port must be {IAM_PORT}')
+    return IAM_PORT
+
+
+def load_controls(config_path: str | Path, catalogue_path: str | Path) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Validated runtime configuration and service catalogue, in that order."""
+    config = load_json(config_path)
+    validate_config(config)
+    catalogue = load_json(catalogue_path)
+    validate_catalogue(catalogue)
+    return config, catalogue
+
+
 def validate_config(config: dict[str, Any]) -> None:
     from .conversation_api import validate as validate_conversation_api
     validate_conversation_api(config)
@@ -41,13 +105,10 @@ def validate_config(config: dict[str, Any]) -> None:
     if type(config.get('receipt_archive_enabled',False)) is not bool:
         raise ConfigurationError('receipt_archive_enabled must be boolean')
     if config.get('receipt_archive_enabled'):
-        from datetime import datetime
         from .receipt_storage import BUCKET
         if config.get('receipt_bucket')!=BUCKET or config.get('receipt_environment') not in ('dev','prod'):
             raise ConfigurationError('UNAPPROVED_RECEIPT_STORAGE')
-        try:
-            if datetime.fromisoformat(config['receipt_archive_cutoff']).tzinfo is None:raise ValueError()
-        except (KeyError,TypeError,ValueError):raise ConfigurationError('receipt_archive_cutoff required') from None
+        aware_cutoff(config, 'receipt_archive_cutoff', 'receipt_archive_cutoff required')
         if type(config.get('receipt_spool_limit_bytes',536870912)) is not int or config.get('receipt_spool_limit_bytes',536870912)<12_000_000:
             raise ConfigurationError('INVALID_RECEIPT_SPOOL_LIMIT')
     for flag,cutoff,identity in (
@@ -55,10 +116,7 @@ def validate_config(config: dict[str, Any]) -> None:
             ('receipt_forwarding_enabled','receipt_forwarding_cutoff','receipt_forwarder_partner_id')):
         if type(config.get(flag,False)) is not bool:raise ConfigurationError(flag+' must be boolean')
         if config.get(flag):
-            from datetime import datetime
-            try:
-                if datetime.fromisoformat(config[cutoff]).tzinfo is None:raise ValueError()
-            except (KeyError,TypeError,ValueError):raise ConfigurationError(cutoff+' required') from None
+            aware_cutoff(config, cutoff, cutoff + ' required')
             if not config.get(identity):raise ConfigurationError(identity+' required')
             if not config.get('partner_review_enabled'):raise ConfigurationError('receipt automation requires review flow')
     if config.get('receipt_auto_payment_enabled') and not config.get('partner_review_execution_enabled'):
@@ -68,18 +126,21 @@ def validate_config(config: dict[str, Any]) -> None:
     if config.get('state_backend', 'sqlite') not in ('sqlite','postgres'):
         raise ConfigurationError('unknown state backend')
     if config.get('state_backend') == 'postgres':
-        from datetime import datetime
-        from uuid import UUID
+        mode = auth_mode(config, 'agent_database_')
         if (config.get('agent_database_host') not in ('127.0.0.1','::1') or
-                config.get('agent_database_port') != 5432 or config.get('agent_database_name') != 'mw_agent'):
+                config.get('agent_database_port') != PASSWORD_PORT or config.get('agent_database_name') != 'mw_agent'):
             raise ConfigurationError('unapproved agent database')
-        _validate_secret_path(config, 'agent_database_worker_password_file')
-        _validate_secret_path(config, 'agent_database_relay_password_file')
+        if mode == 'iam':
+            _validate_iam_user(config)
+            iam_port(config)
+        else:
+            _validate_secret_path(config, 'agent_database_worker_password_file')
+            _validate_secret_path(config, 'agent_database_relay_password_file')
         try:
             UUID(config['state_generation'])
-            if datetime.fromisoformat(config['state_cutover_at']).tzinfo is None: raise ValueError()
         except (KeyError, TypeError, ValueError):
             raise ConfigurationError('state generation and timezone cutover required') from None
+        aware_cutoff(config, 'state_cutover_at', 'state generation and timezone cutover required')
     for flag in ('partner_conversations_enabled', 'conversation_writes_enabled', 'reviewer_dml_enabled', 'reviewer_delete_enabled'):
         if type(config.get(flag, False)) is not bool:
             raise ConfigurationError(flag + ' must be boolean')
@@ -88,25 +149,16 @@ def validate_config(config: dict[str, Any]) -> None:
     if config.get('conversation_writes_enabled') and not config.get('partner_conversations_enabled'):
         raise ConfigurationError('conversation writes require conversations')
     if config.get('partner_conversations_enabled'):
-        from datetime import datetime
-        try:
-            if datetime.fromisoformat(config['partner_conversation_cutoff']).tzinfo is None:
-                raise ValueError()
-        except (KeyError, TypeError, ValueError) as exc:
-            raise ConfigurationError('partner_conversation_cutoff must include timezone') from exc
+        aware_cutoff(config, 'partner_conversation_cutoff')
         if not all(config.get(k) for k in ('receiver_enabled', 'database_enabled', 'conversation_api_enabled')):
             raise ConfigurationError('conversations require receiver, database and native API')
     if config.get('reviewer_dml_enabled'):
-        from datetime import datetime
         if not config.get('partner_conversations_enabled') or not config.get('database_enabled'):
             raise ConfigurationError('reviewer DML requires conversations and database')
-        if config.get('database_dml_user') != 'mw_reviewer_dml':
+        if config.get('database_dml_user') != DML_ROLES[environment(config)]:
             raise ConfigurationError('reviewer DML requires dedicated role')
         _validate_secret_path(config, 'database_dml_password_file')
-        try:
-            if datetime.fromisoformat(config['reviewer_dml_cutoff']).tzinfo is None: raise ValueError()
-        except (KeyError, TypeError, ValueError):
-            raise ConfigurationError('reviewer_dml_cutoff must include timezone') from None
+        aware_cutoff(config, 'reviewer_dml_cutoff')
     timeout = config.get('conversation_timeout_seconds', 600)
     if type(timeout) is not int or not 30 <= timeout <= 900:
         raise ConfigurationError('conversation_timeout_seconds must be 30..900')
@@ -115,35 +167,18 @@ def validate_config(config: dict[str, Any]) -> None:
     if config.get('partner_review_execution_enabled') and not config.get('partner_review_enabled'):
         raise ConfigurationError('review execution requires review flow')
     if config.get('partner_review_enabled'):
-        from datetime import datetime
-        try:
-            if datetime.fromisoformat(config['partner_review_cutoff']).tzinfo is None:raise ValueError()
-        except (KeyError,TypeError,ValueError) as exc:raise ConfigurationError('partner_review_cutoff required') from exc
+        aware_cutoff(config, 'partner_review_cutoff', 'partner_review_cutoff required')
     if type(config.get('conversation_poll_enabled',False)) is not bool:
         raise ConfigurationError('conversation_poll_enabled must be boolean')
     if config.get('conversation_poll_enabled'):
-        from datetime import datetime
-        try:
-            if datetime.fromisoformat(config['conversation_poll_cutoff']).tzinfo is None:raise ValueError()
-        except (KeyError,TypeError,ValueError) as exc:
-            raise ConfigurationError('conversation_poll_cutoff must include timezone') from exc
+        aware_cutoff(config, 'conversation_poll_cutoff')
     if type(config.get('receipt_summary_enabled', False)) is not bool:
         raise ConfigurationError('receipt_summary_enabled must be boolean')
     for notice_cutoff in ('partner_notice_cutoff','receipt_hold_notice_cutoff','receipt_hold_reply_cutoff','review_resend_cutoff'):
         if config.get(notice_cutoff):
-            from datetime import datetime
-            try:
-                if datetime.fromisoformat(config[notice_cutoff]).tzinfo is None:raise ValueError()
-            except (TypeError,ValueError) as exc:
-                raise ConfigurationError(notice_cutoff+' must include timezone') from exc
+            aware_cutoff(config, notice_cutoff)
     if config.get('receipt_summary_enabled'):
-        from datetime import datetime
-        try:
-            cutoff = datetime.fromisoformat(config['receipt_activation_cutoff'])
-            if cutoff.tzinfo is None:
-                raise ValueError()
-        except (KeyError, TypeError, ValueError) as exc:
-            raise ConfigurationError('receipt_activation_cutoff must include timezone') from exc
+        aware_cutoff(config, 'receipt_activation_cutoff')
         if not config.get('receiver_enabled') or not config.get('database_enabled'):
             raise ConfigurationError('receipt summaries require receiver and database')
     for flag in BOOLEAN_FLAGS:
@@ -189,13 +224,17 @@ def validate_config(config: dict[str, Any]) -> None:
     if config.get("database_enabled"):
         if config.get("database_host") not in {"127.0.0.1", "::1"}:
             raise ConfigurationError("database_host must be loopback")
-        if config.get("database_port") != 5432:
+        mode = auth_mode(config, 'database_')
+        if config.get("database_port") != PASSWORD_PORT:
             raise ConfigurationError("database_port must be 5432")
-        if config.get("database_name") != "loan_manager_prod":
-            raise ConfigurationError("database_name must identify the approved production database")
+        environment(config)
         if config.get("database_user") != "mw_integration_agent":
             raise ConfigurationError("database_user must be the dedicated least-privilege role")
-        _validate_secret_path(config, "database_password_file")
+        if mode == 'iam':
+            _validate_iam_user(config)
+            iam_port(config)
+        else:
+            _validate_secret_path(config, "database_password_file")
 
     if config.get("email_fallback_enabled") or config.get("cash_statement_schedule_enabled") or config.get('receipt_summary_enabled'):
         if not re.fullmatch(r"[^\s@<>;,]+@[^\s@<>;,]+\.[^\s@<>;,]+", str(config.get("email_sender", ""))):
@@ -213,6 +252,11 @@ def load_secret(config: dict[str, Any], key: str) -> str:
     if not value:
         raise ConfigurationError(f"credential is empty: {key}")
     return value
+
+
+def _validate_iam_user(config: dict[str, Any]) -> None:
+    if not re.fullmatch(IAM_USER, str(config.get('database_iam_user', ''))):
+        raise ConfigurationError('database_iam_user must be the VM service account IAM database user')
 
 
 def _validate_secret_path(config: dict[str, Any], key: str) -> None:

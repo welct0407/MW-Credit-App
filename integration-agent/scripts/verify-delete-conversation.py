@@ -1,5 +1,6 @@
 """Real resumed Codex thread, synthetic API Delete transport only; no messaging."""
-import json,secrets
+import json
+import secrets
 from pathlib import Path
 from mw_integration_agent.config import load_json
 from mw_integration_agent.codex_conversation import CodexConversation

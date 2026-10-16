@@ -5,11 +5,11 @@ Keep both checks and bind the exact operation, actor and metadata-only effect.
 """
 import json
 import uuid
-from datetime import datetime, timezone
-from zoneinfo import ZoneInfo
+from datetime import datetime, UTC
 
 from . import audit
-from .config import ConfigurationError
+from .business_time import BANGKOK
+from .config import DATABASES, ConfigurationError
 
 SERVICE = 'receipt_projection'
 ACTOR = {'kind': 'system', 'id': 'receipt-projector', 'login': 'service:receipt-projector'}
@@ -27,9 +27,9 @@ def plan(config, link, asset):
             or asset['archive_state'] != 'ARCHIVED' or not asset['generation']
             or audit.digest(json.loads(link['verification'])) != link['verification_digest']):
         raise ConfigurationError('RECEIPT_AUDIT_IDENTITY_MISMATCH')
-    captured = datetime.fromtimestamp(source['captured_at'], timezone.utc).astimezone(ZoneInfo('Asia/Bangkok')).replace(tzinfo=None)
+    captured = datetime.fromtimestamp(source['captured_at'], UTC).astimezone(BANGKOK).replace(tzinfo=None)
     return {'contract': 'receipt-projection-v1', 'operation_id': expected_id,
-            'database': {'prod': 'loan_manager_prod', 'dev': 'loan_manager_dev'}[environment],
+            'database': DATABASES[environment],
             'payment_id': link['payment_id'], 'receipt_id': asset['receipt_id'],
             'object_key': asset['object_key'], 'generation': asset['generation'],
             'verification_digest': link['verification_digest'],

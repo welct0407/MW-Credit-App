@@ -9,12 +9,12 @@ import threading
 import time
 import urllib.error
 import urllib.request
-from datetime import datetime, timezone
+from datetime import datetime, UTC
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
 
-from .config import ConfigurationError, load_json, load_secret, validate_catalogue, validate_config
+from .config import ConfigurationError, load_controls, load_json, load_secret, validate_catalogue, validate_config
 from .journal import IngressJournal
 from .webhook import extract_messages, verify_signature
 
@@ -32,7 +32,7 @@ def package_sha256(root: Path = PACKAGE) -> str:
 
 def record_startup(config: dict) -> dict:
     STARTUP.clear()
-    STARTUP.update(pid=os.getpid(), started_at=datetime.now(timezone.utc).isoformat(),
+    STARTUP.update(pid=os.getpid(), started_at=datetime.now(UTC).isoformat(),
                    code_version=config.get("code_version"), package_sha256=package_sha256())
     return STARTUP
 
@@ -179,21 +179,33 @@ def handler(config_path: str, catalogue_path: str):
                 self.respond(404, "Not found")
                 return
             try:
-                length = int(self.headers.get("Content-Length", "0"))
+                try:
+                    length = int(self.headers.get("Content-Length", "0"))
+                except ValueError:
+                    self.respond(400, "Invalid length")
+                    return
                 if not 0 < length <= 1024 * 1024 or self.headers.get("Transfer-Encoding"):
                     self.respond(413, "Invalid size")
                     return
                 raw = self.rfile.read(length)
-                config = load_json(config_path)
-                validate_config(config)
-                if not config.get("receiver_enabled"):
+                # Both kill switches are read per request (AGT-WEBHOOK-05): the configuration flag
+                # and the catalogue entry, so disabling either takes effect without a restart.
+                config, catalogue = load_controls(config_path, catalogue_path)
+                if not config.get("receiver_enabled") or not catalogue["services"].get("signed_webhook_ingress", {}).get("enabled"):
                     self.respond(503, "Receiver disabled")
                     return
                 if not verify_signature(raw, self.headers.get("X-Hub-Signature-256"), load_secret(config, "meta_app_secret_file")):
                     self.respond(403, "Forbidden")
                     return
+                try:
+                    payload = json.loads(raw)
+                except ValueError:
+                    payload = None
+                if not isinstance(payload, dict):
+                    self.respond(400, "Invalid body")
+                    return
                 stats: dict[str, int] = {}
-                messages = extract_messages(json.loads(raw), config["instagram_account_id"], stats=stats)
+                messages = extract_messages(payload, config["instagram_account_id"], stats=stats)
                 journal = IngressJournal(Path(config["state_directory"]) / "instagram-ingress.db", config=config)
                 try:
                     journal.capture(hashlib.sha256(raw).hexdigest(), messages, stats=stats)

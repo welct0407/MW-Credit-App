@@ -116,8 +116,13 @@ class TransactionAudit(unittest.TestCase):
                       'UPDATE public."Partners" SET "AI Reviewer"=true WHERE "Row ID"=%s'):
             with self.assertRaises(psycopg.Error):
                 with psycopg.connect(**dict(self.base,user='mw_reviewer_dml'),dbname='loan_manager_prod') as c:c.execute(query,(self.key,))
+        # AGT-TEST-02: the real role defaults to read-only transactions; open a read-write one so the
+        # privilege check (not the read-only guard) is what refuses the DDL.
         with self.assertRaises(psycopg.errors.InsufficientPrivilege):
-            with psycopg.connect(**dict(self.base,user='mw_reviewer_dml'),dbname='loan_manager_prod') as c:c.execute('CREATE TABLE public.forbidden_audit_test(id integer)')
+            with psycopg.connect(**dict(self.base,user='mw_reviewer_dml'),dbname='loan_manager_prod',autocommit=True) as c:
+                c.execute('BEGIN READ WRITE')
+                try:c.execute('CREATE TABLE public.forbidden_audit_test(id integer)')
+                finally:c.execute('ROLLBACK')
 
     def test_api_first_refuses_supported_single_row_plan(self):
         with self.assertRaisesRegex(ConfigurationError,'USE_API_FIRST'):

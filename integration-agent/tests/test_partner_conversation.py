@@ -5,8 +5,7 @@ import tempfile
 import sys
 import time
 import uuid
-import hashlib
-from datetime import datetime, timezone
+from datetime import datetime, UTC
 import unittest
 from unittest.mock import patch
 
@@ -32,8 +31,9 @@ class Conversations(unittest.TestCase):
             url=getattr(request,'full_url',str(request))
             self.assertNotIn('appsheet.com',url,'Native workflow attempted retired AppSheet HTTP')
             raise AssertionError('Unmocked external HTTP in native conversation fixture')
-        http_tripwire=patch('urllib.request.urlopen',side_effect=no_http)
-        http_tripwire.start();self.addCleanup(http_tripwire.stop)
+        for target in ('urllib.request.urlopen','urllib.request.OpenerDirector.open'):
+            http_tripwire=patch(target,side_effect=no_http)
+            http_tripwire.start();self.addCleanup(http_tripwire.stop)
         reviewer_patch = patch('mw_integration_agent.conversation_write.require_reviewer', return_value='actor@example.com')
         reviewer_patch.start(); self.addCleanup(reviewer_patch.stop)
         self.temp = tempfile.TemporaryDirectory()
@@ -349,7 +349,7 @@ class Conversations(unittest.TestCase):
     def test_worker_cutoff_receipt_ownership_and_once_only_reply_after_restart(self):
         from mw_integration_agent.partner_conversation import run
         now=time.time()
-        self.config['partner_conversation_cutoff']=datetime.fromtimestamp(now-10,timezone.utc).isoformat()
+        self.config['partner_conversation_cutoff']=datetime.fromtimestamp(now-10,UTC).isoformat()
         ingress=IngressJournal(self.root/'instagram-ingress.db')
         ingress.capture('synthetic-batch',[
             {'message_id':'old','sender_id':'999','timestamp':now-20,'text':'old'},

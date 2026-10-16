@@ -6,6 +6,7 @@ import urllib.parse
 import urllib.request
 
 from .config import ConfigurationError
+from .http import access_token
 
 BUCKET = 'mw-payment-receipts-prod-508610-n7'
 LIMIT = 12_000_000
@@ -17,12 +18,7 @@ class GCS:
             raise ConfigurationError('UNAPPROVED_RECEIPT_BUCKET')
 
     def request(self, url, data=None, mime=None):
-        request = urllib.request.Request(
-            'http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token',
-            headers={'Metadata-Flavor': 'Google'})
-        with urllib.request.urlopen(request, timeout=10) as response:
-            token = json.loads(response.read(16384))['access_token']
-        headers = {'Authorization': 'Bearer ' + token}
+        headers = {'Authorization': 'Bearer ' + access_token(timeout=10)}
         if mime:
             headers['Content-Type'] = mime
         with urllib.request.urlopen(urllib.request.Request(url, data=data, headers=headers), timeout=60) as response:

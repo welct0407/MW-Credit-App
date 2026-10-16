@@ -4,7 +4,7 @@ dry-run reports without writes; freeze/install/activate deploy; activate restart
 timers only after /ready reports the pinned commit, else rolls back automatically; rollback restores the backup."""
 import argparse
 import copy
-from datetime import datetime, timezone
+from datetime import datetime, UTC
 import hashlib
 import json
 import os
@@ -62,7 +62,7 @@ def digest(path):
 
 
 def stamp():
-    return datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S%fZ')
+    return datetime.now(UTC).strftime('%Y%m%dT%H%M%S%fZ')
 
 
 def tree(path):
@@ -251,7 +251,7 @@ print('read-only-status-ok')
 
 def receiver_get(config, path):
     host = config['listen_host']
-    url = 'http://%s:%d%s' % ('[' + host + ']' if ':' in host else host, config['listen_port'], path)
+    url = f"http://{'[' + host + ']' if ':' in host else host}:{config['listen_port']}{path}"
     try:
         with OPENER.open(url, timeout=5) as response:
             return response.status, response.read(4096)
@@ -277,7 +277,7 @@ def wait_ready(config, expected, timeout=READY_TIMEOUT, legacy=False):
         except (OSError, ValueError, AttributeError) as exc:
             last = type(exc).__name__
         if time.monotonic() >= deadline:
-            raise RuntimeError('Receiver not ready for %s within %ss: %s' % (expected, timeout, json.dumps(last)))
+            raise RuntimeError(f'Receiver not ready for {expected} within {timeout}s: {json.dumps(last)}')
         time.sleep(1)
 
 
@@ -323,7 +323,7 @@ def rollback(backup, metadata, resume=False):
     config = json.loads((backup / 'config.json').read_text())
     wait_ready(config, config.get('code_version'), READY_TIMEOUT, legacy=True)
     require(invocation() != before, 'Receiver was not restarted')
-    metadata.update(phase='rolled-back', rolled_back_at=datetime.now(timezone.utc).isoformat())
+    metadata.update(phase='rolled-back', rolled_back_at=datetime.now(UTC).isoformat())
     save(backup / 'deployment.json', metadata)
     if resume and metadata['resume_timers']:
         run('systemctl', 'start', *metadata['resume_timers'])
@@ -515,7 +515,7 @@ def main():
         require(invocation() != metadata['receiver_invocation'], 'Receiver was not restarted')
     except Exception as exc:
         recover(backup, metadata, exc)
-    metadata.update(phase='activated', receiver_ready_at=datetime.now(timezone.utc).isoformat())
+    metadata.update(phase='activated', receiver_ready_at=datetime.now(UTC).isoformat())
     save(backup / 'deployment.json', metadata)
     if metadata['resume_timers']:
         run('systemctl', 'start', *metadata['resume_timers'])

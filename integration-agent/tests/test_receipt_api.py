@@ -19,6 +19,39 @@ class ContractTests(unittest.TestCase):
             opener.assert_not_called()
 
 
+    def test_not_sent_classification(self):
+        # AGT-SEND-03: token failures, 401 and 403 are definitely not sent; anything else after the POST stays uncertain.
+        import io
+        import urllib.error
+        origin='https://mw-credit-app-command-dev-737787224638.asia-southeast1.run.app'
+        config=dict(receipt_payment_api_enabled=True,receipt_environment='dev',database_name='loan_manager_dev',receipt_archive_enabled=True,
+                    receipt_payment_api_cutoff='2026-01-01T00:00:00+00:00',receipt_payment_api_origin=origin,receipt_payment_api_audience=origin)
+        def http_error(code):
+            return urllib.error.HTTPError(origin,code,'err',{},io.BytesIO(b'{"kind":"rejected"}'))
+        class Opener:
+            def __init__(self,outcome):self.outcome=outcome
+            def open(self,request,timeout=None):
+                if isinstance(self.outcome,Exception):raise self.outcome
+                return io.BytesIO(self.outcome)
+        token=patch('mw_integration_agent.receipt_api.identity_token',return_value='a.b.c')
+        for outcome,expected in ((http_error(401),'RECEIPT_API_NOT_SENT_401'),(http_error(403),'RECEIPT_API_NOT_SENT_403'),
+                                 (http_error(500),'RECEIPT_API_OUTCOME_UNCERTAIN'),(http_error(409),'RECEIPT_API_OUTCOME_UNCERTAIN'),
+                                 (http_error(429),'RECEIPT_API_OUTCOME_UNCERTAIN')):
+            with self.subTest(outcome=outcome.code),token,patch('mw_integration_agent.receipt_api.http_opener',return_value=Opener(outcome)):
+                with self.assertRaisesRegex(ValueError,'^'+expected+'$') as raised:
+                    receipt_api.call(config,'POST',body={'command':{}})
+                self.assertEqual(isinstance(raised.exception,receipt_api.NotSent),expected.startswith('RECEIPT_API_NOT_SENT'))
+        with token,patch('mw_integration_agent.receipt_api.http_opener',return_value=Opener(TimeoutError())):
+            with self.assertRaises(TimeoutError):  # after the POST may have left: never NotSent
+                receipt_api.call(config,'POST',body={'command':{}})
+        with token,patch('mw_integration_agent.receipt_api.http_opener',return_value=Opener(b'{"kind":"recorded"}')):
+            self.assertEqual(receipt_api.call(config,'POST',body={'command':{}}),{'kind':'recorded'})
+        for failure in (OSError('metadata unreachable'),ValueError('INVALID_WORKLOAD_TOKEN'),TimeoutError()):
+            with self.subTest(failure=type(failure).__name__),patch('mw_integration_agent.receipt_api.identity_token',side_effect=failure), \
+                 patch('mw_integration_agent.receipt_api.http_opener',return_value=Opener(b'{}')):
+                with self.assertRaisesRegex(receipt_api.NotSent,'^RECEIPT_API_NOT_SENT_TOKEN$'):
+                    receipt_api.call(config,'POST',body={'command':{}})
+
     def test_catalogue_disabled_rejects_an_enabled_valid_api_configuration(self):
         from pathlib import Path
         from mw_integration_agent.receipt_run import controls
@@ -29,7 +62,7 @@ class ContractTests(unittest.TestCase):
             receipt_payment_api_origin='https://mw-credit-app-command-dev-737787224638.asia-southeast1.run.app',
             receipt_payment_api_audience='https://mw-credit-app-command-dev-737787224638.asia-southeast1.run.app')
         catalogue=json.loads(Path('service-catalogue.json').read_text())
-        with patch('mw_integration_agent.receipt_run.load_json',side_effect=[config,catalogue]):
+        with patch('mw_integration_agent.config.load_json',side_effect=[config,catalogue]):
             with self.assertRaisesRegex(ValueError,'SHARED_RECEIPT_PAYMENT_API_DISABLED'):
                 controls('config','catalogue')
 

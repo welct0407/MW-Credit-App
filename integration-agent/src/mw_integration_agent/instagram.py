@@ -8,6 +8,7 @@ import urllib.request
 from typing import Any
 
 from .config import ConfigurationError, load_secret
+from .http import opener as http_opener
 
 
 class InstagramAPIError(ConfigurationError):
@@ -81,7 +82,8 @@ class Instagram:
             headers["Content-Type"] = "application/json"
         request = urllib.request.Request(url, data=data, headers=headers, method="POST" if body is not None else "GET")
         try:
-            with urllib.request.urlopen(request, timeout=20) as response:
+            # The bearer token must never travel to a redirect target.
+            with http_opener().open(request, timeout=20) as response:
                 return json.load(response)
         except urllib.error.HTTPError as exc:
             raise InstagramAPIError.from_http(exc, message_send=(body is not None and path == self.config['instagram_account_id'] + '/messages')) from None
