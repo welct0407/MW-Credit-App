@@ -104,19 +104,17 @@ resource "google_sql_database_instance" "shared_ssd" {
   }
 }
 
-# SSD move: Metabase's Cloud SQL Client binding (condition
-# "metabase-reporting-instance", old instance only) predates Terraform and stays
-# unmanaged. This additive binding admits both instances so the Railway proxy can
-# be repointed; remove the old one with gcloud and narrow this one when the old
-# instance is retired.
+# Metabase's Railway Cloud SQL proxy: the shared instance only.
 resource "google_project_iam_member" "metabase_sql_client" {
   project = "clever-oasis-508610-n7"
   role    = "roles/cloudsql.client"
   member  = "serviceAccount:metabase-cloudsql@clever-oasis-508610-n7.iam.gserviceaccount.com"
+  # A condition change replaces the binding; create the new one first.
+  lifecycle { create_before_destroy = true }
   condition {
     title       = "metabase-shared-instances"
-    description = "Metabase reporting proxy: only the shared Cloud SQL instances"
-    expression  = "(resource.name == 'projects/clever-oasis-508610-n7/instances/appsheet-pg-prod-20260914' || resource.name == 'projects/clever-oasis-508610-n7/instances/mw-credit-pg-20261017') && resource.type == 'sqladmin.googleapis.com/Instance'"
+    description = "Metabase reporting proxy: only the shared Cloud SQL instance"
+    expression  = "resource.name == 'projects/clever-oasis-508610-n7/instances/mw-credit-pg-20261017' && resource.type == 'sqladmin.googleapis.com/Instance'"
   }
 }
 
