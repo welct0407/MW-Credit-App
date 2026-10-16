@@ -1,8 +1,0 @@
-{"view_exists" : true}
-{"phase" : "before", "holder" : "ch:dad", "balance" : -110.00}
-{"phase" : "before", "holder" : "ch:lisa", "balance" : -891.00}
-{"phase" : "before", "holder" : "ch:tommy", "balance" : 0.00}
-{"phase" : "after", "holder" : "ch:dad", "balance" : 17890.00, "business_cash_held" : 17890.00}
-{"phase" : "after", "holder" : "ch:lisa", "balance" : 29109.00, "business_cash_held" : 29109.00}
-{"phase" : "after", "holder" : "ch:tommy", "balance" : 0.00, "business_cash_held" : 0.00}
-{"fixture_count" : 2, "fixture_total" : 48000}

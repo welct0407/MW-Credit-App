@@ -59,7 +59,7 @@ test('true nonsuperuser V87 to V88/V89 operator provisioning, capture and exact 
     assert.equal((await operator.query("SELECT prosrc FROM pg_proc WHERE oid='public.pwa_capture_notification_v1()'::regprocedure")).rows[0].prosrc,nextBody);
     assert.equal(nextBody.includes('pg_notify'),false);
    }
-   const manifest=JSON.parse(await readFile('outputs/r053-notifications-jobs/jobs-owner-reviewed-dependencies.json','utf8')),sha=createHash('sha256').update(JSON.stringify(manifest)).digest('hex');await grantR053JobDependencies(operator,config,manifest,{reviewedManifestSha256:sha,apply:true});
+   const manifest=JSON.parse(await readFile('project/outputs/r053-notifications-jobs/jobs-owner-reviewed-dependencies.json','utf8')),sha=createHash('sha256').update(JSON.stringify(manifest)).digest('hex');await grantR053JobDependencies(operator,config,manifest,{reviewedManifestSha256:sha,apply:true});
   }finally{await restoreR053Maintenance(operator,config,state,{apply:true});}
   assert.equal((await restoreR053Maintenance(operator,config,state,{apply:true})).mode,'authority-already-restored');
   for(const role of ['mw_notify_owner_dev','mw_jobs_owner_dev',...(agent?['mw_app_dev_journal_owner']:[])])assert.deepEqual((await operator.query("SELECT pg_has_role(current_user,$1,'SET') owner_set,has_schema_privilege($1,'public','CREATE') schema_create",[role])).rows[0],{owner_set:false,schema_create:false});

@@ -11,10 +11,10 @@ test('synthetic access states hide prior records totals and selected detail in E
    await expect(page.locator('.borrower-card')).toHaveCount(0);await expect(page.getByTestId('total-due')).toHaveCount(0);await expect(page.locator('.detail-panel')).toHaveCount(0);await expect(page.locator('.access-blocked')).toBeVisible();await expect(page.locator('body')).not.toContainText('SAMPLE-002');
    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   }
-  await page.screenshot({path:`outputs/r052-phase1b/${info.project.name}-${language==='EN'?'en':'th'}-denied.png`,fullPage:true});
+  await page.screenshot({path:`test-results/r052-phase1b/${info.project.name}-${language==='EN'?'en':'th'}-denied.png`,fullPage:true});
   await access.selectOption('allowed');await expect(page.locator('.borrower-card')).toHaveCount(3);await expect(page.locator('.borrower-card[aria-pressed="true"]')).toHaveCount(0);await expect(page.getByTestId('total-due')).toContainText('4,400');
  }
- expect(unexpected).toEqual([]);await page.screenshot({path:`outputs/r052-phase1b/${info.project.name}-allowed.png`,fullPage:true});
+ expect(unexpected).toEqual([]);await page.screenshot({path:`test-results/r052-phase1b/${info.project.name}-allowed.png`,fullPage:true});
 });
 test('synthetic monetary values display whole baht in EN and Thai without source mutation',async({page})=>{
  await page.route('**/apps/pwa/src/fixtures.ts*',async route=>{const response=await route.fetch();const source=await response.text();expect(source).toMatch(/amount: 1200/);await route.fulfill({response,body:source.replace('amount: 1200','amount: 1200.34')})});

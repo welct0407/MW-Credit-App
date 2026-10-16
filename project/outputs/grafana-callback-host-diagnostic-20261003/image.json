@@ -1,7 +1,0 @@
-{
-  "image": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-monitoring/grafana-mcp-bridge@sha256:e24d97a0f726e9e0eda116cea4bc5392adedc432a5f89db4628ebe1fe4690b3f",
-  "sourceCommit": "efdcaef76283d2dc49f0fabe027a4cfd3e127515",
-  "tag": "callback-host-diagnostic-20261003",
-  "runtimeDependencies": "unchanged",
-  "sourceChange": "temporary opt-in synthetic rejected hostname observation"
-}

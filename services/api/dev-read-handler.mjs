@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-const resultCodes = new Set(['origin_denied', 'method_not_allowed', 'invalid_request', 'sign_in_required', 'session_invalid', 'access_denied', 'not_found', 'read_unavailable', 'source_unavailable', 'business_date_changed']);
+const resultCodes = new Set(['origin_denied', 'method_not_allowed', 'invalid_request', 'sign_in_required', 'session_invalid', 'session_check_unavailable', 'access_denied', 'not_found', 'read_unavailable', 'source_unavailable', 'business_date_changed']);
 function operationFor(rawUrl) {
   try {
     const path = new URL(rawUrl, 'http://request.invalid').pathname;

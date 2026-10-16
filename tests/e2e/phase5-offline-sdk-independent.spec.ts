@@ -5,7 +5,7 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {startCanonicalFixture} from './fixtures/canonical-server';
 
-test('F12 actual Firebase SDK mixed-domain drafts and pending survive offline boot reconnect worker update then signout purges',async({},info)=>{
+test('F12 actual Firebase SDK mixed-domain drafts and pending survive offline boot reconnect worker update; signout blocked until synced then purges',async({},info)=>{
  test.skip(info.project.name.startsWith('mobile'),'Actual SDK and worker integration runs once');
  test.setTimeout(90000);
  const root=mkdtempSync(join(tmpdir(),'mw-offline-sdk-')),out=join(root,'public'),profile=join(root,'profile');
@@ -43,6 +43,9 @@ test('F12 actual Firebase SDK mixed-domain drafts and pending survive offline bo
   await page.getByRole('button',{name:'Borrowers',exact:true}).filter({visible:true}).click();await page.getByRole('button',{name:'Add borrower',exact:true}).click();await expect(page.getByRole('textbox',{name:/^Borrower\ Note(?: \*)?$/})).toHaveValue('exact offline draft ไทย');await expect(page.getByRole('textbox',{name:/^Borrower\ Name\ -\ Thai(?: \*)?$/})).toHaveValue('SDK unsent borrower ไทย');
   const restored=await stored();expect(restored.drafts).toHaveLength(5);expect(restored.drafts.filter((r:any)=>r.value.domain!=='borrower').map((r:any)=>r.value)).toEqual(baseline.drafts.filter((r:any)=>r.value.domain!=='borrower').map((r:any)=>r.value));expect(restored.pending.map((r:any)=>r.value)).toEqual(baseline.pending.map((r:any)=>r.value));expect(posts).toBe(0);
   networkOffline=false;await context.setOffline(false);await page.reload();await page.getByRole('button',{name:'Borrowers',exact:true}).filter({visible:true}).click();await expect(page.getByRole('button',{name:'Add borrower',exact:true})).toBeVisible();expect(posts).toBe(0);await expect.poll(()=>statusGets).toBeGreaterThan(0);fixture.setVersion('B');await Promise.all([page.waitForEvent('load'),page.evaluate(async()=>{const registration=await navigator.serviceWorker.getRegistration();await registration!.update()})]);await page.getByRole('button',{name:'Borrowers',exact:true}).filter({visible:true}).click();await expect(page.getByRole('button',{name:'Add borrower',exact:true})).toBeVisible();expect((await stored()).drafts.map((r:any)=>r.value)).toEqual(restored.drafts.map((r:any)=>r.value));expect((await stored()).pending.map((r:any)=>r.value)).toEqual(baseline.pending.map((r:any)=>r.value));expect(posts).toBe(0);
+  // APP-OFFLINE-02: sign-out is blocked while the pending row is unsynced; after it is removed, sign-out purges the namespace as before.
+  const blocked=page.getByRole('button',{name:'Sync 1 pending first',exact:true});await expect(blocked).toBeVisible();await expect(blocked).toBeDisabled();await expect(page.getByRole('button',{name:'Sign out',exact:true})).toHaveCount(0);expect((await stored()).pending).toHaveLength(1);
+  await page.evaluate(async()=>{const repo=(window as any).__syntheticRepo({issuer:'https://securetoken.google.com/clever-oasis-508610-n7',uid:'synthetic-offline-sdk-owner'});await repo.remove('pending','ec7d0be2-2607-49c7-8bc7-5cda99485710')});
   await page.getByRole('button',{name:'Sign out',exact:true}).click();await expect(page.getByRole('button',{name:/Google/})).toBeVisible();expect((await stored()).drafts).toHaveLength(0);expect((await stored()).pending).toHaveLength(0);expect(posts).toBe(0);
  }finally{await context?.close();await fixture.close();rmSync(root,{recursive:true,force:true})}
 });

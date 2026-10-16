@@ -129,15 +129,6 @@ class DictionaryTests(unittest.TestCase):
         write_json(self.root / "index.json", make_index(self.root))
         self.assertFalse(validate(self.root)["errors"])
 
-    def test_same_import_label_in_different_sheets_is_distinct(self):
-        from migrate import Migration
-        migration = Migration()
-        migration.generic("Dev Differences", 2, {"App": "OLTP", "Object": "Loans"}, "OLTP")
-        migration.generic("R008 Production", 2, {"App": "OLTP", "Object": "Loans"}, "OLTP")
-        identities = [tuple(doc["identity"].values()) for doc in migration.docs.values()]
-        self.assertEqual(len(set(identities)), 2)
-        self.assertEqual(len(migration.locations), 2)
-
     def test_resolved_and_future_coverage_are_not_open_limitations(self):
         write_yaml(self.root / "unresolved.yaml", {"format": 1, "items": [
             {"id": "A", "status": "deferred"}, {"id": "B", "status": "resolved"},

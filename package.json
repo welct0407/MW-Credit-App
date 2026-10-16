@@ -13,6 +13,7 @@
     "test": "node --test tests/unit/*.test.mjs",
     "test:e2e": "playwright test",
     "check": "npm run build && npm test",
+    "check:evidence": "node scripts/check-binary-evidence.mjs",
     "build:live-dev": "tsc --noEmit && vite build --mode live-dev",
     "dev:live-dev": "vite --mode live-dev --host 127.0.0.1",
     "start:read-dev": "node services/api/dev-read-server.mjs"

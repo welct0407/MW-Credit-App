@@ -131,7 +131,7 @@ set -euo pipefail
 dir="${MW_PRIVATE_ROOT:-$HOME/.mw-private}/ssh"
 mkdir -p "$dir"; chmod 700 "$dir"
 if [ ! -s "$dir/codex-cloud" ]; then
-  (umask 077; gcloud secrets versions access 1 --secret=mw-credit-cloud-operator-ssh-key \
+  (umask 077; gcloud secrets versions access latest --secret=mw-credit-cloud-operator-ssh-key \
      --project=clever-oasis-508610-n7 > "$dir/codex-cloud")
 fi
 echo 'vm-mw-credit-agent ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAID4J/lXUyG77dsIwR0MNsrXD11/qdaajYMLz7w26CI8i' > "$dir/known_hosts"

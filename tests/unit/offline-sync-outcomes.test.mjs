@@ -5,12 +5,13 @@ import {runInNewContext} from 'node:vm';
 import ts from 'typescript';
 const source=ts.transpileModule(readFileSync(new URL('../../apps/pwa/src/offline-sync.ts',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
 const id='11111111-1111-4111-8111-111111111111';
-function fixture({invalid=false,reject=false,unknown=false,blocked=false,unrecorded=false}={}){
+function fixture({invalid=false,reject=false,unknown=false,blocked=false,unrecorded=false,receiptUpload=null}={}){
  const exports={},events=[],calls=[];
- let row={value:{command:invalid?{requestId:id}:{requestId:id,operation:'loan.update',targetId:'loan',inputs:{principal:'100'}}},sync:{state:blocked?'blocked':'queued',attempted:false,...(blocked?{code:'dependency_conflict'}:{})}};
+ const receiptId='22222222-2222-4222-8222-222222222222';
+ let row={value:receiptUpload?{domain:'payment',command:{schemaVersion:6,requestId:id,borrowerId:'synthetic-borrower',allocations:[],cashAccountId:'account',paymentDate:'2026-10-15',amountReceived:'100',paymentMethod:null,notes:null,receiptId},receipt:{id:receiptId,image:new Blob([new Uint8Array(16)],{type:'image/jpeg'}),borrowerId:'synthetic-borrower'}}:{command:invalid?{requestId:id}:{requestId:id,operation:'loan.update',targetId:'loan',inputs:{principal:'100'}}},sync:{state:blocked?'blocked':'queued',attempted:false,...(blocked?{code:'dependency_conflict'}:{})}};
  const repository={environment:'synthetic',scopeName:'owner',syncAuthorized:async()=>true,claimPending:async()=>row?.sync.state==='blocked'?null:row,pending:async()=>row,markPendingDispatched:async()=>true,settlePending:async(_id,_owner,sync)=>{row=sync?{...row,sync}:null}};
  const window=new EventTarget();window.addEventListener('mw-offline-sync-outcome',event=>events.push(event.detail));
- runInNewContext(source,{exports,require:()=>({commandOriginAllowed:()=>true}),navigator:{onLine:true},location:{origin:'https://synthetic.invalid'},window,crypto,URL,Response,Blob,AbortController,CustomEvent,setTimeout,clearTimeout,fetch:async(url,init)=>{calls.push({url,method:init.method??'GET',body:init.body});if(init.method==='POST'){if(unknown)throw Error('lost response');if(unrecorded)return new Response(JSON.stringify({code:'record_requires_reconciliation'}),{status:422});return new Response(JSON.stringify({kind:'recorded',originalOutcome:{status:reject?'rejected':'applied',code:reject?'dependency_conflict':undefined}}),{status:reject?422:200})}return new Response(JSON.stringify({kind:'unresolved'}))}});
+ runInNewContext(source,{exports,require:()=>({commandOriginAllowed:()=>true}),navigator:{onLine:true},location:{origin:'https://synthetic.invalid'},window,crypto,URL,Response,Blob,AbortController,CustomEvent,setTimeout,clearTimeout,fetch:async(url,init)=>{calls.push({url,method:init.method??'GET',body:init.body});if(init.method==='POST'&&url.includes('/receipts/'))return new Response(JSON.stringify(receiptUpload.body),{status:receiptUpload.status});if(init.method==='POST'){if(unknown)throw Error('lost response');if(unrecorded)return new Response(JSON.stringify({code:'record_requires_reconciliation'}),{status:422});return new Response(JSON.stringify({kind:'recorded',originalOutcome:{status:reject?'rejected':'applied',code:reject?'dependency_conflict':undefined}}),{status:reject?422:200})}return new Response(JSON.stringify({kind:'unresolved'}))}});
  return {sync:()=>exports.syncSavedRequest({origin:'https://synthetic.invalid',offline:repository,token:async()=>'synthetic',authFailure:()=>{}},id),message:exports.savedRejectionMessage,events,calls,row:()=>row};
 }
 test('recorded rejection retains reason, immutable payload and blocked state without a second POST',async()=>{
@@ -36,4 +37,15 @@ test('reason messages support Thai, preserve unknown safe codes and exclude arbi
 
 test('unrecorded HTTP rejection preserves its reason without claiming a recorded outcome',async()=>{
  const f=fixture({unrecorded:true}),result=await f.sync();assert.equal(result.kind,'blocked');assert.equal(result.code,'record_requires_reconciliation');assert.equal(result.data.originalOutcome,undefined);assert.equal(f.row().sync.code,result.code);assert.ok(f.row().value.command);assert.doesNotMatch(f.message(result,false),/recorded|confirm|review/i);
+});
+
+// APP-PAY-01 regression guard: a retryable receipt upload failure keeps the payment queued; a 400 still blocks it.
+test('receipt upload 503 body_timeout keeps the saved payment queued for retry',async()=>{
+ const f=fixture({receiptUpload:{status:503,body:{ok:false,code:'body_timeout'}}}),result=await f.sync();
+ assert.equal(result.kind,'queued');assert.equal(result.code,'receipt_unavailable');assert.equal(f.row().sync.state,'queued');assert.equal(f.row().sync.attempted,true);
+ assert.equal(f.calls.filter(call=>call.method==='POST').length,1);assert.ok(f.calls.at(-1).url.includes('/receipts/'));assert.equal(f.events.length,0);
+});
+test('receipt upload 400 blocks the saved payment',async()=>{
+ const f=fixture({receiptUpload:{status:400,body:{ok:false,code:'invalid_request'}}}),result=await f.sync();
+ assert.equal(result.kind,'blocked');assert.equal(result.code,'invalid_request');assert.equal(f.row().sync.state,'blocked');
 });
