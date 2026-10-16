@@ -62,7 +62,7 @@ class ReviewerDmlScriptTests(unittest.TestCase):
                 text = path.read_text(encoding='utf-8', errors='replace')
                 with self.subTest(script=path.name):
                     self.assertNotIn('C:/Users/', text); self.assertNotIn('C:\\Users\\', text)
-                    self.assertNotIn('TO_FILL_AFTER_CREATE_HOST', text)
+                    self.assertNotIn('136.85.127.134', text)
 
 
 if __name__ == '__main__':

@@ -23,7 +23,7 @@ if args.database=='mw_agent' and args.expected_version is not None: raise ValueE
 expected_version=(args.expected_version or 77) if args.database=='loan_manager_prod' else None
 repo = Path(__file__).resolve().parents[2]
 target = json.loads((repo / 'database/environments.json').read_text())['production']
-if (target['instance'], target['host'], target['port'], target['database'], target['user']) != ('mw-credit-pg-20261017', 'TO_FILL_AFTER_CREATE_HOST', 5432, 'loan_manager_prod', 'postgres'):
+if (target['instance'], target['host'], target['port'], target['database'], target['user']) != ('mw-credit-pg-20261017', '136.85.127.134', 5432, 'loan_manager_prod', 'postgres'):
     raise ValueError('Wrong fixed production tuple')
 # Journal mode changes only the fixed database name on this verified instance.
 target={**target,'database':args.database}
@@ -112,7 +112,7 @@ try:
         c.execute("SET LOCAL statement_timeout='%ss'; SET LOCAL lock_timeout='5s'; SET LOCAL timezone='UTC'; SET LOCAL datestyle='ISO,YMD'" % (180 if args.database=='mw_agent' else 60))
         if c.execute("SELECT current_setting('transaction_isolation'),current_setting('transaction_read_only')").fetchone()!=('repeatable read','on'): raise ValueError('Snapshot isolation/read-only not established')
         actual=c.execute('SELECT current_database(),session_user,host(inet_server_addr()),inet_server_port(),(SELECT system_identifier FROM pg_control_system()),clock_timestamp()').fetchone()
-        if windows and actual[:4] != (target['database'],'postgres','TO_FILL_AFTER_CREATE_HOST',5432): raise ValueError('Live production identity mismatch')
+        if windows and actual[:4] != (target['database'],'postgres','136.85.127.134',5432): raise ValueError('Live production identity mismatch')
         if not windows and (actual[:2] != (target['database'],connection['user']) or actual[4] != CLUSTER_SYSTEM_IDENTIFIER): raise ValueError('Live production identity mismatch')
         if expected_version is not None and c.execute('SELECT max(version::int) FROM public.flyway_schema_history WHERE success').fetchone()[0] != expected_version: raise ValueError('Production history drift')
         before=fingerprint(c)

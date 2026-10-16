@@ -4,7 +4,7 @@ const config={database:'loan_manager_prod',creators:['postgres'],executionMode:'
 function fixture({version=90,failed=0}={}){
  const statements=[],owners=['mw_notify_owner_prod','mw_jobs_owner_prod'],elevated=new Set(),create=new Set();
  return {statements,async query(sql){statements.push(sql);
-  if(sql.startsWith('SELECT current_database()'))return{rows:[{database:'loan_manager_prod',operator:'postgres',host:'TO_FILL_AFTER_CREATE_HOST',port:5432,rolsuper:false,rolcreaterole:true,rolbypassrls:false,schemaGrantor:'schema_owner',schema_set:true,schema_create:true}]};
+  if(sql.startsWith('SELECT current_database()'))return{rows:[{database:'loan_manager_prod',operator:'postgres',host:'136.85.127.134',port:5432,rolsuper:false,rolcreaterole:true,rolbypassrls:false,schemaGrantor:'schema_owner',schema_set:true,schema_create:true}]};
   if(sql.startsWith('SELECT rolname,'))return{rows:r053Environment(config.database).roles.map(rolname=>({rolname,rolcanlogin:false,rolinherit:false,rolsuper:false,rolcreatedb:false,rolcreaterole:false,rolreplication:false,rolbypassrls:false}))};
   if(sql.includes('flyway_schema_history'))return{rows:[{version,failed}]};
   if(sql.includes('FROM pg_auth_members'))return{rows:owners.map(role=>({role,member:'postgres',grantor:'cloudsqladmin',admin_option:false,inherit_option:elevated.has(role),set_option:elevated.has(role)}))};

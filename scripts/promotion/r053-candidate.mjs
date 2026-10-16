@@ -9,7 +9,7 @@ const fail=m=>{throw Error('R053 candidate: '+m);};
 const eq=(a,b,m)=>{if(JSON.stringify(a)!==JSON.stringify(b))fail(m);};
 async function bytes(file,max=1048576){if(!path.isAbsolute(file??''))fail('absolute evidence path required');const s=await lstat(file);if(!s.isFile()||s.isSymbolicLink()||s.size>max)fail('unsafe evidence file');return readFile(file);}
 async function proof(file,pin){if(!SHA.test(pin??''))fail('evidence hash required');const b=await bytes(file);eq(hash(b),pin,'changed evidence');return JSON.parse(b.toString('utf8').replace(/^\uFEFF/,''));}
-const fixed={projectId:'clever-oasis-508610-n7',site:'mw-credit-prod-737787224638',database:'loan_manager_prod',host:'TO_FILL_AFTER_CREATE_HOST',connectionName:'clever-oasis-508610-n7:asia-southeast1:mw-credit-pg-20261017',canonicalOrigin:'https://lm.mw-credit.com'};
+const fixed={projectId:'clever-oasis-508610-n7',site:'mw-credit-prod-737787224638',database:'loan_manager_prod',host:'136.85.127.134',connectionName:'clever-oasis-508610-n7:asia-southeast1:mw-credit-pg-20261017',canonicalOrigin:'https://lm.mw-credit.com'};
 export function validateR053ApplicationReceipt(receipt,artifactSource){
  const r=receipt.run;if(r?.repository?.full_name!=='welct0407/MW-Credit-App'||r.path!=='.github/workflows/ci.yml'||r.head_sha!==artifactSource||r.event!=='workflow_dispatch'||r.status!=='completed')fail('wrong actual application run');
  const steps=(receipt.jobs??[]).flatMap(j=>j.steps??[]);

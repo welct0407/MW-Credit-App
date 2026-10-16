@@ -24,7 +24,7 @@ export async function reconcileCapturedNative(input,{readMedia,decodeImage=decod
     const descriptors=[],aliasGroups=new Map(),aliasKeySets=new Map(),reservedKeys=new Set();
     for(const row of input.entries){
       const {database,appsheet,gcs}=row;
-      if(!database||database.database!==(prod?'loan_manager_prod':'loan_manager_dev')||database.instance!==DEV_INSTANCE||database.host!=='TO_FILL_AFTER_CREATE_HOST'
+      if(!database||database.database!==(prod?'loan_manager_prod':'loan_manager_dev')||database.instance!==DEV_INSTANCE||database.host!=='136.85.127.134'
         ||database.table!=='Payments'||database.column!=='Uploaded Receipt'||database.readOnly!==true||!validTime(database.capturedAt)
         ||typeof database.rowId!=='string'||!database.rowId||database.rowId.length>256
         ||typeof database.reference!=='string'||!(prod?/^manual-receipts\/prod\/[^/\\\u0000-\u001f]+$/u:/^manual-receipts\/dev\/[^/\\\u0000-\u001f]+$/u).test(database.reference)

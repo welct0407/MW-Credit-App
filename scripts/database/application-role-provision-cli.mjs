@@ -13,7 +13,7 @@ if(new Set(flags).size!==flags.length||flags.filter(x=>x!=='--apply').length>1)t
 const external=p=>{const x=path.resolve(p);if(!x.startsWith(privateRoot+path.sep))throw Error('Private recovery file required');return x;};
 if(['DATABASE_URL','PGHOST','PGPORT','PGDATABASE','PGUSER','PGPASSWORD','PGSERVICE'].some(k=>process.env[k]))throw Error('Remove ambient database overrides');
 const all=JSON.parse(fs.readFileSync(path.join(repo,'database/environments.json'),'utf8').replace(/^\uFEFF/,'')),x=all[environment];
-if(x.instance!=='mw-credit-pg-20261017'||x.host!=='TO_FILL_AFTER_CREATE_HOST'||x.port!==5432||x.database!==(environment==='production'?'loan_manager_prod':'loan_manager_dev')||x.user!=='postgres'||all.production.database===all.development.database)throw Error('Wrong environment operator tuple');
+if(x.instance!=='mw-credit-pg-20261017'||x.host!=='136.85.127.134'||x.port!==5432||x.database!==(environment==='production'?'loan_manager_prod':'loan_manager_dev')||x.user!=='postgres'||all.production.database===all.development.database)throw Error('Wrong environment operator tuple');
 const credential=path.resolve(x.passwordFile);if(!credential.startsWith(path.resolve('C:/Users/ideaadmin/Documents/ChatGPT')+path.sep))throw Error('Private credential path required');
 const config=JSON.parse(fs.readFileSync(options['--creator-file']?external(options['--creator-file']):path.join(repo,'database/application-role-creators.json'),'utf8'));if(config.database!==x.database)throw Error('Wrong registered creator database');
 const c=new pg.Client({host:x.host,port:x.port,database:x.database,user:x.user,password:fs.readFileSync(credential,'utf8').trim(),ssl:{rejectUnauthorized:false},connectionTimeoutMillis:10000,application_name:'mw-dev-role-prerequisites'});

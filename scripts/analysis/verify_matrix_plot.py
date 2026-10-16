@@ -71,7 +71,7 @@ if __name__=='__main__':
     p=argparse.ArgumentParser();p.add_argument('--environment',choices=['development','production'],required=True);a=p.parse_args()
     cfg=json.loads((ROOT/'database/environments.json').read_text())[a.environment]
     db='loan_manager_dev' if a.environment=='development' else 'loan_manager_prod'
-    assert (cfg['instance'],cfg['host'],cfg['database'])==('mw-credit-pg-20261017','TO_FILL_AFTER_CREATE_HOST',db)
+    assert (cfg['instance'],cfg['host'],cfg['database'])==('mw-credit-pg-20261017','136.85.127.134',db)
     with psycopg.connect(host=cfg['host'],dbname=db,user=cfg['user'],password=Path(cfg['passwordFile']).read_text().strip(),sslmode='require',options='-c default_transaction_read_only=on -c statement_timeout=30000') as c:
         c.execute('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY')
         assert c.execute('select current_database(),host(inet_server_addr())').fetchone()==(db,cfg['host'])

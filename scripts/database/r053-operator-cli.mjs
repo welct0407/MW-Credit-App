@@ -9,7 +9,7 @@ const repo=path.resolve(import.meta.dirname,'../..'),privateRoot=path.resolve('C
 function external(p){const x=path.resolve(p),r=path.relative(privateRoot,x);if(!r||r.startsWith('..')||path.isAbsolute(r))throw Error('Exact private recovery location required');let current=path.parse(x).root;for(const component of x.slice(current.length).split(path.sep)){current=path.join(current,component);if(fs.existsSync(current)&&fs.lstatSync(current).isSymbolicLink())throw Error('Recovery reparse path refused');}return x;}
 if(action==='restore'&&!opts.state)throw Error('Exact prepared restoration file required');
 const t=JSON.parse(fs.readFileSync(path.join(repo,'database/environments.json'),'utf8')).development;
-if(t.instance!=='mw-credit-pg-20261017'||t.host!=='TO_FILL_AFTER_CREATE_HOST'||t.port!==5432||t.database!=='loan_manager_dev'||t.user!=='postgres')throw Error('DEV configuration mismatch');
+if(t.instance!=='mw-credit-pg-20261017'||t.host!=='136.85.127.134'||t.port!==5432||t.database!=='loan_manager_dev'||t.user!=='postgres')throw Error('DEV configuration mismatch');
 const credentials=path.resolve(t.passwordFile);if(!credentials.startsWith(path.resolve('C:/Users/ideaadmin/Documents/ChatGPT')+path.sep))throw Error('Private credential required');
 const config={database:'loan_manager_dev',creators:['postgres'],executionMode:'cloudsql-dev'};
 const c=new pg.Client({host:t.host,port:t.port,database:t.database,user:t.user,password:fs.readFileSync(credentials,'utf8').trim(),ssl:{rejectUnauthorized:false},connectionTimeoutMillis:10000,application_name:'mw-r053-dev-operator'});

@@ -24,7 +24,7 @@ try {
     foreach($name in @('V1__fixture.sql','V2__fixture.sql','V3__fixture.sql','V4__fixture.sql')){Write-Fixture $name}
     $names=@('V1__fixture.sql','V2__fixture.sql','V3__fixture.sql','V4__fixture.sql')
     $now=[datetimeoffset]::UtcNow
-    $proof=[pscustomobject]@{environment='production';projectId='clever-oasis-508610-n7';instance='mw-credit-pg-20261017';host='TO_FILL_AFTER_CREATE_HOST';database='loan_manager_prod';baselineVersion=2;observedAt=$now.ToString('o');publicConnectRevoked=$true;configuredConsumersVerified=$true;consumerReconnectVerified=$true;devInheritedConnectDenied=$true;devSessionCount=0;retainedConsumerRoles=@('synthetic_consumer');devPrincipalRoles=@('synthetic_dev');identityInventorySha256=('a'*64)}
+    $proof=[pscustomobject]@{environment='production';projectId='clever-oasis-508610-n7';instance='mw-credit-pg-20261017';host='136.85.127.134';database='loan_manager_prod';baselineVersion=2;observedAt=$now.ToString('o');publicConnectRevoked=$true;configuredConsumersVerified=$true;consumerReconnectVerified=$true;devInheritedConnectDenied=$true;devSessionCount=0;retainedConsumerRoles=@('synthetic_consumer');devPrincipalRoles=@('synthetic_dev');identityInventorySha256=('a'*64)}
     $base=@{MigrationRoot=$taskRoot;Manifest=(Get-FixtureManifest $names);BaselineVersion=2;TargetVersion=4;Preflight=$proof;Now=$now}
 
     # Positive: two-migration hop and one-migration hop from the manifest alone.

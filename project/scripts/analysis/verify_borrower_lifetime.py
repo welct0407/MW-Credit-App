@@ -25,7 +25,7 @@ assert days(Decimal(100),a,a+timedelta(days=10),[(a+timedelta(days=5),Decimal(50
 assert days(Decimal(100),a,a+timedelta(days=10),[(a,Decimal(100))])==0
 assert days(Decimal(100),a,a+timedelta(days=10),[(a,Decimal(100)),(a+timedelta(days=5),Decimal(-50))])==250
 cfg=json.loads((DATABASE_REPO_ROOT / 'database/environments.json').read_text())['production']
-assert (cfg['instance'],cfg['host'],cfg['database'])==('mw-credit-pg-20261017','TO_FILL_AFTER_CREATE_HOST','loan_manager_prod')
+assert (cfg['instance'],cfg['host'],cfg['database'])==('mw-credit-pg-20261017','136.85.127.134','loan_manager_prod')
 password=Path.home()/'Documents/ChatGPT/AppSheet-Loan-Project/metabase-poc/reporting-db-password.txt'
 with psycopg.connect(host=cfg['host'],dbname=cfg['database'],user='metabase_borrower_reader',password=password.read_text().strip(),sslmode='require',row_factory=dict_row,options='-c default_transaction_read_only=on -c statement_timeout=30000') as c:
     c.execute('BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY')

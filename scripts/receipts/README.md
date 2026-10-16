@@ -11,7 +11,7 @@ Input JSON uses `schemaVersion: 1`, `environment: "dev"` and `entries: [...]`. E
 
 | Object | Required fields |
 | --- | --- |
-| `database` | `database: "loan_manager_dev"`, `instance: "clever-oasis-508610-n7:asia-southeast1:mw-credit-pg-20261017"`, `host: "TO_FILL_AFTER_CREATE_HOST"`, `table: "Payments"`, `column: "Uploaded Receipt"`, `readOnly: true`, ISO `capturedAt`, exact `rowId`, exact stored `reference` |
+| `database` | `database: "loan_manager_dev"`, `instance: "clever-oasis-508610-n7:asia-southeast1:mw-credit-pg-20261017"`, `host: "136.85.127.134"`, `table: "Payments"`, `column: "Uploaded Receipt"`, `readOnly: true`, ISO `capturedAt`, exact `rowId`, exact stored `reference` |
 | `appsheet` | `appId: "500b27b6-884a-41e8-a9ec-df801b0110ad"`, `method: "authenticated-appsheet-media"`, same exact `rowId` and `reference`, ISO `capturedAt`, absolute private `mediaPath`, observed `mimeType`, media `sha256` |
 | `gcs` | `bucket: "mw-payment-receipts-prod-508610-n7"`, exact `key`, decimal string `generation`, observed `mimeType`, integer `sizeBytes`, media `sha256`, ISO `capturedAt`, absolute private `mediaPath` for that generation |
 

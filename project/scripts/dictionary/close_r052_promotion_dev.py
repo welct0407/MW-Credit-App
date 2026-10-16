@@ -12,7 +12,7 @@ source=Path(a.capture)
 assert source.is_absolute()
 raw=source.read_bytes(); data=json.loads(raw)
 assert data['identity']['database']=='loan_manager_dev'
-assert data['identity']['host']=='TO_FILL_AFTER_CREATE_HOST' and data['identity']['history_version']==87
+assert data['identity']['host']=='136.85.127.134' and data['identity']['history_version']==87
 assert len(data['relations'])==5 and len(data['routines'])==20 and len(data['triggers'])==2
 folder=root/'Documents/Data Dictionary/development/postgresql/r052-command'
 evidence='https://github.com/welct0407/MW-Credit-App/blob/codex/r052-review-shell/outputs/r052-promotion-readiness/dev87-model-catalog.json'

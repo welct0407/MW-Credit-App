@@ -19,7 +19,7 @@ from psycopg import sql
 
 repo = Path(__file__).resolve().parents[2]
 target = json.loads((repo / 'database/environments.json').read_text())['development']
-assert (target['instance'], target['host'], target['database']) == ('mw-credit-pg-20261017', 'TO_FILL_AFTER_CREATE_HOST', 'loan_manager_dev')
+assert (target['instance'], target['host'], target['database']) == ('mw-credit-pg-20261017', '136.85.127.134', 'loan_manager_dev')
 backup = json.loads((repo / 'outputs/r051-receipt-corrections/vm01-development-backup.json').read_text())
 assert hashlib.sha256(Path(backup['backup_file']).read_bytes()).hexdigest() == backup['backup_sha256']
 private = Path(backup['backup_file']).parent.parent

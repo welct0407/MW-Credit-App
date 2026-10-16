@@ -15,7 +15,7 @@ root=Path(__file__).resolve().parents[2];dd=root/'Documents/Data Dictionary';out
 evidence='outputs/r047-receipt-upload/HANDOVER.md'
 private=Path.home()/'Documents/ChatGPT/AppSheet-Loan-Project/r047-receipt-upload/dictionary-patches';private.mkdir(parents=True,exist_ok=True)
 t=json.loads((DATABASE_REPO_ROOT / 'database/environments.json').read_text())['development']
-assert (t['instance'],t['host'],t['database'])==('mw-credit-pg-20261017','TO_FILL_AFTER_CREATE_HOST','loan_manager_dev')
+assert (t['instance'],t['host'],t['database'])==('mw-credit-pg-20261017','136.85.127.134','loan_manager_dev')
 with psycopg.connect(host=t['host'],dbname=t['database'],user=t['user'],password=Path(t['passwordFile']).read_text().strip(),sslmode='require',row_factory=dict_row) as c:
  c.execute('BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY')
  assert c.execute('select current_database() db,host(inet_server_addr()) host').fetchone()=={'db':t['database'],'host':t['host']}

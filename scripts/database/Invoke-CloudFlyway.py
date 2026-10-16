@@ -76,7 +76,7 @@ def guard(repo,release,approval,backup,environ):
     targets=json.loads((repo/'database/environments.json').read_text())
     for name,db in [('development','loan_manager_dev'),('production','loan_manager_prod')]:
         t=targets[name]
-        if (t['instance'],t['host'],t['database'],t['user'])!=(INSTANCE,'TO_FILL_AFTER_CREATE_HOST',db,'postgres'):
+        if (t['instance'],t['host'],t['database'],t['user'])!=(INSTANCE,'136.85.127.134',db,'postgres'):
             raise ValueError('Database identity differs')
 
 

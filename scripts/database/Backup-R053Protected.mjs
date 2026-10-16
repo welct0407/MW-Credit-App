@@ -13,7 +13,7 @@ const backupProof=privatePath(opts['--backup-proof']);
 // PROD's maintained CLI verifies its retained V87 proof, cleanup and dump hash.
 if(environment==='development'){
  const p=JSON.parse(fs.readFileSync(backupProof,'utf8')),dir=path.dirname(backupProof),cleanup=JSON.parse(fs.readFileSync(privatePath(path.join(dir,'cleanup.json')),'utf8'));
- if(p.environment!=='development'||p.database!=='loan_manager_dev'||p.instance!=='mw-credit-pg-20261017'||p.host!=='TO_FILL_AFTER_CREATE_HOST'||p.restore!=='passed'||p.archiveListing!=='passed'||cleanup.stopped!==true||cleanup.ownedRestoreRemoved!==true||!/^[a-f0-9]{64}$/.test(p.dumpSha256??''))throw Error('Verified retained DEV recovery required');
+ if(p.environment!=='development'||p.database!=='loan_manager_dev'||p.instance!=='mw-credit-pg-20261017'||p.host!=='136.85.127.134'||p.restore!=='passed'||p.archiveListing!=='passed'||cleanup.stopped!==true||cleanup.ownedRestoreRemoved!==true||!/^[a-f0-9]{64}$/.test(p.dumpSha256??''))throw Error('Verified retained DEV recovery required');
  const hash=createHash('sha256');for await(const chunk of fs.createReadStream(privatePath(path.join(dir,'loan_manager_dev.dump'))))hash.update(chunk);if(hash.digest('hex')!==p.dumpSha256)throw Error('Retained DEV dump changed');
 }
 const state=privatePath(path.join(root,'r053-backup-authority-'+randomUUID()+'.json'));

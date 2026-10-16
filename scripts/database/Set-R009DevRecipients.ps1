@@ -2,7 +2,7 @@
 param()
 . "$PSScriptRoot/Common.ps1"
 $target=Get-DbEnvironment development -Admin
-if($target.instance -ne 'mw-credit-pg-20261017' -or $target.host -ne 'TO_FILL_AFTER_CREATE_HOST' -or $target.database -ne 'loan_manager_dev'){
+if($target.instance -ne 'mw-credit-pg-20261017' -or $target.host -ne '136.85.127.134' -or $target.database -ne 'loan_manager_dev'){
  throw 'DEV instance/host/database mismatch'
 }
 $saved=@{}

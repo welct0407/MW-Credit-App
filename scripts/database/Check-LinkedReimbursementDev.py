@@ -22,7 +22,7 @@ def run(app_role=None, role_evidence=None):
         history = c.execute('SELECT version,checksum FROM flyway_schema_history WHERE success ORDER BY installed_rank DESC LIMIT 1').fetchone()
         if history != ('65', -2087638333):
             raise ValueError('Expected reviewed DEV65; reconcile before preflight')
-        result = dict(database=identity[0], instance='mw-credit-pg-20261017', host='TO_FILL_AFTER_CREATE_HOST',
+        result = dict(database=identity[0], instance='mw-credit-pg-20261017', host='136.85.127.134',
                       version=65, checksum=history[1], read_only=True,
                       snapshot_at=str(c.execute('SELECT transaction_timestamp()').fetchone()[0]))
         counts = c.execute('''SELECT count(*),count(*) FILTER(WHERE e."Row ID" IS NULL),

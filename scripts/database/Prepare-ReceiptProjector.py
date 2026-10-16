@@ -9,7 +9,7 @@ from psycopg import sql
 p=argparse.ArgumentParser();p.add_argument('--environment',choices=['development','production'],required=True);a=p.parse_args()
 root=Path(__file__).resolve().parents[2]
 target=json.loads((root/'database/environments.json').read_text())[a.environment]
-assert target['host']=='TO_FILL_AFTER_CREATE_HOST' and target['instance']=='mw-credit-pg-20261017'
+assert target['host']=='136.85.127.134' and target['instance']=='mw-credit-pg-20261017'
 assert target['database']=={'development':'loan_manager_dev','production':'loan_manager_prod'}[a.environment]
 private=Path('C:/Users/ideaadmin/Documents/ChatGPT/AppSheet-Loan-Project/receipt-storage')
 private.mkdir(parents=True,exist_ok=True)

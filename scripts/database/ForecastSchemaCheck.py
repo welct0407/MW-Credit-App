@@ -12,7 +12,7 @@ queries={
  'constraints':"select conrelid::regclass::text,conname,pg_get_constraintdef(oid) from pg_constraint where connamespace='public'::regnamespace order by 1,2"}
 for env,t in cfg.items():
  if env not in ('development','production'):continue
- assert t['host']=='TO_FILL_AFTER_CREATE_HOST' and t['instance']=='mw-credit-pg-20261017'
+ assert t['host']=='136.85.127.134' and t['instance']=='mw-credit-pg-20261017'
  with psycopg.connect(host=t['host'],dbname=t['database'],user=t['user'],password=Path(t['passwordFile']).read_text().strip(),sslmode='require',options='-c default_transaction_read_only=on') as c:
   rows[env]={k:[tuple(x.replace('\r\n','\n') if isinstance(x,str) else x for x in row) for row in c.execute(q).fetchall()] for k,q in queries.items()}
   result[env]={k:hashlib.sha256(json.dumps(v,default=str).encode()).hexdigest() for k,v in rows[env].items()}

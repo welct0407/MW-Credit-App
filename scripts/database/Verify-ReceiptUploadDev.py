@@ -8,7 +8,7 @@ from psycopg import sql
 root=Path(__file__).resolve().parents[2]
 out=root/'outputs/r047-receipt-upload'
 t=json.loads((root/'database/environments.json').read_text())['development']
-assert (t['instance'],t['host'],t['database'])==('mw-credit-pg-20261017','TO_FILL_AFTER_CREATE_HOST','loan_manager_dev')
+assert (t['instance'],t['host'],t['database'])==('mw-credit-pg-20261017','136.85.127.134','loan_manager_dev')
 with psycopg.connect(host=t['host'],port=t['port'],dbname=t['database'],user=t['user'],password=Path(t['passwordFile']).read_text().strip(),sslmode='require') as c:
  c.execute('BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY')
  assert c.execute('SELECT current_database(),host(inet_server_addr())').fetchone()==(t['database'],t['host'])

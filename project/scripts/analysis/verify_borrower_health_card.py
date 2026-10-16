@@ -10,7 +10,7 @@ sys.path.insert(0,str(Path(os.environ['LOCALAPPDATA'])/'AppSheetLoanTools/python
 import psycopg
 ROOT=Path(__file__).resolve().parents[2]
 t=json.loads((DATABASE_REPO_ROOT / 'database/environments.json').read_text())['development']
-assert (t['instance'],t['host'],t['database'])==('mw-credit-pg-20261017','TO_FILL_AFTER_CREATE_HOST','loan_manager_dev')
+assert (t['instance'],t['host'],t['database'])==('mw-credit-pg-20261017','136.85.127.134','loan_manager_dev')
 with psycopg.connect(host=t['host'],dbname=t['database'],user=t['user'],password=Path(t['passwordFile']).read_text().strip(),sslmode='require',application_name='r035-health-card-parity',options='-c statement_timeout=60000') as c:
  c.execute('BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY')
  selected=c.execute('SELECT borrower_id FROM reporting_borrower_directory_v1 WHERE has_active_loan ORDER BY outstanding_principal DESC LIMIT 1').fetchone()[0]

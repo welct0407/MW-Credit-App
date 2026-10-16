@@ -34,7 +34,7 @@ def preflight(c,version,compare_to=None):
         query=sql.SQL("SELECT count(*) FROM {}.{} t WHERE row_to_json(t)::text LIKE %s").format(sql.Identifier(schema),sql.Identifier(table))
         count=c.execute(query,['%SYN-R051-UI-REIMBURSE-%']).fetchone()[0]
         if count:seventh[schema+'.'+table]=count
-    result=dict(database='loan_manager_dev',instance='mw-credit-pg-20261017',host='TO_FILL_AFTER_CREATE_HOST',version=version,checksum=PINS[version],read_only=True,
+    result=dict(database='loan_manager_dev',instance='mw-credit-pg-20261017',host='136.85.127.134',version=version,checksum=PINS[version],read_only=True,
         snapshot_at=str(c.execute('SELECT transaction_timestamp()').fetchone()[0]),
         all_table_fingerprints=baseline,fixture_fingerprints=common.fixture_fingerprints(c),
         default_fixture_expected=state==(False,1,False,100,10),

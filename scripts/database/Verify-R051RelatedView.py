@@ -10,7 +10,7 @@ root=Path(__file__).resolve().parents[2];out=root/'outputs/r051-related-list-vie
 prefix='' if args.batch=='v75' else 'v76-'
 path=out/(prefix+args.phase+'-contract.json');assert not path.exists()
 t=json.loads((root/'database/environments.json').read_text())['development']
-assert (t['instance'],t['host'],t['database'])==('mw-credit-pg-20261017','TO_FILL_AFTER_CREATE_HOST','loan_manager_dev')
+assert (t['instance'],t['host'],t['database'])==('mw-credit-pg-20261017','136.85.127.134','loan_manager_dev')
 with psycopg.connect(host=t['host'],port=t['port'],dbname=t['database'],user=t['user'],password=Path(t['passwordFile']).read_text().strip(),sslmode='require',connect_timeout=15) as c:
  c.execute('BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY')
  c.execute("SET LOCAL timezone='UTC'; SET LOCAL statement_timeout='30s'")

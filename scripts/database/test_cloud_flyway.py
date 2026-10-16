@@ -24,7 +24,7 @@ class CloudFlywayTests(unittest.TestCase):
         (self.repo/'database/toolchain.json').write_text(json.dumps({'flywayVersion':'13.6.0'}))
         flyway=self.repo/'tools/flyway-13.6.0/flyway';flyway.parent.mkdir(parents=True);flyway.write_text('')
         self.environ={'MW_DB_TOOL_ROOT':str(self.repo/'tools'),'PATH':'/bin','PGPASSWORD':'ambient-should-not-pass'}
-        targets={n:dict(instance='mw-credit-pg-20261017',host='TO_FILL_AFTER_CREATE_HOST',database=db,user='postgres') for n,db in [('development','loan_manager_dev'),('production','loan_manager_prod')]}
+        targets={n:dict(instance='mw-credit-pg-20261017',host='136.85.127.134',database=db,user='postgres') for n,db in [('development','loan_manager_dev'),('production','loan_manager_prod')]}
         (self.repo/'database/environments.json').write_text(json.dumps(targets))
         self.release=dict(commit='pinned',environment='development',validationReference='actual DEV checks',migrations=f.manifest(self.repo))
         self.git=patch.object(f,'git',side_effect=lambda repo,*args:'' if args[0]=='status' else 'pinned');self.git.start();self.addCleanup(self.git.stop)

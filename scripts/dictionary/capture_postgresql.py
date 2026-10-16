@@ -129,7 +129,7 @@ def content_hash(data):
 def capture(environment, destination):
     config = json.loads((REPO/'database/environments.json').read_text())[environment]
     expected_db = {'production':'loan_manager_prod','development':'loan_manager_dev'}[environment]
-    if (config['instance'],config['host'],config['database']) != ('mw-credit-pg-20261017','TO_FILL_AFTER_CREATE_HOST',expected_db):
+    if (config['instance'],config['host'],config['database']) != ('mw-credit-pg-20261017','136.85.127.134',expected_db):
         raise ValueError('Unrecognized environment tuple')
     password_path=Path(config['passwordFile']).resolve()
     if not password_path.is_relative_to(Path.home()/'Documents/ChatGPT'):

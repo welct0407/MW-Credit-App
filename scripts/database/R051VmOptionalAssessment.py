@@ -10,7 +10,7 @@ mode = sys.argv[1]
 assert mode in ('seed', 'verify', 'cleanup')
 root = Path(__file__).resolve().parents[2]
 target = json.loads((root / 'database/environments.json').read_text())['development']
-assert (target['instance'], target['host'], target['database']) == ('mw-credit-pg-20261017', 'TO_FILL_AFTER_CREATE_HOST', 'loan_manager_dev')
+assert (target['instance'], target['host'], target['database']) == ('mw-credit-pg-20261017', '136.85.127.134', 'loan_manager_dev')
 private = Path('C:/Users/ideaadmin/Documents/ChatGPT/AppSheet-Loan-Project/r051-receipt-corrections')
 borrower = json.loads((private / 'vm01-optional-borrower.json').read_text())
 assert borrower['Row ID'] == 'C6dHbB4yx2sneL4Xy9AO8x' and borrower['Borrower Name'] == 'SYNTHETIC R051 OPTIONAL ASSESSMENT'

@@ -10,7 +10,7 @@ import R051UiAdditionalFixtures as fixtures
 repo = Path(__file__).resolve().parents[2]
 target = json.loads((repo / 'database/environments.json').read_text())['development']
 assert (target['instance'], target['host'], target['database']) == (
-    'mw-credit-pg-20261017', 'TO_FILL_AFTER_CREATE_HOST', 'loan_manager_dev')
+    'mw-credit-pg-20261017', '136.85.127.134', 'loan_manager_dev')
 batch = sys.argv[1]
 assert batch in fixtures.BATCHES
 with psycopg.connect(host=target['host'], port=target['port'], dbname=target['database'], user=target['user'], password=Path(target['passwordFile']).read_text().strip(), sslmode='require', connect_timeout=15) as c:

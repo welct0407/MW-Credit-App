@@ -11,7 +11,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 root=Path(__file__).resolve().parents[2];out=root/'outputs/r046-receipt-evidence'
 t=json.loads((root/'database/environments.json').read_text())['development']
-assert (t['host'],t['database'])==('TO_FILL_AFTER_CREATE_HOST','loan_manager_dev')
+assert (t['host'],t['database'])==('136.85.127.134','loan_manager_dev')
 image=Image.new('RGB',(720,960),'#f4f7fa');draw=ImageDraw.Draw(image)
 font=ImageFont.truetype('C:/Windows/Fonts/arial.ttf',28)
 small=ImageFont.truetype('C:/Windows/Fonts/arial.ttf',22)

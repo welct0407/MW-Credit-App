@@ -9,7 +9,7 @@ $root = 'C:\Users\ideaadmin\Documents\ChatGPT\MW-Credit-App\candidate-policy\'
 $output = [IO.Path]::GetFullPath($OutputFile)
 if (-not $output.StartsWith($root,[StringComparison]::OrdinalIgnoreCase) -or (Test-Path -LiteralPath $output)) { throw 'Use a new private candidate-policy path' }
 $target = Get-DbEnvironment development
-if ($target.database -ne 'loan_manager_dev' -or $target.host -ne 'TO_FILL_AFTER_CREATE_HOST' -or $target.user -ne 'postgres') { throw 'Wrong DEV identity' }
+if ($target.database -ne 'loan_manager_dev' -or $target.host -ne '136.85.127.134' -or $target.user -ne 'postgres') { throw 'Wrong DEV identity' }
 $saved = @{}
 foreach ($name in @('PGPASSWORD','PGOPTIONS','PGSSLMODE','PGCONNECT_TIMEOUT','R053_POLICY_VERIFY')) { $saved[$name] = [Environment]::GetEnvironmentVariable($name,'Process') }
 $token = $null
