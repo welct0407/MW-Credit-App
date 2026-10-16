@@ -126,9 +126,11 @@ The PROD runtime (image `8611c23d…`) and Hosting (`2b6c25c065f1a45a`) followed
 - Export done and verified: run `424cf0f8-ea6e-4572-9b91-446e037e7990`, cutoff 2026-10-09T16:04:41Z, 682,595 operations, 1,475,344 events, 682,595 states, 226,012 job runs, under `gs://mw-credit-operator-private-737787224638/agent-audit-archive/2026-10/424cf0f8-ea6e-4572-9b91-446e037e7990/` (sha256 readback per object). A second, incomplete export (`9256be5d…`) stayed local and is not used.
 - Purge **paused, partial**. The first apply run deadlocked against agent writers after about 9.3k operations (all of them in the export) and rolled back its last batch; the lock order and a deadlock/lock-timeout retry were fixed (`fe7f731`). The rerun repeated the export, so `--resume-run` (`412b56b`) now deletes only rows found in an earlier verified export. Resuming ran about 10 s per 50-tree batch (HDD random reads, `pg_stat_statements`), and its `ALTER TABLE ... DISABLE TRIGGER` held SHARE ROW EXCLUSIVE locks that pushed agent inserts past their 3 s `lock_timeout`. That caused 32 lock timeouts and failed timer runs between about 00:26 and 00:35 Bangkok on 17 October. It was stopped; the agent recovered with no new errors after 00:36.
 - Fix: agent V5 now gates `audit.reject_rewrite()` itself. A DELETE passes only for `mw_agent_owner` with the transaction-local `mw_agent.retention_purge` flag; UPDATE and TRUNCATE are always refused. The purge (script owner path and `audit.purge_routine_trees`) sets the flag instead of disabling triggers, so it holds row locks only. Trees go oldest first. V5 adopts the script's `maint_*` foreign-key indexes by rename when they are valid. Tests cover the gate, an agent insert during an open purge batch, and the index adoption.
-- Owner decision pending: on HDD the remaining ~670k operations would take about 1 to 1.5 days of random I/O. The recommendation is to resume right after the SSD move from the same export (no re-export), then `VACUUM FULL`.
-- `VACUUM FULL` is postponed to the SSD move (owner). Image nulling has 0 eligible rows.
-- Pending: agent migration V5 on PROD `mw_agent` (role `mw_agent_retention` first, as `postgres`; then membership for the agent IAM user), the agent deploy and the resumed purge; the daily timer stays disabled until then. The create-only bucket binding `agent_audit_archive_create` is applied (15:58:47Z, targeted apply, 1 added).
+- Agent V5 applied to PROD `mw_agent` at 17:47Z (13 s, from `57cefef`, `lock_timeout` 5 s). Role `mw_agent_retention` was created first as `postgres` with the bootstrap statement. Both valid `maint_*` indexes were renamed, not rebuilt; the triggers stay enabled. The agent IAM user holds `mw_agent_retention` (INHERIT FALSE, SET TRUE).
+- Trial resume with the gate, at the owner's direction ("try purge now if the fix could make it faster; if still slow, stop it for SSD"), 17:47 to 17:58Z. Plan and archive check took 8.5 minutes. Deletes ran 2 minutes: 902 operations at about 6.5 per second, so the remaining ~670k would need about 29 hours on HDD. There were 0 agent lock timeouts, deadlocks or failed units. Stopped; the open batch rolled back, and no session or lock remains.
+- Paused for the SSD move: resume from the same export (`--resume-run …424cf0f8…`, no re-export), then `VACUUM FULL`.
+- Image nulling has 0 eligible rows.
+- Pending: the agent deploy, the resumed purge and enabling the daily timer. The create-only bucket binding `agent_audit_archive_create` is applied (15:58:47Z, targeted apply, 1 added).
 
 ### (c) Cloud SQL: done, changed from the plan
 
@@ -152,7 +154,7 @@ Patch 15:42:54 to 15:49:21Z: tier `db-g1-small`, IAM flag, `max_connections` 50,
 
 ## Remaining work
 
-- Agent V5 on PROD, the agent deploy, the resumed purge from export `424cf0f8…` (record its counts above), `VACUUM FULL`, then enable the daily timer.
+- After the SSD move: the resumed purge from export `424cf0f8…` (record its counts above), `VACUUM FULL`, the agent deploy, then enable the daily timer.
 - `scripts/backup-agent-database.py` hard-codes Windows binaries and a fixed dump name; add platform binaries and `--dump-name` before it is reused on Linux.
 - Contract migration for the `pwa_job_runs` lease columns (DB-LOCK-02).
 - Move the SQL bodies to `pwa_lock_key_v1` in the next migration that touches `pwa_submit_operation_v2` for a functional reason (needs journal-owner authority).
