@@ -32,6 +32,27 @@ def valid_email(value):
     return bool(re.fullmatch(r"[^\s@<>;,]+@[^\s@<>;,]+\.[^\s@<>;,]+", str(value or "")))
 
 
+def backup_credential(path):
+    """Copy the credential file to <name>.bak (same directory, mode 0600) before it is
+    rewritten in place, so a crash between truncate and write leaves a recoverable
+    previous token. The sibling path must be writable by the calling unit
+    (ReadWritePaths). Failure to back up is reported, never fatal: the rotated
+    token still has to be persisted."""
+    backup = path.with_name(path.name + ".bak")
+    try:
+        data = path.read_bytes()
+        fd = os.open(backup, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+        try:
+            os.fchmod(fd, 0o600)
+            os.write(fd, data)
+            os.fsync(fd)
+        finally:
+            os.close(fd)
+    except OSError as exc:
+        import sys
+        print(json.dumps({"event": "credential_backup_failed", "error": type(exc).__name__}), file=sys.stderr)
+
+
 class GraphEmail:
     SCOPES = "https://graph.microsoft.com/User.Read https://graph.microsoft.com/Mail.Send offline_access"
 
@@ -81,6 +102,7 @@ class GraphEmail:
             if result.get("refresh_token") and result["refresh_token"] != saved["refresh_token"]:
                 # This single mutable secret is owned by mwagent (0600). Keep refresh rotation durable.
                 saved["refresh_token"] = result["refresh_token"]
+                backup_credential(path)
                 with path.open("r+", encoding="utf-8") as stream:
                     stream.seek(0); json.dump(saved, stream); stream.truncate(); stream.flush(); os.fsync(stream.fileno())
             return token

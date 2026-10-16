@@ -3,14 +3,13 @@ import hashlib
 import html
 import json
 import sqlite3
-from .state import connect as state_connect, enabled as state_enabled, is_postgres
+from .state import connect as state_connect, is_postgres
 import time
-from pathlib import Path
 
 from .config import ConfigurationError
 from .graph_email import GraphEmail, EmailRejected, valid_email
-from .instagram import Instagram
-from .statement_delivery import eligible, resolve_recipient, check_window
+from .instagram import Instagram, InstagramAPIError
+from .statement_delivery import eligible, resolve_recipient
 
 
 def display_notice(item):
@@ -54,7 +53,7 @@ class NoticeJournal:
             old=self.db.execute('SELECT * FROM partner_notices WHERE id=?',(key,)).fetchone()
             # Completed or held deliveries are immutable history. A fresh master
             # snapshot must not reopen them or block unrelated queued notices.
-            if old and (old['ig_status'] in ('ACCEPTED','REVIEW') or
+            if old and (old['ig_status'] not in ('PENDING','WINDOW_EXPIRED') or
                         old['email_status'] in ('SENT','UNKNOWN','REVIEW')):
                 return key
             if old and (old['partner'],old['subject'],old['body'])!=(payload,subject,body):
@@ -65,20 +64,20 @@ class NoticeJournal:
 
     def due(self):
         return [dict(r) for r in self.db.execute("""SELECT * FROM partner_notices WHERE
-          ig_status NOT IN ('ACCEPTED','REVIEW') AND email_status IN ('PENDING','REJECTED')
+          ig_status IN ('PENDING','WINDOW_EXPIRED') AND email_status IN ('PENDING','REJECTED')
           AND attempts<3 AND retry_after<=? ORDER BY retry_after,id""",(time.time(),))]
 
     def defer(self,key):
         # Keep payload, attempts and uncertain outcomes intact after an unexpected
         # preparation failure; do not hot-loop one bad recipient ahead of the queue.
         with self.db:
-            self.db.execute("UPDATE partner_notices SET retry_after=? WHERE id=? AND email_status IN ('PENDING','REJECTED') AND ig_status NOT IN ('ACCEPTED','REVIEW')",
+            self.db.execute("UPDATE partner_notices SET retry_after=? WHERE id=? AND email_status IN ('PENDING','REJECTED') AND ig_status IN ('PENDING','WINDOW_EXPIRED')",
                             (time.time()+300,key))
 
-    def dispatch(self,item,config,rows,api=None,mailer=None,resolver=resolve_recipient,window=check_window):
+    def dispatch(self,item,config,rows,api=None,mailer=None,resolver=resolve_recipient):
         # Re-read state; callers cannot replay an old in-memory PENDING item.
         item=dict(self.db.execute('SELECT * FROM partner_notices WHERE id=?',(item['id'],)).fetchone())
-        if item['ig_status'] in ('ACCEPTED','REVIEW') or item['email_status'] in ('SENT','UNKNOWN','REVIEW'):
+        if item['ig_status'] not in ('PENDING','WINDOW_EXPIRED') or item['email_status'] in ('SENT','UNKNOWN','REVIEW'):
             return
         subject,body=display_notice(item)
         conversation = item['event_key'].startswith('conversation:')
@@ -106,11 +105,12 @@ class NoticeJournal:
                 if conversation and recipient != item['recipient_id']:
                     with self.db:self.db.execute("UPDATE partner_notices SET ig_status='REVIEW',detail='CONVERSATION_SENDER_CHANGED' WHERE id=?",(item['id'],))
                     return
-                window(Path(config['state_directory']),recipient, **({'config':config} if window is check_window else {}))
                 if len(body)>1000:
-                    raise ConfigurationError('COMPLETE_REPLY_REQUIRES_EMAIL')
-            except ConfigurationError:
-                with self.db:self.db.execute("UPDATE partner_notices SET ig_status='UNAVAILABLE',detail='IG_ROUTE_OR_WINDOW_UNAVAILABLE' WHERE id=?",(item['id'],))
+                    raise ConfigurationError('IG_MESSAGE_TOO_LONG')
+            except ConfigurationError as exc:
+                reason='IG_MESSAGE_TOO_LONG' if str(exc)=='IG_MESSAGE_TOO_LONG' else 'IG_PREFLIGHT_FAILED'
+                with self.db:self.db.execute("UPDATE partner_notices SET ig_status='REVIEW',detail=? WHERE id=?",(reason,item['id']))
+                return
             else:
                 with self.db:
                     claimed=self.db.execute("UPDATE partner_notices SET ig_status='UNKNOWN',recipient_id=? WHERE id=? AND ig_status='PENDING'",(recipient,item['id'])).rowcount
@@ -118,9 +118,14 @@ class NoticeJournal:
                 try:
                     response=api.request(config['instagram_account_id']+'/messages',body={'recipient':{'id':recipient},'message':{'text':body}})
                     if not response.get('message_id'):raise ConfigurationError('IG_OUTCOME_UNKNOWN')
-                except Exception:
-                    # Do not resend uncertain IG. Email fallback can explicitly duplicate a delivered IG notice.
-                    pass
+                except InstagramAPIError as exc:
+                    status='WINDOW_EXPIRED' if exc.window_expired else 'REJECTED' if exc.definite_rejection else 'UNKNOWN'
+                    with self.db:self.db.execute('UPDATE partner_notices SET ig_status=?,detail=? WHERE id=?',(status,exc.detail_code,item['id']))
+                    if status!='WINDOW_EXPIRED':return
+                except Exception as exc:
+                    # The durable UNKNOWN intent blocks both replay and fallback; keep the reason.
+                    with self.db:self.db.execute('UPDATE partner_notices SET detail=? WHERE id=?',('IG_UNKNOWN_'+type(exc).__name__,item['id']))
+                    return
                 else:
                     with self.db:self.db.execute("UPDATE partner_notices SET ig_status='ACCEPTED',message_id=? WHERE id=?",(str(response['message_id']),item['id']))
                     return
@@ -129,7 +134,7 @@ class NoticeJournal:
             return
         with self.db:
             claimed=self.db.execute("""UPDATE partner_notices SET email_status='UNKNOWN',attempts=attempts+1
-              WHERE id=? AND email_status IN ('PENDING','REJECTED') AND attempts<3 AND retry_after<=?""",(item['id'],time.time())).rowcount
+              WHERE id=? AND ig_status='WINDOW_EXPIRED' AND email_status IN ('PENDING','REJECTED') AND attempts<3 AND retry_after<=?""",(item['id'],time.time())).rowcount
         if not claimed:return
         try:
             fallback_body=body
@@ -140,8 +145,9 @@ class NoticeJournal:
                 '<p>'+html.escape(fallback_body).replace('\n','<br>')+'</p>',[],item['id'])
         except EmailRejected:
             with self.db:self.db.execute("UPDATE partner_notices SET email_status='REJECTED',retry_after=? WHERE id=?",(time.time()+300,item['id']))
-        except Exception:
-            pass
+        except Exception as exc:
+            # The claim already holds email_status='UNKNOWN'; record why so the owner can reconcile.
+            with self.db:self.db.execute('UPDATE partner_notices SET detail=? WHERE id=?',('EMAIL_UNKNOWN_'+type(exc).__name__,item['id']))
         else:
             with self.db:self.db.execute("UPDATE partner_notices SET email_status='SENT' WHERE id=?",(item['id'],))
 

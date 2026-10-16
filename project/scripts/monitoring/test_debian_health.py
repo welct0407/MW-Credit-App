@@ -40,6 +40,10 @@ class ReceiptSnapshotTests(unittest.TestCase):
     def setUp(self):
         self.values={k:0 for k in ('pending_images','validated_receipts','held_receipts','pending_reviews','approved_payments','completed_payments','oldest_pending_seconds','stalled_jobs','unnotified_holds','unconfirmed_postings','undelivered_reviews','overdue_reviews','failed_notifications')}
         self.values['status']=1
+    def test_extra_integer_fields_such_as_ingress_review_open_are_exported(self):
+        self.values['ingress_review_open']=4
+        snapshot=health.receipt_snapshot({'receipt_summary_enabled':True},Mock(return_value=1),Mock(return_value=self.values))
+        self.assertEqual((snapshot['status'],snapshot['ingress_review_open']),(1,4))
     def test_recent_queue_is_not_failure(self):
         self.values['pending_images']=2
         self.assertEqual(health.receipt_snapshot({'receipt_summary_enabled':True},Mock(return_value=1),Mock(return_value=self.values))['status'],1)

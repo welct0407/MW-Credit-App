@@ -14,6 +14,8 @@ from .webhook import extract_messages, verify_signature
 
 def handler(config_path: str):
     class Handler(BaseHTTPRequestHandler):
+        timeout = 15  # a slow or stuck client cannot hold a handler thread forever
+
         def log_message(self, *_args):
             return
 
@@ -65,10 +67,11 @@ def handler(config_path: str):
                 if not verify_signature(raw, self.headers.get("X-Hub-Signature-256"), load_secret(config, "meta_app_secret_file")):
                     self.respond(403, "Forbidden")
                     return
-                messages = extract_messages(json.loads(raw), config["instagram_account_id"])
+                stats: dict[str, int] = {}
+                messages = extract_messages(json.loads(raw), config["instagram_account_id"], stats=stats)
                 journal = IngressJournal(Path(config["state_directory"]) / "instagram-ingress.db", config=config)
                 try:
-                    journal.capture(hashlib.sha256(raw).hexdigest(), messages)
+                    journal.capture(hashlib.sha256(raw).hexdigest(), messages, stats=stats)
                 finally:
                     journal.close()
                 self.respond(200, "EVENT_RECEIVED")

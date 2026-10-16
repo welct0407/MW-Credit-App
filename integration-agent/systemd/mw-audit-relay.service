@@ -1,7 +1,7 @@
 [Unit]
 Description=M&W transaction audit outbox relay
 After=network-online.target cloud-sql-auth-proxy.service
-Requires=cloud-sql-auth-proxy.service
+Wants=cloud-sql-auth-proxy.service
 
 [Service]
 Type=oneshot
