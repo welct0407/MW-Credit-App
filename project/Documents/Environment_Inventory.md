@@ -1,13 +1,13 @@
 # Current environment inventory
 
-Updated 16 October 2026 from existing deployment evidence, the R063 Wave 3 live changes and the R063 PROD promotion (DEV first; PROD verified 18:15 Bangkok). This document lists current bindings and latest verified state; no unrelated live audit was performed.
+Updated 16 October 2026 from existing deployment evidence, the R063 Wave 3 live changes and the R063 PROD promotion (DEV first; PROD verified 18:15 Bangkok). R064 Wave 4: DEV is at V93 (verified 16 October 2026, 21:13 Bangkok); PROD is still V92. This document lists current bindings and latest verified state; no unrelated live audit was performed.
 
 | Component | DEV | PROD |
 | --- | --- | --- |
 | Origin | https://dev-lm.mw-credit.com | https://lm.mw-credit.com |
 | Firebase Hosting site | mw-credit-app-dev-737787224638 | mw-credit-prod-737787224638 |
 | Business database | loan_manager_dev | loan_manager_prod |
-| Flyway | V92; 93 migrations validated, role reconciliation clean and temporary authority restored | V92; 93 migrations validated, temporary authority restored |
+| Flyway | V93; 94 migrations validated (Flyway 13.6.0), post-migrate role reconciliation 0 violations, temporary owner authority restored exactly (ledger, notify, jobs and journal owners closed again). `mw_ledger_owner_dev` provisioned closed (NOLOGIN, no other members); `sync_cash_ledger` is a definer owned by it; `mw_app_dev` has SELECT only on "Cash Ledger"; `pg_stat_statements` 1.12 in schema `monitoring` | V92; 93 migrations validated, temporary authority restored. V93 is not authorized; `mw_ledger_owner_prod` is to be provisioned at promotion |
 | Cloud Run workers | mw-credit-app-notify-dev / mw-credit-app-jobs-dev | mw-credit-app-notify-prod / mw-credit-app-jobs-prod |
 | Worker time zone | Asia/Bangkok | Asia/Bangkok |
 
@@ -78,7 +78,11 @@ Pending owner items:
 | ALL-MON-03 Metabase and Railway checks | Owner-performed and pending: public sharing off, strong authentication, Railway backup scheduled |
 | ALL-COST-01 GCP budget | Owner creates one budget: monthly average plus 50 percent, alerts at 50/90/100 percent |
 | Grafana revamp (ALL-MON lines) | Deferred; every ALL-MON item becomes a line of that entry (see [Development changes](Development_Changes.md)) |
-| ALL-ARCH-04 database tier | No instance change; pending until W4 moves receipt images out of the agent database |
+| ALL-ARCH-04 database tier | No instance change. W4 found 0 stored receipt images in PROD `mw_agent` (1,742 MB, almost all `audit.*` and `runtime` heartbeat rows); the prepared maintenance below is the remaining work |
+| V93 DEV migration (R064 Wave 4) | Done 16 October 2026 (tooling accepts the Auth Proxy tunnel identity, owner-approved 17 October). Run book for any repeat (also PROD): `owner-authority-cli.mjs role`, `prepare` (four owners), `Invoke-Flyway.ps1 migrate`, `application-role-cli.mjs --action post-migrate`, `restore`, `validate`; private records under `~/.mw-private/AppSheet-Loan-Project/flyway` |
+| V93 PROD promotion | Not authorized. Provision `mw_ledger_owner_prod` (closed) at promotion; needs the verified backup, the same authority open and restore, and the DEV-validated manifest |
+| Cloud SQL flag change and restart (DB-PERF-03) | Prepared in `infrastructure/ecosystem-shared/owned.tf` (pg_cron flags removed, `max_connections` 50); plan only, not applied. Applying restarts the shared instance |
+| `mw_agent` maintenance (DB-PERF-01) | Prepared scripts (`agent-db-maintenance.py`, `vacuum-full-agent.sql`); not run on PROD. Owner decisions on audit retention and the agent heartbeat volume are open |
 | R063 signed-in proof | Owner's next normal sign-in on https://lm.mw-credit.com (no PROD test identity) |
 
 ## Retirement and remaining follow-ups

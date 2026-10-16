@@ -1,0 +1,19 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "schema"
+  "name": "monitoring"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "database/migrations/V93__review_wave4_hygiene.sql"
+  "coverage": "V93 migration source (R064 Wave 4); verified in DEV on 16 October 2026, not yet applied in PROD. Holds only\
+    \ the pg_stat_statements extension objects (DB-PERF-04); Cloud SQL preloads the library, so no flag change is needed."
+"content":
+  "definition":
+    "name": "monitoring"
+    "owner": "postgres"
+    "acl": null
+    "comment": null
+"evidence": {}

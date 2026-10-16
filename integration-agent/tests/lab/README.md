@@ -8,7 +8,7 @@ What it creates, in order:
 2. `state_migration.migrate()` on `mw_agent` (V1..Vn), then a second run that must apply nothing.
 3. `LOGIN` on `mw_agent_worker`, `mw_agent_relay`, `mw_agent_auditor` (trust auth, no passwords).
 4. Databases `loan_manager_prod` and `mw_dml_test_ci`.
-5. In `loan_manager_prod`: `scripts/database/Test-AppRolePrerequisites.sql` plus a `_dev`→`_prod` copy of it (V87/V88 expect the `_prod` roles), Flyway `migrate` with `database/flyway.conf`, `configure-reviewer-dml.configure()` (role `mw_reviewer_dml`, lab password), `business-grants.sql`.
+5. In `loan_manager_prod`: `scripts/database/Test-AppRolePrerequisites.sql` plus a `_dev`→`_prod` copy of it (V87/V88 expect the `_prod` roles), Flyway `migrate` with `database/flyway.conf`, `configure-reviewer-dml.configure()` (role `mw_reviewer_dml`, lab password), then the three `agent_audit` statements for that role inline (V93 section 3 granted relay/auditor during the Flyway chain, but `mw_reviewer_dml` is created after it; `business-grants.sql` no longer exists). The lab also needs `mw_ledger_owner_<env>` from `Test-AppRolePrerequisites.sql` before V93.
 6. `manifest.json` (`host`, `port`, `root`).
 
 Prerequisites: PostgreSQL 18 binaries (`PGBIN`, default `/usr/lib/postgresql/18/bin`), Flyway 13.6.0 on `PATH` (or `FLYWAY=`), a Python with the package's pinned dependencies (`PYTHON=`), and a non-root user (`initdb` refuses root).

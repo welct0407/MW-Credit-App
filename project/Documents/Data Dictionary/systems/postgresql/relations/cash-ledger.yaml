@@ -30,7 +30,7 @@
     "persistence": "p"
     "is_partition": false
     "options": null
-    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,mw_reviewer_dml=arwd/postgres,mw_app_prod=arwd/postgres}"
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,mw_app_prod=r/postgres,mw_ledger_owner_prod=arwd/postgres,mw_app_prod_journal_owner=awd/postgres}"
     "comment": null
     "view_definition": null
     "partition_key": null
@@ -306,7 +306,7 @@
       "compression": ""
       "default_expression": "(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok'::text)"
       "collation": null
-      "acl": null
+      "acl": "{mw_reviewer_dml=w/postgres}"
       "comment": null
     "Created By":
       "schema": "public"
@@ -893,6 +893,23 @@
       "options": null
       "access_method": "btree"
       "comment": null
+    "cash_ledger_payment":
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "cash_ledger_payment"
+      "definition": "CREATE INDEX cash_ledger_payment ON public.\"Cash Ledger\" USING btree (\"Ref Payment\")"
+      "unique": false
+      "primary": false
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 1
+      "total_attribute_count": 1
+      "predicate": null
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
     "cash_ledger_system_source":
       "schema": "public"
       "relation": "Cash Ledger"
@@ -1251,6 +1268,21 @@
   "dependencies": []
 "evidence":
   "/content/definition/acl":
-    "reference": "outputs/r052/dictionary-production-closure.json"
-    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
-    "observedAt": "2026-10-11T14:01:43.131793+00:00"
+    "reference": "Change Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md"
+    "reason": "DB-ACCESS-08: table ACL expected after V93 (source-derived for PROD; the DEV readback of 16 October 2026 matches\
+      \ the shape (owner mw_ledger_owner_dev, SECURITY DEFINER, mw_app_dev SELECT only, journal and ledger owners write)):\
+      \ app and reviewer lose INSERT/UPDATE/DELETE, ledger owner and journal owner hold the writes; reviewer keeps a lock-only\
+      \ UPDATE on Created At"
+    "state": "value"
+  "/content/indexes/cash_ledger_payment":
+    "reference": "Change Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md"
+    "reason": "DB-SCHEMA-03: foreign-key column index; V93 migration source (R064 Wave 4). Applied in DEV on 16 October 2026\
+      \ and the DEV readback matches; PROD is still V92, so these PROD-scope values are source-derived until the PROD migration"
+    "state": "value"
+  "/content/columns/Created At/acl":
+    "reference": "Change Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md"
+    "reason": "DB-ACCESS-08: table ACL expected after V93 (source-derived for PROD; the DEV readback of 16 October 2026 matches\
+      \ the shape (owner mw_ledger_owner_dev, SECURITY DEFINER, mw_app_dev SELECT only, journal and ledger owners write)):\
+      \ app and reviewer lose INSERT/UPDATE/DELETE, ledger owner and journal owner hold the writes; reviewer keeps a lock-only\
+      \ UPDATE on Created At"
+    "state": "value"

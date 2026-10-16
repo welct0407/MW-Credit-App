@@ -26,7 +26,7 @@ Biome 2.5.14 lints TS/JS (`npm run lint`, rules in `biome.json`, formatter off);
 
 ## Database CI on Linux
 
-`mw-db-ci [checkout] [-Group migrations|receiving|phase5|phase8]` runs all four groups as `postgres` (installed by `project/scripts/cloud-session-setup.sh`; the checkout defaults to the current Git checkout, then `$MW_CREDIT_APP_ROOT`). GitHub runs them on ubuntu-latest; a manual dispatch can choose windows-latest. `Test-AccessMatrix.sql` asserts the migration-owned grants, so grant drift fails CI.
+`mw-db-ci [checkout] [-Group migrations|receiving|phase5|phase8]` runs all four groups as `postgres` (installed by `project/scripts/cloud-session-setup.sh`; the checkout defaults to the current Git checkout, then `$MW_CREDIT_APP_ROOT`). GitHub runs them on ubuntu-latest; a manual dispatch can choose windows-latest. `Test-AccessMatrix.sql` asserts the migration-owned grants, so grant drift fails CI. The migrations group also runs `Test-TriggerOrder.sql` (trigger firing-order snapshot) and `Test-LedgerAccess.sql` (cash-ledger definer under the real roles), and checks that the committed `database/current/public-functions.sql` equals a fresh rebuild. When a migration changes a public function, regenerate that file with `MW_WRITE_PUBLIC_FUNCTIONS=1 pwsh -NoProfile -File scripts/database/Update-PublicFunctions.ps1` (it refuses a `pg_dump` major other than the toolchain's) and commit it with the migration. The `phase8` group adds `Run-R053OperatorIndependent.ps1 -LedgerOwner`, which migrates V93 as a non-superuser operator with the temporary owner authority.
 
 ## Error codes
 

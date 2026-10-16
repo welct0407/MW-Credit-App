@@ -941,6 +941,18 @@
       "deferrable": false
       "initially_deferred": false
       "comment": null
+    "a000_blank_refs":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "a000_blank_refs"
+      "definition": "CREATE TRIGGER a000_blank_refs BEFORE INSERT OR UPDATE ON \"Payments\" FOR EACH ROW EXECUTE FUNCTION\
+        \ appsheet_normalize_blank_refs('Ref Borrower', 'Ref Target Charge')"
+      "enabled": "O"
+      "internal": false
+      "routine": "appsheet_normalize_blank_refs()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
     "a000_business_history_begin":
       "schema": "public"
       "relation": "Payments"
@@ -1068,18 +1080,6 @@
       "enabled": "O"
       "internal": false
       "routine": "guard_cash_source_identity()"
-      "deferrable": false
-      "initially_deferred": false
-      "comment": null
-    "appsheet_blank_refs":
-      "schema": "public"
-      "relation": "Payments"
-      "name": "appsheet_blank_refs"
-      "definition": "CREATE TRIGGER appsheet_blank_refs BEFORE INSERT OR UPDATE ON \"Payments\" FOR EACH ROW EXECUTE FUNCTION\
-        \ appsheet_normalize_blank_refs('Ref Borrower', 'Ref Target Charge')"
-      "enabled": "O"
-      "internal": false
-      "routine": "appsheet_normalize_blank_refs()"
       "deferrable": false
       "initially_deferred": false
       "comment": null
@@ -1271,4 +1271,10 @@
   "/content/triggers":
     "reference": "outputs/r047-production/postgresql-affected-definitions.json"
     "reason": "R046/R047 promotion; saved production object readback"
+    "state": "value"
+  "/content/triggers/a000_blank_refs":
+    "reference": "Change Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md"
+    "reason": "DB-SCHEMA-02: renamed so the blank-reference normalizer fires first; V93 migration source (R064 Wave 4). Applied\
+      \ in DEV on 16 October 2026 and the DEV readback matches; PROD is still V92, so these PROD-scope values are source-derived\
+      \ until the PROD migration"
     "state": "value"

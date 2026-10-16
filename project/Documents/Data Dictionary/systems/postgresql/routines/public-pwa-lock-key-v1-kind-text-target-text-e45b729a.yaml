@@ -1,0 +1,41 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.pwa_lock_key_v1(kind text, target text)"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "database/migrations/V93__review_wave4_hygiene.sql"
+  "coverage": "V93 migration source (R064 Wave 4); verified in DEV on 16 October 2026, not yet applied in PROD"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "pwa_lock_key_v1"
+    "arguments": "kind text, target text"
+    "kind": "f"
+    "arguments_with_defaults": "kind text, target text"
+    "result": "bigint"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.pwa_lock_key_v1(kind text, target text)
+       RETURNS bigint
+       LANGUAGE sql
+       IMMUTABLE PARALLEL SAFE STRICT
+      AS $function$
+       SELECT pg_catalog.hashtextextended(kind OPERATOR(pg_catalog.||) ':' OPERATOR(pg_catalog.||) target, 0)
+      $function$
+    "owner": "postgres"
+    "language": "sql"
+    "volatility": "i"
+    "strict": true
+    "security_definer": false
+    "leakproof": false
+    "parallel": "s"
+    "cost": 100.0
+    "rows": 0.0
+    "settings": null
+    "acl": null
+    "comment": "Advisory lock key: hashtextextended(kind||':'||target,0). Shared by SQL and services/business/borrowers.mjs."
+    "extension": null
+"evidence": {}

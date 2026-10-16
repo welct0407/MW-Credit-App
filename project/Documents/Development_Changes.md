@@ -11,9 +11,25 @@ The sole Open product release is **R064**. **R063 is Released** (PROD verified 1
 | Apple push enrollment follow-up | R056 V91 deployed; Lisa retry/closure remains pending |
 | Owner license action | AppSheet technical retirement complete; license revocation unconfirmed |
 | Grafana revamp: alert coverage for PWA APIs, workers, Cloud SQL disk and backups; every ALL-MON item (including ALL-MON-03 checks) is a line of this entry | Pending future release (review ALL-MON-01); no alert rules applied in R063 |
+| R064 Wave 4 database (V93) | DEV migrated to V93 and verified (16 October 2026); PROD not authorized; `mw_ledger_owner_prod` to provision at promotion; [record](#r064-wave-4) |
+| `mw_agent` maintenance (DB-PERF-01) | Scripts prepared, not run on PROD; owner decisions on audit retention and heartbeat volume open; [record](#r064-wave-4) |
+| Cloud SQL flag change and restart (DB-PERF-03) | Prepared in Terraform, plan only; restarts the shared instance; needs an owner go and a backup |
+| Lease columns of `pwa_job_runs` (DB-LOCK-02) | Not dropped; a later contract migration |
+| SQL adoption of `pwa_lock_key_v1` (DB-LOCK-03) | Deferred to the next migration that touches `pwa_submit_operation_v2` (needs journal-owner authority); Node already uses it |
+| Agent migration V5 (indexes on `runtime.operation_state(last_event_id)` and `runtime.job_runs(operation_id)`) | Recommended, not written |
+| `backup-agent-database.py` on Linux | Hard-codes Windows binaries and a fixed dump name; needs a `--dump-name` and platform binaries before it is reusable |
 | Repository merge follow-ups (15 October 2026) | [Change note](../../Change%20Logs/CHANGE_NOTES_REPOSITORY_MERGE_2026-10-15.md) |
 
 Use the [release tracker](Release_Tracker.md), including the carried R016 administrative follow-up. Current runtime versions belong in [environment inventory](Environment_Inventory.md). Update this page for actual outstanding work, not completed-release history.
+
+## R064 Wave 4
+
+Two branches, details in each change note: [database](../../Change%20Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md) (`claude/review-w4-db`) and [PWA and API](../../Change%20Logs/CHANGE_NOTES_W4_APP_2026-10-16.md) (`claude/review-w4-app`). R064 stays Open; no tracker transition.
+
+- Database (V93, applied and verified in DEV on 16 October 2026, PROD not authorized): `sync_cash_ledger` becomes a definer function owned by `mw_ledger_owner_<env>`, direct "Cash Ledger" writes are revoked from `mw_app_<env>` and `mw_reviewer_dml` (DB-ACCESS-08); the journal owner keeps explicit ledger DML; the agent business grants move from `business-grants.sql` (deleted) into Flyway; `appsheet_blank_refs` is renamed `a000_blank_refs` with a firing-order snapshot test; four foreign-key indexes; `pwa_lock_key_v1`; `pg_stat_statements` in schema `monitoring`. Also a generated `database/current/public-functions.sql` with a CI drift check, a manifest-driven grouped-transaction guard, a fresh-chain agent migration test and `owner-authority-cli.mjs` for the temporary owner authority on Linux.
+- App: command lock and timeout failures before commit return `409 command_busy` and the PWA retries the same request automatically instead of showing "outcome unknown"; borrower lock keys come from `pwa_lock_key_v1`; the offline dataset poll is every 5 minutes (and on focus/online).
+- Prepared, not applied: Terraform flag change (pg_cron flags removed, `max_connections` 50; Cloud SQL has no preload flag and already preloads `pg_stat_statements`); `mw_agent` maintenance scripts. The read-only PROD readback refuted the receipt-image cause: no image rows; the growth is audit and heartbeat rows.
+- Reviewer DML no longer offers "Cash Ledger". The DB-ACCESS-08 pending line of Wave 3 is resolved by V93 in source; it is in effect in DEV and reaches PROD with the V93 promotion.
 
 ## R063 production promotion
 
@@ -74,7 +90,7 @@ Three branches, merged separately; details in each change note: [PWA and API](..
 - App branch (`claude/review-w3-app`): DEV reader and command run `business-server.mjs` with DEV configuration (ALL-ARCH-01); the foundation DEV API, `deploy-dev.yml`, `verify-dev.mjs` and the `start` script are removed (ALL-ARCH-05); APP items for security headers (CSP), offline retention, payment request budget and worker caller pinning. DEV deployed from the final app tree `fbd1260` (Hosting `955fa49b579be5f9`, image `d35ff75e`); PROD untouched.
 - Operations branch (`claude/review-w3-ops`): Linux database CI (`mw-db-ci`), dead tests removed and the grant-matrix test added, read identity `codex-cloud-read`, second PROD migration path through `Invoke-CloudFlyway.py`, `verify-ca` TLS, CI hardening, Biome and ruff (non-blocking), Terraform imports and cleanup policies, firewall and key hygiene, Azure hooks replaced by on-demand wrappers, restore-from-backup rehearsal. DEV database grants changed; PROD database untouched.
 - Agent branch (`claude/review-w3-agent`, pushed at `78de50e`): quality, test, state, send and webhook fixes. Deployed to the Debian host from `main` `20b6849` on 16 October 2026 16:45 Bangkok on owner instruction ("go for the agent deploy"): `/ready` 200 with that commit, cloudflared unit and journal access applied, config key `native_delete_enabled`. The first ALL-ARCH-03 IAM switch was rolled back because the relay health inspection did not `SET ROLE`. The fix (PR #35, `300aeb5`: every IAM connection through `state.open_connection()`/`assume_role()`, collector follows the auth keys) was deployed at 17:19 Bangkok, and IAM sign-in has been active since 17:20 with all health components 1. Password files and `NOLOGIN` wait for the prepared cleanup. Pins in the [inventory](Environment_Inventory.md).
-- Pending: W4 starts with DB-ACCESS-08 (owner, 16 October 2026): make `sync_cash_ledger()` `SECURITY DEFINER` so no caller needs DELETE on `"Cash Ledger"`, then revoke direct ledger writes and assert it in the grant-matrix test ([backlog](../../Change%20Logs/CHANGE_NOTES_REVIEW_OVERALL_2026-10-15.md#backlog)). ALL-ARCH-04 (no instance change until W4 moves receipt images out of the agent database). Grafana revamp entry above also holds the ALL-MON lines; ALL-MON-03 Metabase/Railway checks and the ALL-COST-01 GCP budget are owner-performed and pending ([inventory](Environment_Inventory.md)).
+- Pending: DB-ACCESS-08 is implemented in V93 and recorded in [R064 Wave 4](#r064-wave-4) (applied in DEV). ALL-ARCH-04: no instance change; W4 found no stored receipt images in `mw_agent`. Grafana revamp entry above also holds the ALL-MON lines; ALL-MON-03 Metabase/Railway checks and the ALL-COST-01 GCP budget are owner-performed and pending ([inventory](Environment_Inventory.md)).
 
 ## R063 read retry after settled commands
 

@@ -18,6 +18,11 @@
       "schema": "pg_catalog"
       "owner": "cloudsqladmin"
       "relocatable": false
+    - "name": "pg_stat_statements"
+      "version": "1.12"
+      "schema": "monitoring"
+      "owner": "postgres"
+      "relocatable": true
     "default_privileges":
     - "role": "mw_business_audit_owner"
       "schema": null
@@ -64,4 +69,9 @@
   "/content/sections":
     "reference": "outputs/r026-dictionary-fixes/database-settings-observations.json"
     "reason": "V40 verified catalog readback; exact remaining settings and DEV differences."
+    "state": "value"
+  "/content/sections/extensions":
+    "reference": "Change Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md"
+    "reason": "DB-PERF-04: V93 creates the extension in schema monitoring (DEV and CI use 1.12; owner is the migration runner);\
+      \ source-derived for PROD; extension 1.12 in schema monitoring confirmed in DEV on 16 October 2026"
     "state": "value"

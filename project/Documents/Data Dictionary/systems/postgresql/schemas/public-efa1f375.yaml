@@ -13,5 +13,12 @@
   "definition":
     "name": "public"
     "owner": "pg_database_owner"
-    "acl": "{pg_database_owner=UC/pg_database_owner,=U/pg_database_owner,cloudsqlsuperuser=UC/pg_database_owner,mw_integration_agent=U/pg_database_owner,mw_reviewer_dml=U/pg_database_owner,metabase_borrower_reader=U/pg_database_owner,mw_chart_reader=U/pg_database_owner,mw_receipt_projector=U/pg_database_owner,mw_app_prod_journal_owner=U/pg_database_owner,mw_app_prod=U/pg_database_owner,mw_notify_owner_prod=U/pg_database_owner,mw_jobs_owner_prod=U/pg_database_owner,mw_notify_api_prod=U/pg_database_owner,mw_notify_dispatch_prod=U/pg_database_owner,mw_jobs_prod=U/pg_database_owner}"
+    "acl": "{pg_database_owner=UC/pg_database_owner,=U/pg_database_owner,cloudsqlsuperuser=UC/pg_database_owner,mw_integration_agent=U/pg_database_owner,mw_reviewer_dml=U/pg_database_owner,metabase_borrower_reader=U/pg_database_owner,mw_chart_reader=U/pg_database_owner,mw_receipt_projector=U/pg_database_owner,mw_app_prod_journal_owner=U/pg_database_owner,mw_app_prod=U/pg_database_owner,mw_notify_owner_prod=U/pg_database_owner,mw_jobs_owner_prod=U/pg_database_owner,mw_notify_api_prod=U/pg_database_owner,mw_notify_dispatch_prod=U/pg_database_owner,mw_jobs_prod=U/pg_database_owner,mw_ledger_owner_prod=U/pg_database_owner}"
     "comment": "standard public schema"
+"evidence":
+  "/content/definition/acl":
+    "reference": "Change Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md"
+    "reason": "DB-ACCESS-08: V93 grants USAGE on schema public to the ledger owner; source-derived for PROD; the DEV readback\
+      \ of 16 October 2026 matches the shape (owner mw_ledger_owner_dev, SECURITY DEFINER, mw_app_dev SELECT only, journal\
+      \ and ledger owners write)"
+    "state": "value"
