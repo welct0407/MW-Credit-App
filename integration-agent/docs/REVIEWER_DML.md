@@ -20,7 +20,7 @@ No raw SQL, DDL, function calls, role changes, session settings or trigger disab
 
 The new `mw_reviewer_dml` role uses the existing Cloud SQL Auth Proxy at `127.0.0.1:5432`, database `loan_manager_prod`, project `clever-oasis-508610-n7`, instance `appsheet-pg-prod-20260914`. The `mw_integration_agent` reporting role remains read-only. Both default to read-only transactions; only the fixed DML transport starts READ WRITE.
 
-Operator-only `scripts/configure-reviewer-dml.py` verifies the production tuple, creates a separate NOSUPERUSER/NOCREATEDB/NOCREATEROLE/NOBYPASSRLS/NOINHERIT role and explicit current grants. It refuses an existing role rather than silently replacing credentials/grants. Secrets remain outside Git and are installed as root:mwagent 0640 at `/etc/mw-integration-agent/secrets/reviewer-dml-password.txt`. Role/grant setup is separate from Flyway; no business schema, triggers, AppSheet definitions or application rows are changed by provisioning.
+Operator-only `scripts/configure-reviewer-dml.py` verifies the instance identity for the chosen `--environment prod|dev` (default `prod`), creates a separate NOSUPERUSER/NOCREATEDB/NOCREATEROLE/NOBYPASSRLS/NOINHERIT role and explicit current grants. It refuses an existing role rather than silently replacing credentials/grants. Secrets remain outside Git and are installed as root:mwagent 0640 at `/etc/mw-integration-agent/secrets/reviewer-dml-password.txt`. Role/grant setup is separate from Flyway; no business schema, triggers, AppSheet definitions or application rows are changed by provisioning.
 
 Existing invoker-rights triggers need supporting privileges: INSERT/UPDATE on Payment Allocations; DELETE on Cash Ledger for trigger-controlled system-entry synchronization; one label-column UPDATE privilege on each of Cash Accounts/Cash Holders because PostgreSQL `FOR SHARE` requires an UPDATE privilege. Model tools cannot mutate these protected resources or delete these protected resources. Direct cash-history deletion is additionally rejected by the existing database trigger. Public database TEMP and public function grants are inherited PostgreSQL privileges, not model tool capabilities; no shared PUBLIC grants were changed. This is a host-enforced DML interface with a restricted service login, not a claim that every possible SQL statement under that login is DML-only.
 
@@ -28,11 +28,15 @@ Configuration:
 
 - `reviewer_dml_enabled`: independent kill switch, false by default.
 - `reviewer_dml_cutoff`: timezone-aware activation time; both signed event and capture timestamps must be newer.
-- `database_dml_user`: exactly `mw_reviewer_dml`.
+- `database_dml_user`: `mw_reviewer_dml` for `database_name=loan_manager_prod`, or `mw_reviewer_dml_dev` for `loan_manager_dev` (the pair and `receipt_environment` must match; the checks refuse any other combination).
 - `database_dml_password_file`: protected secret path.
 - Catalogue `reviewer_database_dml`: enabled and implemented before activation.
 
 Stop the conversation timer and let a running turn finish before installation/activation. Use the reviewed updater to back up package/config/schema and integrity-check all SQLite journals. Verify connection identity, grants, reviewer/non-reviewer checks and schema discovery without printing business records. Enable only after checks; preserve existing conversation/receipt cutoffs and journals. No outbound test messages or production financial fixtures are required.
+
+DEV target (R063 W3, ALL-ARCH-02): reviewer DML is an approved second write path for PROD. Code and `configure-reviewer-dml.py --environment dev` support a DEV pair (`loan_manager_dev` / `mw_reviewer_dml_dev`), but the DEV role has not been created and the target is unusable: business migration V33 accepts only `session_user = 'mw_reviewer_dml'`, so a differently named role cannot start an audited operation. A W4 migration must relax that check (also V49/V50 for `mw_receipt_projector`) before DEV use.
+
+DELETE: the DEV DELETE grants were revoked on 16 October 2026 (DB-ACCESS-01). The PROD revoke is prepared and waits for a separate owner go; retiring `reviewer_delete_enabled` for PROD is an open owner decision (see the W3 agent change note).
 
 ## Audit, uncertainty and recovery
 
@@ -40,7 +44,7 @@ Production state moves to `mw_agent.runtime`; the original six SQLite journals a
 
 Rollback capability: disable `reviewer_dml_enabled`, stop the conversation worker before restoring a compatible package/configuration, retain all journals and accepted changes. Revoke the DML role's LOGIN/connection capability if disabling the connection is necessary. Keep reviewer checks on API writes unless the owner changes that policy. Do not restore a historical database over subsequent accepted financial events; a financial reversal is a separate operation.
 
-Verification runners: `scripts/test-reviewer-dml.ps1` uses a disposable local PostgreSQL database for atomicity, stale values, role revocation, audit, injection, duplicate reservation and unknown-commit recovery. `scripts/verify-reviewer-dml-restored.ps1` privately backs up production, restores public/assessment_lab to a loopback-only lab and rehearses supporting role grants and existing payment guards using rolled-back synthetic fixtures. Neither creates production financial test rows. The transaction implementation follows [Psycopg transaction control](https://www.psycopg.org/psycopg3/docs/basic/transactions.html); PostgreSQL documents the [locking privilege requirement](https://www.postgresql.org/docs/18/sql-select.html).
+Verification: `tests/test_conversation_dml.py` and `tests/test_postgres_dml_audit.py` run against the disposable PostgreSQL lab (`tests/lab/README.md`; they skip without it) for atomicity, stale values, role privileges, audit and unknown-commit recovery. The two PowerShell runners and `verify-dml-restored.py` are retired. No test creates production financial rows. The transaction implementation follows [Psycopg transaction control](https://www.psycopg.org/psycopg3/docs/basic/transactions.html); PostgreSQL documents the [locking privilege requirement](https://www.postgresql.org/docs/18/sql-select.html).
 
 
 The installed App Server 0.155.1 protocol persists dynamic tools at thread creation and does not expose `dynamicTools` on `thread/resume`. Existing sessions therefore use typed `app="database"` aliases through their already-persisted discovery/read/write tools; the new instructions describe the exact shapes. All aliases invoke the same reviewer/DML validators and journal. This preserves thread IDs and full history without rewriting Codex session files. `scripts/verify-reviewer-conversation.py` checks a real two-process Codex resume with synthetic metadata and a simulated database transaction. [Official App Server documentation](https://learn.chatgpt.com/docs/app-server) describes tool persistence; the installed generated protocol is the version-specific contract.

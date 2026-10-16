@@ -58,6 +58,10 @@ VM Manager OS inventory uses the active Google OS Config agent. Project feature 
 
 Normal administration uses ordinary public-key OpenSSH over Tailscale at `100.71.171.91`. From a Claude Code cloud session (no Tailscale), use `mw-debian-ssh` from `project/scripts/cloud-session-setup.sh`: OpenSSH through an IAP tunnel as instance-level user `codex-cloud` (key in Secret Manager `mw-credit-cloud-operator-ssh-key`, pinned host key), for example `mw-debian-ssh 'cd /opt/mw-integration-agent-src && sudo integration-agent/scripts/update-from-github.sh'`. `tailscaled` is enabled, but Tailscale SSH, subnet routing, exit-node advertising and Tailscale DNS acceptance are off. The worldwide `default-allow-ssh` and `default-allow-rdp` VPC rules are disabled. Recovery SSH uses `allow-ssh-iap-mw-integration-agent`, which permits TCP 22 only from `35.235.240.0/20` and targets the VM's dedicated service account. Keep `sshd` active for both Tailscale and IAP. The existing tailnet retains its owner-managed general access policy; public-key authentication remains an independent SSH authorization boundary.
 
+Two units are not installed by the deploy helper (`UNIT_FILES` covers the receiver and the six workers): `mw-cloudflared-instagram.service` and the Cloud SQL Auth Proxy drop-in `systemd/cloud-sql-auth-proxy.service.d/iam-listener.conf`. Install either by hand in a maintenance window with `systemd-analyze verify`; the prepared steps are in the [W3 agent change note](../Change%20Logs/CHANGE_NOTES_W3_AGENT_2026-10-16.md).
+
+Prepared, not applied (R063 W3, waiting for the next agent deploy go): (1) the cloudflared unit drops a duplicate `ProtectHome=true` and adds `RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_NETLINK` (AGT-HOST-03); (2) a second proxy listener on `127.0.0.1:5433` with `--auto-iam-authn` for one IAM database user plus `SET ROLE`, so the worker, relay and reporting roles no longer need password files (ALL-ARCH-03; keys in [PostgreSQL operations](POSTGRESQL_OPERATIONS.md#database-authentication-all-arch-03-prepared)). The reviewer-DML and receipt-projector password files and port 5432 stay until W4. The webhook ingress path restriction (AGT-WEBHOOK-03) is an open owner decision because the public `/health` uptime check depends on that path.
+
 Do not store credentials in the repository, VM metadata, startup scripts, or systemd unit text.
 
 Instagram secrets belong in `/etc/mw-integration-agent/secrets` with root ownership, group `mwagent`, directory mode `0750`, and file mode `0640`. The live config references those files and must not contain secret values.
@@ -99,9 +103,23 @@ The production proxy endpoint is `127.0.0.1:5432`. The VM identity is conditiona
 
 Compute Engine snapshot schedules cover disk blocks, not the complete VM definition or external platform configuration. Git is the recovery source for code and documentation. Maintain a separate, verified recovery method for credentials and journals before any activation. Never restore an older journal over accepted sends or data writes.
 
+## Restore-to-new-VM rehearsal
+
+Purpose (ALL-INFRA-04): prove the VM can be rebuilt from the daily disk snapshot. The VM has `deletion_protection = true`.
+
+Procedure (rehearsed 16 October 2026, 257 s end to end):
+
+1. Take the latest snapshot of the boot disk (`default-schedule-1` daily policy; rehearsal used `…20261016070420-a54tkmxk`).
+2. Isolate before booting: the project has no Cloud NAT or router and Private Google Access is off; add two temporary deny-all firewall rules (ingress and egress) for a rehearsal network tag (27 s).
+3. Create a disk from the snapshot (24 s) and a VM from it with that tag, no external IP and `--no-service-account --no-scopes` (15 s).
+4. Read `gcloud compute instances get-serial-port-output`: login prompt about 27 s after create; kernel 6.12.111+deb13-cloud-amd64, Debian 13, clean filesystem check, all `mw-*` timers started; the Cloud SQL proxy and tailscaled failed to connect, as intended.
+5. Delete the VM, the disk and both temporary rules, and read back that they are gone (116 s).
+
+Result: passed. The restored disk carries the production Tailscale and cloudflared identities and the timers start on boot, so a real restore must keep the copy isolated until the original VM is stopped. The guest agent creates new SSH host keys on first boot, so the pinned host key changes after a restore.
+
 ## Journal output and retention
 
-Timer-driven services print aggregate output only: counts, states and hashed partner keys, never message text. Message content reaches the journal only through the manual commands `messages --include-text` and `instagram-probe` (which prints the account username); do not run them casually, because journald retains whatever they print. Journald retention on the host has not been verified by the review identity (the journal is readable only by `adm`/`systemd-journal` members). Whoever has that access should record here the effective `SystemMaxUse`/`MaxRetentionSec` from `/etc/systemd/journald.conf` (and `journald.conf.d/`) together with `journalctl --disk-usage`; until then assume the Debian default (10% of the filesystem, capped at 4 GiB, no time limit).
+Timer-driven services print aggregate output only: counts, states and hashed partner keys, never message text. Message content reaches the journal only through the manual commands `messages --include-text` and `instagram-probe` (which prints the account username); do not run them casually, because journald retains whatever they print. Journald retention on the host has not been verified by the review identity (the journal is readable only by `adm`/`systemd-journal` members). Log access route (AGT-HOST-01, prepared): `sudo usermod -aG systemd-journal codex-cloud` adds the cloud operator to the group; it takes effect in a new SSH session, and `mw-debian-ssh 'journalctl -u mw-instagram-webhook.service -n 1'` is the readback. `codex-cloud` is a metadata-managed user, so re-check `id codex-cloud` after a guest-agent restart or reboot. Rollback: `sudo gpasswd -d codex-cloud systemd-journal`. Whoever has that access should record here the effective `SystemMaxUse`/`MaxRetentionSec` from `/etc/systemd/journald.conf` (and `journald.conf.d/`) together with `journalctl --disk-usage`; until then assume the Debian default (10% of the filesystem, capped at 4 GiB, no time limit).
 
 ## Scheduled cash statement
 
