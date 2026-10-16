@@ -4,7 +4,7 @@ import {useMenuDrawer} from './menu-drawer';
 import {startOfflinePreparation,subscribeOfflinePreparation,getOfflinePreparation} from './offline-dataset';
 import {subscribeOfflineDataset,readCachedJson,subscribeCachedReadFailure,hasCachedReadFailure,hasReadRefreshFailure,clearCachedReadFailures} from './read-cache';
 import {useWorkspaceGestures} from './workspace-gestures';
-import {WaitingToSyncButton,usePendingCount} from './WaitingToSyncButton';
+import {WaitingToSyncButton,usePendingSnapshot} from './WaitingToSyncButton';
 import {SyncStatus,SyncedToast} from './SyncStatus';
 import {startSavedRequestSync,syncSavedRequests} from './offline-sync';
 import {signOutGuard} from './sign-out-guard';
@@ -122,7 +122,7 @@ function App() {
   useEffect(()=>{if(offlinePreparation.lastChecked!==null&&offlinePreparation.state==='ready'&&!offlinePreparation.updateFailed&&!offlinePreparation.updating)clearCachedReadFailures(offlineRepository?.scopeName)},[offlineRepository?.scopeName,offlinePreparation.lastChecked]);
   const offlineRepositoryRef=useRef(offlineRepository);offlineRepositoryRef.current=offlineRepository;
   const purgeKeepPending=(repository=offlineRepositoryRef.current)=>{if(!repository)return;purgeTask.current=repository.purge({keepPending:true}).catch(()=>{})};
-  const pendingCount=usePendingCount(offlineRepository),signOutControl=signOutGuard(pendingCount,thai);
+  const pendingSnapshot=usePendingSnapshot(offlineRepository),pendingCount=pendingSnapshot.count,pendingVisible=pendingSnapshot.visible,signOutControl=signOutGuard(pendingCount,thai,pendingVisible);
   const [syncingNow,setSyncingNow]=useState(false),[syncFeedback,setSyncFeedback]=useState('');
   const openSavedChanges=()=>menuDrawer.close(()=>setSavedPayments(true));
   const [fullLoan,setFullLoan]=useState<string|null>(null);
@@ -411,10 +411,10 @@ function App() {
       {(pwa.waiting || pwa.reloadAvailable) && <button className="secondary-button" disabled={pwa.startup!=='ready'||pwa.activating||!pwa.safe} aria-label={pwa.reloadAvailable ? t('Reload app', 'โหลดแอปใหม่') : t('Update and reload', 'อัปเดตและโหลดใหม่')} title={pwa.reloadAvailable ? t('Reload app', 'โหลดแอปใหม่') : t('Update and reload', 'อัปเดตและโหลดใหม่')} onClick={pwa.update}>{compact ? <Icon name="app-update"/> : pwa.reloadAvailable ? t('Reload app', 'โหลดแอปใหม่') : t('Update and reload', 'อัปเดตและโหลดใหม่')}</button>}
       {pwa.unavailable && <p role="status">{t('Install or update is currently unavailable. You can keep using the online app.', 'ยังไม่สามารถติดตั้งหรืออัปเดตได้ คุณยังใช้แอปออนไลน์ต่อได้')}</p>}
     </div>}
-    {user && pendingCount>0 && commandAccess && <button className="secondary-button live-account-sync-now" disabled={syncingNow} aria-label={t('Sync saved changes','ซิงค์รายการที่บันทึก')} title={t('Sync saved changes','ซิงค์รายการที่บันทึก')} onClick={()=>void syncNow()}>{compact ? <Icon name="sync"/> : t('Sync saved changes','ซิงค์รายการที่บันทึก')}</button>}
-    {user && pendingCount>0 && syncFeedback && <p role="status">{syncFeedback}</p>}
+    {user && pendingVisible>0 && commandAccess && <button className="secondary-button live-account-sync-now" disabled={syncingNow} aria-label={t('Sync saved changes','ซิงค์รายการที่บันทึก')} title={t('Sync saved changes','ซิงค์รายการที่บันทึก')} onClick={()=>void syncNow()}>{compact ? <Icon name="sync"/> : t('Sync saved changes','ซิงค์รายการที่บันทึก')}</button>}
+    {user && pendingVisible>0 && syncFeedback && <p role="status">{syncFeedback}</p>}
     {user && <button className="secondary-button live-account-signout" disabled={signOutControl.disabled} aria-disabled={signOutControl.disabled} aria-label={signOutControl.label} title={signOutControl.label} onClick={logout}>{compact ? <Icon name="signout"/> : signOutControl.label}</button>}
-    {user && signOutControl.disabled && <button className="secondary-button live-account-review-saved" aria-label={t('Review saved changes','ตรวจรายการที่บันทึก')} title={t('Review saved changes','ตรวจรายการที่บันทึก')} onClick={openSavedChanges}>{compact ? <Icon name="waiting"/> : t('Review saved changes','ตรวจรายการที่บันทึก')}</button>}
+    {user && pendingVisible>0 && <button className="secondary-button live-account-review-saved" aria-label={t('Review saved changes','ตรวจรายการที่บันทึก')} title={t('Review saved changes','ตรวจรายการที่บันทึก')} onClick={openSavedChanges}>{compact ? <Icon name="waiting"/> : t('Review saved changes','ตรวจรายการที่บันทึก')}</button>}
   </div>;
   const commandAccess:CommandAccess|undefined=user && commandOriginAllowed(import.meta.env.VITE_COMMAND_API_ORIGIN||'') && (businessWorkspace||import.meta.env.VITE_COMMAND_FIXTURE_BORROWER_ID) ? {origin:import.meta.env.VITE_COMMAND_API_ORIGIN,fixtureBorrowerId:import.meta.env.VITE_COMMAND_FIXTURE_BORROWER_ID??'',ownerTesting:businessWorkspace,offline:offlineRepository??undefined,...(liveOfflineEnabled?{prepareSync:prepareQueuedSync}:{}),onPosted:id=>{clear();setView('collection');setCollectionRefresh(value=>value+1);setPostedNotice(id)},token:async()=>{if(pwa.startup!=='ready'||offlineBlocked.current||currentUser.current!==user)throw Error('Session unavailable');return user.getIdToken()},authFailure:code=>{if(code===401)void expireSession();else {purgeKeepPending();clear();setStatus('denied')}}} : undefined;
   const preparationAccess=useRef(commandAccess);preparationAccess.current=commandAccess;
