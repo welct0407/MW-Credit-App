@@ -238,7 +238,8 @@ class EngineHelperTests(unittest.TestCase):
                     for rc, expected in ((0, 'ancestor'), (1, 'not-ancestor'), (128, 'unknown-object')):
                         host.ancestry_rc = rc
                         self.assertEqual(deploy.ancestry(OLD), expected)
-                    self.assertEqual(host.git.call_args.args[0], ['git', '-C', str(host.checkout), 'merge-base', '--is-ancestor', OLD, 'HEAD'])
+                    self.assertEqual(host.git.call_args.args[0], deploy.git('merge-base', '--is-ancestor', OLD, 'HEAD'))
+                    self.assertEqual(host.git.call_args.args[0][-6:], ['-C', str(host.checkout), 'merge-base', '--is-ancestor', OLD, 'HEAD'])
                     self.assertEqual([deploy.ancestry(v) for v in (None, '', 'HEAD')], ['unknown'] * 3)
             finally:
                 host.close()
@@ -464,7 +465,8 @@ class DryRunTests(unittest.TestCase):
             self.assertEqual(self.snapshot(), before)
         side_effects.assert_not_called()
         for args in calls:
-            allowed = ((args[0] == 'git' and args[3] in self.READ_ONLY_GIT) or args[:2] == ['systemctl', 'show']
+            # The git subcommand follows '-C <checkout>'; a non-root run also adds '-c safe.directory=…' first.
+            allowed = ((args[0] == 'git' and args[args.index('-C') + 2] in self.READ_ONLY_GIT) or args[:2] == ['systemctl', 'show']
                        or args[:2] == [deploy.PYTHON, '-c'])
             self.assertTrue(allowed, args)
         return json.loads(out.getvalue())
