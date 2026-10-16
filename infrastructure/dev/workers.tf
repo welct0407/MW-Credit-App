@@ -18,7 +18,7 @@ variable "workers" {
   default = {}
 }
 module "workers" {
-  source                           = "../modules/dev-workers"
+  source                           = "../modules/workers"
   enabled                          = var.workers.enabled
   image                            = var.workers.image
   vapid_version                    = var.workers.vapid_version
@@ -34,19 +34,5 @@ module "workers" {
   depends_on                       = [google_project_service.required, google_project_iam_custom_role.read_auth_user, google_secret_manager_secret.vapid]
 }
 output "worker_identities" { value = module.workers.identities }
-
-# Command enrollment reads the owner policy, never the VAPID private key.
-resource "google_secret_manager_secret_iam_member" "command_notification_policy" {
-  count     = var.workers.command_notification_enabled ? 1 : 0
-  project   = local.project
-  secret_id = "mw-credit-app-dev-notification-policy"
-  role      = "roles/secretmanager.secretAccessor"
-  member    = "serviceAccount:${google_service_account.command_runtime[0].email}"
-  lifecycle {
-    precondition {
-      condition     = var.workers.enabled && var.command_infrastructure_enabled && var.workers.policy_version != null && var.workers.web_push_public_key != null
-      error_message = "Owner enrollment requires reviewed policy version/public key and separate command identity."
-    }
-  }
-  depends_on = [module.workers]
-}
+# ALL-ARCH-01: the business runtime resolves notification actors from the DEV capability
+# policy, so the command identity no longer reads the worker notification policy.

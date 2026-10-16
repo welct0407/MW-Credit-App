@@ -3,7 +3,7 @@ import {spawnSync} from 'node:child_process';
 import {mkdtempSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-import {startCanonicalFixture} from './fixtures/canonical-server';
+import {startCanonicalFixture,fixtureLaunchArgs,assertServed} from './fixtures/canonical-server';
 
 test('actual Firebase SDK restored owner can open saved payment draft after offline boot',async({},info)=>{
  test.skip(info.project.name.startsWith('mobile'),'Actual SDK and worker integration runs once');
@@ -18,7 +18,7 @@ test('actual Firebase SDK restored owner can open saved payment draft after offl
  const draft={ok:true,mode:'dev-owner-testing',businessDate:'2026-10-08',asOf:'2026-10-08T05:00:00Z',borrower:{id:borrower.id,displayName:borrower.borrowerDisplayName},charges:[{id:'synthetic-charge',chargeDate:'2026-10-07',loanDisplayKey:'Synthetic loan',amountRemaining:'110',principalRemaining:'100',interestRemaining:'10'}],accounts:[{id:'synthetic-account',label:'Synthetic account'}],nextCursor:null};
  let posts=0;
  const launch=async(offline=false)=>{
-  context=await chromium.launchPersistentContext(profile,{headless:true,offline,args:['--ignore-certificate-errors',`--host-resolver-rules=MAP dev-lm.mw-credit.com 127.0.0.1:${fixture.port}`,'--no-proxy-server']});
+  context=await chromium.launchPersistentContext(profile,{headless:true,offline,args:fixtureLaunchArgs(fixture.port)});
   context.setDefaultTimeout(5000);
   await context.route('**/*',async(route:any)=>{
    const url=new URL(route.request().url());
@@ -36,7 +36,7 @@ test('actual Firebase SDK restored owner can open saved payment draft after offl
   });return context.newPage();
  };
  try{
-  let page=await launch();await page.goto('https://dev-lm.mw-credit.com');await expect.poll(()=>page.evaluate(()=>!!navigator.serviceWorker.controller)).toBe(true);
+  let page=await launch();await page.goto('https://dev-lm.mw-credit.com');assertServed(fixture);await expect.poll(()=>page.evaluate(()=>!!navigator.serviceWorker.controller)).toBe(true);
   await page.evaluate(async()=>{const sdk=(window as any).__syntheticSdk;await sdk.fixtureSignIn(sdk.fixtureGetAuth(),'synthetic-custom-token')});
   await page.getByRole('button',{name:'Collection',exact:true}).click();await expect(page.locator('.collection-compact-tile')).toContainText('SYNTHETIC OFFLINE SDK');await page.locator('.collection-tile-main').click();await page.getByRole('button',{name:'Receive selected charges',exact:true}).click();
   await page.getByRole('combobox',{name:/^Receiving account(?: \*)?$/}).selectOption('synthetic-account');await page.getByRole('textbox',{name:/^Amount received(?: \*)?$/}).fill('110');await page.locator('.payment-allocation-row input[type=checkbox]').check();await page.getByRole('textbox',{name:'Notes',exact:true}).fill('offline ไทย\nexact notes');await expect.poll(()=>page.evaluate(async()=>{const names=await indexedDB.databases();for(const item of names){if(!item.name?.startsWith('mw-credit'))continue;const db=await new Promise<IDBDatabase>((resolve,reject)=>{const r=indexedDB.open(item.name!);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});if(!db.objectStoreNames.length){db.close();continue}const rows=await new Promise<any[]>((resolve,reject)=>{const r=db.transaction(db.objectStoreNames[0]).objectStore(db.objectStoreNames[0]).getAll();r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});db.close();if(rows.some(row=>row.value?.notes==='offline ไทย\nexact notes'))return true}return false})).toBe(true);

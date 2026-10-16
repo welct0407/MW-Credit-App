@@ -16,3 +16,15 @@ export async function startCanonicalFixture(buildRoot='dist-live-dev'){
  const server=createServer(credentials,async(req,res)=>{const u=new URL(req.url!,'https://dev-lm.mw-credit.com');res.on('finish',()=>requests.push({path:u.pathname,status:res.statusCode}));if(held.has(u.pathname))await new Promise<void>(done=>held.get(u.pathname)!.add(done));if(failures.has(u.pathname)){res.writeHead(failures.get(u.pathname)!);res.end();return}const path=resolve(root,'.'+(u.pathname==='/'?'/index.html':u.pathname));if(!path.startsWith(root+sep)){res.writeHead(404);res.end();return}try{let data=readFileSync(path);if(version&&u.pathname==='/sw.js')data=Buffer.from(data.toString().replace(/const VERSION = '[^']+'/,`const VERSION = '${version}'`));if(version&&u.pathname==='/build-version.json')data=Buffer.from(JSON.stringify({...JSON.parse(data.toString()),version}));res.writeHead(200,{'Cache-Control':'no-store','Content-Type':path.endsWith('.js')?'text/javascript':path.endsWith('.css')?'text/css':path.endsWith('.png')?'image/png':path.endsWith('.json')?'application/json':path.endsWith('.webmanifest')?'application/manifest+json':'text/html'});res.end(data)}catch{res.writeHead(404);res.end()}});
  await new Promise<void>(done=>server.listen(0,'127.0.0.1',done));const address=server.address();if(!address||typeof address==='string')throw Error('missing test port');return {requests,port:address.port,setVersion:(v:string)=>{version=createHash('sha256').update('fixture_'+v).digest('hex').slice(0,24)},setBuildRoot:(next:string)=>{root=resolve(next);version=null},hold:(path:string)=>held.set(path,new Set()),heldCount:(path:string)=>held.get(path)?.size??0,release,fail:(path:string,status:number|null)=>status===null?failures.delete(path):failures.set(path,status),close:()=>{for(const path of held.keys())release(path);return new Promise<void>((done,reject)=>server.close(e=>e?reject(e):done()))}};
 }
+/**
+ * APP-TEST-01: Chromium launch arguments that send the canonical hosts to this fixture.
+ * `--no-proxy-server` is not enough where the container injects a proxy (Chromium tunnels the mapped host through it and
+ * fails with ERR_TUNNEL_CONNECTION_FAILED); an explicit direct proxy wins over the inherited one.
+ */
+export function fixtureLaunchArgs(port:number,extraHosts:string[]=[],host='dev-lm.mw-credit.com'){
+ return ['--ignore-certificate-errors','--host-resolver-rules='+[host,...extraHosts].map(name=>`MAP ${name} 127.0.0.1:${port}`).join(','),'--proxy-server=direct://'];
+}
+/** Call after the first navigation: fails clearly when the browser reached something other than the fixture. */
+export function assertServed(fixture:{requests:unknown[]},host='dev-lm.mw-credit.com'){
+ if(fixture.requests.length===0)throw Error(`canonical fixture served nothing: this environment routes ${host} elsewhere`);
+}

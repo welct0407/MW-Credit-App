@@ -1,3 +1,4 @@
+import { BUSINESS_TZ } from '../lib/business-date.mjs';
 import { collectionCte, collectionQualitySql } from './collection-read-contract.mjs';
 import { borrowerDisplayName, validLoanId } from './loan-read-contract.mjs';
 export const validUpcomingDate = value => typeof value === 'string' && value >= '0001-01-01' && /^\d{4}-\d{2}-\d{2}$/.test(value) && Number.isFinite(Date.parse(value + 'T00:00:00Z')) && new Date(value + 'T00:00:00Z').toISOString().slice(0, 10) === value;
@@ -62,7 +63,7 @@ export async function readUpcoming(client, { borrowerId, businessDate: requested
   const clock = await client.query(`SELECT CURRENT_TIMESTAMP AS "asOf", (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date::text AS "businessDate"`);
   const { businessDate, asOf } = clock.rows[0];
   if (requestedDate !== businessDate) return failure('business_date_changed', 409);
-  const metadata = { businessDate, asOf: new Date(asOf).toISOString(), timezone: 'Asia/Bangkok' };
+  const metadata = { businessDate, asOf: new Date(asOf).toISOString(), timezone: BUSINESS_TZ };
   const quality = await client.query(collectionQualitySql, [borrowerId]);
   if (quality.rows[0]?.invalid !== false) return failure('source_unavailable');
   const membership = scope === 'borrower'

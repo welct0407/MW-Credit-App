@@ -1,14 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { EventEmitter } from 'node:events';
-import { createDevReadHandler } from '../../services/api/dev-read-handler.mjs';
+import { createReadHandler } from '../../services/api/read-handler.mjs';
 const origin = 'https://dev-lm.mw-credit.com';
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 async function invoke({ logger = () => {}, fail = false, headers = {}, url = '/api/borrowers?q=PRIVATE_NAME', method = 'GET' } = {}) {
  const response = new EventEmitter(); const saved = {};
  response.setHeader = (key, value) => saved[key] = value;
  response.end = body => { response.body = body; };
- const handler = createDevReadHandler({ config: { origins: [origin] }, completionLogger: logger,
+ const handler = createReadHandler({ config: { origins: [origin] }, completionLogger: logger,
  verifyPrincipal: async () => ({ok:true,email:'PRIVATE_EMAIL'}),
  store: { listBorrowers: async () => { if(fail) throw Error('PRIVATE_EXCEPTION'); return {ok:true,source:'dev',items:[]}; } } });
  await handler({url,method,headers:{origin,authorization:'Bearer PRIVATE_TOKEN','x-request-id':'CLIENT_SPOOF',...headers}},response);

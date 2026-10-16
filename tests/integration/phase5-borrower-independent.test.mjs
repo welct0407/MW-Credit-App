@@ -8,7 +8,7 @@ import {planApplicationRole,reconcileApplicationRole} from '../../scripts/databa
 import {attestDisposableApplicationTarget} from '../../services/payment-command/application-target.mjs';
 import {createApplicationRoleCommandStore} from '../../services/payment-command/store.mjs';
 import {canonicalBorrowerFields} from '../../services/business/borrowers.mjs';
-import {OWNER_EMAIL} from '../../services/api/dev-read-config.mjs';
+import {OWNER_EMAIL} from '../../services/lib/identity.mjs';
 let admin,app,store,proof,fixture;const user='mw_app_dev_c_borrower_fixture';
 const principal={ok:true,email:OWNER_EMAIL,subject:'independent-phase5-owner'};
 const fields=(name='C borrower '+randomUUID())=>({name,description:'English synthetic',communicationName:'ช่องทางจำลอง',instagramUsername:'synthetic_test',city:'Bangkok',workingLocation:'Synthetic office',address:' line one\nบรรทัดสอง ',hidden:false,referrerId:null,preferredReceivingAccountId:fixture.receivingAccountId,note:' exact ไทย\n '});

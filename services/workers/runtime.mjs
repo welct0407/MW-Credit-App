@@ -29,7 +29,7 @@ export async function createWorkerRuntime(env,dependencies){
    const path=req.url,job=path==='/internal/jobs/daily-charges'?'daily-charges':path==='/internal/jobs/recent-analytics'?'recent-analytics':null;
    if(req.method!=='POST'||(config.role==='notify'?path!=='/internal/dispatch':!job))return respond(res,404,{error:'not_found'});
    let caller;
-   try{const match=/^Bearer ([^\s]+)$/.exec(req.headers.authorization??'');if(!match)return respond(res,401,{error:'unauthorized'});const p=await dependencies.verifyOidc(match[1],config.audience);if(!p||p.aud!==config.audience||!['https://accounts.google.com','accounts.google.com'].includes(p.iss)||!config.callers.includes(p.email)||p.email_verified!==true)return respond(res,403,{error:'access_denied'});caller=p.email;}catch{return respond(res,401,{error:'unauthorized'});}
+   try{const match=/^Bearer ([^\s]+)$/.exec(req.headers.authorization??'');if(!match)return respond(res,401,{error:'unauthorized'});const p=await dependencies.verifyOidc(match[1],config.audience);if(!p||p.aud!==config.audience||!['https://accounts.google.com','accounts.google.com'].includes(p.iss)||!config.callers.includes(p.email)||p.sub!==config.callerSubjects[p.email]||p.email_verified!==true)return respond(res,403,{error:'access_denied'});caller=p.email;}catch{return respond(res,401,{error:'unauthorized'});}
    if(req.aborted||res.destroyed)return;
    if(stopping)return respond(res,503,{error:'worker_stopping'});
    if(active)return respond(res,409,{error:'worker_busy'});

@@ -1,6 +1,7 @@
+import {UUID_V4} from '../lib/ids.mjs';
 export const borrowerFields=Object.freeze({name:'Borrower Name',description:'Description',communicationName:'Communication Name',instagramUsername:'Instagram Username',city:'City',workingLocation:'Working Location',address:'Address',hidden:'Hidden Flag',referrerId:'Ref Referrer',preferredReceivingAccountId:'Ref Preferred Receiving Cash Account',note:'Borrower Note'});
 const optionalFields={aiCollectionEnabled:'AI Collection Enabled'};
-const keys=Object.keys(borrowerFields), uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
+const keys=Object.keys(borrowerFields), uuid=UUID_V4;
 export const validBorrowerId=value=>typeof value==='string'&&Buffer.byteLength(value)>0&&Buffer.byteLength(value)<=256&&!/[\u0000-\u001f\u007f]/u.test(value);
 export function canonicalBorrowerFields(input){
  if(!input||Array.isArray(input)||Object.keys(input).filter(key=>!Object.hasOwn(optionalFields,key)).sort().join(',')!==[...keys].sort().join(','))throw Error('invalid_request');

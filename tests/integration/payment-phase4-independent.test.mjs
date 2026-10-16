@@ -8,7 +8,7 @@ import {planApplicationRole,reconcileApplicationRole} from '../../scripts/databa
 import {attestDisposableApplicationTarget} from '../../services/payment-command/application-target.mjs';
 import {createApplicationRoleCommandStore} from '../../services/payment-command/store.mjs';
 import {canonicalCommand,commandIdentity} from '../../services/contracts/payment-command.mjs';
-import {OWNER_EMAIL,DEV_PROJECT} from '../../services/api/dev-read-config.mjs';
+import {OWNER_EMAIL,PROJECT_ID as DEV_PROJECT} from '../../services/lib/identity.mjs';
 let admin,app,proof,store;const user='mw_app_dev_phase4_independent';
 const principal={ok:true,email:OWNER_EMAIL,subject:'independent-owner'};
 before(async()=>{

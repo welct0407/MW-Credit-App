@@ -10,7 +10,7 @@ import {attestDisposableApplicationTarget} from '../../services/payment-command/
 import {createApplicationRoleCommandStore} from '../../services/payment-command/store.mjs';
 import {canonicalOperation,operationIdentity} from '../../services/contracts/operation-command.mjs';
 import {canonicalCommand,commandIdentity} from '../../services/contracts/payment-command.mjs';
-import {OWNER_EMAIL,DEV_PROJECT} from '../../services/api/dev-read-config.mjs';
+import {OWNER_EMAIL,PROJECT_ID as DEV_PROJECT} from '../../services/lib/identity.mjs';
 let admin,app,store,proof,fixture;const user='mw_app_dev_c_root_lists_fixture';
 const principal={ok:true,email:OWNER_EMAIL,subject:'independent-generalized-owner'};
 const fields=()=>({name:'C operation '+randomUUID(),description:'Synthetic English',communicationName:null,instagramUsername:null,city:null,workingLocation:null,address:null,hidden:null,referrerId:null,preferredReceivingAccountId:fixture.receivingAccountId,note:' exact ไทย\n '});

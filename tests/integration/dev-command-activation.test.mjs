@@ -7,7 +7,7 @@ import {seedPaymentFixture} from '../../scripts/rehearsal/payment-fixture.mjs';
 import {planApplicationRole,reconcileApplicationRole} from '../../scripts/database/app-role-policy.mjs';
 import {attestDisposableApplicationTarget} from '../../services/payment-command/application-target.mjs';
 import {createApplicationRoleCommandStore} from '../../services/payment-command/store.mjs';
-import {OWNER_EMAIL} from '../../services/api/dev-read-config.mjs';
+import {OWNER_EMAIL} from '../../services/lib/identity.mjs';
 let admin,app,proof;const user='mw_app_dev_g_fixture';
 before(async()=>{
  admin=await disposablePool(79);await admin.query(`CREATE ROLE ${user} LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS`);await admin.query(`GRANT mw_app_dev TO ${user}`);

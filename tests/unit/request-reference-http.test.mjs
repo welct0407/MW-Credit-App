@@ -1,12 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createServer} from 'node:http';
-import {createDevReadHandler} from '../../services/api/dev-read-handler.mjs';
+import {createReadHandler} from '../../services/api/read-handler.mjs';
 const origin='https://dev-lm.mw-credit.com';
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 test('real HTTP completion references are unique, private and preserve boundary behavior',async()=>{
  const logs=[];let reads=0;const store=new Proxy({}, {get:()=>async()=>{reads++;return {ok:false,status:503,code:'source_unavailable'}}});
- const server=createServer(createDevReadHandler({config:{origins:[origin]},verifyPrincipal:async token=>token==='Bearer synthetic-good'?{ok:true,email:'synthetic@example.test',subject:'synthetic'}:{ok:false,status:401,code:'sign_in_required'},store,completionLogger:r=>logs.push(r)}));
+ const server=createServer(createReadHandler({config:{origins:[origin]},verifyPrincipal:async token=>token==='Bearer synthetic-good'?{ok:true,email:'synthetic@example.test',subject:'synthetic'}:{ok:false,status:401,code:'sign_in_required'},store,completionLogger:r=>logs.push(r)}));
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
  try{
  const base=`http://127.0.0.1:${server.address().port}`;const seen=new Set();
@@ -16,5 +16,5 @@ test('real HTTP completion references are unique, private and preserve boundary 
  }finally{await new Promise(resolve=>server.close(resolve))}
 });
 test('throwing completion logger cannot corrupt actual HTTP response',async()=>{
- const server=createServer(createDevReadHandler({config:{origins:[origin]},verifyPrincipal:async()=>{throw Error('PRIVATE_STACK')},store:{},completionLogger:()=>{throw Error('PRIVATE_LOGGER')}}));await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));try{const r=await fetch(`http://127.0.0.1:${server.address().port}/api/session`);assert.equal(r.status,503);assert.deepEqual(await r.json(),{ok:false,code:'read_unavailable'});assert.match(r.headers.get('x-request-id'),uuid)}finally{await new Promise(resolve=>server.close(resolve))}
+ const server=createServer(createReadHandler({config:{origins:[origin]},verifyPrincipal:async()=>{throw Error('PRIVATE_STACK')},store:{},completionLogger:()=>{throw Error('PRIVATE_LOGGER')}}));await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));try{const r=await fetch(`http://127.0.0.1:${server.address().port}/api/session`);assert.equal(r.status,503);assert.deepEqual(await r.json(),{ok:false,code:'read_unavailable'});assert.match(r.headers.get('x-request-id'),uuid)}finally{await new Promise(resolve=>server.close(resolve))}
 });

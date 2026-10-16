@@ -4,7 +4,7 @@ import {resolve,dirname,relative,isAbsolute,sep} from 'node:path';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 import {parseNativeDevCatalog,NATIVE_DEV_ROOT} from '../../services/receipts/native-catalog.mjs';
 import {DEV_RECEIPT_MAPPING} from '../../services/receipts/dev-receipt-adapter.mjs';
-import {DEV_INSTANCE} from '../../services/api/dev-read-config.mjs';
+import {INSTANCE_CONNECTION_NAME as DEV_INSTANCE} from '../../services/lib/identity.mjs';
 import {decodeSourceReceipt} from '../../services/receipts/decode-image.mjs';
 import {parseNativeProductionCatalog} from '../../services/receipts/production-native-catalog.mjs';
 

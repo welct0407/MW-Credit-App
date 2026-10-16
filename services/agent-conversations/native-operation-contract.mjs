@@ -1,5 +1,5 @@
 // Machine-only typed source commands. Validation grants no caller authority.
-const uuid=/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/;
+import {UUID_V4 as uuid} from '../lib/ids.mjs';
 const version=/^[a-f0-9]{64}$/;
 const paymentKeys=['borrowerId','amountReceived','paymentDate','createdAt','paymentMethod','allocationMethod','bankReference','notes','targetChargeId','targetLoanId','cashAccountId','cashHolderId'];
 const allocationKeys=['paymentId','chargeId','chargeDateSnapshot','chargeRowNumberSnapshot','interestRemainingSnapshot','principalRemainingSnapshot','amountRemainingSnapshot','allocationOrder','allocatedInterest','allocatedPrincipal','allocatedAmount','createdAt'];

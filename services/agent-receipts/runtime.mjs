@@ -1,13 +1,16 @@
 import {OAuth2Client} from 'google-auth-library';
 import {agentIdentity,canonicalAgentCommand} from './contract.mjs';
-const project='clever-oasis-508610-n7';
+import {PROJECT_ID as project,runUrl} from '../lib/identity.mjs';
+import {UUID_V4} from '../lib/ids.mjs';
+import {statementTimeoutSql,lockTimeoutSql} from '../lib/budget.mjs';
+const receiptRoute=new RegExp(`^/internal/agent/receipt-payments(?:/(${UUID_V4.source.slice(1,-1)}))?$`);
 const fail=()=>{throw Error('invalid_agent_receipt_configuration');};
 export function loadAgentReceiptPolicy(env,environment){
  if(env.AGENT_RECEIPT_API_ENABLED===undefined||env.AGENT_RECEIPT_API_ENABLED==='false')return null;
  if(env.AGENT_RECEIPT_API_ENABLED!=='true'||!['dev','prod'].includes(environment))fail();
  let p;try{p=JSON.parse(env.AGENT_RECEIPT_POLICY_JSON);}catch{fail();}
  if(!p||Object.keys(p).sort().join(',')!==['environment','audience','callerEmail','callerSubject','automaticPartnerId','reviewerPartnerIds','evidenceSha256'].sort().join(',')||p.environment!==environment
-  ||p.audience!==`https://mw-credit-app-command-${environment}-737787224638.asia-southeast1.run.app`
+  ||p.audience!==runUrl(`mw-credit-app-command-${environment}`)
   ||typeof p.callerEmail!=='string'||!new RegExp(`^[a-z][a-z0-9-]{4,28}[a-z0-9]@${project}\\.iam\\.gserviceaccount\\.com$`).test(p.callerEmail)
   ||environment==='dev'&&p.callerEmail===`mw-integration-agent@${project}.iam.gserviceaccount.com`
   ||typeof p.callerSubject!=='string'||!/^\d{1,128}$/.test(p.callerSubject)||typeof p.automaticPartnerId!=='string'||!p.automaticPartnerId||p.automaticPartnerId.length>256
@@ -22,7 +25,7 @@ export function createAgentReceiptHandler({next,policy,pool,guardConnection,afte
  const verify=verifyOidc??(async(token,audience)=>(await oidc.verifyIdToken({idToken:token,audience})).getPayload());
  const send=(res,status,body)=>{res.writeHead(status,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify(body));};
  return async(req,res)=>{
-  const match=/^\/internal\/agent\/receipt-payments(?:\/([0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}))?$/.exec(req.url??'');
+  const match=receiptRoute.exec(req.url??'');
   if(!req.url?.startsWith('/internal/agent/'))return next(req,res);
   if(!policy||!match||req.method!==(match[1]?'GET':'POST'))return send(res,404,{error:'not_found'});
   const controller=new AbortController();res.once?.('close',()=>controller.abort());
@@ -42,11 +45,11 @@ export function createAgentReceiptHandler({next,policy,pool,guardConnection,afte
   let client,value,commitStarted=false,quarantine=false;
   try{
    client=await pool.connect();await client.query(match[1]?'BEGIN READ ONLY':'BEGIN');await guardConnection(client);
-   await client.query("SET LOCAL statement_timeout='10000ms'");await client.query("SET LOCAL lock_timeout='3000ms'");
+   await client.query(statementTimeoutSql('command'));await client.query(lockTimeoutSql);
    if(match[1])value=(await client.query('SELECT public.pwa_agent_receipt_status_v1($1::uuid,$2,$3) value',[match[1],'https://accounts.google.com',claims.sub])).rows[0].value;
    else{
     const rows=(await client.query('SELECT "Row ID" id,lower(btrim("Login Email")) email,"AI Reviewer" reviewer,"IG Integration Enabled" enabled,(SELECT count(*) FROM public."Partners" q WHERE lower(btrim(q."Login Email"))=lower(btrim(p."Login Email"))) matches FROM public."Partners" p WHERE "Row ID"=$1',[input.actorPartnerId])).rows;
-    const actor=rows[0];if(rows.length!==1||!actor.email||Number(actor.matches)!==1||command.mode==='reviewed'&&(!actor.reviewer||!actor.enabled)){const error=Error('actor_denied');error.code='42501';throw error;}
+    const actor=rows[0];if(rows.length!==1||!actor.email||Number(actor.matches)!==1||command.mode==='reviewed'&&(!actor.reviewer||!actor.enabled)){throw Object.assign(Error('actor_denied'),{code:'42501'});}
     const identity=agentIdentity(command,{issuer:'https://accounts.google.com',subject:claims.sub,partnerId:actor.id,loginEmail:actor.email});
     value=(await client.query('SELECT public.pwa_submit_agent_receipt_v1($1) value',[identity.canonicalJson])).rows[0].value;
    }

@@ -1,3 +1,4 @@
+import {BUSINESS_TODAY_QUERY} from '../lib/business-date.mjs';
 import {paymentLoanDisplayKey} from '../payment-command/draft.mjs';
 import {borrowerDisplayName} from '../api/loan-read-contract.mjs';
 import {validBorrowerId} from './borrowers.mjs';
@@ -32,7 +33,7 @@ export async function readPaymentCorrectionPreview(client,id,{targetLoanId=null,
  if(targetLoanId!==null||paymentDate!==null){
   if(!item.provenance||!validBorrowerId(targetLoanId)||typeof paymentDate!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(paymentDate)||!Number.isFinite(Date.parse(paymentDate+'T00:00:00Z'))||new Date(paymentDate+'T00:00:00Z').toISOString().slice(0,10)!==paymentDate)throw Error('invalid_request');
   const target=(await client.query('SELECT "Ref Borrowers" borrower,"Defaulted" defaulted,"Loan Status" status,"Ref Closing Payment" closing FROM public."Loans" WHERE "Row ID"=$1',[targetLoanId])).rows[0];
-  const today=(await client.query("SELECT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date::text AS day")).rows[0].day;
+  const today=(await client.query(BUSINESS_TODAY_QUERY)).rows[0].day;
   if(!target||target.borrower!==destination||target.defaulted||paymentDate!==today||(target.status!=='ยังไม่ปิดยอด'&&target.closing!==id))throw Error('invalid_request');
   const calculation=(await client.query('SELECT public.loan_close_calculation_v83($1,$2::date,$3) value',[targetLoanId,paymentDate,id])).rows[0].value;
   closePreparation={planHash:calculation.planHash,plan:{borrowerId:calculation.borrowerId,amountReceived:calculation.amount,allocations:calculation.allocations,allocationMethod:'Loan Close',targetChargeId:calculation.targetChargeId,targetLoanId,cashAccountId:item.cashAccountId,paymentDate,paymentMethod:item.paymentMethod}};

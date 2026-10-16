@@ -1,6 +1,29 @@
 import {offlineNamespace,applicationEnvironment,type ApplicationEnvironment} from './environment';
 import {validateViewedSnapshot,type ViewedSnapshot} from './viewed-snapshot';
 const expiry=24*60*60*1000;
+/** APP-OFFLINE-04: offline read data is kept for 7 days after the last successful online check (lease:owner.verifiedAt). */
+const retention=7*expiry;
+const retainedKinds=new Set(['dataset','dataset-progress','dataset-media','cache','snapshot']);
+/** Deletes stale offline read data; pending:* rows, drafts, the lease and meta rows are never touched. */
+function sweepStale(db:IDBDatabase){return new Promise<void>(resolve=>{
+ const tx=db.transaction('records','readwrite'),store=tx.objectStore('records');
+ tx.oncomplete=()=>resolve();tx.onerror=tx.onabort=()=>resolve();
+ const lease=store.get('lease:owner');lease.onsuccess=()=>{const verifiedAt=lease.result?.value?.verifiedAt;if(typeof verifiedAt==='number'&&Date.now()-verifiedAt<retention)return;
+  const cursor=store.openCursor();cursor.onsuccess=()=>{const current=cursor.result;if(!current)return;if(retainedKinds.has(current.value?.kind))current.delete();current.continue()}};
+})}
+/** The same rule for every other owner namespace of this environment on the device (once per page load, never blocks the current owner). */
+const sweptEnvironments=new Set<string>();
+async function sweepOtherOwners(environment:ApplicationEnvironment,current:string){
+ if(sweptEnvironments.has(environment)||typeof indexedDB.databases!=='function')return;sweptEnvironments.add(environment);
+ const prefix='mw-credit-'+environment+'-owner:';
+ for(const {name} of await indexedDB.databases().catch(()=>[])){
+  if(!name||name===current||!name.startsWith(prefix))continue;
+  await new Promise<void>(resolve=>{const request=indexedDB.open(name);
+   request.onupgradeneeded=()=>request.transaction?.abort();request.onerror=request.onblocked=()=>resolve();
+   request.onsuccess=()=>{const db=request.result;if(!db.objectStoreNames.contains('records')){db.close();resolve();return;}void sweepStale(db).then(()=>{db.close();resolve()})};
+  });
+ }
+}
 const namespaceEpochs=new Map<string,number>();
 export type PendingSync={state:'queued'|'syncing'|'blocked';code?:string;outcome?:any;attempted?:boolean;leaseOwner?:string;leaseUntil?:number;exclusive?:boolean};
 type Saved<T>={key:string;kind:'snapshot'|'draft'|'pending'|'lease'|'cache'|'dataset'|'dataset-media';savedAt:number;value:T;sync?:PendingSync;identity?:string};
@@ -21,7 +44,7 @@ export function ownerOfflineRepository(identity:{issuer:string;uid:string},envir
  let opened:Promise<IDBDatabase>|null=null;
  const open=()=>opened??=new Promise<IDBDatabase>((resolve,reject)=>{
   const request=indexedDB.open(name,1);request.onupgradeneeded=()=>request.result.createObjectStore('records',{keyPath:'key'});
-  request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(Error('Offline storage unavailable'));
+  request.onsuccess=()=>{const db=request.result;void sweepStale(db).then(()=>{resolve(db);void sweepOtherOwners(environment,name).catch(()=>{})})};request.onerror=()=>reject(Error('Offline storage unavailable'));
  });
  // Capture the durable namespace epoch when this owner-scoped instance is created.
  // Purge advances it atomically; late writes from other tabs cannot restore old data.

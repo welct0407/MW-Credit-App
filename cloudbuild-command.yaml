@@ -19,7 +19,8 @@ steps:
         await decodeCommandReceipt(await image.clone().png().toBuffer(),'image/png');
         await decodeCommandReceipt(await image.clone().jpeg().toBuffer(),'image/jpeg');
         await assert.rejects(decodeCommandReceipt(Buffer.from('invalid'),'image/png'),/invalid_receipt/);
-        await assert.rejects(import('./services/payment-command/dev-server.mjs'),/Invalid DEV command configuration/);
+        // DEV and PROD both run the business server; with no configuration it fails closed.
+        await assert.rejects(import('./services/production/business-server.mjs'),/Invalid production foundation/);
         const {loadWorkerConfig}=await import('./services/workers/config.mjs');
         assert.equal(loadWorkerConfig({}),null);
         assert.throws(()=>loadWorkerConfig({WORKER_ACTIVATION:'enabled'}),/invalid_worker_configuration/);

@@ -1,5 +1,6 @@
+import {BUSINESS_TODAY_QUERY} from '../lib/business-date.mjs';
 import {wakeContext} from '../notifications/postcommit.mjs';
-import {readOfflineDataset,offlineDomains} from '../business/offline-dataset.mjs';
+import {offlineDomains} from '../business/offline-dataset.mjs';
 import {readOfflineDatasetChunk} from '../business/offline-dataset-chunks.mjs';
 import {readOfflineDatasetDelta} from '../business/offline-dataset-delta.mjs';
 import {withOfflineReadSlot,offlineReadClient} from '../api/offline-read-slot.mjs';
@@ -24,17 +25,20 @@ import {readChargeRecord} from '../business/charges.mjs';
 import {canonicalOperation,operationIdentity} from '../contracts/operation-command.mjs';
 import {readLoanRecord} from '../business/loans.mjs';
 import {readBorrowerRecord,mutateBorrowerRecord,validBorrowerId} from '../business/borrowers.mjs';
-import { createDevCommandConnectionGuard } from './dev-target.mjs';
 import {readCommandResult,readBorrowerPaymentHistory} from './result.mjs';
 import { readPaymentDraft, readOwnerPaymentDraft } from './draft.mjs';
 import { applicationConnectionGuard } from './application-target.mjs';
 import { canonicalCommand, canonicalAllocationPlan, canonicalActor, canonicalReceipt, commandIdentity } from '../contracts/payment-command.mjs';
-import { DEV_PROJECT, OWNER_EMAIL } from '../api/dev-read-config.mjs';
-const issuer = `https://securetoken.google.com/${DEV_PROJECT}`;
-const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+import { PROJECT_ID, OWNER_EMAIL } from '../lib/identity.mjs';
+import { UUID_V4_ANY_CASE as uuid } from '../lib/ids.mjs';
+import { statementTimeoutSql, lockTimeoutSql } from '../lib/budget.mjs';
+const issuer = `https://securetoken.google.com/${PROJECT_ID}`;
 const failure = (status, code) => ({ ok: false, status, code });
 
 /** DISPOSABLE candidate only. No ambient connection/config, service launcher or live permission. */
+/**
+ * @param {{pool:any,guardConnection:any,resolveReceipt?:any,fixture?:any,receiptAdapter?:any,sourceReceiptReader?:any,afterCommit?:any,ownerTesting?:boolean,draftMode?:string,principalAllowed?:(principal:any)=>boolean,resolveActor?:any,actorIssuer?:string}} options
+ */
 function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAdapter, sourceReceiptReader, afterCommit, ownerTesting=false, draftMode='dev-owner-testing', principalAllowed=principal=>principal?.ok&&principal.email===OWNER_EMAIL&&typeof principal.subject==='string'&&!!principal.subject, resolveActor, actorIssuer=issuer }) {
   async function run(principal, operation, readonly = false, capability) {
     if (!principalAllowed(principal)) return failure(403, 'access_denied');
@@ -43,8 +47,8 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
     try {
       client = await pool.connect();
       await client.query(readonly ? (capability==='receipt.read'?'BEGIN ISOLATION LEVEL READ COMMITTED READ ONLY':'BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY') : 'BEGIN');
-      await client.query("SET LOCAL statement_timeout='10000ms'");
-      await client.query("SET LOCAL lock_timeout='3000ms'");
+      await client.query(statementTimeoutSql('command'));
+      await client.query(lockTimeoutSql);
       await guardConnection(client);
       let actor;
       if(resolveActor) actor=await resolveActor(client,principal,capability??(readonly?'read':'command'));
@@ -73,7 +77,10 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
       try { await rollback(); } catch { /* The failed rollback already quarantined this client. */ }
       if(error?.message==='invalid_request'&&!attempted&&!commitStarted&&!quarantine)return failure(400,'invalid_request');
       if (error?.code === '42501' && !commitStarted && !quarantine) return failure(403, 'access_denied');
-      return failure(503, !readonly && (attempted || commitStarted) ? 'command_outcome_unknown' : 'command_unavailable');
+      // Nothing is applied before COMMIT: a confirmed ROLLBACK is a known non-outcome even after the
+      // write was attempted. Only a started COMMIT, or a failed ROLLBACK after the write was attempted,
+      // leaves the outcome unknown (APP-PAY-06).
+      return failure(503, !readonly && (commitStarted || (attempted && quarantine)) ? 'command_outcome_unknown' : 'command_unavailable');
     } finally {
       try { client?.release(quarantine); } catch { /* Cleanup must not mask the intended unavailable/unknown outcome. */ }
     }
@@ -92,8 +99,8 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
     async offlineDataset(principal,domain,signal,options={}){
       if(!ownerTesting)return failure(403,'access_denied');
       if(!principalAllowed(principal))return failure(403,'access_denied');
-      if(!offlineDomains.includes(domain))return failure(400,'invalid_request');
-      try{return await withOfflineReadSlot(pool,signal,()=>run(principal,async(client,actor)=>{try{return {ok:true,value:options.protocol===3?await readOfflineDatasetDelta(offlineReadClient(client,signal),actor,domain,options.input):options.protocol===2?await readOfflineDatasetChunk(offlineReadClient(client,signal),actor,domain,options.cursor??null):await readOfflineDataset(offlineReadClient(client,signal),actor,domain)}}catch(error){if(error.message==='dataset_changed')return failure(409,'dataset_changed');if(error.message==='invalid_request')return failure(400,'invalid_request');throw error}},true))}catch{return failure(503,'command_unavailable')}
+      if(!offlineDomains.includes(domain)||![2,3].includes(options.protocol))return failure(400,'invalid_request');
+      try{return await withOfflineReadSlot(pool,signal,()=>run(principal,async(client,actor)=>{try{return {ok:true,value:options.protocol===3?await readOfflineDatasetDelta(offlineReadClient(client,signal),actor,domain,options.input):await readOfflineDatasetChunk(offlineReadClient(client,signal),actor,domain,options.cursor??null)}}catch(error){if(error.message==='dataset_changed')return failure(409,'dataset_changed');if(error.message==='invalid_request')return failure(400,'invalid_request');throw error}},true))}catch{return failure(503,'command_unavailable')}
     },
     async nativeOperation(principal,input){
       if(!ownerTesting)return failure(403,'access_denied');
@@ -126,7 +133,7 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
     },
     async loanOptions(principal){
       if(!ownerTesting)return failure(403,'access_denied');
-      return run(principal,async client=>({ok:true,value:{businessDate:(await client.query("SELECT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date::text AS day")).rows[0].day,accounts:(await client.query(`SELECT a."Row ID" AS id,a."Account Label" AS label,a."Default Account" AS "isDefault",a."Ref Cash Holder" AS "holderId",a."Active" AS active,h."Active" AS "holderActive" FROM public."Cash Accounts" a JOIN public."Cash Holders" h ON h."Row ID"=a."Ref Cash Holder" WHERE a."Active" IS TRUE AND h."Active" IS TRUE AND h."Row ID"='ch:lisa' ORDER BY a."Sort Order",a."Row ID" COLLATE "C"`)).rows}}),true);
+      return run(principal,async client=>({ok:true,value:{businessDate:(await client.query(BUSINESS_TODAY_QUERY)).rows[0].day,accounts:(await client.query(`SELECT a."Row ID" AS id,a."Account Label" AS label,a."Default Account" AS "isDefault",a."Ref Cash Holder" AS "holderId",a."Active" AS active,h."Active" AS "holderActive" FROM public."Cash Accounts" a JOIN public."Cash Holders" h ON h."Row ID"=a."Ref Cash Holder" WHERE a."Active" IS TRUE AND h."Active" IS TRUE AND h."Row ID"='ch:lisa' ORDER BY a."Sort Order",a."Row ID" COLLATE "C"`)).rows}}),true);
     },
     async loanClosePreview(principal,id){
       if(!ownerTesting)return failure(403,'access_denied');
@@ -350,11 +357,8 @@ export function createApplicationRoleCommandStore({pool,targetAttestation,resolv
  return buildStore({pool,resolveReceipt,fixture,receiptAdapter,sourceReceiptReader,ownerTesting,guardConnection:applicationConnectionGuard(targetAttestation)});
 }
 
-export function createDevCommandStore({pool,config,receiptAdapter,sourceReceiptReader,afterCommit}) {
- return buildStore({pool,afterCommit,fixture:config.fixture,ownerTesting:config.mode==='dev-owner-testing',receiptAdapter,sourceReceiptReader,resolveReceipt:input=>receiptAdapter.resolveReceipt(input),guardConnection:createDevCommandConnectionGuard(config)});
-}
-
 /** Internal composition seam: callers must supply verified identity and transaction membership policies. */
+/** @param {{pool:any,guardConnection:any,principalAllowed:(principal:any)=>boolean,resolveActor:any,actorIssuer:string,receiptAdapter?:any,sourceReceiptReader?:any,afterCommit?:any}} options */
 export function createEnvironmentCommandStore({pool,guardConnection,principalAllowed,resolveActor,actorIssuer,receiptAdapter,sourceReceiptReader,afterCommit}) {
  if(!pool||[guardConnection,principalAllowed,resolveActor].some(value=>typeof value!=='function')||typeof actorIssuer!=='string')throw Error('Explicit application policies required');
  return buildStore({pool,afterCommit,guardConnection,principalAllowed,resolveActor,actorIssuer,ownerTesting:true,draftMode:'production-business',receiptAdapter,sourceReceiptReader,resolveReceipt:receiptAdapter?input=>receiptAdapter.resolveReceipt(input):undefined});

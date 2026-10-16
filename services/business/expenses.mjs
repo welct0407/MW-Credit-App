@@ -1,3 +1,4 @@
+import {BUSINESS_TODAY_QUERY} from '../lib/business-date.mjs';
 import {validBorrowerId} from './borrowers.mjs';
 import {expenseCategories} from '../contracts/expense-command.mjs';
 const columns=`e."Row ID" id,e."Expense Date"::text AS "expenseDate",e."Expense Category" category,e."Amount"::numeric::text amount,e."Payee Name" AS "payeeName",e."Ref Payee Borrower" AS "payeeBorrowerId",CASE WHEN payee."Row ID" IS NULL THEN NULL ELSE coalesce(payee."Borrower Name",'')||' - '||coalesce(payee."Description",'') END AS "payeeBorrowerLabel",e."Ref Related Borrower" AS "relatedBorrowerId",CASE WHEN b."Row ID" IS NULL THEN NULL ELSE coalesce(b."Borrower Name",'')||' - '||coalesce(b."Description",'') END AS "relatedBorrowerLabel",e."Ref Related Loan" AS "relatedLoanId",l."Loan Date"::text AS "relatedLoanDate",l."Principal Amount"::numeric::text AS "relatedLoanPrincipal",l."Original Daily Interest Rate"::text AS "relatedLoanOriginalRate",coalesce(lb."Borrower Name",'')||' - '||coalesce(lb."Description",'') AS "relatedLoanBorrowerLabel",e."Notes" notes,e."Ref Paid By Cash Account" AS "paidByAccountId",ca."Account Label" AS "paidByAccountLabel",e."Ref Paid By Cash Holder" AS "paidByHolderId",h."Holder Name" AS "paidByHolderLabel",e."Source Type" AS "sourceType",e."Source Key" AS "sourceKey",e."Gross Profit Basis"::numeric::text AS "grossProfitBasis",e."Allocation Basis" AS "allocationBasis",e."Partner A Share"::text AS "partnerAShare",e."Partner B Share"::text AS "partnerBShare",e."Partner A Expense"::numeric::text AS "partnerAExpense",e."Partner B Expense"::numeric::text AS "partnerBExpense",e."Rule Version" AS "ruleVersion",e."Created At"::text AS "createdAt",e."Created By" AS "createdBy"`;
@@ -12,7 +13,7 @@ export async function readExpenseRecord(client,id){
 }
 export async function readExpenseOptions(client){
  const accounts=(await client.query(`SELECT a."Row ID" id,a."Account Label" label,h."Row ID" AS "holderId",h."Holder Name" AS "holderLabel" FROM public."Cash Accounts" a JOIN public."Cash Holders" h ON h."Row ID"=a."Ref Cash Holder" WHERE a."Active" IS TRUE AND h."Active" IS TRUE AND h."Row ID" IN('ch:dad','ch:lisa','ch:tommy') ORDER BY h."Sort Order",a."Sort Order",a."Row ID" COLLATE "C"`)).rows;
- return {categories:expenseCategories,accounts,businessDate:(await client.query("SELECT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date::text AS day")).rows[0].day};
+ return {categories:expenseCategories,accounts,businessDate:(await client.query(BUSINESS_TODAY_QUERY)).rows[0].day};
 }
 export async function readExpensePage(client,{limit=25,cursor=null}={}){
  if(!Number.isInteger(limit)||limit<1||limit>100)throw Error('invalid_request');

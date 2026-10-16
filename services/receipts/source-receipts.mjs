@@ -2,7 +2,7 @@ import {verifiedNativeDev} from './verified-native-dev.mjs';
 import {createHash} from 'node:crypto';
 import {DEV_RECEIPT_MAPPING} from './dev-receipt-adapter.mjs';
 /** Reference input comes exclusively from an authorized Payment row, never a URL/client path. */
-export function sourceReceiptPath(reference,kind,nativeDescriptors=verifiedNativeDev){
+export function sourceReceiptPath(reference,kind,nativeDescriptors=/** @type {readonly import('./native-catalog.mjs').NativeReceiptDescriptor[]} */(verifiedNativeDev)){
  if(typeof reference!=='string')throw Error('receipt_reference_unsupported');
  if(kind==='manual'){
   const match=/^manual-receipts\/dev\/pwa\/([a-f0-9]{32})\/([a-f0-9]{32})\.(png|jpg)$/.exec(reference);
@@ -25,11 +25,13 @@ export function sourceReceiptPath(reference,kind,nativeDescriptors=verifiedNativ
  }
  throw Error('receipt_reference_unsupported');
 }
-export function createSourceReceiptReader({storage,decodeImage,nativeDescriptors=verifiedNativeDev}){
+/** @param {{storage:any,decodeImage:any,nativeDescriptors?:readonly import('./native-catalog.mjs').NativeReceiptDescriptor[]}} options */
+export function createSourceReceiptReader({storage,decodeImage,nativeDescriptors=/** @type {readonly import('./native-catalog.mjs').NativeReceiptDescriptor[]} */(verifiedNativeDev)}){
  if(typeof storage?.read!=='function'||typeof decodeImage!=='function')throw Error('Receipt read dependencies required');
  return async(reference,kind)=>{const path=sourceReceiptPath(reference,kind,nativeDescriptors);const object=await storage.read(path);if(!Buffer.isBuffer(object.bytes)||object.bytes.length<1||object.bytes.length>5242880||object.mimeType!==path.mimeType)throw Error('receipt_unavailable');const bytes=Buffer.from(object.bytes),hash=createHash('sha256').update(bytes).digest('hex');if(path.expectedHash&&hash!==path.expectedHash)throw Error('receipt_unavailable');if(path.native&&object.bytes.length!==path.sizeBytes)throw Error('receipt_unavailable');if(kind==='manual'&&!path.native&&(!/^[a-f0-9]{64}$/.test(object.metadata?.sha256??'')||object.metadata.sha256!==hash||object.metadata.environment!=='dev'))throw Error('receipt_unavailable');await decodeImage(bytes,path.mimeType);return {bytes,mimeType:path.mimeType};};
 }
-export function createSourceGcsReadTransport(storage,{nativeDescriptors=verifiedNativeDev}={}){
+/** @param {any} storage @param {{nativeDescriptors?:readonly import('./native-catalog.mjs').NativeReceiptDescriptor[]}} [options] */
+export function createSourceGcsReadTransport(storage,{nativeDescriptors=/** @type {readonly import('./native-catalog.mjs').NativeReceiptDescriptor[]} */(verifiedNativeDev)}={}){
  return {async read({bucket,key,mimeType}){
   const verified=typeof key==='string'?nativeDescriptors.find(row=>row.keySha256===createHash('sha256').update(key,'utf8').digest('hex')):null;
   const generated=typeof key==='string'&&new RegExp('^'+DEV_RECEIPT_MAPPING.objectPrefix+'[a-f0-9]{32}/[a-f0-9]{32}\\.(png|jpg)$').test(key),agent=typeof key==='string'&&/^receipts\/dev\/\d{4}\/\d{2}\/\d{2}\/[a-f0-9]{64}\/[a-f0-9]{64}\.(jpg|png|webp)$/.test(key);

@@ -419,8 +419,18 @@
       "comment": null
   "policies": {}
   "dependencies": []
+  "business_rules":
+  - "Loan disbursement accounts are the active Cash Accounts of holder ch:lisa (GET /api/loan-options and the loan-options\
+    \ offline chunk; services/payment-command/store.mjs, services/business/offline-dataset-chunks.mjs)."
+  - "The management expense reference lists expenses paid by holder ch:tommy (apps/pwa/src/ManagementExpenseReference.tsx)."
+  - "Changing the disbursing partner requires a code release."
 "evidence":
   "/content/definition/acl":
     "reference": "outputs/r052/dictionary-production-closure.json"
     "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
     "observedAt": "2026-10-11T14:01:43.131793+00:00"
+  "/content/business_rules":
+    "reference": "R063 Wave 3 app branch (claude/review-w3-app); owner decisions 16 October 2026; source read at the cited\
+      \ paths"
+    "reason": "APP-PAY-07 disbursing-partner rule"
+    "state": "value"

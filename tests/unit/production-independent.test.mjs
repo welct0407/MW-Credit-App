@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import http from 'node:http';
 import {readFile} from 'node:fs/promises';
 import {createProductionFoundationRuntime} from '../../services/production/runtime.mjs';
-import {createFirebasePrincipalVerifier} from '../../services/api/firebase-principal.mjs';
+import {createBusinessPrincipalVerifier} from '../../services/production/business-principal.mjs';
 
 const base={APP_ENV:'prod',FOUNDATION_MODE:'foundation',FOUNDATION_ROLE:'reader',AUTH_MODE:'firebase',
  APPLICATION_PROJECT_ID:'clever-oasis-508610-n7',APPLICATION_PROJECT_NUMBER:'737787224638',FIREBASE_PROJECT_ID:'clever-oasis-508610-n7',
@@ -31,7 +31,7 @@ test('real HTTP runtime shares valid default owner with DEV while rejecting fore
   assert.equal(f.initialized[0].name,'production-foundation-'+role);
   const good=await request(f.server,'/api/session','GET',{Authorization:'Bearer SYNTHETIC_PRIVATE_TOKEN'});
   assert.equal(good.status,200);assert.deepEqual(JSON.parse(good.body),{ok:true,authenticated:true,mode:'foundation',capabilities:[],businessAccess:false,membershipVerified:false});
-  const dev=createFirebasePrincipalVerifier(async(token,revoked)=>{assert.equal(token,'SYNTHETIC_PRIVATE_TOKEN');assert.equal(revoked,true);return claim();},{ownerUid:base.PROD_OWNER_FIREBASE_UID,identityMode:'uid-pinned'});
+  const dev=createBusinessPrincipalVerifier(async(token,revoked)=>{assert.equal(token,'SYNTHETIC_PRIVATE_TOKEN');assert.equal(revoked,true);return claim();});
   assert.equal((await dev('Bearer SYNTHETIC_PRIVATE_TOKEN')).ok,true);
   const changes=[{aud:'foreign-synthetic-project',iss:'https://securetoken.google.com/foreign-synthetic-project'},
    {aud:base.FIREBASE_PROJECT_ID,iss:'https://securetoken.google.com/foreign-synthetic-project'},
@@ -77,7 +77,7 @@ test('disabled-probe production dependency graph has no data driver, storage cli
  for(const file of ['config','principal','handler','runtime','server']){
   const source=await readFile(new URL('../../services/production/'+file+'.mjs',import.meta.url),'utf8');
   const imports=[...source.matchAll(/from ['"]([^'"]+)['"]/g)].map(match=>match[1]);
-  assert.ok(imports.every(name=>name.startsWith('node:')||name.startsWith('firebase-admin/')||/^\.\/(config|principal|handler|runtime)\.mjs$/.test(name)||name==='../api/session-check.mjs'),file+' '+imports);
+  assert.ok(imports.every(name=>name.startsWith('node:')||name.startsWith('firebase-admin/')||/^\.\/(config|principal|handler|runtime)\.mjs$/.test(name)||['../api/session-check.mjs','../lib/http-boundary.mjs','../lib/firebase-claims.mjs','../lib/identity.mjs','../lib/log.mjs'].includes(name)),file+' '+imports);
   assert.doesNotMatch(source,/\bimport\s*\(|createPool|new Pool|Storage\(|SELECT\s|saveReceipt|sendNotification/);
  }
 });

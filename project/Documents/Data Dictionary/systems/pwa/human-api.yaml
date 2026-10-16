@@ -38,7 +38,7 @@
   - "openings"
   - "analytics-validation"
   "contracts":
-  - "services/api/dev-read-handler.mjs"
+  - "services/api/read-handler.mjs"
   - "services/payment-command/handler.mjs"
   - "services/contracts/payment-command.mjs"
   - "services/contracts/payment-correction.mjs"
@@ -104,10 +104,10 @@
     - "https://github.com/welct0407/MW-Credit-App/blob/6a3cf8cde2710a45b0368bc7f177f21bdab2693c/services/payment-command/store.mjs"
     - "https://github.com/welct0407/MW-Credit-App/blob/6a3cf8cde2710a45b0368bc7f177f21bdab2693c/services/notifications/handler.mjs"
     - "https://github.com/welct0407/MW-Credit-App/blob/6a3cf8cde2710a45b0368bc7f177f21bdab2693c/services/notifications/store.mjs"
-    "protocol": "Omitted protocol retains legacy schemaVersion 1 GET; protocol=2 GET with optional cursor retains bounded\
+    "protocol": "Protocol 1 is retired and protocol=2 or 3 is required; protocol=2 GET with optional cursor retains bounded\
       \ full preparation. protocol=3 uses read-only POST with JSON cursor/need/sourceVersion body on both dataset routes;\
-      \ initial complete bundles then refresh through content manifests. Explicit protocol=1 and malformed/duplicate query/body\
-      \ fields rejected."
+      \ initial complete bundles then refresh through content manifests. Omitted or explicit protocol=1 and malformed/duplicate\
+      \ query/body fields rejected."
     "cursor": "Canonical traversal cursor validates actor issuer/subject/partner, domain, business day, startedAt/generation,\
       \ phase/state and done count. Day change or age over 24h yields dataset_changed; no owner/domain traversal reuse."
     "bounds": "Main protocol2 GET responses pack at most8 logical pages with elapsed750ms/512KiB checks between pages, not\
@@ -187,9 +187,9 @@
     "reason": "Reconcile owner-authorized R059 verified DEV-first/PROD release; preserve test and live-smoke limits."
     "state": "value"
   "/content/offline_dataset/protocol":
-    "reference": "https://github.com/welct0407/MW-Credit-App/blob/6a3cf8cde2710a45b0368bc7f177f21bdab2693c/services/business/offline-dataset-delta.mjs"
-    "reason": "Incremental content-only refresh after full preparation; canonical restricted SQL and browser checks protect\
-      \ pending edits and actor/recipient boundaries"
+    "reference": "R063 Wave 3 app branch (claude/review-w3-app); owner decisions 16 October 2026; source read at the cited\
+      \ paths"
+    "reason": "APP-ARCH-02 handler rename; APP-OFFLINE-06 protocol 1 retired"
     "state": "value"
   "/content/offline_dataset/transaction":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/374fe98ed21ab233f068dd337d7cbaef0eb24788/services/business/offline-dataset-chunks.mjs"
@@ -267,4 +267,9 @@
   "/content/settings_contract/sources":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/327aa25d58867d280d148aee3991cf386c4be244/apps/pwa/src/preference-save.ts"
     "reason": "Pin testedR062settings source and factual pendingDEVmaintenance/manifest approval."
+    "state": "value"
+  "/content/contracts":
+    "reference": "R063 Wave 3 app branch (claude/review-w3-app); owner decisions 16 October 2026; source read at the cited\
+      \ paths"
+    "reason": "APP-ARCH-02 handler rename; APP-OFFLINE-06 protocol 1 retired"
     "state": "value"

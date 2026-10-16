@@ -1,4 +1,5 @@
 // Explicit owner-authorized business Hosting delivery. Foundation executor stays unchanged.
+import {hostingHeaders} from '../hosting-headers.mjs';
 import {readFile,writeFile,lstat,realpath} from 'node:fs/promises';
 import {spawnSync} from 'node:child_process';
 import {OAuth2Client} from 'google-auth-library';
@@ -64,8 +65,7 @@ async function validatedHostingArtifact(m,recovery){
  requireValue(prefixes.length===1&&prefixes[0][2]==='mw-credit-prod-public-'&&assets.length===1&&JSON.parse(assets[0][1]).includes(m.frontend.entry),'worker/index binding mismatch');
  requireValue([...html.matchAll(/<script\b[^>]*\bsrc\s*=\s*(['"])([^'"]+)\1[^>]*>/gi)].some(x=>x[2]===m.frontend.entry&&/\btype\s*=\s*(['"])module\1/i.test(x[0])),'active entry required');
  for(const value of [config.readerOrigin,config.commandOrigin,config.firebase.apiKey,config.firebase.appId])requireValue(typeof value==='string'&&value.length>0&&entry.includes(value),'compiled public config mismatch');
- const headers=[{glob:'**',headers:{'X-Content-Type-Options':'nosniff','Referrer-Policy':'strict-origin-when-cross-origin','Cache-Control':'no-store'}}];
- for(const [glob,type]of [['/build-version.json','application/json; charset=utf-8'],['/sw.js','application/javascript; charset=utf-8'],['/manifest.webmanifest','application/manifest+json; charset=utf-8'],['/offline.html','text/html; charset=utf-8']])headers.push({glob,headers:{'Content-Type':type,'Cache-Control':'no-store'}});
+ const headers=hostingHeaders('live-prod');
  return {site:prodSite,files,contents,headers,sourceCommit:m.sourceCommit,publicVersion:m.frontend.publicVersion,rollback:recovery};
 }
 
@@ -232,8 +232,7 @@ export async function businessHostingPlan(prepared,applied,receipts,options){
   const compressed=gzipSync(bytes),hash=createHash('sha256').update(compressed).digest('hex');
   files['/'+file.path]=hash;contents.set(hash,compressed);
  }
- const headers=[{glob:'**',headers:{'X-Content-Type-Options':'nosniff','Referrer-Policy':'strict-origin-when-cross-origin','Cache-Control':'no-store'}}];
- for(const [glob,type]of [['/build-version.json','application/json; charset=utf-8'],['/sw.js','application/javascript; charset=utf-8'],['/manifest.webmanifest','application/manifest+json; charset=utf-8'],['/offline.html','text/html; charset=utf-8']])headers.push({glob,headers:{'Content-Type':type,'Cache-Control':'no-store'}});
+ const headers=hostingHeaders('live-prod');
  return {site,files,contents,headers,sourceCommit:applied.sourceCommit,publicVersion:r053?applied.frontend.publicVersion:applied.artifacts.frontend.publicVersion};
 }
 

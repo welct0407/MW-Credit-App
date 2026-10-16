@@ -4,15 +4,15 @@ Current read implementation serves authenticated Borrowers, related loans and Co
 
 ## Source ownership
 
-- services/api/dev-read-handler.mjs: route validation and request handling.
+- services/api/read-handler.mjs: route validation and request handling.
 - services/api/borrower-read-store.mjs: bounded SQL reads.
-- services/api/read-access.mjs and firebase-principal.mjs: identity/access policy.
-- services/production/business-runtime.mjs: production composition.
-- services/production/business-config.mjs and business-target.mjs: fixed environment/target guards.
+- services/api/read-access.mjs and services/lib/firebase-claims.mjs: identity/access policy.
+- services/production/business-server.mjs and business-runtime.mjs: composition for DEV and PROD, selected by APP_ENV.
+- services/production/business-config.mjs and services/lib/connection-guard.mjs: fixed environment/target guards.
 - services/payment-command/handler.mjs: additional operational/management route families.
 - apps/pwa/src/live-main.tsx: live application entry.
 
-The DEV handler name is an implementation filename, not a claim that production access is absent. Exact runtime configuration comes from the owning infrastructure stack and service loader; do not copy old checkpoint settings.
+DEV and PROD run the same business server; APP_ENV selects the database, identities, origins and capability policy. The DEV capability policy lists the owner only. Exact runtime configuration comes from the owning infrastructure stack and service loader; do not copy old checkpoint settings.
 
 ## Data and access
 
@@ -26,7 +26,7 @@ Collection preserves status grouping and orders borrower names ascending within 
 
 DEV and released R059 PROD bulk reads use `GET /api/offline-dataset?domain=records|collection|cash|management` and recipient-scoped `GET /api/notifications/offline-dataset`. They retain authenticated membership/capabilities, existing read DTOs and SQL calculations in read-only repeatable-read transactions. One shared bulk connection slot preserves foreground SQL capacity; cancellation stops abandoned preparation. Cash coverage follows the existing recent-statement provider. Released R059 enables main-domain routes in production composition and recipient datasets when existing notifications are enabled. Deployment/artifact and recovery facts are recorded in the PM environment inventory and existing R059 promotion record.
 
-Protocol 2 uses `protocol=2` with an optional `cursor` on both dataset routes and splits preparation into bounded chunks; omitting protocol retains legacy protocol 1 for deployment compatibility. Traversal cursors bind actor, domain and business day; startedAt identifies traversal start, and asOf is read metadata; the traversal is not one global MVCC snapshot across requests. The PWA persists partial stages and resumes their cursor using local read-revision/cursor compare-and-swap. Focus/reconnect resumes work; a local applied mutation restarts that revision. Prior complete bundles remain available until every new page commits atomically.
+Protocol 2 uses `protocol=2` with an optional `cursor` on both dataset routes and splits preparation into bounded chunks. Protocol 1 is retired; both dataset routes require protocol=2 or 3. Traversal cursors bind actor, domain and business day; startedAt identifies traversal start, and asOf is read metadata; the traversal is not one global MVCC snapshot across requests. The PWA persists partial stages and resumes their cursor using local read-revision/cursor compare-and-swap. Focus/reconnect resumes work; a local applied mutation restarts that revision. Prior complete bundles remain available until every new page commits atomically.
 
 After initial protocol-2 completion, protocol 3 uses read-only POSTs on the same routes with cursor/need/sourceVersion bodies. Deterministic per-domain logical-page caps keep manifest/need replays identical, with a between-page byte boundary and no elapsed-time cutoff in protocol 3. Bounded content-hash manifests transfer values only for missing hashes; canonical hashing ignores asOf metadata and can index an existing complete bundle. Main domains use actor/day-scoped raw-source SHA256/xmin fingerprints to skip unchanged providers, validating traversal source at start/end. Notifications always scan protected recipient manifests with sourceVersion=null; they have no cheap source gate or universal snapshot claim.
 

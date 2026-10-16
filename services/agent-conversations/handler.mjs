@@ -1,6 +1,6 @@
 import {createConversationWorkloadVerifier} from './policy.mjs';
 const exact=(value,keys)=>value&&typeof value==='object'&&!Array.isArray(value)&&Object.keys(value).sort().join(',')===keys.slice().sort().join(',');
-const uuid=/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/;
+import {UUID_V4 as uuid} from '../lib/ids.mjs';
 const identifier=value=>typeof value==='string'&&value.length>0&&Buffer.byteLength(value)<=256&&value.isWellFormed()&&!/[\u0000-\u001f]/.test(value);
 
 /** Exact machine routes only. Providers own guarded transactions and fresh actors. */

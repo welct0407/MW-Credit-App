@@ -9,7 +9,7 @@ import {canonicalLoanFields} from '../business/loans.mjs';
 import {createHash} from 'node:crypto';
 import {canonicalActor,canonicalReceipt} from './payment-command.mjs';
 import {canonicalBorrowerFields,validBorrowerId} from '../business/borrowers.mjs';
-const uuid=/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/;
+import {UUID_V4 as uuid} from '../lib/ids.mjs';
 const shape=(value,keys)=>value&&typeof value==='object'&&!Array.isArray(value)&&Object.keys(value).sort().join(',')===keys.slice().sort().join(',');
 export function canonicalOperation(input){
  if(!shape(input,['requestId','operation','targetId','expectedVersion','predecessorRequestId','inputs','receiptId'])||!uuid.test(input.requestId)||!validBorrowerId(input.targetId))throw Error('invalid_request');

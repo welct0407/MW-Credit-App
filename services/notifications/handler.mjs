@@ -1,14 +1,18 @@
+import {beginRequest} from '../lib/http-boundary.mjs';
 /** Independent bounded, authenticated notification route wrapper; absent activation delegates. */
-export function notificationHandler({next,store,verifyPrincipal,origins,enabled=false,publicKey,offlineDataset=false}){
+export function notificationHandler({next,store,verifyPrincipal,origins,enabled=false,publicKey,offlineDataset=false,completionLogger=()=>{}}){
  return async(req,res)=>{
   let url;try{url=new URL(req.url,'http://local.invalid')}catch{return next(req,res)}
   if(!enabled||!url.pathname.startsWith('/api/notifications'))return next(req,res);
-  res.setHeader('Cache-Control','no-store');res.setHeader('Content-Type','application/json');
-  const reply=(status,value)=>{res.statusCode=status;res.end(JSON.stringify(value));};
-  const origin=req.headers.origin;if(origin&&!origins.includes(origin))return reply(403,{error:'access_denied'});
-  if(origin){res.setHeader('Access-Control-Allow-Origin',origin);res.setHeader('Vary','Origin');}
-  if(req.method==='OPTIONS'){res.setHeader('Access-Control-Allow-Headers','Authorization,Content-Type');res.setHeader('Access-Control-Allow-Methods','GET,POST,DELETE,PUT');return reply(204,{});}
-  let principal;try{principal=await verifyPrincipal(req.headers.authorization)}catch{return reply(503,{error:'notification_unavailable'})}if(!principal?.ok)return reply(principal.status===503?503:401,{error:principal.status===503?'notification_unavailable':'sign_in_required'});
+  let code='ok';
+  const boundary=beginRequest(req,res,{origins,methods:['GET','POST','DELETE','PUT'],headers:['Authorization','Content-Type','X-MW-Wake-Deadline'],logger:completionLogger,
+   record:({requestId,status})=>({event:'notification_request',requestId,method:['GET','POST','DELETE','PUT','OPTIONS'].includes(req.method)?req.method:'OTHER',status,code,durationMs:boundary.durationMs()})});
+  const reply=(status,value)=>{code=status<400?'ok':value?.error??'notification_unavailable';res.statusCode=status;res.end(JSON.stringify(value));};
+  if(boundary.originDenied)return reply(403,{error:'access_denied'});
+  // A preflight needs an allowlisted Origin and a listed method and headers.
+  if(req.method==='OPTIONS')return boundary.preflight()?reply(204,{}):reply(403,{error:'access_denied'});
+  let principal;try{principal=await verifyPrincipal(req.headers.authorization)}catch{return reply(401,{error:'session_invalid',code:'session_invalid'})}
+  if(!principal?.ok){const status=[401,403,503].includes(principal?.status)?principal.status:401,reason=typeof principal?.code==='string'?principal.code:'session_invalid';return reply(status,{error:reason,code:reason});}
   try{
    let value;const p=url.pathname;
    if(req.method==='POST'&&p==='/api/notifications/offline-dataset'&&offlineDataset){
@@ -18,9 +22,10 @@ export function notificationHandler({next,store,verifyPrincipal,origins,enabled=
     const controller=new AbortController();res.once('close',()=>controller.abort());value=await store.offlineDataset(principal,controller.signal,{protocol:3,input:request});
    }
    else if(req.method==='GET'&&p==='/api/notifications/offline-dataset'&&offlineDataset){
-    const protocol=url.searchParams.get('protocol'),cursor=url.searchParams.get('cursor');
-    if([...url.searchParams.keys()].some(key=>!['protocol','cursor'].includes(key))||url.searchParams.getAll('protocol').length>1||url.searchParams.getAll('cursor').length>1||(protocol!==null&&protocol!=='2')||(cursor!==null&&protocol!=='2'))return reply(400,{error:'invalid_request'});
-    const controller=new AbortController();res.once('close',()=>controller.abort());value=await store.offlineDataset(principal,controller.signal,{protocol:protocol==='2'?2:1,cursor});
+    const cursor=url.searchParams.get('cursor');
+    // Protocol 1 (whole history in one response) is retired: protocol=2 is required.
+    if([...url.searchParams.keys()].some(key=>!['protocol','cursor'].includes(key))||url.searchParams.getAll('protocol').length!==1||url.searchParams.get('protocol')!=='2'||url.searchParams.getAll('cursor').length>1)return reply(400,{error:'invalid_request'});
+    const controller=new AbortController();res.once('close',()=>controller.abort());value=await store.offlineDataset(principal,controller.signal,{protocol:2,cursor});
    }
    else if(req.method==='GET'&&p==='/api/notifications'&&[...url.searchParams.keys()].every(k=>k==='before')&&url.searchParams.getAll('before').length<=1)value=await store.history(principal,url.searchParams.get('before'));
    else if(req.method==='GET'&&p==='/api/notifications/status'&&[...url.searchParams.keys()].every(k=>k==='device')&&url.searchParams.getAll('device').length<=1)value=await store.status(principal,url.searchParams.get('device'));

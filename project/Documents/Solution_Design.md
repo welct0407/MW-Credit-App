@@ -29,10 +29,16 @@ Successful PWA/agent commits wake the notification worker centrally, after the r
 
 APIs return 401 `session_invalid` only for definite token errors; verifier outages return 503 `session_check_unavailable`, and a stalled request body returns 503 `body_timeout`. Both are retryable and never sign the owner out. Saved (pending) changes survive an involuntary sign-out; voluntary Sign out stays disabled until they sync.
 
+Offline datasets and media are deleted after 7 days without a successful online check; pending (unsynced) changes are never deleted.
+
 One native scheduler owns each job/environment. Daily charges run at 00:05 and recent analytics hourly, Asia/Bangkok. SQL job keys/locking prevent duplicate work.
 
 ## Operations
 
 This repository owns coordination/business references; MW-Credit-App owns PWA/API/SQL/infrastructure; MW-Integration-Agent owns Debian. DEV/PROD share Cloud SQL but use separate business databases, API identities and routes.
+
+DEV and PROD run the same code. The DEV reader and command services run `services/production/business-server.mjs` with `APP_ENV=dev`, the DEV capability policy (owner only) and DEV origins. `dev-server.mjs`, `dev-read-server.mjs` and the foundation DEV API are retired. DEV schedulers stay paused.
+
+Reviewer DML is the approved second write path into business tables. The integration agent writes reviewed receipts through role `mw_reviewer_dml` on `loan_manager_prod`, and SQL triggers guard integrity. A configurable DEV target with role `mw_reviewer_dml_dev` exists in code but cannot be used until a later migration relaxes the `session_user` checks in V33.
 
 Use Secret Manager and unattended/workload identities. Terraform owns adopted infrastructure; Azure VM controller remains excluded. Follow [delivery policy](Rules/PWA_Orchestration.md) and [recovery](Rules/Release_Recovery_Runbook.md). Runtime identities/pins belong in [environment inventory](Environment_Inventory.md).

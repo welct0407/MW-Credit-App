@@ -365,6 +365,9 @@
     - "https://github.com/welct0407/MW-Credit-App/blob/327aa25d58867d280d148aee3991cf386c4be244/apps/pwa/src/preference-save.ts"
     - "https://github.com/welct0407/MW-Credit-App/blob/327aa25d58867d280d148aee3991cf386c4be244/apps/pwa/src/CashWorkspace.tsx"
     - "https://github.com/welct0407/MW-Credit-App/blob/327aa25d58867d280d148aee3991cf386c4be244/apps/pwa/src/live-main.tsx"
+  "disbursing_partner_rule": "Loan disbursement accounts are the active Cash Accounts of holder ch:lisa (GET /api/loan-options,\
+    \ services/payment-command/store.mjs). The management expense reference lists expenses paid by holder ch:tommy (apps/pwa/src/ManagementExpenseReference.tsx).\
+    \ Changing the disbursing partner requires a code release."
 "evidence":
   "/content/borrower_upcoming":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/68e8a39e63e44123dcbab3f819c72d711e2a3240/apps/pwa/src/SharedBorrowerDetail.tsx"
@@ -672,4 +675,9 @@
   "/content/editable_settings/sources":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/327aa25d58867d280d148aee3991cf386c4be244/apps/pwa/src/preference-save.ts"
     "reason": "Pin testedR062settings source and factual pendingDEVmaintenance/manifest approval."
+    "state": "value"
+  "/content/disbursing_partner_rule":
+    "reference": "R063 Wave 3 app branch (claude/review-w3-app); owner decisions 16 October 2026; source read at the cited\
+      \ paths"
+    "reason": "APP-PAY-07 disbursing-partner rule"
     "state": "value"

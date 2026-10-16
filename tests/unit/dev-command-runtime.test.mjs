@@ -1,17 +1,17 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import sharp from 'sharp';
-import {loadDevCommandConfig} from '../../services/payment-command/dev-config.mjs';
-import {DEV_INSTANCE,DEV_PROJECT} from '../../services/api/dev-read-config.mjs';
-import {COMMAND_DB_USER} from '../../services/payment-command/dev-target.mjs';
+import {loadBusinessConfig} from '../../services/production/business-config.mjs';
+import {businessEnv} from './business-env-fixture.mjs';
 import {DEV_RECEIPT_MAPPING} from '../../services/receipts/dev-receipt-adapter.mjs';
 import {decodeCommandReceipt} from '../../services/receipts/decode-image.mjs';
 import {createCommandReceipts} from '../../services/receipts/command-receipts.mjs';
 import {randomUUID} from 'node:crypto';
-const env={APP_ENV:'dev',AUTH_MODE:'firebase',FIREBASE_PROJECT_ID:DEV_PROJECT,DB_NAME:'loan_manager_dev',INSTANCE_CONNECTION_NAME:DEV_INSTANCE,DB_USER:COMMAND_DB_USER,OWNER_IDENTITY_MODE:'uid-pinned',OWNER_FIREBASE_UID:'synthetic-owner',ALLOWED_WEB_ORIGINS:'["https://mw-credit-app-dev-737787224638.web.app"]',COMMAND_MODE:'synthetic-only',COMMAND_FIXTURE_JSON:JSON.stringify({borrowerId:'fixture',chargeIds:['charge'],cashAccountIds:['account']}),RECEIPT_BUCKET:DEV_RECEIPT_MAPPING.bucket,RECEIPT_SQL_PREFIX:DEV_RECEIPT_MAPPING.sqlPrefix,RECEIPT_OBJECT_PREFIX:DEV_RECEIPT_MAPPING.objectPrefix,RECEIPT_COMPATIBILITY_EVIDENCE:'synthetic-config-test'};
-test('DEV command config rejects alternate database, identity, broad mode and ambient connection',()=>{
- assert.equal(loadDevCommandConfig(env).fixture.borrowerId,'fixture');
- for(const patch of [{DB_NAME:'loan_manager_prod'},{DB_USER:'postgres'},{COMMAND_MODE:'all'},{OWNER_IDENTITY_MODE:'email-bootstrap'},{DATABASE_URL:'postgres://example'},{STORAGE_EMULATOR_HOST:'localhost'},{COMMAND_FIXTURE_JSON:'{}'}])assert.throws(()=>loadDevCommandConfig({...env,...patch}));
+// The DEV command service runs the business runtime with the DEV profile and its verified receipt mapping.
+const env={...businessEnv('dev','command'),DEV_RECEIPTS:'enabled',RECEIPT_BUCKET:DEV_RECEIPT_MAPPING.bucket,RECEIPT_SQL_PREFIX:DEV_RECEIPT_MAPPING.sqlPrefix,RECEIPT_OBJECT_PREFIX:DEV_RECEIPT_MAPPING.objectPrefix,RECEIPT_COMPATIBILITY_EVIDENCE:'synthetic-config-test'};
+test('DEV command config rejects alternate database, identity, retired modes and ambient connection',()=>{
+ assert.equal(loadBusinessConfig(env).receiptCompatibility.evidenceReference,'synthetic-config-test');
+ for(const patch of [{DB_NAME:'loan_manager_prod'},{DB_USER:'postgres'},{COMMAND_MODE:'synthetic-only'},{COMMAND_FIXTURE_JSON:'{}'},{OWNER_FIREBASE_UID:'synthetic-owner'},{DATABASE_URL:'postgres://example'},{STORAGE_EMULATOR_HOST:'localhost'},{RECEIPT_BUCKET:'other-bucket'},{RECEIPT_COMPATIBILITY_EVIDENCE:' '}])assert.throws(()=>loadBusinessConfig({...env,...patch}),JSON.stringify(patch));
 });
 test('real Sharp decoder accepts PNG/JPEG and rejects corrupt or mismatched data',async()=>{
  const image=sharp({create:{width:2,height:2,channels:3,background:'#ffffff'}});

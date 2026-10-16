@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {createNotificationStore,enqueueNotifications} from '../../services/notifications/store.mjs';
 import {createNotificationDispatcher} from '../../services/notifications/dispatcher.mjs';
 import {createCanonicalJobRunner} from '../../services/jobs/runner.mjs';
-import {createDevNotificationHandler} from '../../services/notifications/dev-api.mjs';
+import {notificationHandler} from '../../services/notifications/handler.mjs';
 import {withOfflineReadSlot,offlineReadClient} from '../../services/api/offline-read-slot.mjs';
 test('offline bundles share one pool reservation and cancel queued work before database access',async()=>{
  const pool={},events=[],abort=new AbortController();let release;
@@ -44,5 +44,5 @@ test('job adapter invokes only atomic job RPC; disabled adapters touch no depend
  const calls=[],client={release(){},query:async(sql,args)=>{calls.push({sql,args});return{rows:[{result:{enabled:true,state:'completed',replayed:false}}]};}};
  const job=createCanonicalJobRunner({enabled:true,pool:{connect:async()=>client},guardConnection:async()=>{}});
  await job({job:'daily-charges',businessDate:'2026-10-11',scope:'daily'});assert.equal(calls.length,1);assert.match(calls[0].sql,/pwa_job_run_v1/);
- assert.deepEqual(await createCanonicalJobRunner({})({}),{enabled:false});const next=()=>{};assert.equal(createDevNotificationHandler({next,config:{notificationsEnabled:false}}),next);
+ assert.deepEqual(await createCanonicalJobRunner({})({}),{enabled:false});let delegated=0;const disabled=notificationHandler({next:()=>{delegated++},enabled:false});await disabled({url:'/api/notifications/status',headers:{}},{});assert.equal(delegated,1);
 });

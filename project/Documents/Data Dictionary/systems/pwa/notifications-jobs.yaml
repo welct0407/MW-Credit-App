@@ -50,19 +50,23 @@
   - "services/notifications/postcommit.mjs"
   - "services/workers/config.mjs"
   - "services/notifications/web-push.mjs"
-  - "infrastructure/modules/dev-workers/main.tf"
+  - "infrastructure/modules/workers/main.tf"
   - "database/migrations/V91__apple_push_subscription_endpoints.sql"
   "source_base": "https://github.com/welct0407/MW-Credit-App/blob/808cdf53225ce627ea41ef4d3666bf97a3c9cbfe/"
-  "offline_history": "DEV and owner-authorized PROD recipient endpoint retains omitted-protocol complete GET and protocol2\
-    \ cursor GET. Protocol3 read-only POST uses bounded content-hash manifests, transferring only requested missing values\
-    \ through protected recipient RPCs. sourceVersion=null: every sweep scans manifests, without main-domain fast gate or\
-    \ global snapshot claim. Dispatch/subscriptions/schedules unchanged."
+  "offline_history": "DEV and owner-authorized PROD recipient endpoint retains protocol2 cursor GET; protocol 1 is retired\
+    \ and protocol=2 or 3 is required. Protocol3 read-only POST uses bounded content-hash manifests, transferring only requested\
+    \ missing values through protected recipient RPCs. sourceVersion=null: every sweep scans manifests, without main-domain\
+    \ fast gate or global snapshot claim. Dispatch/subscriptions/schedules unchanged."
   "offline_history_source": "https://github.com/welct0407/MW-Credit-App/blob/6a3cf8cde2710a45b0368bc7f177f21bdab2693c/services/notifications/store.mjs"
   "offline_history_production_source": "https://github.com/welct0407/MW-Credit-App/blob/b77a1ef3d58c488a2113b97948aefe83945e84ec/services/production/business-runtime.mjs"
+  "subscription_privilege": "Device subscription, revoke and preference are read-capability actions; the store resolves the\
+    \ actor with capability read for every route (services/notifications/store.mjs). Accepted by the owner, 16 October 2026\
+    \ (APP-NOTIFY-01)."
 "evidence":
   "/content/offline_history":
-    "reference": "https://github.com/welct0407/MW-Credit-App/pull/6"
-    "reason": "Owner-authorized production offline parity candidate; final source/deployment pending."
+    "reference": "R063 Wave 3 app branch (claude/review-w3-app); owner decisions 16 October 2026; source read at the cited\
+      \ paths"
+    "reason": "APP-NOTIFY-01 privilege decision; ALL-ARCH-07 module path rename; APP-OFFLINE-06 protocol 1 retired"
     "state": "value"
   "/content/offline_history_source":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/6a3cf8cde2710a45b0368bc7f177f21bdab2693c/services/notifications/store.mjs"
@@ -77,4 +81,14 @@
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/b77a1ef3d58c488a2113b97948aefe83945e84ec/apps/pwa/src/read-cache.ts"
     "reason": "Pin corrected frozen R059 candidate after cache/draft restoration remediation; finalCI/artifacts/deployment\
       \ pending."
+    "state": "value"
+  "/content/contracts":
+    "reference": "R063 Wave 3 app branch (claude/review-w3-app); owner decisions 16 October 2026; source read at the cited\
+      \ paths"
+    "reason": "APP-NOTIFY-01 privilege decision; ALL-ARCH-07 module path rename; APP-OFFLINE-06 protocol 1 retired"
+    "state": "value"
+  "/content/subscription_privilege":
+    "reference": "R063 Wave 3 app branch (claude/review-w3-app); owner decisions 16 October 2026; source read at the cited\
+      \ paths"
+    "reason": "APP-NOTIFY-01 privilege decision; ALL-ARCH-07 module path rename; APP-OFFLINE-06 protocol 1 retired"
     "state": "value"

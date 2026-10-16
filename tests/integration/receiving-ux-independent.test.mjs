@@ -8,7 +8,7 @@ import {planApplicationRole,reconcileApplicationRole} from '../../scripts/databa
 import {attestDisposableApplicationTarget} from '../../services/payment-command/application-target.mjs';
 import {createApplicationRoleCommandStore} from '../../services/payment-command/store.mjs';
 import {canonicalCommand} from '../../services/contracts/payment-command.mjs';
-import {OWNER_EMAIL} from '../../services/api/dev-read-config.mjs';
+import {OWNER_EMAIL} from '../../services/lib/identity.mjs';
 let admin,app,store;const runtimeUser='mw_app_dev_receiving_ux_independent';
 const principal={ok:true,email:OWNER_EMAIL,subject:'receiving-ux-independent-owner'};
 before(async()=>{

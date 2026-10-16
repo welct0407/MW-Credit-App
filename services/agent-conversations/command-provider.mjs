@@ -1,6 +1,8 @@
 import {createEnvironmentCommandStore} from '../payment-command/store.mjs';
 import {wakeContext} from '../notifications/postcommit.mjs';
 import {resolveConversationActor} from './policy.mjs';
+import {statementTimeoutSql} from '../lib/budget.mjs';
+// Runs on the command service pool (query timeout 9 s): command statement budget (APP-PAY-03).
 
 const operations = new Set([
   'payment.create','payment.update-metadata','allocation.create','allocation.update','allocation.delete',
@@ -53,7 +55,7 @@ export function createConversationCommandProvider({pool,guardConnection,policy,a
         if(context.signal?.aborted)throw Error('request_aborted');
         client=await pool.connect();
         await client.query('BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY');
-        await client.query("SET LOCAL statement_timeout='10000ms'");
+        await client.query(statementTimeoutSql('command'));
         await guardConnection(client);
         const row=(await client.query('SELECT canonical_json FROM public.pwa_payment_commands WHERE request_id=$1 AND actor_issuer=$2 AND actor_subject=$3',
           [requestId,context.workload.issuer,context.workload.subject])).rows[0];

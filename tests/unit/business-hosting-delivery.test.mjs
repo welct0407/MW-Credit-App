@@ -66,9 +66,9 @@ test('R061 parity permits only frontend and tests; delivery-only correction cann
  const m={sourceCommit:source,artifactSourceCommit:source,sourceBaseline:baseline,repoRoot:path.resolve('.'),artifactRoot:path.resolve('dist'),deliveryToolSource:tool,deliveryToolChecks:{command:'node --test tests/unit/business-hosting-delivery.test.mjs',exitCode:0}};
  const git=({changed='apps/pwa/src/LoanRecord.tsx\ntests/e2e/back-consumers-independent.spec.ts',delivery='scripts/promotion/deploy-business-hosting.mjs',dirty='',untracked=''}={})=>(_root,args)=>args[0]==='rev-parse'?(args[1]==='HEAD'?tool:source):args[0]==='merge-base'?baseline:args[0]==='ls-files'?untracked:args.includes('--')?dirty:args[2]===baseline?changed:delivery;
  assert.doesNotThrow(()=>validateFrontendSource(m,git()));
- for(const changed of ['services/api/server.mjs','database/migrations/V092.sql','package-lock.json','infrastructure/prod/main.tf','.github/workflows/ci.yml','scripts/production/build-business-candidate.mjs'])assert.throws(()=>validateFrontendSource(m,git({changed})),/non-frontend/);
+ for(const changed of ['services/production/business-server.mjs','database/migrations/V092.sql','package-lock.json','infrastructure/prod/main.tf','.github/workflows/ci.yml','scripts/production/build-business-candidate.mjs'])assert.throws(()=>validateFrontendSource(m,git({changed})),/non-frontend/);
  assert.throws(()=>validateFrontendSource(m,git({delivery:'apps/pwa/src/LoanRecord.tsx'})),/delivery-only/);
- assert.throws(()=>validateFrontendSource(m,git({dirty:'services/api/server.mjs'})),/working/);
+ assert.throws(()=>validateFrontendSource(m,git({dirty:'services/production/business-server.mjs'})),/working/);
  assert.throws(()=>validateFrontendSource(m,git({untracked:'services/new.mjs'})),/untracked/);
  assert.throws(()=>validateFrontendSource({...m,sourceBaseline:source},git()),/baseline/);
 });
@@ -125,7 +125,7 @@ test('R062 source parity rejects runtime drift, changed migration scope and tool
  const {m,git}=await settingsFixture(t);assert.doesNotThrow(()=>validateSettingsSource(m,git));
  for(const changed of['services/business/borrowers.mjs','package-lock.json'])assert.throws(()=>validateSettingsSource(m,(root,args)=>args[0]==='diff'&&args[2]===m.build.sourceCommit?changed:git(root,args)),/input parity/);
  assert.throws(()=>validateSettingsSource(m,(root,args)=>args[0]==='diff'&&args[2]===m.sourceBaseline?'database/migrations/V92__editable_application_settings.sql\ndatabase/migrations/V93__unapproved.sql':git(root,args)),/only immutable/);
- assert.throws(()=>validateSettingsSource(m,(root,args)=>args[0]==='diff'&&!args.includes('--')?'services/api/server.mjs':git(root,args)),/delivery correction/);
+ assert.throws(()=>validateSettingsSource(m,(root,args)=>args[0]==='diff'&&!args.includes('--')?'services/production/business-server.mjs':git(root,args)),/delivery correction/);
  assert.throws(()=>validateSettingsSource(m,(root,args)=>args[0]==='ls-files'?'services/new.mjs':git(root,args)),/working input drift/);
 });
 

@@ -7,7 +7,7 @@ import {verifiedNativeDev} from '../../services/receipts/verified-native-dev.mjs
 import {sourceReceiptPath,createSourceReceiptReader,createSourceGcsReadTransport} from '../../services/receipts/source-receipts.mjs';
 import {decodeSourceReceipt} from '../../services/receipts/decode-image.mjs';
 import {DEV_RECEIPT_MAPPING} from '../../services/receipts/dev-receipt-adapter.mjs';
-import {DEV_INSTANCE} from '../../services/api/dev-read-config.mjs';
+import {INSTANCE_CONNECTION_NAME as DEV_INSTANCE} from '../../services/lib/identity.mjs';
 import {reconcileCapturedNative,privatePath} from '../../scripts/receipts/reconcile-native.mjs';
 const hash=value=>createHash('sha256').update(value).digest('hex');
 const reference='manual-receipts/dev/synthetic original.png',key=NATIVE_DEV_ROOT+'synthetic-exact-unrelated-key.png';

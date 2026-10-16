@@ -46,7 +46,7 @@ test('invalid active configuration stops before SDK, pool or storage constructio
 
 test('real SDK plus HTTP session rechecks current member, denies CORS/token errors before data and keeps logs private',async()=>{
  const s=await sdkFixture();let rows=[{id:member.partnerId,role:member.partnerRole}],queries=0,ended=0;const logs=[];
- const pool={async connect(){return{async query(sql){queries++;if(sql.includes('pg_roles')||sql.startsWith('SELECT current_database'))return{rows:[{database:env.DB_NAME,principal:env.DB_USER,session:env.DB_USER,rolcanlogin:true,rolsuper:false,rolcreatedb:false,rolcreaterole:false,rolreplication:false,rolbypassrls:false,member:false,dev_member:false,owner_member:false,creator_member:false}]};if(sql.includes('FROM public."Partners"'))return{rows};return{rows:[]};},release(){}};},async end(){ended++;}};
+ const pool={async connect(){return{async query(sql){queries++;if(sql.includes('pg_roles')||sql.startsWith('SELECT current_database'))return{rows:[{database:env.DB_NAME,principal:env.DB_USER,session:env.DB_USER,rolcanlogin:true,rolsuper:false,rolcreatedb:false,rolcreaterole:false,rolreplication:false,rolbypassrls:false,member:false,foreign_member:false,owner_member:false,creator_member:false}]};if(sql.includes('FROM public."Partners"'))return{rows};return{rows:[]};},release(){}};},async end(){ended++;}};
  const runtime=await createProductionBusinessRuntime(env,{initializeApp:()=>({}),applicationDefault:()=>({}),getAuth:()=>s.auth,createPool:async()=>pool,completionLogger:v=>logs.push(v)});
  const server=http.createServer(runtime.handler);await new Promise(r=>server.listen(0,'127.0.0.1',r));
  const base=`http://127.0.0.1:${server.address().port}`;
