@@ -494,7 +494,8 @@ class DryRunTests(unittest.TestCase):
         self.assertEqual(report['units']['files'], {n: 'missing-on-host' if n == MISSING_UNIT else 'unchanged' for n in deploy.UNIT_FILES})
         report = self.dry('f' * 40)
         self.assertEqual((report['checkout']['commit_in_checkout'], report['installed_vs_commit']), (False, 'commit not in checkout'))
-        self.assertEqual(report['units']['compared_with'], 'checkout (commit not in checkout)')
+        self.assertEqual(report['units']['compared_with'], 'not compared (commit not in checkout)')
+        self.assertEqual(set(report['units']['files'].values()), {'unknown'})
 
     def test_dry_run_reports_unreadable_items(self):
         (self.host.private / 'config.json').unlink(); (self.host.private / 'config.json').mkdir()

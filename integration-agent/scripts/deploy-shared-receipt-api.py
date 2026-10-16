@@ -408,9 +408,12 @@ def dry_run(commit):
         wanted = (subprocess.check_output(git('show', commit + ':integration-agent/systemd/' + name)) if from_commit
                   else (REPO / 'systemd' / name).read_bytes())
         return 'unchanged' if host == wanted else 'changed'
+    # Without the commit there is nothing to compare: say so instead of comparing with an unrelated checkout.
+    comparable = from_commit or head == commit
     report['units'] = {'compared_with': 'commit' if from_commit else
-                       'checkout' if head == commit else 'checkout (commit not in checkout)',
-                       'files': {name: attempt(lambda name=name: unit(name)) for name in UNIT_FILES}}
+                       'checkout' if head == commit else 'not compared (commit not in checkout)',
+                       'files': {name: attempt(lambda name=name: unit(name)) if comparable else 'unknown'
+                                 for name in UNIT_FILES}}
     timers = {u + '.timer': attempt(lambda u=u: active(u + '.timer')) for u in UNITS}
     report['timers_to_pause_and_resume'] = [t for t, state in timers.items() if state == 'active']
     report['timers_unreadable'] = [t for t, state in timers.items() if state == 'unreadable']
