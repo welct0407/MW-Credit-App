@@ -1,5 +1,12 @@
 [CmdletBinding()]
-param()
+param(
+    # One entry point for local pre-push verification and GitHub Actions.
+    # Without -Group every stage runs in sequence, as before. GitHub Actions
+    # runs the four groups as parallel jobs; each group owns its own disposable
+    # clusters, so the groups share no state.
+    [ValidateSet('all','migrations','receiving','phase5','phase8')]
+    [string]$Group = 'all'
+)
 $ErrorActionPreference = 'Stop'
 if (-not $IsWindows) {
     & python3 "$PSScriptRoot/Test-MigrationsCloud.py"
@@ -14,7 +21,9 @@ if (-not $IsWindows) {
     if ($LASTEXITCODE) { throw 'Legacy default repayment upgrade checks failed' }
     return
 }
-# One entry point for local pre-push verification and GitHub Actions.
+function Test-Selected([string]$Name) { $Group -eq 'all' -or $Group -eq $Name }
+
+if (Test-Selected 'migrations') {
 # Test-Migrations creates and stops its own loopback-only disposable PostgreSQL.
 & "$PSScriptRoot/Test-Migrations.ps1" -TestSqlFile scripts/database/Test-StatementBatch.sql -BusinessExpensesConcurrency -ExpenseReimbursementConcurrency -PaymentCrudConcurrency -ReceiptDeleteConcurrency -InterestReallocationConcurrency -CorePaymentConcurrency -AtomicLoanCloseConcurrency -ChargeGenerationConcurrency -DefaultLoanConcurrency
 
@@ -25,7 +34,9 @@ if (-not $IsWindows) {
 & "$PSScriptRoot/Test-Migrations.ps1" -PreMigrationTarget 68 -PreMigrationSqlFile scripts/database/Test-DefaultChargeBeforeV69.sql -TestSqlFile scripts/database/Test-DefaultChargeUpgrade.sql
 
 & "$PSScriptRoot/Test-Migrations.ps1" -PreMigrationTarget 69 -PreMigrationSqlFile scripts/database/Test-DefaultRepaymentBeforeV70.sql -TestSqlFile scripts/database/Test-DefaultRepaymentUpgrade.sql
+}
 
+if (Test-Selected 'receiving') {
 # Phase 4 receiving and true nonsuperuser maintenance proof use separate owned clusters.
 & "$PSScriptRoot/../../tests/integration/Run-PaymentPhase4.ps1"
 if($LASTEXITCODE){throw 'Phase 4 receiving integration checks failed'}
@@ -37,7 +48,9 @@ if($LASTEXITCODE){throw 'Existing-package operator failure cleanup proof failed'
 # Unified amount-first PWA and preserved legacy routes use an owned disposable cluster.
 & "$PSScriptRoot/../../tests/integration/Run-UnifiedReceiving.ps1"
 if($LASTEXITCODE){throw 'Unified receiving integration checks failed'}
+}
 
+if (Test-Selected 'phase5') {
 # Phase 5 reuses the maintained borrower and populated-journal upgrade fixtures.
 & "$PSScriptRoot/../../tests/integration/Run-Phase5.ps1"
 if($LASTEXITCODE){throw 'Phase 5 borrower integration checks failed'}
@@ -51,7 +64,9 @@ if($LASTEXITCODE){throw 'Phase 5 populated anchor compatibility checks failed'}
 if($LASTEXITCODE){throw 'Phase 6 management integration checks failed'}
 & "$PSScriptRoot/../../tests/integration/Run-Phase5.ps1" -SettingsOnly
 if($LASTEXITCODE){throw 'V92 editable settings integration checks failed'}
+}
 
+if (Test-Selected 'phase8') {
 # R053 covers request-driven push, V89 agent RPCs and true three-owner restoration.
 & "$PSScriptRoot/../../tests/integration/Run-Phase8.ps1" -R053
 if($LASTEXITCODE){throw 'R053 notification/jobs and agent receipt RPC checks failed'}
@@ -63,3 +78,4 @@ if($LASTEXITCODE){throw 'R053 native read column/type/ACL checks failed'}
 if ($LASTEXITCODE) { throw "R053 DEV operator proof failed" }
 & "$PSScriptRoot/../../tests/integration/Run-R053OperatorIndependent.ps1" -Production -AgentReceipts
 if($LASTEXITCODE){throw 'R053 nonsuperuser operator/restoration checks failed'}
+}

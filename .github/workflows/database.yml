@@ -1,17 +1,21 @@
 name: Database migrations
+# Push-only trigger: a branch push and its pull request share the head commit,
+# so one run serves both (the check appears on the PR). Release tags reuse the
+# tested commit; avoid duplicate tag runs.
 on:
   push:
-    branches: ['**'] # Release tags reuse the tested commit; avoid duplicate tag runs.
-    paths: ['database/**', 'scripts/database/**', 'tests/integration/**', 'scripts/rehearsal/Run-ApplicationRoleOperatorProof.ps1', '.github/workflows/database.yml', 'scripts/analysis/**', 'scripts/dictionary/capture_postgresql.py', 'outputs/database-transfer-20261007/source-manifest.json']
-  pull_request:
+    branches: ['**']
     paths: ['database/**', 'scripts/database/**', 'tests/integration/**', 'scripts/rehearsal/Run-ApplicationRoleOperatorProof.ps1', '.github/workflows/database.yml', 'scripts/analysis/**', 'scripts/dictionary/capture_postgresql.py', 'outputs/database-transfer-20261007/source-manifest.json']
   workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: database-migrations-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 jobs:
-  rebuild:
-    runs-on: windows-latest
-    timeout-minutes: 20
+  guards:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
@@ -20,18 +24,41 @@ jobs:
       - name: Reject modifications to existing migrations
         shell: pwsh
         env:
-          BASE_COMMIT: ${{ github.event.pull_request.base.sha || github.event.before }}
+          BASE_COMMIT: ${{ github.event.before }}
         run: |
-          if ($env:BASE_COMMIT -and $env:BASE_COMMIT -notmatch '^0+$') {
+          if ($env:BASE_COMMIT -and $env:BASE_COMMIT -notmatch '^0+$' -and (git cat-file -e "$env:BASE_COMMIT^{commit}" 2>$null; $LASTEXITCODE -eq 0)) {
             $changes = @(git diff --name-status --no-renames $env:BASE_COMMIT HEAD -- database/migrations)
             if ($LASTEXITCODE) { throw 'Cannot inspect migration history' }
             if (@($changes | Where-Object { $_ -notmatch '^A\s' }).Count) {
               throw 'Existing migrations are immutable; add a new version'
             }
-          }
+          } else { Write-Host 'No reachable base commit (new branch or force update); immutability is enforced by the manifest and checksum checks' }
       - name: Verify transferred migration bytes
-        shell: pwsh
-        run: python scripts/database/Verify-TransferredMigrations.py
+        run: python3 scripts/database/Verify-TransferredMigrations.py
+      - name: Runner guards
+        run: python3 -m unittest discover -s scripts/database -p "test_*.py"
+
+  rebuild:
+    # The four groups of scripts/database/Test-CI.ps1 each own disposable
+    # clusters, so they run as parallel jobs instead of one 9 minute sequence.
+    runs-on: windows-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        group: [migrations, receiving, phase5, phase8]
+    name: rebuild (${{ matrix.group }})
+    env:
+      MW_DB_TOOL_ROOT: ${{ runner.temp }}\db-tools
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Cache pinned Flyway and PostgreSQL tools
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.MW_DB_TOOL_ROOT }}
+          key: db-tools-windows-${{ hashFiles('database/toolchain.json', 'scripts/database/Install-Tools.ps1', 'scripts/database/Common.ps1') }}
       - name: Install pinned tools outside checkout
         shell: pwsh
         run: ./scripts/database/Install-Tools.ps1
@@ -43,10 +70,4 @@ jobs:
         run: npm ci
       - name: Rebuild and validate disposable database
         shell: pwsh
-        run: ./scripts/database/Test-CI.ps1
-
-  runner-guards:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
-      - run: python3 -m unittest discover -s scripts/database -p "test_*.py"
+        run: ./scripts/database/Test-CI.ps1 -Group ${{ matrix.group }}

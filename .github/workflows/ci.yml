@@ -1,19 +1,58 @@
 name: Development checks
+# One workflow, four stages. A small `changes` job classifies the event so a
+# documentation-only pull request still posts the `Development checks result`
+# status (this is what branch protection can require) without running the
+# expensive stages. Main pushes and manual dispatch run everything.
 on:
   push:
     branches: [main]
-    paths-ignore: ['project/**', 'integration-agent/**', 'Change Logs/**', '**.md']
   pull_request:
-    types: [opened, synchronize, reopened, labeled]
-    paths-ignore: ['project/**', 'integration-agent/**', 'Change Logs/**', '**.md']
+    types: [opened, synchronize, reopened]
   workflow_dispatch:
 permissions:
   contents: read
+  pull-requests: read
+concurrency:
+  group: development-checks-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
-  test:
+  changes:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      app: ${{ steps.classify.outputs.app }}
+      e2e: ${{ steps.classify.outputs.e2e }}
+      terraform: ${{ steps.classify.outputs.terraform }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Classify changed files
+        id: classify
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" != "pull_request" ]; then
+            echo "app=true" >> "$GITHUB_OUTPUT"; echo "e2e=true" >> "$GITHUB_OUTPUT"; echo "terraform=true" >> "$GITHUB_OUTPUT"
+            echo "Non-PR event: run every stage"; exit 0
+          fi
+          gh api --paginate "repos/${{ github.repository }}/pulls/${PR_NUMBER}/files" --jq '.[].filename' > changed.txt
+          # Documentation, project records and the integration agent have their own checks.
+          grep -Ev '^(project/|integration-agent/|Change Logs/)|\.md$' changed.txt > app.txt || true
+          app=false; e2e=false; terraform=false
+          if [ -s app.txt ]; then app=true; fi
+          if grep -Eq '^(apps/pwa/|tests/e2e/|playwright\.config\.ts$|package(-lock)?\.json$|vite\.config\.ts$|tsconfig\.json$|index\.html$|\.nvmrc$|\.github/workflows/ci\.yml$)' app.txt; then e2e=true; fi
+          if grep -Eq '^(infrastructure/|\.github/workflows/ci\.yml$)' app.txt; then terraform=true; fi
+          echo "app=$app" >> "$GITHUB_OUTPUT"; echo "e2e=$e2e" >> "$GITHUB_OUTPUT"; echo "terraform=$terraform" >> "$GITHUB_OUTPUT"
+          printf 'changed=%s app=%s e2e=%s terraform=%s\n' "$(wc -l < changed.txt)" "$app" "$e2e" "$terraform"
+
+  check:
+    needs: changes
+    if: needs.changes.outputs.app == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with: { persist-credentials: false }
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
@@ -22,10 +61,15 @@ jobs:
       - run: npm run check
       - run: npm run build:live-dev
       - run: npm audit --omit=dev --audit-level=moderate
-      - run: npx playwright install --with-deps chromium
-        if: ${{ github.event_name != 'pull_request' || (github.event.action == 'labeled' && github.event.label.name == 'ci:checkpoint') }}
-      - run: npm run test:e2e
-        if: ${{ github.event_name != 'pull_request' || (github.event.action == 'labeled' && github.event.label.name == 'ci:checkpoint') }}
+
+  terraform:
+    needs: changes
+    if: needs.changes.outputs.terraform == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with: { persist-credentials: false }
       - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.16.5
@@ -34,3 +78,51 @@ jobs:
       - run: terraform -chdir=infrastructure/dev validate
       - run: terraform -chdir=infrastructure/dev-dns init -backend=false
       - run: terraform -chdir=infrastructure/dev-dns validate
+
+  e2e:
+    needs: changes
+    if: needs.changes.outputs.e2e == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
+    name: e2e (shard ${{ matrix.shard }} of 3)
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with: { persist-credentials: false }
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      # The canonical and static specs serve the live-dev build from dist-live-dev.
+      - run: npx vite build --mode live-dev
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test --shard=${{ matrix.shard }}/3
+      - name: Keep traces and report for failed or flaky tests
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-shard-${{ matrix.shard }}
+          path: |
+            test-results/
+            playwright-report/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  result:
+    # Single status for branch protection: fails when any selected stage failed
+    # or was cancelled, passes when stages were skipped as not applicable.
+    name: Development checks result
+    needs: [changes, check, terraform, e2e]
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - run: |
+          echo "changes=${{ needs.changes.result }} check=${{ needs.check.result }} terraform=${{ needs.terraform.result }} e2e=${{ needs.e2e.result }}"
+          case "${{ needs.changes.result }} ${{ needs.check.result }} ${{ needs.terraform.result }} ${{ needs.e2e.result }}" in
+            *failure*|*cancelled*) echo 'A selected stage failed'; exit 1 ;;
+          esac

@@ -238,8 +238,8 @@ Source inspected **14 October 2026**. This policy changes no product workflow or
 
 | Tool | Actual constraint |
 | --- | --- |
-| App `ci.yml` | Main pushes/manual dispatch run broad checks including E2E; PR E2E executes only on the `ci:checkpoint` label event, not later synchronize events with the label still present. Since 15 October 2026 pushes/PRs touching only `project/**`, `integration-agent/**`, `Change Logs/**` or Markdown skip it (`paths-ignore`; `main` has no required checks, so skipped runs block nothing). |
-| `database.yml` | Path-filtered, but push and PR events can duplicate checks and database documentation paths also trigger it. |
+| App `ci.yml` | Since 16 October 2026 a `changes` job routes each run: PRs run typecheck/unit/build when app files change, Terraform validation when `infrastructure/**` changes, and the full Playwright suite (three parallel shards, one CI retry with trace, artifacts kept 7 days) when the PWA, specs, Playwright/Vite config or lockfile change. Main pushes and manual dispatch run every stage. Documentation-only PRs post the `Development checks result` status without running stages, so that status can be made required on `main`. The `ci:checkpoint` label is retired. |
+| `database.yml` | Push-only trigger (one run per head commit, visible on the PR); `guards` on Linux, then the four `Test-CI.ps1` groups as parallel Windows jobs with the Flyway/PostgreSQL toolchain cached. Database documentation paths still trigger it. |
 | `deploy-dev.yml` | Manual main-only original API deployment; repeats checks and does not publish Hosting. It is not the complete PWA release route. |
 | `agent-tests.yml` | Integration agent tests (formerly the agent repository's `ci.yml`); path-filtered to `integration-agent/**`. |
 | `grafana-mcp-bridge.yml` | Path-filtered to `project/scripts/monitoring/...`. |
