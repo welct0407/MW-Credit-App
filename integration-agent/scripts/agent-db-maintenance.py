@@ -30,7 +30,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 import uuid
-from datetime import datetime, UTC
+from datetime import datetime, timedelta, UTC
 from pathlib import Path
 
 import psycopg
@@ -330,15 +330,85 @@ def record(conn, args, run_id, summary):
     return str(operation)
 
 
+ARCHIVE_KEYS = {'audit.operations': 'operation_id', 'audit.events': 'event_id',
+                'runtime.operation_state': 'operation_id', 'runtime.job_runs': 'run_id'}
+
+
+def load_archive(directory, args):
+    """Resume support: a verified earlier export (local copy of a GCS archive) instead of a second export."""
+    manifest = json.loads((directory / 'manifest.json').read_text())
+    if manifest.get('format') != 'mw-agent-audit-archive-v1' or manifest.get('database') != 'mw_agent' \
+            or manifest.get('environment') != args.expect_environment or set(manifest['files']) != {f'{t}.jsonl.gz' for t in ARCHIVE_KEYS}:
+        raise SystemExit('resume manifest does not match this database/environment/format')
+    for name, meta in manifest['files'].items():
+        if hashlib.sha256((directory / name).read_bytes()).hexdigest() != meta['sha256'] or not meta.get('verified'):
+            raise SystemExit(f'resume archive file {name} differs from its verified manifest entry')
+    cutoff = datetime.fromisoformat(manifest['cutoff'])
+    if cutoff > datetime.now(UTC) - timedelta(days=MIN_DAYS):
+        raise SystemExit(f'resume cutoff is newer than {MIN_DAYS} days')
+    return manifest, cutoff
+
+
+def verify_archived(conn, directory, manifest):
+    """Every row the current plan would delete must already be in the resumed archive."""
+    missing = {}
+    for table, key in ARCHIVE_KEYS.items():
+        temp = 'arch_' + table.split('.')[1]
+        conn.execute(sql.SQL('CREATE TEMP TABLE {} ({} uuid PRIMARY KEY) ON COMMIT PRESERVE ROWS').format(
+            sql.Identifier(temp), sql.Identifier(key)))
+        rows = 0
+        with gzip.open(directory / f'{table}.jsonl.gz', 'rt') as lines, conn.cursor().copy(
+                sql.SQL('COPY {} ({}) FROM STDIN').format(sql.Identifier(temp), sql.Identifier(key))) as copy:
+            for line in lines:
+                copy.write_row((json.loads(line)[key],))
+                rows += 1
+        if rows != manifest['files'][f'{table}.jsonl.gz']['rows']:
+            raise SystemExit(f'resume archive {table} row count differs from its manifest')
+        conn.execute(sql.SQL('ANALYZE {}').format(sql.Identifier(temp)))
+    checks = {'audit.operations': ('rt_tree', 'operation_id', 'arch_operations'),
+              'runtime.operation_state': ('rt_tree', 'operation_id', 'arch_operation_state'),
+              'audit.events': ('rt_events', 'event_id', 'arch_events'),
+              'runtime.job_runs': ('rt_runs', 'run_id', 'arch_job_runs')}
+    for table, (keyset, key, temp) in checks.items():
+        schema, name = table.split('.')
+        missing[table] = conn.execute(sql.SQL(
+            'SELECT count(*) FROM {t} x WHERE x.{k} IN (SELECT {k} FROM pg_temp.{s}) '
+            'AND NOT EXISTS (SELECT 1 FROM pg_temp.{a} a WHERE a.{k}=x.{k})').format(
+            t=sql.Identifier(schema, name), k=sql.Identifier(key), s=sql.Identifier(keyset), a=sql.Identifier(temp))).fetchone()[0]
+    if any(missing.values()):
+        raise SystemExit(f'rows planned for deletion are missing from the resumed archive: {missing}')
+    return missing
+
+
 def audit_retention(conn, args):
     if args.older_than_days < MIN_DAYS:
         raise SystemExit(f'--older-than-days must be >= {MIN_DAYS}')
     if args.archive.startswith('local:') and args.expect_environment == 'production':
         raise SystemExit('production exports go to GCS only')
-    cutoff = conn.execute('SELECT now() - make_interval(days=>%s)', (args.older_than_days,)).fetchone()[0]
+    resume = None
+    if args.resume_run:
+        if not args.apply or args.export:
+            raise SystemExit('--resume-run deletes from an earlier verified export; use it with --apply only')
+        directory = private_path(args.resume_run, 'resume run directory')
+        resume, cutoff = load_archive(directory, args)
+    else:
+        cutoff = conn.execute('SELECT now() - make_interval(days=>%s)', (args.older_than_days,)).fetchone()[0]
     started = time.monotonic()
     report = {'database_bytes': database_bytes(conn), **plan(conn, cutoff)}
     report['plan_seconds'] = round(time.monotonic() - started, 2)
+    if resume is not None:
+        if not report['eligible_roots']:
+            report['applied'] = False
+            return report
+        began = time.monotonic()
+        verify_archived(conn, directory, resume)
+        run_id = uuid.UUID(resume['run_id'])
+        data = (directory / 'manifest.json').read_bytes()
+        script_sha256 = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
+        report.update(resumed_run=str(run_id), archive_check_seconds=round(time.monotonic() - began, 2), run_id=str(run_id),
+                      local_directory=str(directory), manifest_sha256=hashlib.sha256(data).hexdigest(),
+                      manifest_object=f'{ARCHIVE_PREFIX}{resume["created_at"][:7]}/{run_id}/manifest.json')
+        return delete_and_record(conn, args, report, cutoff, run_id, script_sha256, directory)
     if not (args.export or args.apply) or not report['eligible_roots']:
         report['applied'] = False
         return report
@@ -374,6 +444,10 @@ def audit_retention(conn, args):
     if not args.apply:
         report['applied'] = False
         return report
+    return delete_and_record(conn, args, report, cutoff, run_id, script_sha256, directory)
+
+
+def delete_and_record(conn, args, report, cutoff, run_id, script_sha256, directory):
     created = []
     if not args.purge_function:  # V5 made the indexes permanent; the retention role cannot create indexes anyway
         began = time.monotonic()
@@ -422,6 +496,8 @@ def main(argv=None):
     r.add_argument('--readback', action='store_true', help='also GET each object and compare sha256 (needs objects.get)')
     r.add_argument('--actor', default='operator', help='operator identity recorded on the CONFIG operation')
     r.add_argument('--discard-local', action='store_true', help='remove the local export once the delete has committed')
+    r.add_argument('--resume-run', help='private local directory of an earlier verified export (with its manifest.json): '
+                   'replan with that export\'s cutoff, prove every planned row is in it, then delete without exporting again')
     r.add_argument('--purge-function', action='store_true',
                    help='SET ROLE mw_agent_retention and delete through audit.purge_routine_trees() (V5) instead of as the owner')
     args = p.parse_args(argv)

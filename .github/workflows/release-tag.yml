@@ -1,0 +1,87 @@
+name: Release tag
+# Creates the final annotated Rnnn evidence tag for a verified release
+# (Release_Workflow.md "Close once"). Cloud sessions cannot push tags, so they
+# start this workflow instead. Manual only. It never moves or deletes a
+# release tag: an existing tag name is refused, and the target must be a
+# commit on main.
+#
+# Needs the repository secret RELEASE_TAG_TOKEN: a fine-grained token for this
+# repository only, with Contents and Workflows read/write. The built-in
+# GITHUB_TOKEN cannot be given the Workflows permission, and GitHub refuses a
+# tag on an older commit whose workflow files differ from main without it.
+#
+# check_only=true proves the token works without creating a release tag: it
+# creates a throwaway tag "tag-check-<run id>" on the given commit, then
+# deletes it.
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to create, for example R064 (ignored when check_only is true)
+        required: false
+        type: string
+      commit:
+        description: Full 40-character SHA of the deployed main commit
+        required: true
+        type: string
+      message:
+        description: Tag message (release pins and verification time; ignored when check_only is true)
+        required: false
+        type: string
+      check_only:
+        description: Only prove the token can create and delete a tag
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-tag
+  cancel-in-progress: false
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require the release tag token
+        env:
+          RELEASE_TAG_TOKEN: ${{ secrets.RELEASE_TAG_TOKEN }}
+        run: |
+          [ -n "$RELEASE_TAG_TOKEN" ] || { echo "::error::Repository secret RELEASE_TAG_TOKEN is not set"; exit 1; }
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.RELEASE_TAG_TOKEN }}
+      - name: Validate and create the tag
+        env:
+          TAG: ${{ inputs.tag }}
+          COMMIT: ${{ inputs.commit }}
+          MESSAGE: ${{ inputs.message }}
+          CHECK_ONLY: ${{ inputs.check_only }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          [[ "$COMMIT" =~ ^[0-9a-f]{40}$ ]] || { echo "::error::Commit must be a full 40-character SHA"; exit 1; }
+          git cat-file -e "$COMMIT^{commit}" || { echo "::error::Commit $COMMIT not found"; exit 1; }
+          git merge-base --is-ancestor "$COMMIT" origin/main || { echo "::error::Commit $COMMIT is not on main"; exit 1; }
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [ "$CHECK_ONLY" = "true" ]; then
+            probe="tag-check-$RUN_ID"
+            git tag -a "$probe" "$COMMIT" -m "Release tag workflow token check"
+            git push origin "refs/tags/$probe"
+            git push origin --delete "refs/tags/$probe"
+            echo "Token check passed: created and deleted $probe at $COMMIT"
+            exit 0
+          fi
+          [[ "$TAG" =~ ^R[0-9]{3}$ ]] || { echo "::error::Tag must look like R064"; exit 1; }
+          [[ -n "${MESSAGE//[[:space:]]/}" ]] || { echo "::error::Tag message is empty"; exit 1; }
+          if git ls-remote --exit-code --tags origin "refs/tags/$TAG" >/dev/null; then
+            echo "::error::Tag $TAG already exists; release tags are never moved"; exit 1
+          fi
+          git tag -a "$TAG" "$COMMIT" -m "$MESSAGE"
+          git push origin "refs/tags/$TAG"
+          echo "Created $TAG at $COMMIT"
