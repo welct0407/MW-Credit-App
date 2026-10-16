@@ -235,6 +235,12 @@ test('R064 package validates and rejects plan, SQL, CI, readback and artifact ta
  const prepared={...structuredClone(m),status:'prepared'};await assert.rejects(waveHostingPlan(prepared,{git}),/apply\/readback/);assert.equal((await waveHostingPlan(prepared,{git,requireApplied:false})).site,site);
  await assert.rejects(runtimeHostingPlan(m,{git}),/package kind/);
 });
+test('R064 sync correction plan adds only command scaling and read/command startup boost',async t=>{
+ const {m,source,tool}=await wavePackage(t),git=waveGit({source,tool});
+ m.plan.actions=['read.image','command.image','notify.image','jobs.image','command.maxInstances','read.startupCpuBoost','command.startupCpuBoost'];
+ assert.equal((await waveHostingPlan(m,{git})).site,site);
+ for(const mutate of [x=>x.plan.actions.push('notify.startupCpuBoost'),x=>x.plan.actions.splice(4,1),x=>x.plan.actions.reverse(),x=>{x.plan.counts.change=5}]){const candidate=structuredClone(m);mutate(candidate);await assert.rejects(waveHostingPlan(candidate,{git}),/four-image plan/);}
+});
 test('R064 source carries only V93; CI must be an equivalent ancestor or the delivery-only tool commit',async t=>{
  const {m,source,tool,ci}=await wavePackage(t);
  assert.doesNotThrow(()=>validateWaveSource(m,waveGit({source,tool,delivery:'scripts/promotion/deploy-business-hosting.mjs\ntests/unit/business-hosting-delivery.test.mjs'})));

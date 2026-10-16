@@ -253,8 +253,11 @@ export async function verifyRuntimeLivePackage(m,{token,request=fetch,readGithub
 }
 
 // R064 (Wave 4): one image for reader/command/notify/jobs after the separately applied and
-// verified V93; image-only plan (the R063 caller subjects stay as they are).
+// verified V93; image-only plan (the R063 caller subjects stay as they are). The R064 sync
+// correction adds only the reviewed command scaling and read/command startup CPU boost.
 const waveBaseline='37f62121e9b04a163ebfa014e3240841b46d9a96';
+const waveImageActions=['read.image','command.image','notify.image','jobs.image'];
+const waveSyncActions=[...waveImageActions,'command.maxInstances','read.startupCpuBoost','command.startupCpuBoost'];
 const waveMigration='database/migrations/V93__review_wave4_hygiene.sql';
 export function validateWaveSource(m,git=sourceGit){
  requireValue(/^[a-f0-9]{40}$/.test(m.sourceCommit??'')&&m.artifactSourceCommit===m.sourceCommit&&m.sourceBaseline===waveBaseline,'exact R064 source/baseline required');
@@ -290,7 +293,7 @@ export async function waveHostingPlan(m,{requireApplied=true,git=sourceGit}={}){
  requireValue(m.sql?.baselineVersion===93&&m.sql.targetVersion===93&&exact(m.sql.migrations,[])&&v?.database==='loan_manager_prod'&&v.latestVersion==='93'&&v.allSuccessful===true&&typeof v.verifiedAt==='string'&&v.verifiedAt.endsWith('Z')&&Number.isFinite(Date.parse(v.verifiedAt)),'R064 requires verified V93 with no further migration');
  validateWaveCi(m.applicationCi,m,git);
  requireValue(m.build?.sourceCommit===m.sourceCommit&&m.build.status==='SUCCESS'&&imagePattern.test(m.build.image??'')&&typeof m.build.id==='string'&&m.build.id.length>0,'R064 PROD image provenance required');
- requireValue(/^[a-f0-9]{64}$/.test(m.plan?.sha256??'')&&path.isAbsolute(m.plan.path??'')&&exact(m.plan.counts,{add:0,change:4,destroy:0})&&exact(m.plan.actions,['read.image','command.image','notify.image','jobs.image']),'R064 reviewed four-image plan required');
+ requireValue(/^[a-f0-9]{64}$/.test(m.plan?.sha256??'')&&path.isAbsolute(m.plan.path??'')&&exact(m.plan.counts,{add:0,change:4,destroy:0})&&(exact(m.plan.actions,waveImageActions)||exact(m.plan.actions,waveSyncActions)),'R064 reviewed four-image plan required');
  const recovery=m.rollback;
  requireValue(/^sites\/mw-credit-prod-737787224638\/versions\/[A-Za-z0-9_-]+$/.test(recovery?.hostingVersion??'')&&/^sites\/mw-credit-prod-737787224638\/releases\/[0-9]+$/.test(recovery?.hostingRelease??''),'Hosting recovery pins required');
  for(const role of runtimeRoles)requireValue(imagePattern.test(recovery?.services?.[role]?.image??'')&&new RegExp('^mw-credit-app-'+role+'-prod-[0-9]+-[a-z0-9]+$').test(recovery.services[role].revision??''),'service recovery pin required');
