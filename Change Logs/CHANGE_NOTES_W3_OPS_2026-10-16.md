@@ -8,7 +8,7 @@ Wave 3 operations work for the independent review, on branch `claude/review-w3-o
 
 The orchestrator relayed both instructions verbatim, at about 08:30 and 08:44 UTC: "Variant 1 for the tunnel; delete the key; revoke DELETE only", then "1 go + retire, 2 go, 3–6 as recommended".
 
-- DB-ACCESS-01 PROD: go. Revoke DELETE only; `LOGIN` stays (no `NOLOGIN`). Retire the reviewer DELETE catalogue path.
+- DB-ACCESS-01 PROD: go. Revoke DELETE only; `LOGIN` stays (no `NOLOGIN`). Retire the reviewer DELETE catalogue path (done on the agent branch: `reviewer_delete_enabled` is refused, `configure-reviewer-dml.py` and `business-grants.sql` grant DELETE only on "Cash Ledger"; the native command-API delete gets its own switch).
 - DB-ACCESS-03 PROD: go for CONNECT on `loan_manager_prod` and `mw_agent` for `codex-cloud-read`.
 - DB-ACCESS-05: keeping `mw-credit-app-read-dev` is confirmed.
 - ALL-ARCH-03: the two password roles (`mw_reviewer_dml`, `mw_receipt_projector`) stay until W4. Accepted.
@@ -150,6 +150,6 @@ GRANT CONNECT ON DATABASE mw_agent, loan_manager_prod TO "mw-integration-agent@c
 - The `lab` job goes green after the agent branch merges. Merge order: agent branch before or with this one.
 - Regenerate `package-lock.json` on merge with the app branch (`npm install --package-lock-only`).
 - `tests/integration/agent-native-operation-independent.test.mjs` has a one-line pwsh fix; the app branch does not change that file. `tests/integration/Run-Phase5.ps1` carries the same one-line addition as the app branch (merges cleanly). `Run-Phase5.ps1 -ManagementOnly` lists `business-money-reads-independent.test.mjs`, which warns and skips until the app branch merges.
-- Retire the reviewer DELETE catalogue path (`reviewer_delete_enabled` and the DELETE entries; owner "retire"). This is agent-branch work.
 - A future DEV reviewer target (W4, `mw_reviewer_dml_dev`) must be granted DELETE on `"Cash Ledger"` for the `zz_cash_source` trigger. The nine DEV revokes from `mw_reviewer_dml` stay as they are.
+- Proposed W4 item: make `sync_cash_ledger()` `SECURITY DEFINER` (owned by a ledger-owner role, pinned `search_path`) so callers no longer need DELETE on `"Cash Ledger"`; then revoke direct ledger writes from `mw_reviewer_dml` and the app roles and assert it in `Test-AccessMatrix.sql`. Needs a migration, so it waits for W4 authorization.
 - ALL-ARCH-03 grants with the agent deploy (Prepared above). DB-ACCESS-06 with the next migration that touches those functions. ALL-ARCH-04 after W4.
