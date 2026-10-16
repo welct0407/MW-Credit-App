@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Make the webhook receiver report when it is ready and give the agent one safe deploy route that restarts the receiver and waits for readiness before workers resume. Code commits `776a1f2` and `a141e06` on branch `claude/review-w2-agent`, branched from `main` `9cab7d1`. Source only: no deploy, restart, timer change, migration or grant.
+Make the webhook receiver report when it is ready and give the agent one safe deploy route that restarts the receiver and waits for readiness before workers resume. Code commits `776a1f2` and `a141e06` on branch `claude/review-w2-agent`, branched from `main` `9cab7d1`. Merged to `main` as `5d39db6` (PR #27) and deployed to the Debian host on 16 October 2026 on owner instruction. No migration or grant.
 
 ## Changes
 
@@ -22,7 +22,7 @@ Package commit `a141e0610ab5b41cbcb0a82c32072e8ea0c319b7` (code `776a1f2`, dry-r
 - **AGT-R063-05** (`server.py`): `serve()` imports `audit`, `conversation_api`, `receipt_api`, `receipt_storage`, `state` (and `psycopg` on PostgreSQL) before `serve_forever`, so a later package replacement cannot mix versions in the running receiver.
 - **Docs**: `docs/OPERATIONS.md` (single deploy route, `/ready`), `SERVICE_CATALOGUE.md` (note only), `project/Documents/Development_Changes.md`, `project/Documents/Environment_Inventory.md`. `service-catalogue.json` is unchanged on purpose: a new key or revision would make `deploy-runtime.py` refuse.
 
-Host readback (16 October 2026, read-only): the receiver `mw-instagram-webhook` has been active since 2026-10-14 18:43:32 +07 with NRestarts=0; `/health` 200, `/ready` 404 (not deployed). Receiver, proxy, cloudflared, verify units and all six repo timers match the repo. The six worker services differ only by the undeployed Wave 1 edits (`Wants` vs `Requires` for the proxy, `.bak` in `ReadWritePaths`). Against `main` `9cab7d1` the installed tree differs in 7 files from Wave 1 (`graph_email.py`, `instagram.py`, `journal.py`, `partner_notice.py`, `receipt_health.py`, `server.py`, `webhook.py`). Package metadata still points at the old checkout root.
+Pre-deploy host readback (16 October 2026, read-only): the receiver `mw-instagram-webhook` has been active since 2026-10-14 18:43:32 +07 with NRestarts=0; `/health` 200, `/ready` 404 (not deployed). Receiver, proxy, cloudflared, verify units and all six repo timers match the repo. The six worker services differ only by the undeployed Wave 1 edits (`Wants` vs `Requires` for the proxy, `.bak` in `ReadWritePaths`). Against `main` `9cab7d1` the installed tree differs in 7 files from Wave 1 (`graph_email.py`, `instagram.py`, `journal.py`, `partner_notice.py`, `receipt_health.py`, `server.py`, `webhook.py`). Package metadata still points at the old checkout root.
 
 ## Checks
 
@@ -42,7 +42,6 @@ Independent run by Agent C (Testing) on `776a1f2`; the unit suite was rerun on `
 
 | Item | Reason |
 | --- | --- |
-| Debian deploy, restart, timer change | Not authorized in this wave |
 | journald and `/etc/mw-integration-agent` reads | Permission denied for `codex-cloud` |
 | Debian Thai renderer tests | Fonts are not in the container |
 | Grafana card or alert | Deferred by the owner |
@@ -54,7 +53,7 @@ Revert `776a1f2`, `a141e06` and the documentation commits in Git. The host is un
 
 ## Deploy request
 
-Not performed. It needs the owner go.
+As prepared before the owner go; performed as recorded under [Deployment](#deployment-16-october-2026).
 
 - Package: commit `a141e0610ab5b41cbcb0a82c32072e8ea0c319b7` (`integration-agent/src`, `systemd` and scripts; Waves 1 and 2). The host clone fetches `main` only and the helper requires HEAD to equal the pin. Merge the branch to `main` first; the pin is then the resulting `main` commit. Its `integration-agent/` tree must equal `a141e06`; the dry run shows this.
 - Commands, as root on the host from `/opt/mw-integration-agent-src`:
@@ -66,15 +65,43 @@ Not performed. It needs the owner go.
 - Verification: activate prints `phase: activated` with `timers_resumed`. Then `curl http://127.0.0.1:8000/ready` returns 200 with `code_version` equal to the pin, and `/health` returns 200. `systemctl list-timers 'mw-*'` shows all 7 timers. The next `mw-resource-health` run reports `webhook_local=1`. A genuine inbound message is captured; no synthetic message is sent.
 - Rollback: automatic on readiness failure (timers stay stopped; start them after investigation). Manual: `python3 integration-agent/scripts/deploy-runtime.py rollback --commit <pin>`, which restores package, config, catalogue and units from `/var/lib/mw-integration-agent/rollback/runtime-<stamp>`, restarts the receiver, verifies `/health` and resumes timers. Restore the previous `debian-health.py`.
 
+## Deployment 16 October 2026
+
+Owner instruction: "Merge to main and deploy to the Debian host".
+
+- CI on PR #27 first failed: four engine tests assumed a root runner, and the GitHub runner is not root (non-root git calls add `-c safe.directory`). Fixed in tests only (`6e9662e`), reproduced and verified as `nobody`. Agent tests then passed; merged as `5d39db6c613710859b6dcfa3236f7599d4db9b51`. Its `integration-agent/src`, `systemd` and `scripts` equal `a141e06`.
+- Host clone fast-forwarded with `update-from-github.sh` to `5d39db6`, clean.
+- `deploy-runtime.py dry-run` as root: identity ok, commit matches, installed `code_version` `a8cf94999aee33e9762614241b31904a967b7cac`, ancestry `unknown-object`, pointer absent, seven units changed, six timers to pause.
+- `freeze`: backup `/var/lib/mw-integration-agent/rollback/runtime-20261016T061942514997Z`, metadata SHA-256 `c11b154e9aae5cca1fdcb7180974c236c94e53663072a46655306d23eab5dffa`.
+- `install`: installed `.py` names and hashes equal source; `removed_files` empty because pip's uninstall of the previous distribution already removed `appsheet.py`; seven units changed, `daemon-reload`.
+- `activate` (unused probe UUID, read-only native probe passed): config `code_version` set to `5d39db6`; receiver restarted, `/ready` reported that commit from a new InvocationID; six timers resumed.
+- Monitor: `/opt/mw-resource-monitoring/debian-health.py` replaced by the repository copy (SHA-256 `691bc7df…`); previous copy kept as `debian-health.before-r063w2-20261016.py` (same content as `main` apart from CRLF line endings).
+
+Verification (13:20–13:21 Bangkok):
+
+| Check | Result |
+| --- | --- |
+| `curl 127.0.0.1:8000/ready` | 200 `{"ready": true, "code_version": "5d39db6c…", "failed": []}` |
+| `curl 127.0.0.1:8000/health` | 200 `mw-instagram-webhook` |
+| `/ready` with `Cf-Ray` header | 404 |
+| Receiver | active since 13:20:18, new InvocationID `5b59c66dbcb944aeaa84823a52022f29`, `ExecStartPost` status 0 |
+| Timers | all 7 `mw-*` timers listed; first runs of conversation poll, receipt summary and partner conversation exit 0 |
+| Units | `mw-receipt-summary` `Wants=` the proxy, no proxy `Requires=` |
+| Graph `.bak` | present, `-rw------- mwagent mwagent`, 0 bytes |
+| GCP Monitoring `health` | all 15 components 1 at 06:20:52 UTC, including `webhook_local` from `/ready` |
+
+Not verified: a genuine inbound Instagram message after the restart (none is manufactured); journald (permission denied for `codex-cloud`).
+
+Rollback: `sudo python3 integration-agent/scripts/deploy-runtime.py rollback --commit 5d39db6c613710859b6dcfa3236f7599d4db9b51`, then restore `debian-health.before-r063w2-20261016.py`.
+
 ## Open questions
 
-- The deploy commit must be on the host clone. The helper requires the checkout HEAD to equal the pinned commit, and `update-from-github.sh` is fast-forward-only on `main`. Merge the branch to `main` first, or the owner approves a detached checkout.
+- Deploys run from `main` only: the helper requires the checkout HEAD to equal the pin and `update-from-github.sh` is fast-forward-only on `main`.
 - `/ready` is reachable on the public tunnel path apart from the `Cf-Ray`/`Cf-Connecting-Ip` guard until AGT-WEBHOOK-03.
 - The `mw-report-charts` and `mw-resource-health` units live outside `integration-agent/systemd/`, and `mw-audit-relay.timer` has no catalogue service key. Both are documented only.
 
 ## Remaining work
 
 - Wave 3: AGT-WEBHOOK-03 tunnel path; AGT-QUALITY-05 delete the one-off activation scripts; change the `deploy-operator-audit.py` per-file copy method.
-- Deploy Waves 1 and 2 after the owner go. Install the repo `debian-health.py` to `/opt/mw-resource-monitoring` as part of that deploy.
-- Close the R063 outstanding row ("Integration receiver deployment tooling") after the deploy is verified.
+- Confirm the next genuine inbound message is captured.
 - Grafana card for `ingress_review_open` and any `webhook_code_version` view: later, with the owner's Grafana revamp.
