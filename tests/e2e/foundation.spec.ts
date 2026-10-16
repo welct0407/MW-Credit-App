@@ -75,7 +75,7 @@ test('AppSheet colors are presentation only with neutral surfaces and themed hea
  for(const [theme,color,tint,selected] of [['dev','rgb(232, 113, 10)','rgb(255, 255, 255)','rgb(241, 241, 241)'],['prod','rgb(216, 27, 96)','rgb(255, 255, 255)','rgb(241, 241, 241)']]){
   await page.getByRole('group',{name:'Theme preview'}).getByRole('button',{name:theme.toUpperCase(),exact:true}).click();
   await expect(page.locator('.app-shell')).toHaveAttribute('data-preview-theme',theme);
-  await expect(logo).toHaveAttribute('src',theme==='dev'?/loan-manager-logo-dev-orange/:/loan-manager-logo\.png/);
+  await expect(logo).toHaveAttribute('src',theme==='dev'?/loan-manager-logo-dev-orange/:/loan-manager-logo-prod-pink/);
   await expect.poll(()=>logo.evaluate((img:HTMLImageElement)=>img.complete&&img.naturalWidth>0)).toBe(true);
   await expect(page.locator('.topbar')).toHaveCSS('border-top-color',color);
   await expect(page.getByText('Colors only · no environment change',{exact:true})).toBeVisible();

@@ -3,7 +3,7 @@ import {spawnSync} from 'node:child_process';
 import {mkdtempSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-import {startCanonicalFixture} from './fixtures/canonical-server';
+import {startCanonicalFixture,fixtureLaunchArgs,assertServed} from './fixtures/canonical-server';
 
 test('F12 actual Firebase SDK mixed-domain drafts and pending survive offline boot reconnect worker update; signout blocked until synced then purges',async({},info)=>{
  test.skip(info.project.name.startsWith('mobile'),'Actual SDK and worker integration runs once');
@@ -18,7 +18,7 @@ test('F12 actual Firebase SDK mixed-domain drafts and pending survive offline bo
  const draft={ok:true,mode:'dev-owner-testing',businessDate:'2026-10-08',asOf:'2026-10-08T05:00:00Z',borrower:{id:borrower.id,displayName:borrower.borrowerDisplayName},charges:[{id:'synthetic-charge',chargeDate:'2026-10-07',loanDisplayKey:'Synthetic loan',amountRemaining:'110',principalRemaining:'100',interestRemaining:'10'}],accounts:[{id:'synthetic-account',label:'Synthetic account'}],nextCursor:null};
  let posts=0,statusGets=0,networkOffline=false;
  const launch=async(offline=false)=>{networkOffline=offline;
-  context=await chromium.launchPersistentContext(profile,{headless:true,offline,args:['--ignore-certificate-errors',`--host-resolver-rules=MAP dev-lm.mw-credit.com 127.0.0.1:${fixture.port}`,'--no-proxy-server']});
+  context=await chromium.launchPersistentContext(profile,{headless:true,offline,args:fixtureLaunchArgs(fixture.port)});
   context.setDefaultTimeout(5000);
   await context.route('**/*',async(route:any)=>{
    const url=new URL(route.request().url());
@@ -35,7 +35,7 @@ test('F12 actual Firebase SDK mixed-domain drafts and pending survive offline bo
   });return context.newPage();
  };
  try{
-  let page=await launch();await page.goto('https://dev-lm.mw-credit.com');await expect.poll(()=>page.evaluate(()=>!!navigator.serviceWorker.controller)).toBe(true);await page.evaluate(async()=>{const sdk=(window as any).__syntheticSdk;await sdk.fixtureSignIn(sdk.fixtureGetAuth(),'synthetic-custom-token')});await page.getByRole('button',{name:'Borrowers',exact:true}).filter({visible:true}).click();await expect(page.locator('.borrower-tile-main')).toContainText('SYNTHETIC OFFLINE SDK');await page.getByRole('button',{name:'Add borrower',exact:true}).click();await page.getByRole('textbox',{name:/^Borrower\ Name\ -\ Thai(?: \*)?$/}).fill('SDK unsent borrower ไทย');await page.getByRole('textbox',{name:/^Borrower\ Note(?: \*)?$/}).fill('exact offline draft ไทย');
+  let page=await launch();await page.goto('https://dev-lm.mw-credit.com');assertServed(fixture);await expect.poll(()=>page.evaluate(()=>!!navigator.serviceWorker.controller)).toBe(true);await page.evaluate(async()=>{const sdk=(window as any).__syntheticSdk;await sdk.fixtureSignIn(sdk.fixtureGetAuth(),'synthetic-custom-token')});await page.getByRole('button',{name:'Borrowers',exact:true}).filter({visible:true}).click();await expect(page.locator('.borrower-tile-main')).toContainText('SYNTHETIC OFFLINE SDK');await page.getByRole('button',{name:'Add borrower',exact:true}).click();await page.getByRole('textbox',{name:/^Borrower\ Name\ -\ Thai(?: \*)?$/}).fill('SDK unsent borrower ไทย');await page.getByRole('textbox',{name:/^Borrower\ Note(?: \*)?$/}).fill('exact offline draft ไทย');
   const stored=()=>page.evaluate(async()=>{const repo=(window as any).__syntheticRepo({issuer:'https://securetoken.google.com/clever-oasis-508610-n7',uid:'synthetic-offline-sdk-owner'});return{drafts:await repo.list('draft'),pending:await repo.list('pending')}});await expect.poll(async()=>(await stored()).drafts.length).toBe(1);
   await page.evaluate(async()=>{const repo=(window as any).__syntheticRepo({issuer:'https://securetoken.google.com/clever-oasis-508610-n7',uid:'synthetic-offline-sdk-owner'});for(const domain of ['loan','charge','expense'])await repo.saveDraft(domain+':sdk-synthetic-'+domain,{domain,label:'SDK retained '+domain,draft:{id:'sdk-synthetic-'+domain}});await repo.saveDraft('legacy-payment',{borrowerId:'synthetic-offline-borrower',notes:'legacy missing-domain note',amountReceived:'110',allocationMethod:'Selected Charges',selectedChargeIds:['synthetic-charge']});await repo.savePending('ec7d0be2-2607-49c7-8bc7-5cda99485710',{domain:'borrower',command:{requestId:'ec7d0be2-2607-49c7-8bc7-5cda99485710',operation:'borrower.update',targetId:'sdk-retained-borrower',expectedVersion:'a'.repeat(64),predecessorRequestId:null,receiptId:null,inputs:{note:'immutable retained pending'}}})});const baseline=await stored();expect(baseline.drafts).toHaveLength(5);expect(baseline.pending).toHaveLength(1);expect(posts).toBe(0);
   await context.close();page=await launch(true);await page.goto('https://dev-lm.mw-credit.com');

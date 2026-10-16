@@ -1,0 +1,28 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "strict": false,
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "types": [
+      "node"
+    ],
+    "baseUrl": ".",
+    "paths": {
+      "/apps/pwa/src/*": [
+        "./apps/pwa/src/*"
+      ],
+      "/tests/e2e/*": [
+        "./tests/e2e/*"
+      ]
+    }
+  },
+  "include": [
+    "apps/pwa/src/env.d.ts",
+    "tests/e2e",
+    "playwright.config.ts"
+  ]
+}

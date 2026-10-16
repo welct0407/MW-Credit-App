@@ -6,7 +6,7 @@ import { createRoot } from 'react-dom/client';
 import type { Locale } from './fixtures';
 import { previewReadAdapter, toPreviewBorrower, previewBusinessDate as sampleDate, type PreviewAccessState, type PreviewBorrower as Borrower } from './preview-session';
 import './style.css';
-const prodLogoUrl = new URL('./assets/loan-manager-logo.png', import.meta.url).href;
+const prodLogoUrl = new URL('./assets/loan-manager-logo-prod-pink.png', import.meta.url).href;
 const devLogoUrl = new URL('./assets/loan-manager-logo-dev-orange.png', import.meta.url).href;
 const routes = [
   ['dashboard', 'Dashboard', 'ภาพรวม', 'dashboard'], ['collection', 'Collection', 'ติดตามชำระ', 'collection'], ['payments', 'Payments', 'การชำระเงิน', 'receive'], ['borrowers', 'Borrowers', 'ผู้กู้', 'borrowers'], ['loans', 'Loans', 'สัญญาเงินกู้', 'loans'], ['charges', 'Upcoming Charges', 'ยอดเรียกเก็บถัดไป', 'upcoming'], ['expenses', 'Business Expenses', 'ค่าใช้จ่ายธุรกิจ', 'expenses'], ['statement', 'Cash Statement', 'รายการเงินสด', 'cash'],
