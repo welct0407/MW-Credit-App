@@ -21,6 +21,7 @@
       CREATE OR REPLACE FUNCTION public.sync_cash_ledger(p_type text, p_id text)
        RETURNS void
        LANGUAGE plpgsql
+       SECURITY DEFINER
        SET search_path TO 'pg_catalog', 'public'
       AS $function$
       DECLARE d date; amount numeric; from_holder text; to_holder text; movement text; source_key text; actor text;
@@ -31,19 +32,19 @@
        CASE p_type
        WHEN 'Payment' THEN
         SELECT "Payment Date","Amount Received"::numeric,"Ref Received By Cash Holder","Created By","Ref Received By Cash Account"
-         INTO d,amount,to_holder,actor,to_account FROM public."Payments" WHERE "Row ID"=p_id AND "Status"='Posted' FOR UPDATE;
+         INTO d,amount,to_holder,actor,to_account FROM public."Payments" WHERE "Row ID"=p_id AND "Status"='Posted';
         movement:='Payment Receipt'; source_key:='PAYMENT:'||p_id; payment_id:=p_id;
        WHEN 'Loan' THEN
-        SELECT "Loan Date","Principal Amount"::numeric,"Ref Disbursed From Cash Account" INTO d,amount,from_account FROM public."Loans" WHERE "Row ID"=p_id FOR UPDATE;
+        SELECT "Loan Date","Principal Amount"::numeric,"Ref Disbursed From Cash Account" INTO d,amount,from_account FROM public."Loans" WHERE "Row ID"=p_id;
         movement:='Loan Disbursement'; source_key:='LOAN:'||p_id; loan_id:=p_id; from_holder:='ch:lisa';
        WHEN 'Business Expense' THEN
         SELECT "Expense Date",abs("Amount"::numeric),CASE WHEN "Amount"::numeric>0 THEN "Ref Paid By Cash Holder" END,
          CASE WHEN "Amount"::numeric<0 THEN "Ref Paid By Cash Holder" END,"Created By",
-         CASE WHEN "Amount"::numeric>0 THEN "Ref Paid By Cash Account" END, CASE WHEN "Amount"::numeric<0 THEN "Ref Paid By Cash Account" END INTO d,amount,from_holder,to_holder,actor,from_account,to_account FROM public."Business Expenses" WHERE "Row ID"=p_id FOR UPDATE;
+         CASE WHEN "Amount"::numeric>0 THEN "Ref Paid By Cash Account" END, CASE WHEN "Amount"::numeric<0 THEN "Ref Paid By Cash Account" END INTO d,amount,from_holder,to_holder,actor,from_account,to_account FROM public."Business Expenses" WHERE "Row ID"=p_id;
         IF coalesce(from_holder,to_holder) IS NULL THEN amount:=NULL; END IF;
         movement:='Business Expense'; source_key:='EXPENSE:'||p_id; expense_id:=p_id;
        WHEN 'Settlement' THEN
-        SELECT "Transfer Date","Amount"::numeric,"Ref Paid From Cash Account" INTO d,amount,from_account FROM public."Settlements" WHERE "Row ID"=p_id AND "Status"='Completed' FOR UPDATE;
+        SELECT "Transfer Date","Amount"::numeric,"Ref Paid From Cash Account" INTO d,amount,from_account FROM public."Settlements" WHERE "Row ID"=p_id AND "Status"='Completed';
         movement:='Partner Settlement'; source_key:='SETTLEMENT:'||p_id; settlement_id:=p_id; from_holder:='ch:lisa';
        ELSE RAISE EXCEPTION 'Unsupported cash source';
        END CASE;
@@ -62,22 +63,46 @@
        WHERE ("Cash Ledger"."Movement Date","Cash Ledger"."Amount","Cash Ledger"."Ref From Cash Holder","Cash Ledger"."Ref To Cash Holder","Cash Ledger"."Ref From Cash Account","Cash Ledger"."Ref To Cash Account")
         IS DISTINCT FROM (EXCLUDED."Movement Date",EXCLUDED."Amount",EXCLUDED."Ref From Cash Holder",EXCLUDED."Ref To Cash Holder",EXCLUDED."Ref From Cash Account",EXCLUDED."Ref To Cash Account");
       END $function$
-    "owner": "postgres"
+    "owner": "mw_ledger_owner_prod"
     "language": "plpgsql"
     "volatility": "v"
     "strict": false
-    "security_definer": false
+    "security_definer": true
     "leakproof": false
     "parallel": "u"
     "cost": 100.0
     "rows": 0.0
     "settings":
     - "search_path=pg_catalog, public"
-    "acl": "{=X/postgres,postgres=X/postgres,mw_app_prod=X/postgres}"
+    "acl": "{mw_ledger_owner_prod=X/mw_ledger_owner_prod,mw_app_prod=X/mw_ledger_owner_prod,mw_reviewer_dml=X/mw_ledger_owner_prod}"
     "comment": null
     "extension": null
 "evidence":
   "/content/definition/acl":
-    "reference": "outputs/r052/dictionary-production-closure.json"
-    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
-    "observedAt": "2026-10-11T14:01:43.131793+00:00"
+    "reference": "Change Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md"
+    "reason": "DB-ACCESS-08: V93 makes the ledger projection a definer function owned by the ledger owner, search_path pinned,\
+      \ the four row locks removed (the AFTER ROW trigger already holds the source row lock); source-derived for PROD; the\
+      \ DEV readback of 16 October 2026 matches the shape (owner mw_ledger_owner_dev, SECURITY DEFINER, mw_app_dev SELECT\
+      \ only, journal and ledger owners write)"
+    "state": "value"
+  "/content/definition/definition":
+    "reference": "Change Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md"
+    "reason": "DB-ACCESS-08: V93 makes the ledger projection a definer function owned by the ledger owner, search_path pinned,\
+      \ the four row locks removed (the AFTER ROW trigger already holds the source row lock); source-derived for PROD; the\
+      \ DEV readback of 16 October 2026 matches the shape (owner mw_ledger_owner_dev, SECURITY DEFINER, mw_app_dev SELECT\
+      \ only, journal and ledger owners write)"
+    "state": "value"
+  "/content/definition/owner":
+    "reference": "Change Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md"
+    "reason": "DB-ACCESS-08: V93 makes the ledger projection a definer function owned by the ledger owner, search_path pinned,\
+      \ the four row locks removed (the AFTER ROW trigger already holds the source row lock); source-derived for PROD; the\
+      \ DEV readback of 16 October 2026 matches the shape (owner mw_ledger_owner_dev, SECURITY DEFINER, mw_app_dev SELECT\
+      \ only, journal and ledger owners write)"
+    "state": "value"
+  "/content/definition/security_definer":
+    "reference": "Change Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md"
+    "reason": "DB-ACCESS-08: V93 makes the ledger projection a definer function owned by the ledger owner, search_path pinned,\
+      \ the four row locks removed (the AFTER ROW trigger already holds the source row lock); source-derived for PROD; the\
+      \ DEV readback of 16 October 2026 matches the shape (owner mw_ledger_owner_dev, SECURITY DEFINER, mw_app_dev SELECT\
+      \ only, journal and ledger owners write)"
+    "state": "value"

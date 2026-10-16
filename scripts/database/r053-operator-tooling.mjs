@@ -27,6 +27,11 @@ async function context(c,config,{backupPreparation=false,ownerAuthority=false}={
  let mode,grantor;
  if(x.host==='127.0.0.1'&&config.executionMode==='owned-loopback'){mode='explicit';grantor=x.operator;}
  else if(x.database===binding.manifestDatabase&&x.host==='34.21.174.215'&&x.port===5432&&x.operator==='postgres'&&cloudsqlModes(binding.environment).includes(config.executionMode)){mode='implicit-cloudsql';grantor='cloudsqladmin';}
+ // Owner-approved 17 October 2026: through the Debian host's Auth Proxy the server sees a socket, so
+ // inet_server_addr()/port() are NULL. Only the tunnel route accepts that, and only with the exact
+ // database, session_user postgres and the Cloud SQL service role present (the tunnel script pins
+ // the Debian host key). The VM-01 direct route above keeps its exact address check.
+ else if(config.executionMode===cloudsqlModes(binding.environment)[1]&&x.database===binding.manifestDatabase&&x.host===null&&x.port===null&&x.operator==='postgres'&&(await c.query("SELECT 1 FROM pg_roles WHERE rolname='cloudsqladmin'")).rowCount===1){mode='implicit-cloudsql';grantor='cloudsqladmin';}
  else throw Error('Unreviewed DEV operator route');
  return {database:x.database,operator:x.operator,host:x.host,port:x.port,schemaGrantor:x.schemagrantor??x.schemaGrantor,mode,grantor};
 }

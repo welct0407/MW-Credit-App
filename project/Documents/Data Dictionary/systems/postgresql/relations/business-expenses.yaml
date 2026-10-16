@@ -1111,6 +1111,18 @@
       "deferrable": false
       "initially_deferred": false
       "comment": null
+    "a000_blank_refs":
+      "schema": "public"
+      "relation": "Business Expenses"
+      "name": "a000_blank_refs"
+      "definition": "CREATE TRIGGER a000_blank_refs BEFORE INSERT OR UPDATE ON \"Business Expenses\" FOR EACH ROW EXECUTE\
+        \ FUNCTION appsheet_normalize_blank_refs('Ref Payee Borrower', 'Ref Related Borrower', 'Ref Related Loan')"
+      "enabled": "O"
+      "internal": false
+      "routine": "appsheet_normalize_blank_refs()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
     "a000_business_history_begin":
       "schema": "public"
       "relation": "Business Expenses"
@@ -1192,18 +1204,6 @@
       "enabled": "O"
       "internal": false
       "routine": "guard_cash_source_identity()"
-      "deferrable": false
-      "initially_deferred": false
-      "comment": null
-    "appsheet_blank_refs":
-      "schema": "public"
-      "relation": "Business Expenses"
-      "name": "appsheet_blank_refs"
-      "definition": "CREATE TRIGGER appsheet_blank_refs BEFORE INSERT OR UPDATE ON \"Business Expenses\" FOR EACH ROW EXECUTE\
-        \ FUNCTION appsheet_normalize_blank_refs('Ref Payee Borrower', 'Ref Related Borrower', 'Ref Related Loan')"
-      "enabled": "O"
-      "internal": false
-      "routine": "appsheet_normalize_blank_refs()"
       "deferrable": false
       "initially_deferred": false
       "comment": null
@@ -1311,3 +1311,9 @@
     "reference": "outputs/r052/dictionary-production-closure.json"
     "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
     "observedAt": "2026-10-11T14:01:43.131793+00:00"
+  "/content/triggers/a000_blank_refs":
+    "reference": "Change Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md"
+    "reason": "DB-SCHEMA-02: renamed so the blank-reference normalizer fires first; V93 migration source (R064 Wave 4). Applied\
+      \ in DEV on 16 October 2026 and the DEV readback matches; PROD is still V92, so these PROD-scope values are source-derived\
+      \ until the PROD migration"
+    "state": "value"

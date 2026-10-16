@@ -15,14 +15,18 @@ const external=p=>{const result=path.resolve(p);if(!result.startsWith(privateRoo
 const cfg=JSON.parse(fs.readFileSync(path.join(repo,'database/environments.json'),'utf8').replace(/^\uFEFF/,''));const x=cfg.development;if(x?.instance!=='appsheet-pg-prod-20260914'||x.host!=='34.21.174.215'||x.database!=='loan_manager_dev'||cfg.production?.database===x.database)throw Error('Wrong DEV environment tuple');
 let credential,route;
 if(windows){credential=path.resolve(x.passwordFile);if(!credential.startsWith(privateBase+path.sep))throw Error('Credentials must remain outside Git');route={host:x.host,port:x.port,ssl:{rejectUnauthorized:false}};}
-else{credential=path.join(privateBase,'credentials/postgres-password.txt');if(!fs.existsSync(credential)||fs.lstatSync(credential).isSymbolicLink()||(fs.statSync(credential).mode&0o077))throw Error('Admin credential file missing or not private: run Get-DbEnvironment development -Admin first');
+else{credential=path.join(privateBase,'AppSheet-Loan-Project/credentials/postgres-password.txt');if(!fs.existsSync(credential)||fs.lstatSync(credential).isSymbolicLink()||(fs.statSync(credential).mode&0o077))throw Error('Admin credential file missing or not private: run Get-DbEnvironment development -Admin first');
  const port=Number(process.env.MW_DB_TUNNEL_PORT||15432);if(!Number.isInteger(port)||port<1024||port>65535)throw Error('Invalid MW_DB_TUNNEL_PORT');route={host:'127.0.0.1',port,ssl:false};}
 if(['DATABASE_URL','PGHOST','PGPORT','PGDATABASE','PGUSER','PGPASSWORD','PGSERVICE'].some(k=>process.env[k]))throw Error('Remove ambient PostgreSQL routing overrides');
 const config=JSON.parse(fs.readFileSync(path.join(repo,'database/application-role-creators.json'),'utf8').replace(/^﻿/,''));if(config.database!==x.database)throw Error('Wrong registered creator target');
 const client=new pg.Client({...route,database:x.database,user:x.user,password:fs.readFileSync(credential,'utf8').trim(),connectionTimeoutMillis:10000,application_name:'mw-dev-application-role-admin'});
 await client.connect();let evidencePath;
 try{
- const actual=(await client.query('SELECT current_database() db,host(inet_server_addr()) host')).rows[0];if(actual.db!==x.database||actual.host!==x.host)throw Error('Live DEV target mismatch');
+ // Owner-approved 17 October 2026: through the Debian host's Auth Proxy (Linux tunnel route) the server
+ // address reads NULL; that route instead requires session_user postgres and the Cloud SQL service role.
+ const actual=(await client.query("SELECT current_database() db,host(inet_server_addr()) host,session_user operator,EXISTS(SELECT 1 FROM pg_roles WHERE rolname='cloudsqladmin') cloudsql")).rows[0];
+ const tunnel=!windows&&actual.host===null&&actual.operator==='postgres'&&actual.cloudsql===true;
+ if(actual.db!==x.database||(actual.host!==x.host&&!tunnel))throw Error('Live DEV target mismatch');
  if(options['--if-present']&&!(await client.query("SELECT 1 FROM pg_roles WHERE rolname='mw_app_dev'")).rowCount){console.log(JSON.stringify({mode:'skipped',reason:'Capability package absent'}));}
  else{
   await client.query('SELECT pg_advisory_lock(1052026,4)');

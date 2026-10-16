@@ -41,7 +41,7 @@ if(t?.instance!=='appsheet-pg-prod-20260914'||t.host!=='34.21.174.215'||t.port!=
 let client,credentials,executionMode;
 if(windows){credentials=path.resolve(t.passwordFile);if(!credentials.startsWith(privateBase+path.sep))throw Error('Private credential required');executionMode='cloudsql-'+suffix;client={host:t.host,port:t.port,ssl:{rejectUnauthorized:false}};}
 else{
- credentials=path.join(privateBase,'credentials/postgres-password.txt');
+ credentials=path.join(privateBase,'AppSheet-Loan-Project/credentials/postgres-password.txt');
  if(!fs.existsSync(credentials)||fs.lstatSync(credentials).isSymbolicLink()||(fs.statSync(credentials).mode&0o077))throw Error('Admin credential file missing or not private: run `pwsh -c ". scripts/database/Common.ps1; Get-DbEnvironment '+environment+' -Admin"` first (opens the tunnel, writes the 0600 file)');
  const port=Number(process.env.MW_DB_TUNNEL_PORT||15432);if(!Number.isInteger(port)||port<1024||port>65535)throw Error('Invalid MW_DB_TUNNEL_PORT');
  executionMode='cloudsql-'+suffix+'-tunnel';client={host:'127.0.0.1',port,ssl:false};

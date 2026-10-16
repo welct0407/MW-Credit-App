@@ -10361,6 +10361,16 @@
       "lookup": []
     },
     {
+      "file": "systems/postgresql/routines/public-pwa-lock-key-v1-kind-text-target-text-e45b729a.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_lock_key_v1(kind text, target text)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/postgresql/routines/public-pwa-management-financial-text-v2-op-text-i-jsonb-034ff4ca.yaml",
       "system": "postgresql",
       "component": "loan_manager_prod",
@@ -11096,6 +11106,16 @@
       "component": "loan_manager_prod",
       "kind": "schema",
       "name": "assessment_lab",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/schemas/monitoring-14a2326b.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "schema",
+      "name": "monitoring",
       "scope": "production",
       "status": "documented",
       "lookup": []

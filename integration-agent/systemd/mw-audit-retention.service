@@ -1,0 +1,22 @@
+[Unit]
+Description=M&W agent audit retention: export routine audit trees older than 7 days to GCS, verify, then delete
+# Prepared R064 W4 (DB-PERF-01, owner retention decision 17 October 2026). Ships disabled; install and enable
+# only after owner activation. Needs a private connection file for a principal that may SET ROLE mw_agent_owner
+# and objects.create on gs://mw-credit-operator-private-737787224638/agent-audit-archive/ for the VM identity.
+After=network-online.target cloud-sql-auth-proxy.service
+Wants=network-online.target cloud-sql-auth-proxy.service
+ConditionPathExists=/etc/mw-integration-agent/secrets/audit-retention-connection.json
+
+[Service]
+Type=oneshot
+User=mwagent
+Group=mwagent
+UMask=0077
+WorkingDirectory=/var/lib/mw-integration-agent
+ExecStart=/opt/mw-integration-agent/.venv/bin/python /opt/mw-integration-agent-src/integration-agent/scripts/agent-db-maintenance.py audit-retention --apply --older-than-days 7 --batch 50 --discard-local --connection-file /etc/mw-integration-agent/secrets/audit-retention-connection.json --expect-environment production --work-directory /var/lib/mw-integration-agent/audit-retention --token-source metadata --actor mw-audit-retention.timer --output /var/lib/mw-integration-agent/audit-retention/last-report.json
+TimeoutStartSec=2h
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/mw-integration-agent
