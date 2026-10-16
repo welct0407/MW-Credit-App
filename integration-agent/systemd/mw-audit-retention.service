@@ -1,8 +1,12 @@
 [Unit]
 Description=M&W agent audit retention: export routine audit trees older than 7 days to GCS, verify, then delete
 # Prepared R064 W4 (DB-PERF-01, owner retention decision 17 October 2026). Ships disabled; install and enable
-# only after owner activation. Needs a private connection file for a principal that may SET ROLE mw_agent_owner
-# and objects.create on gs://mw-credit-operator-private-737787224638/agent-audit-archive/ for the VM identity.
+# only after owner activation. Runs as the VM identity: the connection file names the proxy's IAM listener
+# (127.0.0.1:5433, user mw-integration-agent@clever-oasis-508610-n7.iam, dbname mw_agent, no password); the
+# script SET ROLEs mw_agent_retention (central V5; the IAM user holds it WITH INHERIT FALSE, SET TRUE) and deletes
+# through audit.purge_routine_trees(). Needs objects.create on
+# gs://mw-credit-operator-private-737787224638/agent-audit-archive/ for the VM service account (Terraform,
+# ecosystem-shared); creator has no objects.get, so --readback stays off (server size and md5 verify each object).
 After=network-online.target cloud-sql-auth-proxy.service
 Wants=network-online.target cloud-sql-auth-proxy.service
 ConditionPathExists=/etc/mw-integration-agent/secrets/audit-retention-connection.json
@@ -13,7 +17,7 @@ User=mwagent
 Group=mwagent
 UMask=0077
 WorkingDirectory=/var/lib/mw-integration-agent
-ExecStart=/opt/mw-integration-agent/.venv/bin/python /opt/mw-integration-agent-src/integration-agent/scripts/agent-db-maintenance.py audit-retention --apply --older-than-days 7 --batch 50 --discard-local --connection-file /etc/mw-integration-agent/secrets/audit-retention-connection.json --expect-environment production --work-directory /var/lib/mw-integration-agent/audit-retention --token-source metadata --actor mw-audit-retention.timer --output /var/lib/mw-integration-agent/audit-retention/last-report.json
+ExecStart=/opt/mw-integration-agent/.venv/bin/python /opt/mw-integration-agent-src/integration-agent/scripts/agent-db-maintenance.py audit-retention --apply --purge-function --older-than-days 7 --batch 50 --discard-local --connection-file /etc/mw-integration-agent/secrets/audit-retention-connection.json --expect-environment production --work-directory /var/lib/mw-integration-agent/audit-retention --token-source metadata --actor mw-audit-retention.timer --output /var/lib/mw-integration-agent/audit-retention/last-report.json
 TimeoutStartSec=2h
 NoNewPrivileges=true
 PrivateTmp=true

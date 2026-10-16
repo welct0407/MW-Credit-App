@@ -9,7 +9,11 @@ Dry run by default: nothing changes without --apply.
                         them in atomic batches as mw_agent_owner, record one CONFIG operation and VACUUM (ANALYZE).
 
 The connection file is psycopg keyword JSON (optional "password_file") outside Git, for a principal that may
-SET ROLE mw_agent_owner. --expect-environment must equal the newest audit.operations.environment.
+SET ROLE mw_agent_owner, or with --purge-function (audit-retention only) SET ROLE mw_agent_retention: the deletes
+then go through the V5 SECURITY DEFINER function audit.purge_routine_trees(), one exported batch per call, which
+re-checks every safety rule server-side and returns counts that must equal the export. That is the daily timer's
+path (VM identity on the IAM listener, no password); the owner path stays for the first manual backlog run.
+--expect-environment must equal the newest audit.operations.environment.
 Effectful or deterministic-key operations (SEND, INSERT, UPDATE, DELETE, IMPORT, RECONCILE, CONFIG, AUTH;
 ingress, reviewer_dml, statement_snapshot, legacy_import) are never deleted: their idempotency keys guard replay.
 """
@@ -76,7 +80,7 @@ def connect(args):
         options['password'] = Path(options.pop('password_file')).read_text().strip()
     options.setdefault('application_name', 'mw-agent-maintenance')
     conn = psycopg.connect(**options, autocommit=True)
-    conn.execute('SET ROLE mw_agent_owner')
+    conn.execute('SET ROLE mw_agent_retention' if args.purge_function else 'SET ROLE mw_agent_owner')
     conn.execute("SET TIME ZONE 'UTC'")
     conn.execute("SET statement_timeout='15min'")
     if conn.execute('SELECT current_database()').fetchone()[0] != 'mw_agent':
@@ -252,7 +256,7 @@ def drop_indexes(conn, created):
         conn.execute(sql.SQL('DROP INDEX CONCURRENTLY IF EXISTS {}').format(sql.Identifier(schema, name)))
 
 
-def delete_batches(conn, batch, pause):
+def delete_batches(conn, batch, pause, cutoff=None, purge_function=False):
     roots = [r[0] for r in conn.execute('SELECT DISTINCT root FROM pg_temp.rt_tree ORDER BY root').fetchall()]
     keysets = {'runtime.job_runs': ('run_id', 'rt_runs'), 'runtime.operation_state': ('operation_id', 'rt_tree'),
                'audit.events': ('event_id', 'rt_events'), 'audit.operations': ('operation_id', 'rt_tree')}
@@ -261,6 +265,16 @@ def delete_batches(conn, batch, pause):
     for start in range(0, len(roots), batch):
         chunk = roots[start:start + batch]
         began = time.monotonic()
+        if purge_function:
+            # V5: the owner-side function re-checks the rules for the whole trees under these roots, disables and
+            # re-enables the append-only triggers in its own transaction and returns what it deleted.
+            counts = conn.execute('SELECT deleted_job_runs,deleted_operation_states,deleted_events,deleted_operations '
+                                  'FROM audit.purge_routine_trees(%s,%s)', (chunk, cutoff)).fetchone()
+            for table, count in zip(DELETE_ORDER, counts):
+                totals[table] += count
+            longest = max(longest, time.monotonic() - began)
+            time.sleep(pause)
+            continue
         with conn.transaction():
             # DISABLE/ENABLE TRIGGER is transactional: no other session ever sees the triggers off.
             conn.execute("SET LOCAL lock_timeout='5s'")
@@ -291,12 +305,12 @@ def record(conn, args, run_id, summary):
             VALUES (%s,'audit-retention',%s,%s,'CONFIG','operator',%s,%s::jsonb,%s,%s,%s,%s)''',
             (operation, str(run_id), args.expect_environment, args.actor, plan_text, hashlib.sha256(plan_text.encode()).hexdigest(),
              'maintenance:' + summary['script_sha256'][:12], POLICY, generation[0]))
-        conn.execute("INSERT INTO runtime.operation_state(operation_id,state) VALUES (%s,'PLANNED')", (operation,))
         conn.execute('''INSERT INTO audit.events(event_id,operation_id,operation_seq,event_kind,route,occurred_at,payload,payload_sha256)
             VALUES (%s,%s,1,'completed','internal',clock_timestamp(),%s::jsonb,%s)''',
             (event, operation, canonical(payload), hashlib.sha256(canonical(payload).encode()).hexdigest()))
-        conn.execute('''UPDATE runtime.operation_state SET state='COMPLETED',next_event_seq=2,last_event_id=%s,
-            updated_at=clock_timestamp() WHERE operation_id=%s''', (event, operation))
+        # One INSERT in its final state: the retention role holds INSERT, not UPDATE, on operation_state.
+        conn.execute('''INSERT INTO runtime.operation_state(operation_id,state,next_event_seq,last_event_id)
+            VALUES (%s,'COMPLETED',2,%s)''', (operation, event))
     return str(operation)
 
 
@@ -344,12 +358,14 @@ def audit_retention(conn, args):
     if not args.apply:
         report['applied'] = False
         return report
-    began = time.monotonic()
-    created = ensure_fk_indexes(conn)
-    report.update(temporary_indexes=[f'{a}.{b}' for a, b in created], index_seconds=round(time.monotonic() - began, 2))
+    created = []
+    if not args.purge_function:  # V5 made the indexes permanent; the retention role cannot create indexes anyway
+        began = time.monotonic()
+        created = ensure_fk_indexes(conn)
+        report.update(temporary_indexes=[f'{a}.{b}' for a, b in created], index_seconds=round(time.monotonic() - began, 2))
     began = time.monotonic()
     try:
-        deleted, longest = delete_batches(conn, args.batch, args.pause)
+        deleted, longest = delete_batches(conn, args.batch, args.pause, cutoff, args.purge_function)
     finally:
         drop_indexes(conn, created)
     if deleted != report['rows']:
@@ -390,9 +406,13 @@ def main(argv=None):
     r.add_argument('--readback', action='store_true', help='also GET each object and compare sha256 (needs objects.get)')
     r.add_argument('--actor', default='operator', help='operator identity recorded on the CONFIG operation')
     r.add_argument('--discard-local', action='store_true', help='remove the local export once the delete has committed')
+    r.add_argument('--purge-function', action='store_true',
+                   help='SET ROLE mw_agent_retention and delete through audit.purge_routine_trees() (V5) instead of as the owner')
     args = p.parse_args(argv)
     if args.batch is None:
         args.batch = 50 if args.command == 'null-archived-images' else 2000
+    if args.purge_function and (args.command != 'audit-retention' or args.batch > 2000):
+        p.error('--purge-function applies to audit-retention with --batch <= 2000')
     if args.command == 'audit-retention' and (args.export or args.apply) and not args.work_directory:
         p.error('--work-directory is required with --export/--apply')
     with connect(args) as conn:

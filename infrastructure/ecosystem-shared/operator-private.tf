@@ -40,3 +40,17 @@ resource "google_storage_bucket" "operator_private" {
     }
   }
 }
+
+# R064 W4 DB-PERF-01 daily agent audit retention (prepared 17 October 2026): the agent VM's
+# service account may create, and only create, objects under agent-audit-archive/. No get,
+# list, replace or delete: existing archives and every other prefix stay Owner-only.
+resource "google_storage_bucket_iam_member" "agent_audit_archive_create" {
+  bucket = google_storage_bucket.operator_private.name
+  role   = "roles/storage.objectCreator"
+  member = "serviceAccount:mw-integration-agent@clever-oasis-508610-n7.iam.gserviceaccount.com"
+  condition {
+    title       = "agent-audit-archive-only"
+    description = "Create-only access limited to the agent-audit-archive/ prefix"
+    expression  = "resource.name.startsWith(\"projects/_/buckets/mw-credit-operator-private-737787224638/objects/agent-audit-archive/\")"
+  }
+}
