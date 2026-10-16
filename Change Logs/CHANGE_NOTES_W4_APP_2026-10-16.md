@@ -57,7 +57,7 @@ Owner instruction, 16 October 2026 (Bangkok): "Go ahead to execute all the steps
 - Hosting: version `2b6c25c065f1a45a`, release `1792166200421000` (15:56:13 to 15:56:47Z), marker `1a84bcdb5c851abf9dec4139`, entry `/assets/index-ClaA5ewz.js`, 15 files; package and receipt in `~/.mw-private/MW-Credit-App/promotion/r064/` and the private bucket.
 - Smoke: API and Hosting checks passed (details in Development Changes, R064 production promotion); no `pwa_lock_key_v1` errors. The notify worker's connection drops at 15:46Z and 15:55Z coincide with the two instance restarts and recovered. Pre-existing 503s on the agent's `/internal/agent/query` and `/internal/agent/catalogue` calls also occurred on R063.
 - Rollback baseline: all four services on `86d172de…` (`keep-r063-runtime`), Hosting `8154effa824f58e9` / release `1792149184194000`.
-- Not done: authenticated PROD path (the owner's next normal sign-in is the proof); physical device. R064 is Frozen and not Released; the sync correction comes from another session.
+- Not done: authenticated PROD path (the owner's next normal sign-in is the proof); physical device. R064 was Released after the sync correction (verified 16 October 2026 23:57 Bangkok; tag `R064` on `9420c85`).
 
 ## Recovery
 

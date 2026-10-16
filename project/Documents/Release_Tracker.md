@@ -15,10 +15,11 @@ All new features/fixes use the sole Open release. Freeze only at authorized prom
 | Release | Status | Remaining action / owning record |
 | --- | --- | --- |
 | R065 | Open | New product work. Carries nothing from R064. |
-| R064 | Frozen 16 October 2026 21:49 Bangkok | Wave 4 scope applied and verified in PROD on 16 October 2026 (owner: "Go ahead to execute all the steps until wave 4 is fully done"): V93 (22:16 Bangkok), runtime image `8611c23d…` and Hosting `2b6c25c065f1a45a`, Cloud SQL tier/flags. Package: SQL `claude/review-w4-db` `9eee10e56974f04c464c70b1a815f70be9809c6c`, manifest SHA256 `033b10fc…bea9c`, V93 `d4e7e547…7013`; runtime/frontend `claude/r064-promotion` `355f3a3`. `mw_agent` 7-day purge in progress, agent V5 and agent deploy pending; sync correction pending. **Not yet Released**; no tag. [Record](Development_Changes.md#r064-production-promotion) |
 | R056 | Frozen; V91 deployed | Lisa enrollment retry/closure; [record](../outputs/r056-apple-push/README.md) |
 | R055 | Frozen; monitoring delivered | Carried credential work unfinished; [record](../outputs/r055-grafana/continuation.md) |
 | R016 | Owner-accepted reporting; administrative follow-up | Migration-key retirement evidence/final tag unresolved; do not reopen product development |
+
+R064 Wave 4 and sync correction is Released: V93 in PROD (16 October 2026 22:16 Bangkok, SQL `9eee10e`, manifest `033b10fc…`), Wave 4 runtime `8611c23d…` and Hosting `2b6c25c065f1a45a` (source `7c11863`, runner `355f3a3`), then the sync correction from `9420c85` (image `88b4dbad…`, reader `00008-xp4`, command `00012-67j`, notify `00006-rnq`, jobs `00006-rzs`, Hosting `7664add62c41bce6`), Cloud SQL `db-g1-small` with Query Insights and `max_connections` 200; verified 16 October 2026 23:57 Bangkok; annotated tag `R064` on `9420c85`; [record](Development_Changes.md#r064-production-promotion). Integration-agent follow-up (agent V5, Debian deploy, `mw_agent` purge) is tracked in [Development Changes](Development_Changes.md#r064-wave-4), not in this release. R065 is Open; next R066.
 
 R063 runtime, workers and frontend is Released: source `main` `37f62121e9b04a163ebfa014e3240841b46d9a96`, one PROD image `86d172de…` on reader `00006-9dl`, command `00010-4s8`, notify `00004-q8t` and jobs `00004-p9t`, PROD Hosting `8154effa824f58e9` (CSP headers), V92 unchanged; DEV first, verified 16 October 2026 18:15 Bangkok; [record](Development_Changes.md#r063-production-promotion). R064 is Open; next R065.
 
