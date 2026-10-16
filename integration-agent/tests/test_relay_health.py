@@ -1,5 +1,30 @@
+from contextlib import contextmanager
 import unittest
-from mw_integration_agent import relay_health as rh
+from unittest.mock import patch
+from mw_integration_agent import relay_health as rh, state
+from mw_integration_agent.config import ConfigurationError
+
+IAM_USER='mw-integration-agent@clever-oasis-508610-n7.iam'
+
+
+class FakeConnection:
+    """Records statements; every query returns no row, so the fence stops inspect()."""
+    def __init__(self):
+        self.statements=[]
+    def execute(self,sql,params=None):
+        self.statements.append(sql)
+        return self
+    def fetchone(self):
+        return None
+    @contextmanager
+    def transaction(self):
+        yield
+    def close(self):
+        pass
+    def __enter__(self):
+        return self
+    def __exit__(self,*exc):
+        self.close()
 
 
 class CompletedRelayHealthTests(unittest.TestCase):
@@ -31,3 +56,31 @@ class CompletedRelayHealthTests(unittest.TestCase):
             with self.subTest(changes=changes):
                 self.assertEqual(self.check(**changes)['inspection_failed'],1)
                 self.assertEqual(self.check(**changes)['status'],0)
+
+
+class InspectConnectionTests(unittest.TestCase):
+    """ALL-ARCH-03: the central read runs as mw_agent_worker, never as the bare NOINHERIT IAM login."""
+    CONFIG={'state_backend':'postgres','agent_database_host':'127.0.0.1','agent_database_port':5432,
+            'agent_database_name':'mw_agent','state_generation':'11111111-1111-4111-8111-111111111111'}
+
+    def inspect(self,config):
+        central=FakeConnection()
+        @contextmanager
+        def business(config):
+            yield FakeConnection()
+        with patch('psycopg.connect',return_value=central) as connect,patch.object(rh,'business',business), \
+             patch.object(state,'load_secret',return_value='synthetic'):
+            with self.assertRaisesRegex(ConfigurationError,'STATE_GENERATION_INACTIVE'):
+                rh.inspect(config)
+        return central.statements,connect.call_args.kwargs
+
+    def test_iam_sets_worker_role_before_any_query(self):
+        statements,kwargs=self.inspect(dict(self.CONFIG,agent_database_auth='iam',database_iam_user=IAM_USER))
+        self.assertEqual(statements[0],'SET ROLE mw_agent_worker')
+        self.assertEqual((kwargs['user'],kwargs['port'],'password' in kwargs),(IAM_USER,5433,False))
+        self.assertIn('default_transaction_read_only=on',kwargs['options'])
+
+    def test_password_login_is_the_worker_role_itself(self):
+        statements,kwargs=self.inspect(self.CONFIG)
+        self.assertFalse([s for s in statements if s.startswith('SET ROLE')])
+        self.assertEqual((kwargs['user'],kwargs['port']),('mw_agent_worker',5432))

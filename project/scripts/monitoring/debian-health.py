@@ -201,6 +201,35 @@ def sql_uptime_snapshot(conn):
         return {'status': 4}, observed
 
 
+PROBE_OPTIONS = '-c default_transaction_read_only=on -c statement_timeout=5000'
+
+
+def database_probe(config):
+    """SELECT 1 on mw_agent as the worker and on the business database as database_user.
+
+    Each login follows its auth key (ALL-ARCH-03): password, or the IAM user on the
+    auto-iam-authn listener with SET ROLE as the first statement. Returns
+    (status, (sql_uptime, observed) or None); the uptime sample uses the business read.
+    """
+    import psycopg
+    from mw_integration_agent.config import auth_mode, iam_port, load_secret
+    from mw_integration_agent.state import assume_role, open_connection
+    with open_connection(config, options=PROBE_OPTIONS) as conn:
+        if conn.execute('SELECT 1').fetchone() != (1,):
+            return 0, None
+    iam = auth_mode(config, 'database_') == 'iam'
+    login = (dict(user=config['database_iam_user'], port=iam_port(config)) if iam else
+             dict(user=config['database_user'], port=config['database_port'],
+                  password=load_secret(config, 'database_password_file')))
+    with psycopg.connect(host=config['database_host'], dbname=config['database_name'],
+                         connect_timeout=8, options=PROBE_OPTIONS, **login) as conn:
+        assume_role(conn, config['database_user'] if iam else None)
+        if conn.execute('SELECT 1').fetchone() != (1,):
+            return 0, None
+        sample = sql_uptime_snapshot(conn) if config['database_name'] == 'loan_manager_prod' else None
+    return 1, sample
+
+
 def sql_uptime_series(snapshot, observed, resource):
     return [{'metric': {'type': WORKER_METRIC,
                         'labels': {'component': 'cloud_sql_prod', 'field': field}},
@@ -308,22 +337,12 @@ def main():
     check('tailscale_node', tailscale)
     def database():
         nonlocal sql_uptime, sql_observed
-        import psycopg
-        from mw_integration_agent.state import parameters
-        from mw_integration_agent.config import load_secret
         if properties('cloud-sql-auth-proxy.service').get('ActiveState') != 'active':
             return 0
-        connections = [parameters(config), dict(host=config['database_host'], port=config['database_port'],
-            dbname=config['database_name'], user=config['database_user'],
-            password=load_secret(config, 'database_password_file'), connect_timeout=8)]
-        for args in connections:
-            args['options'] = '-c default_transaction_read_only=on -c statement_timeout=5000'
-            with psycopg.connect(**args) as conn:
-                if conn.execute('SELECT 1').fetchone() != (1,):
-                    return 0
-                if args['dbname'] == 'loan_manager_prod' and args['user'] == 'mw_integration_agent':
-                    sql_uptime, sql_observed = sql_uptime_snapshot(conn)
-        return 1
+        status, sample = database_probe(config)
+        if sample:
+            sql_uptime, sql_observed = sample
+        return status
     check('database', database)
     def codex():
         env = dict(os.environ, HOME='/var/lib/mw-integration-agent', CODEX_HOME=config['codex_home'])

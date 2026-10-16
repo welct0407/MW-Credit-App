@@ -10,7 +10,7 @@ from pathlib import Path
 
 from mw_integration_agent import audit
 from mw_integration_agent.config import ConfigurationError
-from mw_integration_agent.state import fence, parameters
+from mw_integration_agent.state import fence, open_connection
 
 
 def snapshot(conn, key, lock=False):
@@ -70,7 +70,6 @@ def acknowledge(conn, config, items, operator, reason, authorization):
 
 
 def main():
-    import psycopg
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('action',choices=['inspect','acknowledge'])
     parser.add_argument('--config',required=True)
@@ -80,7 +79,7 @@ def main():
     args=parser.parse_args()
     config=json.loads(Path(args.config).read_text())
     config['code_version']='receipt-notice-ack-v1:'+audit.digest(Path(__file__).read_text())
-    with psycopg.connect(**parameters(config)) as conn:
+    with open_connection(config) as conn:  # SET ROLE mw_agent_worker first under IAM
         with conn.transaction():
             if args.action=='inspect':
                 conn.execute('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ, READ ONLY')

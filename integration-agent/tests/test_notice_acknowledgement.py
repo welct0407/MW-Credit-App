@@ -1,16 +1,63 @@
 """Synthetic PostgreSQL acknowledgement: immutable failures, exact scope, rollback."""
+from contextlib import contextmanager
 import importlib.util
 import json
 import os
 from pathlib import Path
+import tempfile
 import unittest
+from unittest.mock import patch
 import uuid
 import psycopg
-from mw_integration_agent import audit
+from mw_integration_agent import audit, state
 from mw_integration_agent.config import ConfigurationError
 
 spec=importlib.util.spec_from_file_location('notice_ack',Path(__file__).parents[1]/'scripts/acknowledge-receipt-notices.py')
 ack=importlib.util.module_from_spec(spec);spec.loader.exec_module(ack)
+
+class FakeConnection:
+    def __init__(self):
+        self.statements=[]
+    def execute(self,sql,params=None):
+        self.statements.append(sql);return self
+    def fetchone(self):
+        return None
+    @contextmanager
+    def transaction(self):
+        yield
+    def close(self):
+        pass
+    def __enter__(self):
+        return self
+    def __exit__(self,*exc):
+        self.close()
+
+
+class ConnectionUnitTests(unittest.TestCase):
+    """ALL-ARCH-03: the operator CLI runs as mw_agent_worker, never as the bare NOINHERIT IAM login."""
+    def run_main(self,**auth):
+        conn=FakeConnection()
+        with tempfile.TemporaryDirectory() as d:
+            config=Path(d)/'config.json'
+            config.write_text(json.dumps(dict(agent_database_host='127.0.0.1',agent_database_port=5432,agent_database_name='mw_agent',
+                state_generation='11111111-1111-4111-8111-111111111111',**auth)))
+            argv=['acknowledge-receipt-notices.py','inspect','--config',str(config),'--notice-id','a'*64]
+            with patch('sys.argv',argv),patch('psycopg.connect',return_value=conn) as connect, \
+                 patch.object(state,'load_secret',return_value='synthetic'):
+                with self.assertRaisesRegex(ConfigurationError,'STATE_GENERATION_INACTIVE'):
+                    ack.main()
+        return conn.statements,connect.call_args.kwargs
+
+    def test_iam_sets_worker_role_before_any_query(self):
+        statements,kwargs=self.run_main(agent_database_auth='iam',database_iam_user='mw-integration-agent@clever-oasis-508610-n7.iam')
+        self.assertEqual(statements[0],'SET ROLE mw_agent_worker')
+        self.assertEqual((kwargs['user'],kwargs['port'],'password' in kwargs),('mw-integration-agent@clever-oasis-508610-n7.iam',5433,False))
+
+    def test_password_login_is_the_worker_role_itself(self):
+        statements,kwargs=self.run_main()
+        self.assertFalse([s for s in statements if s.startswith('SET ROLE')])
+        self.assertEqual((kwargs['user'],kwargs['port']),('mw_agent_worker',5432))
+
 
 @unittest.skipUnless(os.environ.get('MW_AGENT_LAB_MANIFEST'),'private PostgreSQL lab required')
 class AcknowledgementTests(unittest.TestCase):

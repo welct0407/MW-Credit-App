@@ -1,6 +1,8 @@
+from contextlib import contextmanager
 import datetime as dt
 import importlib.util
 import pathlib
+import sys
 import unittest
 from unittest.mock import Mock,patch
 
@@ -141,5 +143,73 @@ class WebhookReadinessTests(unittest.TestCase):
                       Mock(return_value='{"ready": "true", "code_version": "abc"}'),Mock(return_value='{"ready": true, "code_version": ""}'),
                       Mock(return_value='{"ready": true, "code_version": null}'),Mock(return_value='{"ready": true}')]:
             with self.subTest(fetch=fetch):self.assertEqual(health.readiness(fetch),(0,None))
+
+
+class ProbeConnection:
+    """One fake psycopg connection: records statements, answers SELECT 1 and the uptime read."""
+    def __init__(self):
+        self.statements=[]
+    def execute(self,sql,params=None):
+        self.statements.append(sql)
+        row=(1,) if sql=='SELECT 1' else ('loan_manager_prod','mw_integration_agent','on',5,dt.datetime.now(dt.UTC))
+        return Mock(fetchone=Mock(return_value=row))
+    @contextmanager
+    def transaction(self):
+        yield
+    def close(self):
+        pass
+    def __enter__(self):
+        return self
+    def __exit__(self,*exc):
+        self.close()
+
+
+def agent_package_available():
+    source=pathlib.Path(__file__).parents[3]/'integration-agent'/'src'
+    if source.is_dir() and str(source) not in sys.path:
+        sys.path.append(str(source))
+    try:
+        import psycopg  # noqa: F401
+        import mw_integration_agent.state  # noqa: F401
+    except ImportError:
+        return False
+    return True
+
+
+@unittest.skipUnless(agent_package_available(),'integration-agent package and psycopg required')
+class DatabaseProbeTests(unittest.TestCase):
+    """ALL-ARCH-03: each login follows its auth key; under IAM the first statement is SET ROLE."""
+    IAM_USER='mw-integration-agent@clever-oasis-508610-n7.iam'
+    CONFIG={'state_backend':'postgres','agent_database_host':'127.0.0.1','agent_database_port':5432,'agent_database_name':'mw_agent',
+            'state_generation':'11111111-1111-4111-8111-111111111111','database_host':'127.0.0.1','database_port':5432,
+            'database_name':'loan_manager_prod','database_user':'mw_integration_agent'}
+
+    def probe(self,config,load_secret):
+        from mw_integration_agent import config as agent_config, state
+        connections=[]
+        def connect(**kwargs):
+            connections.append((kwargs,ProbeConnection()));return connections[-1][1]
+        with patch('psycopg.connect',side_effect=connect),patch.object(state,'load_secret',load_secret), \
+             patch.object(agent_config,'load_secret',load_secret):
+            result=health.database_probe(config)
+        return result,connections
+
+    def test_iam_logins_set_worker_and_integration_roles_first(self):
+        config=dict(self.CONFIG,agent_database_auth='iam',database_auth='iam',database_iam_user=self.IAM_USER)
+        (status,sample),connections=self.probe(config,Mock(side_effect=AssertionError('no password file under IAM')))
+        self.assertEqual((status,sample[0]['status']),(1,1))
+        (central,central_conn),(business,business_conn)=connections
+        self.assertEqual(central_conn.statements[0],'SET ROLE mw_agent_worker')
+        self.assertEqual(business_conn.statements[0],'SET ROLE mw_integration_agent')
+        for kwargs in (central,business):
+            self.assertEqual((kwargs['user'],kwargs['port'],'password' in kwargs),(self.IAM_USER,5433,False))
+            self.assertIn('default_transaction_read_only=on',kwargs['options'])
+
+    def test_password_logins_are_the_roles_themselves(self):
+        (status,sample),connections=self.probe(self.CONFIG,Mock(return_value='synthetic'))
+        self.assertEqual((status,sample[0]['status']),(1,1))
+        self.assertEqual([(k['user'],k['port']) for k,_ in connections],[('mw_agent_worker',5432),('mw_integration_agent',5432)])
+        self.assertFalse([s for _,c in connections for s in c.statements if s.startswith('SET ROLE')])
+
 
 if __name__=='__main__': unittest.main()

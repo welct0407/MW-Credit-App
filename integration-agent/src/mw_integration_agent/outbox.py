@@ -4,7 +4,7 @@ import json
 from decimal import Decimal
 from . import audit
 from .config import DATABASES, PASSWORD_PORT, ConfigurationError, auth_mode, iam_port, load_secret
-from .state import transaction
+from .state import assume_role, transaction
 
 
 @contextmanager
@@ -19,9 +19,7 @@ def business(config):
                 {'user':'mw_agent_relay','password':load_secret(config,'agent_database_relay_password_file')})
     with psycopg.connect(host=config['database_host'],port=iam_port(config) if mode=='iam' else PASSWORD_PORT,dbname=config['database_name'],
         autocommit=True,connect_timeout=10,application_name='mw-agent-outbox',**credential) as conn:
-        if mode=='iam':
-            conn.execute('SET ROLE mw_agent_relay')
-        yield conn
+        yield assume_role(conn,'mw_agent_relay' if mode=='iam' else None)
 
 
 def relay(config):

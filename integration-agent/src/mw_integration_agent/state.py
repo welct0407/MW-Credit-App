@@ -45,6 +45,32 @@ def session_role(config, role):
     return 'mw_agent_' + role if auth_mode(config, 'agent_database_') == 'iam' else None
 
 
+SESSION_ROLES = ('mw_agent_worker', 'mw_agent_relay', 'mw_integration_agent')
+
+
+def assume_role(conn, role):
+    """IAM logins (ALL-ARCH-03) are NOINHERIT: SET ROLE must be the first statement on the connection.
+
+    The one place agent code issues SET ROLE over psycopg; None means the login role is the role itself.
+    """
+    if role is not None:
+        if role not in SESSION_ROLES:
+            raise ConfigurationError('UNAPPROVED_SESSION_ROLE')
+        conn.execute('SET ROLE ' + role)
+    return conn
+
+
+def open_connection(config, role='worker', **overrides):
+    """A new mw_agent connection for role (parameters() plus overrides), already SET ROLE under IAM."""
+    import psycopg
+    conn = psycopg.connect(**{**parameters(config, role), **overrides})
+    try:
+        return assume_role(conn, session_role(config, role))
+    except BaseException:
+        conn.close()
+        raise
+
+
 def parameters(config, role='worker'):
     mode = auth_mode(config, 'agent_database_')
     if (config.get('agent_database_host') not in ('127.0.0.1','::1') or
@@ -74,7 +100,6 @@ class Pool:
 
     @contextmanager
     def connection(self):
-        import psycopg
         deadline = time.monotonic() + 5
         conn = None
         with self.condition:
@@ -89,10 +114,7 @@ class Pool:
                 self.total += 1
         try:
             if conn is None or conn.closed or conn.broken:
-                conn = psycopg.connect(**parameters(self.config, self.role))
-                role = session_role(self.config, self.role)
-                if role:
-                    conn.execute('SET ROLE ' + role)
+                conn = open_connection(self.config, self.role)
             yield conn
         finally:
             with self.condition:

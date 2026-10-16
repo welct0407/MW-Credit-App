@@ -1,7 +1,7 @@
 """Bounded read-only relay completion/backlog evidence for the collector."""
 import time
 from .config import ConfigurationError
-from .state import parameters, fence
+from .state import fence, open_connection
 from .outbox import business
 
 
@@ -46,13 +46,12 @@ def assess(snapshot, now):
 
 
 def inspect(config, now=None):
-    import psycopg
     now=time.time() if now is None else now
     if config.get('state_backend')!='postgres':
         raise ConfigurationError('RELAY_HEALTH_POSTGRES_REQUIRED')
-    args=parameters(config)
-    args['options']='-c default_transaction_read_only=on -c statement_timeout=5000 -c lock_timeout=1000'
-    with psycopg.connect(**args) as central, business(config) as source:
+    # open_connection runs SET ROLE mw_agent_worker first under IAM (ALL-ARCH-03).
+    with open_connection(config,options='-c default_transaction_read_only=on -c statement_timeout=5000 -c lock_timeout=1000') as central, \
+            business(config) as source:
         source.execute('SET default_transaction_read_only=on')
         source.execute('SET statement_timeout=5000')
         with central.transaction():
