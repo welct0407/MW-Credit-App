@@ -21,6 +21,8 @@ export function createConversationReadProvider({pool, guardConnection, policy, c
       await client.query('BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY');
       await client.query(statementTimeoutSql('command'));
       await client.query(lockTimeoutSql);
+      // Small reviewed reads: JIT compilation (seconds on a cold host) costs more than the query itself.
+      await client.query('SET LOCAL jit=off');
       await guardConnection(client);
       const actor = await resolveConversationActor(client, policy, context.workload, input.actorPartnerId);
       if (context.signal?.aborted) throw Error('request_aborted');
