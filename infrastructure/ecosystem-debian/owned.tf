@@ -295,10 +295,14 @@ resource "google_project_iam_member" "debian_sql_instance_user" {
   project = "clever-oasis-508610-n7"
   role    = "roles/cloudsql.instanceUser"
   member  = "serviceAccount:mw-integration-agent@clever-oasis-508610-n7.iam.gserviceaccount.com"
+  # SSD move: old || new while both instances exist. A condition change
+  # replaces the binding; create_before_destroy keeps login working meanwhile.
+  # Narrow to the new instance only after the old one is retired.
+  lifecycle { create_before_destroy = true }
   condition {
     title       = "prod-cloud-sql-only"
-    description = "Permit IAM database login only to the shared Cloud SQL instance"
-    expression  = "resource.name == 'projects/clever-oasis-508610-n7/instances/appsheet-pg-prod-20260914' && resource.service == 'sqladmin.googleapis.com'"
+    description = "Permit IAM database login only to the shared Cloud SQL instances"
+    expression  = "(resource.name == 'projects/clever-oasis-508610-n7/instances/appsheet-pg-prod-20260914' || resource.name == 'projects/clever-oasis-508610-n7/instances/mw-credit-pg-20261017') && resource.service == 'sqladmin.googleapis.com'"
   }
 }
 resource "google_sql_user" "debian_agent" {

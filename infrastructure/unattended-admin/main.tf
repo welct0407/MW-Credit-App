@@ -169,9 +169,12 @@ resource "google_project_iam_member" "codex_cloud_vm_lookup" {
 # codex-cloud impersonates it; its Cloud SQL IAM user receives only the
 # instance-wide pg_read_all_data membership (granted in SQL, see README).
 # Admin membership stays on codex-cloud@…iam for the guarded runner only.
+# SSD move: the condition accepts old || new while both instances exist;
+# narrow it to the new instance after the old one is retired.
 locals {
-  cloud_sql_instance  = "appsheet-pg-prod-20260914"
-  cloud_sql_condition = "resource.name == 'projects/${local.project}/instances/${local.cloud_sql_instance}' && resource.service == 'sqladmin.googleapis.com'"
+  cloud_sql_instance     = "appsheet-pg-prod-20260914"
+  cloud_sql_instance_ssd = "mw-credit-pg-20261017"
+  cloud_sql_condition    = "(resource.name == 'projects/${local.project}/instances/${local.cloud_sql_instance}' || resource.name == 'projects/${local.project}/instances/${local.cloud_sql_instance_ssd}') && resource.service == 'sqladmin.googleapis.com'"
 }
 resource "google_service_account" "cloud_read" {
   project      = local.project
@@ -184,9 +187,11 @@ resource "google_project_iam_member" "cloud_read_sql" {
   project  = local.project
   role     = each.value
   member   = "serviceAccount:${google_service_account.cloud_read.email}"
+  # A condition change replaces the binding; create the new one first.
+  lifecycle { create_before_destroy = true }
   condition {
     title       = "shared-cloud-sql-only"
-    description = "Only the shared Cloud SQL instance"
+    description = "Only the shared Cloud SQL instances"
     expression  = local.cloud_sql_condition
   }
 }
