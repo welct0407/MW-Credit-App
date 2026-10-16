@@ -5,7 +5,7 @@ import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {spawnSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
-import {executeBusinessHosting,appOnlyHostingPlan,verifyAppOnlyOperator,validateFrontendSource,validateFrontendCi,frontendOnlyHostingPlan,verifyFrontendOnlyLivePackage,validateSettingsSource,settingsHostingPlan,verifySettingsLivePackage,runtimeHostingPlan,validateRuntimeSource,validateRuntimeCi,verifyRuntimeLivePackage,waveHostingPlan,validateWaveSource,validateWaveCi,verifyWaveLivePackage} from '../../scripts/promotion/deploy-business-hosting.mjs';
+import {executeBusinessHosting,appOnlyHostingPlan,verifyAppOnlyOperator,validateFrontendSource,validateFrontendCi,frontendOnlyHostingPlan,verifyFrontendOnlyLivePackage,validateSettingsSource,settingsHostingPlan,verifySettingsLivePackage,runtimeHostingPlan,validateRuntimeSource,validateRuntimeCi,verifyRuntimeLivePackage,waveHostingPlan,validateWaveSource,validateWaveCi,verifyWaveLivePackage,r065HostingPlan,validateR065Source,verifyR065LivePackage} from '../../scripts/promotion/deploy-business-hosting.mjs';
 const site='mw-credit-prod-737787224638',version=`sites/${site}/versions/abc123`,release=`sites/${site}/releases/xyz123`;
 const plan=()=>({site,files:{'/index.html':'a'.repeat(64)},contents:new Map([['a'.repeat(64),Buffer.from('compressed')]]),headers:[],sourceCommit:'b'.repeat(40),publicVersion:'marker'});
 function transport({target=version,hash='a'.repeat(64),upload='https://upload-firebasehosting.googleapis.com/upload/'+version+'/files',failFinalize=false}={}){const calls=[];return {calls,request:async(url,method,body)=>{calls.push({url,method,body});if(url.endsWith('/versions'))return {name:target};if(url.endsWith(':populateFiles'))return {uploadRequiredHashes:[hash],uploadUrl:upload};if(method==='PATCH'){if(failFinalize)throw Error('Finalize failed');return {name:version,status:'FINALIZED'};}if(url.includes('/releases?'))return {name:release,version:{name:version}};return {};}};}
@@ -267,4 +267,32 @@ test('R064 live verification re-reads CI and keeps the worker caller subjects',a
  await assert.rejects(verifyWaveLivePackage(m,{token:'t',request:make(false),readGithub,git}),/caller subjects/);
  await assert.rejects(verifyWaveLivePackage(m,{token:'t',request:make(true,'f'),readGithub,git}),/build digest/);
  await assert.rejects(verifyWaveLivePackage(m,{token:'t',request:make(),readGithub:args=>{const r=readGithub(args);return args[1].includes('/jobs')?{jobs:r.jobs.filter(j=>j.name!=='terraform')}:r;},git}),/terraform/);
+});
+
+// R065: Hosting-only on the unchanged R064 runtime; source descends from the R064 release.
+const r064Release='9420c8599ce593eeeaafc1e68a235ab3d1d08d8c';
+async function r065Package(t){
+ const p=await wavePackage(t),m=p.m;
+ m.runtime={services:Object.fromEntries(Object.entries(m.applied.services).map(([role,s])=>[role,{image:s.image,revision:s.revision}]))};
+ Object.assign(m,{schemaVersion:7,release:'R065',scope:'frontend-only',status:'prepared',sourceBaseline:r064Release,rollback:{hostingVersion:m.rollback.hostingVersion,hostingRelease:m.rollback.hostingRelease}});
+ delete m.build;delete m.plan;delete m.applied;
+ return p;
+}
+test('R065 Hosting-only package validates and rejects runtime, SQL, baseline and CI changes',async t=>{
+ const {m,source,tool,ci}=await r065Package(t),git=waveGit({source,tool});
+ const plan=await r065HostingPlan(m,{git});assert.equal(plan.site,site);assert.equal(plan.rollback.hostingVersion,m.rollback.hostingVersion);
+ for(const [mutate,pattern] of [[x=>{x.build={id:'b'}},/must not apply/],[x=>{x.plan={}},/must not apply/],[x=>{x.status='applied'},/package kind/],[x=>{x.schemaVersion=6},/package kind/],[x=>{x.sourceBaseline='37f62121e9b04a163ebfa014e3240841b46d9a96'},/baseline/],[x=>{x.sql.targetVersion=94},/V93/],[x=>{x.sql.migrations=[{name:'V94__x.sql'}]},/V93/],[x=>{x.runtime.services.command.revision='bad'},/runtime pins/],[x=>{delete x.runtime},/runtime pins/],[x=>{x.applicationCi.full.jobs.splice(1,1)},/R065 full CI missing executed e2e/],[x=>{x.target.database='loan_manager_dev'},/target/],[x=>{x.frontend.files[0].sha256='d'.repeat(64)},/artifact/]]){const candidate=structuredClone(m);mutate(candidate);await assert.rejects(r065HostingPlan(candidate,{git}),pattern);}
+ for(const file of ['services/business/offline-dataset-chunks.mjs','database/migrations/V94__x.sql','infrastructure/production/runtime.tf','Dockerfile','package-lock.json'])await assert.rejects(r065HostingPlan(m,{git:waveGit({source,tool,changed:{[r064Release]:file}})}),/must not change the R064 runtime/);
+ assert.doesNotThrow(()=>validateR065Source(m,waveGit({source,tool,changed:{[r064Release]:''},delivery:'scripts/promotion/deploy-business-hosting.mjs\ntests/unit/business-hosting-delivery.test.mjs\nproject/Documents/Release_Tracker.md'})));
+ assert.throws(()=>validateR065Source(m,waveGit({source,tool,delivery:'apps/pwa/src/live-main.tsx'})),/delivery correction/);
+ assert.throws(()=>validateR065Source(m,waveGit({source,tool,dirty:'apps/pwa/src/live-main.tsx'})),/working input/);
+ await assert.rejects(r065HostingPlan(m,{git:waveGit({source,tool,changed:{[ci]:'apps/pwa/src/live-main.tsx'}})}),/R065 full CI is not input-equivalent/);
+});
+test('R065 live verification re-reads CI and requires the pinned R064 runtime',async t=>{
+ const {m,source,tool}=await r065Package(t),git=waveGit({source,tool});
+ const make=(drift)=>async url=>{const role=url.split('/services/mw-credit-app-')[1].replace('-prod',''),pin=m.runtime.services[role];return {ok:true,json:async()=>({latestReadyRevision:'x/'+pin.revision,terminalCondition:{state:'CONDITION_SUCCEEDED'},template:{containers:[{image:drift===role?pin.image.replace(/.$/,'0'):pin.image}]}})};};
+ const readGithub=args=>{const id=Number(args[1].split('/runs/')[1].split('/')[0]),kind={11:'full',12:'check',13:'database'}[id],r=m.applicationCi[kind];return args[1].includes('/jobs')?{jobs:r.jobs}:r.run;};
+ await verifyR065LivePackage(m,{token:'t',request:make(),readGithub,git});
+ await assert.rejects(verifyR065LivePackage(m,{token:'t',request:make('jobs'),readGithub,git}),/live runtime differs/);
+ await assert.rejects(verifyR065LivePackage(m,{token:'t',request:make(),readGithub:args=>{const r=readGithub(args);return args[1].includes('/jobs')?{jobs:r.jobs.filter(j=>j.name!=='terraform')}:r;},git}),/terraform/);
 });
