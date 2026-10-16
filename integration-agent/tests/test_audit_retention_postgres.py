@@ -281,6 +281,48 @@ class RetentionPurgeTests(unittest.TestCase):
             self.assertEqual(after['audit.operations'], before['audit.operations'] - report['deleted']['audit.operations'] + 1)
             self.assertTrue(triggers_enabled(admin))
 
+    def test_resume_deletes_only_rows_already_in_a_verified_export(self):
+        """--resume-run: replan with the export's cutoff, refuse anything not archived or a tampered archive, never re-export."""
+        script = load('agent_db_maintenance_resume', AGENT / 'scripts' / 'agent-db-maintenance.py')
+        with psycopg.connect(**self.admin) as admin:
+            roots = self.eligible_trees(admin)
+        with tempfile.TemporaryDirectory(prefix='mw-retention-resume-') as directory, contextlib.redirect_stdout(io.StringIO()):
+            private = Path(directory)
+            (private / 'work').mkdir(mode=0o700)
+            (private / 'connection.json').write_text(json.dumps({k: v for k, v in self.admin.items() if k != 'autocommit'}))
+            base = ['audit-retention', '--connection-file', str(private / 'connection.json'), '--expect-environment', 'test',
+                    '--archive', 'local:' + str(private / 'archive'), '--work-directory', str(private / 'work'), '--actor', 'lab']
+            script.main(base + ['--export', '--output', str(private / 'export.json')])
+            exported = json.loads((private / 'export.json').read_text())
+            run_dir = Path(exported['local_directory'])
+            with self.assertRaises(SystemExit):  # resume never runs without --apply
+                script.main(base + ['--resume-run', str(run_dir)])
+            events = run_dir / 'audit.events.jsonl.gz'
+            original = events.read_bytes()
+            events.write_bytes(original + b'\x00')
+            with self.assertRaises(SystemExit):  # archive no longer matches its verified manifest
+                script.main(base + ['--apply', '--resume-run', str(run_dir)])
+            events.write_bytes(original)
+            with psycopg.connect(**self.admin) as admin:
+                before = counts(admin)
+            script.main(base + ['--apply', '--batch', '1', '--pause', '0', '--resume-run', str(run_dir), '--output', str(private / 'resume.json')])
+            report = json.loads((private / 'resume.json').read_text())
+            self.assertTrue(report['applied'])
+            self.assertEqual(report['resumed_run'], exported['run_id'])
+            self.assertEqual(report['deleted'], exported['rows'])
+            self.assertNotIn('export_seconds', report)
+            self.assertEqual(len(list((private / 'work').iterdir())), 1)  # no second export directory
+            with psycopg.connect(**self.admin) as admin:
+                self.assertEqual(admin.execute('SELECT count(*) FROM audit.operations WHERE operation_id=ANY(%s)', (roots,)).fetchone()[0], 0)
+                self.assertEqual(counts(admin)['audit.operations'], before['audit.operations'] - exported['rows']['audit.operations'] + 1)
+                self.assertTrue(triggers_enabled(admin))
+                later = self.eligible_trees(admin)  # eligible under the old cutoff but never exported
+            with self.assertRaises(SystemExit):
+                script.main(base + ['--apply', '--resume-run', str(run_dir)])
+            with psycopg.connect(**self.admin) as admin:
+                self.assertEqual(admin.execute('SELECT count(*) FROM audit.operations WHERE operation_id=ANY(%s)', (later,)).fetchone()[0], 2)
+                self.assertTrue(triggers_enabled(admin))
+
 
 if __name__ == '__main__':
     unittest.main()
