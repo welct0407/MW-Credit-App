@@ -25,11 +25,10 @@ test('active delta progress excludes retained bundles and long poll focus overla
  await start(page);await page.clock.runFor(1000);await expect.poll(()=>held).toBe(1);expect((await state(page)).state).toBe('ready');expect((await state(page)).syncActive).toBe(true);expect((await state(page)).progress).toBeLessThan(100);
  for(let step=0;step<4;step++){await page.clock.runFor(18000);await page.evaluate(()=>window.dispatchEvent(new Event('focus')));expect(held).toBe(step+1);release();await page.clock.runFor(1000);if(step<3){await expect.poll(()=>held).toBe(step+2);expect((await state(page)).progress).toBeGreaterThan(0);expect((await state(page)).progress).toBeLessThan(100)}}
  await page.clock.runFor(2000);await settled(page);expect((await state(page)).syncActive).toBe(false);expect((await state(page)).progress).toBe(100);expect(calls).toEqual(['records:start','collection:start','cash:start','management:start','notifications:start','records:1','records:2','records:3']);
- // R064: a focus/visibility/online burst within 60 s of a completed check sends no new checks.
- for(let burst=0;burst<3;burst++){await page.evaluate(()=>{window.dispatchEvent(new Event('focus'));document.dispatchEvent(new Event('visibilitychange'));window.dispatchEvent(new Event('online'))});await page.clock.runFor(1000)}
- // Records completed seconds ago and is not rechecked; the other domains (checked 76 s earlier) may be.
- expect(held).toBe(4);expect(calls.filter(call=>call.startsWith('records:'))).toHaveLength(4);await page.clock.runFor(2000);await settled(page);
- await page.clock.runFor(60000);await page.evaluate(()=>window.dispatchEvent(new Event('focus')));await page.clock.runFor(1000);await expect.poll(()=>held).toBe(5);expect((await state(page)).syncActive).toBe(true);expect((await state(page)).progress).toBeLessThan(100);await context.setOffline(true);expect((await state(page)).syncActive).toBe(false);expect(await page.evaluate(async()=>(await(window as any).__syncRepo.readDataset('records')).complete)).toBe(true);release();await page.clock.runFor(1000);expect((await state(page)).syncActive).toBe(false);
+ // Owner 17 Oct 2026: every focus refreshes, even seconds after a completed check. A
+ // focus/visibility/online burst starts one cycle; repeated bursts while it runs join it.
+ for(let burst=0;burst<3;burst++){await page.evaluate(()=>{window.dispatchEvent(new Event('focus'));document.dispatchEvent(new Event('visibilitychange'));window.dispatchEvent(new Event('online'))});await page.clock.runFor(1000);if(!burst)await expect.poll(()=>held).toBe(5)}
+ expect(held).toBe(5);expect(calls.slice(8)).toEqual(['records:start']);expect((await state(page)).syncActive).toBe(true);expect((await state(page)).progress).toBeLessThan(100);await context.setOffline(true);expect((await state(page)).syncActive).toBe(false);expect(await page.evaluate(async()=>(await(window as any).__syncRepo.readDataset('records')).complete)).toBe(true);release();await page.clock.runFor(1000);expect((await state(page)).syncActive).toBe(false);
  await context.setOffline(false);await page.clock.runFor(1000);await expect.poll(()=>held).toBe(6);for(let step=0;step<4;step++){release();await page.clock.runFor(1000);if(step<3)await expect.poll(()=>held).toBe(7+step)}await page.clock.runFor(2000);await settled(page);expect((await state(page)).syncActive).toBe(false);expect((await state(page)).progress).toBe(100);
 });
 
@@ -45,15 +44,41 @@ test('delta reuses complete data, transfers only edits and derived changes, poll
  await page.evaluate(async command=>{const w=window as any;await w.__syncRepo.savePending(command.requestId,{domain:'borrower',command});await w.__syncRepo.saveDraft('charge:unfinished',{notes:'My unfinished form'});},command);
  await start(page);await page.clock.runFor(2000);await settled(page);expect(calls).toHaveLength(5);expect(transferred).toEqual([]);
  data={borrowers:[unchanged,{id:'edited',name:'Other owner',note:'Remote'}],dashboard:{total:'20'},payments:[]};version=newVersion;
- await page.clock.fastForward(5*60*1000);await page.clock.runFor(2000);await settled(page);
+ // APP-OFFLINE-03: the visible tab polls every 30 seconds.
+ await page.clock.fastForward(30*1000);await page.clock.runFor(2000);await settled(page);
  expect(transferred).toEqual(expect.arrayContaining([{id:'edited',name:'Other owner',note:'Remote'},{total:'20'}]));expect(transferred).toHaveLength(2);
  const saved=await page.evaluate(async()=>{const w=window as any;return{bundle:await w.__syncRepo.readDataset('records'),pending:await w.__syncRepo.list('pending'),draft:await w.__syncRepo.list('draft')}});
  expect(saved.bundle.data.borrowers.map((row:any)=>row.id)).toEqual(['stable','edited']);expect(saved.bundle.data.dashboard.total).toBe('20');expect(saved.pending[0].value.command).toEqual(command);expect(saved.draft[0].value.notes).toBe('My unfinished form');
  await page.evaluate(()=>{const w=window as any;return w.__offlineTest.syncSavedRequests(w.__syncAccess)});expect(await page.evaluate(async()=>(await(window as any).__syncRepo.list('pending'))[0].sync.state)).toBe('blocked');expect(await page.evaluate(async()=>(await(window as any).__syncRepo.list('pending'))[0].value.command)).toEqual(command);
  await page.clock.runFor(2000);await settled(page);const before=calls.length;
- await page.evaluate(()=>Object.defineProperty(document,'visibilityState',{configurable:true,value:'hidden'}));await page.clock.fastForward(5*60*1000);await page.clock.runFor(1000);expect(calls).toHaveLength(before);
+ await page.evaluate(()=>Object.defineProperty(document,'visibilityState',{configurable:true,value:'hidden'}));await page.clock.runFor(3*30*1000);expect(calls).toHaveLength(before);
  await page.evaluate(()=>{Object.defineProperty(document,'visibilityState',{configurable:true,value:'visible'});document.dispatchEvent(new Event('visibilitychange'))});await page.clock.runFor(2000);await settled(page);expect(calls.length).toBeGreaterThan(before);
- const beforeReconnect=calls.length;await page.clock.runFor(60000);await context.setOffline(true);await context.setOffline(false);await page.clock.runFor(2000);await settled(page);expect(calls.length).toBeGreaterThan(beforeReconnect);
+ // No poll while offline; reconnecting rechecks domains older than 60 s.
+ await context.setOffline(true);const beforeReconnect=calls.length;await page.clock.runFor(60000);expect(calls).toHaveLength(beforeReconnect);await context.setOffline(false);await page.clock.runFor(2000);await settled(page);expect(calls.length).toBeGreaterThan(beforeReconnect);
+});
+
+test('every focus refreshes at once, idle checks report no change and rewrite nothing, one burst sends one request per domain, and the poll restarts after it',async({page})=>{
+ await fixture(page,'delta-focus');await page.clock.install();const calls:string[]=[];let round=0;
+ const notices={items:[{eventId:'90000000-0000-4000-8000-0000000000e1',occurredAt:'2026-10-14T00:00:00.000000Z',title:'Synthetic'}],targets:[],status:{enabled:true,deviceRegistered:false,subscriptionId:null}};
+ await page.route('**/api/**',route=>{const domain=new URL(route.request().url()).searchParams.get('domain')??'notifications',body=route.request().postDataJSON();calls.push(domain+(body.need?.length?':need':''));
+  // Notifications has no source watermark: every check re-sends the same content under a fresh generation and timestamps.
+  if(domain==='notifications'){if(!body.need?.length)round++;const at=new Date(Date.parse(asOf)+round*1000).toISOString();return route.fulfill({json:encodeDeltaChunk({...bundle(domain,patches(notices),null as any),generation:'generation-'+round,startedAt:at,asOf:at},body.need)})}
+  return route.fulfill({json:{...bundle(domain,[],oldVersion),schemaVersion:3,unchanged:true,values:{}}});
+ });
+ await page.evaluate(()=>{const w=window as any,repo=w.__syncRepo,save=repo.saveDataset;w.__saves=[];w.__ready=[];repo.saveDataset=(...args:any[])=>{w.__saves.push(args[0]);return save.apply(repo,args)};window.addEventListener('mw-offline-dataset-ready',event=>{const detail=(event as CustomEvent).detail;w.__ready.push(detail.domain+':'+detail.changed)})});
+ const seen=()=>page.evaluate(()=>{const w=window as any,result={saves:[...w.__saves],ready:[...w.__ready].sort()};w.__saves.length=0;w.__ready.length=0;return result});
+ const idle={saves:[],ready:['cash:false','collection:false','management:false','notifications:false','records:false']};
+ await start(page);await page.clock.runFor(2000);await settled(page);expect(calls.filter(call=>!call.endsWith(':need')).sort()).toEqual([...domains].sort());
+ expect(await seen()).toEqual({saves:['notifications'],ready:['cash:false','collection:false','management:false','notifications:true','records:false']});
+ // Owner 17 Oct 2026: a focus seconds after a completed check still refreshes every domain.
+ // UX-REFRESH-04/02: that idle check reports no change for any domain and rewrites no bundle.
+ let before=calls.length;await page.evaluate(()=>window.dispatchEvent(new Event('focus')));await page.clock.runFor(2000);await expect.poll(()=>calls.length).toBe(before+5);await settled(page);expect(await seen()).toEqual(idle);
+ // One return to the app fires focus, visibilitychange, pageshow and online together: one cycle, never two in flight.
+ before=calls.length;await page.evaluate(()=>{window.dispatchEvent(new Event('focus'));document.dispatchEvent(new Event('visibilitychange'));window.dispatchEvent(new Event('pageshow'));window.dispatchEvent(new Event('online'));window.dispatchEvent(new Event('focus'))});
+ await page.clock.runFor(2000);await expect.poll(()=>calls.length).toBe(before+5);await settled(page);await page.clock.runFor(1000);expect(calls.slice(before).sort()).toEqual([...domains].sort());expect(await seen()).toEqual(idle);
+ // The 30-second poll counts from the last cycle start, so it does not repeat the focus refresh moments later.
+ before=calls.length;await page.clock.runFor(25000);expect(calls).toHaveLength(before);await page.clock.runFor(7000);await expect.poll(()=>calls.length).toBe(before+5);await settled(page);expect(await seen()).toEqual(idle);
+ expect((await page.evaluate(()=>(window as any).__syncRepo.readDataset('notifications'))).data.items).toHaveLength(1);
 });
 
 test('interrupted delta retains old complete bundle and resumes durable cursor after reload',async({page})=>{
