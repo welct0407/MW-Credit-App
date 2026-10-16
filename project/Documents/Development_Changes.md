@@ -1,6 +1,6 @@
 # Open development changes
 
-**R064 is Released** (Wave 4 and the sync correction verified in PROD on 16 October 2026 23:57 Bangkok; annotated tag `R064` on `9420c85`; agent follow-up below) and **R065 is Open**. **R063 is Released** (PROD verified 16 October 2026 18:15 Bangkok; [record](#r063-production-promotion)); R062 is Released. The integration receiver deployment tooling carried by R063 is deployed on the Debian host since 16 October 2026. Current runtime pins and recovery evidence belong in the environment inventory and owning records.
+**R064 is Released** (Wave 4 and the sync correction verified in PROD on 16 October 2026 23:57 Bangkok; annotated tag `R064` on `9420c85`; agent follow-up below). **R065 is Released** (pending-flash fix, PROD Hosting 17 October 2026 00:29 Bangkok; tag `R065` on `74ad26b`) and **R066 is Open**. **R063 is Released** (PROD verified 16 October 2026 18:15 Bangkok; [record](#r063-production-promotion)); R062 is Released. The integration receiver deployment tooling carried by R063 is deployed on the Debian host since 16 October 2026. Current runtime pins and recovery evidence belong in the environment inventory and owning records.
 
 | Outstanding work | Owning reference |
 | --- | --- |
@@ -24,6 +24,8 @@
 Use the [release tracker](Release_Tracker.md), including the carried R016 administrative follow-up. Current runtime versions belong in [environment inventory](Environment_Inventory.md). Update this page for actual outstanding work, not completed-release history.
 
 ## R064 local dataset sync fix and shared Cloud SQL
+
+R065 pending-flash fix (UI-only, Released 17 October 2026, DEV and PROD Hosting verified): see the [R065 section](../../Change%20Logs/CHANGE_NOTES_R064_SYNC_2026-10-16.md#r065-pending-flash-fix) of the same note.
 
 [Change note](../../Change%20Logs/CHANGE_NOTES_R064_SYNC_2026-10-16.md). App-only correction on `claude/sync-phase1` (81541c7, 1f63b9d), stacked on Wave 4; one R064 promotion, no migration. The offline dataset walk keeps progress across the user's own writes, commits a torn walk (`acceptChanged`) instead of restarting, packs more records per response, throttles focus checks to 60 s per domain and serves `offline:` cursors locally; header shows "Updated HH:MM" and "All synced". Command pool 4 connections, PROD command max instances 2 (on deploy). Agent C verified; DEV and PROD deployed from 9420c85 (smoke passed).
 

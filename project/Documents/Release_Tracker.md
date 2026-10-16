@@ -4,8 +4,8 @@
 
 | Item | Current value |
 | --- | --- |
-| New product work | **R065 — Open** |
-| Next unused number | **R066**, only opened when authorized R065 promotion starts |
+| New product work | **R066 — Open** |
+| Next unused number | **R067**, only opened when authorized R066 promotion starts |
 | Current runtime baseline | [Environment inventory](Environment_Inventory.md) |
 
 All new features/fixes use the sole Open release. Freeze only at authorized promotion start, pin the package, then publish the next Open number in the same update. Frozen corrections stay with their release; new features use the successor. Do not reserve a second Open release or reuse a number. Documentation/governance changes do not allocate releases.
@@ -14,12 +14,14 @@ All new features/fixes use the sole Open release. Freeze only at authorized prom
 
 | Release | Status | Remaining action / owning record |
 | --- | --- | --- |
-| R065 | Open | New product work. Carries nothing from R064. |
+| R066 | Open | New product work. Carries nothing from R065. |
 | R056 | Frozen; V91 deployed | Lisa enrollment retry/closure; [record](../outputs/r056-apple-push/README.md) |
 | R055 | Frozen; monitoring delivered | Carried credential work unfinished; [record](../outputs/r055-grafana/continuation.md) |
 | R016 | Owner-accepted reporting; administrative follow-up | Migration-key retirement evidence/final tag unresolved; do not reopen product development |
 
-R064 Wave 4 and sync correction is Released: V93 in PROD (16 October 2026 22:16 Bangkok, SQL `9eee10e`, manifest `033b10fc…`), Wave 4 runtime `8611c23d…` and Hosting `2b6c25c065f1a45a` (source `7c11863`, runner `355f3a3`), then the sync correction from `9420c85` (image `88b4dbad…`, reader `00008-xp4`, command `00012-67j`, notify `00006-rnq`, jobs `00006-rzs`, Hosting `7664add62c41bce6`), Cloud SQL `db-g1-small` with Query Insights and `max_connections` 200; verified 16 October 2026 23:57 Bangkok; annotated tag `R064` on `9420c85`; [record](Development_Changes.md#r064-production-promotion). Integration-agent follow-up (agent V5, Debian deploy, `mw_agent` purge) is tracked in [Development Changes](Development_Changes.md#r064-wave-4), not in this release. R065 is Open; next R066.
+R065 pending-flash fix is Released: UI-only, Hosting-only on the unchanged R064 runtime; source `claude/sync-pending-flash` `74ad26b` (fix `8926fe8`, runner contract `7e0225e`); DEV Hosting `bd0be642edfb653b` (owner: "tested on DEV, the flash is gone"), PROD Hosting `c24c62260e8723d9` (release `1792171753846000`, applied 17 October 2026 00:28 to 00:29 Bangkok, smoke 15 of 15 files byte-identical, 0 errors); CI `ci.yml` 38939174238 green; git annotated tag `R065` on `74ad26b` (Release tag workflow run 38941067405); [record](../../Change%20Logs/CHANGE_NOTES_R064_SYNC_2026-10-16.md#r065-pending-flash-fix).
+
+R064 Wave 4 and sync correction is Released: V93 in PROD (16 October 2026 22:16 Bangkok, SQL `9eee10e`, manifest `033b10fc…`), Wave 4 runtime `8611c23d…` and Hosting `2b6c25c065f1a45a` (source `7c11863`, runner `355f3a3`), then the sync correction from `9420c85` (image `88b4dbad…`, reader `00008-xp4`, command `00012-67j`, notify `00006-rnq`, jobs `00006-rzs`, Hosting `7664add62c41bce6`), Cloud SQL `db-g1-small` with Query Insights and `max_connections` 200; verified 16 October 2026 23:57 Bangkok; annotated tag `R064` on `9420c85`; [record](Development_Changes.md#r064-production-promotion). Integration-agent follow-up (agent V5, Debian deploy, `mw_agent` purge) is tracked in [Development Changes](Development_Changes.md#r064-wave-4), not in this release. R066 is Open; next R067.
 
 R063 runtime, workers and frontend is Released: source `main` `37f62121e9b04a163ebfa014e3240841b46d9a96`, one PROD image `86d172de…` on reader `00006-9dl`, command `00010-4s8`, notify `00004-q8t` and jobs `00004-p9t`, PROD Hosting `8154effa824f58e9` (CSP headers), V92 unchanged; DEV first, verified 16 October 2026 18:15 Bangkok; [record](Development_Changes.md#r063-production-promotion). R064 is Open; next R065.
 

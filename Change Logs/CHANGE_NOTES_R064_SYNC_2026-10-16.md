@@ -55,3 +55,16 @@ App: redeploy the previous pins (PROD and DEV pins are listed under Checks), or 
 ## Outcome
 
 DEV and PROD deployed from 9420c85 and smoke-passed; no migration. Authenticated PROD proof is the owner's next normal sign-in. R064 closure and tag belong to the Wave 4 session.
+
+## R065 pending-flash fix
+
+Branch `claude/sync-pending-flash` from main 62adcf2, fix 8926fe8. Owner bug report after R064: switching language briefly flashed the "Waiting to sync" badge (1), "Saved on this device. Waiting to sync." and "Sync 1 pending first" with nothing pending. The first in-flight send of `preference.update` was counted as pending, and R064's event-driven counter made it visible.
+
+- Change: the shared pending store publishes `{count, visible}`; `visible` covers only rows that waited (deferred, blocked or queued after an attempt, or at least 2 s old, with one re-refresh scheduled). The badge and the sign-out label use `visible`; sign-out stays disabled while `count > 0`. Preference save keeps "Saving preferences..." during its own send. UI-only; no migration. New spec `tests/e2e/pending-flash-independent.spec.ts` fails on the released code and passes now; a 503 server still shows all three messages.
+- Checks (Agent B): pending-flash 4, live-signout-blocked 6, back-consumers 104, persistence 11, payment-command 28, payment-offline-sdk 1, phase5-final-ui 66, error-recovery 8 (both projects); `npm run check` 526 unit tests; Biome 0 errors.
+- Authority: owner "go, deploy to prod after DEV" (17 October 2026, about 00:15 Bangkok). No database backup needed (UI-only).
+- Package: `74ad26b` (fix 8926fe8; R065 Hosting runner contract 7e0225e, Hosting-only on the unchanged R064 runtime, 26 of 26 runner tests). CI `ci.yml` 38939174238 green on 74ad26b; Database CI 38936507653 (62adcf2, inputs unchanged).
+- DEV (from 8926fe8): Hosting `bd0be642edfb653b`, release 1792171187476000, marker 29a7e10fae1aa493627f75f7, entry `/assets/index-DxxwmRFX.js`; smoke passed. Owner: "tested on DEV, the flash is gone".
+- PROD (from 74ad26b, live PROD public config f1824f38..., package 80f65a45...): applied 17:28:50 to 17:29:20Z (00:28 to 00:29 Bangkok, 17 October) as `mw-credit-unattended-admin`; Hosting `c24c62260e8723d9`, release 1792171753846000, marker a71bda1afead0f1091f6261a, entry `/assets/index-TivfosbR.js`. Smoke 17:29:29Z: 15 of 15 files byte-identical, `sw.js` marker, PROD-only CSP, `X-Frame-Options: DENY`, health 200, 0 errors and 0 5xx. Runtime untouched (read-00008-xp4, command-00012-67j, notify-00006-rnq, jobs-00006-rzs). Receipt `r065-hosting-receipt.json` 5f5a1e9f... (private folder and operator bucket).
+- Outcome: R065 Released (verified). Annotated tag `R065` on 74ad26b, created by the Release tag workflow (run 38941067405); `main` includes it from ce21b0d. Not done: authenticated PROD proof beyond the owner's normal sign-in.
+- Recovery: Hosting rollback to `7664add62c41bce6` (release 1792169838042000); `git revert 8926fe8` and redeploy. Runtime images are unchanged.
