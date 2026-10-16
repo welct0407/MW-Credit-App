@@ -17,7 +17,7 @@ if (exec 3<>"/dev/tcp/127.0.0.1/$port") 2>/dev/null; then
 fi
 mkdir -p "$dir"; chmod 700 "$dir"
 if [ ! -s "$dir/codex-cloud" ]; then
-  (umask 077; gcloud secrets versions access 1 --secret=mw-credit-cloud-operator-ssh-key \
+  (umask 077; gcloud secrets versions access latest --secret=mw-credit-cloud-operator-ssh-key \
      --project="$project" > "$dir/codex-cloud")
 fi
 printf 'vm-mw-credit-agent %s\n' "$(cat "$here/debian-host-key.pub")" > "$dir/known_hosts"

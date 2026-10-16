@@ -1,5 +1,0 @@
-{
-  "expression": "resource.name == 'projects/_/buckets/mw-payment-receipts-prod-508610-n7' || resource.name.startsWith('projects/_/buckets/mw-payment-receipts-prod-508610-n7/objects/test/receipt-storage/')",
-  "title": "DEV synthetic receipts only",
-  "description": "Known synthetic receipt objects only; bucket metadata permitted for connector validation"
-}

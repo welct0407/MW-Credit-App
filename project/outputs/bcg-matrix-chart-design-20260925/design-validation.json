@@ -1,8 +1,0 @@
-{
-  "scope": "Synthetic design mathematics only; no SQL or live renderer test",
-  "synthetic_cases": 176,
-  "category_membership_mismatches": 0,
-  "finite_coordinates": true,
-  "svg_xml": "valid",
-  "handover_relative_links": "valid"
-}

@@ -1,8 +1,0 @@
-{
-  "action": "cleanup",
-  "synthetic": {
-    "Payments": [],
-    "Charges": [],
-    "Loans": []
-  }
-}

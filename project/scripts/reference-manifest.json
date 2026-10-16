@@ -1,65 +1,5 @@
 [
   {
-    "source": "outputs/01a05d4b-7374-7fb1-90c5-5238ab08d6ef/borrower-principal-coverage/inspect_dictionary.mjs",
-    "reference": "scripts/reference/01a05d4b-7374-7fb1-90c5-5238ab08d6ef/borrower-principal-coverage/inspect_dictionary.mjs",
-    "sha256": "5116725DB1D07761CA2DEC065BE92A880589FDDFC8B9BD846600BF833DFFB001"
-  },
-  {
-    "source": "outputs/01a05d4b-7374-7fb1-90c5-5238ab08d6ef/borrower-principal-coverage/update_dictionary.mjs",
-    "reference": "scripts/reference/01a05d4b-7374-7fb1-90c5-5238ab08d6ef/borrower-principal-coverage/update_dictionary.mjs",
-    "sha256": "AA3592FEF2E06D86F11EE84704695C4E26145395EFABB2AE6FBB87A751C8EBA9"
-  },
-  {
-    "source": "outputs/01a05d4b-7374-7fb1-90c5-5238ab08d6ef/borrower-principal-coverage/verify_dictionary.mjs",
-    "reference": "scripts/reference/01a05d4b-7374-7fb1-90c5-5238ab08d6ef/borrower-principal-coverage/verify_dictionary.mjs",
-    "sha256": "D98CF6E29F9D14C9C07BA174AE3996060F4BCD09079E3AB72D943291637A142D"
-  },
-  {
-    "source": "outputs/01a05d4b-7374-7fb1-90c5-5238ab08d6ef/pending-collection-reconciliation/inspect_dictionary.mjs",
-    "reference": "scripts/reference/01a05d4b-7374-7fb1-90c5-5238ab08d6ef/pending-collection-reconciliation/inspect_dictionary.mjs",
-    "sha256": "BD19BE1D5C41C0FE33117E03ED73E2FFE73B6ABF14B5AD5BC2ADC0799BA0DF41"
-  },
-  {
-    "source": "outputs/01a05d4b-7374-7fb1-90c5-5238ab08d6ef/pending-collection-reconciliation/update_dictionary.mjs",
-    "reference": "scripts/reference/01a05d4b-7374-7fb1-90c5-5238ab08d6ef/pending-collection-reconciliation/update_dictionary.mjs",
-    "sha256": "EDB0292E62760D25B6FE54C69D7D777055F766A5216D22270E8F1A9083DD0817"
-  },
-  {
-    "source": "outputs/01a05d4b-7374-7fb1-90c5-5238ab08d6ef/pending-collection-reconciliation/verify_dictionary.mjs",
-    "reference": "scripts/reference/01a05d4b-7374-7fb1-90c5-5238ab08d6ef/pending-collection-reconciliation/verify_dictionary.mjs",
-    "sha256": "B2178DE0B79131D17EF9B034C4527410DBFAE8945A2FD3DD81EDF20044561227"
-  },
-  {
-    "source": "outputs/01a066b1-e885-7d52-98f5-34812d9c7c18/daily-collection-messages-2026-09-03/build_and_update.mjs",
-    "reference": "scripts/reference/01a066b1-e885-7d52-98f5-34812d9c7c18/daily-collection-messages-2026-09-03/build_and_update.mjs",
-    "sha256": "C1DE7EF05AF771AF4FC3E8F636F7ADA1E72479398E2797D585DE17A4532E91FA"
-  },
-  {
-    "source": "outputs/01a066b1-e885-7d52-98f5-34812d9c7c18/daily-collection-messages-2026-09-03/inspect_dictionary.mjs",
-    "reference": "scripts/reference/01a066b1-e885-7d52-98f5-34812d9c7c18/daily-collection-messages-2026-09-03/inspect_dictionary.mjs",
-    "sha256": "29551B9B5DC4C2B5CA6AB7FA9AA1CB368A90881A89667C55901D1172340611F2"
-  },
-  {
-    "source": "outputs/01a066b1-e885-7d52-98f5-34812d9c7c18/daily-collection-messages-2026-09-03/inspect_tone_refinement.mjs",
-    "reference": "scripts/reference/01a066b1-e885-7d52-98f5-34812d9c7c18/daily-collection-messages-2026-09-03/inspect_tone_refinement.mjs",
-    "sha256": "5234B3643944518231C1184BBD0DCB1B97B0F845FB42B2501500F74D69A92010"
-  },
-  {
-    "source": "outputs/01a066b1-e885-7d52-98f5-34812d9c7c18/daily-collection-messages-2026-09-03/refine_message_tone.mjs",
-    "reference": "scripts/reference/01a066b1-e885-7d52-98f5-34812d9c7c18/daily-collection-messages-2026-09-03/refine_message_tone.mjs",
-    "sha256": "5DEE446603F501F9F3710A5B0C8816DDC1FDFD197B369E64352A967911C2A8E6"
-  },
-  {
-    "source": "outputs/01a066b1-e885-7d52-98f5-34812d9c7c18/daily-collection-messages-2026-09-03/render_dictionary_before.mjs",
-    "reference": "scripts/reference/01a066b1-e885-7d52-98f5-34812d9c7c18/daily-collection-messages-2026-09-03/render_dictionary_before.mjs",
-    "sha256": "0553A1A4C33B5BE69F8E32553793099A832ED9C1F5BEAEF3E174CB55318E4D10"
-  },
-  {
-    "source": "outputs/01a066b1-e885-7d52-98f5-34812d9c7c18/daily-collection-messages-2026-09-03/standardize_message_structure.mjs",
-    "reference": "scripts/reference/01a066b1-e885-7d52-98f5-34812d9c7c18/daily-collection-messages-2026-09-03/standardize_message_structure.mjs",
-    "sha256": "FC2BBC31032F50E1764A25BAE663F846719E94E7788FFB4D1F6C771C826C904A"
-  },
-  {
     "source": "outputs/borrower-visibility-2026-09-01/update_dictionary.py",
     "reference": "scripts/reference/borrower-visibility-2026-09-01/update_dictionary.py",
     "sha256": "9EB49E1D81CF887A212250EB84A5AD2399FB1F73436AFE938BACCD5A377DF3CC"
@@ -68,26 +8,6 @@
     "source": "outputs/charge-generation-flag-20260908/update_dictionary.mjs",
     "reference": "scripts/reference/charge-generation-flag-20260908/update_dictionary.mjs",
     "sha256": "51F909472EB8133B9E2594CA6D2C1B30C6551AFFFFAFE8E6F76A01CE9CD9FB44"
-  },
-  {
-    "source": "outputs/daily-loan-analysis-test-2026-08-31/edit_activity_linked_template.mjs",
-    "reference": "scripts/reference/daily-loan-analysis-test-2026-08-31/edit_activity_linked_template.mjs",
-    "sha256": "A4998F2983E61CA8D0E1D42DCAFCB2048B900580A0E40F27B3387AF7C99C5FE0"
-  },
-  {
-    "source": "outputs/daily-loan-analysis-test-2026-08-31/extract_appsheet_xlsx.py",
-    "reference": "scripts/reference/daily-loan-analysis-test-2026-08-31/extract_appsheet_xlsx.py",
-    "sha256": "4CDF3C1859A9424FCBE2259B233CF752690B04C6EDC59C0B96B18AB0CF9EC1FC"
-  },
-  {
-    "source": "outputs/daily-loan-analysis-test-2026-08-31/normalize_template_namespaces.py",
-    "reference": "scripts/reference/daily-loan-analysis-test-2026-08-31/normalize_template_namespaces.py",
-    "sha256": "08F86AFACFD5C8A81F74C89A679AE73882DB37B3EA5A091801FA13F7F725FEBC"
-  },
-  {
-    "source": "outputs/daily-loan-analysis-test-2026-08-31/verify_export.mjs",
-    "reference": "scripts/reference/daily-loan-analysis-test-2026-08-31/verify_export.mjs",
-    "sha256": "29CDE2CF3FF0C9E5DB122A418034A42A55AC4ECEDEF1064F8BDB9B2839BFBBCB"
   },
   {
     "source": "outputs/future-charges-20260908/finalize_plan.mjs",
