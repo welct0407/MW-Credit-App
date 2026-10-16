@@ -56,3 +56,26 @@ class HealthTests(unittest.TestCase):
         health=assess([],[r],[n],self.now)
         self.assertEqual(health['undelivered_reviews'],0)
         self.assertEqual(health['overdue_reviews'],1)
+
+    def test_ingress_review_count_is_reported_without_degrading_status(self):
+        import tempfile
+        from pathlib import Path
+        from unittest.mock import Mock
+        from mw_integration_agent.receipt_health import ingress_review_open,inspect
+        from mw_integration_agent.journal import IngressJournal
+        from mw_integration_agent.receipt_journal import ReceiptJournal
+        from mw_integration_agent.partner_notice import NoticeJournal
+        from mw_integration_agent.state import PostgresJournal
+        config={'state_cutover_at':'2026-01-01T00:00:00+00:00'}
+        journal=Mock(spec=PostgresJournal);journal.execute.return_value.fetchone.return_value=(3,)
+        self.assertEqual(ingress_review_open(journal,config),3)
+        sql,params=journal.execute.call_args.args
+        self.assertTrue(sql.lstrip().upper().startswith('SELECT'))
+        self.assertIn("state='REVIEW'",sql);self.assertIn('ingress_work',sql)
+        self.assertEqual(params,(1767225600.0,))
+        with tempfile.TemporaryDirectory() as d:
+            from mw_integration_agent.partner_review import ReviewStore
+            IngressJournal(Path(d)/'instagram-ingress.db').close();NoticeJournal(Path(d)/'partner-notices.db').close()
+            receipts=ReceiptJournal(Path(d)/'receipt-processing.db');ReviewStore(receipts.db);receipts.close()
+            health=inspect(dict(config,state_directory=d),now=self.now)
+        self.assertEqual((health['status'],health['ingress_review_open']),(1,0))

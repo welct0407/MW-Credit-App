@@ -116,13 +116,29 @@ class InstagramTransportTests(unittest.TestCase):
         self.assertEqual([m["message_id"] for m in messages], ["m1"])
         self.assertEqual(stats, {"deleted": 2, "late": 0, "future": 0})
 
+    def test_future_clock_tolerance_boundary(self):
+        # Owner decision (16 October 2026): up to 60 s ahead is clock skew, beyond it is REVIEW.
+        from mw_integration_agent.webhook import FUTURE_TOLERANCE_SECONDS
+        self.assertEqual(FUTURE_TOLERANCE_SECONDS, 60)
+        now = 1_800_000_000.0
+        def event(mid, stamp):
+            return {"sender": {"id": "456"}, "recipient": {"id": "123"}, "timestamp": stamp * 1000,
+                    "message": {"mid": mid, "text": "synthetic"}}
+        payload = {"object": "instagram", "entry": [{"id": "123", "messaging": [
+            event("skew", now + 60), event("ahead", now + 61), event("late", now - 86401), event("edge", now - 86400)]}]}
+        stats = {}
+        messages = extract_messages(payload, "123", now, stats=stats)
+        self.assertEqual({m["message_id"]: m["quarantine"] for m in messages},
+                         {"skew": "", "ahead": "FUTURE", "late": "LATE", "edge": ""})
+        self.assertEqual(stats, {"deleted": 0, "late": 1, "future": 1})
+
     def test_late_and_future_messages_are_quarantined_not_dropped(self):
         now = 1_800_000_000.0
         def event(mid, stamp):
             return {"sender": {"id": "456"}, "recipient": {"id": "123"}, "timestamp": stamp * 1000,
                     "message": {"mid": mid, "text": "synthetic"}}
         payload = {"object": "instagram", "entry": [{"id": "123", "messaging": [
-            event("fresh", now - 86400), event("late", now - 86401), event("future", now + 1)]}]}
+            event("fresh", now - 86400), event("late", now - 86401), event("future", now + 61)]}]}
         stats = {}
         messages = extract_messages(payload, "123", now, stats=stats)
         self.assertEqual({m["message_id"]: m["quarantine"] for m in messages}, {"fresh": "", "late": "LATE", "future": "FUTURE"})

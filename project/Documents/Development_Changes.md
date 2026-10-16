@@ -20,7 +20,8 @@ Use the [release tracker](Release_Tracker.md), including the carried R016 admini
 - Five R058 modules restored byte-for-byte from the host (`instagram.py`, `partner_conversation.py`, `partner_notice.py`, `statement_delivery.py`, `statement_run.py`); their unit tests were rewritten to the deployed behaviour.
 - Webhook receiver: deleted messages are skipped; a changed retry no longer returns 503; late and future messages are quarantined as `REVIEW` with counts; handler timeout 15 s.
 - Sending and host: Instagram and email failures record detail codes; the Graph refresh token is backed up before rotation; worker units `Want` the proxy instead of `Require` it.
-- Checks: unit suite 370 tests OK (43 skipped); lab suites 48 of 49 pass, the one error is the pre-existing AGT-TEST-02. Deployment waits for Wave 2. Details, owner questions and recovery: [change note](../../integration-agent/Change%20Logs/CHANGE_NOTES_W1_AGENT_2026-10-15.md).
+- Owner decisions (16 October 2026): health reporting counts open REVIEW ingress rows (`ingress_review_open`, exported by the existing collector once deployed; dashboard card and alert deferred to the Grafana revamp); a changed retry of a consumed message stays audit-only; future-dated messages get a 60 s clock tolerance.
+- Checks: unit suite 373 tests OK (44 skipped); lab suites 48 of 49 pass, the one error is the pre-existing AGT-TEST-02; `test_postgres_state` rerun after the owner decisions, 16 OK. Deployment waits for Wave 2. Details and recovery: [change note](../../integration-agent/Change%20Logs/CHANGE_NOTES_W1_AGENT_2026-10-15.md).
 
 ## R063 read retry after settled commands
 

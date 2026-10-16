@@ -100,6 +100,20 @@ class PostgreSQLStateTests(unittest.TestCase):
             self.assertEqual({k:payload[k] for k in ('inserted','quarantined','content_mismatch','deleted','late','future')},
                              {'inserted':3,'quarantined':2,'content_mismatch':0,'deleted':1,'late':1,'future':1})
 
+    def test_health_counts_open_review_ingress_rows_since_cutover(self):
+        from mw_integration_agent.receipt_health import inspect
+        config=dict(self.config,state_directory='/nonexistent/state',receipt_summary_enabled=True)
+        before=inspect(config)['ingress_review_open']
+        ingress=IngressJournal('instagram-ingress.db',self.config)
+        now=time.time()
+        ingress.capture(self.key,[{'message_id':self.key,'sender_id':'synthetic','timestamp':now,'text':'','attachments':[]},
+                                  {'message_id':self.key+'-late','sender_id':'synthetic','timestamp':now-90000,'text':'','attachments':[],'quarantine':'LATE'},
+                                  {'message_id':self.key+'-pre','sender_id':'synthetic','timestamp':1,'text':'','attachments':[]}])
+        health=inspect(config)
+        # The late message counts; the pre-cutover quarantine and the pending message do not.
+        self.assertEqual(health['ingress_review_open'],before+1)
+        self.assertIn(health['status'],(1,2))
+
     def test_pending_queue_and_delayed_quarantine(self):
         ingress=IngressJournal('instagram-ingress.db',self.config)
         ingress.capture(self.key,[{'message_id':self.key,'sender_id':'synthetic','timestamp':time.time(),'text':'','attachments':[{'url':'https://example.invalid/synthetic'}]}])

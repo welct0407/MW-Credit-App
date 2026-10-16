@@ -6,6 +6,11 @@ import time
 from typing import Any
 
 
+# Owner decision (16 October 2026): provider timestamps up to this far ahead of the
+# receiver clock are ordinary clock skew; beyond it the message is held for review.
+FUTURE_TOLERANCE_SECONDS = 60
+
+
 def verify_signature(raw: bytes, signature: str | None, app_secret: str) -> bool:
     expected = "sha256=" + hmac.new(app_secret.encode(), raw, hashlib.sha256).hexdigest()
     return bool(app_secret and signature and hmac.compare_digest(expected, signature))
@@ -14,7 +19,7 @@ def verify_signature(raw: bytes, signature: str | None, app_secret: str) -> bool
 def extract_messages(payload: dict[str, Any], account_id: str, now: float | None = None,
                      stats: dict[str, int] | None = None) -> list[dict[str, Any]]:
     """Accepted inbound messages. Deleted (unsent) events are skipped; events older
-    than 24 h or timestamped in the future are returned with a ``quarantine`` reason
+    than 24 h or more than FUTURE_TOLERANCE_SECONDS ahead are returned with a ``quarantine`` reason
     so the journal can hold them for review instead of dropping them silently.
     ``stats`` (when given) receives ``deleted``/``late``/``future`` counts."""
     current = time.time() if now is None else now
@@ -44,7 +49,7 @@ def extract_messages(payload: dict[str, Any], account_id: str, now: float | None
             quarantine = ""
             if current - timestamp > 86400:
                 quarantine = "LATE"
-            elif timestamp > current:
+            elif timestamp > current + FUTURE_TOLERANCE_SECONDS:
                 quarantine = "FUTURE"
             if quarantine:
                 counts[quarantine.lower()] += 1

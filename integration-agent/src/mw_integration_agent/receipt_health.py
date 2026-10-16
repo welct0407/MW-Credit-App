@@ -66,14 +66,31 @@ def assess(jobs,reviews,notices,now,hold_replies=()):
             'oldest_pending_seconds':int(max([max(0,now-j['created_at']) for j in waiting],default=0))}
 
 
+def ingress_review_open(ingress,config):
+    """Inbound messages held as ingress_work REVIEW since the PostgreSQL cutover (late,
+    future, changed-content retries). Read-only count over existing tables; the SQLite
+    journal has no work table, so it reports 0 there. Owner decision (16 October 2026):
+    visible to the owner, not alerting."""
+    from .state import is_postgres
+    if not is_postgres(ingress):
+        return 0
+    from datetime import datetime
+    cutover=datetime.fromisoformat(config['state_cutover_at']).timestamp()
+    row=ingress.execute("SELECT count(*) FROM ingress_work w JOIN messages m USING(message_id) "
+                        "WHERE w.state='REVIEW' AND m.event_timestamp>=?",(cutover,)).fetchone()
+    return int(row[0])
+
+
 def inspect(config,now=None):
     now=time.time() if now is None else now
     root=Path(config['state_directory'])
     with ExitStack() as resources:
         db=connect(root/'receipt-processing.db',config,readonly=True);resources.callback(db.close)
         notices=connect(root/'partner-notices.db',config,readonly=True);resources.callback(notices.close)
+        ingress=connect(root/'instagram-ingress.db',config,readonly=True);resources.callback(ingress.close)
+        review_open=ingress_review_open(ingress,config)
         jobs=[dict(r) for r in db.execute("SELECT id,status,detail,created_at FROM receipt_jobs WHERE status IN ('PENDING','VALIDATED','REVIEW','REVIEW_REQUESTED','REJECTED')")]
         reviews=[dict(r) for r in db.execute("SELECT id,job_id,state,created_at FROM partner_reviews WHERE state<>'SUPERSEDED'")]
         replies=[dict(r) for r in db.execute("SELECT message_id,review_id,outcome FROM partner_review_replies WHERE review_id LIKE 'receipt-held:%' AND outcome IN ('HOLD_REJECTED','HOLD_NOT_ACTIVE','HOLD_REJECT_REQUIRED','HOLD_HAS_REVIEW')")]
         sent=[dict(r) for r in notices.execute("SELECT event_key,ig_status,email_status,detail FROM partner_notices WHERE (event_key LIKE 'review:%' OR event_key LIKE 'review-result:%' OR event_key LIKE 'receipt-held:%' OR event_key LIKE 'hold-reply-result:%')")]
-        return assess(jobs,reviews,sent,now,replies)
+        return {**assess(jobs,reviews,sent,now,replies),'ingress_review_open':review_open}
