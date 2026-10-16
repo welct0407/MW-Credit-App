@@ -5,7 +5,7 @@ Dry run by default: nothing changes without --apply.
   null-archived-images  NULL runtime.receipt_jobs.image only where the job's receipt asset is ARCHIVED with
                         object_key, generation and raw_sha256 recorded (the archive re-reads GCS by generation).
   audit-retention       Select routine audit trees older than the cutoff (default and minimum 7 days; owner decision
-                        17 October 2026), export them as gzip JSONL plus a manifest, upload and verify, then delete
+                        16 October 2026), export them as gzip JSONL plus a manifest, upload and verify, then delete
                         them in atomic batches as mw_agent_owner, record one CONFIG operation and VACUUM (ANALYZE).
 
 The connection file is psycopg keyword JSON (optional "password_file") outside Git, for a principal that may
@@ -44,7 +44,7 @@ ROUTINE_ACTIONS = ['READ', 'JOB', 'PROCESS', 'HEALTH']
 TERMINAL_STATES = ['COMPLETED', 'FAILED', 'DENIED', 'CANCELLED', 'ROLLED_BACK']
 DETERMINISTIC_SERVICES = ['ingress', 'reviewer_dml', 'statement_snapshot', 'legacy_import']
 UUID4 = r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
-MIN_DAYS = 7  # owner decision 17 October 2026: one week of routine audit is sufficient
+MIN_DAYS = 7  # owner decision 16 October 2026: one week of routine audit is sufficient
 # (table, export order key, temp key set, column joining that set)
 EXPORTS = (('audit.operations', 'operation_id', 'rt_tree', 'operation_id'),
            ('audit.events', 'event_id', 'rt_events', 'event_id'),
@@ -52,8 +52,8 @@ EXPORTS = (('audit.operations', 'operation_id', 'rt_tree', 'operation_id'),
            ('runtime.job_runs', 'run_id', 'rt_runs', 'run_id'))
 DELETE_ORDER = ('runtime.job_runs', 'runtime.operation_state', 'audit.events', 'audit.operations')
 # Referencing columns V1 left unindexed; without them every deleted event/operation seq-scans the referencing
-# table for the foreign-key check (lab: one 2,000-tree batch ran > 9 minutes). Built CONCURRENTLY if missing
-# and dropped afterwards; an agent migration can make them permanent.
+# table for the foreign-key check (lab: one 2,000-tree batch ran > 9 minutes). Agent migration V5 makes them
+# permanent; on an older schema they are built CONCURRENTLY if missing and dropped afterwards.
 FK_INDEXES = (('runtime', 'operation_state', 'last_event_id', 'maint_operation_state_last_event_idx'),
               ('runtime', 'job_runs', 'operation_id', 'maint_job_runs_operation_idx'))
 IMAGE_SCOPE = """FROM runtime.receipt_jobs j JOIN runtime.receipt_assets a ON a.job_id=j.id
@@ -257,7 +257,13 @@ def drop_indexes(conn, created):
 
 
 def delete_batches(conn, batch, pause, cutoff=None, purge_function=False):
-    roots = [r[0] for r in conn.execute('SELECT DISTINCT root FROM pg_temp.rt_tree ORDER BY root').fetchall()]
+    # Oldest trees first: neighbouring batches then touch neighbouring heap pages. uuid order scattered every
+    # batch across the whole table (PROD HDD: ~450 random reads and ~10 s per 50-tree batch).
+    roots = [r[0] for r in conn.execute('''SELECT r.root FROM (SELECT DISTINCT root FROM pg_temp.rt_tree) r
+        JOIN audit.operations o ON o.operation_id=r.root ORDER BY o.created_at, r.root''').fetchall()]
+    if not purge_function and not conn.execute(
+            "SELECT 1 FROM deployment.schema_history WHERE name='V5__audit_retention_identity.sql'").fetchone():
+        raise SystemExit('agent migration V5 (append-only purge gate) must be applied before deleting')
     keysets = {'runtime.job_runs': ('run_id', 'rt_runs'), 'runtime.operation_state': ('operation_id', 'rt_tree'),
                'audit.events': ('event_id', 'rt_events'), 'audit.operations': ('operation_id', 'rt_tree')}
     totals = dict.fromkeys(DELETE_ORDER, 0)
@@ -265,25 +271,21 @@ def delete_batches(conn, batch, pause, cutoff=None, purge_function=False):
     def owner_batch(chunk):
         counts = []
         with conn.transaction():
-            # DISABLE/ENABLE TRIGGER is transactional: no other session ever sees the triggers off.
             conn.execute("SET LOCAL lock_timeout='5s'")
-            # Agent writers take audit.operations before audit.events; lock in that order before the trigger DDL
-            # so a batch cannot deadlock with them (16 October 2026 PROD run hit exactly that with the reverse order).
-            conn.execute('LOCK TABLE audit.operations, audit.events IN SHARE ROW EXCLUSIVE MODE')
-            conn.execute('ALTER TABLE audit.operations DISABLE TRIGGER operations_append_only')
-            conn.execute('ALTER TABLE audit.events DISABLE TRIGGER events_append_only')
+            # V5 gate: the append-only triggers stay enabled and allow the owner's DELETEs in this transaction
+            # only. No ALTER TABLE, so no SHARE ROW EXCLUSIVE lock that blocked agent inserts (PROD, 16 October 2026).
+            conn.execute("SELECT set_config('mw_agent.retention_purge', 'on', true)")
             for table in DELETE_ORDER:
                 schema, name = table.split('.')
                 column, keyset = keysets[table]
                 counts.append(conn.execute(sql.SQL('DELETE FROM {} WHERE {c} IN (SELECT {c} FROM pg_temp.{k} WHERE root = ANY(%s))').format(
                     sql.Identifier(schema, name), c=sql.Identifier(column), k=sql.Identifier(keyset)), (chunk,)).rowcount)
-            conn.execute('ALTER TABLE audit.operations ENABLE TRIGGER operations_append_only')
-            conn.execute('ALTER TABLE audit.events ENABLE TRIGGER events_append_only')
+            conn.execute("SELECT set_config('mw_agent.retention_purge', 'off', true)")
         return counts
 
     def function_batch(chunk):
-        # V5: the owner-side function re-checks the rules for the whole trees under these roots, disables and
-        # re-enables the append-only triggers in its own transaction and returns what it deleted.
+        # V5: the owner-side function re-checks the rules for the whole trees under these roots, deletes them
+        # through the same transaction-local gate and returns what it deleted.
         with conn.transaction():
             return list(conn.execute('SELECT deleted_job_runs,deleted_operation_states,deleted_events,deleted_operations '
                                      'FROM audit.purge_routine_trees(%s,%s)', (chunk, cutoff)).fetchone())

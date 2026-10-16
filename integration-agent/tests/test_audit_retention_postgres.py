@@ -238,6 +238,65 @@ class RetentionPurgeTests(unittest.TestCase):
             self.assertEqual(counts(admin), before)
             self.assertTrue(triggers_enabled(admin))
 
+    def test_purge_gate_allows_only_the_owners_flagged_delete(self):
+        with psycopg.connect(**self.admin) as admin:
+            [root, _] = self.eligible_trees(admin)
+            before = counts(admin)
+        flag = "SELECT set_config('mw_agent.retention_purge', 'on', true)"
+        with psycopg.connect(**self.admin) as conn:
+            conn.autocommit = False
+            # Flag set but not the owner (the superuser here): still refused.
+            conn.execute(flag)
+            with self.assertRaisesRegex(errors.RaiseException, 'Append-only audit'):
+                conn.execute('DELETE FROM audit.events WHERE operation_id=%s', (root,))
+            conn.rollback()
+            # The owner with the flag: UPDATE and TRUNCATE are still refused.
+            for statement in ('UPDATE audit.operations SET actor_login=NULL WHERE operation_id=%s',
+                              'TRUNCATE audit.operations, audit.events, runtime.operation_state, runtime.job_runs'):
+                with self.subTest(statement=statement):
+                    conn.execute('SET LOCAL ROLE mw_agent_owner')
+                    conn.execute(flag)
+                    with self.assertRaisesRegex(errors.RaiseException, 'Append-only audit'):
+                        conn.execute(statement, (root,) if '%s' in statement else None)
+                    conn.rollback()
+            # The flag is transaction-local: set in one transaction, gone in the next.
+            conn.execute('SET LOCAL ROLE mw_agent_owner')
+            conn.execute(flag)
+            conn.commit()
+            conn.execute('SET LOCAL ROLE mw_agent_owner')
+            with self.assertRaisesRegex(errors.RaiseException, 'Append-only audit'):
+                conn.execute('DELETE FROM audit.events WHERE operation_id=%s', (root,))
+            conn.rollback()
+            # The owner with the flag in the same transaction: the DELETE goes through.
+            conn.execute('SET LOCAL ROLE mw_agent_owner')
+            conn.execute(flag)
+            for table in ('runtime.job_runs', 'runtime.operation_state', 'audit.events'):
+                conn.execute(sql.SQL('DELETE FROM {} WHERE operation_id IN (SELECT operation_id FROM audit.operations WHERE operation_id=%s '
+                                     'OR parent_operation_id=%s)').format(sql.Identifier(*table.split('.'))), (root, root))
+            conn.execute('DELETE FROM audit.operations WHERE parent_operation_id=%s', (root,))
+            conn.execute('DELETE FROM audit.operations WHERE operation_id=%s', (root,))
+            conn.commit()
+        with psycopg.connect(**self.admin) as admin:
+            self.assertEqual(counts(admin)['audit.operations'], before['audit.operations'] - 2)
+            self.assertTrue(triggers_enabled(admin))
+
+    def test_open_purge_batch_does_not_block_agent_inserts(self):
+        """The 16 October incident: a purge batch must hold row locks only, never a table lock that stalls agent writers."""
+        with psycopg.connect(**self.admin) as admin:
+            roots = self.eligible_trees(admin)
+        with psycopg.connect(**self.retention) as purge, psycopg.connect(**self.admin) as writer:
+            purge.autocommit = False
+            self.assertEqual(self.purge(purge, roots), (1, 3, 3, 3))  # transaction left open
+            writer.execute("SET lock_timeout='1s'")
+            fresh = self.operation(writer, action='JOB', age=0, run=('COMPLETED', 1e-6))
+            held = purge.execute('''SELECT relation::regclass::text,mode FROM pg_locks WHERE pid=pg_backend_pid() AND locktype='relation'
+                AND mode NOT IN ('AccessShareLock','RowShareLock','RowExclusiveLock')''').fetchall()
+            self.assertEqual(held, [])
+            purge.commit()
+        with psycopg.connect(**self.admin) as admin:
+            self.assertEqual(admin.execute('SELECT count(*) FROM audit.operations WHERE operation_id=%s', (fresh,)).fetchone()[0], 1)
+            self.assertEqual(admin.execute('SELECT count(*) FROM audit.operations WHERE operation_id=ANY(%s)', (roots,)).fetchone()[0], 0)
+
     def test_maintenance_script_purges_through_the_function_as_an_iam_shaped_login(self):
         script = load('agent_db_maintenance', AGENT / 'scripts' / 'agent-db-maintenance.py')
         with psycopg.connect(**self.admin) as admin:
@@ -322,6 +381,48 @@ class RetentionPurgeTests(unittest.TestCase):
             with psycopg.connect(**self.admin) as admin:
                 self.assertEqual(admin.execute('SELECT count(*) FROM audit.operations WHERE operation_id=ANY(%s)', (later,)).fetchone()[0], 2)
                 self.assertTrue(triggers_enabled(admin))
+
+
+@unittest.skipUnless(os.environ.get('MW_AGENT_FRESH_PG_DSN'), 'empty disposable PostgreSQL server required')
+class MaintIndexAdoptionTests(unittest.TestCase):
+    """V5 on a server where the maintenance script already built its FK indexes: adopt a valid one, rebuild an invalid one."""
+
+    def test_v5_renames_valid_maintenance_indexes_and_rebuilds_invalid_ones(self):
+        server = {**conninfo_to_dict(os.environ['MW_AGENT_FRESH_PG_DSN']), 'dbname': 'postgres'}
+        if server.get('host') not in ('127.0.0.1', 'localhost') or int(server.get('port') or 5432) == 5432:
+            raise RuntimeError('Refusing a non-disposable target: loopback host and non-default port required')
+        with psycopg.connect(**server, autocommit=True) as conn:
+            if conn.execute("SELECT 1 FROM pg_database WHERE datname='mw_agent'").fetchone() or \
+                    conn.execute('SELECT 1 FROM pg_roles WHERE rolname=ANY(%s)', (list(ROLES),)).fetchone():
+                raise RuntimeError('Refusing a server that already has the agent database or roles')
+
+        def drop_created():
+            with psycopg.connect(**server, autocommit=True) as conn:
+                conn.execute('DROP DATABASE IF EXISTS mw_agent WITH (FORCE)')
+                for role in ROLES:
+                    conn.execute(sql.SQL('DROP ROLE IF EXISTS {}').format(sql.Identifier(role)))
+        self.addCleanup(drop_created)
+        helpers = load('state_migration_postgres_helpers', Path(__file__).with_name('test_state_migration_postgres.py'))
+        with psycopg.connect(**server, autocommit=True, options=APPROVAL) as conn:
+            for statement in helpers.statements(BOOTSTRAP.read_text(encoding='utf-8')):
+                conn.execute(statement)
+        with tempfile.TemporaryDirectory(prefix='mw-agent-v4-') as directory, \
+                psycopg.connect(**{**server, 'dbname': 'mw_agent'}, autocommit=True) as conn:
+            for path in sorted(MIGRATIONS.glob('V[1-4]__*.sql')):
+                (Path(directory) / path.name).write_bytes(path.read_bytes())
+            self.assertEqual(state_migration.migrate(conn, directory)['applied'][-1], 'V4__receipt_evidence.sql')
+            conn.execute('CREATE INDEX CONCURRENTLY maint_operation_state_last_event_idx ON runtime.operation_state (last_event_id)')
+            conn.execute('CREATE INDEX CONCURRENTLY maint_job_runs_operation_idx ON runtime.job_runs (operation_id)')
+            # Mark one as an interrupted CONCURRENTLY build would leave it.
+            conn.execute("UPDATE pg_index SET indisvalid=false WHERE indexrelid='runtime.maint_job_runs_operation_idx'::regclass")
+            adopted = conn.execute("SELECT 'runtime.maint_operation_state_last_event_idx'::regclass::oid").fetchone()[0]
+            self.assertEqual(state_migration.migrate(conn, MIGRATIONS)['applied'], ['V5__audit_retention_identity.sql'])
+            rows = conn.execute('''SELECT c.relname,i.indisvalid,c.oid FROM pg_index i JOIN pg_class c ON c.oid=i.indexrelid
+                JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='runtime'
+                AND c.relname IN ('operation_state_last_event_idx','job_runs_operation_idx','maint_operation_state_last_event_idx',
+                                  'maint_job_runs_operation_idx') ORDER BY c.relname''').fetchall()
+            self.assertEqual([(name, valid) for name, valid, _ in rows], [('job_runs_operation_idx', True), ('operation_state_last_event_idx', True)])
+            self.assertEqual(rows[1][2], adopted)  # renamed in place, not rebuilt
 
 
 if __name__ == '__main__':

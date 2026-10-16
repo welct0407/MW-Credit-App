@@ -123,9 +123,12 @@ The PROD runtime (image `8611c23d…`) and Hosting (`2b6c25c065f1a45a`) followed
 
 - Backup done: `pg_dump` SHA256 `baf28e2d7457553f2bd9d87514b825dbb7771b023c4782802699b4372185d92e`, full isolated restore passed, stored under `prod-backups/prod-promotion-83914936e38c459ba539e53e44f2cd1f/`; Cloud SQL backups `1792165191960` and `1792165979631` (taken before the instance patch).
 - Dry run (`audit-retention`, cutoff 7 days, database 1,834 MB): 226,464 trees, 682,425 operations eligible, events 1,475,012, states 682,425, job runs 225,943, about 835 MB of rows; 1,242 old trees kept as protected; plan 153 s.
-- The purge (`--apply --batch 50 --readback`, export to `agent-audit-archive/`) is running from a cloud session. **Result placeholder: exported and deleted counts, manifest object and sha256, duration, and `mw_agent` size afterwards are recorded here when it finishes.**
+- Export done and verified: run `424cf0f8-ea6e-4572-9b91-446e037e7990`, cutoff 2026-10-09T16:04:41Z, 682,595 operations, 1,475,344 events, 682,595 states, 226,012 job runs, under `gs://mw-credit-operator-private-737787224638/agent-audit-archive/2026-10/424cf0f8-ea6e-4572-9b91-446e037e7990/` (sha256 readback per object). A second, incomplete export (`9256be5d…`) stayed local and is not used.
+- Purge **paused, partial**. The first apply run deadlocked against agent writers after about 9.3k operations (all of them in the export) and rolled back its last batch; the lock order and a deadlock/lock-timeout retry were fixed (`fe7f731`). The rerun repeated the export, so `--resume-run` (`412b56b`) now deletes only rows found in an earlier verified export. Resuming ran about 10 s per 50-tree batch (HDD random reads, `pg_stat_statements`), and its `ALTER TABLE ... DISABLE TRIGGER` held SHARE ROW EXCLUSIVE locks that pushed agent inserts past their 3 s `lock_timeout`. That caused 32 lock timeouts and failed timer runs between about 00:26 and 00:35 Bangkok on 17 October. It was stopped; the agent recovered with no new errors after 00:36.
+- Fix: agent V5 now gates `audit.reject_rewrite()` itself. A DELETE passes only for `mw_agent_owner` with the transaction-local `mw_agent.retention_purge` flag; UPDATE and TRUNCATE are always refused. The purge (script owner path and `audit.purge_routine_trees`) sets the flag instead of disabling triggers, so it holds row locks only. Trees go oldest first. V5 adopts the script's `maint_*` foreign-key indexes by rename when they are valid. Tests cover the gate, an agent insert during an open purge batch, and the index adoption.
+- Owner decision pending: on HDD the remaining ~670k operations would take about 1 to 1.5 days of random I/O. The recommendation is to resume right after the SSD move from the same export (no re-export), then `VACUUM FULL`.
 - `VACUUM FULL` is postponed to the SSD move (owner). Image nulling has 0 eligible rows.
-- Pending in this session: agent migration V5 (the two foreign-key indexes, `mw_agent_retention`, the `SECURITY DEFINER` purge function, membership for the agent IAM user), the script mode switch and the agent deploy; the daily timer stays disabled until then. The create-only bucket binding `agent_audit_archive_create` is applied (15:58:47Z, targeted apply, 1 added).
+- Pending: agent migration V5 on PROD `mw_agent` (role `mw_agent_retention` first, as `postgres`; then membership for the agent IAM user), the agent deploy and the resumed purge; the daily timer stays disabled until then. The create-only bucket binding `agent_audit_archive_create` is applied (15:58:47Z, targeted apply, 1 added).
 
 ### (c) Cloud SQL: done, changed from the plan
 
@@ -137,7 +140,7 @@ Patch 15:42:54 to 15:49:21Z: tier `db-g1-small`, IAM flag, `max_connections` 50,
 - V93 is additive and immutable once applied. Forward fix, not an edit. To undo behaviour in DEV: `ALTER FUNCTION public.sync_cash_ledger(text,text) SECURITY INVOKER` with the V23 body as `postgres` (needs the same temporary owner authority), then re-grant "Cash Ledger" INSERT/UPDATE/DELETE to `mw_app_dev` by the capability policy. The indexes and the trigger rename are harmless to keep; `ALTER TRIGGER a000_blank_refs ... RENAME TO appsheet_blank_refs` reverses the rename.
 - Owner authority: `owner-authority-cli.mjs restore --state <record>` returns the exact prior tuple state; a repeat is a no-op. A failed migration applies nothing.
 - Terraform flags: revert the `owned.tf` commit and apply again (another restart), or patch the full previous flag list with `gcloud sql instances patch`.
-- `mw_agent` maintenance: rows are restorable from the verified export or a `pg_dump`; an instance restore would also rewind DEV and PROD and is a last resort.
+- `mw_agent` maintenance: rows are restorable from the verified export or a `pg_dump`; an instance restore would also rewind DEV and PROD and is a last resort. Agent V5 is immutable once applied; its purge gate can be closed by a later migration restoring the V1 body of `audit.reject_rewrite()`.
 - Dictionary: `git revert`; the helper reports no live state.
 
 ## Open questions
@@ -149,9 +152,7 @@ Patch 15:42:54 to 15:49:21Z: tier `db-g1-small`, IAM flag, `max_connections` 50,
 
 ## Remaining work
 
-- Finish the `mw_agent` purge and record its counts above; agent V5, the script mode switch and the agent deploy; then decide on enabling the daily timer.
-- Sync correction, then the R064 Released transition and tag (not done here).
-- Agent migration V5 (indexes on `runtime.operation_state(last_event_id)` and `runtime.job_runs(operation_id)`; the retention role and purge function if the owner picks that option), then the script mode switch, before the daily timer is activated.
+- Agent V5 on PROD, the agent deploy, the resumed purge from export `424cf0f8…` (record its counts above), `VACUUM FULL`, then enable the daily timer.
 - `scripts/backup-agent-database.py` hard-codes Windows binaries and a fixed dump name; add platform binaries and `--dump-name` before it is reused on Linux.
 - Contract migration for the `pwa_job_runs` lease columns (DB-LOCK-02).
 - Move the SQL bodies to `pwa_lock_key_v1` in the next migration that touches `pwa_submit_operation_v2` for a functional reason (needs journal-owner authority).

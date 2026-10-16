@@ -1,6 +1,6 @@
 [Unit]
 Description=M&W agent audit retention: export routine audit trees older than 7 days to GCS, verify, then delete
-# Prepared R064 W4 (DB-PERF-01, owner retention decision 17 October 2026). Ships disabled; install and enable
+# Prepared R064 W4 (DB-PERF-01, owner retention decision 16 October 2026). Ships disabled; install and enable
 # only after owner activation. Runs as the VM identity: the connection file names the proxy's IAM listener
 # (127.0.0.1:5433, user mw-integration-agent@clever-oasis-508610-n7.iam, dbname mw_agent, no password); the
 # script SET ROLEs mw_agent_retention (central V5; the IAM user holds it WITH INHERIT FALSE, SET TRUE) and deletes
