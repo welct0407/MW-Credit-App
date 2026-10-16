@@ -17,6 +17,9 @@ CREATE ROLE mw_agent_worker NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERI
 CREATE ROLE mw_agent_relay NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOREPLICATION NOBYPASSRLS;
 CREATE ROLE mw_agent_auditor NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOREPLICATION NOBYPASSRLS;
 CREATE ROLE mw_business_audit_owner NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;
+-- R064 W4 (DB-PERF-01): audit-retention identity; central V5 grants it and requires it to exist.
+-- On an instance bootstrapped before V5, create it as postgres with exactly this statement first.
+CREATE ROLE mw_agent_retention NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOREPLICATION NOBYPASSRLS;
 -- Administrative migration principal only; NEVER grant these memberships to a worker.
 GRANT mw_agent_owner,mw_business_audit_owner TO CURRENT_USER WITH INHERIT TRUE;
 
@@ -25,6 +28,7 @@ REVOKE ALL ON DATABASE mw_agent FROM PUBLIC;
 GRANT CONNECT ON DATABASE mw_agent TO mw_agent_worker,mw_agent_relay,mw_agent_auditor;
 ALTER ROLE mw_agent_worker IN DATABASE mw_agent SET search_path=pg_catalog,runtime,audit;
 ALTER ROLE mw_agent_relay IN DATABASE mw_agent SET search_path=pg_catalog,audit,runtime;
+ALTER ROLE mw_agent_retention IN DATABASE mw_agent SET search_path=pg_catalog,audit,runtime;
 ALTER ROLE mw_agent_auditor IN DATABASE mw_agent SET default_transaction_read_only=on;
 ALTER ROLE mw_agent_worker IN DATABASE mw_agent SET statement_timeout='15s';
 ALTER ROLE mw_agent_relay IN DATABASE mw_agent SET statement_timeout='15s';
