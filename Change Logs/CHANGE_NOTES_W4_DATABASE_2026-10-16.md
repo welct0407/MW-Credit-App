@@ -156,16 +156,17 @@ Patch 15:42:54 to 15:49:21Z: tier `db-g1-small`, IAM flag, `max_connections` 50,
 
 ## Open questions
 
-1. Reviewer payment-input edits fail with `42501` in `payment_crud_prepare_core_v83` since V83 (pre-existing, not caused by V93, which adds the lock-only grants it needs on "Cash Ledger"). Decide whether the reviewer path should be fixed or left.
+1. Resolved by the owner on 17 October 2026: reviewer payment-input edits (`42501` in `payment_crud_prepare_core_v83` since V83, pre-existing) stay blocked. Payment input corrections go through the native payment command; migration V94 (DEV first, R067) only replaces the error with 'Payment input corrections require the native payment command'. See [REVIEWER_DML](../integration-agent/docs/REVIEWER_DML.md).
 2. Resolved by the owner on 16 October: retention identity is agent migration V5 (role plus purge function); the bucket binding and the `agent-audit-archive/` prefix are accepted and applied.
 3. SSD: resolved. The owner had the sync-fix session move to the new SSD instance `mw-credit-pg-20261017` on 17 October; the `mw_agent` purge ran inside that freeze, so no `VACUUM FULL` is needed.
-4. Reader grants for `monitoring.pg_stat_statements` (`pg_read_all_stats`, USAGE) are a separate owner decision.
+4. Resolved by the owner on 17 October 2026 ("Grant to codex-cloud-read"): as `postgres`, about 03:13 Bangkok (16 October ~20:13 UTC), `GRANT pg_read_all_stats TO "codex-cloud-read@clever-oasis-508610-n7.iam"` on `mw-credit-pg-20261017`. Readback: membership inherit true, grantor `cloudsqladmin`, alongside `pg_read_all_data`. The read identity can now read query text in `monitoring.pg_stat_statements` across all databases (instance-wide). Rollback: `REVOKE pg_read_all_stats FROM` that user. The old instance `appsheet-pg-prod-20260914` (rollback copy, being stopped) did not receive it.
 
 ## Remaining work
 
 - `scripts/backup-agent-database.py` hard-codes Windows binaries and a fixed dump name; add platform binaries and `--dump-name` before it is reused on Linux.
 - Contract migration for the `pwa_job_runs` lease columns (DB-LOCK-02).
 - Move the SQL bodies to `pwa_lock_key_v1` in the next migration that touches `pwa_submit_operation_v2` for a functional reason (needs journal-owner authority).
-- DB-ACCESS-07: `verify-full` TLS needs a `server_ca_mode` change on the instance (unchanged from W3).
+- DB-ACCESS-07: owner chose on 17 October 2026 to retire VM-01's direct TLS route: move VM-01 tools onto the Cloud SQL Auth Proxy, then require the connector and remove the authorized network, after the SSD-move PR #46 merges. Not started.
+- Migration V94 (clearer reviewer payment-input error), DEV first, R067.
 - Lesson for readbacks on the shared instance: use cheap single-scan counts. Two whole-tree queries hit their time limits and wrote about 2.7 GB of temporary files before they were cancelled; disk stayed at 10 GB and the instance stayed RUNNABLE.
-- ALL-ARCH-03 cleanup (password roles, `NOLOGIN`) is unchanged from the W3 notes.
+- ALL-ARCH-03 cleanup part 2a is done (17 October 2026, see the W3 notes); part 2b (reviewer DML and receipt projector password files) waits for the `session_user` migration.

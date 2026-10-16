@@ -66,7 +66,7 @@ Owner instruction, 16 October 2026 (Bangkok): "Go ahead to execute all the steps
 
 ## Open questions
 
-1. Is a 5-minute foreground delay for other users' changes acceptable, or should focus-return trigger an immediate refresh after a long idle? (Focus and online already refresh immediately.)
+1. Resolved by the owner on 17 October 2026: refresh every 30 seconds in the foreground and on every focus (implementation in progress for R067).
 2. None open for this branch. The earlier phase5 fixture and stale-503 expectation failures are fixed in `ba0a9d7`.
 
 ## Remaining work
