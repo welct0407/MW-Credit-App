@@ -60,8 +60,11 @@ BEGIN
   AND (j.state='RUNNING' OR j.finished_at IS NULL OR j.finished_at >= p_cutoff) LIMIT 1;
  IF FOUND THEN RAISE EXCEPTION 'operation % has a running or recent job run', v_bad; END IF;
  SET LOCAL lock_timeout='5s';
- ALTER TABLE audit.events DISABLE TRIGGER events_append_only;
+ -- Agent writers take audit.operations before audit.events; lock in that order before the trigger DDL
+ -- (SHARE ROW EXCLUSIVE, which ALTER TABLE ... TRIGGER needs) so a batch cannot deadlock with them.
+ LOCK TABLE audit.operations, audit.events IN SHARE ROW EXCLUSIVE MODE;
  ALTER TABLE audit.operations DISABLE TRIGGER operations_append_only;
+ ALTER TABLE audit.events DISABLE TRIGGER events_append_only;
  DELETE FROM runtime.job_runs WHERE operation_id=ANY(v_ops);
  GET DIAGNOSTICS deleted_job_runs=ROW_COUNT;
  DELETE FROM runtime.operation_state WHERE operation_id=ANY(v_ops);

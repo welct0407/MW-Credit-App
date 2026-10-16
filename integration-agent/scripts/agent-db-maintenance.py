@@ -262,31 +262,47 @@ def delete_batches(conn, batch, pause, cutoff=None, purge_function=False):
                'audit.events': ('event_id', 'rt_events'), 'audit.operations': ('operation_id', 'rt_tree')}
     totals = dict.fromkeys(DELETE_ORDER, 0)
     longest = 0.0
-    for start in range(0, len(roots), batch):
-        chunk = roots[start:start + batch]
-        began = time.monotonic()
-        if purge_function:
-            # V5: the owner-side function re-checks the rules for the whole trees under these roots, disables and
-            # re-enables the append-only triggers in its own transaction and returns what it deleted.
-            counts = conn.execute('SELECT deleted_job_runs,deleted_operation_states,deleted_events,deleted_operations '
-                                  'FROM audit.purge_routine_trees(%s,%s)', (chunk, cutoff)).fetchone()
-            for table, count in zip(DELETE_ORDER, counts):
-                totals[table] += count
-            longest = max(longest, time.monotonic() - began)
-            time.sleep(pause)
-            continue
+    def owner_batch(chunk):
+        counts = []
         with conn.transaction():
             # DISABLE/ENABLE TRIGGER is transactional: no other session ever sees the triggers off.
             conn.execute("SET LOCAL lock_timeout='5s'")
-            conn.execute('ALTER TABLE audit.events DISABLE TRIGGER events_append_only')
+            # Agent writers take audit.operations before audit.events; lock in that order before the trigger DDL
+            # so a batch cannot deadlock with them (16 October 2026 PROD run hit exactly that with the reverse order).
+            conn.execute('LOCK TABLE audit.operations, audit.events IN SHARE ROW EXCLUSIVE MODE')
             conn.execute('ALTER TABLE audit.operations DISABLE TRIGGER operations_append_only')
+            conn.execute('ALTER TABLE audit.events DISABLE TRIGGER events_append_only')
             for table in DELETE_ORDER:
                 schema, name = table.split('.')
                 column, keyset = keysets[table]
-                totals[table] += conn.execute(sql.SQL('DELETE FROM {} WHERE {c} IN (SELECT {c} FROM pg_temp.{k} WHERE root = ANY(%s))').format(
-                    sql.Identifier(schema, name), c=sql.Identifier(column), k=sql.Identifier(keyset)), (chunk,)).rowcount
-            conn.execute('ALTER TABLE audit.events ENABLE TRIGGER events_append_only')
+                counts.append(conn.execute(sql.SQL('DELETE FROM {} WHERE {c} IN (SELECT {c} FROM pg_temp.{k} WHERE root = ANY(%s))').format(
+                    sql.Identifier(schema, name), c=sql.Identifier(column), k=sql.Identifier(keyset)), (chunk,)).rowcount)
             conn.execute('ALTER TABLE audit.operations ENABLE TRIGGER operations_append_only')
+            conn.execute('ALTER TABLE audit.events ENABLE TRIGGER events_append_only')
+        return counts
+
+    def function_batch(chunk):
+        # V5: the owner-side function re-checks the rules for the whole trees under these roots, disables and
+        # re-enables the append-only triggers in its own transaction and returns what it deleted.
+        with conn.transaction():
+            return list(conn.execute('SELECT deleted_job_runs,deleted_operation_states,deleted_events,deleted_operations '
+                                     'FROM audit.purge_routine_trees(%s,%s)', (chunk, cutoff)).fetchone())
+
+    run_batch = function_batch if purge_function else owner_batch
+    for start in range(0, len(roots), batch):
+        chunk = roots[start:start + batch]
+        began = time.monotonic()
+        for attempt in range(1, 6):
+            try:
+                counts = run_batch(chunk)
+                break
+            except (psycopg.errors.DeadlockDetected, psycopg.errors.LockNotAvailable):
+                # The batch transaction rolled back as a whole; nothing of it is applied, so a retry is safe.
+                if attempt == 5:
+                    raise
+                time.sleep(min(30, 2 ** attempt))
+        for table, count in zip(DELETE_ORDER, counts):
+            totals[table] += count
         longest = max(longest, time.monotonic() - began)
         time.sleep(pause)
     return totals, round(longest, 3)
