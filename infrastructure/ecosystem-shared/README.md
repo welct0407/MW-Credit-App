@@ -22,3 +22,7 @@ Applied under the owner instruction "Go ahead to execute all the steps until wav
 - Evidence if the limit is revisited: daily peak `num_backends` was 12 to 13 after AppSheet retired on 14 October (the earlier 50 to 106 peaks were AppSheet connections); the configured worst case is about 39 connections. Revisit before raising Cloud Run caps or reactivating any connector.
 - Receipt-archive access: `google_storage_bucket_iam_member.agent_audit_archive_create` (`operator-private.tf`) gives `mw-integration-agent@` create-only access under `agent-audit-archive/` (applied 15:58:47Z by a targeted apply, 1 added, no restart).
 - An SSD needs a new instance: the move (restore from backup into `mw-credit-pg-20261017`, repoint consumers, old instance kept) is planned for 17 October 2026 after R064 is stable (owner); `VACUUM FULL` of `mw_agent` waits for it.
+
+## SSD instance (prepared 16 October 2026, not yet applied)
+
+`google_sql_database_instance.shared_ssd` (`mw-credit-pg-20261017`) matches `shared` except `PD_SSD`. It is filled by `gcloud sql backups restore --restore-instance`, which brings users, roles, grants and databases, so this root still manages no users. A restore resets the target's backup configuration: re-apply this root after every restore. Reviewed plan before apply: 1 to add, 0 to change, 0 to destroy. `shared` stays as the hot rollback until the owner retires it.
