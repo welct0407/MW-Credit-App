@@ -19,8 +19,8 @@ Private receipts: `gs://mw-payment-receipts-prod-508610-n7`. Agent originals and
 
 | Component | Pin / evidence |
 | --- | --- |
-| DEV frontend | Hosting `ae32fb05bfc17a38` (R063 Wave 3: CSP, `X-Frame-Options: DENY`, immutable `/assets/**`); previous (rollback) `edf06b9da5841b1d`; [R063 Wave 3 record](Development_Changes.md#r063-wave-3) |
-| DEV reader | Runs `services/production/business-server.mjs` with `APP_ENV=dev` from image `api@sha256:91ce1c2891a437dd3d8efc8fade850dcb7916a3909dd2f49d969ab56a08290a5`; database user `mw-credit-app-read-dev`; [R063 Wave 3 record](Development_Changes.md#r063-wave-3) |
+| DEV frontend | Hosting `955fa49b579be5f9` (R063 Wave 3 final, app source `fbd1260`: CSP, `X-Frame-Options: DENY`, immutable `/assets/**`); rollback `ae32fb05bfc17a38` (first W3 deploy), before W3 `edf06b9da5841b1d`; [R063 Wave 3 record](Development_Changes.md#r063-wave-3) |
+| DEV reader | Runs `services/production/business-server.mjs` with `APP_ENV=dev` from image `api@sha256:d35ff75e92fa7382df5520e63a51ba5e52f485a8c1c40303aa0f8ed6340084b6` (also notify and jobs; revisions read-00023, command-00030, notify-00003, jobs-00003); database user `mw-credit-app-read-dev`; [R063 Wave 3 record](Development_Changes.md#r063-wave-3) |
 | DEV command | Same image and entry point as the reader with the DEV command identity; Cloud Run timeout 15 s (as PROD); previous image `keep-dev-20261016-abe73330`; [R063 Wave 3 record](Development_Changes.md#r063-wave-3) |
 | PROD frontend | source `ed835cd018f7219e54e8320362c84fa707a260cd`, Hosting `45b1899bbd18ba3e`, release `1792033365993000`, marker `2217c9bbe74a92226b093c9c`, entry `index-h1RmjkW0.js`; exact-byte/no-store verification 15 October 2026 10:02:59 Bangkok; [R062 record](Development_Changes.md#r062-production-promotion) |
 | PROD reader | preserved Ready100% `00005-v9z`, image SHA256 `105e815709717c381f3f6b85e9279aa5e30f2b601405b3d7c184ca1114ed1933`, source7aecf695; [R059 record](Development_Changes.md#r059-pwa-production-preparation) |
@@ -63,7 +63,8 @@ Dedicated VM-01 UAMI and Azure-to-GCP federation provide unattended administrati
 | mw-credit-app-prod/api | `keep-r059-notify` | `b4f528bc...` (PROD notify) |
 | mw-credit-app-prod/api | `keep-r059-jobs` | `11c149f7...` (PROD jobs) |
 | mw-monitoring/grafana-mcp-bridge | `keep-grafana-events-live` | `9ba9b0f2...` |
-| DEV api | `keep-dev-20261016-91ce1c28` | `91ce1c28...` (current DEV image) |
+| DEV api | `keep-dev-20261016-d35ff75e` | `d35ff75e...` (current DEV image) |
+| DEV api | `keep-dev-20261016-91ce1c28` | first W3 DEV image |
 | DEV api | `keep-dev-20261016-abe73330` | previous DEV reader and command |
 | DEV api | `keep-dev-20261016-ccb475d6` | previous DEV workers |
 
