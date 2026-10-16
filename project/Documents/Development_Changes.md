@@ -10,9 +10,34 @@ The sole Open product release is **R063**. **R062 is Released**; the owner-autho
 | Carried operational credential migration | R055 remains Frozen; paused work is unfinished |
 | Apple push enrollment follow-up | R056 V91 deployed; Lisa retry/closure remains pending |
 | Owner license action | AppSheet technical retirement complete; license revocation unconfirmed |
+| Grafana revamp: alert coverage for PWA APIs, workers, Cloud SQL disk and backups | Pending future release (review ALL-MON-01); no alert rules applied in R063 |
 | Repository merge follow-ups (15 October 2026) | [Change note](../../Change%20Logs/CHANGE_NOTES_REPOSITORY_MERGE_2026-10-15.md) |
 
 Use the [release tracker](Release_Tracker.md), including the carried R016 administrative follow-up. Current runtime versions belong in [environment inventory](Environment_Inventory.md). Update this page for actual outstanding work, not completed-release history.
+
+## R063 Wave 1 — Debian agent
+
+- Purpose: bring `main` back to the installed R058 agent tree and fix the Wave 1 review findings. Source only; nothing deployed, so the Debian pin is unchanged.
+- Five R058 modules restored byte-for-byte from the host (`instagram.py`, `partner_conversation.py`, `partner_notice.py`, `statement_delivery.py`, `statement_run.py`); their unit tests were rewritten to the deployed behaviour.
+- Webhook receiver: deleted messages are skipped; a changed retry no longer returns 503; late and future messages are quarantined as `REVIEW` with counts; handler timeout 15 s.
+- Sending and host: Instagram and email failures record detail codes; the Graph refresh token is backed up before rotation; worker units `Want` the proxy instead of `Require` it.
+- Owner decisions (16 October 2026): health reporting counts open REVIEW ingress rows (`ingress_review_open`, exported by the existing collector once deployed; dashboard card and alert deferred to the Grafana revamp); a changed retry of a consumed message stays audit-only; future-dated messages get a 60 s clock tolerance.
+- Checks: unit suite 373 tests OK (44 skipped); lab suites 48 of 49 pass, the one error is the pre-existing AGT-TEST-02; `test_postgres_state` rerun after the owner decisions, 16 OK. Deployment waits for Wave 2. Details and recovery: [change note](../../integration-agent/Change%20Logs/CHANGE_NOTES_W1_AGENT_2026-10-15.md).
+
+## R063 Wave 1 — PWA and API fixes
+
+- Saved changes survive session expiry and 401/403; Sign out is blocked until they sync, with "Sync saved changes" and "Review saved changes" affordances (APP-OFFLINE-01/02).
+- Firebase outages and key-fetch failures return 503 `session_check_unavailable`; stalled bodies return 503 `body_timeout`; receipts are downscaled in the PWA (APP-AUTH-01, APP-PAY-01).
+- The post-commit wake follows the response; receipt storage I/O runs outside database transactions; naive receipt timestamps are read as text (APP-PAY-02, APP-PAY-04 W1 part, APP-DATE-01).
+- Deployed to DEV (command `00028-8tf`, read `00021-cdz`, Hosting `edf06b9da5841b1d`; pins in the [inventory](Environment_Inventory.md)); PROD promotion pending with R063. Record: [W1 app change note](../../Change%20Logs/CHANGE_NOTES_W1_APP_2026-10-15.md).
+
+## R063 Wave 1 — operations and evidence privacy
+
+- Removed the three borrower-data evidence folders from the branch tip (history is not purged) and pruned about 1,900 unreferenced or retired evidence files from `project/outputs`, `outputs/` and `integration-agent/outputs`; still-referenced root `outputs/` items moved under `project/outputs` with their references updated.
+- E2E and integration browser captures now write to ignored `test-results/`; a new `ci.yml` step (`scripts/check-binary-evidence.mjs`) rejects tracked PNG/XLSX outside `tests/`, `apps/` and a reviewed allowlist.
+- The tunnel, runner and cloud-session setup scripts read secret version `latest` instead of `1`.
+- Grafana alert coverage is recorded as a pending future-release item above; no alert rules were applied.
+- Record: [W1 operations change note](../../Change%20Logs/CHANGE_NOTES_W1_OPS_2026-10-15.md). UI/tooling only; no deployment or database change.
 
 ## R063 read retry after settled commands
 

@@ -20,7 +20,7 @@ test('actual V87 canonical job dependency catalogue',async()=>{
   const relations=(await pool.query(`SELECT c.relname name,c.relkind kind,c.relrowsecurity rls,c.relforcerowsecurity forced_rls,CASE WHEN c.relkind IN ('v','m') THEN pg_get_viewdef(c.oid,true) ELSE NULL END definition FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND c.relkind IN ('r','v','m') ORDER BY c.relname`)).rows;
   const report={version:87,method:'Actual catalogue plus lexical overapproximation: branches, dynamic SQL and unqualified references require manual review; this is NOT a grant allowlist',roots:['generate_due_charges','refresh_daily_analytics'],writes:[...writes].filter(x=>relations.some(r=>r.name===x)).sort(),functions:functions.filter(x=>selected.has(x.name)),triggers:triggers.filter(x=>writes.has(x.relation)),relations};
   assert.ok(report.functions.some(x=>x.name==='generate_loan_charge'));assert.ok(report.triggers.some(x=>x.relation==='Charges'));assert.ok(report.functions.some(x=>x.name==='refresh_daily_analytics_scoped'));
-  await writeFile('outputs/r053-notifications-jobs/v87-jobs-catalogue.json',JSON.stringify(report,null,2)+'\n');
+  await writeFile('project/outputs/r053-notifications-jobs/v87-jobs-catalogue.json',JSON.stringify(report,null,2)+'\n');
   console.log('Job dependency functions:',report.functions.map(x=>x.name).join(', '));console.log('Writes and trigger expansion:',report.writes.join(', '));
  }finally{await pool.end();}
 });
@@ -47,6 +47,6 @@ test('restricted jobs owner canonical charge and analytics dependency proof',asy
   assert.deepEqual(await snapshot(admin),expectedAnalytics);
   assert.equal((await runtime.query('SELECT public.c_jobs_dependency_probe($1,$2::date,$3) n',['charges',date,fixture.loanIds[0]])).rows[0].n,0);
   for(const sql of ['SELECT * FROM public."Charges"','UPDATE public."Loans" SET "Principal Amount"=0::money','TRUNCATE public.pwa_job_runs','SET ROLE c_jobs_owner'])await assert.rejects(runtime.query(sql),err=>err.code==='42501');
-  await writeFile('outputs/r053-notifications-jobs/v87-jobs-restricted-grants.json',JSON.stringify({version:87,scope:'Measured fixed-date charge and yesterday/today analytics plus real statement/deferred commit triggers; V88 RPC/boundary/replay tests still pending',select:reads,lockUpdate:['Borrowers.Row ID','Loans.Row ID','Charges.Row ID'],chargeInsert:['Row ID','Ref Loans','Charge Date','Principal Due','Interest Due'],analyticsInsertUpdate:['Daily Analytics','Cash Account Daily Analytics'],runtime:'EXECUTE fixture-only fixed probe; no table grants/owner membership',result:'passed'},null,2)+'\n');
+  await writeFile('project/outputs/r053-notifications-jobs/v87-jobs-restricted-grants.json',JSON.stringify({version:87,scope:'Measured fixed-date charge and yesterday/today analytics plus real statement/deferred commit triggers; V88 RPC/boundary/replay tests still pending',select:reads,lockUpdate:['Borrowers.Row ID','Loans.Row ID','Charges.Row ID'],chargeInsert:['Row ID','Ref Loans','Charge Date','Principal Due','Interest Due'],analyticsInsertUpdate:['Daily Analytics','Cash Account Daily Analytics'],runtime:'EXECUTE fixture-only fixed probe; no table grants/owner membership',result:'passed'},null,2)+'\n');
  }finally{await runtime.end();await admin.end();}
 });

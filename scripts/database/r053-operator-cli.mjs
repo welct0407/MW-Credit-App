@@ -22,7 +22,7 @@ await c.connect();try{await c.query("SET statement_timeout='30s'; SET lock_timeo
   if(action==='agent-api-grants')fn=grantR053AgentReceiptApi;
   if(action.startsWith('bind-')){fn=bindR053Runtime;extra={kind:action.slice(5)};}
   if(action==='jobs-dependencies'){
-   const bytes=fs.readFileSync(path.join(repo,'outputs/r053-notifications-jobs/jobs-owner-reviewed-dependencies.json'));
+   const bytes=fs.readFileSync(path.join(repo,'project/outputs/r053-notifications-jobs/jobs-owner-reviewed-dependencies.json'));
    if(createHash('sha256').update(bytes).digest('hex')!==opts['--dependency-sha256'])throw Error('Pinned reviewed dependency bytes required');
    const manifest=JSON.parse(bytes);extra={reviewedManifestSha256:createHash('sha256').update(JSON.stringify(manifest)).digest('hex')};fn=(client,cfg,options)=>grantR053JobDependencies(client,cfg,manifest,options);
   }

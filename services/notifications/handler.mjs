@@ -8,7 +8,7 @@ export function notificationHandler({next,store,verifyPrincipal,origins,enabled=
   const origin=req.headers.origin;if(origin&&!origins.includes(origin))return reply(403,{error:'access_denied'});
   if(origin){res.setHeader('Access-Control-Allow-Origin',origin);res.setHeader('Vary','Origin');}
   if(req.method==='OPTIONS'){res.setHeader('Access-Control-Allow-Headers','Authorization,Content-Type');res.setHeader('Access-Control-Allow-Methods','GET,POST,DELETE,PUT');return reply(204,{});}
-  let principal;try{principal=await verifyPrincipal(req.headers.authorization)}catch{return reply(503,{error:'notification_unavailable'})}if(!principal?.ok)return reply(401,{error:'sign_in_required'});
+  let principal;try{principal=await verifyPrincipal(req.headers.authorization)}catch{return reply(503,{error:'notification_unavailable'})}if(!principal?.ok)return reply(principal.status===503?503:401,{error:principal.status===503?'notification_unavailable':'sign_in_required'});
   try{
    let value;const p=url.pathname;
    if(req.method==='POST'&&p==='/api/notifications/offline-dataset'&&offlineDataset){

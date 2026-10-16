@@ -39,8 +39,10 @@ test('real HTTP runtime shares valid default owner with DEV while rejecting fore
    {sub:'unapproved-owner'},{email:'unapproved@example.invalid'},{email_verified:false},{firebase:{sign_in_provider:'custom'}},
    {exp:Math.floor(Date.now()/1000)-1},{auth_time:Math.floor(Date.now()/1000)+60}];
   for(const delta of changes){f.set({...claim(),...delta});const denied=await request(f.server,'/api/session','GET',{Authorization:'Bearer SYNTHETIC_PRIVATE_TOKEN'});assert.equal(denied.status,delta.sub||delta.email?403:401);}
-  f.set(claim(),Error('SYNTHETIC_PRIVATE_REVOKED_TOKEN uid='+base.PROD_OWNER_FIREBASE_UID));
+  f.set(claim(),Object.assign(Error('SYNTHETIC_PRIVATE_REVOKED_TOKEN uid='+base.PROD_OWNER_FIREBASE_UID),{code:'auth/id-token-revoked'}));
   assert.equal((await request(f.server,'/api/session','GET',{Authorization:'Bearer SYNTHETIC_PRIVATE_TOKEN'})).status,401);
+  f.set(claim(),Error('SYNTHETIC_PRIVATE_OUTAGE uid='+base.PROD_OWNER_FIREBASE_UID));
+  assert.equal((await request(f.server,'/api/session','GET',{Authorization:'Bearer SYNTHETIC_PRIVATE_TOKEN'})).status,503);
   assert.ok(f.calls.every(call=>call.revoked===true));
   assert.doesNotMatch(JSON.stringify(f.logs),/SYNTHETIC_PRIVATE|same-uid|welct|unapproved|tenant|securetoken|synthetic-independent-prod/);
  }finally{await f.close();}}
@@ -75,7 +77,7 @@ test('disabled-probe production dependency graph has no data driver, storage cli
  for(const file of ['config','principal','handler','runtime','server']){
   const source=await readFile(new URL('../../services/production/'+file+'.mjs',import.meta.url),'utf8');
   const imports=[...source.matchAll(/from ['"]([^'"]+)['"]/g)].map(match=>match[1]);
-  assert.ok(imports.every(name=>name.startsWith('node:')||name.startsWith('firebase-admin/')||/^\.\/(config|principal|handler|runtime)\.mjs$/.test(name)),file+' '+imports);
+  assert.ok(imports.every(name=>name.startsWith('node:')||name.startsWith('firebase-admin/')||/^\.\/(config|principal|handler|runtime)\.mjs$/.test(name)||name==='../api/session-check.mjs'),file+' '+imports);
   assert.doesNotMatch(source,/\bimport\s*\(|createPool|new Pool|Storage\(|SELECT\s|saveReceipt|sendNotification/);
  }
 });

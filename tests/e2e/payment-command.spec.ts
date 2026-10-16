@@ -1,9 +1,10 @@
-import {chooseLanguage,chooseLanguagePreservingForm,signOutPreservingActiveChild} from './live-controls';
+import {chooseLanguage,chooseLanguagePreservingForm} from './live-controls';
 function preparedWire(value:any){const{data,...metadata}=value;return{...metadata,schemaVersion:2,generation:'fixture-'+value.domain,nextCursor:null,patches:Object.entries(data??{}).map(([key,value])=>({key,mode:'replace',value}))}}
 
 import {test,expect} from '@playwright/test';
 import {spawn,type ChildProcess} from 'node:child_process';
 import sharp from 'sharp';
+import {randomBytes} from 'node:crypto';
 let server:ChildProcess;let base:string;let serverLog="";
 test.beforeAll(async({},info)=>{
  const port=5800+info.workerIndex;base=`http://127.0.0.1:${port}`;
@@ -49,7 +50,7 @@ test('G06 bounded list preserves notes, total, scroll and bilingual review at 32
  await page.getByRole('button',{name:'Review payment',exact:true}).click();await expect(page.locator('.selected-payment')).toContainText('Synthetic preserved notes');await expect(page.locator('.selected-payment')).toContainText('฿330');
  await page.getByRole('button',{name:'Edit',exact:true}).click();await expect(page.getByRole('region',{name:'Payment allocation',exact:true})).toBeVisible();await chooseLanguagePreservingForm(page,'ไทย');await expect(page.getByRole('region',{name:'จัดสรรการรับชำระ'})).toBeVisible({timeout:10000});
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
- await page.screenshot({path:'outputs/r052-payment-command-api/ui-'+info.project.name+'-'+width+'-th.png',fullPage:true});
+ await page.screenshot({path:'test-results/r052-payment-command-api/ui-'+info.project.name+'-'+width+'-th.png',fullPage:true});
  await page.unroute('https://mw-credit-app-command-dev-test.run.app/**');
  }
 });
@@ -129,11 +130,12 @@ for(const width of [320,390])test(`G07 receipt picker and large removable previe
  await page.getByRole('button',{name:'Review payment',exact:true}).click();await page.getByRole('button',{name:'Confirm payment',exact:true}).click();await expect(page.locator('.payment-success')).toContainText('Payment received');expect(posted).toHaveLength(1);expect(posted[0].receiptId).toBeNull();
 });
 
-test('G07 pending-reference storage refusal warns and auth loss clears business state',async({page})=>{
- let posts=0;let postedBody:any;
+test('G07 pending-reference storage refusal warns; sign-out is blocked while queued and auth loss keeps the queued payment',async({page})=>{
+ let posts=0;let postedBody:any;let sessionLost=false;
  await page.route('https://mw-credit-app-command-dev-test.run.app/**',async r=>{
  if(new URL(r.request().url()).pathname.includes('payment-drafts'))return replyDraft(r);
  if(r.request().method()==='POST'){posts++;postedBody=r.request().postDataJSON();return r.abort('failed')}
+ if(sessionLost)return r.fulfill({status:401,contentType:'application/json',body:'{"ok":false,"code":"session_invalid"}'});
  await r.fulfill({json:{ok:true,kind:'unresolved',safeToUseNewRequestId:false}});
  });
  await setup(page);
@@ -149,7 +151,14 @@ test('G07 pending-reference storage refusal warns and auth loss clears business 
  await page.evaluate(()=>(window as any).__g07ReleasePendingReferenceToken());
  await expect.poll(()=>posts).toBe(1);expect(postedBody.requestId).toBe(reference);
  await expect(page.getByText('Saved on this device. Will sync when connected.',{exact:true})).toBeVisible();
- await signOutPreservingActiveChild(page);await expect(page.getByRole('heading',{name:'Sign in to continue',exact:true})).toBeVisible();await expect(page.locator('.selected-payment')).toHaveCount(0);
+ // APP-OFFLINE-02: the queued payment blocks sign-out; APP-OFFLINE-01: an involuntary 401 expires the session but keeps pending:* rows.
+ const viewport=page.viewportSize()!;if(viewport.width<=1050)await page.setViewportSize({...viewport,width:1440});
+ await expect(page.getByRole('button',{name:'Sync 1 pending first',exact:true}).filter({visible:true})).toBeDisabled();await expect(page.getByRole('button',{name:/^(Sign out|ออกจากระบบ)$/})).toHaveCount(0);
+ if(viewport.width<=1050)await page.setViewportSize(viewport);
+ const pending=()=>page.evaluate(async()=>{const {ownerOfflineRepository}=await import('/apps/pwa/src/owner-offline.ts');const repo=ownerOfflineRepository({issuer:'https://securetoken.google.com/clever-oasis-508610-n7',uid:'synthetic-owner'});return {pending:(await repo.list('pending')).map((row:any)=>row.value.command.requestId),authorized:await repo.authorized()}});
+ expect((await pending()).pending).toEqual([reference]);
+ sessionLost=true;await expect(page.getByRole('heading',{name:'Please sign in again',exact:true})).toBeVisible({timeout:20000});await expect(page.locator('.selected-payment')).toHaveCount(0);
+ expect(await pending()).toEqual({pending:[reference],authorized:false});
  expect(posts).toBe(1);
 });
 test('G07 offline before confirmation retains review without dispatching an unconfirmed payment',async({page,context})=>{
@@ -211,4 +220,23 @@ test('Full app preparation keeps current page usable with header progress then o
  await page.route('https://mw-credit-app-command-dev-test.run.app/**',async route=>{const url=new URL(route.request().url()),domain=url.searchParams.get('domain')??'notifications';if(url.pathname.includes('/receipt')){await mediaHeld;return route.fulfill({body:await sharp({create:{width:20,height:30,channels:3,background:'#f68c18'}}).png().toBuffer(),contentType:'image/png'})}if(!url.pathname.includes('offline-dataset'))return route.fulfill({json:{item:{language:'English'}}});if(route.request().method()==='POST'){deltaReads++;await updateHeld;if(failUpdate)return route.fulfill({status:503,json:{code:'unavailable'}});return route.fulfill({json:{schemaVersion:3,domain,complete:true,unchanged:true,sourceVersion:null,nextCursor:null,asOf:'2026-10-14T00:00:00Z',businessDate:'2026-10-14',patches:[],values:{}}})}prepared.push(domain);if(domain==='records')await recordsHeld;return route.fulfill({json:preparedWire({schemaVersion:1,domain,complete:true,ok:true,asOf:'2026-10-14T00:00:00Z',businessDate:'2026-10-14',data:domain==='records'?{borrowerList:[directoryBorrower],borrowers:[],payments:[{id:'media',receiptReference:'attached',receiptAt:'2026-10-14T00:00:00Z'}]}:domain==='collection'?{items:[{...borrower,id:'unvisited',displayName:'Prepared unvisited collection'}],charges:[],borrowerUpcoming:[{borrowerId:'unvisited',scope:'collection',horizonEnd:'2026-11-14',reviewRequired:false,items:[],previews:[]}]}: {}})})});
  await page.route('**/deps/firebase_app.js*',r=>r.fulfill({contentType:'text/javascript',body:'export function initializeApp(){return {}}'}));await page.route('**/deps/firebase_auth.js*',r=>r.fulfill({contentType:'text/javascript',body:authMock}));await page.route('https://mw-credit-app-read-dev-test.run.app/**',r=>r.fulfill({json:{ok:true,source:'dev',businessDate:'2026-10-14',asOf:'2026-10-14T00:00:00Z',items:[directoryBorrower],nextCursor:null}}));await page.goto(base);await page.getByRole('button',{name:/Google/}).click();await chooseLanguage(page,'EN');await page.evaluate(async()=>{const m=await import('/apps/pwa/src/owner-offline.ts');await m.ownerOfflineRepository({issuer:'https://securetoken.google.com/clever-oasis-508610-n7',uid:'synthetic-owner'},'dev').authorize();window.dispatchEvent(new Event('mw-offline-prepare'))});await expect.poll(()=>prepared.includes('records')).toBe(true);const progress=page.locator('.header-load-progress');await expect(progress).toBeVisible();await expect(page.locator('.borrower-tile')).toContainText('Prepared synthetic borrower');await expect(page.locator('.borrower-tile')).not.toContainText('NaN');const geometry=await page.evaluate(()=>{const p=document.querySelector('.header-load-progress')!.getBoundingClientRect(),r=document.querySelector('.collection-update')!.getBoundingClientRect();return {left:p.right<=r.left,overflow:document.documentElement.scrollWidth>innerWidth}});expect(geometry).toEqual({left:true,overflow:false});releaseRecords();await expect(progress).toHaveAttribute('value','80');await page.screenshot({path:info.outputPath('header-offline-preparation-390.png')});releaseMedia();await expect(progress).toHaveCount(0);await expect(page.locator('.offline-preparation-status')).toHaveCount(0);await page.evaluate(()=>window.dispatchEvent(new Event('focus')));await expect.poll(()=>deltaReads).toBeGreaterThan(0);await expect(progress).toBeVisible();await expect(progress).toHaveAttribute('value','0');await expect(page.locator('.header-load-percent')).toContainText('0%');await expect(page.getByText('Updating saved data…',{exact:true})).toHaveCount(0);await expect(page.locator('.offline-preparation-status')).toHaveCount(0);await context.setOffline(true);await expect(progress).toHaveCount(0);await expect(page.locator('.header-load-percent')).toHaveCount(0);await context.setOffline(false);await expect(progress).toBeVisible();await page.screenshot({path:info.outputPath('header-background-update-390.png')});releaseUpdate();await expect(progress).toHaveCount(0);failUpdate=true;await page.evaluate(()=>window.dispatchEvent(new Event('focus')));await expect(page.locator('.offline-preparation-status')).toContainText('Updates paused');await expect(progress).toHaveCount(0);await expect(page.locator('.offline-preparation-status').getByRole('button',{name:'Retry',exact:true})).toBeVisible();
  await context.setOffline(true);await page.getByRole('button',{name:'Collection',exact:true}).click();await expect(page.locator('.collection-tile-main')).toContainText('Prepared unvisited collection');await page.locator('.collection-tile-main').click();await expect(page.getByRole('region',{name:'Collection charge details'}).getByRole('button',{name:'Prepared unvisited collection',exact:true})).toBeVisible();
+});
+
+test('G07 receipt downscale shows a preparing state and keeps review disabled until the prepared file is attached',async({page})=>{
+ const uploads:{type:string;width:number|undefined}[]=[];
+ await page.addInitScript(()=>{const original=window.createImageBitmap.bind(window);(window as any).createImageBitmap=async(...args:any[])=>{await new Promise<void>(resolve=>{(window as any).__releaseBitmap=resolve});return (original as any)(...args)}});
+ await page.route('https://mw-credit-app-command-dev-test.run.app/**',async r=>{
+  const path=new URL(r.request().url()).pathname;if(path.includes('payment-drafts'))return replyDraft(r);
+  if(path.includes('/receipts/')&&r.request().method()==='POST'){const body=r.request().postDataBuffer()!;uploads.push({type:r.request().headers()['content-type'],width:(await sharp(body).metadata()).width});return r.fulfill({json:{ok:true,receipt:{receiptId:path.split('/').at(-1)}}})}
+  await r.fulfill({json:{ok:true,kind:'unresolved',safeToUseNewRequestId:false}});
+ });
+ await setup(page);await page.locator('.collection-tile-main').first().click();await page.getByRole('button',{name:'Receive selected charges',exact:true}).click();await page.getByRole('combobox',{name:/^Receiving account(?: \*)?$/}).selectOption('synthetic-account');await page.getByRole('textbox',{name:/^Amount received(?: \*)?$/}).fill('110');await page.locator('.payment-allocation-row input[type=checkbox]').first().check();
+ const review=page.getByRole('button',{name:'Review payment',exact:true});await expect(review).toBeEnabled();
+ const noise=randomBytes(1700*1275*3);
+ const photo=await sharp(noise,{raw:{width:1700,height:1275,channels:3}}).png().toBuffer();
+ await page.locator('input[type=file]').setInputFiles({name:'synthetic-photo.png',mimeType:'image/png',buffer:photo});
+ await expect(page.getByText('Preparing receipt…',{exact:true})).toBeVisible();await expect(review).toBeDisabled();expect(uploads).toHaveLength(0);
+ await expect.poll(()=>page.evaluate(()=>typeof (window as any).__releaseBitmap)).toBe('function');await page.evaluate(()=>(window as any).__releaseBitmap());
+ await expect.poll(()=>uploads.length).toBe(1);await expect(review).toBeEnabled();await expect(page.getByText('Preparing receipt…',{exact:true})).toHaveCount(0);
+ expect(uploads[0]).toEqual({type:'image/jpeg',width:1600});
 });

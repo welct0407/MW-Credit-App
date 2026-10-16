@@ -5,7 +5,7 @@ name: Database migrations
 on:
   push:
     branches: ['**']
-    paths: ['database/**', 'scripts/database/**', 'tests/integration/**', 'scripts/rehearsal/Run-ApplicationRoleOperatorProof.ps1', '.github/workflows/database.yml', 'scripts/analysis/**', 'scripts/dictionary/capture_postgresql.py', 'outputs/database-transfer-20261007/source-manifest.json']
+    paths: ['database/**', 'scripts/database/**', 'tests/integration/**', 'scripts/rehearsal/Run-ApplicationRoleOperatorProof.ps1', '.github/workflows/database.yml', 'scripts/analysis/**', 'scripts/dictionary/capture_postgresql.py', 'project/outputs/database-transfer-20261007/source-manifest.json']
   workflow_dispatch:
 permissions:
   contents: read

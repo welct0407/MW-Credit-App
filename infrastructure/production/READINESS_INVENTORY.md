@@ -2,7 +2,7 @@
 
 ## Current verified checkpoint
 
-Owner-selected target is existing **My First Project**, `clever-oasis-508610-n7` / `737787224638`, with shared default Firebase Google sign-in. The authorized contained foundation is deployed. Hosting foundation delivery and recorded maintenance rollback/restoration are verified; canonical HTTPS is now active; owner GUI passed at05:06:12UTC on the stable fallback (see outputs/r052-phase3/production-foundation-delivery.json). No production business operations, SQL changes or receipt-storage authority were introduced.
+Owner-selected target is existing **My First Project**, `clever-oasis-508610-n7` / `737787224638`, with shared default Firebase Google sign-in. The authorized contained foundation is deployed. Hosting foundation delivery and recorded maintenance rollback/restoration are verified; canonical HTTPS is now active; owner GUI passed at05:06:12UTC on the stable fallback (see project/outputs/r052-phase3/production-foundation-delivery.json). No production business operations, SQL changes or receipt-storage authority were introduced.
 
 | Asset | Verified current identity/status |
 | --- | --- |
@@ -36,7 +36,7 @@ Private plans, state, public-config capture and identity proof remain outside Gi
 
 At `2026-10-11T10:42:21Z`, the four named DEV reader/command/build/deploy principals completed132 permission tuples:128 `CANNOT_ACCESS`, four `UNKNOWN_INFO`, zero API errors. The four unknowns are only `iam.serviceAccounts.getAccessToken` on the PROD deployer: Policy Troubleshooter cannot resolve the external workload-identity principalSet. Exact service-account policy has the sole relevant `roles/iam.workloadIdentityUser` grant to the production GitHub pool/repository principalSet; provider is GitHub OIDC with exact repository/owner/main/production subject, while inherited policies report not granted. The tested Google service-account identities are disjoint from that external principalSet. Those four rows use reviewed structural denial proof, not an invented analyzer denial.
 
-[Sanitized matrix and policy/provider hashes](../../outputs/r052-phase3/effective-access-readiness.json) covers state read/write/delete/policy, owner-secret access/mutation/policy, registry data/mutation/policy, both service update/delete/policy, all four PROD identities' actAs/token/policy, and project Hosting update. This is point-in-time scoped evidence; it does not prove protected-main automation, business authorization or exclusion of trusted human administrators. No payload access, impersonation, grants or cloud mutations occurred in the resumed check.
+[Sanitized matrix and policy/provider hashes](../../project/outputs/r052-phase3/effective-access-readiness.json) covers state read/write/delete/policy, owner-secret access/mutation/policy, registry data/mutation/policy, both service update/delete/policy, all four PROD identities' actAs/token/policy, and project Hosting update. This is point-in-time scoped evidence; it does not prove protected-main automation, business authorization or exclusion of trusted human administrators. No payload access, impersonation, grants or cloud mutations occurred in the resumed check.
 
 ### Current local recovery boundary
 

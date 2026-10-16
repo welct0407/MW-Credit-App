@@ -68,11 +68,51 @@ class PostgreSQLStateTests(unittest.TestCase):
         event={'message_id':self.key,'sender_id':'synthetic','timestamp':time.time(),'text':'ทดสอบ','attachments':[]}
         self.assertEqual(ingress.capture(self.key,[event]),(True,1))
         self.assertEqual(ingress.capture(self.key,[event]),(False,0))
-        with self.assertRaisesRegex(ConfigurationError,'CONTENT_MISMATCH'):
-            ingress.capture(self.key+'-changed',[dict(event,text='different')])
+        # A changed retry no longer fails the delivery: the pending work is quarantined,
+        # the other message in the same POST commits, and the mismatch is counted.
+        other=dict(event,message_id=self.key+'-other')
+        self.assertEqual(ingress.capture(self.key+'-changed',[dict(event,text='different'),other]),(True,1))
         with psycopg.connect(**self.admin) as c:
-            self.assertEqual(c.execute('SELECT count(*) FROM runtime.ingress_work WHERE message_id=%s',(self.key,)).fetchone()[0],1)
-            self.assertIsNone(c.execute('SELECT 1 FROM runtime.ingress_receipts WHERE payload_sha256=%s',(self.key+'-changed',)).fetchone())
+            self.assertEqual(c.execute('SELECT state FROM runtime.ingress_work WHERE message_id=%s',(self.key,)).fetchone()[0],'REVIEW')
+            self.assertEqual(c.execute('SELECT text FROM runtime.ingress_messages WHERE message_id=%s',(self.key,)).fetchone()[0],'ทดสอบ')
+            self.assertEqual(c.execute('SELECT state FROM runtime.ingress_work WHERE message_id=%s',(other['message_id'],)).fetchone()[0],'PENDING')
+            self.assertIsNotNone(c.execute('SELECT 1 FROM runtime.ingress_receipts WHERE payload_sha256=%s',(self.key+'-changed',)).fetchone())
+            payload=c.execute("SELECT e.payload FROM audit.events e JOIN audit.operations o ON o.operation_id=e.operation_id WHERE o.idempotency_key=%s AND e.event_kind='ingress_accepted'",(self.key+'-changed',)).fetchone()[0]
+            self.assertEqual((payload['inserted'],payload['content_mismatch']),(1,1))
+        # A mismatch against already-consumed work leaves that state alone.
+        with psycopg.connect(**self.admin) as c:
+            c.execute("UPDATE runtime.ingress_work SET state='DONE' WHERE message_id=%s",(self.key,))
+        ingress.capture(self.key+'-changed-again',[dict(event,text='different again')])
+        with psycopg.connect(**self.admin) as c:
+            self.assertEqual(c.execute('SELECT state FROM runtime.ingress_work WHERE message_id=%s',(self.key,)).fetchone()[0],'DONE')
+
+    def test_late_and_future_messages_are_quarantined_with_counts(self):
+        ingress=IngressJournal('instagram-ingress.db',self.config)
+        now=time.time()
+        messages=[{'message_id':self.key,'sender_id':'synthetic','timestamp':now,'text':'','attachments':[],'quarantine':''},
+                  {'message_id':self.key+'-late','sender_id':'synthetic','timestamp':now-90000,'text':'late','attachments':[],'quarantine':'LATE'},
+                  {'message_id':self.key+'-future','sender_id':'synthetic','timestamp':now+60,'text':'future','attachments':[],'quarantine':'FUTURE'}]
+        self.assertEqual(ingress.capture(self.key,messages,stats={'deleted':1,'late':1,'future':1}),(True,3))
+        with psycopg.connect(**self.admin) as c:
+            states=dict(c.execute('SELECT message_id,state FROM runtime.ingress_work WHERE message_id=ANY(%s)',([m['message_id'] for m in messages],)).fetchall())
+            self.assertEqual(states,{self.key:'PENDING',self.key+'-late':'REVIEW',self.key+'-future':'REVIEW'})
+            payload=c.execute("SELECT e.payload FROM audit.events e JOIN audit.operations o ON o.operation_id=e.operation_id WHERE o.idempotency_key=%s AND e.event_kind='ingress_accepted'",(self.key,)).fetchone()[0]
+            self.assertEqual({k:payload[k] for k in ('inserted','quarantined','content_mismatch','deleted','late','future')},
+                             {'inserted':3,'quarantined':2,'content_mismatch':0,'deleted':1,'late':1,'future':1})
+
+    def test_health_counts_open_review_ingress_rows_since_cutover(self):
+        from mw_integration_agent.receipt_health import inspect
+        config=dict(self.config,state_directory='/nonexistent/state',receipt_summary_enabled=True)
+        before=inspect(config)['ingress_review_open']
+        ingress=IngressJournal('instagram-ingress.db',self.config)
+        now=time.time()
+        ingress.capture(self.key,[{'message_id':self.key,'sender_id':'synthetic','timestamp':now,'text':'','attachments':[]},
+                                  {'message_id':self.key+'-late','sender_id':'synthetic','timestamp':now-90000,'text':'','attachments':[],'quarantine':'LATE'},
+                                  {'message_id':self.key+'-pre','sender_id':'synthetic','timestamp':1,'text':'','attachments':[]}])
+        health=inspect(config)
+        # The late message counts; the pre-cutover quarantine and the pending message do not.
+        self.assertEqual(health['ingress_review_open'],before+1)
+        self.assertIn(health['status'],(1,2))
 
     def test_pending_queue_and_delayed_quarantine(self):
         ingress=IngressJournal('instagram-ingress.db',self.config)
@@ -103,7 +143,8 @@ class PostgreSQLStateTests(unittest.TestCase):
         key=first.reserve(self.key,partner,'synthetic','immutable body')
         second.reserve(self.key,partner,'synthetic conversation','other stream')
         with first.db:
-            first.db.execute("UPDATE partner_notices SET ig_status='UNKNOWN',email_status='REJECTED',attempts=1,detail='synthetic failure' WHERE id=?",(key,))
+            # R058: only PENDING/WINDOW_EXPIRED Instagram outcomes stay in the email retry queue.
+            first.db.execute("UPDATE partner_notices SET ig_status='WINDOW_EXPIRED',email_status='REJECTED',attempts=1,detail='synthetic failure' WHERE id=?",(key,))
         before=dict(first.db.execute('SELECT * FROM partner_notices WHERE id=?',(key,)).fetchone())
         first.defer(key)
         after=dict(first.db.execute('SELECT * FROM partner_notices WHERE id=?',(key,)).fetchone())

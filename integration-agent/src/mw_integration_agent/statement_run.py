@@ -11,7 +11,7 @@ from .cash_statement import partners, period, snapshot
 from .config import ConfigurationError, load_json, validate_catalogue, validate_config
 from .graph_email import EmailRejected, EmailUnknown, GraphEmail, valid_email
 from .instagram import Instagram
-from .statement_delivery import (DeliveryJournal, InstagramDeliveryError, check_window, eligible,
+from .statement_delivery import (DeliveryJournal, InstagramDeliveryError, eligible,
                                  resolve_recipient, upload_image)
 from .statement_image import render
 
@@ -50,6 +50,8 @@ def email_payload(report, partner, images, ig_reason):
 
 
 def send_email_once(journal, key, partner, payload, config):
+    if not journal.window_evidence(key,partner['id']):
+        raise ConfigurationError('EMAIL_REQUIRES_PROVIDER_WINDOW_REJECTION')
     old = journal.email_status(key)
     if old:
         return old
@@ -147,10 +149,12 @@ def run(config_path, catalogue_path, day=None, send=False, scheduled=False):
                 partner = eligible(rows, candidate['id'])
                 if send:
                     ig_reason = None
+                    email_key = json.dumps([report['start'], report['end'], partner['id'], 'email-fallback-v1'])
                     try:
+                        if journal.window_evidence(email_key,partner['id']):
+                            raise InstagramDeliveryError('WINDOW_EXPIRED')
                         api = Instagram(config)
                         recipient = resolve_recipient(api, partner)
-                        check_window(state, recipient, config=config)
                         for account in report['accounts']:
                             for number, path in enumerate(images[(account['id'], partner['language'])], 1):
                                 key = json.dumps([report['start'], report['end'], partner['id'], account['id'], number])
@@ -159,7 +163,7 @@ def run(config_path, catalogue_path, day=None, send=False, scheduled=False):
                                     record['already_accepted'] += 1
                                     continue
                                 if status:
-                                    raise InstagramDeliveryError('Prior Instagram outcome is unknown')
+                                    raise InstagramDeliveryError('Prior Instagram outcome: '+status)
                                 fresh, _ = _fresh_controls(config_path, catalogue_path, scheduled)
                                 current = eligible(partners(fresh), partner['id'])
                                 if current != partner:
@@ -167,19 +171,21 @@ def run(config_path, catalogue_path, day=None, send=False, scheduled=False):
                                 live_api = Instagram(fresh)
                                 if resolve_recipient(live_api, current) != recipient:
                                     raise InstagramDeliveryError('Partner Instagram recipient changed')
-                                check_window(state, recipient, config=config)
                                 attachment = upload_image(fresh, path, authorized=scheduled)
                                 final, _ = _fresh_controls(config_path, catalogue_path, scheduled)
                                 if eligible(partners(final), partner['id']) != partner:
                                     raise ConfigurationError('Partner master changed after image upload')
-                                check_window(state, recipient, config=config)
-                                journal.send_once(key, recipient, partner['language'],
+                                outcome = journal.send_once(key, recipient, partner['language'],
                                                   hashlib.sha256(path.read_bytes()).hexdigest(),
                                                   attachment, live_api, authorized=scheduled)
+                                if outcome!='ACCEPTED':
+                                    raise InstagramDeliveryError(outcome)
                                 record['accepted'] += 1
                         record['status'] = 'ACCEPTED'
-                    except InstagramDeliveryError as exc:
-                        ig_reason = str(exc)
+                    except InstagramDeliveryError:
+                        if not journal.window_evidence(email_key,partner['id']):
+                            raise
+                        ig_reason = 'WINDOW_EXPIRED'
                     if ig_reason:
                         fresh, live_catalogue = _fresh_controls(config_path, catalogue_path, scheduled)
                         require_services(live_catalogue, ['email_fallback'])

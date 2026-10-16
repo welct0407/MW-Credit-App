@@ -3,18 +3,16 @@ from __future__ import annotations
 
 import json
 import re
-import sqlite3
-from .state import connect as state_connect, enabled as state_enabled, is_postgres
+from .state import connect as state_connect, is_postgres
 import time
 import urllib.error
 import urllib.request
 import uuid
-from contextlib import closing
 from pathlib import Path
 
 from .audit import audited
 from .config import ConfigurationError, load_secret
-from .instagram import Instagram
+from .instagram import Instagram, InstagramAPIError
 
 
 class InstagramDeliveryError(ConfigurationError):
@@ -87,18 +85,6 @@ def resolve_recipient(api, partner):
     if not matches:
         raise InstagramDeliveryError('Partner Instagram identity changed')
     return recipient
-
-
-def check_window(state, recipient, now=None, config=None):
-    now = time.time() if now is None else now
-    path = Path(state)/'instagram-ingress.db'
-    try:
-        with closing(state_connect(path,config,readonly=True)) as db:
-            stamp = db.execute('SELECT max(event_timestamp) FROM messages WHERE sender_id=?',(recipient,)).fetchone()[0]
-    except sqlite3.Error as exc:
-        raise InstagramDeliveryError('Instagram delivery-window evidence is unavailable') from exc
-    if stamp is None or not 0 <= now-stamp < 86400-60:
-        raise InstagramDeliveryError('Partner must send an Instagram message to open the 24-hour delivery window')
 
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -174,14 +160,38 @@ class DeliveryJournal:
             result=api.request(api.config['instagram_account_id']+'/messages',body={
                 'recipient':{'id':recipient},'message':{'attachment':{'type':'image',
                 'payload':{'attachment_id':attachment_id}}}})
-        except ConfigurationError as exc:
-            raise InstagramDeliveryError('Instagram image send outcome unknown') from exc
-        if not result.get('message_id'):
+        except InstagramAPIError as exc:
+            status='WINDOW_EXPIRED' if exc.window_expired else 'REJECTED' if exc.definite_rejection else 'UNKNOWN'
+            with self.db:
+                self.db.execute('UPDATE cash_statement_sends SET state=?,updated_at=? WHERE delivery_key=?',(status,time.time(),key))
+            return status
+        except Exception:
+            raise InstagramDeliveryError('Instagram image send outcome unknown') from None
+        if not isinstance(result,dict) or not result.get('message_id'):
             raise InstagramDeliveryError('Image send outcome unknown; automatic resend blocked')
         with self.db:
             self.db.execute('UPDATE cash_statement_sends SET state=?,message_id=?,updated_at=? WHERE delivery_key=?',
                 ('ACCEPTED',str(result['message_id']),time.time(),key))
         return 'ACCEPTED'
+
+    def window_evidence(self, email_key, partner_id):
+        """Match durable provider rejection to this exact report and Partner."""
+        try:
+            identity=json.loads(email_key)
+        except (ValueError, TypeError):
+            return False
+        if not isinstance(identity,list) or len(identity)!=4 or identity[2]!=partner_id or identity[3]!='email-fallback-v1':
+            return False
+        prefix=json.dumps(identity[:3])[:-1]+','
+        rows=self.db.execute("SELECT delivery_key,state FROM cash_statement_sends WHERE delivery_key LIKE ?",(prefix+'%',)).fetchall()
+        confirmed=False
+        for row in rows:
+            try:page=json.loads(row[0])
+            except (ValueError,TypeError):continue
+            if isinstance(page,list) and len(page)==5 and page[:3]==identity[:3]:
+                if row[1] not in ('ACCEPTED','WINDOW_EXPIRED'):return False
+                confirmed=confirmed or row[1]=='WINDOW_EXPIRED'
+        return confirmed
 
     def email_status(self,key):
         row=self.db.execute('SELECT status FROM cash_statement_emails WHERE delivery_key=?',(key,)).fetchone()
@@ -212,9 +222,11 @@ class DeliveryJournal:
         now=time.time() if now is None else now
         rows=self.db.execute('SELECT delivery_key,partner_id,payload,attempts FROM cash_statement_emails '
             "WHERE status='EMAIL_REJECTED' AND attempts<3 AND retry_after<=? ORDER BY retry_after",(now,)).fetchall()
-        return [{'key':r[0],'partner_id':r[1],'payload':json.loads(r[2]),'attempts':r[3]} for r in rows]
+        return [{'key':r[0],'partner_id':r[1],'payload':json.loads(r[2]),'attempts':r[3]} for r in rows if self.window_evidence(r[0],r[1])]
 
     def begin_email_retry(self,key,attempts):
+        row=self.db.execute('SELECT partner_id FROM cash_statement_emails WHERE delivery_key=?',(key,)).fetchone()
+        if not row or not self.window_evidence(key,row[0]):return False
         with self.db:
             changed=self.db.execute("UPDATE cash_statement_emails SET status='EMAIL_UNKNOWN',attempts=?,updated_at=? "
                 "WHERE delivery_key=? AND status='EMAIL_REJECTED'",(attempts,time.time(),key)).rowcount

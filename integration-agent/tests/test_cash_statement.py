@@ -7,8 +7,8 @@ from unittest.mock import Mock
 
 from mw_integration_agent.cash_statement import BANGKOK, period, summarize
 from mw_integration_agent.config import ConfigurationError, validate_catalogue
-from mw_integration_agent.journal import IngressJournal
-from mw_integration_agent.statement_delivery import DeliveryJournal, check_window, eligible, resolve_recipient
+from mw_integration_agent.instagram import InstagramAPIError
+from mw_integration_agent.statement_delivery import DeliveryJournal, eligible, resolve_recipient
 
 
 class StatementTests(unittest.TestCase):
@@ -60,15 +60,40 @@ class StatementTests(unittest.TestCase):
         with self.assertRaises(ConfigurationError):
             resolve_recipient(api,{'username':'demo'})
 
-    def test_window_exact_margin_and_unknown(self):
+    def test_window_evidence_requires_provider_rejection_for_same_report_and_partner(self):
+        import json
         with tempfile.TemporaryDirectory() as d:
-            journal=IngressJournal(Path(d)/'instagram-ingress.db')
-            journal.capture('one',[{'message_id':'1','sender_id':'123','timestamp':100000,'text':''}])
+            journal=DeliveryJournal(Path(d)/'send.db')
+            api=Mock(config={'instagram_account_id':'999','sending_enabled':True})
+            page=lambda partner,account,number:json.dumps(['2026-10-01T00:00:00+07:00','2026-10-02T00:00:00+07:00',partner,account,number])
+            email=lambda partner:json.dumps(['2026-10-01T00:00:00+07:00','2026-10-02T00:00:00+07:00',partner,'email-fallback-v1'])
+            # No local gate: the send is attempted and the provider's explicit window rejection is recorded.
+            api.request.side_effect=InstagramAPIError(400,10,2534022,window_expired=True)
+            self.assertEqual(journal.send_once(page('p','a',1),'123','English','hash','asset',api),'WINDOW_EXPIRED')
+            self.assertEqual(journal.status(page('p','a',1)),'WINDOW_EXPIRED')
+            self.assertTrue(journal.window_evidence(email('p'),'p'))
+            self.assertFalse(journal.window_evidence(email('p'),'other'))
+            self.assertFalse(journal.window_evidence(email('other'),'other'))
+            self.assertFalse(journal.window_evidence('not-json','p'))
+            # Any uncertain or definite non-window outcome in the same report blocks email.
+            api.request.side_effect=InstagramAPIError(400,100)
+            self.assertEqual(journal.send_once(page('p','a',2),'123','English','hash','asset',api),'REJECTED')
+            self.assertFalse(journal.window_evidence(email('p'),'p'))
             journal.close()
-            check_window(d,'123',now=186339)
-            for recipient,now in [('123',186340),('123',99999),('456',100001)]:
-                with self.assertRaises(ConfigurationError):
-                    check_window(d,recipient,now)
+
+    def test_window_evidence_accepts_mixed_accepted_and_expired_pages(self):
+        import json
+        with tempfile.TemporaryDirectory() as d:
+            journal=DeliveryJournal(Path(d)/'send.db')
+            api=Mock(config={'instagram_account_id':'999','sending_enabled':True})
+            page=lambda number:json.dumps(['s','e','p','a',number])
+            api.request.return_value={'message_id':'accepted'}
+            self.assertEqual(journal.send_once(page(1),'123','English','hash','asset',api),'ACCEPTED')
+            self.assertFalse(journal.window_evidence(json.dumps(['s','e','p','email-fallback-v1']),'p'))
+            api.request.side_effect=InstagramAPIError(400,10,2534022,window_expired=True)
+            self.assertEqual(journal.send_once(page(2),'123','English','hash','asset',api),'WINDOW_EXPIRED')
+            self.assertTrue(journal.window_evidence(json.dumps(['s','e','p','email-fallback-v1']),'p'))
+            journal.close()
 
     def test_unknown_send_survives_restart_never_replays(self):
         with tempfile.TemporaryDirectory() as d:

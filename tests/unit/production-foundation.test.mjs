@@ -50,7 +50,8 @@ test('production verifier pins issuer plus owner and always checks revocation wi
     {iat:NaN},{exp:Infinity},{auth_time:-1}];
   for (const change of variants) assert.equal((await verify({...claims,...change})('Bearer synthetic-token')).ok,false,JSON.stringify(change));
   for (const header of [undefined,'synthetic-token','Bearer a b','Bearer ','Bearer '+ 'x'.repeat(16384)]) assert.equal((await verify(claims)(header)).status,401);
-  assert.deepEqual(await createProductionPrincipalVerifier(async()=>{throw Error('private token');},config)('Bearer token'),{ok:false,status:401,code:'session_invalid'});
+  assert.deepEqual(await createProductionPrincipalVerifier(async()=>{throw Object.assign(Error('private token'),{code:'auth/id-token-revoked'});},config)('Bearer token'),{ok:false,status:401,code:'session_invalid'});
+  assert.deepEqual(await createProductionPrincipalVerifier(async()=>{throw Error('private token');},config)('Bearer token'),{ok:false,status:503,code:'session_check_unavailable'});
 });
 test('runtime selects exact Admin project/default auth and rejects configuration before SDK initialization', () => {
   let options, name, app;

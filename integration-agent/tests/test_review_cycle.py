@@ -369,15 +369,16 @@ class CycleTests(unittest.TestCase):
             self.assertIn('reply_to',{r[1] for r in current.execute('PRAGMA table_info(messages)')})
 
     def test_closed_ig_and_locked_email_do_not_block_next_receipt_or_duplicate_post(self):
-        from mw_integration_agent.config import ConfigurationError
         from mw_integration_agent.graph_email import EmailRejected
+        from mw_integration_agent.instagram import InstagramAPIError
         from unittest.mock import Mock
         self.config.update(receipt_summary_enabled=True,email_fallback_enabled=True,instagram_account_id='123')
         mailer=Mock();mailer.send.side_effect=EmailRejected('account locked')
-        def closed(*args):raise ConfigurationError('window closed')
+        # R058: no local gate; the provider's explicit window rejection is the only email trigger.
+        api=Mock();api.request.side_effect=InstagramAPIError(400,10,2534022,window_expired=True)
         self.dispatch.side_effect=lambda journal,item,config,rows: REAL_DISPATCH(
-            journal,item,config,rows,api=Mock(),mailer=mailer,
-            resolver=lambda *_:'456',window=closed)
+            journal,item,config,rows,api=api,mailer=mailer,
+            resolver=lambda *_:'456')
         # Bound methods require autospec when replacing the class method.
         with patch.object(NoticeJournal,'dispatch',new=self.dispatch.side_effect):
             self.run_cycle()
@@ -390,7 +391,7 @@ class CycleTests(unittest.TestCase):
         self.addCleanup(notices.close)
         rows=notices.db.execute("SELECT * FROM partner_notices WHERE event_key LIKE 'review-result:%'").fetchall()
         self.assertEqual(len(rows),2)
-        self.assertTrue(all(n['ig_status']=='UNAVAILABLE' and n['email_status']=='REJECTED' and n['attempts']==1 for n in rows))
+        self.assertTrue(all(n['ig_status']=='WINDOW_EXPIRED' and n['email_status']=='REJECTED' and n['attempts']==1 for n in rows))
         self.assertEqual(mailer.send.call_count,2) # backoff, no immediate retry
 
     def test_optional_failure_does_not_fail_service_exit(self):

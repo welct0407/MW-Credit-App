@@ -38,7 +38,7 @@ function Get-DbEnvironment([string]$Name) {
         if (-not (Test-Path -LiteralPath $passwordPath)) {
             New-Item -ItemType Directory -Force -Path $secretDir | Out-Null
             & chmod 700 $secretDir
-            $secret = (& gcloud secrets versions access 1 --secret=mw-credit-ops-cloudsql-postgres-admin --project=clever-oasis-508610-n7) -join ''
+            $secret = (& gcloud secrets versions access latest --secret=mw-credit-ops-cloudsql-postgres-admin --project=clever-oasis-508610-n7) -join ''
             if ($LASTEXITCODE -ne 0 -or -not $secret) { throw 'Cloud SQL admin credential unavailable' }
             [IO.File]::WriteAllText($passwordPath, $secret); & chmod 600 $passwordPath; $secret = $null
         }

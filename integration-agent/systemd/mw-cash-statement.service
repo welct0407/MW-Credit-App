@@ -1,8 +1,7 @@
 [Unit]
 Description=M&W Credit daily cash statement delivery
 After=network-online.target cloud-sql-auth-proxy.service
-Wants=network-online.target
-Requires=cloud-sql-auth-proxy.service
+Wants=network-online.target cloud-sql-auth-proxy.service
 
 [Service]
 Type=oneshot
@@ -14,7 +13,7 @@ NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=true
-ReadWritePaths=/var/lib/mw-integration-agent/state /etc/mw-integration-agent/secrets/outlook-email-oauth.json
+ReadWritePaths=/var/lib/mw-integration-agent/state /etc/mw-integration-agent/secrets/outlook-email-oauth.json -/etc/mw-integration-agent/secrets/outlook-email-oauth.json.bak
 
 [Install]
 WantedBy=multi-user.target

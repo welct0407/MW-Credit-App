@@ -74,6 +74,10 @@ The production proxy endpoint is `127.0.0.1:5432`. The VM identity is conditiona
 
 Compute Engine snapshot schedules cover disk blocks, not the complete VM definition or external platform configuration. Git is the recovery source for code and documentation. Maintain a separate, verified recovery method for credentials and journals before any activation. Never restore an older journal over accepted sends or data writes.
 
+## Journal output and retention
+
+Timer-driven services print aggregate output only: counts, states and hashed partner keys, never message text. Message content reaches the journal only through the manual commands `messages --include-text` and `instagram-probe` (which prints the account username); do not run them casually, because journald retains whatever they print. Journald retention on the host has not been verified by the review identity (the journal is readable only by `adm`/`systemd-journal` members). Whoever has that access should record here the effective `SystemMaxUse`/`MaxRetentionSec` from `/etc/systemd/journald.conf` (and `journald.conf.d/`) together with `journalctl --disk-usage`; until then assume the Debian default (10% of the filesystem, capped at 4 GiB, no time limit).
+
 ## Scheduled cash statement
 
 `mw-cash-statement.timer` runs at 00:15 Asia/Bangkok and invokes a one-shot service. `mw-cash-statement-email-retry.timer` checks every five minutes for only definitely unsent fallback messages. Inspect them with:
@@ -85,6 +89,15 @@ journalctl -u mw-cash-statement.service -u mw-cash-statement-email-retry.service
 ```
 
 The Graph OAuth JSON is `/etc/mw-integration-agent/secrets/outlook-email-oauth.json`, mode 0600 and owned by `mwagent` because Microsoft can rotate its refresh token. It is the only mutable secret. Back it up outside Git and never print it. The installed sender must verify as `welctcodex@outlook.com`.
+
+Before each rotation the agent copies the current file to `outlook-email-oauth.json.bak` (same directory, 0600) and only then rewrites the original in place, so an interrupted write leaves the previous refresh token recoverable. The four email-capable units list that path as an optional `ReadWritePaths=` entry (`-` prefix), which systemd can only bind when the file exists; create it once as root, then reload units:
+
+```bash
+install -o mwagent -g mwagent -m 0600 /dev/null /etc/mw-integration-agent/secrets/outlook-email-oauth.json.bak
+systemctl daemon-reload
+```
+
+Until it exists, a rotation still succeeds and the worker prints one `credential_backup_failed` line to its journal.
 
 ## Activation boundary
 

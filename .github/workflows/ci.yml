@@ -24,6 +24,11 @@ jobs:
       e2e: ${{ steps.classify.outputs.e2e }}
       terraform: ${{ steps.classify.outputs.terraform }}
     steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with: { persist-credentials: false }
+      # Runs on every event, including documentation-only PRs, because the
+      # evidence folders it guards are exactly the ones the stages below skip.
+      - run: node scripts/check-binary-evidence.mjs
       - name: Classify changed files
         id: classify
         env:
