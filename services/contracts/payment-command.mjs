@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 
 // Pure candidate contract only. These functions authenticate nobody and persist nothing.
-const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+import { UUID_V4_ANY_CASE as uuid } from '../lib/ids.mjs';
 const digest = value => createHash('sha256').update(value, 'utf8').digest('hex');
 function fail(code = 'invalid_contract') { throw new Error(code); }
 function exact(value, keys) {
@@ -79,37 +79,4 @@ export function commandIdentity(commandInput, actorInput, receiptInput) {
   const canonicalJson = JSON.stringify({ contractVersion: 1, command, actor, receipt });
   if (Buffer.byteLength(canonicalJson, 'utf8') > 524288) fail();
   return freeze({ requestId: command.requestId, canonicalJson, payloadSha256: digest(canonicalJson) });
-}
-function validIdentity(input) {
-  exact(input, ['requestId', 'canonicalJson', 'payloadSha256']);
-  if (requestId(input.requestId) !== input.requestId || typeof input.canonicalJson !== 'string' || Buffer.byteLength(input.canonicalJson, 'utf8') > 524288 || !input.canonicalJson.isWellFormed() || typeof input.payloadSha256 !== 'string' || digest(input.canonicalJson) !== input.payloadSha256) fail();
-  const parsed = JSON.parse(input.canonicalJson);
-  exact(parsed, ['contractVersion', 'command', 'actor', 'receipt']);
-  if (parsed.contractVersion !== 1) fail();
-  const canonical = commandIdentity(parsed.command, parsed.actor, parsed.receipt);
-  if (canonical.requestId !== input.requestId || canonical.canonicalJson !== input.canonicalJson || canonical.payloadSha256 !== input.payloadSha256) fail();
-  return canonical;
-}
-function outcome(input) {
-  exact(input, ['status', 'paymentId', 'code', 'recordedAt']);
-  if (!['posted', 'rejected'].includes(input.status)) fail();
-  const paymentId = input.paymentId === null ? null : id(input.paymentId);
-  const code = input.code === null ? null : text(input.code, 256);
-  if ((input.status === 'posted' && (paymentId === null || code !== null)) || (input.status === 'rejected' && (paymentId !== null || code === null))) fail();
-  if (typeof input.recordedAt !== 'string' || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z$/.test(input.recordedAt) || !Number.isFinite(Date.parse(input.recordedAt))) fail();
-  date(input.recordedAt.slice(0, 10));
-  if (Number(input.recordedAt.slice(11, 13)) > 23 || Number(input.recordedAt.slice(14, 16)) > 59 || Number(input.recordedAt.slice(17, 19)) > 59) fail();
-  return { status: input.status, paymentId, code, recordedAt: input.recordedAt };
-}
-export function classifyReplay(stored, incomingIdentity) {
-  const incoming = validIdentity(incomingIdentity);
-  if (stored === null) return freeze({ kind: 'unresolved' });
-  let original, originalOutcome;
-  try {
-    exact(stored, ['requestId', 'canonicalJson', 'payloadSha256', 'outcome']);
-    original = validIdentity({ requestId: stored.requestId, canonicalJson: stored.canonicalJson, payloadSha256: stored.payloadSha256 });
-    originalOutcome = outcome(stored.outcome);
-  } catch { fail('invalid_stored_record'); }
-  if (original.requestId !== incoming.requestId || original.canonicalJson !== incoming.canonicalJson || original.payloadSha256 !== incoming.payloadSha256) return freeze({ kind: 'conflict' });
-  return freeze({ kind: 'replay', originalOutcome });
 }

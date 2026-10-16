@@ -1,4 +1,4 @@
-import { randomUUID } from 'node:crypto';
+import { beginRequest } from '../lib/http-boundary.mjs';
 const resultCodes = new Set(['origin_denied', 'method_not_allowed', 'invalid_request', 'sign_in_required', 'session_invalid', 'session_check_unavailable', 'access_denied', 'not_found', 'read_unavailable', 'source_unavailable', 'business_date_changed']);
 function operationFor(rawUrl) {
   try {
@@ -19,39 +19,20 @@ function operationFor(rawUrl) {
   return 'unknown';
 }
 /** HTTP boundary: all data requests require a freshly verified ID token. */
-export function createDevReadHandler({ config, verifyPrincipal, store, completionLogger = () => {} }) {
+export function createReadHandler({ config, verifyPrincipal, store, completionLogger = () => {} }) {
   return async (req, res) => {
-    const requestId = randomUUID();
-    const started = performance.now();
     let completionCode = 'unknown_error';let diagnostic={};
-    let logged = false;
     const operation = req.method === 'OPTIONS' ? 'preflight' : operationFor(req.url);
-    res.once?.('finish', () => {
-      if (logged) return;
-      logged = true;
-      try { completionLogger({ event: 'read_request', requestId, operation, method: ['GET', 'OPTIONS'].includes(req.method) ? req.method : 'OTHER', status: res.statusCode, code: completionCode, ...diagnostic, durationMs: Math.max(0, Math.round(performance.now() - started)) }); }
-      catch { /* Telemetry must never alter the response or log raw errors. */ }
-    });
-    res.setHeader('X-Request-ID', requestId);
-    res.setHeader('Content-Type', 'application/json; charset=utf-8');
-    res.setHeader('Cache-Control', 'no-store');
-    res.setHeader('X-Content-Type-Options', 'nosniff');
-    res.setHeader('Vary', 'Origin');
+    const boundary = beginRequest(req, res, { origins: config.origins, methods: ['GET'], headers: ['Authorization'], logger: completionLogger,
+      record: ({ requestId, status }) => ({ event: 'read_request', requestId, operation, method: ['GET', 'OPTIONS'].includes(req.method) ? req.method : 'OTHER', status, code: completionCode, ...diagnostic, durationMs: boundary.durationMs() }) });
     const send = (status, value) => { completionCode = status < 400 ? 'ok' : resultCodes.has(value?.code) ? value.code : 'unknown_error'; res.statusCode = status; res.end(JSON.stringify(value)); };
-    const origin = req.headers.origin;
-    const allowedOrigin = typeof origin === 'string' && config.origins.includes(origin);
-    if (origin !== undefined && !allowedOrigin) return send(403, { ok: false, code: 'origin_denied' });
-    if (allowedOrigin) { res.setHeader('Access-Control-Allow-Origin', origin); res.setHeader('Access-Control-Expose-Headers', 'X-Request-ID'); }
-    if (req.method === 'OPTIONS') {
-      if (!allowedOrigin || req.headers['access-control-request-method'] !== 'GET' || (req.headers['access-control-request-headers'] || '').split(',').some(header => header.trim() && header.trim().toLowerCase() !== 'authorization')) return send(403, { ok: false, code: 'origin_denied' });
-      res.setHeader('Access-Control-Allow-Methods', 'GET'); res.setHeader('Access-Control-Allow-Headers', 'Authorization');
-      return send(204, undefined);
-    }
+    if (boundary.originDenied) return send(403, { ok: false, code: 'origin_denied' });
+    if (req.method === 'OPTIONS') return boundary.preflight() ? send(204, undefined) : send(403, { ok: false, code: 'origin_denied' });
     if (req.method !== 'GET') return send(405, { ok: false, code: 'method_not_allowed' });
     try {
       const url = new URL(req.url, 'http://request.invalid');
       if (url.searchParams.has('q') && !['/api/borrowers', '/api/collection'].includes(url.pathname)) return send(400, { ok: false, code: 'invalid_request' });
-      if (url.pathname === '/health') return send(200, { status: 'ok', environment: config.environment ?? 'dev', service: 'borrower-read' });
+      if (url.pathname === '/health') return send(200, { status: 'ok', environment: config.environment, service: 'borrower-read' });
       const principal = await verifyPrincipal(req.headers.authorization);
       if (!principal.ok) return send(principal.status, { ok: false, code: principal.code });
       let result;

@@ -12,8 +12,8 @@ import { captureApplicationRoleSnapshot, recoverApplicationRole, provisionApplic
 import { attestDisposableApplicationTarget } from '../../services/payment-command/application-target.mjs';
 import { createApplicationRoleCommandStore } from '../../services/payment-command/store.mjs';
 import { createPaymentCommandHandler } from '../../services/payment-command/handler.mjs';
-import { createCommandPrincipalVerifier } from '../../services/payment-command/principal.mjs';
-import { DEV_PROJECT, OWNER_EMAIL } from '../../services/api/dev-read-config.mjs';
+import { createCommandPrincipalVerifier } from './owner-verifier-fixture.mjs';
+import {PROJECT_ID as DEV_PROJECT,OWNER_EMAIL} from '../../services/lib/identity.mjs';
 import { createDevReceiptAdapter, generatedReceiptPaths, DEV_RECEIPT_MAPPING } from '../../services/receipts/dev-receipt-adapter.mjs';
 import { decodeReceiptImage } from '../../scripts/rehearsal/decode-receipt-image.mjs';
 
@@ -410,24 +410,24 @@ test('F-C19 policy snapshot/idempotency/recovery preserves pre-existing and late
 });
 
 test('F-C20 provisioned membership is inherit-only, recoverable, and rejects migration creator identity', async () => {
-  await admin.query('CREATE ROLE mw_app_dev_membership_c LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS; CREATE ROLE mw_4f_membership_other NOLOGIN');
-  const client = await admin.connect(), membershipConfig = { ...config, runtimeUser: 'mw_app_dev_membership_c' };
+  await admin.query('CREATE ROLE mw_app_foreign_membership_c LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS; CREATE ROLE mw_4f_membership_other NOLOGIN');
+  const client = await admin.connect(), membershipConfig = { ...config, runtimeUser: 'mw_app_foreign_membership_c' };
   try {
     const before = await captureApplicationRoleSnapshot(client, config);
     await provisionApplicationRuntimeMembership(client, membershipConfig);
-    assert.equal((await admin.query("SELECT pg_has_role('mw_app_dev_membership_c','mw_app_dev','MEMBER') AS allowed")).rows[0].allowed, false);
+    assert.equal((await admin.query("SELECT pg_has_role('mw_app_foreign_membership_c','mw_app_dev','MEMBER') AS allowed")).rows[0].allowed, false);
     await provisionApplicationRuntimeMembership(client, membershipConfig, { apply: true });
     const after = await captureApplicationRoleSnapshot(client, config);
-    const membership = after.memberships.find(row => row.member === 'mw_app_dev_membership_c');
+    const membership = after.memberships.find(row => row.member === 'mw_app_foreign_membership_c');
     assert.deepEqual({ admin: membership.admin, inherit: membership.inherit, set: membership.set }, { admin: false, inherit: true, set: false });
-    await admin.query('GRANT mw_4f_membership_other TO mw_app_dev_membership_c');
+    await admin.query('GRANT mw_4f_membership_other TO mw_app_foreign_membership_c');
     await recoverApplicationRole(client, { before, after }, { apply: true });
-    assert.equal((await admin.query("SELECT pg_has_role('mw_app_dev_membership_c','mw_app_dev','MEMBER') AS allowed")).rows[0].allowed, false);
-    assert.equal((await admin.query("SELECT pg_has_role('mw_app_dev_membership_c','mw_4f_membership_other','MEMBER') AS allowed")).rows[0].allowed, true);
-    await admin.query('GRANT ' + creator + ' TO mw_app_dev_membership_c');
+    assert.equal((await admin.query("SELECT pg_has_role('mw_app_foreign_membership_c','mw_app_dev','MEMBER') AS allowed")).rows[0].allowed, false);
+    assert.equal((await admin.query("SELECT pg_has_role('mw_app_foreign_membership_c','mw_4f_membership_other','MEMBER') AS allowed")).rows[0].allowed, true);
+    await admin.query('GRANT ' + creator + ' TO mw_app_foreign_membership_c');
     await assert.rejects(provisionApplicationRuntimeMembership(client, membershipConfig, { apply: true }));
-    assert.equal((await admin.query("SELECT pg_has_role('mw_app_dev_membership_c','mw_app_dev','MEMBER') AS allowed")).rows[0].allowed, false);
-  } finally { client.release(); await admin.query('DROP ROLE mw_app_dev_membership_c; DROP ROLE mw_4f_membership_other'); }
+    assert.equal((await admin.query("SELECT pg_has_role('mw_app_foreign_membership_c','mw_app_dev','MEMBER') AS allowed")).rows[0].allowed, false);
+  } finally { client.release(); await admin.query('DROP ROLE mw_app_foreign_membership_c; DROP ROLE mw_4f_membership_other'); }
 });
 
 test('F-C21 maintained DEV-only post-migration hook is read-only by default and automatically reconciles future objects', async () => {

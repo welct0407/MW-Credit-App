@@ -4,10 +4,10 @@ import http from 'node:http';
 import { randomUUID } from 'node:crypto';
 import { disposablePool } from '../../scripts/rehearsal/disposable-pool.mjs';
 import { seedPaymentFixture } from '../../scripts/rehearsal/payment-fixture.mjs';
-import { createCommandPrincipalVerifier } from '../../services/payment-command/principal.mjs';
+import { createCommandPrincipalVerifier } from './owner-verifier-fixture.mjs';
 import { createPaymentCommandStore } from '../../services/payment-command/store.mjs';
 import { createPaymentCommandHandler } from '../../services/payment-command/handler.mjs';
-import { DEV_PROJECT, OWNER_EMAIL } from '../../services/api/dev-read-config.mjs';
+import {PROJECT_ID as DEV_PROJECT,OWNER_EMAIL} from '../../services/lib/identity.mjs';
 
 let pool;
 const subject = 'synthetic-4e-independent-owner';
@@ -275,7 +275,8 @@ test('C08 exact concurrent retries produce one effect; changed amount/selection/
     const other = { ...competing, requestId: randomUUID() };
     const results = await Promise.all([s.post(competing), s.post(other)]);
     assert.equal(results.filter(x => x.status === 200).length, 1);
-    assert.equal(results.filter(x => x.status === 503 && x.body.code === 'command_outcome_unknown').length, 1);
+    // The losing request rolled back cleanly: a known non-outcome, retried with the same request id (APP-PAY-06).
+    assert.equal(results.filter(x => x.status === 503 && x.body.code === 'command_unavailable').length, 1);
     const a = await counts(competing.requestId), b = await counts(other.requestId);
     assert.equal(a.payments + b.payments, 1); assert.equal(a.journal + b.journal, 1);
   });
@@ -483,7 +484,8 @@ test('C18 quarantine failed rollback and COMMIT faults; release error preserves 
   const ordinaryRollback = instrumentPool();
   await withServer({ pool: ordinaryRollback }, async s => {
     const result = await s.post({ ...command, amountReceived: '329' });
-    assert.equal(result.status, 503); assert.equal(result.body.code, 'command_outcome_unknown');
+    // An ordinary confirmed ROLLBACK is a known non-outcome (APP-PAY-06).
+    assert.equal(result.status, 503); assert.equal(result.body.code, 'command_unavailable');
   });
   assert.deepEqual(ordinaryRollback.releases, [false]);
   assert.deepEqual(await counts(command.requestId), { journal: 0, payments: 0 });

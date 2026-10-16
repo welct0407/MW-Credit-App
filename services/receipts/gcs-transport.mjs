@@ -19,6 +19,7 @@ function createBoundGcsReceiptTransport(storage,mapping) {
       if (!gen(result.generation)) throw Error('Invalid receipt generation');
       return {generation:result.generation};
     },
+    /** @param {{bucket:string,key:string,generation?:string}} target */
     async read({bucket,key,generation}) {
       try {
         const [metadata] = await file(bucket,key,generation).getMetadata();

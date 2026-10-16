@@ -3,6 +3,7 @@ import {collectionCte,collectionQualitySql} from '../api/collection-read-contrac
 import {validBorrowerId} from './borrowers.mjs';
 const date=value=>typeof value==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(value)&&Number.isFinite(Date.parse(value+'T00:00:00Z'))&&new Date(value+'T00:00:00Z').toISOString().slice(0,10)===value;
 const encode=value=>Buffer.from(JSON.stringify(value)).toString('base64url');
+/** @param {any} client @param {string} borrowerId @param {{businessDate?:string,chargeIds?:string[],limit?:number,cursor?:string|null}} [options] */
 export async function readCollectionReceipts(client,borrowerId,{businessDate,chargeIds,limit=25,cursor=null}={}){
  if(!validBorrowerId(borrowerId)||!date(businessDate)||!Array.isArray(chargeIds)||chargeIds.length<1||chargeIds.length>100||Array.from(chargeIds).some(id=>!validBorrowerId(id))||new Set(chargeIds).size!==chargeIds.length||!Number.isInteger(limit)||limit<1||limit>100)throw Error('invalid_request');
  const clock=(await client.query("SELECT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date::text AS day,CURRENT_TIMESTAMP AS stamp")).rows[0];if(clock.day!==businessDate)throw Error('business_date_changed');

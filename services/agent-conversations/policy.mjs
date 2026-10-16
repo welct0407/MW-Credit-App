@@ -1,12 +1,12 @@
 import {OAuth2Client} from 'google-auth-library';
-const project='clever-oasis-508610-n7';
+import {PROJECT_ID as project,runUrl} from '../lib/identity.mjs';
 const exact=(value,keys)=>value&&typeof value==='object'&&!Array.isArray(value)&&Object.keys(value).sort().join(',')===keys.slice().sort().join(',');
 export function loadAgentConversationPolicy(env,environment){
  if(env.AGENT_CONVERSATION_API_ENABLED===undefined||env.AGENT_CONVERSATION_API_ENABLED==='false')return null;
  const fail=()=>{throw Error('invalid_agent_conversation_configuration');};
  if(env.AGENT_CONVERSATION_API_ENABLED!=='true'||!['dev','prod'].includes(environment))fail();
  let value;try{value=JSON.parse(env.AGENT_CONVERSATION_POLICY_JSON);}catch{fail();}
- const audience=`https://mw-credit-app-command-${environment}-737787224638.asia-southeast1.run.app`;
+ const audience=runUrl(`mw-credit-app-command-${environment}`);
  if(!exact(value,['version','environment','audience','callerEmail','callerSubject','readPartnerIds','reviewerPartnerIds','evidenceSha256'])
    ||value.version!==1||value.environment!==environment||value.audience!==audience
    ||typeof value.callerEmail!=='string'||!new RegExp(`^[a-z][a-z0-9-]{4,28}[a-z0-9]@${project}\\.iam\\.gserviceaccount\\.com$`).test(value.callerEmail)

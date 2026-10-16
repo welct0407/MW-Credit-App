@@ -1,3 +1,4 @@
+import { BUSINESS_TZ } from '../lib/business-date.mjs';
 import { searchQueryHash } from './search-query.mjs';
 /** Collection reads mirror the OLTP slice; directory Hidden Flag is not its membership rule. */
 import { borrowerDisplayName, validLoanId } from './loan-read-contract.mjs';
@@ -78,7 +79,7 @@ export function decodeCollectionCursor(cursor, kind, parentId, query = '') {
 export async function readCollection(client, { limit, after, borrowerId = null, query = '' }) {
   const clock = await client.query(`SELECT CURRENT_TIMESTAMP AS "asOf", (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date::text AS "businessDate"`);
   const { businessDate, asOf } = clock.rows[0];
-  const metadata = { businessDate, asOf: new Date(asOf).toISOString(), timezone: 'Asia/Bangkok' };
+  const metadata = { businessDate, asOf: new Date(asOf).toISOString(), timezone: BUSINESS_TZ };
   if (after && after.businessDate !== businessDate) return { collectionError: 'business_date_changed', collectionStatus: 409 };
   const quality = await client.query(collectionQualitySql, [borrowerId]);
   if (quality.rows[0]?.invalid !== false) return { collectionError: 'source_unavailable', collectionStatus: 503 };

@@ -1,15 +1,16 @@
 import {wakeContext} from '../notifications/postcommit.mjs';
-import { randomUUID } from 'node:crypto';
 import { canonicalCommand } from '../contracts/payment-command.mjs';
-const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+import { beginRequest } from '../lib/http-boundary.mjs';
+import { UUID_V4_ANY_CASE as uuid } from '../lib/ids.mjs';
 const codes = new Set(['ok','origin_denied','method_not_allowed','invalid_request','body_too_large','sign_in_required','session_invalid','access_denied','not_found','command_conflict','command_rejected','receipt_unsupported','receipt_unavailable','receipt_conflict','selection_changed','plan_changed','selection_limit_exceeded','business_date_changed','payment_requires_reconciliation','source_changed','metadata_conflict','borrower_name_exists','operation_outcome_unknown','record_conflict','invalid_reference','record_requires_reconciliation','record_outcome_unknown','metadata_outcome_unknown','command_outcome_unknown','command_unavailable','session_check_unavailable','body_timeout']);
 const MAX_BODY = 524288;
 codes.add('dataset_changed');
+/** @param {string} raw @returns {any} */
 function route(raw) {
   try {
     const url = new URL(raw, 'http://candidate.invalid');
     if (url.hash) return { invalid: true, operation: 'unknown' };
-    if(url.pathname==='/api/offline-dataset'){if([...url.searchParams.keys()].some(key=>!['domain','protocol','cursor'].includes(key)||url.searchParams.getAll(key).length!==1)||url.searchParams.getAll('domain').length!==1||(url.searchParams.has('protocol')&&!['2','3'].includes(url.searchParams.get('protocol')))||(url.searchParams.has('cursor')&&url.searchParams.get('protocol')!=='2'))return {invalid:true,operation:'unknown'};return {operation:'offline_dataset',domain:url.searchParams.get('domain'),options:{protocol:url.searchParams.has('protocol')?Number(url.searchParams.get('protocol')):1,cursor:url.searchParams.get('cursor')}};}
+    if(url.pathname==='/api/offline-dataset'){if([...url.searchParams.keys()].some(key=>!['domain','protocol','cursor'].includes(key)||url.searchParams.getAll(key).length!==1)||url.searchParams.getAll('domain').length!==1||!['2','3'].includes(url.searchParams.get('protocol'))||(url.searchParams.has('cursor')&&url.searchParams.get('protocol')!=='2'))return {invalid:true,operation:'unknown'};return {operation:'offline_dataset',domain:url.searchParams.get('domain'),options:{protocol:Number(url.searchParams.get('protocol')),cursor:url.searchParams.get('cursor')}};}
     if(url.pathname==='/api/management/cash-position'){if(url.search)return {invalid:true,operation:'unknown'};return {operation:'management',kind:'cash-position',options:{}};}
     if(url.pathname==='/api/management/analytics-overview'){if(url.search)return {invalid:true,operation:'unknown'};return {operation:'management',kind:'analytics-overview',options:{}};}
     if(url.pathname==='/api/management/analytics-chart'){if([...url.searchParams.keys()].some(key=>!['metric','limit','cursor'].includes(key)||url.searchParams.getAll(key).length!==1))return {invalid:true,operation:'unknown'};return {operation:'management',kind:'analytics-chart',options:{metric:url.searchParams.get('metric'),limit:url.searchParams.has('limit')?Number(url.searchParams.get('limit')):25,cursor:url.searchParams.get('cursor')}};}
@@ -82,6 +83,7 @@ function body(req,raw=false,timeoutMs=5000) {
   });
 }
 /** No listener or runtime auth switch. A test-owned server binds this handler to loopback only. */
+/** @param {{origins:readonly string[],verifyPrincipal:any,store:any,completionLogger?:(record:object)=>void,bodyTimeoutMs?:{json:number,raw:number}}} options */
 function buildHandler({ origins, verifyPrincipal, store, completionLogger = () => {}, bodyTimeoutMs = {json:5000,raw:12000} }) {
   const allowedOrigins = Object.freeze([...origins]);
   const readBody=(req,raw=false)=>body(req,raw,bodyTimeoutMs[raw?'raw':'json']);
@@ -89,27 +91,19 @@ function buildHandler({ origins, verifyPrincipal, store, completionLogger = () =
     const clientDeadline=req.headers['x-mw-wake-deadline'];
     const wakeDeadline = typeof clientDeadline==='string'&&/^\d{13}$/.test(clientDeadline)?Math.min(Date.now()+14000,Number(clientDeadline)-1000):Date.now(), wakeAbort = new AbortController();
     res.once('close',()=>wakeAbort.abort());
-    const reference = randomUUID(), started = performance.now(), target = route(req.url);
+    const target = route(req.url);
     const operation = req.method === 'OPTIONS' ? 'preflight' : target.operation;
     let code = 'command_unavailable';
-    res.once('finish', () => { try { completionLogger({ event: 'command_request', requestId: reference, operation, method: ['GET','POST','PATCH','DELETE','OPTIONS'].includes(req.method) ? req.method : 'OTHER', status: res.statusCode, code, durationMs: Math.max(0, Math.round(performance.now()-started)) }); } catch { /* Logging cannot alter financial responses. */ } });
-    res.setHeader('X-Request-ID', reference);
-    res.setHeader('Content-Type', 'application/json; charset=utf-8');
-    res.setHeader('Cache-Control', 'no-store');
-    res.setHeader('X-Content-Type-Options', 'nosniff');
-    res.setHeader('Vary', 'Origin');
+    // Logging cannot alter financial responses (the boundary swallows logger errors).
+    const boundary = beginRequest(req, res, { origins: allowedOrigins, methods: ['GET','POST','PATCH','DELETE'], headers: ['Authorization','Content-Type','X-Borrower-ID','X-MW-Wake-Deadline'], logger: completionLogger,
+      record: ({ requestId, status }) => ({ event: 'command_request', requestId, operation, method: ['GET','POST','PATCH','DELETE','OPTIONS'].includes(req.method) ? req.method : 'OTHER', status, code, durationMs: boundary.durationMs() }) });
     const send = (status, value) => { code = codes.has(value?.code) ? value.code : status < 400 ? 'ok' : 'command_unavailable'; res.statusCode = status; res.end(value === undefined ? undefined : JSON.stringify(value)); };
     const reject = (status, reason) => send(status, { ok: false, code: reason });
     const rejectBody = error => reject(error.bodyCode === 'body_too_large' ? 413 : error.bodyCode === 'body_timeout' ? 503 : 400, error.bodyCode || 'invalid_request');
-    const origin = req.headers.origin, allowed = typeof origin === 'string' && allowedOrigins.includes(origin);
-    if (origin !== undefined && !allowed) return reject(403, 'origin_denied');
-    if (allowed) { res.setHeader('Access-Control-Allow-Origin', origin); res.setHeader('Access-Control-Expose-Headers', 'X-Request-ID'); }
-    if (req.method === 'OPTIONS') {
-      if (!allowed || !['GET','POST','PATCH','DELETE'].includes(req.headers['access-control-request-method']) || (req.headers['access-control-request-headers'] || '').split(',').some(value => value.trim() && !['authorization','content-type','x-borrower-id','x-mw-wake-deadline'].includes(value.trim().toLowerCase()))) return reject(403, 'origin_denied');
-      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE');res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type, X-Borrower-ID, X-MW-Wake-Deadline');return send(204);
-    }
+    if (boundary.originDenied) return reject(403, 'origin_denied');
+    if (req.method === 'OPTIONS') return boundary.preflight() ? send(204) : reject(403, 'origin_denied');
     if (!['GET','POST','PATCH','DELETE'].includes(req.method)) return reject(405, 'method_not_allowed');
-    if(target.operation==='health' && req.method==='GET')return send(200,{ok:true});
+    if(target.operation==='health')return req.method==='GET'?send(200,{ok:true}):reject(405,'method_not_allowed');
     let principal;
     try { principal = await verifyPrincipal(req.headers.authorization); } catch { return reject(401, 'session_invalid'); }
     if (!principal?.ok) return reject(principal?.status === 403 ? 403 : principal?.status === 503 ? 503 : 401, ['sign_in_required','session_invalid','access_denied','session_check_unavailable'].includes(principal?.code) ? principal.code : 'session_invalid');
@@ -189,12 +183,14 @@ function buildHandler({ origins, verifyPrincipal, store, completionLogger = () =
         }
         result=await store.receipt(principal,{requestId:target.requestId,receiptId:target.receiptId,borrowerId:req.headers['x-borrower-id'],bytes,mimeType});
         if(result.ok && Buffer.isBuffer(result.bytes)){code='ok';res.statusCode=200;res.setHeader('Content-Type',result.mimeType);res.setHeader('Content-Disposition','inline');return res.end(result.bytes);}
-      } else result = await store.status(principal, target.requestId);
+      } else if (target.operation === 'command_status') result = await store.status(principal, target.requestId);
+      else return reject(404, 'not_found');
       const { status, ...value } = result;return send(status, value);
     } catch { return reject(503, target.operation === 'command_submit' ? 'command_outcome_unknown' : 'command_unavailable'); }
   };
 }
 
+/** @param {any} options */
 export function createPaymentCommandHandler(options) {
  const {origins,verifyPrincipal,store}=options;
   if (!Array.isArray(origins) || !origins.length || new Set(origins).size !== origins.length || origins.some(origin => {
@@ -202,14 +198,9 @@ export function createPaymentCommandHandler(options) {
   }) || typeof verifyPrincipal !== 'function' || !store) throw new Error('Explicit disposable loopback origins required');
  return buildHandler(options);
 }
-export function createDevCommandHandler({config,...options}) {
- const allowed=['https://mw-credit-app-dev-737787224638.web.app','https://dev-lm.mw-credit.com'];
- if(!['synthetic-only','dev-owner-testing'].includes(config?.mode)||!Array.isArray(config.origins)||!config.origins.length||config.origins.some(origin=>!allowed.includes(origin)))throw Error('Invalid DEV command origins');
- return buildHandler({...options,origins:config.origins});
-}
-
 /** Internal HTTP composition with an independently validated production config. */
+/** @param {any} options */
 export function createEnvironmentCommandHandler({config,...options}) {
- if(config?.environment!=='prod'||config.mode!=='business-candidate'||!Array.isArray(config.origins)||config.origins.some(origin=>!['https://lm.mw-credit.com',`https://${config.hostingSite}.web.app`].includes(origin)))throw Error('Invalid production command origins');
+ if(!['dev','prod'].includes(config?.environment)||config.mode!=='business-candidate'||!Array.isArray(config.origins)||!config.origins.length||config.origins.some(origin=>![config.canonicalOrigin,`https://${config.hostingSite}.web.app`].includes(origin)))throw Error('Invalid environment command origins');
  return buildHandler({...options,origins:config.origins});
 }

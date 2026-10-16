@@ -3,7 +3,7 @@ import {randomUUID} from 'node:crypto';
 import {writeFileSync} from 'node:fs';
 import {seedPaymentFixture} from '../../scripts/rehearsal/payment-fixture.mjs';
 import {createApplicationRoleCommandStore} from '../../services/payment-command/store.mjs';
-import {OWNER_EMAIL} from '../../services/api/dev-read-config.mjs';
+import {OWNER_EMAIL} from '../../services/lib/identity.mjs';
 
 // Maintained runner hook: call only against attested disposable V82 BEFORE applying V83.
 // Caller owns actual application LOGIN, provisioning, exact migration and restoration lifecycle.

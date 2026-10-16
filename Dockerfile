@@ -6,4 +6,4 @@ COPY services ./services
 USER node
 ENV PORT=8080
 EXPOSE 8080
-CMD ["node","services/api/server.mjs"]
+# No default command: every Cloud Run service sets command ["node"] and its entry point in args.

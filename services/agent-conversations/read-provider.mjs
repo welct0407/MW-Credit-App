@@ -4,6 +4,8 @@ import {resolveConversationActor} from './policy.mjs';
 import {relationshipDescriptor} from './relationships.mjs';
 import {resolveNativeDefaults} from './defaults.mjs';
 import {readNativeCommandMetadata} from './command-metadata.mjs';
+import {statementTimeoutSql, lockTimeoutSql} from '../lib/budget.mjs';
+// Runs on the command service pool (query timeout 9 s): command statement budget (APP-PAY-03).
 
 const quote = name => '"' + name.replaceAll('"', '""') + '"';
 const fail = () => { throw Error('unsupported_native_capability'); };
@@ -17,8 +19,8 @@ export function createConversationReadProvider({pool, guardConnection, policy, c
       if (context.signal?.aborted) throw Error('request_aborted');
       client = await pool.connect();
       await client.query('BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY');
-      await client.query("SET LOCAL statement_timeout='10000ms'");
-      await client.query("SET LOCAL lock_timeout='3000ms'");
+      await client.query(statementTimeoutSql('command'));
+      await client.query(lockTimeoutSql);
       await guardConnection(client);
       const actor = await resolveConversationActor(client, policy, context.workload, input.actorPartnerId);
       if (context.signal?.aborted) throw Error('request_aborted');

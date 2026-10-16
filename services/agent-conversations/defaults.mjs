@@ -1,3 +1,4 @@
+import {businessDateTime} from '../lib/business-date.mjs';
 import {createHash} from 'node:crypto';
 
 const hash=value=>createHash('sha256').update(value).digest('hex');
@@ -51,8 +52,7 @@ function date(value){
 function bangkokNow(value){
  if(!(value instanceof Date)&&(typeof value!=='string'||!/(?:Z|[+-]\d{2}:\d{2})$/.test(value)))throw Error('timezone_required');
  const instant=new Date(value);if(!Number.isFinite(instant.getTime()))throw Error('invalid_business_clock');
- const parts=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Bangkok',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).formatToParts(instant).map(x=>[x.type,x.value]));
- return `${parts.year}-${parts.month}-${parts.day} ${parts.hour}:${parts.minute}:${parts.second}`;
+ return businessDateTime(instant);
 }
 function login(actor){
  const value=actor?.loginEmail;

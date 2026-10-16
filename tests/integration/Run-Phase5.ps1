@@ -86,7 +86,7 @@ try {
   & node --test "$PSScriptRoot/phase6-upgrade-independent.test.mjs"
   if($LASTEXITCODE){throw 'Populated V84 to V85 compatibility failed'}
  }
- [string[]]$testFiles=if($SettingsOnly){@("$PSScriptRoot/settings-independent.test.mjs")}elseif($ManagementOnly){@("$PSScriptRoot/phase6-management-independent.test.mjs","$PSScriptRoot/phase6-financial-smoke.test.mjs")}elseif($AnchorOnly){@("$PSScriptRoot/loan-anchor-independent.test.mjs")}elseif($JournalOnly){@("$PSScriptRoot/phase5-operation.test.mjs","$PSScriptRoot/phase5-journal-independent.test.mjs","$PSScriptRoot/phase5-record-lists-independent.test.mjs")}else{@("$PSScriptRoot/borrower-domain.test.mjs","$PSScriptRoot/phase5-borrower-independent.test.mjs")}
+ [string[]]$testFiles=if($SettingsOnly){@("$PSScriptRoot/settings-independent.test.mjs")}elseif($ManagementOnly){@("$PSScriptRoot/phase6-management-independent.test.mjs","$PSScriptRoot/phase6-financial-smoke.test.mjs","$PSScriptRoot/business-money-reads-independent.test.mjs")}elseif($AnchorOnly){@("$PSScriptRoot/loan-anchor-independent.test.mjs")}elseif($JournalOnly){@("$PSScriptRoot/phase5-operation.test.mjs","$PSScriptRoot/phase5-journal-independent.test.mjs","$PSScriptRoot/phase5-record-lists-independent.test.mjs")}else{@("$PSScriptRoot/borrower-domain.test.mjs","$PSScriptRoot/phase5-borrower-independent.test.mjs")}
 
  $testArguments=@('--test','--test-concurrency=1');if($TestNamePattern){$testArguments+=('--test-name-pattern='+$TestNamePattern)}
  & node @testArguments @testFiles

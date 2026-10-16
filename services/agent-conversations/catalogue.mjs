@@ -26,7 +26,7 @@ export const conversationResources=Object.fromEntries(['oltp','olap'].map(scope=
       fields:Object.fromEntries(resource.fields.filter(field=>field.column).map(field=>[
         field.name,{column:field.column,type:field.type},
       ])),
-      relationships:Object.fromEntries(resource.fields.filter(field=>field.relationship).map(field=>[field.name,field.relationship])),
+      relationships:Object.fromEntries(/** @type {any[]} */(resource.fields).filter(field=>field.relationship).map(field=>[field.name,field.relationship])),
     },
   ])),
 ]));

@@ -7,7 +7,16 @@ const hash=value=>createHash('sha256').update(value).digest('hex');
 const hex=value=>typeof value==='string'&&/^[a-f0-9]{64}$/.test(value);
 const fields='generation,key,keySha256,mimeType,referenceSha256,sha256,sizeBytes';
 const invalid=()=>{throw Error('Invalid DEV native receipt catalog');};
-export function parseNativeDevCatalog(raw,{legacy=verifiedNativeDev}={}) {
+/**
+ * One verified native receipt object.
+ * @typedef {{referenceSha256:string,keySha256:string,key?:string,generation:string,mimeType:string,sizeBytes:number,sha256:string}} NativeReceiptDescriptor
+ */
+/**
+ * @param {string|undefined} raw
+ * @param {{legacy?:readonly NativeReceiptDescriptor[]}} [options]
+ * @returns {readonly NativeReceiptDescriptor[]}
+ */
+export function parseNativeDevCatalog(raw,{legacy=/** @type {readonly NativeReceiptDescriptor[]} */(verifiedNativeDev)}={}) {
   if(raw===undefined)return legacy;
   try {
     if(typeof raw!=='string'||Buffer.byteLength(raw)>65536)invalid();

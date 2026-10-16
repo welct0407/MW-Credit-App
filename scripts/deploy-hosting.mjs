@@ -3,6 +3,7 @@ import path from "node:path";
 import {gzipSync} from "node:zlib";
 import {createHash} from "node:crypto";
 import {GoogleAuth} from "google-auth-library";
+import {hostingHeaders} from "./hosting-headers.mjs";
 const site="mw-credit-app-dev-737787224638";
 const args=process.argv.slice(2);
 if(new Set(args).size!==args.length||args.some(arg=>!["--live-dev","--check","--retire-pwa"].includes(arg))||args.includes("--retire-pwa")&&!args.includes("--live-dev"))throw new Error("Usage: node scripts/deploy-hosting.mjs [--live-dev] [--check] [--retire-pwa]");
@@ -37,7 +38,7 @@ if(mode==='live-dev'&&!retire){
  const html=await readFile(path.join(root,'index.html'),'utf8'),worker=await readFile(path.join(root,'sw.js'),'utf8');
  if(version.schemaVersion!==1||!/^[a-f0-9]{24}$/.test(version.version)||typeof version.entry!=='string'||!/^\/assets\/[^/]+\.js$/.test(version.entry)||!files[version.entry]||!html.includes(version.entry)||!worker.includes(version.version))throw new Error('Public version marker does not match compiled entry/worker');
 }
-const headers=[{glob:"**",headers:{"X-Content-Type-Options":"nosniff","Referrer-Policy":"strict-origin-when-cross-origin","Cache-Control":mode==="live-dev"?"no-store":"public,max-age=300"}}];
+const headers=hostingHeaders(mode);
 if(mode==="live-dev"){
  if(retire){
   const compressed=gzipSync(await readFile("scripts/pwa-retirement-worker.js"));
@@ -49,7 +50,6 @@ if(mode==="live-dev"){
   const worker=await readFile(path.join(root,"sw.js"),"utf8");
   if(!worker.trim()||/^\s*</.test(worker))throw new Error("Worker must be JavaScript, not HTML");
  }
- headers.push({glob:"/build-version.json",headers:{"Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store"}}, {glob:"/sw.js",headers:{"Content-Type":"application/javascript; charset=utf-8","Cache-Control":"no-store"}}, {glob:"/manifest.webmanifest",headers:{"Content-Type":"application/manifest+json; charset=utf-8","Cache-Control":"no-store"}}, {glob:"/offline.html",headers:{"Content-Type":"text/html; charset=utf-8","Cache-Control":"no-store"}});
 }
 if(args.includes("--check")){console.log(JSON.stringify({site,mode,retirePwa:retire,fileCount:Object.keys(files).length,headers}));process.exit(0);}
 token=process.env.GOOGLE_OAUTH_ACCESS_TOKEN||await new GoogleAuth({scopes:["https://www.googleapis.com/auth/cloud-platform"]}).getAccessToken();

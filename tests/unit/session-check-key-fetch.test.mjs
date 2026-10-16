@@ -4,7 +4,8 @@ import {createRequire} from 'node:module';
 import {generateKeyPairSync,createSign} from 'node:crypto';
 import {sessionCheckFailure} from '../../services/api/session-check.mjs';
 import {createBusinessPrincipalVerifier} from '../../services/production/business-principal.mjs';
-import {createFirebasePrincipalVerifier} from '../../services/api/firebase-principal.mjs';
+import {verifyFirebaseClaims} from '../../services/lib/firebase-claims.mjs';
+import {PROJECT_ID} from '../../services/lib/identity.mjs';
 // APP-AUTH-01 gap: firebase-admin 14.5.0 reports a Google public-key fetch failure as auth/argument-error with the raw transport
 // message. That is an outage (503), not an invalid session (401). Real firebase-admin with the key fetcher stubbed.
 const require=createRequire(import.meta.url);
@@ -30,7 +31,7 @@ test('a public-key fetch outage is 503 session_check_unavailable in every verifi
    assert.equal(error?.code,'auth/argument-error','firebase-admin reports the outage as argument-error');
    assert.deepEqual(sessionCheckFailure(error),unavailable,outage.message);
    assert.deepEqual(await createBusinessPrincipalVerifier(verify)('Bearer '+token()),unavailable);
-   assert.deepEqual(await createFirebasePrincipalVerifier(verify,{ownerUid:'synthetic-uid',identityMode:'uid-pinned'})('Bearer '+token()),unavailable);
+   assert.deepEqual(await verifyFirebaseClaims({verifyIdToken:verify,projectId:PROJECT_ID})('Bearer '+token()),unavailable);
   });
  }
 });

@@ -2,7 +2,7 @@ import test from 'node:test';import assert from 'node:assert/strict';import http
 import {loadProductionBusinessConfig} from '../../services/production/business-config.mjs';
 import {parseBusinessPolicy,createBusinessMembership} from '../../services/production/business-policy.mjs';
 import {createBusinessPrincipalVerifier} from '../../services/production/business-principal.mjs';
-import {createProductionConnectionGuard} from '../../services/production/business-target.mjs';
+import {createConnectionGuard} from '../../services/lib/connection-guard.mjs';
 import {createProductionBusinessRuntime} from '../../services/production/business-runtime.mjs';
 import {deltaValueHash} from '../../services/api/offline-dataset-delta.mjs';
 import {createEnvironmentCommandStore} from '../../services/payment-command/store.mjs';
@@ -30,7 +30,7 @@ test('PROD notification and machine receipt activation remains explicit and envi
  assert.equal(loadAgentReceiptPolicy(machineEnv,'prod').callerEmail,machine.callerEmail);
  for(const patch of [{AGENT_RECEIPT_POLICY_SECRET_VERSION:machineEnv.AGENT_RECEIPT_POLICY_SECRET_VERSION.replace('/1','/latest')},{AGENT_RECEIPT_POLICY_JSON:JSON.stringify({...machine,environment:'dev'})},{AGENT_RECEIPT_POLICY_JSON:JSON.stringify({...machine,audience:machine.audience.replace('-prod-','-dev-')})}])assert.throws(()=>loadAgentReceiptPolicy({...machineEnv,...patch},'prod'));
 });
-function poolFixture(config){let rows=[{id:member.partnerId,role:member.partnerRole}],identity={database:config.database,principal:config.dbUser,session:config.dbUser,rolcanlogin:true,rolsuper:false,rolcreatedb:false,rolcreaterole:false,rolreplication:false,rolbypassrls:false,member:config.serviceRole==='command',owner_member:false,creator_member:false,dev_member:false};const calls=[];return{calls,setRows:v=>rows=v,identity,async connect(){return{async query(sql,args){calls.push({sql,args});if(sql.includes('AS fingerprint'))return{rows:[]};if(sql.startsWith('SELECT to_char(CURRENT_TIMESTAMP'))return{rows:[{asOf:'2026-10-15T00:00:00.000Z',businessDate:'2026-10-15'}]};if(sql.includes('pg_roles'))return{rows:[identity]};if(sql.startsWith('SELECT current_database'))return{rows:[identity]};if(sql.includes('FROM public."Partners"'))return{rows};if(sql.includes('pwa_submit_operation_v2'))return{rows:[{result:{kind:'recorded',originalOutcome:{status:'applied',result:{id:'synthetic'}}}}]};if(sql.includes('canonical_json'))return{rows:[]};return{rows:[]};},release(discard){calls.push({release:discard});}};},async end(){calls.push({end:true});}};}
+function poolFixture(config){let rows=[{id:member.partnerId,role:member.partnerRole}],identity={database:config.database,principal:config.dbUser,session:config.dbUser,rolcanlogin:true,rolsuper:false,rolcreatedb:false,rolcreaterole:false,rolreplication:false,rolbypassrls:false,member:config.serviceRole==='command',owner_member:false,creator_member:false,foreign_member:false};const calls=[];return{calls,setRows:v=>rows=v,identity,async connect(){return{async query(sql,args){calls.push({sql,args});if(sql.includes('AS fingerprint'))return{rows:[]};if(sql.startsWith('SELECT to_char(CURRENT_TIMESTAMP'))return{rows:[{asOf:'2026-10-15T00:00:00.000Z',businessDate:'2026-10-15'}]};if(sql.includes('pg_roles'))return{rows:[identity]};if(sql.startsWith('SELECT current_database'))return{rows:[identity]};if(sql.includes('FROM public."Partners"'))return{rows};if(sql.includes('pwa_submit_operation_v2'))return{rows:[{result:{kind:'recorded',originalOutcome:{status:'applied',result:{id:'synthetic'}}}}]};if(sql.includes('canonical_json'))return{rows:[]};return{rows:[]};},release(discard){calls.push({release:discard});}};},async end(){calls.push({end:true});}};}
 test('business candidate rejects missing policy, wrong targets, DEV identities and ambient data credentials',()=>{
  assert.equal(loadProductionBusinessConfig({}),null);assert.equal(loadProductionBusinessConfig({BUSINESS_ACTIVATION:'disabled'}),null);
  for(const key of Object.keys(env).filter(k=>k!=='BUSINESS_ACTIVATION'))assert.throws(()=>loadProductionBusinessConfig({...env,[key]:undefined}),key);
@@ -53,12 +53,12 @@ test('policy never infers accounting role authority and invalid duplicate/confli
  assert.equal(m.principalAllowed({...principal,email:'delivery@example.invalid'}),false);
 });
 test('exact SQL role/session/database guard denies elevated or wrong identities and reader app membership',async()=>{
- const c=loadProductionBusinessConfig(env),pool=poolFixture(c),guard=createProductionConnectionGuard(c),client=await pool.connect();await guard(client);
- for(const [key,value]of Object.entries({database:'loan_manager_dev',principal:'postgres',session:'other',rolcanlogin:false,rolsuper:true,rolcreatedb:true,rolcreaterole:true,rolreplication:true,rolbypassrls:true,member:true,owner_member:true,creator_member:true,dev_member:true})){const prior=pool.identity[key];pool.identity[key]=value;await assert.rejects(guard(client));pool.identity[key]=prior;}
+ const c=loadProductionBusinessConfig(env),pool=poolFixture(c),guard=createConnectionGuard(c),client=await pool.connect();await guard(client);
+ for(const [key,value]of Object.entries({database:'loan_manager_dev',principal:'postgres',session:'other',rolcanlogin:false,rolsuper:true,rolcreatedb:true,rolcreaterole:true,rolreplication:true,rolbypassrls:true,member:true,owner_member:true,creator_member:true,foreign_member:true})){const prior=pool.identity[key];pool.identity[key]=value;await assert.rejects(guard(client));pool.identity[key]=prior;}
 });
 test('command pipeline derives actor freshly and dispatches canonical immutable operation only after membership',async()=>{
  const c=loadProductionBusinessConfig({...env,FOUNDATION_ROLE:'command',DB_USER:env.DB_USER.replace('-read-','-command-'),RUNTIME_SERVICE_ACCOUNT:env.RUNTIME_SERVICE_ACCOUNT.replace('-read-','-command-')}),m=createBusinessMembership(c),pool=poolFixture(c);
- const store=createEnvironmentCommandStore({pool,guardConnection:createProductionConnectionGuard(c),principalAllowed:m.principalAllowed,resolveActor:m.resolveActor,actorIssuer:c.issuer});
+ const store=createEnvironmentCommandStore({pool,guardConnection:createConnectionGuard(c),principalAllowed:m.principalAllowed,resolveActor:m.resolveActor,actorIssuer:c.issuer});
  const command={requestId:'12345678-1234-4234-8234-123456789abc',operation:'borrower.create',targetId:'12345678-1234-4234-8234-123456789abd',expectedVersion:null,predecessorRequestId:null,receiptId:null,inputs:{name:'Synthetic',description:null,communicationName:null,instagramUsername:null,city:null,workingLocation:null,address:null,hidden:null,referrerId:null,preferredReceivingAccountId:null,note:null}};
  assert.equal((await store.operation(principal,command)).ok,true);const submitted=pool.calls.find(c=>c.sql?.includes('pwa_submit_operation_v2'));assert.deepEqual(JSON.parse(submitted.args[0]).actor,{issuer:c.issuer,subject:principal.subject,partnerId:member.partnerId,loginEmail:member.loginEmail});
  pool.setRows([]);const count=pool.calls.filter(c=>c.sql?.includes('pwa_submit_operation_v2')).length;assert.equal((await store.operation(principal,command)).status,403);assert.equal(pool.calls.filter(c=>c.sql?.includes('pwa_submit_operation_v2')).length,count);
@@ -98,7 +98,7 @@ test('PROD command composition serves enabled notifications and isolated machine
 
 test('PROD factory permits authorized offline traversal and delta while retaining membership and target guards',async()=>{
  const config=loadProductionBusinessConfig({...env,FOUNDATION_ROLE:'command',DB_USER:env.DB_USER.replace('-read-','-command-'),RUNTIME_SERVICE_ACCOUNT:env.RUNTIME_SERVICE_ACCOUNT.replace('-read-','-command-')}),membership=createBusinessMembership(config),pool=poolFixture(config);
- const store=createEnvironmentCommandStore({pool,guardConnection:createProductionConnectionGuard(config),principalAllowed:membership.principalAllowed,resolveActor:membership.resolveActor,actorIssuer:config.issuer});
+ const store=createEnvironmentCommandStore({pool,guardConnection:createConnectionGuard(config),principalAllowed:membership.principalAllowed,resolveActor:membership.resolveActor,actorIssuer:config.issuer});
  const chunk=await store.offlineDataset(principal,'records',undefined,{protocol:2});
  assert.equal(chunk.status,200,JSON.stringify(chunk));assert.equal(chunk.schemaVersion,2);assert.equal(chunk.domain,'records');assert.ok(chunk.patches.length);assert.equal(typeof chunk.nextCursor,'string');
  for(const domain of ['records','collection','cash','management']){

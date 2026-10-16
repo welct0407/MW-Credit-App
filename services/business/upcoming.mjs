@@ -1,3 +1,4 @@
+import {BUSINESS_TODAY_QUERY} from '../lib/business-date.mjs';
 import {validBorrowerId} from './borrowers.mjs';
 const day=value=>typeof value==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(value)&&Number.isFinite(Date.parse(value+'T00:00:00Z'))&&new Date(value+'T00:00:00Z').toISOString().slice(0,10)===value;
 const decimal=value=>value===null||typeof value==='string'&&/^-?\d+(?:\.\d+)?$/.test(value);
@@ -6,7 +7,7 @@ export async function readStandaloneUpcoming(client,{borrowerId=null,dueDate=nul
  if(!Number.isInteger(limit)||limit<1||limit>100||(borrowerId!==null&&(!validBorrowerId(borrowerId)||!day(dueDate)||!day(businessDate))))throw Error('invalid_request');
  const rows=(await client.query(`SELECT "As Of Date"::text AS "businessDate","From Date"::text AS "fromDate","Through Date"::text AS "throughDate","Calculated At" AS "asOf","Forecast Note" AS "forecastNote" FROM public.oltp_upcoming_charge_context_v1 LIMIT 2`)).rows;
  if(rows.length!==1||!day(rows[0].businessDate)||!day(rows[0].fromDate)||!day(rows[0].throughDate))throw Error('Upcoming source unavailable');const context={...rows[0],asOf:new Date(rows[0].asOf).toISOString()};
- const current=(await client.query("SELECT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date::text AS day")).rows[0].day;if(context.businessDate!==current||(businessDate!==null&&businessDate!==current))throw Error('business_date_changed');
+ const current=(await client.query(BUSINESS_TODAY_QUERY)).rows[0].day;if(context.businessDate!==current||(businessDate!==null&&businessDate!==current))throw Error('business_date_changed');
  const kind=borrowerId?'detail':'summary';let after=null;
  if(cursor!==null){try{if(typeof cursor!=='string'||cursor.length>8192)throw Error();after=JSON.parse(Buffer.from(cursor,'base64url').toString());if(after.day!==current)throw Error('business_date_changed');if(Object.keys(after).sort().join(',')!=='borrowerId,date,day,id,kind,label,v'||after.v!==1||after.kind!==kind||after.borrowerId!==borrowerId||!validBorrowerId(after.id)||typeof after.label!=='string'||!day(after.date)||encode(after)!==cursor)throw Error();if(borrowerId&&after.date!==dueDate)throw Error()}catch(error){if(error.message==='business_date_changed')throw error;throw Error('invalid_request')}}
  if(borrowerId){

@@ -5,7 +5,7 @@ import { loadProductionFoundationConfig } from '../../services/production/config
 import { createProductionPrincipalVerifier } from '../../services/production/principal.mjs';
 import { createProductionFoundationHandler } from '../../services/production/handler.mjs';
 import { createProductionFoundationRuntime } from '../../services/production/runtime.mjs';
-import { createFirebasePrincipalVerifier } from '../../services/api/firebase-principal.mjs';
+import { createBusinessPrincipalVerifier } from '../../services/production/business-principal.mjs';
 const env = { APP_ENV:'prod', FOUNDATION_MODE:'foundation', FOUNDATION_ROLE:'reader', AUTH_MODE:'firebase',
   APPLICATION_PROJECT_ID:'clever-oasis-508610-n7', APPLICATION_PROJECT_NUMBER:'737787224638', FIREBASE_PROJECT_ID:'clever-oasis-508610-n7',
   RUNTIME_SERVICE_ACCOUNT:'mw-credit-app-read-prod@clever-oasis-508610-n7.iam.gserviceaccount.com',
@@ -19,7 +19,7 @@ const claims = { aud:config.projectId, iss:config.issuer, sub:config.ownerUid, e
 test('same default-project owner token can authenticate both environments; business authority stays separate', async () => {
   const sdk=async()=>claims;
   const prod=createProductionPrincipalVerifier(sdk,config,()=>now*1000);
-  const dev=createFirebasePrincipalVerifier(sdk,{ownerUid:config.ownerUid,identityMode:'uid-pinned',now:()=>now*1000});
+  const dev=createBusinessPrincipalVerifier(sdk,()=>now*1000);
   assert.equal((await prod('Bearer shared-token')).ok,true);
   assert.equal((await dev('Bearer shared-token')).ok,true);
 });

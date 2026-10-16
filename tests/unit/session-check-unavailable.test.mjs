@@ -4,8 +4,7 @@ import {createServer} from 'node:http';
 import {definiteTokenErrorCodes,sessionCheckFailure} from '../../services/api/session-check.mjs';
 import {createBusinessPrincipalVerifier} from '../../services/production/business-principal.mjs';
 import {createProductionPrincipalVerifier} from '../../services/production/principal.mjs';
-import {createFirebasePrincipalVerifier} from '../../services/api/firebase-principal.mjs';
-import {createCommandPrincipalVerifier} from '../../services/payment-command/principal.mjs';
+import {verifyFirebaseClaims} from '../../services/lib/firebase-claims.mjs';
 import {createPaymentCommandHandler} from '../../services/payment-command/handler.mjs';
 import {createProductionFoundationHandler} from '../../services/production/handler.mjs';
 import {notificationHandler} from '../../services/notifications/handler.mjs';
@@ -17,8 +16,7 @@ const outages=[Error('ECONNRESET'),Object.assign(Error('secret'),{code:'app/netw
 const factories={
  business:fn=>createBusinessPrincipalVerifier(fn),
  foundation:fn=>createProductionPrincipalVerifier(fn,{projectId:'synthetic',issuer:'https://securetoken.google.com/synthetic',ownerUid:'owner',ownerEmail:'owner@example.invalid'}),
- firebase:fn=>createFirebasePrincipalVerifier(fn,{ownerUid:'owner',identityMode:'uid-pinned'}),
- command:fn=>createCommandPrincipalVerifier({verifyIdToken:fn,ownerUid:'owner'}),
+ claims:fn=>verifyFirebaseClaims({verifyIdToken:fn,projectId:'synthetic'}),
 };
 test('sessionCheckFailure classifies by Firebase error code only',()=>{
  for(const code of definiteTokenErrorCodes)assert.deepEqual(sessionCheckFailure(definiteError(code)),invalid,code);
@@ -48,13 +46,13 @@ test('foundation handler maps 503 principal to 503',async()=>{
   await new Promise(resolve=>setTimeout(resolve,20));assert.equal(logs.at(-1).code,'session_check_unavailable');
  }finally{await server.close()}
 });
-test('notification handler maps 503 principal to notification_unavailable, 401 stays sign_in_required',async()=>{
+test('notification handler keeps the verifier status and code: 503 session_check_unavailable, 401 sign_in_required',async()=>{
  let principal=unavailable;
  const server=await serve(notificationHandler({next:()=>{throw Error('next must not run')},store:new Proxy({},{get(){throw Error('store touched')}}),verifyPrincipal:async()=>principal,origins:['https://lm.mw-credit.com'],enabled:true,publicKey:'synthetic'}));
  try{
   const outage=await fetch(server.origin+'/api/notifications/status',{headers:{Authorization:'Bearer synthetic'}});
-  assert.equal(outage.status,503);assert.deepEqual(await outage.json(),{error:'notification_unavailable'});
+  assert.equal(outage.status,503);assert.deepEqual(await outage.json(),{error:'session_check_unavailable',code:'session_check_unavailable'});
   principal={ok:false,status:401,code:'sign_in_required'};
-  const denied=await fetch(server.origin+'/api/notifications/status');assert.equal(denied.status,401);assert.deepEqual(await denied.json(),{error:'sign_in_required'});
+  const denied=await fetch(server.origin+'/api/notifications/status');assert.equal(denied.status,401);assert.deepEqual(await denied.json(),{error:'sign_in_required',code:'sign_in_required'});
  }finally{await server.close()}
 });

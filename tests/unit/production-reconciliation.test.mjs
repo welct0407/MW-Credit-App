@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import sharp from 'sharp';
 import {reconcileCapturedNative} from '../../scripts/receipts/reconcile-native.mjs';
-import {DEV_INSTANCE} from '../../services/api/dev-read-config.mjs';
+import {INSTANCE_CONNECTION_NAME as DEV_INSTANCE} from '../../services/lib/identity.mjs';
 const sha=x=>createHash('sha256').update(x).digest('hex');
 const bytes=await sharp({create:{width:2,height:2,channels:3,background:'white'}}).png().toBuffer();
 const binding={environment:'prod',database:'loan_manager_prod',bucket:'mw-payment-receipts-prod-508610-n7',objectRoot:'appsheet/data/LoanManager_975338008_26_08_07/manual_receipts/prod/',sourceEvidenceSha256:'a'.repeat(64)};

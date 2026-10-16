@@ -9,7 +9,7 @@ import {reconcileApplicationRole} from '../../scripts/database/app-role-policy.m
 import {attestDisposableApplicationTarget} from '../../services/payment-command/application-target.mjs';
 import {createApplicationRoleCommandStore} from '../../services/payment-command/store.mjs';
 import {createPaymentCommandHandler} from '../../services/payment-command/handler.mjs';
-import {OWNER_EMAIL} from '../../services/api/dev-read-config.mjs';
+import {OWNER_EMAIL} from '../../services/lib/identity.mjs';
 let admin,app,proof,server,origin,store;
 const user='mw_app_dev_gc_fixture',prefix='4G-C',principal={ok:true,email:OWNER_EMAIL,subject:'synthetic-independent-owner'};
 const fixture={borrowerId:prefix+'-B',chargeIds:[prefix+'-C1',prefix+'-C2',prefix+'-FUTURE'],cashAccountIds:['4A-RECEIVE']};

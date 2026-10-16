@@ -1,8 +1,11 @@
 import { createHash } from 'node:crypto';
 import { canonicalActor,canonicalReceipt } from '../contracts/payment-command.mjs';
+/** @typedef {{readonly bucket:string,readonly sqlPrefix:string,readonly objectPrefix:string}} ReceiptMapping */
+/** @type {ReceiptMapping} */
 export const DEV_RECEIPT_MAPPING=Object.freeze({bucket:'mw-payment-receipts-prod-508610-n7',sqlPrefix:'manual-receipts/dev/pwa/',objectPrefix:'appsheet/data/MW_OLTP_DEV_20260919_578763613/manual_receipts/dev/pwa/'});
+/** @type {ReceiptMapping} */
 export const PROD_RECEIPT_MAPPING=Object.freeze({bucket:'mw-payment-receipts-prod-508610-n7',sqlPrefix:'manual-receipts/prod/pwa/',objectPrefix:'appsheet/data/LoanManager_975338008_26_08_07/manual_receipts/prod/pwa/'});
-const uuid=value=>typeof value==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(value);
+import {isUuidV4 as uuid} from '../lib/ids.mjs';
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 const generation=value=>typeof value==='string'&&/^[1-9][0-9]*$/.test(value);
 export function generatedReceiptPaths({requestId,receiptId,mimeType},mapping=DEV_RECEIPT_MAPPING) {
@@ -13,6 +16,7 @@ export function generatedReceiptPaths({requestId,receiptId,mimeType},mapping=DEV
 /** No SDK or credentials. Synthetic transport verification does not prove live rendering. */
 export function createDevReceiptAdapter(options={}){return createBoundReceiptAdapter(options,DEV_RECEIPT_MAPPING,'dev')}
 export function createProductionReceiptAdapter(options={}){return createBoundReceiptAdapter(options,PROD_RECEIPT_MAPPING,'prod')}
+/** @param {{storage?:any,decodeImage?:any,compatibility?:any}} options @param {ReceiptMapping} mapping @param {'dev'|'prod'} environment */
 function createBoundReceiptAdapter({storage,decodeImage,compatibility},mapping,environment) {
  if(!storage||typeof storage.create!=='function'||typeof storage.read!=='function'||typeof decodeImage!=='function')throw Error('Receipt dependencies required');
  const qualifiedProdReuse=environment==='prod'&&compatibility?.status==='verified-dev-render-and-prod-binding'&&/^[a-f0-9]{64}$/.test(compatibility.evidenceReference??'');
@@ -20,6 +24,7 @@ function createBoundReceiptAdapter({storage,decodeImage,compatibility},mapping,e
  const enabled=compatibility&&(nativeVerified||['synthetic-transport-test','verified-appsheet-render'].includes(compatibility.status)||qualifiedProdReuse)&&typeof compatibility.evidenceReference==='string'&&compatibility.evidenceReference.trim()&&Object.entries(mapping).every(([k,v])=>compatibility[k]===v);
  function guard(){if(!enabled)throw Error('receipt_unsupported')}
  function binding(requestId,receiptId,actor){if(!uuid(requestId)||!uuid(receiptId))throw Error('invalid_receipt');const canonical=canonicalActor(actor);return {actor:canonical,actorSha256:hash(JSON.stringify(canonical))};}
+ /** @param {{requestId:string,receiptId:string,actor:any,mimeType:string,expectedGeneration?:string}} input */
  async function verifyRead({requestId,receiptId,actor,mimeType,expectedGeneration}) {
   const bound=binding(requestId,receiptId,actor),paths=generatedReceiptPaths({requestId,receiptId,mimeType},mapping);
   const object=await storage.read({bucket:paths.bucket,key:paths.key,...(expectedGeneration?{generation:expectedGeneration}:{})});

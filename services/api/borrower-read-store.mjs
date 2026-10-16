@@ -1,3 +1,5 @@
+import { statementTimeoutSql } from '../lib/budget.mjs';
+import { businessToday, BUSINESS_TZ } from '../lib/business-date.mjs';
 import { normalizeSearchQuery, searchQueryHash } from './search-query.mjs';
 import { readUpcoming, validUpcomingDate, decodeUpcomingCursor } from './upcoming-read-contract.mjs';
 import { readCollection, decodeCollectionCursor } from './collection-read-contract.mjs';
@@ -47,7 +49,7 @@ export function createBorrowerReadStore({ pool, config, now = () => new Date(), 
       client=await pool.connect();stage='transaction';
       transactionUncertain=true;
       await client.query(repeatableRead ? 'BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY' : 'BEGIN READ ONLY');
-      await client.query("SET LOCAL statement_timeout = '5000ms'");
+      await client.query(statementTimeoutSql('reader'));
       stage='identity';if(guardConnection)await guardConnection(client);const identity = await client.query('SELECT current_database() AS database, current_user AS principal');
       if (identity.rows.length !== 1 || identity.rows[0].database !== config.database || identity.rows[0].principal !== config.dbUser) throw new Error('Unexpected database identity');
       stage='mapping';const mapping = await client.query('SELECT "Row ID" AS id FROM public."Partners" WHERE lower(btrim("Login Email")) = $1 LIMIT 2', [email]);
@@ -57,9 +59,7 @@ export function createBorrowerReadStore({ pool, config, now = () => new Date(), 
       await client.query('COMMIT');
       transactionUncertain=false;
       const timestamp = now();
-      const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Bangkok', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(timestamp);
-      const value = type => parts.find(p => p.type === type).value;
-      return { ok: true, schemaVersion: 1, source, businessDate: `${value('year')}-${value('month')}-${value('day')}`, timezone: 'Asia/Bangkok', asOf: timestamp.toISOString(), ...data };
+      return { ok: true, schemaVersion: 1, source, businessDate: businessToday(timestamp), timezone: BUSINESS_TZ, asOf: timestamp.toISOString(), ...data };
     } catch (error) {
       const category=failureCategory(error);
       quarantine=quarantine||fatalCodes.has(error?.code)||category==='connection_timeout';
@@ -78,7 +78,7 @@ export function createBorrowerReadStore({ pool, config, now = () => new Date(), 
       finally { try { client?.release(quarantine); } catch { /* Preserve the sanitized health result. */ } }
     },
     session: email => run(email, async () => ({ permission: 'oltp.read', scope: 'borrowers-related-loans-and-collection' })),
-    getCollectionUpcoming: (email, borrowerId, { businessDate, dueDate = null, limit = 25, cursor = null } = {}) => {
+    getCollectionUpcoming: (email, borrowerId, /** @type {{businessDate?:string,dueDate?:string|null,limit?:number,cursor?:string|null}} */ { businessDate, dueDate = null, limit = 25, cursor = null } = {}) => {
       if (!validId(borrowerId)) return Promise.resolve({ ok: false, status: 404, code: 'not_found' });
       let after;
       try {
@@ -88,7 +88,7 @@ export function createBorrowerReadStore({ pool, config, now = () => new Date(), 
       return run(email, client => readUpcoming(client, { borrowerId, businessDate, dueDate, limit, after }), true)
         .then(result => result.collectionError ? { ok: false, status: result.collectionStatus, code: result.collectionError } : result);
     },
-    getBorrowerUpcoming: (email, borrowerId, { businessDate, dueDate = null, limit = 25, cursor = null } = {}) => {
+    getBorrowerUpcoming: (email, borrowerId, /** @type {{businessDate?:string,dueDate?:string|null,limit?:number,cursor?:string|null}} */ { businessDate, dueDate = null, limit = 25, cursor = null } = {}) => {
       if (!validId(borrowerId)) return Promise.resolve({ ok: false, status: 404, code: 'not_found' });
       let after;
       try {

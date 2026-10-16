@@ -16,6 +16,7 @@ export function validateSubscription(value){
 export async function createWebPushTransport({subject,publicKey,privateKey},{request=https.request}={}){
  if(typeof subject!=='string'||!/^mailto:[^\s@]+@[^\s@]+$/.test(subject)||!publicKey||!privateKey)throw Error('invalid_push_configuration');
  const {default:webpush}=await import('web-push');
+ /** @param {any} subscription @param {string} eventId @param {{timeoutMs?:number,signal?:AbortSignal}} [options] */
  return async(subscription,eventId,{timeoutMs=8000,signal}={})=>{
   const valid=validateSubscription(subscription);
   if(!/^[0-9a-f-]{36}$/.test(eventId))throw Error('invalid_event');

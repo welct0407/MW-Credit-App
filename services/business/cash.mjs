@@ -1,10 +1,11 @@
+import {BUSINESS_TODAY_QUERY} from '../lib/business-date.mjs';
 import {validBorrowerId} from './borrowers.mjs';
 const day=value=>typeof value==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(value)&&value>='0001-01-01'&&Number.isFinite(Date.parse(value+'T00:00:00Z'))&&new Date(value+'T00:00:00Z').toISOString().slice(0,10)===value;
 /** Governed SQL providers own all totals and running balances; this adapter only projects them. */
 export async function readCashOverview(client){
  const dashboard=(await client.query(`SELECT "Operating Income MTD"::text AS "operatingIncomeMtd","Expenses MTD"::text AS "expensesMtd","Net Profit MTD"::text AS "netProfitMtd","Tommy Withdrawn MTD"::text AS "tommyWithdrawnMtd","Lisa Withdrawn MTD"::text AS "lisaWithdrawnMtd","Unsettled Profit MTD"::text AS "unsettledProfitMtd","Cash Pool Remaining"::text AS "cashPoolRemaining","Business Cash Held"::text AS "businessCashHeld" FROM public."Cash Dashboard"`)).rows[0];
  const accounts=(await client.query(`SELECT "Ref Cash Account" id,"Ref Cash Holder" AS "holderId","Holder Name" AS "holderLabel","Account Label" label,"Opening Balance"::text AS "openingBalance","Cash In"::text AS "cashIn","Cash Out"::text AS "cashOut","Current Balance"::text AS "currentBalance","Initialized" initialized,"Business Cash Held"::text AS "businessCashHeld","Reimbursement / Advance Due"::text AS "reimbursementDue" FROM public."Cash Account Balances" ORDER BY "Holder Name" COLLATE "C","Account Label" COLLATE "C","Ref Cash Account" COLLATE "C"`)).rows;
- return {dashboard,accounts,businessDate:(await client.query("SELECT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date::text AS day")).rows[0].day};
+ return {dashboard,accounts,businessDate:(await client.query(BUSINESS_TODAY_QUERY)).rows[0].day};
 }
 export async function readCashStatement(client,{accountId,date,limit=25,cursor=null}){
  if(!validBorrowerId(accountId)||!day(date)||!Number.isInteger(limit)||limit<1||limit>100)throw Error('invalid_request');

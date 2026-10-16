@@ -11,7 +11,7 @@ import {attestDisposableApplicationTarget} from '../../services/payment-command/
 import {readCommandResult} from '../../services/payment-command/result.mjs';
 import {createApplicationRoleCommandStore} from '../../services/payment-command/store.mjs';
 import {canonicalCommand,commandIdentity} from '../../services/contracts/payment-command.mjs';
-import {OWNER_EMAIL,DEV_PROJECT} from '../../services/api/dev-read-config.mjs';
+import {OWNER_EMAIL,PROJECT_ID as DEV_PROJECT} from '../../services/lib/identity.mjs';
 let admin,app,store;const runtimeUser='mw_app_dev_unified_independent';
 const principal={ok:true,email:OWNER_EMAIL,subject:'unified-independent-owner'};
 const actor={issuer:`https://securetoken.google.com/${DEV_PROJECT}`,subject:principal.subject,partnerId:'4A-ACTOR',loginEmail:OWNER_EMAIL};
@@ -72,7 +72,7 @@ test('U5 concurrent reviewed commands cannot overpay a component; exact replay s
 for(const stage of ['Payments','Payment Allocations','Repayments'])test('U6 technical fault during '+stage+' rolls provisional journal and every child back',async()=>{
  const f=await seed('UC-FAULT-'+stage.replace(/ /g,'-')),c=command(f,[line(f,'new-z',80,0),line(f,'future',50,0)]),key='pwa:'+c.requestId;
  await admin.query(`CREATE FUNCTION public.uc_fault() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF ${stage==='Payments'?'NEW."Row ID"':'NEW."Ref Payment"'}='${key}' THEN IF NOT EXISTS(SELECT 1 FROM public.pwa_payment_commands WHERE request_id='${c.requestId}' AND outcome='posted') THEN RAISE EXCEPTION 'Provisional journal absent';END IF;RAISE EXCEPTION USING ERRCODE='XX000',MESSAGE='Synthetic child failure';END IF;RETURN NEW;END $$;CREATE TRIGGER zzz_uc_fault BEFORE INSERT ON public."${stage}" FOR EACH ROW EXECUTE FUNCTION public.uc_fault()`);
- try{const out=await store.submit(principal,c);assert.equal(out.status,503,JSON.stringify(out));assert.equal(out.code,'command_outcome_unknown');assert.deepEqual(await financial(key),{p:0,a:0,r:0,c:0});assert.equal((await admin.query('SELECT count(*)::int n FROM pwa_payment_commands WHERE request_id=$1',[c.requestId])).rows[0].n,0)}finally{await admin.query(`DROP TRIGGER zzz_uc_fault ON "${stage}";DROP FUNCTION public.uc_fault()`)}
+ try{const out=await store.submit(principal,c);assert.equal(out.status,503,JSON.stringify(out));assert.equal(out.code,'command_unavailable','a confirmed ROLLBACK is a known non-outcome (APP-PAY-06)');assert.deepEqual(await financial(key),{p:0,a:0,r:0,c:0});assert.equal((await admin.query('SELECT count(*)::int n FROM pwa_payment_commands WHERE request_id=$1',[c.requestId])).rows[0].n,0)}finally{await admin.query(`DROP TRIGGER zzz_uc_fault ON "${stage}";DROP FUNCTION public.uc_fault()`)}
  await posted(f,c);
 });
 

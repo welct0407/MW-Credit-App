@@ -4,10 +4,10 @@ import http from 'node:http';
 import { randomUUID } from 'node:crypto';
 import { disposablePool } from '../../scripts/rehearsal/disposable-pool.mjs';
 import { seedPaymentFixture } from '../../scripts/rehearsal/payment-fixture.mjs';
-import { createCommandPrincipalVerifier } from '../../services/payment-command/principal.mjs';
+import { createCommandPrincipalVerifier } from './owner-verifier-fixture.mjs';
 import { createPaymentCommandStore } from '../../services/payment-command/store.mjs';
 import { createPaymentCommandHandler } from '../../services/payment-command/handler.mjs';
-import { DEV_PROJECT,OWNER_EMAIL } from '../../services/api/dev-read-config.mjs';
+import {PROJECT_ID as DEV_PROJECT,OWNER_EMAIL} from '../../services/lib/identity.mjs';
 let pool,server,origin,handler;const logs=[],verifications=[];const subject='synthetic-command-owner';
 before(async()=>{
  pool=await disposablePool(78);

@@ -18,7 +18,7 @@ test('collection receipts select receiptAt as text',async()=>{
  assert.match(captured.sql,/END\)::text AS "receiptAt"/);
 });
 test('offline dataset readers select every receiptAt as text',()=>{
- for(const file of ['offline-dataset.mjs','offline-dataset-chunks.mjs']){
+ for(const file of ['offline-dataset-chunks.mjs']){ // offline-dataset.mjs (protocol 1) no longer reads rows.
   const src=readFileSync(new URL('../../services/business/'+file,import.meta.url),'utf8');
   const all=(src.match(/AS "receiptAt"/g)||[]).length,text=(src.match(/::text AS "receiptAt"/g)||[]).length;
   assert.ok(all>0,file+' selects receiptAt');
