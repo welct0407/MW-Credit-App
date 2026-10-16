@@ -30,7 +30,7 @@ resource "google_sql_database_instance" "shared" {
     failover_dr_replica_name = null
   }
   settings {
-    activation_policy                = "ALWAYS"
+    activation_policy                = "NEVER" # stopped 17 October 2026 after the SSD move (owner); kept 7 days as rollback
     auto_upgrade_enabled             = false
     availability_type                = "ZONAL"
     collation                        = null
