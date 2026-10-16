@@ -89,7 +89,8 @@ class TransactionAudit(unittest.TestCase):
         with psycopg.connect(**self.base,dbname='loan_manager_prod') as c:
             self.assertEqual(c.execute('''SELECT bool_or(has_table_privilege('mw_reviewer_dml',format('public.%%I',t),'DELETE'))
                 FROM unnest(%s::text[]) t''',(['Borrowers','Loans','Charges','Repayments','Payments','Business Expenses','Settlements','Cash Pool Contributions'],)).fetchone()[0],False)
-            self.assertTrue(c.execute('''SELECT has_table_privilege('mw_reviewer_dml','public."Cash Ledger"','DELETE')''').fetchone()[0])
+            # V93 (DB-ACCESS-08) also revoked direct "Cash Ledger" writes; system ledger rows change only through sync_cash_ledger.
+            self.assertFalse(c.execute('''SELECT has_table_privilege('mw_reviewer_dml','public."Cash Ledger"','DELETE')''').fetchone()[0])
 
     def test_unapproved_trigger_delete_rolls_back_all_rows(self):
         from psycopg import sql
