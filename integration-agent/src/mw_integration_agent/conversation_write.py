@@ -50,8 +50,8 @@ def actor_email(config, partner_id):
 def dispatch_action(config, app, table, action, row, actor):
     if config.get('conversation_writes_enabled') is not True:
         raise ConfigurationError('CONVERSATION_WRITES_DISABLED')
-    if action=='Delete' and (not config.get('reviewer_delete_enabled') or config.get('state_backend')!='postgres'):
-        raise ConfigurationError('REVIEWER_DELETE_DISABLED')
+    if action=='Delete' and (not config.get('native_delete_enabled') or config.get('state_backend')!='postgres'):
+        raise ConfigurationError('NATIVE_DELETE_DISABLED')
     if app not in ('oltp','olap') or action not in ('Add','Edit','Delete') or set(row)!={'nativeRequest'}:
         raise ConfigurationError('NATIVE_CANONICAL_REQUEST_REQUIRED')
     from .conversation_api import call
@@ -209,8 +209,8 @@ def api_action(bridge, args, writer=dispatch_action, actor_reader=actor_email):
     if not isinstance(ident,str) or (not row and action!='Delete') or key in row:
         raise ConfigurationError('SUPPLY_FIELDS_WITHOUT_KEY')
     if action=='Delete':
-        if not is_postgres(bridge.store.db) or not config.get('reviewer_delete_enabled'):
-            raise ConfigurationError('REVIEWER_DELETE_DISABLED')
+        if not is_postgres(bridge.store.db) or not config.get('native_delete_enabled'):
+            raise ConfigurationError('NATIVE_DELETE_DISABLED')
         if not ident or row or expected:
             raise ConfigurationError('DELETE_EXACT_KEY_EMPTY_VALUES_REQUIRED')
         # Native semantic commands enforce their own dependency/child guards.

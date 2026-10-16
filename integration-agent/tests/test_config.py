@@ -76,6 +76,11 @@ class ConfigurationTests(unittest.TestCase):
         for value in ('false', 1):
             with self.subTest(value=value), self.assertRaisesRegex(ConfigurationError, 'must be boolean'):
                 validate_config(dict(config, reviewer_delete_enabled=value))
+        # The native command-API Delete keeps its own switch with the gate the shared switch had.
+        with self.assertRaisesRegex(ConfigurationError, 'native Delete requires'):
+            validate_config(dict(config, native_delete_enabled=True))
+        with self.assertRaisesRegex(ConfigurationError, 'must be boolean'):
+            validate_config(dict(config, native_delete_enabled='true'))
 
     def test_python_floor_matches_runtime(self):
         # AGT-QUALITY-02: Debian 13, CI and AGENTS.md all run 3.13; the floor and the ruff target say so.

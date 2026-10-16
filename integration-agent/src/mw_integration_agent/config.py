@@ -141,9 +141,12 @@ def validate_config(config: dict[str, Any]) -> None:
         except (KeyError, TypeError, ValueError):
             raise ConfigurationError('state generation and timezone cutover required') from None
         aware_cutoff(config, 'state_cutover_at', 'state generation and timezone cutover required')
-    for flag in ('partner_conversations_enabled', 'conversation_writes_enabled', 'reviewer_dml_enabled', 'reviewer_delete_enabled'):
+    for flag in ('partner_conversations_enabled', 'conversation_writes_enabled', 'reviewer_dml_enabled', 'reviewer_delete_enabled', 'native_delete_enabled'):
         if type(config.get(flag, False)) is not bool:
             raise ConfigurationError(flag + ' must be boolean')
+    # native_delete_enabled gates only the journaled native command-API Delete (conversation_write).
+    if config.get('native_delete_enabled') and (config.get('state_backend') != 'postgres' or not config.get('conversation_writes_enabled')):
+        raise ConfigurationError('native Delete requires PostgreSQL audit and conversation writes')
     # Reviewer DELETE is retired (owner decision, 16 October 2026): the role no longer holds DELETE
     # on the source tables and the DML transport accepts no DELETE step. Fail closed on a stale switch.
     if config.get('reviewer_delete_enabled', False) is not False:

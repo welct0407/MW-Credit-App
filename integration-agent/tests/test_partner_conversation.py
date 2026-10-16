@@ -303,6 +303,23 @@ class Conversations(unittest.TestCase):
                 dispatch_action(config,'oltp','Borrowers','Add',{'Row ID':'raw'},'actor@example.com')
             self.assertEqual(send.call_count,1)
 
+    def test_native_delete_has_its_own_switch(self):
+        # The native command-API Delete is gated by native_delete_enabled only; the retired SQL switch plays no part.
+        request={'version':1,'actorPartnerId':'actor','kind':'operation','command':{'requestId':'synthetic-delete'}}
+        with patch('mw_integration_agent.conversation_api.call',return_value=(200,{})) as send:
+            for config in ({'conversation_writes_enabled':True,'state_backend':'postgres'},
+                           {'conversation_writes_enabled':True,'state_backend':'postgres','native_delete_enabled':False},
+                           {'conversation_writes_enabled':True,'state_backend':'sqlite','native_delete_enabled':True}):
+                with self.subTest(config=config),self.assertRaisesRegex(ConfigurationError,'^NATIVE_DELETE_DISABLED$'):
+                    dispatch_action(config,'oltp','Borrowers','Delete',{'nativeRequest':request},'actor@example.com')
+            send.assert_not_called()
+            enabled={'conversation_writes_enabled':True,'state_backend':'postgres','native_delete_enabled':True}
+            dispatch_action(enabled,'oltp','Borrowers','Delete',{'nativeRequest':request},'actor@example.com')
+            self.assertEqual(send.call_args.args,(enabled,'commands',request))
+        from mw_integration_agent import conversation_dml
+        with self.assertRaisesRegex(ConfigurationError,'^REVIEWER_DELETE_RETIRED$'):
+            conversation_dml.parse_plan(json.dumps([{'action':'DELETE','table':'Borrowers','row_id':'b1','values':{},'expected_after':{},'observation':'o'}]))
+
     def test_finish_needs_current_evidence_and_stops_tools(self):
         args = {'status': 'VERIFIED', 'message': 'Current answer', 'observations': []}
         with self.assertRaises(ConfigurationError):

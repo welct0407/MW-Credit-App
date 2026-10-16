@@ -117,7 +117,7 @@ def catalogue(bridge, table):
     config, _ = authorize(bridge)
     if not table:
         return {'tables': list(TABLES), 'actions': ['INSERT', 'UPDATE'],
-                'limits': 'API first. SQL fallback reason must start api_gap: or atomic:. One atomic transaction per turn, at most 10 exact-key rows. Database DELETE is retired; deletions are not available. No DDL, SQL expressions, settings, functions or trigger bypass. Existing database guards remain authoritative.'}
+                'limits': 'API first. SQL fallback reason must start api_gap: or atomic:. One atomic transaction per turn, at most 10 exact-key rows. Database DELETE is retired; approved deletions use the native API Delete. No DDL, SQL expressions, settings, functions or trigger bypass. Existing database guards remain authoritative.'}
     with connect(config) as conn:
         columns = metadata(conn, table)
         constraints = conn.execute('''SELECT conname AS name, pg_get_constraintdef(oid) AS definition
