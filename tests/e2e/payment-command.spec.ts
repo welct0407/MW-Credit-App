@@ -48,7 +48,7 @@ test('G06 bounded list preserves notes, total, scroll and bilingual review at 32
  await region.getByRole('checkbox').last().check();expect(await region.evaluate(el=>el.scrollTop)).toBe(scroll);
  await expect(page.locator('output')).toContainText('Allocated฿330');await expect(page.getByRole('textbox',{name:'Notes',exact:true})).toHaveValue('Synthetic preserved notes');
  await page.getByRole('button',{name:'Review payment',exact:true}).click();await expect(page.locator('.selected-payment')).toContainText('Synthetic preserved notes');await expect(page.locator('.selected-payment')).toContainText('฿330');
- await page.getByRole('button',{name:'Edit',exact:true}).click();await chooseLanguagePreservingForm(page,'ไทย');await expect(page.getByRole('region',{name:'จัดสรรการรับชำระ'})).toBeVisible();
+ await page.getByRole('button',{name:'Edit',exact:true}).click();await expect(page.getByRole('region',{name:'Payment allocation',exact:true})).toBeVisible();await chooseLanguagePreservingForm(page,'ไทย');await expect(page.getByRole('region',{name:'จัดสรรการรับชำระ'})).toBeVisible({timeout:10000});
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
  await page.screenshot({path:'test-results/r052-payment-command-api/ui-'+info.project.name+'-'+width+'-th.png',fullPage:true});
  await page.unroute('https://mw-credit-app-command-dev-test.run.app/**');
