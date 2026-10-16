@@ -31,6 +31,7 @@ Use the [release tracker](Release_Tracker.md), including the carried R016 admini
 - Deploy: `scripts/deploy-runtime.py` (freeze, install, activate, rollback, dry-run) verifies installed files against source, installs changed units, restarts the receiver, waits for `/ready` with the pinned commit, then resumes timers; failure rolls back automatically. `update-reviewed-runtime.sh` is retired; other deploy scripts use the monorepo paths.
 - Host monitor: `webhook_local` now comes from `/ready`. No Grafana or alert change.
 - Host facts: installed tree equals `main` `58929d7` (recorded in the [inventory](Environment_Inventory.md)); the checkout was unshallowed on 16 October 2026, HEAD unchanged.
+- Checks: unit suite 409 tests OK (44 skipped); host monitor 31 OK; lab suites 49 of 50 pass, the one error is the pre-existing AGT-TEST-02; read-only helper dry run on the host passed. Package commit `a141e06`.
 - Deploy of Waves 1 and 2 waits for the owner go and for the commit to be on the host clone. Details, checks and recovery: [change note](../../integration-agent/Change%20Logs/CHANGE_NOTES_W2_AGENT_DEPLOYMENT_2026-10-16.md).
 
 ## R063 Wave 1 — PWA and API fixes
