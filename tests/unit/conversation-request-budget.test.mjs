@@ -12,7 +12,7 @@ test('conversation read provider sets the command statement and lock budget',asy
  const provider=createConversationReadProvider({pool:{async connect(){return client;}},guardConnection:async()=>{},policy:{readPartnerIds:['p'],reviewerPartnerIds:[]},
   catalogue:{resources:[{scope:'oltp',resource:'Synthetic',fields:[]}]},resources:{oltp:{}}});
  await provider.catalogue(context,{actorPartnerId:'p',scope:'oltp',resource:'Synthetic'});
- assert.ok(calls.includes("SET LOCAL statement_timeout='8000ms'"),calls.join('|'));assert.ok(calls.includes("SET LOCAL lock_timeout='3000ms'"));
+ assert.ok(calls.includes("SET LOCAL statement_timeout='8000ms'"),calls.join('|'));assert.ok(calls.includes("SET LOCAL lock_timeout='3000ms'"));assert.ok(calls.includes('SET LOCAL jit=off'),'reads skip JIT compilation');
  assert.equal(calls.some(sql=>sql.includes("'10000ms'")),false);
 });
 test('conversation command status sets the command statement budget',async()=>{
