@@ -35,6 +35,8 @@ Each behaviour change has a focused test that failed on the old code and passes 
 | CI run 254 on `1b65876` (fix round) | `ci.yml` `workflow_dispatch`, run id 38812793799 | Success: every step passed, including `test:e2e` (canonical-server specs included) and the Terraform `fmt`/`init`/`validate` steps |
 | DEV deploy | Cloud Build `938d2cfc-f0e1-4c54-abc0-95d865da490e` (`cloudbuild-command.yaml`, smoke step passed) from clean `9c5a95f` (docs-only diff from tested `1b65876`); `Invoke-Terraform.ps1 -Stack dev` saved plan (0 add, 2 change image-only, 0 destroy), apply, `-PublishActivation`; `node scripts/deploy-hosting.mjs --live-dev` | Image `api@sha256:abe733302ac10be410511254e9b7b81649b1fc3bcb03b10d320972092aaa1b5e`; command `mw-credit-app-command-dev-00028-8tf` and read `mw-credit-app-read-dev-00021-cdz` Ready, 100% traffic; Hosting version `6dafe1d0cf4926ac`, release `1792102167263000`, build `3a744a3681827bdb023b51c2`, entry `index-B-W-6qX6.js`; activation publish matched |
 | DEV bounded smoke (unauthenticated) | `/health` both services; command `/api/preferences`, `/api/offline-dataset`, `/api/management/cash-position` and read `/api/borrowers` without and with an invalid token; `OPTIONS` from `dev-lm` and a foreign origin; `build-version.json`, entry, `index.html`, `sw.js`; Cloud Logging errors since deploy | 200 / 200; 401 `sign_in_required` and 401 `session_invalid`; 204 with DEV origin, 403 foreign; new build and entry served, `sw.js` new version `no-store`; no ERROR entries |
+| CI run 255 on `6030ed6` (owner-decision commit) | `ci.yml` `workflow_dispatch`, run id 38842458379, attempts 1 and 2 | Attempt 1: 458 passed, 11 skipped, 1 failed (F1 desktop, `phase5-borrower-independent:59`, "Sync now" detached during a re-render; passed 8/8 locally and in run 254). Attempt 2 (failed-job rerun): F1 passed; 458 passed, 11 skipped, 1 failed: P6 T9 desktop (`phase5-final-ui-independent:257`), which fails identically on `main` run 251 (pre-existing, ALL-CI-01). No failure attributable to this branch |
+| DEV Hosting update for `6030ed6` | fresh worktree; `npm run build:live-dev`; `node scripts/deploy-hosting.mjs --live-dev` (check, then release); image and Terraform unchanged | Version `edf06b9da5841b1d`, release `1792120937117000`, build `5f48bad14204b77c843d0474`, entry `index-DJ9BQL4y.js`; `build-version.json`, entry, `index.html` 200 and new; `sw.js` new version `no-store`. Rollback: `6dafe1d0cf4926ac` |
 
 ## Not run
 
@@ -56,8 +58,10 @@ Git baseline `a029880`; revert the wave commits. UI and API only, no database ch
 
 ## Open questions
 
-1. Can a permanently blocked, already-attempted saved change (no recorded rejection) be discarded after a confirmation that warns it may or may not have been applied? Until then it keeps Sign out disabled.
-2. Confirm the PROD notify minute recovery (`notification_schedule_enabled`) before promotion, since APP-PAY-02 relies on it.
+None open. Owner decisions, 16 October 2026:
+
+1. Yes: a blocked saved change that was already sent, with no recorded rejection, may be removed after a stronger confirmation that it may or may not have been applied. Implemented in `6030ed6` (`apps/pwa/src/OfflinePayments.tsx`): "Remove saved change" shows for every blocked row (never queued or syncing); rejected and unsent rows keep the old text; the read-only screen after a 403 hides the button and shows the lock text. Test `tests/e2e/saved-change-discard-independent.spec.ts` (3 tests, both projects) failed on the old code and passes now.
+2. PROD notify minute recovery checked read-only on 16 October 2026: Cloud Scheduler `mw-credit-app-prod-notifications` is `ENABLED`, `* * * * *` Asia/Bangkok, last attempt 02:42 UTC finished HTTP 200, no ERROR attempts in the last 24 hours. APP-PAY-02 can rely on it.
 
 ## Remaining work
 
@@ -70,6 +74,6 @@ Git baseline `a029880`; revert the wave commits. UI and API only, no database ch
   - W1-UX-EXPIRED-01: mention that saved changes are kept.
   - W1-UX-AUTH-01: outage wording.
 - Minor: the notifications handler does not guard a null principal. `cpu_idle=true` on DEV/PROD command may delay the background wake; minute recovery covers it.
-- Re-test leftovers (Agent C, low): on a device where IndexedDB cannot open, sign-out fails closed every time and only clearing site data exits (`live-main.tsx` ~:341); allow sign-out after an explicit confirmation when storage cannot open. On the read-only denied screen, "Remove saved change" is still shown for removable rows but the remove call fails silently (`OfflinePayments.tsx`).
+- Re-test leftovers (Agent C, low): on a device where IndexedDB cannot open, sign-out fails closed every time and only clearing site data exits (`live-main.tsx` ~:341); allow sign-out after an explicit confirmation when storage cannot open. The read-only denied-screen remove issue is fixed in `6030ed6`.
 - Authenticated DEV check by the owner on a device: offline queue through a session expiry, sign-out guard, receipt downscale, and a payment write.
 - PROD promotion with R063.
