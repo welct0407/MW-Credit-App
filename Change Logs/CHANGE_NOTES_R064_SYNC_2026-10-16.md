@@ -39,7 +39,10 @@ Branch `claude/sync-phase1` (head 9420c85): server 81541c7, PWA 1f63b9d, then:
 - Agent E UX review: no blockers; R01 to R06 fixed except R04 (layout changed) and SYNC-UX-06 (reverted).
 - CI on 9420c85: `ci.yml` run 38934694604 (all e2e shards) and Database migrations run 38934680973 green; `npm run check` 526 unit tests; Biome errors 0.
 - DEV: first deploy 9d3f064 (image 3f49e010..., revisions command-00033-kpn, read-00026-b8v, jobs-00006-57s, notify-00006-84q, CPU boost on, Hosting 052fef2eef12760c); Hosting refresh c4f53da (a3c0540fe9eab297); final 9420c85: image sha256:4689ce78f0c8... (`keep-dev-20261016-4689ce78`), revisions command-00034-whm, read-00027-gfw, jobs-00007-vch, notify-00007-xrq applied 16:50:33 to 16:51:09Z, Hosting 602f053ab2081d8c (release 1792169531712000). Smoke passed, 0 errors. DEV rollback: image 3f49e010... / Hosting a3c0540fe9eab297 (pre-sync: ec4ffe05... / e0ac761a1022e40e).
-- PROD: staged, deployment in progress (Agent F). Staged image sha256:88b4dbad1b33... (tag `keep-r064-sync-runtime`), saved Terraform plan 0 add / 4 change / 0 destroy (image x4, command max instances 1 to 2, CPU boost), Hosting package 0a8bd972... `--check` passed. PROD result: pending.
+- PROD (from 9420c85, Agent F): image sha256:88b4dbad1b33d3cd4819fd6023b35075360e3576ece7dad952500b3f2abe791d (`keep-r064-sync-runtime`, build 11fdb610); saved plan 875ca808... 0/4/0 applied 16:54:52 to 16:55:28Z (23:54 to 23:55 Bangkok), activation 01bc8130... published, re-plan No changes. Revisions read-00008-xp4, command-00012-67j, notify-00006-rnq, jobs-00006-rzs, Ready 100%; command max instances 2, startup CPU boost on reader and command, command pool 4. Hosting 7664add62c41bce6, release 1792169838042000, 16:56:51 to 16:57:25Z, marker 9151ce0bb3ab28cb380618b6, entry `/assets/index-CnmFQCHp.js`. The first `--apply` (16:56:27Z) was refused by the runner's live verification before any change (package source-object field order); fixed, `--check` re-passed, second apply succeeded. Package d7752d4f..., receipt 58ff0539... (private folder and operator bucket; the runner's `promotion-receipts/hosting-receipt.json` copy now holds this receipt, the Wave 4 one stays in `promotion-packages/r064/`).
+- PROD smoke (16:57:36Z on): health 200; unauthenticated session and offline-dataset 401; PROD origin 204, foreign/DEV origin 403; 15 of 15 files byte-identical; CSP PROD-only; `X-Frame-Options: DENY`; logs 0 errors and 0 5xx; notify 200 on the new revision; no agent 503s.
+- PROD rollback pins: image 8611c23d... (read-00007-tgd, command-00011-j4n, notify-00005-p8k, jobs-00005-fnc) via `production.activation.before.tfvars`; Hosting 2b6c25c065f1a45a (release 1792166200421000).
+- Not done: authenticated PROD path (the owner's next normal sign-in is the proof; no PROD test identity) and a physical-device check.
 
 ## Rollout and compatibility
 
@@ -47,8 +50,8 @@ Either order is safe (old client with new server keeps 409; new client with old 
 
 ## Recovery
 
-App: redeploy the previous pins (PROD: the Wave 4 R064 pins, image 8611c23d... / Hosting 2b6c25c065f1a45a; DEV: see Checks), or `git revert` 1f63b9d and 81541c7 and redeploy. Terraform capacity (command max instances, boost) reverts with the same revert. Cloud SQL: `gcloud sql instances patch --tier=db-f1-micro` (restarts the instance); flags and backups above remain available (restore a listed backup only for data loss).
+App: redeploy the previous pins (PROD and DEV pins are listed under Checks), or `git revert` 1f63b9d and 81541c7 and redeploy. Terraform capacity (command max instances, boost) reverts with the same revert. Cloud SQL: `gcloud sql instances patch --tier=db-f1-micro` (restarts the instance); flags and backups above remain available (restore a listed backup only for data loss).
 
 ## Outcome
 
-DEV deployed and smoke-passed. PROD: in progress; result pending.
+DEV and PROD deployed from 9420c85 and smoke-passed; no migration. Authenticated PROD proof is the owner's next normal sign-in. R064 closure and tag belong to the Wave 4 session.
