@@ -6,10 +6,11 @@ test('services name the project and owner only through lib/identity.mjs',async()
  for(const file of await files('services')){if(file===join('services','lib','identity.mjs'))continue;const text=await readFile(file,'utf8');for(const literal of ['clever-oasis-508610-n7','welct0407@'])if(text.includes(literal))hits.push(file+': '+literal);}
  assert.deepEqual(hits,[]);
 });
-test('shared instance allowlist names exactly the current instance and its 2026-10-17 successor',async()=>{
+test('shared instance allowlist names exactly the SSD instance and its HDD predecessor',async()=>{
  const identity=await import('../../services/lib/identity.mjs');
- assert.deepEqual([...identity.INSTANCE_NAMES],['appsheet-pg-prod-20260914','mw-credit-pg-20261017']);
- assert.equal(identity.INSTANCE_CONNECTION_NAME,'clever-oasis-508610-n7:asia-southeast1:appsheet-pg-prod-20260914');
+ assert.deepEqual([...identity.INSTANCE_NAMES],['mw-credit-pg-20261017','appsheet-pg-prod-20260914']);
+ assert.equal(identity.INSTANCE_CONNECTION_NAME,'clever-oasis-508610-n7:asia-southeast1:mw-credit-pg-20261017');
+ assert.equal(identity.isSharedInstanceConnection('clever-oasis-508610-n7:asia-southeast1:appsheet-pg-prod-20260914'),true);
  assert.equal(identity.isSharedInstanceConnection('clever-oasis-508610-n7:asia-southeast1:mw-credit-pg-20261017'),true);
  for(const value of ['clever-oasis-508610-n7:asia-southeast1:mw-credit-pg-20261018','mw-credit-pg-20261017',null,undefined,''])assert.equal(identity.isSharedInstanceConnection(value),false);
 });

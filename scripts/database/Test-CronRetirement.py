@@ -5,13 +5,13 @@ sys.path.insert(0,str(Path(os.environ['LOCALAPPDATA'])/'AppSheetLoanTools/python
 import psycopg
 repo=Path(__file__).resolve().parents[2]
 target=json.loads((repo/'database/environments.json').read_text())['development']
-assert (target['instance'],target['host'],target['database'])==('appsheet-pg-prod-20260914','34.21.174.215','loan_manager_dev')
+assert (target['instance'],target['host'],target['database'])==('mw-credit-pg-20261017','TO_FILL_AFTER_CREATE_HOST','loan_manager_dev')
 source=(repo/'database/migrations/V40__retire_unused_pg_cron.sql').read_text()
 query=re.search(r'EXECUTE \$check\$(.*?)\$check\$ INTO',source,re.S).group(1).replace('cron.job','pg_temp.cron_fixture')
 fields=['jobid','jobname','schedule','command','nodename','nodeport','database','username','active']
 base=[1,'loan-daily-charges','5 0 * * *',"SELECT public.generate_due_charges((statement_timestamp() AT TIME ZONE 'Asia/Bangkok')::date);",'localhost',5432,'loan_manager_dev','postgres',False]
 with psycopg.connect(host=target['host'],port=target['port'],dbname=target['database'],user=target['user'],password=Path(target['passwordFile']).read_text().strip(),sslmode='require') as c:
-    assert c.execute('SELECT current_database(),host(inet_server_addr())').fetchone()==('loan_manager_dev','34.21.174.215')
+    assert c.execute('SELECT current_database(),host(inet_server_addr())').fetchone()==('loan_manager_dev','TO_FILL_AFTER_CREATE_HOST')
     c.execute('CREATE TEMP TABLE cron_fixture(jobid bigint,jobname text,schedule text,command text,nodename text,nodeport integer,database text,username text,active boolean) ON COMMIT DROP')
     results={'empty_inventory':c.execute(query).fetchone()[0]==0}
     c.execute('INSERT INTO cron_fixture VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)',base)

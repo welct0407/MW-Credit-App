@@ -30,7 +30,7 @@ function Group-Transform($Groups,$Sums) {
 }
 function NonNull-Transform($Field) { return @{id='filterByValue';options=@{type='include';match='all';filters=@(@{fieldName=$Field;config=@{id='isNotNull';options=@{}}})}} }
 $vmFilter='resource.labels.instance_id = "8223265527494214160"'
-$sqlFilter='resource.labels.database_id = "clever-oasis-508610-n7:appsheet-pg-prod-20260914"'
+$sqlFilter='resource.labels.database_id = "clever-oasis-508610-n7:mw-credit-pg-20261017"'
 function New-CloudSqlMemoryQueries {
     $i=0
     foreach($component in @('Usage','Cache','Free')) {
@@ -58,7 +58,7 @@ $null=Add-Chart $perf 21 'CPU utilization' (New-GcpMetricQuery 'compute.googleap
 $null=Add-Chart $perf 22 'Used memory' (New-GcpMetricQuery 'agent.googleapis.com/memory/percent_used' ($vmFilter+' AND metric.labels.state = "used"') 'ALIGN_MEAN' 'Used') 'percent' 12 23
 $null=Add-Chart $perf 23 'Network throughput' @((New-GcpMetricQuery 'compute.googleapis.com/instance/network/received_bytes_count' $vmFilter 'ALIGN_RATE' 'Received' 'REDUCE_SUM'),(New-GcpMetricQuery 'compute.googleapis.com/instance/network/sent_bytes_count' $vmFilter 'ALIGN_RATE' 'Sent' 'REDUCE_SUM')) 'Bps' 0 30
 $null=Add-Chart $perf 24 'Disk throughput' @((New-GcpMetricQuery 'compute.googleapis.com/instance/disk/read_bytes_count' $vmFilter 'ALIGN_RATE' 'Read' 'REDUCE_SUM'),(New-GcpMetricQuery 'compute.googleapis.com/instance/disk/write_bytes_count' $vmFilter 'ALIGN_RATE' 'Write' 'REDUCE_SUM')) 'Bps' 12 30
-Add-Row $perf 30 'GCP · Cloud SQL · appsheet-pg-prod-20260914' 37
+Add-Row $perf 30 'GCP · Cloud SQL · mw-credit-pg-20261017' 37
 $null=Add-Chart $perf 31 'CPU utilization' (New-GcpMetricQuery 'cloudsql.googleapis.com/database/cpu/utilization' $sqlFilter 'ALIGN_MEAN' 'CPU') 'percentunit' 0 38
 $null=Add-Chart $perf 32 'Memory components' (New-CloudSqlMemoryQueries) 'percent' 12 38
 $null=Add-Chart $perf 33 'Storage utilization' (New-GcpMetricQuery 'cloudsql.googleapis.com/database/disk/utilization' $sqlFilter 'ALIGN_MEAN' 'Storage') 'percentunit' 0 45

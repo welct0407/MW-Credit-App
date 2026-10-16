@@ -47,8 +47,8 @@ class ReviewerDmlScriptTests(unittest.TestCase):
             configure_dml.configure(FakeConnection(), 'x', 'postgres')
 
     def test_target_is_identified_by_instance_name_only(self):
-        environments = {'production': {'instance': 'appsheet-pg-prod-20260914', 'host': '10.0.0.5', 'database': 'loan_manager_prod', 'user': 'postgres'},
-                        'development': {'instance': 'appsheet-pg-prod-20260914', 'host': '10.0.0.5', 'database': 'loan_manager_dev', 'user': 'postgres'}}
+        environments = {'production': {'instance': 'mw-credit-pg-20261017', 'host': '10.0.0.5', 'database': 'loan_manager_prod', 'user': 'postgres'},
+                        'development': {'instance': 'mw-credit-pg-20261017', 'host': '10.0.0.5', 'database': 'loan_manager_dev', 'user': 'postgres'}}
         self.assertEqual(configure_dml.target_for(environments, 'prod')[1], 'mw_reviewer_dml')
         target, role = configure_dml.target_for(environments, 'dev')
         self.assertEqual((target['database'], role), ('loan_manager_dev', 'mw_reviewer_dml_dev'))
@@ -62,7 +62,7 @@ class ReviewerDmlScriptTests(unittest.TestCase):
                 text = path.read_text(encoding='utf-8', errors='replace')
                 with self.subTest(script=path.name):
                     self.assertNotIn('C:/Users/', text); self.assertNotIn('C:\\Users\\', text)
-                    self.assertNotIn('34.21.174.215', text)
+                    self.assertNotIn('TO_FILL_AFTER_CREATE_HOST', text)
 
 
 if __name__ == '__main__':

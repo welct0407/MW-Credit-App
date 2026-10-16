@@ -57,7 +57,7 @@ resource "google_cloud_run_v2_service" "command_api" {
       dynamic "env" {
         for_each = merge(local.business_env, {
           FOUNDATION_ROLE                = "command"
-          DB_USER                        = google_sql_user.command_runtime[0].name
+          DB_USER                        = google_sql_user.command_runtime_ssd[0].name
           RUNTIME_SERVICE_ACCOUNT        = google_service_account.command_runtime[0].email
           DEV_RECEIPTS                   = "enabled"
           RECEIPT_BUCKET                 = local.bucket

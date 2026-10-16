@@ -19,7 +19,7 @@ SELECT json_build_object(
 '@
 if($ReceiptReferences){$query=@'
 SELECT json_build_object('schemaVersion',1,'environment','prod','database',current_database(),
- 'instanceConnectionName','clever-oasis-508610-n7:asia-southeast1:appsheet-pg-prod-20260914','host','34.21.174.215',
+ 'instanceConnectionName','clever-oasis-508610-n7:asia-southeast1:mw-credit-pg-20261017','host','TO_FILL_AFTER_CREATE_HOST',
  'capturedAt',clock_timestamp(),'readOnly',true,'table','Payments','column','Uploaded Receipt',
  'totalNonblank',(SELECT count(*) FROM public."Payments" WHERE nullif(btrim("Uploaded Receipt"),'') IS NOT NULL),
  'rows',(SELECT coalesce(json_agg(json_build_object('rowId',"Row ID",'reference',"Uploaded Receipt")),'[]'::json)
@@ -28,7 +28,7 @@ SELECT json_build_object('schemaVersion',1,'environment','prod','database',curre
 if($AgentReceipt){
  if($ReceiptReferences){throw 'Choose one bounded projection'}
  $query=@'
-SELECT json_build_object('schemaVersion',1,'environment','prod','database',current_database(),'host','34.21.174.215','capturedAt',clock_timestamp(),'readOnly',true,
+SELECT json_build_object('schemaVersion',1,'environment','prod','database',current_database(),'host','TO_FILL_AFTER_CREATE_HOST','capturedAt',clock_timestamp(),'readOnly',true,
  'rows',(SELECT coalesce(json_agg(json_build_object('rowId',"Row ID",'reference',"Receipt Image",'agentReceiptId',"IG Receipt ID",'agentReceivedAt',"Receipt Received At"::text)),'[]'::json)
  FROM (SELECT "Row ID","Receipt Image","IG Receipt ID","Receipt Received At" FROM public."Payments" WHERE "Receipt Image" LIKE '//receipts/prod/%' AND "IG Receipt ID" IS NOT NULL AND "Receipt Received At" IS NOT NULL ORDER BY "Row ID" LIMIT 1) bounded));
 '@

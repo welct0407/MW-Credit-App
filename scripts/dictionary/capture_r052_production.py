@@ -28,7 +28,7 @@ assert destination.is_relative_to(Path('C:/Users/ideaadmin/Documents/ChatGPT/App
 assert not destination.exists(), 'Preserve existing actual capture'
 assert not any(os.environ.get(k) for k in ['PGHOST','PGHOSTADDR','PGPORT','PGDATABASE','PGUSER','PGPASSWORD','PGSERVICE','PGSERVICEFILE','PGPASSFILE','PGOPTIONS','DATABASE_URL'])
 t=json.loads((root/'database/environments.json').read_text())['production']
-assert (t['instance'],t['host'],t['port'],t['database'],t['user'])==('appsheet-pg-prod-20260914','34.21.174.215',5432,'loan_manager_prod','postgres')
+assert (t['instance'],t['host'],t['port'],t['database'],t['user'])==('mw-credit-pg-20261017','TO_FILL_AFTER_CREATE_HOST',5432,'loan_manager_prod','postgres')
 password=Path(t['passwordFile']).resolve()
 assert password.is_relative_to(Path('C:/Users/ideaadmin/Documents/ChatGPT').resolve())
 with psycopg.connect(host=t['host'],port=t['port'],dbname=t['database'],user=t['user'],password=password.read_text().strip(),sslmode='require',connect_timeout=10,autocommit=True,row_factory=dict_row) as c:

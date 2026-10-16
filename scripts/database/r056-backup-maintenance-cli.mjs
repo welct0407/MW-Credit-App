@@ -11,7 +11,7 @@ if(!relative||relative.startsWith('..')||path.isAbsolute(relative))throw Error('
 let component=path.parse(stateFile).root;for(const piece of stateFile.slice(component.length).split(path.sep)){component=path.join(component,piece);if(fs.existsSync(component)&&fs.lstatSync(component).isSymbolicLink())throw Error('Private reparse path refused');}
 if(execFileSync('git',['-C',repo,'rev-parse','HEAD'],{encoding:'utf8'}).trim()!==options['--source-commit'])throw Error('Source checkout differs from approved pin');
 const target=JSON.parse(fs.readFileSync(path.join(repo,'database/environments.json'),'utf8')).production;
-if(target.instance!=='appsheet-pg-prod-20260914'||target.host!=='34.21.174.215'||target.port!==5432||target.database!=='loan_manager_prod'||target.user!=='postgres')throw Error('Wrong production target');
+if(target.instance!=='mw-credit-pg-20261017'||target.host!=='TO_FILL_AFTER_CREATE_HOST'||target.port!==5432||target.database!=='loan_manager_prod'||target.user!=='postgres')throw Error('Wrong production target');
 const credential=path.resolve(target.passwordFile);if(!credential.startsWith(path.resolve('C:/Users/ideaadmin/Documents/ChatGPT')+path.sep))throw Error('Private credential required');
 const config={database:'loan_manager_prod',creators:['postgres'],executionMode:'cloudsql-prod',productionAuthorization:{purpose:'r056-backup-preparation',approvalReference:options['--approval-reference'],sourceCommit:options['--source-commit'],baselineVersion:90,targetVersion:91}};
 const client=new pg.Client({host:target.host,port:target.port,database:target.database,user:target.user,password:fs.readFileSync(credential,'utf8').trim(),ssl:{rejectUnauthorized:false},connectionTimeoutMillis:10000,application_name:'mw-r056-backup-maintenance'});

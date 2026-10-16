@@ -7,7 +7,7 @@ import psycopg
 from psycopg import sql
 p=argparse.ArgumentParser();p.add_argument('phase',choices=['before','after','cleanup']);a=p.parse_args()
 r=Path(__file__).resolve().parents[2];o=r/'outputs/r051-trigger-performance';b=json.loads((o/'vm01-development-backup.json').read_text());old=json.loads((Path(b['backup_file']).parent/'fingerprints.json').read_text());t=json.loads((r/'database/environments.json').read_text())['development']
-assert (t['instance'],t['host'],t['database'])==('appsheet-pg-prod-20260914','34.21.174.215','loan_manager_dev')
+assert (t['instance'],t['host'],t['database'])==('mw-credit-pg-20261017','TO_FILL_AFTER_CREATE_HOST','loan_manager_dev')
 assert hashlib.sha256(Path(b['backup_file']).read_bytes()).hexdigest()==b['backup_sha256']
 with psycopg.connect(host=t['host'],port=t['port'],dbname=t['database'],user=t['user'],password=Path(t['passwordFile']).read_text().strip(),sslmode='require') as c:
  c.execute('BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY')

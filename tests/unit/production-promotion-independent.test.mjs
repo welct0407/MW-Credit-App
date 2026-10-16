@@ -15,7 +15,7 @@ async function packageFixture(t){
  t.after(async()=>{assert.match(path.basename(root),/^phase3-independent-cli-/);assert.equal(path.dirname(root),tmpdir());await rm(root,{recursive:true,force:true});});
  const app='synthetic-cli-prod',site='synthetic-cli-site';
  const target={applicationProject:{id:app,number:'123456789014'},dataProject:{id:'clever-oasis-508610-n7',number:'737787224638'},region:'asia-southeast1',
-  auth:{projectId:app,tenant:null,issuer:'https://securetoken.google.com/'+app,audience:app},database:{connectionName:'clever-oasis-508610-n7:asia-southeast1:appsheet-pg-prod-20260914',host:'34.21.174.215',name:'loan_manager_prod'},
+  auth:{projectId:app,tenant:null,issuer:'https://securetoken.google.com/'+app,audience:app},database:{connectionName:'clever-oasis-508610-n7:asia-southeast1:mw-credit-pg-20261017',host:'TO_FILL_AFTER_CREATE_HOST',name:'loan_manager_prod'},
   storage:{bucket:'mw-payment-receipts-prod-508610-n7',receiptPrefix:'synthetic/prod-receipts/',healthPrefix:'synthetic/prod-health/'},
   runtime:{reader:{service:'mw-credit-app-read-prod',serviceAccount:'mw-credit-app-read-prod@'+app+'.iam.gserviceaccount.com'},command:{service:'mw-credit-app-command-prod',serviceAccount:'mw-credit-app-command-prod@'+app+'.iam.gserviceaccount.com'}},
   hosting:{site,canonicalOrigin:'https://lm.mw-credit.com',fallbackOrigin:'https://'+site+'.web.app'},state:{projectId:app,bucket:'synthetic-cli-state',prefix:'production/foundation/',generation:12},artifactRepository:{projectId:app,region:'asia-southeast1',name:'mw-credit-app'},

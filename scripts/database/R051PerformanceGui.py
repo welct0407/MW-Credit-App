@@ -9,7 +9,7 @@ p=argparse.ArgumentParser();p.add_argument('action',choices=['seed','read','clea
 repo=Path(__file__).resolve().parents[2];out=repo/'outputs/r051-trigger-performance'
 b=json.loads((out/'vm01-development-backup.json').read_text());assert b['restored_fingerprints_match']
 t=json.loads((repo/'database/environments.json').read_text())['development']
-assert (t['instance'],t['host'],t['database'])==('appsheet-pg-prod-20260914','34.21.174.215','loan_manager_dev')
+assert (t['instance'],t['host'],t['database'])==('mw-credit-pg-20261017','TO_FILL_AFTER_CREATE_HOST','loan_manager_dev')
 with psycopg.connect(host=t['host'],port=t['port'],dbname=t['database'],user=t['user'],password=Path(t['passwordFile']).read_text().strip(),sslmode='require',connect_timeout=15) as c:
     assert c.execute('SELECT current_database(),host(inet_server_addr())').fetchone()==('loan_manager_dev',t['host'])
     assert c.execute('SELECT version FROM flyway_schema_history WHERE success ORDER BY installed_rank DESC LIMIT 1').fetchone()==('73',)

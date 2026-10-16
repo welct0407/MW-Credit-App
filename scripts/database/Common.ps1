@@ -7,8 +7,8 @@ $DbToolRoot = if ($env:MW_DB_TOOL_ROOT) { [IO.Path]::GetFullPath($env:MW_DB_TOOL
 $DbToolchain = Get-Content (Join-Path $DbRepoRoot 'database/toolchain.json') -Raw | ConvertFrom-Json
 function Assert-DbEnvironmentIdentity([string]$Name, $Target) {
     $expected = @{
-        development = @{ instance='appsheet-pg-prod-20260914'; host='34.21.174.215'; database='loan_manager_dev' }
-        production  = @{ instance='appsheet-pg-prod-20260914'; host='34.21.174.215'; database='loan_manager_prod' }
+        development = @{ instance='mw-credit-pg-20261017'; host='TO_FILL_AFTER_CREATE_HOST'; database='loan_manager_dev' }
+        production  = @{ instance='mw-credit-pg-20261017'; host='TO_FILL_AFTER_CREATE_HOST'; database='loan_manager_prod' }
     }[$Name]
     foreach ($property in @('instance','host','database')) {
         if ($Target.$property -ne $expected.$property) {

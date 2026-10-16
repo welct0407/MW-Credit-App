@@ -9,7 +9,7 @@ root=Path(__file__).resolve().parents[2]
 out=root/'outputs/r051-transparent-performance/production-dependency-reads.json'
 assert not out.exists()
 t=json.loads((root/'database/environments.json').read_text())['production']
-assert (t['instance'],t['host'],t['database'])==('appsheet-pg-prod-20260914','34.21.174.215','loan_manager_prod')
+assert (t['instance'],t['host'],t['database'])==('mw-credit-pg-20261017','TO_FILL_AFTER_CREATE_HOST','loan_manager_prod')
 result={'at':datetime.now(timezone.utc).isoformat(),'database':t['database'],
     'mode':'REPEATABLE READ READ ONLY; EXPLAIN SELECT only; no row values returned',
     'limitation':'Direct full-table read server timings, not AppSheet connector/client or dependent VC timings','relations':{}}

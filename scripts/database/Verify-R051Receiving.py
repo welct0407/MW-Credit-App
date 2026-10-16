@@ -23,7 +23,7 @@ assert hashlib.sha256(Path(backup['backup_file']).read_bytes()).hexdigest() == b
 before = json.loads((Path(backup['backup_file']).parent / 'fingerprints.json').read_text())
 target = json.loads((repo / 'database/environments.json').read_text())['development']
 assert (target['instance'], target['host'], target['database']) == (
-    'appsheet-pg-prod-20260914', '34.21.174.215', 'loan_manager_dev')
+    'mw-credit-pg-20261017', 'TO_FILL_AFTER_CREATE_HOST', 'loan_manager_dev')
 with psycopg.connect(host=target['host'], port=target['port'], dbname=target['database'],
                      user=target['user'], password=Path(target['passwordFile']).read_text().strip(),
                      sslmode='require', connect_timeout=15) as c:

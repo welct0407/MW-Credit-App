@@ -2,6 +2,7 @@ mock_provider "google" {}
 mock_provider "google-beta" {}
 
 variables {
+  sql_ssd_import             = false # mock providers cannot import
   application_project_id     = "clever-oasis-508610-n7"
   application_project_number = "737787224638"
   region                     = "asia-southeast1"
@@ -15,7 +16,7 @@ run "default_is_inert" {
     error_message = "The preparation root must propose no cloud resources by default."
   }
   assert {
-    condition     = length(google_sql_user.business_runtime) == 0 && length(google_project_iam_member.business_sql) == 0
+    condition     = length(google_sql_user.business_runtime_ssd) == 0 && length(google_project_iam_member.business_sql) == 0
     error_message = "Business prerequisites must remain absent without explicit authorization."
   }
 }
@@ -86,7 +87,7 @@ run "business_prerequisites_do_not_activate_runtime" {
     foundation_image                   = "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app-prod/api@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
   }
   assert {
-    condition     = length(google_sql_user.business_runtime) == 2 && length(google_project_iam_member.business_sql) == 4
+    condition     = length(google_sql_user.business_runtime_ssd) == 2 && length(google_project_iam_member.business_sql) == 4
     error_message = "Only two IAM database users and four SQL connection bindings are proposed."
   }
   assert {

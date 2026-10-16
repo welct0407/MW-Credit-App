@@ -200,9 +200,22 @@ resource "google_service_account_iam_member" "cloud_read_token_creator" {
   role               = "roles/iam.serviceAccountTokenCreator"
   member             = "serviceAccount:codex-cloud@clever-oasis-508610-n7.iam.gserviceaccount.com"
 }
-resource "google_sql_user" "cloud_read" {
+# SSD move: the restore carries this user to the new instance. Forget the old
+# instance's user (left in place for rollback) and adopt the restored one.
+# Plan only after the restore: an import of a missing user fails.
+removed {
+  from = google_sql_user.cloud_read
+  lifecycle {
+    destroy = false
+  }
+}
+import {
+  to = google_sql_user.cloud_read_ssd
+  id = "${local.project}/${local.cloud_sql_instance_ssd}/codex-cloud-read@${local.project}.iam"
+}
+resource "google_sql_user" "cloud_read_ssd" {
   project         = local.project
-  instance        = local.cloud_sql_instance
+  instance        = local.cloud_sql_instance_ssd
   name            = trimsuffix(google_service_account.cloud_read.email, ".gserviceaccount.com")
   type            = "CLOUD_IAM_SERVICE_ACCOUNT"
   deletion_policy = "ABANDON"

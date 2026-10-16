@@ -59,7 +59,7 @@ class EnvironmentTests(unittest.TestCase):
     def test_python_clients_accept_only_the_pinned_ca(self):
         with tempfile.TemporaryDirectory() as tmp:
             pem, sha = synthetic_ca(tmp)
-            target = {'instance': 'appsheet-pg-prod-20260914', 'serverCaSha256': sha}
+            target = {'instance': 'mw-credit-pg-20261017', 'serverCaSha256': sha}
             dest = Path(tmp) / 'private' / 'cloudsql-server-ca.pem'
             self.assertEqual(server_ca.pinned_server_ca(target, dest, fetch=lambda i: pem.read_text()), dest)
             self.assertEqual(server_ca.pem_sha256(dest), sha)

@@ -9,7 +9,7 @@ assert not (out/'production-grants.json').exists(),'Inspect existing grant evide
 backup=json.loads((out/'production-backup.json').read_text())
 assert backup['restore_fingerprints_match'] and hashlib.sha256(Path(backup['backup_file']).read_bytes()).hexdigest()==backup['backup_sha256']
 t=json.loads((repo/'database/environments.json').read_text())['production']
-assert (t['instance'],t['host'],t['database'])==('appsheet-pg-prod-20260914','34.21.174.215','loan_manager_prod')
+assert (t['instance'],t['host'],t['database'])==('mw-credit-pg-20261017','TO_FILL_AFTER_CREATE_HOST','loan_manager_prod')
 views=['reporting_charge_payment_health_v1','reporting_borrower_payment_health_v1','reporting_borrower_matrix_v2']
 with psycopg.connect(host=t['host'],dbname=t['database'],user=t['user'],password=Path(t['passwordFile']).read_text().strip(),sslmode='require') as c:
  assert c.execute('select current_database(),host(inet_server_addr())').fetchone()==(t['database'],t['host'])

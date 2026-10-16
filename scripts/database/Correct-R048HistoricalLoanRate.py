@@ -24,7 +24,7 @@ PRIVATE = Path.home() / 'Documents/ChatGPT/AppSheet-Loan-Project/r048-loan-inter
 OUTPUT = REPO / 'outputs/r048-loan-interest-correction'
 TARGET = json.loads((REPO / 'database/environments.json').read_text())['production']
 assert (TARGET['instance'], TARGET['host'], TARGET['database']) == (
-    'appsheet-pg-prod-20260914', '34.21.174.215', 'loan_manager_prod')
+    'mw-credit-pg-20261017', 'TO_FILL_AFTER_CREATE_HOST', 'loan_manager_prod')
 PGBIN = Path(os.environ['LOCALAPPDATA']) / 'AppSheetLoanTools/postgresql-18.6-3/pgsql/bin'
 STARTUP = {'creationflags': subprocess.CREATE_NO_WINDOW} if os.name == 'nt' else {}
 

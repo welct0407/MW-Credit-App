@@ -9,7 +9,7 @@ import capture_postgresql as capture
 
 target = json.loads((REPO / 'database/environments.json').read_text())['production']
 assert (target['instance'], target['host'], target['database']) == (
-    'appsheet-pg-prod-20260914', '34.21.174.215', 'loan_manager_prod')
+    'mw-credit-pg-20261017', 'TO_FILL_AFTER_CREATE_HOST', 'loan_manager_prod')
 with capture.psycopg.connect(
     host=target['host'], port=target['port'], dbname=target['database'], user=target['user'],
     password=Path(target['passwordFile']).read_text().strip(), sslmode='require',

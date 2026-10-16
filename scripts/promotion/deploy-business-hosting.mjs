@@ -288,7 +288,7 @@ export async function waveHostingPlan(m,{requireApplied=true,git=sourceGit}={}){
  requireValue(m?.schemaVersion===6&&m.release==='R064'&&m.environment==='prod'&&m.scope==='runtime-workers-frontend'&&['prepared','applied'].includes(m.status),'wrong R064 package kind');
  requireValue(!requireApplied||m.status==='applied','R064 runtime apply/readback required');
  validateWaveSource(m,git);
- requireValue(exact(m.target,{projectId:project,projectNumber:'737787224638',region:'asia-southeast1',site:prodSite,database:'loan_manager_prod',connectionName:project+':asia-southeast1:appsheet-pg-prod-20260914',canonicalOrigin:'https://lm.mw-credit.com'}),'wrong production target');
+ requireValue(exact(m.target,{projectId:project,projectNumber:'737787224638',region:'asia-southeast1',site:prodSite,database:'loan_manager_prod',connectionName:project+':asia-southeast1:mw-credit-pg-20261017',canonicalOrigin:'https://lm.mw-credit.com'}),'wrong production target');
  const v=m.sql?.verified;
  requireValue(m.sql?.baselineVersion===93&&m.sql.targetVersion===93&&exact(m.sql.migrations,[])&&v?.database==='loan_manager_prod'&&v.latestVersion==='93'&&v.allSuccessful===true&&typeof v.verifiedAt==='string'&&v.verifiedAt.endsWith('Z')&&Number.isFinite(Date.parse(v.verifiedAt)),'R064 requires verified V93 with no further migration');
  validateWaveCi(m.applicationCi,m,git);
@@ -333,7 +333,7 @@ export async function r065HostingPlan(m,{git=sourceGit}={}){
  requireValue(m?.schemaVersion===7&&m.release==='R065'&&m.environment==='prod'&&m.scope==='frontend-only'&&m.status==='prepared','wrong R065 package kind');
  requireValue(!m.build&&!m.plan&&!m.applied&&!m.activation,'R065 package must not apply runtime or infrastructure changes');
  validateR065Source(m,git);
- requireValue(exact(m.target,{projectId:project,projectNumber:'737787224638',region:'asia-southeast1',site:prodSite,database:'loan_manager_prod',connectionName:project+':asia-southeast1:appsheet-pg-prod-20260914',canonicalOrigin:'https://lm.mw-credit.com'}),'wrong production target');
+ requireValue(exact(m.target,{projectId:project,projectNumber:'737787224638',region:'asia-southeast1',site:prodSite,database:'loan_manager_prod',connectionName:project+':asia-southeast1:mw-credit-pg-20261017',canonicalOrigin:'https://lm.mw-credit.com'}),'wrong production target');
  const v=m.sql?.verified;
  requireValue(m.sql?.baselineVersion===93&&m.sql.targetVersion===93&&exact(m.sql.migrations,[])&&v?.database==='loan_manager_prod'&&v.latestVersion==='93'&&v.allSuccessful===true&&typeof v.verifiedAt==='string'&&v.verifiedAt.endsWith('Z')&&Number.isFinite(Date.parse(v.verifiedAt)),'R065 requires verified V93 with no migration');
  validateWaveCi(m.applicationCi,m,git,'R065');

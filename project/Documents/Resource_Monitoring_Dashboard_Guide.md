@@ -61,7 +61,7 @@ The same four resources appear in matching columns, CPU first and RAM directly b
 |---|---|---|---|
 | 2 | Azure VM · CPU | Azure VM-01 Percentage CPU, averaged over each provider interval. | Percentage of VM CPU capacity; 100% is capacity. Inspect sustained load in the Azure detail chart. |
 | 3 | GCP VM · CPU | CPU utilization of `vm-mw-credit-agent`, displayed as a percentage. | Debian VM compute load; 100% is the utilization reference. |
-| 4 | Cloud SQL · CPU | CPU utilization of `appsheet-pg-prod-20260914`. | Instance-wide load shared by its databases, including DEV/PROD workloads; not one app's CPU. |
+| 4 | Cloud SQL · CPU | CPU utilization of `mw-credit-pg-20261017`. | Instance-wide load shared by its databases, including DEV/PROD workloads; not one app's CPU. |
 | 5 | Metabase · CPU cores | Railway Metabase CPU usage in cores. | **1.00 means one core**, not 1%. Compare with Metabase's live limit in the Railway CPU chart. |
 | 6 | Azure VM · RAM used | `100 − Available Memory Percentage`. | Used percentage is derived from Azure's available-memory metric. The detailed Azure memory chart shows the opposite quantity: available memory. |
 | 7 | GCP VM · RAM used | Ops Agent memory `percent_used`, filtered to the `used` state. | OS-reported used memory; inspect the detailed VM chart for trend. |
@@ -144,7 +144,7 @@ An inactive required timer or failed process result is Down. Exceeding these tim
 | 23 | Network throughput | Received/sent byte counters converted to rates in bytes/second and summed across returned series. No directly comparable configured hard ceiling is shown. |
 | 24 | Disk throughput | Read/write byte counters converted to bytes/second and summed across returned series. This is throughput, not disk fullness or latency; no arbitrary cap is shown. |
 
-### GCP · Cloud SQL · appsheet-pg-prod-20260914
+### GCP · Cloud SQL · mw-credit-pg-20261017
 
 All four charts concern the **shared instance**, not an isolated DEV or PROD database.
 

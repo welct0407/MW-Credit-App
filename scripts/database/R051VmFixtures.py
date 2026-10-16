@@ -26,7 +26,7 @@ if args.mode == 'cleanup' and not args.inventory:
     p.error('Fresh reviewed private inventory required')
 repo = Path(__file__).resolve().parents[2]
 target = json.loads((repo / 'database/environments.json').read_text())['development']
-assert (target['instance'], target['host'], target['database']) == ('appsheet-pg-prod-20260914', '34.21.174.215', 'loan_manager_dev')
+assert (target['instance'], target['host'], target['database']) == ('mw-credit-pg-20261017', 'TO_FILL_AFTER_CREATE_HOST', 'loan_manager_dev')
 backup = json.loads((repo / 'outputs/r051-receipt-corrections/vm01-development-backup.json').read_text())
 assert backup['restored_fingerprints_match'] and Path(backup['backup_file']).is_file()
 folder = Path(backup['backup_file']).parent

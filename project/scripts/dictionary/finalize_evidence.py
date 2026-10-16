@@ -40,7 +40,7 @@ def finalize(private,folder):
     by_alias={x['alias']:x for x in connections}
     for alias,dbname in [('database-2','loan_manager_prod'),('database-3','loan_manager_dev')]:
         values=by_alias[alias]['values']
-        if values['dbServer']!='34.21.174.215' or values['dbDatabase']!=dbname or values['dbRequireSSL']['value']!='true':raise ValueError('Source connection mismatch')
+        if values['dbServer']!='TO_FILL_AFTER_CREATE_HOST' or values['dbDatabase']!=dbname or values['dbRequireSSL']['value']!='true':raise ValueError('Source connection mismatch')
     write_json(folder/'source-connections.json',connections)
     write_json(folder/'source-stability.json',stability)
     write_json(folder/'coverage.json',coverage);write_json(ROOT/'index.json',make_index(ROOT))

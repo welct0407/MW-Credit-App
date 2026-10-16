@@ -14,7 +14,7 @@ assert a.approval_reference.strip()
 assert not any(os.environ.get(k) for k in ['PGHOST','PGHOSTADDR','PGPORT','PGDATABASE','PGUSER','PGPASSWORD','PGSERVICE','PGSERVICEFILE','PGPASSFILE','PGOPTIONS','DATABASE_URL'])
 root=Path(__file__).resolve().parents[2]
 t=json.loads((root/'database/environments.json').read_text())['production']
-assert (t['instance'],t['host'],t['port'],t['database'],t['user'])==('appsheet-pg-prod-20260914','34.21.174.215',5432,'loan_manager_prod','postgres')
+assert (t['instance'],t['host'],t['port'],t['database'],t['user'])==('mw-credit-pg-20261017','TO_FILL_AFTER_CREATE_HOST',5432,'loan_manager_prod','postgres')
 password=Path(t['passwordFile']).resolve()
 assert password.is_relative_to(Path('C:/Users/ideaadmin/Documents/ChatGPT').resolve())
 roles=['mw_app_dev','mw_app_dev_journal_owner','mw_app_prod','mw_app_prod_journal_owner']
@@ -25,7 +25,7 @@ mem="SELECT r.rolname role,m.rolname member,g.rolname grantor,a.admin_option,a.i
 acl="SELECT pg_get_userbyid(a.grantor) grantor,CASE WHEN a.grantee=0 THEN 'PUBLIC' ELSE pg_get_userbyid(a.grantee) END grantee,a.privilege_type privilege,a.is_grantable grantable FROM pg_namespace n CROSS JOIN LATERAL aclexplode(coalesce(n.nspacl,acldefault('n',n.nspowner))) a WHERE n.nspname='public' ORDER BY a.grantor,a.grantee,a.privilege_type"
 with psycopg.connect(host=t['host'],port=t['port'],dbname=t['database'],user=t['user'],password=password.read_text().strip(),sslmode='require',connect_timeout=10,autocommit=True,row_factory=dict_row) as c:
     x=c.execute("SELECT current_database() database,session_user operator,host(inet_server_addr()) host,inet_server_port() port,r.rolsuper,r.rolcreaterole,r.rolbypassrls FROM pg_roles r WHERE r.rolname=session_user").fetchone()
-    assert x==dict(database='loan_manager_prod',operator='postgres',host='34.21.174.215',port=5432,rolsuper=False,rolcreaterole=True,rolbypassrls=False)
+    assert x==dict(database='loan_manager_prod',operator='postgres',host='TO_FILL_AFTER_CREATE_HOST',port=5432,rolsuper=False,rolcreaterole=True,rolbypassrls=False)
     assert c.execute('SELECT version FROM public.flyway_schema_history WHERE success ORDER BY installed_rank DESC LIMIT 1').fetchone()['version']=='77'
     assert c.execute('SELECT rolname FROM pg_roles WHERE rolname=ANY(%s)',[[app,owner]]).fetchall()==[], 'Existing package requires recovery inspection'
     schema=c.execute("SELECT pg_get_userbyid(nspowner) grantor,pg_has_role(session_user,nspowner,'USAGE') owned,pg_has_role(session_user,nspowner,'SET') can_set FROM pg_namespace WHERE nspname='public'").fetchone()

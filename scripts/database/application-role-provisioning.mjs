@@ -63,7 +63,7 @@ async function maintenanceContext(client,config,name){
  if(!schema?.owned)throw Error('Verified operator schema ownership required');
  let mode,membershipGrantor;
  if(config.database==='loan_manager_dev'){
-  if(name!=='postgres'||x.host!=='34.21.174.215'||x.port!==5432||!(await client.query("SELECT pg_has_role(session_user,'cloudsqlsuperuser','USAGE') ok")).rows[0].ok)throw Error('Exact Cloud SQL maintenance operator required');
+  if(name!=='postgres'||x.host!=='TO_FILL_AFTER_CREATE_HOST'||x.port!==5432||!(await client.query("SELECT pg_has_role(session_user,'cloudsqlsuperuser','USAGE') ok")).rows[0].ok)throw Error('Exact Cloud SQL maintenance operator required');
   mode='cloudsql-default';membershipGrantor='cloudsqladmin';
  }else{
   if(x.host!=='127.0.0.1')throw Error('Owned loopback maintenance proof required');

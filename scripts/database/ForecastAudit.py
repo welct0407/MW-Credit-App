@@ -12,7 +12,7 @@ result={}
 for env in (['development','production'] if args.environment=='both' else [args.environment]):
  t=json.loads((ROOT/'database/environments.json').read_text())[env]
  expected='loan_manager_dev' if env=='development' else 'loan_manager_prod'
- assert (t['instance'],t['host'],t['database'])==('appsheet-pg-prod-20260914','34.21.174.215',expected)
+ assert (t['instance'],t['host'],t['database'])==('mw-credit-pg-20261017','TO_FILL_AFTER_CREATE_HOST',expected)
  with psycopg.connect(host=t['host'],dbname=expected,user=t['user'],password=Path(t['passwordFile']).read_text().strip(),sslmode='require',options='-c default_transaction_read_only=on') as c:
   assert c.execute('select current_database(),host(inet_server_addr())').fetchone()==(expected,t['host'])
   version=c.execute('select max(version::integer) from public.flyway_schema_history where success').fetchone()[0]

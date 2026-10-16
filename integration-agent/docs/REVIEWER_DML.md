@@ -18,7 +18,7 @@ No raw SQL, DDL, function calls, role changes, session settings or trigger disab
 
 ## Connection and setup
 
-The new `mw_reviewer_dml` role uses the existing Cloud SQL Auth Proxy at `127.0.0.1:5432`, database `loan_manager_prod`, project `clever-oasis-508610-n7`, instance `appsheet-pg-prod-20260914`. The `mw_integration_agent` reporting role remains read-only. Both default to read-only transactions; only the fixed DML transport starts READ WRITE.
+The new `mw_reviewer_dml` role uses the existing Cloud SQL Auth Proxy at `127.0.0.1:5432`, database `loan_manager_prod`, project `clever-oasis-508610-n7`, instance `mw-credit-pg-20261017`. The `mw_integration_agent` reporting role remains read-only. Both default to read-only transactions; only the fixed DML transport starts READ WRITE.
 
 Operator-only `scripts/configure-reviewer-dml.py` verifies the instance identity for the chosen `--environment prod|dev` (default `prod`), creates a separate NOSUPERUSER/NOCREATEDB/NOCREATEROLE/NOBYPASSRLS/NOINHERIT role and explicit current grants. It refuses an existing role rather than silently replacing credentials/grants. Secrets remain outside Git and are installed as root:mwagent 0640 at `/etc/mw-integration-agent/secrets/reviewer-dml-password.txt`. Role/grant setup is separate from Flyway; no business schema, triggers, AppSheet definitions or application rows are changed by provisioning.
 

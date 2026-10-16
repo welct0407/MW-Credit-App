@@ -15,7 +15,7 @@ import psycopg
 from common import REPO
 
 target = json.loads((DATABASE_REPO_ROOT / 'database/environments.json').read_text())['development']
-assert (target['instance'], target['host'], target['database']) == ('appsheet-pg-prod-20260914', '34.21.174.215', 'loan_manager_dev')
+assert (target['instance'], target['host'], target['database']) == ('mw-credit-pg-20261017', 'TO_FILL_AFTER_CREATE_HOST', 'loan_manager_dev')
 migrations = [p for p in (DATABASE_REPO_ROOT / 'database/migrations').glob('V*__*.sql') if int(p.name.split('__')[0][1:]) == 73]
 names = set()
 for p in migrations:

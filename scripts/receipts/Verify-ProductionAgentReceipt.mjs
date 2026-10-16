@@ -11,7 +11,7 @@ const run=promisify(execFile),sha=v=>createHash('sha256').update(v).digest('hex'
 async function main(){
  const args=process.argv.slice(2);if(args.length!==6||args[0]!=='--snapshot'||args[2]!=='--private-dir'||args[4]!=='--evidence')throw Error();
  const snapshotPath=await privatePath(path.resolve(args[1])),dir=await privatePath(path.resolve(args[3]));
- const snapshot=JSON.parse(await readFile(snapshotPath,'utf8'));if(snapshot.database!=='loan_manager_prod'||snapshot.host!=='34.21.174.215'||snapshot.readOnly!==true||snapshot.rows?.length!==1)throw Error();
+ const snapshot=JSON.parse(await readFile(snapshotPath,'utf8'));if(snapshot.database!=='loan_manager_prod'||snapshot.host!=='TO_FILL_AFTER_CREATE_HOST'||snapshot.readOnly!==true||snapshot.rows?.length!==1)throw Error();
  const row=snapshot.rows[0],locator=productionAgentReceiptPath(row.reference,row),url='gs://'+locator.bucket+'/'+locator.key;
  const sdk='C:/Program Files (x86)/Google/Cloud SDK/google-cloud-sdk';
  const execute=async parameters=>(await run(process.platform==='win32'?path.join(sdk,'platform/bundledpython/python.exe'):'gcloud',process.platform==='win32'?[path.join(sdk,'lib/gcloud.py'),...parameters]:parameters,{timeout:30000,maxBuffer:1048576,windowsHide:true})).stdout;

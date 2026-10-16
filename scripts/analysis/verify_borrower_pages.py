@@ -47,7 +47,7 @@ def verify(c):
 if __name__=='__main__':
     p=argparse.ArgumentParser();p.add_argument('environment',choices=['development','production']);p.add_argument('--grants',action='store_true');args=p.parse_args()
     t=json.loads((ROOT/'database/environments.json').read_text())[args.environment]
-    assert (t['instance'],t['host'],t['database'])==('appsheet-pg-prod-20260914','34.21.174.215','loan_manager_dev' if args.environment=='development' else 'loan_manager_prod')
+    assert (t['instance'],t['host'],t['database'])==('mw-credit-pg-20261017','TO_FILL_AFTER_CREATE_HOST','loan_manager_dev' if args.environment=='development' else 'loan_manager_prod')
     with psycopg.connect(host=t['host'],port=t['port'],dbname=t['database'],user=t['user'],password=Path(t['passwordFile']).read_text().strip(),sslmode='require') as c:
         assert c.execute('SELECT current_database(),host(inet_server_addr())').fetchone()==(t['database'],t['host'])
         c.rollback()

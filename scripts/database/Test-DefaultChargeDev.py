@@ -20,7 +20,7 @@ def verify(c,version):
 def preflight(c,version):
     common.setup(c,'r051-v69-preflight',readonly=True);verify(c,version)
     state=c.execute('''SELECT "Auto Charge Enabled","Interest Payment Interval","Defaulted","Outstanding Principal","Current Daily Interest"::numeric FROM "Loans" WHERE "Row ID"='SYN-R051-UI-DEFAULT' ''').fetchone()
-    result=dict(database='loan_manager_dev',instance='appsheet-pg-prod-20260914',host='34.21.174.215',version=version,checksum=PINS[version],read_only=True,
+    result=dict(database='loan_manager_dev',instance='mw-credit-pg-20261017',host='TO_FILL_AFTER_CREATE_HOST',version=version,checksum=PINS[version],read_only=True,
         snapshot_at=str(c.execute('SELECT transaction_timestamp()').fetchone()[0]),
         default_fixture_expected=state==(False,1,False,100,10),
         daily_receipt_absent=not c.execute('SELECT EXISTS(SELECT 1 FROM "Payments" WHERE "Row ID"=\'SYN-R051-UI-DAILY-P\')').fetchone()[0],

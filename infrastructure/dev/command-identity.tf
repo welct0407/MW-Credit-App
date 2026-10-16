@@ -19,7 +19,7 @@ resource "google_project_iam_member" "command_sql" {
   member   = "serviceAccount:${google_service_account.command_runtime[0].email}"
 }
 
-resource "google_sql_user" "command_runtime" {
+resource "google_sql_user" "command_runtime_ssd" {
   count           = var.command_infrastructure_enabled ? 1 : 0
   instance        = local.instance
   name            = trimsuffix(google_service_account.command_runtime[0].email, ".gserviceaccount.com")

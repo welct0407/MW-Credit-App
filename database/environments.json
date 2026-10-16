@@ -1,22 +1,22 @@
 {
   "development": {
-    "instance": "appsheet-pg-prod-20260914",
-    "host": "34.21.174.215",
+    "instance": "mw-credit-pg-20261017",
+    "host": "TO_FILL_AFTER_CREATE_HOST",
     "port": 5432,
     "database": "loan_manager_dev",
     "user": "postgres",
     "passwordFile": "C:/Users/ideaadmin/Documents/ChatGPT/AppSheet-Loan-Project/cloud-sql-poc-postgres-password.txt",
     "sslmode": "verify-ca",
-    "serverCaSha256": "5f8c3aff5b883bdcc1458f7034950574b5d95045e94902942d231fea42b1ee79"
+    "serverCaSha256": "TO_FILL_AFTER_CREATE_CA_SHA256"
   },
   "production": {
-    "instance": "appsheet-pg-prod-20260914",
-    "host": "34.21.174.215",
+    "instance": "mw-credit-pg-20261017",
+    "host": "TO_FILL_AFTER_CREATE_HOST",
     "port": 5432,
     "database": "loan_manager_prod",
     "user": "postgres",
     "passwordFile": "C:/Users/ideaadmin/Documents/ChatGPT/AppSheet-Loan-Project/cloud-sql-poc-postgres-password.txt",
     "sslmode": "verify-ca",
-    "serverCaSha256": "5f8c3aff5b883bdcc1458f7034950574b5d95045e94902942d231fea42b1ee79"
+    "serverCaSha256": "TO_FILL_AFTER_CREATE_CA_SHA256"
   }
 }

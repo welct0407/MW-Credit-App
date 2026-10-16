@@ -2,7 +2,7 @@
 param([switch]$SchemaMetadata)
 . "$PSScriptRoot/Common.ps1"
 $target=Get-DbEnvironment 'production'
-if($target.host -ne '34.21.174.215'){throw 'Reviewed production host required'}
+if($target.host -ne 'TO_FILL_AFTER_CREATE_HOST'){throw 'Reviewed production host required'}
 $prior=@{};foreach($name in @('PGPASSWORD','PGSSLMODE','PGOPTIONS','PGCONNECT_TIMEOUT')){$prior[$name]=[Environment]::GetEnvironmentVariable($name,'Process')}
 try{
  $env:PGPASSWORD=(Get-Content -LiteralPath $target.passwordFile -Raw).Trim();$env:PGSSLMODE='require';$env:PGCONNECT_TIMEOUT='10';$env:PGOPTIONS='-c default_transaction_read_only=on -c timezone=Asia/Bangkok'

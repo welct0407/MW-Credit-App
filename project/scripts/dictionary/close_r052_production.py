@@ -21,8 +21,8 @@ scope=json.loads(Path(a.scope).read_text(encoding='utf-8-sig'))
 assert scope['sourceCommit']=='b40c69526bc40b2ef3f6ab6b631df8c51695c921'
 assert scope['targetDatabase']=='loan_manager_prod' and scope['requiredHistoryVersion']==87
 assert data['environment']=='production' and data['version']==87
-assert data['target']==dict(instance='appsheet-pg-prod-20260914',host='34.21.174.215',port=5432,database='loan_manager_prod')
-assert data['identity']==dict(database='loan_manager_prod',operator='postgres',host='34.21.174.215',port=5432,read_only='on',ssl=True)
+assert data['target']==dict(instance='mw-credit-pg-20261017',host='TO_FILL_AFTER_CREATE_HOST',port=5432,database='loan_manager_prod')
+assert data['identity']==dict(database='loan_manager_prod',operator='postgres',host='TO_FILL_AFTER_CREATE_HOST',port=5432,read_only='on',ssl=True)
 s=data['sections']
 assert {x['schema']+'.'+x['name'] for x in s['routines']}==set(scope['routineNames']) and len(scope['routineNames'])==47
 assert {x['schema']+'.'+x['name'] for x in s['relations']}==set(scope['relations']) and len(scope['relations'])==9
