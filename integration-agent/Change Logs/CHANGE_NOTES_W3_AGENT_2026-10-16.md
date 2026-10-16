@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Fix the R063 Wave 3 agent findings in code and tests, bring the agent documents up to date, and prepare (not apply) the Debian host and tunnel changes for a later owner go. Branch `claude/review-w3-agent`, based on `main` 3678eb6. Nothing here was deployed.
+Fix the R063 Wave 3 agent findings in code and tests, bring the agent documents up to date, and prepare the Debian host and tunnel changes for a later owner go. Branch `claude/review-w3-agent`, based on `main` 3678eb6. Deployed to the Debian host from `main` `20b68490dfd8e8fce6cc38d45f38f2aef9d80bfc` on 16 October 2026, with the host steps; see [Deployment 16 October 2026](#deployment-16-october-2026).
 
 ## Changes
 
@@ -54,9 +54,9 @@ Fix the R063 Wave 3 agent findings in code and tests, bring the agent documents 
 
 | Item | Reason |
 | --- | --- |
-| Debian deploy (`deploy-runtime.py`) | no owner go; no host writes in W3 |
-| Live tunnel change (Terraform apply) | stopped on open question |
-| Host commands below | prepared only |
+| ALL-ARCH-03 host switch (kept) | applied, then rolled back: the relay health inspection has no `SET ROLE`; see Deployment and Prepared for a later go |
+| Password-file removal and `NOLOGIN` | waits for a verified switch and a clean day; see Prepared for a later go |
+| Genuine inbound Instagram message after the restarts | none is manufactured |
 
 ## Live changes applied
 
@@ -66,62 +66,60 @@ Fix the R063 Wave 3 agent findings in code and tests, bring the agent documents 
 
 The ALL-INFRA-04 restore-to-new-VM rehearsal ran under the ops branch (see the ops note); its procedure and result are recorded in `docs/OPERATIONS.md`.
 
+## Deployment 16 October 2026
+
+Owner instruction, 16 October 2026 about 09:45 UTC (16:45 Bangkok): "go for the agent deploy". Scope: the Wave 3 package on the Debian host, the prepared host steps (AGT-HOST-03, AGT-HOST-01, DB-ACCESS-01 config key) and the ALL-ARCH-03 grants and switch. Outcome: package, AGT-HOST-03, AGT-HOST-01, DB-ACCESS-01 key and the ALL-ARCH-03 grants are live. The ALL-ARCH-03 host switch was applied and then rolled back after five minutes because the host monitor's relay inspection failed under IAM. Not in scope and not done: PROD app, Hosting or Cloud Run changes, tunnel changes, any payment or message send, password-file deletion, `NOLOGIN`.
+
+Executed from a Claude Code cloud session as `codex-cloud` through `mw-debian-ssh` (IAP), all host commands as root from `/opt/mw-integration-agent-src`. No secret value was printed; config reads printed selected non-secret keys only.
+
+| Step (UTC) | Command | Readback |
+| --- | --- | --- |
+| Preflight 09:42 | read-only `systemctl`, `curl /ready`, `ss`, config key read, `pip freeze`, `gcloud sql users list`, VM scopes, project IAM | `/ready` 200 `5d39db6c…`; receiver, proxy and cloudflared active; 7 timers; no failed units; `reviewer_delete_enabled` = `true`; only 5432 listening; `codex-cloud` groups `codex-cloud google-sudoers`; venv already equals `requirements.lock` (pillow 11.3.0, psycopg and psycopg-binary 3.2.10, typing-extensions 4.16.0, tzdata 2025.2, Python 3.13.5); IAM user `mw-integration-agent@…iam` exists; VM scope `cloud-platform`; `roles/cloudsql.client` and `roles/cloudsql.instanceUser` (condition `prod-cloud-sql-only`) |
+| Checkout 09:43 | `integration-agent/scripts/update-from-github.sh` | HEAD `20b68490dfd8e8fce6cc38d45f38f2aef9d80bfc`, clean |
+| Dry run | `deploy-runtime.py dry-run --commit 20b6849…` | commit matches; ancestry `ancestor`; pointer `activated`; 2 new modules (`business_time.py`, `http.py`), 34 changed; the 7 helper units unchanged; catalogue revision 27 and services unchanged; 6 timers to pause |
+| Config key (DB-ACCESS-01) 09:43 | `install -m 0600 config.json /root/config.json.pre-w3`; key `reviewer_delete_enabled` replaced in place by `native_delete_enabled` with the same value | backup byte-identical; `native_delete_enabled` = `true`, `reviewer_delete_enabled` absent, the other 86 keys unchanged, 0640 root:mwagent |
+| Freeze 09:44:08 | `deploy-runtime.py freeze --commit 20b6849…` | backup `/var/lib/mw-integration-agent/rollback/runtime-20261016T094408811323Z`, metadata SHA-256 `934aec8c…68fa`; previous pointer archived; ancestry `ancestor`; timers stopped, workers idle (09:44:21) |
+| Dependencies | `.venv/bin/python -m pip install --require-hashes -r integration-agent/requirements.lock` | rc 0, all five "already satisfied" (no change) |
+| Install | `deploy-runtime.py install --commit 20b6849…` | `phase: installed`, `removed_files` [], `units_changed` [] |
+| Check | `sudo -u mwagent mw-integration-agent check --config … --catalogue …` | `status: ok`, `native_delete: true` |
+| Activate 09:45:00 | `deploy-runtime.py activate --commit 20b6849… --probe-request-id ae45932b-8306-4f51-ba9f-3682e212efce` | `phase: activated`, six timers resumed; `/ready` 200 `{"ready": true, "code_version": "20b68490…", "failed": []}`; `/health` 200; `/ready` with `Cf-Ray` 404; receiver InvocationID `869ba387…`, NRestarts 0 |
+| Public path | `curl https://hooks.mw-credit.com/instagram`, `/ready`; uptime check `mw-webhook-external-health-ySLl0784KgI` | 403 and 404; `check_passed` true from Oregon, Belgium and Singapore before and after the restarts |
+| AGT-HOST-03 09:45:36 | the prepared `cp -p` to `/root/mw-cloudflared-instagram.service.pre-w3`, `install`, `daemon-reload`, `systemd-analyze verify`, `restart` | diff was exactly the two expected lines; verify clean; `active`, NRestarts 0, InvocationID `06cc4480…`; 4 `Registered tunnel connection`; 0 `address family not supported`; the only ERR lines are the old process's four `Connection terminated` at shutdown; public `/instagram` 403 |
+| AGT-HOST-01 | `usermod -aG systemd-journal codex-cloud` | new SSH session: `id -nG` = `codex-cloud systemd-journal google-sudoers`; `journalctl -u mw-instagram-webhook.service -n 1` readable. Journald: no `SystemMaxUse`/`MaxRetentionSec` overrides (Debian default, see `docs/OPERATIONS.md`); `journalctl --disk-usage` 942.9M on a 9.7G root filesystem |
+| ALL-ARCH-03 grants 09:46 | prepared SQL as `postgres` (password from `mw-credit-ops-cloudsql-postgres-admin` in a private 0600 file outside Git) through `scripts/database/cloud-db-tunnel.sh`, one transaction | before: CONNECT false on `mw_agent` and `loan_manager_prod`, so both grants ran. After: `rolinherit` false, `rolcanlogin` true; memberships `mw_agent_worker`, `mw_agent_relay`, `mw_integration_agent` with `inherit_option` false, `set_option` true, `admin_option` false (grantor `cloudsqladmin`); CONNECT true on `mw_agent` and `loan_manager_prod`, false on `loan_manager_dev` |
+| Pause 09:47:14 | `systemctl stop` the six worker timers; wait for the services | idle at 09:47:18 |
+| Proxy drop-in | `install -m 0600 config.json /root/config.json.pre-arch03`; the prepared drop-in install, `daemon-reload`, `systemd-analyze verify`, `restart cloud-sql-auth-proxy` | verify clean; proxy active, NRestarts 0; `Listening on 127.0.0.1:5432` and `:5433`; the receiver's `/ready` failed `state` once during the restart and was 200 on the next probe on the password path |
+| IAM proof | `sudo -u mwagent psql -w "host=127.0.0.1 port=5433 user=mw-integration-agent@…iam …" -Atc "SET ROLE <role>; SELECT current_user, session_user, current_database()"` | `mw_agent_worker` and `mw_agent_relay` on `mw_agent`, `mw_integration_agent` on `loan_manager_prod`, each with `session_user` the IAM user; `loan_manager_dev` refused (no CONNECT) |
+| IAM config | candidate `config.json.arch03-candidate` (0640 root:mwagent) with `agent_database_auth=iam`, `database_auth=iam`, `database_iam_user=mw-integration-agent@clever-oasis-508610-n7.iam`, `iam_database_port=5433`; `check` on it; `mv` over `config.json` | 4 keys added, none changed, `database_port` and `agent_database_port` 5432; `check` `status: ok` |
+| Receiver 09:48:31 | `systemctl restart mw-instagram-webhook`; `mw-integration-agent receiver-ready --wait 30` | ready; new InvocationID `bc9b86fc…`; `/ready` 200 with `20b68490…`, `failed` [] |
+| Resume 09:48:43 | `systemctl start` the six worker timers | all six `active` |
+| IAM period 09:48–09:53 | `pg_stat_activity` sampled every few seconds as `postgres`; worker journals (aggregate lines only) | sessions: `mw-agent-state-worker` on `mw_agent` (88 samples) and `mw-agent-outbox` on `loan_manager_prod` (2), all as the IAM user, none as a password role of the three; no reviewer-DML or projector session in the window (both on demand). Workers exited 0. **Host monitor `audit_relay` = 0 (`inspection_failed` 1) at 09:49:05 and 09:51:16** |
+| Cause | `relay_health.inspect()` as `mwagent` with the live config | `InsufficientPrivilege: permission denied for schema runtime`. `inspect()` connects with `state.parameters()` and never runs `SET ROLE`, so it ran as the `NOINHERIT` IAM user. `scripts/acknowledge-receipt-notices.py` has the same gap |
+| ALL-ARCH-03 rollback 09:53:33 | stop the six timers and wait (idle 09:53:35); `install -o root -g mwagent -m 0640 /root/config.json.pre-arch03` over `config.json`; `check`; `rm` the drop-in and its directory, `daemon-reload`, restart the proxy; restart the receiver, `receiver-ready --wait 30`; start the timers (09:53:42) | config byte-identical to the backup, `check` ok; only `127.0.0.1:5432` listening; receiver InvocationID `5038e6a5…`, `/ready` 200 with `20b68490…`; `relay_health.inspect()` status 1, `inspection_failed` 0. The database grants were left in place |
+| Cycle on the restored config 09:53:42–10:04:19 | `pg_stat_activity` samples; `journalctl` aggregate lines; `systemctl --failed` | no failed units. Runs exiting 0: conversation poll 2 (23 conversations, 0 failed), receipt summary 24 (failures []), email retry 2 (`retried` []), partner conversation 35 (`ok`, 0 turns), audit relay 20 (exported 0). Sessions: `mw_agent_worker` (179 samples) and `mw_agent_relay` on `loan_manager_prod` (1). Host monitor at 09:55:34, 09:57:44, 10:00:02 and 10:02:15: all 15 components 1, including `audit_relay` and `webhook_local` |
+| Final 10:04 | `/ready`, public `/instagram`, uptime check over the last 25 minutes | 200 with `20b68490…`; 403; 30 points from each of Oregon, Belgium and Singapore, no failures |
+
+Deviation from the earlier prepared ALL-ARCH-03 steps: they said to run `deploy-runtime.py freeze` and `activate`, but the helper refuses `install`/`activate` when the live config hash differs from the freeze (and `activate` needs a fresh `install`), so a config edit can never sit between them. The same pause was done by hand: stop the six timers, wait for the workers, change, restart the receiver, `receiver-ready --wait 30`, start the timers. For the same reason the DB-ACCESS-01 key edit was made just before `freeze` instead of after it (the running `5d39db6` package ignores `native_delete_enabled`, so native API Delete was refused, fail-closed, for under two minutes until activation at 09:45:04). `docs/OPERATIONS.md` now says this.
+
 ## Prepared for a later go
 
-Host commands run on the VM `mw-integration-agent` through `mw-debian-ssh '<command>'`. Never print secret values. Each step lists its verification and rollback.
+Host commands run on the VM through `mw-debian-ssh '<command>'`. Never print secret values.
 
-1. **AGT-HOST-03 cloudflared unit** (install by hand; the helper does not install it):
-
-   ```bash
-   cd /opt/mw-integration-agent-src
-   sudo cp -p /etc/systemd/system/mw-cloudflared-instagram.service /root/mw-cloudflared-instagram.service.pre-w3
-   sudo install -o root -g root -m 0644 integration-agent/systemd/mw-cloudflared-instagram.service /etc/systemd/system/
-   sudo systemctl daemon-reload
-   sudo systemd-analyze verify /etc/systemd/system/mw-cloudflared-instagram.service
-   sudo systemctl restart mw-cloudflared-instagram.service
-   ```
-
-   Expect `active`, four `Registered tunnel connection` lines and no `address family not supported`. Rollback: reinstall the `.pre-w3` copy, `daemon-reload`, restart.
-
-2. **AGT-HOST-01 journal access**: `sudo usermod -aG systemd-journal codex-cloud`, then in a new session `mw-debian-ssh 'id -nG; journalctl -u mw-instagram-webhook.service -n 1 --no-pager'`. Rollback: `sudo gpasswd -d codex-cloud systemd-journal`. Then record the journald retention in `docs/OPERATIONS.md`.
-
-3. **ALL-ARCH-03 IAM listener**, in this order:
-   1. Preconditions: ops has applied the IAM database user `mw-integration-agent@clever-oasis-508610-n7.iam` and `roles/cloudsql.instanceUser` for the VM service account (Terraform, additive); the VM scope allows `cloud-platform`; the deployed package knows the `*_auth` keys.
-   2. Grants as `postgres` (instance-wide role memberships):
-
-      ```sql
-      ALTER ROLE "mw-integration-agent@clever-oasis-508610-n7.iam" NOINHERIT;
-      GRANT mw_agent_worker, mw_agent_relay, mw_integration_agent
-        TO "mw-integration-agent@clever-oasis-508610-n7.iam" WITH INHERIT FALSE, SET TRUE;
-      GRANT CONNECT ON DATABASE mw_agent TO "mw-integration-agent@clever-oasis-508610-n7.iam";
-      -- only if has_database_privilege(..., 'loan_manager_prod', 'CONNECT') is false:
-      GRANT CONNECT ON DATABASE loan_manager_prod TO "mw-integration-agent@clever-oasis-508610-n7.iam";
-      ```
-
-   3. `deploy-runtime.py freeze`, then install the proxy drop-in:
-
-      ```bash
-      sudo install -d -m 0755 /etc/systemd/system/cloud-sql-auth-proxy.service.d
-      sudo install -o root -g root -m 0644 integration-agent/systemd/cloud-sql-auth-proxy.service.d/iam-listener.conf /etc/systemd/system/cloud-sql-auth-proxy.service.d/
-      sudo systemctl daemon-reload && sudo systemd-analyze verify /etc/systemd/system/cloud-sql-auth-proxy.service
-      sudo systemctl restart cloud-sql-auth-proxy.service
-      ss -ltnp | grep -E '127.0.0.1:(5432|5433)'
-      ```
-
-   4. Prove IAM login on 5433 before any config change:
-      `sudo -u mwagent psql -w "host=127.0.0.1 port=5433 user=mw-integration-agent@clever-oasis-508610-n7.iam dbname=mw_agent sslmode=disable" -Atc "SET ROLE mw_agent_worker; SELECT current_user, session_user"`.
-   5. Back up the config (`/root/config.json.pre-arch03`), then set `agent_database_auth=iam`, `database_auth=iam`, `database_iam_user` and `iam_database_port=5433`. Leave `database_port` and `agent_database_port` at 5432: reviewer DML and receipt projection keep their password roles on 5432. Run `mw-integration-agent check` on the new file before installing it (0640 root:mwagent).
-   6. `deploy-runtime.py activate`; check `/ready` and `pg_stat_activity` shows the IAM user.
-   7. After one clean cycle of every timer, including the 00:15 statement: shred the three unused password files (paths from the backed-up config), and only after a full day with no sessions run `ALTER ROLE ... NOLOGIN` for `mw_agent_worker`, `mw_agent_relay`, `mw_integration_agent` (instance-wide; confirm no other consumer first). Keep an offline copy of the files for a week.
-   8. Rollback: restore the config backup and restart the receiver; remove the drop-in, `daemon-reload`, restart the proxy; before step 7 the password roles still log in.
-
-4. **AGT-WEBHOOK-03 tunnel path**: applied on 16 October with Variant 1; see Live changes applied. Rollback: set `path = null`, plan and apply, then restore the uptime check to `/health`, 200, `mw-instagram-webhook` (ops root `infrastructure/ecosystem-debian`).
-
-5. **DB-ACCESS-01 PROD** (reviewer DELETE): executed by ops on 16 October (REVOKE DELETE on the eight source tables, no NOLOGIN); see the ops note. With the next agent deploy, before `mw-integration-agent check`, edit `/etc/mw-integration-agent/config.json`: replace the key `reviewer_delete_enabled` with `native_delete_enabled` set to the SAME value the host has today (so native API Delete behaviour is unchanged), then run `sudo -u mwagent mw-integration-agent check --config /etc/mw-integration-agent/config.json --catalogue /etc/mw-integration-agent/service-catalogue.json` and expect `"native_delete"` to show that value. The new package refuses a configured `reviewer_delete_enabled=true`.
+1. **ALL-ARCH-03 retry** (needs a code change and its deploy first):
+   1. Code: `src/mw_integration_agent/relay_health.py` `inspect()` and `scripts/acknowledge-receipt-notices.py` must run `SET ROLE` after `psycopg.connect(**parameters(config))`, for example through `state.session_role(config, 'worker')` as `state.Pool` does. Without it, under IAM the central `mw_agent` connection has no privileges (`permission denied for schema runtime`). Add a unit test that fails without the `SET ROLE`. `project/scripts/monitoring/debian-health.py` `database()` uses the same `parameters()` but only runs `SELECT 1`, so it worked under IAM.
+   2. Host, after that deploy: the grants are already in place. Repeat the rows "Pause" to "Resume" above (drop-in, IAM proof, candidate config with the four keys and `check`, receiver restart, timers). Then read the next two `mw-resource-health` runs and require every component at 1, including `audit_relay`.
+2. **ALL-ARCH-03 cleanup** (only on a clean day after a verified retry; the orchestrator schedules it):
+   1. Preconditions: one clean cycle of every timer on IAM, including the 00:15 cash statement. `pg_stat_activity` shows no session logged in as `mw_agent_worker`, `mw_agent_relay` or `mw_integration_agent` for a full day. Move the host monitor `/opt/mw-resource-monitoring/debian-health.py` off `database_password_file` first: it logs in as `mw_integration_agent` with that file on 5432 every two minutes, the one known remaining consumer. Also check that no other consumer uses these three roles, since roles are instance-wide.
+   2. Keep a private offline copy of the three files outside Git for a week. Then shred the three password files named by the config keys `agent_database_worker_password_file`, `agent_database_relay_password_file` and `database_password_file`; read the paths from `/etc/mw-integration-agent/config.json` with a key-only filter. Keep `database_dml_password_file` and `receipt_projector_password_file` (W4).
+   3. As `postgres`, after the full day with no sessions: `ALTER ROLE mw_agent_worker NOLOGIN; ALTER ROLE mw_agent_relay NOLOGIN; ALTER ROLE mw_integration_agent NOLOGIN;`
 
 ## Recovery
 
-`git revert` of the branch commits restores the previous code and docs. The host was not changed. Tunnel recovery: set `path = null` in `infrastructure/ecosystem-tunnels/owned.tf`, plan and apply, and restore the uptime check to `/health`. Deleted scripts remain in Git history.
+- Package: `sudo python3 integration-agent/scripts/deploy-runtime.py rollback --commit 20b68490dfd8e8fce6cc38d45f38f2aef9d80bfc` restores package `5d39db6`, units and the config from `runtime-20261016T094408811323Z`. That backup already carries `native_delete_enabled` (the edit preceded freeze), so the old package would treat native Delete as off; copy `/root/config.json.pre-w3` (the original, with `reviewer_delete_enabled=true`) to `config.json`, keeping 0640 root:mwagent, before the receiver restart if native Delete must keep working.
+- ALL-ARCH-03: host side already rolled back (09:53 UTC, above). The live config equals `/root/config.json.pre-arch03`. To also remove the database grants: `REVOKE mw_agent_worker, mw_agent_relay, mw_integration_agent FROM "mw-integration-agent@clever-oasis-508610-n7.iam"` and `REVOKE CONNECT ON DATABASE mw_agent, loan_manager_prod FROM` the same role.
+- cloudflared: reinstall `/root/mw-cloudflared-instagram.service.pre-w3`, `daemon-reload`, restart.
+- Journal access: `sudo gpasswd -d codex-cloud systemd-journal`.
+- Code and docs: `git revert` of the branch commits. Tunnel: set `path = null` in `infrastructure/ecosystem-tunnels/owned.tf`, plan and apply, and restore the uptime check to `/health`. Deleted scripts remain in Git history.
 
 ## Open questions
 
@@ -129,7 +127,8 @@ None.
 
 ## Remaining work
 
-- Owner go for the agent deploy, then host steps 1 to 3 and 5 above and the next package install.
+- ALL-ARCH-03: fix the two callers without `SET ROLE` (`relay_health.inspect()`, `acknowledge-receipt-notices.py`), deploy, retry the switch. Then, on a clean day, do the cleanup: move the host monitor off the `mw_integration_agent` password file, remove the three password files, then `NOLOGIN` the three roles.
+- Confirm the next genuine inbound Instagram message is captured after the restarts.
 - W4 migration for the `session_user` checks (DEV reviewer DML, receipt projector on IAM); `mw_reviewer_dml` and `mw_receipt_projector` keep their two password files until then.
 - W4 state adapter change for AGT-STATE-03 (processed high-water mark over `partner_review_replies`/`partner_notices`).
 - Write and install the audit retention job against `gs://mw-credit-operator-private-737787224638/agent-audit-archive/`.
