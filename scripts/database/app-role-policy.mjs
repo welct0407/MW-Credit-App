@@ -1,18 +1,23 @@
 // Stable DEV application capability policy. No credentials, ambient DSN or automatic live invocation.
-export function applicationDatabaseRoles(database){if(!['loan_manager_dev','payment_rehearsal','loan_manager_prod'].includes(database))throw Error('Explicit application database required');const suffix=database==='loan_manager_prod'?'prod':'dev';return{APP:'mw_app_'+suffix,JOURNAL_OWNER:'mw_app_'+suffix+'_journal_owner'};}
+export function applicationDatabaseRoles(database){if(!['loan_manager_dev','payment_rehearsal','loan_manager_prod'].includes(database))throw Error('Explicit application database required');const suffix=database==='loan_manager_prod'?'prod':'dev';return{APP:'mw_app_'+suffix,JOURNAL_OWNER:'mw_app_'+suffix+'_journal_owner',LEDGER_OWNER:'mw_ledger_owner_'+suffix};}
 const readonly=new Set(['pwa_payment_commands','r005_cash_cutover_sources','r008_cash_account_cutover']);
+// V93 (DB-ACCESS-08): once sync_cash_ledger is the ledger owner's SECURITY DEFINER, the capability reads
+// "Cash Ledger" only (governed writes stay with the journal owner's migration-owned grant). Before V93 the
+// invoker-rights projection still needs the capability's own DML, so the rule follows the catalog state.
+const ledgerDefiner=async(client,LEDGER_OWNER)=>(await client.query("SELECT p.prosecdef AND pg_get_userbyid(p.proowner)=$1 AS definer FROM pg_proc p WHERE p.oid=to_regprocedure('public.sync_cash_ledger(text,text)')",[LEDGER_OWNER])).rows[0]?.definer===true;
 const deniedRoutines=new Set(['attach_payment_receipt_evidence','reallocate_payment_interest','reallocate_payment_interest_audited','initialize_cash_accounts']);
-const approvedDefiner=(row,JOURNAL_OWNER)=>row.schema==='public'&&((row.owner===JOURNAL_OWNER&&((['pwa_submit_selected_charges_v1','pwa_submit_operation_v2'].includes(row.name)&&row.args==='text')||(['pwa_command_status_v1','pwa_operation_status_v2'].includes(row.name)&&row.args==='uuid, text, text')))||(row.owner==='postgres'&&row.name==='payment_reallocation_permitted'&&row.args==='text, jsonb, jsonb'));
+const approvedDefiner=(row,JOURNAL_OWNER,LEDGER_OWNER)=>row.schema==='public'&&((row.owner===LEDGER_OWNER&&row.name==='sync_cash_ledger'&&row.args==='text, text')||(row.owner===JOURNAL_OWNER&&((['pwa_submit_selected_charges_v1','pwa_submit_operation_v2'].includes(row.name)&&row.args==='text')||(['pwa_command_status_v1','pwa_operation_status_v2'].includes(row.name)&&row.args==='uuid, text, text')))||(row.owner==='postgres'&&row.name==='payment_reallocation_permitted'&&row.args==='text, jsonb, jsonb'));
 const quote=value=>'"'+value.replaceAll('"','""')+'"';
 const protectedObject=row=>/^(flyway_|agent_|audit_|secret_|credential_|migration_)/.test(row.name)||/^mw-access:(governance|secret)/.test(row.comment||'');
 export async function planApplicationRole(client,{database,creators}) {
- const {APP,JOURNAL_OWNER}=applicationDatabaseRoles(database);
+ const {APP,JOURNAL_OWNER,LEDGER_OWNER}=applicationDatabaseRoles(database);
  if(!Array.isArray(creators)||!creators.length||new Set(creators).size!==creators.length||creators.some(x=>typeof x!=='string'||!x||x.includes('\0')))throw Error('Explicit DEV database and creators required');
  if((await client.query('SELECT current_database() AS db')).rows[0]?.db!==database)throw Error('Wrong application policy database');
  const roles=(await client.query('SELECT rolname,rolcanlogin,rolsuper,rolcreaterole,rolcreatedb,rolreplication,rolbypassrls FROM pg_roles WHERE rolname=ANY($1)',[[APP,JOURNAL_OWNER,...creators]])).rows;
  for(const name of [APP,JOURNAL_OWNER]){const role=roles.find(r=>r.rolname===name);if(!role||role.rolcanlogin||role.rolsuper||role.rolcreaterole||role.rolcreatedb||role.rolreplication||role.rolbypassrls)throw Error('Unsafe or missing capability role');}
  if(creators.some(name=>!roles.some(r=>r.rolname===name)))throw Error('Unknown registered creator');
  const statements=[`GRANT USAGE ON SCHEMA public TO ${APP}`,`GRANT CONNECT ON DATABASE ${quote(database)} TO ${APP}`],violations=[],inheritedExceptions=[];
+ const ledgerReadonly=await ledgerDefiner(client,LEDGER_OWNER),readonlyRelation=name=>readonly.has(name)||(name==='Cash Ledger'&&ledgerReadonly);
  const defaults=(await client.query(`
   SELECT pg_get_userbyid(d.defaclrole) AS creator,
    coalesce(n.nspname,'*') AS schema,d.defaclobjtype AS kind,
@@ -33,21 +38,21 @@ export async function planApplicationRole(client,{database,creators}) {
  for(const row of relations){
   const target=quote(row.schema)+'.'+quote(row.name),objectType=row.kind==='S'?'SEQUENCE':'TABLE';
   statements.push(`REVOKE ALL ON ${objectType} ${target} FROM ${APP}`);
-  if(protectedObject(row)||readonly.has(row.name)){
+  if(protectedObject(row)||readonlyRelation(row.name)){
    const forbidden=protectedObject(row)?['SELECT','INSERT','UPDATE','DELETE','TRUNCATE','REFERENCES','TRIGGER']:['INSERT','UPDATE','DELETE','TRUNCATE','REFERENCES','TRIGGER'];
    const effective=(await client.query("SELECT privilege FROM unnest($3::text[]) privilege WHERE has_table_privilege($1,$2::oid,privilege) UNION SELECT privilege FROM unnest($4::text[]) privilege WHERE has_any_column_privilege($1,$2::oid,privilege)",[APP,row.oid,forbidden,forbidden.filter(x=>['SELECT','INSERT','UPDATE','REFERENCES'].includes(x))])).rows;
    if(effective.length)violations.push(`Protected relation has effective access: ${row.name}`);
   }
   if(protectedObject(row))continue;
   if(!creators.includes(row.owner)){violations.push(`Unregistered relation creator: ${row.owner}`);continue;}
-  const privilege=readonly.has(row.name)||['v','m'].includes(row.kind)?'SELECT':row.kind==='S'?'USAGE,SELECT':'SELECT,INSERT,UPDATE,DELETE';
+  const privilege=readonlyRelation(row.name)||['v','m'].includes(row.kind)?'SELECT':row.kind==='S'?'USAGE,SELECT':'SELECT,INSERT,UPDATE,DELETE';
   statements.push(`GRANT ${privilege} ON ${objectType} ${target} TO ${APP}`);
  }
  const routines=(await client.query("SELECT p.oid,n.nspname AS schema,oidvectortypes(p.proargtypes) AS args,p.proname AS name,p.prokind AS kind,p.prosecdef AS definer,pg_get_userbyid(p.proowner) AS owner,p.oid::regprocedure::text AS signature,obj_description(p.oid,'pg_proc') AS comment,EXISTS(SELECT 1 FROM aclexplode(coalesce(p.proacl,acldefault('f',p.proowner))) a WHERE a.grantee=0 AND a.privilege_type='EXECUTE') AS public_execute FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='public' AND p.prokind IN ('f','p') ORDER BY p.oid")).rows;
  for(const row of routines){
   // regprocedure text is generated by PostgreSQL from catalog identifiers, never caller input.
   const type=row.kind==='p'?'PROCEDURE':'FUNCTION';
-  if(row.kind==='f'&&row.definer&&row.owner===JOURNAL_OWNER&&approvedDefiner(row,JOURNAL_OWNER)){
+  if(row.kind==='f'&&row.definer&&row.owner===JOURNAL_OWNER&&approvedDefiner(row,JOURNAL_OWNER,LEDGER_OWNER)){
    // These two owner-bound routines are provisioned once. Later migration hooks
    // audit their ACLs without trying to reacquire journal-owner authority.
    const acl=(await client.query(`SELECT
@@ -68,8 +73,9 @@ export async function planApplicationRole(client,{database,creators}) {
   }
   statements.push(`REVOKE ALL ON ${type} ${row.signature} FROM ${APP}`);
   const protectedRoutine=protectedObject(row)||deniedRoutines.has(row.name);
-  if(protectedRoutine||(row.definer&&!approvedDefiner(row))){if(row.public_execute){if(row.name==='initialize_cash_accounts')inheritedExceptions.push('initialize_cash_accounts: legacy PUBLIC execution; protected cutover writes remain denied');else violations.push(`Protected routine has PUBLIC execution: ${row.name}`);}continue;}
-  if(!creators.includes(row.owner)&&!(row.owner===JOURNAL_OWNER&&approvedDefiner(row))){violations.push(`Unregistered routine creator: ${row.owner}`);continue;}
+  if(row.definer&&row.owner===LEDGER_OWNER&&approvedDefiner(row,JOURNAL_OWNER,LEDGER_OWNER)&&row.public_execute)violations.push(`Ledger routine has PUBLIC execution: ${row.signature}`);
+  if(protectedRoutine||(row.definer&&!approvedDefiner(row,JOURNAL_OWNER,LEDGER_OWNER))){if(row.public_execute){if(row.name==='initialize_cash_accounts')inheritedExceptions.push('initialize_cash_accounts: legacy PUBLIC execution; protected cutover writes remain denied');else violations.push(`Protected routine has PUBLIC execution: ${row.name}`);}continue;}
+  if(!creators.includes(row.owner)&&!([JOURNAL_OWNER,LEDGER_OWNER].includes(row.owner)&&approvedDefiner(row,JOURNAL_OWNER,LEDGER_OWNER))){violations.push(`Unregistered routine creator: ${row.owner}`);continue;}
   statements.push(`GRANT EXECUTE ON ${type} ${row.signature} TO ${APP}`);
  }
  return {database,creators:[...creators],defaultAclCoverage:defaults,inheritedExceptions,statements,violations:[...new Set(violations)]};

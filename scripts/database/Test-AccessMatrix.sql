@@ -22,16 +22,34 @@ END $$;
 -- 1. Table/view privileges held by any role other than the migration owner.
 CREATE TEMP TABLE am_expected_tables(grantee text, relation text, privileges text) ON COMMIT DROP;
 INSERT INTO am_expected_tables VALUES
+  ('mw_agent_auditor','agent_audit.commits','SELECT'),
+  ('mw_agent_auditor','agent_audit.exports','SELECT'),
+  ('mw_agent_auditor','agent_audit.row_changes','SELECT'),
+  ('mw_agent_relay','agent_audit.commits','SELECT'),
+  ('mw_agent_relay','agent_audit.exports','INSERT,SELECT'),
+  ('mw_agent_relay','agent_audit.row_changes','SELECT'),
+  ('mw_app_dev_journal_owner','public.Cash Ledger','DELETE,INSERT,UPDATE'),
   ('mw_app_dev_journal_owner','public.pwa_payment_commands','INSERT,SELECT'),
   ('mw_app_dev_journal_owner','public.r008_cash_account_cutover','INSERT'),
   ('mw_business_audit_owner','agent_audit.commits','DELETE,INSERT,MAINTAIN,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE'),
   ('mw_business_audit_owner','agent_audit.exports','DELETE,INSERT,MAINTAIN,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE'),
   ('mw_business_audit_owner','agent_audit.row_changes','DELETE,INSERT,MAINTAIN,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE'),
   ('mw_jobs_owner_dev','public.pwa_job_runs','DELETE,INSERT,MAINTAIN,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE'),
+  ('mw_ledger_owner_dev','public.Business Expenses','SELECT'),
+  ('mw_ledger_owner_dev','public.Cash Accounts','SELECT'),
+  ('mw_ledger_owner_dev','public.Cash Holders','SELECT'),
+  ('mw_ledger_owner_dev','public.Cash Ledger','DELETE,INSERT,SELECT,UPDATE'),
+  ('mw_ledger_owner_dev','public.Loans','SELECT'),
+  ('mw_ledger_owner_dev','public.Payments','SELECT'),
+  ('mw_ledger_owner_dev','public.Settlements','SELECT'),
+  ('mw_ledger_owner_dev','public.r005_cash_cutover_sources','SELECT'),
+  ('mw_ledger_owner_dev','public.r008_cash_account_cutover','SELECT'),
   ('mw_notify_owner_dev','public.pwa_notification_deliveries','DELETE,INSERT,MAINTAIN,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE'),
   ('mw_notify_owner_dev','public.pwa_notification_events','DELETE,INSERT,MAINTAIN,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE'),
   ('mw_notify_owner_dev','public.pwa_notification_preferences','DELETE,INSERT,MAINTAIN,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE'),
-  ('mw_notify_owner_dev','public.pwa_push_subscriptions','DELETE,INSERT,MAINTAIN,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE');
+  ('mw_notify_owner_dev','public.pwa_push_subscriptions','DELETE,INSERT,MAINTAIN,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE'),
+  ('mw_reviewer_dml','agent_audit.commits','SELECT'),
+  ('mw_reviewer_dml','agent_audit.row_changes','SELECT');
 CREATE TEMP VIEW am_actual_tables AS
  SELECT g.rolname::text AS grantee, n.nspname||'.'||c.relname AS relation, string_agg(a.privilege_type,',' ORDER BY a.privilege_type) AS privileges
  FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
@@ -50,6 +68,7 @@ INSERT INTO am_expected_routines VALUES
   ('PUBLIC','pwa_charge_version_v2(text)'),
   ('PUBLIC','pwa_effective_payment_plan_v2(text)'),
   ('PUBLIC','pwa_loan_version_v2(text)'),
+  ('PUBLIC','pwa_lock_key_v1(text,text)'),
   ('PUBLIC','pwa_plan_effects_v83(jsonb)'),
   ('mw-credit-app-command-dev@clever-oasis-508610-n7.iam','pwa_submit_agent_operation_v1(text)'),
   ('mw_app_dev','apply_loan_close_calculation_v83(text,date,text)'),
@@ -62,6 +81,7 @@ INSERT INTO am_expected_routines VALUES
   ('mw_app_dev','pwa_payment_head_v2(text)'),
   ('mw_app_dev','pwa_payment_version_v2(text)'),
   ('mw_app_dev','pwa_preference_version_v2(text)'),
+  ('mw_app_dev','sync_cash_ledger(text,text)'),
   ('mw_app_dev_journal_owner','pwa_agent_receipt_status_v1(uuid,text,text)'),
   ('mw_app_dev_journal_owner','pwa_apply_analytics_v2(text)'),
   ('mw_app_dev_journal_owner','pwa_apply_assessment_v2(text)'),
@@ -92,6 +112,7 @@ INSERT INTO am_expected_routines VALUES
   ('mw_jobs_dev','pwa_job_run_v1(text,date,text)'),
   ('mw_jobs_owner_dev','pwa_job_run_v1(text,date,text)'),
   ('mw_jobs_owner_dev','pwa_worker_guard_v1(text)'),
+  ('mw_ledger_owner_dev','sync_cash_ledger(text,text)'),
   ('mw_notify_api_dev','pwa_notify_history_v1(jsonb,timestamp with time zone,uuid)'),
   ('mw_notify_api_dev','pwa_notify_preference_v1(jsonb,boolean)'),
   ('mw_notify_api_dev','pwa_notify_revoke_v1(jsonb,uuid)'),
@@ -119,7 +140,9 @@ INSERT INTO am_expected_routines VALUES
   ('mw_notify_owner_dev','pwa_notify_status_v1(jsonb,text)'),
   ('mw_notify_owner_dev','pwa_notify_subscribe_v1(jsonb,jsonb)'),
   ('mw_notify_owner_dev','pwa_notify_target_v1(jsonb,uuid)'),
-  ('mw_notify_owner_dev','pwa_worker_guard_v1(text)');
+  ('mw_notify_owner_dev','pwa_worker_guard_v1(text)'),
+  ('mw_reviewer_dml','agent_audit.begin_operation(uuid,text,text,text,text,jsonb,text)'),
+  ('mw_reviewer_dml','sync_cash_ledger(text,text)');
 CREATE TEMP VIEW am_actual_routines AS
  SELECT coalesce(g.rolname::text,'PUBLIC') AS grantee, p.oid::regprocedure::text AS routine
  FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
@@ -152,6 +175,18 @@ DO $$ BEGIN
  IF has_function_privilege('mw-credit-app-command-dev@clever-oasis-508610-n7.iam','public.pwa_claim_notifications_v1(integer,integer)','EXECUTE') THEN RAISE EXCEPTION 'command user must not claim notifications'; END IF;
  IF NOT has_function_privilege('mw_jobs_dev','public.pwa_job_run_v1(text,date,text)','EXECUTE') THEN RAISE EXCEPTION 'jobs role must run jobs'; END IF;
  IF has_function_privilege('mw-credit-app-read-dev@clever-oasis-508610-n7.iam','public.pwa_submit_operation_v2(text)','EXECUTE') THEN RAISE EXCEPTION 'read user must not submit operations'; END IF;
+ -- V93 (DB-ACCESS-08): the ledger projection is the ledger owner's pinned definer; lock-only column
+ -- grants (attacl, not listed in section 1) exist exactly where the design needs them; no
+ -- migration-owned direct ledger write for the capability or the reviewer.
+ IF NOT (SELECT prosecdef AND pg_get_userbyid(proowner)='mw_ledger_owner_dev' AND 'search_path=pg_catalog, public'=ANY(proconfig) FROM pg_proc WHERE oid='public.sync_cash_ledger(text,text)'::regprocedure) THEN RAISE EXCEPTION 'sync_cash_ledger must be the ledger owner''s pinned definer'; END IF;
+ IF has_function_privilege('mw-credit-app-read-dev@clever-oasis-508610-n7.iam','public.sync_cash_ledger(text,text)','EXECUTE') THEN RAISE EXCEPTION 'read user must not execute the ledger definer'; END IF;
+ IF NOT has_column_privilege('mw_ledger_owner_dev','public."Cash Accounts"','Account Label','UPDATE') OR has_table_privilege('mw_ledger_owner_dev','public."Cash Accounts"','UPDATE')
+  OR NOT has_column_privilege('mw_ledger_owner_dev','public."Cash Holders"','Holder Name','UPDATE') OR has_table_privilege('mw_ledger_owner_dev','public."Cash Holders"','UPDATE') THEN RAISE EXCEPTION 'ledger owner lock-only column grants differ'; END IF;
+ IF NOT has_column_privilege('mw_ledger_owner_dev','public.r008_cash_account_cutover','Opening Balance','UPDATE') OR NOT has_column_privilege('mw_ledger_owner_dev','public.r008_cash_account_cutover','Notes','UPDATE')
+  OR has_table_privilege('mw_ledger_owner_dev','public.r008_cash_account_cutover','UPDATE') OR has_any_column_privilege('mw_ledger_owner_dev','public.r008_cash_account_cutover','INSERT') THEN RAISE EXCEPTION 'ledger owner r008 opening restatement must be the two-column UPDATE only'; END IF;
+ IF NOT has_column_privilege('mw_reviewer_dml','public."Cash Ledger"','Created At','UPDATE') OR has_table_privilege('mw_reviewer_dml','public."Cash Ledger"','UPDATE') THEN RAISE EXCEPTION 'reviewer must hold the lock-only Created At column grant and no table UPDATE'; END IF;
+ IF EXISTS(SELECT 1 FROM unnest(ARRAY['mw_app_dev','mw_reviewer_dml']) r CROSS JOIN unnest(ARRAY['INSERT','UPDATE','DELETE']) p WHERE has_table_privilege(r,'public."Cash Ledger"',p)) THEN RAISE EXCEPTION 'no migration-owned direct Cash Ledger write for the capability or the reviewer'; END IF;
+ IF EXISTS(SELECT 1 FROM pg_auth_members WHERE member='mw_ledger_owner_dev'::regrole OR roleid='mw_ledger_owner_dev'::regrole) THEN RAISE EXCEPTION 'ledger owner must hold and grant no membership'; END IF;
 END $$;
 SELECT 'Access matrix regression passed' AS result;
 ROLLBACK;

@@ -453,3 +453,32 @@ test('F-C21 maintained DEV-only post-migration hook is read-only by default and 
   } finally { await admin.query('DROP TABLE future_c_hook'); client.release(); }
 });
 
+
+test('F-C22 Cash Ledger stays capability-writable before V93 and becomes read-only once sync_cash_ledger is the ledger owner definer', async () => {
+  // Pre-V93 fixture (invoker-rights projection): the capability needs its own ledger DML.
+  const before = await policy();
+  assert.deepEqual(before.violations, []);
+  assert.ok(before.statements.includes('GRANT SELECT,INSERT,UPDATE,DELETE ON TABLE "public"."Cash Ledger" TO mw_app_dev'));
+  const client = await admin.connect();
+  try {
+    // V93 shape, simulated inside one rolled-back transaction: SECURITY DEFINER owned by the ledger owner
+    // (the role comes from Test-AppRolePrerequisites.sql), EXECUTE closed to PUBLIC, and the migration's
+    // own revoke of the capability's direct ledger DML.
+    await client.query('BEGIN');
+    await client.query('ALTER FUNCTION public.sync_cash_ledger(text,text) SECURITY DEFINER SET search_path=pg_catalog,public; REVOKE ALL ON FUNCTION public.sync_cash_ledger(text,text) FROM PUBLIC; ALTER FUNCTION public.sync_cash_ledger(text,text) OWNER TO mw_ledger_owner_dev; REVOKE INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER ON public."Cash Ledger" FROM mw_app_dev');
+    const plan = await planApplicationRole(client, config);
+    assert.deepEqual(plan.violations, []);
+    assert.ok(plan.statements.includes('GRANT SELECT ON TABLE "public"."Cash Ledger" TO mw_app_dev'));
+    assert.ok(!plan.statements.some(s => /"Cash Ledger" TO mw_app_dev$/.test(s) && /INSERT|UPDATE|DELETE/.test(s)), 'no direct ledger DML for the capability');
+    assert.ok(plan.statements.includes('GRANT EXECUTE ON FUNCTION sync_cash_ledger(text,text) TO mw_app_dev'), 'the capability executes the approved ledger definer');
+    // Any other definer owned by the ledger owner stays outside the capability (unregistered creator, not approved).
+    await client.query("CREATE FUNCTION public.ledger_c_other() RETURNS integer LANGUAGE sql SECURITY DEFINER AS 'SELECT 1'; REVOKE ALL ON FUNCTION public.ledger_c_other() FROM PUBLIC; ALTER FUNCTION public.ledger_c_other() OWNER TO mw_ledger_owner_dev");
+    const other = await planApplicationRole(client, config);
+    assert.ok(!other.statements.some(s => s.startsWith('GRANT') && s.includes('ledger_c_other()')));
+    assert.ok(other.statements.includes('REVOKE ALL ON FUNCTION ledger_c_other() FROM mw_app_dev'));
+    // PUBLIC execution on the approved definer is still a violation, as for the journal routines.
+    await client.query('GRANT EXECUTE ON FUNCTION public.sync_cash_ledger(text,text) TO PUBLIC');
+    assert.ok((await planApplicationRole(client, config)).violations.some(v => v.includes('PUBLIC') && v.includes('sync_cash_ledger')));
+  } finally { await client.query('ROLLBACK'); client.release(); }
+  assert.deepEqual((await policy()).statements.filter(s => s.includes('"Cash Ledger"')), before.statements.filter(s => s.includes('"Cash Ledger"')), 'rolled back: pre-V93 plan unchanged');
+});

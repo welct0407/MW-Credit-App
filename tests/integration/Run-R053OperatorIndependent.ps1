@@ -1,10 +1,14 @@
-param([string]$TestNamePattern,[switch]$AgentReceipts,[switch]$Production,[switch]$BindingOnly)
+param([string]$TestNamePattern,[switch]$AgentReceipts,[switch]$Production,[switch]$BindingOnly,[switch]$LedgerOwner)
 $ErrorActionPreference='Stop'
 if($BindingOnly -and ($Production -or $AgentReceipts)){throw 'Choose exact binding-only fixture mode'}
+# -LedgerOwner (A-design §9.4): V1-V92 as a superuser `postgres` that the test then demotes to the Cloud SQL
+# shape (LOGIN NOSUPERUSER CREATEROLE, owner of the catalogue), then the V93 owner-authority path as that runner.
+if($LedgerOwner -and ($Production -or $AgentReceipts -or $BindingOnly)){throw 'Choose exact ledger-owner fixture mode'}
 if($env:CI -ne 'true'){. "$PSScriptRoot/../../scripts/Enter-Dev.ps1"}
 . "$PSScriptRoot/../../scripts/database/Common.ps1"
 $pgBin=Get-PgBin
-$bootstrapUser=if($BindingOnly){'c_r053_binding_init'}else{'postgres'}
+$bootstrapUser=if($BindingOnly -or $LedgerOwner){'c_r053_binding_init'}else{'postgres'}
+$migrationUser=if($LedgerOwner){'postgres'}else{$bootstrapUser}
 $token=[guid]::NewGuid().ToString('N')
 $fixtureRoot=Join-Path ([IO.Path]::GetTempPath()) ('mw-phase8-'+$token)
 $data=Join-Path $fixtureRoot 'data';$database='loan_manager_dev'
@@ -12,7 +16,7 @@ New-Item -ItemType Directory -Path $fixtureRoot | Out-Null
 Write-Host "Owned Phase8 disposable fixture: $fixtureRoot"
 $listener=[Net.Sockets.TcpListener]::new([Net.IPAddress]::Loopback,0);$listener.Start();$fixturePort=$listener.LocalEndpoint.Port;$listener.Stop()
 $started=$false;$saved=@{}
-$names=@('PHASE8_AGENT_RECEIPTS','PHASE8_TEST_DISPOSABLE','PHASE8_TEST_HOST','PHASE8_TEST_PORT','PHASE8_TEST_DATABASE','PHASE8_TEST_USER','PHASE8_TEST_PASSWORD','PHASE8_TEST_DATA_DIRECTORY')
+$names=@('PHASE8_AGENT_RECEIPTS','PHASE8_LEDGER_OWNER','PHASE8_TEST_DISPOSABLE','PHASE8_TEST_HOST','PHASE8_TEST_PORT','PHASE8_TEST_DATABASE','PHASE8_TEST_USER','PHASE8_TEST_PASSWORD','PHASE8_TEST_DATA_DIRECTORY')
 Get-ChildItem Env:FLYWAY_* -ErrorAction SilentlyContinue | ForEach-Object {$names+=$_.Name}
 foreach($name in $names){$saved[$name]=[Environment]::GetEnvironmentVariable($name);[Environment]::SetEnvironmentVariable($name,$null)}
 try {
@@ -20,13 +24,21 @@ try {
  if($LASTEXITCODE){throw 'Disposable initdb failed'}
  Start-PgServer $data (Join-Path $fixtureRoot 'postgres.log') $fixturePort $fixtureRoot;$started=$true
  if($BindingOnly){'CREATE ROLE postgres LOGIN NOSUPERUSER CREATEROLE;' | & (Get-PgTool psql) -X -q -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $fixturePort -U $bootstrapUser -d postgres;if($LASTEXITCODE){throw 'Binding operator creation failed'}}
+ if($LedgerOwner){'CREATE ROLE postgres LOGIN SUPERUSER CREATEROLE;' | & (Get-PgTool psql) -X -q -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $fixturePort -U $bootstrapUser -d postgres;if($LASTEXITCODE){throw 'Ledger-owner runner creation failed'}}
  & (Get-PgTool createdb) -h 127.0.0.1 -p $fixturePort -U $bootstrapUser -O postgres $database
  if($LASTEXITCODE){throw 'Disposable database creation failed'}
  foreach($file in @('Test-AgentAuditPrerequisites.sql','Test-AppRolePrerequisites.sql')){
-  & (Get-PgTool psql) -X -q -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $fixturePort -U $bootstrapUser -d $database -f "$PSScriptRoot/../../scripts/database/$file"
+  & (Get-PgTool psql) -X -q -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $fixturePort -U $migrationUser -d $database -f "$PSScriptRoot/../../scripts/database/$file"
   if($LASTEXITCODE){throw 'Disposable prerequisites failed'}
  }
- if(-not $BindingOnly){
+ if($LedgerOwner){
+  $env:FLYWAY_URL="jdbc:postgresql://127.0.0.1:$fixturePort/$database";$env:FLYWAY_USER=$migrationUser;$env:FLYWAY_CONFIG_FILES=Join-Path $DbRepoRoot 'database/flyway.conf'
+  Push-Location $DbRepoRoot
+  try {
+   & (Get-FlywayPath) '-outputType=json' '-target=92' migrate | Out-File (Join-Path $fixtureRoot 'migration92.json')
+   if($LASTEXITCODE){Get-Content (Join-Path $fixtureRoot 'migration92.json');throw 'V92 fixture migration failed'}
+  } finally {Pop-Location}
+ } elseif(-not $BindingOnly){
  $env:FLYWAY_URL="jdbc:postgresql://127.0.0.1:$fixturePort/$database";$env:FLYWAY_USER='postgres';$env:FLYWAY_CONFIG_FILES=Join-Path $DbRepoRoot 'database/flyway.conf'
  Push-Location $DbRepoRoot
  try {
@@ -54,9 +66,11 @@ try {
  }
  }
  if($AgentReceipts){$env:PHASE8_AGENT_RECEIPTS='1'}
- $env:PHASE8_TEST_DISPOSABLE='1';$env:PHASE8_TEST_HOST='127.0.0.1';$env:PHASE8_TEST_PORT=[string]$fixturePort;$env:PHASE8_TEST_DATABASE=$database;$env:PHASE8_TEST_USER='postgres';$env:PHASE8_TEST_DATA_DIRECTORY=$data
+ if($LedgerOwner){$env:PHASE8_LEDGER_OWNER='1'}
+ # PHASE8_TEST_USER is the fixture's administrative login; in -LedgerOwner mode that is the bootstrap superuser, not the runner.
+ $env:PHASE8_TEST_DISPOSABLE='1';$env:PHASE8_TEST_HOST='127.0.0.1';$env:PHASE8_TEST_PORT=[string]$fixturePort;$env:PHASE8_TEST_DATABASE=$database;$env:PHASE8_TEST_USER=$(if($LedgerOwner){$bootstrapUser}else{'postgres'});$env:PHASE8_TEST_DATA_DIRECTORY=$data
  $arguments=@('--test','--test-concurrency=1');if($TestNamePattern){$arguments+=('--test-name-pattern='+$TestNamePattern)}
- $testFile=if($BindingOnly){'r053-binding-independent.test.mjs'}elseif($Production){'r053-production-operator-independent.test.mjs'}else{'r053-operator-independent.test.mjs'}
+ $testFile=if($LedgerOwner){'ledger-owner-operator-independent.test.mjs'}elseif($BindingOnly){'r053-binding-independent.test.mjs'}elseif($Production){'r053-production-operator-independent.test.mjs'}else{'r053-operator-independent.test.mjs'}
  & node @arguments "$PSScriptRoot/$testFile"
  if($LASTEXITCODE){throw 'Phase8 identity tests failed'}
 } finally {

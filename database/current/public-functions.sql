@@ -3403,6 +3403,24 @@ $_$;
 
 
 --
+-- Name: pwa_lock_key_v1(text, text); Type: FUNCTION
+--
+
+CREATE FUNCTION public.pwa_lock_key_v1(kind text, target text) RETURNS bigint
+    LANGUAGE sql IMMUTABLE STRICT PARALLEL SAFE
+    AS $$
+ SELECT pg_catalog.hashtextextended(kind OPERATOR(pg_catalog.||) ':' OPERATOR(pg_catalog.||) target, 0)
+$$;
+
+
+--
+-- Name: FUNCTION pwa_lock_key_v1(kind text, target text); Type: COMMENT
+--
+
+COMMENT ON FUNCTION public.pwa_lock_key_v1(kind text, target text) IS 'Advisory lock key: hashtextextended(kind||'':''||target,0). Shared by SQL and services/business/borrowers.mjs.';
+
+
+--
 -- Name: pwa_management_financial_text_v2(text, jsonb); Type: FUNCTION
 --
 
@@ -5489,7 +5507,7 @@ END $_$;
 --
 
 CREATE FUNCTION public.sync_cash_ledger(p_type text, p_id text) RETURNS void
-    LANGUAGE plpgsql
+    LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'pg_catalog', 'public'
     AS $$
 DECLARE d date; amount numeric; from_holder text; to_holder text; movement text; source_key text; actor text;
@@ -5500,19 +5518,19 @@ BEGIN
  CASE p_type
  WHEN 'Payment' THEN
   SELECT "Payment Date","Amount Received"::numeric,"Ref Received By Cash Holder","Created By","Ref Received By Cash Account"
-   INTO d,amount,to_holder,actor,to_account FROM public."Payments" WHERE "Row ID"=p_id AND "Status"='Posted' FOR UPDATE;
+   INTO d,amount,to_holder,actor,to_account FROM public."Payments" WHERE "Row ID"=p_id AND "Status"='Posted';
   movement:='Payment Receipt'; source_key:='PAYMENT:'||p_id; payment_id:=p_id;
  WHEN 'Loan' THEN
-  SELECT "Loan Date","Principal Amount"::numeric,"Ref Disbursed From Cash Account" INTO d,amount,from_account FROM public."Loans" WHERE "Row ID"=p_id FOR UPDATE;
+  SELECT "Loan Date","Principal Amount"::numeric,"Ref Disbursed From Cash Account" INTO d,amount,from_account FROM public."Loans" WHERE "Row ID"=p_id;
   movement:='Loan Disbursement'; source_key:='LOAN:'||p_id; loan_id:=p_id; from_holder:='ch:lisa';
  WHEN 'Business Expense' THEN
   SELECT "Expense Date",abs("Amount"::numeric),CASE WHEN "Amount"::numeric>0 THEN "Ref Paid By Cash Holder" END,
    CASE WHEN "Amount"::numeric<0 THEN "Ref Paid By Cash Holder" END,"Created By",
-   CASE WHEN "Amount"::numeric>0 THEN "Ref Paid By Cash Account" END, CASE WHEN "Amount"::numeric<0 THEN "Ref Paid By Cash Account" END INTO d,amount,from_holder,to_holder,actor,from_account,to_account FROM public."Business Expenses" WHERE "Row ID"=p_id FOR UPDATE;
+   CASE WHEN "Amount"::numeric>0 THEN "Ref Paid By Cash Account" END, CASE WHEN "Amount"::numeric<0 THEN "Ref Paid By Cash Account" END INTO d,amount,from_holder,to_holder,actor,from_account,to_account FROM public."Business Expenses" WHERE "Row ID"=p_id;
   IF coalesce(from_holder,to_holder) IS NULL THEN amount:=NULL; END IF;
   movement:='Business Expense'; source_key:='EXPENSE:'||p_id; expense_id:=p_id;
  WHEN 'Settlement' THEN
-  SELECT "Transfer Date","Amount"::numeric,"Ref Paid From Cash Account" INTO d,amount,from_account FROM public."Settlements" WHERE "Row ID"=p_id AND "Status"='Completed' FOR UPDATE;
+  SELECT "Transfer Date","Amount"::numeric,"Ref Paid From Cash Account" INTO d,amount,from_account FROM public."Settlements" WHERE "Row ID"=p_id AND "Status"='Completed';
   movement:='Partner Settlement'; source_key:='SETTLEMENT:'||p_id; settlement_id:=p_id; from_holder:='ch:lisa';
  ELSE RAISE EXCEPTION 'Unsupported cash source';
  END CASE;

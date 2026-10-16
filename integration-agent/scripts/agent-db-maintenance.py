@@ -4,9 +4,9 @@ Dry run by default: nothing changes without --apply.
 
   null-archived-images  NULL runtime.receipt_jobs.image only where the job's receipt asset is ARCHIVED with
                         object_key, generation and raw_sha256 recorded (the archive re-reads GCS by generation).
-  audit-retention       Select routine audit trees older than the cutoff (default 12 months), export them as gzip
-                        JSONL plus a manifest, upload and verify, then delete them in atomic batches as
-                        mw_agent_owner, record one CONFIG operation and VACUUM (ANALYZE).
+  audit-retention       Select routine audit trees older than the cutoff (default and minimum 7 days; owner decision
+                        17 October 2026), export them as gzip JSONL plus a manifest, upload and verify, then delete
+                        them in atomic batches as mw_agent_owner, record one CONFIG operation and VACUUM (ANALYZE).
 
 The connection file is psycopg keyword JSON (optional "password_file") outside Git, for a principal that may
 SET ROLE mw_agent_owner. --expect-environment must equal the newest audit.operations.environment.
@@ -40,7 +40,7 @@ ROUTINE_ACTIONS = ['READ', 'JOB', 'PROCESS', 'HEALTH']
 TERMINAL_STATES = ['COMPLETED', 'FAILED', 'DENIED', 'CANCELLED', 'ROLLED_BACK']
 DETERMINISTIC_SERVICES = ['ingress', 'reviewer_dml', 'statement_snapshot', 'legacy_import']
 UUID4 = r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
-MIN_DAYS = 30
+MIN_DAYS = 7  # owner decision 17 October 2026: one week of routine audit is sufficient
 # (table, export order key, temp key set, column joining that set)
 EXPORTS = (('audit.operations', 'operation_id', 'rt_tree', 'operation_id'),
            ('audit.events', 'event_id', 'rt_events', 'event_id'),
@@ -301,14 +301,11 @@ def record(conn, args, run_id, summary):
 
 
 def audit_retention(conn, args):
-    if args.older_than_days is not None and args.older_than_days < MIN_DAYS:
+    if args.older_than_days < MIN_DAYS:
         raise SystemExit(f'--older-than-days must be >= {MIN_DAYS}')
     if args.archive.startswith('local:') and args.expect_environment == 'production':
         raise SystemExit('production exports go to GCS only')
-    months, days = (0, args.older_than_days) if args.older_than_days is not None else (args.older_than_months, 0)
-    if months * 31 + days < MIN_DAYS:
-        raise SystemExit(f'cutoff must be at least {MIN_DAYS} days')
-    cutoff = conn.execute('SELECT now() - make_interval(months=>%s, days=>%s)', (months, days)).fetchone()[0]
+    cutoff = conn.execute('SELECT now() - make_interval(days=>%s)', (args.older_than_days,)).fetchone()[0]
     started = time.monotonic()
     report = {'database_bytes': database_bytes(conn), **plan(conn, cutoff)}
     report['plan_seconds'] = round(time.monotonic() - started, 2)
@@ -367,6 +364,9 @@ def audit_retention(conn, args):
             schema, name = table.split('.')
             conn.execute(sql.SQL('VACUUM (ANALYZE) {}').format(sql.Identifier(schema, name)))
         report['vacuum_seconds'] = round(time.monotonic() - began, 2)
+    if args.discard_local:
+        shutil.rmtree(directory)
+        report['local_directory'] = None
     report['database_bytes_after'] = database_bytes(conn)
     return report
 
@@ -382,14 +382,14 @@ def main(argv=None):
     p.add_argument('--skip-vacuum', action='store_true')
     p.add_argument('--output', help='private JSON report path')
     r = p.add_argument_group('audit-retention')
-    r.add_argument('--older-than-months', type=int, default=12)
-    r.add_argument('--older-than-days', type=int, help=f'alternative cutoff; minimum {MIN_DAYS}; below 12 months needs an owner decision')
+    r.add_argument('--older-than-days', type=int, default=MIN_DAYS, help=f'cutoff age in days (default and minimum {MIN_DAYS})')
     r.add_argument('--export', action='store_true', help='export and verify only, no delete')
     r.add_argument('--archive', default=f'gs://{ARCHIVE_BUCKET}/{ARCHIVE_PREFIX}', help='GCS target, or local:<dir> for a disposable lab')
     r.add_argument('--work-directory', help='private local directory for the export (required with --export/--apply)')
     r.add_argument('--token-source', choices=['metadata', 'gcloud'], default='metadata')
     r.add_argument('--readback', action='store_true', help='also GET each object and compare sha256 (needs objects.get)')
     r.add_argument('--actor', default='operator', help='operator identity recorded on the CONFIG operation')
+    r.add_argument('--discard-local', action='store_true', help='remove the local export once the delete has committed')
     args = p.parse_args(argv)
     if args.batch is None:
         args.batch = 50 if args.command == 'null-archived-images' else 2000

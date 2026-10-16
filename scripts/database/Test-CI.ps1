@@ -86,4 +86,6 @@ if($LASTEXITCODE){throw 'R053 native read column/type/ACL checks failed'}
 if ($LASTEXITCODE) { throw "R053 DEV operator proof failed" }
 & "$PSScriptRoot/../../tests/integration/Run-R053OperatorIndependent.ps1" -Production -AgentReceipts
 if($LASTEXITCODE){throw 'R053 nonsuperuser operator/restoration checks failed'}
+& "$PSScriptRoot/../../tests/integration/Run-R053OperatorIndependent.ps1" -LedgerOwner
+if($LASTEXITCODE){throw 'V93 ledger-owner nonsuperuser migration/authority checks failed'}
 }

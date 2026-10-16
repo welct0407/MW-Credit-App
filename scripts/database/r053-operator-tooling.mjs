@@ -13,15 +13,20 @@ export function r053Environment(database){
  const roles=['notify_owner','notify_api','notify_dispatch','jobs_owner','jobs'].map(x=>'mw_'+x+'_'+environment);
  return {environment,roles,owners:[roles[0],roles[3]],journalOwner:'mw_app_'+environment+'_journal_owner',commandUser:'mw-credit-app-command-'+environment+'@clever-oasis-508610-n7.iam',appRole:'mw_app_'+environment,manifestDatabase:'loan_manager_'+environment};
 }
-async function context(c,config,{backupPreparation=false}={}){
+// Cloud SQL is reached either directly from VM-01 (`cloudsql-<env>`) or, from a Linux session, through
+// the IAP tunnel to the Debian host's Auth Proxy (`cloudsql-<env>-tunnel`). The client-side tuple differs;
+// the server-side identity (instance address/port, database, session_user) is required in both cases.
+const cloudsqlModes=environment=>['cloudsql-'+environment,'cloudsql-'+environment+'-tunnel'];
+async function context(c,config,{backupPreparation=false,ownerAuthority=false}={}){
  const binding=r053Environment(config?.database);
  if(!Array.isArray(config.creators)||config.creators.length!==1)throw Error('Explicit DEV operator required');
- if(binding.environment==='prod'&&config.executionMode!=='owned-loopback'){const a=config.productionAuthorization;const backupOnly=backupPreparation&&((a?.purpose==='r056-backup-preparation'&&a.baselineVersion===90&&a.targetVersion===91)||(a?.purpose==='r062-backup-preparation'&&a.baselineVersion===91&&a.targetVersion===92))&&a.backupSha256===undefined;const backed= /^[a-f0-9]{64}$/.test(a?.backupSha256??'')&&!a?.purpose;if(config.executionMode!=='cloudsql-prod'||!a?.approvalReference?.trim()||! /^[a-f0-9]{40}$/.test(a.sourceCommit??'')||!(backupOnly||backed)||!(a.baselineVersion===87||(a.baselineVersion===89&&a.targetVersion===90)||(a.baselineVersion===90&&a.targetVersion===91)||(a.baselineVersion===91&&a.targetVersion===92&&backupPreparation)))throw Error('Explicit DEV operator or guarded PROD operator required');}
+ if(ownerAuthority&&binding.environment==='prod'&&config.executionMode!=='owned-loopback'){const a=config.productionAuthorization;if(!cloudsqlModes('prod').includes(config.executionMode)||!a?.approvalReference?.trim()||! /^[a-f0-9]{40}$/.test(a.sourceCommit??'')||! /^[a-f0-9]{64}$/.test(a.backupSha256??''))throw Error('Explicit DEV operator or guarded PROD operator required');}
+ else if(binding.environment==='prod'&&config.executionMode!=='owned-loopback'){const a=config.productionAuthorization;const backupOnly=backupPreparation&&((a?.purpose==='r056-backup-preparation'&&a.baselineVersion===90&&a.targetVersion===91)||(a?.purpose==='r062-backup-preparation'&&a.baselineVersion===91&&a.targetVersion===92))&&a.backupSha256===undefined;const backed= /^[a-f0-9]{64}$/.test(a?.backupSha256??'')&&!a?.purpose;if(config.executionMode!=='cloudsql-prod'||!a?.approvalReference?.trim()||! /^[a-f0-9]{40}$/.test(a.sourceCommit??'')||!(backupOnly||backed)||!(a.baselineVersion===87||(a.baselineVersion===89&&a.targetVersion===90)||(a.baselineVersion===90&&a.targetVersion===91)||(a.baselineVersion===91&&a.targetVersion===92&&backupPreparation)))throw Error('Explicit DEV operator or guarded PROD operator required');}
  const x=(await c.query("SELECT current_database() database,session_user operator,host(inet_server_addr()) host,inet_server_port() port,r.rolsuper,r.rolcreaterole,r.rolbypassrls,pg_get_userbyid(n.nspowner) schemaGrantor,pg_has_role(session_user,n.nspowner,'SET') schema_set,has_schema_privilege(session_user,n.oid,'CREATE') schema_create FROM pg_roles r CROSS JOIN pg_namespace n WHERE r.rolname=session_user AND n.nspname='public'")).rows[0];
  if(x.database!==config.database||x.operator!==config.creators[0]||x.rolsuper||!x.rolcreaterole||x.rolbypassrls||!x.schema_set||!x.schema_create)throw Error('True nonsuperuser exact schema operator required');
  let mode,grantor;
  if(x.host==='127.0.0.1'&&config.executionMode==='owned-loopback'){mode='explicit';grantor=x.operator;}
- else if(x.database===binding.manifestDatabase&&x.host==='34.21.174.215'&&x.port===5432&&x.operator==='postgres'&&config.executionMode==='cloudsql-'+binding.environment){mode='implicit-cloudsql';grantor='cloudsqladmin';}
+ else if(x.database===binding.manifestDatabase&&x.host==='34.21.174.215'&&x.port===5432&&x.operator==='postgres'&&cloudsqlModes(binding.environment).includes(config.executionMode)){mode='implicit-cloudsql';grantor='cloudsqladmin';}
  else throw Error('Unreviewed DEV operator route');
  return {database:x.database,operator:x.operator,host:x.host,port:x.port,schemaGrantor:x.schemagrantor??x.schemaGrantor,mode,grantor};
 }
@@ -85,6 +90,50 @@ export async function restoreR053Maintenance(c,config,state,{apply=false}={}){
  if(same(actual,state.baseline))return{mode:'authority-already-restored',statements:[]};if(!same(actual,state.elevated))throw Error('Owned authority changed concurrently');
  const statements=state.baseline.flatMap(x=>[`SET LOCAL ROLE ${q(ctx.schemaGrantor)}`,`REVOKE CREATE ON SCHEMA public FROM ${q(x.role)} RESTRICT`,`RESET ROLE`,memberSql(ctx,x.membership)]);
  if(apply)await transaction(c,async()=>{for(const sql of statements)await c.query(sql);if(!same(await selected(c,ctx,maintenanceOwners),state.baseline))throw Error('R053 restoration mismatch');});
+ return{mode:apply?'authority-restored':'restore-plan',statements};
+}
+
+// Generic closed-owner provisioning and temporary owner authority (A-design §9.3). Same tuple rules,
+// elevation shape and private before/after record as the R053 functions above, for an explicit owner
+// list and without the R053 role-package/version gates. First consumer: V93's ledger owner, whose
+// ALTER FUNCTION ... OWNER needs the runner to SET ROLE to the owner and the owner to hold CREATE on public.
+const ownerName=/^mw_[a-z0-9_]+$/;
+// Owners hold no login/privilege flags; INHERIT is not forbidden because the journal owner inherits the capability role (prepareR053Maintenance's journal check).
+function closedOwners(rows,expected){if(rows.length!==expected.length||rows.some(x=>x.rolcanlogin||x.rolsuper||x.rolcreatedb||x.rolcreaterole||x.rolreplication||x.rolbypassrls))throw Error('Closed owner roles required');}
+function ownerList(owners,environment){if(!Array.isArray(owners)||!owners.length||new Set(owners).size!==owners.length||owners.some(x=>typeof x!=='string'||!ownerName.test(x)))throw Error('Explicit owner role list required');
+ // An environment token in the name (mw_ledger_owner_dev, mw_app_dev_journal_owner) must match; shared owners (mw_business_audit_owner) carry none.
+ if(owners.some(x=>{const token=/_(dev|prod)(?=_|$)/.exec(x)?.[1];return token&&token!==environment;}))throw Error('Owner role belongs to another environment');return[...owners];}
+export async function provisionClosedOwnerRole(c,config,{role,apply=false}={}){
+ const [owner]=ownerList([role],r053Environment(config?.database).environment);const ctx=await context(c,config,{ownerAuthority:true});
+ if((await roles(c,[owner])).length)throw Error('Owner role already exists; inspect retained provisioning evidence');
+ const statements=[`CREATE ROLE ${q(owner)} NOLOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS`];
+ if(!apply)return{mode:'role-plan',context:ctx,role:owner,statements};
+ return transaction(c,async()=>{for(const sql of statements)await c.query(sql);const tuples=(await memberships(c)).filter(x=>x.role===owner||x.member===owner);if(tuples.some(x=>x.member!==ctx.operator))throw Error('Unexpected new role membership');
+  if(ctx.mode==='implicit-cloudsql'){if(tuples.length)throw Error('Unexpected Cloud SQL automatic creator tuple');await c.query(`GRANT ${q(owner)} TO ${q(ctx.operator)} WITH INHERIT FALSE, SET FALSE`);}
+  else{if(tuples.length!==1||!tuples[0].admin_option||tuples[0].inherit_option||tuples[0].set_option)throw Error('Unsafe local automatic creator tuple');await c.query(`GRANT ${q(owner)} TO ${q(ctx.operator)} WITH ADMIN FALSE, INHERIT FALSE, SET FALSE GRANTED BY ${q(ctx.operator)}`);}
+  closedOwners(await roles(c,[owner]),[owner]);const after=await memberships(c);const m=after.find(x=>x.role===owner&&x.member===ctx.operator&&x.grantor===ctx.grantor);if(!m||m.admin_option||m.inherit_option||m.set_option)throw Error('New closed creator tuple mismatch');
+  return{mode:'role-provisioned',context:ctx,role:owner,roles:await roles(c,[owner]),memberships:after.filter(x=>x.role===owner||x.member===owner),statements};
+ });
+}
+export async function prepareOwnerAuthority(c,config,{owners,apply=false,expectedRestoreState=null}={}){
+ const maintenanceOwners=ownerList(owners,r053Environment(config?.database).environment);const ctx=await context(c,config,{ownerAuthority:true});
+ closedOwners(await roles(c,maintenanceOwners),maintenanceOwners);
+ const baseline=await selected(c,ctx,maintenanceOwners);
+ if(baseline.some(x=>x.membership.admin_option||x.membership.inherit_option||x.membership.set_option||x.create))throw Error('Closed owner authority baseline required');
+ const elevated=baseline.map(x=>({...x,membership:{...x.membership,inherit_option:true,set_option:true},create:{grantor:ctx.schemaGrantor,grantee:x.role,grantable:false}}));
+ const state={version:4,owners:maintenanceOwners,context:ctx,baseline,elevated};if(expectedRestoreState&&!same(state,expectedRestoreState))throw Error('Owner authority baseline changed');
+ const statements=elevated.flatMap(x=>[memberSql(ctx,x.membership),`SET LOCAL ROLE ${q(ctx.schemaGrantor)}`,`GRANT CREATE ON SCHEMA public TO ${q(x.role)}`,`RESET ROLE`]);
+ if(apply)await transaction(c,async()=>{for(const sql of statements)await c.query(sql);if(!same(await selected(c,ctx,maintenanceOwners),elevated))throw Error('Owner authority elevation mismatch');});
+ return{mode:apply?'authority-prepared':'authority-plan',restoreState:state,statements};
+}
+export async function restoreOwnerAuthority(c,config,state,{apply=false}={}){
+ if(state?.version!==4)throw Error('Owner authority restore context mismatch');const maintenanceOwners=ownerList(state.owners,r053Environment(config?.database).environment);
+ const ctx=await context(c,config,{ownerAuthority:true});if(!same(ctx,state.context))throw Error('Owner authority restore context mismatch');
+ if(!Array.isArray(state.baseline)||!same(state.baseline.map(x=>x.role),maintenanceOwners)||state.baseline.some(x=>x.create!==null||x.membership?.role!==x.role||x.membership?.member!==ctx.operator||x.membership?.grantor!==ctx.grantor||x.membership?.admin_option!==false||x.membership?.inherit_option!==false||x.membership?.set_option!==false)||!same(state.elevated,state.baseline.map(x=>({...x,membership:{...x.membership,inherit_option:true,set_option:true},create:{grantor:ctx.schemaGrantor,grantee:x.role,grantable:false}}))))throw Error('Invalid owner authority restoration snapshot');
+ closedOwners(await roles(c,maintenanceOwners),maintenanceOwners);const actual=await selected(c,ctx,maintenanceOwners);
+ if(same(actual,state.baseline))return{mode:'authority-already-restored',statements:[]};if(!same(actual,state.elevated))throw Error('Owned authority changed concurrently');
+ const statements=state.baseline.flatMap(x=>[`SET LOCAL ROLE ${q(ctx.schemaGrantor)}`,`REVOKE CREATE ON SCHEMA public FROM ${q(x.role)} RESTRICT`,`RESET ROLE`,memberSql(ctx,x.membership)]);
+ if(apply)await transaction(c,async()=>{for(const sql of statements)await c.query(sql);if(!same(await selected(c,ctx,maintenanceOwners),state.baseline))throw Error('Owner authority restoration mismatch');});
  return{mode:apply?'authority-restored':'restore-plan',statements};
 }
 async function capture(c,ctx){const {owners}=r053Environment(ctx.database);const x=(await c.query("SELECT p.oid::text,pg_get_userbyid(p.proowner) owner,p.proconfig FROM pg_proc p WHERE p.oid=to_regprocedure('public.pwa_capture_notification_v1()')")).rows[0];if(!x||x.owner!==owners[0])throw Error('Exact capture ownership required');const h=(await c.query("SELECT 1 FROM public.flyway_schema_history WHERE version='88' AND success")).rowCount;if(!h)throw Error('Applied V88 required');return{database:ctx.database,...x};}
