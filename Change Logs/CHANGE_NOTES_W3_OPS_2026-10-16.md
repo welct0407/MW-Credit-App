@@ -155,5 +155,5 @@ GRANT CONNECT ON DATABASE mw_agent, loan_manager_prod TO "mw-integration-agent@c
 - Flip Biome and ruff to blocking once the trees are clean (ruff after the agent branch merges).
 - The `lab` job goes green after the agent branch merges. Merge order: agent branch before or with this one.
 - Regenerate `package-lock.json` on merge with the app branch (`npm install --package-lock-only`).
-- `tests/integration/agent-native-operation-independent.test.mjs` has a one-line pwsh fix that overlaps the app branch. `Run-Phase5.ps1 -ManagementOnly` lists `business-money-reads-independent.test.mjs`, which warns and skips until the app branch merges.
+- `tests/integration/agent-native-operation-independent.test.mjs` has a one-line pwsh fix; the app branch does not change that file. `tests/integration/Run-Phase5.ps1` carries the same one-line addition as the app branch (merges cleanly). `Run-Phase5.ps1 -ManagementOnly` lists `business-money-reads-independent.test.mjs`, which warns and skips until the app branch merges.
 - PROD steps above, after the owner's go. DB-ACCESS-06 with the next migration that touches those functions. ALL-ARCH-04 after W4.
