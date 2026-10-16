@@ -83,12 +83,27 @@ class UnitFileTests(unittest.TestCase):
         self.assertEqual(words(self.units['mw-cloudflared-instagram']['Service'], 'RestrictAddressFamilies'),
                          ['AF_UNIX', 'AF_INET', 'AF_INET6', 'AF_NETLINK'])
 
-    def test_proxy_dropin_adds_iam_listener(self):
-        # ALL-ARCH-03: the drop-in clears ExecStart and relists both listeners (password 5432, auto-iam-authn 5433).
-        dropin = parse(UNITS / 'cloud-sql-auth-proxy.service.d' / 'iam-listener.conf')['Service']['ExecStart']
-        self.assertEqual(dropin[0], '')
-        self.assertIn('?port=5432"', dropin[1])
-        self.assertIn('?port=5433&auto-iam-authn=true"', dropin[1])
+    def test_iam_listener_runs_in_its_own_proxy_process(self):
+        # ALL-ARCH-03 read-route fix: one proxy process shares one certificate per instance, and any
+        # auto-iam-authn listener makes it an IAM certificate for all of them (token sign-in on 5432 failed).
+        # So 5432 keeps the base unit's ExecStart and 5433 is a separate unit pulled in by the drop-in.
+        dropin = parse(UNITS / 'cloud-sql-auth-proxy.service.d' / 'iam-listener.conf')
+        self.assertNotIn('Service', dropin)
+        self.assertEqual(dropin['Unit'], {'Wants': ['cloud-sql-auth-proxy-iam.service'],
+                                          'After': ['cloud-sql-auth-proxy-iam.service']})
+        base = self.units['cloud-sql-auth-proxy']['Service']['ExecStart']
+        self.assertEqual(len(base), 1)
+        self.assertIn('--port 5432', base[0])
+        self.assertNotIn('iam', base[0])
+        iam = self.units['cloud-sql-auth-proxy-iam']
+        self.assertEqual(len(iam['Service']['ExecStart']), 1)
+        self.assertTrue(iam['Service']['ExecStart'][0].endswith('?port=5433&auto-iam-authn=true"'))
+        self.assertNotIn('5432', iam['Service']['ExecStart'][0])
+        self.assertEqual(words(iam['Unit'], 'PartOf'), [PROXY])
+        self.assertNotIn(PROXY, words(iam['Unit'], 'After'))  # the base unit orders itself after this one
+        for key in ('User', 'Group', 'NoNewPrivileges', 'ProtectSystem', 'ProtectHome', 'RestrictAddressFamilies'):
+            with self.subTest(key=key):
+                self.assertEqual(iam['Service'][key], self.units['cloud-sql-auth-proxy']['Service'][key])
 
 
 if __name__ == '__main__':
