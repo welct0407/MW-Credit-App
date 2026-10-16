@@ -51,7 +51,6 @@ sudo bash scripts/install-layout.sh
 sudo bash scripts/install-cloud-sql-proxy.sh
 sudo bash scripts/install-instagram-runtime.sh
 sudo bash scripts/install-cloudflared.sh
-sudo bash scripts/configure-postgres-access.sh /tmp/admin-password.txt
 sudo -u mwagent -H env CODEX_HOME=/var/lib/mw-integration-agent/codex-runtime /var/lib/mw-integration-agent/.local/bin/codex login --device-auth
 ```
 

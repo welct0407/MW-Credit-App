@@ -94,12 +94,11 @@ sudo -u mwagent /opt/mw-integration-agent/.venv/bin/mw-integration-agent \
 sudo -u mwagent /opt/mw-integration-agent/.venv/bin/mw-integration-agent \
   native-api-probe --scope oltp --config /etc/mw-integration-agent/config.json \
   --catalogue /etc/mw-integration-agent/service-catalogue.json
-sudo -u mwagent /opt/mw-integration-agent-src/integration-agent/scripts/test-postgres-access.sh
 ```
 
 The example config is not installed as the active config. Live ingress uses `receiver_enabled=true`; generic processing, sending and writes remain false. The cash statement schedule and email fallback have separate enabled controls. Receipt summaries require their own `receipt_summary_enabled` switch. `messages` omits message text unless `--include-text` is explicitly supplied.
 
-The production proxy endpoints are `127.0.0.1:5432` (password logins: reviewer DML, receipt projector) and `127.0.0.1:5433` (automatic IAM login for the VM service account). The VM identity is conditionally granted `roles/cloudsql.client` and `roles/cloudsql.instanceUser` only for `appsheet-pg-prod-20260914`. Reporting reads log in as IAM user `mw-integration-agent@clever-oasis-508610-n7.iam` and `SET ROLE mw_integration_agent`, which defaults to read-only transactions and has CONNECT, TEMPORARY, public-schema USAGE, and SELECT on business tables. It has no durable table DML privileges. The IAM user is `NOINHERIT` and holds `mw_agent_worker`, `mw_agent_relay` and `mw_integration_agent` with `INHERIT FALSE, SET TRUE`, plus CONNECT on `mw_agent` and `loan_manager_prod` only. `test-postgres-access.sh` below still uses the `mw_integration_agent` password file on 5432 and stops working after the cleanup.
+The production proxy endpoints are `127.0.0.1:5432` (password logins: reviewer DML, receipt projector) and `127.0.0.1:5433` (automatic IAM login for the VM service account). The VM identity is conditionally granted `roles/cloudsql.client` and `roles/cloudsql.instanceUser` only for `appsheet-pg-prod-20260914`. Reporting reads log in as IAM user `mw-integration-agent@clever-oasis-508610-n7.iam` and `SET ROLE mw_integration_agent`, which defaults to read-only transactions and has CONNECT, TEMPORARY, public-schema USAGE, and SELECT on business tables. It has no durable table DML privileges. The IAM user is `NOINHERIT` and holds `mw_agent_worker`, `mw_agent_relay` and `mw_integration_agent` with `INHERIT FALSE, SET TRUE`, plus CONNECT on `mw_agent` and `loan_manager_prod` only. The password-only `test-postgres-access.sh`, `configure-postgres-access.sh` and `inspect-cash-statement.py` were retired on 16 October 2026.
 
 ## Backups and recovery
 
