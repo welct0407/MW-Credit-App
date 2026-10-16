@@ -34,6 +34,8 @@ import { UUID_V4_ANY_CASE as uuid } from '../lib/ids.mjs';
 import { statementTimeoutSql, lockTimeoutSql } from '../lib/budget.mjs';
 const issuer = `https://securetoken.google.com/${PROJECT_ID}`;
 const failure = (status, code) => ({ ok: false, status, code });
+/** Retryable busy failures: lock codes, or the SQL try-lock RAISE texts (every current form grepped from database/migrations). */
+export const commandBusy = error => ['55P03','40P01','57014'].includes(error?.code) || (error?.code === 'P0001' && /\b(?:is|are) busy; (?:sync and )?(?:retry|request)\b/.test(error?.message ?? ''));
 
 /** DISPOSABLE candidate only. No ambient connection/config, service launcher or live permission. */
 /**
@@ -77,6 +79,10 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
       try { await rollback(); } catch { /* The failed rollback already quarantined this client. */ }
       if(error?.message==='invalid_request'&&!attempted&&!commitStarted&&!quarantine)return failure(400,'invalid_request');
       if (error?.code === '42501' && !commitStarted && !quarantine) return failure(403, 'access_denied');
+      // DB-LOCK-01: a lock wait (55P03), deadlock victim (40P01), statement timeout (57014) or a SQL
+      // try-lock refusal ("… is busy; retry" / "… are busy; sync and retry …", P0001) thrown before
+      // COMMIT with a confirmed ROLLBACK applied nothing: the same request id is safe to resend.
+      if (!readonly && commandBusy(error) && !commitStarted && !quarantine) return failure(409, 'command_busy');
       // Nothing is applied before COMMIT: a confirmed ROLLBACK is a known non-outcome even after the
       // write was attempted. Only a started COMMIT, or a failed ROLLBACK after the write was attempted,
       // leaves the outcome unknown (APP-PAY-06).

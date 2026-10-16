@@ -33,7 +33,7 @@ export function LoanRecord({access,id,thai,onBack}:{access:CommandAccess;id:stri
  useContextRefresh(!related&&!editing&&!closing&&!addingCharge&&!action&&!deletePending,t('Refresh loan details','โหลดรายละเอียดสินเชื่อใหม่'),()=>void load());
  function deleteFailure(code:string){
   setDeleteConflict(code==='source_conflict');
-  const messages:Record<string,string>={source_conflict:t('The loan changed. Reload its details before deleting.','สินเชื่อเปลี่ยนแล้ว โหลดรายละเอียดใหม่ก่อนลบ'),dependency_conflict:t('The loan cannot be deleted because related records still depend on it.','ลบสินเชื่อไม่ได้ เนื่องจากยังมีรายการที่อ้างอิงสินเชื่อนี้'),record_requires_reconciliation:t('The loan cannot be deleted because its financial records require reconciliation.','ลบสินเชื่อไม่ได้ เนื่องจากต้องกระทบยอดข้อมูลทางการเงิน'),not_found:t('The loan no longer exists.','ไม่พบสินเชื่อนี้แล้ว'),invalid_reference:t('The loan has an invalid related record.','สินเชื่อมีรายการอ้างอิงที่ไม่ถูกต้อง')};
+  const messages:Record<string,string>={source_conflict:t('The loan changed. Reload its details before deleting.','สินเชื่อเปลี่ยนแล้ว โหลดรายละเอียดใหม่ก่อนลบ'),dependency_conflict:t('The loan cannot be deleted because related records still depend on it.','ลบสินเชื่อไม่ได้ เนื่องจากยังมีรายการที่อ้างอิงสินเชื่อนี้'),record_requires_reconciliation:t('The loan cannot be deleted because its financial records require reconciliation.','ลบสินเชื่อไม่ได้ เนื่องจากต้องกระทบยอดข้อมูลทางการเงิน'),not_found:t('The loan no longer exists.','ไม่พบสินเชื่อนี้แล้ว'),invalid_reference:t('The loan has an invalid related record.','สินเชื่อมีรายการอ้างอิงที่ไม่ถูกต้อง'),command_busy:t('Busy — delete not applied. Try again.','ระบบกำลังยุ่ง — ยังไม่ได้ลบ ลองอีกครั้ง')};
   setDeleteError(messages[code]??t('Delete was rejected: ','ลบไม่สำเร็จ: ')+code);
  }
  async function removeLoan(retry=false){
@@ -50,7 +50,10 @@ export function LoanRecord({access,id,thai,onBack}:{access:CommandAccess;id:stri
   const finish=async(data:any)=>{if(current!==generation.current)return true;if(data.kind!=='recorded'||!['applied','rejected'].includes(data.originalOutcome?.status))return false;try{if(deleteKey)sessionStorage.removeItem(deleteKey)}catch{}deleteCommand.current=null;setDeletePending(false);if(data.originalOutcome.status==='applied'){await invalidateCachedReads(access);if(current===generation.current)onBack()}else deleteFailure(data.originalOutcome.code??'command_rejected');return true};
   try{
    if(recovering){const status=await call(true);if(await finish(status.data))return;if(!status.response.ok||status.data.kind!=='unresolved'||!retry)throw Error();}
-   const result=await call(false);if(await finish(result.data))return;throw Error();
+   const result=await call(false);if(await finish(result.data))return;
+   // W4-UX-04: 409 command_busy applied nothing; keep the same delete request for "Retry same delete".
+   if(result.response.status===409&&result.data?.code==='command_busy'){if(current===generation.current)deleteFailure('command_busy');return;}
+   throw Error();
   }catch{if(current===generation.current)setDeleteError(t('The delete result is not confirmed. Check its status before retrying.','ยังไม่ทราบผลการลบ ตรวจสอบสถานะก่อนลองอีกครั้ง'))}
   finally{clearTimeout(timer);done();actionFlight.current=false;actionController.current=null;if(current===generation.current)setChoosing(false)}
  }

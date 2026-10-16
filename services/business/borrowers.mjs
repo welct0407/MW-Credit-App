@@ -31,13 +31,15 @@ export async function mutateBorrowerRecord(client,operation,id,input,markAttempt
  if(Object.keys(input).sort().join(',')!==expected||operation==='create'&&!uuid.test(id)||operation!=='create'&&!/^[a-f0-9]{64}$/.test(input.expectedVersion??''))return failure(400,'invalid_request');
  let fields;try{if(operation!=='delete')fields=canonicalBorrowerFields(input.fields)}catch{return failure(400,'invalid_request')}
  // Serialize creation of a client-generated UUID; existing rows use their ordinary row lock.
- if(operation==='create')await client.query('SELECT pg_advisory_xact_lock(hashtextextended($1,0))',['borrower:'+id]);
+ // DB-LOCK-03: advisory-lock keys come only from SQL (pwa_lock_key_v1, V93) so Node and the
+ // pwa_submit_operation_v2 sites can never drift; requires V93 in the target database.
+ if(operation==='create')await client.query('SELECT pg_advisory_xact_lock(public.pwa_lock_key_v1($1,$2))',['borrower',id]);
  const current=await readBorrowerRecord(client,id,true);
  if(operation==='create'&&current){const matches=Object.keys(fields).every(key=>current[key]===fields[key]);return matches?{ok:true,value:{item:current}}:failure(409,'record_conflict',current);}
  if(operation!=='create'&&!current)return failure(404,'not_found');
  if(current&&current.version!==input.expectedVersion)return failure(409,'record_conflict',current);
  if(operation!=='delete'){
-  if(fields.name?.trim())await client.query('SELECT pg_advisory_xact_lock(hashtextextended($1,0))',['borrower-name:'+(fields.name??'').trim().toLowerCase()]);
+  if(fields.name?.trim())await client.query('SELECT pg_advisory_xact_lock(public.pwa_lock_key_v1($1,$2))',['borrower-name',(fields.name??'').trim().toLowerCase()]);
   if(fields.name?.trim()&&(await client.query('SELECT 1 FROM public."Borrowers" WHERE "Row ID"<>$1 AND lower(btrim(coalesce("Borrower Name",$3)))=lower(btrim($2)) LIMIT 1',[id,fields.name??'',''])).rowCount)return failure(409,'borrower_name_exists');
   if(fields.referrerId===id)return failure(422,'invalid_reference');
   if(fields.referrerId&&!(await client.query('SELECT 1 FROM public."Borrowers" WHERE "Row ID"=$1',[fields.referrerId])).rowCount)return failure(422,'invalid_reference');

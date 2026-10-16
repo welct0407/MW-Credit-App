@@ -2,7 +2,7 @@ import {wakeContext} from '../notifications/postcommit.mjs';
 import { canonicalCommand } from '../contracts/payment-command.mjs';
 import { beginRequest } from '../lib/http-boundary.mjs';
 import { UUID_V4_ANY_CASE as uuid } from '../lib/ids.mjs';
-const codes = new Set(['ok','origin_denied','method_not_allowed','invalid_request','body_too_large','sign_in_required','session_invalid','access_denied','not_found','command_conflict','command_rejected','receipt_unsupported','receipt_unavailable','receipt_conflict','selection_changed','plan_changed','selection_limit_exceeded','business_date_changed','payment_requires_reconciliation','source_changed','metadata_conflict','borrower_name_exists','operation_outcome_unknown','record_conflict','invalid_reference','record_requires_reconciliation','record_outcome_unknown','metadata_outcome_unknown','command_outcome_unknown','command_unavailable','session_check_unavailable','body_timeout']);
+const codes = new Set(['ok','origin_denied','method_not_allowed','invalid_request','body_too_large','sign_in_required','session_invalid','access_denied','not_found','command_conflict','command_rejected','receipt_unsupported','receipt_unavailable','receipt_conflict','selection_changed','plan_changed','selection_limit_exceeded','business_date_changed','payment_requires_reconciliation','source_changed','metadata_conflict','borrower_name_exists','operation_outcome_unknown','record_conflict','invalid_reference','record_requires_reconciliation','record_outcome_unknown','metadata_outcome_unknown','command_outcome_unknown','command_busy','command_unavailable','session_check_unavailable','body_timeout']);
 const MAX_BODY = 524288;
 codes.add('dataset_changed');
 /** @param {string} raw @returns {any} */

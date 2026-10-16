@@ -79,6 +79,26 @@ test('G07 queued unknown outcome keeps immutable request and reconciles before r
  await openSavedPayments(page);await expect(page.getByText('No unsynced changes.',{exact:true})).toBeVisible();expect(posts).toHaveLength(2);expect(events.at(-1)).toBe('status:'+original.requestId);
 });
 
+// DB-LOCK-01 / W4-UX-02: a 409 command_busy is a known non-outcome. The form shows the busy state (not
+// "Outcome unknown", not a rejection) and the coordinator resends the identical request automatically.
+test('W4 busy command shows the busy state and is retried automatically with the same request',async({page})=>{
+ const posts:any[]=[],events:string[]=[];let recorded=false;
+ await page.route('https://mw-credit-app-command-dev-test.run.app/**',async r=>{
+ const path=new URL(r.request().url()).pathname;
+ if(path.includes('payment-drafts'))return replyDraft(r);
+ if(/^\/api\/payment-commands\/[^/]+$/.test(path)&&r.request().method()==='GET'){events.push('status');return r.fulfill({json:recorded?{ok:true,kind:'recorded',originalOutcome:{status:'posted',paymentId:'synthetic-payment',recordedAt:'2026-10-08T05:00:00Z'}}:{ok:true,kind:'unresolved',safeToUseNewRequestId:false}});}
+ if(path==='/api/payment-commands'&&r.request().method()==='POST'){const body=r.request().postDataJSON();posts.push(body);events.push('post');if(posts.length===1)return r.fulfill({status:409,contentType:'application/json',body:JSON.stringify({ok:false,code:'command_busy'})});recorded=true;return r.fulfill({json:{ok:true,kind:'recorded',originalOutcome:{status:'posted',paymentId:'synthetic-payment',code:null,recordedAt:'2026-10-08T05:00:00Z'}}})}
+ return r.fulfill({json:{ok:true,items:[]}});
+ });
+ await setup(page);await page.locator('.collection-tile-main').first().click();await page.getByRole('button',{name:'Receive selected charges'}).click();await page.getByRole('combobox',{name:/^Receiving account(?: \*)?$/}).selectOption('synthetic-account');
+ await page.getByRole('textbox',{name:/^Amount received(?: \*)?$/}).fill('110');await page.locator('.payment-allocation-row input[type=checkbox]').first().check();
+ await page.getByRole('button',{name:'Review payment'}).click();await page.getByRole('button',{name:'Confirm payment'}).click();
+ await expect(page.getByRole('status').filter({hasText:'Busy — not saved yet'})).toBeVisible();await expect(page.getByText('Nothing was applied. Retrying automatically.',{exact:true})).toBeVisible();
+ await expect(page.getByText('Outcome unknown')).toHaveCount(0);await expect(page.getByText(/Could not apply/)).toHaveCount(0);await expect(page.getByRole('button',{name:'Retry same command',exact:true})).toBeEnabled();
+ await expect.poll(()=>posts.length,{timeout:15000}).toBe(2);expect(posts[1]).toEqual(posts[0]);expect(events.slice(0,3)).toEqual(['status','post','status']);
+ await expect(page.locator('.payment-success')).toContainText('Payment received');await expect(page.getByText('Busy — not saved yet')).toHaveCount(0);
+});
+
 test('G07 removed delayed upload cannot revive receipt and Posted retains notes despite receipt GET failure',async({page})=>{
  let releaseUpload:(()=>void)|undefined,postedBody:any,receiptGets=0,posts=0,oldReceiptId:string|undefined,oldUploadSettled=false;
  await page.route('https://mw-credit-app-command-dev-test.run.app/**',async r=>{

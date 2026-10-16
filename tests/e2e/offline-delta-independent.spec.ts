@@ -41,13 +41,13 @@ test('delta reuses complete data, transfers only edits and derived changes, poll
  await page.evaluate(async command=>{const w=window as any;await w.__syncRepo.savePending(command.requestId,{domain:'borrower',command});await w.__syncRepo.saveDraft('charge:unfinished',{notes:'My unfinished form'});},command);
  await start(page);await page.clock.runFor(2000);await settled(page);expect(calls).toHaveLength(5);expect(transferred).toEqual([]);
  data={borrowers:[unchanged,{id:'edited',name:'Other owner',note:'Remote'}],dashboard:{total:'20'},payments:[]};version=newVersion;
- await page.clock.fastForward(60000);await page.clock.runFor(2000);await settled(page);
+ await page.clock.fastForward(5*60*1000);await page.clock.runFor(2000);await settled(page);
  expect(transferred).toEqual(expect.arrayContaining([{id:'edited',name:'Other owner',note:'Remote'},{total:'20'}]));expect(transferred).toHaveLength(2);
  const saved=await page.evaluate(async()=>{const w=window as any;return{bundle:await w.__syncRepo.readDataset('records'),pending:await w.__syncRepo.list('pending'),draft:await w.__syncRepo.list('draft')}});
  expect(saved.bundle.data.borrowers.map((row:any)=>row.id)).toEqual(['stable','edited']);expect(saved.bundle.data.dashboard.total).toBe('20');expect(saved.pending[0].value.command).toEqual(command);expect(saved.draft[0].value.notes).toBe('My unfinished form');
  await page.evaluate(()=>{const w=window as any;return w.__offlineTest.syncSavedRequests(w.__syncAccess)});expect(await page.evaluate(async()=>(await(window as any).__syncRepo.list('pending'))[0].sync.state)).toBe('blocked');expect(await page.evaluate(async()=>(await(window as any).__syncRepo.list('pending'))[0].value.command)).toEqual(command);
  await page.clock.runFor(2000);await settled(page);const before=calls.length;
- await page.evaluate(()=>Object.defineProperty(document,'visibilityState',{configurable:true,value:'hidden'}));await page.clock.fastForward(60000);await page.clock.runFor(1000);expect(calls).toHaveLength(before);
+ await page.evaluate(()=>Object.defineProperty(document,'visibilityState',{configurable:true,value:'hidden'}));await page.clock.fastForward(5*60*1000);await page.clock.runFor(1000);expect(calls).toHaveLength(before);
  await page.evaluate(()=>{Object.defineProperty(document,'visibilityState',{configurable:true,value:'visible'});document.dispatchEvent(new Event('visibilitychange'))});await page.clock.runFor(2000);await settled(page);expect(calls.length).toBeGreaterThan(before);
  const beforeReconnect=calls.length;await context.setOffline(true);await context.setOffline(false);await page.clock.runFor(2000);await settled(page);expect(calls.length).toBeGreaterThan(beforeReconnect);
 });

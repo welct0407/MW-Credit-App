@@ -1,7 +1,7 @@
 import {Icon} from './Icon';
 import {subscribeOfflineDataset,readCachedJson} from './read-cache';
 import {useContextRefresh} from './context-refresh';
-import {syncSavedRequest,savedRejectionMessage} from './offline-sync';
+import {syncSavedRequest,savedRejectionMessage,isBusyOutcome,busyMessage} from './offline-sync';
 import {RecordAction} from './RecordAction';
 import {HeaderBack} from './HeaderBack';
 import {borrowerLabel} from './borrower-label';
@@ -44,7 +44,7 @@ export function BorrowerRecord({access,id,recovery,savedDraft,thai,onBack,onSave
   }catch{if(stored){uncertain();}else{operation.current=null;draft.resume();}sending.current=false;setBusy(false);setError(t('Request was not sent. Device storage is unavailable or full.','ยังไม่ได้ส่งคำขอ พื้นที่จัดเก็บใช้ไม่ได้หรือเต็ม'));return;}
   if(current!==generation.current){sending.current=false;return;}
   try{
-   const outcome=await syncSavedRequest(access,command.requestId);if(outcome.kind==='queued'){setUnknown(true);setEditing(false);setError(t('Saved on this device. Will sync when connected.','บันทึกบนอุปกรณ์แล้ว จะซิงค์เมื่อเชื่อมต่อ'));return;}if(outcome.kind==='blocked'){setBlocked(true);setUnknown(true);setError(savedRejectionMessage(outcome,thai));return;}const data=outcome.data??{},response={ok:outcome.kind==='synced',status:outcome.status??0};
+   const outcome=await syncSavedRequest(access,command.requestId);if(outcome.kind==='queued'){setUnknown(true);setEditing(false);setError(isBusyOutcome(outcome)?busyMessage(thai):t('Saved on this device. Will sync when connected.','บันทึกบนอุปกรณ์แล้ว จะซิงค์เมื่อเชื่อมต่อ'));return;}if(outcome.kind==='blocked'){setBlocked(true);setUnknown(true);setError(savedRejectionMessage(outcome,thai));return;}const data=outcome.data??{},response={ok:outcome.kind==='synced',status:outcome.status??0};
    if(current!==generation.current||!operation.current)return;
    if(data.kind==='recorded'&&data.originalOutcome?.status==='rejected'){rejected(data.originalOutcome.code);return;}
    if(!response.ok||data.kind!=='recorded'||data.originalOutcome?.status!=='applied'){

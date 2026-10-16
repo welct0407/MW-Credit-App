@@ -2,7 +2,7 @@ import {useAppUpdateBlock} from './app-update-safety';
 import {Icon} from './Icon';
 import {ReceiptPicker} from './ReceiptPicker';
 import {readOfflineDataset} from './offline-dataset';
-import {syncSavedRequest,savedRejectionMessage} from './offline-sync';
+import {syncSavedRequest,savedRejectionMessage,isBusyOutcome} from './offline-sync';
 import {RecordAction} from './RecordAction';
 import {HeaderBack} from './HeaderBack';
 import {displayDate,displayTimestamp,displayValue} from './display-date';
@@ -22,8 +22,8 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
  const t=(en:string,th:string)=>thai?th:en;
  const queueEnabled=!!access.offline;
  const [draft,setDraft]=useState<Draft|null>(null),[selected,setSelected]=useState<string[]>([]),[account,setAccount]=useState(''),[notes,setNotes]=useState('');
- const [state,setState]=useState<'loading'|'edit'|'review'|'sending'|'unknown'|'posted'|'rejected'|'conflict'|'error'|'queued'>('loading');
- useAppUpdateBlock(['loading','edit','review','sending','unknown','conflict'].includes(state));
+ const [state,setState]=useState<'loading'|'edit'|'review'|'sending'|'unknown'|'busy'|'posted'|'rejected'|'conflict'|'error'|'queued'>('loading');
+ useAppUpdateBlock(['loading','edit','review','sending','unknown','busy','conflict'].includes(state));
  const [draftSaveFailed,setDraftSaveFailed]=useState(false);
  const [error,setError]=useState(''),[receipt,setReceipt]=useState<string|null>(null),[preview,setPreview]=useState<string|null>(null),[uploading,setUploading]=useState(false),[preparingReceipt,setPreparingReceipt]=useState(false),[uploadFailed,setUploadFailed]=useState(false);
  const [checking,setChecking]=useState(false),[receiptReadError,setReceiptReadError]=useState(''),[verifiedPreview,setVerifiedPreview]=useState<string|null>(null);
@@ -180,6 +180,8 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
  function result(data:any){
   if(data.kind==='recorded'){if(data.originalOutcome.status==='rejected')setError(savedRejectionMessage({data},thai));setOutcome(data.originalOutcome);setState(data.originalOutcome.status);if(!queueEnabled||data.originalOutcome.status==='posted')clearPending();if(data.originalOutcome.status==='posted'&&notifiedPosted.current!==requestId.current){notifiedPosted.current=requestId.current;(onPosted??access.onPosted)?.(requestId.current);}}
   else if(data.code==='command_conflict'||data.kind==='conflict'){setState('conflict');if(!queueEnabled)clearPending();}
+  // W4-UX-02/03: busy is a known non-outcome (nothing applied); the same command is retried, never "outcome unknown".
+  else if(data.code==='command_busy'){setState('busy');setError('');}
   else{setState('unknown');setChecked(data.kind==='unresolved');}
  }
  async function confirm(){if(confirming.current)return;confirming.current=true;setReviewing(true);try{await confirmOnce()}finally{confirming.current=false;setReviewing(false)}}
@@ -196,6 +198,7 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
     retainPending();setState('queued');setError('');window.dispatchEvent(new Event('mw-offline-saved'));
     const outcome=await syncSavedRequest(access,requestId.current);
     if(outcome.kind==='blocked'){setState('rejected');setError(savedRejectionMessage(outcome,thai));}
+    else if(isBusyOutcome(outcome)){setState('busy');setError('');}
     else if(outcome.data)result(outcome.data);
    }catch{setStorageBlocked(true);setState('unknown');setChecked(false);retainPending();setError(t('The confirmed payment could not be saved on this device. Keep this reference and retry only this same request after checking its status.','บันทึกคำขอรับชำระที่ยืนยันในอุปกรณ์ไม่สำเร็จ เก็บหมายเลขอ้างอิงและลองเฉพาะคำขอเดิมหลังตรวจสอบสถานะ'));}
    return;
@@ -255,9 +258,10 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
  {state==='review'&&draft&&<><p>{draft.borrower.displayName}</p><ul>{allocations.map(row=><li key={row.chargeId}>{selectionRows.find(charge=>charge.id===row.chargeId)?.loanDisplayKey??t('Loan unavailable','ไม่มีข้อมูลสินเชื่อ')} · {displayValue(row.chargeDate)} · {t('Principal','เงินต้น')} {money(row.principal)} · {t('Interest','ดอกเบี้ย')} {money(row.interest)}</li>)}</ul><p className="field-summary">{t('Amount to receive','ยอดรับชำระ')}: <strong className="field-summary-value">{money(total)}</strong></p><p>{draft.accounts.find(row=>row.id===account)?.label}</p><p>{displayValue(draft.businessDate)} · {paymentMethod}</p><pre>{notes}</pre>{preview&&<img className="payment-receipt-preview" src={preview} alt={t('Selected receipt','หลักฐานที่เลือก')}/>}<button className="secondary-button" disabled={reviewing} onClick={()=>{reviewOperation.current++;setState('edit')}}>{t('Edit','แก้ไข')}</button><button className="secondary-button" disabled={reviewing||(!queueEnabled&&(access.offlineOnly||!navigator.onLine))} onClick={()=>void confirm()}>{queueEnabled?t('Confirm payment','ยืนยันรับชำระ'):t('Confirm payment online','ยืนยันรับชำระขณะออนไลน์')}</button></>}
 
  {state==='queued'&&<p role="status">{t('Saved on this device. Will sync when connected.','บันทึกในอุปกรณ์แล้ว จะซิงค์เมื่อเชื่อมต่อ')}</p>}
+ {state==='busy'&&<><p role="status">{t('Busy — not saved yet','ระบบกำลังยุ่ง — ยังไม่ได้บันทึก')}</p><p>{t('Nothing was applied. Retrying automatically.','ยังไม่มีการบันทึกรายการ กำลังลองใหม่อัตโนมัติ')}</p>{command.current&&<button className="secondary-button" disabled={reviewing||access.offlineOnly||!navigator.onLine} onClick={()=>void confirm()}>{t('Retry same command','ลองคำขอเดิมอีกครั้ง')}</button>}</>}
  {state==='unknown'&&<><h3>{t('Outcome unknown','ยังไม่ทราบผลการรับชำระ')}</h3><p>{t('A missing response does not mean the payment failed. Check the original request.','ไม่ได้รับคำตอบไม่ได้หมายความว่าการรับชำระล้มเหลว ตรวจสอบคำขอเดิม')}</p><button className="secondary-button" disabled={checking||access.offlineOnly||!navigator.onLine} onClick={()=>void check()}>{t('Check status','ตรวจสอบสถานะ')}</button>{command.current&&<button className="secondary-button" disabled={checking||access.offlineOnly||!checked||!navigator.onLine} onClick={()=>void confirm()}>{t('Retry same command','ลองคำขอเดิมอีกครั้ง')}</button>}</>}
  {state==='posted'&&<><h3>{t('Original payment recorded as Posted','บันทึกผลคำขอเดิมว่ารับชำระแล้ว')}</h3>{command.current&&<><p>{draft?.borrower.displayName}</p><p className="field-summary">{t('Amount received','ยอดรับชำระ')}: <strong className="field-summary-value">{money(command.current.amountReceived)}</strong></p><p>{draft?.accounts.find(row=>row.id===command.current?.cashAccountId)?.label}</p><pre aria-label={t('Notes','หมายเหตุ')}>{command.current.notes}</pre></>}{verifiedPreview&&<img className="payment-receipt-preview" src={verifiedPreview} alt={t('Verified uploaded receipt','หลักฐานที่อัปโหลดและตรวจสอบแล้ว')}/>} {receiptReadError&&<p role="status">{receiptReadError}</p>}</>}{state==='rejected'&&<h3>{t('Payment could not be applied','ดำเนินการรับชำระไม่สำเร็จ')}</h3>}{state==='conflict'&&<h3>{t('Request identity conflict — do not resend changed details','คำขอขัดแย้ง — อย่าส่งรายละเอียดที่เปลี่ยนแล้วซ้ำ')}</h3>}
- {outcome&&<p>{displayValue(outcome.recordedAt)}</p>}{state==='posted'&&!access.offlineOnly&&<PaymentResult access={access} requestId={requestId.current} thai={thai}/>}{(storageBlocked||['sending','queued','unknown','posted','rejected','conflict'].includes(state))&&<p>{t('Request reference','หมายเลขอ้างอิงคำขอ')}: <code>{requestId.current}</code> <button className="secondary-button" onClick={()=>void navigator.clipboard?.writeText(requestId.current)}>{t('Copy','คัดลอก')}</button></p>}{storageBlocked&&<p>{t('This browser cannot retain the reference. Copy it before leaving.','เบราว์เซอร์นี้เก็บหมายเลขอ้างอิงไม่ได้ กรุณาคัดลอกก่อนออก')}</p>}
+ {outcome&&<p>{displayValue(outcome.recordedAt)}</p>}{state==='posted'&&!access.offlineOnly&&<PaymentResult access={access} requestId={requestId.current} thai={thai}/>}{(storageBlocked||['sending','queued','unknown','busy','posted','rejected','conflict'].includes(state))&&<p>{t('Request reference','หมายเลขอ้างอิงคำขอ')}: <code>{requestId.current}</code> <button className="secondary-button" onClick={()=>void navigator.clipboard?.writeText(requestId.current)}>{t('Copy','คัดลอก')}</button></p>}{storageBlocked&&<p>{t('This browser cannot retain the reference. Copy it before leaving.','เบราว์เซอร์นี้เก็บหมายเลขอ้างอิงไม่ได้ กรุณาคัดลอกก่อนออก')}</p>}
  </section>;
 }
 

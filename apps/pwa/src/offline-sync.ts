@@ -3,6 +3,9 @@ import type {CommandAccess} from './SelectedCharges';
 import type {PendingSync} from './owner-offline';
 
 export type SavedSyncResult={kind:'queued'|'synced'|'blocked';data?:any;status?:number;code?:string};
+/** Busy (409 command_busy): nothing applied, same request id retried automatically. Distinct from outcome unknown and from a rejection. */
+export const isBusyOutcome=(result:{kind?:string;code?:string;data?:any}|null|undefined)=>!!result&&result.kind!=='synced'&&result.kind!=='blocked'&&(result.code==='command_busy'||result.data?.code==='command_busy');
+export const busyMessage=(thai:boolean)=>thai?'ระบบกำลังยุ่ง — ยังไม่ได้บันทึก ยังไม่มีการบันทึกรายการ กำลังลองใหม่อัตโนมัติ':'Busy — not saved yet. Nothing was applied. Retrying automatically.';
 export type SavedSyncSummary={remaining:number;blocked:number;synced:number;reason?:'offline'|'authorization'|'connection'|'waiting'|'attention'};
 /** Stable reason codes are retained for unknown server rejections; never display arbitrary server text. */
 export function savedRejectionMessage(result:{code?:string;data?:any},thai:boolean):string{
@@ -94,6 +97,9 @@ async function syncOne(access:CommandAccess,requestId:string,exclusive=false):Pr
    if(['applied','posted'].includes(data.originalOutcome?.status))return settle({kind:'synced',data,status:response.status});
    if(data.originalOutcome?.status==='rejected')return settle({kind:'blocked',data,status:response.status},data.originalOutcome.code??'request_rejected');
   }
+  // DB-LOCK-01 / W4-UX-01: a busy refusal applied nothing; the row stays queued under the same request id
+  // and the coordinator's existing backoff (retryDelays) resends it after a fresh status read.
+  if(response.status===409&&data?.code==='command_busy')return settle({kind:'queued',data,status:response.status},'command_busy');
   if([400,409,413,415,422].includes(response.status)||data?.kind==='conflict')return settle({kind:'blocked',data,status:response.status},data?.code??'request_requires_review');
   return null;
  };
@@ -131,7 +137,7 @@ async function syncOne(access:CommandAccess,requestId:string,exclusive=false):Pr
    if(!upload.response.ok){const rejected=await classify(upload.response,upload.data);return rejected??settle({kind:'queued'},'receipt_unavailable')}
   }
   const result=await request(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(command)});
-  return await classify(result.response,result.data)??settle({kind:'queued'},'outcome_unknown');
+  return await classify(result.response,result.data)??settle({kind:'queued'},result.data?.code==='command_unavailable'?'command_unavailable':'outcome_unknown');
  }catch{
   return settle({kind:'queued'},'connection_unavailable').catch(()=>({kind:'queued'}));
  }

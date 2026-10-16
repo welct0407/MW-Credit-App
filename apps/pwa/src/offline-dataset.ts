@@ -26,6 +26,7 @@ async function indexDataset(bundle:any){
 
 /** One bounded request at a time. Foreground navigation pauses the next chunk;
  * it does not throw away a request which the server is already processing. */
+export const DATASET_POLL_MS=5*60*1000;
 export function startOfflinePreparation(access:Access,_options:{readOrigin?:string}={}){
  const repository=access.offline;if(!repository)return()=>{};const repo=repository;
  let stopped=false,running=false,initialized=false,initializing=false,queue:string[]=[],media:string[]=[],requestedDomain:string|null=null,paused=false,timer:ReturnType<typeof setTimeout>|undefined,retryTimer:ReturnType<typeof setTimeout>|undefined,retryAttempts=0,controller:AbortController|null=null,activeTask:string|null=null;
@@ -151,7 +152,9 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
  };
  const check=()=>{if(stopped||document.visibilityState==='hidden'||!navigator.onLine||access.offlineOnly)return;if(!running&&!queue.length&&!failed.size){beginCycle();for(const domain of domains)enqueue(domain)}resume()};
  const visible=()=>{if(document.visibilityState!=='hidden')check();status()};
- const poll=setInterval(check,60000);
+ // APP-OFFLINE-03: background poll every 5 minutes; focus, visibility, online and own-write
+ // invalidation (mw-read-invalidated) still refresh immediately.
+ const poll=setInterval(check,DATASET_POLL_MS);
  const resume=()=>{if(stopped)return;for(const task of failed)enqueue(task);failed.clear();for(const domain of domains)if(!completed.has(domain)&&domain!==activeTask)enqueue(domain);paused=false;status();schedule()};
  const offline=()=>{paused=true;controller?.abort('offline');status()};
  const unsubscribe=subscribeActivity(()=>{status();if(activitySnapshot()===0)schedule()});
