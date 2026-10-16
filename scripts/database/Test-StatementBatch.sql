@@ -67,6 +67,66 @@ DO $$ BEGIN
  IF EXISTS(SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='public' AND p.proname LIKE 'pg_stat_statements%') THEN
   RAISE EXCEPTION 'pg_stat_statements objects leaked into public'; END IF;
 END $$;
+-- R067 (V94) contract assertions.
+DO $$ DECLARE leaked text; BEGIN
+ -- DB-LOCK-03: pwa_lock_key_v1 is the only public function that still spells the inline advisory key.
+ SELECT string_agg(p.oid::regprocedure::text,', ') INTO leaked FROM pg_proc p WHERE p.pronamespace='public'::regnamespace AND p.prosrc LIKE '%hashtextextended(%' AND p.oid<>'public.pwa_lock_key_v1(text,text)'::regprocedure;
+ IF leaked IS NOT NULL THEN RAISE EXCEPTION 'inline advisory key still used by %',leaked; END IF;
+ IF (SELECT count(*) FROM pg_proc p WHERE p.pronamespace='public'::regnamespace AND p.prosrc LIKE '%pwa_lock_key_v1(%' AND p.oid<>'public.pwa_lock_key_v1(text,text)'::regprocedure)<>10 THEN
+  RAISE EXCEPTION 'expected ten public functions to take their advisory key from pwa_lock_key_v1'; END IF;
+ -- DB-LOCK-02: the job journal is pending/completed only; the lease columns are gone.
+ IF EXISTS(SELECT 1 FROM pg_attribute WHERE attrelid='public.pwa_job_runs'::regclass AND NOT attisdropped AND attname IN ('lease_expires_at','lease_generation','error_code')) THEN
+  RAISE EXCEPTION 'pwa_job_runs lease columns survived V94'; END IF;
+ IF (SELECT string_agg(attname,',' ORDER BY attnum) FROM pg_attribute WHERE attrelid='public.pwa_job_runs'::regclass AND attnum>0 AND NOT attisdropped)<>'run_id,job_name,business_date,scope_key,state,checkpoint,started_at,completed_at,result_count' THEN
+  RAISE EXCEPTION 'pwa_job_runs column list changed'; END IF;
+ IF (SELECT pg_get_constraintdef(oid) FROM pg_constraint WHERE conrelid='public.pwa_job_runs'::regclass AND conname='pwa_job_runs_state_check')<>$c$CHECK ((state = ANY (ARRAY['pending'::text, 'completed'::text])))$c$ THEN
+  RAISE EXCEPTION 'pwa_job_runs state check must allow only pending and completed'; END IF;
+ IF EXISTS(SELECT 1 FROM pg_constraint WHERE conrelid='public.pwa_job_runs'::regclass AND pg_get_constraintdef(oid) ~ 'lease|error_code|leased|uncertain|failed') THEN
+  RAISE EXCEPTION 'lease-era constraint survived on pwa_job_runs'; END IF;
+ IF position('leased' in (SELECT prosrc FROM pg_proc WHERE oid='public.pwa_job_run_v1(text,date,text)'::regprocedure))>0 THEN RAISE EXCEPTION 'pwa_job_run_v1 still leases'; END IF;
+ IF NOT (SELECT prosecdef AND pg_get_userbyid(proowner) LIKE 'mw_jobs_owner_%' AND 'search_path=pg_catalog, public'=ANY(proconfig) FROM pg_proc WHERE oid='public.pwa_job_run_v1(text,date,text)'::regprocedure) THEN
+  RAISE EXCEPTION 'pwa_job_run_v1 lost its owner, definer mode or search_path'; END IF;
+ -- Owner decision: the reviewer roles cannot execute the correction core; the capability still can.
+ IF has_function_privilege('mw_reviewer_dml','public.payment_crud_prepare_core_v83(public."Payments",public."Payments",text)','EXECUTE') OR NOT has_function_privilege('mw_app_dev','public.payment_crud_prepare_core_v83(public."Payments",public."Payments",text)','EXECUTE') THEN
+  RAISE EXCEPTION 'payment_crud_prepare_core_v83 EXECUTE changed'; END IF;
+END $$;
+-- DB-LOCK-02 behaviour at the head, rolled back: first run completes, second run replays the same row, a failing
+-- run leaves no journal row, and the journal refuses every other state. Synthetic jobs login; the owner's table
+-- reads are granted broadly here only because the operator policy provides the exact manifest live.
+BEGIN;
+CREATE ROLE ci_jobs_login LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;
+GRANT mw_jobs_dev TO ci_jobs_login WITH INHERIT TRUE, SET FALSE;
+GRANT SELECT,INSERT,UPDATE ON ALL TABLES IN SCHEMA public TO mw_jobs_owner_dev;
+SET SESSION AUTHORIZATION ci_jobs_login;
+DO $$ DECLARE d date:=(clock_timestamp() AT TIME ZONE 'Asia/Bangkok')::date; scope text:='hour:'||to_char(clock_timestamp() AT TIME ZONE 'Asia/Bangkok','HH24'); first jsonb; second jsonb; failed boolean:=false; BEGIN
+ first:=public.pwa_job_run_v1('daily-charges',d,'daily');
+ IF first-'resultCount'<>jsonb_build_object('enabled',true,'state','completed','replayed',false) OR jsonb_typeof(first->'resultCount')<>'number' THEN RAISE EXCEPTION 'first job run result %',first; END IF;
+ second:=public.pwa_job_run_v1('daily-charges',d,'daily');
+ IF second<>first||'{"replayed":true}'::jsonb THEN RAISE EXCEPTION 'replay result % after %',second,first; END IF;
+ BEGIN PERFORM public.pwa_job_run_v1('recent-analytics',d,CASE WHEN scope='hour:00' THEN 'hour:23' ELSE 'hour:00' END); EXCEPTION WHEN raise_exception THEN failed:=SQLERRM='job_boundary_changed'; END;
+ IF NOT failed THEN RAISE EXCEPTION 'boundary guard missing'; END IF;
+END $$;
+RESET SESSION AUTHORIZATION;
+DO $$ DECLARE j record; failed boolean:=false; BEGIN
+ SELECT * INTO STRICT j FROM public.pwa_job_runs WHERE job_name='daily-charges';
+ IF j.state<>'completed' OR j.started_at IS NULL OR j.completed_at<j.started_at OR j.checkpoint<>j.business_date::text||'|daily' OR j.result_count IS NULL THEN RAISE EXCEPTION 'completed journal row %',to_jsonb(j); END IF;
+ FOREACH j.state IN ARRAY ARRAY['leased','uncertain','failed'] LOOP
+  failed:=false;
+  BEGIN INSERT INTO public.pwa_job_runs(job_name,business_date,scope_key,state) VALUES('recent-analytics',j.business_date,j.state,j.state); EXCEPTION WHEN check_violation THEN failed:=true; END;
+  IF NOT failed THEN RAISE EXCEPTION 'journal accepted state %',j.state; END IF;
+ END LOOP;
+END $$;
+-- A failing run (synthetic trigger) rolls back with the financial work: no journal row remains.
+CREATE FUNCTION pg_temp.ci_job_failure() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'synthetic_job_failure'; END $$;
+CREATE TRIGGER ci_job_failure BEFORE INSERT ON public."Daily Analytics" FOR EACH ROW EXECUTE FUNCTION pg_temp.ci_job_failure();
+SET SESSION AUTHORIZATION ci_jobs_login;
+DO $$ DECLARE failed boolean:=false; BEGIN
+ BEGIN PERFORM public.pwa_job_run_v1('recent-analytics',(clock_timestamp() AT TIME ZONE 'Asia/Bangkok')::date,'hour:'||to_char(clock_timestamp() AT TIME ZONE 'Asia/Bangkok','HH24')); EXCEPTION WHEN raise_exception THEN failed:=SQLERRM='synthetic_job_failure'; END;
+ IF NOT failed THEN RAISE EXCEPTION 'synthetic failure did not surface'; END IF;
+END $$;
+RESET SESSION AUTHORIZATION;
+DO $$ BEGIN IF EXISTS(SELECT 1 FROM public.pwa_job_runs WHERE job_name='recent-analytics') THEN RAISE EXCEPTION 'failed run left a journal row'; END IF; END $$;
+ROLLBACK;
 -- DB-SCHEMA-02: firing-order snapshot; DB-ACCESS-08: the ledger definer under the real roles.
 \ir Test-TriggerOrder.sql
 \ir Test-LedgerAccess.sql

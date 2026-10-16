@@ -1052,7 +1052,7 @@ CREATE FUNCTION public.guard_cash_account() RETURNS trigger
     AS $$
 BEGIN
  IF TG_OP='DELETE' THEN
-  IF NOT pg_try_advisory_xact_lock(hashtextextended('cash-account:'||OLD."Ref Cash Holder",0)) THEN RAISE EXCEPTION 'Cash accounts are busy; sync and retry'; END IF;
+  IF NOT pg_try_advisory_xact_lock(public.pwa_lock_key_v1('cash-account',OLD."Ref Cash Holder")) THEN RAISE EXCEPTION 'Cash accounts are busy; sync and retry'; END IF;
   IF OLD."Default Account" AND EXISTS(SELECT 1 FROM public."Cash Accounts" WHERE "Ref Cash Holder"=OLD."Ref Cash Holder" AND "Active" AND "Row ID"<>OLD."Row ID") THEN
    RAISE EXCEPTION 'Choose a replacement default account before deletion'; END IF;
   RETURN OLD; -- References and opening balances still protect used accounts.
@@ -1062,7 +1062,7 @@ BEGIN
   RAISE EXCEPTION 'Cash account identity, holder and creation time are immutable';
  END IF;
  -- Try-lock serializes default changes without waiting behind a transfer holding an account.
- IF NOT pg_try_advisory_xact_lock(hashtextextended('cash-account:'||NEW."Ref Cash Holder",0)) THEN
+ IF NOT pg_try_advisory_xact_lock(public.pwa_lock_key_v1('cash-account',NEW."Ref Cash Holder")) THEN
   RAISE EXCEPTION 'Cash accounts are busy; sync and retry';
  END IF;
  IF NOT NEW."Active" AND NEW."Default Account" THEN
@@ -2064,6 +2064,8 @@ CREATE FUNCTION public.payment_crud_prepare() RETURNS trigger
 BEGIN
  IF TG_OP='UPDATE' AND NEW."Row ID" IS DISTINCT FROM OLD."Row ID" THEN RAISE EXCEPTION 'Payment key cannot be changed';END IF;
  IF TG_OP='UPDATE' AND public.payment_inputs(NEW) IS NOT DISTINCT FROM public.payment_inputs(OLD) THEN RETURN NEW;END IF;
+ IF NOT has_function_privilege(current_user,'public.payment_crud_prepare_core_v83(public."Payments",public."Payments",text)','EXECUTE') THEN
+  RAISE EXCEPTION USING ERRCODE='42501',MESSAGE='Payment input corrections require the native payment command';END IF;
  RETURN public.payment_crud_prepare_core_v83(OLD,CASE WHEN TG_OP='UPDATE' THEN NEW ELSE OLD END,TG_OP);
 END $$;
 
@@ -2638,7 +2640,7 @@ DECLARE e jsonb:=payload::jsonb;c jsonb:=e->'command';i jsonb:=c->'inputs';targe
 BEGIN
  IF (current_database() NOT IN ('loan_manager_dev','payment_rehearsal','loan_manager_prod') OR current_user<>CASE current_database() WHEN 'loan_manager_prod' THEN 'mw_app_prod_journal_owner' ELSE 'mw_app_dev_journal_owner' END) OR c->>'operation'<>'analytics.refresh' THEN RAISE EXCEPTION USING ERRCODE='42501';END IF;
  PERFORM public.pwa_management_tools_text_v2('analytics.refresh',i);
- PERFORM pg_advisory_xact_lock(hashtextextended('management:analytics:'||target,0));
+ PERFORM pg_advisory_xact_lock(public.pwa_lock_key_v1('management:analytics',target));
  SELECT to_jsonb(s) INTO snapshot FROM public."Statistics" s WHERE "Row ID"=target FOR UPDATE;
  IF snapshot IS NULL THEN RAISE EXCEPTION USING ERRCODE='P5B02';END IF;
  IF encode(sha256(convert_to(snapshot::text,'UTF8')),'hex') IS DISTINCT FROM c->>'expectedVersion' THEN RAISE EXCEPTION USING ERRCODE='P5B01';END IF;
@@ -2659,7 +2661,7 @@ DECLARE e jsonb:=payload::jsonb;c jsonb:=e->'command';i jsonb:=c->'inputs';op te
 BEGIN
  IF (current_database() NOT IN ('loan_manager_dev','payment_rehearsal','loan_manager_prod') OR current_user<>CASE current_database() WHEN 'loan_manager_prod' THEN 'mw_app_prod_journal_owner' ELSE 'mw_app_dev_journal_owner' END) OR op NOT IN('assessment.create','assessment.update','assessment.refresh','assessment.delete') THEN RAISE EXCEPTION USING ERRCODE='42501';END IF;
  PERFORM public.pwa_management_tools_text_v2(op,i);
- PERFORM pg_advisory_xact_lock(hashtextextended('management:assessment:'||target,0));
+ PERFORM pg_advisory_xact_lock(public.pwa_lock_key_v1('management:assessment',target));
  SELECT to_jsonb(s) INTO snapshot FROM public."Loan Assessment SQL Lab" s WHERE "Row ID"=target FOR UPDATE;
  IF op='assessment.create' THEN IF snapshot IS NOT NULL THEN RAISE EXCEPTION USING ERRCODE='P5B01';END IF;
  ELSE IF snapshot IS NULL THEN RAISE EXCEPTION USING ERRCODE='P5B02';END IF;IF encode(sha256(convert_to(snapshot::text,'UTF8')),'hex') IS DISTINCT FROM c->>'expectedVersion' THEN RAISE EXCEPTION USING ERRCODE='P5B01';END IF;END IF;
@@ -2724,7 +2726,7 @@ BEGIN
  PERFORM 1 FROM public."Borrowers" WHERE "Row ID" IN(SELECT "Ref Borrowers" FROM public."Loans" WHERE "Row ID" IN(old_loan,new_loan)) ORDER BY "Row ID" COLLATE "C" FOR UPDATE;
  PERFORM 1 FROM public."Loans" WHERE "Row ID" IN(old_loan,new_loan) ORDER BY "Row ID" COLLATE "C" FOR UPDATE;
  SELECT * INTO l FROM public."Loans" WHERE "Row ID"=new_loan;IF NOT FOUND THEN RAISE EXCEPTION USING ERRCODE='P5B04';END IF;
- PERFORM pg_advisory_xact_lock(hashtextextended('charge:'||target,0));
+ PERFORM pg_advisory_xact_lock(public.pwa_lock_key_v1('charge',target));
  PERFORM 1 FROM public."Charges" WHERE "Row ID"=target FOR UPDATE;
  IF op='charge.create' AND FOUND THEN RAISE EXCEPTION USING ERRCODE='P5B01';END IF;
  IF op<>'charge.create' AND public.pwa_charge_version_v2(target) IS DISTINCT FROM e#>>'{command,expectedVersion}' THEN RAISE EXCEPTION USING ERRCODE='P5B01';END IF;
@@ -2764,7 +2766,7 @@ CREATE FUNCTION public.pwa_apply_expense_v2(canonical text) RETURNS jsonb
 DECLARE e jsonb:=canonical::jsonb;c jsonb:=e->'command';i jsonb:=c->'inputs';a jsonb:=e->'actor';op text:=c->>'operation';target text:=c->>'targetId';old public."Business Expenses"%ROWTYPE;holder text;message text;categories text[]:=ARRAY['Collection Cost / ค่าใช้จ่ายติดตามหนี้','Transportation / ค่าเดินทาง','Bank / Transfer Fee / ค่าธรรมเนียมธนาคารและโอนเงิน','Software / Subscription / ค่าซอฟต์แวร์และสมาชิก','Other / อื่น ๆ','Referral Rebate / เงินคืนค่าแนะนำลูกค้า'];
 BEGIN
  IF (current_database() NOT IN ('loan_manager_dev','payment_rehearsal','loan_manager_prod') OR current_user<>CASE current_database() WHEN 'loan_manager_prod' THEN 'mw_app_prod_journal_owner' ELSE 'mw_app_dev_journal_owner' END) THEN RAISE EXCEPTION USING ERRCODE='42501',MESSAGE='Governed operation required';END IF;
- PERFORM pg_advisory_xact_lock(hashtextextended('expense:'||target,0));
+ PERFORM pg_advisory_xact_lock(public.pwa_lock_key_v1('expense',target));
  SELECT * INTO old FROM public."Business Expenses" WHERE "Row ID"=target FOR UPDATE;
  IF op='expense.create' THEN IF FOUND THEN RAISE EXCEPTION USING ERRCODE='P5B01';END IF;
  ELSE IF NOT FOUND THEN RAISE EXCEPTION USING ERRCODE='P5B02';END IF;IF public.pwa_expense_version_v2(target) IS DISTINCT FROM c->>'expectedVersion' THEN RAISE EXCEPTION USING ERRCODE='P5B01';END IF;IF old."Source Type" IS DISTINCT FROM 'Manual' THEN RAISE EXCEPTION USING ERRCODE='P5B05';END IF;END IF;
@@ -2842,7 +2844,7 @@ BEGIN
  IF (current_database() NOT IN ('loan_manager_dev','payment_rehearsal','loan_manager_prod') OR current_user<>CASE current_database() WHEN 'loan_manager_prod' THEN 'mw_app_prod_journal_owner' ELSE 'mw_app_dev_journal_owner' END) OR e#>>'{command,operation}'<>'loan.create' THEN RAISE EXCEPTION USING ERRCODE='42501',MESSAGE='Governed operation required';END IF;
  PERFORM 1 FROM public."Borrowers" WHERE "Row ID"=i->>'borrowerId' FOR UPDATE;
  IF NOT FOUND THEN RAISE EXCEPTION USING ERRCODE='P5B04';END IF;
- PERFORM pg_advisory_xact_lock(hashtextextended('loan:'||target,0));
+ PERFORM pg_advisory_xact_lock(public.pwa_lock_key_v1('loan',target));
  IF EXISTS(SELECT 1 FROM public."Loans" WHERE "Row ID"=target) THEN RAISE EXCEPTION USING ERRCODE='P5B01';END IF;
  IF NOT EXISTS(SELECT 1 FROM public."Cash Accounts" ca JOIN public."Cash Holders" ch ON ch."Row ID"=ca."Ref Cash Holder" WHERE ca."Row ID"=i->>'disbursingAccountId' AND ca."Active" IS TRUE AND ch."Active" IS TRUE AND ch."Row ID"='ch:lisa') THEN RAISE EXCEPTION USING ERRCODE='P5B07';END IF;
  l:=jsonb_populate_record(NULL::public."Loans",jsonb_build_object('Row ID',target,'Ref Borrowers',i->'borrowerId','Loan Date',i->'loanDate','Principal Amount',i->'principal','Transfer Fee',i->'transferFee','Ref Disbursed From Cash Account',i->'disbursingAccountId','Loan Type',i->'type','Due Date',i->'dueDate','Daily Payment Amount',i->'dailyPayment','Fixed Interest',i->'fixedInterest','Current Daily Interest',i->'currentDailyInterest','Interest Payment Interval',i->'paymentInterval','Loan Arrangement',i->'arrangement','Auto Charge Enabled',i->'autoChargeEnabled','Created By',a->'loginEmail','Loan Status','ยังไม่ปิดยอด','Defaulted',false));
@@ -2935,7 +2937,7 @@ BEGIN
  IF (current_database() NOT IN ('loan_manager_dev','payment_rehearsal','loan_manager_prod') OR current_user<>CASE current_database() WHEN 'loan_manager_prod' THEN 'mw_app_prod_journal_owner' ELSE 'mw_app_dev_journal_owner' END) THEN RAISE EXCEPTION USING ERRCODE='42501';END IF;
  PERFORM public.pwa_management_financial_text_v2(op,i);
  IF kind IN('capital-contribution','settlement') AND NOT pg_try_advisory_xact_lock(9152026,15) THEN RAISE EXCEPTION 'Partner allocation is busy; sync and retry';END IF;
- PERFORM pg_advisory_xact_lock(hashtextextended('management:'||kind||':'||target,0));
+ PERFORM pg_advisory_xact_lock(public.pwa_lock_key_v1('management:'||kind,target));
  IF kind='capital-contribution' THEN SELECT to_jsonb(s) INTO snapshot FROM public."Cash Pool Contributions" s WHERE "Row ID"=target FOR UPDATE;
  ELSIF kind='settlement' THEN SELECT to_jsonb(s) INTO snapshot FROM public."Settlements" s WHERE "Row ID"=target FOR UPDATE;
  ELSE SELECT to_jsonb(s) INTO snapshot FROM public."Cash Ledger" s WHERE "Row ID"=target FOR UPDATE;END IF;
@@ -3008,7 +3010,7 @@ DECLARE e jsonb:=payload::jsonb;c jsonb:=e->'command';i jsonb:=c->'inputs';op te
 BEGIN
  IF (current_database() NOT IN ('loan_manager_dev','payment_rehearsal','loan_manager_prod') OR current_user<>CASE current_database() WHEN 'loan_manager_prod' THEN 'mw_app_prod_journal_owner' ELSE 'mw_app_dev_journal_owner' END) THEN RAISE EXCEPTION USING ERRCODE='42501';END IF;
  PERFORM public.pwa_management_input_text_v2(op,i);
- PERFORM pg_advisory_xact_lock(hashtextextended('management:'||kind||':'||target,0));
+ PERFORM pg_advisory_xact_lock(public.pwa_lock_key_v1('management:'||kind,target));
  IF kind='cash-holder' THEN SELECT to_jsonb(t) INTO snapshot FROM public."Cash Holders" t WHERE t."Row ID"=target FOR UPDATE;
  ELSIF kind='cash-account' THEN SELECT to_jsonb(t) INTO snapshot FROM public."Cash Accounts" t WHERE t."Row ID"=target FOR UPDATE;
  ELSIF kind='partner' THEN SELECT to_jsonb(t) INTO snapshot FROM public."Partners" t WHERE t."Row ID"=target FOR UPDATE;
@@ -3363,7 +3365,7 @@ CREATE FUNCTION public.pwa_job_run_v1(job text, business_date date, scope text) 
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'pg_catalog', 'public'
     AS $_$
-DECLARE boundary timestamp:=clock_timestamp() AT TIME ZONE 'Asia/Bangkok'; r public.pwa_job_runs; affected bigint;
+DECLARE boundary timestamp:=clock_timestamp() AT TIME ZONE 'Asia/Bangkok'; r public.pwa_job_runs; affected bigint; started timestamptz;
 BEGIN
  PERFORM public.pwa_worker_guard_v1('jobs');
  IF job IS NULL OR job NOT IN ('daily-charges','recent-analytics') OR business_date IS NULL OR NOT isfinite(business_date) OR scope IS NULL
@@ -3372,10 +3374,10 @@ BEGIN
  INSERT INTO public.pwa_job_runs(job_name,business_date,scope_key,state) VALUES(job,$2,scope,'pending') ON CONFLICT DO NOTHING;
  SELECT * INTO STRICT r FROM public.pwa_job_runs j WHERE j.job_name=job AND j.business_date=$2 AND j.scope_key=scope FOR UPDATE;
  IF r.state='completed' THEN RETURN jsonb_build_object('enabled',true,'state','completed','replayed',true,'resultCount',r.result_count); END IF;
- IF r.state NOT IN ('pending','failed') THEN RAISE EXCEPTION 'job_requires_reconciliation'; END IF;
- UPDATE public.pwa_job_runs SET state='leased',lease_generation=lease_generation+1,lease_expires_at=clock_timestamp()+interval '120 seconds',started_at=clock_timestamp() WHERE run_id=r.run_id;
+ IF r.state<>'pending' THEN RAISE EXCEPTION 'job_requires_reconciliation'; END IF;
+ started:=clock_timestamp();
  IF job='daily-charges' THEN affected:=public.generate_due_charges($2); ELSE affected:=public.refresh_daily_analytics($2-1,$2); END IF;
- UPDATE public.pwa_job_runs SET state='completed',lease_expires_at=NULL,completed_at=clock_timestamp(),checkpoint=$2::text||'|'||scope,result_count=affected WHERE run_id=r.run_id;
+ UPDATE public.pwa_job_runs SET state='completed',started_at=started,completed_at=clock_timestamp(),checkpoint=$2::text||'|'||scope,result_count=affected WHERE run_id=r.run_id;
  RETURN jsonb_build_object('enabled',true,'state','completed','replayed',false,'resultCount',affected);
 END $_$;
 
@@ -4156,7 +4158,7 @@ BEGIN
     OR public.pwa_payment_head_v2(target)::text IS DISTINCT FROM predecessor THEN RAISE EXCEPTION USING ERRCODE='P5B01';END IF;
    UPDATE public."Payments" SET "Created At"=(i->>'createdAt')::timestamp WHERE "Row ID"=target;
   ELSE
-   PERFORM pg_advisory_xact_lock(hashtextextended('allocation:'||target,0));
+   PERFORM pg_advisory_xact_lock(public.pwa_lock_key_v1('allocation',target));
    SELECT * INTO allocation FROM public."Payment Allocations" WHERE "Row ID"=target;
    IF op='allocation.create' AND FOUND THEN RAISE EXCEPTION USING ERRCODE='P5B01';END IF;
    IF op<>'allocation.create' AND NOT FOUND THEN RAISE EXCEPTION USING ERRCODE='P5B02';END IF;
@@ -4379,7 +4381,7 @@ BEGIN
  END IF;
  BEGIN
  IF split_part(op,'.',1)='analytics' THEN result_value:=public.pwa_apply_analytics_v2($1);ELSIF split_part(op,'.',1)='cash-openings' THEN result_value:=public.pwa_apply_cash_opening_v2($1);ELSIF split_part(op,'.',1)='assessment' THEN result_value:=public.pwa_apply_assessment_v2($1);ELSIF split_part(op,'.',1) IN('capital-contribution','settlement','cash-movement') THEN result_value:=public.pwa_apply_management_financial_v2($1);ELSIF split_part(op,'.',1) IN('cash-holder','cash-account','partner') THEN result_value:=public.pwa_apply_management_v2($1);ELSIF op='preference.update' THEN result_value:=public.pwa_apply_preference_v2($1);ELSIF split_part(op,'.',1)='expense' THEN result_value:=public.pwa_apply_expense_v2($1);ELSIF split_part(op,'.',1)='payment' THEN result_value:=public.pwa_apply_payment_v2($1);ELSIF op='loan.create' THEN result_value:=public.pwa_apply_loan_create_v2($1);ELSIF op='loan.close' THEN result_value:=public.pwa_apply_loan_close_v2($1);ELSIF split_part(op,'.',1)='loan' THEN result_value:=public.pwa_apply_loan_source_v2($1);ELSIF split_part(op,'.',1)='charge' THEN result_value:=public.pwa_apply_charge_v2($1);ELSE
- PERFORM pg_advisory_xact_lock(hashtextextended('borrower:'||target,0));
+ PERFORM pg_advisory_xact_lock(public.pwa_lock_key_v1('borrower',target));
  PERFORM 1 FROM public."Borrowers" WHERE "Row ID"=target FOR UPDATE;
  source_version:=public.pwa_borrower_version_v2(target);
  IF op='borrower.create' AND source_version IS NOT NULL THEN RAISE EXCEPTION USING ERRCODE='P5B01';END IF;
@@ -4387,7 +4389,7 @@ BEGIN
  IF op<>'borrower.create' AND source_version IS DISTINCT FROM expected THEN RAISE EXCEPTION USING ERRCODE='P5B01';END IF;
  IF op<>'borrower.delete' THEN
   IF nullif(btrim(i->>'name'),'') IS NOT NULL THEN
-   PERFORM pg_advisory_xact_lock(hashtextextended('borrower-name:'||lower(btrim(i->>'name')),0));
+   PERFORM pg_advisory_xact_lock(public.pwa_lock_key_v1('borrower-name',lower(btrim(i->>'name'))));
    IF EXISTS(SELECT 1 FROM public."Borrowers" WHERE "Row ID"<>target AND lower(btrim("Borrower Name"))=lower(btrim(i->>'name'))) THEN RAISE EXCEPTION USING ERRCODE='P5B03';END IF;
   END IF;
   IF i->>'referrerId'=target OR (i->>'referrerId' IS NOT NULL AND NOT EXISTS(SELECT 1 FROM public."Borrowers" WHERE "Row ID"=i->>'referrerId')) THEN RAISE EXCEPTION USING ERRCODE='P5B04';END IF;

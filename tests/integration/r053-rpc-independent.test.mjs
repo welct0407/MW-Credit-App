@@ -102,6 +102,11 @@ test('V88 canonical job parity, atomic rollback and simultaneous replay under re
   await latch.query('SELECT pg_advisory_unlock(530101)');latch.release();latch=null;const results=(await Promise.all([first,second])).map(x=>x.rows[0].result);assert.deepEqual(results.map(x=>x.replayed).sort(),[false,true]);assert.ok(results.every(x=>x.resultCount===3));assert.deepEqual(await financial(admin),expectedCharges);
   await admin.query('DROP TRIGGER c_r053_job_latch ON public."Charges"; DROP FUNCTION public.c_r053_charge_latch()');
   const chargeJournal=(await admin.query('SELECT to_jsonb(j) value FROM public.pwa_job_runs j')).rows;assert.equal(chargeJournal.length,1);assert.equal(chargeJournal[0].value.state,'completed');assert.equal(chargeJournal[0].value.result_count,3);
+  // Journal contract: V94 (DB-LOCK-02) drops the lease state; before it the V86 columns are present but idle on a completed row.
+  const journalColumns=['run_id','job_name','business_date','scope_key','state','checkpoint','started_at','completed_at','result_count'],leaseColumns=['lease_generation','lease_expires_at','error_code'],atContract=Number(e.PHASE8_TEST_TARGET??88)>=94;
+  assert.deepEqual(Object.keys(chargeJournal[0].value).sort(),[...journalColumns,...(atContract?[]:leaseColumns)].sort());assert.ok(chargeJournal[0].value.started_at&&chargeJournal[0].value.completed_at>=chargeJournal[0].value.started_at);assert.equal(chargeJournal[0].value.checkpoint,clock.d+'|daily');
+  if(!atContract)assert.deepEqual([chargeJournal[0].value.lease_expires_at,chargeJournal[0].value.error_code],[null,null]);
+  assert.deepEqual((await admin.query("SELECT pg_get_constraintdef(oid) d FROM pg_constraint WHERE conrelid='public.pwa_job_runs'::regclass AND conname='pwa_job_runs_state_check'")).rows[0].d.includes("'leased'"),!atContract);
   await jobs.query('SELECT public.pwa_job_run_v1($1,$2::date,$3)',['daily-charges',clock.d,'daily']);assert.deepEqual((await admin.query('SELECT to_jsonb(j) value FROM public.pwa_job_runs j')).rows,chargeJournal);
   // Compare analytics against the canonical routine on the committed financial
   // state; earlier test fixtures may have other current-day deferred effects.
