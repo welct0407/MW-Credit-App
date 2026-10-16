@@ -614,3 +614,12 @@ main[data-workspace=management] pre{white-space:pre-wrap;overflow-wrap:anywhere}
 .access-language{display:flex;gap:8px;margin:16px 0 0;padding:0;border:0;min-width:0}
 @media(min-width:1051px){.access-blocked .access-language{display:none}}
 .sign-in-failure{margin:12px 0 0;font-size:14px;line-height:1.5;overflow-wrap:anywhere}
+
+/* W5 E re-check corrections. */
+@media(max-width:1050px){html:has(.form-sticky-actions){scroll-padding-bottom:calc(140px + env(safe-area-inset-bottom))}}
+.live-account-signout:disabled{background:#f2f2f2;border-color:#bfc3c7;color:#595959}
+.request-reference>summary::before,.cash-dashboard-card>summary::before{content:'▸';margin-inline-end:8px}
+.request-reference[open]>summary::before,.cash-dashboard-card[open]>summary::before{content:'▾'}
+/* Decorative disclosure marker: empty alternative text where supported, so it is not read out. */
+@supports (content:'x'/''){.request-reference>summary::before,.cash-dashboard-card>summary::before{content:'▸'/''}.request-reference[open]>summary::before,.cash-dashboard-card[open]>summary::before{content:'▾'/''}}
+@media(max-width:600px){.app-update-banner>span{flex-basis:100%}}
