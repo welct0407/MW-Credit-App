@@ -305,6 +305,20 @@ resource "google_project_iam_member" "debian_sql_instance_user" {
     expression  = "(resource.name == 'projects/clever-oasis-508610-n7/instances/appsheet-pg-prod-20260914' || resource.name == 'projects/clever-oasis-508610-n7/instances/mw-credit-pg-20261017') && resource.service == 'sqladmin.googleapis.com'"
   }
 }
+# SSD move: the Auth Proxy's Cloud SQL Client binding (condition
+# "prod-cloud-sql-only", old instance only) predates Terraform and stays
+# unmanaged. This additive binding admits both instances; remove the old one
+# with gcloud and narrow this one when the old instance is retired.
+resource "google_project_iam_member" "debian_sql_client" {
+  project = "clever-oasis-508610-n7"
+  role    = "roles/cloudsql.client"
+  member  = "serviceAccount:mw-integration-agent@clever-oasis-508610-n7.iam.gserviceaccount.com"
+  condition {
+    title       = "shared-cloud-sql-instances"
+    description = "Permit Auth Proxy connections only to the shared Cloud SQL instances"
+    expression  = "(resource.name == 'projects/clever-oasis-508610-n7/instances/appsheet-pg-prod-20260914' || resource.name == 'projects/clever-oasis-508610-n7/instances/mw-credit-pg-20261017') && resource.service == 'sqladmin.googleapis.com'"
+  }
+}
 resource "google_sql_user" "debian_agent" {
   project         = "clever-oasis-508610-n7"
   instance        = "appsheet-pg-prod-20260914"
