@@ -113,6 +113,6 @@ PROD workers environment `WORKER_CALLER_SUBJECTS_JSON` is a prerequisite of the 
 - W4 migration to relax the V33 `session_user` checks, then create `mw_reviewer_dml_dev` and use the DEV reviewer target.
 - Owner sign-in once on `dev-lm` to prove the signed-in paths (capability policy, Partners grant) and the CSP popup with a real account.
 - W5: retention note styling (W3-UX-OFFLINE-01) and the saved-change card width on phones (W3-UX-OFFLINE-02, pre-existing).
-- PROD promotion: Hosting headers, `WORKER_CALLER_SUBJECTS_JSON`, workers module rename (plan must show no replacement).
+- PROD promotion: done with R063 on 16 October 2026 (Hosting headers, `WORKER_CALLER_SUBJECTS_JSON`, module rename a no-op; plan 0 add / 4 change / 0 destroy because the four images changed too). See the [R063 promotion record](../project/Documents/Development_Changes.md#r063-production-promotion).
 - Ops-owned documents (Environment_Inventory.md DEV composition and APP-AUTH-04, docs/Development.md, Development_Changes.md) are updated on the ops branch.
 - Merge notes: `package-lock.json` must be regenerated with `npm install --package-lock-only` when the ops branch (Biome) and this branch are both merged; `tests/integration/Run-Phase5.ps1` carries the same one-line addition on both branches (merges cleanly). No other file is changed by two branches.
