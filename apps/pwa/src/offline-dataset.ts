@@ -31,6 +31,8 @@ export const DATASET_POLL_MS=5*60*1000;
 /** R064: focus/visibility/online/background triggers recheck a domain only after this age; manual sync bypasses it. */
 export const DATASET_RECHECK_MIN_MS=60*1000;
 const REQUEST_TIMEOUT_MS=25000;
+/** services/api/offline-dataset-delta.mjs rejects a need list longer than this. */
+const NEED_BATCH=2048;
 export function startOfflinePreparation(access:Access,_options:{readOrigin?:string}={}){
  const repository=access.offline;if(!repository)return()=>{};const repo=repository;
  let stopped=false,running=false,initialized=false,initializing=false,queue:string[]=[],media:string[]=[],requestedDomain:string|null=null,paused=false,timer:ReturnType<typeof setTimeout>|undefined,retryTimer:ReturnType<typeof setTimeout>|undefined,retryAttempts=0,controller:AbortController|null=null,activeTask:string|null=null;
@@ -132,14 +134,18 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
     const missing=[...new Set<string>(refs.filter((ref:string)=>!(ref in values)))];
     if(missing.length){
      const manifest=JSON.stringify(value.patches),generation=value.generation;
-     // The content re-request is a second round trip with its own timeout.
-     clearTimeout(timeout);timeout=setTimeout(()=>flight.abort(),REQUEST_TIMEOUT_MS);
-     response=await fetchSegment(missing);
-     if(response.status===401||response.status===403){access.authFailure(response.status);paused=true;throw Error()}
-     if(response.status===409){await changedOnServer();return}
-     if(!response.ok)throw Error();value=await response.json();
-     if(partial&&value.generation!==generation||JSON.stringify(value.patches)!==manifest)throw Error('Delta manifest changed');
-     for(const [hash,item] of Object.entries(value.values??{})){if(await valueHash(item)!==hash)throw Error('Invalid delta content');values[hash]=item}
+     // Content re-requests are extra round trips, each with its own timeout. The
+     // server caps one need list at NEED_BATCH hashes; batch as defence in depth.
+     for(let offset=0;offset<missing.length;offset+=NEED_BATCH){
+      clearTimeout(timeout);timeout=setTimeout(()=>flight.abort(),REQUEST_TIMEOUT_MS);
+      response=await fetchSegment(missing.slice(offset,offset+NEED_BATCH));
+      if(response.status===401||response.status===403){access.authFailure(response.status);paused=true;throw Error()}
+      if(response.status===409){await changedOnServer();return}
+      if(!response.ok)throw Error();const batch=await response.json();
+      if(partial&&batch.generation!==generation||JSON.stringify(batch.patches)!==manifest)throw Error('Delta manifest changed');
+      for(const [hash,item] of Object.entries(batch.values??{})){if(await valueHash(item)!==hash)throw Error('Invalid delta content');values[hash]=item}
+      value=batch;
+     }
     }
     if(stopped||flight.signal.aborted||!await repo.syncAuthorized())throw Error('Stale delta response');
     await refreshRevision();

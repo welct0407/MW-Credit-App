@@ -127,3 +127,17 @@ test('torn completion keeps the bundle for accepting clients and still rejects l
  const torn=await readOfflineDatasetDelta(client,actor,'cash',{...request,acceptChanged:true});
  assert.equal(torn.complete,true);assert.equal(torn.sourceVersion,null);assert.equal(torn.changed,true);assert.equal(torn.nextCursor,null);assert.equal(torn.schemaVersion,3);
 });
+
+test('every packed response stays within the need cap and its full need request is accepted',async()=>{
+ // Large change: no local content at all, so every referenced hash would be requested.
+ const client=syntheticRecordsClient();let cursor=null;const sizes=[];
+ for(let step=0;step<200;step++){
+  const response=await readOfflineDatasetDelta(client,actor,'records',{cursor,need:[],sourceVersion:null,acceptChanged:true});
+  const refs=response.patches.flatMap(patch=>patch.refs),need=[...new Set(refs)];sizes.push(refs.length);
+  assert.ok(refs.length<=2048,'response refs '+refs.length);
+  const fetched=await readOfflineDatasetDelta(syntheticRecordsClient(),actor,'records',{cursor,need,sourceVersion:null,acceptChanged:true});
+  assert.deepEqual(fetched.patches,response.patches);assert.equal(Object.keys(fetched.values).length,need.length);
+  if(response.complete)break;cursor=response.nextCursor;
+ }
+ assert.ok(sizes.length<=15,'responses '+sizes.length);assert.ok(Math.max(...sizes)>1024,'fixture is large enough to exercise the cap: '+Math.max(...sizes));
+});

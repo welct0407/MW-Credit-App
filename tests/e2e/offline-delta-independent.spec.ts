@@ -159,3 +159,15 @@ test('legacy 409 no longer marks the domain failed, a legacy 400 drops acceptCha
  expect(await page.evaluate(async()=>(await(window as any).__syncRepo.readDataset('records')).data.dashboard.total)).toBe('43');expect((await state(page)).updateFailed).toBe(false);
  await page.waitForTimeout(1500);expect(bodies.filter(body=>body.mode==='torn'&&!body.need.length)).toHaveLength(2);
 });
+
+test('a manifest referencing more than 2048 missing values is fetched in need batches of at most 2048',async({page})=>{
+ await fixture(page,'delta-need-batches');const rows=Array.from({length:2600},(_,i)=>({id:'big-'+String(i).padStart(4,'0'),note:'n'+i}));const needs:number[]=[];
+ await page.route('**/api/**',async route=>{const url=new URL(route.request().url()),domain=url.searchParams.get('domain')??'notifications',body=route.request().postDataJSON();
+  if(domain!=='records')return route.fulfill({json:{...bundle(domain,[],oldVersion),schemaVersion:3,unchanged:true,values:{}}});
+  if(body.need.length){needs.push(body.need.length);if(body.need.length>2048)return route.fulfill({status:400,json:{error:'invalid_request',code:'invalid_request'}})}
+  return route.fulfill({json:encodeDeltaChunk(bundle(domain,[{key:'borrowers',mode:'append',value:rows}]),body.need)});
+ });
+ await start(page);await settled(page);
+ expect(needs).toEqual([2048,552]);expect((await state(page)).updateFailed).toBe(false);
+ const saved=await page.evaluate(async()=>(await(window as any).__syncRepo.readDataset('records')));expect(saved.sourceVersion).toBe(newVersion);expect(saved.data.borrowers).toHaveLength(2600);
+});

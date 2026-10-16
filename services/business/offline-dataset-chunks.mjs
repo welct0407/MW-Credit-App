@@ -146,18 +146,26 @@ for(const metric of ['distribution','profit30','dailyInterest','projected','dail
 
 /** Bounded resumable traversal. Every request retains the ordinary transaction,
  * owner checks, per-item versions and provider calculations. */
-export async function readOfflineDatasetChunk(client,actor,domain,cursor=null,{singlePage=false,deterministicPages=null}={}){
+/** One need request may name at most this many content hashes (api/offline-dataset-delta.mjs);
+ * a response therefore never carries more values than that. */
+export const MAX_CHUNK_VALUES=2048;
+const patchValues=patches=>patches.reduce((sum,patch)=>sum+(patch.mode==='append'?patch.value.length:1),0);
+export async function readOfflineDatasetChunk(client,actor,domain,cursor=null,{singlePage=false,deterministicPages=null,maxValues=MAX_CHUNK_VALUES}={}){
  const phases={records:recordPhases,collection:collectionPhases,cash:cashPhases,management:managementPhases}[domain];if(!phases)throw Error('invalid_request');
  const stamp=(await client.query(`SELECT to_char(CURRENT_TIMESTAMP AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "asOf",(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date::text AS "businessDate"`)).rows[0];
  const traversal=readTraversalCursor(cursor,{actor,domain,...stamp,phases:phases.length});
- let next=traversal,bytes=0;const patches=[],started=performance.now();
+ let next=traversal,bytes=0,values=0;const patches=[],started=performance.now();
  // Pack small pages to avoid hundreds of HTTP round trips. Check budgets only
  // between authoritative pages; a page is never truncated or partially applied.
+ // A page that would push the response past the value budget is left for the
+ // next request (same cursor, same page: replay stays deterministic), so one
+ // need request can always fetch everything a response references.
  for(let count=0;count<(deterministicPages??(singlePage?1:8));count++){
-  const value=await phases[next.phase](client,actor,stamp,next.state);
-  patches.push(...value.patches);bytes+=Buffer.byteLength(JSON.stringify(value.patches));
+  const value=await phases[next.phase](client,actor,stamp,next.state),pageValues=patchValues(value.patches);
+  if(count>0&&values+pageValues>maxValues)break;
+  patches.push(...value.patches);bytes+=Buffer.byteLength(JSON.stringify(value.patches));values+=pageValues;
   next={...next,phase:next.phase+(value.state===null?1:0),state:value.state,done:next.done+1};
-  if(next.phase===phases.length||(!deterministicPages&&performance.now()-started>=750)||bytes>=524288)break;
+  if(next.phase===phases.length||(!deterministicPages&&performance.now()-started>=750)||bytes>=524288||values>=maxValues)break;
  }
  const complete=next.phase===phases.length;
  return {schemaVersion:2,domain,generation:traversal.generation,startedAt:traversal.startedAt,...stamp,patches,nextCursor:complete?null:encodeTraversalCursor(next),complete,progress:{completed:next.phase,total:phases.length},chunksCompleted:next.done};
