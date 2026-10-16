@@ -10,13 +10,13 @@
   },
   "httpCheck": {
     "useSsl": true,
-    "path": "/health",
+    "path": "/instagram",
     "port": 443,
     "validateSsl": true,
     "requestMethod": "GET",
     "acceptedResponseStatusCodes": [
       {
-        "statusValue": 200
+        "statusValue": 403
       }
     ]
   },
@@ -24,7 +24,7 @@
   "timeout": "10s",
   "contentMatchers": [
     {
-      "content": "mw-instagram-webhook",
+      "content": "Forbidden",
       "matcher": "CONTAINS_STRING"
     }
   ],

@@ -6,7 +6,7 @@ Wave 3 operations work for the independent review, on branch `claude/review-w3-o
 
 ## Changes
 
-- **DB-ACCESS-01.** DEV: nine `REVOKE DELETE` from `mw_reviewer_dml` in `loan_manager_dev`. `NOLOGIN` is instance-wide, so it is prepared for PROD only. No V93.
+- **DB-ACCESS-01.** DEV: nine `REVOKE DELETE` from `mw_reviewer_dml` in `loan_manager_dev`. The owner decided the PROD scope: REVOKE DELETE only, no `NOLOGIN`. No V93.
 - **DB-ACCESS-02.** Ordinary CRUD stays the accepted correction path. Documented in `project/Documents/PWA_Data_Model_Overview.md`. New `scripts/database/Test-AccessMatrix.sql` and `Test-IamRolePrerequisites.sql`.
 - **DB-ACCESS-03.** IAM user `codex-cloud-read@` with `pg_read_all_data` and CONNECT on `loan_manager_dev`; Linux `Get-DbEnvironment` uses it by default; `-Admin` only for `Invoke-Flyway.ps1` and the 23 writing scripts in `scripts/database` plus six Metabase `Grant-*` scripts. Files: `scripts/database/Common.ps1`, `database/README.md`, `infrastructure/unattended-admin/main.tf`, `project/scripts/metabase/Grant-*.ps1`.
 - **DB-ACCESS-04.** Recorded only. No bypass exists; the optional hardening is not done.
@@ -33,9 +33,9 @@ Wave 3 operations work for the independent review, on branch `claude/review-w3-o
 - **AGT-TEST-01 (workflow side).** `agent-tests.yml` gets the `lab` job (PostgreSQL 18, Flyway 13.6.0, Python 3.13, `requirements.lock`, `tests/lab/setup.sh`).
 - **ALL-STD-01, 02, 04.** Node side (business-date module, identity module, log helper) is in the app branch. Ops records only, plus the documentation in `docs/Development.md` (error codes, request ids, time zone constants).
 - **ALL-STD-03.** Error-code catalogue section in `docs/Development.md`.
-- **ALL-INFRA-01.** Key `f6729ca0...` of `codex-cloud` disabled, not deleted (last used 2026-10-04 from another machine). Terraform declares the Owner bindings (with `prevent_destroy`), the custom role and the new service account. Rotation note (90 days, next due 13 January 2027) in `infrastructure/unattended-admin/README.md`.
+- **ALL-INFRA-01.** Key `f6729ca0...` of `codex-cloud` disabled first, then deleted on the owner's decision (16 October). One user-managed key remains. Terraform declares the Owner bindings (with `prevent_destroy`), the custom role and the new service account. Rotation note (90 days, next due 13 January 2027) in `infrastructure/unattended-admin/README.md`.
 - **ALL-INFRA-02.** `default-allow-ssh` and `default-allow-rdp` deleted; IAP SSH rule confirmed; `default-allow-icmp` and `default-allow-internal` imported (`infrastructure/ecosystem-debian`).
-- **ALL-INFRA-03.** Imported the Owner bindings, the custom role and the uptime check (`unattended-admin`, `ecosystem-debian`). No Editor binding exists.
+- **ALL-INFRA-03.** Imported the Owner bindings, the custom role and the uptime check (`unattended-admin`, `ecosystem-debian`). No Editor binding exists. For AGT-WEBHOOK-03 Variant 1 the uptime check now calls `GET /instagram` and expects 403 with `Forbidden` (`ecosystem-debian/owned.tf`).
 - **ALL-INFRA-04.** Debian VM `deletion_protection = true`; snapshot policy and its disk attachment imported; restore-to-new-VM rehearsal done (257 s), recorded in the agent operations runbook on the agent branch.
 - **ALL-INFRA-05.** Recorded only; covered by the APP-PAY-03 request budget on the app branch.
 - **ALL-INFRA-06.** Artifact Registry cleanup policy on the PROD and bridge repositories (keep 20 most recent, keep tag prefix `keep`, delete older than 30 days); digests pinned with `keep-*` tags in the inventory. DEV repository is in the app branch.
@@ -96,22 +96,22 @@ Wave 3 operations work for the independent review, on branch `claude/review-w3-o
 | `GRANT pg_read_all_data` and `GRANT CONNECT ON DATABASE loan_manager_dev` to `codex-cloud-read@` (DB-ACCESS-03) | As `postgres` | Impersonated reads work; INSERT, UPDATE, DELETE denied; connect to `loan_manager_prod` refused |
 | `GRANT SELECT ("Partner Role") ON public."Partners"` to `mw-credit-app-read-dev@` | As `postgres` in `loan_manager_dev` | Granted; mirrors PROD |
 | Restore rehearsal clone (DB-BACKUP-01) | Throwaway `db-f1-micro` instance, backup restore, four counts-only CSV exports, delete | Schema history identical; clone, CSVs and temporary bucket grants removed |
+| Delete `codex-cloud` key `f6729ca0...` (ALL-INFRA-01, owner decision 16 October) | `gcloud iam service-accounts keys delete f6729ca08daef9c25c24e5954a12b897d3b19aa9 --iam-account=codex-cloud@clever-oasis-508610-n7.iam.gserviceaccount.com --quiet` at 08:35:56Z | `keys list --managed-by=user` shows only `37df51c6...`; `gcloud auth print-access-token` ok |
+| Re-point uptime check `mw-webhook-external-health-ySLl0784KgI` (AGT-WEBHOOK-03 Variant 1, step A) | Terraform `ecosystem-debian`, applied 08:36:53Z. Before: `curl https://hooks.mw-credit.com/instagram` gave 403 `Forbidden` | Plan 0 add, 1 change, 0 destroy (uptime check only); re-plan no changes; config `/instagram`, 403, `Forbidden`; `check_passed` true from Singapore and Oregon. The tunnel path change followed (agent note) |
 | Drop `mw-credit-app-dev@...iam` (DB-ACCESS-05) | `gcloud sql users delete mw-credit-app-dev@clever-oasis-508610-n7.iam --instance=appsheet-pg-prod-20260914 --quiet` at 07:50:27Z, after a read-only check found no owned objects or grants | User gone; remaining DEV IAM users `-read-`, `-command-`, `-jobs-`, `-notify-dev`, `codex-cloud`, `codex-cloud-read` |
 
 ## Prepared for a later go
 
-PROD DB-ACCESS-01 (nine statements plus the instance-wide change):
+PROD DB-ACCESS-01 (owner scope: REVOKE DELETE only, no `NOLOGIN`):
 
 ```sql
 -- in loan_manager_prod, as postgres
 REVOKE DELETE ON public."Borrowers", public."Business Expenses", public."Cash Ledger",
   public."Cash Pool Contributions", public."Charges", public."Loans", public."Payments",
   public."Repayments", public."Settlements" FROM mw_reviewer_dml;
--- instance-wide
-ALTER ROLE mw_reviewer_dml NOLOGIN;
 ```
 
-Before running, confirm PROD holds the same nine DELETE grants (`information_schema.role_table_grants`, grantee `mw_reviewer_dml`). `NOLOGIN` also stops the approved PROD reviewer write path, so decide that first.
+Before running, confirm PROD holds the same nine DELETE grants (`information_schema.role_table_grants`, grantee `mw_reviewer_dml`). `LOGIN` stays, so the approved reviewer write path keeps INSERT and UPDATE.
 
 PROD DB-ACCESS-03:
 
@@ -132,7 +132,8 @@ GRANT CONNECT ON DATABASE mw_agent, loan_manager_prod TO "mw-integration-agent@c
 
 - Files: `git revert` the commit.
 - Terraform changes: revert the commit, then `terraform plan` and apply the reviewed result. Imports are removed from state with `terraform state rm`, never by destroy. Do not destroy the Owner bindings (`prevent_destroy`).
-- Disabled key: `gcloud iam service-accounts keys enable f6729ca08daef9c25c24e5954a12b897d3b19aa9 --iam-account=codex-cloud@clever-oasis-508610-n7.iam.gserviceaccount.com`.
+- Deleted key: it cannot be restored. A machine that still needs `codex-cloud` gets a new key from the owner (rotation procedure in `infrastructure/unattended-admin/README.md`).
+- Uptime check: set path `/health`, status 200 and content `mw-instagram-webhook` in `ecosystem-debian/owned.tf` and apply (only after the tunnel path is set back to null).
 - Firewall: re-create `default-allow-ssh` and `default-allow-rdp` from the definitions recorded before deletion (create them disabled, as they were since 2026-09-21). The IAP rule is the admin path.
 - DEV grants: `GRANT DELETE` on the same nine tables `TO mw_reviewer_dml` in `loan_manager_dev`. The reader column grant and `codex-cloud-read` grants are reverted with `REVOKE`.
 - Dropped IAM user: `gcloud sql users create mw-credit-app-dev@clever-oasis-508610-n7.iam --instance=appsheet-pg-prod-20260914 --type=CLOUD_IAM_SERVICE_ACCOUNT`; it owned nothing.
@@ -141,12 +142,10 @@ GRANT CONNECT ON DATABASE mw_agent, loan_manager_prod TO "mw-integration-agent@c
 
 ## Open questions
 
-1. ALL-INFRA-01: delete the disabled key `f6729ca0...` after an observation window? It was used on 2026-10-04 from another machine.
-2. DB-ACCESS-01 PROD: `NOLOGIN` on `mw_reviewer_dml` is instance-wide and ALL-ARCH-02 keeps reviewer DML as an approved PROD path. Also decide whether to retire `reviewer_delete_enabled` and the DELETE catalogue entries.
-3. DB-ACCESS-03: CONNECT on `loan_manager_prod` and `mw_agent` for `codex-cloud-read` (needed for PROD backups and verify) is a PROD database change. Go?
-4. DB-ACCESS-07: `verify-full` needs a `server_ca_mode` change on the instance. Later wave?
-5. Low: `codex-cloud-read` can also connect to the `postgres` database through PUBLIC CONNECT.
-6. AGT-WEBHOOK-03 variant choice (agent note).
+1. DB-ACCESS-01 PROD: decide whether to retire `reviewer_delete_enabled` and the DELETE catalogue entries now that DELETE is revoked.
+2. DB-ACCESS-03: CONNECT on `loan_manager_prod` and `mw_agent` for `codex-cloud-read` (needed for PROD backups and verify) is a PROD database change. Go?
+3. DB-ACCESS-07: `verify-full` needs a `server_ca_mode` change on the instance. Later wave?
+4. Low: `codex-cloud-read` can also connect to the `postgres` database through PUBLIC CONNECT.
 
 ## Remaining work
 

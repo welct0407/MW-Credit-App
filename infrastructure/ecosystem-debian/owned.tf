@@ -225,8 +225,9 @@ resource "google_compute_firewall" "default_allow_internal" {
   }
 }
 
-# External health probe of the Instagram webhook through the Cloudflare tunnel
-# (R063 W3 ALL-INFRA-03). See AGT-WEBHOOK-03 before narrowing the tunnel path.
+# External probe of the Instagram webhook through the Cloudflare tunnel
+# (R063 W3 ALL-INFRA-03). The tunnel admits only ^/instagram$ (AGT-WEBHOOK-03),
+# so the check expects the receiver's unsigned-GET answer: 403 "Forbidden".
 resource "google_monitoring_uptime_check_config" "webhook_health" {
   project          = "clever-oasis-508610-n7"
   display_name     = "MW webhook external health"
@@ -235,17 +236,17 @@ resource "google_monitoring_uptime_check_config" "webhook_health" {
   timeout          = "10s"
   selected_regions = ["ASIA_PACIFIC", "EUROPE", "USA_OREGON"]
   content_matchers {
-    content = "mw-instagram-webhook"
+    content = "Forbidden"
     matcher = "CONTAINS_STRING"
   }
   http_check {
-    path           = "/health"
+    path           = "/instagram"
     port           = 443
     request_method = "GET"
     use_ssl        = true
     validate_ssl   = true
     accepted_response_status_codes {
-      status_value = 200
+      status_value = 403
     }
   }
   monitored_resource {
