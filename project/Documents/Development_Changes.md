@@ -23,6 +23,16 @@
 
 Use the [release tracker](Release_Tracker.md), including the carried R016 administrative follow-up. Current runtime versions belong in [environment inventory](Environment_Inventory.md). Update this page for actual outstanding work, not completed-release history.
 
+## R068 Wave 5 UX
+
+[Change note](../../Change%20Logs/CHANGE_NOTES_W5_UX_2026-10-17.md). Branch `claude/review-w5-ux`, UI-only, for the Open R068 (the owner brief named R067, which another session had already frozen and Released). 39 review codes: 29 reproduced and fixed or mitigated, 7 partly, PERF-02 already met since R063, 2 no action. Highlights: labelled Review/Clear draft and offline wording before confirming a payment, no nested scroll on phones, 14 px minimum text, 44 px targets, one money format `-฿1,200`, Cash date `08-Oct-2026`, partner labels from the Partners records, a divided Sign out with a reason, sign-in failure and notification status messages, app updates applied on request (automatic runtime update removed), notification tap no longer reloads a tab with an open form, Windows push hosts accepted. No schema change, no new dependency.
+
+- **Zoom lock** (A11Y-01, SEC-02): kept by owner decision, "accepted design, mitigated".
+- **Headers** (PERF-02): immutable `/assets/**` and `no-store` for `/`, `sw.js`, `build-version.json`, manifest and `offline.html` have been live in DEV and PROD since R063; W5 only aligned the `firebase.json` mirror and its test, so PROD headers are unchanged and the W5 UI reaches PROD with the R068 promotion.
+- **Notifications worker** (APP-NOTIFY-02): code and unit test only; not deployed because DEV runs one image on all four services from another session. It ships with the next all-services DEV roll and with promotion.
+- **Deployment:** {{DEV Hosting version, release, smoke}}. Checks: {{consolidated results}}.
+- **Remaining:** see the change note (Thai pending-sync text in `preference-save.ts`, sidebar scroll with pending changes at 1280x800, icons and maskable icon, DEV Notifications view hidden).
+
 ## R064 local dataset sync fix and shared Cloud SQL
 
 R068 W4 follow-ups (open; V94 applied in DEV on 17 October 2026, PROD still V93; 30 s and on-focus dataset refresh `905eb82`; agent backup script on Linux `4ed32a2`; nothing frozen or deployed to PROD): see the [W4 follow-ups section](../../Change%20Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md#w4-follow-ups-17-october-2026) of the database note.

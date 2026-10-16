@@ -11,3 +11,7 @@ R059 is Released at exact source `7aecf695789fee3ca3b1fd1f2bece4c4a4bc8ba6`, dep
 - [Notifications and jobs](notifications-jobs.yaml): tables, routes, post-commit dispatch and schedule definitions.
 
 These use the format-1 envelope. Contract references point to immutable application source; they do not duplicate entire handlers or claim a complete OpenAPI specification. Current SQL column/routine definitions remain in the PostgreSQL namespace.
+
+## Display conventions
+
+The PWA shows money in one format: whole baht with the sign before the symbol (`-฿1,200`; a value that rounds to zero shows `฿0`). The Cash statement date shows `DD-Mon-YYYY` (`08-Oct-2026`, Thai month names in Thai). The borrower name is captioned "Borrower name (Thai - English)", and either side may be empty. Partner withdrawal labels use the Partner Name of role A and role B from the Partners records, with "Partner A/B" as the fallback. The SQL column names `Tommy Withdrawn MTD` and `Lisa Withdrawn MTD` are preserved compatibility identifiers and are not display labels. These conventions are presentation only; no definition in the YAML records changes.
