@@ -4,8 +4,8 @@
 
 | Item | Current value |
 | --- | --- |
-| New product work | **R067 — Open** |
-| Next unused number | **R068**, only opened when authorized R067 promotion starts |
+| New product work | **R068 — Open** |
+| Next unused number | **R069**, only opened when authorized R068 promotion starts |
 | Current runtime baseline | [Environment inventory](Environment_Inventory.md) |
 
 All new features/fixes use the sole Open release. Freeze only at authorized promotion start, pin the package, then publish the next Open number in the same update. Frozen corrections stay with their release; new features use the successor. Do not reserve a second Open release or reuse a number. Documentation/governance changes do not allocate releases.
@@ -14,7 +14,8 @@ All new features/fixes use the sole Open release. Freeze only at authorized prom
 
 | Release | Status | Remaining action / owning record |
 | --- | --- | --- |
-| R067 | Open | New product work. Carries nothing from R066. |
+| R068 | Open | New product work. Carries nothing from R067. |
+| R067 | Frozen 17 October 2026 (Bangkok) | Tidy-ups after the old instance deletion; PROD promotion in progress (owner: "Go ahead", about 03:50 Bangkok). Package: `claude/r067-tidy` runtime `7d14078` (identity accepts only `mw-credit-pg-20261017`; head `7f8ef53`); IAM condition narrowing `009d9f2` already applied 16 October 20:38 to 20:40Z. No migration. PROD result pending. [Record](../../Change%20Logs/CHANGE_NOTES_R064_SYNC_2026-10-16.md#r067-tidy-ups-after-the-old-instance-deletion) |
 | R056 | Frozen; V91 deployed | Lisa enrollment retry/closure; [record](../outputs/r056-apple-push/README.md) |
 | R055 | Frozen; monitoring delivered | Carried credential work unfinished; [record](../outputs/r055-grafana/continuation.md) |
 | R016 | Owner-accepted reporting; administrative follow-up | Migration-key retirement evidence/final tag unresolved; do not reopen product development |
