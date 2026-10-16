@@ -11,7 +11,7 @@ Updated 16 October 2026 from existing deployment evidence, the R063 Wave 3 live 
 | Cloud Run workers | mw-credit-app-notify-dev / mw-credit-app-jobs-dev | mw-credit-app-notify-prod / mw-credit-app-jobs-prod |
 | Worker time zone | Asia/Bangkok | Asia/Bangkok |
 
-Google project: `clever-oasis-508610-n7` (737787224638), region `asia-southeast1`. Shared Cloud SQL: `appsheet-pg-prod-20260914`, public host `34.21.174.215:5432`. Preserve that resource name. Verify the complete project/instance/database tuple for any operation.
+Google project: `clever-oasis-508610-n7` (737787224638), region `asia-southeast1`. Shared Cloud SQL: `appsheet-pg-prod-20260914`, public host `34.21.174.215:5432`. Preserve that resource name. Tier db-g1-small, disk PD_HDD 10 GB, `max_connections` 200, Query Insights on (16 October 2026). Verify the complete project/instance/database tuple for any operation.
 
 Private receipts: `gs://mw-payment-receipts-prod-508610-n7`. Agent originals and manual uploads retain their existing validated paths. Public access is not enabled. AppSheet connection records are removed; current service identities own access. Do not restore old store keys.
 
@@ -79,10 +79,11 @@ Pending owner items:
 | ALL-MON-03 Metabase and Railway checks | Owner-performed and pending: public sharing off, strong authentication, Railway backup scheduled |
 | ALL-COST-01 GCP budget | Owner creates one budget: monthly average plus 50 percent, alerts at 50/90/100 percent |
 | Grafana revamp (ALL-MON lines) | Deferred; every ALL-MON item becomes a line of that entry (see [Development changes](Development_Changes.md)) |
-| ALL-ARCH-04 database tier | No instance change. W4 found 0 stored receipt images in PROD `mw_agent` (1,742 MB, almost all `audit.*` and `runtime` heartbeat rows); the prepared maintenance below is the remaining work |
+| ALL-ARCH-04 database tier | Applied 16 October 2026: db-g1-small on PD_HDD (SSD move planned 17 October after R064 is stable, new instance `mw-credit-pg-20261017`; HDD cannot change in place), Query Insights on, [R064 sync note](../../Change%20Logs/CHANGE_NOTES_R064_SYNC_2026-10-16.md). W4 found 0 stored receipt images in PROD `mw_agent` (1,742 MB, almost all `audit.*` and `runtime` heartbeat rows); the prepared maintenance below is the remaining work |
 | V93 DEV migration (R064 Wave 4) | Done 16 October 2026 (tooling accepts the Auth Proxy tunnel identity, owner-approved 17 October). Run book for any repeat (also PROD): `owner-authority-cli.mjs role`, `prepare` (four owners), `Invoke-Flyway.ps1 migrate`, `application-role-cli.mjs --action post-migrate`, `restore`, `validate`; private records under `~/.mw-private/AppSheet-Loan-Project/flyway` |
 | V93 PROD promotion | Not authorized; prepared as request (a) in the [W4 database note](../../Change%20Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md). Release manifest for `9eee10e` exists (93 migrations). Provision `mw_ledger_owner_prod` (closed) at promotion; PROD drift check against the expected V92 schema, restore-verified backup, authority opened only for the ledger owner and restored. The PROD app promotion follows V93 |
-| Cloud SQL flag change and restart (DB-PERF-03) | Prepared in `infrastructure/ecosystem-shared/owned.tf` (pg_cron flags removed, `max_connections` 50); plan only, not applied (request (c), Saturday 03:20 to 03:50 Bangkok proposed). Applying restarts the shared instance |
+| Cloud SQL flags and tier (DB-PERF-03) | Applied 16 October 2026 (owner): tier db-g1-small, `max_connections=200` (owner, over W4's 50), `cloudsql.iam_authentication=on`, no `cron.*` flags, settingsVersion 65, plan No changes (narrow patch used for the provider maintenance-window 400); backups 1792165191960 and 1792165979631 |
+| PROD command capacity (R064 sync fix) | Max instances 1 to 2, command pool 4 connections (others 2), startup CPU boost on reader and command PROD and DEV: pending, takes effect on deploy; not deployed |
 | `mw_agent` maintenance (DB-PERF-01) | Prepared (request (b)): 7-day audit retention (owner, 17 October), `agent-db-maintenance.py`, `vacuum-full-agent.sql`, disabled daily timer units; not run on PROD (`mw_agent` 1,830 MB). Two owner decisions open: retention identity (agent V5 role and purge function, recommended) and a create-only bucket binding on `agent-audit-archive/` |
 | R063 signed-in proof | Owner's next normal sign-in on https://lm.mw-credit.com (no PROD test identity) |
 
