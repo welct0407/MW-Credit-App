@@ -34,13 +34,6 @@ resource "google_project_iam_member" "command_auth_user" {
   member  = "serviceAccount:${google_service_account.command_runtime[0].email}"
 }
 
-resource "google_secret_manager_secret_iam_member" "command_owner_identity" {
-  count     = var.command_infrastructure_enabled ? 1 : 0
-  secret_id = google_secret_manager_secret.owner_identity.id
-  role      = "roles/secretmanager.secretAccessor"
-  member    = "serviceAccount:${google_service_account.command_runtime[0].email}"
-}
-
 resource "google_project_iam_custom_role" "command_receipt_objects" {
   count       = var.command_infrastructure_enabled ? 1 : 0
   role_id     = "mwCreditAppCommandReceiptObjects"
@@ -82,22 +75,22 @@ resource "google_storage_bucket_iam_member" "command_source_receipt_read" {
 }
 # SQL role membership is deliberately outside Terraform's instance-level IAM user
 # creation. Use the reviewed DEV role provisioner/reconciler and actual-login proof.
-# command-service.tf requires the tested immutable bootstrap and explicit owner receiving mode.
+# command-service.tf requires the tested immutable image and the pinned DEV capability policy.
 output "command_runtime_identity" {
   value = try(google_service_account.command_runtime[0].email, null)
 }
 output "command_runtime_candidate_config" {
   value = {
     APP_ENV                  = "dev"
+    ENTRYPOINT               = "services/production/business-server.mjs"
     FIREBASE_PROJECT_ID      = local.project
     DB_NAME                  = "loan_manager_dev"
     INSTANCE_CONNECTION_NAME = "${local.project}:${local.region}:${local.instance}"
-    OWNER_IDENTITY_MODE      = "uid-pinned"
-    OWNER_UID_SECRET         = google_secret_manager_secret.owner_identity.secret_id
-    OWNER_UID_SECRET_VERSION = var.owner_uid_secret_version
+    CAPABILITY_POLICY_SECRET = google_secret_manager_secret.capability_policy.secret_id
+    CAPABILITY_POLICY_PIN    = var.capability_policy_version
     RECEIPT_BUCKET           = local.bucket
     RECEIPT_SQL_PREFIX       = "manual-receipts/dev/pwa/"
     RECEIPT_OBJECT_PREFIX    = "appsheet/data/MW_OLTP_DEV_20260919_578763613/manual_receipts/dev/pwa/"
-    ALLOWED_WEB_ORIGINS      = ["https://${google_firebase_hosting_site.dev.site_id}.web.app", "https://dev-lm.mw-credit.com"]
+    ALLOWED_WEB_ORIGINS      = local.web_origins
   }
 }

@@ -20,7 +20,7 @@ variable "workers" {
   default = {}
 }
 module "workers" {
-  source                           = "../modules/dev-workers"
+  source                           = "../modules/workers"
   environment                      = "prod"
   enabled                          = var.workers.enabled
   image                            = var.workers.image

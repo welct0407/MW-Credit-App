@@ -122,3 +122,55 @@ run "prod_rejects_dev_image" {
   }
   expect_failures = [var.image]
 }
+
+run "caller_subjects_pinned_per_worker" {
+  command = plan
+  variables {
+    enabled                  = true
+    image                    = "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app/api@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    vapid_version            = "1"
+    policy_version           = "1"
+    push_subject             = "mailto:synthetic@example.invalid"
+    registered_creators      = ["postgres"]
+    notification_enabled     = true
+    command_dispatch_enabled = true
+  }
+  override_resource {
+    target          = google_service_account.scheduler[0]
+    override_during = plan
+    values          = { email = "mw-credit-app-scheduler-dev@clever-oasis-508610-n7.iam.gserviceaccount.com", unique_id = "100000000000000000001" }
+  }
+  override_data {
+    target          = data.google_service_account.command[0]
+    override_during = plan
+    values          = { email = "mw-credit-app-command-dev@clever-oasis-508610-n7.iam.gserviceaccount.com", unique_id = "100000000000000000002" }
+  }
+  assert {
+    condition     = jsondecode(one([for e in google_cloud_run_v2_service.worker["notify"].template[0].containers[0].env : e.value if e.name == "WORKER_CALLER_SUBJECTS_JSON"])) == { "mw-credit-app-scheduler-dev@clever-oasis-508610-n7.iam.gserviceaccount.com" = "100000000000000000001", "mw-credit-app-command-dev@clever-oasis-508610-n7.iam.gserviceaccount.com" = "100000000000000000002" }
+    error_message = "Notify pins the scheduler and the dispatching command identity by unique id."
+  }
+  assert {
+    condition     = jsondecode(one([for e in google_cloud_run_v2_service.worker["jobs"].template[0].containers[0].env : e.value if e.name == "WORKER_CALLER_SUBJECTS_JSON"])) == { "mw-credit-app-scheduler-dev@clever-oasis-508610-n7.iam.gserviceaccount.com" = "100000000000000000001" }
+    error_message = "Jobs pins the scheduler only."
+  }
+}
+run "caller_subjects_without_dispatch_skip_command" {
+  command = plan
+  variables {
+    enabled             = true
+    image               = "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app/api@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    vapid_version       = "1"
+    policy_version      = "1"
+    push_subject        = "mailto:synthetic@example.invalid"
+    registered_creators = ["postgres"]
+  }
+  override_resource {
+    target          = google_service_account.scheduler[0]
+    override_during = plan
+    values          = { email = "mw-credit-app-scheduler-dev@clever-oasis-508610-n7.iam.gserviceaccount.com", unique_id = "100000000000000000001" }
+  }
+  assert {
+    condition     = length(data.google_service_account.command) == 0 && keys(jsondecode(one([for e in google_cloud_run_v2_service.worker["notify"].template[0].containers[0].env : e.value if e.name == "WORKER_CALLER_SUBJECTS_JSON"]))) == ["mw-credit-app-scheduler-dev@clever-oasis-508610-n7.iam.gserviceaccount.com"]
+    error_message = "Without direct dispatch the command identity is neither read nor accepted."
+  }
+}

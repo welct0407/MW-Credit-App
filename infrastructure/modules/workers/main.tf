@@ -110,6 +110,21 @@ locals {
     recent_analytics = { role = "jobs", path = "/internal/jobs/recent-analytics", cron = "0 * * * *", enabled = var.jobs_schedule_enabled }
   } : {}
 }
+# APP-AUTH-06: callers are pinned by email and by service-account unique id (OIDC sub).
+# The command caller is read only when its direct dispatch is enabled; jobs accepts the scheduler only.
+data "google_service_account" "command" {
+  count      = var.enabled && var.image != null && var.command_dispatch_enabled ? 1 : 0
+  project    = local.project
+  account_id = "mw-credit-app-command-${var.environment}@${local.project}.iam.gserviceaccount.com"
+}
+locals {
+  caller_subjects = var.enabled ? {
+    for role in local.roles : role => merge(
+      { (google_service_account.scheduler[0].email) = google_service_account.scheduler[0].unique_id },
+      role == "notify" && length(data.google_service_account.command) == 1 ? { (data.google_service_account.command[0].email) = data.google_service_account.command[0].unique_id } : {}
+    )
+  } : {}
+}
 resource "google_project_service" "scheduler" {
   # Shared API enablement remains owned by the existing DEV state.
   count              = var.enabled && var.environment == "dev" ? 1 : 0
@@ -217,6 +232,7 @@ resource "google_cloud_run_v2_service" "worker" {
           WORKER_AUDIENCE              = local.audiences[each.key]
           SCHEDULER_SERVICE_ACCOUNT    = google_service_account.scheduler[0].email
           SQL_REGISTERED_CREATORS_JSON = jsonencode(var.registered_creators)
+          WORKER_CALLER_SUBJECTS_JSON  = jsonencode(local.caller_subjects[each.key])
         }, each.key == "notify" ? { WEB_PUSH_SUBJECT = var.push_subject } : {})
         content {
           name  = env.key

@@ -33,11 +33,6 @@ locals {
 
 }
 
-variable "image" {
-  type    = string
-  default = "us-docker.pkg.dev/cloudrun/container/hello"
-}
-
 variable "github_repository_id" {
   type = string
 }
@@ -51,11 +46,6 @@ resource "google_project_service" "required" {
 
 }
 
-resource "google_service_account" "runtime" {
-  account_id   = "mw-credit-app-dev"
-  display_name = "MW Credit DEV API"
-}
-
 resource "google_service_account" "build" {
   account_id   = "mw-credit-app-build"
   display_name = "MW Credit image builder"
@@ -66,12 +56,44 @@ resource "google_service_account" "deploy" {
   display_name = "MW Credit GitHub DEV delivery"
 }
 
+variable "artifact_cleanup_dry_run" {
+  description = "Evaluate the DEV image cleanup policy without deleting; set true only for the first rehearsal apply."
+  type        = bool
+  default     = false
+}
+
+# ALL-INFRA-06: keep the 20 most recent versions and every version tagged keep*; delete
+# other versions older than 30 days. Deployed and rollback digests carry keep-dev-* tags.
 resource "google_artifact_registry_repository" "app" {
 
-  location      = local.region
-  repository_id = "mw-credit-app"
-  format        = "DOCKER"
-  depends_on    = [google_project_service.required]
+  location               = local.region
+  repository_id          = "mw-credit-app"
+  format                 = "DOCKER"
+  cleanup_policy_dry_run = var.artifact_cleanup_dry_run
+  cleanup_policies {
+    id     = "keep-most-recent-20"
+    action = "KEEP"
+    most_recent_versions {
+      keep_count = 20
+    }
+  }
+  cleanup_policies {
+    id     = "keep-tagged-keep"
+    action = "KEEP"
+    condition {
+      tag_state    = "TAGGED"
+      tag_prefixes = ["keep"]
+    }
+  }
+  cleanup_policies {
+    id     = "delete-older-than-30d"
+    action = "DELETE"
+    condition {
+      tag_state  = "ANY"
+      older_than = "2592000s"
+    }
+  }
+  depends_on = [google_project_service.required]
 
 }
 
@@ -95,38 +117,13 @@ resource "google_storage_bucket" "build" {
 
 }
 
-resource "google_project_iam_member" "runtime_sql" {
-
-  for_each = toset(["roles/cloudsql.client", "roles/cloudsql.instanceUser"])
-  project  = local.project
-  role     = each.value
-  member   = "serviceAccount:${google_service_account.runtime.email}"
-
-}
-
-resource "google_sql_user" "runtime" {
-
-  instance = local.instance
-  name = trimsuffix(google_service_account.runtime.email,
-  ".gserviceaccount.com")
-  type            = "CLOUD_IAM_SERVICE_ACCOUNT"
-  deletion_policy = "ABANDON"
-
-}
-
-resource "google_storage_bucket_iam_member" "runtime_files" {
-
-  bucket = local.bucket
-  role   = "roles/storage.objectUser"
-  member = "serviceAccount:${google_service_account.runtime.email}"
-  condition {
-
-    title      = "mw-credit-dev-prefix-only"
-    expression = "resource.name.startsWith('projects/_/buckets/${local.bucket}/objects/mw-credit-app/dev/')"
-
+# ALL-ARCH-05: the foundation-era DEV API (mw-credit-app-api-dev), its identity, grants and
+# outputs are removed. Its Cloud SQL IAM user is released here and dropped by the operator.
+removed {
+  from = google_sql_user.runtime
+  lifecycle {
+    destroy = false
   }
-
-
 }
 
 resource "google_secret_manager_secret" "vapid" {
@@ -149,101 +146,6 @@ resource "google_secret_manager_secret" "vapid" {
   }
 
   depends_on = [google_project_service.required]
-
-}
-
-resource "google_secret_manager_secret_iam_member" "runtime" {
-
-  secret_id = google_secret_manager_secret.vapid.id
-  role      = "roles/secretmanager.secretAccessor"
-  member    = "serviceAccount:${google_service_account.runtime.email}"
-
-}
-
-resource "google_cloud_run_v2_service" "api" {
-
-  name                = "mw-credit-app-api-dev"
-  location            = local.region
-  deletion_protection = true
-  ingress             = "INGRESS_TRAFFIC_ALL"
-  template {
-
-    service_account                  = google_service_account.runtime.email
-    timeout                          = "60s"
-    max_instance_request_concurrency = 20
-    scaling {
-      min_instance_count = 0
-      max_instance_count = 2
-    }
-
-    containers {
-
-      image = var.image
-      resources {
-        limits = {
-          cpu    = "1"
-          memory = "512Mi"
-        }
-
-        cpu_idle = true
-      }
-
-      env {
-        name  = "APP_ENV"
-        value = "dev"
-      }
-
-      env {
-        name  = "DB_NAME"
-        value = "loan_manager_dev"
-      }
-
-      env {
-        name  = "DB_USER"
-        value = google_sql_user.runtime.name
-      }
-
-      env {
-        name  = "INSTANCE_CONNECTION_NAME"
-        value = "${local.project}:${local.region}:${local.instance}"
-      }
-
-      env {
-        name  = "RECEIPT_BUCKET"
-        value = local.bucket
-      }
-
-      env {
-        name  = "STORAGE_PREFIX"
-        value = "mw-credit-app/dev/"
-      }
-
-      env {
-        name  = "READINESS_SECRET"
-        value = "${google_secret_manager_secret.vapid.id}/versions/latest"
-      }
-
-      startup_probe {
-        http_get {
-          path = "/healthz"
-          port = 8080
-        }
-        initial_delay_seconds = 1
-        period_seconds        = 3
-        failure_threshold     = 10
-      }
-
-
-    }
-
-
-  }
-
-  lifecycle {
-    ignore_changes = [template[0].containers[0].image, client, client_version]
-  }
-
-  depends_on = [google_project_service.required, google_project_iam_member.runtime_sql]
 
 }
 
@@ -271,26 +173,6 @@ resource "google_artifact_registry_repository_iam_member" "deploy_images" {
   repository = google_artifact_registry_repository.app.repository_id
   role       = "roles/artifactregistry.writer"
   member     = "serviceAccount:${google_service_account.deploy.email}"
-}
-
-resource "google_cloud_run_v2_service_iam_member" "deploy_service" {
-  location = local.region
-  name     = google_cloud_run_v2_service.api.name
-  role     = "roles/run.developer"
-  member   = "serviceAccount:${google_service_account.deploy.email}"
-}
-
-resource "google_cloud_run_v2_service_iam_member" "deploy_probe" {
-  location = local.region
-  name     = google_cloud_run_v2_service.api.name
-  role     = "roles/run.invoker"
-  member   = "serviceAccount:${google_service_account.deploy.email}"
-}
-
-resource "google_service_account_iam_member" "deploy_runtime" {
-  service_account_id = google_service_account.runtime.name
-  role               = "roles/iam.serviceAccountUser"
-  member             = "serviceAccount:${google_service_account.deploy.email}"
 }
 
 variable "automated_hosting_delivery_enabled" {
@@ -362,16 +244,8 @@ resource "google_firebase_hosting_site" "dev" {
   depends_on = [google_firebase_project.app]
 }
 
-output "api_url" {
-  value = google_cloud_run_v2_service.api.uri
-}
-
 output "workload_identity_provider" {
   value = google_iam_workload_identity_pool_provider.github.name
-}
-
-output "runtime_identity" {
-  value = google_service_account.runtime.email
 }
 
 output "hosting_url" {
