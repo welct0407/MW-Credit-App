@@ -13,7 +13,7 @@
 | Grafana revamp: alert coverage for PWA APIs, workers, Cloud SQL disk and backups; every ALL-MON item (including ALL-MON-03 checks) is a line of this entry | Pending future release (review ALL-MON-01); no alert rules applied in R063 |
 | R064 Wave 4 database (V93) | Applied and verified in DEV and PROD on 16 October 2026; [PROD record](#r064-production-promotion) |
 | `mw_agent` maintenance (DB-PERF-01) | 7-day purge in progress from a cloud session (owner, 16 October); `VACUUM FULL` postponed to the SSD move; agent migration V5 (retention role and purge function) and the agent deploy pending in this session; [record](#r064-production-promotion) |
-| SSD for the shared instance | Needs a new instance; the move to `mw-credit-pg-20261017` is planned for 17 October 2026 after R064 is stable (owner decision); `VACUUM FULL` of `mw_agent` waits for it |
+| SSD for the shared instance | Done 17 October 2026 (Bangkok): DEV, PROD, the Debian agent, Grafana and Metabase run on `mw-credit-pg-20261017` (PD_SSD); the old instance stays unused for 24 h, then stopped; deleting it needs a separate owner go; [record](../../Change%20Logs/CHANGE_NOTES_R064_SYNC_2026-10-16.md#shared-cloud-sql-move-to-ssd-17-october-2026) |
 | Cloud SQL flags (DB-PERF-03) | Done 16 October 2026 with the tier change; `max_connections` stays 200 (owner, supersedes the planned 50); [record](#r064-production-promotion) |
 | Lease columns of `pwa_job_runs` (DB-LOCK-02) | Not dropped; a later contract migration |
 | SQL adoption of `pwa_lock_key_v1` (DB-LOCK-03) | Deferred to the next migration that touches `pwa_submit_operation_v2` (needs journal-owner authority); Node already uses it |
