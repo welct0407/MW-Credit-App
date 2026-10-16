@@ -25,6 +25,8 @@ Use the [release tracker](Release_Tracker.md), including the carried R016 admini
 
 ## R064 local dataset sync fix and shared Cloud SQL
 
+R066 offline receipts, 30-day window (UI-only, frozen 17 October 2026, verification, DEV and PROD pending): see the [R066 section](../../Change%20Logs/CHANGE_NOTES_R064_SYNC_2026-10-16.md#r066-offline-receipts-30-day-window) of the same note.
+
 R065 pending-flash fix (UI-only, Released 17 October 2026, DEV and PROD Hosting verified): see the [R065 section](../../Change%20Logs/CHANGE_NOTES_R064_SYNC_2026-10-16.md#r065-pending-flash-fix) of the same note.
 
 [Change note](../../Change%20Logs/CHANGE_NOTES_R064_SYNC_2026-10-16.md). App-only correction on `claude/sync-phase1` (81541c7, 1f63b9d), stacked on Wave 4; one R064 promotion, no migration. The offline dataset walk keeps progress across the user's own writes, commits a torn walk (`acceptChanged`) instead of restarting, packs more records per response, throttles focus checks to 60 s per domain and serves `offline:` cursors locally; header shows "Updated HH:MM" and "All synced". Command pool 4 connections, PROD command max instances 2 (on deploy). Agent C verified; DEV and PROD deployed from 9420c85 (smoke passed).

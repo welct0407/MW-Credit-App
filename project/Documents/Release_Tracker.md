@@ -4,8 +4,8 @@
 
 | Item | Current value |
 | --- | --- |
-| New product work | **R066 — Open** |
-| Next unused number | **R067**, only opened when authorized R066 promotion starts |
+| New product work | **R067 — Open** |
+| Next unused number | **R068**, only opened when authorized R067 promotion starts |
 | Current runtime baseline | [Environment inventory](Environment_Inventory.md) |
 
 All new features/fixes use the sole Open release. Freeze only at authorized promotion start, pin the package, then publish the next Open number in the same update. Frozen corrections stay with their release; new features use the successor. Do not reserve a second Open release or reuse a number. Documentation/governance changes do not allocate releases.
@@ -14,7 +14,8 @@ All new features/fixes use the sole Open release. Freeze only at authorized prom
 
 | Release | Status | Remaining action / owning record |
 | --- | --- | --- |
-| R066 | Open | New product work. Carries nothing from R065. |
+| R067 | Open | New product work. Carries nothing from R066. |
+| R066 | Frozen 17 October 2026 (Bangkok) | Offline receipts promotion in progress (owner: "go, deploy R066 to prod after DEV"); UI-only, no migration or database backup. Package: `claude/offline-receipts` `81e5fa4cd8775957c0b267aff7585ac9ae976c74` (receipts stored once, last 30 days offline) plus the R066 Hosting runner contract (SHA to follow). [Record](../../Change%20Logs/CHANGE_NOTES_R064_SYNC_2026-10-16.md#r066-offline-receipts-30-day-window) |
 | R056 | Frozen; V91 deployed | Lisa enrollment retry/closure; [record](../outputs/r056-apple-push/README.md) |
 | R055 | Frozen; monitoring delivered | Carried credential work unfinished; [record](../outputs/r055-grafana/continuation.md) |
 | R016 | Owner-accepted reporting; administrative follow-up | Migration-key retirement evidence/final tag unresolved; do not reopen product development |
