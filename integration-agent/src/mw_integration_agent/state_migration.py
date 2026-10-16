@@ -1,16 +1,15 @@
 """Operator-only schema/import tools. No runtime or model entry point."""
-from datetime import datetime, timezone
+from datetime import datetime, UTC
 import hashlib
 import json
 from pathlib import Path
 import sqlite3
 import shutil
 import struct
-import uuid
 
 from psycopg import sql
 from . import audit
-from .config import ConfigurationError
+from .config import ConfigurationError, cutoff_ts
 from .state import TABLES
 
 
@@ -21,7 +20,7 @@ def file_hash(path):
 def backup_journals(source, target):
     source, target=Path(source),Path(target)
     target.mkdir(parents=True,exist_ok=False)
-    manifest={'created_at':datetime.now(timezone.utc).isoformat(),'files':{}}
+    manifest={'created_at':datetime.now(UTC).isoformat(),'files':{}}
     unexpected={p.name for p in source.glob('*.db')}-set(TABLES)
     if unexpected: raise ConfigurationError('UNMAPPED_APPLICATION_JOURNAL')
     for name in TABLES:
@@ -126,7 +125,7 @@ def import_journals(conn, source, config, batch_id, source_commit):
     # Preserve original receipt eligibility, not a new replay cutoff.
     cursor=conn.execute('SELECT value FROM runtime.receipt_cursor WHERE id=1').fetchone()
     if not cursor:raise ConfigurationError('SOURCE_CURSOR_MISSING')
-    receipt_cutoff=datetime.fromisoformat(config['receipt_activation_cutoff']).timestamp()
+    receipt_cutoff=cutoff_ts(config,'receipt_activation_cutoff')
     conn.execute('''INSERT INTO runtime.ingress_work(message_id,state,eligible_at)
         SELECT message_id,CASE WHEN legacy_rowid>%s AND event_timestamp>=%s AND captured_at>=%s THEN 'PENDING' ELSE 'DONE' END,
         to_timestamp(captured_at) FROM runtime.ingress_messages ON CONFLICT DO NOTHING''',(cursor[0],receipt_cutoff,receipt_cutoff))
@@ -138,7 +137,7 @@ def import_journals(conn, source, config, batch_id, source_commit):
     # snapshot from current balances. Source bytes must be valid UTF-8 JSON.
     for path in sorted((source/'cash-statements'/'calendar-day').glob('*/snapshot.json')):
         text=path.read_bytes().decode('utf-8')
-        freeze(conn,'calendar-day/'+path.parent.name,text,str(path),datetime.fromtimestamp(path.stat().st_mtime,timezone.utc))
+        freeze(conn,'calendar-day/'+path.parent.name,text,str(path),datetime.fromtimestamp(path.stat().st_mtime,UTC))
         snapshots+=1
     conn.execute("UPDATE migration.batches SET state='VERIFIED',verified_at=clock_timestamp() WHERE batch_id=%s",(batch_id,))
     return {'batch_id':str(batch_id),'tables':checks,'rows':sum(c['rows'] for c in checks),'snapshots':snapshots}

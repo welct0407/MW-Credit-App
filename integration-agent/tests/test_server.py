@@ -156,6 +156,35 @@ class ReceiverTests(unittest.TestCase):
         response = conn.getresponse()
         self.assertEqual((response.status, response.read()), (413, b'Invalid size')); conn.close()
 
+    def signed(self, raw):
+        import hashlib as _hashlib
+        import hmac
+        return {'X-Hub-Signature-256': 'sha256=' + hmac.new(b'app-secret', raw, _hashlib.sha256).hexdigest()}
+
+    def journal_rows(self):
+        import sqlite3
+        path = Path(self.fixture.config['state_directory']) / 'instagram-ingress.db'
+        if not path.exists():
+            return 0
+        with sqlite3.connect(path) as db:
+            return db.execute('SELECT count(*) FROM receipts').fetchone()[0]
+
+    def test_malformed_requests_are_client_errors_and_switches_are_read_per_request(self):
+        # AGT-WEBHOOK-05: unparsable length and non-object bodies are 400s; the catalogue switch acts without a restart.
+        conn = http.client.HTTPConnection('127.0.0.1', self.port, timeout=10)
+        conn.putrequest('POST', '/instagram'); conn.putheader('Content-Length', 'abc'); conn.endheaders()
+        response = conn.getresponse()
+        self.assertEqual((response.status, response.read()), (400, b'Invalid length')); conn.close()
+        self.assertEqual(self.request('POST', '/instagram', body=b'[1]', headers=self.signed(b'[1]')), (400, 'Invalid body'))
+        self.assertEqual(self.request('POST', '/instagram', body=b'[1]'), (403, 'Forbidden'))  # unsigned probes stay 403
+        self.assertEqual(self.journal_rows(), 0)
+        valid = json.dumps({'object': 'instagram', 'entry': []}).encode()
+        self.assertEqual(self.request('POST', '/instagram', body=valid, headers=self.signed(valid)), (200, 'EVENT_RECEIVED'))
+        self.assertEqual(self.journal_rows(), 1)
+        self.fixture.catalogue['services']['signed_webhook_ingress']['enabled'] = False; self.fixture.write()
+        self.assertEqual(self.request('POST', '/instagram', body=valid, headers=self.signed(valid)), (503, 'Receiver disabled'))
+        self.assertEqual(self.journal_rows(), 1)
+
     def errors(self, method, path, body=None, headers=None):
         with patch('sys.stderr', new_callable=io.StringIO) as stderr:
             result = self.request(method, path, body=body, headers=headers)

@@ -11,15 +11,14 @@ $listener=[Net.Sockets.TcpListener]::new([Net.IPAddress]::Loopback,0)
 $listener.Start();$fixturePort=$listener.LocalEndpoint.Port;$listener.Stop()
 $started=$false
 try {
- & (Join-Path $pgBin 'initdb.exe') -D $data -U mw_fixture_bootstrap --auth=trust --encoding=UTF8 --locale=C | Out-Null
+ & (Get-PgTool initdb) -D $data -U mw_fixture_bootstrap --auth=trust --encoding=UTF8 --locale=C | Out-Null
  if($LASTEXITCODE){throw 'Disposable initdb failed'}
- $process=Start-Process -FilePath (Join-Path $pgBin 'pg_ctl.exe') -ArgumentList @('-D',('"'+$data+'"'),'-l',('"'+(Join-Path $fixtureRoot 'postgres.log')+'"'),'-o',('"-h 127.0.0.1 -p '+$fixturePort+'"'),'-w','start') -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $fixtureRoot 'start.out') -RedirectStandardError (Join-Path $fixtureRoot 'start.err')
- $process.WaitForExit();if($process.ExitCode){throw 'Disposable PostgreSQL start failed'};$started=$true
- & (Join-Path $pgBin 'psql.exe') -X -q -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $fixturePort -U mw_fixture_bootstrap -d postgres -c 'CREATE ROLE postgres LOGIN NOSUPERUSER CREATEROLE CREATEDB NOREPLICATION NOBYPASSRLS; CREATE ROLE cloudsqlsuperuser NOLOGIN; GRANT cloudsqlsuperuser TO postgres WITH ADMIN FALSE;'
+ Start-PgServer $data (Join-Path $fixtureRoot 'postgres.log') $fixturePort $fixtureRoot;$started=$true
+ & (Get-PgTool psql) -X -q -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $fixturePort -U mw_fixture_bootstrap -d postgres -c 'CREATE ROLE postgres LOGIN NOSUPERUSER CREATEROLE CREATEDB NOREPLICATION NOBYPASSRLS; CREATE ROLE cloudsqlsuperuser NOLOGIN; GRANT cloudsqlsuperuser TO postgres WITH ADMIN FALSE;'
  if($LASTEXITCODE){throw 'Bootstrap operator setup failed'}
- & (Join-Path $pgBin 'createdb.exe') -h 127.0.0.1 -p $fixturePort -U postgres -O postgres payment_rehearsal
+ & (Get-PgTool createdb) -h 127.0.0.1 -p $fixturePort -U postgres -O postgres payment_rehearsal
  if($LASTEXITCODE){throw 'Operator database creation failed'}
- & (Join-Path $pgBin 'psql.exe') -X -q -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $fixturePort -U postgres -d payment_rehearsal -f "$PSScriptRoot/../database/Test-AgentAuditPrerequisites.sql"
+ & (Get-PgTool psql) -X -q -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $fixturePort -U postgres -d payment_rehearsal -f "$PSScriptRoot/../database/Test-AgentAuditPrerequisites.sql"
  if($LASTEXITCODE){throw 'Operator audit role setup failed'}
  $savedFlyway=@{}
  Get-ChildItem Env:FLYWAY_* -ErrorAction SilentlyContinue | ForEach-Object { $savedFlyway[$_.Name]=$_.Value; Remove-Item "Env:$($_.Name)" }
@@ -64,6 +63,6 @@ try {
  }
 } finally {
  Remove-Item Env:OPERATOR_PROOF_DISPOSABLE,Env:OPERATOR_PROOF_PORT,Env:OPERATOR_PROOF_PHASE,Env:OPERATOR_MAINTENANCE_STATE,Env:OPERATOR_MAINTENANCE_PHASE,Env:OPERATOR_MAINTENANCE_TARGET -ErrorAction SilentlyContinue
- if($started){& (Join-Path $pgBin 'pg_ctl.exe') -D $data -m fast -w stop | Out-Null}
+ if($started){& (Get-PgTool pg_ctl) -D $data -m fast -w stop | Out-Null}
  Write-Host "Stopped disposable PostgreSQL; synthetic diagnostics retained at $fixtureRoot"
 }

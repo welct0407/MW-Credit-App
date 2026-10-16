@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import sqlite3
-from .state import connect as state_connect, enabled as state_enabled, is_postgres
+from .state import connect as state_connect, is_postgres
 import json
 import time
 from pathlib import Path
 from typing import Any
+from datetime import UTC
 
 
 class IngressJournal:
@@ -63,10 +64,11 @@ class IngressJournal:
         return bool(cursor.rowcount), inserted
 
     def _capture_postgres(self, payload_sha256, messages, stats=None):
-        from datetime import datetime, timezone
+        from datetime import datetime
         from .audit import begin, event
+        from .config import cutoff_ts
         config = self.db.config
-        cutoff = datetime.fromisoformat(config['state_cutover_at']).timestamp()
+        cutoff = cutoff_ts(config, 'state_cutover_at')
         with self.db:
             conn = self.db.conn
             receipt = conn.execute('INSERT INTO runtime.ingress_receipts VALUES (%s,%s,%s) ON CONFLICT DO NOTHING',
@@ -93,7 +95,7 @@ class IngressJournal:
                     state = 'REVIEW' if values[2] < cutoff or message.get('quarantine') else 'PENDING'
                     quarantined += state == 'REVIEW'
                     conn.execute('INSERT INTO runtime.ingress_work(message_id,state,eligible_at) VALUES (%s,%s,%s)',
-                        (values[0], state, datetime.now(timezone.utc)))
+                        (values[0], state, datetime.now(UTC)))
                 inserted += n
             op = begin(conn,config,'ingress',payload_sha256,plan={'payload_sha256':payload_sha256,'message_count':len(messages)})
             event(conn,op,'ingress_accepted' if receipt else 'ingress_duplicate',

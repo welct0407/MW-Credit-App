@@ -81,7 +81,7 @@ Collector status codes are Down **0**, Healthy **1**, Degraded **2**, Paused **3
 
 ### 4.1 Webhook external health impaired
 
-1. Inspect the GCP uptime check `mw-webhook-external-health-ySLl0784KgI`: Singapore, Belgium and Oregon results, timestamps and failure categories. Checks run every five minutes. Confirm HTTPS, HTTP 200 and expected receiver response at `https://hooks.mw-credit.com/health`; do not submit a business webhook.
+1. Inspect the GCP uptime check `mw-webhook-external-health-ySLl0784KgI`: Singapore, Belgium and Oregon results, timestamps and failure categories. Checks run every five minutes. Confirm HTTPS, HTTP 403 and the receiver's `Forbidden` answer at `https://hooks.mw-credit.com/instagram` (unsigned GET); `/health` is local only since 16 October 2026. Do not submit a business webhook.
 2. Compare the local Ingress and Tunnel tiles. If local ingress fails, inspect `mw-instagram-webhook.service` and its existing receiver flag. If local ingress passes but tunnel fails, inspect `mw-cloudflared-instagram.service` and HA connection metrics. At least four connections is healthy, one to three degraded, zero down; missing metrics is Unknown.
 3. If both pass but external regions fail, examine DNS/TLS/public routing and regional error evidence. Use the established Cloudflare API/access procedure for control-plane reads; do not change DNS, certificates or tunnel configuration under worker recovery permission.
 4. After an authorized recovery, verify local health and new passing samples from all three regions, then the rule evaluation. A single successful local request does not establish public recovery.

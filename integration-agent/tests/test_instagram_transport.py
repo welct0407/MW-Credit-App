@@ -66,14 +66,15 @@ class InstagramTransportTests(unittest.TestCase):
             client = Instagram({"instagram_account_id": "123", "instagram_api_version": "v1",
                                 "instagram_token_file": str(token), "secrets_directory": directory,
                                 "state_backend": "sqlite", "state_directory": directory})
-            with patch.object(urllib.request, "urlopen", side_effect=http_error(400, WINDOW)):
+            # AGT-QUALITY-01: requests go through the shared no-redirect opener, never urlopen.
+            with patch.object(urllib.request.OpenerDirector, "open", side_effect=http_error(400, WINDOW)):
                 with self.assertRaises(InstagramAPIError) as sent:
                     client._request("123/messages", body={"recipient": {"id": "456"}, "message": {"text": "x"}})
                 self.assertTrue(sent.exception.window_expired)
                 with self.assertRaises(InstagramAPIError) as read:
                     client._request("456", {"fields": "id"})
                 self.assertFalse(read.exception.window_expired)
-            with patch.object(urllib.request, "urlopen", side_effect=TimeoutError()):
+            with patch.object(urllib.request.OpenerDirector, "open", side_effect=TimeoutError()):
                 with self.assertRaises(ConfigurationError) as other:
                     client._request("456", {"fields": "id"})
                 self.assertNotIsInstance(other.exception, InstagramAPIError)

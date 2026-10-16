@@ -1,5 +1,9 @@
 """Private logical backup and restore/fingerprint proof in the named local lab."""
-import argparse,hashlib,json,os,subprocess
+import argparse
+import hashlib
+import json
+import os
+import subprocess
 from pathlib import Path
 import psycopg
 from psycopg import sql
@@ -9,13 +13,15 @@ p.add_argument('--private-directory',required=True);p.add_argument('--output',re
 p.add_argument('--restore-database',default='mw_agent_restore_r015');a=p.parse_args()
 if not __import__('re').fullmatch(r'mw_agent_restore_[a-z0-9_]+',a.restore_database):raise RuntimeError('Unsafe restore name')
 e=json.loads(Path(a.environments).read_text())['production'];lab=json.loads(Path(a.lab).read_text(encoding='utf-8-sig'))
-if (e['host'],e['instance'])!=('34.21.174.215','appsheet-pg-prod-20260914'):raise RuntimeError('Wrong source')
+# Identity by instance name only; the private directory is whatever the operator passes (AGT-QUALITY-03).
+if e['instance']!='appsheet-pg-prod-20260914':raise RuntimeError('Wrong source')
 if lab['host']!='127.0.0.1' or lab['port']==5432:raise RuntimeError('Wrong restore server')
 base=dict(host=lab['host'],port=lab['port'],user='postgres',autocommit=True)
 with psycopg.connect(**base,dbname='postgres') as c:
     if Path(c.execute('SHOW data_directory').fetchone()[0]).resolve()!=(Path(lab['root'])/'data').resolve():raise RuntimeError('Wrong lab')
     c.execute(sql.SQL('CREATE DATABASE {}').format(sql.Identifier(a.restore_database)))
-private=Path(a.private_directory).resolve();private.relative_to(Path('C:/Users/ideaadmin/Documents/ChatGPT').resolve())
+private=Path(a.private_directory).resolve()
+if not private.is_dir():raise RuntimeError('Private directory must exist outside the repository')
 dump=private/'mw_agent-before-activation.dump'
 if dump.exists():raise RuntimeError('Backup already exists; preserve')
 env=dict(os.environ,PGPASSWORD=Path(e['passwordFile']).read_text().strip(),PGSSLMODE='require')

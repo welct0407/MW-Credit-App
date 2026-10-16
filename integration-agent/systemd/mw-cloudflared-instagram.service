@@ -14,10 +14,12 @@ NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=true
-ProtectHome=true
 ProtectKernelTunables=true
 ProtectKernelModules=true
 ProtectControlGroups=true
+# AGT-HOST-03: cloudflared opens AF_INET/AF_INET6 (edge QUIC/HTTP2, DNS, origin, ICMPv6 proxy) and
+# AF_NETLINK/NETLINK_ROUTE (interface enumeration at start; strace of 2026.9.1); AF_UNIX for local resolver/journal.
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_NETLINK
 RestrictSUIDSGID=true
 
 [Install]

@@ -34,7 +34,7 @@ class CycleTests(unittest.TestCase):
         self.patches=[]
         for target,kwargs in [('masters',{'return_value':{'partners':[self.p],'reviewer_ids':['p'],'borrowers':[self.b],'accounts':[{'id':'a','active':True}]}}),
               ('check',{}),('facts',{'return_value':{}}),('plan',{'return_value':self.proposal}),('read_query',{'return_value':['actor@example.invalid']}),
-              ('add_payment',{}),('readback',{'return_value':True})]:
+              ('add_payment',{'create':True}),('readback',{'return_value':True})]:  # retired transport: not imported, patched as a tripwire
             p=patch('mw_integration_agent.review_cycle.'+target,**kwargs);setattr(self,target,p.start());self.addCleanup(p.stop)
         Archive(self.config,self.j,storage=object())
         def payload(config,review,proposal,asset,automatic):
@@ -79,6 +79,59 @@ class CycleTests(unittest.TestCase):
     def test_approved_posts_once_then_result(self):
         self.run_cycle();self.run_cycle();self.assertEqual(self.submit.call_count,1)
         self.assertEqual(self.j.db.execute('SELECT state FROM partner_reviews').fetchone()[0],'POSTED')
+
+    def test_not_sent_returns_review_to_approved_and_resubmits_same_request_id(self):
+        # AGT-SEND-03: a command that never reached the API releases the claim; the next cycle re-submits
+        # under the same deterministic requestId. Nothing else about the row changes.
+        expected='pwa:'+receipt_api.request_id('dev',self.key)
+        submitted=self.submit.side_effect
+        for code in ('RECEIPT_API_NOT_SENT_TOKEN','RECEIPT_API_NOT_SENT_401','RECEIPT_API_NOT_SENT_403'):
+            with self.subTest(code=code):
+                self.j.db.execute('UPDATE receipt_jobs SET retry_after=0');self.j.db.commit()
+                self.submit.side_effect=receipt_api.NotSent(code)
+                result=self.run_cycle()
+                self.assertIn({'stage':'submit','exception':code},result['failures'])
+                row=self.j.db.execute('SELECT state,payment_id,deciding_partner FROM partner_reviews').fetchone()
+                self.assertEqual(tuple(row),('APPROVED',None,'p'))
+                self.status.assert_not_called();self.readback.assert_not_called()
+        self.assertEqual(self.submit.call_count,3)
+        self.j.db.execute('UPDATE receipt_jobs SET retry_after=0');self.j.db.commit()
+        self.assertEqual({c.args[1]['command']['requestId'] for c in self.submit.call_args_list},{expected.removeprefix('pwa:')})
+        self.submit.side_effect=submitted
+        self.assertEqual(self.run_cycle()['failures'],[])
+        self.assertEqual(tuple(self.j.db.execute('SELECT state,payment_id FROM partner_reviews').fetchone()),('POSTED',expected))
+        self.assertEqual(self.submit.call_count,4)
+
+    def test_not_sent_retry_is_bounded_to_fifteen_minutes(self):
+        import time
+        from mw_integration_agent.review_cycle import NOT_SENT_RETRY_SECONDS
+        self.assertEqual(NOT_SENT_RETRY_SECONDS,900)
+        self.submit.side_effect=receipt_api.NotSent('RECEIPT_API_NOT_SENT_403')
+        before=time.time();self.run_cycle();self.run_cycle()
+        self.assertEqual(self.submit.call_count,1)  # two cycles inside the window: one submit
+        job=self.j.db.execute('SELECT retry_after,detail,status FROM receipt_jobs').fetchone()
+        self.assertGreaterEqual(job['retry_after'],before+900);self.assertEqual((job['detail'],job['status']),('RECEIPT_API_NOT_SENT_403','REVIEW_REQUESTED'))
+        self.assertEqual(tuple(self.j.db.execute('SELECT state,payment_id FROM partner_reviews').fetchone()),('APPROVED',None))
+        self.j.db.execute('UPDATE receipt_jobs SET retry_after=?',(time.time()-1,));self.j.db.commit()  # window elapsed
+        self.run_cycle()
+        self.assertEqual(self.submit.call_count,2)
+        self.assertEqual({c.args[1]['command']['requestId'] for c in self.submit.call_args_list},{receipt_api.request_id('dev',self.key)})
+
+    def test_not_sent_keeps_the_automatic_policy_marker(self):
+        from mw_integration_agent.review_cycle import AUTO_POLICY
+        self.config.update(receipt_auto_payment_enabled=True,receipt_auto_payment_cutoff='2026-01-01T00:00:00+00:00',receipt_auto_actor_partner_id='auto')
+        self.j.db.execute("UPDATE partner_reviews SET deciding_partner='auto',detail=?",(AUTO_POLICY,))
+        self.j.db.execute('UPDATE receipt_jobs SET created_at=?',(2000000000,));self.j.db.commit()
+        self.masters.return_value['partners'].append({'id':'auto','username':'auto','enabled':True,'language':'English'})
+        self.submit.side_effect=receipt_api.NotSent('RECEIPT_API_NOT_SENT_401')
+        self.run_cycle()
+        self.assertEqual(tuple(self.j.db.execute('SELECT state,payment_id,detail FROM partner_reviews').fetchone()),('APPROVED',None,AUTO_POLICY))
+        self.j.db.execute('UPDATE receipt_jobs SET retry_after=0');self.j.db.commit()
+        self.submit.side_effect=None
+        self.submit.return_value={'kind':'recorded','reviewId':self.key,'financialMatch':True,'originalOutcome':{'status':'posted','paymentId':'pwa:'+receipt_api.request_id('dev',self.key)}}
+        self.run_cycle()
+        self.assertEqual(self.j.db.execute('SELECT state FROM partner_reviews').fetchone()[0],'POSTED')
+        self.assertTrue(self.submit.call_args.args[0]['_receipt_automatic'])
     def test_unknown_never_retries_add(self):
         self.submit.side_effect=TimeoutError();self.readback.return_value=False
         self.run_cycle();self.run_cycle();self.assertEqual(self.submit.call_count,1)

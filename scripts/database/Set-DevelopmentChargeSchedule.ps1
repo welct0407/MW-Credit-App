@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param([Parameter(Mandatory)][ValidateSet('start-test','status','finish-test','enable-nightly','pause-nightly')][string]$Mode)
 . "$PSScriptRoot/Common.ps1"
-$target=Get-DbEnvironment development
+$target=Get-DbEnvironment development -Admin
 if($target.host -ne '34.158.38.171'){throw 'Reviewed development host required'}
 $sql=switch($Mode){
  'start-test' {@'

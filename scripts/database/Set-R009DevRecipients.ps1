@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param()
 . "$PSScriptRoot/Common.ps1"
-$target=Get-DbEnvironment development
+$target=Get-DbEnvironment development -Admin
 if($target.instance -ne 'appsheet-pg-prod-20260914' -or $target.host -ne '34.21.174.215' -or $target.database -ne 'loan_manager_dev'){
  throw 'DEV instance/host/database mismatch'
 }

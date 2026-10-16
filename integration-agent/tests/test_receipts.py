@@ -1,4 +1,3 @@
-import copy
 import hashlib
 import io
 import json
@@ -18,7 +17,7 @@ from mw_integration_agent.receipt_image import allowed_url,canonical_image,extra
 from mw_integration_agent.receipt_journal import ReceiptJournal
 from mw_integration_agent.receipt_rules import (BANGKOK,ReceiptInvalid,borrower_for,match_account,
     recipients,summary,validate_receipt)
-from mw_integration_agent.receipt_run import controls,process,dispatch
+from mw_integration_agent.receipt_run import process,dispatch
 from mw_integration_agent.webhook import extract_messages
 
 
@@ -248,8 +247,8 @@ class ReceiptJournalTests(unittest.TestCase):
             with self.subTest(field=field):
                 self.add(field)
                 r=receipt();r['reference']+=field.upper()
-                process(self.j.pending()[0],self.j,{},master(),fetch=lambda _: (field.encode(),field),
-                    extractor=lambda *_:r,identity_reader=profile)
+                process(self.j.pending()[0],self.j,{},master(),fetch=lambda _,field=field: (field.encode(),field),
+                    extractor=lambda *_,r=r:r,identity_reader=profile)
                 accepted=self.j.db.execute("SELECT id FROM receipt_jobs WHERE status='VALIDATED' ORDER BY created_at DESC LIMIT 1").fetchone()
                 dest=recipients(master()['partners'])[0]
                 self.j.db.execute('INSERT INTO receipt_emails(id,job_id,payload) VALUES (?,?,?)',

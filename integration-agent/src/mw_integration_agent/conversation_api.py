@@ -1,14 +1,11 @@
 """Bounded native machine transport. One attempt; no AppSheet or SQL fallback."""
 import json
-import hashlib
 import re
 import time
 import urllib.error
-import urllib.parse
 import urllib.request
-import uuid
 from .config import ConfigurationError
-from .receipt_api import NoRedirect
+from .http import identity_token, opener as http_opener, uuid_from_sha256
 
 
 def request_id(environment, message_id, operation_key):
@@ -17,10 +14,7 @@ def request_id(environment, message_id, operation_key):
             or len(message_id.encode())>2048 or not isinstance(operation_key,str)
             or not re.fullmatch('[A-Za-z0-9_-]{1,64}',operation_key)):
         raise ConfigurationError('INVALID_NATIVE_OPERATION_IDENTITY')
-    raw=bytearray(hashlib.sha256(json.dumps(['mw-credit-agent-conversation-v1',environment,message_id,operation_key],
-                 ensure_ascii=False,separators=(',',':')).encode()).digest()[:16])
-    raw[6]=(raw[6]&15)|64;raw[8]=(raw[8]&63)|128
-    return str(uuid.UUID(bytes=bytes(raw)))
+    return uuid_from_sha256(['mw-credit-agent-conversation-v1',environment,message_id,operation_key])
 
 
 def validate(config):
@@ -53,19 +47,14 @@ def call(config, route, body=None, request_id=None, opener=None):
         raise ConfigurationError('INVALID_CONVERSATION_API_BODY') from None
     if raw is not None and len(raw)>524288:
         raise ConfigurationError('CONVERSATION_API_BODY_TOO_LARGE')
-    opener = opener or urllib.request.build_opener(NoRedirect())
+    opener = opener or http_opener()
     until = time.monotonic()+20
     def remaining():
         seconds=until-time.monotonic()
         if seconds<=0:raise ConfigurationError('CONVERSATION_API_OUTCOME_UNCERTAIN')
         return seconds
-    metadata=urllib.request.Request('http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/identity?'
-        +urllib.parse.urlencode({'audience':config['conversation_api_audience'],'format':'full'}),headers={'Metadata-Flavor':'Google'})
     try:
-        with opener.open(metadata,timeout=remaining()) as response:
-            token=response.read(16385).decode()
-        if len(token)>16384 or not re.fullmatch(r'[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+',token):
-            raise ConfigurationError('INVALID_WORKLOAD_TOKEN')
+        token=identity_token(config['conversation_api_audience'],opener,remaining())
         path='commands/'+request_id if route=='status' else route
         request=urllib.request.Request(config['conversation_api_origin']+'/internal/agent/'+path,
             data=raw,method='GET' if route=='status' else 'POST',headers={'Authorization':'Bearer '+token,

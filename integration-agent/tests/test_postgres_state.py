@@ -37,6 +37,85 @@ class DialectTests(unittest.TestCase):
         self.assertIn('runtime.receipt_jobs',sql)
 
 
+class FakeCursor:
+    def __init__(self, rowcount):
+        self.rowcount, self.description = rowcount, None
+
+    def fetchall(self):
+        return []
+
+
+class AdapterUnitTests(unittest.TestCase):
+    """No server: audit skipping, read-only journals, session limits and IAM parameters (AGT-STATE-01/02/04, ALL-ARCH-03)."""
+    CONFIG = {'state_backend': 'postgres', 'agent_database_host': '127.0.0.1', 'agent_database_port': 5432,
+              'agent_database_name': 'mw_agent', 'state_generation': '11111111-1111-4111-8111-111111111111'}
+
+    def fake_transaction(self, rowcount, executed):
+        from contextlib import contextmanager
+        @contextmanager
+        def transaction(config, role='worker', readonly=False):
+            class Conn:
+                def execute(self, sql, params=()):
+                    executed.append((sql, params, readonly)); return FakeCursor(rowcount)
+            yield Conn()
+        return transaction
+
+    def test_noop_statement_writes_no_audit_rows(self):
+        journal = state.PostgresJournal(self.CONFIG, 'receipt-processing.db')
+        for rowcount, calls in ((0, 0), (1, 1)):
+            executed = []
+            with self.subTest(rowcount=rowcount), patch.object(state, 'transaction', self.fake_transaction(rowcount, executed)), \
+                 patch('mw_integration_agent.audit.state_change') as state_change:
+                journal.execute("UPDATE receipt_jobs SET status='EXPIRED' WHERE id=?", ('absent',))
+                self.assertEqual(state_change.call_count, calls)
+                journal.execute('SELECT * FROM receipt_jobs WHERE id=?', ('absent',))
+                self.assertEqual(state_change.call_count, calls)
+            self.assertEqual(len(executed), 2)
+
+    def test_readonly_journal_refuses_writes_before_any_connection(self):
+        journal = state.connect('/var/lib/agent/instagram-ingress.db', self.CONFIG, readonly=True)
+        self.assertTrue(journal.readonly)
+        with patch.object(state, 'transaction', side_effect=AssertionError('connected for a refused write')):
+            with self.assertRaisesRegex(ConfigurationError, 'STATE_READONLY_JOURNAL'):
+                journal.execute("UPDATE messages SET text='' WHERE message_id=?", ('m',))
+        executed = []
+        with patch.object(state, 'transaction', self.fake_transaction(0, executed)):
+            journal.execute('SELECT * FROM messages WHERE message_id=?', ('m',))
+        self.assertEqual(executed[0][2], True)  # the SELECT ran inside a read-only transaction
+        self.assertFalse(state.connect('/var/lib/agent/instagram-ingress.db', self.CONFIG).readonly)
+
+    def test_connection_timeouts_match_documented_values(self):
+        with patch.object(state, 'load_secret', return_value='synthetic'):
+            options = state.parameters(self.CONFIG)['options']
+        self.assertEqual(options, '-c statement_timeout=15000 -c lock_timeout=3000 -c idle_in_transaction_session_timeout=30000')
+        self.assertEqual((state.STATEMENT_TIMEOUT_MS, state.LOCK_TIMEOUT_MS, state.IDLE_IN_TRANSACTION_TIMEOUT_MS), (15000, 3000, 30000))
+
+    def test_iam_parameters_have_no_password_and_set_role(self):
+        config = dict(self.CONFIG, agent_database_auth='iam', database_iam_user='mw-integration-agent@clever-oasis-508610-n7.iam')
+        with patch.object(state, 'load_secret', side_effect=AssertionError('no password file in IAM mode')):
+            value = state.parameters(config, 'relay')
+        self.assertEqual((value['user'], value['port'], value['dbname'], 'password' in value),
+                         ('mw-integration-agent@clever-oasis-508610-n7.iam', 5433, 'mw_agent', False))
+        self.assertEqual(state.session_role(config, 'relay'), 'mw_agent_relay')
+        self.assertIsNone(state.session_role(self.CONFIG, 'relay'))
+        with patch.object(state, 'load_secret', return_value='synthetic'):
+            self.assertEqual((state.parameters(self.CONFIG)['user'], state.parameters(self.CONFIG)['port']), ('mw_agent_worker', 5432))
+        class Conn:
+            closed = broken = False
+            statements = []
+            def execute(self, sql): self.statements.append(sql)
+        pool = state.Pool(config, 'worker')
+        with patch('psycopg.connect', return_value=Conn()) as connect:
+            with pool.connection() as conn:
+                self.assertEqual(conn.statements, ['SET ROLE mw_agent_worker'])
+            self.assertEqual(connect.call_args.kwargs['user'], 'mw-integration-agent@clever-oasis-508610-n7.iam')
+            with pool.connection() as conn:
+                pass
+            self.assertEqual((len(conn.statements), connect.call_count), (1, 1))  # the pooled connection keeps its role
+        with self.assertRaisesRegex(ConfigurationError, 'UNAPPROVED_AGENT_DATABASE'):
+            state.parameters(dict(config, agent_database_port=5433))
+
+
 @unittest.skipUnless(os.environ.get('MW_AGENT_LAB_MANIFEST'),'isolated PostgreSQL 18 lab required')
 class PostgreSQLStateTests(unittest.TestCase):
     @classmethod
@@ -227,6 +306,26 @@ class PostgreSQLStateTests(unittest.TestCase):
         receipt.ingest(ingress.db,1)
         with psycopg.connect(**self.admin) as c:
             self.assertEqual(c.execute('SELECT count(*) FROM runtime.receipt_jobs WHERE message_id=ANY(%s)',([self.key,self.key+'-slow'],)).fetchone()[0],2)
+
+    def test_readonly_transactions_are_enforced_by_the_server(self):
+        # AGT-STATE-02: SET TRANSACTION READ ONLY makes the server refuse writes on a read-only journal.
+        ingress=state.connect('/var/lib/agent/instagram-ingress.db',self.config,readonly=True)
+        self.assertEqual(ingress.execute('SELECT * FROM messages WHERE message_id=?',(self.key,)).fetchall(),[])
+        with self.assertRaises(psycopg.errors.ReadOnlySqlTransaction):
+            with state.transaction(self.config,readonly=True) as c:
+                c.execute('INSERT INTO runtime.conversations(binding,thread_id) VALUES (%s,%s)',(self.key,self.key))
+        with psycopg.connect(**self.admin) as c:
+            self.assertIsNone(c.execute('SELECT 1 FROM runtime.conversations WHERE binding=%s',(self.key,)).fetchone())
+
+    def test_noop_update_leaves_no_audit_rows(self):
+        # AGT-STATE-01: a statement that changes nothing writes neither an operation nor an event.
+        receipt=ReceiptJournal('receipt-processing.db',self.config)
+        with psycopg.connect(**self.admin) as c:
+            before=c.execute('SELECT (SELECT count(*) FROM audit.operations),(SELECT count(*) FROM audit.events)').fetchone()
+        with receipt.db:
+            self.assertEqual(receipt.db.execute("UPDATE receipt_jobs SET status='EXPIRED' WHERE id=?",(self.key,)).rowcount,0)
+        with psycopg.connect(**self.admin) as c:
+            self.assertEqual(c.execute('SELECT (SELECT count(*) FROM audit.operations),(SELECT count(*) FROM audit.events)').fetchone(),before)
 
     def test_unavailable_audit_prevents_provider_dispatch(self):
         called=False

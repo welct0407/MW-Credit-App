@@ -9,7 +9,7 @@ import uuid
 from unittest.mock import patch
 
 import psycopg
-from mw_integration_agent import audit, operator_audit as oa, outbox, state
+from mw_integration_agent import operator_audit as oa, outbox, state
 from mw_integration_agent.config import ConfigurationError
 
 

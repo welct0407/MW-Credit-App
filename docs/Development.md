@@ -18,7 +18,29 @@ Use the owning infrastructure root's README/wrapper. Remote state already exists
 
 Follow [PWA policy](../project/Documents/Rules/PWA_Orchestration.md). Select affected unit/contract/SQL/browser checks during implementation; run one broad checkpoint when scope warrants it and reuse that result for promotion. Required workflows remain in force.
 
-CI routes by changed files: `Development checks` runs typecheck/unit/build for app changes, Terraform validation for infrastructure changes and the sharded Playwright suite when the PWA, specs or front-end configuration change; main pushes and manual dispatch run everything. `Database migrations` runs once per pushed commit as four parallel groups of `scripts/database/Test-CI.ps1` (`-Group migrations|receiving|phase5|phase8`; no argument runs all groups locally). Database workflow paths also match database documentation. The original manual DEV deployment workflow covers its configured API; maintained release tooling owns full package/Hosting delivery. Do not bypass validators or claim this documentation changed workflows.
+CI routes by changed files: `Development checks` runs typecheck/unit/build for app changes, Terraform validation (all 20 root directories, plus `terraform test` in five of them) for infrastructure changes and the sharded Playwright suite when the PWA, specs or front-end configuration change; main pushes are classified from the pushed commit range and manual dispatch runs everything. `Database migrations` runs once per pushed commit as four parallel groups of `scripts/database/Test-CI.ps1` (`-Group migrations|receiving|phase5|phase8`; no argument runs all groups locally); changes under `services/**`, `tests/integration/**` and `scripts/rehearsal/**` also trigger it, as do database documentation paths. Maintained release tooling owns package and Hosting delivery; there is no separate DEV deploy workflow. Every workflow has a concurrency group, every action is pinned to a commit SHA, and the database, e2e and check jobs fail if they leave the working tree dirty. Do not bypass validators or claim this documentation changed workflows.
+
+## Toolchain and lint
+
+Biome 2.5.14 lints TS/JS (`npm run lint`, rules in `biome.json`, formatter off); it is non-blocking in CI. Ruff 0.16.8 checks `integration-agent` with the rule set in its `pyproject.toml` and blocks CI. Make Biome blocking once the TS/JS tree is clean.
+
+## Database CI on Linux
+
+`mw-db-ci [checkout] [-Group migrations|receiving|phase5|phase8]` runs all four groups as `postgres` (installed by `project/scripts/cloud-session-setup.sh`; the checkout defaults to the current Git checkout, then `$MW_CREDIT_APP_ROOT`). GitHub runs them on ubuntu-latest; a manual dispatch can choose windows-latest. `Test-AccessMatrix.sql` asserts the migration-owned grants, so grant drift fails CI.
+
+## Error codes
+
+21 SQL ERRCODEs (custom P4C01-P4C05, P5B01-P5B10). Node maps SQLSTATE to code to HTTP in `payment-command/store.mjs`, `agent-receipts/runtime.mjs` and `agent-conversations/{handler,command-metadata,command-provider,policy}.mjs`. A new SQL code gets its Node mapping in the same change.
+
+## Request ids and time zone
+
+Each HTTP request gets a `randomUUID()`, returned as `X-Request-ID` and logged by the shared HTTP boundary (`services/lib/http-boundary.mjs`). The command `requestId` is the client's idempotency key (`contracts/payment-command.mjs`); worker job ids are deterministic (`workers/runtime.mjs`). The agent derives deterministic UUIDs from SHA-256 (`uuid_from_sha256` in `integration-agent/src/mw_integration_agent/http.py`).
+
+Each runtime has one business time zone constant: `BUSINESS_TZ` in the Node `services/lib` business-date module and `BANGKOK` in `mw_integration_agent.business_time`. Do not add another.
+
+## Browser fixtures
+
+Canonical e2e fixtures launch Chromium with `--proxy-server=direct://` plus `--host-resolver-rules`. `--no-proxy-server` is ignored when a container proxy is set. A fixture that served no request fails with "canonical fixture served nothing".
 
 Use one promotion record plus runner-required manifest. Pin immutable artifacts and dependencies, record existing scoped authority/recovery, deploy the intended components, run one bounded smoke and update changed facts. No AppSheet validation or duplicate design/checklist/continuation inventory.
 

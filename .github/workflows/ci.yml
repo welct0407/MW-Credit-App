@@ -1,8 +1,9 @@
 name: Development checks
-# One workflow, four stages. A small `changes` job classifies the event so a
+# One workflow, five stages. A small `changes` job classifies the event so a
 # documentation-only pull request still posts the `Development checks result`
 # status (this is what branch protection can require) without running the
-# expensive stages. Main pushes and manual dispatch run everything.
+# expensive stages. Main pushes are classified by the pushed commit range;
+# manual dispatch, a first push and an unreadable range run everything.
 on:
   push:
     branches: [main]
@@ -34,13 +35,21 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
+          PUSH_BEFORE: ${{ github.event.before }}
+          PUSH_AFTER: ${{ github.sha }}
         run: |
           set -euo pipefail
-          if [ "${{ github.event_name }}" != "pull_request" ]; then
-            echo "app=true" >> "$GITHUB_OUTPUT"; echo "e2e=true" >> "$GITHUB_OUTPUT"; echo "terraform=true" >> "$GITHUB_OUTPUT"
-            echo "Non-PR event: run every stage"; exit 0
-          fi
-          gh api --paginate "repos/${{ github.repository }}/pulls/${PR_NUMBER}/files" --jq '.[].filename' > changed.txt
+          everything() { echo "app=true" >> "$GITHUB_OUTPUT"; echo "e2e=true" >> "$GITHUB_OUTPUT"; echo "terraform=true" >> "$GITHUB_OUTPUT"; echo "$1: run every stage"; exit 0; }
+          case "${{ github.event_name }}" in
+            pull_request)
+              gh api --paginate "repos/${{ github.repository }}/pulls/${PR_NUMBER}/files" --jq '.[].filename' > changed.txt ;;
+            push)
+              # A zero "before" is a branch creation; a compare that fails is a
+              # force update or an unreadable range. Both run every stage.
+              case "$PUSH_BEFORE" in ''|0000000000000000000000000000000000000000) everything "First push";; esac
+              if ! gh api --paginate "repos/${{ github.repository }}/compare/${PUSH_BEFORE}...${PUSH_AFTER}?per_page=100" --jq '.files[].filename' > changed.txt; then everything "Unreadable push range"; fi ;;
+            *) everything "${{ github.event_name }}" ;;
+          esac
           # Documentation, project records and the integration agent have their own checks.
           grep -Ev '^(project/|integration-agent/|Change Logs/)|\.md$' changed.txt > app.txt || true
           app=false; e2e=false; terraform=false
@@ -58,7 +67,7 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with: { persist-credentials: false }
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version-file: .nvmrc
           cache: npm
@@ -66,6 +75,26 @@ jobs:
       - run: npm run check
       - run: npm run build:live-dev
       - run: npm audit --omit=dev --audit-level=moderate
+      - name: Checks leave tracked files unchanged
+        run: git diff --exit-code --stat && test -z "$(git status --porcelain)"
+
+  lint:
+    # ALL-CI-04: Biome lint (rules in biome.json). Non-blocking until the
+    # remaining diagnostics are cleared; the result job ignores its outcome.
+    needs: changes
+    if: needs.changes.outputs.app == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with: { persist-credentials: false }
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run lint -- --reporter=github
 
   terraform:
     needs: changes
@@ -75,14 +104,43 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with: { persist-credentials: false }
-      - uses: hashicorp/setup-terraform@v3
+      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
         with:
           terraform_version: 1.16.5
+          terraform_wrapper: false
+      - name: Cache Terraform providers
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ${{ runner.temp }}/tf-plugins
+          key: tf-plugins-${{ hashFiles('infrastructure/**/.terraform.lock.hcl') }}
       - run: terraform fmt -check -recursive infrastructure
-      - run: terraform -chdir=infrastructure/dev init -backend=false
-      - run: terraform -chdir=infrastructure/dev validate
-      - run: terraform -chdir=infrastructure/dev-dns init -backend=false
-      - run: terraform -chdir=infrastructure/dev-dns validate
+      # ALL-CI-03: every root and module is initialised without a backend and
+      # validated; directories with tests/*.tftest.hcl (mock providers, plan
+      # only, no credentials) also run `terraform test`.
+      - name: Validate and test every Terraform root
+        env:
+          TF_PLUGIN_CACHE_DIR: ${{ runner.temp }}/tf-plugins
+        run: |
+          set -euo pipefail
+          mkdir -p "$TF_PLUGIN_CACHE_DIR" "$RUNNER_TEMP/tf-data"
+          failed=0; tested=0; roots=0
+          for dir in infrastructure/*/ infrastructure/modules/*/; do
+            dir=${dir%/}
+            ls "$dir"/*.tf >/dev/null 2>&1 || continue
+            roots=$((roots+1))
+            export TF_DATA_DIR="$RUNNER_TEMP/tf-data/${dir//\//_}"
+            lock=(); [ -f "$dir/.terraform.lock.hcl" ] && lock=(-lockfile=readonly)
+            if ! terraform -chdir="$dir" init -backend=false -input=false "${lock[@]}" >"$TF_DATA_DIR.init.log" 2>&1; then
+              echo "::error::terraform init failed: $dir"; tail -20 "$TF_DATA_DIR.init.log"; failed=1; continue
+            fi
+            terraform -chdir="$dir" validate -no-color || { echo "::error::terraform validate failed: $dir"; failed=1; }
+            if ls "$dir"/tests/*.tftest.hcl >/dev/null 2>&1; then
+              tested=$((tested+1))
+              terraform -chdir="$dir" test -no-color || { echo "::error::terraform test failed: $dir"; failed=1; }
+            fi
+          done
+          echo "validated=$roots tested_directories=$tested"
+          exit $failed
 
   e2e:
     needs: changes
@@ -97,7 +155,7 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with: { persist-credentials: false }
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version-file: .nvmrc
           cache: npm
@@ -106,9 +164,13 @@ jobs:
       - run: npx vite build --mode live-dev
       - run: npx playwright install --with-deps chromium
       - run: npx playwright test --shard=${{ matrix.shard }}/3
+      # ALL-CI-08: specs write captures only to ignored test-results/; a spec
+      # that modifies or adds a tracked path fails the shard.
+      - name: Specs leave the checkout clean
+        run: git diff --exit-code --stat && test -z "$(git status --porcelain)"
       - name: Keep traces and report for failed or flaky tests
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: e2e-shard-${{ matrix.shard }}
           path: |
@@ -120,14 +182,15 @@ jobs:
   result:
     # Single status for branch protection: fails when any selected stage failed
     # or was cancelled, passes when stages were skipped as not applicable.
+    # The lint stage is listed but not gated while it is non-blocking.
     name: Development checks result
-    needs: [changes, check, terraform, e2e]
+    needs: [changes, check, lint, terraform, e2e]
     if: ${{ always() }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - run: |
-          echo "changes=${{ needs.changes.result }} check=${{ needs.check.result }} terraform=${{ needs.terraform.result }} e2e=${{ needs.e2e.result }}"
+          echo "changes=${{ needs.changes.result }} check=${{ needs.check.result }} lint=${{ needs.lint.result }} terraform=${{ needs.terraform.result }} e2e=${{ needs.e2e.result }}"
           case "${{ needs.changes.result }} ${{ needs.check.result }} ${{ needs.terraform.result }} ${{ needs.e2e.result }}" in
             *failure*|*cancelled*) echo 'A selected stage failed'; exit 1 ;;
           esac

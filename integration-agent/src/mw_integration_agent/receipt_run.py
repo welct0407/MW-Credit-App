@@ -1,12 +1,10 @@
 """Receipt-only orchestration. No AppSheet or PostgreSQL mutation clients."""
 import json
-import sqlite3
-from .state import connect as state_connect, enabled as state_enabled
-from datetime import datetime
+from .state import connect as state_connect
 from pathlib import Path
 
-from .config import ConfigurationError,load_json,validate_catalogue,validate_config
-from .graph_email import GraphEmail,EmailRejected,EmailUnknown
+from .config import ConfigurationError,cutoff_ts,load_controls
+from .graph_email import GraphEmail,EmailRejected
 from .instagram import Instagram
 from .receipt_image import download,extract
 from .receipt_journal import ReceiptJournal
@@ -17,8 +15,7 @@ from .receipt_rules import ReceiptInvalid,borrower_for,recipients,summary,valida
 
 
 def controls(config_path,catalogue_path):
-    config=load_json(config_path); validate_config(config)
-    catalogue=load_json(catalogue_path); validate_catalogue(catalogue)
+    config,catalogue=load_controls(config_path,catalogue_path)
     if config.get('receipt_payment_api_enabled') and not catalogue['services'].get('shared_receipt_payment_api',{}).get('enabled'):
         raise ConfigurationError('SHARED_RECEIPT_PAYMENT_API_DISABLED')
     if config.get('receipt_archive_enabled') and not catalogue['services'].get('receipt_evidence',{}).get('enabled'):
@@ -164,7 +161,7 @@ def run(config_path,catalogue_path):
             ingress=state_connect(root/'instagram-ingress.db',config,readonly=True)
             pass  # row format supplied by state adapter
             try:
-                journal.ingest(ingress,datetime.fromisoformat(config['receipt_activation_cutoff']).timestamp())
+                journal.ingest(ingress,cutoff_ts(config,'receipt_activation_cutoff'))
             finally:
                 ingress.close()
             # A slow image must not delay approvals/notices behind ten model calls.
@@ -195,10 +192,9 @@ def run(config_path,catalogue_path):
             notices=NoticeJournal(root/'partner-notices.db', config=config)
             try:
                 config=controls(config_path,catalogue_path)
-                cutoff=config.get('partner_notice_cutoff')
-                if not cutoff:raise ConfigurationError('PARTNER_NOTICE_CUTOFF_REQUIRED')
+                if not config.get('partner_notice_cutoff'):raise ConfigurationError('PARTNER_NOTICE_CUTOFF_REQUIRED')
                 jobs=journal.db.execute("SELECT * FROM receipt_jobs WHERE status='VALIDATED' AND created_at>=?",
-                    (datetime.fromisoformat(cutoff).timestamp(),)).fetchall()
+                    (cutoff_ts(config,'partner_notice_cutoff'),)).fetchall()
                 for job in jobs:
                     result=json.loads(job['result']);live=masters(config)
                     borrower=borrower_for(conversation_identity(config,job['sender_id']),live['borrowers'])

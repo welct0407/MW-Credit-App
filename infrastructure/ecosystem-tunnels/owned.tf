@@ -19,7 +19,7 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_config" "bridge" {
       {
         hostname       = "hooks.mw-credit.com"
         origin_request = null
-        path           = null
+        path           = "^/instagram$" # R063 W3 AGT-WEBHOOK-03: only the signed webhook route is public
         service        = "http://127.0.0.1:8000"
       },
       {

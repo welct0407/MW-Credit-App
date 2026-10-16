@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param([ValidateSet('seed','verify')][string]$Mode='verify')
 . "$PSScriptRoot/Common.ps1"
-$target=Get-DbEnvironment development
+$target=Get-DbEnvironment development -Admin
 if($target.host -ne '34.158.38.171'){throw 'DEV-only fixture'}
 $saved=@{};foreach($name in @('PGPASSWORD','PGSSLMODE','PGCONNECT_TIMEOUT')){$saved[$name]=[Environment]::GetEnvironmentVariable($name,'Process')}
 try {

@@ -3,18 +3,24 @@ from contextlib import contextmanager
 import json
 from decimal import Decimal
 from . import audit
-from .config import ConfigurationError, load_secret
+from .config import DATABASES, PASSWORD_PORT, ConfigurationError, auth_mode, iam_port, load_secret
 from .state import transaction
 
 
 @contextmanager
 def business(config):
     import psycopg
-    if config.get('database_host') not in ('127.0.0.1','::1') or config.get('database_name')!='loan_manager_prod':
+    if config.get('database_host') not in ('127.0.0.1','::1') or config.get('database_name') not in DATABASES.values():
         raise ConfigurationError('OUTBOX_TARGET_DENIED')
-    with psycopg.connect(host=config['database_host'],port=5432,dbname='loan_manager_prod',user='mw_agent_relay',
-        password=load_secret(config,'agent_database_relay_password_file'),autocommit=True,connect_timeout=10,
-        application_name='mw-agent-outbox') as conn:
+    # The relay is an agent role: its credential family (password file or the IAM listener
+    # plus SET ROLE) follows agent_database_auth, while the database is the business one.
+    mode=auth_mode(config,'agent_database_')
+    credential=({'user':config['database_iam_user']} if mode=='iam' else
+                {'user':'mw_agent_relay','password':load_secret(config,'agent_database_relay_password_file')})
+    with psycopg.connect(host=config['database_host'],port=iam_port(config) if mode=='iam' else PASSWORD_PORT,dbname=config['database_name'],
+        autocommit=True,connect_timeout=10,application_name='mw-agent-outbox',**credential) as conn:
+        if mode=='iam':
+            conn.execute('SET ROLE mw_agent_relay')
         yield conn
 
 

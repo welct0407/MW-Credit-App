@@ -33,3 +33,13 @@ DO $$ BEGIN
  END IF;
 END $$;
 \ir Test-ApplePushEndpoints.sql
+-- R063 W3 (DB-CI-02): previously unreachable regressions, fixtures updated to the
+-- current cash-account and capital rules. Test-PaymentRollups chains
+-- Test-BorrowerRollups -> Test-MaterializedBalances -> Test-AnalyticsRefresh.
+\ir Test-LumpSum.sql
+\ir Test-InterestScheduleAnchor.sql
+\ir Test-PaymentRollups.sql
+\ir Test-Partners.sql
+\ir Test-BusinessExpenses.sql
+-- Last: the migration-owned grant matrix (DB-CI-05 / DB-ACCESS-02).
+\ir Test-AccessMatrix.sql

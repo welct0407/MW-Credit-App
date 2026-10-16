@@ -3,12 +3,18 @@ param(
     # One entry point for local pre-push verification and GitHub Actions.
     # Without -Group every stage runs in sequence, as before. GitHub Actions
     # runs the four groups as parallel jobs; each group owns its own disposable
-    # clusters, so the groups share no state.
+    # clusters, so the groups share no state. Every group runs on Windows and
+    # Linux; only the migrations group uses a different (Python) driver on Linux.
+    # PostgreSQL refuses to run as root: on Linux run as an unprivileged user.
     [ValidateSet('all','migrations','receiving','phase5','phase8')]
     [string]$Group = 'all'
 )
 $ErrorActionPreference = 'Stop'
-if (-not $IsWindows) {
+function Test-Selected([string]$Name) { $Group -eq 'all' -or $Group -eq $Name }
+
+if (-not $IsWindows -and (Test-Selected 'migrations')) {
+    # Linux migration route: Test-MigrationsCloud.py adapts the same concurrency
+    # suites and also owns the schema-rebuild and checksum-tamper proofs.
     & python3 "$PSScriptRoot/Test-MigrationsCloud.py"
     if ($LASTEXITCODE) { throw 'Cloud disposable migration checks failed' }
     & python3 "$PSScriptRoot/Test-MigrationsCloud.py" --pre-target 19 --pre-sql scripts/database/Test-R005-Before.sql --sql scripts/database/Test-OpeningIncludedCrud.sql --sql-only
@@ -19,11 +25,9 @@ if (-not $IsWindows) {
     if ($LASTEXITCODE) { throw 'Legacy default charge upgrade checks failed' }
     & python3 "$PSScriptRoot/Test-MigrationsCloud.py" --pre-target 69 --pre-sql scripts/database/Test-DefaultRepaymentBeforeV70.sql --sql scripts/database/Test-DefaultRepaymentUpgrade.sql --sql-only
     if ($LASTEXITCODE) { throw 'Legacy default repayment upgrade checks failed' }
-    return
 }
-function Test-Selected([string]$Name) { $Group -eq 'all' -or $Group -eq $Name }
 
-if (Test-Selected 'migrations') {
+if ($IsWindows -and (Test-Selected 'migrations')) {
 # Test-Migrations creates and stops its own loopback-only disposable PostgreSQL.
 & "$PSScriptRoot/Test-Migrations.ps1" -TestSqlFile scripts/database/Test-StatementBatch.sql -BusinessExpensesConcurrency -ExpenseReimbursementConcurrency -PaymentCrudConcurrency -ReceiptDeleteConcurrency -InterestReallocationConcurrency -CorePaymentConcurrency -AtomicLoanCloseConcurrency -ChargeGenerationConcurrency -DefaultLoanConcurrency
 

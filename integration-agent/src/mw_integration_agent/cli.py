@@ -142,7 +142,7 @@ def execute(args) -> int:
             validate_catalogue(load_json(args.catalogue))
             print(json.dumps({"status": "ok", "activation": {
                 "state_backend": config.get('state_backend','sqlite'),
-                "reviewer_delete": config.get('reviewer_delete_enabled',False),
+                "native_delete": config.get('native_delete_enabled',False),
                 "cash_statement_schedule": config["cash_statement_schedule_enabled"],
                 "email_fallback": config["email_fallback_enabled"],
                 "receipt_summary": config.get('receipt_summary_enabled',False),

@@ -72,6 +72,24 @@ class UnitFileTests(unittest.TestCase):
         self.assertEqual(service.get('Restart'), ['on-failure'])
         self.assertEqual(service.get('RestartSec'), ['5s'])
 
+    def test_no_duplicate_keys_and_cloudflared_restricts_address_families(self):
+        # AGT-HOST-03: the parser keeps lists, so a repeated single-valued key shows as len > 1.
+        for name, unit in self.units.items():
+            for keys in unit.values():
+                for key, values in keys.items():
+                    if key not in ('ExecStart', 'Environment', 'ReadWritePaths', 'After', 'Wants', 'ExecStartPost'):
+                        with self.subTest(unit=name, key=key):
+                            self.assertEqual(len(values), 1)
+        self.assertEqual(words(self.units['mw-cloudflared-instagram']['Service'], 'RestrictAddressFamilies'),
+                         ['AF_UNIX', 'AF_INET', 'AF_INET6', 'AF_NETLINK'])
+
+    def test_proxy_dropin_adds_iam_listener(self):
+        # ALL-ARCH-03: the drop-in clears ExecStart and relists both listeners (password 5432, auto-iam-authn 5433).
+        dropin = parse(UNITS / 'cloud-sql-auth-proxy.service.d' / 'iam-listener.conf')['Service']['ExecStart']
+        self.assertEqual(dropin[0], '')
+        self.assertIn('?port=5432"', dropin[1])
+        self.assertIn('?port=5433&auto-iam-authn=true"', dropin[1])
+
 
 if __name__ == '__main__':
     unittest.main()

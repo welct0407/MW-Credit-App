@@ -15,6 +15,8 @@ Current native ownership, 14 October 2026. Exact definitions belong in the [dict
 
 Authorized source CRUD is supported where SQL reconciles allocations, repayments, cash and ownership. Preserve later unrelated transactions/journals. Do not impose a new reversal framework or regenerate separately recorded historical charges.
 
+Ordinary CRUD remains the accepted correction path (V59/V60 removed the older posted-amount guard). The command request-id journal and payload hash are enforced only on the Node command path, not on direct SQL writes. `Test-AccessMatrix.sql` asserts the migration-owned grants, so grant drift fails database CI.
+
 Original daily interest uses frozen integer percentage points. Daily-interest principal changes use the governed original rate; fixed/installment schedules retain their rules. Unknown original terms/opening balances remain unknown.
 
 ## Native service records

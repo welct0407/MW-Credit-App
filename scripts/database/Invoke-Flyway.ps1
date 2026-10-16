@@ -10,7 +10,8 @@ param(
 )
 . "$PSScriptRoot/Common.ps1"
 . "$PSScriptRoot/Production-Transaction.ps1"
-$target = Get-DbEnvironment $Environment
+# The guarded runner is the one routine caller of the admin identity.
+$target = Get-DbEnvironment $Environment -Admin
 $manifest = @(Get-MigrationManifest)
 if(($GroupedProduction -or $ConnectPreflightFile) -and ($Environment -ne 'production' -or $Command -ne 'migrate')) {throw 'Grouped production controls apply only to an authorized production migrate'}
 $transactionArguments=@()
@@ -50,7 +51,7 @@ $unexpected = @(Get-ChildItem Env:FLYWAY_* -ErrorAction SilentlyContinue | Where
 if ($unexpected.Count) { throw 'Remove ambient FLYWAY_* overrides before using the repository runner' }
 foreach ($name in $names) { $saved[$name] = [Environment]::GetEnvironmentVariable($name,'Process') }
 try {
-    $env:FLYWAY_URL = "jdbc:postgresql://$($target.host):$($target.port)/$($target.database)?sslmode=$(if ($target.PSObject.Properties.Name -contains 'sslmode') { $target.sslmode } else { 'require' })&connectTimeout=10&ApplicationName=loan-project-flyway"
+    $env:FLYWAY_URL = "jdbc:postgresql://$($target.host):$($target.port)/$($target.database)?sslmode=$(if ($target.PSObject.Properties.Name -contains 'sslmode') { $target.sslmode } else { 'require' })$(if ($target.PSObject.Properties.Name -contains 'sslrootcert') { '&sslrootcert=' + [Uri]::EscapeDataString($target.sslrootcert) } else { '' })&connectTimeout=10&ApplicationName=loan-project-flyway"
     $env:FLYWAY_USER = $target.user
     $env:FLYWAY_PASSWORD = (Get-Content -LiteralPath $target.passwordFile -Raw).Trim()
     $env:FLYWAY_CONFIG_FILES = Join-Path $DbRepoRoot 'database/flyway.conf'

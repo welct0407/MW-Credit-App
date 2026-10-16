@@ -82,7 +82,7 @@ def run(mode):
                         job['source'] = entry['source']
                     assert job['source'] == entry['source']
                     try:
-                        archive.capture(job, fetch=lambda _url: raw)
+                        archive.capture(job, fetch=lambda _url, raw=raw: raw)
                         counts['archived'] += 1
                     except Exception as exc:
                         counts['archive_failed'] += 1

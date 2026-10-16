@@ -1,6 +1,5 @@
 """Independent route/recovery guards using owned SQLite, never live HTTP/SQL."""
 import copy
-import json
 import unittest
 from contextlib import ExitStack
 from unittest.mock import patch

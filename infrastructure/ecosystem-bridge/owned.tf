@@ -281,16 +281,41 @@ resource "google_secret_manager_secret" "mw_grafana_hmac" {
 # __generated__ by Terraform from "projects/clever-oasis-508610-n7/locations/asia-southeast1/repositories/mw-monitoring"
 resource "google_artifact_registry_repository" "monitoring" {
   lifecycle { prevent_destroy = true }
+  deletion_policy = "DELETE"
+  description     = "grafana-mcp-bootstrap-v1"
+  # R063 W3 ALL-INFRA-06: keep the 20 newest versions and any `keep*` tag
+  # (deployed/pinned digests carry keep-<release>); delete the rest after 30 days.
   cleanup_policy_dry_run = false
-  deletion_policy        = "DELETE"
-  description            = "grafana-mcp-bootstrap-v1"
-  format                 = "DOCKER"
-  kms_key_name           = null
-  labels                 = {}
-  location               = "asia-southeast1"
-  mode                   = "STANDARD_REPOSITORY"
-  project                = "clever-oasis-508610-n7"
-  repository_id          = "mw-monitoring"
+  cleanup_policies {
+    id     = "keep-recent"
+    action = "KEEP"
+    most_recent_versions {
+      keep_count = 20
+    }
+  }
+  cleanup_policies {
+    id     = "keep-tagged"
+    action = "KEEP"
+    condition {
+      tag_state    = "TAGGED"
+      tag_prefixes = ["keep"]
+    }
+  }
+  cleanup_policies {
+    id     = "delete-old"
+    action = "DELETE"
+    condition {
+      tag_state  = "ANY"
+      older_than = "2592000s"
+    }
+  }
+  format        = "DOCKER"
+  kms_key_name  = null
+  labels        = {}
+  location      = "asia-southeast1"
+  mode          = "STANDARD_REPOSITORY"
+  project       = "clever-oasis-508610-n7"
+  repository_id = "mw-monitoring"
   vulnerability_scanning_config {
     enablement_config = null
   }

@@ -1,5 +1,6 @@
 """Real resumed Codex thread, synthetic API Delete transport only; no messaging."""
-import json,secrets
+import json
+import secrets
 from pathlib import Path
 from mw_integration_agent.config import load_json
 from mw_integration_agent.codex_conversation import CodexConversation
@@ -8,7 +9,7 @@ from mw_integration_agent.conversation_tools import TOOLS
 from mw_integration_agent.partner_conversation import INSTRUCTIONS
 
 config=load_json('/etc/mw-integration-agent/config.json')
-config.update(state_backend='sqlite',reviewer_delete_enabled=False)
+config.update(state_backend='sqlite',native_delete_enabled=False)
 root=Path(config['state_directory'])/'delete-conversation-verification'
 root.mkdir(mode=0o700,exist_ok=True);config['state_directory']=str(root)
 store=ConversationStore(root/'synthetic.db')

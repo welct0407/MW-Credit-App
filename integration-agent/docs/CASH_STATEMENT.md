@@ -16,7 +16,7 @@ Statements use the local M&W Credit logo without repeated brand text, #D81B60 st
 
 The owner-supplied logo is bundled at `mw_integration_agent/assets/mw-credit-logo.png`. Debian keeps it under `/opt/mw-integration-agent/.venv/lib/python3.13/site-packages/`; every page uses this local file. It is included in package installation and source recovery, so no Drive access or download is required during a run. Source provenance and SHA-256 are recorded beside the asset.
 
-Install the accepted schedule from a clean published checkout with `sudo sh scripts/install-cash-statement-schedule.sh`. It backs up affected code/config/unit files, installs the package and systemd units, enables the daily and email-retry timers, and leaves the general `sending_enabled` control off. The dedicated `cash_statement_schedule_enabled` flag authorizes only this job.
+Install the accepted schedule through the single deploy helper (`scripts/deploy-runtime.py`, see [Operations](OPERATIONS.md#deploying-a-reviewed-commit)). It backs up the package, config and units, installs the package and systemd units and starts the daily and email-retry timers only after activation verifies; it leaves the general `sending_enabled` control off. The one-off install script is retired. The dedicated `cash_statement_schedule_enabled` flag authorizes only this job.
 
 ```sh
 sudo -u mwagent /opt/mw-integration-agent/.venv/bin/mw-integration-agent cash-statement \

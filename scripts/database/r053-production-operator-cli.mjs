@@ -19,7 +19,7 @@ const cleanup=JSON.parse(fs.readFileSync(external(path.join(backupRoot,'cleanup.
 if(backup.database!=='loan_manager_prod'||backup.baselineVersion!==baselineVersion||backup.host!=='34.21.174.215'||backup.instance!=='appsheet-pg-prod-20260914'||backup.restore!=='passed'||backup.archiveListing!=='passed'||backup.restoredFingerprintsMatch!==true||cleanup.stopped!==true||cleanup.ownedRestoreRemoved!==true||! /^[a-f0-9]{64}$/.test(backup.dumpSha256??''))throw Error('Verified exact requested PROD baseline backup and isolated restore required');
 const dump=external(path.join(backupRoot,'loan_manager_prod.dump'));
 // Stream the retained dump; never export its contents or hold it in memory.
-let dumpHash=createHash('sha256');for await(const chunk of fs.createReadStream(dump))dumpHash.update(chunk);
+const dumpHash=createHash('sha256');for await(const chunk of fs.createReadStream(dump))dumpHash.update(chunk);
 if(dumpHash.digest('hex')!==backup.dumpSha256)throw Error('Recovery dump changed');
 const t=JSON.parse(fs.readFileSync(path.join(repo,'database/environments.json'),'utf8')).production;
 if(t.instance!=='appsheet-pg-prod-20260914'||t.host!=='34.21.174.215'||t.port!==5432||t.database!=='loan_manager_prod'||t.user!=='postgres')throw Error('PROD configuration mismatch');

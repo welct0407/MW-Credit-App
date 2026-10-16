@@ -111,12 +111,22 @@ PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers npx -y "playwright@$PLAYWRIGHT_VERSION
 chmod -R a+rX "$SETUP"
 cat > /usr/local/bin/mw-db-ci <<EOF
 #!/usr/bin/env bash
-# Run the repository's database CI (scripts/database/Test-CI.ps1) as postgres.
+# Run the repository's database CI (scripts/database/Test-CI.ps1) as postgres:
+# all four groups (migrations, receiving, phase5, phase8).
+#   mw-db-ci [checkout] [-Group <name>]
+# Without a checkout path it uses the Git checkout containing the current
+# directory, else \$MW_CREDIT_APP_ROOT. The checkout must be readable by postgres;
+# the ignored test-results/ directory is made writable for suites that save captures.
 set -euo pipefail
-cd "\${1:-\${MW_CREDIT_APP_ROOT:-$WORK/MW-Credit-App}}"
+if [ \$# -gt 0 ] && [ "\${1#-}" = "\$1" ]; then root="\$1"; shift
+else root="\$(git rev-parse --show-toplevel 2>/dev/null || true)"
+  [ -f "\$root/scripts/database/Test-CI.ps1" ] || root="\${MW_CREDIT_APP_ROOT:-$WORK/MW-Credit-App}"
+fi
+cd "\$root"
+install -d -o postgres test-results
 exec runuser -u postgres -- env HOME=/tmp \\
-  PATH="$SETUP/node-v$NODE_VERSION-linux-x64/bin:\$PATH" \\
-  "$SETUP/powershell-$PWSH_VERSION/pwsh" -NoProfile -File scripts/database/Test-CI.ps1
+  PATH="$SETUP/node-v$NODE_VERSION-linux-x64/bin:$SETUP/powershell-$PWSH_VERSION:\$PATH" \\
+  "$SETUP/powershell-$PWSH_VERSION/pwsh" -NoProfile -File scripts/database/Test-CI.ps1 "\$@"
 EOF
 chmod 755 /usr/local/bin/mw-db-ci
 
