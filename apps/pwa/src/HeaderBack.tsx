@@ -1,4 +1,5 @@
-import React,{createContext,useContext,useEffect,useLayoutEffect,useRef,useSyncExternalStore} from 'react';
+import type React from 'react';
+import {createContext,useContext,useEffect,useLayoutEffect,useRef,useSyncExternalStore} from 'react';
 const NavigationScope=createContext('');
 export function BackNavigationScope({name,children}:{name:string;children:React.ReactNode}){const parent=useContext(NavigationScope);return <NavigationScope.Provider value={parent+'/'+name}>{children}</NavigationScope.Provider>}
 type Entry={token:symbol;navigationKey:string;node:HTMLSpanElement;priority:number;props:React.ButtonHTMLAttributes<HTMLButtonElement>};
@@ -8,7 +9,7 @@ function publish(){
  const visible=[...entries.values()].filter(entry=>{for(let node:HTMLElement|null=entry.node.parentElement;node;node=node.parentElement){if(node.hidden||getComputedStyle(node).display==='none')return false}return entry.node.isConnected});
  visible.sort((a,b)=>b.priority-a.priority);const chosen=visible[0],label=chosen?.props['aria-label'],disabled=Boolean(chosen?.props.disabled);
  if(snapshot?.token===chosen?.token&&snapshot?.navigationKey===chosen?.navigationKey&&snapshot?.label===label&&snapshot?.disabled===disabled||!snapshot&&!chosen)return;
- snapshot=chosen?{token:chosen.token,navigationKey:chosen.navigationKey,label,disabled,run:event=>{const current=entries.get(chosen.token);if(current&&!current.props.disabled)current.props.onClick?.(event)}}:null;listeners.forEach(fn=>fn());
+ snapshot=chosen?{token:chosen.token,navigationKey:chosen.navigationKey,label,disabled,run:event=>{const current=entries.get(chosen.token);if(current&&!current.props.disabled)current.props.onClick?.(event)}}:null;listeners.forEach(fn=>{fn()});
 }
 export function useHeaderBack(){useEffect(()=>{window.addEventListener('resize',publish);return()=>window.removeEventListener('resize',publish)},[]);return useSyncExternalStore(fn=>{listeners.add(fn);return()=>{listeners.delete(fn)}},()=>snapshot,()=>null)}
 /** Keep existing page-specific leave/disabled guards; only relocate their control. */

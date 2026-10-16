@@ -22,7 +22,7 @@ test('Borrower upcoming allows a visible future-only borrower and preserves Coll
  assert.equal((await readUpcoming(client(),{...options,businessDate:'2026-10-06',scope:'borrower'})).collectionStatus,409);
 });
 test('Borrower upcoming HTTP uses borrower store only and keeps authentication/query rules',async()=>{
- let calls=[];const config={origins:[]},store={getBorrowerUpcoming:async(...args)=>{calls.push(args);return{ok:true}},getCollectionUpcoming:async()=>{throw Error('Wrong scope')}};
+ const calls=[];const config={origins:[]},store={getBorrowerUpcoming:async(...args)=>{calls.push(args);return{ok:true}},getCollectionUpcoming:async()=>{throw Error('Wrong scope')}};
  const handler=createReadHandler({config,store,verifyPrincipal:async()=>({ok:true,email:'owner@example.test'})});
  assert.equal((await request(handler,'/api/borrowers/parent/upcoming?businessDate=2026-10-07')).status,200);
  assert.equal((await request(handler,'/api/borrowers/parent/upcoming/2026-10-12?businessDate=2026-10-07&limit=1')).status,200);

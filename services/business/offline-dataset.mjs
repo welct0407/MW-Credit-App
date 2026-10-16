@@ -18,7 +18,7 @@ export function bulkReadClient(client){
     const replaced=sql.replace(/\$(\d+)\b/g,(_,number)=>{const index=Number(number)-1;if(index>=params.length)throw Error('Invalid internal bulk parameter');const type=typeof params[index];return `(batch.args->>${index})${type==='number'?'::integer':type==='boolean'?'::boolean':''}`});
     const result=await client.query(`SELECT batch.ordinality AS "batchIndex",(SELECT coalesce(jsonb_agg(to_jsonb(source)),'[]'::jsonb) FROM (${replaced}) source) AS values FROM jsonb_array_elements($1::jsonb) WITH ORDINALITY AS batch(args,ordinality)`,[JSON.stringify(group.map(item=>item.params))]);
     const rows=group.map(()=>[]);for(const row of result.rows)rows[Number(row.batchIndex)-1]=row.values;
-    group.forEach((item,index)=>item.resolve({rows:rows[index],rowCount:rows[index].length}));
+    group.forEach((item,index)=>{item.resolve({rows:rows[index],rowCount:rows[index].length})});
    }catch(error){for(const item of group)item.reject(error)}
   }
  }

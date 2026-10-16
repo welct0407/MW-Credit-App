@@ -151,5 +151,5 @@ export function usePwa() {
   }
   useEffect(()=>{if(retryPending&&safe&&document.visibilityState==='visible'){setRetryPending(false);setAttempt(value=>value+1)}},[retryPending,safe,resumeTick]);
   useEffect(()=>{if(startup!=='ready'||!safe||activating||document.visibilityState!=='visible')return;if(reloadAvailable||(waiting&&!attemptedUpdates.current.has(waiting)))update()},[startup,safe,activating,waiting,reloadAvailable,resumeTick]);
-  return { safe,checkUpdate:()=>checkUpdateRef.current(true),startup,retryStartup:()=>{if(canReload())setAttempt(value=>value+1);else setRetryPending(true)},useSavedOffline:()=>setStartup('offline'),canonical, standalone, canInstall: Boolean(installPrompt), install, waiting: Boolean(waiting), reloadAvailable, unavailable, activating, update };
+  return { safe,checkUpdate:()=>checkUpdateRef.current(true),startup,retryStartup:()=>{if(canReload())setAttempt(value=>value+1);else setRetryPending(true)},continueSavedOffline:()=>setStartup('offline'),canonical, standalone, canInstall: Boolean(installPrompt), install, waiting: Boolean(waiting), reloadAvailable, unavailable, activating, update };
 }

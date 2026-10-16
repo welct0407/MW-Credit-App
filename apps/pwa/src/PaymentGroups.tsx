@@ -1,6 +1,7 @@
 import {Icon} from './Icon';
 import {subscribeOfflineDataset,readCachedJson} from './read-cache';
-import React,{useEffect,useRef} from 'react';import type {CommandAccess} from './SelectedCharges';import {beginRequest} from './request-activity';import {CompactPager} from './CompactPager';import {displayDate} from './display-date';
+import type React from 'react';
+import {useEffect,useRef} from 'react';import type {CommandAccess} from './SelectedCharges';import {beginRequest} from './request-activity';import {CompactPager} from './CompactPager';import {displayDate} from './display-date';
 export type PaymentTree=Record<string,{open:boolean;items:any[];next:string|null;page:number;cursors:(string|undefined)[];busy:boolean;error:boolean}>;
 function Group({access,query,borrower,month,epoch,tree,setTree,onOpen,thai,hideBorrowerHeading=false}:{access:CommandAccess;query:string;borrower:any;month?:any;epoch:number;tree:PaymentTree;setTree:React.Dispatch<React.SetStateAction<PaymentTree>>;onOpen:(id:string)=>void;thai:boolean;hideBorrowerHeading?:boolean}){
  const t=(en:string,th:string)=>thai?th:en,key=JSON.stringify([borrower.borrowerId,month===undefined?'months':['payments',month.month]]),state=tree[key]??{open:false,items:[],next:null,page:0,cursors:[undefined],busy:false,error:false},generation=useRef(0);

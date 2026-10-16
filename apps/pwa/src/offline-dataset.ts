@@ -8,7 +8,7 @@ const idle:OfflinePreparation={state:'idle',completed:0,total:domains.length,pro
 const states=new Map<string,OfflinePreparation>(),listeners=new Set<()=>void>();
 export const getOfflinePreparation=(scopeName?:string)=>scopeName?states.get(scopeName)??idle:idle;
 export const subscribeOfflinePreparation=(listener:()=>void)=>{listeners.add(listener);return()=>{listeners.delete(listener)}};
-function publish(scope:string,value:OfflinePreparation){states.set(scope,value);listeners.forEach(listener=>listener())}
+function publish(scope:string,value:OfflinePreparation){states.set(scope,value);listeners.forEach(listener=>{listener()})}
 
 // Stable content references let a later check reuse committed display data.
 const canonicalValue=(value:any):any=>Array.isArray(value)?value.map(canonicalValue):value&&typeof value==='object'?Object.fromEntries(Object.keys(value).sort().map(key=>[key,key==='asOf'&&typeof value[key]==='string'?null:canonicalValue(value[key])])):value;
@@ -157,7 +157,7 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
  const unsubscribe=subscribeActivity(()=>{status();if(activitySnapshot()===0)schedule()});
  window.addEventListener('mw-offline-queued',resume);window.addEventListener('online',check);window.addEventListener('offline',offline);window.addEventListener('focus',check);document.addEventListener('visibilitychange',visible);window.addEventListener('mw-read-invalidated',request);window.addEventListener('mw-offline-prepare',request);
  void initialize();
- return()=>{stopped=true;if(timer)clearTimeout(timer);if(retryTimer)clearTimeout(retryTimer);controller?.abort();unsubscribe();window.removeEventListener('mw-offline-queued',resume);window.removeEventListener('online',check);window.removeEventListener('offline',offline);window.removeEventListener('focus',check);document.removeEventListener('visibilitychange',visible);clearInterval(poll);window.removeEventListener('mw-read-invalidated',request);window.removeEventListener('mw-offline-prepare',request);states.delete(repo.scopeName);listeners.forEach(listener=>listener())};
+ return()=>{stopped=true;if(timer)clearTimeout(timer);if(retryTimer)clearTimeout(retryTimer);controller?.abort();unsubscribe();window.removeEventListener('mw-offline-queued',resume);window.removeEventListener('online',check);window.removeEventListener('offline',offline);window.removeEventListener('focus',check);document.removeEventListener('visibilitychange',visible);clearInterval(poll);window.removeEventListener('mw-read-invalidated',request);window.removeEventListener('mw-offline-prepare',request);states.delete(repo.scopeName);listeners.forEach(listener=>{listener()})};
 }
 
 export const routeDomain=(route:string)=>route.startsWith('/api/management')?'management':route.startsWith('/api/cash-')||route==='/api/preferences'?'cash':route.startsWith('/api/notifications')?'notifications':route.startsWith('/api/collection')||route.includes('/upcoming')||route.includes('/collection-receipts')?'collection':'records';
