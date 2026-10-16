@@ -30,7 +30,7 @@
     "persistence": "p"
     "is_partition": false
     "options": null
-    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,mw_app_prod=r/postgres,mw_ledger_owner_prod=arwd/postgres,mw_app_prod_journal_owner=awd/postgres}"
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,mw_reviewer_dml=r/postgres,mw_app_prod=r/postgres,mw_ledger_owner_prod=arwd/postgres,mw_app_prod_journal_owner=awd/postgres}"
     "comment": null
     "view_definition": null
     "partition_key": null
@@ -1269,20 +1269,17 @@
 "evidence":
   "/content/definition/acl":
     "reference": "Change Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md"
-    "reason": "DB-ACCESS-08: table ACL expected after V93 (source-derived for PROD; the DEV readback of 16 October 2026 matches\
-      \ the shape (owner mw_ledger_owner_dev, SECURITY DEFINER, mw_app_dev SELECT only, journal and ledger owners write)):\
-      \ app and reviewer lose INSERT/UPDATE/DELETE, ledger owner and journal owner hold the writes; reviewer keeps a lock-only\
-      \ UPDATE on Created At"
+    "reason": "DB-ACCESS-08: PROD readback after V93 (16 October 2026, 22:18 Bangkok): mw_app_prod, mw_reviewer_dml and mw_integration_agent\
+      \ SELECT only; journal owner INSERT/UPDATE/DELETE; ledger owner all four"
     "state": "value"
   "/content/indexes/cash_ledger_payment":
     "reference": "Change Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md"
-    "reason": "DB-SCHEMA-03: foreign-key column index; V93 migration source (R064 Wave 4). Applied in DEV on 16 October 2026\
-      \ and the DEV readback matches; PROD is still V92, so these PROD-scope values are source-derived until the PROD migration"
+    "reason": "DB-SCHEMA-03: foreign-key column index; V93 (R064 Wave 4). Applied in DEV (21:13 Bangkok) and PROD (22:17 Bangkok)\
+      \ on 16 October 2026; the PROD readback confirms this value"
     "state": "value"
   "/content/columns/Created At/acl":
     "reference": "Change Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md"
-    "reason": "DB-ACCESS-08: table ACL expected after V93 (source-derived for PROD; the DEV readback of 16 October 2026 matches\
-      \ the shape (owner mw_ledger_owner_dev, SECURITY DEFINER, mw_app_dev SELECT only, journal and ledger owners write)):\
-      \ app and reviewer lose INSERT/UPDATE/DELETE, ledger owner and journal owner hold the writes; reviewer keeps a lock-only\
-      \ UPDATE on Created At"
+    "reason": "DB-ACCESS-08: table ACL expected after V93 (PROD readback of 16 October 2026 confirms the owner (mw_ledger_owner_prod)\
+      \ and SECURITY DEFINER; the EXECUTE ACL is the migration value (not read back)): app and reviewer lose INSERT/UPDATE/DELETE,\
+      \ ledger owner and journal owner hold the writes; reviewer keeps a lock-only UPDATE on Created At"
     "state": "value"

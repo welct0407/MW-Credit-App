@@ -26,7 +26,7 @@ AGENT = Path(__file__).resolve().parents[1]
 MIGRATIONS = AGENT / 'database/migrations'
 BOOTSTRAP = AGENT / 'database/setup/bootstrap.sql'
 APPROVAL = '-c mw_design.execution_approved=agent-postgresql-20260922-v1'
-ROLES = ('mw_agent_owner', 'mw_agent_worker', 'mw_agent_relay', 'mw_agent_auditor', 'mw_business_audit_owner')
+ROLES = ('mw_agent_owner', 'mw_agent_worker', 'mw_agent_relay', 'mw_agent_auditor', 'mw_business_audit_owner', 'mw_agent_retention')
 
 
 def history(conn):
@@ -122,8 +122,8 @@ class FreshCentralMigrationTests(unittest.TestCase):
 
     def test_first_run_applies_every_version_in_order_with_pinned_hashes(self):
         names = [p.name for p in self.files]
-        self.assertEqual(names[:4], ['V1__audit_and_control.sql', 'V2__runtime_compatibility.sql',
-                                     'V3__job_ownership.sql', 'V4__receipt_evidence.sql'])
+        self.assertEqual(names[:5], ['V1__audit_and_control.sql', 'V2__runtime_compatibility.sql',
+                                     'V3__job_ownership.sql', 'V4__receipt_evidence.sql', 'V5__audit_retention_identity.sql'])
         self.assertEqual(self.first, {'applied': names, 'versions': len(names)})
         expected = [(version(p), p.name, hashlib.sha256(p.read_text(encoding='utf-8').encode()).hexdigest()) for p in self.files]
         self.assertEqual([tuple(row) for row in self.after_first], expected)

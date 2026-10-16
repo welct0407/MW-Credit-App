@@ -768,7 +768,6 @@
     "observedAt": "2026-10-11T14:01:43.131793+00:00"
   "/content/triggers/a000_blank_refs":
     "reference": "Change Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md"
-    "reason": "DB-SCHEMA-02: renamed so the blank-reference normalizer fires first; V93 migration source (R064 Wave 4). Applied\
-      \ in DEV on 16 October 2026 and the DEV readback matches; PROD is still V92, so these PROD-scope values are source-derived\
-      \ until the PROD migration"
+    "reason": "DB-SCHEMA-02: renamed so the blank-reference normalizer fires first; V93 (R064 Wave 4). Applied in DEV (21:13\
+      \ Bangkok) and PROD (22:17 Bangkok) on 16 October 2026; the PROD readback confirms this value"
     "state": "value"

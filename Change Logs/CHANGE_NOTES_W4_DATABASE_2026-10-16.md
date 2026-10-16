@@ -4,9 +4,9 @@
 
 Wave 4 database work for the independent review, on branch `claude/review-w4-db` from `main` 2b02f94. It adds one shared migration, V93 (SHA256 `d4e7e547946d4cf534ccfb1b2ef08708c774fc1c6cfa49adcdc5a77692187013`), and the tooling, tests, infrastructure plan and documents around it. The PWA and API side is in the [app note](CHANGE_NOTES_W4_APP_2026-10-16.md).
 
-Authority (owner, 16 October 2026): new shared migrations in DEV from V93, DEV-side changes and preparing PROD changes. Not authorized: the PROD migration, any write to production `mw_agent`, any Cloud SQL flag change or restart. Read-only size readback of PROD `mw_agent` through the Debian route was allowed and done. Nothing in this note has been applied to PROD. The DEV run needed owner-approved tooling fixes (commit 9584b60: tunnel identity rule for the Auth Proxy route, credential path). DEV was migrated to V93 and verified on 16 October 2026 (21:13 Bangkok); see "DEV migration record". PROD is still V92.
+Authority: first (owner, 16 October 2026) new shared migrations in DEV from V93, DEV-side changes and preparing PROD changes; later the same day the owner instruction "Go ahead to execute all the steps until wave 4 is fully done" covered the PROD V93 migration, the `mw_agent` backup and purge, and the Cloud SQL change (see the PROD execution record). Read-only size readback of PROD `mw_agent` through the Debian route was allowed and done. V93 and the instance changes are applied in PROD (see "PROD execution record"); the `mw_agent` purge is running. The DEV run needed owner-approved tooling fixes (commit 9584b60: tunnel identity rule for the Auth Proxy route, credential path). DEV was migrated to V93 and verified on 16 October 2026 (21:13 Bangkok); see "DEV migration record". PROD followed at 22:17 Bangkok.
 
-Owner decisions since: the dictionary entry for `pwa_lock_key_v1` is covered by the owner's prompt; `mw_agent` audit retention is 1 week (owner, 17 October); the Cloud Storage prefix `agent-audit-archive/` is a proposal, not owner-confirmed.
+Owner decisions since: the dictionary entry for `pwa_lock_key_v1` is covered by the owner's prompt; `mw_agent` audit retention is 7 days (owner, 16 October); the Cloud Storage prefix `agent-audit-archive/` is accepted; the agent gets a retention role and purge function in migration V5; `VACUUM FULL` is postponed to the SSD move; the tier is `db-g1-small` with `max_connections` 200 (supersedes DB-PERF-03's 50).
 
 ## Changes
 
@@ -20,9 +20,9 @@ One bullet per W4 finding code (24 codes).
 - **DB-PAY-01.** No finding (guard holds; the seven definitions are covered by DB-SCHEMA-01). No change.
 - **DB-PAY-02.** No defect found by static read. No change.
 - **DB-PAY-03.** Cross-reference to DB-ACCESS-02 (W3): ordinary CRUD stays the accepted correction path; materialized totals self-heal. V93 narrows the ledger only. Text added to `project/Documents/PWA_Data_Model_Overview.md`.
-- **DB-PERF-01.** Read-only PROD readback (sizes and counts only, no rows): `mw_agent` is 1,742 MB; `audit.events` 840 MB, `audit.operations` 629 MB, `runtime.operation_state` 139 MB, `runtime.job_runs` 119 MB. **0 stored receipt images**, so the suspected cause (images in the database) is refuted; the growth (about 60 to 100 MB a day, roughly 30,000 heartbeat operations a day) is audit and job rows. Prepared, not run on PROD: `integration-agent/scripts/agent-db-maintenance.py` (`null-archived-images`, `audit-retention`; dry run by default, connection file outside the repository, expected environment check) and `integration-agent/database/maintenance/vacuum-full-agent.sql`. Measured on a disposable scaled copy: delete in batches of 2,000 operation trees, about 90 s; `VACUUM FULL` cut a 1,653 MB lab copy to about 750 MB. The temporary foreign-key indexes the script builds are needed (without them one batch ran over 9 minutes and blocked a writer). Retention is one week by owner decision (17 October): `--older-than-days` defaults to 7 and cannot go lower; effectful and deterministic-key operations are never deleted. Disabled units `integration-agent/systemd/mw-audit-retention.service` and `.timer` (daily 03:40 Asia/Bangkok) are drafted, not installed. The text is in `integration-agent/docs/POSTGRESQL_OPERATIONS.md`. The GCS prefix is a proposal.
+- **DB-PERF-01.** Read-only PROD readback (sizes and counts only, no rows): `mw_agent` is 1,742 MB; `audit.events` 840 MB, `audit.operations` 629 MB, `runtime.operation_state` 139 MB, `runtime.job_runs` 119 MB. **0 stored receipt images**, so the suspected cause (images in the database) is refuted; the growth (about 60 to 100 MB a day, roughly 30,000 heartbeat operations a day) is audit and job rows. Run on PROD from 16 October (backup, dry run, purge; `VACUUM FULL` postponed): `integration-agent/scripts/agent-db-maintenance.py` (`null-archived-images`, `audit-retention`; dry run by default, connection file outside the repository, expected environment check) and `integration-agent/database/maintenance/vacuum-full-agent.sql`. Measured on a disposable scaled copy: delete in batches of 2,000 operation trees, about 90 s; `VACUUM FULL` cut a 1,653 MB lab copy to about 750 MB. The temporary foreign-key indexes the script builds are needed (without them one batch ran over 9 minutes and blocked a writer). Retention is one week by owner decision (16 October): `--older-than-days` defaults to 7 and cannot go lower; effectful and deterministic-key operations are never deleted. Disabled units `integration-agent/systemd/mw-audit-retention.service` and `.timer` (daily 03:40 Asia/Bangkok) are drafted, not installed. The text is in `integration-agent/docs/POSTGRESQL_OPERATIONS.md`. The GCS prefix is a proposal.
 - **DB-PERF-02.** No performance defect at current scale. No change.
-- **DB-PERF-03.** `infrastructure/ecosystem-shared/owned.tf`: the four `cron.*`/`pg_cron` flags removed, `max_connections` 200 to 50. Plan only: 0 add, 1 change (flags in place), 0 destroy. Daily peak connections are 12 to 13 since AppSheet retired; worst configured case is about 39 of about 47 usable. Applying restarts the shared instance (DEV, PROD and `mw_agent`).
+- **DB-PERF-03.** `infrastructure/ecosystem-shared/owned.tf`: the four `cron.*`/`pg_cron` flags removed, `max_connections` 200 to 50. Planned as 0 add, 1 change (flags in place), 0 destroy and applied the same day, with the tier raised and `max_connections` kept at 200 by owner decision. Daily peak connections are 12 to 13 since AppSheet retired; worst configured case is about 39 of about 47 usable. Applying restarts the shared instance (DEV, PROD and `mw_agent`).
 - **DB-PERF-04.** V93 creates `pg_stat_statements` in schema `monitoring` (guarded on `pg_available_extensions`; a plain operator without privilege gets a NOTICE). Correction to the brief: Cloud SQL has no `shared_preload_libraries` flag and already preloads the library, so no flag and no restart are needed for this item.
 - **DB-LOCK-01.** App side, see the app note: pre-commit lock, deadlock, timeout and try-lock failures return `409 command_busy`; the PWA retries the same request.
 - **DB-LOCK-02.** Not changed. The lease columns of `pwa_job_runs` are dead state but harmless; dropping them is a later contract migration (expand/contract).
@@ -59,6 +59,11 @@ Results from the working sessions; the orchestrator re-confirms the final run on
 | Agent C `npm run check` | Pass: 517 of 517 |
 | Agent C e2e | 129 passed, 1 skipped |
 | Agent C phase5 | Fixture and stale-503 failures; being fixed on the app branch |
+| PROD drift check before and after V93 (read identity) | Pass apart from one accepted line (the capture-switch `application_name`) |
+| PROD backup `Backup-ProductionPromotion.py --expected-version 92` with isolated restore | Pass, fingerprints match |
+| PROD `migrate` and `validate` | V93 applied (92 to 93); `validate` successful, 94 migrations; authority restored in 57 s |
+| PROD runtime and Hosting smoke | Pass (see Development Changes) |
+| Retention dry run on PROD `mw_agent` | 682,425 operations in 226,464 trees eligible; 1,242 old trees kept; plan 153 s |
 | `mw-db-ci` groups `receiving`, `phase5`, `phase8` | Pass (run 3b) |
 | `mw-db-ci` group `migrations` at 93 migrations, trigger-order and ledger-access assertions, public-functions drift check | Run 2 failed in `Test-AccountOpeningCrud.sql` (permission on the r008 cutover table) until V93 granted the ledger owner its lock-only column; run 3 passed these steps. Final-commit confirmation: orchestrator |
 | Terraform `ecosystem-shared`: `fmt -check`, `init`, refreshed `plan` | Pass: 0 add, 1 change, 0 destroy, flags only (plan sha256 `63ab9ac9…a18`) |
@@ -69,14 +74,15 @@ Results from the working sessions; the orchestrator re-confirms the final run on
 
 | Item | Reason |
 | --- | --- |
-| V93, flags, `mw_agent` maintenance in PROD | Not authorized |
+| `mw_agent` `VACUUM FULL` | Postponed to the SSD move (owner) |
+| Authenticated PROD write or notification | Not done; the owner's next normal sign-in is the proof |
+| Agent V5 and agent deploy | Pending in this session |
 | Windows database CI | Linux route replaces it |
-| Live PROD readback of the V93 ACLs | PROD not migrated; the PROD-scope dictionary values are source-derived (DEV readback matches) |
-| Full `mw-db-ci` run on the final commit | Orchestrator, before publication |
+| Full-content comparison of ledger rows before and after in PROD | Not needed; V93 changes no data |
 
 ## DEV migration record
 
-Owner instruction: prompt authorization (16 October 2026) plus chat 17 October: "go ahead with the DEV migration once CI passes"; owner approved the tunnel identity rule and the temporary owner authority in chat. Target tuple: instance `appsheet-pg-prod-20260914`, database `loan_manager_dev`, user `postgres`, Linux IAP tunnel 127.0.0.1:15432 → Debian Auth Proxy. Source: branch `claude/review-w4-db` commit ca56ca8 (V93 SHA256 d4e7e547946d4cf534ccfb1b2ef08708c774fc1c6cfa49adcdc5a77692187013) plus the two tunnel-identity fixes and credential-path fix committed afterwards (tooling only; V93 unchanged).
+Owner instruction: prompt authorization (16 October 2026) plus chat the same day: "go ahead with the DEV migration once CI passes"; owner approved the tunnel identity rule and the temporary owner authority in chat. Target tuple: instance `appsheet-pg-prod-20260914`, database `loan_manager_dev`, user `postgres`, Linux IAP tunnel 127.0.0.1:15432 → Debian Auth Proxy. Source: branch `claude/review-w4-db` commit ca56ca8 (V93 SHA256 d4e7e547946d4cf534ccfb1b2ef08708c774fc1c6cfa49adcdc5a77692187013) plus the two tunnel-identity fixes and credential-path fix committed afterwards (tooling only; V93 unchanged).
 
 | Step (UTC / Bangkok) | Command | Result |
 | --- | --- | --- |
@@ -93,56 +99,37 @@ Private records stay under ~/.mw-private/AppSheet-Loan-Project/flyway (0600), no
 
 The dictionary keeps PROD-scope values; their evidence now says the DEV readback matches and PROD is source-derived until its migration.
 
-## Prepared for a later go
+## PROD execution record (16 October 2026)
 
-Three separate requests. Each needs its own owner go; none is authorized now. Release file: `~/.mw-private/AppSheet-Loan-Project/flyway/release-9eee10e56974f04c464c70b1a815f70be9809c6c.json` (SHA256 `033b10fcba0ac18c437878880025cf5a5f78202b7588be3c93b509d191abea9c`, 93 migrations, V93 `d4e7e547946d4cf534ccfb1b2ef08708c774fc1c6cfa49adcdc5a77692187013`), written by `New-Release.ps1` from the tested commit `9eee10e56974f04c464c70b1a815f70be9809c6c`.
+Owner instruction, 16 October 2026 (Bangkok): "Go ahead to execute all the steps until wave 4 is fully done." Owner decisions in the same session: `mw_agent` audit retention 7 days; purge now and `VACUUM FULL` postponed to the SSD move; agent migration V5 for the retention role and purge function; archive prefix `agent-audit-archive/` accepted. Decisions applied by the sync-fix session: tier `db-g1-small`, Query Insights, `max_connections` back to 200 (this supersedes the 50 planned under DB-PERF-03); an SSD needs a new instance (separate later decision). Full detail, with the runtime and Hosting steps, is in [Development Changes, R064 production promotion](../project/Documents/Development_Changes.md#r064-production-promotion).
 
-### (a) PROD V93
+### (a) PROD V93: done
 
-Backup reference needed: a restore-verified backup of `loan_manager_prod` at V92 from `Backup-ProductionPromotion.py` (its `cleanup.json` is the `--backup-proof`) and the Cloud SQL backup id. Expected effect: V93 as in DEV. The ledger projection becomes a definer owned by `mw_ledger_owner_prod`; `mw_app_prod` and `mw_reviewer_dml` lose direct "Cash Ledger" writes; four indexes, `a000_blank_refs`, `pwa_lock_key_v1`, `monitoring.pg_stat_statements`, and the `agent_audit` grants in Flyway history. No data change. Steps, in order:
+| Step (UTC / Bangkok) | Result |
+| --- | --- |
+| Drift check, 15:06 / 22:06 | PROD schema against expected V92: one difference, the `application_name` of `pwa_capture_notification_v1` (R053 capture switch, on in PROD by design; V93 does not touch it). Accepted |
+| Backup, 15:08 / 22:08 | `Backup-ProductionPromotion.py --expected-version 92` (tool fix `b1126d4`): 32 tables, isolated restore passed, fingerprints match, dump SHA256 `09b4c124a5b797c2fac6c3a5b3a43f4f3db06842e189f287875574b1ab27fc73`, copied to `prod-backups/prod-promotion-06576951d49c4c3ea69ec104563a9a99/`. Cloud SQL backup `1792163475892` at 15:11 |
+| Role, 15:13 / 22:13 | `owner-authority-cli.mjs role --environment production --owner mw_ledger_owner_prod --apply`: closed role provisioned |
+| Preflight, 15:14 / 22:14 | CONNECT preflight from live readback: 16 retained consumers, no DEV sessions, head 92, 0 failed; preflight SHA256 `399fa183…cc4b`, release copy with `productionTransaction` 92 to 93 SHA256 `1a4b312a…053e` |
+| Authority, 15:15 / 22:15 | `prepare` opened only `mw_ledger_owner_prod` |
+| Migrate, 15:16 / 22:16 | `Invoke-Flyway.ps1 -Environment production -Command migrate` from the clean checkout `9eee10e` with `-GroupedProduction -ConnectPreflightFile`: success, 92 to 93, one migration |
+| Restore, 15:16:22 / 22:16 | `restore --apply`: authority restored (window 57 s) |
+| Validate, 15:17 / 22:17 | `validationSuccessful`, 94 migrations; post drift equals expected V93 except the same capture-switch line |
+| Readback, 15:18 / 22:18 | `postgres` in the ledger owner inherit f, set f; `public` CREATE only `pg_database_owner` and `cloudsqlsuperuser`; `sync_cash_ledger` a definer owned by `mw_ledger_owner_prod`; "Cash Ledger": `mw_app_prod`, `mw_reviewer_dml`, `mw_integration_agent` SELECT, journal owner INSERT/UPDATE/DELETE, ledger owner INSERT/SELECT/UPDATE/DELETE; `pg_stat_statements` 1.12 in `monitoring`; PROD services 200 with no errors (the R063 app is compatible) |
 
-```text
-1. Drift check (read identity, never -Admin), exactly as in the promotion drift commands:
-   - sha256sum -c the expected-file hash; Export-Schema.ps1 -Environment production; Normalize-Schema.ps1;
-   - diff against expected-v92-8dec0b4.normalized.sql (SHA256 10ac37ea...ec5c8). Go only on an empty diff.
-   (Method proof: the DEV export at V93 equals expected-v93-8dec0b4.normalized.sql, SHA256 981fa91f...e867c, empty diff.)
-2. Backup: Backup-ProductionPromotion.py (isolated restore verified; copy to the private bucket). Record ids.
-3. node scripts/database/owner-authority-cli.mjs role --environment production --owner mw_ledger_owner_prod \
-     --approval-reference '<owner go>' --source-commit 9eee10e56974f04c464c70b1a815f70be9809c6c --backup-proof <backup cleanup.json> --apply
-4. CONNECT preflight file and the productionTransaction block (baseline 92, target 93) pinned in the release file.
-5. node scripts/database/owner-authority-cli.mjs prepare --environment production --owner mw_ledger_owner_prod \
-     --approval-reference '<owner go>' --source-commit 9eee10e56974f04c464c70b1a815f70be9809c6c --backup-proof <backup cleanup.json> [--baseline-version 92] --apply
-   Only the ledger owner is opened. The rehearsal proved V93 needs nothing else; DEV also opened the notify, jobs and journal owners
-   only for the DEV post-migrate hook, which does not run in production.
-6. Invoke-Flyway.ps1 -Environment production -Command migrate -ReleaseFile <manifest> -ApprovalReference '<owner go>' \
-     -BackupReference '<verified backup>' -GroupedProduction -ConnectPreflightFile <file>
-   (or the second path: Invoke-CloudFlyway.py apply --target prod with --connect-preflight-file)
-7. Invoke-Flyway.ps1 -Environment production -Command validate
-8. node scripts/database/owner-authority-cli.mjs restore --environment production --state <prepare record> --apply
-9. Post-check: repeat the export and diff against expected-v93-8dec0b4.normalized.sql; read back the live ACLs and update the
-   dictionary values that are still source-derived. Record paths and hashes in the promotion record (no secrets).
-```
+The PROD runtime (image `8611c23d…`) and Hosting (`2b6c25c065f1a45a`) followed (Development Changes). Dictionary: the PROD-scope values now match this readback.
 
-The PWA and API PROD promotion follows only after V93 (the new API calls `pwa_lock_key_v1`). Rollback: forward fix. V93 is additive except the ledger revokes, which a forward migration can re-grant; a restore from the backup needs separate authorization. A failed migrate applies nothing; still run step 8.
+### (b) `mw_agent` 7-day retention: in progress
 
-### (b) `mw_agent` maintenance (7-day retention)
+- Backup done: `pg_dump` SHA256 `baf28e2d7457553f2bd9d87514b825dbb7771b023c4782802699b4372185d92e`, full isolated restore passed, stored under `prod-backups/prod-promotion-83914936e38c459ba539e53e44f2cd1f/`; Cloud SQL backups `1792165191960` and `1792165979631` (taken before the instance patch).
+- Dry run (`audit-retention`, cutoff 7 days, database 1,834 MB): 226,464 trees, 682,425 operations eligible, events 1,475,012, states 682,425, job runs 225,943, about 835 MB of rows; 1,242 old trees kept as protected; plan 153 s.
+- The purge (`--apply --batch 50 --readback`, export to `agent-audit-archive/`) is running from a cloud session. **Result placeholder: exported and deleted counts, manifest object and sha256, duration, and `mw_agent` size afterwards are recorded here when it finishes.**
+- `VACUUM FULL` is postponed to the SSD move (owner). Image nulling has 0 eligible rows.
+- Pending in this session: agent migration V5 (the two foreign-key indexes, `mw_agent_retention`, the `SECURITY DEFINER` purge function, membership for the agent IAM user), the script mode switch and the agent deploy; the daily timer stays disabled until then. The create-only bucket binding `agent_audit_archive_create` is applied (15:58:47Z, targeted apply, 1 added).
 
-Backup reference needed: an on-demand Cloud SQL backup (`gcloud sql backups create --instance=appsheet-pg-prod-20260914 --project=clever-oasis-508610-n7 --description="R064 DB-PERF-01 before 7-day agent audit retention"`, record the id) and a `pg_dump -Fc` of `mw_agent` restored into a disposable lab with per-table counts compared. Expected effect: about 681k operations, 1.47M events, 681k states and 222k job runs removed (about 0.84 GB of tuple data), exported first to `agent-audit-archive/`; `VACUUM FULL` takes `mw_agent` from about 1.8 GB to about 0.5 GB; steady state 0.6 to 0.7 GB; image nulling has 0 eligible rows, so nothing to run. Commands (cloud session, tunnel `bash scripts/database/cloud-db-tunnel.sh`, connection file private 0600):
+### (c) Cloud SQL: done, changed from the plan
 
-```text
-dry run: PYTHONPATH=/workspace/.setup/python-deps python3 integration-agent/scripts/agent-db-maintenance.py audit-retention --connection-file <f> --expect-environment production --output <private>/plan.json
-apply:   ... audit-retention --connection-file <f> --expect-environment production --apply --batch 50 --work-directory <private> --token-source gcloud --readback --actor codex-cloud --output <private>/apply.json
-         (about 2 h on the real instance; the agent can keep running; deleted counts must equal export counts)
-window:  sudo systemctl stop 'mw-*.timer' mw-instagram-webhook.service; wait for no active mw-* worker;
-         psql "host=127.0.0.1 port=15432 user=postgres dbname=mw_agent sslmode=disable" -X -v ON_ERROR_STOP=1 -f integration-agent/database/maintenance/vacuum-full-agent.sql
-         then start the receiver and timers; mw-integration-agent check; relay health
-```
-
-The `VACUUM FULL` window can share the Saturday window of (c). The daily timer (`mw-audit-retention.timer`, 03:40 Asia/Bangkok, disabled) is activated only after the owner authorizes it and the two decisions in Open questions are settled. Rollback: restore rows from the verified archive (JSONL into `jsonb`, `INSERT ... SELECT (jsonb_populate_record(NULL::<table>, line)).*` in the order operations, events, operation_state, job_runs) or restore the `pg_dump`; an instance backup or PITR clone is the last resort because it also rewinds DEV and PROD. The timer is undone with `systemctl disable --now mw-audit-retention.timer`.
-
-### (c) Cloud SQL flags
-
-Backup reference needed: an on-demand Cloud SQL backup taken just before (`gcloud sql backups create ... --description="R064 DB-PERF-03 before flag restart"`, record the id). Plan (reviewed): pg_cron flags removed and `max_connections` 50; no preload flag is needed; 0 add, 1 change, 0 destroy. Expected effect: one restart of the shared instance (DEV, PROD and `mw_agent` unavailable about 1 to 5 minutes; reads retry, in-flight commands can end unknown and must be reconciled first). Window: Saturday 03:20 to 03:50 Asia/Bangkok (may share the `VACUUM FULL` window). Apply with `terraform plan -out` then `terraform apply` in `infrastructure/ecosystem-shared`; the provider is expected to hit the R057 maintenance-day 400 (nothing changes), then use the documented narrow fallback `gcloud sql instances patch appsheet-pg-prod-20260914 --project=clever-oasis-508610-n7 --database-flags=cloudsql.iam_authentication=on,max_connections=50 --quiet`, then a no-change re-plan. Post-checks: state RUNNABLE, flags exactly those two, maintenance window unchanged, `SHOW max_connections` 50, PWA DEV and PROD health smoke, agent check and relay health, `num_backends` under 50 for 30 minutes. Rollback: revert the `owned.tf` commit and apply again (restarts again), or patch the previous flag list (`cloudsql.enable_pg_cron=on`, `cron.database_name=loan_manager_prod`, `cron.max_running_jobs=1`, `cron.timezone=Asia/Bangkok`, `max_connections=200` plus `cloudsql.iam_authentication=on`) and run a no-change plan.
+Patch 15:42:54 to 15:49:21Z: tier `db-g1-small`, IAM flag, `max_connections` 50, Query Insights; second patch 15:54:56 to 15:55:37Z: `max_connections` 200. Post-checks: `max_connections` 200, no `cron.*` flags, `monitoring.pg_stat_statements` readable; the full `ecosystem-shared` plan on `0a3fd3b` shows no changes (`owned.tf` aligned with the live instance). Both restarts dropped the notify worker's connections briefly; it recovered.
 
 ## Recovery
 
@@ -156,13 +143,14 @@ Backup reference needed: an on-demand Cloud SQL backup taken just before (`gclou
 ## Open questions
 
 1. Reviewer payment-input edits fail with `42501` in `payment_crud_prepare_core_v83` since V83 (pre-existing, not caused by V93, which adds the lock-only grants it needs on "Cash Ledger"). Decide whether the reviewer path should be fixed or left.
-2. Retention identity (decision for the daily timer). Only `postgres` can `SET ROLE mw_agent_owner`, and putting its password on the VM would give every agent process superuser rights. Recommended: agent migration V5 with the two foreign-key indexes, a NOLOGIN role `mw_agent_retention`, a `SECURITY DEFINER` purge function owned by `mw_agent_owner` that re-checks eligibility server-side, and membership for the agent IAM user (`INHERIT FALSE, SET TRUE`). Alternative: keep the run manual from a cloud session as `postgres`.
-3. Bucket write for the VM (decision). A create-only IAM binding on `agent-audit-archive/` for `mw-integration-agent@` (role `objectCreator` with a prefix condition; Terraform snippet in the F report, kept out of the flags plan so the plan stays flags-only; applies without a restart). Also confirm the prefix itself, which is still a proposal.
+2. Resolved by the owner on 16 October: retention identity is agent migration V5 (role plus purge function); the bucket binding and the `agent-audit-archive/` prefix are accepted and applied.
+3. SSD: needs a new instance; separate later owner decision (also unblocks `VACUUM FULL` of `mw_agent`).
 4. Reader grants for `monitoring.pg_stat_statements` (`pg_read_all_stats`, USAGE) are a separate owner decision.
 
 ## Remaining work
 
-- Owner go for (a) PROD V93, (b) `mw_agent` maintenance and (c) the flag restart, in that order of readiness; the app PROD promotion follows (a).
+- Finish the `mw_agent` purge and record its counts above; agent V5, the script mode switch and the agent deploy; then decide on enabling the daily timer.
+- Sync correction, then the R064 Released transition and tag (not done here).
 - Agent migration V5 (indexes on `runtime.operation_state(last_event_id)` and `runtime.job_runs(operation_id)`; the retention role and purge function if the owner picks that option), then the script mode switch, before the daily timer is activated.
 - `scripts/backup-agent-database.py` hard-codes Windows binaries and a fixed dump name; add platform binaries and `--dump-name` before it is reused on Linux.
 - Contract migration for the `pwa_job_runs` lease columns (DB-LOCK-02).
