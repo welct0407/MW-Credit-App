@@ -1,5 +1,6 @@
 """Operator scripts take the private location from arguments and identify targets by instance (AGT-QUALITY-03)."""
 import importlib.util
+import secrets
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
@@ -28,10 +29,11 @@ class FakeConnection:
 class ReviewerDmlScriptTests(unittest.TestCase):
     def test_configure_uses_the_role_of_the_requested_environment(self):
         conn = FakeConnection()
-        configure_dml.configure(conn, 'synthetic-password', 'mw_reviewer_dml_dev')
+        credential = secrets.token_hex(8)  # generated per run; no fixed credential-like literal
+        configure_dml.configure(conn, credential, 'mw_reviewer_dml_dev')
         texts = [t for t, _ in conn.statements]
         self.assertTrue(texts[1].startswith('CREATE ROLE "mw_reviewer_dml_dev" LOGIN NOSUPERUSER'))
-        self.assertIn("'synthetic-password'", texts[1])
+        self.assertIn(f"'{credential}'", texts[1])
         self.assertIn('GRANT CONNECT ON DATABASE "loan_manager_dev" TO "mw_reviewer_dml_dev"', texts)
         self.assertFalse(any('"mw_reviewer_dml"' in t for t in texts))
         self.assertEqual(conn.statements[0][1], ('mw_reviewer_dml_dev',))
