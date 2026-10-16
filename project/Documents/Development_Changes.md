@@ -25,7 +25,7 @@ Use the [release tracker](Release_Tracker.md), including the carried R016 admini
 
 ## R064 local dataset sync fix and shared Cloud SQL
 
-R067 tidy-ups after the old instance deletion (runtime accepts only the new instance name, IAM conditions narrowed; Frozen 17 October 2026, R068 Open, PROD pending): see the [R067 section](../../Change%20Logs/CHANGE_NOTES_R064_SYNC_2026-10-16.md#r067-tidy-ups-after-the-old-instance-deletion) of the same note.
+R067 tidy-ups after the old instance deletion (runtime accepts only the new instance name, IAM conditions narrowed; Released 17 October 2026, R068 Open, PROD verified): see the [R067 section](../../Change%20Logs/CHANGE_NOTES_R064_SYNC_2026-10-16.md#r067-tidy-ups-after-the-old-instance-deletion) of the same note.
 
 R066 offline receipts, 30-day window (UI-only, Released 17 October 2026; R067 is Open; DEV and PROD Hosting verified): see the [R066 section](../../Change%20Logs/CHANGE_NOTES_R064_SYNC_2026-10-16.md#r066-offline-receipts-30-day-window) of the same note.
 

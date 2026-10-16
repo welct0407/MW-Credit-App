@@ -15,10 +15,11 @@ All new features/fixes use the sole Open release. Freeze only at authorized prom
 | Release | Status | Remaining action / owning record |
 | --- | --- | --- |
 | R068 | Open | New product work. Carries nothing from R067. |
-| R067 | Frozen 17 October 2026 (Bangkok) | Tidy-ups after the old instance deletion; PROD promotion in progress (owner: "Go ahead", about 03:50 Bangkok). Package: `claude/r067-tidy` runtime `7d14078` (identity accepts only `mw-credit-pg-20261017`; head `7f8ef53`); IAM condition narrowing `009d9f2` already applied 16 October 20:38 to 20:40Z. No migration. PROD result pending. [Record](../../Change%20Logs/CHANGE_NOTES_R064_SYNC_2026-10-16.md#r067-tidy-ups-after-the-old-instance-deletion) |
 | R056 | Frozen; V91 deployed | Lisa enrollment retry/closure; [record](../outputs/r056-apple-push/README.md) |
 | R055 | Frozen; monitoring delivered | Carried credential work unfinished; [record](../outputs/r055-grafana/continuation.md) |
 | R016 | Owner-accepted reporting; administrative follow-up | Migration-key retirement evidence/final tag unresolved; do not reopen product development |
+
+R067 tidy-ups after the old instance deletion is Released: runtime `7d14078` (identity accepts only `mw-credit-pg-20261017`; branch `claude/r067-tidy` `7f8ef53`, PR #50) and IAM condition narrowing `009d9f2` (applied 16 October 20:38 to 20:40Z); no migration; PROD image `2251f2ce10b0…` on reader `00010-d7g`, command `00014-f6g`, notify `00008-x7w`, jobs `00008-pbq` (applied 17 October 2026 03:55 Bangkok, smoke 0 errors); CI Development checks 38964946002 and Database migrations 38963769276; annotated tag `R067` on `7f8ef53` (Release tag workflow, after PR #50 merges); [record](../../Change%20Logs/CHANGE_NOTES_R064_SYNC_2026-10-16.md#r067-tidy-ups-after-the-old-instance-deletion).
 
 R066 offline receipts is Released: UI-only, Hosting-only on the unchanged R064 runtime; source `claude/offline-receipts` `229295b` (change `81e5fa4`, UX fixes in `229295b`, runner contract `3e1bffd`, PR #45); receipts stored once and kept offline for the last 30 days; DEV Hosting `0f181d5d61573ebf`, PROD Hosting `bc7b87e2ff693780` (release `1792174449402000`, applied 17 October 2026 01:13 to 01:14 Bangkok, smoke 15 of 15 files byte-identical, 0 errors); CI `ci.yml` 38944832577 green; annotated tag `R066` on `229295b` (Release tag workflow); [record](../../Change%20Logs/CHANGE_NOTES_R064_SYNC_2026-10-16.md#r066-offline-receipts-30-day-window).
 
