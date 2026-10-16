@@ -23,6 +23,10 @@ Applied under the owner instruction "Go ahead to execute all the steps until wav
 - Receipt-archive access: `google_storage_bucket_iam_member.agent_audit_archive_create` (`operator-private.tf`) gives `mw-integration-agent@` create-only access under `agent-audit-archive/` (applied 15:58:47Z by a targeted apply, 1 added, no restart).
 - An SSD needs a new instance: the move (restore from backup into `mw-credit-pg-20261017`, repoint consumers, old instance kept) is planned for 17 October 2026 after R064 is stable (owner); `VACUUM FULL` of `mw_agent` waits for it.
 
-## SSD instance (prepared 16 October 2026, not yet applied)
+## SSD instance (live since 16 October 2026 19:42 UTC)
 
-`google_sql_database_instance.shared_ssd` (`mw-credit-pg-20261017`) matches `shared` except `PD_SSD`. It is filled by `gcloud sql backups restore --restore-instance`, which brings users, roles, grants and databases, so this root still manages no users. A restore resets the target's backup configuration: re-apply this root after every restore. Reviewed plan before apply: 1 to add, 0 to change, 0 to destroy. `shared` stays as the hot rollback until the owner retires it.
+`google_sql_database_instance.shared_ssd` (`mw-credit-pg-20261017`, `136.85.127.134`) matches `shared` except `PD_SSD`. It was filled by `gcloud sql backups restore --restore-instance`, which brings users, roles, grants and databases, so this root still manages no users. Google documents that a restore resets the target's backup configuration; after both restores here it was unchanged (refreshed plan: no changes), but re-plan after any restore. `metabase_sql_client` admits Metabase's proxy to either instance.
+
+- Created 18:35:19 to 18:40:41Z (5m12s, 2 added). Rehearsal restore of on-demand backup `1792176184577`: 6m27s.
+- Cutover: write freeze 19:12:40Z; on-demand backup `1792178023102` 19:13:41 to 19:15:20Z; restore 19:15:32 to 19:22:00Z; verification identical for `loan_manager_prod`/`loan_manager_dev`; `mw_agent` lacks only 14 monitoring `native-api-probe` runs written after the backup (accepted); repoint 19:36 to 19:42Z; unfreeze 19:42:38Z.
+- `shared` (`appsheet-pg-prod-20260914`) is untouched and unused: the hot rollback for 24 h, then stopped (`activation_policy = NEVER` by narrow patch, then reconciled here). Destroying it needs a separate owner go.
