@@ -55,3 +55,13 @@ App: redeploy the previous pins (PROD and DEV pins are listed under Checks), or 
 ## Outcome
 
 DEV and PROD deployed from 9420c85 and smoke-passed; no migration. Authenticated PROD proof is the owner's next normal sign-in. R064 closure and tag belong to the Wave 4 session.
+
+## R065 pending-flash fix
+
+Branch `claude/sync-pending-flash` from main 62adcf2, fix 8926fe8. Owner bug report after R064: switching language briefly flashed the "Waiting to sync" badge (1), "Saved on this device. Waiting to sync." and "Sync 1 pending first" with nothing pending. The first in-flight send of `preference.update` was counted as pending, and R064's event-driven counter made it visible.
+
+- Change: the shared pending store publishes `{count, visible}`; `visible` covers only rows that waited (deferred, blocked or queued after an attempt, or at least 2 s old, with one re-refresh scheduled). The badge and the sign-out label use `visible`; sign-out stays disabled while `count > 0`. Preference save keeps "Saving preferences..." during its own send. UI-only; no migration. New spec `tests/e2e/pending-flash-independent.spec.ts` fails on the released code and passes now; a 503 server still shows all three messages.
+- Checks (Agent B): pending-flash 4, live-signout-blocked 6, back-consumers 104, persistence 11, payment-command 28, payment-offline-sdk 1, phase5-final-ui 66, error-recovery 8 (both projects); `npm run check` 526 unit tests; Biome 0 errors.
+- Authority: owner "go, deploy to prod after DEV" (17 October 2026, about 00:15 Bangkok). No database backup needed (UI-only).
+- DEV deploy and smoke: pending. PROD deploy and smoke: pending.
+- Recovery: Hosting rollback to `7664add62c41bce6` (release 1792169838042000); `git revert 8926fe8` and redeploy. Runtime images are unchanged.

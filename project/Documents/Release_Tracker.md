@@ -4,8 +4,8 @@
 
 | Item | Current value |
 | --- | --- |
-| New product work | **R065 — Open** |
-| Next unused number | **R066**, only opened when authorized R065 promotion starts |
+| New product work | **R066 — Open** |
+| Next unused number | **R067**, only opened when authorized R066 promotion starts |
 | Current runtime baseline | [Environment inventory](Environment_Inventory.md) |
 
 All new features/fixes use the sole Open release. Freeze only at authorized promotion start, pin the package, then publish the next Open number in the same update. Frozen corrections stay with their release; new features use the successor. Do not reserve a second Open release or reuse a number. Documentation/governance changes do not allocate releases.
@@ -14,7 +14,8 @@ All new features/fixes use the sole Open release. Freeze only at authorized prom
 
 | Release | Status | Remaining action / owning record |
 | --- | --- | --- |
-| R065 | Open | New product work. Carries nothing from R064. |
+| R066 | Open | New product work. Carries nothing from R065. |
+| R065 | Frozen 17 October 2026 (Bangkok) | Pending-flash fix promotion in progress (owner, 17 October 2026: "go, deploy to prod after DEV"); UI-only, no migration or database backup. Package: `claude/sync-pending-flash` `8926fe88ac741c5c3ebb1c7ea42dfb0ff99da61e` (no "Waiting to sync" flash during an ordinary online save) plus the R065 Hosting runner contract. [Record](../../Change%20Logs/CHANGE_NOTES_R064_SYNC_2026-10-16.md#r065-pending-flash-fix) |
 | R056 | Frozen; V91 deployed | Lisa enrollment retry/closure; [record](../outputs/r056-apple-push/README.md) |
 | R055 | Frozen; monitoring delivered | Carried credential work unfinished; [record](../outputs/r055-grafana/continuation.md) |
 | R016 | Owner-accepted reporting; administrative follow-up | Migration-key retirement evidence/final tag unresolved; do not reopen product development |
