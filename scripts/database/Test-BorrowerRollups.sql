@@ -1,10 +1,14 @@
 \ir Test-MaterializedBalances.sql
+\ir Test-CashAccountFixtures.sql
 BEGIN;
+INSERT INTO "Partners"("Row ID","Partner Role") VALUES('VC13-FUND','A');
+INSERT INTO "Cash Pool Contributions"("Row ID","Ref Partner","Contribution Date","Transaction Type","Amount")
+VALUES('VC13-CAP','VC13-FUND',current_date-400,'Contribution',1000000::money);
 CREATE FUNCTION pg_temp.br_assert(ok boolean,label text) RETURNS void LANGUAGE plpgsql AS $$
 BEGIN IF ok IS DISTINCT FROM true THEN RAISE EXCEPTION 'FAILED: %',label; END IF; END $$;
 INSERT INTO "Borrowers"("Row ID","Borrower Name") VALUES('VC13-A','SYNTHETIC A'),('VC13-B','SYNTHETIC B');
-INSERT INTO "Loans"("Row ID","Ref Borrowers","Loan Date","Due Date","Principal Amount","Loan Type","Loan Status","Auto Charge Enabled","Daily Payment Amount")
-VALUES('VC13-L','VC13-A',current_date,current_date+2,100::money,'ผ่อนชำระรายวัน','ยังไม่ปิดยอด',false,40::money);
+INSERT INTO "Loans"("Row ID","Ref Borrowers","Loan Date","Due Date","Principal Amount","Loan Type","Loan Status","Auto Charge Enabled","Daily Payment Amount","Ref Disbursed From Cash Account")
+VALUES('VC13-L','VC13-A',current_date,current_date+2,100::money,'ผ่อนชำระรายวัน','ยังไม่ปิดยอด',false,40::money,'CI-LISA');
 UPDATE "Loans" SET "Auto Charge Enabled"=true WHERE "Row ID"='VC13-L';
 SET CONSTRAINTS ALL IMMEDIATE;
 SELECT pg_temp.br_assert((SELECT abs("Expected Daily Interest Amount"-20.0/3)<0.00000001 FROM "Loans" WHERE "Row ID"='VC13-L'),'fractional inclusive daily interest');

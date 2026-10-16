@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param([ValidateSet('seed','verify','fix','close')][string]$Mode='verify')
 . "$PSScriptRoot/Common.ps1"
-$target=Get-DbEnvironment development
+$target=Get-DbEnvironment development -Admin
 if($target.host -ne '34.158.38.171'){throw 'Reviewed development host required'}
 $sql=switch($Mode){
  'seed' {@'

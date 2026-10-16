@@ -11,7 +11,7 @@ if (([bool]$From) -eq ([bool]$Full)) { throw 'Specify either -From YYYY-MM-DD or
 if ($Environment -eq 'production' -and (-not $ApprovalReference -or -not $BackupReference)) {
  throw 'Production snapshot rebuild requires scoped authorization and verified backup references'
 }
-$target=Get-DbEnvironment $Environment
+$target=Get-DbEnvironment $Environment -Admin
 $saved=@{};foreach($name in @('PGPASSWORD','PGSSLMODE','PGCONNECT_TIMEOUT')){$saved[$name]=[Environment]::GetEnvironmentVariable($name,'Process')}
 try {
  $env:PGPASSWORD=[IO.File]::ReadAllText($target.passwordFile).Trim();$env:PGSSLMODE='require';$env:PGCONNECT_TIMEOUT='10'

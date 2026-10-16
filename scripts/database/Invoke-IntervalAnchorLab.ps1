@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param([ValidateSet('inspect','seed','verify','close')][string]$Mode='inspect')
 . "$PSScriptRoot/Common.ps1"
-$target=Get-DbEnvironment development
+$target=Get-DbEnvironment development -Admin
 if($target.host -ne '34.158.38.171'){throw 'Reviewed development host required'}
 $sql=@'
 SELECT column_name,data_type,column_default,is_nullable FROM information_schema.columns WHERE table_schema='public' AND table_name='Loans' AND column_name='Interest Schedule Anchor Date';

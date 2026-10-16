@@ -1,7 +1,11 @@
 \set ON_ERROR_STOP on
+\ir Test-CashAccountFixtures.sql
 BEGIN;
-INSERT INTO "Loans" ("Row ID","Loan Date","Interest Payment Interval")
-VALUES ('ANCHOR-REGRESSION',date '2026-09-03',3);
+INSERT INTO "Partners"("Row ID","Partner Role") VALUES('ANCHOR-FUND','A');
+INSERT INTO "Cash Pool Contributions"("Row ID","Ref Partner","Contribution Date","Transaction Type","Amount")
+VALUES('ANCHOR-CAP','ANCHOR-FUND',current_date-400,'Contribution',1000000::money);
+INSERT INTO "Loans" ("Row ID","Loan Date","Interest Payment Interval","Ref Disbursed From Cash Account","Principal Amount")
+VALUES ('ANCHOR-REGRESSION',date '2026-09-03',3,'CI-LISA',100::money);
 DO $$ BEGIN
  IF (SELECT "Interest Schedule Anchor Date" IS NOT NULL FROM "Loans" WHERE "Row ID"='ANCHOR-REGRESSION') THEN
   RAISE EXCEPTION 'Existing schedule must remain the default';

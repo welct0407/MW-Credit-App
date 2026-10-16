@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param([ValidateSet('inspect','seed','verify','hide')][string]$Mode='inspect')
 . "$PSScriptRoot/Common.ps1"
-$target=Get-DbEnvironment development
+$target=Get-DbEnvironment development -Admin
 if($target.host -ne '34.158.38.171' -or $target.instance -ne 'appsheet-pg-dev-20260915'){throw 'DEV identity mismatch'}
 $sql=@'
 SELECT json_build_object('host',inet_server_addr(),'database',current_database(),'version',(SELECT max(version::integer) FROM flyway_schema_history WHERE success),'date',current_date);

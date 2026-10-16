@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param([ValidateSet('seed','prepare-charge','state','retire')][string]$Mode='state')
 . "$PSScriptRoot/Common.ps1"
-$target=Get-DbEnvironment development
+$target=Get-DbEnvironment development -Admin
 $bin=Get-PgBin
 $query=switch($Mode) {
  'seed' { @'

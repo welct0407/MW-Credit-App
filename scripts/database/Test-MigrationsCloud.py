@@ -2,6 +2,9 @@
 
 Uses the established local toolchain, never Cloud SQL or a shared lab. Windows
 continues using Test-Migrations.ps1. All retained logs are synthetic.
+Tool locations: MW_DB_TOOL_ROOT (default /workspace/.setup, the cloud-session
+toolchain) and MW_PG_BIN (default: the toolchain's PostgreSQL, else the PGDG
+package layout used on GitHub ubuntu-latest runners).
 """
 import argparse
 import json
@@ -13,8 +16,10 @@ import subprocess
 import tempfile
 
 REPO=Path(__file__).resolve().parents[2]
-SETUP=Path('/workspace/.setup')
-PG=SETUP/'postgresql-18.6/bin'
+SETUP=Path(os.environ.get('MW_DB_TOOL_ROOT') or '/workspace/.setup')
+PG=Path(os.environ.get('MW_PG_BIN') or (SETUP/'postgresql-18.6/bin' if (SETUP/'postgresql-18.6/bin/pg_ctl').exists() else '/usr/lib/postgresql/18/bin'))
+FLYWAY=SETUP/('flyway-'+json.loads((REPO/'database/toolchain.json').read_text())['flywayVersion'])/'flyway'
+PWSH=SETUP/'powershell-7.5.4/pwsh' if (SETUP/'powershell-7.5.4/pwsh').exists() else Path(shutil.which('pwsh') or 'pwsh')
 
 def main():
  p=argparse.ArgumentParser();p.add_argument('--sql',default='scripts/database/Test-StatementBatch.sql');p.add_argument('--pre-sql');p.add_argument('--pre-target',type=int);p.add_argument('--sql-only',action='store_true');args=p.parse_args()
@@ -23,18 +28,19 @@ def main():
  env={k:v for k,v in os.environ.items() if not k.startswith(('FLYWAY_','PG','CODEX_'))}
  # Test-CI already runs in the supported runtime. Nested proot wrappers can stall
  # PowerShell startup; launch its verified binary with the same library path.
- env['LD_LIBRARY_PATH']=str(SETUP/'sysroot/usr/lib/x86_64-linux-gnu')+':'+env.get('LD_LIBRARY_PATH','')
+ if (SETUP/'sysroot').exists():env['LD_LIBRARY_PATH']=str(SETUP/'sysroot/usr/lib/x86_64-linux-gnu')+':'+env.get('LD_LIBRARY_PATH','')
  def run(command,**kw):
   return subprocess.run([str(x) for x in command],env=env,check=True,**kw)
  with socket.socket() as s:s.bind(('127.0.0.1',0));port=s.getsockname()[1]
  psql=[PG/'psql','-X','-v','ON_ERROR_STOP=1','-h','127.0.0.1','-p',port,'-U','postgres','-d','loan_manager_dev']
- flyway=[SETUP/'flyway-13.6.0/flyway',f'-url=jdbc:postgresql://127.0.0.1:{port}/loan_manager_dev','-user=postgres','-configFiles='+str(REPO/'database/flyway.conf'),'-locations=filesystem:'+str(migrations),'-outputType=json']
+ flyway=[FLYWAY,f'-url=jdbc:postgresql://127.0.0.1:{port}/loan_manager_dev','-user=postgres','-configFiles='+str(REPO/'database/flyway.conf'),'-locations=filesystem:'+str(migrations),'-outputType=json']
  run([PG/'initdb','-D',data,'-U','postgres','--auth=trust','--encoding=UTF8','--locale=C'],stdout=subprocess.DEVNULL)
  run([PG/'pg_ctl','-D',data,'-l',root/'postgres.log','-o',f'-h 127.0.0.1 -p {port} -k {root}','-w','start'],stdout=subprocess.DEVNULL)
  try:
   run([PG/'createdb','-h','127.0.0.1','-p',port,'-U','postgres','loan_manager_dev'],stdout=subprocess.DEVNULL)
   run(psql+['-f',REPO/'scripts/database/Test-AgentAuditPrerequisites.sql'],stdout=subprocess.DEVNULL)
   run(psql+['-f',REPO/'scripts/database/Test-AppRolePrerequisites.sql'],stdout=subprocess.DEVNULL)
+  run(psql+['-f',REPO/'scripts/database/Test-IamRolePrerequisites.sql'],stdout=subprocess.DEVNULL)
   if args.pre_sql or args.pre_target:
    if not args.pre_sql or not args.pre_target:raise ValueError('Both pre-migration fixture and target are required')
    run(flyway+[f'-target={args.pre_target}','migrate'],cwd=REPO,stdout=subprocess.DEVNULL)
@@ -56,10 +62,10 @@ def main():
    dest=adapted/source.name
    dest.write_text(source.read_text().replace('psql.exe','psql').replace(' -WindowStyle Hidden',''))
    with (root/(name+'.log')).open('w') as log:
-    run([SETUP/'powershell-7.5.4/pwsh','-NoProfile','-File',dest,'-PgBin',PG,'-Port',port,'-OutputDirectory',root,'-Database','loan_manager_dev'],stdout=log,stderr=log)
+    run([PWSH,'-NoProfile','-File',dest,'-PgBin',PG,'-Port',port,'-OutputDirectory',root,'-Database','loan_manager_dev'],stdout=log,stderr=log)
    checks.append(name)
   run([PG/'pg_dump','-h','127.0.0.1','-p',port,'-U','postgres','-d','loan_manager_dev','--schema-only','--no-owner','--no-privileges','--schema=public','--schema=assessment_lab','--exclude-table=public.flyway_schema_history','--file='+str(root/'rebuilt.sql')])
-  run([SETUP/'powershell-7.5.4/pwsh','-NoProfile','-File',REPO/'scripts/database/Normalize-Schema.ps1','-InputFile',root/'rebuilt.sql','-OutputFile',root/'rebuilt.normalized.sql'])
+  run([PWSH,'-NoProfile','-File',REPO/'scripts/database/Normalize-Schema.ps1','-InputFile',root/'rebuilt.sql','-OutputFile',root/'rebuilt.normalized.sql'])
   # A one-migration upgrade (for example V68 -> V69) is not a V1-only rebuild.
   if args.pre_target is None and first['migrationsExecuted']==1:
    assert (root/'rebuilt.normalized.sql').read_bytes()==(REPO/'database/migrations/V1__existing_schema.sql').read_bytes()

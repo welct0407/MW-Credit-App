@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param([ValidateSet('Seed','Read','AuditOriginal')][string]$Mode='Read')
 . "$PSScriptRoot/Common.ps1"
-$target=Get-DbEnvironment 'development'
+$target=Get-DbEnvironment 'development' -Admin
 if ($target.host -ne '34.158.38.171' -or $target.instance -ne 'appsheet-pg-dev-20260915') { throw 'Re-review fixture destination after an environment replacement' }
 $saved=@{PGPASSWORD=$env:PGPASSWORD;PGSSLMODE=$env:PGSSLMODE;PGCONNECT_TIMEOUT=$env:PGCONNECT_TIMEOUT;PGCLIENTENCODING=$env:PGCLIENTENCODING}
 try {

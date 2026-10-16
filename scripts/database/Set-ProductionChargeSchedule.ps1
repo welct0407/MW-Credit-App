@@ -5,7 +5,7 @@ param(
  [string]$ReleaseManifest
 )
 . "$PSScriptRoot/Common.ps1"
-$target=Get-DbEnvironment production
+$target=Get-DbEnvironment production -Admin
 if($target.host -ne '34.21.174.215' -or $target.database -ne 'loan_manager_prod'){throw 'Reviewed production target required'}
 if($Mode -ne 'status'){
  if([string]::IsNullOrWhiteSpace($ApprovalReference)){throw 'Explicit owner approval reference required; this parameter does not grant approval'}

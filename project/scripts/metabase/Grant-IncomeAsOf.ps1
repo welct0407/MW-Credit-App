@@ -1,6 +1,6 @@
 param([Parameter(Mandatory)][string]$ApprovalReference)
 . "$PSScriptRoot/../database/Common.ps1"
-$target=Get-DbEnvironment production;$out="$DbRepoRoot/outputs/r016-20260922/income-asof-grants.json"
+$target=Get-DbEnvironment production -Admin;$out="$DbRepoRoot/outputs/r016-20260922/income-asof-grants.json"
 if(Test-Path $out){throw 'Grant already recorded; inspect rather than replay'}
 $oldPassword=$env:PGPASSWORD;$oldSsl=$env:PGSSLMODE
 try{
