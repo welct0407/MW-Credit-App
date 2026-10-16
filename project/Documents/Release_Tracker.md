@@ -15,10 +15,11 @@ All new features/fixes use the sole Open release. Freeze only at authorized prom
 | Release | Status | Remaining action / owning record |
 | --- | --- | --- |
 | R067 | Open | New product work. Carries nothing from R066. |
-| R066 | Frozen 17 October 2026 (Bangkok) | Offline receipts promotion in progress (owner: "go, deploy R066 to prod after DEV"); UI-only, no migration or database backup. Package: `claude/offline-receipts` `81e5fa4cd8775957c0b267aff7585ac9ae976c74` (receipts stored once, last 30 days offline) plus the R066 Hosting runner contract (SHA to follow). [Record](../../Change%20Logs/CHANGE_NOTES_R064_SYNC_2026-10-16.md#r066-offline-receipts-30-day-window) |
 | R056 | Frozen; V91 deployed | Lisa enrollment retry/closure; [record](../outputs/r056-apple-push/README.md) |
 | R055 | Frozen; monitoring delivered | Carried credential work unfinished; [record](../outputs/r055-grafana/continuation.md) |
 | R016 | Owner-accepted reporting; administrative follow-up | Migration-key retirement evidence/final tag unresolved; do not reopen product development |
+
+R066 offline receipts is Released: UI-only, Hosting-only on the unchanged R064 runtime; source `claude/offline-receipts` `229295b` (change `81e5fa4`, UX fixes in `229295b`, runner contract `3e1bffd`, PR #45); receipts stored once and kept offline for the last 30 days; DEV Hosting `0f181d5d61573ebf`, PROD Hosting `bc7b87e2ff693780` (release `1792174449402000`, applied 17 October 2026 01:13 to 01:14 Bangkok, smoke 15 of 15 files byte-identical, 0 errors); CI `ci.yml` 38944832577 green; annotated tag `R066` on `229295b` (Release tag workflow); [record](../../Change%20Logs/CHANGE_NOTES_R064_SYNC_2026-10-16.md#r066-offline-receipts-30-day-window).
 
 R065 pending-flash fix is Released: UI-only, Hosting-only on the unchanged R064 runtime; source `claude/sync-pending-flash` `74ad26b` (fix `8926fe8`, runner contract `7e0225e`); DEV Hosting `bd0be642edfb653b` (owner: "tested on DEV, the flash is gone"), PROD Hosting `c24c62260e8723d9` (release `1792171753846000`, applied 17 October 2026 00:28 to 00:29 Bangkok, smoke 15 of 15 files byte-identical, 0 errors); CI `ci.yml` 38939174238 green; git annotated tag `R065` on `74ad26b` (Release tag workflow run 38941067405); [record](../../Change%20Logs/CHANGE_NOTES_R064_SYNC_2026-10-16.md#r065-pending-flash-fix).
 
