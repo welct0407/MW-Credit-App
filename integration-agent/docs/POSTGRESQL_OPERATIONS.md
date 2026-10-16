@@ -71,3 +71,7 @@ Independent central migration V4 is applied in `mw_agent`: immutable receipt sou
 ## Deployed durable operator execution and relay inspection
 
 Installed MW source pin `0aaedf13` supplies canonical durable-intent execution and completed-job/backlog relay inspection; companion DEV/PROD V58 and collector pin `f63d2c8` were deployed on 4 October 2026. Independent central intent readback precedes business dispatch. Repeated/uncertain requests remain reconciliation-only. RUNNING cannot erase a completed failure. No new scheduled service or mw_agent migration was required. Natural relay completions and numeric health export verified Healthy with backlog/missing intents zero. Preserve the retrospective reconciliation. [Deployment, checks, pins and rollback](../Change%20Logs/CHANGE_NOTES_DURABLE_OPERATOR_AUDIT_HEALTH_2026-10-04.md).
+
+## Private logical backup script
+
+`scripts/backup-agent-database.py --environments <file> --lab <file> --private-directory <dir outside the repo> --output <file>` dumps `mw_agent`, restores it into the isolated local lab and compares table fingerprints. `--dump-name <file>` (default `mw_agent-before-activation.dump`; no path separators or `..`) names the dump; an existing dump is never overwritten. On Windows the lab file's `bin` directory supplies `pg_dump.exe`/`pg_restore.exe`. On Linux/macOS pass `--pg-bin <dir>` or have `pg_dump` and `pg_restore` on `PATH`; otherwise the script stops with a clear error.
