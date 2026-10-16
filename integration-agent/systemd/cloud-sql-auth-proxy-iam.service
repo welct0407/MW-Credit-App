@@ -1,0 +1,26 @@
+[Unit]
+Description=Cloud SQL Auth Proxy, automatic IAM listener (127.0.0.1:5433) for MW Integration Agent
+# ALL-ARCH-03 read-route fix (16 October 2026): a separate process from cloud-sql-auth-proxy.service.
+# One proxy process shares one ephemeral certificate per instance, and any auto-iam-authn listener makes
+# it an IAM certificate for every listener, so IAM users signing in with a token on 5432 failed.
+# Started by the drop-in cloud-sql-auth-proxy.service.d/iam-listener.conf; restarts and stops with it.
+After=network-online.target
+Wants=network-online.target
+PartOf=cloud-sql-auth-proxy.service
+
+[Service]
+Type=simple
+User=mwagent
+Group=mwagent
+ExecStart=/usr/local/bin/cloud-sql-proxy --address 127.0.0.1 --structured-logs "clever-oasis-508610-n7:asia-southeast1:appsheet-pg-prod-20260914?port=5433&auto-iam-authn=true"
+Restart=on-failure
+RestartSec=5s
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+RestrictSUIDSGID=true
