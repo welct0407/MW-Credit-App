@@ -1,8 +1,9 @@
 #!/bin/sh
 set -eu
 test "$(id -u)" -eq 0
-repo=/opt/mw-integration-agent-src
-test -z "$(git -C "$repo" status --porcelain)"
+checkout=/opt/mw-integration-agent-src
+repo=$checkout/integration-agent
+test -z "$(git -C "$checkout" status --porcelain)"
 test -s /etc/mw-integration-agent/secrets/outlook-email-oauth.json
 
 backup=/var/lib/mw-integration-agent/rollback/cash-statement-schedule-$(date +%Y%m%dT%H%M%S)
@@ -11,7 +12,7 @@ cp -a /etc/mw-integration-agent/config.json /etc/mw-integration-agent/service-ca
 for unit in mw-cash-statement.service mw-cash-statement.timer mw-cash-statement-email-retry.service mw-cash-statement-email-retry.timer; do
   test ! -e "/etc/systemd/system/$unit" || cp -a "/etc/systemd/system/$unit" "$backup/"
 done
-git -C "$repo" rev-parse HEAD > "$backup/source-commit.txt"
+git -C "$checkout" rev-parse HEAD > "$backup/source-commit.txt"
 /opt/mw-integration-agent/.venv/bin/python -m pip freeze > "$backup/packages.txt"
 
 /opt/mw-integration-agent/.venv/bin/python -m pip install "$repo"

@@ -11,7 +11,7 @@ import time
 
 p=argparse.ArgumentParser();p.add_argument('phase',choices=['freeze','install','activate']);p.add_argument('--commit');a=p.parse_args()
 assert os.geteuid()==0 and os.uname().nodename=='vm-mw-credit-agent'
-repo=Path('/opt/mw-integration-agent-src');private=Path('/etc/mw-integration-agent')
+checkout=Path('/opt/mw-integration-agent-src');repo=checkout/'integration-agent';private=Path('/etc/mw-integration-agent')
 python='/opt/mw-integration-agent/.venv/bin/python'
 pointer=Path('/var/lib/mw-integration-agent/rollback/receipt-evidence-current')
 units=['mw-conversation-poll','mw-receipt-summary','mw-cash-statement','mw-cash-statement-email-retry','mw-partner-conversation']
@@ -23,10 +23,10 @@ def save(path,value):
     shutil.copystat(path,temporary) if path.exists() else os.chmod(temporary,0o640)
     shutil.chown(temporary,user='root',group='mwagent');os.replace(temporary,path)
 if a.phase=='freeze':
-    if output('git','-C',str(repo),'status','--porcelain'):raise SystemExit('Runtime checkout dirty')
+    if output('git','-C',str(checkout),'status','--porcelain'):raise SystemExit('Runtime checkout dirty')
     backup=pointer.parent/('receipt-evidence-'+datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ'))
     backup.mkdir(mode=0o700)
-    metadata={'source_commit':output('git','-C',str(repo),'rev-parse','HEAD'),
+    metadata={'source_commit':output('git','-C',str(checkout),'rev-parse','HEAD'),
               'resume_timers':[u+'.timer' for u in units if active(u+'.timer')=='active']}
     (backup/'deployment.json').write_text(json.dumps(metadata))
     pointer.write_text(str(backup))
@@ -48,7 +48,7 @@ if a.phase=='freeze':
 else:
     backup=Path(pointer.read_text());metadata=json.loads((backup/'deployment.json').read_text())
     assert metadata['package_copy_verified'] and all(active(u+'.timer')!='active' for u in units)
-    assert a.commit and output('git','-C',str(repo),'rev-parse','HEAD')==a.commit
+    assert a.commit and output('git','-C',str(checkout),'rev-parse','HEAD')==a.commit
     if a.phase=='install':
         # Build tools stay in pip's temporary isolated environment; runtime dependencies stay pinned.
         run(python,'-m','pip','install','--no-deps',str(repo),stdout=subprocess.DEVNULL)

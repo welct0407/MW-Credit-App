@@ -18,7 +18,8 @@ parser.add_argument('phase', choices=['freeze', 'install', 'resume'])
 parser.add_argument('--commit', required=True)
 args = parser.parse_args()
 assert os.geteuid() == 0 and os.uname().nodename == 'vm-mw-credit-agent'
-repo = Path('/opt/mw-integration-agent-src')
+checkout = Path('/opt/mw-integration-agent-src')
+repo = checkout/'integration-agent'
 python = '/opt/mw-integration-agent/.venv/bin/python'
 pointer = Path('/var/lib/mw-integration-agent/rollback/operator-audit-current')
 
@@ -32,8 +33,8 @@ def hashes(root):
     return {str(f.relative_to(root)): hashlib.sha256(f.read_bytes()).hexdigest()
             for f in root.rglob('*') if f.is_file()}
 
-assert not output('git', '-C', str(repo), 'status', '--porcelain')
-assert output('git', '-C', str(repo), 'rev-parse', 'HEAD') == args.commit
+assert not output('git', '-C', str(checkout), 'status', '--porcelain')
+assert output('git', '-C', str(checkout), 'rev-parse', 'HEAD') == args.commit
 if args.phase == 'freeze':
     backup = pointer.parent/('operator-audit-'+datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ'))
     backup.mkdir(mode=0o700)

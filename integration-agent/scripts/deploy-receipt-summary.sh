@@ -2,8 +2,9 @@
 # Install reviewed receipt code without activating receipt processing or delivery.
 set -eu
 test "$(id -u)" -eq 0
-repo=/opt/mw-integration-agent-src
-test -z "$(git -C "$repo" status --porcelain)"
+checkout=/opt/mw-integration-agent-src
+repo=$checkout/integration-agent
+test -z "$(git -C "$checkout" status --porcelain)"
 if systemctl is-active --quiet mw-receipt-summary.timer; then
     echo 'Receipt timer already active; use a reviewed update procedure' >&2
     exit 1
@@ -13,7 +14,7 @@ install -d -m 0700 "$backup"
 cp -a /etc/mw-integration-agent/config.json /etc/mw-integration-agent/service-catalogue.json "$backup/"
 cp -a /opt/mw-integration-agent/.venv/lib/python3.13/site-packages/mw_integration_agent "$backup/"
 /opt/mw-integration-agent/.venv/bin/python -m pip freeze > "$backup/packages.txt"
-git -C "$repo" rev-parse HEAD > "$backup/install-source-commit.txt"
+git -C "$checkout" rev-parse HEAD > "$backup/install-source-commit.txt"
 # Online SQLite backups include committed WAL records; never copy an open main DB alone.
 /opt/mw-integration-agent/.venv/bin/python - "$backup" <<'PY'
 import sqlite3,sys

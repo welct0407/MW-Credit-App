@@ -129,4 +129,17 @@ class NativeApiProbeTests(unittest.TestCase):
         with self.assertRaises(ValueError):health.native_api_status(self.config,'other',runner)
         runner.assert_not_called()
 
+class WebhookReadinessTests(unittest.TestCase):
+    def test_ready_with_code_version_is_healthy_and_reports_version(self):
+        fetch=Mock(return_value='{"ready": true, "code_version": "abc", "started_at": "t", "failed": []}')
+        self.assertEqual(health.readiness(fetch),(1,'abc'))
+        fetch.assert_called_once_with('http://127.0.0.1:8000/ready')
+    def test_not_ready_unavailable_invalid_or_unversioned_is_down(self):
+        import urllib.error
+        for fetch in [Mock(side_effect=urllib.error.HTTPError('http://127.0.0.1:8000/ready',503,'x',{},None)),Mock(side_effect=TimeoutError()),
+                      Mock(return_value='mw-instagram-webhook'),Mock(return_value='[]'),Mock(return_value='{"ready": false, "code_version": "abc"}'),
+                      Mock(return_value='{"ready": "true", "code_version": "abc"}'),Mock(return_value='{"ready": true, "code_version": ""}'),
+                      Mock(return_value='{"ready": true, "code_version": null}'),Mock(return_value='{"ready": true}')]:
+            with self.subTest(fetch=fetch):self.assertEqual(health.readiness(fetch),(0,None))
+
 if __name__=='__main__': unittest.main()

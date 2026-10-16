@@ -16,17 +16,17 @@ import time
 p=argparse.ArgumentParser();p.add_argument('phase',choices=['freeze','install','resume'])
 p.add_argument('--commit');a=p.parse_args()
 assert os.geteuid()==0 and os.uname().nodename=='vm-mw-credit-agent'
-repo=Path('/opt/mw-integration-agent-src');python='/opt/mw-integration-agent/.venv/bin/python'
+checkout=Path('/opt/mw-integration-agent-src');repo=checkout/'integration-agent';python='/opt/mw-integration-agent/.venv/bin/python'
 pointer=Path('/var/lib/mw-integration-agent/rollback/receipt-audit-repair-current')
 units=['mw-receipt-summary','mw-audit-relay']
 def output(*args):return subprocess.check_output(args,text=True).strip()
 def run(*args):subprocess.run(args,check=True)
 def active(unit):return output('systemctl','show',unit,'--property=ActiveState','--value')
 if a.phase=='freeze':
-    assert not output('git','-C',str(repo),'status','--porcelain')
+    assert not output('git','-C',str(checkout),'status','--porcelain')
     backup=pointer.parent/('receipt-audit-repair-'+datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ'))
     backup.mkdir(mode=0o700)
-    metadata={'source_commit':output('git','-C',str(repo),'rev-parse','HEAD'),
+    metadata={'source_commit':output('git','-C',str(checkout),'rev-parse','HEAD'),
               'resume_timers':[u+'.timer' for u in units if active(u+'.timer')=='active']}
     pointer.write_text(str(backup))
     (backup/'deployment.json').write_text(json.dumps(metadata))
@@ -46,7 +46,7 @@ if a.phase=='freeze':
 else:
     backup=Path(pointer.read_text());metadata=json.loads((backup/'deployment.json').read_text())
     assert metadata.get('package_copy_verified') and a.commit
-    assert output('git','-C',str(repo),'rev-parse','HEAD')==a.commit
+    assert output('git','-C',str(checkout),'rev-parse','HEAD')==a.commit
     assert all(active(u+'.timer')!='active' for u in units)
     if a.phase=='install':
         run(python,'-m','pip','install','--no-deps',str(repo))

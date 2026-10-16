@@ -156,6 +156,18 @@ def fetch(url, headers=None):
         return r.read().decode()
 
 
+def readiness(fetch):
+    """Receiver /ready: (1, code_version) only for 200 JSON with ready true and a code version; else (0, None)."""
+    try:
+        body = json.loads(fetch('http://127.0.0.1:8000/ready'))
+    except Exception:
+        return 0, None
+    version = body.get('code_version') if isinstance(body, dict) else None
+    if isinstance(body, dict) and body.get('ready') is True and isinstance(version, str) and version:
+        return 1, version
+    return 0, None
+
+
 def combine(values):
     for severity in (0, 4, 2, 3):
         if severity in values:
@@ -272,8 +284,11 @@ def main():
     check('daily_jobs', lambda: combine([job('mw-cash-statement', 90000, 3600),
                                      job('mw-cash-statement-email-retry', 600, 600)])
           if config.get('cash_statement_schedule_enabled') else 3)
-    check('webhook_local', lambda: (1 if fetch('http://127.0.0.1:8000/health').strip() == 'mw-instagram-webhook' else 0)
-          if config.get('receiver_enabled') else 3)
+    webhook = {'code_version': None}
+    def webhook_local():
+        status, webhook['code_version'] = readiness(fetch)
+        return status
+    check('webhook_local', lambda: webhook_local() if config.get('receiver_enabled') else 3)
     def tunnel():
         if properties('mw-cloudflared-instagram.service').get('ActiveState') != 'active':
             return 0
@@ -359,7 +374,7 @@ def main():
     with urllib.request.urlopen(req, timeout=20) as response:
         response.read()
     print(json.dumps({'checkedAt': timestamp, 'health': result, 'receipt_pipeline':receipt_pipeline,
-                     'audit_relay':audit_relay,'sql_uptime':sql_uptime,'sql_uptime_observed_at':sql_observed,
+                     'audit_relay':audit_relay,'webhook_code_version':webhook['code_version'],'sql_uptime':sql_uptime,'sql_uptime_observed_at':sql_observed,
                      'exported': True}))
 
 
