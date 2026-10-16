@@ -275,8 +275,8 @@ test('C08 exact concurrent retries produce one effect; changed amount/selection/
     const other = { ...competing, requestId: randomUUID() };
     const results = await Promise.all([s.post(competing), s.post(other)]);
     assert.equal(results.filter(x => x.status === 200).length, 1);
-    // The losing request rolled back cleanly: a known non-outcome, retried with the same request id (APP-PAY-06).
-    assert.equal(results.filter(x => x.status === 503 && x.body.code === 'command_unavailable').length, 1);
+    // The losing request hit the borrower try-lock and rolled back cleanly: a retryable known non-outcome, 409 command_busy, retried with the same request id (APP-PAY-06, DB-LOCK-01).
+    assert.equal(results.filter(x => x.status === 409 && x.body.code === 'command_busy').length, 1);
     const a = await counts(competing.requestId), b = await counts(other.requestId);
     assert.equal(a.payments + b.payments, 1); assert.equal(a.journal + b.journal, 1);
   });
