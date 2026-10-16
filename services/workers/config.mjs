@@ -1,13 +1,13 @@
 import {createECDH} from 'node:crypto';
 import {parseNotificationPolicy} from '../notifications/policy.mjs';
-import {PROJECT_ID as project,PROJECT_NUMBER as number,REGION as region,INSTANCE_CONNECTION_NAME} from '../lib/identity.mjs';
+import {PROJECT_ID as project,PROJECT_NUMBER as number,REGION as region,isSharedInstanceConnection} from '../lib/identity.mjs';
 const fail=()=>{throw Error('invalid_worker_configuration');};
 export function loadWorkerConfig(env){
  if(env.WORKER_ACTIVATION===undefined||env.WORKER_ACTIVATION==='disabled')return null;
  const environment=env.APP_ENV,role=env.WORKER_ROLE;
  if(env.WORKER_ACTIVATION!=='enabled'||!['dev','prod'].includes(environment)||!['notify','jobs'].includes(role)||env.APPLICATION_PROJECT_ID!==project)fail();
  const service=`mw-credit-app-${role}-${environment}`,dbUser=`${service}@${project}.iam`,audience=`https://${service}-${number}.${region}.run.app`,scheduler=`mw-credit-app-scheduler-${environment}@${project}.iam.gserviceaccount.com`;
- if(env.DB_NAME!==`loan_manager_${environment}`||env.INSTANCE_CONNECTION_NAME!==INSTANCE_CONNECTION_NAME||env.DB_USER!==dbUser||env.RUNTIME_SERVICE_ACCOUNT!==dbUser+'.gserviceaccount.com'||env.WORKER_AUDIENCE!==audience||env.SCHEDULER_SERVICE_ACCOUNT!==scheduler)fail();
+ if(env.DB_NAME!==`loan_manager_${environment}`||!isSharedInstanceConnection(env.INSTANCE_CONNECTION_NAME)||env.DB_USER!==dbUser||env.RUNTIME_SERVICE_ACCOUNT!==dbUser+'.gserviceaccount.com'||env.WORKER_AUDIENCE!==audience||env.SCHEDULER_SERVICE_ACCOUNT!==scheduler)fail();
  if(['DATABASE_URL','PGHOST','PGHOSTADDR','PGDATABASE','PGPORT','PGUSER','PGPASSWORD','PGSERVICE','PGSERVICEFILE','PGPASSFILE','FIREBASE_AUTH_EMULATOR_HOST','FIREBASE_AUTH_TENANT_ID','WEB_PUSH_PRIVATE_KEY'].some(k=>env[k]!==undefined))fail();
  let registeredCreators;try{registeredCreators=JSON.parse(env.SQL_REGISTERED_CREATORS_JSON);}catch{fail();}
  if(!Array.isArray(registeredCreators)||!registeredCreators.length||registeredCreators.some(v=>typeof v!=='string'||!v||v.length>63)||new Set(registeredCreators).size!==registeredCreators.length)fail();

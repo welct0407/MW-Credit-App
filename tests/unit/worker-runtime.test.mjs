@@ -17,6 +17,7 @@ test('DEV API enrollment requires the owner tuple while dispatch additionally re
 });
 test('worker exact environment identities and separation fail closed',()=>{
  assert.equal(loadWorkerConfig({}),null);assert.equal(loadWorkerConfig(env).capability,'mw_jobs_dev');
+ assert.equal(loadWorkerConfig({...env,INSTANCE_CONNECTION_NAME:'clever-oasis-508610-n7:asia-southeast1:mw-credit-pg-20261017'}).instance,'clever-oasis-508610-n7:asia-southeast1:mw-credit-pg-20261017');assert.throws(()=>loadWorkerConfig({...env,INSTANCE_CONNECTION_NAME:'clever-oasis-508610-n7:asia-southeast1:mw-credit-pg-20261018'}));
  for(const patch of [{DB_NAME:'loan_manager_prod'},{WORKER_AUDIENCE:'https://attacker.invalid'},{DB_USER:'postgres'},{WEB_PUSH_VAPID_JSON:'{}'},{NOTIFICATION_POLICY_JSON:'{}'},{PGHOST:'localhost'},{WORKER_ACTIVATION:'true'}])assert.throws(()=>loadWorkerConfig({...env,...patch}));
 });
 test('disabled worker creates no pool, credentials or effect',async()=>{

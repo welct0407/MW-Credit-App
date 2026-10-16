@@ -16,6 +16,7 @@ const principal={ok:true,subject:'verified-shared-user',email:member.loginEmail}
 test('PROD notification and machine receipt activation remains explicit and environment bound',()=>{
  const commandEnv={...env,FOUNDATION_ROLE:'command',DB_USER:env.DB_USER.replace('-read-','-command-'),RUNTIME_SERVICE_ACCOUNT:env.RUNTIME_SERVICE_ACCOUNT.replace('-read-','-command-')};
  assert.equal(loadProductionBusinessConfig(commandEnv).notificationsEnabled,false);
+ assert.equal(loadProductionBusinessConfig({...commandEnv,INSTANCE_CONNECTION_NAME:'clever-oasis-508610-n7:asia-southeast1:mw-credit-pg-20261017'}).instance,'clever-oasis-508610-n7:asia-southeast1:mw-credit-pg-20261017');assert.equal(loadProductionBusinessConfig(commandEnv).instance,commandEnv.INSTANCE_CONNECTION_NAME);assert.throws(()=>loadProductionBusinessConfig({...commandEnv,INSTANCE_CONNECTION_NAME:'clever-oasis-508610-n7:asia-southeast1:mw-credit-pg-20261018'}));
  assert.equal(loadDispatchConfig(commandEnv,'prod'),null);
  assert.equal(loadAgentReceiptPolicy(commandEnv,'prod'),null);
  assert.equal(loadProductionBusinessConfig({...commandEnv,PWA_NOTIFICATIONS:'enabled',WEB_PUSH_PUBLIC_KEY:'a'.repeat(87)}).notificationsEnabled,true);

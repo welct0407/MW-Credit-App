@@ -1,7 +1,7 @@
 import {parseNativeProductionCatalog} from '../receipts/production-native-catalog.mjs';
 import {parseNativeDevCatalog} from '../receipts/native-catalog.mjs';
 import {DEV_RECEIPT_MAPPING,PROD_RECEIPT_MAPPING} from '../receipts/dev-receipt-adapter.mjs';
-import {PROJECT_ID,PROJECT_NUMBER,INSTANCE_CONNECTION_NAME} from '../lib/identity.mjs';
+import {PROJECT_ID,PROJECT_NUMBER,INSTANCE_CONNECTION_NAME,isSharedInstanceConnection} from '../lib/identity.mjs';
 import { parseBusinessPolicy } from './business-policy.mjs';
 export const BUSINESS_PROJECT=PROJECT_ID;
 export const BUSINESS_INSTANCE=INSTANCE_CONNECTION_NAME;
@@ -26,7 +26,7 @@ export function loadBusinessConfig(env) {
   const prefixed=name=>env[profile.prefix+name];
   if(env.BUSINESS_ACTIVATION!=='approved-candidate'||!['dev','prod'].includes(environment)||env.BUSINESS_MODE!=='business-candidate'||!['reader','command'].includes(env.FOUNDATION_ROLE)
     ||env.APPLICATION_PROJECT_ID!==PROJECT_ID||env.APPLICATION_PROJECT_NUMBER!==PROJECT_NUMBER||env.FIREBASE_PROJECT_ID!==PROJECT_ID||env.AUTH_MODE!=='firebase'
-    ||env.DB_NAME!==`loan_manager_${environment}`||env.INSTANCE_CONNECTION_NAME!==INSTANCE_CONNECTION_NAME||env.DATA_PROJECT_ID!==PROJECT_ID)fail();
+    ||env.DB_NAME!==`loan_manager_${environment}`||!isSharedInstanceConnection(env.INSTANCE_CONNECTION_NAME)||env.DATA_PROJECT_ID!==PROJECT_ID)fail();
   const serviceRole=env.FOUNDATION_ROLE,dbUser=`mw-credit-app-${serviceRole==='reader'?'read':'command'}-${environment}@${PROJECT_ID}.iam`;
   if(env.DB_USER!==dbUser||env.RUNTIME_SERVICE_ACCOUNT!==dbUser+'.gserviceaccount.com')fail();
   // Ambient credentials, retired DEV owner/fixture modes and the other environment's names are refused.
@@ -61,7 +61,7 @@ export function loadBusinessConfig(env) {
   if(prefixed('SQL_APPLICATION_ROLE')!==applicationRole||prefixed('SQL_JOURNAL_OWNER_ROLE')!==journalOwnerRole)fail();
   let registeredCreators;try{registeredCreators=JSON.parse(prefixed('SQL_REGISTERED_CREATORS'));}catch{fail();}
   if(!Array.isArray(registeredCreators)||!registeredCreators.length||registeredCreators.length>50||new Set(registeredCreators).size!==registeredCreators.length||registeredCreators.some(v=>typeof v!=='string'||!v||v.length>63||/[\u0000-\u001f]/.test(v)))fail();
-  return Object.freeze({receiptCatalog,receiptCompatibility,nativeReceiptDescriptors,notificationsEnabled:env.PWA_NOTIFICATIONS==='enabled',pushPublicKey:env.WEB_PUSH_PUBLIC_KEY,environment,mode:'business-candidate',serviceRole,projectId:PROJECT_ID,issuer:`https://securetoken.google.com/${PROJECT_ID}`,database:env.DB_NAME,instance:INSTANCE_CONNECTION_NAME,dbUser,origins:Object.freeze(origins),canonicalOrigin:profile.canonicalOrigin,hostingSite:site,policy,registeredCreators:Object.freeze(registeredCreators),applicationRole,journalOwnerRole});
+  return Object.freeze({receiptCatalog,receiptCompatibility,nativeReceiptDescriptors,notificationsEnabled:env.PWA_NOTIFICATIONS==='enabled',pushPublicKey:env.WEB_PUSH_PUBLIC_KEY,environment,mode:'business-candidate',serviceRole,projectId:PROJECT_ID,issuer:`https://securetoken.google.com/${PROJECT_ID}`,database:env.DB_NAME,instance:env.INSTANCE_CONNECTION_NAME,dbUser,origins:Object.freeze(origins),canonicalOrigin:profile.canonicalOrigin,hostingSite:site,policy,registeredCreators:Object.freeze(registeredCreators),applicationRole,journalOwnerRole});
 }
 /** Retained name for existing build smoke checks and promotion tooling. */
 export const loadProductionBusinessConfig=loadBusinessConfig;

@@ -1,4 +1,4 @@
-import { PROJECT_ID, PROJECT_NUMBER, INSTANCE_CONNECTION_NAME, OWNER_EMAIL } from '../lib/identity.mjs';
+import { PROJECT_ID, PROJECT_NUMBER, isSharedInstanceConnection, OWNER_EMAIL } from '../lib/identity.mjs';
 const fail = () => { throw Error('Invalid production foundation configuration'); };
 /** Explicit inventory bindings are validated here; this foundation never opens a data client. */
 export function loadProductionFoundationConfig(env) {
@@ -13,7 +13,7 @@ export function loadProductionFoundationConfig(env) {
   const runtimeIdentity = `mw-credit-app-${serviceRole === 'reader' ? 'read' : 'command'}-prod@${projectId}.iam.gserviceaccount.com`;
   if (env.RUNTIME_SERVICE_ACCOUNT !== runtimeIdentity
     || env.DATA_PROJECT_ID !== PROJECT_ID || env.DB_NAME !== 'loan_manager_prod'
-    || env.INSTANCE_CONNECTION_NAME !== INSTANCE_CONNECTION_NAME) fail();
+    || !isSharedInstanceConnection(env.INSTANCE_CONNECTION_NAME)) fail();
   const ownerUid = env.PROD_OWNER_FIREBASE_UID;
   if (typeof ownerUid !== 'string' || !ownerUid || ownerUid.length > 128 || ownerUid !== ownerUid.trim() || /[\s\u0000-\u001f\u007f]/u.test(ownerUid)) fail();
   const prefix = `projects/${projectId}/secrets/mw-credit-app-prod-owner-identity/versions/`;
