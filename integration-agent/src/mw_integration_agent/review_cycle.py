@@ -1,23 +1,24 @@
 """Receipt -> automatic ordinary payment or correlated Partner review/manual handling."""
 import json
-import sqlite3
 from .state import connect as state_connect, enabled as state_enabled
-from datetime import datetime
+from datetime import timedelta
 from pathlib import Path
-from .config import ConfigurationError
+from .business_time import today
+from .config import ConfigurationError, cutoff_ts
 from contextlib import contextmanager
-from .receipt_rules import ReceiptInvalid,BANGKOK
+from .receipt_rules import ReceiptInvalid
 from .receipt_master import masters
 from .payment_match import check
 from .partner_notice import NoticeJournal,receipt_notice
 from .partner_review import ReviewStore,request_text,review_id
 from .review_proposal import facts,plan,review_posts_overpayment,same_proposal_facts
-from .review_execution import add_payment,readback
+from .review_execution import readback
 from . import receipt_api
 from .cash_statement import read_query
 from .receipt_identity import receipt_borrower
 
 AUTO_POLICY='OWNER_AUTHORIZED_AUTO_PAYMENT'
+NOT_SENT_RETRY_SECONDS=900  # AGT-SEND-03: a persistent 401/403 or token fault re-submits every 15 minutes, not every cycle
 
 
 @contextmanager
@@ -31,7 +32,7 @@ def isolated(failures,stage,on_error=None):
 
 def automatic_payment(config,job,proposal):
     return (config.get('receipt_auto_payment_enabled') is True and proposal['action']=='Lump Sum'
-            and job['created_at']>=datetime.fromisoformat(config['receipt_auto_payment_cutoff']).timestamp())
+            and job['created_at']>=cutoff_ts(config,'receipt_auto_payment_cutoff'))
 
 
 def reviewer_partners(live):
@@ -42,13 +43,13 @@ def reviewer_partners(live):
 def cycle(config,journal,identity_reader):
     root=Path(config['state_directory']);db=journal.db;reviews=ReviewStore(db)
     notices=NoticeJournal(root/'partner-notices.db', config=config)
-    cutoff=datetime.fromisoformat(config['partner_review_cutoff']).timestamp()
+    cutoff=cutoff_ts(config,'partner_review_cutoff')
     failures=[];notification_failures=[]
     try:
         import time
         with db:db.execute("UPDATE partner_reviews SET state='EXPIRED' WHERE state='PENDING' AND expires_at<?",(time.time(),))
         for job in db.execute("SELECT * FROM receipt_jobs WHERE status='VALIDATED' AND created_at>=?",(cutoff,)).fetchall():
-            with isolated(failures,'proposal',lambda:journal.mark(job['id'],'REVIEW','RECEIPT_PROPOSAL_UNAVAILABLE')):
+            with isolated(failures,'proposal',lambda job=job:journal.mark(job['id'],'REVIEW','RECEIPT_PROPOSAL_UNAVAILABLE')):
                 result=json.loads(job['result']);live=masters(config)
                 try:
                     b=receipt_borrower(config,job,journal,live,identity_reader)
@@ -97,7 +98,7 @@ def cycle(config,journal,identity_reader):
                 if is_command(event):
                     if db.execute('SELECT 1 FROM partner_review_replies WHERE message_id=?',(event['message_id'],)).fetchone():continue
                     if not config.get('review_resend_cutoff'):continue
-                    command_cutoff=datetime.fromisoformat(config['review_resend_cutoff']).timestamp()
+                    command_cutoff=cutoff_ts(config,'review_resend_cutoff')
                     if min(event['captured_at'],event['event_timestamp'])<command_cutoff or not 0<=time.time()-event['event_timestamp']<86340:continue
                     queue(db,notices,config,event,masters(config),identity_reader(config,event['sender_id']))
                     continue
@@ -106,9 +107,8 @@ def cycle(config,journal,identity_reader):
                 if not notice:continue
                 if notice['event_key'].startswith('receipt-held:'):
                     from .hold_reply import decide,queue_result,result_key
-                    hold_cutoff=config.get('receipt_hold_reply_cutoff')
-                    if not hold_cutoff:continue
-                    hold_cutoff=datetime.fromisoformat(hold_cutoff).timestamp()
+                    if not config.get('receipt_hold_reply_cutoff'):continue
+                    hold_cutoff=cutoff_ts(config,'receipt_hold_reply_cutoff')
                     if event['event_timestamp']<hold_cutoff or event['captured_at']<hold_cutoff:continue
                     # Retry interrupted acknowledgement preparation independently
                     # of the already committed, idempotent dismissal.
@@ -157,6 +157,9 @@ def cycle(config,journal,identity_reader):
                 live=masters(config)
                 try:
                     job=db.execute('SELECT * FROM receipt_jobs WHERE id=?',(review['job_id'],)).fetchone()
+                    # A review whose last submit was NotSent waits out the linked job's retry_after
+                    # (bounded retry without a new column; the job is past PENDING, so nothing else reads it).
+                    if job and job['retry_after']>time.time():continue
                     from .receipt_archive import required
                     if required(config,job) and not db.execute(
                         "SELECT 1 FROM receipt_assets WHERE job_id=? AND archive_state='ARCHIVED'",(job['id'],)).fetchone():
@@ -179,17 +182,16 @@ def cycle(config,journal,identity_reader):
                         if not any(json.loads(n[0])==matches[0] for n in sent):raise ReceiptInvalid('APPROVING_PARTNER_CHANGED')
                     b=receipt_borrower(config,job,journal,live,identity_reader)
                     if b['id']!=proposal['borrower']['id']:raise ReceiptInvalid('BORROWER_CHANGED')
-                    from datetime import timedelta
-                    today=datetime.now(BANGKOK).date()
-                    if proposal['receipt']['date'] not in (today.isoformat(),(today-timedelta(days=1)).isoformat()):
+                    day=today()
+                    if proposal['receipt']['date'] not in (day.isoformat(),(day-timedelta(days=1)).isoformat()):
                         raise ReceiptInvalid('RECEIPT_DATE_TOO_OLD')
                     check(config,proposal['receipt'],b)
                     fresh=plan(proposal['receipt'],b,facts(config,b['id']))
                     if not same_proposal_facts(proposal,fresh):raise ReceiptInvalid('PROPOSAL_FACTS_CHANGED')
                     if not any(a['id']==proposal['receipt']['account_id'] and a['active'] is True for a in live['accounts']):
                         raise ReceiptInvalid('RECEIVING_ACCOUNT_CHANGED')
-                    pid="'"+review['deciding_partner'].replace("'","''")+"'"
-                    actors=read_query(config,'SELECT coalesce(json_agg("Login Email"),\'[]\'::json) FROM public."Partners" WHERE "Row ID"='+pid+';')
+                    actors=read_query(config,'SELECT coalesce(json_agg("Login Email"),\'[]\'::json) FROM public."Partners" WHERE "Row ID"=:\'pid\';',
+                                      {'pid':review['deciding_partner']})
                     if len(actors)!=1 or not actors[0]:raise ReceiptInvalid('PARTNER_LOGIN_UNMAPPED')
                 except ReceiptInvalid as exc:
                     with db:db.execute("UPDATE partner_reviews SET state='STALE',detail=? WHERE id=?",(str(exc),review['id']))
@@ -207,7 +209,18 @@ def cycle(config,journal,identity_reader):
                 api_result=None
                 try:
                     api_result=receipt_api.submit(posting_config,api_payload)
-                except Exception:pass
+                except receipt_api.NotSent as exc:
+                    # Nothing reached the API's business path: release the claim so the next cycle
+                    # re-submits under the same deterministic requestId (AGT-SEND-03). `detail` is
+                    # left alone because it carries the automatic-payment policy marker.
+                    with db:
+                        db.execute("UPDATE partner_reviews SET state='APPROVED',payment_id=NULL WHERE id=? AND state='POSTING'",(review['id'],))
+                        db.execute('UPDATE receipt_jobs SET retry_after=?,detail=? WHERE id=?',(time.time()+NOT_SENT_RETRY_SECONDS,str(exc),review['job_id']))
+                    failures.append({'stage':'submit','exception':str(exc)})
+                    continue
+                except Exception as exc:
+                    # The POST may have left the host: reconcile by status only, never resend.
+                    failures.append({'stage':'submit','exception':type(exc).__name__})
                 verified=False
                 try:
                     if api_result is None:api_result=receipt_api.status(config,key,review['id'])
@@ -250,7 +263,7 @@ def notify(config,journal,notices,identity_reader,failures):
     # Bound optional transport work so a backlog cannot monopolize the receipt lock.
     # Retry timestamps also let untouched notices progress after a provider outage.
     for notice in eligible[:2]:
-        with isolated(failures,'delivery',lambda: notices.defer(notice['id'])):
+        with isolated(failures,'delivery',lambda notice=notice: notices.defer(notice['id'])):
             live=masters(config)
             if notice['event_key'].startswith(('hold-reply-result:','review-command-result:')) and not any(
                 p['id']==notice['partner_id'] and p['enabled'] is True and p['id'] in live.get('reviewer_ids',[]) for p in live['partners']):

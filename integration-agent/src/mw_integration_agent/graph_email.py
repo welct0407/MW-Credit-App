@@ -13,6 +13,7 @@ from pathlib import Path
 
 from .audit import audited
 from .config import ConfigurationError
+from .http import opener as http_opener
 
 
 class EmailRejected(ConfigurationError):
@@ -21,11 +22,6 @@ class EmailRejected(ConfigurationError):
 
 class EmailUnknown(ConfigurationError):
     """The provider may have accepted the request; never replay automatically."""
-
-
-class NoRedirect(urllib.request.HTTPRedirectHandler):
-    def redirect_request(self, *args, **kwargs):
-        return None
 
 
 def valid_email(value):
@@ -58,7 +54,9 @@ class GraphEmail:
 
     def __init__(self, config, opener=None):
         self.config = config
-        self.opener = opener or urllib.request.build_opener(NoRedirect)
+        # A redirect raises RedirectDenied: the token path treats it as a definite
+        # rejection and the send path as unknown, exactly as a 3xx HTTPError was.
+        self.opener = opener or http_opener()
 
     def _oauth_path(self):
         path = Path(self.config["email_oauth_file"]).resolve()

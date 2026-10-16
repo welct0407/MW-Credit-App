@@ -8,7 +8,7 @@ import json
 import uuid
 
 from . import audit
-from .config import ConfigurationError
+from .config import DATABASES, ConfigurationError
 
 SERVICE = 'operator_sql_reconciliation'
 CONTRACT = 'operator-sql-reconciliation-v1'
@@ -33,7 +33,7 @@ def plan(captured, database, evidence):
     marker, rows, original = captured
     try:
         op, marker_hash, actor, login, txid, recorded, reason, targets, revision = marker
-        if (database != 'loan_manager_prod' or str(uuid.UUID(op)) != op or not actor or not login
+        if (database not in DATABASES.values() or str(uuid.UUID(op)) != op or not actor or not login
                 or not txid.isdecimal() or not revision or not reason or not recorded
                 or not 1 <= len(rows) <= 1000 or any(r[7] != txid for r in rows)
                 or not isinstance(json.loads(targets), list) or len(json.loads(targets)) != 1

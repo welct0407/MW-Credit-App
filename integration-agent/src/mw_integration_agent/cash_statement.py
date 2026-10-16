@@ -3,15 +3,16 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import subprocess
 from datetime import datetime, time, timedelta
 from decimal import Decimal
-from zoneinfo import ZoneInfo
 
 from .audit import audited
-from .config import ConfigurationError, load_secret
+from .business_time import BANGKOK
+from .config import ConfigurationError, auth_mode, iam_port, load_secret
 
-BANGKOK = ZoneInfo('Asia/Bangkok')
+__all__ = ['BANGKOK', 'period', 'read_query', 'partners', 'snapshot', 'summarize']
 
 
 def period(day: str | None = None, now: datetime | None = None):
@@ -29,14 +30,28 @@ def period(day: str | None = None, now: datetime | None = None):
 
 
 @audited('business_read',route='postgres',action='READ')
-def read_query(config, sql):
+def read_query(config, sql, variables=None):
+    """Run one read-only SQL text through psql. Values go in as psql variables (-v name=value),
+    referenced in the SQL as :'name', so no caller builds a literal by hand."""
     if not config.get('database_enabled'):
         raise ConfigurationError('database_enabled is false')
-    env = dict(os.environ, PGPASSWORD=load_secret(config, 'database_password_file'), PGCONNECT_TIMEOUT='10')
-    command = ['psql', '-X', '-h', config['database_host'], '-p', str(config['database_port']),
-               '-U', config['database_user'], '-d', config['database_name'], '-Atq', '-v', 'ON_ERROR_STOP=1']
+    env = dict(os.environ, PGCONNECT_TIMEOUT='10')
+    env.pop('PGPASSWORD', None)
+    prefix, port = '', config['database_port']
+    if auth_mode(config, 'database_') == 'iam':
+        # The proxy's auto-iam-authn listener authenticates the VM service account; the
+        # least-privilege role is assumed for the session before the read-only transaction.
+        user, prefix, port = config['database_iam_user'], 'SET ROLE ' + config['database_user'] + ';\n', iam_port(config)
+    else:
+        user, env['PGPASSWORD'] = config['database_user'], load_secret(config, 'database_password_file')
+    command = ['psql', '-X', '-h', config['database_host'], '-p', str(port),
+               '-U', user, '-d', config['database_name'], '-Atq', '-v', 'ON_ERROR_STOP=1']
+    for name, value in (variables or {}).items():
+        if not re.fullmatch(r'[A-Za-z_][A-Za-z0-9_]*', name) or not isinstance(value, str):
+            raise ConfigurationError('Invalid query variable')
+        command += ['-v', name + '=' + value]
     try:
-        result = subprocess.run(command, input='BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY;\n'
+        result = subprocess.run(command, input=prefix + 'BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY;\n'
             "SET LOCAL statement_timeout='30s';\n" + sql + '\nROLLBACK;',
             env=env, text=True, encoding='utf-8', capture_output=True, timeout=40, check=True)
         return json.loads(result.stdout, parse_float=Decimal)
@@ -87,7 +102,7 @@ WITH effects AS (
 SELECT json_build_object('database',current_database(),'role',current_user,
  'generated_at',CURRENT_TIMESTAMP,'accounts',(SELECT json_agg(accounts ORDER BY label,id) FROM accounts));
 ''')
-    if value['database'] != 'loan_manager_prod' or value['role'] != 'mw_integration_agent':
+    if value['database'] != config['database_name'] or value['role'] != 'mw_integration_agent':
         raise ConfigurationError('Unexpected database identity')
     value.update(start=start.isoformat(), end=end.isoformat(), basis='ledger-posting-time')
     for account in value['accounts'] or []:

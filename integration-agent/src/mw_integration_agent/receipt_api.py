@@ -4,15 +4,23 @@ import json
 import re
 import time
 import urllib.error
-import urllib.parse
 import urllib.request
-import uuid
 from decimal import Decimal
-from datetime import datetime
 
 from .audit import audited
-from .config import ConfigurationError
+from .config import ConfigurationError, aware_cutoff
+from .http import identity_token, opener as http_opener, uuid_from_sha256
 from .receipt_archive import encoded
+
+
+class NotSent(ConfigurationError):
+    """The command never reached the API's business path (AGT-SEND-03).
+
+    Only three faults qualify: the identity token could not be fetched or was
+    invalid (no request was built), HTTP 401 (answered before the service touches
+    its pool) and HTTP 403 (answered only after ROLLBACK with no commit started).
+    Everything else after the POST may have left the host stays uncertain.
+    """
 
 
 def validate(config):
@@ -20,11 +28,7 @@ def validate(config):
         raise ConfigurationError('receipt_payment_api_enabled must be boolean')
     if not config.get('receipt_payment_api_enabled'):
         return
-    try:
-        if datetime.fromisoformat(config['receipt_payment_api_cutoff']).tzinfo is None:
-            raise ValueError()
-    except (KeyError, TypeError, ValueError):
-        raise ConfigurationError('RECEIPT_PAYMENT_API_CUTOFF_REQUIRED') from None
+    aware_cutoff(config, 'receipt_payment_api_cutoff', 'RECEIPT_PAYMENT_API_CUTOFF_REQUIRED')
     environment = config.get('receipt_environment')
     expected = f'https://mw-credit-app-command-{environment}-737787224638.asia-southeast1.run.app'
     if (environment not in ('dev', 'prod') or config.get('receipt_payment_api_audience') != expected
@@ -37,11 +41,7 @@ def validate(config):
 def request_id(environment, review_id):
     if environment not in ('dev', 'prod') or not isinstance(review_id, str) or not review_id or len(review_id.encode()) > 256:
         raise ConfigurationError('INVALID_RECEIPT_REQUEST_ID')
-    raw = bytearray(hashlib.sha256(json.dumps(['mw-credit-agent-receipt-v1', environment, review_id],
-                                           ensure_ascii=False, separators=(',', ':')).encode()).digest()[:16])
-    raw[6] = (raw[6] & 15) | 64
-    raw[8] = (raw[8] & 63) | 128
-    return str(uuid.UUID(bytes=bytes(raw)))
+    return uuid_from_sha256(['mw-credit-agent-receipt-v1', environment, review_id])
 
 
 def payload(config, review, proposal, asset, automatic):
@@ -67,11 +67,6 @@ def payload(config, review, proposal, asset, automatic):
     return {'command': command, 'actorPartnerId': review['deciding_partner']}
 
 
-class NoRedirect(urllib.request.HTTPRedirectHandler):
-    def redirect_request(self, *args, **kwargs):
-        raise ConfigurationError('RECEIPT_API_REDIRECT_DENIED')
-
-
 def call(config, method, request=None, body=None):
     # Disabled configuration cannot silently fall back for a persisted pwa key.
     validate(config)
@@ -80,16 +75,15 @@ def call(config, method, request=None, body=None):
     origin = config['receipt_payment_api_origin']
     if request is not None and not re.fullmatch(r'[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}', request):
         raise ConfigurationError('INVALID_RECEIPT_REQUEST_ID')
-    opener = urllib.request.build_opener(NoRedirect())
+    opener = http_opener()
     until = time.monotonic() + 20
     def remaining():
         return max(0.001, until - time.monotonic())
-    metadata = urllib.request.Request('http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/identity?'
-        + urllib.parse.urlencode({'audience': config['receipt_payment_api_audience'], 'format': 'full'}), headers={'Metadata-Flavor': 'Google'})
-    with opener.open(metadata, timeout=remaining()) as response:
-        token = response.read(16385).decode()
-    if len(token) > 16384 or not re.fullmatch(r'[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+', token):
-        raise ConfigurationError('INVALID_WORKLOAD_TOKEN')
+    try:
+        token = identity_token(config['receipt_payment_api_audience'], opener, remaining())
+    except Exception as exc:
+        # Classification boundary: without a token no request is built, so nothing was sent.
+        raise NotSent('RECEIPT_API_NOT_SENT_TOKEN') from exc
     headers = {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json',
                'X-MW-Wake-Deadline': str(int((time.time() + remaining()) * 1000))}
     req = urllib.request.Request(origin + '/internal/agent/receipt-payments' + ('/' + request if request else ''),
@@ -97,6 +91,8 @@ def call(config, method, request=None, body=None):
     try:
         response = opener.open(req, timeout=remaining())
     except urllib.error.HTTPError as error:
+        if error.code in (401, 403):
+            raise NotSent('RECEIPT_API_NOT_SENT_' + str(error.code)) from None
         if error.code != 422:
             raise ConfigurationError('RECEIPT_API_OUTCOME_UNCERTAIN') from None
         response = error

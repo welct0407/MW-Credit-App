@@ -4,12 +4,12 @@ import io
 import json
 import os
 import time
-from datetime import datetime, timezone
+from datetime import datetime, UTC
 from pathlib import Path
 
 from PIL import Image
 
-from .config import ConfigurationError
+from .config import ConfigurationError, cutoff_ts
 from .receipt_image import canonical_image, download_original
 from .receipt_storage import GCS, BUCKET
 from .state import is_postgres
@@ -26,8 +26,7 @@ def source(kind, message, index, sender, sent, captured, conversation=None, atta
 
 
 def required(config, job):
-    return bool(config.get('receipt_archive_enabled') and job['created_at'] >=
-                datetime.fromisoformat(config['receipt_archive_cutoff']).timestamp())
+    return bool(config.get('receipt_archive_enabled') and job['created_at'] >= cutoff_ts(config, 'receipt_archive_cutoff'))
 
 
 class Archive:
@@ -116,7 +115,7 @@ class Archive:
                 raise ConfigurationError('RECEIPT_INTEGRITY_CONFLICT')
             with Image.open(io.BytesIO(raw)) as image:
                 suffix, mime = {'JPEG': ('jpg','image/jpeg'), 'PNG': ('png','image/png'), 'WEBP': ('webp','image/webp')}[image.format]
-            day = datetime.fromtimestamp(provenance['captured_at'], timezone.utc).strftime('%Y/%m/%d')
+            day = datetime.fromtimestamp(provenance['captured_at'], UTC).strftime('%Y/%m/%d')
             key = f'receipts/{environment}/{day}/{receipt_id}/{digest}.{suffix}'
             if not asset['raw_sha256']:
                 with self.db:

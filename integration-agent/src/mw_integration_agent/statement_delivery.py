@@ -12,7 +12,8 @@ from pathlib import Path
 
 from .audit import audited
 from .config import ConfigurationError, load_secret
-from .instagram import Instagram, InstagramAPIError
+from .http import opener as http_opener
+from .instagram import InstagramAPIError
 
 
 class InstagramDeliveryError(ConfigurationError):
@@ -87,11 +88,6 @@ def resolve_recipient(api, partner):
     return recipient
 
 
-class NoRedirect(urllib.request.HTTPRedirectHandler):
-    def redirect_request(self,*args,**kwargs):
-        return None
-
-
 @audited('image_upload',route='instagram',action='SEND',effect=True)
 def upload_image(config, path, authorized=False):
     """Upload directly to Meta; never publish a financial image at a public URL."""
@@ -110,7 +106,7 @@ def upload_image(config, path, authorized=False):
         'Authorization':'Bearer '+load_secret(config,'instagram_token_file'),
         'Content-Type':'multipart/form-data; boundary='+boundary},method='POST')
     try:
-        with urllib.request.build_opener(NoRedirect).open(request,timeout=40) as response:
+        with http_opener().open(request,timeout=40) as response:
             value=json.load(response)
     except urllib.error.HTTPError as exc:
         # Emit codes only; never body, tokens, URLs or financial content.

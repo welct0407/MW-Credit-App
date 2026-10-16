@@ -1,8 +1,11 @@
 """Operator-only credential/role setup. Never available to conversational Codex.
 
 Run on the authorized workstation against the verified environment configuration.
-The credential is created outside Git, retained on repeat runs, and installed on
-Debian separately. No application schema, rows, triggers or migrations change.
+The credential is created outside Git (wherever --secret-file points), retained on
+repeat runs, and installed on Debian separately. No application schema, rows,
+triggers or migrations change. --environment selects the database/role pair
+(ALL-ARCH-02); the DEV role is not usable until a later migration relaxes the
+session_user checks in V33.
 """
 import argparse
 import json
@@ -10,56 +13,69 @@ import secrets
 from pathlib import Path
 import psycopg
 from psycopg import sql
+from mw_integration_agent.config import DATABASES, DML_ROLES
 from mw_integration_agent.conversation_dml import TABLES
 
+INSTANCE = 'appsheet-pg-prod-20260914'
 
-def configure(conn, password):
-    if conn.execute("SELECT 1 FROM pg_roles WHERE rolname='mw_reviewer_dml'").fetchone():
+
+def configure(conn, password, role='mw_reviewer_dml'):
+    if role not in DML_ROLES.values():
+        raise RuntimeError('Unknown reviewer DML role')
+    if conn.execute('SELECT 1 FROM pg_roles WHERE rolname=%s', (role,)).fetchone():
         raise RuntimeError('Role already exists: inspect before changing existing grants or credential')
-    conn.execute(sql.SQL('CREATE ROLE mw_reviewer_dml LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOREPLICATION NOBYPASSRLS PASSWORD {}').format(sql.Literal(password)))
-    conn.execute('ALTER ROLE mw_reviewer_dml SET default_transaction_read_only=on')
-    conn.execute("ALTER ROLE mw_reviewer_dml SET statement_timeout='15s'")
-    conn.execute('GRANT CONNECT ON DATABASE '+sql.Identifier(conn.info.dbname).as_string(conn)+' TO mw_reviewer_dml')
-    conn.execute('GRANT USAGE ON SCHEMA public TO mw_reviewer_dml')
+    name = sql.Identifier(role)
+    conn.execute(sql.SQL('CREATE ROLE {} LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOREPLICATION NOBYPASSRLS PASSWORD {}').format(name, sql.Literal(password)))
+    conn.execute(sql.SQL('ALTER ROLE {} SET default_transaction_read_only=on').format(name))
+    conn.execute(sql.SQL("ALTER ROLE {} SET statement_timeout='15s'").format(name))
+    conn.execute(sql.SQL('GRANT CONNECT ON DATABASE {} TO {}').format(sql.Identifier(conn.info.dbname), name))
+    conn.execute(sql.SQL('GRANT USAGE ON SCHEMA public TO {}').format(name))
     # Explicit current resources only: no default privileges on future tables.
-    conn.execute('GRANT SELECT ON ALL TABLES IN SCHEMA public TO mw_reviewer_dml')
-    conn.execute(sql.SQL('GRANT INSERT, UPDATE ON {} TO mw_reviewer_dml').format(
-        sql.SQL(',').join(sql.Identifier('public',t) for t in TABLES)))
-    # Existing invoker-rights posting triggers insert allocations; source cash
-    # synchronization may delete system entries, guarded by trigger depth.
+    conn.execute(sql.SQL('GRANT SELECT ON ALL TABLES IN SCHEMA public TO {}').format(name))
+    conn.execute(sql.SQL('GRANT INSERT, UPDATE ON {} TO {}').format(
+        sql.SQL(',').join(sql.Identifier('public', t) for t in TABLES), name))
+    # Existing invoker-rights posting triggers insert allocations. Reviewer DELETE is retired
+    # (16 October 2026): no DELETE on the source tables. The one DELETE grant that remains is
+    # on "Cash Ledger", because the security-invoker trigger cash_source_changed deletes
+    # ledger rows when the reviewer INSERTs/UPDATEs a source row (guarded by trigger depth).
     # Neither resource/action is exposed as a model mutation tool.
-    conn.execute('GRANT INSERT, UPDATE ON public."Payment Allocations" TO mw_reviewer_dml')
-    conn.execute('GRANT DELETE ON public."Cash Ledger" TO mw_reviewer_dml')
+    conn.execute(sql.SQL('GRANT INSERT, UPDATE ON public."Payment Allocations" TO {}').format(name))
+    conn.execute(sql.SQL('GRANT DELETE ON public."Cash Ledger" TO {}').format(name))
     # PostgreSQL FOR SHARE requires UPDATE on at least one column. Existing
     # cash_account_holder() locks both rows; labels confer no routing authority.
-    conn.execute('GRANT UPDATE ("Account Label") ON public."Cash Accounts" TO mw_reviewer_dml')
-    conn.execute('GRANT UPDATE ("Holder Name") ON public."Cash Holders" TO mw_reviewer_dml')
+    conn.execute(sql.SQL('GRANT UPDATE ("Account Label") ON public."Cash Accounts" TO {}').format(name))
+    conn.execute(sql.SQL('GRANT UPDATE ("Holder Name") ON public."Cash Holders" TO {}').format(name))
     # Fail closed if PUBLIC grants unexpectedly grant durable schema creation.
-    row=conn.execute("SELECT has_schema_privilege('mw_reviewer_dml','public','CREATE'), has_database_privilege('mw_reviewer_dml',current_database(),'CREATE')").fetchone()
+    row = conn.execute("SELECT has_schema_privilege(%s,'public','CREATE'), has_database_privilege(%s,current_database(),'CREATE')",
+                       (role, role)).fetchone()
     if any(row): raise RuntimeError('Unexpected PUBLIC CREATE privileges; role setup rolled back')
 
 
+def target_for(environments, environment):
+    """The (connection target, role) pair for an environment; identity is checked by instance name only."""
+    target = environments[{'prod': 'production', 'dev': 'development'}[environment]]
+    if (target['instance'], target['database'], target['user']) != (INSTANCE, DATABASES[environment], 'postgres'):
+        raise RuntimeError('Unexpected ' + environment + ' identity')
+    return target, DML_ROLES[environment]
+
+
 def main():
-    parser=argparse.ArgumentParser()
-    parser.add_argument('--environments',required=True)
-    parser.add_argument('--secret-file',required=True)
-    args=parser.parse_args()
-    target=json.loads(Path(args.environments).read_text())['production']
-    if (target['instance'],target['host'],target['database'],target['user']) != (
-        'appsheet-pg-prod-20260914','34.21.174.215','loan_manager_prod','postgres'):
-        raise RuntimeError('Unexpected production identity')
-    path=Path(args.secret_file).resolve()
-    private=Path('C:/Users/ideaadmin/Documents/ChatGPT').resolve()
-    path.relative_to(private)
-    path.parent.mkdir(parents=True,exist_ok=True)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--environments', required=True)
+    parser.add_argument('--secret-file', required=True, help='private credential path outside the repository')
+    parser.add_argument('--environment', choices=sorted(DATABASES), default='prod')
+    args = parser.parse_args()
+    target, role = target_for(json.loads(Path(args.environments).read_text()), args.environment)
+    path = Path(args.secret_file).resolve()
+    path.parent.mkdir(parents=True, exist_ok=True)
     if not path.exists():
-        with path.open('x',encoding='utf-8') as f:f.write('Aa1!'+secrets.token_hex(32)+'\n')
-    password=path.read_text().strip()
-    with psycopg.connect(host=target['host'],port=target['port'],dbname=target['database'],
-            user=target['user'],password=Path(target['passwordFile']).read_text().strip(),
-            sslmode='require',connect_timeout=15) as conn:
-        configure(conn,password)
-    print('Dedicated DML role configured; no application data/schema changes. Credential retained privately.')
+        with path.open('x', encoding='utf-8') as f: f.write('Aa1!' + secrets.token_hex(32) + '\n')
+    password = path.read_text().strip()
+    with psycopg.connect(host=target['host'], port=target['port'], dbname=target['database'],
+            user=target['user'], password=Path(target['passwordFile']).read_text().strip(),
+            sslmode='require', connect_timeout=15) as conn:
+        configure(conn, password, role)
+    print(role + ' configured in ' + target['database'] + '; no application data/schema changes. Credential retained privately.')
 
 
-if __name__=='__main__':main()
+if __name__ == '__main__': main()

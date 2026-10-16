@@ -1,7 +1,7 @@
 """Append-only host audit. Atomic journal events; durable external-call intent."""
 from contextlib import contextmanager
 from contextvars import ContextVar
-from datetime import date, datetime, timezone
+from datetime import date, datetime, UTC
 from decimal import Decimal
 from functools import wraps
 import hashlib
@@ -70,7 +70,7 @@ def event(conn, operation, kind, payload=None, route='internal', state=None, key
     conn.execute('''INSERT INTO audit.events(event_id,operation_id,operation_seq,event_kind,route,occurred_at,
         target_database,target_schema,target_table,record_keys,payload,payload_sha256)
         VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s::jsonb,%s::jsonb,%s)''',
-        (event_id,operation,row[0],kind,route,datetime.now(timezone.utc),target.get('database'),target.get('schema'),
+        (event_id,operation,row[0],kind,route,datetime.now(UTC),target.get('database'),target.get('schema'),
          target.get('table'),canonical(target.get('keys',[])),canonical(payload),digest(payload)))
     conn.execute('''UPDATE runtime.operation_state SET next_event_seq=next_event_seq+1,last_event_id=%s,
         state=coalesce(%s,state),updated_at=clock_timestamp() WHERE operation_id=%s''', (event_id,state,operation))
@@ -98,7 +98,9 @@ def activity(config, service, action='PROCESS', route='internal', plan=None, key
         yield op
     except BaseException as exc:
         from .graph_email import EmailRejected
-        uncertain=effect and not isinstance(exc,EmailRejected)
+        from .receipt_api import NotSent
+        # Definite non-dispatch ends the operation FAILED, never UNKNOWN.
+        uncertain=effect and not isinstance(exc,(EmailRejected,NotSent))
         try:
             with transaction(config) as conn:
                 event(conn,op,'unknown' if uncertain else 'failed',{'exception_type':type(exc).__name__},route,

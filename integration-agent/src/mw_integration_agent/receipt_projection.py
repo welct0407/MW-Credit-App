@@ -3,7 +3,7 @@ import hashlib
 import json
 import time
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, UTC
 
 from . import audit
 from . import receipt_audit
@@ -31,7 +31,7 @@ def project(config, link, asset):
              application_name='mw-receipt-projector') as connection:
             result=connection.execute('SELECT public.attach_payment_receipt_evidence(%s,%s,%s,%s,%s,%s,%s)',
                 (link['payment_id'],asset['receipt_id'],asset['object_key'],
-                 datetime.fromtimestamp(json.loads(asset['source'])['captured_at'],timezone.utc),
+                 datetime.fromtimestamp(json.loads(asset['source'])['captured_at'],UTC),
                  Jsonb(json.loads(link['verification'])),uuid.UUID(link['link_id']),config.get('code_version','unknown'))).fetchone()[0]
         with transaction(config) as central:
             audit.event(central, operation, 'projection_observed', {'result': result}, 'postgres', 'COMMITTED')

@@ -36,7 +36,7 @@ Business Flyway V49/V50 lock the exact Posted Payment and verify borrower, amoun
 
 ## Deployment and recovery
 
-Use reviewed `scripts/deploy-receipt-evidence.py` phases on the exact VM. `freeze` stops the five existing business timers, drains running workers, and verifies a private package/config/catalogue copy under `/var/lib/mw-integration-agent/rollback`. Ingress and audit relay remain active. Apply the pinned additive business and central migrations before package activation. Install the private projector credential separately; never include it in source or shell command text.
+Use the `scripts/deploy-runtime.py` phases on the exact VM ([Operations](OPERATIONS.md#deploying-a-reviewed-commit)); the one-off evidence deploy and verify scripts are retired. `freeze` stops the worker timers, drains running workers, and keeps a private package/config/catalogue copy under `/var/lib/mw-integration-agent/rollback`. Ingress and audit relay remain active. Apply the pinned additive business and central migrations before package activation. Install the private projector credential separately; never include it in source or shell command text.
 
 `install --commit SHA` requires the paused checkout at that SHA, installs without dependency changes, and runs the suite. `activate --commit SHA` checks schema/identity, proves metadata-token GCS upload/readback with a synthetic object, enables catalogue revision 23 and archive configuration with a fresh UTC cutoff on first activation (preserving an existing active cutoff on updates), and resumes only the previously active timers. Existing receipt/reply/notification cutoffs and model settings are preserved. Do not reset the archive cutoff on ordinary updates.
 

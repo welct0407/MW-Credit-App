@@ -1,6 +1,5 @@
 """Synthetic import/restore rehearsal; refuses any non-disposable server."""
 import argparse
-from datetime import datetime, timezone
 import json
 from pathlib import Path
 import shutil
@@ -9,7 +8,6 @@ import time
 import uuid
 import psycopg
 
-from mw_integration_agent import audit
 from mw_integration_agent.config import ConfigurationError
 from mw_integration_agent.journal import IngressJournal
 from mw_integration_agent.receipt_journal import ReceiptJournal

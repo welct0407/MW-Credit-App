@@ -51,9 +51,37 @@ class RuntimeDeploymentTests(unittest.TestCase):
         self.assertEqual(base.POINTER, Path('/var/lib/mw-integration-agent/rollback/runtime-current'))
         self.assertEqual(base.PREFIX, 'runtime-')
         self.assertIs(base.prepare, runtime.prepare)
-        self.assertIs(base.probe, runtime.native.probe)
+        self.assertIs(base.probe, runtime.probe)
+        self.assertFalse(hasattr(runtime, 'native'))  # AGT-QUALITY-05: no import of the deleted R053 script
+        self.assertFalse((SCRIPTS / 'deploy-native-conversations.py').exists())
         with self.assertRaisesRegex(RuntimeError, 'Unused status UUID required'):
             base.probe({}, {}, None)
+
+    def test_probe_never_posts_command_and_failure_blocks_activation(self):
+        from types import SimpleNamespace
+        from unittest.mock import patch
+        with patch.object(base.subprocess, 'run', return_value=SimpleNamespace(returncode=0, stdout='native-read-only-ok\n')) as run:
+            runtime.probe({}, {}, '11111111-1111-4111-8111-111111111111')
+            argv = run.call_args.args[0]
+            self.assertEqual(argv[:3], ['sudo', '-u', 'mwagent'])
+            self.assertIn("for scope in ('oltp','olap')", argv[-1])
+            self.assertIn("'GET'", argv[-1])
+            self.assertNotIn("'commands'", argv[-1])
+            run.return_value = SimpleNamespace(returncode=1, stdout='')
+            with self.assertRaises(RuntimeError):
+                runtime.probe({}, {}, '11111111-1111-4111-8111-111111111111')
+
+    def test_one_off_activation_scripts_are_deleted(self):
+        # AGT-QUALITY-05: deploy-runtime.py (with its engine) is the one deploy helper.
+        for name in ('activate-conversation-poll.sh', 'activate-partner-conversations.sh', 'activate-partner-review.sh',
+                     'activate-receipt-automation.py', 'activate-receipt-summary.py', 'activate-reviewer-dml.sh',
+                     'deploy-cash-statement.sh', 'deploy-receipt-summary.sh', 'install-cash-statement-schedule.sh',
+                     'install-postgresql-config.py', 'freeze-postgresql-cutover.py', 'deploy-appsheet-retirement.py',
+                     'deploy-operator-audit.py', 'deploy-receipt-audit-repair.py', 'deploy-receipt-evidence.py',
+                     'verify-receipt-evidence.py', 'provision-agent-database.py', 'verify-reviewer-dml-restored.ps1',
+                     'test-reviewer-dml.ps1', 'verify-dml-restored.py'):
+            with self.subTest(script=name):
+                self.assertFalse((SCRIPTS / name).exists())
 
     def test_reviewed_runtime_shell_updater_is_retired(self):
         self.assertFalse((SCRIPTS / 'update-reviewed-runtime.sh').exists())

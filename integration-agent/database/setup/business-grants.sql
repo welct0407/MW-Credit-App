@@ -15,9 +15,9 @@ GRANT SELECT ON agent_audit.exports TO mw_agent_relay,mw_agent_auditor;
 GRANT INSERT ON agent_audit.exports TO mw_agent_relay;
 -- No direct INSERT into commits/row_changes: fixed function and row triggers own them.
 -- No DELETE/UPDATE/TRUNCATE on audit tables, or ownership/trigger privileges.
-GRANT DELETE ON public."Borrowers",public."Loans",public."Charges",public."Repayments",
- public."Payments",public."Business Expenses",public."Settlements",public."Cash Ledger",
- public."Cash Pool Contributions" TO mw_reviewer_dml;
+-- Reviewer DELETE is retired (owner decision, 16 October 2026; PROD revoke executed by ops):
+-- no DELETE on the eight source tables. The only DELETE, on "Cash Ledger", is granted by
+-- configure-reviewer-dml.py for the cash_source_changed trigger.
 -- Do not grant DELETE on Partners, Cash Accounts, Cash Holders, allocations,
 -- migration history, derived reports, runtime state, or audit history.
 -- Retain the previously reviewed INSERT/UPDATE and trigger-dependency grants.

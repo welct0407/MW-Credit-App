@@ -119,6 +119,47 @@ class StatementTests(unittest.TestCase):
             self.assertEqual(api.request.call_count,1)
             journal.close()
 
+    def database_config(self, directory, **overrides):
+        secrets = Path(directory); (secrets / 'pg.txt').write_text('synthetic-password')
+        return dict(database_enabled=True, database_host='127.0.0.1', database_port=5432, database_name='loan_manager_prod',
+                    database_user='mw_integration_agent', database_password_file=str(secrets / 'pg.txt'),
+                    secrets_directory=str(secrets), **overrides)
+
+    def test_read_query_binds_psql_variables(self):
+        # AGT-QUALITY-04: values travel as psql variables (-v) and are referenced as :'name'; no inline literal.
+        from unittest.mock import patch
+        from mw_integration_agent.cash_statement import read_query
+        with tempfile.TemporaryDirectory() as d:
+            config = self.database_config(d)
+            with patch('mw_integration_agent.cash_statement.subprocess.run', return_value=Mock(stdout='["a@example.invalid"]')) as run:
+                rows = read_query(config, 'SELECT "Login Email" FROM public."Partners" WHERE "Row ID"=:\'pid\';', {'pid': "o'neil; DROP"})
+            self.assertEqual(rows, ['a@example.invalid'])
+            argv, kwargs = run.call_args.args[0], run.call_args.kwargs
+            self.assertIn("pid=o'neil; DROP", argv)
+            self.assertEqual(argv[argv.index("pid=o'neil; DROP") - 1], '-v')
+            self.assertIn(":'pid'", kwargs['input']); self.assertNotIn("o'neil", kwargs['input'])
+            self.assertEqual(kwargs['env']['PGPASSWORD'], 'synthetic-password')
+            for variables in ({'bad name': 'x'}, {'pid': 5}, {'1pid': 'x'}):
+                with self.subTest(variables=variables), self.assertRaisesRegex(ConfigurationError, 'Invalid query variable'):
+                    read_query(config, 'SELECT 1', variables)
+
+    def test_iam_read_query_sets_role_on_the_iam_listener_without_a_password(self):
+        # ALL-ARCH-03: no PGPASSWORD, the IAM login on 5433, and SET ROLE to the least-privilege role first.
+        import os
+        from unittest.mock import patch
+        from mw_integration_agent.cash_statement import read_query
+        with tempfile.TemporaryDirectory() as d:
+            config = self.database_config(d, database_auth='iam', database_iam_user='mw-integration-agent@clever-oasis-508610-n7.iam')
+            del config['database_password_file']
+            with patch('mw_integration_agent.cash_statement.subprocess.run', return_value=Mock(stdout='[]')) as run, \
+                 patch.dict(os.environ, {'PGPASSWORD': 'stale'}):
+                read_query(config, 'SELECT 1;')
+            argv, kwargs = run.call_args.args[0], run.call_args.kwargs
+            self.assertEqual(argv[argv.index('-U') + 1], 'mw-integration-agent@clever-oasis-508610-n7.iam')
+            self.assertEqual(argv[argv.index('-p') + 1], '5433')
+            self.assertNotIn('PGPASSWORD', kwargs['env'])
+            self.assertTrue(kwargs['input'].startswith('SET ROLE mw_integration_agent;\nBEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY;'))
+
     def test_unknown_catalogue_service_denied(self):
         with self.assertRaises(ConfigurationError):
             validate_catalogue({'default_policy':'deny','services':{'surprise':{'enabled':True,'implemented':True}}})

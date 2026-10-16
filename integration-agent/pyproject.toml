@@ -6,8 +6,10 @@ build-backend = "setuptools.build_meta"
 name = "mw-integration-agent"
 version = "0.1.0"
 description = "Linux-native MW Credit integration agent foundation"
-requires-python = ">=3.11"
+requires-python = ">=3.13"
 dependencies = ["Pillow==11.3.0", "tzdata==2025.2", "psycopg[binary]==3.2.10", "typing-extensions==4.16.0"]
+# requirements.lock is the hash-pinned closure of these dependencies (uv pip compile); CI and the
+# host installers use `pip install --require-hashes -r requirements.lock && pip install --no-deps .`.
 
 [project.scripts]
 mw-integration-agent = "mw_integration_agent.cli:main"
@@ -17,3 +19,14 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 mw_integration_agent = ["assets/*.png"]
+
+[tool.ruff]
+target-version = "py313"
+line-length = 160
+extend-exclude = ["build", "outputs"]
+
+[tool.ruff.lint]
+# Proportional set (AGT-QUALITY-02): syntax/undefined names, import placement, bugbear, pyupgrade.
+# Line length and the one-line statement style are deliberately not enforced.
+select = ["E4", "E9", "F", "B", "UP"]
+ignore = ["B905"]
