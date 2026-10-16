@@ -119,42 +119,6 @@
       "collation": "\"default\""
       "acl": null
       "comment": null
-    "lease_generation":
-      "schema": "public"
-      "relation": "pwa_job_runs"
-      "name": "lease_generation"
-      "ordinal": 6
-      "data_type": "bigint"
-      "type_schema": "pg_catalog"
-      "type_name": "int8"
-      "not_null": true
-      "identity": ""
-      "generated": ""
-      "dimensions": 0
-      "storage": "p"
-      "compression": ""
-      "default_expression": "0"
-      "collation": null
-      "acl": null
-      "comment": null
-    "lease_expires_at":
-      "schema": "public"
-      "relation": "pwa_job_runs"
-      "name": "lease_expires_at"
-      "ordinal": 7
-      "data_type": "timestamp with time zone"
-      "type_schema": "pg_catalog"
-      "type_name": "timestamptz"
-      "not_null": false
-      "identity": ""
-      "generated": ""
-      "dimensions": 0
-      "storage": "p"
-      "compression": ""
-      "default_expression": null
-      "collation": null
-      "acl": null
-      "comment": null
     "checkpoint":
       "schema": "public"
       "relation": "pwa_job_runs"
@@ -227,24 +191,6 @@
       "collation": null
       "acl": null
       "comment": null
-    "error_code":
-      "schema": "public"
-      "relation": "pwa_job_runs"
-      "name": "error_code"
-      "ordinal": 12
-      "data_type": "text"
-      "type_schema": "pg_catalog"
-      "type_name": "text"
-      "not_null": false
-      "identity": ""
-      "generated": ""
-      "dimensions": 0
-      "storage": "x"
-      "compression": ""
-      "default_expression": null
-      "collation": "\"default\""
-      "acl": null
-      "comment": null
   "constraints":
     "pwa_job_runs_business_date_check":
       "schema": "public"
@@ -280,24 +226,6 @@
       "delete_action": " "
       "match_type": " "
       "comment": null
-    "pwa_job_runs_check":
-      "schema": "public"
-      "relation": "pwa_job_runs"
-      "name": "pwa_job_runs_check"
-      "kind": "c"
-      "definition": "CHECK ((state = 'leased'::text) = (lease_expires_at IS NOT NULL))"
-      "deferrable": false
-      "initially_deferred": false
-      "validated": true
-      "column_numbers":
-      - 5
-      - 7
-      "referenced_column_numbers": null
-      "referenced_relation": null
-      "update_action": " "
-      "delete_action": " "
-      "match_type": " "
-      "comment": null
     "pwa_job_runs_checkpoint_check":
       "schema": "public"
       "relation": "pwa_job_runs"
@@ -309,23 +237,6 @@
       "validated": true
       "column_numbers":
       - 8
-      "referenced_column_numbers": null
-      "referenced_relation": null
-      "update_action": " "
-      "delete_action": " "
-      "match_type": " "
-      "comment": null
-    "pwa_job_runs_error_code_check":
-      "schema": "public"
-      "relation": "pwa_job_runs"
-      "name": "pwa_job_runs_error_code_check"
-      "kind": "c"
-      "definition": "CHECK (error_code = ANY (ARRAY['execution_failed'::text, 'lease_expired'::text]))"
-      "deferrable": false
-      "initially_deferred": false
-      "validated": true
-      "column_numbers":
-      - 12
       "referenced_column_numbers": null
       "referenced_relation": null
       "update_action": " "
@@ -379,40 +290,6 @@
       "validated": true
       "column_numbers":
       - 2
-      "referenced_column_numbers": null
-      "referenced_relation": null
-      "update_action": " "
-      "delete_action": " "
-      "match_type": " "
-      "comment": null
-    "pwa_job_runs_lease_generation_check":
-      "schema": "public"
-      "relation": "pwa_job_runs"
-      "name": "pwa_job_runs_lease_generation_check"
-      "kind": "c"
-      "definition": "CHECK (lease_generation >= 0)"
-      "deferrable": false
-      "initially_deferred": false
-      "validated": true
-      "column_numbers":
-      - 6
-      "referenced_column_numbers": null
-      "referenced_relation": null
-      "update_action": " "
-      "delete_action": " "
-      "match_type": " "
-      "comment": null
-    "pwa_job_runs_lease_generation_not_null":
-      "schema": "public"
-      "relation": "pwa_job_runs"
-      "name": "pwa_job_runs_lease_generation_not_null"
-      "kind": "n"
-      "definition": "NOT NULL lease_generation"
-      "deferrable": false
-      "initially_deferred": false
-      "validated": true
-      "column_numbers":
-      - 6
       "referenced_column_numbers": null
       "referenced_relation": null
       "update_action": " "
@@ -509,7 +386,7 @@
       "relation": "pwa_job_runs"
       "name": "pwa_job_runs_state_check"
       "kind": "c"
-      "definition": "CHECK (state = ANY (ARRAY['pending'::text, 'leased'::text, 'completed'::text, 'uncertain'::text, 'failed'::text]))"
+      "definition": "CHECK (state = ANY (ARRAY['pending'::text, 'completed'::text]))"
       "deferrable": false
       "initially_deferred": false
       "validated": true
@@ -577,3 +454,60 @@
   "triggers": {}
   "policies": {}
   "dependencies": []
+"evidence":
+  "/content/columns/lease_generation":
+    "reference": "Change Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md"
+    "reason": "DB-LOCK-02: V94 drops the lease state from pwa_job_runs (columns lease_expires_at, lease_generation, error_code,\
+      \ their checks, and the lease/state consistency check); the state check allows only pending and completed. Remaining\
+      \ attribute numbers are unchanged (dropped attnums stay). Applied in DEV on 17 October 2026 (loan_manager_dev, V94);\
+      \ PROD is still V93, so this PROD-scope value is source-derived until the PROD migration."
+    "state": "absent"
+  "/content/columns/lease_expires_at":
+    "reference": "Change Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md"
+    "reason": "DB-LOCK-02: V94 drops the lease state from pwa_job_runs (columns lease_expires_at, lease_generation, error_code,\
+      \ their checks, and the lease/state consistency check); the state check allows only pending and completed. Remaining\
+      \ attribute numbers are unchanged (dropped attnums stay). Applied in DEV on 17 October 2026 (loan_manager_dev, V94);\
+      \ PROD is still V93, so this PROD-scope value is source-derived until the PROD migration."
+    "state": "absent"
+  "/content/columns/error_code":
+    "reference": "Change Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md"
+    "reason": "DB-LOCK-02: V94 drops the lease state from pwa_job_runs (columns lease_expires_at, lease_generation, error_code,\
+      \ their checks, and the lease/state consistency check); the state check allows only pending and completed. Remaining\
+      \ attribute numbers are unchanged (dropped attnums stay). Applied in DEV on 17 October 2026 (loan_manager_dev, V94);\
+      \ PROD is still V93, so this PROD-scope value is source-derived until the PROD migration."
+    "state": "absent"
+  "/content/constraints/pwa_job_runs_check":
+    "reference": "Change Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md"
+    "reason": "DB-LOCK-02: V94 drops the lease state from pwa_job_runs (columns lease_expires_at, lease_generation, error_code,\
+      \ their checks, and the lease/state consistency check); the state check allows only pending and completed. Remaining\
+      \ attribute numbers are unchanged (dropped attnums stay). Applied in DEV on 17 October 2026 (loan_manager_dev, V94);\
+      \ PROD is still V93, so this PROD-scope value is source-derived until the PROD migration."
+    "state": "absent"
+  "/content/constraints/pwa_job_runs_error_code_check":
+    "reference": "Change Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md"
+    "reason": "DB-LOCK-02: V94 drops the lease state from pwa_job_runs (columns lease_expires_at, lease_generation, error_code,\
+      \ their checks, and the lease/state consistency check); the state check allows only pending and completed. Remaining\
+      \ attribute numbers are unchanged (dropped attnums stay). Applied in DEV on 17 October 2026 (loan_manager_dev, V94);\
+      \ PROD is still V93, so this PROD-scope value is source-derived until the PROD migration."
+    "state": "absent"
+  "/content/constraints/pwa_job_runs_lease_generation_check":
+    "reference": "Change Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md"
+    "reason": "DB-LOCK-02: V94 drops the lease state from pwa_job_runs (columns lease_expires_at, lease_generation, error_code,\
+      \ their checks, and the lease/state consistency check); the state check allows only pending and completed. Remaining\
+      \ attribute numbers are unchanged (dropped attnums stay). Applied in DEV on 17 October 2026 (loan_manager_dev, V94);\
+      \ PROD is still V93, so this PROD-scope value is source-derived until the PROD migration."
+    "state": "absent"
+  "/content/constraints/pwa_job_runs_lease_generation_not_null":
+    "reference": "Change Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md"
+    "reason": "DB-LOCK-02: V94 drops the lease state from pwa_job_runs (columns lease_expires_at, lease_generation, error_code,\
+      \ their checks, and the lease/state consistency check); the state check allows only pending and completed. Remaining\
+      \ attribute numbers are unchanged (dropped attnums stay). Applied in DEV on 17 October 2026 (loan_manager_dev, V94);\
+      \ PROD is still V93, so this PROD-scope value is source-derived until the PROD migration."
+    "state": "absent"
+  "/content/constraints/pwa_job_runs_state_check":
+    "reference": "Change Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md"
+    "reason": "DB-LOCK-02: V94 drops the lease state from pwa_job_runs (columns lease_expires_at, lease_generation, error_code,\
+      \ their checks, and the lease/state consistency check); the state check allows only pending and completed. Remaining\
+      \ attribute numbers are unchanged (dropped attnums stay). Applied in DEV on 17 October 2026 (loan_manager_dev, V94);\
+      \ PROD is still V93, so this PROD-scope value is source-derived until the PROD migration."
+    "state": "value"

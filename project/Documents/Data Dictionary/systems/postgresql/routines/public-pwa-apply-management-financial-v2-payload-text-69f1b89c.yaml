@@ -25,7 +25,7 @@
       \ THEN 'mw_app_prod_journal_owner' ELSE 'mw_app_dev_journal_owner' END) THEN RAISE EXCEPTION USING ERRCODE='42501';END\
       \ IF;\r\n PERFORM public.pwa_management_financial_text_v2(op,i);\r\n IF kind IN('capital-contribution','settlement')\
       \ AND NOT pg_try_advisory_xact_lock(9152026,15) THEN RAISE EXCEPTION 'Partner allocation is busy; sync and retry';END\
-      \ IF;\r\n PERFORM pg_advisory_xact_lock(hashtextextended('management:'||kind||':'||target,0));\r\n IF kind='capital-contribution'\
+      \ IF;\r\n PERFORM pg_advisory_xact_lock(public.pwa_lock_key_v1('management:'||kind,target));\r\n IF kind='capital-contribution'\
       \ THEN SELECT to_jsonb(s) INTO snapshot FROM public.\"Cash Pool Contributions\" s WHERE \"Row ID\"=target FOR UPDATE;\r\
       \n ELSIF kind='settlement' THEN SELECT to_jsonb(s) INTO snapshot FROM public.\"Settlements\" s WHERE \"Row ID\"=target\
       \ FOR UPDATE;\r\n ELSE SELECT to_jsonb(s) INTO snapshot FROM public.\"Cash Ledger\" s WHERE \"Row ID\"=target FOR UPDATE;END\
@@ -106,3 +106,10 @@
     "acl": "{postgres=X/postgres,mw_app_prod_journal_owner=X/postgres,mw_app_prod=X/postgres}"
     "comment": null
     "extension": null
+"evidence":
+  "/content/definition/definition":
+    "reference": "Change Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md"
+    "reason": "DB-LOCK-03: V94 replaces the inline advisory key hashtextextended(kind||':'||target,0) with public.pwa_lock_key_v1(kind,target)\
+      \ (bit-identical key; owner, security mode, search_path, ACL and comment unchanged). Applied in DEV on 17 October 2026\
+      \ (loan_manager_dev, V94); PROD is still V93, so this PROD-scope value is source-derived until the PROD migration."
+    "state": "value"

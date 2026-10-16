@@ -9,7 +9,8 @@ const idle:OfflinePreparation={state:'idle',completed:0,total:domains.length,pro
 const states=new Map<string,OfflinePreparation>(),listeners=new Set<()=>void>();
 export const getOfflinePreparation=(scopeName?:string)=>scopeName?states.get(scopeName)??idle:idle;
 export const subscribeOfflinePreparation=(listener:()=>void)=>{listeners.add(listener);return()=>{listeners.delete(listener)}};
-function publish(scope:string,value:OfflinePreparation){states.set(scope,value);listeners.forEach(listener=>{listener()})}
+// UX-REFRESH-03: an unchanged status keeps its snapshot and does not wake listeners (the app shell).
+function publish(scope:string,value:OfflinePreparation){const prior=states.get(scope);if(prior&&(Object.keys(value) as (keyof OfflinePreparation)[]).every(key=>prior[key]===value[key]))return;states.set(scope,value);listeners.forEach(listener=>{listener()})}
 
 // Stable content references let a later check reuse committed display data.
 const canonicalValue=(value:any):any=>Array.isArray(value)?value.map(canonicalValue):value&&typeof value==='object'?Object.fromEntries(Object.keys(value).sort().map(key=>[key,key==='asOf'&&typeof value[key]==='string'?null:canonicalValue(value[key])])):value;
@@ -27,9 +28,10 @@ async function indexDataset(bundle:any){
 
 /** One bounded request at a time. Foreground navigation pauses the next chunk;
  * it does not throw away a request which the server is already processing. */
-export const DATASET_POLL_MS=5*60*1000;
-/** R064: focus/visibility/online/background triggers recheck a domain only after this age; manual sync bypasses it. */
-export const DATASET_RECHECK_MIN_MS=60*1000;
+export const DATASET_POLL_MS=30*1000;
+/** R064: online and background-prepare triggers recheck a domain only after this age; focus, visible-again,
+ * the poll and manual sync bypass it (owner decision 17 October 2026). */
+export const DATASET_RECHECK_MIN_MS=10*1000;
 const REQUEST_TIMEOUT_MS=25000;
 /** services/api/offline-dataset-delta.mjs rejects a need list longer than this. */
 const NEED_BATCH=2048;
@@ -48,7 +50,7 @@ export const receiptMediaCandidates=(url:URL)=>url.searchParams.get('source')!==
 export function startOfflinePreparation(access:Access,_options:{readOrigin?:string}={}){
  const repository=access.offline;if(!repository)return()=>{};const repo=repository;
  let stopped=false,running=false,initialized=false,initializing=false,queue:string[]=[],media:string[]=[],requestedDomain:string|null=null,paused=false,timer:ReturnType<typeof setTimeout>|undefined,retryTimer:ReturnType<typeof setTimeout>|undefined,retryAttempts=0,controller:AbortController|null=null,activeTask:string|null=null;
- let lastChecked:number|null=null,recheck=false;
+ let lastChecked:number|null=null,recheck=false,pollTimer:ReturnType<typeof setTimeout>|undefined;
  const recheckDomains=new Set<string>(),domainChecked=new Map<string,number>();
  // Servers before R064 reject the acceptChanged request field; remember per path.
  const legacyPaths=new Set<string>();
@@ -56,7 +58,7 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
  // chunk for crash resume, but the growing partial is not re-read and re-cloned.
  const partials=new Map<string,{partial:any,bundle:any}>();
  const cycleDomains=new Set<string>(),cycleDone=new Set<string>();
- const beginCycle=(targets:readonly string[]=domains)=>{cycleDomains.clear();cycleDone.clear();fractions.clear();chunkCounts.clear();for(const domain of targets)cycleDomains.add(domain)};
+ const beginCycle=(targets:readonly string[]=domains)=>{if(targets.length===domains.length)armPoll();cycleDomains.clear();cycleDone.clear();fractions.clear();chunkCounts.clear();for(const domain of targets)cycleDomains.add(domain)};
  const valueIndexes=new Map<string,{base:string|null,values:Record<string,any>}>();
  const completed=new Set<string>(),failed=new Set<string>(),fractions=new Map<string,number>(),chunkCounts=new Map<string,number>(),changedRetries=new Map<string,number>(),mediaVersion=new Map<string,number>();
  const mediaKeys=(records:any)=>(records?.data?.payments??[]).filter((row:any)=>receiptRetainedOffline(row)).flatMap((row:any)=>[...(row.receiptReference?['manual']:[]),...(row.agentReceiptPresent?['agent']:[])].map(source=>{const path='/api/payment-records/'+encodeURIComponent(row.id)+'/receipt?source='+source;mediaVersion.set(path,Date.parse(source==='manual'?row.receiptAt:row.agentReceiptAt));return path}));
@@ -138,7 +140,8 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
    if(!isMedia&&value.schemaVersion===3){
     if(value.unchanged){
      if(value.domain!==task||!value.complete||value.nextCursor!==null||!bundle?.complete||partial||value.sourceVersion!==bundle.sourceVersion)throw Error('Invalid unchanged checkpoint');
-     if(!await repo.saveDataset(task,{...bundle,cacheStale:false},revision,null,base,!!bundle.cacheStale))throw Error('Dataset changed during check');
+     // UX-REFRESH-02: a current bundle is not rewritten; only the check time is recorded.
+     if(bundle.cacheStale&&!await repo.saveDataset(task,{...bundle,cacheStale:false},revision,null,base,true))throw Error('Dataset changed during check');
      completed.add(task);cycleDone.add(task);failed.delete(task);changedRetries.delete(task);domainChecked.set(task,Date.now());
      if(task==='records')await refreshMedia(bundle);
      ready(task,false);return;
@@ -195,7 +198,10 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
     if(memo){bundle=await repo.readDataset(task);if((partial.base??null)!==datasetBase(bundle))throw Error('Dataset base changed')}
    }
    const dataChanged=!isMedia&&JSON.stringify(canonicalValue(bundle?.data))!==JSON.stringify(canonicalValue(full.data));
-   const saved=isMedia?await repo.saveDatasetMedia('blob:'+url.href,value,revision):await repo.saveDataset(task,full,revision,partial?.nextCursor??null,base,dataChanged||!!bundle?.cacheStale);if(!saved)throw Error();partials.delete(task);if(!isMedia&&full.chunks)chunkCounts.set(task,full.chunks);
+   // UX-REFRESH-02: a single-chunk check that changed nothing (notifications has no source
+   // watermark and re-sends its content each time) keeps the stored bundle as it is.
+   const keep=!isMedia&&!dataChanged&&!torn&&!partial&&!!bundle?.complete&&!bundle.cacheStale&&full.sourceVersion===bundle.sourceVersion&&full.businessDate===bundle.businessDate;
+   const saved=isMedia?await repo.saveDatasetMedia('blob:'+url.href,value,revision):keep||await repo.saveDataset(task,full,revision,partial?.nextCursor??null,base,dataChanged||!!bundle?.cacheStale);if(!saved)throw Error();partials.delete(task);if(!isMedia&&full.chunks)chunkCounts.set(task,full.chunks);
    if(stopped)return;completed.add(task);cycleDone.add(task);queue=queue.filter(queued=>queued!==task);failed.delete(task);if(task==='records')await refreshMedia(full);
    if(!isMedia){
     domainChecked.set(task,Date.now());
@@ -217,17 +223,23 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
   if(priority){cycleDomains.add(priority);cycleDone.delete(priority);fractions.delete(priority);queue=queue.filter(task=>task!==priority);enqueue(priority,true)}
   changedRetries.clear();paused=false;status();schedule();
  };
- const check=()=>{if(stopped||document.visibilityState==='hidden'||!navigator.onLine||access.offlineOnly)return;if(!running&&!queue.length&&!failed.size){const targets=domains.filter(stale);if(targets.length){beginCycle(targets);for(const domain of targets)enqueue(domain)}}resume()};
- const visible=()=>{if(document.visibilityState!=='hidden')check();status()};
- // APP-OFFLINE-03: background poll every 5 minutes; focus, visibility, online and own-write
- // invalidation (mw-read-invalidated) still refresh, the first three at most once a minute.
- const poll=setInterval(check,DATASET_POLL_MS);
+ // force: refresh every domain regardless of age (focus, visible-again, poll). A cycle already
+ // queued or in flight absorbs the trigger, so focus+visibilitychange (+online) in one burst
+ // start one cycle and never a second concurrent fetch. Hidden, offline or offline-only: no-op.
+ const check=(force=false)=>{if(stopped||document.visibilityState==='hidden'||!navigator.onLine||access.offlineOnly)return;if(!running&&!queue.length&&!failed.size){const targets=force?[...domains]:domains.filter(stale);if(targets.length){beginCycle(targets);for(const domain of targets)enqueue(domain)}}resume()};
+ const focused=()=>check(true),online=()=>check();
+ const visible=()=>{if(document.visibilityState!=='hidden')check(true);status()};
+ // APP-OFFLINE-03: background poll every 30 seconds while visible and online; every focus,
+ // visible-again and own-write invalidation (mw-read-invalidated) also refresh. Any full cycle
+ // re-arms the poll, so a focus refresh is not followed by a redundant poll moments later.
+ function armPoll(){if(pollTimer)clearTimeout(pollTimer);if(!stopped)pollTimer=setTimeout(()=>{pollTimer=undefined;check(true);if(!pollTimer)armPoll()},DATASET_POLL_MS)}
+ armPoll();
  const resume=()=>{if(stopped)return;for(const task of failed)enqueue(task);failed.clear();for(const domain of domains)if(!completed.has(domain)&&domain!==activeTask)enqueue(domain);paused=false;status();schedule()};
  const offline=()=>{paused=true;controller?.abort('offline');status()};
  const unsubscribe=subscribeActivity(()=>{status();if(activitySnapshot()===0)schedule()});
- window.addEventListener('mw-offline-queued',resume);window.addEventListener('online',check);window.addEventListener('offline',offline);window.addEventListener('focus',check);document.addEventListener('visibilitychange',visible);window.addEventListener('mw-read-invalidated',request);window.addEventListener('mw-offline-prepare',request);
+ window.addEventListener('mw-offline-queued',resume);window.addEventListener('online',online);window.addEventListener('offline',offline);window.addEventListener('focus',focused);document.addEventListener('visibilitychange',visible);window.addEventListener('mw-read-invalidated',request);window.addEventListener('mw-offline-prepare',request);
  void initialize();
- return()=>{stopped=true;if(timer)clearTimeout(timer);if(retryTimer)clearTimeout(retryTimer);controller?.abort();unsubscribe();window.removeEventListener('mw-offline-queued',resume);window.removeEventListener('online',check);window.removeEventListener('offline',offline);window.removeEventListener('focus',check);document.removeEventListener('visibilitychange',visible);clearInterval(poll);window.removeEventListener('mw-read-invalidated',request);window.removeEventListener('mw-offline-prepare',request);states.delete(repo.scopeName);listeners.forEach(listener=>{listener()})};
+ return()=>{stopped=true;if(timer)clearTimeout(timer);if(retryTimer)clearTimeout(retryTimer);controller?.abort();unsubscribe();window.removeEventListener('mw-offline-queued',resume);window.removeEventListener('online',online);window.removeEventListener('offline',offline);window.removeEventListener('focus',focused);document.removeEventListener('visibilitychange',visible);if(pollTimer)clearTimeout(pollTimer);window.removeEventListener('mw-read-invalidated',request);window.removeEventListener('mw-offline-prepare',request);states.delete(repo.scopeName);listeners.forEach(listener=>{listener()})};
 }
 
 export const routeDomain=(route:string)=>route.startsWith('/api/management')?'management':route.startsWith('/api/cash-')||route==='/api/preferences'?'cash':route.startsWith('/api/notifications')?'notifications':route.startsWith('/api/collection')||route.includes('/upcoming')||route.includes('/collection-receipts')?'collection':'records';

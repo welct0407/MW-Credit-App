@@ -5421,14 +5421,6 @@
           "pointer": "/content/columns/state"
         },
         {
-          "subject": "lease_generation",
-          "pointer": "/content/columns/lease_generation"
-        },
-        {
-          "subject": "lease_expires_at",
-          "pointer": "/content/columns/lease_expires_at"
-        },
-        {
           "subject": "checkpoint",
           "pointer": "/content/columns/checkpoint"
         },
@@ -5445,10 +5437,6 @@
           "pointer": "/content/columns/result_count"
         },
         {
-          "subject": "error_code",
-          "pointer": "/content/columns/error_code"
-        },
-        {
           "subject": "pwa_job_runs_business_date_check",
           "pointer": "/content/constraints/pwa_job_runs_business_date_check"
         },
@@ -5457,16 +5445,8 @@
           "pointer": "/content/constraints/pwa_job_runs_business_date_not_null"
         },
         {
-          "subject": "pwa_job_runs_check",
-          "pointer": "/content/constraints/pwa_job_runs_check"
-        },
-        {
           "subject": "pwa_job_runs_checkpoint_check",
           "pointer": "/content/constraints/pwa_job_runs_checkpoint_check"
-        },
-        {
-          "subject": "pwa_job_runs_error_code_check",
-          "pointer": "/content/constraints/pwa_job_runs_error_code_check"
         },
         {
           "subject": "pwa_job_runs_job_name_business_date_scope_key_key",
@@ -5479,14 +5459,6 @@
         {
           "subject": "pwa_job_runs_job_name_not_null",
           "pointer": "/content/constraints/pwa_job_runs_job_name_not_null"
-        },
-        {
-          "subject": "pwa_job_runs_lease_generation_check",
-          "pointer": "/content/constraints/pwa_job_runs_lease_generation_check"
-        },
-        {
-          "subject": "pwa_job_runs_lease_generation_not_null",
-          "pointer": "/content/constraints/pwa_job_runs_lease_generation_not_null"
         },
         {
           "subject": "pwa_job_runs_pkey",

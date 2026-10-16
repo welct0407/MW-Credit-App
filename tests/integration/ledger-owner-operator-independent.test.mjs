@@ -61,7 +61,7 @@ test('nonsuperuser postgres: closed ledger owner, V93 refused closed, applied wi
   const state=plan.restoreState;
   try{
    // 4. Migrate + validate as the non-superuser runner.
-   const migrated=await flyway('migrate');assert.match(migrated.stdout,/"success"\s*:\s*true/);assert.deepEqual(await history(operator),{version:93,failed:0});
+   const migrated=await flyway('migrate');assert.match(migrated.stdout,/"success"\s*:\s*true/);assert.deepEqual(await history(operator),{version:94,failed:0});
    const validated=await flyway('validate');assert.match(validated.stdout,/"validationSuccessful"\s*:\s*true/);
    const fn=(await operator.query("SELECT pg_get_userbyid(proowner) owner,prosecdef,proconfig FROM pg_proc WHERE oid=to_regprocedure('public.sync_cash_ledger(text,text)')")).rows[0];
    assert.equal(fn.owner,LEDGER);assert.equal(fn.prosecdef,true);assert.ok(fn.proconfig.includes('search_path=pg_catalog, public'));
@@ -88,7 +88,7 @@ test('nonsuperuser postgres: closed ledger owner, V93 refused closed, applied wi
   const failure=new Error('synthetic migration failure');await assert.rejects((async()=>{try{throw failure;}finally{await restoreOwnerAuthority(operator,config,again.restoreState,{apply:true});}})(),err=>err===failure);
   assert.equal((await restoreOwnerAuthority(operator,config,again.restoreState)).mode,'authority-already-restored');assert.deepEqual(await ledgerShape(admin),{runner_can_set:false,runner_inherits:false,owner_schema_create:false});
   // A no-op migrate at the head (the routine DEV runner call) needs no authority; nothing is re-applied.
-  const rerun=await flyway('migrate');assert.match(rerun.stdout,/"success"\s*:\s*true/);assert.deepEqual(await history(operator),{version:93,failed:0});
+  const rerun=await flyway('migrate');assert.match(rerun.stdout,/"success"\s*:\s*true/);assert.deepEqual(await history(operator),{version:94,failed:0});
 
   // 8. Application-role write proof: every cash source syncs the ledger through the definer; direct writes stay denied.
   await admin.query((await readFile('scripts/database/Test-CashAccountFixtures.sql','utf8')).replace(/^\\set.*$/m,''));

@@ -48,10 +48,23 @@ DO $$ DECLARE got text; BEGIN
 END $$;
 RESET SESSION AUTHORIZATION;
 
+-- Synthetic receipt for the V94 reviewer decision: a charge on W4-L and a processing lump-sum receipt.
+INSERT INTO "Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Interest Due") VALUES('W4-C','W4-L',current_date-2,0::money,100::money);
+INSERT INTO "Payments"("Row ID","Ref Borrower","Status","Amount Received","Payment Date","Allocation Method","Ref Target Charge","Ref Received By Cash Account") VALUES('W4-P','W4-B','Processing',50::money,current_date,'Lump Sum',NULL,'CI-DAD');
+SET CONSTRAINTS ALL IMMEDIATE;
+
 -- B. reviewer role: a source edit re-syncs, the lock-only column locks, nothing writes the ledger.
 SET SESSION AUTHORIZATION mw_reviewer_dml;
 SELECT agent_audit.begin_operation('0b9d0b9d-0b9d-4b9d-8b9d-0b9d0b9d0b9d','synthetic-reviewer','synthetic@example.invalid',repeat('0',64),'W4 ledger access regression','[]'::jsonb,'w4');
 UPDATE "Loans" SET "Principal Amount"=1300::money WHERE "Row ID"='W4-L';
+-- V94 owner decision: a metadata-only receipt edit passes; a payment-input edit fails closed (42501, named reason) and writes nothing.
+UPDATE "Payments" SET "Notes"='reviewer metadata note' WHERE "Row ID"='W4-P';
+DO $$ BEGIN
+ IF (SELECT "Notes" FROM "Payments" WHERE "Row ID"='W4-P') IS DISTINCT FROM 'reviewer metadata note' THEN RAISE EXCEPTION 'Reviewer metadata-only payment edit did not apply'; END IF;
+ BEGIN UPDATE "Payments" SET "Amount Received"=60::money WHERE "Row ID"='W4-P'; RAISE EXCEPTION 'reviewer payment input edit allowed';
+ EXCEPTION WHEN insufficient_privilege THEN IF SQLERRM<>'Payment input corrections require the native payment command' THEN RAISE; END IF; END;
+ IF (SELECT "Amount Received"::numeric FROM "Payments" WHERE "Row ID"='W4-P')<>50 THEN RAISE EXCEPTION 'Rejected payment input edit left a change'; END IF;
+END $$;
 DO $$ DECLARE n integer; BEGIN
  IF (SELECT "Amount"::numeric FROM "Cash Ledger" WHERE "Row ID"='cash:LOAN:W4-L')<>1300 THEN RAISE EXCEPTION 'Reviewer edit did not re-sync the ledger'; END IF;
  SELECT count(*) INTO n FROM (SELECT 1 FROM "Cash Ledger" WHERE "Ref Loan"='W4-L' FOR UPDATE NOWAIT) x; IF n<>1 THEN RAISE EXCEPTION 'Reviewer row lock on the ledger failed'; END IF;

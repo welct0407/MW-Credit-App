@@ -24,7 +24,7 @@
       \ THEN 'mw_app_prod_journal_owner' ELSE 'mw_app_dev_journal_owner' END) OR e#>>'{command,operation}'<>'loan.create'\
       \ THEN RAISE EXCEPTION USING ERRCODE='42501',MESSAGE='Governed operation required';END IF;\r\n PERFORM 1 FROM public.\"\
       Borrowers\" WHERE \"Row ID\"=i->>'borrowerId' FOR UPDATE;\r\n IF NOT FOUND THEN RAISE EXCEPTION USING ERRCODE='P5B04';END\
-      \ IF;\r\n PERFORM pg_advisory_xact_lock(hashtextextended('loan:'||target,0));\r\n IF EXISTS(SELECT 1 FROM public.\"\
+      \ IF;\r\n PERFORM pg_advisory_xact_lock(public.pwa_lock_key_v1('loan',target));\r\n IF EXISTS(SELECT 1 FROM public.\"\
       Loans\" WHERE \"Row ID\"=target) THEN RAISE EXCEPTION USING ERRCODE='P5B01';END IF;\r\n IF NOT EXISTS(SELECT 1 FROM\
       \ public.\"Cash Accounts\" ca JOIN public.\"Cash Holders\" ch ON ch.\"Row ID\"=ca.\"Ref Cash Holder\" WHERE ca.\"Row\
       \ ID\"=i->>'disbursingAccountId' AND ca.\"Active\" IS TRUE AND ch.\"Active\" IS TRUE AND ch.\"Row ID\"='ch:lisa') THEN\
@@ -74,3 +74,10 @@
     "acl": "{postgres=X/postgres,mw_app_prod_journal_owner=X/postgres,mw_app_prod=X/postgres}"
     "comment": null
     "extension": null
+"evidence":
+  "/content/definition/definition":
+    "reference": "Change Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md"
+    "reason": "DB-LOCK-03: V94 replaces the inline advisory key hashtextextended(kind||':'||target,0) with public.pwa_lock_key_v1(kind,target)\
+      \ (bit-identical key; owner, security mode, search_path, ACL and comment unchanged). Applied in DEV on 17 October 2026\
+      \ (loan_manager_dev, V94); PROD is still V93, so this PROD-scope value is source-derived until the PROD migration."
+    "state": "value"

@@ -8,9 +8,10 @@ test('services name the project and owner only through lib/identity.mjs',async()
 });
 test('shared instance allowlist names exactly the SSD instance and its HDD predecessor',async()=>{
  const identity=await import('../../services/lib/identity.mjs');
- assert.deepEqual([...identity.INSTANCE_NAMES],['mw-credit-pg-20261017','appsheet-pg-prod-20260914']);
+ assert.deepEqual([...identity.INSTANCE_NAMES],['mw-credit-pg-20261017']);
  assert.equal(identity.INSTANCE_CONNECTION_NAME,'clever-oasis-508610-n7:asia-southeast1:mw-credit-pg-20261017');
- assert.equal(identity.isSharedInstanceConnection('clever-oasis-508610-n7:asia-southeast1:appsheet-pg-prod-20260914'),true);
+ // R067: the deleted HDD instance is no longer accepted anywhere.
+ assert.equal(identity.isSharedInstanceConnection('clever-oasis-508610-n7:asia-southeast1:appsheet-pg-prod-20260914'),false);
  assert.equal(identity.isSharedInstanceConnection('clever-oasis-508610-n7:asia-southeast1:mw-credit-pg-20261017'),true);
  for(const value of ['clever-oasis-508610-n7:asia-southeast1:mw-credit-pg-20261018','mw-credit-pg-20261017',null,undefined,''])assert.equal(identity.isSharedInstanceConnection(value),false);
 });

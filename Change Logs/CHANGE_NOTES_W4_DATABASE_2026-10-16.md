@@ -25,7 +25,7 @@ One bullet per W4 finding code (24 codes).
 - **DB-PERF-03.** `infrastructure/ecosystem-shared/owned.tf`: the four `cron.*`/`pg_cron` flags removed, `max_connections` 200 to 50. Planned as 0 add, 1 change (flags in place), 0 destroy and applied the same day, with the tier raised and `max_connections` kept at 200 by owner decision. Daily peak connections are 12 to 13 since AppSheet retired; worst configured case is about 39 of about 47 usable. Applying restarts the shared instance (DEV, PROD and `mw_agent`).
 - **DB-PERF-04.** V93 creates `pg_stat_statements` in schema `monitoring` (guarded on `pg_available_extensions`; a plain operator without privilege gets a NOTICE). Correction to the brief: Cloud SQL has no `shared_preload_libraries` flag and already preloads the library, so no flag and no restart are needed for this item.
 - **DB-LOCK-01.** App side, see the app note: pre-commit lock, deadlock, timeout and try-lock failures return `409 command_busy`; the PWA retries the same request.
-- **DB-LOCK-02.** Not changed. The lease columns of `pwa_job_runs` are dead state but harmless; dropping them is a later contract migration (expand/contract).
+- **DB-LOCK-02.** Not changed in V93 (done in V94, see the follow-ups section). The lease columns of `pwa_job_runs` are dead state but harmless; dropping them is a later contract migration (expand/contract).
 - **DB-LOCK-03.** V93 adds `public.pwa_lock_key_v1(kind text, target text)` (`IMMUTABLE STRICT PARALLEL SAFE`, no `search_path`, EXECUTE stays PUBLIC) returning `hashtextextended(kind || ':' || target, 0)`. Proven byte-identical to the inline form, NULL included. Node uses it (app note). The SQL bodies keep the inline expression: rewriting `pwa_submit_operation_v2` needs journal-owner authority in every environment, and the other ten sites have no Node twin. `Test-StatementBatch.sql` asserts the equality and the function attributes. Two-integer request-id locks are a different key space and are untouched.
 - **DB-SCHEMA-01.** New generated `database/current/public-functions.sql` (`pg_dump --schema-only` of a fresh rebuild, `Normalize-Schema.ps1 -FunctionsOnly`), `scripts/database/Update-PublicFunctions.ps1` (check mode fails on drift; `MW_WRITE_PUBLIC_FUNCTIONS=1` or `-Write` regenerates; refuses another `pg_dump` major), wired into `Test-CI.ps1` and `Test-MigrationsCloud.py`.
 - **DB-SCHEMA-02.** V93 renames `appsheet_blank_refs` to `a000_blank_refs` on the nine tables so the normalizer fires first. New `Test-TriggerOrder.sql` holds the firing-order snapshot (81 rows for Payments, Loans, Charges, Repayments) and the "normalizer first" check, included from `Test-StatementBatch.sql`.
@@ -156,16 +156,45 @@ Patch 15:42:54 to 15:49:21Z: tier `db-g1-small`, IAM flag, `max_connections` 50,
 
 ## Open questions
 
-1. Reviewer payment-input edits fail with `42501` in `payment_crud_prepare_core_v83` since V83 (pre-existing, not caused by V93, which adds the lock-only grants it needs on "Cash Ledger"). Decide whether the reviewer path should be fixed or left.
+1. Resolved by the owner on 17 October 2026: reviewer payment-input edits (`42501` in `payment_crud_prepare_core_v83` since V83, pre-existing) stay blocked. Payment input corrections go through the native payment command; migration V94 (DEV first, R067) only replaces the error with 'Payment input corrections require the native payment command'. See [REVIEWER_DML](../integration-agent/docs/REVIEWER_DML.md).
 2. Resolved by the owner on 16 October: retention identity is agent migration V5 (role plus purge function); the bucket binding and the `agent-audit-archive/` prefix are accepted and applied.
 3. SSD: resolved. The owner had the sync-fix session move to the new SSD instance `mw-credit-pg-20261017` on 17 October; the `mw_agent` purge ran inside that freeze, so no `VACUUM FULL` is needed.
-4. Reader grants for `monitoring.pg_stat_statements` (`pg_read_all_stats`, USAGE) are a separate owner decision.
+4. Resolved by the owner on 17 October 2026 ("Grant to codex-cloud-read"): as `postgres`, about 03:13 Bangkok (16 October ~20:13 UTC), `GRANT pg_read_all_stats TO "codex-cloud-read@clever-oasis-508610-n7.iam"` on `mw-credit-pg-20261017`. Readback: membership inherit true, grantor `cloudsqladmin`, alongside `pg_read_all_data`. The read identity can now read query text in `monitoring.pg_stat_statements` across all databases (instance-wide). Rollback: `REVOKE pg_read_all_stats FROM` that user. The old instance `appsheet-pg-prod-20260914` (rollback copy, being stopped) did not receive it.
 
 ## Remaining work
 
 - `scripts/backup-agent-database.py` hard-codes Windows binaries and a fixed dump name; add platform binaries and `--dump-name` before it is reused on Linux.
-- Contract migration for the `pwa_job_runs` lease columns (DB-LOCK-02).
-- Move the SQL bodies to `pwa_lock_key_v1` in the next migration that touches `pwa_submit_operation_v2` for a functional reason (needs journal-owner authority).
-- DB-ACCESS-07: `verify-full` TLS needs a `server_ca_mode` change on the instance (unchanged from W3).
+- DB-LOCK-02 (lease columns of `pwa_job_runs`): done in V94 (DEV), PROD pending owner instruction.
+- Move the SQL bodies to `pwa_lock_key_v1`: done in V94 (DEV), PROD pending owner instruction.
+- DB-ACCESS-07: owner chose on 17 October 2026 to retire VM-01's direct TLS route: move VM-01 tools onto the Cloud SQL Auth Proxy, then require the connector and remove the authorized network, after the SSD-move PR #46 merges. Not started.
+- Migration V94 (clearer reviewer payment-input error, with the two items above): done in DEV, PROD pending owner instruction.
+- `scripts/backup-agent-database.py` Linux support: done (`4ed32a2`); the first item above is superseded.
+- Borrower-name lock key normalisation differs between Node (`trim().toLowerCase()`) and SQL (`lower(btrim())`) for tab/NBSP padding and non-ASCII capitals under the C locale (pre-existing since V93); concurrent creates through the two paths might not block each other.
+- A failed dataset domain in the PWA is retried every 30 s indefinitely (no back-off).
+- UX-REFRESH-06, 07 and 09 are deferred.
 - Lesson for readbacks on the shared instance: use cheap single-scan counts. Two whole-tree queries hit their time limits and wrote about 2.7 GB of temporary files before they were cancelled; disk stayed at 10 GB and the instance stayed RUNNABLE.
-- ALL-ARCH-03 cleanup (password roles, `NOLOGIN`) is unchanged from the W3 notes.
+- ALL-ARCH-03 cleanup part 2a is done (17 October 2026, see the W3 notes); part 2b (reviewer DML and receipt projector password files) waits for the `session_user` migration.
+
+## W4 follow-ups (17 October 2026)
+
+Scope of V94 (`database/migrations/V94__job_run_contract_and_shared_lock_key.sql`, commit `e669686`; transactional and re-runnable):
+
+- DB-LOCK-02: `pwa_job_runs` loses `lease_expires_at`, `lease_generation`, `error_code` and their checks; `pwa_job_runs_state_check` allows only `pending` and `completed`. `pwa_job_run_v1` goes pending to completed in one UPDATE (no leased step; a failure rolls the INSERT back with the work; replay of a completed row unchanged). A data guard refuses a leased, uncertain or failed row, an open lease or an error code.
+- DB-LOCK-03: the ten routines with an inline `hashtextextended(` key (`pwa_submit_operation_v2`, `pwa_submit_agent_operation_v1`, the seven `pwa_apply_*_v2` bodies for charge, expense, loan create, management, management financial, assessment and analytics, and `guard_cash_account`) now call `pwa_lock_key_v1` (bit-identical key; owner, security mode, search_path, ACL and comment preserved). The two-integer request-id locks are a different key space and stay.
+- Owner decision: a reviewer payment-input edit in `payment_crud_prepare` raises SQLSTATE 42501 with `Payment input corrections require the native payment command`; no grant changes, metadata-only updates still pass.
+
+Also in this batch: the PWA offline dataset refresh runs every 30 s and on every focus (`905eb82`; UX items 01 to 04 done; tester e2e 60 of 60; 06, 07, 09 deferred) and the agent backup script works on Linux (`4ed32a2`).
+
+Checks:
+
+- Coder: `mw-db-ci` all groups fail 0 including the public-functions match; phase 5 re-run fail 0; R053 suites at V94 17 of 17; `npm test` 529 of 529.
+- Independent tester: catalog before and after identical except the intended bodies and `pwa_job_runs`; lock key bit-identical across 12 inputs including non-ASCII and the Node path; re-run idempotent; data guard refuses a leased row and an error-code row; job run, replay and concurrent waiter correct; reviewer 42501 message; agent lab 85 of 85.
+
+DEV run, 17 October 2026 05:11 to 05:18 Bangkok (22:11 to 22:18 UTC, 16 October) on `mw-credit-pg-20261017` / `loan_manager_dev` through the Linux tunnel:
+
+- Owner-authority prepare (ledger, notify, jobs and journal owners) at 22:11:19Z; record `owner-authority-dev-prepare-739cd5fd….json` (private, outside Git).
+- `Invoke-Flyway` migrate 93 to 94: success, execution 3.3 s; post-migrate reconciliation applied (re-plan 0 violations).
+- Restore at 22:18:05Z: `authority-restored`; a repeat returned `authority-already-restored`. `validate` successful, 95 migrations.
+- Readback: the four owners inherit, set and admin false; `public` CREATE only `pg_database_owner` and `cloudsqlsuperuser`; `pwa_job_runs` columns `run_id, job_name, business_date, scope_key, state, checkpoint, started_at, completed_at, result_count`; no public function other than `pwa_lock_key_v1` contains `hashtextextended(`; owners and definer flags unchanged (`pwa_job_run_v1` `mw_jobs_owner_dev`, both submits `mw_app_dev_journal_owner`, `sync_cash_ledger` `mw_ledger_owner_dev`); no DEV Cloud Run errors after 22:11Z (DEV schedulers stay paused by design).
+- PROD is still V93. PROD V94 needs the owner's production instruction; the dictionary entries are recorded at PROD scope from the migration source and say so.
+- Recovery: V94 is forward-only; DEV rollback is a restore from the DEV backup or a corrective migration. PROD needs the usual verified backup first.

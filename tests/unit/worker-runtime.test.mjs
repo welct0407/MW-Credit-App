@@ -4,7 +4,7 @@ import {loadWorkerConfig} from '../../services/workers/config.mjs';
 import {createWorkerRuntime,scheduledBoundary} from '../../services/workers/runtime.mjs';
 import {parseNotificationPolicy} from '../../services/notifications/policy.mjs';
 const project='clever-oasis-508610-n7';
-const env={APP_ENV:'dev',WORKER_ROLE:'jobs',WORKER_ACTIVATION:'enabled',APPLICATION_PROJECT_ID:project,INSTANCE_CONNECTION_NAME:`${project}:asia-southeast1:appsheet-pg-prod-20260914`,DB_NAME:'loan_manager_dev',DB_USER:`mw-credit-app-jobs-dev@${project}.iam`,RUNTIME_SERVICE_ACCOUNT:`mw-credit-app-jobs-dev@${project}.iam.gserviceaccount.com`,WORKER_AUDIENCE:'https://mw-credit-app-jobs-dev-737787224638.asia-southeast1.run.app',SCHEDULER_SERVICE_ACCOUNT:`mw-credit-app-scheduler-dev@${project}.iam.gserviceaccount.com`,SQL_REGISTERED_CREATORS_JSON:'["postgres"]',WORKER_CALLER_SUBJECTS_JSON:JSON.stringify({[`mw-credit-app-scheduler-dev@${project}.iam.gserviceaccount.com`]:'1001'})};
+const env={APP_ENV:'dev',WORKER_ROLE:'jobs',WORKER_ACTIVATION:'enabled',APPLICATION_PROJECT_ID:project,INSTANCE_CONNECTION_NAME:`${project}:asia-southeast1:mw-credit-pg-20261017`,DB_NAME:'loan_manager_dev',DB_USER:`mw-credit-app-jobs-dev@${project}.iam`,RUNTIME_SERVICE_ACCOUNT:`mw-credit-app-jobs-dev@${project}.iam.gserviceaccount.com`,WORKER_AUDIENCE:'https://mw-credit-app-jobs-dev-737787224638.asia-southeast1.run.app',SCHEDULER_SERVICE_ACCOUNT:`mw-credit-app-scheduler-dev@${project}.iam.gserviceaccount.com`,SQL_REGISTERED_CREATORS_JSON:'["postgres"]',WORKER_CALLER_SUBJECTS_JSON:JSON.stringify({[`mw-credit-app-scheduler-dev@${project}.iam.gserviceaccount.com`]:'1001'})};
 // Workers pin each caller's OIDC sub (APP-AUTH-06); synthetic unique ids only.
 const SUBJECTS={[`mw-credit-app-scheduler-dev@${project}.iam.gserviceaccount.com`]:'1001',[`mw-credit-app-command-dev@${project}.iam.gserviceaccount.com`]:'1002'};
 const oidc=payload=>({...payload,sub:SUBJECTS[payload.email]??'9999'});
@@ -17,7 +17,7 @@ test('DEV API enrollment requires the owner tuple while dispatch additionally re
 });
 test('worker exact environment identities and separation fail closed',()=>{
  assert.equal(loadWorkerConfig({}),null);assert.equal(loadWorkerConfig(env).capability,'mw_jobs_dev');
- assert.equal(loadWorkerConfig({...env,INSTANCE_CONNECTION_NAME:'clever-oasis-508610-n7:asia-southeast1:mw-credit-pg-20261017'}).instance,'clever-oasis-508610-n7:asia-southeast1:mw-credit-pg-20261017');assert.throws(()=>loadWorkerConfig({...env,INSTANCE_CONNECTION_NAME:'clever-oasis-508610-n7:asia-southeast1:mw-credit-pg-20261018'}));
+ assert.equal(loadWorkerConfig({...env,INSTANCE_CONNECTION_NAME:'clever-oasis-508610-n7:asia-southeast1:mw-credit-pg-20261017'}).instance,'clever-oasis-508610-n7:asia-southeast1:mw-credit-pg-20261017');assert.throws(()=>loadWorkerConfig({...env,INSTANCE_CONNECTION_NAME:'clever-oasis-508610-n7:asia-southeast1:mw-credit-pg-20261018'}));assert.throws(()=>loadWorkerConfig({...env,INSTANCE_CONNECTION_NAME:'clever-oasis-508610-n7:asia-southeast1:appsheet-pg-prod-20260914'}));
  for(const patch of [{DB_NAME:'loan_manager_prod'},{WORKER_AUDIENCE:'https://attacker.invalid'},{DB_USER:'postgres'},{WEB_PUSH_VAPID_JSON:'{}'},{NOTIFICATION_POLICY_JSON:'{}'},{PGHOST:'localhost'},{WORKER_ACTIVATION:'true'}])assert.throws(()=>loadWorkerConfig({...env,...patch}));
 });
 test('disabled worker creates no pool, credentials or effect',async()=>{
