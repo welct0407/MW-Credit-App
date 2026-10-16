@@ -196,7 +196,7 @@ test('receipts are stored once, only within the 30-day window, legacy alias copi
  // Offline UI: the recent receipt renders; a never-fetched older one explains why it is missing instead of a broken image
  // (`old` was just viewed online, so the ordinary evictable response cache may still show it — unchanged behaviour).
  await page.evaluate(()=>{(window as any).__paymentId='recent';(window as any).selectBackCase('prepared-payment')});await expect(page.getByRole('img',{name:'Verified receipt evidence'})).toBeVisible();
- await page.evaluate(()=>(window as any).selectBackCase(null));await page.evaluate(()=>{(window as any).__paymentId='older';(window as any).selectBackCase('prepared-payment')});await expect(page.getByRole('alert')).toContainText('Receipt not saved offline (older than 30 days)');
+ await page.evaluate(()=>(window as any).selectBackCase(null));await page.evaluate(()=>{(window as any).__paymentId='older';(window as any).selectBackCase('prepared-payment')});await expect(page.getByRole('status').filter({hasText:'Receipt not saved offline (older than 30 days)'})).toContainText('Reconnect to view it');
  await context.setOffline(false);await page.evaluate(()=>(window as any).selectBackCase(null));await page.evaluate(()=>(window as any).selectBackCase('prepared-payment'));await expect(page.getByRole('img',{name:'Verified receipt evidence'})).toBeVisible();
 });
 test('a stored receipt is deleted once its payment ages out of the 30-day window',async({page})=>{
