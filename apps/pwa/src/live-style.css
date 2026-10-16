@@ -530,6 +530,11 @@ main[data-workspace=management] pre{white-space:pre-wrap;overflow-wrap:anywhere}
 .refresh-failure-badge { position: absolute; top: 1px; right: 0; min-width: 17px; height: 17px; border-radius: 50%; background: #8b1a1a; color: white; border: 1px solid white; font: bold 13px/15px sans-serif; text-align: center; }
 
 .header-load-status { display: flex; align-items: center; gap: 4px; }
+.live-sync-status { border: 0; background: transparent; color: inherit; font: inherit; font-size: 11px; line-height: 1.2; max-width: 92px; padding: 2px 4px; border-radius: 4px; text-align: right; opacity: .85; font-variant-numeric: tabular-nums; }
+.live-sync-status:hover { background: rgb(255 255 255 / 20%); }
+.live-sync-status.stale { opacity: 1; text-decoration: underline dotted; }
+.waiting-sync-button.all-synced { opacity: .8; }
+.sync-toast { margin: 8px 0; padding: 8px 12px; border-radius: 6px; background: #e6f4ea; color: #1e4620; font-size: 14px; }
 .header-load-percent { min-width: 3ch; font-size: 11px; font-variant-numeric: tabular-nums; }
 .header-load-progress { width: 52px; height: 6px; flex: 0 0 52px; align-self: center; accent-color: #252525; border: 0; border-radius: 4px; overflow: hidden; }
 .header-load-progress::-webkit-progress-bar { background: rgb(255 255 255 / 55%); border-radius: 4px; }

@@ -3,13 +3,15 @@ import {validateViewedSnapshot,type ViewedSnapshot} from './viewed-snapshot';
 const expiry=24*60*60*1000;
 /** APP-OFFLINE-04: offline read data is kept for 7 days after the last successful online check (lease:owner.verifiedAt). */
 const retention=7*expiry;
-const retainedKinds=new Set(['dataset','dataset-progress','dataset-media','cache','snapshot']);
+const retainedKinds=['dataset','dataset-progress','dataset-media','cache','snapshot'];
+/** Keys are `kind:id`; a bounded key range reads or deletes one kind without walking the store. */
+const kindRange=(kind:string)=>IDBKeyRange.bound(kind+':',kind+':\uffff');
 /** Deletes stale offline read data; pending:* rows, drafts, the lease and meta rows are never touched. */
 function sweepStale(db:IDBDatabase){return new Promise<void>(resolve=>{
  const tx=db.transaction('records','readwrite'),store=tx.objectStore('records');
  tx.oncomplete=()=>resolve();tx.onerror=tx.onabort=()=>resolve();
  const lease=store.get('lease:owner');lease.onsuccess=()=>{const verifiedAt=lease.result?.value?.verifiedAt;if(typeof verifiedAt==='number'&&Date.now()-verifiedAt<retention)return;
-  const cursor=store.openCursor();cursor.onsuccess=()=>{const current=cursor.result;if(!current)return;if(retainedKinds.has(current.value?.kind))current.delete();current.continue()}};
+  for(const kind of retainedKinds)store.delete(kindRange(kind))};
 })}
 /** The same rule for every other owner namespace of this environment on the device (once per page load, never blocks the current owner). */
 const sweptEnvironments=new Set<string>();
@@ -81,13 +83,17 @@ export function ownerOfflineRepository(identity:{issuer:string;uid:string},envir
   if(!id)throw Error('Offline record identity required');
   const identity=kind==='pending'?await pendingIdentity(value):undefined;
   await transaction<void>('readwrite',(store,done,fail)=>{
-   const req=store.getAll();req.onsuccess=()=>{
-    const existing=(req.result as Saved<unknown>[]).find(row=>row.key===kind+':'+id);
+   const req=store.get(kind+':'+id);req.onsuccess=()=>{
+    const existing=req.result as Saved<unknown>|undefined;
     if(kind==='pending'&&existing){if((existing.identity??JSON.stringify(existing.value))!==identity){fail(Error('Saved request is immutable'));return;}done();return;}
-    const rows=(req.result as Saved<unknown>[]).filter(row=>row.kind===kind&&row.key!==kind+':'+id);
-    if(kind==='draft'&&rows.length>=5){fail(Error('Offline draft limit reached'));return;}
-    if(kind==='snapshot')for(const row of rows.sort((a,b)=>b.savedAt-a.savedAt).slice(19))store.delete(row.key);
-    store.put({key:kind+':'+id,kind,savedAt,value,...(kind==='pending'?{identity,sync:{state:'queued',attempted:false}}:{})});done();
+    const put=()=>{store.put({key:kind+':'+id,kind,savedAt,value,...(kind==='pending'?{identity,sync:{state:'queued',attempted:false}}:{})});done()};
+    if(kind!=='draft'&&kind!=='snapshot'){put();return;}
+    const others=store.getAll(kindRange(kind));others.onsuccess=()=>{
+     const rows=(others.result as Saved<unknown>[]).filter(row=>row.key!==kind+':'+id);
+     if(kind==='draft'&&rows.length>=5){fail(Error('Offline draft limit reached'));return;}
+     if(kind==='snapshot')for(const row of rows.sort((a,b)=>b.savedAt-a.savedAt).slice(19))store.delete(row.key);
+     put();
+    };
    };
   });
   if(kind==='pending'){changed();window.dispatchEvent(new Event('mw-offline-queued'));}
@@ -101,17 +107,18 @@ export function ownerOfflineRepository(identity:{issuer:string;uid:string},envir
   async readCacheRevision(){return cacheTransaction<number|null>('readonly',null,(store,done)=>{const request=store.get('meta:cache-revision');request.onsuccess=()=>done(request.result?.value??0)})},
   async invalidateReads(){await transaction<void>('readwrite',(store,done)=>{bumpReadRevision(store);done()});readsInvalidated()},
   async readDataset(domain:string){return cacheTransaction<any|null>('readonly',null,(store,done)=>{const request=store.get('dataset:'+domain);request.onsuccess=()=>{const row=request.result;if(!row){done(null);return;}const current=store.get('meta:read-revision');current.onsuccess=()=>done({...row.value,cacheStale:row.revision!==(current.result?.value??0)})}})},
-  async readDatasetProgress(domain:string){return cacheTransaction<any|null>('readonly',null,(store,done)=>{const request=store.get('dataset-progress:'+domain);request.onsuccess=()=>{const row=request.result;if(!row){done(null);return;}const current=store.get('meta:read-revision');current.onsuccess=()=>done(row.revision===(current.result?.value??0)?row.value:null)}})},
+  /** R064: a partial walk survives the owner's own settled writes; the coordinator re-pins it to the current revision and rechecks. */
+  async readDatasetProgress(domain:string){return cacheTransaction<any|null>('readonly',null,(store,done)=>{const request=store.get('dataset-progress:'+domain);request.onsuccess=()=>done(request.result?.value??null)})},
   async discardDatasetProgress(domain:string){return cacheTransaction<void>('readwrite',undefined,(store,done)=>{store.delete('dataset-progress:'+domain);done()})},
   async saveDatasetProgress(domain:string,value:any,revision:number,expectedCursor?:string|null){
    if(!['records','collection','cash','management','notifications'].includes(domain)||value?.schemaVersion!==1||value.domain!==domain||value.complete!==false||!value.data)throw Error('Invalid offline dataset progress');
-   return cacheTransaction<boolean>('readwrite',false,(store,done)=>{const current=store.get('meta:read-revision');current.onsuccess=()=>{if((current.result?.value??0)!==revision){done(false);return;}const stage=store.get('dataset-progress:'+domain);stage.onsuccess=()=>{if(expectedCursor!==undefined&&(stage.result?.revision===revision?stage.result?.value?.nextCursor??null:null)!==expectedCursor){done(false);return;}store.put({key:'dataset-progress:'+domain,kind:'dataset-progress',savedAt:Date.now(),revision,value});done(true)}}});
+   return cacheTransaction<boolean>('readwrite',false,(store,done)=>{const current=store.get('meta:read-revision');current.onsuccess=()=>{if((current.result?.value??0)!==revision){done(false);return;}const stage=store.get('dataset-progress:'+domain);stage.onsuccess=()=>{if(expectedCursor!==undefined&&(stage.result?.value?.nextCursor??null)!==expectedCursor){done(false);return;}store.put({key:'dataset-progress:'+domain,kind:'dataset-progress',savedAt:Date.now(),revision,value});done(true)}}});
   },
   async saveDataset(domain:string,value:any,revision:number,expectedCursor?:string|null,expectedBase?:string|null,invalidateCache=true){
    if(!['records','collection','cash','management','notifications'].includes(domain)||value?.schemaVersion!==1||value.domain!==domain||value.complete!==true||!value.data)throw Error('Incomplete offline dataset');
    // Complete datasets are retained separately from the evictable response cache.
    // A failed/quota-exceeded transaction leaves the previous complete bundle intact.
-   return cacheTransaction<boolean>('readwrite',false,(store,done)=>{const current=store.get('meta:read-revision');current.onsuccess=()=>{if((current.result?.value??0)!==revision){done(false);return;}const stage=store.get('dataset-progress:'+domain);stage.onsuccess=()=>{if(expectedCursor!==undefined&&(stage.result?.revision===revision?stage.result?.value?.nextCursor??null:null)!==expectedCursor){done(false);return;}const existing=store.get('dataset:'+domain);existing.onsuccess=()=>{const prior=existing.result?.value;
+   return cacheTransaction<boolean>('readwrite',false,(store,done)=>{const current=store.get('meta:read-revision');current.onsuccess=()=>{if((current.result?.value??0)!==revision){done(false);return;}const stage=store.get('dataset-progress:'+domain);stage.onsuccess=()=>{if(expectedCursor!==undefined&&(stage.result?.value?.nextCursor??null)!==expectedCursor){done(false);return;}const existing=store.get('dataset:'+domain);existing.onsuccess=()=>{const prior=existing.result?.value;
     if(expectedBase!==undefined&&(prior?JSON.stringify([prior.generation??null,prior.asOf,prior.sourceVersion??null]):null)!==expectedBase||existing.result?.revision===revision&&Date.parse(prior?.asOf)>Date.parse(value.asOf)){done(false);return;}
     // Data and checkpoint move together. Local mutations, drafts and pending
     // commands keep their own revision and immutable payloads.
@@ -119,7 +126,7 @@ export function ownerOfflineRepository(identity:{issuer:string;uid:string},envir
     // A response cached before this commit must not hide the newer dataset.
     if(!invalidateCache){done(true);return;}
     const cacheRevision=store.get('meta:cache-revision');cacheRevision.onsuccess=()=>store.put({key:'meta:cache-revision',kind:'meta',value:(cacheRevision.result?.value??0)+1});
-    const caches=store.openCursor();caches.onsuccess=()=>{const cursor=caches.result;if(!cursor){done(true);return;}if(cursor.value.kind==='cache')cursor.delete();cursor.continue()};
+    store.delete(kindRange('cache'));done(true);
    }}}});
   },
   async readDatasetMedia(key:string){return cacheTransaction<CachedResponse|null>('readonly',null,(store,done)=>{const request=store.get('dataset-media:'+key);request.onsuccess=()=>{const row=request.result;if(!row){done(null);return;}const current=store.get('meta:read-revision');current.onsuccess=()=>done({data:row.value,format:'blob',contentType:row.value.type,savedAt:row.savedAt,revision:current.result?.value??0})}})},
@@ -131,12 +138,12 @@ export function ownerOfflineRepository(identity:{issuer:string;uid:string},envir
   async saveCachedResponse(key:string,value:Omit<CachedResponse,'savedAt'|'revision'>,revision:number,expectedCacheRevision?:number|null){
    const size=value.format==='blob'&&value.data instanceof Blob?value.data.size:new TextEncoder().encode(JSON.stringify(value.data)).byteLength;
    if(size>8388608)return false;
-   return cacheTransaction<boolean>('readwrite',false,(store,done)=>{const version=store.get('meta:read-revision');version.onsuccess=()=>{if((version.result?.value??0)!==revision){done(false);return;}const cacheRevision=store.get('meta:cache-revision');cacheRevision.onsuccess=()=>{if(expectedCacheRevision!==undefined&&(cacheRevision.result?.value??0)!==expectedCacheRevision){done(false);return;}const request=store.getAll();request.onsuccess=()=>{const rows=request.result.filter((row:any)=>row.kind==='cache'&&row.key!=='cache:'+key).sort((a:any,b:any)=>(b.lastUsed??b.savedAt)-(a.lastUsed??a.savedAt));let count=1,bytes=size;for(const row of rows){count++;bytes+=row.size??0;if(count>512||bytes>33554432)store.delete(row.key)}store.put({key:'cache:'+key,kind:'cache',savedAt:Date.now(),lastUsed:Date.now(),size,value,revision});done(true)}}}});
+   return cacheTransaction<boolean>('readwrite',false,(store,done)=>{const version=store.get('meta:read-revision');version.onsuccess=()=>{if((version.result?.value??0)!==revision){done(false);return;}const cacheRevision=store.get('meta:cache-revision');cacheRevision.onsuccess=()=>{if(expectedCacheRevision!==undefined&&(cacheRevision.result?.value??0)!==expectedCacheRevision){done(false);return;}const request=store.getAll(kindRange('cache'));request.onsuccess=()=>{const rows=request.result.filter((row:any)=>row.key!=='cache:'+key).sort((a:any,b:any)=>(b.lastUsed??b.savedAt)-(a.lastUsed??a.savedAt));let count=1,bytes=size;for(const row of rows){count++;bytes+=row.size??0;if(count>512||bytes>33554432)store.delete(row.key)}store.put({key:'cache:'+key,kind:'cache',savedAt:Date.now(),lastUsed:Date.now(),size,value,revision});done(true)}}}});
   },
   async authorize(){await save('lease','owner',{verifiedAt:Date.now()});window.dispatchEvent(new Event('mw-offline-queued'))},
   async authorized(){const lease=await read<{verifiedAt:number}>('lease','owner');return !!lease&&Date.now()-lease.value.verifiedAt<expiry},
   async list(kind:'snapshot'|'draft'|'pending'){
-   const rows=await transaction<Saved<any>[]>('readonly',(store,done)=>{const req=store.getAll();req.onsuccess=()=>done(req.result)});
+   const rows=await transaction<Saved<any>[]>('readonly',(store,done)=>{const req=store.getAll(kindRange(kind));req.onsuccess=()=>done(req.result)});
    return rows.filter(row=>row.kind===kind&&(kind!=='snapshot'||Date.now()-row.savedAt<expiry));
   },
   async saveViewedSnapshot(value:ViewedSnapshot){validateViewedSnapshot(value);const lease=await read<{verifiedAt:number}>('lease','owner');if(!lease||Date.now()-lease.value.verifiedAt>=expiry)throw Error('Offline owner lease expired');await save('snapshot',value.domain+':'+value.recordId,value,Date.parse(value.asOf))},
@@ -169,17 +176,17 @@ export function ownerOfflineRepository(identity:{issuer:string;uid:string},envir
     const value={...row.value,command};delete value.notePredecessor;store.put({...row,value,identity:JSON.stringify(value)});done(true)}});
   },
   async settlePending(id:string,owner:string,sync:PendingSync|null){
-   await transaction<void>('readwrite',(store,done)=>{const request=store.get('pending:'+id);request.onsuccess=()=>{const row=request.result as Saved<any>|undefined;if(row?.sync?.leaseOwner===owner){if(sync===null){store.delete(row.key);bumpReadRevision(store)}else store.put({...row,sync});}done()}});changed();if(sync===null)readsInvalidated();
+   await transaction<void>('readwrite',(store,done)=>{const request=store.get('pending:'+id);request.onsuccess=()=>{const row=request.result as Saved<any>|undefined;if(row?.sync?.leaseOwner===owner){if(sync===null){store.delete(row.key);bumpReadRevision(store)}else store.put({...row,sync});}done()}});changed();if(sync===null){window.dispatchEvent(new CustomEvent('mw-offline-synced',{detail:{id}}));readsInvalidated()}
   },
   async migrateSavedNotes(){
-   await transaction<void>('readwrite',(store,done)=>{const request=store.getAll();request.onsuccess=()=>{if(request.result.some((row:any)=>row.key==='meta:note-queue-v1')){done();return;}for(const row of request.result as Saved<any>[]){const draft=row.value?.draft;if(row.kind!=='draft'||draft?.kind!=='collection-note'||typeof draft.id!=='string'||typeof draft.text!=='string'||!draft.record||!/^[a-f0-9]{64}$/.test(draft.record.version??''))continue;
+   await transaction<void>('readwrite',(store,done)=>{const marker=store.get('meta:note-queue-v1');marker.onsuccess=()=>{if(marker.result){done();return;}const drafts=store.getAll(kindRange('draft'));drafts.onsuccess=()=>{const pendingRows=store.getAll(kindRange('pending'));pendingRows.onsuccess=()=>{for(const row of drafts.result as Saved<any>[]){const draft=row.value?.draft;if(row.kind!=='draft'||draft?.kind!=='collection-note'||typeof draft.id!=='string'||typeof draft.text!=='string'||!draft.record||!/^[a-f0-9]{64}$/.test(draft.record.version??''))continue;
     const fields=['name','description','communicationName','instagramUsername','city','workingLocation','address','hidden','referrerId','preferredReceivingAccountId','note'];
     if(fields.some(key=>!Object.hasOwn(draft.record,key)))continue;
     if(draft.text===(draft.record.note??'')){store.delete(row.key);continue;}
     const inputs=Object.fromEntries(fields.map(key=>[key,key==='note'?draft.text:draft.record[key]]));
-    const duplicate=(request.result as Saved<any>[]).some(other=>other.kind==='pending'&&other.value?.command?.operation==='borrower.update'&&other.value.command.targetId===draft.id&&other.value.command.expectedVersion===draft.record.version&&JSON.stringify(other.value.command.inputs)===JSON.stringify(inputs));
+    const duplicate=(pendingRows.result as Saved<any>[]).some(other=>other.value?.command?.operation==='borrower.update'&&other.value.command.targetId===draft.id&&other.value.command.expectedVersion===draft.record.version&&JSON.stringify(other.value.command.inputs)===JSON.stringify(inputs));
     if(!duplicate){const requestId=crypto.randomUUID(),value={domain:'borrower',borrowerLabel:row.value.label,command:{requestId,operation:'borrower.update',targetId:draft.id,expectedVersion:draft.record.version,predecessorRequestId:null,inputs,receiptId:null}};store.put({key:'pending:'+requestId,kind:'pending',savedAt:row.savedAt,value,identity:JSON.stringify(value),sync:{state:'queued',attempted:false}});}store.delete(row.key);
-   }store.put({key:'meta:note-queue-v1',kind:'meta',value:true,savedAt:Date.now()});done()}});changed();
+   }store.put({key:'meta:note-queue-v1',kind:'meta',value:true,savedAt:Date.now()});done()}}}});changed();
   },
   remove,
   /** True once a purge advanced this namespace past the epoch this instance captured; writes need a fresh instance. */
