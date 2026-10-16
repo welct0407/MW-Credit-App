@@ -119,3 +119,86 @@ resource "google_service_account_iam_member" "cloud_executor_token_creator" {
   role               = "roles/iam.serviceAccountTokenCreator"
   member             = "serviceAccount:codex-cloud@clever-oasis-508610-n7.iam.gserviceaccount.com"
 }
+
+# Project Owner bindings that predate this root (R063 W3 ALL-INFRA-01/03).
+# Declared non-authoritatively so they are reviewable; the role is unchanged.
+# There is no roles/editor binding in the project (readback 16 October 2026).
+import {
+  to = google_project_iam_member.cloud_executor_owner
+  id = "clever-oasis-508610-n7 roles/owner serviceAccount:codex-cloud@clever-oasis-508610-n7.iam.gserviceaccount.com"
+}
+resource "google_project_iam_member" "cloud_executor_owner" {
+  project = local.project
+  role    = "roles/owner"
+  member  = "serviceAccount:codex-cloud@clever-oasis-508610-n7.iam.gserviceaccount.com"
+  lifecycle { prevent_destroy = true }
+}
+import {
+  to = google_project_iam_member.human_owner
+  id = "clever-oasis-508610-n7 roles/owner user:welct0407@mw-credit.com"
+}
+resource "google_project_iam_member" "human_owner" {
+  project = local.project
+  role    = "roles/owner"
+  member  = "user:welct0407@mw-credit.com"
+  lifecycle { prevent_destroy = true }
+}
+import {
+  to = google_project_iam_custom_role.codex_cloud_vm_lookup
+  id = "projects/clever-oasis-508610-n7/roles/codexCloudVmLookup"
+}
+resource "google_project_iam_custom_role" "codex_cloud_vm_lookup" {
+  project     = local.project
+  role_id     = "codexCloudVmLookup"
+  title       = "Codex Cloud VM lookup"
+  description = "Compute lookup for approved Codex IAP operator; no metadata writes"
+  permissions = ["compute.instances.get", "compute.instances.list"]
+  stage       = "GA"
+}
+import {
+  to = google_project_iam_member.codex_cloud_vm_lookup
+  id = "clever-oasis-508610-n7 projects/clever-oasis-508610-n7/roles/codexCloudVmLookup serviceAccount:codex-cloud@clever-oasis-508610-n7.iam.gserviceaccount.com"
+}
+resource "google_project_iam_member" "codex_cloud_vm_lookup" {
+  project = local.project
+  role    = google_project_iam_custom_role.codex_cloud_vm_lookup.name
+  member  = "serviceAccount:codex-cloud@clever-oasis-508610-n7.iam.gserviceaccount.com"
+}
+
+# Read-only database identity for routine cloud sessions (R063 W3 DB-ACCESS-03).
+# codex-cloud impersonates it; its Cloud SQL IAM user receives only the
+# instance-wide pg_read_all_data membership (granted in SQL, see README).
+# Admin membership stays on codex-cloud@…iam for the guarded runner only.
+locals {
+  cloud_sql_instance  = "appsheet-pg-prod-20260914"
+  cloud_sql_condition = "resource.name == 'projects/${local.project}/instances/${local.cloud_sql_instance}' && resource.service == 'sqladmin.googleapis.com'"
+}
+resource "google_service_account" "cloud_read" {
+  project      = local.project
+  account_id   = "codex-cloud-read"
+  display_name = "Cloud session read-only database identity"
+  lifecycle { prevent_destroy = true }
+}
+resource "google_project_iam_member" "cloud_read_sql" {
+  for_each = toset(["roles/cloudsql.client", "roles/cloudsql.instanceUser"])
+  project  = local.project
+  role     = each.value
+  member   = "serviceAccount:${google_service_account.cloud_read.email}"
+  condition {
+    title       = "shared-cloud-sql-only"
+    description = "Only the shared Cloud SQL instance"
+    expression  = local.cloud_sql_condition
+  }
+}
+resource "google_service_account_iam_member" "cloud_read_token_creator" {
+  service_account_id = google_service_account.cloud_read.name
+  role               = "roles/iam.serviceAccountTokenCreator"
+  member             = "serviceAccount:codex-cloud@clever-oasis-508610-n7.iam.gserviceaccount.com"
+}
+resource "google_sql_user" "cloud_read" {
+  project         = local.project
+  instance        = local.cloud_sql_instance
+  name            = trimsuffix(google_service_account.cloud_read.email, ".gserviceaccount.com")
+  type            = "CLOUD_IAM_SERVICE_ACCOUNT"
+  deletion_policy = "ABANDON"
+}

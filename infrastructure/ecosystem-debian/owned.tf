@@ -77,7 +77,7 @@ resource "google_compute_instance" "debian" {
   }
   can_ip_forward             = false
   deletion_policy            = "DELETE"
-  deletion_protection        = false
+  deletion_protection        = true # R063 W3 ALL-INFRA-04
   description                = null
   enable_display             = false
   hostname                   = null
@@ -186,4 +186,124 @@ resource "google_compute_firewall" "iap" {
     ports    = ["22"]
     protocol = "tcp"
   }
+}
+
+# Default-network rules kept after default-allow-ssh/-rdp were deleted (R063 W3
+# ALL-INFRA-02). IAP SSH above is the only administrative path.
+resource "google_compute_firewall" "default_allow_icmp" {
+  name          = "default-allow-icmp"
+  description   = "Allow ICMP from anywhere"
+  project       = "clever-oasis-508610-n7"
+  network       = "https://www.googleapis.com/compute/v1/projects/clever-oasis-508610-n7/global/networks/default"
+  direction     = "INGRESS"
+  priority      = 65534
+  disabled      = false
+  source_ranges = ["0.0.0.0/0"]
+  allow {
+    protocol = "icmp"
+  }
+}
+resource "google_compute_firewall" "default_allow_internal" {
+  name          = "default-allow-internal"
+  description   = "Allow internal traffic on the default network"
+  project       = "clever-oasis-508610-n7"
+  network       = "https://www.googleapis.com/compute/v1/projects/clever-oasis-508610-n7/global/networks/default"
+  direction     = "INGRESS"
+  priority      = 65534
+  disabled      = false
+  source_ranges = ["10.128.0.0/9"]
+  allow {
+    protocol = "tcp"
+    ports    = ["0-65535"]
+  }
+  allow {
+    protocol = "udp"
+    ports    = ["0-65535"]
+  }
+  allow {
+    protocol = "icmp"
+  }
+}
+
+# External health probe of the Instagram webhook through the Cloudflare tunnel
+# (R063 W3 ALL-INFRA-03). See AGT-WEBHOOK-03 before narrowing the tunnel path.
+resource "google_monitoring_uptime_check_config" "webhook_health" {
+  project          = "clever-oasis-508610-n7"
+  display_name     = "MW webhook external health"
+  checker_type     = "STATIC_IP_CHECKERS"
+  period           = "300s"
+  timeout          = "10s"
+  selected_regions = ["ASIA_PACIFIC", "EUROPE", "USA_OREGON"]
+  content_matchers {
+    content = "mw-instagram-webhook"
+    matcher = "CONTAINS_STRING"
+  }
+  http_check {
+    path           = "/health"
+    port           = 443
+    request_method = "GET"
+    use_ssl        = true
+    validate_ssl   = true
+    accepted_response_status_codes {
+      status_value = 200
+    }
+  }
+  monitored_resource {
+    type = "uptime_url"
+    labels = {
+      host       = "hooks.mw-credit.com"
+      project_id = "clever-oasis-508610-n7"
+    }
+  }
+}
+
+# Daily boot-disk snapshots, 14-day retention (R063 W3 ALL-INFRA-04).
+resource "google_compute_resource_policy" "snapshots" {
+  lifecycle { prevent_destroy = true }
+  name    = "default-schedule-1"
+  project = "clever-oasis-508610-n7"
+  region  = "asia-southeast1"
+  snapshot_schedule_policy {
+    retention_policy {
+      max_retention_days    = 14
+      on_source_disk_delete = "KEEP_AUTO_SNAPSHOTS"
+    }
+    schedule {
+      daily_schedule {
+        days_in_cycle = 1
+        start_time    = "07:00"
+      }
+    }
+    snapshot_properties {
+      guest_flush = false
+    }
+  }
+}
+resource "google_compute_disk_resource_policy_attachment" "snapshots" {
+  lifecycle { prevent_destroy = true }
+  name    = google_compute_resource_policy.snapshots.name
+  disk    = google_compute_disk.debian.name
+  project = "clever-oasis-508610-n7"
+  zone    = "asia-southeast1-a"
+}
+
+# Cloud SQL IAM database user for the VM identity (R063 W3 ALL-ARCH-03,
+# additive). It receives no database role until the agent deploy go runs the
+# prepared GRANT statements; the proxy still uses the password roles today.
+resource "google_project_iam_member" "debian_sql_instance_user" {
+  project = "clever-oasis-508610-n7"
+  role    = "roles/cloudsql.instanceUser"
+  member  = "serviceAccount:mw-integration-agent@clever-oasis-508610-n7.iam.gserviceaccount.com"
+  condition {
+    title       = "prod-cloud-sql-only"
+    description = "Permit IAM database login only to the shared Cloud SQL instance"
+    expression  = "resource.name == 'projects/clever-oasis-508610-n7/instances/appsheet-pg-prod-20260914' && resource.service == 'sqladmin.googleapis.com'"
+  }
+}
+resource "google_sql_user" "debian_agent" {
+  project         = "clever-oasis-508610-n7"
+  instance        = "appsheet-pg-prod-20260914"
+  name            = "mw-integration-agent@clever-oasis-508610-n7.iam"
+  type            = "CLOUD_IAM_SERVICE_ACCOUNT"
+  deletion_policy = "ABANDON"
 }

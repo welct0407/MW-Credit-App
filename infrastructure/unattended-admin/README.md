@@ -19,7 +19,31 @@ Run `scripts/Invoke-UnattendedAdmin.ps1` with an external `PrivateDirectory` and
 
 The wrapper clears ambient credentials and Terraform debug logging, creates empty isolated Azure/gcloud configuration directories, requests IMDS with the exact UAMI client ID, forces Azure MSI and disables CLI/OIDC fallback. Google bearer tokens and any provider credentials stay in process memory/environment and are restored/cleared afterward. It never calls human CLI sign-in. Each invocation requests a Google token valid for up to one hour; start a new invocation for a fresh token, and do not assume an operation longer than one hour will renew it. Terraform exit2 is reported as changes requiring review rather than silently applying them.
 
-This bootstrap is usable on the authorized Azure VM-01. Porting to another Azure executor requires an explicitly authorized attachment of this UAMI and verification there. Off-Azure, the Linux cloud executor `codex-cloud` (Google unique ID `101264312607096935907`) is trusted through the federated credential `codex-cloud-google` (issuer `https://accounts.google.com`, audience `api://AzureADTokenExchange`). In Claude Code cloud sessions, project hooks in `.claude/settings.json` do this automatically. At session start they export `ARM_USE_OIDC` and `ARM_OIDC_TOKEN_FILE_PATH`, and before each shell command they renew the one-hour Google ID token in `~/.config/mw-azure/oidc-token` when it is over 45 minutes old. Plain `terraform` therefore authenticates as this identity with the same Azure roles. Elsewhere, `scripts/azure-cloud-session.sh <command>` runs one command with a fresh token. Nothing is stored. Revoke by removing that credential. Copying `operator.json` alone supplies no authority. The trust is bootstrapped by one apply of this root from VM-01 with the wrapper above, because the cloud executor cannot reach Azure before it exists.
+This bootstrap is usable on the authorized Azure VM-01. Porting to another Azure executor requires an explicitly authorized attachment of this UAMI and verification there. Off-Azure, the Linux cloud executor `codex-cloud` (Google unique ID `101264312607096935907`) is trusted through the federated credential `codex-cloud-google` (issuer `https://accounts.google.com`, audience `api://AzureADTokenExchange`). There are no session hooks (removed 16 October 2026, ALL-INFRA-07). `scripts/azure-cloud-session.sh <command>` mints a one-hour Google ID token per command into a 0600 temporary file, runs the command with Azure OIDC settings and removes the file on exit. In Claude Code cloud sessions, VM-01 power uses `scripts/vm01-power.sh start|deallocate|restart`, and any other Azure Terraform command is wrapped the same way. Nothing is stored. Revoke by removing that credential. Copying `operator.json` alone supplies no authority. The trust is bootstrapped by one apply of this root from VM-01 with the wrapper above, because the cloud executor cannot reach Azure before it exists.
+
+## Cloud executor identity and key rotation
+
+This root also declares access that predates it. These were imported unchanged on 16 October 2026 (R063 W3):
+- the project `roles/owner` bindings of `codex-cloud` and of the human owner, both with `prevent_destroy`;
+- the custom role `codexCloudVmLookup` and its `codex-cloud` binding.
+
+The project has no `roles/editor` binding. Bindings are non-authoritative (`google_project_iam_member`), so other members are not touched.
+
+Routine cloud-session database reads use `codex-cloud-read@clever-oasis-508610-n7.iam.gserviceaccount.com`, which is declared here:
+- `roles/cloudsql.client` and `roles/cloudsql.instanceUser`, limited to the shared instance;
+- Token Creator for `codex-cloud`;
+- Cloud SQL IAM user `codex-cloud-read@clever-oasis-508610-n7.iam`.
+
+The read user's database access is set in SQL, not Terraform: membership of `pg_read_all_data` (instance-wide) and `CONNECT` on `loan_manager_dev`. Sign in with `gcloud sql generate-login-token --impersonate-service-account=codex-cloud-read@clever-oasis-508610-n7.iam.gserviceaccount.com`. Admin membership stays on `codex-cloud@…iam` for the guarded runner only.
+
+`codex-cloud` signs in with one user-managed key, held in the cloud environment as `GCP_SA_KEY_B64`. The current key is `37df51c6…`, created 15 October 2026. Rotate it every 90 days; the next rotation is due **13 January 2027**. To rotate:
+1. The owner creates a new key on a trusted machine (`gcloud iam service-accounts keys create … --iam-account=codex-cloud@clever-oasis-508610-n7.iam.gserviceaccount.com`).
+2. Replace `GCP_SA_KEY_B64` in the environment, then delete the local key file.
+3. Start a new session and check that the credential's `private_key_id` equals the new key ID (print only the ID) and that `gcloud auth list` works.
+4. Run `gcloud iam service-accounts keys disable <old id>`.
+5. After 7 days with no use in the audit logs, run `keys delete` on the old key.
+
+Record each rotation in the change log. The older key `f6729ca0…` was disabled on 16 October 2026. Its last use was on 4 October from another machine, and deleting it is pending owner confirmation.
 
 ## Recovery and boundaries
 
