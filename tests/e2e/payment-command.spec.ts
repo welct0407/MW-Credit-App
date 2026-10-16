@@ -1,4 +1,4 @@
-import {chooseLanguage,chooseLanguagePreservingForm} from './live-controls';
+import {chooseLanguage,chooseLanguagePreservingForm,routeSyntheticPreferences} from './live-controls';
 function preparedWire(value:any){const{data,...metadata}=value;return{...metadata,schemaVersion:2,generation:'fixture-'+value.domain,nextCursor:null,patches:Object.entries(data??{}).map(([key,value])=>({key,mode:'replace',value}))}}
 
 import {test,expect} from '@playwright/test';
@@ -38,9 +38,11 @@ function replyDraft(route:any){
  return route.fulfill({contentType:'application/json',body:JSON.stringify({...draft,charges,total:charges.reduce((sum,row)=>sum+BigInt(row.amountRemaining),0n).toString()})});
 }
 test('G06 bounded list preserves notes, total, scroll and bilingual review at 320/390/desktop',async({page},info)=>{
+ await page.route('https://mw-credit-app-command-dev-test.run.app/**',r=>replyDraft(r));
+ await page.route('https://mw-credit-app-command-dev-test.run.app/api/operations/*',r=>r.request().method()==='GET'?r.fulfill({json:{ok:true,kind:'unresolved',safeToUseNewRequestId:false}}):r.fallback());
+ /* Registered once, after the catch-all so it wins, and kept across the widths: the language choice persists through GET /api/preferences, a status-first read of the request, a preference.update command and its reconciliation read; a draft body in their place makes the app roll the language back to English or keep the preference pending with the language controls blocked. */await routeSyntheticPreferences(page);
  for(const width of [320,390,1440]){
  await page.setViewportSize({width,height:850});
- await page.route('https://mw-credit-app-command-dev-test.run.app/**',r=>replyDraft(r));
  await setup(page);await page.locator('.collection-tile-main').first().click();await expect(page.getByRole('button',{name:'Receive selected charges'}),await page.locator('body').innerText()).toBeVisible({timeout:8000});await page.getByRole('button',{name:'Receive selected charges'}).click();await page.getByRole('combobox',{name:/^Receiving account(?: \*)?$/}).selectOption('synthetic-account');
  const region=page.getByRole('region',{name:'Payment allocation',exact:true});await expect(region.getByRole('checkbox')).toHaveCount(100);
  await page.getByRole('textbox',{name:/^Amount received(?: \*)?$/}).fill('330');await region.getByRole('checkbox').first().check();await page.getByRole('textbox',{name:'Notes',exact:true}).fill('Synthetic preserved notes');
@@ -48,10 +50,9 @@ test('G06 bounded list preserves notes, total, scroll and bilingual review at 32
  await region.getByRole('checkbox').last().check();expect(await region.evaluate(el=>el.scrollTop)).toBe(scroll);
  await expect(page.locator('output')).toContainText('Allocated฿330');await expect(page.getByRole('textbox',{name:'Notes',exact:true})).toHaveValue('Synthetic preserved notes');
  await page.getByRole('button',{name:'Review payment',exact:true}).click();await expect(page.locator('.selected-payment')).toContainText('Synthetic preserved notes');await expect(page.locator('.selected-payment')).toContainText('฿330');
- await page.getByRole('button',{name:'Edit',exact:true}).click();await expect(page.getByRole('region',{name:'Payment allocation',exact:true})).toBeVisible();await chooseLanguagePreservingForm(page,'ไทย');await expect(page.getByRole('region',{name:'จัดสรรการรับชำระ'})).toBeVisible({timeout:10000});
+ await page.getByRole('button',{name:'Edit',exact:true}).click();await chooseLanguagePreservingForm(page,'ไทย');await expect(page.getByRole('region',{name:'จัดสรรการรับชำระ'})).toBeVisible();
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
  await page.screenshot({path:'test-results/r052-payment-command-api/ui-'+info.project.name+'-'+width+'-th.png',fullPage:true});
- await page.unroute('https://mw-credit-app-command-dev-test.run.app/**');
  }
 });
 test('G07 queued unknown outcome keeps immutable request and reconciles before retry without Collection row',async({page})=>{

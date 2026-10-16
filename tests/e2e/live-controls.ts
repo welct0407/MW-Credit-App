@@ -43,5 +43,7 @@ export async function routeSyntheticPreferences(target:Page|BrowserContext,origi
  const writes:any[]=[];let item:any={id:'synthetic-preference-partner',version:'0'.repeat(63)+'1',language:'English',statementAccountId:null,statementDate:null};
  await target.route(origin+'/api/preferences',r=>r.fulfill({json:{ok:true,item,accounts:[],dates:[]}}));
  await target.route(origin+'/api/operations',r=>{const command=r.request().method()==='POST'?r.request().postDataJSON():null;if(command?.operation!=='preference.update')return r.fallback();writes.push(command);item={...item,...command.inputs,version:(writes.length+1).toString(16).padStart(64,'0')};return r.fulfill({json:{kind:'recorded',originalOutcome:{status:'applied'}}})});
+ // The app reconciles a recorded request through GET /api/operations/{id}; an unrelated body there keeps the preference pending and the language controls blocked.
+ await target.route(origin+'/api/operations/*',r=>{const id=new URL(r.request().url()).pathname.split('/').at(-1);if(r.request().method()!=='GET'||!writes.some(command=>command.requestId===id))return r.fallback();return r.fulfill({json:{ok:true,kind:'recorded',originalOutcome:{status:'applied',code:null,result:null}}})});
  return writes;
 }
