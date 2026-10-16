@@ -50,7 +50,7 @@ psql_as -d postgres -q -c "CREATE DATABASE loan_manager_prod TEMPLATE template0 
 psql_as -d postgres -q -c "CREATE DATABASE mw_dml_test_ci TEMPLATE template0 ENCODING 'UTF8';"
 
 # Business database: app role fixtures (the _dev set from the shared script plus the _prod
-# copies that V87/V88 expect), Flyway to the current version, reviewer DML role and grants.
+# copies that V87/V88/V93 expect), Flyway to the current version, reviewer DML role and grants.
 psql_as -d loan_manager_prod -q -f "$REPO/scripts/database/Test-AppRolePrerequisites.sql"
 sed 's/_dev/_prod/g' "$REPO/scripts/database/Test-AppRolePrerequisites.sql" | psql_as -d loan_manager_prod -q
 (cd "$REPO" && "$FLYWAY" -url="jdbc:postgresql://127.0.0.1:$PORT/loan_manager_prod" -user=postgres -password= \
@@ -66,7 +66,9 @@ with psycopg.connect(host='127.0.0.1', port=int(sys.argv[1]), user='postgres', d
 print('reviewer DML role configured')
 PY
 )
-PGOPTIONS="$APPROVAL" psql_as -d loan_manager_prod -q -f "$REPO/integration-agent/database/setup/business-grants.sql"
+# The reviewer role is created after the Flyway chain here, so V93's role-guarded agent_audit grants
+# did not see it; mirror V93 section 3 for that role (relay/auditor existed before migrate and got theirs).
+psql_as -d loan_manager_prod -q -c "GRANT USAGE ON SCHEMA agent_audit TO mw_reviewer_dml; GRANT EXECUTE ON FUNCTION agent_audit.begin_operation(uuid,text,text,text,text,jsonb,text) TO mw_reviewer_dml; GRANT SELECT ON agent_audit.commits,agent_audit.row_changes TO mw_reviewer_dml;"
 
 printf '{"host":"127.0.0.1","port":%s,"root":"%s"}\n' "$PORT" "$ROOT" >"$ROOT/manifest.json"
 echo "MW_AGENT_LAB_MANIFEST=$ROOT/manifest.json"

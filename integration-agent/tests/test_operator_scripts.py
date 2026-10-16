@@ -37,10 +37,12 @@ class ReviewerDmlScriptTests(unittest.TestCase):
         self.assertIn('GRANT CONNECT ON DATABASE "loan_manager_dev" TO "mw_reviewer_dml_dev"', texts)
         self.assertFalse(any('"mw_reviewer_dml"' in t for t in texts))
         self.assertEqual(conn.statements[0][1], ('mw_reviewer_dml_dev',))
-        # Reviewer DELETE retired: the only DELETE grant is on "Cash Ledger" (cash_source_changed trigger).
-        deletes = [t for t in texts if t.startswith('GRANT') and 'DELETE' in t]
-        self.assertEqual(deletes, ['GRANT DELETE ON public."Cash Ledger" TO "mw_reviewer_dml_dev"'])
-        self.assertFalse(any('INSERT, UPDATE ON' in t and 'DELETE' in t for t in texts))
+        # Reviewer DELETE retired and, since V93, no direct "Cash Ledger" DML at all: the ledger
+        # projection is the ledger owner's definer; the reviewer keeps a lock-only column grant.
+        self.assertFalse(any(t.startswith('GRANT') and 'DELETE' in t for t in texts))
+        self.assertIn('GRANT UPDATE ("Created At") ON public."Cash Ledger" TO "mw_reviewer_dml_dev"', texts)
+        table_dml = [t for t in texts if t.startswith('GRANT INSERT, UPDATE ON')]
+        self.assertTrue(table_dml and all('"Cash Ledger"' not in t for t in table_dml))
         with self.assertRaisesRegex(RuntimeError, 'Unknown reviewer DML role'):
             configure_dml.configure(FakeConnection(), 'x', 'postgres')
 

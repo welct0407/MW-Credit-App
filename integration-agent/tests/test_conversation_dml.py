@@ -33,7 +33,7 @@ class Boundaries(unittest.TestCase):
 
     def test_plan_denies_sql_ddl_delete_identities_and_extra_keys(self):
         for change in ({'action':'DELETE'},{'action':'CREATE'},{'table':'Partners'},
-                       {'table':'Borrowers; DROP TABLE Loans'}, {'sql':'DROP TABLE x'},
+                       {'table':'Borrowers; DROP TABLE Loans'}, {'table':'Cash Ledger'}, {'sql':'DROP TABLE x'},
                        {'values':{'Row ID':'other'}},{'values':{'City':{'sql':'now()'}}}):
             with self.subTest(change=change), self.assertRaises(ConfigurationError):
                 dml.parse_plan(json.dumps([step(**change)]))

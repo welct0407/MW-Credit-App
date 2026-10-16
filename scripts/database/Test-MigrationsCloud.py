@@ -50,6 +50,10 @@ def main():
   assert json.loads(run(flyway+['validate'],cwd=REPO,capture_output=True,text=True).stdout)['validationSuccessful']
   second=json.loads(run(flyway+['migrate'],cwd=REPO,capture_output=True,text=True).stdout)
   assert second['success'] and second['migrationsExecuted']==0
+  if args.pre_target is None:
+   # DB-SCHEMA-01: the clean full-chain rebuild (before any test SQL) must match the
+   # committed database/current/public-functions.sql. MW_WRITE_PUBLIC_FUNCTIONS=1 rewrites it.
+   subprocess.run([str(x) for x in [PWSH,'-NoProfile','-File',REPO/'scripts/database/Update-PublicFunctions.ps1','-Port',port]],env={**env,'MW_PG_BIN':str(PG),'MW_DB_TOOL_ROOT':str(SETUP)},cwd=REPO,check=True)
   with (root/'sql.log').open('w') as log:
    result=subprocess.run([str(x) for x in psql+['-f',REPO/args.sql]],env=env,cwd=REPO,stdout=log,stderr=log)
   if result.returncode:

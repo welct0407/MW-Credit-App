@@ -90,11 +90,20 @@ jobs:
           fi
       - name: Build the disposable lab cluster
         run: env LAB_ROOT="$RUNNER_TEMP/agent-state-lab-ci" LAB_PORT=15540 PYTHON=python bash integration-agent/tests/lab/setup.sh
+      - name: Start an empty cluster for the fresh central-migration suite
+        # DB-AGENTDB-01: test_state_migration_postgres bootstraps mw_agent here and
+        # applies V1..Vn from nothing; it refuses a server that already has them.
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/agent-fresh-migration" /tmp/mwpg-15611
+          initdb -D "$RUNNER_TEMP/agent-fresh-migration/data" -U postgres --auth=trust --encoding=UTF8 --locale=C >/dev/null
+          pg_ctl -D "$RUNNER_TEMP/agent-fresh-migration/data" -o "-h 127.0.0.1 -p 15611 -k /tmp/mwpg-15611" -l "$RUNNER_TEMP/agent-fresh-migration/postgres.log" -w start
       - name: Run the PostgreSQL lab suites
         working-directory: integration-agent
         run: |
           export MW_AGENT_LAB_MANIFEST="$RUNNER_TEMP/agent-state-lab-ci/manifest.json"
           export MW_DML_TEST_DSN="host=127.0.0.1 port=15540 user=postgres dbname=mw_dml_test_ci"
+          export MW_AGENT_FRESH_PG_DSN="host=127.0.0.1 port=15611 user=postgres dbname=postgres"
           python -m unittest -v tests.test_postgres_state tests.test_postgres_dml_audit \
             tests.test_conversation_dml tests.test_notice_acknowledgement \
             tests.test_operator_audit_postgres tests.test_operator_execution_postgres \
@@ -102,4 +111,6 @@ jobs:
             tests.test_statement_snapshot
       - name: Stop the lab cluster
         if: always()
-        run: env LAB_ROOT="$RUNNER_TEMP/agent-state-lab-ci" LAB_PORT=15540 PYTHON=python bash integration-agent/tests/lab/setup.sh stop
+        run: |
+          env LAB_ROOT="$RUNNER_TEMP/agent-state-lab-ci" LAB_PORT=15540 PYTHON=python bash integration-agent/tests/lab/setup.sh stop
+          pg_ctl -D "$RUNNER_TEMP/agent-fresh-migration/data" -m fast stop || true

@@ -31,6 +31,10 @@ if ($IsWindows -and (Test-Selected 'migrations')) {
 # Test-Migrations creates and stops its own loopback-only disposable PostgreSQL.
 & "$PSScriptRoot/Test-Migrations.ps1" -TestSqlFile scripts/database/Test-StatementBatch.sql -BusinessExpensesConcurrency -ExpenseReimbursementConcurrency -PaymentCrudConcurrency -ReceiptDeleteConcurrency -InterestReallocationConcurrency -CorePaymentConcurrency -AtomicLoanCloseConcurrency -ChargeGenerationConcurrency -DefaultLoanConcurrency
 
+# DB-SCHEMA-01: committed database/current/public-functions.sql must match a fresh
+# rebuild (own disposable cluster; MW_WRITE_PUBLIC_FUNCTIONS=1 rewrites it instead).
+& "$PSScriptRoot/Update-PublicFunctions.ps1"
+
 & "$PSScriptRoot/Test-Migrations.ps1" -PreMigrationTarget 19 -PreMigrationSqlFile scripts/database/Test-R005-Before.sql -TestSqlFile scripts/database/Test-OpeningIncludedCrud.sql
 
 & "$PSScriptRoot/Test-Migrations.ps1" -PreMigrationTarget 22 -PreMigrationSqlFile scripts/database/Test-AccountOpeningBeforeV23.sql -TestSqlFile scripts/database/Test-AccountOpeningCrud.sql
@@ -82,4 +86,6 @@ if($LASTEXITCODE){throw 'R053 native read column/type/ACL checks failed'}
 if ($LASTEXITCODE) { throw "R053 DEV operator proof failed" }
 & "$PSScriptRoot/../../tests/integration/Run-R053OperatorIndependent.ps1" -Production -AgentReceipts
 if($LASTEXITCODE){throw 'R053 nonsuperuser operator/restoration checks failed'}
+& "$PSScriptRoot/../../tests/integration/Run-R053OperatorIndependent.ps1" -LedgerOwner
+if($LASTEXITCODE){throw 'V93 ledger-owner nonsuperuser migration/authority checks failed'}
 }

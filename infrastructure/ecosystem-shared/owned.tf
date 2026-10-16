@@ -67,28 +67,16 @@ resource "google_sql_database_instance" "shared" {
       data_cache_enabled = false
     }
     database_flags {
-      name  = "cloudsql.enable_pg_cron"
-      value = "on"
-    }
-    database_flags {
       name  = "cloudsql.iam_authentication"
       value = "on"
     }
-    database_flags {
-      name  = "cron.database_name"
-      value = "loan_manager_prod"
-    }
-    database_flags {
-      name  = "cron.max_running_jobs"
-      value = "1"
-    }
-    database_flags {
-      name  = "cron.timezone"
-      value = "Asia/Bangkok"
-    }
+    # R064 W4 DB-PERF-03: pg_cron flags removed (V40 dropped the extension);
+    # 50 connections fit db-f1-micro memory (observed peak since AppSheet
+    # retirement is 13). pg_stat_statements needs no flag: Cloud SQL already
+    # preloads it and has no shared_preload_libraries flag (DB-PERF-04).
     database_flags {
       name  = "max_connections"
-      value = "200"
+      value = "50"
     }
     final_backup_config {
       enabled        = true

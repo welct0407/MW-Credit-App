@@ -33,14 +33,16 @@ def configure(conn, password, role='mw_reviewer_dml'):
     # Explicit current resources only: no default privileges on future tables.
     conn.execute(sql.SQL('GRANT SELECT ON ALL TABLES IN SCHEMA public TO {}').format(name))
     conn.execute(sql.SQL('GRANT INSERT, UPDATE ON {} TO {}').format(
-        sql.SQL(',').join(sql.Identifier('public', t) for t in TABLES), name))
+        sql.SQL(',').join(sql.Identifier('public', t) for t in TABLES if t != 'Cash Ledger'), name))
     # Existing invoker-rights posting triggers insert allocations. Reviewer DELETE is retired
-    # (16 October 2026): no DELETE on the source tables. The one DELETE grant that remains is
-    # on "Cash Ledger", because the security-invoker trigger cash_source_changed deletes
-    # ledger rows when the reviewer INSERTs/UPDATEs a source row (guarded by trigger depth).
+    # (16 October 2026): no DELETE on any table. Since V93 the ledger projection
+    # (sync_cash_ledger) runs as the ledger owner, so the reviewer holds no INSERT/UPDATE/DELETE
+    # on "Cash Ledger"; payment edits only row-lock the payment's ledger rows
+    # (payment_crud_prepare_core_v83, FOR UPDATE NOWAIT), which needs UPDATE on one column.
+    # "Created At" is immutable under guard_cash_ledger, so this grant is lock-only; V93 restates it.
     # Neither resource/action is exposed as a model mutation tool.
     conn.execute(sql.SQL('GRANT INSERT, UPDATE ON public."Payment Allocations" TO {}').format(name))
-    conn.execute(sql.SQL('GRANT DELETE ON public."Cash Ledger" TO {}').format(name))
+    conn.execute(sql.SQL('GRANT UPDATE ("Created At") ON public."Cash Ledger" TO {}').format(name))
     # PostgreSQL FOR SHARE requires UPDATE on at least one column. Existing
     # cash_account_holder() locks both rows; labels confer no routing authority.
     conn.execute(sql.SQL('GRANT UPDATE ("Account Label") ON public."Cash Accounts" TO {}').format(name))

@@ -15,8 +15,10 @@ from . import audit
 
 # Resource boundary, not a list of supported business operations. Trigger-owned
 # allocations and derived values cannot be edited directly by the model.
+# "Cash Ledger" is derived by sync_cash_ledger(); business V93 (DB-ACCESS-08)
+# revokes direct ledger writes from mw_reviewer_dml, so it is not offered.
 TABLES = ('Borrowers', 'Loans', 'Charges', 'Repayments', 'Payments',
-          'Business Expenses', 'Settlements', 'Cash Ledger', 'Cash Pool Contributions')
+          'Business Expenses', 'Settlements', 'Cash Pool Contributions')
 
 
 def journal(bridge):
