@@ -22,7 +22,7 @@ CI routes by changed files: `Development checks` runs typecheck/unit/build for a
 
 ## Toolchain and lint
 
-Biome 2.5.14 lints TS/JS (`npm run lint`, rules in `biome.json`, formatter off); it is non-blocking in CI. Ruff 0.16.8 checks `integration-agent`: syntax errors and undefined names block, the full config is reported. Flip both to blocking once the tree is clean.
+Biome 2.5.14 lints TS/JS (`npm run lint`, rules in `biome.json`, formatter off); it is non-blocking in CI. Ruff 0.16.8 checks `integration-agent` with the rule set in its `pyproject.toml` and blocks CI. Make Biome blocking once the TS/JS tree is clean.
 
 ## Database CI on Linux
 

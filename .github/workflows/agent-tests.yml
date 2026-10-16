@@ -39,15 +39,10 @@ jobs:
           else
             python -m pip install ./integration-agent
           fi
-      # ALL-CI-04: ruff (pinned). Syntax errors and undefined names block now;
-      # the configured rule set in integration-agent/pyproject.toml is reported
-      # without blocking until the agent clean-up lands, then this step blocks.
+      # ALL-CI-04: ruff (pinned) with the rule set in integration-agent/pyproject.toml; blocking.
       - name: Install pinned ruff
         run: python -m pip install ruff==0.16.8
-      - name: Ruff syntax and undefined names (blocking)
-        run: ruff check --no-cache integration-agent --select E9,F63,F7,F82 --output-format=github
-      - name: Ruff configured rules (non-blocking for now)
-        continue-on-error: true
+      - name: Ruff
         run: ruff check --no-cache integration-agent --output-format=github
       - name: Run synthetic and local tests
         # Private PostgreSQL lab and renderer prerequisites retain their existing

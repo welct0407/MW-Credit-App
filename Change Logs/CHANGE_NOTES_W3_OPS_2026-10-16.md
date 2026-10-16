@@ -35,7 +35,7 @@ The orchestrator relayed both instructions verbatim, at about 08:30 and 08:44 UT
 - **DB-CI-05.** Grant-matrix test (table grants, routine grants, memberships, four spot checks). It asserts migration-owned grants only.
 - **ALL-CI-01, ALL-CI-02, ALL-CI-09.** Done in W1/W2; main is green and branch protection requires "Development checks result". Recorded. Branch protection cannot be set from a session.
 - **ALL-CI-03.** Terraform job validates all 20 directories and runs `terraform test` in 5 (7 files). `.github/workflows/ci.yml`.
-- **ALL-CI-04.** Biome 2.5.14 (one devDependency, `npm run lint`, formatter off, non-blocking job; `biome.json`). Ruff 0.16.8 on `integration-agent` (blocking subset E9, F63, F7, F82; full config non-blocking).
+- **ALL-CI-04.** Biome 2.5.14 (one devDependency, `npm run lint`, formatter off, non-blocking job; `biome.json`). Ruff 0.16.8 on `integration-agent` with the agent's `pyproject.toml` rules, blocking (flipped after the agent branch merged, PR #30).
 - **ALL-CI-05.** All actions pinned to commit SHAs.
 - **ALL-CI-06.** Bridge workflow runs on PRs and main pushes only, with a concurrency group (`grafana-mcp-bridge.yml`).
 - **ALL-CI-07.** Not in scope; no change.
@@ -73,7 +73,7 @@ The orchestrator relayed both instructions verbatim, at about 08:30 and 08:44 UT
 | `python3 -m unittest` in `scripts/database` | 25 of 25 after fixes |
 | `npm test` | 459 of 459 |
 | Biome (`npm run lint`) | 43 errors, 766 warnings, 116 infos, mostly in app files; non-blocking |
-| Ruff | Blocking subset (E9, F63, F7, F82): 0 on ops and agent trees; full config reported |
+| Ruff | Blocking subset (E9, F63, F7, F82): 0 on ops and agent trees; full config clean after the agent merge, now blocking |
 | `actionlint` | Pass |
 | `terraform fmt -check` | Pass |
 | `terraform validate`, all roots | 20 directories pass; `terraform test` 7 files, 39 tests pass |
@@ -146,8 +146,7 @@ GRANT CONNECT ON DATABASE mw_agent, loan_manager_prod TO "mw-integration-agent@c
 
 - `verify-full` plus the `server_ca_mode` change; then `connector_enforcement=REQUIRED` once VM-01 uses the Auth Proxy.
 - About 60 old one-off Python scripts still use `sslmode=require`; current ones outside this branch: `scripts/dictionary/capture_postgresql.py` and `project/scripts/metabase/chart_service/provision_role.py`.
-- Flip Biome and ruff to blocking once the trees are clean (ruff after the agent branch merges).
-- The `lab` job goes green after the agent branch merges. Merge order: agent branch before or with this one.
+- Make Biome blocking once the TS/JS tree is clean (43 errors, mostly app files).
 - Regenerate `package-lock.json` on merge with the app branch (`npm install --package-lock-only`).
 - `tests/integration/agent-native-operation-independent.test.mjs` has a one-line pwsh fix; the app branch does not change that file. `tests/integration/Run-Phase5.ps1` carries the same one-line addition as the app branch (merges cleanly). `Run-Phase5.ps1 -ManagementOnly` lists `business-money-reads-independent.test.mjs`, which warns and skips until the app branch merges.
 - A future DEV reviewer target (W4, `mw_reviewer_dml_dev`) must be granted DELETE on `"Cash Ledger"` for the `zz_cash_source` trigger. The nine DEV revokes from `mw_reviewer_dml` stay as they are.
