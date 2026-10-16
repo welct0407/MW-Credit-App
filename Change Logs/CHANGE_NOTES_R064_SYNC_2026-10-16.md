@@ -8,7 +8,13 @@ Diagnosis (team findings): any source change forced a full sequential re-walk of
 
 ## Changes
 
-Branch `claude/sync-phase1`: server 81541c7, PWA 1f63b9d.
+Branch `claude/sync-phase1` (head 9420c85): server 81541c7, PWA 1f63b9d, then:
+
+- cfaeb95: instance-name allowlist for the 17 October SSD move (`services/lib/identity.mjs`, production/worker configs, promotion scripts; business-config returns the validated env instance).
+- 926ecbe: UX review fixes R01 to R06 (toast only for changes that actually waited, fixed position; live region always mounted; "All synced" name; "Syncing..." feedback; contrast; stacked header cell).
+- 511d3bc: SYNC-UX-06 reverted (broke 4 CI specs); the Borrowers refresh returns to the first page as before.
+- 64156fd: Hosting runner accepts the sync plan (command scaling, CPU boost).
+- 9420c85: blocking defect found by Agent C: packed responses could exceed the 2048-hash need cap (400, records stuck, old clients too). Fix: server 2048-value budget per response and client need batches of at most 2048.
 
 - Progress is kept across the user's own writes: the partial walk is re-pinned to the new revision and one trailing recheck runs.
 - Torn commit: with `acceptChanged:true` the server returns `complete:true, changed:true, sourceVersion:null`; the client commits and rechecks (at most 2 in a row). Without the flag the server still answers 409. A legacy 409 retries once and stays ready; a legacy 400 drops the flag for that path.
@@ -24,11 +30,16 @@ Branch `claude/sync-phase1`: server 81541c7, PWA 1f63b9d.
 - Owner then asked for 200 connections (the pre-upgrade value, overriding W4's 50): backup 1792165979631, patch `max_connections=200` 15:54:56 to 15:55:37Z (settingsVersion 65, postmaster start 15:55:19Z); plan No changes. `owned.tf` commits e00b28d and ac6ec15.
 - Post-checks: PROD and DEV `max_connections` 200, no `cron.*` settings, `monitoring.pg_stat_statements` readable, Flyway V93; read and command DEV and PROD `/health` 200; Debian `/ready` 200 (300aeb5), both proxy units active; the notify-prod worker exited during each restart and recovered.
 - Disk stays PD_HDD (Google does not allow HDD to SSD in place). Cost about $12 to $37 a month.
-- Pending: SSD move on 17 October after R064 is stable (restore a backup into new instance `mw-credit-pg-20261017`, db-g1-small, PD_SSD, repoint consumers, keep the old instance); needs its own scoped owner go.
+- Pending: SSD move on 17 October after R064 is stable (restore a backup into new instance `mw-credit-pg-20261017`, db-g1-small, PD_SSD, repoint consumers, keep the old instance), as the owner decided.
 
 ## Checks
 
-Agent B: `npm run check` 520 unit tests pass; Biome lint 0 errors; Playwright offline-delta 20/20, purge 4, retention 12, payment-offline 2, phase5-offline-sdk 1, payment-command 28 (one parallel-load flake, 3 reruns green), back-consumers 104, persistence 11, phase5-final-ui 66, error-recovery 8 (one parallel-load flake, rerun green); production-offline-independent integration passed. Independent verification (Agent C): pending. DEV deploy and smoke: pending. PROD deploy and smoke: pending.
+- Agent B (on 1f63b9d): `npm run check` 520 unit tests; Biome 0 errors; Playwright offline-delta 20/20, purge 4, retention 12, payment-offline 2, phase5-offline-sdk 1, payment-command 28, back-consumers 104, persistence 11, phase5-final-ui 66, error-recovery 8 (two parallel-load flakes, reruns green).
+- Agent C independent verification: focus storm of 10 events 50 to 0 requests (3-minute storm 180 to 10); own write mid-walk no restart (11 to 7 records requests); repeated `dataset_changed` no longer fails; foreground paging wait 65 s to 258 ms; cold sync on a real server 50 to 10 responses, about 9.5 s to 2.1 s; full re-walk 51 to 4+1; compatibility matrix (new/old client by new/old server) all converge; crash and reload resume; 10 e2e specs x2 repeats on both projects 512 passed, 4 skipped, 0 flaky. After 9420c85: largest response and need 1972, stuck case converges new-new and old-new, 154 e2e passed. Known limits: a fresh device with one failing domain stays incomplete until it recovers; the trailing recheck flag is lost on reload (minor); an offline-cursor page with a missing bundle and a hanging (not failing) request waits up to the 25 s request timeout.
+- Agent E UX review: no blockers; R01 to R06 fixed except R04 (layout changed) and SYNC-UX-06 (reverted).
+- CI on 9420c85: `ci.yml` run 38934694604 (all e2e shards) and Database migrations run 38934680973 green; `npm run check` 526 unit tests; Biome errors 0.
+- DEV: first deploy 9d3f064 (image 3f49e010..., revisions command-00033-kpn, read-00026-b8v, jobs-00006-57s, notify-00006-84q, CPU boost on, Hosting 052fef2eef12760c); Hosting refresh c4f53da (a3c0540fe9eab297); final 9420c85: image sha256:4689ce78f0c8... (`keep-dev-20261016-4689ce78`), revisions command-00034-whm, read-00027-gfw, jobs-00007-vch, notify-00007-xrq applied 16:50:33 to 16:51:09Z, Hosting 602f053ab2081d8c (release 1792169531712000). Smoke passed, 0 errors. DEV rollback: image 3f49e010... / Hosting a3c0540fe9eab297 (pre-sync: ec4ffe05... / e0ac761a1022e40e).
+- PROD: staged, deployment in progress (Agent F). Staged image sha256:88b4dbad1b33... (tag `keep-r064-sync-runtime`), saved Terraform plan 0 add / 4 change / 0 destroy (image x4, command max instances 1 to 2, CPU boost), Hosting package 0a8bd972... `--check` passed. PROD result: pending.
 
 ## Rollout and compatibility
 
@@ -36,8 +47,8 @@ Either order is safe (old client with new server keeps 409; new client with old 
 
 ## Recovery
 
-App: redeploy the previous image revisions and Hosting version recorded in the R064 promotion record, or `git revert` 1f63b9d and 81541c7 and redeploy. Terraform capacity (command max instances, boost) reverts with the same revert. Cloud SQL: `gcloud sql instances patch --tier=db-f1-micro` (restarts the instance); flags and backups above remain available (restore a listed backup only for data loss).
+App: redeploy the previous pins (PROD: the Wave 4 R064 pins, image 8611c23d... / Hosting 2b6c25c065f1a45a; DEV: see Checks), or `git revert` 1f63b9d and 81541c7 and redeploy. Terraform capacity (command max instances, boost) reverts with the same revert. Cloud SQL: `gcloud sql instances patch --tier=db-f1-micro` (restarts the instance); flags and backups above remain available (restore a listed backup only for data loss).
 
 ## Outcome
 
-Pending (DEV and PROD results to be recorded by the orchestrator).
+DEV deployed and smoke-passed. PROD: in progress; result pending.

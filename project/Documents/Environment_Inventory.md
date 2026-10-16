@@ -85,7 +85,7 @@ Pending owner items:
 | R064 release state | Frozen, PROD applied and verified for Wave 4; sync correction pending; not Released (see the [tracker](Release_Tracker.md)) |
 | Cloud SQL flags (DB-PERF-03) | Done 16 October 2026 (see above); `owned.tf` matches the live instance (`0a3fd3b`) |
 | `mw_agent` maintenance (DB-PERF-01) | 7-day audit purge in progress from a cloud session (owner, 16 October); `mw_agent` dump `baf28e2d…` and restore verified; `VACUUM FULL` postponed to the SSD move; agent migration V5 (retention role and purge function) and the agent deploy pending; daily timer stays disabled until then |
-| PROD command capacity (R064 sync fix) | Max instances 1 to 2, command pool 4 connections (others 2), startup CPU boost on reader and command PROD and DEV: pending, takes effect on deploy; not deployed |
+| PROD command capacity (R064 sync fix) | Max instances 1 to 2, command pool 4 connections (others 2), startup CPU boost on reader and command PROD and DEV: DEV deployed (16 October 2026, 9420c85); PROD deployment in progress, not yet verified |
 | R063 signed-in proof | Owner's next normal sign-in on https://lm.mw-credit.com (no PROD test identity) |
 
 ## Retirement and remaining follow-ups
