@@ -34,7 +34,7 @@ Routine cloud-session database reads use `codex-cloud-read@clever-oasis-508610-n
 - Token Creator for `codex-cloud`;
 - Cloud SQL IAM user `codex-cloud-read@clever-oasis-508610-n7.iam`.
 
-The read user's database access is set in SQL, not Terraform: membership of `pg_read_all_data` (instance-wide) and `CONNECT` on `loan_manager_dev`. Sign in with `gcloud sql generate-login-token --impersonate-service-account=codex-cloud-read@clever-oasis-508610-n7.iam.gserviceaccount.com`. Admin membership stays on `codex-cloud@…iam` for the guarded runner only.
+The read user's database access is set in SQL, not Terraform: membership of `pg_read_all_data` (instance-wide) and `CONNECT` on `loan_manager_dev`, `loan_manager_prod` and `mw_agent`. Sign in with `gcloud sql generate-login-token --impersonate-service-account=codex-cloud-read@clever-oasis-508610-n7.iam.gserviceaccount.com`. Admin membership stays on `codex-cloud@…iam` for the guarded runner only.
 
 `codex-cloud` signs in with one user-managed key, held in the cloud environment as `GCP_SA_KEY_B64`. The current key is `37df51c6…`, created 15 October 2026. Rotate it every 90 days; the next rotation is due **13 January 2027**. To rotate:
 1. The owner creates a new key on a trusted machine (`gcloud iam service-accounts keys create … --iam-account=codex-cloud@clever-oasis-508610-n7.iam.gserviceaccount.com`).

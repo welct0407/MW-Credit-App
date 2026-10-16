@@ -2,13 +2,24 @@
 
 ## Purpose
 
-Wave 3 operations work for the independent review, on branch `claude/review-w3-ops` from `main` 3678eb6. It covers database access and backups, database CI, repository CI, toolchain, infrastructure hygiene and the records the owner asked for. Owner decisions of 16 October 2026 (option A) apply. No new migration, no PROD database change, no PROD Hosting or Cloud Run change, no Debian host write.
+Wave 3 operations work for the independent review, on branch `claude/review-w3-ops` from `main` 3678eb6. It covers database access and backups, database CI, repository CI, toolchain, infrastructure hygiene and the records the owner asked for. Owner decisions of 16 October 2026 (option A) apply. No new migration, no PROD Hosting or Cloud Run change, no Debian host write. The only PROD database changes are the two access changes the owner approved later that day (DB-ACCESS-01, DB-ACCESS-03).
+
+## Owner decisions (16 Oct)
+
+The orchestrator relayed both instructions verbatim, at about 08:30 and 08:44 UTC: "Variant 1 for the tunnel; delete the key; revoke DELETE only", then "1 go + retire, 2 go, 3–6 as recommended".
+
+- DB-ACCESS-01 PROD: go. Revoke DELETE only; `LOGIN` stays (no `NOLOGIN`). Retire the reviewer DELETE catalogue path.
+- DB-ACCESS-03 PROD: go for CONNECT on `loan_manager_prod` and `mw_agent` for `codex-cloud-read`.
+- DB-ACCESS-05: keeping `mw-credit-app-read-dev` is confirmed.
+- ALL-ARCH-03: the two password roles (`mw_reviewer_dml`, `mw_receipt_projector`) stay until W4. Accepted.
+- ALL-INFRA-01: delete the old key. Done.
+- AGT-WEBHOOK-03: Variant 1 (tunnel `^/instagram$`, uptime check re-pointed). Done.
 
 ## Changes
 
-- **DB-ACCESS-01.** DEV: nine `REVOKE DELETE` from `mw_reviewer_dml` in `loan_manager_dev`. The owner decided the PROD scope: REVOKE DELETE only, no `NOLOGIN`. No V93.
+- **DB-ACCESS-01.** DEV: nine `REVOKE DELETE` from `mw_reviewer_dml` in `loan_manager_dev`. PROD: `REVOKE DELETE` on the eight source tables in `loan_manager_prod`. DELETE on `"Cash Ledger"` is kept in PROD. Reason: the security-invoker trigger `zz_cash_source` (function `cash_source_changed`) runs on INSERT/UPDATE of Payments, Loans, Settlements and Business Expenses. It calls `sync_cash_ledger`, which deletes `"Cash Ledger"` rows with the caller's rights. `integration-agent/scripts/configure-reviewer-dml.py` grants that DELETE for this reason. `LOGIN` stays. No V93.
 - **DB-ACCESS-02.** Ordinary CRUD stays the accepted correction path. Documented in `project/Documents/PWA_Data_Model_Overview.md`. New `scripts/database/Test-AccessMatrix.sql` and `Test-IamRolePrerequisites.sql`.
-- **DB-ACCESS-03.** IAM user `codex-cloud-read@` with `pg_read_all_data` and CONNECT on `loan_manager_dev`; Linux `Get-DbEnvironment` uses it by default; `-Admin` only for `Invoke-Flyway.ps1` and the 23 writing scripts in `scripts/database` plus six Metabase `Grant-*` scripts. Files: `scripts/database/Common.ps1`, `database/README.md`, `infrastructure/unattended-admin/main.tf`, `project/scripts/metabase/Grant-*.ps1`.
+- **DB-ACCESS-03.** IAM user `codex-cloud-read@` with `pg_read_all_data` and CONNECT on `loan_manager_dev`, `loan_manager_prod` and `mw_agent`; Linux `Get-DbEnvironment` uses it by default; `-Admin` only for `Invoke-Flyway.ps1` and the 23 writing scripts in `scripts/database` plus six Metabase `Grant-*` scripts. Files: `scripts/database/Common.ps1`, `database/README.md`, `infrastructure/unattended-admin/main.tf`, `project/scripts/metabase/Grant-*.ps1`.
 - **DB-ACCESS-04.** Recorded only. No bypass exists; the optional hardening is not done.
 - **DB-ACCESS-05.** Dropped IAM user `mw-credit-app-dev@`. Kept `mw-credit-app-read-dev@` because the DEV reader still uses it.
 - **DB-ACCESS-06.** Recorded only. Kept as is; changed with the next migration that touches those functions.
@@ -75,7 +86,7 @@ Wave 3 operations work for the independent review, on branch `claude/review-w3-o
 
 | Item | Reason |
 | --- | --- |
-| Any PROD database statement | Waits for the owner's go |
+| Other PROD database statements (ALL-ARCH-03 grants) | Wait for the agent deploy go |
 | Debian host changes | Prepared in the agent note; applied with the agent deploy |
 | Windows database CI run | Linux route replaces it; the `windows-latest` dispatch exists but was not run |
 | `lab` CI job | Red on this branch alone until the agent branch merges |
@@ -98,27 +109,11 @@ Wave 3 operations work for the independent review, on branch `claude/review-w3-o
 | Restore rehearsal clone (DB-BACKUP-01) | Throwaway `db-f1-micro` instance, backup restore, four counts-only CSV exports, delete | Schema history identical; clone, CSVs and temporary bucket grants removed |
 | Delete `codex-cloud` key `f6729ca0...` (ALL-INFRA-01, owner decision 16 October) | `gcloud iam service-accounts keys delete f6729ca08daef9c25c24e5954a12b897d3b19aa9 --iam-account=codex-cloud@clever-oasis-508610-n7.iam.gserviceaccount.com --quiet` at 08:35:56Z | `keys list --managed-by=user` shows only `37df51c6...`; `gcloud auth print-access-token` ok |
 | Re-point uptime check `mw-webhook-external-health-ySLl0784KgI` (AGT-WEBHOOK-03 Variant 1, step A) | Terraform `ecosystem-debian`, applied 08:36:53Z. Before: `curl https://hooks.mw-credit.com/instagram` gave 403 `Forbidden` | Plan 0 add, 1 change, 0 destroy (uptime check only); re-plan no changes; config `/instagram`, 403, `Forbidden`; `check_passed` true from Singapore and Oregon. The tunnel path change followed (agent note) |
+| PROD `REVOKE DELETE ON public."Borrowers", public."Business Expenses", public."Cash Pool Contributions", public."Charges", public."Loans", public."Payments", public."Repayments", public."Settlements" FROM mw_reviewer_dml;` (DB-ACCESS-01, owner go) | One transaction in `loan_manager_prod`, as `postgres` through the IAP route, 08:45:31Z | Before: DELETE on the nine tables. After: only `"Cash Ledger"` DELETE remains. Diff of 1,044 table and column privilege rows: exactly the eight DELETE rows removed, nothing added. `rolcanlogin` true |
+| PROD `GRANT CONNECT ON DATABASE loan_manager_prod` and `mw_agent` to `codex-cloud-read@...iam` (DB-ACCESS-03, owner go) | As `postgres`, 08:45:45Z | CONNECT true on `loan_manager_dev`, `loan_manager_prod`, `mw_agent`. Impersonated: `loan_manager_prod` `flyway_schema_history` 92 rows; `UPDATE public."Partners" ... WHERE false` permission denied (rolled back); `mw_agent` catalogue query ok. No borrower rows read |
 | Drop `mw-credit-app-dev@...iam` (DB-ACCESS-05) | `gcloud sql users delete mw-credit-app-dev@clever-oasis-508610-n7.iam --instance=appsheet-pg-prod-20260914 --quiet` at 07:50:27Z, after a read-only check found no owned objects or grants | User gone; remaining DEV IAM users `-read-`, `-command-`, `-jobs-`, `-notify-dev`, `codex-cloud`, `codex-cloud-read` |
 
 ## Prepared for a later go
-
-PROD DB-ACCESS-01 (owner scope: REVOKE DELETE only, no `NOLOGIN`):
-
-```sql
--- in loan_manager_prod, as postgres
-REVOKE DELETE ON public."Borrowers", public."Business Expenses", public."Cash Ledger",
-  public."Cash Pool Contributions", public."Charges", public."Loans", public."Payments",
-  public."Repayments", public."Settlements" FROM mw_reviewer_dml;
-```
-
-Before running, confirm PROD holds the same nine DELETE grants (`information_schema.role_table_grants`, grantee `mw_reviewer_dml`). `LOGIN` stays, so the approved reviewer write path keeps INSERT and UPDATE.
-
-PROD DB-ACCESS-03:
-
-```sql
-GRANT CONNECT ON DATABASE loan_manager_prod TO "codex-cloud-read@clever-oasis-508610-n7.iam";
-GRANT CONNECT ON DATABASE mw_agent TO "codex-cloud-read@clever-oasis-508610-n7.iam";
-```
 
 ALL-ARCH-03 (with the agent deploy):
 
@@ -135,6 +130,8 @@ GRANT CONNECT ON DATABASE mw_agent, loan_manager_prod TO "mw-integration-agent@c
 - Deleted key: it cannot be restored. A machine that still needs `codex-cloud` gets a new key from the owner (rotation procedure in `infrastructure/unattended-admin/README.md`).
 - Uptime check: set path `/health`, status 200 and content `mw-instagram-webhook` in `ecosystem-debian/owned.tf` and apply (only after the tunnel path is set back to null).
 - Firewall: re-create `default-allow-ssh` and `default-allow-rdp` from the definitions recorded before deletion (create them disabled, as they were since 2026-09-21). The IAP rule is the admin path.
+- PROD reviewer DELETE: `GRANT DELETE ON` the eight source tables `TO mw_reviewer_dml` in `loan_manager_prod`, as `postgres`.
+- PROD read CONNECT: `REVOKE CONNECT ON DATABASE loan_manager_prod FROM "codex-cloud-read@clever-oasis-508610-n7.iam";` and the same for `mw_agent`.
 - DEV grants: `GRANT DELETE` on the same nine tables `TO mw_reviewer_dml` in `loan_manager_dev`. The reader column grant and `codex-cloud-read` grants are reverted with `REVOKE`.
 - Dropped IAM user: `gcloud sql users create mw-credit-app-dev@clever-oasis-508610-n7.iam --instance=appsheet-pg-prod-20260914 --type=CLOUD_IAM_SERVICE_ACCOUNT`; it owned nothing.
 - Backup lifecycle and Artifact Registry policy: remove the rule from Terraform and apply; nothing has been deleted by them yet.
@@ -142,10 +139,8 @@ GRANT CONNECT ON DATABASE mw_agent, loan_manager_prod TO "mw-integration-agent@c
 
 ## Open questions
 
-1. DB-ACCESS-01 PROD: decide whether to retire `reviewer_delete_enabled` and the DELETE catalogue entries now that DELETE is revoked.
-2. DB-ACCESS-03: CONNECT on `loan_manager_prod` and `mw_agent` for `codex-cloud-read` (needed for PROD backups and verify) is a PROD database change. Go?
-3. DB-ACCESS-07: `verify-full` needs a `server_ca_mode` change on the instance. Later wave?
-4. Low: `codex-cloud-read` can also connect to the `postgres` database through PUBLIC CONNECT.
+1. DB-ACCESS-07: `verify-full` needs a `server_ca_mode` change on the instance. Later wave?
+2. Low: `codex-cloud-read` can also connect to the `postgres` database through PUBLIC CONNECT.
 
 ## Remaining work
 
@@ -155,4 +150,6 @@ GRANT CONNECT ON DATABASE mw_agent, loan_manager_prod TO "mw-integration-agent@c
 - The `lab` job goes green after the agent branch merges. Merge order: agent branch before or with this one.
 - Regenerate `package-lock.json` on merge with the app branch (`npm install --package-lock-only`).
 - `tests/integration/agent-native-operation-independent.test.mjs` has a one-line pwsh fix; the app branch does not change that file. `tests/integration/Run-Phase5.ps1` carries the same one-line addition as the app branch (merges cleanly). `Run-Phase5.ps1 -ManagementOnly` lists `business-money-reads-independent.test.mjs`, which warns and skips until the app branch merges.
-- PROD steps above, after the owner's go. DB-ACCESS-06 with the next migration that touches those functions. ALL-ARCH-04 after W4.
+- Retire the reviewer DELETE catalogue path (`reviewer_delete_enabled` and the DELETE entries; owner "retire"). This is agent-branch work.
+- A future DEV reviewer target (W4, `mw_reviewer_dml_dev`) must be granted DELETE on `"Cash Ledger"` for the `zz_cash_source` trigger. The nine DEV revokes from `mw_reviewer_dml` stay as they are.
+- ALL-ARCH-03 grants with the agent deploy (Prepared above). DB-ACCESS-06 with the next migration that touches those functions. ALL-ARCH-04 after W4.
