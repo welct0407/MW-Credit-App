@@ -48,12 +48,13 @@ jobs:
       matrix:
         group: [migrations, receiving, phase5, phase8]
     name: rebuild (${{ matrix.group }})
-    env:
-      MW_DB_TOOL_ROOT: ${{ runner.temp }}\db-tools
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
+      - name: Keep the toolchain outside the checkout
+        shell: pwsh
+        run: '"MW_DB_TOOL_ROOT=$env:RUNNER_TEMP\db-tools" >> $env:GITHUB_ENV'
       - name: Cache pinned Flyway and PostgreSQL tools
         uses: actions/cache@v4
         with:
