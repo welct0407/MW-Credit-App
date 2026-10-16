@@ -170,11 +170,10 @@ export function startSavedRequestSync(access:CommandAccess){
   if(!navigator.onLine)return;
   running=true;
   try{const result=await syncSavedRequests(access);if(result.synced)retries=0}catch{/* Durable requests remain for reconnect. */}
-  finally{
-   running=false;if(!active)return;
-   if(again){again=false;timer=setTimeout(()=>void run(),0)}
-   else if(navigator.onLine&&access.offline){const rows=await access.offline.list('pending').catch(()=>[]);if(active&&rows.some(row=>row.sync?.state!=='blocked'))timer=setTimeout(()=>void run(),retryDelays[Math.min(retries++,retryDelays.length-1)])}
-  }
+  // The catch above swallows every failure, so this always runs exactly as a finally block would.
+  running=false;if(!active)return;
+  if(again){again=false;timer=setTimeout(()=>void run(),0)}
+  else if(navigator.onLine&&access.offline){const rows=await access.offline.list('pending').catch(()=>[]);if(active&&rows.some(row=>row.sync?.state!=='blocked'))timer=setTimeout(()=>void run(),retryDelays[Math.min(retries++,retryDelays.length-1)])}
  };
  const wake=()=>{retries=0;void run()},visible=()=>{if(document.visibilityState==='visible')wake()};window.addEventListener('online',wake);window.addEventListener('focus',wake);window.addEventListener('pageshow',wake);document.addEventListener('visibilitychange',visible);window.addEventListener('mw-offline-queued',wake);void run();
  return()=>{active=false;if(timer)clearTimeout(timer);channel?.close();window.removeEventListener('online',wake);window.removeEventListener('focus',wake);window.removeEventListener('pageshow',wake);document.removeEventListener('visibilitychange',visible);window.removeEventListener('mw-offline-queued',wake)};

@@ -55,7 +55,7 @@ test('production verifier pins issuer plus owner and always checks revocation wi
 });
 test('runtime selects exact Admin project/default auth and rejects configuration before SDK initialization', () => {
   let options, name, app;
-  const sdk={applicationDefault:()=>({fixture:true}),initializeApp:(o,n)=>{options=o;name=n;return app={};},getAuth:a=>{assert.equal(a,app);return{verifyIdToken:async()=>claims};}};
+  const sdk={applicationDefault:()=>({fixture:true}),initializeApp:(o,n)=>{options=o;name=n;app={};return app;},getAuth:a=>{assert.equal(a,app);return{verifyIdToken:async()=>claims};}};
   assert.equal(typeof createProductionFoundationRuntime(env,sdk),'function');
   assert.equal(options.projectId,env.APPLICATION_PROJECT_ID);assert.equal(name,'production-foundation-reader');
   assert.throws(()=>createProductionFoundationRuntime({...env,FOUNDATION_MODE:'business'},{initializeApp:()=>assert.fail('SDK touched')}));

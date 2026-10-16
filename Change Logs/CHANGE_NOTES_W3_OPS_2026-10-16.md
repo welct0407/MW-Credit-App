@@ -147,7 +147,7 @@ GRANT CONNECT ON DATABASE mw_agent, loan_manager_prod TO "mw-integration-agent@c
 
 - `verify-full` plus the `server_ca_mode` change; then `connector_enforcement=REQUIRED` once VM-01 uses the Auth Proxy.
 - About 60 old one-off Python scripts still use `sslmode=require`; current ones outside this branch: `scripts/dictionary/capture_postgresql.py` and `project/scripts/metabase/chart_service/provision_role.py`.
-- Make Biome blocking once the TS/JS tree is clean (43 errors, mostly app files).
+- Make Biome blocking once the TS/JS tree is clean. Done (16 October 2026, branch `claude/biome-blocking`): the 42 errors on main fixed at their sites (six targeted `biome-ignore` with reasons, no rule weakened); the CI `lint` job is blocking and gated by `Development checks result`; 771 warnings stay reported.
 - Regenerate `package-lock.json` on merge with the app branch (`npm install --package-lock-only`).
 - `tests/integration/agent-native-operation-independent.test.mjs` has a one-line pwsh fix; the app branch does not change that file. `tests/integration/Run-Phase5.ps1` carries the same one-line addition as the app branch (merges cleanly). `Run-Phase5.ps1 -ManagementOnly` lists `business-money-reads-independent.test.mjs`, which warns and skips until the app branch merges.
 - A future DEV reviewer target (W4, `mw_reviewer_dml_dev`) must be granted DELETE on `"Cash Ledger"` for the `zz_cash_source` trigger. The nine DEV revokes from `mw_reviewer_dml` stay as they are.
