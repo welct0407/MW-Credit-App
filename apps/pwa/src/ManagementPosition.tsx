@@ -1,3 +1,4 @@
+import {wholeBaht} from './display-money';
 import {Icon} from './Icon';
 import {subscribeOfflineDataset,readCachedJson} from './read-cache';
 import {RecordAction} from './RecordAction';
@@ -10,7 +11,7 @@ import {CompactPager} from './CompactPager';
 import {displayDate,displayTimestamp} from './display-date';
 import {ManagementFinancialWorkspace} from './ManagementFinancialWorkspace';
 export function ManagementPosition({access,thai,data,onInitialize,onRefresh}:{access:CommandAccess;thai:boolean;data:any;onInitialize:(id:string)=>void;onRefresh:()=>void}){
- const t=(en:string,th:string)=>thai?th:en,money=(v:any)=>v==null?'—':'฿'+new Intl.NumberFormat(thai?'th-TH':'en-GB',{maximumFractionDigits:0}).format(Number(v));
+ const t=(en:string,th:string)=>thai?th:en,money=(v:any)=>v==null?'—':wholeBaht(v);
  const [expanded,setExpanded]=useState<Set<string>>(new Set()),[creating,setCreating]=useState(false),[account,setAccount]=useState<string|null>(null),[ledger,setLedger]=useState<any>(null),[selected,setSelected]=useState<string|null>(null),[error,setError]=useState(false),[busy,setBusy]=useState(false),[page,setPage]=useState(0),generation=useRef(0),abort=useRef<AbortController|null>(null),cursors=useRef<(string|null)[]>([null]);
  async function load(cursor:string|null=null,index=0){const epoch=++generation.current;abort.current?.abort();const controller=new AbortController();abort.current=controller;const done=beginRequest();setBusy(true);setError(false);try{const {response:response,data:value}=await readCachedJson<any>(access,'/api/management/cash-movements?limit=20'+(cursor?'&cursor='+encodeURIComponent(cursor):''),{signal:controller.signal,onCached:(value)=>{if(epoch===generation.current){setLedger(value);setPage(index);cursors.current[index]=cursor;setBusy(false)}}});if(epoch!==generation.current||controller.signal.aborted)return;if(response.status===401||response.status===403)access.authFailure(response.status);if(!response.ok)throw Error();if(epoch===generation.current){setLedger(value);setPage(index);cursors.current[index]=cursor}}catch{if(epoch===generation.current)setError(true)}finally{done();if(epoch===generation.current)setBusy(false)}}
  useEffect(()=>{void load(cursors.current[page],page);return()=>{generation.current++;abort.current?.abort()}},[data]);

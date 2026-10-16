@@ -14,9 +14,11 @@ const canonical = import.meta.env.PROD && applicationEnvironment !== 'synthetic'
 export function usePwa() {
   const safe=useAppUpdateSafe();
   const [resumeTick,setResumeTick]=useState(0),[retryPending,setRetryPending]=useState(false);
-  const attemptedUpdates=useRef(new Set<ServiceWorker>()),checkUpdateRef=useRef<(force?:boolean)=>void>(()=>{});
+  const checkUpdateRef=useRef<(force?:boolean)=>void>(()=>{});
   const canReload=()=>appUpdateSafe()&&document.visibilityState==='visible';
-  const reload=()=>{if(!canReload())return false;try{const page=document.querySelector<HTMLElement>('main[data-workspace]');if(page)sessionStorage.setItem('mw-app-update-navigation',JSON.stringify({view:page.dataset.workspace,management:page.dataset.managementSection}))}catch{/* Navigation restoration is optional. */}location.reload();return true};
+  // APP-UX-SETTINGS-04: a reload the user asked for keeps "Updating app…" visible for at least 1.5 s and rechecks safety before it happens.
+  const requestedAt=useRef<number|null>(null);
+  const reload=()=>{if(!canReload())return false;const go=()=>{try{const page=document.querySelector<HTMLElement>('main[data-workspace]');if(page)sessionStorage.setItem('mw-app-update-navigation',JSON.stringify({view:page.dataset.workspace,management:page.dataset.managementSection}));sessionStorage.setItem('mw-app-updated','1')}catch{/* Navigation restoration is optional. */}location.reload()};const wait=requestedAt.current===null?0:Math.max(0,1500-(performance.now()-requestedAt.current));if(!wait){go();return true}setReloading(true);setTimeout(()=>{if(canReload()){go();return}setReloading(false);requestedAt.current=null;setReloadAvailable(true)},wait);return true};
   useEffect(()=>{const resume=()=>setResumeTick(value=>value+1);window.addEventListener('focus',resume);window.addEventListener('pageshow',resume);document.addEventListener('visibilitychange',resume);return()=>{window.removeEventListener('focus',resume);window.removeEventListener('pageshow',resume);document.removeEventListener('visibilitychange',resume)}},[]);
 
   const [startup,setStartup]=useState<'checking'|'upgrading'|'ready'|'error'|'offline'>(canonical?(navigator.onLine?'checking':'offline'):'ready');
@@ -28,6 +30,8 @@ export function usePwa() {
   const [reloadAvailable, setReloadAvailable] = useState(false);
   const [unavailable, setUnavailable] = useState(false);
   const [activating, setActivating] = useState(false);
+  const [reloading, setReloading] = useState(false);
+  const [dismissed, setDismissed] = useState<ServiceWorker|'reload'|null>(null);
   const chosenActivation = useRef<ServiceWorker | null>(null);
   const activationCleanup = useRef<(() => void) | null>(null);
   useEffect(() => () => { activationCleanup.current?.(); chosenActivation.current = null; }, []);
@@ -127,10 +131,11 @@ export function usePwa() {
   }
   function update() {
     if(!canReload()||activating)return;
+    requestedAt.current=performance.now();
     if (reloadAvailable) { reload(); return; }
     if (!waiting) return;
     activationCleanup.current?.();
-    const target = waiting;attemptedUpdates.current.add(target);
+    const target = waiting;
     chosenActivation.current = target; setActivating(true); setUnavailable(false);
     const failed = () => {
       activationCleanup.current?.(); chosenActivation.current = null;
@@ -150,6 +155,8 @@ export function usePwa() {
     } catch { failed(); }
   }
   useEffect(()=>{if(retryPending&&safe&&document.visibilityState==='visible'){setRetryPending(false);setAttempt(value=>value+1)}},[retryPending,safe,resumeTick]);
-  useEffect(()=>{if(startup!=='ready'||!safe||activating||document.visibilityState!=='visible')return;if(reloadAvailable||(waiting&&!attemptedUpdates.current.has(waiting)))update()},[startup,safe,activating,waiting,reloadAvailable,resumeTick]);
-  return { safe,checkUpdate:()=>checkUpdateRef.current(true),startup,retryStartup:()=>{if(canReload())setAttempt(value=>value+1);else setRetryPending(true)},continueSavedOffline:()=>setStartup('offline'),canonical, standalone, canInstall: Boolean(installPrompt), install, waiting: Boolean(waiting), reloadAvailable, unavailable, activating, update };
+  // No automatic runtime update: a ready build is announced and applied only when the user chooses (startup still applies the latest build before the session).
+  const updateReady=startup==='ready'&&!activating&&!reloading&&((reloadAvailable&&dismissed!=='reload')||(!!waiting&&!reloadAvailable&&dismissed!==waiting));
+  const dismissUpdate=()=>setDismissed(reloadAvailable?'reload':waiting);
+  return { safe,checkUpdate:()=>checkUpdateRef.current(true),startup,retryStartup:()=>{if(canReload())setAttempt(value=>value+1);else setRetryPending(true)},continueSavedOffline:()=>setStartup('offline'),canonical, standalone, canInstall: Boolean(installPrompt), install, waiting: Boolean(waiting), reloadAvailable, unavailable, activating, reloading, updateReady, dismissUpdate, update };
 }

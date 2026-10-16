@@ -1,9 +1,10 @@
 import {expect,type BrowserContext,type Page} from '@playwright/test';
 export async function chooseLanguage(page:Page, language:'EN'|'ไทย') {
  await expect(page.locator('.live-body')).toBeVisible();
- const mobile=page.viewportSize()!.width<=1050;
+ // Signed out, phones show the language choice on the sign-in card (APP-UX-SETTINGS-02), not in the menu.
+ const card=await page.locator('.access-language').filter({visible:true}).count()>0,mobile=!card&&page.viewportSize()!.width<=1050;
  if(mobile)await page.getByRole('button',{name:/^(Open navigation|เปิดเมนู)$/}).click();
- else if(await page.locator('.live-body').evaluate(el=>el.classList.contains('nav-collapsed')))await page.getByRole('button',{name:/^(Language|ภาษา)$/}).click();
+ else if(!card&&await page.locator('.live-body').evaluate(el=>el.classList.contains('nav-collapsed')))await page.getByRole('button',{name:/^(Language|ภาษา)$/}).click();
  const choice=page.getByRole('button',{name:language,exact:true}).filter({visible:true});
  await expect(choice).toBeVisible();await choice.click();
  await expect(page.locator('html')).toHaveAttribute('lang',language==='EN'?'en':'th');

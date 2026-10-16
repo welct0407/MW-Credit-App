@@ -19,7 +19,7 @@ export function SyncStatus({preparation,thai}:{preparation:OfflinePreparation;th
  },[requestedAt,preparation.syncActive,preparation.lastChecked]);
  const at=preparation.lastChecked;if(at===null)return null;
  const syncing=requestedAt!==null,stale=!syncing&&Date.now()-at>=STALE_MS,time=clock(thai,at);
- const text=syncing?(thai?'กำลังซิงค์…':'Syncing…'):stale?(thai?'ข้อมูลที่บันทึกเมื่อ '+time:'Saved data from '+time):(thai?'อัปเดต '+time:'Updated '+time);
+ const text=syncing?(thai?'กำลังซิงค์…':'Syncing…'):stale?(thai?'ข้อมูล ณ '+time:'Saved data from '+time):(thai?'อัปเดต '+time:'Updated '+time);
  const action=thai?'ซิงค์ตอนนี้':'Sync now';
  const start=()=>{if(syncing)return;seenActive.current=false;setRequestedAt(Date.now());window.dispatchEvent(new Event('mw-offline-prepare'))};
  return <button type="button" className={'live-sync-status'+(stale?' stale':'')+(syncing?' syncing':'')} aria-label={syncing?text:text+' — '+action} aria-busy={syncing} title={action} onClick={start}>{text}</button>;

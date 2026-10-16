@@ -73,5 +73,12 @@ self.addEventListener('push',event=>{
 self.addEventListener('notificationclick',event=>{
  event.notification.close();const id=event.notification.data?.eventId;if(typeof id!=='string'||!/^[a-f0-9-]{36}$/.test(id))return;
  const url=new URL('/?notification='+id,self.location.origin).href;
- event.waitUntil((async()=>{const windows=await self.clients.matchAll({type:'window',includeUncontrolled:true});const existing=windows.find(c=>new URL(c.url).origin===self.location.origin);if(existing){await existing.navigate(url);await existing.focus()}else await self.clients.openWindow(url)})());
+ // APP-OFFLINE-05: an open tab (the focused one first) decides in place, so an open form is never reloaded away.
+ // Only a page that does not acknowledge within 1.5 s (older build, frozen or uncontrolled) is navigated as before.
+ event.waitUntil((async()=>{const windows=(await self.clients.matchAll({type:'window',includeUncontrolled:true})).filter(c=>new URL(c.url).origin===self.location.origin);const existing=windows.find(c=>c.focused)??windows[0];
+  if(!existing){await self.clients.openWindow(url);return;}
+  try{await existing.focus()}catch{/* Focus is best effort; routing continues. */}
+  const handled=await new Promise(resolve=>{const channel=new MessageChannel();const timer=setTimeout(()=>{channel.port1.close();resolve(false)},1500);channel.port1.onmessage=message=>{clearTimeout(timer);channel.port1.close();resolve(message.data?.handled===true)};try{existing.postMessage({type:'NOTIFICATION_OPEN',v:1,eventId:id},[channel.port2])}catch{clearTimeout(timer);channel.port1.close();resolve(false)}});
+  if(!handled)await existing.navigate(url);
+ })());
 });
