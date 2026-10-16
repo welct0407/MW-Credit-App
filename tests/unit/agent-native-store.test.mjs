@@ -14,6 +14,9 @@ test('machine native operations retain acknowledged COMMIT then release then bou
   afterCommit:async()=>{events.push('wake');throw Error('provider unavailable');}});
  const result=await store.nativeOperation({},input);
  assert.equal(result.status,200);
+ // APP-PAY-02: the result returns before the wake, which follows in the next check phase.
+ assert.equal(events.includes('wake'),false);
+ for(let i=0;i<3;i++)await new Promise(resolve=>setImmediate(resolve));
  assert(events.indexOf('COMMIT')<events.findIndex(e=>Array.isArray(e)&&e[0]==='release'));
  assert.equal(events.at(-1),'wake');
  assert.equal(events.includes('ROLLBACK'),false);

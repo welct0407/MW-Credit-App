@@ -15,6 +15,13 @@ The sole Open product release is **R063**. **R062 is Released**; the owner-autho
 
 Use the [release tracker](Release_Tracker.md), including the carried R016 administrative follow-up. Current runtime versions belong in [environment inventory](Environment_Inventory.md). Update this page for actual outstanding work, not completed-release history.
 
+## R063 Wave 1 — PWA and API fixes
+
+- Saved changes survive session expiry and 401/403; Sign out is blocked until they sync, with "Sync saved changes" and "Review saved changes" affordances (APP-OFFLINE-01/02).
+- Firebase outages and key-fetch failures return 503 `session_check_unavailable`; stalled bodies return 503 `body_timeout`; receipts are downscaled in the PWA (APP-AUTH-01, APP-PAY-01).
+- The post-commit wake follows the response; receipt storage I/O runs outside database transactions; naive receipt timestamps are read as text (APP-PAY-02, APP-PAY-04 W1 part, APP-DATE-01).
+- Deployed to DEV (command `00028-8tf`, read `00021-cdz`, Hosting `edf06b9da5841b1d`; pins in the [inventory](Environment_Inventory.md)); PROD promotion pending with R063. Record: [W1 app change note](../../Change%20Logs/CHANGE_NOTES_W1_APP_2026-10-15.md).
+
 ## R063 Wave 1 — operations and evidence privacy
 
 - Removed the three borrower-data evidence folders from the branch tip (history is not purged) and pruned about 1,900 unreferenced or retired evidence files from `project/outputs`, `outputs/` and `integration-agent/outputs`; still-referenced root `outputs/` items moved under `project/outputs` with their references updated.

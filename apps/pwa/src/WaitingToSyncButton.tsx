@@ -2,6 +2,17 @@ import {Icon} from './Icon';
 import React,{useEffect,useState} from 'react';
 import type {OwnerOfflineRepository} from './owner-offline';
 
+/** Every saved pending row counts (including blocked ones): all are unsynced and must not be discarded by sign-out. No lease gate. */
+export function usePendingCount(repository:OwnerOfflineRepository|null):number{
+ const [state,setState]=useState<{repository:OwnerOfflineRepository|null;count:number}>({repository:null,count:0});
+ useEffect(()=>{
+  let active=true,revision=0;
+  const refresh=async()=>{const current=++revision;try{const count=repository?(await repository.list('pending')).length:0;if(active&&current===revision)setState({repository,count})}catch{if(active&&current===revision)setState({repository,count:0})}};
+  void refresh();window.addEventListener('mw-offline-saved',refresh);window.addEventListener('mw-offline-queued',refresh);window.addEventListener('focus',refresh);const timer=setInterval(refresh,15000);
+  return()=>{active=false;revision++;clearInterval(timer);window.removeEventListener('mw-offline-saved',refresh);window.removeEventListener('mw-offline-queued',refresh);window.removeEventListener('focus',refresh)};
+ },[repository]);
+ return state.repository===repository?state.count:0;
+}
 export function WaitingToSyncButton({repository,thai,compact=false,onClick}:{repository:OwnerOfflineRepository|null;thai:boolean;compact?:boolean;onClick:()=>void}){
  const [saved,setSaved]=useState<{repository:OwnerOfflineRepository|null;count:number}>({repository:null,count:0});
  useEffect(()=>{
