@@ -26,7 +26,12 @@ jobs:
         env:
           BASE_COMMIT: ${{ github.event.before }}
         run: |
-          if ($env:BASE_COMMIT -and $env:BASE_COMMIT -notmatch '^0+$' -and (git cat-file -e "$env:BASE_COMMIT^{commit}" 2>$null; $LASTEXITCODE -eq 0)) {
+          $reachable = $false
+          if ($env:BASE_COMMIT -and $env:BASE_COMMIT -notmatch '^0+$') {
+            git cat-file -e "$($env:BASE_COMMIT)^{commit}" 2>$null
+            $reachable = ($LASTEXITCODE -eq 0)
+          }
+          if ($reachable) {
             $changes = @(git diff --name-status --no-renames $env:BASE_COMMIT HEAD -- database/migrations)
             if ($LASTEXITCODE) { throw 'Cannot inspect migration history' }
             if (@($changes | Where-Object { $_ -notmatch '^A\s' }).Count) {
