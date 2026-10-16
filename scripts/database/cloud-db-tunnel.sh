@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Open (or reuse) the Cloud SQL tunnel for Linux cloud sessions:
 #   127.0.0.1:${MW_DB_TUNNEL_PORT:-15432} -> IAP SSH -> vm-mw-credit-agent -> its
-#   loopback Cloud SQL Auth Proxy (127.0.0.1:5432) -> appsheet-pg-prod-20260914.
+#   loopback Cloud SQL Auth Proxy (127.0.0.1:5432) -> mw-credit-pg-20261017.
 # The session's egress is HTTPS-only and Cloud SQL's authorized networks admit
 # only the VM-01 workstation, so the IAP tunnel to the Debian host is the route.
 # SSH uses instance-level key `codex-cloud` (private key in Secret Manager

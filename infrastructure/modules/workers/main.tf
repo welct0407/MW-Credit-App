@@ -100,6 +100,7 @@ variable "jobs_schedule_enabled" {
 locals {
   project       = "clever-oasis-508610-n7"
   region        = "asia-southeast1"
+  sql_instance  = "mw-credit-pg-20261017"
   roles         = var.enabled ? toset(["notify", "jobs"]) : toset([])
   runtime_roles = var.enabled && var.image != null ? local.roles : toset([])
   names         = { for role in ["notify", "jobs"] : role => "mw-credit-app-${role}-${var.environment}" }
@@ -150,10 +151,10 @@ resource "google_project_iam_member" "sql" {
   role     = each.value.role
   member   = "serviceAccount:${google_service_account.worker[each.value.worker].email}"
 }
-resource "google_sql_user" "worker" {
+resource "google_sql_user" "worker_ssd" {
   for_each        = local.roles
   project         = local.project
-  instance        = "appsheet-pg-prod-20260914"
+  instance        = local.sql_instance
   name            = trimsuffix(google_service_account.worker[each.key].email, ".gserviceaccount.com")
   type            = "CLOUD_IAM_SERVICE_ACCOUNT"
   deletion_policy = "ABANDON"
@@ -225,9 +226,9 @@ resource "google_cloud_run_v2_service" "worker" {
           WORKER_ROLE                  = each.key
           WORKER_ACTIVATION            = (each.key == "notify" ? var.notification_enabled : var.jobs_enabled) ? "enabled" : "disabled"
           APPLICATION_PROJECT_ID       = local.project
-          INSTANCE_CONNECTION_NAME     = "${local.project}:${local.region}:appsheet-pg-prod-20260914"
+          INSTANCE_CONNECTION_NAME     = "${local.project}:${local.region}:${local.sql_instance}"
           DB_NAME                      = "loan_manager_${var.environment}"
-          DB_USER                      = google_sql_user.worker[each.key].name
+          DB_USER                      = google_sql_user.worker_ssd[each.key].name
           RUNTIME_SERVICE_ACCOUNT      = google_service_account.worker[each.key].email
           WORKER_AUDIENCE              = local.audiences[each.key]
           SCHEDULER_SERVICE_ACCOUNT    = google_service_account.scheduler[0].email
@@ -315,6 +316,6 @@ resource "google_cloud_scheduler_job" "tick" {
   }
   depends_on = [google_project_service.scheduler, google_cloud_run_v2_service_iam_member.scheduler]
 }
-output "identities" { value = { for role, sa in google_service_account.worker : role => { service_account = sa.email, sql_user = google_sql_user.worker[role].name, audience = local.audiences[role] } } }
+output "identities" { value = { for role, sa in google_service_account.worker : role => { service_account = sa.email, sql_user = google_sql_user.worker_ssd[role].name, audience = local.audiences[role] } } }
 
 

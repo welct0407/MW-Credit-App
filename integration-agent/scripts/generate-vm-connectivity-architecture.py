@@ -318,7 +318,7 @@ vertex(
 
 vertex(
     "cloudsql",
-    "Cloud SQL\nappsheet-pg-prod-20260914\nloan_manager_prod + mw_agent",
+    "Cloud SQL\nmw-credit-pg-20261017\nloan_manager_prod + mw_agent",
     1385,
     665,
     330,

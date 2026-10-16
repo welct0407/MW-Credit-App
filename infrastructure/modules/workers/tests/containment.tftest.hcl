@@ -11,7 +11,7 @@ run "enrollment_only" {
   command = plan
   variables { enabled = true }
   assert {
-    condition     = length(google_service_account.worker) == 2 && length(google_sql_user.worker) == 2 && length(google_project_iam_member.sql) == 4 && length(google_cloud_run_v2_service.worker) == 0 && length(google_cloud_scheduler_job.tick) == 0
+    condition     = length(google_service_account.worker) == 2 && length(google_sql_user.worker_ssd) == 2 && length(google_project_iam_member.sql) == 4 && length(google_cloud_run_v2_service.worker) == 0 && length(google_cloud_scheduler_job.tick) == 0
     error_message = "Enrollment must not start runtimes or schedules."
   }
   assert {

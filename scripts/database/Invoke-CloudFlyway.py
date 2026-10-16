@@ -1,7 +1,7 @@
 """Pinned Flyway through the IAP tunnel; the documented second PROD migration path.
 
 Route: scripts/database/cloud-db-tunnel.sh (IAP SSH to vm-mw-credit-agent and its
-loopback Cloud SQL Auth Proxy to appsheet-pg-prod-20260914), the same tunnel the
+loopback Cloud SQL Auth Proxy to mw-credit-pg-20261017), the same tunnel the
 Linux cloud sessions use for reads. VM-01 Invoke-Flyway.ps1 remains the primary
 route. Read-only actions (info, validate) sign in as the read identity
 codex-cloud-read@...iam with a short-lived IAM token obtained by impersonation;
@@ -29,7 +29,7 @@ import subprocess
 
 REPO=Path(__file__).resolve().parents[2]
 PROJECT='clever-oasis-508610-n7'
-INSTANCE='appsheet-pg-prod-20260914'
+INSTANCE='mw-credit-pg-20261017'
 READ_SERVICE_ACCOUNT='codex-cloud-read@clever-oasis-508610-n7.iam.gserviceaccount.com'
 READ_USER='codex-cloud-read@clever-oasis-508610-n7.iam'
 ADMIN_USER='postgres'
@@ -76,7 +76,7 @@ def guard(repo,release,approval,backup,environ):
     targets=json.loads((repo/'database/environments.json').read_text())
     for name,db in [('development','loan_manager_dev'),('production','loan_manager_prod')]:
         t=targets[name]
-        if (t['instance'],t['host'],t['database'],t['user'])!=(INSTANCE,'34.21.174.215',db,'postgres'):
+        if (t['instance'],t['host'],t['database'],t['user'])!=(INSTANCE,'136.85.127.134',db,'postgres'):
             raise ValueError('Database identity differs')
 
 

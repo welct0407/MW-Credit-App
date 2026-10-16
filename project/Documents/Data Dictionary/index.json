@@ -11153,7 +11153,7 @@
     {
       "file": "systems/postgresql/settings/mw-chart-reader.yaml",
       "system": "postgresql",
-      "component": "appsheet-pg-prod-20260914/loan_manager_prod",
+      "component": "mw-credit-pg-20261017/loan_manager_prod",
       "kind": "settings",
       "name": "mw_chart_reader",
       "scope": "production",

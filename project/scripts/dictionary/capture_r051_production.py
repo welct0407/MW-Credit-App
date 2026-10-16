@@ -16,7 +16,7 @@ from capture_postgresql import QUERIES
 from common import REPO
 
 target = json.loads((DATABASE_REPO_ROOT / 'database/environments.json').read_text())['production']
-assert (target['instance'], target['host'], target['database']) == ('appsheet-pg-prod-20260914', '34.21.174.215', 'loan_manager_prod')
+assert (target['instance'], target['host'], target['database']) == ('mw-credit-pg-20261017', '136.85.127.134', 'loan_manager_prod')
 names = set()
 for p in (DATABASE_REPO_ROOT / 'database/migrations').glob('V*__*.sql'):
     if 59 <= int(p.name.split('__')[0][1:]) <= 74:

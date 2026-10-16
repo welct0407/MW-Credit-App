@@ -10,7 +10,7 @@ migration=root/'database/migrations/V76__payment_visible_allocation_ids_view.sql
 query=migration.read_text(encoding='utf-8').split(' AS\n',1)[1].strip().removesuffix(';')
 assert query.startswith('SELECT p."Row ID"') and ';' not in query
 t=json.loads((root/'database/environments.json').read_text())['production']
-assert (t['instance'],t['host'],t['database'])==('appsheet-pg-prod-20260914','34.21.174.215','loan_manager_prod')
+assert (t['instance'],t['host'],t['database'])==('mw-credit-pg-20261017','136.85.127.134','loan_manager_prod')
 with psycopg.connect(host=t['host'],port=t['port'],dbname=t['database'],user=t['user'],password=Path(t['passwordFile']).read_text().strip(),sslmode='require',connect_timeout=15) as c:
  c.execute('BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY')
  c.execute("SET LOCAL statement_timeout='15s'; SET LOCAL lock_timeout='2s'")

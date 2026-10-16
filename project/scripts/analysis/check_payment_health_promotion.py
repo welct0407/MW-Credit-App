@@ -12,7 +12,7 @@ cfg=json.loads((DATABASE_REPO_ROOT / 'database/environments.json').read_text())
 out=repo/'outputs/r027-payment-health'
 meta={};checks=[]
 for env,db in [('development','loan_manager_dev'),('production','loan_manager_prod')]:
- t=cfg[env];assert (t['instance'],t['host'],t['database'])==('appsheet-pg-prod-20260914','34.21.174.215',db)
+ t=cfg[env];assert (t['instance'],t['host'],t['database'])==('mw-credit-pg-20261017','136.85.127.134',db)
  with psycopg.connect(host=t['host'],dbname=db,user=t['user'],password=Path(t['passwordFile']).read_text().strip(),sslmode='require',options='-c default_transaction_read_only=on -c statement_timeout=30000') as c:
   assert c.execute('select current_database(),host(inet_server_addr())').fetchone()==(db,t['host'])
   version=c.execute('select max(version::int) from flyway_schema_history where success').fetchone()[0]

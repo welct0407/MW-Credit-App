@@ -31,7 +31,7 @@ def run():
     args = parser.parse_args()
     target = json.loads((DATABASE_REPO_ROOT / "database/environments.json").read_text())["production"]
     assert (target["instance"], target["host"], target["database"]) == (
-        "appsheet-pg-prod-20260914", "34.21.174.215", "loan_manager_prod")
+        "mw-credit-pg-20261017", "136.85.127.134", "loan_manager_prod")
     secret_path = Path(target["passwordFile"]).resolve()
     assert secret_path.is_relative_to((Path.home() / "Documents/ChatGPT").resolve())
     evidence = {}

@@ -1,7 +1,7 @@
 param([Parameter(Mandatory)][ValidateSet('development','production')][string]$Environment)
 . "$PSScriptRoot/Common.ps1"
 $target=Get-DbEnvironment $Environment
-if($target.instance -ne 'appsheet-pg-prod-20260914' -or $target.host -ne '34.21.174.215' -or $target.database -ne $(if($Environment -eq 'development'){'loan_manager_dev'}else{'loan_manager_prod'})){throw 'Target mismatch'}
+if($target.instance -ne 'mw-credit-pg-20261017' -or $target.host -ne '136.85.127.134' -or $target.database -ne $(if($Environment -eq 'development'){'loan_manager_dev'}else{'loan_manager_prod'})){throw 'Target mismatch'}
 $old=$env:PGPASSWORD;$ssl=$env:PGSSLMODE
 try {
  $env:PGPASSWORD=[IO.File]::ReadAllText($target.passwordFile).Trim();$env:PGSSLMODE='require'

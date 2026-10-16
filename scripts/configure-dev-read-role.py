@@ -91,12 +91,12 @@ def recovery_guide(recovery):
 
 def run(apply):
     target = json.loads((ROOT/'database/environments.json').read_text())['development']
-    if (target['instance'],target['host'],target['database']) != ('appsheet-pg-prod-20260914','34.21.174.215','loan_manager_dev'):
+    if (target['instance'],target['host'],target['database']) != ('mw-credit-pg-20261017','136.85.127.134','loan_manager_dev'):
         raise RuntimeError('Unexpected DEV configuration')
     result = None
     with psycopg.connect(host=target['host'], port=target['port'], dbname=target['database'], user=target['user'], password=Path(target['passwordFile']).read_text().strip(), sslmode='require', connect_timeout=10) as conn:
         conn.execute('BEGIN' if apply else 'BEGIN READ ONLY')
-        if conn.execute('SELECT current_database(),host(inet_server_addr())').fetchone() != ('loan_manager_dev','34.21.174.215'):
+        if conn.execute('SELECT current_database(),host(inet_server_addr())').fetchone() != ('loan_manager_dev','136.85.127.134'):
             raise RuntimeError('Unexpected actual DEV database')
         before = inspect(conn)
         statements = []

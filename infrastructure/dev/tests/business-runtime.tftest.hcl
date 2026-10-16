@@ -29,6 +29,7 @@ override_resource {
   values = { id = "projects/clever-oasis-508610-n7/defaultSupportedIdpConfigs/google.com", project = "clever-oasis-508610-n7", idp_id = "google.com", client_id = "synthetic", client_secret = "synthetic", enabled = true, deletion_policy = "ABANDON" }
 }
 variables {
+  sql_ssd_import                 = false # mock providers cannot import
   github_repository_id           = "1408349602"
   command_infrastructure_enabled = true
   capability_policy_version      = "1"

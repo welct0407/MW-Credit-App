@@ -29,7 +29,7 @@ def dev_connection(callback):
         raise ValueError('Reviewed transport changed')
     target = json.loads((REPO/'database/environments.json').read_text())['development']
     if (target['instance'], target['host'], target['database']) != (
-            'appsheet-pg-prod-20260914', '34.21.174.215', 'loan_manager_dev'):
+            'mw-credit-pg-20261017', '136.85.127.134', 'loan_manager_dev'):
         raise ValueError('DEV inventory mismatch')
     loader = importlib.machinery.SourceFileLoader('correction_cloud_transport', str(ACCESS))
     spec = importlib.util.spec_from_loader(loader.name, loader)
@@ -88,7 +88,7 @@ def backup(expected_version=58):
             raise ValueError('Unexpected DEV recovery baseline version')
         if expected_version==69 and c.execute('SELECT version,checksum FROM flyway_schema_history WHERE success ORDER BY installed_rank DESC LIMIT 1').fetchone()!=('69',245428688):
             raise ValueError('Expected exact V69 recovery checksum')
-        print(json.dumps(dict(stage='verified_recovery_target',database='loan_manager_dev',instance='appsheet-pg-prod-20260914',host='34.21.174.215',version=version)),flush=True)
+        print(json.dumps(dict(stage='verified_recovery_target',database='loan_manager_dev',instance='mw-credit-pg-20261017',host='136.85.127.134',version=version)),flush=True)
         before = fingerprints(c)
         snapshot = c.execute('SELECT pg_export_snapshot()').fetchone()[0]
         env = {k:v for k,v in os.environ.items() if not k.startswith(('PG','CODEX_','FLYWAY_'))}
@@ -121,7 +121,7 @@ def backup(expected_version=58):
                 raise ValueError('Restored table fingerprints differ')
     finally:
         run([PG/'pg_ctl','-D',data,'-m','fast','-w','stop'],'stop.log')
-    evidence = dict(database='loan_manager_dev',instance='appsheet-pg-prod-20260914',host='34.21.174.215',
+    evidence = dict(database='loan_manager_dev',instance='mw-credit-pg-20261017',host='136.85.127.134',
                     baseline_version=expected_version,sha256=hashlib.sha256(dump.read_bytes()).hexdigest(),
                     table_count=len(before),restored_fingerprints_match=True,private_artifact_reference=root.name,
                     scope='public,assessment_lab,agent_audit; roles and instance configuration excluded')
@@ -228,7 +228,7 @@ def migrate(target_version=60,expected_commit=None,window_reference=None):
             if preserved_rows() != preservation or c.execute('SELECT count(*) FROM "Payments" WHERE "Delete Requested"').fetchone()[0]:
                 raise ValueError('Post-migration source preservation mismatch; reconcile, do not replay')
         c.rollback()
-        return dict(database='loan_manager_dev',instance='appsheet-pg-prod-20260914',host='34.21.174.215',
+        return dict(database='loan_manager_dev',instance='mw-credit-pg-20261017',host='136.85.127.134',
                     migrated=added,validate=True,source_sha256=hashes,recovery_sha256=recovery['sha256'],
                     existing_rows_preserved=(preservation is not None),
                     preservation_scope=('25 non-history tables; Payments normalized without new Delete Requested column; all flags false' if target_version==65 else 'All25 non-history tables unchanged; flags false') if preservation is not None else None)

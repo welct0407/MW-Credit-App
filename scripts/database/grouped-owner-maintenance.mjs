@@ -13,7 +13,7 @@ async function context(client,config){
  if(roles.length!==2||roles.some(r=>r.rolcanlogin||r.rolsuper||r.rolcreatedb||r.rolcreaterole||r.rolreplication||r.rolbypassrls))throw Error('Both existing journal owner packages must have reviewed flags');
  const bindings=owners.map(owner=>{const g=config.grantors.find(v=>v.ownerRole===owner);if(!g||typeof g.membershipGrantor!=='string'||!g.membershipGrantor||g.schemaGrantor!==schema.grantor)throw Error('Unknown owner grantor binding');
   const cloud=g.membershipMode==='implicit-cloudsql';
-  if(cloud){if(x.operator!=='postgres'||x.host!=='34.21.174.215'||x.port!==5432||g.membershipGrantor!=='cloudsqladmin')throw Error('Unverified Cloud SQL membership grantor');}
+  if(cloud){if(x.operator!=='postgres'||x.host!=='136.85.127.134'||x.port!==5432||g.membershipGrantor!=='cloudsqladmin')throw Error('Unverified Cloud SQL membership grantor');}
   else if(g.membershipMode!=='explicit'||x.host!=='127.0.0.1'||g.membershipGrantor!==x.operator)throw Error('Explicit grantor is limited to owned loopback proof');
   return {ownerRole:owner,membershipGrantor:g.membershipGrantor,schemaGrantor:g.schemaGrantor,membershipMode:g.membershipMode};});
  return {database:x.database,operator:x.operator,bindings};

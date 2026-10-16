@@ -120,7 +120,7 @@ def validate(folder):
         report[target]={'verified':dict(count),'source_bindings':bindings,'view_sources':view_sources,'explicit_exclusions':target_notes}
     connections={x['alias']:x['values'] for x in read(folder/'source-connections.json')}
     for alias,database in [('database-2','loan_manager_prod'),('database-3','loan_manager_dev')]:
-        if connections[alias]['dbDatabase']!=database or connections[alias]['dbServer']!='34.21.174.215':failures.append({'connection':alias,'error':'Unexpected database/host'})
+        if connections[alias]['dbDatabase']!=database or connections[alias]['dbServer']!='136.85.127.134':failures.append({'connection':alias,'error':'Unexpected database/host'})
     for env in ['production','development']:
         pg=read(folder/(env+'-postgresql-observations.json'))['sections'];count=collections.Counter()
         relations={(x['schema'],x['name']) for x in pg['relations']}

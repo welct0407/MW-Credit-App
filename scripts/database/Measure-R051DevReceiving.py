@@ -28,7 +28,7 @@ assert not (out/(args.label+'.json')).exists(), 'Preserve existing measurement'
 backup=json.loads((out/'vm01-development-backup.json').read_text())
 assert backup['restored_fingerprints_match'] and hashlib.sha256(Path(backup['backup_file']).read_bytes()).hexdigest()==backup['backup_sha256']
 target=json.loads((repo/'database/environments.json').read_text())['development']
-assert (target['instance'],target['host'],target['database'])==('appsheet-pg-prod-20260914','34.21.174.215','loan_manager_dev')
+assert (target['instance'],target['host'],target['database'])==('mw-credit-pg-20261017','136.85.127.134','loan_manager_dev')
 
 
 def fingerprints(c):

@@ -27,7 +27,7 @@ locals {
 
   project  = "clever-oasis-508610-n7"
   region   = "asia-southeast1"
-  instance = "appsheet-pg-prod-20260914"
+  instance = "mw-credit-pg-20261017"
   bucket   = "mw-payment-receipts-prod-508610-n7"
   services = toset(["run.googleapis.com", "sqladmin.googleapis.com", "secretmanager.googleapis.com", "artifactregistry.googleapis.com", "cloudbuild.googleapis.com", "iamcredentials.googleapis.com", "sts.googleapis.com", "firebase.googleapis.com", "firebasehosting.googleapis.com", "identitytoolkit.googleapis.com", "policytroubleshooter.googleapis.com"])
 

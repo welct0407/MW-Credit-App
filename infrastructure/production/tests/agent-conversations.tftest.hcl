@@ -7,6 +7,7 @@ mock_provider "google" {}
 mock_provider "google-beta" {}
 
 variables {
+  sql_ssd_import             = false # mock providers cannot import
   application_project_id     = "clever-oasis-508610-n7"
   application_project_number = "737787224638"
   region                     = "asia-southeast1"

@@ -46,7 +46,7 @@ test('private catalog transport pins generation and verifies metadata, bytes bef
   mode='hash';await assert.rejects(reader(reference,'manual'));assert.equal(decodes,1);
 });
 const capture=()=>({schemaVersion:1,environment:'dev',entries:[{
-  database:{database:'loan_manager_dev',instance:DEV_INSTANCE,host:'34.21.174.215',table:'Payments',column:'Uploaded Receipt',readOnly:true,capturedAt:'2026-10-11T00:00:00Z',rowId:'synthetic-payment',reference},
+  database:{database:'loan_manager_dev',instance:DEV_INSTANCE,host:'136.85.127.134',table:'Payments',column:'Uploaded Receipt',readOnly:true,capturedAt:'2026-10-11T00:00:00Z',rowId:'synthetic-payment',reference},
   appsheet:{appId:'500b27b6-884a-41e8-a9ec-df801b0110ad',method:'authenticated-appsheet-media',reference,rowId:'synthetic-payment',capturedAt:'2026-10-11T00:00:00Z',mediaPath:'synthetic-appsheet',mimeType:'image/png',sha256:hash(bytes)},
   gcs:{...entry,bucket:DEV_RECEIPT_MAPPING.bucket,capturedAt:'2026-10-11T00:00:00Z',mediaPath:'synthetic-gcs'}
 }]});

@@ -15,7 +15,7 @@ test('real managed base tuples survive narrow binding; unsafe grantor ADMIN SET 
   let mutations=0;
   // Only network identity is substituted. Every role flag, tuple and GRANT is
   // executed by a real nonsuperuser against the owned PostgreSQL catalogue.
-  const client={async query(sql,args){if(sql==='BEGIN'||sql.startsWith('GRANT '))mutations++;const result=await operator.query(sql,args);if(sql.startsWith('SELECT current_database()')){result.rows[0].host='34.21.174.215';result.rows[0].port=5432;}return result;}};
+  const client={async query(sql,args){if(sql==='BEGIN'||sql.startsWith('GRANT '))mutations++;const result=await operator.query(sql,args);if(sql.startsWith('SELECT current_database()')){result.rows[0].host='136.85.127.134';result.rows[0].port=5432;}return result;}};
   const original=await snapshot(admin),managed=original.filter(x=>x.role==='cloudsqliamserviceaccount');assert.equal(managed.length,3);
   for(const kind of ['api','notify','jobs'])assert.equal((await bindR053Runtime(client,config,{kind,apply:true})).mode,'runtime-bound');
   const bound=await snapshot(admin);assert.deepEqual(bound.filter(x=>x.role==='cloudsqliamserviceaccount'),managed);assert.deepEqual(bound.filter(x=>x.role==='mw_app_dev'),original.filter(x=>x.role==='mw_app_dev'));

@@ -21,10 +21,10 @@ resource "google_project_iam_member" "business_sql" {
   member   = "serviceAccount:${google_service_account.application[each.value.runtime].email}"
 }
 
-resource "google_sql_user" "business_runtime" {
+resource "google_sql_user" "business_runtime_ssd" {
   for_each        = local.business_roles
   project         = var.application_project_id
-  instance        = "appsheet-pg-prod-20260914"
+  instance        = "mw-credit-pg-20261017"
   name            = trimsuffix(google_service_account.application[each.key].email, ".gserviceaccount.com")
   type            = "CLOUD_IAM_SERVICE_ACCOUNT"
   deletion_policy = "ABANDON"

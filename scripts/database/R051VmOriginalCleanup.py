@@ -15,7 +15,7 @@ mode = sys.argv[1]
 assert mode in ('readback', 'cleanup')
 repo = Path(__file__).resolve().parents[2]
 target = json.loads((repo / 'database/environments.json').read_text())['development']
-assert (target['instance'], target['host'], target['database']) == ('appsheet-pg-prod-20260914', '34.21.174.215', 'loan_manager_dev')
+assert (target['instance'], target['host'], target['database']) == ('mw-credit-pg-20261017', '136.85.127.134', 'loan_manager_dev')
 private = Path('C:/Users/ideaadmin/Documents/ChatGPT/AppSheet-Loan-Project/r051-receipt-corrections')
 inventory = private / 'vm01-original-readback.json'
 state = private / 'vm01-original-cleanup.json'

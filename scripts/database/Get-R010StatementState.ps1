@@ -2,7 +2,7 @@
 param()
 . "$PSScriptRoot/Common.ps1"
 $target=Get-DbEnvironment 'development'
-if($target.instance -ne 'appsheet-pg-prod-20260914' -or $target.host -ne '34.21.174.215' -or $target.database -ne 'loan_manager_dev'){
+if($target.instance -ne 'mw-credit-pg-20261017' -or $target.host -ne '136.85.127.134' -or $target.database -ne 'loan_manager_dev'){
  throw 'Unexpected DEV instance/host/database'
 }
 $saved=@{};foreach($name in @('PGPASSWORD','PGSSLMODE','PGCONNECT_TIMEOUT')){$saved[$name]=[Environment]::GetEnvironmentVariable($name,'Process')}

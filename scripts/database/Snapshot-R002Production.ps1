@@ -2,7 +2,7 @@
 param()
 . "$PSScriptRoot/Common.ps1"
 $target = Get-DbEnvironment production
-if ($target.host -ne '34.21.174.215') { throw 'Reviewed production host required' }
+if ($target.host -ne '136.85.127.134') { throw 'Reviewed production host required' }
 $private = 'C:/Users/ideaadmin/Documents/ChatGPT/AppSheet-Loan-Project/r002-production-20260916'
 New-Item -ItemType Directory -Force -Path $private | Out-Null
 $dump = Join-Path $private 'production-before.dump'

@@ -1,6 +1,6 @@
 # PostgreSQL state and audit
 
-The owner-approved R015 implementation uses `mw_agent` on the existing Cloud SQL instance `clever-oasis-508610-n7:asia-southeast1:appsheet-pg-prod-20260914`. It contains 29 audit/runtime/migration tables plus the independent deployment history. These are internal agent records, never AppSheet data sources. Business data stays in `loan_manager_prod`; DEV stays in `loan_manager_dev`. Instance/network settings are unchanged.
+The owner-approved R015 implementation uses `mw_agent` on the existing Cloud SQL instance `clever-oasis-508610-n7:asia-southeast1:mw-credit-pg-20261017`. It contains 29 audit/runtime/migration tables plus the independent deployment history. These are internal agent records, never AppSheet data sources. Business data stays in `loan_manager_prod`; DEV stays in `loan_manager_dev`. Instance/network settings are unchanged.
 
 ## Governance
 

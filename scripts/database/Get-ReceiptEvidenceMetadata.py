@@ -7,7 +7,7 @@ from capture_postgresql import QUERIES,NS,psycopg,dict_row
 out={}
 for environment in ['development','production']:
  t=json.loads((root/'database/environments.json').read_text()) [environment]
- assert (t['host'],t['instance'],t['database'])==('34.21.174.215','appsheet-pg-prod-20260914',{'development':'loan_manager_dev','production':'loan_manager_prod'}[environment])
+ assert (t['host'],t['instance'],t['database'])==('136.85.127.134','mw-credit-pg-20261017',{'development':'loan_manager_dev','production':'loan_manager_prod'}[environment])
  with psycopg.connect(host=t['host'],port=5432,dbname=t['database'],user='postgres',password=Path(t['passwordFile']).read_text().strip(),sslmode='require',row_factory=dict_row) as c:
   c.execute('BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY')
   c.execute("SET LOCAL statement_timeout='15s'")

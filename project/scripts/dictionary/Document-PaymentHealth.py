@@ -16,7 +16,7 @@ views=[x['name'] for x in json.loads((out/'production-sql-definitions.json').rea
 cfg=json.loads((DATABASE_REPO_ROOT / 'database/environments.json').read_text(encoding='utf8'));captures={}
 for env in ('production','development'):
  t=cfg[env];expected='loan_manager_prod' if env=='production' else 'loan_manager_dev'
- assert (t['instance'],t['host'],t['database'])==('appsheet-pg-prod-20260914','34.21.174.215',expected)
+ assert (t['instance'],t['host'],t['database'])==('mw-credit-pg-20261017','136.85.127.134',expected)
  with psycopg.connect(host=t['host'],dbname=expected,user=t['user'],password=Path(t['passwordFile']).read_text().strip(),sslmode='require',row_factory=dict_row,options='-c default_transaction_read_only=on') as c:
   assert c.execute('select current_database() db').fetchone()['db']==expected
   sections={}

@@ -14,7 +14,7 @@ p.add_argument('--restore-database',default='mw_agent_restore_r015');a=p.parse_a
 if not __import__('re').fullmatch(r'mw_agent_restore_[a-z0-9_]+',a.restore_database):raise RuntimeError('Unsafe restore name')
 e=json.loads(Path(a.environments).read_text())['production'];lab=json.loads(Path(a.lab).read_text(encoding='utf-8-sig'))
 # Identity by instance name only; the private directory is whatever the operator passes (AGT-QUALITY-03).
-if e['instance']!='appsheet-pg-prod-20260914':raise RuntimeError('Wrong source')
+if e['instance']!='mw-credit-pg-20261017':raise RuntimeError('Wrong source')
 if lab['host']!='127.0.0.1' or lab['port']==5432:raise RuntimeError('Wrong restore server')
 base=dict(host=lab['host'],port=lab['port'],user='postgres',autocommit=True)
 with psycopg.connect(**base,dbname='postgres') as c:

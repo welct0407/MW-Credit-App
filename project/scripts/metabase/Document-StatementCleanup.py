@@ -29,7 +29,7 @@ patch('systems/metabase/models/daily-cash-snapshots.yaml',[add('/content/fields/
 def new(file,system,kind,name,content,scope='production'):
  path=root/file
  if path.exists():raise ValueError('Do not overwrite existing object '+file)
- doc={'format':1,'identity':{'system':system,'component':'reports.mw-credit.com' if system=='metabase' else 'appsheet-pg-prod-20260914','kind':kind,'name':name,'scope':scope},'verification':{'status':'documented','source':evidence},'content':content}
+ doc={'format':1,'identity':{'system':system,'component':'reports.mw-credit.com' if system=='metabase' else 'mw-credit-pg-20261017','kind':kind,'name':name,'scope':scope},'verification':{'status':'documented','source':evidence},'content':content}
  path.parent.mkdir(parents=True,exist_ok=True);atomic_write(path,dump(doc))
 m=models['income-events']
 new('systems/metabase/models/income-events.yaml','metabase','model','Income Events',{'fields':{'Model grain':{'ID':186,'Definition':m['grain'],'Type / source':m['database_view']},**{c['name']:{'ID':186,'Type / source':c['base_type'],'Semantic / relationship':c.get('semantic_type'),'Definition':c['description']} for c in m['columns']}},'query_source':'scripts/metabase/models/income-events.sql'})

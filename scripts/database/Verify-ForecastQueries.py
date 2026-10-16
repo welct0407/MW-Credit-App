@@ -6,7 +6,7 @@ import psycopg
 r=Path(__file__).resolve().parents[2];out=r/'outputs/r045-forecast-planning';priv=Path.home()/'Documents/ChatGPT/AppSheet-Loan-Project/r045-forecast-planning'
 p=argparse.ArgumentParser();p.add_argument('--environment',choices=['development','production'],default='development');args=p.parse_args()
 t=json.loads((r/'database/environments.json').read_text())[args.environment];expected='loan_manager_dev' if args.environment=='development' else 'loan_manager_prod'
-assert (t['instance'],t['host'],t['database'])==('appsheet-pg-prod-20260914','34.21.174.215',expected)
+assert (t['instance'],t['host'],t['database'])==('mw-credit-pg-20261017','136.85.127.134',expected)
 specs=json.loads((out/'plan.json').read_text())['specs'];checks=[]
 cases=[{},dict(ci=80,cp=75,rr=25,scenario='Planning',target=100000),dict(ci=60,cp=50,rr=0,scenario='Stress',kind='Daily Interest',lending=0,expenses=0,withdrawals=0,inflows=0,reserve=0)]
 def compile(q,params):
