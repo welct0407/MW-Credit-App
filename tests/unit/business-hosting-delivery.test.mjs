@@ -5,7 +5,7 @@ import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {spawnSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
-import {executeBusinessHosting,appOnlyHostingPlan,verifyAppOnlyOperator,validateFrontendSource,validateFrontendCi,frontendOnlyHostingPlan,verifyFrontendOnlyLivePackage,validateSettingsSource,settingsHostingPlan,verifySettingsLivePackage,runtimeHostingPlan,validateRuntimeSource,validateRuntimeCi,verifyRuntimeLivePackage} from '../../scripts/promotion/deploy-business-hosting.mjs';
+import {executeBusinessHosting,appOnlyHostingPlan,verifyAppOnlyOperator,validateFrontendSource,validateFrontendCi,frontendOnlyHostingPlan,verifyFrontendOnlyLivePackage,validateSettingsSource,settingsHostingPlan,verifySettingsLivePackage,runtimeHostingPlan,validateRuntimeSource,validateRuntimeCi,verifyRuntimeLivePackage,waveHostingPlan,validateWaveSource,validateWaveCi,verifyWaveLivePackage} from '../../scripts/promotion/deploy-business-hosting.mjs';
 const site='mw-credit-prod-737787224638',version=`sites/${site}/versions/abc123`,release=`sites/${site}/releases/xyz123`;
 const plan=()=>({site,files:{'/index.html':'a'.repeat(64)},contents:new Map([['a'.repeat(64),Buffer.from('compressed')]]),headers:[],sourceCommit:'b'.repeat(40),publicVersion:'marker'});
 function transport({target=version,hash='a'.repeat(64),upload='https://upload-firebasehosting.googleapis.com/upload/'+version+'/files',failFinalize=false}={}){const calls=[];return {calls,request:async(url,method,body)=>{calls.push({url,method,body});if(url.endsWith('/versions'))return {name:target};if(url.endsWith(':populateFiles'))return {uploadRequiredHashes:[hash],uploadUrl:upload};if(method==='PATCH'){if(failFinalize)throw Error('Finalize failed');return {name:version,status:'FINALIZED'};}if(url.includes('/releases?'))return {name:release,version:{name:version}};return {};}};}
@@ -203,4 +203,62 @@ test('R063 live verification re-reads CI and requires caller subjects on both wo
  await verifyRuntimeLivePackage(m,{token:'t',request:make(),readGithub,git});
  await assert.rejects(verifyRuntimeLivePackage(m,{token:'t',request:make(false),readGithub,git}),/caller subjects/);
  await assert.rejects(verifyRuntimeLivePackage(m,{token:'t',request:make(),readGithub:args=>{const r=readGithub(args);return args[1].includes('/jobs')?{jobs:r.jobs.filter(j=>j.name!=='terraform')}:r;},git}),/terraform/);
+});
+
+// R064: one image on all four services after the separately applied V93; image-only plan.
+const waveBaseline='37f62121e9b04a163ebfa014e3240841b46d9a96',waveMigration='database/migrations/V93__review_wave4_hygiene.sql';
+function waveGit({source,tool=source,changed={},delivery='',dirty='',untracked='',migration=waveMigration}={}){
+ return (_root,args)=>{
+  if(args[0]==='rev-parse')return args[1]==='HEAD'?tool:args[1];
+  if(args[0]==='merge-base')return args[1];
+  if(args[0]==='ls-files')return untracked;
+  if(args[0]==='diff'){
+   if(args[2]===waveBaseline&&args[3]===source)return migration;
+   if(args[2]===source&&args[3]===tool&&!args.includes('--'))return delivery;
+   if(args[3]===source)return changed[args[2]]??'';
+   return dirty;
+  }
+  throw Error('Unexpected synthetic Git command '+args);
+ };
+}
+async function wavePackage(t){
+ const p=await runtimePackage(t),m=p.m;
+ Object.assign(m,{schemaVersion:6,release:'R064',sourceBaseline:waveBaseline,sql:{baselineVersion:93,targetVersion:93,migrations:[],verified:{database:'loan_manager_prod',latestVersion:'93',allSuccessful:true,verifiedAt:'2026-10-16T15:40:00Z'}}});
+ m.plan.actions=['read.image','command.image','notify.image','jobs.image'];m.applied.sqlVersion=93;
+ return p;
+}
+test('R064 package validates and rejects plan, SQL, CI, readback and artifact tampering',async t=>{
+ const {m,source,tool}=await wavePackage(t),git=waveGit({source,tool});
+ const plan=await waveHostingPlan(m,{git});assert.equal(plan.site,site);assert.equal(plan.rollback.hostingRelease,m.rollback.hostingRelease);
+ assert.ok(plan.headers.some(rule=>rule.glob==='**'&&/frame-ancestors 'none'/.test(rule.headers['Content-Security-Policy'])&&rule.headers['X-Frame-Options']==='DENY'));
+ for(const [mutate,pattern] of [[x=>x.plan.counts.change=5,/four-image plan/],[x=>x.plan.actions.push('notify.callerSubjects'),/four-image plan/],[x=>x.sql.targetVersion=94,/V93/],[x=>x.sql.migrations=[{name:'V94__x.sql'}],/V93/],[x=>x.sql.verified.latestVersion='92',/V93/],[x=>x.sql.verified.allSuccessful=false,/V93/],[x=>delete x.sql.verified.verifiedAt,/V93/],[x=>x.applied.sqlVersion=92,/applied source/],[x=>x.applicationCi.full.jobs.splice(1,1),/missing executed e2e/],[x=>x.applicationCi.database.run.conclusion='failure',/database CI/],[x=>x.applied.services.read.revision=x.rollback.services.read.revision,/readback/],[x=>x.applied.services.jobs.image=x.rollback.services.jobs.image,/readback/],[x=>x.build.sourceCommit='4'.repeat(40),/provenance/],[x=>x.target.database='loan_manager_dev',/target/],[x=>x.frontend.files[0].sha256='d'.repeat(64),/artifact/],[x=>x.release='R063',/package kind/],[x=>x.schemaVersion=5,/package kind/]]){const candidate=structuredClone(m);mutate(candidate);await assert.rejects(waveHostingPlan(candidate,{git}),pattern);}
+ const prepared={...structuredClone(m),status:'prepared'};await assert.rejects(waveHostingPlan(prepared,{git}),/apply\/readback/);assert.equal((await waveHostingPlan(prepared,{git,requireApplied:false})).site,site);
+ await assert.rejects(runtimeHostingPlan(m,{git}),/package kind/);
+});
+test('R064 source carries only V93; CI must be an equivalent ancestor or the delivery-only tool commit',async t=>{
+ const {m,source,tool,ci}=await wavePackage(t);
+ assert.doesNotThrow(()=>validateWaveSource(m,waveGit({source,tool,delivery:'scripts/promotion/deploy-business-hosting.mjs\ntests/unit/business-hosting-delivery.test.mjs'})));
+ assert.throws(()=>validateWaveSource(m,waveGit({source,tool,delivery:'apps/pwa/src/offline-sync.ts'})),/delivery correction/);
+ for(const migration of ['','database/migrations/V93__review_wave4_hygiene.sql\ndatabase/migrations/V94__x.sql','database/migrations/V94__x.sql'])assert.throws(()=>validateWaveSource(m,waveGit({source,tool,migration})),/V93/);
+ assert.throws(()=>validateWaveSource(m,waveGit({source,tool,dirty:'services/business/borrowers.mjs'})),/working input/);
+ assert.throws(()=>validateWaveSource(m,waveGit({source,tool,untracked:'services/new.mjs'})),/untracked/);
+ assert.throws(()=>validateWaveSource({...m,sourceBaseline:runtimeBaseline},waveGit({source,tool})),/baseline/);
+ assert.deepEqual(Object.keys(validateWaveCi(m.applicationCi,m,waveGit({source,tool}))),['full','check','database']);
+ assert.throws(()=>validateWaveCi(m.applicationCi,m,waveGit({source,tool,changed:{[ci]:'services/payment-command/store.mjs'}})),/not input-equivalent/);
+ const atTool=structuredClone(m.applicationCi);for(const kind of ['full','check'])atTool[kind].run.head_sha=tool;
+ assert.deepEqual(validateWaveCi(atTool,m,waveGit({source,tool,delivery:'scripts/promotion/deploy-business-hosting.mjs\ntests/unit/business-hosting-delivery.test.mjs',changed:{[tool]:'scripts/promotion/deploy-business-hosting.mjs'}})).full.headSha,tool);
+ assert.throws(()=>validateWaveCi(atTool,m,waveGit({source,tool,delivery:'apps/pwa/src/offline-sync.ts',changed:{[tool]:'apps/pwa/src/offline-sync.ts'}})),/not input-equivalent/);
+ const later=structuredClone(m.applicationCi);later.check.run.head_sha='5'.repeat(40);
+ assert.throws(()=>validateWaveCi(later,m,waveGit({source,tool,changed:{['5'.repeat(40)]:'apps/pwa/src/live-main.tsx'}})),/not input-equivalent/);
+});
+test('R064 live verification re-reads CI and keeps the worker caller subjects',async t=>{
+ const {m,source,tool,image}=await wavePackage(t),git=waveGit({source,tool});
+ const project='clever-oasis-508610-n7';
+ const service=(role,subjects=true)=>({name:`projects/${project}/locations/asia-southeast1/services/mw-credit-app-${role}-prod`,latestReadyRevision:'x/'+m.applied.services[role].revision,terminalCondition:{state:'CONDITION_SUCCEEDED'},trafficStatuses:[{percent:100,revision:m.applied.services[role].revision}],template:{serviceAccount:`mw-credit-app-${role}-prod@${project}.iam.gserviceaccount.com`,containers:[{image,env:[{name:'DB_NAME',value:'loan_manager_prod'},{name:'INSTANCE_CONNECTION_NAME',value:m.target.connectionName},{name:'DB_USER',value:`mw-credit-app-${role}-prod@${project}.iam`},...(role==='command'?[{name:'PWA_NOTIFICATIONS',value:'enabled'}]:[]),...(subjects&&['notify','jobs'].includes(role)?[{name:'WORKER_CALLER_SUBJECTS_JSON',value:JSON.stringify({'a@b':'114454898477847610024'})}]:[])]}]}});
+ const make=(subjects=true,digest='e')=>async url=>({ok:true,json:async()=>url.includes('cloudbuild')?{status:'SUCCESS',results:{images:[{name:`asia-southeast1-docker.pkg.dev/${project}/mw-credit-app-prod/api:build-1`,digest:'sha256:'+digest.repeat(64)}]},source:{storageSource:m.build.storageSource}}:service(url.split('/services/mw-credit-app-')[1].replace('-prod',''),subjects)});
+ const readGithub=args=>{const id=Number(args[1].split('/runs/')[1].split('/')[0]),kind={11:'full',12:'check',13:'database'}[id],r=m.applicationCi[kind];return args[1].includes('/jobs')?{jobs:r.jobs}:r.run;};
+ await verifyWaveLivePackage(m,{token:'t',request:make(),readGithub,git});
+ await assert.rejects(verifyWaveLivePackage(m,{token:'t',request:make(false),readGithub,git}),/caller subjects/);
+ await assert.rejects(verifyWaveLivePackage(m,{token:'t',request:make(true,'f'),readGithub,git}),/build digest/);
+ await assert.rejects(verifyWaveLivePackage(m,{token:'t',request:make(),readGithub:args=>{const r=readGithub(args);return args[1].includes('/jobs')?{jobs:r.jobs.filter(j=>j.name!=='terraform')}:r;},git}),/terraform/);
 });
