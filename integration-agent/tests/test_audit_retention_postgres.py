@@ -9,6 +9,7 @@ triggers still block direct deletes by other roles. The last test runs agent-db-
 audit-retention --purge-function end to end as an IAM-shaped login. Everything created is dropped.
 """
 import contextlib
+import gzip
 import importlib.util
 import io
 import json
@@ -381,6 +382,57 @@ class RetentionPurgeTests(unittest.TestCase):
             with psycopg.connect(**self.admin) as admin:
                 self.assertEqual(admin.execute('SELECT count(*) FROM audit.operations WHERE operation_id=ANY(%s)', (later,)).fetchone()[0], 2)
                 self.assertTrue(triggers_enabled(admin))
+
+    def test_rewrite_keeps_every_unplanned_row_and_drops_only_archived_ones(self):
+        """--rewrite (write freeze): refused while another client is connected; otherwise one transaction leaves exactly
+        the rows outside the verified export, unchanged, with the append-only triggers enabled again."""
+        script = load('agent_db_maintenance_rewrite', AGENT / 'scripts' / 'agent-db-maintenance.py')
+        keys = {'audit.operations': 'operation_id', 'audit.events': 'event_id', 'runtime.operation_state': 'operation_id',
+                'runtime.job_runs': 'run_id'}
+
+        def survivors(conn, archived, skip=()):
+            """md5 of every row outside the archive (and outside skip), per table."""
+            return {t: conn.execute(sql.SQL('SELECT count(*), md5(coalesce(string_agg(x::text, {s} ORDER BY x::text), {s})) FROM {t} x '
+                                            'WHERE NOT (x.{k} = ANY(%s::uuid[])) AND NOT (x.operation_id = ANY(%s::uuid[]))').format(
+                        s=sql.Literal('|'), t=sql.Identifier(*t.split('.')), k=sql.Identifier(k)), (archived[t], list(skip))).fetchone()
+                    for t, k in keys.items()}
+
+        with psycopg.connect(**self.admin) as admin:
+            roots = self.eligible_trees(admin)
+            protected, _ = self.protected_trees(admin)
+        with tempfile.TemporaryDirectory(prefix='mw-retention-rewrite-') as directory, contextlib.redirect_stdout(io.StringIO()):
+            private = Path(directory)
+            (private / 'work').mkdir(mode=0o700)
+            (private / 'connection.json').write_text(json.dumps({k: v for k, v in self.admin.items() if k != 'autocommit'}))
+            base = ['audit-retention', '--connection-file', str(private / 'connection.json'), '--expect-environment', 'test',
+                    '--archive', 'local:' + str(private / 'archive'), '--work-directory', str(private / 'work'), '--actor', 'lab']
+            script.main(base + ['--export', '--output', str(private / 'export.json')])
+            exported = json.loads((private / 'export.json').read_text())
+            run_dir = Path(exported['local_directory'])
+            archived = {t: [json.loads(line)[k] for line in gzip.open(run_dir / f'{t}.jsonl.gz', 'rt')] for t, k in keys.items()}
+            with self.assertRaises(SystemExit):  # --rewrite only resumes a verified export
+                script.main(base + ['--apply', '--rewrite'])
+            with psycopg.connect(**self.admin) as other:  # an agent writer still connected
+                before = counts(other)
+                kept_before = survivors(other, archived)
+                with self.assertRaisesRegex(SystemExit, 'every writer stopped'):
+                    script.main(base + ['--apply', '--rewrite', '--resume-run', str(run_dir)])
+                self.assertEqual(counts(other), before)
+            script.main(base + ['--apply', '--rewrite', '--resume-run', str(run_dir), '--output', str(private / 'rewrite.json')])
+            report = json.loads((private / 'rewrite.json').read_text())
+        self.assertEqual((report['mode'], report['applied']), ('rewrite', True))
+        self.assertEqual(report['deleted'], exported['rows'])
+        with psycopg.connect(**self.admin) as admin:
+            self.assertTrue(triggers_enabled(admin))
+            self.assertEqual(admin.execute('SELECT count(*) FROM audit.operations WHERE operation_id=ANY(%s)', (roots,)).fetchone()[0], 0)
+            self.assertEqual(admin.execute('SELECT count(*) FROM audit.operations WHERE operation_id=ANY(%s)', (list(protected.values()),)).fetchone()[0],
+                             len(protected))
+            self.assertEqual(sum(admin.execute(sql.SQL('SELECT count(*) FROM {} WHERE {} = ANY(%s::uuid[])').format(
+                sql.Identifier(*t.split('.')), sql.Identifier(k)), (archived[t],)).fetchone()[0] for t, k in keys.items()), 0)
+            # Every kept row is unchanged; the only new rows are the run's own CONFIG record.
+            self.assertEqual(survivors(admin, archived, [report['record_operation']]), kept_before)
+            with self.assertRaisesRegex(errors.RaiseException, 'Append-only audit'):
+                admin.execute('DELETE FROM audit.events WHERE false')
 
 
 @unittest.skipUnless(os.environ.get('MW_AGENT_FRESH_PG_DSN'), 'empty disposable PostgreSQL server required')

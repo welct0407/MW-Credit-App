@@ -410,6 +410,8 @@ def audit_retention(conn, args):
         report.update(resumed_run=str(run_id), archive_check_seconds=round(time.monotonic() - began, 2), run_id=str(run_id),
                       local_directory=str(directory), manifest_sha256=hashlib.sha256(data).hexdigest(),
                       manifest_object=f'{ARCHIVE_PREFIX}{resume["created_at"][:7]}/{run_id}/manifest.json')
+        if args.rewrite:
+            return rewrite_and_record(conn, args, report, run_id, script_sha256)
         return delete_and_record(conn, args, report, cutoff, run_id, script_sha256, directory)
     if not (args.export or args.apply) or not report['eligible_roots']:
         report['applied'] = False
@@ -447,6 +449,69 @@ def audit_retention(conn, args):
         report['applied'] = False
         return report
     return delete_and_record(conn, args, report, cutoff, run_id, script_sha256, directory)
+
+
+TRIGGERS = (('audit.operations', 'operations_append_only'), ('audit.events', 'events_append_only'))
+# INSERT order for the rewrite: parents before children (operation_state also references audit.events).
+REWRITE_ORDER = ('audit.operations', 'audit.events', 'runtime.operation_state', 'runtime.job_runs')
+REWRITE_KEYS = {'audit.operations': ('operation_id', 'rt_tree'), 'audit.events': ('event_id', 'rt_events'),
+                'runtime.operation_state': ('operation_id', 'rt_tree'), 'runtime.job_runs': ('run_id', 'rt_runs')}
+
+
+def rewrite_and_record(conn, args, report, run_id, script_sha256):
+    """--rewrite: with every agent writer stopped (the SSD move's write freeze), keep the rows that are NOT
+    planned for deletion, TRUNCATE the four tables and insert the kept rows back, in one transaction. The rows
+    dropped are exactly the planned, archive-verified ones of the batch path; the tables get fresh files, so no
+    VACUUM FULL is needed. Refuses while any other client is connected to mw_agent; any failure rolls back all."""
+    # As the login (postgres holds pg_read_all_stats): the owner role cannot see other users' backend_type.
+    # A row it cannot classify counts as a client, so an unreadable session refuses rather than passes.
+    conn.execute('RESET ROLE')
+    others = conn.execute('''SELECT count(*) FROM pg_stat_activity WHERE datname=current_database()
+        AND pid<>pg_backend_pid() AND backend_type IS DISTINCT FROM 'autovacuum worker' ''').fetchone()[0]
+    conn.execute('SET ROLE mw_agent_owner')
+    if others:
+        raise SystemExit(f'--rewrite needs every writer stopped: {others} other client session(s) on mw_agent')
+    began = time.monotonic()
+    tables = sql.SQL(', ').join(sql.Identifier(*t.split('.')) for t in REWRITE_ORDER)
+    before, kept = {}, {}
+    with conn.transaction():
+        conn.execute("SET LOCAL lock_timeout='5s'")
+        conn.execute(sql.SQL('LOCK TABLE {} IN ACCESS EXCLUSIVE MODE').format(tables))
+        for table in REWRITE_ORDER:
+            schema, name = table.split('.')
+            column, keyset = REWRITE_KEYS[table]
+            keep = 'keep_' + name
+            before[table] = conn.execute(sql.SQL('SELECT count(*) FROM {}').format(sql.Identifier(schema, name))).fetchone()[0]
+            conn.execute(sql.SQL('CREATE TEMP TABLE {k} ON COMMIT DROP AS SELECT * FROM {t} x '
+                                 'WHERE NOT EXISTS (SELECT 1 FROM pg_temp.{s} p WHERE p.{c}=x.{c})').format(
+                k=sql.Identifier(keep), t=sql.Identifier(schema, name), s=sql.Identifier(keyset), c=sql.Identifier(column)))
+            kept[table] = conn.execute(sql.SQL('SELECT count(*) FROM pg_temp.{}').format(sql.Identifier(keep))).fetchone()[0]
+            if before[table] - kept[table] != report['rows'][table]:
+                raise SystemExit(f'{table}: {before[table]} rows - {kept[table]} kept != {report["rows"][table]} planned')
+        for table, trigger in TRIGGERS:
+            conn.execute(sql.SQL('ALTER TABLE {} DISABLE TRIGGER {}').format(sql.Identifier(*table.split('.')), sql.Identifier(trigger)))
+        conn.execute(sql.SQL('TRUNCATE {}').format(tables))
+        for table in REWRITE_ORDER:
+            schema, name = table.split('.')
+            conn.execute(sql.SQL('INSERT INTO {} SELECT * FROM pg_temp.{}').format(
+                sql.Identifier(schema, name), sql.Identifier('keep_' + name)))
+        for table, trigger in TRIGGERS:
+            conn.execute(sql.SQL('ALTER TABLE {} ENABLE TRIGGER {}').format(sql.Identifier(*table.split('.')), sql.Identifier(trigger)))
+        for table in REWRITE_ORDER:
+            after = conn.execute(sql.SQL('SELECT count(*) FROM {}').format(sql.Identifier(*table.split('.')))).fetchone()[0]
+            if after != kept[table]:
+                raise SystemExit(f'{table}: {after} rows after the rewrite != {kept[table]} kept')
+    deleted = {t: before[t] - kept[t] for t in DELETE_ORDER}
+    report.update(applied=True, mode='rewrite', deleted=deleted, kept=kept, rewrite_seconds=round(time.monotonic() - began, 2))
+    report['record_operation'] = record(conn, args, run_id, {
+        'run_id': str(run_id), 'cutoff': report['cutoff'], 'deleted': deleted, 'manifest_object': report['manifest_object'],
+        'manifest_sha256': report['manifest_sha256'], 'script_sha256': script_sha256, 'mode': 'rewrite'})
+    began = time.monotonic()
+    for table in REWRITE_ORDER:
+        conn.execute(sql.SQL('VACUUM (ANALYZE) {}').format(sql.Identifier(*table.split('.'))))
+    report['vacuum_seconds'] = round(time.monotonic() - began, 2)
+    report['database_bytes_after'] = database_bytes(conn)
+    return report
 
 
 def delete_and_record(conn, args, report, cutoff, run_id, script_sha256, directory):
@@ -502,7 +567,12 @@ def main(argv=None):
                    'replan with that export\'s cutoff, prove every planned row is in it, then delete without exporting again')
     r.add_argument('--purge-function', action='store_true',
                    help='SET ROLE mw_agent_retention and delete through audit.purge_routine_trees() (V5) instead of as the owner')
+    r.add_argument('--rewrite', action='store_true',
+                   help='with --resume-run and every agent writer stopped: keep the unplanned rows, TRUNCATE and reinsert '
+                   'them in one transaction (no batches, no VACUUM FULL); refuses while other clients are connected')
     args = p.parse_args(argv)
+    if args.rewrite and (args.command != 'audit-retention' or not args.resume_run or args.purge_function):
+        p.error('--rewrite needs audit-retention --resume-run as the owner (not --purge-function)')
     if args.batch is None:
         args.batch = 50 if args.command == 'null-archived-images' else 2000
     if args.purge_function and (args.command != 'audit-retention' or args.batch > 2000):

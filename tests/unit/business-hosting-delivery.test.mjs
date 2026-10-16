@@ -5,7 +5,7 @@ import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {spawnSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
-import {executeBusinessHosting,appOnlyHostingPlan,verifyAppOnlyOperator,validateFrontendSource,validateFrontendCi,frontendOnlyHostingPlan,verifyFrontendOnlyLivePackage,validateSettingsSource,settingsHostingPlan,verifySettingsLivePackage,runtimeHostingPlan,validateRuntimeSource,validateRuntimeCi,verifyRuntimeLivePackage,waveHostingPlan,validateWaveSource,validateWaveCi,verifyWaveLivePackage,r065HostingPlan,validateR065Source,verifyR065LivePackage} from '../../scripts/promotion/deploy-business-hosting.mjs';
+import {executeBusinessHosting,appOnlyHostingPlan,verifyAppOnlyOperator,validateFrontendSource,validateFrontendCi,frontendOnlyHostingPlan,verifyFrontendOnlyLivePackage,validateSettingsSource,settingsHostingPlan,verifySettingsLivePackage,runtimeHostingPlan,validateRuntimeSource,validateRuntimeCi,verifyRuntimeLivePackage,waveHostingPlan,validateWaveSource,validateWaveCi,verifyWaveLivePackage,r065HostingPlan,validateR065Source,verifyR065LivePackage,hostingOnlyPlan,validateHostingOnlySource,verifyHostingOnlyLivePackage} from '../../scripts/promotion/deploy-business-hosting.mjs';
 const site='mw-credit-prod-737787224638',version=`sites/${site}/versions/abc123`,release=`sites/${site}/releases/xyz123`;
 const plan=()=>({site,files:{'/index.html':'a'.repeat(64)},contents:new Map([['a'.repeat(64),Buffer.from('compressed')]]),headers:[],sourceCommit:'b'.repeat(40),publicVersion:'marker'});
 function transport({target=version,hash='a'.repeat(64),upload='https://upload-firebasehosting.googleapis.com/upload/'+version+'/files',failFinalize=false}={}){const calls=[];return {calls,request:async(url,method,body)=>{calls.push({url,method,body});if(url.endsWith('/versions'))return {name:target};if(url.endsWith(':populateFiles'))return {uploadRequiredHashes:[hash],uploadUrl:upload};if(method==='PATCH'){if(failFinalize)throw Error('Finalize failed');return {name:version,status:'FINALIZED'};}if(url.includes('/releases?'))return {name:release,version:{name:version}};return {};}};}
@@ -295,4 +295,20 @@ test('R065 live verification re-reads CI and requires the pinned R064 runtime',a
  await verifyR065LivePackage(m,{token:'t',request:make(),readGithub,git});
  await assert.rejects(verifyR065LivePackage(m,{token:'t',request:make('jobs'),readGithub,git}),/live runtime differs/);
  await assert.rejects(verifyR065LivePackage(m,{token:'t',request:make(),readGithub:args=>{const r=readGithub(args);return args[1].includes('/jobs')?{jobs:r.jobs.filter(j=>j.name!=='terraform')}:r;},git}),/terraform/);
+});
+
+// R066: the same Hosting-only shape; source descends from R065, runtime still compared with R064.
+const r065Release='74ad26b57dcfb9effea86d638b7d112cffe042c5';
+test('R066 Hosting-only package descends from R065 and keeps the R064 runtime',async t=>{
+ const {m,source,tool}=await r065Package(t),git=waveGit({source,tool});
+ Object.assign(m,{schemaVersion:8,release:'R066',sourceBaseline:r065Release});
+ assert.equal((await hostingOnlyPlan(m,{git})).site,site);
+ for(const [mutate,pattern] of [[x=>{x.sourceBaseline=r064Release},/exact R066 source\/baseline/],[x=>{x.schemaVersion=7},/wrong R066 package kind/],[x=>{x.release='R067'},/package kind/],[x=>{x.activation={}},/R066 package must not apply/],[x=>{x.runtime.services.read.image='bad'},/R066 unchanged runtime pins/]]){const candidate=structuredClone(m);mutate(candidate);await assert.rejects(hostingOnlyPlan(candidate,{git}),pattern);}
+ await assert.rejects(hostingOnlyPlan(m,{git:waveGit({source,tool,changed:{[r064Release]:'services/business/offline-dataset-chunks.mjs'}})}),/R066 must not change the R064 runtime/);
+ assert.throws(()=>validateHostingOnlySource(m,waveGit({source,tool,delivery:'apps/pwa/src/live-main.tsx'})),/R066 unverified delivery/);
+ await assert.rejects(r065HostingPlan(m,{git}),/wrong R065 package kind/);
+ const make=drift=>async url=>{const role=url.split('/services/mw-credit-app-')[1].replace('-prod',''),pin=m.runtime.services[role];return {ok:true,json:async()=>({latestReadyRevision:'x/'+(drift===role?'other':pin.revision),terminalCondition:{state:'CONDITION_SUCCEEDED'},template:{containers:[{image:pin.image}]}})};};
+ const readGithub=args=>{const id=Number(args[1].split('/runs/')[1].split('/')[0]),kind={11:'full',12:'check',13:'database'}[id],r=m.applicationCi[kind];return args[1].includes('/jobs')?{jobs:r.jobs}:r.run;};
+ await verifyHostingOnlyLivePackage(m,{token:'t',request:make(),readGithub,git});
+ await assert.rejects(verifyHostingOnlyLivePackage(m,{token:'t',request:make('command'),readGithub,git}),/R066 live runtime differs/);
 });

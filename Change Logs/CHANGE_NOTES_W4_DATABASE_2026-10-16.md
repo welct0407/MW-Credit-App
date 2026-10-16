@@ -128,7 +128,7 @@ The PROD runtime (image `8611c23d…`) and Hosting (`2b6c25c065f1a45a`) followed
 - Fix: agent V5 now gates `audit.reject_rewrite()` itself. A DELETE passes only for `mw_agent_owner` with the transaction-local `mw_agent.retention_purge` flag; UPDATE and TRUNCATE are always refused. The purge (script owner path and `audit.purge_routine_trees`) sets the flag instead of disabling triggers, so it holds row locks only. Trees go oldest first. V5 adopts the script's `maint_*` foreign-key indexes by rename when they are valid. Tests cover the gate, an agent insert during an open purge batch, and the index adoption.
 - Agent V5 applied to PROD `mw_agent` at 17:47Z (13 s, from `57cefef`, `lock_timeout` 5 s). Role `mw_agent_retention` was created first as `postgres` with the bootstrap statement. Both valid `maint_*` indexes were renamed, not rebuilt; the triggers stay enabled. The agent IAM user holds `mw_agent_retention` (INHERIT FALSE, SET TRUE).
 - Trial resume with the gate, at the owner's direction ("try purge now if the fix could make it faster; if still slow, stop it for SSD"), 17:47 to 17:58Z. Plan and archive check took 8.5 minutes. Deletes ran 2 minutes: 902 operations at about 6.5 per second, so the remaining ~670k would need about 29 hours on HDD. There were 0 agent lock timeouts, deadlocks or failed units. Stopped; the open batch rolled back, and no session or lock remains.
-- Paused for the SSD move: resume from the same export (`--resume-run …424cf0f8…`, no re-export), then `VACUUM FULL`.
+- Paused for the SSD move. Owner, 17 October about 01:15 Bangkok: add the purge to the move's write freeze. The new `--rewrite` mode (with `--resume-run …424cf0f8…`, no re-export) runs on the new instance before unfreeze. With no other client on `mw_agent` (otherwise it refuses), in one transaction it keeps every row outside the plan, TRUNCATEs the four tables and inserts the kept rows back, then checks the counts. Dropped rows are exactly the planned, archive-verified ones; the tables get fresh files, so no `VACUUM FULL` is needed. Timed first on the rehearsal restore. Fallback: the online batch resume, then `VACUUM FULL`.
 - Image nulling has 0 eligible rows.
 - Pending: the agent deploy, the resumed purge and enabling the daily timer. The create-only bucket binding `agent_audit_archive_create` is applied (15:58:47Z, targeted apply, 1 added).
 
@@ -154,7 +154,7 @@ Patch 15:42:54 to 15:49:21Z: tier `db-g1-small`, IAM flag, `max_connections` 50,
 
 ## Remaining work
 
-- After the SSD move: the resumed purge from export `424cf0f8…` (record its counts above), `VACUUM FULL`, the agent deploy, then enable the daily timer.
+- In the SSD move freeze: `--rewrite` from export `424cf0f8…` (record its counts above); afterwards the agent deploy, then enable the daily timer.
 - `scripts/backup-agent-database.py` hard-codes Windows binaries and a fixed dump name; add platform binaries and `--dump-name` before it is reused on Linux.
 - Contract migration for the `pwa_job_runs` lease columns (DB-LOCK-02).
 - Move the SQL bodies to `pwa_lock_key_v1` in the next migration that touches `pwa_submit_operation_v2` for a functional reason (needs journal-owner authority).
