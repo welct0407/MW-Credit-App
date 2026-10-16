@@ -48,7 +48,7 @@ resource "google_sql_database_instance" "shared" {
     pricing_plan                     = "PER_USE"
     replication_lag_max_seconds      = 31536000
     retain_backups_on_delete         = true
-    tier                             = "db-f1-micro"
+    tier                             = "db-g1-small"
     time_zone                        = null
     user_labels                      = {}
     backup_configuration {
@@ -71,12 +71,21 @@ resource "google_sql_database_instance" "shared" {
       value = "on"
     }
     # R064 W4 DB-PERF-03: pg_cron flags removed (V40 dropped the extension);
-    # 50 connections fit db-f1-micro memory (observed peak since AppSheet
-    # retirement is 13). pg_stat_statements needs no flag: Cloud SQL already
-    # preloads it and has no shared_preload_libraries flag (DB-PERF-04).
+    # max_connections stays 200 (owner, 16 October 2026). pg_stat_statements
+    # needs no flag: Cloud SQL already preloads it and has no
+    # shared_preload_libraries flag (DB-PERF-04).
     database_flags {
       name  = "max_connections"
-      value = "50"
+      value = "200"
+    }
+    # R064 sync fix: db-g1-small and Query Insights (owner, 16 October 2026).
+    # SSD needs a new instance; HDD cannot be changed in place.
+    insights_config {
+      query_insights_enabled  = true
+      query_string_length     = 1024
+      record_application_tags = false
+      record_client_address   = false
+      query_plans_per_minute  = 5
     }
     final_backup_config {
       enabled        = true
