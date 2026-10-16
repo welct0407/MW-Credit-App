@@ -4,8 +4,8 @@
 
 | Item | Current value |
 | --- | --- |
-| New product work | **R063 — Open** |
-| Next unused number | **R064**, only opened when authorized R063 promotion starts |
+| New product work | **R064 — Open** |
+| Next unused number | **R065**, only opened when authorized R064 promotion starts |
 | Current runtime baseline | [Environment inventory](Environment_Inventory.md) |
 
 All new features/fixes use the sole Open release. Freeze only at authorized promotion start, pin the package, then publish the next Open number in the same update. Frozen corrections stay with their release; new features use the successor. Do not reserve a second Open release or reuse a number. Documentation/governance changes do not allocate releases.
@@ -14,7 +14,8 @@ All new features/fixes use the sole Open release. Freeze only at authorized prom
 
 | Release | Status | Remaining action / owning record |
 | --- | --- | --- |
-| R063 | Open | Carries unfinished integration deployment tooling: reload the active webhook receiver and verify readiness before workers resume. Excluded from released R062 settings promotion. Also carries the unpromoted PWA read-retry fix for language switch then immediate navigation; [record](Development_Changes.md#r063-read-retry-after-settled-commands). |
+| R064 | Open | New product work. Carries nothing from R063. |
+| R063 | Frozen 16 October 2026 17:56 Bangkok (10:56 UTC) for PROD promotion on owner instruction "Update checklist and execute next step" (checklist step "move to production") | Pinned source `main` `37f6212b`: PWA (W1, W3, read retry), reader/command/notify/jobs image (business-server runtime, request budget, JIT fix, worker caller-subject pinning) and PROD Hosting headers. No migration (V92). Integration agent already deployed separately; not part of this promotion. [record](Development_Changes.md#r063-production-promotion) |
 | R056 | Frozen; V91 deployed | Lisa enrollment retry/closure; [record](../outputs/r056-apple-push/README.md) |
 | R055 | Frozen; monitoring delivered | Carried credential work unfinished; [record](../outputs/r055-grafana/continuation.md) |
 | R016 | Owner-accepted reporting; administrative follow-up | Migration-key retirement evidence/final tag unresolved; do not reopen product development |
