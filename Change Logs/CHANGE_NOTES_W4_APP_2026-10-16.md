@@ -4,7 +4,7 @@
 
 Wave 4 app work for the independent review, on branch `claude/review-w4-app` from `main` 2b02f94 (head 80c57f4). It covers the Node and PWA side of DB-LOCK-01, DB-LOCK-03 and APP-OFFLINE-03. No schema change in this branch; the shared migration V93 is in the [database note](CHANGE_NOTES_W4_DATABASE_2026-10-16.md). No deployment and no PROD change. The other 21 W4 finding codes are recorded there.
 
-**Deployment dependency.** `services/business/borrowers.mjs` now calls `public.pwa_lock_key_v1`, which V93 creates. Do not deploy this API to an environment before V93 is applied there. The DEV migration is pending and blocked, so this branch is not deployed to DEV yet.
+**Deployment dependency.** `services/business/borrowers.mjs` now calls `public.pwa_lock_key_v1`, which V93 creates. Do not deploy this API to an environment before V93 is applied there. V93 is applied in DEV (16 October 2026), so this branch can now be deployed to DEV; it is not deployed yet.
 
 ## Changes
 
@@ -20,22 +20,24 @@ Results from the working sessions; the orchestrator re-confirms on the final com
 
 | Check | Result |
 | --- | --- |
-| `npm run check` (typecheck, synthetic and live-dev builds, unit tests) | Pass: 514 of 514 tests |
+| `npm run check` (typecheck, synthetic and live-dev builds, unit tests) | Pass: 514 of 514 tests (Agent C later run: 517 of 517) |
 | Playwright `payment-command.spec.ts`, desktop | First run 19 of 20 (the new busy test failed); after the fix the busy test passed 2 of 2 (desktop and mobile) |
 | Playwright `payment-command.spec.ts`, mobile | 20 of 20 |
-| Wider Playwright run | 89 passed |
+| Wider Playwright run | 89 passed (Agent C later run: 129 passed, 1 skipped) |
+| Agent C real-SQL DB-LOCK-01 race, DB-LOCK-03 | Pass |
+| Agent C phase5 | Fixture and stale-503 failures, being fixed on this branch |
 
 ## Not run
 
 | Item | Reason |
 | --- | --- |
-| Deploy to DEV | Needs V93 in DEV first (blocked) |
+| Deploy to DEV | Not yet done; V93 is in DEV, so it is unblocked. phase5 fixture and stale-503 failures from Agent C are being fixed on this branch first |
 | iPhone Pro Max Home Screen check of the busy text in Thai (heading wrap, stable Retry button) | Device check; the layout reuses existing paragraph patterns |
 | Any PROD step | Not authorized |
 
 ## DEV migration record
 
-Not applicable to this branch. The DEV V93 migration is recorded in the database note (pending). After it, deploy the API and Hosting build and run one bounded smoke (borrower create and rename use the new function).
+Not applicable to this branch. The DEV V93 migration is recorded in the database note (done 16 October 2026). Next, deploy the API and Hosting build and run one bounded smoke (borrower create and rename use the new function).
 
 ## Prepared for a later go
 
@@ -49,10 +51,10 @@ Deploy order: V93 in the target database, then the API images, then Hosting. For
 ## Open questions
 
 1. Is a 5-minute foreground delay for other users' changes acceptable, or should focus-return trigger an immediate refresh after a long idle? (Focus and online already refresh immediately.)
-2. May DEV be migrated to V93 so this branch can be deployed? See the database note for the blocker.
+2. Agent C reports phase5 fixture and stale-503 expectation failures; they are fixed on this branch before any deploy.
 
 ## Remaining work
 
-- Deploy and smoke after V93 in DEV, then with the PROD promotion.
+- Deploy and smoke in DEV, then with the PROD promotion.
 - SQL bodies still use the inline lock expression; adopting `pwa_lock_key_v1` there is a later migration.
 - SQL `lower()` and JavaScript `toLowerCase()` can differ for non-ASCII case mappings in the borrower-name key (pre-existing, unchanged).
