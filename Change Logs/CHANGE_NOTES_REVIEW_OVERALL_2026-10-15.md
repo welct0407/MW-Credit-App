@@ -616,7 +616,7 @@ By component: app 39, agent 50, overall 48, db 45, app (ux) 35. Notes: app `Chan
 | W1 | Confirmed bugs, safety and privacy gaps needing no schema or PROD-side change | 20 |
 | W2 | R063 receiver readiness, recovery of the deployed R058 code, deploy-script path fixes | 12 |
 | W3 | Tests, CI, toolchain, architecture and standardization | 93 |
-| W4 | Schema, access, locking, index and performance (new migrations; DEV first; needs owner authorization) | 23 |
+| W4 | Schema, access, locking, index and performance (new migrations; DEV first; needs owner authorization). First item: DB-ACCESS-08 (owner, 16 October 2026) | 24 |
 | W5 | UX improvements | 39 |
 | W6 | Documentation and process cleanup | 30 |
 
@@ -843,6 +843,7 @@ Owner decisions needed before the waves start are listed with Needs = owner deci
 | 215 | ALL-INFRA-05 | overall | S4 | hypothesis (no load observed) | risk | S | none | W3 | PROD API capacity: one instance, five requests, platform timeout shorter than app timeout |
 | 216 | APP-DATE-02 | app | S4 | hypothesis | risk | S | none | W3 | If WebKit rejects it, timestamps render as `—` on iPhone. |
 | 217 | ALL-DOC-12 | overall | S4 | hypothesis | doc | L | owner decision | W6 | Proposed light structure: one current-state page per component, no new process |
+| 218 | DB-ACCESS-08 | db | S3 | confirmed | risk | S | schema change | W4 (first) | `sync_cash_ledger()` (`V23__cash_accounts_and_payment_requests.sql:342`, called by the `zz_cash_source` triggers through `cash_source_changed()`) is not `SECURITY DEFINER`, so every role that inserts or updates Payments, Loans, Business Expenses or Settlements needs DELETE on `"Cash Ledger"` (`:370`). This is why W3 kept that grant for `mw_reviewer_dml` while revoking DELETE on the eight source tables. Fix: make the function `SECURITY DEFINER` owned by a ledger-owner role with the pinned `search_path`, revoke direct `"Cash Ledger"` INSERT/UPDATE/DELETE from `mw_reviewer_dml` and the app roles, and assert it in `Test-AccessMatrix.sql`. Added 16 October 2026 at the owner's request as the first W4 item. |
 
 ## Summary
 
