@@ -20,7 +20,7 @@ Fix the R063 Wave 3 agent findings in code and tests, bring the agent documents 
 - **AGT-STATE-03**: skipped, see Open questions.
 - **AGT-STATE-04** (`state.py`): connection timeouts are 15 s statement, 3 s lock, 30 s idle-in-transaction, set from `state.parameters`.
 - **AGT-SEND-03** (`receipt_api.py`, `review_cycle.py`, `audit.py`; `docs/PARTNER_REVIEW.md`): token fetch failure, HTTP 401 and HTTP 403 are "not sent". The review returns to APPROVED, `payment_id` is cleared, the same `requestId` is reused, the audit operation is FAILED and `detail` is untouched. The linked receipt job's `retry_after` holds the next attempt 15 minutes later, so a persistent 401/403 retries every 15 minutes, not every cycle. Everything later stays UNKNOWN.
-- **AGT-WEBHOOK-03**: stopped, see Open questions. Tunnel Terraform is unchanged.
+- **AGT-WEBHOOK-03**: done with Variant 1 (owner decision, 16 October). `infrastructure/ecosystem-tunnels/owned.tf`: the `hooks.mw-credit.com` ingress rule has `path = "^/instagram$"`. The ops branch first re-pointed the uptime check to `/instagram` (403, `Forbidden`).
 - **AGT-WEBHOOK-05** (`server.py`): a non-numeric length gives 400, a disabled receiver gives 503 per request without a journal write, a non-object body gives 400 after the signature check.
 - **AGT-HOST-01** (`docs/OPERATIONS.md`): log access route recorded; host command prepared below.
 - **AGT-HOST-02**: no change. The Graph refresh-token write path is narrowed when `graph_email.py` is next touched.
@@ -51,7 +51,11 @@ Fix the R063 Wave 3 agent findings in code and tests, bring the agent documents 
 
 ## Live changes applied
 
-None on this branch. The ALL-INFRA-04 restore-to-new-VM rehearsal ran under the ops branch (see the ops note); its procedure and result are recorded in `docs/OPERATIONS.md`.
+| What | Command | Readback |
+| --- | --- | --- |
+| AGT-WEBHOOK-03 tunnel path, Variant 1 (16 October 2026, 08:38:45 UTC / 15:38 Bangkok) | `terraform -chdir=infrastructure/ecosystem-tunnels plan -out=…` then `apply` of that saved plan. The Cloudflare token came from Secret Manager `mw-credit-ops-cloudflare-api-token` into the command environment only and was never printed. | Plan: 0 to add, 1 to change, 0 to destroy. The only change was `config.ingress[0].path` null → `^/instagram$`; `warp-routing` was not touched. Re-plan `-detailed-exitcode` = 0. `https://hooks.mw-credit.com/instagram` 403, `/health` 404, `/ready` 404; `https://charts.mw-credit.com/` 200 (unchanged). The uptime check (now `/instagram`, 403, `Forbidden`) passes from Singapore and Oregon. |
+
+The ALL-INFRA-04 restore-to-new-VM rehearsal ran under the ops branch (see the ops note); its procedure and result are recorded in `docs/OPERATIONS.md`.
 
 ## Prepared for a later go
 
@@ -102,31 +106,24 @@ Host commands run on the VM `mw-integration-agent` through `mw-debian-ssh '<comm
    7. After one clean cycle of every timer, including the 00:15 statement: shred the three unused password files (paths from the backed-up config), and only after a full day with no sessions run `ALTER ROLE ... NOLOGIN` for `mw_agent_worker`, `mw_agent_relay`, `mw_integration_agent` (instance-wide; confirm no other consumer first). Keep an offline copy of the files for a week.
    8. Rollback: restore the config backup and restart the receiver; remove the drop-in, `daemon-reload`, restart the proxy; before step 7 the password roles still log in.
 
-4. **AGT-WEBHOOK-03 tunnel path** (owner picks a variant; Terraform root `infrastructure/ecosystem-tunnels`, `owned.tf`, `hooks.mw-credit.com` entry, `path = null` today). The GCP uptime check `mw-webhook-external-health-ySLl0784KgI` calls `GET /health` and expects 200 and the text `mw-instagram-webhook`.
-   - **Variant 1**: `path = "^/instagram$"`. First re-point the uptime check to `GET /instagram`, status 403, content `Forbidden` (Terraform if ops has imported it, otherwise `gcloud monitoring uptime update mw-webhook-external-health-ySLl0784KgI --project clever-oasis-508610-n7 --path=/instagram --status-codes=403 --matcher-content=Forbidden --matcher-type=contains-string`). Or retire the check with `gcloud monitoring uptime delete` and update `Resource_Monitoring.md` and Grafana card 51. Re-pointing is recommended.
-   - **Variant 2**: `path = "^/(instagram|health)$"`. No monitoring change; `/health` stays public.
-   - Plan and apply: `terraform fmt -check && terraform init -lockfile=readonly && terraform validate`, then `terraform plan -out=...`. Expect 0 add, 1 change, 0 destroy, only `config.ingress[0].path`. Confirm `warp-routing` is not touched. Apply, then read back `/ready` gives 404, `/instagram` gives 403, `/health` gives 404 (variant 1) or 200 (variant 2), and `terraform plan -detailed-exitcode` gives 0. The token comes from Secret Manager and is never printed.
-   - Rollback: set `path = null`, plan and apply; for variant 1 also restore the uptime check.
+4. **AGT-WEBHOOK-03 tunnel path**: applied on 16 October with Variant 1; see Live changes applied. Rollback: set `path = null`, plan and apply, then restore the uptime check to `/health`, 200, `mw-instagram-webhook` (ops root `infrastructure/ecosystem-debian`).
 
-5. **DB-ACCESS-01 PROD** (reviewer DELETE): the PROD REVOKE and NOLOGIN statements are prepared in the ops note and wait for a separate go; see Open questions.
+5. **DB-ACCESS-01 PROD** (reviewer DELETE): the owner decided REVOKE DELETE only, with no NOLOGIN (16 October). The ops branch runs it; see the ops note.
 
 ## Recovery
 
-`git revert` of the branch commits restores the previous code and docs. The host and the tunnel were not changed, so no host recovery is needed. Deleted scripts remain in Git history.
+`git revert` of the branch commits restores the previous code and docs. The host was not changed. Tunnel recovery: set `path = null` in `infrastructure/ecosystem-tunnels/owned.tf`, plan and apply, and restore the uptime check to `/health`. Deleted scripts remain in Git history.
 
 ## Open questions
 
-1. **AGT-WEBHOOK-03 variant.** `^/instagram$` would make the public `/health` uptime check fail. Choose Variant 1 (re-point or retire the check) or Variant 2 (also allow `/health`).
-2. **AGT-STATE-03.** A bounded reply scan would make hold replies older than the window unreachable, and a 7-day window is not authorized. A safe variant (a processed high-water mark) needs the state adapter to expose `partner_review_replies` and `partner_notices` to the ingress journal. That is a W4 adapter change.
-3. **Reviewer DELETE in PROD.** DB-ACCESS-01 revokes DELETE for `mw_reviewer_dml`. Decide before the PROD go whether to retire `reviewer_delete_enabled` and the DELETE catalogue entries.
-4. **ALL-ARCH-03 password roles.** `mw_reviewer_dml` and `mw_receipt_projector` keep password files and port 5432 until a W4 migration relaxes the V33/V49/V50 `session_user` checks. The host therefore keeps two password files after the change.
-5. **Audit retention bucket.** The GCS bucket for the monthly export is a proposal; the owner confirms it before the job is written.
+1. **AGT-STATE-03.** A bounded reply scan would make hold replies older than the window unreachable, and a 7-day window is not authorized. A safe variant (a processed high-water mark) needs the state adapter to expose `partner_review_replies` and `partner_notices` to the ingress journal. That is a W4 adapter change.
+2. **Reviewer DELETE in PROD.** DB-ACCESS-01 revokes DELETE for `mw_reviewer_dml`. Decide before the PROD go whether to retire `reviewer_delete_enabled` and the DELETE catalogue entries.
+3. **Audit retention bucket.** The GCS bucket for the monthly export is a proposal; the owner confirms it before the job is written.
 
 ## Remaining work
 
 - Owner go for the agent deploy, then host steps 1 to 3 above and the next package install.
-- Owner choice of the tunnel variant, then the plan and apply.
-- W4 migration for the `session_user` checks (DEV reviewer DML, receipt projector on IAM).
+- W4 migration for the `session_user` checks (DEV reviewer DML, receipt projector on IAM). The owner accepted on 16 October that `mw_reviewer_dml` and `mw_receipt_projector` keep their two password files until then.
 - State adapter change for AGT-STATE-03.
 - Write and install the audit retention job after the bucket is confirmed.
 - Narrow the Graph refresh-token write path when `graph_email.py` is next touched (AGT-HOST-02).
