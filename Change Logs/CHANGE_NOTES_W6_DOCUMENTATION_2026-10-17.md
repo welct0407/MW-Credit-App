@@ -21,7 +21,7 @@ The active branch `claude/r071-style-decisions` was editing `Development_Changes
 - **AGT-DOC-04** done: `POSTGRESQL_OPERATIONS.md` governance describes the native API with SQL fallback; V33 reference is `database/migrations/V33__agent_transaction_audit.sql`.
 - **AGT-DOC-05** done: `integration-agent/docs/MIGRATION_PLAN.md` deleted with its README link and diagram label (`BUSINESS_PROCESS.drawio`, `generate-business-process.py` label text).
 - **AGT-DOC-06** done: `config.example.json` has `state_backend` (`sqlite`, the inert default), `state_generation`, `state_cutover_at` and the `agent_database_*` keys; it still passes `validate_config`.
-- **AGT-DOC-07** partly done: the audit relay is documented in `SERVICE_CATALOGUE.md`. Blocked for `service-catalogue.json`: `validate_catalogue` accepts only listed service names, so a new key needs a source change (open question).
+- **AGT-DOC-07** partly done: the audit relay is documented in `SERVICE_CATALOGUE.md`. The owner approved the validator change (17 October). Step 1, `validate_catalogue` accepts `audit_relay`, is on branch `claude/w6-audit-relay-validator` with its own agent change note. Step 2 adds the key to the live and repository catalogues together (revision 28) after step 1 is deployed; adding it first would make the running code reject the catalogue and the deploy helper refuse the drift.
 - **AGT-DOC-08** done: README points at `POSTGRESQL_OPERATIONS.md`; the design `HANDOVER.md` is marked implemented 22 September 2026, historical.
 - **AGT-DOC-09** done: Windows paths and old repository names removed from agent docs; `project/SERVICE_CATALOGUE.md` (sibling-repository pointer) deleted.
 - **AGT-DOC-10** done: the inventory Debian entry records checkout `/opt/mw-integration-agent-src`, deployed monorepo commit `1feb6cd` (R069; `integration-agent/` identical to `9c4a4cb`), venv, package `0.1.0`, catalogue 27; the archived-repository SHA is labelled. The host HEAD is inferred from the deploy helper, not read.
@@ -34,14 +34,14 @@ The active branch `claude/r071-style-decisions` was editing `Development_Changes
 - **ALL-DOC-06** held: `Development_Changes.md` trim waits for R071. Released-section links elsewhere already use permalinks at `cbc8843` (release tags point at package commits that predate their promotion records).
 - **ALL-DOC-07** done: change-note template in `Rules/Development_Workflow.md` "Records, change notes and retention"; this note uses it.
 - **ALL-DOC-08** done: change notes older than R068 deleted unless a current document needs them (434 notes; list below). Links from current documents were repointed to permalinks at `cbc8843` first. Kept: the four review notes, R068+ notes, notes linked from the held files, and three live records (Railway backups, VM-01 cleanup exceptions, receipt backfill recovery).
-- **ALL-DOC-09** done: the retention rule in `Development_Workflow.md` and `project/README.md` lets only a current document, README or maintained runtime script keep evidence. 1,541 uncited evidence files under `project/outputs` deleted (list below). Root `outputs/` did not exist (not reproduced). `integration-agent/outputs` kept (a maintained generator writes it). `scripts/binary-evidence-allowlist.txt` lost 329 entries for deleted files.
+- **ALL-DOC-09** done: the retention rule in `Development_Workflow.md` and `project/README.md` lets only a current document, README or maintained runtime script keep evidence. 1,541 uncited evidence files under `project/outputs` deleted (list below). Root `outputs/` did not exist (not reproduced). `integration-agent/outputs` kept (a maintained generator writes it). `scripts/binary-evidence-allowlist.txt` lost 329 entries for deleted files. With owner approval (17 October), 165 one-off scripts that only served deleted evidence were deleted too: dated or release-named scripts in `project/scripts/`, `project/scripts/dictionary/` and `project/scripts/releases/`, and `project/scripts/reference/` with its manifest (list below). `build-loan-ecosystem-visual.cjs` is kept because `build-loan-ecosystem.cjs` uses it.
 - **ALL-DOC-10** done: `Resource_Monitoring.md`, `Resource_Monitoring_Dashboard_Guide.md`, `Grafana_MCP_Events_Bridge.md` trimmed to current operation and limits; one panel table per dashboard; inbound anchors kept. Grafana revamp stays pending.
 - **ALL-DOC-11** done: `AGENTS.md` is a front page: hard rules first (authority, credentials, data, PROD, migrations, publication, records), layout table, trigger-to-page table. Detail moved into `Development_Workflow.md`, `Release_Workflow.md`, `PWA_Orchestration.md`, `Model_Work_Mapping.md`. `CLAUDE.md` unchanged.
 - Links: 106 links in kept evidence that used the pre-merge layout now point at the current path; 24 links to files that are gone are plain text.
 - Indexes: `project/Documents/README.md`, `Rules/README.md`, `project/README.md` link every current document once.
 
 <details>
-<summary>Deleted files (1,978)</summary>
+<summary>Deleted files (2,143)</summary>
 
 **other** (3)
 
@@ -2408,6 +2408,174 @@ The active branch `claude/r071-style-decisions` was editing `Development_Changes
 - `project/outputs/vc-production-20260916/original-data-preservation.json`
 - `project/outputs/vc-production-20260916/parity.jsonl`
 
+**One-off scripts** (165)
+
+- `project/scripts/appsheet-cleanup-verification.mjs`
+- `project/scripts/assessment-sql-audit.mjs`
+- `project/scripts/assessment-sql-build.mjs`
+- `project/scripts/assessment-sql-dictionary.mjs`
+- `project/scripts/assessment-sql-input-parity.mjs`
+- `project/scripts/assessment-sql-oracle.mjs`
+- `project/scripts/assessment-sql-report.mjs`
+- `project/scripts/assessment-sql-validate.mjs`
+- `project/scripts/assessment-workflow-docs.mjs`
+- `project/scripts/atomic-close-dictionary.mjs`
+- `project/scripts/borrower-cleanup-dictionary.mjs`
+- `project/scripts/borrower-name-vc-dictionary.mjs`
+- `project/scripts/borrower-name-vc-verify.mjs`
+- `project/scripts/business-expenses-dictionary.mjs`
+- `project/scripts/charge-generation-dictionary.mjs`
+- `project/scripts/cloud-sql-poc-documentation.mjs`
+- `project/scripts/core-payment-dictionary.mjs`
+- `project/scripts/core-promotion-check-workbook.py`
+- `project/scripts/core-promotion-dictionary.mjs`
+- `project/scripts/core-promotion-model-evidence.mjs`
+- `project/scripts/core-promotion-update-docs.mjs`
+- `project/scripts/default-loan-dictionary.mjs`
+- `project/scripts/development-instance-docs.mjs`
+- `project/scripts/dictionary/capture_r047.py`
+- `project/scripts/dictionary/capture_r048_interest.py`
+- `project/scripts/dictionary/capture_r048_interest_production.py`
+- `project/scripts/dictionary/capture_r048_upcoming.py`
+- `project/scripts/dictionary/capture_r048_upcoming_production.py`
+- `project/scripts/dictionary/capture_r049_upcoming.py`
+- `project/scripts/dictionary/capture_r049_upcoming_production.py`
+- `project/scripts/dictionary/close_r047.py`
+- `project/scripts/dictionary/close_r048_interest.py`
+- `project/scripts/dictionary/close_r048_upcoming.py`
+- `project/scripts/dictionary/close_r048_upcoming_production.py`
+- `project/scripts/dictionary/close_r049_upcoming.py`
+- `project/scripts/dictionary/close_r049_upcoming_production.py`
+- `project/scripts/dictionary/close_r051_crud.py`
+- `project/scripts/dictionary/close_r051_performance.py`
+- `project/scripts/dictionary/close_r051_production.py`
+- `project/scripts/dictionary/close_r051_related_views.py`
+- `project/scripts/dictionary/close_r052_production.py`
+- `project/scripts/dictionary/close_r052_promotion_dev.py`
+- `project/scripts/dictionary/close_r053_production.py`
+- `project/scripts/dictionary/record_r049_upcoming.py`
+- `project/scripts/fetch-ecosystem-logos.cjs`
+- `project/scripts/interval-anchor-build.mjs`
+- `project/scripts/interval-anchor-dictionary.mjs`
+- `project/scripts/interval-anchor-promote-dictionary.mjs`
+- `project/scripts/interval-anchor-verify.mjs`
+- `project/scripts/loan-duration-visibility-dictionary.mjs`
+- `project/scripts/lumpsum-dictionary.mjs`
+- `project/scripts/lumpsum-evidence.mjs`
+- `project/scripts/lumpsum-release-dictionary.mjs`
+- `project/scripts/lumpsum-release-docs.py`
+- `project/scripts/monitored-jobs-dictionary.mjs`
+- `project/scripts/oltp-combined-evidence.mjs`
+- `project/scripts/oltp-combined-logic-validation.mjs`
+- `project/scripts/oltp-perf-summarize.mjs`
+- `project/scripts/optimize-dictionary-guide-20260920.mjs`
+- `project/scripts/postgresql-cutover-build.mjs`
+- `project/scripts/postgresql-cutover-verify.mjs`
+- `project/scripts/postgresql-foreign-keys-document.mjs`
+- `project/scripts/postgresql-foreign-keys.mjs`
+- `project/scripts/postgresql-lifecycle-check.mjs`
+- `project/scripts/postgresql-oltp-readiness.mjs`
+- `project/scripts/postgresql-trial-build-copy.mjs`
+- `project/scripts/postgresql-trial-compare-config.mjs`
+- `project/scripts/postgresql-trial-finalize-masters.mjs`
+- `project/scripts/postgresql-trial-verify-copy.mjs`
+- `project/scripts/postgresql-trial-verify-full.mjs`
+- `project/scripts/r002-dictionary.mjs`
+- `project/scripts/r002-production-dictionary.mjs`
+- `project/scripts/r003-production-reconciliation-dictionary.mjs`
+- `project/scripts/r004-dictionary.mjs`
+- `project/scripts/r004-evidence.mjs`
+- `project/scripts/r006-dictionary.mjs`
+- `project/scripts/r006-promote-dictionary.mjs`
+- `project/scripts/r006-records.mjs`
+- `project/scripts/r007-build-sql.mjs`
+- `project/scripts/r007-contract.mjs`
+- `project/scripts/r007-delta.mjs`
+- `project/scripts/r007-dictionary-promote.mjs`
+- `project/scripts/r007-dictionary.mjs`
+- `project/scripts/r007-parity.mjs`
+- `project/scripts/r007-readback.mjs`
+- `project/scripts/r007-refresh-check.mjs`
+- `project/scripts/r007-verify.mjs`
+- `project/scripts/r008-dictionary.mjs`
+- `project/scripts/r008-navigation-dictionary.mjs`
+- `project/scripts/r008-production-dictionary-repair.mjs`
+- `project/scripts/r008-production-dictionary-verify.mjs`
+- `project/scripts/r008-production-dictionary.mjs`
+- `project/scripts/r008-sync-dictionary.mjs`
+- `project/scripts/reference-manifest.json`
+- `project/scripts/reference/borrower-visibility-2026-09-01/update_dictionary.py`
+- `project/scripts/reference/charge-generation-flag-20260908/update_dictionary.mjs`
+- `project/scripts/reference/future-charges-20260908/finalize_plan.mjs`
+- `project/scripts/reference/future-charges-20260908/prepare_plan.mjs`
+- `project/scripts/reference/future-charges-20260908/update_dictionary.mjs`
+- `project/scripts/reference/looker-page8-design-review/extract_design.py`
+- `project/scripts/reference/olap-daily-installment-2026-09-01/update_dictionary.py`
+- `project/scripts/reference/olap-reconciliation-20260907/update_dictionary.mjs`
+- `project/scripts/reference/oltp-todays-payment-2026-09-04/count_dictionary.mjs`
+- `project/scripts/reference/oltp-todays-payment-2026-09-04/inspect_dictionary.mjs`
+- `project/scripts/reference/oltp-todays-payment-2026-09-04/inspect_styles.mjs`
+- `project/scripts/reference/oltp-todays-payment-2026-09-04/inspect_targets.mjs`
+- `project/scripts/reference/oltp-todays-payment-2026-09-04/polish_dictionary.mjs`
+- `project/scripts/reference/oltp-todays-payment-2026-09-04/update_dictionary.mjs`
+- `project/scripts/reference/oltp-todays-payment-2026-09-04/verify_dictionary.mjs`
+- `project/scripts/reference/projected-monthly-profit-analysis/inspect_backup.mjs`
+- `project/scripts/reference/projected-monthly-profit-analysis/inspect_dictionary.mjs`
+- `project/scripts/reference/projected-monthly-profit-analysis/inspect_small.mjs`
+- `project/scripts/reference/projected-monthly-profit-analysis/render_dictionary.mjs`
+- `project/scripts/reference/projected-monthly-profit-analysis/update_dictionary.mjs`
+- `project/scripts/reference/projected-monthly-profit-analysis/verify_dictionary.mjs`
+- `project/scripts/reference/universal-payments-20260905/checkpoint_066.py`
+- `project/scripts/reference/universal-payments-20260905/finalize_checkpoint065.py`
+- `project/scripts/reference/universal-payments-20260905/inspect_dictionary.mjs`
+- `project/scripts/reference/universal-payments-20260905/reconcile_final_notes.py`
+- `project/scripts/reference/universal-payments-20260905/update_dictionary.mjs`
+- `project/scripts/reference/universal-payments-20260905/update_overview_checkpoint052.py`
+- `project/scripts/reference/universal-payments-20260905/verify_dictionary.py`
+- `project/scripts/reference/universal-payments-production-20260906/update_dictionary.mjs`
+- `project/scripts/reference/universal-payments-production-20260906/update_overview.py`
+- `project/scripts/reference/universal-payments-production-20260906/verify_dictionary.py`
+- `project/scripts/releases/adopt-markdown-checklist-20260920.mjs`
+- `project/scripts/releases/audit-r008-production.mjs`
+- `project/scripts/releases/build-r010-statement-record.mjs`
+- `project/scripts/releases/build-r011-record.mjs`
+- `project/scripts/releases/capture-r008-r3.mjs`
+- `project/scripts/releases/capture-r008-r4.mjs`
+- `project/scripts/releases/capture-r008.mjs`
+- `project/scripts/releases/close-r009-dictionary.mjs`
+- `project/scripts/releases/close-r010-dictionary.mjs`
+- `project/scripts/releases/close-r014-records.mjs`
+- `project/scripts/releases/extract-r008-r4.ps1`
+- `project/scripts/releases/optimize-documentation-20260920.mjs`
+- `project/scripts/releases/promote-r013-dictionary.mjs`
+- `project/scripts/releases/promote-r014-dictionary.mjs`
+- `project/scripts/releases/r009-recipient-expressions.mjs`
+- `project/scripts/releases/r026-export-template.py`
+- `project/scripts/releases/revise-r008-sync.mjs`
+- `project/scripts/releases/update-r009-dictionary.mjs`
+- `project/scripts/releases/update-r009-effective-rate-dictionary.mjs`
+- `project/scripts/releases/update-r010-statement-dictionary.mjs`
+- `project/scripts/releases/update-r011-account-alias-dictionary.mjs`
+- `project/scripts/releases/update-r011-dictionary.mjs`
+- `project/scripts/releases/update-r011-label-dictionary.mjs`
+- `project/scripts/releases/update-r011-localization-dictionary.mjs`
+- `project/scripts/releases/update-r011-production-dictionary.mjs`
+- `project/scripts/releases/update-r013-dictionary.mjs`
+- `project/scripts/releases/update-r014-dictionary.mjs`
+- `project/scripts/releases/update-r015-dictionary.mjs`
+- `project/scripts/releases/verify-documentation-20260920.py`
+- `project/scripts/render-loan-ecosystem.cjs`
+- `project/scripts/update-partner-borrower-dictionary.mjs`
+- `project/scripts/vc-materialization-dictionary.mjs`
+- `project/scripts/verify-atomic-close-dictionary.py`
+- `project/scripts/verify-charge-generation-dictionary.py`
+- `project/scripts/verify-default-loan-dictionary.py`
+- `project/scripts/verify-loan-duration-dictionary.py`
+- `project/scripts/verify-lumpsum-dictionary.py`
+- `project/scripts/verify-lumpsum-release-dictionary.py`
+- `project/scripts/verify-monitored-jobs-dictionary.py`
+- `project/scripts/verify-postgresql-sync-settings.mjs`
+
 </details>
 
 ## Checks
@@ -2420,6 +2588,9 @@ Run once on the completed batch (Agent C at `d31a86f`; link check rerun at `cf0a
 | `python3 project/scripts/dictionary/dictionary.py validate` | 416 documents, 0 errors |
 | `cd integration-agent && PYTHONPATH=src python -m unittest tests.test_service_catalogue -v` | 1 test, OK |
 | `node scripts/check-binary-evidence.mjs` | Passed, 41 tracked PNG/XLSX files, all allowed |
+| Script deletions: references by file name and module stem from every tracked file outside the candidates, change notes and evidence | 1 reference found (kept that script); 165 deleted |
+| `python3 -m unittest` in `project/scripts/dictionary/` | 36 tests, OK |
+| `node --test project/scripts/releases/*.test.mjs` | `dictionary.test.mjs` fails: missing package `@oai/artifact-tool`; identical before the deletions; the other release tests pass |
 | Index check over the three indexes | 21 documents, 0 unlinked, 0 links to deleted files |
 | `git diff --name-only cbc8843..HEAD` scope review | Documentation, dictionary, example config, evidence, allowlist data and one diagram label only; no source, SQL, Terraform or CI logic |
 | `wc -w AGENTS.md` | 1,993 to 749 |
@@ -2435,20 +2606,25 @@ Run once on the completed batch (Agent C at `d31a86f`; link check rerun at `cf0a
 | Product CI, deployment, smoke | Documentation only; no product change |
 | `node --test` | No test reads a documentation file this wave changed or deleted |
 | `tests.test_config` | Not a requested check; it errors identically at `cbc8843` (missing `psycopg` in the sandbox) |
+| `release dictionary.test.mjs` | Needs `@oai/artifact-tool`, not installed here (pre-existing) |
 | Read of the Debian host checkout HEAD | Read-only host access not used; the inventory infers it from the deploy helper |
 
 ## Recovery
 Revert the Wave 6 commits on `claude/review-w6-docs` (or on main after merge). Every deleted file is recoverable from Git at `cbc8843` (`git checkout cbc8843 -- <path>`); permalinks in the documents point there.
 
 ## Open questions
-- Change-note files: the records rule now says a new change note file needs no approval (the root-app rule already required "one concise change log under `Change Logs/`", and the agent requires a note per change). Please confirm this reading.
-- Evidence retention: per ALL-DOC-09 the old "retain evidence needed for active recovery or pending work" clause is replaced by "only a current document, README or maintained runtime script keeps evidence". Recovery records stay alive because the inventory and runbooks cite them. Confirm no extra exception is wanted.
-- `AGENTS.md` is 749 words, not about 600. The reviewer found no further cut that keeps every hard rule. Accept, or name rules to move to a Rules page.
-- Audit relay in `service-catalogue.json` (AGT-DOC-07) needs `validate_catalogue` to accept a new service name, a source change with a coordinated live-catalogue rollout. Authorize, or keep it Markdown-only?
-- One-off scripts: 50 release or dictionary scripts in `project/scripts/` (and more top-level `r0xx-*` scripts, 132 in all) still name deleted evidence. Delete them with `project/scripts/reference/`?
-- Deleted uncited September backup and restore verification files (R002, R007, R008, business expenses, lump sum, monitored jobs). No current document, inventory row or runbook cited them. Restore any?
+Owner answers, 17 October 2026 (Bangkok):
+- A new change note file needs no approval: confirmed.
+- Evidence retention: no extra exception for active recovery or pending work; recovery records stay because the inventory and runbooks cite them.
+- `AGENTS.md` at 749 words: accepted.
+- Audit relay in the JSON catalogue: approved; step 1 done (see AGT-DOC-07), step 2 is remaining work.
+- One-off scripts and `project/scripts/reference/`: delete; done.
+- Deleted September backup and restore verification files: not restored.
+
+No open questions remain.
 
 ## Remaining work
+- Audit relay step 2 after the step 1 code is deployed on Debian (needs an owner go for that deploy): catalogue revision 28 with `audit_relay`, live and repository together, plus the Markdown table row.
 - After `claude/r071-style-decisions` merges: trim `Development_Changes.md` (ALL-DOC-06), remove pins from the tracker, `Development_Changes.md` and `application.yaml` (ALL-DOC-05), drop the tracker R058 anchor (ALL-DOC-02), add DB-DOC-04, add the Wave 6 line under the open release and close the review documentation rows, then delete the notes linked only from those files (`REPOSITORY_MERGE`, `W1_APP`, `W1_OPS`, `W3_APP`, `W3_OPS`, `W1_AGENT`, `W2_AGENT_DEPLOYMENT`, `W3_AGENT`, `RECEIPT_NOTIFICATION_ISOLATION`, `R064_SYNC` if released) after repointing.
 - `integration-agent/docs/BUSINESS_PROCESS.png` still shows the old label; re-export needs draw.io.
 - Dated pins remain in historical records outside this wave's list: `infrastructure/production/READINESS_INVENTORY.md`, `scripts/promotion/README.md` (R063 narrative), earlier dated paragraphs of `docs/Development_PWA_Delivery.md`.
