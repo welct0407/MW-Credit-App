@@ -14,7 +14,7 @@ All new features/fixes use the sole Open release. Freeze only at authorized prom
 
 | Release | Status | Remaining action / owning record |
 | --- | --- | --- |
-| R069 | Open | W4 optional follow-ups, done in code on `claude/w4-optional`, not deployed: PWA refresh hardening (list-swap hold during touch/scroll, Cash workspace guard, failed-domain back-off, data-domain banner), agent V6 `runtime.service_heartbeats` with heartbeat-only idle cycles, summarised receipt-cycle reference reads and per-service fencing, and 138 retired direct-route scripts removed. Promotion order: apply agent V6 before activating the package. [Record](Development_Changes.md#r069-w4-optional-follow-ups) |
+| R069 | Open | W4 optional follow-ups, done in code on `claude/w4-optional`, not deployed: PWA refresh hardening (list-swap hold during touch/scroll, Cash workspace guard, failed-domain back-off, data-domain banner), agent V6 `runtime.service_heartbeats` with heartbeat-only idle cycles, summarised receipt-cycle reference reads and per-service fencing, 138 retired direct-route scripts removed, and the Referrer list fix (`ba52508`, all borrowers instead of 25; on DEV 17 October 2026, image `1fb9d763…`, Hosting `1f5b3da6a513f360`). Promotion order: apply agent V6 before activating the package. [Record](Development_Changes.md#r069-w4-optional-follow-ups) |
 | R056 | Frozen; V91 deployed | Lisa enrollment retry/closure; [record](../outputs/r056-apple-push/README.md) |
 | R055 | Frozen; monitoring delivered | Carried credential work unfinished; [record](../outputs/r055-grafana/continuation.md) |
 | R016 | Owner-accepted reporting; administrative follow-up | Migration-key retirement evidence/final tag unresolved; do not reopen product development |

@@ -84,3 +84,4 @@ Commits `2cf8dfd` and `c9cb4b0` on `claude/w4-optional`; code only, not deployed
 - UX-REFRESH-09 closed by the owner (17 October): the 30-second poll stays always, with no mobile-data back-off (iOS cannot detect cellular).
 - UX-HOLD-01 to 08 reviewed: 04, 05, 06, 01 and 07 fixed in `c9cb4b0`; 02, 03 and 08 deferred.
 - Checks: tester on `2cf8dfd` `npm test` 559 of 559, refresh-hold and startup-generations x5 40 of 40, 173 other e2e passed; after `c9cb4b0` `npm test` 563 of 563, e2e 220 runs passed.
+- Referrer list (`ba52508`): `/api/borrower-options` no longer caps at 25 (every match, 1000-row safety cap with `truncated:true` and a "Type to narrow the list" hint); the chosen referrer stays visible after a narrower search. Deployed to DEV only (image `1fb9d763…`, Hosting `1f5b3da6a513f360`), smoke passed; see [Development changes](../project/Documents/Development_Changes.md#r069-w4-optional-follow-ups).
