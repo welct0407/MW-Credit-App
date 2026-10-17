@@ -7,10 +7,10 @@ import hashlib
 import json
 from contextlib import contextmanager
 
-from .config import DML_ROLES, ConfigurationError, aware_cutoff, environment, load_secret
+from .config import DML_ROLES, ConfigurationError, auth_mode, aware_cutoff, environment, iam_port, iam_user, load_secret
 from .conversation_reviewer import require_reviewer
 from .conversation_schema import ACTOR_FIELDS, PROTECTED_FIELDS, writable
-from .state import is_postgres
+from .state import assume_role, is_postgres
 from . import audit
 
 # Resource boundary, not a list of supported business operations. Trigger-owned
@@ -57,22 +57,33 @@ def connect(config, write=False):
     import psycopg
     from psycopg.rows import dict_row
     # Fixed loopback endpoint, the environment's business database and its dedicated
-    # reviewer role with a separate password credential (the V33 audit functions pin
-    # session_user, so this role stays on the password listener). Never accept a DSN,
-    # SQL expression, connection option or role name from inbound content.
+    # reviewer role. database_dml_auth='password' signs in as the role with its own
+    # password on 5432; 'iam' (ALL-ARCH-03 part 2b, needs business V95) signs in as the
+    # VM's IAM user on the auto-iam-authn listener and SET ROLE to the reviewer role as
+    # the first statement. Never accept a DSN, SQL expression, connection option or role
+    # name from inbound content.
     try:
         role = DML_ROLES[environment(config)]
+        mode = auth_mode(config, 'database_dml_')
     except ConfigurationError:
         raise ConfigurationError('UNAPPROVED_DML_DATABASE') from None
     if (config.get('database_host') not in ('127.0.0.1', '::1')
-            or config.get('database_port') != 5432
             or config.get('database_dml_user') != role):
         raise ConfigurationError('UNAPPROVED_DML_DATABASE')
-    with psycopg.connect(host=config['database_host'], port=5432,
-            dbname=config['database_name'], user=role,
-            password=load_secret(config, 'database_dml_password_file'),
-            connect_timeout=10, autocommit=True, application_name='mw-reviewer-dml',
-            options='-c default_transaction_read_only=on', row_factory=dict_row) as conn:
+    common = dict(host=config['database_host'], dbname=config['database_name'],
+                  connect_timeout=10, autocommit=True, application_name='mw-reviewer-dml',
+                  options='-c default_transaction_read_only=on', row_factory=dict_row)
+    if mode == 'iam':
+        login = dict(port=iam_port(config), user=iam_user(config))
+    else:
+        if config.get('database_port') != 5432:
+            raise ConfigurationError('UNAPPROVED_DML_DATABASE')
+        login = dict(port=5432, user=role, password=load_secret(config, 'database_dml_password_file'))
+    with psycopg.connect(**login, **common) as conn:
+        if mode == 'iam':
+            # The IAM user is NOINHERIT; role-level settings of the reviewer role do not
+            # apply after SET ROLE, so the connection options and SET LOCAL below carry them.
+            assume_role(conn, role)
         conn.execute('BEGIN ISOLATION LEVEL SERIALIZABLE ' + ('READ WRITE' if write else 'READ ONLY'))
         conn.execute("SET LOCAL statement_timeout = '15s'")
         conn.execute("SET LOCAL lock_timeout = '3s'")

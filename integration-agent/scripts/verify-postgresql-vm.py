@@ -22,7 +22,7 @@ with state.transaction(c) as db:
     controls=db.execute('SELECT count(*) FROM runtime.service_control WHERE processing_enabled').fetchone()[0]
 for key, in snapshots:assert load(c,key)
 with connect(c) as db:
-    assert db.execute('SELECT current_database() AS db,session_user AS role').fetchone()=={'db':'loan_manager_prod','role':'mw_reviewer_dml'}
+    assert db.execute('SELECT current_database() AS db,current_user AS role').fetchone()=={'db':'loan_manager_prod','role':'mw_reviewer_dml'}  # current_user: under database_dml_auth=iam the session user is the IAM login
     assert db.execute("SELECT count(*) AS n FROM pg_trigger WHERE tgname='mw_agent_capture'").fetchone()['n']==10
     assert not db.execute("SELECT has_table_privilege(current_user,'agent_audit.row_changes','INSERT') AS allowed").fetchone()['allowed']
 for filename,mapping in state.TABLES.items():

@@ -45,7 +45,10 @@ def session_role(config, role):
     return 'mw_agent_' + role if auth_mode(config, 'agent_database_') == 'iam' else None
 
 
-SESSION_ROLES = ('mw_agent_worker', 'mw_agent_relay', 'mw_integration_agent')
+# Roles the agent IAM login may SET ROLE to. The business-database write roles join for
+# ALL-ARCH-03 part 2b (database_dml_auth / receipt_projector_auth = 'iam').
+SESSION_ROLES = ('mw_agent_worker', 'mw_agent_relay', 'mw_integration_agent',
+                 'mw_reviewer_dml', 'mw_reviewer_dml_dev', 'mw_receipt_projector')
 
 
 def assume_role(conn, role):

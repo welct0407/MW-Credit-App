@@ -157,6 +157,41 @@ class ConfigurationTests(unittest.TestCase):
         with self.assertRaisesRegex(ConfigurationError, 'agent_database_worker_password_file'):
             validate_config(dict(agent, agent_database_auth='password'))
 
+    def test_dml_and_projector_auth_keys_are_separate_from_database_auth(self):
+        # ALL-ARCH-03 part 2b: own keys, default 'password'; database_auth='iam' does not move them before V95.
+        from mw_integration_agent.config import auth_mode
+        origin = 'https://mw-credit-app-command-prod-737787224638.asia-southeast1.run.app'
+        reviewer = dict(partner_conversations_enabled=True, receiver_enabled=True, instagram_account_id='100',
+                        partner_conversation_cutoff='2026-10-12T00:00:00+07:00', conversation_api_enabled=True,
+                        conversation_api_environment='prod', conversation_api_origin=origin, conversation_api_audience=origin,
+                        conversation_api_manifest_sha256='a' * 64, reviewer_dml_enabled=True,
+                        reviewer_dml_cutoff='2026-10-12T00:00:00+07:00', database_auth='iam',
+                        database_iam_user='mw-integration-agent@clever-oasis-508610-n7.iam')
+        config = self.business(**reviewer)
+        validate_config(config)
+        self.assertEqual((auth_mode(config, 'database_dml_'), auth_mode(config, 'receipt_projector_')), ('password', 'password'))
+        with self.assertRaisesRegex(ConfigurationError, 'database_dml_password_file'):
+            validate_config(dict(config, database_dml_password_file=None))
+        iam = dict(config, database_dml_auth='iam', receipt_projector_auth='iam')
+        del iam['database_dml_password_file'], iam['receipt_projector_password_file']
+        validate_config(iam)  # no password file under iam
+        with self.assertRaisesRegex(ConfigurationError, 'dedicated role'):
+            validate_config(dict(iam, database_dml_user='mw_reviewer_dml_dev'))
+        for key in ('database_dml_auth', 'receipt_projector_auth'):
+            with self.subTest(key=key):
+                with self.assertRaisesRegex(ConfigurationError, '^' + key + ' must be password or iam$'):
+                    validate_config(dict(config, **{key: 'token'}))
+                with self.assertRaisesRegex(ConfigurationError, '^' + key + ' must be password or iam$'):
+                    validate_config(dict(config, **{key: True}))
+                # 'iam' needs the IAM user and the fixed IAM listener, even with the database_auth path on passwords.
+                alone = dict(self.business(), **{key: 'iam'})
+                with self.assertRaisesRegex(ConfigurationError, 'database_iam_user'):
+                    validate_config(alone)
+                for change in ({'database_iam_user': 'someone@example.com'}, {'iam_database_port': 5432}):
+                    with self.assertRaises(ConfigurationError):
+                        validate_config(dict(iam, **change))
+                validate_config(dict(alone, database_iam_user=reviewer['database_iam_user']))
+
     def test_password_roles_still_connect_on_5432_with_iam_enabled(self):
         # Orchestrator correction: reviewer DML and the receipt projector keep password files until W4.
         from unittest.mock import patch

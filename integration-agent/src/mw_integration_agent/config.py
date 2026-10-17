@@ -25,9 +25,10 @@ BOOLEAN_FLAGS = (
 DATABASES = {'prod': 'loan_manager_prod', 'dev': 'loan_manager_dev'}
 DML_ROLES = {'prod': 'mw_reviewer_dml', 'dev': 'mw_reviewer_dml_dev'}
 # Cloud SQL Auth Proxy listeners (ALL-ARCH-03): database_port/agent_database_port stay
-# on the password listener (5432) for the roles that keep password files (reviewer
-# DML, receipt projector); the IAM roles (worker, relay, integration agent) use the
-# auto-iam-authn listener on iam_database_port (5433 only).
+# on the password listener (5432) for the roles that still sign in with password files;
+# IAM sign-in (worker, relay, integration agent, and reviewer DML / receipt projector
+# under database_dml_auth / receipt_projector_auth = 'iam') uses the auto-iam-authn
+# listener on iam_database_port (5433 only) and SET ROLE to the target role.
 PASSWORD_PORT = 5432
 IAM_PORT = 5433
 AUTH_MODES = ('password', 'iam')
@@ -74,11 +75,23 @@ def environment(config: dict[str, Any]) -> str:
 
 
 def auth_mode(config: dict[str, Any], prefix: str) -> str:
-    """'password' (default) or 'iam' for the connection family named by prefix ('database_' or 'agent_database_')."""
+    """'password' (default) or 'iam' for the connection family named by prefix.
+
+    Prefixes: 'database_' (reporting reads), 'agent_database_' (mw_agent state),
+    'database_dml_' (reviewer DML) and 'receipt_projector_' (receipt evidence projector).
+    """
     mode = config.get(prefix + 'auth', 'password')
     if mode not in AUTH_MODES:
         raise ConfigurationError(prefix + 'auth must be password or iam')
     return mode
+
+
+def iam_user(config: dict[str, Any]) -> str:
+    """The VM service account's IAM database user; any other login name fails closed."""
+    value = config.get('database_iam_user')
+    if not isinstance(value, str) or not re.fullmatch(IAM_USER, value):
+        raise ConfigurationError('database_iam_user must be the VM service account IAM database user')
+    return value
 
 
 def iam_port(config: dict[str, Any]) -> int:
@@ -131,7 +144,7 @@ def validate_config(config: dict[str, Any]) -> None:
                 config.get('agent_database_port') != PASSWORD_PORT or config.get('agent_database_name') != 'mw_agent'):
             raise ConfigurationError('unapproved agent database')
         if mode == 'iam':
-            _validate_iam_user(config)
+            iam_user(config)
             iam_port(config)
         else:
             _validate_secret_path(config, 'agent_database_worker_password_file')
@@ -157,12 +170,20 @@ def validate_config(config: dict[str, Any]) -> None:
         aware_cutoff(config, 'partner_conversation_cutoff')
         if not all(config.get(k) for k in ('receiver_enabled', 'database_enabled', 'conversation_api_enabled')):
             raise ConfigurationError('conversations require receiver, database and native API')
+    # Reviewer DML and the receipt projector have their own sign-in switches (ALL-ARCH-03 part 2b),
+    # separate from database_auth so deploying the code does not move them before business V95.
+    dml_mode = auth_mode(config, 'database_dml_')
+    for mode in (dml_mode, auth_mode(config, 'receipt_projector_')):
+        if mode == 'iam':
+            iam_user(config)
+            iam_port(config)
     if config.get('reviewer_dml_enabled'):
         if not config.get('partner_conversations_enabled') or not config.get('database_enabled'):
             raise ConfigurationError('reviewer DML requires conversations and database')
         if config.get('database_dml_user') != DML_ROLES[environment(config)]:
             raise ConfigurationError('reviewer DML requires dedicated role')
-        _validate_secret_path(config, 'database_dml_password_file')
+        if dml_mode == 'password':
+            _validate_secret_path(config, 'database_dml_password_file')
         aware_cutoff(config, 'reviewer_dml_cutoff')
     timeout = config.get('conversation_timeout_seconds', 600)
     if type(timeout) is not int or not 30 <= timeout <= 900:
@@ -236,7 +257,7 @@ def validate_config(config: dict[str, Any]) -> None:
         if config.get("database_user") != "mw_integration_agent":
             raise ConfigurationError("database_user must be the dedicated least-privilege role")
         if mode == 'iam':
-            _validate_iam_user(config)
+            iam_user(config)
             iam_port(config)
         else:
             _validate_secret_path(config, "database_password_file")
@@ -257,11 +278,6 @@ def load_secret(config: dict[str, Any], key: str) -> str:
     if not value:
         raise ConfigurationError(f"credential is empty: {key}")
     return value
-
-
-def _validate_iam_user(config: dict[str, Any]) -> None:
-    if not re.fullmatch(IAM_USER, str(config.get('database_iam_user', ''))):
-        raise ConfigurationError('database_iam_user must be the VM service account IAM database user')
 
 
 def _validate_secret_path(config: dict[str, Any], key: str) -> None:
