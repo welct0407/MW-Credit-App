@@ -174,7 +174,8 @@ export function startSavedRequestSync(access:CommandAccess){
   // The catch above swallows every failure, so this always runs exactly as a finally block would.
   running=false;if(!active)return;
   if(again){again=false;timer=setTimeout(()=>void run(),0)}
-  else if(navigator.onLine&&access.offline){const rows=await access.offline.list('pending').catch(()=>[]);if(active&&rows.some(row=>row.sync?.state!=='blocked'))timer=setTimeout(()=>void run(),retryDelays[Math.min(retries++,retryDelays.length-1)])}
+  // Unreadable storage (a dropped connection reopens on the next call) keeps the back-off running.
+  else if(navigator.onLine&&access.offline){const rows=await access.offline.list('pending').catch(()=>null);if(active&&(rows===null||rows.some(row=>row.sync?.state!=='blocked')))timer=setTimeout(()=>void run(),retryDelays[Math.min(retries++,retryDelays.length-1)])}
  };
  const wake=()=>{retries=0;void run()},visible=()=>{if(document.visibilityState==='visible')wake()};window.addEventListener('online',wake);window.addEventListener('focus',wake);window.addEventListener('pageshow',wake);document.addEventListener('visibilitychange',visible);window.addEventListener('mw-offline-queued',wake);void run();
  return()=>{active=false;if(timer)clearTimeout(timer);channel?.close();window.removeEventListener('online',wake);window.removeEventListener('focus',wake);window.removeEventListener('pageshow',wake);document.removeEventListener('visibilitychange',visible);window.removeEventListener('mw-offline-queued',wake)};

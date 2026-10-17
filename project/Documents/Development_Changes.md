@@ -21,6 +21,10 @@
 
 Use the [release tracker](Release_Tracker.md), including the carried R016 administrative follow-up. Current runtime versions belong in [environment inventory](Environment_Inventory.md). Update this page for actual outstanding work, not completed-release history.
 
+## R070 IndexedDB reconnect hotfix
+
+Branch `claude/hotfix-idb-reconnect` from `main` `d04f043`, for the Open R070; **pending promotion** (not deployed to DEV or PROD). Trigger: 17 October 2026 18:27 Bangkok the owner's PROD iPhone showed "1 saved change not synced yet" and Sync now did nothing; PROD logs show no request from that device after 11:18:47Z while the server, Hosting (R069) and CORS were healthy. Cause in code: `owner-offline.ts` kept its IndexedDB connection for the life of the page with no close handling, so once WebKit drops it (installed app backgrounded) every transaction throws and every sync path stops silently until the app restarts. Fix: a closed, superseded (`versionchange`) or failed connection is forgotten and the next call reopens it; a transaction that fails with `InvalidStateError`/`UnknownError` (it aborted, so nothing was written) runs once more on a fresh connection; the saved-change coordinator keeps its back-off when the pending list cannot be read. UI/storage only: no API, schema or payload change; saved requests keep their request ids, so a retry never sends a second command. Checks: `npm run typecheck`, `npm run lint` (no new finding), `npm test` 571 of 571 (new `owner-offline-reconnect.test.mjs` 5 of 5, all 5 fail on the old source), `npm run build:live-dev`, offline e2e specs 8 passed and 2 skipped. Recovery: revert the commit; Hosting rollback to the R069 version.
+
 ## R069 W4 optional follow-ups
 
 Branch `claude/w4-optional` (from `main` `158c241`); Released with R069 on 17 October 2026, see [R069 production promotion](#r069-production-promotion). Notes: [app](../../Change%20Logs/CHANGE_NOTES_W4_APP_2026-10-16.md#optional-follow-ups-r069), [database](../../Change%20Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md#remaining-work).
