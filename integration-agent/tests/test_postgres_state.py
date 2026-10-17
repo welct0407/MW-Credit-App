@@ -1,11 +1,13 @@
 """Integration tests require an explicitly named private disposable lab manifest."""
 import contextlib
+import contextvars
 import importlib.util
 import io
 import json
 import os
 from pathlib import Path
 import tempfile
+import threading
 import time
 import unittest
 import uuid
@@ -558,6 +560,113 @@ class PostgreSQLStateTests(unittest.TestCase):
             store.bind(self.key,'thread-'+self.key)
             outcome['exit_code']=0
         self.assertEqual(self.job_tree(job_op)['run'][0],'COMPLETED')
+
+    # ------------------------------------------------------------------ V6 fencing: two workers of one service
+
+    def second_worker(self,target):
+        """Another worker process of the same service, simulated by a thread with its own context and
+        its own pooled connection (the worker pool otherwise hands one connection to the whole process)."""
+        pool=state.pool(self.config)
+        limit=pool.limit
+        pool.limit=max(limit,2)
+        self.addCleanup(setattr,pool,'limit',limit)
+        thread=threading.Thread(target=contextvars.Context().run,args=(target,),daemon=True)
+        thread.start()
+        return thread
+
+    def waiting_for_service_lock(self,service):
+        key=int(audit.digest(service)[:15],16)
+        with psycopg.connect(**self.admin) as c:
+            return bool(c.execute("SELECT 1 FROM pg_locks WHERE locktype='advisory' AND classid=%s AND objid=%s AND objsubid=1 AND NOT granted",
+                                  (key>>32,key&0xffffffff)).fetchone())
+
+    def wait_until(self,predicate,timeout=10):
+        end=time.monotonic()+timeout
+        while not predicate():
+            self.assertLess(time.monotonic(),end,'condition not reached')
+            time.sleep(0.02)
+
+    def test_concurrent_start_waits_for_the_first_child_and_is_refused_while_the_owner_lives(self):
+        # D1: B starts while A's first child transaction holds the uncommitted JOB rows. B must wait for
+        # that commit under the service lock and then see A's RUNNING run, never take the heartbeat over.
+        service='lab-race-'+uuid.uuid4().hex[:8]
+        result={}
+        def second_start():
+            try:
+                with audit.job(self.config,service) as outcome:
+                    result['admitted']=audit.PARENT.get()
+                    outcome['exit_code']=0
+            except ConfigurationError as exc:
+                result['error']=str(exc)
+        with audit.job(self.config,service) as outcome:
+            job_op=audit.PARENT.get()
+            with state.transaction(self.config) as conn:  # A's first child: JOB operation, event and run written, uncommitted
+                child=audit.begin(conn,self.config,'synthetic-child',str(uuid.uuid4()))
+                other=self.second_worker(second_start)
+                self.wait_until(lambda:self.waiting_for_service_lock(service))
+                self.assertEqual(result,{})  # B is parked on the service lock, it has read nothing yet
+                audit.event(conn,child,'completed',state='COMPLETED')
+            other.join(10)
+            self.assertFalse(other.is_alive())
+            self.assertEqual(result,{'error':'JOB_OWNER_ACTIVE_OR_UNRESOLVED'})
+            beat=self.heartbeat(service)
+            self.assertEqual((beat['state'],beat['operation_id'],beat['materialised']),('RUNNING',job_op,True))
+            self.assertEqual(self.job_tree(job_op)['run'][0],'RUNNING')
+            with audit.activity(self.config,'synthetic-child'):  # A still owns the service after the refused start
+                pass
+            outcome['exit_code']=0
+        tree=self.job_tree(job_op)
+        self.assertEqual(([e[1] for e in tree['events']],tree['run'][0],tree['state']),(['requested','completed'],'COMPLETED','COMPLETED'))
+        with psycopg.connect(**self.admin) as c:
+            self.assertEqual(c.execute('SELECT count(*) FROM runtime.job_runs WHERE service_name=%s',(service,)).fetchone()[0],1)
+        beat=self.heartbeat(service)
+        self.assertEqual((beat['state'],beat['operation_id'],beat['owner']['pid']),('COMPLETED',job_op,os.getpid()))
+        with audit.job(self.config,service) as outcome:  # the service is free again
+            self.assertNotEqual(audit.PARENT.get(),job_op)
+            outcome['exit_code']=0
+
+    def test_run_retired_while_lazy_cannot_add_children_or_close_its_record(self):
+        # D2: B retires lazy A as dead (A's run written INTERRUPTED by B). A's later child must fail with
+        # JOB_OWNERSHIP_LOST and A's exit, clean or crashing, must leave the INTERRUPTED record and B's
+        # heartbeat untouched: no completed/failed after interrupted.
+        for crash,successor_finished in ((False,False),(True,True)):
+            with self.subTest(crash=crash,successor_finished=successor_finished):
+                service='lab-retired-'+uuid.uuid4().hex[:8]
+                entered,release,result=threading.Event(),threading.Event(),{}
+                def successor(service=service,entered=entered,release=release,result=result):
+                    with audit.job(self.config,service) as outcome:
+                        result['op']=audit.PARENT.get()
+                        entered.set()
+                        release.wait(10)
+                        outcome['exit_code']=0
+                with self.assertRaises(RuntimeError) if crash else contextlib.nullcontext():
+                    with audit.job(self.config,service) as outcome:
+                        job_op=audit.PARENT.get()
+                        with psycopg.connect(**self.admin) as c:  # A's process is (deemed) gone while A is still lazy
+                            c.execute('''UPDATE runtime.service_heartbeats SET owner=owner || '{"start_token":"synthetic-dead"}'::jsonb WHERE service_name=%s''',(service,))
+                        other=self.second_worker(successor)
+                        self.assertTrue(entered.wait(10))
+                        if successor_finished:
+                            release.set();other.join(10)
+                        tree=self.job_tree(job_op)
+                        self.assertEqual(([e[1] for e in tree['events']],tree['run'][0],tree['state']),(['requested','interrupted'],'INTERRUPTED','FAILED'))
+                        before=self.audit_counts()
+                        with self.assertRaisesRegex(ConfigurationError,'JOB_OWNERSHIP_LOST'):
+                            with audit.activity(self.config,'synthetic-child'):
+                                pass
+                        self.assertEqual(self.audit_counts(),before)
+                        if crash:
+                            raise RuntimeError('synthetic crash after retirement')
+                        outcome['exit_code']=0
+                self.assertEqual(self.audit_counts(),before)  # A's exit appended nothing
+                tree=self.job_tree(job_op)
+                self.assertEqual(([e[1] for e in tree['events']],tree['run'][0],tree['state']),(['requested','interrupted'],'INTERRUPTED','FAILED'))
+                beat=self.heartbeat(service)
+                self.assertEqual((beat['operation_id'],beat['state']),(result['op'],'COMPLETED' if successor_finished else 'RUNNING'))
+                self.assertNotEqual(result['op'],job_op)
+                release.set();other.join(10)
+                self.assertFalse(other.is_alive())
+                self.assertEqual((self.heartbeat(service)['state'],self.audit_counts()),('COMPLETED',before))
 
 
 @unittest.skipUnless(os.environ.get('MW_AGENT_LAB_MANIFEST'),'isolated PostgreSQL 18 lab required')

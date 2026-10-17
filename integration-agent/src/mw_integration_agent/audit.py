@@ -146,16 +146,38 @@ def reads_reference(reads):
     return {'reference_reads':len(reads),'reference_reads_sha256':digest(reads)} if reads else {}
 
 
+def service_lock(conn, service):
+    """The per-service transaction lock. Every start, child materialisation and exit of a service's job
+    takes it first, so the heartbeat and the RUNNING job run are read and written in series: a start
+    never observes a half-written run, and a run never writes after it was retired."""
+    conn.execute('SELECT pg_advisory_xact_lock(%s)',(int(digest(service)[:15],16),))
+
+
+def owned(conn, run):
+    """Under the service lock: the heartbeat still names this run (operation and run key) as the RUNNING owner."""
+    return bool(conn.execute('''SELECT 1 FROM runtime.service_heartbeats WHERE service_name=%s AND operation_id=%s AND run_key=%s AND state='RUNNING' ''',
+                             (run['service'],run['op'],run['key'])).fetchone())
+
+
+def job_run_state(conn, run):
+    # The job run row is the truth (its insert commits or rolls back with the child), never a process flag.
+    row=conn.execute('SELECT state FROM runtime.job_runs WHERE run_id=%s',(run['op'],)).fetchone()
+    return row[0] if row else None
+
+
 def materialise(conn, run, fence=True):
     """Write the JOB operation, its requested event and its RUNNING job run exactly as an eager start did.
 
-    With fence, the heartbeat must still name this run as the service's RUNNING owner: a retired
-    process cannot create a second RUNNING job run (the V3 unique index then stays unreachable).
+    With fence, the service lock is taken and the heartbeat must still name this run as the service's
+    RUNNING owner: a retired process cannot create a second RUNNING job run (the V3 unique index then
+    stays unreachable), and a concurrent start waits behind this transaction instead of racing it.
     """
-    if fence and not conn.execute('''UPDATE runtime.service_heartbeats SET materialised=true,last_effect_at=clock_timestamp(),
-            updated_at=clock_timestamp() WHERE service_name=%s AND operation_id=%s AND state='RUNNING' ''',
-            (run['service'],run['op'])).rowcount:
-        raise ConfigurationError('JOB_OWNERSHIP_LOST')
+    if fence:
+        service_lock(conn,run['service'])
+        if not owned(conn,run):
+            raise ConfigurationError('JOB_OWNERSHIP_LOST')
+        conn.execute('''UPDATE runtime.service_heartbeats SET materialised=true,last_effect_at=clock_timestamp(),
+            updated_at=clock_timestamp() WHERE service_name=%s AND operation_id=%s''',(run['service'],run['op']))
     token=PARENT.set(None)
     try:
         op=begin(conn,run['config'],run['service'],run['key'],'JOB',plan={'owner':run['owner']},operation=run['op'])
@@ -167,17 +189,19 @@ def materialise(conn, run, fence=True):
     return op
 
 
-def materialised(conn, run):
-    # The job run row is the truth (its insert commits or rolls back with the child), never a process flag.
-    return bool(conn.execute('SELECT 1 FROM runtime.job_runs WHERE run_id=%s',(run['op'],)).fetchone())
-
-
 def materialise_parent(conn, parent):
     run=JOB.get()
     if run is None or parent!=run['op']:
         return {}
-    if not materialised(conn,run):
+    # Every direct child is fenced under the service lock: the job run must be this run's open one (or
+    # not yet written) and the heartbeat must still name this run. A run retired while lazy finds its
+    # INTERRUPTED row here and cannot add children to it.
+    service_lock(conn,run['service'])
+    state=job_run_state(conn,run)
+    if state is None:
         materialise(conn,run)
+    elif state!='RUNNING' or not owned(conn,run):
+        raise ConfigurationError('JOB_OWNERSHIP_LOST')
     return reads_reference(run['reads'])
 
 
@@ -206,7 +230,8 @@ def job(config, service):
     """Single active job per service without holding a database connection.
 
     The owner fence is runtime.service_heartbeats (V6), one row per service, taken under the
-    service advisory lock. Only a provably dead process on THIS host can be retired automatically.
+    service advisory lock; child materialisation and the exit take the same lock and require the
+    heartbeat to still name this run. Only a provably dead process on THIS host can be retired automatically.
     Retiring a job never releases its uncertain business effects. The JOB operation is lazy: an
     idle run updates the heartbeat only; the first child operation, a failure or an interruption
     materialises exactly the rows an eager start wrote (operation, requested event, job run).
@@ -229,7 +254,12 @@ def job(config, service):
     run={'service':service,'config':config,'key':key,'op':stable(service+':'+key),'owner':owner,'reads':[]}
     interrupted={'reason':'previous_local_process_terminated'}
     with transaction(config) as conn:
-        conn.execute('SELECT pg_advisory_xact_lock(%s)',(int(digest(service)[:15],16),))
+        # The service lock serialises this start with every child materialisation and exit of the
+        # service (they take it first too), so the heartbeat row locked next and the RUNNING job runs
+        # read after it are the committed truth: no run is half-written while we look.
+        service_lock(conn,service)
+        beat=conn.execute('''SELECT operation_id,run_key,owner,process_generation,code_version,last_started_at FROM runtime.service_heartbeats
+            WHERE service_name=%s AND state='RUNNING' FOR UPDATE''',(service,)).fetchone()
         retired=False
         # Materialised runs (and runs of a pre-V6 binary) still own the service through their RUNNING job run.
         for run_id,op,prior in conn.execute("SELECT run_id,operation_id,summary FROM runtime.job_runs WHERE service_name=%s AND state='RUNNING' FOR UPDATE",(service,)).fetchall():
@@ -238,8 +268,6 @@ def job(config, service):
             conn.execute("UPDATE runtime.job_runs SET state='INTERRUPTED',finished_at=clock_timestamp() WHERE run_id=%s",(run_id,))
             event(conn,op,'interrupted',interrupted,state='FAILED')
             retired=True
-        beat=conn.execute('''SELECT operation_id,run_key,owner,process_generation,code_version,last_started_at FROM runtime.service_heartbeats
-            WHERE service_name=%s AND state='RUNNING' FOR UPDATE''',(service,)).fetchone()
         if beat and not conn.execute('SELECT 1 FROM runtime.job_runs WHERE run_id=%s',(beat[0],)).fetchone():
             # A lazy run still owns the service. A dead one is interrupted on the record it never wrote.
             if not dead(beat[2]):
@@ -266,21 +294,28 @@ def job(config, service):
     finally:
         try:
             with transaction(config) as conn:
+                service_lock(conn,service)
                 status='COMPLETED' if outcome['exit_code']==0 else 'FAILED'
-                written=materialised(conn,run)
-                if not written and (status=='FAILED' or outcome.get('effect')):
+                owns=owned(conn,run)
+                state=job_run_state(conn,run)
+                if owns and state is None and (status=='FAILED' or outcome.get('effect')):
                     materialise(conn,run)
-                    written=True
+                    state='RUNNING'
+                # Only this run's own open record is closed. A run retired by another process (its job run
+                # INTERRUPTED, the heartbeat renamed) is left exactly as the retiring process wrote it: no
+                # completed/failed after interrupted, no second RUNNING run, no heartbeat write.
+                written=state=='RUNNING'
                 if written:
                     summary=dict(outcome,**({'reference_reads':run['reads']} if run['reads'] else {}))
                     event(conn,run['op'],status.lower(),summary,state=status)
-                    conn.execute('UPDATE runtime.job_runs SET state=%s,finished_at=clock_timestamp(),summary=summary || %s::jsonb WHERE run_id=%s',
-                        (status,canonical(summary),run['op']))
-                conn.execute('''UPDATE runtime.service_heartbeats SET state=%s,last_outcome=%s,last_finished_at=clock_timestamp(),exit_code=%s,
-                    consecutive_noop=CASE WHEN %s THEN 0 ELSE consecutive_noop+1 END,
-                    last_effect_at=CASE WHEN %s THEN clock_timestamp() ELSE last_effect_at END,materialised=%s,updated_at=clock_timestamp()
-                    WHERE service_name=%s AND operation_id=%s AND state='RUNNING' ''',
-                    (status,status,outcome['exit_code'],written,written,written,service,run['op']))
+                    conn.execute('''UPDATE runtime.job_runs SET state=%s,finished_at=clock_timestamp(),summary=summary || %s::jsonb
+                        WHERE run_id=%s AND state='RUNNING' ''',(status,canonical(summary),run['op']))
+                if owns:
+                    conn.execute('''UPDATE runtime.service_heartbeats SET state=%s,last_outcome=%s,last_finished_at=clock_timestamp(),exit_code=%s,
+                        consecutive_noop=CASE WHEN %s THEN 0 ELSE consecutive_noop+1 END,
+                        last_effect_at=CASE WHEN %s THEN clock_timestamp() ELSE last_effect_at END,materialised=%s,updated_at=clock_timestamp()
+                        WHERE service_name=%s AND operation_id=%s AND state='RUNNING' ''',
+                        (status,status,outcome['exit_code'],written,written,written,service,run['op']))
         finally:
             JOB.reset(job_token)
             PARENT.reset(token)
