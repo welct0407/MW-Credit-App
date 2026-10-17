@@ -1,5 +1,5 @@
 {
-  "revision": 27,
+  "revision": 28,
   "default_policy": "deny",
   "services": {
     "receipt_evidence": {
@@ -72,6 +72,10 @@
     },
     "shared_receipt_payment_api": {
       "enabled": false,
+      "implemented": true
+    },
+    "audit_relay": {
+      "enabled": true,
       "implemented": true
     }
   }
