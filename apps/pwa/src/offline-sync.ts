@@ -22,6 +22,7 @@ export function savedRejectionMessage(result:{code?:string;data?:any},thai:boole
   invalid_reference:['A related record is missing or invalid.','รายการอ้างอิงหายไปหรือไม่ถูกต้อง'],
   invalid_request:['The submitted details are invalid.','รายละเอียดที่ส่งไม่ถูกต้อง'],
   borrower_name_exists:['A borrower with this name already exists.','มีผู้กู้ชื่อนี้แล้ว'],
+  borrower_name_required:['Add the borrower name before creating a loan.','กรุณาใส่ชื่อผู้กู้ก่อนสร้างสินเชื่อ'],
   account_unavailable:['The selected account is unavailable.','บัญชีที่เลือกไม่สามารถใช้งานได้'],
   selection_changed:['The selected charges changed.','ยอดเรียกเก็บที่เลือกเปลี่ยนแล้ว'],
   plan_changed:['The payment allocation changed.','การจัดสรรยอดรับชำระเปลี่ยนแล้ว'],

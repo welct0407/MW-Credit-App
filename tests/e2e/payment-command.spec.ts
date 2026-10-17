@@ -174,7 +174,7 @@ test('G07 pending-reference storage refusal warns; sign-out is blocked while que
  await expect(page.getByText('Saved on this device. Will sync when connected.',{exact:true})).toBeVisible();
  // APP-OFFLINE-02: the queued payment blocks sign-out; APP-OFFLINE-01: an involuntary 401 expires the session but keeps pending:* rows.
  const viewport=page.viewportSize()!;if(viewport.width<=1050)await page.setViewportSize({...viewport,width:1440});
- await expect(page.getByRole('button',{name:'Sync 1 pending first',exact:true}).filter({visible:true})).toBeDisabled();await expect(page.getByRole('button',{name:/^(Sign out|ออกจากระบบ)$/})).toHaveCount(0);
+ const signOut=page.getByRole('button',{name:'Sign out',exact:true}).filter({visible:true});await expect(signOut).toBeDisabled();await expect(signOut).toHaveAccessibleDescription('1 saved change not synced yet. Sync before signing out.');
  if(viewport.width<=1050)await page.setViewportSize(viewport);
  const pending=()=>page.evaluate(async()=>{const {ownerOfflineRepository}=await import('/apps/pwa/src/owner-offline.ts');const repo=ownerOfflineRepository({issuer:'https://securetoken.google.com/clever-oasis-508610-n7',uid:'synthetic-owner'});return {pending:(await repo.list('pending')).map((row:any)=>row.value.command.requestId),authorized:await repo.authorized()}});
  expect((await pending()).pending).toEqual([reference]);
@@ -191,7 +191,7 @@ test('G07 offline before confirmation retains review without dispatching an unco
  });
  await setup(page);await page.locator('.collection-tile-main').first().click();await page.getByRole('button',{name:'Receive selected charges'}).click();await page.getByRole('combobox',{name:/^Receiving account(?: \*)?$/}).selectOption('synthetic-account');await page.getByRole('textbox',{name:/^Amount received(?: \*)?$/}).fill('110');await page.locator('.payment-allocation-row input[type=checkbox]').first().check();
  await page.getByRole('button',{name:'Review payment'}).click();await context.setOffline(true);
- await expect(page.locator('.selected-payment')).toBeVisible();await expect(page.getByRole('button',{name:'Confirm payment'})).toBeEnabled();await expect(page.locator('.selected-payment')).toContainText('฿110');
+ await expect(page.locator('.selected-payment')).toBeVisible();await expect(page.getByRole('button',{name:'Save for sync',exact:true})).toBeEnabled();await expect(page.locator('.selected-payment')).toContainText('฿110');
  expect(posts).toBe(0);await context.setOffline(false);expect(posts).toBe(0);
 });
 

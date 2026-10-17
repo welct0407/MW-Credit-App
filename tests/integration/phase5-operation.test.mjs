@@ -190,3 +190,21 @@ test('standalone source lists use stable root cursors and full payment groups',a
  const payments=await store.recordList(principal,'payments',{limit:1});assert.equal(payments.status,200,JSON.stringify(payments));assert.equal(payments.level,'borrowers');const borrowerId=payments.items[0].borrowerId;const months=await store.recordList(principal,'payments',{borrowerId,limit:1});assert.equal(months.status,200,JSON.stringify(months));assert.equal(months.level,'months');assert.ok(months.items.length);const rows=await store.recordList(principal,'payments',{borrowerId,month:months.items[0].month??'undated',limit:1});assert.equal(rows.status,200,JSON.stringify(rows));assert.equal(rows.level,'payments');assert.equal(rows.items.length,1);
  const literal=await store.recordList(principal,'loans',{q:'%_'});assert.equal(literal.status,200);assert.equal(literal.items.length,0);
 });
+test('W5 the borrower name is mandatory for create and update, and a loan is refused for a stored nameless borrower (nothing recorded)',async()=>{
+ const fixture=await seedPaymentFixture(admin,'4A-OP-NAME');await admin.query('UPDATE "Partners" SET "Login Email"=$1 WHERE "Row ID"=$2',[OWNER_EMAIL,fixture.actorId]);
+ const principal={ok:true,email:OWNER_EMAIL,subject:'operation-owner'},store=createApplicationRoleCommandStore({pool:app,targetAttestation:proof,ownerTesting:true});
+ const day=(await admin.query("SELECT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date::text AS day")).rows[0].day;
+ const fields=name=>({name,description:'Synthetic',communicationName:null,instagramUsername:null,city:null,workingLocation:null,address:null,hidden:false,referrerId:null,preferredReceivingAccountId:null,note:null});
+ const op=(operation,targetId,inputs,expectedVersion=null)=>({requestId:randomUUID(),operation,targetId,expectedVersion,predecessorRequestId:null,inputs,receiptId:null});
+ const refused=async command=>{const result=await store.operation(principal,command);assert.equal(result.status,422,JSON.stringify(result));assert.equal(result.code,'borrower_name_required');assert.equal((await store.status(principal,command.requestId)).kind,'unresolved')};
+ for(const blank of [null,'','  '])await refused(op('borrower.create',randomUUID(),fields(blank)));
+ const named=randomUUID();assert.equal((await store.operation(principal,op('borrower.create',named,fields('W5 named borrower')))).originalOutcome.status,'applied');
+ const current=await store.borrowerRecord(principal,named);for(const blank of [null,' '])await refused(op('borrower.update',named,fields(blank),current.item.version));
+ assert.equal((await store.borrowerRecord(principal,named)).item.name,'W5 named borrower');
+ assert.equal((await store.borrowerRecord(principal,named,'edit',{expectedVersion:current.item.version,fields:fields('')})).code,'borrower_name_required');
+ // An existing borrower stored without a name (created before the rule) cannot get a loan until it is named.
+ const legacy=randomUUID();await admin.query('INSERT INTO "Borrowers" ("Row ID","Borrower Name","Creation Date") VALUES ($1,NULL,(CURRENT_TIMESTAMP AT TIME ZONE \'Asia/Bangkok\')::date)',[legacy]);
+ const loan=borrowerId=>op('loan.create',randomUUID(),{borrowerId,loanDate:day,principal:'100',transferFee:'0',disbursingAccountId:fixture.lendingAccountId,type:'ดอกเบี้ยรายวัน',dueDate:null,dailyPayment:null,fixedInterest:null,currentDailyInterest:'5',paymentInterval:1,arrangement:null,autoChargeEnabled:false});
+ await refused(loan(legacy));assert.equal((await admin.query('SELECT count(*)::int n FROM "Loans" WHERE "Ref Borrowers"=$1',[legacy])).rows[0].n,0);
+ assert.equal((await store.operation(principal,loan(named))).originalOutcome.status,'applied');
+});

@@ -19,7 +19,7 @@ async function openDetails(page:Page,id:string,caseName='queue-list'){
 }
 test('attempted blocked row without a recorded rejection can be discarded after the unknown-result warning',async({page})=>{
  await harness(page);const id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';await seed(page,{id,attempted:true,rejected:false});
- expect(await guard(page)).toEqual({disabled:true,label:'Sync 1 pending first'});
+ expect(await guard(page)).toEqual({disabled:true,label:'Sign out',note:'1 saved change not synced yet. Sync before signing out.'});
  await openDetails(page,id);
  const remove=page.getByRole('button',{name:'Remove saved change',exact:true});await expect(remove).toBeVisible();
  const messages:string[]=[];

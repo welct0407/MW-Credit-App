@@ -365,6 +365,15 @@
     - "https://github.com/welct0407/MW-Credit-App/blob/327aa25d58867d280d148aee3991cf386c4be244/apps/pwa/src/preference-save.ts"
     - "https://github.com/welct0407/MW-Credit-App/blob/327aa25d58867d280d148aee3991cf386c4be244/apps/pwa/src/CashWorkspace.tsx"
     - "https://github.com/welct0407/MW-Credit-App/blob/327aa25d58867d280d148aee3991cf386c4be244/apps/pwa/src/live-main.tsx"
+    "borrower_name": "Owner rule (17 October 2026, R068 W5): every borrower has a non-blank name. Borrower create/update with\
+      \ a blank name returns 422 borrower_name_required before any write (services/business/borrowers.mjs, services/payment-command/store.mjs,\
+      \ also for the agent conversation API). Loan create for a borrower whose stored name is blank returns 422 borrower_name_required,\
+      \ checked after the governed operation applied while it holds the borrower lock; the transaction is rolled back so nothing\
+      \ is recorded. Recorded requests replay their stored outcome. PWA: name is required (' *'), Save is blocked, New loan\
+      \ is disabled on a nameless borrower. No SQL change: the column stays nullable and existing nameless borrowers were\
+      \ not counted (database not reachable); they must be named on their next edit and cannot get a loan until then. Not\
+      \ covered: the borrower-list 'New loan for ...' shortcut (the server refuses instead). The server part is live only\
+      \ with the R068 runtime image."
   "disbursing_partner_rule": "Loan disbursement accounts are the active Cash Accounts of holder ch:lisa (GET /api/loan-options,\
     \ services/payment-command/store.mjs). The management expense reference lists expenses paid by holder ch:tommy (apps/pwa/src/ManagementExpenseReference.tsx).\
     \ Changing the disbursing partner requires a code release."
@@ -680,4 +689,9 @@
     "reference": "R063 Wave 3 app branch (claude/review-w3-app); owner decisions 16 October 2026; source read at the cited\
       \ paths"
     "reason": "APP-PAY-07 disbursing-partner rule"
+    "state": "value"
+  "/content/editable_settings/borrower_name":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/0fdf49a4458ee368adced58de3656e291df64192/services/business/borrowers.mjs"
+    "reason": "Owner decision 17 October 2026: borrower name mandatory (W5, source 0fdf49a); behaviour rule only, no schema\
+      \ change."
     "state": "value"

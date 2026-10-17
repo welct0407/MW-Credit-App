@@ -1,8 +1,8 @@
 import {test,expect,type Page} from '@playwright/test';
 import {signOut} from './live-controls';
 import {spawn,type ChildProcess} from 'node:child_process';
-// APP-OFFLINE-02: while unsynced saved requests exist the Sign out button is disabled and reads "Sync N pending first", with
-// "Sync saved changes" and "Review saved changes" beside it; logout() re-checks and fails closed. A denied (403) session keeps the
+// APP-OFFLINE-02 / APP-UX-SETTINGS-05: while unsynced saved requests exist the Sign out button is disabled and described by a note
+// ("N saved change(s) not synced yet…"), with "Sync now" and "Review saved changes" beside it below a divider; logout() re-checks and fails closed. A denied (403) session keeps the
 // saved-changes screen reachable, and a same-UID re-sign-in gets a working repository without a reload.
 let server:ChildProcess,base:string;
 test.beforeAll(async({},info)=>{const port=5400+info.workerIndex;base=`http://127.0.0.1:${port}`;server=spawn(process.execPath,['--input-type=module','-e',`import {createServer} from 'vite';const s=await createServer({mode:'live-dev',cacheDir:'node_modules/.cache/playwright-live-signout-${port}',server:{host:'127.0.0.1',port:${port},strictPort:true}});await s.listen();`],{env:{...process.env,VITE_FIREBASE_PROJECT_ID:'clever-oasis-508610-n7',VITE_FIREBASE_AUTH_DOMAIN:'clever-oasis-508610-n7.firebaseapp.com',VITE_FIREBASE_API_KEY:'synthetic-public-test-key',VITE_FIREBASE_APP_ID:'synthetic-app-id',VITE_API_ORIGIN:'https://mw-credit-app-read-dev-test.run.app',VITE_COMMAND_API_ORIGIN:'https://mw-credit-app-command-dev-test.run.app',VITE_COMMAND_MODE:'dev-owner-testing'},stdio:'pipe'});await expect.poll(async()=>{try{return(await fetch(base)).status}catch{return 0}},{timeout:20000}).toBe(200)});
@@ -31,12 +31,16 @@ test('sign-out is blocked with sync and review affordances until the saved reque
  const routes=await setup(page);await seedPending(page);
  await page.evaluate(()=>(window as any).emitUser());
  await account(page);
- const blocked=page.getByRole('button',{name:'Sync 1 pending first',exact:true}).filter({visible:true});
+ const blocked=page.getByRole('button',{name:'Sign out',exact:true}).filter({visible:true});
  await expect(blocked).toBeVisible();await expect(blocked).toBeDisabled();await expect(blocked).toHaveAttribute('aria-disabled','true');
- await expect(page.getByRole('button',{name:'Sign out',exact:true}).filter({visible:true})).toHaveCount(0);
+ await expect(blocked).toHaveAccessibleDescription('1 saved change not synced yet. Sync before signing out.');
+ await expect(page.getByText('1 saved change not synced yet. Sync before signing out.',{exact:true}).filter({visible:true})).toBeVisible();
  // Distinct accessible names: the header affordance never collides with the saved-changes screen's own "Sync now".
  await expect(page.getByRole('button',{name:'Sync now',exact:true})).toHaveCount(0);
- const syncSaved=page.getByRole('button',{name:'Sync saved changes',exact:true}).filter({visible:true});await expect(syncSaved).toBeVisible();
+ const syncSaved=page.getByRole('button',{name:/^Sync now, 1 saved change$/}).filter({visible:true});await expect(syncSaved).toBeVisible();await expect(syncSaved).toHaveText('Sync now');
+ // A divider and at least 12px separate the language choice from the sign-out group; the order is note, Sync now, Sign out, Review.
+ const group=page.locator('.live-account-signout-group').filter({visible:true});await expect(group).toHaveCSS('border-top-style','solid');expect(parseFloat(await group.evaluate(e=>getComputedStyle(e).paddingTop))+parseFloat(await group.evaluate(e=>getComputedStyle(e).marginTop))).toBeGreaterThanOrEqual(12);
+ expect(await group.locator(':scope > *').evaluateAll(es=>es.map(e=>e.className))).toEqual(['live-account-signout-note','secondary-button live-account-sync-now','secondary-button live-account-signout','secondary-button live-account-review-saved']);
  await expect(page.getByRole('button',{name:'Review saved changes',exact:true}).filter({visible:true})).toBeVisible();
  expect(await page.evaluate(()=>(window as any).signouts??0)).toBe(0);expect(await pendingRows(page)).toHaveLength(1);
  // Offline: the affordance reports that it is waiting for a connection instead of staying silent.
@@ -60,7 +64,7 @@ test('denied session keeps saved changes reviewable and a same-UID re-sign-in sy
  await expect(page.getByRole('heading',{name:'This account does not have access',exact:true})).toBeVisible();
  await expect.poll(async()=>(await pendingRows(page)).length).toBe(1);
  await account(page);
- const blocked=page.getByRole('button',{name:'Sync 1 pending first',exact:true}).filter({visible:true});await expect(blocked).toBeVisible();await expect(blocked).toBeDisabled();
+ const blocked=page.getByRole('button',{name:'Sign out',exact:true}).filter({visible:true});await expect(blocked).toBeVisible();await expect(blocked).toBeDisabled();await expect(blocked).toHaveAccessibleDescription(/^1 saved change not synced yet/);
  await page.getByRole('button',{name:'Review saved changes',exact:true}).filter({visible:true}).click();
  const region=page.getByRole('region',{name:'Saved unsynced changes',exact:true});await expect(region).toBeVisible();await expect(region).toContainText(id);
  await expect(region.getByText('Connect to verify this account before accessing saved records.',{exact:true})).toBeVisible();

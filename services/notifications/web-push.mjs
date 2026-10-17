@@ -4,7 +4,7 @@ const hash=value=>createHash('sha256').update(value).digest('hex');
 export function validateSubscription(value){
  if(!value||Object.keys(value).sort().join(',')!=='endpoint,expirationTime,keys'||!value.keys||Object.keys(value.keys).sort().join(',')!=='auth,p256dh')throw Error('invalid_subscription');
  let u;try{u=new URL(value.endpoint)}catch{throw Error('invalid_subscription')}
- const allowed=u.hostname==='fcm.googleapis.com'||/^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+push\.apple\.com$(?![\s\S])/.test(u.hostname)||u.hostname==='updates.push.services.mozilla.com';
+ const allowed=u.hostname==='fcm.googleapis.com'||/^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+push\.apple\.com$(?![\s\S])/.test(u.hostname)||u.hostname==='updates.push.services.mozilla.com'||/^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+notify\.windows\.com$(?![\s\S])/.test(u.hostname);
  if(!allowed||u.protocol!=='https:'||u.port||u.username||u.password||u.hash||value.endpoint.length>4096||u.href!==value.endpoint)throw Error('invalid_subscription');
  for(const [name,size]of [['p256dh',65],['auth',16]]){const v=value.keys[name];if(typeof v!=='string'||!/^[A-Za-z0-9_-]+$/.test(v)||Buffer.from(v,'base64url').length!==size||Buffer.from(v,'base64url').toString('base64url')!==v)throw Error('invalid_subscription');}
  if(Buffer.from(value.keys.p256dh,'base64url')[0]!==4)throw Error('invalid_subscription');

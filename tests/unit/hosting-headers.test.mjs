@@ -1,4 +1,4 @@
-import test from 'node:test';import assert from 'node:assert/strict';import {stat} from 'node:fs/promises';
+import test from 'node:test';import assert from 'node:assert/strict';import {readFile,stat} from 'node:fs/promises';
 import {hostingHeaders} from '../../scripts/hosting-headers.mjs';
 // APP-SEC-01: clickjacking and script-injection headers; APP-PERF-01: immutable hashed assets.
 const rule=(rules,glob)=>rules.find(r=>r.glob===glob)?.headers;
@@ -18,9 +18,14 @@ test('hashed assets are immutable; entry points stay no-store and come after the
  for(const mode of ['live-dev','live-prod']){
   const rules=hostingHeaders(mode);assert.equal(rule(rules,'/assets/**')['Cache-Control'],'public,max-age=31536000,immutable');
   for(const glob of ['/build-version.json','/sw.js','/manifest.webmanifest','/offline.html'])assert.equal(rule(rules,glob)['Cache-Control'],'no-store',glob);
+  assert.equal(rule(rules,'**')['Cache-Control'],'no-store');// '/', '/index.html' and SPA routes (rewrite to index.html)
   assert.ok(rules.findIndex(r=>r.glob==='/assets/**')>rules.findIndex(r=>r.glob==='**'));
  }
  assert.throws(()=>hostingHeaders('other'));
+});
+test('firebase.json mirrors the live DEV Hosting header rules exactly',async()=>{
+ const mirror=JSON.parse(await readFile(new URL('../../firebase.json',import.meta.url),'utf8')).hosting.headers;
+ assert.deepEqual(mirror.map(r=>({glob:r.source,headers:Object.fromEntries(r.headers.map(h=>[h.key,h.value]))})),hostingHeaders('live-dev'));
 });
 test('brand logos stay small after resizing',async()=>{
  for(const name of ['loan-manager-logo-dev-orange.png','loan-manager-logo-prod-pink.png'])assert.ok((await stat(new URL('../../apps/pwa/src/assets/'+name,import.meta.url))).size<100*1024,name);

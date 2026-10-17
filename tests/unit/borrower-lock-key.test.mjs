@@ -19,7 +19,8 @@ function client(){
 }
 async function locksFor(name){
  const c=client();const result=await mutateBorrowerRecord(c,'create',id,{fields:fieldsFor(name)},()=>{});
- assert.equal(result.ok,true);
+ // W5 owner rule: a blank name is refused, after the same lock statements ran.
+ if(name?.trim())assert.equal(result.ok,true);else assert.equal(result.code,'borrower_name_required');
  return c.calls.filter(call=>call.sql.includes('pg_advisory_xact_lock'));
 }
 for(const name of ['  Synthetic Borrower ','\tÉmile ','  ',null]){
