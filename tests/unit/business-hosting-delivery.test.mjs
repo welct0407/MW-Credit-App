@@ -5,7 +5,7 @@ import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {spawnSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
-import {executeBusinessHosting,appOnlyHostingPlan,verifyAppOnlyOperator,validateFrontendSource,validateFrontendCi,frontendOnlyHostingPlan,verifyFrontendOnlyLivePackage,validateSettingsSource,settingsHostingPlan,verifySettingsLivePackage,runtimeHostingPlan,validateRuntimeSource,validateRuntimeCi,verifyRuntimeLivePackage,waveHostingPlan,validateWaveSource,validateWaveCi,verifyWaveLivePackage,r065HostingPlan,validateR065Source,verifyR065LivePackage,hostingOnlyPlan,validateHostingOnlySource,verifyHostingOnlyLivePackage,r068HostingPlan,validateR068Source,verifyR068LivePackage} from '../../scripts/promotion/deploy-business-hosting.mjs';
+import {executeBusinessHosting,appOnlyHostingPlan,verifyAppOnlyOperator,validateFrontendSource,validateFrontendCi,frontendOnlyHostingPlan,verifyFrontendOnlyLivePackage,validateSettingsSource,settingsHostingPlan,verifySettingsLivePackage,runtimeHostingPlan,validateRuntimeSource,validateRuntimeCi,verifyRuntimeLivePackage,waveHostingPlan,validateWaveSource,validateWaveCi,verifyWaveLivePackage,r065HostingPlan,validateR065Source,verifyR065LivePackage,hostingOnlyPlan,validateHostingOnlySource,verifyHostingOnlyLivePackage,r068HostingPlan,validateR068Source,verifyR068LivePackage,r069HostingPlan,validateR069Source,verifyR069LivePackage} from '../../scripts/promotion/deploy-business-hosting.mjs';
 const site='mw-credit-prod-737787224638',version=`sites/${site}/versions/abc123`,release=`sites/${site}/releases/xyz123`;
 const plan=()=>({site,files:{'/index.html':'a'.repeat(64)},contents:new Map([['a'.repeat(64),Buffer.from('compressed')]]),headers:[],sourceCommit:'b'.repeat(40),publicVersion:'marker'});
 function transport({target=version,hash='a'.repeat(64),upload='https://upload-firebasehosting.googleapis.com/upload/'+version+'/files',failFinalize=false}={}){const calls=[];return {calls,request:async(url,method,body)=>{calls.push({url,method,body});if(url.endsWith('/versions'))return {name:target};if(url.endsWith(':populateFiles'))return {uploadRequiredHashes:[hash],uploadUrl:upload};if(method==='PATCH'){if(failFinalize)throw Error('Finalize failed');return {name:version,status:'FINALIZED'};}if(url.includes('/releases?'))return {name:release,version:{name:version}};return {};}};}
@@ -375,4 +375,57 @@ test('R068 live verification re-reads CI, Cloud Build and the four services',asy
  await verifyR068LivePackage(m,{token:'t',request:make(),readGithub,git});
  await assert.rejects(verifyR068LivePackage(m,{token:'t',request:make('f'),readGithub,git}),/build digest/);
  await assert.rejects(verifyR068LivePackage(m,{token:'t',request:make(),readGithub:args=>{const r=readGithub(args);return args[1].includes('/jobs')?{jobs:r.jobs.filter(j=>j.name!=='terraform')}:r;},git}),/R068 full CI missing executed terraform/);
+});
+
+// R069: one image on all four services on the unchanged V95 (no migration).
+const r068Release='73a44200320135c2c135680b396f9ff8d64c9732';
+function r069Git({source,tool=source,changed={},delivery='',dirty='',untracked='',migration=''}={}){
+ return (_root,args)=>{
+  if(args[0]==='rev-parse')return args[1]==='HEAD'?tool:args[1];
+  if(args[0]==='merge-base')return args[1];
+  if(args[0]==='ls-files')return untracked;
+  if(args[0]==='diff'){
+   if(args[2]===r068Release&&args[3]===source)return migration;
+   if(args[2]===source&&args[3]===tool&&!args.includes('--'))return delivery;
+   if(args[3]===source)return changed[args[2]]??'';
+   return dirty;
+  }
+  throw Error('Unexpected synthetic Git command '+args);
+ };
+}
+async function r069Package(t){
+ const p=await wavePackage(t),m=p.m;
+ Object.assign(m,{schemaVersion:10,release:'R069',sourceBaseline:r068Release,sql:{baselineVersion:95,targetVersion:95,migrations:[],verified:{database:'loan_manager_prod',latestVersion:'95',historyRows:95,allSuccessful:true,verifiedAt:'2026-10-17T10:16:33Z'}}});
+ m.applied.sqlVersion=95;m.applied.appliedAt='2026-10-17T10:18:21Z';
+ return p;
+}
+test('R069 package validates and rejects SQL, plan, CI, readback and artifact tampering',async t=>{
+ const {m,source,tool}=await r069Package(t),git=r069Git({source,tool});
+ const plan=await r069HostingPlan(m,{git});assert.equal(plan.site,site);assert.equal(plan.rollback.hostingVersion,m.rollback.hostingVersion);
+ for(const [mutate,pattern] of [[x=>x.sql.targetVersion=96,/R069 requires verified V95/],[x=>x.sql.migrations=[{name:'V96__x.sql'}],/V95/],[x=>x.sql.verified.latestVersion='94',/V95/],[x=>x.sql.verified.historyRows=94,/V95/],[x=>x.sql.verified.allSuccessful=false,/V95/],[x=>delete x.sql.verified.verifiedAt,/V95/],[x=>x.applied.sqlVersion=94,/R069 applied source/],[x=>delete x.applied.appliedAt,/R069 applied source/],[x=>x.plan.actions.push('command.maxInstances'),/R069 reviewed four-image plan/],[x=>x.plan.counts.change=5,/four-image plan/],[x=>x.rollback.services.read.image=x.build.image,/recovery pin/],[x=>x.applied.services.notify.revision=x.rollback.services.notify.revision,/R069 ready service/],[x=>x.applicationCi.full.jobs.splice(1,1),/R069 full CI missing executed e2e/],[x=>x.applicationCi.database.run.conclusion='failure',/R069 successful database CI/],[x=>x.build.sourceCommit='4'.repeat(40),/provenance/],[x=>x.target.connectionName='clever-oasis-508610-n7:asia-southeast1:appsheet-pg-prod-20260914',/target/],[x=>x.frontend.files[0].sha256='d'.repeat(64),/artifact/],[x=>x.release='R068',/package kind/],[x=>x.schemaVersion=9,/package kind/]]){const candidate=structuredClone(m);mutate(candidate);await assert.rejects(r069HostingPlan(candidate,{git}),pattern);}
+ const prepared={...structuredClone(m),status:'prepared'};await assert.rejects(r069HostingPlan(prepared,{git}),/apply\/readback/);assert.equal((await r069HostingPlan(prepared,{git,requireApplied:false})).site,site);
+ await assert.rejects(r068HostingPlan(m,{git}),/package kind/);
+});
+test('R069 source carries no migration from R068; the delivery commit may add this README',async t=>{
+ const {m,source,tool}=await r069Package(t);
+ const toolFiles='scripts/promotion/deploy-business-hosting.mjs\ntests/unit/business-hosting-delivery.test.mjs\nscripts/promotion/README.md\nproject/Documents/Release_Tracker.md';
+ assert.doesNotThrow(()=>validateR069Source(m,r069Git({source,tool,delivery:toolFiles})));
+ for(const file of ['services/business/borrowers.mjs','scripts/database/Backup-ProductionPromotion.py'])assert.throws(()=>validateR069Source(m,r069Git({source,tool,delivery:file})),/R069 unverified delivery/);
+ assert.throws(()=>validateR069Source(m,r069Git({source,tool,migration:'database/migrations/V96__x.sql'})),/R069 carries no migration/);
+ assert.throws(()=>validateR069Source({...m,sourceBaseline:r067Release},r069Git({source,tool})),/R069 source\/baseline/);
+ assert.throws(()=>validateR069Source(m,r069Git({source,tool,dirty:'apps/pwa/src/live-main.tsx'})),/R069 working input/);
+ assert.throws(()=>validateR069Source(m,r069Git({source,tool,untracked:'services/new.mjs'})),/R069 untracked/);
+ const atTool=structuredClone(m.applicationCi);for(const kind of ['full','check'])atTool[kind].run.head_sha=tool;m.applicationCi=atTool;
+ assert.equal((await r069HostingPlan(m,{git:r069Git({source,tool,delivery:toolFiles})})).site,site);
+ await assert.rejects(r069HostingPlan(m,{git:r069Git({source,tool,delivery:toolFiles+'\napps/pwa/src/live-main.tsx',changed:{[tool]:'apps/pwa/src/live-main.tsx'}})}),/R069 unverified delivery/);
+});
+test('R069 live verification re-reads CI, Cloud Build and the four services',async t=>{
+ const {m,source,tool,image}=await r069Package(t),git=r069Git({source,tool});
+ const project='clever-oasis-508610-n7';
+ const service=role=>({name:`projects/${project}/locations/asia-southeast1/services/mw-credit-app-${role}-prod`,latestReadyRevision:'x/'+m.applied.services[role].revision,terminalCondition:{state:'CONDITION_SUCCEEDED'},trafficStatuses:[{percent:100,revision:m.applied.services[role].revision}],template:{serviceAccount:`mw-credit-app-${role}-prod@${project}.iam.gserviceaccount.com`,containers:[{image,env:[{name:'DB_NAME',value:'loan_manager_prod'},{name:'INSTANCE_CONNECTION_NAME',value:m.target.connectionName},{name:'DB_USER',value:`mw-credit-app-${role}-prod@${project}.iam`},...(role==='command'?[{name:'PWA_NOTIFICATIONS',value:'enabled'}]:[]),...(['notify','jobs'].includes(role)?[{name:'WORKER_CALLER_SUBJECTS_JSON',value:JSON.stringify({'a@b':'114454898477847610024'})}]:[])]}]}});
+ const make=(digest='e')=>async url=>({ok:true,json:async()=>url.includes('cloudbuild')?{status:'SUCCESS',results:{images:[{name:`asia-southeast1-docker.pkg.dev/${project}/mw-credit-app-prod/api:build-1`,digest:'sha256:'+digest.repeat(64)}]},source:{storageSource:m.build.storageSource}}:service(url.split('/services/mw-credit-app-')[1].replace('-prod',''))});
+ const readGithub=args=>{const id=Number(args[1].split('/runs/')[1].split('/')[0]),kind={11:'full',12:'check',13:'database'}[id],r=m.applicationCi[kind];return args[1].includes('/jobs')?{jobs:r.jobs}:r.run;};
+ await verifyR069LivePackage(m,{token:'t',request:make(),readGithub,git});
+ await assert.rejects(verifyR069LivePackage(m,{token:'t',request:make('f'),readGithub,git}),/build digest/);
+ await assert.rejects(verifyR069LivePackage(m,{token:'t',request:make(),readGithub:args=>{const r=readGithub(args);return args[1].includes('/jobs')?{jobs:r.jobs.filter(j=>j.name!=='terraform')}:r;},git}),/R069 full CI missing executed terraform/);
 });
