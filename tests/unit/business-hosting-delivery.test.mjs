@@ -355,7 +355,7 @@ test('R068 package validates and rejects SQL, plan, CI, readback and artifact ta
 });
 test('R068 source carries only V94 and V95 from R067; the delivery commit may add the backup tool',async t=>{
  const {m,source,tool}=await r068Package(t);
- const toolFiles='scripts/promotion/deploy-business-hosting.mjs\ntests/unit/business-hosting-delivery.test.mjs\nscripts/database/Backup-ProductionPromotion.py\nproject/Documents/Release_Tracker.md';
+ const toolFiles='scripts/promotion/deploy-business-hosting.mjs\ntests/unit/business-hosting-delivery.test.mjs\nscripts/database/Backup-ProductionPromotion.py\nscripts/promotion/README.md\nproject/Documents/Release_Tracker.md';
  assert.doesNotThrow(()=>validateR068Source(m,r068Git({source,tool,delivery:toolFiles})));
  assert.throws(()=>validateR068Source(m,r068Git({source,tool,delivery:'services/business/borrowers.mjs'})),/R068 unverified delivery/);
  for(const migration of ['','database/migrations/V94__job_run_contract_and_shared_lock_key.sql','database/migrations/V94__job_run_contract_and_shared_lock_key.sql\ndatabase/migrations/V95__agent_role_session_pair.sql\ndatabase/migrations/V96__x.sql'])assert.throws(()=>validateR068Source(m,r068Git({source,tool,migration})),/V94 and V95/);

@@ -364,10 +364,11 @@ export async function verifyHostingOnlyLivePackage(m,{token,request=fetch,readGi
 
 // R068 (Wave 5): one image for reader/command/notify/jobs after the separately applied and
 // verified V94 and V95 (PROD 93 to 95); image-only plan. Source descends from the R067 release.
-// The delivery-tool commit may also carry the reviewed PROD backup tool used for that SQL apply.
+// The delivery-tool commit may also carry the reviewed PROD backup tool used for that SQL apply
+// and this runner's README.
 const r067Release='7f8ef5332be6b50988abca8efcf74a8657cd35a0';
 const r068Migrations=['V94__job_run_contract_and_shared_lock_key.sql','V95__agent_role_session_pair.sql'];
-const r068DeliveryAllowed=file=>runtimeDeliveryAllowed(file)||file==='scripts/database/Backup-ProductionPromotion.py';
+const r068DeliveryAllowed=file=>runtimeDeliveryAllowed(file)||['scripts/database/Backup-ProductionPromotion.py','scripts/promotion/README.md'].includes(file);
 const zulu=value=>typeof value==='string'&&value.endsWith('Z')&&Number.isFinite(Date.parse(value));
 export function validateR068Source(m,git=sourceGit){
  requireValue(/^[a-f0-9]{40}$/.test(m.sourceCommit??'')&&m.artifactSourceCommit===m.sourceCommit&&m.sourceBaseline===r067Release,'exact R068 source/baseline required');
