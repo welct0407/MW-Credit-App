@@ -4,8 +4,8 @@
 
 | Item | Current value |
 | --- | --- |
-| New product work | **R068 — Open** |
-| Next unused number | **R069**, only opened when authorized R068 promotion starts |
+| New product work | **R069 — Open** |
+| Next unused number | **R070**, only opened when authorized R069 promotion starts |
 | Current runtime baseline | [Environment inventory](Environment_Inventory.md) |
 
 All new features/fixes use the sole Open release. Freeze only at authorized promotion start, pin the package, then publish the next Open number in the same update. Frozen corrections stay with their release; new features use the successor. Do not reserve a second Open release or reuse a number. Documentation/governance changes do not allocate releases.
@@ -14,7 +14,8 @@ All new features/fixes use the sole Open release. Freeze only at authorized prom
 
 | Release | Status | Remaining action / owning record |
 | --- | --- | --- |
-| R068 | Open | New product work. Carries V94 (DB-LOCK-02 lease columns retired, DB-LOCK-03 shared lock key in SQL, reviewer 42501 reason) and V95 (reviewer/projector identity pair), both applied in DEV 17 October 2026 and PROD still V93; the borrower name-key fix (runtime image); agent 2b support (agent deploy); the 30 s and on-focus dataset refresh; and the Linux agent backup script tooling. DB-ACCESS-07 is done live (instance setting, not part of the package). R068 promotes once, together with Wave 5. Nothing frozen; [record](../../Change%20Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md#w4-follow-ups-17-october-2026). |
+| R069 | Open | New product work. Carries nothing from R068. |
+| R068 | Frozen; PROD promotion in progress | Owner instruction 17 October 2026 (Bangkok): "proceed with the remaining tasks", with the decision to promote R068 once together with Wave 5 after its branch merged (PR #51, 73a4420). Package pinned to `main` `73a4420`: V94 and V95 (PROD 93 to 95), one runtime image (borrower name-key fix, mandatory borrower name, WNS allowlist), Hosting (Wave 5 UX, 30 s and on-focus refresh), agent deploy with the ALL-ARCH-03 2b switch. Record in the W4 database note and Development_Changes. New product work. Carries V94 (DB-LOCK-02 lease columns retired, DB-LOCK-03 shared lock key in SQL, reviewer 42501 reason) and V95 (reviewer/projector identity pair), both applied in DEV 17 October 2026 and PROD still V93; the borrower name-key fix (runtime image); agent 2b support (agent deploy); the 30 s and on-focus dataset refresh; and the Linux agent backup script tooling. DB-ACCESS-07 is done live (instance setting, not part of the package). R068 promotes once, together with Wave 5. Nothing frozen; [record](../../Change%20Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md#w4-follow-ups-17-october-2026). |
 | R056 | Frozen; V91 deployed | Lisa enrollment retry/closure; [record](../outputs/r056-apple-push/README.md) |
 | R055 | Frozen; monitoring delivered | Carried credential work unfinished; [record](../outputs/r055-grafana/continuation.md) |
 | R016 | Owner-accepted reporting; administrative follow-up | Migration-key retirement evidence/final tag unresolved; do not reopen product development |
