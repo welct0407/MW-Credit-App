@@ -16,7 +16,7 @@
 | Lease columns of `pwa_job_runs` (DB-LOCK-02) | Done in V94 (DEV, 17 October 2026); PROD pending owner instruction |
 | SQL adoption of `pwa_lock_key_v1` (DB-LOCK-03) | Done in V94 (DEV, 17 October 2026); PROD pending owner instruction |
 | Agent migration V5 (indexes on `runtime.operation_state(last_event_id)` and `runtime.job_runs(operation_id)`) | Recommended, not written |
-| `backup-agent-database.py` on Linux | Done (`4ed32a2`); needs a source `sslmode` option, because since DB-ACCESS-07 it reaches `mw_agent` only through the tunnel to the host's Auth Proxy, which rejects `sslmode=require` (R069 used a local wrapper for 127.0.0.1:15432) |
+| `backup-agent-database.py` on Linux | Done (`4ed32a2`); `--source-sslmode disable` for the loopback Auth Proxy tunnel added 17 October 2026 (TLS stays the default; R069 had used a local wrapper) |
 | Repository merge follow-ups (15 October 2026) | [Change note](../../Change%20Logs/CHANGE_NOTES_REPOSITORY_MERGE_2026-10-15.md) |
 
 Use the [release tracker](Release_Tracker.md), including the carried R016 administrative follow-up. Current runtime versions belong in [environment inventory](Environment_Inventory.md). Update this page for actual outstanding work, not completed-release history.
@@ -65,7 +65,7 @@ R065 pending-flash fix (UI-only, Released 17 October 2026, DEV and PROD Hosting 
 - **Hosting.** Package SHA256 `efcce1a6c3cc7c12f5245b63a332131a8bf4fdacf2337e4f6bd46e3570bed25c`, applied 10:29:47 to 10:30:21Z as `mw-credit-unattended-admin`: version `45b116152dc0e997`, release `1792233014298000`, public version `24c8f42ae18f57071002d2fa`, entry `/assets/index-Dw-jQdMd.js`, 15 of 15 files byte-identical on `lm.mw-credit.com` and the `web.app` host; rollback version `708a6c496a812a3b`.
 - **Agent.** `mw_agent` dump 75,766,762 bytes, SHA256 `a895222d…`, restore check 32 tables and 1,052,570 rows; D3 freeze 10:25:01 to 10:25:06Z; agent V6 (`runtime.service_heartbeats`, checksum `2253bbfd…`) at 10:25:46Z, grants as designed; install 10:26:04Z, activation 10:26:29Z, `code_version` `1feb6cd` (`integration-agent/` tree identical to `9c4a4cb`), `/ready` 200, six timers resumed after about 88 s. First 10 minutes against the 10 before: no-op JOB trees 63 to 0, receipt-cycle trees 25 to 0, separate reference reads 54 to 2, audit events 386 to 64; heartbeats for five services; materialised runs normal with summarised reference reads; 0 journal errors. Rollback: `deploy-runtime.py rollback --commit 1feb6cd…` (restores `679a76c` from `runtime-20261017T102501647216Z`; V6 stays).
 - **Checks.** CI Development checks 39023581108 (`b2b9eca`) and full manual run 39024618441 (`1feb6cd`, all e2e shards and Terraform); Database 39021808733 (`ba52508`, unchanged since); `npm test` 563 of 563, borrower e2e 70 of 70, runner tests 33 of 33; agent unit 523, lab 89, empty-server 19 passed.
-- **Records.** Private package, pins, activations, plans, receipts and agent backup under `~/.mw-private/MW-Credit-App/promotion/r069/`, copies in `gs://mw-credit-operator-private-737787224638/promotion-packages/r069/`. Not verified: authenticated PROD path and a physical device. Follow-up: `backup-agent-database.py` source `sslmode` option.
+- **Records.** Private package, pins, activations, plans, receipts and agent backup under `~/.mw-private/MW-Credit-App/promotion/r069/`, copies in `gs://mw-credit-operator-private-737787224638/promotion-packages/r069/`. Not verified: authenticated PROD path and a physical device. Follow-up done: `backup-agent-database.py --source-sslmode`.
 
 ## R068 production promotion
 
