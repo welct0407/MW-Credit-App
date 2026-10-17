@@ -14,7 +14,7 @@ All new features/fixes use the sole Open release. Freeze only at authorized prom
 
 | Release | Status | Remaining action / owning record |
 | --- | --- | --- |
-| R071 | Open | No work yet. |
+| R071 | Open | UX-HOLD-03 (list swaps also wait under a resting mouse or keyboard focus on a row) and UX-HOLD-08 (paused banner names the failed sections) on `claude/r070-ux-hold` `e63c90c`, Hosting-only, not deployed; payment font review on `claude/r070-review-button`. Plan (R070 main session): merge after R070 is Released, font review first, then one DEV Hosting deploy of `main` for the owner; [record](Development_Changes.md#r071-refresh-hold-on-a-computer-and-named-paused-sections). |
 | R070 | Frozen 17 October 2026 11:46Z (18:46 Bangkok) | IndexedDB reconnect hotfix, Hosting-only on the R069 runtime and V95. Owner instruction 17 October 2026 (Bangkok) "The prod app is not able to sync the changes. Check urgently and push a hot fix if possible". Package `main` `047ec6b` (source), delivery tool `d7959ae` (runner schema 11); full CI 39029839622; DEV then PROD Hosting; [record](Development_Changes.md#r070-indexeddb-reconnect-hotfix). |
 | R056 | Frozen; V91 deployed | Lisa enrollment retry/closure; [record](../outputs/r056-apple-push/README.md) |
 | R055 | Frozen; monitoring delivered | Carried credential work unfinished; [record](../outputs/r055-grafana/continuation.md) |
