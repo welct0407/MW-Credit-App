@@ -5,8 +5,8 @@ type Access={origin:string;offline?:OwnerOfflineRepository;offlineOnly?:boolean;
 const domains=['records','collection','cash','management','notifications'] as const;
 /** foreground: a screen is waiting on this sync (SYNC-UX-02 shows progress only then or before the first complete download). */
 /** failedDomains: the data domains whose last check failed, sorted and comma-joined (receipts are never listed). */
-export type OfflinePreparation={state:'idle'|'preparing'|'ready'|'incomplete';completed:number;total:number;progress:number;chunks:number;syncActive:boolean;updating:boolean;updateFailed:boolean;failedDomains:string;lastChecked:number|null;foreground:boolean};
-const idle:OfflinePreparation={state:'idle',completed:0,total:domains.length,progress:0,chunks:0,syncActive:false,updating:false,updateFailed:false,failedDomains:'',lastChecked:null,foreground:false};
+export type OfflinePreparation={state:'idle'|'preparing'|'ready'|'incomplete';completed:number;total:number;progress:number;chunks:number;syncActive:boolean;domainsPending:boolean;updating:boolean;updateFailed:boolean;failedDomains:string;lastChecked:number|null;foreground:boolean};
+const idle:OfflinePreparation={state:'idle',completed:0,total:domains.length,progress:0,chunks:0,syncActive:false,domainsPending:false,updating:false,updateFailed:false,failedDomains:'',lastChecked:null,foreground:false};
 const states=new Map<string,OfflinePreparation>(),listeners=new Set<()=>void>();
 export const getOfflinePreparation=(scopeName?:string)=>scopeName?states.get(scopeName)??idle:idle;
 export const subscribeOfflinePreparation=(listener:()=>void)=>{listeners.add(listener);return()=>{listeners.delete(listener)}};
@@ -87,7 +87,7 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
  const failedDomains=()=>domains.filter(domain=>failed.has(domain));
  const domainRunning=()=>running&&!!activeTask&&!isMediaTask(activeTask);
  const syncActive=()=>navigator.onLine&&!access.offlineOnly&&!paused&&document.visibilityState!=='hidden'&&(running||queue.length>0&&(activitySnapshot()===0||!!requestedDomain));
- const status=()=>publish(repo.scopeName,{state:domains.every(domain=>completed.has(domain))&&media.every(path=>completed.has(path)||quietMedia.has(path))?'ready':paused?'incomplete':queue.length||running?'preparing':'incomplete',completed:completed.size,total:domains.length+media.length,progress:progress(),syncActive:!!syncActive(),updating:domains.every(domain=>completed.has(domain))&&!!syncActive(),updateFailed:domains.every(domain=>completed.has(domain))&&failedDomains().length>0,failedDomains:failedDomains().join(','),lastChecked,foreground:requestedDomain!==null,chunks:[...chunkCounts.values()].reduce((sum,count)=>sum+count,0)});
+ const status=()=>publish(repo.scopeName,{state:domains.every(domain=>completed.has(domain))&&media.every(path=>completed.has(path)||quietMedia.has(path))?'ready':paused?'incomplete':queue.length||running?'preparing':'incomplete',completed:completed.size,total:domains.length+media.length,progress:progress(),syncActive:!!syncActive(),domainsPending:domainRunning()||queue.some(task=>!isMediaTask(task)),updating:domains.every(domain=>completed.has(domain))&&!!syncActive(),updateFailed:domains.every(domain=>completed.has(domain))&&failedDomains().length>0,failedDomains:failedDomains().join(','),lastChecked,foreground:requestedDomain!==null,chunks:[...chunkCounts.values()].reduce((sum,count)=>sum+count,0)});
  const ready=(domain:string,changed:boolean)=>window.dispatchEvent(new CustomEvent('mw-offline-dataset-ready',{detail:{scopeName:repo.scopeName,domain,changed}}));
  const failedEvent=(domain:string)=>window.dispatchEvent(new CustomEvent('mw-offline-dataset-failed',{detail:{scopeName:repo.scopeName,domain}}));
  const stale=(domain:string)=>Date.now()-(domainChecked.get(domain)??0)>=DATASET_RECHECK_MIN_MS;
@@ -241,6 +241,9 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
   else{
    // A receipt still downloading or retrying does not block a sync of the data domains (pump takes them first).
    if(!domainRunning()&&!queue.some(task=>!isMediaTask(task))&&event?.type==='mw-offline-prepare'&&!failedDomains().length){beginCycle(priority?[priority]:domains);for(const domain of cycleDomains)enqueue(domain)}
+   // A manual sync of everything (header refresh, Sync now: detail.all) also checks the domains that did not fail;
+   // a domain already queued or in flight is joined rather than fetched twice. The banner Retry still retries only failed work.
+   else if(detail?.all&&!priority&&event?.type==='mw-offline-prepare'){const targets=domains.filter(domain=>domain!==activeTask&&!queue.includes(domain));if(targets.length){if(domainRunning()||queue.some(task=>!isMediaTask(task)))for(const domain of targets){cycleDomains.add(domain);cycleDone.delete(domain);enqueue(domain)}else{beginCycle(targets);for(const domain of targets)enqueue(domain)}}}
    for(const task of [...failed])if(!background||!waiting(task)){failed.delete(task);enqueue(task)}
   }
   if(priority){cycleDomains.add(priority);cycleDone.delete(priority);fractions.delete(priority);queue=queue.filter(task=>task!==priority);enqueue(priority,true)}

@@ -287,8 +287,10 @@
       \ through final asOf is an interval of authoritative per-request reads, not a global MVCC snapshot. Old complete bundle\
       \ stays available across pause/failure/reconnect."
     "incremental": "Initial full protocol2 then content-only protocol3; canonical hashes ignore asOf and reuse existing content.\
-      \ Visible 60s poll, reconnect/focus detect other-user changes. Poll signals coalesce while an existing cycle remains\
-      \ active, including cycles longer than60s, preserving queues/cursors rather than adding endless work."
+      \ Visible 30s poll, reconnect/focus, the header refresh and Sync now detect other-user changes; the header refresh and\
+      \ Sync now check every domain, including domains that did not fail, and read Syncing… until the cycle completes, while\
+      \ the banner Retry retries only failed domains. Signals coalesce while an existing cycle remains active, including cycles\
+      \ longer than the poll, preserving queues/cursors rather than adding endless work."
     "source_gate": "Main domains hash raw source-table content/xmin with actor/day scope, testing sourceVersion at traversal\
       \ start/end; unchanged sources bypass DTO providers. Recipient notifications always scan protected manifests with sourceVersion=null,\
       \ no cheap source gate. No CDC/schema or universal snapshot claim."
@@ -531,9 +533,10 @@
       \ poll coalescing; API unchanged"
     "state": "value"
   "/content/offline_datasets/incremental":
-    "reference": "https://github.com/welct0407/MW-Credit-App/blob/283ac3c50ec4a1a98fca2af9c06b51693aa2e992/apps/pwa/src/offline-dataset.ts"
-    "reason": "Three UI/cycle corrections: Dashboard left-edge menu, active determinate percentage/offline hide, long-cycle\
-      \ poll coalescing; API unchanged"
+    "reference": "apps/pwa/src/offline-dataset.ts, live-main.tsx and SyncStatus.tsx on branch claude/r071-style-decisions\
+      \ (R071); e2e payment-command 'Header refresh also delta-syncs every local dataset domain'"
+    "reason": "R071 owner request 17 October 2026: the header refresh also delta-syncs the local dataset; poll interval corrected\
+      \ to the current 30 s"
     "state": "value"
   "/content/offline_datasets/source_gate":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/6a3cf8cde2710a45b0368bc7f177f21bdab2693c/apps/pwa/src/offline-dataset.ts"

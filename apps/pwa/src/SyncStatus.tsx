@@ -4,24 +4,28 @@ import type {OfflinePreparation} from './offline-dataset';
 const STALE_MS=10*60*1000,SYNCING_FALLBACK_MS=30000;
 const clock=(thai:boolean,at:number)=>new Intl.DateTimeFormat(thai?'th-TH':'en-GB',{hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(at));
 /** SYNC-UX-03: "Updated HH:MM" from the last completed check; after ~10 minutes it
- * reads "Saved data from HH:MM". Tapping it starts a manual sync of every domain
- * (mw-offline-prepare without a domain bypasses the recheck throttle) and reads
- * "Syncing…" until that cycle completes (SYNC-UX-R03). */
+ * reads "Saved data from HH:MM". Tapping it, or the header refresh, starts a manual sync
+ * of every domain (mw-offline-prepare with detail.all bypasses the recheck throttle and
+ * also checks domains that did not fail) and reads "Syncing…" until that cycle completes
+ * (SYNC-UX-R03). */
 export function SyncStatus({preparation,thai}:{preparation:OfflinePreparation;thai:boolean}){
- const [,tick]=useState(0),[requestedAt,setRequestedAt]=useState<number|null>(null),seenActive=useRef(false);
+ const [,tick]=useState(0),[requestedAt,setRequestedAt]=useState<number|null>(null),seenPending=useRef(false);
  useEffect(()=>{const timer=setInterval(()=>tick(value=>value+1),30000);return()=>clearInterval(timer)},[]);
+ useEffect(()=>{const manual=(event:Event)=>{if((event as CustomEvent).detail?.all&&navigator.onLine)setRequestedAt(current=>{if(current===null)seenPending.current=false;return current??Date.now()})};window.addEventListener('mw-offline-prepare',manual);return()=>window.removeEventListener('mw-offline-prepare',manual)},[]);
  useEffect(()=>{
   if(requestedAt===null)return;
-  if(preparation.syncActive)seenActive.current=true;
-  const finished=(preparation.lastChecked??0)>=requestedAt||seenActive.current&&!preparation.syncActive;
+  // Finished once the data domains it queued are checked: a check that was already in flight
+  // and completes first does not end it, and a queued domain waiting for a screen read still counts.
+  if(preparation.domainsPending)seenPending.current=true;
+  const finished=seenPending.current&&!preparation.domainsPending;
   if(finished){setRequestedAt(null);return}
   const timer=setTimeout(()=>setRequestedAt(null),SYNCING_FALLBACK_MS-(Date.now()-requestedAt));return()=>clearTimeout(timer);
- },[requestedAt,preparation.syncActive,preparation.lastChecked]);
+ },[requestedAt,preparation.domainsPending]);
  const at=preparation.lastChecked;if(at===null)return null;
  const syncing=requestedAt!==null,stale=!syncing&&Date.now()-at>=STALE_MS,time=clock(thai,at);
  const text=syncing?(thai?'กำลังซิงค์…':'Syncing…'):stale?(thai?'ข้อมูล ณ '+time:'Saved data from '+time):(thai?'อัปเดต '+time:'Updated '+time);
  const action=thai?'ซิงค์ตอนนี้':'Sync now';
- const start=()=>{if(syncing)return;seenActive.current=false;setRequestedAt(Date.now());window.dispatchEvent(new Event('mw-offline-prepare'))};
+ const start=()=>{if(!syncing)window.dispatchEvent(new CustomEvent('mw-offline-prepare',{detail:{all:true}}))};
  return <button type="button" className={'live-sync-status'+(stale?' stale':'')+(syncing?' syncing':'')} aria-label={syncing?text:text+' — '+action} aria-busy={syncing} title={action} onClick={start}>{text}</button>;
 }
 /** SYNC-UX-07/R01/R06: a brief notice when changes that waited in the queue reach

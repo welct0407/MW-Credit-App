@@ -367,9 +367,11 @@ function App() {
   useEffect(()=>{setRefreshFeedback('')},[view,activeBack?.navigationKey]);
   function refreshCurrentScreen(){
     pwa.checkUpdate();
+    // The refresh button also syncs the local dataset (every domain, as Sync now); like the 30-second poll it runs beside an open edit.
+    window.dispatchEvent(new CustomEvent('mw-offline-prepare',{detail:{all:true}}));
     const editing=!!workspace.current?.querySelector('form input:not([type="hidden"]):not(:disabled):not([readonly]),form textarea:not(:disabled):not([readonly]),form select:not(:disabled),.selected-payment');
     if(editing&&(!activeRefresh||activeRefresh.priority<10)){setRefreshFeedback(t('Your edits are kept. Finish this change before refreshing its source.','เก็บข้อมูลที่แก้ไขไว้แล้ว ทำรายการนี้ให้เสร็จก่อนรีเฟรชข้อมูลต้นทาง'));return;}
-    setRefreshFeedback('');clearCachedReadFailures(offlineRepository?.scopeName);window.dispatchEvent(new Event('mw-offline-prepare'));if(activeRefresh){activeRefresh.run();return;}
+    setRefreshFeedback('');clearCachedReadFailures(offlineRepository?.scopeName);if(activeRefresh){activeRefresh.run();return;}
     if(!activeBack&&!searchOpen&&!savedPayments&&borrowerEditor===undefined&&!newLoan&&!fullLoan&&!borrowerPayment){if(view==='collection'){setCollectionRefresh(value=>value+1);return;}if(view==='borrowers'&&user){void load(user);return;}}
     setRefreshFeedback(t('This screen has no refreshable data. Your current entries are kept.','หน้านี้ไม่มีข้อมูลที่ต้องรีเฟรช เก็บข้อมูลที่กรอกไว้แล้ว'));
   }

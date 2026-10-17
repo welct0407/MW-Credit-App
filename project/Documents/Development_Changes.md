@@ -21,6 +21,15 @@
 
 Use the [release tracker](Release_Tracker.md), including the carried R016 administrative follow-up. Current runtime versions belong in [environment inventory](Environment_Inventory.md). Update this page for actual outstanding work, not completed-release history.
 
+## R071 header refresh syncs the local dataset
+
+Owner request 17 October 2026: the header refresh should also delta-sync the local dataset. Branch `claude/r071-style-decisions`; PWA only, no API or SQL change, not deployed.
+
+- **Found.** The refresh already sent `mw-offline-prepare`, but silently: the header kept "Updated HH:MM", and while any domain was failed it retried only that domain, so the others were not checked. A form open on screen skipped the sync.
+- **Changed.** The refresh and the header Sync now send `mw-offline-prepare` with `detail.all`: every domain is delta-checked, including those that did not fail, joining a check already queued or in flight. The refresh syncs beside an open edit, as the 30-second poll does, and still keeps the screen. The header reads "Syncing…" until the queued domains are checked (new `domainsPending` in the preparation state; a check already in flight no longer ends it early; offline it does not show). The banner Retry still retries only failed domains. Dictionary `offline_datasets/incremental` updated.
+- **Checks.** New e2e (payment-command) "Header refresh also delta-syncs every local dataset domain": fails on the old code, passes 10 of 10 (5 desktop, 5 mobile). Related specs (payment-command, back-consumers, live-signout-blocked, payment-phase4, phase5-borrower, phase5-final-ui, refresh-hold, offline-delta, pending-flash) 328 passed; `npm run check` 576 of 576; `tsc` clean; Biome lint 0 errors, warnings unchanged. Full Playwright before the `domainsPending` fix: 522 passed, 12 skipped, 4 failed (the U10 1440 px flake twice, the back-off test once, which passes 4 of 4 alone, and the new test on mobile, which exposed the early "Updated" that `domainsPending` fixes).
+- **Recovery.** `git revert` the commit; Hosting rollback to the prior version once deployed.
+
 ## R071 style decisions
 
 Owner decisions 17 October 2026 on the R070 cascade audit ("Prepare these in R071"). Branch `claude/r071-style-decisions` from `main` `038b5c9`; UI-only, no API or SQL change, not deployed.

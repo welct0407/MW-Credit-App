@@ -271,3 +271,23 @@ test('G07 receipt downscale shows a preparing state and keeps review disabled un
  await expect.poll(()=>uploads.length).toBe(1);await expect(review).toBeEnabled();await expect(page.getByText('Preparing receipt…',{exact:true})).toHaveCount(0);
  expect(uploads[0]).toEqual({type:'image/jpeg',width:1600});
 });
+
+test('Header refresh also delta-syncs every local dataset domain, shows Syncing… and checks the domains that did not fail',async({page})=>{
+ await page.setViewportSize({width:390,height:844});const directoryBorrower={id:borrower.id,name:'Prepared synthetic borrower',borrowerDisplayName:'Prepared synthetic borrower',totalProfitEarned:'10',createdDate:'2026-10-14',hasActiveLoan:true,outstandingPrincipal:'330',note:null};
+ const posts:string[]=[];let failOnly:string[]=[],hold:Promise<void>|null=null;
+ await page.route('https://mw-credit-app-command-dev-test.run.app/**',async route=>{const url=new URL(route.request().url()),domain=url.searchParams.get('domain')??'notifications';if(!url.pathname.includes('offline-dataset'))return route.fulfill({json:{item:{language:'English'}}});if(route.request().method()==='POST'){posts.push(domain);await hold;if(failOnly.includes(domain))return route.fulfill({status:503,json:{code:'unavailable'}});return route.fulfill({json:{schemaVersion:3,domain,complete:true,unchanged:true,sourceVersion:'synthetic-v1',nextCursor:null,asOf:'2026-10-14T00:00:00Z',businessDate:'2026-10-14',patches:[],values:{}}})}return route.fulfill({json:preparedWire({schemaVersion:1,domain,complete:true,ok:true,sourceVersion:'synthetic-v1',asOf:'2026-10-14T00:00:00Z',businessDate:'2026-10-14',data:domain==='records'?{borrowerList:[directoryBorrower],borrowers:[],payments:[]}:domain==='collection'?{items:[],charges:[],borrowerUpcoming:[]}:{}})})});
+ await page.route('**/deps/firebase_app.js*',r=>r.fulfill({contentType:'text/javascript',body:'export function initializeApp(){return {}}'}));await page.route('**/deps/firebase_auth.js*',r=>r.fulfill({contentType:'text/javascript',body:authMock}));await page.route('https://mw-credit-app-read-dev-test.run.app/**',r=>r.fulfill({json:{ok:true,source:'dev',businessDate:'2026-10-14',asOf:'2026-10-14T00:00:00Z',items:[directoryBorrower],nextCursor:null}}));
+ await page.goto(base);await page.getByRole('button',{name:/Google/}).click();await chooseLanguage(page,'EN');
+ await page.evaluate(async()=>{const m=await import('/apps/pwa/src/owner-offline.ts');await m.ownerOfflineRepository({issuer:'https://securetoken.google.com/clever-oasis-508610-n7',uid:'synthetic-owner'},'dev').authorize();window.dispatchEvent(new Event('mw-offline-prepare'))});
+ const refresh=page.locator('button.collection-update'),sync=page.locator('.live-sync-status'),all=['records','collection','cash','management','notifications'];
+ await expect(page.locator('.header-load-progress')).toHaveCount(0);await expect(sync).toContainText('Updated');await expect(refresh).toBeEnabled();
+ const after=async(action:()=>Promise<unknown>)=>{posts.length=0;await action();await expect.poll(()=>[...posts].sort()).toEqual([...all].sort());await page.waitForTimeout(600);expect(posts).toHaveLength(all.length)};
+ // The refresh button starts a delta check of every domain (POST with the stored cursor) and the header reads Syncing… until it completes; no first-download progress bar.
+ let release!:()=>void;hold=new Promise<void>(resolve=>release=resolve);posts.length=0;await refresh.click();await expect(sync).toHaveText('Syncing…');await expect(page.locator('.header-load-progress')).toHaveCount(0);release();hold=null;await expect.poll(()=>[...posts].sort()).toEqual([...all].sort());await expect(sync).toContainText('Updated');
+ // With one domain failed, the refresh still checks the others, not only the failed one.
+ failOnly=['cash'];await after(()=>page.evaluate(()=>window.dispatchEvent(new Event('focus'))));await expect(page.locator('.offline-preparation-status')).toContainText('Updates paused');
+ failOnly=[];await after(()=>refresh.click());await expect(page.locator('.offline-preparation-status')).toHaveCount(0);
+ // The banner Retry keeps retrying only failed work; Sync now checks every domain, as the refresh does.
+ failOnly=['cash'];await after(()=>page.evaluate(()=>window.dispatchEvent(new Event('focus'))));failOnly=[];posts.length=0;await page.locator('.offline-preparation-status').getByRole('button',{name:'Retry',exact:true}).click();await expect.poll(()=>posts).toEqual(['cash']);await page.waitForTimeout(600);expect(posts).toEqual(['cash']);
+ await after(()=>sync.click());
+});
