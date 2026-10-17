@@ -86,7 +86,7 @@ Owner decisions applied: keep the zoom lock (APP-UX-A11Y-01, APP-SEC-02); APP-UX
 | DB CI `Test-CI.ps1 -Group phase5` (new mandatory-name integration case) | exit 0 |
 | Playwright both projects (phase5-borrower, cash-two-workspaces, phase5-final-ui, w5-ux and the specs that create borrowers) | 290 passed, 2 skipped |
 | Orchestrator review of the server diff | rollback on refusal confirmed; borrower update inputs carry the full field set, so an update never omits the name |
-| DEV Hosting redeploy of 0fdf49a (UI part of the name rule and the Buddhist date) | {{dev-hosting-0fdf49a}} |
+| DEV Hosting redeploy of 0fdf49a (UI part of the name rule and the Buddhist date) | version `04be638d95d54887`, release `1792207263557000` (17 October 2026 10:21 Bangkok, 03:21:03Z), readback and service-worker update smoke passed, Cloud Run unchanged; rollback `b720883f73c50d6f` |
 
 Agent C review found no defects.
 
