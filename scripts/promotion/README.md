@@ -23,6 +23,10 @@ node scripts/promotion/deploy-business-hosting.mjs --apply --inputs ABSOLUTE_PRI
 
 The private root is `MW_PRIVATE_ROOT/MW-Credit-App` (default `~/.mw-private`); each receipt write is also copied to `gs://mw-credit-operator-private-737787224638/promotion-receipts/`. Keep packages there too, since the session disk is discarded.
 
+## R071 Hosting-only promotion on the R069 runtime
+
+`schemaVersion: 12`, `release: R071`, `scope: frontend-only`, `status: prepared`: the R070 contract with the source baseline moved to the R070 release `038b5c9` (the source must descend from it). The runtime, SQL and infrastructure inputs are still compared with R069 `9c4a4cb`, except that `package.json` may change in `scripts` only: it leaves the name-only diff, and both manifests must be deeply equal once `scripts` is removed (the image runs `npm ci --omit=dev` and no npm script). `package-lock.json` must stay unchanged, and R065, R066 and R070 keep the strict `package.json` rule. `sql` pins verified V95 with no migration. The CI gate is R070's (`full`, `check`, `database`, each an input-equivalent ancestor or the delivery-tool commit), and `full` and `check` cover `package.json`, so their runs must include the final `package.json`. The delivery-tool commit may carry the runner, its unit test, documents and this README.
+
 ## R070 Hosting-only promotion on the R069 runtime
 
 `schemaVersion: 11`, `release: R070`, `scope: frontend-only`, `status: prepared`: the R065/R066 Hosting-only contract moved onto the R069 runtime. The source must descend from the R069 release `9c4a4cb` and change none of the R069 runtime, SQL or infrastructure inputs (compared with `9c4a4cb`, not R064); `sql` pins verified V95 with no migration; `runtime.services` pins the four live R069 services, which apply re-reads. The delivery-tool commit may carry the runner, its unit test, documents and this README.
