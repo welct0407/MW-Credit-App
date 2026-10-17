@@ -23,6 +23,10 @@ node scripts/promotion/deploy-business-hosting.mjs --apply --inputs ABSOLUTE_PRI
 
 The private root is `MW_PRIVATE_ROOT/MW-Credit-App` (default `~/.mw-private`); each receipt write is also copied to `gs://mw-credit-operator-private-737787224638/promotion-receipts/`. Keep packages there too, since the session disk is discarded.
 
+## R070 Hosting-only promotion on the R069 runtime
+
+`schemaVersion: 11`, `release: R070`, `scope: frontend-only`, `status: prepared`: the R065/R066 Hosting-only contract moved onto the R069 runtime. The source must descend from the R069 release `9c4a4cb` and change none of the R069 runtime, SQL or infrastructure inputs (compared with `9c4a4cb`, not R064); `sql` pins verified V95 with no migration; `runtime.services` pins the four live R069 services, which apply re-reads. The delivery-tool commit may carry the runner, its unit test, documents and this README.
+
 ## R069 runtime and frontend promotion on V95
 
 `schemaVersion: 10`, `release: R069`, `scope: runtime-workers-frontend`, the R068 contract without SQL. The source must descend from the R068 release `73a4420` and change nothing under `database/migrations`. `sql` is baseline and target 95 with no migrations, plus a read-only readback (`sql.verified`: `loan_manager_prod`, latest version 95, 95 successful history rows, a UTC `verifiedAt`). Plan, applied revisions, rollback pins and the CI gate are as for R068; the delivery-tool commit may carry the runner, its unit test, documents and this README only.

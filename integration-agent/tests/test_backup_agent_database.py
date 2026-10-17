@@ -23,6 +23,26 @@ class DumpNameTests(unittest.TestCase):
                 backup.safe_dump_name(bad)
 
 
+class SourceSslModeTests(unittest.TestCase):
+    def test_require_is_accepted_for_any_host(self):
+        for host in ('10.0.0.5', '127.0.0.1', 'db.example'):
+            with self.subTest(host=host):
+                self.assertEqual(backup.source_sslmode('require', host), 'require')
+
+    def test_disable_is_only_for_a_loopback_tunnel(self):
+        for host in ('127.0.0.1', '::1', 'localhost'):
+            with self.subTest(host=host):
+                self.assertEqual(backup.source_sslmode('disable', host), 'disable')
+        for host in ('10.0.0.5', '34.1.2.3', '127.0.0.2', 'db.example', ''):
+            with self.subTest(host=host), self.assertRaisesRegex(RuntimeError, 'loopback'):
+                backup.source_sslmode('disable', host)
+
+    def test_other_modes_are_refused(self):
+        for mode in ('prefer', 'allow', 'verify-full', ''):
+            with self.subTest(mode=mode), self.assertRaises(RuntimeError):
+                backup.source_sslmode(mode, '127.0.0.1')
+
+
 class ToolResolutionTests(unittest.TestCase):
     def test_windows_keeps_lab_bin_and_exe(self):
         path = backup.pg_tool('pg_dump', 'C:/lab/bin', windows=True)
@@ -55,11 +75,11 @@ class ToolResolutionTests(unittest.TestCase):
 
 
 class MainValidationTests(unittest.TestCase):
-    def run_main(self, *extra, tools=True):
+    def run_main(self, *extra, tools=True, host='h'):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             env = root / 'env.json'
-            env.write_text(json.dumps({'production': {'instance': 'mw-credit-pg-20261017', 'host': 'h', 'port': 5432,
+            env.write_text(json.dumps({'production': {'instance': 'mw-credit-pg-20261017', 'host': host, 'port': 5432,
                                                       'user': 'u', 'passwordFile': str(root / 'pw')}}))
             lab = root / 'lab.json'
             lab.write_text(json.dumps({'host': '127.0.0.1', 'port': 55432, 'root': str(root), 'bin': str(root)}))
@@ -73,6 +93,15 @@ class MainValidationTests(unittest.TestCase):
     def test_unsafe_dump_name_is_refused_before_any_connection(self):
         with self.assertRaisesRegex(RuntimeError, 'Unsafe dump name'):
             self.run_main('--dump-name', '../escape.dump')
+
+    def test_disable_for_a_remote_source_is_refused_before_any_connection(self):
+        with self.assertRaisesRegex(RuntimeError, 'loopback'):
+            self.run_main('--source-sslmode', 'disable', host='34.1.2.3')
+
+    def test_disable_for_the_tunnel_passes_validation(self):
+        # Validation passes, so the first (lab) connection is reached and the mock stops the run there.
+        with self.assertRaisesRegex(AssertionError, 'no database access expected'):
+            self.run_main('--source-sslmode', 'disable', host='127.0.0.1')
 
     def test_missing_tools_are_refused_before_any_connection(self):
         with self.assertRaisesRegex(RuntimeError, 'not found on PATH'):

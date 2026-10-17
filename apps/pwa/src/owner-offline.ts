@@ -44,11 +44,15 @@ export function ownerOfflineRepository(identity:{issuer:string;uid:string},envir
  const name=offlineNamespace(identity,environment);
  const instanceEpoch=namespaceEpochs.get(name)??0;
  const validInstance=()=>instanceEpoch===(namespaceEpochs.get(name)??0);
+ // WebKit can drop an installed app's IndexedDB connection (backgrounding, storage restart). A closed,
+ // superseded or failed connection is forgotten so the next transaction opens a fresh one.
  let opened:Promise<IDBDatabase>|null=null;
- const open=()=>opened??=new Promise<IDBDatabase>((resolve,reject)=>{
+ const drop=(connection:Promise<IDBDatabase>)=>{if(opened===connection)opened=null};
+ const open=():Promise<IDBDatabase>=>{if(opened)return opened;const connection=new Promise<IDBDatabase>((resolve,reject)=>{
   const request=indexedDB.open(name,1);request.onupgradeneeded=()=>request.result.createObjectStore('records',{keyPath:'key'});
-  request.onsuccess=()=>{const db=request.result;void sweepStale(db).then(()=>{resolve(db);void sweepOtherOwners(environment,name).catch(()=>{})})};request.onerror=()=>reject(Error('Offline storage unavailable'));
- });
+  request.onsuccess=()=>{const db=request.result;db.onclose=()=>drop(connection);db.onversionchange=()=>{db.close();drop(connection)};void sweepStale(db).then(()=>{resolve(db);void sweepOtherOwners(environment,name).catch(()=>{})})};request.onerror=()=>{drop(connection);reject(Error('Offline storage unavailable'))};
+ });opened=connection;return connection};
+ const lost=(error:unknown)=>['UnknownError','InvalidStateError'].includes((error as {name?:string}|null)?.name??'');
  // Capture the durable namespace epoch when this owner-scoped instance is created.
  // Purge advances it atomically; late writes from other tabs cannot restore old data.
  const capturedEpoch=open().then(db=>new Promise<string>((resolve,reject)=>{
@@ -56,15 +60,18 @@ export function ownerOfflineRepository(identity:{issuer:string;uid:string},envir
   req.onsuccess=()=>resolve(req.result?.value??'initial');req.onerror=()=>reject(Error('Offline storage unavailable'));
  }));
  void capturedEpoch.catch(()=>{});
- async function transaction<T>(mode:IDBTransactionMode,work:(store:IDBObjectStore,done:(value:T)=>void,fail:(error:Error)=>void)=>void,bypassEpoch=false):Promise<T>{
+ async function transaction<T>(mode:IDBTransactionMode,work:(store:IDBObjectStore,done:(value:T)=>void,fail:(error:Error)=>void)=>void,bypassEpoch=false,retried=false):Promise<T>{
   if(mode==='readwrite'&&!bypassEpoch&&!validInstance())throw Error('Offline owner scope revoked');
-  const db=await open(),expected=await capturedEpoch;
+  const connection=open(),db=await connection,expected=await capturedEpoch;
   if(mode==='readwrite'&&!bypassEpoch&&!validInstance())throw Error('Offline owner scope revoked');
-  return new Promise((resolve,reject)=>{const tx=db.transaction('records',mode);let value:T;
-   tx.oncomplete=()=>resolve(value);tx.onerror=tx.onabort=()=>reject(Error('Offline storage unavailable, full or owner scope revoked'));
+  return new Promise((resolve,reject)=>{let settled=false,tx:IDBTransaction,value:T;
+   // A lost connection aborts the transaction before it commits: reopen and run the whole transaction once more.
+   const reopen=(error:unknown)=>{if(settled||retried||!lost(error))return false;settled=true;drop(connection);resolve(transaction(mode,work,bypassEpoch,true));return true};
+   try{tx=db.transaction('records',mode)}catch(error){if(!reopen(error))reject(error);return}
+   tx.oncomplete=()=>{settled=true;resolve(value)};tx.onerror=tx.onabort=event=>{if(!reopen(tx.error??(event.target as IDBRequest|null)?.error)){settled=true;reject(Error('Offline storage unavailable, full or owner scope revoked'))}};
    const store=tx.objectStore('records');
-   const fail=(error:Error)=>{reject(error);tx.abort()};
-   const execute=()=>{try{work(store,result=>{value=result},fail)}catch(error){tx.abort();reject(error)}};
+   const fail=(error:Error)=>{settled=true;reject(error);tx.abort()};
+   const execute=()=>{try{work(store,result=>{value=result},fail)}catch(error){settled=true;tx.abort();reject(error)}};
    if(mode==='readwrite'&&!bypassEpoch){const req=store.get('meta:epoch');req.onsuccess=()=>{if(!validInstance()||(req.result?.value??'initial')!==expected){tx.abort();return;}execute()};}
    else execute();
   });

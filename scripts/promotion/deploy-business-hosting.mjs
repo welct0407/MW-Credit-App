@@ -316,9 +316,12 @@ export async function verifyWaveLivePackage(m,{token,request=fetch,readGithub,gi
 }
 
 // R065, R066: Hosting-only releases on the unchanged R064 runtime (image, Terraform and V93 stay).
-// Each source descends from the previous release; runtime inputs are compared with R064.
-const r064Release='9420c8599ce593eeeaafc1e68a235ab3d1d08d8c';
-const hostingOnlyReleases={R065:{schemaVersion:7,baseline:r064Release},R066:{schemaVersion:8,baseline:'74ad26b57dcfb9effea86d638b7d112cffe042c5'}};
+// R070: the same on the unchanged R069 runtime and V95. Each source descends from the previous
+// release; runtime inputs are compared with the release whose runtime stays (runtime).
+const r064Release='9420c8599ce593eeeaafc1e68a235ab3d1d08d8c',r069Release='9c4a4cb753c7874206b6b1d1e9d28fa87d66002c';
+const hostingOnlyReleases={R065:{schemaVersion:7,baseline:r064Release,runtime:r064Release,runtimeLabel:'R064',sqlVersion:93},R066:{schemaVersion:8,baseline:'74ad26b57dcfb9effea86d638b7d112cffe042c5',runtime:r064Release,runtimeLabel:'R064',sqlVersion:93},R070:{schemaVersion:11,baseline:r069Release,runtime:r069Release,runtimeLabel:'R069',sqlVersion:95}};
+// From R070 the delivery-tool commit may also carry this runner's README (as for R069).
+const hostingOnlyDeliveryAllowed=L=>L==='R070'?file=>runtimeDeliveryAllowed(file)||file==='scripts/promotion/README.md':runtimeDeliveryAllowed;
 const r065RuntimeInputs=['services','database','Dockerfile','.dockerignore','.gcloudignore','cloudbuild-command.yaml','cloudbuild-business.yaml','package.json','package-lock.json','infrastructure/production','infrastructure/modules'];
 export function validateR065Source(m,git=sourceGit){return validateHostingOnlySource(m,git,'R065');}
 export function validateHostingOnlySource(m,git=sourceGit,release=m?.release){
@@ -326,10 +329,10 @@ export function validateHostingOnlySource(m,git=sourceGit,release=m?.release){
  requireValue(/^[a-f0-9]{40}$/.test(m.sourceCommit??'')&&m.artifactSourceCommit===m.sourceCommit&&m.sourceBaseline===base,'exact '+L+' source/baseline required');
  requireValue(path.isAbsolute(m.repoRoot??'')&&path.isAbsolute(m.artifactRoot??''),'absolute source/artifact roots required');
  requireValue(git(m.repoRoot,['rev-parse',m.sourceCommit])===m.sourceCommit&&git(m.repoRoot,['merge-base',base,m.sourceCommit])===base,L+' source must descend from the previous release');
- requireValue(git(m.repoRoot,['diff','--name-only',r064Release,m.sourceCommit,'--',...r065RuntimeInputs])==='',L+' must not change the R064 runtime, SQL or infrastructure');
+ requireValue(git(m.repoRoot,['diff','--name-only',hostingOnlyReleases[L].runtime,m.sourceCommit,'--',...r065RuntimeInputs])==='',L+' must not change the '+hostingOnlyReleases[L].runtimeLabel+' runtime, SQL or infrastructure');
  const tool=m.deliveryToolSource??m.sourceCommit;
  requireValue(/^[a-f0-9]{40}$/.test(tool)&&git(m.repoRoot,['rev-parse','HEAD'])===tool,L+' delivery source mismatch');
- if(tool!==m.sourceCommit){requireValue(git(m.repoRoot,['merge-base',m.sourceCommit,tool])===m.sourceCommit,L+' delivery source must descend from the pinned source');const changes=git(m.repoRoot,['diff','--name-only',m.sourceCommit,tool]).split('\n').filter(Boolean);requireValue(changes.every(runtimeDeliveryAllowed)&&m.deliveryToolChecks?.command==='node --test tests/unit/business-hosting-delivery.test.mjs'&&m.deliveryToolChecks.exitCode===0,L+' unverified delivery correction');}
+ if(tool!==m.sourceCommit){requireValue(git(m.repoRoot,['merge-base',m.sourceCommit,tool])===m.sourceCommit,L+' delivery source must descend from the pinned source');const changes=git(m.repoRoot,['diff','--name-only',m.sourceCommit,tool]).split('\n').filter(Boolean);requireValue(changes.every(hostingOnlyDeliveryAllowed(L))&&m.deliveryToolChecks?.command==='node --test tests/unit/business-hosting-delivery.test.mjs'&&m.deliveryToolChecks.exitCode===0,L+' unverified delivery correction');}
  requireValue(git(m.repoRoot,['diff','--name-only',tool,'--',...runtimeInputs,'scripts/promotion'])==='',L+' working input drift');
  requireValue(git(m.repoRoot,['ls-files','--others','--exclude-standard','--',...runtimeInputs,'scripts/promotion'])==='',L+' untracked input');
 }
@@ -340,9 +343,9 @@ export async function hostingOnlyPlan(m,{git=sourceGit,release=m?.release}={}){
  requireValue(!m.build&&!m.plan&&!m.applied&&!m.activation,L+' package must not apply runtime or infrastructure changes');
  validateHostingOnlySource(m,git,L);
  requireValue(exact(m.target,{projectId:project,projectNumber:'737787224638',region:'asia-southeast1',site:prodSite,database:'loan_manager_prod',connectionName:project+':asia-southeast1:mw-credit-pg-20261017',canonicalOrigin:'https://lm.mw-credit.com'}),'wrong production target');
- const v=m.sql?.verified;
- requireValue(m.sql?.baselineVersion===93&&m.sql.targetVersion===93&&exact(m.sql.migrations,[])&&v?.database==='loan_manager_prod'&&v.latestVersion==='93'&&v.allSuccessful===true&&typeof v.verifiedAt==='string'&&v.verifiedAt.endsWith('Z')&&Number.isFinite(Date.parse(v.verifiedAt)),L+' requires verified V93 with no migration');
- validateWaveCi(m.applicationCi,m,git,L);
+ const v=m.sql?.verified,V=hostingOnlyReleases[L].sqlVersion;
+ requireValue(m.sql?.baselineVersion===V&&m.sql.targetVersion===V&&exact(m.sql.migrations,[])&&v?.database==='loan_manager_prod'&&v.latestVersion===String(V)&&v.allSuccessful===true&&typeof v.verifiedAt==='string'&&v.verifiedAt.endsWith('Z')&&Number.isFinite(Date.parse(v.verifiedAt)),L+' requires verified V'+V+' with no migration');
+ validateWaveCi(m.applicationCi,m,git,L,hostingOnlyDeliveryAllowed(L));
  for(const role of runtimeRoles)requireValue(imagePattern.test(m.runtime?.services?.[role]?.image??'')&&new RegExp('^mw-credit-app-'+role+'-prod-[0-9]+-[a-z0-9]+$').test(m.runtime.services[role].revision??''),L+' unchanged runtime pins required');
  const recovery=m.rollback;
  requireValue(/^sites\/mw-credit-prod-737787224638\/versions\/[A-Za-z0-9_-]+$/.test(recovery?.hostingVersion??'')&&/^sites\/mw-credit-prod-737787224638\/releases\/[0-9]+$/.test(recovery?.hostingRelease??''),'Hosting recovery pins required');
@@ -353,12 +356,12 @@ export async function verifyHostingOnlyLivePackage(m,{token,request=fetch,readGi
  const L=release;requireValue(hostingOnlyReleases[L],'unsupported Hosting-only release');
  const gh=readGithub??(args=>{const r=spawnSync('gh',args,{encoding:'utf8',maxBuffer:8*1024*1024});requireValue(r.status===0,'actual GitHub CI readback failed');return JSON.parse(r.stdout)});
  const live={};for(const kind of Object.keys(runtimeCiKinds)){const id=m.applicationCi?.[kind]?.run?.id;requireValue(Number.isSafeInteger(id)&&id>0,'actual CI run id required');live[kind]={run:await gh(['api',`repos/welct0407/MW-Credit-App/actions/runs/${id}`]),jobs:(await gh(['api',`repos/welct0407/MW-Credit-App/actions/runs/${id}/jobs?per_page=100`])).jobs};}
- validateWaveCi(live,m,git,L);
- // The live runtime must still be exactly the pinned R064 services.
+ validateWaveCi(live,m,git,L,hostingOnlyDeliveryAllowed(L));
+ // The live runtime must still be exactly the pinned services (R064 for R065/R066, R069 for R070).
  for(const role of runtimeRoles){
   const r=await request(`https://run.googleapis.com/v2/projects/${project}/locations/asia-southeast1/services/mw-credit-app-${role}-prod`,{redirect:'error',headers:{Authorization:'Bearer '+token}});requireValue(r.ok,'live package readback failed');
   const s=await r.json(),pin=m.runtime.services[role];
-  requireValue(s.template?.containers?.[0]?.image===pin.image&&s.latestReadyRevision?.endsWith('/'+pin.revision)&&s.terminalCondition?.state==='CONDITION_SUCCEEDED',L+' live runtime differs from the pinned R064 services');
+  requireValue(s.template?.containers?.[0]?.image===pin.image&&s.latestReadyRevision?.endsWith('/'+pin.revision)&&s.terminalCondition?.state==='CONDITION_SUCCEEDED',L+' live runtime differs from the pinned services');
  }
 }
 
@@ -465,7 +468,7 @@ export async function verifyAppOnlyOperator({token,impersonationToken=token,rele
  const identity=await call('https://oauth2.googleapis.com/tokeninfo?access_token='+encodeURIComponent(token));requireValue(Number(identity.expires_in)>0,'expired access token');
  const service=await call(`https://iam.googleapis.com/v1/projects/${project}/serviceAccounts/${admin}`);requireValue(service.email===admin&&service.projectId===project&&/^\d+$/.test(service.uniqueId??''),'wrong impersonated service account');
  requireValue(identity.email===admin||(!identity.email&&identity.aud===service.oauth2ClientId&&identity.azp===service.oauth2ClientId&&service.oauth2ClientId===service.uniqueId),'wrong access-token principal');
- requireValue(['R059','R061','R062','R063','R064','R065','R066','R068','R069'].includes(release),'unsupported operator release');const audience='https://lm.mw-credit.com/promotion/'+release.toLowerCase();const signed=await call(`https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${admin}:generateIdToken`,{audience,includeEmail:true});const proof=await verifyIdToken(signed.token,audience);requireValue(proof?.email===admin&&proof.email_verified===true&&proof.sub===service.uniqueId&&proof.aud===audience,'wrong signed impersonation proof');
+ requireValue(['R059','R061','R062','R063','R064','R065','R066','R068','R069','R070'].includes(release),'unsupported operator release');const audience='https://lm.mw-credit.com/promotion/'+release.toLowerCase();const signed=await call(`https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${admin}:generateIdToken`,{audience,includeEmail:true});const proof=await verifyIdToken(signed.token,audience);requireValue(proof?.email===admin&&proof.email_verified===true&&proof.sub===service.uniqueId&&proof.aud===audience,'wrong signed impersonation proof');
  for(const site of [prodSite,'mw-credit-app-dev-737787224638'])requireValue((await call(`https://firebasehosting.googleapis.com/v1beta1/projects/${project}/sites/${site}`)).name===`projects/${project}/sites/${site}`,'wrong live Hosting target');
  return {operator:admin,verification:'token principal and signed impersonation proof'};
 }
