@@ -30,7 +30,7 @@ Use the [release tracker](Release_Tracker.md), including the carried R016 admini
 - **Zoom lock** (A11Y-01, SEC-02): kept by owner decision, "accepted design, mitigated".
 - **Headers** (PERF-02): immutable `/assets/**` and `no-store` for `/`, `sw.js`, `build-version.json`, manifest and `offline.html` have been live in DEV and PROD since R063; W5 only aligned the `firebase.json` mirror and its test, so PROD headers are unchanged and the W5 UI reaches PROD with the R068 promotion.
 - **Notifications worker** (APP-NOTIFY-02): code and unit test only; not deployed because DEV runs one image on all four services from another session. It ships with the next all-services DEV roll and with promotion.
-- **Deployment:** {{DEV Hosting version, release, smoke}}. Checks: {{consolidated results}}.
+- **Deployment:** DEV Hosting `b720883f73c50d6f`, release `1792191281291000` (17 October 2026 05:54 Bangkok, source c3329b1), header readback and service-worker update smoke passed; rollback `0f181d5d61573ebf`. Checks: `npm run check` 545 of 545, lint 0 errors, full Playwright 503 passed and 1 pre-existing flaky failure (`startup-generations-independent`, also 5 of 10 on `main` c3684d8).
 - **Remaining:** see the change note (Thai pending-sync text in `preference-save.ts`, sidebar scroll with pending changes at 1280x800, icons and maskable icon, DEV Notifications view hidden).
 
 ## R064 local dataset sync fix and shared Cloud SQL

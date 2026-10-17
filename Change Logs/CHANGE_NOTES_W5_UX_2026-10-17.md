@@ -79,9 +79,9 @@ Owner decisions applied: keep the zoom lock (APP-UX-A11Y-01, APP-SEC-02); APP-UX
 | New unit tests | `borrower-label`, `sign-in-failure` (with the notification line), `sw-notification-click`, `wns-push-endpoints`; updated `display-money`, `sign-out-guard`, `hosting-headers` |
 | New e2e spec | `w5-ux-independent.spec.ts` (both projects) |
 | Agent E re-check, 1280x800 and 430x932, EN and TH | every code pass or accepted; five corrections (C-1 to C-5) applied |
-| Consolidated checks on the merged tree (`npm run check`, lint, full Playwright) | {{final results}} |
-| `deploy-hosting.mjs --live-dev --check`, DEV Hosting deploy | {{version, release, marker, entry, files}} |
-| DEV header readback, service-worker update detection, smoke | {{results}} |
+| Consolidated checks on the merged tree (`npm run check`, lint, full Playwright) | `npm run check` exit 0 (unit 545 of 545); lint exit 0, 0 errors, 771 warnings; full Playwright both projects 503 passed, 12 skipped, 1 failed: `startup-generations-independent` (mobile; rerun: desktop failed, mobile passed). The same test fails 5 of 10 runs on `origin/main` c3684d8 without W5 (same assertion, one extra API read during reload): pre-existing, not W5 |
+| `deploy-hosting.mjs --live-dev --check`, DEV Hosting deploy | `--check` passed, 14 files, built from a clean worktree of c3329b1 (later commits are records only). Deployed 16 October 2026 22:54:41Z (17 October 05:54 Bangkok) as `codex-cloud`: version `b720883f73c50d6f`, release `1792191281291000`, marker `ef4bd63b6ac8ac551ff59ee7`, entry `/assets/index-DeTYCpPr.js`; entry, `sw.js` and `index.html` bytes equal the local build; Cloud Run unchanged (`6a3effe41842…` on all four DEV services) |
+| DEV header readback, service-worker update detection, smoke | `Cache-Control: no-store` on `/`, `/index.html`, `/sw.js`, `/manifest.webmanifest`, `/build-version.json`, `/offline.html`; `public,max-age=31536000,immutable` on the entry asset; `X-Frame-Options: DENY` everywhere. Unauthenticated smoke (headless Chromium, same profile before and after): the old worker (`e6c5cd88…`) detected the new `build-version.json`, activated the new worker (`ef4bd63b…`) and reloaded once; sign-in card rendered. No authenticated smoke (no DEV test identity) |
 
 Agent C review found no defects.
 
@@ -120,7 +120,7 @@ Agent C review found no defects.
 
 ## Recovery
 
-`git revert` the W5 commits. DEV Hosting: previous version `0f181d5d61573ebf` (R066, release `1792173681752000`) unless a later release exists; re-read the DEV release before any rollback because other sessions deploy DEV. UI-only: no database dump or restore rehearsal; no runtime or Terraform change.
+`git revert` the W5 commits. DEV Hosting now `b720883f73c50d6f`; previous version `0f181d5d61573ebf` (R066, release `1792173681752000`) unless a later release exists; re-read the DEV release before any rollback because other sessions deploy DEV. UI-only: no database dump or restore rehearsal; no runtime or Terraform change.
 
 ## Open questions
 
@@ -139,4 +139,5 @@ Defaults applied; the owner may change any of them.
 - PERF-01 is partly done (icons 192/512/apple unchanged; maskable icon per PERF-03 not done).
 - A missing `/assets/*` file falls through the SPA rewrite and is served as `index.html` with the immutable header (low risk, measured); a narrower rewrite would change both Hosting runners' frozen contracts: a separate item.
 - DEV Hosting uses the "MW Credit Production" web app id; whether DEV should use the DEV app is a separate decision.
+- `tests/e2e/startup-generations-independent.spec.ts` is flaky on `main` since the W4 follow-ups merge (5 of 10 on c3684d8: one extra API read during the reload; likely the on-focus dataset refresh `905eb82`); owned by that change, not fixed here.
 - W5 UI reaches PROD with the R068 promotion (headers already in PROD since R063).
