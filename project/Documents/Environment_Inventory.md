@@ -1,6 +1,6 @@
 # Current environment inventory
 
-Updated 17 October 2026 from existing deployment evidence (R070 Hosting-only promotion, R069 runtime and agent, R068 schema V95). This is the only document that holds deployment pins (Hosting versions, Cloud Run revisions and image digests, Debian commit, Flyway version). Other documents link here. No unrelated live audit was performed; use [release tracker](Release_Tracker.md) for release status.
+Updated 18 October 2026 from existing deployment evidence (R071 Hosting-only promotion, R069 runtime and agent, R068 schema V95). This is the only document that holds deployment pins (Hosting versions, Cloud Run revisions and image digests, Debian commit, Flyway version). Other documents link here. No unrelated live audit was performed; use [release tracker](Release_Tracker.md) for release status.
 
 | Component | DEV | PROD |
 | --- | --- | --- |
@@ -25,7 +25,7 @@ One pin per cell, one row per target. Rollback entries are the previous verified
 | Target | Hosting version | Release / public version | Verified | Rollback version | Record |
 | --- | --- | --- | --- | --- | --- |
 | DEV | `fe7eaaa40b48ebff` | release `1792260584884000`; public `51398c05d5d6a7eb6fb15a30`; entry `/assets/index-rbPg9ZW0.js` | R071 with the Thai preference fix, source `94cbfa5`, 17 October 2026 18:09:44Z, 14 files byte-identical; built with the DEV web app `appId` | `b3fd8a00553ddb7e` (R071 first DEV build, release `1792259378089000`); earlier `aa23ab4c4aa95b11` (R070) | [R071 record](Development_Changes.md#r071-one-refresh-icon) |
-| PROD | `56d9669311d9de8f` | release `1792239767179000`; public `c374a73e7789b9425aad3337`; entry `/assets/index-CrpZKSD6.js` | R070, 12:22:47Z, 15 of 15 files byte-identical, package `93be515c...` | `45b116152dc0e997` (R069); earlier `708a6c496a812a3b` (R068), `bc7b87e2ff693780` (R066) | [R070 promotion](https://github.com/welct0407/MW-Credit-App/blob/cbc8843/project/Documents/Development_Changes.md#r070-production-promotion) |
+| PROD | `8d479df729eb1a78` | release `1792262160591000`; public `f06cebc5afabcfb88f506e9b`; entry `/assets/index-467jzRfJ.js` | R071, source `cb333f5`, 18:36:00Z 17 October 2026 (01:36 Bangkok 18 October), 15 of 15 files byte-identical on both hosts, package `1378dbbf...`, receipt `a383e2ae...` | `56d9669311d9de8f` (R070, release `1792239767179000`); earlier `45b116152dc0e997` (R069), `708a6c496a812a3b` (R068) | [R071 production promotion](Development_Changes.md#r071-production-promotion) |
 
 Headers on both: CSP (PROD API origins only on PROD), `X-Frame-Options: DENY`, immutable `/assets/**`, `no-store` for `/`, `sw.js`, `build-version.json`, manifest and `offline.html`; viewport zoom lock kept (accepted design, W5 R068).
 

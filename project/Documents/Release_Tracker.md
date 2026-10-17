@@ -14,7 +14,6 @@ All new features/fixes use the sole Open release. Freeze only at authorized prom
 
 | Release | Status | Remaining action / owning record |
 | --- | --- | --- |
-| R071 | Frozen 18 October 2026 (Bangkok); PROD Hosting promotion in progress ([record](Development_Changes.md#r071-production-promotion)); on DEV | One refresh icon: syncs saved changes and every local dataset domain, with progress then the updated time or failed sections beside it, no offline red flash ([record](Development_Changes.md#r071-one-refresh-icon)); owner style decisions: Upcoming headings 20 px, coloured Collection group status labels, tablet dashboard heading spacing, brown Save and white Cancel on the borrower edit bar, check icon on Confirm payment, unused CSS removed, Thai pending-sync note (PR #55) (UI-only, branch `claude/r071-style-decisions`, on DEV; [record](Development_Changes.md#r071-style-decisions)); DEV web builds switch to the MW Credit DEV web app `appId` from `mw-credit-app-dev-firebase-web` (owner decision 17 October 2026; in effect on DEV; PROD unchanged); [rule](../../docs/Development.md#credentials-and-terraform); Debian agent 5b4e50d (audit_relay validator, 17:27:06Z) and live catalogue revision 28 (17:39:54Z), owner go 18 October 2026 |
 | R056 | Frozen; V91 deployed | Lisa enrollment retry/closure; [record](../outputs/r056-apple-push/README.md) |
 | R055 | Frozen; monitoring delivered | Carried credential work unfinished; [record](../outputs/r055-grafana/continuation.md) |
 | R016 | Owner-accepted reporting; administrative follow-up | Migration-key retirement evidence/final tag unresolved; do not reopen product development |
@@ -25,6 +24,7 @@ Status and records only; deployment pins are in the [environment inventory](Envi
 
 | Release | Scope | Released | Record | Tag |
 | --- | --- | --- | --- | --- |
+| R071 | One refresh icon, style decisions and Thai pending-sync note (PROD Hosting only) | 18 October 2026 (Bangkok) | [record](Development_Changes.md#r071-production-promotion) | `R071` |
 | R070 | IndexedDB reconnect hotfix, Review payment button, UX-HOLD-03/08 | 17 October 2026 | [record](https://github.com/welct0407/MW-Credit-App/blob/4a14d07/project/Documents/Development_Changes.md#r070-production-promotion) | `R070` |
 | R069 | W4 optional follow-ups and Referrer fixes | 17 October 2026 | [record](https://github.com/welct0407/MW-Credit-App/blob/4a14d07/project/Documents/Development_Changes.md#r069-production-promotion) | `R069` |
 | R068 | W4 follow-ups, Wave 5 UX and ALL-ARCH-03 2b | 17 October 2026 | [record](https://github.com/welct0407/MW-Credit-App/blob/4a14d07/project/Documents/Development_Changes.md#r068-production-promotion) | `R068` |
